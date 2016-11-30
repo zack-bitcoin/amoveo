@@ -1,0 +1,16 @@
+{application, testnet,
+ [
+  {description, "blockchain"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+		  ssl,
+		  cowboy,
+                  jiffy
+                 ]},
+  {modules, []},
+  {mod, { testnet_app, []}},
+  {env, []}
+ ]}.

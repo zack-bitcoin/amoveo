@@ -1,0 +1,12 @@
+/deps/
+/ebin/
+/rel/
+*.db
+*~
+.#*
+\#*
+rebar
+rebar_source
+.rebar
+erl_crash.dump
+keys_backup
