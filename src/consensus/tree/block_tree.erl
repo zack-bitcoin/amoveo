@@ -215,9 +215,7 @@ write2(false, SignedBlock) ->
     true = BlockGap > 0,
 %check that it has sign txs that validate it's parent block.
 %each sign tx may have won multiple times.
-    Winners = sign_tx:winners(Block#block.txs),
-    true = Winners > (constants:minimum_validators_per_block() - 1),
-%check that the amount bonded is within a small margin of the average of the last several blocks. Check that the amount being spent is less than 1/2 the amount bonded.
+    
     Size = size(zlib:compress(term_to_binary(Block))),
     true = Size < constants:max_block_size(),
     Entropy = entropy:doit(NewNumber),
