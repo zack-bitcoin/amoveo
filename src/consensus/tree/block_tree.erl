@@ -1,12 +1,10 @@
 -module(block_tree).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, long_test/0,test/0,write/1,top/0,read/1,read_int/2,read_int/1,secret/4,account/1,account/2,account/3,channel/2,channel/3,channel/1,absorb/1,is_key/1,height/1,height/0,txs/1,txs/0,power/0,power/1,block/0,block/1,buy_block/2, block_power/1,block_entropy/1,empty_block/0,total_coins/0,total_coins/1, buy_block/0, block_number/1, block2txs/1, block_root/1,backup/1,x_to_block/1,check/0,reset/0,creation_cost/1]).
--record(block, {acc = 0, number = 0, hash = "", txs = [], power = fractions:multiply_int(constants:initial_portion_delegated(), constants:initial_coins()), entropy = 0, total_coins = constants:initial_coins(), db_root = <<>>}).
-%power is how many coin are in channels. it is for consensus.
+-export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, long_test/0,test/0,write/1,top/0,read/1,read_int/2,read_int/1,secret/4,account/1,account/2,account/3,channel/2,channel/3,channel/1,absorb/1,is_key/1,height/1,height/0,txs/1,txs/0,block/0,block/1,buy_block/2,block_entropy/1,empty_block/0,total_coins/0,total_coins/1, buy_block/0, block_number/1, block2txs/1, block_root/1,backup/1,x_to_block/1,check/0,reset/0,creation_cost/1,mine/1]).
+-record(block, {acc = 0, number = 0, hash = "", txs = [], difficulty = constants:initial_difficulty(), entropy = 0, total_coins = constants:initial_coins(), db_root = <<>>}).
 %total coins is a little high. It doesn't include the block creation fee from creating the current block
 block_root(B) -> B#block.db_root.
 block_number(B) -> B#block.number.
-block_power(B) -> B#block.power.
 block_entropy(B) -> B#block.entropy.
 empty_block() -> #block{}.
 -record(x, {block = 0, height = 0, parent = finality, accounts = dict:new(), channels = dict:new(), secrets = dict:new()}).%height always increases by 1. 
@@ -179,15 +177,6 @@ txs() -> txs(read(read(top))).
 txs(X) -> 
     B = testnet_sign:data(X),
     B#block.txs.
-power() -> power(read(read(top))).
-power(X) -> 
-    A = element(1, X),
-    B = case A of
-	x -> testnet_sign:data(X#x.block);
-	signed -> testnet_sign:data(X);
-	block -> X
-    end,
-    B#block.power.
 height() -> height(read(top)).
 height(K) -> 
     X = read(K),
@@ -225,12 +214,6 @@ write2(false, SignedBlock) ->
 %take fee from block creator in the digest.
     %TCIncreases and CCLosses this way is no good.
     %Instead, look at tc increases in the most recent block, and cc_losses in the most recent block. The estimate is less precise, but more accurate. The estimate has a bigger bell curve, but at least the bell curve's center can't be adjusted by an adversary. 
-    TcIncreases = to_channel_tx:tc_increases(Block#block.txs),
-    CCLosses = channel_block_tx:cc_losses(Block#block.txs),
-    RepoLosses = repo_tx:losses(Block#block.txs),
-    CFLLosses = channel_funds_limit_tx:losses(Block#block.txs, dict:new(), ParentKey),
-    NewPower = power(Parentx#x.block) + TcIncreases - CCLosses - RepoLosses - CFLLosses,%increases from to_channel tx fed into finality (when the channel is still open) - decreases from channel closures in this block (for channels that have been open since finality).
-    NewPower = power(SignedBlock),
     NewHeight = Parentx#x.height + BlockGap,
     CreationCost = creation_cost(Block),
     CreatorId = Block#block.acc,
@@ -312,11 +295,6 @@ buy_block(Txs, TotalCoins, BlockGap) ->
     Parent = testnet_sign:data(ParentX#x.block),
     PHash = hash:doit(Parent),
     N = Parent#block.number + BlockGap,
-    TcIncreases = to_channel_tx:tc_increases(Txs),
-    CCLosses = channel_block_tx:cc_losses(Txs),
-    RepoLosses = repo_tx:losses(Txs),
-    CFLLosses = channel_funds_limit_tx:losses(Txs, dict:new(), read(top)),
-    P = Parent#block.power + TcIncreases - CCLosses - RepoLosses - CFLLosses,
     Entropy = entropy:doit(N),
     Z = backup(N),
     %Z = N rem constants:finality(),
@@ -324,8 +302,11 @@ buy_block(Txs, TotalCoins, BlockGap) ->
 	Z  -> backup:hash();
 	true -> <<>>
     end,
-    Block = #block{txs = Txs, hash = PHash, number = N, power = P, entropy = Entropy, total_coins = TotalCoins, db_root = DBR},
-    absorb([keys:sign(Block)]).
+    Block = #block{txs = Txs, hash = PHash, number = N, entropy = Entropy, total_coins = TotalCoins, db_root = DBR},
+    keys:sign(Block).
+mine(_NewBlock) ->
+    %look up difficulty in block, then start mining.
+    ok.
 sign_tx(Tx, Pub, Priv) -> sign_tx(Tx, Pub, Priv, 1).
 sign_tx(Tx, Pub, Priv, N) -> testnet_sign:sign_tx(Tx, Pub, Priv, N, tx_pool:accounts()).
 test() -> 

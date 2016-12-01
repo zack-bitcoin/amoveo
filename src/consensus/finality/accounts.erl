@@ -5,22 +5,21 @@
 %Top should point to the lowest known address that is deleted.
 -module(accounts).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, read_account/1,write/2,test/0,size/0,write_helper/3,top/0,delete/1,array/0,update/6,update/7,empty/0,empty/1,nonce/1,delegated/1,addr/1,balance/1,height/1,walk/2,unit_cost/2,reset/0]).
+-export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, read_account/1,write/2,test/0,size/0,write_helper/3,top/0,delete/1,array/0,update/6,update/5,empty/0,empty/1,nonce/1,addr/1,balance/1,height/1,walk/2,unit_cost/1,reset/0]).
 -define(file, constants:accounts()).
 -define(empty, constants:d_accounts()).
 %addr is 96 bits. balance is 48 bits. Nonce is 32 bits. delegated is 48 bits. height is 32 bits, bringing the total to 32 bytes.
 
 -define(word, ((164 + constants:address_entropy()) div 8)).
--record(acc, {balance = 0, nonce = 0, addr = "", delegated = 0, height = 0}).%the height when delegation fees were last payed. 
+-record(acc, {balance = 0, nonce = 0, addr = "", height = 0}).%the height when delegation fees were last payed. 
 init(ok) -> 
     {T, D} = 
 	case file:read_file(?empty) of
 	    {error, enoent} -> 
 		P = base58:base58_to_binary(binary_to_list(testnet_sign:pubkey2address(constants:master_pub()))),
 		IC = constants:initial_coins(),
-		Delegated = fractions:multiply_int(constants:initial_portion_delegated(), IC),
-		Balance = IC - Delegated,
-		write_helper(0, <<Balance:48, 0:32, Delegated:48, 0:32, P/binary>>, ?file),
+		Balance = IC,
+		write_helper(0, <<Balance:48, 0:32, 0:32, P/binary>>, ?file),
 		Top = 1,
 		DeletedArray = << 1:1 , 0:7 >>,
 		write_helper(0, DeletedArray, ?empty),
@@ -36,16 +35,15 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 empty() -> #acc{}.
 empty(Addr) -> #acc{addr = Addr}.
-unit_cost(Acc, TotalCoins) ->
-    DFee = fractions:multiply_int(constants:delegation_fee(), Acc#acc.delegated),
+unit_cost(TotalCoins) ->
     AFee = fractions:multiply_int(constants:account_fee(), TotalCoins),
-    DFee + AFee.
-update(Acc, H, Dbal, Ddelegated, N, TotalCoins) ->
-    update(Acc, H, Dbal, Ddelegated, N, TotalCoins, normal).
-update(Acc, H, Dbal, Ddelegated, N, TotalCoins, Tag) ->
+    AFee.
+update(Acc, H, Dbal, N, TotalCoins) ->
+    update(Acc, H, Dbal, N, TotalCoins, normal).
+update(Acc, H, Dbal, N, TotalCoins, Tag) ->
     true = ((N == 0) or (N == 1)),
     Gap = H - Acc#acc.height,
-    UCost = unit_cost(Acc, TotalCoins),
+    UCost = unit_cost(TotalCoins),
     Cost = UCost * Gap,
     Balance = Acc#acc.balance + Dbal,
     MaxC = UCost * constants:max_reveal(),
@@ -57,22 +55,11 @@ update(Acc, H, Dbal, Ddelegated, N, TotalCoins, Tag) ->
        balance = Balance - Cost,
        nonce = Acc#acc.nonce + N,
        addr = Acc#acc.addr,
-       delegated = Acc#acc.delegated + Ddelegated,
        height = H}.
 nonce(Acc) -> Acc#acc.nonce.
-delegated(Acc) -> Acc#acc.delegated.
 addr(Acc) -> Acc#acc.addr.
 balance(Acc) -> Acc#acc.balance.
 height(Acc) -> Acc#acc.height.
-%write_helper(N, <<Balance:48, Nonce:32, Delegated:48, Height:32, P/binary>>, File) ->
-%    Val = <<Balance:48, Nonce:32, Delegated:48, Height:32, P/binary>>,
-%    case file:open(File, [write, read, raw]) of
-%        {ok, F} ->
-%            file:pwrite(F, N, Val),
-%            file:close(F);
-%        {error, _Reason} ->
-%            write_helper(N, Val, File)
-%    end;
 write_helper(N, Val, File) ->
 %since we are reading it a bunch of changes at a time for each block, there should be a way to only open the file once, make all the changes, and then close it. 
     case file:open(File, [write, read, raw]) of
@@ -149,9 +136,9 @@ read_account(N) -> %maybe this should be a call too, that way we can use the ram
 	N >= T -> #acc{};
 	true ->
 	    X = read_file(N),%if this is above the end of the file, then just return an account of all zeros.
-	    <<Balance:48, Nonce:32, Delegated:48, Height: 32, P/binary>> = X,
+	    <<Balance:48, Nonce:32, Height: 32, P/binary>> = X,
 	    Addr = list_to_binary(base58:binary_to_base58(P)),
-	    #acc{balance = Balance, nonce = Nonce, addr = Addr, delegated = Delegated, height = Height}
+	    #acc{balance = Balance, nonce = Nonce, addr = Addr, height = Height}
     end.
 write(N, Acc) ->
     P = base58:base58_to_binary(binary_to_list(Acc#acc.addr)),
@@ -161,7 +148,6 @@ write(N, Acc) ->
     S = (constants:address_entropy() + 4) div 8,
     Val = << (Acc#acc.balance):48, 
              (Acc#acc.nonce):32, 
-             (Acc#acc.delegated):48, 
 	     (Acc#acc.height):32,
              P/binary >>,
     gen_server:cast(?MODULE, {write, N, Val}).

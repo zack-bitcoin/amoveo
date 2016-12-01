@@ -51,11 +51,11 @@ init(ok) ->
 						%create this many channels between account 0 and itself. Store the majority of 0's money in these channels. 
 						%this is so 0 has the majority of delegations.
 		IC = constants:initial_coins(),
-		Delegated = fractions:multiply_int(constants:initial_portion_delegated(), IC),
-		InitialChannels = constants:initial_channels(),
-		MoneyPerChannel = Delegated div InitialChannels,
+		%Delegated = fractions:multiply_int(constants:initial_portion_delegated(), IC),
+		InitialChannels = 1,%constants:initial_channels(),
+		%MoneyPerChannel = Delegated div InitialChannels,
 		DeletedArray = all_ones(InitialChannels),
-		Channel = <<0:32,0:32,MoneyPerChannel:48,0:48,0:1,0:32,0:38,1:2,0:1,0:6>>,
+		Channel = <<0:32,0:32,IC:48,0:48,0:1,0:32,0:38,1:2,0:1,0:6>>,
 		Channels = binary_repeat(InitialChannels, Channel),
 		write_helper(0, DeletedArray, ?empty),
 		write_helper(0, Channels, ?file),
