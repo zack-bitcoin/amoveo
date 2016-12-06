@@ -1,4 +1,4 @@
--module(hash).
+-module(testnet_hash).
 -export([doit/1,test/0,file/1,hash/1]).
 
 hash(S) -> 

@@ -1,19 +1,20 @@
 -module(spend_tx).
--export([doit/7, spend/4]).
+-export([doit/4, spend/5]).
 -record(spend, {from = 0, nonce = 0, to = 0, amount = 0, fee = 0}).
-spend(To, Amount, Fee, Id) ->
-    %Id = keys:id(),
-    Acc = block_tree:account(Id),
-    #spend{from = Id, nonce = accounts:nonce(Acc) + 1, to = To, amount = Amount, fee = Fee}.
-doit(Tx, ParentKey, Channels, Accounts, TotalCoins, S, NewHeight) ->
+spend(To, Amount, Fee, Id, Accounts) ->
+    {_, Acc, Proof} = trie:get(Id, Accounts, accounts),
+    {_, _Acc2, Proof2} = trie:get(To, Accounts, accounts),
+    Tx = #spend{from = Id, nonce = account:nonce(Acc) + 1, to = To, amount = Amount, fee = Fee},
+    {Tx, [Proof, Proof2]}.
+doit(Tx, Channels, Accounts, NewHeight) ->
     From = Tx#spend.from,
-    false = From == Tx#spend.to,
-    To = block_tree:account(Tx#spend.to, ParentKey, Accounts),
-    F = block_tree:account(Tx#spend.from, ParentKey, Accounts),
+    To = Tx#spend.to,
+    false = From == To,
     A = Tx#spend.amount,
-    NT = accounts:update(To, NewHeight, A, 0, 0, TotalCoins),
-    NF = accounts:update(F, NewHeight, -A - Tx#spend.fee, 0, 1, TotalCoins),
-    Nonce = accounts:nonce(NF),
-    Nonce = Tx#spend.nonce,
-    Accounts2 = dict:store(Tx#spend.to, NT, Accounts),
-    {Channels, dict:store(Tx#spend.from, NF, Accounts2), TotalCoins, S}.
+    {_, Facc, _} = trie:get(From, Accounts, accounts),
+    {_, Tacc, _} = trie:get(To, Accounts, accounts),
+    Facc2 = account:update(Facc, -A-Tx#spend.fee, Tx#spend.nonce, NewHeight, []),
+    Tacc2 = account:update(Tacc, A, none, NewHeight, []),
+    Accounts2 = account:overwrite(Accounts, Facc2, From),
+    NewAccounts = account:overwrite(Accounts2, Tacc2, To),
+   {Channels, NewAccounts}. 

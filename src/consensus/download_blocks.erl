@@ -57,7 +57,6 @@ fresh_sync(IP, Port, PeerData) ->
 	    block_pointers:set_start(N - constants:max_reveal() - 2),
 	    DBRoot = block_tree:block_root(Block),
 	    absorb_stuff(backup:backup_files(), IP, Port),
-	    all_secrets:reset(),
 	    accounts:reset(),
 	    channels:reset(),
 	    DBRoot = backup:hash(),

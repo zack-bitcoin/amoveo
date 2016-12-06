@@ -5,7 +5,7 @@
 ./rebar get-deps
 sh clean.sh #this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.
 ./rebar compile #this line checks if any modules were modified, and recompiles them if they were. only needed during testing.
-echo "GO TO THIS WEBSITE -------> http://localhost:3011/main.html"
+echo "GO TO THIS WEBSITE -------> http://localhost:3011/login.html"
 #sleep 1
 erl -pa ebin deps/*/ebin/ -eval "application:ensure_all_started(testnet), serve:pw($1)"
 

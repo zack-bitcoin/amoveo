@@ -3,7 +3,7 @@
 -export([start_link/0,init/1,stop/0]).%,start_http/0]).
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
--define(keys, [keys, accounts, channels, block_dump, block_pointers, block_finality, secrets, entropy, all_secrets, port, block_tree, tx_pool, inbox, mail, arbitrage, tx_pool_feeder, channel_manager, channel_manager_feeder, channel_partner]).
+-define(keys, [keys, port, tx_pool, top, inbox, mail, arbitrage, tx_pool_feeder, channel_manager, channel_manager_feeder, channel_partner]).
 
 child_maker([]) -> [];
 child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].
@@ -17,6 +17,12 @@ stop() ->
 %exit(keys, kill).
 %supervisor:terminate_child(testnet_sup, keys).
 init([]) ->
+    Amount = constants:trie_size(),
+    KeyLength = constants:key_length(), 
     Children = child_maker(?keys),
-    {ok, { {one_for_one, 5, 10}, Children} }.
+    Tries = [
+		{accounts_sup, {trie_sup, start_link, [constants:account_size(), KeyLength, constants:account_size(), accounts, Amount, hd]}, permanent, 5000, supervisor, [trie_sup]},
+		{channels_sup, {trie_sup, start_link, [constants:channel_size(), KeyLength, constants:channel_size(), channels, Amount, hd]}, permanent, 5000, supervisor, [trie_sup]} 
+	    ],
+    {ok, { {one_for_one, 5, 10}, Tries ++ Children} }.
 

@@ -4,6 +4,10 @@
 %-define(InitialCoins, round(math:pow(2, 48)) - 1).
 %2^74 bits is 25 bitcoin =~ $10,000
 %2^64 bits is $10
+key_length() ->
+    9. %so at most, we could store 16^9 =~ 68.7 billion accounts and channels.
+trie_size() ->
+    10000. %we can adjust this many accounts and channels per block.
 -define(InitialCoins, round(math:pow(2, 41)) - 1).
 initial_coins() -> ?InitialCoins.
 initial_difficulty() -> 256*160.
@@ -56,7 +60,6 @@ channel_manager() -> root() ++ "channel_manager.db".
 channel_partner() -> root() ++ "channel_partner.db".
 accounts() -> root() ++ "accounts.db".
 d_accounts() -> root() ++ "d_accounts.db".
-all_secrets() -> root() ++ "all_secrets.db".
 blocks() -> root() ++ "blocks.db".
 temp() -> root() ++ "temp.db".
 block_pointers() -> root() ++ "block_pointers.db".
@@ -67,6 +70,32 @@ keys() -> root() ++ "keys.db".
 secrets() -> root() ++ "secrets.db".
 backup_accounts() -> root() ++ "backup/accounts.db".
 word_size() -> 100000.
+
+
+balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
+acc_bits() -> trie_hash:hash_depth()*8.%total number of accounts is 2^(acc_bits()) 800 billion.
+height_bits() -> 32. %maximum number of blocks is 2^this
+account_nonce_bits() -> 20.%maximum number of times you can update an account's state is 2^this.
+channel_nonce_bits() -> 30.%maximum number of times you can update a channel's state is 2^this.
+channel_rent_bits() -> 8.
+		       
+-define(AccountSizeWithoutPadding, (balance_bits() + height_bits() + account_nonce_bits() + acc_bits())).
+-define(ChannelSizeWithoutPadding, ((acc_bits()*2) + (balance_bits()*2) + channel_nonce_bits() + height_bits() + channel_rent_bits() + 1)).
+account_padding() ->    
+    8 - (?AccountSizeWithoutPadding rem 8).
+channel_padding() ->
+    8 - (?ChannelSizeWithoutPadding rem 8).
+account_size() ->    
+    ?AccountSizeWithoutPadding + account_padding().
+channel_size() ->    
+    ?ChannelSizeWithoutPadding + channel_padding().
+
+channel_rent() -> account_rent().
+account_rent() -> round(math:pow(2, 13)).
+%48 bits is max money, 42 bits is initial money.
+%if we had a billion accounts, we would want the blockchain to last at least 20 years. 
+%144*52*20
+    
 
 test() ->
     success.

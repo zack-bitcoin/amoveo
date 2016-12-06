@@ -59,9 +59,9 @@ int2pair(X, N) ->
     [N, X].
     
 recalculate(OldD, Ratio) ->
-    %if ratio is 20000, then that means we need to double the difficulty. If ratio if 5000, then we should cut difficulty in half.
+    %difficulty is usually stored in scientific notation, so when I calculate the new difficulty, I have to transform to integer, do calculation, and then transform back to scientific notation.
     Old = pair2int(sci2pair(OldD)),
-    New = Old * Ratio div 10000,
+    New = fractions:multiply_int(Ratio, Old),
     pair2sci(int2pair(New)).
     
 test() ->

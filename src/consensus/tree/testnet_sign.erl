@@ -126,7 +126,7 @@ pubkey2address(P) when size(P) > 66 ->
     pubkey2address(base64:decode(P));
 pubkey2address(P) ->
     AB = (?AddressEntropy + 4),
-    BC = 256 - AB,
+    BC = (hash:hash_depth()*8) - AB,
     << A:AB, T:BC >> = hash:doit(P),
     S = T rem 5000,
     case S of
