@@ -12,10 +12,15 @@ hash(Block) ->
 time_now() ->
     (os:system_time() div 1000000000) - 1480952170.
 genesis() ->
+    Address = constants:master_address(),
+    First = account:new(Address, constants:initial_coins(), 0),
+    {_ID, Accounts} = account:write(0, First),
+    AccRoot = account:root_hash(Accounts),
+    ChaRoot = trie:root_hash(channels, 0),
     #block{height = 0,
 	   txs = [],
-	   channels = stem:hash(stem:new_empty(), trie:cfg(channels)),
-	   accounts = stem:hash(stem:new_empty(), trie:cfg(accounts)),
+	   channels = ChaRoot,
+	   accounts = AccRoot,
 	   mines_block = <<"9zpTqk93izqvN76Z">>,
 	   time = 0,
 	   difficulty = constants:initial_difficulty()}.

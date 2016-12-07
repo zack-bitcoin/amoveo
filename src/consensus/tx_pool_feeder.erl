@@ -8,10 +8,8 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call({absorb, SignedTx}, _From, X) ->
-    TotalCoins = tx_pool:total_coins(),
     Accounts = tx_pool:accounts(),
     Channels = tx_pool:channels(),
-    Secrets = tx_pool:secrets(),
     true = testnet_sign:verify(SignedTx, Accounts),
     Txs = tx_pool:txs(),
     Tx = testnet_sign:data(SignedTx),
@@ -34,8 +32,8 @@ handle_call({absorb, SignedTx}, _From, X) ->
 	    false = sign_tx:repeat(element(2, Tx), Txs);
 	true -> 0 = 0
     end,
-    {NewChannels, NewAccounts, NewTotalCoins, NewSecrets} = txs:digest([NewTx], block_tree:read(top), Channels, Accounts, TotalCoins, Secrets, H+1),%Usually blocks are one after the other. Some txs may have to get removed if height increases by more than 1 between adjacent blocks.
-    tx_pool:absorb(NewChannels, NewAccounts, NewTotalCoins, NewSecrets, [NewTx|flip(Txs)]),
+    {NewChannels, NewAccounts} = txs:digest([NewTx], block_tree:read(top), Channels, Accounts, H+1),%Usually blocks are one after the other. Some txs may have to get removed if height increases by more than 1 between adjacent blocks.
+    tx_pool:absorb(NewChannels, NewAccounts, [NewTx|flip(Txs)]),
     {reply, 0, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 flip(X) -> flip(X, []).

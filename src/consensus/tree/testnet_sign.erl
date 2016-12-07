@@ -1,6 +1,7 @@
 -module(testnet_sign).
--export([test/0,test2/1,test3/0,sign_tx/5,sign/2,verify_sig/3,shared_secret/2,verify/2,data/1,revealed/1,empty/1,empty/0,set_revealed/2,verify_1/2,verify_2/2, pubkey2address/1, valid_address/1, hard_new_key/0,new_key/0,pub/1,pub2/1]).
+-export([test/0,test2/1,test3/0,sign_tx/5,sign/2,verify_sig/3,shared_secret/2,verify/2,data/1,revealed/1,empty/1,empty/0,set_revealed/2,verify_1/2,verify_2/2, pubkey2address/1, valid_address/1, hard_new_key/0,new_key/0,pub/1,pub2/1,address2binary/1,binary2address/1]).
 -record(signed, {data="", sig="", pub = "", sig2="", pub2="", revealed=[]}).
+-define(cs, 8). %checksum size
 pub(X) -> X#signed.pub.
 pub2(X) -> X#signed.pub2.
 empty() -> #signed{}.
@@ -14,8 +15,9 @@ params() -> crypto:ec_curve(secp256k1).
 shared_secret(Pub, Priv) -> en(crypto:compute_key(ecdh, de(Pub), de(Priv), params())).
 %to_bytes(X) -> term_to_binary(X).
 to_bytes(X) -> packer:pack(X).
+generate() -> crypto:generate_key(ecdh, params()).
 new_key() -> %We keep this around for the encryption library. it is used to generate 1-time encryption keys.
-    {Pub, Priv} = crypto:generate_key(ecdh, params()),
+    {Pub, Priv} = generate(),%crypto:generate_key(ecdh, params()),
     {en(Pub), en(Priv)}.
 sign(S, Priv) -> en(crypto:sign(ecdsa, sha256, to_bytes(S), [de(Priv), params()])).
 verify_sig(S, Sig, Pub) -> 
@@ -41,34 +43,32 @@ verify_both(Tx, Addr1, Addr2) ->
 verify(SignedTx, Accounts) ->
     Tx = SignedTx#signed.data,
     N1 = element(2, Tx),
-    Acc1 = block_tree:account(N1, Accounts),
+    Acc1 = account:get(N1, Accounts),
     Type = element(1, Tx),
     
     if
 	(Type == channel_block) or (Type == tc) ->
 	    N2 = element(3, Tx),
-	    Acc2 = block_tree:account(N2, Accounts),
-	    verify_both(SignedTx, accounts:addr(Acc1), accounts:addr(Acc2));
-	true -> verify_1(SignedTx, accounts:addr(Acc1))
+	    Acc2 = account:get(N2, Accounts),
+	    verify_both(SignedTx, account:addr(Acc1), account:addr(Acc2));
+	true -> verify_1(SignedTx, account:addr(Acc1))
     end.
 sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed ->
     Tx = SignedTx#signed.data,
     R = SignedTx#signed.revealed,
     N = element(2, Tx),
-    Acc = block_tree:account(N, Accounts),
-    AAddr = accounts:addr(Acc),
-    %APub = accounts:pub(Acc),
+    Acc = account:get(N, Accounts),
+    AAddr = account:addr(Acc),
     Addr = pubkey2address(Pub),
     if
 	(AAddr == Addr) and (N == ID) -> 
-	    Addr = accounts:addr(Acc),
+	    Addr = account:addr(Acc),
 	    Sig = sign(Tx, Priv),
 	    #signed{data=Tx, sig=Sig, pub=Pub, sig2=SignedTx#signed.sig2, pub2=SignedTx#signed.pub2, revealed=R};
 	true ->
 	    N2 = element(3, Tx),
-	    Acc2 = block_tree:account(N2, Accounts),
-	    BAddr = accounts:addr(Acc2),
-	    %BPub = accounts:pub(Acc2),
+	    Acc2 = account:get(N2, Accounts),
+	    BAddr = account:addr(Acc2),
 	    if
 		((Addr == BAddr) and (N2 == ID)) ->
 		    Sig = sign(Tx, Priv),
@@ -79,17 +79,16 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
 sign_tx(Tx, Pub, Priv, ID, Accounts) ->
     Sig = sign(Tx, Priv),
     N = element(2, Tx),
-    Acc = block_tree:account(N, Accounts),
-    AAddr = accounts:addr(Acc),
+    Acc = account:get(N, Accounts),
+    AAddr = account:addr(Acc),
     Addr = pubkey2address(Pub),
-    %APub = accounts:pub(Acc),
     N2 = element(3, Tx),
     if
 	((Addr == AAddr) and (N == ID)) -> 
 	    #signed{data=Tx, sig=Sig, pub=Pub};
 	(N2 == ID) ->
-	    Acc2 = block_tree:account(N2, Accounts),
-	    Addr = accounts:addr(Acc2),
+	    Acc2 = account:get(N2, Accounts),
+	    Addr = account:addr(Acc2),
 	    #signed{data=Tx, sig2=Sig, pub2=Pub};
 	true -> {error, <<"cannot sign">>}
     end.
@@ -99,8 +98,8 @@ checksum(X) ->
 checksum(N, <<H:4, T/bitstring>>) ->
     checksum(N+H, <<T/bitstring>>);
 checksum(N, <<>>) ->
-    M = N rem 16,
-    <<M:4>>.
+    M = N rem 256,
+    <<M:8>>.
 
 %looks like 60,000,000 keys per second costs about $1 a month. https://en.bitcoin.it/wiki/Vanitygen
 %there are 2,600,000 seconds per month, so they can test 1.5*10^14 addresses for $1.
@@ -125,18 +124,27 @@ checksum(N, <<>>) ->
 pubkey2address(P) when size(P) > 66 ->
     pubkey2address(base64:decode(P));
 pubkey2address(P) ->
-    AB = (?AddressEntropy + 4),
-    BC = (hash:hash_depth()*8) - AB,
-    << A:AB, T:BC >> = hash:doit(P),
-    S = T rem 5000,
-    case S of
-	0 ->
-	    <<C:4>> = checksum(<<A:(?AddressEntropy)>>),
-	    D = <<C:4, A:(?AddressEntropy) >>,
-	    list_to_binary(base58:binary_to_base58(D));
-	_ ->
-	    {error, invalid_pubkey}
-    end.
+    %AB = (?AddressEntropy + 4),
+    %BC = (hash:hash_depth()*8) - AB,
+    %<< A:AB, T:BC >> = hash:doit(P),
+    %S = T rem 5000,
+    %case S of
+	%0 ->
+	    binary2address(hash:doit(P)).%;
+	%_ ->
+	%    {error, invalid_pubkey}
+    %end.
+address2binary(A) ->
+    S = ?AddressEntropy,
+    <<C:?cs, B:S>> = base58:base58_to_binary(binary_to_list((A))),
+    <<C:?cs>> = checksum(<<B:S>>),
+    <<B:S>>.
+binary2address(B) -> 
+    S = ?AddressEntropy,
+    <<A:S>> = B,
+    <<C:?cs>> = checksum(B),
+    D = <<C:?cs, A:S>>,
+    list_to_binary(base58:binary_to_base58(D)).
 valid_address(A) ->
     AB = ?AddressEntropy,
     << C:4, B:AB >> = base58:base58_to_binary(binary_to_list(A)),
@@ -147,12 +155,15 @@ test() ->
     %{Address, Pub, Priv} = hard_new_key(), %recomputing is too slow. better to write it down, and reuse it each time.
     {Address, Pub, Priv} = hard_new_key(),
     {Address2, Pub2, Priv2} = hard_new_key(),
-    Acc = accounts:empty(Address),
-    Acc2 = accounts:empty(Address2),
-    Accounts = dict:store(1, Acc2, dict:store(0, Acc, dict:new())),
+    Acc = account:new(Address, 0, 0),
+    Acc2 = account:new(Address2, 0, 0),
+    Binary = address2binary(Address),
+    Address = binary2address(Binary),
+    {ID0, Accounts1} = account:write(0, Acc),
+    {ID1, Accounts} = account:write(Accounts1, Acc2),
     Tx = {channel_block, 0, 1},
-    Signed = sign_tx(sign_tx(Tx, Pub, Priv, 0, Accounts), Pub2, Priv2, 1, Accounts),
-    Signed2 = sign_tx({spend, 0, 0, 1, 1, 1}, Pub, Priv, 0, Accounts),
+    Signed = sign_tx(sign_tx(Tx, Pub, Priv, ID0, Accounts), Pub2, Priv2, ID1, Accounts),
+    Signed2 = sign_tx({spend, 0, 0, 1, 1, 1}, Pub, Priv, ID0, Accounts),
     Verbose = true,
     if
 	Verbose ->
@@ -178,24 +189,23 @@ test() ->
     false = verify_both(Signed, Address, Address),
     true = valid_address(Address),
     success.
-next_priv(Priv) ->
-    Bits = bit_size(Priv),
-    <<Integer:Bits>> = Priv,
-    N = Integer + 1,
-    <<N:Bits>>.
+%next_priv(Priv) ->
+%    Bits = bit_size(Priv),
+%    <<Integer:Bits>> = Priv,
+%    N = Integer + 1,
+%    <<N:Bits>>.
 hard_new_key() ->
-    {_, Priv} = crypto:generate_key(ecdh, params()),
-    hard_new_key_2(Priv).
-hard_new_key_2(Priv) ->
+    {Pub, Priv} = new_key(),%crypto:generate_key(ecdh, params()),
+    %hard_new_key_2(Priv).
+%hard_new_key_2(Priv) ->
     %io:fwrite("hard 2"),
-    {Pub, Priv} = crypto:generate_key(ecdh, params(), Priv),
+    %{Pub, Priv} = crypto:generate_key(ecdh, params(), Priv),
     Address = pubkey2address(Pub),
-    case Address of
-	{error, _} -> hard_new_key_2(next_priv(Priv));
-	Address -> {Address, en(Pub), en(Priv)}
-    end.
-generate() ->
-    crypto:generate_key(ecdh, params()).
+    %case Address of
+	%{error, _} -> hard_new_key_2(next_priv(Priv));
+	%Address ->
+    {Address, en(Pub), en(Priv)}.
+    %end.
 times(0, _) -> ok;
 times(N, F) ->
     F(),

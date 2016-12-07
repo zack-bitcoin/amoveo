@@ -1,3 +1,5 @@
+tx_pool uncomment in init.
+
 block_tree.erl needs to be updated. write/2 should check to make sure that the block has enough POW.
 
 accounts and channels should be stored in a merkle trie instead of the finality/ folder.

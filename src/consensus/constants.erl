@@ -5,15 +5,17 @@
 %2^74 bits is 25 bitcoin =~ $10,000
 %2^64 bits is $10
 key_length() ->
-    9. %so at most, we could store 16^9 =~ 68.7 billion accounts and channels.
+    11. %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
 trie_size() ->
     10000. %we can adjust this many accounts and channels per block.
 -define(InitialCoins, round(math:pow(2, 41)) - 1).
 initial_coins() -> ?InitialCoins.
 initial_difficulty() -> 256*160.
 finality() -> 26.%/docs/security.py explains why.
-address_entropy() -> 92.
+address_entropy() -> 96.
 master_pub() -> <<"BMDq+C+mI+Al4f5WHtq93IrCDaCrq0VU6+BxRaRZ0CgPjGppwu6nIg654GQGx8jQWwvVkjvODtDpKayUInZiOJQ=">>.
+master_address() ->
+    testnet_sign:pubkey2address(master_pub()).
 max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
 gas_limit() -> 1000000.%30,000 is enough for an oracle with 30 elements in the matrix. For example 5 oracle participants and 6 decisions.
 %200,000,000 is enough to find the first 10001 prime numbers.
@@ -86,9 +88,9 @@ account_padding() ->
 channel_padding() ->
     8 - (?ChannelSizeWithoutPadding rem 8).
 account_size() ->    
-    ?AccountSizeWithoutPadding + account_padding().
+    (?AccountSizeWithoutPadding + account_padding()) div 8.
 channel_size() ->    
-    ?ChannelSizeWithoutPadding + channel_padding().
+    (?ChannelSizeWithoutPadding + channel_padding()) div 8.
 
 channel_rent() -> account_rent().
 account_rent() -> round(math:pow(2, 13)).
