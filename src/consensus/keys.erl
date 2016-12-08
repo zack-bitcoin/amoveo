@@ -12,6 +12,7 @@ terminate(_, _) -> io:fwrite("keys died"), ok.
 -record(f, {pub = "", priv = "", sanity = "", id = -1}).
 %sanity is only used on the hard drive, not in ram.
 init(ok) -> 
+    io:fwrite("start keys\n"),
     X = db:read(?LOC()),
     Ka = if
 	     X == "" -> 

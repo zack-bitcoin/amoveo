@@ -1,10 +1,12 @@
 -module(account).
--export([serialize/1,deserialize/1,new/3,nonce/1,overwrite/3,write/2,get/2,update/4,addr/1,root_hash/1, test/0]).
+-export([serialize/1,deserialize/1,new/4,nonce/1,write/3,get/2,update/4,addr/1,id/1,root_hash/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
-	      addr = []}). %addr is the hash of the public key we use to spend money.
+	      addr = [], %addr is the hash of the public key we use to spend money.
+	      id = 0}). %id is your location in the merkle trie. It is also used as an identification for sending money, since it is shorter than your address.
 addr(X) -> X#acc.addr.
+id(X) -> X#acc.id.
 update(Acc, Amount, NewNonce, NewHeight) ->
     OldNonce = Acc#acc.nonce,
     OldHeight = Acc#acc.height,
@@ -17,8 +19,8 @@ update(Acc, Amount, NewNonce, NewHeight) ->
 	 nonce = NewNonce,
 	 height = NewHeight, 
 	 addr = Acc#acc.addr}.
-new(Addr, Balance, Height) ->
-    #acc{addr = Addr, balance = Balance, nonce = 0, height = Height}.
+new(Id, Addr, Balance, Height) ->
+    #acc{id = Id, addr = Addr, balance = Balance, nonce = 0, height = Height}.
 nonce(X) -> X#acc.nonce.
 serialize(A) ->
     BAL = constants:balance_bits(),
@@ -29,10 +31,12 @@ serialize(A) ->
     SizeAddr = hash:hash_depth(),
     Nbits = constants:account_nonce_bits(),
     AP = constants:account_padding(),
+    KL = constants:key_length(),
     Out = <<(A#acc.balance):BAL, 
-      (A#acc.nonce):(Nbits), 
-      (A#acc.height):HEI,
-      Baddr/binary,
+	    (A#acc.nonce):(Nbits), 
+	    (A#acc.height):HEI,
+	    (A#acc.id):KL,
+	    Baddr/binary,
 	    0:AP>>,
     Size = size(Out),
     Size = constants:account_size(),
@@ -44,28 +48,32 @@ deserialize(A) ->
     HD = hash:hash_depth()*8,
     Nbits = constants:account_nonce_bits(),
     AP = constants:account_padding(),
+    KL = constants:key_length(),
     <<B1:BAL,
       B2:Nbits,
       B4:HEI,
+      B5:KL,
       B6:HD,
       _:AP>> = A,
-    #acc{balance = B1, nonce = B2, height = B4, addr = testnet_sign:binary2address(<<B6:HD>>)}.
+    #acc{balance = B1, nonce = B2, height = B4, id = B5, addr = testnet_sign:binary2address(<<B6:HD>>)}.
     
-write(Root, Account) ->
+write(Root, Account, ID) ->
     M = serialize(Account),
-    trie:put(M, Root, 0, accounts).%returns {key, root}
-overwrite(Root, Account, ID) ->
-    M = serialize(Account),
-    trie:overwrite(ID, M, Root, 0, accounts).
+    trie:put(ID, M, Root, 0, accounts).%returns a pointer to the new root.
 get(Id, Accounts) ->
-    trie:get(Id, Accounts, accounts).%{roothash, leaf, proof}
-    
+    {RH, Leaf, Proof} = trie:get(Id, Accounts, accounts),
+    V = deserialize(leaf:value(Leaf)),
+    {RH, V, Proof}.
+
 root_hash(Accounts) ->
     trie:root_hash(accounts, Accounts).
 
 test() ->
     {Address, _Pub, _Priv} = testnet_sign:hard_new_key(),
-    Acc = new(Address, 0, 0),
+    Acc = new(3, Address, 0, 0),
+    %io:fwrite(Acc),
     S = serialize(Acc),
     Acc = deserialize(S),
-    write(0, Acc).
+    ID = 1,
+    NewLoc = write(0, Acc, ID),
+    {_, Acc, _} = get(ID, NewLoc).

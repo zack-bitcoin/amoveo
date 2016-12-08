@@ -6,6 +6,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, new_hashlock/3,hashlock/5,read/1,delete/1,id/1,keys/0,read_channel/1,bet_amounts/1,test/0,store/2]).
 -define(LOC, constants:channel_manager()).
 init(ok) -> 
+    io:fwrite("start channel manager\n"),
     process_flag(trap_exit, true),
     X = db:read(?LOC),
     Ka = if

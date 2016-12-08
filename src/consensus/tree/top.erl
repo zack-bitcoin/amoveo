@@ -3,7 +3,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, add/1,doit/0,test/0]).
 init(ok) -> 
     G = block:genesis(),
-    block_tree:save(G),
+    block:save(G),
     {ok, block:hash(G)}.
     %{ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -13,7 +13,7 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast({add, Block}, X) ->
     %check which block is higher and store it's hash as the top.
     %for tiebreakers, prefer the older block.
-    OldBlock = block_tree:read(X),
+    OldBlock = block:read(X),
     NH = block:height(Block),
     OH = block:height(OldBlock),
     New = if

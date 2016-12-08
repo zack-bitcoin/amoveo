@@ -10,10 +10,10 @@ trie_size() ->
     10000. %we can adjust this many accounts and channels per block.
 -define(InitialCoins, round(math:pow(2, 41)) - 1).
 initial_coins() -> ?InitialCoins.
-initial_difficulty() -> 256*160.
+initial_difficulty() -> 16*256.
 finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> 96.
-master_pub() -> <<"BMDq+C+mI+Al4f5WHtq93IrCDaCrq0VU6+BxRaRZ0CgPjGppwu6nIg654GQGx8jQWwvVkjvODtDpKayUInZiOJQ=">>.
+master_pub() -> <<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1FzNnA1QStRbmdZeStmTGY4ZzRvPQ==">>.
 master_address() ->
     testnet_sign:pubkey2address(master_pub()).
 max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
@@ -81,7 +81,7 @@ account_nonce_bits() -> 20.%maximum number of times you can update an account's 
 channel_nonce_bits() -> 30.%maximum number of times you can update a channel's state is 2^this.
 channel_rent_bits() -> 8.
 		       
--define(AccountSizeWithoutPadding, (balance_bits() + height_bits() + account_nonce_bits() + acc_bits())).
+-define(AccountSizeWithoutPadding, (balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length())).
 -define(ChannelSizeWithoutPadding, ((acc_bits()*2) + (balance_bits()*2) + channel_nonce_bits() + height_bits() + channel_rent_bits() + 1)).
 account_padding() ->    
     8 - (?AccountSizeWithoutPadding rem 8).
