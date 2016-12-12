@@ -1,4 +1,4 @@
-#first install rebar package manager
+# first install rebar package manager
 if [ -e "rebar" ]
 then
     echo "rebar already installed"
