@@ -39,7 +39,8 @@ update_channel(Channel, Nonce, NewRent, RentDirection, Inc1, Inc2, Height) ->
     
 test() ->
     C = new_channel(0,1,2,3,-4),
-    C = deserialize(serialize(C)).
+    C = deserialize(serialize(C)),
+    success.
 new_channel(Acc1, Acc2, Bal1, Bal2, Rent) ->
     RS = if
 	     (Rent > 0) -> 0;

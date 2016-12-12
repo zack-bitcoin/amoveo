@@ -78,4 +78,5 @@ test() ->
     Acc = deserialize(S),
     ID = 1,
     NewLoc = write(0, Acc, ID),
-    {_, Acc, _} = get(ID, NewLoc).
+    {_, Acc, _} = get(ID, NewLoc),
+    success.
