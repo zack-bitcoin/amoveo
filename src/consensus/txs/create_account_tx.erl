@@ -16,11 +16,9 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     From = Tx#ca.from,
     To = Tx#ca.to,
     A = Tx#ca.amount,
-    {_, Facc, _} = account:get(From, Accounts),
-    %{_, Facc, _} = trie:get(From, Accounts, accounts),
-    Facc2 = account:update(Facc, -A-Tx#ca.fee, Tx#ca.nonce, NewHeight),
+    Facc2 = account:update(From, Accounts, -A-Tx#ca.fee, Tx#ca.nonce, NewHeight),
     Nacc = account:new(To, Tx#ca.address, A, NewHeight),
-    Accounts2 = account:write(Accounts, Nacc, Tx#ca.to),
+    Accounts2 = account:write(Accounts, Nacc, To),
     NewAccounts = account:write(Accounts2, Facc2, From),
     {Channels, NewAccounts}.
 
