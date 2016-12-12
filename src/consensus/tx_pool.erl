@@ -4,7 +4,7 @@
 %It needs to use txs:digest to keep track of the Accounts and Channels dicts. This module needs to be ready to share either of those dicts.
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 absorb/3,dump/0,accounts/0,channels/0,txs/0,test/0]).
--record(f, {txs = [], accounts = dict:new(), channels = dict:new(), secrets = dict:new()}).
+-record(f, {txs = [], accounts = 0, channels = 0}).
 init(ok) -> 
     process_flag(trap_exit, true),
     {ok, #f{}}.

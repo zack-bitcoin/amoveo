@@ -13,7 +13,8 @@ initial_coins() -> ?InitialCoins.
 initial_difficulty() -> 16*256.
 finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> 96.
-master_pub() -> <<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1FzNnA1QStRbmdZeStmTGY4ZzRvPQ==">>.
+%master_pub() -> <<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1FzNnA1QStRbmdZeStmTGY4ZzRvPQ==">>.
+master_pub() -> <<"BKknHWzm/lebbf2lY535fw3Slybj4aUxY7QNNcu25HHQz/vROXO1zO0nfSH/6E/swGyguz9kt9itzwKz7rnMSAo=">>.
 master_address() ->
     testnet_sign:pubkey2address(master_pub()).
 max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.

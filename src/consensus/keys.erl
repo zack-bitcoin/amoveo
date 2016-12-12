@@ -2,7 +2,7 @@
 %the ram stores either {pubkey, privkey} or {pubkey, ""} depending on if this node is locked.
 -module(keys).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, pubkey/0,sign/1,sign/2,raw_sign/1,load/3,unlock/1,lock/0,status/0,change_password/2,new/1,shared_secret/1,id/0,update_id/1]).
+-export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, pubkey/0,sign/2,raw_sign/1,load/3,unlock/1,lock/0,status/0,change_password/2,new/1,shared_secret/1,id/0,update_id/1, test/0]).
 %-define(LOC(), "keys.db").
 -define(LOC(), constants:keys()).
 -define(SANE(), <<"sanity">>).
@@ -73,7 +73,7 @@ handle_cast({change_password, Current, New}, R) ->
 handle_cast(_, X) -> {noreply, X}.
 handle_info(_, X) -> {noreply, X}.
 pubkey() -> gen_server:call(?MODULE, pubkey).
-sign(M) -> gen_server:call(?MODULE, {sign, M, tx_pool:accounts()}).
+%sign(M) -> gen_server:call(?MODULE, {sign, M, tx_pool:accounts()}).
 sign(M, Accounts) -> gen_server:call(?MODULE, {sign, M, Accounts}).
 raw_sign(M) -> gen_server:call(?MODULE, {raw_sign, M}).
 load(Pub, Priv, Brainwallet) -> gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet}).
@@ -86,3 +86,13 @@ shared_secret(Pub) -> gen_server:call(?MODULE, {ss, Pub}).
 id() -> gen_server:call(?MODULE, id).
 update_id(Id) -> gen_server:cast(?MODULE, {id_update, Id}).
     
+test() ->
+    unlocked = keys:status(),
+    Tx = {spend, 1, 1, 2, 1, 1},
+    Stx = sign(Tx, 1),
+    %{signed,{spend,1,1,2,1,1},
+    %<<"MEQCIHfFk8egH3Jz15NyipyuTxBBY9bP1u078CFn+lhDbsKoAiB4rMgteg8mXXJ2GGbfcvySR7RmoK6xn5kbNoIE88drjw==">>,
+    %<<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1Fz"...>>,
+    % [],[],[]},
+    true = testnet_sign:verify(Stx, 1),
+    success.

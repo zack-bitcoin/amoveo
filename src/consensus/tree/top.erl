@@ -4,6 +4,12 @@
 init(ok) -> 
     G = block:genesis(),
     block:save(G),
+    I = keys:pubkey(),
+    M = constants:master_pub(),
+    if
+	I == M -> keys:update_id(1);
+	true -> ok
+    end,
     {ok, block:hash(G)}.
     %{ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).

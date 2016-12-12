@@ -11,14 +11,16 @@ create_account(Addr, Amount, Fee, From, To, Accounts) -> %To is a new ID. set it
     Tx = #ca{from = From, to = To, nonce = account:nonce(Acc) + 1, address = A, amount = Amount, fee = Fee},
     {Tx, [Proof]}.
 doit(Tx, Channels, Accounts, NewHeight) ->
+    %Add a check to make sure the account we are filling is empty.
     A = Tx#ca.amount,
     From = Tx#ca.from,
     To = Tx#ca.to,
     A = Tx#ca.amount,
-    {_, Facc, _} = trie:get(From, Accounts, accounts),
+    {_, Facc, _} = account:get(From, Accounts),
+    %{_, Facc, _} = trie:get(From, Accounts, accounts),
     Facc2 = account:update(Facc, -A-Tx#ca.fee, Tx#ca.nonce, NewHeight),
     Nacc = account:new(To, Tx#ca.address, A, NewHeight),
-    Accounts2 = account:write(Accounts, Nacc),
-    NewAccounts = account:overwrite(Accounts2, Facc2, From),
+    Accounts2 = account:write(Accounts, Nacc, Tx#ca.to),
+    NewAccounts = account:write(Accounts2, Facc2, From),
     {Channels, NewAccounts}.
 

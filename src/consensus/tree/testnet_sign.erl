@@ -27,6 +27,8 @@ verify_sig(S, Sig, Pub) ->
 verify_1(Tx, Addr) -> 
     Pub = Tx#signed.pub,
     B = verify_sig(Tx#signed.data, Tx#signed.sig, Pub),
+    io:fwrite(B),
+    io:fwrite("\n"),
     (Addr == pubkey2address(Pub)) and B.
 verify_2(Tx, Addr) -> 
     Pub2 = Tx#signed.pub2,
@@ -51,7 +53,8 @@ verify(SignedTx, Accounts) ->
 	    N2 = element(3, Tx),
 	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
 	    verify_both(SignedTx, account:addr(Acc1), account:addr(Acc2));
-	true -> verify_1(SignedTx, account:addr(Acc1))
+	true -> 
+	    verify_1(SignedTx, account:addr(Acc1))
     end.
 sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed ->
     Tx = SignedTx#signed.data,
@@ -75,7 +78,7 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
 		    #signed{data=Tx, sig=SignedTx#signed.sig, pub=SignedTx#signed.pub, sig2=Sig, pub2=Pub, revealed=R};
 		true -> {error, <<"cannot sign">>}
 	    end
-    end;
+	 end;
 sign_tx(Tx, Pub, Priv, ID, Accounts) ->
     Sig = sign(Tx, Priv),
     N = element(2, Tx),
@@ -83,15 +86,17 @@ sign_tx(Tx, Pub, Priv, ID, Accounts) ->
     AAddr = account:addr(Acc),
     Addr = pubkey2address(Pub),
     N2 = element(3, Tx),
-    if
+    ST = if
 	((Addr == AAddr) and (N == ID)) -> 
+		 io:fwrite("sign correct\n"),
 	    #signed{data=Tx, sig=Sig, pub=Pub};
 	(N2 == ID) ->
 	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
 	    Addr = account:addr(Acc2),
 	    #signed{data=Tx, sig2=Sig, pub2=Pub};
 	true -> {error, <<"cannot sign">>}
-    end.
+    end,
+    ST.
 
 checksum(X) -> 
     checksum(0, X).
@@ -155,7 +160,8 @@ test() ->
     %{Address, Pub, Priv} = hard_new_key(), %recomputing is too slow. better to write it down, and reuse it each time.
     {Address, Pub, Priv} = hard_new_key(),
     {Address2, Pub2, Priv2} = hard_new_key(),
-    X = <<1,2,3,4>>,
+    %X = <<1,2,3,4>>,
+    X = {abc, 3,6,3},
     Sig = sign(X, Priv),
     %io:fwrite(Sig),
     true = verify_sig(X, Sig, Pub),
