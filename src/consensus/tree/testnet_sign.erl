@@ -43,13 +43,13 @@ verify_both(Tx, Addr1, Addr2) ->
 verify(SignedTx, Accounts) ->
     Tx = SignedTx#signed.data,
     N1 = element(2, Tx),
-    Acc1 = account:get(N1, Accounts),
+    {_, Acc1, _Proof} = account:get(N1, Accounts),
     Type = element(1, Tx),
     
     if
 	(Type == channel_block) or (Type == tc) ->
 	    N2 = element(3, Tx),
-	    Acc2 = account:get(N2, Accounts),
+	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
 	    verify_both(SignedTx, account:addr(Acc1), account:addr(Acc2));
 	true -> verify_1(SignedTx, account:addr(Acc1))
     end.
@@ -57,7 +57,7 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
     Tx = SignedTx#signed.data,
     R = SignedTx#signed.revealed,
     N = element(2, Tx),
-    Acc = account:get(N, Accounts),
+    {_, Acc, _Proof} = account:get(N, Accounts),
     AAddr = account:addr(Acc),
     Addr = pubkey2address(Pub),
     if
@@ -67,7 +67,7 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
 	    #signed{data=Tx, sig=Sig, pub=Pub, sig2=SignedTx#signed.sig2, pub2=SignedTx#signed.pub2, revealed=R};
 	true ->
 	    N2 = element(3, Tx),
-	    Acc2 = account:get(N2, Accounts),
+	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
 	    BAddr = account:addr(Acc2),
 	    if
 		((Addr == BAddr) and (N2 == ID)) ->
@@ -79,7 +79,7 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
 sign_tx(Tx, Pub, Priv, ID, Accounts) ->
     Sig = sign(Tx, Priv),
     N = element(2, Tx),
-    Acc = account:get(N, Accounts),
+    {_, Acc, _Proof} = account:get(N, Accounts),
     AAddr = account:addr(Acc),
     Addr = pubkey2address(Pub),
     N2 = element(3, Tx),
@@ -87,7 +87,7 @@ sign_tx(Tx, Pub, Priv, ID, Accounts) ->
 	((Addr == AAddr) and (N == ID)) -> 
 	    #signed{data=Tx, sig=Sig, pub=Pub};
 	(N2 == ID) ->
-	    Acc2 = account:get(N2, Accounts),
+	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
 	    Addr = account:addr(Acc2),
 	    #signed{data=Tx, sig2=Sig, pub2=Pub};
 	true -> {error, <<"cannot sign">>}
@@ -147,23 +147,30 @@ binary2address(B) ->
     list_to_binary(base58:binary_to_base58(D)).
 valid_address(A) ->
     AB = ?AddressEntropy,
-    << C:4, B:AB >> = base58:base58_to_binary(binary_to_list(A)),
+    << C:?cs, B:AB >> = base58:base58_to_binary(binary_to_list(A)),
     D = checksum(<<B:AB>>),
-    << C:4 >> == D.
+    << C:?cs >> == D.
 
 test() ->
     %{Address, Pub, Priv} = hard_new_key(), %recomputing is too slow. better to write it down, and reuse it each time.
     {Address, Pub, Priv} = hard_new_key(),
     {Address2, Pub2, Priv2} = hard_new_key(),
-    Acc = account:new(Address, 0, 0),
-    Acc2 = account:new(Address2, 0, 0),
+    X = <<1,2,3,4>>,
+    Sig = sign(X, Priv),
+    %io:fwrite(Sig),
+    true = verify_sig(X, Sig, Pub),
+    ID1 = 1,
+    ID2 = 2,
+    Acc = account:new(ID1, Address, 0, 0),
+    Acc2 = account:new(ID2, Address2, 0, 0),
     Binary = address2binary(Address),
     Address = binary2address(Binary),
-    {ID0, Accounts1} = account:write(0, Acc),
-    {ID1, Accounts} = account:write(Accounts1, Acc2),
-    Tx = {channel_block, 0, 1},
-    Signed = sign_tx(sign_tx(Tx, Pub, Priv, ID0, Accounts), Pub2, Priv2, ID1, Accounts),
-    Signed2 = sign_tx({spend, 0, 0, 1, 1, 1}, Pub, Priv, ID0, Accounts),
+    Accounts1 = account:write(0, Acc, ID1),
+    Accounts = account:write(Accounts1, Acc2, ID2),
+    Tx = {channel_block, ID1, ID2},
+    Signed1 = sign_tx(Tx, Pub, Priv, ID1, Accounts), 
+    Signed = sign_tx(Signed1, Pub2, Priv2, ID2, Accounts),
+    Signed2 = sign_tx({spend, ID1, 0, ID2, 1, 1}, Pub, Priv, ID1, Accounts),
     Verbose = true,
     if
 	Verbose ->
@@ -189,23 +196,10 @@ test() ->
     false = verify_both(Signed, Address, Address),
     true = valid_address(Address),
     success.
-%next_priv(Priv) ->
-%    Bits = bit_size(Priv),
-%    <<Integer:Bits>> = Priv,
-%    N = Integer + 1,
-%    <<N:Bits>>.
 hard_new_key() ->
-    {Pub, Priv} = new_key(),%crypto:generate_key(ecdh, params()),
-    %hard_new_key_2(Priv).
-%hard_new_key_2(Priv) ->
-    %io:fwrite("hard 2"),
-    %{Pub, Priv} = crypto:generate_key(ecdh, params(), Priv),
+    {Pub, Priv} = new_key(),
     Address = pubkey2address(Pub),
-    %case Address of
-	%{error, _} -> hard_new_key_2(next_priv(Priv));
-	%Address ->
-    {Address, en(Pub), en(Priv)}.
-    %end.
+    {Address, Pub, Priv}.
 times(0, _) -> ok;
 times(N, F) ->
     F(),
@@ -213,7 +207,6 @@ times(N, F) ->
 test2(X) ->
     times(X, fun() -> generate() end ).
 test3() ->
-    %timer:tc(sign, test2, [X]).
     timer:tc(sign, hard_new_key, []).
 		     
 

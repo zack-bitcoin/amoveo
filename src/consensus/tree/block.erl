@@ -1,14 +1,19 @@
 -module(block).
--export([hash/1,check/1,test/0,genesis/0,make/3,mine/2,height/1,accounts/1,channels/1,save/1,absorb/1,read/1,binary_to_file/1]).
+-export([hash/1,check/1,test/0,genesis/0,make/3,mine/2,height/1,accounts/1,channels/1,accounts_hash/1,channels_hash/1,save/1,absorb/1,read/1,binary_to_file/1]).
 -record(block, {height, prev_hash, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
 -record(block_plus, {block, accounts, channels}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
 %this gets wrapped in a signature and then wrapped in a pow.
 channels(Block) ->
-    Block#block.channels.
-accounts(BP) when is_record(BP, block_plus) ->
-    accounts(BP#block_plus.block);
-accounts(Block) ->
+    Block#block_plus.channels.
+channels_hash(BP) when is_record(BP, block_plus) ->
+    channels_hash(BP#block_plus.block);
+channels_hash(Block) -> Block#block.channels.
+accounts(BP) ->
+    BP#block_plus.accounts.
+accounts_hash(BP) when is_record(BP, block_plus) ->
+    accounts_hash(BP#block_plus.block);
+accounts_hash(Block) ->
     Block#block.accounts.
 height(BP) when is_record(BP, block_plus) ->
     height(BP#block_plus.block);

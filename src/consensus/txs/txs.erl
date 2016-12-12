@@ -42,7 +42,10 @@ test() ->
     BP = block:read(PH),
     Accounts = block:accounts(BP),
     NewAddr = <<"En6PtKdggNLPBR7cqX">>,
-    Ctx = create_account_tx:create_account(NewAddr, 10000, 0, 1, 2, Accounts),
+    {Ctx, _Proof} = create_account_tx:create_account(NewAddr, 10000, 0, 1, 2, Accounts),
+    %io:fwrite(Ctx),
+
+    %{ca,1,2,1,<<"En6PtKdggNLPBR7cqX">>,10000,0},
     Stx = keys:sign(Ctx),
     {block_plus, Block, _, _} = block:make(PH, [Stx], 1),%1 is the master pub
     PBlock = block:mine(Block, 1000000000),

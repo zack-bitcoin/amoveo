@@ -61,6 +61,8 @@ write(Root, Account, ID) ->
     M = serialize(Account),
     trie:put(ID, M, Root, 0, accounts).%returns a pointer to the new root.
 get(Id, Accounts) ->
+    %io:fwrite("ID is "),
+    %io:fwrite(integer_to_list(Id)),
     {RH, Leaf, Proof} = trie:get(Id, Accounts, accounts),
     V = deserialize(leaf:value(Leaf)),
     {RH, V, Proof}.
