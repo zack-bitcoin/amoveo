@@ -7,33 +7,12 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
-handle_call({absorb, SignedTx}, _From, X) ->
-    Accounts = tx_pool:accounts(),
-    Channels = tx_pool:channels(),
+handle_call({absorb_tx, SignedTx}, _From, X) ->
+    {Accounts, Channels, Height, _Txs} = tx_pool:data(),
     true = testnet_sign:verify(SignedTx, Accounts),
-    Txs = tx_pool:txs(),
-    Tx = testnet_sign:data(SignedTx),
-    %R = testnet_sign:revealed(SignedTx),
-    B = to_channel_tx:is_tc(Tx),
-    ID = if 
-	     B -> to_channel_tx:id(Tx);
-	     true -> 0
-	 end,
-    NewTx = if 
-		B and (ID == -1) ->
-	    %select the location for the new channel in the database at the very last possible moment. 
-		    Revealed = to_channel_tx:next_top(block_tree:read(top), Channels),
-		    testnet_sign:set_revealed(SignedTx, Revealed);
-		true -> SignedTx
-    end,
-    H = block_tree:height(),
-    if
-	element(1, Tx) == sign_tx ->
-	    false = sign_tx:repeat(element(2, Tx), Txs);
-	true -> 0 = 0
-    end,
-    {NewChannels, NewAccounts} = txs:digest([NewTx], block_tree:read(top), Channels, Accounts, H+1),%Usually blocks are one after the other. Some txs may have to get removed if height increases by more than 1 between adjacent blocks.
-    tx_pool:absorb(NewChannels, NewAccounts, [NewTx|flip(Txs)]),
+    {NewChannels, NewAccounts} = 
+	txs:digest(SignedTx, Channels, Accounts, Height+1),
+    tx_pool:absorb_tx(NewChannels, NewAccounts, SignedTx),
     {reply, 0, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 flip(X) -> flip(X, []).

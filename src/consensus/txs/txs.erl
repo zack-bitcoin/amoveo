@@ -31,7 +31,7 @@ digest2(A, B, C, D) ->
 	channel_funds_limit -> channel_funds_limit_tx:doit(A, B, C, D);
 	X -> X=2
     end.
-    
+ 
 	    
 test() ->
     unlocked = keys:status(),
@@ -42,10 +42,20 @@ test() ->
     BP = block:read(PH),
     Accounts = block:accounts(BP),
     NewAddr = <<"En6PtKdggNLPBR7cqX">>,
-    {Ctx, _Proof} = create_account_tx:create_account(NewAddr, 10000, 0, 1, 2, Accounts),
+
+    {Ctx, _Proof} = create_account_tx:create_account(NewAddr, 100000000, 0, 1, 2, Accounts),
     Stx = keys:sign(Ctx, Accounts),
     true = testnet_sign:verify(Stx, Accounts),
-    {block_plus, Block, _, _} = block:make(PH, [Stx], 1),%1 is the master pub
+    tx_pool_feeder:absorb(Stx),
+    {Accounts2, _, _, _} = tx_pool:data(),
+
+    {Ctx2, _} = spend_tx:spend(2, 10, 0, 1, Accounts2),
+    Stx2 = keys:sign(Ctx2, Accounts2),
+    true = testnet_sign:verify(Stx2, Accounts2),
+    tx_pool_feeder:absorb(Stx2),
+    {_, _, _, Txs} = tx_pool:data(),
+
+    {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
     PBlock = block:mine(Block, 1000000000),
     block:absorb(PBlock),
     success.
