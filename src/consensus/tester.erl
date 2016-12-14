@@ -14,7 +14,6 @@ test1() ->
     S = constants:test(),
     S = db:test(),
     S = testnet_sign:test(),
-    S = language:test(),
     S = packer:test(),
     S = encryption:test(),
     S = fractions:test(),
