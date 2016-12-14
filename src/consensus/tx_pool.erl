@@ -8,12 +8,17 @@ absorb/4,absorb_tx/3,dump/0,data/0,test/0]).
 init(ok) -> 
     io:fwrite("tx pool started\n"),
     process_flag(trap_exit, true),
-    {ok, #f{}}.
+    F = state_now(),
+    {ok, F}.
+state_now() ->
+    B = block:read(top:doit()),
+    #f{accounts = block:accounts(B), channels = block:channels(B), height = block:height(B)}.
+    
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("block tree died!"), ok.
+terminate(_, _) -> io:format("tx pool died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_call(data, _From, F) -> {reply, {F#f.accounts, F#f.channels, F#f.height, F#f.txs}, F}.
+handle_call(data, _From, F) -> {reply, {F#f.accounts, F#f.channels, F#f.height, flip(F#f.txs)}, F}.
 handle_cast(dump, _) -> {noreply, #f{}};
 handle_cast({absorb_tx, NewChannels, NewAccounts, Tx}, F) ->
     {noreply, F#f{txs = [Tx|F#f.txs], channels = NewChannels, accounts = NewAccounts}}; 
@@ -24,6 +29,9 @@ dump() -> gen_server:cast(?MODULE, dump).
 absorb_tx(Channels, Accounts, Tx) -> gen_server:cast(?MODULE, {absorb_tx, Channels, Accounts, Tx}).
 absorb(Channels, Accounts, Txs, Height) ->
     gen_server:cast(?MODULE, {absorb_tx, Channels, Accounts, Txs, Height}).
+flip(X) -> flip(X, []).
+flip([], A) -> A;
+flip([H|T], A) -> flip(T, [H|A]).
     
 test() ->
     success.

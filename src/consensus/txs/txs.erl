@@ -43,13 +43,14 @@ test() ->
     Accounts = block:accounts(BP),
     NewAddr = <<"En6PtKdggNLPBR7cqX">>,
 
-    {Ctx, _Proof} = create_account_tx:create_account(NewAddr, 100000000, 0, 1, 2, Accounts),
+    Fee = 10,
+    {Ctx, _Proof} = create_account_tx:create_account(NewAddr, 100000000, Fee, 1, 2, Accounts),
     Stx = keys:sign(Ctx, Accounts),
     true = testnet_sign:verify(Stx, Accounts),
     tx_pool_feeder:absorb(Stx),
     {Accounts2, _, _, _} = tx_pool:data(),
 
-    {Ctx2, _} = spend_tx:spend(2, 10, 0, 1, Accounts2),
+    {Ctx2, _} = spend_tx:spend(2, 10, Fee, 1, Accounts2),
     Stx2 = keys:sign(Ctx2, Accounts2),
     true = testnet_sign:verify(Stx2, Accounts2),
     tx_pool_feeder:absorb(Stx2),

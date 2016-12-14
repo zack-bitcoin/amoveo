@@ -27,8 +27,6 @@ verify_sig(S, Sig, Pub) ->
 verify_1(Tx, Addr) -> 
     Pub = Tx#signed.pub,
     B = verify_sig(Tx#signed.data, Tx#signed.sig, Pub),
-    io:fwrite(B),
-    io:fwrite("\n"),
     (Addr == pubkey2address(Pub)) and B.
 verify_2(Tx, Addr) -> 
     Pub2 = Tx#signed.pub2,
@@ -88,7 +86,6 @@ sign_tx(Tx, Pub, Priv, ID, Accounts) ->
     N2 = element(3, Tx),
     ST = if
 	((Addr == AAddr) and (N == ID)) -> 
-		 io:fwrite("sign correct\n"),
 	    #signed{data=Tx, sig=Sig, pub=Pub};
 	(N2 == ID) ->
 	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
@@ -98,8 +95,7 @@ sign_tx(Tx, Pub, Priv, ID, Accounts) ->
     end,
     ST.
 
-checksum(X) -> 
-    checksum(0, X).
+checksum(X) -> checksum(0, X).
 checksum(N, <<H:4, T/bitstring>>) ->
     checksum(N+H, <<T/bitstring>>);
 checksum(N, <<>>) ->
@@ -171,8 +167,8 @@ test() ->
     Acc2 = account:new(ID2, Address2, 0, 0),
     Binary = address2binary(Address),
     Address = binary2address(Binary),
-    Accounts1 = account:write(0, Acc, ID1),
-    Accounts = account:write(Accounts1, Acc2, ID2),
+    Accounts1 = account:write(0, Acc),
+    Accounts = account:write(Accounts1, Acc2),
     Tx = {channel_block, ID1, ID2},
     Signed1 = sign_tx(Tx, Pub, Priv, ID1, Accounts), 
     Signed = sign_tx(Signed1, Pub2, Priv2, ID2, Accounts),

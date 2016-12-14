@@ -1,6 +1,6 @@
 -module(create_account_tx).
 -export([doit/4, create_account/6]).
--record(ca, {from = 0, to = 0, nonce = 0, address = <<"">>, amount = 0, fee = 0}).
+-record(ca, {from = 0, to = 0, fee = 0, nonce = 0, address = <<"">>, amount = 0}).
 
 create_account(Addr, Amount, Fee, From, To, Accounts) -> %To is a new ID. set it to any unused ID.
     A = if
@@ -17,7 +17,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     From = Tx#ca.from,
     Facc2 = account:update(From, Accounts, -A-Tx#ca.fee, Tx#ca.nonce, NewHeight),
     Nacc = account:new(To, Tx#ca.address, A, NewHeight),
-    Accounts2 = account:write(Accounts, Nacc, To),
-    NewAccounts = account:write(Accounts2, Facc2, From),
+    Accounts2 = account:write(Accounts, Nacc),
+    NewAccounts = account:write(Accounts2, Facc2),
     {Channels, NewAccounts}.
 

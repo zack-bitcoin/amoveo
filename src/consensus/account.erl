@@ -1,5 +1,5 @@
 -module(account).
--export([serialize/1,deserialize/1,new/4,nonce/1,write/3,get/2,update/5,addr/1,id/1,root_hash/1, test/0]).
+-export([serialize/1,deserialize/1,new/4,nonce/1,write/2,get/2,update/5,addr/1,id/1,root_hash/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
@@ -11,15 +11,18 @@ update(Id, Accounts, Amount, NewNonce, NewHeight) ->
     {_, Acc, _} = get(Id, Accounts),
     OldNonce = Acc#acc.nonce,
     OldHeight = Acc#acc.height,
-    true = NewNonce > OldNonce,
-    true = NewHeight > OldHeight,
+    true = NewHeight >= OldHeight,
+    FinalNonce = case NewNonce of
+	none -> Acc#acc.nonce;
+	N -> true = N > OldNonce,
+	     N
+    end,
     Rent = constants:account_rent()*(NewHeight - OldHeight),
     NewBalance = Amount + Acc#acc.balance - Rent,
     true = NewBalance > 0,
-    #acc{balance = NewBalance,
-	 nonce = NewNonce,
-	 height = NewHeight, 
-	 addr = Acc#acc.addr}.
+    Acc#acc{balance = NewBalance,
+	 nonce = FinalNonce,
+	 height = NewHeight}.
 new(Id, Addr, Balance, Height) ->
     #acc{id = Id, addr = Addr, balance = Balance, nonce = 0, height = Height}.
 nonce(X) -> X#acc.nonce.
@@ -58,9 +61,10 @@ deserialize(A) ->
       _:AP>> = A,
     #acc{balance = B1, nonce = B2, height = B4, id = B5, addr = testnet_sign:binary2address(<<B6:HD>>)}.
     
-write(Root, Account, ID) ->
+write(Root, Account) ->
+    ID = Account#acc.id,
     M = serialize(Account),
-    trie:put(ID, M, Root, 0, accounts).%returns a pointer to the new root.
+    trie:put(ID, M, Root, accounts).%returns a pointer to the new root.
 get(Id, Accounts) ->
     %io:fwrite("ID is "),
     %io:fwrite(integer_to_list(Id)),
@@ -77,11 +81,11 @@ root_hash(Accounts) ->
 
 test() ->
     {Address, _Pub, _Priv} = testnet_sign:hard_new_key(),
-    Acc = new(3, Address, 0, 0),
+    ID = 3,
+    Acc = new(ID, Address, 0, 0),
     %io:fwrite(Acc),
     S = serialize(Acc),
     Acc = deserialize(S),
-    ID = 1,
-    NewLoc = write(0, Acc, ID),
+    NewLoc = write(0, Acc),
     {_, Acc, _} = get(ID, NewLoc),
     success.

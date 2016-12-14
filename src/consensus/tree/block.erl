@@ -35,12 +35,8 @@ genesis() ->
     Address = constants:master_address(),
     ID = 1,
     First = account:new(ID, Address, constants:initial_coins(), 0),
-    %io:fwrite(First),
-    Accounts = account:write(0, First, ID),
+    Accounts = account:write(0, First),
     AccRoot = account:root_hash(Accounts),
-    io:fwrite("AccRoot "),
-    io:fwrite(AccRoot),
-    io:fwrite("\n"),
     ChaRoot = trie:root_hash(channels, 0),
     Block = 
 	#block{height = 0,
@@ -74,6 +70,8 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
 		  difficulty = Parent#block.difficulty},
        channels = NewChannels, 
        accounts = NewAccounts}.
+    %We need to reward the miner for his POW.
+    %We need to reward the miner the sum of transaction fees.
 mine(Block, Times) ->
     Difficulty = Block#block.difficulty,
     pow:pow(Block, Difficulty, Times).
