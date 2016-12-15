@@ -23,9 +23,8 @@ test1() ->
     S = txs:test(),
     S = inbox:test(),
     %S = mail:test(),
-    S = arbitrage:test(),
+    %S = arbitrage:test(),
     %S = channel_manager:test(),
-    %S = test_fff:test(),
     S = test_chalang:test("deps/chalang/examples/"),
     S.
     

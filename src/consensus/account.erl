@@ -1,5 +1,5 @@
 -module(account).
--export([serialize/1,deserialize/1,new/4,nonce/1,write/2,get/2,update/5,addr/1,id/1,root_hash/1, test/0]).
+-export([serialize/1,deserialize/1,new/4,nonce/1,write/2,get/2,update/5,addr/1,id/1,balance/1,root_hash/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
@@ -7,6 +7,7 @@
 	      id = 0}). %id is your location in the merkle trie. It is also used as an identification for sending money, since it is shorter than your address.
 addr(X) -> X#acc.addr.
 id(X) -> X#acc.id.
+balance(X) -> X#acc.balance.
 update(Id, Accounts, Amount, NewNonce, NewHeight) ->
     {_, Acc, _} = get(Id, Accounts),
     OldNonce = Acc#acc.nonce,
@@ -61,10 +62,12 @@ deserialize(A) ->
       _:AP>> = A,
     #acc{balance = B1, nonce = B2, height = B4, id = B5, addr = testnet_sign:binary2address(<<B6:HD>>)}.
     
-write(Root, Account) ->
+write(Root, Account) ->%These are backwards.
     ID = Account#acc.id,
     M = serialize(Account),
     trie:put(ID, M, Root, accounts).%returns a pointer to the new root.
+delete(ID, Accounts) ->
+    trie:delete(ID, Accounts, accounts).
 get(Id, Accounts) ->
     %io:fwrite("ID is "),
     %io:fwrite(integer_to_list(Id)),

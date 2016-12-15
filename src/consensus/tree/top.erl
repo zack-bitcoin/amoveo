@@ -23,7 +23,9 @@ handle_cast({add, Block}, X) ->
     NH = block:height(Block),
     OH = block:height(OldBlock),
     New = if
-	      NH > OH -> block:hash(Block);
+	      NH > OH -> 
+		  tx_pool:dump(),
+		  block:hash(Block);
 	      true -> X
 	  end,
     {noreply, New};

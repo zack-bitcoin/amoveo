@@ -1,19 +1,24 @@
 -module(delete_account_tx).
--export([doit/7, delete_account/3]).
+-export([doit/4, make/4]).
 -record(da, {from = 0, nonce = 0, to = 0, fee = 0}).
-delete_account(Acc, To, Fee) ->
-    A = block_tree:account(Acc),
-    Nonce = accounts:nonce(A),
-    #da{from = Acc, nonce = Nonce + 1, to = To, fee = Fee}.
-doit(Tx, ParentKey, Channels, Accounts, TotalCoins, S, NewHeight) ->
-    F = block_tree:account(Tx#da.from, ParentKey, Accounts),
-    To = block_tree:account(Tx#da.to, ParentKey, Accounts),
-    B = constants:delete_account_reward() + accounts:balance(F),
-    true = Tx#da.fee < B,
-    NT = accounts:update(To, NewHeight, B - Tx#da.fee, 0, 0, TotalCoins),
-    Nonce = accounts:nonce(F) + 1,
-    Nonce = Tx#da.nonce,
-    Accounts2 = dict:store(Tx#da.to, NT, Accounts),
-    Accounts3 = dict:store(Tx#da.from, accounts:empty(), Accounts2),
-    {Channels, Accounts3, TotalCoins + constants:delete_account_reward(), S}.
+make(To, ID, Fee, Accounts) ->
+    {_, Facc, Fproof} = account:get(ID, Accounts),
+    {_, Tacc, Tproof} = account:get(To, Accounts),
+    false = Tacc == empty,
+    Tx = #da{from = ID, nonce = account:nonce(Facc) + 1,
+	     to = To, fee = Fee},
+    {Tx, [Fproof, Tproof]}.
+doit(Tx, Channels, Accounts, NewHeight) ->
+    From = Tx#da.from,
+    To = Tx#da.to,
+    false = From == To,
+    Facc = account:get(From, Accounts),
+    A = account:balance(Facc),
+    Amount = A-Tx#da.fee,
+    true = Amount > 0,
+    Tacc = account:update(To, Accounts, Amount+constants:delete_account_reward(), none, NewHeight),
+    _ = account:update(From, Accounts, 0, Tx#da.nonce, NewHeight),
+    Accounts2 = account:write(Accounts, Tacc),
+    NewAccounts = account:delete(From, Accounts2),
+    {Channels, NewAccounts}.
 

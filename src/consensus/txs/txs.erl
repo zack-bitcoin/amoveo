@@ -37,11 +37,12 @@ test() ->
     unlocked = keys:status(),
     Pub = constants:master_pub(),
     Pub = keys:pubkey(),
-    
-    PH = top:doit(),
-    BP = block:read(PH),
+
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    tx_pool:dump(),
     Accounts = block:accounts(BP),
-    NewAddr = <<"En6PtKdggNLPBR7cqX">>,
+    {NewAddr, NewPub, NewPriv} = testnet_sign:hard_new_key(),
 
     Fee = 10,
     {Ctx, _Proof} = create_account_tx:create_account(NewAddr, 100000000, Fee, 1, 2, Accounts),
@@ -54,7 +55,12 @@ test() ->
     Stx2 = keys:sign(Ctx2, Accounts2),
     true = testnet_sign:verify(Stx2, Accounts2),
     tx_pool_feeder:absorb(Stx2),
-    {_, _, _, Txs} = tx_pool:data(),
+    {Accounts3, _, _, _} = tx_pool:data(),
+
+    {Ctx3, _} = delete_account_tx:make(1, 2, 0, Accounts3),
+    Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv, 2, Accounts3),
+    true = testnet_sign:verify(Stx3, Accounts3),
+    {_Accounts4, _, _, Txs} = tx_pool:data(),
 
     {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
     PBlock = block:mine(Block, 1000000000),
