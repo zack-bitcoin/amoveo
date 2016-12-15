@@ -95,8 +95,7 @@ retarget(PrevHash) ->
     ND = Parent#block.difficulty,
     max(ND, constants:min_difficulty()).
     
-    
-    
+     
 check(PowBlock) ->
     Block = pow:data(PowBlock),
     Difficulty = Block#block.difficulty,
