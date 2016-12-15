@@ -1,5 +1,5 @@
 -module(account).
--export([serialize/1,deserialize/1,new/4,nonce/1,write/2,get/2,update/5,addr/1,id/1,balance/1,root_hash/1, test/0]).
+-export([serialize/1,deserialize/1,new/4,nonce/1,write/2,get/2,update/5,addr/1,id/1,balance/1,root_hash/1,now_balance/3,delete/2,test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
@@ -8,18 +8,22 @@
 addr(X) -> X#acc.addr.
 id(X) -> X#acc.id.
 balance(X) -> X#acc.balance.
+now_balance(Acc, Amount, NewHeight) ->
+    OldHeight = Acc#acc.height,
+    Rent = constants:account_rent()*(NewHeight - OldHeight),
+    Amount + Acc#acc.balance - Rent.
+    
 update(Id, Accounts, Amount, NewNonce, NewHeight) ->
     {_, Acc, _} = get(Id, Accounts),
     OldNonce = Acc#acc.nonce,
-    OldHeight = Acc#acc.height,
-    true = NewHeight >= OldHeight,
     FinalNonce = case NewNonce of
 	none -> Acc#acc.nonce;
 	N -> true = N > OldNonce,
 	     N
     end,
-    Rent = constants:account_rent()*(NewHeight - OldHeight),
-    NewBalance = Amount + Acc#acc.balance - Rent,
+    OldHeight = Acc#acc.height,
+    true = NewHeight >= OldHeight,
+    NewBalance = now_balance(Acc, Amount, NewHeight),
     true = NewBalance > 0,
     Acc#acc{balance = NewBalance,
 	 nonce = FinalNonce,

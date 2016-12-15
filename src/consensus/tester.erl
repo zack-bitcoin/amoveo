@@ -19,6 +19,7 @@ test1() ->
     S = fractions:test(),
     S = channel:test(),
     S = account:test(),
+    S = block_hashes:test(),
     S = block:test(),
     S = txs:test(),
     S = inbox:test(),

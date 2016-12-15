@@ -58,6 +58,7 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
 		   Height),
     CHash = trie:root_hash(channels, NewChannels),
     AHash = account:root_hash(NewAccounts),
+    NextDifficulty = next_difficulty(PrevHash),
     #block_plus{
        block = 
 	   #block{height = Height,
@@ -67,7 +68,7 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
 		  accounts = AHash,
 		  mines_block = ID,
 		  time = time_now()-5,
-		  difficulty = Parent#block.difficulty},
+		  difficulty = NextDifficulty},
        channels = NewChannels, 
        accounts = NewAccounts}.
     %We need to reward the miner for his POW.
@@ -75,14 +76,37 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
 mine(Block, Times) ->
     Difficulty = Block#block.difficulty,
     pow:pow(Block, Difficulty, Times).
+
+next_difficulty(PrevHash) ->
+    ParentPlus = read(PrevHash),
+    Parent = ParentPlus#block_plus.block,
+    Height = Parent#block.height + 1,
+    RF = constants:retarget_frequency(),
+    X = Height rem RF,
+    case X of
+	0 -> retarget(PrevHash);
+	_ -> Parent#block.difficulty
+    end.
+retarget(PrevHash) ->    
+    %Download 2000 blocks from 2000 blocks ago till now, find the median time on these blocks.
+    %Calculate the accumulative work done between the parent block, and the block 1000 blocks ago.
+    ParentPlus = read(PrevHash),
+    Parent = ParentPlus#block_plus.block,
+    ND = Parent#block.difficulty,
+    max(ND, constants:min_difficulty()).
+    
     
     
 check(PowBlock) ->
-    %check that the time is later than the median of the last 100 blocks. 
     Block = pow:data(PowBlock),
     Difficulty = Block#block.difficulty,
-    pow:above_min(PowBlock, Difficulty),
+    BH = hash(Block),
+    false = block_hashes:check(BH),
     PH = Block#block.prev_hash,
+    Difficulty = next_difficulty(PH),
+    pow:above_min(PowBlock, Difficulty),
+    %check that the time is later than the median of the last 100 blocks.
+    block_hashes:add(BH),
     PrevPlus = read(PH),
     Prev = PrevPlus#block_plus.block,
     Difficulty = constants:initial_difficulty(),
@@ -106,8 +130,6 @@ absorb(PowBlock) ->
     top:add(BlockPlus#block_plus.block).
 binary_to_file(B) ->
     C = base58:binary_to_base58(B),
-    %C = base64:encode(B),
-    %H = binary_to_list(C),
     H = C,
     "blocks/"++H++".db".
 read(Hash) ->

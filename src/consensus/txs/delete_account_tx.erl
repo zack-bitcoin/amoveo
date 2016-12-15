@@ -1,6 +1,6 @@
 -module(delete_account_tx).
 -export([doit/4, make/4]).
--record(da, {from = 0, nonce = 0, to = 0, fee = 0}).
+-record(da, {from = 0, nonce = 0, fee = 0, to = 0}).
 make(To, ID, Fee, Accounts) ->
     {_, Facc, Fproof} = account:get(ID, Accounts),
     {_, Tacc, Tproof} = account:get(To, Accounts),
@@ -12,7 +12,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     From = Tx#da.from,
     To = Tx#da.to,
     false = From == To,
-    Facc = account:get(From, Accounts),
+    {_, Facc, _} = account:get(From, Accounts),
     A = account:balance(Facc),
     Amount = A-Tx#da.fee,
     true = Amount > 0,

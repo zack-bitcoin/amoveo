@@ -98,6 +98,9 @@ account_rent() -> round(math:pow(2, 13)).
 %48 bits is max money, 42 bits is initial money.
 %if we had a billion accounts, we would want the blockchain to last at least 20 years. 
 %144*52*20
+
+retarget_frequency() ->
+    2000.
     
 
 test() ->

@@ -1,8 +1,8 @@
 -module(create_account_tx).
--export([doit/4, create_account/6]).
+-export([doit/4, make/6]).
 -record(ca, {from = 0, to = 0, fee = 0, nonce = 0, address = <<"">>, amount = 0}).
 
-create_account(Addr, Amount, Fee, From, To, Accounts) -> %To is a new ID. set it to any unused ID.
+make(Addr, Amount, Fee, From, To, Accounts) -> %To is a new ID. set it to any unused ID.
     A = if
 	    size(Addr) > 85 -> testnet_sign:pubkey2address(Addr);
 	    true -> Addr
