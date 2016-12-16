@@ -40,14 +40,17 @@ verify_both(Tx, Addr1, Addr2) ->
         Y -> verify_1(Tx, Addr2);
         true -> false
     end.
+type_check(Type) -> %these are the types that get signed twice
+	(Type == gc) or (Type == nc) or (Type == ctc).
+
 verify(SignedTx, Accounts) ->
     Tx = SignedTx#signed.data,
     N1 = element(2, Tx),
     {_, Acc1, _Proof} = account:get(N1, Accounts),
     Type = element(1, Tx),
-    
+    B = type_check(Type),
     if
-	(Type == channel_block) or (Type == tc) ->
+	B ->
 	    N2 = element(3, Tx),
 	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
 	    verify_both(SignedTx, account:addr(Acc1), account:addr(Acc2));
@@ -67,6 +70,9 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
 	    Sig = sign(Tx, Priv),
 	    #signed{data=Tx, sig=Sig, pub=Pub, sig2=SignedTx#signed.sig2, pub2=SignedTx#signed.pub2, revealed=R};
 	true ->
+	    %make sure Tx is one of the types that has 2 signatures: tc, ctc, gc
+	    Type = element(1, Tx),
+	    true = type_check(Type),
 	    N2 = element(3, Tx),
 	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
 	    BAddr = account:addr(Acc2),

@@ -25,6 +25,7 @@ digest2(A, B, C, D) ->
 	repo -> repo_tx:doit(A, B, C, D);
 	nc -> new_channel_tx:doit(A, B, C, D);
 	gc -> grow_channel_tx:doit(A, B, C, D);
+	ctc -> channel_team_close_tx:doit(A,B,C,D);
 	%signed_cb -> channel_block_tx:doit(A, B, C, D);
 	%timeout -> channel_timeout_tx:doit(A, B, C, D);
 	%channel_slash -> channel_slash_tx:doit(A,B, C, D);
@@ -132,6 +133,12 @@ test3() ->
     Stx3 = keys:sign(Ctx3, Accounts3),
     SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv, ID2, Accounts3),
     tx_pool_feeder:absorb(SStx3),
+    {Accounts4,Channels2,_,_} = tx_pool:data(),
+
+    {Ctx4, _} = channel_team_close_tx:make(CID, Accounts4, Channels2, 0, Fee),
+    Stx4 = keys:sign(Ctx4, Accounts4),
+    SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv, ID2, Accounts4),
+    tx_pool_feeder:absorb(SStx4),
     {_,_,_,Txs} = tx_pool:data(),
 
     {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
