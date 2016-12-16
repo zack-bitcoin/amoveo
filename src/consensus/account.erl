@@ -73,14 +73,11 @@ write(Root, Account) ->%These are backwards.
 delete(ID, Accounts) ->
     trie:delete(ID, Accounts, accounts).
 get(Id, Accounts) ->
-    %io:fwrite("ID is "),
-    %io:fwrite(integer_to_list(Id)),
     {RH, Leaf, Proof} = trie:get(Id, Accounts, accounts),
     V = case Leaf of
 	    empty -> empty;
 	    L -> deserialize(leaf:value(L))
 	end,
-    %V = deserialize(leaf:value(Leaf)),
     {RH, V, Proof}.
 
 root_hash(Accounts) ->

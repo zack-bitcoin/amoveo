@@ -1,5 +1,5 @@
 -module(channel).
--export([new_channel/5,serialize/1,deserialize/1,update_channel/7,test/0]).
+-export([new/7,serialize/1,deserialize/1,update/8,write/2,get/2,delete/2,root_hash/1, test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
 -record(channel, {id = 0, %the unique id number that identifies this channel
@@ -8,15 +8,16 @@
 		  bal1 = 0, 
 		  bal2 = 0, 
 		  nonce = 0,%How many times has this channel-state been updated. If your partner has a state that was updated more times, then they can use it to replace your final state.
-		  rent = 0,
-		  rent_direction = 0,%0 or 1
 		  timeout_height = 0,%when one partner disappears, the other partner needs to wait so many blocks until they can access their money. This records the time they started waiting. 
+		  last_modified = 0,%this is used so that the owners of the channel can pay a fee for how long the channel has been open.
+		  rent = 0,
+		  rent_direction = 0%0 or 1
 % we can set timeout_height to 0 to signify that we aren't in timeout mode. So we don't need the timeout flag.
-		  last_modified = 0%this is used so that the owners of the channel can pay a fee for how long the channel has been open.
 		  }%
        ).
 
-update_channel(Channel, Nonce, NewRent, RentDirection, Inc1, Inc2, Height) ->
+update(ID, Channels, Nonce, NewRent, RentDirection, Inc1, Inc2, Height) ->
+    {_, Channel, _} = get(ID, Channels),
     true = Nonce > Channel#channel.nonce,
     T1 = Channel#channel.last_modified,
     DH = Height - T1,
@@ -37,16 +38,12 @@ update_channel(Channel, Nonce, NewRent, RentDirection, Inc1, Inc2, Height) ->
 	      last_modified = Height
 	     }.
     
-test() ->
-    C = new_channel(0,1,2,3,-4),
-    C = deserialize(serialize(C)),
-    success.
-new_channel(Acc1, Acc2, Bal1, Bal2, Rent) ->
+new(ID, Acc1, Acc2, Bal1, Bal2, Height, Rent) ->
     RS = if
 	     (Rent > 0) -> 0;
 	     true -> 1
 	 end,
-    #channel{acc1 = Acc1, acc2 = Acc2, bal1 = Bal1, bal2 = Bal2, rent = abs(Rent), rent_direction = RS}.
+    #channel{id = ID, acc1 = Acc1, acc2 = Acc2, bal1 = Bal1, bal2 = Bal2, last_modified = Height, rent = abs(Rent), rent_direction = RS}.
 serialize(C) ->
     ACC = constants:acc_bits(),
     BAL = constants:balance_bits(),
@@ -54,12 +51,15 @@ serialize(C) ->
     NON = constants:channel_nonce_bits(),
     Rent = constants:channel_rent_bits(),
     Pad = constants:channel_padding(),
-    << (C#channel.acc1):ACC,
+    KL = constants:key_length(),
+    << (C#channel.id):KL,
+       (C#channel.acc1):ACC,
        (C#channel.acc2):ACC,
        (C#channel.bal1):BAL,
        (C#channel.bal2):BAL,
        (C#channel.nonce):NON,
        (C#channel.timeout_height):HEI,
+       (C#channel.last_modified):HEI,
        (C#channel.rent):Rent,
        (C#channel.rent_direction):1,
        0:Pad>>.
@@ -70,18 +70,51 @@ deserialize(B) ->
     NON = constants:channel_nonce_bits(),
     Rent = constants:channel_rent_bits(),
     Pad = constants:channel_padding(),
-    << B1:ACC,
+    KL = constants:key_length(),
+    << ID:KL,
+       B1:ACC,
        B2:ACC,
        B3:BAL,
        B4:BAL,
        B5:NON,
        B6:HEI,
-       B7:Rent,
-       B8:1,
+       B7:HEI,
+       B8:Rent,
+       B9:1,
        _:Pad>> = B,
-    #channel{acc1 = B1, acc2 = B2, bal1 = B3, bal2 = B4,
-	     nonce = B5, timeout_height = B6,
-	     rent = B7, rent_direction = B8}.
+    #channel{id = ID, acc1 = B1, acc2 = B2, 
+	     bal1 = B3, bal2 = B4,
+	     nonce = B5, timeout_height = B6, 
+	     last_modified = B7,
+	     rent = B8, rent_direction = B9}.
+write(Channel, Root) ->
+    ID = Channel#channel.id,
+    M = serialize(Channel),
+    trie:put(ID, M, Root, channels). %returns a pointer to the new root
+get(ID, Channels) ->
+    {RH, Leaf, Proof} = trie:get(ID, Channels, channels),
+    V = case Leaf of
+	    empty -> empty;
+	    L -> deserialize(leaf:value(L))
+	end,
+    {RH, V, Proof}.
+delete(ID,Channels) ->
+    trie:delete(ID, Channels, channels).
+root_hash(Channels) ->
+    trie:root_hash(channels, Channels).
     
+test() ->
+    ID = 1,
+    Acc1 = 1,
+    Acc2 = 2,
+    Bal1 = 200,
+    Bal2 = 300,
+    Height = 1,
+    Rent = -4,
+    C = new(ID,Acc1,Acc2,Bal1,Bal2,Height,Rent),
+    C = deserialize(serialize(C)),
+    NewLoc = write(C, 0),
+    {_, C, _} = get(ID, NewLoc),
+    success.
     
-    
+

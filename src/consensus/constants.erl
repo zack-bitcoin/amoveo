@@ -85,7 +85,7 @@ channel_nonce_bits() -> 30.%maximum number of times you can update a channel's s
 channel_rent_bits() -> 8.
 		       
 -define(AccountSizeWithoutPadding, (balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length())).
--define(ChannelSizeWithoutPadding, ((acc_bits()*2) + (balance_bits()*2) + channel_nonce_bits() + height_bits() + channel_rent_bits() + 1)).
+-define(ChannelSizeWithoutPadding, (key_length() + (acc_bits()*2) + (balance_bits()*2) + channel_nonce_bits() + (height_bits()*2) + channel_rent_bits() + 1)).
 account_padding() ->    
     8 - (?AccountSizeWithoutPadding rem 8).
 channel_padding() ->

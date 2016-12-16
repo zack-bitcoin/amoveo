@@ -29,6 +29,7 @@ digest2(A, B, C, D) ->
 	%channel_slash -> channel_slash_tx:doit(A,B, C, D);
 	%channel_close -> channel_close_tx:doit(A,B, C, D);
 	%channel_funds_limit -> channel_funds_limit_tx:doit(A, B, C, D);
+	%channel_repo -> channel_repo_tx:doit(A,B,C,D);
 	X -> X=2
     end.
  
