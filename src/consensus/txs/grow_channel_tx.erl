@@ -26,7 +26,7 @@ doit(Tx,Channels,Accounts,NewHeight) ->
     false = Aid1 == Aid2,
     Inc1 = Tx#gc.inc1,
     Inc2 = Tx#gc.inc2,
-    true = Inc1 + Inc2 > 0,
+    true = Inc1 + Inc2 >= 0,
     Rent = Tx#gc.rent,
     CNonce = Tx#gc.channel_nonce,
     NewChannel = channel:update(ID, Channels, CNonce, Rent, Inc1, Inc2, NewHeight),

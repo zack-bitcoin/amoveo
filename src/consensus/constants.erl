@@ -34,6 +34,7 @@ max_channel() -> ?MaxChannel.
 -define(MinChannel, constants:initial_coins() div constants:max_channel()).%use about 30% of space to store channels. Each one is 30 bytes
 %this constant is also used to determine the minimum amount of money we can put into a channel at a time.
 create_channel_fee() -> 0.%consensus_byte_price() * 30.
+delete_channel_reward() -> 0.
 %decided to charge for accounts based on how long it is open, instead of flat fee.
 create_account_fee() -> 0.%consensus_byte_price() * 85.
 delete_account_reward() -> 0.%create_account_fee() * 19 div 20. % 95% refund.
@@ -109,6 +110,7 @@ block_time() ->
     %10.
 time_units() -> %1000 = 1 second, 100 = 0.1 seconds
    100. 
+
     
 
 test() ->
