@@ -175,7 +175,7 @@ test() ->
     Address = binary2address(Binary),
     Accounts1 = account:write(0, Acc),
     Accounts = account:write(Accounts1, Acc2),
-    Tx = {channel_block, ID1, ID2},
+    Tx = {ctc, ID1, ID2},
     Signed1 = sign_tx(Tx, Pub, Priv, ID1, Accounts), 
     Signed = sign_tx(Signed1, Pub2, Priv2, ID2, Accounts),
     Signed2 = sign_tx({spend, ID1, 0, ID2, 1, 1}, Pub, Priv, ID1, Accounts),

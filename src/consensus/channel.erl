@@ -50,6 +50,8 @@ update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Height) ->
     CR = S * Channel#channel.rent,
     Bal1 = Channel#channel.bal1 + Inc1 - RH + CR,
     Bal2 = Channel#channel.bal2 + Inc2 - RH - CR,
+    true = Bal1 >= 0,
+    true = Bal2 >= 0,
     Channel#channel{bal1 = Bal1,
 	      bal2 = Bal2,
 	      nonce = NewNonce,
