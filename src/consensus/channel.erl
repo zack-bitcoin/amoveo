@@ -1,5 +1,5 @@
 -module(channel).
--export([new/7,serialize/1,deserialize/1,update/8,write/2,get/2,delete/2,root_hash/1, test/0]).
+-export([new/7,serialize/1,deserialize/1,update/7,write/2,get/2,delete/2,root_hash/1,acc1/1,acc2/1,id/1,bal1/1,bal2/1, test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
 -record(channel, {id = 0, %the unique id number that identifies this channel
@@ -15,26 +15,45 @@
 % we can set timeout_height to 0 to signify that we aren't in timeout mode. So we don't need the timeout flag.
 		  }%
        ).
+acc1(C) -> C#channel.acc1.
+acc2(C) -> C#channel.acc2.
+id(C) -> C#channel.id.
+bal1(C) -> C#channel.bal1.
+bal2(C) -> C#channel.bal2.
 
-update(ID, Channels, Nonce, NewRent, RentDirection, Inc1, Inc2, Height) ->
+
+update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Height) ->
+    true = Inc1 + Inc2 >= 0,
     {_, Channel, _} = get(ID, Channels),
-    true = Nonce > Channel#channel.nonce,
+    CNonce = Channel#channel.nonce,
+    NewNonce = if
+		   Nonce == none -> CNonce;
+		   true -> 
+		       true = Nonce > CNonce,
+		       Nonce
+	       end,
+    %true = Nonce > Channel#channel.nonce,
     T1 = Channel#channel.last_modified,
     DH = Height - T1,
+    Rent = constants:channel_rent() * DH,
+    RH = Rent div 2,
     S = case Channel#channel.rent_direction of
 	0 -> -1;
 	1 -> 1
     end,
+    NewRD = if
+		NewRent > 0 -> 1;
+		true -> 0
+	    end,
+			    
     CR = S * Channel#channel.rent,
-    Rent = constants:channel_rent() * DH,
-    RH = Rent div 2,
     Bal1 = Channel#channel.bal1 + Inc1 - RH + CR,
     Bal2 = Channel#channel.bal2 + Inc2 - RH - CR,
     Channel#channel{bal1 = Bal1,
 	      bal2 = Bal2,
-	      nonce = Nonce,
+	      nonce = NewNonce,
 	      rent = NewRent,
-	      rent_direction = RentDirection,
+	      rent_direction = NewRD,
 	      last_modified = Height
 	     }.
     

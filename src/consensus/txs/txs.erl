@@ -23,7 +23,8 @@ digest2(A, B, C, D) ->
 	spend -> spend_tx:doit(A, B, C, D);
 	da -> delete_account_tx:doit(A, B, C, D);
 	repo -> repo_tx:doit(A, B, C, D);
-	%tc -> to_channel_tx:doit(A, B, C, D);
+	nc -> new_channel_tx:doit(A, B, C, D);
+	gc -> grow_channel_tx:doit(A, B, C, D);
 	%signed_cb -> channel_block_tx:doit(A, B, C, D);
 	%timeout -> channel_timeout_tx:doit(A, B, C, D);
 	%channel_slash -> channel_slash_tx:doit(A,B, C, D);
@@ -38,6 +39,7 @@ test() ->
     S = success,
     S = test1(),
     S = test2(),
+    S = test3(),
     S.
 test1() ->
     unlocked = keys:status(),
@@ -92,6 +94,45 @@ test2() ->
     Stx2 = keys:sign(Ctx2, Accounts2),
     tx_pool_feeder:absorb(Stx2),
     {_Accounts3, _, _, Txs} = tx_pool:data(),
+
+    {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    block:check(Block),
+    success.
+    
+    
+    
+test3() ->
+    unlocked = keys:status(),
+    Pub = constants:master_pub(),
+    Pub = keys:pubkey(),
+
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    tx_pool:dump(),
+    Accounts = block:accounts(BP),
+    {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
+
+    Fee = 10,
+    Amount = 1000000,
+    ID2 = 2,
+    {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Accounts),
+    Stx = keys:sign(Ctx, Accounts),
+    tx_pool_feeder:absorb(Stx),
+    {Accounts2, _Channels, _, _} = tx_pool:data(),
+
+    CID = 5,
+
+    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 100, 200, 0, Fee),
+    Stx2 = keys:sign(Ctx2, Accounts2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
+    tx_pool_feeder:absorb(SStx2),
+    {Accounts3, Channels, _, _} = tx_pool:data(),
+
+    {Ctx3, _} = grow_channel_tx:make(CID, Accounts3, Channels, 22, 33, 0, Fee),
+    Stx3 = keys:sign(Ctx3, Accounts3),
+    SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv, ID2, Accounts3),
+    tx_pool_feeder:absorb(SStx3),
+    {_,_,_,Txs} = tx_pool:data(),
 
     {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
     block:check(Block),
