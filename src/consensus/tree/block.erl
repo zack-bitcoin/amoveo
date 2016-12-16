@@ -1,5 +1,5 @@
 -module(block).
--export([hash/1,check/1,test/0,genesis/0,make/3,mine/2,height/1,accounts/1,channels/1,accounts_hash/1,channels_hash/1,save/1,absorb/1,read/1,binary_to_file/1]).
+-export([hash/1,check/1,test/0,mine_test/0,genesis/0,make/3,mine/2,height/1,accounts/1,channels/1,accounts_hash/1,channels_hash/1,save/1,absorb/1,read/1,binary_to_file/1]).
 -record(block, {height, prev_hash, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
 -record(block_plus, {block, accounts, channels}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
@@ -30,7 +30,7 @@ hash(Block) ->
     hash:doit(B2).
 
 time_now() ->
-    (os:system_time() div 1000000000) - 1480952170.
+    (os:system_time() div (1000000 * constants:time_units())) - 1480952170.
 genesis() ->
     Address = constants:master_address(),
     ID = 1,
@@ -70,7 +70,8 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
 		  time = time_now()-5,
 		  difficulty = NextDifficulty},
        channels = NewChannels, 
-       accounts = NewAccounts}.
+       accounts = NewAccounts
+      }.
     %We need to reward the miner for his POW.
     %We need to reward the miner the sum of transaction fees.
 mine(Block, Times) ->
@@ -83,32 +84,46 @@ next_difficulty(PrevHash) ->
     Height = Parent#block.height + 1,
     RF = constants:retarget_frequency(),
     X = Height rem RF,
-    case X of
-	0 -> retarget(PrevHash);
-	_ -> Parent#block.difficulty
+    OldDiff = Parent#block.difficulty,
+    if
+	Height < (RF+1) -> OldDiff;
+	X == 0 -> retarget(PrevHash, Parent#block.difficulty);
+	true ->  OldDiff
     end.
-retarget(PrevHash) ->    
-    %Download 2000 blocks from 2000 blocks ago till now, find the median time on these blocks.
-    %Calculate the accumulative work done between the parent block, and the block 1000 blocks ago.
-    ParentPlus = read(PrevHash),
-    Parent = ParentPlus#block_plus.block,
-    ND = Parent#block.difficulty,
-    max(ND, constants:min_difficulty()).
+median(L) ->
+    S = length(L),
+    F = fun(A, B) -> A > B end,
+    Sorted = lists:sort(F, L),
+    lists:nth(S div 2, Sorted).
+    
+retarget(PrevHash, Difficulty) ->    
+    F = constants:retarget_frequency() div 2,
+    {Times1, Hash2000} = retarget2(PrevHash, F, []),
+    {Times2, _} = retarget2(Hash2000, F, []),
+    M1 = median(Times1),
+    M2 = median(Times2),
+    Tbig = M1 - M2,
+    T = Tbig div F,
+    %io:fwrite([Ratio, Difficulty]),%10/2, 4096
+    ND = pow:recalculate(Difficulty, constants:block_time(), T),
+    max(ND, constants:initial_difficulty()).
+retarget2(Hash, 0, L) -> {L, Hash};
+retarget2(Hash, N, L) -> 
+    BP = read(Hash),
+    B = BP#block_plus.block,
+    T = B#block.time,
+    H = B#block.prev_hash,
+    retarget2(H, N-1, [T|L]).
+    
     
      
-check(PowBlock) ->
-    Block = pow:data(PowBlock),
-    Difficulty = Block#block.difficulty,
-    BH = hash(Block),
-    false = block_hashes:check(BH),
-    PH = Block#block.prev_hash,
-    Difficulty = next_difficulty(PH),
-    pow:above_min(PowBlock, Difficulty),
+check(Block) ->
     %check that the time is later than the median of the last 100 blocks.
+    BH = hash(Block),
+    PH = Block#block.prev_hash,
     block_hashes:add(BH),
     PrevPlus = read(PH),
     Prev = PrevPlus#block_plus.block,
-    Difficulty = constants:initial_difficulty(),
     true = (Block#block.height-1) == Prev#block.height,
     true = Block#block.time < time_now(),
     {CH, AH} = {Block#block.channels, Block#block.accounts},
@@ -124,7 +139,14 @@ check(PowBlock) ->
     %take the median time on the last 2000 blocks, subtract it from the current time, divide by 1000. This is the current blockrate. Adjust the difficulty to make the rate better.
 %    constants:initial_difficulty().
 absorb(PowBlock) ->
-    BlockPlus = check(PowBlock),
+    Block = pow:data(PowBlock),
+    Difficulty = Block#block.difficulty,
+    BH = hash(Block),
+    false = block_hashes:check(BH),%If we have seen this block before, then don't process it again.
+    PH = Block#block.prev_hash,
+    Difficulty = next_difficulty(PH),
+    pow:above_min(PowBlock, Difficulty),
+    BlockPlus = check(Block),
     save(BlockPlus),
     top:add(BlockPlus#block_plus.block).
 binary_to_file(B) ->
@@ -150,8 +172,30 @@ test() ->
     BP = read(PH),
     Accounts = BP#block_plus.accounts,
     _ = account:get(1, Accounts),
-    {block_plus, Block, _, _} = make(PH, [], 0),
+    {block_plus, Block, _, _} = make(PH, [], 1),
+    check(Block),
+    success.
+mine_test() ->
+    PH = top:doit(),
+    {block_plus, Block, _, _} = make(PH, [], 1),
     PBlock = mine(Block, 1000000000),
     absorb(PBlock),
+    mine_blocks(10),
     success.
-
+    
+mine_blocks(0) -> success;
+mine_blocks(N) -> 
+    io:fwrite("mining block "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite(" time "),
+    io:fwrite(integer_to_list(time_now())),
+    io:fwrite(" diff "),
+    
+    PH = top:doit(),
+    %BP = read(PH),
+    {block_plus, Block, _, _} = make(PH, [], 1),
+    io:fwrite(integer_to_list(Block#block.difficulty)),
+    io:fwrite("\n"),
+    PBlock = mine(Block, 1000000000),
+    absorb(PBlock),
+    mine_blocks(N-1).

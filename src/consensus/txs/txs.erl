@@ -66,8 +66,7 @@ test1() ->
     {_Accounts4, _, _, Txs} = tx_pool:data(),
 
     {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
-    PBlock = block:mine(Block, 1000000000),
-    block:absorb(PBlock),
+    block:check(Block),
     success.
     
     
@@ -94,8 +93,7 @@ test2() ->
     {_Accounts3, _, _, Txs} = tx_pool:data(),
 
     {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
-    PBlock = block:mine(Block, 1000000000),
-    block:absorb(PBlock),
+    block:check(Block),
     success.
     
     

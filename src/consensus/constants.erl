@@ -10,7 +10,9 @@ trie_size() ->
     10000. %we can adjust this many accounts and channels per block.
 -define(InitialCoins, round(math:pow(2, 41)) - 1).
 initial_coins() -> ?InitialCoins.
-initial_difficulty() -> 16*256.
+initial_difficulty() -> 5940.
+%5940.%about 300 seconds on my lenovo AMD Athlon Neo X2 L325 / 1.5 GHz 
+%20*256 ~20 seconds %2 seconds is 16*256
 finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> 96.
 %master_pub() -> <<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1FzNnA1QStRbmdZeStmTGY4ZzRvPQ==">>.
@@ -99,8 +101,14 @@ account_rent() -> round(math:pow(2, 13)).
 %if we had a billion accounts, we would want the blockchain to last at least 20 years. 
 %144*52*20
 
-retarget_frequency() ->
-    2000.
+retarget_frequency() -> %how many blocks till we recalculate the difficulty
+    4000.
+    %2000.
+block_time() -> 
+    3000.
+    %10.
+time_units() -> %1000 = 1 second, 100 = 0.1 seconds
+   100. 
     
 
 test() ->
