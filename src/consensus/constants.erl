@@ -86,7 +86,11 @@ channel_nonce_bits() -> 30.%maximum number of times you can update a channel's s
 channel_rent_bits() -> 8.
 		       
 -define(AccountSizeWithoutPadding, (balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length())).
--define(ChannelSizeWithoutPadding, (key_length() + (acc_bits()*2) + (balance_bits()*2) + channel_nonce_bits() + (height_bits()*2) + channel_rent_bits() + 1)).
+-define(ChannelSizeWithoutPadding, 
+	(key_length() + (acc_bits()*2) + 
+	     (balance_bits()*2) + channel_nonce_bits() + 
+	     (height_bits()*2) + channel_rent_bits() + 
+	     1 + 2 + channel_entropy())).
 account_padding() ->    
     8 - (?AccountSizeWithoutPadding rem 8).
 channel_padding() ->
@@ -110,7 +114,7 @@ block_time() ->
     %10.
 time_units() -> %1000 = 1 second, 100 = 0.1 seconds
    100. 
-
+channel_entropy() -> 16. %Channel contracts only work for a channel with the same 2 account addresses, and with the same channel_entropy that has this many bits.
     
 
 test() ->

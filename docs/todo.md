@@ -1,3 +1,9 @@
+Channels should have a unique identifier.
+The worry is that an attacker could make a second channel with the same person using the same channel ID. In such a situation, they would be able to reuse old channel contracts from the previous channel.
+Making the defender remember every channel they ever made is unacceptable.
+
+
+
 Transactions need proofs of their data to be valid.
 Sometimes a transaction isn't included in the first block after the transaction was written. So the proof needs to be updated.
 We need to improve the trie library so that we will be able to update proofs on transactions.

@@ -1,7 +1,11 @@
--module(txs_tests).
+-module(test_txs).
 -export([test/0]).
  
 test() ->
+    unlocked = keys:status(),
+    Pub = constants:master_pub(),
+    Pub = keys:pubkey(),
+
     S = success,
     S = test1(),
     S = test2(),
@@ -9,10 +13,7 @@ test() ->
     S = test4(),
     S.
 test1() ->
-    unlocked = keys:status(),
-    Pub = constants:master_pub(),
-    Pub = keys:pubkey(),
-
+    %create account, spend, delete account
     BP = block:genesis(),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -41,10 +42,7 @@ test1() ->
     
     
 test2() ->
-    unlocked = keys:status(),
-    Pub = constants:master_pub(),
-    Pub = keys:pubkey(),
-
+    %repo_tx
     BP = block:genesis(),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -69,10 +67,7 @@ test2() ->
     
     
 test3() ->
-    unlocked = keys:status(),
-    Pub = constants:master_pub(),
-    Pub = keys:pubkey(),
-
+    %new channel, grow channel, channel team close
     BP = block:genesis(),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -88,8 +83,9 @@ test3() ->
     {Accounts2, _Channels, _, _} = tx_pool:data(),
 
     CID = 5,
+    Entropy = 432,
 
-    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 100, 200, 0, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 100, 200, 0, Entropy, Fee),
     Stx2 = keys:sign(Ctx2, Accounts2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
     tx_pool_feeder:absorb(SStx2),
@@ -112,10 +108,7 @@ test3() ->
     success.
     
 test4() -> 
-    unlocked = keys:status(),
-    Pub = constants:master_pub(),
-    Pub = keys:pubkey(),
-
+    %channel repo
     BP = block:genesis(),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -131,21 +124,16 @@ test4() ->
     {Accounts2, _Channels, _, _} = tx_pool:data(),
 
     CID = 5,
+    Entropy = 432, 
 
-    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 0, 0, 0, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 0, 0, 0, Entropy, Fee),
     Stx2 = keys:sign(Ctx2, Accounts2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
     tx_pool_feeder:absorb(SStx2),
     {Accounts3, Channels, _, _} = tx_pool:data(),
 
-    {Ctx3, _} = grow_channel_tx:make(CID, Accounts3, Channels, 0, 0, 0, Fee),
-    Stx3 = keys:sign(Ctx3, Accounts3),
-    SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv, ID2, Accounts3),
-    tx_pool_feeder:absorb(SStx3),
-    {Accounts4,Channels2,_,_Txs} = tx_pool:data(),
-
-    {Ctx4, _} = channel_repo_tx:make(1, CID, Fee, Accounts4,Channels2),
-    Stx4 = keys:sign(Ctx4, Accounts4),
+    {Ctx4, _} = channel_repo_tx:make(1, CID, Fee, Accounts3,Channels),
+    Stx4 = keys:sign(Ctx4, Accounts3),
     tx_pool_feeder:absorb(Stx4),
     {_,_,_,Txs} = tx_pool:data(),
 

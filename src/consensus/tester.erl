@@ -21,7 +21,7 @@ test1() ->
     S = account:test(),
     S = block_hashes:test(),
     S = block:test(),
-    S = txs_tests:test(),
+    S = test_txs:test(),
     S = inbox:test(),
     %S = mail:test(),
     %S = arbitrage:test(),

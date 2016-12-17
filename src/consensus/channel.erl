@@ -1,5 +1,9 @@
 -module(channel).
--export([new/7,serialize/1,deserialize/1,update/7,write/2,get/2,delete/2,root_hash/1,acc1/1,acc2/1,id/1,bal1/1,bal2/1,last_modified/1, test/0]).
+-export([new/8,serialize/1,deserialize/1,update/7,
+	 write/2,get/2,delete/2,root_hash/1,
+	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
+	 last_modified/1, mode/1,entropy/1,
+	 test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
 -record(channel, {id = 0, %the unique id number that identifies this channel
@@ -11,8 +15,10 @@
 		  timeout_height = 0,%when one partner disappears, the other partner needs to wait so many blocks until they can access their money. This records the time they started waiting. 
 		  last_modified = 0,%this is used so that the owners of the channel can pay a fee for how long the channel has been open.
 		  rent = 0,
-		  rent_direction = 0%0 or 1
+		  rent_direction = 0,%0 or 1
 % we can set timeout_height to 0 to signify that we aren't in timeout mode. So we don't need the timeout flag.
+		  mode = 0,%0 means an active channel where money can be spent. 1 means that the channel is being closed by acc1. 2 means that the channel is being closed by acc2.
+		  entropy = 0 %If the biggest account pairs will make N channels together, then entropy needs to be 2*log(N) bits long.
 		  }%
        ).
 acc1(C) -> C#channel.acc1.
@@ -21,6 +27,8 @@ id(C) -> C#channel.id.
 bal1(C) -> C#channel.bal1.
 bal2(C) -> C#channel.bal2.
 last_modified(C) -> C#channel.last_modified.
+mode(C) -> C#channel.mode.
+entropy(C) -> C#channel.entropy.
 
 
 update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Height) ->
@@ -60,12 +68,15 @@ update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Height) ->
 	      last_modified = Height
 	     }.
     
-new(ID, Acc1, Acc2, Bal1, Bal2, Height, Rent) ->
+new(ID, Acc1, Acc2, Bal1, Bal2, Height, Entropy, Rent) ->
     RS = if
 	     (Rent > 0) -> 0;
 	     true -> 1
 	 end,
-    #channel{id = ID, acc1 = Acc1, acc2 = Acc2, bal1 = Bal1, bal2 = Bal2, last_modified = Height, rent = abs(Rent), rent_direction = RS}.
+    #channel{id = ID, acc1 = Acc1, acc2 = Acc2, 
+	     bal1 = Bal1, bal2 = Bal2, 
+	     last_modified = Height, entropy = Entropy,
+	     rent = abs(Rent), rent_direction = RS}.
 serialize(C) ->
     ACC = constants:acc_bits(),
     BAL = constants:balance_bits(),
@@ -74,6 +85,7 @@ serialize(C) ->
     Rent = constants:channel_rent_bits(),
     Pad = constants:channel_padding(),
     KL = constants:key_length(),
+    ENT = constants:channel_entropy(),
     << (C#channel.id):KL,
        (C#channel.acc1):ACC,
        (C#channel.acc2):ACC,
@@ -84,6 +96,8 @@ serialize(C) ->
        (C#channel.last_modified):HEI,
        (C#channel.rent):Rent,
        (C#channel.rent_direction):1,
+       (C#channel.mode):2,
+       (C#channel.entropy):ENT,
        0:Pad>>.
 deserialize(B) ->
     ACC = constants:acc_bits(),
@@ -93,6 +107,7 @@ deserialize(B) ->
     Rent = constants:channel_rent_bits(),
     Pad = constants:channel_padding(),
     KL = constants:key_length(),
+    ENT = constants:channel_entropy(),
     << ID:KL,
        B1:ACC,
        B2:ACC,
@@ -103,12 +118,15 @@ deserialize(B) ->
        B7:HEI,
        B8:Rent,
        B9:1,
+       B10:2,
+       B11:ENT,
        _:Pad>> = B,
     #channel{id = ID, acc1 = B1, acc2 = B2, 
 	     bal1 = B3, bal2 = B4,
 	     nonce = B5, timeout_height = B6, 
 	     last_modified = B7,
-	     rent = B8, rent_direction = B9}.
+	     rent = B8, rent_direction = B9,
+	     mode = B10, entropy = B11}.
 write(Channel, Root) ->
     ID = Channel#channel.id,
     M = serialize(Channel),
@@ -133,7 +151,8 @@ test() ->
     Bal2 = 300,
     Height = 1,
     Rent = -4,
-    C = new(ID,Acc1,Acc2,Bal1,Bal2,Height,Rent),
+    Entropy = 500,
+    C = new(ID,Acc1,Acc2,Bal1,Bal2,Height,Entropy,Rent),
     C = deserialize(serialize(C)),
     NewLoc = write(C, 0),
     {_, C, _} = get(ID, NewLoc),
