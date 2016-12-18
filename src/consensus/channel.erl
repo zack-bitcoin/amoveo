@@ -1,9 +1,9 @@
 -module(channel).
--export([new/8,serialize/1,deserialize/1,update/7,
+-export([new/8,serialize/1,deserialize/1,update/9,
 	 write/2,get/2,delete/2,root_hash/1,
 	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
 	 last_modified/1, mode/1,entropy/1,
-	 test/0]).
+	 nonce/1,delay/1, test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
 -record(channel, {id = 0, %the unique id number that identifies this channel
@@ -18,7 +18,8 @@
 		  rent_direction = 0,%0 or 1
 % we can set timeout_height to 0 to signify that we aren't in timeout mode. So we don't need the timeout flag.
 		  mode = 0,%0 means an active channel where money can be spent. 1 means that the channel is being closed by acc1. 2 means that the channel is being closed by acc2.
-		  entropy = 0 %If the biggest account pairs will make N channels together, then entropy needs to be 2*log(N) bits long.
+		  entropy = 0, %If the biggest account pairs will make N channels together, then entropy needs to be 2*log(N) bits long.
+		  delay = 0%this is how long you have to wait since "last_modified" to do a channel_timeout_tx.
 		  }%
        ).
 acc1(C) -> C#channel.acc1.
@@ -29,9 +30,11 @@ bal2(C) -> C#channel.bal2.
 last_modified(C) -> C#channel.last_modified.
 mode(C) -> C#channel.mode.
 entropy(C) -> C#channel.entropy.
+nonce(C) -> C#channel.nonce.
+delay(C) -> C#channel.delay.
 
 
-update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Height) ->
+update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Mode, Delay, Height) ->
     true = Inc1 + Inc2 >= 0,
     {_, Channel, _} = get(ID, Channels),
     CNonce = Channel#channel.nonce,
@@ -60,13 +63,16 @@ update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Height) ->
     Bal2 = Channel#channel.bal2 + Inc2 - RH - CR,
     true = Bal1 >= 0,
     true = Bal2 >= 0,
+    true = lists:any(fun(X) -> X==Mode end, [0,1,2]),
     Channel#channel{bal1 = Bal1,
-	      bal2 = Bal2,
-	      nonce = NewNonce,
-	      rent = NewRent,
-	      rent_direction = NewRD,
-	      last_modified = Height
-	     }.
+		    bal2 = Bal2,
+		    nonce = NewNonce,
+		    rent = NewRent,
+		    rent_direction = NewRD,
+		    last_modified = Height,
+		    delay = Delay,
+		    mode = Mode
+		   }.
     
 new(ID, Acc1, Acc2, Bal1, Bal2, Height, Entropy, Rent) ->
     RS = if

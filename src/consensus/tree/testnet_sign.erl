@@ -41,7 +41,8 @@ verify_both(Tx, Addr1, Addr2) ->
         true -> false
     end.
 type_check(Type) -> %these are the types that get signed twice
-	(Type == gc) or (Type == nc) or (Type == ctc).
+    lists:any(fun(X) -> X==Type end, [gc, nc, ctc, spk]).
+	%(Type == gc) or (Type == nc) or (Type == ctc) or (type == spk)
 
 verify(SignedTx, Accounts) ->
     Tx = SignedTx#signed.data,

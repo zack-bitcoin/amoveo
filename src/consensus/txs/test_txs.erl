@@ -11,6 +11,7 @@ test() ->
     S = test2(),
     S = test3(),
     S = test4(),
+    S = test5(),
     S.
 test1() ->
     %create account, spend, delete account
@@ -141,4 +142,46 @@ test4() ->
     block:check(Block),
     success.
     
+test5() -> 
+    %channel solo close
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    tx_pool:dump(),
+    Accounts = block:accounts(BP),
+    {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
+
+    Fee = 10,
+    Amount = 1000000,
+    ID2 = 2,
+    {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Accounts),
+    Stx = keys:sign(Ctx, Accounts),
+    tx_pool_feeder:absorb(Stx),
+    {Accounts2, _Channels, _, _} = tx_pool:data(),
+
+    CID = 5,
+    Entropy = 432,
+
+    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 100, 200, 0, Entropy, Fee),
+    Stx2 = keys:sign(Ctx2, Accounts2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
+    tx_pool_feeder:absorb(SStx2),
+    {Accounts3, Channels, _, _} = tx_pool:data(),
     
+    Code = compiler_chalang:doit(<<"int 1 int 50">>),%channel nonce is 1, sends 50.
+    Delay = 0,
+    ScriptPubKey = keys:sign(spk:new(1, ID2, Entropy, Code, 10000, 10000, Delay), Accounts3),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
+    ScriptSig = compiler_chalang:doit(<<" ">>),
+    {Ctx3, _} = channel_solo_close:make(1, CID, Fee, SignedScriptPubKey, ScriptSig, Accounts3, Channels), 
+    Stx3 = keys:sign(Ctx3, Accounts3),
+    tx_pool_feeder:absorb(Stx3),
+    {Accounts4, Channels2, _, _Txs} = tx_pool:data(),
+
+    {Ctx4, _} = channel_timeout_tx:make(1,Accounts4,Channels2,CID,Fee),
+    Stx4 = keys:sign(Ctx4, Accounts4),
+    tx_pool_feeder:absorb(Stx4),
+    {_, _, _, Txs} = tx_pool:data(),
+
+    {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    block:check(Block),
+    success.

@@ -22,7 +22,7 @@ doit(Tx, Channels,Accounts,NewHeight) ->
     {_, OldChannel, _} = channel:get(ID, Channels),
     Aid1 = channel:acc1(OldChannel),
     Aid2 = channel:acc2(OldChannel),
-    ID = channel:id(OldChannel),
+    %ID = channel:id(OldChannel),
     Aid1 = Tx#ctc.aid1,
     Aid2 = Tx#ctc.aid2,
     false = Aid1 == Aid2,

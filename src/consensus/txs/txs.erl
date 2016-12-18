@@ -27,8 +27,8 @@ digest2(A, B, C, D) ->
 	gc -> grow_channel_tx:doit(A, B, C, D);
 	ctc -> channel_team_close_tx:doit(A,B,C,D);
 	cr -> channel_repo_tx:doit(A,B,C,D);
-	%signed_cb -> channel_block_tx:doit(A, B, C, D);
-	%timeout -> channel_timeout_tx:doit(A, B, C, D);
+	csc -> channel_solo_close:doit(A,B,C,D);
+	timeout -> channel_timeout_tx:doit(A, B, C, D);
 	%channel_slash -> channel_slash_tx:doit(A,B, C, D);
 	X -> X=2
     end.
