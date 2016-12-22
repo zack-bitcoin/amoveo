@@ -1,39 +1,62 @@
 -module(channel_slash_tx).
--export([doit/7, channel_block/1, make_tx/3]).
--record(channel_slash, {acc = 0, nonce = 0, channel_block = 0, fee=0}).
-channel_block(Tx) ->
-    Tx#channel_slash.channel_block.
-make_tx(Id, CB, Fee) ->
-    %Id = keys:id(),
-    Acc = block_tree:account(Id),
-    Nonce = accounts:nonce(Acc),
-    #channel_slash{acc = Id, nonce = Nonce + 1, channel_block = CB, fee = Fee}.
-doit(Tx, ParentKey, Channels, Accounts, TotalCoins, Secrets, NewHeight) ->
-    SignedCB = Tx#channel_slash.channel_block,
-    testnet_sign:verify(SignedCB, Accounts),
-    CB = testnet_sign:data(SignedCB),
-    Id = channel_block_tx:id(CB),
-    Channel = block_tree:channel(Id, ParentKey, Channels),
-    A = case channels:called_timeout(Channel) of
-	    0 -> B = Tx#channel_slash.acc, B = channels:acc2(Channel), B;
-	    1 -> B = Tx#channel_slash.acc, B = channels:acc1(Channel), B
-    end,
-    OriginTimeout = channel_block_tx:origin_tx(channels:timeout_height(Channel), ParentKey, Id),
-    SignedOriginTx = channel_timeout_tx:channel_block(testnet_sign:data(OriginTimeout)),
-    OriginTx = testnet_sign:data(SignedOriginTx),
+-export([doit/4, make/7]).
+-record(cs, {from, nonce, fee = 0, 
+	     cid, scriptpubkey, scriptsig}).
+make(From, CID, Fee, ScriptPubkey, ScriptSig, Accounts,Channels) ->
+    {_, Acc, Proof1} = account:get(From, Accounts),
+    {_, Channel, Proofc} = channel:get(CID, Channels),
+    Acc1 = channel:acc1(Channel),
+    Acc2 = channel:acc2(Channel),
+    Accb = case From of
+	       Acc1 -> Acc2;
+	       Acc2 -> Acc1
+	   end,
+    {_, _, Proof2} = account:get(Accb, Accounts),
+    Tx = #cs{from = From, nonce = account:nonce(Acc)+1, 
+	      fee = Fee, cid = CID, 
+	      scriptpubkey = ScriptPubkey, 
+	      scriptsig = ScriptSig},
+    {Tx, [Proof1, Proof2, Proofc]}.
 
-    SlashedCB = channel_block_tx:slash_bet(CB),
-    SignedSlashedCB = testnet_sign:empty(SlashedCB),
-    NewReveal = channel_block_tx:reveal_union(SlashedCB, testnet_sign:revealed(SignedCB), OriginTx, testnet_sign:revealed(SignedOriginTx)),
-    NewSignedCB = testnet_sign:set_revealed(SignedSlashedCB, NewReveal),
-    SlasherType1 = (channel_block_tx:nonce(CB) > channel_block_tx:nonce(OriginTx)),
-    SlasherType2 = not(testnet_sign:revealed(SignedCB) == NewReveal),
-    true = SlasherType1 or SlasherType2,
-    Acc = block_tree:account(A, ParentKey, Accounts),
-    NAcc = accounts:update(Acc, NewHeight, -Tx#channel_slash.fee, 0, 1, TotalCoins),
-    NewAccounts = dict:store(A, NAcc, Accounts),
-
-    Nonce = accounts:nonce(NAcc),
-    Nonce = Tx#channel_slash.nonce,
-
-    channel_block_tx:channel(NewSignedCB, ParentKey, Channels, NewAccounts, TotalCoins, Secrets, NewHeight).
+doit(Tx, Channels, Accounts, NewHeight) ->
+    From = Tx#cs.from,
+    CID = Tx#cs.cid,
+    {_, Channel, _} = channel:get(CID, Channels),
+    SignedSPK = Tx#cs.scriptpubkey,
+    true = testnet_sign:verify(SignedSPK, Accounts),
+    SPK = testnet_sign:data(SignedSPK),
+    Acc1 = channel:acc1(Channel),
+    Acc2 = channel:acc2(Channel),
+    Acc1 = spk:acc1(SPK),
+    Acc2 = spk:acc2(SPK),
+    true = channel:entropy(Channel) == spk:entropy(SPK),
+    Mode = channel:mode(Channel),
+    Fee = Tx#cs.fee,
+    Nonce = Tx#cs.nonce,
+    {Mode, Acc1Fee, Acc2Fee, N1, N2}
+	= case From of
+	      Acc1 -> {2, Fee, 0, Nonce, none};
+	      Acc2 -> {1, 0, Fee, none, Nonce}
+	  end,
+    Slash = 1,
+    TotalCoins = 0,
+    State = chalang:new_state(TotalCoins, NewHeight, Slash, <<0:(8*hash:hash_depth())>>, Accounts, Channels), %the hash_depth of zeros is where the oracle trie will eventually go.
+    %ScriptPubkey = Tx#cs.scriptpubkey,
+    {Amount, NewCNonce, _, _} = 
+	chalang:run(Tx#cs.scriptsig, 
+		    spk:code(SPK), 
+		    spk:time_gas(SPK), 
+		    spk:space_gas(SPK), 
+		    constants:fun_limit(), 
+		    constants:var_limit(), 
+		    State), 
+    true = NewCNonce > channel:nonce(Channel),
+    %delete the channel. empty the channel into the accounts.
+    NewChannels = channel:delete(CID, Channels),
+    Account1 = account:update(Acc1, Accounts, channel:bal1(Channel)-Acc1Fee-Amount, N1, NewHeight),
+    Account2 = account:update(Acc2, Accounts, channel:bal2(Channel)-Acc2Fee+Amount, N2, NewHeight),
+    Accounts2 = account:write(Accounts, Account1),
+    NewAccounts = account:write(Accounts2, Account2),
+    
+   {NewChannels, NewAccounts}. 
+		      

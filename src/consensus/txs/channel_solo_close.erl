@@ -1,10 +1,11 @@
 -module(channel_solo_close).
 -export([doit/4, make/7]).
--record(csc, {from = 0, nonce = 0, fee = 0, cid = 0, scriptpubkey = [], scriptsig = []}).
+-record(csc, {from, nonce, fee = 0, 
+	      cid, scriptpubkey, scriptsig}).
 
 make(From, CID, Fee, ScriptPubkey, ScriptSig, Accounts, Channels) ->
     {_, Acc, Proof1} = account:get(From, Accounts),
-    {_, _, Proofc} = channel:get(CID, Channels),
+    {_, _Channel, Proofc} = channel:get(CID, Channels),
     Tx = #csc{from = From, nonce = account:nonce(Acc)+1, 
 	      fee = Fee, cid = CID, 
 	      scriptpubkey = ScriptPubkey, 
@@ -24,6 +25,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Acc2 = spk:acc2(ScriptPubkey),
     true = channel:entropy(Channel) == spk:entropy(ScriptPubkey),
     %NewCNonce = spk:nonce(ScriptPubkey),
+    0 = channel:mode(Channel),
     Mode = case From of
 	       Acc1 -> 1;
 	       Acc2 -> 2

@@ -29,7 +29,7 @@ digest2(A, B, C, D) ->
 	cr -> channel_repo_tx:doit(A,B,C,D);
 	csc -> channel_solo_close:doit(A,B,C,D);
 	timeout -> channel_timeout_tx:doit(A, B, C, D);
-	%channel_slash -> channel_slash_tx:doit(A,B, C, D);
+	cs -> channel_slash_tx:doit(A,B, C, D);
 	X -> X=2
     end.
  

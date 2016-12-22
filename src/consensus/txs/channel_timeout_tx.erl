@@ -5,11 +5,18 @@
 %You should only use the final channel-state, or else your partner can punish you for cheating.
 make(ID,Accounts,Channels,CID,Fee) ->
     {_, Acc, Proof} = account:get(ID, Accounts),
-    {_, _, Proofc} = channel:get(CID, Channels),
+    {_, Channel, Proofc} = channel:get(CID, Channels),
+    Acc1 = channel:acc1(Channel),
+    Acc2 = channel:acc2(Channel),
+    Accb = case ID of
+	       Acc1 -> Acc2;
+	       Acc2 -> Acc1
+	   end,
+    {_, _, Proof2} = account:get(Accb, Accounts),
     Nonce = account:nonce(Acc),
     Tx = #timeout{aid = ID, nonce = Nonce + 1,
 		  fee = Fee, cid = CID},
-    {Tx, [Proof, Proofc]}.
+    {Tx, [Proof, Proof2, Proofc]}.
 
 doit(Tx, Channels, Accounts, NewHeight) ->
     From = Tx#timeout.aid,
@@ -21,12 +28,15 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Mode = channel:mode(Channel),
     Aid1 = channel:acc1(Channel),
     Aid2 = channel:acc2(Channel),
-    {Mode, AccB} = case From of
-	       Aid1 -> {1, Aid2};
-	       Aid2 -> {2, Aid1}
-	   end,
-    Acc1 = account:update(From, Accounts, channel:bal1(Channel)-Tx#timeout.fee, Tx#timeout.nonce, NewHeight),
-    Acc2 = account:update(AccB, Accounts, channel:bal2(Channel), none, NewHeight),
+    Fee = Tx#timeout.fee,
+    Nonce = Tx#timeout.nonce,
+    {Mode, Acc1Fee, Acc2Fee, N1, N2} = 
+	case From of
+	    Aid1 -> {1, Fee, 0, Nonce, none};
+	    Aid2 -> {2, 0, Fee, none, Nonce}
+	end,
+    Acc1 = account:update(Aid1, Accounts, channel:bal1(Channel)-Acc1Fee, N1, NewHeight),
+    Acc2 = account:update(Aid2, Accounts, channel:bal2(Channel)-Acc2Fee, N2, NewHeight),
     Accounts2 = account:write(Accounts, Acc1),
     NewAccounts = account:write(Accounts2, Acc2),
     NewChannels = channel:delete(CID, Channels),
