@@ -38,8 +38,8 @@ test1() ->
     tx_pool_feeder:absorb(Stx3),
     {_Accounts4, _, _, Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
-    block:check(Block),
+    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    block:check2(Block),
     success.
     
     
@@ -62,8 +62,8 @@ test2() ->
     tx_pool_feeder:absorb(Stx2),
     {_Accounts3, _, _, Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
-    block:check(Block),
+    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    block:check2(Block),
     success.
     
     
@@ -105,8 +105,8 @@ test3() ->
     tx_pool_feeder:absorb(SStx4),
     {_,_,_,Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
-    block:check(Block),
+    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    block:check2(Block),
     success.
     
 test4() -> 
@@ -139,8 +139,8 @@ test4() ->
     tx_pool_feeder:absorb(Stx4),
     {_,_,_,Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
-    block:check(Block),
+    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    block:check2(Block),
     success.
     
 test5() -> 
@@ -183,8 +183,8 @@ test5() ->
     tx_pool_feeder:absorb(Stx4),
     {_, _, _, Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
-    block:check(Block),
+    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    block:check2(Block),
     success.
 
 
@@ -230,6 +230,6 @@ test6() ->
     tx_pool_feeder:absorb(Stx4),
     {_, _, _, Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _} = block:make(PH, Txs, 1),%1 is the master pub
-    block:check(Block),
+    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    block:check2(Block),
     success.

@@ -1,3 +1,6 @@
+working in download_blocks
+
+
 Channels should have a unique identifier.
 The worry is that an attacker could make a second channel with the same person using the same channel ID. In such a situation, they would be able to reuse old channel contracts from the previous channel.
 Making the defender remember every channel they ever made is unacceptable.

@@ -1,7 +1,7 @@
 -module(block).
--export([hash/1,check/1,test/0,mine_test/0,genesis/0,make/3,mine/2,height/1,accounts/1,channels/1,accounts_hash/1,channels_hash/1,save/1,absorb/1,read/1,binary_to_file/1]).
+-export([hash/1,check2/1,test/0,mine_test/0,genesis/0,make/3,mine/2,height/1,accounts/1,channels/1,accounts_hash/1,channels_hash/1,save/1,absorb/1,read/1,binary_to_file/1]).
 -record(block, {height, prev_hash, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
--record(block_plus, {block, accounts, channels}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
+-record(block_plus, {block, accounts, channels, accumulative_difficulty = 0}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
 %this gets wrapped in a signature and then wrapped in a pow.
 channels(Block) ->
@@ -69,9 +69,12 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
 		  mines_block = ID,
 		  time = time_now()-5,
 		  difficulty = NextDifficulty},
+       accumulative_difficulty = next_acc(ParentPlus, NextDifficulty),
        channels = NewChannels, 
        accounts = NewAccounts
       }.
+next_acc(Parent, ND) ->
+    Parent#block_plus.accumulative_difficulty + pow:sci2int(ND).
     %We need to reward the miner for his POW.
     %We need to reward the miner the sum of transaction fees.
 mine(Block, Times) ->
@@ -114,18 +117,32 @@ retarget2(Hash, N, L) ->
     T = B#block.time,
     H = B#block.prev_hash,
     retarget2(H, N-1, [T|L]).
-    
-    
-     
-check(Block) ->
+   
+check1(PowBlock) -> 
+    %check1 makes no assumption about the parent's existance.
+    Block = pow:data(PowBlock),
+    Difficulty = Block#block.difficulty,
+    true = Difficulty > constants:initial_difficulty(),
+    pow:above_min(PowBlock, Difficulty),
+ 
+    true = Block#block.time < time_now(),
+    {hash(Block), Block#block.prev_hash}.
+
+
+check2(Block) ->%this is a different function than absorb because we don't want to do any POW for tests. We want to test this code to make sure it works.
     %check that the time is later than the median of the last 100 blocks.
-    BH = hash(Block),
+
+    %check2 assumes that the parent is in the database already.
+    %Block = pow:data(PowBlock),
+    Difficulty = Block#block.difficulty,
     PH = Block#block.prev_hash,
-    block_hashes:add(BH),
+    Difficulty = next_difficulty(PH),
+    %pow:above_min(PowBlock, Difficulty),
+   
     PrevPlus = read(PH),
     Prev = PrevPlus#block_plus.block,
     true = (Block#block.height-1) == Prev#block.height,
-    true = Block#block.time < time_now(),
+    %true = Block#block.time < time_now(),
     {CH, AH} = {Block#block.channels, Block#block.accounts},
     {CR, AR} = txs:digest(Block#block.txs, 
 		   PrevPlus#block_plus.channels,
@@ -133,22 +150,22 @@ check(Block) ->
 		   Block#block.height),
     CH = trie:root_hash(channels, CR),
     AH = account:root_hash(AR),
-    #block_plus{block = Block, channels = CR, accounts = AR}.
+    #block_plus{block = Block, channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty)}.
+
+
 
 %next_difficulty(_Block) ->
     %take the median time on the last 2000 blocks, subtract it from the current time, divide by 1000. This is the current blockrate. Adjust the difficulty to make the rate better.
 %    constants:initial_difficulty().
 absorb(PowBlock) ->
     Block = pow:data(PowBlock),
-    Difficulty = Block#block.difficulty,
     BH = hash(Block),
     false = block_hashes:check(BH),%If we have seen this block before, then don't process it again.
-    PH = Block#block.prev_hash,
-    Difficulty = next_difficulty(PH),
-    pow:above_min(PowBlock, Difficulty),
-    BlockPlus = check(Block),
+    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
+    check1(PowBlock),
+    BlockPlus = check2(Block),
     save(BlockPlus),
-    top:add(BlockPlus#block_plus.block).
+    top:add(Block).
 binary_to_file(B) ->
     C = base58:binary_to_base58(B),
     H = C,
@@ -172,12 +189,12 @@ test() ->
     BP = read(PH),
     Accounts = BP#block_plus.accounts,
     _ = account:get(1, Accounts),
-    {block_plus, Block, _, _} = make(PH, [], 1),
-    check(Block),
+    {block_plus, Block, _, _, _} = make(PH, [], 1),
+    check2(Block),
     success.
 mine_test() ->
     PH = top:doit(),
-    {block_plus, Block, _, _} = make(PH, [], 1),
+    {block_plus, Block, _, _, _} = make(PH, [], 1),
     PBlock = mine(Block, 1000000000),
     absorb(PBlock),
     mine_blocks(10),

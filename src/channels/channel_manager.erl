@@ -99,16 +99,17 @@ hashlock(ChId, Ch, Amount, SecretHash, Id) ->
     Script = language:hashlock(SecretHash),
     channel_block_tx:add_bet(Ch2, Amount, Script, OtherAccount).
 
-
+sign_absorb(X) ->
+    tx_pool_feeder:absorb(keys:sign(X)).
 test() ->    
     %{Pub, Priv} = testnet_sign:new_key(),
     %{Addr, Pub, Priv} = {<<"VNSU5QDMZCvWmAU">>, <<"BN9moEiPOf9+rkCf+r10w8JzuDKnLyafUS18dgoA1OIiNeycYyx7vgcTYPDApZtZ0bP5vLms3E1QJDVPMWlWO7s=">>, <<"AteceXn/9Epq1TQaLO27EPn9SyjvNzL1p2Ot8Rpen/g=">>},
     {Addr, Pub, Priv} = testnet_sign:hard_new_key(),
-    tx_pool_feeder:absorb(keys:sign(create_account_tx:create_account(Pub, 620000, 0))),
     Partner = 4,
-    tx_pool_feeder:absorb(keys:sign(spend_tx:spend(Partner, 10, 0, keys:id()))),
-    tx_pool_feeder:absorb(keys:sign(sign_tx:sign(keys:id()))),
-    %tx_pool_feeder:absorb(keys:sign(reveal:reveal(keys:id()))),
+    Accounts0 = 0,
+    ID = 1,
+    sign_absorb(create_account_tx:make(Addr, 620000, 0, ID, Partner, 0)),
+    sign_absorb(spend_tx:make(Partner, 10, 0, ID, Accounts0)),
     block_tree:buy_block(),
     P5 = accounts:addr(block_tree:account(5)),
     P4 = accounts:addr(block_tree:account(4)),
@@ -126,8 +127,6 @@ test() ->
     SignedCreateTx1 = testnet_sign:sign_tx(CreateTx1, Pub, Priv, ID, tx_pool:accounts()),
     true = testnet_sign:verify(SignedCreateTx1, tx_pool:accounts()),
     tx_pool_feeder:absorb(SignedCreateTx1),
-    tx_pool_feeder:absorb(keys:sign(sign_tx:sign(keys:id()))),
-    %tx_pool_feeder:absorb(keys:sign(reveal:reveal(keys:id()))),
     block_tree:buy_block(),
     S = 24004,
     C = read(S),

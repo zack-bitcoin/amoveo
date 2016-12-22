@@ -22,10 +22,10 @@ test1() ->
     S = block_hashes:test(),
     S = block:test(),
     S = test_txs:test(),
-    S = inbox:test(),
-    %S = mail:test(),
-    %S = arbitrage:test(),
-    %S = channel_manager:test(),
+    %S = inbox:test(),
     S = test_chalang:test("deps/chalang/examples/"),
+    %S = channel_manager:test(),
+    %S = arbitrage:test(),
+    %S = mail:test(),
     S.
     

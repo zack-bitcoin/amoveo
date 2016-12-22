@@ -118,6 +118,9 @@ channel_entropy() -> 16. %Channel contracts only work for a channel with the sam
 
 fun_limit() -> 1000.
 var_limit() -> 10000.
+
+peers() ->
+    [].%[{IP, Port}| ...]
     
     
 
