@@ -1,7 +1,9 @@
 -module(peers).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
-	 update/4,all/0,add/2,read/2,remove/2]).    
+	 update/4,all/0,add/2,add/1,read/2,remove/2,
+	update_score/3, initial_score/0]).    
+-record(r, {height =0, hash=0, score=100000}).%lower score is better.
 init(ok) -> {ok, default_peers()}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -14,9 +16,24 @@ handle_cast({remove, IP, Port}, X) ->
 handle_cast({add, IP, Port}, X) -> 
     NewX = load_peers([{IP, Port}], X),
     {noreply, NewX};
+handle_cast({score, IP, Port, N}, X) ->
+    K = key(IP, Port),
+    {ok, Old} = dict:find(K, X),
+    A = Old#r.score,
+    B = (A*99+N) div 100,
+    NewR = Old#r{score = B},
+    NewX = dict:store(K, NewR, X),
+    {noreply, NewX};
 handle_cast({update, IP, Port, Height, Hash}, X) ->
     K = key(IP, Port),
-    NewX = dict:store(K, {Height, Hash}, X),
+    {ok, Old} = dict:find(K, X),
+    NewX = if
+	       Height > Old#r.height ->
+		   A = Old#r{height = Height, hash = Hash},
+		   dict:store(K, A, X);
+	       true ->
+		   X
+	   end,
     {noreply, NewX}.
 handle_call(all, _From, X) ->
     {reply, dict:fetch_keys(X), X};
@@ -29,12 +46,16 @@ handle_call({read, IP, Port}, _From, X) ->
     {reply, O, X}.
 key(IP, Port) -> {IP, Port}.
 all() -> gen_server:call(?MODULE, all).
+add([]) -> ok;
+add([{IP, Port}|T]) -> 
+    add(IP, Port),
+    add(T).
 add(IP, Port) -> 
     gen_server:cast(?MODULE, {add, IP, Port}).
+update_score(IP, Port, N) ->
+    gen_server:cast(?MODULE, {score, IP, Port, N}).
+
 update(IP, Port, Height, Hash) ->
-    %only store data that increases peer.height
-    {OldHeight, _} = read(IP, Port),
-    true = Height > OldHeight,
     gen_server:cast(?MODULE, {update, IP, Port, Height, Hash}).
 remove(IP, Port) -> gen_server:cast(?MODULE, {remove, IP, Port}).
 read(IP, Port) -> gen_server:call(?MODULE, {read, IP, Port}).
@@ -44,7 +65,13 @@ default_peers() ->
     load_peers(D, dict:new()).
 load_peers([], D) -> D;
 load_peers([{IP, Port}|T], Dict) ->
-    %P = #peer{ip = IP, port = Port },
     K = key(IP, Port),
-    D2 = dict:store(K, {0, 0}, Dict),
+    %don't re-write the same peer twice.
+    D2 = case dict:find(K, Dict) of
+	     error ->
+		 dict:store(K, #r{}, Dict);
+	     _ -> Dict
+	 end,
     load_peers(T, D2).
+
+initial_score() -> 100000.
