@@ -26,44 +26,16 @@ doit({sign, Tx}) -> {ok, keys:sign(Tx)};
 
 doit({balance}) ->
     {ok, accounts:balance(block_tree:account(keys:id()))};
-doit({channel_balance, IP, Port}) ->
-    {ok, ServerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(ServerId)),
-    OnChannel = block_tree:channel(ChId),
-    OffChannel = channel_manager:read_channel(ChId),
-    A1 = channels:acc1(OnChannel),
-    A2 = channels:acc2(OnChannel),
-    {Bal, Sign} = 
-	case keys:id() of
-	    A1 -> {channels:bal1(OnChannel), 1};
-	    A2 -> {channels:bal2(OnChannel), -1}
-	end,
-    BetAmounts = channel_manager:bet_amounts(OffChannel),
-    {ok, Bal + (Sign * channel_block_tx:amount(OffChannel)) - BetAmounts};
-doit({channel_balance2, IP, Port}) ->
-    %This looks identical to the one above. It should probably be deleted.
-    %balance.js uses it.
-    {ok, ServerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(ServerId)),
-    OnChannel = block_tree:channel(ChId),
-    OffChannel = channel_manager:read_channel(ChId),
-    A1 = channels:acc1(OnChannel),
-    A2 = channels:acc2(OnChannel),
-    {Bal, Sign} = 
-	case keys:id() of
-	    A2 -> {channels:bal1(OnChannel), 1};
-	    A1 -> {channels:bal2(OnChannel), -1}
-	end,
-    BetAmounts = channel_manager:bet_amounts(OffChannel),
-    {ok, Bal + (Sign * channel_block_tx:amount(OffChannel)) - BetAmounts};
 doit({create_account, Pub, Amount, Fee}) -> 
     tx_pool_feeder:absorb(keys:sign(create_account_tx:create_account(Pub, Amount, Fee))),
     {ok, ok};
 doit({spend, To, Amount, Fee}) ->
     tx_pool_feeder:absorb(keys:sign(spend_tx:spend(To, Amount, Fee)));
-doit({buy_block}) -> 
-    tx_pool_feeder:absorb(keys:sign(sign_tx:sign(keys:id()))), 
-    block_tree:buy_block();
+doit({mine_block}) -> 
+    {_,_,_,Txs} = tx_pool:data(),
+    Block = block:make(top:doit(), Txs, keys:id()),
+    PowBlock = block:mine(Block, 10000000),
+    block:absorb(PowBlock);
 doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
     keys:sign(to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee));
 doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
@@ -73,8 +45,11 @@ doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
     talker:talk({to_channel, SignedTx}, IP, Port);
 doit({close_channel, ChId, Amount, Nonce, Fee}) ->
     keys:sign(channel_block_tx:close_channel(ChId, Amount, Nonce, Fee));
+doit({add_peer, IP, Port}) ->
+    peers:add(IP, Port);
 doit({sync, IP, Port}) ->
-    download_blocks:sync(IP, Port);
+    MyHeight = block:height(block:read(top:doit())),
+    download_blocks:sync(IP, Port, MyHeight);
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({address}) -> {ok, testnet_sign:pubkey2address(keys:pubkey())};
 doit({address, X}) -> {ok, testnet_sign:pubkey2address(X)};

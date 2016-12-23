@@ -29,8 +29,9 @@ doit({give_block, SignedBlock}) ->
     block_tree:absorb([SignedBlock]),
     {ok, 0};
 doit({block, N}) -> 
-    {ok, block_tree:read_int(N)};
-doit({tophash}) -> {ok, hash:doit(block_tree:top())};
+    {ok, block:read_int(N)};
+    %{ok, block_tree:read_int(N)};
+doit({tophash}) -> {ok, top:doit()};
 doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
 doit({peers}) ->
     {ok, peers:all()};
@@ -49,6 +50,12 @@ doit({id}) -> {ok, keys:id()};
 
 doit({balance, ID}) ->
     {ok, accounts:balance(block_tree:account(ID))};
+doit({top}) -> 
+    Top = block:read(top:doit()),
+    Height = block:height(Top),
+    TopHash = block:hash(Top),
+    {ok, TopHash, Height};
+
 doit({create_account, Pub, Amount, Fee}) -> 
     {ok, create_account_tx:create_account(Pub, Amount, Fee)};
 doit({spend, To, Amount, Fee}) ->

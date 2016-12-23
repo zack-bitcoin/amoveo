@@ -22,9 +22,9 @@ talk(Msg, Peer) ->
 	{ok, {_, _, []}} -> 
 	    {error, undefined};
 	{ok, {_, _, R}} -> 
-	    %io:fwrite("about to unpack message"),
-	    %io:fwrite(R),
-	    %io:fwrite("\n"),
+	    io:fwrite("about to unpack message"),
+	    io:fwrite(R),
+	    io:fwrite("\n"),
 	    packer:unpack(R);
 	{error, timeout} ->
 	    {error, timeout}
