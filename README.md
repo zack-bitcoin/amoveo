@@ -7,5 +7,14 @@ The testnet is not yet live, and it needs a few more changes to activate the POW
 
 ---Installing
 
-[for ubuntu](compile.md)
+[for ubuntu](docs/compile.md)
 
+
+[Making an account](docs/new_account.md)
+
+
+To turn it off, use this command:
+```testnet_sup:stop()```
+
+to mine 5 blocks:
+```block:mine_blocks(5)```

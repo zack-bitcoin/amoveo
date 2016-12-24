@@ -10,15 +10,15 @@ trie_size() ->
     10000. %we can adjust this many accounts and channels per block.
 -define(InitialCoins, round(math:pow(2, 41)) - 1).
 initial_coins() -> ?InitialCoins.
-initial_difficulty() -> 10*256.%for testing purposes only
-
-%5940.%about 300 seconds on my lenovo AMD Athlon Neo X2 L325 / 1.5 GHz using a single core.
+block_reward() -> round(math:pow(2, 29)) - 1.
+initial_difficulty() -> %10*256.%for testing purposes only
+5940.%about 300 seconds on my lenovo AMD Athlon Neo X2 L325 / 1.5 GHz using a single core.
 %20*256 ~20 seconds %2 seconds is 16*256
 
 finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> 96.
 %master_pub() -> <<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1FzNnA1QStRbmdZeStmTGY4ZzRvPQ==">>.
-master_pub() -> <<"BKknHWzm/lebbf2lY535fw3Slybj4aUxY7QNNcu25HHQz/vROXO1zO0nfSH/6E/swGyguz9kt9itzwKz7rnMSAo=">>.
+master_pub() -> <<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>.
 master_address() ->
     testnet_sign:pubkey2address(master_pub()).
 max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
@@ -75,7 +75,7 @@ pointers_start() -> root() ++ "pointers_start.db".
 channels() -> root() ++ "channels.db".
 d_channels() -> root() ++ "d_channels.db".
 keys() -> root() ++ "keys.db".
-secrets() -> root() ++ "secrets.db".
+top() -> root() ++ "top.db".
 backup_accounts() -> root() ++ "backup/accounts.db".
 word_size() -> 100000.
 
@@ -112,7 +112,7 @@ retarget_frequency() -> %how many blocks till we recalculate the difficulty
     4000.
     %2000.
 block_time() -> 
-    3000.
+    6000.
     %10.
 time_units() -> %1000 = 1 second, 100 = 0.1 seconds
    100. 

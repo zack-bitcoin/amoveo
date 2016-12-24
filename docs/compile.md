@@ -12,7 +12,7 @@ git clone https://github.com/Aeternity/Testnet.git
 Now you can go into the directory, and compile the aeternity testnet.
 
 ```
-cd testnet/
+cd Testnet/
 sh install.sh
 ```
 Start your node with this script:

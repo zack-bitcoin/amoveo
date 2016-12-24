@@ -23,7 +23,7 @@ init(ok) ->
 	 end,
     {ok, Ka}.
 store(Pub, Priv, Brainwallet, Id) -> 
-    X = #f{pub=Pub, priv=encryption:bin_enc(Brainwallet, Priv), sanity=encryption:bin_enc(Brainwallet, ?SANE()), id = Id},
+    X = #f{pub=Pub, priv=encryption:encrypt(Priv, Brainwallet), sanity=encryption:encrypt(?SANE(), Brainwallet), id = Id},
     db:save(?LOC(), X),
     X.
 handle_call({ss, Pub}, _From, R) ->
@@ -51,7 +51,7 @@ handle_cast({load, Pub, Priv, Brainwallet, Id}, _R) ->
     {noreply, #f{pub=Pub, priv=Priv, id = Id}};
 handle_cast({id_update, Id}, R) -> 
     DB = db:read(?LOC()),
-    X = #f{sanity = DB#f.sanity, priv = DB#f.priv, pub = DB#f.pub, id = Id},
+    X = DB#f{id = Id},
     db:save(?LOC(), X),
     {noreply, #f{pub = R#f.pub, priv = R#f.priv, id = Id}};
 handle_cast({new, Brainwallet}, _R) ->
@@ -60,14 +60,14 @@ handle_cast({new, Brainwallet}, _R) ->
     {noreply, #f{pub=Pub, priv=Priv}};
 handle_cast({unlock, Brainwallet}, _) ->
     X = db:read(?LOC()),
-    ?SANE() = encryption:bin_dec(Brainwallet, X#f.sanity),
-    Priv = encryption:bin_dec(Brainwallet, X#f.priv),%err
+    ?SANE() = encryption:decrypt(X#f.sanity, Brainwallet),
+    Priv = encryption:decrypt(X#f.priv, Brainwallet),%err
     {noreply, #f{pub=X#f.pub, priv=Priv, id=X#f.id}};
 handle_cast(lock, R) -> {noreply, #f{pub=R#f.pub, id=R#f.id}};
 handle_cast({change_password, Current, New}, R) ->
     X = db:read(?LOC()),
-    ?SANE() = encryption:bin_dec(Current, X#f.sanity),
-    Priv = encryption:bin_dec(Current, X#f.priv),
+    ?SANE() = encryption:decrypt(X#f.sanity, Current),
+    Priv = encryption:decrypt(X#f.priv, Current),
     store(R#f.pub, Priv, New, X#f.id),
     {noreply, R};
 handle_cast(_, X) -> {noreply, X}.

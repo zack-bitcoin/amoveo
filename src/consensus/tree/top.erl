@@ -1,16 +1,27 @@
 -module(top).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, add/1,doit/0,test/0]).
+-define(LOC, constants:top()).
 init(ok) -> 
-    G = block:genesis(),
-    block:save(G),
-    I = keys:pubkey(),
-    M = constants:master_pub(),
-    if
-	I == M -> keys:update_id(1);
-	true -> ok
-    end,
-    {ok, block:hash(G)}.
+    io:fwrite("start top"),
+    X = db:read(?LOC),
+    Ka = if
+	     X == "" ->
+		 G = block:genesis(),
+		 block:save(G),
+		 I = keys:pubkey(),
+		 M = constants:master_pub(),
+		 if
+		     I == M -> keys:update_id(1);
+		     true -> ok
+		 end,
+		 K = block:hash(G),
+		 db:save(?LOC, K),
+		 K;
+	     true ->
+		 X
+	 end,
+    {ok, Ka}.
     %{ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -25,7 +36,9 @@ handle_cast({add, Block}, X) ->
     New = if
 	      NH > OH -> 
 		  tx_pool:dump(),
-		  block:hash(Block);
+		  Y = block:hash(Block),
+		  db:save(?LOC, Y),
+		  Y;
 	      true -> X
 	  end,
     {noreply, New};

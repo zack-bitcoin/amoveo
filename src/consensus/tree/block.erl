@@ -3,7 +3,8 @@
 	 make/3,mine/2,height/1,accounts/1,channels/1,
 	 accounts_hash/1,channels_hash/1,save/1,
 	 absorb/1,read/1,binary_to_file/1,block/1,
-	 prev_hash/1,read_int/1,check1/1,pow_block/1]).
+	 prev_hash/1,read_int/1,check1/1,pow_block/1,
+	 mine_blocks/2, mine_blocks/1]).
 -record(block, {height, prev_hash = 0, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
 -record(block_plus, {block, accounts, channels, accumulative_difficulty = 0}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
@@ -81,15 +82,29 @@ genesis() ->
 	     4080,44358461744572027408730},
 
     #block_plus{block = Block, channels = 0, accounts = Accounts}.
+absorb_txs(PrevPlus, MinesBlock, Height, Txs) ->
+    OldAccounts = PrevPlus#block_plus.accounts,
+    NewMiner = account:update(MinesBlock,
+			      OldAccounts,
+			      constants:block_reward(),
+			      none,
+			      Height),
+    NewAccounts = account:write(OldAccounts, NewMiner),
+    txs:digest(Txs, 
+	       PrevPlus#block_plus.channels,
+	       NewAccounts,
+	       Height).
+    
 make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this block.
     ParentPlus = read(PrevHash),
     Parent = pow:data(ParentPlus#block_plus.block),
     Height = Parent#block.height + 1,
-    {NewChannels, NewAccounts} = 
-	txs:digest(Txs, 
-		   ParentPlus#block_plus.channels, 
-		   ParentPlus#block_plus.accounts,
-		   Height),
+    {NewChannels, NewAccounts} = absorb_txs(ParentPlus, ID, Height, Txs),
+    %{NewChannels, NewAccounts} = 
+	%txs:digest(Txs, 
+	%	   ParentPlus#block_plus.channels, 
+	%	   ParentPlus#block_plus.accounts,
+	%	   Height),
     CHash = trie:root_hash(channels, NewChannels),
     AHash = account:root_hash(NewAccounts),
     NextDifficulty = next_difficulty(PrevHash),
@@ -182,10 +197,7 @@ check2(BP) ->
     Prev = block(PrevPlus),
     true = (Block#block.height-1) == Prev#block.height,
     {CH, AH} = {Block#block.channels, Block#block.accounts},
-    {CR, AR} = txs:digest(Block#block.txs, 
-		   PrevPlus#block_plus.channels,
-		   PrevPlus#block_plus.accounts,
-		   Block#block.height),
+    {CR, AR} = absorb_txs(PrevPlus, Block#block.mines_block, Block#block.height, Block#block.txs),
     CH = channel:root_hash(CR),
     AH = account:root_hash(AR),
     #block_plus{block = PowBlock, channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty)}.
@@ -251,11 +263,13 @@ mine_test() ->
     {block_plus, Block, _, _, _} = make(PH, [], 1),
     PBlock = mine(Block, 1000000000),
     absorb(PBlock),
-    mine_blocks(10),
+    mine_blocks(10, 1000000000),
     success.
-    
-mine_blocks(0) -> success;
-mine_blocks(N) -> 
+mine_blocks(N) ->
+    mine_blocks(N, 10000000000000).
+   
+mine_blocks(0, _) -> success;
+mine_blocks(N, Times) -> 
     io:fwrite("mining block "),
     io:fwrite(integer_to_list(N)),
     io:fwrite(" time "),
@@ -264,9 +278,10 @@ mine_blocks(N) ->
     
     PH = top:doit(),
     %BP = read(PH),
-    {block_plus, Block, _, _} = make(PH, [], 1),
+    {_,_,_,Txs} = tx_pool:data(),
+    {block_plus, Block, _, _, _} = make(PH, Txs, 1),
     io:fwrite(integer_to_list(Block#block.difficulty)),
     io:fwrite("\n"),
-    PBlock = mine(Block, 1000000000),
+    PBlock = mine(Block, Times),
     absorb(PBlock),
-    mine_blocks(N-1).
+    mine_blocks(N-1, Times).

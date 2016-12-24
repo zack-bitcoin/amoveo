@@ -50,6 +50,11 @@ doit({add_peer, IP, Port}) ->
 doit({sync, IP, Port}) ->
     MyHeight = block:height(block:read(top:doit())),
     download_blocks:sync(IP, Port, MyHeight);
+doit({top}) -> 
+    Top = block:read(top:doit()),
+    Height = block:height(Top),
+    TopHash = block:hash(Top),
+    {ok, TopHash, Height};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({address}) -> {ok, testnet_sign:pubkey2address(keys:pubkey())};
 doit({address, X}) -> {ok, testnet_sign:pubkey2address(X)};

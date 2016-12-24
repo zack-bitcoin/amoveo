@@ -5,6 +5,7 @@ if [ -d "backup" ]
 then
     touch backup/temp.db
     rm backup/*.db
+    rm blocks/*.db
 else
     mkdir backup
 fi
