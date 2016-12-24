@@ -174,14 +174,20 @@ retarget2(Hash, N, L) ->
    
 check1(BP) -> 
     %check1 makes no assumption about the parent's existance.
-    PowBlock = pow_block(BP),
-    Block = block(PowBlock),
-    Difficulty = Block#block.difficulty,
-    true = Difficulty >= constants:initial_difficulty(),
-    pow:above_min(PowBlock, Difficulty),
+    BH = hash(BP),
+    GH = hash(genesis()),
+    if
+	BH == GH -> {BH, 0};
+	true ->
+	    PowBlock = pow_block(BP),
+	    Block = block(PowBlock),
+	    Difficulty = Block#block.difficulty,
+	    true = Difficulty >= constants:initial_difficulty(),
+	    pow:above_min(PowBlock, Difficulty),
  
-    true = Block#block.time < time_now(),
-    {hash(Block), Block#block.prev_hash}.
+	    true = Block#block.time < time_now(),
+	    {BH, Block#block.prev_hash}
+    end.
 
 
 check2(BP) ->

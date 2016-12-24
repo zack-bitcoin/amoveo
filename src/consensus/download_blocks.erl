@@ -22,15 +22,15 @@ sync_all([{IP, Port}|T], Height) ->
     sync_all(T, Height).
 sync(IP, Port, MyHeight) ->
     %lower their ranking
-    peers:update_score(IP, Port, peers:initial_score()),
+    %peers:update_score(IP, Port, peers:initial_score()),
     S = erlang:timestamp(),
     {ok, TopBlock, Height} = talker:talk({top}, IP, Port),
     trade_blocks(IP, Port, [TopBlock], Height),
     get_txs(IP, Port),
     trade_peers(IP, Port),
     Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
-    Score = abs(Time)*(1+abs(Height - MyHeight)),
-    peers:update_score(IP, Port, Score).
+    Score = abs(Time)*(1+abs(Height - MyHeight)).
+    %peers:update_score(IP, Port, Score).
     %raise their ranking.
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
@@ -46,25 +46,15 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
 	    NextHash = block:hash(NextBlock),
 	    trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);
 	_ -> 
-	    %sync3([PrevBlock|L]),
 	    sync3(L),
-	    %send_blocks(IP, Port, top:doit(), NextHash, [])
 	    send_blocks(IP, Port, top:doit(), PrevHash, [])
     end.
 send_blocks(IP, Port, T, T, L) -> 
-    L2 = case L of
-	     [] -> [];
-	     [_|X] -> X;
-	     _ -> 
-		 io:fwrite("L is "),
-		 io:fwrite(L)
-	 end,
-    send_blocks2(IP, Port, L2);
+    send_blocks2(IP, Port, L);
 send_blocks(IP, Port, TopHash, CommonHash, L) ->
     BlockPlus = block:read(TopHash),
-    Block = block:pow_block(BlockPlus),
     PrevHash = block:prev_hash(BlockPlus),
-    send_blocks(IP, Port, PrevHash, CommonHash, L).
+    send_blocks(IP, Port, PrevHash, CommonHash, [BlockPlus|L]).
 send_blocks2(_, _, []) -> ok;
 send_blocks2(IP, Port, [Block|T]) -> 
     talker:talk({give_block, Block}, IP, Port),
@@ -73,7 +63,6 @@ send_blocks2(IP, Port, [Block|T]) ->
 sync3([]) -> ok;
 sync3([B|T]) -> 
     io:fwrite("sync 3\n"),
-    %io:fwrite(B),
     block:absorb(B),
     sync3(T).
 absorb_txs([]) -> ok;
