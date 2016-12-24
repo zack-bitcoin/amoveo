@@ -1,3 +1,9 @@
+block:check2
+We need to check that the time on each block is later than the median of the last finality of blocks.
+
+
+
+
 working in download_blocks
 
 

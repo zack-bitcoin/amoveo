@@ -15,6 +15,7 @@ test() ->
     S = test6(),
     S.
 test1() ->
+    io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
     BP = block:genesis(),
     PH = block:hash(BP),
@@ -38,12 +39,14 @@ test1() ->
     tx_pool_feeder:absorb(Stx3),
     {_Accounts4, _, _, Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
-    block:check2(Block),
+    Block = block:make(PH, Txs, 1),%1 is the master pub
+    MBlock = block:mine(Block, 1000000000),
+    block:check2(MBlock),
     success.
     
     
 test2() ->
+    io:fwrite(" repo tx\n"),
     %repo_tx
     BP = block:genesis(),
     PH = block:hash(BP),
@@ -62,13 +65,14 @@ test2() ->
     tx_pool_feeder:absorb(Stx2),
     {_Accounts3, _, _, Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
     block:check2(Block),
     success.
     
     
     
 test3() ->
+    io:fwrite(" new channel tx\n"),
     %new channel, grow channel, channel team close
     BP = block:genesis(),
     PH = block:hash(BP),
@@ -105,12 +109,13 @@ test3() ->
     tx_pool_feeder:absorb(SStx4),
     {_,_,_,Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    Block = block:mine(block:make(PH, Txs, 1), 1000000000),%1 is the master pub
     block:check2(Block),
     success.
     
 test4() -> 
     %channel repo
+    io:fwrite(" channel repo tx\n"),
     BP = block:genesis(),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -139,12 +144,13 @@ test4() ->
     tx_pool_feeder:absorb(Stx4),
     {_,_,_,Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
     success.
     
 test5() -> 
     %channel solo close, channel timeout
+    io:fwrite("channel solo close tx\n"),
     BP = block:genesis(),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -183,13 +189,14 @@ test5() ->
     tx_pool_feeder:absorb(Stx4),
     {_, _, _, Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
     block:check2(Block),
     success.
 
 
 test6() -> 
     %channel slash
+    io:fwrite("channel slash tx\n"),
     BP = block:genesis(),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -230,6 +237,6 @@ test6() ->
     tx_pool_feeder:absorb(Stx4),
     {_, _, _, Txs} = tx_pool:data(),
 
-    {block_plus, Block, _, _, _} = block:make(PH, Txs, 1),%1 is the master pub
+    Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
     success.

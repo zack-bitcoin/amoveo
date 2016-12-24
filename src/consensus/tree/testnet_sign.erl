@@ -180,7 +180,7 @@ test() ->
     Signed1 = sign_tx(Tx, Pub, Priv, ID1, Accounts), 
     Signed = sign_tx(Signed1, Pub2, Priv2, ID2, Accounts),
     Signed2 = sign_tx({spend, ID1, 0, ID2, 1, 1}, Pub, Priv, ID1, Accounts),
-    Verbose = true,
+    Verbose = false,
     if
 	Verbose ->
 	    io:fwrite("pubkeys\n"),

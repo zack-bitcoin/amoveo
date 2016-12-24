@@ -10,9 +10,11 @@ trie_size() ->
     10000. %we can adjust this many accounts and channels per block.
 -define(InitialCoins, round(math:pow(2, 41)) - 1).
 initial_coins() -> ?InitialCoins.
-initial_difficulty() -> 16*255.%5940.
-%5940.%about 300 seconds on my lenovo AMD Athlon Neo X2 L325 / 1.5 GHz 
+initial_difficulty() -> 10*256.%for testing purposes only
+
+%5940.%about 300 seconds on my lenovo AMD Athlon Neo X2 L325 / 1.5 GHz using a single core.
 %20*256 ~20 seconds %2 seconds is 16*256
+
 finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> 96.
 %master_pub() -> <<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1FzNnA1QStRbmdZeStmTGY4ZzRvPQ==">>.
