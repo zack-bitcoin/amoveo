@@ -1,5 +1,6 @@
 -module(download_blocks).
--export([sync_cron/0, sync_cron/1, sync_all/2, sync/3, absorb_txs/1]).
+-export([sync_cron/0, sync_cron/1, sync_all/2, 
+	 sync/3, absorb_txs/1, tuples2lists/1]).
 
 sync_cron() -> sync_cron(30000).
 sync_cron(N) -> %30000 is 30 second.
@@ -32,30 +33,47 @@ sync(IP, Port, MyHeight) ->
     peers:update_score(IP, Port, Score).
     %raise their ranking.
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
-
+    %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
-    io:fwrite("in trade blocks "),
-    io:fwrite(integer_to_list(Height)),
-    io:fwrite("\n"),
-    {ok, PowBlock} = talker:talk({block, Height}, IP, Port),
-    {Hash, PrevHash} = block:check1(PowBlock),
-    M = block:read(Hash),
+    %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
+    {PrevHash, NextHash} = block:check1(PrevBlock),
+    M = block:read(PrevHash),%check if it is in our memory already.
+    io:fwrite("trade blocks\n"),
     case M of
-	empty -> trade_blocks(IP, Port, [PowBlock|[PrevBlock|L]], Height - 1);
+	empty -> 
+	    io:fwrite("was empty\n"),
+	    {ok, NextBlock} = talker:talk({block, Height-1}, IP, Port),
+	    NextHash = block:hash(NextBlock),
+	    trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);
 	_ -> 
-	    sync3([PrevBlock|L]),
-	    send_blocks(IP, Port, top:doit(), block:hash(PrevBlock))
+	    %sync3([PrevBlock|L]),
+	    sync3(L),
+	    %send_blocks(IP, Port, top:doit(), NextHash, [])
+	    send_blocks(IP, Port, top:doit(), PrevHash, [])
     end.
-send_blocks(_, _, T, T) -> ok;
-send_blocks(IP, Port, TopHash, CommonHash) ->
+send_blocks(IP, Port, T, T, L) -> 
+    L2 = case L of
+	     [] -> [];
+	     [_|X] -> X;
+	     _ -> 
+		 io:fwrite("L is "),
+		 io:fwrite(L)
+	 end,
+    send_blocks2(IP, Port, L2);
+send_blocks(IP, Port, TopHash, CommonHash, L) ->
     BlockPlus = block:read(TopHash),
-    Block = block:block(BlockPlus),
-    talker:talk({give_block, Block}, IP, Port),
+    Block = block:pow_block(BlockPlus),
     PrevHash = block:prev_hash(BlockPlus),
-    send_blocks(IP, Port, PrevHash, CommonHash).
+    send_blocks(IP, Port, PrevHash, CommonHash, L).
+send_blocks2(_, _, []) -> ok;
+send_blocks2(IP, Port, [Block|T]) -> 
+    talker:talk({give_block, Block}, IP, Port),
+    send_blocks2(IP, Port, T).
     
 sync3([]) -> ok;
 sync3([B|T]) -> 
+    io:fwrite("sync 3\n"),
+    %io:fwrite(B),
     block:absorb(B),
     sync3(T).
 absorb_txs([]) -> ok;
@@ -63,15 +81,21 @@ absorb_txs([H|T]) ->
     tx_pool_feeder:absorb(H),
     absorb_txs(T).
 get_txs(IP, Port) ->
-    Them = talker:talk({txs}, IP, Port),
+    {ok, Them} = talker:talk({txs}, IP, Port),
     absorb_txs(Them),
     {_,_,_,Mine} = tx_pool:data(),
     talker:talk({txs, Mine}, IP, Port).
 trade_peers(IP, Port) ->
     {ok, Peers} = talker:talk({peers}, IP, Port),
-    MyPeers = peers:all(),
+    MyPeers = tuples2lists(peers:all()),
     talker:talk({peers, MyPeers}, IP, Port),
     peers:add(Peers).
+tuples2lists(X) when is_tuple(X) ->
+    tuples2lists(tuple_to_list(X));
+tuples2lists([]) -> [];
+tuples2lists([H|T]) -> 
+    [tuples2lists(H)|tuples2lists(T)];
+tuples2lists(X) -> X.
     
     
     

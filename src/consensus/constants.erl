@@ -116,6 +116,8 @@ block_time() ->
     %10.
 time_units() -> %1000 = 1 second, 100 = 0.1 seconds
    100. 
+start_time() -> 14825749780.
+    
 channel_entropy() -> 16. %Channel contracts only work for a channel with the same 2 account addresses, and with the same channel_entropy that has this many bits.
 
 fun_limit() -> 1000.

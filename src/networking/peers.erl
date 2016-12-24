@@ -47,11 +47,18 @@ handle_call({read, IP, Port}, _From, X) ->
 key(IP, Port) -> {IP, Port}.
 all() -> gen_server:call(?MODULE, all).
 add([]) -> ok;
+add([[IP, Port]|T]) ->
+    add(IP, Port),
+    add(T);
 add([{IP, Port}|T]) -> 
     add(IP, Port),
     add(T).
 add(IP, Port) -> 
-    gen_server:cast(?MODULE, {add, IP, Port}).
+    NIP = if
+	      is_tuple(IP) -> IP;
+	      is_list(IP) -> list_to_tuple(IP)
+	  end,
+    gen_server:cast(?MODULE, {add, NIP, Port}).
 update_score(IP, Port, N) ->
     gen_server:cast(?MODULE, {score, IP, Port, N}).
 

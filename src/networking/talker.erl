@@ -18,15 +18,17 @@ talk(Msg) ->
     Peer = "http://127.0.0.1:3010/",
     talk(Msg, Peer).
 talk(Msg, Peer) ->
-    case httpc:request(post, {Peer, [], "application/octet-stream", packer:pack(Msg)}, [{timeout, 1000}], []) of
-	{ok, {_, _, []}} -> 
+    PM = packer:pack(Msg),
+    Msg = packer:unpack(PM),
+    case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
+	{ok, {Status, Headers, []}} -> 
+	    io:fwrite("talk error 1"),
+	    io:fwrite({Status, Headers}),
 	    {error, undefined};
 	{ok, {_, _, R}} -> 
-	    io:fwrite("about to unpack message"),
-	    io:fwrite(R),
-	    io:fwrite("\n"),
 	    packer:unpack(R);
 	{error, timeout} ->
+	    io:fwrite("talk error timeout"),
 	    {error, timeout}
     end.
 talk(Msg, IP, Port) -> talk(Msg, peer(IP, Port)).

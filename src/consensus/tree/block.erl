@@ -3,7 +3,7 @@
 	 make/3,mine/2,height/1,accounts/1,channels/1,
 	 accounts_hash/1,channels_hash/1,save/1,
 	 absorb/1,read/1,binary_to_file/1,block/1,
-	 prev_hash/1,read_int/1,check1/1]).
+	 prev_hash/1,read_int/1,check1/1,pow_block/1]).
 -record(block, {height, prev_hash = 0, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
 -record(block_plus, {block, accounts, channels, accumulative_difficulty = 0}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
@@ -30,27 +30,33 @@ accounts_hash(BP) when is_record(BP, block_plus) ->
     accounts_hash(pow:data(BP#block_plus.block));
 accounts_hash(Block) ->
     Block#block.accounts.
-height(BP) when is_record(BP, block_plus) ->
-    height(pow:data(BP#block_plus.block));
-height(Block) when is_record(Block, block)->
-    Block#block.height;
 height(X) ->
-    io:fwrite("error. should be a block, "),
-    io:fwrite(X).
-prev_hash(BP) when is_record(BP, block_plus) ->
-    prev_hash(pow:data(BP#block_plus.block));
-prev_hash(Block) ->
-    Block#block.prev_hash.
+    B = block(X),
+    B#block.height.
+%height(BP) when is_record(BP, block_plus) ->
+%    height(pow:data(BP#block_plus.block));
+%height(Block) when is_record(Block, block)->
+%    Block#block.height;
+%height(X) ->
+%    io:fwrite("error. should be a block, "),
+%    io:fwrite(X).
+prev_hash(X) -> 
+    B = block(X),
+    B#block.prev_hash.
+%jprev_hash(BP) when is_record(BP, block_plus) ->
+ %   prev_hash(pow:data(BP#block_plus.block));
+%prev_hash(Block) ->
+%    Block#block.prev_hash.
 
-
-hash(BP) when is_record(BP, block_plus) ->
-    hash(pow:data(BP#block_plus.block));
-hash(Block) when is_record(Block, block)->
-    B2 = term_to_binary(Block),
-    hash:doit(B2).
+hash(X) -> hash:doit(term_to_binary(block(X))).
+%hash(BP) when is_record(BP, block_plus) ->
+%    hash(pow:data(BP#block_plus.block));
+%hash(Block) when is_record(Block, block)->
+%    B2 = term_to_binary(Block),
+%    hash:doit(B2).
 
 time_now() ->
-    (os:system_time() div (1000000 * constants:time_units())) - 1480952170.
+    (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis() ->
     %the pointer to an empty trie is 0.
     Address = constants:master_address(),
@@ -182,9 +188,12 @@ check2(BP) ->
 		   Block#block.height),
     CH = channel:root_hash(CR),
     AH = account:root_hash(AR),
-    BP#block_plus{channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty)}.
+    #block_plus{block = PowBlock, channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty)}.
 
 absorb(BP) ->
+    io:fwrite("absorb block "),
+    io:fwrite(packer:pack(BP)),
+    io:fwrite("\n"),
     BH = hash(BP),
     false = block_hashes:check(BH),%If we have seen this block before, then don't process it again.
     block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
@@ -206,7 +215,11 @@ binary_to_file(B) ->
 read(Hash) ->
     BF = binary_to_file(Hash),
     Z = db:read(BF),
-    binary_to_term(zlib:uncompress(Z)).
+    case Z of
+	[] -> empty;
+	A -> binary_to_term(zlib:uncompress(A))
+    end.
+    
 read_int(N) ->%currently O(n), needs to be improved to O(lg(n))
     true = N >= 0,
     read_int(N, top:doit()).

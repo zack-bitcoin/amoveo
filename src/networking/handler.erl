@@ -7,18 +7,16 @@
 %curl -i -d echotxt http://localhost:3010
 
 handle(Req, State) ->
-    {ok, Data, _} = cowboy_req:body(Req),
-    %io:fwrite("handler got data "),
-    %io:fwrite(Data),
-    %io:fwrite("\n"),
+    {Length, Req2} = cowboy_req:body_length(Req),
+    {ok, Data, Req3} = cowboy_req:body(Req2),
     true = is_binary(Data),
     A = packer:unpack(Data),
     B = doit(A),
     D = packer:pack(B),
     Headers = [{<<"content-type">>, <<"application/octet-stream">>},
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],
-    {ok, Req2} = cowboy_req:reply(200, Headers, D, Req),
-    {ok, Req2, State}.
+    {ok, Req4} = cowboy_req:reply(200, Headers, D, Req3),
+    {ok, Req4, State}.
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 -define(WORD, 10000000).%10 megabytes.
@@ -26,7 +24,7 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block_tree:height()};
 doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
-    block_tree:absorb([SignedBlock]),
+    block:absorb(SignedBlock),
     {ok, 0};
 doit({block, N}) -> 
     {ok, block:read_int(N)};
@@ -34,13 +32,17 @@ doit({block, N}) ->
 doit({tophash}) -> {ok, top:doit()};
 doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
 doit({peers}) ->
-    {ok, peers:all()};
+    P = peers:all(),
+    P2 = download_blocks:tuples2lists(P),
+    {ok, P2};
 doit({peers, Peers}) ->
     peers:add(Peers),
-    {ok, ok};
-doit({tx_absorb, Tx}) -> 
-    {ok, tx_pool_feeder:absorb(Tx)};
-doit({txs}) -> {ok, tx_pool:txs()};
+    {ok, 0};
+%doit({tx_absorb, Tx}) -> 
+%    {ok, tx_pool_feeder:absorb(Tx)};
+doit({txs}) -> 
+    {_,_,_,Txs} = tx_pool:data(),
+    {ok, Txs};
 doit({txs, Txs}) -> 
     download_blocks:absorb_txs(Txs),
     {ok, 0};
@@ -53,8 +55,8 @@ doit({balance, ID}) ->
 doit({top}) -> 
     Top = block:read(top:doit()),
     Height = block:height(Top),
-    TopHash = block:hash(Top),
-    {ok, TopHash, Height};
+    %TopHash = block:hash(Top),
+    {ok, Top, Height};
 
 doit({create_account, Pub, Amount, Fee}) -> 
     {ok, create_account_tx:create_account(Pub, Amount, Fee)};
@@ -75,4 +77,6 @@ doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2
     {error}.
+    
+
     
