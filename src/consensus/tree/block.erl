@@ -304,7 +304,9 @@ mine_blocks(N, Times) ->
     F = fun() ->
 		case mine(Block, Times) of
 		    false -> false;
-		    PBlock -> absorb(PBlock)
+		    PBlock -> 
+			io:fwrite("FOUND A BLOCK !!!!!!!!!!!!!!!!\n"),
+			absorb(PBlock)
 		end
 	end,
     spawn_many(Cores-1, F),
