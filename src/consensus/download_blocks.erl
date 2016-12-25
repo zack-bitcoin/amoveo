@@ -29,7 +29,13 @@ sync(IP, Port, MyHeight) ->
     case talker:talk({top}, IP, Port) of
 	{error, failed_connect} -> ok;
 	{ok, TopBlock, Height}  ->
-	    trade_blocks(IP, Port, [TopBlock], Height),
+	    if
+		MyHeight+100 > Height ->
+		    {ok, Block} = talker:talk({block, MyHeight+100}, IP, Port),
+		    trade_blocks(IP, Port, [Block], MyHeight+100);
+		true ->
+		    trade_blocks(IP, Port, [TopBlock], Height)
+	    end,
 	    get_txs(IP, Port),
 	    trade_peers(IP, Port),
 	    Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
@@ -38,9 +44,12 @@ sync(IP, Port, MyHeight) ->
     %peers:update_score(IP, Port, Score).
     %raise their ranking.
 get_blocks(_, 0, _, _, L) -> L;
+get_blocks(0, _, _, _, L) -> L;
 get_blocks(Height, N, IP, Port, L) -> 
     {ok, Block} = talker:talk({block, Height}, IP, Port),
     get_blocks(Height-1, N-1, IP, Port, [Block|L]).
+trade_blocks(IP, Port, L, 1) ->
+    sync3(get_blocks(1, 100, IP, Port, [])++L);
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
