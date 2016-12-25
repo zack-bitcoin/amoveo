@@ -268,7 +268,7 @@ test() ->
     success.
 mine_test() ->
     PH = top:doit(),
-    {block_plus, Block, _, _, _} = make(PH, [], 1),
+    {block_plus, Block, _, _, _} = make(PH, [], keys:id()),
     PBlock = mine(Block, 1000000000),
     absorb(PBlock),
     mine_blocks(10, 1000000000),
@@ -284,7 +284,7 @@ mine_blocks(N, Times) ->
 	  end),
     PH = top:doit(),
     {_,_,_,Txs} = tx_pool:data(),
-    {block_plus, Block, _, _, _} = make(PH, Txs, 1),
+    {block_plus, Block, _, _, _} = make(PH, Txs, keys:id()),
     
     io:fwrite("mining attempt #"),
     io:fwrite(integer_to_list(N)),

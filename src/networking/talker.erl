@@ -29,7 +29,10 @@ talk(Msg, Peer) ->
 	    packer:unpack(R);
 	{error, timeout} ->
 	    io:fwrite("talk error timeout"),
-	    {error, timeout}
+	    {error, timeout};
+	{error, {failed_connect, _}} ->
+	    {error, failed_connect}
+		
     end.
 talk(Msg, IP, Port) -> talk(Msg, peer(IP, Port)).
 

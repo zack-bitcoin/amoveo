@@ -24,12 +24,16 @@ sync(IP, Port, MyHeight) ->
     %lower their ranking
     %peers:update_score(IP, Port, peers:initial_score()),
     S = erlang:timestamp(),
-    {ok, TopBlock, Height} = talker:talk({top}, IP, Port),
-    trade_blocks(IP, Port, [TopBlock], Height),
-    get_txs(IP, Port),
-    trade_peers(IP, Port),
-    Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
-    Score = abs(Time)*(1+abs(Height - MyHeight)).
+    case talker:talk({top}, IP, Port) of
+	{error, failed_connect} -> ok;
+	{ok, TopBlock, Height}  ->
+	    
+	    trade_blocks(IP, Port, [TopBlock], Height),
+	    get_txs(IP, Port),
+	    trade_peers(IP, Port),
+	    Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
+	    Score = abs(Time)*(1+abs(Height - MyHeight))
+    end.
     %peers:update_score(IP, Port, Score).
     %raise their ranking.
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->

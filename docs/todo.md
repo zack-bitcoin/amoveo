@@ -1,4 +1,4 @@
-
+nodes need to advertise their own IP/port combo as a peer.
 
 
 block:check2

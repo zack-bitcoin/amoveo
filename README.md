@@ -16,3 +16,5 @@ The testnet is not yet live, and it needs a few more changes to activate the POW
 To turn it off, use this command: ```testnet_sup:stop()```
 
 to mine 5 blocks: ```block:mine_blocks(5)```
+
+to sync with the network: ```easy:sync()```
