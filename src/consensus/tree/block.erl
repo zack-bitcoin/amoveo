@@ -281,7 +281,8 @@ mine_blocks(N) ->
    
 mine_blocks(0, _) -> success;
 mine_blocks(N, Times) -> 
-    spawn(fun() -> easy:sync() end),
+    easy:sync(),
+    %spawn(fun() -> easy:sync() end),
     PH = top:doit(),
     {_,_,_,Txs} = tx_pool:data(),
     {block_plus, Block, _, _, _} = make(PH, Txs, keys:id()),

@@ -47,13 +47,17 @@ sync(IP, Port, MyHeight) ->
 get_blocks(_, 0, _, _, L) -> L;
 get_blocks(H, _, _, _, L) when H < 1 -> L;
 get_blocks(Height, N, IP, Port, L) -> 
-    {ok, Block} = talker:talk({block, Height}, IP, Port),
-    get_blocks(Height-1, N-1, IP, Port, [Block|L]).
+    case talker:talk({block, Height}, IP, Port) of
+	{ok, Block} ->
+	    get_blocks(Height-1, N-1, IP, Port, [Block|L]);
+	{error, failed_connect} -> L
+    end.
+    
 trade_blocks(_IP, _Port, L, 1) ->
     sync3(L);
     %sync3(get_blocks(1, 100, IP, Port, [])++L);
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
-    %io:fwrite("trade blocks\n"),
+    io:fwrite("trade blocks\n"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),

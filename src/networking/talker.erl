@@ -36,6 +36,8 @@ talk(Msg, Peer) ->
 	    talk(Msg, Peer);
 	    %{error, timeout};
 	{error, {failed_connect, _}} ->
+	    %io:fwrite("talk error failed connect"),
+	    %talk(Msg, Peer)
 	    {error, failed_connect}
 		
     end.
