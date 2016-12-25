@@ -215,11 +215,14 @@ absorb(BP) ->
     io:fwrite(packer:pack(BP)),
     io:fwrite("\n"),
     BH = hash(BP),
-    false = block_hashes:check(BH),%If we have seen this block before, then don't process it again.
-    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
-    check1(BP),
-    BP2 = check2(BP),
-    save(BP2).
+    case block_hashes:check(BH) of
+	true -> ok;%If we have seen this block before, then don't process it again.
+	false ->
+	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
+	    check1(BP),
+	    BP2 = check2(BP),
+	    save(BP2)
+    end.   
 save(BlockPlus) ->
     Z = zlib:compress(term_to_binary(BlockPlus)),
     binary_to_term(zlib:uncompress(Z)),%sanity check, not important for long-term.
