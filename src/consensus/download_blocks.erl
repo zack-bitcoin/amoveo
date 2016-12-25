@@ -18,7 +18,8 @@ rank_filter(P) ->
     
 sync_all([], _) -> success;
 sync_all([{IP, Port}|T], Height) ->
-    spawn(download_blocks, sync, [IP, Port, Height]),
+    sync(IP, Port, Height),
+    %spawn(download_blocks, sync, [IP, Port, Height]),
     sync_all(T, Height).
 sync(IP, Port, MyHeight) ->
     %lower their ranking
