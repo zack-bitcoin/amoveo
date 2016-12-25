@@ -1,3 +1,5 @@
+it should be cleaner to start and stop mining.
+
 
 nodes need to advertise their own IP/port combo as a peer.
 
