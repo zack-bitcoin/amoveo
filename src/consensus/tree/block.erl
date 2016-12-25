@@ -128,8 +128,10 @@ next_acc(Parent, ND) ->
     %We need to reward the miner the sum of transaction fees.
 mine(BP, Times) when is_record(BP, block_plus) ->
     Block = BP#block_plus.block,
-    MBlock = mine(Block, Times),
-    BP#block_plus{block = MBlock};
+    case mine(Block, Times) of
+	false -> false;
+	Mblock -> BP#block_plus{block = Mblock}
+    end;
 mine(Block, Times) ->
     Difficulty = Block#block.difficulty,
     pow:pow(Block, Difficulty, Times).
@@ -272,22 +274,29 @@ mine_test() ->
     mine_blocks(10, 1000000000),
     success.
 mine_blocks(N) ->
-    mine_blocks(N, 10000000000000).
+    mine_blocks(N, 1000000).
    
 mine_blocks(0, _) -> success;
 mine_blocks(N, Times) -> 
-    io:fwrite("mining block "),
+    spawn(fun() ->
+      Height = block:height(block:read(top:doit())),
+      download_blocks:sync_all(peers:all(), Height)
+	  end),
+    PH = top:doit(),
+    {_,_,_,Txs} = tx_pool:data(),
+    {block_plus, Block, _, _, _} = make(PH, Txs, 1),
+    
+    io:fwrite("mining attempt #"),
     io:fwrite(integer_to_list(N)),
     io:fwrite(" time "),
     io:fwrite(integer_to_list(time_now())),
     io:fwrite(" diff "),
-    
-    PH = top:doit(),
-    %BP = read(PH),
-    {_,_,_,Txs} = tx_pool:data(),
-    {block_plus, Block, _, _, _} = make(PH, Txs, 1),
     io:fwrite(integer_to_list(Block#block.difficulty)),
     io:fwrite("\n"),
-    PBlock = mine(Block, Times),
-    absorb(PBlock),
+    %erlang:system_info(logical_processors_available)
+    case mine(Block, Times) of
+	false -> false;
+	PBlock -> absorb(PBlock)
+    end,
     mine_blocks(N-1, Times).
+    
