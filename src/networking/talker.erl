@@ -22,8 +22,8 @@ talk(Msg, Peer) ->
     Msg = packer:unpack(PM),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
 	{ok, {_Status, _Headers, []}} -> 
-	    talk(Msg, Peer);
 	    io:fwrite("talk error 1"),
+	    talk(Msg, Peer);
 	    %io:fwrite({Status, Headers}),
 	    %{error, undefined};
 	{error, socket_closed_remotely} ->
