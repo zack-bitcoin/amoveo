@@ -2,7 +2,12 @@
 %the ram stores either {pubkey, privkey} or {pubkey, ""} depending on if this node is locked.
 -module(keys).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, pubkey/0,sign/2,raw_sign/1,load/3,unlock/1,lock/0,status/0,change_password/2,new/1,shared_secret/1,id/0,update_id/1, test/0]).
+-export([start_link/0,code_change/3,handle_call/3,
+	 handle_cast/2,handle_info/2,init/1,terminate/2, 
+	 pubkey/0,sign/2,raw_sign/1,load/3,unlock/1,
+	 lock/0,status/0,change_password/2,new/1,
+	 shared_secret/1,id/0,update_id/1,address/0,
+	 test/0]).
 %-define(LOC(), "keys.db").
 -define(LOC(), constants:keys()).
 -define(SANE(), <<"sanity">>).
@@ -73,6 +78,7 @@ handle_cast({change_password, Current, New}, R) ->
 handle_cast(_, X) -> {noreply, X}.
 handle_info(_, X) -> {noreply, X}.
 pubkey() -> gen_server:call(?MODULE, pubkey).
+address() -> testnet_sign:pubkey2address(pubkey()).
 %sign(M) -> gen_server:call(?MODULE, {sign, M, tx_pool:accounts()}).
 sign(M, Accounts) -> gen_server:call(?MODULE, {sign, M, Accounts}).
 raw_sign(M) -> gen_server:call(?MODULE, {raw_sign, M}).

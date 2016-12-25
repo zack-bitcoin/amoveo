@@ -19,5 +19,11 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Nacc = account:new(To, Tx#ca.address, A, NewHeight),
     Accounts2 = account:write(Accounts, Nacc),
     NewAccounts = account:write(Accounts2, Facc2),
+    MyAddress = keys:address(),
+    if
+	(Tx#ca.address) == MyAddress ->
+	    keys:update_id(Tx#ca.to);
+	true -> ok
+    end,
     {Channels, NewAccounts}.
 

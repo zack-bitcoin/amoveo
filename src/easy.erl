@@ -72,3 +72,7 @@ channel_slash(CID, Fee, SPK, SS) ->
 account(ID) ->
     {Accounts, _,_,_} = tx_pool:data(),
     account:get(ID, Accounts).
+
+mine() -> block:mine_blocks(10000000000, 1000000). 
+%second number is how many nonces we try per round.
+%first number is how many rounds we do.
