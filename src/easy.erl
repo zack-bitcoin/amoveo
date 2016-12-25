@@ -4,7 +4,13 @@
 
 sync() ->
     Height = block:height(block:read(top:doit())),
-    download_blocks:sync_all(peers:all(), Height).
+    download_blocks:sync_all(peers:all(), Height),
+    %timer:sleep(1000),
+    Height2 = block:height(block:read(top:doit())),
+    if
+	Height2 > Height -> sync();
+	true -> ok
+   end. 
    
 tx_maker(F) -> 
     {Accounts, Channels,_,_} = tx_pool:data(),
@@ -80,6 +86,6 @@ balance() -> account:balance(account()).
 
 mine() -> 
     sync(),
-    block:mine_blocks(10000000000, 1000000). 
+    block:mine_blocks(10000000000, 2000000). 
 %second number is how many nonces we try per round.
 %first number is how many rounds we do.

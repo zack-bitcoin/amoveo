@@ -18,9 +18,9 @@ rank_filter(P) ->
     
 sync_all([], _) -> success;
 sync_all([{IP, Port}|T], Height) ->
-    %sync(IP, Port, Height),
-    spawn(download_blocks, sync, [IP, Port, Height]),
-    timer:sleep(1000),
+    sync(IP, Port, Height),
+    %spawn(download_blocks, sync, [IP, Port, Height]),
+    %timer:sleep(1000),
     sync_all(T, Height).
 sync(IP, Port, MyHeight) ->
     %lower their ranking
@@ -29,10 +29,11 @@ sync(IP, Port, MyHeight) ->
     case talker:talk({top}, IP, Port) of
 	{error, failed_connect} -> ok;
 	{ok, TopBlock, Height}  ->
+	    HH = MyHeight + 100,
 	    if
-		MyHeight+100 < Height ->
-		    {ok, Block} = talker:talk({block, MyHeight+100}, IP, Port),
-		    trade_blocks(IP, Port, [Block], MyHeight+100);
+		HH < Height ->
+		    {ok, Block} = talker:talk({block, HH}, IP, Port),
+		    trade_blocks(IP, Port, [Block], HH);
 		true ->
 		    trade_blocks(IP, Port, [TopBlock], Height)
 	    end,
@@ -48,9 +49,11 @@ get_blocks(H, _, _, _, L) when H < 1 -> L;
 get_blocks(Height, N, IP, Port, L) -> 
     {ok, Block} = talker:talk({block, Height}, IP, Port),
     get_blocks(Height-1, N-1, IP, Port, [Block|L]).
-trade_blocks(IP, Port, L, 1) ->
-    sync3(get_blocks(1, 100, IP, Port, [])++L);
+trade_blocks(_IP, _Port, L, 1) ->
+    sync3(L);
+    %sync3(get_blocks(1, 100, IP, Port, [])++L);
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
+    %io:fwrite("trade blocks\n"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
@@ -63,7 +66,7 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
 	    trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);
 	_ -> 
 	    %download 100 blocks earlier, to handle forks.
-	    L2 = get_blocks(Height-1, 100, IP, Port, []),
+	    L2 = get_blocks(Height-1, free_constants:fork_tolerance(), IP, Port, []),
 	    sync3(L2++L),
 	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
     end.
@@ -85,7 +88,7 @@ send_blocks2(IP, Port, [Block|T]) ->
     
 sync3([]) -> ok;
 sync3([B|T]) -> 
-    io:fwrite("sync 3\n"),
+    %io:fwrite("sync 3\n"),
     block:absorb(B),
     sync3(T).
 absorb_txs([]) -> ok;
