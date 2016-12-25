@@ -30,7 +30,7 @@ sync(IP, Port, MyHeight) ->
 	{error, failed_connect} -> ok;
 	{ok, TopBlock, Height}  ->
 	    if
-		MyHeight+100 > Height ->
+		MyHeight+100 < Height ->
 		    {ok, Block} = talker:talk({block, MyHeight+100}, IP, Port),
 		    trade_blocks(IP, Port, [Block], MyHeight+100);
 		true ->
@@ -44,7 +44,7 @@ sync(IP, Port, MyHeight) ->
     %peers:update_score(IP, Port, Score).
     %raise their ranking.
 get_blocks(_, 0, _, _, L) -> L;
-get_blocks(0, _, _, _, L) -> L;
+get_blocks(H, _, _, _, L) when H < 1 -> L;
 get_blocks(Height, N, IP, Port, L) -> 
     {ok, Block} = talker:talk({block, Height}, IP, Port),
     get_blocks(Height-1, N-1, IP, Port, [Block|L]).
