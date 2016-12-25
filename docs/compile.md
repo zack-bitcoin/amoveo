@@ -15,14 +15,5 @@ Now you can go into the directory, and compile the aeternity testnet.
 cd Testnet/
 sh install.sh
 ```
-Start your node with this script:
-```
-sh start.sh
-```
-Open this URL in your browser: http://localhost:3011/login.html (works only on localhost)
 
-When you are done, you can turn the node off by clicking "halt" in your browser, or by running this command in the aeternity command line interface:
-
-```
-testnet_sup:stop()
-```
+Installation should be done. Now you can run your node.
