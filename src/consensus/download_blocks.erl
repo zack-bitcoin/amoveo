@@ -50,7 +50,7 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
 	    send_blocks(IP, Port, top:doit(), PrevHash, [])
     end.
 send_blocks(IP, Port, T, T, L) -> 
-    send_blocks2(IP, Port, lists:reverse(L));
+    send_blocks2(IP, Port, L);
 send_blocks(IP, Port, TopHash, CommonHash, L) ->
     BlockPlus = block:read(TopHash),
     PrevHash = block:prev_hash(BlockPlus),
