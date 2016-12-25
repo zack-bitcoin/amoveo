@@ -109,8 +109,8 @@ account_rent() -> round(math:pow(2, 13)).
 %144*52*20
 
 retarget_frequency() -> %how many blocks till we recalculate the difficulty
-    4000.
-    %2000.
+    %4000.
+    2000.
 block_time() -> 
     6000.
     %10.
