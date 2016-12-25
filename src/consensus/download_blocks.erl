@@ -42,10 +42,10 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
     {PrevHash, NextHash} = block:check1(PrevBlock),
     M = block:read(PrevHash),%check if it is in our memory already.
-    io:fwrite("trade blocks\n"),
+    %io:fwrite("trade blocks\n"),
     case M of
 	empty -> 
-	    io:fwrite("was empty\n"),
+	    %io:fwrite("was empty\n"),
 	    {ok, NextBlock} = talker:talk({block, Height-1}, IP, Port),
 	    NextHash = block:hash(NextBlock),
 	    trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);

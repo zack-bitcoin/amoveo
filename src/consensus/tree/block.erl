@@ -292,9 +292,12 @@ mine_blocks(N, Times) ->
     io:fwrite(integer_to_list(time_now())),
     io:fwrite(" diff "),
     io:fwrite(integer_to_list(Block#block.difficulty)),
-    io:fwrite("\n"),
     %erlang:system_info(logical_processors_available)
     Cores = erlang:system_info(logical_processors_available),
+    io:fwrite(" using "),
+    io:fwrite(integer_to_list(Cores)),
+    io:fwrite(" CPU"),
+    io:fwrite("\n"),
     F = fun() ->
 		case mine(Block, Times) of
 		    false -> false;
