@@ -28,6 +28,11 @@ To mine 5 blocks: ```block:mine_blocks(5)```
 
 To stop mining: ```CTRL+C``` (shuts down the node, TODO improve)
 
+#### Check your balance
+```
+easy:balance().
+```
+
 #### Stop a node
 To stop a node run:
 ```
