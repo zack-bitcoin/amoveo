@@ -294,9 +294,18 @@ mine_blocks(N, Times) ->
     io:fwrite(integer_to_list(Block#block.difficulty)),
     io:fwrite("\n"),
     %erlang:system_info(logical_processors_available)
-    case mine(Block, Times) of
-	false -> false;
-	PBlock -> absorb(PBlock)
-    end,
+    Cores = erlang:system_info(logical_processors_available),
+    F = fun() ->
+		case mine(Block, Times) of
+		    false -> false;
+		    PBlock -> absorb(PBlock)
+		end
+	end,
+    spawn_many(Cores-1, F),
+    F(),
     mine_blocks(N-1, Times).
     
+spawn_many(0, _) -> ok;
+spawn_many(N, F) -> 
+    spawn(F),
+    spawn_many(N-1, F).
