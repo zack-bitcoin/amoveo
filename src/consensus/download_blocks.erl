@@ -37,6 +37,10 @@ sync(IP, Port, MyHeight) ->
     end.
     %peers:update_score(IP, Port, Score).
     %raise their ranking.
+get_blocks(_, 0, _, _, L) -> L;
+get_blocks(Height, N, IP, Port, L) -> 
+    {ok, Block} = talker:talk({block, Height}, IP, Port),
+    get_blocks(Height-1, N-1, IP, Port, [Block|L]).
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
@@ -49,15 +53,22 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
 	    NextHash = block:hash(NextBlock),
 	    trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);
 	_ -> 
-	    sync3(L),
-	    send_blocks(IP, Port, top:doit(), PrevHash, [])
+	    %download 100 blocks earlier, to handle forks.
+	    L2 = get_blocks(Height-1, 100, IP, Port, []),
+	    sync3(L2++L),
+	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
     end.
-send_blocks(IP, Port, T, T, L) -> 
+send_blocks(IP, Port, T, T, L, _N) -> 
     send_blocks2(IP, Port, L);
-send_blocks(IP, Port, TopHash, CommonHash, L) ->
-    BlockPlus = block:read(TopHash),
-    PrevHash = block:prev_hash(BlockPlus),
-    send_blocks(IP, Port, PrevHash, CommonHash, [BlockPlus|L]).
+send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
+    if
+	TopHash == 0 -> send_blocks2(IP, Port, L);
+	N>4000 -> send_blocks2(IP, Port, L);
+	true -> 
+	    BlockPlus = block:read(TopHash),
+	    PrevHash = block:prev_hash(BlockPlus),
+	    send_blocks(IP, Port, PrevHash, CommonHash, [BlockPlus|L], N+1)
+    end.
 send_blocks2(_, _, []) -> ok;
 send_blocks2(IP, Port, [Block|T]) -> 
     talker:talk({give_block, Block}, IP, Port),
