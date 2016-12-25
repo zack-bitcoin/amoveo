@@ -211,14 +211,14 @@ check2(BP) ->
     #block_plus{block = PowBlock, channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty)}.
 
 absorb(BP) ->
-    io:fwrite("absorb block "),
-    io:fwrite(packer:pack(BP)),
-    io:fwrite("\n"),
     BH = hash(BP),
     case block_hashes:check(BH) of
 	true -> ok;%If we have seen this block before, then don't process it again.
 	false ->
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
+	    io:fwrite("absorb block "),
+	    io:fwrite(packer:pack(BP)),
+	    io:fwrite("\n"),
 	    check1(BP),
 	    BP2 = check2(BP),
 	    save(BP2)
@@ -281,10 +281,7 @@ mine_blocks(N) ->
    
 mine_blocks(0, _) -> success;
 mine_blocks(N, Times) -> 
-    spawn(fun() ->
-      Height = block:height(block:read(top:doit())),
-      download_blocks:sync_all(peers:all(), Height)
-	  end),
+    spawn(fun() -> easy:sync() end),
     PH = top:doit(),
     {_,_,_,Txs} = tx_pool:data(),
     {block_plus, Block, _, _, _} = make(PH, Txs, keys:id()),

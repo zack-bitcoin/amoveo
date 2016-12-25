@@ -18,8 +18,9 @@ rank_filter(P) ->
     
 sync_all([], _) -> success;
 sync_all([{IP, Port}|T], Height) ->
-    sync(IP, Port, Height),
-    %spawn(download_blocks, sync, [IP, Port, Height]),
+    %sync(IP, Port, Height),
+    spawn(download_blocks, sync, [IP, Port, Height]),
+    timer:sleep(1000),
     sync_all(T, Height).
 sync(IP, Port, MyHeight) ->
     %lower their ranking
@@ -28,7 +29,6 @@ sync(IP, Port, MyHeight) ->
     case talker:talk({top}, IP, Port) of
 	{error, failed_connect} -> ok;
 	{ok, TopBlock, Height}  ->
-	    
 	    trade_blocks(IP, Port, [TopBlock], Height),
 	    get_txs(IP, Port),
 	    trade_peers(IP, Port),
