@@ -1,20 +1,39 @@
-Testnet
+æternity Testnet
 ==========
 
-This is the testnet for the Aeternity project. It uses POW consensus. It shows how the Aeternity state-channels work.
+This is the testnet for the [æternity](www.aeternity.com) project.
 
-The testnet is not yet live, and it needs a few more changes to activate the POW mechanism.
+This testnet uses simple PoW consensus. Its purpose is to show how æternity state-channels work and how this enables scalable trustless æpps.
 
----Installing
+### Compiling and Runing
+You will need Erlang and a couple of libraries. Please follow instructions:
+[For Ubuntu](docs/compile.md)
 
-[for ubuntu](docs/compile.md)
+Then, start your node with following script:
+```
+sh start.sh
+```
+
+### Commands
+#### Create an account
+[Make an account](docs/new_account.md)
+
+#### Sync with the network
+To sync with the network and download the blockchain: ```easy:sync()```
+
+#### Start mining
+To start mining with all CPU cores: ```easy:mine().```
+
+To mine 5 blocks: ```block:mine_blocks(5)```
+
+To stop mining: ```CTRL+C``` (shuts down the node, TODO improve)
+
+#### Stop a node
+To stop a node run:
+```
+testnet_sup:stop()
+```
 
 
-[Making an account](docs/new_account.md)
-
-
-To turn it off, use this command: ```testnet_sup:stop()```
-
-to mine 5 blocks: ```block:mine_blocks(5)```
-
-to sync with the network: ```easy:sync()```
+### Else
+If you want to know more, check out our whitepaper on [aeternity.com](https://aeternity.com) and get in touch with us via [Gitter Chat](https://gitter.com/aeternity?Lobby) or write us (emails in whitepaper). 
