@@ -1,4 +1,4 @@
-
+-module(account).
 -export([serialize/1,deserialize/1,new/4,nonce/1,write/2,get/2,update/5,addr/1,id/1,balance/1,root_hash/1,now_balance/3,delete/2,test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
