@@ -11,8 +11,8 @@ trie_size() ->
 -define(InitialCoins, round(math:pow(2, 41)) - 1).
 initial_coins() -> ?InitialCoins.
 block_reward() -> round(math:pow(2, 29)) - 1.
-initial_difficulty() -> 10*256.%for testing purposes only
-%5940.%about 300 seconds on my lenovo AMD Athlon Neo X2 L325 / 1.5 GHz using a single core.
+initial_difficulty() -> %10*256.%for testing purposes only
+5940.%about 300 seconds on my lenovo AMD Athlon Neo X2 L325 / 1.5 GHz using a single core.
 %20*256 ~20 seconds %2 seconds is 16*256
 
 finality() -> 26.%/docs/security.py explains why.
