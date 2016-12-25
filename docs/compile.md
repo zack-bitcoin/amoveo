@@ -1,4 +1,4 @@
-For ubuntu, I needed to install these dependencies:
+For ubuntu, install these dependencies:
 
 ```
 sudo apt-get install erlang libncurses5-dev libssl-dev unixodbc-dev g++ git erlang-base-hipe
@@ -16,13 +16,12 @@ cd Testnet/
 sh install.sh
 ```
 Start your node with this script:
-
 ```
 sh start.sh
 ```
-Then open this URL in your browser: http://localhost:3011/login.html
+Open this URL in your browser: http://localhost:3011/login.html (works only on localhost)
 
-When you are done, you can turn the node off by clicking "halt" in your browser, or by running this command in the flying fox command line interface:
+When you are done, you can turn the node off by clicking "halt" in your browser, or by running this command in the aeternity command line interface:
 
 ```
 testnet_sup:stop()
