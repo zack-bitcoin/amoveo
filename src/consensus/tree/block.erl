@@ -53,10 +53,6 @@ prev_hashes([PH|Hashes], Height, N) ->
 prev_hash(0, BP) ->
     prev_hash(BP);
 prev_hash(N, BP) ->%N=0 should be the same as prev_hash(BP)
-    io:fwrite("prev_hash "),
-    io:fwrite(integer_to_list(N)),
-    io:fwrite(" "),
-    io:fwrite(packer:pack(BP)),
     element(N, BP#block_plus.prev_hashes).
 prev_hash(X) -> 
     B = block(X),
