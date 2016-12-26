@@ -89,7 +89,6 @@ absorb_txs(PrevPlus, MinesBlock, Height, Txs) ->
     NewMiner = 
 	case MinesBlock of
 	    {ID, Address} -> %for miners who don't yet have an account.
-		io:fwrite("absorb txs 1"),
 		{_, empty, _} = account:get(ID, OldAccounts),
 		account:new(ID, Address, constants:block_reward(), Height);
 		%MyAddress = keys:address(),
