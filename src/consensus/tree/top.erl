@@ -35,6 +35,9 @@ handle_cast({add, Block}, X) ->
     New = if
 	      NH > OH -> 
 		  tx_pool:dump(),
+		  Channels = block:channels(Block),
+		  Accounts = block:accounts(Block),
+		  tx_pool:absorb(Channels, Accounts, [], NH),
 		  Y = block:hash(Block),
 		  db:save(?LOC, Y),
 		  Y;

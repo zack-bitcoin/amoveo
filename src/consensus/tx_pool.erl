@@ -28,7 +28,7 @@ data() -> gen_server:call(?MODULE, data). %{accounts, channels, height, txs}
 dump() -> gen_server:cast(?MODULE, dump).
 absorb_tx(Channels, Accounts, Tx) -> gen_server:cast(?MODULE, {absorb_tx, Channels, Accounts, Tx}).
 absorb(Channels, Accounts, Txs, Height) ->
-    gen_server:cast(?MODULE, {absorb_tx, Channels, Accounts, Txs, Height}).
+    gen_server:cast(?MODULE, {absorb, Channels, Accounts, Txs, Height}).
 flip(X) -> flip(X, []).
 flip([], A) -> A;
 flip([H|T], A) -> flip(T, [H|A]).

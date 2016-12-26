@@ -1,3 +1,6 @@
+tx_pool seems very broken. {absorb...} is unused. {absorb_tx...} is used twice. data() is giving bad information.
+
+
 download_blocks:send_blocks has a problem.
 We should only send the minimum blocks they need, but sometimes we send all the blocks since 0. This will become more of a problem as time goes on.
 
