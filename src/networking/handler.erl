@@ -53,7 +53,7 @@ doit({id}) -> {ok, keys:id()};
 %doit({balance, ID}) ->
 %    {ok, accounts:balance(block_tree:account(ID))};
 doit({top}) -> 
-    Top = block:read(top:doit()),
+    Top = block:pow_block(block:read(top:doit())),
     Height = block:height(Top),
     %TopHash = block:hash(Top),
     {ok, Top, Height};
