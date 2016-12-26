@@ -82,15 +82,24 @@ genesis() ->
 		  %<<108,171,180,35,202,56,178,151,11,85,188,193>>,
 		  1,0,4080},
 	     4080,44358461744572027408730},
-
     #block_plus{block = Block, channels = 0, accounts = Accounts}.
+    
 absorb_txs(PrevPlus, MinesBlock, Height, Txs) ->
     OldAccounts = PrevPlus#block_plus.accounts,
-    NewMiner = account:update(MinesBlock,
-			      OldAccounts,
-			      constants:block_reward(),
-			      none,
-			      Height),
+    NewMiner = 
+	case MinesBlock of
+	    {ID, Address} -> %for miners who don't yet have an account.
+		{_, empty, _} = account:get(ID, OldAccounts),
+		account:new(ID, Address, constants:block_reward(), Height);
+		%MyAddress = keys:address(),
+		%if
+		%    (Tx#ca.address) == MyAddress ->
+		%	keys:update_id(Tx#ca.to);
+		%    true -> ok
+		%end;
+	    MB -> %If you already have an account.
+		account:update(MB, OldAccounts, constants:block_reward(), none, Height)
+	end,
     NewAccounts = account:write(OldAccounts, NewMiner),
     txs:digest(Txs, 
 	       PrevPlus#block_plus.channels,
@@ -107,7 +116,7 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
 	%	   ParentPlus#block_plus.channels, 
 	%	   ParentPlus#block_plus.accounts,
 	%	   Height),
-    CHash = trie:root_hash(channels, NewChannels),
+    CHash = channel:root_hash(NewChannels),
     AHash = account:root_hash(NewAccounts),
     NextDifficulty = next_difficulty(PrevHash),
     #block_plus{
@@ -206,11 +215,18 @@ check2(PowBlock) ->
     Difficulty = next_difficulty(PH),
     PrevPlus = read(PH),
     Prev = block(PrevPlus),
+    MB = Block#block.mines_block,
     true = (Block#block.height-1) == Prev#block.height,
     {CH, AH} = {Block#block.channels, Block#block.accounts},
-    {CR, AR} = absorb_txs(PrevPlus, Block#block.mines_block, Block#block.height, Block#block.txs),
+    {CR, AR} = absorb_txs(PrevPlus, MB, Block#block.height, Block#block.txs),
     CH = channel:root_hash(CR),
     AH = account:root_hash(AR),
+    MyAddress = keys:address(),
+    case MB of
+	{ID, MyAddress} ->
+	    keys:update_id(ID);
+	_ -> ok
+    end,
     #block_plus{block = PowBlock, channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty), prev_hashes = prev_hashes(hash(Prev))}.
 
 binary_to_file(B) ->
@@ -267,6 +283,15 @@ test() ->
     io:fwrite("top 3, \n"),
     check2(MBlock),
     success.
+new_id(N) -> 
+    {Accounts, _, _, _} = tx_pool:data(),
+    new_id(N, Accounts).
+new_id(N, Accounts) ->
+   case account:get(N, Accounts) of
+       {_, empty, _} -> N;
+       _ -> new_id(N+1, Accounts)
+   end.
+	   
 mine_test() ->
     PH = top:doit(),
     {block_plus, Block, _, _, _} = make(PH, [], keys:id()),
@@ -283,7 +308,15 @@ mine_blocks(N, Times) ->
     %spawn(fun() -> easy:sync() end),
     PH = top:doit(),
     {_,_,_,Txs} = tx_pool:data(),
-    {block_plus, Block, _, _, _, _} = make(PH, Txs, keys:id()),
+    ID = case {keys:pubkey(), keys:id()} of
+	     {[], _} -> io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
+			1=2;
+	     {_, -1} ->
+		 NewID = new_id(1),
+		 {NewID, keys:address()};
+	     {_, Identity} -> Identity
+	 end,
+    {block_plus, Block, _, _, _, _} = make(PH, Txs, ID),
     
     io:fwrite("mining attempt #"),
     io:fwrite(integer_to_list(N)),
