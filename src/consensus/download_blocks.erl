@@ -93,7 +93,7 @@ send_blocks2(IP, Port, [Block|T]) ->
 sync3([]) -> ok;
 sync3([B|T]) -> 
     %io:fwrite("sync 3\n"),
-    block:absorb(B),
+    block_absorber:doit(B),
     sync3(T).
 absorb_txs([]) -> ok;
 absorb_txs([H|T]) -> 

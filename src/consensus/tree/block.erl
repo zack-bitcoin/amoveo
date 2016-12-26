@@ -1,8 +1,8 @@
 -module(block).
 -export([hash/1,check2/1,test/0,mine_test/0,genesis/0,
 	 make/3,mine/2,height/1,accounts/1,channels/1,
-	 accounts_hash/1,channels_hash/1,save/1,
-	 absorb/1,read/1,binary_to_file/1,block/1,
+	 accounts_hash/1,channels_hash/1,
+	 read/1,binary_to_file/1,block/1,
 	 prev_hash/1,read_int/1,check1/1,pow_block/1,
 	 mine_blocks/2, mine_blocks/1]).
 -record(block, {height, prev_hash = 0, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
@@ -34,28 +34,10 @@ accounts_hash(Block) ->
 height(X) ->
     B = block(X),
     B#block.height.
-%height(BP) when is_record(BP, block_plus) ->
-%    height(pow:data(BP#block_plus.block));
-%height(Block) when is_record(Block, block)->
-%    Block#block.height;
-%height(X) ->
-%    io:fwrite("error. should be a block, "),
-%    io:fwrite(X).
 prev_hash(X) -> 
     B = block(X),
     B#block.prev_hash.
-%jprev_hash(BP) when is_record(BP, block_plus) ->
- %   prev_hash(pow:data(BP#block_plus.block));
-%prev_hash(Block) ->
-%    Block#block.prev_hash.
-
 hash(X) -> hash:doit(term_to_binary(block(X))).
-%hash(BP) when is_record(BP, block_plus) ->
-%    hash(pow:data(BP#block_plus.block));
-%hash(Block) when is_record(Block, block)->
-%    B2 = term_to_binary(Block),
-%    hash:doit(B2).
-
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis() ->
@@ -210,27 +192,6 @@ check2(BP) ->
     AH = account:root_hash(AR),
     #block_plus{block = PowBlock, channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty)}.
 
-absorb(BP) ->
-    BH = hash(BP),
-    case block_hashes:check(BH) of
-	true -> ok;%If we have seen this block before, then don't process it again.
-	false ->
-	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
-	    io:fwrite("absorb block "),
-	    io:fwrite(packer:pack(BP)),
-	    io:fwrite("\n"),
-	    check1(BP),
-	    BP2 = check2(BP),
-	    save(BP2)
-    end.   
-save(BlockPlus) ->
-    Z = zlib:compress(term_to_binary(BlockPlus)),
-    binary_to_term(zlib:uncompress(Z)),%sanity check, not important for long-term.
-    Hash = hash(BlockPlus),
-    BF = binary_to_file(Hash),
-    db:save(BF, Z),
-    top:add(BlockPlus),
-    Hash.
 binary_to_file(B) ->
     C = base58:binary_to_base58(B),
     H = C,
@@ -258,6 +219,7 @@ read_int(N, BH) ->
 
 
 test() ->
+    io:fwrite("top, \n"),
     block:read(top:doit()),
     PH = top:doit(),
     BP = read(PH),
@@ -266,14 +228,17 @@ test() ->
     _ = account:get(1, Accounts),
     %{block_plus, Block, _, _, _} = make(PH, [], 1),
     Block = make(PH, [], 1),
+    io:fwrite(packer:pack(Block)),
+    io:fwrite("top 2, \n"),
     MBlock = mine(Block, 100000000),
+    io:fwrite("top 3, \n"),
     check2(MBlock),
     success.
 mine_test() ->
     PH = top:doit(),
     {block_plus, Block, _, _, _} = make(PH, [], keys:id()),
     PBlock = mine(Block, 1000000000),
-    absorb(PBlock),
+    block_absorber:doit(PBlock),
     mine_blocks(10, 1000000000),
     success.
 mine_blocks(N) ->
@@ -303,8 +268,8 @@ mine_blocks(N, Times) ->
 		case mine(Block, Times) of
 		    false -> false;
 		    PBlock -> 
-			io:fwrite("FOUND A BLOCK !!!!!!!!!!!!!!!!\n"),
-			absorb(PBlock)
+			io:fwrite("FOUND A BLOCK !\n"),
+			block_absorber:doit(PBlock)
 		end
 	end,
     spawn_many(Cores-1, F),

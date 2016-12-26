@@ -12,8 +12,6 @@ init(ok) ->
     {ok, F}.
 state_now() ->
     B = block:read(top:doit()),
-    %block = element(1, BP),
-    %io:fwrite(Bkj),
     #f{accounts = block:accounts(B), channels = block:channels(B), height = block:height(B)}.
     
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).

@@ -8,7 +8,6 @@ init(ok) ->
     Ka = if
 	     X == "" ->
 		 G = block:genesis(),
-		 block:save(G),
 		 I = keys:pubkey(),
 		 M = constants:master_pub(),
 		 if

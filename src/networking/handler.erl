@@ -7,8 +7,8 @@
 %curl -i -d echotxt http://localhost:3010
 
 handle(Req, State) ->
-    {Length, Req2} = cowboy_req:body_length(Req),
-    {ok, Data, Req3} = cowboy_req:body(Req2),
+    %{Length, Req2} = cowboy_req:body_length(Req),
+    {ok, Data, Req3} = cowboy_req:body(Req),
     true = is_binary(Data),
     A = packer:unpack(Data),
     B = doit(A),
@@ -24,7 +24,7 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block_tree:height()};
 doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
-    block:absorb(SignedBlock),
+    block_absorber:doit(SignedBlock),
     {ok, 0};
 doit({block, N}) -> 
     {ok, block:read_int(N)};

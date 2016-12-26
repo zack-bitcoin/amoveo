@@ -35,7 +35,7 @@ doit({mine_block}) ->
     {_,_,_,Txs} = tx_pool:data(),
     Block = block:make(top:doit(), Txs, keys:id()),
     PowBlock = block:mine(Block, 10000000),
-    block:absorb(PowBlock);
+    block_absorber:doit(PowBlock);
 doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
     keys:sign(to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee));
 doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
