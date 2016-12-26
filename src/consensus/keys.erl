@@ -23,9 +23,10 @@ init(ok) ->
 	     X == "" -> 
 		 {_, Pub, Priv} = 
 		     testnet_sign:hard_new_key(),
+		 store(Pub, Priv, "", -1),
 		 K = #f{pub = Pub, priv=Priv},
 		 %K = #f{},
-		 db:save(?LOC(),K),
+		 %db:save(?LOC(),#f{}),
 		 K;
 	     true -> #f{pub=X#f.pub, id=X#f.id}
 	 end,
@@ -68,6 +69,7 @@ handle_cast({new, Brainwallet}, _R) ->
     {noreply, #f{pub=Pub, priv=Priv}};
 handle_cast({unlock, Brainwallet}, _) ->
     X = db:read(?LOC()),
+    
     ?SANE() = encryption:decrypt(X#f.sanity, Brainwallet),
     Priv = encryption:decrypt(X#f.priv, Brainwallet),%err
     {noreply, #f{pub=X#f.pub, priv=Priv, id=X#f.id}};
