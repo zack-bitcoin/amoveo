@@ -198,12 +198,12 @@ check1(BP) ->
 	    {BH, Block#block.prev_hash}
     end.
 
-
-check2(BP) ->
+check2(BP) when is_record(BP, block_plus) ->
+    check2(pow_block(BP));
+check2(PowBlock) ->
     %check that the time is later than the median of the last 100 blocks.
 
     %check2 assumes that the parent is in the database already.
-    PowBlock = pow_block(BP),
     Block = block(PowBlock),
     Difficulty = Block#block.difficulty,
     PH = Block#block.prev_hash,

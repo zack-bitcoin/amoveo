@@ -21,13 +21,13 @@ init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 -define(WORD, 10000000).%10 megabytes.
 doit({pubkey}) -> {ok, keys:pubkey()};
-doit({height}) -> {ok, block_tree:height()};
-doit({total_coins}) -> {ok, block_tree:total_coins()};
+%doit({height}) -> {ok, block_tree:height()};
+%doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
     block_absorber:doit(SignedBlock),
     {ok, 0};
 doit({block, N}) -> 
-    {ok, block:read_int(N)};
+    {ok, block:pow_block(block:read_int(N))};
     %{ok, block_tree:read_int(N)};
 doit({tophash}) -> {ok, top:doit()};
 doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
@@ -50,8 +50,8 @@ doit({txs, Txs}) ->
 
 doit({id}) -> {ok, keys:id()};
 
-doit({balance, ID}) ->
-    {ok, accounts:balance(block_tree:account(ID))};
+%doit({balance, ID}) ->
+%    {ok, accounts:balance(block_tree:account(ID))};
 doit({top}) -> 
     Top = block:read(top:doit()),
     Height = block:height(Top),
