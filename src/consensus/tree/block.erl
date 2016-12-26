@@ -2,13 +2,16 @@
 -export([hash/1,check2/1,test/0,mine_test/0,genesis/0,
 	 make/3,mine/2,height/1,accounts/1,channels/1,
 	 accounts_hash/1,channels_hash/1,
-	 read/1,binary_to_file/1,block/1,
+	 read/1,binary_to_file/1,block/1,prev_hash/2,
 	 prev_hash/1,read_int/1,check1/1,pow_block/1,
-	 mine_blocks/2, mine_blocks/1]).
+	 mine_blocks/2, mine_blocks/1, hashes/1]).
 -record(block, {height, prev_hash = 0, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
--record(block_plus, {block, accounts, channels, accumulative_difficulty = 0}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
+-record(block_plus, {block, accounts, channels, accumulative_difficulty = 0, prev_hashes = {}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
 %this gets wrapped in a signature and then wrapped in a pow.
+hashes(BP) ->
+    BP#block_plus.prev_hashes.
+    
 block(P) when element(1, P) == pow ->
     pow:data(P);
 block(BP) when is_record(BP, block_plus) ->
@@ -34,6 +37,27 @@ accounts_hash(Block) ->
 height(X) ->
     B = block(X),
     B#block.height.
+prev_hashes(PH) ->
+    H = height(read(PH)),
+    prev_hashes([PH], H, 2).
+prev_hashes([PH|Hashes], Height, N) ->
+    NHeight = Height - N,
+    if
+	NHeight < 1 -> list_to_tuple(lists:reverse([PH|Hashes]));
+	true ->
+	    B = read_int(NHeight, PH),
+	    prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
+    end.
+
+   
+prev_hash(0, BP) ->
+    prev_hash(BP);
+prev_hash(N, BP) ->%N=0 should be the same as prev_hash(BP)
+    io:fwrite("prev_hash "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite(" "),
+    io:fwrite(packer:pack(BP)),
+    element(N, BP#block_plus.prev_hashes).
 prev_hash(X) -> 
     B = block(X),
     B#block.prev_hash.
@@ -102,7 +126,8 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
 		  difficulty = NextDifficulty},
        accumulative_difficulty = next_acc(ParentPlus, NextDifficulty),
        channels = NewChannels, 
-       accounts = NewAccounts
+       accounts = NewAccounts,
+       prev_hashes = prev_hashes(PrevHash)
       }.
 next_acc(Parent, ND) ->
     Parent#block_plus.accumulative_difficulty + pow:sci2int(ND).
@@ -190,7 +215,7 @@ check2(BP) ->
     {CR, AR} = absorb_txs(PrevPlus, Block#block.mines_block, Block#block.height, Block#block.txs),
     CH = channel:root_hash(CR),
     AH = account:root_hash(AR),
-    #block_plus{block = PowBlock, channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty)}.
+    #block_plus{block = PowBlock, channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty), prev_hashes = prev_hashes(hash(Prev))}.
 
 binary_to_file(B) ->
     C = base58:binary_to_base58(B),
@@ -203,15 +228,27 @@ read(Hash) ->
 	[] -> empty;
 	A -> binary_to_term(zlib:uncompress(A))
     end.
-    
+  
+lg(X) ->
+    true = X > 0,
+    true = is_integer(X),
+    lgh(X, 0).
+lgh(1, X) -> X;
+lgh(N, X) -> lgh(N div 2, X+1).
 read_int(N) ->%currently O(n), needs to be improved to O(lg(n))
     true = N >= 0,
     read_int(N, top:doit()).
 read_int(N, BH) ->
     Block = read(BH),
-    case height(Block) of
-	N -> Block;
-	_ -> read_int(N, prev_hash(Block))
+    M = height(Block),
+    D = M-N,
+    if 
+	D<0 -> io:fwrite("D is "),
+	       io:fwrite(integer_to_list(D)),
+	       1=2;
+	D == 0 -> Block;
+	true ->
+	    read_int(N, prev_hash(lg(D), Block))
     end.
 	    
     
@@ -250,7 +287,7 @@ mine_blocks(N, Times) ->
     %spawn(fun() -> easy:sync() end),
     PH = top:doit(),
     {_,_,_,Txs} = tx_pool:data(),
-    {block_plus, Block, _, _, _} = make(PH, Txs, keys:id()),
+    {block_plus, Block, _, _, _, _} = make(PH, Txs, keys:id()),
     
     io:fwrite("mining attempt #"),
     io:fwrite(integer_to_list(N)),
