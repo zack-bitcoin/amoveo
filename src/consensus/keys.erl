@@ -21,7 +21,10 @@ init(ok) ->
     X = db:read(?LOC()),
     Ka = if
 	     X == "" -> 
-		 K = #f{},
+		 {_, Pub, Priv} = 
+		     testnet_sign:hard_new_key(),
+		 K = #f{pub = Pub, priv=Priv},
+		 %K = #f{},
 		 db:save(?LOC(),K),
 		 K;
 	     true -> #f{pub=X#f.pub, id=X#f.id}
