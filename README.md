@@ -24,8 +24,6 @@ To sync with the network and download the blockchain: ```easy:sync()```
 #### Start mining
 To start mining with all CPU cores: ```easy:mine().```
 
-To mine 5 blocks: ```block:mine_blocks(5)```
-
 To stop mining: ```CTRL+C``` (shuts down the node, TODO improve)
 
 #### Check your balance
