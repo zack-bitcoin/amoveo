@@ -18,11 +18,19 @@ sh start.sh
 #### Create an account
 [Make an account](docs/new_account.md)
 
+If you just want to start mining, skip this step, sync with the network and use the 'start mining' command below.
+
 #### Sync with the network
-To sync with the network and download the blockchain: ```easy:sync()```
+To sync with the network and download the blockchain: 
+```
+easy:sync()
+```
 
 #### Start mining
-To start mining with all CPU cores: ```easy:mine().```
+To start mining with all CPU cores: 
+```
+easy:mine().
+```
 
 To stop mining: ```CTRL+C``` (shuts down the node, TODO improve)
 
