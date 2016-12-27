@@ -181,7 +181,7 @@ retarget(PrevHash, Difficulty) ->
 retarget2(Hash, 0, L) -> {L, Hash};
 retarget2(Hash, N, L) -> 
     BP = read(Hash),
-    B = BP#block_plus.block,
+    B = block(BP),
     T = B#block.time,
     H = B#block.prev_hash,
     retarget2(H, N-1, [T|L]).

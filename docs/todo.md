@@ -1,10 +1,16 @@
+we need a channel powered satoshi dice for gambling.
+
+we need to re-write the channel manager stuff for the new channels.
+
+we should have tests to make sure we can add accounts to the trie in random order.
+
 tx_pool seems very broken. {absorb...} is unused. {absorb_tx...} is used twice. data() is giving bad information.
 
 
 download_blocks:send_blocks has a problem.
 We should only send the minimum blocks they need, but sometimes we send all the blocks since 0. This will become more of a problem as time goes on.
 
-it should be cleaner to start and stop mining.
+it should be cleaner to start and stop mining. We should have a gen_server that calls itself recursively.
 
 
 maybe nodes need to advertise their own IP/port combo as a peer?
