@@ -176,7 +176,7 @@ retarget(PrevHash, Difficulty) ->
     Tbig = M1 - M2,
     T = Tbig div F,
     %io:fwrite([Ratio, Difficulty]),%10/2, 4096
-    ND = pow:recalculate(Difficulty, constants:block_time(), T),
+    ND = pow:recalculate(Difficulty, constants:block_time(), max(1, T)),
     max(ND, constants:initial_difficulty()).
 retarget2(Hash, 0, L) -> {L, Hash};
 retarget2(Hash, N, L) -> 
