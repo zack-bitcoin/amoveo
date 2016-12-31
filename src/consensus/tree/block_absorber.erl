@@ -28,7 +28,6 @@ absorb(BP) ->
 	    io:fwrite("absorb block "),
 	    io:fwrite(packer:pack(BP)),
 	    io:fwrite("\n"),
-	    
 	    BP2 = block:check2(BP),
 	    save(BP2)
     end.   

@@ -4,7 +4,7 @@
 	 accounts_hash/1,channels_hash/1,
 	 read/1,binary_to_file/1,block/1,prev_hash/2,
 	 prev_hash/1,read_int/1,check1/1,pow_block/1,
-	 mine_blocks/3, mine_blocks/1, hashes/1]).
+	 mine_blocks/2, hashes/1]).
 
 -record(block, {height, prev_hash = 0, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
 -record(block_plus, {block, accounts, channels, accumulative_difficulty = 0, prev_hashes = {}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
@@ -258,7 +258,7 @@ read_int(N, BH) ->
     if 
 	D<0 -> io:fwrite("D is "),
 	       io:fwrite(integer_to_list(D)),
-	       1=2;
+	       D = 5;
 	D == 0 -> Block;
 	true ->
 	    read_int(N, prev_hash(lg(D), Block))
@@ -298,24 +298,18 @@ mine_test() ->
     {block_plus, Block, _, _, _} = make(PH, [], keys:id()),
     PBlock = mine(Block, 1000000000),
     block_absorber:doit(PBlock),
-    mine_blocks(10, 100000, 10),
+    mine_blocks(10, 100000),
     success.
-mine_blocks(N) ->
-    mine_blocks(N, 1000000, 10).
+%mine_blocks(N) ->
+%    mine_blocks(N, 1000000).
    
-mine_blocks(0, _, _) -> success;
-mine_blocks(N, Times, R) -> 
-    if
-	(N rem R) == 0 -> easy:sync();
-	true -> ok
-    end,
-    %easy:sync(),
-    %spawn(fun() -> easy:sync() end),
+mine_blocks(0, _) -> success;
+mine_blocks(N, Times) -> 
     PH = top:doit(),
     {_,_,_,Txs} = tx_pool:data(),
     ID = case {keys:pubkey(), keys:id()} of
-	     {[], _} -> io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
-			1=2;
+	     {[], X} -> io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
+			X = 294393793232;
 	     {_, -1} ->
 		 NewID = new_id(1),
 		 {NewID, keys:address()};
@@ -323,18 +317,18 @@ mine_blocks(N, Times, R) ->
 	 end,
     {block_plus, Block, _, _, _, _} = make(PH, Txs, ID),
     
-    io:fwrite("mining attempt #"),
-    io:fwrite(integer_to_list(N)),
-    io:fwrite(" time "),
-    io:fwrite(integer_to_list(time_now())),
-    io:fwrite(" diff "),
-    io:fwrite(integer_to_list(Block#block.difficulty)),
+    %io:fwrite("mining attempt #"),
+    %io:fwrite(integer_to_list(N)),
+    %io:fwrite(" time "),
+    %io:fwrite(integer_to_list(time_now())),
+    %io:fwrite(" diff "),
+    %io:fwrite(integer_to_list(Block#block.difficulty)),
     %erlang:system_info(logical_processors_available)
     Cores = erlang:system_info(logical_processors_available),
-    io:fwrite(" using "),
-    io:fwrite(integer_to_list(Cores)),
-    io:fwrite(" CPU"),
-    io:fwrite("\n"),
+    %io:fwrite(" using "),
+    %io:fwrite(integer_to_list(Cores)),
+    %io:fwrite(" CPU"),
+    %io:fwrite("\n"),
     F = fun() ->
 		case mine(Block, Times) of
 		    false -> false;
@@ -345,7 +339,7 @@ mine_blocks(N, Times, R) ->
 	end,
     spawn_many(Cores-1, F),
     F(),
-    mine_blocks(N-1, Times, R).
+    mine_blocks(N-1, Times).
     
 spawn_many(0, _) -> ok;
 spawn_many(N, F) -> 

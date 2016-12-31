@@ -1,4 +1,4 @@
-plasmodial
+æternity
 ==========
 
 This is the code used for the testnet for the [æternity](www.aeternity.com) project.
@@ -34,6 +34,10 @@ mine:start().
 To stop mining:
 ```
 mine:stop().
+```
+to check if you are currently mining:
+```
+mine:status().
 ```
 
 #### Check your balance
