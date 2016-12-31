@@ -26,7 +26,8 @@ start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({add, Block}, X) ->
+handle_cast(_, X) -> {noreply, X}.
+handle_call({add, Block}, _From, X) ->
     %check which block is higher and store it's hash as the top.
     %for tiebreakers, prefer the older block.
     OldBlock = block:read(X),
@@ -43,11 +44,10 @@ handle_cast({add, Block}, X) ->
 		  Y;
 	      true -> X
 	  end,
-    {noreply, New};
-handle_cast(_, X) -> {noreply, X}.
+    {reply, 0, New};
 handle_call(_, _From, X) -> {reply, X, X}.
 
-add(Block) -> gen_server:cast(?MODULE, {add, Block}).
+add(Block) -> gen_server:call(?MODULE, {add, Block}).
 doit() -> gen_server:call(?MODULE, top).
 test() ->
     ok.

@@ -2,15 +2,11 @@ we need a channel powered satoshi dice for gambling.
 
 we need to re-write the channel manager stuff for the new channels.
 
+download_blocks could be more efficient.
+
 we should have tests to make sure we can add accounts to the trie in random order.
 
-tx_pool seems broken. {absorb...} is unused. {absorb_tx...} is used twice. 
-
-
-download_blocks:send_blocks has a problem.
-We should only send the minimum blocks they need, but sometimes we send all the blocks since 0. This will become more of a problem as time goes on.
-
-it should be cleaner to start and stop mining. We should have a gen_server that calls itself recursively. it should be controllable from src/network/internal_handler.erl
+block_hashes should remember its data to the hard drive. That way we don't re-download all the blocks every time we reboot. This is important for DDOS protection.
 
 
 maybe nodes need to advertise their own IP/port combo as a peer?

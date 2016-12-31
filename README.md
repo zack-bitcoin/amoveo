@@ -1,9 +1,9 @@
-æternity Testnet
+plasmodial
 ==========
 
-This is the testnet for the [æternity](www.aeternity.com) project.
+This is the code used for the testnet for the [æternity](www.aeternity.com) project.
 
-This testnet uses simple PoW consensus. Its purpose is to show how æternity state-channels work and how this enables scalable trustless æpps.
+This testnet uses simple PoW consensus. Its purpose is to show how state-channels work.
 
 ### Compiling and Runing
 You will need Erlang and a couple of libraries. Please follow instructions:
@@ -26,13 +26,15 @@ To sync with the network and download the blockchain:
 easy:sync()
 ```
 
-#### Start mining
+#### Mining
 To start mining with all CPU cores: 
 ```
-easy:mine().
+mine:start().
 ```
-
-To stop mining: ```CTRL+C``` (shuts down the node, TODO improve)
+To stop mining:
+```
+mine:stop().
+```
 
 #### Check your balance
 ```
@@ -42,7 +44,7 @@ easy:balance().
 #### Stop a node
 To stop a node run:
 ```
-testnet_sup:stop()
+easy:off().
 ```
 
 

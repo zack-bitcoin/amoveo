@@ -4,7 +4,8 @@
 	 accounts_hash/1,channels_hash/1,
 	 read/1,binary_to_file/1,block/1,prev_hash/2,
 	 prev_hash/1,read_int/1,check1/1,pow_block/1,
-	 mine_blocks/2, mine_blocks/1, hashes/1]).
+	 mine_blocks/3, mine_blocks/1, hashes/1]).
+
 -record(block, {height, prev_hash = 0, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
 -record(block_plus, {block, accounts, channels, accumulative_difficulty = 0, prev_hashes = {}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
@@ -297,14 +298,18 @@ mine_test() ->
     {block_plus, Block, _, _, _} = make(PH, [], keys:id()),
     PBlock = mine(Block, 1000000000),
     block_absorber:doit(PBlock),
-    mine_blocks(10, 1000000000),
+    mine_blocks(10, 100000, 10),
     success.
 mine_blocks(N) ->
-    mine_blocks(N, 1000000).
+    mine_blocks(N, 1000000, 10).
    
-mine_blocks(0, _) -> success;
-mine_blocks(N, Times) -> 
-    easy:sync(),
+mine_blocks(0, _, _) -> success;
+mine_blocks(N, Times, R) -> 
+    if
+	(N rem R) == 0 -> easy:sync();
+	true -> ok
+    end,
+    %easy:sync(),
     %spawn(fun() -> easy:sync() end),
     PH = top:doit(),
     {_,_,_,Txs} = tx_pool:data(),
@@ -340,7 +345,7 @@ mine_blocks(N, Times) ->
 	end,
     spawn_many(Cores-1, F),
     F(),
-    mine_blocks(N-1, Times).
+    mine_blocks(N-1, Times, R).
     
 spawn_many(0, _) -> ok;
 spawn_many(N, F) -> 

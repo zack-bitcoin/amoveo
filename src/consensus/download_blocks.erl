@@ -47,11 +47,9 @@ sync(IP, Port, MyHeight) ->
 get_blocks(_, 0, _, _, L) -> L;
 get_blocks(H, _, _, _, L) when H < 1 -> L;
 get_blocks(Height, N, IP, Port, L) -> 
-    case talker:talk({block, Height}, IP, Port) of
-	{ok, Block} ->
-	    get_blocks(Height-1, N-1, IP, Port, [Block|L]);
-	{error, failed_connect} -> L
-    end.
+    talk({block, Height}, IP, Port,
+	 fun(X) -> get_blocks(Height-1, N-1, IP, Port, [X|L])
+	 end).
     
 trade_blocks(_IP, _Port, L, 1) ->
     sync3(L);
@@ -99,16 +97,26 @@ absorb_txs([]) -> ok;
 absorb_txs([H|T]) -> 
     tx_pool_feeder:absorb(H),
     absorb_txs(T).
+talk(CMD, IP, Port, F) ->
+    case talker:talk(CMD, IP, Port) of
+	{error, failed_connect} -> ok;
+	{ok, X} -> F(X)
+    end.
+	   
 get_txs(IP, Port) ->
-    {ok, Them} = talker:talk({txs}, IP, Port),
-    absorb_txs(Them),
-    {_,_,_,Mine} = tx_pool:data(),
-    talker:talk({txs, Mine}, IP, Port).
+    talk({txs}, IP, Port, 
+	 fun(X) ->
+		 absorb_txs(X),
+		 {_,_,_,Mine} = tx_pool:data(),
+		 talker:talk({txs, Mine}, IP, Port)
+	 end).
 trade_peers(IP, Port) ->
-    {ok, Peers} = talker:talk({peers}, IP, Port),
-    MyPeers = tuples2lists(peers:all()),
-    talker:talk({peers, MyPeers}, IP, Port),
-    peers:add(Peers).
+    talk({peers}, IP, Port,
+	 fun(X) ->
+		 MyPeers = tuples2lists(peers:all()),
+		 talker:talk({peers, MyPeers}, IP, Port),
+		 peers:add(X)
+	 end).
 tuples2lists(X) when is_tuple(X) ->
     tuples2lists(tuple_to_list(X));
 tuples2lists([]) -> [];

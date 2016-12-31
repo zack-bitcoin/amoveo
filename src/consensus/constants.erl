@@ -62,21 +62,9 @@ max_reveal() -> finality()*10.
 -define(BR, fractions:new(1, 1000)).%spending 1000 coins necessarily burns ~1.
 burn_ratio() -> ?BR.
 root() -> "data/".
-database() -> root() ++ "database.db".
-entropy() -> root() ++ "entropy.db".
-channel_manager() -> root() ++ "channel_manager.db".
-channel_partner() -> root() ++ "channel_partner.db".
-accounts() -> root() ++ "accounts.db".
-d_accounts() -> root() ++ "d_accounts.db".
-blocks() -> root() ++ "blocks.db".
-temp() -> root() ++ "temp.db".
-block_pointers() -> root() ++ "block_pointers.db".
-pointers_start() -> root() ++ "pointers_start.db".
-channels() -> root() ++ "channels.db".
-d_channels() -> root() ++ "d_channels.db".
+block_hashes() -> root() ++ "block_hashes.db".
 keys() -> root() ++ "keys.db".
 top() -> root() ++ "top.db".
-backup_accounts() -> root() ++ "backup/accounts.db".
 word_size() -> 100000.
 
 

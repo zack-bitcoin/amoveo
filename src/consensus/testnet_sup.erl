@@ -3,7 +3,7 @@
 -export([start_link/0,init/1,stop/0]).%,start_http/0]).
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
--define(keys, [keys, port, block_hashes, top, block_absorber, tx_pool, peers, tx_pool_feeder]).
+-define(keys, [keys, port, block_hashes, top, block_absorber, tx_pool, peers, tx_pool_feeder, mine]).
 
 child_maker([]) -> [];
 child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].

@@ -19,7 +19,7 @@ arbitrage:
 add{bet_hash, cid1, cid2}, del{bet_hash, cid1, cid2}, read/1{bet_hash}
 
 channel_feeder:
-make{Tx}, grow{Tx}, spend{spk}, close{cid, script_sig}, lock-spend/1{spk}, bet/1{spk}
+make{Tx}, grow{Tx} current{cid}, spend{spk}, close{cid, script_sig}, lock-spend/1{spk}, bet/1{spk}
 %before doing anything to a channel, we need to double-check that the channel exists on the top chain. It is possible a fork could happen, and the channel manager is storing a channel that doesn't exist on the chain.
 
 %This would be a lot more efficient if we only recorded diffs and signatures, instead of passing the entire spk every time.

@@ -2,10 +2,21 @@
 %each blockhash is about 12 bytes. We need to prepare for about 10000000 blocks. So that would be 12 megabytes of data. We can keep this all in ram.
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, add/1,check/1,test/0]).
-init(ok) -> {ok, i_new()}.
+-define(LOC, constants:block_hashes()).
+init(ok) -> 
+    process_flag(trap_exit, true),
+    X = db:read(?LOC),
+    K = if
+	    X == "" ->
+		i_new();
+	    true -> X
+	end,
+    {ok, K}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, X) -> 
+    db:save(?LOC, X),
+    io:format("block_hashes died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({add, H}, X) ->
     N = i_insert(H, X),

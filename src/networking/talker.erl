@@ -18,27 +18,29 @@ talk(Msg) ->
     Peer = "http://127.0.0.1:3010/",
     talk(Msg, Peer).
 talk(Msg, Peer) ->
+    talk_helper(Msg, Peer, 5).
+talk_helper(_, _, 0) -> {error, failed_connect};
+talk_helper(Msg, Peer, N) ->
     PM = packer:pack(Msg),
-    Msg = packer:unpack(PM),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
 	{ok, {_Status, _Headers, []}} -> 
 	    io:fwrite("talk error 1"),
-	    talk(Msg, Peer);
+	    talk_helper(Msg, Peer, N-1);
 	    %io:fwrite({Status, Headers}),
 	    %{error, undefined};
 	{error, socket_closed_remotely} ->
 	    io:fwrite("socket closed remotely \n"),
-	    talk(Msg, Peer);
+	    talk_helper(Msg, Peer, N-1);
 	{ok, {_, _, R}} -> 
 	    packer:unpack(R);
 	{error, timeout} ->
 	    io:fwrite("talk error timeout"),
-	    talk(Msg, Peer);
+	    talk_helper(Msg, Peer, N-1);
 	    %{error, timeout};
 	{error, {failed_connect, _}} ->
-	    %io:fwrite("talk error failed connect"),
-	    %talk(Msg, Peer)
-	    {error, failed_connect}
+	    io:fwrite("talk error failed connect"),
+	    talk_helper(Msg, Peer, N-1)
+	    %{error, failed_connect}
 		
     end.
 talk(Msg, IP, Port) -> talk(Msg, peer(IP, Port)).

@@ -1,11 +1,16 @@
-
 -module(channel_manager).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, read/1,delete/1,store/2]).
-init(ok) -> {ok, []}.
+-define(LOC, "").
+-record(c, {spkm, ssm = [], spkt, sst = []}).
+init(ok) -> 
+    process_flag(trap_exit, true),
+    {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, K) -> 
+    db:save(?LOC, K),
+    io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({store, CID, Data}, X) -> 
     {noreply, dict:store(CID, Data, X)};
