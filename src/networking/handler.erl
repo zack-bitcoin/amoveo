@@ -30,7 +30,7 @@ doit({block, N}) ->
     {ok, block:pow_block(block:read_int(N))};
     %{ok, block_tree:read_int(N)};
 doit({tophash}) -> {ok, top:doit()};
-doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
+%doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
 doit({peers}) ->
     P = peers:all(),
     P2 = download_blocks:tuples2lists(P),
@@ -64,15 +64,48 @@ doit({spend, To, Amount, Fee}) ->
     spend_tx:spend(To, Amount, Fee);
 doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
     to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee);
-doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
-    {ok, ServerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(ServerId)),
-    to_channel_tx:to_channel(ChId, Inc1, Inc2, Fee);
+%doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
+%    {ok, ServerId} = talker:talk({id}, IP, Port),
+%    ChId = hd(channel_manager:id(ServerId)),
+%    to_channel_tx:to_channel(ChId, Inc1, Inc2, Fee);
 doit({close_channel, ChId, Amount, Nonce, Fee}) ->
     channel_block_tx:close_channel(ChId, Amount, Nonce, Fee);
 doit({test}) -> 
     {test_response};
 %doit({account, Id}) -> {ok, account:read(Id)};
+doit({min_channel_ratio}) ->
+    {ok, free_constants:min_channel_ratio()};
+doit({make_channel, STx}) ->
+    Tx = testnet_sign:data(Stx),
+    true = new_channel_tx:good(Tx),
+    SStx = keys:sign(Stx),
+    tx_pool_feeder:absorb(SStx),
+    {ok, ok};
+doit({grow_channel, Stx, SS}) ->
+    Tx = testnet_sign:data(Stx),
+    true = grow_channel_tx:good(Tx),
+    SStx = keys:sign(Stx),
+    tx_pool_feeder:absorb(SStx),
+    {ok, ok};
+doit({spk, CID})->
+    SPK = channel_manager:read(CID),
+    {ok, SPK};
+doit({channel_payment, SPK}) ->
+    channel_feeder:spend(SPK),
+    {ok, ok};
+doit({close_channel, SPK, SS}) ->
+    channel_feeder:close(SPK, SS),
+    {ok, ok};
+doit({locked_payment, SPK}) ->
+    channel_feeder:lock_spend(SPK),
+    {ok, ok};
+doit({bets}) ->
+    free_variables:bets();
+doit({bet, Name, SPK}) ->
+    OldSPK = channel_manager:read(CID),
+    SPK = spk:make_bet(Name, OldSPK),
+    channel_feeder:bet(Name, SPK),
+    {ok, ok};
 doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2

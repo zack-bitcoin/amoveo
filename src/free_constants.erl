@@ -10,4 +10,9 @@ minimum_tx_fee() ->
     constants:initial_coins() div 1000000000000.
 fork_tolerance() ->    
    %this is how long of a fork we can recover from. If this number is bigger, it takes longer to sync with the network because you download more unnecessary blocks.
+    %It is best to keep this number low when you first sync, and make it bigger once you are synced with the network.
+    %on nodes that are mining, this should probably be set very low. 
     20.
+min_channel_ratio() ->
+    %So the customer needs to put in twice as much money as the server.
+    {f, 1, 2}.

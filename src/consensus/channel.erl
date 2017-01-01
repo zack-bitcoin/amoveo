@@ -145,6 +145,7 @@ get(ID, Channels) ->
 	end,
     {RH, V, Proof}.
 delete(ID,Channels) ->
+    channel_feeder:delete(ID),
     trie:delete(ID, Channels, channels).
 root_hash(Channels) ->
     trie:root_hash(channels, Channels).

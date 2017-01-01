@@ -1,3 +1,6 @@
+make the api networking/handler be entirely encrypted. This is to protect information about the channels.
+
+
 we need a channel powered satoshi dice for gambling.
 
 we need to re-write the channel manager stuff for the new channels.
