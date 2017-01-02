@@ -1,8 +1,13 @@
 -module(channel_slash_tx).
--export([doit/4, make/7]).
+-export([doit/4, make/6]).
 -record(cs, {from, nonce, fee = 0, 
-	     cid, scriptpubkey, scriptsig}).
-make(From, CID, Fee, ScriptPubkey, ScriptSig, Accounts,Channels) ->
+	     scriptpubkey, scriptsig}).
+make(From, Fee, ScriptPubkey, ScriptSig, Accounts,Channels) ->
+    io:fwrite("scipt pubkey is "),
+    io:fwrite(packer:pack(ScriptPubkey)),
+    io:fwrite("\n"),
+    SPK = testnet_sign:data(ScriptPubkey),
+    CID = spk:cid(SPK),
     {_, Acc, Proof1} = account:get(From, Accounts),
     {_, Channel, Proofc} = channel:get(CID, Channels),
     Acc1 = channel:acc1(Channel),
@@ -13,18 +18,19 @@ make(From, CID, Fee, ScriptPubkey, ScriptSig, Accounts,Channels) ->
 	   end,
     {_, _, Proof2} = account:get(Accb, Accounts),
     Tx = #cs{from = From, nonce = account:nonce(Acc)+1, 
-	      fee = Fee, cid = CID, 
+	      fee = Fee, 
 	      scriptpubkey = ScriptPubkey, 
 	      scriptsig = ScriptSig},
     {Tx, [Proof1, Proof2, Proofc]}.
 
 doit(Tx, Channels, Accounts, NewHeight) ->
     From = Tx#cs.from,
-    CID = Tx#cs.cid,
-    {_, Channel, _} = channel:get(CID, Channels),
+    %CID = Tx#cs.cid,
     SignedSPK = Tx#cs.scriptpubkey,
-    true = testnet_sign:verify(SignedSPK, Accounts),
     SPK = testnet_sign:data(SignedSPK),
+    CID = spk:cid(SPK),
+    {_, Channel, _} = channel:get(CID, Channels),
+    true = testnet_sign:verify(SignedSPK, Accounts),
     Acc1 = channel:acc1(Channel),
     Acc2 = channel:acc2(Channel),
     Acc1 = spk:acc1(SPK),

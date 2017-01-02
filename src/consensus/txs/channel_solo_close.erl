@@ -1,24 +1,36 @@
 -module(channel_solo_close).
--export([doit/4, make/7]).
+-export([doit/4, make/6]).
 -record(csc, {from, nonce, fee = 0, 
 	      cid, scriptpubkey, scriptsig}).
 
-make(From, CID, Fee, ScriptPubkey, ScriptSig, Accounts, Channels) ->
+make(From, Fee, ScriptPubkey, ScriptSig, Accounts, Channels) ->
+    CID = spk:cid(testnet_sign:data(ScriptPubkey)),
     {_, Acc, Proof1} = account:get(From, Accounts),
+    io:fwrite(packer:pack(ScriptPubkey)),
+    io:fwrite("CID is "),
+    io:fwrite(integer_to_list(CID)),
+    io:fwrite("\n"),
     {_, _Channel, Proofc} = channel:get(CID, Channels),
+    
     Tx = #csc{from = From, nonce = account:nonce(Acc)+1, 
-	      fee = Fee, cid = CID, 
+	      fee = Fee,
 	      scriptpubkey = ScriptPubkey, 
 	      scriptsig = ScriptSig},
     {Tx, [Proof1, Proofc]}.
 
 doit(Tx, Channels, Accounts, NewHeight) ->
     From = Tx#csc.from, 
-    CID = Tx#csc.cid,
-    {_, Channel, _} = channel:get(CID, Channels),
     SPK = Tx#csc.scriptpubkey,
+    CID = spk:cid(testnet_sign:data(SPK)),
+    io:fwrite("CID is "),
+    io:fwrite(integer_to_list(CID)),
+    io:fwrite("\n"),
+    {_, Channel, _} = channel:get(CID, Channels),
     true = testnet_sign:verify(SPK, Accounts),
     ScriptPubkey = testnet_sign:data(SPK),
+    io:fwrite("channel is "),
+    io:fwrite(packer:pack(Channel)),
+    io:fwrite("\n"),
     Acc1 = channel:acc1(Channel),
     Acc2 = channel:acc2(Channel),
     Acc1 = spk:acc1(ScriptPubkey),

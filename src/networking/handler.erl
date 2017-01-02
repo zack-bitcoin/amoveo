@@ -76,12 +76,12 @@ doit({test}) ->
 doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
 doit({make_channel, STx}) ->
-    Tx = testnet_sign:data(Stx),
+    Tx = testnet_sign:data(STx),
     true = new_channel_tx:good(Tx),
-    SStx = keys:sign(Stx),
-    tx_pool_feeder:absorb(SStx),
+    SSTx = keys:sign(STx),
+    tx_pool_feeder:absorb(SSTx),
     {ok, ok};
-doit({grow_channel, Stx, SS}) ->
+doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
     true = grow_channel_tx:good(Tx),
     SStx = keys:sign(Stx),
@@ -91,21 +91,22 @@ doit({spk, CID})->
     SPK = channel_manager:read(CID),
     {ok, SPK};
 doit({channel_payment, SPK}) ->
-    channel_feeder:spend(SPK),
+    R = channel_feeder:spend(SPK),
+    {ok, R};
+doit({close_channel, SPK, SS, Tx}) ->
+    channel_feeder:close(SPK, SS, Tx),
     {ok, ok};
-doit({close_channel, SPK, SS}) ->
-    channel_feeder:close(SPK, SS),
-    {ok, ok};
-doit({locked_payment, SPK}) ->
-    channel_feeder:lock_spend(SPK),
-    {ok, ok};
+doit({locked_payment, SSPK}) ->
+    R = channel_feeder:lock_spend(SSPK),
+    {ok, R};
+doit({channel_simplify, SS, SSPK}) ->
+    Return = channel_feeder:simplify(SS, SSPK),
+    {ok, Return};
 doit({bets}) ->
     free_variables:bets();
-doit({bet, Name, SPK}) ->
-    OldSPK = channel_manager:read(CID),
-    SPK = spk:make_bet(Name, OldSPK),
-    channel_feeder:bet(Name, SPK),
-    {ok, ok};
+%doit({bet, Name, SPK}) ->
+%    channel_feeder:bet(Name, SPK),
+%    {ok, ok};
 doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2

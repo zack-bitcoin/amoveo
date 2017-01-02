@@ -3,8 +3,8 @@
 -export([doit/4, make/9, good/1]).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, bal1 = 0, bal2 = 0, rent = 0, entropy = 0, id = -1}).
 
-good(Tx) ->
-    MCR = min_channel_ratio(),
+good(_Tx) ->
+    _MCR = free_constants:min_channel_ratio(),
     ok.
 
 make(ID,Accounts,Acc1,Acc2,Inc1,Inc2,Rent,Entropy,Fee) ->
@@ -36,8 +36,9 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Acc2 = account:update(Aid2, Accounts, -Bal2-CCFee, none, NewHeight),
     Accounts2 = account:write(Accounts, Acc1),
     NewAccounts = account:write(Accounts2, Acc2),
+    K = keys:id(),
     if
-	(keys:id() == Aid1) or (keys:id() == Aid2) ->
+	(K == Aid1) or (K == Aid2) ->
 	    channel_feeder:new_channel(Tx);
 	true -> ok
     end,

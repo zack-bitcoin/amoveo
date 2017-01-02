@@ -17,10 +17,8 @@ block(P) when element(1, P) == pow ->
     pow:data(P);
 block(BP) when is_record(BP, block_plus) ->
     block(BP#block_plus.block);
-block(B) when is_record(B, block) ->
-    B.
-pow_block(B) when element(1, B) == pow ->
-    B;
+block(B) when is_record(B, block) -> B.
+pow_block(B) when element(1, B) == pow -> B;
 pow_block(BP) when is_record(BP, block_plus) ->
     pow_block(BP#block_plus.block).
 

@@ -1,7 +1,7 @@
 -module(grow_channel_tx).
--export([doit/4, make/7]).
+-export([doit/4, make/7, good/1]).
 -record(gc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, inc1 = 0, inc2 = 0, rent = 0, channel_nonce = none, id = -1}).
-good(Tx) ->
+good(_Tx) ->
     %make sure they aren't taking our money.
     %check that it is still meeting the min_channel_ratio.
     %check that it is a valid transaction.
