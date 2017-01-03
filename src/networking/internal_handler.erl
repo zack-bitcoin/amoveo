@@ -139,6 +139,14 @@ doit({keys_id_update, ID}) ->
 doit({key_new, Password}) -> 
     keys:new(Password),
     {ok, 0};
+doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee}) ->
+    [Entropy] = 0,
+    CID = channel:empty_id(),
+    {Accounts, _,_,_} = tx_pool:data(),
+    {ok, Acc2} = talker:talk({id}, IP, Port),
+    Tx = new_channel_tx:make(CID, Accounts, keys:id(), Acc2, MyBal, OtherBal, Rent, Entropy, Fee),
+    {ok, _} = talker:talk({make_channel, keys:sign(Tx)}, IP, Port);
+    
 doit(X) ->
     io:fwrite("don't know how to handle it \n"),
     io:fwrite(packer:pack(X)),

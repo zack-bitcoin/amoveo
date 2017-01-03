@@ -25,7 +25,7 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 start() -> 
     io:fwrite("mine start\n"),
-    easy:sync(),
+    %easy:sync(),
     gen_server:cast(?MODULE, start),
     mine().
 mine() ->

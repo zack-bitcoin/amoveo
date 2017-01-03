@@ -1,6 +1,7 @@
 -module(channel_manager).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, read/1,delete/1,write/2]).
+-export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
+	 keys/0,read/1,delete/1,write/2]).
 -define(LOC, "").
 init(ok) -> 
     X = db:read(?LOC),
@@ -30,11 +31,11 @@ handle_cast(_, X) -> {noreply, X}.
 handle_call(keys, _From, X) ->
     {reply, dict:fetch_keys(X), X};
 handle_call({read, CID}, _From, X) -> 
-    {reply, dict:fetch(CID, X), X};
+    {reply, dict:find(CID, X), X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 read(CID) -> gen_server:call(?MODULE, {read, CID}).
-keys(CID) -> gen_server:call(?MODULE, keys).
+keys() -> gen_server:call(?MODULE, keys).
 delete(CID) -> gen_server:cast(?MODULE, {delete, CID}).
 write(CID, Data) -> 
     gen_server:cast(?MODULE, {write, CID, Data}).

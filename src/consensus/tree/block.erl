@@ -6,7 +6,10 @@
 	 prev_hash/1,read_int/1,check1/1,pow_block/1,
 	 mine_blocks/2, hashes/1]).
 
--record(block, {height, prev_hash = 0, txs, channels, accounts, mines_block, time, difficulty}).%tries: txs, channels, census, 
+-record(block, {height, prev_hash = 0, txs, channels, 
+		accounts, mines_block, time, 
+		difficulty, comment = <<>>,
+		magic = constants:magic()}).%tries: txs, channels, census, 
 -record(block_plus, {block, accounts, channels, accumulative_difficulty = 0, prev_hashes = {}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
 %this gets wrapped in a signature and then wrapped in a pow.
@@ -56,7 +59,8 @@ prev_hash(N, BP) ->%N=0 should be the same as prev_hash(BP)
 prev_hash(X) -> 
     B = block(X),
     B#block.prev_hash.
-hash(X) -> hash:doit(term_to_binary(block(X))).
+hash(X) -> 
+    hash:doit(term_to_binary(block(X))).
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis() ->
@@ -67,6 +71,7 @@ genesis() ->
     Accounts = account:write(0, First),
     AccRoot = account:root_hash(Accounts),
     ChaRoot = channel:root_hash(0),
+    Comment = <<"Aeternity genesis">>,
 
     %Block = 
     %#block{height = 0,
@@ -79,7 +84,7 @@ genesis() ->
     Block = {pow,{block,0,0,[], ChaRoot, AccRoot,
 		  %<<1,223,2,81,223,207,12,158,239,5,219,253>>,
 		  %<<108,171,180,35,202,56,178,151,11,85,188,193>>,
-		  1,0,4080},
+		  1,0,4080, Comment, constants:magic()},
 	     4080,44358461744572027408730},
     #block_plus{block = Block, channels = 0, accounts = Accounts}.
     
@@ -194,6 +199,7 @@ check1(BP) ->
 	true ->
 	    PowBlock = pow_block(BP),
 	    Block = block(PowBlock),
+	    io:fwrite(packer:pack(Block)),
 	    Difficulty = Block#block.difficulty,
 	    true = Difficulty >= constants:initial_difficulty(),
 	    pow:above_min(PowBlock, Difficulty),
@@ -208,7 +214,11 @@ check2(PowBlock) ->
     %check that the time is later than the median of the last 100 blocks.
 
     %check2 assumes that the parent is in the database already.
+    %add comment to blocks.
     Block = block(PowBlock),
+    true = is_binary(Block#block.comment),
+    true = size(Block#block.comment) < constants:comment_limit(),
+    true = Block#block.magic == constants:magic(),
     Difficulty = Block#block.difficulty,
     PH = Block#block.prev_hash,
     Difficulty = next_difficulty(PH),

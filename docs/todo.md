@@ -1,12 +1,13 @@
-We need to make sure to never re-use the same entropy-cid combo for 2 different channels. The old channel state could get re-used.
+There is a problem where if you crash while syncing with a peer, then you skip trying to sync with any peer lower on the list. this is very bad.
 
-channel_feeder new_channel needs to use the result of a distributed entropy generator for the entropy of the new channel. We need to make sure we never re-use the same entropy-cid
+the entropy isn't matching. it is created in spk:new and in new:channel.
 
-channel_manager should store by {CID, Entropy}, instead of just CID.
-If there is a fork, they might use the same CID for a different channel on each side of the fork. It is best if each node stays aware of both sides, until we find out which side will win.
 
-channel_solo_close and channel_slash need to be updated because spk:code is a list of bets, not a single bet.
-Also, we need to care about spk:amount, which is the base movement of money before we run any contracts.
+wait for a hard fork to do this upgrade: blocks should point to the previous header, not the previous block. 
+
+
+block:check2 needs an update. It should only accept blocks that were made after the median of the last 100 blocks
+
 
 
 make the api networking/handler be entirely encrypted. This is to protect information about the channels.

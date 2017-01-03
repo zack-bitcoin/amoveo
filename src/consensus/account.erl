@@ -40,11 +40,13 @@ serialize(A) ->
     SizeAddr = hash:hash_depth(),
     Nbits = constants:account_nonce_bits(),
     AP = constants:account_padding(),
-    KL = constants:key_length(),
+    KL = key_length(),
+    ID = A#acc.id,
+    true = (ID - 1) < math:pow(2, KL),
     Out = <<(A#acc.balance):BAL, 
 	    (A#acc.nonce):(Nbits), 
 	    (A#acc.height):HEI,
-	    (A#acc.id):KL,
+	    ID:KL,
 	    Baddr/binary,
 	    0:AP>>,
     Size = size(Out),
@@ -72,7 +74,10 @@ write(Root, Account) ->%These are backwards.
     trie:put(ID, M, Root, accounts).%returns a pointer to the new root.
 delete(ID, Accounts) ->
     trie:delete(ID, Accounts, accounts).
+key_length() ->
+    constants:key_length().
 get(Id, Accounts) ->
+    true = (Id - 1) < math:pow(2, key_length()),
     {RH, Leaf, Proof} = trie:get(Id, Accounts, accounts),
     V = case Leaf of
 	    empty -> empty;

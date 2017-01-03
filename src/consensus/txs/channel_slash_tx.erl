@@ -3,9 +3,6 @@
 -record(cs, {from, nonce, fee = 0, 
 	     scriptpubkey, scriptsig}).
 make(From, Fee, ScriptPubkey, ScriptSig, Accounts,Channels) ->
-    io:fwrite("scipt pubkey is "),
-    io:fwrite(packer:pack(ScriptPubkey)),
-    io:fwrite("\n"),
     SPK = testnet_sign:data(ScriptPubkey),
     CID = spk:cid(SPK),
     {_, Acc, Proof1} = account:get(From, Accounts),
@@ -56,7 +53,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
 		    constants:fun_limit(), 
 		    constants:var_limit(), 
 		    State), 
-    true = NewCNonce > channel:nonce(Channel),
+    true = NewCNonce + spk:nonce(SPK) > channel:nonce(Channel),
     %delete the channel. empty the channel into the accounts.
     NewChannels = channel:delete(CID, Channels),
     Account1 = account:update(Acc1, Accounts, channel:bal1(Channel)-Acc1Fee-Amount, N1, NewHeight),

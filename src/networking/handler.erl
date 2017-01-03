@@ -77,13 +77,14 @@ doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
 doit({make_channel, STx}) ->
     Tx = testnet_sign:data(STx),
-    true = new_channel_tx:good(Tx),
+    true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
+    true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo.
     SSTx = keys:sign(STx),
     tx_pool_feeder:absorb(SSTx),
     {ok, ok};
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
-    true = grow_channel_tx:good(Tx),
+    true = grow_channel_tx:good(Tx),%checks the min_channel_ratio
     SStx = keys:sign(Stx),
     tx_pool_feeder:absorb(SStx),
     {ok, ok};

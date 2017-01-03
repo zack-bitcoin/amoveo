@@ -90,9 +90,13 @@ serialize(C) ->
     NON = constants:channel_nonce_bits(),
     Rent = constants:channel_rent_bits(),
     Pad = constants:channel_padding(),
-    KL = constants:key_length(),
+    KL = id_size(),
     ENT = constants:channel_entropy(),
-    << (C#channel.id):KL,
+    CID = C#channel.id,
+    Entropy = C#channel.entropy,
+    true = (Entropy - 1) < math:pow(2, ENT),
+    true = (CID - 1) < math:pow(2, KL),
+    << CID:KL,
        (C#channel.acc1):ACC,
        (C#channel.acc2):ACC,
        (C#channel.bal1):BAL,
@@ -103,7 +107,7 @@ serialize(C) ->
        (C#channel.rent):Rent,
        (C#channel.rent_direction):1,
        (C#channel.mode):2,
-       (C#channel.entropy):ENT,
+       Entropy:ENT,
        0:Pad>>.
 deserialize(B) ->
     ACC = constants:acc_bits(),
@@ -137,7 +141,9 @@ write(Channel, Root) ->
     ID = Channel#channel.id,
     M = serialize(Channel),
     trie:put(ID, M, Root, channels). %returns a pointer to the new root
+id_size() -> constants:key_length().
 get(ID, Channels) ->
+    true = (ID - 1) < math:pow(2, id_size()),
     {RH, Leaf, Proof} = trie:get(ID, Channels, channels),
     V = case Leaf of
 	    empty -> empty;

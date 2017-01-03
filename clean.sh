@@ -1,4 +1,3 @@
-touch temp.db
 rm data/*.db
 rm blocks/*.db
 

@@ -176,10 +176,11 @@ test5() ->
     
     Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, Entropy, Code, 10000, 10000, Delay), Accounts3),
+    ChannelNonce = 0,
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 1 ">>),
-    {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, ScriptSig, Accounts3, Channels), 
+    {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Accounts3, Channels), 
     Stx3 = keys:sign(Ctx3, Accounts3),
     tx_pool_feeder:absorb(Stx3),
     {Accounts4, Channels2, _, _Txs} = tx_pool:data(),
@@ -222,16 +223,17 @@ test6() ->
     
     Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, Entropy, Code, 10000, 10000, Delay), Accounts3),
+    ChannelNonce = 0,
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 1 ">>),
-    {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, ScriptSig, Accounts3, Channels), 
+    {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Accounts3, Channels), 
     Stx3 = keys:sign(Ctx3, Accounts3),
     tx_pool_feeder:absorb(Stx3),
     {Accounts4, Channels2, _, _Txs} = tx_pool:data(),
 
     ScriptSig2 = compiler_chalang:doit(<<" int 2 ">>),
-    {Ctx4, _} = channel_slash_tx:make(2,Fee,SignedScriptPubKey,ScriptSig2,Accounts4,Channels2),
+    {Ctx4, _} = channel_slash_tx:make(2,Fee,SignedScriptPubKey,[ScriptSig2],Accounts4,Channels2),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv, ID2, Accounts4),
     %Stx4 = keys:sign(Ctx4, Accounts4),
     tx_pool_feeder:absorb(Stx4),
