@@ -68,8 +68,8 @@ doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
 %    {ok, ServerId} = talker:talk({id}, IP, Port),
 %    ChId = hd(channel_manager:id(ServerId)),
 %    to_channel_tx:to_channel(ChId, Inc1, Inc2, Fee);
-doit({close_channel, ChId, Amount, Nonce, Fee}) ->
-    channel_block_tx:close_channel(ChId, Amount, Nonce, Fee);
+%doit({close_channel, ChId, Amount, Nonce, Fee}) ->
+%    channel_block_tx:close_channel(ChId, Amount, Nonce, Fee);
 doit({test}) -> 
     {test_response};
 %doit({account, Id}) -> {ok, account:read(Id)};
@@ -90,11 +90,11 @@ doit({grow_channel, Stx}) ->
 doit({spk, CID})->
     SPK = channel_manager:read(CID),
     {ok, SPK};
-doit({channel_payment, SPK}) ->
-    R = channel_feeder:spend(SPK),
+doit({channel_payment, SPK, Amount}) ->
+    R = channel_feeder:spend(SPK, Amount),
     {ok, R};
-doit({close_channel, SPK, SS, Tx}) ->
-    channel_feeder:close(SPK, SS, Tx),
+doit({close_channel, CID, SS, Tx}) ->
+    channel_feeder:close(CID, SS, Tx),
     {ok, ok};
 doit({locked_payment, SSPK}) ->
     R = channel_feeder:lock_spend(SSPK),

@@ -50,7 +50,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     %ScriptPubkey = Tx#cs.scriptpubkey,
     {Amount, NewCNonce, _, _} = 
 	chalang:run(Tx#cs.scriptsig, 
-		    spk:code(SPK), 
+		    spk:bets(SPK), 
 		    spk:time_gas(SPK), 
 		    spk:space_gas(SPK), 
 		    constants:fun_limit(), 

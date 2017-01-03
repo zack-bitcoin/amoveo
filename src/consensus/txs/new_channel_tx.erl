@@ -1,19 +1,21 @@
-
 -module(new_channel_tx).
--export([doit/4, make/9, good/1]).
--record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, bal1 = 0, bal2 = 0, rent = 0, entropy = 0, id = -1}).
-
+-export([doit/4, make/9, good/1, spk/2]).
+-record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
+	     bal1 = 0, bal2 = 0, rent = 0, entropy = 0, 
+	     id = -1}).
 good(_Tx) ->
     _MCR = free_constants:min_channel_ratio(),
     ok.
-
+spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
+		   Tx#nc.entropy, [], 0, 0, Delay).
 make(ID,Accounts,Acc1,Acc2,Inc1,Inc2,Rent,Entropy,Fee) ->
     {_, A, Proof} = account:get(Acc1, Accounts),
     Nonce = account:nonce(A),
     {_, _, Proof2} = account:get(Acc2, Accounts),
     Tx = #nc{id = ID, acc1 = Acc1, acc2 = Acc2, 
 	     fee = Fee, nonce = Nonce+1, bal1 = Inc1,
-	     bal2 = Inc2, entropy = Entropy, rent = Rent},
+	     bal2 = Inc2, entropy = Entropy, rent = Rent
+	     },
     {Tx, [Proof, Proof2]}.
 				 
 doit(Tx, Channels, Accounts, NewHeight) ->
@@ -23,8 +25,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Aid2 = Tx#nc.acc2,
     false = Aid1 == Aid2,
     Bal1 = Tx#nc.bal1,
-    true = Bal1 >= 0
-,
+    true = Bal1 >= 0,
     Bal2 = Tx#nc.bal2,
     true = Bal2 >= 0,
     Rent = Tx#nc.rent,
