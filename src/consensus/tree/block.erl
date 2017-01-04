@@ -94,13 +94,8 @@ absorb_txs(PrevPlus, MinesBlock, Height, Txs) ->
 	case MinesBlock of
 	    {ID, Address} -> %for miners who don't yet have an account.
 		{_, empty, _} = account:get(ID, OldAccounts),
+		%We should also give the miner the sum of the transaction fees.
 		account:new(ID, Address, constants:block_reward(), Height);
-		%MyAddress = keys:address(),
-		%if
-		%    (Tx#ca.address) == MyAddress ->
-		%	keys:update_id(Tx#ca.to);
-		%    true -> ok
-		%end;
 	    MB -> %If you already have an account.
 		account:update(MB, OldAccounts, constants:block_reward(), none, Height)
 	end,
@@ -115,11 +110,6 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
     Parent = pow:data(ParentPlus#block_plus.block),
     Height = Parent#block.height + 1,
     {NewChannels, NewAccounts} = absorb_txs(ParentPlus, ID, Height, Txs),
-    %{NewChannels, NewAccounts} = 
-	%txs:digest(Txs, 
-	%	   ParentPlus#block_plus.channels, 
-	%	   ParentPlus#block_plus.accounts,
-	%	   Height),
     CHash = channel:root_hash(NewChannels),
     AHash = account:root_hash(NewAccounts),
     NextDifficulty = next_difficulty(PrevHash),
@@ -140,7 +130,6 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
       }.
 next_acc(Parent, ND) ->
     Parent#block_plus.accumulative_difficulty + pow:sci2int(ND).
-    %We need to reward the miner for his POW.
     %We need to reward the miner the sum of transaction fees.
 mine(BP, Times) when is_record(BP, block_plus) ->
     Block = BP#block_plus.block,
@@ -199,7 +188,7 @@ check1(BP) ->
 	true ->
 	    PowBlock = pow_block(BP),
 	    Block = block(PowBlock),
-	    io:fwrite(packer:pack(Block)),
+	    %io:fwrite(packer:pack(Block)),
 	    Difficulty = Block#block.difficulty,
 	    true = Difficulty >= constants:initial_difficulty(),
 	    pow:above_min(PowBlock, Difficulty),

@@ -20,6 +20,7 @@ terminate(_, X) ->
 handle_info(_, X) -> {noreply, X}.
 handle_cast({add, H}, X) ->
     N = i_insert(H, X),
+    db:save(?LOC, N),%This line is only necessary for power failures
     {noreply, N};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({check, H}, _From, X) ->
