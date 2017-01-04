@@ -1,5 +1,3 @@
-
-
 -module(constants).
 -compile(export_all).
 %-export([export_all]).
@@ -117,8 +115,8 @@ var_limit() -> 10000.
 peers() ->
     [].%[{IP, Port}| ...]
 comment_limit() -> %When a miner mines a block, they can set this many bytes to whatever they want.
-    80.
-magic() -> 0.
+    140.
+magic() -> 1.
     
     
     

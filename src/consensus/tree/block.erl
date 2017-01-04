@@ -71,7 +71,7 @@ genesis() ->
     Accounts = account:write(0, First),
     AccRoot = account:root_hash(Accounts),
     ChaRoot = channel:root_hash(0),
-    Comment = <<"Aeternity genesis">>,
+    Comment = <<"Bitcoin Hits All-Time High as Currency Controls Drive Fear - Bloomberg Online, January 4, 2017">>,
 
     %Block = 
     %#block{height = 0,
