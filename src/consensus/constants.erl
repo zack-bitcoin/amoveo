@@ -4,6 +4,7 @@
 %-define(InitialCoins, round(math:pow(2, 48)) - 1).
 %2^74 bits is 25 bitcoin =~ $10,000
 %2^64 bits is $10
+default_port() -> 8040.
 key_length() ->
     11. %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
 trie_size() ->
