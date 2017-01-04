@@ -7,12 +7,12 @@ sudo apt-get install erlang libncurses5-dev libssl-dev unixodbc-dev g++ git erla
 Next, download Aeternity Testnet.
 
 ```
-git clone https://github.com/Aeternity/Testnet.git
+git clone https://github.com/aeternity/testnet.git
 ```
 Now you can go into the directory, and compile the aeternity testnet.
 
 ```
-cd Testnet/
+cd testnet/
 sh install.sh
 ```
 
