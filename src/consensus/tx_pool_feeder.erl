@@ -9,17 +9,12 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast({absorb, SignedTx}, X) ->
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
-    B1 = Fee > free_constants:minimum_tx_fee(),
+    true = Fee > free_constants:minimum_tx_fee(),
     {Accounts, Channels, Height, _Txs} = tx_pool:data(),
-    TV = testnet_sign:verify(SignedTx, Accounts),
-    if
-	B1 and (true == TV) ->
-    %make sure the fee is big enough.
-	    {NewChannels, NewAccounts} = 
+    true = testnet_sign:verify(SignedTx, Accounts),
+    {NewChannels, NewAccounts} = 
 		txs:digest([SignedTx], Channels, Accounts, Height+1),
-	    tx_pool:absorb_tx(NewChannels, NewAccounts, SignedTx);
-	true -> ok
-    end,
+    tx_pool:absorb_tx(NewChannels, NewAccounts, SignedTx),
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(_, _From, X) -> {reply, X, X}.

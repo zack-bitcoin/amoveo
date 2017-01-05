@@ -20,8 +20,11 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Accounts2 = account:write(Accounts, Nacc),
     NewAccounts = account:write(Accounts2, Facc2),
     MyAddress = keys:address(),
+    {_, MyAccount, _} = account:get(keys:id(), Accounts),
+    CurrentBal = account:balance(MyAccount),
     if
-	(Tx#ca.address) == MyAddress ->
+	((Tx#ca.address) == MyAddress 
+	and (A > CurrentBal)) ->
 	    keys:update_id(Tx#ca.to);
 	true -> ok
     end,

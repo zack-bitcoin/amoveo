@@ -19,7 +19,7 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("tx pool died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
-handle_call(dump, _From, _) -> {reply, 0, #f{}};
+handle_call(dump, _From, _) -> {reply, 0, state_now()};
 handle_call({absorb_tx, NewChannels, NewAccounts, Tx}, _From, F) ->
     {reply, 0, F#f{txs = [Tx|F#f.txs], channels = NewChannels, accounts = NewAccounts}}; 
 handle_call({absorb, NewChannels, NewAccounts, Txs, Height}, _From, _) ->
