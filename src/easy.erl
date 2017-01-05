@@ -24,7 +24,7 @@ create_account(NewAddr, Amount, ID) ->
     create_account(NewAddr, Amount, ?Fee, ID).
 create_account(NewAddr, Amount, Fee, ID) ->
     F = fun(Accounts, _) ->
-		create_account_tx:make(NewAddr, Amount, ?Fee, keys:id(), ID, Accounts) end,
+		create_account_tx:make(NewAddr, Amount, Fee, keys:id(), ID, Accounts) end,
     tx_maker(F).
 spend(ID, Amount) ->
     K = keys:id(),
