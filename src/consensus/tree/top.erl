@@ -35,7 +35,7 @@ handle_call({add, Block}, _From, X) ->
     OH = block:height(OldBlock),
     New = if
 	      NH > OH -> 
-		  tx_pool:dump(),
+		  %tx_pool:dump(),
 		  Channels = block:channels(Block),
 		  Accounts = block:accounts(Block),
 		  tx_pool:absorb(Channels, Accounts, [], NH),
