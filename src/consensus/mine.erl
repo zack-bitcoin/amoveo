@@ -28,6 +28,7 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 start() -> 
     gen_server:cast(?MODULE, start),
+    timer:sleep(100),
     mine().
 mine() ->
     gen_server:cast(?MODULE, mine).

@@ -18,6 +18,11 @@ sh start.sh
 #### Create an account
 [Make an account](docs/new_account.md)
 
+#### Spend
+```
+easy:spend(To, Amount, Fee)
+```
+
 If you just want to start mining, skip this step, sync with the network and use the 'start mining' command below.
 
 #### Sync with the network
