@@ -7,7 +7,7 @@
 	 pubkey/0,sign/2,raw_sign/1,load/3,unlock/1,
 	 lock/0,status/0,change_password/2,new/1,
 	 shared_secret/1,id/0,update_id/1,address/0,
-	 test/0]).
+	 test/0,format_status/2]).
 %-define(LOC(), "keys.db").
 -define(LOC(), constants:keys()).
 -define(SANE(), <<"sanity">>).

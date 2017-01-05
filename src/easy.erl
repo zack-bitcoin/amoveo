@@ -27,7 +27,11 @@ create_account(NewAddr, Amount, Fee, ID) ->
 		create_account_tx:make(NewAddr, Amount, ?Fee, keys:id(), ID, Accounts) end,
     tx_maker(F).
 spend(ID, Amount) ->
-    spend(ID, Amount, ?Fee).
+    K = keys:id(),
+    if 
+	ID == K -> io:fwrite("you can't spend money to yourself\n");
+	true -> spend(ID, Amount, ?Fee)
+    end.
 spend(ID, Amount, Fee) ->
     F = fun(Accounts, _) ->
 		spend_tx:make(ID, Amount, Fee, keys:id(), Accounts) end,

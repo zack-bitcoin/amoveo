@@ -12,7 +12,7 @@ handle_cast({absorb, SignedTx}, X) ->
     true = Fee > free_constants:minimum_tx_fee(),
     {Accounts, Channels, Height, Txs} = tx_pool:data(),
     true = testnet_sign:verify(SignedTx, Accounts),
-    B = is_in(SignedTx, Txs),%This is very ugly. It suppresses a bad error, but it also makes the node much slower. We need to get rid of this once we have a CLI interface.
+    B = is_in(SignedTx, Txs), %this is very ugly. once we have a proper CLI we can get rid of this crutch.
     if
 	B -> ok;
 	true ->
