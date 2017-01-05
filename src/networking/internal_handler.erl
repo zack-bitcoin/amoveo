@@ -26,11 +26,14 @@ doit({sign, Tx}) -> {ok, keys:sign(Tx)};
 
 doit({balance}) ->
     {ok, accounts:balance(block_tree:account(keys:id()))};
-doit({create_account, Pub, Amount, Fee}) -> 
-    tx_pool_feeder:absorb(keys:sign(create_account_tx:create_account(Pub, Amount, Fee))),
+doit({create_account, Address, Amount, ID}) -> 
+    easy:create_account(Address, Amount, ID),
+    %tx_pool_feeder:absorb(keys:sign(create_account_tx:create_account(Address, Amount, Fee, ID, Accounts))),
     {ok, ok};
-doit({spend, To, Amount, Fee}) ->
-    tx_pool_feeder:absorb(keys:sign(spend_tx:spend(To, Amount, Fee)));
+doit({spend, To, Amount}) ->
+    easy:spend(To, Amount),
+    %tx_pool_feeder:absorb(keys:sign(spend_tx:spend(To, Amount, Fee)));
+    {ok, ok};
 doit({mine_block}) -> 
     {_,_,_,Txs} = tx_pool:data(),
     Block = block:make(top:doit(), Txs, keys:id()),
