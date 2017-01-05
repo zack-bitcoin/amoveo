@@ -77,11 +77,19 @@ channel_slash(CID, Fee, SPK, SS) ->
 
 account(ID) ->
     {Accounts, _,_,_} = tx_pool:data(),
-    {_, A, _} = account:get(ID, Accounts),
-    A.
+    case account:get(ID, Accounts) of
+	{_,empty,_} ->
+	    io:fwrite("this account does not yet exist\n"),
+	    account:new(-1,0,0,0);
+	{_, A, _} -> A
+    end.
 
 account() -> account(keys:id()).
-balance() -> account:balance(account()).
+integer_balance() -> account:balance(account()).
+balance() ->
+    I = integer_balance(),
+    F = I / 100000000,
+    io_lib:format("~.8f", [F]).
 off() -> testnet_sup:stop().
 
 %mine() ->

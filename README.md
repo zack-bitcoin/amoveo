@@ -37,7 +37,7 @@ mine:stop().
 ```
 to check if you are currently mining:
 ```
-mine:status().
+mine:is_on().
 ```
 
 #### Check your balance
