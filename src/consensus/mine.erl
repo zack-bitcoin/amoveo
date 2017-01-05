@@ -15,7 +15,10 @@ handle_cast(mine, go) ->
     spawn(fun() -> easy:sync() end),
     {noreply, go};
 handle_cast(start, _) -> 
-    io:fwrite("start start"),
+    Cores = erlang:system_info(logical_processors_available),
+    io:fwrite("start mining with "),
+    io:fwrite(integer_to_list(Cores)),
+    io:fwrite(" many cores.\n"),
     {noreply, go};
 handle_cast(stop, _) ->
     {noreply, stop};
@@ -24,8 +27,6 @@ handle_call(status, _From, X) -> {reply, X, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 start() -> 
-    io:fwrite("mine start\n"),
-    %easy:sync(),
     gen_server:cast(?MODULE, start),
     mine().
 mine() ->
