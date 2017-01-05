@@ -28,5 +28,5 @@ init([]) ->
 		{accounts_sup, {trie_sup, start_link, [KeyLength, constants:account_size(), accounts, Amount, hd]}, permanent, 5000, supervisor, [trie_sup]},
 		{channels_sup, {trie_sup, start_link, [KeyLength, constants:channel_size(), channels, Amount, hd]}, permanent, 5000, supervisor, [trie_sup]} 
 	    ],
-    {ok, { {one_for_one, 5, 10}, Tries ++ Children} }.
+    {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 
