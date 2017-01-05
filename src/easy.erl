@@ -81,7 +81,11 @@ account(ID) ->
     A.
 
 account() -> account(keys:id()).
-balance() -> account:balance(account()).
+integer_balance() -> account:balance(account()).
+balance() ->
+    I = integer_balance(),
+    F = I / 100000000,
+    io_lib:format("~.8f", [F]).
 off() -> testnet_sup:stop().
 
 %mine() ->
