@@ -29,6 +29,19 @@ gas_limit() -> 1000000.%30,000 is enough for an oracle with 30 elements in the m
 backup() -> fractions:new(19, 20).
 %-define(MBS, max_size() div max_reveal() div 10).%use about 10% of size for blocks.
 max_block_size() -> 200000.%2*26 = 52 megabytes of ram to hold blocks.
+%this is only a limit to the size of the transactions.
+%the other block parts are also limited. Height must be an integer one greater than the previous.
+%prev_hash must be the output of a hash function, which is fixed sized.
+%channels is the root of a trie, which is the output of a hash function.
+%accounts is the root of a trie.
+%mines_block must point to an account id, which is limited, or a tuple of an account id and an address, which is limited in the account:serialize function.
+% time must be less than the current time. and greater than 0.
+% difficulty must be calculated from the previous difficulty.
+% the comment must be less than 140 bytes.
+% the magic number is fixed.
+
+%so, the block is limited in size
+
 %-define(ConsensusBytePrice, initial_coins() div max_size()).%instead we should have a maximum number of bytes per block, and garbage collect old blocks.
 %$consensus_byte_price() -> ?ConsensusBytePrice.
 -define(MaxAddress, max_size() div 5 div 85).%use about 20% of space to store addresses. Each one is 85 bytes

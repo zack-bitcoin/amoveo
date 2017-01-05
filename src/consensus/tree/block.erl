@@ -194,6 +194,7 @@ check1(BP) ->
 	    pow:above_min(PowBlock, Difficulty),
  
 	    true = Block#block.time < time_now(),
+	    true = Block#block.time > 0,%should be replaced with > median of last 100 blocks.
 	    {BH, Block#block.prev_hash}
     end.
 
@@ -225,6 +226,7 @@ check2(PowBlock) ->
     case MB of
 	{ID, MyAddress} ->
 	    keys:update_id(ID);
+	    %because of hash_check, this function is only run once per block. 
 	_ -> ok
     end,
     #block_plus{block = PowBlock, channels = CR, accounts = AR, accumulative_difficulty = next_acc(PrevPlus, Block#block.difficulty), prev_hashes = prev_hashes(hash(Prev))}.
