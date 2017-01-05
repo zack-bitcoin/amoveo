@@ -20,8 +20,15 @@ sh start.sh
 
 #### Spend
 ```
-easy:spend(To, Amount, Fee)
+easy:spend(To, Amount) 
 ```
+To is the recipient's account ID
+
+#### Find out your account ID
+```
+keys:id().
+```
+If it returns something less than 1, that means you don't have an account yet.
 
 If you just want to start mining, skip this step, sync with the network and use the 'start mining' command below.
 

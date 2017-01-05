@@ -1,6 +1,7 @@
 -module(easy).
 -compile(export_all).
 
+-define(Fee, 10).
 
 sync() ->
     Height = block:height(block:read(top:doit())),
@@ -19,12 +20,14 @@ tx_maker(F) ->
 	{error, locked} -> ok;
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
-
+create_account(NewAddr, Amount, ID) ->
+    create_account(NewAddr, Amount, ?Fee, ID).
 create_account(NewAddr, Amount, Fee, ID) ->
     F = fun(Accounts, _) ->
-		create_account_tx:make(NewAddr, Amount, Fee, keys:id(), ID, Accounts) end,
+		create_account_tx:make(NewAddr, Amount, ?Fee, keys:id(), ID, Accounts) end,
     tx_maker(F).
-
+spend(ID, Amount) ->
+    spend(ID, Amount, ?Fee).
 spend(ID, Amount, Fee) ->
     F = fun(Accounts, _) ->
 		spend_tx:make(ID, Amount, Fee, keys:id(), Accounts) end,
