@@ -4,15 +4,15 @@ For ubuntu, install these dependencies:
 sudo apt-get install erlang libncurses5-dev libssl-dev unixodbc-dev g++ git erlang-base-hipe
 ```
 
-Next, download Aeternity Testnet.
+Next, download Aeternity Testnet. Optionally you can run next steps with a non-root user, for better security.
 
 ```
-git clone https://github.com/Aeternity/Testnet.git
+git clone https://github.com/aeternity/testnet.git
 ```
 Now you can go into the directory, and compile the aeternity testnet.
 
 ```
-cd Testnet/
+cd testnet/
 sh install.sh
 ```
 
