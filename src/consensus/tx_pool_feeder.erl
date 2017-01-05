@@ -10,11 +10,16 @@ handle_cast({absorb, SignedTx}, X) ->
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
     true = Fee > free_constants:minimum_tx_fee(),
-    {Accounts, Channels, Height, _Txs} = tx_pool:data(),
+    {Accounts, Channels, Height, Txs} = tx_pool:data(),
     true = testnet_sign:verify(SignedTx, Accounts),
-    {NewChannels, NewAccounts} = 
+    B = is_in(SignedTx, Txs),%This is very ugly. It suppresses a bad error, but it also makes the node much slower. We need to get rid of this once we have a CLI interface.
+    if
+	B -> ok;
+	true ->
+	    {NewChannels, NewAccounts} = 
 		txs:digest([SignedTx], Channels, Accounts, Height+1),
-    tx_pool:absorb_tx(NewChannels, NewAccounts, SignedTx),
+	    tx_pool:absorb_tx(NewChannels, NewAccounts, SignedTx)
+    end,
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(_, _From, X) -> {reply, X, X}.
@@ -22,3 +27,6 @@ handle_call(_, _From, X) -> {reply, X, X}.
 absorb(SignedTx) -> 
     gen_server:cast(?MODULE, {absorb, SignedTx}).
 
+is_in(A, [A|_]) -> true;
+is_in(_, []) -> false;
+is_in(A, [_|T]) -> is_in(A, T).

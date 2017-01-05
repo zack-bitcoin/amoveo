@@ -12,5 +12,7 @@
                  ]},
   {modules, []},
   {mod, { testnet_app, []}},
-  {env, []}
- ]}.
+  {env, [ 
+	  {error_logger, {file, "log.db"}}
+	]}
+ ]}.  
