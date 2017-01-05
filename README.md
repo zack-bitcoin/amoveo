@@ -15,22 +15,6 @@ sh start.sh
 ```
 
 ### Commands
-#### Create an account
-[Make an account](docs/new_account.md)
-
-#### Spend
-```
-easy:spend(To, Amount) 
-```
-To is the recipient's account ID
-
-#### Find out your account ID
-```
-keys:id().
-```
-If it returns something less than 1, that means you don't have an account yet.
-
-If you just want to start mining, skip this step, sync with the network and use the 'start mining' command below.
 
 #### Sync with the network
 To sync with the network and download the blockchain: 
@@ -39,6 +23,8 @@ easy:sync()
 ```
 
 #### Mining
+After fresh install, one can start mining.
+
 To start mining with all CPU cores: 
 ```
 mine:start().
@@ -51,6 +37,27 @@ to check if you are currently mining:
 ```
 mine:is_on().
 ```
+
+#### Spend
+```
+easy:spend(To, Amount) 
+```
+To is the recipient's account ID
+
+#### Last transactions
+```
+tx_pool:data().
+```
+
+#### Find out your account ID
+```
+keys:id().
+```
+If it returns something less than 1, that means you don't have an account yet.
+
+#### Create an account
+(does get done automatically when no accocunt and mining starts)
+[Make an account](docs/new_account.md)
 
 #### Check your balance
 ```
