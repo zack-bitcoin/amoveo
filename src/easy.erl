@@ -15,8 +15,10 @@ sync() ->
 tx_maker(F) -> 
     {Accounts, Channels,_,_} = tx_pool:data(),
     {Tx, _} = F(Accounts, Channels),
-    Stx = keys:sign(Tx, Accounts),
-    tx_pool_feeder:absorb(Stx).
+    case keys:sign(Tx, Accounts) of
+	{error, locked} -> ok;
+	Stx -> tx_pool_feeder:absorb(Stx)
+    end.
 
 create_account(NewAddr, Amount, Fee, ID) ->
     F = fun(Accounts, _) ->

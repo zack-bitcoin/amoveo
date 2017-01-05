@@ -85,7 +85,14 @@ handle_info(_, X) -> {noreply, X}.
 pubkey() -> gen_server:call(?MODULE, pubkey).
 address() -> testnet_sign:pubkey2address(pubkey()).
 %sign(M) -> gen_server:call(?MODULE, {sign, M, tx_pool:accounts()}).
-sign(M, Accounts) -> gen_server:call(?MODULE, {sign, M, Accounts}).
+sign(M, Accounts) -> 
+    S = status(),
+    case S of
+	unlocked ->
+	    gen_server:call(?MODULE, {sign, M, Accounts});
+	_ -> io:fwrite("you need to unlock your account before you can sign transactions. use keys:unlock(\"password\").\n"),
+	     {error, locked}
+    end.
 raw_sign(M) -> gen_server:call(?MODULE, {raw_sign, M}).
 load(Pub, Priv, Brainwallet) -> gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet}).
 unlock(Brainwallet) -> gen_server:cast(?MODULE, {unlock, Brainwallet}).
