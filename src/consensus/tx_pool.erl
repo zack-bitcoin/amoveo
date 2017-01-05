@@ -21,7 +21,14 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call(dump, _From, _) -> {reply, 0, state_now()};
 handle_call({absorb_tx, NewChannels, NewAccounts, Tx}, _From, F) ->
-    {reply, 0, F#f{txs = [Tx|F#f.txs], channels = NewChannels, accounts = NewAccounts}}; 
+    NewTxs = [Tx|F#f.txs],
+    B = size(term_to_binary(NewTxs)),
+    MBS = constants:max_block_size(),
+    FinalTxs = if
+	B > MBS -> F#f.txs;
+	true -> NewTxs
+    end,
+    {reply, 0, F#f{txs = FinalTxs, channels = NewChannels, accounts = NewAccounts}}; 
 handle_call({absorb, NewChannels, NewAccounts, Txs, Height}, _From, _) ->
     {reply, 0, #f{txs = Txs, accounts = NewAccounts, channels = NewChannels, height = Height}};
 handle_call(data, _From, F) -> {reply, {F#f.accounts, F#f.channels, F#f.height, flip(F#f.txs)}, F}.

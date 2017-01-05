@@ -30,7 +30,9 @@ spend(ID, Amount) ->
     K = keys:id(),
     if 
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
-	true -> spend(ID, Amount, ?Fee)
+	true -> 
+	    A = round(Amount * constants:token_decimals()),
+	    spend(ID, A, ?Fee)
     end.
 spend(ID, Amount, Fee) ->
     F = fun(Accounts, _) ->
@@ -97,7 +99,7 @@ account() -> account(keys:id()).
 integer_balance() -> account:balance(account()).
 balance() ->
     I = integer_balance(),
-    F = I / 100000000,
+    F = I / constants:token_decimals(),
     io_lib:format("~.8f", [F]).
 off() -> testnet_sup:stop().
 

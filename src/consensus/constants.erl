@@ -4,6 +4,7 @@
 %-define(InitialCoins, round(math:pow(2, 48)) - 1).
 %2^74 bits is 25 bitcoin =~ $10,000
 %2^64 bits is $10
+token_decimals() -> 100000000.
 default_port() -> 8040.
 key_length() ->
     11. %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
@@ -27,7 +28,7 @@ gas_limit() -> 1000000.%30,000 is enough for an oracle with 30 elements in the m
 %200,000,000 is enough to find the first 10001 prime numbers.
 backup() -> fractions:new(19, 20).
 %-define(MBS, max_size() div max_reveal() div 10).%use about 10% of size for blocks.
-max_block_size() -> 2000000.%2*26 = 52 megabytes of ram to hold blocks.
+max_block_size() -> 200000.%2*26 = 52 megabytes of ram to hold blocks.
 %-define(ConsensusBytePrice, initial_coins() div max_size()).%instead we should have a maximum number of bytes per block, and garbage collect old blocks.
 %$consensus_byte_price() -> ?ConsensusBytePrice.
 -define(MaxAddress, max_size() div 5 div 85).%use about 20% of space to store addresses. Each one is 85 bytes
