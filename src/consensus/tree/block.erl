@@ -112,7 +112,7 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
     {NewChannels, NewAccounts} = absorb_txs(ParentPlus, ID, Height, Txs),
     CHash = channel:root_hash(NewChannels),
     AHash = account:root_hash(NewAccounts),
-    NextDifficulty = next_difficulty(PrevHash),
+    NextDifficulty = next_difficulty(ParentPlus),
     #block_plus{
        block = 
 	   #block{height = Height,
@@ -141,13 +141,13 @@ mine(Block, Times) ->
     Difficulty = Block#block.difficulty,
     pow:pow(Block, Difficulty, Times).
 
-next_difficulty(PrevHash) ->
-    ParentPlus = read(PrevHash),
+next_difficulty(ParentPlus) ->
     Parent = pow:data(ParentPlus#block_plus.block),
     Height = Parent#block.height + 1,
     RF = constants:retarget_frequency(),
     X = Height rem RF,
     OldDiff = Parent#block.difficulty,
+    PrevHash = hash(ParentPlus),
     if
 	Height == 1 -> constants:initial_difficulty(); 
 	Height < (RF+1) -> OldDiff;
@@ -210,7 +210,9 @@ check2(PowBlock) ->
     true = Block#block.magic == constants:magic(),
     Difficulty = Block#block.difficulty,
     PH = Block#block.prev_hash,
-    Difficulty = next_difficulty(PH),
+    ParentPlus = read(PH),
+    true = is_record(ParentPlus, block_plus),
+    Difficulty = next_difficulty(ParentPlus),
     PrevPlus = read(PH),
     Prev = block(PrevPlus),
     MB = Block#block.mines_block,
