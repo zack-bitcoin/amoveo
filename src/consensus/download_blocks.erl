@@ -35,9 +35,10 @@ sync(IP, Port, MyHeight) ->
 		    {ok, Block} = talker:talk({block, HH}, IP, Port),
 		    trade_blocks(IP, Port, [Block], HH);
 		true ->
-		    trade_blocks(IP, Port, [TopBlock], Height)
+		    trade_blocks(IP, Port, [TopBlock], Height),
+		    get_txs(IP, Port)
+		    
 	    end,
-	    get_txs(IP, Port),
 	    trade_peers(IP, Port),
 	    Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
 	    Score = abs(Time)*(1+abs(Height - MyHeight))

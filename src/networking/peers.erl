@@ -19,9 +19,9 @@ handle_cast({add, IP, Port}, X) ->
 handle_cast({score, IP, Port, N}, X) ->
     K = key(IP, Port),
     {ok, Old} = dict:find(K, X),
-    A = Old#r.score,
-    B = (A*99+N) div 100,
-    NewR = Old#r{score = B},
+    %A = Old#r.score,
+    %B = (A*99+N) div 100,
+    NewR = Old#r{score = N},
     NewX = dict:store(K, NewR, X),
     {noreply, NewX};
 handle_cast({update, IP, Port, Height, Hash}, X) ->

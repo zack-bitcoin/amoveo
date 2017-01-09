@@ -43,6 +43,3 @@ talk_helper(Msg, Peer, N) ->
 		
     end.
 talk(Msg, IP, Port) -> talk(Msg, peer(IP, Port)).
-
-    
-      

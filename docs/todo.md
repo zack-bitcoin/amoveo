@@ -1,7 +1,7 @@
-We should use a CLI program to talk to the node instead of using the erlang CLI directly.
+We should use a CLI program to talk to the node instead of using erlang directly.
+
 
 We need to update download_blocks so that peers get ranked, and we spend more time talking to higher-ranked peers.
-
 There is a problem where if you crash while syncing with a peer, then you skip trying to sync with any peer lower on the list. this is very bad.
 
 
