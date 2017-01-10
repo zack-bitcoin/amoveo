@@ -148,8 +148,8 @@ doit({keys_id_update, ID}) ->
 doit({key_new, Password}) -> 
     keys:new(Password),
     {ok, 0};
-doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee}) ->
-    CID = channel:empty_id(),
+doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee, CID}) ->
+    %CID = channel:empty_id(),
     {Accounts, _,_,_} = tx_pool:data(),
     {ok, Acc2} = talker:talk({id}, IP, Port),
     ID = keys:id(),
