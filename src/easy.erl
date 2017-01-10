@@ -6,7 +6,7 @@
 sync() ->
     Height = block:height(block:read(top:doit())),
     download_blocks:sync_all(peers:all(), Height),
-    %timer:sleep(1000),
+    timer:sleep(1000),
     Height2 = block:height(block:read(top:doit())),
     if
 	Height2 > Height -> sync();

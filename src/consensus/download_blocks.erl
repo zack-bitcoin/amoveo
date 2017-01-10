@@ -58,7 +58,6 @@ trade_blocks(_IP, _Port, L, 1) ->
     sync3(L);
     %sync3(get_blocks(1, 100, IP, Port, [])++L);
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
-    io:fwrite("trade blocks\n"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
@@ -73,9 +72,9 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
 	    %download 100 blocks earlier, to handle forks.
 	    L2 = get_blocks(Height-1, free_constants:fork_tolerance(), IP, Port, []),
 	    sync3(L2++L),
-	    io:fwrite("send blocks !!!!"),
-	    io:fwrite(PrevHash),
-	    io:fwrite("\n"),
+	    %io:fwrite("send blocks !!!!"),
+	    %io:fwrite(PrevHash),
+	    %io:fwrite("\n"),
 	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
     end.
 send_blocks(IP, Port, T, T, L, _N) -> 
@@ -92,7 +91,7 @@ send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
     end.
 send_blocks2(_, _, []) -> ok;
 send_blocks2(IP, Port, [Block|T]) -> 
-    io:fwrite("give block !!!!!!!"),
+    %io:fwrite("give block !!!!!!!"),
     talker:talk({give_block, block:pow_block(Block)}, IP, Port),
     send_blocks2(IP, Port, T).
     
