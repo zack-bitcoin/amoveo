@@ -84,7 +84,7 @@ doit({new_channel, STx}) ->
     {Accounts, _,_,_} = tx_pool:data(),
     SSTx = keys:sign(STx, Accounts),
     tx_pool_feeder:absorb(SSTx),
-    {ok, ok};
+    {ok, 0};
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
     true = grow_channel_tx:good(Tx),%checks the min_channel_ratio
