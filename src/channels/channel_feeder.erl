@@ -27,6 +27,10 @@ handle_cast({new_channel, Tx, Accounts}, X) ->
     SPK = new_channel_tx:spk(Tx, free_constants:channel_delay()),%doesn't move the money
     CID = spk:cid(SPK),
     CD = #cd{me = keys:sign(SPK, Accounts), entropy = spk:entropy(SPK)},
+    io:fwrite("adding new channel to manager at "),
+    io:fwrite(integer_to_list(CID)),
+    io:fwrite(" with acc "),
+    io:fwrite(integer_to_list(other(Tx))),
     channel_manager:write({CID, other(Tx)}, CD),
     {noreply, X};
 handle_cast({close, CID, SS, STx}, X) ->
