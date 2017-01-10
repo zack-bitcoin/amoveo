@@ -75,10 +75,12 @@ doit({test}) ->
 %doit({account, Id}) -> {ok, account:read(Id)};
 doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
-doit({make_channel, STx}) ->
+doit({new_channel, STx}) ->
+    %OldEntropy = channel_feeder:entropy(CID, [Acc1, Acc2]),
+    %true = NewEntropy > OldEntropy,
     Tx = testnet_sign:data(STx),
     true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
-    true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo.
+    true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo. Also makes sure that we aren't reusing entropy.
     SSTx = keys:sign(STx),
     tx_pool_feeder:absorb(SSTx),
     {ok, ok};

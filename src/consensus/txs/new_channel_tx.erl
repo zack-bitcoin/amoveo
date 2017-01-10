@@ -4,9 +4,21 @@
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, rent = 0, entropy = 0, 
 	     id = -1}).
-good(_Tx) ->
+good(Tx) ->
+    %make sure that our the money is a fair balance of ours and theirs.
+    K = keys:id(),
+    Acc1 = Tx#nc.acc1,
+    Acc2 = Tx#nc.acc2,
+    Top case K of
+	Acc1 -> %money goes to partner
+	    Bal1;
+	Acc2 -> %goes to us
+	    Bal2;
+	X -> X = Acc1
+    end,
+    Frac = Top / (Bal1 + Bal2),
     MCR = free_constants:min_channel_ratio(),
-    ok.
+    Frac > MCR.
 cid(Tx) -> Tx#nc.id.
 entropy(Tx) -> Tx#nc.entropy.
 spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,

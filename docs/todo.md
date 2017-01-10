@@ -1,3 +1,9 @@
+do we use channel_feeder:entropy/2 ?? if not, delete.
+
+
+channel_feeder:apply_bets needs to be written.
+
+
 We should use a CLI program to talk to the node instead of using erlang directly.
 
 
@@ -24,6 +30,8 @@ maybe nodes need to advertise their own IP/port combo as a peer?
 
 
 Updates for next time we restart at a genesis block:
+
+proof of existence transaction type.
 
 each tx with a fee needs a to reference a recent hash. Everyone needs to be incentivized to make the hash as recent as possible.
 

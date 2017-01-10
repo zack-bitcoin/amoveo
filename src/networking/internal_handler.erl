@@ -89,31 +89,36 @@ doit({register, IP, Port}) ->
     {ok, ok};
 doit({channel_spend, IP, Port, Amount}) ->
     {ok, PeerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(PeerId)), 
-    Payment = channel_manager_feeder:spend(ChId, Amount),
-    M = {channel_spend, Payment, keys:id()},
+    %ChId = ok,
+    ChId = peers:cid(IP, Port),
+    %ChId = hd(channel_manager:id(PeerId)), 
+    Payment = channel_feeder:spend(SPK, Amount),
+    M = {channel_payment, Payment, Amount},
     {ok, Response} = talker:talk(M, IP, Port),
     channel_manager_feeder:recieve(ChId, -Amount, Response),
     {ok, ok};
     
-doit({send_msg, IP, Port, To, M, Seconds}) ->
-    Acc = block_tree:account(To),
-    Pub = accounts:pub(Acc),
-    Msg = encryption:send_msg(M, Pub),
-    {ok, Amount} = talker:talk({mail_cost, size(Msg), Seconds}),
-    {ok, PeerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(PeerId)), 
-    Payment = channel_manager_feeder:spend(ChId, Amount),
-    Foo = {send, Payment, keys:id(), To, Msg, Seconds},
-    {ok, Response} = talker:talk(Foo, IP, Port),
-    channel_manager_feeder:recieve(ChId, -Amount, Response),
-    inbox:get_helper(To, M),
-    {ok, ok};
-doit({new_channel, IP, Port, Bal1, Bal2, Fee}) ->
-    {ok, Partner} = talker:talk({id}, IP, Port),
-    Type = <<"delegated_2">>,
-    Tx = keys:sign(to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee)),
-    Msg = {new_channel, Tx},
+%doit({send_msg, IP, Port, To, M, Seconds}) ->
+%    Acc = block_tree:account(To),
+%%    Pub = accounts:pub(Acc),
+%    Msg = encryption:send_msg(M, Pub),
+%    {ok, Amount} = talker:talk({mail_cost, size(Msg), Seconds}),
+%    {ok, PeerId} = talker:talk({id}, IP, Port),
+%    ChId = hd(channel_manager:id(PeerId)), 
+%    Payment = channel_manager_feeder:spend(ChId, Amount),
+%    Foo = {send, Payment, keys:id(), To, Msg, Seconds},
+%    {ok, Response} = talker:talk(Foo, IP, Port),
+%    channel_manager_feeder:recieve(ChId, -Amount, Response),
+%    inbox:get_helper(To, M),
+%    {ok, ok};
+doit({new_channel, IP, Port, Bal1, Bal2, Rent, Fee}) ->
+    Acc1 = keys:id(),
+    {ok, Acc2} = talker:talk({id}, IP, Port),
+    Entropy = channel_feeder:entropy(CID, [Acc1, Acc2]) + 1,
+    {Accounts, _,_,_} = tx_pool:data(),
+    Tx = new_channel_tx:make(CID, Accounts, Acc1, Acc2, Bal1, Bal2, Rent, Entropy, Fee),
+    STx = keys:sign(Tx),
+    Msg = {new_channel, STx},
     {ok, Ch} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(Ch),
     {ok, ok};
@@ -142,8 +147,6 @@ doit({keys_id_update, ID}) ->
 doit({key_new, Password}) -> 
     keys:new(Password),
     {ok, 0};
-doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee}) ->
-    [Entropy] = 0,
     CID = channel:empty_id(),
     {Accounts, _,_,_} = tx_pool:data(),
     {ok, Acc2} = talker:talk({id}, IP, Port),

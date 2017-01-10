@@ -79,7 +79,7 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     {ok, OldCD} = channel_manager:read({CID, Other}),
     true = OldCD#cd.live,
     OldSPK = OldCD#cd.me,
-    SPK = get_paid(OldSPK, keys:id(), Amount),
+    SPK = spk:get_paid(OldSPK, keys:id(), Amount),
     Return = keys:sign(SPK),
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write({CID, Other}, NewCD),
@@ -95,7 +95,7 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
     OldSPK = testnet_sign:data(OldCD#cd.them),
     Bets = free_variables:bets(),
     Bet = get_bet(Name, Bets),
-    SPK = apply_bet(Bet, OldSPK, Vars),
+    SPK = spk:apply_bet(Bet, OldSPK, Vars),
     Return = keys:sign(SPK),
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write({CID, Other}, NewCD),
@@ -179,11 +179,6 @@ get_bet(Name, [{Name, Val}|_]) ->
     Val;
 get_bet(Name, [_|T]) -> get_bet(Name, T).
 
-apply_bet(_Bet, _SPK, _Vars) -> 
-%vars is a tuple of variables that get inserted into the free spots in the bet.
-    ok.
-get_paid(_SPK, _MyID, _Amount) ->
-    ok.
 other(SPK) when element(1, SPK) == spk ->
     other(spk:acc1(SPK), spk:acc2(SPK));
 other(Tx) when element(1, Tx) == ctc ->
@@ -209,8 +204,6 @@ entropy(CID, [Aid1, Aid2]) ->
 	    CD#cd.entropy;
 	error -> 1
     end.
-    
-
 new_channel_check(Tx) ->
     %make sure we aren't already storing a channel with the same CID/partner combo.
     Other = other(Tx),
