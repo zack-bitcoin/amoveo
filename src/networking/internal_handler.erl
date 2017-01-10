@@ -21,7 +21,9 @@ handle(Req, State) ->
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 -define(POP, <<1,6,3,87,3,5>>).
-doit({sign, Tx}) -> {ok, keys:sign(Tx)};
+doit({sign, Tx}) -> 
+    {Accounts, _,_,_} = tx_pool:data(),
+    {ok, keys:sign(Tx, Accounts)};
 
 
 doit({balance}) ->
@@ -118,7 +120,7 @@ doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}) ->
     Entropy = channel_feeder:entropy(CID, [Acc1, Acc2]) + 1,
     {Accounts, _,_,_} = tx_pool:data(),
     Tx = new_channel_tx:make(CID, Accounts, Acc1, Acc2, Bal1, Bal2, Rent, Entropy, Fee),
-    STx = keys:sign(Tx),
+    STx = keys:sign(Tx, Accounts),
     Msg = {new_channel, STx},
     {ok, Ch} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(Ch),
@@ -155,7 +157,7 @@ doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee, CID}) ->
     ID = keys:id(),
     Entropy = channel_feeder:entropy(CID, [ID, Acc2]) + 1,
     Tx = new_channel_tx:make(CID, Accounts, keys:id(), Acc2, MyBal, OtherBal, Rent, Entropy, Fee),
-    {ok, _} = talker:talk({make_channel, keys:sign(Tx)}, IP, Port);
+    {ok, _} = talker:talk({make_channel, keys:sign(Tx, Accounts)}, IP, Port);
     
 doit(X) ->
     io:fwrite("don't know how to handle it \n"),
