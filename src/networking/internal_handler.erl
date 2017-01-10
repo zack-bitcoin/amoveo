@@ -119,7 +119,7 @@ doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}) ->
     {ok, Acc2} = talker:talk({id}, IP, Port),
     Entropy = channel_feeder:entropy(CID, [Acc1, Acc2]) + 1,
     {Accounts, _,_,_} = tx_pool:data(),
-    Tx = new_channel_tx:make(CID, Accounts, Acc1, Acc2, Bal1, Bal2, Rent, Entropy, Fee),
+    {Tx, _} = new_channel_tx:make(CID, Accounts, Acc1, Acc2, Bal1, Bal2, Rent, Entropy, Fee),
     STx = keys:sign(Tx, Accounts),
     Msg = {new_channel, STx},
     {ok, Ch} = talker:talk(Msg, IP, Port),
@@ -156,8 +156,9 @@ doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee, CID}) ->
     {ok, Acc2} = talker:talk({id}, IP, Port),
     ID = keys:id(),
     Entropy = channel_feeder:entropy(CID, [ID, Acc2]) + 1,
-    Tx = new_channel_tx:make(CID, Accounts, keys:id(), Acc2, MyBal, OtherBal, Rent, Entropy, Fee),
-    {ok, _} = talker:talk({make_channel, keys:sign(Tx, Accounts)}, IP, Port);
+    {Tx, _} = new_channel_tx:make(CID, Accounts, keys:id(), Acc2, MyBal, OtherBal, Rent, Entropy, Fee),
+    STx = keys:sign(Tx, Accounts),
+    {ok, _} = talker:talk({make_channel, STx}, IP, Port);
     
 doit(X) ->
     io:fwrite("don't know how to handle it \n"),
