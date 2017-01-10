@@ -32,7 +32,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
 			    keys:update_id(Tx#ca.to);
 			true -> ok
 		    end
-	    end
+	    end;
 
 	true -> ok
     end,
