@@ -54,7 +54,7 @@ get_blocks(Height, N, IP, Port, L) ->
 	 fun(X) -> get_blocks(Height-1, N-1, IP, Port, [X|L])
 	 end).
     
-trade_blocks(_IP, _Port, L, 0) ->
+trade_blocks(_IP, _Port, L, 1) ->
     sync3(L);
     %sync3(get_blocks(1, 100, IP, Port, [])++L);
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
