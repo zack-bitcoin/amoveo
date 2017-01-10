@@ -6,6 +6,9 @@
 curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3021
 curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
 
+curl -i -d '["create_account", "EXMBpbtveAm547SBeT", 10000, 2]' http://localhost:3011
+curl -i -d '["mine_block"]' http://localhost:3011
+
 curl -i -d '["make_channel", [127,0,0,1], 3020, 10000, 4000, 0, 0, 2]' http://localhost:3011
 curl -i -d '["mine_block"]' http://localhost:3011
 
