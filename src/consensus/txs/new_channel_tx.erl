@@ -12,15 +12,15 @@ good(Tx) ->
     Bal1 = Tx#nc.bal1,
     Bal2 = Tx#nc.bal2,
     Top = case K of
-	Acc1 -> %money goes to partner
+	Acc1 -> 
 	    Bal1;
-	Acc2 -> %goes to us
+	Acc2 -> 
 	    Bal2;
 	X -> X = Acc1
     end,
     Frac = Top / (Bal1 + Bal2),
     MCR = free_constants:min_channel_ratio(),
-    Frac > MCR.
+    Frac < MCR.
 cid(Tx) -> Tx#nc.id.
 entropy(Tx) -> Tx#nc.entropy.
 spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
