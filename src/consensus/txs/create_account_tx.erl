@@ -24,7 +24,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
 	(Tx#ca.address) == MyAddress ->
 	    {_, MyAccount, _} = account:get(keys:id(), Accounts),
 	    case MyAccount of
-		empty -> ok;
+		empty -> keys:update_id(Tx#ca.to);
 		MA ->
 		    CurrentBal = account:balance(MA),
 		    if 
