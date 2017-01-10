@@ -19,7 +19,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Nacc = account:new(To, Tx#ca.address, A, NewHeight),
     Accounts2 = account:write(Accounts, Nacc),
     NewAccounts = account:write(Accounts2, Facc2),
-    MyAddress = binary_to_list(keys:address()),
+    MyAddress = keys:address(),
     if
 	(Tx#ca.address) == MyAddress ->
 	    {_, MyAccount, _} = account:get(keys:id(), Accounts),
