@@ -1,9 +1,12 @@
 -module(new_channel_tx).
 -export([doit/4, make/9, good/1, spk/2, cid/1,
-	 entropy/1]).
+	 entropy/1, acc1/1, acc2/1]).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, rent = 0, entropy = 0, 
 	     id = -1}).
+
+acc1(X) -> X#nc.acc1.
+acc2(X) -> X#nc.acc2.
 good(Tx) ->
     %make sure that our the money is a fair balance of ours and theirs.
     K = keys:id(),
