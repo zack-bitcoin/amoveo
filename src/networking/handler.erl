@@ -81,13 +81,15 @@ doit({new_channel, STx}) ->
     Tx = testnet_sign:data(STx),
     true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
     true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo. Also makes sure that we aren't reusing entropy.
-    SSTx = keys:sign(STx),
+    {Accounts, _,_,_} = tx_pool:data(),
+    SSTx = keys:sign(STx, Accounts),
     tx_pool_feeder:absorb(SSTx),
     {ok, ok};
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
     true = grow_channel_tx:good(Tx),%checks the min_channel_ratio
-    SStx = keys:sign(Stx),
+    {Accounts, _,_,_} = tx_pool:data(),
+    SStx = keys:sign(Stx, Accounts),
     tx_pool_feeder:absorb(SStx),
     {ok, ok};
 doit({spk, CID})->
