@@ -158,7 +158,8 @@ doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee, CID}) ->
     Entropy = channel_feeder:entropy(CID, [ID, Acc2]) + 1,
     {Tx, _} = new_channel_tx:make(CID, Accounts, keys:id(), Acc2, MyBal, OtherBal, Rent, Entropy, Fee),
     STx = keys:sign(Tx, Accounts),
-    {ok, _} = talker:talk({new_channel, STx}, IP, Port);
+    talker:talk({new_channel, STx}, IP, Port),
+    {ok, 0};
     
 doit(X) ->
     io:fwrite("don't know how to handle it \n"),
