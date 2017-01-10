@@ -88,14 +88,15 @@ doit({register, IP, Port}) ->
     talker:talk(Msg, IP, Port),
     {ok, ok};
 doit({channel_spend, IP, Port, Amount}) ->
-    {ok, PeerId} = talker:talk({id}, IP, Port),
-    %ChId = ok,
-    ChId = peers:cid(IP, Port),
-    %ChId = hd(channel_manager:id(PeerId)), 
-    Payment = channel_feeder:spend(SPK, Amount),
+    %{ok, PeerId} = talker:talk({id}, IP, Port),
+    CID = peers:cid(peers:read(IP, Port)),
+    {ok, OldSPK} = channel_manager:read(CID),
+    ID = keys:id(),
+    Payment = spk:get_paid(OldSPK, ID, -Amount),
     M = {channel_payment, Payment, Amount},
     {ok, Response} = talker:talk(M, IP, Port),
-    channel_manager_feeder:recieve(ChId, -Amount, Response),
+    %maybe verify the signature of Response here?
+    channel_feeder:spend(Response, -Amount),
     {ok, ok};
     
 %doit({send_msg, IP, Port, To, M, Seconds}) ->
@@ -111,7 +112,7 @@ doit({channel_spend, IP, Port, Amount}) ->
 %    channel_manager_feeder:recieve(ChId, -Amount, Response),
 %    inbox:get_helper(To, M),
 %    {ok, ok};
-doit({new_channel, IP, Port, Bal1, Bal2, Rent, Fee}) ->
+doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}) ->
     Acc1 = keys:id(),
     {ok, Acc2} = talker:talk({id}, IP, Port),
     Entropy = channel_feeder:entropy(CID, [Acc1, Acc2]) + 1,
@@ -147,9 +148,12 @@ doit({keys_id_update, ID}) ->
 doit({key_new, Password}) -> 
     keys:new(Password),
     {ok, 0};
+doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee}) ->
     CID = channel:empty_id(),
     {Accounts, _,_,_} = tx_pool:data(),
     {ok, Acc2} = talker:talk({id}, IP, Port),
+    ID = keys:id(),
+    Entropy = channel_feeder:entropy(CID, [ID, Acc2]) + 1,
     Tx = new_channel_tx:make(CID, Accounts, keys:id(), Acc2, MyBal, OtherBal, Rent, Entropy, Fee),
     {ok, _} = talker:talk({make_channel, keys:sign(Tx)}, IP, Port);
     

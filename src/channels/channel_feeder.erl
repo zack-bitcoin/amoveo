@@ -103,7 +103,7 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 new_channel(Tx, Accounts) ->
     gen_server:cast(?MODULE, {new_channel, Tx}).
-spend(SPK, Amount) ->
+spend(SPK, Amount) -> %for recieving money only.
     gen_server:call(?MODULE, {spend, SPK, Amount}).
 close(CID, SS, Tx) ->
     gen_server:cast(?MODULE, {close, CID, SS, Tx}).

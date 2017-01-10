@@ -1,4 +1,4 @@
-do we use channel_feeder:entropy/2 ?? if not, delete.
+
 
 
 channel_feeder:apply_bets needs to be written.
@@ -40,3 +40,5 @@ blocks should point to the previous header, not the previous block.
 Mining should be on headers, not on blocks.
 
 We need to reward the miner with the transaction fees, to incentivize him to include them. block:absorb_txs
+
+making a channel should require both parties to sign, that way attackers can't trick servers into dropping their channel state.

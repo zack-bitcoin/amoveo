@@ -2,8 +2,10 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 	 update/4,all/0,add/2,add/1,read/2,remove/2,
-	update_score/3, initial_score/0]).    
+	update_score/3, initial_score/0,
+	cid/1]).    
 -record(r, {height =0, hash=0, cid, score=100000}).%lower score is better.
+cid(X) -> X#r.cid.
 init(ok) -> {ok, default_peers()}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.

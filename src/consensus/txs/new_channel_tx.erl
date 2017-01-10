@@ -9,7 +9,9 @@ good(Tx) ->
     K = keys:id(),
     Acc1 = Tx#nc.acc1,
     Acc2 = Tx#nc.acc2,
-    Top case K of
+    Bal1 = Tx#nc.bal1,
+    Bal2 = Tx#nc.bal2,
+    Top = case K of
 	Acc1 -> %money goes to partner
 	    Bal1;
 	Acc2 -> %goes to us
