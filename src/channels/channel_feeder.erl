@@ -89,7 +89,7 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     {Accounts, _,_,_} = tx_pool:data(),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
-    both = depth_check(SPK), 
+    %both = depth_check(SPK), 
     %CID = spk:cid(SPK), 
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
@@ -104,7 +104,7 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
 %doing one of the bets that we offer.
     SPK = testnet_sign:data(SSPK),
     %CID = spk:cid(SPK),
-    both = depth_check(SPK), 
+    %both = depth_check(SPK), 
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
