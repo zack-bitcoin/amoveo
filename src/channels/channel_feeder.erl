@@ -4,13 +4,16 @@
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
 	 new_channel/2,spend/2,close/3,lock_spend/1,
-	 bet/3,garbage/0,entropy/2,new_channel_check/1]).
+	 bet/3,garbage/0,entropy/1,new_channel_check/1,
+	 cid/1]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     sst = [], 
 %sst is the highest nonced ScriptSig that works with them.
 	     live = true,
-	     entropy = 0}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
+	     entropy = 0,
+	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
+cid(X) -> X#cd.cid.
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -25,19 +28,19 @@ handle_cast(garbage, X) ->
 handle_cast({new_channel, Tx, Accounts}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
     SPK = new_channel_tx:spk(Tx, free_constants:channel_delay()),%doesn't move the money
-    CID = spk:cid(SPK),
+    %CID = spk:cid(SPK),
     CD = #cd{me = keys:sign(SPK, Accounts), entropy = spk:entropy(SPK)},
     io:fwrite("adding new channel to manager at "),
-    io:fwrite(integer_to_list(CID)),
+    io:fwrite(integer_to_list(spk:cid(SPK))),
     io:fwrite(" with acc "),
     io:fwrite(integer_to_list(other(Tx))),
-    channel_manager:write({CID, other(Tx)}, CD),
+    channel_manager:write(other(Tx), CD),
     {noreply, X};
-handle_cast({close, CID, SS, STx}, X) ->
+handle_cast({close, SS, STx}, X) ->
     %closing the channel at it's current SPK
     Tx = testnet_sign:data(STx),
     OtherID = other(Tx),
-    {ok, CD} = channel_manager:read({CID, OtherID}),
+    {ok, CD} = channel_manager:read(OtherID),
     true = CD#cd.live,
     SPKM = CD#cd.me,
     A1 = spk:acc1(SPKM), 
@@ -67,10 +70,10 @@ handle_cast({close, CID, SS, STx}, X) ->
 	true -> NewNonce = OldNonce %crash
     end,
     true = Direction*(DemandedAmount - CalculatedAmount) >= 0,%They shouldn't take any more money than we calculated they can take
-    {ok, OldCD} = channel_manager:read(CID),
+    {ok, OldCD} = channel_manager:read(OtherID),
     NewCD = OldCD#cd{live = false},
     true = other(A1, A2) == OtherID,
-    channel_manager:write({CID, OtherID}, NewCD),
+    channel_manager:write(OtherID, NewCD),
     tx_pool_feeder:absorb(keys:sign(STx)),
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
@@ -78,23 +81,23 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
 %giving us money in the channel.
     SPK = testnet_sign:data(SSPK),
     both = depth_check(SPK), 
-    CID = spk:cid(SPK), 
+    %CID = spk:cid(SPK), 
     Other = other(SPK),
-    {ok, OldCD} = channel_manager:read({CID, Other}),
+    {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     OldSPK = OldCD#cd.me,
     SPK = spk:get_paid(OldSPK, keys:id(), Amount),
     Return = keys:sign(SPK),
     NewCD = OldCD#cd{them = SSPK, me = Return},
-    channel_manager:write({CID, Other}, NewCD),
+    channel_manager:write(Other, NewCD),
     {reply, Return, X};
 handle_call({bet, Name, SSPK, Vars}, _From, X) ->
 %doing one of the bets that we offer.
     SPK = testnet_sign:data(SSPK),
-    CID = spk:cid(SPK),
+    %CID = spk:cid(SPK),
     both = depth_check(SPK), 
     Other = other(SPK),
-    {ok, OldCD} = channel_manager:read({CID, Other}),
+    {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     OldSPK = testnet_sign:data(OldCD#cd.them),
     Bets = free_variables:bets(),
@@ -102,7 +105,7 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
     SPK = spk:apply_bet(Bet, OldSPK, Vars),
     Return = keys:sign(SPK),
     NewCD = OldCD#cd{them = SSPK, me = Return},
-    channel_manager:write({CID, Other}, NewCD),
+    channel_manager:write(Other, NewCD),
     {reply, Return, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 new_channel(Tx, Accounts) ->
@@ -110,7 +113,7 @@ new_channel(Tx, Accounts) ->
 spend(SPK, Amount) -> %for recieving money only.
     gen_server:call(?MODULE, {spend, SPK, Amount}).
 close(CID, SS, Tx) ->
-    gen_server:cast(?MODULE, {close, CID, SS, Tx}).
+    gen_server:cast(?MODULE, {close, SS, Tx}).
 lock_spend(_SPK) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
     %first check that this channel is in the on-chain state with sufficient depth
@@ -152,9 +155,10 @@ depth_check(SPK) ->
     {C, OldC} = c_oldc(),
     depth_check2(SPK, C, OldC).
 depth_check2(SPK, C, OldC) -> 
-    CID = spk:cid(SPK),
-    Channel = channel:get(CID, C),
-    OldChannel = channel:get(CID, OldC),
+    %CID = spk:cid(SPK),
+    PartnerID = other(SPK),
+    Channel = channel:get(PartnerID, C),
+    OldChannel = channel:get(PartnerID, OldC),
     E1 = spk:entropy(SPK),
     E2 = channel:entropy(Channel),
     E3 = channel:entropy(OldChannel),
@@ -201,9 +205,9 @@ other(Aid1, Aid2) ->
     Out.
     
 	    
-entropy(CID, [Aid1, Aid2]) ->
+entropy([Aid1, Aid2]) ->
     Other = other(Aid1, Aid2),
-    case channel_manager:read({CID, Other}) of
+    case channel_manager:read(Other) of
 	{ok, CD} ->  
 	    CD#cd.entropy;
 	error -> 1
@@ -211,8 +215,8 @@ entropy(CID, [Aid1, Aid2]) ->
 new_channel_check(Tx) ->
     %make sure we aren't already storing a channel with the same CID/partner combo.
     Other = other(Tx),
-    CID = new_channel_tx:id(Tx),
-    case channel_manager:read({CID, Other}) of
+    %CID = new_channel_tx:id(Tx),
+    case channel_manager:read(Other) of
 	{ok, CD} ->
 	    true = CD#cd.me == [],%this is the case if it was deleted before
 	    OldEntropy = CD#cd.entropy,

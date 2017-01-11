@@ -118,15 +118,18 @@ doit({channel_spend, IP, Port, Amount}) ->
 %    inbox:get_helper(To, M),
 %    {ok, ok};
 doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}) ->
+    %make sure we don't already have a channel with this peer.
+    undefined = peers:cid(peers:read(IP, Port)),
     Acc1 = keys:id(),
     {ok, Acc2} = talker:talk({id}, IP, Port),
-    Entropy = channel_feeder:entropy(CID, [Acc1, Acc2]) + 1,
+    Entropy = channel_feeder:entropy([Acc1, Acc2]) + 1,
     {Accounts, _,_,_} = tx_pool:data(),
     {Tx, _} = new_channel_tx:make(CID, Accounts, Acc1, Acc2, Bal1, Bal2, Rent, Entropy, Fee),
     STx = keys:sign(Tx, Accounts),
     Msg = {new_channel, STx},
-    {ok, Ch} = talker:talk(Msg, IP, Port),
-    tx_pool_feeder:absorb(Ch),
+    {ok, SSTx} = talker:talk(Msg, IP, Port),
+    tx_pool_feeder:absorb(SSTx),
+    peers:set_cid(IP, Port, CID),
     {ok, ok};
 doit({lightning_spend, IP, Port, Partner, Amount}) ->
     {ok, PeerId} = talker:talk({id}, IP, Port),
@@ -153,16 +156,16 @@ doit({keys_id_update, ID}) ->
 doit({key_new, Password}) -> 
     keys:new(Password),
     {ok, 0};
-doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee, CID}) ->
+%doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee, CID}) ->
     %CID = channel:empty_id(),
-    {Accounts, _,_,_} = tx_pool:data(),
-    {ok, Acc2} = talker:talk({id}, IP, Port),
-    ID = keys:id(),
-    Entropy = channel_feeder:entropy(CID, [ID, Acc2]) + 1,
-    {Tx, _} = new_channel_tx:make(CID, Accounts, keys:id(), Acc2, MyBal, OtherBal, Rent, Entropy, Fee),
-    STx = keys:sign(Tx, Accounts),
-    talker:talk({new_channel, STx}, IP, Port),
-    {ok, 0};
+%{Accounts, _,_,_} = tx_pool:data(),
+%{ok, Acc2} = talker:talk({id}, IP, Port),
+%    ID = keys:id(),
+%    Entropy = channel_feeder:entropy(CID, [ID, Acc2]) + 1,
+%    {Tx, _} = new_channel_tx:make(CID, Accounts, keys:id(), Acc2, MyBal, OtherBal, Rent, Entropy, Fee),
+%    STx = keys:sign(Tx, Accounts),
+%    talker:talk({new_channel, STx}, IP, Port),
+%    {ok, 0};
     
 doit(X) ->
     io:fwrite("don't know how to handle it \n"),

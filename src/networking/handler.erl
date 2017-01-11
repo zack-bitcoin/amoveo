@@ -58,12 +58,12 @@ doit({top}) ->
     %TopHash = block:hash(Top),
     {ok, Top, Height};
 
-doit({create_account, Pub, Amount, Fee}) -> 
-    {ok, create_account_tx:create_account(Pub, Amount, Fee)};
-doit({spend, To, Amount, Fee}) ->
-    spend_tx:spend(To, Amount, Fee);
-doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
-    to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee);
+%doit({create_account, Pub, Amount, Fee}) -> 
+%    {ok, create_account_tx:create_account(Pub, Amount, Fee)};
+%doit({spend, To, Amount, Fee}) ->
+%    spend_tx:spend(To, Amount, Fee);
+%doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
+%    to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee);
 %doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
 %    {ok, ServerId} = talker:talk({id}, IP, Port),
 %    ChId = hd(channel_manager:id(ServerId)),
@@ -79,13 +79,15 @@ doit({new_channel, STx}) ->
     %OldEntropy = channel_feeder:entropy(CID, [Acc1, Acc2]),
     %true = NewEntropy > OldEntropy,
     Tx = testnet_sign:data(STx),
+    PartnerID = channel_feeder:other(Tx),
+    undefined = channel_feeder:cid(channel_manager:read(PartnerID)),
     true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
     true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo. Also makes sure that we aren't reusing entropy.
     {Accounts, _,_,_} = tx_pool:data(),
     SSTx = keys:sign(STx, Accounts),
     tx_pool_feeder:absorb(SSTx),
-    easy:sync(),
-    {ok, 0};
+    %easy:sync(),
+    {ok, SSTx};
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
     true = grow_channel_tx:good(Tx),%checks the min_channel_ratio
