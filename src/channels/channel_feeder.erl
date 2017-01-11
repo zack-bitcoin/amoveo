@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 new_channel/1,spend/2,close/2,lock_spend/1,
+	 new_channel/2,spend/2,close/2,lock_spend/1,
 	 bet/3,garbage/0,entropy/1,new_channel_check/1,
 	 cid/1]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
@@ -16,6 +16,7 @@
 cid(X) when is_integer(X) ->
     cid(channel_manager:read(X));
 cid(X) when is_record(X, cd) -> X#cd.cid;
+cid(error) -> undefined;
 cid(X) -> cid(other(X)).
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
