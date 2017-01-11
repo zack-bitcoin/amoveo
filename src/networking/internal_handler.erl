@@ -101,7 +101,8 @@ doit({channel_spend, IP, Port, Amount}) ->
     io:fwrite(packer:pack(OldSPK)),
     io:fwrite("\n"),
     ID = keys:id(),
-    Payment = keys:sign(spk:get_paid(OldSPK, ID, -Amount)),
+    {Accounts, _,_,_} = tx_pool:data(),
+    Payment = keys:sign(spk:get_paid(OldSPK, ID, -Amount), Accounts),
     M = {channel_payment, Payment, Amount},
     {ok, Response} = talker:talk(M, IP, Port),
     %maybe verify the signature of Response here?
