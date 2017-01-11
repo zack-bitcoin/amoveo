@@ -29,7 +29,7 @@ handle_cast(garbage, X) ->
     {C, OldC} = c_oldc(),
     garbage_helper(Keys, C, OldC),
     {noreply, X};
-handle_cast({new_channel, Tx, Accounts}, X) ->
+handle_cast({new_channel, Tx}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
     SPK = new_channel_tx:spk(Tx, free_constants:channel_delay()),%doesn't move the money
     %CID = spk:cid(SPK),
@@ -113,6 +113,7 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
     {reply, Return, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 new_channel(Tx) ->
+    io:fwrite("channel feeder inserting channel $$$$$$$$$$$$$$$$$$$$$$$$$$"),
     gen_server:cast(?MODULE, {new_channel, Tx}).
 spend(SPK, Amount) -> %for recieving money only.
     gen_server:call(?MODULE, {spend, SPK, Amount}).

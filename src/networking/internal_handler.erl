@@ -91,11 +91,11 @@ doit({register, IP, Port}) ->
     {ok, ok};
 doit({channel_spend, IP, Port, Amount}) ->
     {ok, PeerId} = talker:talk({id}, IP, Port),
-    CID = peers:cid(peers:read(IP, Port)),
-    io:fwrite("CID is "),
-    io:fwrite(integer_to_list(CID)),
-    io:fwrite("\n"),
-    {ok, OldSPK} = channel_manager:read({CID, PeerId}),
+    %CID = peers:cid(peers:read(IP, Port)),
+    %io:fwrite("CID is "),
+    %io:fwrite(integer_to_list(CID)),
+    %io:fwrite("\n"),
+    {ok, OldSPK} = channel_manager:read(PeerId),
     ID = keys:id(),
     Payment = spk:get_paid(OldSPK, ID, -Amount),
     M = {channel_payment, Payment, Amount},
