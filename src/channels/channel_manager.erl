@@ -18,7 +18,7 @@ terminate(_, K) ->
     io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({write, CID, Data}, X) -> 
-    NewX = dict:write(CID, Data, X),
+    NewX = dict:store(CID, Data, X),
     db:save(?LOC, NewX),
     %this db:save is only for power failures. Without it, you could lose channel data on power failure. This line can be removed to make the node update channels faster.
     {noreply, NewX};
