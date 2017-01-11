@@ -80,12 +80,14 @@ handle_cast({close, SS, STx}, X) ->
     NewCD = OldCD#cd{live = false},
     true = other(A1, A2) == OtherID,
     channel_manager:write(OtherID, NewCD),
-    tx_pool_feeder:absorb(keys:sign(STx)),
+    tx_pool_feeder:absorb(keys:sign(STx, Accounts)),
     {noreply, X};
-handle_cast(_, X) -> {noreply, X}.
+handle_cast
+(_, X) -> {noreply, X}.
 handle_call({spend, SSPK, Amount}, _From, X) ->
 %giving us money in the channel.
-    true = testnet_sign:verify(keys:sign(SSPK)),
+    {Accounts, _,_,_} = tx_pool:data(),
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts)),
     SPK = testnet_sign:data(SSPK),
     both = depth_check(SPK), 
     %CID = spk:cid(SPK), 
@@ -94,7 +96,7 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     true = OldCD#cd.live,
     OldSPK = OldCD#cd.me,
     SPK = spk:get_paid(OldSPK, keys:id(), Amount),
-    Return = keys:sign(SPK),
+    Return = keys:sign(SPK, Accounts),
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
@@ -110,7 +112,8 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
     Bets = free_variables:bets(),
     Bet = get_bet(Name, Bets),
     SPK = spk:apply_bet(Bet, OldSPK, Vars),
-    Return = keys:sign(SPK),
+    {Accounts, _,_,_} = tx_pool:data(),
+    Return = keys:sign(SPK, Accounts),
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
