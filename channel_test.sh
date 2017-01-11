@@ -1,3 +1,4 @@
+
 #First start the two servers:
 # sh start.sh 3010
 # sh start.sh 3020
@@ -24,5 +25,5 @@ sleep 1
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 1
 echo "Now Channel Spend\n"
-#curl -i -d '["channel_spend", [127,0,0,1], 3020, 27]' http://localhost:3011
+curl -i -d '["channel_spend", [127,0,0,1], 3020, 27]' http://localhost:3011
 

@@ -1,4 +1,4 @@
-
+channel_test.sh needs work.
 
 
 channel_feeder:apply_bets needs to be written.
