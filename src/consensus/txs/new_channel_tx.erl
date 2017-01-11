@@ -28,7 +28,7 @@ good(Tx) ->
 cid(Tx) -> Tx#nc.id.
 entropy(Tx) -> Tx#nc.entropy.
 spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
-			  [], 0,0,0, Delay, 0, 
+			  [], 0,0, Delay, 0, 
 			  Tx#nc.entropy).
 make(ID,Accounts,Acc1,Acc2,Inc1,Inc2,Rent,Entropy,Fee) ->
     {_, A, Proof} = account:get(Acc1, Accounts),
