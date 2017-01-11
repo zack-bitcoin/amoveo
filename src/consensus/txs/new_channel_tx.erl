@@ -60,10 +60,10 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Acc2 = account:update(Aid2, Accounts, -Bal2-CCFee, none, NewHeight),
     Accounts2 = account:write(Accounts, Acc1),
     NewAccounts = account:write(Accounts2, Acc2),
-    K = keys:id(),
-    if
-	(K == Aid1) or (K == Aid2) ->
-	    channel_feeder:new_channel(Tx, Accounts);
-	true -> ok
-    end,
+    %K = keys:id(),
+    %if
+	%(K == Aid1) or (K == Aid2) ->
+    %channel_feeder:new_channel(Tx, Accounts);
+	%true -> ok
+    %end,
     {NewChannels, NewAccounts}.
