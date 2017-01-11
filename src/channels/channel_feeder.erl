@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 new_channel/1,spend/2,close/2,lock_spend/1,
+	 new_channel/2,spend/2,close/2,lock_spend/1,
 	 bet/3,garbage/0,entropy/1,new_channel_check/1,
 	 cid/1]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
@@ -29,7 +29,7 @@ handle_cast(garbage, X) ->
     {C, OldC} = c_oldc(),
     garbage_helper(Keys, C, OldC),
     {noreply, X};
-handle_cast({new_channel, Tx}, X) ->
+handle_cast({new_channel, Tx, Accounts}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
     SPK = new_channel_tx:spk(Tx, free_constants:channel_delay()),%doesn't move the money
     %CID = spk:cid(SPK),
@@ -112,9 +112,9 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
 handle_call(_, _From, X) -> {reply, X, X}.
-new_channel(Tx) ->
+new_channel(Tx, Accounts) ->
     io:fwrite("channel feeder inserting channel $$$$$$$$$$$$$$$$$$$$$$$$$$"),
-    gen_server:cast(?MODULE, {new_channel, Tx}).
+    gen_server:cast(?MODULE, {new_channel, Tx, Accounts}).
 spend(SPK, Amount) -> %for recieving money only.
     gen_server:call(?MODULE, {spend, SPK, Amount}).
 close(SS, Tx) ->
