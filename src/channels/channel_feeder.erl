@@ -5,7 +5,7 @@
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
 	 new_channel/3,spend/2,close/2,lock_spend/1,
 	 bet/3,garbage/0,entropy/1,new_channel_check/1,
-	 cid/1]).
+	 cid/1,them/1]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     sst = [], 
@@ -18,6 +18,7 @@ cid(X) when is_integer(X) ->
 cid(X) when is_record(X, cd) -> X#cd.cid;
 cid(error) -> undefined;
 cid(X) -> cid(other(X)).
+them(X) -> X#cd.them.
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
