@@ -87,7 +87,7 @@ handle_cast
 handle_call({spend, SSPK, Amount}, _From, X) ->
 %giving us money in the channel.
     {Accounts, _,_,_} = tx_pool:data(),
-    true = testnet_sign:verify(keys:sign(SSPK, Accounts)),
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     both = depth_check(SPK), 
     %CID = spk:cid(SPK), 
