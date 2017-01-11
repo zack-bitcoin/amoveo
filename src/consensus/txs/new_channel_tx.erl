@@ -63,7 +63,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     K = keys:id(),
     if
 	(K == Aid1) or (K == Aid2) ->
-	    channel_feeder:new_channel(Tx, Accounts);
+	    channel_feeder:new_channel(Tx);
 	true -> ok
     end,
     {NewChannels, NewAccounts}.
