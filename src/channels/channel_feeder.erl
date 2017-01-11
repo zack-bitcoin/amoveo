@@ -13,7 +13,10 @@
 	     live = true,
 	     entropy = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
-cid(X) -> X#cd.cid.
+cid(X) when is_integer(X) ->
+    cid(read(X));
+cid(X) when is_record(X, cd) -> X#cd.cid;
+cid(X) -> cid(other(X)).
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.

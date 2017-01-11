@@ -79,8 +79,9 @@ doit({new_channel, STx}) ->
     %OldEntropy = channel_feeder:entropy(CID, [Acc1, Acc2]),
     %true = NewEntropy > OldEntropy,
     Tx = testnet_sign:data(STx),
-    PartnerID = channel_feeder:other(Tx),
-    undefined = channel_feeder:cid(channel_manager:read(PartnerID)),
+    %PartnerID = channel_feeder:other(Tx),
+    %undefined = channel_feeder:cid(channel_manager:read(PartnerID)),
+    undefined = channel_feeder:cid(Tx),
     true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
     true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo. Also makes sure that we aren't reusing entropy.
     {Accounts, _,_,_} = tx_pool:data(),
