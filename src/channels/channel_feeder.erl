@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 new_channel/2,spend/2,close/3,lock_spend/1,
+	 new_channel/1,spend/2,close/2,lock_spend/1,
 	 bet/3,garbage/0,entropy/1,new_channel_check/1,
 	 cid/1]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
@@ -14,7 +14,7 @@
 	     entropy = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
 cid(X) when is_integer(X) ->
-    cid(read(X));
+    cid(channel_manager:read(X));
 cid(X) when is_record(X, cd) -> X#cd.cid;
 cid(X) -> cid(other(X)).
 init(ok) -> {ok, []}.
@@ -111,11 +111,11 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
 handle_call(_, _From, X) -> {reply, X, X}.
-new_channel(Tx, Accounts) ->
+new_channel(Tx) ->
     gen_server:cast(?MODULE, {new_channel, Tx}).
 spend(SPK, Amount) -> %for recieving money only.
     gen_server:call(?MODULE, {spend, SPK, Amount}).
-close(CID, SS, Tx) ->
+close(SS, Tx) ->
     gen_server:cast(?MODULE, {close, SS, Tx}).
 lock_spend(_SPK) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
