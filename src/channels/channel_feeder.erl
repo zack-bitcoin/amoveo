@@ -95,7 +95,7 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     OldSPK = OldCD#cd.me,
-    SPK = spk:get_paid(OldSPK, keys:id(), Amount),
+    SPK = spk:get_paid(testnet_sign:data(OldSPK), keys:id(), Amount),
     Return = keys:sign(SPK, Accounts),
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write(Other, NewCD),
