@@ -85,6 +85,7 @@ handle_cast({close, SS, STx}, X) ->
 handle_cast(_, X) -> {noreply, X}.
 handle_call({spend, SSPK, Amount}, _From, X) ->
 %giving us money in the channel.
+    true = testnet_sign:verify(keys:sign(SSPK)),
     SPK = testnet_sign:data(SSPK),
     both = depth_check(SPK), 
     %CID = spk:cid(SPK), 

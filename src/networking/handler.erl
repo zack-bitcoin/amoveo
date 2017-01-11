@@ -103,8 +103,9 @@ doit({grow_channel, Stx}) ->
 doit({spk, CID})->
     SPK = channel_manager:read(CID),
     {ok, SPK};
-doit({channel_payment, SPK, Amount}) ->
-    R = channel_feeder:spend(SPK, Amount),
+doit({channel_payment, SSPK, Amount}) ->
+    true = testnet_sign:verify(keys:sign(SSPK)),
+    R = channel_feeder:spend(SSPK, Amount),
     {ok, R};
 doit({close_channel, CID, SS, Tx}) ->
     channel_feeder:close(CID, SS, Tx),
