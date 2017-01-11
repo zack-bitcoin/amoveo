@@ -6,11 +6,16 @@
 sync() ->
     Height = block:height(block:read(top:doit())),
     download_blocks:sync_all(peers:all(), Height),
-    timer:sleep(1000),
+    sync2(Height, 100).
+sync2(_Height, 0) -> ok;
+sync2(Height, N) ->
+    timer:sleep(100),
     Height2 = block:height(block:read(top:doit())),
     if
-	Height2 > Height -> sync();
-	true -> ok
+	Height2 > Height -> 
+	    timer:sleep(1400),
+	    sync();
+	true -> sync2(Height, N-1)
    end. 
    
 tx_maker(F) -> 

@@ -18,9 +18,11 @@ rank_filter(P) ->
     
 sync_all([], _) -> success;
 sync_all([{IP, Port}|T], Height) ->
-    sync(IP, Port, Height),
+    spawn(fun() ->
+		  sync(IP, Port, Height)
+	  end),
     %spawn(download_blocks, sync, [IP, Port, Height]),
-    %timer:sleep(1000),
+    %timer:sleep(3000),
     sync_all(T, Height).
 sync(IP, Port, MyHeight) ->
     %lower their ranking
@@ -35,8 +37,6 @@ sync(IP, Port, MyHeight) ->
 		    {ok, Block} = talker:talk({block, HH}, IP, Port),
 		    trade_blocks(IP, Port, [Block], HH);
 		true ->
-		    io:fwrite("their top block was "),
-		    io:fwrite(packer:pack(TopBlock)),
 		    trade_blocks(IP, Port, [TopBlock], Height),
 		    get_txs(IP, Port)
 		    
