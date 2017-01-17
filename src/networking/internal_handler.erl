@@ -48,8 +48,25 @@ doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
     ChId = hd(channel_manager:id(ServerId)),
     SignedTx = keys:sign(to_channel_tx:to_channel(ChId, Inc1, Inc2, Fee)),
     talker:talk({to_channel, SignedTx}, IP, Port);
-doit({close_channel, ChId, Amount, Nonce, Fee}) ->
-    keys:sign(channel_block_tx:close_channel(ChId, Amount, Nonce, Fee));
+%doit({close_channel, ChId, Amount, Nonce, Fee}) ->
+    %keys:sign(channel_block_tx:close_channel(ChId, Amount, Nonce, Fee));
+doit({close_channel, IP, Port}) ->
+    {ok, PeerId} = talker:talk({id}, IP, Port),
+    %find Amount from channel manager.
+    {ok, CD} = channel_manager:read(PeerId),
+    SPK = testnet_sign:data(channel_feeder:them(CD)),
+    {Accounts,Channels,_,_} = tx_pool:data(),
+    Height = block:height(block:read(top:doit())),
+    SS = channel_feeder:script_sig(CD),
+    {Amount, _} = spk:run(SS, SPK, Height, 0, Accounts, Channels),
+    %state = new_state(),
+    %{BetAmount, _,_,_} = chalang:run(SS, spk:bets(SPK), spk:time_gas(SPK), spk:space_gas(SPK), constants:fun_limit(), constants:var_limit(), State),
+    %Amount = spk:amount(SPK) + BetAmount,
+    CID = spk:cid(SPK),
+    Fee = free_constants:tx_fee(),
+    Tx = channel_team_close:make(CID, Accounts, Channels, Amount, Fee),
+    STx = keys:sign(Tx),
+    talker:talk({close_channel, CID, SS, STx}, IP, Port);
 doit({add_peer, IP, Port}) ->
     peers:add(IP, Port);
 doit({sync, IP, Port}) ->

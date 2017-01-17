@@ -1,7 +1,7 @@
 -module(easy).
 -compile(export_all).
 
--define(Fee, 10).
+-define(Fee, free_constants:tx_fee()).
 
 sync() ->
     Height = block:height(block:read(top:doit())),

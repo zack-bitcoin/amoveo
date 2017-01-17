@@ -1,7 +1,9 @@
 -module(channel_solo_close).
--export([doit/4, make/6]).
+-export([doit/4, make/6, scriptpubkey/1]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
+
+scriptpubkey(X) -> X#csc.scriptpubkey.
 
 make(From, Fee, ScriptPubkey, ScriptSig, Accounts, Channels) ->
     true = is_list(ScriptSig),
@@ -34,9 +36,9 @@ doit(Tx, Channels, Accounts, NewHeight) ->
 	       Acc2 -> 2
 	   end,
     Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
-    State = chalang:new_state(0, NewHeight, Slash, <<0:(8*hash:hash_depth())>>, Accounts, Channels),
-    {Amount, NewCNonce, _, _} = chalang:run(Tx#csc.scriptsig, spk:bets(ScriptPubkey), spk:time_gas(ScriptPubkey), spk:space_gas(ScriptPubkey), constants:fun_limit(), constants:var_limit(), State), 
-    true = NewCNonce + spk:nonce(ScriptPubkey) > channel:nonce(Channel),
+    {Amount, NewCNonce} = spk:run(Tx#csc.scriptsig, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
+
+    true = NewCNonce > channel:nonce(Channel),
     NewChannel = channel:update(CID, Channels, NewCNonce, 0, -(Amount), Amount, Mode, spk:delay(ScriptPubkey), NewHeight),
     NewChannels = channel:write(NewChannel, Channels),
     Facc = account:update(From, Accounts, -Tx#csc.fee, Tx#csc.nonce, NewHeight),

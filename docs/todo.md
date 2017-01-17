@@ -1,3 +1,6 @@
+handler close_channel needs height fixed
+
+
 channel_test.sh needs work.
 It needs to make a bet.
 It needs to close the channel.

@@ -39,21 +39,11 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     {Mode, Acc1Fee, Acc2Fee, N1, N2}
 	= case From of
 	      Acc1 -> {2, Fee, 0, Nonce, none};
-	      Acc2 -> {1, 0, Fee, none, Nonce}
+	      Acc2 -> {1, 0, Fee, none, Nonce};
+	      _ -> Acc1
 	  end,
-    Slash = 1,
-    TotalCoins = 0,
-    State = chalang:new_state(TotalCoins, NewHeight, Slash, <<0:(8*hash:hash_depth())>>, Accounts, Channels), %the hash_depth of zeros is where the oracle trie will eventually go.
-    %ScriptPubkey = Tx#cs.scriptpubkey,
-    {Amount, NewCNonce, _, _} = 
-	chalang:run(Tx#cs.scriptsig, 
-		    spk:bets(SPK), 
-		    spk:time_gas(SPK), 
-		    spk:space_gas(SPK), 
-		    constants:fun_limit(), 
-		    constants:var_limit(), 
-		    State), 
-    true = NewCNonce + spk:nonce(SPK) > channel:nonce(Channel),
+    {Amount, NewCNonce} = spk:run(Tx#cs.scriptsig, SPK, NewHeight, 1, Accounts, Channels),
+    true = NewCNonce > channel:nonce(Channel),
     %delete the channel. empty the channel into the accounts.
     NewChannels = channel:delete(CID, Channels),
     Account1 = account:update(Acc1, Accounts, channel:bal1(Channel)-Acc1Fee-Amount, N1, NewHeight),
