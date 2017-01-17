@@ -106,7 +106,7 @@ doit({spk, CID})->
 doit({channel_payment, SSPK, Amount}) ->
     R = channel_feeder:spend(SSPK, Amount),
     {ok, R};
-doit({close_channel, CID, PeerID, SS, STx}) ->
+doit({close_channel, CID, PeerId, SS, STx}) ->
     channel_feeder:close(SS, STx),
     Tx = testnet_sign:data(STx),
     Fee = channel_team_close_tx:fee(Tx),
