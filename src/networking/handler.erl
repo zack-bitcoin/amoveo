@@ -107,7 +107,7 @@ doit({channel_payment, SSPK, Amount}) ->
     R = channel_feeder:spend(SSPK, Amount),
     {ok, R};
 doit({close_channel, CID, SS, STx}) ->
-    channel_feeder:close(CID, SS, STx),
+    channel_feeder:close(SS, STx),
     Tx = testnet_sign:data(STx),
     Fee = channel_close:fee(Tx),
     SPK = channel_solo_close:scriptpubkey(Tx),
@@ -115,6 +115,7 @@ doit({close_channel, CID, SS, STx}) ->
     {Accounts,Channels,_,_} = tx_pool:data(),
     {Amount, _} = spk:run(SS, SPK, Height, 0, Accounts, Channels),
     {Tx, _} = channel_team_close:make(CID, Accounts, Channels, Amount, Fee),
+    tx_pool_feeder:absorb(keys:sign(Stx, Accounts)),
     {ok, ok};
 doit({locked_payment, SSPK}) ->
     R = channel_feeder:lock_spend(SSPK),
