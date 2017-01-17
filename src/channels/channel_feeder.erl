@@ -5,13 +5,14 @@
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
 	 new_channel/3,spend/2,close/2,lock_spend/1,
 	 bet/3,garbage/0,entropy/1,new_channel_check/1,
-	 cid/1,them/1,script_sig/1]).
+	 cid/1,them/1,script_sig/1,me/1]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     ss = [], %ss is the highest nonced ScriptSig that works with them. 
 	     live = true,
 	     entropy = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
+me(X) -> X#cd.me.
 cid(X) when is_integer(X) ->
     cid(channel_manager:read(X));
 cid(X) when is_record(X, cd) -> X#cd.cid;
