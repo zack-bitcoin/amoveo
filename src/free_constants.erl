@@ -24,3 +24,5 @@ min_channel_ratio() ->
 bets() -> %tuple list. {Name, Bet}
     [
     ].
+gas_limit() ->
+    constants:gas_limit().
