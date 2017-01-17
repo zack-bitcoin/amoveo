@@ -23,6 +23,9 @@ make(ID,Accounts,Channels,Amount,Fee) ->
 doit(Tx, Channels,Accounts,NewHeight) ->
     ID = Tx#ctc.id,
     {_, OldChannel, _} = channel:get(ID, Channels),
+    io:fwrite("in channel team close "),
+    io:fwrite(packer:pack(OldChannel)),
+    io:fwrite("\n"),
     Aid1 = channel:acc1(OldChannel),
     Aid2 = channel:acc2(OldChannel),
     %ID = channel:id(OldChannel),
