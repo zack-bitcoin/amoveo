@@ -20,7 +20,7 @@ curl -i -d '["new_channel", [127,0,0,1], 3020, 1, 10000, 4000, 0, 4]' http://loc
 sleep 1
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 1
-curl -i -d '["mine_block"]' http://localhost:3011
+curl -i -d '["mine_block, 1, 1000000"]' http://localhost:3011
 sleep 1
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 1
