@@ -37,8 +37,8 @@ doit({spend, To, Amount}) ->
     %tx_pool_feeder:absorb(keys:sign(spend_tx:spend(To, Amount, Fee)));
     {ok, ok};
 doit({mine_block, Many, Times}) -> 
-    {_,_,_,Txs} = tx_pool:data(),
-    mine_blocks(Many, Times);
+    %{_,_,_,Txs} = tx_pool:data(),
+    block:mine_blocks(Many, Times);
     %Block = block:make(top:doit(), Txs, keys:id()),
     %PowBlock = block:mine(Block, 10000000),
     %block_absorber:doit(PowBlock);
