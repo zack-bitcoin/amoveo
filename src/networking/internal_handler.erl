@@ -42,13 +42,13 @@ doit({mine_block, Many, Times}) ->
     %Block = block:make(top:doit(), Txs, keys:id()),
     %PowBlock = block:mine(Block, 10000000),
     %block_absorber:doit(PowBlock);
-doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
-    keys:sign(to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee));
-doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
-    {ok, ServerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(ServerId)),
-    SignedTx = keys:sign(to_channel_tx:to_channel(ChId, Inc1, Inc2, Fee)),
-    talker:talk({to_channel, SignedTx}, IP, Port);
+%doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
+%    keys:sign(to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee));
+%doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
+%    {ok, ServerId} = talker:talk({id}, IP, Port),
+%    ChId = hd(channel_manager:id(ServerId)),
+%    SignedTx = keys:sign(to_channel_tx:to_channel(ChId, Inc1, Inc2, Fee)),
+%    talker:talk({to_channel, SignedTx}, IP, Port);
 %doit({close_channel, ChId, Amount, Nonce, Fee}) ->
     %keys:sign(channel_block_tx:close_channel(ChId, Amount, Nonce, Fee));
 doit({close_channel, IP, Port}) ->
@@ -65,8 +65,8 @@ doit({close_channel, IP, Port}) ->
     %Amount = spk:amount(SPK) + BetAmount,
     CID = spk:cid(SPK),
     Fee = free_constants:tx_fee(),
-    Tx = channel_team_close:make(CID, Accounts, Channels, Amount, Fee),
-    STx = keys:sign(Tx),
+    {Tx, _} = channel_team_close_tx:make(CID, Accounts, Channels, Amount, Fee),
+    STx = keys:sign(Tx, Accounts),
     talker:talk({close_channel, CID, SS, STx}, IP, Port);
 doit({add_peer, IP, Port}) ->
     peers:add(IP, Port);

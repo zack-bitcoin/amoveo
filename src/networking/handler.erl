@@ -114,7 +114,7 @@ doit({close_channel, CID, SS, STx}) ->
     Height = block:height(block:read(top:doit())),
     {Accounts,Channels,_,_} = tx_pool:data(),
     {Amount, _} = spk:run(SS, SPK, Height, 0, Accounts, Channels),
-    Tx = channel_team_close:make(CID, Accounts, Channels, Amount, Fee),
+    {Tx, _} = channel_team_close:make(CID, Accounts, Channels, Amount, Fee),
     {ok, ok};
 doit({locked_payment, SSPK}) ->
     R = channel_feeder:lock_spend(SSPK),
