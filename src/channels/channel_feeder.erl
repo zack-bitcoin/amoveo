@@ -52,8 +52,8 @@ handle_cast({close, SS, STx}, X) ->
     A1 = spk:acc1(SPKM), 
     A2 = spk:acc2(SPKM),
     SPK = testnet_sign:data(CD#cd.them),
-    A3 = channel_team_close_tx:aid1(Tx),
-    A4 = channel_team_close_tx:aid2(Tx),
+    A3 = channel_team_close_tx:acc1(Tx),
+    A4 = channel_team_close_tx:acc2(Tx),
     K = keys:id(),
     true = (((A1 == A3) and (A2 == A4)) or ((A1 == A4) and (A2 == A3))),
     Direction = if
