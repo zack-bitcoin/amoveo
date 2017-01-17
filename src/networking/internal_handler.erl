@@ -67,7 +67,7 @@ doit({close_channel, IP, Port}) ->
     Fee = free_constants:tx_fee(),
     {Tx, _} = channel_team_close_tx:make(CID, Accounts, Channels, Amount, Fee),
     STx = keys:sign(Tx, Accounts),
-    talker:talk({close_channel, CID, SS, STx}, IP, Port);
+    talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port);
 doit({add_peer, IP, Port}) ->
     peers:add(IP, Port);
 doit({sync, IP, Port}) ->
