@@ -36,11 +36,12 @@ doit({spend, To, Amount}) ->
     easy:spend(To, Amount),
     %tx_pool_feeder:absorb(keys:sign(spend_tx:spend(To, Amount, Fee)));
     {ok, ok};
-doit({mine_block}) -> 
+doit({mine_block, Many, Times}) -> 
     {_,_,_,Txs} = tx_pool:data(),
-    Block = block:make(top:doit(), Txs, keys:id()),
-    PowBlock = block:mine(Block, 10000000),
-    block_absorber:doit(PowBlock);
+    mine_blocks(Many, Times);
+    %Block = block:make(top:doit(), Txs, keys:id()),
+    %PowBlock = block:mine(Block, 10000000),
+    %block_absorber:doit(PowBlock);
 doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
     keys:sign(to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee));
 doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
