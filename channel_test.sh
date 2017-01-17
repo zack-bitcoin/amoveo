@@ -27,3 +27,7 @@ sleep 1
 curl -i -d '["channel_spend", [127,0,0,1], 3020, 27]' http://localhost:3011
 sleep 1
 
+#curl -i -d '["channel_bet", [127,0,0,1], 3020, [-6,100,105,99,101]]' http://localhost:3011 # "dice"
+
+curl -i -d '["close_channel", [127,0,0,1], 3020]' http://localhost:3011
+

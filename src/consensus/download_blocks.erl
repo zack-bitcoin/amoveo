@@ -78,7 +78,7 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
 	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
     end.
 send_blocks(IP, Port, T, T, L, _N) -> 
-    io:fwrite("finished sending blocks"),
+    %io:fwrite("finished sending blocks"),
     send_blocks2(IP, Port, L);
 send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
     if
@@ -111,7 +111,7 @@ talk(CMD, IP, Port, F) ->
     end.
 	   
 get_txs(IP, Port) ->
-    io:fwrite("download blocks get txs\n"),
+    %io:fwrite("download blocks get txs\n"),
     talk({txs}, IP, Port, 
 	 fun(X) ->
 		 absorb_txs(X),

@@ -9,7 +9,7 @@
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     sst = [], 
-%sst is the highest nonced ScriptSig that works with them.
+%sst is the highest nonced ScriptSig that works with them. 
 	     live = true,
 	     entropy = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.

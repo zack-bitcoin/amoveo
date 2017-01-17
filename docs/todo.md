@@ -1,4 +1,6 @@
 channel_test.sh needs work.
+It needs to make a bet.
+It needs to close the channel.
 
 
 channel_feeder:apply_bets needs to be written.
