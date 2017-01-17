@@ -52,8 +52,8 @@ handle_cast({close, SS, STx}, X) ->
     A1 = spk:acc1(SPKM), 
     A2 = spk:acc2(SPKM),
     SPK = testnet_sign:data(CD#cd.them),
-    A3 = channel_team_close:aid1(Tx),
-    A4 = channel_team_close:aid2(Tx),
+    A3 = channel_team_close_tx:aid1(Tx),
+    A4 = channel_team_close_tx:aid2(Tx),
     K = keys:id(),
     true = (((A1 == A3) and (A2 == A4)) or ((A1 == A4) and (A2 == A3))),
     Direction = if
@@ -61,7 +61,7 @@ handle_cast({close, SS, STx}, X) ->
 		    K == A2 -> 1;
 		    true -> K = A1
 		end,
-    DemandedAmount = channel_team_close:amount(Tx),
+    DemandedAmount = channel_team_close_tx:amount(Tx),
     TotalCoins = 0,
     {Accounts, Channels, Height, _} = tx_pool:data(),
     State = chalang:new_state(TotalCoins, Height, 0, <<0:(8*hash:hash_depth())>>, Accounts, Channels),
