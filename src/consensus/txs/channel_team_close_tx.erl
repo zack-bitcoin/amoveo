@@ -5,6 +5,7 @@
 -record(ctc, {aid1 = 0, aid2 = 0, fee = 0,
 	      nonce = 0, id = 0, amount = 0}).
 amount(Tx) -> Tx#ctc.amount.
+fee(Tx) -> Tx#ctc.fee.
 acc1(Tx) -> Tx#ctc.aid1.
 acc2(Tx) -> Tx#ctc.aid2.
 make(ID,Accounts,Channels,Amount,Fee) ->
