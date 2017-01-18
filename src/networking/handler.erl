@@ -76,14 +76,9 @@ doit({test}) ->
 doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
 doit({new_channel, STx, SSPK}) ->
-    %OldEntropy = channel_feeder:entropy(CID, [Acc1, Acc2]),
-    %true = NewEntropy > OldEntropy,
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
     {Accounts, _,_,_} = tx_pool:data(),
-    %SPK = new_channel_tx:spk(Tx, spk:delay(SPK)),
-    %PartnerID = channel_feeder:other(Tx),
-    %undefined = channel_feeder:cid(channel_manager:read(PartnerID)),
     undefined = channel_feeder:cid(Tx),
     true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
     true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo. Also makes sure that we aren't reusing entropy.
@@ -112,8 +107,6 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Fee = channel_team_close_tx:fee(Tx),
     {ok, CD} = channel_manager:read(PeerId),
     SPK = testnet_sign:data(channel_feeder:me(CD)),
-    %SPK = 
-	%channel_team_close_tx:scriptpubkey(Tx),
     Height = block:height(block:read(top:doit())),
     {Accounts,Channels,_,_} = tx_pool:data(),
     {Amount, _} = spk:run(SS, SPK, Height, 0, Accounts, Channels),
@@ -128,6 +121,9 @@ doit({channel_simplify, SS, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
+doit({Name, Amount, SSPK}) ->
+    Return = channel_feeder:bet(Name, SSPK, [Amount]),
+    {ok, Return};
 %doit({bet, Name, SPK}) ->
 %    channel_feeder:bet(Name, SPK),
 %    {ok, ok};

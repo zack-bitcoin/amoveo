@@ -2,7 +2,7 @@
 -export([acc1/1,acc2/1,entropy/1,
 	 bets/1,space_gas/1,time_gas/1,
 	 new/9,delay/1,cid/1,amount/1, 
-	 nonce/1,apply_bet/3,get_paid/3,
+	 nonce/1,apply_bet/2,get_paid/3,
 	 run/6]).
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
@@ -29,8 +29,9 @@ new(Acc1, Acc2, CID, Bets, SG, TG, Delay, Nonce, Entropy) ->
 	 bets = Bets, space_gas = SG, time_gas = TG,
 	 delay = Delay, cid = CID, nonce = Nonce}.
     
-apply_bet(_Bet, _SPK, _Vars) ->
-%vars is a tuple of variables that get inserted into the free spots in the bet.
+apply_bet(_Bet, _SPK) ->
+%bet is binary, the SPK portion of the script.
+%SPK is the old SPK, we output the new one.
     ok.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
@@ -53,5 +54,6 @@ run(SS, SPK, Height, Slash, Accounts, Channels) ->
 		    constants:var_limit(),
 		    State),
     {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce}.
-    
+   
+ 
     

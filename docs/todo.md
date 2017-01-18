@@ -1,3 +1,5 @@
+Newly mined coins should not be spendable until they mature. Bitcoin waits 100 blocks for maturity.
+
 handler close_channel needs height fixed
 
 

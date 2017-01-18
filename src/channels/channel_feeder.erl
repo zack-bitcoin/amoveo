@@ -109,10 +109,11 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
-    OldSPK = testnet_sign:data(OldCD#cd.them),
-    Bets = free_variables:bets(),
-    Bet = get_bet(Name, Bets),
-    SPK = spk:apply_bet(Bet, OldSPK, Vars),
+    Them = OldCD#cd.them,
+    OldSPK = testnet_sign:data(Them),
+    Bets = free_constants:bets(),
+    Bet = get_bet(Name, Bets, Vars, SPK, Them),
+    SPK = spk:apply_bet(Bet, OldSPK),
     {Accounts, _,_,_} = tx_pool:data(),
     Return = keys:sign(SPK, Accounts),
     NewCD = OldCD#cd{them = SSPK, me = Return},
@@ -195,10 +196,18 @@ depth_check2(SPK, C, OldC) ->
     end.
        
 
-get_bet(Name, [{Name, Val}|_]) ->
-    Val;
-get_bet(Name, [_|T]) -> get_bet(Name, T).
-
+get_bet(Name, [{Name, Val}|_], Vars, Them) ->
+    get_bet2(Name, Val, Vars, Them);
+get_bet(Name, [_|T], Vars, Them) -> get_bet(Name, T, Vars Them).
+get_bet2(dice, Loc, [Amount], Them) ->
+    %check that Amount is in a reasonable range based on the channel state.
+    %we need my balance from channel:get, and from the Amount from the most recent spk they signed.
+    {_, Channel, _} = channel:get(CID),
+    A = spk:amount(SPK),
+    true = Amount < Max,
+    Front = "macro Amount int " ++ integer_to_list(Amount) ++ " ; \n",
+    compiler:doit(Loc, Front). 
+    
 other(SPK) when element(1, SPK) == spk ->
     other(spk:acc1(SPK), spk:acc2(SPK));
 other(Tx) when element(1, Tx) == ctc ->
