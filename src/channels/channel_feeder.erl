@@ -218,6 +218,9 @@ get_bet2(dice, Loc, [Amount], SPK) ->
     true = (Bal1-A) >= Amount, 
     true = (Bal2+A) >= Amount,  %This checks that neither of us can have negative amounts of money.
     Front = "macro Amount int " ++ integer_to_list(Amount) ++ " ; \n",
+    io:fwrite("Loc is "), 
+    io:fwrite(Loc),
+    io:fwrite("\n"),
     Bet = compile:doit(Loc, Front),
     spk:apply_bet(Bet, SPK).
     
