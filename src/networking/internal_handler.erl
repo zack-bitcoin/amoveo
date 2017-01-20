@@ -69,7 +69,7 @@ doit({close_channel, IP, Port}) ->
     STx = keys:sign(Tx, Accounts),
     talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
     {ok, 0};
-doit({bet, "dice", Vars, IP, Port}) ->
+doit({channel_bet, "dice", Vars, IP, Port}) ->
     {ok, Other} = talker:talk({id}, IP, Port),
 
     SSPK = channel_feeder:absorb_bet(Other, dice, Vars),
@@ -124,9 +124,6 @@ doit({channel_spend, IP, Port, Amount}) ->
     %io:fwrite("\n"),
     {ok, CD} = channel_manager:read(PeerId),
     OldSPK = testnet_sign:data(channel_feeder:them(CD)),
-    io:fwrite("old spk is "),
-    io:fwrite(packer:pack(OldSPK)),
-    io:fwrite("\n"),
     ID = keys:id(),
     {Accounts, _,_,_} = tx_pool:data(),
     Payment = keys:sign(spk:get_paid(OldSPK, ID, -Amount), Accounts),

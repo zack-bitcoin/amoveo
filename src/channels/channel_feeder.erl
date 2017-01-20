@@ -37,10 +37,10 @@ handle_cast({new_channel, Tx, SSPK, Accounts}, X) ->
     SPK = new_channel_tx:spk(Tx, spk:delay(SPK)),%doesn't move the money
     %CID = spk:cid(SPK),
     CD = #cd{me = keys:sign(SPK, Accounts), them = SSPK, entropy = spk:entropy(SPK)},
-    io:fwrite("adding new channel to manager at "),
-    io:fwrite(integer_to_list(spk:cid(SPK))),
-    io:fwrite(" with acc "),
-    io:fwrite(integer_to_list(other(Tx))),
+    %io:fwrite("adding new channel to manager at "),
+    %io:fwrite(integer_to_list(spk:cid(SPK))),
+    %io:fwrite(" with acc "),
+    %io:fwrite(integer_to_list(other(Tx))),
     channel_manager:write(other(Tx), CD),
     {noreply, X};
 handle_cast({close, SS, STx}, X) ->
@@ -125,7 +125,7 @@ absorb_bet(Other, Name, Vars) ->
     keys:sign(SPK, Accounts).
 
 new_channel(Tx, SSPK, Accounts) ->
-    io:fwrite("channel feeder inserting channel $$$$$$$$$$$$$$$$$$$$$$$$$$"),
+    %io:fwrite("channel feeder inserting channel $$$$$$$$$$$$$$$$$$$$$$$$$$"),
     gen_server:cast(?MODULE, {new_channel, Tx, SSPK, Accounts}).
 spend(SPK, Amount) -> 
     gen_server:call(?MODULE, {spend, SPK, Amount}).
