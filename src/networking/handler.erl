@@ -121,7 +121,7 @@ doit({channel_simplify, SS, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
-doit({bet, "dice", Amount, SSPK}) ->
+doit({bet, "dice", SSPK, [Amount]}) ->
     Return = channel_feeder:bet(dice, SSPK, [Amount]),
     {ok, Return};
 %doit({bet, Name, SPK}) ->

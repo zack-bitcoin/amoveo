@@ -73,7 +73,7 @@ doit({channel_bet, "dice", Vars, IP, Port}) ->
     {ok, Other} = talker:talk({id}, IP, Port),
 
     SSPK = channel_feeder:absorb_bet(Other, dice, Vars),
-    SSPK2 = talker:talk({bet, "dice", SSPK, Vars}),
+    SSPK2 = talker:talk({bet, "dice", SSPK, Vars}, IP, Port),
     io:fwrite(packer:pack(SSPK2));
     %io:fwrite("channel bet here"),
     %channel_feeder:bet(dice, SSPK2, Vars);
