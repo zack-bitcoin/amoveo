@@ -103,6 +103,9 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     {reply, Return, X};
 handle_call({bet, Name, SSPK, Vars}, _From, X) ->
 %doing one of the bets that we offer.
+    io:fwrite("SSPK is "),
+    io:fwrite(packer:pack(SSPK)),
+    io:fwrite("\n"),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
