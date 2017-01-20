@@ -5,7 +5,7 @@
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
 	 new_channel/3,spend/2,close/2,lock_spend/1,
 	 bet/3,garbage/0,entropy/1,new_channel_check/1,
-	 cid/1,them/1,script_sig/1,me/1]).
+	 cid/1,them/1,script_sig/1,me/1,absorb_bet/3]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     ss = [], %ss is the highest nonced ScriptSig that works with them. 
@@ -104,22 +104,26 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
 handle_call({bet, Name, SSPK, Vars}, _From, X) ->
 %doing one of the bets that we offer.
     SPK = testnet_sign:data(SSPK),
-    %CID = spk:cid(SPK),
-    %both = depth_check(SPK), 
     Other = other(SPK),
+    {ok, OldCD} = channel_manager:read(Other),
+    Return = absorb_bet(Other, Name, Vars),
+    SPK = testnet_sign:data(Return),
+    NewCD = OldCD#cd{them = SSPK, me = Return},
+    channel_manager:write(Other, NewCD),
+    {reply, Return, X};
+handle_call(_, _From, X) -> {reply, X, X}.
+
+absorb_bet(Other, Name, Vars) ->
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     Them = OldCD#cd.them,
     OldSPK = testnet_sign:data(Them),
     Bets = free_constants:bets(),
-    Bet = get_bet(Name, Bets, Vars, SPK, Them),
-    SPK = spk:apply_bet(Bet, OldSPK),
+    SPK = get_bet(Name, Bets, Vars, OldSPK),
+    %SPK = spk:apply_bet(Bet, OldSPK),
     {Accounts, _,_,_} = tx_pool:data(),
-    Return = keys:sign(SPK, Accounts),
-    NewCD = OldCD#cd{them = SSPK, me = Return},
-    channel_manager:write(Other, NewCD),
-    {reply, Return, X};
-handle_call(_, _From, X) -> {reply, X, X}.
+    keys:sign(SPK, Accounts).
+
 new_channel(Tx, SSPK, Accounts) ->
     io:fwrite("channel feeder inserting channel $$$$$$$$$$$$$$$$$$$$$$$$$$"),
     gen_server:cast(?MODULE, {new_channel, Tx, SSPK, Accounts}).
@@ -194,19 +198,27 @@ depth_check2(SPK, C, OldC) ->
 	One -> one;
 	true -> neither
     end.
-       
 
-get_bet(Name, [{Name, Val}|_], Vars, Them) ->
-    get_bet2(Name, Val, Vars, Them);
-get_bet(Name, [_|T], Vars, Them) -> get_bet(Name, T, Vars Them).
-get_bet2(dice, Loc, [Amount], Them) ->
+get_bet(Name, [{Name, Loc}|_], Vars, SPK) ->
+    get_bet2(Name, Loc, Vars, SPK);
+get_bet(Name, [_|T], Vars, SPK) -> get_bet(Name, T, Vars, SPK).
+get_bet2(dice, Loc, [Amount], SPK) ->
     %check that Amount is in a reasonable range based on the channel state.
     %we need my balance from channel:get, and from the Amount from the most recent spk they signed.
-    {_, Channel, _} = channel:get(CID),
+    CID = spk:cid(SPK),
+    {_, OldChannel, _} = channel:get(CID),
+    0 = channel:rent(OldChannel),%otherwise they could attack us by making a bet where the amount they could lose is slightly smaller.
+    {_Accounts,Channels,_,_} = tx_pool:data(),
+    NewHeight = block:height(block:read(top:doit())),
+    Channel = channel:update(CID, Channels, none, 0, 0,0,0, channel:delay(OldChannel), NewHeight),
+    Bal1 = channel:bal1(Channel),
+    Bal2 = channel:bal2(Channel),
     A = spk:amount(SPK),
-    true = Amount < Max,
+    true = (Bal1-A) >= Amount, 
+    true = (Bal2+A) >= Amount,  %This checks that neither of us can have negative amounts of money.
     Front = "macro Amount int " ++ integer_to_list(Amount) ++ " ; \n",
-    compiler:doit(Loc, Front). 
+    Bet = compile:doit(Loc, Front),
+    spk:apply_bet(Bet, SPK).
     
 other(SPK) when element(1, SPK) == spk ->
     other(spk:acc1(SPK), spk:acc2(SPK));

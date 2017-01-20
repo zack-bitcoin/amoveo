@@ -35,6 +35,7 @@ make(ID,Accounts,Acc1,Acc2,Inc1,Inc2,Rent,Entropy,Fee) ->
     Nonce = account:nonce(A),
     {_, _, Proof2} = account:get(Acc2, Accounts),
     %Entropy = channel_feeder:entropy(ID, [Acc1, Acc2])+1,
+    true = (Rent == 0) or (Rent == 1),
     Tx = #nc{id = ID, acc1 = Acc1, acc2 = Acc2, 
 	     fee = Fee, nonce = Nonce+1, bal1 = Inc1,
 	     bal2 = Inc2, entropy = Entropy, rent = Rent
@@ -60,10 +61,4 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Acc2 = account:update(Aid2, Accounts, -Bal2-CCFee, none, NewHeight),
     Accounts2 = account:write(Accounts, Acc1),
     NewAccounts = account:write(Accounts2, Acc2),
-    %K = keys:id(),
-    %if
-	%(K == Aid1) or (K == Aid2) ->
-    %channel_feeder:new_channel(Tx, Accounts);
-	%true -> ok
-    %end,
     {NewChannels, NewAccounts}.

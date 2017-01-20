@@ -69,6 +69,14 @@ doit({close_channel, IP, Port}) ->
     STx = keys:sign(Tx, Accounts),
     talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
     {ok, 0};
+doit({bet, "dice", Vars, IP, Port}) ->
+    {ok, Other} = talker:talk({id}, IP, Port),
+
+    SSPK = channel_feeder:absorb_bet(Other, dice, Vars),
+
+    SSPK2 = talker:talk({bet, "dice", SSPK, Vars}),
+    channel_feeder:bet(dice, SSPK2, Vars);
+    
 doit({add_peer, IP, Port}) ->
     peers:add(IP, Port);
 doit({sync, IP, Port}) ->

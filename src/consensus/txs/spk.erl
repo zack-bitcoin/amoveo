@@ -24,15 +24,15 @@ nonce(X) -> X#spk.nonce.
 
 
 new(Acc1, Acc2, CID, Bets, SG, TG, Delay, Nonce, Entropy) ->
-    %Entropy = channel_feeder:entropy(CID, [Acc1, Acc2]) + 1,
+    %Entropy = chnnel_feeder:entropy(CID, [Acc1, Acc2])+1,
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
 	 bets = Bets, space_gas = SG, time_gas = TG,
 	 delay = Delay, cid = CID, nonce = Nonce}.
     
-apply_bet(_Bet, _SPK) ->
+apply_bet(Bet, SPK) ->
 %bet is binary, the SPK portion of the script.
 %SPK is the old SPK, we output the new one.
-    ok.
+    SPK#spk{bets = [Bet|SPK#spk.bets]}.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
     Aid2 = SPK#spk.acc2,

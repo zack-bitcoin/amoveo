@@ -3,7 +3,8 @@
 	 write/2,get/2,delete/2,root_hash/1,
 	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
 	 last_modified/1, mode/1,entropy/1,
-	 nonce/1,delay/1, test/0]).
+	 nonce/1,delay/1,rent/1,rent_direction/1,
+	 test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
 -record(channel, {id = 0, %the unique id number that identifies this channel
@@ -32,6 +33,8 @@ mode(C) -> C#channel.mode.
 entropy(C) -> C#channel.entropy.
 nonce(C) -> C#channel.nonce.
 delay(C) -> C#channel.delay.
+rent(C) -> C#channel.rent.
+rent_direction(C) -> C#channel.rent_direction.
 
 
 update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Mode, Delay, Height) ->
@@ -48,7 +51,7 @@ update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Mode, Delay, Height) ->
     T1 = Channel#channel.last_modified,
     DH = Height - T1,
     Rent = constants:channel_rent() * DH,
-    RH = Rent div 2,
+    RH = Rent div 2,%everyone needs to pay the network for the cost of having a channel open.
     S = case Channel#channel.rent_direction of
 	0 -> -1;
 	1 -> 1
@@ -59,13 +62,17 @@ update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Mode, Delay, Height) ->
 	    end,
 			    
     CR = S * Channel#channel.rent,
-    Bal1 = Channel#channel.bal1 + Inc1 - RH + CR,
-    Bal2 = Channel#channel.bal2 + Inc2 - RH - CR,
-    true = Bal1 >= 0,
-    true = Bal2 >= 0,
+    Bal1a = Channel#channel.bal1 + Inc1 - RH + CR,
+    Bal2a = Channel#channel.bal2 + Inc2 - RH - CR,
+    Bal1b = max(Bal1a, 0),
+    Bal2b = max(Bal2a, 0),
+    Bal1c = min(Bal1b, Bal1a+Bal2a),
+    Bal2c = min(Bal2b, Bal1a+Bal2a),
+    %true = Bal1 >= 0,
+    %true = Bal2 >= 0,
     true = lists:any(fun(X) -> X==Mode end, [0,1,2]),
-    Channel#channel{bal1 = Bal1,
-		    bal2 = Bal2,
+    Channel#channel{bal1 = Bal1c,
+		    bal2 = Bal2c,
 		    nonce = NewNonce,
 		    rent = NewRent,
 		    rent_direction = NewRD,
@@ -75,14 +82,14 @@ update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Mode, Delay, Height) ->
 		   }.
     
 new(ID, Acc1, Acc2, Bal1, Bal2, Height, Entropy, Rent) ->
-    RS = if
-	     (Rent > 0) -> 0;
-	     true -> 1
-	 end,
+    D = if
+	Rent > 0 -> 1;
+	true -> 0
+    end,
     #channel{id = ID, acc1 = Acc1, acc2 = Acc2, 
 	     bal1 = Bal1, bal2 = Bal2, 
 	     last_modified = Height, entropy = Entropy,
-	     rent = abs(Rent), rent_direction = RS}.
+	     rent = abs(Rent), rent_direction = D}.
 serialize(C) ->
     ACC = constants:acc_bits(),
     BAL = constants:balance_bits(),

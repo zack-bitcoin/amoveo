@@ -13,10 +13,11 @@ test() ->
     S = test4(),
     S = test5(),
     S = test6(),
+    S = test7(),
     S.
 absorb(Tx) -> 
     tx_pool_feeder:absorb(Tx),
-    timer:sleep(100).
+    timer:sleep(400).
 test1() ->
     io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
@@ -180,7 +181,7 @@ test5() ->
     absorb(SStx2),
     {Accounts3, Channels, _, _} = tx_pool:data(),
     
-    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 1 int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
@@ -227,7 +228,7 @@ test6() ->
     absorb(SStx2),
     {Accounts3, Channels, _, _} = tx_pool:data(),
     
-    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 1 int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
@@ -242,9 +243,15 @@ test6() ->
     {Ctx4, _} = channel_slash_tx:make(2,Fee,SignedScriptPubKey,[ScriptSig2],Accounts4,Channels2),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv, ID2, Accounts4),
     %Stx4 = keys:sign(Ctx4, Accounts4),
+    io:fwrite("before absorb \n"),
     absorb(Stx4),
+    io:fwrite("after absorb \n"),
     {_, _, _, Txs} = tx_pool:data(),
 
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
+    success.
+
+test7() ->
+    %satoshi dice test
     success.
