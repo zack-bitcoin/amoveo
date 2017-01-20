@@ -207,9 +207,9 @@ get_bet2(dice, Loc, [Amount], SPK) ->
     %check that Amount is in a reasonable range based on the channel state.
     %we need my balance from channel:get, and from the Amount from the most recent spk they signed.
     CID = spk:cid(SPK),
+    {_Accounts,Channels,_,_} = tx_pool:data(),
     {_, OldChannel, _} = channel:get(CID),
     0 = channel:rent(OldChannel),%otherwise they could attack us by making a bet where the amount they could lose is slightly smaller.
-    {_Accounts,Channels,_,_} = tx_pool:data(),
     NewHeight = block:height(block:read(top:doit())),
     Channel = channel:update(CID, Channels, none, 0, 0,0,0, channel:delay(OldChannel), NewHeight),
     Bal1 = channel:bal1(Channel),
