@@ -200,6 +200,7 @@ depth_check2(SPK, C, OldC) ->
     end.
 
 get_bet(Name, [{Name, Loc}|_], Vars, SPK) ->
+    io:fwrite("get_bets"),
     get_bet2(Name, Loc, Vars, SPK);
 get_bet(Name, [_|T], Vars, SPK) -> get_bet(Name, T, Vars, SPK).
 get_bet2(dice, Loc, [Amount], SPK) ->

@@ -23,7 +23,7 @@ min_channel_ratio() ->
     %{f, 1, 2}.
 bets() -> %tuple list. {Name, BetFile}
     [
-     {"dice", "src/bets/dice.fs"}
+     {dice, "src/bets/dice.fs"}
     ].
 gas_limit() ->
     constants:gas_limit().
