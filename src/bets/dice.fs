@@ -8,16 +8,16 @@ macro reveal ( Reveal Commit -- bool )
 % If a secret is improperly revealed, the contract defaults to case 0. a draw.
   
 
-macro Secret1 int 1 hash ;
-macro Secret2 int 2 hash ;
+% macro Commit1 int 1 hash ;
+% macro Commit2 int 2 hash ;
 
 macro Win1 int 0 Amount ; 
 macro Win2 int 1 Amount ; 
 
-macro player1revealed Secret1 reveal drop int 2 Win1 ;
-macro player2revealed Secret2 reveal drop int 2 Win2 ;
-: bothRevealed Secret2 reveal swap
-          Secret1 reveal bxor int 2 rem
+macro player1revealed Commit1 reveal drop int 2 Win1 ;
+macro player2revealed Commit2 reveal drop int 2 Win2 ;
+: bothRevealed Commit2 reveal swap
+          Commit1 reveal bxor int 2 rem
 	  int 3 swap
 	  if Win1 else Win2 then ;
 

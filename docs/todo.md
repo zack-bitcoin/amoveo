@@ -1,9 +1,5 @@
-right now channels are charging rent in channel.erl, but not when we close the channel.
-We need to update the channel before closing it.
-
-If one of the channel participants runs out of money, then the channel can't ever be closed.
-Instead, the person with negative money should have zero money, and the person with extra money shouldn't have extra.
-
+satoshi dice needs one more hop to be set up, and 2 more variables. Each user needs to choose a secret and commit.
+satoshi dice should automatically reveal the secrets and say the result as soon as possible.
 
 
 channel_test.sh needs work.
@@ -39,6 +35,8 @@ Newly mined coins should not be spendable until they mature. Bitcoin waits 100 b
 proof of existence transaction type.
 
 each tx with a fee needs a to reference a recent hash. Everyone needs to be incentivized to make the hash as recent as possible.
+
+blocks should have headers.
 
 blocks should point to the previous header, not the previous block.
 

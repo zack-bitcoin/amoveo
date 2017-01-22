@@ -101,11 +101,11 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
+
 handle_call({bet, Name, SSPK, Vars}, _From, X) ->
 %doing one of the bets that we offer.
-    io:fwrite("SSPK is "),
-    io:fwrite(packer:pack(SSPK)),
-    io:fwrite("\n"),
+    {Accounts, _,_,_} = tx_pool:data(),
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
@@ -206,7 +206,7 @@ get_bet(Name, [{Name, Loc}|_], Vars, SPK) ->
     io:fwrite("get_bets"),
     get_bet2(Name, Loc, Vars, SPK);
 get_bet(Name, [_|T], Vars, SPK) -> get_bet(Name, T, Vars, SPK).
-get_bet2(dice, Loc, [Amount], SPK) ->
+get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
     %check that Amount is in a reasonable range based on the channel state.
     %we need my balance from channel:get, and from the Amount from the most recent spk they signed.
     CID = spk:cid(SPK),
@@ -220,11 +220,15 @@ get_bet2(dice, Loc, [Amount], SPK) ->
     A = spk:amount(SPK),
     true = (Bal1-A) >= Amount, 
     true = (Bal2+A) >= Amount,  %This checks that neither of us can have negative amounts of money.
-    Front = "macro Amount int " ++ integer_to_list(Amount) ++ " ; \n",
+    Front = "macro Amount int " ++ integer_to_list(Amount) ++ " ; \n
+             macro Commit1 " ++ base64:encode(Commit1) ++ " ; \n
+             macro Commit2 " ++ base64:encode(Commit2) ++ " ; \n
+",
     io:fwrite("Loc is "), 
     io:fwrite(Loc),
     io:fwrite("\n"),
     Bet = compile:doit(Loc, Front),
+    [] = spk:bets(SPK),%for now we only make 1 bet per customer at a time, otherwise it would be possible for a customer to make us check their complicated script over and over on each bet, to see if it can close any of them.
     spk:apply_bet(Bet, SPK).
     
 other(SPK) when element(1, SPK) == spk ->

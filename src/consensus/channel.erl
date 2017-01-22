@@ -19,7 +19,7 @@
 		  rent_direction = 0,%0 or 1
 % we can set timeout_height to 0 to signify that we aren't in timeout mode. So we don't need the timeout flag.
 		  mode = 0,%0 means an active channel where money can be spent. 1 means that the channel is being closed by acc1. 2 means that the channel is being closed by acc2.
-		  entropy = 0, %If the biggest account pairs will make N channels together, then entropy needs to be 2*log(N) bits long.
+		  entropy = 0, %This is a nonce so that old channel contracts can't be reused, even if you make a new channel with the same partner you previously had a channel with.
 		  delay = 0%this is how long you have to wait since "last_modified" to do a channel_timeout_tx.
 		  }%
        ).

@@ -69,14 +69,22 @@ doit({close_channel, IP, Port}) ->
     STx = keys:sign(Tx, Accounts),
     talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
     {ok, 0};
-doit({channel_bet, "dice", Vars, IP, Port}) ->
+doit({channel_bet, "dice", Amount, IP, Port}) ->
     {ok, Other} = talker:talk({id}, IP, Port),
-
-    SSPK = channel_feeder:absorb_bet(Other, dice, Vars),
-    SSPK2 = talker:talk({bet, "dice", SSPK, Vars}, IP, Port),
-    io:fwrite(packer:pack(SSPK2));
-    %io:fwrite("channel bet here"),
-    %channel_feeder:bet(dice, SSPK2, Vars);
+    Secret = crypto:strong_rand_bytes(12),
+    Commit = hash:doit(Secret),
+    {ok, SSPK, OtherCommit} = talker:talk({dice, 1, keys:id(), Commit, Amount}),
+    %CheckSSPK = channel_feeder:absorb_bet(Other, dice, [Amount, Commit, OtherCommit]), %verify that otherCommit is in SSPK
+    %SPK = testnet_sign:data(SSPK),
+    %SPK = testnet_sign:data(CheckSSPK),
+    SSPK2 = channel_feeder:bet(dice, SSPK, [Amount, Commit, OtherCommit]),
+    MyID = keys:id(),
+    {ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, Secret, OtherCommit}), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
+    Front = " int " ++ Secret ++ " int " ++ TheirSecret ++ " ",
+    SSPK2simple = channel_feeder:simplify(Other, testnet_sign:data(SSPK), Front),
+    %load SSPKsimple into channel_manager.
+    1=2,
+    talker:talk({dice, 3, MyID, SSPK2simple});
     
 doit({add_peer, IP, Port}) ->
     peers:add(IP, Port);
@@ -127,7 +135,9 @@ doit({channel_spend, IP, Port, Amount}) ->
     OldSPK = testnet_sign:data(channel_feeder:them(CD)),
     ID = keys:id(),
     {Accounts, _,_,_} = tx_pool:data(),
-    Payment = keys:sign(spk:get_paid(OldSPK, ID, -Amount), Accounts),
+    SPK = spk:get_paid(OldSPK, ID, -Amount), 
+    Payment = keys:sign(SPK, Accounts),
+    channel_manager:update_me(SPK),
     M = {channel_payment, Payment, Amount},
     {ok, Response} = talker:talk(M, IP, Port),
     %maybe verify the signature of Response here?
@@ -164,20 +174,6 @@ doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}) ->
     peers:set_cid(IP, Port, CID),
     channel_feeder:new_channel(Tx, S2SPK, Accounts),
     {ok, ok};
-doit({lightning_spend, IP, Port, Partner, Amount}) ->
-    {ok, PeerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(PeerId)),
-    SecretHash = secrets:new(),
-    Payment = channel_manager:new_hashlock(PeerId, Amount, SecretHash),
-    Bet = channel_block_tx:bet_code(hd(channel_block_tx:bets(testnet_sign:data(Payment)))),
-    BetHash = hash:doit(Bet),
-    channel_partner:store(ChId, Payment),
-    Acc = block_tree:account(Partner),
-    Secret = secrets:read(SecretHash),
-    Msg = encryption:send_msg({secret, Secret}, accounts:pub(Acc)),
-    {ok, SignedCh} = talker:talk({locked_payment, keys:id(), Partner, Payment, Amount, SecretHash, BetHash, Msg}, IP, Port),
-    channel_manager_feeder:spend_locked_payment(ChId, SignedCh, Amount, SecretHash),
-    {ok, SecretHash};
 doit({channel_keys}) -> {ok, channel_manager:keys()};
 doit({block_tree_account, Id}) -> {ok, block_tree:account(Id)};
 doit({halt}) -> {ok, testnet_sup:stop()};

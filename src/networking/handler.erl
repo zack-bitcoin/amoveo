@@ -121,6 +121,29 @@ doit({channel_simplify, SS, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
+doit({dice, 1, ID, Commit, Amount}) ->
+    X = crypto:strong_rand_bytes(12),
+    MyCommit = hash:doit(X),
+    1=2,
+    %We need to store mycommit somewhere, so we can be sure to win the bet.
+    secrets:store(MyCommit, X),
+    SSPK = channel_feeder:absorb_bet(ID, dice, [Amount, Commit, MyCommit]),
+    SPK = testnet_sign:data(SSPK),
+    channel_manager:update_me(SPK),
+    %if they try closing the channel at this point, we may need to extract their SSPK from their tx, and use it to make a new tx where we win the bet.
+    1=2,
+    {ok, SSPK};
+doit({dice, 2, ID, SSPK, Secret, OtherCommit}) ->
+    MySecret = secrets:fetch(OtherCommit),
+    SPK = channel_manager:me(channel_manager:read(ID)),
+    SPK = estnet_sign:data(SSPK),
+    Front = " int " ++ Secret ++ " int " ++ MySecret ++ " ",
+    SSPKsimple = channel_feeder:simplify(ID, SPK, Front),
+    {ok, SSPKsimple, MySecret};
+doit({dice, 3, ID, SSPK}) ->
+    channel_feeder:update(ID, SSPK),
+    {ok, 0};
+    
 doit({bet, "dice", SSPK, [Amount]}) ->
     Return = channel_feeder:bet(dice, SSPK, [Amount]),
     {ok, Return};
