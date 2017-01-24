@@ -86,26 +86,6 @@ doit({new_pubkey, Password}) ->
     keys:new(Password);
 doit({test}) -> 
     {test_response};
-doit({get_msg, IP, Port}) ->
-    {ok, ServerId} = talker:talk({id}, IP, Port),
-    Out= case talker:talk({pop_hashes, keys:id()}, IP, Port) of
-	     {ok, <<"empty">>} -> <<"no messages">>;
-	     {ok, T} -> absorb_msgs(T, IP, Port, ServerId)
-	 end,
-    {ok, Out};
-doit({read_msg, Id, Index}) -> {ok, inbox:read(Id, Index)};
-doit({msg_ids, Id}) -> {ok, inbox:msg_ids(Id)};
-doit({msg_peers}) -> {ok, inbox:peers()};
-doit({msg_delete, Id, Index}) -> {ok, inbox:delete(Id, Index)};
-doit({msg_delete, Id}) -> {ok, inbox:delete(Id)};
-doit({register, IP, Port}) ->
-    {ok, PeerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(PeerId)), 
-    {ok, Amount} = talker:talk({register_cost}, IP, Port),
-    Payment = channel_manager_feeder:spend(ChId, Amount),
-    Msg = {register, Payment, keys:id()},
-    talker:talk(Msg, IP, Port),
-    {ok, ok};
 doit({channel_spend, IP, Port, Amount}) ->
     {ok, PeerId} = talker:talk({id}, IP, Port),
     %CID = peers:cid(peers:read(IP, Port)),
@@ -156,20 +136,6 @@ doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}) ->
     peers:set_cid(IP, Port, CID),
     channel_feeder:new_channel(Tx, S2SPK, Accounts),
     {ok, ok};
-doit({lightning_spend, IP, Port, Partner, Amount}) ->
-    {ok, PeerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(PeerId)),
-    SecretHash = secrets:new(),
-    Payment = channel_manager:new_hashlock(PeerId, Amount, SecretHash),
-    Bet = channel_block_tx:bet_code(hd(channel_block_tx:bets(testnet_sign:data(Payment)))),
-    BetHash = hash:doit(Bet),
-    channel_partner:store(ChId, Payment),
-    Acc = block_tree:account(Partner),
-    Secret = secrets:read(SecretHash),
-    Msg = encryption:send_msg({secret, Secret}, accounts:pub(Acc)),
-    {ok, SignedCh} = talker:talk({locked_payment, keys:id(), Partner, Payment, Amount, SecretHash, BetHash, Msg}, IP, Port),
-    channel_manager_feeder:spend_locked_payment(ChId, SignedCh, Amount, SecretHash),
-    {ok, SecretHash};
 doit({channel_keys}) -> {ok, channel_manager:keys()};
 doit({block_tree_account, Id}) -> {ok, block_tree:account(Id)};
 doit({halt}) -> {ok, testnet_sup:stop()};
@@ -197,38 +163,3 @@ doit(X) ->
     io:fwrite(packer:pack(X)),
     io:fwrite("\n"),
     {error}.
-got_secret(Secret, IP, Port) ->
-    {ok, PeerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(PeerId)), 
-    UH = channel_manager_feeder:create_unlock_hash(ChId, Secret),
-    channel_partner:store(ChId, UH),
-    {ok, NewCh} = talker:talk({unlock, ChId, Secret, UH}, IP, Port),
-    channel_manager_feeder:unlock_hash(ChId, Secret, NewCh).
-absorb_msgs([], _, _, _) -> ok;
-absorb_msgs([H|T], IP, Port, ServerId) -> 
-    case talker:talk({pop, keys:id(), H}, IP, Port) of
-	{ok, {unlock, Payment}} ->
-	    {unlock, Payment2, ChId, Secret} = Payment,
-	    Return = channel_manager_feeder:unlock_hash(ChId, Secret, Payment2),
-	    channel_partner:store(ChId, Return),
-	    talker:talk({unlock2, Return, ChId, Secret}, IP, Port);
-	{ok, {locked_payment, Payment}} ->
-	    {locked_payment, P, ChIdFrom, Amount, SecretHash, BetHash, Emsg} = Payment,
-	    Return = channel_manager_feeder:recieve_locked_payment(ChIdFrom, P, Amount, SecretHash),
-	    channel_partner:store(ChIdFrom, Return),
-	    talker:talk({locked_payment2, Return, Amount, SecretHash, BetHash}, IP, Port),
-	    M = encryption:get_msg(Emsg),
-	    {secret, Secret} = encryption:msg(M),
-	    got_secret(Secret, IP, Port);
-	{ok, {pop_response, EMsg, Refund}} ->
-	    NewCh = channel_manager_feeder:recieve(hd(channel_manager:id(ServerId)), 0, Refund),
-	    ChId = hd(channel_manager:id(ServerId)),
-	    channel_partner:store(ChId, NewCh),
-	    talker:talk({update_channel, Refund, NewCh}, IP, Port),
-	    inbox:get(EMsg);
-	X -> 
-	    io:fwrite("internal handler get msg bad "),
-	    io:fwrite(packer:pack(X)),
-	    io:fwrite("\n")
-    end,
-    absorb_msgs(T, IP, Port, ServerId).
