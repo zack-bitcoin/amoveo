@@ -12,7 +12,7 @@ There is a problem where if you crash while syncing with a peer, then you skip t
 
 block:check2 needs an update. It should only accept blocks that were made after the median of the last 100 blocks
 
-make the api networking/handler be entirely encrypted. This is to protect information about the channels.
+make the api networking/handler be entirely encrypted. This is to protect information about the channels. https://github.com/BumblebeeBat/pink_crypto/blob/master/src/encryption.erl
 
 
 we need a channel powered satoshi dice for gambling. look at channel_test.sh
@@ -23,6 +23,8 @@ download_blocks could be more efficient.
 
 
 maybe nodes need to advertise their own IP/port combo as a peer?
+
+
 
 
 

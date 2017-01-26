@@ -53,7 +53,9 @@ run(SS, SPK, Height, Slash, Accounts, Channels) ->
 		    constants:fun_limit(),
 		    constants:var_limit(),
 		    State),
-    {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce}.
-   
+    true = NewNonce < 1000,
+    {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce)}.
+%Calculating the nonce needs to be thought out deeper.
+%We want to be able to know that a new channel_state can only have higher nonces, without having to calculate every possible outcome of the script.
  
     

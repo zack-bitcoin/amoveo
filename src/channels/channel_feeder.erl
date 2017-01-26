@@ -90,8 +90,6 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     {Accounts, _,_,_} = tx_pool:data(),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
-    %both = depth_check(SPK), 
-    %CID = spk:cid(SPK), 
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
@@ -114,7 +112,37 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
+handle_call({simplify, Other, SSPK, SS}, _From, X) ->
+    {Accounts, _,_,_} = tx_pool:data(),
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
+    SPK = testnet_sign:data(SSPK),
+    Other = other(SPK),
+    SSPK2 = simplify_internal(Other, SPK, SS),
+    SPK = testnet_sign:data(SSPK2),
+    1=2,
+    %load SSPK into channel manager
+    {ok, OldCD} = channel_manager:read(Other),
+    NewCD = OldCD#cd{them = SSPK, me = SSPK2},
+    channel_manager:write(Other, NewCD),
+    {reply, keys:sign(SPK), X};
+handle_call({update_to_me, ID, SSPK}, _From, X) ->
+    SPK = testnet_sign:data(SSPK),
+    SPK = channel_manager:me(channel_manager:read(ID)),
+    {Accounts, _,_,_} = tx_pool:data(),
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
+    OldCD = channel_manager:read(ID),
+    OldSPK = OldCD#cd.them,
+    OldNonce = spk:nonce(OldSPK),
+    NewNonce = spk:nonce(SPK),
+    true = NewNonce > OldNonce,
+    
+    %If I have already agreed to a state SPK, And SPK is higher-nonced than the highest nonce that my partner agreed to so far, then I should store my partner's signature over SPK as the new highest nonced state.
+%I don't have to check 
+    SPK = 0,
+    {reply, SPK, X};
 handle_call(_, _From, X) -> {reply, X, X}.
+simplify_internal(_,_,_) ->
+    ok.
 
 absorb_bet(Other, Name, Vars) ->
     {ok, OldCD} = channel_manager:read(Other),

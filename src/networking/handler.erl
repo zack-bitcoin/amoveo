@@ -38,41 +38,19 @@ doit({peers}) ->
 doit({peers, Peers}) ->
     peers:add(Peers),
     {ok, 0};
-%doit({tx_absorb, Tx}) -> 
-%    {ok, tx_pool_feeder:absorb(Tx)};
 doit({txs}) -> 
     {_,_,_,Txs} = tx_pool:data(),
     {ok, Txs};
 doit({txs, Txs}) -> 
     download_blocks:absorb_txs(Txs),
     {ok, 0};
-
-
 doit({id}) -> {ok, keys:id()};
-
-%doit({balance, ID}) ->
-%    {ok, accounts:balance(block_tree:account(ID))};
 doit({top}) -> 
     Top = block:pow_block(block:read(top:doit())),
     Height = block:height(Top),
-    %TopHash = block:hash(Top),
     {ok, Top, Height};
-
-%doit({create_account, Pub, Amount, Fee}) -> 
-%    {ok, create_account_tx:create_account(Pub, Amount, Fee)};
-%doit({spend, To, Amount, Fee}) ->
-%    spend_tx:spend(To, Amount, Fee);
-%doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
-%    to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee);
-%doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
-%    {ok, ServerId} = talker:talk({id}, IP, Port),
-%    ChId = hd(channel_manager:id(ServerId)),
-%    to_channel_tx:to_channel(ChId, Inc1, Inc2, Fee);
-%doit({close_channel, ChId, Amount, Nonce, Fee}) ->
-%    channel_block_tx:close_channel(ChId, Amount, Nonce, Fee);
 doit({test}) -> 
     {test_response};
-%doit({account, Id}) -> {ok, account:read(Id)};
 doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
 doit({new_channel, STx, SSPK}) ->
@@ -122,31 +100,33 @@ doit({channel_simplify, SS, SSPK}) ->
 doit({bets}) ->
     free_variables:bets();
 doit({dice, 1, ID, Commit, Amount}) ->
-    X = crypto:strong_rand_bytes(12),
-    MyCommit = hash:doit(X),
-    1=2,
-    %We need to store mycommit somewhere, so we can be sure to win the bet.
-    secrets:store(MyCommit, X),
+    {MyCommit, _} = secrets:new(),
     SSPK = channel_feeder:absorb_bet(ID, dice, [Amount, Commit, MyCommit]),
     SPK = testnet_sign:data(SSPK),
     channel_manager:update_me(SPK),
     %if they try closing the channel at this point, we may need to extract their SSPK from their tx, and use it to make a new tx where we win the bet.
-    1=2,
-    {ok, SSPK};
-doit({dice, 2, ID, SSPK, Secret, OtherCommit}) ->
-    MySecret = secrets:fetch(OtherCommit),
-    SPK = channel_manager:me(channel_manager:read(ID)),
-    SPK = estnet_sign:data(SSPK),
+    %If they don't close the channel, eventually we will have to do a solo close to get our money out.
+    %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
+    SPK = 0,
+    {ok, SSPK, MyCommit};
+doit({dice, 2, ID, SSPK, Secret}) ->
+    channel_feeder:update_to_me(ID, SSPK),
+    %MySecret = secrets:fetch(OtherCommit),
+    MySecret = ok,
+    MySecret = 0,
+    %look up mySecret from channel_manager
+    SPK = testnet_sign:data(SSPK),
     Front = " int " ++ Secret ++ " int " ++ MySecret ++ " ",
-    SSPKsimple = channel_feeder:simplify(ID, SPK, Front),
+    SSPKsimple = channel_feeder:simplify_me(ID, SPK, chalang_compiler:doit(Front)),%update me can be inside this
+    %channel_manager:update_me(testnet_sign:data(SSPKsimple)),
     {ok, SSPKsimple, MySecret};
 doit({dice, 3, ID, SSPK}) ->
-    channel_feeder:update(ID, SSPK),
+    channel_feeder:update_to_me(ID, SSPK),
     {ok, 0};
     
-doit({bet, "dice", SSPK, [Amount]}) ->
-    Return = channel_feeder:bet(dice, SSPK, [Amount]),
-    {ok, Return};
+%doit({bet, "dice", SSPK, [Amount]}) ->
+%    Return = channel_feeder:bet(dice, SSPK, [Amount]),
+%    {ok, Return};
 %doit({bet, Name, SPK}) ->
 %    channel_feeder:bet(Name, SPK),
 %    {ok, ok};

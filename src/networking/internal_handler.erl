@@ -1,6 +1,6 @@
 -module(internal_handler).
 
--export([init/3, handle/2, terminate/3, doit/1, got_secret/3]).
+-export([init/3, handle/2, terminate/3, doit/1]).
 %example of talking to this handler:
 %httpc:request(post, {"http://127.0.0.1:3011/", [], "application/octet-stream", packer:pack({pubkey})}, [], []).
 %curl -i -d '[-6,"test"]' http://localhost:3011
@@ -34,35 +34,17 @@ doit({create_account, Address, Amount, ID}) ->
     {ok, ok};
 doit({spend, To, Amount}) ->
     easy:spend(To, Amount),
-    %tx_pool_feeder:absorb(keys:sign(spend_tx:spend(To, Amount, Fee)));
     {ok, ok};
 doit({mine_block, Many, Times}) -> 
-    %{_,_,_,Txs} = tx_pool:data(),
     block:mine_blocks(Many, Times);
-    %Block = block:make(top:doit(), Txs, keys:id()),
-    %PowBlock = block:mine(Block, 10000000),
-    %block_absorber:doit(PowBlock);
-%doit({create_channel, Partner, Bal1, Bal2, Type, Fee}) ->
-%    keys:sign(to_channel_tx:create_channel(Partner, Bal1, Bal2, Type, Fee));
-%doit({to_channel, IP, Port, Inc1, Inc2, Fee}) ->
-%    {ok, ServerId} = talker:talk({id}, IP, Port),
-%    ChId = hd(channel_manager:id(ServerId)),
-%    SignedTx = keys:sign(to_channel_tx:to_channel(ChId, Inc1, Inc2, Fee)),
-%    talker:talk({to_channel, SignedTx}, IP, Port);
-%doit({close_channel, ChId, Amount, Nonce, Fee}) ->
-    %keys:sign(channel_block_tx:close_channel(ChId, Amount, Nonce, Fee));
 doit({close_channel, IP, Port}) ->
     {ok, PeerId} = talker:talk({id}, IP, Port),
-    %find Amount from channel manager.
     {ok, CD} = channel_manager:read(PeerId),
     SPK = testnet_sign:data(channel_feeder:them(CD)),
     {Accounts,Channels,_,_} = tx_pool:data(),
     Height = block:height(block:read(top:doit())),
     SS = channel_feeder:script_sig(CD),
     {Amount, _} = spk:run(SS, SPK, Height, 0, Accounts, Channels),
-    %state = new_state(),
-    %{BetAmount, _,_,_} = chalang:run(SS, spk:bets(SPK), spk:time_gas(SPK), spk:space_gas(SPK), constants:fun_limit(), constants:var_limit(), State),
-    %Amount = spk:amount(SPK) + BetAmount,
     CID = spk:cid(SPK),
     Fee = free_constants:tx_fee(),
     {Tx, _} = channel_team_close_tx:make(CID, Accounts, Channels, Amount, Fee),
@@ -71,19 +53,15 @@ doit({close_channel, IP, Port}) ->
     {ok, 0};
 doit({channel_bet, "dice", Amount, IP, Port}) ->
     {ok, Other} = talker:talk({id}, IP, Port),
-    Secret = crypto:strong_rand_bytes(12),
-    Commit = hash:doit(Secret),
+    {Commit, Secret} = secrets:new(),
+    %Secret = crypto:strong_rand_bytes(12),
+    %Commit = hash:doit(Secret),
     {ok, SSPK, OtherCommit} = talker:talk({dice, 1, keys:id(), Commit, Amount}),
-    %CheckSSPK = channel_feeder:absorb_bet(Other, dice, [Amount, Commit, OtherCommit]), %verify that otherCommit is in SSPK
-    %SPK = testnet_sign:data(SSPK),
-    %SPK = testnet_sign:data(CheckSSPK),
-    SSPK2 = channel_feeder:bet(dice, SSPK, [Amount, Commit, OtherCommit]),
+    SSPK2 = channel_feeder:bet(dice, SSPK, [Amount, Commit, OtherCommit]),%If our partner doesn't respond to this message or the next one, then we need to watch for them to close the channel, and keep our Secret ready so we can stop them from taking our money.
     MyID = keys:id(),
     {ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, Secret, OtherCommit}), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
-    Front = " int " ++ Secret ++ " int " ++ TheirSecret ++ " ",
-    SSPK2simple = channel_feeder:simplify(Other, testnet_sign:data(SSPK), Front),
-    %load SSPKsimple into channel_manager.
-    1=2,
+    SS = " int " ++Secret ++ " int " ++ TheirSecret ++ " ",
+    SSPK2simple = channel_feeder:simplify_both(Other, SSPKsimple, chalang_compiler:doit(SS)),%does simplify internal, and updates both our data in the channel manager
     talker:talk({dice, 3, MyID, SSPK2simple});
     
 doit({add_peer, IP, Port}) ->
@@ -105,26 +83,6 @@ doit({new_pubkey, Password}) ->
     keys:new(Password);
 doit({test}) -> 
     {test_response};
-doit({get_msg, IP, Port}) ->
-    {ok, ServerId} = talker:talk({id}, IP, Port),
-    Out= case talker:talk({pop_hashes, keys:id()}, IP, Port) of
-	     {ok, <<"empty">>} -> <<"no messages">>;
-	     {ok, T} -> absorb_msgs(T, IP, Port, ServerId)
-	 end,
-    {ok, Out};
-doit({read_msg, Id, Index}) -> {ok, inbox:read(Id, Index)};
-doit({msg_ids, Id}) -> {ok, inbox:msg_ids(Id)};
-doit({msg_peers}) -> {ok, inbox:peers()};
-doit({msg_delete, Id, Index}) -> {ok, inbox:delete(Id, Index)};
-doit({msg_delete, Id}) -> {ok, inbox:delete(Id)};
-doit({register, IP, Port}) ->
-    {ok, PeerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(PeerId)), 
-    {ok, Amount} = talker:talk({register_cost}, IP, Port),
-    Payment = channel_manager_feeder:spend(ChId, Amount),
-    Msg = {register, Payment, keys:id()},
-    talker:talk(Msg, IP, Port),
-    {ok, ok};
 doit({channel_spend, IP, Port, Amount}) ->
     {ok, PeerId} = talker:talk({id}, IP, Port),
     %CID = peers:cid(peers:read(IP, Port)),
@@ -144,19 +102,6 @@ doit({channel_spend, IP, Port, Amount}) ->
     channel_feeder:spend(Response, -Amount),
     {ok, ok};
     
-%doit({send_msg, IP, Port, To, M, Seconds}) ->
-%    Acc = block_tree:account(To),
-%%    Pub = accounts:pub(Acc),
-%    Msg = encryption:send_msg(M, Pub),
-%    {ok, Amount} = talker:talk({mail_cost, size(Msg), Seconds}),
-%    {ok, PeerId} = talker:talk({id}, IP, Port),
-%    ChId = hd(channel_manager:id(PeerId)), 
-%    Payment = channel_manager_feeder:spend(ChId, Amount),
-%    Foo = {send, Payment, keys:id(), To, Msg, Seconds},
-%    {ok, Response} = talker:talk(Foo, IP, Port),
-%    channel_manager_feeder:recieve(ChId, -Amount, Response),
-%    inbox:get_helper(To, M),
-%    {ok, ok};
 doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}) ->
     %make sure we don't already have a channel with this peer.
     undefined = peers:cid(peers:read(IP, Port)),
@@ -185,54 +130,9 @@ doit({keys_id_update, ID}) ->
 doit({key_new, Password}) -> 
     keys:new(Password),
     {ok, 0};
-%doit({make_channel, IP, Port, MyBal, OtherBal, Rent, Fee, CID}) ->
-    %CID = channel:empty_id(),
-%{Accounts, _,_,_} = tx_pool:data(),
-%{ok, Acc2} = talker:talk({id}, IP, Port),
-%    ID = keys:id(),
-%    Entropy = channel_feeder:entropy(CID, [ID, Acc2]) + 1,
-%    {Tx, _} = new_channel_tx:make(CID, Accounts, keys:id(), Acc2, MyBal, OtherBal, Rent, Entropy, Fee),
-%    STx = keys:sign(Tx, Accounts),
-%    talker:talk({new_channel, STx}, IP, Port),
-%    {ok, 0};
-    
+
 doit(X) ->
     io:fwrite("don't know how to handle it \n"),
     io:fwrite(packer:pack(X)),
     io:fwrite("\n"),
     {error}.
-got_secret(Secret, IP, Port) ->
-    {ok, PeerId} = talker:talk({id}, IP, Port),
-    ChId = hd(channel_manager:id(PeerId)), 
-    UH = channel_manager_feeder:create_unlock_hash(ChId, Secret),
-    channel_partner:store(ChId, UH),
-    {ok, NewCh} = talker:talk({unlock, ChId, Secret, UH}, IP, Port),
-    channel_manager_feeder:unlock_hash(ChId, Secret, NewCh).
-absorb_msgs([], _, _, _) -> ok;
-absorb_msgs([H|T], IP, Port, ServerId) -> 
-    case talker:talk({pop, keys:id(), H}, IP, Port) of
-	{ok, {unlock, Payment}} ->
-	    {unlock, Payment2, ChId, Secret} = Payment,
-	    Return = channel_manager_feeder:unlock_hash(ChId, Secret, Payment2),
-	    channel_partner:store(ChId, Return),
-	    talker:talk({unlock2, Return, ChId, Secret}, IP, Port);
-	{ok, {locked_payment, Payment}} ->
-	    {locked_payment, P, ChIdFrom, Amount, SecretHash, BetHash, Emsg} = Payment,
-	    Return = channel_manager_feeder:recieve_locked_payment(ChIdFrom, P, Amount, SecretHash),
-	    channel_partner:store(ChIdFrom, Return),
-	    talker:talk({locked_payment2, Return, Amount, SecretHash, BetHash}, IP, Port),
-	    M = encryption:get_msg(Emsg),
-	    {secret, Secret} = encryption:msg(M),
-	    got_secret(Secret, IP, Port);
-	{ok, {pop_response, EMsg, Refund}} ->
-	    NewCh = channel_manager_feeder:recieve(hd(channel_manager:id(ServerId)), 0, Refund),
-	    ChId = hd(channel_manager:id(ServerId)),
-	    channel_partner:store(ChId, NewCh),
-	    talker:talk({update_channel, Refund, NewCh}, IP, Port),
-	    inbox:get(EMsg);
-	X -> 
-	    io:fwrite("internal handler get msg bad "),
-	    io:fwrite(packer:pack(X)),
-	    io:fwrite("\n")
-    end,
-    absorb_msgs(T, IP, Port, ServerId).

@@ -4,7 +4,7 @@ macro Draw int 1 int 0 int 0 crash ;
 : or_die not if Draw else then ;
 
 macro reveal ( Reveal Commit -- bool )
-  swap dup tuck hash = or_die call drop drop ;
+  swap dup tuck hash == or_die call drop drop ;
 % If a secret is improperly revealed, the contract defaults to case 0. a draw.
   
 

@@ -12,7 +12,7 @@ sync_cron(N) -> %30000 is 30 second.
     sync_cron(N).
 
 rank_filter(P) ->
-    %probabilistically remove the higher-ranked peers,
+    %probabilistically select a peer. prefer lower ranked pers.
     P.
     
     
