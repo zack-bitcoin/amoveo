@@ -3,7 +3,7 @@
 	 bets/1,space_gas/1,time_gas/1,
 	 new/9,delay/1,cid/1,amount/1, 
 	 nonce/1,apply_bet/2,get_paid/3,
-	 run/6]).
+	 run/7]).
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
 	      delay, cid, amount = 0, nonce = 0}).
@@ -43,19 +43,31 @@ get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going
     end,
     SPK#spk{amount = (SPK#spk.amount + (D*Amount))}.
 	    
-run(SS, SPK, Height, Slash, Accounts, Channels) ->
+run(Mode, SS, SPK, Height, Slash, Accounts, Channels) ->
     State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
-    {Amount, NewNonce, _, _} = 
-	chalang:run(SS, 
-		    SPK#spk.bets,
-		    SPK#spk.time_gas,
-		    SPK#spk.space_gas,
-		    constants:fun_limit(),
-		    constants:var_limit(),
-		    State),
+    {Amount, NewNonce, _, _} = run2(Mode, SS, SPK, State),
     true = NewNonce < 1000,
     {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce)}.
-%Calculating the nonce needs to be thought out deeper.
-%We want to be able to know that a new channel_state can only have higher nonces, without having to calculate every possible outcome of the script.
- 
-    
+run2(fast, SS, SPK, State) -> 
+    chalang:run(SS, SPK#spk.bets,
+      SPK#spk.time_gas,
+      SPK#spk.space_gas,
+      constants:fun_limit(),
+      constants:var_limit(),
+      State).
+run2(safe, SS, SPK, State) -> 
+    S = self(),
+    spawn(fun() ->
+		  X = run(fast, SS, SPK, State),
+		  S ! X,
+	  end,
+	  end)
+    spawn(fun() ->
+		  timer:sleep(5000),%wait enough time for the chalang contracts to finish
+		  S ! {-1,-1,-1,-1}
+	  end),
+    receive 
+	Z -> Z
+    end.
+	    
+	

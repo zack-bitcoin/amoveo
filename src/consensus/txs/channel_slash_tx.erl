@@ -43,7 +43,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
 	      Acc2 -> {1, 0, Fee, none, Nonce};
 	      _ -> Acc1
 	  end,
-    {Amount, NewCNonce} = spk:run(Tx#cs.scriptsig, SPK, NewHeight, 1, Accounts, Channels),
+    {Amount, NewCNonce} = spk:run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Accounts, Channels),
     true = NewCNonce > channel:nonce(Channel),
     %delete the channel. empty the channel into the accounts.
     NewChannels = channel:delete(CID, Channels),

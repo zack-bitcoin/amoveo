@@ -51,17 +51,17 @@ doit({close_channel, IP, Port}) ->
     STx = keys:sign(Tx, Accounts),
     talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
     {ok, 0};
-doit({channel_bet, "dice", Amount, IP, Port}) ->
+doit({dice, Amount, IP, Port}) ->
     {ok, Other} = talker:talk({id}, IP, Port),
     {Commit, Secret} = secrets:new(),
-    %Secret = crypto:strong_rand_bytes(12),
-    %Commit = hash:doit(Secret),
     {ok, SSPK, OtherCommit} = talker:talk({dice, 1, keys:id(), Commit, Amount}),
-    SSPK2 = channel_feeder:bet(dice, SSPK, [Amount, Commit, OtherCommit]),%If our partner doesn't respond to this message or the next one, then we need to watch for them to close the channel, and keep our Secret ready so we can stop them from taking our money.
+    %If I am acc1, then N is 1. if I am acc2, then N is 2.
+    SSme = chalang_compiler:doit("binary 12 " ++ Secret ++ " int " ++ integer_to_list(N) + " "),
+    SSPK2 = channel_feeder:bet(dice, SSPK, [Amount, Commit, OtherCommit], SSme),
     MyID = keys:id(),
     {ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, Secret, OtherCommit}), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
-    SS = " int " ++Secret ++ " int " ++ TheirSecret ++ " ",
-    SSPK2simple = channel_feeder:simplify_both(Other, SSPKsimple, chalang_compiler:doit(SS)),%does simplify internal, and updates both our data in the channel manager
+    SS = " binary 12 " ++Secret ++ " binary 12 " ++ TheirSecret ++ " int 3 ",
+    SSPK2simple = channel_feeder:simplify_both(Other, SSPKsimple, chalang_compiler:doit(SS)),
     talker:talk({dice, 3, MyID, SSPK2simple});
     
 doit({add_peer, IP, Port}) ->

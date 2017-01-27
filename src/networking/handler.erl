@@ -100,10 +100,12 @@ doit({channel_simplify, SS, SSPK}) ->
 doit({bets}) ->
     free_variables:bets();
 doit({dice, 1, ID, Commit, Amount}) ->
-    {MyCommit, _} = secrets:new(),
+    {MyCommit, Secret} = secrets:new(),
     SSPK = channel_feeder:absorb_bet(ID, dice, [Amount, Commit, MyCommit]),
     SPK = testnet_sign:data(SSPK),
     channel_manager:update_me(SPK),
+    1=2,
+    %use secret to make a scriptsig to store in channel manager
     %if they try closing the channel at this point, we may need to extract their SSPK from their tx, and use it to make a new tx where we win the bet.
     %If they don't close the channel, eventually we will have to do a solo close to get our money out.
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
@@ -111,6 +113,7 @@ doit({dice, 1, ID, Commit, Amount}) ->
     {ok, SSPK, MyCommit};
 doit({dice, 2, ID, SSPK, Secret}) ->
     channel_feeder:update_to_me(ID, SSPK),
+    
     %MySecret = secrets:fetch(OtherCommit),
     MySecret = ok,
     MySecret = 0,

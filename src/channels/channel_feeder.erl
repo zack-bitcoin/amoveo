@@ -100,7 +100,7 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
 
-handle_call({bet, Name, SSPK, Vars}, _From, X) ->
+handle_call({bet, Name, SSPK, Vars, SSme}, _From, X) ->
 %doing one of the bets that we offer.
     {Accounts, _,_,_} = tx_pool:data(),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
@@ -109,7 +109,10 @@ handle_call({bet, Name, SSPK, Vars}, _From, X) ->
     {ok, OldCD} = channel_manager:read(Other),
     Return = absorb_bet(Other, Name, Vars),
     SPK = testnet_sign:data(Return),
-    NewCD = OldCD#cd{them = SSPK, me = Return},
+    NewCD = OldCD#cd{them = SSPK, me = Return, ssme = SSme},
+    1=2,
+    %channel manager needs to store 2 SS.
+    %We need to remember our secret
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
 handle_call({simplify, Other, SSPK, SS}, _From, X) ->
@@ -297,6 +300,7 @@ new_channel_check(Tx) ->
 	error -> true %we have never used this CID partner combo before.
     end.
 
-
+simplify_both(OtherID, SSPK, SS) ->
+    %does simplify internal, and updates both our data in the channel manager, and updates the SS in the channel manager.
     
   
