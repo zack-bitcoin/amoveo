@@ -27,3 +27,7 @@ bets() -> %tuple list. {Name, BetFile}
     ].
 gas_limit() ->
     constants:gas_limit().
+time_limit() ->
+    %maximum number of miliseconds to wait for a channel contract to process.
+    %if this number is too high, then it is easy to
+    
