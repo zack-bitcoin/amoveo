@@ -32,7 +32,7 @@ new(Acc1, Acc2, CID, Bets, SG, TG, Delay, Nonce, Entropy) ->
 apply_bet(Bet, SPK) ->
 %bet is binary, the SPK portion of the script.
 %SPK is the old SPK, we output the new one.
-    SPK#spk{bets = [Bet|SPK#spk.bets]}.
+    SPK#spk{bets = [Bet|SPK#spk.bets], nonce = SPK#spk.nonce + 1}.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
     Aid2 = SPK#spk.acc2,
@@ -41,7 +41,8 @@ get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going
 	Aid2 -> 1;
 	_ -> MyID = Aid1
     end,
-    SPK#spk{amount = (SPK#spk.amount + (D*Amount))}.
+    SPK#spk{amount = (SPK#spk.amount + (D*Amount)), nonce = SPK#spk.nonce + 
+1}.
 	    
 run(Mode, SS, SPK, Height, Slash, Accounts, Channels) ->
     State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),

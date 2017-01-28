@@ -100,16 +100,12 @@ doit({channel_simplify, SS, SSPK}) ->
 doit({bets}) ->
     free_variables:bets();
 doit({dice, 1, ID, Commit, Amount}) ->
-    {MyCommit, Secret} = secrets:new(),
-    SSPK = channel_feeder:absorb_bet(ID, dice, [Amount, Commit, MyCommit]),
-    SPK = testnet_sign:data(SSPK),
-    channel_manager:update_me(SPK),
-    1=2,
-    %use secret to make a scriptsig to store in channel manager
-    %if they try closing the channel at this point, we may need to extract their SSPK from their tx, and use it to make a new tx where we win the bet.
-    %If they don't close the channel, eventually we will have to do a solo close to get our money out.
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
-    SPK = 0,
+    {MyCommit, Secret} = secrets:new(),
+    CD = channel_manager:read(ID),
+    %SPK = channel_feeder:me(CD),
+    SSPK = channel_feeder:make_bet(ID, dice, [Amount, Commit, MyCommit], Secret),
+    %SPK = testnet_sign:data(SSPK),
     {ok, SSPK, MyCommit};
 doit({dice, 2, ID, SSPK, Secret}) ->
     channel_feeder:update_to_me(ID, SSPK),
@@ -119,12 +115,12 @@ doit({dice, 2, ID, SSPK, Secret}) ->
     MySecret = 0,
     %look up mySecret from channel_manager
     SPK = testnet_sign:data(SSPK),
-    Front = " int " ++ Secret ++ " int " ++ MySecret ++ " ",
-    SSPKsimple = channel_feeder:simplify_me(ID, SPK, chalang_compiler:doit(Front)),%update me can be inside this
+    SS = dice:resolve_ss(Secret, MySecret),
+    SSPKsimple = channel_feeder:simplify_me(ID, SPK, SS),%update me can be inside this
     %channel_manager:update_me(testnet_sign:data(SSPKsimple)),
     {ok, SSPKsimple, MySecret};
-doit({dice, 3, ID, SSPK}) ->
-    channel_feeder:update_to_me(ID, SSPK),
+doit({dice, 3, SSPK}) ->
+    channel_feeder:update_bet_to_me(dice, SSPK),
     {ok, 0};
     
 %doit({bet, "dice", SSPK, [Amount]}) ->

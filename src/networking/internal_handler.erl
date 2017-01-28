@@ -54,14 +54,13 @@ doit({close_channel, IP, Port}) ->
 doit({dice, Amount, IP, Port}) ->
     {ok, Other} = talker:talk({id}, IP, Port),
     {Commit, Secret} = secrets:new(),
-    {ok, SSPK, OtherCommit} = talker:talk({dice, 1, keys:id(), Commit, Amount}),
-    %If I am acc1, then N is 1. if I am acc2, then N is 2.
-    SSme = chalang_compiler:doit("binary 12 " ++ Secret ++ " int " ++ integer_to_list(N) + " "),
-    SSPK2 = channel_feeder:bet(dice, SSPK, [Amount, Commit, OtherCommit], SSme),
     MyID = keys:id(),
-    {ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, Secret, OtherCommit}), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
-    SS = " binary 12 " ++Secret ++ " binary 12 " ++ TheirSecret ++ " int 3 ",
-    SSPK2simple = channel_feeder:simplify_both(Other, SSPKsimple, chalang_compiler:doit(SS)),
+    {ok, SSPK, OtherCommit} = talker:talk({dice, 1, MyID, Commit, Amount}),
+    SSPK2 = channel_feeder:write_bet(dice, SSPK, [Amount, Commit, OtherCommit], Secret),
+    {ok, SSPKsimple, TheirSecret} =talker:talk({dice, 2, MyID, SSPK2, Secret}), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
+    SS = dice:resolve_ss(Secret, TheirSecret),
+    SPK = testnet_sign:data(SSPK2),
+    SSPK2simple = channel_feeder:simplify_both(Other, SPK, SS),
     talker:talk({dice, 3, MyID, SSPK2simple});
     
 doit({add_peer, IP, Port}) ->

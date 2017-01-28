@@ -4,11 +4,14 @@
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
 	 new_channel/3,spend/2,close/2,lock_spend/1,
-	 bet/3,garbage/0,entropy/1,new_channel_check/1,
-	 cid/1,them/1,script_sig/1,me/1,absorb_bet/3]).
+	 write_bet/4,garbage/0,entropy/1,
+	 new_channel_check/1,
+	 cid/1,them/1,script_sig/1,me/1,make_bet/3,
+	 simplify_both/3]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
-	     ss = [], %ss is the highest nonced ScriptSig that works with them. 
+	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
+	     ssme = [], %ss is the highest nonced ScriptSig that works with me
 	     live = true,
 	     entropy = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
@@ -19,7 +22,8 @@ cid(X) when is_record(X, cd) -> X#cd.cid;
 cid(error) -> undefined;
 cid(X) -> cid(other(X)).
 them(X) -> X#cd.them.
-script_sig(X) -> X#cd.ss.
+script_sig_them(X) -> X#cd.ssthem.
+script_sig_me(X) -> X#cd.ssme.
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -69,7 +73,7 @@ handle_cast({close, SS, STx}, X) ->
     Bets = spk:bets(SPK),
     {CalculatedAmount, NewNonce, _, _} = chalang:run(SS, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
 
-    {OldAmount, OldNonce, _, _} = chalang:run(CD#cd.ss, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
+    {OldAmount, OldNonce, _, _} = chalang:run(CD#cd.ssthem, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
     if
 	NewNonce > OldNonce -> ok; 
 	NewNonce == OldNonce ->
@@ -99,22 +103,24 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
-
-handle_call({bet, Name, SSPK, Vars, SSme}, _From, X) ->
-%doing one of the bets that we offer.
-    {Accounts, _,_,_} = tx_pool:data(),
-    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
+handle_call({make_bet, Other, Name, Vars}, _From, X) ->
+    %this puts the bet on the version of the channel state that we signed.
+    Z = make_bet_internal(Other, Name, Vars),
+    {reply, Z, X};
+handle_call({update_to_me, Name, SSPK}, _From, X) ->
+    %this updates our partner's side of the channel state to include the bet that we already included.
+    {ok, OldCD} = channel_manager:read(Other),
+    Mine = OldCD#cd.me,
+    update_to_me_internal(Mine, SSPK),
+    {reply, 0, X};
+handle_call({write_bet, Name, SSPK, Vars, Secret}, _From, X) ->
+    %This is like make_bet and update_bet_to_me combined
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
-    {ok, OldCD} = channel_manager:read(Other),
-    Return = absorb_bet(Other, Name, Vars),
-    SPK = testnet_sign:data(Return),
-    NewCD = OldCD#cd{them = SSPK, me = Return, ssme = SSme},
-    1=2,
-    %channel manager needs to store 2 SS.
-    %We need to remember our secret
-    channel_manager:write(Other, NewCD),
+    Return = make_bet_internal(Other, Name, Vars),
+    update_to_me_internal(Return, SSPK),
     {reply, Return, X};
+    
 handle_call({simplify, Other, SSPK, SS}, _From, X) ->
     {Accounts, _,_,_} = tx_pool:data(),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
@@ -128,36 +134,35 @@ handle_call({simplify, Other, SSPK, SS}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = SSPK2},
     channel_manager:write(Other, NewCD),
     {reply, keys:sign(SPK), X};
-handle_call({update_to_me, ID, SSPK}, _From, X) ->
-    SPK = testnet_sign:data(SSPK),
-    SPK = channel_manager:me(channel_manager:read(ID)),
-    {Accounts, _,_,_} = tx_pool:data(),
-    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
-    OldCD = channel_manager:read(ID),
-    OldSPK = OldCD#cd.them,
-    OldNonce = spk:nonce(OldSPK),
-    NewNonce = spk:nonce(SPK),
-    true = NewNonce > OldNonce,
-    
-    %If I have already agreed to a state SPK, And SPK is higher-nonced than the highest nonce that my partner agreed to so far, then I should store my partner's signature over SPK as the new highest nonced state.
-%I don't have to check 
-    SPK = 0,
-    {reply, SPK, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 simplify_internal(_,_,_) ->
     ok.
-
-absorb_bet(Other, Name, Vars) ->
+update_to_me_internal(OurSPK, SSPK) ->
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(OurSPK),
+    {Accounts, _,_,_} = tx_pool:data(),
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
+    Other = other(SPK),
+    {ok, OldCD} = channel_manager:read(Other),
+    NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
+    channel_manager:write(Other, NewCD).
+    
+make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by the channel_feeder gen_server, because it updates the channel_manager.
+    SSme = dice:make_ss(SPK, Secret),
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     Them = OldCD#cd.them,
     OldSPK = testnet_sign:data(Them),
     Bets = free_constants:bets(),
-    SPK = get_bet(Name, Bets, Vars, OldSPK),
-    %SPK = spk:apply_bet(Bet, OldSPK),
+    SPK = get_bet(dice, Bets, Vars, OldSPK),
     {Accounts, _,_,_} = tx_pool:data(),
+    SSme = dice:make_ss(SPK, Secret),
+    NewCD = OldCD#cd{me = SPK, ssme = SSme},
+    channel_manager:write(Other, NewCD),
     keys:sign(SPK, Accounts).
 
+make_bet(Other, Name, Vars) ->
+    gen_server:call(?MODULE, {make_bet, Other, Name, Vars}).
 new_channel(Tx, SSPK, Accounts) ->
     %io:fwrite("channel feeder inserting channel $$$$$$$$$$$$$$$$$$$$$$$$$$"),
     gen_server:cast(?MODULE, {new_channel, Tx, SSPK, Accounts}).
@@ -170,8 +175,17 @@ lock_spend(_SPK) ->
     %first check that this channel is in the on-chain state with sufficient depth
     %we need the arbitrage gen_server to exist first, before we can do this.
     ok.
-bet(Name, SPK, Vars) -> 
-    gen_server:call(?MODULE, {bet, Name, SPK, Vars}).
+make_bet(Other, Name, Vars) ->
+    gen_server:call(?MODULE, {make_bet, Other, Name, Vars}).
+update_to_me(Name, SSPK, Vars, Secret) ->
+    gen_server:call(?MODULE, {update_to_me, Name, SSPK, Vars, Secret}).
+    
+    
+write_bet(Name, SPK, Vars, Secret) -> 
+    Other = other(SPK),
+    Return = make_bet(Other, Name, Vars),
+    update_bet_to_me(Name, SSPK, Vars, Secret),
+    Return.
 garbage() ->
     gen_server:cast(?MODULE, garbage).
 garbage_helper([], _C, _OldC) -> ok;
@@ -255,9 +269,6 @@ get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
              macro Commit1 " ++ base64:encode(Commit1) ++ " ; \n
              macro Commit2 " ++ base64:encode(Commit2) ++ " ; \n
 ",
-    io:fwrite("Loc is "), 
-    io:fwrite(Loc),
-    io:fwrite("\n"),
     Bet = compile:doit(Loc, Front),
     [] = spk:bets(SPK),%for now we only make 1 bet per customer at a time, otherwise it would be possible for a customer to make us check their complicated script over and over on each bet, to see if it can close any of them.
     spk:apply_bet(Bet, SPK).
@@ -300,7 +311,8 @@ new_channel_check(Tx) ->
 	error -> true %we have never used this CID partner combo before.
     end.
 
-simplify_both(OtherID, SSPK, SS) ->
+simplify_both(OtherID, SPK, SS) ->
     %does simplify internal, and updates both our data in the channel manager, and updates the SS in the channel manager.
+    %This needs to be split up the way dice was.
     
   
