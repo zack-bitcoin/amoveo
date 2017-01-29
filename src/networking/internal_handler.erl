@@ -56,11 +56,11 @@ doit({dice, Amount, IP, Port}) ->
     {Commit, Secret} = secrets:new(),
     MyID = keys:id(),
     {ok, SSPK, OtherCommit} = talker:talk({dice, 1, MyID, Commit, Amount}),
-    SSPK2 = channel_feeder:write_bet(dice, SSPK, [Amount, Commit, OtherCommit], Secret),
-    {ok, SSPKsimple, TheirSecret} =talker:talk({dice, 2, MyID, SSPK2, Secret}), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
+    SSPK2 = channel_feeder:agree_bet(dice, SSPK, [Amount, Commit, OtherCommit], Secret),
+    {ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, Secret}), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
     SS = dice:resolve_ss(Secret, TheirSecret),
     SPK = testnet_sign:data(SSPK2),
-    SSPK2simple = channel_feeder:simplify_both(Other, SPK, SS),
+    SSPK2simple = channel_feeder:agree_simplification(Other, SPK, SS),
     talker:talk({dice, 3, MyID, SSPK2simple});
     
 doit({add_peer, IP, Port}) ->

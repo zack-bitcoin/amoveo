@@ -45,35 +45,16 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     NewChannels = channel:write(NewChannel, Channels),
     Facc = account:update(From, Accounts, -Tx#csc.fee, Tx#csc.nonce, NewHeight),
     NewAccounts = account:write(Accounts, Facc),
-    spawn(fun() -> check_slash(From, Acc1, Acc2, SS, SPK, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
+    <<TheirSecret/binary, _>> = SS,
+    spawn(fun() -> check_slash(From, Acc1, Acc2, TheirSecret, SPK, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
     {NewChannels, NewAccounts}.
 
-check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
+check_slash(From, Acc1, Acc2, TheirSecret, SPK, Accounts, Channels, TheirNonce) ->
     %if our partner is trying to close our channel without us, and we have a ScriptSig that can close the channel at a higher nonce, then we should make a channel_slash_tx to do that.
-    MyID = keys:id(),
     %From = MyID,
-    CD = channel_manager:read(Other),
-    SS = channel_feeder:script_sig(CD),
-    <<SS2/binary, _>> = SS,
-    <<ThierSS2/binary, _>> = TheirSS,
-    {Other, SS2} = case MyID of
-		Acc1 -> 
-			   From = Acc2,
-			   {Acc2, <<SS2/binary, TheirSS2/binary, 3>>};
-		Acc2 -> 
-			   From = Acc1,
-			   {Acc1, <<TheirSS2/binary, SS2/binary, 3>>};
-		true -> Acc1 = Acc2
-	    end,
-    %maybe it is possible to combine the ScriptSigs to make a higher nonce
-    {_, Nonce1} = spk:run(safe, SS, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
-    {_, Nonce2} = spk:run(safe, SS2, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
-    NonceM = max(Nonce1, Nonce2),
-    SSM = case NonceM of
-	Nonce1 -> SS;
-	Nonce2 -> SS2;
-	_ -> Nonce1 = NonceM
-    end,
+
+    {_, Nonce, SSM} = next_ss(From, TheirSecret, Acc1, Acc2, Accounts, Channels),
+    %true = Nonce > TheirNonce,
     timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
     %Depending
     {Accounts,Channels,_,_} = tx_pool:data(),
@@ -81,3 +62,25 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     Stx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(Stx),
     easy:sync();
+next_ss(From, TheirSS2, Acc1, Acc2, Accounts, Channels) ->
+    CD = channel_manager:read(From),
+    SS = channel_feeder:script_sig(CD),
+    <<SS2/binary, _>> = SS,
+    %<<TheirSS2/binary, _>> = TheirSS,
+    MyID = keys:id(),
+    {From, SSF} = case MyID of
+		      Acc1 -> 
+			  {Acc2, <<SS2/binary, TheirSS2/binary, 3>>};
+		      Acc2 -> 
+			  {Acc1, <<TheirSS2/binary, SS2/binary, 3>>};
+		      true -> Acc1 = Acc2
+		  end,
+	%maybe it is possible to combine the ScriptSigs to make a higher nonce
+    {Amount1, Nonce1} = spk:run(safe, SS, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
+    {Amount2, Nonce2} = spk:run(safe, SSF, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
+    NonceM = max(Nonce1, Nonce2),
+    case NonceM of
+	Nonce1 -> {Amount1, Nonce1, SS};
+	Nonce2 -> {Amount2, Nonce2, SS2};
+	_ -> Nonce1 = NonceM
+    end.

@@ -4,10 +4,11 @@
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
 	 new_channel/3,spend/2,close/2,lock_spend/1,
-	 write_bet/4,garbage/0,entropy/1,
+	 agree_bet/4,garbage/0,entropy/1,
 	 new_channel_check/1,
-	 cid/1,them/1,script_sig/1,me/1,make_bet/3,
-	 simplify_both/3]).
+	 cid/1,them/1,script_sig/1,me/1,
+	 make_bet/3, agree_bet/4, update_to_me/2,
+	 make_simplification/3,agree_simplification/4]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
@@ -103,40 +104,36 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
-handle_call({make_bet, Other, Name, Vars}, _From, X) ->
-    %this puts the bet on the version of the channel state that we signed.
-    Z = make_bet_internal(Other, Name, Vars),
-    {reply, Z, X};
 handle_call({update_to_me, Name, SSPK}, _From, X) ->
     %this updates our partner's side of the channel state to include the bet that we already included.
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts)),
     {ok, OldCD} = channel_manager:read(Other),
     Mine = OldCD#cd.me,
     update_to_me_internal(Mine, SSPK),
     {reply, 0, X};
-handle_call({write_bet, Name, SSPK, Vars, Secret}, _From, X) ->
+handle_call({make_bet, Other, Name, Vars, Secret}, _From, X) ->
+    %this puts the bet on the version of the channel state that we signed.
+    Z = make_bet_internal(Other, Name, Vars, Secret),
+    {reply, Z, X};
+handle_call({agree_bet, Name, SSPK, Vars, Secret}, _From, X) ->
     %This is like make_bet and update_bet_to_me combined
+    testnet_sign:verify(keys:sign(SSPK, Accounts)),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
-    Return = make_bet_internal(Other, Name, Vars),
+    Return = make_bet_internal(Other, Name, Vars, Secret),
     update_to_me_internal(Return, SSPK),
     {reply, Return, X};
-    
-handle_call({simplify, Other, SSPK, SS}, _From, X) ->
-    {Accounts, _,_,_} = tx_pool:data(),
-    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
+handle_call({make_simplification, Other, Name, OtherSecret}, _From, X) ->
+    Z = make_simplification_internal(Other, Name, OtherSecret),
+    {reply, Z, X};
+handle_call({agree_simplification, Name, SSPK, Vars, OtherSecret}, _From, X) ->
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts)),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
-    SSPK2 = simplify_internal(Other, SPK, SS),
-    SPK = testnet_sign:data(SSPK2),
-    1=2,
-    %load SSPK into channel manager
-    {ok, OldCD} = channel_manager:read(Other),
-    NewCD = OldCD#cd{them = SSPK, me = SSPK2},
-    channel_manager:write(Other, NewCD),
-    {reply, keys:sign(SPK), X};
+    Return = make_simplification_internal(Other, Name, Vars, Secret),
+    update_to_me_internal(Return, SSPK),
+    {reply, Return, X};
 handle_call(_, _From, X) -> {reply, X, X}.
-simplify_internal(_,_,_) ->
-    ok.
 update_to_me_internal(OurSPK, SSPK) ->
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(OurSPK),
@@ -146,7 +143,20 @@ update_to_me_internal(OurSPK, SSPK) ->
     {ok, OldCD} = channel_manager:read(Other),
     NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
     channel_manager:write(Other, NewCD).
-    
+   
+make_simplification_internal(Other, dice, Secret) ->
+    %calculate who won the dice game, give them the money.
+    {Amount, _, _} = next_ss(Other, Secret, Acc1, Acc2, Accounts, Channels),
+    {ok, OldCD} = channel_manager:read(Other),
+    true = OldCD#cd.live,
+    Them = OldCD#cd.them,
+    NewSPK = spk:settle_bet(Them, [], Amount),
+
+    NewCD = OldCD#cd{me = NewSPK, ssme = <<>>},
+    channel_manager:write(Other, NewCD),
+    {Accounts, _,_,_} = tx_pool:data(),
+    keys:sign(SPK, Accounts).
+
 make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by the channel_feeder gen_server, because it updates the channel_manager.
     SSme = dice:make_ss(SPK, Secret),
     {ok, OldCD} = channel_manager:read(Other),
@@ -161,8 +171,8 @@ make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by th
     channel_manager:write(Other, NewCD),
     keys:sign(SPK, Accounts).
 
-make_bet(Other, Name, Vars) ->
-    gen_server:call(?MODULE, {make_bet, Other, Name, Vars}).
+make_bet(Other, Name, Vars, Secret) ->
+    gen_server:call(?MODULE, {make_bet, Other, Name, Vars, Secret}).
 new_channel(Tx, SSPK, Accounts) ->
     %io:fwrite("channel feeder inserting channel $$$$$$$$$$$$$$$$$$$$$$$$$$"),
     gen_server:cast(?MODULE, {new_channel, Tx, SSPK, Accounts}).
@@ -175,13 +185,11 @@ lock_spend(_SPK) ->
     %first check that this channel is in the on-chain state with sufficient depth
     %we need the arbitrage gen_server to exist first, before we can do this.
     ok.
-make_bet(Other, Name, Vars) ->
-    gen_server:call(?MODULE, {make_bet, Other, Name, Vars}).
 update_to_me(Name, SSPK, Vars, Secret) ->
     gen_server:call(?MODULE, {update_to_me, Name, SSPK, Vars, Secret}).
     
     
-write_bet(Name, SPK, Vars, Secret) -> 
+agree_bet(Name, SPK, Vars, Secret) -> 
     Other = other(SPK),
     Return = make_bet(Other, Name, Vars),
     update_bet_to_me(Name, SSPK, Vars, Secret),
@@ -311,8 +319,16 @@ new_channel_check(Tx) ->
 	error -> true %we have never used this CID partner combo before.
     end.
 
-simplify_both(OtherID, SPK, SS) ->
-    %does simplify internal, and updates both our data in the channel manager, and updates the SS in the channel manager.
-    %This needs to be split up the way dice was.
+make_simplification(Other, Name, OtherSecret) ->
+    gen_server:call(?MODULE, {make_simplification, 
+			      Other, 
+			      Name, 
+			      OtherSecret}).
+agree_simplification(Name, SSPK, Vars, OtherSecret) ->
+    gen_server:call(?MODULE, {agree_simplification,
+			      Name, 
+			      SSPK,
+			      Vars,
+			      OtherSecret}).
     
   

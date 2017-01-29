@@ -3,7 +3,7 @@
 	 bets/1,space_gas/1,time_gas/1,
 	 new/9,delay/1,cid/1,amount/1, 
 	 nonce/1,apply_bet/2,get_paid/3,
-	 run/7]).
+	 run/7,settle_bet/3]).
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
 	      delay, cid, amount = 0, nonce = 0}).
@@ -33,6 +33,8 @@ apply_bet(Bet, SPK) ->
 %bet is binary, the SPK portion of the script.
 %SPK is the old SPK, we output the new one.
     SPK#spk{bets = [Bet|SPK#spk.bets], nonce = SPK#spk.nonce + 1}.
+settle_bet(SPK, Bets, Amount) ->
+    SPK#spk{bets = bets, amount = SPK#spk.amount + Amount, nonce = SPK#spk.nonce + 1}.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
     Aid2 = SPK#spk.acc2,
