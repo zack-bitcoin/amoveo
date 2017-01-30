@@ -4,6 +4,7 @@
 make_ss(SPK, Secret) ->
     Acc1 = spk:acc1(SPK),
     Acc2 = spk:acc2(SPK),
+    MyID = keys:id(),
     N = case MyID of
 	    Acc1 -> 1;
 	    Acc2 -> 2;
@@ -11,9 +12,10 @@ make_ss(SPK, Secret) ->
 	end,
     chalang_compiler:doit("binary 32 " ++ Secret ++ " int " ++ integer_to_list(N) + " ").
     
-resolve_ss(SPK, Secret, ThereSecret) ->
+resolve_ss(SPK, Secret, TheirSecret) ->
     Acc1 = spk:acc1(SPK),
     Acc2 = spk:acc2(SPK),
+    MyID = keys:id(),
     {S1, S2} = case MyID of
 	    Acc1 -> {Secret, TheirSecret};
 	    Acc2 -> {TheirSecret, Secret};

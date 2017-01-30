@@ -6,9 +6,9 @@
 	 new_channel/3,spend/2,close/2,lock_spend/1,
 	 agree_bet/4,garbage/0,entropy/1,
 	 new_channel_check/1,
-	 cid/1,them/1,script_sig/1,me/1,
-	 make_bet/3, agree_bet/4, update_to_me/2,
-	 make_simplification/3,agree_simplification/4]).
+	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
+	 make_bet/4, agree_bet/4, update_to_me/2,
+	 make_simplification/3,agree_simplification/3]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
@@ -106,6 +106,16 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     {reply, Return, X};
 handle_call({update_to_me, Name, SSPK}, _From, X) ->
     %this updates our partner's side of the channel state to include the bet that we already included.
+    {Accounts, _,_,_} = tx_pool:data(),
+    MyID = keys:id(),
+    SPK = testnet_sign:data(SSPK),
+    Acc1 = spk:acc1(SPK),
+    Acc2 = spk:acc2(SPK),
+    Other = case MyID of
+	Acc1 -> Acc2;
+	Acc2 -> Acc1;
+	X -> X = Acc1
+    end,	
     true = testnet_sign:verify(keys:sign(SSPK, Accounts)),
     {ok, OldCD} = channel_manager:read(Other),
     Mine = OldCD#cd.me,
@@ -117,6 +127,7 @@ handle_call({make_bet, Other, Name, Vars, Secret}, _From, X) ->
     {reply, Z, X};
 handle_call({agree_bet, Name, SSPK, Vars, Secret}, _From, X) ->
     %This is like make_bet and update_bet_to_me combined
+    {Accounts, _,_,_} = tx_pool:data(),
     testnet_sign:verify(keys:sign(SSPK, Accounts)),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
@@ -126,11 +137,12 @@ handle_call({agree_bet, Name, SSPK, Vars, Secret}, _From, X) ->
 handle_call({make_simplification, Other, Name, OtherSecret}, _From, X) ->
     Z = make_simplification_internal(Other, Name, OtherSecret),
     {reply, Z, X};
-handle_call({agree_simplification, Name, SSPK, Vars, OtherSecret}, _From, X) ->
+handle_call({agree_simplification, Name, SSPK, OtherSecret}, _From, X) ->
+    {Accounts, _,_,_} = tx_pool:data(),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts)),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
-    Return = make_simplification_internal(Other, Name, Vars, Secret),
+    {Return, _OurSecret} = make_simplification_internal(Other, Name, OtherSecret),
     update_to_me_internal(Return, SSPK),
     {reply, Return, X};
 handle_call(_, _From, X) -> {reply, X, X}.
@@ -146,16 +158,22 @@ update_to_me_internal(OurSPK, SSPK) ->
    
 make_simplification_internal(Other, dice, Secret) ->
     %calculate who won the dice game, give them the money.
-    {Amount, _, _} = next_ss(Other, Secret, Acc1, Acc2, Accounts, Channels),
+    1=0,
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     Them = OldCD#cd.them,
+
+    SPK = testnet_sign:data(Them),
+    Acc1 = spk:acc1(SPK),
+    Acc2 = spk:acc2(SPK),
+    {Accounts, Channels,_,_} = tx_pool:data(),
+    {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, Secret, Acc1, Acc2, Accounts, Channels),
+
     NewSPK = spk:settle_bet(Them, [], Amount),
 
     NewCD = OldCD#cd{me = NewSPK, ssme = <<>>},
     channel_manager:write(Other, NewCD),
-    {Accounts, _,_,_} = tx_pool:data(),
-    keys:sign(SPK, Accounts).
+    {keys:sign(SPK, Accounts), OurSecret}.%we should also return our secret.
 
 make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by the channel_feeder gen_server, because it updates the channel_manager.
     SSme = dice:make_ss(SPK, Secret),
@@ -185,8 +203,8 @@ lock_spend(_SPK) ->
     %first check that this channel is in the on-chain state with sufficient depth
     %we need the arbitrage gen_server to exist first, before we can do this.
     ok.
-update_to_me(Name, SSPK, Vars, Secret) ->
-    gen_server:call(?MODULE, {update_to_me, Name, SSPK, Vars, Secret}).
+update_to_me(Name, SSPK) ->
+    gen_server:call(?MODULE, {update_to_me, Name, SSPK}).
     
     
 agree_bet(Name, SPK, Vars, Secret) -> 
@@ -320,15 +338,16 @@ new_channel_check(Tx) ->
     end.
 
 make_simplification(Other, Name, OtherSecret) ->
-    gen_server:call(?MODULE, {make_simplification, 
-			      Other, 
-			      Name, 
-			      OtherSecret}).
-agree_simplification(Name, SSPK, Vars, OtherSecret) ->
-    gen_server:call(?MODULE, {agree_simplification,
-			      Name, 
-			      SSPK,
-			      Vars,
-			      OtherSecret}).
+    gen_server:call(?MODULE, 
+		    {make_simplification, 
+		     Other, 
+		     Name, 
+		     OtherSecret}).
+agree_simplification(Name, SSPK, OtherSecret) ->
+    gen_server:call(?MODULE, 
+		    {agree_simplification,
+		     Name, 
+		     SSPK,
+		     OtherSecret}).
     
   

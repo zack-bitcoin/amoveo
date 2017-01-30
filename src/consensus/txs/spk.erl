@@ -34,7 +34,7 @@ apply_bet(Bet, SPK) ->
 %SPK is the old SPK, we output the new one.
     SPK#spk{bets = [Bet|SPK#spk.bets], nonce = SPK#spk.nonce + 1}.
 settle_bet(SPK, Bets, Amount) ->
-    SPK#spk{bets = bets, amount = SPK#spk.amount + Amount, nonce = SPK#spk.nonce + 1}.
+    SPK#spk{bets = Bets, amount = SPK#spk.amount + Amount, nonce = SPK#spk.nonce + 1}.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
     Aid2 = SPK#spk.acc2,

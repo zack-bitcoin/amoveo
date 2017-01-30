@@ -102,28 +102,15 @@ doit({bets}) ->
 doit({dice, 1, ID, Commit, Amount}) ->
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
     {MyCommit, Secret} = secrets:new(),
-    %CD = channel_manager:read(ID),
-    %SPK = channel_feeder:me(CD),
     SSPK = channel_feeder:make_bet(ID, dice, [Amount, Commit, MyCommit], Secret),
-    %SPK = testnet_sign:data(SSPK),
     {ok, SSPK, MyCommit};
 doit({dice, 2, ID, SSPK, Secret}) ->
     channel_feeder:update_to_me(ID, SSPK),
-    SSPKsimple = channel_feeder:make_simplification(ID, dice, Secret),
-    SPK = testner_sign:data(SSPKsimple),
-    SPK = testnet_sign:data(SSPK),
-    %channel_manager:update_me(testnet_sign:data(SSPKsimple)),
+    {SSPKsimple, MySecret} = channel_feeder:make_simplification(ID, dice, Secret),
     {ok, SSPKsimple, MySecret};
-doit({dice, 3, SSPK}) ->
+doit({dice, 3, ID, SSPK}) ->
     channel_feeder:update_to_me(ID, SSPK),
     {ok, 0};
-    
-%doit({bet, "dice", SSPK, [Amount]}) ->
-%    Return = channel_feeder:bet(dice, SSPK, [Amount]),
-%    {ok, Return};
-%doit({bet, Name, SPK}) ->
-%    channel_feeder:bet(Name, SPK),
-%    {ok, ok};
 doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2

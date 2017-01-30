@@ -1,3 +1,5 @@
+satoshi dice needs a way to manually do a solo-close, if your partner wont respond.
+
 satoshi dice needs one more hop to be set up, and 2 more variables. Each user needs to choose a secret and commit.
 satoshi dice should automatically reveal the secrets and say the result as soon as possible.
 

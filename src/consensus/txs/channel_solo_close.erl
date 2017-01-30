@@ -1,5 +1,5 @@
 -module(channel_solo_close).
--export([doit/4, make/6, scriptpubkey/1]).
+-export([doit/4, make/6, scriptpubkey/1, next_ss/6]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
 
@@ -36,7 +36,6 @@ doit(Tx, Channels, Accounts, NewHeight) ->
 	       Acc1 -> 1;
 	       Acc2 -> 2
 	   end,
-    Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
     SS = Tx#csc.scriptsig,
     {Amount, NewCNonce} = spk:run(fast, SS, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
 
@@ -45,15 +44,15 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     NewChannels = channel:write(NewChannel, Channels),
     Facc = account:update(From, Accounts, -Tx#csc.fee, Tx#csc.nonce, NewHeight),
     NewAccounts = account:write(Accounts, Facc),
-    <<TheirSecret/binary, _>> = SS,
-    spawn(fun() -> check_slash(From, Acc1, Acc2, TheirSecret, SPK, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
+    %<<TheirSecret/binary, _>> = SS,
+    spawn(fun() -> check_slash(From, Acc1, Acc2, SS, SPK, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
     {NewChannels, NewAccounts}.
 
-check_slash(From, Acc1, Acc2, TheirSecret, SPK, Accounts, Channels, TheirNonce) ->
+check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     %if our partner is trying to close our channel without us, and we have a ScriptSig that can close the channel at a higher nonce, then we should make a channel_slash_tx to do that.
     %From = MyID,
 
-    {_, Nonce, SSM} = next_ss(From, TheirSecret, Acc1, Acc2, Accounts, Channels),
+    {_, Nonce, SSM} = next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels),
     %true = Nonce > TheirNonce,
     timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
     %Depending
@@ -62,25 +61,31 @@ check_slash(From, Acc1, Acc2, TheirSecret, SPK, Accounts, Channels, TheirNonce) 
     Stx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(Stx),
     easy:sync();
-next_ss(From, TheirSS2, Acc1, Acc2, Accounts, Channels) ->
+next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
     CD = channel_manager:read(From),
     SS = channel_feeder:script_sig(CD),
-    <<SS2/binary, _>> = SS,
-    %<<TheirSS2/binary, _>> = TheirSS,
-    MyID = keys:id(),
-    {From, SSF} = case MyID of
-		      Acc1 -> 
-			  {Acc2, <<SS2/binary, TheirSS2/binary, 3>>};
-		      Acc2 -> 
-			  {Acc1, <<TheirSS2/binary, SS2/binary, 3>>};
-		      true -> Acc1 = Acc2
-		  end,
-	%maybe it is possible to combine the ScriptSigs to make a higher nonce
+    Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
     {Amount1, Nonce1} = spk:run(safe, SS, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
-    {Amount2, Nonce2} = spk:run(safe, SSF, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
-    NonceM = max(Nonce1, Nonce2),
-    case NonceM of
-	Nonce1 -> {Amount1, Nonce1, SS};
-	Nonce2 -> {Amount2, Nonce2, SS2};
-	_ -> Nonce1 = NonceM
-    end.
+    [_|[OurSecret|_]] = free_constants:vm(SS, State),
+    Out1 = {Amount1, Nonce1, SS, OurSecret},
+    Height = block:height(block:read(top:doit())),
+    State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
+    case free_constants:vm(TheirSS, State) of
+	[_] -> Out1;
+	[_|[TheirSecret|_]] ->
+	    MyID = keys:id(),
+	    {From, SSF} = 
+		case MyID of
+		    Acc1 -> 
+			{Acc2, <<SS2/binary, TheirSS2/binary, 3>>};
+		    Acc2 -> 
+			{Acc1, <<TheirSS2/binary, SS2/binary, 3>>};
+		    true -> Acc1 = Acc2
+		end,
+	    {Amount2, Nonce2} = spk:run(safe, SSF, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
+	    NonceM = max(Nonce1, Nonce2),
+	    case NonceM of
+		Nonce1 -> Out1;
+		Nonce2 -> {Amount2, Nonce2, SS2, OurSecret};
+		_ -> Nonce1 = NonceM
+	    end.
