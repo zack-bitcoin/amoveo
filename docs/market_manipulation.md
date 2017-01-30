@@ -10,11 +10,15 @@ Everyone else prefers the fork that is honest, because they want a fork with a w
 It is the shelling point.
 
 When the price is 50-50, the act of defending has this return rate:
+
 `1-(interest_rate*finality)`
+
 Where interest_rate is the market rate you need to pay someone to be willing to hold Aeons for a time and be unable to access them.
 finality is the amount of time until the bets pay off.
 Defenders will only defend if they earn a profit, so, the oracle is only secure when
+
 `(interest_rate*finality) < 1` .
+
 
 Blockchains are small and unstable, so the interest rate should be a very high amount of 10% per month, which is about 0.3% per day.
 
@@ -24,7 +28,9 @@ In bitcoin, the retargetting period is 2000 blocks, which is about a week.
 So lets set our finality to 7 days = about 2.5% interest
 
 Plugging in to the formula:
+
 `(0.025 * 1) < 1`
+
 Which is true. So it is secure.
 
 
@@ -37,11 +43,17 @@ How valuable does a change need to be for us to be able to measure it?
 Lets say the price should be X, which is between 0.5 and 0.
 An attacker keeps pushing the price to 0.51, so change the outcome and force the protocol to update how he likes.
 The defenders profit for defending is
+
 `1 - (2 * X) - (interest_rate*finality)`
+
 `= 1 - (2 * X) - 0.025`
+
 The defender will only defend if this is positive, so
+
 `0.975 - 2X > 0`
+
 `X < 0.975 / 2`
+
 `X < 0.4875`
 
 So the attacker can only push the price a maximum of `(interest_rate*finality)/2`
