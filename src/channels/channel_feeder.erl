@@ -167,9 +167,9 @@ make_simplification_internal(Other, dice, Secret) ->
     Acc1 = spk:acc1(SPK),
     Acc2 = spk:acc2(SPK),
     {Accounts, Channels,_,_} = tx_pool:data(),
-    io:fwrite("Secret is "),
-    io:fwrite(Secret),
-    io:fwrite("\n"),%secret is their script sig.
+    %io:fwrite("Secret is "),
+    %io:fwrite(Secret),
+    %io:fwrite("\n"),%secret is their script sig.
     {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, Secret, Acc1, Acc2, Accounts, Channels),
 
     NewSPK = spk:settle_bet(Them, [], Amount),
