@@ -298,8 +298,8 @@ get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
     true = (Bal1-A) >= Amount, 
     true = (Bal2+A) >= Amount,  %This checks that neither of us can have negative amounts of money.
     Front = "macro Amount int " ++ integer_to_list(Amount) ++ " ; \n
-             macro Commit1 " ++ base64:encode(Commit1) ++ " ; \n
-             macro Commit2 " ++ base64:encode(Commit2) ++ " ; \n
+             macro Commit1 " ++ binary_to_list(base64:encode(Commit1)) ++ " ; \n
+             macro Commit2 " ++ binary_to_list(base64:encode(Commit2)) ++ " ; \n
 ",
     Bet = compile:doit(Loc, Front),
     [] = spk:bets(SPK),%for now we only make 1 bet per customer at a time, otherwise it would be possible for a customer to make us check their complicated script over and over on each bet, to see if it can close any of them.
