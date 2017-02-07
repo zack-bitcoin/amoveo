@@ -158,7 +158,7 @@ update_to_me_internal(OurSPK, SSPK) ->
    
 make_simplification_internal(Other, dice, Secret) ->
     %calculate who won the dice game, give them the money.
-    1=0,
+    %1=0,
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     Them = OldCD#cd.them,
@@ -167,6 +167,9 @@ make_simplification_internal(Other, dice, Secret) ->
     Acc1 = spk:acc1(SPK),
     Acc2 = spk:acc2(SPK),
     {Accounts, Channels,_,_} = tx_pool:data(),
+    io:fwrite("Secret is "),
+    io:fwrite(Secret),
+    io:fwrite("\n"),%secret is their script sig.
     {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, Secret, Acc1, Acc2, Accounts, Channels),
 
     NewSPK = spk:settle_bet(Them, [], Amount),
