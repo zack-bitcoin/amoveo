@@ -119,7 +119,7 @@ handle_call({update_to_me, SSPK}, _From, X) ->
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     {ok, OldCD} = channel_manager:read(Other),
     Mine = OldCD#cd.me,
-    update_to_me_internal(Mine, SSPK),
+    update_to_me_internal(keys:sign(Mine), SSPK),
     {reply, 0, X};
 handle_call({make_bet, Other, Name, Vars, Secret}, _From, X) ->
     %this puts the bet on the version of the channel state that we signed.
