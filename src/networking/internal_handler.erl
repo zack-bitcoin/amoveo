@@ -96,7 +96,7 @@ doit({channel_spend, IP, Port, Amount}) ->
     {Accounts, _,_,_} = tx_pool:data(),
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
     Payment = keys:sign(SPK, Accounts),
-    channel_manager:update_to_me(SPK),
+    channel_feeder:update_to_me(SPK),
     M = {channel_payment, Payment, Amount},
     {ok, Response} = talker:talk(M, IP, Port),
     %maybe verify the signature of Response here?
