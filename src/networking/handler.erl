@@ -104,9 +104,9 @@ doit({dice, 1, Other, Commit, Amount}) ->
     {MyCommit, Secret} = secrets:new(),
     SSPK = channel_feeder:make_bet(Other, dice, [Amount, Commit, MyCommit], Secret),
     {ok, SSPK, MyCommit};
-doit({dice, 2, ID, SSPK, Secret}) ->
+doit({dice, 2, ID, SSPK, SS}) ->
     channel_feeder:update_to_me(SSPK),
-    {SSPKsimple, MySecret} = channel_feeder:make_simplification(ID, dice, Secret),
+    {SSPKsimple, MySecret} = channel_feeder:make_simplification(ID, dice, SS),
     {ok, SSPKsimple, MySecret};
 doit({dice, 3, _ID, SSPK}) ->
     channel_feeder:update_to_me(SSPK),

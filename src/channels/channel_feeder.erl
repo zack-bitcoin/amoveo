@@ -157,6 +157,7 @@ update_to_me_internal(OurSPK, SSPK) ->
     channel_manager:write(Other, NewCD).
    
 make_simplification_internal(Other, dice, Secret) ->
+    %currently Secret is the 12 byte secret. It should be their ScriptSig.
     %calculate who won the dice game, give them the money.
     %1=0,
     {ok, OldCD} = channel_manager:read(Other),
@@ -349,17 +350,17 @@ new_channel_check(Tx) ->
 	error -> true %we have never used this CID partner combo before.
     end.
 
-make_simplification(Other, Name, OtherSecret) ->
+make_simplification(Other, Name, OtherSS) ->
     gen_server:call(?MODULE, 
 		    {make_simplification, 
 		     Other, 
 		     Name, 
-		     OtherSecret}).
-agree_simplification(Name, SSPK, OtherSecret) ->
+		     OtherSS}).
+agree_simplification(Name, SSPK, OtherSS) ->
     gen_server:call(?MODULE, 
 		    {agree_simplification,
 		     Name, 
 		     SSPK,
-		     OtherSecret}).
+		     OtherSS}).
     
   
