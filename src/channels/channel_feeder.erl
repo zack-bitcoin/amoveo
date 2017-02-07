@@ -18,7 +18,7 @@
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
 me(X) -> X#cd.me.
 cid(X) when is_integer(X) ->
-    {ok, C} = channel_manager:read(X);
+    {ok, C} = channel_manager:read(X),
     cid(C);
 cid(X) when is_record(X, cd) -> X#cd.cid;
 cid(error) -> undefined;
