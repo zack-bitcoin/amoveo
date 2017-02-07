@@ -10,7 +10,8 @@ make_ss(SPK, Secret) ->
 	    Acc2 -> 2;
 	    X -> X = Acc1
 	end,
-    chalang_compiler:doit("binary 32 " ++ Secret ++ " int " ++ integer_to_list(N) + " ").
+    S = size(Secret),
+    chalang_compiler:doit("binary " ++ integer_to_list(S) ++ " " ++ Secret ++ " int " ++ integer_to_list(N) + " ").
     
 resolve_ss(SPK, Secret, TheirSecret) ->
     Acc1 = spk:acc1(SPK),
