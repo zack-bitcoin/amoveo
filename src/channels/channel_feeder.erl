@@ -116,7 +116,7 @@ handle_call({update_to_me, SSPK}, _From, X) ->
 	Acc2 -> Acc1;
 	X -> X = Acc1
     end,	
-    true = testnet_sign:verify(keys:sign(SSPK, Accounts)),
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     {ok, OldCD} = channel_manager:read(Other),
     Mine = OldCD#cd.me,
     update_to_me_internal(Mine, SSPK),
@@ -128,7 +128,7 @@ handle_call({make_bet, Other, Name, Vars, Secret}, _From, X) ->
 handle_call({agree_bet, Name, SSPK, Vars, Secret}, _From, X) ->
     %This is like make_bet and update_bet_to_me combined
     {Accounts, _,_,_} = tx_pool:data(),
-    testnet_sign:verify(keys:sign(SSPK, Accounts)),
+    testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
     Return = make_bet_internal(Other, Name, Vars, Secret),
@@ -139,7 +139,7 @@ handle_call({make_simplification, Other, Name, OtherSecret}, _From, X) ->
     {reply, Z, X};
 handle_call({agree_simplification, Name, SSPK, OtherSecret}, _From, X) ->
     {Accounts, _,_,_} = tx_pool:data(),
-    true = testnet_sign:verify(keys:sign(SSPK, Accounts)),
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
     {Return, _OurSecret} = make_simplification_internal(Other, Name, OtherSecret),
@@ -306,9 +306,7 @@ get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
     Bet = compile:doit(Loc, Front),
     [] = spk:bets(SPK),%for now we only make 1 bet per customer at a time, otherwise it would be possible for a customer to make us check their complicated script over and over on each bet, to see if it can close any of them.
     spk:apply_bet(Bet, SPK).
-   
-other(X) when element(1, X) == signed ->
-    other(testnet_sign:data(X));
+    
 other(SPK) when element(1, SPK) == spk ->
     other(spk:acc1(SPK), spk:acc2(SPK));
 other(Tx) when element(1, Tx) == ctc ->
