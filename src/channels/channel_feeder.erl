@@ -298,8 +298,8 @@ get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
     true = (Bal1-A) >= Amount, 
     true = (Bal2+A) >= Amount,  %This checks that neither of us can have negative amounts of money.
     Front = "macro Amount int " ++ integer_to_list(Amount) ++ " ; \n
-             macro Commit1 " ++ binary_to_list(base64:encode(Commit1)) ++ " ; \n
-             macro Commit2 " ++ binary_to_list(base64:encode(Commit2)) ++ " ; \n
+             macro Commit1 binary " ++ integer_to_list(size(Commit1))++" "++ binary_to_list(base64:encode(Commit1)) ++ " ; \n
+             macro Commit2 binary " ++ integer_to_list(size(Commit2))++ " " ++ binary_to_list(base64:encode(Commit2)) ++ " ; \n
 ",
     io:fwrite("channel feeder front is \n"),
     io:fwrite(Front),
