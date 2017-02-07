@@ -7,7 +7,7 @@
 	 agree_bet/4,garbage/0,entropy/1,
 	 new_channel_check/1,
 	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
-	 make_bet/4, agree_bet/4, update_to_me/2,
+	 make_bet/4, update_to_me/1,
 	 make_simplification/3,agree_simplification/3]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -104,7 +104,7 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
-handle_call({update_to_me, Name, SSPK}, _From, X) ->
+handle_call({update_to_me, SSPK}, _From, X) ->
     %this updates our partner's side of the channel state to include the bet that we already included.
     {Accounts, _,_,_} = tx_pool:data(),
     MyID = keys:id(),
@@ -176,7 +176,7 @@ make_simplification_internal(Other, dice, Secret) ->
     {keys:sign(SPK, Accounts), OurSecret}.%we should also return our secret.
 
 make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by the channel_feeder gen_server, because it updates the channel_manager.
-    SSme = dice:make_ss(SPK, Secret),
+    %SSme = dice:make_ss(SPK, Secret),
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     Them = OldCD#cd.them,
@@ -203,14 +203,14 @@ lock_spend(_SPK) ->
     %first check that this channel is in the on-chain state with sufficient depth
     %we need the arbitrage gen_server to exist first, before we can do this.
     ok.
-update_to_me(Name, SSPK) ->
-    gen_server:call(?MODULE, {update_to_me, Name, SSPK}).
+update_to_me(SSPK) ->
+    gen_server:call(?MODULE, {update_to_me, SSPK}).
     
     
 agree_bet(Name, SPK, Vars, Secret) -> 
     Other = other(SPK),
-    Return = make_bet(Other, Name, Vars),
-    update_bet_to_me(Name, SSPK, Vars, Secret),
+    Return = make_bet(Other, Name, Vars, Secret),
+    %update_bet_to_me(Name, Return, Vars, Secret),
     Return.
 garbage() ->
     gen_server:cast(?MODULE, garbage).

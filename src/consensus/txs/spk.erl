@@ -57,14 +57,13 @@ run2(fast, SS, SPK, State) ->
       SPK#spk.space_gas,
       constants:fun_limit(),
       constants:var_limit(),
-      State).
+      State);
 run2(safe, SS, SPK, State) -> 
     S = self(),
     spawn(fun() ->
-		  X = run(fast, SS, SPK, State),
-		  S ! X,
-	  end,
-	  end)
+		  X = run2(fast, SS, SPK, State),
+		  S ! X
+	  end),
     spawn(fun() ->
 		  timer:sleep(5000),%wait enough time for the chalang contracts to finish
 		  S ! {-1,-1,-1,-1}

@@ -1,5 +1,5 @@
 -module(test_txs).
--export([test/0]).
+-export([test/0, test/1]).
  
 test() ->
     unlocked = keys:status(),
@@ -7,18 +7,18 @@ test() ->
     Pub = keys:pubkey(),
 
     S = success,
-    S = test1(),
-    S = test2(),
-    S = test3(),
-    S = test4(),
-    S = test5(),
-    S = test6(),
-    S = test7(),
+    S = test(1),
+    S = test(2),
+    S = test(3),
+    S = test(4),
+    S = test(5),
+    S = test(6),
+    S = test(7),
     S.
 absorb(Tx) -> 
     tx_pool_feeder:absorb(Tx),
     timer:sleep(400).
-test1() ->
+test(1) ->
     io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
     BP = block:genesis(),
@@ -46,10 +46,9 @@ test1() ->
     Block = block:make(PH, Txs, 1),%1 is the master pub
     MBlock = block:mine(Block, 1000000000),
     block:check2(MBlock),
-    success.
+    success;
     
-    
-test2() ->
+test(2) ->
     io:fwrite(" repo tx\n"),
     %repo_tx
     BP = block:genesis(),
@@ -71,11 +70,8 @@ test2() ->
 
     Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
     block:check2(Block),
-    success.
-    
-    
-   
-test3() ->
+    success;
+test(3) ->
     io:fwrite(" new channel tx\n"),
     %new channel, grow channel, channel team close
     BP = block:genesis(),
@@ -118,9 +114,9 @@ test3() ->
 
     Block = block:mine(block:make(PH, Txs, 1), 1000000000),%1 is the master pub
 	   block:check2(Block),
-    success.
+    success;
     
-test4() -> 
+test(4) -> 
     %channel repo
     io:fwrite(" channel repo tx\n"),
     BP = block:genesis(),
@@ -153,9 +149,9 @@ test4() ->
 
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
-    success.
+    success;
     
-test5() -> 
+test(5) -> 
     %channel solo close, channel timeout
     io:fwrite("channel solo close tx\n"),
     BP = block:genesis(),
@@ -199,10 +195,8 @@ test5() ->
 
     Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
     block:check2(Block),
-    success.
-
-
-test6() -> 
+    success;
+test(6) -> 
     %channel slash
     io:fwrite("channel slash tx\n"),
     BP = block:genesis(),
@@ -250,8 +244,8 @@ test6() ->
 
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
-    success.
+    success;
 
-test7() ->
+test(7) ->
     %satoshi dice test
     success.

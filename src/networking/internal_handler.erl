@@ -61,6 +61,8 @@ doit({dice, Amount, IP, Port}) ->
     SS = dice:resolve_ss(Secret, TheirSecret),
     SPK = testnet_sign:data(SSPK2),
     SSPK2simple = channel_feeder:agree_simplification(Other, SPK, SS),
+    SPKsimple = testnet_sign:data(SSPKsimple),
+    SPKsimple = testnet_sign:data(SSPK2simple),
     talker:talk({dice, 3, MyID, SSPK2simple});
     
 doit({add_peer, IP, Port}) ->

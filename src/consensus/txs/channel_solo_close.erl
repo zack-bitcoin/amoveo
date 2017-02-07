@@ -37,7 +37,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
 	       Acc2 -> 2
 	   end,
     SS = Tx#csc.scriptsig,
-    {Amount, NewCNonce} = spk:run(fast, SS, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
+    {Amount, NewCNonce} = spk:run(fast, SS, ScriptPubkey, NewHeight, 0, Accounts, Channels),
 
     true = NewCNonce > channel:nonce(Channel),
     NewChannel = channel:update(CID, Channels, NewCNonce, 0, -(Amount), Amount, Mode, spk:delay(ScriptPubkey), NewHeight),
@@ -45,7 +45,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Facc = account:update(From, Accounts, -Tx#csc.fee, Tx#csc.nonce, NewHeight),
     NewAccounts = account:write(Accounts, Facc),
     %<<TheirSecret/binary, _>> = SS,
-    spawn(fun() -> check_slash(From, Acc1, Acc2, SS, SPK, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
+    spawn(fun() -> check_slash(From, Acc1, Acc2, SS, SPK, NewAccounts, NewChannels, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
     {NewChannels, NewAccounts}.
 
 check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
@@ -53,39 +53,48 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     %From = MyID,
 
     {_, Nonce, SSM} = next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels),
-    %true = Nonce > TheirNonce,
+    true = Nonce > TheirNonce,
     timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
     %Depending
     {Accounts,Channels,_,_} = tx_pool:data(),
+    MyID = keys:id(),
     {Tx, _} = channel_slash_tx:make(MyID, free_:fee(), SPK, SSM, Accounts, Channels),
     Stx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(Stx),
-    easy:sync();
+    easy:sync().
 next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
     CD = channel_manager:read(From),
-    SS = channel_feeder:script_sig(CD),
+    io:fwrite("in next_ss. CD is "),
+    io:fwrite(packer:pack(CD)),
+    io:fwrite("\n"),
+    SS = channel_feeder:script_sig_them(CD),
     Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
-    {Amount1, Nonce1} = spk:run(safe, SS, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
+    SPK = testnet_sign:data(channel_feeder:them(CD)),
+    Height = block:height(block:read(top:doit())),
+    NewHeight = Height + 1,
+    State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
+    {Amount1, Nonce1} = spk:run(safe, SS, SPK, NewHeight, Slash, Accounts, Channels),
     [_|[OurSecret|_]] = free_constants:vm(SS, State),
     Out1 = {Amount1, Nonce1, SS, OurSecret},
     Height = block:height(block:read(top:doit())),
-    State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
     case free_constants:vm(TheirSS, State) of
+	%This is how we extract their secret from their scriptSig.
 	[_] -> Out1;
 	[_|[TheirSecret|_]] ->
 	    MyID = keys:id(),
 	    {From, SSF} = 
 		case MyID of
 		    Acc1 -> 
-			{Acc2, <<SS2/binary, TheirSS2/binary, 3>>};
+			{Acc2, <<OurSecret/binary, TheirSecret/binary, 3>>};
 		    Acc2 -> 
-			{Acc1, <<TheirSS2/binary, SS2/binary, 3>>};
+			{Acc1, <<TheirSecret/binary, OurSecret/binary, 3>>};
 		    true -> Acc1 = Acc2
 		end,
-	    {Amount2, Nonce2} = spk:run(safe, SSF, ScriptPubkey, NewHeight, Slash, Accounts, Channels),
+	    {Amount2, Nonce2} = spk:run(safe, SSF, SPK, NewHeight, Slash, Accounts, Channels),
 	    NonceM = max(Nonce1, Nonce2),
 	    case NonceM of
 		Nonce1 -> Out1;
-		Nonce2 -> {Amount2, Nonce2, SS2, OurSecret};
+		Nonce2 -> {Amount2, Nonce2, SSF, OurSecret};
 		_ -> Nonce1 = NonceM
-	    end.
+	    end
+    end.

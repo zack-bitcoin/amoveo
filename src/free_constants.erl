@@ -30,6 +30,9 @@ gas_limit() ->
 time_limit() ->
     %maximum number of miliseconds to wait for a channel contract to process.
     %if this number is too high, then it is easy to
+    10000.
+space_limit() ->
+    10000.
     
 vm(SS, State) ->
     chalang:vm(SS, time_limit(), space_limit(), constants:fun_limit(), constants:var_limit(), State).

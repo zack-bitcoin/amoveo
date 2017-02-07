@@ -9,6 +9,8 @@ It needs to make a bet.
 
 We should use a CLI program to talk to the node instead of using erlang directly.
 
+Users should be able to delegate the power of channel_slash to others. That way, if they are offline, their funds still wont be stolen. (Idea comes from Raiden)
+
 We need to update download_blocks so that peers get ranked, and we spend more time talking to higher-ranked peers.
 There is a problem where if you crash while syncing with a peer, then you skip trying to sync with any peer lower on the list. this is very bad.
 
