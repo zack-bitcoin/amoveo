@@ -43,8 +43,8 @@ doit({close_channel, IP, Port}) ->
     SPK = testnet_sign:data(channel_feeder:them(CD)),
     {Accounts,Channels,_,_} = tx_pool:data(),
     Height = block:height(block:read(top:doit())),
-    SS = channel_feeder:script_sig(CD),
-    {Amount, _} = spk:run(SS, SPK, Height, 0, Accounts, Channels),
+    SS = channel_feeder:script_sig_them(CD),
+    {Amount, _} = spk:run(fast, SS, SPK, Height, 0, Accounts, Channels),
     CID = spk:cid(SPK),
     Fee = free_constants:tx_fee(),
     {Tx, _} = channel_team_close_tx:make(CID, Accounts, Channels, Amount, Fee),
@@ -55,9 +55,9 @@ doit({dice, Amount, IP, Port}) ->
     {ok, Other} = talker:talk({id}, IP, Port),
     {Commit, Secret} = secrets:new(),
     MyID = keys:id(),
-    {ok, SSPK, OtherCommit} = talker:talk({dice, 1, MyID, Commit, Amount}),
+    {ok, SSPK, OtherCommit} = talker:talk({dice, 1, MyID, Commit, Amount}, IP, Port),
     SSPK2 = channel_feeder:agree_bet(dice, SSPK, [Amount, Commit, OtherCommit], Secret),
-    {ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, Secret}), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
+    {ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, Secret}, IP, Port), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
     SS = dice:resolve_ss(Secret, TheirSecret),
     SPK = testnet_sign:data(SSPK2),
     SSPK2simple = channel_feeder:agree_simplification(Other, SPK, SS),
@@ -96,7 +96,7 @@ doit({channel_spend, IP, Port, Amount}) ->
     {Accounts, _,_,_} = tx_pool:data(),
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
     Payment = keys:sign(SPK, Accounts),
-    channel_feeder:update_to_me(SPK),
+    %channel_feeder:update_to_me(SPK),
     M = {channel_payment, Payment, Amount},
     {ok, Response} = talker:talk(M, IP, Port),
     %maybe verify the signature of Response here?

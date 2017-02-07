@@ -99,10 +99,10 @@ doit({channel_simplify, SS, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
-doit({dice, 1, ID, Commit, Amount}) ->
+doit({dice, 1, Other, Commit, Amount}) ->
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
     {MyCommit, Secret} = secrets:new(),
-    SSPK = channel_feeder:make_bet(ID, dice, [Amount, Commit, MyCommit], Secret),
+    SSPK = channel_feeder:make_bet(Other, dice, [Amount, Commit, MyCommit], Secret),
     {ok, SSPK, MyCommit};
 doit({dice, 2, ID, SSPK, Secret}) ->
     channel_feeder:update_to_me(SSPK),

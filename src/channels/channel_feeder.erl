@@ -177,6 +177,9 @@ make_simplification_internal(Other, dice, Secret) ->
 
 make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by the channel_feeder gen_server, because it updates the channel_manager.
     %SSme = dice:make_ss(SPK, Secret),
+    io:fwrite("channel feeder make_bet_internal. other is "),
+    io:fwrite(integer_to_list(Other)),
+    io:fwrite("\n"),
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     Them = OldCD#cd.them,
@@ -209,6 +212,9 @@ update_to_me(SSPK) ->
     
 agree_bet(Name, SPK, Vars, Secret) -> 
     Other = other(SPK),
+    io:fwrite("other is "),
+    io:fwrite(integer_to_list(Other)),
+    io:fwrite("\n"),
     Return = make_bet(Other, Name, Vars, Secret),
     %update_bet_to_me(Name, Return, Vars, Secret),
     Return.
