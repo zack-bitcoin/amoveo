@@ -63,7 +63,7 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     tx_pool_feeder:absorb(Stx),
     easy:sync().
 next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
-    CD = channel_manager:read(From),
+    {ok, CD} = channel_manager:read(From),
     io:fwrite("in next_ss. CD is "),
     io:fwrite(packer:pack(CD)),
     io:fwrite("\n"),
