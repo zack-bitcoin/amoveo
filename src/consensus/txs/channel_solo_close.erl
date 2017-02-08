@@ -51,10 +51,10 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     spawn(fun() -> check_slash(From, Acc1, Acc2, SS, SPK, NewAccounts, NewChannels, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
     {NewChannels, NewAccounts}.
 
-check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
+check_slash(From, Acc1, Acc2, TheirSS, SSPK, Accounts, Channels, TheirNonce) ->
     %if our partner is trying to close our channel without us, and we have a ScriptSig that can close the channel at a higher nonce, then we should make a channel_slash_tx to do that.
     %From = MyID,
-
+    SPK = testnet_sign:data(SSPK),
     {_, Nonce, SSM, _OurSecret} = next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels),
     io:fwrite("their nonce is "),
     io:fwrite(integer_to_list(TheirNonce)),
@@ -64,7 +64,7 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     %Depending
     {Accounts,Channels,_,_} = tx_pool:data(),
     MyID = keys:id(),
-    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SPK, SSM, Accounts, Channels),
+    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SSPK, SSM, Accounts, Channels),
     Stx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(Stx),
     easy:sync().
