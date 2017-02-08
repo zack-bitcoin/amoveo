@@ -35,8 +35,8 @@ sleep 1
 curl -i -d '["dice", 1000, [127,0,0,1], 3020]' http://localhost:3011 # "dice"
 sleep 1
 
-curl -i -d '["channel_solo_close", 2]' http://localhost:3011 # "dice"
-sleep 1
+#curl -i -d '["channel_solo_close", 2]' http://localhost:3011 # "dice"
+#sleep 1
 
 #curl -i -d '["mine_block", 1, 1000000]' http://localhost:3021
 #sleep 1
