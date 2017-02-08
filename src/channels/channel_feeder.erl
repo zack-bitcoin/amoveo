@@ -72,9 +72,11 @@ handle_cast({close, SS, STx}, X) ->
     {Accounts, Channels, Height, _} = tx_pool:data(),
     State = chalang:new_state(TotalCoins, Height, 0, <<0:(8*hash:hash_depth())>>, Accounts, Channels),
     Bets = spk:bets(SPK),
-    {CalculatedAmount, NewNonce, _, _} = chalang:run(SS, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
+    ScriptSig = ssmaker(SS),
+    ScriptSigThem = ssmaker(CD#cd.ssthem),
+    {CalculatedAmount, NewNonce, _, _} = chalang:run(ScriptSig, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
 
-    {OldAmount, OldNonce, _, _} = chalang:run(CD#cd.ssthem, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
+    {OldAmount, OldNonce, _, _} = chalang:run(ScriptSigThem, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
     if
 	NewNonce > OldNonce -> ok; 
 	NewNonce == OldNonce ->
@@ -360,5 +362,10 @@ agree_simplification(Name, SSPK, OtherSS) ->
 		     Name, 
 		     SSPK,
 		     OtherSS}).
+ssmaker(A) ->    
+    case A of
+	<<>> -> [];
+	X -> [X]
+    end.
     
-  
+
