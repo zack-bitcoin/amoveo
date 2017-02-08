@@ -2,7 +2,7 @@
 -export([acc1/1,acc2/1,entropy/1,
 	 bets/1,space_gas/1,time_gas/1,
 	 new/9,delay/1,cid/1,amount/1, 
-	 nonce/1,apply_bet/2,get_paid/3,
+	 nonce/1,apply_bet/4,get_paid/3,
 	 run/7,settle_bet/3]).
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
@@ -29,10 +29,13 @@ new(Acc1, Acc2, CID, Bets, SG, TG, Delay, Nonce, Entropy) ->
 	 bets = Bets, space_gas = SG, time_gas = TG,
 	 delay = Delay, cid = CID, nonce = Nonce}.
     
-apply_bet(Bet, SPK) ->
+apply_bet(Bet, SPK, Time, Space) ->
 %bet is binary, the SPK portion of the script.
 %SPK is the old SPK, we output the new one.
-    SPK#spk{bets = [Bet|SPK#spk.bets], nonce = SPK#spk.nonce + 1}.
+    SPK#spk{bets = [Bet|SPK#spk.bets], 
+	    nonce = SPK#spk.nonce + 1, 
+	    time_gas = SPK#spk.time_gas + Time, 
+	    space_gas = SPK#spk.space_gas + Space}.
 settle_bet(SPK, Bets, Amount) ->
     SPK#spk{bets = Bets, amount = SPK#spk.amount + Amount, nonce = SPK#spk.nonce + 1}.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.

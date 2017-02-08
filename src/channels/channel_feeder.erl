@@ -309,7 +309,7 @@ get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
     io:fwrite(Front),
     Bet = compile:doit(Loc, Front),
     [] = spk:bets(SPK),%for now we only make 1 bet per customer at a time, otherwise it would be possible for a customer to make us check their complicated script over and over on each bet, to see if it can close any of them.
-    spk:apply_bet(Bet, SPK).
+    spk:apply_bet(Bet, SPK, 1000, 1000).
 other(X) when element(1, X) == signed ->
     other(testnet_sign:data(X));
 other(SPK) when element(1, SPK) == spk ->
