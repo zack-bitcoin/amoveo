@@ -60,7 +60,7 @@ check_slash(From, Acc1, Acc2, TheirSS, SSPK, Accounts, Channels, TheirNonce) ->
     io:fwrite(integer_to_list(TheirNonce)),
     io:fwrite("\n"),
     true = Nonce > TheirNonce,
-    timer:sleep(4000),%we need to wait enough time to finish loading the current block before we make this tx
+    timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
     %Depending
     {Accounts,Channels,_,_} = tx_pool:data(),
     MyID = keys:id(),
