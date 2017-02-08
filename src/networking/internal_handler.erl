@@ -57,16 +57,17 @@ doit({dice, Amount, IP, Port}) ->
     MyID = keys:id(),
     {ok, SSPK, OtherCommit} = talker:talk({dice, 1, MyID, Commit, Amount}, IP, Port),
     SSPK2 = channel_feeder:agree_bet(dice, SSPK, [Amount, Commit, OtherCommit], Secret),%should store partner's info into channel manager.
-    ok;%comment below this line for testing channel_slash txs.
-    %SPK = testnet_sign:data(SSPK2),
-    %SS1 = dice:make_ss(SPK, Secret),
-    %{ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, SS1}, IP, Port); %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
+    %ok;%comment below this line for testing channel_slash txs.
+    SPK = testnet_sign:data(SSPK2),
+    SS1 = dice:make_ss(SPK, Secret),
+    {ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, SS1}, IP, Port), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
+    
 %comment below this line for testing channel_slash txs.
-    %SS = dice:resolve_ss(SPK, Secret, TheirSecret),%
-    %SSPK2simple = channel_feeder:agree_simplification(dice, SSPKsimple, SS),
-    %SPKsimple = testnet_sign:data(SSPKsimple),
-    %SPKsimple = testnet_sign:data(SSPK2simple),
-    %talker:talk({dice, 3, MyID, SSPK2simple}, IP, Port);
+    SS = dice:resolve_ss(SPK, Secret, TheirSecret),%
+    SSPK2simple = channel_feeder:agree_simplification(dice, SSPKsimple, SS),
+    SPKsimple = testnet_sign:data(SSPKsimple),
+    SPKsimple = testnet_sign:data(SSPK2simple),
+    talker:talk({dice, 3, MyID, SSPK2simple}, IP, Port);
 doit({channel_solo_close, Other}) ->
     Fee = free_constants:tx_fee(),
     {Accounts,Channels,_,_} = tx_pool:data(),

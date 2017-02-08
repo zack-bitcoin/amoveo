@@ -75,7 +75,7 @@ next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
     io:fwrite(packer:pack(CD)),
     io:fwrite("\n"),
     OurSS1 = channel_feeder:script_sig_them(CD),%this is not a typo. this is OurSS which can be used for the highest nonced SPK they signed before this SPK we are currently looking at.
-    OurSS = case OurSS1 of
+    OurSS = case OurSS1 of%this trick only works because we limit it to one bet per channel.
 		[] -> channel_feeder:script_sig_me(CD);
 		X -> X
 	    end,
