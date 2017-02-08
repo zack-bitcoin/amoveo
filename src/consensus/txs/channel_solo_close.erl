@@ -56,6 +56,9 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     %From = MyID,
 
     {_, Nonce, SSM, _OurSecret} = next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels),
+    io:fwrite("their nonce is "),
+    io:fwrite(integer_to_list(TheirNonce)),
+    io:fwrite("\n"),
     true = Nonce > TheirNonce,
     timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
     %Depending
