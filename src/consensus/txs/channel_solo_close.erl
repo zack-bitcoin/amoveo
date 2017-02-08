@@ -63,6 +63,7 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     tx_pool_feeder:absorb(Stx),
     easy:sync().
 next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
+    %this is customized for dice.
     {ok, CD} = channel_manager:read(From),
     io:fwrite("in next_ss. CD is "),
     io:fwrite(packer:pack(CD)),
@@ -92,7 +93,8 @@ next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
 		end,
 	    S1size = size(S1),
 	    S2size = size(S2),
-	    SSF = <<2, S1size:32, S1/binary, 2, S2size:32, S2/binary, 3>>,
+	    SSF = <<2, S1size:32, S1/binary, 2, S2size:32, S2/binary, 0, 3>>,
+	    
 	    {Amount2, Nonce2} = spk:run(safe, SSF, SPK, NewHeight, Slash, Accounts, Channels),
 	    NonceM = max(Nonce1, Nonce2),
 	    case NonceM of
