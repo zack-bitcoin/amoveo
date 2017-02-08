@@ -137,12 +137,12 @@ handle_call({agree_bet, Name, SSPK, Vars, Secret}, _From, X) ->
 handle_call({make_simplification, Other, Name, OtherSecret}, _From, X) ->
     Z = make_simplification_internal(Other, Name, OtherSecret),
     {reply, Z, X};
-handle_call({agree_simplification, Name, SSPK, OtherSecret}, _From, X) ->
+handle_call({agree_simplification, Name, SSPK, OtherSS}, _From, X) ->
     {Accounts, _,_,_} = tx_pool:data(),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
-    {Return, _OurSecret} = make_simplification_internal(Other, Name, OtherSecret),
+    {Return, _OurSecret} = make_simplification_internal(Other, Name, OtherSS),
     update_to_me_internal(Return, SSPK),
     {reply, Return, X};
 handle_call(_, _From, X) -> {reply, X, X}.
@@ -156,7 +156,7 @@ update_to_me_internal(OurSPK, SSPK) ->
     NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
     channel_manager:write(Other, NewCD).
    
-make_simplification_internal(Other, dice, Secret) ->
+make_simplification_internal(Other, dice, OtherSS) ->
     %currently Secret is the 12 byte secret. It should be their ScriptSig.
     %calculate who won the dice game, give them the money.
     %1=0,
@@ -171,7 +171,7 @@ make_simplification_internal(Other, dice, Secret) ->
     %io:fwrite("Secret is "),
     %io:fwrite(Secret),
     %io:fwrite("\n"),%secret is their script sig.
-    {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, Secret, Acc1, Acc2, Accounts, Channels),
+    {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, OtherSS, Acc1, Acc2, Accounts, Channels),
 
     NewSPK = spk:settle_bet(SPK, [], Amount),
 

@@ -60,8 +60,8 @@ doit({dice, Amount, IP, Port}) ->
     SPK = testnet_sign:data(SSPK2),
     SS1 = dice:make_ss(SPK, Secret),
     {ok, SSPKsimple, TheirSecret} = talker:talk({dice, 2, MyID, SSPK2, SS1}, IP, Port), %SSPKsimple doesn't include the bet. the result of the bet instead is recorded.
-    SS = dice:resolve_ss(Secret, TheirSecret),
-    SSPK2simple = channel_feeder:agree_simplification(Other, SPK, SS),
+    SS = dice:resolve_ss(Secret, TheirSecret),%
+    SSPK2simple = channel_feeder:agree_simplification(dice, SPK, SS),
     SPKsimple = testnet_sign:data(SSPKsimple),
     SPKsimple = testnet_sign:data(SSPK2simple),
     talker:talk({dice, 3, MyID, SSPK2simple});
