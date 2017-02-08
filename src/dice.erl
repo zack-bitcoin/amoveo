@@ -10,7 +10,7 @@ make_ss(SPK, Secret) ->
 	    Acc2 -> 2;
 	    X -> X = Acc1
 	end,
-    S = size(Secret)
+    S = size(Secret),
     compiler_chalang:doit("binary " ++ integer_to_list(S) ++ " " ++ binary_to_list(base64:encode(Secret)) ++ " int " ++ integer_to_list(N) ++ " ").
 
 resolve_ss(SPK, Secret, TheirSecret) ->
