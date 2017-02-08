@@ -54,7 +54,7 @@ handle_cast({close, SS, STx}, X) ->
     OtherID = other(Tx),
     {ok, CD} = channel_manager:read(OtherID),
     true = CD#cd.live,
-    SPKM = testnet_sign:data(CD#cd.me),
+    SPKM = CD#cd.me,
     A1 = spk:acc1(SPKM), 
     A2 = spk:acc2(SPKM),
     SPK = testnet_sign:data(CD#cd.them),
