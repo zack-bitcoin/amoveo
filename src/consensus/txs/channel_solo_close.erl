@@ -82,14 +82,17 @@ next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
 	[_] -> Out1;
 	[_|[TheirSecret|_]] ->
 	    MyID = keys:id(),
-	    {From, SSF} = 
+	    {From, S1, S2} = 
 		case MyID of
 		    Acc1 -> 
-			{Acc2, <<OurSecret/binary, TheirSecret/binary, 3>>};
+			{Acc2, OurSecret, TheirSecret};
 		    Acc2 -> 
-			{Acc1, <<TheirSecret/binary, OurSecret/binary, 3>>};
+			{Acc1, TheirSecret, OurSecret};
 		    true -> Acc1 = Acc2
 		end,
+	    S1size = size(S1),
+	    S2size = size(S2),
+	    SSF = <<2, S1size:32, S1/binary, 2, S2:32, S2/binary, 3>>,
 	    {Amount2, Nonce2} = spk:run(safe, SSF, SPK, NewHeight, Slash, Accounts, Channels),
 	    NonceM = max(Nonce1, Nonce2),
 	    case NonceM of
