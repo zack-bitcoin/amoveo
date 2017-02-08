@@ -105,7 +105,7 @@ next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
 	    S2size = size(S2),
 	    SSF = <<2, S1size:32, S1/binary, 2, S2size:32, S2/binary, 0, 3:32>>,
 	    
-	    {Amount2, Nonce2} = spk:run(safe, SSF, SPK, NewHeight, Slash, Accounts, Channels),
+	    {Amount2, Nonce2} = spk:run(safe, [SSF], SPK, NewHeight, Slash, Accounts, Channels),
 	    io:fwrite("channel solo close nonce "),
 	    io:fwrite(integer_to_list(Nonce2)),
 	    io:fwrite("\n"),

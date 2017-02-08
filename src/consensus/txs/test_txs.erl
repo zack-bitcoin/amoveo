@@ -32,7 +32,7 @@ test(1) ->
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
     {Accounts2, _, _, _} = tx_pool:data(),
-
+    timer:sleep(200),
     {Ctx2, _} = spend_tx:make(2, 10, Fee, 1, Accounts2),
     Stx2 = keys:sign(Ctx2, Accounts2),
     absorb(Stx2),

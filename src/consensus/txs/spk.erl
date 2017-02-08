@@ -55,11 +55,7 @@ run(Mode, SS, SPK, Height, Slash, Accounts, Channels) ->
     true = NewNonce < 1000,
     {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce)}.
 run2(fast, SS, SPK, State) -> 
-    A = case SS of
-	    <<>> -> [];
-	    X -> [X]
-	end,
-    chalang:run(A, 
+    chalang:run(SS, 
 		SPK#spk.bets,
 		SPK#spk.time_gas,
 		SPK#spk.space_gas,
