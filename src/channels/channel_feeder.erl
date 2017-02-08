@@ -181,7 +181,7 @@ make_simplification_internal(Other, dice, OtherSS) ->
 
     NewSPK = spk:settle_bet(SPK, [], Amount),
 
-    NewCD = OldCD#cd{me = NewSPK, ssme = <<>>},
+    NewCD = OldCD#cd{me = NewSPK, ssme = [<<>>]},
     channel_manager:write(Other, NewCD),
     {keys:sign(NewSPK, Accounts), OurSecret}.%we should also return our secret.
 
