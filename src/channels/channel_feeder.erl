@@ -198,7 +198,7 @@ make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by th
     SPK = get_bet(dice, Bets, Vars, OldSPK),
     {Accounts, _,_,_} = tx_pool:data(),
     SSme = dice:make_ss(SPK, Secret),
-    NewCD = OldCD#cd{me = SPK, ssme = SSme},
+    NewCD = OldCD#cd{me = SPK, ssme = [SSme]},
     channel_manager:write(Other, NewCD),
     keys:sign(SPK, Accounts).
 
