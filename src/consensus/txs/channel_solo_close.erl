@@ -55,7 +55,7 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     %if our partner is trying to close our channel without us, and we have a ScriptSig that can close the channel at a higher nonce, then we should make a channel_slash_tx to do that.
     %From = MyID,
 
-    {_, Nonce, SSM, _OurSecret} = next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels),
+    {_, Nonce, SSM, _OurSecret} = next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels),
     io:fwrite("their nonce is "),
     io:fwrite(integer_to_list(TheirNonce)),
     io:fwrite("\n"),
@@ -68,7 +68,7 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     Stx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(Stx),
     easy:sync().
-next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
+next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
     %this is customized for dice.
     {ok, CD} = channel_manager:read(From),
     io:fwrite("in next_ss. CD is "),
@@ -76,7 +76,7 @@ next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
     io:fwrite("\n"),
     OurSS = channel_feeder:script_sig_me(CD),
     Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
-    SPK = testnet_sign:data(channel_feeder:them(CD)),
+    %SPK = testnet_sign:data(channel_feeder:them(CD)),
     Height = block:height(block:read(top:doit())),
     NewHeight = Height + 1,
     State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),

@@ -177,7 +177,7 @@ make_simplification_internal(Other, dice, OtherSS) ->
     %io:fwrite("Secret is "),
     %io:fwrite(Secret),
     %io:fwrite("\n"),%secret is their script sig.
-    {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, OtherSS, Acc1, Acc2, Accounts, Channels),
+    {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, OtherSS, SPK, Acc1, Acc2, Accounts, Channels),
 
     NewSPK = spk:settle_bet(SPK, [], Amount),
 
