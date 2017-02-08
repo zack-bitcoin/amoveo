@@ -131,7 +131,8 @@ peers() ->
 comment_limit() -> %When a miner mines a block, they can set this many bytes to whatever they want.
     140.
 magic() -> 1.
-    
+server_ip() -> {46,101,103,165}.
+server_port() -> 8080.
     
     
 

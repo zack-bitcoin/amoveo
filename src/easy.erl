@@ -53,13 +53,35 @@ repo_account(ID, Fee) ->
     F = fun(Accounts, _) ->
 		repo_tx:make(ID, Fee, keys:id(), Accounts) end,
     tx_maker(F).
-
-new_channel(CID, ID, Bal1, Bal2, Rent, Fee) ->
-    %be careful that an attacker doesn't make us generate entropy over and over to make the entropy they want.
-    Entropy = crypto:strong_rand_bytes(constants:channel_entropy() div 8),
-    F = fun(Accounts) ->
-		new_channel_tx:make(CID, Accounts, keys:id(), ID, Bal1, Bal2, Rent, Entropy, Fee) end,
-    tx_maker(F).
+new_channel(Bal1, Bal2, Fee) ->
+    {_,Channels, _,_} = tx_pool:data(),
+    CID = new_channel2(1, Channels),
+    new_channel(constants:server_ip(), constants:server_port(), CID, Bal1, Bal2, 0, Fee).
+new_channel2(ID, Channels) ->
+    <<X:8>> = crypto:strong_rand_bytes(1),
+    case channel:get(ID+X, Channels) of
+	{_, empty, _} -> ID+X;
+	X -> new_channel2(ID+256, Channels)
+    end.
+new_channel(IP, Port, CID, Bal1, Bal2, Rent, Fee) ->
+    internal_handler:doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}).
+channel_balance() ->
+    {ok, Other} = talker:talk({id}, constants:server_ip(), constants:server_port()),
+    {ok, CD} = channel_manager:read(Other),
+    SSPK = channel_feeder:them(CD),
+    SPK = testnet_sign:data(SSPK),
+    SS = channel_feeder:script_sig_them(CD),
+    {Accounts, Channels, NewHeight, _Txs} = tx_pool:data(),
+    {Amount, _} = spk:run(fast, SS, SPK, NewHeight, 0, Accounts, Channels),
+    CID = spk:cid(SPK),
+    Channel = channel:get(CID, Channels),
+    channel:bal1(Channel)-Amount.
+dice(Amount) ->
+    internal_handler:doit({dice, Amount, constants:ip(), constants:port()}).
+    
+    
+    
+    
 
 grow_channel(CID, Bal1, Bal2, Rent, Fee) ->
     F = fun(Accounts, Channels) ->
