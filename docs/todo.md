@@ -1,5 +1,4 @@
-make sure that satoshi dice only plays when both players have enough money to afford to lose.
-
+channel_solo_close check slash timer needs to sleep long enough.
 
 
 satoshi dice needs a way to manually do a solo-close, if your partner wont respond.

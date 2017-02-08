@@ -60,7 +60,7 @@ check_slash(From, Acc1, Acc2, TheirSS, SSPK, Accounts, Channels, TheirNonce) ->
     io:fwrite(integer_to_list(TheirNonce)),
     io:fwrite("\n"),
     true = Nonce > TheirNonce,
-    timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
+    timer:sleep(4000),%we need to wait enough time to finish loading the current block before we make this tx
     %Depending
     {Accounts,Channels,_,_} = tx_pool:data(),
     MyID = keys:id(),
@@ -74,7 +74,7 @@ next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
     io:fwrite("in next_ss. CD is "),
     io:fwrite(packer:pack(CD)),
     io:fwrite("\n"),
-    OurSS = channel_feeder:script_sig_me(CD),
+    OurSS = channel_feeder:script_sig_them(CD),%this is not a typo. this is OurSS which can be used for the highest nonced SPK they signed before this SPK we are currently looking at.
     Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
     %SPK = testnet_sign:data(channel_feeder:them(CD)),
     Height = block:height(block:read(top:doit())),
