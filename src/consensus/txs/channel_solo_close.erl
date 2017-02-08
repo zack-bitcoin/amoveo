@@ -67,15 +67,15 @@ next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
     io:fwrite("in next_ss. CD is "),
     io:fwrite(packer:pack(CD)),
     io:fwrite("\n"),
-    SS = channel_feeder:script_sig_them(CD),
+    %SS = channel_feeder:script_sig_them(CD),
     Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
     SPK = testnet_sign:data(channel_feeder:them(CD)),
     Height = block:height(block:read(top:doit())),
     NewHeight = Height + 1,
     State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
-    {Amount1, Nonce1} = spk:run(safe, SS, SPK, NewHeight, Slash, Accounts, Channels),
-    [_|[OurSecret|_]] = free_constants:vm(SS, State),
-    Out1 = {Amount1, Nonce1, SS, OurSecret},
+    {Amount1, Nonce1} = spk:run(safe, TheirSS, SPK, NewHeight, Slash, Accounts, Channels),
+    [_|[OurSecret|_]] = free_constants:vm(TheirSS, State),
+    Out1 = {Amount1, Nonce1, TheirSS, OurSecret},
     Height = block:height(block:read(top:doit())),
     case free_constants:vm(TheirSS, State) of
 	%This is how we extract their secret from their scriptSig.
