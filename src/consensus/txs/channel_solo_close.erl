@@ -75,7 +75,7 @@ next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
     State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
     {Amount1, Nonce1} = spk:run(safe, OurSS, SPK, NewHeight, Slash, Accounts, Channels),
     [_|[OurSecret|_]] = free_constants:vm(OurSS, State),
-    Out1 = {Amount1, Nonce1, OutSS, OurSecret},
+    Out1 = {Amount1, Nonce1, OurSS, OurSecret},
     Height = block:height(block:read(top:doit())),
     case free_constants:vm(TheirSS, State) of
 	%This is how we extract their secret from their scriptSig.
