@@ -4,6 +4,10 @@
 # sh start.sh 3020
 # Make sure each server is running from code copied into a different folder. It is important that they each maintain different trie databases, and don't share a trie.
 
+#test seperately with channel_solo_close or close_channel to finish it off.
+#test seperately with channel_solo_close and parts of internal_handler:doit({dice...}) missing.
+
+
 curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3021
 curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
 
@@ -35,14 +39,14 @@ sleep 1
 curl -i -d '["dice", 1000, [127,0,0,1], 3020]' http://localhost:3011 # "dice"
 sleep 1
 
-#curl -i -d '["channel_solo_close", 2]' http://localhost:3011 # "dice"
-#sleep 1
+curl -i -d '["channel_solo_close", 2]' http://localhost:3011 # "dice"
+sleep 1
 
 #curl -i -d '["mine_block", 1, 1000000]' http://localhost:3021
 #sleep 1
 
-curl -i -d '["close_channel", [127,0,0,1], 3020]' http://localhost:3011
-sleep 1
+#curl -i -d '["close_channel", [127,0,0,1], 3020]' http://localhost:3011
+#sleep 1
 #curl -i -d '["mine_block", 1, 1000000]' http://localhost:3021
 #sleep 1
 curl -i -d '["sync", [127,0,0,1], 3010]' http://localhost:3021
