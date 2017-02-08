@@ -85,7 +85,7 @@ next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
     NewHeight = Height + 1,
     State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
     {Amount1, Nonce1} = spk:run(safe, OurSS, SPK, NewHeight, Slash, Accounts, Channels),
-    [_|[OurSecret|_]] = free_constants:vm(OurSS, State),
+    [_|[OurSecret|_]] = free_constants:vm(hd(OurSS), State),
     Out1 = {Amount1, Nonce1, OurSS, OurSecret},
     Height = block:height(block:read(top:doit())),
     case free_constants:vm(TheirSS, State) of
