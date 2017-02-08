@@ -59,6 +59,7 @@ run2(fast, SS, SPK, State) ->
       constants:var_limit(),
       State);
 run2(safe, SS, SPK, State) -> 
+    %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
     S = self(),
     spawn(fun() ->
 		  X = run2(fast, SS, SPK, State),
