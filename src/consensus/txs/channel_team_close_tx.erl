@@ -1,10 +1,11 @@
 %If you did not get slashed, and you waited delay since channel_timeout, then this is how you close the channel and get the money out.
 
 -module(channel_team_close_tx).
--export([doit/4, make/5, acc1/1, acc2/1]).
+-export([doit/4, make/5, acc1/1, acc2/1, fee/1, amount/1]).
 -record(ctc, {aid1 = 0, aid2 = 0, fee = 0,
 	      nonce = 0, id = 0, amount = 0}).
 amount(Tx) -> Tx#ctc.amount.
+fee(Tx) -> Tx#ctc.fee.
 acc1(Tx) -> Tx#ctc.aid1.
 acc2(Tx) -> Tx#ctc.aid2.
 make(ID,Accounts,Channels,Amount,Fee) ->
@@ -22,6 +23,9 @@ make(ID,Accounts,Channels,Amount,Fee) ->
 doit(Tx, Channels,Accounts,NewHeight) ->
     ID = Tx#ctc.id,
     {_, OldChannel, _} = channel:get(ID, Channels),
+    io:fwrite("in channel team close "),
+    io:fwrite(packer:pack(OldChannel)),
+    io:fwrite("\n"),
     Aid1 = channel:acc1(OldChannel),
     Aid2 = channel:acc2(OldChannel),
     %ID = channel:id(OldChannel),

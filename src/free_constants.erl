@@ -21,6 +21,18 @@ min_channel_ratio() ->
     %So the customer needs to put in twice as much money as the server.
     0.5.
     %{f, 1, 2}.
-bets() -> %tuple list. {Name, Bet}
+bets() -> %tuple list. {Name, BetFile}
     [
+     {dice, "src/bets/dice.fs"}
     ].
+gas_limit() ->
+    constants:gas_limit().
+time_limit() ->
+    %maximum number of miliseconds to wait for a channel contract to process.
+    %if this number is too high, then it is easy to
+    100000.
+space_limit() ->
+    100000.
+    
+vm(SS, State) ->
+    chalang:vm(SS, time_limit(), space_limit(), constants:fun_limit(), constants:var_limit(), State).

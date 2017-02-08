@@ -2,8 +2,8 @@
 -export([acc1/1,acc2/1,entropy/1,
 	 bets/1,space_gas/1,time_gas/1,
 	 new/9,delay/1,cid/1,amount/1, 
-	 nonce/1,apply_bet/3,get_paid/3,
-	 run/6]).
+	 nonce/1,apply_bet/4,get_paid/3,
+	 run/7,settle_bet/3]).
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
 	      delay, cid, amount = 0, nonce = 0}).
@@ -24,14 +24,20 @@ nonce(X) -> X#spk.nonce.
 
 
 new(Acc1, Acc2, CID, Bets, SG, TG, Delay, Nonce, Entropy) ->
-    %Entropy = channel_feeder:entropy(CID, [Acc1, Acc2]) + 1,
+    %Entropy = chnnel_feeder:entropy(CID, [Acc1, Acc2])+1,
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
 	 bets = Bets, space_gas = SG, time_gas = TG,
 	 delay = Delay, cid = CID, nonce = Nonce}.
     
-apply_bet(_Bet, _SPK, _Vars) ->
-%vars is a tuple of variables that get inserted into the free spots in the bet.
-    ok.
+apply_bet(Bet, SPK, Time, Space) ->
+%bet is binary, the SPK portion of the script.
+%SPK is the old SPK, we output the new one.
+    SPK#spk{bets = [Bet|SPK#spk.bets], 
+	    nonce = SPK#spk.nonce + 1, 
+	    time_gas = SPK#spk.time_gas + Time, 
+	    space_gas = SPK#spk.space_gas + Space}.
+settle_bet(SPK, Bets, Amount) ->
+    SPK#spk{bets = Bets, amount = Amount, nonce = SPK#spk.nonce + 1}.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
     Aid2 = SPK#spk.acc2,
@@ -40,18 +46,35 @@ get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going
 	Aid2 -> 1;
 	_ -> MyID = Aid1
     end,
-    SPK#spk{amount = (SPK#spk.amount + (D*Amount))}.
+    SPK#spk{amount = (SPK#spk.amount + (D*Amount)), nonce = SPK#spk.nonce + 
+1}.
 	    
-run(SS, SPK, Height, Slash, Accounts, Channels) ->
+run(Mode, SS, SPK, Height, Slash, Accounts, Channels) ->
     State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
-    {Amount, NewNonce, _, _} = 
-	chalang:run(SS, 
-		    SPK#spk.bets,
-		    SPK#spk.time_gas,
-		    SPK#spk.space_gas,
-		    constants:fun_limit(),
-		    constants:var_limit(),
-		    State),
-    {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce}.
-    
-    
+    {Amount, NewNonce, _, _} = run2(Mode, SS, SPK, State),
+    true = NewNonce < 1000,
+    {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce)}.
+run2(fast, SS, SPK, State) -> 
+    chalang:run(SS, 
+		SPK#spk.bets,
+		SPK#spk.time_gas,
+		SPK#spk.space_gas,
+		constants:fun_limit(),
+		constants:var_limit(),
+		State);
+run2(safe, SS, SPK, State) -> 
+    %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
+    S = self(),
+    spawn(fun() ->
+		  X = run2(fast, SS, SPK, State),
+		  S ! X
+	  end),
+    spawn(fun() ->
+		  timer:sleep(5000),%wait enough time for the chalang contracts to finish
+		  S ! {-1,-1,-1,-1}
+	  end),
+    receive 
+	Z -> Z
+    end.
+	    
+	

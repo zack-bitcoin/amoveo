@@ -35,9 +35,7 @@ Generate your address:
 keys:address().
 ```
 
-To spend money to a brand new _account_, one needs to make a transaction, sign it, and then publish it:
+To spend money to a brand new _account_, one needs to make a transaction:
 ``` 
-{Tx, _} = easy:create_account(Address, AmountOfMoney, Fee, NewID).
-Stx = keys:sign(Ctx, Accounts).
-tx_pool_feeder:absorb(Stx).
+easy:create_account(Address, AmountOfMoney, Fee, NewID).
 ```

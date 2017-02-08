@@ -1,5 +1,5 @@
 -module(test_txs).
--export([test/0]).
+-export([test/0, test/1]).
  
 test() ->
     unlocked = keys:status(),
@@ -7,17 +7,18 @@ test() ->
     Pub = keys:pubkey(),
 
     S = success,
-    S = test1(),
-    S = test2(),
-    S = test3(),
-    S = test4(),
-    S = test5(),
-    S = test6(),
+    S = test(1),
+    S = test(2),
+    S = test(3),
+    S = test(4),
+    S = test(5),
+    S = test(6),
+    S = test(7),
     S.
 absorb(Tx) -> 
     tx_pool_feeder:absorb(Tx),
-    timer:sleep(100).
-test1() ->
+    timer:sleep(400).
+test(1) ->
     io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
     BP = block:genesis(),
@@ -31,7 +32,7 @@ test1() ->
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
     {Accounts2, _, _, _} = tx_pool:data(),
-
+    timer:sleep(200),
     {Ctx2, _} = spend_tx:make(2, 10, Fee, 1, Accounts2),
     Stx2 = keys:sign(Ctx2, Accounts2),
     absorb(Stx2),
@@ -45,10 +46,9 @@ test1() ->
     Block = block:make(PH, Txs, 1),%1 is the master pub
     MBlock = block:mine(Block, 1000000000),
     block:check2(MBlock),
-    success.
+    success;
     
-    
-test2() ->
+test(2) ->
     io:fwrite(" repo tx\n"),
     %repo_tx
     BP = block:genesis(),
@@ -70,11 +70,8 @@ test2() ->
 
     Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
     block:check2(Block),
-    success.
-    
-    
-   
-test3() ->
+    success;
+test(3) ->
     io:fwrite(" new channel tx\n"),
     %new channel, grow channel, channel team close
     BP = block:genesis(),
@@ -117,9 +114,9 @@ test3() ->
 
     Block = block:mine(block:make(PH, Txs, 1), 1000000000),%1 is the master pub
 	   block:check2(Block),
-    success.
+    success;
     
-test4() -> 
+test(4) -> 
     %channel repo
     io:fwrite(" channel repo tx\n"),
     BP = block:genesis(),
@@ -152,9 +149,9 @@ test4() ->
 
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
-    success.
+    success;
     
-test5() -> 
+test(5) -> 
     %channel solo close, channel timeout
     io:fwrite("channel solo close tx\n"),
     BP = block:genesis(),
@@ -180,7 +177,7 @@ test5() ->
     absorb(SStx2),
     {Accounts3, Channels, _, _} = tx_pool:data(),
     
-    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 1 int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
@@ -198,10 +195,8 @@ test5() ->
 
     Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
     block:check2(Block),
-    success.
-
-
-test6() -> 
+    success;
+test(6) -> 
     %channel slash
     io:fwrite("channel slash tx\n"),
     BP = block:genesis(),
@@ -227,7 +222,7 @@ test6() ->
     absorb(SStx2),
     {Accounts3, Channels, _, _} = tx_pool:data(),
     
-    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 1 int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
@@ -242,9 +237,15 @@ test6() ->
     {Ctx4, _} = channel_slash_tx:make(2,Fee,SignedScriptPubKey,[ScriptSig2],Accounts4,Channels2),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv, ID2, Accounts4),
     %Stx4 = keys:sign(Ctx4, Accounts4),
+    io:fwrite("before absorb \n"),
     absorb(Stx4),
+    io:fwrite("after absorb \n"),
     {_, _, _, Txs} = tx_pool:data(),
 
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
+    success;
+
+test(7) ->
+    %satoshi dice test
     success.

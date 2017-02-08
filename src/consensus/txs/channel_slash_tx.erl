@@ -26,7 +26,8 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     SignedSPK = Tx#cs.scriptpubkey,
     SPK = testnet_sign:data(SignedSPK),
     CID = spk:cid(SPK),
-    {_, Channel, _} = channel:get(CID, Channels),
+    {_, OldChannel, _} = channel:get(CID, Channels),
+    Channel = channel:update(CID, Channels, none, channel:rent(OldChannel), 0,0,channel:mode(OldChannel), channel:delay(OldChannel), NewHeight),
     true = testnet_sign:verify(SignedSPK, Accounts),
     Acc1 = channel:acc1(Channel),
     Acc2 = channel:acc2(Channel),
@@ -42,7 +43,7 @@ doit(Tx, Channels, Accounts, NewHeight) ->
 	      Acc2 -> {1, 0, Fee, none, Nonce};
 	      _ -> Acc1
 	  end,
-    {Amount, NewCNonce} = spk:run(Tx#cs.scriptsig, SPK, NewHeight, 1, Accounts, Channels),
+    {Amount, NewCNonce} = spk:run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Accounts, Channels),
     true = NewCNonce > channel:nonce(Channel),
     %delete the channel. empty the channel into the accounts.
     NewChannels = channel:delete(CID, Channels),

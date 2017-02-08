@@ -38,5 +38,7 @@ read(CID) -> gen_server:call(?MODULE, {read, CID}).
 keys() -> gen_server:call(?MODULE, keys).
 delete(CID) -> gen_server:cast(?MODULE, {delete, CID}).
 write(CID, Data) -> 
+    true = is_list(channel_feeder:script_sig_them(Data)),
+    true = is_list(channel_feeder:script_sig_me(Data)),
     gen_server:cast(?MODULE, {write, CID, Data}).
 

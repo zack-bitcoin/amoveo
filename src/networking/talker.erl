@@ -1,5 +1,5 @@
 -module(talker).
--export([talk/1, talk/3, local_talk/1]).
+-export([talk/3, local_talk/1]).
 
 peer(IP, Port) ->
     %{ok, Address} = inet_parse:address(IP),
@@ -14,9 +14,9 @@ peer(IP, Port) ->
 local_talk(Msg) ->
     Peer = "http://127.0.0.1:3011/",
     talk(Msg, Peer).
-talk(Msg) ->
-    Peer = "http://127.0.0.1:3010/",
-    talk(Msg, Peer).
+%talk(Msg) ->
+%    Peer = "http://127.0.0.1:3010/",
+%    talk(Msg, Peer).
 talk(Msg, Peer) ->
     talk_helper(Msg, Peer, 5).
 talk_helper(_, _, 0) -> {error, failed_connect};
