@@ -1,3 +1,7 @@
+make sure that satoshi dice only plays when both players have enough money to afford to lose.
+
+
+
 satoshi dice needs a way to manually do a solo-close, if your partner wont respond.
 
 satoshi dice needs one more hop to be set up, and 2 more variables. Each user needs to choose a secret and commit.

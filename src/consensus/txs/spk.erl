@@ -55,12 +55,17 @@ run(Mode, SS, SPK, Height, Slash, Accounts, Channels) ->
     true = NewNonce < 1000,
     {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce)}.
 run2(fast, SS, SPK, State) -> 
-    chalang:run([SS], SPK#spk.bets,
-      SPK#spk.time_gas,
-      SPK#spk.space_gas,
-      constants:fun_limit(),
-      constants:var_limit(),
-      State);
+    A = case SS of
+	    <<>> -> [];
+	    X -> [X]
+	end,
+    chalang:run(A, 
+		SPK#spk.bets,
+		SPK#spk.time_gas,
+		SPK#spk.space_gas,
+		constants:fun_limit(),
+		constants:var_limit(),
+		State);
 run2(safe, SS, SPK, State) -> 
     %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
     S = self(),
