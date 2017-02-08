@@ -6,7 +6,7 @@
 scriptpubkey(X) -> X#csc.scriptpubkey.
 
 make(From, Fee, ScriptPubkey, ScriptSig, Accounts, Channels) ->
-    true = is_list(ScriptSig),
+    %true = is_list(ScriptSig),
     CID = spk:cid(testnet_sign:data(ScriptPubkey)),
     {_, Acc, Proof1} = account:get(From, Accounts),
     {_, _Channel, Proofc} = channel:get(CID, Channels),
