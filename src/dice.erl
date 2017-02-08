@@ -26,5 +26,5 @@ resolve_ss(SPK, Secret, TheirSecret) ->
     T2 = integer_to_list(size(S2)),
     S1s = binary_to_list(base64:encode(S1)),
     S2s = binary_to_list(base64:encode(S2)),
-    S = " binary " ++ T1 ++ " " ++ S1s ++ " binary " ++ T2 ++ " "++ S2 ++ " int 3 ",
+    S = " binary " ++ T1 ++ " " ++ S1s ++ " binary " ++ T2 ++ " "++ S2s ++ " int 3 ",
     compiler_chalang:doit(S).
