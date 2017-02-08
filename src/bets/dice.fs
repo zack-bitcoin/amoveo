@@ -17,7 +17,7 @@ macro Win2 int 1 Amount ;
 macro player1revealed Commit1 reveal drop int 2 Win1 ;
 macro player2revealed Commit2 reveal drop int 2 Win2 ;
 : bothRevealed Commit2 reveal swap
-          Commit1 reveal bxor int 2 rem
+          Commit1 reveal bxor int 2 rem print print
 	  int 3 swap
 	  if Win1 else Win2 then ;
 
