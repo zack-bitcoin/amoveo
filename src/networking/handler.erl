@@ -106,6 +106,8 @@ doit({dice, 1, Other, Commit, Amount}) ->
     {ok, SSPK, MyCommit};
 doit({dice, 2, ID, SSPK, SS}) ->
     channel_feeder:update_to_me(SSPK),
+    io:fwrite("handler dice 2 "),
+    disassembler:doit(SS),
     {SSPKsimple, MySecret} = channel_feeder:make_simplification(ID, dice, SS),
     {ok, SSPKsimple, MySecret};
 doit({dice, 3, _ID, SSPK}) ->

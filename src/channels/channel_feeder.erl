@@ -134,8 +134,8 @@ handle_call({agree_bet, Name, SSPK, Vars, Secret}, _From, X) ->
     Return = make_bet_internal(Other, Name, Vars, Secret),
     update_to_me_internal(Return, SSPK),
     {reply, Return, X};
-handle_call({make_simplification, Other, Name, OtherSecret}, _From, X) ->
-    Z = make_simplification_internal(Other, Name, OtherSecret),
+handle_call({make_simplification, Other, Name, OtherSS}, _From, X) ->
+    Z = make_simplification_internal(Other, Name, OtherSS),
     {reply, Z, X};
 handle_call({agree_simplification, Name, SSPK, OtherSS}, _From, X) ->
     {Accounts, _,_,_} = tx_pool:data(),
