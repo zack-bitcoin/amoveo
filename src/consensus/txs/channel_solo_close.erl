@@ -93,7 +93,7 @@ next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels) ->
 		end,
 	    S1size = size(S1),
 	    S2size = size(S2),
-	    SSF = <<2, S1size:32, S1/binary, 2, S2size:32, S2/binary, 0, 3>>,
+	    SSF = <<2, S1size:32, S1/binary, 2, S2size:32, S2/binary, 0, 3:32>>,
 	    
 	    {Amount2, Nonce2} = spk:run(safe, SSF, SPK, NewHeight, Slash, Accounts, Channels),
 	    NonceM = max(Nonce1, Nonce2),
