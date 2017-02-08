@@ -61,7 +61,7 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     %Depending
     {Accounts,Channels,_,_} = tx_pool:data(),
     MyID = keys:id(),
-    {Tx, _} = channel_slash_tx:make(MyID, free_constants:fee(), SPK, SSM, Accounts, Channels),
+    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SPK, SSM, Accounts, Channels),
     Stx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(Stx),
     easy:sync().
