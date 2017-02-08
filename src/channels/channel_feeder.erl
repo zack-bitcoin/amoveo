@@ -214,14 +214,8 @@ update_to_me(SSPK) ->
     gen_server:call(?MODULE, {update_to_me, SSPK}).
     
     
-agree_bet(Name, SPK, Vars, Secret) -> 
-    Other = other(SPK),
-    io:fwrite("other is "),
-    io:fwrite(integer_to_list(Other)),
-    io:fwrite("\n"),
-    Return = make_bet(Other, Name, Vars, Secret),
-    %update_bet_to_me(Name, Return, Vars, Secret),
-    Return.
+agree_bet(Name, SSPK, Vars, Secret) -> 
+    gen_server:call(?MODULE, {agree_bet, Name, SSPK, Vars, Secret}).
 garbage() ->
     gen_server:cast(?MODULE, garbage).
 garbage_helper([], _C, _OldC) -> ok;
