@@ -37,7 +37,7 @@ apply_bet(Bet, SPK, Time, Space) ->
 	    time_gas = SPK#spk.time_gas + Time, 
 	    space_gas = SPK#spk.space_gas + Space}.
 settle_bet(SPK, Bets, Amount) ->
-    SPK#spk{bets = Bets, amount = SPK#spk.amount + Amount, nonce = SPK#spk.nonce + 1}.
+    SPK#spk{bets = Bets, amount = Amount, nonce = SPK#spk.nonce + 1}.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
     Aid2 = SPK#spk.acc2,
