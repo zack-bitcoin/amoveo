@@ -143,6 +143,9 @@ handle_call({agree_simplification, Name, SSPK, OtherSS}, _From, X) ->
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
     {Return, _OurSecret} = make_simplification_internal(Other, Name, OtherSS),
+    io:fwrite("agree simplifications "),
+    io:fwrite(packer:pack(SSPK)),
+    io:fwrite("\n"),
     update_to_me_internal(Return, SSPK),
     {reply, Return, X};
 handle_call(_, _From, X) -> {reply, X, X}.
@@ -154,6 +157,7 @@ update_to_me_internal(OurSPK, SSPK) ->
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
     NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
+    io:fwrite("update to me internal!!!!\n"),
     channel_manager:write(Other, NewCD).
    
 make_simplification_internal(Other, dice, OtherSS) ->
@@ -177,7 +181,7 @@ make_simplification_internal(Other, dice, OtherSS) ->
 
     NewCD = OldCD#cd{me = NewSPK, ssme = <<>>},
     channel_manager:write(Other, NewCD),
-    {keys:sign(SPK, Accounts), OurSecret}.%we should also return our secret.
+    {keys:sign(NewSPK, Accounts), OurSecret}.%we should also return our secret.
 
 make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by the channel_feeder gen_server, because it updates the channel_manager.
     %SSme = dice:make_ss(SPK, Secret),
