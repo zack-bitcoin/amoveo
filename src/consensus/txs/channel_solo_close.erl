@@ -88,7 +88,7 @@ next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
     [_|[OurSecret|_]] = free_constants:vm(hd(OurSS), State),
     Out1 = {Amount1, Nonce1, OurSS, OurSecret},
     Height = block:height(block:read(top:doit())),
-    case free_constants:vm(TheirSS, State) of
+    case free_constants:vm(hd(TheirSS), State) of
 	%This is how we extract their secret from their scriptSig.
 	[_] -> Out1;
 	[_|[TheirSecret|_]] ->
