@@ -45,8 +45,8 @@ sleep 1
 #sleep 1
 #curl -i -d '["mine_block", 1, 1000000]' http://localhost:3021
 #sleep 1
-#curl -i -d '["sync", [127,0,0,1], 3010]' http://localhost:3021
-#sleep 1
+curl -i -d '["sync", [127,0,0,1], 3010]' http://localhost:3021
+sleep 1
 
 #At the end of this test, the channel managers should still be storing the channels as if they were not closed. That way, if we are on a fork and it turns out the channel never got closed, we still have the channel data available to try closing again.
 # Channel manager should have some sort of garbage collection to clean up old channels like this.

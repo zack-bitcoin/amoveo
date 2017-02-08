@@ -37,6 +37,9 @@ doit(Tx, Channels, Accounts, NewHeight) ->
 	       Acc2 -> 2
 	   end,
     SS = Tx#csc.scriptsig,
+    io:fwrite("channel solo close "),
+    io:fwrite(packer:pack(SS)),
+    io:fwrite("\n"),
     {Amount, NewCNonce} = spk:run(fast, SS, ScriptPubkey, NewHeight, 0, Accounts, Channels),
 
     true = NewCNonce > channel:nonce(Channel),
@@ -52,13 +55,13 @@ check_slash(From, Acc1, Acc2, TheirSS, SPK, Accounts, Channels, TheirNonce) ->
     %if our partner is trying to close our channel without us, and we have a ScriptSig that can close the channel at a higher nonce, then we should make a channel_slash_tx to do that.
     %From = MyID,
 
-    {_, Nonce, SSM} = next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels),
+    {_, Nonce, SSM, _OurSecret} = next_ss(From, TheirSS, Acc1, Acc2, Accounts, Channels),
     true = Nonce > TheirNonce,
     timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
     %Depending
     {Accounts,Channels,_,_} = tx_pool:data(),
     MyID = keys:id(),
-    {Tx, _} = channel_slash_tx:make(MyID, free_:fee(), SPK, SSM, Accounts, Channels),
+    {Tx, _} = channel_slash_tx:make(MyID, free_variables:fee(), SPK, SSM, Accounts, Channels),
     Stx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(Stx),
     easy:sync().
