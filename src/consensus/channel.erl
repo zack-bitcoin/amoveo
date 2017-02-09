@@ -1,5 +1,5 @@
 -module(channel).
--export([new/8,serialize/1,deserialize/1,update/9,
+-export([new/9,serialize/1,deserialize/1,update/9,
 	 write/2,get/2,delete/2,root_hash/1,
 	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
 	 last_modified/1, mode/1,entropy/1,
@@ -81,7 +81,7 @@ update(ID, Channels, Nonce, NewRent,Inc1, Inc2, Mode, Delay, Height) ->
 		    mode = Mode
 		   }.
     
-new(ID, Acc1, Acc2, Bal1, Bal2, Height, Entropy, Rent) ->
+new(ID, Acc1, Acc2, Bal1, Bal2, Height, Entropy, Rent, Delay) ->
     D = if
 	Rent > 0 -> 1;
 	true -> 0
@@ -89,7 +89,8 @@ new(ID, Acc1, Acc2, Bal1, Bal2, Height, Entropy, Rent) ->
     #channel{id = ID, acc1 = Acc1, acc2 = Acc2, 
 	     bal1 = Bal1, bal2 = Bal2, 
 	     last_modified = Height, entropy = Entropy,
-	     rent = abs(Rent), rent_direction = D}.
+	     rent = abs(Rent), rent_direction = D,
+	     delay = Delay}.
 serialize(C) ->
     ACC = constants:acc_bits(),
     BAL = constants:balance_bits(),

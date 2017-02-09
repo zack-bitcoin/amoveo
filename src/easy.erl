@@ -96,12 +96,18 @@ close_channel() ->
 solo_close_channel() ->
     {ok, Other} = talker:talk({id}, constants:server_ip(), constants:server_port()),
     internal_handler:doit({channel_solo_close, Other}).
+channel_timeout() ->
+    {ok, Other} = talker:talk({id}, constants:server_ip(), constants:server_port()),
+    Fee = free_constants:tx_fee(),
+    {Accounts,Channels,_,_} = tx_pool:data(),
+    {ok, CD} = channel_manager:read(Other),
+    CID = channel_feeder:cid(CD),
+    {Tx, _} = channel_timeout:make(keys:id(), Accounts, Channels, CID, Fee),
+    Stx = keys:sign(Tx, Accounts),
+    tx_pool_feeder:absorb(Stx).
     
 to_int(X) ->
     round(X * constants:token_decimals()).
-    
-    
-    
 
 grow_channel(CID, Bal1, Bal2, Rent, Fee) ->
     F = fun(Accounts, Channels) ->
