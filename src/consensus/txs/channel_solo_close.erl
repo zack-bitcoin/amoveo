@@ -71,9 +71,9 @@ check_slash(From, Acc1, Acc2, TheirSS, SSPK, Accounts, Channels, TheirNonce) ->
 next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
     %this is customized for dice.
     {ok, CD} = channel_manager:read(From),
-    io:fwrite("in next_ss. CD is "),
-    io:fwrite(packer:pack(CD)),
-    io:fwrite("\n"),
+    %io:fwrite("in next_ss. CD is "),
+    %io:fwrite(packer:pack(CD)),
+    %io:fwrite("\n"),
     OurSS1 = channel_feeder:script_sig_them(CD),%this is not a typo. this is OurSS which can be used for the highest nonced SPK they signed before this SPK we are currently looking at.
     OurSS = case OurSS1 of%this trick only works because we limit it to one bet per channel.
 		[] -> channel_feeder:script_sig_me(CD);
@@ -106,9 +106,9 @@ next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
 	    SSF = <<2, S1size:32, S1/binary, 2, S2size:32, S2/binary, 0, 3:32>>,
 	    
 	    {Amount2, Nonce2} = spk:run(safe, [SSF], SPK, NewHeight, Slash, Accounts, Channels),
-	    io:fwrite("channel solo close nonce "),
-	    io:fwrite(integer_to_list(Nonce2)),
-	    io:fwrite("\n"),
+	    %io:fwrite("channel solo close nonce "),
+	    %io:fwrite(integer_to_list(Nonce2)),
+	    %io:fwrite("\n"),
 	    NonceM = max(Nonce1, Nonce2),
 	    case NonceM of
 		Nonce1 -> Out1;

@@ -143,9 +143,6 @@ handle_call({agree_simplification, Name, SSPK, OtherSS}, _From, X) ->
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
     {Return, _OurSecret} = make_simplification_internal(Other, Name, OtherSS),
-    io:fwrite("agree simplifications "),
-    io:fwrite(packer:pack(SSPK)),
-    io:fwrite("\n"),
     update_to_me_internal(Return, SSPK),
     {reply, Return, X};
 handle_call(_, _From, X) -> {reply, X, X}.
@@ -157,37 +154,28 @@ update_to_me_internal(OurSPK, SSPK) ->
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
     NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
-    io:fwrite("update to me internal!!!!\n"),
     channel_manager:write(Other, NewCD).
    
 make_simplification_internal(Other, dice, OtherSS) ->
-    %currently Secret is the 12 byte secret. It should be their ScriptSig.
     %calculate who won the dice game, give them the money.
-    %1=0,
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     Them = OldCD#cd.them,
-
     SPK = testnet_sign:data(Them),
     Acc1 = spk:acc1(SPK),
     Acc2 = spk:acc2(SPK),
     {Accounts, Channels,_,_} = tx_pool:data(),
-    %io:fwrite("Secret is "),
-    %io:fwrite(Secret),
-    %io:fwrite("\n"),%secret is their script sig.
     {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, OtherSS, SPK, Acc1, Acc2, Accounts, Channels),
-
     NewSPK = spk:settle_bet(SPK, [], Amount),
-
     NewCD = OldCD#cd{me = NewSPK, ssme = []},
     channel_manager:write(Other, NewCD),
     {keys:sign(NewSPK, Accounts), OurSecret}.%we should also return our secret.
 
 make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by the channel_feeder gen_server, because it updates the channel_manager.
     %SSme = dice:make_ss(SPK, Secret),
-    io:fwrite("channel feeder make_bet_internal. other is "),
-    io:fwrite(integer_to_list(Other)),
-    io:fwrite("\n"),
+    %io:fwrite("channel feeder make_bet_internal. other is "),
+    %io:fwrite(integer_to_list(Other)),
+    %io:fwrite("\n"),
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     Them = OldCD#cd.them,
@@ -282,7 +270,7 @@ depth_check2(SPK, C, OldC) ->
     end.
 
 get_bet(Name, [{Name, Loc}|_], Vars, SPK) ->
-    io:fwrite("get_bets"),
+    %io:fwrite("get_bets"),
     get_bet2(Name, Loc, Vars, SPK);
 get_bet(Name, [_|T], Vars, SPK) -> get_bet(Name, T, Vars, SPK).
 get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
@@ -303,8 +291,8 @@ get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
              macro Commit1 binary " ++ integer_to_list(size(Commit1))++" "++ binary_to_list(base64:encode(Commit1)) ++ " ; \n
              macro Commit2 binary " ++ integer_to_list(size(Commit2))++ " " ++ binary_to_list(base64:encode(Commit2)) ++ " ; \n
 ",
-    io:fwrite("channel feeder front is \n"),
-    io:fwrite(Front),
+    %io:fwrite("channel feeder front is \n"),
+    %io:fwrite(Front),
     Bet = compile:doit(Loc, Front),
     [] = spk:bets(SPK),%for now we only make 1 bet per customer at a time, otherwise it would be possible for a customer to make us check their complicated script over and over on each bet, to see if it can close any of them.
     spk:apply_bet(Bet, SPK, 1000, 1000).

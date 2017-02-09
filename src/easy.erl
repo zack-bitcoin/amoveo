@@ -88,6 +88,7 @@ integer_channel_balance() ->
     {_, Channel, _} = channel:get(CID, Channels),
     channel:bal1(Channel)-Amount.
 dice(Amount) ->
+    unlocked = keys:status(),
     A = to_int(Amount),
     internal_handler:doit({dice, A, constants:server_ip(), constants:server_port()}).
 close_channel() ->
