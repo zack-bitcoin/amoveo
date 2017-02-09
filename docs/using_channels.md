@@ -1,7 +1,7 @@
 making a channel with the server:
 
 ```
-easy:new_channel(Balance, ReceivingLimit, Fee).
+easy:new_channel(Balance, ReceivingLimit).
 ```
 
 Balance is how much of your money you put into the channel.

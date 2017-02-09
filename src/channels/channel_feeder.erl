@@ -41,7 +41,7 @@ handle_cast({new_channel, Tx, SSPK, Accounts}, X) ->
     SPK = testnet_sign:data(SSPK),
     SPK = new_channel_tx:spk(Tx, spk:delay(SPK)),%doesn't move the money
     %CID = spk:cid(SPK),
-    CD = #cd{me = keys:sign(SPK, Accounts), them = SSPK, entropy = spk:entropy(SPK)},
+    CD = #cd{me = SPK, them = SSPK, entropy = spk:entropy(SPK)},
     %io:fwrite("adding new channel to manager at "),
     %io:fwrite(integer_to_list(spk:cid(SPK))),
     %io:fwrite(" with acc "),

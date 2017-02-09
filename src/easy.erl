@@ -29,7 +29,7 @@ create_account(NewAddr, Amount, ID) ->
     create_account(NewAddr, Amount, ?Fee, ID).
 create_account(NewAddr, Amount, Fee, ID) ->
     F = fun(Accounts, _) ->
-		create_account_tx:make(NewAddr, Amount, Fee, keys:id(), ID, Accounts) end,
+		create_account_tx:make(NewAddr, round(Amount* constants:token_decimals()), Fee, keys:id(), ID, Accounts) end,
     tx_maker(F).
 spend(ID, Amount) ->
     K = keys:id(),
@@ -53,10 +53,16 @@ repo_account(ID, Fee) ->
     F = fun(Accounts, _) ->
 		repo_tx:make(ID, Fee, keys:id(), Accounts) end,
     tx_maker(F).
+new_channel(Bal1, Bal2) ->
+    new_channel(Bal1, Bal2, ?Fee).
 new_channel(Bal1, Bal2, Fee) ->
     {_,Channels, _,_} = tx_pool:data(),
     CID = new_channel2(1, Channels),
-    new_channel(constants:server_ip(), constants:server_port(), CID, Bal1, Bal2, 0, Fee).
+    B1 = Bal1 * constants:token_decimals(),
+    B2 = Bal2 * constants:token_decimals(),
+    new_channel(constants:server_ip(), 
+		constants:server_port(), 
+		CID, B1, B2, 0, Fee).
 new_channel2(ID, Channels) ->
     <<X:8>> = crypto:strong_rand_bytes(1),
     case channel:get(ID+X, Channels) of
@@ -74,7 +80,7 @@ channel_balance() ->
     {Accounts, Channels, NewHeight, _Txs} = tx_pool:data(),
     {Amount, _} = spk:run(fast, SS, SPK, NewHeight, 0, Accounts, Channels),
     CID = spk:cid(SPK),
-    Channel = channel:get(CID, Channels),
+    {_, Channel, _} = channel:get(CID, Channels),
     channel:bal1(Channel)-Amount.
 dice(Amount) ->
     internal_handler:doit({dice, Amount, constants:ip(), constants:port()}).

@@ -79,6 +79,7 @@ root() -> "data/".
 block_hashes() -> root() ++ "block_hashes.db".
 keys() -> root() ++ "keys.db".
 top() -> root() ++ "top.db".
+channel_manager() -> root() ++ "channel_manager.db".
 word_size() -> 100000.
 
 
