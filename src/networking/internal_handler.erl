@@ -118,6 +118,7 @@ doit({channel_spend, IP, Port, Amount}) ->
     
 doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}) ->
     %make sure we don't already have a channel with this peer.
+    unlocked = keys:status(),
     undefined = peers:cid(peers:read(IP, Port)),
     Acc1 = keys:id(),
     {ok, Acc2} = talker:talk({id}, IP, Port),

@@ -54,6 +54,7 @@ doit({test}) ->
 doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
 doit({new_channel, STx, SSPK}) ->
+    unlocked = keys:status(),
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
     {Accounts, _,_,_} = tx_pool:data(),

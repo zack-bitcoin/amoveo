@@ -2,14 +2,14 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 	 keys/0,read/1,delete/1,write/2]).
--define(LOC, "").
+-define(LOC, constants:channel_manager()).
 init(ok) -> 
     X = db:read(?LOC),
     Ka = if
 	     X == "" -> dict:new();
 	     true -> X
 	 end,
-    process_flag(trap_exit, true),
+    %process_flag(trap_exit, true),
     {ok, Ka}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
