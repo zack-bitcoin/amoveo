@@ -102,6 +102,9 @@ doit({bets}) ->
     free_variables:bets();
 doit({dice, 1, Other, Commit, Amount}) ->
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
+    {ok, CD} = channel_manager:read(Other),
+    [] = channel_feeder:script_sig_me(CD),
+    [] = channel_feeder:script_sig_them(CD),
     {MyCommit, Secret} = secrets:new(),
     SSPK = channel_feeder:make_bet(Other, dice, [Amount, Commit, MyCommit], Secret),
     {ok, SSPK, MyCommit};
