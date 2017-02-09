@@ -37,6 +37,6 @@ space_limit() ->
 vm(SS, State) ->
     chalang:vm(SS, time_limit(), space_limit(), constants:fun_limit(), constants:var_limit(), State).
 
-min_channel_delay() -> 10.
+min_channel_delay() -> 4.
 max_channel_delay() -> 100.
 

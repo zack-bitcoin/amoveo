@@ -56,23 +56,23 @@ repo_account(ID, Fee) ->
 		repo_tx:make(ID, Fee, keys:id(), Accounts) end,
     tx_maker(F).
 new_channel(Bal1, Bal2) ->
-    new_channel(Bal1, Bal2, ?Fee).
-new_channel(Bal1, Bal2, Fee) ->
+    new_channel(Bal1, Bal2, ?Fee, 10).
+new_channel(Bal1, Bal2, Fee, Delay) ->
     {_,Channels, _,_} = tx_pool:data(),
     CID = new_channel2(1, Channels),
     B1 = to_int(Bal1),
     B2 = to_int(Bal2),
     new_channel(constants:server_ip(), 
 		constants:server_port(), 
-		CID, B1, B2, 0, Fee).
+		CID, B1, B2, 0, Fee, Delay).
 new_channel2(ID, Channels) ->
     <<X:8>> = crypto:strong_rand_bytes(1),
     case channel:get(ID+X, Channels) of
 	{_, empty, _} -> ID+X;
 	X -> new_channel2(ID+256, Channels)
     end.
-new_channel(IP, Port, CID, Bal1, Bal2, Rent, Fee) ->
-    internal_handler:doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee}).
+new_channel(IP, Port, CID, Bal1, Bal2, Rent, Fee, Delay) ->
+    internal_handler:doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee, Delay}).
 channel_balance() ->
     I = integer_channel_balance(),
     pretty_display(I).
