@@ -3,11 +3,13 @@ We use another trie to store the answers, for any questions that were answered.
 
 For questions that are in the process of being answered, we store a market in the on-chain state.
 The market remembers how many shares of each type have been sold, and it remembers what it's initial liquidity was, and it should have an order-book.
-The market has 4 possible outcomes:
+The market has 6 possible outcomes:
 1) difficulty goes up, and oracle's outcome is true
 2) difficulty goes up, and oracle's outcome is false
 3) difficulty goes down, and oracle's outcome is true
 4) difficulty goes down, and oracle's outcome is false
+5) difficulty goes up, and the oracle's outcome is bad_question
+6) difficulty goes down, and the oracle's outcome is bad_question
 
 Each market should have a trie for storing orders in the order book, and it should have an accounts trie, to remember how much money each account has.
 
