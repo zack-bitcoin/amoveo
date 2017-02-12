@@ -1,4 +1,13 @@
-For ubuntu, install these dependencies:
+Make sure that your system is up-to-date:
+```
+sudo apt-get update
+```
+and
+```
+sudo apt-get upgrade
+```
+
+For Ubuntu, install following dependencies:
 
 ```
 sudo apt-get install erlang libncurses5-dev libssl-dev unixodbc-dev g++ git erlang-base-hipe
