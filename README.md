@@ -19,7 +19,7 @@ sh start.sh
 #### Sync with the network
 To sync with the network and download the blockchain: 
 ```
-easy:sync()
+easy:sync().
 ```
 
 #### Mining
@@ -40,7 +40,7 @@ mine:is_on().
 
 #### Spend
 ```
-easy:spend(To, Amount) 
+easy:spend(To, Amount).
 ```
 To is the recipient's account ID
 
