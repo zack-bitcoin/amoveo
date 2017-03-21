@@ -60,7 +60,7 @@ prev_hash(X) ->
     B = block(X),
     B#block.prev_hash.
 hash(X) -> 
-    hash:doit(term_to_binary(block(X))).
+    testnet_hasher:doit(term_to_binary(block(X))).
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis() ->
@@ -191,7 +191,7 @@ check1(BP) ->
 	    %io:fwrite(packer:pack(Block)),
 	    Difficulty = Block#block.difficulty,
 	    true = Difficulty >= constants:initial_difficulty(),
-	    pow:above_min(PowBlock, Difficulty),
+	    pow:above_min(PowBlock, Difficulty, constants:hash_size()),
  
 	    true = Block#block.time < time_now(),
 	    true = Block#block.time > 0,%should be replaced with > median of last 100 blocks.

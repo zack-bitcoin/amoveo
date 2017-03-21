@@ -148,7 +148,7 @@ deserialize(B) ->
 write(Channel, Root) ->
     ID = Channel#channel.id,
     M = serialize(Channel),
-    trie:put(ID, M, Root, channels). %returns a pointer to the new root
+    trie:put(ID, M, 0, Root,channels). %returns a pointer to the new root
 id_size() -> constants:key_length().
 get(ID, Channels) ->
     true = (ID - 1) < math:pow(2, id_size()),

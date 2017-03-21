@@ -138,7 +138,7 @@ pubkey2address(P) ->
     %S = T rem 5000,
     %case S of
 	%0 ->
-	    binary2address(hash:doit(P)).%;
+	    binary2address(testnet_hasher:doit(P)).%;
 	%_ ->
 	%    {error, invalid_pubkey}
     %end.

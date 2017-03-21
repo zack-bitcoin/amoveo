@@ -8,15 +8,15 @@ init(ok) ->
     Ka = if
 	     X == "" ->
 		 G = block:genesis(),
+		 block_absorber:save_helper(G),
+		 add_internal(G),
 		 I = keys:pubkey(),
 		 M = constants:master_pub(),
 		 if
 		     I == M -> keys:update_id(1);
 		     true -> ok
 		 end,
-		 K = block:hash(G),
-		 db:save(?LOC, K),
-		 K;
+		 block:hash(G);
 	     true ->
 		 X
 	 end,
@@ -34,20 +34,23 @@ handle_call({add, Block}, _From, X) ->
     NH = block:height(Block),
     OH = block:height(OldBlock),
     New = if
-	      NH > OH -> 
-		  %tx_pool:dump(),
+	NH > OH -> 
 		  Channels = block:channels(Block),
 		  Accounts = block:accounts(Block),
+		  NH = block:height(Block),
 		  tx_pool:absorb(Channels, Accounts, [], NH),
-		  Y = block:hash(Block),
-		  db:save(?LOC, Y),
-		  Y;
-	      true -> X
-	  end,
+		  add_internal(Block);
+	true -> X
+    end,
     {reply, 0, New};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 add(Block) -> gen_server:call(?MODULE, {add, Block}).
 doit() -> gen_server:call(?MODULE, top).
+add_internal(Block) ->
+    Y = block:hash(Block),
+    db:save(?LOC, Y),
+    Y.
+
 test() ->
     ok.

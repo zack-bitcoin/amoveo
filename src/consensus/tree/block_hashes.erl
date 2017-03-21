@@ -29,11 +29,11 @@ handle_call({check, H}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 
 add(X) -> 
-    true = size(X) == hash:hash_depth(),
+    true = size(X) == constants:hash_size(),
     gen_server:cast(?MODULE, {add, X}).
 
 check(X) ->
-    true = size(X) == hash:hash_depth(),
+    true = size(X) == constants:hash_size(),
     gen_server:call(?MODULE, {check, X}).
 
 i_new() ->

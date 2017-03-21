@@ -2,9 +2,9 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 doit/1]).
+	 doit/1, save_helper/1]).
 init(ok) -> 
-    save(block:genesis()),
+    %save(block:genesis()),
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -31,11 +31,15 @@ absorb(BP) ->
 	    BP2 = block:check2(BP),
 	    save(BP2)
     end.   
-save(BlockPlus) ->
+save_helper(BlockPlus) ->
     Z = zlib:compress(term_to_binary(BlockPlus)),
     binary_to_term(zlib:uncompress(Z)),%sanity check, not important for long-term.
+    %Hash = testnet_hasher:doit(BlockPlus),
     Hash = block:hash(BlockPlus),
     BF = block:binary_to_file(Hash),
-    db:save(BF, Z),
+    db:save(BF, Z).
+    
+save(BlockPlus) ->
+    save_helper(BlockPlus),
     top:add(BlockPlus),
-    Hash.
+    block:hash(BlockPlus).

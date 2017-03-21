@@ -16,6 +16,8 @@ block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> %1*256.%for testing purposes only
 6452.
 
+hash_size() -> 12.
+
 finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> 96.
 %master_pub() -> <<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1FzNnA1QStRbmdZeStmTGY4ZzRvPQ==">>.
@@ -84,7 +86,7 @@ word_size() -> 100000.
 
 
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
-acc_bits() -> trie_hash:hash_depth()*8.%total number of accounts is 2^(acc_bits()) 800 billion.
+acc_bits() -> hash_size()*8.%total number of accounts is 2^(acc_bits()) 800 billion.
 height_bits() -> 32. %maximum number of blocks is 2^this
 account_nonce_bits() -> 20.%maximum number of times you can update an account's state is 2^this.
 channel_nonce_bits() -> 30.%maximum number of times you can update a channel's state is 2^this.

@@ -37,7 +37,7 @@ serialize(A) ->
     Addr = A#acc.addr,
     Baddr = testnet_sign:address2binary(Addr),
     SizeAddr = size(Baddr),
-    SizeAddr = hash:hash_depth(),
+    SizeAddr = constants:hash_size(),
     Nbits = constants:account_nonce_bits(),
     AP = constants:account_padding(),
     KL = key_length(),
@@ -56,7 +56,7 @@ serialize(A) ->
 deserialize(A) ->
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
-    HD = hash:hash_depth()*8,
+    HD = constants:hash_size()*8,
     Nbits = constants:account_nonce_bits(),
     AP = constants:account_padding(),
     KL = constants:key_length(),
@@ -71,7 +71,7 @@ deserialize(A) ->
 write(Root, Account) ->%These are backwards.
     ID = Account#acc.id,
     M = serialize(Account),
-    trie:put(ID, M, Root, accounts).%returns a pointer to the new root.
+    trie:put(ID, M, 0, Root, accounts).%returns a pointer to the new root.
 delete(ID, Accounts) ->
     trie:delete(ID, Accounts, accounts).
 key_length() ->
