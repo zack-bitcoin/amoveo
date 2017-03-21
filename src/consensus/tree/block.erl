@@ -139,7 +139,7 @@ mine(BP, Times) when is_record(BP, block_plus) ->
     end;
 mine(Block, Times) ->
     Difficulty = Block#block.difficulty,
-    pow:pow(Block, Difficulty, Times).
+    pow:pow(Block, Difficulty, Times, constants:hash_size()).
 
 next_difficulty(ParentPlus) ->
     Parent = pow:data(ParentPlus#block_plus.block),

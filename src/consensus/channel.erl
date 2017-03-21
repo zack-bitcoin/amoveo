@@ -102,6 +102,7 @@ serialize(C) ->
     ENT = constants:channel_entropy(),
     CID = C#channel.id,
     Entropy = C#channel.entropy,
+    DB = constants:channel_delay_bits(),
     true = (Entropy - 1) < math:pow(2, ENT),
     true = (CID - 1) < math:pow(2, KL),
     << CID:KL,
@@ -115,6 +116,7 @@ serialize(C) ->
        (C#channel.rent):Rent,
        (C#channel.rent_direction):1,
        (C#channel.mode):2,
+       (C#channel.delay):DB,
        Entropy:ENT,
        0:Pad>>.
 deserialize(B) ->
@@ -126,6 +128,7 @@ deserialize(B) ->
     Pad = constants:channel_padding(),
     KL = constants:key_length(),
     ENT = constants:channel_entropy(),
+    DB = constants:channel_delay_bits(),
     << ID:KL,
        B1:ACC,
        B2:ACC,
@@ -137,6 +140,7 @@ deserialize(B) ->
        B8:Rent,
        B9:1,
        B10:2,
+       B12:DB,
        B11:ENT,
        _:Pad>> = B,
     #channel{id = ID, acc1 = B1, acc2 = B2, 
@@ -144,7 +148,8 @@ deserialize(B) ->
 	     nonce = B5, timeout_height = B6, 
 	     last_modified = B7,
 	     rent = B8, rent_direction = B9,
-	     mode = B10, entropy = B11}.
+	     mode = B10, entropy = B11, 
+	     delay = B12}.
 write(Channel, Root) ->
     ID = Channel#channel.id,
     M = serialize(Channel),

@@ -91,13 +91,16 @@ height_bits() -> 32. %maximum number of blocks is 2^this
 account_nonce_bits() -> 20.%maximum number of times you can update an account's state is 2^this.
 channel_nonce_bits() -> 30.%maximum number of times you can update a channel's state is 2^this.
 channel_rent_bits() -> 8.
+channel_delay_bits() -> 24.
 		       
--define(AccountSizeWithoutPadding, (balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length())).
+-define(AccountSizeWithoutPadding, 
+	(balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length())).
+
 -define(ChannelSizeWithoutPadding, 
 	(key_length() + (acc_bits()*2) + 
 	     (balance_bits()*2) + channel_nonce_bits() + 
 	     (height_bits()*2) + channel_rent_bits() + 
-	     1 + 2 + channel_entropy())).
+	     1 + 2 + channel_entropy() + channel_delay_bits())).
 account_padding() ->    
     8 - (?AccountSizeWithoutPadding rem 8).
 channel_padding() ->
