@@ -1,4 +1,7 @@
-Make sure that your system is up-to-date:
+Make sure that your system is up-to-date and that you are running Ubuntu 16 or later:
+
+(earlier versions of ubuntu requires manually installing the latest version of erlang, because the package manager installs an old version)
+
 ```
 sudo apt-get update
 ```
