@@ -2,6 +2,11 @@ Make sure that your system is up-to-date and that you are running Ubuntu 16 or l
 
 (earlier versions of ubuntu requires manually installing the latest version of erlang, because the package manager installs an old version)
 
+Use this command to check your version number
+```
+lsb_release -a
+```
+
 ```
 sudo apt-get update
 ```
