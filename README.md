@@ -1,7 +1,7 @@
 æternity
 ==========
 
-This is the code used for the testnet for the [æternity](www.aeternity.com) project.
+This is the code used for the testnet for the [æternity](https://aeternity.com) project.
 
 This testnet uses simple PoW consensus. Its purpose is to show how state-channels work.
 
