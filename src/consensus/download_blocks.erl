@@ -69,13 +69,14 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
 	    NextHash = block:hash(NextBlock),
 	    trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);
 	_ -> 
-	    %download 100 blocks earlier, to handle forks.
+						%download 100 blocks earlier, to handle forks.
 	    L2 = get_blocks(Height-1, free_constants:fork_tolerance(), IP, Port, []),
-	    sync3(L2++L),
-	    %io:fwrite("send blocks !!!!"),
-	    %io:fwrite(PrevHash),
-	    %io:fwrite("\n"),
-	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
+	    case L2 of
+		error -> error;
+		_ ->
+		    sync3(L2++L),
+		    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
+	    end
     end.
 send_blocks(IP, Port, T, T, L, _N) -> 
     %io:fwrite("finished sending blocks"),
@@ -105,8 +106,11 @@ absorb_txs([H|T]) ->
     tx_pool_feeder:absorb(H),
     absorb_txs(T).
 talk(CMD, IP, Port, F) ->
+    talk(CMD, IP, Port, F, 100).
+talk(_, _, _, _, 0) -> error;
+talk(CMD, IP, Port, F, N) ->
     case talker:talk(CMD, IP, Port) of
-	{error, failed_connect} -> ok;
+	{error, failed_connect} -> talk(CMD, IP, Port, F, N-1);
 	{ok, X} -> F(X)
     end.
 	   
