@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # first install rebar package manager
 if [ -e "rebar" ]
 then

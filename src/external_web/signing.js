@@ -9,7 +9,7 @@ priv2 = atob("YJx/2r3S6+wOPhu7HHAt5g39a8LMsAC1m1Ff6Unvjzk=");
 
 //signed tx
 stx = ["signed",["channel_block",0,1],"TUVVQ0lGUmdLQlZZcTlCdFJZOUdHNHR3b2JYc1hDYzJHSTRvQ0UzKytraExwemN1QWlFQS8zTFZEbDlaVmk3MC90aEx5SlJXYlc0NnRMakRUUldXb2FTdllHcmlnN3c9","TUVVQ0lRQzVsTW9VVWxFbmJ1blNiVGVCZUk0VlRzTDZ3UEVERnBwU1B0dDBwRnZOL1FJZ1drM21mKzhtcXJmTEVDYWZFYkdMTWRjVDFWMVBWSjYwK3U3RVNBckdIMTg9",[-6]];
-tx = stx[1];
+tx  = stx[1];
 //console.log(JSON.stringify(tx));
 //console.log(pub1);
 
@@ -23,11 +23,15 @@ tx = stx[1];
 
 //var key2 = ec.keyFromPublic(pub1, "");
 
-function toHex(str) {
+function toHex(str)
+{
     var hex = '';
-    for(var i=0;i<str.length;i++) {
-	hex += ''+str.charCodeAt(i).toString(16);
+
+    for(var i=0;i<str.length;i++)
+    {
+        hex += ''+str.charCodeAt(i).toString(16);
     }
+
     return '0'+hex;
 }
 

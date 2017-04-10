@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 rm data/*.db
 rm blocks/*.db
 

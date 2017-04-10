@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 #First start the two servers:
 # sh start.sh 3010
