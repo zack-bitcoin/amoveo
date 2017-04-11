@@ -328,11 +328,7 @@ mine_blocks(N, Times) ->
     %io:fwrite(" diff "),
     %io:fwrite(integer_to_list(Block#block.difficulty)),
     %erlang:system_info(logical_processors_available)
-    XXX = erlang:system_info(logical_processors_available),
-    Cores = if
-		is_integer(XXX) -> XXX;
-		true -> 1
-	    end,
+    Cores = guess_number_of_cpu_cores(),
     %io:fwrite(" using "),
     %io:fwrite(integer_to_list(Cores)),
     %io:fwrite(" CPU"),
@@ -353,3 +349,14 @@ spawn_many(0, _) -> ok;
 spawn_many(N, F) -> 
     spawn(F),
     spawn_many(N-1, F).
+guess_number_of_cpu_cores() ->    
+    X = erlang:system_info(logical_processors_available),
+    if
+        X == unknown ->
+	    % Happens on Mac OS X.
+            erlang:system_info(schedulers);
+	is_integer(X) -> 
+	    %ubuntu
+	    X;
+	true -> io:fwrite("number of CPU unknown"), 1
+    end.
