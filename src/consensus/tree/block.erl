@@ -328,7 +328,11 @@ mine_blocks(N, Times) ->
     %io:fwrite(" diff "),
     %io:fwrite(integer_to_list(Block#block.difficulty)),
     %erlang:system_info(logical_processors_available)
-    Cores = erlang:system_info(logical_processors_available),
+    XXX = erlang:system_info(logical_processors_available),
+    Cores = if
+		is_integer(XXX) -> XXX;
+		true -> 1
+	    end,
     %io:fwrite(" using "),
     %io:fwrite(integer_to_list(Cores)),
     %io:fwrite(" CPU"),
