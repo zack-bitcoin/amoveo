@@ -5,10 +5,10 @@ then
 elif [ `uname -s`==Linux ]
 then
     wget https://raw.githubusercontent.com/wiki/rebar/rebar/rebar && chmod u+x rebar
-elif [ `uname -s`==Darwin ]
-then
-    curl https://raw.githubusercontent.com/wiki/rebar/rebar/rebar -o rebar
-    chmod u+x rebar
+#elif [ `uname -s`==Darwin ]
+#then
+#    curl https://raw.githubusercontent.com/wiki/rebar/rebar/rebar -o rebar
+#    chmod u+x rebar
 
 else
     echo "your computer cannot compile this"

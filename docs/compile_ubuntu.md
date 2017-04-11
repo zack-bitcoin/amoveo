@@ -1,4 +1,4 @@
-Make sure that your system is up-to-date and that you are running Ubuntu 16 or later:
+Make sure that that you are running Ubuntu 16 or later:
 
 (earlier versions of ubuntu requires manually installing the latest version of erlang, because the package manager installs an old version)
 
@@ -7,6 +7,7 @@ Use this command to check your version number
 lsb_release -a
 ```
 
+Make sure that your system is up-to-date:
 ```
 sudo apt-get update
 ```
@@ -33,4 +34,4 @@ cd testnet/
 sh install.sh
 ```
 
-Installation should be done. Now you can run your node.
+Now you can run your node. with ```sh start.sh```

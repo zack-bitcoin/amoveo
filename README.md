@@ -7,7 +7,18 @@ This testnet uses simple PoW consensus. Its purpose is to show how state-channel
 
 ### Compiling and Runing
 You will need Erlang and a couple of libraries. Please follow instructions:
-[For Ubuntu](docs/compile.md)
+[For Ubuntu](docs/compile_ubuntu.md)
+[For Mac](docs/compile_mac.md)
+
+Then, start your node with following script:
+```
+sh start.sh
+```
+
+### Commands
+
+#### Sync with the network
+To sync with the network and download the blockchain: 
 
 Then, start your node with following script:
 ```
