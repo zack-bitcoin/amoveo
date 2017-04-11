@@ -15,6 +15,11 @@ Then, start your node with following script:
 sh start.sh
 ```
 
+To download updates do this:
+```
+sh update.sh
+```
+
 ### Commands
 
 #### Sync with the network
