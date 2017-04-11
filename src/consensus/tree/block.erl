@@ -327,8 +327,8 @@ mine_blocks(N, Times) ->
     %io:fwrite("mining attempt #"),
     %io:fwrite(integer_to_list(N)),
     %io:fwrite(" time "),
-    %io:fwrite(integer_to_list(time_now())),
-    %io:fwrite(" diff "),
+   % io:fwrite(integer_to_list(time_now())),
+   % io:fwrite(" diff "),
     %io:fwrite(integer_to_list(Block#block.difficulty)),
     %erlang:system_info(logical_processors_available)
     Cores = guess_number_of_cpu_cores(),
