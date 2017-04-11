@@ -273,28 +273,30 @@ read_int(N, BH) ->
 
 
 test() ->
-    io:fwrite("top, \n"),
-    block:read(top:doit()),
-    PH = top:doit(),
-    BP = read(PH),
-    Accounts = accounts(BP),
-    %Accounts = BP#block_plus.accounts,
-    _ = account:get(1, Accounts),
+  io:fwrite("top, \n"),
+  block:read(top:doit()),
+  PH = top:doit(),
+  BP = read(PH),
+  Accounts = accounts(BP),
+  %Accounts = BP#block_plus.accounts,
+  _ = account:get(1, Accounts),
     %{block_plus, Block, _, _, _} = make(PH, [], 1),
-    Block = make(PH, [], 1),
-    io:fwrite(packer:pack(Block)),
-    io:fwrite("top 2, \n"),
-    MBlock = mine(Block, 100000000),
-    io:fwrite("top 3, \n"),
-    check2(MBlock),
-    success.
-new_id(N) -> 
-    {Accounts, _, _, _} = tx_pool:data(),
-    new_id(N, Accounts).
+  Block = make(PH, [], 1),
+  io:fwrite(packer:pack(Block)),
+  io:fwrite("top 2, \n"),
+  MBlock = mine(Block, 100000000),
+  io:fwrite("top 3, \n"),
+  check2(MBlock),
+  success.
+
+new_id(N) ->
+  {Accounts, _, _, _} = tx_pool:data(),
+  new_id(N, Accounts).
+
 new_id(N, Accounts) ->
    case account:get(N, Accounts) of
-       {_, empty, _} -> N;
-       _ -> new_id(N+1, Accounts)
+     {_, empty, _} -> N;
+     _ -> new_id(N+1, Accounts)
    end.
 	   
 mine_test() ->
@@ -328,19 +330,25 @@ mine_blocks(N, Times) ->
     %io:fwrite(" diff "),
     %io:fwrite(integer_to_list(Block#block.difficulty)),
     %erlang:system_info(logical_processors_available)
-    Cores = erlang:system_info(logical_processors_available),
+
+  XXX = erlang:system_info(logical_processors_available),
+  Cores = if
+            is_integer(XXX) -> XXX;
+            true -> 1
+          end,
     %io:fwrite(" using "),
     %io:fwrite(integer_to_list(Cores)),
     %io:fwrite(" CPU"),
     %io:fwrite("\n"),
+
     F = fun() ->
-		case mine(Block, Times) of
-		    false -> false;
-		    PBlock -> 
-			io:fwrite("FOUND A BLOCK !\n"),
-			block_absorber:doit(PBlock)
-		end
-	end,
+      case mine(Block, Times) of
+        false -> false;
+		    PBlock ->
+          io:fwrite("FOUND A BLOCK !\n"),
+          block_absorber:doit(PBlock)
+      end
+        end,
     spawn_many(Cores-1, F),
     F(),
     mine_blocks(N-1, Times).
