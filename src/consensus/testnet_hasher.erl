@@ -1,5 +1,5 @@
 -module(testnet_hasher).
--export([doit/1]).
+-export([doit/1, bin_to_hex/1]).
 
 doit(X) -> hash:doit(X, constants:hash_size()).
 bin_to_hex(<<>>) -> "";
