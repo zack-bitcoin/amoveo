@@ -207,6 +207,7 @@ check2(PowBlock) ->
 
     %check2 assumes that the parent is in the database already.
     %add comment to blocks.
+    true = pow:check_pow(PowBlock, constants:hash_size()),
     Block = block(PowBlock),
     true = is_binary(Block#block.comment),
     true = size(Block#block.comment) < constants:comment_limit(),
@@ -214,9 +215,9 @@ check2(PowBlock) ->
     Difficulty = Block#block.difficulty,
     PH = Block#block.prev_hash,
     ParentPlus = read(PH),
-    %io:fwrite("parent plus is "),
-    %io:fwrite(packer:pack(ParentPlus)),
-    %io:fwrite("\n"),
+    io:fwrite("parent plus is "),
+    io:fwrite(packer:pack(ParentPlus)),
+    io:fwrite("\n"),
     true = is_record(ParentPlus, block_plus),
     Difficulty = next_difficulty(ParentPlus),
     PrevPlus = read(PH),
