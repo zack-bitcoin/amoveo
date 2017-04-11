@@ -20,7 +20,6 @@ handle_cast(start, _) ->
 		is_integer(X) -> X;
 		true -> 1
 	    end,
-    %Cores = erlang:system_info(logical_processors_available),
     io:fwrite("start mining with "),
     io:fwrite(integer_to_list(Cores)),
     io:fwrite(" cores.\n"),
