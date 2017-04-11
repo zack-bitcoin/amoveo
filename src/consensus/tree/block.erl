@@ -308,7 +308,6 @@ mine_test() ->
     success.
 %mine_blocks(N) ->
 %    mine_blocks(N, 1000000).
-   
 mine_blocks(0, _) -> success;
 mine_blocks(N, Times) -> 
     PH = top:doit(),
@@ -322,26 +321,19 @@ mine_blocks(N, Times) ->
 	     {_, Identity} -> Identity
 	 end,
     {block_plus, Block, _, _, _, _} = make(PH, Txs, ID),
-    
-    %io:fwrite("mining attempt #"),
-    %io:fwrite(integer_to_list(N)),
-    %io:fwrite(" time "),
-    %io:fwrite(integer_to_list(time_now())),
-    %io:fwrite(" diff "),
-    %io:fwrite(integer_to_list(Block#block.difficulty)),
-    %erlang:system_info(logical_processors_available)
-
-  XXX = erlang:system_info(logical_processors_available),
-  Cores = if
-            is_integer(XXX) -> XXX;
-            true -> 1
-          end,
+  %io:fwrite("mining attempt #"),
+  %io:fwrite(integer_to_list(N)),
+  %io:fwrite(" time "),
+  %io:fwrite(integer_to_list(time_now())),
+  %io:fwrite(" diff "),
+  %io:fwrite(integer_to_list(Block#block.difficulty)),
+  %erlang:system_info(logical_processors_available)
+  Cores = guess_number_of_cpu_cores(),
     %io:fwrite(" using "),
     %io:fwrite(integer_to_list(Cores)),
     %io:fwrite(" CPU"),
     %io:fwrite("\n"),
-
-    F = fun() ->
+  F = fun() ->
       case mine(Block, Times) of
         false -> false;
 		    PBlock ->
@@ -357,3 +349,14 @@ spawn_many(0, _) -> ok;
 spawn_many(N, F) -> 
     spawn(F),
     spawn_many(N-1, F).
+guess_number_of_cpu_cores() ->
+    X = erlang:system_info(logical_processors_available),
+    if
+      X == unknown ->
+	    % Happens on Mac OS X.
+        erlang:system_info(schedulers);
+	is_integer(X) ->
+	    %ubuntu
+	    X;
+	true -> io:fwrite("number of CPU unknown"), 1
+    end.
