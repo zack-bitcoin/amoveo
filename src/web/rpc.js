@@ -23,7 +23,8 @@ var PORT = parseInt(document.URL.substring(17, 21), 10);
 
 function get(t, callback)
 {
-    u = url(PORT - 1, "localhost"); //127.0.0.1 if not conflict with ip6 on apache
+    var u = url(PORT - 1, "localhost"); //127.0.0.1 if not conflict with ip6 on apache
+
     return getter(t, u, callback);
 }
 
@@ -38,7 +39,7 @@ function url(port, ip)
 
 function local_get(t, callback)
 {
-    u = url(PORT, "localhost");
+    var u = url(PORT, "localhost");
     return getter(t, u, callback);
 }
 
@@ -73,7 +74,7 @@ refresh_helper
     x,
     function()
     {
-        my_status = JSON.parse(xml_out(x));
+        var my_status = JSON.parse(xml_out(x));
         console.log("test response ".concat(JSON.stringify(my_status)));
     }
 );
@@ -100,7 +101,7 @@ function var_get(x, callback)
         x,
         function()
         {
-	        p = JSON.parse(xml_out(x));
+            var p = JSON.parse(xml_out(x));
 	        callback(p[1]);
         }
     );

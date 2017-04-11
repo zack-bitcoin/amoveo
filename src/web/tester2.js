@@ -1,6 +1,6 @@
 function local_get2(t, callback)
 {
-    u = url(PORT + 11, "localhost");
+    var u = url(PORT + 11, "localhost");
 
     return getter
     (

@@ -51,8 +51,7 @@ function new_channel(id)
         console.log("new id ".concat(id));
         //the channel needs to be signed by both participants before it can be published.
 
-        variable_get2
-        (
+        variable_get2(
             ["create_channel", id, 112030, 0, btoa("delegated_1"), 50],
             function(ch)
             {
@@ -66,8 +65,7 @@ function new_channel(id)
                     {
 		                console.log(ch2);
 
-		                variable_get2
-                        (
+		                variable_get2(
                             ["sign", ch2],
                             function(ch3)
                             {
@@ -163,7 +161,7 @@ function hashlock(chid)
 function unlock(chid)
 {
     console.log("unlock1");
-    secret = "AQIDBA==";
+    var secret = "AQIDBA==";
 
     variable_public_get2
     (

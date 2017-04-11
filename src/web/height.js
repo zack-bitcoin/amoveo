@@ -7,7 +7,7 @@ document.body.appendChild(height);
 function height_f(x)
 {
     var h       = document.getElementById("height");
-    b           = (x).toString();
+    var b       = (x).toString();
     h.innerHTML = "current height: ".concat(b);
 }
 

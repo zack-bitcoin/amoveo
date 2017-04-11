@@ -118,7 +118,7 @@ function tx2html(tx)
 
 function lookup_block2(block)
 {
-    block2            = block[1];
+    var block2 = block[1];
     var current_block = document.getElementById("block div");
 
     //acc, number, hash, txs, power, entropy, total_coins, db_root

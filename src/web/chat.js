@@ -10,7 +10,7 @@ function chat_func()
     // variable_get(["msg_peers"], chat_func2); }
     // function chat_func2(peers) {
 
-    start = -1;
+    var start = -1;
 
     var chat_buddy = parseInt(document.getElementById("talk_address").value, 10);
 
@@ -22,7 +22,7 @@ function chat_func()
 function chat_func3(ids, partner)
 {
     console.log(ids);
-    msgs = document.getElementById("messages");
+    var msgs = document.getElementById("messages");
 
     //replacedNode = msgs.replaceChild(ul, msgs);
     //msgs.replaceChild(ul, msgs);
@@ -59,7 +59,7 @@ function chat_func4(ids, partner, N, M)
 
             function(msg)
             {
-                msgs   = document.getElementById("messages");
+                var msgs = document.getElementById("messages");
                 var li = document.createElement("li");
 
                 console.log(msg);

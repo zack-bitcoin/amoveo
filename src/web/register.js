@@ -38,7 +38,7 @@ function new_channel(id)
 
 function new_channel2(id, bal)
 {
-    C = Math.min(Math.floor(bal/2), 1000000);
+    var C = Math.min(Math.floor(bal / 2), 1000000);
 
     local_get(["new_channel", IP, Port, C, Math.floor(C/1.1), 50]);
     // id unused!

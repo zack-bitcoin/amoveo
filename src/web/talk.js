@@ -29,7 +29,7 @@ function talk1()
 
 function talk2(id)
 {
-    talk_address       = document.getElementById("talk_address");
+    var talk_address = document.getElementById("talk_address");
     talk_address.value = id;
 
     document.body.appendChild(document.createElement("br"));

@@ -26,7 +26,7 @@ function get(t, callback)
 {
     //u = url(PORT - 1, "localhost");
     //u = url(PORT, "localhost");
-    u = url(PORT, IP);
+    var u = url(PORT, IP);
 
     return getter(t, u, callback);
 }
@@ -40,7 +40,7 @@ function url(port, ip)
 function local_get(t, callback)
 {
     //u = url(PORT, "localhost");
-    u = url(PORT, IP);
+    var u = url(PORT, IP);
     return getter(t, u, callback);
 }
 
@@ -108,7 +108,7 @@ function var_get(x, callback)
         x,
         function()
         {
-	        p = JSON.parse(xml_out(x));
+            var p = JSON.parse(xml_out(x));
 	        callback(p[1]);
         }
     );

@@ -8,7 +8,7 @@ function total_coins_f(x)
     var h = document.getElementById("total_coins");
     console.log(x);
 
-    b = (x).toString();
+    var b = (x).toString();
 
     h.innerHTML = "current total coins: ".concat(b);
 }
