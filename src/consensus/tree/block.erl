@@ -5,7 +5,7 @@
 	 read/1,binary_to_file/1,block/1,prev_hash/2,
 	 prev_hash/1,read_int/1,check1/1,pow_block/1,
 	 mine_blocks/2, hashes/1, 
-	 guess_number_of_cpu_cores/0
+	 guess_number_of_cpu_cores/1
 	]).
 
 -record(block, {height, prev_hash = 0, txs, channels, 
