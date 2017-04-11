@@ -5,7 +5,7 @@
 	 read/1,binary_to_file/1,block/1,prev_hash/2,
 	 prev_hash/1,read_int/1,check1/1,pow_block/1,
 	 mine_blocks/2, hashes/1, 
-	 guess_number_of_cpu_cores/1
+	 guess_number_of_cpu_cores/0
 	]).
 
 -record(block, {height, prev_hash = 0, txs, channels, 
@@ -314,7 +314,8 @@ mine_blocks(N, Times) ->
     PH = top:doit(),
     {_,_,_,Txs} = tx_pool:data(),
     ID = case {keys:pubkey(), keys:id()} of
-	     {[], X} -> io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
+	     {[], X} -> 
+		 %io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
 			X = 294393793232;
 	     {_, -1} ->
 		 NewID = new_id(1),
@@ -343,7 +344,7 @@ mine_blocks(N, Times) ->
 			block_absorber:doit(PBlock)
 		end
 	end,
-    spawn_many(Cores-1, F),
+    spawn_many(Cores, F),
     F(),
     mine_blocks(N-1, Times).
     
