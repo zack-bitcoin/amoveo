@@ -15,11 +15,7 @@ handle_cast(mine, go) ->
     spawn(fun() -> easy:sync() end),
     {noreply, go};
 handle_cast(start, _) ->
-    X = erlang:system_info(logical_processors_available),
-    Cores = if
-		is_integer(X) -> X;
-		true -> 1
-	    end,
+    Cores = block:guess_number_of_cpu_cores(),
     io:fwrite("start mining with "),
     io:fwrite(integer_to_list(Cores)),
     io:fwrite(" cores.\n"),
