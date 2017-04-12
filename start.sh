@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #if you want to use a different port, then start like this:
 # sh start 3666
+sh update.sh
 git pull origin master
 
 ./rebar get-deps
