@@ -77,7 +77,7 @@ delete(ID, Accounts) ->
 key_length() ->
     constants:key_length().
 get(Id, Accounts) ->
-    true = ID > 0,
+    %true = ID > 0,
     true = (Id - 1) < math:pow(16, key_length()),
     {RH, Leaf, Proof} = trie:get(Id, Accounts, accounts),
     V = case Leaf of
