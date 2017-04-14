@@ -12,7 +12,7 @@ You will need Erlang version 18 or higher, and a couple of libraries. Please fol
 
 Then, start your node with following script:
 ```
-sh start.sh
+sh start.sh <port>
 ```
 
 To download updates do this:
@@ -29,10 +29,11 @@ Then, start your node with following script:
 ```
 sh start.sh <port>
 ```
-port for:
-testnet = 8041
-node 1  = 3010
-node 2  = 3020
+- port for:
+- testnet = 8041
+- node 1  = 3010
+- node 2  = 3020
+
 aso.
 
 ### Commands
@@ -50,6 +51,11 @@ To start mining with all CPU cores:
 ```
 mine:start().
 ```
+You will see something like this:
+
+start mining with 4 cores.
+ok
+
 To stop mining:
 ```
 mine:stop().
