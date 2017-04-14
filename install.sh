@@ -80,6 +80,7 @@ exit
 else
 echo "starting Testnet now! \n"
 sh start.sh 3010
-sh start.sh 3020
 
+#sh start.sh 3020
+# before we do this we need to copy the project into new folder
 fi

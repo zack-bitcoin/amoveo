@@ -10,3 +10,10 @@ rebar_source
 .rebar
 erl_crash.dump
 keys_backup
+.idea/aeternity-testnet.iml
+.idea/inspectionProfiles/
+.idea/libraries/
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
+backup/
