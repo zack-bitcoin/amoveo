@@ -21,22 +21,25 @@
 #
 
 # first install rebar package manager
-if [ -e "rebar" ]
+if [ -e "rebar" ];
 then
-    echo "rebar already installed \n"
-elif [ `uname -s`==Linux ]
+    echo "rebar already installed \n";
+
+elif [[ `uname -s` == `Linux` ]];
 then
-    wget https://raw.githubusercontent.com/wiki/rebar/rebar/rebar && chmod u+x rebar
-elif [ `uname -s`==Darwin ]
+    echo "download rebar on Linux";
+    wget https://raw.githubusercontent.com/wiki/rebar/rebar/rebar && chmod u+x rebar;
+
+elif [[ `uname -s`==Darwin ]];
 then
-    curl https://raw.githubusercontent.com/wiki/rebar/rebar/rebar -o rebar
-    chmod u+x rebar
+    curl https://raw.githubusercontent.com/wiki/rebar/rebar/rebar -o rebar;
+    chmod u+x rebar;
 
 else
-    echo "your system can't compile aeternity at moment! Check our website for more details \n"
-fi
+    echo "your system can't compile aeternity at moment! Check our website for more details \n";
+fi;
 
-echo "Do you want to check for updates now! Hit ENTER if yes and 'n' if not. \n"
+echo "Do you want to check for updates now! Hit ENTER if yes and 'n' if not. \n";
 read fetchupdates
 
 
