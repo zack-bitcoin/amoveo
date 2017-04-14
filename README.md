@@ -27,8 +27,13 @@ To sync with the network and download the blockchain:
 
 Then, start your node with following script:
 ```
-sh start.sh
+sh start.sh <port>
 ```
+port for:
+testnet = 8041
+node 1  = 3010
+node 2  = 3020
+aso.
 
 ### Commands
 
