@@ -79,6 +79,7 @@ exit
 
 else
 echo "starting Testnet now! \n"
-sh start.sh
+sh start.sh 3010
+sh start.sh 3020
 
 fi
