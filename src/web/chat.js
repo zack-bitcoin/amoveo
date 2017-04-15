@@ -40,16 +40,15 @@ function chat_func4(ids, partner, N, M)
     console.log("chat 4");
     console.log(N);
 
-    if (N > M)
-    {
+    var start = -1;
+
+    if (N > M) {
         console.log("done");
     }
-    else if (ids[N] < start )
-    {
-	chat_func4(ids, partner, N + 1, M);
+    else if (ids[N] < start) {
+        chat_func4(ids, partner, N + 1, M);
     }
-    else if (ids[N] > start )
-    {
+    else if (ids[N] > start) {
         start = ids[N];
 
         variable_get
@@ -57,8 +56,7 @@ function chat_func4(ids, partner, N, M)
         (
             ["read_msg", partner, parseInt(ids[N])],
 
-            function(msg)
-            {
+            function (msg) {
                 var msgs = document.getElementById("messages");
                 var li = document.createElement("li");
 
@@ -70,14 +68,12 @@ function chat_func4(ids, partner, N, M)
 
                 chat_func4(ids, partner, N + 1, M);
             }
-
         );
 
     }
-    else
-        {
-            chat_func4(ids, partner, N+1, M);
-        }
+    else {
+        chat_func4(ids, partner, N + 1, M);
+    }
 }
 
 chat_button.onclick = chat_func;
