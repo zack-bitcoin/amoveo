@@ -1,12 +1,12 @@
 //It is messy because each server has 2 ports. One for internal commands, and one for external. 
 //The test is only between 2 nodes for now.
-/*
+
 function get2(t, callback) {
-    u = url(PORT + 10, "localhost");
+    var u = url(PORT + 10, "localhost");
     return getter(t, u, callback);
 }
 function local_get2(t, callback) {
-    u = url(PORT + 11, "localhost");
+    var u = url(PORT + 11, "localhost");
     return getter(t, u, callback);
 }
 
@@ -18,7 +18,7 @@ function variable_public_get2(cmd, callback) {
     var x = get2(cmd);
     var_get(x, callback);
 }
-*/
+
 
 local_get(["new_pubkey", btoa("abc")]);
 
