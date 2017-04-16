@@ -102,7 +102,7 @@ send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
     end.
 send_blocks2(_, _, []) -> ok;
 send_blocks2(IP, Port, [Block|T]) -> 
-    io:fwrite("give block !!!!!!!"),
+    %io:fwrite("give block !!!!!!!"),
     talker:talk({give_block, block:pow_block(Block)}, IP, Port),
     send_blocks2(IP, Port, T).
     
