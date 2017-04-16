@@ -8,8 +8,8 @@
 	 lock/0,status/0,change_password/2,new/1,
 	 shared_secret/1,id/0,update_id/1,address/0,
 	 test/0,format_status/2]).
-%-define(LOC(), "keys.db").
--define(LOC(), constants:keys()).
+%-define(LOC, "keys.db").
+-define(LOC, constants:keys()).
 -define(SANE(), <<"sanity">>).
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -19,7 +19,7 @@ format_status(_,[_,_]) -> [{[], [{"State", []}]}].
 %sanity is only used on the hard drive, not in ram.
 init(ok) -> 
     io:fwrite("start keys\n"),
-    X = db:read(?LOC()),
+    X = db:read(?LOC),
     Ka = if
 	     X == "" -> 
 		 {_, Pub, Priv} = 
@@ -27,14 +27,14 @@ init(ok) ->
 		 store(Pub, Priv, "", -1),
 		 K = #f{pub = Pub, priv=Priv},
 		 %K = #f{},
-		 %db:save(?LOC(),#f{}),
+		 %db:save(?LOC,#f{}),
 		 K;
 	     true -> #f{pub=X#f.pub, id=X#f.id}
 	 end,
     {ok, Ka}.
 store(Pub, Priv, Brainwallet, Id) -> 
     X = #f{pub=Pub, priv=encryption:encrypt(Priv, Brainwallet), sanity=encryption:encrypt(?SANE(), Brainwallet), id = Id},
-    db:save(?LOC(), X),
+    db:save(?LOC, X),
     X.
 handle_call({ss, Pub}, _From, R) ->
     {reply, testnet_sign:shared_secret(Pub, R#f.priv), R};
@@ -47,7 +47,7 @@ handle_call({raw_sign, M}, _From, R) ->
 handle_call({sign, M, Accounts}, _From, R) -> 
     {reply, testnet_sign:sign_tx(M, R#f.pub, R#f.priv, R#f.id, Accounts), R};
 handle_call(status, _From, R) ->
-    Y = db:read(?LOC()),
+    Y = db:read(?LOC),
     Out = if
               Y#f.priv == "" -> empty;
               R#f.priv == "" -> locked;
@@ -60,23 +60,23 @@ handle_cast({load, Pub, Priv, Brainwallet, Id}, _R) ->
     store(Pub, Priv, Brainwallet, Id),
     {noreply, #f{pub=Pub, priv=Priv, id = Id}};
 handle_cast({id_update, Id}, R) -> 
-    DB = db:read(?LOC()),
+    DB = db:read(?LOC),
     X = DB#f{id = Id},
-    db:save(?LOC(), X),
+    db:save(?LOC, X),
     {noreply, #f{pub = R#f.pub, priv = R#f.priv, id = Id}};
 handle_cast({new, Brainwallet}, _R) ->
     {_, Pub, Priv} = testnet_sign:hard_new_key(),
     store(Pub, Priv, Brainwallet, -1),
     {noreply, #f{pub=Pub, priv=Priv}};
 handle_cast({unlock, Brainwallet}, _) ->
-    X = db:read(?LOC()),
+    X = db:read(?LOC),
     
     ?SANE() = encryption:decrypt(X#f.sanity, Brainwallet),
     Priv = encryption:decrypt(X#f.priv, Brainwallet),%err
     {noreply, #f{pub=X#f.pub, priv=Priv, id=X#f.id}};
 handle_cast(lock, R) -> {noreply, #f{pub=R#f.pub, id=R#f.id}};
 handle_cast({change_password, Current, New}, R) ->
-    X = db:read(?LOC()),
+    X = db:read(?LOC),
     ?SANE() = encryption:decrypt(X#f.sanity, Current),
     Priv = encryption:decrypt(X#f.priv, Current),
     store(R#f.pub, Priv, New, X#f.id),

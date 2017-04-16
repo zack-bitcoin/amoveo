@@ -1,6 +1,6 @@
 #if you want to use a different port, then start like this:
 # sh start 3666
-sh clean.sh #this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.
+#sh clean.sh #this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.
 sh update.sh
 #echo "GO TO THIS WEBSITE -------> http://localhost:8041/login.html"
 #sleep 1
