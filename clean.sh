@@ -20,18 +20,37 @@
 #
 ##############################################################################
 #
-rm data/*.db
-rm blocks/*.db
+# How to:
+#         Step two!
+#         only execute this file if you want to delete the keys and blocks at once.
+#         This file will be executed normaly from install.sh command.
+#
+#         This script moves the keys.db to keys_bsackup file removes the data and blocks database
 
-if [ -d "backup" ]
-then
-    touch backup/temp.db
-    rm backup/*.db
+if [ -e "yesclean.txt" ]; then
+rm yesclean.txt;
+
+if [ -e "data/keys.db" ]; then
+    cp data/keys.db data/keys_backup;
+fi;
+
+rm data/*.db;
+rm blocks/*.db;
+
+if [ -d "backup" ]; then
+    touch backup/temp.db;
+    rm backup/*.db;
 else
-    mkdir -p backup
-fi
+    mkdir -p backup;
+fi;
 
-if [ -e "data/keys_backup" ]
-then
-    cp data/keys_backup data/keys.db
-fi
+else
+
+echo "Do you want to clean the keys and blocks now?";
+read cleanall;
+if [ $cleanall == "y" ]; then
+rm data/*.db;
+rm blocks/*.db;
+fi;
+
+fi;

@@ -60,6 +60,8 @@ read deleteblocks
 
 
 if [[ "$deleteblocks" == "y" ]]; then
+touch yesclean.txt;
+echo "clean it now and backup keys";
 sh clean.sh #this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.
 echo "deleting blocks ready! \n"
 
