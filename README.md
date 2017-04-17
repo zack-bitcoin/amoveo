@@ -97,6 +97,9 @@ To stop a node run:
 easy:off().
 ```
 
+#### Keys
+[You can read about how your private key is protected here](docs/keys.md)
+
 
 ### Else
 If you want to know more, check out our whitepaper on [aeternity.com](https://aeternity.com) and get in touch with us via [Gitter Chat](https://gitter.im/aeternity?Lobby) or write us (emails in whitepaper). 
