@@ -127,7 +127,6 @@ talk(CMD, IP, Port, F, N) ->
 	end.
 
 get_txs(IP, Port) ->
-	%io:fwrite("download blocks get txs\n"),
 	talk({txs}, IP, Port,
 		fun(X) ->
 			absorb_txs(X),
