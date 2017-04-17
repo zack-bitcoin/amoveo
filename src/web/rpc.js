@@ -24,7 +24,7 @@ var PORT = parseInt(document.URL.substring(17, 21), 10);
 
 function get(t, callback)
 {
-    var u = url(PORT - 1, "localhost"); //127.0.0.1 if not conflict with ip6 on apache
+    var u = url(PORT - 1, "localhost"); //127.0.0.1 if not conflict with ip6
 
     return getter(t, u, callback);
 }
