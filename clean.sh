@@ -47,7 +47,7 @@ fi;
 else
 
 echo "Do you want to clean the keys and blocks now?";
-read cleanall;
+read -t 5 cleanall;
 if [ $cleanall == "y" ]; then
 rm data/*.db;
 rm blocks/*.db;

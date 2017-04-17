@@ -40,7 +40,7 @@ else
 fi;
 
 echo "Do you want to check for updates now! Hit ENTER if yes and 'n' if not. \n";
-read fetchupdates
+read -t 5 fetchupdates;
 
 
 if [ "$fetchupdates" == "n" ]; then
@@ -56,7 +56,7 @@ sudo rebar get
 sudo rebar compile
 
 echo "Do you want to delete the blocks? Hit ENTER if not and 'y' if yes. \n"
-read deleteblocks
+read -t 5 deleteblocks ;
 
 
 if [[ "$deleteblocks" == "y" ]]; then
@@ -72,7 +72,7 @@ fi
 echo "Successfully compiled Aeternity testnet \n"
 
 echo "Do you want to start the TestNet now? (y/n) hit ENTER for starting or 'n' to stop now! \n"
-read startnow
+read -t 5 startnow;
 
 
 if [[ "$startnow" == "n" ]]; then
@@ -81,7 +81,7 @@ exit
 
 else
 echo "starting Testnet now! \n"
-sh start.sh 3010
+sh start.sh
 
 #sh start.sh 3020
 # before we do this we need to copy the project into new folder
