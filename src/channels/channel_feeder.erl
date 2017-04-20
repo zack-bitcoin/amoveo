@@ -1,14 +1,36 @@
+%%
+ % -------------------------------------------------------------------
+ % @author Zack-Bitcoin
+ % @copyright (C) 2017, <Aeternity>
+ % @link "https://aeternity.com"
+ %
+ % @coauthor Zwilla
+ % @copyright (C) 2017, <Zwilla Research>
+ % @link "https://www.the-internet-of-money.de/aeternity"
+ %
+ % @doc
+ %
+ % According to our dual licensing model, this program can be used either
+ % under the terms of the GNU Affero General Public License, version 3,
+ % or under a proprietary license.
+ %
+ % This program is distributed in the hope that it will be useful,
+ % but WITHOUT ANY WARRANTY; without even the implied warranty of
+ % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ % GNU Affero General Public License for more details.
+ %
+ % @end
+ % -------------------------------------------------------------------
+ %
+
 %this is the only thing that contact the channel_manager. That way, we are safe from race-conditions on updating the channel state.
 -module(channel_feeder).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,
-	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 new_channel/3,spend/2,close/2,lock_spend/1,
-	 agree_bet/4,garbage/0,entropy/1,
-	 new_channel_check/1,
-	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
-	 make_bet/4, update_to_me/1,
-	 make_simplification/3,agree_simplification/3]).
+-export([start_link/0, code_change/3, handle_call/3, handle_cast/2, handle_info/2, init/1, terminate/2,
+  new_channel/3, spend/2, close/2, lock_spend/1, agree_bet/4, garbage/0, entropy/1, new_channel_check/1,
+  cid/1, them/1, script_sig_them/1, me/1, script_sig_me/1, make_bet/4, update_to_me/1,
+  make_simplification/3, agree_simplification/3, depth_check/1]).
+
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
@@ -36,7 +58,7 @@ handle_cast(garbage, X) ->
     {C, OldC} = c_oldc(),
     garbage_helper(Keys, C, OldC),
     {noreply, X};
-handle_cast({new_channel, Tx, SSPK, Accounts}, X) ->
+handle_cast({new_channel, Tx, SSPK, _Accounts}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
     SPK = testnet_sign:data(SSPK),
     SPK = new_channel_tx:spk(Tx, spk:delay(SPK)),%doesn't move the money
@@ -107,15 +129,16 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
 handle_call({update_to_me, SSPK}, _From, X) ->
     %this updates our partner's side of the channel state to include the bet that we already included.
     {Accounts, _,_,_} = tx_pool:data(),
+    X = 1,
     MyID = keys:id(),
     SPK = testnet_sign:data(SSPK),
     Acc1 = spk:acc1(SPK),
     Acc2 = spk:acc2(SPK),
     Other = case MyID of
-	Acc1 -> Acc2;
-	Acc2 -> Acc1;
-	X -> X = Acc1
-    end,	
+              Acc1 -> Acc2;
+              Acc2 -> Acc1;
+              X -> X = Acc1
+            end,
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     {ok, OldCD} = channel_manager:read(Other),
     Mine = OldCD#cd.me,
@@ -238,7 +261,7 @@ c_oldc() ->
     C = block:channels(Top),
     OldC = block:channels(Old),
     {C, OldC}.
-depth_check(SPK) -> 
+depth_check(SPK) ->
     {C, OldC} = c_oldc(),
     depth_check2(SPK, C, OldC).
 depth_check2(SPK, C, OldC) -> 

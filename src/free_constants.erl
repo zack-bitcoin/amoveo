@@ -1,6 +1,33 @@
+%%
+ % -------------------------------------------------------------------
+ % @author Zack-Bitcoin
+ % @copyright (C) 2017, <Aeternity>
+ % @link "https://aeternity.com"
+ %
+ % @coauthor Zwilla
+ % @copyright (C) 2017, <Zwilla Research>
+ % @link "https://www.the-internet-of-money.de/aeternity"
+ %
+ % @doc
+ %
+ % According to our dual licensing model, this program can be used either
+ % under the terms of the GNU Affero General Public License, version 3,
+ % or under a proprietary license.
+ %
+ % This program is distributed in the hope that it will be useful,
+ % but WITHOUT ANY WARRANTY; without even the implied warranty of
+ % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ % GNU Affero General Public License for more details.
+ %
+ % @end
+ % -------------------------------------------------------------------
+ %
+
 -module(free_constants).
 %These constants can be different on every node in the network. You can adjust these variables to suit your own situation.
 -compile(export_all).
+cores_to_mine() ->
+    1000.%The maximum number of cores to use when mining.
 hashlock_time() -> 30.
 channel_delay() ->
     100.

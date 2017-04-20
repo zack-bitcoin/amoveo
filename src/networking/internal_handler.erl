@@ -52,7 +52,7 @@ doit({close_channel, IP, Port}) ->
     talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
     {ok, 0};
 doit({dice, Amount, IP, Port}) ->
-    {ok, Other} = talker:talk({id}, IP, Port),
+    {ok, _Other} = talker:talk({id}, IP, Port),
     {Commit, Secret} = secrets:new(),
     MyID = keys:id(),
     {ok, SSPK, OtherCommit} = talker:talk({dice, 1, MyID, Commit, Amount}, IP, Port),

@@ -22,9 +22,9 @@
 if [ $? == 0 ]; then
 echo "\n \n \n"
 echo "Server is running and all is ok! Check the output\n"
-curl -i -d '["header", 0]' localhost:8040
+curl -i -d '["header", 0]' localhost:3010
 exit
 fi
 
-curl -i -d '["header", 0]' localhost:8040
+curl -i -d '["header", 0]' localhost:3010
 sh header_test.sh | grep '200' &> /dev/null

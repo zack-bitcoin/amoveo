@@ -34,5 +34,20 @@ mine() ->
     gen_server:cast(?MODULE, mine).
 
 stop() -> gen_server:cast(?MODULE, stop).
+
 is_on() ->
-    gen_server:call(?MODULE, status).
+  gen_server:call(?MODULE, status).
+
+%%  Cores = block:guess_number_of_cpu_cores(),
+%%if
+%%  status == "go"  -> true;
+%%true ->
+%%io:fwrite("mining is running with "),
+%%io:fwrite(integer_to_list(Cores)),
+%%io:fwrite(" cores.\n");
+%%false ->
+%%io:fwrite("mining was running with "),
+%%io:fwrite(integer_to_list(Cores)),
+%%io:fwrite(" cores. Now stopped!\n")
+%%end.
+

@@ -143,7 +143,7 @@ function message(id)
 function get_message()
 {
     console.log("get message");
-    local_get(["get_msg", [127,0,0,1], 3020]);
+    local_get(["get_msg", [127,0,0,1], 8040]);
     setTimeout(function() {variable_get(["id"], read_message);}, 100);
 }
 

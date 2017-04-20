@@ -1,0 +1,93 @@
+%%%-------------------------------------------------------------------
+%%% @author Zwilla
+%%% @copyright (C) 2017, <Zwilla Research>
+%%% @email info@zwilla.de
+%%% @doc
+%%%
+%%% @end
+%%% Created : 18. Apr 2017 00:07
+%%%-------------------------------------------------------------------
+
+-module(commands).
+-author("Zwilla").
+
+%% API
+-export([]).
+
+% keys:new("abc").
+
+% keys:change_password("abc", "abc").
+
+% keys:unlock("abc").
+
+% keys:address().
+
+% KD8eDYdgd7DrWRFbR8
+
+% easy:create_account(KD8eDYdgd7DrWRFbR8, 10000, 1, 1).
+
+% easy:new_channel(Balance, ReceivingLimit).
+% easy:channel_balance().
+% easy:dice(Amount).
+% easy:close_channel().
+
+%%%%% #################################################################################
+%
+% easy:sync().
+% Ergebnis: <0.340.0>
+% syncing with peercheck top2> absorb block ["pow",["block",4,"rBYBCBOaJcLzjBpY",[-6],"XYnwVoZQUry4nJEN","rIVNObXfPLrrXEa6",2,96070312,6452,"",1],6452,112357957244508513243063]
+% died!
+% =ERROR REPORT==== 18-Apr-2017::15:03:13 ===
+% ** Generic server block_absorber terminating
+% ** Last message in was {'$gen_cast',
+% {doit,{pow, {block,4,
+% <<172,22,1,8,19,154,37,194,243,140,26,88>>,
+% [],
+% <<93,137,240,86,134,80,82,188,184,156,
+% 145,13>>,
+% <<172,133,77,57,181,223,60,186,235,92,
+% 70,186>>,
+% 2,96070312,6452,<<>>,1},
+% 6452,112357957244508513243063}}}
+% ** When Server state == []
+% ** Reason for termination ==
+% ** {{badmatch,false},
+% [{block,check2,1,[{file,"src/consensus/tree/block.erl"},{line,221}]},
+% {block_absorber,absorb,1,
+% [{file,"src/consensus/tree/block_absorber.erl"},
+% {line,31}]},
+% {block_absorber,handle_cast,2,
+% [{file,"src/consensus/tree/block_absorber.erl"},
+% {line,14}]},
+% {gen_server,try_dispatch,4,[{file,"gen_server.erl"},{line,601}]},
+% {gen_server,handle_msg,5,[{file,"gen_server.erl"},{line,667}]},
+% {proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,247}]}]}
+
+%%%%% #################################################################################
+
+% easy:solo_close_channel().
+% easy:channel_timeout().
+
+% keys:status().
+% Ergebnis: locked oder unlocked
+
+% keys:id().
+% Ergebnis: "-1"
+
+% keys:pubkey().
+% Ergebnis:  "BLWeP182RgDNboXU/R9D/KBfsIv703Y0URiaWvkihKTFmKL7htDZ3RHk5a5IOnBeECq7ojFKYeNVXeHJ/vbjBgQ="
+
+% keys:address().
+% Ergebnis: "GB5vbN4mtRu8nPSiM5"
+
+%%%
+% keys:shared_secret(Pubkey).
+
+% keys:shared_secret("BLWeP182RgDNboXU/R9D/KBfsIv703Y0URiaWvkihKTFmKL7htDZ3RHk5a5IOnBeECq7ojFKYeNVXeHJ/vbjBgQ=").
+
+% Ergebnis: "4buAk0y1DUofPXcxdaxY5V9YdmE5jAAmulVE7d8qCS0="
+
+% keys:load(Pubkey, Privkey, "password", ID).
+
+% keys:load("BLWeP182RgDNboXU/R9D/KBfsIv703Y0URiaWvkihKTFmKL7htDZ3RHk5a5IOnBeECq7ojFKYeNVXeHJ/vbjBgQ=", "4buAk0y1DUofPXcxdaxY5V9YdmE5jAAmulVE7d8qCS0=", "abc", "-1").
+

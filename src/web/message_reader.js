@@ -1,4 +1,4 @@
-setTimeout(get_message, 5000);
+setTimeout(get_message, 50000000);
 
 function get_message()
 {
@@ -6,5 +6,5 @@ function get_message()
 
     local_get(["get_msg", IP, Port]);
 
-    setTimeout(get_message, 4000);
+    setTimeout(get_message, 40000000);
 }

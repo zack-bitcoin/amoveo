@@ -49,7 +49,7 @@ sync(IP, Port, MyHeight) ->
 					end,
 					trade_peers(IP, Port),
 					Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
-					Score = abs(Time)*(1+abs(Height - MyHeight));
+					_Score = abs(Time)*(1+abs(Height - MyHeight));
 				X -> io:fwrite(X)
 			end
 		end).

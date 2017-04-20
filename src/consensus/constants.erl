@@ -1,3 +1,28 @@
+%%
+ % -------------------------------------------------------------------
+ % @author Zack-Bitcoin
+ % @copyright (C) 2017, <Aeternity>
+ % @link "https://aeternity.com"
+ %
+ % @coauthor Zwilla
+ % @copyright (C) 2017, <Zwilla Research>
+ % @link "https://www.the-internet-of-money.de/aeternity"
+ %
+ % @doc
+ %
+ % According to our dual licensing model, this program can be used either
+ % under the terms of the GNU Affero General Public License, version 3,
+ % or under a proprietary license.
+ %
+ % This program is distributed in the hope that it will be useful,
+ % but WITHOUT ANY WARRANTY; without even the implied warranty of
+ % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ % GNU Affero General Public License for more details.
+ %
+ % @end
+ % -------------------------------------------------------------------
+ %
+
 -module(constants).
 -compile(export_all).
 %-export([export_all]).
@@ -5,29 +30,25 @@
 %2^74 bits is 25 bitcoin =~ $10,000
 %2^64 bits is $10
 token_decimals() -> 100000000.
-default_port() -> 8040.
-key_length() ->
-    11. %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
-trie_size() ->
-    50000. %we can adjust this many accounts and channels per block.
+default_port()   -> 8040.
+key_length()     -> 11.        %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
+trie_size()      -> 50000.       %we can adjust this many accounts and channels per block.
+
 -define(InitialCoins, round(math:pow(2, 41)) - 1).
-initial_coins() -> ?InitialCoins.
-block_reward() -> round(math:pow(2, 29)) - 1.
-initial_difficulty() -> %1*256.%for testing purposes only
-6452.
-
-hash_size() -> 12.
-
-finality() -> 26.%/docs/security.py explains why.
-address_entropy() -> 96.
+initial_coins()      -> ?InitialCoins.
+block_reward()       -> round(math:pow(2, 29)) - 1.
+initial_difficulty() -> 6452.         %1*256.%for testing purposes only
+difficulty_bits()    -> 24.
+hash_size()          -> 12.
+finality()           -> 26.           %/docs/security.md explains why.
+address_entropy()    -> 96.
 %master_pub() -> <<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1FzNnA1QStRbmdZeStmTGY4ZzRvPQ==">>.
-master_pub() -> <<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>.
-master_address() ->
-    testnet_sign:pubkey2address(master_pub()).
-max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
-gas_limit() -> 1000000.
-%200,000,000 is enough to find the first 10001 prime numbers.
+master_pub()         -> <<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>.
+master_address()     -> testnet_sign:pubkey2address(master_pub()).
+max_size()           -> 2000000000.    %should be 2 gigabytes, does not include old blocks.
+gas_limit()          -> 1000000.       %200,000,000 is enough to find the first 10001 prime numbers.
 backup() -> fractions:new(19, 20).
+
 %-define(MBS, max_size() div max_reveal() div 10).%use about 10% of size for blocks.
 max_block_size() -> 200000.%2*26 = 52 megabytes of ram to hold blocks.
 %this is only a limit to the size of the transactions.
@@ -45,105 +66,112 @@ max_block_size() -> 200000.%2*26 = 52 megabytes of ram to hold blocks.
 
 %-define(ConsensusBytePrice, initial_coins() div max_size()).%instead we should have a maximum number of bytes per block, and garbage collect old blocks.
 %$consensus_byte_price() -> ?ConsensusBytePrice.
+
 -define(MaxAddress, max_size() div 5 div 85).%use about 20% of space to store addresses. Each one is 85 bytes
 max_address() -> ?MaxAddress.
+
 -define(MaxChannel, max_size() * 3 div 10 div 30).%use about 30% of space to store channels. Each one is 30 bytes
 max_channel() -> ?MaxChannel.
+
 -define(MinChannel, constants:initial_coins() div constants:max_channel()).%use about 30% of space to store channels. Each one is 30 bytes
 %this constant is also used to determine the minimum amount of money we can put into a channel at a time.
-create_channel_fee() -> 0.%consensus_byte_price() * 30.
-delete_channel_reward() -> 0.
-%decided to charge for accounts based on how long it is open, instead of flat fee.
-create_account_fee() -> 0.%consensus_byte_price() * 85.
-delete_account_reward() -> 0.%create_account_fee() * 19 div 20. % 95% refund.
+
+create_channel_fee()    -> 0.  %consensus_byte_price() * 30.
+delete_channel_reward() -> 0.  %decided to charge for accounts based on how long it is open, instead of flat fee.
+create_account_fee()    -> 0.  %consensus_byte_price() * 85.
+delete_account_reward() -> 0.  %create_account_fee() * 19 div 20. % 95% refund.
+
+-spec security_ratio() -> any().
 security_ratio() -> fractions:new(3, 2).
 %At most, a channel can contain 1/4000th of the money.
-initial_channels() -> %Around 10000 channels.
-    1.
-    %MVB = minimum_validators_per_block(),
-    %D = fractions:divide(security_ratio(), security_bonds_per_winner()),
-    %fractions:multiply_int(D, 4) div MVB.
+
+-spec initial_channels() -> integer().
+initial_channels() -> 1. %Around 10000 channels.
+%MVB = minimum_validators_per_block(),
+%D = fractions:divide(security_ratio(), security_bonds_per_winner()),
+%fractions:multiply_int(D, 4) div MVB.
+
 -define(AccountFee, fractions:new(1, max_address() * finality() * 10)).%so if all accounts are full, it takes 10 finalities until most of them start losing so much money that their accounts open up. 
-account_fee() -> ?AccountFee. 
+account_fee() -> ?AccountFee.
+
 %-define(DelegationFee, fractions:new(finality() * 1000 - 1, finality() * 1000)).%so it would take about 15,000 blocks to lose 1/2 your money. So you have about 350,000 chances to be validator till you lose 1 your money. So you need at least initial_coins()/350000 in delegation to be able to profitably validate. Which means it supports up to 350000 validators at a time max.
+
 -define(DelegationFee, fractions:new(1, 1000 * finality())).
-delegation_fee() -> ?DelegationFee.
+delegation_fee()     -> ?DelegationFee.
 %delegation_reward() -> fractions:subtract(fractions:new(1, 1), ?DelegationFee).
 block_creation_fee() -> 0.
-max_reveal() -> finality()*10.
+max_reveal()         -> finality()*10.
 %1/4000000
 %block_creation_fee() -> fractions:new(1, 20000).%Which implies finality only has to be 13 blocks long!!!
 %It is important that 1/3 of the block_creation_fee be less than 2/3 of the validator's bond.
 %-define(PBCFV, fractions:multiply_int(block_creation_fee(), initial_coins()) div 3).
+
 -define(BR, fractions:new(1, 1000)).%spending 1000 coins necessarily burns ~1.
-burn_ratio() -> ?BR.
-root() -> "data/".
-block_hashes() -> root() ++ "block_hashes.db".
-keys() -> root() ++ "keys.db".
-top() -> root() ++ "top.db".
-channel_manager() -> root() ++ "channel_manager.db".
-word_size() -> 100000.
-
-
-balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
-acc_bits() -> hash_size()*8.%total number of accounts is 2^(acc_bits()) 800 billion.
-height_bits() -> 32. %maximum number of blocks is 2^this
-account_nonce_bits() -> 20.%maximum number of times you can update an account's state is 2^this.
-channel_nonce_bits() -> 30.%maximum number of times you can update a channel's state is 2^this.
-channel_rent_bits() -> 8.
+burn_ratio()         -> ?BR.
+root()               -> "data/".
+block_hashes()       -> root() ++ "block_hashes.db".
+keys()               -> root() ++ "keys.db".
+top()                -> root() ++ "top.db".
+channel_manager()    -> root() ++ "channel_manager.db".
+word_size()          -> 100000.
+balance_bits()       -> 48.            %total number of coins is 2^(balance_bits()).
+half_bal()           -> round(math:pow(2, balance_bits()-1)).
+acc_bits()           -> hash_size()*8. %total number of accounts is 2^(acc_bits()) 800 billion.
+height_bits()        -> 32.            %maximum number of blocks is 2^this
+account_nonce_bits() -> 20.            %maximum number of times you can update an account's state is 2^this.
+channel_nonce_bits() -> 30.            %maximum number of times you can update a channel's state is 2^this.
+channel_rent_bits()  -> 8.
 channel_delay_bits() -> 24.
 		       
 -define(AccountSizeWithoutPadding, 
 	(balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length())).
 
--define(ChannelSizeWithoutPadding, 
-	(key_length() + (acc_bits()*2) + 
-	     (balance_bits()*2) + channel_nonce_bits() + 
-	     (height_bits()*2) + channel_rent_bits() + 
-	     1 + 2 + channel_entropy() + channel_delay_bits())).
-account_padding() ->    
-    8 - (?AccountSizeWithoutPadding rem 8).
-channel_padding() ->
-    8 - (?ChannelSizeWithoutPadding rem 8).
-account_size() ->    
-    (?AccountSizeWithoutPadding + account_padding()) div 8.
-channel_size() ->    
-    (?ChannelSizeWithoutPadding + channel_padding()) div 8.
+-define(ChannelSizeWithoutPadding,
+  (key_length() + (acc_bits()*2) + (balance_bits()*2) + channel_nonce_bits() +
+    (height_bits()*2) + channel_rent_bits() + 1 + 2 +
+    channel_entropy() + channel_delay_bits())).
 
-channel_rent() -> account_rent().
-account_rent() -> round(math:pow(2, 13)).
-%48 bits is max money, 42 bits is initial money.
-%if we had a billion accounts, we would want the blockchain to last at least 20 years. 
-%144*52*20
+-define(ActiveOraclesSize,
+  (height_bits() + (hash_size()*8) + key_length())).
 
-retarget_frequency() -> %how many blocks till we recalculate the difficulty
-    %40000.
-    2000.
-block_time() -> 
-    6000.
-    %10.
-time_units() -> %1000 = 1 second, 100 = 0.1 seconds
-   100. 
-start_time() -> 14825749780.
-    
-channel_entropy() -> 16. %Channel contracts only work for a channel with the same 2 account addresses, and with the same channel_entropy that has this many bits.
+account_padding()        -> 8 - (?AccountSizeWithoutPadding rem 8).
+channel_padding()        -> 8 - (?ChannelSizeWithoutPadding rem 8).
+active_oracles_padding() -> 8 - (?ActiveOraclesSize rem 8).
+account_size()           -> (?AccountSizeWithoutPadding + account_padding()) div 8.
+channel_size()           -> (?ChannelSizeWithoutPadding + channel_padding()) div 8.
+existence_size()         -> acc_bits().  %hash_length*8
+active_oracles_size()    -> (?ActiveOraclesSize + active_oracles_padding()) div 8.
+channel_rent()           -> account_rent().
+account_rent()           -> round(math:pow(2, 13)).
+                            %48 bits is max money, 42 bits is initial money.
+                            %if we had a billion accounts, we would want the blockchain to last at least 20 years. 
+                            %144*52*20
+
+retarget_frequency() -> 2000. %how many blocks till we recalculate the difficulty %40000.
+block_time()         -> 6000. %10.
+time_units()         -> 100. %1000 = 1 second, 100 = 0.1 seconds
+start_time()         -> 14825749780.
+time_bits()          -> 32.
+                            % Seconds_130_years = 60*60*24*365.24
+                            % 32 =~ math:log(130*60*60*24*365.24)/math:log(2).
+
+channel_entropy()    -> 16. %Channel contracts only work for a 
+% channel with the same 2 account addresses, and with the same channel_entropy that has this many bits.
 %this is like another channel nonce, but we only increment it if the channel gets closed and re-created.
 
-fun_limit() -> 1000.
-var_limit() -> 10000.
+fun_limit()     -> 1000.
+var_limit()     -> 10000.
+peers()         -> [].   %[{IP, Port}| ...]
+comment_limit() -> 140.  %When a miner mines a block, they can set this many bytes to whatever they want.
+magic()         -> 1.
+magic_bits()    -> 16.%so we can update it more than 60000 times.
+server_ip()     -> {46,101,103,165}.
+server_port()   -> 8080.
 
-peers() ->
-    [].%[{IP, Port}| ...]
-comment_limit() -> %When a miner mines a block, they can set this many bytes to whatever they want.
-    140.
-magic() -> 1.
-server_ip() -> {46,101,103,165}.
-server_port() -> 8080.
+block_creation_maturity() -> 100.
+block_time_after_median() -> 100.
     
-    
-
-test() ->
-    success.
+test() -> success.
 
 %(All the money in channels, times this fee) is the amount of money that transfers from delegates who were not elected to delegates who are elected in each block, and gets locked up for finality() blocks. If this number is too high, then poor people can't afford to be validators. If this number is too low, then rich people can't move their money quickly enough.
 

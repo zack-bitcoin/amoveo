@@ -1,7 +1,9 @@
 <component name="CopyrightManager">
   <settings>
+    <module2copyright>
+      <element module="Project Files" copyright="Aeternity-Zwilla" />
+    </module2copyright>
     <LanguageOptions name="Erlang">
-      <option name="block" value="false" />
       <option name="filler" value="=" />
     </LanguageOptions>
   </settings>

@@ -1,4 +1,4 @@
-#!/usr/bin/env bashbe
+#!/usr/bin/env bash
 ##############################################################################
 #
 # @category "AEternity - The Oracle Machine"

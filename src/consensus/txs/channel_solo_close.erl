@@ -1,3 +1,4 @@
+
 -module(channel_solo_close).
 -export([doit/4, make/6, scriptpubkey/1, next_ss/7]).
 -record(csc, {from, nonce, fee = 0, 

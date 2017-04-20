@@ -9,10 +9,29 @@
 #Then run this script from a fourth terminal.
 
 #It lightning spends 4 coins one way, then spends the same 4 back.
+#sh lightning_test_setup.sh;
+waitae=5;
+#sh start.sh 3030 > /dev/null;
+echo "ok-3030";
 
-curl -i -d '["key_unlock", "YWJj"]' http://localhost:3011
-curl -i -d '["key_unlock", "YWJj"]' http://localhost:3021
-curl -i -d '["key_unlock", "YWJj"]' http://localhost:3031
+
+#sh ../FlyingFox1/start.sh 3010 > /dev/null;
+echo "ok-3011";
+#sh ../FlyingFox2/start.sh 3020 > /dev/null;
+echo "ok-3021";
+#sh ../FlyingFox3/start.sh 3030 > /dev/null;
+echo "ok-3031";
+echo "sleep now for $waitae seconds";
+sleep ${waitae};
+echo "ok";
+
+
+curl -i -d '["key_unlock", "abc"]' http://localhost:3011
+echo "unlock 3011";
+curl -i -d '["key_unlock", "abc"]' http://localhost:3021
+echo "unlock 3021";
+curl -i -d '["key_unlock", "abc"]' http://localhost:3031
+echo "unlock 3031";
 
 curl -i -d '["keys_id_update", 1]' http://localhost:3021
 curl -i -d '["keys_id_update", 2]' http://localhost:3031
@@ -45,3 +64,4 @@ sleep 1
 curl -i -d '["get_msg", [127,0,0,1], 3030]' http://localhost:3021
 sleep 1
 
+#sh kill_all_erlang.sh
