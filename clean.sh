@@ -27,15 +27,10 @@
 #
 #         This script moves the keys.db to keys_bsackup file removes the data and blocks database
 
-if [ -e "yesclean.txt" ]; then
-rm yesclean.txt;
-
 if [ -e "data/keys.db" ]; then
     cp data/keys.db data/keys_backup;
 fi;
 
-rm data/*.db;
-rm blocks/*.db;
 
 if [ -d "backup" ]; then
     touch backup/temp.db;
@@ -44,13 +39,37 @@ else
     mkdir -p backup;
 fi;
 
-else
-
-echo "Do you want to clean the keys and blocks now?";
+echo "Do you want to clean the keys and blocks now? Hit enter for YES on enter n for no! Default YES";
 read -t 5 cleanall;
-if [ ${cleanall} == "y" ]; then
+if [[ ${cleanall} == "n" ]]; then
+echo "No clean testnet";
+else
 rm data/*.db;
 rm blocks/*.db;
 fi;
 
+
+read -t 5 cleanall2;
+echo "clean also depencies now? Hit Enter for Yes, or typ n";
+
+if [[ ${cleanall2} == "n" ]]; then
+echo "not now!";
+rm yesclean.txt;
+else
+
+if [ -e yesclean.txt ]; then
+rm yesclean.txt;
+rm -rf deps;
 fi;
+
+fi;
+
+read -t 5 cleanall3;
+echo "install now? Hit Enter for NO, or typ y for YES";
+# no loop install on automatic mode
+if [[ ${cleanall3} == "y" ]]; then
+sh install.sh;
+else
+echo "other sh script do it now if called!";
+fi;
+

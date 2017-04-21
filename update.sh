@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Do you want to pull the master branch? Hit ENTER for no or wait 5 seconds. Hit y for yes";
+echo "Do you want to pull the master branch? Hit ENTER for NO or wait 5 seconds. Hit y for yes";
 read -t 5 pullmaster;
 
 if [[ ${pullmaster} == "y" ]]; then

@@ -32,7 +32,9 @@ then
 
 elif [[ `uname -s`==Darwin ]];
 then
+    echo "get rebar for Darwin now! \n";
     curl https://raw.githubusercontent.com/wiki/rebar/rebar/rebar -o rebar;
+    chmod u+x *.sh;
     chmod u+x rebar;
 
 else
@@ -43,7 +45,7 @@ echo "Do you want to check for updates now! Hit ENTER if yes and 'n' if not. \n"
 read -t 5 fetchupdates;
 
 
-if [ "$fetchupdates" == "n" ]; then
+if [[ "$fetchupdates" == "n" ]]; then
 echo "OK! We start to compile now! \n"
 else
 echo "starting Testnet now! \n"
@@ -51,23 +53,48 @@ sh update.sh
 fi
 
 
-#use rebar to install other dependencies, explained in rebar.config
-sudo rebar get
-sudo rebar compile
 
-echo "Do you want to delete the blocks? Hit ENTER if not and 'y' if yes. \n"
+if [ -e "rebar" ];
+then
+    echo "rebar already installed \n";
+
+elif [[ `uname -s` == `Linux` ]];
+then
+    echo "download rebar on Linux";
+    rebar get
+    rebar compile
+
+elif [[ `uname -s`==Darwin ]];
+then
+    echo "get rebar for Darwin now! \n";
+    #without sudo we get an error on compiling on osx
+    sudo rebar get
+    sudo rebar compile
+    chmod u+x rebar;
+    chmod u+x *.sh;
+
+else
+    echo "your system can't compile aeternity at moment! Check our website for more details \n";
+fi;
+
+#use rebar to install other dependencies, explained in rebar.config
+
+
+echo "Do you want to delete the blocks? Hit ENTER if YES and 'n' if yes. \n";
 read -t 5 deleteblocks ;
 
 
-if [[ "$deleteblocks" == "y" ]]; then
-touch yesclean.txt;
-echo "clean it now and backup keys";
-sh clean.sh #this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.
-echo "deleting blocks ready! \n"
-
+if [[ "$deleteblocks" == "n" ]]; then
+echo "not deleting blocks! \n";
+rm yesclean.txt;
 else
-echo "not deleting blocks! \n"
-fi
+touch yesclean.txt;
+echo "clean it now and backup keys \n";
+#this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.
+sh clean.sh;
+echo "deleting blocks and deps ready! \n";
+
+fi;
 
 echo "Successfully compiled Aeternity testnet \n"
 
@@ -81,8 +108,10 @@ exit
 
 else
 echo "starting Testnet now! \n"
+# start on default testnet port 8040 and 8041
 sh start.sh
 
 #sh start.sh 3020
 # before we do this we need to copy the project into new folder
+echo "http://127.0.0.1:8041/login.html"
 fi
