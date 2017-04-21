@@ -8,7 +8,7 @@ keys:new("password").
 
 To secure your node so no one can sign transactions, you can either turn off the node, or you can do this command:
 ```
-keys:lock()
+keys:lock().
 ```
 
 To unlock your node so that you can start signing transactions again, do this:
