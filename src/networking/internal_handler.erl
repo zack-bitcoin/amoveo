@@ -20,6 +20,7 @@ handle(Req, State) ->
     {ok, Req2, State}.
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
+
 -define(POP, <<1,6,3,87,3,5>>).
 doit({sign, Tx}) -> 
     {Accounts, _,_,_} = tx_pool:data(),

@@ -91,3 +91,11 @@
 
 % keys:load("BLWeP182RgDNboXU/R9D/KBfsIv703Y0URiaWvkihKTFmKL7htDZ3RHk5a5IOnBeECq7ojFKYeNVXeHJ/vbjBgQ=", "4buAk0y1DUofPXcxdaxY5V9YdmE5jAAmulVE7d8qCS0=", "abc", "-1").
 
+tx_pool:data().
+tx_pool:dump().
+tx_pool:accounts().
+
+
+mine:start().
+mine:stop().
+mine:is_on().

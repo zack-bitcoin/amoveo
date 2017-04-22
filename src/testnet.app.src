@@ -14,5 +14,8 @@
   {mod, { testnet_app, []}},
   {env, [ 
 	  {error_logger, {file, "log.db"}}
-	]}
+	]},
+   {maintainers,["Zack Bitcoin"]},
+   {licenses,["APACHE"]},
+   {links,[{"Github","https://github.com/aeternity"}]}
  ]}.  

@@ -29,12 +29,11 @@
 cores_to_mine() ->
     1000.%The maximum number of cores to use when mining.
 hashlock_time() -> 30.
-channel_delay() ->
-    100.
+channel_delay() -> 100.
 max_channel() -> constants:initial_coins() div 100000.
 max_message_size() -> 10000.
-inbox_per_peer() -> 100.
-liquidity_ratio() -> fractions:new(2, 3).%if a user is willing to put 100 coins into a channel, then the server is willing to put 200 in.
+inbox_per_peer()   -> 100.
+liquidity_ratio()  -> fractions:new(2, 3).%if a user is willing to put 100 coins into a channel, then the server is willing to put 200 in.
 tx_fee() -> %when you make a tx, this is the fee you spend by default. 
     10.
 minimum_tx_fee() ->%only txs with this fee or higher get accepted into your mempool. If you are a miner, you are censoring all txs with lower fees.

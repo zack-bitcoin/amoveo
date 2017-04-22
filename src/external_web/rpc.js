@@ -1,7 +1,7 @@
 
 //var IP = [52, 36, 106, 100]; // server
-//var IP = [127, 0, 0, 1];
-//var Port = 3011;
+var IP = [127, 0, 0, 1];
+var Port = 8041;
 //var Port = 3030;
 
 var IP = document.URL.split("/")[2].split(":")[0];

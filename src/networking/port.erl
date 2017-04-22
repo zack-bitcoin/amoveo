@@ -13,7 +13,7 @@ handle_call(check, _From, X) -> {reply, X, X}.
 check() -> gen_server:call(?MODULE, check).
 change(X) -> 
     io:fwrite("changing port!!!\n"),
-    io:fwrite("changing port!!!\n"),
+    io:fwrite(X),
     if
         not is_integer(X) -> change(list_to_integer(X));
         true ->

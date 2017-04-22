@@ -12,7 +12,7 @@ peer(IP, Port) ->
     "http://" ++ Z ++ ":" ++ integer_to_list(Port) ++ "/".
 
 local_talk(Msg) ->
-    Peer = "http://127.0.0.1:3011/",
+    Peer = "http://127.0.0.1:8041/",
     talk(Msg, Peer).
 %talk(Msg) ->
 %    Peer = "http://127.0.0.1:3010/",
