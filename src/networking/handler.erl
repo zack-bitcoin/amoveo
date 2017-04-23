@@ -28,6 +28,7 @@ doit({give_block, SignedBlock}) ->
     {ok, 0};
 doit({block, N}) -> 
     {ok, block:pow_block(block:read_int(N))};
+doit({header, N}) -> {ok, block:block_to_header(block:block(block:read_int(N)))};
     %{ok, block_tree:read_int(N)};
 doit({tophash}) -> {ok, top:doit()};
 %doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
@@ -88,7 +89,7 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     SPK = channel_feeder:me(CD),
     Height = block:height(block:read(top:doit())),
     {Accounts,Channels,_,_} = tx_pool:data(),
-    {Amount, _} = spk:run(fast, SS, SPK, Height, 0, Accounts, Channels),
+    {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Accounts, Channels),
     {Tx, _} = channel_team_close_tx:make(CID, Accounts, Channels, Amount, Fee),
     tx_pool_feeder:absorb(keys:sign(STx, Accounts)),
     {ok, ok};

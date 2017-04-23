@@ -1,6 +1,7 @@
 %the hard drive stores {f, pubkey, encrypted(privkey), encrypted("sanity")).
 %the ram stores either {pubkey, privkey} or {pubkey, ""} depending on if this node is locked.
 -module(keys).
+
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2, 

@@ -1,5 +1,5 @@
 -module(new_channel_tx).
--export([doit/4, make/10, good/1, spk/2, cid/1,
+-export([doit/3, make/10, good/1, spk/2, cid/1,
 	 entropy/1, acc1/1, acc2/1, id/1]).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, rent = 0, entropy = 0, 
@@ -46,9 +46,17 @@ make(ID,Accounts,Acc1,Acc2,Inc1,Inc2,Rent,Entropy,Delay, Fee) ->
 	     },
     {Tx, [Proof, Proof2]}.
 				 
-doit(Tx, Channels, Accounts, NewHeight) ->
+doit(Tx, Trees, NewHeight) ->
+    Channels = trees:channels(Trees),
+    Accounts = trees:accounts(Trees),
     ID = Tx#nc.id,
-    {_, empty, _} = channel:get(ID, Channels),
+    {_, OldChannel, _} = channel:get(ID, Channels),
+    true = case OldChannel of
+	       empty -> true;
+	       X ->
+		   channel:closed(OldChannel)
+		       and ((NewHeight - channel:last_modified(OldChannel)) > constants:channel_closed_time())
+	   end,
     Aid1 = Tx#nc.acc1,
     Aid2 = Tx#nc.acc2,
     false = Aid1 == Aid2,
@@ -59,11 +67,12 @@ doit(Tx, Channels, Accounts, NewHeight) ->
     Rent = Tx#nc.rent,
     Entropy = Tx#nc.entropy,
     Delay = Tx#nc.delay,
-    NewChannel = channel:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Entropy, Rent, Delay),
+    NewChannel = channel:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Entropy, Delay),
     NewChannels = channel:write(NewChannel, Channels),
     CCFee = constants:create_channel_fee() div 2,
     Acc1 = account:update(Aid1, Accounts, -Bal1-CCFee, Tx#nc.nonce, NewHeight),
     Acc2 = account:update(Aid2, Accounts, -Bal2-CCFee, none, NewHeight),
     Accounts2 = account:write(Accounts, Acc1),
     NewAccounts = account:write(Accounts2, Acc2),
-    {NewChannels, NewAccounts}.
+    Trees2 = trees:update_channels(Trees, NewChannels),
+    trees:update_accounts(Trees2, NewAccounts).

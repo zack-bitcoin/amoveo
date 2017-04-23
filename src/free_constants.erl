@@ -1,6 +1,8 @@
 -module(free_constants).
 %These constants can be different on every node in the network. You can adjust these variables to suit your own situation.
 -compile(export_all).
+cores_to_mine() ->
+    1000.%The maximum number of cores to use when mining.
 hashlock_time() -> 30.
 channel_delay() ->
     100.

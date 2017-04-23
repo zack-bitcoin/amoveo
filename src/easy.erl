@@ -5,11 +5,15 @@
 
 sync() ->
     spawn(fun() -> sync3() end).
+height() ->    
+    block:height(block:read(top:doit())).
+
 sync3() ->
-    Height = block:height(block:read(top:doit())),
+    Height = height(),
     download_blocks:sync_all(peers:all(), Height),
     sync2(Height, 600).
-sync2(_Height, 0) -> ok;
+sync2(_Height, 0) -> 
+    download_blocks:sync_txs(peers:all());
 sync2(Height, N) ->
     timer:sleep(100),
     Height2 = block:height(block:read(top:doit())),
@@ -21,7 +25,9 @@ sync2(Height, N) ->
    end. 
    
 tx_maker(F) -> 
-    {Accounts, Channels,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     {Tx, _} = F(Accounts, Channels),
     case keys:sign(Tx, Accounts) of
 	{error, locked} -> ok;

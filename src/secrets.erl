@@ -2,5 +2,5 @@
 -export([new/0]).
 new() ->
     Secret = crypto:strong_rand_bytes(12),
-    Commit = hash:doit(Secret),
+    Commit = testnet_hasher:doit(Secret),
     {Commit, Secret}.
