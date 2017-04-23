@@ -77,4 +77,4 @@ easy:off().
 
 
 ### Else
-If you want to know more, get in touch with us via [Gitter Chat](https://gitter.im/BumblebeeBat/plasmodial)
+If you want to know more, get in touch with us via [Gitter Chat](https://github.com/zack-bitcoin/testnet)
