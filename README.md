@@ -1,4 +1,4 @@
-Plasmodial
+Aeternity
 ==========
 
 A blockchain for trustless markets and financial derivatives.
