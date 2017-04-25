@@ -153,9 +153,16 @@ mine(BP, Times) when is_record(BP, block_plus) ->
 	Pow -> BP#block_plus{pow = Pow}
     end.
 mine2(Block, Times) ->
+    PH = Block#block.prev_hash,
+    ParentPlus = read(PH),
+    Trees = ParentPlus#block_plus.trees,
     Difficulty = Block#block.difficulty,
     Header = block_to_header(Block),
-    Pow = pow:pow(Header, Difficulty, Times, constants:hash_size()),
+    
+    Governance = trees:governance(Trees),
+    BlockReward = governance:get_value(block_reward, Governance),
+    MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
+    Pow = pow:pow(Header, MineDiff, Times, constants:hash_size()),
     Pow.
 %verify({Block, Pow}) ->
 %    Difficulty = Block#block.difficulty,
@@ -200,7 +207,10 @@ retarget2(Hash, N, L) ->
     retarget2(H, N-1, [T|L]).
    
 check1(BP) -> 
-    %check1 makes no assumption about the parent's existance.
+    Block = block(BP),
+    PH = Block#block.prev_hash,
+    ParentPlus = read(PH),
+    Trees = ParentPlus#block_plus.trees,
     BH = hash(BP),
     GH = hash(genesis()),
     if
@@ -213,7 +223,10 @@ check1(BP) ->
 	    PowBlock = BP#block_plus.pow,
 	    Header = block_to_header(Block),
 	    Header = pow:data(PowBlock),
-	    true = pow:above_min(PowBlock, Difficulty, constants:hash_size()),
+	    Governance = trees:governance(Trees),
+	    BlockReward = governance:get_value(block_reward, Governance),
+	    MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
+	    true = pow:above_min(PowBlock, MineDiff, constants:hash_size()),
 	    true = Block#block.time < time_now(),
 	    B = size(term_to_binary(Block#block.txs)),
 	    true = B < constants:max_block_size(),

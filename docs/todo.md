@@ -1,5 +1,3 @@
-Make sure that the difficulty written on a header is the difficulty per coin rewarded, not the difficulty per block mined.
-
 
 download blocks talk/1 seems useless. talker:talk is accomplishing the same goal.
 
