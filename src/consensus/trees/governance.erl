@@ -2,6 +2,7 @@
 -export([det_power/3,tree_number_to_value/1, max/0,
 	 is_locked/1, change/3, genesis_state/0,
 	 get/2, write/2, lock/1, unlock/1,
+	 get_value/2,
 	 test/0]).
 
 -record(gov, {id, value, lock}).
@@ -91,6 +92,9 @@ write(E, Tree) ->
     Key = E#gov.id,
     X = serialize(E),
     trie:put(Key, X, 0, Tree, ?name).
+get_value(X, Tree) ->
+    {_, Y, _} = get(X, Tree),
+    tree_number_to_value(Y#gov.value).
 get(Name, Tree) when is_atom(Name) ->
     Key = name2number(Name),
     get(Key, Tree);

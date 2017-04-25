@@ -99,6 +99,8 @@ genesis() ->
 absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
     Trees = PrevPlus#block_plus.trees,
     OldAccounts = trees:accounts(Trees),
+    Governance = trees:governance(Trees),
+    BlockReward = governance:get_value(block_reward, Governance),
     NewAccounts = 
 	case MinesBlock of
 	    -1 ->
@@ -107,11 +109,11 @@ absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
 		{_, empty, _} = account:get(ID, OldAccounts),
 		%We should also give the miner the sum of the transaction fees.
 		TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
-		NM = account:new(ID, Address, constants:block_reward() + TransactionFees, Height),
+		NM = account:new(ID, Address, BlockReward + TransactionFees, Height),
 		account:write(OldAccounts, NM);
 	    MB -> %If you already have an account.
 		TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
-		NM = account:update(MB, OldAccounts, constants:block_reward() + TransactionFees, none, Height),
+		NM = account:update(MB, OldAccounts, BlockReward + TransactionFees, none, Height),
 		account:write(OldAccounts, NM)
 	end,
     NewTrees = trees:update_accounts(Trees, NewAccounts),

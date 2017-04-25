@@ -1,3 +1,6 @@
+Make sure that the difficulty written on a header is the difficulty per coin rewarded, not the difficulty per block mined.
+
+
 download blocks talk/1 seems useless. talker:talk is accomplishing the same goal.
 
 
@@ -11,9 +14,6 @@ Maybe this is a mistake.
 We should download headers in batches, it would be much faster.
 
 javascript light wallets need to be able to do all the channel stuff that full nodes do.
-
-blog post about channels that use untrusted third parties to be secure. So you don't have to stay online all the time.
-
 
 It is currently possible for an attacker to trick us into ignoring a good block. They trick us into storing a good blocks hash into block_hashes. They give us a good block's header, but mix in some bad transactions, or censor a transaction, or they don't give us some of the merkel tree we need to verify the transactions.
 To fix this, each header should contain a hash of all the transactions. We should include the signatures in this hash. This gives us a guarantee that all the data is available at block:check1.

@@ -90,9 +90,9 @@ test() ->
     Root = write(C, 0),
     {_, C, _} = get(ID, Root),
     {_, empty, _} = get(ID, 0),
-    Tree2 = add_bet(ID, true, 100, Root),
+    Tree2 = add_bet(ID, 1, 100, Root),
     {_, Bet2, _} = get(ID, Tree2),
-    Bet2 = increase(C, true, 100),
+    Bet2 = increase(C, 1, 100),
     success.
     
     
