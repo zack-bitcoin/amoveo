@@ -1,7 +1,7 @@
 -module(governance).
 -export([det_power/3,tree_number_to_value/1, max/0,
 	 is_locked/1, change/3, genesis_state/0,
-	 get/2, write/2, lock/1,
+	 get/2, write/2, lock/1, unlock/1,
 	 test/0]).
 
 -record(gov, {id, value, lock}).
@@ -44,8 +44,10 @@ genesis_state2([[Name, Value]|T], Tree) ->
     genesis_state2(T, Tree2).
 change(Name, Amount, Tree) ->
     {_, V, _} = get(Name, Tree),
-    V2 = V#gov{value = V#gov.value + Amount},
+    V2 = V#gov{value = V#gov.value + Amount, lock = 0},
     write(V2, Tree).
+unlock(X) -> 
+    X#gov{lock = 0}.
 lock(X) -> 
     X#gov{lock = 1}.
 is_locked(V) ->

@@ -49,7 +49,9 @@ doit(Tx, Trees, NewHeight) ->
 			trees:update_governance(Gov2, Trees2);
 		    3 -> 
 			true = oracles:starts(Oracle3) + constants:maximum_oracle_time() < NewHeight,
-			Trees2
+			Gov2 = governance:unlock(Gov),
+			trees:update_governance(Gov2, Trees2)
+			%Trees2
 		end
 	end,
     OraclesEE = trees:oracles(Trees3),
