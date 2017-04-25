@@ -4,7 +4,7 @@
 	 type/1, difficulty/1, orders/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
 	 set_result/2, set_type/2, governance/1,
-	 governance_amount/1,
+	 governance_amount/1, creator/1,
 	 test/0]).
 -define(name, oracles).
 -record(oracle, {id, 
@@ -21,6 +21,7 @@
 %we need to store a pointer to the orders tree in the meta data.
 
 governance(X) -> X#oracle.governance.
+creator(X) -> X#oracle.creator.
 governance_amount(X) -> X#oracle.governance_amount.
 id(X) -> X#oracle.id.
 result(X) -> X#oracle.result.

@@ -18,14 +18,20 @@ doit(Tx, Trees, NewHeight) ->
     {_, Oracle, _} = oracles:get(OID, Oracles),
     true = oracles:starts(Oracle) < NewHeight,
     %if the volume of orders in the oracle is too low, then set the oracle:type to 3.
-    Result = oracles:type(Oracle),
+    %Result = oracles:type(Oracle),
+    Orders0 = oracles:orders(Oracle),
+    VolumeCheck = orders:significant_volume(Orders0),
+    Result = if
+		 VolumeCheck -> oracles:type(Oracle);
+		 true -> 3
+	     end,
     Oracle2 = oracles:set_result(Oracle, Result),
     Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
     io:fwrite("after setting result "),
     io:fwrite(packer:pack(Oracle3)),
     io:fwrite("\n"),
     Oracles2 = oracles:write(Oracle3, Oracles),
-    Trees2 = trees:update_oracles(Trees, Oracles2),
+    Trees2 = trees:update_accounts(trees:update_oracles(Trees, Oracles2), NewAccounts),
     Gov = oracles:governance(Oracle3),
     Trees3 = 
 	case Gov of
@@ -42,7 +48,7 @@ doit(Tx, Trees, NewHeight) ->
 			Gov2=governance:change(G, -GA,Gov),
 			trees:update_governance(Gov2, Trees2);
 		    3 -> 
-			true = oracle:starts(Oracle3) + constants:maximum_oracle_time() < NewHeight,
+			true = oracles:starts(Oracle3) + constants:maximum_oracle_time() < NewHeight,
 			Trees2
 		end
 	end,
@@ -51,6 +57,21 @@ doit(Tx, Trees, NewHeight) ->
     io:fwrite("after setting result 2 "),
     io:fwrite(packer:pack(Oracle4)),
     io:fwrite("\n"),
-    trees:update_accounts(Trees3, NewAccounts).
+    OracleType = oracles:type(Oracle4),
+    LoserType = 
+	case OracleType of
+	    1 -> false;
+	    2 -> true;
+	    3 -> true
+	end,
+    OBTx = {oracle_bet, oracles:creator(Oracle4), 
+	  none, 0, OID, LoserType, 
+	  constants:oracle_initial_liquidity()},
+    io:fwrite("OBTX is "),
+    io:fwrite(packer:pack(OBTx)),
+    io:fwrite("\n"),
+    Trees4 = oracle_bet_tx:doit2(OBTx, Trees3, NewHeight),
+    Accounts4 = trees:accounts(Trees4),
+    trees:update_accounts(Trees3, Accounts4).
 test() ->
     success.

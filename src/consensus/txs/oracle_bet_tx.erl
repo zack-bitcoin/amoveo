@@ -1,5 +1,5 @@
 -module(oracle_bet_tx).
--export([test/0, doit/3, make/6]).
+-export([test/0, doit/3, doit2/3, make/6]).
 -record(oracle_bet, {from, %your account id.
 		     nonce, 
 		     fee, 
@@ -29,27 +29,27 @@ doit(Tx, Trees, NewHeight) ->
     Accounts = trees:accounts(Trees),
     Facc = account:update(From, Accounts, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce, NewHeight),
     Accounts2 = account:write(Accounts, Facc),
-    Trees2 = trees:update_accounts(Trees, Accounts2),
     Oracles = trees:oracles(Trees),
+    {_, Oracle, _} = oracles:get(Tx#oracle_bet.id, Oracles),
+    0 = oracles:result(Oracle),%check that the oracle isn't already closed.
+    Trees2 = trees:update_accounts(Trees, Accounts2),
+
+    doit2(Tx, Trees2, NewHeight).
+doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we close the oracle we want to insert one last bet.
+    From = Tx#oracle_bet.from,
+    Accounts2 = trees:accounts(Trees2),
+    Oracles = trees:oracles(Trees2),
     {_, Oracle0, _} = oracles:get(Tx#oracle_bet.id, Oracles),
     Orders0 = oracles:orders(Oracle0),
-    ManyOrders = orders:many(Orders0),%instead of counting how many orders, we should sum the volume in the bottom two orders and see if it is above a limit
-    {Head, _} = orders:head_get(Orders0),
+    %{Head, _} = orders:head_get(Orders0),
+    VolumeCheck = orders:significant_volume(Orders0),
     Oracle = if
-		 Head == 0 ->
-		     oracles:set_done_timer(Oracle0, NewHeight + constants:minimum_oracle_time());
-		 true ->
-		     {_, Order0, _} = orders:get(Head, Orders0),
-		     Bool = orders:amount(Order0) < constants:oracle_initial_liquidity(),
-		     if 
-			 Bool and (ManyOrders < 2) ->
-			     oracles:set_done_timer(Oracle0, NewHeight + constants:minimum_oracle_time());
-			 true -> Oracle0
-		     end
-	     end,
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
-    0 = oracles:result(Oracle),
+		 VolumeCheck -> Oracle0;
+		 true -> oracles:set_done_timer(Oracle0, NewHeight + constants:minimum_oracle_time())
+	     end,
     true = NewHeight > oracles:starts(Oracle),
+    
     %take some money from them. 
     Orders = oracles:orders(Oracle),
     OracleType = oracles:type(Oracle),
@@ -63,6 +63,7 @@ doit(Tx, Trees, NewHeight) ->
     NewOrder = orders:new(ID, Tx#oracle_bet.from, Amount),
     if
 	TxType == OracleType ->
+	    ManyOrders = orders:many(Orders0),
 	    Minimum = constants:oracle_initial_liquidity() * det_pow(2, max(1, ManyOrders)), 
 	    true = Amount >= Minimum,
 	    NewOrders = orders:add(NewOrder, Orders),
@@ -108,10 +109,10 @@ sum_order_amounts([H|T], N) ->
     sum_order_amounts(T, A+N).
 give_bets([], _Type, Accounts, _OID) -> Accounts;
 give_bets([Order|T], Type, Accounts, OID) ->
-    ID = order:aid(Order),
+    ID = orders:aid(Order),
     {_, Acc, _} = account:get(ID, Accounts),
     OldBets = account:bets(Acc),
-    NewBets = oracle_bets:add_bet(OID, Type, 2*order:amount(Order), OldBets),
+    NewBets = oracle_bets:add_bet(OID, Type, 2*orders:amount(Order), OldBets),
     Acc2 = account:update_bets(Acc, NewBets),
     Accounts2 = account:write(Accounts, Acc2),
     give_bets(T, Type, Accounts2, OID).

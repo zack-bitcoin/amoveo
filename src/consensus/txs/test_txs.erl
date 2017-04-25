@@ -20,6 +20,7 @@ test() ->
     S = test(11),%try out the oracle
     %warning! after running test(11), we can no longer run other tests. because test(11) mines blocks, so tx_pool:dump can no longer undo transactions.
     S = test(12),%multiple bets in a single channel
+    S = test(13),%testing governance
     S.
 absorb(Tx) -> 
     tx_pool_feeder:absorb(Tx),
@@ -595,11 +596,10 @@ test(12) ->
     %block:check2(Block),
     success;
 test(13) ->
-    io:fwrite("testing an oracle\n"),
     %testing the governance
     %launch an oracle with oracle_new, close it on state "bad", 
     Question = <<>>,
-    OID = 1,
+    OID = 6,
     Fee = 10,
     tx_pool:dump(),
     Diff = constants:initial_difficulty(),

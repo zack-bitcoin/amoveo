@@ -3,9 +3,21 @@
 	 pointer/1, new/3, get/2, empty_book/0,
 	 remove/2, update_amount/2, set_amount/2,
 	 available_id/1, many/1, aid/1, head_get/1,
+	 significant_volume/1,
 	 test/0]).
 -define(name, orders).
 -record(order, {id, aid, amount, pointer}).
+significant_volume(Root) ->
+    ManyOrders = many(Root),
+    if
+	ManyOrders == 0 -> false;
+	ManyOrders > 2 -> true;
+	true -> 
+	    {Head, _} = orders:head_get(Root),
+	    {_, Order0, _} = orders:get(Head, Root),
+	    (orders:amount(Order0) > constants:oracle_initial_liquidity())
+    end.
+    
 many(Root) ->
     {_, Many} = head_get(Root),
     Many.

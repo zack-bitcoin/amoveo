@@ -27,9 +27,9 @@ bad(X) ->
     X#bet.bad.
 increase(X, Type, A) ->
     case Type of
-	true -> X#bet{true = X#bet.true + A};
-	false -> X#bet{false = X#bet.false + A};
-	bad -> X#bet{bad = X#bet.bad + A}
+	1 -> X#bet{true = X#bet.true + A};
+	2 -> X#bet{false = X#bet.false + A};
+	3 -> X#bet{bad = X#bet.bad + A}
     end.
 new(ID, Type, Amount) ->
     {A, B, C} = 
