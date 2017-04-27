@@ -48,15 +48,17 @@ doit(Tx, Trees0, NewHeight) ->
 		GovTree = trees:governance(Trees0),
 		{_, GVar, _} = governance:get(G, GovTree),
 		false = governance:is_locked(GVar),
-		NewGVar = governance:lock(GVar),
-		NewGovTree = governance:write(NewGVar, GovTree),
+		NewGovTree = governance:lock(G, GovTree),
+		%NewGovTree = governance:write(NewGVar, GovTree),
 		trees:update_governance(Trees0, NewGovTree)
 	end,
+    Governance = trees:governance(Trees),
     ok = case Question of
 	     <<"">>-> ok;
-	     _Q -> 
+	     Q -> 
 		 %get the recent oracle, make sure it's question was <<"">>, make sure our difficulty is half as high as that difficulty.
-		 %true = size(Q) < constants:maximum_question_size(),
+		 MQS = governance:get_value(maximum_question_size, Governance),
+		 true = size(Q) < MQS,
 		 0 = GovAmount,
 		 Di = oracles:difficulty(Recent) div 2,
 		 Di = Tx#oracle_new.difficulty,
@@ -66,7 +68,6 @@ doit(Tx, Trees0, NewHeight) ->
 	 end,
     Accounts = trees:accounts(Trees),
     From = Tx#oracle_new.from,
-    Governance = trees:governance(Trees),
     OIL = governance:get_value(oracle_initial_liquidity, Governance),
     Facc = account:update(From, Trees, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce, NewHeight),
     NewAccounts = account:write(Accounts, Facc),

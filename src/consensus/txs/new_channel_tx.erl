@@ -51,11 +51,13 @@ doit(Tx, Trees, NewHeight) ->
     Accounts = trees:accounts(Trees),
     ID = Tx#nc.id,
     {_, OldChannel, _} = channel:get(ID, Channels),
+    Governance = trees:governance(Trees),
     true = case OldChannel of
 	       empty -> true;
 	       _ ->
+		   CCT = governance:get_value(channel_closed_time, Governance),
 		   channel:closed(OldChannel)
-		       and ((NewHeight - channel:last_modified(OldChannel)) > constants:channel_closed_time())
+		       and ((NewHeight - channel:last_modified(OldChannel)) > CCT)
 	   end,
     Aid1 = Tx#nc.acc1,
     Aid2 = Tx#nc.acc2,
@@ -68,7 +70,6 @@ doit(Tx, Trees, NewHeight) ->
     Delay = Tx#nc.delay,
     NewChannel = channel:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Entropy, Delay),
     NewChannels = channel:write(NewChannel, Channels),
-    Governance = trees:governance(Trees),
     CCFee = governance:get_value(create_channel_fee, Governance) div 2,
     %CCFee = constants:create_channel_fee() div 2,
     Acc1 = account:update(Aid1, Trees, -Bal1-CCFee, Tx#nc.nonce, NewHeight),

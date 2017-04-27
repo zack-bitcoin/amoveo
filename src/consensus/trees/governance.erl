@@ -1,7 +1,7 @@
 -module(governance).
 -export([det_power/3,tree_number_to_value/1, max/0,
 	 is_locked/1, change/3, genesis_state/0,
-	 get/2, write/2, lock/1, unlock/1,
+	 get/2, write/2, lock/2, unlock/2,
 	 get_value/2,
 	 test/0]).
 
@@ -48,10 +48,14 @@ change(Name, Amount, Tree) ->
     {_, V, _} = get(Name, Tree),
     V2 = V#gov{value = V#gov.value + Amount, lock = 0},
     write(V2, Tree).
-unlock(X) -> 
-    X#gov{lock = 0}.
-lock(X) -> 
-    X#gov{lock = 1}.
+unlock(Name, Tree) -> 
+    {_, V, _} = get(Name, Tree),
+    V2 = V#gov{lock = 0},
+    write(V2, Tree).
+lock(Name, Tree) -> 
+    {_, V, _} = get(Name, Tree),
+    V2 = V#gov{lock = 1},
+    write(V2, Tree).
 is_locked(V) ->
     X = V#gov.lock,
     case X of
@@ -125,12 +129,12 @@ name2number(var_limit) -> 15;
 name2number(comment_limit) -> 16;
 name2number(block_creation_maturity) -> 17;
 name2number(oracle_initial_liquidity) -> 18;
-name2number(minimum_oracle_time) -> 19;%%
+name2number(minimum_oracle_time) -> 19;
 name2number(maximum_oracle_time) -> 8;
 name2number(maximum_question_size) -> 20;
 name2number(block_time_after_median) -> 21;
 name2number(channel_closed_time) -> 22;
-name2number(retarget_period) -> 23;
+name2number(retarget_period) -> 23;%%
 name2number(question_delay) -> 24;
 name2number(governance_delay) -> 25;
 name2number(governance_change_limit) -> 26;

@@ -62,37 +62,46 @@ check_slash(From, Acc1, Acc2, TheirSS, SSPK, Trees, TheirNonce) ->
     %if our partner is trying to close our channel without us, and we have a ScriptSig that can close the channel at a higher nonce, then we should make a channel_slash_tx to do that.
     %From = MyID,
     SPK = testnet_sign:data(SSPK),
-    {_, Nonce, SSM, _OurSecret} = next_ss(From, TheirSS, SPK, Acc1, Acc2, Trees),
-    true = Nonce > TheirNonce,
-    timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
+    case next_ss(From, TheirSS, SPK, Acc1, Acc2, Trees) of
+	ok -> ok;
+	{_, Nonce, SSM, _OurSecret}  -> 
+	    true = Nonce > TheirNonce,
+	    timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
     %Depending
-    {Trees2,_,_} = tx_pool:data(),
-    Accounts2 = trees:accounts(Trees2),
-    Channels2 = trees:channels(Trees2),
-    MyID = keys:id(),
-    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SSPK, [SSM], Accounts2, Channels2),
-    Stx = keys:sign(Tx, Accounts2),
-    tx_pool_feeder:absorb(Stx),
-    easy:sync().
+	    {Trees2,_,_} = tx_pool:data(),
+	    Accounts2 = trees:accounts(Trees2),
+	    Channels2 = trees:channels(Trees2),
+	    MyID = keys:id(),
+	    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SSPK, [SSM], Accounts2, Channels2),
+	    Stx = keys:sign(Tx, Accounts2),
+	    tx_pool_feeder:absorb(Stx),
+	    easy:sync()
+    end.
 next_ss(From, TheirSS, SPK, Acc1, Acc2, Trees) ->
+    %this is customized for dice.
+    case channel_manager:read(From) of
+	{ok, CD} ->
+	    next_ss2(From, TheirSS, SPK, Acc1, Acc2, Trees, CD);
+	_ -> ok
+    end.
+next_ss2(From, TheirSS, SPK, Acc1, Acc2, Trees, CD) ->
     Accounts = trees:accounts(Trees),
     Channels = trees:channels(Trees),
-    %this is customized for dice.
-    {ok, CD} = channel_manager:read(From),
+    %{ok, CD} = channel_manager:read(From),
     %io:fwrite("in next_ss. CD is "),
     %io:fwrite(packer:pack(CD)),
     %io:fwrite("\n"),
-    OurSS1 = channel_feeder:script_sig_them(CD),%this is not a typo. this is OurSS which can be used for the highest nonced SPK they signed before this SPK we are currently looking at.
-    OurSS = case OurSS1 of%this trick only works because we limit it to one bet per channel.
-		[] -> channel_feeder:script_sig_me(CD);
-		X -> X
-	    end,
-    Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
+	    OurSS1 = channel_feeder:script_sig_them(CD),%this is not a typo. this is OurSS which can be used for the highest nonced SPK they signed before this SPK we are currently looking at.
+	    OurSS = case OurSS1 of%this trick only works because we limit it to one bet per channel.
+			[] -> channel_feeder:script_sig_me(CD);
+			X -> X
+		    end,
+	    Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
     %SPK = testnet_sign:data(channel_feeder:them(CD)),
-    Height = block:height(block:read(top:doit())),
-    NewHeight = Height + 1,
-    State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
-    {Amount1, Nonce1, _} = spk:run(safe, OurSS, SPK, NewHeight, Slash, Trees),
+	    Height = block:height(block:read(top:doit())),
+	    NewHeight = Height + 1,
+	    State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
+	    {Amount1, Nonce1, _} = spk:run(safe, OurSS, SPK, NewHeight, Slash, Trees),
     [_|[OurSecret|_]] = free_constants:vm(hd(OurSS), State),
     Out1 = {Amount1, Nonce1, OurSS, OurSecret},
     Height = block:height(block:read(top:doit())),

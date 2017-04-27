@@ -176,7 +176,9 @@ next_difficulty(ParentPlus) ->
     Parent = block(ParentPlus),
     Height = Parent#block.height + 1,
     RF = constants:retarget_frequency(),
-    X = Height rem RF,
+    Governance = trees:governance(Trees),
+    RP = governance:get_value(retarget_period, Governance),
+    X = Height rem RP,
     OldDiff = Parent#block.difficulty,
     PrevHash = hash(ParentPlus),
     if
