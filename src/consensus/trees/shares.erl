@@ -3,7 +3,7 @@
 %The shares are stored by share id. The id of a share determines it's difficulty. You can own either a negative, positive, or zero amount of each type of share. Shares are transferable
 -export([test/0, change_amount/2, id/1, amount/1,
 	 get/2, write/3, root_hash/1, new/3,
-	 receive_shares/3, send_shares/3,
+	 receive_shares/4, send_shares/4,
 	 write_many/3, write_many/2,
 	 to_code/1, from_code/1]).
 -record(share, {id, amount, 
@@ -99,15 +99,15 @@ flip_shares([]) -> [];
 flip_shares([S|T]) -> 
     [S#share{amount = -S#share.amount}|
      flip_shares(T)].
-send_shares(Shares, Trees, Height) ->
-    receive_shares(flip_shares(Shares), Trees, Height).
-receive_shares(S, T, H) ->
-    receive_shares(S, T, H, 0).
-receive_shares([], Tree, _, Tokens) -> {Tokens, Tree};
-receive_shares([Share|S], Tree, Height, Tokens1) ->
-    {Tokens2, Tree2} = receive_share(Share, Tree, Height),
-    receive_shares(S, Tree2, Height, Tokens1+Tokens2).
-receive_share(Share, Tree, Height) ->
+send_shares(Shares, Tree, Height, Trees) ->
+    receive_shares(flip_shares(Shares), Tree, Height, Trees).
+receive_shares(S, T, H, Trees) ->
+    receive_shares(S, T, H, Trees, 0).
+receive_shares([], Tree, _, _, Tokens) -> {Tokens, Tree};
+receive_shares([Share|S], Tree, Height, Trees, Tokens1) ->
+    {Tokens2, Tree2} = receive_share(Share, Tree, Height, Trees),
+    receive_shares(S, Tree2, Height, Trees, Tokens1+Tokens2).
+receive_share(Share, Tree, Height, Trees) ->
     SID = id(Share),
     SA = Share#share.amount,
     {_, Old, _} = get(SID, Tree),
@@ -118,7 +118,7 @@ receive_share(Share, Tree, Height) ->
 	    false = 0 == SA,
 	    {0, write(Share, Tree, Height)};
 	true ->
-	    {Shares, Tokens} = get_paid(Old, Height),
+	    {Shares, Tokens} = get_paid(Old, Height, Trees),
 	    NewAmount = Shares + SA,
 	    if
 		NewAmount == 0 -> 
@@ -143,21 +143,24 @@ diff(ID) -> ID.%+constants:initial_difficulty().
 %	1 -> expt(((Base * T) div B), {T, B}, ID-1)
 %    end.
 	    
-get_paid(Share, Height) ->
+get_paid(Share, Height, Trees) ->
     OldHeight = Share#share.modified,
     %for every height in the range, get the difficulty.
     SDiff = diff(Share#share.id),
-    get_paid2(OldHeight, Height, SDiff, Share#share.amount, 0).
+    Governance = trees:governance(Trees),
+    SharesConversion = governance:get_value(shares_conversion, Governance),%the rate at which shares convert to tokens.
+    get_paid2(OldHeight, Height, SDiff, Share#share.amount, 0, SharesConversion).
     %for every difficulty in the range, see if we are over or under. positive shares get paid for being over, negative get paid for being under.
-get_paid2(Start, Start, _, Shares, T) -> {Shares, T};
-get_paid2(Step, End, Diff, Shares, Tokens) when Shares > 0 -> 
-    M = constants:shares_conversion(Shares),
+get_paid2(Start, Start, _, Shares, T, _) -> {Shares, T};
+get_paid2(Step, End, Diff, Shares, Tokens, SC) when Shares > 0 -> 
+    %M = constants:shares_conversion(Shares),
+    M = Shares * SC,
     BlockDiff = block:difficulty(block:read_int(Step)),
     T = if 
 	    BlockDiff > Diff -> M;
 	    true -> 0
 	end,
-    get_paid2(Step+1, End, Diff, Shares-M, Tokens+T).
+    get_paid2(Step+1, End, Diff, Shares-M, Tokens+T, SC).
     
     %constants:shares_conversion(Many). %this tells how many shares disappear on this block.
 

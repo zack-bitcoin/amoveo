@@ -169,6 +169,7 @@ mine2(Block, Times) ->
 %    true = pow:above_min(Pow, Difficulty, constants:hash_size()).
 next_difficulty(ParentPlus) ->
     %Parent = pow:data(ParentPlus#block_plus.block),
+    Trees = ParentPlus#block_plus.trees,
     Parent = block(ParentPlus),
     Height = Parent#block.height + 1,
     RF = constants:retarget_frequency(),
@@ -178,7 +179,7 @@ next_difficulty(ParentPlus) ->
     if
 	Height == 1 -> constants:initial_difficulty(); 
 	Height < (RF+1) -> OldDiff;
-	X == 0 -> retarget(PrevHash, Parent#block.difficulty);
+	X == 0 -> retarget(PrevHash, Parent#block.difficulty, Trees);
 	true ->  OldDiff
     end.
 median(L) ->
@@ -187,7 +188,8 @@ median(L) ->
     Sorted = lists:sort(F, L),
     lists:nth(S div 2, Sorted).
     
-retarget(PrevHash, Difficulty) ->    
+retarget(PrevHash, Difficulty, Trees) ->    
+    Governance = trees:governance(Trees),
     F = constants:retarget_frequency() div 2,
     {Times1, Hash2000} = retarget2(PrevHash, F, []),
     {Times2, _} = retarget2(Hash2000, F, []),
@@ -196,7 +198,8 @@ retarget(PrevHash, Difficulty) ->
     Tbig = M1 - M2,
     T = Tbig div F,
     %io:fwrite([Ratio, Difficulty]),%10/2, 4096
-    ND = pow:recalculate(Difficulty, constants:block_time(), max(1, T)),
+    BT = governance:get_value(block_time, Governance),
+    ND = pow:recalculate(Difficulty, BT, max(1, T)),
     max(ND, constants:initial_difficulty()).
 retarget2(Hash, 0, L) -> {L, Hash};
 retarget2(Hash, N, L) -> 

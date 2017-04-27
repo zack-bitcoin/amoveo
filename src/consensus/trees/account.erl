@@ -1,6 +1,6 @@
 -module(account).
 -export([new/4,nonce/1,write/2,get/2,update/5,update/7,addr/1,id/1,balance/1,root_hash/1,now_balance/4,delete/2,
-	 receive_shares/3, send_shares/3,
+	 receive_shares/4, send_shares/4,
 	 shares/1, bets/1, update_bets/2,
 	 test/0]).
 -record(acc, {balance = 0, %amount of money you have
@@ -17,13 +17,13 @@ shares(X) -> X#acc.shares.
 bets(X) -> X#acc.bets.
 update_bets(X, B) ->
     X#acc{bets = B}.
-receive_shares(Acc, Shares, Height) ->
+receive_shares(Acc, Shares, Height, Trees) ->
     SharesTree = Acc#acc.shares,
-    {Tokens, NewTree} = shares:receive_shares(Shares, SharesTree, Height),
+    {Tokens, NewTree} = shares:receive_shares(Shares, SharesTree, Height, Trees),
     Acc#acc{shares = NewTree, balance =Acc#acc.balance + Tokens}.
-send_shares(Acc, Shares, Height) ->
+send_shares(Acc, Shares, Height, Trees) ->
     SharesTree = Acc#acc.shares,
-    {Tokens, NewTree} = shares:send_shares(Shares, SharesTree, Height),
+    {Tokens, NewTree} = shares:send_shares(Shares, SharesTree, Height, Trees),
     Acc#acc{shares = NewTree, balance = Acc#acc.balance + Tokens}.
 now_balance(Acc, Amount, NewHeight, Trees) ->
     OldHeight = Acc#acc.height,

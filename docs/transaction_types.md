@@ -4,7 +4,7 @@ These are the 18 types of transaction that can be in blocks.
 * account_new
 * account_spend
 * account_delete
-* account_repo
+* account_recycle
 
 7 transactions for channels:
 * channel_new
@@ -13,7 +13,7 @@ These are the 18 types of transaction that can be in blocks.
 * channel_solo_close
 * channel_slash
 * channel_timeout
-* channel_repo
+* channel_recycle
 
 5 transactions for the oracle:
 * oracle_new
@@ -83,7 +83,7 @@ The channel can be slashed many times, but each time it is slashed the evidence 
 
 If you did a channel_solo_close, and then waited the delay number of blocks after the final channel_slash, now you can do this transaction to close the channel.
 
-# channel_repo
+# channel_recycle
 
 If a channel has no money in it, then anyone can use this transaction to delete the channel.
 The maker of this transaction gets a reward which is smaller than the cost of making the channel.
@@ -105,7 +105,7 @@ The market is an order book with 3 types of shares: "true", "false", "bad_questi
 All trades are matched into the order book in pairs at even odds.
 So the order book only stores 1 kind of order at a time.
 If you want your order to be held in the order book, it needs to be bigger than a minimum size.
-There is a maximum number of orders that can be stored in the order book at a time.
+The minimum size gets bigger as the order book gets bigger. So if there is C number of coins in the order book, the number of orders is smaller than `log2(C/(minimum for first order))`
 If your order isn't big enough to be in the order book, you cannot buy shares of the type that are stored in the order book.
 
 # oracle_close

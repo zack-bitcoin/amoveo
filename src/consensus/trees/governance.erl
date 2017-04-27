@@ -120,7 +120,7 @@ name2number(account_rent) -> 10;
 name2number(block_time) -> 11;
 name2number(oracle_future_limit) -> 12;
 name2number(shares_conversion) -> 13;
-name2number(fun_limit) -> 14;
+name2number(fun_limit) -> 14;%%
 name2number(var_limit) -> 15;
 name2number(comment_limit) -> 16;
 name2number(block_creation_maturity) -> 17;

@@ -26,7 +26,7 @@ doit(Tx, Trees, NewHeight) ->
     {_, Bet, _} = oracle_bets:get(OID, Bets),
     B2Shares =oracle_bets:to_shares(Bet, Result, NewHeight),
     %Shares = account:shares(Acc),
-    Acc2 = account:receive_shares(Acc, B2Shares, NewHeight),
+    Acc2 = account:receive_shares(Acc, B2Shares, NewHeight, Trees),
     Bets2 = oracle_bets:delete(OID, Bets),
     Acc3 = account:update_bets(Acc2, Bets2),
     

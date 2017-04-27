@@ -13,9 +13,9 @@ doit(Tx, Trees, NewHeight) ->
     false = From == To,
     A = Tx#spend.amount,
     Facc = account:update(From, Trees, -A-Tx#spend.fee, Tx#spend.nonce, NewHeight),
-    Facc2 = account:send_shares(Facc, Tx#spend.shares, NewHeight),
+    Facc2 = account:send_shares(Facc, Tx#spend.shares, NewHeight, Trees),
     Tacc = account:update(To, Trees, A, none, NewHeight),
-    Tacc2 = account:receive_shares(Tacc, Tx#spend.shares, NewHeight),
+    Tacc2 = account:receive_shares(Tacc, Tx#spend.shares, NewHeight, Trees),
     Accounts2 = account:write(Accounts, Facc2),
     NewAccounts = account:write(Accounts2, Tacc2),
     trees:update_accounts(Trees, NewAccounts).
