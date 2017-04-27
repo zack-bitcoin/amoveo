@@ -1,5 +1,5 @@
 -module(channel_solo_close).
--export([doit/3, make/6, scriptpubkey/1, next_ss/7]).
+-export([doit/3, make/6, scriptpubkey/1, next_ss/6]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
 
@@ -40,7 +40,7 @@ doit(Tx, Trees, NewHeight) ->
     true = channel:entropy(OldChannel) == spk:entropy(ScriptPubkey),
     %NewCNonce = spk:nonce(ScriptPubkey),
     SS = Tx#csc.scriptsig,
-    {Amount, NewCNonce, Shares} = spk:run(fast, SS, ScriptPubkey, NewHeight, 0, Accounts, Channels),
+    {Amount, NewCNonce, Shares} = spk:run(fast, SS, ScriptPubkey, NewHeight, 0, Trees),
     false = Amount == 0,
     SR = spk:slash_reward(ScriptPubkey),
     true = NewCNonce > channel:nonce(OldChannel),
@@ -53,25 +53,30 @@ doit(Tx, Trees, NewHeight) ->
     NewChannels = channel:write(NewChannel, Channels),
     Facc = account:update(From, Trees, -Tx#csc.fee, Tx#csc.nonce, NewHeight),
     NewAccounts = account:write(Accounts, Facc),
-    spawn(fun() -> check_slash(From, Acc1, Acc2, SS, SPK, NewAccounts, NewChannels, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
     Trees2 = trees:update_channels(Trees, NewChannels),
-    trees:update_accounts(Trees2, NewAccounts).
+    Trees3 = trees:update_accounts(Trees2, NewAccounts),
+    spawn(fun() -> check_slash(From, Acc1, Acc2, SS, SPK, Trees3, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
+    Trees3.
 
-check_slash(From, Acc1, Acc2, TheirSS, SSPK, Accounts, Channels, TheirNonce) ->
+check_slash(From, Acc1, Acc2, TheirSS, SSPK, Trees, TheirNonce) ->
     %if our partner is trying to close our channel without us, and we have a ScriptSig that can close the channel at a higher nonce, then we should make a channel_slash_tx to do that.
     %From = MyID,
     SPK = testnet_sign:data(SSPK),
-    {_, Nonce, SSM, _OurSecret} = next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels),
+    {_, Nonce, SSM, _OurSecret} = next_ss(From, TheirSS, SPK, Acc1, Acc2, Trees),
     true = Nonce > TheirNonce,
     timer:sleep(40000),%we need to wait enough time to finish loading the current block before we make this tx
     %Depending
-    {Accounts,Channels,_,_} = tx_pool:data(),
+    {Trees2,_,_} = tx_pool:data(),
+    Accounts2 = trees:accounts(Trees2),
+    Channels2 = trees:channels(Trees2),
     MyID = keys:id(),
-    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SSPK, [SSM], Accounts, Channels),
-    Stx = keys:sign(Tx, Accounts),
+    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SSPK, [SSM], Accounts2, Channels2),
+    Stx = keys:sign(Tx, Accounts2),
     tx_pool_feeder:absorb(Stx),
     easy:sync().
-next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
+next_ss(From, TheirSS, SPK, Acc1, Acc2, Trees) ->
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     %this is customized for dice.
     {ok, CD} = channel_manager:read(From),
     %io:fwrite("in next_ss. CD is "),
@@ -87,7 +92,7 @@ next_ss(From, TheirSS, SPK, Acc1, Acc2, Accounts, Channels) ->
     Height = block:height(block:read(top:doit())),
     NewHeight = Height + 1,
     State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
-    {Amount1, Nonce1, _} = spk:run(safe, OurSS, SPK, NewHeight, Slash, Accounts, Channels),
+    {Amount1, Nonce1, _} = spk:run(safe, OurSS, SPK, NewHeight, Slash, Trees),
     [_|[OurSecret|_]] = free_constants:vm(hd(OurSS), State),
     Out1 = {Amount1, Nonce1, OurSS, OurSecret},
     Height = block:height(block:read(top:doit())),

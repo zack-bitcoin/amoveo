@@ -1,3 +1,5 @@
+instead of storing all the tree roots in the VM seperate, we should store one list of tree roots.
+
 merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.
 Alternatively, we could use raw jiffy to encode the proofs.
 

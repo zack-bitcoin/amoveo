@@ -11,7 +11,7 @@
 
 -record(block, {height, prev_hash, txs, trees, 
 		mines_block, time, 
-		difficulty,
+		difficulty, comment = <<>>,
 		magic = constants:magic()}).%tries: txs, channels, census, 
 -record(block_plus, {block, pow, trees, accumulative_difficulty = 0, prev_hashes = {}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
@@ -92,7 +92,7 @@ genesis() ->
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
     TreeRoot = trees:root_hash(Trees),
     Block = {pow,{block,0,<<0:(8*constants:hash_size())>>,[], TreeRoot,
-		  1,0,4080, constants:magic()},
+		  1,0,4080, <<>>, constants:magic()},
 	     4080,44358461744572027408730},
     #block_plus{block = Block, trees = Trees}.
     
@@ -212,8 +212,13 @@ retarget2(Hash, N, L) ->
 check1(BP) -> 
     Block = block(BP),
     PH = Block#block.prev_hash,
+    Comment = Block#block.comment,
     ParentPlus = read(PH),
     Trees = ParentPlus#block_plus.trees,
+    Governance = trees:governance(Trees),
+    CL = governance:get_value(comment_limit, Governance),
+    true = is_binary(Comment),
+    true = size(Comment) < CL,
     BH = hash(BP),
     GH = hash(genesis()),
     if

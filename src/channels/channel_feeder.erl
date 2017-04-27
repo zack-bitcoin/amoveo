@@ -69,12 +69,16 @@ handle_cast({close, SS, STx}, X) ->
 		end,
     DemandedAmount = channel_team_close_tx:amount(Tx),
     TotalCoins = 0,
-    {Accounts, Channels, Height, _} = tx_pool:data(),
+    {Trees, Height, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     State = chalang:new_state(TotalCoins, Height, 0, <<0:(8*hash:hash_depth())>>, Accounts, Channels),
     Bets = spk:bets(SPK),
-    {CalculatedAmount, NewNonce, _, _} = chalang:run(SS, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
-
-    {OldAmount, OldNonce, _, _} = chalang:run(CD#cd.ssthem, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
+    Governance = trees:governance(Trees),
+    FunLimit = governance:get_value(fun_limit, Governance),
+    VarLimit = governance:get_value(var_limit, Governance),
+    {CalculatedAmount, NewNonce, _, _} = chalang:run(SS, Bets, free_constants:gas_limit(), free_constants:gas_limit(), FunLimit, VarLimit, State),
+    {OldAmount, OldNonce, _, _} = chalang:run(CD#cd.ssthem, Bets, free_constants:gas_limit(), free_constants:gas_limit(), FunLimit, VarLimit, State),
     if
 	NewNonce > OldNonce -> ok; 
 	NewNonce == OldNonce ->

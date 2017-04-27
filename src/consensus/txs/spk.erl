@@ -3,7 +3,7 @@
 	 bets/1,space_gas/1,time_gas/1,
 	 new/10,delay/1,cid/1,amount/1, 
 	 nonce/1,apply_bet/4,get_paid/3,
-	 run/7,settle_bet/3, slash_reward/1]).
+	 run/6,settle_bet/3, slash_reward/1]).
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
 	      delay, cid, amount = 0, nonce = 0,
@@ -52,25 +52,30 @@ get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going
     SPK#spk{amount = (SPK#spk.amount + (D*Amount)), 
 	    nonce = SPK#spk.nonce + 1}.
 	    
-run(Mode, SS, SPK, Height, Slash, Accounts, Channels) ->
+run(Mode, SS, SPK, Height, Slash, Trees) ->
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
-    {Amount, NewNonce, CodeShares, _, _} = run2(Mode, SS, SPK, State),
+    {Amount, NewNonce, CodeShares, _, _} = run2(Mode, SS, SPK, State, Trees),
     true = NewNonce < 1000,
     Shares = shares:from_code(CodeShares),
     {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce), Shares}.
-run2(fast, SS, SPK, State) -> 
+run2(fast, SS, SPK, State, Trees) -> 
+    Governance = trees:governance(Trees),
+    FunLimit = governance:get_value(fun_limit, Governance),
+    VarLimit = governance:get_value(var_limit, Governance),
     chalang:run(SS, 
 		SPK#spk.bets,
 		SPK#spk.time_gas,
 		SPK#spk.space_gas,
-		constants:fun_limit(),
-		constants:var_limit(),
+		FunLimit,
+		VarLimit,
 		State);
-run2(safe, SS, SPK, State) -> 
+run2(safe, SS, SPK, State, Trees) -> 
     %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
     S = self(),
     spawn(fun() ->
-		  X = run2(fast, SS, SPK, State),
+		  X = run2(fast, SS, SPK, State, Trees),
 		  S ! X
 	  end),
     spawn(fun() ->

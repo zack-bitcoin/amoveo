@@ -45,7 +45,7 @@ doit(Tx, Trees, NewHeight) ->
     %Mode = channel:mode(OldChannel),
     Fee = Tx#cs.fee,
     Nonce = Tx#cs.nonce,
-    {Amount, NewCNonce, Shares} = spk:run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Accounts, Channels),
+    {Amount, NewCNonce, Shares} = spk:run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Trees),
     false = Amount == 0,
     true = NewCNonce > channel:nonce(OldChannel),
     %delete the channel. empty the channel into the accounts.
