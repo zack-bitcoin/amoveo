@@ -13,7 +13,8 @@ new(ID, Value, Lock) ->
     #gov{id = ID, value = Value, lock = Lock}.
 genesis_state() ->
     G = [[block_reward, 1800],
-	 [gas_limit, 1113],
+	 [time_gas, 1113],
+	 [space_gas, 1113],
 	 [max_block_size, 940],
 	 [create_channel_fee, 250],
 	 [delete_channel_reward, 240],
@@ -106,33 +107,9 @@ get(Key, Tree) when is_integer(Key) ->
 		 deserialize(Y)
 	end,
     {X, V, Proof}.
-number2name(1) -> block_reward;
-number2name(2) -> gas_limit;
-number2name(3) -> max_block_size;
-number2name(4) -> create_channel_fee;
-number2name(5) -> delete_channel_reward;
-number2name(6) -> create_account_fee;
-number2name(7) -> delete_account_reward;
-number2name(9) -> channel_rent;
-number2name(10) -> account_rent;
-number2name(11) -> block_time;
-number2name(12) -> oracle_future_limit;
-number2name(13) -> shares_conversion;
-number2name(14) -> fun_limit;
-number2name(15) -> var_limit;
-number2name(16) -> comment_limit;
-number2name(17) -> block_creation_maturity;
-number2name(18) -> oracle_initial_liquidity;
-number2name(19) -> minimum_oracle_time;
-number2name(20) -> maximum_question_size;
-number2name(21) -> block_time_after_median;
-number2name(22) -> channel_closed_time;
-number2name(23) -> retarget_period;
-number2name(24) -> question_delay;
-number2name(25) -> governance_delay;
-number2name(_) -> bad.
 name2number(block_reward) -> 1;
-name2number(gas_limit) -> 2;
+name2number(time_gas) -> 2;
+name2number(space_gas) -> 27;
 name2number(max_block_size) -> 3;
 name2number(create_channel_fee) -> 4;
 name2number(delete_channel_reward) -> 5;
@@ -158,7 +135,7 @@ name2number(question_delay) -> 24;
 name2number(governance_delay) -> 25;
 name2number(governance_change_limit) -> 26;
 name2number(_) -> bad.
-max() -> 27.
+max() -> 28.
 
 test() ->
     C = new(14, 1, 0),

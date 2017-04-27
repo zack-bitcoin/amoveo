@@ -1,12 +1,15 @@
-
-
 -module(channel_slash_tx).
--export([doit/3, make/6]).
+-export([doit/3, make/5]).
 -record(cs, {from, nonce, fee = 0, 
 	     scriptpubkey, scriptsig}).
-make(From, Fee, ScriptPubkey, ScriptSig, Accounts,Channels) ->
+make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
+    Governance = trees:governance(Trees),
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     SPK = testnet_sign:data(ScriptPubkey),
     CID = spk:cid(SPK),
+    true = spk:time_gas(SPK) < governance:get_value(time_gas, Governance),
+    true = spk:space_gas(SPK) < governance:get_value(space_gas, Governance),
     {_, Acc, Proof1} = account:get(From, Accounts),
     {_, Channel, Proofc} = channel:get(CID, Channels),
     Acc1 = channel:acc1(Channel),

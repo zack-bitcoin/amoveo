@@ -21,15 +21,18 @@ make(From, Fee, ScriptPubkey, ScriptSig, Accounts, Channels) ->
     {Tx, [Proof1, Proofc]}.
 
 doit(Tx, Trees, NewHeight) ->
+    Governance = trees:governance(Trees),
     Channels = trees:channels(Trees),
     Accounts = trees:accounts(Trees),
     From = Tx#csc.from, 
     SPK = Tx#csc.scriptpubkey,
+    ScriptPubkey = testnet_sign:data(SPK),
+    true = spk:time_gas(ScriptPubkey) < governance:get_value(time_gas, Governance),
+    true = spk:space_gas(ScriptPubkey) < governance:get_value(space_gas, Governance),
     CID = spk:cid(testnet_sign:data(SPK)),
     {_, OldChannel, _} = channel:get(CID, Channels),
     0 = channel:amount(OldChannel),
     true = testnet_sign:verify(SPK, Accounts),
-    ScriptPubkey = testnet_sign:data(SPK),
     Acc1 = channel:acc1(OldChannel),
     Acc2 = channel:acc2(OldChannel),
     Acc1 = spk:acc1(ScriptPubkey),

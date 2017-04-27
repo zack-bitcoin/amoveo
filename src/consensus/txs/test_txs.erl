@@ -267,10 +267,9 @@ test(6) ->
     absorb(Stx3),
     {Trees4, _, _} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),
-    Channels2 = trees:channels(Trees4),
 
     ScriptSig2 = compiler_chalang:doit(<<" int 2 ">>),
-    {Ctx4, _} = channel_slash_tx:make(2,Fee,SignedScriptPubKey,[ScriptSig2],Accounts4,Channels2),
+    {Ctx4, _} = channel_slash_tx:make(2,Fee,SignedScriptPubKey,[ScriptSig2],Trees4),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv, ID2, Accounts4),
     %Stx4 = keys:sign(Ctx4, Accounts4),
     io:fwrite("before absorb \n"),
@@ -278,10 +277,9 @@ test(6) ->
     io:fwrite("after absorb \n"),
     {Trees5, _, _} = tx_pool:data(),
     Accounts5 = trees:accounts(Trees5),
-    Channels3 = trees:channels(Trees5),
 
     ScriptSig3 = compiler_chalang:doit(<<" int 3 ">>),
-    {Ctx5, _} = channel_slash_tx:make(1,Fee,SignedScriptPubKey,[ScriptSig3],Accounts5,Channels3),
+    {Ctx5, _} = channel_slash_tx:make(1,Fee,SignedScriptPubKey,[ScriptSig3],Trees5),
     Stx5 = keys:sign(Ctx5, Accounts5),
     %Stx4 = keys:sign(Ctx4, Accounts4),
     io:fwrite("before absorb \n"),
