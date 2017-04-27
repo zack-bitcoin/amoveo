@@ -20,7 +20,7 @@ doit(Tx, Trees, NewHeight) ->
     %if the volume of orders in the oracle is too low, then set the oracle:type to 3.
     %Result = oracles:type(Oracle),
     Orders0 = oracles:orders(Oracle),
-    VolumeCheck = orders:significant_volume(Orders0),
+    VolumeCheck = orders:significant_volume(Orders0, Trees),
     Result = if
 		 VolumeCheck -> oracles:type(Oracle);
 		 true -> 3

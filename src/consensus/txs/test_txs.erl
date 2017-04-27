@@ -504,7 +504,9 @@ test(11) ->
     {Trees2, _, _} = tx_pool:data(),
     Accounts2 = trees:accounts(Trees2),
     %make some bets in the oracle with oracle_bet
-    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, true, constants:oracle_initial_liquidity(), Accounts2), 
+    Governance2 = trees:governance(Trees2),
+    OIL = governance:get_value(oracle_initial_liquidity, Governance2),
+    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, true, OIL, Accounts2), 
     Stx2 = keys:sign(Tx2, Accounts2),
     absorb(Stx2),
     %timer:sleep(100),

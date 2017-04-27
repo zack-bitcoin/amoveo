@@ -3,11 +3,11 @@
 	 pointer/1, new/3, get/2, empty_book/0,
 	 remove/2, update_amount/2, set_amount/2,
 	 available_id/1, many/1, aid/1, head_get/1,
-	 significant_volume/1,
+	 significant_volume/2,
 	 test/0]).
 -define(name, orders).
 -record(order, {id, aid, amount, pointer}).
-significant_volume(Root) ->
+significant_volume(Root, Trees) ->
     ManyOrders = many(Root),
     if
 	ManyOrders == 0 -> false;
@@ -15,6 +15,8 @@ significant_volume(Root) ->
 	true -> 
 	    {Head, _} = orders:head_get(Root),
 	    {_, Order0, _} = orders:get(Head, Root),
+	    Governance = trees:governance(Trees),
+	    OIL = governance:get_value(oracle_initial_liquidity, Governance),
 	    (orders:amount(Order0) > constants:oracle_initial_liquidity())
     end.
     

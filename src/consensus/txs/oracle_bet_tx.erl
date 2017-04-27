@@ -42,7 +42,7 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
     {_, Oracle0, _} = oracles:get(Tx#oracle_bet.id, Oracles),
     Orders0 = oracles:orders(Oracle0),
     %{Head, _} = orders:head_get(Orders0),
-    VolumeCheck = orders:significant_volume(Orders0),
+    VolumeCheck = orders:significant_volume(Orders0, Trees2),
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
@@ -64,7 +64,9 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
     if
 	TxType == OracleType ->
 	    ManyOrders = orders:many(Orders0),
-	    Minimum = constants:oracle_initial_liquidity() * det_pow(2, max(1, ManyOrders)), 
+	    Governance = trees:governance(Trees2),
+	    OIL = governance:get_value(oracle_initial_liquidity, Governance),
+	    Minimum = OIL * det_pow(2, max(1, ManyOrders)), 
 	    true = Amount >= Minimum,
 	    NewOrders = orders:add(NewOrder, Orders),
 	    NewOracle = oracles:set_orders(Oracle, NewOrders),
