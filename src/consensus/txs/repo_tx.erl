@@ -19,9 +19,11 @@ doit(Tx, Trees, NewHeight) ->
     To = Tx#repo.target,
     false = From == To,
     {_, Tacc, _} = account:get(To, Accounts),
-    NB = account:now_balance(Tacc, 0, NewHeight),
+    NB = account:now_balance(Tacc, 0, NewHeight, Trees),
     true = NB =< 0,
-    Facc = account:update(From, Accounts, constants:delete_account_reward(), Tx#repo.nonce, NewHeight),
+    Governance = trees:governance(Trees),
+    DAR = governance:get_value(delete_account_reward, Governance),
+    Facc = account:update(From, Trees, DAR, Tx#repo.nonce, NewHeight),
     Accounts2 = account:write(Accounts, Facc),
     Accounts3 = account:delete(To, Accounts2),
     trees:update_accounts(Trees, Accounts3).

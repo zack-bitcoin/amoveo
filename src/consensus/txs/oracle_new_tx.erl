@@ -66,7 +66,7 @@ doit(Tx, Trees0, NewHeight) ->
 	 end,
     Accounts = trees:accounts(Trees),
     From = Tx#oracle_new.from,
-    Facc = account:update(From, Accounts, -Tx#oracle_new.fee-constants:oracle_initial_liquidity(), Tx#oracle_new.nonce, NewHeight),
+    Facc = account:update(From, Trees, -Tx#oracle_new.fee-constants:oracle_initial_liquidity(), Tx#oracle_new.nonce, NewHeight),
     NewAccounts = account:write(Accounts, Facc),
     Starts = Tx#oracle_new.start,
     true = (Starts - NewHeight) < constants:oracle_future_limit(),

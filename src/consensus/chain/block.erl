@@ -113,7 +113,7 @@ absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
 		account:write(OldAccounts, NM);
 	    MB -> %If you already have an account.
 		TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
-		NM = account:update(MB, OldAccounts, BlockReward + TransactionFees, none, Height),
+		NM = account:update(MB, Trees, BlockReward + TransactionFees, none, Height),
 		account:write(OldAccounts, NM)
 	end,
     NewTrees = trees:update_accounts(Trees, NewAccounts),
@@ -229,7 +229,8 @@ check1(BP) ->
 	    true = pow:above_min(PowBlock, MineDiff, constants:hash_size()),
 	    true = Block#block.time < time_now(),
 	    B = size(term_to_binary(Block#block.txs)),
-	    true = B < constants:max_block_size(),
+	    MaxBlockSize = governance:get_value(max_block_size, Governance),
+	    true = B < MaxBlockSize,
 	    {BH, Block#block.prev_hash}
     end.
 

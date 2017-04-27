@@ -10,7 +10,7 @@ make(From, Fee, OID, Accounts) ->
     {Tx, []}.
 doit(Tx, Trees, NewHeight) ->
     Accounts = trees:accounts(Trees),
-    Acc = account:update(Tx#oracle_close.from, Accounts, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
+    Acc = account:update(Tx#oracle_close.from, Trees, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
     NewAccounts = account:write(Accounts, Acc),
 
     OID = Tx#oracle_close.oracle_id,

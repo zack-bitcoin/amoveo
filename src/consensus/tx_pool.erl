@@ -23,7 +23,9 @@ handle_call(dump, _From, _) -> {reply, 0, state_now()};
 handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
     NewTxs = [Tx|F#f.txs],
     B = size(term_to_binary(NewTxs)),
-    MBS = constants:max_block_size(),
+    Governance = trees:governance(NewTrees),
+    MBS = governance:get_value(max_block_size, Governance),
+    %MBS = constants:max_block_size(),
     FinalTxs = if
 	B > MBS -> F#f.txs;
 	true -> NewTxs

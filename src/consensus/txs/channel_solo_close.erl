@@ -45,13 +45,13 @@ doit(Tx, Trees, NewHeight) ->
     SR = spk:slash_reward(ScriptPubkey),
     true = NewCNonce > channel:nonce(OldChannel),
     %SharesRoot = shares:root_hash(shares:write_many(Shares, 0)),
-    NewChannel = channel:update(From, CID, Channels, NewCNonce, 0, 0, Amount, spk:delay(ScriptPubkey), NewHeight, false, Shares),
+    NewChannel = channel:update(From, CID, Trees, NewCNonce, 0, 0, Amount, spk:delay(ScriptPubkey), NewHeight, false, Shares),
 
     true = (-1 < (channel:bal1(NewChannel)-SR-Amount)),
     true = (-1 < (channel:bal2(NewChannel)-SR+Amount)),
 
     NewChannels = channel:write(NewChannel, Channels),
-    Facc = account:update(From, Accounts, -Tx#csc.fee, Tx#csc.nonce, NewHeight),
+    Facc = account:update(From, Trees, -Tx#csc.fee, Tx#csc.nonce, NewHeight),
     NewAccounts = account:write(Accounts, Facc),
     spawn(fun() -> check_slash(From, Acc1, Acc2, SS, SPK, NewAccounts, NewChannels, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
     Trees2 = trees:update_channels(Trees, NewChannels),

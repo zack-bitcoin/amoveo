@@ -1,5 +1,5 @@
 -module(account).
--export([new/4,nonce/1,write/2,get/2,update/5,update/7,addr/1,id/1,balance/1,root_hash/1,now_balance/3,delete/2,
+-export([new/4,nonce/1,write/2,get/2,update/5,update/7,addr/1,id/1,balance/1,root_hash/1,now_balance/4,delete/2,
 	 receive_shares/3, send_shares/3,
 	 shares/1, bets/1, update_bets/2,
 	 test/0]).
@@ -25,15 +25,19 @@ send_shares(Acc, Shares, Height) ->
     SharesTree = Acc#acc.shares,
     {Tokens, NewTree} = shares:send_shares(Shares, SharesTree, Height),
     Acc#acc{shares = NewTree, balance = Acc#acc.balance + Tokens}.
-now_balance(Acc, Amount, NewHeight) ->
+now_balance(Acc, Amount, NewHeight, Trees) ->
     OldHeight = Acc#acc.height,
-    Rent = constants:account_rent()*(NewHeight - OldHeight),
+    Governance = trees:governance(Trees),
+    AR = governance:get_value(account_rent, Governance),
+    Rent = AR*(NewHeight - OldHeight),
     Amount + Acc#acc.balance - Rent.
     
-update(Id, Accounts, Amount, NewNonce, NewHeight) ->
+update(Id, Trees, Amount, NewNonce, NewHeight) ->
+    Accounts = trees:accounts(Trees),
     {_, Acc, _} = get(Id, Accounts),
-    update(Id, Accounts, Amount, NewNonce, NewHeight, Acc#acc.shares, Acc#acc.bets).
-update(Id, Accounts, Amount, NewNonce, NewHeight, Shares, Bets) ->
+    update(Id, Trees, Amount, NewNonce, NewHeight, Acc#acc.shares, Acc#acc.bets).
+update(Id, Trees, Amount, NewNonce, NewHeight, Shares, Bets) ->
+    Accounts = trees:accounts(Trees),
     {_, Acc, _} = get(Id, Accounts),
     OldNonce = Acc#acc.nonce,
     FinalNonce = case NewNonce of
@@ -43,7 +47,7 @@ update(Id, Accounts, Amount, NewNonce, NewHeight, Shares, Bets) ->
     end,
     OldHeight = Acc#acc.height,
     true = NewHeight >= OldHeight,
-    NewBalance = now_balance(Acc, Amount, NewHeight),
+    NewBalance = now_balance(Acc, Amount, NewHeight, Trees),
     true = NewBalance > 0,
     Acc#acc{balance = NewBalance,
 	    nonce = FinalNonce,

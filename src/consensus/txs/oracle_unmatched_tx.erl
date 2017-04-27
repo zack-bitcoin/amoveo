@@ -23,7 +23,7 @@ doit(Tx, Trees, NewHeight) ->
     Trees2 = trees:update_oracles(Trees, Oracles2),
 
     Accounts = trees:accounts(Trees),
-    Facc = account:update(AID, Accounts, Amount-Tx#unmatched.fee, Tx#unmatched.nonce, NewHeight),
+    Facc = account:update(AID, Trees, Amount-Tx#unmatched.fee, Tx#unmatched.nonce, NewHeight),
     Accounts2 = account:write(Accounts, Facc),
     trees:update_accounts(Trees2, Accounts2).
 

@@ -17,8 +17,10 @@ doit(Tx, Trees, NewHeight) ->
     A = account:balance(Facc),
     Amount = A-Tx#da.fee,
     true = Amount > 0,
-    Tacc = account:update(To, Accounts, Amount+constants:delete_account_reward(), none, NewHeight),
-    _ = account:update(From, Accounts, 0, Tx#da.nonce, NewHeight),
+    Governance = trees:governance(Trees),
+    DAR = governance:get_value(delete_account_reward, Governance),
+    Tacc = account:update(To, Trees, Amount+DAR, none, NewHeight),
+    _ = account:update(From, Trees, 0, Tx#da.nonce, NewHeight),
     Accounts2 = account:write(Accounts, Tacc),
     NewAccounts = account:delete(From, Accounts2),
     trees:update_accounts(Trees, NewAccounts).

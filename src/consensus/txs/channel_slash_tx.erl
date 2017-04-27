@@ -36,7 +36,6 @@ doit(Tx, Trees, NewHeight) ->
     {_, OldChannel, _} = channel:get(CID, Channels),
     CA = channel:amount(OldChannel),
     false = CA == 0,
-    %Channel = channel:update(CID, Channels, none, 0,0,channel:mode(OldChannel), channel:delay(OldChannel), NewHeight),
     true = testnet_sign:verify(SignedSPK, Accounts),
     Acc1 = channel:acc1(OldChannel),
     Acc2 = channel:acc2(OldChannel),
@@ -53,10 +52,10 @@ doit(Tx, Trees, NewHeight) ->
     %NewChannels = channel:delete(CID, Channels),
     true = (-1 < (channel:bal1(OldChannel)-Amount)),%channels can only delete money that was inside the channel.
     true = (-1 < (channel:bal2(OldChannel)+Amount)),
-    NewChannel = channel:update(From, CID, Channels, NewCNonce, 0, 0, Amount, spk:delay(SPK), NewHeight, false, Shares), 
+    NewChannel = channel:update(From, CID, Trees, NewCNonce, 0, 0, Amount, spk:delay(SPK), NewHeight, false, Shares), 
     NewChannels = channel:write(NewChannel, Channels),
     ID = Tx#cs.from,
-    Account = account:update(ID, Accounts, -Fee, Nonce, NewHeight),
+    Account = account:update(ID, Trees, -Fee, Nonce, NewHeight),
     NewAccounts = account:write(Accounts, Account), 
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).

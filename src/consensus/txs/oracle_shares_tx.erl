@@ -19,7 +19,7 @@ doit(Tx, Trees, NewHeight) ->
     true = NewHeight - constants:minimum_oracle_time() < DT,
     AID = Tx#oracle_shares.from,
     Accounts = trees:accounts(Trees),
-    Acc = account:update(AID, Accounts, -Tx#oracle_shares.fee, Tx#oracle_shares.nonce, NewHeight),
+    Acc = account:update(AID, Trees, -Tx#oracle_shares.fee, Tx#oracle_shares.nonce, NewHeight),
     %transform their bets into shares.
 
     Bets = account:bets(Acc),

@@ -108,7 +108,7 @@ test(3) ->
     Entropy = 432,
 
     Delay = 30,
-    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 100, 200, 0, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 100, 200, Entropy, Delay, Fee),
     Stx2 = keys:sign(Ctx2, Accounts2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
     absorb(SStx2),
@@ -157,7 +157,7 @@ test(4) ->
     Entropy = 432, 
     Delay = 0,
 
-    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 0, 0, 0, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 0, 0, Entropy, Delay, Fee),
     Stx2 = keys:sign(Ctx2, Accounts2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
     absorb(SStx2),
@@ -197,7 +197,7 @@ test(5) ->
     Entropy = 432,
     Delay = 0,
     
-    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 10000, 20000, 0, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 10000, 20000, Entropy, Delay, Fee),
     Stx2 = keys:sign(Ctx2, Accounts2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
     absorb(SStx2),
@@ -248,7 +248,7 @@ test(6) ->
     CID = 5,
     Entropy = 432,
 
-    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 100, 200, 0, Entropy, 10, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 100, 200, Entropy, 10, Fee),
     Stx2 = keys:sign(Ctx2, Accounts2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
     absorb(SStx2),
@@ -392,7 +392,7 @@ test(9) ->
     CID = 5,
     Entropy = 432,
     Delay = 30,
-    {Ctx3, _} = new_channel_tx:make(CID, Accounts3, 2, 1, 10000, 200000, 0, Entropy, Delay, Fee),
+    {Ctx3, _} = new_channel_tx:make(CID, Accounts3, 2, 1, 10000, 200000, Entropy, Delay, Fee),
     Stx3 = keys:sign(Ctx3, Accounts3),
     SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv, 2, Accounts3), 
     absorb(SStx3),
@@ -445,7 +445,7 @@ test(10) ->
     CID = 5,
     Entropy = 432,
     Delay = 0,
-    {Ctx3, _} = new_channel_tx:make(CID, Accounts3, 2, 1, 10000, 20000, 0, Entropy, Delay, Fee),
+    {Ctx3, _} = new_channel_tx:make(CID, Accounts3, 2, 1, 10000, 20000, Entropy, Delay, Fee),
     Stx3 = keys:sign(Ctx3, Accounts3),
     SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv, 2, Accounts3), 
     absorb(SStx3),
@@ -563,7 +563,7 @@ test(12) ->
     Entropy = 432,
     Delay = 0,
     
-    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 10000, 20000, 0, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Accounts2, 1, ID2, 10000, 20000, Entropy, Delay, Fee),
     Stx2 = keys:sign(Ctx2, Accounts2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
     absorb(SStx2),

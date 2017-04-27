@@ -42,7 +42,8 @@ slasher(C) -> C#channel.slasher.
 closed(C) -> C#channel.closed.
 shares(C) -> C#channel.shares.
 
-update(Slasher, ID, Channels, Nonce, Inc1, Inc2, Amount, Delay, Height, Close, Shares) ->
+update(Slasher, ID, Trees, Nonce, Inc1, Inc2, Amount, Delay, Height, Close, Shares) ->
+    Channels = trees:channels(Trees),
     true = (Close == true) or (Close == false),
     true = Inc1 + Inc2 >= 0,
     {_, Channel, _} = get(ID, Channels),
@@ -56,7 +57,9 @@ update(Slasher, ID, Channels, Nonce, Inc1, Inc2, Amount, Delay, Height, Close, S
     %true = Nonce > Channel#channel.nonce,
     T1 = Channel#channel.last_modified,
     DH = Height - T1,
-    Rent = constants:channel_rent() * DH,
+    Governance = trees:governance(Trees),
+    CR = governance:get_value(channel_rent, Governance),
+    Rent = CR * DH,
     RH = Rent div 2,%everyone needs to pay the network for the cost of having a channel open.
     %CR = S * Channel#channel.rent,
     Bal1a = Channel#channel.bal1 + Inc1 - RH,
@@ -183,7 +186,7 @@ test() ->
     Height = 1,
     Entropy = 500,
     Delay = 11,
-    Slasher = 1,
+    %Slasher = 1,
     A = new(ID,Acc1,Acc2,Bal1,Bal2,Height,Entropy,Delay),
     A = deserialize(serialize(A)),
     %io:fwrite("channel test"),

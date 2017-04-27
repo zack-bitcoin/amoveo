@@ -27,7 +27,7 @@ make(From, Fee, OID, Type, Amount, Accounts) ->
 doit(Tx, Trees, NewHeight) ->
     From = Tx#oracle_bet.from,
     Accounts = trees:accounts(Trees),
-    Facc = account:update(From, Accounts, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce, NewHeight),
+    Facc = account:update(From, Trees, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce, NewHeight),
     Accounts2 = account:write(Accounts, Facc),
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(Tx#oracle_bet.id, Oracles),
