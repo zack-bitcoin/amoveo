@@ -26,26 +26,27 @@ doit(Tx, Trees0, NewHeight) ->
     %If the question is <<"">>, let it run.
     %If the question is not <<"">>, then they need to show that a different oracle with the question "" recently returned "bad", and the difficulty of this oracle is 1/2 as high as that oracle.
     Oracles = trees:oracles(Trees0),
+    GovTree = trees:governance(Trees0),
     Gov = Tx#oracle_new.governance,
     GovAmount = Tx#oracle_new.governance_amount,
+    GCL = governance:get_value(governance_change_limit, GovTree),
     true = GovAmount > -1,
-    true = GovAmount < constants:governance_change_limit(),
+    true = GovAmount < GCL,
     Question = Tx#oracle_new.question,
     {_, Recent, _} = oracles:get(Tx#oracle_new.recent_price,Oracles),
-    io:fwrite("recent oracle "),
-    io:fwrite(packer:pack(Recent)),
-    io:fwrite("\n"),
     Trees = 
 	case Gov of
-	    0 -> Trees0;
+	    0 -> 
+		GovAmount = 0,
+		Trees0;
 	    G ->
 		true = GovAmount > 0,
 		3 = oracles:result(Recent),
-		true = NewHeight - oracles:done_timer(Recent) < constants:governance_delay(),
+		GD = governance:get_value(governance_delay, GovTree),
+		true = NewHeight - oracles:done_timer(Recent) < GD,
 		Dif = oracles:difficulty(Recent),
 		Dif = Tx#oracle_new.difficulty,
 		Question = <<"">>,
-		GovTree = trees:governance(Trees0),
 		{_, GVar, _} = governance:get(G, GovTree),
 		false = governance:is_locked(GVar),
 		NewGovTree = governance:lock(G, GovTree),
@@ -63,7 +64,8 @@ doit(Tx, Trees0, NewHeight) ->
 		 Di = oracles:difficulty(Recent) div 2,
 		 Di = Tx#oracle_new.difficulty,
 		 3 = oracles:result(Recent),
-		 true = NewHeight - oracles:done_timer(Recent) < constants:question_delay(),
+		 QD = governance:get_value(question_delay, Governance),
+		 true = NewHeight - oracles:done_timer(Recent) < QD,
 		 ok
 	 end,
     Accounts = trees:accounts(Trees),

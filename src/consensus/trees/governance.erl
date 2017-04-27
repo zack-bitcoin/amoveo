@@ -134,7 +134,7 @@ name2number(maximum_oracle_time) -> 8;
 name2number(maximum_question_size) -> 20;
 name2number(block_time_after_median) -> 21;
 name2number(channel_closed_time) -> 22;
-name2number(retarget_period) -> 23;%%
+name2number(retarget_period) -> 23;
 name2number(question_delay) -> 24;
 name2number(governance_delay) -> 25;
 name2number(governance_change_limit) -> 26;
