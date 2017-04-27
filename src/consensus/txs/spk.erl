@@ -53,9 +53,10 @@ get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going
 	    nonce = SPK#spk.nonce + 1}.
 	    
 run(Mode, SS, SPK, Height, Slash, Trees) ->
-    Accounts = trees:accounts(Trees),
-    Channels = trees:channels(Trees),
-    State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
+    %Accounts = trees:accounts(Trees),
+    %Channels = trees:channels(Trees),
+    %State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
+    State = chalang_state(Height, Slash, Trees),
     {Amount, NewNonce, CodeShares, _, _} = run2(Mode, SS, SPK, State, Trees),
     true = NewNonce < 1000,
     Shares = shares:from_code(CodeShares),
@@ -85,5 +86,8 @@ run2(safe, SS, SPK, State, Trees) ->
     receive 
 	Z -> Z
     end.
-	    
+chalang_state(Height, Slash, Trees) ->	    
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
+    chalang:new_state(0, Height, Slash, 0, Accounts, Channels).
 	

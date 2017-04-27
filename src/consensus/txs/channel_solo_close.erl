@@ -91,17 +91,18 @@ next_ss2(From, TheirSS, SPK, Acc1, Acc2, Trees, CD) ->
     %io:fwrite("in next_ss. CD is "),
     %io:fwrite(packer:pack(CD)),
     %io:fwrite("\n"),
-	    OurSS1 = channel_feeder:script_sig_them(CD),%this is not a typo. this is OurSS which can be used for the highest nonced SPK they signed before this SPK we are currently looking at.
-	    OurSS = case OurSS1 of%this trick only works because we limit it to one bet per channel.
-			[] -> channel_feeder:script_sig_me(CD);
-			X -> X
-		    end,
-	    Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
+    OurSS1 = channel_feeder:script_sig_them(CD),%this is not a typo. this is OurSS which can be used for the highest nonced SPK they signed before this SPK we are currently looking at.
+    OurSS = case OurSS1 of%this trick only works because we limit it to one bet per channel.
+		[] -> channel_feeder:script_sig_me(CD);
+		X -> X
+	    end,
+    Slash = 0,%this flag tells whether it is a channel-slash transaction, or a solo-close transaction.
     %SPK = testnet_sign:data(channel_feeder:them(CD)),
-	    Height = block:height(block:read(top:doit())),
-	    NewHeight = Height + 1,
-	    State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
-	    {Amount1, Nonce1, _} = spk:run(safe, OurSS, SPK, NewHeight, Slash, Trees),
+    Height = block:height(block:read(top:doit())),
+    NewHeight = Height + 1,
+    %State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
+    State = spk:chalang_state(Height, Slash, Trees),
+    {Amount1, Nonce1, _} = spk:run(safe, OurSS, SPK, NewHeight, Slash, Trees),
     [_|[OurSecret|_]] = free_constants:vm(hd(OurSS), State),
     Out1 = {Amount1, Nonce1, OurSS, OurSecret},
     Height = block:height(block:read(top:doit())),
