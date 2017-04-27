@@ -149,8 +149,8 @@ server_ip() -> {46,101,103,165}.
 server_port() -> 8080.
 
 block_creation_maturity() ->    
-    %100
-    10.%testing
+    100.
+    %10.%testing
 block_time_after_median() ->
     100.
 oracle_initial_liquidity() ->
