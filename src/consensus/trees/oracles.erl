@@ -1,5 +1,5 @@
 -module(oracles).
--export([new/7,write/2,get/2,id/1,result/1,
+-export([new/8,write/2,get/2,id/1,result/1,
 	 question/1,starts/1,root_hash/1, 
 	 type/1, difficulty/1, orders/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
@@ -42,10 +42,12 @@ set_type(X, T) ->
     true = T > -1,
     true = T < 5,
     X#oracle{type = T}.
-new(ID, Question, Starts, Creator, Difficulty, Governance, GovAmount) ->
-    true = (Governance > -1) and (Governance < governance:max()),
+new(ID, Question, Starts, Creator, Difficulty, GovernanceVar, GovAmount, Trees) ->
+    GovTree = trees:governance(Trees),
+    true = (GovernanceVar > -1) and (GovernanceVar < governance:max()),
     Orders = orders:empty_book(),
     %Orders = OrdersTree,
+    MOT = governance:get_value(minimum_oracle_time, GovTree),
     #oracle{id = ID,
 	    result = 0,
 	    question = Question,
@@ -54,8 +56,8 @@ new(ID, Question, Starts, Creator, Difficulty, Governance, GovAmount) ->
 	    orders = Orders,
 	    creator = Creator,
 	    difficulty = Difficulty,
-	    done_timer = Starts + constants:minimum_oracle_time(),
-	    governance = Governance,
+	    done_timer = Starts + MOT,
+	    governance = GovernanceVar,
 	    governance_amount = GovAmount
 	   }.
 root_hash(Root) ->
@@ -129,8 +131,9 @@ get(ID, Root) ->
 
 
 test() ->
+    {Trees, _, _} = tx_pool:data(),
     Root = 0,
-    X0 = new(1, testnet_hasher:doit(1), 2, 1, constants:initial_difficulty(), 0, 0),
+    X0 = new(1, testnet_hasher:doit(1), 2, 1, constants:initial_difficulty(), 0, 0, Trees),
     X = set_result(X0, 3),
     X2 = deserialize(serialize(X)),
     X = X2#oracle{orders = X#oracle.orders},

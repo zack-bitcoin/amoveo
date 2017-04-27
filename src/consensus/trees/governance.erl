@@ -123,9 +123,9 @@ name2number(shares_conversion) -> 13;
 name2number(fun_limit) -> 14;
 name2number(var_limit) -> 15;
 name2number(comment_limit) -> 16;
-name2number(block_creation_maturity) -> 17;%%
+name2number(block_creation_maturity) -> 17;
 name2number(oracle_initial_liquidity) -> 18;
-name2number(minimum_oracle_time) -> 19;
+name2number(minimum_oracle_time) -> 19;%%
 name2number(maximum_oracle_time) -> 8;
 name2number(maximum_question_size) -> 20;
 name2number(block_time_after_median) -> 21;

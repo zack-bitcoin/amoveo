@@ -43,10 +43,14 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
     Orders0 = oracles:orders(Oracle0),
     %{Head, _} = orders:head_get(Orders0),
     VolumeCheck = orders:significant_volume(Orders0, Trees2),
+    Governance = trees:governance(Trees2),
+    MOT = governance:get_value(minimum_oracle_time, Governance),
+
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
-		 true -> oracles:set_done_timer(Oracle0, NewHeight + constants:minimum_oracle_time())
+		 true -> 
+		     oracles:set_done_timer(Oracle0, NewHeight + MOT)
 	     end,
     true = NewHeight > oracles:starts(Oracle),
     
@@ -64,7 +68,6 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
     if
 	TxType == OracleType ->
 	    ManyOrders = orders:many(Orders0),
-	    Governance = trees:governance(Trees2),
 	    OIL = governance:get_value(oracle_initial_liquidity, Governance),
 	    Minimum = OIL * det_pow(2, max(1, ManyOrders)), 
 	    true = Amount >= Minimum,
@@ -73,7 +76,7 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 	    NewOracles = oracles:write(NewOracle, Oracles),
 	    trees:update_oracles(Trees2, NewOracles);
 	true ->
-	    {Matches1, Matches2, Next, NewOrders} = 
+	    {Matches1, Matches2, Next, NewOrders} =
 		orders:match(NewOrder, Orders),
 	    Oracle2 = oracles:set_orders(Oracle, NewOrders),
 	    Accounts3 = give_bets_main(From, Matches1, TxType, Accounts2, oracles:id(Oracle2)),
@@ -83,7 +86,7 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 			   same -> 
 			       Oracle2;
 			   switch ->
-			       Oracle4 = oracles:set_done_timer(Oracle2, NewHeight + constants:minimum_oracle_time()),
+			       Oracle4 = oracles:set_done_timer(Oracle2, NewHeight + MOT),
 			       oracles:set_type(Oracle4, TxType)
 		       end,
 	    NewOracles = oracles:write(Oracle3, Oracles),
