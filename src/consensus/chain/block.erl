@@ -64,7 +64,7 @@ prev_hashes(PH) ->
 prev_hashes([PH|Hashes], Height, N) ->
     NHeight = Height - N,
     if
-	NHeight < 1 -> list_to_tuple(lists:reverse([PH|Hashes]));
+	NHeight < 1 -> list_to_tuple([prev_hashes|lists:reverse([PH|Hashes])]);
 	true ->
 	    B = read_int(NHeight, PH),
 	    prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
@@ -74,7 +74,7 @@ prev_hashes([PH|Hashes], Height, N) ->
 prev_hash(0, BP) ->
     prev_hash(BP);
 prev_hash(N, BP) ->%N=0 should be the same as prev_hash(BP)
-    element(N, BP#block_plus.prev_hashes).
+    element(N+1, BP#block_plus.prev_hashes).
 prev_hash(X) -> 
     B = block(X),
     B#block.prev_hash.
