@@ -1,3 +1,6 @@
+We can't trust our partner to calculate the hash_pointers of each block for us. Blocks should be shared without these pointers, and recalculated locally.
+
+
 instead of storing all the tree roots in the VM seperate, we should store one list of tree roots.
 
 merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.

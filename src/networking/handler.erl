@@ -40,7 +40,7 @@ doit({peers, Peers}) ->
     peers:add(Peers),
     {ok, 0};
 doit({txs}) -> 
-    {_,_,_,Txs} = tx_pool:data(),
+    {_,_,Txs} = tx_pool:data(),
     {ok, Txs};
 doit({txs, Txs}) -> 
     download_blocks:absorb_txs(Txs),
@@ -58,7 +58,8 @@ doit({new_channel, STx, SSPK}) ->
     unlocked = keys:status(),
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     undefined = channel_feeder:cid(Tx),
     true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
     true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo. Also makes sure that we aren't reusing entropy.
@@ -71,7 +72,8 @@ doit({new_channel, STx, SSPK}) ->
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
     true = grow_channel_tx:good(Tx),%checks the min_channel_ratio
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     SStx = keys:sign(Stx, Accounts),
     tx_pool_feeder:absorb(SStx),
     {ok, ok};
@@ -88,7 +90,9 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     {ok, CD} = channel_manager:read(PeerId),
     SPK = channel_feeder:me(CD),
     Height = block:height(block:read(top:doit())),
-    {Accounts,Channels,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Accounts, Channels),
     {Tx, _} = channel_team_close_tx:make(CID, Accounts, Channels, Amount, Fee),
     tx_pool_feeder:absorb(keys:sign(STx, Accounts)),
