@@ -94,6 +94,7 @@ genesis() ->
     Block = {pow,{block,0,<<0:(8*constants:hash_size())>>,[], TreeRoot,
 		  1,0,4080, <<>>, constants:magic()},
 	     4080,44358461744572027408730},
+    Pow = {pow, <<>>, 4080, 44358461744572027408730},
     #block_plus{block = Block, trees = Trees}.
     
 absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
@@ -220,6 +221,8 @@ check1(BP) ->
     PH = Block#block.prev_hash,
     Comment = Block#block.comment,
     ParentPlus = read(PH),
+    io:fwrite("parent plus "),
+    io:fwrite(packer:pack(ParentPlus)),
     Trees = ParentPlus#block_plus.trees,
     Governance = trees:governance(Trees),
     CL = governance:get_value(comment_limit, Governance),
