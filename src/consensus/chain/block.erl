@@ -183,7 +183,7 @@ mine2(Block, Times) ->
     Governance = trees:governance(Trees),
     BlockReward = governance:get_value(block_reward, Governance),
     MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
-    Pow = pow:pow(Header, MineDiff, Times, constants:hash_size()),
+    Pow = pow:pow(testnet_hasher:doit(Header), MineDiff, Times, constants:hash_size()),
     Pow.
 %verify({Block, Pow}) ->
 %    Difficulty = Block#block.difficulty,
@@ -242,7 +242,7 @@ check1(BP) ->
 	    Difficulty = Block#block.difficulty,
 	    true = Difficulty >= constants:initial_difficulty(),
 	    PowBlock = BP#block_plus.pow,
-	    Header = block_to_header(Block),
+	    Header = testnet_hasher:doit(block_to_header(Block)),
 	    Header = pow:data(PowBlock),
 	    true = Block#block.time < time_now(),
 	    {BH, Block#block.prev_hash}
@@ -254,7 +254,8 @@ check_pow(BP) ->
     Pow = BP#block_plus.pow,
     A = pow:check_pow(Pow, constants:hash_size()),
     BH = block_to_header(block(BP)), 
-    B = hash:doit(BH, constants:hash_size()) == pow:data(Pow),
+    B = testnet_hasher:doit(BH) == pow:data(Pow),
+    io:fwrite({A, B}),
     A and B.
 check2(BP) ->
     %check that the time is later than the median of the last 100 blocks.
@@ -283,7 +284,7 @@ check2(BP) ->
     MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
     Pow = BP#block_plus.pow,
     Header = pow:data(Pow),
-    Header = block_to_header(Block),
+    Header = testnet_hasher:doit(block_to_header(Block)),
     true = pow:above_min(Pow, MineDiff, constants:hash_size()),
     B = size(term_to_binary(Block#block.txs)),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
