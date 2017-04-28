@@ -218,25 +218,20 @@ retarget2(Hash, N, L) ->
     retarget2(H, N-1, [T|L]).
    
 check1(BP) -> 
-    Block = block(BP),
-    PH = Block#block.prev_hash,
-    Comment = Block#block.comment,
-    ParentPlus = read(PH),
-    io:fwrite("block plus "),
-    io:fwrite(packer:pack(BP)),
-    io:fwrite("parent plus "),
-    io:fwrite(packer:pack(ParentPlus)),
-    Trees = ParentPlus#block_plus.trees,
-    Governance = trees:governance(Trees),
-    CL = governance:get_value(comment_limit, Governance),
-    true = is_binary(Comment),
-    true = size(Comment) < CL,
     BH = hash(BP),
     GH = hash(genesis()),
     if
 	BH == GH -> {BH, 0};
 	true ->
 	    Block = block(BP),
+	    PH = Block#block.prev_hash,
+	    Comment = Block#block.comment,
+	    ParentPlus = read(PH),
+	    Trees = ParentPlus#block_plus.trees,
+	    Governance = trees:governance(Trees),
+	    CL = governance:get_value(comment_limit, Governance),
+	    true = is_binary(Comment),
+	    true = size(Comment) < CL,
 	    %io:fwrite(packer:pack(Block)),
 	    Difficulty = Block#block.difficulty,
 	    true = Difficulty >= constants:initial_difficulty(),

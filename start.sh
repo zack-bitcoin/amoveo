@@ -8,3 +8,4 @@ sh update.sh
 #echo "GO TO THIS WEBSITE -------> http://localhost:8041/login.html"
 #sleep 1
 erl -pa ebin deps/*/ebin/ -eval "application:ensure_all_started(testnet), serve:pw($1), peers:add({46,101,103,165}, 8080)"
+#erl -pa ebin deps/*/ebin/ -eval "application:ensure_all_started(testnet), serve:pw($1), peers:add({127,0,0,1}, 3020)"
