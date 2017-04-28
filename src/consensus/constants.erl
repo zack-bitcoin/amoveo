@@ -13,8 +13,8 @@ trie_size() ->
 initial_coins() -> 1080000000000.
 block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
-initial_difficulty() -> 12*256.%for testing purposes only
-%6452.
+initial_difficulty() -> %12*256.%for testing purposes only
+6452.
 difficulty_bits() -> 24.
 
 hash_size() -> 12.
