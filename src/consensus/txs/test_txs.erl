@@ -115,7 +115,7 @@ test(3) ->
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
 
-    {Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, 0, Fee),
+    {Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, Fee),
     Stx3 = keys:sign(Ctx3, Accounts3),
     SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv, ID2, Accounts3),
     absorb(SStx3),

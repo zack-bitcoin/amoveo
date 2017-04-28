@@ -87,7 +87,5 @@ run2(safe, SS, SPK, State, Trees) ->
 	Z -> Z
     end.
 chalang_state(Height, Slash, Trees) ->	    
-    Accounts = trees:accounts(Trees),
-    Channels = trees:channels(Trees),
-    chalang:new_state(0, Height, Slash, 0, Accounts, Channels).
+    chalang:new_state(Height, Slash, Trees).
 	
