@@ -13,7 +13,7 @@
 		mines_block, time, 
 		difficulty, comment = <<>>,
 		magic = constants:magic()}).%tries: txs, channels, census, 
--record(block_plus, {block, pow, trees, accumulative_difficulty = 0, prev_hashes = {}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
+-record(block_plus, {block, pow, trees, accumulative_difficulty = 0, prev_hashes = {prev_hashes}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
 %this gets wrapped in a signature and then wrapped in a pow.
 txs(X) ->
