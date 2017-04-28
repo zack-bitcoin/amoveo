@@ -6,7 +6,7 @@
 	 mine_blocks/2, hashes/1, block_to_header/1,
 	 median_last/2, trees/1, trees_hash/1,
 	 guess_number_of_cpu_cores/0, difficulty/1,
-	 txs/1
+	 txs/1, genesis_maker/0
 	]).
 
 -record(block, {height, prev_hash, txs, trees, 
@@ -85,7 +85,7 @@ hash(X) ->
     testnet_hasher:doit(term_to_binary(block_to_header(block(X)))).
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
-genesis() ->
+genesis_maker() ->
     %the pointer to an empty trie is 0.
     Address = constants:master_address(),
     ID = 1,
@@ -98,7 +98,17 @@ genesis() ->
 		  1,0,4080, <<>>, constants:magic()},
     Pow = {pow, <<>>, 4080, 44358461744572027408730},
     #block_plus{block = Block, trees = Trees, pow = Pow}.
-    
+genesis() ->
+{block_plus,{block,0,
+                   <<0,0,0,0,0,0,0,0,0,0,0,0>>,
+                   [],
+                   <<86,31,143,142,73,28,203,208,227,116,25,154>>,
+                   1,0,4080,<<>>,1},
+            {pow,<<>>,4080,44358461744572027408730},
+            {trees,1,0,0,0,0,38},
+            0,
+            {prev_hashes}}.
+     
 absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
     Trees = PrevPlus#block_plus.trees,
     OldAccounts = trees:accounts(Trees),
@@ -291,7 +301,8 @@ check2(BP) ->
     Trees = absorb_txs(ParentPlus, MB, Height, Block#block.txs, BlocksAgo),
     TreeHash = trees:root_hash(Trees),
     MyAddress = keys:address(),
-    case MB of
+    MTB = Block#block.mines_block,
+    case MTB of
 	{ID, MyAddress} ->
 	    keys:update_id(ID);
 	    %because of hash_check, this function is only run once per block. 
