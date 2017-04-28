@@ -25,11 +25,9 @@ sync_all([{IP, Port}|T], Height) ->
     %timer:sleep(3000),
     sync_all(T, Height).
 sync(IP, Port, MyHeight) ->
-    io:fwrite("syncing with peer"),
     %lower their ranking
     %peers:update_score(IP, Port, peers:initial_score()),
     S = erlang:timestamp(),
-    io:fwrite("check top"),
     talk({top}, IP, Port, 
 	 fun(X) ->
 		 case X of

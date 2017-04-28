@@ -13,7 +13,8 @@ sync3() ->
     download_blocks:sync_all(peers:all(), Height),
     sync2(Height, 600).
 sync2(_Height, 0) -> 
-    download_blocks:sync_txs(peers:all());
+    ok;
+    %download_blocks:sync_txs(peers:all());
 sync2(Height, N) ->
     timer:sleep(100),
     Height2 = block:height(block:read(top:doit())),
