@@ -255,7 +255,6 @@ check_pow(BP) ->
     A = pow:check_pow(Pow, constants:hash_size()),
     BH = block_to_header(block(BP)), 
     B = testnet_hasher:doit(BH) == pow:data(Pow),
-    io:fwrite({A, B}),
     A and B.
 check2(BP) ->
     %check that the time is later than the median of the last 100 blocks.
