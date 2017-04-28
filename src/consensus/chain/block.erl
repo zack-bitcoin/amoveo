@@ -254,7 +254,7 @@ check_pow(BP) ->
     Pow = BP#block_plus.pow,
     A = pow:check_pow(Pow, constants:hash_size()),
     BH = block_to_header(block(BP)), 
-    B = hash:doit(BH) == pow:data(Pow),
+    B = hash:doit(BH, constants:hash_size()) == pow:data(Pow),
     A and B.
 check2(BP) ->
     %check that the time is later than the median of the last 100 blocks.
