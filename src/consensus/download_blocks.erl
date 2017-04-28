@@ -27,7 +27,7 @@ sync_all([{IP, Port}|T], Height) ->
 sync(IP, Port, MyHeight) ->
     %lower their ranking
     %peers:update_score(IP, Port, peers:initial_score()),
-    io:fwrite("top of sync\n"),
+    %io:fwrite("top of sync\n"),
     S = erlang:timestamp(),
     talk({top}, IP, Port, 
 	 fun(X) ->
@@ -36,7 +36,7 @@ sync(IP, Port, MyHeight) ->
 			 io:fwrite("failed connect"),
 			 ok;
 		     {ok, TopBlock, Height}  ->
-			 io:fwrite("got topblock\n"),
+			 %io:fwrite("got topblock\n"),
 			 HH = MyHeight + 100,
 			 if
 			     HH < Height ->
