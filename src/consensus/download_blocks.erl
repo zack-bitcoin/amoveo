@@ -125,9 +125,6 @@ talk(CMD, IP, Port, F) ->
     talk(CMD, IP, Port, F, 5).
 talk(_, _, _, _, 0) -> error;
 talk(CMD, IP, Port, F, N) ->
-    io:fwrite("download blocks "),
-    io:fwrite(packer:pack(CMD)),
-    io:fwrite("\n"),
     case talker:talk(CMD, IP, Port) of
 	{error, failed_connect} -> talk(CMD, IP, Port, F, N-1);
 	{ok, X} -> F(X);
