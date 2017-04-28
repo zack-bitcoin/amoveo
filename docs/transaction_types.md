@@ -122,7 +122,7 @@ If you had money in orders in the oracle order book when the oracle_close transa
 
 If you bet in an oracle, and the oracle has closed, this is how you get your shares out.
 If you bet on the winning outcome, then you get positive shares. If you bet on one of the losing outcomes, then you get negative shares.
-[you can read about shares here](docs/shares.md)
+[you can read about shares here](shares.md)
 The difficulty of the shares was announced when the oracle was launched.
 
 # existence
