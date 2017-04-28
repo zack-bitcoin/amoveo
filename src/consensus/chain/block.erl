@@ -91,9 +91,8 @@ genesis() ->
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
     TreeRoot = trees:root_hash(Trees),
-    Block = {pow,{block,0,<<0:(8*constants:hash_size())>>,[], TreeRoot,
+    Block = {block,0,<<0:(8*constants:hash_size())>>,[], TreeRoot,
 		  1,0,4080, <<>>, constants:magic()},
-	     4080,44358461744572027408730},
     Pow = {pow, <<>>, 4080, 44358461744572027408730},
     #block_plus{block = Block, trees = Trees, pow = Pow}.
     
@@ -221,6 +220,8 @@ check1(BP) ->
     PH = Block#block.prev_hash,
     Comment = Block#block.comment,
     ParentPlus = read(PH),
+    io:fwrite("block plus "),
+    io:fwrite(packer:pack(BP)),
     io:fwrite("parent plus "),
     io:fwrite(packer:pack(ParentPlus)),
     Trees = ParentPlus#block_plus.trees,
