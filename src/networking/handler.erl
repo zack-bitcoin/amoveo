@@ -27,7 +27,7 @@ doit({give_block, SignedBlock}) ->
     block_absorber:doit(SignedBlock),
     {ok, 0};
 doit({block, N}) -> 
-    {ok, block:pow_block(block:read_int(N))};
+    {ok, block:read_int(N)};
 doit({header, N}) -> {ok, block:block_to_header(block:block(block:read_int(N)))};
     %{ok, block_tree:read_int(N)};
 doit({tophash}) -> {ok, top:doit()};
@@ -47,7 +47,7 @@ doit({txs, Txs}) ->
     {ok, 0};
 doit({id}) -> {ok, keys:id()};
 doit({top}) -> 
-    Top = block:pow_block(block:read(top:doit())),
+    Top = block:read(top:doit()),
     Height = block:height(Top),
     {ok, Top, Height};
 doit({test}) -> 

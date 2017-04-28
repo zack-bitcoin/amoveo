@@ -154,7 +154,9 @@ mine(BP, Times) when is_record(BP, block_plus) ->
     Block = BP#block_plus.block,
     case mine2(Block, Times) of
 	false -> false;
-	Pow -> BP#block_plus{pow = Pow}
+	Pow -> 
+	    io:fwrite("found block"),
+	    BP#block_plus{pow = Pow}
     end.
 mine2(Block, Times) ->
     PH = Block#block.prev_hash,
