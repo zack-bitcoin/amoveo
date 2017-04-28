@@ -24,7 +24,10 @@ block_to_header(Block) ->
     Height = Block#block.height,
     PH = Block#block.prev_hash,
     Trees = Block#block.trees,
-    Miner = Block#block.mines_block,
+    Miner = case Block#block.mines_block of
+		{ID, _} -> ID;
+		ID -> ID
+	    end,
     Time = Block#block.time,
     Diff = Block#block.difficulty,
     Magic = Block#block.magic,
@@ -115,7 +118,9 @@ absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
 		TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
 		NM = account:update(MB, Trees, ((BlockReward * 92) div 100) + TransactionFees, none, Height),
 		NM2 = account:update(1, Trees, (BlockReward * 8) div 100, none, Height),
-		account:write(OldAccounts, NM2)
+		account:write(
+		  account:write(OldAccounts, NM2),
+		  NM)
 	end,
     NewTrees = trees:update_accounts(Trees, NewAccounts),
     txs:digest(Txs, 
