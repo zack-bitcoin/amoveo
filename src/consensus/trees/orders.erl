@@ -17,7 +17,7 @@ significant_volume(Root, Trees) ->
 	    {_, Order0, _} = orders:get(Head, Root),
 	    Governance = trees:governance(Trees),
 	    OIL = governance:get_value(oracle_initial_liquidity, Governance),
-	    (orders:amount(Order0) > constants:oracle_initial_liquidity())
+	    (orders:amount(Order0) > OIL)
     end.
     
 many(Root) ->
