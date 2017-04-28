@@ -1,4 +1,6 @@
-We can't trust our partner to calculate the hash_pointers of each block for us. Blocks should be shared without these pointers, and recalculated locally.
+We can't trust our partner to calculate the hash_pointers of each block for us. Blocks should be shared without these pointers, and recalculated locally.i
+
+downloading blocks backwards is probably a bad idea, because we don't know much about the governance tree.
 
 
 instead of storing all the tree roots in the VM seperate, we should store one list of tree roots.
