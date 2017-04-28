@@ -374,7 +374,8 @@ test() ->
     check2(MBlock),
     success.
 new_id(N) -> 
-    {Accounts, _, _, _} = tx_pool:data(),
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     new_id(N, Accounts).
 new_id(N, Accounts) ->
    case account:get(N, Accounts) of
