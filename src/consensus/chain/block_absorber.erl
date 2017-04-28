@@ -5,6 +5,7 @@
 	 doit/1, save_helper/1]).
 init(ok) -> 
     %save(block:genesis()),
+    block:genesis_maker(),
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
