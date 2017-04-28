@@ -95,7 +95,7 @@ genesis() ->
 		  1,0,4080, <<>>, constants:magic()},
 	     4080,44358461744572027408730},
     Pow = {pow, <<>>, 4080, 44358461744572027408730},
-    #block_plus{block = Block, trees = Trees}.
+    #block_plus{block = Block, trees = Trees, pow = Pow}.
     
 absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
     Trees = PrevPlus#block_plus.trees,
