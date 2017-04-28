@@ -20,14 +20,30 @@ stop() ->
     halt().
 %exit(keys, kill).
 %supervisor:terminate_child(testnet_sup, keys).
-init([]) ->
+tree_child(Id, KeySize, Size) ->
+    tree_child(Id, KeySize, Size, 0).
+tree_child(Id, KeySize, Size, Meta) ->
     Amount = constants:trie_size(),
-    KeyLength = constants:key_length(), 
-    Children = child_maker(?keys),
+    Sup = list_to_atom(atom_to_list(Id) ++ "_sup"),
+    {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd]}, permanent, 5000, supervisor, [trie_sup]}.
+init([]) ->
+    KL = constants:key_length(), 
     HS = constants:hash_size(),
+    FullLength = KL*2,
+    BB = constants:balance_bits(),
+    Children = child_maker(?keys),
+    HB = constants:height_bits(),
+    DB = constants:difficulty_bits(),
     Tries = [
-		{accounts_sup, {trie_sup, start_link, [KeyLength, constants:account_size(), accounts, Amount, 0, HS, hd]}, permanent, 5000, supervisor, [trie_sup]},
-		{channels_sup, {trie_sup, start_link, [KeyLength, constants:channel_size(), channels, Amount, 0, HS, hd]}, permanent, 5000, supervisor, [trie_sup]} 
+	     tree_child(accounts, KL, constants:account_size(), KL*2),
+	     tree_child(channels, KL, constants:channel_size(), KL),
+	     tree_child(existence, FullLength, HS),
+	     tree_child(oracles, KL, ((((KL*2)+(HB*2)+DB) div 8) + 4 + (2*HS)), (KL div 8)),
+	     tree_child(orders, KL, ((KL + (constants:orders_bits()*2) + BB) div 8)),
+	     tree_child(burn, FullLength, (BB div 8) + HS),
+	     tree_child(oracle_bets, KL, (KL + (3 * BB div 8))),
+	     tree_child(shares, KL, (KL + 1 + ((BB + HB) div 8))),
+	     tree_child(governance, 8, 4)
 	    ],
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 

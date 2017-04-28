@@ -20,7 +20,8 @@ doit(X) ->
     gen_server:cast(?MODULE, {doit, X}).
     
 absorb(BP) ->
-    BH = block:hash(BP),
+    %BH = block:hash(BP),
+    {BH, _} = block:check1(BP),
     case block_hashes:check(BH) of
 	true -> ok;%If we have seen this block before, then don't process it again.
 	false ->

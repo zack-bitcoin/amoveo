@@ -1,31 +1,20 @@
-æternity
+Aeternity
 ==========
 
-This is the code used for the testnet for the [æternity](https://aeternity.com) project.
+A blockchain for trustless markets and financial derivatives.
 
-This testnet uses simple PoW consensus. Its purpose is to show how state-channels work.
+This code will be used by [æternity](https://aeternity.com).
 
 ### Compiling and Runing
-You will need Erlang version 18 or higher, and a couple of libraries. Please follow instructions:
+You will need Erlang and a couple of libraries. Please follow instructions:
 [For Ubuntu](docs/compile_ubuntu.md)
 [For Mac](docs/compile_mac.md)
 
-Then, start your node with following script:
-```
-sh start.sh
-```
-
-To download updates do this:
-```
-sh update.sh
-```
 
 ### Commands
 
-#### Sync with the network
-To sync with the network and download the blockchain: 
-
-Then, start your node with following script:
+#### Start the blockchain
+Start your node with following script:
 ```
 sh start.sh
 ```
@@ -86,9 +75,6 @@ To stop a node run:
 easy:off().
 ```
 
-#### Keys
-[You can read about how your private key is protected here](docs/keys.md)
-
 
 ### Else
-If you want to know more, check out our whitepaper on [aeternity.com](https://aeternity.com) and get in touch with us via [Gitter Chat](https://gitter.im/aeternity/Lobby) or write us (emails in whitepaper). 
+If you want to know more, get in touch with us via [Gitter Chat](https://github.com/zack-bitcoin/testnet)

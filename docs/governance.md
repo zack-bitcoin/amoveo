@@ -1,17 +1,7 @@
-The future price of blocks is split into P possibilities. between 3 and 20.
+the governance system sets variables to maximize for the future difficulty per token created to be as high as possible.
 
-The future value of oracles is split into 2 possibilities.
+We have an oracle that asks "should this variable be pushed up or down?". it pays out shares normally, like oracles do.
 
-The future value of governance variables is split into G possibilities. between 300 and 100000.
+How is the block reward set?
 
-We will use a market to make the P types of shares.
-We will make P markets for each oracle, priced in each of the P shares.
-We will make P markets for each governance variable, priced in each of the P shares.
-
-standard LMSR.
-C = b*ln(Sum[i from 0 to 1-P](e^(q_i/b)))
-
-
-At each block, users can bet in whichever markets they want.
-C blocks later, we do some statistics and determine the winners and pay them. Winners prove their bets to win, consensus only holds the merkle root of their bets.
-Unfortunately, we can't pay the winners slow and exponentially, because it is too computationally expensive to read every block since C ago, and give out rewards for every bet.
+We have a lower limit growth rate of 1% annual. The normal governance mechanism can set it to any higher number.

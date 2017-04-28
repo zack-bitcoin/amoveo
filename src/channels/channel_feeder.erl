@@ -36,7 +36,7 @@ handle_cast(garbage, X) ->
     {C, OldC} = c_oldc(),
     garbage_helper(Keys, C, OldC),
     {noreply, X};
-handle_cast({new_channel, Tx, SSPK, Accounts}, X) ->
+handle_cast({new_channel, Tx, SSPK, _Accounts}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
     SPK = testnet_sign:data(SSPK),
     SPK = new_channel_tx:spk(Tx, spk:delay(SPK)),%doesn't move the money
@@ -69,12 +69,17 @@ handle_cast({close, SS, STx}, X) ->
 		end,
     DemandedAmount = channel_team_close_tx:amount(Tx),
     TotalCoins = 0,
-    {Accounts, Channels, Height, _} = tx_pool:data(),
-    State = chalang:new_state(TotalCoins, Height, 0, <<0:(8*hash:hash_depth())>>, Accounts, Channels),
+    {Trees, Height, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
+    State = spk:chalang_state(Height, 0, Trees),
+    %State = chalang:new_state(TotalCoins, Height, 0, <<0:(8*hash:hash_depth())>>, Accounts, Channels),
     Bets = spk:bets(SPK),
-    {CalculatedAmount, NewNonce, _, _} = chalang:run(SS, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
-
-    {OldAmount, OldNonce, _, _} = chalang:run(CD#cd.ssthem, Bets, free_constants:gas_limit(), free_constants:gas_limit(), constants:fun_limit(), constants:var_limit(), State),
+    Governance = trees:governance(Trees),
+    FunLimit = governance:get_value(fun_limit, Governance),
+    VarLimit = governance:get_value(var_limit, Governance),
+    {CalculatedAmount, NewNonce, _, _} = chalang:run(SS, Bets, free_constants:gas_limit(), free_constants:gas_limit(), FunLimit, VarLimit, State),
+    {OldAmount, OldNonce, _, _} = chalang:run(CD#cd.ssthem, Bets, free_constants:gas_limit(), free_constants:gas_limit(), FunLimit, VarLimit, State),
     if
 	NewNonce > OldNonce -> ok; 
 	NewNonce == OldNonce ->
@@ -277,11 +282,12 @@ get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
     %check that Amount is in a reasonable range based on the channel state.
     %we need my balance from channel:get, and from the Amount from the most recent spk they signed.
     CID = spk:cid(SPK),
-    {_Accounts,Channels,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Channels = trees:channels(Trees),
     {_, OldChannel, _} = channel:get(CID, Channels),
     0 = channel:rent(OldChannel),%otherwise they could attack us by making a bet where the amount they could lose is slightly smaller.
     NewHeight = block:height(block:read(top:doit())),
-    Channel = channel:update(CID, Channels, none, 0, 0,0,0, channel:delay(OldChannel), NewHeight),
+    Channel = channel:update(CID, Trees, none, 0, 0,0,0, channel:delay(OldChannel), NewHeight),
     Bal1 = channel:bal1(Channel),
     Bal2 = channel:bal2(Channel),
     A = spk:amount(SPK),

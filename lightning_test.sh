@@ -9,9 +9,9 @@
 
 #It lightning spends 4 coins one way, then spends the same 4 back.
 
-curl -i -d '["key_unlock", "YWJj"]' http://localhost:3011
-curl -i -d '["key_unlock", "YWJj"]' http://localhost:3021
-curl -i -d '["key_unlock", "YWJj"]' http://localhost:3031
+#curl -i -d '["key_unlock", "YWJj"]' http://localhost:3011
+#curl -i -d '["key_unlock", "YWJj"]' http://localhost:3021
+#curl -i -d '["key_unlock", "YWJj"]' http://localhost:3031
 
 curl -i -d '["keys_id_update", 1]' http://localhost:3021
 curl -i -d '["keys_id_update", 2]' http://localhost:3031

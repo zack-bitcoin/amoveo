@@ -1,6 +1,8 @@
 -module(free_constants).
 %These constants can be different on every node in the network. You can adjust these variables to suit your own situation.
 -compile(export_all).
+cores_to_mine() ->
+    1000.%The maximum number of cores to use when mining.
 hashlock_time() -> 30.
 channel_delay() ->
     100.
@@ -33,9 +35,11 @@ time_limit() ->
     100000.
 space_limit() ->
     100000.
+fun_limit() -> 1000.
+var_limit() -> 10000.
     
 vm(SS, State) ->
-    chalang:vm(SS, time_limit(), space_limit(), constants:fun_limit(), constants:var_limit(), State).
+    chalang:vm(SS, time_limit(), space_limit(), fun_limit(), var_limit(), State).
 
 min_channel_delay() -> 4.
 max_channel_delay() -> 100.

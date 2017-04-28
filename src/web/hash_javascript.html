@@ -1,0 +1,41 @@
+<html>
+  <head>
+    
+    <title>SHA256 demo</title>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src='http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js'></script>
+    
+    <!-- using http://stackoverflow.com/questions/18338890/are-there-any-sha-256-javascript-implementations-that-are-generally-considered-t -->
+    <!-- TODO: include only relevant functions -->
+    <!-- TOOD: to the same trick with 'integrity' as Bootstrap does -->
+    <script src='https://bitwiseshiftleft.github.io/sjcl/sjcl.js'></script>
+    <script>
+      var app = angular.module("app", []);
+      
+      app.controller("ctrl", function($scope) {
+      
+      $scope.calculateHash = function() {
+      var out = sjcl.hash.sha256.hash($scope.input);
+      $scope.hash = hash = sjcl.codec.hex.fromBits(out);
+      };
+      
+      
+      });
+      
+    </script>
+  </head>
+  <body ng-app="app" ng-controller="ctrl" class="container">
+    <h1>Calculate SHA256 hash</h1>
+    
+    <form>
+      <textarea class="form-control" ng-model="input" ng-change="calculateHash()" rows=10></textarea>
+      
+      <br>
+      
+      <input class="form-control" ng-model="hash" disabled>
+    </form>
+    
+    
+  </body>
+</html>

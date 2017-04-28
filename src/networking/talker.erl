@@ -37,6 +37,8 @@ talk_helper(Msg, Peer, N) ->
 	    %io:fwrite("talk error timeout"),
 	    talk_helper(Msg, Peer, N-1);
 	    %{error, timeout};
+	{error, failed_connect} ->
+	    talk_helper(Msg, Peer, N-1);
 	{error, {failed_connect, _}} ->
 	    %io:fwrite("talk error failed connect"),
 	    talk_helper(Msg, Peer, N-1)

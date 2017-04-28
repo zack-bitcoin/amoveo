@@ -4,7 +4,7 @@ files() -> [constants:blocks(), constants:block_pointers(), constants:accounts()
 
 backup_files() -> tl(tl(files())).
 hash() -> hash(backup_files(), []).
-hash([], X) -> hash:doit(X);
+hash([], X) -> testnet_hasher:doit(X);
 hash([F|T], X) -> hash(T, [hash:file(F)|X]).
 -define(backup, "backup/").
 backup() -> backup(backup_files()).

@@ -1,12 +1,13 @@
 -module(spk).
 -export([acc1/1,acc2/1,entropy/1,
 	 bets/1,space_gas/1,time_gas/1,
-	 new/9,delay/1,cid/1,amount/1, 
+	 new/10,delay/1,cid/1,amount/1, 
 	 nonce/1,apply_bet/4,get_paid/3,
-	 run/7,settle_bet/3]).
+	 run/6,settle_bet/3, slash_reward/1]).
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
-	      delay, cid, amount = 0, nonce = 0}).
+	      delay, cid, amount = 0, nonce = 0,
+	      slash_reward = 0}).
 %scriptpubkey is the name that Satoshi gave to this part of the transactions in bitcoin.
 %This is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
@@ -21,13 +22,15 @@ time_gas(X) -> X#spk.time_gas.
 cid(X) -> X#spk.cid.
 amount(X) -> X#spk.amount.
 nonce(X) -> X#spk.nonce.
+slash_reward(X) -> X#spk.slash_reward.
 
 
-new(Acc1, Acc2, CID, Bets, SG, TG, Delay, Nonce, Entropy) ->
+new(Acc1, Acc2, CID, Bets, SG, TG, Delay, Nonce, Entropy, SR) ->
     %Entropy = chnnel_feeder:entropy(CID, [Acc1, Acc2])+1,
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
 	 bets = Bets, space_gas = SG, time_gas = TG,
-	 delay = Delay, cid = CID, nonce = Nonce}.
+	 delay = Delay, cid = CID, nonce = Nonce,
+	 slash_reward = SR}.
     
 apply_bet(Bet, SPK, Time, Space) ->
 %bet is binary, the SPK portion of the script.
@@ -46,35 +49,43 @@ get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going
 	Aid2 -> 1;
 	_ -> MyID = Aid1
     end,
-    SPK#spk{amount = (SPK#spk.amount + (D*Amount)), nonce = SPK#spk.nonce + 
-1}.
+    SPK#spk{amount = (SPK#spk.amount + (D*Amount)), 
+	    nonce = SPK#spk.nonce + 1}.
 	    
-run(Mode, SS, SPK, Height, Slash, Accounts, Channels) ->
-    State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
-    {Amount, NewNonce, _, _, _} = run2(Mode, SS, SPK, State),
+run(Mode, SS, SPK, Height, Slash, Trees) ->
+    %Accounts = trees:accounts(Trees),
+    %Channels = trees:channels(Trees),
+    %State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
+    State = chalang_state(Height, Slash, Trees),
+    {Amount, NewNonce, CodeShares, _, _} = run2(Mode, SS, SPK, State, Trees),
     true = NewNonce < 1000,
-    {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce)}.
-run2(fast, SS, SPK, State) -> 
+    Shares = shares:from_code(CodeShares),
+    {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce), Shares}.
+run2(fast, SS, SPK, State, Trees) -> 
+    Governance = trees:governance(Trees),
+    FunLimit = governance:get_value(fun_limit, Governance),
+    VarLimit = governance:get_value(var_limit, Governance),
     chalang:run(SS, 
 		SPK#spk.bets,
 		SPK#spk.time_gas,
 		SPK#spk.space_gas,
-		constants:fun_limit(),
-		constants:var_limit(),
+		FunLimit,
+		VarLimit,
 		State);
-run2(safe, SS, SPK, State) -> 
+run2(safe, SS, SPK, State, Trees) -> 
     %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
     S = self(),
     spawn(fun() ->
-		  X = run2(fast, SS, SPK, State),
+		  X = run2(fast, SS, SPK, State, Trees),
 		  S ! X
 	  end),
     spawn(fun() ->
 		  timer:sleep(5000),%wait enough time for the chalang contracts to finish
-		  S ! {-1,-1,-1,-1}
+		  S ! {-1,-1,-1,-1, -1}
 	  end),
     receive 
 	Z -> Z
     end.
-	    
+chalang_state(Height, Slash, Trees) ->	    
+    chalang:new_state(Height, Slash, Trees).
 	

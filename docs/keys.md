@@ -45,7 +45,7 @@ keys:shared_secret(Pubkey).
 
 To load a private key into an existing node:
 ```
-keys:load(Pubkey, Privkey, "password", ID).
+keys:load(Pubkey, Privkey, "password").
 ```
 
 
@@ -53,3 +53,4 @@ You can set the password for encryption like this:
 ```
 keys:change_password("old_password", "new_password").
 ```
+The default password on a new node is "", the empty string.

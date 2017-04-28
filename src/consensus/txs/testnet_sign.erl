@@ -1,14 +1,19 @@
 -module(testnet_sign).
--export([test/0,test2/1,test3/0,sign_tx/5,sign/2,verify_sig/3,shared_secret/2,verify/2,data/1,revealed/1,empty/1,empty/0,set_revealed/2,verify_1/2,verify_2/2, pubkey2address/1, valid_address/1, hard_new_key/0,new_key/0,pub/1,pub2/1,address2binary/1,binary2address/1]).
--record(signed, {data="", sig="", pub = "", sig2="", pub2="", revealed=[]}).
+-export([test/0,test2/1,test3/0,sign_tx/5,sign/2,verify_sig/3,shared_secret/2,verify/2,data/1,
+	 %revealed/1,
+	 empty/1,empty/0,
+	 %set_revealed/2,
+	 verify_1/2,verify_2/2, pubkey2address/1, valid_address/1, hard_new_key/0,new_key/0,pub/1,pub2/1,address2binary/1,binary2address/1]).
+-record(signed, {data="", sig="", pub = "", sig2="", pub2=""}).
 -define(cs, 8). %checksum size
 pub(X) -> X#signed.pub.
 pub2(X) -> X#signed.pub2.
 empty() -> #signed{}.
 empty(X) -> #signed{data=X}.
 data(X) -> X#signed.data.
-set_revealed(X, R) -> #signed{data = X#signed.data, sig = X#signed.sig, pub = X#signed.pub, sig2 = X#signed.sig2, pub2 = X#signed.pub2, revealed = R}.
-revealed(X) -> X#signed.revealed.
+%set_revealed(X, R) -> 
+%    X#signed{revealed = R}.
+%revealed(X) -> X#signed.revealed.
 en(X) -> base64:encode(X).
 de(X) -> base64:decode(X).
 params() -> crypto:ec_curve(secp256k1).
@@ -60,7 +65,6 @@ verify(SignedTx, Accounts) ->
     end.
 sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed ->
     Tx = SignedTx#signed.data,
-    R = SignedTx#signed.revealed,
     N = element(2, Tx),
     {_, Acc, _Proof} = account:get(N, Accounts),
     AAddr = account:addr(Acc),
@@ -69,7 +73,7 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
 	(AAddr == Addr) and (N == ID) -> 
 	    Addr = account:addr(Acc),
 	    Sig = sign(Tx, Priv),
-	    #signed{data=Tx, sig=Sig, pub=Pub, sig2=SignedTx#signed.sig2, pub2=SignedTx#signed.pub2, revealed=R};
+	    SignedTx#signed{sig=Sig, pub=Pub};
 	true ->
 	    %make sure Tx is one of the types that has 2 signatures: tc, ctc, gc
 	    Type = element(1, Tx),
@@ -80,7 +84,7 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
 	    if
 		((Addr == BAddr) and (N2 == ID)) ->
 		    Sig = sign(Tx, Priv),
-		    #signed{data=Tx, sig=SignedTx#signed.sig, pub=SignedTx#signed.pub, sig2=Sig, pub2=Pub, revealed=R};
+		    SignedTx#signed{sig2=Sig, pub2=Pub};
 		true -> {error, <<"cannot sign">>}
 	    end
 	 end;

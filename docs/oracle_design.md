@@ -15,12 +15,15 @@ Each market should have a trie for storing orders in the order book, and it shou
 
 All the market trie roots should be combined as a merkle trie into the block, so that as the number of markets grows by N, the increase in cost is only O(log(N)).
 
-in total, that was 5 tries:
+We also need to keep a record of how many open orders exist at every price, that way the block maker can't censor any trades.
+
+in total, that was 6 tries:
 * questions. each block has a root
 * answers. each block has a root of this
 * order book trades
 * how many shares each account owns
 * a trie that stores pairs, containing one each of the previous 2 types of trie roots, an order book trie root, and a shares-accounts trie root. each block has a root of this.
+* how many open orders at each price
 
 The roots in each block should combine to make a single root that is stored in the block hash.
 
@@ -36,16 +39,20 @@ tx types:
 AskQuestion
 OracleBet
 OracleFinish
+CollectReward
 
 AskQuestion
 This costs a big deposit. If the question is answered in the expected way, you get most of the deposit back.
 If they decide it is a bad question, then your deposit is deleted.
 
 OracleBet
-This is how you make a bet in the on-chain market, which measures the correlation between the answers to oracle questions, and the mining difficulty. It is a LMSR order book, so you say how many shares for the lowest price you are willing to sell at, and you say how many shares for the highest price you are willing to buy at.
+This is how you make a bet in the on-chain market, which measures the correlation between the answers to oracle questions, and the mining difficulty. It is a LMSR order book, so you say how many shares for the lowest price you are willing to sell at, or how many shares for the highest price you are willing to buy at.
 
 AnswerQuestion
 If the oracle's correlation has shown with high enough margin for a long enough period of time that one answer is preferable, then anyone can do this transaction to permanently record the answer to the question.
+
+CollectReward
+If you made a winning bet, this is how you collect your winnings.
 
 
 

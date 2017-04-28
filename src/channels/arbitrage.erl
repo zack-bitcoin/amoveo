@@ -53,7 +53,7 @@ new(Tx, ChIdLose, ChIdGain, Amount) ->
 
 add(Bet, ChIdLose, ChIdGain, Amount) -> 
     %Make sure we can't add the same triple twice!!
-    BH = hash:doit(Bet),
+    BH = testnet_hasher:doit(Bet),
     L = check_hash(BH),
     true = not_in(L, ChIdLose, ChIdGain, Amount),
     gen_server:cast(?MODULE, {add, BH, ChIdLose, ChIdGain, Amount}).
@@ -61,10 +61,10 @@ not_in([], _, _, _) -> true;
 not_in([{LoseId, GainId, Amount}|_], LoseId, GainId, Amount) -> false;
 not_in([_|T], A, B, C) -> not_in(T, A, B, C).
 del(BH, ChIdLose, ChIdGain, Amount) -> 
-    %BH = hash:doit(Bet),
+    %BH = testnet_hasher:doit(Bet),
     gen_server:cast(?MODULE, {del, BH, ChIdLose, ChIdGain, Amount}).
 delete(CB, BetCode) ->
-    BH = hash:doit(BetCode),
+    BH = testnet_hasher:doit(BetCode),
     Bet = bet_find(BH, channel_block_tx:bets(CB)),
     Amount = channel_block_tx:bet_amount(Bet),
     ChId1 = channel_block_tx:acc1(CB),
@@ -86,13 +86,13 @@ delete(CB, BetCode) ->
     del(Bet, ChIdLose, ChIdGain, Amount).
 not_in(_, []) -> true;
 not_in(Hash, [H|T]) -> 
-    A = hash:doit(channel_block_tx:bet_code(H)),
+    A = testnet_hasher:doit(channel_block_tx:bet_code(H)),
     if
 	A == H -> false;
 	true -> not_in(Hash, T)
     end.
 bet_find(BH, [H|T]) -> 
-    A = hash:doit(channel_block_tx:bet_code(H)),
+    A = testnet_hasher:doit(channel_block_tx:bet_code(H)),
     if
 	A == BH -> H;
 	true -> bet_find(BH, T)
@@ -130,7 +130,7 @@ agree(Tx, Amount, BH) ->
     end,
     ChIdGain.
 check_winner(Bet, ChIdLose, Amount) -> 
-    BH = hash:doit(Bet),
+    BH = testnet_hasher:doit(Bet),
     L = check_hash(BH),
     check_winner2(ChIdLose, Amount, L).
 check_winner2(ChId, Amount, [{ChId, ChIdGain, Amount}|_]) -> 
@@ -138,7 +138,7 @@ check_winner2(ChId, Amount, [{ChId, ChIdGain, Amount}|_]) ->
 check_winner2(ChId, Amount, [{_, _, _}|T]) -> 
     check_winner2(ChId, Amount, T).
 check_loser(BetCode, ChId, Amount) -> 
-    BH = hash:doit(BetCode),
+    BH = testnet_hasher:doit(BetCode),
     L = check_hash(BH),
     check_loser2(ChId, Amount, L).
 check_loser2(ChId, Amount, [{ChIdLoser, ChId, Amount}|_]) -> 
@@ -150,7 +150,7 @@ check_hash(BH) ->
 test() ->
     add(5, 1, 0, 0),
     add(5, 2, 0, 0),
-    [{2, 0, 0}, {1, 0, 0}] = check_hash(hash:doit(5)),
+    [{2, 0, 0}, {1, 0, 0}] = check_hash(testnet_hasher:doit(5)),
     X = remove({1, 2, 0}, [{2, 3, 0}, {1, 2, 0}, {1, 2, 0}]),
     X = [{2, 3, 0}, {1, 2, 0}],
     del(5,1,0,0),

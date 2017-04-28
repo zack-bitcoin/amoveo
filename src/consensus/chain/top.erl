@@ -35,10 +35,9 @@ handle_call({add, Block}, _From, X) ->
     OH = block:height(OldBlock),
     New = if
 	NH > OH -> 
-		  Channels = block:channels(Block),
-		  Accounts = block:accounts(Block),
+		  Trees = block:trees(Block),
 		  NH = block:height(Block),
-		  tx_pool:absorb(Channels, Accounts, [], NH),
+		  tx_pool:absorb(Trees, [], NH),
 		  add_internal(Block);
 	true -> X
     end,

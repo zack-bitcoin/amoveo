@@ -40,8 +40,11 @@ sync(IP, Port, MyHeight) ->
 			 HH = MyHeight + 100,
 			 if
 			     HH < Height ->
-				 {ok, Block} = talker:talk({block, HH}, IP, Port),
-				 trade_blocks(IP, Port, [Block], HH);
+				 %{ok, Block} = talker:talk({block, HH}, IP, Port),
+				 talk({block, HH}, IP, Port,
+				      fun(Y) -> trade_blocks(IP, Port, [Y], HH)
+						    end);
+				 %trade_blocks(IP, Port, [Block], HH);
 			     true ->
 				 trade_blocks(IP, Port, [TopBlock], Height),
 				 get_txs(IP, Port)
@@ -75,9 +78,14 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
     M = block:read(PrevHash),%check if it is in our memory already.
     case M of
 	empty -> 
-	    {ok, NextBlock} = talker:talk({block, Height-1}, IP, Port),
-	    NextHash = block:hash(NextBlock),
-	    trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);
+	    talk({block, Height-1}, IP, Port,
+		 fun(NextBlock) ->
+			 NextHash = block:hash(NextBlock),
+			 trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1)
+		 end);
+	    %{ok, NextBlock} = talker:talk({block, Height-1}, IP, Port),
+	    %NextHash = block:hash(NextBlock),
+	    %trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);
 	_ -> 
 						%download 100 blocks earlier, to handle forks.
 	    L2 = get_blocks(Height-1, free_constants:fork_tolerance(), IP, Port, []),
@@ -116,7 +124,7 @@ absorb_txs([H|T]) ->
     tx_pool_feeder:absorb(H),
     absorb_txs(T).
 talk(CMD, IP, Port, F) ->
-    talk(CMD, IP, Port, F, 100).
+    talk(CMD, IP, Port, F, 5).
 talk(_, _, _, _, 0) -> error;
 talk(CMD, IP, Port, F, N) ->
     case talker:talk(CMD, IP, Port) of
@@ -127,6 +135,7 @@ talk(CMD, IP, Port, F, N) ->
     end.
 	   
 get_txs(IP, Port) ->
+    %io:fwrite("download blocks get txs\n"),
     talk({txs}, IP, Port, 
 	 fun(X) ->
 		 absorb_txs(X),
