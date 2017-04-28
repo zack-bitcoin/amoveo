@@ -1,7 +1,8 @@
 -module(delete_account_tx).
 -export([doit/3, make/4]).
 -record(da, {from = 0, nonce = 0, fee = 0, to = 0}).
-make(To, ID, Fee, Accounts) ->
+make(To, ID, Fee, Trees) ->
+    Accounts = trees:accounts(Trees),
     {_, Facc, Fproof} = account:get(ID, Accounts),
     {_, Tacc, Tproof} = account:get(To, Accounts),
     false = Tacc == empty,

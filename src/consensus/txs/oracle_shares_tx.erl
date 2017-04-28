@@ -6,7 +6,8 @@
 %[you can read about shares here](docs/shares.md)
 %The difficulty of the shares was announced when the oracle was launched.
 -record(oracle_shares, {from, nonce, fee, oracle_id}).
-make(From, Fee, OID, Accounts) ->
+make(From, Fee, OID, Trees) ->
+    Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = account:get(From, Accounts),
     Tx = #oracle_shares{from = From, nonce = account:nonce(Acc) + 1, fee = Fee, oracle_id = OID},
     {Tx, [Proof]}.

@@ -1,13 +1,15 @@
 -module(grow_channel_tx).
--export([doit/3, make/7, good/1]).
--record(gc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, inc1 = 0, inc2 = 0, rent = 0, channel_nonce = none, id = -1}).
+-export([doit/3, make/5, good/1]).
+-record(gc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, inc1 = 0, inc2 = 0, channel_nonce = none, id = -1}).
 good(_Tx) ->
     %make sure they aren't taking our money.
     %check that it is still meeting the min_channel_ratio.
     %check that it is a valid transaction.
     true.
     
-make(ID,Accounts,Channels,Inc1,Inc2,Rent,Fee) ->
+make(ID,Trees,Inc1,Inc2,Fee) ->
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     {_, C, CProof} = channel:get(ID, Channels),
     A1 = channel:acc1(C),
     A2 = channel:acc2(C),
@@ -16,7 +18,7 @@ make(ID,Accounts,Channels,Inc1,Inc2,Rent,Fee) ->
     Nonce = account:nonce(Acc1),
     Tx = #gc{id = ID, acc1 = A1, acc2 = A2, 
 	     fee = Fee, nonce = Nonce+1, inc1 = Inc1,
-	     inc2 = Inc2, rent = Rent},
+	     inc2 = Inc2},
     {Tx, [CProof, Proof1, Proof2]}.
     
 doit(Tx,Trees,NewHeight) ->
@@ -41,6 +43,9 @@ doit(Tx,Trees,NewHeight) ->
     CNonce = Tx#gc.channel_nonce,
     0 = channel:amount(OldChannel),
     NewChannel = channel:update(0, ID, Trees, CNonce, Inc1, Inc2, 0, channel:delay(OldChannel), NewHeight, false, []),
+    io:fwrite("grow channel tx new channel is "),
+    io:fwrite(packer:pack(NewChannel)),
+    io:fwrite("\n"),
     NewChannels = channel:write(NewChannel, Channels),
     Acc1 = account:update(Aid1, Trees, -Inc1, Tx#gc.nonce, NewHeight),
     Acc2 = account:update(Aid2, Trees, -Inc2, none, NewHeight),

@@ -2,7 +2,8 @@
 -export([doit/3, make/6]).
 -record(ca, {from = 0, to = 0, fee = 0, nonce = 0, address = <<"">>, amount = 0}).
 
-make(Addr, Amount, Fee, From, To, Accounts) -> %To is a new ID. set it to any unused ID.
+make(Addr, Amount, Fee, From, To, Trees) -> %To is a new ID. set it to any unused ID.
+    Accounts = trees:accounts(Trees),
     A = if
 	    size(Addr) > 85 -> testnet_sign:pubkey2address(Addr);
 	    true -> Addr

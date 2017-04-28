@@ -117,23 +117,9 @@ doit({channel_spend, IP, Port, Amount}) ->
     channel_feeder:spend(Response, -Amount),
     {ok, ok};
     
-doit({new_channel, IP, Port, CID, Bal1, Bal2, Rent, Fee, Delay}) ->
+doit({new_channel_with_server, IP, Port, CID, Bal1, Bal2, Fee, Delay}) ->
     %make sure we don't already have a channel with this peer.
-    unlocked = keys:status(),
-    undefined = peers:cid(peers:read(IP, Port)),
-    Acc1 = keys:id(),
-    {ok, Acc2} = talker:talk({id}, IP, Port),
-    Entropy = channel_feeder:entropy([Acc1, Acc2]) + 1,
-    {Accounts, _,_,_} = tx_pool:data(),
-    {Tx, _} = new_channel_tx:make(CID, Accounts, Acc1, Acc2, Bal1, Bal2, Rent, Entropy, Fee, Delay),
-    SPK = new_channel_tx:spk(Tx, free_constants:channel_delay()),
-    STx = keys:sign(Tx, Accounts),
-    SSPK = keys:sign(SPK, Accounts),
-    Msg = {new_channel, STx, SSPK},
-    {ok, SSTx, S2SPK} = talker:talk(Msg, IP, Port),
-    tx_pool_feeder:absorb(SSTx),
-    peers:set_cid(IP, Port, CID),
-    channel_feeder:new_channel(Tx, S2SPK, Accounts),
+    easy:new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay),
     {ok, ok};
 doit({channel_keys}) -> {ok, channel_manager:keys()};
 doit({block_tree_account, Id}) -> {ok, block_tree:account(Id)};

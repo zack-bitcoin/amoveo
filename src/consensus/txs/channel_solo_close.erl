@@ -1,11 +1,13 @@
 -module(channel_solo_close).
--export([doit/3, make/6, scriptpubkey/1, next_ss/6]).
+-export([doit/3, make/5, scriptpubkey/1, next_ss/6]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
 
 scriptpubkey(X) -> X#csc.scriptpubkey.
 
-make(From, Fee, ScriptPubkey, ScriptSig, Accounts, Channels) ->
+make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     %true = is_list(ScriptSig),
     CID = spk:cid(testnet_sign:data(ScriptPubkey)),
     %io:fwrite("in channel solo close make CID is "),

@@ -1,7 +1,8 @@
 -module(spend_tx).
 -export([doit/3, make/6]).
 -record(spend, {from = 0, nonce = 0, fee = 0, to = 0, amount = 0, shares = []}).
-make(To, Amount, Fee, Id, Accounts, Shares) ->
+make(To, Amount, Fee, Id, Trees, Shares) ->
+    Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = account:get(Id, Accounts),
     {_, _Acc2, Proof2} = account:get(To, Accounts),
     Tx = #spend{from = Id, nonce = account:nonce(Acc) + 1, to = To, amount = Amount, shares = Shares, fee = Fee},

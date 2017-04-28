@@ -4,7 +4,8 @@
 %If there is a lot of open orders for one type of share in an oracle for a long enough period of time, then this transaction can be done.
 %This ends betting in the market.
 %The fee that was used to start the oracle is the final bet included. It bets against the winning outcome.
-make(From, Fee, OID, Accounts) ->
+make(From, Fee, OID, Trees) ->
+    Accounts = trees:accounts(Trees),
     {_, Acc, _} = account:get(From, Accounts),
     Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = account:nonce(Acc) + 1},
     {Tx, []}.
@@ -33,9 +34,15 @@ doit(Tx, Trees, NewHeight) ->
     Oracles2 = oracles:write(Oracle3, Oracles),
     Trees2 = trees:update_accounts(trees:update_oracles(Trees, Oracles2), NewAccounts),
     Gov = oracles:governance(Oracle3),
+    Governance = trees:governance(Trees),
+    MOT = governance:get_value(maximum_oracle_time, Governance),
     Trees3 = 
 	case Gov of
-	    0 -> Trees2;
+	    0 -> 
+		B1 = oracles:done_timer(Oracle3) < NewHeight,
+		B2 = oracles:starts(Oracle3) + MOT < NewHeight,
+		true = (B1 or B2),
+		Trees2;
 	    G ->
 		GA = oracles:governance_amount(Oracle3),
 		case Result of
@@ -48,7 +55,6 @@ doit(Tx, Trees, NewHeight) ->
 			Gov2=governance:change(G, -GA,Gov),
 			trees:update_governance(Gov2, Trees2);
 		    3 -> 
-			MOT = governance:get_value(maximum_oracle_time, Gov),
 			true = oracles:starts(Oracle3) + MOT < NewHeight,
 			Gov2 = governance:unlock(G, Gov),
 			trees:update_governance(Gov2, Trees2)

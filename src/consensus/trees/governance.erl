@@ -1,3 +1,4 @@
+
 -module(governance).
 -export([det_power/3,tree_number_to_value/1, max/0,
 	 is_locked/1, change/3, genesis_state/0,
@@ -30,8 +31,10 @@ genesis_state() ->
 	 [comment_limit, 137], 
 	 [block_creation_maturity, 100],
 	 [oracle_initial_liquidity, 1728],
-	 [minimum_oracle_time, 352],
-	 [maximum_oracle_time, 505],
+	 [minimum_oracle_time, 1],%for testing
+	 %[minimum_oracle_time, 352],
+	 [maximum_oracle_time, 1],
+	 %[maximum_oracle_time, 505],
 	 [maximum_question_size, 352],
 	 [block_time_after_median, 100],
 	 [channel_closed_time, 352],

@@ -5,7 +5,8 @@
 -module(repo_tx).
 -export([doit/3, make/4]).
 -record(repo, {from = 0, nonce = 0, fee = 0, target = 0}).
-make(Target, Fee, Id, Accounts) ->
+make(Target, Fee, Id, Trees) ->
+    Accounts = trees:accounts(Trees),
     {_, A, Proof} = account:get(Id, Accounts),
     {_, _, Proof2} = account:get(Target, Accounts),
     %NB = account:now_balance(T, 0, Height),

@@ -9,13 +9,17 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast({absorb, SignedTx}, X) ->
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
+    io:fwrite("tx pool feeder tx "),
+    io:fwrite(packer:pack(Tx)),
+    io:fwrite("\n"),
     true = Fee > free_constants:minimum_tx_fee(),
     {Trees, Height, Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(SignedTx, Accounts),
     B = is_in(SignedTx, Txs), %this is very ugly. once we have a proper CLI we can get rid of this crutch.
     if
-	B -> ok;
+	B ->  io:fwrite("already have this tx"),
+	    ok;
 	true ->
 	    NewTrees = 
 		txs:digest([SignedTx], Trees, Height+1),

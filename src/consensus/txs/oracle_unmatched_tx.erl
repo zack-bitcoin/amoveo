@@ -3,7 +3,8 @@
 %If you had money in orders in the oracle order book when the oracle_close transaction happened, this is how you get the money out.
 -record(unmatched, {from, nonce, fee, oracle_id, order_id}).
 
-make(From, Fee, OracleID, OrderID, Accounts) ->
+make(From, Fee, OracleID, OrderID, Trees) ->
+    Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = account:get(From, Accounts),
     Tx = #unmatched{from = From, nonce = account:nonce(Acc) + 1, fee = Fee, oracle_id = OracleID, order_id = OrderID},
     {Tx, [Proof]}.

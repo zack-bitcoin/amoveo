@@ -13,7 +13,8 @@
 %If you want your order to be held in the order book, it needs to be bigger than a minimum size.
 %There is a maximum number of orders that can be stored in the order book at a time.
 %If your order isn't big enough to be in the order book, you cannot buy shares of the type that are stored in the order book.
-make(From, Fee, OID, Type, Amount, Accounts) ->
+make(From, Fee, OID, Type, Amount, Trees) ->
+    Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = account:get(From, Accounts),
     Tx = #oracle_bet{
        from = From, 
@@ -31,6 +32,9 @@ doit(Tx, Trees, NewHeight) ->
     Accounts2 = account:write(Accounts, Facc),
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(Tx#oracle_bet.id, Oracles),
+    io:fwrite("oracle is "),
+    io:fwrite(packer:pack(Oracle)),
+    io:fwrite("\n"),
     0 = oracles:result(Oracle),%check that the oracle isn't already closed.
     Trees2 = trees:update_accounts(Trees, Accounts2),
 

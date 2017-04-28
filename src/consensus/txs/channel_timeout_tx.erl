@@ -1,11 +1,13 @@
 -module(channel_timeout_tx).
--export([doit/3, make/6]).
+-export([doit/3, make/5]).
 -record(timeout, {aid = 0, nonce = 0, fee = 0, cid = 0, shares}).
 %If your partner is not helping you, this is how you start the process of closing the channel. 
 %You should only use the final channel-state, or else your partner can punish you for cheating.
-make(ID,Accounts,Channels,CID,Shares,Fee) ->
+make(ID,Trees,CID,Shares,Fee) ->
     %shares is a list of shares.
     %The root hash of this list must match the hash stored in the channel
+    Accounts = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     {_, Acc, Proof} = account:get(ID, Accounts),
     {_, Channel, Proofc} = channel:get(CID, Channels),
     Acc1 = channel:acc1(Channel),

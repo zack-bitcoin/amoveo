@@ -27,7 +27,9 @@ handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
     MBS = governance:get_value(max_block_size, Governance),
     %MBS = constants:max_block_size(),
     FinalTxs = if
-	B > MBS -> F#f.txs;
+	B > MBS -> 
+		       io:fwrite("block is already full\n"),
+		       F#f.txs;
 	true -> NewTxs
     end,
     {reply, 0, F#f{txs = FinalTxs, trees = NewTrees}}; 

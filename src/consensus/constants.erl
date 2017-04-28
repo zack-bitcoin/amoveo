@@ -10,8 +10,7 @@ key_length() ->
     48. %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
 trie_size() ->
     50000. %we can adjust this many accounts and channels per block.
--define(InitialCoins, round(math:pow(2, 41)) - 1).
-initial_coins() -> ?InitialCoins.
+initial_coins() -> 1080000000000.
 block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 12*256.%for testing purposes only
