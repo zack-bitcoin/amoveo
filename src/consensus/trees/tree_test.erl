@@ -3,8 +3,8 @@
 
 test() ->
     S = success,
-    S = account:test(),
-    S = channel:test(),
+    S = accounts:test(),
+    S = channels:test(),
     S = existence:test(),
     S = oracles:test(),
     S = burn:test(),

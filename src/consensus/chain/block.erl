@@ -89,8 +89,8 @@ genesis_maker() ->
     %the pointer to an empty trie is 0.
     Address = constants:master_address(),
     ID = 1,
-    First = account:new(ID, Address, constants:initial_coins(), 0),
-    Accounts = account:write(0, First),
+    First = accounts:new(ID, Address, constants:initial_coins(), 0),
+    Accounts = accounts:write(0, First),
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
     TreeRoot = trees:root_hash(Trees),
@@ -119,17 +119,17 @@ absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
 	    -1 ->
 		OldAccounts;
 	    {ID, Address} -> %for miners who don't yet have an account.
-		{_, empty, _} = account:get(ID, OldAccounts),
+		{_, empty, _} = accounts:get(ID, OldAccounts),
 		%We should also give the miner the sum of the transaction fees.
 		TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
-		NM = account:new(ID, Address, BlockReward + TransactionFees, Height),
-		account:write(OldAccounts, NM);
+		NM = accounts:new(ID, Address, BlockReward + TransactionFees, Height),
+		accounts:write(OldAccounts, NM);
 	    MB -> %If you already have an account.
 		TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
-		NM = account:update(MB, Trees, ((BlockReward * 92) div 100) + TransactionFees, none, Height),
-		NM2 = account:update(1, Trees, ((BlockReward * 8) div 100), none, Height),
-		account:write(
-		  account:write(OldAccounts, NM2),
+		NM = accounts:update(MB, Trees, ((BlockReward * 92) div 100) + TransactionFees, none, Height),
+		NM2 = accounts:update(1, Trees, ((BlockReward * 8) div 100), none, Height),
+		accounts:write(
+		  accounts:write(OldAccounts, NM2),
 		  NM)
 	end,
     NewTrees = trees:update_accounts(Trees, NewAccounts),
@@ -376,7 +376,7 @@ test() ->
     Trees = trees(BP),
     Accounts = trees:accounts(Trees),
     %Accounts = BP#block_plus.accounts,
-    _ = account:get(1, Accounts),
+    _ = accounts:get(1, Accounts),
     %{block_plus, Block, _, _, _} = make(PH, [], 1),
     Block = make(PH, [], 1),
     io:fwrite(packer:pack(Block)),
@@ -391,7 +391,7 @@ new_id(N) ->
     Accounts = trees:accounts(Trees),
     new_id(N, Accounts).
 new_id(N, Accounts) ->
-   case account:get(N, Accounts) of
+   case accounts:get(N, Accounts) of
        {_, empty, _} -> N;
        _ -> new_id(N+1, Accounts)
    end.

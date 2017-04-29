@@ -1,3 +1,4 @@
+
 -module(handler).
 
 -export([init/3, handle/2, terminate/3, doit/1]).
@@ -101,6 +102,14 @@ doit({channel_simplify, SS, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
+doit({proof, TreeName, ID}) ->
+    {Trees, _, _} = tx_pool:data(),
+    TN = trees:name(TreeName),
+    Root = trees:TN(Trees),
+    {Root, Value, [Proof]} = TN:get(ID, Root),
+    Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
+    {ok, {return, Root, Value, Proof2}};
+    
 doit({dice, 1, Other, Commit, Amount}) ->
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
     {ok, CD} = channel_manager:read(Other),

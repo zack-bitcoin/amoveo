@@ -6,13 +6,13 @@
 %The fee that was used to start the oracle is the final bet included. It bets against the winning outcome.
 make(From, Fee, OID, Trees) ->
     Accounts = trees:accounts(Trees),
-    {_, Acc, _} = account:get(From, Accounts),
-    Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = account:nonce(Acc) + 1},
+    {_, Acc, _} = accounts:get(From, Accounts),
+    Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = accounts:nonce(Acc) + 1},
     {Tx, []}.
 doit(Tx, Trees, NewHeight) ->
     Accounts = trees:accounts(Trees),
-    Acc = account:update(Tx#oracle_close.from, Trees, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
-    NewAccounts = account:write(Accounts, Acc),
+    Acc = accounts:update(Tx#oracle_close.from, Trees, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
+    NewAccounts = accounts:write(Accounts, Acc),
 
     OID = Tx#oracle_close.oracle_id,
     Oracles = trees:oracles(Trees),

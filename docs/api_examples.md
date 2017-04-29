@@ -24,7 +24,7 @@ first make sure that rpc.js is loaded, then you can do this:
 local_get(["add_peer", [127,0,0,1], 3010]);
 ```
 
-[The internal API is defined here](src/networking/internal_handler.erl)
+[The internal API is defined here](../src/networking/internal_handler.erl)
 
 Now an example of accessing an api of a different node.
 This is how you request the header of the genesis block.
@@ -57,4 +57,4 @@ function callback(x) {
 get(["header", 0], callback);
 ```
 
-[The external API is defined here](src/networking/handler.erl)
+[The external API is defined here](../src/networking/handler.erl)

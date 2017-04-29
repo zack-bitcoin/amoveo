@@ -249,15 +249,15 @@ depth_check(SPK) ->
 depth_check2(SPK, C, OldC) -> 
     %CID = spk:cid(SPK),
     PartnerID = other(SPK),
-    Channel = channel:get(PartnerID, C),
-    OldChannel = channel:get(PartnerID, OldC),
+    Channel = channels:get(PartnerID, C),
+    OldChannel = channels:get(PartnerID, OldC),
     E1 = spk:entropy(SPK),
-    E2 = channel:entropy(Channel),
-    E3 = channel:entropy(OldChannel),
-    A11 = channel:acc1(Channel),
-    A12 = channel:acc1(OldChannel),
-    A21 = channel:acc2(Channel),
-    A22 = channel:acc2(OldChannel),
+    E2 = channels:entropy(Channel),
+    E3 = channels:entropy(OldChannel),
+    A11 = channels:acc1(Channel),
+    A12 = channels:acc1(OldChannel),
+    A21 = channels:acc2(Channel),
+    A22 = channels:acc2(OldChannel),
     K = keys:id(),
     B = ((K == A11) or (K == A21)),
     Both = (E1 == E2)  %both is true if the channel has existed a long time.
@@ -280,16 +280,16 @@ get_bet(Name, [{Name, Loc}|_], Vars, SPK) ->
 get_bet(Name, [_|T], Vars, SPK) -> get_bet(Name, T, Vars, SPK).
 get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
     %check that Amount is in a reasonable range based on the channel state.
-    %we need my balance from channel:get, and from the Amount from the most recent spk they signed.
+    %we need my balance from channels:get, and from the Amount from the most recent spk they signed.
     CID = spk:cid(SPK),
     {Trees,_,_} = tx_pool:data(),
     Channels = trees:channels(Trees),
-    {_, OldChannel, _} = channel:get(CID, Channels),
-    0 = channel:rent(OldChannel),%otherwise they could attack us by making a bet where the amount they could lose is slightly smaller.
+    {_, OldChannel, _} = channels:get(CID, Channels),
+    0 = channels:rent(OldChannel),%otherwise they could attack us by making a bet where the amount they could lose is slightly smaller.
     NewHeight = block:height(block:read(top:doit())),
-    Channel = channel:update(CID, Trees, none, 0, 0,0,0, channel:delay(OldChannel), NewHeight),
-    Bal1 = channel:bal1(Channel),
-    Bal2 = channel:bal2(Channel),
+    Channel = channels:update(CID, Trees, none, 0, 0,0,0, channels:delay(OldChannel), NewHeight),
+    Bal1 = channels:bal1(Channel),
+    Bal2 = channels:bal2(Channel),
     A = spk:amount(SPK),
     true = (Bal1-A) >= Amount, 
     true = (Bal2+A) >= Amount,  %This checks that neither of us can have negative amounts of money.

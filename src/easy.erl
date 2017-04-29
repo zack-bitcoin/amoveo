@@ -79,7 +79,7 @@ new_channel(Bal1, Bal2, Fee, Delay) ->
 		CID, B1, B2, Fee, Delay).
 new_channel2(ID, Channels) ->
     <<X:8>> = crypto:strong_rand_bytes(1),
-    case channel:get(ID+X, Channels) of
+    case channels:get(ID+X, Channels) of
 	{_, empty, _} -> ID+X;
 	X -> new_channel2(ID+256, Channels)
     end.
@@ -123,8 +123,8 @@ integer_channel_balance() ->
     {Accounts, Channels, NewHeight, _Txs} = tx_pool:data(),
     {Amount, _} = spk:run(fast, SS, SPK, NewHeight, 0, Accounts, Channels),
     CID = spk:cid(SPK),
-    {_, Channel, _} = channel:get(CID, Channels),
-    channel:bal1(Channel)-Amount.
+    {_, Channel, _} = channels:get(CID, Channels),
+    channels:bal1(Channel)-Amount.
 dice(Amount) ->
     unlocked = keys:status(),
     A = to_int(Amount),
@@ -220,15 +220,15 @@ oracle_unmatched(Fee, OracleID, OrderID) ->
 
 account(ID) ->
     {Accounts, _,_,_} = tx_pool:data(),
-    case account:get(ID, Accounts) of
+    case accounts:get(ID, Accounts) of
 	{_,empty,_} ->
 	    io:fwrite("this account does not yet exist\n"),
-	    account:new(-1,0,0,0);
+	    accounts:new(-1,0,0,0);
 	{_, A, _} -> A
     end.
 
 account() -> account(keys:id()).
-integer_balance() -> account:balance(account()).
+integer_balance() -> accounts:balance(account()).
 balance() ->
     I = integer_balance(),
     pretty_display(I).

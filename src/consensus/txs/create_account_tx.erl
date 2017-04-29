@@ -8,29 +8,29 @@ make(Addr, Amount, Fee, From, To, Trees) -> %To is a new ID. set it to any unuse
 	    size(Addr) > 85 -> testnet_sign:pubkey2address(Addr);
 	    true -> Addr
 	end,
-    {_, Acc, Proof} = account:get(From, Accounts),
-    Tx = #ca{from = From, to = To, nonce = account:nonce(Acc) + 1, address = A, amount = Amount, fee = Fee},
+    {_, Acc, Proof} = accounts:get(From, Accounts),
+    Tx = #ca{from = From, to = To, nonce = accounts:nonce(Acc) + 1, address = A, amount = Amount, fee = Fee},
     {Tx, [Proof]}.
 doit(Tx, Trees, NewHeight) ->
     Accounts = trees:accounts(Trees),
     To = Tx#ca.to,
-    {_RH, empty, _Proof} = account:get(To, Accounts),
+    {_RH, empty, _Proof} = accounts:get(To, Accounts),
     A = Tx#ca.amount,
     From = Tx#ca.from,
     Governance = trees:governance(Trees),
     CAF = governance:get_value(create_account_fee, Governance),
-    Facc2 = account:update(From, Trees, -A-Tx#ca.fee-CAF, Tx#ca.nonce, NewHeight),
-    Nacc = account:new(To, Tx#ca.address, A, NewHeight),
-    Accounts2 = account:write(Accounts, Nacc),
-    NewAccounts = account:write(Accounts2, Facc2),
+    Facc2 = accounts:update(From, Trees, -A-Tx#ca.fee-CAF, Tx#ca.nonce, NewHeight),
+    Nacc = accounts:new(To, Tx#ca.address, A, NewHeight),
+    Accounts2 = accounts:write(Accounts, Nacc),
+    NewAccounts = accounts:write(Accounts2, Facc2),
     MyAddress = keys:address(),
     if
 	(Tx#ca.address) == MyAddress ->
-	    {_, MyAccount, _} = account:get(keys:id(), Accounts),
+	    {_, MyAccount, _} = accounts:get(keys:id(), Accounts),
 	    case MyAccount of
 		empty -> keys:update_id(Tx#ca.to);
 		MA ->
-		    CurrentBal = account:balance(MA),
+		    CurrentBal = accounts:balance(MA),
 		    if 
 			(A > CurrentBal) ->
 			    keys:update_id(Tx#ca.to);

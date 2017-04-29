@@ -52,26 +52,26 @@ type_check(Type) -> %these are the types that get signed twice
 verify(SignedTx, Accounts) ->
     Tx = SignedTx#signed.data,
     N1 = element(2, Tx),
-    {_, Acc1, _Proof} = account:get(N1, Accounts),
+    {_, Acc1, _Proof} = accounts:get(N1, Accounts),
     Type = element(1, Tx),
     B = type_check(Type),
     if
 	B ->
 	    N2 = element(3, Tx),
-	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
-	    verify_both(SignedTx, account:addr(Acc1), account:addr(Acc2));
+	    {_, Acc2, _Proof2} = accounts:get(N2, Accounts),
+	    verify_both(SignedTx, accounts:addr(Acc1), accounts:addr(Acc2));
 	true -> 
-	    verify_1(SignedTx, account:addr(Acc1))
+	    verify_1(SignedTx, accounts:addr(Acc1))
     end.
 sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed ->
     Tx = SignedTx#signed.data,
     N = element(2, Tx),
-    {_, Acc, _Proof} = account:get(N, Accounts),
-    AAddr = account:addr(Acc),
+    {_, Acc, _Proof} = accounts:get(N, Accounts),
+    AAddr = accounts:addr(Acc),
     Addr = pubkey2address(Pub),
     if
 	(AAddr == Addr) and (N == ID) -> 
-	    Addr = account:addr(Acc),
+	    Addr = accounts:addr(Acc),
 	    Sig = sign(Tx, Priv),
 	    SignedTx#signed{sig=Sig, pub=Pub};
 	true ->
@@ -79,8 +79,8 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
 	    Type = element(1, Tx),
 	    true = type_check(Type),
 	    N2 = element(3, Tx),
-	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
-	    BAddr = account:addr(Acc2),
+	    {_, Acc2, _Proof2} = accounts:get(N2, Accounts),
+	    BAddr = accounts:addr(Acc2),
 	    if
 		((Addr == BAddr) and (N2 == ID)) ->
 		    Sig = sign(Tx, Priv),
@@ -91,16 +91,16 @@ sign_tx(SignedTx, Pub, Priv, ID, Accounts) when element(1, SignedTx) == signed -
 sign_tx(Tx, Pub, Priv, ID, Accounts) ->
     Sig = sign(Tx, Priv),
     N = element(2, Tx),
-    {_, Acc, _Proof} = account:get(N, Accounts),
-    AAddr = account:addr(Acc),
+    {_, Acc, _Proof} = accounts:get(N, Accounts),
+    AAddr = accounts:addr(Acc),
     Addr = pubkey2address(Pub),
     N2 = element(3, Tx),
     ST = if
 	((Addr == AAddr) and (N == ID)) -> 
 	    #signed{data=Tx, sig=Sig, pub=Pub};
 	(N2 == ID) ->
-	    {_, Acc2, _Proof2} = account:get(N2, Accounts),
-	    Addr = account:addr(Acc2),
+	    {_, Acc2, _Proof2} = accounts:get(N2, Accounts),
+	    Addr = accounts:addr(Acc2),
 	    #signed{data=Tx, sig2=Sig, pub2=Pub};
 	true -> {error, <<"cannot sign">>}
     end,
@@ -174,12 +174,12 @@ test() ->
     true = verify_sig(X, Sig, Pub),
     ID1 = 1,
     ID2 = 2,
-    Acc = account:new(ID1, Address, 0, 0),
-    Acc2 = account:new(ID2, Address2, 0, 0),
+    Acc = accounts:new(ID1, Address, 0, 0),
+    Acc2 = accounts:new(ID2, Address2, 0, 0),
     Binary = address2binary(Address),
     Address = binary2address(Binary),
-    Accounts1 = account:write(0, Acc),
-    Accounts = account:write(Accounts1, Acc2),
+    Accounts1 = accounts:write(0, Acc),
+    Accounts = accounts:write(Accounts1, Acc2),
     Tx = {ctc, ID1, ID2},
     Signed1 = sign_tx(Tx, Pub, Priv, ID1, Accounts), 
     Signed = sign_tx(Signed1, Pub2, Priv2, ID2, Accounts),

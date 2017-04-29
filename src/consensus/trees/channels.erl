@@ -1,4 +1,4 @@
--module(channel).
+-module(channels).
 -export([new/8,serialize/1,deserialize/1,update/11,
 	 write/2,get/2,delete/2,root_hash/1,
 	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
