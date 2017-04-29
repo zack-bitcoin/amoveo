@@ -38,7 +38,7 @@ Each account has a tree of oracle bets. Oracle bets are not transferable. Once a
 === shares
 
 Each account has a tree of shares. The shares are stored by share id. The id of a share determines it's difficulty. You can own either a negative, positive, or zero amount of each type of share. Shares are transferable
-[you can read about shares here](docs/shares.md)
+[you can read about shares here](./shares.md)
 
 === proof of burn
 
