@@ -38,9 +38,6 @@ maybe nodes need to advertise their own IP/port combo as a peer?
 It would be nice if there were some macros for chalang/src/compiler_lisp2.erl that did backtracking. that way we wouldn't have to think about control flow when making smart contracts.
 
 
-in the white paper we should explain the centralized and trustless exchanges.
-
-
 Updates for next time we restart at a genesis block:
 
 
