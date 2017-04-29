@@ -3,7 +3,7 @@ Aeternity
 
 A lightning blockchain with oracles.
 
-This is one possible implementatin of the æternity vision: [æternity](https://aeternity.com).
+This is one possible implementation of the æternity vision: [æternity](https://aeternity.com).
 
 ### Compiling and Runing
 You will need Erlang and a couple of libraries. Please follow instructions:
