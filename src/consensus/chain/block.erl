@@ -48,8 +48,8 @@ difficulty(C) ->
     B#block.difficulty.
 %block({Block, _Pow}) ->
 %    Block;
-block(P) when element(1, P) == pow ->
-    pow:data(P);
+%block(P) when element(1, P) == pow ->
+%    pow:data(P);
 block(BP) when is_record(BP, block_plus) ->
     block(BP#block_plus.block);
 block(B) when is_record(B, block) -> B.
@@ -176,12 +176,10 @@ mine2(Block, Times) ->
     ParentPlus = read(PH),
     Trees = ParentPlus#block_plus.trees,
     Difficulty = Block#block.difficulty,
-    Header = block_to_header(Block),
-    
     Governance = trees:governance(Trees),
     BlockReward = governance:get_value(block_reward, Governance),
     MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
-    Pow = pow:pow(Header, MineDiff, Times, constants:hash_size()),
+    Pow = pow:pow(hash(Block), MineDiff, Times, constants:hash_size()),
     Pow.
 %verify({Block, Pow}) ->
 %    Difficulty = Block#block.difficulty,
@@ -250,7 +248,7 @@ check1(BP) ->
 	    Difficulty = Block#block.difficulty,
 	    true = Difficulty >= constants:initial_difficulty(),
 	    PowBlock = BP#block_plus.pow,
-	    Header = block_to_header(Block),
+	    Header = hash(Block),
 	    Header = pow:data(PowBlock),
 	    Governance = trees:governance(Trees),
 	    BlockReward = governance:get_value(block_reward, Governance),
@@ -268,8 +266,7 @@ check1(BP) ->
 check_pow(BP) ->
     Pow = BP#block_plus.pow,
     A = pow:check_pow(Pow, constants:hash_size()),
-    BH = block_to_header(block(BP)), 
-    B = BH == pow:data(Pow),
+    B = hash(BP) == pow:data(Pow),
     A and B.
 check2(BP) ->
     %check that the time is later than the median of the last 100 blocks.
