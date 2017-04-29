@@ -20,7 +20,8 @@ txs(X) ->
     X#block.txs.
 trees_hash(X) ->
     X#block.trees.
-block_to_header(Block) ->
+block_to_header(B) ->
+    Block = block(B),
     Height = Block#block.height,
     PH = Block#block.prev_hash,
     Trees = Block#block.trees,

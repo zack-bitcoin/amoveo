@@ -29,7 +29,11 @@ doit({give_block, SignedBlock}) ->
     {ok, 0};
 doit({block, N}) -> 
     {ok, block:pow_block(block:read_int(N))};
-doit({header, N}) -> {ok, block:block_to_header(block:block(block:read_int(N)))};
+doit({header, N}) -> 
+    {ok, block:block_to_header(block:read_int(N))};
+doit({headers, Many, N}) -> 
+    X = many_headers(Many, N),
+    {ok, X};
     %{ok, block_tree:read_int(N)};
 doit({tophash}) -> {ok, top:doit()};
 %doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
@@ -103,12 +107,14 @@ doit({channel_simplify, SS, SSPK}) ->
 doit({bets}) ->
     free_variables:bets();
 doit({proof, TreeName, ID}) ->
+%here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
+%curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5]' http://localhost:8040
     {Trees, _, _} = tx_pool:data(),
     TN = trees:name(TreeName),
     Root = trees:TN(Trees),
-    {Root, Value, [Proof]} = TN:get(ID, Root),
-    Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
-    {ok, {return, Root, Value, Proof2}};
+    {RootHash, Value, Proof} = TN:get(ID, Root),
+    Proof2 = proof_packer(Proof),
+    {ok, {return, RootHash, Value, Proof2}};
     
 doit({dice, 1, Other, Commit, Amount}) ->
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
@@ -132,5 +138,17 @@ doit(X) ->
     io:fwrite(packer:pack(X)), %unlock2
     {error}.
     
-
+proof_packer(X) when is_tuple(X) ->
+    proof_packer(tuple_to_list(X));
+proof_packer([]) -> [];
+proof_packer([H|T]) ->
+    [proof_packer(H)|proof_packer(T)];
+proof_packer(X) -> X.
+ 
+    %Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
+many_headers(M, N) when M < 1 -> [];
+many_headers(Many, N) ->    
+    [block:block_to_header(block:read_int(N))|
+     many_headers(Many-1, N+1)].
+    
     

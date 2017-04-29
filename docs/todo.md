@@ -1,36 +1,23 @@
-
-merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.
-Alternatively, we could use raw jiffy to encode the proofs.
-
+we need tests for:
+sharing blocks
+mining
+sharing transactions
+channel payments
+channel smart contract
+channel lightning payment
 
 download blocks talk/1 seems useless. talker:talk is accomplishing the same goal.
-
-
-the oracle needs to be able to update the variables that define the protocol
-
 
 It is possible to use channel_slash to store data in a channel such that the channel can't be closed with a channel_timeout.
 Maybe this is a mistake.
 
-
-We should download headers in batches, it would be much faster.
-
 javascript light wallets need to be able to do all the channel stuff that full nodes do.
 
 It is currently possible for an attacker to trick us into ignoring a good block. They trick us into storing a good blocks hash into block_hashes. They give us a good block's header, but mix in some bad transactions, or censor a transaction, or they don't give us some of the merkel tree we need to verify the transactions.
-To fix this, each header should contain a hash of all the transactions. We should include the signatures in this hash. This gives us a guarantee that all the data is available at block:check1.
-
-We need a way to close a channel when your partner refuses to sign any SPK. It can either be a new tx type, or we can make solo_close more complex.
-
 
 constants:difficulty_bits() might be too big.
 
 
-the new way of doing channel slash has a different problem.
-We need the channel to finish at the highest nonce possible. The third party could be bribed to choose a different final state.
-We need some way to do the channel_slash transaction again and again, until a higher nonce cannot be found.
-Each slasher puts up a deposit, and takes the deposit of the previous.
-If the same channel_slash exists for a long enough time period, then anyone can do a channel_timeout transaction, to close the channel.
 We need to also add a way for the two parties to work together to close the channel early, so they don't have to wait to do a timeout_tx. We can either make a new tx, or make channel_team_close more complicated.
 
 
