@@ -3,7 +3,7 @@ Aeternity
 
 A blockchain for trustless markets and financial derivatives.
 
-This code will be used by [æternity](https://aeternity.com).
+This is one possible implementatin of the æternity vision: [æternity](https://aeternity.com).
 
 ### Compiling and Runing
 You will need Erlang and a couple of libraries. Please follow instructions:
@@ -77,4 +77,4 @@ easy:off().
 
 
 ### Else
-If you want to know more, get in touch with us via [Gitter Chat](https://github.com/zack-bitcoin/testnet)
+If you want to know more, get in touch with us via [Slack](http://slack.aeternity.com)
