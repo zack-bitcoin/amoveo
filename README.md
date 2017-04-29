@@ -1,7 +1,7 @@
 Aeternity
 ==========
 
-A blockchain for trustless markets and financial derivatives.
+A lightning blockchain with oracles.
 
 This is one possible implementatin of the æternity vision: [æternity](https://aeternity.com).
 
