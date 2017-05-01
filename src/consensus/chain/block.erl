@@ -126,9 +126,6 @@ absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
 		NM = account:new(ID, Address, BlockReward + TransactionFees, Height),
 		account:write(OldAccounts, NM);
 	    MB -> %If you already have an account.
-		io:fwrite("MB is "),
-		io:fwrite(integer_to_list(MB)),
-		io:fwrite("\n"),
 		{_, Acc, _} = account:get(MB, OldAccounts),
 		false = Acc == empty,
 		TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
