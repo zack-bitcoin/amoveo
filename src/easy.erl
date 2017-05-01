@@ -70,7 +70,8 @@ repo_account(ID, Fee) ->
 new_channel(Bal1, Bal2) ->
     new_channel(Bal1, Bal2, ?Fee, 10).
 new_channel(Bal1, Bal2, Fee, Delay) ->
-    {_,Channels, _,_} = tx_pool:data(),
+    {Trees, _,_} = tx_pool:data(),
+    Channels = trees:channels(Trees),
     CID = new_channel2(1, Channels),
     B1 = to_int(Bal1),
     B2 = to_int(Bal2),
@@ -79,7 +80,7 @@ new_channel(Bal1, Bal2, Fee, Delay) ->
 		CID, B1, B2, Fee, Delay).
 new_channel2(ID, Channels) ->
     <<X:8>> = crypto:strong_rand_bytes(1),
-    case channel:get(ID+X, Channels) of
+    case channels:get(ID+X, Channels) of
 	{_, empty, _} -> ID+X;
 	X -> new_channel2(ID+256, Channels)
     end.
@@ -120,11 +121,13 @@ integer_channel_balance() ->
     SSPK = channel_feeder:them(CD),
     SPK = testnet_sign:data(SSPK),
     SS = channel_feeder:script_sig_them(CD),
-    {Accounts, Channels, NewHeight, _Txs} = tx_pool:data(),
+    {Trees, NewHeight, _Txs} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    Channels = trees:accounts(Trees),
     {Amount, _} = spk:run(fast, SS, SPK, NewHeight, 0, Accounts, Channels),
     CID = spk:cid(SPK),
-    {_, Channel, _} = channel:get(CID, Channels),
-    channel:bal1(Channel)-Amount.
+    {_, Channel, _} = channels:get(CID, Channels),
+    channels:bal1(Channel)-Amount.
 dice(Amount) ->
     unlocked = keys:status(),
     A = to_int(Amount),
@@ -219,7 +222,8 @@ oracle_unmatched(Fee, OracleID, OrderID) ->
     tx_maker(F).
 
 account(ID) ->
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     case account:get(ID, Accounts) of
 	{_,empty,_} ->
 	    io:fwrite("this account does not yet exist\n"),
