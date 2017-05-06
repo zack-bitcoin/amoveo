@@ -262,7 +262,7 @@ check1(BP) ->
 	    true = Difficulty >= constants:initial_difficulty(),
 	    true = check_pow(BP),
 	    PowBlock = BP#block_plus.pow,
-	    Header = testnet_hasher:doit(block_to_header(Block)),
+	    Header = hash(Block),
 	    Header = pow:data(PowBlock),
 	    true = Block#block.time < time_now(),
 	    {BH, Block#block.prev_hash}
@@ -274,14 +274,11 @@ check_pow(BP) ->
     Pow = BP#block_plus.pow,
     A = pow:check_pow(Pow, constants:hash_size()),
     B = hash(BP) == pow:data(Pow),
-    %io:fwrite({A, B, Pow, hash(BP)}),
     A and B.
 
 check2(BP) ->
     %check that the time is later than the median of the last 100 blocks.
 
-    %io:fwrite(packer:pack(BP)),
-    %io:fwrite("check2, \n"),
     %check2 assumes that the parent is in the database already.
     Block = block(BP),
     true = Block#block.magic == constants:magic(),
@@ -301,7 +298,7 @@ check2(BP) ->
     MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
     Pow = BP#block_plus.pow,
     Header = pow:data(Pow),
-    Header = testnet_hasher:doit(block_to_header(Block)),
+    Header = hash(Block),
     true = pow:above_min(Pow, MineDiff, constants:hash_size()),
     B = size(term_to_binary(Block#block.txs)),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
@@ -311,9 +308,6 @@ check2(BP) ->
     ML = median_last(PH, BTAM),
     true = Block#block.time > ML,
     Height = Block#block.height,
-    %BCM = governance:get_value(block_creation_maturity, Governance),
-    %BlocksAgo = Height - BCM,
-    %MB = mine_block_ago(BlocksAgo),
     true = (Height-1) == Prev#block.height,
     TreeHash = Block#block.trees,
     Trees = absorb_txs(ParentPlus, Height, Block#block.txs),
@@ -323,7 +317,6 @@ check2(BP) ->
         case MTB of
 	    {ID, MyAddress} ->
 		    keys:update_id(ID);
-	        %because of hash_check, this function is only run once per block. 
 	    _ -> ok
 	end,
         BP#block_plus{block = Block, trees = Trees, accumulative_difficulty = next_acc(ParentPlus, Block#block.difficulty), prev_hashes = prev_hashes(hash(Prev))}.
@@ -333,7 +326,6 @@ mine_block_ago(Height) when Height < 1 ->
 mine_block_ago(Height) ->
     BP = block:read_int(Height),
     Block = block(BP),
-    %Block = pow:data(BP#block_plus.block),
     Block#block.mines_block.
 
 median_last(BH, N) ->
@@ -344,7 +336,6 @@ block_times(<<0:96>>, N) ->
 block_times(H, N) ->
     BP = block:read(H),
     Block = block(BP),
-    %Block = pow:data(BP#block_plus.block),
     BH2 = Block#block.prev_hash,
     T = Block#block.time,
     [T|block_times(BH2, N-1)].
