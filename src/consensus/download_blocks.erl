@@ -28,7 +28,7 @@ sync(IP, Port, MyHeight) ->
     %lower their ranking
     %peers:update_score(IP, Port, peers:initial_score()),
     io:fwrite("top of sync\n"),
-    S = erlang:timestamp(),
+    %S = erlang:timestamp(),
     talk({top}, IP, Port, 
 	 fun(X) ->
 		 io:fwrite("top returned"),
@@ -45,6 +45,8 @@ sync(IP, Port, MyHeight) ->
 				 io:fwrite("HH < Height\n"),
 				 talk({block, HH}, IP, Port,
 				      fun(Y) -> 
+					      %io:fwrite("got block is "),
+					      %io:fwrite(packer:pack(Y)),
 					      trade_blocks(IP, Port, [Y], HH)
 						    end);
 				 %trade_blocks(IP, Port, [Block], HH);
@@ -54,9 +56,9 @@ sync(IP, Port, MyHeight) ->
 				 get_txs(IP, Port)
 				     
 			 end,
-			 trade_peers(IP, Port),
-			 Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
-			 Score = abs(Time)*(1+abs(Height - MyHeight));
+			 trade_peers(IP, Port);
+			 %Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
+			 %Score = abs(Time)*(1+abs(Height - MyHeight));
 		     X -> io:fwrite(X)
 		 end
 	 end).
@@ -74,9 +76,9 @@ get_blocks(Height, N, IP, Port, L) ->
 trade_blocks(_IP, _Port, L, 1) ->
     io:fwrite("trade blocks"),
     sync3(L);
-    %sync3(get_blocks(1, 100, IP, Port, [])++L);
+    %sync3(gt_blocks(1, 100, IP, Port, [])++L);
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
-    io:fwrite("trade blocks"),
+    %io:fwrite("trade blocks"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
@@ -134,9 +136,9 @@ talk(_, _, _, _, 0) ->
     io:fwrite("talk error \n"),
     error;
 talk(CMD, IP, Port, F, N) ->
-    io:fwrite("talk number "),
-    io:fwrite(integer_to_list(N)),
-    io:fwrite("\n"),
+    %io:fwrite("talk number "),
+    %io:fwrite(integer_to_list(N)),
+    %io:fwrite("\n"),
     case talker:talk(CMD, IP, Port) of
 	{error, failed_connect} -> talk(CMD, IP, Port, F, N-1);
 	{ok, X} -> F(X);

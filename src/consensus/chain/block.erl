@@ -2,7 +2,7 @@
 -export([hash/1,check2/1,test/0,mine_test/0,genesis/0,
 	 make/3,mine/2,height/1,
 	 read/1,binary_to_file/1,block/1,prev_hash/2,
-	 prev_hash/1,read_int/1,check1/1,pow_block/1,
+	 prev_hash/1,read_int/1,check1/1,
 	 mine_blocks/2, hashes/1, block_to_header/1,
 	 median_last/2, trees/1, trees_hash/1,
 	 guess_number_of_cpu_cores/0, difficulty/1,
@@ -12,16 +12,16 @@
 -record(block, {height, prev_hash, txs, trees, 
 		mines_block, time, 
 		difficulty, comment = <<>>,
-		magic = constants:magic()}).
-
--record(block_plus, {block, pow, trees, accumulative_difficulty = 0, prev_hashes = {prev_hashes}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
+		magic = constants:magic()}).%tries: txs, channels, census, 
+-record(block_plus, {block, pow, trees, accumulative_difficulty = 0, prev_hashes = {}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
 %this gets wrapped in a signature and then wrapped in a pow.
 txs(X) ->
     X#block.txs.
 trees_hash(X) ->
     X#block.trees.
-block_to_header(Block) ->
+block_to_header(B) ->
+    Block = block(B),
     Height = Block#block.height,
     PH = Block#block.prev_hash,
     Trees = Block#block.trees,
@@ -49,14 +49,14 @@ difficulty(C) ->
     B#block.difficulty.
 %block({Block, _Pow}) ->
 %    Block;
-block(P) when element(1, P) == pow ->
-    pow:data(P);
+%block(P) when element(1, P) == pow ->
+%    pow:data(P);
 block(BP) when is_record(BP, block_plus) ->
     block(BP#block_plus.block);
 block(B) when is_record(B, block) -> B.
-pow_block(B) when element(1, B) == pow -> B;
-pow_block(BP) when is_record(BP, block_plus) ->
-    pow_block(BP#block_plus.block).
+%pow_block(B) when element(1, B) == pow -> B;
+%pow_block(BP) when is_record(BP, block_plus) ->
+%    pow_block(BP#block_plus.block).
 trees(Block) ->
     Block#block_plus.trees.
 height(X) ->
@@ -68,7 +68,7 @@ prev_hashes(PH) ->
 prev_hashes([PH|Hashes], Height, N) ->
     NHeight = Height - N,
     if
-	NHeight < 1 -> list_to_tuple([prev_hashes|lists:reverse([PH|Hashes])]);
+	NHeight < 1 -> list_to_tuple(lists:reverse([PH|Hashes]));
 	true ->
 	    B = read_int(NHeight, PH),
 	    prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
@@ -78,12 +78,12 @@ prev_hashes([PH|Hashes], Height, N) ->
 prev_hash(0, BP) ->
     prev_hash(BP);
 prev_hash(N, BP) ->%N=0 should be the same as prev_hash(BP)
-    element(N+1, BP#block_plus.prev_hashes).
+    element(N, BP#block_plus.prev_hashes).
 prev_hash(X) -> 
     B = block(X),
     B#block.prev_hash.
 hash(X) -> 
-    testnet_hasher:doit(term_to_binary(block_to_header(block(X)))).
+    testnet_hasher:doit(block_to_header(block(X))).
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
@@ -95,10 +95,10 @@ genesis_maker() ->
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
     TreeRoot = trees:root_hash(Trees),
-    Block = {block,0,<<0:(8*constants:hash_size())>>,[], TreeRoot,
+    Block = {pow,{block,0,<<0:(8*constants:hash_size())>>,[], TreeRoot,
 		  1,0,4080, <<>>, constants:magic()},
-    Pow = {pow, <<>>, 4080, 44358461744572027408730},
-    #block_plus{block = Block, trees = Trees, pow = Pow}.
+	     4080,44358461744572027408730},
+    #block_plus{block = Block, trees = Trees}.
 genesis() ->
 {block_plus,{block,0,
                    <<0,0,0,0,0,0,0,0,0,0,0,0>>,
@@ -109,31 +109,51 @@ genesis() ->
             {trees,1,0,0,0,0,38},
             0,
             {prev_hashes}}.
-     
-absorb_txs(PrevPlus, MinesBlock, Height, Txs, BlocksAgo) ->
+block_reward(Trees, Height, ID) -> 
+    OldAccounts = trees:accounts(Trees),
+    Governance = trees:governance(Trees),
+    BCM = governance:get_value(block_creation_maturity, Governance),
+    BlocksAgo = Height - BCM,
+    TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
+    BlockReward = governance:get_value(block_reward, Governance),
+    NM = account:update(ID, Trees, ((BlockReward * 92) div 100) + TransactionFees, none, Height),
+    NM2 = account:update(1, Trees, ((BlockReward * 8) div 100), none, Height),
+    account:write(
+      account:write(OldAccounts, NM2),
+      NM).
+    
+absorb_txs(PrevPlus, Height, Txs) ->
     Trees = PrevPlus#block_plus.trees,
     OldAccounts = trees:accounts(Trees),
     Governance = trees:governance(Trees),
-    BlockReward = governance:get_value(block_reward, Governance),
+    %BlockReward = governance:get_value(block_reward, Governance),
+    BCM = governance:get_value(block_creation_maturity, Governance),
+    BlocksAgo = Height - BCM,
+    MinesBlock = mine_block_ago(BlocksAgo),
     NewAccounts = 
 	case MinesBlock of
 	    -1 ->
 		OldAccounts;
 	    {ID, Address} -> %for miners who don't yet have an account.
-		{_, empty, _} = account:get(ID, OldAccounts),
-		%We should also give the miner the sum of the transaction fees.
-		TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
-		NM = account:new(ID, Address, BlockReward + TransactionFees, Height),
-		account:write(OldAccounts, NM);
+		{_, Acc, _} = account:get(ID, OldAccounts),
+		Trees3 = 
+		    case Acc of
+			empty ->
+			    NM = account:new(ID, Address, 0, Height),
+			    Accounts2 = account:write(NM, OldAccounts),
+			    trees:accounts_update(Trees, Accounts2);
+			_ ->
+			    Trees
+		    end,
+		    block_reward(Trees3, Height, ID);
 	    MB -> %If you already have an account.
-		{_, Acc, _} = account:get(MB, OldAccounts),
-		false = Acc == empty,
-		TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
-		NM = account:update(MB, Trees, ((BlockReward * 92) div 100) + TransactionFees, none, Height),
-		NM2 = account:update(1, Trees, (BlockReward * 8) div 100, none, Height),
-		account:write(
-		  account:write(OldAccounts, NM2),
-		  NM)
+		{_, OldAcc, _} = account:get(MB, OldAccounts),
+		MB2 = 
+		    case OldAcc of
+		    empty -> 1;
+		    _ -> MB
+		end,
+		block_reward(Trees, Height, MB2)
 	end,
     NewTrees = trees:update_accounts(Trees, NewAccounts),
     txs:digest(Txs, 
@@ -145,12 +165,12 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
     Parent = block(ParentPlus),
     %Parent = pow:data(ParentPlus#block_plus.block),
     Height = Parent#block.height + 1,
-    Trees0 = ParentPlus#block_plus.trees,
-    Governance = trees:governance(Trees0),
-    BCM = governance:get_value(block_creation_maturity, Governance),
-    BlocksAgo = Height - BCM,
-    MB = mine_block_ago(BlocksAgo),
-    NewTrees = absorb_txs(ParentPlus, MB, Height, Txs, BlocksAgo),
+    %Trees0 = ParentPlus#block_plus.trees,
+    %Governance = trees:governance(Trees0),
+    %BCM = governance:get_value(block_creation_maturity, Governance),
+    %BlocksAgo = Height - BCM,
+    %MB = mine_block_ago(BlocksAgo),
+    NewTrees = absorb_txs(ParentPlus, Height, Txs),
     NextDifficulty = next_difficulty(ParentPlus),
     #block_plus{
        block = 
@@ -172,21 +192,17 @@ mine(BP, Times) when is_record(BP, block_plus) ->
     Block = BP#block_plus.block,
     case mine2(Block, Times) of
 	false -> false;
-	Pow -> 
-	    io:fwrite("found block"),
-	    BP#block_plus{pow = Pow}
+	Pow -> BP#block_plus{pow = Pow}
     end.
 mine2(Block, Times) ->
     PH = Block#block.prev_hash,
     ParentPlus = read(PH),
     Trees = ParentPlus#block_plus.trees,
     Difficulty = Block#block.difficulty,
-    Header = block_to_header(Block),
-    
     Governance = trees:governance(Trees),
     BlockReward = governance:get_value(block_reward, Governance),
     MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
-    Pow = pow:pow(testnet_hasher:doit(Header), MineDiff, Times, constants:hash_size()),
+    Pow = pow:pow(hash(Block), MineDiff, Times, constants:hash_size()),
     Pow.
 %verify({Block, Pow}) ->
 %    Difficulty = Block#block.difficulty,
@@ -234,16 +250,17 @@ retarget2(Hash, N, L) ->
     T = B#block.time,
     H = B#block.prev_hash,
     retarget2(H, N-1, [T|L]).
-   
-check1(BP) -> 
+check1(BP) ->    
     BH = hash(BP),
     GH = hash(genesis()),
     if
-	BH == GH -> {BH, 0};
-	true ->
+	BH == GH ->
+	    {BH, 0};
+	true ->    
 	    Block = block(BP),
 	    Difficulty = Block#block.difficulty,
 	    true = Difficulty >= constants:initial_difficulty(),
+	    true = check_pow(BP),
 	    PowBlock = BP#block_plus.pow,
 	    Header = testnet_hasher:doit(block_to_header(Block)),
 	    Header = pow:data(PowBlock),
@@ -256,18 +273,16 @@ check1(BP) ->
 check_pow(BP) ->
     Pow = BP#block_plus.pow,
     A = pow:check_pow(Pow, constants:hash_size()),
-    BH = block_to_header(block(BP)), 
-    B = testnet_hasher:doit(BH) == pow:data(Pow),
+    B = hash(BP) == pow:data(Pow),
+    %io:fwrite({A, B, Pow, hash(BP)}),
     A and B.
+
 check2(BP) ->
     %check that the time is later than the median of the last 100 blocks.
 
     %io:fwrite(packer:pack(BP)),
     %io:fwrite("check2, \n"),
     %check2 assumes that the parent is in the database already.
-    true = check_pow(BP),
-    %PowBlock = pow_block(BP),
-    %true = pow:check_pow(PowBlock, constants:hash_size()),
     Block = block(BP),
     true = Block#block.magic == constants:magic(),
     Difficulty = Block#block.difficulty,
@@ -291,27 +306,27 @@ check2(BP) ->
     B = size(term_to_binary(Block#block.txs)),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
     true = B < MaxBlockSize,
-
+    
     BTAM = governance:get_value(block_time_after_median, Governance),
     ML = median_last(PH, BTAM),
     true = Block#block.time > ML,
     Height = Block#block.height,
-    BCM = governance:get_value(block_creation_maturity, Governance),
-    BlocksAgo = Height - BCM,
-    MB = mine_block_ago(BlocksAgo),
+    %BCM = governance:get_value(block_creation_maturity, Governance),
+    %BlocksAgo = Height - BCM,
+    %MB = mine_block_ago(BlocksAgo),
     true = (Height-1) == Prev#block.height,
     TreeHash = Block#block.trees,
-    Trees = absorb_txs(ParentPlus, MB, Height, Block#block.txs, BlocksAgo),
+    Trees = absorb_txs(ParentPlus, Height, Block#block.txs),
     TreeHash = trees:root_hash(Trees),
     MyAddress = keys:address(),
     MTB = Block#block.mines_block,
-    case MTB of
-	{ID, MyAddress} ->
-	    keys:update_id(ID);
-	    %because of hash_check, this function is only run once per block. 
-	_ -> ok
-    end,
-    BP#block_plus{block = Block, trees = Trees, accumulative_difficulty = next_acc(ParentPlus, Block#block.difficulty), prev_hashes = prev_hashes(hash(Prev))}.
+        case MTB of
+	    {ID, MyAddress} ->
+		    keys:update_id(ID);
+	        %because of hash_check, this function is only run once per block. 
+	    _ -> ok
+	end,
+        BP#block_plus{block = Block, trees = Trees, accumulative_difficulty = next_acc(ParentPlus, Block#block.difficulty), prev_hashes = prev_hashes(hash(Prev))}.
 
 mine_block_ago(Height) when Height < 1 ->
     -1;
