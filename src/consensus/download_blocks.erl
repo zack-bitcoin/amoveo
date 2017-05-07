@@ -27,11 +27,11 @@ sync_all([{IP, Port}|T], Height) ->
 sync(IP, Port, MyHeight) ->
     %lower their ranking
     %peers:update_score(IP, Port, peers:initial_score()),
-    io:fwrite("top of sync\n"),
+    %io:fwrite("top of sync\n"),
     %S = erlang:timestamp(),
     talk({top}, IP, Port, 
 	 fun(X) ->
-		 io:fwrite("top returned"),
+		 %io:fwrite("top returned"),
 		 case X of
 		     {error, failed_connect} -> 
 			 io:fwrite("failed connect"),
@@ -51,7 +51,6 @@ sync(IP, Port, MyHeight) ->
 						    end);
 				 %trade_blocks(IP, Port, [Block], HH);
 			     true ->
-				 io:fwrite("trade blocks 1\n"),
 				 trade_blocks(IP, Port, [TopBlock], Height),
 				 get_txs(IP, Port)
 				     
