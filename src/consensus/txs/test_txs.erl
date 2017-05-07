@@ -509,6 +509,7 @@ test(11) ->
     {Tx3, _} = oracle_close_tx:make(1,Fee, OID, Trees3),
     Stx3 = keys:sign(Tx3, Accounts3),
     absorb(Stx3),
+    timer:sleep(100),
 
     {Trees4, _, _} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),

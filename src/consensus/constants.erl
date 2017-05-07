@@ -13,8 +13,9 @@ trie_size() ->
 initial_coins() -> 1080000000000.
 block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
-initial_difficulty() -> 12*256.%for testing purposes only
+initial_difficulty() -> 
 %6452.
+5000.%for testing only.
 difficulty_bits() -> 24.
 
 hash_size() -> 12.
@@ -142,7 +143,7 @@ peers() ->
     [].%[{IP, Port}| ...]
 comment_limit() -> %When a miner mines a block, they can set this many bytes to whatever they want.
     140.
-magic() -> 1.
+magic() -> 2.
 magic_bits() -> 16.%so we can update it more than 60000 times.
 server_ip() -> {46,101,103,165}.
 server_port() -> 8080.

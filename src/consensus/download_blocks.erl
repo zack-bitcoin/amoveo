@@ -25,24 +25,29 @@ sync_all([{IP, Port}|T], Height) ->
     %timer:sleep(3000),
     sync_all(T, Height).
 sync(IP, Port, MyHeight) ->
-    io:fwrite("syncing with peer"),
     %lower their ranking
     %peers:update_score(IP, Port, peers:initial_score()),
-    S = erlang:timestamp(),
-    io:fwrite("check top"),
+    %io:fwrite("top of sync\n"),
+    %S = erlang:timestamp(),
     talk({top}, IP, Port, 
 	 fun(X) ->
+		 %io:fwrite("top returned"),
 		 case X of
 		     {error, failed_connect} -> 
 			 io:fwrite("failed connect"),
 			 ok;
 		     {ok, TopBlock, Height}  ->
+			 %io:fwrite("got topblock\n"),
 			 HH = MyHeight + 100,
 			 if
 			     HH < Height ->
 				 %{ok, Block} = talker:talk({block, HH}, IP, Port),
+				 io:fwrite("HH < Height\n"),
 				 talk({block, HH}, IP, Port,
-				      fun(Y) -> trade_blocks(IP, Port, [Y], HH)
+				      fun(Y) -> 
+					      %io:fwrite("got block is "),
+					      %io:fwrite(packer:pack(Y)),
+					      trade_blocks(IP, Port, [Y], HH)
 						    end);
 				 %trade_blocks(IP, Port, [Block], HH);
 			     true ->
@@ -50,9 +55,9 @@ sync(IP, Port, MyHeight) ->
 				 get_txs(IP, Port)
 				     
 			 end,
-			 trade_peers(IP, Port),
-			 Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
-			 Score = abs(Time)*(1+abs(Height - MyHeight));
+			 trade_peers(IP, Port);
+			 %Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
+			 %Score = abs(Time)*(1+abs(Height - MyHeight));
 		     X -> io:fwrite(X)
 		 end
 	 end).
@@ -68,9 +73,11 @@ get_blocks(Height, N, IP, Port, L) ->
 	 end).
     
 trade_blocks(_IP, _Port, L, 1) ->
+    io:fwrite("trade blocks"),
     sync3(L);
-    %sync3(get_blocks(1, 100, IP, Port, [])++L);
+    %sync3(gt_blocks(1, 100, IP, Port, [])++L);
 trade_blocks(IP, Port, [PrevBlock|L], Height) ->
+    %io:fwrite("trade blocks"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
@@ -111,12 +118,11 @@ send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
 send_blocks2(_, _, []) -> ok;
 send_blocks2(IP, Port, [Block|T]) -> 
     %io:fwrite("give block !!!!!!!"),
-    talker:talk({give_block, block:pow_block(Block)}, IP, Port),
+    talker:talk({give_block, Block}, IP, Port),
     send_blocks2(IP, Port, T).
     
 sync3([]) -> ok;
 sync3([B|T]) -> 
-    %io:fwrite("sync 3\n"),
     block_absorber:doit(B),
     sync3(T).
 absorb_txs([]) -> ok;
@@ -125,8 +131,13 @@ absorb_txs([H|T]) ->
     absorb_txs(T).
 talk(CMD, IP, Port, F) ->
     talk(CMD, IP, Port, F, 5).
-talk(_, _, _, _, 0) -> error;
+talk(_, _, _, _, 0) -> 
+    io:fwrite("talk error \n"),
+    error;
 talk(CMD, IP, Port, F, N) ->
+    %io:fwrite("talk number "),
+    %io:fwrite(integer_to_list(N)),
+    %io:fwrite("\n"),
     case talker:talk(CMD, IP, Port) of
 	{error, failed_connect} -> talk(CMD, IP, Port, F, N-1);
 	{ok, X} -> F(X);
@@ -139,7 +150,7 @@ get_txs(IP, Port) ->
     talk({txs}, IP, Port, 
 	 fun(X) ->
 		 absorb_txs(X),
-		 {_,_,_,Mine} = tx_pool:data(),
+		 {_,_,Mine} = tx_pool:data(),
 		 talker:talk({txs, Mine}, IP, Port)
 	 end).
 trade_peers(IP, Port) ->

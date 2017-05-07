@@ -1,6 +1,5 @@
 #if you want to use a different port, then start like this:
 # sh start 3666
-#git pull origin experimental
 
 #./rebar get-deps
 sh clean.sh #this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.

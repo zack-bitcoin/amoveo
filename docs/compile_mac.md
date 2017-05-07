@@ -9,6 +9,12 @@ brew install erlang
 brew install rebar
 ```
 
+Use git to download the software, then go into the testnet directory
+```
+git clone https://github.com/aeternity/testnet.git
+cd testnet
+```
+
 now use rebar to get and compile Aeternity:
 
 ```
