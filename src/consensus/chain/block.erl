@@ -140,8 +140,8 @@ absorb_txs(PrevPlus, Height, Txs) ->
 		    case Acc of
 			empty ->
 			    NM = account:new(ID, Address, 0, Height),
-			    Accounts2 = account:write(NM, OldAccounts),
-			    trees:accounts_update(Trees, Accounts2);
+			    Accounts2 = account:write(OldAccounts, NM),
+			    trees:update_accounts(Trees, Accounts2);
 			_ ->
 			    Trees
 		    end,
