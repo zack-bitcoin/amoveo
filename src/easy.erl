@@ -70,7 +70,8 @@ repo_account(ID, Fee) ->
 new_channel(Bal1, Bal2) ->
     new_channel(Bal1, Bal2, ?Fee, 10).
 new_channel(Bal1, Bal2, Fee, Delay) ->
-    {_,Channels, _,_} = tx_pool:data(),
+    {Trees, _,_} = tx_pool:data(),
+    Channels = trees:channels(Trees),
     CID = new_channel2(1, Channels),
     B1 = to_int(Bal1),
     B2 = to_int(Bal2),
@@ -120,7 +121,9 @@ integer_channel_balance() ->
     SSPK = channel_feeder:them(CD),
     SPK = testnet_sign:data(SSPK),
     SS = channel_feeder:script_sig_them(CD),
-    {Accounts, Channels, NewHeight, _Txs} = tx_pool:data(),
+    {Trees, NewHeight, _Txs} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    Channels = trees:accounts(Trees),
     {Amount, _} = spk:run(fast, SS, SPK, NewHeight, 0, Accounts, Channels),
     CID = spk:cid(SPK),
     {_, Channel, _} = channels:get(CID, Channels),
@@ -219,7 +222,8 @@ oracle_unmatched(Fee, OracleID, OrderID) ->
     tx_maker(F).
 
 account(ID) ->
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     case accounts:get(ID, Accounts) of
 	{_,empty,_} ->
 	    io:fwrite("this account does not yet exist\n"),

@@ -10,7 +10,6 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    ssl:start(),
     application:start(inets),
     testnet_sup:start_link().
 
