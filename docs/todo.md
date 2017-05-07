@@ -6,6 +6,10 @@ channel payments
 channel smart contract
 channel lightning payment
 
+merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.
+Alternatively, we could use raw jiffy to encode the proofs.
+
+
 download blocks talk/1 seems useless. talker:talk is accomplishing the same goal.
 
 It is possible to use channel_slash to store data in a channel such that the channel can't be closed with a channel_timeout.

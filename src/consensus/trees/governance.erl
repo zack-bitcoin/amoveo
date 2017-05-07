@@ -33,7 +33,7 @@ genesis_state() ->
 	 [oracle_initial_liquidity, 1728],
 	 [minimum_oracle_time, 1],%for testing
 	 %[minimum_oracle_time, 352],
-	 [maximum_oracle_time, 1],
+	 [maximum_oracle_time, 1],%for testing
 	 %[maximum_oracle_time, 505],
 	 [maximum_question_size, 352],
 	 [block_time_after_median, 100],

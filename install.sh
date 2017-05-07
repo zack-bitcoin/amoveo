@@ -5,18 +5,19 @@ then
 elif [ `uname -s`==Linux ]
 then
     wget https://raw.githubusercontent.com/wiki/rebar/rebar/rebar && chmod u+x rebar
-#elif [ `uname -s`==Darwin ]
-#then
+    ./rebar get
+    ./rebar compile
+elif [ `uname -s`==Darwin ]
+then
 #    curl https://raw.githubusercontent.com/wiki/rebar/rebar/rebar -o rebar
 #    chmod u+x rebar
-
+    rebar get
+    rebar compile
 else
     echo "your computer cannot compile this"
 fi
 
 #use rebar to install other dependencies, explained in rebar.config
-./rebar get
-./rebar compile
 
 sh clean.sh #this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.
 
