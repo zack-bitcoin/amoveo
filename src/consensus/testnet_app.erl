@@ -11,6 +11,7 @@
 
 start(_StartType, _StartArgs) ->
     application:start(inets),
+    inets:start(),
     testnet_sup:start_link().
 
 
