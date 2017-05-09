@@ -48,7 +48,7 @@ doit({close_channel, IP, Port}) ->
     {Trees,_,_} = tx_pool:data(),
     Height = block:height(block:read(top:doit())),
     SS = channel_feeder:script_sig_them(CD),
-    {Amount, _, _} = spk:run(fast, SS, SPK, Height, Trees),
+    {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = spk:cid(SPK),
     Fee = free_constants:tx_fee(),
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),

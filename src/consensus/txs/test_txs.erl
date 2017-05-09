@@ -24,7 +24,7 @@ test() ->
     S.
 absorb(Tx) -> 
     tx_pool_feeder:absorb(Tx),
-    timer:sleep(400).
+    timer:sleep(100).
 test(1) ->
     io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
@@ -41,7 +41,6 @@ test(1) ->
     absorb(Stx),
     {Trees2,  _, _} = tx_pool:data(),
     Accounts2 = trees:accounts(Trees2),
-    timer:sleep(200),
     {Ctx2, _} = spend_tx:make(2, 10, Fee, 1, Trees2, []),
     Stx2 = keys:sign(Ctx2, Accounts2),
     absorb(Stx2),

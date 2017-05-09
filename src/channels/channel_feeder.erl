@@ -97,21 +97,23 @@ handle_cast
 (_, X) -> {noreply, X}.
 handle_call({spend, SSPK, Amount}, _From, X) ->
 %giving us money in the channel.
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     OldSPK = OldCD#cd.me,
-    SPK = spk:get_paid(testnet_sign:data(OldSPK), keys:id(), Amount),
+    SPK = spk:get_paid(OldSPK, keys:id(), Amount),
     Return = keys:sign(SPK, Accounts),
     NewCD = OldCD#cd{them = SSPK, me = Return},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
 handle_call({update_to_me, SSPK}, _From, X) ->
     %this updates our partner's side of the channel state to include the bet that we already included.
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     MyID = keys:id(),
     SPK = testnet_sign:data(SSPK),
     Acc1 = spk:acc1(SPK),
@@ -132,7 +134,8 @@ handle_call({make_bet, Other, Name, Vars, Secret}, _From, X) ->
     {reply, Z, X};
 handle_call({agree_bet, Name, SSPK, Vars, Secret}, _From, X) ->
     %This is like make_bet and update_bet_to_me combined
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
@@ -143,7 +146,8 @@ handle_call({make_simplification, Other, Name, OtherSS}, _From, X) ->
     Z = make_simplification_internal(Other, Name, OtherSS),
     {reply, Z, X};
 handle_call({agree_simplification, Name, SSPK, OtherSS}, _From, X) ->
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     Other = other(SPK),
@@ -154,7 +158,8 @@ handle_call(_, _From, X) -> {reply, X, X}.
 update_to_me_internal(OurSPK, SSPK) ->
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(OurSPK),
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
@@ -169,11 +174,13 @@ make_simplification_internal(Other, dice, OtherSS) ->
     SPK = testnet_sign:data(Them),
     Acc1 = spk:acc1(SPK),
     Acc2 = spk:acc2(SPK),
-    {Accounts, Channels,_,_} = tx_pool:data(),
-    {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, OtherSS, SPK, Acc1, Acc2, Accounts, Channels),
+    {Trees,_,_} = tx_pool:data(),
+    
+    {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, OtherSS, SPK, Acc1, Acc2, Trees),
     NewSPK = spk:settle_bet(SPK, [], Amount),
     NewCD = OldCD#cd{me = NewSPK, ssme = []},
     channel_manager:write(Other, NewCD),
+    Accounts = trees:accounts(Trees),
     {keys:sign(NewSPK, Accounts), OurSecret}.%we should also return our secret.
 
 make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by the channel_feeder gen_server, because it updates the channel_manager.
@@ -187,7 +194,8 @@ make_bet_internal(Other, dice, Vars, Secret) ->%this should only be called by th
     OldSPK = testnet_sign:data(Them),
     Bets = free_constants:bets(),
     SPK = get_bet(dice, Bets, Vars, OldSPK),
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     SSme = dice:make_ss(SPK, Secret),
     NewCD = OldCD#cd{me = SPK, ssme = [SSme]},
     channel_manager:write(Other, NewCD),
@@ -285,7 +293,7 @@ get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
     {Trees,_,_} = tx_pool:data(),
     Channels = trees:channels(Trees),
     {_, OldChannel, _} = channels:get(CID, Channels),
-    0 = channels:rent(OldChannel),%otherwise they could attack us by making a bet where the amount they could lose is slightly smaller.
+    %0 = channels:rent(OldChannel),%otherwise they could attack us by making a bet where the amount they could lose is slightly smaller.
     NewHeight = block:height(block:read(top:doit())),
     Channel = channels:update(CID, Trees, none, 0, 0,0,0, channels:delay(OldChannel), NewHeight),
     Bal1 = channels:bal1(Channel),
