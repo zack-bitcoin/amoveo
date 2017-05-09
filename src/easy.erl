@@ -3,11 +3,10 @@
 
 -define(Fee, free_constants:tx_fee()).
 
-sync() ->
-    spawn(fun() -> sync3() end).
 height() ->    
     block:height(block:read(top:doit())).
-
+sync() ->
+    spawn(fun() -> sync3() end).
 sync3() ->
     Height = height(),
     download_blocks:sync_all(peers:all(), Height),
@@ -101,11 +100,16 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     {ok, Acc2} = talker:talk({id}, IP, Port),
     Entropy = channel_feeder:entropy([Acc1, Acc2]) + 1,
     {Trees,_,_} = tx_pool:data(),
-    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Entropy, Fee, Delay),
-    SPK = new_channel_with_server:spk(Tx, free_constants:channel_delay()),
+    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Entropy, Delay, Fee),
+    SPK = new_channel_tx:spk(Tx, free_constants:channel_delay()),
     Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx, Accounts),
     SSPK = keys:sign(SPK, Accounts),
+    io:fwrite("send new channel message "),
+    io:fwrite(packer:pack(STx)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(SSPK)),
+    io:fwrite("\n"),
     Msg = {new_channel, STx, SSPK},
     {ok, SSTx, S2SPK} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(SSTx),

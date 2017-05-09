@@ -204,7 +204,7 @@ test(5) ->
     Code = compiler_chalang:doit(<<"int 1 int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy, 0), Accounts3),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 1 ">>),
     {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
@@ -253,7 +253,7 @@ test(6) ->
     Code = compiler_chalang:doit(<<"int 1 int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy, 0), Accounts3),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 1 ">>),
     {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
@@ -450,7 +450,7 @@ test(10) ->
 	     <<<<"int 1 int 50 ">>/binary,%channel nonce is 1, sends 50.
 	       SC/binary>>),
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(2, 1, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy, 0), Accounts4),
+    ScriptPubKey = keys:sign(spk:new(2, 1, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts4),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, 2, Accounts4), 
     ScriptSig = compiler_chalang:doit(<<" int 1 ">>),
     {Ctx4, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees4), 
@@ -568,7 +568,7 @@ test(12) ->
     Code2 = compiler_chalang:doit(<<"int 2 int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code, Code2], 10000, 10000, Delay, ChannelNonce, Entropy, 0), Accounts3),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code, Code2], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 1 ">>),
     ScriptSig2 = compiler_chalang:doit(<<" int 2 ">>),
@@ -629,6 +629,6 @@ test(13) ->
 mine_blocks(Many) when Many < 1 -> ok;
 mine_blocks(Many) ->
     %only works if you set the difficulty very low.
-    block:mine_blocks(1, 10000000000),
+    block:mine_blocks(1, 100000),
     timer:sleep(200),
     mine_blocks(Many-1).

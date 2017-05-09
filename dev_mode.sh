@@ -7,5 +7,10 @@ sh clean.sh #this deletes the database so every time we re-start, we have 0 bloc
 sh update.sh
 #echo "GO TO THIS WEBSITE -------> http://localhost:8041/login.html"
 #sleep 1
-erl -pa ebin deps/*/ebin/ -eval "application:ensure_all_started(testnet), serve:pw($1), keys:unlock(\"abc\")"
+erl -pa ebin deps/*/ebin/ -eval "application:ensure_all_started(testnet), serve:pw($1),
+keys:load(\"BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=\",
+\"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=\",
+\"abc\", 2), 
+keys:unlock(\"abc\") "
+# keys:new(\"abc\")"
 #, peers:add({46,101,103,165}, 8080)"

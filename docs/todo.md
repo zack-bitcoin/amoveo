@@ -1,3 +1,6 @@
+new channel should automatically be added to channel manager if we are a participant.
+
+
 we need tests for:
 sharing blocks
 mining

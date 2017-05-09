@@ -410,14 +410,11 @@ new_id(N, Accounts) ->
 	   
 mine_test() ->
     PH = top:doit(),
-    %{block_plus, Block, _, _, _} = make(PH, [], keys:id()),
     BP = make(PH, [], keys:id()),
     PBlock = mine(BP, 1000000000),
     block_absorber:doit(PBlock),
     mine_blocks(10, 100000),
     success.
-%mine_blocks(N) ->
-%    mine_blocks(N, 1000000).
    
 mine_blocks(0, _) -> success;
 mine_blocks(N, Times) -> 
@@ -431,8 +428,6 @@ mine_blocks(N, Times) ->
 		 {NewID, keys:address()};
 	     {_, Identity} -> Identity
 	 end,
-    %{block_plus, Block, _, _, _, _, _} = make(PH, Txs, ID),
-    %{block_plus, Block, _, _, _, _, _} = 
     BP = make(PH, Txs, ID),
     
     %io:fwrite("mining attempt #"),

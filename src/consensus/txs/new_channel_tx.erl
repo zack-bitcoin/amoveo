@@ -11,6 +11,9 @@ id(X) -> X#nc.id.
 good(Tx) ->
     %make sure that the money is a fair balance of ours and theirs.
     Delay = Tx#nc.delay,
+    io:fwrite("new channel "),
+    io:fwrite(packer:pack(Tx)),
+    io:fwrite("\n"),
     true = Delay > free_constants:min_channel_delay(),
     true = Delay < free_constants:max_channel_delay(),
     K = keys:id(),
@@ -27,7 +30,11 @@ good(Tx) ->
     end,
     Frac = Top / (Bal1 + Bal2),
     MCR = free_constants:min_channel_ratio(),
-    Frac < MCR.
+    io:fwrite(float_to_list(Frac)),
+    io:fwrite(" "),
+    io:fwrite(float_to_list(MCR)),
+    io:fwrite("\n"),
+    Frac > MCR.
 cid(Tx) -> Tx#nc.id.
 entropy(Tx) -> Tx#nc.entropy.
 spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,

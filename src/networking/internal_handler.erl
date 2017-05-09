@@ -23,7 +23,8 @@ init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 -define(POP, <<1,6,3,87,3,5>>).
 doit({sign, Tx}) -> 
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     {ok, keys:sign(Tx, Accounts)};
 
 
@@ -36,19 +37,22 @@ doit({create_account, Address, Amount, ID}) ->
 doit({spend, To, Amount}) ->
     easy:spend(To, Amount),
     {ok, ok};
+doit({mine_block}) -> 
+    block:mine_blocks(1, 100000000);
 doit({mine_block, Many, Times}) -> 
     block:mine_blocks(Many, Times);
 doit({close_channel, IP, Port}) ->
     {ok, PeerId} = talker:talk({id}, IP, Port),
     {ok, CD} = channel_manager:read(PeerId),
     SPK = testnet_sign:data(channel_feeder:them(CD)),
-    {Accounts,Channels,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
     Height = block:height(block:read(top:doit())),
     SS = channel_feeder:script_sig_them(CD),
-    {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Accounts, Channels),
+    {Amount, _, _} = spk:run(fast, SS, SPK, Height, Trees),
     CID = spk:cid(SPK),
     Fee = free_constants:tx_fee(),
-    {Tx, _} = channel_team_close_tx:make(CID, Accounts, Channels, Amount, Fee),
+    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
+    Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx, Accounts),
     talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
     {ok, 0};
@@ -70,11 +74,12 @@ doit({dice, Amount, IP, Port}) ->
     talker:talk({dice, 3, MyID, SSPK2simple}, IP, Port);
 doit({channel_solo_close, Other}) ->
     Fee = free_constants:tx_fee(),
-    {Accounts,Channels,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     {ok, CD} = channel_manager:read(Other),
     SSPK = channel_feeder:them(CD),
     SS = channel_feeder:script_sig_them(CD),
-    {Tx, _} = channel_solo_close:make(keys:id(), Fee, keys:sign(SSPK, Accounts), SS, Accounts, Channels),
+    {Tx, _} = channel_solo_close:make(keys:id(), Fee, keys:sign(SSPK, Accounts), SS, Trees),
     STx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(STx),
     {ok, ok};
@@ -107,7 +112,8 @@ doit({channel_spend, IP, Port, Amount}) ->
     {ok, CD} = channel_manager:read(PeerId),
     OldSPK = testnet_sign:data(channel_feeder:them(CD)),
     ID = keys:id(),
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
     Payment = keys:sign(SPK, Accounts),
     %channel_feeder:update_to_me(SPK),

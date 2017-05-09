@@ -41,6 +41,6 @@ var_limit() -> 10000.
 vm(SS, State) ->
     chalang:vm(SS, time_limit(), space_limit(), fun_limit(), var_limit(), State).
 
-min_channel_delay() -> 4.
+min_channel_delay() -> 0.%for testing
 max_channel_delay() -> 100.
 
