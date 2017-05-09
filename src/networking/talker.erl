@@ -25,6 +25,8 @@ talk_helper(_, _, 0) ->
 talk_helper(Msg, Peer, N) ->
     %io:fwrite("top of talk helper\n"),
     PM = packer:pack(Msg),
+    %io:fwrite(PM),
+    %io:fwrite(Peer),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
 	{ok, {_Status, _Headers, []}} -> 
 	    %io:fwrite("talk error 1"),

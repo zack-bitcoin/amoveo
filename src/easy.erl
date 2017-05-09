@@ -234,7 +234,10 @@ account(ID) ->
 account() -> account(keys:id()).
 integer_balance() -> account:balance(account()).
 balance() ->
-    I = integer_balance(),
+    I = case keys:id() of
+	    -1 -> 0;
+	    _ -> integer_balance()
+	end,
     pretty_display(I).
 pretty_display(I) ->
     F = I / constants:token_decimals(),
