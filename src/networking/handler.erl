@@ -8,7 +8,9 @@
 
 handle(Req, State) ->
     %{Length, Req2} = cowboy_req:body_length(Req),
-    {ok, Data, Req3} = cowboy_req:body(Req),
+    {ok, Data, Req2} = cowboy_req:body(Req),
+    {{IP, _}, Req3} = cowboy_req:peer(Req2),
+    request_frequency:doit(IP),
     true = is_binary(Data),
     A = packer:unpack(Data),
     B = doit(A),

@@ -1,4 +1,5 @@
-new channel should automatically be added to channel manager if we are a participant.
+before we start mining, we should make sure we are synced with the network.
+
 
 
 we need tests for:
