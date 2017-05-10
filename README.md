@@ -3,7 +3,7 @@ Aeternity
 
 A blockchain for trust-free markets in financial derivatives
 
-This code is being used by: [æternity](https://aeternity.com).
+This is being used by: [æternity](https://aeternity.com).
 
 ### Compiling and Runing
 you will need Erlang and a couple of libraries. Please follow instructions:
