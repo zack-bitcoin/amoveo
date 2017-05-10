@@ -1,3 +1,3 @@
-git pull origin master
+#git pull origin master
 ./rebar get-deps
 ./rebar compile 

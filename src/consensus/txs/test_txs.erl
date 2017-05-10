@@ -623,6 +623,73 @@ test(13) ->
     absorb(Stx4),
 
 
+    success;
+test(14) -> 
+    %options
+    io:fwrite("options derivatives enforcement\n"),
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    tx_pool:dump(),
+    Trees = block:trees(BP),
+    Accounts = trees:accounts(Trees),
+    {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
+
+    Fee = 10,
+    Amount = 1000000,
+    ID2 = 2,
+    {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
+    Stx = keys:sign(Ctx, Accounts),
+    absorb(Stx),
+    {Trees2, _, _} = tx_pool:data(),
+    Accounts2 = trees:accounts(Trees2),
+
+    CID = 5,
+    Entropy = 432,
+
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, 1, ID2, 100, 200, Entropy, 10, Fee),
+    Stx2 = keys:sign(Ctx2, Accounts2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
+    absorb(SStx2),
+    {Trees3, _, _} = tx_pool:data(),
+    Accounts3 = trees:accounts(Trees3),
+    
+    Code = compiler_chalang:doit(<<"int 1 int 50 nil">>),%channel nonce is 1, sends 50.
+    Delay = 0,
+    ChannelNonce = 0,
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], 10000, 10000, Delay, ChannelNonce, Entropy), Accounts3),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
+    ScriptSig = compiler_chalang:doit(<<" int 1 ">>),
+    {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
+    Stx3 = keys:sign(Ctx3, Accounts3),
+    absorb(Stx3),
+    {Trees4, _, _} = tx_pool:data(),
+    Accounts4 = trees:accounts(Trees4),
+
+    ScriptSig2 = compiler_chalang:doit(<<" int 2 ">>),
+    {Ctx4, _} = channel_slash_tx:make(2,Fee,SignedScriptPubKey,[ScriptSig2],Trees4),
+    Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv, ID2, Accounts4),
+    %Stx4 = keys:sign(Ctx4, Accounts4),
+    io:fwrite("before absorb \n"),
+    absorb(Stx4),
+    io:fwrite("after absorb \n"),
+    {Trees5, _, _} = tx_pool:data(),
+    Accounts5 = trees:accounts(Trees5),
+
+    {Ctx5, _} = grow_channel_tx:make(CID, Trees5, 22, 33, Fee),
+    Stx5 = keys:sign(Ctx5, Accounts5),
+    SStx5 = testnet_sign:sign_tx(Stx5, NewPub, NewPriv, ID2, Accounts5),
+    absorb(SStx5),
+
+    {Trees6, _, _Txs2} = tx_pool:data(),
+    Accounts6 = trees:accounts(Trees6),
+
+    {Ctx6, _} = channel_timeout_tx:make(1,Trees6,CID,[],Fee),
+    Stx6 = keys:sign(Ctx6, Accounts6),
+    absorb(Stx6),
+    {_, _, Txs} = tx_pool:data(),
+
+    Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
+    block:check2(Block),
     success.
 
 mine_blocks(Many) when Many < 1 -> ok;

@@ -12,7 +12,7 @@ start(Port) ->
 	],
     D = [
 	 {'_', [
-		{"/:file", external_handler, []},
+		%{"/:file", external_handler, []},% we don't know if this could be used to inject code and read parts of the database that shouldn't be read.
 		{"/", handler, []}
 	       ]}
 	],

@@ -1,13 +1,16 @@
+Right now the channel delay is recorded as an integer. Instead we should store it as multiple integers.
+At first the delay should be long, but at a certain date the delay becomes short.
+It needs to be long at first so that it is longer than the maturity date of an options contract, to be secure.
+But after the option has matured we might want the ability to close the channel more quickly.
+
 test that the channel pays out the correct amount in every way it could be closed. It looks like channels:update could have some bugs.
 
-
+A
 before we start mining, we should make sure we are synced with the network.
-
-
 
 we need tests for:
 channel smart contract,
-channel lightning payment
+channel lightning payment (Also need code for this. Maybe take a look at flying for or pinkfairy for examples)
 
 merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.
 Alternatively, we could use raw jiffy to encode the proofs.

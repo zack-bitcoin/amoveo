@@ -213,6 +213,7 @@ close(SS, Tx) ->
 lock_spend(_SPK) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
     %first check that this channel is in the on-chain state with sufficient depth
+    %make sure they are giving us more than the minimum.
     %we need the arbitrage gen_server to exist first, before we can do this.
     ok.
 update_to_me(SSPK) ->

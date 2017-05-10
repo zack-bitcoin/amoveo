@@ -1,4 +1,3 @@
-
 #First start the two servers:
 # sh start.sh 3010
 # sh start.sh 3020
