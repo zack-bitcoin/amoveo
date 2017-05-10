@@ -1,3 +1,6 @@
+test that the channel pays out the correct amount in every way it could be closed. It looks like channels:update could have some bugs.
+
+
 before we start mining, we should make sure we are synced with the network.
 
 

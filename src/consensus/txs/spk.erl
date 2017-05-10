@@ -3,7 +3,7 @@
 	 bets/1,space_gas/1,time_gas/1,
 	 new/9,delay/1,cid/1,amount/1, 
 	 nonce/1,apply_bet/4,get_paid/3,
-	 run/6,settle_bet/3]).
+	 run/6,settle_bet/3,chalang_state/3]).
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
 	      delay, cid, amount = 0, nonce = 0}).
@@ -62,6 +62,7 @@ run2(fast, SS, SPK, State, Trees) ->
     Governance = trees:governance(Trees),
     FunLimit = governance:get_value(fun_limit, Governance),
     VarLimit = governance:get_value(var_limit, Governance),
+    true = is_list(SS),
     chalang:run(SS, 
 		SPK#spk.bets,
 		SPK#spk.time_gas,

@@ -98,11 +98,13 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Height = block:height(block:read(top:doit())),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    Channels = trees:channels(Trees),
-    {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Accounts, Channels),
-    {Tx, _} = channel_team_close_tx:make(CID, Accounts, Channels, Amount, Fee),
-    tx_pool_feeder:absorb(keys:sign(STx, Accounts)),
-    {ok, ok};
+    {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
+    Shares = [],
+    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Shares, Fee),
+    SSTx = keys:sign(STx, Accounts),
+    io:fwrite("absorb close channel \n"),
+    tx_pool_feeder:absorb(SSTx),
+    {ok, SSTx};
 doit({locked_payment, SSPK}) ->
     R = channel_feeder:lock_spend(SSPK),
     {ok, R};

@@ -78,8 +78,8 @@ handle_cast({close, SS, STx}, X) ->
     Governance = trees:governance(Trees),
     FunLimit = governance:get_value(fun_limit, Governance),
     VarLimit = governance:get_value(var_limit, Governance),
-    {CalculatedAmount, NewNonce, _, _} = chalang:run(SS, Bets, free_constants:gas_limit(), free_constants:gas_limit(), FunLimit, VarLimit, State),
-    {OldAmount, OldNonce, _, _} = chalang:run(CD#cd.ssthem, Bets, free_constants:gas_limit(), free_constants:gas_limit(), FunLimit, VarLimit, State),
+    {CalculatedAmount, NewNonce, [], _, _} = chalang:run(SS, Bets, free_constants:gas_limit(), free_constants:gas_limit(), FunLimit, VarLimit, State),
+    {OldAmount, OldNonce, [], _, _} = chalang:run(CD#cd.ssthem, Bets, free_constants:gas_limit(), free_constants:gas_limit(), FunLimit, VarLimit, State),
     if
 	NewNonce > OldNonce -> ok; 
 	NewNonce == OldNonce ->
@@ -107,7 +107,7 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     OldSPK = OldCD#cd.me,
     SPK = spk:get_paid(OldSPK, keys:id(), Amount),
     Return = keys:sign(SPK, Accounts),
-    NewCD = OldCD#cd{them = SSPK, me = Return},
+    NewCD = OldCD#cd{them = SSPK, me = SPK},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
 handle_call({update_to_me, SSPK}, _From, X) ->
@@ -295,7 +295,7 @@ get_bet2(dice, Loc, [Amount, Commit1, Commit2], SPK) ->
     {_, OldChannel, _} = channels:get(CID, Channels),
     %0 = channels:rent(OldChannel),%otherwise they could attack us by making a bet where the amount they could lose is slightly smaller.
     NewHeight = block:height(block:read(top:doit())),
-    Channel = channels:update(CID, Trees, none, 0, 0,0,0, channels:delay(OldChannel), NewHeight),
+    Channel = channels:update(0, CID, Trees, none, 0, 0,0,0, channels:delay(OldChannel), NewHeight),
     Bal1 = channels:bal1(Channel),
     Bal2 = channels:bal2(Channel),
     A = spk:amount(SPK),

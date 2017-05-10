@@ -51,10 +51,12 @@ doit({close_channel, IP, Port}) ->
     {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = spk:cid(SPK),
     Fee = free_constants:tx_fee(),
-    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
+    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, [], Fee),
     Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx, Accounts),
-    talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
+    {ok, SSTx} = talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
+    io:fwrite("absorb close channel \n"),
+    tx_pool_feeder:absorb(SSTx),
     {ok, 0};
 doit({dice, Amount, IP, Port}) ->
     %{ok, Other} = talker:talk({id}, IP, Port),
