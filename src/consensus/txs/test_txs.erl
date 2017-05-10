@@ -24,7 +24,7 @@ test() ->
     S.
 absorb(Tx) -> 
     tx_pool_feeder:absorb(Tx),
-    timer:sleep(100).
+    timer:sleep(400).
 test(1) ->
     io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
@@ -52,7 +52,7 @@ test(1) ->
     {_, _, Txs} = tx_pool:data(),
 
     Block = block:make(PH, Txs, 1),%1 is the master pub
-    MBlock = block:mine(Block, 1000000000),
+    MBlock = block:mine(Block, 1000000),
     block:check2(MBlock),
     success;
     
@@ -78,7 +78,7 @@ test(2) ->
     absorb(Stx2),
     {_, _, Txs} = tx_pool:data(),
 
-    Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
+    Block = block:mine(block:make(PH, Txs, 1), 1000000),%1 is the master pub
     block:check2(Block),
     success;
 test(3) ->

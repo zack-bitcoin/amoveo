@@ -6,7 +6,7 @@ A blockchain for trust-free markets in financial derivatives
 This code is being used by: [æternity](https://aeternity.com).
 
 ### Compiling and Runing
-You will need Erlang and a couple of libraries. Please follow instructions:
+you will need Erlang and a couple of libraries. Please follow instructions:
 
 [For Ubuntu](docs/compile_ubuntu.md)
 

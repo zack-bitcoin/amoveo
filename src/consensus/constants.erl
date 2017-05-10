@@ -15,7 +15,7 @@ block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 
 %6452.
-5000.%for testing only.
+4000.%for testing only.
 difficulty_bits() -> 24.
 
 hash_size() -> 12.
