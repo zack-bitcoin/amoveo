@@ -1,5 +1,7 @@
 -module(existence).
--export([get/2,write/2,new/1,hash2int/1,root_hash/1,hash/1, test/0]).
+-export([get/2,write/2,new/1,hash2int/1,root_hash/1,hash/1, 
+	 serialize/1,
+	 test/0]).
 %for accessing the proof of existence tree
 -record(exist, {hash}).
 -define(name, existence).

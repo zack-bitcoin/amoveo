@@ -3,7 +3,7 @@
 -export([det_power/3,tree_number_to_value/1, max/0,
 	 is_locked/1, change/3, genesis_state/0,
 	 get/2, write/2, lock/2, unlock/2,
-	 get_value/2,
+	 get_value/2, serialize/1,
 	 test/0]).
 
 -record(gov, {id, value, lock}).

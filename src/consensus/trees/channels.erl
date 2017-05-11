@@ -4,7 +4,7 @@
 	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
 	 last_modified/1, entropy/1,
 	 nonce/1,delay/1, amount/1, slasher/1,
-	 closed/1, shares/1,
+	 closed/1, shares/1, 
 	 test/0]).
 %This is the part of the channel that is written onto the hard drive.
 

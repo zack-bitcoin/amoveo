@@ -1,5 +1,6 @@
 -module(burn).
--export([test/0, new/1, get/2, write/2, address/1, amount/1, root_hash/1]).
+-export([test/0, new/1, get/2, write/2, address/1, 
+	 amount/1, root_hash/1, serialize/1]).
 %The proof of burn tree stores by address. It stores the number of AE tokens that this address has burned.
 -record(burn, {address, amount = 0}).
 -define(name, burn).

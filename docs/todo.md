@@ -1,16 +1,25 @@
-Right now the channel delay is recorded as an integer. Instead we should store it as multiple integers.
-At first the delay should be long, but at a certain date the delay becomes short.
-It needs to be long at first so that it is longer than the maturity date of an options contract, to be secure.
-But after the option has matured we might want the ability to close the channel more quickly.
+In some places it seems like there can be multiple contracts in a single channel, in other places it seems like only one contract per channel.
+We need to make a decision one way or the other, and make the code consistent.
 
-test that the channel pays out the correct amount in every way it could be closed. It looks like channels:update could have some bugs.
 
-A
+in spk prove_facts2, the burn and existence trees store by hash not by integer, so the code needs to be modified for them.
+
+
+The channels are currently designed so that you verify merkel proofs in them. This is bad because the merkel proofs are modified at almost every block, and channels are modified much less frequently.
+Instead the contract should list a few things to prove, and before full nodes run the contract on-chain the full node verifies that all the things are provable, and the full node puts a datastructure into the smart contract. A list of things that have been proven.
+So a contract has these three parts:
+[ScriptSig][Proved facts][ScriptPubKey]
+
+
+channel delay should be an output of the smart contract.
+If there are multiple smart contracts in the same channel, we should go with the delay that is longest.
+
 before we start mining, we should make sure we are synced with the network.
 
 we need tests for:
 channel smart contract,
 channel lightning payment (Also need code for this. Maybe take a look at flying for or pinkfairy for examples)
+test that the channel pays out the correct amount in every way it could be closed. It looks like channels:update could have some bugs.
 
 merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.
 Alternatively, we could use raw jiffy to encode the proofs.

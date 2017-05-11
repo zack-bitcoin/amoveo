@@ -27,6 +27,8 @@ test1() ->
     S = block_hashes:test(),
     io:fwrite("block test\n"),
     S = block:test(),
+    io:fwrite("spk test\n"),
+    S = spk:test(),
     io:fwrite("txs test\n"),
     S = test_txs:test(),
     S = existence:test(),
