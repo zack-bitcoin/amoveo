@@ -2,7 +2,7 @@
 -export([doit/3, make/5]).
 -record(timeout, {aid = 0, nonce = 0, fee = 0, cid = 0, shares}).
 %If your partner is not helping you, this is how you start the process of closing the channel. 
-%You should only use the final channel-state, or else your partner can punish you for cheating.
+%you don't provide the channel state now, instead you use a channel_slash to provide that data.
 make(ID,Trees,CID,Shares,Fee) ->
     %shares is a list of shares.
     %The root hash of this list must match the hash stored in the channel

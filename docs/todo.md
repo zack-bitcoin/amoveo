@@ -1,3 +1,5 @@
+channel_timeout should be running the contract and updating channel.amount accordingly.
+
 In some places it seems like there can be multiple contracts in a single channel, in other places it seems like only one contract per channel.
 We need to make a decision one way or the other, and make the code consistent.
 
@@ -15,6 +17,7 @@ channel delay should be an output of the smart contract.
 If there are multiple smart contracts in the same channel, we should go with the delay that is longest.
 
 before we start mining, we should make sure we are synced with the network.
+There should be some sort of lock on syncing, so we only have a finite number of processes syncing at a time.
 
 we need tests for:
 channel smart contract,

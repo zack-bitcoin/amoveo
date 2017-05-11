@@ -10,7 +10,7 @@
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
 	      delay, cid, amount = 0, nonce = 0,
-	      prove = []
+	      prove = [] %maybe remove delay, and have it be an output of the smart contract instead.
 	     }).
 %scriptpubkey is the name that Satoshi gave to this part of the transactions in bitcoin.
 %This is where we hold the channel contracts. They are turing complete smart contracts.
@@ -91,7 +91,7 @@ apply_bet(Bet, SPK, Time, Space) ->
     SPK#spk{bets = [Bet|SPK#spk.bets], 
 	    nonce = SPK#spk.nonce + 1, 
 	    time_gas = SPK#spk.time_gas + Time, 
-	    space_gas = SPK#spk.space_gas + Space}.
+	    space_gas = max(SPK#spk.space_gas, Space)}.
 settle_bet(SPK, Bets, Amount) ->
     SPK#spk{bets = Bets, amount = Amount, nonce = SPK#spk.nonce + 1}.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.
@@ -110,10 +110,10 @@ run(Mode, SS, SPK, Height, Slash, Trees) ->
     %Channels = trees:channels(Trees),
     %State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
     State = chalang_state(Height, Slash, Trees),
-    {Amount, NewNonce, CodeShares, _, _} = run2(Mode, SS, SPK, State, Trees),
+    {Amount, NewNonce, CodeShares, Delay, _} = run2(Mode, SS, SPK, State, Trees),
     true = NewNonce < 1000,
     Shares = shares:from_code(CodeShares),
-    {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce), Shares}.
+    {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce), Shares, Delay}.
 run2(fast, SS, SPK, State, Trees) -> 
     Governance = trees:governance(Trees),
     FunLimit = governance:get_value(fun_limit, Governance),
@@ -122,13 +122,13 @@ run2(fast, SS, SPK, State, Trees) ->
     %Facts = map_prove_facts(SPK#spk.prove, Trees),
     Bets = SPK#spk.bets,
     %Bets = zip(Facts, SPK#spk.bets),
-    chalang:run(SS, 
-		Bets,
-		SPK#spk.time_gas,
-		SPK#spk.space_gas,
-		FunLimit,
-		VarLimit,
-		State);
+    run(SS, 
+	Bets,
+	SPK#spk.time_gas,
+	SPK#spk.space_gas,
+	FunLimit,
+	VarLimit,
+	State);
 run2(safe, SS, SPK, State, Trees) -> 
     %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
     S = self(),
@@ -145,6 +145,42 @@ run2(safe, SS, SPK, State, Trees) ->
     end.
 chalang_state(Height, Slash, Trees) ->	    
     chalang:new_state(Height, Slash, Trees).
+run(ScriptSig, SPK, OpGas, RamGas, Funs, Vars, State) ->
+    run(ScriptSig, SPK, OpGas, RamGas, Funs, Vars, State, 0, 0, 0, []).
+
+run([], [], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, ShareRoot) ->
+    {Amount, Nonce, ShareRoot, Delay, OpGas};
+run([SS|SST], [SPK|SPKT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Share0) ->
+    {A2, N2, Share, Delay2, EOpGas} = 
+	run3(SS, SPK, OpGas, RamGas, Funs, Vars, State),
+    run(SST, SPKT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Share ++ Share0).
+run3(ScriptSig, ScriptPubkey, OpGas, RamGas, Funs, Vars, State) ->
+    %io:fwrite("script sig is "),
+    %compiler_chalang:print_binary(ScriptSig),
+    %io:fwrite("spk is "),
+    %compiler_chalang:print_binary(ScriptPubkey),
+    true = chalang:none_of(ScriptSig),
+    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, ScriptPubkey, State),
+    %io:fwrite("running script "),
+    Data2 = chalang:run5([ScriptSig], Data),
+    Data3 = chalang:run5([ScriptPubkey], Data2),
+    [ShareRoot|
+     [<<Amount:32>>|
+      [<<Direction:32>>|
+       [<<Nonce:32>>|
+	[<<Delay:32>>|_]]]]] = chalang:stack(Data3),%#d.stack,
+    %io:fwrite("amount, nonce, spare_gas, spare_ram\n"),
+    D = case Direction of
+	    0 -> 1;
+	    _ -> -1
+	end,
+    {Amount * D, Nonce, ShareRoot, Delay,
+     chalang:time_gas(Data3)
+    }.
+
+
+
+
 	
 test() ->
     %test prove_facts.
