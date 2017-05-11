@@ -2,7 +2,7 @@
 if [ -e "rebar" ]
 then
     echo "rebar already installed"
-elif [ "$(uname -s)" == "Linux" ]; then
+elif [ `uname -s`==Linux ]; then
     wget https://raw.githubusercontent.com/wiki/rebar/rebar/rebar && chmod u+x rebar
     ./rebar get
     ./rebar compile
