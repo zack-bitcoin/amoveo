@@ -1,7 +1,7 @@
 -module(spk).
 -export([acc1/1,acc2/1,entropy/1,
 	 bets/1,space_gas/1,time_gas/1,
-	 new/9,delay/1,cid/1,amount/1, 
+	 new/9,cid/1,amount/1, 
 	 nonce/1,apply_bet/4,get_paid/3,
 	 run/6,settle_bet/3,chalang_state/3,
 	 prove/1,
@@ -9,8 +9,8 @@
 	]).
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
-	      delay, cid, amount = 0, nonce = 0,
-	      prove = [] %maybe remove delay, and have it be an output of the smart contract instead.
+	      cid, amount = 0, nonce = 0,
+	      prove = [] 
 	     }).
 %scriptpubkey is the name that Satoshi gave to this part of the transactions in bitcoin.
 %This is where we hold the channel contracts. They are turing complete smart contracts.
@@ -19,7 +19,6 @@
 acc1(X) -> X#spk.acc1.
 acc2(X) -> X#spk.acc2.
 bets(X) -> X#spk.bets.
-delay(X) -> X#spk.delay.
 entropy(X) -> X#spk.entropy.
 space_gas(X) -> X#spk.space_gas.
 time_gas(X) -> X#spk.time_gas.
@@ -34,7 +33,7 @@ zip([H1|T1], [H2|T2]) ->
 map_prove_facts([], _) ->
     [];
 map_prove_facts([H|T], Trees) ->
-    [prove_facts(H, Trees),
+    [prove_facts(H, Trees)|
      map_prove_facts(T, Trees)].
 prove_facts([], _) ->
     <<>>;
@@ -75,12 +74,14 @@ tree2id(burn) -> 4;
 tree2id(oracles) -> 5;
 tree2id(governance) -> 6.
 
-new(Acc1, Acc2, CID, Bets, SG, TG, Delay, Nonce, Entropy) ->
+new(Acc1, Acc2, CID, Bets, Prove, SG, TG, Nonce, Entropy) ->
+    L = length(Bets),
+    L = length(Prove),
     %Entropy = chnnel_feeder:entropy(CID, [Acc1, Acc2])+1,
-    Prove = many([], length(Bets)),
+    %Prove = many([], length(Bets)),
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
 	 bets = Bets, space_gas = SG, time_gas = TG,
-	 delay = Delay, cid = CID, nonce = Nonce,
+	 cid = CID, nonce = Nonce, 
 	 prove = Prove}.
 many(_, 0) -> [];
 many(X, N) -> [X|many(X, N-1)].
@@ -121,9 +122,13 @@ run2(fast, SS, SPK, State, Trees) ->
     true = is_list(SS),
     %Facts = map_prove_facts(SPK#spk.prove, Trees),
     Bets = SPK#spk.bets,
+    Prove = map_prove_facts(SPK#spk.prove, Trees),
+    %io:fwrite("just proved "),
+    %io:fwrite({Prove, Bets}),
+    Bets2 = zip(Prove, Bets),
     %Bets = zip(Facts, SPK#spk.bets),
     run(SS, 
-	Bets,
+	Bets2,
 	SPK#spk.time_gas,
 	SPK#spk.space_gas,
 	FunLimit,

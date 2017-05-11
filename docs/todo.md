@@ -1,7 +1,5 @@
-channel_timeout should be running the contract and updating channel.amount accordingly.
-
-In some places it seems like there can be multiple contracts in a single channel, in other places it seems like only one contract per channel.
-We need to make a decision one way or the other, and make the code consistent.
+We need to think about channel nonces very carefully.
+We don't want old data to be unexepctedly reusable.
 
 
 in spk prove_facts2, the burn and existence trees store by hash not by integer, so the code needs to be modified for them.
