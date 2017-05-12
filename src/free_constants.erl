@@ -44,3 +44,5 @@ vm(SS, State) ->
 min_channel_delay() -> 0.%for testing
 max_channel_delay() -> 100.
 
+download_blocks_batch() ->
+    100.

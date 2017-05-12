@@ -8,7 +8,7 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       block_hashes, top, block_absorber,
 	       tx_pool, peers, tx_pool_feeder, 
 	       mine, channel_manager, channel_feeder,
-	       request_frequency]).
+	       request_frequency, sync]).
 
 child_maker([]) -> [];
 child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].

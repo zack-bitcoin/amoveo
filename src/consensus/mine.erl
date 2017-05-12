@@ -12,9 +12,9 @@ handle_cast(mine, go) ->
     spawn(fun() ->
 		  block:mine_blocks(10, 50000),
 		  mine() end),
-    spawn(fun() -> easy:sync() end),
+    %spawn(fun() -> easy:sync() end),
     {noreply, go};
-handle_cast(start, _) ->
+handle_cast(start, stop) ->
     Cores = block:guess_number_of_cpu_cores(),
     io:fwrite("start mining with "),
     io:fwrite(integer_to_list(Cores)),

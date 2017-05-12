@@ -5,18 +5,6 @@ We don't want old data to be unexepctedly reusable.
 in spk prove_facts2, the burn and existence trees store by hash not by integer, so the code needs to be modified for them.
 
 
-The channels are currently designed so that you verify merkel proofs in them. This is bad because the merkel proofs are modified at almost every block, and channels are modified much less frequently.
-Instead the contract should list a few things to prove, and before full nodes run the contract on-chain the full node verifies that all the things are provable, and the full node puts a datastructure into the smart contract. A list of things that have been proven.
-So a contract has these three parts:
-[ScriptSig][Proved facts][ScriptPubKey]
-
-
-channel delay should be an output of the smart contract.
-If there are multiple smart contracts in the same channel, we should go with the delay that is longest.
-
-before we start mining, we should make sure we are synced with the network.
-There should be some sort of lock on syncing, so we only have a finite number of processes syncing at a time.
-
 we need tests for:
 channel smart contract,
 channel lightning payment (Also need code for this. Maybe take a look at flying for or pinkfairy for examples)

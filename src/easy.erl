@@ -3,28 +3,9 @@
 
 -define(Fee, free_constants:tx_fee()).
 
-sync() ->
-    spawn(fun() -> sync3() end).
 height() ->    
     block:height(block:read(top:doit())).
 
-sync3() ->
-    Height = height(),
-    download_blocks:sync_all(peers:all(), Height),
-    sync2(Height, 600).
-sync2(_Height, 0) -> 
-    ok;
-    %download_blocks:sync_txs(peers:all());
-sync2(Height, N) ->
-    timer:sleep(100),
-    Height2 = block:height(block:read(top:doit())),
-    if
-	Height2 > Height -> 
-	    timer:sleep(1400),
-	    sync();
-	true -> sync2(Height, N-1)
-   end. 
-   
 tx_maker(F) -> 
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),

@@ -38,6 +38,7 @@ sync(IP, Port, MyHeight) ->
 			 ok;
 		     {ok, TopBlock, Height}  ->
 			 %io:fwrite("got topblock\n"),
+			 DBB = free_constants:download_blocks_batch(),
 			 HH = MyHeight + 100,
 			 if
 			     HH < Height ->
