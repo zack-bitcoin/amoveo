@@ -50,26 +50,26 @@ fi;
 
 
 read -t 5 cleanall2;
-echo "clean also depencies now? Hit Enter for Yes, or typ n";
+echo "clean also depencies now? Hit Enter for No, or typ y for YES";
 
-if [[ ${cleanall2} == "n" ]]; then
-echo "not now!";
-rm yesclean.txt;
+if [[ ${cleanall2} == "y" ]]; then
+    touch yesclean.txt;
+    echo " now!";
+    sudo rm -rf deps;
+    rm yesclean.txt;
 else
 
-if [ -e yesclean.txt ]; then
-rm yesclean.txt;
-rm -rf deps;
-fi;
-
+    if [ -e yesclean.txt ]; then
+    rm yesclean.txt;
+    fi;
 fi;
 
 read -t 5 cleanall3;
 echo "install now? Hit Enter for NO, or typ y for YES";
 # no loop install on automatic mode
 if [[ ${cleanall3} == "y" ]]; then
-sh install.sh;
+    sh install.sh;
 else
-echo "other sh script do it now if called!";
+    echo "other sh script do it now if called!";
 fi;
 

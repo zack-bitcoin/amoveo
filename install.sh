@@ -20,7 +20,12 @@
 ##############################################################################
 #
 
+if [ -e "rebar" ]; then
+#rm rebar;
+fi;
+
 # first install rebar package manager
+
 if [ -e "rebar" ];
 then
     echo "rebar already installed \n";
@@ -28,14 +33,18 @@ then
 elif [[ `uname -s` == `Linux` ]];
 then
     echo "download rebar on Linux";
-    wget https://raw.githubusercontent.com/wiki/rebar/rebar/rebar && chmod u+x rebar;
-
+    # Rebar 2
+     wget https://raw.githubusercontent.com/wiki/rebar/rebar/rebar && chmod u+x rebar;
+    #
+    # Rebar3
+    #wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
 elif [[ `uname -s`==Darwin ]];
 then
     echo "get rebar for Darwin now! \n";
     curl https://raw.githubusercontent.com/wiki/rebar/rebar/rebar -o rebar;
     chmod u+x *.sh;
-    chmod u+x rebar;
+    #chmod u+x rebar;
+    chmod u+x rebar3;
 
 else
     echo "your system can't compile aeternity at moment! Check our website for more details \n";
@@ -54,24 +63,27 @@ fi
 
 
 
-if [ -e "rebar" ];
+if [ -e "rebar3" ];
 then
     echo "rebar already installed \n";
 
 elif [[ `uname -s` == `Linux` ]];
 then
-    echo "download rebar on Linux";
-    rebar get
-    rebar compile
+    echo "install rebar on Linux";
+    sudo ./rebar3 local upgrade # check for rebar updates
+    sudo ./rebar3 get-deps
+    sudo ./rebar3 compile
 
 elif [[ `uname -s`==Darwin ]];
 then
-    echo "get rebar for Darwin now! \n";
-    #without sudo we get an error on compiling on osx
-    sudo rebar get
-    sudo rebar compile
+    echo "install rebar for Darwin now! \n";
+    rebar3 local upgrade # check for rebar updates
     chmod u+x rebar;
     chmod u+x *.sh;
+    #without sudo we get an error on compiling on osx
+    sudo ./rebar3 get-deps
+    sudo ./rebar3 compile
+
 
 else
     echo "your system can't compile aeternity at moment! Check our website for more details \n";

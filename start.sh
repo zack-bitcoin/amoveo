@@ -20,14 +20,16 @@ then
 
 if [[ `uname -s`==Darwin ]]; then
     echo "check and compile on Darwin now! \n";
-    #without sudo we get an error on compiling on osx
-    sudo rebar get
-    sudo rebar compile
-    chmod u+x rebar;
+    sudo ./rebar3 local upgrade
+    chmod u+x rebar3;
     chmod u+x *.sh;
+    #without sudo we get an error on compiling on osx
+    sudo ./rebar3 clean
+    sudo ./rebar3 get-deps
+    sudo ./rebar3 compile
 fi;
 
-
+exit;
 # on Testnet we need this!
 # now not deleting the deps folder!
 rm yesclean.txt;

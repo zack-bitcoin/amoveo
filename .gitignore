@@ -33,3 +33,4 @@ src/.DS_Store
 src/web/api.php
 src/web/priv/static/assets/fonts/
 src/web/priv/static/assets/images/
+testnet.iml

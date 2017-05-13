@@ -12,16 +12,23 @@ peer(IP, Port) ->
     "http://" ++ Z ++ ":" ++ integer_to_list(Port) ++ "/".
 
 local_talk(Msg) ->
-    Peer = "http://127.0.0.1:8041/",
+    Peer = "http://127.0.0.1:3011/",
     talk(Msg, Peer).
 %talk(Msg) ->
 %    Peer = "http://127.0.0.1:3010/",
 %    talk(Msg, Peer).
 talk(Msg, Peer) ->
     talk_helper(Msg, Peer, 5).
-talk_helper(_, _, 0) -> {error, failed_connect};
+talk_helper(_, _, 0) ->
+    io:fwrite("talk helper fail\n"),
+    {error, failed_connect};
 talk_helper(Msg, Peer, N) ->
+    %io:fwrite("top of talk helper number "),
+    %io:fwrite(integer_to_list(N)),
+    %io:fwrite("\n"),
     PM = packer:pack(Msg),
+    %io:fwrite(PM),
+    %io:fwrite(Peer),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
 	{ok, {_Status, _Headers, []}} -> 
 	    %io:fwrite("talk error 1"),
@@ -37,9 +44,13 @@ talk_helper(Msg, Peer, N) ->
 	    %io:fwrite("talk error timeout"),
 	    talk_helper(Msg, Peer, N-1);
 	    %{error, timeout};
+	{error, failed_connect} ->
+	    talk_helper(Msg, Peer, N-1);
 	{error, {failed_connect, _}} ->
 	    %io:fwrite("talk error failed connect"),
-	    talk_helper(Msg, Peer, N-1)
+	    talk_helper(Msg, Peer, N-1);
+	X -> io:fwrite("talk helper unexpected"),
+	     io:fwrite(X)
 		
     end.
 talk(Msg, IP, Port) -> talk(Msg, peer(IP, Port)).

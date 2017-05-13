@@ -24,7 +24,7 @@ handle_cast({send, To, Message, Seconds}, X) ->
             error -> dict:new();
             {ok, Val} -> Val
     end,
-    NewD = dict:store(To,dict:store(hash:doit(Msg), Msg, A), DB),
+    NewD = dict:store(To,dict:store(testnet_hasher:doit(Msg), Msg, A), DB),
     NewX = #d{db = NewD, accs = Accs, msgs = X#d.msgs + 1},
     {noreply, NewX}.
 handle_call({pop_hashes, Acc}, _From, X) -> 

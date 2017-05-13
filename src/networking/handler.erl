@@ -8,7 +8,9 @@
 
 handle(Req, State) ->
     %{Length, Req2} = cowboy_req:body_length(Req),
-    {ok, Data, Req3} = cowboy_req:body(Req),
+    {ok, Data, Req2} = cowboy_req:body(Req),
+    {{IP, _}, Req3} = cowboy_req:peer(Req2),
+    request_frequency:doit(IP),
     true = is_binary(Data),
     A = packer:unpack(Data),
     B = doit(A),
@@ -27,7 +29,12 @@ doit({give_block, SignedBlock}) ->
     block_absorber:doit(SignedBlock),
     {ok, 0};
 doit({block, N}) -> 
-    {ok, block:pow_block(block:read_int(N))};
+    {ok, block:read_int(N)};
+doit({header, N}) ->
+    {ok, block:block_to_header(block:read_int(N))};
+doit({headers, Many, N}) ->
+    X = many_headers(Many, N),
+    {ok, X};
     %{ok, block_tree:read_int(N)};
 doit({tophash}) -> {ok, top:doit()};
 %doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
@@ -39,14 +46,14 @@ doit({peers, Peers}) ->
     peers:add(Peers),
     {ok, 0};
 doit({txs}) -> 
-    {_,_,_,Txs} = tx_pool:data(),
+    {_,_,Txs} = tx_pool:data(),
     {ok, Txs};
 doit({txs, Txs}) -> 
     download_blocks:absorb_txs(Txs),
     {ok, 0};
 doit({id}) -> {ok, keys:id()};
 doit({top}) -> 
-    Top = block:pow_block(block:read(top:doit())),
+    Top = block:read(top:doit()),
     Height = block:height(Top),
     {ok, Top, Height};
 doit({test}) -> 
@@ -57,7 +64,8 @@ doit({new_channel, STx, SSPK}) ->
     unlocked = keys:status(),
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     undefined = channel_feeder:cid(Tx),
     true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
     true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo. Also makes sure that we aren't reusing entropy.
@@ -70,13 +78,15 @@ doit({new_channel, STx, SSPK}) ->
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
     true = grow_channel_tx:good(Tx),%checks the min_channel_ratio
-    {Accounts, _,_,_} = tx_pool:data(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
     SStx = keys:sign(Stx, Accounts),
     tx_pool_feeder:absorb(SStx),
     {ok, ok};
 doit({spk, CID})->
-    SPK = channel_manager:read(CID),
-    {ok, SPK};
+    CD = channel_manager:read(CID),
+    ME = keys:sign(channel_feeder:me(CD)),
+    {ok, CD, ME};
 doit({channel_payment, SSPK, Amount}) ->
     R = channel_feeder:spend(SSPK, Amount),
     {ok, R};
@@ -87,19 +97,33 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     {ok, CD} = channel_manager:read(PeerId),
     SPK = channel_feeder:me(CD),
     Height = block:height(block:read(top:doit())),
-    {Accounts,Channels,_,_} = tx_pool:data(),
-    {Amount, _} = spk:run(fast, SS, SPK, Height, 0, Accounts, Channels),
-    {Tx, _} = channel_team_close_tx:make(CID, Accounts, Channels, Amount, Fee),
-    tx_pool_feeder:absorb(keys:sign(STx, Accounts)),
-    {ok, ok};
-doit({locked_payment, SSPK}) ->
-    R = channel_feeder:lock_spend(SSPK),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
+    Shares = [],
+    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Shares, Fee),
+    SSTx = keys:sign(STx, Accounts),
+    io:fwrite("absorb close channel \n"),
+    tx_pool_feeder:absorb(SSTx),
+    {ok, SSTx};
+doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient}) ->
+    R = channel_feeder:lock_spend(SSPK, Amount, Fee, Code, Sender, Recipient),
     {ok, R};
-doit({channel_simplify, SS, SSPK}) ->
-    Return = channel_feeder:simplify(SS, SSPK),
+doit({channel_simplify, SS, SSPK, From}) ->
+    Return = channel_feeder:simplify(From, SS, SSPK),
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
+doit({proof, TreeName, ID}) ->
+%here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
+%curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5]' http://localhost:8040
+    {Trees, _, _} = tx_pool:data(),
+    TN = trees:name(TreeName),
+    Root = trees:TN(Trees),
+    {RootHash, Value, Proof} = TN:get(ID, Root),
+    Proof2 = proof_packer(Proof),
+    {ok, {return, RootHash, Value, Proof2}};
+
 doit({dice, 1, Other, Commit, Amount}) ->
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
     {ok, CD} = channel_manager:read(Other),
@@ -122,5 +146,17 @@ doit(X) ->
     io:fwrite(packer:pack(X)), %unlock2
     {error}.
     
+proof_packer(X) when is_tuple(X) ->
+    proof_packer(tuple_to_list(X));
+proof_packer([]) -> [];
+proof_packer([H|T]) ->
+    [proof_packer(H)|proof_packer(T)];
+proof_packer(X) -> X.
+
+    %Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
+many_headers(M, _) when M < 1 -> [];
+many_headers(Many, N) ->
+    [block:block_to_header(block:read_int(N))|
+     many_headers(Many-1, N+1)].
 
     

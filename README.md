@@ -1,12 +1,13 @@
-æternity
+Aeternity
 ==========
 
-This is the code used for the testnet for the [æternity](https://aeternity.com) project.
+A blockchain for trust-free markets in financial derivatives
 
-This testnet uses simple PoW consensus. Its purpose is to show how state-channels work.
+This is being used by: [æternity](https://aeternity.com).
 
 ### Compiling and Runing
-You will need Erlang version 18 or higher, and a couple of libraries. Please follow instructions:
+you will need Erlang and a couple of libraries. Please follow instructions:
+
 [For Ubuntu](docs/compile_ubuntu.md)
 [For Mac](docs/compile_mac.md)
 
@@ -102,4 +103,4 @@ easy:off().
 
 
 ### Else
-If you want to know more, check out our whitepaper on [aeternity.com](https://aeternity.com) and get in touch with us via [Gitter Chat](https://gitter.im/aeternity?Lobby) or write us (emails in whitepaper). 
+If you want to know more, get in touch with us via [Slack](http://slack.aeternity.com)

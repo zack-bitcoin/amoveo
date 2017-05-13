@@ -29,11 +29,12 @@
 cores_to_mine() ->
     1000.%The maximum number of cores to use when mining.
 hashlock_time() -> 30.
-channel_delay() -> 100.
+channel_delay() ->
+    100.
 max_channel() -> constants:initial_coins() div 100000.
 max_message_size() -> 10000.
-inbox_per_peer()   -> 100.
-liquidity_ratio()  -> fractions:new(2, 3).%if a user is willing to put 100 coins into a channel, then the server is willing to put 200 in.
+inbox_per_peer() -> 100.
+liquidity_ratio() -> fractions:new(2, 3).%if a user is willing to put 100 coins into a channel, then the server is willing to put 200 in.
 tx_fee() -> %when you make a tx, this is the fee you spend by default. 
     10.
 minimum_tx_fee() ->%only txs with this fee or higher get accepted into your mempool. If you are a miner, you are censoring all txs with lower fees.
@@ -49,7 +50,7 @@ min_channel_ratio() ->
     %{f, 1, 2}.
 bets() -> %tuple list. {Name, BetFile}
     [
-     {dice, "src/bets/dice.fs"}
+     {dice, "bets/dice.fs"}
     ].
 gas_limit() ->
     constants:gas_limit().
@@ -59,10 +60,14 @@ time_limit() ->
     100000.
 space_limit() ->
     100000.
-    
-vm(SS, State) ->
-    chalang:vm(SS, time_limit(), space_limit(), constants:fun_limit(), constants:var_limit(), State).
+fun_limit() -> 1000.
+var_limit() -> 10000.
 
-min_channel_delay() -> 4.
+vm(SS, State) ->
+    chalang:vm(SS, time_limit(), space_limit(), fun_limit(), var_limit(), State).
+
+min_channel_delay() -> 0.%for testing
 max_channel_delay() -> 100.
 
+download_blocks_batch() ->
+    100.

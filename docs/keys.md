@@ -8,7 +8,7 @@ keys:new("password").
 
 To secure your node so no one can sign transactions, you can either turn off the node, or you can do this command:
 ```
-keys:lock()
+keys:lock().
 ```
 
 To unlock your node so that you can start signing transactions again, do this:
@@ -45,7 +45,7 @@ keys:shared_secret(Pubkey).
 
 To load a private key into an existing node:
 ```
-keys:load(Pubkey, Privkey, "password", ID).
+keys:load(Pubkey, Privkey, "password").
 ```
 
 
@@ -53,3 +53,4 @@ You can set the password for encryption like this:
 ```
 keys:change_password("old_password", "new_password").
 ```
+The default password on a new node is "", the empty string.

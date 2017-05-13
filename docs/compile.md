@@ -34,3 +34,6 @@ sh install.sh
 ```
 
 Installation should be done. Now you can run your node.
+
+_Note: Deprecated Erlang build tool that makes it easy to compile and test Erlang applications, 
+port drivers and releases. We encourage you to move to https://github.com/erlang/rebar3._
