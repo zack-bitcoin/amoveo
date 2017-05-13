@@ -84,8 +84,9 @@ doit({grow_channel, Stx}) ->
     tx_pool_feeder:absorb(SStx),
     {ok, ok};
 doit({spk, CID})->
-    SPK = channel_manager:read(CID),
-    {ok, SPK};
+    CD = channel_manager:read(CID),
+    ME = keys:sign(channel_feeder:me(CD)),
+    {ok, CD, ME};
 doit({channel_payment, SSPK, Amount}) ->
     R = channel_feeder:spend(SSPK, Amount),
     {ok, R};
@@ -98,18 +99,18 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Height = block:height(block:read(top:doit())),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
+    {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     Shares = [],
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Shares, Fee),
     SSTx = keys:sign(STx, Accounts),
     io:fwrite("absorb close channel \n"),
     tx_pool_feeder:absorb(SSTx),
     {ok, SSTx};
-doit({locked_payment, SSPK}) ->
-    R = channel_feeder:lock_spend(SSPK),
+doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient}) ->
+    R = channel_feeder:lock_spend(SSPK, Amount, Fee, Code, Sender, Recipient),
     {ok, R};
-doit({channel_simplify, SS, SSPK}) ->
-    Return = channel_feeder:simplify(SS, SSPK),
+doit({channel_simplify, SS, SSPK, From}) ->
+    Return = channel_feeder:simplify(From, SS, SSPK),
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
@@ -153,7 +154,7 @@ proof_packer([H|T]) ->
 proof_packer(X) -> X.
  
     %Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
-many_headers(M, N) when M < 1 -> [];
+many_headers(M, _) when M < 1 -> [];
 many_headers(Many, N) ->    
     [block:block_to_header(block:read_int(N))|
      many_headers(Many-1, N+1)].

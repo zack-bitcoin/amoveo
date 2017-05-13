@@ -35,7 +35,7 @@ doit(Tx, Trees, NewHeight) ->
     CID = spk:cid(SPK),
     {_, OldChannel, _} = channels:get(CID, Channels),
     CA = channels:amount(OldChannel),
-    false = CA == 0,
+    %false = CA == 0,
     true = testnet_sign:verify(SignedSPK, Accounts),
     Acc1 = channels:acc1(OldChannel),
     Acc2 = channels:acc2(OldChannel),
@@ -46,7 +46,7 @@ doit(Tx, Trees, NewHeight) ->
     Fee = Tx#cs.fee,
     Nonce = Tx#cs.nonce,
     {Amount, NewCNonce, Shares, Delay} = spk:run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Trees),
-    false = Amount == 0,
+    %false = Amount == 0,
     true = NewCNonce > channels:nonce(OldChannel),
     %delete the channel. empty the channel into the accounts.
     %NewChannels = channels:delete(CID, Channels),

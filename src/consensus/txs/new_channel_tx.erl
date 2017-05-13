@@ -38,7 +38,7 @@ good(Tx) ->
 cid(Tx) -> Tx#nc.id.
 entropy(Tx) -> Tx#nc.entropy.
 spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
-			  [], 0,0, Delay, 0, 
+			  [], 0,0, 0, Delay, 
 			  Tx#nc.entropy).
 make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Entropy,Delay, Fee) ->
     Accounts = trees:accounts(Trees),

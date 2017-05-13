@@ -43,7 +43,7 @@ doit(Tx, Trees, NewHeight) ->
     %NewCNonce = spk:nonce(ScriptPubkey),
     SS = Tx#csc.scriptsig,
     {Amount, NewCNonce, Shares, Delay} = spk:run(fast, SS, ScriptPubkey, NewHeight, 0, Trees),
-    false = Amount == 0,
+    %false = Amount == 0,
     true = NewCNonce > channels:nonce(OldChannel),
     %SharesRoot = shares:root_hash(shares:write_many(Shares, 0)),
     NewChannel = channels:update(From, CID, Trees, NewCNonce, 0, 0, Amount, Delay, NewHeight, false, Shares),
@@ -71,9 +71,8 @@ check_slash(From, Acc1, Acc2, TheirSS, SSPK, Trees, TheirNonce) ->
     %Depending
 	    {Trees2,_,_} = tx_pool:data(),
 	    Accounts2 = trees:accounts(Trees2),
-	    Channels2 = trees:channels(Trees2),
 	    MyID = keys:id(),
-	    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SSPK, [SSM], Accounts2, Channels2),
+	    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SSPK, [SSM], Trees2),
 	    Stx = keys:sign(Tx, Accounts2),
 	    tx_pool_feeder:absorb(Stx),
 	    easy:sync()
@@ -86,12 +85,6 @@ next_ss(From, TheirSS, SPK, Acc1, Acc2, Trees) ->
 	_ -> ok
     end.
 next_ss2(From, TheirSS, SPK, Acc1, Acc2, Trees, CD) ->
-    Accounts = trees:accounts(Trees),
-    Channels = trees:channels(Trees),
-    %{ok, CD} = channel_manager:read(From),
-    %io:fwrite("in next_ss. CD is "),
-    %io:fwrite(packer:pack(CD)),
-    %io:fwrite("\n"),
     OurSS1 = channel_feeder:script_sig_them(CD),%this is not a typo. this is OurSS which can be used for the highest nonced SPK they signed before this SPK we are currently looking at.
     OurSS = case OurSS1 of%this trick only works because we limit it to one bet per channel.
 		[] -> channel_feeder:script_sig_me(CD);

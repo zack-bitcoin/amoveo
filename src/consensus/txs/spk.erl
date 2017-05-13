@@ -2,20 +2,24 @@
 -export([acc1/1,acc2/1,entropy/1,
 	 bets/1,space_gas/1,time_gas/1,
 	 new/9,cid/1,amount/1, 
-	 nonce/1,apply_bet/4,get_paid/3,
+	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,settle_bet/3,chalang_state/3,
-	 prove/1,
+	 prove/1, new_bet/3, delay/1,
 	 test/0
 	]).
+-record(bet, {code, amount, prove}).
+%We want channel that are using the same contract to be able to calculate a contract hash that is the same. This makes it easier to tell if 2 channels are betting on the same thing.
+%Each contract should output an amount between 0 and constants:channel_granularity(), which is the portion of the money that goes to one of the participants. Which participant it signifies depends on what value is stored in a flag.
+%So each contract needs a value saying how much of the money is locked into that contract.
 -record(spk, {acc1, acc2, entropy, 
 	      bets, space_gas, time_gas, 
 	      cid, amount = 0, nonce = 0,
-	      prove = [] 
+	      delay = 0
 	     }).
 %scriptpubkey is the name that Satoshi gave to this part of the transactions in bitcoin.
 %This is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
-
+delay(X) -> X#spk.delay.
 acc1(X) -> X#spk.acc1.
 acc2(X) -> X#spk.acc2.
 bets(X) -> X#spk.bets.
@@ -25,16 +29,11 @@ time_gas(X) -> X#spk.time_gas.
 cid(X) -> X#spk.cid.
 amount(X) -> X#spk.amount.
 nonce(X) -> X#spk.nonce.
-prove(X) -> X#spk.prove.
 
-zip([], []) -> [];
-zip([H1|T1], [H2|T2]) ->
-    [<<H1/binary, H2/binary>>|zip(T1, T2)].
-map_prove_facts([], _) ->
-    [];
-map_prove_facts([H|T], Trees) ->
-    [prove_facts(H, Trees)|
-     map_prove_facts(T, Trees)].
+bet_amount(X) -> X#bet.amount.
+prove(X) -> X#bet.prove.
+code(X) -> X#bet.code.
+
 prove_facts([], _) ->
     <<>>;
 prove_facts(X, Trees) ->
@@ -74,25 +73,24 @@ tree2id(burn) -> 4;
 tree2id(oracles) -> 5;
 tree2id(governance) -> 6.
 
-new(Acc1, Acc2, CID, Bets, Prove, SG, TG, Nonce, Entropy) ->
-    L = length(Bets),
-    L = length(Prove),
-    %Entropy = chnnel_feeder:entropy(CID, [Acc1, Acc2])+1,
+new_bet(Code, Amount, Prove) ->
+    #bet{code = Code, amount = Amount, prove = Prove}.
+new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
     %Prove = many([], length(Bets)),
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
 	 bets = Bets, space_gas = SG, time_gas = TG,
-	 cid = CID, nonce = Nonce, 
-	 prove = Prove}.
+	 cid = CID, nonce = Nonce, delay = Delay}.
 many(_, 0) -> [];
 many(X, N) -> [X|many(X, N-1)].
     
-apply_bet(Bet, SPK, Time, Space) ->
+apply_bet(Bet, Amount, SPK, Time, Space) ->
 %bet is binary, the SPK portion of the script.
 %SPK is the old SPK, we output the new one.
     SPK#spk{bets = [Bet|SPK#spk.bets], 
 	    nonce = SPK#spk.nonce + 1, 
 	    time_gas = SPK#spk.time_gas + Time, 
-	    space_gas = max(SPK#spk.space_gas, Space)}.
+	    space_gas = max(SPK#spk.space_gas, Space), 
+	    amount = SPK#spk.amount + Amount}.
 settle_bet(SPK, Bets, Amount) ->
     SPK#spk{bets = Bets, amount = Amount, nonce = SPK#spk.nonce + 1}.
 get_paid(SPK, MyID, Amount) -> %if Amount is positive, that means money is going to Aid2.
@@ -120,20 +118,17 @@ run2(fast, SS, SPK, State, Trees) ->
     FunLimit = governance:get_value(fun_limit, Governance),
     VarLimit = governance:get_value(var_limit, Governance),
     true = is_list(SS),
-    %Facts = map_prove_facts(SPK#spk.prove, Trees),
     Bets = SPK#spk.bets,
-    Prove = map_prove_facts(SPK#spk.prove, Trees),
-    %io:fwrite("just proved "),
-    %io:fwrite({Prove, Bets}),
-    Bets2 = zip(Prove, Bets),
-    %Bets = zip(Facts, SPK#spk.bets),
+    %Scripts = bets2scripts(Bets, Trees),
+    Delay = SPK#spk.delay,
     run(SS, 
-	Bets2,
+	Bets,
 	SPK#spk.time_gas,
 	SPK#spk.space_gas,
 	FunLimit,
 	VarLimit,
-	State);
+	State, 
+	Delay);
 run2(safe, SS, SPK, State, Trees) -> 
     %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
     S = self(),
@@ -148,38 +143,57 @@ run2(safe, SS, SPK, State, Trees) ->
     receive 
 	Z -> Z
     end.
+%bets2scripts([], _) -> [];
+%bets2scripts([B|T], Trees) ->
+%    F = prove_facts(B#bet.prove, Trees),
+%    C = B#bet.code,
+%    [<<F/binary, C/binary>>|bets2scripts(T, Trees)].
 chalang_state(Height, Slash, Trees) ->	    
     chalang:new_state(Height, Slash, Trees).
-run(ScriptSig, SPK, OpGas, RamGas, Funs, Vars, State) ->
-    run(ScriptSig, SPK, OpGas, RamGas, Funs, Vars, State, 0, 0, 0, []).
+run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay) ->
+    run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay, []).
 
 run([], [], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, ShareRoot) ->
     {Amount, Nonce, ShareRoot, Delay, OpGas};
-run([SS|SST], [SPK|SPKT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Share0) ->
+run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Share0) ->
     {A2, N2, Share, Delay2, EOpGas} = 
-	run3(SS, SPK, OpGas, RamGas, Funs, Vars, State),
-    run(SST, SPKT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Share ++ Share0).
-run3(ScriptSig, ScriptPubkey, OpGas, RamGas, Funs, Vars, State) ->
+	run3(SS, Code, OpGas, RamGas, Funs, Vars, State),
+    run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Share ++ Share0).
+run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     %io:fwrite("script sig is "),
     %compiler_chalang:print_binary(ScriptSig),
     %io:fwrite("spk is "),
     %compiler_chalang:print_binary(ScriptPubkey),
     true = chalang:none_of(ScriptSig),
-    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, ScriptPubkey, State),
+    {Trees, _, _} = tx_pool:data(),
+    F = prove_facts(Bet#bet.prove, Trees),
+    C = Bet#bet.code,
+    Code = <<F/binary, C/binary>>,  
+    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State),
     %io:fwrite("running script "),
     Data2 = chalang:run5([ScriptSig], Data),
-    Data3 = chalang:run5([ScriptPubkey], Data2),
+    Data3 = chalang:run5([Code], Data2),
     [ShareRoot|
      [<<Amount:32>>|
-      [<<Direction:32>>|
+      %[<<Direction:32>>|
        [<<Nonce:32>>|
-	[<<Delay:32>>|_]]]]] = chalang:stack(Data3),%#d.stack,
-    %io:fwrite("amount, nonce, spare_gas, spare_ram\n"),
-    D = case Direction of
-	    0 -> 1;
-	    _ -> -1
-	end,
-    {Amount * D, Nonce, ShareRoot, Delay,
+	[<<Delay:32>>|_]]]] = chalang:stack(Data3),%#d.stack,
+    io:fwrite("computed delay as "),
+    io:fwrite(integer_to_list(Delay)),
+    io:fwrite("\n"),
+    if
+	Delay > 0 ->
+	    io:fwrite(chalang:stack(Data3));
+	true -> ok
+    end,
+    io:fwrite("computed nonce as "),
+    io:fwrite(integer_to_list(Nonce)),
+    io:fwrite("\n"),
+    io:fwrite("computed amount as "),
+    io:fwrite(integer_to_list(Amount)),
+    io:fwrite("\n"),
+    A3 = Amount * Bet#bet.amount div constants:channel_granularity(),
+    {A3, Nonce, ShareRoot, Delay,
      chalang:time_gas(Data3)
     }.
 

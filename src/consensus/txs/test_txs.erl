@@ -200,17 +200,19 @@ test(5) ->
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     
-    Code = compiler_chalang:doit(<<"int 1 int 50 nil">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     io:fwrite("BEFOREEEEEE\n"),
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], [[]], 10000, 10000, ChannelNonce, Entropy), Accounts3),
+    Bet = spk:new_bet(Code, 50, []),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts3),
     io:fwrite("AFTERRRRRR\n"),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
     Stx3 = keys:sign(Ctx3, Accounts3),
     absorb(Stx3),
+    %mine_blocks(1),
     timer:sleep(500),
     {Trees4, _, _Txs} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),
@@ -251,10 +253,11 @@ test(6) ->
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     
-    Code = compiler_chalang:doit(<<"int 1 int 50 nil">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], [[]], 10000, 10000, ChannelNonce, Entropy), Accounts3),
+    Bet = spk:new_bet(Code, 50, []),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
@@ -450,10 +453,11 @@ test(10) ->
     SC = shares:to_code(Shares),
     io:fwrite(SC),
     Code = compiler_chalang:doit(
-	     <<<<"int 1 int 50 ">>/binary,%channel nonce is 1, sends 50.
+	     <<<<"int 50 ">>/binary,%channel nonce is 1, sends 50.
 	       SC/binary>>),
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(2, 1, CID, [Code], [[]], 10000, 10000, ChannelNonce, Entropy), Accounts4),
+    Bet = spk:new_bet(Code, 50, []),
+    ScriptPubKey = keys:sign(spk:new(2, 1, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts4),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, 2, Accounts4), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     {Ctx4, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees4), 
@@ -567,11 +571,13 @@ test(12) ->
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     
-    Code = compiler_chalang:doit(<<"int 1 int 50 nil">>),%channel nonce is 1, sends 50.
-    Code2 = compiler_chalang:doit(<<"int 2 int 50 nil">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
+    Code2 = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code, Code2], [[],[]], 10000, 10000, ChannelNonce, Entropy), Accounts3),
+    Bet = spk:new_bet(Code, 50, []),
+    Bet2 = spk:new_bet(Code2, 50, []),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet, Bet2], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     ScriptSig2 = compiler_chalang:doit(<<" int 0 int 2 ">>),
@@ -657,10 +663,11 @@ test(14) ->
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     
-    Code = compiler_chalang:doit(<<"int 1 int 50 nil">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Code], [[]], 10000, 10000, ChannelNonce, Entropy), Accounts3),
+    Bet = spk:new_bet(Code, 50, []),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 

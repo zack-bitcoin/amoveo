@@ -1,3 +1,14 @@
+in channel_feeder:they_simplify, we need to update all the arbitragable channels.
+
+api needs to be encrypted, especially the stuff about channels.
+
+spk needs to be updated to use a record for bets, and to extract the "amount" from the bets.
+
+
+in channel_solo_close:check_slash, we run next_ss.
+This seems like it could be far simpler.
+
+
 We need to think about channel nonces very carefully.
 We don't want old data to be unexepctedly reusable.
 
@@ -7,7 +18,8 @@ in spk prove_facts2, the burn and existence trees store by hash not by integer, 
 
 we need tests for:
 channel smart contract,
-channel lightning payment (Also need code for this. Maybe take a look at flying for or pinkfairy for examples)
+channel smart contract that proves a outcome from an oracle.
+channel lightning payment (Also need code for this. Maybe take a look at flying fox or pinkfairy for examples)%%%%
 test that the channel pays out the correct amount in every way it could be closed. It looks like channels:update could have some bugs.
 
 merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.

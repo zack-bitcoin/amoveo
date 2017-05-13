@@ -176,7 +176,8 @@ minimum_oracle_time() ->
 
 maximum_question_size() ->
     1000.
-    
+channel_granularity() ->    
+    10000.
     
 
 test() ->

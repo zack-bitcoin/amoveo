@@ -48,7 +48,7 @@ doit({close_channel, IP, Port}) ->
     {Trees,_,_} = tx_pool:data(),
     Height = block:height(block:read(top:doit())),
     SS = channel_feeder:script_sig_them(CD),
-    {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
+    {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = spk:cid(SPK),
     Fee = free_constants:tx_fee(),
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, [], Fee),
@@ -128,7 +128,57 @@ doit({channel_spend, IP, Port, Amount}) ->
 doit({new_channel_with_server, IP, Port, CID, Bal1, Bal2, Fee, Delay}) ->
     %make sure we don't already have a channel with this peer.
     easy:new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay),
-    {ok, ok};
+    {ok, 0};
+doit({learn_secret, Secret}) ->
+    secrets:add(Secret),
+    {ok, 0};
+doit({push_channel_state, IP, Port, SS}) ->
+    {ok, ServerID} = talker:talk({id}, IP, Port),
+    CD = channel_manager:read(ServerID),
+    {SS2, Return} = channel_feeder:we_simplify(ServerID, SS),
+    {ok, ThemSPK} = talker:talk({push_spk, Return, SS}, IP, Port),
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    true = testnet_sign:verify(keys:sign(ThemSPK, Accounts), Accounts),
+    SPK = testnet_sign:data(ThemSPK),
+    SPK = testnet_sign:data(Return),
+    CID = spk:cid(channel_feeder:me(CD)),
+    Data = channel_feeder:new_cd(SPK, ThemSPK, SS2, SS2, channel_feeder:entropy(CD), CID),
+    channel_manager:write(CID, Data),
+    {ok, 0};
+doit({pull_channel_state, IP, Port}) ->
+    %If your channel partner has a script sig that you don't know about, this is how you download it
+    {ok, ServerID} = talker:talk({id}, IP, Port),
+    CD0 = channel_manager:read(ServerID),
+    true = channel_feeder:live(CD0),
+    SSPKME = channel_feeder:me(CD0),
+    SPKME = testnet_sign:data(SSPKME),
+    CID = spk:cid(SPKME),
+    {ok, CD, ThemSPK} = talker:talk({spk, CID}, IP, Port),
+    true = testnet_sign:verify(ThemSPK),
+    true = channel_feeder:live(CD),
+    SS = channel_feeder:ssthem(CD),
+    SS2 = channel_feeder:ssme(CD),
+    {SS2, Return} = channel_feeder:they_simplify(ServerID, ThemSPK, SS),
+    SPK = testnet_sign:data(Return),
+    SPK = testnet_sign:data(ThemSPK),
+    {ok, 0};
+doit({lightning_spend, IP, Port, Recipient, Amount, Fee}) ->
+    %payment is routed through this server, and to the recipient.
+    {Code, SS} = secrets:new_lightning(),
+    doit({lightning_spend, IP, Port, Recipient, Amount, Fee, Code, SS});
+doit({lightning_spend, IP, Port, Recipient, Amount, Fee, Code, SS}) ->
+    {ok, ServerID} = talker:talk({id}, IP, Port),
+    %ChannelID,
+    SPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code),
+    SSPK = keys:sign(SPK),
+    SSPK2 = talker:talk(IP, Port, {locked_payment, SSPK, Amount, Code, Recipient}),
+    SPK = testnet_sign:data(SSPK2),
+    %store SSPK2 in channel manager, it is their most recent signature.
+    io:fwrite("give this secret to your partner so that they can receive the payment --------> "),
+    io:fwrite(base64:encode(SS)),
+    io:fwrite(" <-------- \n"),
+    {ok, 0};
 doit({channel_keys}) -> {ok, channel_manager:keys()};
 doit({block_tree_account, Id}) -> {ok, block_tree:account(Id)};
 doit({halt}) -> {ok, testnet_sup:stop()};
