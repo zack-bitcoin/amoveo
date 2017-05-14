@@ -10,7 +10,7 @@
 curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3021
 curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
 
-curl -i -d '["create_account", "SDM5QURqd2JIZVlwR2ZMR20z", 10, 2]' http://localhost:3011
+curl -i -d '["create_account", "SlZSdjZTcnFEQ1BpOGZ0RTVB", 10, 2]' http://localhost:3011
 sleep 1
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 1

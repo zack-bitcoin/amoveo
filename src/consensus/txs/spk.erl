@@ -175,23 +175,8 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     Data3 = chalang:run5([Code], Data2),
     [ShareRoot|
      [<<Amount:32>>|
-      %[<<Direction:32>>|
        [<<Nonce:32>>|
 	[<<Delay:32>>|_]]]] = chalang:stack(Data3),%#d.stack,
-    io:fwrite("computed delay as "),
-    io:fwrite(integer_to_list(Delay)),
-    io:fwrite("\n"),
-    if
-	Delay > 0 ->
-	    io:fwrite(chalang:stack(Data3));
-	true -> ok
-    end,
-    io:fwrite("computed nonce as "),
-    io:fwrite(integer_to_list(Nonce)),
-    io:fwrite("\n"),
-    io:fwrite("computed amount as "),
-    io:fwrite(integer_to_list(Amount)),
-    io:fwrite("\n"),
     A3 = Amount * Bet#bet.amount div constants:channel_granularity(),
     {A3, Nonce, ShareRoot, Delay,
      chalang:time_gas(Data3)

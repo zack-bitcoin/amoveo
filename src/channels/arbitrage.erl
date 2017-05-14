@@ -47,11 +47,15 @@ plus(B, [H|T]) ->
 	C -> plus(B, T);
 	true -> [H|plus(B, T)]
     end.
-check(SH) ->
+check(Code) ->
+    SH = testnet_hasher:doit(Code),
     gen_server:call(?MODULE, {check, SH}).
-write(SH, L) ->
+write(Code, L) ->
+    SH = testnet_hasher:doit(Code),
     gen_server:cast(?MODULE, {write, SH, L}).
-remove(SH, L) ->
+remove(Code, L) ->
+    SH = testnet_hasher:doit(Code),
     gen_server:cast(?MODULE, {remove, SH, L}).
-remove_row(SH) ->
+remove_row(Code) ->
+    SH = testnet_hasher:doit(Code),
     gen_server:cast(?MODULE, {remove_row, SH}).

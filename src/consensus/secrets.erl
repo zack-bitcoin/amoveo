@@ -5,7 +5,8 @@
 -module(secrets).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
-	 read/1,delete/1,new_lightning/0,check/0,add/2]).
+	 read/1,delete/1,new_lightning/0,check/0,
+	 add/1,add/2]).
 %-define(LOC, "secrets.db").
 -define(LOC, constants:secrets()).
 init(ok) ->
@@ -33,12 +34,16 @@ handle_call({read, SH}, _From, X) ->
 	    {ok, Y} -> Y
 			   end,
     {reply, Z, X}.
+add(S) ->
+    SH = testnet_hasher:doit(S),
+    add(SH, S).
 add(SH, S) ->
     gen_server:cast(?MODULE, {add, S, SH}).
 new_lightning() -> 
     S = crypto:strong_rand_bytes(constants:hash_size()),
     SH = testnet_hasher:doit(S),
-    ESH = "hash binary 12 " ++ base64:encode(SH) ++ 
+    ESH = "hash binary 12 " ++ 
+	binary_to_list(base64:encode(SH)) ++ 
 	" == swap drop swap drop ",
     ES = "binary 12 " ++ base64:encode(S),
     FSH = compiler_chalang:doit(list_to_binary(ESH)),

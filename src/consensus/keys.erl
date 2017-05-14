@@ -97,7 +97,11 @@ sign(M, Accounts) ->
 	     {error, locked}
     end.
 raw_sign(M) -> gen_server:call(?MODULE, {raw_sign, M}).
-load(Pub, Priv, Brainwallet, ID) -> 
+load(Pub, Priv, Brainwallet, ID) when is_list(Pub) -> 
+    load(list_to_binary(Pub), Priv, Brainwallet, ID);
+load(Pub, Priv, Brainwallet, ID) when is_list(Priv) -> 
+    load(Pub, list_to_binary(Priv), Brainwallet, ID);
+load(Pub, Priv, Brainwallet, ID) when (is_binary(Pub) and is_binary(Priv))-> 
     io:fwrite("load key"),
     gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet, ID}).
 unlock(Brainwallet) -> gen_server:cast(?MODULE, {unlock, Brainwallet}).

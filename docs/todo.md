@@ -2,8 +2,6 @@ in channel_feeder:they_simplify, we need to update all the arbitragable channels
 
 api needs to be encrypted, especially the stuff about channels.
 
-spk needs to be updated to use a record for bets, and to extract the "amount" from the bets.
-
 
 in channel_solo_close:check_slash, we run next_ss.
 This seems like it could be far simpler.

@@ -84,9 +84,16 @@ doit({grow_channel, Stx}) ->
     tx_pool_feeder:absorb(SStx),
     {ok, ok};
 doit({spk, CID})->
-    CD = channel_manager:read(CID),
-    ME = keys:sign(channel_feeder:me(CD)),
-    {ok, CD, ME};
+    {ok, CD} = channel_manager:read(CID),
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    ME = keys:sign(channel_feeder:me(CD), Accounts),
+    Out = {ok, CD, ME},
+    io:fwrite("handler spk out is "),
+    io:fwrite(packer:pack(Out)),
+    io:fwrite("\n"),
+    Out = packer:unpack(packer:pack(Out)),
+    Out;
 doit({channel_payment, SSPK, Amount}) ->
     R = channel_feeder:spend(SSPK, Amount),
     {ok, R};
