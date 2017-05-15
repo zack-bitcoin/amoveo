@@ -148,7 +148,7 @@ channel_team_close(CID, Amount) ->
 channel_team_close(CID, Amount, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    keys:sign(channel_team_close_tx:make(CID, Trees, Amount, Fee, Accounts)).
+    keys:sign((channel_team_close_tx:make(CID, Trees, Amount, Fee)), Accounts).
 
 channel_repo(CID, Fee) ->
     F = fun(Trees) ->
