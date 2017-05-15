@@ -3,7 +3,7 @@
 
 -define(Fee, free_constants:tx_fee()).
 
-height() ->    
+height() ->
     block:height(block:read(top:doit())).
 
 tx_maker(F) -> 
@@ -11,7 +11,7 @@ tx_maker(F) ->
     Accounts = trees:accounts(Trees),
     {Tx, _} = F(Trees),
     case keys:sign(Tx, Accounts) of
-	{error, locked} -> 
+	{error, locked} ->
 	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
 	    ok;
 	Stx -> tx_pool_feeder:absorb(Stx)
@@ -42,9 +42,9 @@ delete_account(ID, Fee) ->
 		delete_account_tx:make(keys:id(), ID, Fee, Trees) end,
     tx_maker(F).
 
-repo_account(ID) ->   
+repo_account(ID) ->
     repo_account(ID, ?Fee).
-repo_account(ID, Fee) ->   
+repo_account(ID, Fee) ->
     F = fun(Trees) ->
 		repo_tx:make(ID, Fee, keys:id(), Trees) end,
     tx_maker(F).

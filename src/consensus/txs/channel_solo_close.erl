@@ -74,8 +74,8 @@ check_slash(From, Acc1, Acc2, TheirSS, SSPK, Trees, TheirNonce) ->
 	    MyID = keys:id(),
 	    {Tx, _} = channel_slash_tx:make(MyID, free_constants:tx_fee(), SSPK, [SSM], Trees2),
 	    Stx = keys:sign(Tx, Accounts2),
-	    tx_pool_feeder:absorb(Stx),
-	    easy:sync()
+	    tx_pool_feeder:absorb(Stx)
+	    %easy:sync()
     end.
 next_ss(From, TheirSS, SPK, Acc1, Acc2, Trees) ->
     %this is customized for dice.
