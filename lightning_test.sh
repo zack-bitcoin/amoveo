@@ -26,11 +26,11 @@ sleep ${waitae};
 echo "ok";
 
 
-curl -i -d '["key_unlock", "abc"]' http://localhost:3011
+curl -i -d '["key_unlock", ["abc"]]' http://localhost:3011
 echo "unlock 3011";
-curl -i -d '["key_unlock", "abc"]' http://localhost:3021
+curl -i -d '["key_unlock", ["abc"]]' http://localhost:3021
 echo "unlock 3021";
-curl -i -d '["key_unlock", "abc"]' http://localhost:3031
+curl -i -d '["key_unlock", ["abc"]]' http://localhost:3031
 echo "unlock 3031";
 
 curl -i -d '["keys_id_update", 1]' http://localhost:3021

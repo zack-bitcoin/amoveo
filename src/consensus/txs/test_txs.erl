@@ -338,7 +338,7 @@ test(8) ->
     Accounts3 = trees:accounts(Trees3),
     {_, A1, _} = accounts:get(1, Accounts3),
     {_, A2, _} = accounts:get(2, Accounts3),
-    S1 = accounts:shares(A1),
+    S1 = accounts:shares(A1), 
     S2 = accounts:shares(A2),
     {shares:get(100, S1),
      shares:get(100, S2),
@@ -634,7 +634,7 @@ test(13) ->
 
 
     success;
-test(14) ->
+test(14) -> 
     %options
     io:fwrite("options derivatives enforcement\n"),
     BP = block:genesis(),
@@ -658,19 +658,19 @@ test(14) ->
 
     {Ctx2, _} = new_channel_tx:make(CID, Trees2, 1, ID2, 100, 200, Entropy, 10, Fee),
     Stx2 = keys:sign(Ctx2, Accounts2),
-    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
     absorb(SStx2),
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
-
+    
     Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts3),
-    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
-    {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3),
+    {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
     Stx3 = keys:sign(Ctx3, Accounts3),
     absorb(Stx3),
     {Trees4, _, _} = tx_pool:data(),

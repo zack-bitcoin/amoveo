@@ -8,12 +8,14 @@ git pull origin master;
 fi;
 
 if [ `uname -s`==Linux ]; then
-./rebar3 get-deps;
+./rebar get-deps;
 #./rebar3 get;
-./rebar3 compile;
+./rebar compile;
 elif [ `uname -s`==Darwin ]; then
-./rebar3 get-deps;
-./rebar3 compile;
+rm erl_crash.dump;
+rm rebar3.crashdump;
+./rebar get-deps;
+./rebar compile;
 else
     echo "your computer cannot update this";
 fi;

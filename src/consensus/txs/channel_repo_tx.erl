@@ -9,7 +9,7 @@ make(From, ID, Fee, Trees) ->
     Channels = trees:channels(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),
     {_, _, CProof} = channels:get(ID, Channels),
-    N = accounts:nonce(Acc) + 1,
+    N = accounts:nonce(Acc) + 1, 
     Tx = #cr{from = From, nonce = N, fee = Fee, id = ID},
     {Tx, [Proof, CProof]}.
 

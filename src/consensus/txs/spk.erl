@@ -1,7 +1,7 @@
 -module(spk).
 -export([acc1/1,acc2/1,entropy/1,
 	 bets/1,space_gas/1,time_gas/1,
-	 new/9,cid/1,amount/1,
+	 new/9,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,settle_bet/3,chalang_state/3,
 	 prove/1, new_bet/3, delay/1,
@@ -37,7 +37,7 @@ code(X) -> X#bet.code.
 prove_facts([], _) ->
     <<>>;
 prove_facts(X, Trees) ->
-	   %[int 5,int 6,int 7]
+	   %[int 5,int 6,int 7] 
     A = <<"macro [ nil ;
 	macro , swap cons ;
 	macro ] swap cons reverse ;
@@ -52,11 +52,11 @@ prove_facts2([{Tree, Key}|T], Trees) ->
     {_, Data, _} = Tree:get(Key, Branch),
     SerializedData = Tree:serialize(Data),
     Size = size(SerializedData),
-    A = "[int " ++ integer_to_list(ID) ++
+    A = "[int " ++ integer_to_list(ID) ++ 
 	", int " ++ integer_to_list(Key) ++%burn and existence store by hash, not by integer.
 	", binary " ++
 	integer_to_list(Size) ++ " " ++
-	binary_to_list(base64:encode(Tree:serialize(Data)))++
+	binary_to_list(base64:encode(Tree:serialize(Data)))++ 
 	"]",%this comma is used one too many times.
     A2 = list_to_binary(A),
     B = prove_facts2(T, Trees),
@@ -89,7 +89,7 @@ apply_bet(Bet, Amount, SPK, Time, Space) ->
     SPK#spk{bets = [Bet|SPK#spk.bets], 
 	    nonce = SPK#spk.nonce + 1, 
 	    time_gas = SPK#spk.time_gas + Time, 
-	    space_gas = max(SPK#spk.space_gas, Space),
+	    space_gas = max(SPK#spk.space_gas, Space), 
 	    amount = SPK#spk.amount + Amount}.
 settle_bet(SPK, Bets, Amount) ->
     SPK#spk{bets = Bets, amount = Amount, nonce = SPK#spk.nonce + 1}.
@@ -121,13 +121,13 @@ run2(fast, SS, SPK, State, Trees) ->
     Bets = SPK#spk.bets,
     %Scripts = bets2scripts(Bets, Trees),
     Delay = SPK#spk.delay,
-    run(SS,
+    run(SS, 
 	Bets,
-		SPK#spk.time_gas,
-		SPK#spk.space_gas,
-		FunLimit,
-		VarLimit,
-	State,
+	SPK#spk.time_gas,
+	SPK#spk.space_gas,
+	FunLimit,
+	VarLimit,
+	State, 
 	Delay);
 run2(safe, SS, SPK, State, Trees) -> 
     %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
@@ -148,7 +148,7 @@ run2(safe, SS, SPK, State, Trees) ->
 %    F = prove_facts(B#bet.prove, Trees),
 %    C = B#bet.code,
 %    [<<F/binary, C/binary>>|bets2scripts(T, Trees)].
-chalang_state(Height, Slash, Trees) ->
+chalang_state(Height, Slash, Trees) ->	    
     chalang:new_state(Height, Slash, Trees).
 run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay) ->
     run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay, []).
@@ -156,7 +156,7 @@ run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay) ->
 run([], [], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, ShareRoot) ->
     {Amount, Nonce, ShareRoot, Delay, OpGas};
 run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Share0) ->
-    {A2, N2, Share, Delay2, EOpGas} =
+    {A2, N2, Share, Delay2, EOpGas} = 
 	run3(SS, Code, OpGas, RamGas, Funs, Vars, State),
     run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Share ++ Share0).
 run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
@@ -168,30 +168,15 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     {Trees, _, _} = tx_pool:data(),
     F = prove_facts(Bet#bet.prove, Trees),
     C = Bet#bet.code,
-    Code = <<F/binary, C/binary>>,
+    Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State),
     %io:fwrite("running script "),
     Data2 = chalang:run5([ScriptSig], Data),
     Data3 = chalang:run5([Code], Data2),
     [ShareRoot|
      [<<Amount:32>>|
-      %[<<Direction:32>>|
        [<<Nonce:32>>|
 	[<<Delay:32>>|_]]]] = chalang:stack(Data3),%#d.stack,
-    io:fwrite("computed delay as "),
-    io:fwrite(integer_to_list(Delay)),
-    io:fwrite("\n"),
-    if
-	Delay > 0 ->
-	    io:fwrite(chalang:stack(Data3));
-	true -> ok
-    end,
-    io:fwrite("computed nonce as "),
-    io:fwrite(integer_to_list(Nonce)),
-    io:fwrite("\n"),
-    io:fwrite("computed amount as "),
-    io:fwrite(integer_to_list(Amount)),
-    io:fwrite("\n"),
     A3 = Amount * Bet#bet.amount div constants:channel_granularity(),
     {A3, Nonce, ShareRoot, Delay,
      chalang:time_gas(Data3)
@@ -200,12 +185,12 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
 
 
 
-
+	
 test() ->
     %test prove_facts.
     {Trees, _, _} = tx_pool:data(),
     Code = prove_facts([{governance, 5},{accounts, 1}], Trees),
-    State = chalang_state(1, 0, Trees),
+    State = chalang_state(1, 0, Trees), 
     [[[<<6:32>>, <<5:32>>, Gov5], %6th tree is governance. 5th thing is "delete channel reward"
       [<<1:32>>, <<1:32>>, Acc1]]] = %1st tree is accounts. 1 is for account id 1.
 	chalang:vm(Code, 100000, 100000, 1000, 1000, State),
@@ -216,5 +201,5 @@ test() ->
     Acc1 = accounts:serialize(Account1),
     Gov5 = governance:serialize(Govern5),
     success.
-
-
+    
+    

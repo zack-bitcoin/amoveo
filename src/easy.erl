@@ -3,7 +3,7 @@
 
 -define(Fee, free_constants:tx_fee()).
 
-height() ->
+height() ->    
     block:height(block:read(top:doit())).
 
 tx_maker(F) -> 
@@ -11,7 +11,7 @@ tx_maker(F) ->
     Accounts = trees:accounts(Trees),
     {Tx, _} = F(Trees),
     case keys:sign(Tx, Accounts) of
-	{error, locked} ->
+	{error, locked} -> 
 	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
 	    ok;
 	Stx -> tx_pool_feeder:absorb(Stx)
@@ -42,9 +42,9 @@ delete_account(ID, Fee) ->
 		delete_account_tx:make(keys:id(), ID, Fee, Trees) end,
     tx_maker(F).
 
-repo_account(ID) ->
+repo_account(ID) ->   
     repo_account(ID, ?Fee).
-repo_account(ID, Fee) ->
+repo_account(ID, Fee) ->   
     F = fun(Trees) ->
 		repo_tx:make(ID, Fee, keys:id(), Trees) end,
     tx_maker(F).
@@ -56,7 +56,7 @@ new_channel(Bal1, Bal2, Fee, Delay) ->
     CID = new_channel2(1, Channels),
     B1 = to_int(Bal1),
     B2 = to_int(Bal2),
-    new_channel_tx(constants:server_ip(),
+    new_channel_tx(constants:server_ip(), 
 		constants:server_port(), 
 		CID, B1, B2, Fee, Delay).
 new_channel2(ID, Channels) ->
@@ -75,7 +75,7 @@ new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Fee, Delay) ->
     Accounts = trees:accounts(Trees),
     {Tx, _} = new_channel_tx:make(CID, Trees, keys:id(), Acc2, Bal1, Bal2, Entropy, Delay, Fee),
     keys:sign(Tx, Accounts).
-
+    
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     undefined = peers:cid(peers:read(IP, Port)),
     Acc1 = keys:id(),
@@ -208,15 +208,15 @@ oracle_unmatched(Fee, OracleID, OrderID) ->
 account(ID) ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    case account:get(ID, Accounts) of
+    case accounts:get(ID, Accounts) of
 	{_,empty,_} ->
 	    io:fwrite("this account does not yet exist\n"),
-	    account:new(-1,0,0,0);
+	    accounts:new(-1,0,0,0);
 	{_, A, _} -> A
     end.
 
 account() -> account(keys:id()).
-integer_balance() -> account:balance(account()).
+integer_balance() -> accounts:balance(account()).
 balance() ->
     I = case keys:id() of
 	    -1 -> 0;
@@ -276,5 +276,5 @@ test() ->
     oracle_unmatched(1, 2),
     timer:sleep(100),
     tx_pool:data().
-
-
+    
+    

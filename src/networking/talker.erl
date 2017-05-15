@@ -19,7 +19,7 @@ local_talk(Msg) ->
 %    talk(Msg, Peer).
 talk(Msg, Peer) ->
     talk_helper(Msg, Peer, 5).
-talk_helper(_, _, 0) ->
+talk_helper(_, _, 0) -> 
     io:fwrite("talk helper fail\n"),
     {error, failed_connect};
 talk_helper(Msg, Peer, N) ->

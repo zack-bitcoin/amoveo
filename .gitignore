@@ -1,3 +1,4 @@
+/.idea/
 /deps/
 /ebin/
 /rel/
@@ -10,88 +11,6 @@ rebar_source
 .rebar
 erl_crash.dump
 keys_backup
-.idea/aeternity-testnet.iml
-.idea/inspectionProfiles/
-.idea/libraries/
-.idea/modules.xml
-.idea/vcs.xml
-.idea/workspace.xml
-backup/
-/.rebar/erlcinfo
-/.idea/
-.DS_Store
-.idea/copyright/Aeternity_Zwilla.xml
-.idea/dialyzer.xml
-.idea/markdown-navigator.xml
-.idea/markdown-navigator/
-Modules/
-all_txt
-blocks/.DS_Store
-data/.DS_Store
-intstall-on-osx.sh
-src/.DS_Store
-src/web/api.php
-src/web/priv/static/assets/fonts/
-src/web/priv/static/assets/images/
-testnet.iml
+/dializer.plt
 /rebar.lock
-Would skip repository _build/default/lib/chalang
-Would skip repository _build/default/lib/cowboy
-Would skip repository _build/default/lib/cowlib
-Would skip repository _build/default/lib/dump
-Would skip repository _build/default/lib/jiffy
-Would skip repository _build/default/lib/pink_hash
-Would skip repository _build/default/lib/ranch
-Would skip repository _build/default/lib/trie
-_build/default/lib/testnet
-bets/
-docs/accounts_channels.md
-docs/api_examples.md
-docs/channels.md
-docs/channels_untrusted_slasher.md
-docs/community_roadmap.md
-docs/compile_mac.md
-docs/compile_ubuntu.md
-docs/contributions.md
-docs/dapp_developer_introduction.md
-docs/dominant_assurance_contract.md
-docs/ethereum_comparison.md
-docs/hiring.md
-docs/insured_crowdfund.md
-docs/off_chain_censored_orders.md
-docs/oracle.md
-docs/oracle_answers_for_smith_crown.md
-docs/oracle_lifecycle.md
-docs/oracle_manipulation.md
-docs/oracle_off_chain.md
-docs/oracle_order_book.md
-docs/questions.md
-docs/scalability.md
-docs/shares.md
-docs/threshold_signature_anonimity.md
-docs/town_crier.md
-docs/transaction_types.md
-docs/trees.md
-external_web/
-oracle_questions/
-rebar.lock
-rebar3
-rebar3.crashdump
-src/calculate_lines.sh
-src/channels/arbitrage_old.erl
-src/consensus/chain/
-src/consensus/secrets.erl
-src/consensus/sync.erl
-src/consensus/trees/
-src/consensus/txs/existence_tx.erl
-src/consensus/txs/oracle_bet_tx.erl
-src/consensus/txs/oracle_close_tx.erl
-src/consensus/txs/oracle_new_tx.erl
-src/consensus/txs/oracle_shares_tx.erl
-src/consensus/txs/oracle_unmatched_tx.erl
-src/consensus/txs/testnet_sign.erl
-src/networking/request_frequency.erl
-src/oracle_questions.erl
-src/test_key.erl
-tests/
-web/
+/testnet.iml

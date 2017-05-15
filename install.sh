@@ -21,15 +21,16 @@
 #
 
 if [ -e "rebar" ]; then
+echo "test if rebar here exist and YES it does!"
+rm erl_crash.dump;
 #rm rebar;
 fi;
 
 # first install rebar package manager
 
-if [ -e "rebar" ];
-then
-    echo "rebar already installed \n";
-
+if [ -e "rebar3" ]; then
+    echo "REBAR3 already installed \n";
+rm rebar3.crashdump;
 elif [[ `uname -s` == `Linux` ]];
 then
     echo "download rebar on Linux";
@@ -42,9 +43,10 @@ elif [[ `uname -s`==Darwin ]];
 then
     echo "get rebar for Darwin now! \n";
     curl https://raw.githubusercontent.com/wiki/rebar/rebar/rebar -o rebar;
+    curl https://s3.amazonaws.com/rebar3/rebar3 -o rebar3;
     chmod u+x *.sh;
     #chmod u+x rebar;
-    chmod u+x rebar3;
+    chmod u+x rebar;
 
 else
     echo "your system can't compile aeternity at moment! Check our website for more details \n";

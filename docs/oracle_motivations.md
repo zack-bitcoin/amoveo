@@ -1,7 +1,4 @@
-
-Existing oracle mechanisms are built on top of voting. Voting can not adequately solve the oracle problem in a useful way. Betting mechanisms do not suffer this same limitations. 
-
-
+Existing oracle mechanisms are built on top of voting. Voting can not adequately solve the oracle problem in a useful way because of tragedy of the commons. Betting mechanisms do not suffer this same limitations. 
 
 Users want to use blockchains to gamble on future events. They want to gamble on the price of goods, for example.
 

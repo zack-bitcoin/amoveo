@@ -9,7 +9,7 @@ sh update.sh
 #echo "GO TO THIS WEBSITE -------> http://localhost:8041/login.html"
 #sleep 1
 cp data/keys.db data/keys_dev_mode_backup.db
-erl -pa ebin deps/*/ebin/ -eval "application:ensure_all_started(testnet), serve:pw($1),
+erl -pa ebin deps/*/ebin/ -eval "application:ensure_all_started(testnet), serve:pw(3020),
 keys:load(\"BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=\",
 \"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=\",
 \"abc\", 2), 

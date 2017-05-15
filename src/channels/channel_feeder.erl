@@ -7,7 +7,8 @@
 	 agree_bet/4,garbage/0,entropy/1,
 	 new_channel_check/1,
 	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
-	 make_bet/4, update_to_me/1, new_cd/6
+	 make_bet/4, update_to_me/1, new_cd/6, 
+	 make_locked_payment/4, live/1, they_simplify/3
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -16,11 +17,15 @@
 	     live = true,
 	     entropy = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
+live(X) ->
+    X#cd.live.
 new_cd(Me, Them, SSThem, SSMe, Entropy, CID) ->
     #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, entropy = Entropy, cid = CID}.
 me(X) -> X#cd.me.
 cid(X) when is_integer(X) ->
+    %{ok, CD} = 
     cid(channel_manager:read(X));
+    %CD#cd.cid;
 cid(X) when is_record(X, cd) -> X#cd.cid;
 cid(error) -> undefined;
 cid(X) -> cid(other(X)).
@@ -41,14 +46,9 @@ handle_cast(garbage, X) ->
 handle_cast({new_channel, Tx, SSPK, _Accounts}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
     SPK = testnet_sign:data(SSPK),
-    io:fwrite("spk 1 is "),
-    io:fwrite(packer:pack(SPK)),
-    io:fwrite("\n"),
-    SPK2 = new_channel_tx:spk(Tx, spk:delay(SPK)),%doesn't move the money
-    io:fwrite("spk 2 is "),
-    io:fwrite(packer:pack(SPK2)),
-    io:fwrite("\n"),
-    CD = #cd{me = SPK, them = SSPK, entropy = spk:entropy(SPK)},
+    Delay = spk:delay(SPK),
+    SPK2 = new_channel_tx:spk(Tx, Delay),%doesn't move the money
+    CD = #cd{me = SPK, them = SSPK, entropy = spk:entropy(SPK), cid = new_channel_tx:id(Tx)},
     channel_manager:write(other(Tx), CD),
     {noreply, X};
 handle_cast({close, SS, STx}, X) ->
@@ -105,19 +105,22 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient}, _From, X) 
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     true = Amount > 0,
     true = Fee > free_constants:lightning_fee(),
-    Return = make_locked_payment(Sender, 0, Amount+Fee, Code, []),
-    Return = testnet_sign:data(SSPK),
+    Return = make_locked_payment(Sender, Amount+Fee, Code, []),
+    SPK = testnet_sign:data(SSPK),
+    SPK2 = testnet_sign:data(Return),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(Return),
     {ok, OldCD} = channel_manager:read(Sender),
-    NewCD = OldCD#cd{them = SSPK, me = Return},
+    NewCD = OldCD#cd{them = SSPK, me = SPK},
     channel_manager:write(Sender, NewCD),
     
-    arbitrage:doit(Code, [Sender, Recipient]),
+    arbitrage:write(Code, [Sender, Recipient]),
 
-    Channel2 = make_locked_payment(Recipient, Amount, 0, Code, []),
+    Channel2 = make_locked_payment(Recipient, -Amount, Code, []),
     {ok, OldCD2} = channel_manager:read(Recipient),
-    NewCD2 = OldCD2#cd{me = Channel2},
+    NewCD2 = OldCD2#cd{me = testnet_sign:data(Channel2)},
     channel_manager:write(Recipient, NewCD2),
-    {reply, keys:sign(Return), X};
+    {reply, Return, X};
 handle_call({spend, SSPK, Amount}, _From, X) ->
 %giving us money in the channel.
     {Trees,_,_} = tx_pool:data(),
@@ -179,7 +182,7 @@ handle_call({they_simplify, From, SSPK, SS}, _FROM, X) ->
     %look up in arbitrage if we can use this same SS to simplify other channels, if we can, then do it.
     {ok, CD} = channel_manager:read(From),
     CID = spk:cid(CD#cd.me),
-    Data = new_cd(SPK, SSPK, SS2, SS2, channel_feeder:entropy(CD), CID),
+    Data = new_cd(SPK, SSPK, SS2, SS2, entropy(CD), CID),
     channel_manager:write(CID, Data),
     {reply, {SS2, Return}, X};
 handle_call({we_simplify, Them, SS}, _FROM, X) ->
@@ -188,7 +191,7 @@ handle_call({we_simplify, Them, SS}, _FROM, X) ->
     CID = spk:cid(CD#cd.me),
     OldSSPK = CD#cd.them,
     SPK = testnet_sign:data(Return),
-    Data = new_cd(SPK, OldSSPK, SS2, SS, channel_feeder:entropy(CD), CID),
+    Data = new_cd(SPK, OldSSPK, SS2, SS, entropy(CD), CID),
     channel_manager:write(CID, Data),
     {reply, Return, X};
 %handle_call({make_simplification, Other, Name, OtherSS}, _From, X) ->
@@ -379,6 +382,10 @@ other(Aid1, Aid2) ->
 	    
 entropy([Aid1, Aid2]) ->
     Other = other(Aid1, Aid2),
+    entropy(Other);
+entropy(CD) when is_record(CD, cd)->
+    CD#cd.entropy;
+entropy(Other) ->
     case channel_manager:read(Other) of
 	{ok, CD} ->  
 	    CD#cd.entropy;
@@ -442,17 +449,16 @@ diff([A|T], [A|Q], N) ->
 diff(_, _, N) ->
     N.
 
-make_locked_payment(To, MyAmount, TheirAmount, Code, Prove) -> 
+make_locked_payment(To, Amount, Code, Prove) -> 
 	 %look up our current SPK,
     {ok, CD} = channel_manager:read(To),
     OldSPK = CD#cd.them,
-    Amount = MyAmount + TheirAmount,
     Bet = spk:new_bet(Code, Amount, Prove),
-    A = if
-	    Amount > 0 -> TheirAmount;
-	    true -> MyAmount
-	end,
     Time = free_constants:gas_limit(),
     Space = free_constants:space_limit(),
-    NewSPK = spk:apply_bet(Bet, -A, OldSPK, Time, Space),
-    keys:sign(NewSPK).
+    SPK = testnet_sign:data(OldSPK),
+    NewSPK = spk:apply_bet(Bet, 0, SPK, Time, Space),
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    Out = keys:sign(NewSPK, Accounts),
+    Out.

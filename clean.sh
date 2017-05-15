@@ -49,7 +49,7 @@ rm blocks/*.db;
 fi;
 
 
-read -t 5 cleanall2;
+read -t 15 cleanall2;
 echo "clean also depencies now? Hit Enter for No, or typ y for YES";
 
 if [[ ${cleanall2} == "y" ]]; then

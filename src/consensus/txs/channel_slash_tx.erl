@@ -19,7 +19,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
 	       Acc2 -> Acc1
 	   end,
     {_, _, Proof2} = accounts:get(Accb, Accounts),
-    Tx = #cs{from = From, nonce = accounts:nonce(Acc)+1,
+    Tx = #cs{from = From, nonce = accounts:nonce(Acc)+1, 
 	      fee = Fee, 
 	      scriptpubkey = ScriptPubkey, 
 	      scriptsig = ScriptSig},
@@ -52,11 +52,11 @@ doit(Tx, Trees, NewHeight) ->
     %NewChannels = channels:delete(CID, Channels),
     true = (-1 < (channels:bal1(OldChannel)-Amount)),%channels can only delete money that was inside the channel.
     true = (-1 < (channels:bal2(OldChannel)+Amount)),
-    NewChannel = channels:update(From, CID, Trees, NewCNonce, 0, 0, Amount, Delay, NewHeight, false, Shares),
+    NewChannel = channels:update(From, CID, Trees, NewCNonce, 0, 0, Amount, Delay, NewHeight, false, Shares), 
     NewChannels = channels:write(NewChannel, Channels),
     ID = Tx#cs.from,
     Account = accounts:update(ID, Trees, -Fee, Nonce, NewHeight),
-    NewAccounts = accounts:write(Accounts, Account),
+    NewAccounts = accounts:write(Accounts, Account), 
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 		      

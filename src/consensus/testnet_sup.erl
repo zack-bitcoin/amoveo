@@ -29,7 +29,7 @@ tree_child(Id, KeySize, Size, Meta) ->
     {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd]}, permanent, 5000, supervisor, [trie_sup]}.
 init([]) ->
     os:putenv("ERL_CRASH_DUMP_SECONDS", <<0>>),
-    KL = constants:key_length(),
+    KL = constants:key_length(), 
     HS = constants:hash_size(),
     FullLength = KL*2,
     BB = constants:balance_bits(),

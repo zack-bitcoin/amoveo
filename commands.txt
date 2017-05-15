@@ -84,6 +84,8 @@
 % keys:shared_secret(Pubkey).
 
 % keys:shared_secret("BLWeP182RgDNboXU/R9D/KBfsIv703Y0URiaWvkihKTFmKL7htDZ3RHk5a5IOnBeECq7ojFKYeNVXeHJ/vbjBgQ=").
+  keys:shared_secret("BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=").
+
 
 % Ergebnis: "4buAk0y1DUofPXcxdaxY5V9YdmE5jAAmulVE7d8qCS0="
 

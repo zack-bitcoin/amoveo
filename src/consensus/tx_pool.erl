@@ -27,18 +27,18 @@ handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
     MBS = governance:get_value(max_block_size, Governance),
     %MBS = constants:max_block_size(),
     FinalTxs = if
-	B > MBS ->
+	B > MBS -> 
 		       io:fwrite("block is already full\n"),
 		       F#f.txs;
 	true -> NewTxs
     end,
-    {reply, 0, F#f{txs = FinalTxs, trees = NewTrees}};
+    {reply, 0, F#f{txs = FinalTxs, trees = NewTrees}}; 
 handle_call({absorb, NewTrees, Txs, Height}, _From, _) ->
     {reply, 0, #f{txs = Txs, trees = NewTrees, height = Height}};
 handle_call(data, _From, F) -> {reply, {F#f.trees, F#f.height, flip(F#f.txs)}, F}.
 data() -> gen_server:call(?MODULE, data). %{accounts, channels, height, txs}
 dump() -> gen_server:call(?MODULE, dump).
-absorb_tx(Trees, Tx) ->
+absorb_tx(Trees, Tx) -> 
     gen_server:call(?MODULE, {absorb_tx, Trees, Tx}).
 absorb(Trees, Txs, Height) ->
     gen_server:call(?MODULE, {absorb, Trees, Txs, Height}).

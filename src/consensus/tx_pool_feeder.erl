@@ -21,7 +21,7 @@ handle_cast({absorb, SignedTx}, X) ->
 	B ->  io:fwrite("already have this tx"),
 	    ok;
 	true ->
-	    NewTrees =
+	    NewTrees = 
 		txs:digest([SignedTx], Trees, Height+1),
 	    tx_pool:absorb_tx(NewTrees, SignedTx)
     end,

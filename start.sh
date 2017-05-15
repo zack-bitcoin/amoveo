@@ -10,26 +10,34 @@
 #echo "GO TO THIS WEBSITE -------> http://localhost:8041/login.html"
 #sleep 1
 
+# build the dializer
+# more here: http://erlang.org/doc/apps/dialyzer/dialyzer_chapter.html
+#dialyzer --build_plt --apps erts kernel stdlib mnesia
+#dialyzer --add_to_plt --plt dializer.plt -r ebin
+#dialyzer --check_plt --plt dializer.plt
+#--src ebin
 
 if [[ `uname -s` == `Linux` ]];
 then
     echo "check and compile on Linux";
-    sh rebar get;
-    sh rebar compile;
+    ./rebar clean;
+    ./rebar get;
+    ./rebar compile;
+    ./rebar compile;
     fi;
 
 if [[ `uname -s`==Darwin ]]; then
     echo "check and compile on Darwin now! \n";
-    sudo ./rebar3 local upgrade
-    chmod u+x rebar3;
+    chmod u+x rebar;
     chmod u+x *.sh;
     #without sudo we get an error on compiling on osx
-    sudo ./rebar3 clean
-    sudo ./rebar3 get-deps
-    sudo ./rebar3 compile
+    ./rebar clean; # only works with sudo on osx sierra
+    ./rebar get-deps;
+    ./rebar compile;
+    ./rebar compile;
 fi;
 
-exit;
+# exit;
 # on Testnet we need this!
 # now not deleting the deps folder!
 rm yesclean.txt;

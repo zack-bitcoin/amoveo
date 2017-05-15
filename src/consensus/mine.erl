@@ -15,7 +15,7 @@ handle_cast(mine, go) ->
     %spawn(fun() -> easy:sync() end),
     {noreply, go};
 handle_cast(start, stop) ->
-  Cores = block:guess_number_of_cpu_cores(),
+    Cores = block:guess_number_of_cpu_cores(),
     io:fwrite("start mining with "),
     io:fwrite(integer_to_list(Cores)),
     io:fwrite(" cores.\n"),
@@ -34,6 +34,5 @@ mine() ->
     gen_server:cast(?MODULE, mine).
 
 stop() -> gen_server:cast(?MODULE, stop).
-
 is_on() ->
-  gen_server:call(?MODULE, status).
+    gen_server:call(?MODULE, status).

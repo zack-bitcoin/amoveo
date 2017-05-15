@@ -30,9 +30,9 @@ doit({give_block, SignedBlock}) ->
     {ok, 0};
 doit({block, N}) -> 
     {ok, block:read_int(N)};
-doit({header, N}) ->
+doit({header, N}) -> 
     {ok, block:block_to_header(block:read_int(N))};
-doit({headers, Many, N}) ->
+doit({headers, Many, N}) -> 
     X = many_headers(Many, N),
     {ok, X};
     %{ok, block_tree:read_int(N)};
@@ -84,9 +84,16 @@ doit({grow_channel, Stx}) ->
     tx_pool_feeder:absorb(SStx),
     {ok, ok};
 doit({spk, CID})->
-    CD = channel_manager:read(CID),
-    ME = keys:sign(channel_feeder:me(CD)),
-    {ok, CD, ME};
+    {ok, CD} = channel_manager:read(CID),
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    ME = keys:sign(channel_feeder:me(CD), Accounts),
+    Out = {ok, CD, ME},
+    io:fwrite("handler spk out is "),
+    io:fwrite(packer:pack(Out)),
+    io:fwrite("\n"),
+    Out = packer:unpack(packer:pack(Out)),
+    Out;
 doit({channel_payment, SSPK, Amount}) ->
     R = channel_feeder:spend(SSPK, Amount),
     {ok, R};
@@ -123,7 +130,7 @@ doit({proof, TreeName, ID}) ->
     {RootHash, Value, Proof} = TN:get(ID, Root),
     Proof2 = proof_packer(Proof),
     {ok, {return, RootHash, Value, Proof2}};
-
+    
 doit({dice, 1, Other, Commit, Amount}) ->
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
     {ok, CD} = channel_manager:read(Other),
@@ -152,11 +159,11 @@ proof_packer([]) -> [];
 proof_packer([H|T]) ->
     [proof_packer(H)|proof_packer(T)];
 proof_packer(X) -> X.
-
+ 
     %Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
 many_headers(M, _) when M < 1 -> [];
-many_headers(Many, N) ->
+many_headers(Many, N) ->    
     [block:block_to_header(block:read_int(N))|
      many_headers(Many-1, N+1)].
-
+    
     
