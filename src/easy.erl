@@ -205,7 +205,7 @@ oracle_unmatched(Fee, OracleID, OrderID) ->
 	end,
     tx_maker(F).
 
-account(ID) ->
+account(ID) -> %account:xxx to accounts:
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     case accounts:get(ID, Accounts) of
