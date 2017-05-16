@@ -14,7 +14,8 @@
 -define(SANE(), <<"sanity">>).
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:fwrite("keys died"), ok.
+terminate(_, _) -> io:fwrite("keys died\n"), ok.
+%missing function to stop attacks!
 format_status(_,[_,_]) -> [{[], [{"State", []}]}].
 -record(f, {pub = "", priv = "", sanity = "", id = -1}).
 %sanity is only used on the hard drive, not in ram.

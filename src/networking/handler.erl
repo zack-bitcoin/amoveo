@@ -116,8 +116,30 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
 doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient}) ->
     R = channel_feeder:lock_spend(SSPK, Amount, Fee, Code, Sender, Recipient),
     {ok, R};
-doit({channel_simplify, SS, SSPK, From}) ->
-    Return = channel_feeder:simplify(From, SS, SSPK),
+doit({learn_secret, From, Secret, Code}) ->
+    {ok, OldCD} = channel_manager:read(From),
+    %check that code is actually used in the channel state.
+    io:fwrite("learned a secret\n"),
+    io:fwrite("\n"),
+    OldSecret = secrets:read(Code),
+    secrets:add(Code, Secret),
+    SS = channel_feeder:script_sig_me(OldCD),
+    {NewSS, SPK, Secrets} =
+	spk:bet_unlock(
+	  channel_feeder:me(OldCD), SS),
+    if
+	NewSS == SS -> secrets:add(Code, OldSecret);
+	true ->
+	    NewCD = channel_feeder:new_cd(
+		      SPK, channel_feeder:them(OldCD),
+		      NewSS, channel_feeder:script_sig_them(OldCD),
+		      channel_feeder:entropy(OldCD),
+		      channel_feeder:cid(OldCD)),
+	    channel_manager:write(From, NewCD)
+    end,
+    {ok, 0};
+doit({channel_sync, From, SSPK}) ->
+    Return = channel_feeder:update_to_me(SSPK, From),
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();

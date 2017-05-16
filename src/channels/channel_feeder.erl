@@ -7,7 +7,7 @@
 	 agree_bet/4,garbage/0,entropy/1,
 	 new_channel_check/1,
 	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
-	 make_bet/4, update_to_me/1, new_cd/6, 
+	 make_bet/4, update_to_me/2, new_cd/6,
 	 make_locked_payment/4, live/1, they_simplify/3
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
@@ -111,14 +111,17 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient}, _From, X) 
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(Return),
     {ok, OldCD} = channel_manager:read(Sender),
-    NewCD = OldCD#cd{them = SSPK, me = SPK},
+    NewCD = OldCD#cd{them = SSPK, me = SPK,
+		     ssme = [<<>>|OldCD#cd.ssme],
+		     ssthem = [<<>>|OldCD#cd.ssthem]},
     channel_manager:write(Sender, NewCD),
     
     arbitrage:write(Code, [Sender, Recipient]),
 
     Channel2 = make_locked_payment(Recipient, -Amount, Code, []),
     {ok, OldCD2} = channel_manager:read(Recipient),
-    NewCD2 = OldCD2#cd{me = testnet_sign:data(Channel2)},
+    NewCD2 = OldCD2#cd{me = testnet_sign:data(Channel2),
+		       ssme = [<<>>|OldCD2#cd.ssme]},
     channel_manager:write(Recipient, NewCD2),
     {reply, Return, X};
 handle_call({spend, SSPK, Amount}, _From, X) ->
@@ -136,24 +139,28 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = SPK},
     channel_manager:write(Other, NewCD),
     {reply, Return, X};
-%handle_call({update_to_me, SSPK}, _From, X) ->
-%    %this updates our partner's side of the channel state to include the bet that we already included.
-%    {Trees,_,_} = tx_pool:data(),
-%    Accounts = trees:accounts(Trees),
-%    MyID = keys:id(),
-%    SPK = testnet_sign:data(SSPK),
-%    Acc1 = spk:acc1(SPK),
-%    Acc2 = spk:acc2(SPK),
-%    Other = case MyID of
-%	Acc1 -> Acc2;
-%	Acc2 -> Acc1;
-%	X -> X = Acc1
-%    end,	
-%    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
-%    {ok, OldCD} = channel_manager:read(Other),
-%    Mine = OldCD#cd.me,
+handle_call({update_to_me, SSPK, From}, _From, X) ->
+    %this updates our partner's side of the channel state to include the bet that we already included.
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    MyID = keys:id(),
+    SPK = testnet_sign:data(SSPK),
+    Acc1 = spk:acc1(SPK),
+    Acc2 = spk:acc2(SPK),
+    From = case MyID of
+	Acc1 -> Acc2;
+	Acc2 -> Acc1;
+	X -> X = Acc1
+    end,
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
+    {ok, OldCD} = channel_manager:read(From),
+    io:fwrite("{mine, theirs} "),
+    io:fwrite(packer:pack({ok, OldCD#cd.me, SPK})),
+    SPK = OldCD#cd.me,
+    NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
+    channel_manager:write(From, NewCD),
 %    update_to_me_internal(keys:sign(Mine, Accounts), SSPK),
-%    {reply, 0, X};
+    {reply, 0, X};
 %handle_call({make_bet, Other, Name, Vars, Secret}, _From, X) ->
     %this puts the bet on the version of the channel state that we signed.
 %    Z = make_bet_internal(Other, Name, Vars, Secret),
@@ -168,23 +175,49 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
 %    Return = make_bet_internal(Other, Name, Vars, Secret),
 %    update_to_me_internal(Return, SSPK),
 %    {reply, Return, X};
-handle_call({they_simplify, From, SSPK, SS}, _FROM, X) ->
+handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     %if your partner found a way to close the channel at a higher nonced state, or a state that they think you will find preferable, then this is how you request the proof from them, and then update your data about the channel to reflect this new information.
     %send your partner a signed copy of the spk so that they can update to the current state.
+    {ok, CD0} = channel_manager:read(From),
+    true = live(CD0),
+    SPKME = me(CD0),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
+    true = testnet_sign:verify(keys:sign(ThemSPK, Accounts), Accounts),
+    true = live(CD),
+    NewSPK = testnet_sign:data(ThemSPK),
+    SSME = script_sig_me(CD0),
+    NewSS = script_sig_me(CD),
+    io:fwrite("CD is "),
+    io:fwrite(packer:pack(CD)),
+    io:fwrite("\n"),
+    B = spk:is_improvement(testnet_sign:data(them(CD0)), script_sig_them(CD0),
+			   NewSPK, NewSS),
+    Return2 =
+	if
+	    B ->%if they give free stuff, then accept.
+		Return = keys:sign(NewSPK, Accounts),
+		Entropy = entropy(CD),
+		CID = CD#cd.cid,
+		NewCD = new_cd(NewSPK, ThemSPK, NewSS, NewSS, Entropy, CID),
+		channel_manager:write(From, NewCD),
+		Return;
+	    true ->%if they find a way to unlock funds, then give it to them.
+		SS = script_sig_them(CD),
+		SS2 = script_sig_me(CD),
     {Return, SS2} = simplify_helper(From, SS),
-    SPK = testnet_sign:data(SSPK),
+		SPK = testnet_sign:data(ThemSPK),
     SPK = testnet_sign:data(Return),
     %L = arbitrage:check(Code),
     %Arbitrage,
     %look up in arbitrage if we can use this same SS to simplify other channels, if we can, then do it.
     {ok, CD} = channel_manager:read(From),
     CID = spk:cid(CD#cd.me),
-    Data = new_cd(SPK, SSPK, SS2, SS2, entropy(CD), CID),
+		Data = new_cd(SPK, ThemSPK, SS2, SS2, entropy(CD), CID),
     channel_manager:write(CID, Data),
-    {reply, {SS2, Return}, X};
+		Return
+	end,
+    {reply, Return, X};
 handle_call({we_simplify, Them, SS}, _FROM, X) ->
     {Return, SS2} = simplify_helper(Them, SS),
     {ok, CD} = channel_manager:read(Them),
@@ -265,8 +298,8 @@ close(SS, Tx) ->
 lock_spend(SSPK, Amount, Fee, SecretHash, Sender, Recipient) ->
     %first check that this channel is in the on-chain state with sufficient depth
     gen_server:call(?MODULE, {lock_spend, SSPK, Amount, Fee, SecretHash, Sender, Recipient}).
-update_to_me(SSPK) ->
-    gen_server:call(?MODULE, {update_to_me, SSPK}).
+update_to_me(SSPK, From) ->
+    gen_server:call(?MODULE, {update_to_me, SSPK, From}).
     
     
 agree_bet(Name, SSPK, Vars, Secret) -> 
@@ -419,8 +452,9 @@ new_channel_check(Tx) ->
     
 we_simplify(From, SS) ->
     gen_server:call(?MODULE, {we_simplify, From, SS}).
-they_simplify(From, SSPK, SS) ->
-    gen_server:call(?MODULE, {they_simplify, From, SSPK, SS}).
+they_simplify(From, SSPK, CD) ->
+    gen_server:call(?MODULE, {they_simplify, From, SSPK, CD}).
+
 simplify_helper(From, SS) ->
     {ok, CD} = channel_manager:read(From),
     OldSS = CD#cd.ssme,
@@ -454,10 +488,8 @@ make_locked_payment(To, Amount, Code, Prove) ->
     {ok, CD} = channel_manager:read(To),
     OldSPK = CD#cd.them,
     Bet = spk:new_bet(Code, Amount, Prove),
-    Time = free_constants:gas_limit(),
-    Space = free_constants:space_limit(),
     SPK = testnet_sign:data(OldSPK),
-    NewSPK = spk:apply_bet(Bet, 0, SPK, Time, Space),
+    NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     Out = keys:sign(NewSPK, Accounts),

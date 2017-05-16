@@ -208,17 +208,50 @@ test() ->
     true = verify_both(Signed, Address2, Address),
     false = verify_both(Signed, Address, Address),
     true = valid_address(Address),
-    success.
+  %just for testing
+
+  io:fwrite("Address\n"),
+  io:fwrite(Address),
+  io:fwrite("\n ##############################\n"),
+
+  io:fwrite("Address2\n"),
+  io:fwrite(Address2),
+  io:fwrite("\n ##############################\n"),
+
+  io:fwrite("pubkey\n"),
+  io:fwrite(Pub),
+  io:fwrite("\n ##############################\n"),
+
+  io:fwrite("pubkey2\n"),
+  io:fwrite(Pub2),
+  io:fwrite("\n ##############################\n"),
+
+  io:fwrite("privkey\n"),
+  io:fwrite(Priv),
+  io:fwrite("\n ##############################\n"),
+
+  io:fwrite("privkey2\n"),
+  io:fwrite(Priv2),
+  io:fwrite("\n ##############################\n"),
+
+  io:fwrite("signed tx\n"),
+  io:fwrite(packer:pack(Signed)),
+  io:fwrite("\n ##############################\n"),
+  success.
+
 hard_new_key() ->
     {Pub, Priv} = new_key(),
     Address = pubkey2address(Pub),
     {Address, Pub, Priv}.
+
 times(0, _) -> ok;
 times(N, F) ->
     F(),
     times(N-1, F).
+
 test2(X) ->
     times(X, fun() -> generate() end ).
+
 test3() ->
     timer:tc(sign, hard_new_key, []).
 		     

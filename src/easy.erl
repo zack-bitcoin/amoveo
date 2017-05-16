@@ -148,7 +148,7 @@ channel_team_close(CID, Amount) ->
 channel_team_close(CID, Amount, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    keys:sign((channel_team_close_tx:make(CID, Trees, Amount, Fee)), Accounts).
+    keys:sign(channel_team_close_tx:make(CID, Trees, Amount, Fee), Accounts).
 
 channel_repo(CID, Fee) ->
     F = fun(Trees) ->
@@ -158,16 +158,19 @@ channel_repo(CID, Fee) ->
 channel_solo_close(CID, Fee, SPK, ScriptSig) ->
     F = fun(Trees) ->
 		channel_solo_close:make(keys:id(), CID, Fee, SPK, ScriptSig, Trees) end,
+                      %make(From, Fee,   ScriptPubkey, ScriptSig, Trees) 5 vars not 6 what is wrong?
     tx_maker(F).
 
 channel_timeout(CID, Fee) ->
     F = fun(Trees) ->
-		channel_timeout_tx:make(keys:id(), Trees, CID, Fee) end,
+		channel_timeout_tx:make(keys:id(), Trees, CID, 0, Fee) end,
+                      %make(ID, Trees,CID,Shares,Fee)
     tx_maker(F).
 
 channel_slash(CID, Fee, SPK, SS) ->
     F = fun(Trees) ->
 		channel_slash_tx:make(keys:id(), CID, Fee, SPK, SS, Trees) end,
+                    %make(From, Fee, ScriptPubkey, ScriptSig, Trees) 5 vars not 6 what is wrong?
     tx_maker(F).
 new_difficulty_oracle(Start, ID, Difficulty) ->
     new_difficulty_oracle(?Fee, Start, ID, Difficulty).
