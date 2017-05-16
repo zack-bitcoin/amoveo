@@ -1,0 +1,152 @@
+######### GEHT #######
+#
+#internal_handler.erl (3011)
+#
+# start with this
+erl -pa ebin deps/*/ebin/ -eval "application:ensure_all_started(testnet), serve:pw(3010), keys:unlock(\"abc\") "
+
+curl -i -d '["test"]' http://localhost:3011
+
+curl -i -d '["add_peer",           [127,0,0,1], 3010]' http://localhost:3011
+
+curl -i -d '["pull_channel_state", [127,0,0,1], 3010]' http://localhost:3011
+
+curl -i -d '["top"]' http://localhost:3011
+# ["ok","GZtvB0N/fi9DlKY/",100]
+
+curl -i -d '["pubkey"]' http://localhost:3011
+# ["ok","QkFpd201dXo1YkxrVCtMcisrdU5JMDJqVTNYc2h3eXpreXdrMHgwQVJ3WTVqNGx3dHhiS3BVK29ESy9wVFExUEx6N3d5YUVlRFpDeWpjd3Q5Rm9pMk5nPQ=="]
+
+curl -i -d '["address"]' http://localhost:3011
+# ["ok","SlZSdjZTcnFEQ1BpOGZ0RTVB"]
+
+curl -i -d '["id"]' http://localhost:3011
+#["ok",2]
+
+curl -i -d '["new_pubkey", ["abc"] ]' http://localhost:3011
+# "ok"
+
+curl -i -d '["channel_keys"]' http://localhost:3011
+# ["ok",[-6]]
+
+curl -i -d '["key_status"]' http://localhost:3011
+# ["ok","bG9ja2Vk"]
+
+curl -i -d '["key_unlock", ["abc"]]' http://localhost:3011
+# ["ok","b2s="]
+
+curl -i -d '["key_new", ["abc"]]' http://localhost:3011
+# ["ok",0]
+
+curl -i -d '["keys_id_update", 1]' http://localhost:3011
+# ["ok",0]
+
+curl -i -d '["header", 0]' http://localhost:3010
+# ["ok","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAD/AAAVYfj45JHMvQ43QZmkMJvLpWbd5HgRxH+g=="]
+
+curl -i -d '["headers", 1, 0]' http://localhost:3010
+# ["ok",[-6,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAD/AAAVYfj45JHMvQ43QZmkMJvLpWbd5HgRxH+g=="]]
+
+curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
+# "ok"
+
+curl -i -d '["create_account", "S1lSdUU4ZVFZejRkZFBSRzZW", 100, 27]' http://localhost:3011
+# ["ok","ok"]
+
+curl -i -d '["spend", 27, 100]' http://localhost:3011
+# ["ok","ok"]
+
+##############################
+#
+#handler.erl (3010)
+#
+
+curl -i -d '["block", 12]' http://localhost:3010
+# ["ok",["block_plus",["block",12,"dluJajyb5/atsFry",[-6],"Vh+Pjkkcy9DjdBma",2,122752381,4000,"",2],["pow","GUsQesrwMYKWfYkc",3829,996839975934389275420963],["trees",1,0,0,0,0,38],638976,["dluJajyb5/atsFry","ZxLSh9gMTMNWvKlP","ZJjuJ3+yRynQjGMu"]]]
+
+curl -i -d '["give_block", "dluJajyb5/atsFry"]' http://localhost:3010
+# ["ok",0]
+
+curl -i -d '["pubkey"]' http://localhost:3010
+# ["ok","QkFpd201dXo1YkxrVCtMcisrdU5JMDJqVTNYc2h3eXpreXdrMHgwQVJ3WTVqNGx3dHhiS3BVK29ESy9wVFExUEx6N3d5YUVlRFpDeWpjd3Q5Rm9pMk5nPQ=="]
+
+curl -i -d '["tophash"]' http://localhost:3010
+# ["ok","GZtvB0N/fi9DlKY/"]
+
+curl -i -d '["peers"]' http://localhost:3010
+# ["ok",[-6,[-6,[-6,127,0,0,1],3010]]]
+
+curl -i -d '["txs"]' http://localhost:3010
+# ["ok",[-6]]
+
+curl -i -d '["txs" , [-6]]' http://localhost:3010
+# ["ok",0]
+
+curl -i -d '["id"]' http://localhost:3010
+# ["ok",0]
+
+curl -i -d '["top"]' http://localhost:3010
+# ["ok",["block_plus",["block",100,"60HMWc9PEkcV31uh",[-6],"Vh+Pjkkcy9DjdBma",2,122752771,4000,"",2],["pow","GZtvB0N/fi9DlKY/",3829,863774849869139173119884],["trees",1,0,0,0,0,38],5324800,["60HMWc9PEkcV31uh","HYk/XJsHs4BEBUGt","1ZAphSykLIGsYlW7","pybnNyYbXdGXEwWv","ALwG/9WTL9YPiQ0A","23foH6H9jkXB1/Dp"]],100]
+
+curl -i -d '["min_channel_ratio"]' http://localhost:3010
+# ["ok",0.5]
+
+curl -i -d '["bets"]' http://localhost:3010
+
+################### CLI #################
+easy:height().
+# 1155
+
+easy:channel_balance().
+# error
+
+easy:dice(100).
+# error
+
+easy:close_channel_with_server().
+# error
+
+easy:solo_close_channel().
+# error
+
+easy:channel_timeout().
+#
+
+keys:pubkey().
+keys:address().
+keys:status().
+keys:lock().
+keys:change_password(["abc"], ["ABC"]).
+keys:change_password(["ABC"], ["abc"]).
+keys:
+keys:
+keys:
+
+test_txs:test().
+tester:test().
+
+
+####### TEST #####
+
+curl -i -d '["new_channel_with_server", [127,0,0,1], 3010, 1, 10000, 10001, 101, 4]' http://localhost:3011
+
+keys:unlock("abc").
+curl -i -d '["keys:unlock", ["abc"]]' http://localhost:3011
+curl -i -d '["sign", [121212]]' http://localhost:3011
+curl -i -d '["mine_block",10,10]' http://localhost:3011
+curl -i -d '["balance"]' http://localhost:3011
+curl -i -d '["tx_pool:data"]' http://localhost:3011
+curl -i -d '["keys:id"]' http://localhost:3011
+curl -i -d '["channel_spend", [127,0,0,1], 3011, 100]' http://localhost:3011
+curl -i -d '["pull_channel_state", [127,0,0,1], 3010]' http://localhost:3011
+curl -i -d '["learn_secret"], [dfasdfasdf]' http://localhost:3011
+curl -i -d '["block_tree_account" , -6]' http://localhost:3011
+curl -i -d '["give_block", "G5cKPTASSxDhqju1B9"]' http://localhost:3010
+curl -i -d '["block", 1]' http://localhost:3011
+
+
+
+curl -i -d '["sign"]' http://localhost:3010
+curl -i -d '["sign"]' http://localhost:3010
+
+
