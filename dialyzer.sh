@@ -10,6 +10,12 @@ echo "######################### CLEAN APP #########################";
 ./rebar clean
 echo "######################### GET DEPS for ######################";
 ./rebar get-deps
+./rebar -r update-deps
+#./rebar delete-deps
+#./rebar qc
+#./rebar xref
+#./rebar shell
+
 echo "######################### COMPILE APP #######################";
 ./rebar compile
 

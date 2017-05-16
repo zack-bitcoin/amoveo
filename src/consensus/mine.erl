@@ -6,7 +6,7 @@
 init(ok) -> {ok, stop}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, _) -> io:format("died! \n"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(mine, go) ->
     spawn(fun() ->
@@ -16,7 +16,7 @@ handle_cast(mine, go) ->
     {noreply, go};
 handle_cast(start, stop) ->
     Cores = block:guess_number_of_cpu_cores(),
-    io:fwrite("start mining with "),
+    io:fwrite("start mining with"),
     io:fwrite(integer_to_list(Cores)),
     io:fwrite(" cores.\n"),
     {noreply, go};

@@ -12,7 +12,7 @@ tx_maker(F) ->
     {Tx, _} = F(Trees),
     case keys:sign(Tx, Accounts) of
 	{error, locked} ->
-	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
+	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it \n"),
 	    ok;
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
@@ -109,6 +109,7 @@ integer_channel_balance() ->
     Accounts = trees:accounts(Trees),
     Channels = trees:accounts(Trees),
     {Amount, _} = spk:run(fast, SS, SPK, NewHeight, 0, Accounts, Channels),
+                     %run(Mode, SS, SPK, Height, Slash, Trees)
     CID = spk:cid(SPK),
     {_, Channel, _} = channels:get(CID, Channels),
     channels:bal1(Channel)-Amount.
