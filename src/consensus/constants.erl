@@ -80,6 +80,7 @@ block_hashes() -> root() ++ "block_hashes.db".
 keys() -> root() ++ "keys.db".
 top() -> root() ++ "top.db".
 channel_manager() -> root() ++ "channel_manager.db".
+secrets() -> root() ++ "secrets.db".
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
 half_bal() -> round(math:pow(2, balance_bits()-1)).
@@ -183,8 +184,4 @@ channel_granularity() ->
 test() ->
     success.
 
-%(All the money in channels, times this fee) is the amount of money that transfers from delegates who were not elected to delegates who are elected in each block, and gets locked up for finality() blocks. If this number is too high, then poor people can't afford to be validators. If this number is too low, then rich people can't move their money quickly enough.
-
-
-%<<"BHtLfya6JUNuLXOJ2pGXkyOevYeeyTC5kxzMlB4RTS0DAtqDLxxa0Phb5lBd4oZludcAZzjKXvo8QtdWeJ30gLc=">>.
 

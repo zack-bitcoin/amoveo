@@ -5,6 +5,8 @@
 	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,settle_bet/3,chalang_state/3,
 	 prove/1, new_bet/3, delay/1,
+	 is_improvement/4, bet_unlock/2,
+	 code/1,
 	 test/0
 	]).
 -record(bet, {code, amount, prove}).
@@ -79,7 +81,55 @@ new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
     %Prove = many([], length(Bets)),
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
 	 bets = Bets, space_gas = SG, time_gas = TG,
-	 cid = CID, nonce = Nonce, delay = Delay}.
+	 cid = CID, nonce = Nonce, delay = Delay
+	}.
+bet_unlock(SPK, SS) ->
+    Bets = SPK#spk.bets,
+    %check if we have the secret to unlock each bet.
+    %unlock the ones we can, and return an SPK with the remaining bets and the new amount of money that is moved.
+    io:fwrite("spk bet_unlock\n"),
+    {Remaining, AmountChange, SSRemaining, Secrets, Dnonce} = bet_unlock2(Bets, [], 0, SS, [], [], 0),
+    {lists:reverse(SSRemaining),
+     SPK#spk{bets = lists:reverse(Remaining),
+	     amount = SPK#spk.amount + AmountChange,
+	     nonce = SPK#spk.nonce + Dnonce},
+     Secrets}.
+bet_unlock2([], B, A, [], SS, Secrets, Nonce) ->
+    {B, A, SS, Secrets, Nonce};
+bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce) ->
+    Code = Bet#bet.code, 
+    io:fwrite("bet unlock 2 \n"),
+    case secrets:read(Code) of
+	<<"none">> -> 
+	    io:fwrite("can't unlock this \n"),
+	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce);
+	SS2 -> 
+	    io:fwrite("unlocking \n"),
+	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
+	    Amount = Bet#bet.amount,
+	    {Trees, Height, _} = tx_pool:data(),
+	    State = chalang_state(Height, 0, Trees),
+	    %Governance = trees:governance(Trees),
+	    FunLimit = free_constants:fun_limit(),
+	    VarLimit = free_constants:var_limit(),
+	    %Facts = prove_facts(Bet#bet.prove, Trees),
+	    {ContractAmount, Nonce2, ShareRoot, _Delay, _OpGas} = 
+		%run([SS2], [<<Facts/binary, Code/binary>>], 
+		run([SS2], [Bet], 
+		    free_constants:bet_gas_limit(),
+		    free_constants:bet_gas_limit(),
+		    FunLimit, VarLimit, State, 0),
+	    ShareRoot = [],%deal with lightning shares later.
+	    io:fwrite("spk bet unlock contract amount "),
+	    io:fwrite(integer_to_list(ContractAmount)),
+	    io:fwrite("\n"),
+	    A2 = ContractAmount * Amount div constants:channel_granularity(),
+	    bet_unlock2(T, B, A+A2, SSIn, SSOut, [{secret, SS2, Code}|Secrets], Nonce + Nonce2)
+    end.
+	    
+	    
+	    
+    
 many(_, 0) -> [];
 many(X, N) -> [X|many(X, N-1)].
     
@@ -138,7 +188,7 @@ run2(safe, SS, SPK, State, Trees) ->
 	  end),
     spawn(fun() ->
 		  timer:sleep(5000),%wait enough time for the chalang contracts to finish
-		  S ! {-1,-1,-1,-1, -1}
+		  S ! error
 	  end),
     receive 
 	Z -> Z
@@ -160,12 +210,15 @@ run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, De
 	run3(SS, Code, OpGas, RamGas, Funs, Vars, State),
     run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Share ++ Share0).
 run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
-    %io:fwrite("script sig is "),
-    %compiler_chalang:print_binary(ScriptSig),
+    io:fwrite("script sig is "),
+    compiler_chalang:print_binary(ScriptSig),
     %io:fwrite("spk is "),
     %compiler_chalang:print_binary(ScriptPubkey),
     true = chalang:none_of(ScriptSig),
     {Trees, _, _} = tx_pool:data(),
+    io:fwrite("spk run3 bet is "),
+    io:fwrite(packer:pack(Bet)),
+    io:fwrite("\n"),
     F = prove_facts(Bet#bet.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
@@ -182,8 +235,119 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
      chalang:time_gas(Data3)
     }.
 
-
-
+is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
+    {Trees, Height, _} = tx_pool:data(),
+    io:fwrite("is improvement ss check "),
+    io:fwrite(packer:pack({ok, NewSS, NewSPK})),
+    io:fwrite("\n"),
+    {_, Nonce2, _, Delay2} =  run(fast, NewSS, NewSPK, Height, 0, Trees),
+    {_, Nonce1, _, _} =  run(fast, OldSS, OldSPK, Height, 0, Trees),
+    true = Nonce2 > Nonce1,
+    Bets2 = NewSPK#spk.bets,
+    Bets1 = OldSPK#spk.bets,
+    SG = NewSPK#spk.space_gas,
+    TG = NewSPK#spk.time_gas,
+    io:fwrite("delay2 is "),
+    io:fwrite(integer_to_list(Delay2)),
+    io:fwrite("\n"),
+    true = Delay2 < free_constants:max_channel_delay(),
+    true = SG < free_constants:space_limit(),
+    true = TG < free_constants:time_limit(),
+    Amount2 = NewSPK#spk.amount,
+    Amount1 = OldSPK#spk.amount,
+    NewSPK = OldSPK#spk{bets = Bets2,
+			space_gas = SG,
+			time_gas = TG,
+			amount = Amount2,
+			nonce = NewSPK#spk.nonce},
+    CID = NewSPK#spk.cid,
+    Channels = trees:channels(Trees),
+    {_, Channel, _} = channels:get(CID, Channels),
+    KID = keys:id(),
+    Acc1 = channels:acc1(Channel),
+    Acc2 = channels:acc2(Channel),
+    Profit = 
+	if
+	    KID == Acc1 ->
+		Amount2 - Amount1;
+	    KID == Acc2 ->
+		Amount1 - Amount2
+	end,
+    BL2 = length(NewSPK#spk.bets),
+    BL1 = length(NewSPK#spk.bets) - 1,
+    if
+	(Bets1 == Bets2) and 
+	Profit > 0 -> 
+	%if they give us money for no reason, then accept
+	    true; 
+	BL2 == BL1 ->
+	%if they give us all the money from a bet, then accept
+	    %find the missing bet.
+	    {Good, Amount} = find_extra(NewSPK#spk.bets, OldSPK#spk.bets),
+	    %Good verifies that bets were only removed, not added.
+	    %amount is the total volume of money controlled by those bets that were removed.
+	    (Profit == Amount) and Good;
+	true ->
+	    %if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
+	    [NewBet|T] = Bets2,
+	    BetAmount = NewBet#bet.amount,
+	    PotentialGain = 
+		case KID of
+		    Acc1 -> -BetAmount;
+		    Acc2 -> BetAmount
+		end,
+	    %We should look up the fee to leave a channel open, and check that the extra money beyond obligations is enough to keep the channel open long enough to close it without their help.
+	    %The problem is that we can't know how long the delay is in all the contracts.
+	    Obligations1 = obligations(1, Bets2),
+	    Obligations2 = obligations(2, Bets2),
+	    ChannelBal1 = channels:bal1(Channel),
+	    ChannelBal2 = channels:bal2(Channel),
+	    if
+		(Profit >= 0) and %costs nothing
+		(T == Bets1) and %only add one more bet
+		(PotentialGain > 0) and %potentially gives us money
+		(Obligations2 =< ChannelBal2) and
+		(Obligations1 =< ChannelBal1)
+		-> true; 
+		true -> false
+	    end
+    end.
+obligations(_, []) -> 0;
+obligations(1, [A|T]) ->
+    B = A#bet.amount,
+    C = if
+	    B>0 -> B;
+	    true -> 0
+	end,
+    C + obligations(1, T);
+obligations(2, [A|T]) ->
+    B = A#bet.amount,
+    C = if
+	    B<0 -> -B;
+	    true -> 0
+	end,
+    C + obligations(2, T).
+    
+find_extra(New, Old) -> 
+    find_extra(New, Old, 0).
+find_extra([], [], Amount) ->
+    {true, Amount};
+find_extra(_, [], Amount) ->
+    {false, Amount};
+find_extra(B, [A|T], Amount) ->
+    C = is_in(A, B),
+    if
+	C ->
+	    find_extra(remove(A, B), T, Amount);
+	true ->
+	    find_extra(B, T, Amount + abs(A#bet.amount))
+    end.
+is_in(A, []) -> false;
+is_in(A, [A|_]) -> true;
+is_in(A, [_|C]) -> is_in(A, C).
+remove(A, [A|T]) -> T;
+remove(A, [B|T]) -> 
+    [B|remove(A, T)].
 
 	
 test() ->

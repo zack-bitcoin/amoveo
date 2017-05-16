@@ -1,11 +1,14 @@
 -module(free_constants).
 %These constants can be different on every node in the network. You can adjust these variables to suit your own situation.
 -compile(export_all).
+
+test_mode() ->
+    true.%this should be set to false when connecting to a public blockchain.
 cores_to_mine() ->
     1000.%The maximum number of cores to use when mining.
 hashlock_time() -> 30.
 channel_delay() ->
-    100.
+    10.
 max_channel() -> constants:initial_coins() div 100000.
 max_message_size() -> 10000.
 inbox_per_peer() -> 100.
@@ -30,6 +33,8 @@ bets() -> %tuple list. {Name, BetFile}
     [
      {dice, "bets/dice.fs"}
     ].
+bet_gas_limit() ->
+    10000.
 gas_limit() ->
     constants:gas_limit().
 time_limit() ->
