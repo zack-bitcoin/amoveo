@@ -38,24 +38,20 @@ sleep 1
 curl -i -d '["lightning_spend", [127,0,0,1], 3030, 2, 4, 10]' http://localhost:3011
 sleep 1
 
-curl -i -d '["learn_secret", "AgAAAAweE8Fgc9G3s5/Zsew=", "WgAAAAAAOkYAAAAAMgAAAAABAAAAAACEC0dIKAIAAAAMrsdbBnWyK5CbWkYkOhYUFhRGAAAAAAAAAAAAAgAAACcQRwAAAAAyAAAAAAEAAAAAAEiECw=="]' http://localhost:3021
+curl -i -d '["learn_secret", "AgAAAAwr/nWTT4zbCS4lAuc=","WgAAAAAAOkYAAAAAMgAAAAABAAAAAACEC0dIFBQoAgAAAAx3wv4k7MKMmFva1BoKOhYUFhRGAAAAAAAAAAAAAgAAACcQRwAAAAAxAAAAAAEAAAAAAEiECw=="]' http://localhost:3021
 sleep 1
 
 #3 step handshake 
 curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
 sleep 1
 
-#0 step handshake
+#2 step handshake
 curl -i -d '["bet_unlock", [127,0,0,1], 3030]' http://localhost:3021
 sleep 1
 
 #3 step handshake
-#curl -i -d '["push_channel_state", [127,0,0,1], 3030]' http://localhost:3021
-#sleep 1
-
-#3 step handshake
-#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
-#sleep 1
+curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
+sleep 1
 
 
 #curl -i -d '["get_msg", [127,0,0,1], 3030]' http://localhost:3021

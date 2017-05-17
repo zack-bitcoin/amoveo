@@ -3,7 +3,8 @@
 -compile(export_all).
 
 test_mode() ->
-    true.%this should be set to false when connecting to a public blockchain.
+    %false.
+    true.
 cores_to_mine() ->
     1000.%The maximum number of cores to use when mining.
 hashlock_time() -> 30.

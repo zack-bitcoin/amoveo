@@ -9,15 +9,15 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({write, SecretHash, L}, X) -> 
     Y = case dict:find(SecretHash, X) of
-	    empty -> dict:store(SecretHash, L, X);
+	    error -> dict:store(SecretHash, L, X);
 	    {ok, Val} ->
-		Z = plus(Val, L),
+		Z = L++Val,%plus(Val, L),
 		dict:store(SecretHash, Z, X)
 	end,
     {noreply, Y};
 handle_cast({remove, SecretHash, L}, X) -> 
     Y = case dict:find(SecretHash, X) of
-	    empty -> X;
+	    error -> X;
 	    {ok, Val} ->
 		Z = minus(Val, L),
 		dict:store(SecretHash, Z, X)
@@ -30,23 +30,16 @@ handle_call({check, SH}, _From, X) ->
     {reply, dict:find(SH, X), X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
-minus([], B) -> [];
+minus([], _) -> [];
 minus([A|B], C) ->
     D = is_in(A, C),
     if
 	D -> minus(B, C);
 	true -> [A|minus(B, C)]
     end.
-is_in(X, []) -> false;
+is_in(_, []) -> false;
 is_in(X, [X|_]) -> true;
-is_in(X, [A|T]) -> is_in(X, T).
-plus(B, []) -> B;
-plus(B, [H|T]) ->
-    C = is_in(H, B),
-    if
-	C -> plus(B, T);
-	true -> [H|plus(B, T)]
-    end.
+is_in(X, [_|T]) -> is_in(X, T).
 check(Code) ->
     SH = testnet_hasher:doit(Code),
     gen_server:call(?MODULE, {check, SH}).

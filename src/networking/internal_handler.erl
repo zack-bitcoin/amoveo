@@ -130,9 +130,9 @@ doit({new_channel_with_server, IP, Port, CID, Bal1, Bal2, Fee, Delay}) ->
     easy:new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay),
     {ok, 0};
 doit({learn_secret, Secret, Code}) ->
-    io:fwrite("learned a secret\n"),
+    %io:fwrite("learned a secret\n"),
     %io:fwrite(Secret),
-    io:fwrite("\n"),
+    %io:fwrite("\n"),
     secrets:add(Code, Secret),
     {ok, 0};
 doit({push_channel_state, IP, Port, SS}) ->
@@ -153,23 +153,14 @@ doit({bet_unlock, IP, Port}) ->
     %look at the list of contracts that can be spent, see if the answers are in secrets.erl
     {ok, ServerID} = talker:talk({id}, IP, Port),
     {ok, CD0} = channel_manager:read(ServerID),
-    true = channel_feeder:live(CD0),
-    SPKME = channel_feeder:me(CD0),
-    SSOld = channel_feeder:script_sig_me(CD0),
-    %Bets = spk:bets(SPKME),
-    {NewSS, SPK, Secrets} = spk:bet_unlock(SPKME, SSOld),
-    NewCD = channel_feeder:new_cd(
-	      SPK, channel_feeder:them(CD0),
-	      NewSS, channel_feeder:script_sig_them(CD0),
-	      channel_feeder:entropy(CD0), 
-	      channel_feeder:cid(CD0)),
-    channel_manager:write(ServerID, NewCD),
+    CID = channel_feeder:cid(CD0),
+    [{Secrets, SPK}] = channel_feeder:bets_unlock([ServerID]),
     teach_secrets(keys:id(), Secrets, IP, Port),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     talker:talk({channel_sync, keys:id(), keys:sign(SPK, Accounts)}, IP, Port),
-    %push_channel_state_internal(IP, Port, NewSS, ServerID),
-    %don't communicate with partner. use "push_channel_state" next to tell partern about the new info.
+    {ok, _CD, ThemSPK} = talker:talk({spk, CID}, IP, Port),
+    channel_feeder:update_to_me(ThemSPK, ServerID),
     {ok, 0};
     
 doit({lightning_spend, IP, Port, Recipient, Amount, Fee}) ->
@@ -197,9 +188,11 @@ doit({lightning_spend, IP, Port, Recipient, Amount, Fee, Code, SS}) ->
     MeSS = channel_feeder:script_sig_me(CD),
     NewCD = channel_feeder:new_cd(SPK, SSPK2, [<<>>|ThemSS], [<<>>|MeSS], Entropy, CID),
     channel_manager:write(ServerID, NewCD),
-    io:fwrite("give this secret to your partner so that they can receive the payment --------> "),
-    io:fwrite(base64:encode(SS)),
-    io:fwrite(" <-------- \n"),
+    io:fwrite("give this secret to your partner so that they can receive the payment --------> "
+	      ++ binary_to_list(base64:encode(SS))
+	      ++ "  |  "
+	      ++ binary_to_list(base64:encode(Code))
+				++ " <-------- \n"),
     {ok, 0};
 doit({channel_keys}) -> {ok, channel_manager:keys()};
 doit({block_tree_account, Id}) -> {ok, block_tree:account(Id)};

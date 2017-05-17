@@ -1,3 +1,7 @@
+spk:is_improvement needs better checks.
+Make sure delay isn't too big, and the fees aren't too high.
+
+
 We need a way to know how long the delay could be on every possible way of closing the channel.
 The channel can only close on a ?crash opcode, the delay is always programmed in just before the ?crash, so we should be able to calculate the delay from the bytecode.
 Only the script_sig part of the contract can have a ?crash opcode, so this is something we can calculate.

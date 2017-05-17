@@ -119,23 +119,40 @@ doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient}) ->
 doit({learn_secret, From, Secret, Code}) ->
     {ok, OldCD} = channel_manager:read(From),
     %check that code is actually used in the channel state.
-    io:fwrite("learned a secret\n"),
     io:fwrite("\n"),
-    OldSecret = secrets:read(Code),
+    io:fwrite("learned a secret\n"),
+    io:fwrite(packer:pack({learn_secret, From, Secret, Code})),
+    io:fwrite("\n"),
+    %OldSecret = secrets:read(Code),
+    
     secrets:add(Code, Secret),
+    
     SS = channel_feeder:script_sig_me(OldCD),
-    {NewSS, SPK, Secrets} = 
-	spk:bet_unlock(
-	  channel_feeder:me(OldCD), SS),
+    CFME = channel_feeder:me(OldCD),
+    io:fwrite("\n"),
+    io:fwrite("handler learn secret bet_unlock "),
+    io:fwrite(packer:pack({ok, CFME, SS})),
+    io:fwrite("\n"),
+    {NewSS, SPK, Secrets, _SSThem} = 
+	spk:bet_unlock(CFME, SS),
+	%spk:bet_unlock(CFME, [Secret]),
+    io:fwrite(packer:pack({learn_secret2, SS, NewSS, SPK, Secrets})),
+    %after here
     if
-	NewSS == SS -> secrets:add(Code, OldSecret);
+	NewSS == SS -> ok;%secrets:add(Code, OldSecret);
 	true -> 
 	    NewCD = channel_feeder:new_cd(
 		      SPK, channel_feeder:them(OldCD),
 		      NewSS, channel_feeder:script_sig_them(OldCD),
 		      channel_feeder:entropy(OldCD),
 		      channel_feeder:cid(OldCD)),
-	    channel_manager:write(From, NewCD)
+	    channel_manager:write(From, NewCD),
+	    {ok, Current} = arbitrage:check(Code),
+	    IDS = minus(Current, From),
+	    io:fwrite("\n unlock ids "),
+	    io:fwrite(packer:pack(IDS)),
+	    io:fwrite("\n"),
+	    channel_feeder:bets_unlock(IDS)
     end,
     {ok, 0};
 doit({channel_sync, From, SSPK}) ->
@@ -189,3 +206,5 @@ many_headers(Many, N) ->
      many_headers(Many-1, N+1)].
     
     
+minus([T|X], T) -> X;
+minus([A|T], X) -> [A|minus(T, X)].

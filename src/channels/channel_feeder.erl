@@ -8,7 +8,8 @@
 	 new_channel_check/1,
 	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
 	 make_bet/4, update_to_me/2, new_cd/6, 
-	 make_locked_payment/4, live/1, they_simplify/3
+	 make_locked_payment/4, live/1, they_simplify/3,
+	 bets_unlock/1
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -187,34 +188,34 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     true = live(CD),
     NewSPK = testnet_sign:data(ThemSPK),
     SSME = script_sig_me(CD0),
-    NewSS = script_sig_me(CD),
+    SS = script_sig_me(CD),
+    SS4 = script_sig_them(CD),
+    Entropy = entropy(CD),
     io:fwrite("CD is "),
     io:fwrite(packer:pack(CD)),
     io:fwrite("\n"),
-    B = spk:is_improvement(testnet_sign:data(them(CD0)), script_sig_them(CD0),
-			   NewSPK, NewSS),
+    B = spk:is_improvement(SPKME, SSME,
+			   NewSPK, SS),
+    CID = CD#cd.cid,
     Return2 = 
 	if
 	    B ->%if they give free stuff, then accept.
 		Return = keys:sign(NewSPK, Accounts),
-		Entropy = entropy(CD),
-		CID = CD#cd.cid,
-		NewCD = new_cd(NewSPK, ThemSPK, NewSS, NewSS, Entropy, CID),
+		NewCD = new_cd(NewSPK, ThemSPK, SS, SS, Entropy, CID),
 		channel_manager:write(From, NewCD),
 		Return;
 	    true ->%if they find a way to unlock funds, then give it to them.
-		SS = script_sig_them(CD),
-		SS2 = script_sig_me(CD),
-		{Return, SS2} = simplify_helper(From, SS),
-		SPK = testnet_sign:data(ThemSPK),
-		SPK = testnet_sign:data(Return),
-    %L = arbitrage:check(Code),
-    %Arbitrage,
-    %look up in arbitrage if we can use this same SS to simplify other channels, if we can, then do it.
-		{ok, CD} = channel_manager:read(From),
-		CID = spk:cid(CD#cd.me),
-		Data = new_cd(SPK, ThemSPK, SS2, SS2, entropy(CD), CID),
-		channel_manager:write(CID, Data),
+		{SS5, Return} = simplify_helper(From, SS4),
+		SPK = testnet_sign:data(ThemSPK),%nonce 3
+		SPK2 = testnet_sign:data(Return),%nonce 2
+		io:fwrite("\n"),
+		io:fwrite(packer:pack({channel_feeder_spks, SPK, SPK2})),
+		io:fwrite("\n"),
+		SPK = SPK2,
+		%{ok, CD} = channel_manager:read(From),
+		%CID = spk:cid(CD#cd.me),
+		Data = new_cd(SPK, ThemSPK, SS5, SS5, Entropy, CID),
+		channel_manager:write(From, Data),
 		Return
 	end,
     {reply, Return, X};
@@ -261,8 +262,8 @@ make_simplification_internal(Other, dice, OtherSS) ->
     Acc2 = spk:acc2(SPK),
     {Trees,_,_} = tx_pool:data(),
     
-    {Amount, _Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, OtherSS, SPK, Acc1, Acc2, Trees),
-    NewSPK = spk:settle_bet(SPK, [], Amount),
+    {Amount, Nonce, _SS, OurSecret} = channel_solo_close:next_ss(Other, OtherSS, SPK, Acc1, Acc2, Trees),
+    NewSPK = spk:settle_bet(SPK, [], Amount, 0),
     NewCD = OldCD#cd{me = NewSPK, ssme = []},
     channel_manager:write(Other, NewCD),
     Accounts = trees:accounts(Trees),
@@ -459,21 +460,28 @@ simplify_helper(From, SS) ->
     {ok, CD} = channel_manager:read(From),
     OldSS = CD#cd.ssme,
     SPK = CD#cd.me,
+    {SSRemaining, NewSPK, _, _} = spk:bet_unlock(SPK, SS),
     {Trees, Height, _} = tx_pool:data(),
-    {_, N1, _, _} = spk:run(fast, OldSS, SPK, Height, 0, Trees),
-    {Amount, N2, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
-    true = N2 > N1,
+    Accounts = trees:accounts(Trees),
+    Return = keys:sign(NewSPK, Accounts),
+    {SSRemaining, Return}. 
+
+
+    %{_, N1, _, _} = spk:run(fast, OldSS, SPK, Height, 0, Trees),
+    %{Amount, N2, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
+    %true = N2 > N1,
     %look up our old SS, and our oldSPK. apply both SSs to the oldSPK See if the new one has a higher nonce, if it does, then continue
     %else, if the nonce is the same, and it improves our position, by unlocking funds for example, then continue
     %else, refuse the upgrade.
-    N = diff(SS, OldSS, 0),
-    SS2 = remove_i(N, SS),
-    Bets = spk:bets(SPK),
-    NewSPK = spk:settle_bet(SPK, remove_i(N, Bets), 0),
-    {CheckAmount, _, _, _} = spk:run(fast, SS2, NewSPK, Height, 0, Trees),
-    NewSPK2 = spk:settle_bet(SPK, remove_i(N, Bets), Amount - CheckAmount),
-    Return = keys:sign(NewSPK2),
-    {SS2, Return}.
+    %N = diff(SS, OldSS, 0),
+    %SS2 = remove_i(N, SS),
+    %Bets = spk:bets(SPK),
+    %NewSPK = spk:settle_bet(SPK, remove_i(N, Bets), 0, N2),
+    %{CheckAmount, _, _, _} = spk:run(fast, SS2, NewSPK, Height, 0, Trees),
+    %NewSPK2 = spk:settle_bet(SPK, remove_i(N, Bets), Amount - CheckAmount, N2),
+    %Accounts = trees:accounts(Trees),
+    %Return = keys:sign(NewSPK2, Accounts),
+    %{SS2, Return}.
 remove_i(0, [_|T]) ->
     T;
 remove_i(N, [A|T]) ->
@@ -494,3 +502,16 @@ make_locked_payment(To, Amount, Code, Prove) ->
     Accounts = trees:accounts(Trees),
     Out = keys:sign(NewSPK, Accounts),
     Out.
+bets_unlock([]) -> [];
+bets_unlock([ID|T]) ->
+    {ok, CD0} = channel_manager:read(ID),
+    true = live(CD0),
+    SPKME = me(CD0),
+    SSOld = script_sig_me(CD0),
+    {NewSS, SPK, Secrets, SSThem} = spk:bet_unlock(SPKME, SSOld),
+    io:fwrite(packer:pack({spk, NewSS, SPK, Secrets})),
+    io:fwrite("\n"),
+    NewCD = CD0#cd{me = SPK, ssme = NewSS, ssthem = SSThem},
+    channel_manager:write(ID, NewCD),
+    Out = {Secrets, SPK},
+    [Out|bets_unlock(T)].
