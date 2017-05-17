@@ -44,6 +44,6 @@ echo "######################### BUILD RESULT OF ############################";
 dialyzer --plt dialyzer-aeternity.plt -o dialyzer-result.txt ebin/;
 echo "######################### THE RESULT OF ##############################";
 cat dialyzer-result.txt;
-echo "######################### FINISH update ##############################";
+echo "######################### FINISH DIALYZER update ##############################";
 fi;
 

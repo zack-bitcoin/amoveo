@@ -23,10 +23,10 @@ channel_feeder.erl:475: Call to missing or unexported function keys:sign/1
 channel_manager.erl:27: Call to missing or unexported function dict:delete/2
 base58.erl:201: The pattern 'error' can never match the type ['error' | 1..255]
 backup.erl:3: Call to missing or unexported function constants:blocks/0
+backup.erl:3: Call to missing or unexported function constants:entropy/0
 backup.erl:3: Call to missing or unexported function constants:accounts/0
 backup.erl:3: Call to missing or unexported function constants:channels/0
 backup.erl:3: Call to missing or unexported function constants:block_pointers/0
-backup.erl:3: Call to missing or unexported function constants:entropy/0
 backup.erl:3: Call to missing or unexported function constants:d_accounts/0
 backup.erl:3: Call to missing or unexported function constants:all_secrets/0
 backup.erl:3: Call to missing or unexported function constants:d_channels/0
@@ -48,10 +48,10 @@ spk.erl:280: Clause guard cannot succeed.
 testnet_sign.erl:189: Guard test Verbose::'false' =:= 'true' can never succeed
 easy.erl:66: Guard test {_,{'channel',non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),char(),non_neg_integer(),0,boolean(),_},_} =:= X::byte() can never succeed
 easy.erl:111: Call to missing or unexported function spk:run/7
-easy.erl:151: Call to missing or unexported function channel_team_close_tx:make/4
-easy.erl:160: Call to missing or unexported function channel_solo_close:make/6
-easy.erl:172: Call to missing or unexported function channel_slash_tx:make/6
-easy.erl:232: Function off/0 has no local return
+easy.erl:152: Call to missing or unexported function channel_team_close_tx:make/4
+easy.erl:161: Call to missing or unexported function channel_solo_close:make/6
+easy.erl:173: Call to missing or unexported function channel_slash_tx:make/6
+easy.erl:233: Function off/0 has no local return
 mail.erl:103: Call to missing or unexported function channel_manager:id/1
 mail.erl:121: Call to missing or unexported function create_account_tx:create_account/3
 mail.erl:122: Call to missing or unexported function spend_tx:spend/4
