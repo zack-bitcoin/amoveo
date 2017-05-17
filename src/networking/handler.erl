@@ -89,9 +89,6 @@ doit({spk, CID})->
     Accounts = trees:accounts(Trees),
     ME = keys:sign(channel_feeder:me(CD), Accounts),
     Out = {ok, CD, ME},
-    io:fwrite("handler spk out is "),
-    io:fwrite(packer:pack(Out)),
-    io:fwrite("\n"),
     Out = packer:unpack(packer:pack(Out)),
     Out;
 doit({channel_payment, SSPK, Amount}) ->
@@ -110,7 +107,6 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Shares = [],
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Shares, Fee),
     SSTx = keys:sign(STx, Accounts),
-    io:fwrite("absorb close channel \n"),
     tx_pool_feeder:absorb(SSTx),
     {ok, SSTx};
 doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient}) ->
@@ -119,27 +115,14 @@ doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient}) ->
 doit({learn_secret, From, Secret, Code}) ->
     {ok, OldCD} = channel_manager:read(From),
     %check that code is actually used in the channel state.
-    io:fwrite("\n"),
-    io:fwrite("learned a secret\n"),
-    io:fwrite(packer:pack({learn_secret, From, Secret, Code})),
-    io:fwrite("\n"),
-    %OldSecret = secrets:read(Code),
-    
     secrets:add(Code, Secret),
     
     SS = channel_feeder:script_sig_me(OldCD),
     CFME = channel_feeder:me(OldCD),
-    io:fwrite("\n"),
-    io:fwrite("handler learn secret bet_unlock "),
-    io:fwrite(packer:pack({ok, CFME, SS})),
-    io:fwrite("\n"),
     {NewSS, SPK, Secrets, _SSThem} = 
 	spk:bet_unlock(CFME, SS),
-	%spk:bet_unlock(CFME, [Secret]),
-    io:fwrite(packer:pack({learn_secret2, SS, NewSS, SPK, Secrets})),
-    %after here
     if
-	NewSS == SS -> ok;%secrets:add(Code, OldSecret);
+	NewSS == SS -> ok;
 	true -> 
 	    NewCD = channel_feeder:new_cd(
 		      SPK, channel_feeder:them(OldCD),
@@ -149,9 +132,6 @@ doit({learn_secret, From, Secret, Code}) ->
 	    channel_manager:write(From, NewCD),
 	    {ok, Current} = arbitrage:check(Code),
 	    IDS = minus(Current, From),
-	    io:fwrite("\n unlock ids "),
-	    io:fwrite(packer:pack(IDS)),
-	    io:fwrite("\n"),
 	    channel_feeder:bets_unlock(IDS)
     end,
     {ok, 0};

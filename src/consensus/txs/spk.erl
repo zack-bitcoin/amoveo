@@ -87,10 +87,6 @@ bet_unlock(SPK, SS) ->
     Bets = SPK#spk.bets,
     %check if we have the secret to unlock each bet.
     %unlock the ones we can, and return an SPK with the remaining bets and the new amount of money that is moved.
-    io:fwrite("spk bet_unlock\n"),
-    io:fwrite("SS is "),
-    io:fwrite(packer:pack({spk_bet_unlock, SPK, SS})),
-    io:fwrite("\n"),
     {Remaining, AmountChange, SSRemaining, Secrets, Dnonce, SSThem} = bet_unlock2(Bets, [], 0, SS, [], [], 0, []),
     {lists:reverse(SSRemaining),
      SPK#spk{bets = lists:reverse(Remaining),
@@ -101,31 +97,21 @@ bet_unlock2([], B, A, [], SS, Secrets, Nonce, SSThem) ->
     {B, A, SS, Secrets, Nonce, lists:reverse(SSThem)};
 bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
     Code = Bet#bet.code, 
-    io:fwrite("bet unlock 2 \n"),
     case secrets:read(Code) of
 	<<"none">> -> 
-	    io:fwrite("can't unlock this \n"),
 	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 	SS2 -> 
-	    io:fwrite("unlocking \n"),
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
 	    {Trees, Height, _} = tx_pool:data(),
 	    State = chalang_state(Height, 0, Trees),
-	    %Governance = trees:governance(Trees),
 	    FunLimit = free_constants:fun_limit(),
 	    VarLimit = free_constants:var_limit(),
-	    %Facts = prove_facts(Bet#bet.prove, Trees),
-	    {ContractAmount, Nonce2, ShareRoot, Delay, _OpGas} = 
-		%run([SS2], [<<Facts/binary, Code/binary>>], 
+	    {ContractAmount, Nonce2, ShareRoot, Delay, _OpGas} =
 		run([SS2], [Bet], 
 		    free_constants:bet_gas_limit(),
 		    free_constants:bet_gas_limit(),
 		    FunLimit, VarLimit, State, 0),
 	    ShareRoot = [],%deal with lightning shares later.
-	    io:fwrite("spk bet unlock contract amount "),
-	    io:fwrite(packer:pack({ok, ContractAmount, Nonce2, Delay, SS2, Bet})),
-	    io:fwrite("\n"),
-	    %A2 = ContractAmount * Amount div constants:channel_granularity(),
 	    bet_unlock2(T, B, A+ContractAmount, SSIn, SSOut, [{secret, SS2, Code}|Secrets], Nonce + Nonce2, [SS2|SSThem])
     end.
 	    
@@ -212,36 +198,19 @@ run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, De
 	run3(SS, Code, OpGas, RamGas, Funs, Vars, State),
     run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Share ++ Share0).
 run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
-    io:fwrite("script sig is "),
-    compiler_chalang:print_binary(ScriptSig),
-    %io:fwrite("spk is "),
-    %compiler_chalang:print_binary(ScriptPubkey),
+    %compiler_chalang:print_binary(ScriptSig),
     true = chalang:none_of(ScriptSig),
     {Trees, _, _} = tx_pool:data(),
-    io:fwrite("spk run3 bet is "),
-    io:fwrite(packer:pack(Bet)),
-    io:fwrite("\n"),
     F = prove_facts(Bet#bet.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State),
-    io:fwrite("running script "),
-    io:fwrite(packer:pack({run, ScriptSig, Code})),
-    io:fwrite("\n"),
     Data2 = chalang:run5([ScriptSig], Data),
     Data3 = chalang:run5([Code], Data2),
     [ShareRoot|
      [<<Amount:32>>|
        [<<Nonce:32>>|
 	[<<Delay:32>>|_]]]] = chalang:stack(Data3),%#d.stack,
-    %true = Amount < 0,
-    io:fwrite("ran contract amount, nonce, delay is "),
-    io:fwrite(integer_to_list(Amount)),
-    io:fwrite(", "),
-    io:fwrite(integer_to_list(Nonce)),
-    io:fwrite(", "),
-    io:fwrite(integer_to_list(Delay)),
-    io:fwrite("\n"),
     A3 = Amount * Bet#bet.amount div constants:channel_granularity(),
     {A3, Nonce, ShareRoot, Delay,
      chalang:time_gas(Data3)
@@ -249,9 +218,6 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
 
 is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     {Trees, Height, _} = tx_pool:data(),
-    io:fwrite("is improvement ss check "),
-    io:fwrite(packer:pack({ok, NewSS, NewSPK})),
-    io:fwrite("\n"),
     {_, Nonce2, _, Delay2} =  run(fast, NewSS, NewSPK, Height, 0, Trees),
     {_, Nonce1, _, _} =  run(fast, OldSS, OldSPK, Height, 0, Trees),
     true = Nonce2 > Nonce1,
@@ -259,9 +225,6 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     Bets1 = OldSPK#spk.bets,
     SG = NewSPK#spk.space_gas,
     TG = NewSPK#spk.time_gas,
-    io:fwrite("delay2 is "),
-    io:fwrite(integer_to_list(Delay2)),
-    io:fwrite("\n"),
     true = Delay2 < free_constants:max_channel_delay(),
     true = SG < free_constants:space_limit(),
     true = TG < free_constants:time_limit(),
@@ -285,8 +248,6 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
 	    KID == Acc2 ->
 		Amount1 - Amount2
 	end,
-    %BL2 = length(NewSPK#spk.bets),
-    %BL1 = length(NewSPK#spk.bets) - 1,
     LT = length(Bets2),
     if
 	(Bets1 == Bets2) and 
@@ -301,8 +262,6 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
 	    %amount is the total volume of money controlled by those bets that were removed.
 	    %(Profit == Amount) and Good;
 	(Profit >= 0) and (LT > 0)->
-	    io:fwrite("SPK RIGHT SPOT\n"),
-	%true ->
 	    %if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
 	    [NewBet|T] = Bets2,
 	    BetAmount = NewBet#bet.amount,

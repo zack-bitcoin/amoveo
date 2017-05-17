@@ -55,7 +55,6 @@ doit({close_channel, IP, Port}) ->
     Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx, Accounts),
     {ok, SSTx} = talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
-    io:fwrite("absorb close channel \n"),
     tx_pool_feeder:absorb(SSTx),
     {ok, 0};
 doit({dice, Amount, IP, Port}) ->
@@ -107,10 +106,6 @@ doit({test}) ->
     {test_response};
 doit({channel_spend, IP, Port, Amount}) ->
     {ok, PeerId} = talker:talk({id}, IP, Port),
-    %CID = peers:cid(peers:read(IP, Port)),
-    %io:fwrite("CID is "),
-    %io:fwrite(integer_to_list(CID)),
-    %io:fwrite("\n"),
     {ok, CD} = channel_manager:read(PeerId),
     OldSPK = testnet_sign:data(channel_feeder:them(CD)),
     ID = keys:id(),
@@ -118,7 +113,6 @@ doit({channel_spend, IP, Port, Amount}) ->
     Accounts = trees:accounts(Trees),
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
     Payment = keys:sign(SPK, Accounts),
-    %channel_feeder:update_to_me(SPK),
     M = {channel_payment, Payment, Amount},
     {ok, Response} = talker:talk(M, IP, Port),
     %maybe verify the signature of Response here?
@@ -130,9 +124,6 @@ doit({new_channel_with_server, IP, Port, CID, Bal1, Bal2, Fee, Delay}) ->
     easy:new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay),
     {ok, 0};
 doit({learn_secret, Secret, Code}) ->
-    %io:fwrite("learned a secret\n"),
-    %io:fwrite(Secret),
-    %io:fwrite("\n"),
     secrets:add(Code, Secret),
     {ok, 0};
 doit({push_channel_state, IP, Port, SS}) ->
@@ -172,9 +163,6 @@ doit({lightning_spend, IP, Port, Recipient, Amount, Fee, Code, SS}) ->
     %ChannelID,
     SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code, []),
     {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:id(), Recipient}, IP, Port),
-    io:fwrite("lightning spend sspk2 "),
-    io:fwrite(packer:pack(SSPK2)),
-    io:fwrite("\n"),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK2, Accounts), Accounts),
