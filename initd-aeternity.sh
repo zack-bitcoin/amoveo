@@ -18,6 +18,8 @@
  # GNU Affero General Public License for more details.
  #
 ##############################################################################
+# READ THIS: https://github.com/Zwilla/aeternity-testnet/blob/master/docs/testnet.md
+#
 # Command:
 # sh initd-aeternity.sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
@@ -38,24 +40,25 @@ do_start() {
 if [ -f 3010.txt ]; then
     NAME=aeternity3010;
 
-    if [ ! -f aeternity-testnet3010/config/aeternity.conf ]; then
+    if [ ! -f config/aeternity.conf ]; then
         echo "ERROR: no aeternity.conf, can't start mine!\n";
 		echo "Just running as NODE\n";
-		screen -t aeternityT -dmS aeternity-3010 -s ./dev1_mode-3010-Node.sh -q;
+		screen -t aeternityT3010 -dmS aeternity-3010 -s ./dev1_mode-3010-Node.sh -q;
 	else
-	    screen -t aeternityT -dmS aeternity-3010 -s ./dev1_mode-3010-mining.sh -q;
+	    screen -t aeternityT3010 -dmS aeternity-3010 -s ./dev1_mode-3010-mining.sh -q;
 	fi;
-
+	echo "not found!\n";
+#screen -t aeternityT3010 -dmS aeternity-3010 -s ./dev1_mode-3010-Node.sh -q;
 fi;
 
 	if [ -f 3020.txt ]; then
 	NAME=aeternity3020;
-	screen -t aeternityT -dmS aeternity-3020 -s ./dev2_mode-3020-Node.sh -q;
+	screen -t aeternityT3020 -dmS aeternity-3020 -s ./dev2_mode-3020-Node.sh -q;
 	fi;
 
 	if [ -f 3030.txt ]; then
 	NAME=aeternity3030;
-	screen -t aeternityT -dmS aeternity-3030 -s ./dev3_mode-3030-Node.sh -q;
+	screen -t aeternityT3030 -dmS aeternity-3030 -s ./dev3_mode-3030-Node.sh -q;
 	fi;
 	screen -wipe;
 
@@ -66,7 +69,24 @@ do_stop() {
 	screen -X -S aeternity-3010 quit;
 	screen -X -S aeternity-3020 quit;
 	screen -X -S aeternity-3030 quit;
+
 	for i in `ps -ef | grep erl | awk '{print $2}'`; do echo ${i}; kill -9 ${i}; done
+
+	if [ -f 3010.txt ]; then
+	echo "not now!\n";
+	#rm 3010.txt;
+	fi;
+
+	if [ -f 3020.txt ]; then
+	echo "not now!\n";
+	#rm 3020.txt;
+	fi;
+
+	if [ -f 3030.txt ]; then
+	echo "not now!\n";
+	#rm 3030.txt;
+	fi;
+
 	screen -wipe
 }
 case "$1" in

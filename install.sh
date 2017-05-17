@@ -28,8 +28,8 @@ fi;
 
 # first install rebar package manager
 
-if [ -e "rebar3" ]; then
-    echo "REBAR3 already installed \n";
+if [ -e "rebar" ]; then
+    echo "REBAR already installed \n";
 rm rebar3.crashdump;
 elif [[ `uname -s` == `Linux` ]];
 then
@@ -72,19 +72,17 @@ then
 elif [[ `uname -s` == `Linux` ]];
 then
     echo "install rebar on Linux";
-    sudo ./rebar3 local upgrade # check for rebar updates
-    sudo ./rebar3 get-deps
-    sudo ./rebar3 compile
+    sudo ./rebar get-deps
+    sudo ./rebar compile
 
 elif [[ `uname -s`==Darwin ]];
 then
     echo "install rebar for Darwin now! \n";
-    rebar3 local upgrade # check for rebar updates
     chmod u+x rebar;
     chmod u+x *.sh;
     #without sudo we get an error on compiling on osx
-    sudo ./rebar3 get-deps
-    sudo ./rebar3 compile
+    sudo ./rebar get-deps
+    sudo ./rebar compile
 
 
 else
@@ -117,15 +115,15 @@ read -t 5 startnow;
 
 
 if [[ "$startnow" == "n" ]]; then
-echo "OK installation ready for now! \n"
-exit
+echo "OK installation ready for now! \n";
+exit;
 
 else
-echo "starting Testnet now! \n"
+echo "starting Testnet now! \n";
 # start on default testnet port 8040 and 8041
-sh start.sh
+sh start.sh;
 
 #sh start.sh 3020
 # before we do this we need to copy the project into new folder
-echo "http://127.0.0.1:8041/login.html"
-fi
+echo "http://127.0.0.1:8041/login.html";
+fi;

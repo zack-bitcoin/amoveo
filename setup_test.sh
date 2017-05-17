@@ -1,4 +1,41 @@
 #!/usr/bin/env bash
+# READ THIS: https://github.com/Zwilla/aeternity-testnet/blob/master/docs/testnet.md
+
+cp initd-aeternity.sh ../aeternity-testnet3010/
+cp initd-aeternity.sh ../aeternity-testnet3020/
+cp initd-aeternity.sh ../aeternity-testnet3030/
+
+for i in `ps -ef | grep erl | awk '{print $2}'`; do echo ${i}; kill -9 ${i}; done
+
+cd ..
+cd aeternity-testnet3010
+rm data/*.db;
+rm -R blocks;
+mkdir -p blocks;
+touch 3010.txt;
+sh initd-aeternity.sh start;
+
+cd ..;
+cd aeternity-testnet3020;
+rm data/*.db;
+rm -R blocks;
+mkdir -p blocks;
+touch 3020.txt;
+sh initd-aeternity.sh start;
+
+cd ..;
+cd aeternity-testnet3030
+rm data/*.db;
+rm -R blocks;
+mkdir -p blocks;
+touch 3030.txt;
+sh initd-aeternity.sh start;
+
+#rm blocks/*.db;
+#-bash: /bin/rm: Argument list too long
+
+
+exit;
 
 echo "######################### CLEAN APP #########################";
 ./rebar clean
@@ -38,33 +75,37 @@ echo "######################### COMPILE 3010 #######################";
 cd aeternity-testnet3010
 ./rebar compile
 touch 3010.txt
+sh initd-aeternity.sh start;
 cd ..
+
 echo "######################### COMPILE 3020 #######################";
 cd aeternity-testnet3020
 ./rebar compile
 touch 3020.txt
+sh initd-aeternity.sh start;
 cd ..
 
 echo "######################### COMPILE 3030 #######################";
 cd aeternity-testnet3030;
 ./rebar compile;
 touch 3030.txt;
+sh initd-aeternity.sh start;
 cd ..;
 
 
 echo "######################### START 3010 #######################";
 cd aeternity-testnet3010;
-sh initd-aeternity.sh start;
+#sh initd-aeternity.sh start;
 cd ..;
 
 echo "######################### START 3020 #######################";
 cd aeternity-testnet3020;
-sh initd-aeternity.sh start;
+#sh initd-aeternity.sh start;
 cd ..;
 
 echo "######################### START 3030 #######################";
 cd aeternity-testnet3030;
-sh initd-aeternity.sh start;
+#sh initd-aeternity.sh start;
 cd ..;
 
 echo "check now with screen command example: \n";
