@@ -1,15 +1,14 @@
 %this is the only thing that contact the channel_manager. That way, we are safe from race-conditions on updating the channel state.
 -module(channel_feeder).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,
-	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 new_channel/3,spend/2,close/2,lock_spend/6,
-	 agree_bet/4,garbage/0,entropy/1,
-	 new_channel_check/1,
-	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
-	 make_bet/4, update_to_me/2, new_cd/6,
-	 make_locked_payment/4, live/1, they_simplify/3
-	 ]).
+-export([start_link/0, code_change/3, handle_call/3,
+  handle_cast/2, handle_info/2, init/1, terminate/2,
+  new_channel/3, spend/2, close/2, lock_spend/6,
+  agree_bet/4, garbage/0, entropy/1,
+  new_channel_check/1,
+  cid/1, them/1, script_sig_them/1, me/1, script_sig_me/1,
+  make_bet/4, update_to_me/2, new_cd/6,
+  make_locked_payment/4, live/1, they_simplify/3]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
