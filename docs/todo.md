@@ -15,8 +15,6 @@ When you are running short on funds you need to ask your partner to close the ch
 Make sure that a contract can only spend shares out of the money that was allocated for that contract, not out of the entire channel's pool of money.
 
 
-in channel_feeder:they_simplify, we need to update all the arbitragable channels.
-
 api needs to be encrypted, especially the stuff about channels.
 
 
@@ -34,7 +32,6 @@ in spk prove_facts2, the burn and existence trees store by hash not by integer, 
 we need tests for:
 channel smart contract,
 channel smart contract that proves a outcome from an oracle.
-channel lightning payment (Also need code for this. Maybe take a look at flying fox or pinkfairy for examples)%%%%
 test that the channel pays out the correct amount in every way it could be closed. It looks like channels:update could have some bugs.
 
 merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.
