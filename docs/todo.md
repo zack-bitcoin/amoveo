@@ -1,3 +1,9 @@
+We need some tests of channel_solo_close:check_slash.
+We should get rid of the old dice stuff.
+This is to check if your partner is trying to cheat, to see if you can close at a higher-nonced state.
+
+
+
 spk:is_improvement needs better checks.
 Make sure delay isn't too big, and the fees aren't too high.
 
@@ -15,7 +21,7 @@ When you are running short on funds you need to ask your partner to close the ch
 Make sure that a contract can only spend shares out of the money that was allocated for that contract, not out of the entire channel's pool of money.
 
 
-api needs to be encrypted, especially the stuff about channels.
+api needs to be encrypted, especially the stuff about channels. Otherwise anyone can see how to do a channel_slash to close our channel at times we don't want to close it.
 
 
 in channel_solo_close:check_slash, we run next_ss.
@@ -31,7 +37,6 @@ in spk prove_facts2, the burn and existence trees store by hash not by integer, 
 
 we need tests for:
 channel smart contract,
-channel smart contract that proves a outcome from an oracle.
 test that the channel pays out the correct amount in every way it could be closed. It looks like channels:update could have some bugs.
 
 merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.

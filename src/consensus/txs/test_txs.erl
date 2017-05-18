@@ -17,6 +17,8 @@ test() ->
     S = test(8),%spend shares with spend
     S = test(9),%spend shares with team_close
     S = test(10),%spend shares with timeout
+    S = test(14),%financial options
+    S = test(15),%automatic channel slash
     S = test(11),%try out the oracle
     %warning! after running test(11), we can no longer run other tests. because test(11) mines blocks, so tx_pool:dump can no longer undo transactions.
     S = test(12),%multiple bets in a single channel
@@ -701,8 +703,68 @@ test(14) ->
 
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
-    success.
+    success;
 
+test(15) ->
+    %If your partner tries closing at a low-nonced channel state, your node needs to automatically create a channel_slash to stop them.
+    io:fwrite("channel slash automatic\n"),
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    tx_pool:dump(),
+    Trees = block:trees(BP),
+    Accounts = trees:accounts(Trees),
+    {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
+
+    Fee = 10,
+    Amount = 1000000,
+    ID2 = 2,
+    {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
+    Stx = keys:sign(Ctx, Accounts),
+    absorb(Stx),
+    {Trees2, _, _} = tx_pool:data(),
+    Accounts2 = trees:accounts(Trees2),
+
+    CID = 5,
+    Entropy = 432,
+
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, 1, ID2, 100, 200, Entropy, 10, Fee),
+    Stx2 = keys:sign(Ctx2, Accounts2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv, ID2, Accounts2), 
+    absorb(SStx2),
+    Code = compiler_chalang:doit(<<"int 50 nil">>),%sends 50.
+    Secret = compiler_chalang:doit(<<" int 0 int 2 ">>),
+    %secrets:add(Code, Secret),
+    %timer:sleep(100),
+    {Trees3, _, _} = tx_pool:data(),
+    Accounts3 = trees:accounts(Trees3),
+    
+    Delay = 0,
+    ChannelNonce = 0,
+    Bet = spk:new_bet(Code, 50, []),
+    SPK = spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy),
+    TheySPK = testnet_sign:sign_tx(SPK, NewPub, NewPriv, ID2, Accounts3),
+    CD = channel_feeder:new_cd(SPK, TheySPK, [Secret], [Secret], Entropy, CID),
+    channel_manager:write(ID2, CD),
+    timer:sleep(100),
+    ScriptPubKey = keys:sign(SPK, Accounts3),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
+    ScriptSig = compiler_chalang:doit(<<" int 5 int 1 ">>),
+    {Ctx3, _} = channel_solo_close:make(ID2, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
+    Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv, ID2, Accounts3),
+    absorb(Stx3),
+    {_Trees4, _, Txs} = tx_pool:data(),
+    true = slash_exists(Txs),%check that the channel_slash transaction exists in the tx_pool.
+    Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
+    block:check2(Block),
+    timer:sleep(200),
+    success.
+slash_exists([]) -> false;
+slash_exists([Tx|T]) ->
+    is_slash(Tx) or slash_exists(T).
+is_slash(STx) ->
+    Tx = testnet_sign:data(STx),
+    channel_slash_tx:is_tx(Tx).
+	     
 mine_blocks(Many) when Many < 1 -> ok;
 mine_blocks(Many) ->
     %only works if you set the difficulty very low.

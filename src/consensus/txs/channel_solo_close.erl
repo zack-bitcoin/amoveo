@@ -1,5 +1,5 @@
 -module(channel_solo_close).
--export([doit/3, make/5, scriptpubkey/1, next_ss/6]).
+-export([doit/3, make/5]).%, scriptpubkey/1, next_ss/6]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
 
@@ -56,10 +56,33 @@ doit(Tx, Trees, NewHeight) ->
     NewAccounts = accounts:write(Accounts, Facc),
     Trees2 = trees:update_channels(Trees, NewChannels),
     Trees3 = trees:update_accounts(Trees2, NewAccounts),
-    spawn(fun() -> check_slash(From, Acc1, Acc2, SS, SPK, Trees3, NewCNonce) end), %If our channel is closing somewhere we don't like, then we need to use a channel_slash transaction to stop them and save our money.
+    spawn(fun() -> check_slash(From, SS, SPK, Trees3, NewAccounts,NewHeight, NewCNonce) end), 
+   %If our channel is closing somewhere we don't like, then we should try to use a channel_slash transaction to save our money.
     Trees3.
-
-check_slash(From, Acc1, Acc2, TheirSS, SSPK, Trees, TheirNonce) ->
+check_slash(From, TheirSS, SSPK, Trees, Accounts, NewHeight, TheirNonce) ->
+    case channel_manager:read(From) of
+	error -> 
+	    io:fwrite("\n no channel partner \n"),
+	    ok;
+	{ok, CD} ->
+	    SOldSPK = channel_feeder:them(CD),
+	    OldSPK=testnet_sign:data(SOldSPK),
+	    OldSSThem = channel_feeder:script_sig_them(CD), 
+	    {_, CDNonce, _, _} = 
+		spk:run(fast, 
+			OldSSThem,
+			OldSPK,
+			NewHeight, 1, Trees),
+	    if
+		CDNonce > TheirNonce ->
+		    {Tx, _} = channel_slash_tx:make(keys:id(), free_constants:tx_fee(), keys:sign(SOldSPK, Accounts), OldSSThem, Trees),
+		    Stx = keys:sign(Tx, Accounts),
+		    tx_pool_feeder:absorb(Stx);
+		true -> ok
+	    end
+    end.
+		
+check_slash_old(From, Acc1, Acc2, TheirSS, SSPK, Trees, TheirNonce) ->
     %if our partner is trying to close our channel without us, and we have a ScriptSig that can close the channel at a higher nonce, then we should make a channel_slash_tx to do that.
     %From = MyID,
     SPK = testnet_sign:data(SSPK),

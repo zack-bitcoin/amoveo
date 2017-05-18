@@ -1,8 +1,10 @@
-#this quickly tests lightning payments. It is a lot faster and easier than using the browser to test the same thing.
+#this quickly tests lightning payments. It is a lot faster and easier than using the blockchain to test the same thing.
 
-#first run lightning_test_setup to copy the software into 2 other directories.
-#Open up 3 terminals. 
-#Launch one using port 3010, one on 3020, and one on 3030.
+#this test can only work if free_constants:test_mode() is set to true. So the random number generation for the hashlock will be deterministic.
+
+#make sure the code is compiled and can run with `sh start.sh`
+#Open up 3 terminals.
+#launch `sh dev1_mode.sh` in one, `sh dev2_mode.sh` in the second, and `sh dev3_mode.sh` in the 3rd.
 #Then run this script from a fourth terminal.
 
 #It lightning spends 4 coins one way, then spends the same 4 back.
@@ -34,22 +36,25 @@ sleep 5
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
 sleep 1
 
-#2 step handshake for lightning spend
+curl -i -d '["channel_spend", [127,0,0,1], 3030, 777]' http://localhost:3011
+sleep 1
+
 curl -i -d '["lightning_spend", [127,0,0,1], 3030, 2, 4, 10]' http://localhost:3011
+sleep 1
+
+curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
 sleep 1
 
 curl -i -d '["learn_secret", "AgAAAAwr/nWTT4zbCS4lAuc=","WgAAAAAAOkYAAAAAMgAAAAABAAAAAACEC0dIFBQoAgAAAAx3wv4k7MKMmFva1BoKOhYUFhRGAAAAAAAAAAAAAgAAACcQRwAAAAAxAAAAAAEAAAAAAEiECw=="]' http://localhost:3021
 sleep 1
 
-#3 step handshake 
-curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
-sleep 1
+#it still works if you learn the secret before pulling channel state, or if you pull channel state and then learn the secret.
+#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
+#sleep 1
 
-#2 step handshake
 curl -i -d '["bet_unlock", [127,0,0,1], 3030]' http://localhost:3021
 sleep 1
 
-#3 step handshake
 curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
 sleep 1
 
