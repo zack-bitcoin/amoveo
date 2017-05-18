@@ -43,5 +43,5 @@ digest2(Tx, Trees, H) ->
 	X -> X=2
     end.
 fees([]) -> 0;
-fees([H|T]) -> 
+fees([H|T]) ->
     element(4, element(2, H)) + fees(T).

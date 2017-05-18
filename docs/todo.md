@@ -1,3 +1,20 @@
+spk:is_improvement needs better checks.
+Make sure delay isn't too big, and the fees aren't too high.
+
+
+We need a way to know how long the delay could be on every possible way of closing the channel.
+The channel can only close on a ?crash opcode, the delay is always programmed in just before the ?crash, so we should be able to calculate the delay from the bytecode.
+Only the script_sig part of the contract can have a ?crash opcode, so this is something we can calculate.
+spk:is_improvement
+
+
+We need to regularly check on our channels to see if either participant is running out of funds. There needs to be enough money left to cover the cost of the channel for the amount of time until you can close the channel without your partner's help.
+When you are running short on funds you need to ask your partner to close the channel. If they don't, you need to start closing the channel without their help.
+
+
+Make sure that a contract can only spend shares out of the money that was allocated for that contract, not out of the entire channel's pool of money.
+
+
 in channel_feeder:they_simplify, we need to update all the arbitragable channels.
 
 api needs to be encrypted, especially the stuff about channels.
@@ -63,4 +80,3 @@ each tx with a fee needs a to reference a recent hash. Everyone needs to be ince
 
 
 Make sure that if something was garbage collected from a merkel tree, and we try accessing the thing, it gives a different message than trying to access something that doesn't exist. Make sure we don't assume a block is invalid just because we don't have the proof of it's validity.
-

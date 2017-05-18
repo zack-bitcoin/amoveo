@@ -1,50 +1,54 @@
 
-arbitrage.erl:12: The pattern 'empty' can never match the type 'error' | {'ok',_}
-arbitrage.erl:20: The pattern 'empty' can never match the type 'error' | {'ok',_}
 arbitrage_old.erl:51: Call to missing or unexported function channel_manager:id/1
 arbitrage_old.erl:79: Call to missing or unexported function channel_manager:id/1
 arbitrage_old.erl:81: Call to missing or unexported function channel_manager:read_channel/1
 arbitrage_old.erl:114: Call to missing or unexported function channel_manager:id/1
 arbitrage_old.erl:116: Call to missing or unexported function channel_manager:read_channel/1
-channel_feeder.erl:243: Function update_to_me_internal/2 will never be called
-channel_feeder.erl:254: Function make_simplification_internal/3 will never be called
-channel_feeder.erl:271: Function make_bet_internal/4 will never be called
-channel_feeder.erl:335: Call to missing or unexported function block:channels/1
-channel_feeder.erl:337: Function depth_check/1 will never be called
-channel_feeder.erl:340: Function depth_check2/3 has no local return
-channel_feeder.erl:346: The call channels:entropy(Channel::{_,'empty' | {'channel',non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),char(),non_neg_integer(),0,boolean(),_},_}) will never return since it differs in the 1st argument from the success typing arguments: ({'channel',_,_,_,_,_,_,_,_,_,_,_,_,_,_})
-channel_feeder.erl:347: The call channels:entropy(OldChannel::{_,'empty' | {'channel',non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),char(),non_neg_integer(),0,boolean(),_},_}) will never return since it differs in the 1st argument from the success typing arguments: ({'channel',_,_,_,_,_,_,_,_,_,_,_,_,_,_})
-channel_feeder.erl:368: Function get_bet/4 will never be called
-channel_feeder.erl:372: Function get_bet2/4 will never be called
-channel_feeder.erl:381: Call to missing or unexported function channels:update/10
-channel_feeder.erl:395: Call to missing or unexported function spk:apply_bet/4
-channel_feeder.erl:453: Function we_simplify/2 will never be called
-channel_feeder.erl:475: Call to missing or unexported function keys:sign/1
+channel_feeder.erl:227: The call testnet_sign:data(Return::[any()]) will never return since it differs in the 1st argument from the success typing arguments: ({'signed',_,_,_,_,_})
+channel_feeder.erl:244: Function update_to_me_internal/2 will never be called
+channel_feeder.erl:255: Function make_simplification_internal/3 will never be called
+channel_feeder.erl:272: Function make_bet_internal/4 will never be called
+channel_feeder.erl:336: Call to missing or unexported function block:channels/1
+channel_feeder.erl:338: Function depth_check/1 will never be called
+channel_feeder.erl:341: Function depth_check2/3 has no local return
+channel_feeder.erl:347: The call channels:entropy(Channel::{_,'empty' | {'channel',non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),char(),non_neg_integer(),0,boolean(),_},_}) will never return since it differs in the 1st argument from the success typing arguments: ({'channel',_,_,_,_,_,_,_,_,_,_,_,_,_,_})
+channel_feeder.erl:348: The call channels:entropy(OldChannel::{_,'empty' | {'channel',non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),char(),non_neg_integer(),0,boolean(),_},_}) will never return since it differs in the 1st argument from the success typing arguments: ({'channel',_,_,_,_,_,_,_,_,_,_,_,_,_,_})
+channel_feeder.erl:369: Function get_bet/4 will never be called
+channel_feeder.erl:373: Function get_bet2/4 will never be called
+channel_feeder.erl:382: Call to missing or unexported function channels:update/10
+channel_feeder.erl:396: Call to missing or unexported function spk:apply_bet/4
+channel_feeder.erl:454: Function we_simplify/2 will never be called
+channel_feeder.erl:485: Function remove_i/2 will never be called
+channel_feeder.erl:489: Function diff/3 will never be called
 channel_manager.erl:27: Call to missing or unexported function dict:delete/2
 base58.erl:201: The pattern 'error' can never match the type ['error' | 1..255]
 backup.erl:3: Call to missing or unexported function constants:blocks/0
-backup.erl:3: Call to missing or unexported function constants:entropy/0
 backup.erl:3: Call to missing or unexported function constants:accounts/0
 backup.erl:3: Call to missing or unexported function constants:channels/0
 backup.erl:3: Call to missing or unexported function constants:block_pointers/0
+backup.erl:3: Call to missing or unexported function constants:entropy/0
 backup.erl:3: Call to missing or unexported function constants:d_accounts/0
 backup.erl:3: Call to missing or unexported function constants:all_secrets/0
 backup.erl:3: Call to missing or unexported function constants:d_channels/0
 secrets.erl:54: The pattern 'false' can never match the type 'true'
-secrets.erl:64: Function real_new_lightning/0 will never be called
-testnet_sup.erl:13: Function child_maker/1 will never be called
-testnet_sup.erl:24: Function tree_child/3 will never be called
-testnet_sup.erl:26: Function tree_child/4 will never be called
-testnet_sup.erl:30: Function init/1 has no local return
-testnet_sup.erl:31: The call os:putenv("ERL_CRASH_DUMP_SECONDS",<<_:8>>) breaks the contract (VarName,Value) -> 'true' when VarName :: string(), Value :: string()
+secrets.erl:67: Function real_new_lightning/0 will never be called
+testnet_sup.erl:14: Function child_maker/1 will never be called
+testnet_sup.erl:25: Function tree_child/3 will never be called
+testnet_sup.erl:27: Function tree_child/4 will never be called
+testnet_sup.erl:31: Function init/1 has no local return
+testnet_sup.erl:32: The call os:putenv("ERL_CRASH_DUMP_SECONDS",<<_:8>>) breaks the contract (VarName,Value) -> 'true' when VarName :: string(), Value :: string()
 orders.erl:149: Guard test #order{id::non_neg_integer(),aid::non_neg_integer(),amount::non_neg_integer()} =:= N::non_neg_integer() can never succeed
 channel_solo_close.erl:68: The pattern {_, Nonce, SSM, _OurSecret} can never match the type 'ok'
 channel_solo_close.erl:78: Call to missing or unexported function easy:sync/0
 channel_solo_close.erl:87: Function next_ss2/7 has no local return
 channel_solo_close.erl:99: The pattern {Amount1, Nonce1, _} can never match the type {number(),number(),[{'share',non_neg_integer(),non_neg_integer(),non_neg_integer()}],_}
 spk.erl:35: Function bet_amount/1 will never be called
-spk.erl:133: Function many/2 will never be called
-spk.erl:280: Clause guard cannot succeed.
+spk.erl:135: Function many/2 will never be called
+spk.erl:293: Clause guard cannot succeed.
+spk.erl:347: Function find_extra/2 will never be called
+spk.erl:349: Function find_extra/3 will never be called
+spk.erl:361: Function is_in/2 will never be called
+spk.erl:364: Function remove/2 will never be called
 testnet_sign.erl:189: Guard test Verbose::'false' =:= 'true' can never succeed
 easy.erl:66: Guard test {_,{'channel',non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),integer(),non_neg_integer(),non_neg_integer(),non_neg_integer(),char(),non_neg_integer(),0,boolean(),_},_} =:= X::byte() can never succeed
 easy.erl:111: Call to missing or unexported function spk:run/7
@@ -57,9 +61,9 @@ mail.erl:121: Call to missing or unexported function create_account_tx:create_ac
 mail.erl:122: Call to missing or unexported function spend_tx:spend/4
 mail.erl:139: Call to missing or unexported function tx_pool:accounts/0
 mail.erl:141: Call to missing or unexported function keys:sign/1
-handler.erl:161: Call to missing or unexported function secrets:new/0
-handler.erl:168: Call to missing or unexported function channel_feeder:make_simplification/3
-handler.erl:171: Call to missing or unexported function channel_feeder:update_to_me/1
+handler.erl:177: Call to missing or unexported function secrets:new/0
+handler.erl:184: Call to missing or unexported function channel_feeder:make_simplification/3
+handler.erl:187: Call to missing or unexported function channel_feeder:update_to_me/1
 internal_handler.erl:63: Call to missing or unexported function secrets:new/0
 internal_handler.erl:73: Call to missing or unexported function channel_feeder:agree_simplification/3
 internal_handler.erl:103: Call to missing or unexported function channel_manager:id/1
