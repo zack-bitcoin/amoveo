@@ -11,10 +11,10 @@ channel_feeder.erl:244: The call channels:entropy(OldChannel::{_,'empty' | {'cha
 channel_manager.erl:27: Call to missing or unexported function dict:delete/2
 base58.erl:201: The pattern 'error' can never match the type ['error' | 1..255]
 backup.erl:3: Call to missing or unexported function constants:blocks/0
-backup.erl:3: Call to missing or unexported function constants:entropy/0
 backup.erl:3: Call to missing or unexported function constants:accounts/0
 backup.erl:3: Call to missing or unexported function constants:channels/0
 backup.erl:3: Call to missing or unexported function constants:block_pointers/0
+backup.erl:3: Call to missing or unexported function constants:entropy/0
 backup.erl:3: Call to missing or unexported function constants:d_accounts/0
 backup.erl:3: Call to missing or unexported function constants:all_secrets/0
 backup.erl:3: Call to missing or unexported function constants:d_channels/0
@@ -49,9 +49,9 @@ mail.erl:121: Call to missing or unexported function create_account_tx:create_ac
 mail.erl:122: Call to missing or unexported function spend_tx:spend/4
 mail.erl:139: Call to missing or unexported function tx_pool:accounts/0
 mail.erl:141: Call to missing or unexported function keys:sign/1
-handler.erl:157: Call to missing or unexported function secrets:new/0
-handler.erl:164: Call to missing or unexported function channel_feeder:make_simplification/3
-handler.erl:167: Call to missing or unexported function channel_feeder:update_to_me/1
+handler.erl:158: Call to missing or unexported function secrets:new/0
+handler.erl:165: Call to missing or unexported function channel_feeder:make_simplification/3
+handler.erl:168: Call to missing or unexported function channel_feeder:update_to_me/1
 internal_handler.erl:62: Call to missing or unexported function secrets:new/0
 internal_handler.erl:72: Call to missing or unexported function channel_feeder:agree_simplification/3
 internal_handler.erl:102: Call to missing or unexported function channel_manager:id/1
