@@ -1,8 +1,3 @@
-We need some tests of channel_solo_close:check_slash.
-We should get rid of the old dice stuff.
-This is to check if your partner is trying to cheat, to see if you can close at a higher-nonced state.
-
-
 
 spk:is_improvement needs better checks.
 Make sure delay isn't too big, and the fees aren't too high.
@@ -18,14 +13,7 @@ We need to regularly check on our channels to see if either participant is runni
 When you are running short on funds you need to ask your partner to close the channel. If they don't, you need to start closing the channel without their help.
 
 
-Make sure that a contract can only spend shares out of the money that was allocated for that contract, not out of the entire channel's pool of money.
-
-
 api needs to be encrypted, especially the stuff about channels. Otherwise anyone can see how to do a channel_slash to close our channel at times we don't want to close it.
-
-
-in channel_solo_close:check_slash, we run next_ss.
-This seems like it could be far simpler.
 
 
 We need to think about channel nonces very carefully.

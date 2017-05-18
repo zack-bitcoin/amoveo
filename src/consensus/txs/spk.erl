@@ -211,7 +211,9 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
      [<<Amount:32>>|
        [<<Nonce:32>>|
 	[<<Delay:32>>|_]]]] = chalang:stack(Data3),%#d.stack,
-    A3 = Amount * Bet#bet.amount div constants:channel_granularity(),
+    CGran = constants:channel_granularity(),
+    true = Amount <= CGran,
+    A3 = Amount * Bet#bet.amount div CGran,
     {A3, Nonce, ShareRoot, Delay,
      chalang:time_gas(Data3)
     }.

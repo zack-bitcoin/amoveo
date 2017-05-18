@@ -8,9 +8,6 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     Channels = trees:channels(Trees),
     true = is_list(ScriptSig),
     CID = spk:cid(testnet_sign:data(ScriptPubkey)),
-    %io:fwrite("in channel solo close make CID is "),
-    %io:fwrite(integer_to_list(CID)),
-    %io:fwrite("\n"),
     {_, Acc, Proof1} = accounts:get(From, Accounts),
     {_, _Channel, Proofc} = channels:get(CID, Channels),
     
@@ -61,17 +58,16 @@ check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
     case channel_manager:read(From) of
 	error -> ok;
 	{ok, CD} ->
-	    SOldSPK = channel_feeder:them(CD),
-	    OldSPK=testnet_sign:data(SOldSPK),
-	    OldSSThem = channel_feeder:script_sig_them(CD), 
+	    SPK = channel_feeder:them(CD),
+	    SS = channel_feeder:script_sig_them(CD), 
 	    {_, CDNonce, _, _} = 
 		spk:run(fast, 
-			OldSSThem,
-			OldSPK,
+			SS,
+			testnet_sign:data(SPK),
 			NewHeight, 1, Trees),
 	    if
 		CDNonce > TheirNonce ->
-		    {Tx, _} = channel_slash_tx:make(keys:id(), free_constants:tx_fee(), keys:sign(SOldSPK, Accounts), OldSSThem, Trees),
+		    {Tx, _} = channel_slash_tx:make(keys:id(), free_constants:tx_fee(), keys:sign(SPK, Accounts), SS, Trees),
 		    Stx = keys:sign(Tx, Accounts),
 		    tx_pool_feeder:absorb(Stx);
 		true -> ok
