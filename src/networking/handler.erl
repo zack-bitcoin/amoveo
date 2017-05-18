@@ -25,14 +25,14 @@ terminate(_Reason, _Req, _State) -> ok.
 doit({pubkey}) -> {ok, keys:pubkey()};
 %doit({height}) -> {ok, block_tree:height()};
 %doit({total_coins}) -> {ok, block_tree:total_coins()};
-doit({give_block, SignedBlock}) -> 
+doit({give_block, SignedBlock}) ->
     block_absorber:doit(SignedBlock),
     {ok, 0};
-doit({block, N}) -> 
+doit({block, N}) ->
     {ok, block:read_int(N)};
-doit({header, N}) -> 
+doit({header, N}) ->
     {ok, block:block_to_header(block:read_int(N))};
-doit({headers, Many, N}) -> 
+doit({headers, Many, N}) ->
     X = many_headers(Many, N),
     {ok, X};
     %{ok, block_tree:read_int(N)};
@@ -45,18 +45,18 @@ doit({peers}) ->
 doit({peers, Peers}) ->
     peers:add(Peers),
     {ok, 0};
-doit({txs}) -> 
+doit({txs}) ->
     {_,_,Txs} = tx_pool:data(),
     {ok, Txs};
-doit({txs, Txs}) -> 
+doit({txs, Txs}) ->
     download_blocks:absorb_txs(Txs),
     {ok, 0};
 doit({id}) -> {ok, keys:id()};
-doit({top}) -> 
+doit({top}) ->
     Top = block:read(top:doit()),
     Height = block:height(Top),
     {ok, Top, Height};
-doit({test}) -> 
+doit({test}) ->
     {test_response};
 doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
@@ -89,9 +89,6 @@ doit({spk, CID})->
     Accounts = trees:accounts(Trees),
     ME = keys:sign(channel_feeder:me(CD), Accounts),
     Out = {ok, CD, ME},
-    io:fwrite("handler spk out is "),
-    io:fwrite(packer:pack(Out)),
-    io:fwrite("\n"),
     Out = packer:unpack(packer:pack(Out)),
     Out;
 doit({channel_payment, SSPK, Amount}) ->
@@ -110,7 +107,6 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Shares = [],
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Shares, Fee),
     SSTx = keys:sign(STx, Accounts),
-    io:fwrite("absorb close channel \n"),
     tx_pool_feeder:absorb(SSTx),
     {ok, SSTx};
 doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient}) ->
@@ -119,26 +115,13 @@ doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient}) ->
 doit({learn_secret, From, Secret, Code}) ->
     {ok, OldCD} = channel_manager:read(From),
     %check that code is actually used in the channel state.
-    io:fwrite("\n"),
-    io:fwrite("learned a secret\n"),
-    io:fwrite(packer:pack({learn_secret, From, Secret, Code})),
-    io:fwrite("\n"),
-    %OldSecret = secrets:read(Code),
-
     secrets:add(Code, Secret),
     SS = channel_feeder:script_sig_me(OldCD),
     CFME = channel_feeder:me(OldCD),
-    io:fwrite("\n"),
-    io:fwrite("handler learn secret bet_unlock "),
-    io:fwrite(packer:pack({ok, CFME, SS})),
-    io:fwrite("\n"),
     {NewSS, SPK, Secrets, _SSThem} =
 	spk:bet_unlock(CFME, SS),
-	%spk:bet_unlock(CFME, [Secret]),
-    io:fwrite(packer:pack({learn_secret2, SS, NewSS, SPK, Secrets})),
-    %after here
     if
-	NewSS == SS -> ok;%secrets:add(Code, OldSecret);
+	NewSS == SS -> ok;
 	true ->
 	    NewCD = channel_feeder:new_cd(
 		      SPK, channel_feeder:them(OldCD),
@@ -148,9 +131,6 @@ doit({learn_secret, From, Secret, Code}) ->
 	    channel_manager:write(From, NewCD),
 	    {ok, Current} = arbitrage:check(Code),
 	    IDS = minus(Current, From),
-	    io:fwrite("\n unlock ids "),
-	    io:fwrite(packer:pack(IDS)),
-	    io:fwrite("\n"),
 	    channel_feeder:bets_unlock(IDS)
     end,
     {ok, 0};
@@ -168,7 +148,7 @@ doit({proof, TreeName, ID}) ->
     {RootHash, Value, Proof} = TN:get(ID, Root),
     Proof2 = proof_packer(Proof),
     {ok, {return, RootHash, Value, Proof2}};
-    
+
 doit({dice, 1, Other, Commit, Amount}) ->
     %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
     {ok, CD} = channel_manager:read(Other),
@@ -190,20 +170,20 @@ doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2
     {error}.
-    
+
 proof_packer(X) when is_tuple(X) ->
     proof_packer(tuple_to_list(X));
 proof_packer([]) -> [];
 proof_packer([H|T]) ->
     [proof_packer(H)|proof_packer(T)];
 proof_packer(X) -> X.
- 
+
     %Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
 many_headers(M, _) when M < 1 -> [];
-many_headers(Many, N) ->    
+many_headers(Many, N) ->
     [block:block_to_header(block:read_int(N))|
      many_headers(Many-1, N+1)].
-    
-    
+
+
 minus([T|X], T) -> X;
 minus([A|T], X) -> [A|minus(T, X)].
