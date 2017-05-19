@@ -27,6 +27,7 @@ handle_call(status, _From, X) -> {reply, X, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 start() ->
+    sync:start(),
     gen_server:cast(?MODULE, start),
     timer:sleep(100),
     mine().

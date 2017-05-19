@@ -15,18 +15,18 @@ you will need Erlang and a couple of libraries. Please follow instructions:
 
 ### Commands
 
+[Read about the commands in depth in the docs](docs/commands.md)
+
 #### Start the blockchain
 Start your node with following script:
 ```
 sh start.sh
 ```
 
-### Commands
-
 #### Sync with the network
 To sync with the network and download the blockchain: 
 ```
-easy:sync().
+sync:start().
 ```
 
 #### Mining
@@ -63,7 +63,7 @@ keys:id().
 If it returns something less than 1, that means you don't have an account yet.
 
 #### Create an account
-(does get done automatically when no accocunt and mining starts)
+(does get done automatically when no account and mining starts)
 [Make an account](docs/new_account.md)
 
 #### Check your balance

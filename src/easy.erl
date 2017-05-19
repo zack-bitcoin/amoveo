@@ -2,6 +2,8 @@
 -compile(export_all).
 
 -define(Fee, free_constants:tx_fee()).
+-define(IP, {46,101,103,165}).
+-define(Port, 8080).
 
 height() ->    
     block:height(block:read(top:doit())).
@@ -16,7 +18,11 @@ tx_maker(F) ->
 	    ok;
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
-create_account(NewAddr, Amount, ID) ->
+create_account(NewAddr, Amount) ->
+    io:fwrite("easy create account \n"),
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    ID = find_id(accounts, Accounts),
     create_account(NewAddr, Amount, ?Fee, ID).
 create_account(NewAddr, Amount, Fee, ID) ->
     F = fun(Trees) ->
@@ -76,6 +82,19 @@ new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Fee, Delay) ->
     {Tx, _} = new_channel_tx:make(CID, Trees, keys:id(), Acc2, Bal1, Bal2, Entropy, Delay, Fee),
     keys:sign(Tx, Accounts).
     
+new_channel_with_server(Bal1, Bal2, Delay) ->
+    {Trees, _, _} = tx_pool:data(),
+    Channels = trees:channels(Trees),
+    CID = find_id(channels, Channels),
+    new_channel_with_server(?IP, ?Port, CID, Bal1, Bal2, ?Fee, Delay).
+find_id(Name, Tree) ->
+    find_id(Name, 1, Tree).
+find_id(Name, N, Tree) ->
+    case Name:get(N, Tree) of
+	{_, empty, _} -> N;
+	_ -> find_id(Name, N+1, Tree)
+    end.
+	    
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     undefined = peers:cid(peers:read(IP, Port)),
     Acc1 = keys:id(),
@@ -84,9 +103,6 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     {Trees,_,_} = tx_pool:data(),
     {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Entropy, Delay, Fee),
     SPK = new_channel_tx:spk(Tx, free_constants:channel_delay()),
-    io:fwrite("new channel with server spk is "),
-    io:fwrite(packer:pack(SPK)),
-    io:fwrite("\n"),
     Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx, Accounts),
     SSPK = keys:sign(SPK, Accounts),
@@ -96,6 +112,90 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     peers:set_cid(IP, Port, CID),
     channel_feeder:new_channel(Tx, S2SPK, Accounts),
     ok.
+pull_channel_state() ->
+    pull_channel_state(?IP, ?Port),
+    bet_unlock().
+pull_channel_state(IP, Port) ->
+    {ok, ServerID} = talker:talk({id}, IP, Port),
+    {ok, CD0} = channel_manager:read(ServerID),
+    true = channel_feeder:live(CD0),
+    SPKME = channel_feeder:me(CD0),
+    CID = spk:cid(SPKME),
+    {ok, CD, ThemSPK} = talker:talk({spk, CID}, IP, Port),
+    Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),
+    talker:talk({channel_sync, keys:id(), Return}, IP, Port),
+    ok.
+add_secret(Code, Secret) ->
+    pull_channel_state(),
+    secrets:add(Code, Secret),
+    bet_unlock().
+bet_unlock() ->
+    bet_unlock(?IP, ?Port).
+bet_unlock(IP, Port) ->
+    {ok, ServerID} = talker:talk({id}, IP, Port),
+    {ok, CD0} = channel_manager:read(ServerID),
+    CID = channel_feeder:cid(CD0),
+    [{Secrets, SPK}] = channel_feeder:bets_unlock([ServerID]),
+    teach_secrets(keys:id(), Secrets, IP, Port),
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    talker:talk({channel_sync, keys:id(), keys:sign(SPK, Accounts)}, IP, Port),
+    {ok, _CD, ThemSPK} = talker:talk({spk, CID}, IP, Port),
+    channel_feeder:update_to_me(ThemSPK, ServerID),
+    ok.
+teach_secrets(_, [], _, _) -> ok;
+teach_secrets(ID, [{secret, Secret, Code}|Secrets], IP, Port) ->
+    talker:talk({learn_secret, ID, Secret, Code}, IP, Port),
+    teach_secrets(ID, Secrets, IP, Port).
+channel_spend(Amount) ->
+    channel_spend(?IP, ?Port, Amount).
+channel_spend(IP, Port, Amount) ->
+    {ok, PeerId} = talker:talk({id}, IP, Port),
+    {ok, CD} = channel_manager:read(PeerId),
+    OldSPK = testnet_sign:data(channel_feeder:them(CD)),
+    ID = keys:id(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    SPK = spk:get_paid(OldSPK, ID, -Amount), 
+    Payment = keys:sign(SPK, Accounts),
+    M = {channel_payment, Payment, Amount},
+    {ok, Response} = talker:talk(M, IP, Port),
+    channel_feeder:spend(Response, -Amount),
+    ok.
+-define(LFee, free_constants:lightning_fee()).
+lightning_spend(Recipient, Amount) ->
+    lightning_spend(?IP, ?Port, Recipient, Amount, ?LFee).
+lightning_spend(IP, Port, Recipient, Amount, Fee) ->
+    {Code, SS} = secrets:new_lightning(),
+    lightning_spend(IP, Port, Recipient, Amount, Fee, Code, SS).
+lightning_spend(IP, Port, Recipient, Amount, Fee, Code, SS) ->
+    {ok, ServerID} = talker:talk({id}, IP, Port),
+    %ChannelID,
+    SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code, []),
+    {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:id(), Recipient}, IP, Port),
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    true = testnet_sign:verify(keys:sign(SSPK2, Accounts), Accounts),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    %store SSPK2 in channel manager, it is their most recent signature.
+    {ok, CD} = channel_manager:read(ServerID),
+    CID = channel_feeder:cid(CD),
+    Entropy = channel_feeder:entropy(CD),
+    ThemSS = channel_feeder:script_sig_them(CD),
+    MeSS = channel_feeder:script_sig_me(CD),
+    NewCD = channel_feeder:new_cd(SPK, SSPK2, [<<>>|ThemSS], [<<>>|MeSS], Entropy, CID),
+    channel_manager:write(ServerID, NewCD),
+    io:fwrite("give this secret to your partner so that they can receive the payment --------> "
+	      ++ binary_to_list(base64:encode(SS))
+	      ++ "  |  "
+	      ++ binary_to_list(base64:encode(Code))
+				++ " <-------- \n"),
+    ok.
+    
+    
+    
+    
 channel_balance() ->
     I = integer_channel_balance(),
     pretty_display(I).
@@ -169,7 +269,19 @@ channel_slash(CID, Fee, SPK, SS) ->
     F = fun(Trees) ->
 		channel_slash_tx:make(keys:id(), CID, Fee, SPK, SS, Trees) end,
     tx_maker(F).
-new_difficulty_oracle(Start, ID, Difficulty) ->
+new_question_oracle(Start, Question, DiffOracleID)->
+    {Trees, _, _} = tx_pool:data(),
+    Oracles = trees:oracles(Trees),
+    ID = find_id(oracles, Oracles),
+    {_, Recent, _} = oracles:get(DiffOracleID, Oracles),
+    Difficulty = oracles:difficulty(Recent) div 2,
+    F = fun(Trs) ->
+		oracle_new_tx:make(keys:id(), ?Fee, Question, Start, ID, Difficulty, DiffOracleID, 0, 0, Trs) end,
+    tx_maker(F).
+new_difficulty_oracle(Start, Difficulty) ->
+    {Trees, _, _} = tx_pool:data(),
+    Oracles = trees:oracles(Trees),
+    ID = find_id(oracles, Oracles),
     new_difficulty_oracle(?Fee, Start, ID, Difficulty).
 new_difficulty_oracle(Fee, Start, ID, Difficulty) ->
     %used to measure the difficulty at which negative and positive shares are worth the same
@@ -226,6 +338,9 @@ balance() ->
 pretty_display(I) ->
     F = I / constants:token_decimals(),
     io_lib:format("~.8f", [F]).
+mempool() ->
+    {_, _, Txs} = tx_pool:data(),
+    Txs.
 off() -> testnet_sup:stop().
 
 %mine() ->
@@ -240,12 +355,12 @@ test() ->
     %create_account(Address, 10, 2),
     %delete_account(2),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
-    create_account(NewAddr, 0.0000001, 2),
+    create_account(NewAddr, 0.0000001),
     timer:sleep(100),
     test_txs:mine_blocks(1),
     repo_account(2),
     timer:sleep(100),
-    create_account(NewAddr, 10, 2),
+    create_account(NewAddr, 10),
     timer:sleep(100),
     spend(2, 1),
     timer:sleep(100),
@@ -262,7 +377,7 @@ test() ->
     timer:sleep(100),
     {_Trees, Height, _} = tx_pool:data(),
     Difficulty = constants:initial_difficulty(),
-    new_difficulty_oracle(Height+1, 1, Difficulty),
+    new_difficulty_oracle(Height+1, Difficulty),
     timer:sleep(100),
     test_txs:mine_blocks(2),
     timer:sleep(100),
