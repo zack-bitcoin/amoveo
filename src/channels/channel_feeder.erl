@@ -329,8 +329,10 @@ make_locked_payment(To, Amount, Code, Prove) ->
     Accounts = trees:accounts(Trees),
     Out = keys:sign(NewSPK, Accounts),
     Out.
-bets_unlock([]) -> [];
-bets_unlock([ID|T]) ->
+bets_unlock(X) -> 
+    bets_unlock(X, []).
+bets_unlock([], Out) -> Out;
+bets_unlock([ID|T], OutT) ->
     {ok, CD0} = channel_manager:read(ID),
     true = live(CD0),
     SPKME = me(CD0),
@@ -339,4 +341,4 @@ bets_unlock([ID|T]) ->
     NewCD = CD0#cd{me = SPK, ssme = NewSS, ssthem = SSThem},
     channel_manager:write(ID, NewCD),
     Out = {Secrets, SPK},
-    [Out|bets_unlock(T)].
+    bets_unlock(T, [Out|OutT]).

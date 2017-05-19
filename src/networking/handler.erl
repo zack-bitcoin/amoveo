@@ -119,14 +119,14 @@ doit({learn_secret, From, Secret, Code}) ->
     
     SS = channel_feeder:script_sig_me(OldCD),
     CFME = channel_feeder:me(OldCD),
-    {NewSS, SPK, _Secrets, _SSThem} = 
+    {NewSS, SPK, _Secrets, SSThem} = 
 	spk:bet_unlock(CFME, SS),
     if
 	NewSS == SS -> ok;
 	true -> 
 	    NewCD = channel_feeder:new_cd(
 		      SPK, channel_feeder:them(OldCD),
-		      NewSS, channel_feeder:script_sig_them(OldCD),
+		      NewSS, SSThem,
 		      channel_feeder:entropy(OldCD),
 		      channel_feeder:cid(OldCD)),
 	    channel_manager:write(From, NewCD),
