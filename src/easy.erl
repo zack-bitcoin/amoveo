@@ -94,7 +94,6 @@ find_id(Name, N, Tree) ->
 	{_, empty, _} -> N;
 	_ -> find_id(Name, N+1, Tree)
     end.
-	    
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     undefined = peers:cid(peers:read(IP, Port)),
     Acc1 = keys:id(),
@@ -288,6 +287,16 @@ new_difficulty_oracle(Fee, Start, ID, Difficulty) ->
     F = fun(Trees) ->
 		oracle_new_tx:make(keys:id(), Fee, <<"">>, Start, ID, Difficulty, 0, 0, 0, Trees) end,
     tx_maker(F).
+new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
+    GovNumber = governance:name2number(GovName),
+    F = fun(Trs) ->
+		Oracles = trees:oracles(Trs),
+		ID = find_id(oracles, Oracles),
+		{_, Recent, _} = oracles:get(DiffOracleID, Oracles),
+		Difficulty = oracles:difficulty(Recent) div 2,
+		oracle_new_tx:make(keys:id(), ?Fee, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
+    tx_maker(F).
+    
 oracle_bet(OID, Type, Amount) ->
     oracle_bet(?Fee, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->

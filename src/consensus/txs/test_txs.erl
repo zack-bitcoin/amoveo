@@ -207,7 +207,7 @@ test(5) ->
     ChannelNonce = 0,
     io:fwrite("BEFOREEEEEE\n"),
     Bet = spk:new_bet(Code, 50, []),
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts3),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     io:fwrite("AFTERRRRRR\n"),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -259,7 +259,7 @@ test(6) ->
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, 50, []),
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts3),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
@@ -459,7 +459,7 @@ test(10) ->
 	       SC/binary>>),
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, 50, []),
-    ScriptPubKey = keys:sign(spk:new(2, 1, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts4),
+    ScriptPubKey = keys:sign(spk:new(2, 1, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts4),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, 2, Accounts4), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     {Ctx4, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees4), 
@@ -579,7 +579,7 @@ test(12) ->
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, 50, []),
     Bet2 = spk:new_bet(Code2, 50, []),
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet, Bet2], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts3),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet, Bet2], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     ScriptSig2 = compiler_chalang:doit(<<" int 0 int 2 ">>),
@@ -669,7 +669,7 @@ test(14) ->
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, 50, []),
-    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy), Accounts3),
+    ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
@@ -741,7 +741,7 @@ test(15) ->
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, 50, []),
-    SPK = spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce, Delay, Entropy),
+    SPK = spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy),
     TheySPK = testnet_sign:sign_tx(SPK, NewPub, NewPriv, ID2, Accounts3),
     CD = channel_feeder:new_cd(SPK, TheySPK, [Secret], [Secret], Entropy, CID),
     channel_manager:write(ID2, CD),
@@ -756,7 +756,6 @@ test(15) ->
     true = slash_exists(Txs),%check that the channel_slash transaction exists in the tx_pool.
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
-    timer:sleep(200),
     success.
 slash_exists([]) -> false;
 slash_exists([Tx|T]) ->

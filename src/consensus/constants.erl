@@ -179,7 +179,9 @@ maximum_question_size() ->
     1000.
 channel_granularity() ->    
     10000.
-    
+channel_nonce_space() ->    
+    %this is how big the nonce output from a smart contract can be without changing the nonce of the channel.
+    1000.
 
 test() ->
     success.

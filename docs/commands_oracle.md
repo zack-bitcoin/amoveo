@@ -8,11 +8,16 @@ This kind of oracle is only for measuring the expected difficulty in the future.
 easy:new_difficulty_oracle(Start, Difficulty).
 ```
 
-
 ####New question oracle
-This oracle asks a true/false question about the future. Eventually, the answer to this question will get recorded on the oracle, and will be accessible to the smart contracts.
+This oracle asks a true/false question about the future. Eventually, the answer to this question will get recorded on the oracle, and will be accessible to the smart contracts. It must reference a difficulty oracle that closed recently at the correct price.
 ```
 easy:new_question_oracle(Start, Question, RecentDifficultyOracle).
+```
+
+####New governance oracle
+This oracle updates the variables that define the blockchain protocol. It must reference a difficulty oracle that closed recently at the correct price.
+```
+easy:new_governance_oracle(Start, GovName, GovAmount, RecentDifficultyOracle).
 ```
 
 ####Bet in an oracle

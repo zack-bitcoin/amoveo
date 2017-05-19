@@ -32,7 +32,7 @@ cid(X) -> X#spk.cid.
 amount(X) -> X#spk.amount.
 nonce(X) -> X#spk.nonce.
 
-bet_amount(X) -> X#bet.amount.
+%bet_amount(X) -> X#bet.amount.
 prove(X) -> X#bet.prove.
 code(X) -> X#bet.code.
 
@@ -106,7 +106,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    State = chalang_state(Height, 0, Trees),
 	    FunLimit = free_constants:fun_limit(),
 	    VarLimit = free_constants:var_limit(),
-	    {ContractAmount, Nonce2, ShareRoot, Delay, _OpGas} =
+	    {ContractAmount, Nonce2, ShareRoot, _Delay, _OpGas} =
 		run([SS2], [Bet], 
 		    free_constants:bet_gas_limit(),
 		    free_constants:bet_gas_limit(),
@@ -115,11 +115,8 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    bet_unlock2(T, B, A+ContractAmount, SSIn, SSOut, [{secret, SS2, Code}|Secrets], Nonce + Nonce2, [SS2|SSThem])
     end.
 	    
-	    
-	    
-    
-many(_, 0) -> [];
-many(X, N) -> [X|many(X, N-1)].
+%many(_, 0) -> [];
+%many(X, N) -> [X|many(X, N-1)].
     
 apply_bet(Bet, Amount, SPK, Time, Space) ->
 %bet is binary, the SPK portion of the script.
@@ -148,9 +145,9 @@ run(Mode, SS, SPK, Height, Slash, Trees) ->
     %State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
     State = chalang_state(Height, Slash, Trees),
     {Amount, NewNonce, CodeShares, Delay, _} = run2(Mode, SS, SPK, State, Trees),
-    true = NewNonce < 1000,
+    %true = NewNonce < 1000,
     Shares = shares:from_code(CodeShares),
-    {Amount + SPK#spk.amount, NewNonce + (1000 * SPK#spk.nonce), Shares, Delay}.
+    {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce, Shares, Delay}.
 run2(fast, SS, SPK, State, Trees) -> 
     Governance = trees:governance(Trees),
     FunLimit = governance:get_value(fun_limit, Governance),
@@ -191,7 +188,7 @@ chalang_state(Height, Slash, Trees) ->
 run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay) ->
     run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay, []).
 
-run([], [], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, ShareRoot) ->
+run([], [], OpGas, _, _, _, _, Amount, Nonce, Delay, ShareRoot) ->
     {Amount, Nonce, ShareRoot, Delay, OpGas};
 run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Share0) ->
     {A2, N2, Share, Delay2, EOpGas} = 
@@ -305,26 +302,26 @@ obligations(2, [A|T]) ->
 	end,
     C + obligations(2, T).
     
-find_extra(New, Old) -> 
-    find_extra(New, Old, 0).
-find_extra([], [], Amount) ->
-    {true, Amount};
-find_extra(_, [], Amount) ->
-    {false, Amount};
-find_extra(B, [A|T], Amount) ->
-    C = is_in(A, B),
-    if
-	C ->
-	    find_extra(remove(A, B), T, Amount);
-	true ->
-	    find_extra(B, T, Amount + abs(A#bet.amount))
-    end.
-is_in(A, []) -> false;
-is_in(A, [A|_]) -> true;
-is_in(A, [_|C]) -> is_in(A, C).
-remove(A, [A|T]) -> T;
-remove(A, [B|T]) -> 
-    [B|remove(A, T)].
+%find_extra(New, Old) -> 
+%    find_extra(New, Old, 0).
+%find_extra([], [], Amount) ->
+%    {true, Amount};
+%find_extra(_, [], Amount) ->
+%    {false, Amount};
+%find_extra(B, [A|T], Amount) ->
+%    C = is_in(A, B),
+%    if
+%	C ->
+%	    find_extra(remove(A, B), T, Amount);
+%	true ->
+%	    find_extra(B, T, Amount + abs(A#bet.amount))
+%    end.
+%is_in(_, []) -> false;
+%is_in(A, [A|_]) -> true;
+%is_in(A, [_|C]) -> is_in(A, C).
+%remove(A, [A|T]) -> T;
+%remove(A, [B|T]) -> 
+%    [B|remove(A, T)].
 
 	
 test() ->
