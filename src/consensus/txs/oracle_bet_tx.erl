@@ -32,9 +32,9 @@ doit(Tx, Trees, NewHeight) ->
     Accounts2 = accounts:write(Accounts, Facc),
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(Tx#oracle_bet.id, Oracles),
-    io:fwrite("oracle is "),
-    io:fwrite(packer:pack(Oracle)),
-    io:fwrite("\n"),
+    %io:fwrite("oracle is "),
+    %io:fwrite(packer:pack(Oracle)),
+    %io:fwrite("\n"),
     0 = oracles:result(Oracle),%check that the oracle isn't already closed.
     Trees2 = trees:update_accounts(Trees, Accounts2),
 

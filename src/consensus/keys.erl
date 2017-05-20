@@ -23,7 +23,6 @@ init(ok) ->
     X = db:read(?LOC),
     Ka = if
 	     X == "" -> 
-		 block:make_files(),
 		 {_, Pub, Priv} = 
 		     testnet_sign:hard_new_key(),
 		 store(Pub, Priv, "", -1),

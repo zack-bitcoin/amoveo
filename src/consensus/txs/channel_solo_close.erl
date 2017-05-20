@@ -65,9 +65,15 @@ check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
 			SS,
 			testnet_sign:data(SPK),
 			NewHeight, 1, Trees),
+	    %io:fwrite("\n "),
+	    %io:fwrite("channel solo close "),
+	    %io:fwrite(packer:pack({csc, CDNonce, TheirNonce, CD})),
+	    %io:fwrite("\n "),
 	    if
 		CDNonce > TheirNonce ->
-		    {Tx, _} = channel_slash_tx:make(keys:id(), free_constants:tx_fee(), keys:sign(SPK, Accounts), SS, Trees),
+		    Governance = trees:governance(Trees),
+		    GovCost = governance:get_value(cs, Governance),
+		    {Tx, _} = channel_slash_tx:make(keys:id(), free_constants:tx_fee() + GovCost, keys:sign(SPK, Accounts), SS, Trees),
 		    Stx = keys:sign(Tx, Accounts),
 		    tx_pool_feeder:absorb(Stx);
 		true -> ok

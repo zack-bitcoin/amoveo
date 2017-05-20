@@ -37,7 +37,7 @@ test(1) ->
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
 
-    Fee = 10,
+    Fee = 20,
     {Ctx, _Proof} = create_account_tx:make(NewAddr, 100000000, Fee, 1, 2, Trees),
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
@@ -52,6 +52,8 @@ test(1) ->
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv, 2, Accounts3),
     absorb(Stx3),
     {_, _, Txs} = tx_pool:data(),
+    BP = block:genesis(),
+    PH = block:hash(BP),
 
     Block = block:make(PH, Txs, 1),%1 is the master pub
     MBlock = block:mine(Block, 1000000),
@@ -68,7 +70,7 @@ test(2) ->
     Accounts = trees:accounts(Trees),
     {NewAddr,_NewPub,_NewPriv} = testnet_sign:hard_new_key(),
 
-    Fee = 10,
+    Fee = 20,
     {Ctx, _Proof} = create_account_tx:make(NewAddr, 0, Fee, 1, 2, Trees),
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
@@ -93,7 +95,7 @@ test(3) ->
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
 
-    Fee = 10,
+    Fee = 20,
     Amount = 1000000,
     ID2 = 2,
     {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
@@ -141,7 +143,7 @@ test(4) ->
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
 
-    Fee = 10,
+    Fee = 20,
     Amount = 1000000,
     ID2 = 2,
     {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
@@ -180,7 +182,7 @@ test(5) ->
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
     
-    Fee = 10,
+    Fee = 20,
     Amount = 1000000,
     ID2 = 2,
     {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
@@ -203,10 +205,8 @@ test(5) ->
     Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    io:fwrite("BEFOREEEEEE\n"),
     Bet = spk:new_bet(Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
-    io:fwrite("AFTERRRRRR\n"),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
     {Ctx3, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
@@ -226,7 +226,7 @@ test(5) ->
     success;
 test(6) -> 
     %channel slash
-    io:fwrite("channel slash tx\n"),
+    io:fwrite("\nchannel slash tx\n"),
     BP = block:genesis(),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -234,7 +234,7 @@ test(6) ->
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
 
-    Fee = 10,
+    Fee = 20,
     Amount = 1000000,
     ID2 = 2,
     {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
@@ -270,9 +270,7 @@ test(6) ->
     {Ctx4, _} = channel_slash_tx:make(2,Fee,SignedScriptPubKey,[ScriptSig2],Trees4),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv, ID2, Accounts4),
     %Stx4 = keys:sign(Ctx4, Accounts4),
-    io:fwrite("before absorb \n"),
     absorb(Stx4),
-    io:fwrite("after absorb \n"),
     {Trees5, _, _} = tx_pool:data(),
     Accounts5 = trees:accounts(Trees5),
 
@@ -280,9 +278,7 @@ test(6) ->
     {Ctx5, _} = channel_slash_tx:make(1,Fee,SignedScriptPubKey,[ScriptSig3],Trees5),
     Stx5 = keys:sign(Ctx5, Accounts5),
     %Stx4 = keys:sign(Ctx4, Accounts4),
-    io:fwrite("before absorb \n"),
     absorb(Stx5),
-    io:fwrite("after absorb \n"),
     {Trees6, _, _Txs2} = tx_pool:data(),
     Accounts6 = trees:accounts(Trees6),
 
@@ -299,7 +295,7 @@ test(6) ->
 
 test(7) ->
     %existence tx
-    io:fwrite("existence test \m"),
+    io:fwrite("\nexistence test \n"),
     S = <<"test data">>,
     ID = keys:id(),
     {Trees,_,_} = tx_pool:data(),
@@ -311,15 +307,20 @@ test(7) ->
     {Trees2, _, _} = tx_pool:data(),
     ETree = trees:existence(Trees2),
     {_, C, _} = existence:get(existence:hash(C), ETree),
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    {_, _, Txs} = tx_pool:data(),
+    Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
+    block:check2(Block),
     success;
 test(8) ->
     %spend shares
-    io:fwrite("spend shares test\n"),
+    io:fwrite("\nspend shares test\n"),
     tx_pool:dump(),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
-    Fee = 10,
+    Fee = 20,
     {Ctx, _} = create_account_tx:make(NewAddr, 1000000000, Fee, 1, 2, Trees),
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
@@ -362,6 +363,12 @@ test(8) ->
     {_, empty, _} = shares:get(100, S4),
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    {_, _, Txs} = tx_pool:data(),
+    Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
+    block:check2(Block),
+    %success;
     success;
 test(9) ->
    %spend shares with channel. 
@@ -370,7 +377,7 @@ test(9) ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
-    Fee = 10,
+    Fee = 20,
     {Ctx, _} = create_account_tx:make(NewAddr, 1000000000, Fee, 1, 2, Trees),
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
@@ -415,6 +422,12 @@ test(9) ->
     {_, empty, _} = shares:get(100, S4),
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    {_, _, Txs} = tx_pool:data(),
+    Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
+    block:check2(Block),
+    timer:sleep(1000),
     success;
 test(10) ->
    %spend shares with channel, with solo_close
@@ -423,7 +436,7 @@ test(10) ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
-    Fee = 10,
+    Fee = 20,
     {Ctx, _} = create_account_tx:make(NewAddr, 1000000000, Fee, 1, 2, Trees),
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
@@ -453,7 +466,7 @@ test(10) ->
     {Trees4, _, _} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),
     SC = shares:to_code(Shares),
-    io:fwrite(SC),
+    %io:fwrite(SC),
     Code = compiler_chalang:doit(
 	     <<<<"int 50 ">>/binary,%channel nonce is 1, sends 50.
 	       SC/binary>>),
@@ -465,11 +478,11 @@ test(10) ->
     {Ctx4, _} = channel_solo_close:make(1, Fee, SignedScriptPubKey, [ScriptSig], Trees4), 
     Stx4 = keys:sign(Ctx4, Accounts4),
     absorb(Stx4),
-    {Trees5, _, _Txs} = tx_pool:data(),
+    {Trees5, _, _} = tx_pool:data(),
     Accounts5 = trees:accounts(Trees5),
     %Channels3 = trees:channels(Trees5),
     {Ctx5, _} = channel_timeout_tx:make(1,Trees5,CID,Shares,Fee),
-    io:fwrite(packer:pack(Ctx5)),
+    %io:fwrite(packer:pack(Ctx5)),
     Stx5 = keys:sign(Ctx5, Accounts5),
     absorb(Stx5),
 
@@ -485,6 +498,12 @@ test(10) ->
     {_, empty, _} = shares:get(100, S4),
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
+    {_, _, Txs} = tx_pool:data(),
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
+    block:check2(Block),
+    timer:sleep(1000),
     success;
 test(11) ->
     io:fwrite("testing an oracle\n"),
@@ -492,9 +511,9 @@ test(11) ->
     %launch an oracle with oracle_new
     Question = <<>>,
     OID = 1,
-    Fee = 10,
+    Fee = 20,
     tx_pool:dump(),
-    {Trees,_,_} = tx_pool:data(),
+    {Trees,_,_Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {Tx, _} = oracle_new_tx:make(1, Fee, Question, 1, OID, constants:initial_difficulty(), 0, 0, 0, Trees),
     Stx = keys:sign(Tx, Accounts),
@@ -537,6 +556,9 @@ test(11) ->
     {Tx5, _}=oracle_shares_tx:make(1, Fee, OID, Trees5),
     Stx5 = keys:sign(Tx5, Accounts5),
     absorb(Stx5),
+    {_,_,Txs} = tx_pool:data(),
+    Block = block:mine(block:make(top:doit(), Txs, 1), 10000000000),%1 is the master pub
+    block:check2(Block),
     success;
 test(12) ->
     %multiple bets in a single channel
@@ -546,16 +568,13 @@ test(12) ->
     tx_pool:dump(),
     %timer:sleep(400),
     %Trees = block:trees(BP),
-    {Trees, _, _} = tx_pool:data(),
+    {Trees, _, _Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
     
-    Fee = 10,
+    Fee = 20,
     Amount = 1000000,
     ID2 = 50,
-    io:fwrite("accounts is "),
-    io:fwrite(integer_to_list(Accounts)),
-    io:fwrite("\n"),
     {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
@@ -587,24 +606,26 @@ test(12) ->
     Stx3 = keys:sign(Ctx3, Accounts3),
     absorb(Stx3),
     timer:sleep(500),
-    {Trees4, _, _Txs} = tx_pool:data(),
+    {Trees4, _, _} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),
     {Ctx4, _} = channel_timeout_tx:make(1,Trees4,CID,[],Fee),
     Stx4 = keys:sign(Ctx4, Accounts4),
     absorb(Stx4),
-
-    %Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
-    %block:check2(Block),
+    BP = block:genesis(),
+    PH = block:hash(BP),
+    {_,_,Txs} = tx_pool:data(),
+    Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
+    block:check2(Block),
     success;
 test(13) ->
     %testing the governance
     %launch an oracle with oracle_new, close it on state "bad", 
     Question = <<>>,
     OID = 6,
-    Fee = 10,
+    Fee = 20,
     tx_pool:dump(),
     Diff = constants:initial_difficulty(),
-    {Trees,_,_} = tx_pool:data(),
+    {Trees,_,_Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {Tx, _} = oracle_new_tx:make(1, Fee, Question, 1, OID, Diff, 0, 0, 0, Trees),
     Stx = keys:sign(Tx, Accounts),
@@ -634,6 +655,9 @@ test(13) ->
     Stx4 = keys:sign(Tx4, Accounts4),
     absorb(Stx4),
 
+    {_,_,Txs} = tx_pool:data(),
+    Block = block:mine(block:make(top:doit(), Txs, 1), 10000000000),%1 is the master pub
+    block:check2(Block),
 
     success;
 test(14) -> 
@@ -646,7 +670,7 @@ test(14) ->
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
 
-    Fee = 10,
+    Fee = 20,
     Amount = 1000000,
     ID2 = 2,
     {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
@@ -682,9 +706,7 @@ test(14) ->
     {Ctx4, _} = channel_slash_tx:make(2,Fee,SignedScriptPubKey,[ScriptSig2],Trees4),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv, ID2, Accounts4),
     %Stx4 = keys:sign(Ctx4, Accounts4),
-    io:fwrite("before absorb \n"),
     absorb(Stx4),
-    io:fwrite("after absorb \n"),
     {Trees5, _, _} = tx_pool:data(),
     Accounts5 = trees:accounts(Trees5),
 
@@ -699,8 +721,10 @@ test(14) ->
     {Ctx6, _} = channel_timeout_tx:make(1,Trees6,CID,[],Fee),
     Stx6 = keys:sign(Ctx6, Accounts6),
     absorb(Stx6),
-    {_, _, Txs} = tx_pool:data(),
+    BP = block:genesis(),
+    PH = block:hash(BP),
 
+    {_,_,Txs} = tx_pool:data(),
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
     success;
@@ -715,7 +739,7 @@ test(15) ->
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
 
-    Fee = 10,
+    Fee = 20,
     Amount = 1000000,
     ID2 = 2,
     {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
@@ -752,9 +776,9 @@ test(15) ->
     {Ctx3, _} = channel_solo_close:make(ID2, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv, ID2, Accounts3),
     absorb(Stx3),
-    {_Trees4, _, Txs} = tx_pool:data(),
-    true = slash_exists(Txs),%check that the channel_slash transaction exists in the tx_pool.
-    Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
+    {_, _, Txs2} = tx_pool:data(),
+    true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
+    Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     block:check2(Block),
     success.
 slash_exists([]) -> false;

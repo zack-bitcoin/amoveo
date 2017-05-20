@@ -129,13 +129,21 @@ block_reward(Trees, Height, ID) ->
     Governance = trees:governance(Trees),
     BCM = governance:get_value(block_creation_maturity, Governance),
     BlocksAgo = Height - BCM,
-    TransactionFees = txs:fees(block:txs(block:block(block:read_int(BlocksAgo)))),
+    Txs = block:txs(block:block(block:read_int(BlocksAgo))),
+    TransactionFees = txs:fees(Txs),
+    TransactionCosts = tx_costs(Txs, Governance, 0),
     BlockReward = governance:get_value(block_reward, Governance),
-    NM = accounts:update(ID, Trees, ((BlockReward * 92) div 100) + TransactionFees, none, Height),
+    NM = accounts:update(ID, Trees, ((BlockReward * 92) div 100) + TransactionFees - TransactionCosts, none, Height),
     NM2 = accounts:update(1, Trees, ((BlockReward * 8) div 100), none, Height),
     accounts:write(
       accounts:write(OldAccounts, NM2),
       NM).
+tx_costs([], _, Out) -> Out;
+tx_costs([STx|T], Governance, Out) ->
+    Tx = testnet_sign:data(STx),
+    Type = element(1, Tx),
+    Cost = governance:get_value(Type, Governance),
+    tx_costs(T, Governance, Cost+Out).
     
 absorb_txs(PrevPlus, Height, Txs) ->
     Trees = PrevPlus#block_plus.trees,

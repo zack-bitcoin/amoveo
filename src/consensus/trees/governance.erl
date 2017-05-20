@@ -1,4 +1,3 @@
-
 -module(governance).
 -export([det_power/3,tree_number_to_value/1, max/0,
 	 is_locked/1, change/3, genesis_state/0,
@@ -44,7 +43,25 @@ genesis_state() ->
 	 [retarget_period, 429],
 	 [question_delay, 216],
 	 [governance_delay, 72],
-	 [governance_change_limit, 51]],
+	 [governance_change_limit, 51],
+	 [ca, 10],
+	 [spend, 10],
+	 [da, 5],
+	 [repo, 5],
+	 [nc, 10],
+	 [gc, 10],
+	 [ctc, 10],
+	 [cr, 5],
+	 [csc, 10],
+	 [timeout, 10],
+	 [cs, 10],
+	 [ex, 10],
+	 [oracle_new, 10],
+	 [oracle_bet, 10],
+	 [oracle_close, 10],
+	 [unmatched, 10],
+	 [oracle_shares, 10]
+	 ],
     genesis_state2(G, 0).
 genesis_state2([], T) -> T;
 genesis_state2([[Name, Value]|T], Tree) -> 
@@ -52,7 +69,9 @@ genesis_state2([[Name, Value]|T], Tree) ->
     genesis_state2(T, Tree2).
 change(Name, Amount, Tree) ->
     {_, V, _} = get(Name, Tree),
-    V2 = V#gov{value = V#gov.value + Amount, lock = 0},
+    NV1 = V#gov.value + Amount,
+    NV2 = max(NV1, 1),
+    V2 = V#gov{value = NV2, lock = 0},
     write(V2, Tree).
 unlock(Name, Tree) -> 
     {_, V, _} = get(Name, Tree),
@@ -144,8 +163,25 @@ name2number(retarget_period) -> 23;
 name2number(question_delay) -> 24;
 name2number(governance_delay) -> 25;
 name2number(governance_change_limit) -> 26;
+name2number(ca) -> 28;%these store the minimum fee for each transaction type. "ca" is the name of the record of the create_account_tx.
+name2number(spend) -> 29;
+name2number(da) -> 30;
+name2number(repo) -> 31;
+name2number(nc) -> 32;
+name2number(gc) -> 33;
+name2number(ctc) -> 34;
+name2number(cr) -> 35;
+name2number(csc) -> 36;
+name2number(timeout) -> 37;
+name2number(cs) -> 38;
+name2number(ex) -> 39;
+name2number(oracle_new) -> 40;
+name2number(oracle_bet) -> 41;
+name2number(oracle_close) -> 42;
+name2number(unmatched) -> 43;
+name2number(oracle_shares) -> 44;
 name2number(_) -> bad.
-max() -> 28.
+max() -> 45.
 
 test() ->
     C = new(14, 1, 0),

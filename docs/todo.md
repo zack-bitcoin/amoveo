@@ -1,13 +1,14 @@
 Cold storage.
 
 
-trees:garbage needs to garbage collect more trees, and we should optionally garbage collect old blocks, only keep the headers.
+trees:garbage needs to garbage collect more trees.
+
+we should optionally garbage collect old blocks, only keep the headers.
 
 We should let a node sync with the network without downloading all the old blocks. Instead it downloads headers, and a recent state tree.
 
 
-we need to test close_channel in the internal_api.
-We need to test channel_solo_close too.
+We need to test channel_solo_close and channel_slash and channel_timeout from easy.
 
 
 

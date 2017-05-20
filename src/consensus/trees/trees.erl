@@ -62,7 +62,8 @@ garbage() ->
     garbage(oracles),
     garbage(channels),
     garbage(accounts),
-    garbage(existence).
+    garbage(existence),
+    garbage(governance).
     %we also need to garbage orders, oracle_bets, shares, proof of burn.
     %proof of burn doesn't exist yet.
     %The other three are not stored in Trees, they are inside of oracles and accounts, so garbage/1 does not work for them.
