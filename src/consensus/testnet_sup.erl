@@ -25,7 +25,7 @@ stop() ->
 tree_child(Id, KeySize, Size) ->
     tree_child(Id, KeySize, Size, 0).
 tree_child(Id, KeySize, Size, Meta) ->
-    Amount = constants:trie_size(),
+    Amount = free_constants:trie_size(),
     Sup = list_to_atom(atom_to_list(Id) ++ "_sup"),
     {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd]}, permanent, 5000, supervisor, [trie_sup]}.
 init([]) ->

@@ -5,6 +5,11 @@
 test_mode() ->
     %false.
     true.
+trie_size() ->
+    10000. %we can adjust this many accounts and channels in all the blocks in free_constants:revert_depth()
+revert_depth() ->
+    %save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state.
+    100.
 cores_to_mine() ->
     1000.%The maximum number of cores to use when mining.
 hashlock_time() -> 30.
@@ -55,3 +60,5 @@ max_channel_delay() -> 100.
 
 download_blocks_batch() ->
     100.
+garbage_period() ->
+    50.

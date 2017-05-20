@@ -1,10 +1,11 @@
 if [ -e "data/keys.db" ]
 then
-    cp data/keys.db data/keys_backup
+    cp data/keys.db keys_backup
 fi
-
-rm data/*.db
-rm blocks/*.db
+rm -r data
+mkdir data
+rm -r blocks
+mkdir blocks
 
 if [ -d "backup" ]
 then
@@ -16,5 +17,5 @@ fi
 
 #if [ -e "data/keys_backup" ]
 #then
-cp data/keys_backup data/keys.db
+cp keys_backup data/keys.db
 #fi

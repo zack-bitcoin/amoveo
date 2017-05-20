@@ -99,12 +99,10 @@ test(3) ->
     {Ctx, _Proof} = create_account_tx:make(NewAddr, Amount, Fee, 1, ID2, Trees),
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
+    timer:sleep(100),
     {Trees2, _, _} = tx_pool:data(),
     Accounts2 = trees:accounts(Trees2),
 
-    io:fwrite("account2 is "),
-    io:fwrite(integer_to_list(Accounts2)),
-    io:fwrite("\n"),
     CID = 5,
     Entropy = 432,
 
@@ -336,6 +334,7 @@ test(8) ->
     {Ctx2, _} = spend_tx:make(2, 10, Fee, 1, Trees2, Shares),
     Stx2 = keys:sign(Ctx2, Accounts2),
     absorb(Stx2),
+    timer:sleep(150),
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     {_, A1, _} = accounts:get(1, Accounts3),
@@ -403,6 +402,7 @@ test(9) ->
     Stx4 = keys:sign(Ctx4, Accounts4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv, 2, Accounts4),
     absorb(SStx4),
+    timer:sleep(300),
     {Trees5, _, _} = tx_pool:data(),
     Accounts5 = trees:accounts(Trees5),
     {_, A3, _} = accounts:get(1, Accounts5),
@@ -499,7 +499,7 @@ test(11) ->
     {Tx, _} = oracle_new_tx:make(1, Fee, Question, 1, OID, constants:initial_difficulty(), 0, 0, 0, Trees),
     Stx = keys:sign(Tx, Accounts),
     absorb(Stx),
-
+    timer:sleep(150),
     mine_blocks(2),
     {Trees2, _, _} = tx_pool:data(),
     Accounts2 = trees:accounts(Trees2),

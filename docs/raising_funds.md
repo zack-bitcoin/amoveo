@@ -1,4 +1,7 @@
-You would like to learn about dominant assurance contracts. They are a way to provide funding for public goods. They solve the free rider problem. They don't involve taxation or the use of force, they are voluntary to participate in. The Nash equilibrium strategy is to give as much money to the dominant assurance contract as the public good can give you.
+We can raise funds for public goods using this technology.
+Unlike taxation, we don't use violence to raise funds. Aeternity doesn't cause anyone to over-pay.
+Unlike donation, we don't suffer from tragedy of the commons. With Aeternity people who under-pay lose money, on average.
+The most profitable strategy is to give almost as much money to the fundraiser as the public good will create for you.
 
 So if we are using the dominant assurance contract to build a bridge over a river, and the bridge will make your restaurant worth $10,000 more, then the Nash equilibrium strategy for you is to give $10,000 to the contract.
 

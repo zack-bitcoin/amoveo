@@ -13,6 +13,11 @@
 new(ID, Value, Lock) ->
     #gov{id = ID, value = Value, lock = Lock}.
 genesis_state() ->
+    {BlockTime, MiOT, MaOT} = 
+	case free_constants:test_mode() of
+	    true -> {1, 1, 1};
+	    false -> {297, 352, 505}
+	end,
     G = [[block_reward, 1800],
 	 [time_gas, 1113],
 	 [space_gas, 1113],
@@ -23,7 +28,7 @@ genesis_state() ->
 	 [delete_account_reward, 240],
 	 [channel_rent, 600],
 	 [account_rent, 600],
-	 [block_time, 297],
+	 [block_time, BlockTime],
 	 [oracle_future_limit, 335],
 	 [shares_conversion, 575],
 	 [fun_limit, 350],
@@ -31,10 +36,8 @@ genesis_state() ->
 	 [comment_limit, 137], 
 	 [block_creation_maturity, 100],
 	 [oracle_initial_liquidity, 1728],
-	 [minimum_oracle_time, 1],%for testing
-	 %[minimum_oracle_time, 352],
-	 [maximum_oracle_time, 1],%for testing
-	 %[maximum_oracle_time, 505],
+	 [minimum_oracle_time, MiOT],
+	 [maximum_oracle_time, MaOT],
 	 [maximum_question_size, 352],
 	 [block_time_after_median, 100],
 	 [channel_closed_time, 352],

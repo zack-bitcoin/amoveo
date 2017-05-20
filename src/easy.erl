@@ -7,7 +7,15 @@
 
 height() ->    
     block:height(block:read(top:doit())).
-
+top() ->
+    TopHash = top:doit(),
+    Height = height(),
+    {top, TopHash, Height}.
+sign(Tx) ->
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    keys:sign(Tx, Accounts).
+    
 tx_maker(F) -> 
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
@@ -124,6 +132,8 @@ pull_channel_state(IP, Port) ->
     Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),
     talker:talk({channel_sync, keys:id(), Return}, IP, Port),
     ok.
+learn_secret(Secret, Code) ->
+    secrets:add(Code, Secret).
 add_secret(Code, Secret) ->
     pull_channel_state(),
     secrets:add(Code, Secret),
@@ -329,21 +339,22 @@ oracle_unmatched(Fee, OracleID, OrderID) ->
 account(ID) ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    case account:get(ID, Accounts) of
+    case accounts:get(ID, Accounts) of
 	{_,empty,_} ->
 	    io:fwrite("this account does not yet exist\n"),
-	    account:new(-1,0,0,0);
+	    accounts:new(-1,0,0,0);
 	{_, A, _} -> A
     end.
 
 account() -> account(keys:id()).
-integer_balance() -> account:balance(account()).
+integer_balance() -> accounts:balance(account()).
 balance() ->
     I = case keys:id() of
 	    -1 -> 0;
 	    _ -> integer_balance()
 	end,
-    pretty_display(I).
+    pretty_display(I),
+    I.
 pretty_display(I) ->
     F = I / constants:token_decimals(),
     io_lib:format("~.8f", [F]).
@@ -351,6 +362,77 @@ mempool() ->
     {_, _, Txs} = tx_pool:data(),
     Txs.
 off() -> testnet_sup:stop().
+mine_block() ->
+    block:mine_blocks(1, 100000).
+mine_block(Many, Times) ->
+    block:mine_blocks(Many, Times).
+channel_close() ->
+    channel_close(?IP, ?Port).
+channel_close(IP, Port) ->
+    channel_close(IP, Port, ?Fee).
+channel_close(IP, Port, Fee) ->
+    {ok, PeerId} = talker:talk({id}, IP, Port),
+    {ok, CD} = channel_manager:read(PeerId),
+    SPK = testnet_sign:data(channel_feeder:them(CD)),
+    {Trees,_,_} = tx_pool:data(),
+    Height = block:height(block:read(top:doit())),
+    SS = channel_feeder:script_sig_them(CD),
+    {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
+    CID = spk:cid(SPK),
+    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, [], Fee),
+    Accounts = trees:accounts(Trees),
+    STx = keys:sign(Tx, Accounts),
+    {ok, SSTx} = talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
+    tx_pool_feeder:absorb(SSTx),
+    0.
+channel_solo_close(IP, Port) ->
+    {ok, Other} = talker:talk({id}, IP, Port),
+    channel_solo_close(Other).
+channel_solo_close(Other) ->
+    Fee = free_constants:tx_fee(),
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    {ok, CD} = channel_manager:read(Other),
+    SSPK = channel_feeder:them(CD),
+    SS = channel_feeder:script_sig_them(CD),
+    {Tx, _} = channel_solo_close:make(keys:id(), Fee, keys:sign(SSPK, Accounts), SS, Trees),
+    STx = keys:sign(Tx, Accounts),
+    tx_pool_feeder:absorb(STx),
+    0.
+add_peer(IP, Port) ->
+    peers:add(IP, Port),
+    0.
+sync(IP, Port) ->
+    MyHeight = block:height(block:read(top:doit())),
+    download_blocks:sync(IP, Port, MyHeight),
+    0.
+pubkey() ->
+    keys:pubkey().
+address() ->
+    address(pubkey()).
+address(Pub) ->
+    testnet_sign:pubkey2address(Pub).
+id() ->
+    keys:id().
+new_pubkey(Password) ->    
+    keys:new(Password).
+test() ->
+    {test_response}.
+channel_keys() ->
+    channel_manager:keys().
+keys_status() ->
+    list_to_binary(atom_to_list(keys:status())).
+keys_unlock(Password) ->
+    keys:unlock(Password),
+    0.
+keys_id_update(ID) ->
+    keys:update_id(ID),
+    0.
+keys_new(Password) ->
+    keys:new(Password),
+    0.
+    
+    
 
 %mine() ->
 %    mine:start().
@@ -360,7 +442,7 @@ off() -> testnet_sup:stop().
     %block:mine_blocks(N, 100000, 30). 
 %second number is how many nonces we try per round.
 %first number is how many rounds we do.
-test() ->
+test_it_out() ->
     %create_account(Address, 10, 2),
     %delete_account(2),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),

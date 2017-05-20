@@ -8,14 +8,14 @@ token_decimals() -> 100000000.
 default_port() -> 8040.
 key_length() ->
     48. %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
-trie_size() ->
-    50000. %we can adjust this many accounts and channels per block.
+
 initial_coins() -> 1080000000000.
 block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 
 %6452.
-4000.%for testing only.
+%4000.%for testing only.
+1.
 difficulty_bits() -> 24.
 
 hash_size() -> 12.

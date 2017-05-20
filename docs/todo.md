@@ -1,3 +1,16 @@
+Cold storage.
+
+
+trees:garbage needs to garbage collect more trees, and we should optionally garbage collect old blocks, only keep the headers.
+
+We should let a node sync with the network without downloading all the old blocks. Instead it downloads headers, and a recent state tree.
+
+
+we need to test close_channel in the internal_api.
+We need to test channel_solo_close too.
+
+
+
 channel_manager should be willing to hold a small encrypted message for every locked bet. Only do this if we are payed a lightning fee. The message is so that the lightning payment can get unlocked.
 
 
@@ -25,9 +38,6 @@ in spk prove_facts2, the burn and existence trees store by hash not by integer, 
 we need tests for:
 channel smart contract,
 test that the channel pays out the correct amount in every way it could be closed. It looks like channels:update could have some bugs.
-
-merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.
-Alternatively, we could use raw jiffy to encode the proofs.
 
 
 download blocks talk/1 seems useless. talker:talk is accomplishing the same goal.

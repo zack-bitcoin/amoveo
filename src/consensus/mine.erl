@@ -9,9 +9,15 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(mine, go) ->
-    spawn(fun() ->
-		  block:mine_blocks(10, 50000),
-		  mine() end),
+    case free_constants:test_mode() of
+	true ->
+	    block:mine_blocks(1, 5, 1),
+	    timer:sleep(60);
+	false -> 
+	    block:mine_blocks(100, 50000),
+	    timer:sleep(5000)
+    end,
+    spawn(fun() -> mine() end),
     %spawn(fun() -> easy:sync() end),
     {noreply, go};
 handle_cast(start, stop) ->

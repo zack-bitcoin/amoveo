@@ -21,7 +21,7 @@ handle(Req, State) ->
     {ok, Req4, State}.
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
--define(WORD, 10000000).%10 megabytes.
+%-define(WORD, 10000000).%10 megabytes.
 doit({pubkey}) -> {ok, keys:pubkey()};
 %doit({height}) -> {ok, block_tree:height()};
 %doit({total_coins}) -> {ok, block_tree:total_coins()};
@@ -150,23 +150,6 @@ doit({proof, TreeName, ID}) ->
     Proof2 = proof_packer(Proof),
     {ok, {return, RootHash, Value, Proof2}};
     
-doit({dice, 1, Other, Commit, Amount}) ->
-    %Eventually we need to charge them a big enough fee to cover the cost of watching for them to close the channel without us. 
-    {ok, CD} = channel_manager:read(Other),
-    [] = channel_feeder:script_sig_me(CD),
-    [] = channel_feeder:script_sig_them(CD),
-    {MyCommit, Secret} = secrets:new(),
-    SSPK = channel_feeder:make_bet(Other, dice, [Amount, Commit, MyCommit], Secret),
-    {ok, SSPK, MyCommit};
-doit({dice, 2, ID, SSPK, SS}) ->
-    channel_feeder:update_to_me(SSPK),
-    io:fwrite("handler dice 2 "),
-    disassembler:doit(SS),
-    {SSPKsimple, MySecret} = channel_feeder:make_simplification(ID, dice, [SS]),
-    {ok, SSPKsimple, MySecret};
-doit({dice, 3, _ID, SSPK}) ->
-    channel_feeder:update_to_me(SSPK),
-    {ok, 0};
 doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2
