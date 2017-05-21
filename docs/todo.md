@@ -1,18 +1,20 @@
-Cold storage.
+We need to test channel_solo_close and channel_slash and channel_timeout from easy.
 
+channel_manager should be willing to hold a small encrypted message for every locked bet. Only do this if we are payed a lightning fee. The message is so that the lightning payment can get unlocked.
+
+
+
+
+
+
+
+Cold storage.
 
 trees:garbage needs to garbage collect more trees.
 
 we should optionally garbage collect old blocks, only keep the headers.
 
 We should let a node sync with the network without downloading all the old blocks. Instead it downloads headers, and a recent state tree.
-
-
-We need to test channel_solo_close and channel_slash and channel_timeout from easy.
-
-
-
-channel_manager should be willing to hold a small encrypted message for every locked bet. Only do this if we are payed a lightning fee. The message is so that the lightning payment can get unlocked.
 
 
 We need an integration test where one node is a market, and the other two nodes are traders.

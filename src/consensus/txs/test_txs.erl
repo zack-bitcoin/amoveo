@@ -1,5 +1,5 @@
 -module(test_txs).
--export([test/0, test/1, mine_blocks/1]).
+-export([test/0, test/1, mine_blocks/1, absorb/1]).
  
 test() ->
     unlocked = keys:status(),
