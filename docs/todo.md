@@ -1,11 +1,5 @@
 We need to test channel_solo_close and channel_slash and channel_timeout from easy.
 
-channel_manager should be willing to hold a small encrypted message for every locked bet. Only do this if we are payed a lightning fee. The message is so that the lightning payment can get unlocked.
-
-
-
-
-
 
 
 Cold storage.

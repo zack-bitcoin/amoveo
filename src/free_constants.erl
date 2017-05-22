@@ -3,8 +3,8 @@
 -compile(export_all).
 
 test_mode() ->
-    %false.
-    true.
+    false.
+    %true.
 trie_size() ->
     10000. %we can adjust this many accounts and channels in all the blocks in free_constants:revert_depth()
 revert_depth() ->
