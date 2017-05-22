@@ -2,7 +2,7 @@
 # sh start 3666
 
 #./rebar get-deps
-sh clean.sh #this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.
+#sh clean.sh #this deletes the database so every time we re-start, we have 0 blocks again. only needed during testing.
 
 
 sh update.sh

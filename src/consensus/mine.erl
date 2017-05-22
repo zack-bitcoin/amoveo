@@ -10,13 +10,17 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(mine, go) ->
     T = case free_constants:test_mode() of
-	true ->
-	    block:mine_blocks(1, 5, 1),
-	    60;
-	false -> 
-	    block:mine_blocks(100, 50000),
-	    5000
-    end,
+	    true ->
+		spawn(fun() ->
+			      block:mine_blocks(1, 5, 1)
+		      end),
+		60;
+	    false -> 
+		spawn(fun() ->
+			      block:mine_blocks(500, 10000)
+		      end),
+		5000
+	end,
     spawn(fun() -> 
 		  timer:sleep(T),
 		  mine() end),
