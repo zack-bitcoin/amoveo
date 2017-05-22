@@ -414,6 +414,7 @@ balance() ->
 	end,
     pretty_display(I),
     I.
+
 pretty_display(I) ->
     F = I / constants:token_decimals(),
     io_lib:format("~.8f", [F]).
