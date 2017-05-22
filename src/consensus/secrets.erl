@@ -48,10 +48,10 @@ handle_call({read, Code}, _From, X) ->
 %    add(SH, S).
 add(Code, SS) ->
     gen_server:cast(?MODULE, {add, Code, SS}).
-new_lightning() ->
+old_new_lightning() ->
     case free_constants:test_mode() of
 	true -> test_new_lightning();
-	false -> real_new_lightning()
+	false -> new_lightning()
     end.
 	    
 test_new_lightning() ->
@@ -64,7 +64,7 @@ test_new_lightning() ->
     add(Code, SS),
     {Code, SS}. 
     
-real_new_lightning() -> 
+new_lightning() -> 
     S = crypto:strong_rand_bytes(constants:hash_size()),
     SH = testnet_hasher:doit(S),
     %fun() -> {nonce = 0, amount = 0, delay = 50}
