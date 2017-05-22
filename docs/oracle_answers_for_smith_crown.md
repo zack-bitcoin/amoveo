@@ -32,15 +32,7 @@ ok, ill define it more precisely:
  6) low difficulty, oracle decision is undefined
    The initial liquidity for the market will be provided by a dominant assurance contract (also called "insured crowdfunding") which you can read about on page 14 of this: http://bitcoinhivemind.com/papers/3_PM_Applications.pdf
    The oracle's decision will be made if the market's price stays close to one decision for a sufficient amount of time.
-   We are measuring the correlation between the oracle's decision and the price of tokens.
-  The formula for LMSR is
-  C = B * ln(sum from i=0 to i=2 of e^(P_i/B))
-  Where C is the total money inside the market maker,
-  B*ln(3) is the initial money before any shares are sold
-  P_i is how many shares have been sold of type i.
 
-Trades will be matched in batches where everyone gets the same price, one batch every 10 or 100 blocks or so.
-Full nodes will have to remember lists of unmatched trades for all the recent blocks, sorted by price.
 
 Lets consider the theory behind why this mechanism should work:
     Imagine the blockchain split in a fork, one side recorded the answer to the oracle honestly, and the other side lied. It is my expectation that the honest side of the fork will have more valuable tokens because users would prefer to own tokens on a blockchain that has an accurate oracle.
@@ -51,3 +43,4 @@ Now, lets consider a couple attacks:
 
     What if the attackers not only manipulate the market, but also censor the honest traders, so the price stays wrong?
         > Miners can only censor traders if they control >50% of all the mining power. If this happened, then our security assumptions are broken, and the blockchain is insecure in many ways.
+

@@ -8,14 +8,14 @@ token_decimals() -> 100000000.
 default_port() -> 8040.
 key_length() ->
     48. %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
-trie_size() ->
-    50000. %we can adjust this many accounts and channels per block.
+
 initial_coins() -> 1080000000000.
 block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 
 6452.
-%5000.%for testing only.
+%4000.%for testing only.
+%1.
 difficulty_bits() -> 24.
 
 hash_size() -> 12.
@@ -80,6 +80,7 @@ block_hashes() -> root() ++ "block_hashes.db".
 keys() -> root() ++ "keys.db".
 top() -> root() ++ "top.db".
 channel_manager() -> root() ++ "channel_manager.db".
+secrets() -> root() ++ "secrets.db".
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
 half_bal() -> round(math:pow(2, balance_bits()-1)).
@@ -176,14 +177,13 @@ minimum_oracle_time() ->
 
 maximum_question_size() ->
     1000.
-    
-    
+channel_granularity() ->    
+    10000.
+channel_nonce_space() ->    
+    %this is how big the nonce output from a smart contract can be without changing the nonce of the channel.
+    1000.
 
 test() ->
     success.
 
-%(All the money in channels, times this fee) is the amount of money that transfers from delegates who were not elected to delegates who are elected in each block, and gets locked up for finality() blocks. If this number is too high, then poor people can't afford to be validators. If this number is too low, then rich people can't move their money quickly enough.
-
-
-%<<"BHtLfya6JUNuLXOJ2pGXkyOevYeeyTC5kxzMlB4RTS0DAtqDLxxa0Phb5lBd4oZludcAZzjKXvo8QtdWeJ30gLc=">>.
 

@@ -8,8 +8,8 @@
 -record(oracle_shares, {from, nonce, fee, oracle_id}).
 make(From, Fee, OID, Trees) ->
     Accounts = trees:accounts(Trees),
-    {_, Acc, Proof} = account:get(From, Accounts),
-    Tx = #oracle_shares{from = From, nonce = account:nonce(Acc) + 1, fee = Fee, oracle_id = OID},
+    {_, Acc, Proof} = accounts:get(From, Accounts),
+    Tx = #oracle_shares{from = From, nonce = accounts:nonce(Acc) + 1, fee = Fee, oracle_id = OID},
     {Tx, [Proof]}.
 doit(Tx, Trees, NewHeight) ->
     OID = Tx#oracle_shares.oracle_id,
@@ -22,18 +22,18 @@ doit(Tx, Trees, NewHeight) ->
     true = NewHeight - MOT < DT,
     AID = Tx#oracle_shares.from,
     Accounts = trees:accounts(Trees),
-    Acc = account:update(AID, Trees, -Tx#oracle_shares.fee, Tx#oracle_shares.nonce, NewHeight),
+    Acc = accounts:update(AID, Trees, -Tx#oracle_shares.fee, Tx#oracle_shares.nonce, NewHeight),
     %transform their bets into shares.
 
-    Bets = account:bets(Acc),
+    Bets = accounts:bets(Acc),
     {_, Bet, _} = oracle_bets:get(OID, Bets),
     B2Shares =oracle_bets:to_shares(Bet, Result, NewHeight),
-    %Shares = account:shares(Acc),
-    Acc2 = account:receive_shares(Acc, B2Shares, NewHeight, Trees),
+    %Shares = accounts:shares(Acc),
+    Acc2 = accounts:receive_shares(Acc, B2Shares, NewHeight, Trees),
     Bets2 = oracle_bets:delete(OID, Bets),
-    Acc3 = account:update_bets(Acc2, Bets2),
+    Acc3 = accounts:update_bets(Acc2, Bets2),
     
-    Accounts2 = account:write(Accounts, Acc3),
+    Accounts2 = accounts:write(Accounts, Acc3),
     trees:update_accounts(Trees, Accounts2).
 test() ->
     success.

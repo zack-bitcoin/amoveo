@@ -1,8 +1,8 @@
--module(account).
+-module(accounts).
 -export([new/4,nonce/1,write/2,get/2,update/5,update/7,addr/1,id/1,balance/1,root_hash/1,now_balance/4,delete/2,
 	 receive_shares/4, send_shares/4,
 	 shares/1, bets/1, update_bets/2,
-	 test/0]).
+	 serialize/1, garbage/0, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
@@ -10,6 +10,7 @@
 	      id = 0,%id is your location in the merkle trie. It is also used as an identification for sending money, since it is shorter than your address.
 	      bets = 0,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
 	      shares = 0}). %shares is a pointer to a merkel tree that stores how many shares you have at each price.
+-define(id, accounts).
 addr(X) -> X#acc.addr.
 id(X) -> X#acc.id.
 balance(X) -> X#acc.balance.
@@ -110,9 +111,9 @@ write(Root, Account) ->%These are backwards.
     %BetsRoot = oracle_bets:root_hash(Account#acc.bets),
     %SharesRoot = shares:root_hash(Account#acc.shares),
     <<Meta:KL2>> = <<(Account#acc.bets):KL, (Account#acc.shares):KL>>,
-    trie:put(ID, M, Meta, Root, accounts).%returns a pointer to the new root.
+    trie:put(ID, M, Meta, Root, ?id).%returns a pointer to the new root.
 delete(ID, Accounts) ->
-    trie:delete(ID, Accounts, accounts).
+    trie:delete(ID, Accounts, ?id).
 key_length() ->
     constants:key_length().
 get(Id, Accounts) ->
@@ -120,7 +121,7 @@ get(Id, Accounts) ->
     KL2 = KL * 2,
     true = Id > 0,
     true = Id  < math:pow(2, KL),
-    {RH, Leaf, Proof} = trie:get(Id, Accounts, accounts),
+    {RH, Leaf, Proof} = trie:get(Id, Accounts, ?id),
     V = case Leaf of
 	    empty -> empty;
 	    L -> X = deserialize(leaf:value(L)),
@@ -131,7 +132,9 @@ get(Id, Accounts) ->
     {RH, V, Proof}.
 
 root_hash(Accounts) ->
-    trie:root_hash(accounts, Accounts).
+    trie:root_hash(?id, Accounts).
+
+garbage() -> trees:garbage(?id).
 
 test() ->
     {Address, _Pub, _Priv} = testnet_sign:hard_new_key(),

@@ -11,6 +11,9 @@ id(X) -> X#nc.id.
 good(Tx) ->
     %make sure that the money is a fair balance of ours and theirs.
     Delay = Tx#nc.delay,
+    io:fwrite("new channel "),
+    io:fwrite(packer:pack(Tx)),
+    io:fwrite("\n"),
     true = Delay > free_constants:min_channel_delay(),
     true = Delay < free_constants:max_channel_delay(),
     K = keys:id(),
@@ -27,17 +30,21 @@ good(Tx) ->
     end,
     Frac = Top / (Bal1 + Bal2),
     MCR = free_constants:min_channel_ratio(),
-    Frac < MCR.
+    io:fwrite(float_to_list(Frac)),
+    io:fwrite(" "),
+    io:fwrite(float_to_list(MCR)),
+    io:fwrite("\n"),
+    Frac > MCR.
 cid(Tx) -> Tx#nc.id.
 entropy(Tx) -> Tx#nc.entropy.
 spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
-			  [], 0,0, Delay, 0, 
+			  [], 0,0, 0, Delay, 
 			  Tx#nc.entropy).
 make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Entropy,Delay, Fee) ->
     Accounts = trees:accounts(Trees),
-    {_, A, Proof} = account:get(Acc1, Accounts),
-    Nonce = account:nonce(A),
-    {_, _, Proof2} = account:get(Acc2, Accounts),
+    {_, A, Proof} = accounts:get(Acc1, Accounts),
+    Nonce = accounts:nonce(A),
+    {_, _, Proof2} = accounts:get(Acc2, Accounts),
     %Entropy = channel_feeder:entropy(ID, [Acc1, Acc2])+1,
     %true = (Rent == 0) or (Rent == 1),
     Tx = #nc{id = ID, acc1 = Acc1, acc2 = Acc2, 
@@ -51,14 +58,14 @@ doit(Tx, Trees, NewHeight) ->
     Channels = trees:channels(Trees),
     Accounts = trees:accounts(Trees),
     ID = Tx#nc.id,
-    {_, OldChannel, _} = channel:get(ID, Channels),
+    {_, OldChannel, _} = channels:get(ID, Channels),
     Governance = trees:governance(Trees),
     true = case OldChannel of
 	       empty -> true;
 	       _ ->
 		   CCT = governance:get_value(channel_closed_time, Governance),
-		   channel:closed(OldChannel)
-		       and ((NewHeight - channel:last_modified(OldChannel)) > CCT)
+		   channels:closed(OldChannel)
+		       and ((NewHeight - channels:last_modified(OldChannel)) > CCT)
 	   end,
     Aid1 = Tx#nc.acc1,
     Aid2 = Tx#nc.acc2,
@@ -69,13 +76,13 @@ doit(Tx, Trees, NewHeight) ->
     true = Bal2 >= 0,
     Entropy = Tx#nc.entropy,
     Delay = Tx#nc.delay,
-    NewChannel = channel:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Entropy, Delay),
-    NewChannels = channel:write(NewChannel, Channels),
+    NewChannel = channels:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Entropy, Delay),
+    NewChannels = channels:write(NewChannel, Channels),
     CCFee = governance:get_value(create_channel_fee, Governance) div 2,
     %CCFee = constants:create_channel_fee() div 2,
-    Acc1 = account:update(Aid1, Trees, -Bal1-CCFee, Tx#nc.nonce, NewHeight),
-    Acc2 = account:update(Aid2, Trees, -Bal2-CCFee, none, NewHeight),
-    Accounts2 = account:write(Accounts, Acc1),
-    NewAccounts = account:write(Accounts2, Acc2),
+    Acc1 = accounts:update(Aid1, Trees, -Bal1-CCFee, Tx#nc.nonce, NewHeight),
+    Acc2 = accounts:update(Aid2, Trees, -Bal2-CCFee, none, NewHeight),
+    Accounts2 = accounts:write(Accounts, Acc1),
+    NewAccounts = accounts:write(Accounts2, Acc2),
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).

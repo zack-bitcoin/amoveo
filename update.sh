@@ -1,12 +1,3 @@
-git pull origin master
-if [ `uname -s`==Linux ]
-then
+#git pull origin master
 ./rebar get-deps
-./rebar compile 
-elif [ `uname -s`==Darwin ]
-then
-rebar get-deps
-rebar compile 
-else
-    echo "your computer cannot update this"
-fi
+./rebar compile #this line checks if any modules were modified, and recompiles them if they were. 

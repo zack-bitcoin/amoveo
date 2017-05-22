@@ -6,13 +6,13 @@
 %The fee that was used to start the oracle is the final bet included. It bets against the winning outcome.
 make(From, Fee, OID, Trees) ->
     Accounts = trees:accounts(Trees),
-    {_, Acc, _} = account:get(From, Accounts),
-    Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = account:nonce(Acc) + 1},
+    {_, Acc, _} = accounts:get(From, Accounts),
+    Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = accounts:nonce(Acc) + 1},
     {Tx, []}.
 doit(Tx, Trees, NewHeight) ->
     Accounts = trees:accounts(Trees),
-    Acc = account:update(Tx#oracle_close.from, Trees, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
-    NewAccounts = account:write(Accounts, Acc),
+    Acc = accounts:update(Tx#oracle_close.from, Trees, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
+    NewAccounts = accounts:write(Accounts, Acc),
 
     OID = Tx#oracle_close.oracle_id,
     Oracles = trees:oracles(Trees),
@@ -28,9 +28,9 @@ doit(Tx, Trees, NewHeight) ->
 	     end,
     Oracle2 = oracles:set_result(Oracle, Result),
     Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
-    io:fwrite("after setting result "),
-    io:fwrite(packer:pack(Oracle3)),
-    io:fwrite("\n"),
+    %io:fwrite("after setting result "),
+    %io:fwrite(packer:pack(Oracle3)),
+    %io:fwrite("\n"),
     Oracles2 = oracles:write(Oracle3, Oracles),
     Trees2 = trees:update_accounts(trees:update_oracles(Trees, Oracles2), NewAccounts),
     Gov = oracles:governance(Oracle3),
@@ -63,9 +63,9 @@ doit(Tx, Trees, NewHeight) ->
 	end,
     OraclesEE = trees:oracles(Trees3),
     {_, Oracle4, _} = oracles:get(OID, OraclesEE),
-    io:fwrite("after setting result 2 "),
-    io:fwrite(packer:pack(Oracle4)),
-    io:fwrite("\n"),
+    %io:fwrite("after setting result 2 "),
+    %io:fwrite(packer:pack(Oracle4)),
+    %io:fwrite("\n"),
     OracleType = oracles:type(Oracle4),
     LoserType = 
 	case OracleType of
@@ -76,9 +76,9 @@ doit(Tx, Trees, NewHeight) ->
     OBTx = {oracle_bet, oracles:creator(Oracle4), 
 	  none, 0, OID, LoserType, 
 	  constants:oracle_initial_liquidity()},
-    io:fwrite("OBTX is "),
-    io:fwrite(packer:pack(OBTx)),
-    io:fwrite("\n"),
+    %io:fwrite("OBTX is "),
+    %io:fwrite(packer:pack(OBTx)),
+    %io:fwrite("\n"),
     Trees4 = oracle_bet_tx:doit2(OBTx, Trees3, NewHeight),
     Accounts4 = trees:accounts(Trees4),
     trees:update_accounts(Trees3, Accounts4).

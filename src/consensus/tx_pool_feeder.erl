@@ -7,13 +7,16 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({absorb, SignedTx}, X) ->
+    {Trees, Height, Txs} = tx_pool:data(),
+    Governance = trees:governance(Trees),
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
-    io:fwrite("tx pool feeder tx "),
-    io:fwrite(packer:pack(Tx)),
-    io:fwrite("\n"),
-    true = Fee > free_constants:minimum_tx_fee(),
-    {Trees, Height, Txs} = tx_pool:data(),
+    %io:fwrite("tx pool feeder tx "),
+    %io:fwrite(packer:pack(Tx)),
+    %io:fwrite("\n"),
+    Type = element(1, Tx),
+    Cost = governance:get_value(Type, Governance),
+    true = Fee > (free_constants:minimum_tx_fee() + Cost),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(SignedTx, Accounts),
     B = is_in(SignedTx, Txs), %this is very ugly. once we have a proper CLI we can get rid of this crutch.
@@ -30,8 +33,19 @@ handle_cast(_, X) -> {noreply, X}.
 handle_call(_, _From, X) -> {reply, X, X}.
     
 absorb(SignedTx) -> 
-    gen_server:cast(?MODULE, {absorb, SignedTx}).
-
-is_in(A, [A|_]) -> true;
+    {_, _, Txs} = tx_pool:data(),
+    B = is_in(SignedTx, Txs),
+    if
+	B -> ok;
+	true ->
+	    gen_server:cast(?MODULE, {absorb, SignedTx})
+    end.
 is_in(_, []) -> false;
-is_in(A, [_|T]) -> is_in(A, T).
+is_in(STx, [STx2|T]) ->
+    Tx = testnet_sign:data(STx),
+    Tx2 = testnet_sign:data(STx2),
+    if
+	Tx == Tx2 -> true;
+	true -> is_in(STx, T)
+    end.
+

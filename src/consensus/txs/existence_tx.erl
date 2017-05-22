@@ -4,8 +4,8 @@
 
 make(From, Fee, C, Trees) ->
     Accounts = trees:accounts(Trees),
-    {_, Acc, Proof} = account:get(From, Accounts),
-    Nonce = account:nonce(Acc) + 1,
+    {_, Acc, Proof} = accounts:get(From, Accounts),
+    Nonce = accounts:nonce(Acc) + 1,
     %C = existence:new(testnet_hasher:doit(Data)),
     Tx = #ex{from = From,fee=Fee,nonce=Nonce,commit=C},
     {Tx, [Proof]}.
@@ -16,8 +16,8 @@ doit(Tx, Trees, NewHeight) ->
     C = Tx#ex.commit,
     {_, empty, _} =existence:get(existence:hash(C),Commits),
     NewCommits = existence:write(C, Commits),
-    Acc = account:update(From, Trees, -Tx#ex.fee, Tx#ex.nonce, NewHeight),
-    NewAccounts = account:write(Accounts, Acc),
+    Acc = accounts:update(From, Trees, -Tx#ex.fee, Tx#ex.nonce, NewHeight),
+    NewAccounts = accounts:write(Accounts, Acc),
     Trees2 = trees:update_accounts(Trees, NewAccounts),
     trees:update_existence(Trees2, NewCommits).
     

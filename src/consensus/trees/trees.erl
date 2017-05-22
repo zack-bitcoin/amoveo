@@ -4,9 +4,15 @@
 	 update_channels/2,update_existence/2,
 	 update_burn/2,update_oracles/2,
 	 update_governance/2, governance/1,
-	 root_hash/1]).
+	 root_hash/1, name/1, garbage/0]).
 -record(trees, {accounts, channels, existence,
 		burn, oracles, governance}).
+name(<<"accounts">>) -> accounts;
+name("channels") -> channels;
+name("existence") -> existence;
+name("burn") -> burn;
+name("oracles") -> oracles;
+name(<<"governance">>) -> governance.
 accounts(X) -> X#trees.accounts.
 channels(X) -> X#trees.channels.
 existence(X) -> X#trees.existence.
@@ -30,8 +36,8 @@ update_burn(X, E) ->
 update_oracles(X, A) ->
     X#trees{oracles = A}.
 root_hash(Trees) ->
-    A = account:root_hash(trees:accounts(Trees)),
-    C = channel:root_hash(trees:channels(Trees)),
+    A = accounts:root_hash(trees:accounts(Trees)),
+    C = channels:root_hash(trees:channels(Trees)),
     E = existence:root_hash(trees:existence(Trees)),
     B = burn:root_hash(trees:burn(Trees)),
     O = oracles:root_hash(trees:oracles(Trees)),
@@ -42,3 +48,22 @@ root_hash(Trees) ->
 			  B/binary,
 			  O/binary
 			>>).
+keepers(_, _, 0) -> [];
+keepers(TreeID, Hash, Many) ->
+    BP = block:read(Hash),
+    Trees = block:trees(BP),
+    Root = trees:TreeID(Trees),
+    [Root|keepers(TreeID, block:prev_hash(BP), Many-1)].
+garbage(TreeID) ->
+    Keepers=keepers(TreeID, top:doit(), free_constants:revert_depth()),
+    trie:garbage(Keepers, TreeID).
+    
+garbage() ->
+    garbage(oracles),
+    garbage(channels),
+    garbage(accounts),
+    garbage(existence),
+    garbage(governance).
+    %we also need to garbage orders, oracle_bets, shares, proof of burn.
+    %proof of burn doesn't exist yet.
+    %The other three are not stored in Trees, they are inside of oracles and accounts, so garbage/1 does not work for them.

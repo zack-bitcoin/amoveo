@@ -7,9 +7,9 @@
 make(From, ID, Fee, Trees) ->
     Accounts = trees:accounts(Trees),
     Channels = trees:channels(Trees),
-    {_, Acc, Proof} = account:get(From, Accounts),
-    {_, _, CProof} = channel:get(ID, Channels),
-    N = account:nonce(Acc) + 1, 
+    {_, Acc, Proof} = accounts:get(From, Accounts),
+    {_, _, CProof} = channels:get(ID, Channels),
+    N = accounts:nonce(Acc) + 1, 
     Tx = #cr{from = From, nonce = N, fee = Fee, id = ID},
     {Tx, [Proof, CProof]}.
 
@@ -19,17 +19,17 @@ doit(Tx, Trees, NewHeight) ->
     From = Tx#cr.from,
     CID = Tx#cr.id,
     A = constants:delete_channel_reward(),
-    Facc = account:update(From, Trees, A, Tx#cr.nonce, NewHeight),
-    {_, Channel, _} = channel:get(CID, Channels),
-    false = channel:closed(Channel),
-    B = channel:bal1(Channel) + channel:bal2(Channel),
-    DH = NewHeight - channel:last_modified(Channel),
+    Facc = accounts:update(From, Trees, A, Tx#cr.nonce, NewHeight),
+    {_, Channel, _} = channels:get(CID, Channels),
+    false = channels:closed(Channel),
+    B = channels:bal1(Channel) + channels:bal2(Channel),
+    DH = NewHeight - channels:last_modified(Channel),
     Governance = trees:governance(Trees),
     CR = governance:get_value(channel_rent, Governance),
     Rent = CR * DH,
     true = B =< Rent,
-    NewAccounts = account:write(Accounts, Facc),
-    NewChannels = channel:delete(CID, Channels),
+    NewAccounts = accounts:write(Accounts, Facc),
+    NewChannels = channels:delete(CID, Channels),
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 

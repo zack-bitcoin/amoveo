@@ -5,8 +5,8 @@
 
 make(From, Fee, OracleID, OrderID, Trees) ->
     Accounts = trees:accounts(Trees),
-    {_, Acc, Proof} = account:get(From, Accounts),
-    Tx = #unmatched{from = From, nonce = account:nonce(Acc) + 1, fee = Fee, oracle_id = OracleID, order_id = OrderID},
+    {_, Acc, Proof} = accounts:get(From, Accounts),
+    Tx = #unmatched{from = From, nonce = accounts:nonce(Acc) + 1, fee = Fee, oracle_id = OracleID, order_id = OrderID},
     {Tx, [Proof]}.
 
 doit(Tx, Trees, NewHeight) ->
@@ -24,8 +24,8 @@ doit(Tx, Trees, NewHeight) ->
     Trees2 = trees:update_oracles(Trees, Oracles2),
 
     Accounts = trees:accounts(Trees),
-    Facc = account:update(AID, Trees, Amount-Tx#unmatched.fee, Tx#unmatched.nonce, NewHeight),
-    Accounts2 = account:write(Accounts, Facc),
+    Facc = accounts:update(AID, Trees, Amount-Tx#unmatched.fee, Tx#unmatched.nonce, NewHeight),
+    Accounts2 = accounts:write(Accounts, Facc),
     trees:update_accounts(Trees2, Accounts2).
 
 test() ->

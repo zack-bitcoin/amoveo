@@ -7,7 +7,9 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 -define(keys, [port, keys, 
 	       block_hashes, top, block_absorber,
 	       tx_pool, peers, tx_pool_feeder, 
-	       mine, channel_manager, channel_feeder]).
+	       mine, channel_manager, channel_feeder,
+	       request_frequency, sync, secrets,
+	       arbitrage]).
 
 child_maker([]) -> [];
 child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].
@@ -23,10 +25,11 @@ stop() ->
 tree_child(Id, KeySize, Size) ->
     tree_child(Id, KeySize, Size, 0).
 tree_child(Id, KeySize, Size, Meta) ->
-    Amount = constants:trie_size(),
+    Amount = free_constants:trie_size(),
     Sup = list_to_atom(atom_to_list(Id) ++ "_sup"),
     {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd]}, permanent, 5000, supervisor, [trie_sup]}.
 init([]) ->
+    os:putenv("ERL_CRASH_DUMP_SECONDS", <<0>>),
     KL = constants:key_length(), 
     HS = constants:hash_size(),
     FullLength = KL*2,

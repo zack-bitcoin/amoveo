@@ -5,9 +5,10 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2, 
-	 pubkey/0,sign/2,raw_sign/1,load/3,unlock/1,
+	 pubkey/0,sign/2,raw_sign/1,load/4,unlock/1,
 	 lock/0,status/0,change_password/2,new/1,
 	 shared_secret/1,id/0,update_id/1,address/0,
+	 encrypt/2,decrypt/1,
 	 test/0,format_status/2]).
 %-define(LOC, "keys.db").
 -define(LOC, constants:keys()).
@@ -56,8 +57,22 @@ handle_call(status, _From, R) ->
           end,
     {reply, Out, R};
 handle_call(pubkey, _From, R) -> {reply, R#f.pub, R};
-handle_call(id, _From, R) -> {reply, R#f.id, R}.
+handle_call(id, _From, R) -> {reply, R#f.id, R};
+handle_call({encrypt, Message, Pubkey}, _From, R) ->
+    io:fwrite(packer:pack({encrytion, base64:encode(Pubkey), R#f.pub})),
+    EM=encryption:send_msg(Message, base64:encode(Pubkey), R#f.pub, R#f.priv),
+    io:fwrite("sending encrypted message "),
+    io:fwrite(packer:pack(EM)),
+    io:fwrite("\n"),
+    {reply, EM, R};
+handle_call({decrypt, EMsg}, _From, R) ->
+    io:fwrite("getting encrypted message "),
+    io:fwrite(packer:pack(EMsg)),
+    io:fwrite("\n"),
+    Message = encryption:get_msg(EMsg, R#f.priv),
+    {reply, Message, R}.
 handle_cast({load, Pub, Priv, Brainwallet, Id}, _R) ->
+    io:fwrite("load 2\n"),
     store(Pub, Priv, Brainwallet, Id),
     {noreply, #f{pub=Pub, priv=Priv, id = Id}};
 handle_cast({id_update, Id}, R) -> 
@@ -96,7 +111,13 @@ sign(M, Accounts) ->
 	     {error, locked}
     end.
 raw_sign(M) -> gen_server:call(?MODULE, {raw_sign, M}).
-load(Pub, Priv, Brainwallet) -> gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet}).
+load(Pub, Priv, Brainwallet, ID) when is_list(Pub) -> 
+    load(list_to_binary(Pub), Priv, Brainwallet, ID);
+load(Pub, Priv, Brainwallet, ID) when is_list(Priv) -> 
+    load(Pub, list_to_binary(Priv), Brainwallet, ID);
+load(Pub, Priv, Brainwallet, ID) when (is_binary(Pub) and is_binary(Priv))-> 
+    io:fwrite("load key"),
+    gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet, ID}).
 unlock(Brainwallet) -> gen_server:cast(?MODULE, {unlock, Brainwallet}).
 lock() -> gen_server:cast(?MODULE, lock).
 status() -> gen_server:call(?MODULE, status).
@@ -105,6 +126,10 @@ new(Brainwallet) -> gen_server:cast(?MODULE, {new, Brainwallet}).
 shared_secret(Pub) -> gen_server:call(?MODULE, {ss, Pub}).
 id() -> gen_server:call(?MODULE, id).
 update_id(Id) -> gen_server:cast(?MODULE, {id_update, Id}).
+decrypt(EMessage) ->
+    binary_to_term(element(3, gen_server:call(?MODULE, {decrypt, EMessage}))).
+encrypt(Message, Pubkey) ->
+    gen_server:call(?MODULE, {encrypt, term_to_binary(Message), Pubkey}).
     
 test() ->
     unlocked = keys:status(),

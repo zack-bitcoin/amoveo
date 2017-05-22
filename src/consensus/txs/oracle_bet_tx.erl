@@ -15,10 +15,10 @@
 %If your order isn't big enough to be in the order book, you cannot buy shares of the type that are stored in the order book.
 make(From, Fee, OID, Type, Amount, Trees) ->
     Accounts = trees:accounts(Trees),
-    {_, Acc, _Proof} = account:get(From, Accounts),
+    {_, Acc, _Proof} = accounts:get(From, Accounts),
     Tx = #oracle_bet{
        from = From, 
-       nonce = account:nonce(Acc) + 1,
+       nonce = accounts:nonce(Acc) + 1,
        fee = Fee,
        id = OID,
        type = Type,
@@ -28,13 +28,13 @@ make(From, Fee, OID, Type, Amount, Trees) ->
 doit(Tx, Trees, NewHeight) ->
     From = Tx#oracle_bet.from,
     Accounts = trees:accounts(Trees),
-    Facc = account:update(From, Trees, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce, NewHeight),
-    Accounts2 = account:write(Accounts, Facc),
+    Facc = accounts:update(From, Trees, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce, NewHeight),
+    Accounts2 = accounts:write(Accounts, Facc),
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(Tx#oracle_bet.id, Oracles),
-    io:fwrite("oracle is "),
-    io:fwrite(packer:pack(Oracle)),
-    io:fwrite("\n"),
+    %io:fwrite("oracle is "),
+    %io:fwrite(packer:pack(Oracle)),
+    %io:fwrite("\n"),
     0 = oracles:result(Oracle),%check that the oracle isn't already closed.
     Trees2 = trees:update_accounts(Trees, Accounts2),
 
@@ -107,11 +107,11 @@ give_bets_main(Id, Orders, Type, Accounts, OID) ->
     %Id bought many orders of the same type. sum up all the amounts, and give him this many bets.
     %return the new accounts tree
     Amount = sum_order_amounts(Orders, 0),
-    {_, Acc, _} = account:get(Id, Accounts),
-    OldBets = account:bets(Acc),
+    {_, Acc, _} = accounts:get(Id, Accounts),
+    OldBets = accounts:bets(Acc),
     NewBets = oracle_bets:add_bet(OID, Type, 2*Amount, OldBets),
-    Acc2 = account:update_bets(Acc, NewBets),
-    account:write(Accounts, Acc2).
+    Acc2 = accounts:update_bets(Acc, NewBets),
+    accounts:write(Accounts, Acc2).
 sum_order_amounts([], N) -> N;
 sum_order_amounts([H|T], N) -> 
     A = orders:amount(H),
@@ -119,11 +119,11 @@ sum_order_amounts([H|T], N) ->
 give_bets([], _Type, Accounts, _OID) -> Accounts;
 give_bets([Order|T], Type, Accounts, OID) ->
     ID = orders:aid(Order),
-    {_, Acc, _} = account:get(ID, Accounts),
-    OldBets = account:bets(Acc),
+    {_, Acc, _} = accounts:get(ID, Accounts),
+    OldBets = accounts:bets(Acc),
     NewBets = oracle_bets:add_bet(OID, Type, 2*orders:amount(Order), OldBets),
-    Acc2 = account:update_bets(Acc, NewBets),
-    Accounts2 = account:write(Accounts, Acc2),
+    Acc2 = accounts:update_bets(Acc, NewBets),
+    Accounts2 = accounts:write(Accounts, Acc2),
     give_bets(T, Type, Accounts2, OID).
 test() ->
     success.

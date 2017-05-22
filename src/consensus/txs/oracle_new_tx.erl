@@ -19,8 +19,8 @@
 %The oracle can be published before we know the outcome of the question, that way the oracle id can be used to make channel contracts that bet on the eventual outcome of the oracle.
 make(From, Fee, Question, Start, ID, Difficulty, Recent, Governance, GovAmount, Trees) ->
     Accounts = trees:accounts(Trees),
-    {_, Acc, _Proof} = account:get(From, Accounts),
-    Tx = #oracle_new{from = From, nonce = account:nonce(Acc) + 1, fee = Fee, question = Question, start = Start, id = ID, recent_price = Recent, difficulty = Difficulty, governance = Governance, governance_amount = GovAmount},
+    {_, Acc, _Proof} = accounts:get(From, Accounts),
+    Tx = #oracle_new{from = From, nonce = accounts:nonce(Acc) + 1, fee = Fee, question = Question, start = Start, id = ID, recent_price = Recent, difficulty = Difficulty, governance = Governance, governance_amount = GovAmount},
     {Tx, []}.
 doit(Tx, Trees0, NewHeight) ->
     %If the question is <<"">>, let it run.
@@ -71,8 +71,8 @@ doit(Tx, Trees0, NewHeight) ->
     Accounts = trees:accounts(Trees),
     From = Tx#oracle_new.from,
     OIL = governance:get_value(oracle_initial_liquidity, Governance),
-    Facc = account:update(From, Trees, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce, NewHeight),
-    NewAccounts = account:write(Accounts, Facc),
+    Facc = accounts:update(From, Trees, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce, NewHeight),
+    NewAccounts = accounts:write(Accounts, Facc),
     Starts = Tx#oracle_new.start,
     OFL = governance:get_value(oracle_future_limit, Governance),
     %true = (Starts - NewHeight) < constants:oracle_future_limit(),

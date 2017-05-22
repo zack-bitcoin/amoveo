@@ -24,7 +24,7 @@ handle_cast({add, H}, X) ->
     {noreply, N};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({check, H}, _From, X) ->
-    B = i_check(H, X), %true means it doesn't exist.
+    B = i_check(H, X), 
     {reply, B, X} ;
 handle_call(_, _From, X) -> {reply, X, X}.
 

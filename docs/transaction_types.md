@@ -1,3 +1,6 @@
+Governance decides a different minimum fee size for each transaction type.
+The miner profits by including transactions that pay above the minimum fee for that transaction type.
+
 These are the 18 types of transaction that can be in blocks.
 
 4 transactions for accounts:

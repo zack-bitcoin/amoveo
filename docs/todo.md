@@ -1,42 +1,54 @@
-We can't trust our partner to calculate the hash_pointers of each block for us. Blocks should be shared without these pointers, and recalculated locally.i
-
-downloading blocks backwards is probably a bad idea, because we don't know much about the governance tree.
+We need to test channel_solo_close and channel_slash and channel_timeout from easy.
 
 
-instead of storing all the tree roots in the VM seperate, we should store one list of tree roots.
 
-merkel should be updated. The tuples of binaries should start with an atom. This way proofs can be encoded as javascript objects.
-Alternatively, we could use raw jiffy to encode the proofs.
+Cold storage.
+
+trees:garbage needs to garbage collect more trees.
+
+we should optionally garbage collect old blocks, only keep the headers.
+
+We should let a node sync with the network without downloading all the old blocks. Instead it downloads headers, and a recent state tree.
+
+
+We need an integration test where one node is a market, and the other two nodes are traders.
+
+
+spk:is_improvement needs better checks.
+Make sure delay isn't too big, and the fees aren't too high.
+
+We should seperate all the consensus code from the non-consensus code. This way soft forks will be easier.
+Mostly this means moving all the channel stuff into /src/channels
+stuff from spk for example.
+
+We need a way to know how long the delay could be on every possible way of closing the channel.
+The channel can only close on a ?crash opcode, the delay is always programmed in just before the ?crash, so we should be able to calculate the delay from the bytecode.
+Only the script_sig part of the contract can have a ?crash opcode, so this is something we can calculate.
+spk:is_improvement
+We need to regularly check on our channels to see if either participant is running out of funds. There needs to be enough money left to cover the cost of the channel for the amount of time until you can close the channel without your partner's help.
+When you are running short on funds you need to ask your partner to close the channel. If they don't, you need to start closing the channel without their help.
+
+
+in spk prove_facts2, the burn and existence trees store by hash not by integer, so the code needs to be modified for them.
+
+
+we need tests for:
+channel smart contract,
+test that the channel pays out the correct amount in every way it could be closed. It looks like channels:update could have some bugs.
 
 
 download blocks talk/1 seems useless. talker:talk is accomplishing the same goal.
 
-
-the oracle needs to be able to update the variables that define the protocol
-
-
 It is possible to use channel_slash to store data in a channel such that the channel can't be closed with a channel_timeout.
 Maybe this is a mistake.
-
-
-We should download headers in batches, it would be much faster.
 
 javascript light wallets need to be able to do all the channel stuff that full nodes do.
 
 It is currently possible for an attacker to trick us into ignoring a good block. They trick us into storing a good blocks hash into block_hashes. They give us a good block's header, but mix in some bad transactions, or censor a transaction, or they don't give us some of the merkel tree we need to verify the transactions.
-To fix this, each header should contain a hash of all the transactions. We should include the signatures in this hash. This gives us a guarantee that all the data is available at block:check1.
-
-We need a way to close a channel when your partner refuses to sign any SPK. It can either be a new tx type, or we can make solo_close more complex.
-
 
 constants:difficulty_bits() might be too big.
 
 
-the new way of doing channel slash has a different problem.
-We need the channel to finish at the highest nonce possible. The third party could be bribed to choose a different final state.
-We need some way to do the channel_slash transaction again and again, until a higher nonce cannot be found.
-Each slasher puts up a deposit, and takes the deposit of the previous.
-If the same channel_slash exists for a long enough time period, then anyone can do a channel_timeout transaction, to close the channel.
 We need to also add a way for the two parties to work together to close the channel early, so they don't have to wait to do a timeout_tx. We can either make a new tx, or make channel_team_close more complicated.
 
 
@@ -48,17 +60,11 @@ We need to update download_blocks so that peers get ranked, and we spend more ti
 
 There is a problem where if you crash while syncing with a peer, then you skip trying to sync with any peer lower on the list. this is very bad.
 
-make the api networking/handler be entirely encrypted. This is to protect information about the channels. https://github.com/BumblebeeBat/pink_crypto/blob/master/src/encryption.erl
-
 download_blocks could be more efficient.
 
 maybe nodes need to advertise their own IP/port combo as a peer?
 
 It would be nice if there were some macros for chalang/src/compiler_lisp2.erl that did backtracking. that way we wouldn't have to think about control flow when making smart contracts.
-
-
-in the white paper we should explain the centralized and trustless exchanges.
-
 
 Updates for next time we restart at a genesis block:
 
@@ -66,4 +72,5 @@ Updates for next time we restart at a genesis block:
 each tx with a fee needs a to reference a recent hash. Everyone needs to be incentivized to make the hash as recent as possible. This stops transactions from being reused on multiple forks.
 
 
-Make sure that if something was garbage collected from a merkel tree, and we try accessing the thing, it gives a different message than trying to access something that doesn't exist.
+Make sure that if something was garbage collected from a merkel tree, and we try accessing the thing, it gives a different message than trying to access something that doesn't exist. Make sure we don't assume a block is invalid just because we don't have the proof of it's validity.
+
