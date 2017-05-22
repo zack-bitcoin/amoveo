@@ -7,7 +7,7 @@
 	 block_to_header/1,
 	 median_last/2, trees/1, trees_hash/1,
 	 guess_number_of_cpu_cores/0, difficulty/1,
-	 txs/1, genesis_maker/0
+	 txs/1, genesis_maker/0, new_id/1
 	]).
 
 -record(block, {height, prev_hash, txs, trees, 
@@ -431,11 +431,29 @@ test() ->
 new_id(N) -> 
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    new_id(N, Accounts).
-new_id(N, Accounts) ->
+    Governance = trees:governance(Trees),
+    BCM = governance:get_value(block_creation_maturity, Governance),
+    ID = new_id2(N, Accounts),
+    H = height(read(top:doit())),
+    M = max(0, H-BCM),
+    new_id3(keys:pubkey(), M, H, ID, Accounts).
+new_id3(_, N, H, ID, _) when N > H -> ID;
+new_id3(Address, N, H, ID, Accounts) ->
+    BP = read_int(N),
+    B = block(BP),
+    case B#block.mines_block of
+	{ID, Address} -> ID;
+	{ID, _} -> new_id3(Address, 
+			   N+1,
+			   H,
+			   new_id2(ID+1, Accounts),
+			   Accounts);
+	_ -> new_id3(Address, N+1, H, ID, Accounts)
+    end.
+new_id2(N, Accounts) ->
    case accounts:get(N, Accounts) of
        {_, empty, _} -> N;
-       _ -> new_id(N+1, Accounts)
+       _ -> new_id2(N+1, Accounts)
    end.
 	   
 mine_test() ->
