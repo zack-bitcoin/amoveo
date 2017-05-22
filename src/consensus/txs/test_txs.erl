@@ -23,6 +23,7 @@ test() ->
     %warning! after running test(11), we can no longer run other tests. because test(11) mines blocks, so tx_pool:dump can no longer undo transactions.
     S = test(12),%multiple bets in a single channel
     S = test(13),%testing governance
+    timer:sleep(300),
     S.
 absorb(Tx) -> 
     tx_pool_feeder:absorb(Tx),
@@ -563,11 +564,7 @@ test(11) ->
 test(12) ->
     %multiple bets in a single channel
     io:fwrite("multiple bets in a single channel\n"),
-    %BP = block:genesis(),
-    %PH = block:hash(BP),
     tx_pool:dump(),
-    %timer:sleep(400),
-    %Trees = block:trees(BP),
     {Trees, _, _Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
@@ -620,6 +617,7 @@ test(12) ->
 test(13) ->
     %testing the governance
     %launch an oracle with oracle_new, close it on state "bad", 
+    io:fwrite("test governance\n"),
     Question = <<>>,
     OID = 6,
     Fee = 20,
@@ -778,8 +776,8 @@ test(15) ->
     absorb(Stx3),
     {_, _, Txs2} = tx_pool:data(),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
-    Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
-    block:check2(Block),
+    %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
+    %block:check2(Block),
     success.
 slash_exists([]) -> false;
 slash_exists([Tx|T]) ->

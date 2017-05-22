@@ -109,8 +109,9 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     SSTx = keys:sign(STx, Accounts),
     tx_pool_feeder:absorb(SSTx),
     {ok, SSTx};
-doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient}) ->
-    R = channel_feeder:lock_spend(SSPK, Amount, Fee, Code, Sender, Recipient),
+doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}) ->
+    true = size(ESS) < 200,
+    R = channel_feeder:lock_spend(SSPK, Amount, Fee, Code, Sender, Recipient, ESS),
     {ok, R};
 doit({learn_secret, From, Secret, Code}) ->
     {ok, OldCD} = channel_manager:read(From),
@@ -121,6 +122,8 @@ doit({learn_secret, From, Secret, Code}) ->
     CFME = channel_feeder:me(OldCD),
     {NewSS, SPK, _Secrets, SSThem} = 
 	spk:bet_unlock(CFME, SS),
+    io:fwrite("learn secret new ss is "),
+    io:fwrite(packer:pack(NewSS)),
     if
 	NewSS == SS -> ok;
 	true -> 

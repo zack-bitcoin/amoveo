@@ -40,7 +40,12 @@ absorb(SignedTx) ->
 	true ->
 	    gen_server:cast(?MODULE, {absorb, SignedTx})
     end.
-
-is_in(A, [A|_]) -> true;
 is_in(_, []) -> false;
-is_in(A, [_|T]) -> is_in(A, T).
+is_in(STx, [STx2|T]) ->
+    Tx = testnet_sign:data(STx),
+    Tx2 = testnet_sign:data(STx2),
+    if
+	Tx == Tx2 -> true;
+	true -> is_in(STx, T)
+    end.
+

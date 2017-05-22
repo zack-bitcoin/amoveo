@@ -481,11 +481,11 @@ mine_blocks(N, Times, Cores) ->
 			block_absorber:doit(PBlock)
 		end
 	end,
-    spawn_many(Cores, F),
+    spawn_many(Cores-1, F),
     F(),
     mine_blocks(N-1, Times, Cores).
     
-spawn_many(0, _) -> ok;
+spawn_many(N, _) when N < 1 -> ok;
 spawn_many(N, F) -> 
     spawn(F),
     spawn_many(N-1, F).

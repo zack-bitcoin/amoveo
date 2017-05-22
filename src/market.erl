@@ -66,7 +66,7 @@ test2() ->
     {Trees5, _, _} = tx_pool:data(),
     %Accounts5 = trees:accounts(Trees5),
     io:fwrite("\n\n\n"),
-    {ok, Code} = file:read_file("src/market.fs"),
+    {ok, Code} = file:read_file("src/oracle_bet.fs"),
     %Code = <<" print car swap drop print print int 1 int 1 int 1 nil ">>,
     Compiled = compiler_chalang:doit(Code),
     Bet = spk:new_bet(Compiled, 100, [{oracles, 1}]),

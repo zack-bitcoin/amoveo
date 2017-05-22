@@ -31,7 +31,10 @@ absorb(BP) ->
 	    {BH, _} = block:check1(BP),
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 	    BP2 = block:check2(BP),
-	    io:fwrite(packer:pack(BP)),
+	    io:fwrite("absorb block: "++
+		      integer_to_list(block:height(BP)) ++
+		      "\n"),
+	    %io:fwrite(packer:pack(BP)),
 	    save(BP2)
     end.   
 save_helper(BlockPlus) ->

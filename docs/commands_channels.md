@@ -8,8 +8,9 @@ easy:new_channel_with_server(YourBalance, ReceivingLimit, Delay).
 ```
 
 ####Spend money through the lightning network
+Pubkey is the recipient's pubkey. It is not recorded on the blockchain, it is recorded along with every signature made by them.
 ```
-easy:lightning_spend(To, Amount).
+easy:lightning_spend(To, Pubkey, Amount).
 ```
 
 ####Learn a secret

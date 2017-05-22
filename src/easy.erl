@@ -11,6 +11,7 @@ top() ->
     TopHash = top:doit(),
     Height = height(),
     {top, TopHash, Height}.
+    
 sign(Tx) ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
@@ -31,7 +32,9 @@ create_account(NewAddr, Amount) ->
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     ID = find_id(accounts, Accounts),
-    create_account(NewAddr, Amount, ?Fee, ID).
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(ca, Governance),
+    create_account(NewAddr, Amount, ?Fee + Cost, ID).
 create_account(NewAddr, Amount, Fee, ID) ->
     F = fun(Trees) ->
 		create_account_tx:make(NewAddr, to_int(Amount), Fee, keys:id(), ID, Trees) end,
@@ -42,7 +45,10 @@ spend(ID, Amount) ->
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
 	true -> 
 	    A = to_int(Amount),
-	    spend(ID, A, ?Fee)
+	    {Trees, _, _} = tx_pool:data(),
+	    Governance = trees:governance(Trees),
+	    Cost = governance:get_value(spend, Governance),
+	    spend(ID, A, ?Fee+Cost)
     end.
 spend(ID, Amount, Fee) ->
     F = fun(Trees) ->
@@ -50,37 +56,52 @@ spend(ID, Amount, Fee) ->
     tx_maker(F).
     
 delete_account(ID) ->
-    delete_account(ID, ?Fee).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(da, Governance),
+    delete_account(ID, ?Fee+Cost).
 delete_account(ID, Fee) ->
     F = fun(Trees) ->
 		delete_account_tx:make(keys:id(), ID, Fee, Trees) end,
     tx_maker(F).
 
 repo_account(ID) ->   
-    repo_account(ID, ?Fee).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(repo, Governance),
+    repo_account(ID, ?Fee+Cost).
 repo_account(ID, Fee) ->   
     F = fun(Trees) ->
 		repo_tx:make(ID, Fee, keys:id(), Trees) end,
     tx_maker(F).
-new_channel(Bal1, Bal2) ->
-    new_channel(Bal1, Bal2, ?Fee, 10).
-new_channel(Bal1, Bal2, Fee, Delay) ->
-    {Trees, _,_} = tx_pool:data(),
-    Channels = trees:channels(Trees),
-    CID = new_channel2(1, Channels),
-    B1 = to_int(Bal1),
-    B2 = to_int(Bal2),
-    new_channel_tx(constants:server_ip(), 
-		constants:server_port(), 
-		CID, B1, B2, Fee, Delay).
-new_channel2(ID, Channels) ->
-    <<X:8>> = crypto:strong_rand_bytes(1),
-    case channels:get(ID+X, Channels) of
-	{_, empty, _} -> ID+X;
-	X -> new_channel2(ID+256, Channels)
-    end.
+
+%new_channel(Bal1, Bal2) ->
+%    {Trees, _, _} = tx_pool:data(),
+%    Governance = trees:governance(Trees),
+%    Cost = governance:get_value(nc, Governance),
+%    new_channel(Bal1, Bal2, ?Fee+Cost, 10).
+%new_channel(Bal1, Bal2, Fee, Delay) ->
+%    {Trees, _,_} = tx_pool:data(),
+
+%%    Channels = trees:channels(Trees),
+%    CID = new_channel2(1, Channels),
+%    B1 = to_int(Bal1),
+%    B2 = to_int(Bal2),
+%    new_channel_tx(constants:server_ip(), 
+%		constants:server_port(), 
+%		CID, B1, B2, Fee, Delay).
+%new_channel2(ID, Channels) ->
+%    <<X:8>> = crypto:strong_rand_bytes(1),
+%    case channels:get(ID+X, Channels) of
+%	{_, empty, _} -> ID+X;
+
+%%	X -> new_channel2(ID+256, Channels)
+%    end.
 new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Delay) ->
-    new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, ?Fee, Delay).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(nc, Governance),
+    new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, ?Fee+Cost, Delay).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Fee, Delay) ->
     %the delay is how many blocks you have to wait to close the channel if your partner disappears.
     %delay is also how long you have to stop your partner from closing at the wrong state.
@@ -94,7 +115,10 @@ new_channel_with_server(Bal1, Bal2, Delay) ->
     {Trees, _, _} = tx_pool:data(),
     Channels = trees:channels(Trees),
     CID = find_id(channels, Channels),
-    new_channel_with_server(?IP, ?Port, CID, Bal1, Bal2, ?Fee, Delay).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(nc, Governance),
+    new_channel_with_server(?IP, ?Port, CID, Bal1, Bal2, ?Fee+Cost, Delay).
 find_id(Name, Tree) ->
     find_id(Name, 1, Tree).
 find_id(Name, N, Tree) ->
@@ -120,8 +144,7 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     channel_feeder:new_channel(Tx, S2SPK, Accounts),
     ok.
 pull_channel_state() ->
-    pull_channel_state(?IP, ?Port),
-    bet_unlock().
+    pull_channel_state(?IP, ?Port).
 pull_channel_state(IP, Port) ->
     {ok, ServerID} = talker:talk({id}, IP, Port),
     {ok, CD0} = channel_manager:read(ServerID),
@@ -131,7 +154,22 @@ pull_channel_state(IP, Port) ->
     {ok, CD, ThemSPK} = talker:talk({spk, CID}, IP, Port),
     Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),
     talker:talk({channel_sync, keys:id(), Return}, IP, Port),
+    decrypt_msgs(channel_feeder:emsg(CD)),
+    bet_unlock(IP, Port),
     ok.
+decrypt_msgs([]) ->
+    [];
+decrypt_msgs([{msg, _, Msg, _}|T]) ->
+    [Msg|decrypt_msgs(T)];
+decrypt_msgs([Emsg|T]) ->
+    [Secret, Code] = keys:decrypt(Emsg),
+    learn_secret(Secret, Code),
+    decrypt_msgs(T).
+%learn_secrets([]) ->
+%    ok;
+%learn_secrets([[Secret, Code]|T]) ->
+%    learn_secret(Secret, Code),
+%    learn_secrets(T).
 learn_secret(Secret, Code) ->
     secrets:add(Code, Secret).
 add_secret(Code, Secret) ->
@@ -145,6 +183,7 @@ bet_unlock(IP, Port) ->
     {ok, CD0} = channel_manager:read(ServerID),
     CID = channel_feeder:cid(CD0),
     [{Secrets, SPK}] = channel_feeder:bets_unlock([ServerID]),
+    io:fwrite("teach secrets \n"),
     teach_secrets(keys:id(), Secrets, IP, Port),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
@@ -172,16 +211,17 @@ channel_spend(IP, Port, Amount) ->
     channel_feeder:spend(Response, -Amount),
     ok.
 -define(LFee, free_constants:lightning_fee()).
-lightning_spend(Recipient, Amount) ->
-    lightning_spend(?IP, ?Port, Recipient, Amount, ?LFee).
-lightning_spend(IP, Port, Recipient, Amount, Fee) ->
+lightning_spend(Recipient, Pubkey, Amount) ->
+    lightning_spend(?IP, ?Port, Recipient, Pubkey, Amount, ?LFee).
+lightning_spend(IP, Port, Recipient, Pubkey, Amount, Fee) ->
     {Code, SS} = secrets:new_lightning(),
-    lightning_spend(IP, Port, Recipient, Amount, Fee, Code, SS).
-lightning_spend(IP, Port, Recipient, Amount, Fee, Code, SS) ->
+    lightning_spend(IP, Port, Recipient, Pubkey, Amount, Fee, Code, SS).
+lightning_spend(IP, Port, Recipient, Pubkey, Amount, Fee, Code, SS) ->
     {ok, ServerID} = talker:talk({id}, IP, Port),
     %ChannelID,
+    ESS = keys:encrypt([SS, Code], Pubkey),
     SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code, []),
-    {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:id(), Recipient}, IP, Port),
+    {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:id(), Recipient, ESS}, IP, Port),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK2, Accounts), Accounts),
@@ -193,13 +233,8 @@ lightning_spend(IP, Port, Recipient, Amount, Fee, Code, SS) ->
     Entropy = channel_feeder:entropy(CD),
     ThemSS = channel_feeder:script_sig_them(CD),
     MeSS = channel_feeder:script_sig_me(CD),
-    NewCD = channel_feeder:new_cd(SPK, SSPK2, [<<>>|ThemSS], [<<>>|MeSS], Entropy, CID),
+    NewCD = channel_feeder:new_cd(SPK, SSPK2, [<<>>|MeSS], [<<>>|ThemSS], Entropy, CID),
     channel_manager:write(ServerID, NewCD),
-    io:fwrite("give this secret to your partner so that they can receive the payment --------> "
-	      ++ binary_to_list(base64:encode(SS))
-	      ++ "  |  "
-	      ++ binary_to_list(base64:encode(Code))
-				++ " <-------- \n"),
     ok.
     
     
@@ -245,7 +280,10 @@ to_int(X) ->
     round(X * constants:token_decimals()).
 
 grow_channel(CID, Bal1, Bal2) ->
-    grow_channel(CID, Bal1, Bal2, ?Fee).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(gc, Governance),
+    grow_channel(CID, Bal1, Bal2, ?Fee+Cost).
 grow_channel(CID, Bal1, Bal2, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     {Tx, _} = grow_channel_tx:make(CID, Trees, to_int(Bal1), to_int(Bal2), Fee),
@@ -253,7 +291,10 @@ grow_channel(CID, Bal1, Bal2, Fee) ->
     keys:sign(Tx, Accounts).
 
 channel_team_close(CID, Amount) ->
-    channel_team_close(CID, Amount, ?Fee).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(ctc, Governance),
+    channel_team_close(CID, Amount, ?Fee+Cost).
 channel_team_close(CID, Amount, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
@@ -284,14 +325,18 @@ new_question_oracle(Start, Question, DiffOracleID)->
     ID = find_id(oracles, Oracles),
     {_, Recent, _} = oracles:get(DiffOracleID, Oracles),
     Difficulty = oracles:difficulty(Recent) div 2,
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(oracle_new, Governance),
     F = fun(Trs) ->
-		oracle_new_tx:make(keys:id(), ?Fee, Question, Start, ID, Difficulty, DiffOracleID, 0, 0, Trs) end,
+		oracle_new_tx:make(keys:id(), ?Fee+Cost, Question, Start, ID, Difficulty, DiffOracleID, 0, 0, Trs) end,
     tx_maker(F).
 new_difficulty_oracle(Start, Difficulty) ->
     {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(oracle_new, Governance),
     Oracles = trees:oracles(Trees),
     ID = find_id(oracles, Oracles),
-    new_difficulty_oracle(?Fee, Start, ID, Difficulty).
+    new_difficulty_oracle(?Fee+Cost, Start, ID, Difficulty).
 new_difficulty_oracle(Fee, Start, ID, Difficulty) ->
     %used to measure the difficulty at which negative and positive shares are worth the same
     F = fun(Trees) ->
@@ -304,32 +349,46 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		ID = find_id(oracles, Oracles),
 		{_, Recent, _} = oracles:get(DiffOracleID, Oracles),
 		Difficulty = oracles:difficulty(Recent) div 2,
-		oracle_new_tx:make(keys:id(), ?Fee, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
+		Governance = trees:governance(Trs),
+		Cost = governance:get_value(oracle_new, Governance),
+		oracle_new_tx:make(keys:id(), ?Fee + Cost, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
     tx_maker(F).
     
 oracle_bet(OID, Type, Amount) ->
-    oracle_bet(?Fee, OID, Type, Amount).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(oracle_bet, Governance),
+    oracle_bet(?Fee+Cost, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->
     F = fun(Trees) ->
 		oracle_bet_tx:make(keys:id(), Fee, OID, Type, to_int(Amount), Trees)
 	end,
     tx_maker(F).
 oracle_close(OID) ->
-    oracle_close(?Fee, OID).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(oracle_close, Governance),
+    oracle_close(?Fee+Cost, OID).
 oracle_close(Fee, OID) ->
     F = fun(Trees) ->
 		oracle_close_tx:make(keys:id(), Fee, OID, Trees)
 	end,
     tx_maker(F).
 oracle_shares(OID) ->
-    oracle_shares(?Fee, OID).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(oracle_shares, Governance),
+    oracle_shares(?Fee+Cost, OID).
 oracle_shares(Fee, OID) ->
     F = fun(Trees) ->
 		oracle_shares_tx:make(keys:id(), Fee, OID, Trees)
 	end,
     tx_maker(F).
 oracle_unmatched(OracleID, OrderID) ->
-    oracle_unmatched(?Fee, OracleID, OrderID).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(unmatched, Governance),
+    oracle_unmatched(?Fee+Cost, OracleID, OrderID).
 oracle_unmatched(Fee, OracleID, OrderID) ->
     F = fun(Trees) ->
 		oracle_unmatched_tx:make(keys:id(), Fee, OracleID, OrderID, Trees)
@@ -369,7 +428,10 @@ mine_block(Many, Times) ->
 channel_close() ->
     channel_close(?IP, ?Port).
 channel_close(IP, Port) ->
-    channel_close(IP, Port, ?Fee).
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Cost = governance:get_value(ctc, Governance),
+    channel_close(IP, Port, ?Fee+Cost).
 channel_close(IP, Port, Fee) ->
     {ok, PeerId} = talker:talk({id}, IP, Port),
     {ok, CD} = channel_manager:read(PeerId),

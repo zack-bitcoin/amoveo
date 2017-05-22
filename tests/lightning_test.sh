@@ -39,31 +39,23 @@ sleep 1
 curl -i -d '["channel_spend", [127,0,0,1], 3030, 777]' http://localhost:3011
 sleep 1
 
-curl -i -d '["lightning_spend", [127,0,0,1], 3030, 2, 4, 10]' http://localhost:3011
-sleep 1
+#curl -i -d '["lightning_spend", [127,0,0,1], 3030, 2, "BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=", 4, 10]' http://localhost:3011
+#sleep 1
 
-curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
-sleep 1
-
-curl -i -d '["learn_secret", "AgAAAAwr/nWTT4zbCS4lAuc=","WgAAAAAAOkYAAAAAMgAAAAABAAAAAACEC0dIFBQoAgAAAAx3wv4k7MKMmFva1BoKOhYUFhRGAAAAAAAAAAAAAgAAACcQRwAAAAAxAAAAAAEAAAAAAEiECw=="]' http://localhost:3021
-sleep 1
-
-#it still works if you learn the secret before pulling channel state, or if you pull channel state and then learn the secret.
 #curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
 #sleep 1
 
-curl -i -d '["bet_unlock", [127,0,0,1], 3030]' http://localhost:3021
+#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
+#sleep 1
+
+curl -i -d '["lightning_spend", [127,0,0,1], 3030, 1, 
+"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=", 4, 10]' http://localhost:3021
 sleep 1
 
 curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
 sleep 1
 
+curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
+sleep 1
 
-
-#curl -i -d '["lightning_spend", [127,0,0,1], 3030, 0, 4]' http://localhost:3021
-#sleep 1
-#curl -i -d '["get_msg", [127,0,0,1], 3030]' http://localhost:3011
-#sleep 1
-#curl -i -d '["get_msg", [127,0,0,1], 3030]' http://localhost:3021
-#sleep 1
 

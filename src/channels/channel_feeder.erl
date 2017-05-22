@@ -3,24 +3,27 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 new_channel/3,spend/2,close/2,lock_spend/6,
+	 new_channel/3,spend/2,close/2,lock_spend/7,
 	 agree_bet/4,garbage/0,entropy/1,
 	 new_channel_check/1,
 	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
 	 make_bet/4, update_to_me/2, new_cd/6, 
 	 make_locked_payment/4, live/1, they_simplify/3,
-	 bets_unlock/1
+	 bets_unlock/1, emsg/1
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
-	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
 	     ssme = [], %ss is the highest nonced ScriptSig that works with me
+	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
+	     emsg = [],
 	     live = true,
 	     entropy = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
+emsg(X) ->
+    X#cd.emsg.
 live(X) ->
     X#cd.live.
-new_cd(Me, Them, SSThem, SSMe, Entropy, CID) ->
+new_cd(Me, Them, SSMe, SSThem, Entropy, CID) ->
     #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, entropy = Entropy, cid = CID}.
 me(X) -> X#cd.me.
 cid(X) when is_integer(X) ->
@@ -91,7 +94,7 @@ handle_cast({close, SS, STx}, X) ->
     {noreply, X};
 handle_cast
 (_, X) -> {noreply, X}.
-handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient}, _From, X) ->
+handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
@@ -112,7 +115,8 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient}, _From, X) 
     Channel2 = make_locked_payment(Recipient, -Amount, Code, []),
     {ok, OldCD2} = channel_manager:read(Recipient),
     NewCD2 = OldCD2#cd{me = testnet_sign:data(Channel2),
-		       ssme = [<<>>|OldCD2#cd.ssme]},
+		       ssme = [<<>>|OldCD2#cd.ssme],
+		       emsg = [ESS|OldCD2#cd.emsg]},
     channel_manager:write(Recipient, NewCD2),
     {reply, Return, X};
 handle_call({spend, SSPK, Amount}, _From, X) ->
@@ -195,9 +199,9 @@ spend(SPK, Amount) ->
     gen_server:call(?MODULE, {spend, SPK, Amount}).
 close(SS, Tx) ->
     gen_server:cast(?MODULE, {close, SS, Tx}).
-lock_spend(SSPK, Amount, Fee, SecretHash, Sender, Recipient) ->
+lock_spend(SSPK, Amount, Fee, SecretHash, Sender, Recipient, ESS) ->
     %first check that this channel is in the on-chain state with sufficient depth
-    gen_server:call(?MODULE, {lock_spend, SSPK, Amount, Fee, SecretHash, Sender, Recipient}).
+    gen_server:call(?MODULE, {lock_spend, SSPK, Amount, Fee, SecretHash, Sender, Recipient, ESS}).
 update_to_me(SSPK, From) ->
     gen_server:call(?MODULE, {update_to_me, SSPK, From}).
     

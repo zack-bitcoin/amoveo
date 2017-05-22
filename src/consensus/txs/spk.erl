@@ -88,6 +88,8 @@ bet_unlock(SPK, SS) ->
     %check if we have the secret to unlock each bet.
     %unlock the ones we can, and return an SPK with the remaining bets and the new amount of money that is moved.
     {Remaining, AmountChange, SSRemaining, Secrets, Dnonce, SSThem} = bet_unlock2(Bets, [], 0, SS, [], [], 0, []),
+    io:fwrite("spk bet unlock remaining "),
+    io:fwrite(packer:pack(Remaining)),
     {lists:reverse(SSRemaining),
      SPK#spk{bets = lists:reverse(Remaining),
 	     amount = SPK#spk.amount + AmountChange,
