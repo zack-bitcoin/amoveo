@@ -1,6 +1,51 @@
 -module(market).
 -export([test/0, test2/0]).
 
+market_smart_contract(BetLocation, MarketID, Direction, Expires, MinPrice, Pubkey,Period,Amount, OID) ->
+    Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
+		true -> <<" macro bet_amount int 10000 ; ">>;
+		false -> <<" macro bet_amount int 0 ; ">>
+			     end,
+    {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
+    %MinPrice is in the range 0 to 10000,
+    % it is the limit of how much you are willing to pay the server for the derivative. You will pay this much or less.
+    % Pubkey is the pubkey of the market manager.
+    Code2 = " \
+macro Expires int " ++ integer_to_list(Expires) ++ " ;\
+macro MinPrice int " ++ integer_to_list(MinPrice) ++ " ;\
+macro MarketID int " ++ integer_to_list(MarketID) ++ " ;\
+macro Pubkey binary " ++ integer_to_list(size(base64:decode(Pubkey))) ++ " " ++ binary_to_list(Pubkey) ++ " ;\
+macro Period int " ++ integer_to_list(Period) ++ " ;\
+",
+    {ok, Code3} = file:read_file("src/market.fs"),
+    Compiled = compiler_chalang:doit(<<Code0/binary, Code/binary, (list_to_binary(Code2))/binary, Code3/binary>>),
+    spk:new_bet(Compiled, Amount, [{oracles, OID}]).
+close_early(SPD) ->
+    PriceDeclare = binary_to_list(base64:encode(SPD)),
+    SS1a = "binary "++ integer_to_list(size(SPD))++ 
+" " ++ PriceDeclare ++ " int 1",
+    compiler_chalang:doit(list_to_binary(SS1a)).
+no_publish() ->
+    SS2a = " int 0 ",
+    compiler_chalang:doit(list_to_binary(SS2a)).
+evidence(SPD) ->
+    SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int 3 ",
+    compiler_chalang:doit(list_to_binary(SS3a)).
+contradictory_prices(SPD, SPD2) ->
+    PriceDeclare1 = binary_to_list(base64:encode(SPD)),
+    PriceDeclare2 = binary_to_list(base64:encode(SPD2)),
+    SS4a = 
+	" binary " ++ integer_to_list(size(SPD)) ++ " " ++ PriceDeclare1 ++ 
+	" binary " ++ integer_to_list(size(SPD2)) ++ " " ++ PriceDeclare2 ++
+	" int 2 ",
+    compiler_chalang:doit(list_to_binary(SS4a)).
+price_declaration_maker(Height, Price, MarketID) ->
+    PD = <<Height:32, Price:16, MarketID:16>>,
+    Signature = keys:raw_sign(PD),
+    Sig1 = base64:decode(Signature),
+    <<PD/binary, Sig1/binary>>.
+
+
 test() ->
     Question = <<>>,
     OID = 3,
@@ -52,69 +97,36 @@ test2() ->
     OID = 3,
     {Trees5, _, _} = tx_pool:data(),
     %Accounts5 = trees:accounts(Trees5),
-    Code0 = <<" macro bet_amount int 10000 ; ">>,%set to 10000 to bet on true, 0 to bet on false.
-    {ok, Code} = file:read_file("src/oracle_bet.fs"),%creates macro "oracle_bet" which is used in market.fs
-    %MinPrice is in the range 0 to 10000,
-    % it is the limit of how much you are willing to pay the server for the derivative. You will pay this much or less.
-    % Pubkey is the pubkey of the market manager.
     MarketID = 405,
-    Code2 = " \
-macro bet oracle_bet ; \
-macro Expires int " ++ integer_to_list(1000) ++ " ;\
-macro MinPrice int " ++ integer_to_list(6000) ++ " ;\
-macro MarketID int " ++ integer_to_list(MarketID) ++ " ;\
-macro Pubkey binary " ++ integer_to_list(size(base64:decode(keys:pubkey()))) ++ " " ++ binary_to_list(keys:pubkey()) ++ " ;\
-macro Period int " ++ integer_to_list(101) ++ " ;\
-",
-    {ok, Code3} = file:read_file("src/market.fs"),
-    Compiled = compiler_chalang:doit(<<Code0/binary, Code/binary, (list_to_binary(Code2))/binary, Code3/binary>>),
-    Bet = spk:new_bet(Compiled, 100, [{oracles, OID}]),
+    Bet = market_smart_contract("src/oracle_bet.fs", MarketID,true, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK = spk:new(1, 2, 1, [Bet], 10000, 10000, 1, 0, Entropy),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK, Accounts5), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 5500,
     Height = 300,
-    PD = <<Height:32, Price:16, MarketID:16>>,
-    Signature = keys:raw_sign(PD),
-    true = sign:verify_sig(PD, Signature, keys:pubkey()),
-    Sig1 = base64:decode(Signature),
-    SPD = <<PD/binary, Sig1/binary>>,
-    PriceDeclare = binary_to_list(base64:encode(SPD)),
-    SS1a = "binary "++ integer_to_list(size(SPD))++ 
-" " ++ PriceDeclare ++ " int 1",
-    SS1 = compiler_chalang:doit(list_to_binary(SS1a)),
+    SPD = price_declaration_maker(Height, Price, MarketID),
+    SS1 = close_early(SPD),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, shares, delay
     {50,1000001,[],999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
 	spk:run(fast, [SS1], SPK, 1, 0, Trees5),
 
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
-    SS2a = " int 0 ",
-    SS2 = compiler_chalang:doit(list_to_binary(SS2a)),
+    SS2 = no_publish(),
     %amount, newnonce, shares, delay
     {0, 999901, [],101} = 
 	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
     
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
-    SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int 3 ",
-    SS3 = compiler_chalang:doit(list_to_binary(SS3a)),
+    SS3 = evidence(SPD),
     %amount, newnonce, shares, delay
     {50, 999952, [], 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
 	spk:run(fast, [SS3], SPK, 1, 0, Trees5),
 
     %Next we try closing the bet as if the market maker cheated by publishing 2 different prices too near to each other in time.
-    PD2 = <<(Height + 1):32, (Price - 1):16, MarketID:16>>,
-    Signature2 = keys:raw_sign(PD2),
-    true = sign:verify_sig(PD2, Signature2, keys:pubkey()),
-    Sig2 = base64:decode(Signature2),
-    SPD2 = <<PD2/binary, Sig2/binary>>,
-    PriceDeclare2 = binary_to_list(base64:encode(SPD2)),
-    SS4a = 
-	" binary " ++ integer_to_list(size(SPD)) ++ " " ++ PriceDeclare ++ 
-	" binary " ++ integer_to_list(size(SPD2)) ++ " " ++ PriceDeclare2 ++
-	" int 2 ",
-    SS4 = compiler_chalang:doit(list_to_binary(SS4a)),
+    SPD2 = price_declaration_maker(Height+1, Price-1, MarketID),
+    SS4 = contradictory_prices(SPD, SPD2),
     %amount, newnonce, shares, delay
     {0,2000001,[],0} = 
 	%The nonce is super high, and the delay is zero, because if the market maker is cheating he should be punished immediately.
@@ -122,13 +134,6 @@ macro Period int " ++ integer_to_list(101) ++ " ;\
        spk:run(fast, [SS4], SPK, 1, 0, Trees5),
 
     Fee = 20,
-    %Accounts5 = trees:accounts(Trees5),
-    %%make some bets in the oracle with oracle_bet
-    %Governance5 = trees:governance(Trees5),
-    %OIL = governance:get_value(oracle_initial_liquidity, Governance5),
-    %{Tx5, _} = oracle_bet_tx:make(1, Fee, OID, true, OIL, Trees5), 
-    %Stx5 = keys:sign(Tx5, Accounts5),
-    %test_txs:absorb(Stx5),
 
     test_txs:mine_blocks(1),
     timer:sleep(1000),
@@ -142,6 +147,12 @@ macro Period int " ++ integer_to_list(101) ++ " ;\
     %amount, newnonce, shares, delay
     %Now that the bet is settled the delay is only zero so that we can get our money out as fast as possible.
     {100,1000003,[],0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
+
+    %Now we will try betting in the opposite direction.
+    Bet2 = market_smart_contract("src/oracle_bet.fs", MarketID,false, 1000, 6000, keys:pubkey(),101,100,OID),
+    SPK2 = spk:new(1, 2, 1, [Bet2], 10000, 10000, 1, 0, Entropy),
+    {0,1000003,[],0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
+
     success.
     
     

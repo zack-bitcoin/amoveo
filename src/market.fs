@@ -63,7 +63,7 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	dup MinPrice > not or_die %make sure it is better than the agreed upon price.
 	    %The biggest price means the most money goes to the server. So a trade that can get matched has a price that  is lower than the price we asked for.
 	>r height > or_die
-	oracle_bet ( delay nonce amount )
+	bet ( delay nonce amount )
         rot Expires height - * tuck ( delay2 nonce amount )
 	height swap (delay nonce height amount )
 	>r ( delay nonce height )

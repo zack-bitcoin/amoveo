@@ -1,6 +1,6 @@
 %use `market:test().` to run this code
 
-macro oracle_bet ( ProofStructure -- delay nonce amount )
+macro bet ( ProofStructure -- delay nonce amount )
 %first unwrap the oracle data from the proof structure.
 car drop
 car swap drop
@@ -42,5 +42,5 @@ then then then then
 ;
 
 macro doit
-oracle_bet nil crash
+bet nil crash
 ;		 
