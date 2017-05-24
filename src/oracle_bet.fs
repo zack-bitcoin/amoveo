@@ -32,11 +32,11 @@ drop int 2 == if drop drop
 
 % 3 means that the oracle decided that the question was a bad question to ask that does not have a clear binary answer.
 drop int 3 == if drop drop 
-     int 0 int 3 int 5000 else
+     int 0 int 3 int 10000 MaxPrice - else
 
 %0 means the oracle is still unresolved
 drop int 0 == if drop drop 
-     int 1 int 1 int 5000 else
+     int 1 int 1 int 10000 MaxPrice - else
 
 then then then then
 ;

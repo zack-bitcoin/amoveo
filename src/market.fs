@@ -8,11 +8,13 @@ macro or_die int 0 == if fail else then drop drop ;
 
 %<<height:32, price:16, market_id:16, signature/binary>>
 %sig data pub
-macro extract ( signed_price_declaration -- height price )
-int 8 split dup tuck Pubkey verify_sig or_die
-int 4 split swap int 2 split binary 2 AAA= swap ++
-                        swap binary 2 AAA= swap ++
-MarketID == or_die drop drop
+macro extract ( signed_price_declaration -- height price portion_matched)
+int 10 split dup tuck Pubkey verify_sig or_die
+int 4 split swap
+int 2 split binary 2 AAA= swap ++ swap
+int 2 split binary 2 AAA= swap ++ swap
+            binary 2 AAA= swap ++ 
+MarketID == or_die drop drop 
 ;
 
 macro max ( A B -- M )
@@ -28,8 +30,8 @@ macro diff ( A B -- D )
 ;
 %If the market maker publishes contradictory prices at the same time, with the same market id, he loses all the money in every bet. 
 macro contradictory_prices ( signed_price_declaration signed_price_declaration2 -- delay nonce amount ) 
-extract >r >r extract
-swap r> diff Period int 2 / < or_die %height equal %instead we should check if heights are within half a period of each other or less.
+extract drop >r >r extract
+drop swap r> diff Period int 2 / < or_die %height equal %instead we should check if heights are within half a period of each other or less.
      r> == not or_die %price unequal
      int 0 mil mil + int 0
 ;
@@ -44,13 +46,14 @@ macro no_publish ( -- delay nonce amount )
 
 %If you try doing a no_publish while the server is publishing, this is how the server stops you from stealing money.
 macro evidence ( signed_price_declaration -- delay nonce amount )
-      extract drop ( declaration_height )
+      extract drop drop ( declaration_height )
       	  %dup height < or_die
       	      %height Period - < or_die 
 	      drop
       Expires height -  ( delay )
       mil height + Period int 2 / - ( delay nonce )
-      int 5000
+      %int 5000
+      int 10000 MaxPrice -
 ;
       
 
@@ -59,8 +62,9 @@ macro evidence ( signed_price_declaration -- delay nonce amount )
 % runs bet and raises the nonce.
 
 macro match_order ( signed_price_declaration -- delay nonce amount )
-        extract ( height price ) 
-	dup MinPrice > not or_die %make sure it is better than the agreed upon price.
+        extract ( height price portion_matched )
+	PM ! dup PRICE !
+	dup MaxPrice > not or_die %make sure it is better than the agreed upon price.
 	    %The biggest price means the most money goes to the server. So a trade that can get matched has a price that  is lower than the price we asked for.
 	>r height > or_die
 	bet ( delay nonce amount )
@@ -69,6 +73,17 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	>r ( delay nonce height )
 	swap mil + ( delay height big_nonce ) 
 	swap - r> ( delay new_nonce new_amount )
+	PRICE @ MaxPrice ==
+	if
+	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book 
+	  int 10000 MaxPrice - int 10000 PM @ -
+	  * int 10000 / +
+%we add on some more money for how much refund we get from the unmatched portion.
+	else
+	  drop drop
+	then
+	
+	
 ;
 macro main
 swap

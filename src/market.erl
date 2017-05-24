@@ -1,37 +1,41 @@
 -module(market).
 -export([test/0, test2/0]).
 
-market_smart_contract(BetLocation, MarketID, Direction, Expires, MinPrice, Pubkey,Period,Amount, OID) ->
+market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		true -> <<" macro bet_amount int 10000 ; ">>;
 		false -> <<" macro bet_amount int 0 ; ">>
 			     end,
     {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
-    %MinPrice is in the range 0 to 10000,
+    %MaxPrice is in the range 0 to 10000,
     % it is the limit of how much you are willing to pay the server for the derivative. You will pay this much or less.
     % Pubkey is the pubkey of the market manager.
     Code2 = " \
 macro Expires int " ++ integer_to_list(Expires) ++ " ;\
-macro MinPrice int " ++ integer_to_list(MinPrice) ++ " ;\
+macro MaxPrice int " ++ integer_to_list(MaxPrice) ++ " ;\
 macro MarketID int " ++ integer_to_list(MarketID) ++ " ;\
 macro Pubkey binary " ++ integer_to_list(size(base64:decode(Pubkey))) ++ " " ++ binary_to_list(Pubkey) ++ " ;\
 macro Period int " ++ integer_to_list(Period) ++ " ;\
 ",
     {ok, Code3} = file:read_file("src/market.fs"),
-    Compiled = compiler_chalang:doit(<<Code0/binary, Code/binary, (list_to_binary(Code2))/binary, Code3/binary>>),
+    Compiled = compiler_chalang:doit(<<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>),
     spk:new_bet(Compiled, Amount, [{oracles, OID}]).
-close_early(SPD) ->
+settle(SPD) ->
+    %If the oracle comes to a decision, this is how you get your mone out.
     PriceDeclare = binary_to_list(base64:encode(SPD)),
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
 " " ++ PriceDeclare ++ " int 1",
     compiler_chalang:doit(list_to_binary(SS1a)).
 no_publish() ->
+    %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
     SS2a = " int 0 ",
     compiler_chalang:doit(list_to_binary(SS2a)).
 evidence(SPD) ->
+    %If users try withdrawing funds while the market maker is still publishing prices, this is how he stops them from taking their money out early and robbing the market maker.
     SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int 3 ",
     compiler_chalang:doit(list_to_binary(SS3a)).
 contradictory_prices(SPD, SPD2) ->
+    %If the market maker publishes two prices too close to the same time, then this is how you can withdraw your funds from the market early.
     PriceDeclare1 = binary_to_list(base64:encode(SPD)),
     PriceDeclare2 = binary_to_list(base64:encode(SPD2)),
     SS4a = 
@@ -39,8 +43,8 @@ contradictory_prices(SPD, SPD2) ->
 	" binary " ++ integer_to_list(size(SPD2)) ++ " " ++ PriceDeclare2 ++
 	" int 2 ",
     compiler_chalang:doit(list_to_binary(SS4a)).
-price_declaration_maker(Height, Price, MarketID) ->
-    PD = <<Height:32, Price:16, MarketID:16>>,
+price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
+    PD = <<Height:32, Price:16, PortionMatched:16, MarketID:16>>,
     Signature = keys:raw_sign(PD),
     Sig1 = base64:decode(Signature),
     <<PD/binary, Sig1/binary>>.
@@ -98,17 +102,17 @@ test2() ->
     {Trees5, _, _} = tx_pool:data(),
     %Accounts5 = trees:accounts(Trees5),
     MarketID = 405,
-    Bet = market_smart_contract("src/oracle_bet.fs", MarketID,true, 1000, 6000, keys:pubkey(),101,100,OID),
+   Bet = market_smart_contract("src/oracle_bet.fs", MarketID,true, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK = spk:new(1, 2, 1, [Bet], 10000, 10000, 1, 0, Entropy),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK, Accounts5), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 5500,
     Height = 300,
-    SPD = price_declaration_maker(Height, Price, MarketID),
-    SS1 = close_early(SPD),
+    SPD = price_declaration_maker(Height, Price, 5000, MarketID),
+    SS1 = settle(SPD),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, shares, delay
-    {50,1000001,[],999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
+    {40,1000001,[],999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
 	spk:run(fast, [SS1], SPK, 1, 0, Trees5),
 
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
@@ -120,12 +124,12 @@ test2() ->
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
     SS3 = evidence(SPD),
     %amount, newnonce, shares, delay
-    {50, 999952, [], 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
+    {40, 999952, [], 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
 	spk:run(fast, [SS3], SPK, 1, 0, Trees5),
 
     %Next we try closing the bet as if the market maker cheated by publishing 2 different prices too near to each other in time.
-    SPD2 = price_declaration_maker(Height+1, Price-1, MarketID),
+    SPD2 = price_declaration_maker(Height+1, Price-1, 5000, MarketID),
     SS4 = contradictory_prices(SPD, SPD2),
     %amount, newnonce, shares, delay
     {0,2000001,[],0} = 
@@ -146,12 +150,25 @@ test2() ->
     timer:sleep(1000),
     %amount, newnonce, shares, delay
     %Now that the bet is settled the delay is only zero so that we can get our money out as fast as possible.
+    %The server won the bet, and gets all 100.
+    %amount, newnonce, shares, delay
     {100,1000003,[],0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
 
     %Now we will try betting in the opposite direction.
     Bet2 = market_smart_contract("src/oracle_bet.fs", MarketID,false, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK2 = spk:new(1, 2, 1, [Bet2], 10000, 10000, 1, 0, Entropy),
+    %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
+    %This time we won the bet, so we keep all 100.
+    %amount, newnonce, shares, delay
     {0,1000003,[],0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
+
+
+    %We need to test a trade that gets only partly matched.
+    SPD3 = price_declaration_maker(Height, 6000, 5000, MarketID),%5000 means it gets 50% matched.
+    SS5 = settle(SPD3),
+    %amount, newnonce, shares, delay
+    {70, 1000003, [], 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
+    %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     success.
     
