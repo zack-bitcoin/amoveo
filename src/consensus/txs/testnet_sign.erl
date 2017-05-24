@@ -19,16 +19,16 @@ de(X) -> base64:decode(X).
 params() -> crypto:ec_curve(secp256k1).
 shared_secret(Pub, Priv) -> en(crypto:compute_key(ecdh, de(Pub), de(Priv), params())).
 %to_bytes(X) -> term_to_binary(X).
-to_bytes(X) -> packer:pack(X).
+to_bytes(X) -> term_to_binary(X).
 generate() -> crypto:generate_key(ecdh, params()).
 new_key() -> %We keep this around for the encryption library. it is used to generate 1-time encryption keys.
     {Pub, Priv} = generate(),%crypto:generate_key(ecdh, params()),
     {en(Pub), en(Priv)}.
-sign(S, Priv) -> en(crypto:sign(ecdsa, sha256, to_bytes(S), [de(Priv), params()])).
+sign(S, Priv) -> en(crypto:sign(ecdsa, sha256, term_to_binary(S), [de(Priv), params()])).
 verify_sig(S, Sig, Pub) -> 
     SD = de(Sig),
     PD = de(Pub),
-    crypto:verify(ecdsa, sha256, to_bytes(S), SD, [PD, params()]).
+    crypto:verify(ecdsa, sha256, term_to_binary(S), SD, [PD, params()]).
 verify_1(Tx, Addr) -> 
     Pub = Tx#signed.pub,
     B = verify_sig(Tx#signed.data, Tx#signed.sig, Pub),

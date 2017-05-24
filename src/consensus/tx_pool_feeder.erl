@@ -1,6 +1,6 @@
 -module(tx_pool_feeder).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, absorb/1]).
+-export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, absorb/1, absorb_unsafe/1]).
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -24,13 +24,19 @@ handle_cast({absorb, SignedTx}, X) ->
 	B ->  io:fwrite("already have this tx"),
 	    ok;
 	true ->
-	    NewTrees = 
-		txs:digest([SignedTx], Trees, Height+1),
-	    tx_pool:absorb_tx(NewTrees, SignedTx)
+	    absorb_unsafe(SignedTx, Trees, Height)
     end,
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(_, _From, X) -> {reply, X, X}.
+absorb_unsafe(SignedTx) -> 
+    {Trees, Height, _} = tx_pool:data(),
+    absorb_unsafe(SignedTx, Trees, Height).
+absorb_unsafe(SignedTx, Trees, Height) -> 
+    NewTrees = 
+	txs:digest([SignedTx], Trees, Height+1),
+    tx_pool:absorb_tx(NewTrees, SignedTx).
+    
     
 absorb(SignedTx) -> 
     {_, _, Txs} = tx_pool:data(),

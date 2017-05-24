@@ -13,9 +13,10 @@ initial_coins() -> 1080000000000.
 block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 
-6452.
-%4000.%for testing only.
-%1.
+    case free_constants:test_mode() of
+	true -> 1;
+	_ -> 6452
+    end.
 difficulty_bits() -> 24.
 
 hash_size() -> 12.

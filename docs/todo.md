@@ -1,3 +1,6 @@
+signatures and pubkeys need to be double base64 encoded for chalang verify_sig. This should be fixed.
+
+
 We need to test channel_solo_close and channel_slash and channel_timeout from easy.
 
 

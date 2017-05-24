@@ -26,8 +26,9 @@ test() ->
     timer:sleep(300),
     S.
 absorb(Tx) -> 
-    tx_pool_feeder:absorb(Tx),
-    timer:sleep(400).
+    tx_pool_feeder:absorb_unsafe(Tx).
+    %tx_pool_feeder:absorb(Tx),
+    %timer:sleep(400).
 test(1) ->
     io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
@@ -520,7 +521,7 @@ test(11) ->
     Stx = keys:sign(Tx, Accounts),
     absorb(Stx),
     timer:sleep(150),
-    mine_blocks(2),
+    mine_blocks(1),
     {Trees2, _, _} = tx_pool:data(),
     Accounts2 = trees:accounts(Trees2),
     %make some bets in the oracle with oracle_bet
@@ -531,7 +532,7 @@ test(11) ->
     absorb(Stx2),
     %timer:sleep(100),
 
-    mine_blocks(10),
+    mine_blocks(1),
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     %close the oracle with oracle_close
@@ -629,7 +630,7 @@ test(13) ->
     Stx = keys:sign(Tx, Accounts),
     absorb(Stx),
 
-    mine_blocks(8),
+    mine_blocks(1),
     {Trees2, _, _} = tx_pool:data(),
     Accounts2 = trees:accounts(Trees2),
     %close the oracle with oracle_close
@@ -774,6 +775,7 @@ test(15) ->
     {Ctx3, _} = channel_solo_close:make(ID2, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv, ID2, Accounts3),
     absorb(Stx3),
+    timer:sleep(200),
     {_, _, Txs2} = tx_pool:data(),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
