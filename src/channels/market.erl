@@ -17,7 +17,7 @@ macro MarketID int " ++ integer_to_list(MarketID) ++ " ;\
 macro Pubkey binary " ++ integer_to_list(size(base64:decode(Pubkey))) ++ " " ++ binary_to_list(Pubkey) ++ " ;\
 macro Period int " ++ integer_to_list(Period) ++ " ;\
 ",
-    {ok, Code3} = file:read_file("src/market.fs"),
+    {ok, Code3} = file:read_file("src/channels/market.fs"),
     Compiled = compiler_chalang:doit(<<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>),
     spk:new_bet(Compiled, Amount, [{oracles, OID}]).
 settle(SPD) ->
@@ -102,7 +102,7 @@ test2() ->
     {Trees5, _, _} = tx_pool:data(),
     %Accounts5 = trees:accounts(Trees5),
     MarketID = 405,
-   Bet = market_smart_contract("src/oracle_bet.fs", MarketID,true, 1000, 6000, keys:pubkey(),101,100,OID),
+   Bet = market_smart_contract("src/channels/oracle_bet.fs", MarketID,true, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK = spk:new(1, 2, 1, [Bet], 10000, 10000, 1, 0, Entropy),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK, Accounts5), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
@@ -155,7 +155,7 @@ test2() ->
     {100,1000003,[],0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
 
     %Now we will try betting in the opposite direction.
-    Bet2 = market_smart_contract("src/oracle_bet.fs", MarketID,false, 1000, 6000, keys:pubkey(),101,100,OID),
+    Bet2 = market_smart_contract("src/channels/oracle_bet.fs", MarketID,false, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK2 = spk:new(1, 2, 1, [Bet2], 10000, 10000, 1, 0, Entropy),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet, so we keep all 100.

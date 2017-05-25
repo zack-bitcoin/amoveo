@@ -30,9 +30,12 @@ macro diff ( A B -- D )
 ;
 %If the market maker publishes contradictory prices at the same time, with the same market id, he loses all the money in every bet. 
 macro contradictory_prices ( signed_price_declaration signed_price_declaration2 -- delay nonce amount ) 
-extract drop >r >r extract
-drop swap r> diff Period int 2 / < or_die %height equal %instead we should check if heights are within half a period of each other or less.
-     r> == not or_die %price unequal
+extract PM1 ! >r >r extract PM2 !
+swap r> diff Period int 2 / < or_die %height equal %instead we should check if heights are within half a period of each other or less.
+      
+     r> == not swap drop swap drop %or_die %price unequal
+     PM1 @ PM2 @ == not swap drop swap drop %portion_matched unequal
+     or or_die
      int 0 mil mil + int 0
 ;
 
