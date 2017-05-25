@@ -1,11 +1,21 @@
-Take a look at the dice smart contract for an idea of what state channel applications will look like.
-It is a slot machine where you gamble money at 50/50 odds.
-https://github.com/BumblebeeBat/plasmodial/blob/master/src/dice.erl
-https://github.com/BumblebeeBat/plasmodial/blob/master/src/networking/handler.erl#L104
-https://github.com/BumblebeeBat/plasmodial/blob/master/src/easy.erl#L96
-https://github.com/BumblebeeBat/plasmodial/blob/master/src/networking/internal_handler.erl#L55
+These are the instructions for building new contracts and markets using the embedded language.
 
-It is a little spread around now.
-We need a way to organize dapps so it is easy to upgrade a basic aeternity node to support whatever dapp you want.
+ far there is 2 production ready smart contracts I have made. a lightning payment contract, and the market contract. the market one has more tests.
+ here is the code that calls the market test:
 
-This is the language for writing smart contracts: https://github.com/BumblebeeBat/chalang
+https://github.com/zack-bitcoin/testnet/blob/master/src/market.erl
+
+this is the market smart contract
+
+https://github.com/zack-bitcoin/testnet/blob/master/src/market.fs
+
+this is a bet contract that is being traded in the market:
+
+https://github.com/zack-bitcoin/testnet/blob/master/src/oracle_bet.fs
+
+the lightning network contract is simpler. it is embedded as a string here:
+
+https://github.com/zack-bitcoin/testnet/blob/master/src/consensus/secrets.erl#L67
+
+
+You can see more example code, documentation for the compilers, and stuff like that in the chalang repository https://github.com/zack-bitcoin/chalang

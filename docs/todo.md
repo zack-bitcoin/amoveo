@@ -1,3 +1,6 @@
+download_blocks:get_blocks should download multiple blocks at a time.
+
+
 signatures and pubkeys need to be double base64 encoded for chalang verify_sig. This should be fixed.
 
 

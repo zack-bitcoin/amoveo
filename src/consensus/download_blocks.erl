@@ -71,15 +71,16 @@ sync(IP, Port, MyHeight) ->
 get_blocks(_, 0, _, _, L) -> L;
 get_blocks(H, _, _, _, L) when H < 1 -> L;
 get_blocks(Height, N, IP, Port, L) -> 
+    %should send multliple blocks at a time!!
     talk({block, Height}, IP, Port,
 	 fun(X) -> get_blocks(Height-1, N-1, IP, Port, [X|L])
 	 end).
     
 trade_blocks(_IP, _Port, L, 1) ->
-    io:fwrite("trade blocks"),
-    sync3(L);
+    io:fwrite("trade blocks");
+    %sync3(L);
     %sync3(gt_blocks(1, 100, IP, Port, [])++L);
-trade_blocks(IP, Port, [PrevBlock|L], Height) ->
+trade_blocks(IP, Port, PrevBlock, Height) ->
     %io:fwrite("trade blocks"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
@@ -91,7 +92,8 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
 	    talk({block, Height-1}, IP, Port,
 		 fun(NextBlock) ->
 			 NextHash = block:hash(NextBlock),
-			 trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1)
+			 block_absorber:doit(NextBlock),
+			 trade_blocks(IP, Port, NextBlock, Height - 1)
 		 end);
 	    %{ok, NextBlock} = talker:talk({block, Height-1}, IP, Port),
 	    %NextHash = block:hash(NextBlock),
@@ -102,7 +104,7 @@ trade_blocks(IP, Port, [PrevBlock|L], Height) ->
 	    case L2 of
 		error -> error;
 		_ ->
-		    sync3(L2++L),
+		    sync3(L2),
 		    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
 	    end
     end.

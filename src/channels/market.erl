@@ -1,5 +1,8 @@
 -module(market).
--export([test/0, test2/0]).
+-export([price_declaration_maker/4, market_smart_contract/9, 
+	 settle/1,no_publish/0,evidence/1,
+	 contradictory_prices/2,
+	 test/0]).
 
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
