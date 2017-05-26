@@ -9,22 +9,18 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(mine, go) ->
-    T = case free_constants:test_mode() of
-	    true ->
-		spawn(fun() ->
-			      block:mine_blocks(1, 5, 1)
-		      end),
-		60;
-	    false -> 
-		spawn(fun() ->
-			      block:mine_blocks(500, 10000)
-		      end),
-		5000
-	end,
-    spawn(fun() -> 
-		  timer:sleep(T),
-		  mine() end),
-    %spawn(fun() -> easy:sync() end),
+    case free_constants:test_mode() of
+	true ->
+	    spawn(fun() ->
+			  block:mine_blocks(1, 5, 1),
+			  mine()
+		  end);
+	false -> 
+	    spawn(fun() ->
+			  block:mine_blocks(1, 360000),
+			  mine()
+		  end)
+    end,
     {noreply, go};
 handle_cast(start, stop) ->
     Cores = block:guess_number_of_cpu_cores(),

@@ -43,4 +43,3 @@ drop int 3 case=
 drop int 0 case=
      int 8000 int 1 int 5000 ncet
 ;
-oracle_bet

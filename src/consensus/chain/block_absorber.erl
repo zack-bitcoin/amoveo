@@ -14,6 +14,8 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({doit, BP}, X) -> 
     absorb(BP),
+    
+    trees:garbage(),
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(_, _From, X) -> {reply, X, X}.
