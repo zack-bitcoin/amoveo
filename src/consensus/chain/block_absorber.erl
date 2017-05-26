@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 doit/1, save_helper/1]).
+	 doit/1, garbage/0, save_helper/1]).
 init(ok) -> 
     %save(block:genesis()),
     save(block:genesis_maker()),
@@ -12,14 +12,19 @@ start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
+handle_cast(garbage, X) -> 
+    trees:garbage(),
+    {noreply, X};
 handle_cast({doit, BP}, X) -> 
     absorb(BP),
     
-    trees:garbage(),
+    %trees:garbage(),
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(_, _From, X) -> {reply, X, X}.
-
+garbage() ->
+    gen_server:cast(?MODULE, garbage).
+    
 doit(X) ->
     %absorb(X).
     gen_server:cast(?MODULE, {doit, X}).

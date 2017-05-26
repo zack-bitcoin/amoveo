@@ -59,13 +59,11 @@ garbage(TreeID) ->
     trie:garbage(Keepers, TreeID).
     
 garbage() ->
-    io:fwrite("start garbage \n"),
     garbage(oracles),
     garbage(channels),
     garbage(accounts),
     garbage(existence),
-    garbage(governance),
-    io:fwrite("end garbage \n").
+    garbage(governance).
     
     %we also need to garbage orders, oracle_bets, shares, proof of burn.
     %proof of burn doesn't exist yet.

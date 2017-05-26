@@ -17,7 +17,7 @@ handle_cast(mine, go) ->
 		  end);
 	false -> 
 	    spawn(fun() ->
-			  block:mine_blocks(1, 360000),
+			  block:mine_blocks(1, 1000000),
 			  mine()
 		  end)
     end,

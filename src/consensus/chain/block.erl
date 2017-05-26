@@ -332,7 +332,8 @@ check2(BP) ->
 	    MRDGP = max(RD, GP),
 	    if 
 		Height > MRDGP ->
-		    ok;
+		    io:fwrite("check2 garbage "),
+		    block_absorber:garbage();
 		    %trees:garbage();
 		true -> ok
 	    end;
@@ -470,6 +471,7 @@ mine_blocks(A, B) ->
     Cores = guess_number_of_cpu_cores(),
     mine_blocks(A,B,Cores).
 mine_blocks(0, _, _) -> 
+    block_absorber:garbage(),
     %trees:garbage(), 
     success;
 mine_blocks(N, Times, Cores) -> 
@@ -501,8 +503,8 @@ mine_blocks(N, Times, Cores) ->
 		    false -> false;
 		    PBlock -> 
 			io:fwrite("FOUND A BLOCK !\n"),
-			block_absorber:doit(PBlock)
-			%trees:garbage()
+			block_absorber:doit(PBlock),
+			block_absorber:garbage()
 		end
 	end,
     spawn_many(Cores-1, F),
