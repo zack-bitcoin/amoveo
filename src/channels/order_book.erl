@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 	 add/1,match/0,price/0,remove/3,exposure/0,
-	test/0,test2/0]).
+	test/0]).
 %To make the smart contract simpler, all trades matched are all-or-nothing. So we need to be a little careful to make sure the market maker isn't holding risk.
 %The market maker needs to refuse to remove some trades from the order book, if those trades are needed to cover his risk against trades that have already been matched.
 %To keep track of how much exposure has been matched, the market maker needs to remember a number.
@@ -150,10 +150,6 @@ dump() ->
 
 
 test() ->
-    S = test1(),
-    S = test2(),
-    S.
-test1() ->
     %add(#order{price = 4000, amount = 1000, type = buy}),
     %add(#order{price = 5999, amount = 100, type = sell}),
     %add(#order{price = 6001, amount = 100, type = sell}),
@@ -164,8 +160,6 @@ test1() ->
     {_, [0]} = match(),
     {6000, 100, 1000} = {price(), exposure(), ratio()},
     %1000 means 1/10th because only 1/10th of the big bet got matched.
-    success.
-test2() ->
     dump(),
     add(#order{price = 5000, amount = 100, type = buy}),
     add(#order{price = 6000, amount = 100, type = buy}),

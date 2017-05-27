@@ -92,6 +92,7 @@ genesis_maker() ->
     Address = constants:master_address(),
     ID = 1,
     First = accounts:new(ID, Address, constants:initial_coins(), 0),
+    io:fwrite("gensis maker accounts write \n"),
     Accounts = accounts:write(0, First),
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
@@ -163,6 +164,7 @@ absorb_txs(PrevPlus, Height, Txs) ->
 		    case Acc of
 			empty ->
 			    NM = accounts:new(ID, Address, 0, Height),
+			    io:fwrite("absorb_txs accounts write \n"),
 			    Accounts2 = accounts:write(OldAccounts, NM),
 			    trees:update_accounts(Trees, Accounts2);
 			_ ->
@@ -330,7 +332,9 @@ check2(BP) ->
 	    MRDGP = max(RD, GP),
 	    if 
 		Height > MRDGP ->
-		    trees:garbage();
+		    io:fwrite("check2 garbage "),
+		    block_absorber:garbage();
+		    %trees:garbage();
 		true -> ok
 	    end;
        _ -> ok
@@ -466,7 +470,10 @@ mine_test() ->
 mine_blocks(A, B) -> 
     Cores = guess_number_of_cpu_cores(),
     mine_blocks(A,B,Cores).
-mine_blocks(0, _, _) -> success;
+mine_blocks(0, _, _) -> 
+    block_absorber:garbage(),
+    %trees:garbage(), 
+    success;
 mine_blocks(N, Times, Cores) -> 
     PH = top:doit(),
     {_,_,Txs} = tx_pool:data(),
@@ -496,7 +503,8 @@ mine_blocks(N, Times, Cores) ->
 		    false -> false;
 		    PBlock -> 
 			io:fwrite("FOUND A BLOCK !\n"),
-			block_absorber:doit(PBlock)
+			block_absorber:doit(PBlock),
+			block_absorber:garbage()
 		end
 	end,
     spawn_many(Cores-1, F),
