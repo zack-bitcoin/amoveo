@@ -1,3 +1,7 @@
+block.erl 304 it doesn't look like a block_plus.
+
+
+
 We need to test channel_solo_close and channel_slash and channel_timeout from easy.
 
 

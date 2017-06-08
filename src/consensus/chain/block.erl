@@ -267,6 +267,7 @@ retarget2(Hash, N, L) ->
     H = B#block.prev_hash,
     retarget2(H, N-1, [T|L]).
 check1(BP) ->    
+    true = height(BP) < easy:height() + 2,
     BH = hash(BP),
     GH = hash(genesis()),
     if
@@ -303,7 +304,6 @@ check2(BP) ->
     ParentPlus = read(PH),
     Trees0 = ParentPlus#block_plus.trees,
     Difficulty = next_difficulty(ParentPlus),
-    true = is_record(ParentPlus, block_plus),
     Prev = block(ParentPlus),
     Governance = trees:governance(Trees0),
     CL = governance:get_value(comment_limit, Governance),
