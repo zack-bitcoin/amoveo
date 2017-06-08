@@ -267,7 +267,6 @@ retarget2(Hash, N, L) ->
     H = B#block.prev_hash,
     retarget2(H, N-1, [T|L]).
 check1(BP) ->    
-    true = height(BP) < easy:height() + 2,
     BH = hash(BP),
     GH = hash(genesis()),
     if
