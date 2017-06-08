@@ -4,8 +4,8 @@
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
 	 doit/1, garbage/0, save_helper/1]).
 init(ok) -> 
-    %save(block:genesis()),
-    save(block:genesis_maker()),
+    save(block:genesis()),
+    %save(block:genesis_maker()),
     %block:make_files(),
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
