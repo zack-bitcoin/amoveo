@@ -267,6 +267,7 @@ retarget2(Hash, N, L) ->
     H = B#block.prev_hash,
     retarget2(H, N-1, [T|L]).
 check1(BP) ->    
+    Block = block(BP),
     true = Block#block.magic == constants:magic(),
     BH = hash(BP),
     GH = hash(genesis()),
@@ -274,7 +275,6 @@ check1(BP) ->
 	BH == GH ->
 	    {BH, 0};
 	true ->    
-	    Block = block(BP),
 	    Difficulty = Block#block.difficulty,
 	    true = Difficulty >= constants:initial_difficulty(),
 	    true = check_pow(BP),
