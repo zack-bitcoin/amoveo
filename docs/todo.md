@@ -1,5 +1,7 @@
-block.erl 304 it doesn't look like a block_plus.
+download_blocks:get_blocks should download multiple blocks at a time.
 
+
+signatures and pubkeys need to be double base64 encoded for chalang verify_sig. This should be fixed.
 
 
 We need to test channel_solo_close and channel_slash and channel_timeout from easy.
@@ -78,3 +80,14 @@ each tx with a fee needs a to reference a recent hash. Everyone needs to be ince
 
 Make sure that if something was garbage collected from a merkel tree, and we try accessing the thing, it gives a different message than trying to access something that doesn't exist. Make sure we don't assume a block is invalid just because we don't have the proof of it's validity.
 
+
+The current market design chargest a 1/10000 fee on every trade. This is to protect from rounding errors.
+There is a more elegant way to stop rounding errors.
+Set a certain maximum trade size. All orders must be measured in increments of the same size
+A limitation of channels is that their output amounts are measured in integers from 0 to 10000.
+Every 1 in G of the possible 10000 outputs can be valid.
+A1 = amount of money getting matched from our bet,
+A2 = amount of money in biggest possible bet,
+B = A2 div 10000,
+0 == A1 rem B
+Making A1 rem B == 0 limits the possible output values of the contract, which slightly reduces liquidity. Being able to reduce the fee to zero is worth this small cost.

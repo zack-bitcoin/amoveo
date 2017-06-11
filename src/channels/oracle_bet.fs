@@ -1,10 +1,6 @@
 %use `market:test().` to run this code
 
-%This makes case-statement-like syntax possible.
-macro ncet nil print crash else then ;
-macro case= == if drop drop ;
-
-macro oracle_bet ( ProofStructure -- exit )
+macro bet ( ProofStructure -- delay nonce amount )
 %first unwrap the oracle data from the proof structure.
 car drop
 car swap drop
@@ -24,22 +20,27 @@ int 1 split swap drop
 %convert from 8 bit to 32 bit.
 binary 3 AAAA swap  ++
 
-print
 
 %1 means that the oracle returned true
-int 1 case=
+int 1 == if drop drop 
      %delay, nonce, amount
-     int 0 int 3 int 10000 ncet
+     int 0 int 3 bet_amount else
 
 %2 is false
-drop int 2 case=
-     int 0 int 3 int 0 ncet
+drop int 2 == if drop drop 
+     int 0 int 3 int 10000 bet_amount - else
 
 % 3 means that the oracle decided that the question was a bad question to ask that does not have a clear binary answer.
-drop int 3 case=
-     int 0 int 3 int 5000 ncet
+drop int 3 == if drop drop 
+     int 0 int 3 int 10000 MaxPrice - else
 
 %0 means the oracle is still unresolved
-drop int 0 case=
-     int 8000 int 1 int 5000 ncet
+drop int 0 == if drop drop 
+     int 1 int 1 int 10000 MaxPrice - else
+
+then then then then
 ;
+
+macro doit
+bet nil crash
+;		 

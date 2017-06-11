@@ -7,7 +7,7 @@
 	 block_to_header/1,
 	 median_last/2, trees/1, trees_hash/1,
 	 guess_number_of_cpu_cores/0, difficulty/1,
-	 txs/1, genesis_maker/0, new_id/1
+	 txs/1, genesis_maker/0, new_id/1, read_many/2
 	]).
 
 -record(block, {height, prev_hash, txs, trees, 
@@ -122,7 +122,7 @@ genesis() ->
                    <<86,31,143,142,73,28,203,208,227,116,25,154>>,
                    1,0,4080,<<>>,1},
             {pow,<<>>,4080,44358461744572027408730},
-            {trees,1,0,0,0,0,38},
+            {trees,1,0,0,0,0,72},
             0,
             {prev_hashes}}.
 block_reward(Trees, Height, ID) -> 
@@ -393,17 +393,34 @@ lg(X) ->
     lgh(X, 0).
 lgh(1, X) -> X;
 lgh(N, X) -> lgh(N div 2, X+1).
+read_many(N, Many) ->
+    io:fwrite(packer:pack({read_many, N, Many})),
+    X = read_int(N),
+    PH = prev_hash(X),
+    [X|read_many2(PH, Many)].
+read_many2(H, 1) ->
+    read(H);
+read_many2(H, M) ->
+    X = read(H),
+    case X of
+	empty -> [];
+	_ ->
+	    PH = prev_hash(X),
+	    [read(H)|read_many2(PH, M-1)]
+    end.
 read_int(N) ->%currently O(n), needs to be improved to O(lg(n))
     true = N >= 0,
-    read_int(N, top:doit()).
+    read_int(N,top:doit()).
 read_int(N, BH) ->
     Block = read(BH),
     M = height(Block),
     D = M-N,
     if 
-	D<0 -> io:fwrite("D is "),
-	       io:fwrite(integer_to_list(D)),
-	       D = 5;
+	D<0 -> 
+	    empty;
+	    %io:fwrite("D is "),
+	       %io:fwrite(integer_to_list(D)),
+	       %D = 5;
 	D == 0 -> Block;
 	true ->
 	    read_int(N, prev_hash(lg(D), Block))
@@ -474,6 +491,7 @@ mine_blocks(0, _, _) ->
     %trees:garbage(), 
     success;
 mine_blocks(N, Times, Cores) -> 
+    io:fwrite("mine blocks\n"),
     PH = top:doit(),
     {_,_,Txs} = tx_pool:data(),
     ID = case {keys:pubkey(), keys:id()} of
@@ -508,6 +526,7 @@ mine_blocks(N, Times, Cores) ->
 	end,
     spawn_many(Cores-1, F),
     F(),
+    timer:sleep(100),
     mine_blocks(N-1, Times, Cores).
     
 spawn_many(N, _) when N < 1 -> ok;
@@ -515,15 +534,19 @@ spawn_many(N, F) ->
     spawn(F),
     spawn_many(N-1, F).
 guess_number_of_cpu_cores() ->    
-    X = erlang:system_info(logical_processors_available),
-    Y = if
-        X == unknown ->
-	    % Happens on Mac OS X.
-            erlang:system_info(schedulers);
-	is_integer(X) -> 
-	    %ubuntu
-	    X;
-	true -> io:fwrite("number of CPU unknown, only using 1"), 1
-	end,
-    min(Y, free_constants:cores_to_mine()).
+    case free_constants:test_mode() of
+	true -> 1;
+	false ->
+	    X = erlang:system_info(logical_processors_available),
+	    Y = if
+		    X == unknown ->
+						% Happens on Mac OS X.
+			erlang:system_info(schedulers);
+		    is_integer(X) -> 
+						%ubuntu
+			X;
+		    true -> io:fwrite("number of CPU unknown, only using 1"), 1
+		end,
+	    min(Y, free_constants:cores_to_mine())
+    end.
 	

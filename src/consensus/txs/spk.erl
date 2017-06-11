@@ -13,7 +13,7 @@
 %We want channel that are using the same contract to be able to calculate a contract hash that is the same. This makes it easier to tell if 2 channels are betting on the same thing.
 %Each contract should output an amount between 0 and constants:channel_granularity(), which is the portion of the money that goes to one of the participants. Which participant it signifies depends on what value is stored in a flag.
 %So each contract needs a value saying how much of the money is locked into that contract.
--record(spk, {acc1, acc2, entropy, 
+-record(spk, {acc1,acc2, entropy, 
 	      bets, space_gas, time_gas, 
 	      cid, amount = 0, nonce = 0,
 	      delay = 0

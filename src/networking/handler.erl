@@ -29,6 +29,8 @@ doit({give_block, SignedBlock}) ->
     true = block:height(SignedBlock) < easy:height() + 2,
     block_absorber:doit(SignedBlock),
     {ok, 0};
+doit({block, N, Many}) -> 
+    {ok, block:read_many(N, Many)};
 doit({block, N}) -> 
     {ok, block:read_int(N)};
 doit({header, N}) -> 

@@ -412,12 +412,13 @@ balance() ->
 	    -1 -> 0;
 	    _ -> integer_balance()
 	end,
-    pretty_display(I),
+    %pretty_display(I),
     I.
 
 pretty_display(I) ->
     F = I / constants:token_decimals(),
-    io_lib:format("~.8f", [F]).
+    io:fwrite(hd(io_lib:format("~.8f", [F]))),
+    io:fwrite("\n").
 mempool() ->
     {_, _, Txs} = tx_pool:data(),
     Txs.
@@ -494,7 +495,12 @@ keys_id_update(ID) ->
 keys_new(Password) ->
     keys:new(Password),
     0.
-    
+create_binary_market(OracleID) -> 
+    %Generate new market ID.
+    %set up an order book.
+    %turn on the api for betting.
+    MarketID = OracleID,
+    MarketID.
     
 
 %mine() ->

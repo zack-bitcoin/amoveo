@@ -9,7 +9,7 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       tx_pool, peers, tx_pool_feeder, 
 	       mine, channel_manager, channel_feeder,
 	       request_frequency, sync, secrets,
-	       arbitrage]).
+	       arbitrage, order_book]).
 
 child_maker([]) -> [];
 child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].

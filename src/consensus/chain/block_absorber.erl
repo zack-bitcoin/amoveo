@@ -17,7 +17,6 @@ handle_cast(garbage, X) ->
     {noreply, X};
 handle_cast({doit, BP}, X) -> 
     absorb(BP),
-    
     %trees:garbage(),
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
@@ -27,7 +26,9 @@ garbage() ->
     
 doit(X) ->
     %absorb(X).
-    gen_server:cast(?MODULE, {doit, X}).
+    %spawn(fun() ->
+		  gen_server:cast(?MODULE, {doit, X}).
+	%  end).
     
 absorb(BP) ->
     %BH = block:hash(BP),

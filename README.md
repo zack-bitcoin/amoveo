@@ -42,7 +42,7 @@ mine:stop().
 ```
 to check if you are currently mining:
 ```
-mine:is_on().
+mine:status().
 ```
 
 #### Spend
