@@ -50,12 +50,21 @@ root_hash(Trees) ->
 			>>).
 keepers(_, _, 0) -> [];
 keepers(TreeID, Hash, Many) ->
+    %io:fwrite(packer:pack({keepers_hash, Hash})),
     BP = block:read(Hash),
     Trees = block:trees(BP),
+    Height = block:height(BP),
     Root = trees:TreeID(Trees),
-    [Root|keepers(TreeID, block:prev_hash(BP), Many-1)].
+    T = case Height of
+	0 -> [];
+	N ->
+	    keepers(TreeID, block:prev_hash(BP), Many-1)
+    end,
+    [Root|T].
 garbage(TreeID) ->
-    Keepers=keepers(TreeID, top:doit(), free_constants:revert_depth()),
+    Top = top:doit(),
+    RD = free_constants:revert_depth(),
+    Keepers = keepers(TreeID, Top, RD),
     trie:garbage(Keepers, TreeID).
     
 garbage() ->

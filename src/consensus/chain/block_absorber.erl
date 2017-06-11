@@ -17,7 +17,6 @@ handle_cast(garbage, X) ->
     {noreply, X};
 handle_cast({doit, BP}, X) -> 
     absorb(BP),
-    
     %trees:garbage(),
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
@@ -32,10 +31,11 @@ doit(X) ->
 absorb(BP) ->
     %BH = block:hash(BP),
     BH = block:hash(BP),
+    {BH, _} = block:check1(BP),
     case block_hashes:check(BH) of
 	true -> ok;%If we have seen this block before, then don't process it again.
 	false ->
-	    {BH, _} = block:check1(BP),
+	    %{BH, _} = block:check1(BP),
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 	    BP2 = block:check2(BP),
 	    io:fwrite("absorb block: "++

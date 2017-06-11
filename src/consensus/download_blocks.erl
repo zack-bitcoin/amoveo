@@ -39,7 +39,7 @@ sync(IP, Port, MyHeight) ->
 		     {ok, TopBlock, Height}  ->
 			 %io:fwrite("got topblock\n"),
 			 DBB = free_constants:download_blocks_batch(),
-			 HH = MyHeight + 100,
+			 HH = MyHeight + DBB,
 			 if
 			     HH < Height ->
 				 %{ok, Block} = talker:talk({block, HH}, IP, Port),
@@ -49,12 +49,14 @@ sync(IP, Port, MyHeight) ->
 					      %io:fwrite("got block is "),
 					      %io:fwrite(packer:pack(Y)),
 					      io:fwrite("downloading blocks\n"),
-					      trade_blocks(IP, Port, [Y], HH)
+					      trade_blocks(IP, Port, Y, HH)
+					      %trade_blocks(IP, Port, [Y], HH)
 						    end);
 				 %trade_blocks(IP, Port, [Block], HH);
 			     true ->
 				 io:fwrite("downloading blocks\n"),
-				 trade_blocks(IP, Port, [TopBlock], Height),
+				 %trade_blocks(IP, Port, [TopBlock], Height),
+				 trade_blocks(IP, Port, TopBlock, Height),
 				 get_txs(IP, Port)
 				     
 			 end,
@@ -68,21 +70,30 @@ sync(IP, Port, MyHeight) ->
 
     %peers:update_score(IP, Port, Score).
     %raise their ranking.
-get_blocks(_, 0, _, _, L) -> L;
-get_blocks(H, _, _, _, L) when H < 1 -> L;
-get_blocks(Height, N, IP, Port, L) -> 
-    %should send multliple blocks at a time!!
-    talk({block, Height}, IP, Port,
-	 fun(X) -> get_blocks(Height-1, N-1, IP, Port, [X|L])
-	 end).
+get_blocks(Height, N, IP, Port, _) ->
+    %heigh is the heighest we download. Height-n is lowest.
     
-trade_blocks(_IP, _Port, L, 1) ->
+    talk({block, max(Height-N, 0), N}, IP, Port, 
+	 fun(X) -> X end).
+
+%get_blocks(_, 0, _, _, L) -> L;
+%get_blocks(H, _, _, _, L) when H < 1 -> L;
+%get_blocks(Height, N, IP, Port, L) -> 
+    %should send multliple blocks at a time!!
+%    talk({block, Height}, IP, Port,
+%	 fun(X) -> get_blocks(Height-1, N-1, IP, Port, [X|L])
+%	 end).
+    
+trade_blocks(_IP, _Port, _L, 1) ->
     io:fwrite("trade blocks");
     %sync3(L);
     %sync3(gt_blocks(1, 100, IP, Port, [])++L);
 trade_blocks(IP, Port, PrevBlock, Height) ->
     %io:fwrite("trade blocks"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
+    io:fwrite("prev block is "),
+    io:fwrite(packer:pack(PrevBlock)),
+    io:fwrite("\n"),
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
     {PrevHash, NextHash} = block:check1(PrevBlock),
@@ -93,14 +104,17 @@ trade_blocks(IP, Port, PrevBlock, Height) ->
 		 fun(NextBlock) ->
 			 NextHash = block:hash(NextBlock),
 			 block_absorber:doit(NextBlock),
-			 trade_blocks(IP, Port, NextBlock, Height - 1)
+			 trade_blocks(IP, Port, NextBlock, Height - 1),
+			 block_absorber:doit(PrevBlock)
 		 end);
 	    %{ok, NextBlock} = talker:talk({block, Height-1}, IP, Port),
 	    %NextHash = block:hash(NextBlock),
 	    %trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);
 	_ -> 
 						%download 100 blocks earlier, to handle forks.
+	    io:fwrite("matched!\n"),
 	    L2 = get_blocks(Height-1, free_constants:fork_tolerance(), IP, Port, []),
+	    io:fwrite(packer:pack({got_blocks, L2})),
 	    case L2 of
 		error -> error;
 		_ ->
@@ -122,7 +136,7 @@ send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
     end.
 send_blocks2(_, _, []) -> ok;
 send_blocks2(IP, Port, [Block|T]) -> 
-    %io:fwrite("give block !!!!!!!"),
+    %io:fwrite("give block !!!!!!!\n"),
     talker:talk({give_block, Block}, IP, Port),
     send_blocks2(IP, Port, T).
     
@@ -136,7 +150,7 @@ absorb_txs([H|T]) ->
     absorb_txs(T).
 talk(CMD, IP, Port, F) ->
     %io:fwrite("start talk\n"),
-    talk(CMD, IP, Port, F, 5).
+    talk(CMD, IP, Port, F, 1).
 talk(_, _, _, _, 0) -> 
     io:fwrite("talk error \n"),
     error;
