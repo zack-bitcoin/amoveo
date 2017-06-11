@@ -26,7 +26,9 @@ garbage() ->
     
 doit(X) ->
     %absorb(X).
-    gen_server:cast(?MODULE, {doit, X}).
+    %spawn(fun() ->
+		  gen_server:cast(?MODULE, {doit, X}).
+	%  end).
     
 absorb(BP) ->
     %BH = block:hash(BP),

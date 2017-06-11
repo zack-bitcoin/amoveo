@@ -2,8 +2,7 @@
 %These constants can be different on every node in the network. You can adjust these variables to suit your own situation.
 -compile(export_all).
 
-test_mode() ->
-    %false.
+test_mode() -> %false.
     true.
 
 trie_size() ->

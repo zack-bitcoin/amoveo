@@ -31,7 +31,7 @@ sync(IP, Port, MyHeight) ->
     %S = erlang:timestamp(),
     talk({top}, IP, Port, 
 	 fun(X) ->
-		 io:fwrite("top returned"),
+		 %io:fwrite("top returned"),
 		 case X of
 		     {error, failed_connect} -> 
 			 io:fwrite("failed connect"),
@@ -46,17 +46,11 @@ sync(IP, Port, MyHeight) ->
 				 %io:fwrite("HH < Height\n"),
 				 talk({block, HH}, IP, Port,
 				      fun(Y) -> 
-					      %io:fwrite("got block is "),
-					      %io:fwrite(packer:pack(Y)),
-					      io:fwrite("downloading blocks\n"),
-					      trade_blocks(IP, Port, Y, HH)
-					      %trade_blocks(IP, Port, [Y], HH)
+					      trade_blocks(IP, Port, [Y], HH)
 						    end);
-				 %trade_blocks(IP, Port, [Block], HH);
 			     true ->
-				 io:fwrite("downloading blocks\n"),
-				 %trade_blocks(IP, Port, [TopBlock], Height),
-				 trade_blocks(IP, Port, TopBlock, Height),
+				 io:fwrite("downloading blocks 2\n"),
+				 trade_blocks(IP, Port, [TopBlock], Height),
 				 get_txs(IP, Port)
 				     
 			 end,
@@ -84,16 +78,11 @@ get_blocks(Height, N, IP, Port, _) ->
 %	 fun(X) -> get_blocks(Height-1, N-1, IP, Port, [X|L])
 %	 end).
     
-trade_blocks(_IP, _Port, _L, 1) ->
-    io:fwrite("trade blocks");
-    %sync3(L);
-    %sync3(gt_blocks(1, 100, IP, Port, [])++L);
-trade_blocks(IP, Port, PrevBlock, Height) ->
+trade_blocks(_IP, _Port, L, 1) ->
+    sync3(L);
+trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
     %io:fwrite("trade blocks"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
-    io:fwrite("prev block is "),
-    io:fwrite(packer:pack(PrevBlock)),
-    io:fwrite("\n"),
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
     {PrevHash, NextHash} = block:check1(PrevBlock),
@@ -103,27 +92,13 @@ trade_blocks(IP, Port, PrevBlock, Height) ->
 	    talk({block, Height-1}, IP, Port,
 		 fun(NextBlock) ->
 			 NextHash = block:hash(NextBlock),
-			 block_absorber:doit(NextBlock),
-			 trade_blocks(IP, Port, NextBlock, Height - 1),
-			 block_absorber:doit(PrevBlock)
+			 trade_blocks(IP, Port, [NextBlock|[PrevBlock|PBT]], Height - 1)
 		 end);
-	    %{ok, NextBlock} = talker:talk({block, Height-1}, IP, Port),
-	    %NextHash = block:hash(NextBlock),
-	    %trade_blocks(IP, Port, [NextBlock|[PrevBlock|L]], Height - 1);
 	_ -> 
-						%download 100 blocks earlier, to handle forks.
-	    io:fwrite("matched!\n"),
-	    L2 = get_blocks(Height-1, free_constants:fork_tolerance(), IP, Port, []),
-	    io:fwrite(packer:pack({got_blocks, L2})),
-	    case L2 of
-		error -> error;
-		_ ->
-		    sync3(L2),
-		    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
-	    end
+	    sync3(PBT),
+	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
     end.
 send_blocks(IP, Port, T, T, L, _N) -> 
-    %io:fwrite("finished sending blocks"),
     send_blocks2(IP, Port, L);
 send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
     if
@@ -138,6 +113,7 @@ send_blocks2(_, _, []) -> ok;
 send_blocks2(IP, Port, [Block|T]) -> 
     %io:fwrite("give block !!!!!!!\n"),
     talker:talk({give_block, Block}, IP, Port),
+    timer:sleep(20),
     send_blocks2(IP, Port, T).
     
 sync3([]) -> ok;
