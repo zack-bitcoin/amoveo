@@ -24,8 +24,8 @@ hash_size() -> 12.
 finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> 96.
 master_pub() -> 
-%<<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>.
-<<"BCkmxfzFtWkyQQdfPoWnEOyqlmTFOYpjt0zNWgOFLS4idgj0osxLvwiyPpU5WIb6romKU/pif9dHcajQb0e3zs8=">>.
+<<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>.
+%<<"BCkmxfzFtWkyQQdfPoWnEOyqlmTFOYpjt0zNWgOFLS4idgj0osxLvwiyPpU5WIb6romKU/pif9dHcajQb0e3zs8=">>.
 master_address() ->
     testnet_sign:pubkey2address(master_pub()).
 max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
