@@ -2,9 +2,7 @@
 %These constants can be different on every node in the network. You can adjust these variables to suit your own situation.
 -compile(export_all).
 
-test_mode() ->
-    false.
-    %true.
+test_mode() -> false.
 trie_size() ->
     10000. %we can adjust this many accounts and channels in all the blocks in free_constants:revert_depth()
 revert_depth() ->
