@@ -147,7 +147,7 @@ peers() ->
     [].%[{IP, Port}| ...]
 comment_limit() -> %When a miner mines a block, they can set this many bytes to whatever they want.
     140.
-magic() -> 2.
+magic() -> 3.
 magic_bits() -> 16.%so we can update it more than 60000 times.
 server_ip() -> {46,101,103,165}.
 server_port() -> 8080.
