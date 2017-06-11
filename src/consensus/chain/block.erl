@@ -267,6 +267,7 @@ retarget2(Hash, N, L) ->
     H = B#block.prev_hash,
     retarget2(H, N-1, [T|L]).
 check1(BP) ->    
+    true = Block#block.magic == constants:magic(),
     BH = hash(BP),
     GH = hash(genesis()),
     if
@@ -297,7 +298,6 @@ check2(BP) ->
 
     %check2 assumes that the parent is in the database already.
     Block = block(BP),
-    true = Block#block.magic == constants:magic(),
     Difficulty = Block#block.difficulty,
     PH = Block#block.prev_hash,
     ParentPlus = read(PH),
