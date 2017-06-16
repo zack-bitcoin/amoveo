@@ -226,16 +226,10 @@ mine2(Block, Times) ->
     Pow.
 next_difficulty(ParentPlus) ->
     Trees = ParentPlus#block_plus.trees,
-    io:fwrite("next difficulty trees "),
-    io:fwrite(packer:pack(Trees)),
-    io:fwrite("\n"),
     Parent = block(ParentPlus),
     Height = Parent#block.height + 1,
     RF = constants:retarget_frequency(),
     Governance = trees:governance(Trees),
-    io:fwrite("next difficulty governance "),
-    io:fwrite(integer_to_list(Governance)),
-    io:fwrite("\n"),
     RP = governance:get_value(retarget_period, Governance),
     X = Height rem RP,
     OldDiff = Parent#block.difficulty,
