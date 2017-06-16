@@ -49,7 +49,7 @@ init([]) ->
 	     tree_child(governance, 8, 4)
 	    ],
     spawn(fun() ->
-		  timer:sleep(3000),
+		  timer:sleep(1000),
 		  block:genesis_maker()
 	  end),
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
