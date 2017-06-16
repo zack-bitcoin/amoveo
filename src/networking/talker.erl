@@ -7,16 +7,13 @@ peer(IP, Port) ->
     T = inet_parse:ntoa(IP),
     Z = case L of    
 	    4 -> T;
-	    8 -> "[" ++ T ++ "]"
+	    _ -> "[" ++ T ++ "]"
 	end,
     "http://" ++ Z ++ ":" ++ integer_to_list(Port) ++ "/".
 
 local_talk(Msg) ->
     Peer = "http://127.0.0.1:3011/",
     talk(Msg, Peer).
-%talk(Msg) ->
-%    Peer = "http://127.0.0.1:3010/",
-%    talk(Msg, Peer).
 talk(Msg, Peer) ->
     talk_helper(Msg, Peer, 5).
 talk_helper(_, _, 0) -> 
