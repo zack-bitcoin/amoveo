@@ -56,12 +56,12 @@ set_cid(IP, Port, CID) ->
     gen_server:cast(?MODULE, {set_cid, IP, Port, CID}).
 key(IP, Port) -> {IP, Port}.
 all() -> gen_server:call(?MODULE, all).
-add([]) -> ok;
-add([[IP, Port]|T]) ->
+add([[IP, Port]|T]) when ((size(IP) == 4) or (size(IP) == 16)) ->
     add(IP, Port),
     add(T);
 add([{IP, Port}|T]) -> 
-    add(IP, Port),
+    add([[IP, Port]|T]);
+add([_|T]) -> 
     add(T).
 add(IP, Port) -> 
     NIP = if

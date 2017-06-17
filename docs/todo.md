@@ -1,3 +1,8 @@
+
+
+There should be a way to start the node in lite-mode. So that it only downloads headers, not full blocks.
+
+
 download_blocks:get_blocks should download multiple blocks at a time.
 
 

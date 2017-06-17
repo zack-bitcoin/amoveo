@@ -5,11 +5,11 @@ peer(IP, Port) ->
     %{ok, Address} = inet_parse:address(IP),
     L = size(IP),
     T = inet_parse:ntoa(IP),
-    Z = case L of    
-	    4 -> T;
-	    8 -> "[" ++ T ++ "]"
-	end,
-    "http://" ++ Z ++ ":" ++ integer_to_list(Port) ++ "/".
+    %Z = case L of    
+	%    4 -> T;
+	%    8 -> "[" ++ T ++ "]"
+	%end,
+    "http://" ++ T ++ ":" ++ integer_to_list(Port) ++ "/".
 
 local_talk(Msg) ->
     Peer = "http://127.0.0.1:3011/",
