@@ -24,7 +24,9 @@ doit(Tx, Trees, NewHeight) ->
     Accounts2 = accounts:write(Accounts, Nacc),
     NewAccounts = accounts:write(Accounts2, Facc2),
     MyAddress = keys:address(),
+    KID = keys:id(),
     if
+	KID < 1 -> keys:update_id(Tx#ca.to);
 	(Tx#ca.address) == MyAddress ->
 	    {_, MyAccount, _} = accounts:get(keys:id(), Accounts),
 	    case MyAccount of

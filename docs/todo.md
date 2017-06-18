@@ -1,3 +1,11 @@
+we can have slot machines very soon. I wrote one before, but after updating other parts of the code it stopped working.
+javascript light wallets will take much longer. Besides re-writing the VM, we also need code for verifying merkle proofs of the consensus state tree, and we need to rewrite the code from /src/channels for managing the channel state.
+
+[7:17]
+The slot machine is a much smaller task than the javascript light wallet.
+The javascript light wallet is made up of several smaller tasks that will probably be done by multiple people.
+
+
 download_blocks:get_blocks should download multiple blocks at a time.
 
 

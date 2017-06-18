@@ -404,7 +404,6 @@ account(ID) ->
 	    accounts:new(-1,0,0,0);
 	{_, A, _} -> A
     end.
-
 account() -> account(keys:id()).
 integer_balance() -> accounts:balance(account()).
 balance() ->

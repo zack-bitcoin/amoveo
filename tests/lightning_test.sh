@@ -7,7 +7,7 @@
 #launch `sh dev1_mode.sh` in one, `sh dev2_mode.sh` in the second, and `sh dev3_mode.sh` in the 3rd.
 #Then run this script from a fourth terminal.
 
-#It lightning spends 4 coins one way, then spends the same 4 back.
+#It lightning spends 4 tokens one way, then spends the same 4 back.
 
 curl -i -d '["add_peer", [127,0,0,1], 3030]' http://localhost:3011
 curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
