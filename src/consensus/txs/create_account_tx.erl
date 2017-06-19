@@ -23,21 +23,25 @@ doit(Tx, Trees, NewHeight) ->
     Nacc = accounts:new(To, Tx#ca.address, A, NewHeight),
     Accounts2 = accounts:write(Accounts, Nacc),
     NewAccounts = accounts:write(Accounts2, Facc2),
+    KID = keys:id(),
     MyAddress = keys:address(),
     if
 	(Tx#ca.address) == MyAddress ->
-	    {_, MyAccount, _} = accounts:get(keys:id(), Accounts),
-	    case MyAccount of
-		empty -> keys:update_id(Tx#ca.to);
-		MA ->
-		    CurrentBal = accounts:balance(MA),
-		    if 
-			(A > CurrentBal) ->
-			    keys:update_id(Tx#ca.to);
-			true -> ok
+	    if
+		KID < 1 -> keys:update_id(Tx#ca.to);
+		true ->
+		    {_, MyAccount, _} = accounts:get(keys:id(), Accounts),
+		    case MyAccount of
+			empty -> keys:update_id(Tx#ca.to);
+			MA ->
+			    CurrentBal = accounts:balance(MA),
+			    if 
+				(A > CurrentBal) ->
+				    keys:update_id(Tx#ca.to);
+				true -> ok
+			    end
 		    end
-	    end;
-
+		end;
 	true -> ok
     end,
     trees:update_accounts(Trees, NewAccounts).

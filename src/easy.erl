@@ -127,7 +127,16 @@ find_id(Name, N, Tree) ->
 	_ -> find_id(Name, N+1, Tree)
     end.
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
-    undefined = peers:cid(peers:read(IP, Port)),
+    PR = peers:read(IP, Port),
+    if
+	<<"none">> == PR -> ok;
+	true ->
+	    PC = peers:cid(PR),
+	    if 
+		undefined == PC -> ok;
+		true -> PR = PC
+	    end
+    end,
     Acc1 = keys:id(),
     {ok, Acc2} = talker:talk({id}, IP, Port),
     Entropy = channel_feeder:entropy([Acc1, Acc2]) + 1,
@@ -140,7 +149,7 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     Msg = {new_channel, STx, SSPK},
     {ok, SSTx, S2SPK} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(SSTx),
-    peers:set_cid(IP, Port, CID),
+    %peers:set_cid(IP, Port, CID),
     channel_feeder:new_channel(Tx, S2SPK, Accounts),
     ok.
 pull_channel_state() ->
@@ -323,6 +332,10 @@ new_question_oracle(Start, Question, DiffOracleID)->
     {Trees, _, _} = tx_pool:data(),
     Oracles = trees:oracles(Trees),
     ID = find_id(oracles, Oracles),
+    new_question_oracle(Start, Question, DiffOracleID, ID).
+new_question_oracle(Start, Question, DiffOracleID, ID)->
+    {Trees, _, _} = tx_pool:data(),
+    Oracles = trees:oracles(Trees),
     {_, Recent, _} = oracles:get(DiffOracleID, Oracles),
     Difficulty = oracles:difficulty(Recent) div 2,
     Governance = trees:governance(Trees),
