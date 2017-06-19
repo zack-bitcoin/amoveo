@@ -53,7 +53,13 @@ sleep 1
 #curl -i -d '["new_market", 2]' http:localhost:3031
 
 
-#The three nodes should all make bets in the market.
+#The two nodes should make bets in the market. some but not all of the bets should be matched.
+
+#close the oracle.
+
+#winners collect winnings.
+
+#unmatched trades should be undone.
 
 
 
