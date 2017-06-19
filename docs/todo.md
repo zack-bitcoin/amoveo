@@ -1,4 +1,5 @@
 Prices listed are minimums. If the code is high quality, you can get much more.
+(Bounty program hasn't started yet. Talk to Zack before starting a bounty)
 
 off-chain markets. $2000
 We need an integration test where one node is a market, and the other two nodes are traders. 
