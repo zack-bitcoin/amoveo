@@ -61,6 +61,9 @@ doit({top}) ->
     {ok, Top, Height};
 doit({test}) -> 
     {test_response};
+doit({test, N}) ->
+    M = 8 * N,
+    {test_response, <<0:M>>};
 doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
 doit({new_channel, STx, SSPK}) ->

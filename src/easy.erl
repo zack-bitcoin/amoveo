@@ -494,6 +494,9 @@ new_pubkey(Password) ->
     keys:new(Password).
 test() ->
     {test_response}.
+test(N) ->
+    M = 8 * N,
+    {test_response, <<0:M>>}.
 channel_keys() ->
     channel_manager:keys().
 keys_status() ->
