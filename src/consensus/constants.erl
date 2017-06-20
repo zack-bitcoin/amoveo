@@ -82,6 +82,7 @@ keys() -> root() ++ "keys.db".
 top() -> root() ++ "top.db".
 channel_manager() -> root() ++ "channel_manager.db".
 secrets() -> root() ++ "secrets.db".
+order_book() -> root() ++ "order_book.db".
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
 half_bal() -> round(math:pow(2, balance_bits()-1)).

@@ -13,11 +13,22 @@
 -record(ob, {exposure = 0, price = 5000, buys = [], sells = [], ratio = 5000}).%this is the price of buys, sells is 1-this.
 %Exposure to buys is positive.
 -record(order, {acc = 0, price, type=buy, amount}). %type is buy/sell
+-define(LOC, constants:order_book()).
 make_order(Acc, Price, Type, Amount) ->
     #order{acc = Acc, price = Price, type = Type, amount = Amount}.
 %lets make a dictionary to store order books. add, match, price, remove, and exposure all need one more input to specify which order book in the dictionary we are dealing with.
 %init(ok) -> {ok, #ob{}}.
-init(ok) -> {ok, dict:new()}.
+init(ok) -> 
+    io:fwrite("start order book \n"),
+    X = db:read(?LOC),
+    KA = if
+	     X == "" ->
+		 K = dict:new(),
+		 db:save(?LOC, K),
+		 K;
+	     true -> X
+	 end,
+    {ok, KA}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
@@ -26,19 +37,17 @@ handle_cast({new_market, OID}, X) ->
     error = dict:find(OID, X),
     {noreply, dict:store(OID, #ob{}, X)};
 handle_cast({add, Order, OID}, X) -> 
-    case dict:find(OID, X) of
-	error -> {noreply, X};
-	{ok, OB} ->
-	    true = is_integer(Order#order.price),
-	    true = Order#order.price > -1,
-	    true = Order#order.price < 10001,
-	    OB2 = case Order#order.type of
-		      buy -> OB#ob{buys = add_trade(Order, OB#ob.buys)};
-		      sell -> OB#ob{sells = add_trade(Order, OB#ob.sells)}
-		  end,
-	    X2 = dict:store(OID, OB2, X),
-	    {noreply, X2}
-    end;
+    {ok, OB} = dict:find(OID, X),
+    true = is_integer(Order#order.price),
+    true = Order#order.price > -1,
+    true = Order#order.price < 10001,
+    OB2 = case Order#order.type of
+	      buy -> OB#ob{buys = add_trade(Order, OB#ob.buys)};
+	      sell -> OB#ob{sells = add_trade(Order, OB#ob.sells)}
+	  end,
+    X2 = dict:store(OID, OB2, X),
+    db:save(?LOC, X2),
+    {noreply, X2};
 handle_cast({remove, AccountID, Type, Price, OID}, X) -> 
     %remove this order from the book, if it exists.
     case dict:find(OID, X) of
@@ -54,6 +63,7 @@ handle_cast({remove, AccountID, Type, Price, OID}, X) ->
 		      sell -> OB#ob{sells = T2}
 		  end,
 	    X2 = dict:store(OID, OB2, X),
+	    db:save(?LOC, X2),
 	    {noreply, X2}
     end;
 %handle_cast({reduce, AccountID, Type, Price, Amount}, X) -> 
@@ -61,24 +71,27 @@ handle_cast({remove, AccountID, Type, Price, OID}, X) ->
     %X2 = ok,
 %    {noreply, X};
 handle_cast({dump, OID}, X) -> 
-    {noreply, dict:erase(OID, X)};
+    X2 = dict:erase(OID, X),
+    db:save(?LOC, X2),
+    {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({match, OID}, _From, X) -> 
     %crawl upwards accepting the same volume of trades on each side, until they no longer profitably arbitrage. The final price should only close orders that are fully matched.
     %update a bunch of channels with this new price declaration.
-    OB = dict:read(OID, X),
+    {ok, OB} = dict:find(OID, X),
     {OB2, PriceDeclaration, Accounts} = match_internal(OB, []),
     X2 = dict:store(OID, OB2, X),
+    db:save(?LOC, X2),
     %Accounts are the account ids of the channels that needs to be updated.
     {reply, {PriceDeclaration, Accounts}, X2};
 handle_call({price, OID}, _From, X) -> 
-    OB = dict:read(OID, X),
+    {ok, OB} = dict:find(OID, X),
     {reply, OB#ob.price, X};
 handle_call({exposure, OID}, _From, X) -> 
-    OB = dict:read(OID, X),
+    {ok, OB} = dict:find(OID, X),
     {reply, OB#ob.exposure, X};
 handle_call({ratio, OID}, _From, X) -> 
-    OB = dict:read(OID, X),
+    {ok, OB} = dict:find(OID, X),
     {reply, OB#ob.ratio, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 finished_matching(OB, Accounts) ->
@@ -92,8 +105,8 @@ finished_matching(OB, Accounts) ->
     {OB2, PriceDeclaration, Accounts}.
     
 match_internal(OB, Accounts) ->
-    io:fwrite("match internal\n"),
-    E = OB#ob.exposure,
+    %io:fwrite("match internal\n"),
+    %E = OB#ob.exposure,
     Buys = OB#ob.buys,
     Sells = OB#ob.sells,
     if
@@ -121,13 +134,13 @@ match_internal3(OB, Accounts, [Buy|B], [Sell|S]) ->
     {X4, AID} = 
 	if
 	    X2 > Y2 -> %match the buy;
-		io:fwrite("match buy \n"),
+		%io:fwrite("match buy \n"),
 		Ratio = (10000 * abs(Y)) div 
 		    Sell#order.amount,
 		{OB#ob{exposure = Y, buys = B, ratio = Ratio, price = (10000 - Sell#order.price)},
 		 Buy#order.acc};
 	    true -> %match the sell
-		io:fwrite("match sell \n"),
+		%io:fwrite("match sell \n"),
 		Ratio = (10000 * abs(X)) div 
 		    Buy#order.amount,
 		{OB#ob{exposure = X, sells = S, ratio = Ratio, price = Buy#order.price}, 
@@ -178,7 +191,9 @@ test() ->
     %add(#order{price = 5999, amount = 100, type = sell}),
     %add(#order{price = 6001, amount = 100, type = sell}),
     OID = 1,
+    new_market(OID),
     dump(OID),
+    new_market(OID),
     add(#order{price = 4000, amount = 1000, type = sell, acc = 3}, OID),
     add(#order{price = 5999, amount = 100, type = buy, acc = 2}, OID),
     add(#order{price = 6001, amount = 100, type = buy}, OID),
@@ -186,6 +201,7 @@ test() ->
     {6000, 100, 1000} = {price(OID), exposure(OID), ratio(OID)},
     %1000 means 1/10th because only 1/10th of the big bet got matched.
     dump(OID),
+    new_market(OID),
     add(#order{price = 5000, amount = 100, type = buy}, OID),
     add(#order{price = 6000, amount = 100, type = buy}, OID),
     add(#order{price = 4500, amount = 100, type = sell}, OID),
