@@ -507,7 +507,7 @@ keys_id_update(ID) ->
 keys_new(Password) ->
     keys:new(Password),
     0.
-create_binary_market(OracleID) -> 
+new_market(OracleID) -> 
     %Generate new market ID.
     %set up an order book.
     %turn on the api for betting.
