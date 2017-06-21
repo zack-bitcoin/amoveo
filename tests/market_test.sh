@@ -24,11 +24,11 @@ sleep 1
 
 #launch a difficulty oracle.
 
-curl -i -d '["new_difficulty_oracle", 20, 9, 1, 7000]' http://localhost:3011 #fee, start, id, difficulty
+curl -i -d '["new_difficulty_oracle", 20, 0, 1, 7000]' http://localhost:3011 #fee, start, id, difficulty
 sleep 1
 
 #make a bet.
-curl -i -d '["oracle_bet", 1, 1, 268814211]' http://localhost:3011 #one higher than the minimum
+curl -i -d '["oracle_bet", 1, 1, 269]' http://localhost:3011 #one higher than the minimum
 sleep 1
 
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
@@ -38,19 +38,31 @@ curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 1
 
 #mine 10 blocks
-curl -i -d '["mine_block", 10, 1]' http://localhost:3011
+curl -i -d '["mine_block", 1, 1]' http://localhost:3011
+sleep 1
+
+curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
+sleep 1
+
+curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 1
 
 #settle the difficulty oracle.
-curl -i -d '["oracle_close", 1]' http://localhost:3011
-sleep 1
+#curl -i -d '["oracle_close", 1]' http://localhost:3011
+#sleep 1
 
 #launch a question oracle.
-curl -i -d '["new_question_oracle", 20, "aXMgMisyPTQ/", 1, 2]' http://localhost:3011 #fee, start, id, difficulty
-sleep 1
+#curl -i -d '["new_question_oracle", 20, "aXMgMisyPTQ/", 1, 2]' http://localhost:3011 #fee, start, id, difficulty
+#sleep 1
+
+#curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
+#sleep 1
+
+#curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
+#sleep 1
 
 #create an off-chain market on one of the nodes.
-#curl -i -d '["new_market", 2]' http:localhost:3031
+#curl -i -d '["new_market", 2]' http://localhost:3031
 
 
 #The two nodes should make bets in the market. some but not all of the bets should be matched.

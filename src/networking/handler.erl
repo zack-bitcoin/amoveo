@@ -158,6 +158,26 @@ doit({proof, TreeName, ID}) ->
     {RootHash, Value, Proof} = TN:get(ID, Root),
     Proof2 = proof_packer(Proof),
     {ok, {return, RootHash, Value, Proof2}};
+doit({market_data, OID}) ->
+    {Expires, Period} = order_book:data(OID),
+    {ok, Expires, keys:pubkey(), Period};
+doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
+    %make sure they pay a fee in channel for having their trade listed. 
+    %make sure they paid enough to afford the shares.
+    BetLocation = constants:oracle_bet(),
+    {Expires, Period} = order_book:data(OID),
+    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
+    SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    Order = order_book:make_order(Account, Price, Type, Amount),
+    order_book:add(Order, OID);
+doit({remove_trade, AccountID, Price, Type, Amount, OID, SSPK}) ->
+    %make sure they signed.
+    %make sure they paid enough of a fee.
+    %give them their money back
+    %don't remove trades that are already being matched.
+    ok;
     
 doit(X) ->
     io:fwrite("I can't handle this \n"),

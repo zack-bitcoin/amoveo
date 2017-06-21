@@ -35,6 +35,7 @@ doit(Tx, Trees, NewHeight) ->
     %io:fwrite("oracle is "),
     %io:fwrite(packer:pack(Oracle)),
     %io:fwrite("\n"),
+  
     0 = oracles:result(Oracle),%check that the oracle isn't already closed.
     Trees2 = trees:update_accounts(Trees, Accounts2),
 

@@ -366,6 +366,13 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		oracle_new_tx:make(keys:id(), ?Fee + Cost, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
     tx_maker(F).
     
+oracle_bet(OID, Type, Amount) when is_integer(Type) ->
+    T = case Type of
+	    0 -> true;
+	    1 -> false;
+	    2 -> bad
+	end,
+    oracle_bet(OID, T, Amount);
 oracle_bet(OID, Type, Amount) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
@@ -494,9 +501,6 @@ new_pubkey(Password) ->
     keys:new(Password).
 test() ->
     {test_response}.
-test(N) ->
-    M = 8 * N,
-    {test_response, <<0:M>>}.
 channel_keys() ->
     channel_manager:keys().
 keys_status() ->
@@ -510,12 +514,42 @@ keys_id_update(ID) ->
 keys_new(Password) ->
     keys:new(Password),
     0.
-new_market(OracleID) -> 
-    %Generate new market ID.
+market_match(OID) ->
+    %check that we haven't matched too recently. (otherwise we lose all our money in all the channels.)
+    {_PriceDeclaration, _Accounts} = order_book:match(OID),
+    %update a bunch of channels. 
+    %store the price declaration in the channel_manager.
+    ok.
+new_market(OID, Expires, Period) -> 
+    %for now lets use the oracle id as the market id. this wont work for combinatorial markets.
+    order_book:new_market(OID, Expires, Period).
     %set up an order book.
     %turn on the api for betting.
-    MarketID = OracleID,
-    MarketID.
+trade(Price, Type, Amount, OID, Fee) ->
+    {ok, ServerID} = talker:talk({id}, ?IP, ?Port),
+    {ok, {Expires, 
+	  Pubkey, %pubkey of market maker
+	  Period}} = 
+	talker:talk({market_data, OID}, ?IP, ?Port),
+    BetLocation = constants:oracle_bet(),
+    MarketID = OID,
+    %type is true or false or one other thing...
+    SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID),
+    SSPK = channel_feeder:trade(Amount, SC, ServerID, OID),
+    {ok, SSPK2} =
+	talker:talk({trade, 
+		     keys:id(),
+		     Price,
+		     Type,
+		     Amount,
+		     OID,
+		     SSPK, 
+		     Fee}, ?IP, ?Port),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    channel_feeder:update_to_me(SSPK2, ServerID).
+    
+    
     
 
 %mine() ->

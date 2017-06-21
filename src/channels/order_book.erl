@@ -4,18 +4,19 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 	 add/2,match/1,price/1,remove/4,exposure/1,
-	 new_market/1, make_order/4,
+	 new_market/3, make_order/4, data/1,
 	 test/0]).
 %To make the smart contract simpler, all trades matched are all-or-nothing. So we need to be a little careful to make sure the market maker isn't holding risk.
 %The market maker needs to refuse to remove some trades from the order book, if those trades are needed to cover his risk against trades that have already been matched.
 %To keep track of how much exposure has been matched, the market maker needs to remember a number.
 %We need to keep track of how much depth we have matched on one side, that way we can refuse to remove trades that are locked against money we need to cover commitments we already made in channels.
--record(ob, {exposure = 0, price = 5000, buys = [], sells = [], ratio = 5000}).%this is the price of buys, sells is 1-this.
+-record(ob, {exposure = 0, price = 5000, buys = [], sells = [], ratio = 5000, expires, period}).%this is the price of buys, sells is 1-this.
 %Exposure to buys is positive.
 -record(order, {acc = 0, price, type=buy, amount}). %type is buy/sell
 -define(LOC, constants:order_book()).
 make_order(Acc, Price, Type, Amount) ->
     #order{acc = Acc, price = Price, type = Type, amount = Amount}.
+data(OB) -> {OB#ob.expires, OB#ob.period}.
 %lets make a dictionary to store order books. add, match, price, remove, and exposure all need one more input to specify which order book in the dictionary we are dealing with.
 %init(ok) -> {ok, #ob{}}.
 init(ok) -> 
@@ -33,9 +34,11 @@ start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({new_market, OID}, X) ->
+handle_cast({new_market, OID, Expires, Period}, X) ->
     error = dict:find(OID, X),
-    {noreply, dict:store(OID, #ob{}, X)};
+    OB = #ob{expires = Expires, 
+	     period = Period},
+    {noreply, dict:store(OID, OB, X)};
 handle_cast({add, Order, OID}, X) -> 
     {ok, OB} = dict:find(OID, X),
     true = is_integer(Order#order.price),
@@ -181,8 +184,8 @@ ratio(OID) ->
     gen_server:call(?MODULE, {ratio, OID}).
 dump(OID) ->
     gen_server:cast(?MODULE, {dump, OID}).
-new_market(OID) ->
-    gen_server:cast(?MODULE, {new_market, OID}).
+new_market(OID, Expires, Period) ->
+    gen_server:cast(?MODULE, {new_market, OID, Expires, Period}).
 
 
 
@@ -191,9 +194,9 @@ test() ->
     %add(#order{price = 5999, amount = 100, type = sell}),
     %add(#order{price = 6001, amount = 100, type = sell}),
     OID = 1,
-    new_market(OID),
+    new_market(OID, 0, 10),
     dump(OID),
-    new_market(OID),
+    new_market(OID, 0, 10),
     add(#order{price = 4000, amount = 1000, type = sell, acc = 3}, OID),
     add(#order{price = 5999, amount = 100, type = buy, acc = 2}, OID),
     add(#order{price = 6001, amount = 100, type = buy}, OID),
@@ -201,7 +204,7 @@ test() ->
     {6000, 100, 1000} = {price(OID), exposure(OID), ratio(OID)},
     %1000 means 1/10th because only 1/10th of the big bet got matched.
     dump(OID),
-    new_market(OID),
+    new_market(OID, 0, 10),
     add(#order{price = 5000, amount = 100, type = buy}, OID),
     add(#order{price = 6000, amount = 100, type = buy}, OID),
     add(#order{price = 4500, amount = 100, type = sell}, OID),

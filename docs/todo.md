@@ -1,3 +1,6 @@
+we need a cron like process to match trades in the markets.
+
+
 Prices listed are minimums. If the code is high quality, you can get much more.
 (Bounty program hasn't started yet. Talk to Zack before starting a bounty)
 

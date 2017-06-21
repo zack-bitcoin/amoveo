@@ -23,12 +23,37 @@ curl -i -d '["create_account", "RlpkWGRweGtrenlVS2U1TERW", 10]' http://localhost
 sleep 1
 curl -i -d '["sync", [146,185,180,109], 3030]' http://localhost:3011
 sleep 1
-curl -i -d '["sync", [146,185,180,109], 3030]' http://localhost:3021
+curl -i -d '["sync", [178,62,112,217], 3020]' http://localhost:3011
 sleep 1
 
 #2 step handshake to make channel
 curl -i -d '["new_channel_with_server", [146,185,180,109], 3030, 1, 10000, 10001, 50, 4]' http://localhost:3011
 sleep 5
-curl -i -d '["sync", [146,185,180,109], 3030]' http://localhost:3021
+curl -i -d '["sync", [178,62,112,217], 3020]' http://localhost:3011
 sleep 1
 curl -i -d '["new_channel_with_server", [146,185,180,109], 3030, 2, 10000, 10001, 50, 4]' http://localhost:3021
+
+curl -i -d '["sync", [146,185,180,109], 3030]' http://localhost:3011
+sleep 1
+
+curl -i -d '["channel_spend", [146,185,180,109], 3030, 777]' http://localhost:3011
+sleep 1
+
+curl -i -d '["lightning_spend", [146,185,180,109], 3030, 2, "BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=", 4, 10]' http://localhost:3011
+sleep 1
+
+curl -i -d '["pull_channel_state", [146,185,180,109], 3030]' http://localhost:3021
+sleep 1
+
+curl -i -d '["pull_channel_state", [146,185,180,109], 3030]' http://localhost:3011
+sleep 1
+
+#curl -i -d '["lightning_spend", [146,185,180,109], 3030, 1, "BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=", 4, 10]' http://localhost:3021
+#sleep 1
+
+#curl -i -d '["pull_channel_state", [146,185,180,109], 3030]' http://localhost:3011
+#sleep 1
+
+#curl -i -d '["pull_channel_state", [146,185,180,109], 3030]' http://localhost:3021
+#sleep 1
+
