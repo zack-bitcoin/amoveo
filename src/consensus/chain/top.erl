@@ -3,6 +3,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, add/1,doit/0,test/0]).
 -define(LOC, constants:top()).
 init(ok) -> 
+    block:genesis_maker(),
     io:fwrite("start top"),
     X = db:read(?LOC),
     Ka = if

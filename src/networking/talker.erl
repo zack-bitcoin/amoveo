@@ -3,15 +3,12 @@
 
 peer(IP, Port) ->
     %{ok, Address} = inet_parse:address(IP),
-    L = size(IP),
-    %io:fwrite(packer:pack({aa, IP})),
+    %L = size(IP),
     T = inet_parse:ntoa(IP),
-    %io:fwrite(packer:pack({ab, T})),
     %Z = case L of    
 	%    4 -> T;
-	%    _ -> "[" ++ T ++ "]"
+	%    8 -> "[" ++ T ++ "]"
 	%end,
-    %"http://" ++ Z ++ ":" ++ integer_to_list(Port) ++ "/".
     "http://" ++ T ++ ":" ++ integer_to_list(Port) ++ "/".
 
 local_talk(Msg) ->
@@ -29,6 +26,7 @@ talk_helper(Msg, Peer, N) ->
     PM = packer:pack(Msg),
     %io:fwrite(PM),
     %io:fwrite(Peer),
+    %io:fwrite("\n"),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
 	{ok, {_Status, _Headers, []}} -> 
 	    %io:fwrite("talk error 1"),

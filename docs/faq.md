@@ -14,4 +14,26 @@ Each transaction type has a different command for checking who spent that transa
 * if you are running a node and you query the balance of another address?
 
 To query the balance of another address is difficult. You would need to look up every account until you found the account that stored the matching address.
+<<<<<<< HEAD
 Querying the balance of an id is easy. do this: `accounts:balance(easy:account(ID)).`
+=======
+Querying the balance of an id is easy. do this: `accounts:balance(easy:account(ID)).`
+
+
+u have
+ids
+accounts
+addresses
+
+[9:52]
+and i cant figure out the functionality of each.
+
+zack
+[9:52 PM]
+ids are the integers for looking up accounts. when you send money to someone, you need to know their id.
+
+[9:52]
+an account is the part of the on-chain state that records the address and balance of one of the users.
+
+[9:53]
+an address is the hash of a pubkey.

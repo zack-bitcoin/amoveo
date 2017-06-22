@@ -84,6 +84,8 @@ keys() -> root() ++ "keys.db".
 top() -> root() ++ "top.db".
 channel_manager() -> root() ++ "channel_manager.db".
 secrets() -> root() ++ "secrets.db".
+order_book() -> root() ++ "order_book.db".
+oracle_bet() -> "src/channels/oracle_bet.fs".
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
 half_bal() -> round(math:pow(2, balance_bits()-1)).
@@ -149,6 +151,7 @@ comment_limit() -> %When a miner mines a block, they can set this many bytes to 
     140.
 magic() -> 3.
 magic_bits() -> 16.%so we can update it more than 60000 times.
+%rename to "Protocol VERSION".
 server_ip() -> {46,101,103,165}.
 server_port() -> 8080.
 

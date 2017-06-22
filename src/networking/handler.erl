@@ -7,9 +7,15 @@
 %curl -i -d echotxt http://localhost:3010
 
 handle(Req, State) ->
-    %{Length, Req2} = cowboy_req:body_length(Req),
-    {ok, Data, Req2} = cowboy_req:body(Req),
-    {{IP, _}, Req3} = cowboy_req:peer(Req2),
+    {Length, Req2} = cowboy_req:body_length(Req),
+    %timer:sleep(100),
+    {ok, Data, Req25} = cowboy_req:body(Req2),
+    {{IP, _}, Req3} = cowboy_req:peer(Req25),
+    io:fwrite("length should be "),
+    io:fwrite(integer_to_list(Length)),
+    io:fwrite(" actually is "),
+    io:fwrite(integer_to_list(size(Data))),
+    io:fwrite("\n"),
     request_frequency:doit(IP),
     true = is_binary(Data),
     A = packer:unpack(Data),
@@ -26,7 +32,7 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 %doit({height}) -> {ok, block_tree:height()};
 %doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
-    true = block:height(SignedBlock) < easy:height() + 2,
+    %true = block:height(SignedBlock) < easy:height() + 2,
     block_absorber:doit(SignedBlock),
     {ok, 0};
 doit({block, N, Many}) -> 
@@ -61,6 +67,9 @@ doit({top}) ->
     {ok, Top, Height};
 doit({test}) -> 
     {test_response};
+doit({test, N}) ->
+    M = 8 * N,
+    {test_response, <<0:M>>};
 doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
 doit({new_channel, STx, SSPK}) ->
@@ -155,6 +164,26 @@ doit({proof, TreeName, ID}) ->
     {RootHash, Value, Proof} = TN:get(ID, Root),
     Proof2 = proof_packer(Proof),
     {ok, {return, RootHash, Value, Proof2}};
+doit({market_data, OID}) ->
+    {Expires, Period} = order_book:data(OID),
+    {ok, Expires, keys:pubkey(), Period};
+doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
+    %make sure they pay a fee in channel for having their trade listed. 
+    %make sure they paid enough to afford the shares.
+    BetLocation = constants:oracle_bet(),
+    {Expires, Period} = order_book:data(OID),
+    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
+    SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    Order = order_book:make_order(Account, Price, Type, Amount),
+    order_book:add(Order, OID);
+doit({remove_trade, AccountID, Price, Type, Amount, OID, SSPK}) ->
+    %make sure they signed.
+    %make sure they paid enough of a fee.
+    %give them their money back
+    %don't remove trades that are already being matched.
+    ok;
     
 doit(X) ->
     io:fwrite("I can't handle this \n"),

@@ -127,7 +127,16 @@ find_id(Name, N, Tree) ->
 	_ -> find_id(Name, N+1, Tree)
     end.
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
-    undefined = peers:cid(peers:read(IP, Port)),
+    PR = peers:read(IP, Port),
+    if
+	<<"none">> == PR -> ok;
+	true ->
+	    PC = peers:cid(PR),
+	    if 
+		undefined == PC -> ok;
+		true -> PR = PC
+	    end
+    end,
     Acc1 = keys:id(),
     {ok, Acc2} = talker:talk({id}, IP, Port),
     Entropy = channel_feeder:entropy([Acc1, Acc2]) + 1,
@@ -140,7 +149,6 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     Msg = {new_channel, STx, SSPK},
     {ok, SSTx, S2SPK} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(SSTx),
-    peers:set_cid(IP, Port, CID),
     channel_feeder:new_channel(Tx, S2SPK, Accounts),
     ok.
 pull_channel_state() ->
@@ -323,6 +331,10 @@ new_question_oracle(Start, Question, DiffOracleID)->
     {Trees, _, _} = tx_pool:data(),
     Oracles = trees:oracles(Trees),
     ID = find_id(oracles, Oracles),
+    new_question_oracle(Start, Question, DiffOracleID, ID).
+new_question_oracle(Start, Question, DiffOracleID, ID)->
+    {Trees, _, _} = tx_pool:data(),
+    Oracles = trees:oracles(Trees),
     {_, Recent, _} = oracles:get(DiffOracleID, Oracles),
     Difficulty = oracles:difficulty(Recent) div 2,
     Governance = trees:governance(Trees),
@@ -354,6 +366,13 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		oracle_new_tx:make(keys:id(), ?Fee + Cost, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
     tx_maker(F).
     
+oracle_bet(OID, Type, Amount) when is_integer(Type) ->
+    T = case Type of
+	    0 -> true;
+	    1 -> false;
+	    2 -> bad
+	end,
+    oracle_bet(OID, T, Amount);
 oracle_bet(OID, Type, Amount) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
@@ -494,12 +513,44 @@ keys_id_update(ID) ->
 keys_new(Password) ->
     keys:new(Password),
     0.
-create_binary_market(OracleID) -> 
-    %Generate new market ID.
+market_match(OID) ->
+    %check that we haven't matched too recently. (otherwise we lose all our money in all the channels.)
+    {_PriceDeclaration, _Accounts} = order_book:match(OID),
+    %update a bunch of channels. 
+    %store the price declaration in the channel_manager.
+    ok.
+new_market(OID, Expires, Period) -> 
+    %for now lets use the oracle id as the market id. this wont work for combinatorial markets.
+    order_book:new_market(OID, Expires, Period).
     %set up an order book.
     %turn on the api for betting.
-    MarketID = OracleID,
-    MarketID.
+trade(Price, Type, Amount, OID, Fee) ->
+    trade(Price, Type, Amount, OID, Fee, ?IP, ?Port).
+trade(Price, Type, A, OID, Fee, IP, Port) ->
+    Amount = to_int(A),
+    {ok, ServerID} = talker:talk({id}, IP, Port),
+    {ok, {Expires, 
+	  Pubkey, %pubkey of market maker
+	  Period}} = 
+	talker:talk({market_data, OID}, IP, Port),
+    BetLocation = constants:oracle_bet(),
+    MarketID = OID,
+    %type is true or false or one other thing...
+    SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID),
+    SSPK = channel_feeder:trade(Amount, SC, ServerID, OID),
+    {ok, SSPK2} =
+	talker:talk({trade, 
+		     keys:id(),
+		     Price,
+		     Type,
+		     Amount,
+		     OID,
+		     SSPK, 
+		     Fee}, IP, Port),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    channel_feeder:update_to_me(SSPK2, ServerID).
+    
     
 
 %mine() ->
