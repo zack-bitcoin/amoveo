@@ -5,7 +5,8 @@
 	 doit/1, garbage/0, save_helper/1]).
 init(ok) -> 
     %save(block:genesis()),
-    save(block:genesis_maker()),
+    save(block:genesis()),
+    block_hashes:add(block:hash(block:genesis())),
     %block:make_files(),
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -33,11 +34,12 @@ doit(X) ->
 absorb(BP) ->
     %BH = block:hash(BP),
     BH = block:hash(BP),
-    {BH, _} = block:check1(BP),
+    {BH, NextBlock} = block:check1(BP),
     case block_hashes:check(BH) of
 	true -> ok;%If we have seen this block before, then don't process it again.
 	false ->
 	    %{BH, _} = block:check1(BP),
+	    true = block_hashes:check(NextBlock),
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 	    BP2 = block:check2(BP),
 	    io:fwrite("absorb block: "++
