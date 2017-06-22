@@ -39,7 +39,7 @@ check(X) ->
 i_new() ->
     gb_sets:new().
 i_insert(H, X) ->
-    gb_sets:insert(H, X).
+    gb_sets:add(H, X).
 i_check(H, X) ->
     gb_sets:is_member(H, X).
 
