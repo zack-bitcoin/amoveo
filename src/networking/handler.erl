@@ -8,6 +8,8 @@
 
 handle(Req, State) ->
     %{Length, Req2} = cowboy_req:body_length(Req),
+    %{ok, X, Req1}
+	%= cowboy_req:parse_header(<<"te">>, Req),
     {ok, Data, Req2} = cowboy_req:body(Req),
     {{IP, _}, Req3} = cowboy_req:peer(Req2),
     request_frequency:doit(IP),
@@ -15,6 +17,9 @@ handle(Req, State) ->
     A = packer:unpack(Data),
     B = doit(A),
     D = packer:pack(B),
+    %io:fwrite("response is "),
+    %io:fwrite(D),
+    %io:fwrite("\n"),
     Headers = [{<<"content-type">>, <<"application/octet-stream">>},
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],
     {ok, Req4} = cowboy_req:reply(200, Headers, D, Req3),

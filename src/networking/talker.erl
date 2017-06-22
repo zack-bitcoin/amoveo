@@ -29,7 +29,13 @@ talk_helper(Msg, Peer, N) ->
     PM = packer:pack(Msg),
     %io:fwrite(PM),
     %io:fwrite(Peer),
-    case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
+    io:fwrite("talker:talk_helper talk "),
+    io:fwrite(iolist_to_binary(PM)),
+    io:fwrite("\n"),
+    %multipart/form-data
+    %case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
+    %[{"Content-Length", integer_to_list(length(ReqBody))}],
+    case httpc:request(post, {Peer, [{"Content-Length", integer_to_list(size(iolist_to_binary(PM)))}], "multipart/form-data", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
 	{ok, {_Status, _Headers, []}} -> 
 	    %io:fwrite("talk error 1"),
 	    talk_helper(Msg, Peer, N-1);

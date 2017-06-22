@@ -69,9 +69,9 @@ doit(Tx, Trees, NewHeight) ->
     OracleType = oracles:type(Oracle4),
     LoserType = 
 	case OracleType of
-	    1 -> false;
-	    2 -> true;
-	    3 -> true
+	    1 -> 2;
+	    2 -> 1;
+	    3 -> 1
 	end,
     OBTx = {oracle_bet, oracles:creator(Oracle4), 
 	  none, 0, OID, LoserType, 

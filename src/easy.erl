@@ -366,13 +366,6 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		oracle_new_tx:make(keys:id(), ?Fee + Cost, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
     tx_maker(F).
     
-oracle_bet(OID, Type, Amount) when is_integer(Type) ->
-    T = case Type of
-	    0 -> true;
-	    1 -> false;
-	    2 -> bad
-	end,
-    oracle_bet(OID, T, Amount);
 oracle_bet(OID, Type, Amount) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),

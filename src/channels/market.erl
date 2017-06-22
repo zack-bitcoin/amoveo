@@ -74,7 +74,7 @@ test() ->
     %make some bets in the oracle with oracle_bet
     Governance2 = trees:governance(Trees2),
     OIL = governance:get_value(oracle_initial_liquidity, Governance2),
-    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, true, OIL*2, Trees2), 
+    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, 1, OIL*2, Trees2), 
     Stx2 = keys:sign(Tx2, Accounts2),
     test_txs:absorb(Stx2),
 
