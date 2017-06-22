@@ -1,3 +1,4 @@
+
 -module(oracle_new_tx).
 -export([test/0, doit/3, make/10]).
 -record(oracle_new, {from = 0, 

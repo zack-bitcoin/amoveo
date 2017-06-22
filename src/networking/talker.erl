@@ -3,7 +3,7 @@
 
 peer(IP, Port) ->
     %{ok, Address} = inet_parse:address(IP),
-    L = size(IP),
+    %L = size(IP),
     T = inet_parse:ntoa(IP),
     %Z = case L of    
 	%    4 -> T;
@@ -29,6 +29,7 @@ talk_helper(Msg, Peer, N) ->
     PM = packer:pack(Msg),
     %io:fwrite(PM),
     %io:fwrite(Peer),
+    %io:fwrite("\n"),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
 	{ok, {_Status, _Headers, []}} -> 
 	    %io:fwrite("talk error 1"),

@@ -7,9 +7,15 @@
 %curl -i -d echotxt http://localhost:3010
 
 handle(Req, State) ->
-    %{Length, Req2} = cowboy_req:body_length(Req),
-    {ok, Data, Req2} = cowboy_req:body(Req),
-    {{IP, _}, Req3} = cowboy_req:peer(Req2),
+    {Length, Req2} = cowboy_req:body_length(Req),
+    %timer:sleep(100),
+    {ok, Data, Req25} = cowboy_req:body(Req2),
+    {{IP, _}, Req3} = cowboy_req:peer(Req25),
+    io:fwrite("length should be "),
+    io:fwrite(integer_to_list(Length)),
+    io:fwrite(" actually is "),
+    io:fwrite(integer_to_list(size(Data))),
+    io:fwrite("\n"),
     request_frequency:doit(IP),
     true = is_binary(Data),
     A = packer:unpack(Data),
