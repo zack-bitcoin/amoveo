@@ -7,7 +7,7 @@
 	 agree_bet/4,garbage/0,entropy/1,
 	 new_channel_check/1,
 	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
-	 make_bet/4, update_to_me/2, new_cd/6, 
+	 update_to_me/2, new_cd/6, 
 	 make_locked_payment/4, live/1, they_simplify/3,
 	 bets_unlock/1, emsg/1
 	 ]).
@@ -92,8 +92,26 @@ handle_cast({close, SS, STx}, X) ->
     channel_manager:write(OtherID, NewCD),
     tx_pool_feeder:absorb(keys:sign(STx, Accounts)),
     {noreply, X};
-handle_cast
-(_, X) -> {noreply, X}.
+handle_cast(_, X) -> {noreply, X}.
+handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
+    {Trees,_,_} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
+    true = Amount > 0,
+    true = Fee > free_constants:lightning_fee(),
+    {Expires, Pubkey, Period} = market:data(OID),
+    BetLocation = constants:oracle_bet(),
+    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
+    SSPK2 = trade(Amount, SC, ID, OID),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    {ok, OldCD} = channel_manager:read(ID),
+    NewCD = OldCD#cd{them = SSPK, me = SPK, 
+		     ssme = [<<>>|OldCD#cd.ssme],
+		     ssthem = [<<>>|OldCD#cd.ssthem]},
+    arbitrage:write(SC, [ID]),
+    channel_manager:write(ID, NewCD),
+    {reply, SSPK2, X};
 handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
     {Trees,_,_} = tx_pool:data(),
@@ -190,8 +208,8 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     {reply, Return2, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
-make_bet(Other, Name, Vars, Secret) ->
-    gen_server:call(?MODULE, {make_bet, Other, Name, Vars, Secret}).
+%make_bet(Other, Name, Vars, Secret) ->
+%    gen_server:call(?MODULE, {make_bet, Other, Name, Vars, Secret}).
 new_channel(Tx, SSPK, Accounts) ->
     %io:fwrite("channel feeder inserting channel $$$$$$$$$$$$$$$$$$$$$$$$$$"),
     gen_server:cast(?MODULE, {new_channel, Tx, SSPK, Accounts}).
@@ -202,6 +220,9 @@ close(SS, Tx) ->
 lock_spend(SSPK, Amount, Fee, SecretHash, Sender, Recipient, ESS) ->
     %first check that this channel is in the on-chain state with sufficient depth
     gen_server:call(?MODULE, {lock_spend, SSPK, Amount, Fee, SecretHash, Sender, Recipient, ESS}).
+trade(ID, Price, Type, Amount, OID, SSPK, Fee) ->
+    gen_server:call(?MODULE, {trade, ID, Price, Type, Amount, OID, SSPK, Fee}).
+
 update_to_me(SSPK, From) ->
     gen_server:call(?MODULE, {update_to_me, SSPK, From}).
     
@@ -325,14 +346,26 @@ simplify_helper(From, SS) ->
 make_locked_payment(To, Amount, Code, Prove) -> 
 	 %look up our current SPK,
     {ok, CD} = channel_manager:read(To),
-    OldSPK = CD#cd.them,
+    SPK = CD#cd.me,
+    %OldSPK = CD#cd.them,
+    %SPK = testnet_sign:data(OldSPK),
     Bet = spk:new_bet(Code, Amount, Prove),
-    SPK = testnet_sign:data(OldSPK),
     NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    Out = keys:sign(NewSPK, Accounts),
-    Out.
+    keys:sign(NewSPK, Accounts).
+trade(Amount, Code, Other, OID) ->
+    {ok, CD} = channel_manager:read(Other),
+    Prove = [{oracles, OID}],
+    Bet = spk:new_bet(Code, Amount, Prove),
+    SPK = channel_feeder:me(CD),
+    CID = spk:cid(SPK),
+    SPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    keys:sign(SPK, Accounts).
+    
+    
 bets_unlock(X) -> 
     bets_unlock(X, []).
 bets_unlock([], Out) -> Out;

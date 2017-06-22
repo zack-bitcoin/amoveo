@@ -10,3 +10,15 @@ Simply installing the software and syncing up with the testnet can be a big help
 
 Cheers,
 Zack
+
+
+For people interested in writing smart contracts:
+
+Here is the repository that has the VM and some compilers.
+https://github.com/zack-bitcoin/chalang
+
+Aeternity smart contracts are different. The computation is all off-chain.
+I think the first step would be to talk to me about what you want to make.
+I can quickly tell you what is possible, and give you the tools you need.
+
+On Aeternity the smart contract itself is usually the easy part. The hard part is the handshake for updating the state of the smart contract. Sending messages back and forth, and correctly handling them. It is important that your partner is unable to trick you into updating your copy of the channel state to an invalid channel state.

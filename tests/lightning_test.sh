@@ -31,8 +31,6 @@ sleep 5
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3021
 sleep 1
 curl -i -d '["new_channel_with_server", [127,0,0,1], 3030, 2, 10000, 10001, 50, 4]' http://localhost:3021
-sleep 5
-
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
 sleep 1
 

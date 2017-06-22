@@ -1,7 +1,7 @@
 -module(market).
--export([price_declaration_maker/4, market_smart_contract/9, 
+-export([price_declaration_maker/4, market_smart_contract/9,
 	 settle/1,no_publish/0,evidence/1,
-	 contradictory_prices/2,
+	 contradictory_prices/2, 
 	 test/0]).
 
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
@@ -105,7 +105,7 @@ test2() ->
     {Trees5, _, _} = tx_pool:data(),
     %Accounts5 = trees:accounts(Trees5),
     MarketID = 405,
-   Bet = market_smart_contract("src/channels/oracle_bet.fs", MarketID,true, 1000, 6000, keys:pubkey(),101,100,OID),
+    Bet = market_smart_contract("src/channels/oracle_bet.fs", MarketID,true, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK = spk:new(1, 2, 1, [Bet], 10000, 10000, 1, 0, Entropy),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK, Accounts5), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
