@@ -26,7 +26,7 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 %doit({height}) -> {ok, block_tree:height()};
 %doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
-    true = block:height(SignedBlock) < easy:height() + 2,
+    %true = block:height(SignedBlock) < easy:height() + 2,
     block_absorber:doit(SignedBlock),
     {ok, 0};
 doit({block, N, Many}) -> 

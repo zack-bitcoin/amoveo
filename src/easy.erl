@@ -526,11 +526,14 @@ new_market(OID, Expires, Period) ->
     %set up an order book.
     %turn on the api for betting.
 trade(Price, Type, Amount, OID, Fee) ->
-    {ok, ServerID} = talker:talk({id}, ?IP, ?Port),
+    trade(Price, Type, Amount, OID, Fee, ?IP, ?Port).
+trade(Price, Type, A, OID, Fee, IP, Port) ->
+    Amount = to_int(A),
+    {ok, ServerID} = talker:talk({id}, IP, Port),
     {ok, {Expires, 
 	  Pubkey, %pubkey of market maker
 	  Period}} = 
-	talker:talk({market_data, OID}, ?IP, ?Port),
+	talker:talk({market_data, OID}, IP, Port),
     BetLocation = constants:oracle_bet(),
     MarketID = OID,
     %type is true or false or one other thing...
@@ -544,7 +547,7 @@ trade(Price, Type, Amount, OID, Fee) ->
 		     Amount,
 		     OID,
 		     SSPK, 
-		     Fee}, ?IP, ?Port),
+		     Fee}, IP, Port),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     channel_feeder:update_to_me(SSPK2, ServerID).
