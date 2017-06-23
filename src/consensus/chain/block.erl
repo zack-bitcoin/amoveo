@@ -527,7 +527,7 @@ mine_blocks(N, Times, Cores) ->
 	end,
     spawn_many(Cores-1, F),
     F(),
-    timer:sleep(100),
+    %timer:sleep(100),
     mine_blocks(N-1, Times, Cores).
     
 spawn_many(N, _) when N < 1 -> ok;
