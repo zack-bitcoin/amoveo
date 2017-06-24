@@ -522,7 +522,8 @@ mine_blocks(N, Times, Cores) ->
 		    PBlock -> 
 			io:fwrite("FOUND A BLOCK !\n"),
 			block_absorber:doit(PBlock),
-			block_absorber:garbage()
+			block_absorber:garbage(),
+			timer:sleep(150)
 		end
 	end,
     spawn_many(Cores-1, F),

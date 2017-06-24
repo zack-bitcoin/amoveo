@@ -1,3 +1,11 @@
+maybe accessing the internal handler should require a signed request with a nonce.
+The server should ignore commands that don't increment the nonce from last time.
+
+alternatively, we could just turn on a firewall. This is simpler, but it has the drawback that commands on a local node have to originate from the same computer.
+
+the api should probably be encrypted too.
+
+
 we need a cron like process to match trades in the markets.
 
 

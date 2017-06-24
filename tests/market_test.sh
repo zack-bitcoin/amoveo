@@ -1,3 +1,4 @@
+
 #teach the nodes about each other so they can communicate.
 curl -i -d '["add_peer", [127,0,0,1], 3030]' http://localhost:3011
 curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
@@ -35,11 +36,11 @@ curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
 sleep 0.1
 
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
-sleep 0.1
+sleep 2
 
 #mine 10 blocks
-curl -i -d '["mine_block", 3, 1]' http://localhost:3011
-sleep 0.1
+curl -i -d '["mine_block", 10, 1]' http://localhost:3011
+sleep 2
 
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
 sleep 0.1
