@@ -40,7 +40,7 @@ test(1) ->
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
 
     Fee = 20,
-    {Ctx, _Proof} = create_account_tx:make(NewAddr, 100000000, Fee, 1, 2, Trees),
+    {Ctx, _} = create_account_tx:make(NewAddr, 100000000, Fee, 1, 2, Trees),
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
     {Trees2,  _, _} = tx_pool:data(),
@@ -53,6 +53,12 @@ test(1) ->
     {Ctx3, _} = delete_account_tx:make(1, 2, Fee, Trees3),
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv, 2, Accounts3),
     absorb(Stx3),
+    {Trees4, _, _} = tx_pool:data(),
+    Accounts4 = trees:accounts(Trees4),
+    {Ctx4, _} = create_account_tx:make(NewAddr, 100000000, Fee, 1, 2, Trees4),
+    Stx4 = keys:sign(Ctx4, Accounts4),
+    absorb(Stx4),
+
     {_, _, Txs} = tx_pool:data(),
     BP = block:genesis(),
     PH = block:hash(BP),
@@ -527,7 +533,7 @@ test(11) ->
     %make some bets in the oracle with oracle_bet
     Governance2 = trees:governance(Trees2),
     OIL = governance:get_value(oracle_initial_liquidity, Governance2),
-    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, true, OIL, Trees2), 
+    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, 1, OIL, Trees2), 
     Stx2 = keys:sign(Tx2, Accounts2),
     absorb(Stx2),
     %timer:sleep(100),

@@ -35,11 +35,15 @@ doit(Tx, Trees, NewHeight) ->
     Trees2 = trees:update_accounts(trees:update_oracles(Trees, Oracles2), NewAccounts),
     Gov = oracles:governance(Oracle3),
     Governance = trees:governance(Trees),
+    %Mot = governance:get_value(minimum_oracle_time, Governance),
+    %DT = oracles:done_timer(Oracle),
+    %true = NewHeight - Mot < DT,
     MOT = governance:get_value(maximum_oracle_time, Governance),
     Trees3 = 
 	case Gov of
 	    0 -> 
-		B1 = oracles:done_timer(Oracle3) < NewHeight,
+		%is not a governance oracle.
+		B1 = oracles:done_timer(Oracle) < NewHeight,
 		B2 = oracles:starts(Oracle3) + MOT < NewHeight,
 		true = (B1 or B2),
 		Trees2;
@@ -47,10 +51,12 @@ doit(Tx, Trees, NewHeight) ->
 		GA = oracles:governance_amount(Oracle3),
 		case Result of
 		    1 -> 
+			1=2,
 			true = oracles:done_timer(Oracle3) < NewHeight,
 			Gov2=governance:change(G, GA, Gov),
 			trees:update_governance(Gov2, Trees2);
 		    2 ->
+			1=2,
 			true = oracles:done_timer(Oracle3) < NewHeight,
 			Gov2=governance:change(G, -GA,Gov),
 			trees:update_governance(Gov2, Trees2);
@@ -69,9 +75,9 @@ doit(Tx, Trees, NewHeight) ->
     OracleType = oracles:type(Oracle4),
     LoserType = 
 	case OracleType of
-	    1 -> false;
-	    2 -> true;
-	    3 -> true
+	    1 -> 2;
+	    2 -> 1;
+	    3 -> 1
 	end,
     OBTx = {oracle_bet, oracles:creator(Oracle4), 
 	  none, 0, OID, LoserType, 
