@@ -514,7 +514,7 @@ keys_new(Password) ->
 market_match(OID) ->
     %check that we haven't matched too recently. (otherwise we lose all our money in all the channels.)
     {PriceDeclaration, Accounts} = order_book:match(OID),
-    false = Accounts == [],
+    %false = Accounts == [],
     io:fwrite(packer:pack({market_match, PriceDeclaration, Accounts})),
     io:fwrite("\n"),
     %update a bunch of channels. 

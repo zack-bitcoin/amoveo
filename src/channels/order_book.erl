@@ -5,6 +5,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 	 add/2,match/1,price/1,remove/4,exposure/1,
 	 new_market/3, make_order/4, data/1,
+	 expires/1, period/1,
 	 test/0]).
 %To make the smart contract simpler, all trades matched are all-or-nothing. So we need to be a little careful to make sure the market maker isn't holding risk.
 %The market maker needs to refuse to remove some trades from the order book, if those trades are needed to cover his risk against trades that have already been matched.
@@ -14,6 +15,10 @@
 %Exposure to buys is positive.
 -record(order, {acc = 0, price, type=buy, amount}). %type is buy/sell
 -define(LOC, constants:order_book()).
+expires(OB) ->
+    OB#ob.expires.
+period(OB) ->
+    OB#ob.period.
 make_order(Acc, Price, Type, Amount) ->
     #order{acc = Acc, price = Price, type = Type, amount = Amount}.
 data(OID) -> 
@@ -90,12 +95,7 @@ handle_call({match, OID}, _From, X) ->
     {reply, {PriceDeclaration, Accounts}, X2};
 handle_call({data, OID}, _From, Y) ->
     X = dict:fetch(OID, Y),
-    A = {X#ob.expires, 
-	 X#ob.period, 
-	 X#ob.price,
-	 X#ob.exposure,
-	 X#ob.ratio},
-    {reply, A, Y};
+    {reply, X, Y};
 handle_call({price, OID}, _From, X) -> 
     {ok, OB} = dict:find(OID, X),
     {reply, OB#ob.price, X};

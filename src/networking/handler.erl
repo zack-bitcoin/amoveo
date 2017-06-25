@@ -164,13 +164,17 @@ doit({proof, TreeName, ID}) ->
     Proof2 = proof_packer(Proof),
     {ok, {return, RootHash, Value, Proof2}};
 doit({market_data, OID}) ->
-    {Expires, Period, _, _, _} = order_book:data(OID),
+    OB = order_book:data(OID),
+    Expires = order_book:expires(OB),
+    Period = order_book:period(OB),
     {ok, {Expires, keys:pubkey(), Period}};
 doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     %make sure they pay a fee in channel for having their trade listed. 
     %make sure they paid enough to afford the shares.
     BetLocation = constants:oracle_bet(),
-    {Expires, Period, _, _, _} = order_book:data(OID),
+    OB = order_book:data(OID),
+    Expires = order_book:expires(OB),
+    Period = order_book:period(OB),
     SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
     SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
     SPK = testnet_sign:data(SSPK),
