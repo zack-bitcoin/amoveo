@@ -37,7 +37,7 @@ test1() ->
     S = block:mine_test(),
     io:fwrite("market smart contract test\n"),
     S = market:test(),
-    %S = order_book:test(),
+    S = order_book:test(),
     %S = inbox:test(),
     %io:fwrite("chalang test\n"),
     %S = test_chalang:test("deps/chalang/examples/"),

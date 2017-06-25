@@ -143,22 +143,24 @@ match_internal3(OB, Accounts, [Buy|B], [Sell|S]) ->
     Y = E + Buy#order.amount,
     X2 = abs(X),
     Y2 = abs(Y),
-    {X4, AID} = 
+    {X4, AID1, AID2} = 
 	if
 	    X2 > Y2 -> %match the buy;
 		%io:fwrite("match buy \n"),
 		Ratio = (10000 * abs(Y)) div 
 		    Sell#order.amount,
 		{OB#ob{exposure = Y, buys = B, ratio = Ratio, price = (10000 - Sell#order.price)},
-		 Buy#order.acc};
+		 Buy#order.acc,
+		 Sell#order.acc};
 	    true -> %match the sell
 		%io:fwrite("match sell \n"),
 		Ratio = (10000 * abs(X)) div 
 		    Buy#order.amount,
 		{OB#ob{exposure = X, sells = S, ratio = Ratio, price = Buy#order.price}, 
+		 Buy#order.acc,
 		 Sell#order.acc}
 	end,
-    match_internal(X4, [AID|Accounts]).
+    match_internal(X4, [AID1|[AID2|Accounts]]).
 remove_if_exists(_, _, []) -> [];
 remove_if_exists(AID, Price, [X|T]) -> 
     AID2 = X#order.acc,
@@ -206,18 +208,18 @@ test() ->
     new_market(OID, 0, 10),
     dump(OID),
     new_market(OID, 0, 10),
-    add(#order{price = 4000, amount = 1000, type = sell, acc = 3}, OID),
-    add(#order{price = 5999, amount = 100, type = buy, acc = 2}, OID),
-    add(#order{price = 6001, amount = 100, type = buy, acc = 4}, OID),
-    {_, [0]} = match(OID),
+    add(#order{price = 4000, amount = 1000, type = 2, acc = 3}, OID),
+    add(#order{price = 5999, amount = 100, type = 1, acc = 2}, OID),
+    add(#order{price = 6001, amount = 100, type = 1, acc = 4}, OID),
+    {_, [4,3]} = match(OID),
     {6000, 100, 1000} = {price(OID), exposure(OID), ratio(OID)},
     %1000 means 1/10th because only 1/10th of the big bet got matched.
     dump(OID),
     new_market(OID, 0, 10),
-    add(#order{price = 5000, amount = 100, type = buy}, OID),
-    add(#order{price = 6000, amount = 100, type = buy}, OID),
-    add(#order{price = 4500, amount = 100, type = sell}, OID),
-    add(#order{price = 3500, amount = 100, type = sell}, OID),
+    add(#order{price = 5000, amount = 100, type = 1}, OID),
+    add(#order{price = 6000, amount = 100, type = 1}, OID),
+    add(#order{price = 4500, amount = 100, type = 2}, OID),
+    add(#order{price = 3500, amount = 100, type = 2}, OID),
     match(OID),
     {6000, -100,10000} = {price(OID), exposure(OID), ratio(OID)},
     success.
