@@ -16,7 +16,8 @@
 -define(LOC, constants:order_book()).
 make_order(Acc, Price, Type, Amount) ->
     #order{acc = Acc, price = Price, type = Type, amount = Amount}.
-data(OB) -> {OB#ob.expires, OB#ob.period}.
+data(OID) -> 
+    gen_server:call(?MODULE, {data, OID}).
 %lets make a dictionary to store order books. add, match, price, remove, and exposure all need one more input to specify which order book in the dictionary we are dealing with.
 %init(ok) -> {ok, #ob{}}.
 init(ok) -> 
@@ -45,8 +46,8 @@ handle_cast({add, Order, OID}, X) ->
     true = Order#order.price > -1,
     true = Order#order.price < 10001,
     OB2 = case Order#order.type of
-	      buy -> OB#ob{buys = add_trade(Order, OB#ob.buys)};
-	      sell -> OB#ob{sells = add_trade(Order, OB#ob.sells)}
+	      1 -> OB#ob{buys = add_trade(Order, OB#ob.buys)};
+	      2 -> OB#ob{sells = add_trade(Order, OB#ob.sells)}
 	  end,
     X2 = dict:store(OID, OB2, X),
     db:save(?LOC, X2),
@@ -87,6 +88,14 @@ handle_call({match, OID}, _From, X) ->
     db:save(?LOC, X2),
     %Accounts are the account ids of the channels that needs to be updated.
     {reply, {PriceDeclaration, Accounts}, X2};
+handle_call({data, OID}, _From, Y) ->
+    X = dict:fetch(OID, Y),
+    A = {X#ob.expires, 
+	 X#ob.period, 
+	 X#ob.price,
+	 X#ob.exposure,
+	 X#ob.ratio},
+    {reply, A, Y};
 handle_call({price, OID}, _From, X) -> 
     {ok, OB} = dict:find(OID, X),
     {reply, OB#ob.price, X};
@@ -199,7 +208,7 @@ test() ->
     new_market(OID, 0, 10),
     add(#order{price = 4000, amount = 1000, type = sell, acc = 3}, OID),
     add(#order{price = 5999, amount = 100, type = buy, acc = 2}, OID),
-    add(#order{price = 6001, amount = 100, type = buy}, OID),
+    add(#order{price = 6001, amount = 100, type = buy, acc = 4}, OID),
     {_, [0]} = match(OID),
     {6000, 100, 1000} = {price(OID), exposure(OID), ratio(OID)},
     %1000 means 1/10th because only 1/10th of the big bet got matched.

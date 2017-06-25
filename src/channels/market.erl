@@ -6,8 +6,8 @@
 
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
-		true -> <<" macro bet_amount int 10000 ; ">>;
-		false -> <<" macro bet_amount int 0 ; ">>
+		1 -> <<" macro bet_amount int 10000 ; ">>;
+		2 -> <<" macro bet_amount int 0 ; ">>
 			     end,
     {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
     %MaxPrice is in the range 0 to 10000,
@@ -105,7 +105,7 @@ test2() ->
     {Trees5, _, _} = tx_pool:data(),
     %Accounts5 = trees:accounts(Trees5),
     MarketID = 405,
-    Bet = market_smart_contract("src/channels/oracle_bet.fs", MarketID,true, 1000, 6000, keys:pubkey(),101,100,OID),
+    Bet = market_smart_contract("src/channels/oracle_bet.fs", MarketID,1, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK = spk:new(1, 2, 1, [Bet], 10000, 10000, 1, 0, Entropy),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK, Accounts5), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
@@ -158,7 +158,7 @@ test2() ->
     {100,1000003,[],0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
 
     %Now we will try betting in the opposite direction.
-    Bet2 = market_smart_contract("src/channels/oracle_bet.fs", MarketID,false, 1000, 6000, keys:pubkey(),101,100,OID),
+    Bet2 = market_smart_contract("src/channels/oracle_bet.fs", MarketID,2, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK2 = spk:new(1, 2, 1, [Bet2], 10000, 10000, 1, 0, Entropy),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet, so we keep all 100.

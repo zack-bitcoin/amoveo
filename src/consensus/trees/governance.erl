@@ -18,6 +18,7 @@ genesis_state() ->
 	    false -> {297, 352, 505}
 	end,
     G = [[block_reward, 1800],
+	 [developer_reward, 1520], 
 	 [time_gas, 1113],
 	 [space_gas, 1113],
 	 [max_block_size, 940],
@@ -180,8 +181,9 @@ name2number(oracle_bet) -> 41;
 name2number(oracle_close) -> 42;
 name2number(unmatched) -> 43;
 name2number(oracle_shares) -> 44;
+name2number(developer_reward) -> 45;
 name2number(_) -> bad.
-max() -> 45.
+max() -> 46.
 
 test() ->
     C = new(14, 1, 0),

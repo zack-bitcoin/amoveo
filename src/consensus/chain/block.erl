@@ -134,10 +134,11 @@ block_reward(Trees, Height, ID) ->
     TransactionFees = txs:fees(Txs),
     TransactionCosts = tx_costs(Txs, Governance, 0),
     BlockReward = governance:get_value(block_reward, Governance),
-    NM = accounts:update(ID, Trees, ((BlockReward * 92) div 100) + TransactionFees - TransactionCosts, none, Height),
-    NM2 = accounts:update(1, Trees, ((BlockReward * 8) div 100), none, Height),
+    NM = accounts:update(ID, Trees, BlockReward + TransactionFees - TransactionCosts, none, Height),
+    %NM2 = accounts:update(1, Trees, ((BlockReward * 8) div 100), none, Height),
     accounts:write(
-      accounts:write(OldAccounts, NM2),
+      %accounts:write(OldAccounts, NM2),
+      OldAccounts,
       NM).
 tx_costs([], _, Out) -> Out;
 tx_costs([STx|T], Governance, Out) ->
@@ -145,8 +146,54 @@ tx_costs([STx|T], Governance, Out) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
+absorb_txs(PrevPlus, Height, Txs, {MinerID, MinerAddress}) -> 
+    %this part reserves your ID.
+    Trees = PrevPlus#block_plus.trees,
+    OldAccounts = trees:accounts(Trees),
+    Governance = trees:governance(Trees),
+    BCM = governance:get_value(block_creation_maturity, Governance),
+    Rent = governance:get_value(account_rent, Governance),
+    Acc2 = accounts:new(MinerID, MinerAddress, Rent * BCM * 13 div 10, Height),
+    Accounts2 = accounts:write(OldAccounts, Acc2),
+    Trees2 = trees:update_accounts(Trees, Accounts2),
+    absorb_txs2(Trees2, Height, BCM, Txs);
+absorb_txs(PrevPlus, Height, Txs, MinerID) -> 
+    Trees = PrevPlus#block_plus.trees,
+    OldAccounts = trees:accounts(Trees),
+    Governance = trees:governance(Trees),
+    BCM = governance:get_value(block_creation_maturity, Governance),
+    Rent = governance:get_value(account_rent, Governance),
+    %create Miner's account
+    Acc1 = accounts:update(MinerID, Trees, Rent * BCM * 13 div 10, none, Height),%gives 30% more than the amount of money you need to keep the account open until you get your reward.
+    Accounts2 = accounts:write(OldAccounts, Acc1),
+    Trees2 = trees:update_accounts(Trees, Accounts2),
+    absorb_txs2(Trees2, Height, BCM, Txs).
+
+absorb_txs2(Trees2, Height, BCM, Txs) ->
+    %this part gives a block reward
+    Governance = trees:governance(Trees2),
+    Accounts2 = trees:accounts(Trees2),
+    BlocksAgo = Height - BCM,
+    Trees3 = 
+	if
+	    BlocksAgo > 0 ->
+		%block reward
+		MinesBlock = mine_block_ago(BlocksAgo),
+		case MinesBlock of
+		    -1 -> Trees2;
+		    ID ->
+			BR = governance:get_value(block_reward, Governance),
+			Acc2 = accounts:update(ID, Trees2, BR, none, Height),
+			Accounts3 = accounts:write(Accounts2, Acc2),
+			trees:update_account(Trees2, Accounts3)
+		end;
+	    true -> Trees2
+	end,
+    txs:digest(Txs, 
+	       Trees3,
+	       Height).
     
-absorb_txs(PrevPlus, Height, Txs) ->
+absorb_txs_old(PrevPlus, Height, Txs) ->
     Trees = PrevPlus#block_plus.trees,
     OldAccounts = trees:accounts(Trees),
     Governance = trees:governance(Trees),
@@ -189,7 +236,7 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
     ParentPlus = read(PrevHash),
     Parent = block(ParentPlus),
     Height = Parent#block.height + 1,
-    NewTrees = absorb_txs(ParentPlus, Height, Txs),
+    NewTrees = absorb_txs(ParentPlus, Height, Txs, ID),
     NextDifficulty = next_difficulty(ParentPlus),
     #block_plus{block = 
 		#block{height = Height,
@@ -200,7 +247,6 @@ make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this bloc
 		       time = time_now()-5,
 		       difficulty = NextDifficulty},
 		accumulative_difficulty = next_acc(ParentPlus, NextDifficulty),
-				     % A
 		trees = NewTrees,
 		prev_hashes = prev_hashes(PrevHash)
       }.
@@ -281,6 +327,7 @@ check1(BP) ->
 	    Header = hash(Block),
 	    Header = pow:data(PowBlock),
 	    true = Block#block.time < time_now(),
+	    true = one_tx_per_account(Block),
 	    {BH, Block#block.prev_hash}
     end.
 
@@ -340,7 +387,8 @@ check2(BP) ->
        _ -> ok
     end,
     TreeHash = Block#block.trees,
-    Trees = absorb_txs(ParentPlus, Height, Block#block.txs),
+    MinerID = Block#block.mines_block,
+    Trees = absorb_txs(ParentPlus, Height, Block#block.txs, MinerID),
     TreeHash = trees:root_hash(Trees),
     MyAddress = keys:address(),
     MTB = Block#block.mines_block,
@@ -426,6 +474,9 @@ read_int(N, BH) ->
 	true ->
 	    read_int(N, prev_hash(lg(D), Block))
     end.
+one_tx_per_account(Block) ->
+    %make sure that every account and channel only gets updated once per block.
+    true.
 	    
     
     
@@ -481,7 +532,7 @@ mine_test() ->
     PH = top:doit(),
     BP = make(PH, [], keys:id()),
     PBlock = mine(BP, 1000000000),
-    block_absorber:doit(PBlock),
+    block_absorber:doit_ask(PBlock),
     mine_blocks(10, 100000),
     success.
 mine_blocks(A, B) -> 
@@ -521,9 +572,14 @@ mine_blocks(N, Times, Cores) ->
 		    false -> false;
 		    PBlock -> 
 			io:fwrite("FOUND A BLOCK !\n"),
-			block_absorber:doit(PBlock),
-			block_absorber:garbage(),
-			timer:sleep(150)
+			H = height(PBlock) rem 10,
+			case H of
+			    0 ->
+				block_absorber:garbage();
+			    _ -> ok
+			end,
+			block_absorber:doit_ask(PBlock)
+			%timer:sleep(250)
 		end
 	end,
     spawn_many(Cores-1, F),
@@ -551,4 +607,3 @@ guess_number_of_cpu_cores() ->
 		end,
 	    min(Y, free_constants:cores_to_mine())
     end.
-	

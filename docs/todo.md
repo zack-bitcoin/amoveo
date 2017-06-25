@@ -1,3 +1,5 @@
+block:one_tx_per_account/1 needs to be implemented
+
 maybe accessing the internal handler should require a signed request with a nonce.
 The server should ignore commands that don't increment the nonce from last time.
 
@@ -12,7 +14,7 @@ we need a cron like process to match trades in the markets.
 Prices listed are minimums. If the code is high quality, you can get much more.
 (Bounty program hasn't started yet. Talk to Zack before starting a bounty)
 
-off-chain markets. $2000
+off-chain markets. $1000
 We need an integration test where one node is a market, and the other two nodes are traders. 
 
 There should be a way to start the node in lite-mode. So that it only downloads headers, not full blocks. $1000

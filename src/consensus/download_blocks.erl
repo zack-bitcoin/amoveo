@@ -47,7 +47,8 @@ sync(IP, Port, MyHeight) ->
 				 talk({block, HH}, IP, Port,
 				      fun(Y) -> 
 					      trade_blocks(IP, Port, [Y], HH)
-						    end);
+						    end),
+				 get_txs(IP, Port);
 			     true ->
 				 io:fwrite("downloading blocks 2\n"),
 				 trade_blocks(IP, Port, [TopBlock], Height),
@@ -78,10 +79,13 @@ get_blocks(Height, N, IP, Port, _) ->
 %	 fun(X) -> get_blocks(Height-1, N-1, IP, Port, [X|L])
 %	 end).
     
-trade_blocks(_IP, _Port, L, 1) ->
+trade_blocks(IP, Port, L, 1) ->
     sync3(L);
 trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
-    %io:fwrite("trade blocks"),
+    io:fwrite("trade blocks\n"),
+    io:fwrite("height "),
+    io:fwrite(integer_to_list(Height)),
+    io:fwrite("\n"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
@@ -95,12 +99,14 @@ trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
 			 trade_blocks(IP, Port, [NextBlock|[PrevBlock|PBT]], Height - 1)
 		 end);
 	_ -> 
+	    io:fwrite("trade blocks 2\n"),
 	    sync3(PBT),
 	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
     end.
 send_blocks(IP, Port, T, T, L, _N) -> 
     send_blocks2(IP, Port, L);
 send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
+    %io:fwrite("send blocks 1 \n"),
     if
 	TopHash == 0 -> send_blocks2(IP, Port, L);
 	N>4000 -> send_blocks2(IP, Port, L);
@@ -111,15 +117,16 @@ send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
     end.
 send_blocks2(_, _, []) -> ok;
 send_blocks2(IP, Port, [Block|T]) -> 
-    io:fwrite("give block !!!!!!!\n"),
-    io:fwrite(packer:pack(Block)),
+    %io:fwrite("give block !!!!!!!\n"),
+    %io:fwrite(packer:pack(Block)),
     talker:talk({give_block, Block}, IP, Port),
     timer:sleep(20),
     send_blocks2(IP, Port, T).
     
 sync3([]) -> ok;
 sync3([B|T]) -> 
-    block_absorber:doit(B),
+    io:fwrite("sync 3 \n"),
+    block_absorber:doit_tell(B),
     sync3(T).
 absorb_txs([]) -> ok;
 absorb_txs([H|T]) -> 

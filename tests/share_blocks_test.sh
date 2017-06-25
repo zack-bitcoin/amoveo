@@ -10,6 +10,7 @@ curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
 curl -i -d '["mine_block", 5, 1]' http://localhost:3011
 sleep 1
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
+sleep 1
 
 #pull
 curl -i -d '["mine_block", 5, 1]' http://localhost:3011
