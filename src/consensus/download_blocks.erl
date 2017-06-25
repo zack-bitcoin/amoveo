@@ -27,7 +27,7 @@ sync_all([{IP, Port}|T], Height) ->
 sync(IP, Port, MyHeight) ->
     %lower their ranking
     %peers:update_score(IP, Port, peers:initial_score()),
-    io:fwrite("top of sync\n"),
+    %io:fwrite("top of sync\n"),
     %S = erlang:timestamp(),
     talk({top}, IP, Port, 
 	 fun(X) ->
@@ -50,7 +50,7 @@ sync(IP, Port, MyHeight) ->
 						    end),
 				 get_txs(IP, Port);
 			     true ->
-				 io:fwrite("downloading blocks 2\n"),
+				 %io:fwrite("downloading blocks 2\n"),
 				 trade_blocks(IP, Port, [TopBlock], Height),
 				 get_txs(IP, Port)
 				     
@@ -82,10 +82,10 @@ get_blocks(Height, N, IP, Port, _) ->
 trade_blocks(IP, Port, L, 1) ->
     sync3(L);
 trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
-    io:fwrite("trade blocks\n"),
-    io:fwrite("height "),
-    io:fwrite(integer_to_list(Height)),
-    io:fwrite("\n"),
+    %io:fwrite("trade blocks\n"),
+    %io:fwrite("height "),
+    %io:fwrite(integer_to_list(Height)),
+    %io:fwrite("\n"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
@@ -99,7 +99,7 @@ trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
 			 trade_blocks(IP, Port, [NextBlock|[PrevBlock|PBT]], Height - 1)
 		 end);
 	_ -> 
-	    io:fwrite("trade blocks 2\n"),
+	    %io:fwrite("trade blocks 2\n"),
 	    sync3(PBT),
 	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
     end.
@@ -125,7 +125,7 @@ send_blocks2(IP, Port, [Block|T]) ->
     
 sync3([]) -> ok;
 sync3([B|T]) -> 
-    io:fwrite("sync 3 \n"),
+    %io:fwrite("sync 3 \n"),
     block_absorber:doit_tell(B),
     sync3(T).
 absorb_txs([]) -> ok;

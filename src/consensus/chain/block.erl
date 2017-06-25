@@ -545,15 +545,40 @@ mine_blocks(0, _, _) ->
 mine_blocks(N, Times, Cores) -> 
     io:fwrite("mine blocks\n"),
     PH = top:doit(),
-    {_,_,Txs} = tx_pool:data(),
-    ID = case {keys:pubkey(), keys:id()} of
-	     {[], X} -> io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
-			X = 294393793232;
-	     {_, -1} ->
-		 NewID = new_id(1),
-		 {NewID, keys:address()};
-	     {_, Identity} -> Identity
-	 end,
+    {Trees,_,Txs} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    Pub = keys:pubkey(),
+    case Pub of
+	[] ->
+	     io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
+	    Pub = 444;
+	_ -> ok
+    end,
+    ID = case keys:id() of
+	-1 -> {new_id(1), keys:address()};
+	_ ->
+	    {_, A, _} = accounts:get(keys:id(), Accounts),
+	    case A of
+		empty -> 
+		    NewID = new_id(1),
+		    {new_id(1), keys:address()};
+		_ -> 
+		    Address = accounts:addr(A),
+		    MyAddress = keys:address(),
+		    case MyAddress of
+			Address -> keys:id();
+			_ -> {new_id(1), keys:address()}
+		    end
+	    end
+    end,
+    %ID = case {keys:pubkey(), keys:id()} of
+	%     {[], X} -> io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
+	%		X = 294393793232;
+	%     {_, -1} ->
+	%	 NewID = new_id(1),
+	%	 {NewID, keys:address()};
+	%     {_, Identity} -> Identity
+	% end,
     BP = make(PH, Txs, ID),
     
     %io:fwrite("mining attempt #"),
