@@ -2,7 +2,8 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 doit/1, garbage/0, save_helper/1]).
+	 doit_ask/1, doit_tell/1, garbage/0, 
+	 save_helper/1]).
 init(ok) -> 
     %save(block:genesis()),
     save(block:genesis()),
@@ -16,19 +17,22 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(garbage, X) -> 
     trees:garbage(),
     {noreply, X};
-handle_cast({doit, BP}, X) -> 
-    absorb(BP),
-    %trees:garbage(),
-    {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
+handle_call({doit, BP}, _From, X) -> 
+    absorb(BP),
+    {reply, ok, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 garbage() ->
     gen_server:cast(?MODULE, garbage).
     
-doit(X) ->
+doit_tell(X) ->
+    spawn(fun() ->
+		  doit_ask(X)
+	  end).
+doit_ask(X) ->
     %absorb(X).
     %spawn(fun() ->
-		  gen_server:cast(?MODULE, {doit, X}).
+		  gen_server:call(?MODULE, {doit, X}).
 	%  end).
     
 absorb(BP) ->

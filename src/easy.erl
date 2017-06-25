@@ -235,12 +235,16 @@ lightning_spend(IP, Port, Recipient, Pubkey, Amount, Fee, Code, SS) ->
     true = testnet_sign:verify(keys:sign(SSPK2, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
+    channel_manager_update(ServerID, SSPK2),
+    ok.
+channel_manager_update(ServerID, SSPK2) ->
     %store SSPK2 in channel manager, it is their most recent signature.
     {ok, CD} = channel_manager:read(ServerID),
     CID = channel_feeder:cid(CD),
     Entropy = channel_feeder:entropy(CD),
     ThemSS = channel_feeder:script_sig_them(CD),
     MeSS = channel_feeder:script_sig_me(CD),
+    SPK = testnet_sign:data(SSPK2),
     NewCD = channel_feeder:new_cd(SPK, SSPK2, [<<>>|MeSS], [<<>>|ThemSS], Entropy, CID),
     channel_manager:write(ServerID, NewCD),
     ok.
@@ -366,13 +370,6 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		oracle_new_tx:make(keys:id(), ?Fee + Cost, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
     tx_maker(F).
     
-oracle_bet(OID, Type, Amount) when is_integer(Type) ->
-    T = case Type of
-	    0 -> true;
-	    1 -> false;
-	    2 -> bad
-	end,
-    oracle_bet(OID, T, Amount);
 oracle_bet(OID, Type, Amount) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
@@ -516,7 +513,10 @@ keys_new(Password) ->
     0.
 market_match(OID) ->
     %check that we haven't matched too recently. (otherwise we lose all our money in all the channels.)
-    {_PriceDeclaration, _Accounts} = order_book:match(OID),
+    {PriceDeclaration, Accounts} = order_book:match(OID),
+    %false = Accounts == [],
+    io:fwrite(packer:pack({market_match, PriceDeclaration, Accounts})),
+    io:fwrite("\n"),
     %update a bunch of channels. 
     %store the price declaration in the channel_manager.
     ok.
@@ -550,8 +550,8 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
 		     Fee}, IP, Port),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    channel_feeder:update_to_me(SSPK2, ServerID).
-    
+    channel_manager_update(ServerID, SSPK2),
+    ok.
     
     
 

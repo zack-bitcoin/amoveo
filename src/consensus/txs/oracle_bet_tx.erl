@@ -63,9 +63,9 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
     Orders = oracles:orders(Oracle),
     OracleType = oracles:type(Oracle),
     TxType = case Tx#oracle_bet.type of
-		 true -> 1;
-		 false -> 2;
-		 bad -> 3
+		 1 -> 1;
+		 2 -> 2;
+		 3 -> 3
 	     end,
     Amount = Tx#oracle_bet.amount,
     ID = orders:available_id(Orders),

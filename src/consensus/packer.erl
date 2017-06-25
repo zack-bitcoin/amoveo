@@ -5,7 +5,7 @@
 untup(X) when is_tuple(X) -> lists:map(fun(Z) ->untup(Z) end, tuple_to_list(X));
 untup(X) when is_list(X) -> [?KEY|lists:map(fun(Z)->untup(Z) end,X)];
 untup(X) when is_binary(X) -> base64:encode(X);
-%untup(X) when is_binary(X) -> X; %bad
+%untup(X) when is_atom(X) -> 
 untup(X) -> X.
 unpack(I) when is_integer(I) -> I;
 unpack(JSON) -> unpack_helper(jiffy:decode(JSON)).
