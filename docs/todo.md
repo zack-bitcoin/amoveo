@@ -1,3 +1,5 @@
+minimum oracle_time isn't being used. Either use it, or lose it.
+
 block:one_tx_per_account/1 needs to be implemented
 
 maybe accessing the internal handler should require a signed request with a nonce.

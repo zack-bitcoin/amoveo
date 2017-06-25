@@ -86,7 +86,17 @@ curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 0.1
 
 #oracle better collects winnings in both oracles
+curl -i -d '["oracle_shares", 1]' http://localhost:3011
+sleep 0.1
+#curl -i -d '["oracle_shares", 2]' http://localhost:3011
+sleep 0.1
+
 #oracle better collects unmatched trades
+#curl -i -d '["oracle_unmatched", 1, 1]' http://localhost:3011
+sleep 0.1
+#curl -i -d '["oracle_unmatched", 2, 1]' http://localhost:3011
+sleep 0.1
+
 
 #unmatched trades from off-chain market should be undone.
 #winners in off-chain market should collect their winnings.
