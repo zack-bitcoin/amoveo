@@ -133,7 +133,7 @@ checksum(N, <<>>) ->
 %36+20=56
 %So at the minimum, an address would need to have 60 bits.
 -define(AddressEntropy, constants:address_entropy()).
-pubkey2address(P) when size(P) > 66 ->
+pubkey2address(P) when size(P) > 180 ->
     pubkey2address(base64:decode(P));
 pubkey2address(P) ->
     %AB = (?AddressEntropy + 4),

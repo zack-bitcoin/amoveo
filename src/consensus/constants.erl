@@ -22,8 +22,10 @@ difficulty_bits() -> 24.
 hash_size() -> 12.
 
 finality() -> 26.%/docs/security.py explains why.
-address_entropy() -> 96.
-master_pub() -> <<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>.
+address_entropy() -> hash_size()*8.
+master_pub() -> 
+<<"BC1lA35eCf/HkK7Xqw3S/dWeIdL7Z/+CngfnIHyS7o5aZ2GkVM4PBe49YDh7OOtaGzjjg/djtwnw1keTaE9QJ+g=">>.
+    %<<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>.
 master_address() ->
     testnet_sign:pubkey2address(master_pub()).
 max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
@@ -89,7 +91,7 @@ channel_size() ->
 	  (height_bits()*2) + 
 	  channel_entropy() + channel_delay_bits()) div 8) 
 	+ 1 + hash_size().
-existence_size() -> acc_bits().%hash_length*8
+existence_size() -> acc_bits().%hash_size*8
 
 channel_rent() -> account_rent().
 account_rent() -> round(math:pow(2, 13)).

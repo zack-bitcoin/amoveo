@@ -32,7 +32,7 @@ absorb(Tx) ->
 test(1) ->
     io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -60,7 +60,7 @@ test(1) ->
     absorb(Stx4),
 
     {_, _, Txs} = tx_pool:data(),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
 
     Block = block:make(PH, Txs, 1),%1 is the master pub
@@ -71,7 +71,7 @@ test(1) ->
 test(2) ->
     io:fwrite(" repo tx\n"),
     %repo_tx
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -96,7 +96,7 @@ test(2) ->
 test(3) ->
     io:fwrite(" new channel tx\n"),
     %new channel, grow channel, channel team close
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -144,7 +144,7 @@ test(3) ->
 test(4) -> 
     %channel repo
     io:fwrite(" channel repo tx\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -183,7 +183,7 @@ test(4) ->
 test(5) -> 
     %channel solo close, channel timeout
     io:fwrite("channel solo close tx\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -235,7 +235,7 @@ test(5) ->
 test(6) -> 
     %channel slash
     io:fwrite("\nchannel slash tx\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -315,7 +315,7 @@ test(7) ->
     {Trees2, _, _} = tx_pool:data(),
     ETree = trees:existence(Trees2),
     {_, C, _} = existence:get(existence:hash(C), ETree),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
@@ -371,7 +371,7 @@ test(8) ->
     {_, empty, _} = shares:get(100, S4),
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
@@ -430,7 +430,7 @@ test(9) ->
     {_, empty, _} = shares:get(100, S4),
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
@@ -507,7 +507,7 @@ test(10) ->
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
     {_, _, Txs} = tx_pool:data(),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
@@ -615,7 +615,7 @@ test(12) ->
     {Ctx4, _} = channel_timeout_tx:make(1,Trees4,CID,[],Fee),
     Stx4 = keys:sign(Ctx4, Accounts4),
     absorb(Stx4),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     {_,_,Txs} = tx_pool:data(),
     Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
@@ -668,7 +668,7 @@ test(13) ->
 test(14) -> 
     %options
     io:fwrite("options derivatives enforcement\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -726,7 +726,7 @@ test(14) ->
     {Ctx6, _} = channel_timeout_tx:make(1,Trees6,CID,[],Fee),
     Stx6 = keys:sign(Ctx6, Accounts6),
     absorb(Stx6),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
 
     {_,_,Txs} = tx_pool:data(),
@@ -737,7 +737,7 @@ test(14) ->
 test(15) ->
     %If your partner tries closing at a low-nonced channel state, your node needs to automatically create a channel_slash to stop them.
     io:fwrite("channel slash automatic\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),

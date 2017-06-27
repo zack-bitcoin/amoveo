@@ -6,8 +6,6 @@
 	 save_helper/1]).
 init(ok) -> 
     %save(block:genesis()),
-    save(block:genesis()),
-    block_hashes:add(block:hash(block:genesis())),
     %block:make_files(),
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
