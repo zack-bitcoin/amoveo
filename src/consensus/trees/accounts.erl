@@ -76,8 +76,8 @@ serialize(A) ->
     SizeAddr = constants:hash_size(),
     Nbits = constants:account_nonce_bits(),
     KL = key_length(),
-    BetsRoot = oracle_bets:root_hash(A#acc.bets),
     SharesRoot = shares:root_hash(A#acc.shares),
+    BetsRoot = oracle_bets:root_hash(A#acc.bets),
     HS = constants:hash_size(),
     HS = size(BetsRoot),
     HS = size(SharesRoot),
@@ -114,7 +114,6 @@ deserialize(A) ->
 write(Root, Account) ->%These are backwards.
     ID = Account#acc.id,
     M = serialize(Account),
-    %HS2 = constants:hash_size() * 2,
     KL = constants:key_length(),
     KL2 = KL * 2,
     %BetsRoot = oracle_bets:root_hash(Account#acc.bets),

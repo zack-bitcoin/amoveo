@@ -92,12 +92,12 @@ genesis_maker() ->
     Address = constants:master_address(),
     ID = 1,
     First = accounts:new(ID, Address, constants:initial_coins(), 0),
-    io:fwrite("gensis maker accounts write \n"),
     Accounts = accounts:write(0, First),
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
+    %io:fwrite(Trees),
     TreeRoot = trees:root_hash(Trees),
-Block = {block_plus,{block,0,
+    Block = {block_plus,{block,0,
 		     <<0:(8*constants:hash_size())>>,
                    %<<0,0,0,0,0,0,0,0,0,0,0,0>>,
                    [],
@@ -409,15 +409,28 @@ mine_block_ago(Height) ->
 
 median_last(BH, N) ->
     median(block_times(BH, N)).
-block_times(_, 0) -> [];
-block_times(<<0:96>>, N) ->
-    list_many(N, 0);
-block_times(H, N) ->
-    BP = block:read(H),
-    Block = block(BP),
-    BH2 = Block#block.prev_hash,
-    T = Block#block.time,
-    [T|block_times(BH2, N-1)].
+block_times(X, N) ->
+    H = constants:hash_size()*8,
+    case {X, N} of
+	{_, 0} -> [];
+	{<<0:H>>, _} -> list_many(N, 0);
+	{A, N} ->
+	    BP = block:read(A),
+	    Block = block(BP),
+	    BH2 = Block#block.prev_hash,
+	    T = Block#block.time,
+	    [T|block_times(BH2, N-1)]
+    end.
+	 
+%block_times(_, 0) -> [];
+%block_times(<<0:96>>, N) ->
+%    list_many(N, 0);
+%block_times(H, N) ->
+%    BP = block:read(H),
+%    Block = block(BP),
+%    BH2 = Block#block.prev_hash,
+%    T = Block#block.time,
+%    [T|block_times(BH2, N-1)].
 list_many(0, _) -> [];
 list_many(N, X) -> [X|list_many(N-1, X)].
 

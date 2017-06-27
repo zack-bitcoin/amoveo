@@ -19,12 +19,14 @@ initial_difficulty() ->
     end.
 difficulty_bits() -> 24.
 
-hash_size() -> 12.
+hash_size() -> 32.
 
 finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> hash_size()*8.
 master_pub() -> 
-<<"BC1lA35eCf/HkK7Xqw3S/dWeIdL7Z/+CngfnIHyS7o5aZ2GkVM4PBe49YDh7OOtaGzjjg/djtwnw1keTaE9QJ+g=">>.
+    <<"BGHZX0h8NMKeihw0LxAXUevYAceK71E+Y/4uB3OZXg4++yP8hUBiTaSJ5aMNqOqjJUu6gQdu+tHZJtbc41QlWsg=">>.
+
+%<<"BC1lA35eCf/HkK7Xqw3S/dWeIdL7Z/+CngfnIHyS7o5aZ2GkVM4PBe49YDh7OOtaGzjjg/djtwnw1keTaE9QJ+g=">>.
     %<<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>.
 master_address() ->
     testnet_sign:pubkey2address(master_pub()).
