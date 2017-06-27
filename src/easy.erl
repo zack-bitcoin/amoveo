@@ -514,12 +514,19 @@ keys_new(Password) ->
 market_match(OID) ->
     %check that we haven't matched too recently. (otherwise we lose all our money in all the channels.)
     {PriceDeclaration, Accounts} = order_book:match(OID),
+    %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+
     %false = Accounts == [],
-    io:fwrite(packer:pack({market_match, PriceDeclaration, Accounts})),
-    io:fwrite("\n"),
-    %update a bunch of channels. 
-    %store the price declaration in the channel_manager.
-    ok.
+    OB = order_book:data(OID),
+    Expires = order_book:expires(OB),
+    Period = order_book:period(OB),
+    CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+    SS = market:settle(PriceDeclaration),
+    secrets:add(CodeKey, SS),
+    channel_feeder:bets_unlock(Accounts),
+    
+    %add this to channels_manager ss_me for every bet in the channel that participated.
+    0.
 new_market(OID, Expires, Period) -> 
     %for now lets use the oracle id as the market id. this wont work for combinatorial markets.
     order_book:new_market(OID, Expires, Period).
@@ -539,6 +546,14 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
     %type is true or false or one other thing...
     SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID),
     SSPK = channel_feeder:trade(Amount, SC, ServerID, OID),
+    MSG = {trade, 
+	   keys:id(),
+	   Price,
+	   Type,
+	   Amount,
+	   OID,
+	   SSPK, 
+	   Fee},
     {ok, SSPK2} =
 	talker:talk({trade, 
 		     keys:id(),

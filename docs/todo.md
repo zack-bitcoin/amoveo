@@ -1,3 +1,9 @@
+Secrets seems unnecessary. As soon as we find out a secret, why not use arbitrage to update all the channels immediately?
+
+/tests holds tests that use multiple nodes. Currently these tests use curl, so it isn't obvious if an error happens. You have to review the log by hand.
+It would be much better if these test were re-written in python or erlang, and we could check the responses from each command, that way an error is thrown when it happens, and it will be easier to diagnose what went wrong.
+Also, we wont have to open 4 terminals to run these tests.
+
 minimum oracle_time isn't being used. Either use it, or lose it.
 
 block:one_tx_per_account/1 needs to be implemented

@@ -213,7 +213,7 @@ test(5) ->
     Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -264,7 +264,7 @@ test(6) ->
     Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -479,7 +479,7 @@ test(10) ->
 	     <<<<"int 50 ">>/binary,%channel nonce is 1, sends 50.
 	       SC/binary>>),
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(2, 1, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts4),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, 2, Accounts4), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -600,8 +600,8 @@ test(12) ->
     Code2 = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
-    Bet2 = spk:new_bet(Code2, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
+    Bet2 = spk:new_bet(Code2, Code2, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet, Bet2], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -697,7 +697,7 @@ test(14) ->
     Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -769,7 +769,7 @@ test(15) ->
     
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     SPK = spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy),
     TheySPK = testnet_sign:sign_tx(SPK, NewPub, NewPriv, ID2, Accounts3),
     CD = channel_feeder:new_cd(SPK, TheySPK, [Secret], [Secret], Entropy, CID),

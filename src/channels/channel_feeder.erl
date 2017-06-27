@@ -104,6 +104,8 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     Period = order_book:period(OB),
     BetLocation = constants:oracle_bet(),
     SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
+    CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+    %CodeKey = {market, market_smart_contract, OID, Expires, keys:pubkey(), Period, OID),
     SSPK2 = trade(Amount, SC, ID, OID),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
@@ -111,7 +113,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = [<<>>|OldCD#cd.ssme],
 		     ssthem = [<<>>|OldCD#cd.ssthem]},
-    arbitrage:write(SC, [ID]),
+    %arbitrage:write(CodeKey, [ID]),
     channel_manager:write(ID, NewCD),
     {reply, SSPK2, X};
 handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
@@ -354,7 +356,7 @@ make_locked_payment(To, Amount, Code, Prove) ->
     SPK = CD#cd.me,
     %OldSPK = CD#cd.them,
     %SPK = testnet_sign:data(OldSPK),
-    Bet = spk:new_bet(Code, Amount, Prove),
+    Bet = spk:new_bet(Code, Code, Amount, Prove),
     NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),

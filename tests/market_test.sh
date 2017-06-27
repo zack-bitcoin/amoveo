@@ -72,21 +72,21 @@ curl -i -d '["market_match", 2]' http://localhost:3031
 
 #settle the oracle.
 
-curl -i -d '["oracle_bet", 2, 1, 269]' http://localhost:3011 #one higher than the minimum
+#curl -i -d '["oracle_bet", 2, 1, 269]' http://localhost:3011 #one higher than the minimum
 sleep 0.1
-curl -i -d '["mine_block", 10, 1]' http://localhost:3011
+#curl -i -d '["mine_block", 10, 1]' http://localhost:3011
 sleep 0.1
-curl -i -d '["oracle_close", 2]' http://localhost:3011
-sleep 0.1
-
-curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
+#curl -i -d '["oracle_close", 2]' http://localhost:3011
 sleep 0.1
 
-curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
+#curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
+sleep 0.1
+
+#curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 0.1
 
 #oracle better collects winnings in both oracles
-curl -i -d '["oracle_shares", 1]' http://localhost:3011
+#curl -i -d '["oracle_shares", 1]' http://localhost:3011
 sleep 0.1
 #curl -i -d '["oracle_shares", 2]' http://localhost:3011
 sleep 0.1

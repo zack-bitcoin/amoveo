@@ -4,12 +4,13 @@
 	 new/9,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,settle_bet/4,chalang_state/3,
-	 prove/1, new_bet/3, delay/1,
+	 prove/1, new_bet/4, delay/1,
 	 is_improvement/4, bet_unlock/2,
-	 code/1,
+	 code/1, key/1,
 	 test/0
 	]).
--record(bet, {code, amount, prove}).
+-record(bet, {code, amount, prove, key}).%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
+
 %We want channel that are using the same contract to be able to calculate a contract hash that is the same. This makes it easier to tell if 2 channels are betting on the same thing.
 %Each contract should output an amount between 0 and constants:channel_granularity(), which is the portion of the money that goes to one of the participants. Which participant it signifies depends on what value is stored in a flag.
 %So each contract needs a value saying how much of the money is locked into that contract.
@@ -35,6 +36,7 @@ nonce(X) -> X#spk.nonce.
 %bet_amount(X) -> X#bet.amount.
 prove(X) -> X#bet.prove.
 code(X) -> X#bet.code.
+key(X) -> X#bet.key.
 
 prove_facts([], _) ->
     <<>>;
@@ -75,8 +77,8 @@ tree2id(burn) -> 4;
 tree2id(oracles) -> 5;
 tree2id(governance) -> 6.
 
-new_bet(Code, Amount, Prove) ->
-    #bet{code = Code, amount = Amount, prove = Prove}.
+new_bet(Code, Key, Amount, Prove) ->
+    #bet{code = Code, key = Key, amount = Amount, prove = Prove}.
 new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
     %Prove = many([], length(Bets)),
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
@@ -98,8 +100,8 @@ bet_unlock(SPK, SS) ->
 bet_unlock2([], B, A, [], SS, Secrets, Nonce, SSThem) ->
     {B, A, SS, Secrets, Nonce, lists:reverse(SSThem)};
 bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
-    Code = Bet#bet.code, 
-    case secrets:read(Code) of
+    Key = Bet#bet.key, 
+    case secrets:read(Key) of
 	<<"none">> -> 
 	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 	SS2 -> 
@@ -114,7 +116,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 		    free_constants:bet_gas_limit(),
 		    FunLimit, VarLimit, State, 0),
 	    ShareRoot = [],%deal with lightning shares later.
-	    bet_unlock2(T, B, A+ContractAmount, SSIn, SSOut, [{secret, SS2, Code}|Secrets], Nonce + Nonce2, [SS2|SSThem])
+	    bet_unlock2(T, B, A+ContractAmount, SSIn, SSOut, [{secret, SS2, Key}|Secrets], Nonce + Nonce2, [SS2|SSThem])
     end.
 	    
 %many(_, 0) -> [];
@@ -198,10 +200,16 @@ run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, De
     run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Share ++ Share0).
 run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     %compiler_chalang:print_binary(ScriptSig),
+    io:fwrite("spk run 3 "),
+    io:fwrite(packer:pack({run3, Bet})),
+    io:fwrite("\n"),
     true = chalang:none_of(ScriptSig),
     {Trees, _, _} = tx_pool:data(),
     F = prove_facts(Bet#bet.prove, Trees),
     C = Bet#bet.code,
+    io:fwrite("bet code is "),
+    io:fwrite(C),
+    io:fwrite("\n"),
     Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State),
     Data2 = chalang:run5([ScriptSig], Data),

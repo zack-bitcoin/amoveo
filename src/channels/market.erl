@@ -1,14 +1,16 @@
 -module(market).
 -export([price_declaration_maker/4, market_smart_contract/9,
 	 settle/1,no_publish/0,evidence/1,
-	 contradictory_prices/2, 
+	 contradictory_prices/2, market_smart_contract_key/5,
 	 test/0]).
 
+market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) ->
+    {market, 1, MarketID, Expires, Pubkey, Period, OID}.
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		1 -> <<" macro bet_amount int 10000 ; ">>;
 		2 -> <<" macro bet_amount int 0 ; ">>
-			     end,
+	    end,
     {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
     %MaxPrice is in the range 0 to 10000,
     % it is the limit of how much you are willing to pay the server for the derivative. You will pay this much or less.
@@ -22,9 +24,10 @@ macro Period int " ++ integer_to_list(Period) ++ " ;\
 ",
     {ok, Code3} = file:read_file("src/channels/market.fs"),
     Compiled = compiler_chalang:doit(<<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>),
-    spk:new_bet(Compiled, Amount, [{oracles, OID}]).
+    CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
+    spk:new_bet(Compiled, CodeKey, Amount, [{oracles, OID}]).
 settle(SPD) ->
-    %If the oracle comes to a decision, this is how you get your mone out.
+    %If the oracle comes to a decision, this is how you get your money out.
     PriceDeclare = binary_to_list(base64:encode(SPD)),
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
 " " ++ PriceDeclare ++ " int 1",
