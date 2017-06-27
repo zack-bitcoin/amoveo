@@ -37,20 +37,20 @@ sync(IP, Port, MyHeight) ->
 			 io:fwrite("failed connect"),
 			 ok;
 		     {ok, TopBlock, Height}  ->
-			 %io:fwrite("got topblock\n"),
+			 io:fwrite("got topblock\n"),
 			 DBB = free_constants:download_blocks_batch(),
 			 HH = MyHeight + DBB,
 			 if
 			     HH < Height ->
-				 %{ok, Block} = talker:talk({block, HH}, IP, Port),
-				 %io:fwrite("HH < Height\n"),
+				 {ok, Block} = talker:talk({block, HH}, IP, Port),
+				 io:fwrite("HH < Height\n"),
 				 talk({block, HH}, IP, Port,
 				      fun(Y) -> 
 					      trade_blocks(IP, Port, [Y], HH)
 						    end),
 				 get_txs(IP, Port);
 			     true ->
-				 %io:fwrite("downloading blocks 2\n"),
+				 io:fwrite("downloading blocks 2\n"),
 				 trade_blocks(IP, Port, [TopBlock], Height),
 				 get_txs(IP, Port)
 				     
@@ -87,6 +87,9 @@ trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
     %io:fwrite(integer_to_list(Height)),
     %io:fwrite("\n"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
+    %io:fwrite("prev block is "),
+    %io:fwrite(PrevBlock),
+    %io:fwrite("\n"),
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
     {PrevHash, NextHash} = block:check1(PrevBlock),

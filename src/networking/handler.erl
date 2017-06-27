@@ -73,6 +73,7 @@ doit({min_channel_ratio}) ->
     {ok, free_constants:min_channel_ratio()};
 doit({new_channel, STx, SSPK}) ->
     unlocked = keys:status(),
+    %io:fwrite(STx),
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
     {Trees,_,_} = tx_pool:data(),

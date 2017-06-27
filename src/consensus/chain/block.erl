@@ -1,5 +1,5 @@
 -module(block).
--export([hash/1,check2/1,test/0,mine_test/0,genesis/0,
+-export([hash/1,check2/1,test/0,mine_test/0,
 	 make/3,mine/2,height/1,
 	 read/1,binary_to_file/1,block/1,prev_hash/2,
 	 prev_hash/1,read_int/1,check1/1,
@@ -115,16 +115,16 @@ Block = {block_plus,{block,0,
 	%     4080,44358461744572027408730},
     Block.
     %#block_plus{block = Block, trees = Trees}.
-genesis() ->
-{block_plus,{block,0,
-                   <<0,0,0,0,0,0,0,0,0,0,0,0>>,
-                   [],
-                   <<86,31,143,142,73,28,203,208,227,116,25,154>>,
-                   1,0,4080,<<>>,1},
-            {pow,<<>>,4080,44358461744572027408730},
-            {trees,1,0,0,0,0,72},
-            0,
-            {prev_hashes}}.
+%genesis() ->
+%{block_plus,{block,0,
+%                   <<0,0,0,0,0,0,0,0,0,0,0,0>>,
+%                   [],
+%                   <<86,31,143,142,73,28,203,208,227,116,25,154>>,
+%                   1,0,4080,<<>>,1},
+%            {pow,<<>>,4080,44358461744572027408730},
+%            {trees,1,0,0,0,0,72},
+%            0,
+%            {prev_hashes}}.
 block_reward(Trees, Height, ID) -> 
     OldAccounts = trees:accounts(Trees),
     Governance = trees:governance(Trees),
@@ -314,7 +314,7 @@ retarget2(Hash, N, L) ->
     retarget2(H, N-1, [T|L]).
 check1(BP) ->    
     BH = hash(BP),
-    GH = hash(genesis()),
+    GH = hash(read_int(0)),
     if
 	BH == GH ->
 	    {BH, 0};
