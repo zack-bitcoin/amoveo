@@ -1,12 +1,11 @@
-/deps/
-/ebin/
+.idea
+*.iml
+_build
 /rel/
 *.db
 *~
 .#*
 \#*
-rebar
-rebar_source
 .rebar
 erl_crash.dump
 keys_backup

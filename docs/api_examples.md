@@ -1,4 +1,4 @@
-example of how to add a node to the list of nodes you share blocks with. This is an example of accessing the local api on the same machine.
+Example of how to add a node to the list of nodes you share blocks with. This is an example of accessing the local api on the same machine.
 
 ```
 curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:8041
