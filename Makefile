@@ -85,8 +85,8 @@ prod-release-clean:
 dev-masterkey:
 	mkdir -p _build/dev1/rel/ae_core/keys/ _build/dev2/rel/ae_core/keys/ _build/dev3/rel/ae_core/keys/
 	cp tests/masterkey/keys.db _build/dev1/rel/ae_core/keys/keys.db
-	cp tests/masterkey/keys.db _build/dev2/rel/ae_core/keys/keys.db
-	cp tests/masterkey/keys.db _build/dev3/rel/ae_core/keys/keys.db
+	#cp tests/masterkey/keys.db _build/dev2/rel/ae_core/keys/keys.db
+	#cp tests/masterkey/keys.db _build/dev3/rel/ae_core/keys/keys.db
 
 # Copy dev1 node instead re-compiling same core apps to increase build speed
 # TODO: parametrize release version to make it flexible

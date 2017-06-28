@@ -9,19 +9,13 @@
 
 #It lightning spends 4 tokens one way, then spends the same 4 back.
 
-curl -i -d '["add_peer", [127,0,0,1], 3030]' http://localhost:3011
-curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
-curl -i -d '["add_peer", [127,0,0,1], 3030]' http://localhost:3021
-curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3021
-curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3031
-curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3031
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
 
 
-curl -i -d '["create_account", "SlZSdjZTcnFEQ1BpOGZ0RTVB", 10]' http://localhost:3011
+curl -i -d '["create_account", "OGlqQmhFUks0anBSVHp5Y1lDZGtVTjh0MWg5UDg2YTExMWs3N0RTUDZadUht", 10]' http://localhost:3011
 sleep 0.1
-curl -i -d '["create_account", "RlpkWGRweGtrenlVS2U1TERW", 10]' http://localhost:3011
+curl -i -d '["create_account", "MjFtZk5oeFFNWmphcVFzZzdVTHRZMTlQblN4b2dIQVRkSHg2SjRrSEF2MWdBag==", 10]' http://localhost:3011
 sleep 0.1
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
 sleep 0.1
@@ -49,14 +43,13 @@ sleep 0.1
 curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
 sleep 0.1
 
-#curl -i -d '["lightning_spend", [127,0,0,1], 3030, 1, 
-#"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=", 4, 10]' http://localhost:3021
-#sleep 1
+curl -i -d '["lightning_spend", [127,0,0,1], 3030, 1, "BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=", 4, 10]' http://localhost:3021
+sleep 1
 
-#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
-#sleep 1
+curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
+sleep 1
 
-#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
-#sleep 1
+curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
+sleep 1
 
 

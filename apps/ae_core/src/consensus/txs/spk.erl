@@ -211,7 +211,7 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     %io:fwrite(C),
     %io:fwrite("\n"),
     Code = <<F/binary, C/binary>>,  
-    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State),
+    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
     Data2 = chalang:run5([ScriptSig], Data),
     Data3 = chalang:run5([Code], Data2),
     [ShareRoot|

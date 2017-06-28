@@ -5,7 +5,7 @@ curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
 curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3011
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
-
+#"OGlqQmhFUks0anBSVHp5Y1lDZGtVTjh0MWg5UDg2YTExMWs3N0RTUDZadUht"
 #create another 2 accounts so all three nodes have accounts.
 #curl -i -d '["create_account", "SlZSdjZTcnFEQ1BpOGZ0RTVB", 10]' http://localhost:3011
 curl -i -d '["create_account", "RjViV1ZyZTZraUtMRmZId05h", 10]' http://localhost:3011
