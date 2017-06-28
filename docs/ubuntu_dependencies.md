@@ -31,7 +31,4 @@ Now you can go into the directory, and compile the aeternity testnet.
 
 ```
 cd testnet/
-sh install.sh
 ```
-
-Now you can run your node. with ```sh start.sh```

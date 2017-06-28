@@ -12,10 +12,3 @@ git clone https://github.com/aeternity/testnet.git
 cd testnet
 mkdir data blocks
 ```
-
-Install the dependencies:
-```
-sh install.sh
-```
-
-Now you can run your node with ```sh start.sh```
