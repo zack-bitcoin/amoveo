@@ -7,7 +7,7 @@ This is being used by: [æternity](https://aeternity.com).
 
 ### Instalation
 
-Requirements for Aeternity instalation cover ```Erlang/OTP (18+)``` and its dependencies
+Requirements for Aeternity installation cover ```Erlang/OTP (18+)``` and its dependencies
 
 Reporsitory operates using ```rebar3``` and we ship it in the top dir
 
