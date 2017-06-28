@@ -1,17 +1,20 @@
 #this quickly tests lightning payments. It is a lot faster and easier than using the blockchain to test the same thing.
 
-#this test can only work if free_constants:test_mode() is set to true. So the random number generation for the hashlock will be deterministic.
+# This is test for 3 node deployment. It runs in test_mode = true only
+# Build 3 nodes using `make dev-release-unikey`
+# It will use test master key and corresponding configs
 
-#make sure the code is compiled and can run with `sh start.sh`
-#Open up 3 terminals.
-#launch `sh dev1_mode.sh` in one, `sh dev2_mode.sh` in the second, and `sh dev3_mode.sh` in the 3rd.
-#Then run this script from a fourth terminal.
+# If you want to attach to all 3 daemons you can do it from 3 terminals
+# Then run this script from a fourth terminal.
 
 #It lightning spends 4 tokens one way, then spends the same 4 back.
 
 curl -i -d '["add_peer", [127,0,0,1], 3030]' http://localhost:3011
 curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
-curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3011
+curl -i -d '["add_peer", [127,0,0,1], 3030]' http://localhost:3021
+curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3021
+curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3031
+curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3031
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
 
