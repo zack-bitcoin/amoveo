@@ -528,7 +528,7 @@ market_match(OID) ->
     channel_feeder:bets_unlock(Accounts),
     
     %add this to channels_manager ss_me for every bet in the channel that participated.
-    0.
+    {ok, ok}.
 new_market(OID, Expires, Period) -> 
     %for now lets use the oracle id as the market id. this wont work for combinatorial markets.
     order_book:new_market(OID, Expires, Period).

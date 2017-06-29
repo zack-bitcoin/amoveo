@@ -1,11 +1,4 @@
 
-#teach the nodes about each other so they can communicate.
-curl -i -d '["add_peer", [127,0,0,1], 3030]' http://localhost:3011
-curl -i -d '["add_peer", [127,0,0,1], 3020]' http://localhost:3011
-curl -i -d '["add_peer", [127,0,0,1], 3010]' http://localhost:3011
-curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
-curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
-#"OGlqQmhFUks0anBSVHp5Y1lDZGtVTjh0MWg5UDg2YTExMWs3N0RTUDZadUht"
 #create another 2 accounts so all three nodes have accounts.
 curl -i -d '["create_account", "OGlqQmhFUks0anBSVHp5Y1lDZGtVTjh0MWg5UDg2YTExMWs3N0RTUDZadUht", 10]' http://localhost:3011
 sleep 0.1
