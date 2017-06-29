@@ -3,13 +3,12 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, add/1,doit/0,test/0]).
 -define(LOC, constants:top()).
 init(ok) -> 
-    block_hashes:add(block:hash(block:genesis())),
-    block:genesis_maker(),
     io:fwrite("start top"),
+    G = block:genesis_maker(),
     X = db:read(?LOC),
     Ka = if
 	     X == "" ->
-		 G = block:genesis(),
+		 %G = block:genesis(),
 		 block_absorber:save_helper(G),
 		 add_internal(G),
 		 I = keys:pubkey(),
@@ -22,6 +21,7 @@ init(ok) ->
 	     true ->
 		 X
 	 end,
+    spawn(fun() -> block_hashes:add(block:hash(G)) end),
     {ok, Ka}.
     %{ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).

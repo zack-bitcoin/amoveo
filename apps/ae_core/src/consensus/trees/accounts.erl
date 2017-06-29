@@ -1,9 +1,10 @@
 
+
 -module(accounts).
 -export([new/4,nonce/1,write/2,get/2,update/5,update/7,addr/1,id/1,balance/1,root_hash/1,now_balance/4,delete/2,
 	 receive_shares/4, send_shares/4,
 	 shares/1, bets/1, update_bets/2,
-	 serialize/1, garbage/0, test/0]).
+	 serialize/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
@@ -30,9 +31,16 @@ send_shares(Acc, Shares, Height, Trees) ->
 now_balance(Acc, Amount, NewHeight, Trees) ->
     OldHeight = Acc#acc.height,
     Governance = trees:governance(Trees),
-    AR = governance:get_value(account_rent, Governance),
-    Rent = AR*(NewHeight - OldHeight),
-    Amount + Acc#acc.balance - Rent.
+    ID = Acc#acc.id,
+    DH = NewHeight - OldHeight,
+    Rent = 
+	case ID of
+	    1 ->
+		-(governance:get_value(developer_reward, Governance));
+	    _ ->
+		governance:get_value(account_rent, Governance)
+	end,
+    Amount + Acc#acc.balance - (Rent * DH).
     
 update(Id, Trees, Amount, NewNonce, NewHeight) ->
     Accounts = trees:accounts(Trees),
@@ -68,8 +76,8 @@ serialize(A) ->
     SizeAddr = constants:hash_size(),
     Nbits = constants:account_nonce_bits(),
     KL = key_length(),
-    BetsRoot = oracle_bets:root_hash(A#acc.bets),
     SharesRoot = shares:root_hash(A#acc.shares),
+    BetsRoot = oracle_bets:root_hash(A#acc.bets),
     HS = constants:hash_size(),
     HS = size(BetsRoot),
     HS = size(SharesRoot),
@@ -106,7 +114,6 @@ deserialize(A) ->
 write(Root, Account) ->%These are backwards.
     ID = Account#acc.id,
     M = serialize(Account),
-    %HS2 = constants:hash_size() * 2,
     KL = constants:key_length(),
     KL2 = KL * 2,
     %BetsRoot = oracle_bets:root_hash(Account#acc.bets),
@@ -135,7 +142,7 @@ get(Id, Accounts) ->
 root_hash(Accounts) ->
     trie:root_hash(?id, Accounts).
 
-garbage() -> trees:garbage(?id).
+%garbage() -> trees:garbage(?id).
 
 test() ->
     {Address, _Pub, _Priv} = testnet_sign:hard_new_key(),

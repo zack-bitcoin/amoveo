@@ -5,7 +5,8 @@
 %2^74 bits is 25 bitcoin =~ $10,000
 %2^64 bits is $10
 
--define(DEFAULT_MASTER_PUB, <<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>).
+%-define(DEFAULT_MASTER_PUB, <<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>).
+%<<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>).
 
 key_length() ->
     48. %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
@@ -20,12 +21,13 @@ initial_difficulty() ->
     end.
 difficulty_bits() -> 24.
 
-hash_size() -> 12.
+hash_size() -> 32.
 
 finality() -> 26.%/docs/security.py explains why.
-address_entropy() -> 96.
+address_entropy() -> hash_size()*8.
 master_pub() ->
-    application:get_env(ae_core, master_pub, ?DEFAULT_MASTER_PUB).
+    {ok, X} = application:get_env(ae_core, master_pub),
+    X.
 
 master_address() ->
     testnet_sign:pubkey2address(master_pub()).
@@ -57,27 +59,10 @@ delete_channel_reward() -> 0.
 %decided to charge for accounts based on how long it is open, instead of flat fee.
 create_account_fee() -> 0.%consensus_byte_price() * 85.
 delete_account_reward() -> 0.%create_account_fee() * 19 div 20. % 95% refund.
-%security_ratio() -> ae_core_fractions:new(3, 2).
 %At most, a channel can contain 1/4000th of the money.
 initial_channels() -> %Around 10000 channels.
     1.
     %MVB = minimum_validators_per_block(),
-    %D = ae_core_fractions:divide(security_ratio(), security_bonds_per_winner()),
-    %ae_core_fractions:multiply_int(D, 4) div MVB.
-%-define(AccountFee, ae_core_fractions:new(1, max_address() * finality() * 10)).%so if all accounts are full, it takes 10 finalities until most of them start losing so much money that their accounts open up.
-
-%account_fee() -> ?AccountFee. 
-%-define(DelegationFee, ae_core_fractions:new(finality() * 1000 - 1, finality() * 1000)).%so it would take about 15,000 blocks to lose 1/2 your money. So you have about 350,000 chances to be validator till you lose 1 your money. So you need at least initial_coins()/350000 in delegation to be able to profitably validate. Which means it supports up to 350000 validators at a time max.
-%-define(DelegationFee, ae_core_fractions:new(1, 1000 * finality())).
-%delegation_fee() -> ?DelegationFee.
-%delegation_reward() -> ae_core_fractions:subtract(ae_core_fractions:new(1, 1), ?DelegationFee).
-%block_creation_fee() -> 0.
-%max_reveal() -> finality()*10.
-%1/4000000
-%block_creation_fee() -> ae_core_fractions:new(1, 20000).%Which implies finality only has to be 13 blocks long!!!
-%It is important that 1/3 of the block_creation_fee be less than 2/3 of the validator's bond.
-%-define(PBCFV, ae_core_fractions:multiply_int(block_creation_fee(), initial_coins()) div 3).
-%-define(BR, ae_core_fractions:new(1, 1000)).%spending 1000 coins necessarily burns ~1.
 %burn_ratio() -> ?BR.
 root() -> "data/".
 block_hashes() -> root() ++ "block_hashes.db".
@@ -86,7 +71,7 @@ top() -> root() ++ "top.db".
 channel_manager() -> root() ++ "channel_manager.db".
 secrets() -> root() ++ "secrets.db".
 order_book() -> root() ++ "order_book.db".
-oracle_bet() -> "src/channels/oracle_bet.fs".
+oracle_bet() -> "lib/ae_core-0.1.0/priv/oracle_bet.fs".
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
 half_bal() -> round(math:pow(2, balance_bits()-1)).
@@ -105,7 +90,7 @@ channel_size() ->
 	  (height_bits()*2) + 
 	  channel_entropy() + channel_delay_bits()) div 8) 
 	+ 1 + hash_size().
-existence_size() -> acc_bits().%hash_length*8
+existence_size() -> acc_bits().%hash_size*8
 
 channel_rent() -> account_rent().
 account_rent() -> round(math:pow(2, 13)).

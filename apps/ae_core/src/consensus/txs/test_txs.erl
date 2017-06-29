@@ -32,7 +32,7 @@ absorb(Tx) ->
 test(1) ->
     io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -40,7 +40,7 @@ test(1) ->
     {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
 
     Fee = 20,
-    {Ctx, _Proof} = create_account_tx:make(NewAddr, 100000000, Fee, 1, 2, Trees),
+    {Ctx, _} = create_account_tx:make(NewAddr, 100000000, Fee, 1, 2, Trees),
     Stx = keys:sign(Ctx, Accounts),
     absorb(Stx),
     {Trees2,  _, _} = tx_pool:data(),
@@ -53,8 +53,14 @@ test(1) ->
     {Ctx3, _} = delete_account_tx:make(1, 2, Fee, Trees3),
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv, 2, Accounts3),
     absorb(Stx3),
+    {Trees4, _, _} = tx_pool:data(),
+    Accounts4 = trees:accounts(Trees4),
+    {Ctx4, _} = create_account_tx:make(NewAddr, 100000000, Fee, 1, 2, Trees4),
+    Stx4 = keys:sign(Ctx4, Accounts4),
+    absorb(Stx4),
+
     {_, _, Txs} = tx_pool:data(),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
 
     Block = block:make(PH, Txs, 1),%1 is the master pub
@@ -65,7 +71,7 @@ test(1) ->
 test(2) ->
     io:fwrite(" repo tx\n"),
     %repo_tx
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -90,7 +96,7 @@ test(2) ->
 test(3) ->
     io:fwrite(" new channel tx\n"),
     %new channel, grow channel, channel team close
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -138,7 +144,7 @@ test(3) ->
 test(4) -> 
     %channel repo
     io:fwrite(" channel repo tx\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -177,7 +183,7 @@ test(4) ->
 test(5) -> 
     %channel solo close, channel timeout
     io:fwrite("channel solo close tx\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -207,7 +213,7 @@ test(5) ->
     Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -229,7 +235,7 @@ test(5) ->
 test(6) -> 
     %channel slash
     io:fwrite("\nchannel slash tx\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -258,7 +264,7 @@ test(6) ->
     Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -309,7 +315,7 @@ test(7) ->
     {Trees2, _, _} = tx_pool:data(),
     ETree = trees:existence(Trees2),
     {_, C, _} = existence:get(existence:hash(C), ETree),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
@@ -365,7 +371,7 @@ test(8) ->
     {_, empty, _} = shares:get(100, S4),
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
@@ -424,7 +430,7 @@ test(9) ->
     {_, empty, _} = shares:get(100, S4),
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
@@ -473,7 +479,7 @@ test(10) ->
 	     <<<<"int 50 ">>/binary,%channel nonce is 1, sends 50.
 	       SC/binary>>),
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(2, 1, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts4),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, 2, Accounts4), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -501,7 +507,7 @@ test(10) ->
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
     {_, _, Txs} = tx_pool:data(),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     Block = block:mine(block:make(PH, Txs, 1), 10000000000),%1 is the master pub
     block:check2(Block),
@@ -527,7 +533,7 @@ test(11) ->
     %make some bets in the oracle with oracle_bet
     Governance2 = trees:governance(Trees2),
     OIL = governance:get_value(oracle_initial_liquidity, Governance2),
-    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, true, OIL, Trees2), 
+    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, 1, OIL, Trees2), 
     Stx2 = keys:sign(Tx2, Accounts2),
     absorb(Stx2),
     %timer:sleep(100),
@@ -594,8 +600,8 @@ test(12) ->
     Code2 = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
-    Bet2 = spk:new_bet(Code2, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
+    Bet2 = spk:new_bet(Code2, Code2, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet, Bet2], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -609,7 +615,7 @@ test(12) ->
     {Ctx4, _} = channel_timeout_tx:make(1,Trees4,CID,[],Fee),
     Stx4 = keys:sign(Ctx4, Accounts4),
     absorb(Stx4),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     {_,_,Txs} = tx_pool:data(),
     Block = block:mine(block:make(PH, Txs, 1), 100000000),%1 is the master pub
@@ -662,7 +668,7 @@ test(13) ->
 test(14) -> 
     %options
     io:fwrite("options derivatives enforcement\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -691,7 +697,7 @@ test(14) ->
     Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     ScriptPubKey = keys:sign(spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy), Accounts3),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv, ID2, Accounts3), 
     ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
@@ -720,7 +726,7 @@ test(14) ->
     {Ctx6, _} = channel_timeout_tx:make(1,Trees6,CID,[],Fee),
     Stx6 = keys:sign(Ctx6, Accounts6),
     absorb(Stx6),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
 
     {_,_,Txs} = tx_pool:data(),
@@ -731,7 +737,7 @@ test(14) ->
 test(15) ->
     %If your partner tries closing at a low-nonced channel state, your node needs to automatically create a channel_slash to stop them.
     io:fwrite("channel slash automatic\n"),
-    BP = block:genesis(),
+    BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -763,7 +769,7 @@ test(15) ->
     
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50, []),
     SPK = spk:new(1, ID2, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy),
     TheySPK = testnet_sign:sign_tx(SPK, NewPub, NewPriv, ID2, Accounts3),
     CD = channel_feeder:new_cd(SPK, TheySPK, [Secret], [Secret], Entropy, CID),

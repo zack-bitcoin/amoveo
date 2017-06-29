@@ -7,15 +7,19 @@
 %curl -i -d echotxt http://localhost:3010
 
 handle(Req, State) ->
-    {Length, Req2} = cowboy_req:body_length(Req),
-    %timer:sleep(100),
-    {ok, Data, Req25} = cowboy_req:body(Req2),
-    {{IP, _}, Req3} = cowboy_req:peer(Req25),
+    %{Length, Req2} = cowboy_req:body_length(Req),
+    %{ok, X, Req1}
+	%= cowboy_req:parse_header(<<"te">>, Req),
+    {ok, Data, Req2} = cowboy_req:body(Req),
+    {{IP, _}, Req3} = cowboy_req:peer(Req2),
     request_frequency:doit(IP),
     true = is_binary(Data),
     A = packer:unpack(Data),
     B = doit(A),
     D = packer:pack(B),
+    %io:fwrite("response is "),
+    %io:fwrite(D),
+    %io:fwrite("\n"),
     Headers = [{<<"content-type">>, <<"application/octet-stream">>},
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],
     {ok, Req4} = cowboy_req:reply(200, Headers, D, Req3),
@@ -28,7 +32,7 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 %doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
     %true = block:height(SignedBlock) < easy:height() + 2,
-    block_absorber:doit(SignedBlock),
+    block_absorber:doit_tell(SignedBlock),
     {ok, 0};
 doit({block, N, Many}) -> 
     {ok, block:read_many(N, Many)};
@@ -69,6 +73,7 @@ doit({min_channel_ratio}) ->
     application:get_env(ae_core, min_channel_ratio);
 doit({new_channel, STx, SSPK}) ->
     unlocked = keys:status(),
+    %io:fwrite(STx),
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
     {Trees,_,_} = tx_pool:data(),
@@ -160,19 +165,24 @@ doit({proof, TreeName, ID}) ->
     Proof2 = proof_packer(Proof),
     {ok, {return, RootHash, Value, Proof2}};
 doit({market_data, OID}) ->
-    {Expires, Period} = order_book:data(OID),
-    {ok, Expires, keys:pubkey(), Period};
+    OB = order_book:data(OID),
+    Expires = order_book:expires(OB),
+    Period = order_book:period(OB),
+    {ok, {Expires, keys:pubkey(), Period}};
 doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     %make sure they pay a fee in channel for having their trade listed. 
     %make sure they paid enough to afford the shares.
     BetLocation = constants:oracle_bet(),
-    {Expires, Period} = order_book:data(OID),
+    OB = order_book:data(OID),
+    Expires = order_book:expires(OB),
+    Period = order_book:period(OB),
     SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
     SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     Order = order_book:make_order(Account, Price, Type, Amount),
-    order_book:add(Order, OID);
+    order_book:add(Order, OID),
+    {ok, SSPK2};
 doit({remove_trade, AccountID, Price, Type, Amount, OID, SSPK}) ->
     %make sure they signed.
     %make sure they paid enough of a fee.

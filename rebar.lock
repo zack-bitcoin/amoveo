@@ -1,7 +1,7 @@
-[{<<"chalang">>,
-  {git,"https://github.com/zack-bitcoin/chalang",
-       {ref,"b828817011f75da3a244c4028514cf4ec853a1e4"}},
-  0},
+[%{<<"chalang">>,
+  %{git,"https://github.com/zack-bitcoin/chalang",
+  %     {ref,"b828817011f75da3a244c4028514cf4ec853a1e4"}},
+  %0},
  {<<"cowboy">>,
   {git,"https://github.com/ninenines/cowboy.git",
        {ref,"d08c2ab39d38c181abda279d5c2cadfac33a50c1"}},
@@ -29,8 +29,9 @@
  {<<"ranch">>,
   {git,"https://github.com/ninenines/ranch.git",
        {ref,"adf1822defc2b7cfdc7aca112adabfa1d614043c"}},
-  1},
- {<<"trie">>,
-  {git,"https://github.com/BumblebeeBat/MerkleTrie",
-       {ref,"2c05fb8c273b40860f5ef52a50287c16f21bc256"}},
-  0}].
+  1}%,
+ %{<<"trie">>,
+  %{git,"https://github.com/BumblebeeBat/MerkleTrie",
+  %     {ref,"2c05fb8c273b40860f5ef52a50287c16f21bc256"}},
+  %0}
+	].

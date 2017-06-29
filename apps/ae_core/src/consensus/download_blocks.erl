@@ -27,7 +27,7 @@ sync_all([{IP, Port}|T], Height) ->
 sync(IP, Port, MyHeight) ->
     %lower their ranking
     %peers:update_score(IP, Port, peers:initial_score()),
-    io:fwrite("top of sync\n"),
+    %io:fwrite("top of sync\n"),
     %S = erlang:timestamp(),
     talk({top}, IP, Port, 
 	 fun(X) ->
@@ -41,12 +41,13 @@ sync(IP, Port, MyHeight) ->
 			 HH = MyHeight + DBB,
 			 if
 			     HH < Height ->
-				 %{ok, Block} = talker:talk({block, HH}, IP, Port),
-				 %io:fwrite("HH < Height\n"),
+				 {ok, Block} = talker:talk({block, HH}, IP, Port),
+				 io:fwrite("HH < Height\n"),
 				 talk({block, HH}, IP, Port,
 				      fun(Y) -> 
 					      trade_blocks(IP, Port, [Y], HH)
-						    end);
+						    end),
+				 get_txs(IP, Port);
 			     true ->
 				 trade_blocks(IP, Port, [TopBlock], Height),
 				 get_txs(IP, Port)
@@ -76,11 +77,17 @@ get_blocks(Height, N, IP, Port, _) ->
 %	 fun(X) -> get_blocks(Height-1, N-1, IP, Port, [X|L])
 %	 end).
     
-trade_blocks(_IP, _Port, L, 1) ->
+trade_blocks(IP, Port, L, 1) ->
     sync3(L);
 trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
-    %io:fwrite("trade blocks"),
+    %io:fwrite("trade blocks\n"),
+    %io:fwrite("height "),
+    %io:fwrite(integer_to_list(Height)),
+    %io:fwrite("\n"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
+    %io:fwrite("prev block is "),
+    %io:fwrite(PrevBlock),
+    %io:fwrite("\n"),
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
     {PrevHash, NextHash} = block:check1(PrevBlock),
@@ -92,13 +99,14 @@ trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
 			 NextHash = block:hash(NextBlock),
 			 trade_blocks(IP, Port, [NextBlock|[PrevBlock|PBT]], Height - 1)
 		 end);
-	_ ->
+	_ -> 
 	    sync3(PBT),
 	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
     end.
 send_blocks(IP, Port, T, T, L, _N) -> 
     send_blocks2(IP, Port, L);
 send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
+    %io:fwrite("send blocks 1 \n"),
     if
 	TopHash == 0 -> send_blocks2(IP, Port, L);
 	%N>4000 -> send_blocks2(IP, Port, L);
@@ -115,7 +123,8 @@ send_blocks2(IP, Port, [Block|T]) ->
     
 sync3([]) -> ok;
 sync3([B|T]) -> 
-    block_absorber:doit(B),
+    %io:fwrite("sync 3 \n"),
+    block_absorber:doit_tell(B),
     sync3(T).
 absorb_txs([]) -> ok;
 absorb_txs([H|T]) -> 

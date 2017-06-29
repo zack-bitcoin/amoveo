@@ -8,8 +8,10 @@ If you type up a proposal for an improvement you can make, and send the proposal
 
 Simply installing the software and syncing up with the testnet can be a big help, if you find a bug.
 
-Cheers,
-Zack
+
+
+
+
 
 
 For people interested in writing smart contracts:
@@ -22,3 +24,4 @@ I think the first step would be to talk to me about what you want to make.
 I can quickly tell you what is possible, and give you the tools you need.
 
 On Aeternity the smart contract itself is usually the easy part. The hard part is the handshake for updating the state of the smart contract. Sending messages back and forth, and correctly handling them. It is important that your partner is unable to trick you into updating your copy of the channel state to an invalid channel state.
+

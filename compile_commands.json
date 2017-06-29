@@ -1,0 +1,58 @@
+[
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/decoder.c"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "cc -c -Ic_src/ -g -Wall -Werror -O3 -fno-strict-aliasing -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/decoder.c -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/decoder.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/encoder.c"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "cc -c -Ic_src/ -g -Wall -Werror -O3 -fno-strict-aliasing -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/encoder.c -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/encoder.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/jiffy.c"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "cc -c -Ic_src/ -g -Wall -Werror -O3 -fno-strict-aliasing -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/jiffy.c -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/jiffy.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/utf8.c"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "cc -c -Ic_src/ -g -Wall -Werror -O3 -fno-strict-aliasing -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/utf8.c -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/utf8.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/util.c"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "cc -c -Ic_src/ -g -Wall -Werror -O3 -fno-strict-aliasing -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/util.c -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/util.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/doubles.cc"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "c++ -c -Ic_src/ -g -Wall -Werror -O3 -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/doubles.cc -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/doubles.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/bignum-dtoa.cc"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "c++ -c -Ic_src/ -g -Wall -Werror -O3 -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/bignum-dtoa.cc -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/bignum-dtoa.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/bignum.cc"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "c++ -c -Ic_src/ -g -Wall -Werror -O3 -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/bignum.cc -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/bignum.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/cached-powers.cc"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "c++ -c -Ic_src/ -g -Wall -Werror -O3 -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/cached-powers.cc -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/cached-powers.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/diy-fp.cc"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "c++ -c -Ic_src/ -g -Wall -Werror -O3 -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/diy-fp.cc -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/diy-fp.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/double-conversion.cc"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "c++ -c -Ic_src/ -g -Wall -Werror -O3 -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/double-conversion.cc -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/double-conversion.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/fast-dtoa.cc"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "c++ -c -Ic_src/ -g -Wall -Werror -O3 -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/fast-dtoa.cc -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/fast-dtoa.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/fixed-dtoa.cc"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "c++ -c -Ic_src/ -g -Wall -Werror -O3 -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/fixed-dtoa.cc -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/fixed-dtoa.o"
+},
+{ "file"      : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/strtod.cc"
+, "directory" : "/home/zack/Hacking/zack_testnet/_build/default/lib/jiffy"
+, "command"   : "c++ -c -Ic_src/ -g -Wall -Werror -O3 -g -Wall -fPIC -MMD -I\"/usr/lib/erlang/lib/erl_interface-3.8.2/include\" -I\"/usr/lib/erlang/erts-7.3/include\" /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/strtod.cc -o /home/zack/Hacking/zack_testnet/_build/default/lib/jiffy/c_src/double-conversion/strtod.o"
+}
+]

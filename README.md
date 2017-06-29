@@ -5,192 +5,33 @@ A blockchain for trust-free markets in financial derivatives
 
 This is being used by: [æternity](https://aeternity.com).
 
-### Instalation
 
-Requirements for Aeternity installation cover ```Erlang/OTP (18+)``` and its dependencies
+#### Installing dependencies
 
-Reporsitory operates using ```rebar3``` and we ship it in the top dir
+you will need Erlang and a couple of libraries before you are able to run this software.
 
-### Project Commands
+[For Ubuntu](docs/ubuntu_dependencies.md)
 
-Project sources live in ```apps``` directory
-
-They get build by ```rebar3``` to ```_build``` directory
-
-```rebar3``` compiles code to ```default``` sub-dir
-
-From the ```_build/default``` code/libs/apps are symlinked to another nodes in ```_build``` (like dev{1-3}, local, etc.)
-
-When we create tarbal using ```rebar``` ```as``` syntax symlinks are removed and original code goes to self-containing tarball (along Erlang runtime system)
-
-## Build Targets
-
-Build a release that is capable of syncing with public testnet
-
-```Prod```
-
-``` make prod-release```
+[For Mac](docs/mac_dependencies.md)
 
 
-Build a release that is good for local one node testing and development
+#### Running the blockchain
 
-```Local```
+If you just want to launch a node and connect to the network, [look at the quick start guide](docs/turn_it_on.md)
 
-``` make local-release```
+#### Using the wallet
 
-Build a release that is good for local three node testing and development
-Its useful for multinode transactions and payments
-
-```Dev```
-
-``` make dev-release-unikey```
-
-
-##Handy commands
-
-
-Compile code
-
-```
-make compile
-```
-
-Create an Erlang release
-
-```
-make compile
-```
-
-Build 1 node local release
-
-```
-make local-release
-```
-
-Start the release
-
-```
-make local-release-start
-```
-
-Attach to erlang node
-
-```
-make local-release-attach
-```
-
-Build and deploy three independent Aeterniy nodes (with the same test master key)
-
-```
-make dev-release-unikey
-```
-
-Clean test blocks and test data (but preserve the keys config)
-
-```
-make dev-release-clean
-```
-
-
-```
-_build/
-├── default
-│   ├── lib
-│   └── plugins
-├── dev1
-│   ├── lib
-│   ├── plugins
-│   └── rel
-├── dev2
-│   ├── lib
-│   ├── plugins
-│   └── rel
-├── dev3
-│   ├── lib
-│   ├── plugins
-│   └── rel
-└── local
-    ├── lib
-    ├── plugins
-    └── rel
-```
-
-
-### Compiling and Runing
-
-[TODO: check if still valid after rebar]
-
-you will need Erlang and a couple of libraries. Please follow instructions:
-
-[For Ubuntu](docs/compile_ubuntu.md)
-
-[For Mac](docs/compile_mac.md)
-
+Included is a wallet. A wallet is for storing your private key, and for making signatures.
+Read here about how to secure your private key with a password. That way you can have tokens.
+[Secure your keys](docs/securing_keys.md)
 
 ### Blockchain Commands
 
-[Read about the commands in depth in the docs](docs/commands.md)
+[Read about the commands in depth in the docs](docs/commands.md) This is how you control the node once it is started.
 
-#### Start the blockchain
-Start your node with following script:
-```
-sh start.sh
-```
+### Testing
 
-#### Sync with the network
-To sync with the network and download the blockchain: 
-```
-sync:start().
-```
-
-#### Mining
-After fresh install, one can start mining.
-
-To start mining with all CPU cores: 
-```
-mine:start().
-```
-To stop mining:
-```
-mine:stop().
-```
-to check if you are currently mining:
-```
-mine:status().
-```
-
-#### Spend
-```
-easy:spend(To, Amount).
-```
-To is the recipient's account ID
-
-#### Last transactions
-```
-tx_pool:data().
-```
-
-#### Find out your account ID
-```
-keys:id().
-```
-If it returns something less than 1, that means you don't have an account yet.
-
-#### Create an account
-(does get done automatically when no account and mining starts)
-[Make an account](docs/new_account.md)
-
-#### Check your balance
-```
-easy:balance().
-```
-
-#### Stop a node
-To stop a node run:
-```
-easy:off().
-```
-
+If you want to run the tests, you need to run nodes in test format. Look at the [advanced notes on installation.](docs/installation_notes.md)
 
 ### Else
 If you want to know more, get in touch with us via [gitter chat](https://gitter.im/aeternity/Lobby)

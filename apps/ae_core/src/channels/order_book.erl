@@ -5,6 +5,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 	 add/2,match/1,price/1,remove/4,exposure/1,
 	 new_market/3, make_order/4, data/1,
+	 expires/1, period/1,
 	 test/0]).
 %To make the smart contract simpler, all trades matched are all-or-nothing. So we need to be a little careful to make sure the market maker isn't holding risk.
 %The market maker needs to refuse to remove some trades from the order book, if those trades are needed to cover his risk against trades that have already been matched.
@@ -14,9 +15,14 @@
 %Exposure to buys is positive.
 -record(order, {acc = 0, price, type=buy, amount}). %type is buy/sell
 -define(LOC, constants:order_book()).
+expires(OB) ->
+    OB#ob.expires.
+period(OB) ->
+    OB#ob.period.
 make_order(Acc, Price, Type, Amount) ->
     #order{acc = Acc, price = Price, type = Type, amount = Amount}.
-data(OB) -> {OB#ob.expires, OB#ob.period}.
+data(OID) -> 
+    gen_server:call(?MODULE, {data, OID}).
 %lets make a dictionary to store order books. add, match, price, remove, and exposure all need one more input to specify which order book in the dictionary we are dealing with.
 %init(ok) -> {ok, #ob{}}.
 init(ok) -> 
@@ -45,8 +51,8 @@ handle_cast({add, Order, OID}, X) ->
     true = Order#order.price > -1,
     true = Order#order.price < 10001,
     OB2 = case Order#order.type of
-	      buy -> OB#ob{buys = add_trade(Order, OB#ob.buys)};
-	      sell -> OB#ob{sells = add_trade(Order, OB#ob.sells)}
+	      1 -> OB#ob{buys = add_trade(Order, OB#ob.buys)};
+	      2 -> OB#ob{sells = add_trade(Order, OB#ob.sells)}
 	  end,
     X2 = dict:store(OID, OB2, X),
     db:save(?LOC, X2),
@@ -87,6 +93,9 @@ handle_call({match, OID}, _From, X) ->
     db:save(?LOC, X2),
     %Accounts are the account ids of the channels that needs to be updated.
     {reply, {PriceDeclaration, Accounts}, X2};
+handle_call({data, OID}, _From, Y) ->
+    X = dict:fetch(OID, Y),
+    {reply, X, Y};
 handle_call({price, OID}, _From, X) -> 
     {ok, OB} = dict:find(OID, X),
     {reply, OB#ob.price, X};
@@ -134,22 +143,24 @@ match_internal3(OB, Accounts, [Buy|B], [Sell|S]) ->
     Y = E + Buy#order.amount,
     X2 = abs(X),
     Y2 = abs(Y),
-    {X4, AID} = 
+    {X4, AID1, AID2} = 
 	if
 	    X2 > Y2 -> %match the buy;
 		%io:fwrite("match buy \n"),
 		Ratio = (10000 * abs(Y)) div 
 		    Sell#order.amount,
 		{OB#ob{exposure = Y, buys = B, ratio = Ratio, price = (10000 - Sell#order.price)},
-		 Buy#order.acc};
+		 Buy#order.acc,
+		 Sell#order.acc};
 	    true -> %match the sell
 		%io:fwrite("match sell \n"),
 		Ratio = (10000 * abs(X)) div 
 		    Buy#order.amount,
 		{OB#ob{exposure = X, sells = S, ratio = Ratio, price = Buy#order.price}, 
+		 Buy#order.acc,
 		 Sell#order.acc}
 	end,
-    match_internal(X4, [AID|Accounts]).
+    match_internal(X4, [AID1|[AID2|Accounts]]).
 remove_if_exists(_, _, []) -> [];
 remove_if_exists(AID, Price, [X|T]) -> 
     AID2 = X#order.acc,
@@ -197,18 +208,18 @@ test() ->
     new_market(OID, 0, 10),
     dump(OID),
     new_market(OID, 0, 10),
-    add(#order{price = 4000, amount = 1000, type = sell, acc = 3}, OID),
-    add(#order{price = 5999, amount = 100, type = buy, acc = 2}, OID),
-    add(#order{price = 6001, amount = 100, type = buy}, OID),
-    {_, [0]} = match(OID),
+    add(#order{price = 4000, amount = 1000, type = 2, acc = 3}, OID),
+    add(#order{price = 5999, amount = 100, type = 1, acc = 2}, OID),
+    add(#order{price = 6001, amount = 100, type = 1, acc = 4}, OID),
+    {_, [4,3]} = match(OID),
     {6000, 100, 1000} = {price(OID), exposure(OID), ratio(OID)},
     %1000 means 1/10th because only 1/10th of the big bet got matched.
     dump(OID),
     new_market(OID, 0, 10),
-    add(#order{price = 5000, amount = 100, type = buy}, OID),
-    add(#order{price = 6000, amount = 100, type = buy}, OID),
-    add(#order{price = 4500, amount = 100, type = sell}, OID),
-    add(#order{price = 3500, amount = 100, type = sell}, OID),
+    add(#order{price = 5000, amount = 100, type = 1}, OID),
+    add(#order{price = 6000, amount = 100, type = 1}, OID),
+    add(#order{price = 4500, amount = 100, type = 2}, OID),
+    add(#order{price = 3500, amount = 100, type = 2}, OID),
     match(OID),
     {6000, -100,10000} = {price(OID), exposure(OID), ratio(OID)},
     success.

@@ -236,12 +236,16 @@ lightning_spend(IP, Port, Recipient, Pubkey, Amount, Fee, Code, SS) ->
     true = testnet_sign:verify(keys:sign(SSPK2, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
+    channel_manager_update(ServerID, SSPK2),
+    ok.
+channel_manager_update(ServerID, SSPK2) ->
     %store SSPK2 in channel manager, it is their most recent signature.
     {ok, CD} = channel_manager:read(ServerID),
     CID = channel_feeder:cid(CD),
     Entropy = channel_feeder:entropy(CD),
     ThemSS = channel_feeder:script_sig_them(CD),
     MeSS = channel_feeder:script_sig_me(CD),
+    SPK = testnet_sign:data(SSPK2),
     NewCD = channel_feeder:new_cd(SPK, SSPK2, [<<>>|MeSS], [<<>>|ThemSS], Entropy, CID),
     channel_manager:write(ServerID, NewCD),
     ok.
@@ -368,13 +372,6 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		oracle_new_tx:make(keys:id(), ?Fee + Cost, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
     tx_maker(F).
     
-oracle_bet(OID, Type, Amount) when is_integer(Type) ->
-    T = case Type of
-	    0 -> true;
-	    1 -> false;
-	    2 -> bad
-	end,
-    oracle_bet(OID, T, Amount);
 oracle_bet(OID, Type, Amount) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
@@ -518,10 +515,20 @@ keys_new(Password) ->
     0.
 market_match(OID) ->
     %check that we haven't matched too recently. (otherwise we lose all our money in all the channels.)
-    {_PriceDeclaration, _Accounts} = order_book:match(OID),
-    %update a bunch of channels. 
-    %store the price declaration in the channel_manager.
-    ok.
+    {PriceDeclaration, Accounts} = order_book:match(OID),
+    %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+
+    %false = Accounts == [],
+    OB = order_book:data(OID),
+    Expires = order_book:expires(OB),
+    Period = order_book:period(OB),
+    CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+    SS = market:settle(PriceDeclaration),
+    secrets:add(CodeKey, SS),
+    channel_feeder:bets_unlock(Accounts),
+    
+    %add this to channels_manager ss_me for every bet in the channel that participated.
+    {ok, ok}.
 new_market(OID, Expires, Period) -> 
     %for now lets use the oracle id as the market id. this wont work for combinatorial markets.
     order_book:new_market(OID, Expires, Period).
@@ -541,6 +548,14 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
     %type is true or false or one other thing...
     SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID),
     SSPK = channel_feeder:trade(Amount, SC, ServerID, OID),
+    MSG = {trade, 
+	   keys:id(),
+	   Price,
+	   Type,
+	   Amount,
+	   OID,
+	   SSPK, 
+	   Fee},
     {ok, SSPK2} =
 	talker:talk({trade, 
 		     keys:id(),
@@ -552,8 +567,8 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
 		     Fee}, IP, Port),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    channel_feeder:update_to_me(SSPK2, ServerID).
-    
+    channel_manager_update(ServerID, SSPK2),
+    ok.
     
 
 %mine() ->

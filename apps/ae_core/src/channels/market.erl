@@ -1,14 +1,16 @@
 -module(market).
 -export([price_declaration_maker/4, market_smart_contract/9,
 	 settle/1,no_publish/0,evidence/1,
-	 contradictory_prices/2, 
+	 contradictory_prices/2, market_smart_contract_key/5,
 	 test/0]).
 
+market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) ->
+    {market, 1, MarketID, Expires, Pubkey, Period, OID}.
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
-		true -> <<" macro bet_amount int 10000 ; ">>;
-		false -> <<" macro bet_amount int 0 ; ">>
-			     end,
+		1 -> <<" macro bet_amount int 10000 ; ">>;
+		2 -> <<" macro bet_amount int 0 ; ">>
+	    end,
     {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
     %MaxPrice is in the range 0 to 10000,
     % it is the limit of how much you are willing to pay the server for the derivative. You will pay this much or less.
@@ -23,9 +25,10 @@ macro Period int " ++ integer_to_list(Period) ++ " ;\
     PrivDir = code:priv_dir(ae_core),
     {ok, Code3} = file:read_file(PrivDir ++ "/market.fs"),
     Compiled = compiler_chalang:doit(<<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>),
-    spk:new_bet(Compiled, Amount, [{oracles, OID}]).
+    CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
+    spk:new_bet(Compiled, CodeKey, Amount, [{oracles, OID}]).
 settle(SPD) ->
-    %If the oracle comes to a decision, this is how you get your mone out.
+    %If the oracle comes to a decision, this is how you get your money out.
     PriceDeclare = binary_to_list(base64:encode(SPD)),
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
 " " ++ PriceDeclare ++ " int 1",
@@ -75,7 +78,7 @@ test() ->
     %make some bets in the oracle with oracle_bet
     Governance2 = trees:governance(Trees2),
     OIL = governance:get_value(oracle_initial_liquidity, Governance2),
-    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, true, OIL*2, Trees2), 
+    {Tx2, _} = oracle_bet_tx:make(1, Fee, OID, 1, OIL*2, Trees2), 
     Stx2 = keys:sign(Tx2, Accounts2),
     test_txs:absorb(Stx2),
 
@@ -107,7 +110,7 @@ test2() ->
     %Accounts5 = trees:accounts(Trees5),
     MarketID = 405,
     PrivDir = code:priv_dir(ae_core),
-    Bet = market_smart_contract(PrivDir ++ "/oracle_bet.fs", MarketID,true, 1000, 6000, keys:pubkey(),101,100,OID),
+    Bet = market_smart_contract(PrivDir ++ "/oracle_bet.fs", MarketID,1, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK = spk:new(1, 2, 1, [Bet], 10000, 10000, 1, 0, Entropy),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK, Accounts5), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
@@ -161,7 +164,7 @@ test2() ->
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),
-    Bet2 = market_smart_contract(PrivDir ++ "/oracle_bet.fs", MarketID,false, 1000, 6000, keys:pubkey(),101,100,OID),
+    Bet2 = market_smart_contract(PrivDir ++ "/oracle_bet.fs", MarketID,2, 1000, 6000, keys:pubkey(),101,100,OID),
     SPK2 = spk:new(1, 2, 1, [Bet2], 10000, 10000, 1, 0, Entropy),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet, so we keep all 100.

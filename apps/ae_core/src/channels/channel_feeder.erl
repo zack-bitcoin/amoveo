@@ -9,7 +9,7 @@
 	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
 	 update_to_me/2, new_cd/6, 
 	 make_locked_payment/4, live/1, they_simplify/3,
-	 bets_unlock/1, emsg/1
+	 bets_unlock/1, emsg/1, trade/4, trade/7
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -98,10 +98,15 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     true = Amount > 0,
-    true = Fee > free_constants:lightning_fee(),
-    {Expires, Pubkey, Period} = market:data(OID),
+    {ok, LF} = application:get_env(ae_core, lightning_fee),
+    true = Fee > LF,
+    OB = order_book:data(OID),
+    Expires = order_book:expires(OB),
+    Period = order_book:period(OB),
     BetLocation = constants:oracle_bet(),
     SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
+    CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+    %CodeKey = {market, market_smart_contract, OID, Expires, keys:pubkey(), Period, OID),
     SSPK2 = trade(Amount, SC, ID, OID),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
@@ -109,7 +114,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = [<<>>|OldCD#cd.ssme],
 		     ssthem = [<<>>|OldCD#cd.ssthem]},
-    arbitrage:write(SC, [ID]),
+    %arbitrage:write(CodeKey, [ID]),
     channel_manager:write(ID, NewCD),
     {reply, SSPK2, X};
 handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
@@ -168,7 +173,10 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
     end,	
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     {ok, OldCD} = channel_manager:read(From),
-    SPK = OldCD#cd.me,
+    SPK2 = OldCD#cd.me,
+    io:fwrite(packer:pack({compare_spk, SPK, SPK2})),
+    io:fwrite("\n"),
+    SPK = SPK2,
     NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
     channel_manager:write(From, NewCD),
     {reply, 0, X};
@@ -351,21 +359,27 @@ make_locked_payment(To, Amount, Code, Prove) ->
     SPK = CD#cd.me,
     %OldSPK = CD#cd.them,
     %SPK = testnet_sign:data(OldSPK),
-    Bet = spk:new_bet(Code, Amount, Prove),
+    Bet = spk:new_bet(Code, Code, Amount, Prove),
     NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     keys:sign(NewSPK, Accounts).
-trade(Amount, Code, Other, OID) ->
+trade(Amount, Bet, Other, OID) ->
     {ok, CD} = channel_manager:read(Other),
     Prove = [{oracles, OID}],
-    Bet = spk:new_bet(Code, Amount, Prove),
+    %Bet = spk:new_bet(Code, Amount, Prove),
+    io:fwrite("trade bet is "),
+    io:fwrite(packer:pack(Bet)),
+    io:fwrite("\n"),
     SPK = channel_feeder:me(CD),
     CID = spk:cid(SPK),
-    SPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
+    SPK2 = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    keys:sign(SPK, Accounts).
+    SSPK2 = keys:sign(SPK2, Accounts),
+    
+    SSPK2.
+    
     
     
 bets_unlock(X) -> 
