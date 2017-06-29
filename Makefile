@@ -35,6 +35,14 @@ OTP_PLT=.otp_plt
 #compile:
 #	@./rebar3 compile
 
+kill:
+	@echo "Kill all beam processes only from this directory tree"
+	for i in `ps -ef | grep beam | awk '{print $$2"_"$$14}' ` ; { echo $$i | grep `pwd` | cut -d\_ -f1 | xargs kill ; }
+
+killall:
+	@echo "Kill all beam processes from this host"
+	for i in `ps -ef | grep beam | grep -v grep | awk '{print $$2}' ` ; { echo $$i | xargs kill ; }
+
 #console:
 #	@./rebar3 shell
 
