@@ -9,3 +9,10 @@ _build
 .rebar
 erl_crash.dump
 keys_backup
+lib/
+bin/
+.Python
+include/
+*.pyc
+nosetests.xml
+pip-selfcheck.json

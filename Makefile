@@ -1,5 +1,9 @@
 OTP_PLT=.otp_plt
 
+NOSE =./bin/nosetests
+PYTHON=./bin/python
+PIP=./bin/pip
+
 .PHONY: \
 	release-build \
 	release-start \
@@ -30,6 +34,9 @@ OTP_PLT=.otp_plt
 	compile \
 	console \
 	dialyzer \
+	venv-present \
+	prepare-nose-env \
+	python-tests \
 	unit-tests
 
 #compile:
@@ -175,6 +182,15 @@ clean-2:
 clean-3:
 	rm -rf ./_build/dev3/rel/ae_core/data/*
 	rm -rf ./_build/dev3/rel/ae_core/blocks/*
+
+venv-present:
+	@virtualenv -q .
+
+prepare-nose-env: venv-present
+	@. bin/activate && $(PIP) -q install -r requirements.txt
+
+python-tests:
+	@$(NOSE) --nocapture -c tests/nose.cfg
 
 unit-tests:
 	@./rebar3 do eunit,ct
