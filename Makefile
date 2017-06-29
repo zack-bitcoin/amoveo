@@ -4,8 +4,8 @@ OTP_PLT=.otp_plt
 	release-build \
 	release-start \
 	release-attach \
-	release-clean \
 	release-end \
+	release-clean \
 	test-release-build \
 	test-release-start \
 	test-release-attach \
@@ -45,9 +45,17 @@ dialyzer: $(OTP_PLT)
 		-Wno_improper_lists
 
 test-release-build:
+	sed -e "\
+    s:%% comment:\
+    {port, 3010},\n\
+    {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\n\
+    {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\n\
+    {keys_pass, \"\"},\n\
+    {keys_id, 1},\n\
+    {test_mode,true},\n:\
+    " config/sys.config > config/local/sys.config
 	@./rebar3 as local release
 	mkdir -p _build/local/rel/ae_core/keys/
-	cp tests/masterkey/keys.db _build/local/rel/ae_core/keys/keys.db
 
 test-release-start:
 	@./_build/local/rel/ae_core/bin/ae_core start
@@ -63,6 +71,14 @@ test-release-clean:
 	rm -rf ./_build/local/rel/ae_core/blocks/*
 
 release-build:
+	sed -e "\
+    s:%% comment:\
+    {port, 8040},\n\
+    {peers_ip, {46,101,103,165}},\n\
+    {peers_port, 8080},\n\
+    {master_pub, <<\"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=\">>},\n\
+    {test_mode,false},\n:\
+    " config/sys.config > config/prod/sys.config
 	@./rebar3 as prod release
 
 release-start:
@@ -80,6 +96,35 @@ release-clean:
 
 # TODO: parametrize release version to make it flexible
 multi-test-release-build:
+	sed -e "\
+    s:%% comment:\
+    {port, 3010},\n\
+    {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\n\
+    {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\n\
+    {keys_pass, \"\"},\n\
+    {keys_id, 1},\n\
+    {test_mode,true},\n:\
+    " config/sys.config > config/dev1/sys.config
+	sed -e "\
+    s:%% comment:\
+    {port, 3020},\n\
+    {keys_pub, <<\"BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=\">>},\n\
+    {keys_priv, <<\"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=\">>},\n\
+    {keys_pass, \"\"},\n\
+    {keys_id, 2},\n\
+    {test_mode,true},\n:\
+    " config/sys.config > config/dev2/sys.config
+	sed -e "\
+    s:%% comment:\
+    {port, 3030},\n\
+    {keys_pub, <<\"BOnadmMfDIoCmio3ReSinirULreS3TbCEdr0R6FDDvoVB5xoAJnvwlL3yMgNhBzEb5l36z7bgizw2EKGn0W9rY8=\">>},\n\
+    {keys_priv, <<\"M/1xsM1DBO82qQcVJVoWVJd4p9YjpwygQJmmYkVLFd8=\">>},\n\
+    {keys_pass, \"\"},\n\
+    {keys_id, 3},\n\
+    {test_mode,true},\n:\
+    " config/sys.config > config/dev3/sys.config
+
+
 	rm -rf _build/dev1
 	@./rebar3 as dev1 release
 	rm -rf _build/dev2
@@ -91,7 +136,6 @@ multi-test-release-build:
 	cp config/dev3/sys.config _build/dev3/rel/ae_core/releases/0.1.0/sys.config
 	cp config/dev3/vm.args _build/dev3/rel/ae_core/releases/0.1.0/vm.args
 	mkdir -p _build/dev1/rel/ae_core/keys/ _build/dev2/rel/ae_core/keys/ _build/dev3/rel/ae_core/keys/
-	cp tests/masterkey/keys.db _build/dev1/rel/ae_core/keys/keys.db
 
 multi-test-release-start: start-1 start-2 start-3
 

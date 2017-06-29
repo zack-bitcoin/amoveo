@@ -5,7 +5,7 @@
 %2^74 bits is 25 bitcoin =~ $10,000
 %2^64 bits is $10
 
--define(DEFAULT_MASTER_PUB, <<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>).
+%-define(DEFAULT_MASTER_PUB, <<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>).
 %<<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>).
 
 key_length() ->
@@ -26,7 +26,8 @@ hash_size() -> 32.
 finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> hash_size()*8.
 master_pub() ->
-    application:get_env(ae_core, master_pub, ?DEFAULT_MASTER_PUB).
+    {ok, X} = application:get_env(ae_core, master_pub),
+    X.
 
 master_address() ->
     testnet_sign:pubkey2address(master_pub()).
@@ -70,7 +71,7 @@ top() -> root() ++ "top.db".
 channel_manager() -> root() ++ "channel_manager.db".
 secrets() -> root() ++ "secrets.db".
 order_book() -> root() ++ "order_book.db".
-oracle_bet() -> "src/channels/oracle_bet.fs".
+oracle_bet() -> "lib/ae_core-0.1.0/priv/oracle_bet.fs".
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
 half_bal() -> round(math:pow(2, balance_bits()-1)).

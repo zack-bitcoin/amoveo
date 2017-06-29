@@ -1,11 +1,11 @@
 [
   { ae_core, [
-    {port, 3020},
+    {port, 8040},
+    {peers_ip, {46,101,103,165}},
+    {peers_port, 8080},
+    %{keys_pass, []}, %% use local key with default pass to run unit tests
+
     {master_pub, <<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>},
-    {keys_pub, <<"BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=">>},
-    {keys_priv, <<"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=">>},
-    {keys_pass, ""},
-    {keys_id, 2},
 
     {test_mode, true},
     {cores_to_mine, 1000}, %% The maximum number of cores to use when mining.
