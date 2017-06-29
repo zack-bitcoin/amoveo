@@ -74,7 +74,7 @@ release-build:
     s:%% comment:\
     {port, 8040},\n\
     {peers, [[{46,101,103,165}, 8080]]},\n\
-    {master_pub, <<\"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=\">>},\n\
+    {master_pub, <<\"BO8I1h5yIliI8XPCT89TMTqWvsmZ0J0D13cwF8UZ9YrL2oIdKZUAVg2L100okp1wtYCecxPC8kyPigBMC/lvg1Y=\">>},\n\
     {test_mode,false},\n:\
     " config/sys.config > config/prod/sys.config
 	@./rebar3 as prod release

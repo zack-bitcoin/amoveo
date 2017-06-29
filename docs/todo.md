@@ -27,6 +27,7 @@ Make sure that if something was garbage collected from a merkel tree, and we try
 
 We need to also add a way for the two parties to work together to close the channel early, so they don't have to wait to do a timeout_tx. We can either make a new tx, or make channel_team_close more complicated. 200 CHF (paid in ETH or BTC)
 We need a test showing that it works.
+(maybe this task was already done? need to check)
 
 
 ### Things we can do after launch of mainnet

@@ -4,6 +4,8 @@ curl -i -d '["create_account", "OGlqQmhFUks0anBSVHp5Y1lDZGtVTjh0MWg5UDg2YTExMWs3
 sleep 0.1
 curl -i -d '["create_account", "MjFtZk5oeFFNWmphcVFzZzdVTHRZMTlQblN4b2dIQVRkSHg2SjRrSEF2MWdBag==", 10]' http://localhost:3011
 sleep 0.1
+curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
+sleep 0.1
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
 sleep 0.1
 #create channels so that the 3 nodes are connected by lightning paths.
