@@ -19,13 +19,8 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 
 handle_info(set_initial_peers, State) ->
-     case {application:get_env(ae_core, peers_ip),
-           application:get_env(ae_core, peers_port)} of
-         {undefined, undefined} ->
-             ok;
-         {{ok, Ip}, {ok, Port}} ->
-             peers:add(Ip, Port)
-     end,
+    {ok, Peers} = application:get_env(ae_core, peers),
+    add(Peers),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.

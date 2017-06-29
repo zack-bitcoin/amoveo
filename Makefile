@@ -51,8 +51,7 @@ test-release-build:
     {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\n\
     {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\n\
     {keys_pass, \"\"},\n\
-    {keys_id, 1},\n\
-    {test_mode,true},\n:\
+    {keys_id, 1},\n:\
     " config/sys.config > config/local/sys.config
 	@./rebar3 as local release
 	mkdir -p _build/local/rel/ae_core/keys/
@@ -64,7 +63,7 @@ test-release-attach:
 	@./_build/local/rel/ae_core/bin/ae_core attach
 
 test-release-end:
-	@./_build/local/rel/ae_core/bin/ae_core stop
+	@./_build/local/rel/ae_core/bin/ae_core stop &
 
 test-release-clean:
 	rm -rf ./_build/local/rel/ae_core/data/*
@@ -74,8 +73,7 @@ release-build:
 	sed -e "\
     s:%% comment:\
     {port, 8040},\n\
-    {peers_ip, {46,101,103,165}},\n\
-    {peers_port, 8080},\n\
+    {peers, [[{46,101,103,165}, 8080]]},\n\
     {master_pub, <<\"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=\">>},\n\
     {test_mode,false},\n:\
     " config/sys.config > config/prod/sys.config
@@ -102,8 +100,7 @@ multi-test-release-build:
     {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\n\
     {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\n\
     {keys_pass, \"\"},\n\
-    {keys_id, 1},\n\
-    {test_mode,true},\n:\
+    {keys_id, 1},\n:\
     " config/sys.config > config/dev1/sys.config
 	sed -e "\
     s:%% comment:\
@@ -111,8 +108,7 @@ multi-test-release-build:
     {keys_pub, <<\"BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=\">>},\n\
     {keys_priv, <<\"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=\">>},\n\
     {keys_pass, \"\"},\n\
-    {keys_id, 2},\n\
-    {test_mode,true},\n:\
+    {keys_id, 2},\n:\
     " config/sys.config > config/dev2/sys.config
 	sed -e "\
     s:%% comment:\
@@ -120,10 +116,8 @@ multi-test-release-build:
     {keys_pub, <<\"BOnadmMfDIoCmio3ReSinirULreS3TbCEdr0R6FDDvoVB5xoAJnvwlL3yMgNhBzEb5l36z7bgizw2EKGn0W9rY8=\">>},\n\
     {keys_priv, <<\"M/1xsM1DBO82qQcVJVoWVJd4p9YjpwygQJmmYkVLFd8=\">>},\n\
     {keys_pass, \"\"},\n\
-    {keys_id, 3},\n\
-    {test_mode,true},\n:\
+    {keys_id, 3},\n:\
     " config/sys.config > config/dev3/sys.config
-
 
 	rm -rf _build/dev1
 	@./rebar3 as dev1 release

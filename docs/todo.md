@@ -1,3 +1,6 @@
+it would be nice if instead of embedding those sed commands into the makefile, if instead we read them from a different file.
+Then we wouldn't have to escape all the newlines and double-quotes.
+
 Secrets seems unnecessary. As soon as we find out a secret, why not use arbitrage to update all the channels immediately?
 
 /tests holds tests that use multiple nodes. Currently these tests use curl, so it isn't obvious if an error happens. You have to review the log by hand.
