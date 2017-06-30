@@ -6,7 +6,7 @@
 -define(Port, 8080).
 
 height() ->    
-    block:height(block:read(top:doit())).
+    {ok, block:height(block:read(top:doit()))}.
 top() ->
     TopHash = top:doit(),
     Height = height(),
