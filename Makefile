@@ -46,13 +46,15 @@ dialyzer: $(OTP_PLT)
 
 test-release-build:
 	sed -e "\
-    s:%% comment:\
-    {port, 3010},\n\
-    {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\n\
-    {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\n\
-    {keys_pass, \"\"},\n\
-    {keys_id, 1},\n:\
-    " config/sys.config > config/local/sys.config
+	s:%% comment:\
+	{port, 3010},\
+	{keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\
+	{keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
+	{keys_pass, \"\"},\
+	{keys_id, 1},\
+	:\
+	" config/sys.config > config/local/sys.config
+
 	@./rebar3 as local release
 	mkdir -p _build/local/rel/ae_core/keys/
 
@@ -72,10 +74,11 @@ test-release-clean:
 release-build:
 	sed -e "\
     s:%% comment:\
-    {port, 8040},\n\
-    {peers, [[{46,101,103,165}, 8080]]},\n\
-    {master_pub, <<\"BO8I1h5yIliI8XPCT89TMTqWvsmZ0J0D13cwF8UZ9YrL2oIdKZUAVg2L100okp1wtYCecxPC8kyPigBMC/lvg1Y=\">>},\n\
-    {test_mode,false},\n:\
+    {port, 8040},\
+    {peers, [[{46,101,103,165}, 8080]]},\
+    {master_pub, <<\"BO8I1h5yIliI8XPCT89TMTqWvsmZ0J0D13cwF8UZ9YrL2oIdKZUAVg2L100okp1wtYCecxPC8kyPigBMC/lvg1Y=\">>},\
+    {test_mode,false},\
+    :\
     " config/sys.config > config/prod/sys.config
 	@./rebar3 as prod release
 
@@ -96,27 +99,30 @@ release-clean:
 multi-test-release-build:
 	sed -e "\
     s:%% comment:\
-    {port, 3010},\n\
-    {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\n\
-    {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\n\
-    {keys_pass, \"\"},\n\
-    {keys_id, 1},\n:\
+    {port, 3010},\
+    {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\
+    {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
+    {keys_pass, \"\"},\
+    {keys_id, 1},\
+    :\
     " config/sys.config > config/dev1/sys.config
 	sed -e "\
     s:%% comment:\
-    {port, 3020},\n\
-    {keys_pub, <<\"BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=\">>},\n\
-    {keys_priv, <<\"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=\">>},\n\
-    {keys_pass, \"\"},\n\
-    {keys_id, 2},\n:\
+    {port, 3020},\
+    {keys_pub, <<\"BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=\">>},\
+    {keys_priv, <<\"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=\">>},\
+    {keys_pass, \"\"},\
+    {keys_id, 2},\
+    :\
     " config/sys.config > config/dev2/sys.config
 	sed -e "\
     s:%% comment:\
-    {port, 3030},\n\
-    {keys_pub, <<\"BOnadmMfDIoCmio3ReSinirULreS3TbCEdr0R6FDDvoVB5xoAJnvwlL3yMgNhBzEb5l36z7bgizw2EKGn0W9rY8=\">>},\n\
-    {keys_priv, <<\"M/1xsM1DBO82qQcVJVoWVJd4p9YjpwygQJmmYkVLFd8=\">>},\n\
-    {keys_pass, \"\"},\n\
-    {keys_id, 3},\n:\
+    {port, 3030},\
+    {keys_pub, <<\"BOnadmMfDIoCmio3ReSinirULreS3TbCEdr0R6FDDvoVB5xoAJnvwlL3yMgNhBzEb5l36z7bgizw2EKGn0W9rY8=\">>},\
+    {keys_priv, <<\"M/1xsM1DBO82qQcVJVoWVJd4p9YjpwygQJmmYkVLFd8=\">>},\
+    {keys_pass, \"\"},\
+    {keys_id, 3},\
+    :\
     " config/sys.config > config/dev3/sys.config
 
 	rm -rf _build/dev1
