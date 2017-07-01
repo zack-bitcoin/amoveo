@@ -221,6 +221,17 @@ config/dev3/sys.config: config/sys.config.tmpl
     :\
     " $< > $@
 
+tests: killall
+	make test-build
+	make test-clean
+	make test-start
+	@sleep 3
+	make python-tests
+	make test-stop
+
+unit-tests:
+	@./rebar3 do eunit,ct
+
 .PHONY: \
 	local-build local-start local-stop local-attach local-clean \
 	prod-build prod-start prod-stop prod-attach prod-clean \
@@ -232,5 +243,5 @@ config/dev3/sys.config: config/sys.config.tmpl
 	venv-present \
 	prepare-nose-env \
 	python-tests \
+	tests \
 	unit-tests
-

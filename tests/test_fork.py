@@ -30,3 +30,37 @@ class ForkTest(TestBase):
         response = self.session.post("http://localhost:3011",
                                      data='["sync", [127,0,0,1], 3020]')
         self.assertEqual(response.status_code, 200)
+
+    def test_three(self):
+        response = self.session.post("http://localhost:3011",
+                                     data='["mine_block", 10, 1]')
+        self.assertEqual(response.status_code, 200)
+        sleep(1)
+
+        response = self.session.post("http://localhost:3021",
+                                     data='["sync", [127,0,0,1], 3010]')
+        self.assertEqual(response.status_code, 200)
+        response = self.session.post("http://localhost:3031",
+                                     data='["sync", [127,0,0,1], 3010]')
+        self.assertEqual(response.status_code, 200)
+        sleep(1)
+
+        response = self.session.post("http://localhost:3011",
+                                     data='["mine_block", 2, 1]')
+        self.assertEqual(response.status_code, 200)
+        response = self.session.post("http://localhost:3021",
+                                     data='["mine_block", 5, 1]')
+        self.assertEqual(response.status_code, 200)
+        sleep(1)
+
+        response = self.session.post("http://localhost:3011",
+                                     data='["sync", [127,0,0,1], 3030]')
+        self.assertEqual(response.status_code, 200)
+        sleep(1)
+        response = self.session.post("http://localhost:3021",
+                                     data='["sync", [127,0,0,1], 3030]')
+        self.assertEqual(response.status_code, 200)
+        sleep(1)
+        response = self.session.post("http://localhost:3011",
+                                     data='["sync", [127,0,0,1], 3030]')
+        self.assertEqual(response.status_code, 200)

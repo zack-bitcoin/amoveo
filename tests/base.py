@@ -7,4 +7,4 @@ OK_RESPONSE = "ok"
 
 class TestBase(unittest.TestCase):
     session = requests.Session()
-    uri = "http://localhost:8040"
+    uri = "http://localhost:3010"
