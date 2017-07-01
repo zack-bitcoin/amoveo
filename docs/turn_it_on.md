@@ -12,7 +12,7 @@ You can communicate with the running node like this:
 ```
   make release-attach
 ```
-now that you are attached to a node, you can tell it [commands](docs/commands.md)
+now that you are attached to a node, you can tell it [commands](/commands.md)
 
 You can turn off a running node
 ```
