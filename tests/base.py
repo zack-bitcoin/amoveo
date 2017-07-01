@@ -4,36 +4,72 @@ from time import sleep
 import requests
 
 OK_RESPONSE = "ok"
-URL_DEV_1 = "http://localhost:3010"
-URL_DEV_1_INTERNAL = "http://localhost:3011"
-URL_DEV_2 = "http://localhost:3020"
-URL_DEV_2_INTERNAL = "http://localhost:3021"
-URL_DEV_3 = "http://localhost:3030"
-URL_DEV_3_INTERNAL = "http://localhost:3031"
+
+DEV_1 = "dev_1"
+DEV_1_INT = "dev_1_int"
+DEV_2 = "dev_2"
+DEV_2_INT = "dev_2_int"
+DEV_3 = "dev_3"
+DEV_3_INT = "dev_3_int"
 
 
-class TestBase(unittest.TestCase):
-    session = requests.Session()
+class ApiUser(unittest.TestCase):
+    URL_DEV_1 = "http://localhost:3010"
+    URL_DEV_1_INT = "http://localhost:3011"
+    URL_DEV_2 = "http://localhost:3020"
+    URL_DEV_2_INT = "http://localhost:3021"
+    URL_DEV_3 = "http://localhost:3030"
+    URL_DEV_3_INT = "http://localhost:3031"
 
-    def request_dev1(self, data, sleep=0):
-        return self.request(URL_DEV_1, data, sleep)
+    MINE_BLOCK = 'mine_block'
+    SYNC = 'sync'
+    HEADER = 'header'
+    HEADERS = 'headers'
+    TOP = 'top'
+    ADD_PEER = 'add_peer'
+    CREATE_ACCOUNT = 'create_account'
+    SPEND = 'spend'
 
-    def request_dev1_internal(self, data, sleep=0):
-        return self.request(URL_DEV_1_INTERNAL, data, sleep)
+    def __init__(self, *args, **kwargs):
+        super(ApiUser, self).__init__(*args, **kwargs)
+        self.session = requests.Session()
 
-    def request_dev2(self, data, sleep=0):
-        return self.request(URL_DEV_2, data, sleep)
+        self.urls = {DEV_1: self.URL_DEV_1,
+                     DEV_1_INT: self.URL_DEV_1_INT,
+                     DEV_2: self.URL_DEV_2,
+                     DEV_2_INT: self.URL_DEV_2_INT,
+                     DEV_3: self.URL_DEV_3,
+                     DEV_3_INT: self.URL_DEV_3_INT}
 
-    def request_dev2_internal(self, data, sleep=0):
-        return self.request(URL_DEV_2_INTERNAL, data, sleep)
+    def mine_block(self, node, args, sleep=0):
+        return self._request(node, self.MINE_BLOCK, args, sleep)
 
-    def request_dev3(self, data, sleep=0):
-        return self.request(URL_DEV_3, data, sleep)
+    def sync(self, node, args, sleep=0):
+        return self._request(node, self.SYNC, args, sleep)
 
-    def request_dev3_internal(self, data, sleep=0):
-        return self.request(URL_DEV_3_INTERNAL, data, sleep)
+    def header(self, node, args, sleep=0):
+        return self._request(node, self.HEADER, args, sleep)
 
-    def request(self, url, data, seconds_to_sleep):
+    def headers(self, node, args, sleep=0):
+        return self._request(node, self.HEADERS, args, sleep)
+
+    def top(self, node, args, sleep=0):
+        return self._request(node, self.TOP, args, sleep)
+
+    def add_peer(self, node, args, sleep=0):
+        return self._request(node, self.ADD_PEER, args, sleep)
+
+    def create_account(self, node, args, sleep=0):
+        return self._request(node, self.CREATE_ACCOUNT, args, sleep)
+
+    def spend(self, node, args, sleep=0):
+        return self._request(node, self.SPEND, args, sleep)
+
+    def _request(self, node, action, args, seconds_to_sleep):
+        url = self.urls[node]
+        data = str([action] + args)
+        data = data.replace("\'", "\"")
+
         response = self.session.post(url, data)
         self.assertEqual(response.status_code, 200)
         sleep(seconds_to_sleep)

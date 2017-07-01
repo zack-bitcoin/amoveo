@@ -1,37 +1,16 @@
-from time import sleep
-
-from base import TestBase
+from base import ApiUser, DEV_1_INT, DEV_2_INT
 
 
-class SpendTest(TestBase):
+class SpendTest(ApiUser):
     def test_mine_and_sync(self):
-        response = self.session.post("http://localhost:3021",
-                                     data='["add_peer", [127,0,0,1], 3010]')
-        self.assertEqual(response.status_code, 200)
-        response = self.session.post("http://localhost:3011",
-                                     data='["add_peer", [127,0,0,1], 3020]')
-        self.assertEqual(response.status_code, 200)
-        sleep(1)
+        self.add_peer(DEV_2_INT, [[127, 0, 0, 1], 3010])
+        self.add_peer(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=1)
 
-        response = self.session.post("http://localhost:3011",
-                                     data='["create_account", "S1lSdUU4ZVFZejRkZFBSRzZW", 100]')
-        self.assertEqual(response.status_code, 200)
-        response = self.session.post("http://localhost:3011",
-                                     data='["sync", [127,0,0,1], 3020]')
-        self.assertEqual(response.status_code, 200)
-        sleep(1)
+        self.create_account(DEV_1_INT, ["S1lSdUU4ZVFZejRkZFBSRzZW", 100])
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=1)
 
-        response = self.session.post("http://localhost:3011",
-                                     data='["spend", 27, 100]')
-        self.assertEqual(response.status_code, 200)
-        response = self.session.post("http://localhost:3011",
-                                     data='["sync", [127,0,0,1], 3020]')
-        self.assertEqual(response.status_code, 200)
-        sleep(1)
+        self.spend(DEV_1_INT, [27, 100])
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=1)
 
-        response = self.session.post("http://localhost:3011",
-                                     data='["mine_block"]')
-        self.assertEqual(response.status_code, 200)
-        response = self.session.post("http://localhost:3011",
-                                     data='["sync", [127,0,0,1], 3020]')
-        self.assertEqual(response.status_code, 200)
+        self.mine_block(DEV_1_INT, [])
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020])

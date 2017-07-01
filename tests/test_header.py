@@ -1,11 +1,11 @@
-from base import TestBase, OK_RESPONSE
+from base import ApiUser, DEV_1, OK_RESPONSE
 
 
-class HeaderTest(TestBase):
+class HeaderTest(ApiUser):
     def test_single(self):
-        data = self.request_dev1('["header", 0]')
+        data = self.header(DEV_1, [0])
         self.assertEqual(data[0], OK_RESPONSE)
 
     def test_many(self):
-        data = self.request_dev1('["headers", 1, 0]')
+        data = self.headers(DEV_1, [1, 0])
         self.assertEqual(data[0], OK_RESPONSE)
