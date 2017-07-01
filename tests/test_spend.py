@@ -1,8 +1,3 @@
-# First start the two servers:
-# sh start.sh 3010
-# sh start.sh 3020
-# Make sure each server is running from code copied into a different folder. It is important that they each maintain different trie databases, and don't share a trie.
-
 from time import sleep
 
 from base import TestBase
