@@ -21,4 +21,4 @@ class ForkTest(ApiUser):
 
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=1)
         self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=1)
-        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030])
+        self.sync(DEV_3_INT, [[127, 0, 0, 1], 3030])
