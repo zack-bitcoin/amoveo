@@ -3,7 +3,7 @@ Requirements for Aeternity installation cover ```Erlang/OTP (18+)``` and its dep
 
 Reporsitory operates using ```rebar3``` and we ship it in the top dir
 
-### Project Commands
+## Project structure
 
 Project sources live in ```apps``` directory
 
@@ -14,6 +14,30 @@ They get build by ```rebar3``` to ```_build``` directory
 From the ```_build/default``` code/libs/apps are symlinked to another nodes in ```_build``` (like dev{1-3}, local, etc.)
 
 When we create tarbal using ```rebar``` ```as``` syntax symlinks are removed and original code goes to self-containing tarball (along Erlang runtime system)
+
+```
+_build/
+├── default
+│   ├── lib
+│   └── plugins
+├── dev1
+│   ├── lib
+│   ├── plugins
+│   └── rel
+├── dev2
+│   ├── lib
+│   ├── plugins
+│   └── rel
+├── dev3
+│   ├── lib
+│   ├── plugins
+│   └── rel
+└── local
+    ├── lib
+    ├── plugins
+    └── rel
+```
+
 
 ## Building releases
 
@@ -36,7 +60,7 @@ Its useful for multinode transactions and payments
 
 ``` make multi-test-release-build```
 
-## starting your nodes
+## Starting your nodes
 
 Starting a test node
 
@@ -72,7 +96,7 @@ make test-release-attach
 
 ``` make attach-1 ``` ``` make attach-2 ``` ``` make attach-3 ```
 
-## turning off your node
+## Turning off your node
 
 The test node is turned off this way
 
@@ -116,52 +140,10 @@ You can also clean all 3 at once
 ``` make multi-test-release-clean ```
 
 
-
-
-```
-_build/
-├── default
-│   ├── lib
-│   └── plugins
-├── dev1
-│   ├── lib
-│   ├── plugins
-│   └── rel
-├── dev2
-│   ├── lib
-│   ├── plugins
-│   └── rel
-├── dev3
-│   ├── lib
-│   ├── plugins
-│   └── rel
-└── local
-    ├── lib
-    ├── plugins
-    └── rel
-```
-
-
-### Compiling and Runing
-
-[TODO: check if still valid after rebar]
-
-you will need Erlang and a couple of libraries. Please follow instructions:
-
-[For Ubuntu](docs/compile_ubuntu.md)
-
-[For Mac](docs/compile_mac.md)
-
-
 ### Blockchain Commands
 
-[Read about the commands in depth in the docs](docs/commands.md)
+[Read about the commands in depth in the docs](commands.md)
 
-#### Start the blockchain
-Start your node with following script:
-```
-sh start.sh
-```
 
 #### Sync with the network
 To sync with the network and download the blockchain: 
@@ -219,7 +201,6 @@ easy:off().
 
 
 ### Else
-If you want to know more, get in touch with us via [gitter chat](https://gitter.im/aeternity/Lobby)
 Attach to erlang node
 
 ```
@@ -239,105 +220,6 @@ make dev-release-clean
 ```
 
 
-```
-_build/
-├── default
-│   ├── lib
-│   └── plugins
-├── dev1
-│   ├── lib
-│   ├── plugins
-│   └── rel
-├── dev2
-│   ├── lib
-│   ├── plugins
-│   └── rel
-├── dev3
-│   ├── lib
-│   ├── plugins
-│   └── rel
-└── local
-    ├── lib
-    ├── plugins
-    └── rel
-```
+### Contact
 
-
-### Compiling and Runing
-
-[TODO: check if still valid after rebar]
-
-you will need Erlang and a couple of libraries. Please follow instructions:
-
-[For Ubuntu](docs/compile_ubuntu.md)
-
-[For Mac](docs/compile_mac.md)
-
-
-### Blockchain Commands
-
-[Read about the commands in depth in the docs](docs/commands.md)
-
-#### Start the blockchain
-Start your node with following script:
-```
-sh start.sh
-```
-
-#### Sync with the network
-To sync with the network and download the blockchain: 
-```
-sync:start().
-```
-
-#### Mining
-After fresh install, one can start mining.
-
-To start mining with all CPU cores: 
-```
-mine:start().
-```
-To stop mining:
-```
-mine:stop().
-```
-to check if you are currently mining:
-```
-mine:status().
-```
-
-#### Spend
-```
-easy:spend(To, Amount).
-```
-To is the recipient's account ID
-
-#### Last transactions
-```
-tx_pool:data().
-```
-
-#### Find out your account ID
-```
-keys:id().
-```
-If it returns something less than 1, that means you don't have an account yet.
-
-#### Create an account
-(does get done automatically when no account and mining starts)
-[Make an account](docs/new_account.md)
-
-#### Check your balance
-```
-easy:balance().
-```
-
-#### Stop a node
-To stop a node run:
-```
-easy:off().
-```
-
-
-### Else
 If you want to know more, get in touch with us via [gitter chat](https://gitter.im/aeternity/Lobby)

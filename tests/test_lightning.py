@@ -1,4 +1,4 @@
-## TO INVESTIGATE:
+## FOR INVESTIGATION:
 ## THIS TESTS IS CONFLICTING WITH test_fork.py and tests.py (if you run any of these, test_lightning.py will fail)
 
 
