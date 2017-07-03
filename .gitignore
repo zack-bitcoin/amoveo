@@ -1,4 +1,5 @@
 .idea
+.edts
 *.iml
 _build
 /rel/
@@ -16,3 +17,4 @@ include/
 *.pyc
 nosetests.xml
 pip-selfcheck.json
+config/*/sys.config
