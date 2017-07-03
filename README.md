@@ -28,6 +28,8 @@ Read here about how to secure your private key with a password. That way you can
 
 ### Testing
 
+Before running tests, run `make prepare-nose-env` to setup acceptance tests environment.
+
 To run tests on your machine, run `make tests` in project source root. This will first build, install and start 3 test nodes, then run acceptance tests on them.
 
 If you are looking for more detailed explanation on how the nodes are started look at the [advanced notes on installation](docs/installation_notes.md).
