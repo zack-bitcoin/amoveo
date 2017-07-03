@@ -38,6 +38,12 @@
 
     {download_blocks_batch, 100},
     {garbage_period, 50}
+  ]},
 
+  {lager, [
+      {handlers, [
+          {lager_file_backend, [{file, "log/testnet.log"}, {level, debug}, {size, 41943040}, {date, "$D0"}, {count, 10}]}
+      ]}
   ]}
+
 ].
