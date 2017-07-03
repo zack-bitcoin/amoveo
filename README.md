@@ -1,10 +1,7 @@
 Aeternity
 ==========
 
-A blockchain for trust-free markets in financial derivatives
-
-This is being used by: [æternity](https://aeternity.com).
-
+A new scalable blockchain, written in Erlang. 
 
 #### Installing dependencies
 
