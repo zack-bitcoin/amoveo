@@ -29,6 +29,10 @@ class ApiUser(unittest.TestCase):
     ADD_PEER = 'add_peer'
     CREATE_ACCOUNT = 'create_account'
     SPEND = 'spend'
+    NEW_CHANNEL_WITH_SERVER = 'new_channel_with_server'
+    CHANNEL_SPEND = 'channel_spend'
+    LIGHTNING_SPEND = 'lightning_spend'
+    PULL_CHANNEL_STATE = 'pull_channel_state'
 
     def __init__(self, *args, **kwargs):
         super(ApiUser, self).__init__(*args, **kwargs)
@@ -64,6 +68,18 @@ class ApiUser(unittest.TestCase):
 
     def spend(self, node, args, sleep=0):
         return self._request(node, self.SPEND, args, sleep)
+
+    def new_channel_with_server(self, node, args, sleep=0):
+        return self._request(node, self.NEW_CHANNEL_WITH_SERVER, args, sleep)
+
+    def channel_spend(self, node, args, sleep=0):
+        return self._request(node, self.CHANNEL_SPEND, args, sleep)
+
+    def lightning_spend(self, node, args, sleep=0):
+        return self._request(node, self.LIGHTNING_SPEND, args, sleep)
+
+    def pull_channel_state(self, node, args, sleep=0):
+        return self._request(node, self.PULL_CHANNEL_STATE, args, sleep)
 
     def _request(self, node, action, args, seconds_to_sleep):
         url = self.urls[node]
