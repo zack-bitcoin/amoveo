@@ -27,7 +27,6 @@ doit(Tx, Trees, NewHeight) ->
     MyAddress = keys:address(),
     KID = keys:id(),
     if
-	KID < 1 -> keys:update_id(Tx#ca.to);
 	(Tx#ca.address) == MyAddress ->
 	    if
 		KID < 1 -> keys:update_id(Tx#ca.to);
