@@ -38,15 +38,18 @@ absorb_unsafe(SignedTx, Trees, Height) ->
 	txs:digest([SignedTx], Trees, Height+1),
     tx_pool:absorb_tx(NewTrees, SignedTx).
     
-    
+absorb(Txs) when is_list(Txs) ->
+    [absorb(Tx) || Tx <- Txs];
+
 absorb(SignedTx) -> 
     {_, _, Txs} = tx_pool:data(),
     B = is_in(SignedTx, Txs),
     if
-	B -> ok;
-	true ->
-	    gen_server:cast(?MODULE, {absorb, SignedTx})
+        B -> ok;
+        true ->
+            gen_server:cast(?MODULE, {absorb, SignedTx})
     end.
+
 is_in(_, []) -> false;
 is_in(STx, [STx2|T]) ->
     Tx = testnet_sign:data(STx),

@@ -32,7 +32,7 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 %doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
     %true = block:height(SignedBlock) < easy:height() + 2,
-    block_absorber:doit_tell(SignedBlock),
+    block_absorber:doit(SignedBlock),
     {ok, 0};
 doit({block, N, Many}) -> 
     {ok, block:read_many(N, Many)};
@@ -48,7 +48,7 @@ doit({tophash}) -> {ok, top:doit()};
 %doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
 doit({peers}) ->
     P = peers:all(),
-    P2 = download_blocks:tuples2lists(P),
+    P2 = ae_utils:tuples2lists(P),
     {ok, P2};
 doit({peers, Peers}) ->
     peers:add(Peers),
@@ -56,8 +56,8 @@ doit({peers, Peers}) ->
 doit({txs}) -> 
     {_,_,Txs} = tx_pool:data(),
     {ok, Txs};
-doit({txs, Txs}) -> 
-    download_blocks:absorb_txs(Txs),
+doit({txs, Txs}) ->
+    tx_pool_feeder:absorb(Txs),
     {ok, 0};
 doit({id}) -> {ok, keys:id()};
 doit({top}) -> 
