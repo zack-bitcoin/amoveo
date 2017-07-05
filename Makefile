@@ -12,11 +12,15 @@ LOCAL = ./_build/local/rel
 
 kill:
 	@echo "Kill all beam processes only from this directory tree"
-	@for i in `ps -ef | grep beam | awk '{print $$2"_"$$14}' `; { echo $$i | grep `pwd` | cut -d\_ -f1 | xargs kill ; }
+	@for i in `ps -ef | grep beam | awk '{print $$2"_"$$14}' ` ; do \
+		echo $$i | grep `pwd` | cut -d\_ -f1 | xargs kill ; \
+	done
 
 killall:
 	@echo "Kill all beam processes from this host"
-	@for i in `ps -ef | grep beam | grep -v grep | awk '{print $$2}' ` ; { echo $$i | xargs kill ; }
+	@for i in `ps -ef | grep beam | grep -v grep | awk '{print $$2}' ` ; do \
+		echo $$i | xargs kill ;\
+	done
 
 dialyzer: $(OTP_PLT)
 	@nice -19 \
