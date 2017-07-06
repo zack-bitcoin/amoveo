@@ -84,12 +84,12 @@ test-stop:
 	@./_build/dev3/$(CORE) stop &
 
 test-clean: 
-	@rm -rf ./_build/dev1/ae_core/data/*
-	@rm -rf ./_build/dev1/ae_core/blocks/*
-	@rm -rf ./_build/dev2/ae_core/data/*
-	@rm -rf ./_build/dev2/ae_core/blocks/*
-	@rm -rf ./_build/dev3/ae_core/data/*
-	@rm -rf ./_build/dev3/ae_core/blocks/*
+	@rm -rf ./_build/dev1/rel/ae_core/data/*
+	@rm -rf ./_build/dev1/rel/ae_core/blocks/*
+	@rm -rf ./_build/dev2/rel/ae_core/data/*
+	@rm -rf ./_build/dev2/rel/ae_core/blocks/*
+	@rm -rf ./_build/dev3/rel/ae_core/data/*
+	@rm -rf ./_build/dev3/rel/ae_core/blocks/*
 
 test1-build: KIND=dev1
 test1-build: build
@@ -221,6 +221,14 @@ config/dev3/sys.config: config/sys.config.tmpl
     :\
     " $< > $@
 
+tests: killall
+	make test-build
+	make test-clean
+	make test-start
+	@sleep 3
+	make python-tests
+	make test-stop
+
 .PHONY: \
 	local-build local-start local-stop local-attach local-clean \
 	prod-build prod-start prod-stop prod-attach prod-clean \
@@ -232,5 +240,5 @@ config/dev3/sys.config: config/sys.config.tmpl
 	venv-present \
 	prepare-nose-env \
 	python-tests \
+	tests \
 	unit-tests
-
