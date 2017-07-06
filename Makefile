@@ -7,20 +7,17 @@ PIP = $(BIN)/pip
 
 VER = 0.1.0
 CORE = rel/ae_core/bin/ae_core
-
+SWAGGER = apps/ae_api/src/swagger
+SWTEMP := $(shell mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
 LOCAL = ./_build/local/rel
 
 kill:
 	@echo "Kill all beam processes only from this directory tree"
-	@for i in `ps -ef | grep beam | awk '{print $$2"_"$$14}' ` ; do \
-		echo $$i | grep `pwd` | cut -d\_ -f1 | xargs kill ; \
-	done
+	$(shell pkill -9 -f ".*/beam.*-boot `pwd`" || true)
 
 killall:
 	@echo "Kill all beam processes from this host"
-	@for i in `ps -ef | grep beam | grep -v grep | awk '{print $$2}' ` ; do \
-		echo $$i | xargs kill ;\
-	done
+	@pkill -9 beam || true
 
 dialyzer: $(OTP_PLT)
 	@nice -19 \
@@ -74,22 +71,19 @@ test-build: config/dev1/sys.config config/dev2/sys.config config/dev3/sys.config
 	done
 
 test-start:
-	@./_build/dev1/$(CORE) start
-	@./_build/dev2/$(CORE) start
-	@./_build/dev3/$(CORE) start
+	@make test1-start
+	@make test2-start
+	@make test3-start
 
 test-stop:
-	@./_build/dev1/$(CORE) stop &
-	@./_build/dev2/$(CORE) stop &
-	@./_build/dev3/$(CORE) stop &
+	@make test1-stop
+	@make test2-stop
+	@make test3-stop
 
-test-clean: 
-	@rm -rf ./_build/dev1/rel/ae_core/data/*
-	@rm -rf ./_build/dev1/rel/ae_core/blocks/*
-	@rm -rf ./_build/dev2/rel/ae_core/data/*
-	@rm -rf ./_build/dev2/rel/ae_core/blocks/*
-	@rm -rf ./_build/dev3/rel/ae_core/data/*
-	@rm -rf ./_build/dev3/rel/ae_core/blocks/*
+test-clean:
+	@make test1-clean
+	@make test2-clean
+	@make test3-clean
 
 test1-build: KIND=dev1
 test1-build: build
@@ -149,8 +143,9 @@ attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
 clean: $$(KIND)
-	@rm -rf ./_build/$(KIND)/ae_core/data/*
-	@rm -rf ./_build/$(KIND)/ae_core/blocks/*
+	@rm -rf ./_build/$(KIND)/rel/ae_core/data/*
+	@rm -rf ./_build/$(KIND)/rel/ae_core/blocks/*
+	@rm -rf ./config/$(KIND)/sys.config
 
 $(LOCAL)/ae_core/keys:
 	@mkdir -p $@
@@ -166,6 +161,23 @@ python-tests:
 
 unit-tests:
 	@./rebar3 do eunit,ct
+
+swagger: config/swagger.yaml
+	@swagger-codegen generate -i $< -l erlang-server -o $(SWTEMP)
+	@echo "Swagger tempdir: $(SWTEMP)"
+	@cp $(SWTEMP)/priv/swagger.json apps/ae_api/priv/
+	@cp $(SWTEMP)/src/*.erl $(SWAGGER)/
+	@rm -fr $(SWTEMP)
+
+unlock:
+	@./rebar3 unlock
+
+lock:
+	@./rebar3 lock
+
+# 
+# Deps
+# 
 
 config/local/sys.config: config/sys.config.tmpl
 	sed -e "\
@@ -246,4 +258,5 @@ tests: killall
 	prepare-nose-env \
 	python-tests \
 	tests \
-	unit-tests
+	unit-tests \
+	unlock lock

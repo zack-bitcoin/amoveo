@@ -1,0 +1,48 @@
+swagger: '2.0'
+info:
+  description: 'This is the [Aeternity](https://www.aeternity.com/) Testnet API.'
+  version: 1.0.0
+  title: Aeternity Testnet
+  termsOfService: 'https://www.aeternity.com/terms/'
+  contact:
+    email: apiteam@aeternity.com
+basePath: /v1
+tags:
+  - name: account
+    description: Everything about your accounts
+schemes:
+  - http
+paths:
+  /account:
+    post:
+      tags:
+        - account
+      summary: Add a new account
+      description: ''
+      operationId: add-account
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Account object that needs to be added
+          required: true
+          schema:
+            $ref: '#/definitions/Account'
+      responses:
+        '405':
+          description: Invalid input
+definitions:
+  Account:
+    type: object
+    properties:
+      address:
+        type: string
+      amount:
+        type: integer
+        format: int64
+externalDocs:
+  description: Find out more about Aeternity
+  url: 'http://www.aeternity.com'

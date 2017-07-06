@@ -10,10 +10,9 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
+    Res = ae_api_sup:start_link(),
     ok = serve:start(),
-
-    ae_api_sup:start_link().
-
+    Res.
 
 stop(_State) ->
     ok.
