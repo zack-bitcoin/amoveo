@@ -10,7 +10,7 @@ init(ok) ->
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, _) -> lager:debug("terminating block_absorber gen_srv"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(garbage, X) -> 
     trees:garbage(),
