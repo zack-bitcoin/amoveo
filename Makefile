@@ -71,25 +71,19 @@ test-build: config/dev1/sys.config config/dev2/sys.config config/dev3/sys.config
 	done
 
 test-start:
-	@./_build/dev1/$(CORE) start
-	@./_build/dev2/$(CORE) start
-	@./_build/dev3/$(CORE) start
+	@make test1-start
+	@make test2-start
+	@make test3-start
 
 test-stop:
-	@./_build/dev1/$(CORE) stop &
-	@./_build/dev2/$(CORE) stop &
-	@./_build/dev3/$(CORE) stop &
+	@make test1-stop
+	@make test2-stop
+	@make test3-stop
 
-test-clean: 
-	@rm -rf ./_build/dev1/rel/ae_core/data/*
-	@rm -rf ./_build/dev1/rel/ae_core/blocks/*
-	@rm -rf ./_build/dev2/rel/ae_core/data/*
-	@rm -rf ./_build/dev2/rel/ae_core/blocks/*
-	@rm -rf ./_build/dev3/rel/ae_core/data/*
-	@rm -rf ./_build/dev3/rel/ae_core/blocks/*
-	@rm -rf ./config/dev1/sys.config
-	@rm -rf ./config/dev2/sys.config
-	@rm -rf ./config/dev3/sys.config
+test-clean:
+	@make test1-clean
+	@make test2-clean
+	@make test3-clean
 
 test1-build: KIND=dev1
 test1-build: build
@@ -149,8 +143,8 @@ attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
 clean: $$(KIND)
-	@rm -rf ./_build/$(KIND)/ae_core/data/*
-	@rm -rf ./_build/$(KIND)/ae_core/blocks/*
+	@rm -rf ./_build/$(KIND)/rel/ae_core/data/*
+	@rm -rf ./_build/$(KIND)/rel/ae_core/blocks/*
 	@rm -rf ./config/$(KIND)/sys.config
 
 $(LOCAL)/ae_core/keys:
