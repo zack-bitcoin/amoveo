@@ -7,7 +7,8 @@ PIP = $(BIN)/pip
 
 VER = 0.1.0
 CORE = rel/ae_core/bin/ae_core
-
+SWAGGER = apps/ae_api/src/swagger
+SWTEMP := $(shell mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
 LOCAL = ./_build/local/rel
 
 kill:
@@ -86,6 +87,9 @@ test-clean:
 	@rm -rf ./_build/dev2/rel/ae_core/blocks/*
 	@rm -rf ./_build/dev3/rel/ae_core/data/*
 	@rm -rf ./_build/dev3/rel/ae_core/blocks/*
+	@rm -rf ./config/dev1/sys.config
+	@rm -rf ./config/dev2/sys.config
+	@rm -rf ./config/dev3/sys.config
 
 test1-build: KIND=dev1
 test1-build: build
@@ -147,6 +151,7 @@ attach: $$(KIND)
 clean: $$(KIND)
 	@rm -rf ./_build/$(KIND)/ae_core/data/*
 	@rm -rf ./_build/$(KIND)/ae_core/blocks/*
+	@rm -rf ./config/$(KIND)/sys.config
 
 $(LOCAL)/ae_core/keys:
 	@mkdir -p $@
@@ -162,6 +167,13 @@ python-tests:
 
 unit-tests:
 	@./rebar3 do eunit,ct
+
+swagger: config/swagger.yaml
+	@swagger-codegen generate -i $< -l erlang-server -o $(SWTEMP)
+	@echo "Swagger tempdir: $(SWTEMP)"
+	@cp $(SWTEMP)/priv/swagger.json apps/ae_api/priv/
+	@cp $(SWTEMP)/src/*.erl $(SWAGGER)/
+	@rm -fr $(SWTEMP)
 
 unlock:
 	@./rebar3 unlock
@@ -254,4 +266,3 @@ tests: killall
 	tests \
 	unit-tests \
 	unlock lock
-
