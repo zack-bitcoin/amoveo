@@ -12,15 +12,11 @@ LOCAL = ./_build/local/rel
 
 kill:
 	@echo "Kill all beam processes only from this directory tree"
-	@for i in `ps -ef | grep beam | awk '{print $$2"_"$$14}' ` ; do \
-		echo $$i | grep `pwd` | cut -d\_ -f1 | xargs kill ; \
-	done
+	$(shell pkill -9 -f ".*/beam.*-boot `pwd`" || true)
 
 killall:
 	@echo "Kill all beam processes from this host"
-	@for i in `ps -ef | grep beam | grep -v grep | awk '{print $$2}' ` ; do \
-		echo $$i | xargs kill ;\
-	done
+	@pkill -9 beam || true
 
 dialyzer: $(OTP_PLT)
 	@nice -19 \
@@ -167,6 +163,16 @@ python-tests:
 unit-tests:
 	@./rebar3 do eunit,ct
 
+unlock:
+	@./rebar3 unlock
+
+lock:
+	@./rebar3 lock
+
+# 
+# Deps
+# 
+
 config/local/sys.config: config/sys.config.tmpl
 	sed -e "\
 	s:%% comment:\
@@ -246,4 +252,6 @@ tests: killall
 	prepare-nose-env \
 	python-tests \
 	tests \
-	unit-tests
+	unit-tests \
+	unlock lock
+
