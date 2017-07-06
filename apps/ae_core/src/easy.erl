@@ -486,7 +486,7 @@ add_peer(IP, Port) ->
     0.
 sync(IP, Port) ->
     MyHeight = block:height(block:read(top:doit())),
-    download_blocks:sync(IP, Port, MyHeight),
+    download_blocks:sync({IP, Port}, MyHeight),
     0.
 pubkey() ->
     keys:pubkey().
