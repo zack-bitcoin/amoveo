@@ -84,12 +84,12 @@ test-stop:
 	@./_build/dev3/$(CORE) stop &
 
 test-clean: 
-	@rm -rf ./_build/dev1/ae_core/data/*
-	@rm -rf ./_build/dev1/ae_core/blocks/*
-	@rm -rf ./_build/dev2/ae_core/data/*
-	@rm -rf ./_build/dev2/ae_core/blocks/*
-	@rm -rf ./_build/dev3/ae_core/data/*
-	@rm -rf ./_build/dev3/ae_core/blocks/*
+	@rm -rf ./_build/dev1/rel/ae_core/data/*
+	@rm -rf ./_build/dev1/rel/ae_core/blocks/*
+	@rm -rf ./_build/dev2/rel/ae_core/data/*
+	@rm -rf ./_build/dev2/rel/ae_core/blocks/*
+	@rm -rf ./_build/dev3/rel/ae_core/data/*
+	@rm -rf ./_build/dev3/rel/ae_core/blocks/*
 
 test1-build: KIND=dev1
 test1-build: build
@@ -228,9 +228,6 @@ tests: killall
 	@sleep 3
 	make python-tests
 	make test-stop
-
-unit-tests:
-	@./rebar3 do eunit,ct
 
 .PHONY: \
 	local-build local-start local-stop local-attach local-clean \
