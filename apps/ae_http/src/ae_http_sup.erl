@@ -1,4 +1,4 @@
--module(ae_api_sup).
+-module(ae_http_sup).
 
 -behaviour(supervisor).
 

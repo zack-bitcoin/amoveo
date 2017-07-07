@@ -40,5 +40,5 @@ start() ->
       logic_handler => dispatch
      },
     Spec = swagger_server:child_spec('swagger', Opts),
-    {ok, _} = supervisor:start_child(ae_api_sup, Spec),
+    {ok, _} = supervisor:start_child(ae_http_sup, Spec),
     ok.

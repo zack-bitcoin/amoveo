@@ -13,7 +13,7 @@
                   trie,
                   pink_hash,
                   chalang,
-                  ae_api,
+                  ae_http,
                   encrypter,
                   lager
                  ]},
