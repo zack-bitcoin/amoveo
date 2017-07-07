@@ -1,57 +1,94 @@
 -module(top).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, add/1,doit/0,test/0]).
+
+%% API
+-export([add/1,
+         doit/0]).
+
+-export([start_link/0]).
+-export([init/1,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         terminate/2,
+         code_change/3]).
+
 -define(LOC, constants:top()).
-init(ok) -> 
-    io:fwrite("start top"),
-    G = block:genesis_maker(),
-    X = db:read(?LOC),
-    Ka = if
-	     X == "" ->
-		 %G = block:genesis(),
-		 block_absorber:save_helper(G),
-		 add_internal(G),
-		 I = keys:pubkey(),
-		 M = constants:master_pub(),
-		 if
-		     I == M -> keys:update_id(1);
-		     true -> ok
-		 end,
-		 block:hash(G);
-	     true ->
-		 X
-	 end,
-    spawn(fun() -> block_hashes:add(block:hash(G)) end),
-    {ok, Ka}.
-    %{ok, []}.
-start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
-code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
-handle_info(_, X) -> {noreply, X}.
-handle_cast(_, X) -> {noreply, X}.
-handle_call({add, Block}, _From, X) ->
-    %check which block is higher and store it's hash as the top.
-    %for tiebreakers, prefer the older block.
-    OldBlock = block:read(X),
+
+%% API functions
+
+add(Block) ->
+    gen_server:call(?MODULE, {add, Block}).
+
+doit() ->
+    gen_server:call(?MODULE, top).
+
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
+
+
+%% gen_server callbacks
+
+init(ok) ->
+    lager:info("Start top"),
+    GenesisMakerBlock = block:genesis_maker(),
+    Top = db:read(?LOC),
+    TopHash =
+        case Top of
+            "" ->
+                ok = block_absorber:save_helper(GenesisMakerBlock),
+                _BlockHash = add_internal(GenesisMakerBlock),
+                I = keys:pubkey(),
+                M = constants:master_pub(),
+                if
+                    I == M -> keys:update_id(1);
+                    true -> ok
+                end,
+                block:hash(GenesisMakerBlock);
+            Top ->
+                Top
+        end,
+    spawn(fun() ->
+                  block_hashes:add(block:hash(GenesisMakerBlock))
+          end),
+    {ok, TopHash}.
+
+handle_call({add, Block}, _From, OldBlockHash) ->
+    %% Check which block is higher and store it's hash as the top.
+    %% For tiebreakers, prefer the older block.
+
+    OldBlock = block:read(OldBlockHash),
     NH = block:height(Block),
     OH = block:height(OldBlock),
-    New = if
-	NH > OH -> 
-		  Trees = block:trees(Block),
-		  NH = block:height(Block),
-		  tx_pool:absorb(Trees, [], NH),
-		  add_internal(Block);
-	true -> X
-    end,
-    {reply, 0, New};
-handle_call(_, _From, X) -> {reply, X, X}.
+    NewBlockHash =
+        case NH > OH of
+            true ->
+                Trees = block:trees(Block),
+                NH = block:height(Block),
+                tx_pool:absorb(Trees, [], NH),
+                _NewBlockHash = add_internal(Block);
+            false ->
+                OldBlockHash
+        end,
+    {reply, 0, NewBlockHash};
+handle_call(_, _From, BlockHash) ->
+    {reply, BlockHash, BlockHash}.
 
-add(Block) -> gen_server:call(?MODULE, {add, Block}).
-doit() -> gen_server:call(?MODULE, top).
+handle_cast(_Msg, State) ->
+    {noreply, State}.
+
+handle_info(_Info, State) ->
+    {noreply, State}.
+
+terminate(_Reason, _State) ->
+    ok = lager:warning("Top died!").
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
+
+%% Internals
+
 add_internal(Block) ->
-    Y = block:hash(Block),
-    db:save(?LOC, Y),
-    Y.
-
-test() ->
-    ok.
+    BlockHash = block:hash(Block),
+    ok = db:save(?LOC, BlockHash),
+    BlockHash.
