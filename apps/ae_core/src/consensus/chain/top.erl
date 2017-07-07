@@ -30,7 +30,7 @@ start_link() ->
 %% gen_server callbacks
 
 init(ok) ->
-    lager:info("Start top"),
+    lager:info("Start ~p", [?MODULE]),
     GenesisMakerBlock = block:genesis_maker(),
     Top = db:read(?LOC),
     TopHash =
@@ -81,7 +81,7 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_Reason, _State) ->
-    ok = lager:warning("Top died!").
+    ok = lager:warning("~p died!", [?MODULE]).
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

@@ -73,7 +73,7 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_Reason, _State) ->
-    ok = lager:warning("Tx pool feeder died!").
+    ok = lager:warning("~p died!", [?MODULE]).
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
