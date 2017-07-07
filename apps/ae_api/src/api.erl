@@ -1,5 +1,36 @@
--module(easy).
--compile(export_all).
+-module(api).
+
+-export([height/0, off/0, balance/0, spend/2, mempool/0,
+         top/0, sign/1, mine_block/0, mine_block/2,
+         add_peer/2, sync/2]).
+
+-export([create_account/2, delete_account/1, account/1,
+         repo_account/1, repo_account/2]).
+
+-export([channel_balance/0, solo_close_channel/0, channel_timeout/0,
+         new_channel_with_server/3, lightning_spend/3, pull_channel_state/2,
+         add_secret/2, pull_channel_state/0, channel_spend/1, channel_spend/3,
+         new_channel_tx/6, new_channel_tx/7, close_channel_with_server/0,
+         grow_channel/3, grow_channel/4, channel_solo_close/4, 
+         channel_team_close/2, channel_team_close/3, channel_repo/2,
+         channel_timeout/2, channel_slash/4, channel_close/0, 
+         channel_close/2, channel_close/3, new_channel_with_server/7,
+         channel_solo_close/1, channel_solo_close/2,
+         lightning_spend/3, lightning_spend/6, lightning_spend/8]).
+
+-export([new_difficulty_oracle/2, new_question_oracle/3,
+         new_governance_oracle/4, oracle_bet/3, 
+         oracle_close/1, oracle_shares/1, 
+         oracle_unmatched/2, oracle_unmatched/3,
+         dice/1]).
+
+-export([pubkey/0, address/0, address/1, id/0, new_pubkey/1,
+         channel_keys/0, keys_status/0, keys_unlock/1, 
+         keys_id_update/1, keys_new/1, market_match/1, 
+         new_market/3, trade/5, trade/7, test_it_out/0, test/0]).
+
+%% Described in the docs but not found
+%% close_channel/0, new_channel/2, oracle_unmatched/1, sync/0
 
 -define(Fee, free_constants:tx_fee()).
 -define(IP, {46,101,103,165}).

@@ -9,7 +9,8 @@
                   ssl,
                   cowboy,
                   jsx,
-                  jesse
+                  jesse,
+                  ae_api
                  ]},
   {modules, []},
   {mod, { ae_http_app, []}},

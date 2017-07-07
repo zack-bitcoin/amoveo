@@ -29,7 +29,7 @@ keys:address().
 
 To spend money to someone who doesn't yet have an account, you use the create_account transaction:
 ``` 
-easy:create_account(Address, AmountOfMoney).
+api:create_account(Address, AmountOfMoney).
 ```
 You can also create a new account by mining. If you don't have an account, and you find a block, it creates an account for you.
 

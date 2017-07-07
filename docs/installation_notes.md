@@ -170,7 +170,7 @@ mine:status().
 
 #### Spend
 ```
-easy:spend(To, Amount).
+api:spend(To, Amount).
 ```
 To is the recipient's account ID
 
