@@ -146,6 +146,7 @@ clean: $$(KIND)
 	@rm -rf ./_build/$(KIND)/rel/ae_core/data/*
 	@rm -rf ./_build/$(KIND)/rel/ae_core/blocks/*
 	@rm -rf ./config/$(KIND)/sys.config
+	@rm -rf ./_build/$(KIND)/rel/*/log/*
 
 $(LOCAL)/ae_core/keys:
 	@mkdir -p $@
