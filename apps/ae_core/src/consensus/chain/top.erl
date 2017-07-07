@@ -32,24 +32,25 @@ start_link() ->
 init(ok) ->
     lager:info("Start ~p", [?MODULE]),
     GenesisMakerBlock = block:genesis_maker(),
+    GenesisMakerBlockHash = block:hash(GenesisMakerBlock),
     Top = db:read(?LOC),
     TopHash =
         case Top of
             "" ->
                 ok = block_absorber:save_helper(GenesisMakerBlock),
-                _BlockHash = add_internal(GenesisMakerBlock),
+                ok = save_hash(GenesisMakerBlockHash),
                 I = keys:pubkey(),
                 M = constants:master_pub(),
                 if
                     I == M -> keys:update_id(1);
                     true -> ok
                 end,
-                block:hash(GenesisMakerBlock);
+                GenesisMakerBlockHash;
             Top ->
                 Top
         end,
     spawn(fun() ->
-                  block_hashes:add(block:hash(GenesisMakerBlock))
+                  block_hashes:add(GenesisMakerBlockHash)
           end),
     {ok, TopHash}.
 
@@ -66,7 +67,7 @@ handle_call({add, Block}, _From, OldBlockHash) ->
                 Trees = block:trees(Block),
                 NH = block:height(Block),
                 tx_pool:absorb(Trees, [], NH),
-                _NewBlockHash = add_internal(Block);
+                _NewBlockHash = hash_and_save(Block);
             false ->
                 OldBlockHash
         end,
@@ -88,7 +89,10 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internals
 
-add_internal(Block) ->
+save_hash(BlockHash) ->
+    ok = db:save(?LOC, BlockHash).
+
+hash_and_save(Block) ->
     BlockHash = block:hash(Block),
-    ok = db:save(?LOC, BlockHash),
+    ok = save_hash(BlockHash),
     BlockHash.
