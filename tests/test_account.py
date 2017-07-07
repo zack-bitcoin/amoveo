@@ -13,7 +13,6 @@ class AccountTest(ApiUser):
         response = self.session.post(uri, json=data)
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        print(json.dumps(data, indent=2))
         self.assertEqual(data, {})
 
 
