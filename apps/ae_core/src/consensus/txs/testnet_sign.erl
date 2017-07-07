@@ -1,8 +1,6 @@
 -module(testnet_sign).
 -export([test/0,test2/1,test3/0,sign_tx/5,sign/2,verify_sig/3,shared_secret/2,verify/2,data/1,
-	 %revealed/1,
 	 empty/1,empty/0,
-	 %set_revealed/2,
 	 verify_1/2,verify_2/2, pubkey2address/1, valid_address/1, hard_new_key/0,new_key/0,pub/1,pub2/1,address2binary/1,binary2address/1]).
 -record(signed, {data="", sig="", pub = "", sig2="", pub2=""}).
 -define(cs, 8). %checksum size
@@ -11,15 +9,10 @@ pub2(X) -> X#signed.pub2.
 empty() -> #signed{}.
 empty(X) -> #signed{data=X}.
 data(X) -> X#signed.data.
-%set_revealed(X, R) -> 
-%    X#signed{revealed = R}.
-%revealed(X) -> X#signed.revealed.
 en(X) -> base64:encode(X).
 de(X) -> base64:decode(X).
 params() -> crypto:ec_curve(secp256k1).
 shared_secret(Pub, Priv) -> en(crypto:compute_key(ecdh, de(Pub), de(Priv), params())).
-%to_bytes(X) -> term_to_binary(X).
-to_bytes(X) -> term_to_binary(X).
 generate() -> crypto:generate_key(ecdh, params()).
 new_key() -> %We keep this around for the encryption library. it is used to generate 1-time encryption keys.
     {Pub, Priv} = generate(),%crypto:generate_key(ecdh, params()),
@@ -136,16 +129,7 @@ checksum(N, <<>>) ->
 pubkey2address(P) when size(P) > 66 ->
     pubkey2address(base64:decode(P));
 pubkey2address(P) ->
-    %AB = (?AddressEntropy + 4),
-    %BC = (hash:hash_depth()*8) - AB,
-    %<< A:AB, T:BC >> = hash:doit(P),
-    %S = T rem 5000,
-    %case S of
-	%0 ->
-	    binary2address(testnet_hasher:doit(P)).%;
-	%_ ->
-	%    {error, invalid_pubkey}
-    %end.
+    binary2address(testnet_hasher:doit(P)).
 address2binary(A) ->
     S = ?AddressEntropy,
     <<C:?cs, B:S>> = base58:base58_to_binary(binary_to_list((A))),
