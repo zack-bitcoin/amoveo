@@ -1,4 +1,4 @@
--module(main_handler).
+-module(external_handler).
 
 -export([init/3, handle/2, terminate/3]).
 %example of talking to this handler:
@@ -6,8 +6,8 @@
 %curl -i -d '[-6,"test"]' http://localhost:3011
 handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
-    PrivDir = list_to_binary(code:priv_dir(ae_api)),
-    File = << PrivDir/binary, <<"/web">>/binary, F/binary>>,
+    PrivDir = list_to_binary(code:priv_dir(ae_http)),
+    File = << PrivDir/binary, <<"/external_web">>/binary, F/binary>>,
     {ok, _Data, _} = cowboy_req:body(Req),
     Headers = [{<<"content-type">>, <<"text/html">>},
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],

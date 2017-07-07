@@ -7,7 +7,7 @@ PIP = $(BIN)/pip
 
 VER = 0.1.0
 CORE = rel/ae_core/bin/ae_core
-SWAGGER = apps/ae_api/src/swagger
+SWAGGER = apps/ae_http/src/swagger
 SWTEMP := $(shell mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
 LOCAL = ./_build/local/rel
 
@@ -166,7 +166,7 @@ unit-tests:
 swagger: config/swagger.yaml
 	@swagger-codegen generate -i $< -l erlang-server -o $(SWTEMP)
 	@echo "Swagger tempdir: $(SWTEMP)"
-	@cp $(SWTEMP)/priv/swagger.json apps/ae_api/priv/
+	@cp $(SWTEMP)/priv/swagger.json apps/ae_http/priv/
 	@cp $(SWTEMP)/src/*.erl $(SWAGGER)/
 	@rm -fr $(SWTEMP)
 

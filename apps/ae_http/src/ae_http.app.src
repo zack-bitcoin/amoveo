@@ -1,4 +1,4 @@
-{application, ae_api,
+{application, ae_http,
  [
   {description, "API"},
   {vsn, "0.1.0"},
@@ -12,7 +12,7 @@
                   jesse
                  ]},
   {modules, []},
-  {mod, { ae_api_app, []}},
+  {mod, { ae_http_app, []}},
   {env, [
 	  {error_logger, {file, "log.db"}}
 	]}

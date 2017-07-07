@@ -1,4 +1,4 @@
--module(ae_api_app).
+-module(ae_http_app).
 -behaviour(application).
 
 %% Application callbacks
@@ -10,7 +10,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    Res = ae_api_sup:start_link(),
+    Res = ae_http_sup:start_link(),
     ok = serve:start(),
     Res.
 
