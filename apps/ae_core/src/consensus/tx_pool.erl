@@ -60,12 +60,12 @@ handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
     MaxBlockSize = governance:get_value(max_block_size, Governance),
     FinalTxs =
         case BlockSize > MaxBlockSize of
-               true ->
-                   lager:warning("Cannot absorb tx - block is already full"),
-                   F#f.txs;
-               false ->
-                   NewTxs
-           end,
+            true ->
+                lager:warning("Cannot absorb tx - block is already full"),
+                F#f.txs;
+            false ->
+                NewTxs
+        end,
     {reply, 0, F#f{txs = FinalTxs, trees = NewTrees}};
 handle_call({absorb, NewTrees, Txs, Height}, _From, _) ->
     {reply, 0, #f{txs = Txs, trees = NewTrees, height = Height}};
@@ -75,11 +75,11 @@ handle_call(data, _From, F) ->
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
-handle_info(_, State) ->
+handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_Reason, _State) ->
-    ok = lager:error("Tx pool died!").
+    ok = lager:warning("Tx pool died!").
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
