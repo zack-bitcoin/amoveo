@@ -1,7 +1,7 @@
 making a channel with the server:
 
 ```
-easy:new_channel(Balance, ReceivingLimit).
+api:new_channel(Balance, ReceivingLimit).
 ```
 
 Balance is how much of your money you put into the channel.
@@ -12,29 +12,29 @@ Fee is the transaction fee, so that this transaction will be included into a blo
 
 checking your balance in the channel:
 ```
-easy:channel_balance().
+api:channel_balance().
 ```
 
 
 gambling with the server:
 ```
-easy:dice(Amount).
+api:dice(Amount).
 ```
 
 
 When you want to close the channel and get your money out:
 ```
-easy:close_channel().
+api:close_channel().
 ```
 You  need to sync with the network to see if your channel is closed.
 ```
-easy:sync().
+api:sync().
 ```
 
 If your channel partner disappears, or breaks, you can still get your money without his help. Start with a solo-close transaction, then wait over 100 blocks, then do a channel timeout transaction
 ```
-easy:solo_close_channel().
+api:solo_close_channel().
 ```
 ```
-easy:channel_timeout().
+api:channel_timeout().
 ```

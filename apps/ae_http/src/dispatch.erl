@@ -12,7 +12,7 @@ handle_request('AddAccount', Req, _Context) ->
     Acc = maps:get('Account', Req),
     Addr = maps:get(<<"address">>, Acc),
     Amt = maps:get(<<"amount">>, Acc),
-    ok = easy:create_account(Addr, Amt),
+    ok = api:create_account(Addr, Amt),
     {200, [], #{}};
 
 handle_request(OperationID, Req, Context) ->
