@@ -81,14 +81,6 @@ hash2int(X) ->
     S = constants:hash_size()*8,
     <<A:S>> = X,
     A.
-%hash2int(X) -> 
-%    S = size(X),
-%    S = constants:hash_size(),
-%    hash2int(X, 0).
-%hash2int(<<>>, N) -> N;
-%hash2int(<<X, Y/binary>>, N) ->
-%    M = (N*256) + X,
-%    hash2int(Y, M).
     
     %we also need to garbage orders, oracle_bets, shares, proof of burn.
     %proof of burn doesn't exist yet.

@@ -1,17 +1,23 @@
 {application, ae_api,
  [
-  {description, "API"},
+  {description, "blockchain"},
   {vsn, "0.1.0"},
   {registered, []},
   {applications, [
                   kernel,
                   stdlib,
                   ssl,
-                  cowboy
+                  inets,
+                  jiffy,
+                  dump,
+                  trie,
+                  pink_hash,
+                  chalang,
+                  encrypter,
+                  lager
                  ]},
   {modules, []},
-  {mod, { ae_api_app, []}},
   {env, [
-	  {error_logger, {file, "log.db"}}
-	]}
+	   {error_logger, {file, "log.db"}}
+	 ]}
  ]}.

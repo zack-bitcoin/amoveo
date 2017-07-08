@@ -39,19 +39,19 @@ sleep 0.1
 curl -i -d '["lightning_spend", [127,0,0,1], 3030, "BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=", 4, 10]' http://localhost:3011
 sleep 0.1
 
-curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
+#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
 sleep 0.1
 
-curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
+#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
 sleep 0.1
 
-curl -i -d '["lightning_spend", [127,0,0,1], 3030, "BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=", 4, 10]' http://localhost:3021
+#curl -i -d '["lightning_spend", [127,0,0,1], 3030, "BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=", 4, 10]' http://localhost:3021
 sleep 1
 
-curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
+#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
 sleep 1
 
-curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
+#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
 sleep 1
 
 

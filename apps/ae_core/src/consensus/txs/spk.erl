@@ -135,8 +135,13 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
 	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
 	    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
+	    io:fwrite("\n"),
+	    io:fwrite("\n"),
+	    io:fwrite("\n"),
 	    io:fwrite("spk bet unlock 2 Bet is "),
 	    io:fwrite(packer:pack(Bet)),
+	    io:fwrite("\n"),
+	    io:fwrite("\n"),
 	    io:fwrite("\n"),
 	   
 	    true = chalang:none_of(SS2),
@@ -155,7 +160,10 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 		    io:fwrite(packer:pack({r, ContractAmount, Nonce2, ShareRoot})),
 		    io:fwrite("\n"),
 		    ShareRoot = [],%deal with lightning shares later.
-		    bet_unlock2(T, B, A+ContractAmount, SSIn, SSOut, [{secret, SS2, Key}|Secrets], Nonce + Nonce2, [SS2|SSThem]);
+		    CGran = constants:channel_granularity(),
+		    true = ContractAmount =< CGran,
+		    A3 = ContractAmount * Bet#bet.amount div CGran,
+		    bet_unlock2(T, B, A+A3, SSIn, SSOut, [{secret, SS2, Key}|Secrets], Nonce + Nonce2, [SS2|SSThem]);
 		{error, _} ->
 		    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem])
 	    end

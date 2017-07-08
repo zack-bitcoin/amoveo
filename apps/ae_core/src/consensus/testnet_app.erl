@@ -14,6 +14,9 @@ start(_StartType, _StartArgs) ->
     %% TODO: move to config
     application:start(inets),
     inets:start(),
+
+    lager:info("Starting Testnet node"),
+
     testnet_sup:start_link().
 
 

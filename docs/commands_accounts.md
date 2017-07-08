@@ -15,28 +15,28 @@ keys:address().
 
 #### Check your balance
 ```
-easy:balance().
+api:balance().
 ```
 
 #### Spend to account ID `To`
 ```
-easy:spend(To, Amount).
+api:spend(To, Amount).
 ```
 
 ####Create Account
 [WARNING!!! Before creating an account, make sure your wallet is secure!](keys.md)
 To create a new account, and give it some money:
 ```
-easy:create_account(Address, AmountOfMoney).
+api:create_account(Address, AmountOfMoney).
 ```
 
 ####Delete Account
 To delete an account and send all it's money to account ID:
 ```
-easy:delete_account(ID).
+api:delete_account(ID).
 ```
 
 ####Look up an account
 ```
-easy:account(ID).
+api:account(ID).
 ```

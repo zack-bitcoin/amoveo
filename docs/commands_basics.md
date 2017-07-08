@@ -11,12 +11,12 @@ sync:start().
 #### Current block height
 To see the current block height downloaded to this node:
 ```
-easy:height().
+api:height().
 ```
 
 #### Stop a node
 ```
-easy:off().
+api:off().
 ```
 
 #### sign a transaction

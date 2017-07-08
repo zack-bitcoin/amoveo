@@ -8,9 +8,6 @@
 
 handle(Req, State) ->
     {ok, Data, _} = cowboy_req:body(Req),
-    %io:fwrite("internal handler "),
-    %io:fwrite(Data),
-    %io:fwrite("\n"),
     true = is_binary(Data),
     A = packer:unpack(Data),
     B = doit(A),
@@ -22,21 +19,21 @@ handle(Req, State) ->
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 doit({Key}) ->
-    {ok, easy:Key()};
+    {ok, api:Key()};
 doit({Key, Arg1}) ->
-    {ok, easy:Key(Arg1)};
+    {ok, api:Key(Arg1)};
 doit({Key, Arg1, Arg2}) ->
-    {ok, easy:Key(Arg1, Arg2)};
+    {ok, api:Key(Arg1, Arg2)};
 doit({Key, A, B, C}) ->
-    {ok, easy:Key(A, B, C)};
+    {ok, api:Key(A, B, C)};
 doit({Key, A, B, C, D}) ->
-    {ok, easy:Key(A, B, C, D)};
+    {ok, api:Key(A, B, C, D)};
 doit({Key, A, B, C, D, E}) ->
-    {ok, easy:Key(A, B, C, D, E)};
+    {ok, api:Key(A, B, C, D, E)};
 doit({Key, A, B, C, D, E, F}) ->
-    {ok, easy:Key(A, B, C, D, E, F)};
+    {ok, api:Key(A, B, C, D, E, F)};
 doit({Key, A, B, C, D, E, F, G}) ->
-    {ok, easy:Key(A, B, C, D, E, F, G)};
+    {ok, api:Key(A, B, C, D, E, F, G)};
 
 doit(X) ->
     io:fwrite("don't know how to handle it \n"),

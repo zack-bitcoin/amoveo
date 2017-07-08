@@ -1,0 +1,20 @@
+{application, ae_http,
+ [
+  {description, "API"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  ssl,
+                  cowboy,
+                  jsx,
+                  jesse,
+                  ae_api
+                 ]},
+  {modules, []},
+  {mod, { ae_http_app, []}},
+  {env, [
+	  {error_logger, {file, "log.db"}}
+	]}
+ ]}.

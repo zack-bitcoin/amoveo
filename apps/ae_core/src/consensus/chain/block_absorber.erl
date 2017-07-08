@@ -3,36 +3,41 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 doit_ask/1, doit_tell/1, garbage/0, 
+	 doit/1, doit_ask/1, garbage/0,
 	 save_helper/1]).
 init(ok) -> 
-    %save(block:genesis()),
-    %block:make_files(),
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, _) -> lager:debug("terminating block_absorber gen_srv"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(garbage, X) -> 
     trees:garbage(),
     {noreply, X};
-handle_cast(_, X) -> {noreply, X}.
+handle_cast({doit, BP}, X) ->
+    absorb(BP),
+    {noreply, X}.
 handle_call({doit, BP}, _From, X) -> 
     absorb(BP),
     {reply, ok, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 garbage() ->
     gen_server:cast(?MODULE, garbage).
-    
-doit_tell(X) ->
-    spawn(fun() ->
-		  doit_ask(X)
-	  end).
-doit_ask(X) ->
-    %absorb(X).
-    %spawn(fun() ->
-		  gen_server:call(?MODULE, {doit, X}).
-	%  end).
+
+
+doit([]) -> ok;
+doit([H|T]) ->
+    doit(H),
+    doit(T);
+doit(InputBlock) ->
+    gen_server:cast(?MODULE, {doit, InputBlock}).
+doit_ask([]) -> ok;
+doit_ask([H|T]) ->
+    doit_ask(H),
+    doit_ask(T);
+doit_ask(InputBlock) ->
+    gen_server:call(?MODULE, {doit, InputBlock}).
+
     
 absorb(BP) ->
     %BH = block:hash(BP),
@@ -54,7 +59,7 @@ save_helper(BlockPlus) ->
     %Hash = testnet_hasher:doit(BlockPlus),
     Hash = block:hash(BlockPlus),
     BF = block:binary_to_file(Hash),
-    db:save(BF, Z).
+    ok = db:save(BF, Z).
     
 save(BlockPlus) ->
     save_helper(BlockPlus),

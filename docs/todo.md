@@ -1,6 +1,5 @@
 ### Needed before launch of mainnet
 
-
 The half-life of shares should be a governance variable.
 The difficulty threshold between rewarding positive and negative shares should be a governance variable.
 
@@ -49,14 +48,13 @@ When you are running short on funds you need to ask your partner to close the ch
 
 [AE-66] In spk prove_facts2, the burn and existence trees store by hash not by integer, so the code needs to be modified for them. 60 CHF (paid in ETH or BTC)
 
-
 [AE-68] Make sure that if something was garbage collected from a merkel tree, and we try accessing the thing, it gives a different message than trying to access something that doesn't exist. Make sure we don't assume a block is invalid just because we don't have the proof of it's validity. 200 CHF (paid in ETH or BTC)
 
 [AE-69] We need to also add a way for the two parties to work together to close the channel early, so they don't have to wait to do a timeout_tx. We can either make a new tx, or make channel_team_close more complicated. 200 CHF (paid in ETH or BTC)
 We need a test showing that it works.
 (maybe this task was already done? need to check)
 
-Maybe nodes need to advertise their own IP/port combo as a peer?
+[Specify more? Done?] Maybe nodes need to advertise their own IP/port combo as a peer? Right now users would need to manually add their IP/port to the list of peers.
 
 
 ### Things we can do after launch of mainnet
@@ -97,7 +95,6 @@ Maybe this is a mistake.
 
 [Duplicate?] download_blocks could be more efficient.
 
-[Specify more? Done?] Maybe nodes need to advertise their own IP/port combo as a peer? Right now users would need to manually add their IP/port to the list of peers.
 
 [AE-78] It would be nice if there were some macros for chalang/src/compiler_lisp2.erl that did backtracking. that way we wouldn't have to think about control flow when making smart contracts.
 

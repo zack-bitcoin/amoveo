@@ -387,9 +387,6 @@ read_int(N, BH) ->
     if 
 	D<0 -> 
 	    empty;
-	    %io:fwrite("D is "),
-	       %io:fwrite(integer_to_list(D)),
-	       %D = 5;
 	D == 0 -> Block;
 	true ->
 	    read_int(N, prev_hash(lg(D), Block))
@@ -407,9 +404,7 @@ test() ->
     PH = hash(BP),
     Trees = trees(BP),
     Accounts = trees:accounts(Trees),
-    %Accounts = BP#block_plus.accounts,
     _ = accounts:get(constants:master_pub(), Accounts),
-    %{block_plus, Block, _, _, _} = make(PH, [], 1),
     Block = make(PH, [], constants:master_pub()),
     io:fwrite(packer:pack(Block)),
     io:fwrite("top 2, \n"),
@@ -450,7 +445,7 @@ mine_test() ->
     PH = top:doit(),
     BP = make(PH, [], keys:pubkey()),
     PBlock = mine(BP, 1000000000),
-    block_absorber:doit_ask(PBlock),
+    block_absorber:doit(PBlock),
     mine_blocks(10, 100000),
     success.
 mine_blocks(A, B) -> 
@@ -458,7 +453,6 @@ mine_blocks(A, B) ->
     mine_blocks(A,B,Cores).
 mine_blocks(0, _, _) -> 
     block_absorber:garbage(),
-    %trees:garbage(), 
     success;
 mine_blocks(N, Times, Cores) -> 
     io:fwrite("mine blocks\n"),
@@ -489,7 +483,6 @@ mine_blocks(N, Times, Cores) ->
 	end,
     spawn_many(Cores-1, F),
     F(),
-    %timer:sleep(100),
     mine_blocks(N-1, Times, Cores).
     
 spawn_many(N, _) when N < 1 -> ok;

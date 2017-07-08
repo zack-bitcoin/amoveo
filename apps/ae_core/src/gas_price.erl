@@ -3,20 +3,20 @@
 timer0() -> %4 microseconds
     [{integer, 1}].
 timer1() -> %17
-    compiler:compile(<<" 
+    ae_core_compiler:compile(<<"
 1 2 swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap swap 
 ">>).
 timer2() -> %352
-    compiler:compile(<<" 
+    ae_core_compiler:compile(<<"
 :b YWJj
 hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash hash 
 ">>).
 timer3() -> %24
-    compiler:compile(<<" 
+    ae_core_compiler:compile(<<"
 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 :i 1 
 ">>).
 timer4() -> %550
-    Swaps = compiler:compile(<<" 
+    Swaps = ae_core_compiler:compile(<<"
 : a 1 ;
 : b 1 ;
 : ac 1 ;
@@ -84,7 +84,7 @@ timer4() -> %550
 ">>),
     Swaps.
 timer5() -> %257
-    Swaps = compiler:compile(<<" 
+    Swaps = ae_core_compiler:compile(<<"
 : a 1 ;
 : b 1 ;
 : ac 1 ;
@@ -120,7 +120,7 @@ timer5() -> %257
 ">>),
     Swaps.
 timer6() -> %334
-    compiler:compile(<<"
+    ae_core_compiler:compile(<<"
  : func dup :i 0 == if else :i 1 - recurse call then ;
  :i 64 func call
 ">>).
@@ -132,7 +132,7 @@ timer7() -> %27
 ">>,
     Y = << X/binary, X/binary, X/binary, X/binary >>,
     Z = << Y/binary, Y/binary, Y/binary, Y/binary >>,
-    compiler:compile(Z).
+    ae_core_compiler:compile(Z).
     
 test() ->
     [timer:tc(language, run, [timer0(), 10000]),%3 microseconds
