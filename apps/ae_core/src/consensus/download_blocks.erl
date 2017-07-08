@@ -37,7 +37,7 @@ sync(IP, Port, MyHeight) ->
 			 ok;
 		     {ok, TopBlock, Height}  ->
 			 %io:fwrite("got topblock\n"),
-             {ok, DBB} = application:get_env(ae_core, download_blocks_batch),
+			 {ok, DBB} = application:get_env(ae_core, download_blocks_batch),
 			 HH = MyHeight + DBB,
 			 if
 			     HH < Height ->
@@ -146,7 +146,7 @@ talk(CMD, IP, Port, F, N) ->
     end.
 	   
 get_txs(IP, Port) ->
-    %io:fwrite("download blocks get txs\n"),
+    io:fwrite("download blocks get txs\n"),
     talk({txs}, IP, Port, 
 	 fun(X) ->
 		 absorb_txs(X),

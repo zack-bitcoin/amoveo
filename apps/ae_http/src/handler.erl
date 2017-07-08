@@ -31,8 +31,8 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 %doit({height}) -> {ok, block_tree:height()};
 %doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
-    %true = block:height(SignedBlock) < easy:height() + 2,
-    block_absorber:doit_tell(SignedBlock),
+    %true = block:height(SignedBlock) < api:height() + 2,
+    block_absorber:doit(SignedBlock),
     {ok, 0};
 doit({block, N, Many}) -> 
     {ok, block:read_many(N, Many)};
@@ -48,7 +48,7 @@ doit({tophash}) -> {ok, top:doit()};
 %doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
 doit({peers}) ->
     P = peers:all(),
-    P2 = download_blocks:tuples2lists(P),
+    P2 = ae_utils:tuples2lists(P),
     {ok, P2};
 doit({peers, Peers}) ->
     peers:add(Peers),
@@ -56,10 +56,10 @@ doit({peers, Peers}) ->
 doit({txs}) -> 
     {_,_,Txs} = tx_pool:data(),
     {ok, Txs};
-doit({txs, Txs}) -> 
-    download_blocks:absorb_txs(Txs),
+doit({txs, Txs}) ->
+    io:fwrite("received txs\n"),
+    tx_pool_feeder:absorb(Txs),
     {ok, 0};
-%doit({id}) -> {ok, keys:id()};
 doit({top}) -> 
     Top = block:read(top:doit()),
     Height = block:height(Top),
@@ -78,18 +78,14 @@ doit({new_channel, STx, SSPK}) ->
     SPK = testnet_sign:data(SSPK),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    io:fwrite(packer:pack({new_channel_tx, Tx})),
-    io:fwrite("\n"),
-
-    undefined = channel_feeder:cid(Tx), %% why do this???
-
+    undefined = channel_feeder:cid(Tx),
     true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
     true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo. Also makes sure that we aren't reusing entropy.
     SSTx = keys:sign(STx, Accounts),
     tx_pool_feeder:absorb(SSTx),
     S2SPK = keys:sign(SPK, Accounts),
     channel_feeder:new_channel(Tx, SSPK, Accounts),
-    %easy:sync(),
+    %api:sync(),
     {ok, SSTx, S2SPK};
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
@@ -100,9 +96,6 @@ doit({grow_channel, Stx}) ->
     tx_pool_feeder:absorb(SStx),
     {ok, ok};
 doit({spk, CID})->
-    io:fwrite("\n"),
-    io:fwrite(packer:pack({handler_spk, CID, channel_manager:keys()})),
-    io:fwrite("\n"),
     {ok, CD} = channel_manager:read(CID),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),

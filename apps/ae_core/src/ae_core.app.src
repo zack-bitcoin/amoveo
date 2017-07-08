@@ -13,8 +13,9 @@
                   trie,
                   pink_hash,
                   chalang,
-                  ae_api,
-                  encrypter
+                  ae_http,
+                  encrypter,
+                  lager
                  ]},
   {modules, []},
   {mod, { testnet_app, []}},

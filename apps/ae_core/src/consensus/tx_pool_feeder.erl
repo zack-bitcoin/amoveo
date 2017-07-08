@@ -9,14 +9,15 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast({absorb, SignedTx}, X) ->
     {Trees, Height, Txs} = tx_pool:data(),
     Governance = trees:governance(Trees),
+    io:fwrite("tx pool feeder tx "),
+    io:fwrite(packer:pack(SignedTx)),
+    io:fwrite("\n"),
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
-    %io:fwrite("tx pool feeder tx "),
-    %io:fwrite(packer:pack(Tx)),
-    %io:fwrite("\n"),
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
+    io:fwrite(packer:pack({tx_pool_feeder_absorb, Fee, MinimumTxFee, Cost})),
     true = Fee > (MinimumTxFee + Cost),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(SignedTx, Accounts),
@@ -39,6 +40,10 @@ absorb_unsafe(SignedTx, Trees, Height) ->
     tx_pool:absorb_tx(NewTrees, SignedTx).
     
     
+absorb([]) -> ok;
+absorb([H|T]) ->
+    absorb(H),
+    absorb(T);
 absorb(SignedTx) -> 
     {_, _, Txs} = tx_pool:data(),
     B = is_in(SignedTx, Txs),
