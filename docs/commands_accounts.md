@@ -24,7 +24,7 @@ easy:spend(To, Amount).
 ```
 
 ####Create Account
-[WARNING!!! Before creating an account, make sure your wallet is secure!](new_account.md)
+[WARNING!!! Before creating an account, make sure your wallet is secure!](keys.md)
 To create a new account, and give it some money:
 ```
 easy:create_account(Address, AmountOfMoney).

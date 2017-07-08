@@ -1,82 +1,36 @@
 Aeternity
 ==========
 
-A blockchain for trust-free markets in financial derivatives
+A blockchain for trust-free financial derivatives.
+Optimized for scalability.
+Written in Erlang. 
 
-This is being used by: [æternity](https://aeternity.com).
+#### Installing dependencies
 
-### Compiling and Runing
-you will need Erlang and a couple of libraries. Please follow instructions:
+you will need Erlang and a couple of libraries before you are able to run this software.
 
-[For Ubuntu](docs/compile_ubuntu.md)
+[For Ubuntu](docs/ubuntu_dependencies.md)
 
-[For Mac](docs/compile_mac.md)
+[For Mac](docs/mac_dependencies.md)
 
 
-### Commands
+#### Running the blockchain
 
-[Read about the commands in depth in the docs](docs/commands.md)
+If you just want to launch a node and connect to the network, [look at the quick start guide](docs/turn_it_on.md)
 
-#### Start the blockchain
-Start your node with following script:
-```
-sh start.sh
-```
+#### Using the wallet
 
-#### Sync with the network
-To sync with the network and download the blockchain: 
-```
-sync:start().
-```
+Included is a wallet. A wallet is for storing your private key, and for making signatures.
+Read here about how to secure your private key with a password. That way you can have tokens.
+[Secure your keys](docs/securing_keys.md)
 
-#### Mining
-After fresh install, one can start mining.
+### Blockchain Commands
 
-To start mining with all CPU cores: 
-```
-mine:start().
-```
-To stop mining:
-```
-mine:stop().
-```
-to check if you are currently mining:
-```
-mine:status().
-```
+[Read about the commands in depth in the docs](docs/commands.md) This is how you control the node once it is started.
 
-#### Spend
-```
-easy:spend(To, Amount).
-```
-To is the recipient's account ID
+### Testing
 
-#### Last transactions
-```
-tx_pool:data().
-```
-
-#### Find out your account ID
-```
-keys:id().
-```
-If it returns something less than 1, that means you don't have an account yet.
-
-#### Create an account
-(does get done automatically when no account and mining starts)
-[Make an account](docs/new_account.md)
-
-#### Check your balance
-```
-easy:balance().
-```
-
-#### Stop a node
-To stop a node run:
-```
-easy:off().
-```
-
+If you want to run the tests, you need to run nodes in test format. Look at the [advanced notes on installation.](docs/installation_notes.md)
 
 ### Else
-If you want to know more, get in touch with us via [gitter chat](https://github.com/zack-bitcoin/testnet)
+If you want to know more, get in touch with us via [gitter chat](https://gitter.im/aeternity/Lobby)
