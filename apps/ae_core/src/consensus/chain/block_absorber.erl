@@ -57,7 +57,7 @@ save_helper(BlockPlus) ->
     %Hash = testnet_hasher:doit(BlockPlus),
     Hash = block:hash(BlockPlus),
     BF = block:binary_to_file(Hash),
-    db:save(BF, Z).
+    ok = db:save(BF, Z).
     
 save(BlockPlus) ->
     save_helper(BlockPlus),

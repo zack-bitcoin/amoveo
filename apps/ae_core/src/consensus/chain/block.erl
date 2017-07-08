@@ -96,7 +96,6 @@ genesis_maker() ->
     Accounts = accounts:write(0, First),
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
-    %io:fwrite(Trees),
     TreeRoot = trees:root_hash(Trees),
     Block = {block_plus,{block,0,
 		     <<0:(8*constants:hash_size())>>,
@@ -126,7 +125,7 @@ genesis_maker() ->
 %            {trees,1,0,0,0,0,72},
 %            0,
 %            {prev_hashes}}.
-block_reward(Trees, Height, ID) -> 
+block_reward(Trees, Height, ID) ->
     OldAccounts = trees:accounts(Trees),
     Governance = trees:governance(Trees),
     BCM = governance:get_value(block_creation_maturity, Governance),
