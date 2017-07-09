@@ -1,26 +1,39 @@
 %use `market:test().` to run this code
 
-macro bet ( ProofStructure -- delay nonce amount )
+macro helper
 %first unwrap the oracle data from the proof structure.
+print
 car drop
+print
 car swap drop
+print
 car swap drop
+print
 car drop
+print
 
 %next extract the result from the oracle
-%    <<(X#oracle.id):48, %6 bytes
+%    <<(X#oracle.id):256, %32 bytes
 %      (X#oracle.result):8, % 1 byte
 %      _/binary>>.
-int 6 split drop
+
+%int 32 split MarketID == or_die drop drop drop drop ( make sure the marketid is the same )
+int 32 split drop
+print
 int 1 split swap drop
+print
 
 %for testing that result=1 works.
 %binary 1 AQ==
 
 %convert from 8 bit to 32 bit.
 binary 3 AAAA swap  ++
+;
 
-
+macro bet ( ProofStructure -- delay nonce amount )
+print
+helper
+print print
 %1 means that the oracle returned true
 int 1 == if drop drop 
      %delay, nonce, amount

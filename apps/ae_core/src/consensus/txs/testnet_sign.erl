@@ -56,7 +56,7 @@ verify(SignedTx, Accounts) ->
 	true -> 
 	    verify_1(SignedTx, N1)
     end.
-sign_tx(SignedTx, Pub, Priv, Accounts) when element(1, SignedTx) == signed ->
+sign_tx(SignedTx, Pub, Priv, _) when element(1, SignedTx) == signed ->
     Tx = SignedTx#signed.data,
     N = element(2, Tx),
     %{_, Acc, _Proof} = accounts:get(N, Accounts),
@@ -78,7 +78,7 @@ sign_tx(SignedTx, Pub, Priv, Accounts) when element(1, SignedTx) == signed ->
 		true -> {error, <<"cannot sign">>}
 	    end
 	 end;
-sign_tx(Tx, Pub, Priv, Accounts) ->
+sign_tx(Tx, Pub, Priv, _) ->
     Sig = sign(Tx, Priv),
     N = element(2, Tx),
     N2 = element(3, Tx),

@@ -10,7 +10,8 @@
 	 script_sig_me/1,
 	 update_to_me/2, new_cd/6, 
 	 make_locked_payment/4, live/1, they_simplify/3,
-	 bets_unlock/1, emsg/1, trade/4, trade/7
+	 bets_unlock/1, emsg/1, trade/4, trade/7,
+	 market_ss_me/1
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -107,14 +108,14 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     BetLocation = constants:oracle_bet(),
     SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
     CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
-    %CodeKey = {market, market_smart_contract, OID, Expires, keys:pubkey(), Period, OID),
     SSPK2 = trade(Amount, SC, ID, OID),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     {ok, OldCD} = channel_manager:read(ID),
+    DefaultSS = market:unmatched(),
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
-		     ssme = [<<>>|OldCD#cd.ssme],
-		     ssthem = [<<>>|OldCD#cd.ssthem]},
+		     ssme = [DefaultSS|OldCD#cd.ssme],
+		     ssthem = [DefaultSS|OldCD#cd.ssthem]},
     %arbitrage:write(CodeKey, [ID]),
     channel_manager:write(ID, NewCD),
     {reply, SSPK2, X};
@@ -227,6 +228,9 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 		Return
 	end,
     {reply, Return2, X};
+handle_call({market_ss_me, Accounts}, _From, X) -> 
+    Y = market_ss_me_internal(Accounts),
+    {reply, Y, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 %make_bet(Other, Name, Vars, Secret) ->
@@ -246,6 +250,25 @@ trade(ID, Price, Type, Amount, OID, SSPK, Fee) ->
 
 update_to_me(SSPK, From) ->
     gen_server:call(?MODULE, {update_to_me, SSPK, From}).
+market_ss_me(Accounts) ->
+    io:fwrite("channel_feeder market_ss_me \n"),
+    gen_server:call(?MODULE, {market_ss_me, Accounts}).
+market_ss_me_internal([]) -> ok;
+market_ss_me_internal([Pub|T]) ->
+    io:fwrite("channel_feeder market_ss_me_internal \n"),
+    case channel_manager:read(Pub) of
+	error -> ok;
+	{ok, CD} ->
+	    SSME = CD#cd.ssme,
+	    SPK = CD#cd.me,
+	    {NewSS, NewSPK, _, _} = spk:bet_unlock(SPK, SSME),
+	    NewCD = CD#cd{me = NewSPK, ssme = NewSS},
+	    channel_manager:write(Pub, NewCD)
+    end,
+    market_ss_me_internal(T).
+    
+	    
+	    
     
     
 agree_bet(Name, SSPK, Vars, Secret) -> 
@@ -361,8 +384,7 @@ simplify_helper(From, SS) ->
     SPK = CD#cd.me,
     {SSRemaining, NewSPK, _, _} = spk:bet_unlock(SPK, SS),
     {Trees, _, _} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
-    Return = keys:sign(NewSPK, Accounts),
+    Return = keys:sign(NewSPK),
     {SSRemaining, Return}. 
 
 make_locked_payment(To, Amount, Code, Prove) -> 
@@ -385,7 +407,9 @@ trade(Amount, Bet, Other, OID) ->
     io:fwrite("\n"),
     SPK = channel_feeder:me(CD),
     CID = spk:cid(SPK),
-    SPK2 = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
+    {ok, TimeLimit} = application:get_env(ae_core, time_limit),
+    {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
+    SPK2 = spk:apply_bet(Bet, 0, SPK, TimeLimit div 10 , SpaceLimit),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     SSPK2 = keys:sign(SPK2, Accounts),

@@ -27,7 +27,8 @@
 -export([pubkey/0, address/0, address/1, new_pubkey/1,
          channel_keys/0, keys_status/0, keys_unlock/1, 
          keys_new/1, market_match/1, 
-         new_market/3, trade/5, trade/7, test_it_out/0, test/0]).
+         new_market/3, trade/5, trade/7, test_it_out/0, test/0,
+	 channel_manager_update/3]).
 
 %% Described in the docs but not found
 %% close_channel/0, new_channel/2, oracle_unmatched/1, sync/0
@@ -267,9 +268,9 @@ lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
     true = testnet_sign:verify(keys:sign(SSPK2, Accounts), Accounts),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    channel_manager_update(ServerID, SSPK2),
+    channel_manager_update(ServerID, SSPK2, <<>>),
     ok.
-channel_manager_update(ServerID, SSPK2) ->
+channel_manager_update(ServerID, SSPK2, DefaultSS) ->
     %store SSPK2 in channel manager, it is their most recent signature.
     {ok, CD} = channel_manager:read(ServerID),
     CID = channel_feeder:cid(CD),
@@ -277,7 +278,7 @@ channel_manager_update(ServerID, SSPK2) ->
     ThemSS = channel_feeder:script_sig_them(CD),
     MeSS = channel_feeder:script_sig_me(CD),
     SPK = testnet_sign:data(SSPK2),
-    NewCD = channel_feeder:new_cd(SPK, SSPK2, [<<>>|MeSS], [<<>>|ThemSS], Entropy, CID),
+    NewCD = channel_feeder:new_cd(SPK, SSPK2, [DefaultSS|MeSS], [DefaultSS|ThemSS], Entropy, CID),
     channel_manager:write(ServerID, NewCD),
     ok.
     
@@ -541,7 +542,7 @@ keys_new(Password) ->
     0.
 market_match(OID) ->
     %check that we haven't matched too recently. (otherwise we lose all our money in all the channels.)
-    {PriceDeclaration, Accounts} = order_book:match(OID),
+    {PriceDeclaration, _Accounts} = order_book:match(OID),
     %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
 
     %false = Accounts == [],
@@ -551,8 +552,12 @@ market_match(OID) ->
     CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
     SS = market:settle(PriceDeclaration),
     secrets:add(CodeKey, SS),
-    channel_feeder:bets_unlock(Accounts),
+    %channel_feeder:bets_unlock(Accounts),
+    channel_feeder:bets_unlock(channel_manager:keys()),
+    %io:fwrite(packer:pack({api_market_match, Accounts, SS})),
     
+    %channel_feeder:market_ss_me(Accounts),
+    %channel_feeder:market_ss_me(channel_manager:keys()),
     %add this to channels_manager ss_me for every bet in the channel that participated.
     {ok, ok}.
 new_market(OID, Expires, Period) -> 
@@ -574,14 +579,6 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
     %type is true or false or one other thing...
     SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID),
     SSPK = channel_feeder:trade(Amount, SC, ServerID, OID),
-    MSG = {trade, 
-	   keys:pubkey(),
-	   Price,
-	   Type,
-	   Amount,
-	   OID,
-	   SSPK, 
-	   Fee},
     {ok, SSPK2} =
 	talker:talk({trade, 
 		     keys:pubkey(),
@@ -593,7 +590,7 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
 		     Fee}, IP, Port),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    channel_manager_update(ServerID, SSPK2),
+    channel_manager_update(ServerID, SSPK2, market:unmatched()),
     ok.
     
 

@@ -1,8 +1,8 @@
 
 #create another 2 accounts so all three nodes have accounts.
-curl -i -d '["create_account", "OGlqQmhFUks0anBSVHp5Y1lDZGtVTjh0MWg5UDg2YTExMWs3N0RTUDZadUht", 10]' http://localhost:3011
+curl -i -d '["create_account", "BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=", 10]' http://localhost:3011
 sleep 0.1
-curl -i -d '["create_account", "MjFtZk5oeFFNWmphcVFzZzdVTHRZMTlQblN4b2dIQVRkSHg2SjRrSEF2MWdBag==", 10]' http://localhost:3011
+curl -i -d '["create_account", "BOnadmMfDIoCmio3ReSinirULreS3TbCEdr0R6FDDvoVB5xoAJnvwlL3yMgNhBzEb5l36z7bgizw2EKGn0W9rY8=",10]' http://localhost:3011
 sleep 0.1
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 0.1
@@ -20,7 +20,7 @@ sleep 0.1
 
 #launch a difficulty oracle. We need to use a difficulty oracle to measure the expected future difficulty before we are able to run the other kinds of oracles.
 
-curl -i -d '["new_difficulty_oracle", 20, 0, 1, 7000]' http://localhost:3011 #fee, start, id, difficulty
+curl -i -d '["new_difficulty_oracle", 0, 7000]' http://localhost:3011 #fee, start, id, difficulty
 sleep 0.1
 
 #make a bet.
@@ -42,7 +42,7 @@ curl -i -d '["oracle_close", 1]' http://localhost:3011
 sleep 0.1
 
 #launch a question oracle.
-curl -i -d '["new_question_oracle", 0, "aXMgMisyPTQ/", 1, 2]' http://localhost:3011 #fee, start, id, difficulty
+curl -i -d '["new_question_oracle", 0, "aXMgMisyPTQ/", 1]' http://localhost:3011 #fee, start, id, difficulty
 sleep 0.1
 
 
@@ -67,29 +67,34 @@ curl -i -d '["market_match", 2]' http://localhost:3031
 
 #settle the oracle.
 
-#curl -i -d '["oracle_bet", 2, 1, 269]' http://localhost:3011 #one higher than the minimum
+curl -i -d '["oracle_bet", 2, 1, 269]' http://localhost:3011 #one higher than the minimum
 sleep 0.1
-#curl -i -d '["mine_block", 10, 1]' http://localhost:3011
+curl -i -d '["mine_block", 11, 1]' http://localhost:3011
 sleep 0.1
-#curl -i -d '["oracle_close", 2]' http://localhost:3011
+curl -i -d '["oracle_close", 2]' http://localhost:3011
+sleep 0.1
+curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
+sleep 1
+
+curl -i -d '["market_match", 2]' http://localhost:3031
 sleep 0.1
 
-#curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
+curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
 sleep 0.1
 
-#curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
+curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 0.1
 
 #oracle better collects winnings in both oracles
-#curl -i -d '["oracle_shares", 1]' http://localhost:3011
+curl -i -d '["oracle_shares", 1]' http://localhost:3011
 sleep 0.1
-#curl -i -d '["oracle_shares", 2]' http://localhost:3011
+curl -i -d '["oracle_shares", 2]' http://localhost:3011
 sleep 0.1
 
 #oracle better collects unmatched trades
-#curl -i -d '["oracle_unmatched", 1, 1]' http://localhost:3011
+curl -i -d '["oracle_unmatched", 1, 1]' http://localhost:3011
 sleep 0.1
-#curl -i -d '["oracle_unmatched", 2, 1]' http://localhost:3011
+curl -i -d '["oracle_unmatched", 2, 1]' http://localhost:3011
 sleep 0.1
 
 
@@ -97,6 +102,11 @@ sleep 0.1
 #winners in off-chain market should collect their winnings.
 #losers in the off-chain market should update their channel to reflect the new state.
 
+curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
+sleep 0.1
+
+#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
+sleep 0.1
 
 
 #curl -i -d '' http://localhost:3011
