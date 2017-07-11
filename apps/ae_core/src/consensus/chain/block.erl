@@ -185,7 +185,7 @@ absorb_txs2(Trees2, Height, BCM, Txs) ->
 			BR = governance:get_value(block_reward, Governance),
 			Acc2 = accounts:update(ID, Trees2, BR, none, Height),
 			Accounts3 = accounts:write(Accounts2, Acc2),
-			trees:update_account(Trees2, Accounts3)
+			trees:update_accounts(Trees2, Accounts3)
 		end;
 	    true -> Trees2
 	end,
