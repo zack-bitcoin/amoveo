@@ -1,6 +1,0 @@
-
-{NewPub, _} = testnet_sign:new_key().
-api:create_account(NewPub, 1).
-api:spend(NewPub, 0.1).
-tx_pool:data().
-accounts:get(NewPub, 5).
