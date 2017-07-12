@@ -146,7 +146,11 @@ pub_decode(Pub) ->
 	HS -> Pub;
 	SizePubkey ->
 	    testnet_hasher:doit(Pub);
-	_ -> testnet_hasher:doit(base64:decode(Pub))
+	_ -> 
+	    io:fwrite("pub decode problem "),
+	    io:fwrite(Pub),
+	    io:fwrite("\n"),
+	    testnet_hasher:doit(base64:decode(Pub))
     end.
     
 get(Pub, Accounts) ->

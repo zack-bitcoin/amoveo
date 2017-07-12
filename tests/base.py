@@ -33,6 +33,7 @@ class ApiUser(unittest.TestCase):
     CHANNEL_SPEND = 'channel_spend'
     LIGHTNING_SPEND = 'lightning_spend'
     PULL_CHANNEL_STATE = 'pull_channel_state'
+    LOAD_KEY = 'load_key'
 
     def __init__(self, *args, **kwargs):
         super(ApiUser, self).__init__(*args, **kwargs)
@@ -80,6 +81,9 @@ class ApiUser(unittest.TestCase):
 
     def pull_channel_state(self, node, args, sleep=0):
         return self._request(node, self.PULL_CHANNEL_STATE, args, sleep)
+
+    def load_key(self, node, args, sleep=0):
+        return self._request(node, self.LOAD_KEY, args, sleep)
 
     def _request(self, node, action, args, seconds_to_sleep):
         url = self.urls[node]

@@ -2,7 +2,7 @@
 
 -export([height/0, off/0, balance/0, spend/2, mempool/0,
          top/0, sign/1, mine_block/0, mine_block/2,
-         add_peer/2, sync/2]).
+         add_peer/2, sync/2, load_key/3]).
 
 -export([create_account/2, delete_account/1, account/1,
          repo_account/1, repo_account/2]).
@@ -36,6 +36,8 @@
 -define(IP, {46,101,103,165}).
 -define(Port, 8080).
 
+load_key(Pub, Priv, Brainwallet) ->
+    keys:load(Pub, Priv, Brainwallet).
 height() ->    
     {ok, block:height(block:read(top:doit()))}.
 top() ->

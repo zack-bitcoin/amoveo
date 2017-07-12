@@ -1,5 +1,5 @@
 from base import ApiUser, DEV_1_INT, DEV_2_INT
-
+from nose.tools import nottest
 
 class ShareBlocksTest(ApiUser):
     def test(self):
