@@ -153,7 +153,7 @@ absorb_txs(PrevPlus, Height, Txs, Pub) ->
 		MinesBlock = mine_block_ago(BlocksAgo),
 		BR = governance:get_value(block_reward, Governance),
 		Acc = case accounts:get(MinesBlock, Accounts2) of
-			  empty ->
+			  {_, empty, _} ->
 			      accounts:new(Pub, BR, Height);
 			  _ ->
 			      accounts:update(Pub, Trees2, BR, none, Height)%gives 30% more than the amount of money you need to keep the account open until you get your reward.
