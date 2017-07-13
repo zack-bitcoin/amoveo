@@ -10,8 +10,7 @@
 	 script_sig_me/1,
 	 update_to_me/2, new_cd/6, 
 	 make_locked_payment/4, live/1, they_simplify/3,
-	 bets_unlock/1, emsg/1, trade/4, trade/7,
-	 market_ss_me/1
+	 bets_unlock/1, emsg/1, trade/4, trade/7
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -133,11 +132,6 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     Return = make_locked_payment(Sender, Amount+Fee, Code, []),
     SPK = testnet_sign:data(SSPK),
     SPK22 = testnet_sign:data(Return),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack({channel_feeder_lock_spend, SPK})),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack({channel_feeder_lock_spend, SPK22})),
-    io:fwrite("\n"),
     
     SPK = SPK22,
     {ok, OldCD} = channel_manager:read(Sender),
@@ -186,8 +180,6 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     {ok, OldCD} = channel_manager:read(From),
     SPK2 = OldCD#cd.me,
-    io:fwrite(packer:pack({compare_spk, SPK, SPK2})),
-    io:fwrite("\n"),
     SPK = SPK2,
     NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
     channel_manager:write(From, NewCD),
@@ -195,8 +187,6 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
 handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     %if your partner found a way to close the channel at a higher nonced state, or a state that they think you will find preferable, then this is how you request the proof from them, and then update your data about the channel to reflect this new information.
     %send your partner a signed copy of the spk so that they can update to the current state.
-    io:fwrite(packer:pack({channel_feeder_1, From, ThemSPK, CD})),
-    io:fwrite("\n"),
     {ok, CD0} = channel_manager:read(From),
     true = live(CD0),
     SPKME = me(CD0),
@@ -210,12 +200,7 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     SS = script_sig_me(CD),
     SS4 = script_sig_them(CD),
     Entropy = entropy(CD),
-    io:fwrite(packer:pack({channel_feeder, SPKME, SSME, NewSPK, SS})),
-    io:fwrite("\n"),
     B2 = spk:force_update(SPKME, SSME, SS4),
-    io:fwrite("in channel feeder B2 is \n"),
-    io:fwrite(packer:pack(B2)),
-    io:fwrite("\n"),
     CID = CD#cd.cid,
     Return2 = 
 	if
@@ -239,9 +224,6 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 			{SS5, Return} = simplify_helper(From, SS4),
 			SPK = testnet_sign:data(ThemSPK),
 			SPK2 = testnet_sign:data(Return),
-			io:fwrite("\nchannel feeder simplify_helper returns "),
-			io:fwrite(packer:pack({spks, SPK, SPK2})),
-			io:fwrite("\n"),
 			SPK = SPK2,
 			Data = new_cd(SPK, ThemSPK, SS5, SS5, Entropy, CID),
 			channel_manager:write(From, Data),
@@ -249,15 +231,9 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 		end
 	end,
     {reply, Return2, X};
-handle_call({market_ss_me, Accounts}, _From, X) -> 
-    Y = market_ss_me_internal(Accounts),
-    {reply, Y, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
-%make_bet(Other, Name, Vars, Secret) ->
-%    gen_server:call(?MODULE, {make_bet, Other, Name, Vars, Secret}).
 new_channel(Tx, SSPK, Accounts) ->
-    %io:fwrite("channel feeder inserting channel $$$$$$$$$$$$$$$$$$$$$$$$$$"),
     gen_server:cast(?MODULE, {new_channel, Tx, SSPK, Accounts}).
 spend(SPK, Amount) -> 
     gen_server:call(?MODULE, {spend, SPK, Amount}).
@@ -271,22 +247,6 @@ trade(ID, Price, Type, Amount, OID, SSPK, Fee) ->
 
 update_to_me(SSPK, From) ->
     gen_server:call(?MODULE, {update_to_me, SSPK, From}).
-market_ss_me(Accounts) ->
-    io:fwrite("channel_feeder market_ss_me \n"),
-    gen_server:call(?MODULE, {market_ss_me, Accounts}).
-market_ss_me_internal([]) -> ok;
-market_ss_me_internal([Pub|T]) ->
-    io:fwrite("channel_feeder market_ss_me_internal \n"),
-    case channel_manager:read(Pub) of
-	error -> ok;
-	{ok, CD} ->
-	    SSME = CD#cd.ssme,
-	    SPK = CD#cd.me,
-	    {NewSS, NewSPK, _, _} = spk:bet_unlock(SPK, SSME),
-	    NewCD = CD#cd{me = NewSPK, ssme = NewSS},
-	    channel_manager:write(Pub, NewCD)
-    end,
-    market_ss_me_internal(T).
     
 	    
 	    
