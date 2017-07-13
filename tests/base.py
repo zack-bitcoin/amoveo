@@ -1,7 +1,7 @@
 import unittest
 from time import sleep
 
-import requests
+import requests, json
 
 OK_RESPONSE = "ok"
 
@@ -11,6 +11,18 @@ DEV_2 = "dev_2"
 DEV_2_INT = "dev_2_int"
 DEV_3 = "dev_3"
 DEV_3_INT = "dev_3_int"
+
+
+def byteify(input):
+    if isinstance(input, dict):
+        return {byteify(key): byteify(value)
+                for key, value in input.iteritems()}
+    elif isinstance(input, list):
+        return [byteify(element) for element in input]
+    elif isinstance(input, unicode):
+        return str(input)
+    else:
+        return input
 
 
 class ApiUser(unittest.TestCase):
@@ -87,10 +99,8 @@ class ApiUser(unittest.TestCase):
 
     def _request(self, node, action, args, seconds_to_sleep):
         url = self.urls[node]
-        data = str([action] + args)
-        data = data.replace("\'", "\"")
-
-        response = self.session.post(url, data)
+        data = [action] + args
+        response = self.session.post(url, json=byteify(data))
         self.assertEqual(response.status_code, 200)
         sleep(seconds_to_sleep)
         return response.json()

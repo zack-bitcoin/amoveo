@@ -1,5 +1,7 @@
 -module(api).
 
+%keys_new and new_pubkey are the same. one should be removed.
+
 -export([height/0, off/0, balance/0, spend/2, mempool/0,
          top/0, sign/1, mine_block/0, mine_block/2,
          add_peer/2, sync/2, load_key/3]).
@@ -24,7 +26,7 @@
          oracle_unmatched/2, oracle_unmatched/3,
          dice/1]).
 
--export([pubkey/0, address/0, address/1, new_pubkey/1,
+-export([pubkey/0, new_pubkey/1,
          channel_keys/0, keys_status/0, keys_unlock/1, 
          keys_new/1, market_match/1, 
          new_market/3, trade/5, trade/7, test_it_out/0, test/0]).
@@ -523,10 +525,6 @@ sync(IP, Port) ->
     0.
 pubkey() ->
     keys:pubkey().
-address() ->
-    address(pubkey()).
-address(Pub) ->
-    testnet_sign:pubkey2address(Pub).
 new_pubkey(Password) ->    
     keys:new(Password).
 test() ->
