@@ -96,7 +96,7 @@ handle_cast({close, SS, STx}, X) ->
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
-    {Trees,_,_} = tx_pool:data(),
+    {Trees,Height,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK, Accounts), Accounts),
     true = Amount > 0,
@@ -113,9 +113,12 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     SPK = testnet_sign:data(SSPK2),
     {ok, OldCD} = channel_manager:read(ID),
     DefaultSS = market:unmatched(),
+    SSME = [DefaultSS|OldCD#cd.ssme],
+    SSThem = [DefaultSS|OldCD#cd.ssthem],
+    spk:run(fast, SSME, SPK, Height, 0, Trees),%sanity test
+    spk:run(fast, SSThem, SPK, Height, 0, Trees),%sanity test
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
-		     ssme = [DefaultSS|OldCD#cd.ssme],
-		     ssthem = [DefaultSS|OldCD#cd.ssthem]},
+		     ssme = SSME, ssthem = SSThem},
     %arbitrage:write(CodeKey, [ID]),
     channel_manager:write(ID, NewCD),
     {reply, SSPK2, X};
@@ -197,35 +200,53 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     {ok, CD0} = channel_manager:read(From),
     true = live(CD0),
     SPKME = me(CD0),
+    SSME = script_sig_me(CD0),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(ThemSPK, Accounts), Accounts),
     true = live(CD),
     NewSPK = testnet_sign:data(ThemSPK),
-    SSME = script_sig_me(CD0),
+    NewSPK = me(CD),
     SS = script_sig_me(CD),
     SS4 = script_sig_them(CD),
     Entropy = entropy(CD),
     io:fwrite(packer:pack({channel_feeder, SPKME, SSME, NewSPK, SS})),
     io:fwrite("\n"),
-    B = spk:is_improvement(SPKME, SSME,
-			   NewSPK, SS),
+    B2 = spk:force_update(SPKME, SSME, SS4),
+    io:fwrite("in channel feeder B2 is \n"),
+    io:fwrite(packer:pack(B2)),
+    io:fwrite("\n"),
     CID = CD#cd.cid,
     Return2 = 
 	if
-	    B ->%if they give free stuff, then accept.
+	    (B2 == {NewSPK, SS}) ->
+%if they find a way to unlock funds, then give it to them.
 		Return = keys:sign(NewSPK, Accounts),
 		NewCD = new_cd(NewSPK, ThemSPK, SS, SS, Entropy, CID),
 		channel_manager:write(From, NewCD),
 		Return;
-	    true ->%if they find a way to unlock funds, then give it to them.
-		{SS5, Return} = simplify_helper(From, SS4),
-		SPK = testnet_sign:data(ThemSPK),
-		SPK2 = testnet_sign:data(Return),
-		SPK = SPK2,
-		Data = new_cd(SPK, ThemSPK, SS5, SS5, Entropy, CID),
-		channel_manager:write(From, Data),
-		Return
+	    true ->
+		B = spk:is_improvement(SPKME, SSME,
+				       NewSPK, SS),
+		if
+		    B ->
+	    %if they give free stuff, then accept.
+			Return = keys:sign(NewSPK, Accounts),
+			NewCD = new_cd(NewSPK, ThemSPK, SS, SS, Entropy, CID),
+			channel_manager:write(From, NewCD),
+			Return;
+		    true ->
+			{SS5, Return} = simplify_helper(From, SS4),
+			SPK = testnet_sign:data(ThemSPK),
+			SPK2 = testnet_sign:data(Return),
+			io:fwrite("\nchannel feeder simplify_helper returns "),
+			io:fwrite(packer:pack({spks, SPK, SPK2})),
+			io:fwrite("\n"),
+			SPK = SPK2,
+			Data = new_cd(SPK, ThemSPK, SS5, SS5, Entropy, CID),
+			channel_manager:write(From, Data),
+			Return
+		end
 	end,
     {reply, Return2, X};
 handle_call({market_ss_me, Accounts}, _From, X) -> 
@@ -382,8 +403,10 @@ they_simplify(From, SSPK, CD) ->
 simplify_helper(From, SS) ->
     {ok, CD} = channel_manager:read(From),
     SPK = CD#cd.me,
+    %this is giving the new SS to bet_unlock. channel_feeder:bets_unlock feeds the old SS and old SPK to it.
+    %spk:run(fast, SS, OldSPK
+
     {SSRemaining, NewSPK, _, _} = spk:bet_unlock(SPK, SS),
-    {Trees, _, _} = tx_pool:data(),
     Return = keys:sign(NewSPK),
     {SSRemaining, Return}. 
 

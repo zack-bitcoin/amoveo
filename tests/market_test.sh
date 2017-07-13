@@ -64,6 +64,9 @@ curl -i -d '["trade", 8000, 2, 2, 2, 20, [127,0,0,1], 3030]' http://localhost:30
 
 #match bets
 curl -i -d '["market_match", 2]' http://localhost:3031
+sleep 0.1
+curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
+curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
 
 #settle the oracle.
 
@@ -74,16 +77,10 @@ sleep 0.1
 curl -i -d '["oracle_close", 2]' http://localhost:3011
 sleep 0.1
 curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
-sleep 1
-
-curl -i -d '["market_match", 2]' http://localhost:3031
-sleep 0.1
-
-curl -i -d '["sync", [127,0,0,1], 3030]' http://localhost:3011
-sleep 0.1
-
+sleep 0.5
 curl -i -d '["sync", [127,0,0,1], 3020]' http://localhost:3011
 sleep 0.1
+curl -i -d '["settle_bets"]' http://localhost:3031
 
 #oracle better collects winnings in both oracles
 curl -i -d '["oracle_shares", 1]' http://localhost:3011
@@ -105,7 +102,7 @@ sleep 0.1
 curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3011
 sleep 0.1
 
-#curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
+curl -i -d '["pull_channel_state", [127,0,0,1], 3030]' http://localhost:3021
 sleep 0.1
 
 

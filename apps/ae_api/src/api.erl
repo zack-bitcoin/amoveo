@@ -16,7 +16,8 @@
          channel_timeout/2, channel_slash/4, channel_close/0, 
          channel_close/2, channel_close/3, new_channel_with_server/7,
          channel_solo_close/1, channel_solo_close/2,
-         lightning_spend/2, lightning_spend/5, lightning_spend/7]).
+         lightning_spend/2, lightning_spend/5, lightning_spend/7, 
+	 settle_bets/0, market_match/1, trade/5, trade/7]).
 
 -export([new_difficulty_oracle/2, new_question_oracle/3,
          new_governance_oracle/4, oracle_bet/3, 
@@ -24,10 +25,10 @@
          oracle_unmatched/2, oracle_unmatched/3,
          dice/1]).
 
--export([pubkey/0, address/0, address/1, new_pubkey/1,
+-export([pubkey/0, new_pubkey/1,
          channel_keys/0, keys_status/0, keys_unlock/1, 
-         keys_new/1, market_match/1, 
-         new_market/3, trade/5, trade/7, test_it_out/0, test/0,
+         keys_new/1,
+         new_market/3, test_oracle_unmatched/0, test/0,
 	 channel_manager_update/3]).
 
 %% Described in the docs but not found
@@ -191,9 +192,8 @@ pull_channel_state(IP, Port) ->
     {ok, CD0} = channel_manager:read(ServerID),
     true = channel_feeder:live(CD0),
     SPKME = channel_feeder:me(CD0),
-    %CID = spk:cid(SPKME),
     {ok, CD, ThemSPK} = talker:talk({spk, keys:pubkey()}, IP, Port),
-    Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),
+    Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),%here
     talker:talk({channel_sync, keys:pubkey(), Return}, IP, Port),
     decrypt_msgs(channel_feeder:emsg(CD)),
     bet_unlock(IP, Port),
@@ -221,14 +221,14 @@ bet_unlock() ->
     bet_unlock(?IP, ?Port).
 bet_unlock(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
-    {ok, CD0} = channel_manager:read(ServerID),
+    %{ok, CD0} = channel_manager:read(ServerID),
     %CID = channel_feeder:cid(CD0),
     [{Secrets, SPK}] = channel_feeder:bets_unlock([ServerID]),
     io:fwrite("teach secrets \n"),
     teach_secrets(keys:pubkey(), Secrets, IP, Port),
-    {Trees, _, _} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
-    talker:talk({channel_sync, keys:pubkey(), keys:sign(SPK, Accounts)}, IP, Port),
+    %{Trees, _, _} = tx_pool:data(),
+    %Accounts = trees:accounts(Trees),
+    %talker:talk({channel_sync, keys:pubkey(), keys:sign(SPK, Accounts)}, IP, Port),
     {ok, _CD, ThemSPK} = talker:talk({spk, keys:pubkey()}, IP, Port),
     channel_feeder:update_to_me(ThemSPK, ServerID),
     ok.
@@ -522,10 +522,10 @@ sync(IP, Port) ->
     0.
 pubkey() ->
     keys:pubkey().
-address() ->
-    address(pubkey()).
-address(Pub) ->
-    testnet_sign:pubkey2address(Pub).
+%address() ->
+%    address(pubkey()).
+%address(Pub) ->
+%    testnet_sign:pubkey2address(Pub).
 new_pubkey(Password) ->    
     keys:new(Password).
 test() ->
@@ -559,6 +559,9 @@ market_match(OID) ->
     %channel_feeder:market_ss_me(Accounts),
     %channel_feeder:market_ss_me(channel_manager:keys()),
     %add this to channels_manager ss_me for every bet in the channel that participated.
+    {ok, ok}.
+settle_bets() ->
+    channel_feeder:bets_unlock(channel_manager:keys()),
     {ok, ok}.
 new_market(OID, Expires, Period) -> 
     %for now lets use the oracle id as the market id. this wont work for combinatorial markets.
@@ -602,7 +605,7 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
     %block:mine_blocks(N, 100000, 30). 
 %second number is how many nonces we try per round.
 %first number is how many rounds we do.
-test_it_out() ->
+test_oracle_unmatched() ->
     %create_account(Address, 10, 2),
     %delete_account(2),
     {Pub,Priv} = testnet_sign:new_key(),

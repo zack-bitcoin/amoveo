@@ -10,7 +10,7 @@ market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts 
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		1 -> <<" macro bet_amount int 10000 ; macro check_size > not ; ">>;
-		2 -> <<" macro bet_amount int 0 ; macro check_size int 10000 swap - > not ; ">> % maybe should be 10000 - MaxPrice0
+		2 -> <<" macro bet_amount int 0 ; macro check_size int 10000 swap - < not ; ">> % maybe should be 10000 - MaxPrice0
 			 
 	    end,
     {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
@@ -28,7 +28,7 @@ macro Period int " ++ integer_to_list(Period) ++ " ;\
     PrivDir = code:priv_dir(ae_core),
     {ok, Code3} = file:read_file(PrivDir ++ "/market.fs"),
     FullCode = <<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>,
-    io:fwrite(FullCode),
+    %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
     spk:new_bet(Compiled, CodeKey, Amount, [{oracles, OID}]).
@@ -117,7 +117,8 @@ test2(NewPub) ->
     %Accounts5 = trees:accounts(Trees5),
     MarketID = 405,
     PrivDir = code:priv_dir(ae_core),
-    Bet = market_smart_contract(PrivDir ++ "/oracle_bet.fs", MarketID,1, 1000, 4000, keys:pubkey(),101,100,OID),
+    Location = constants:oracle_bet(),
+    Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),101,100,OID),
     SPK = spk:new(constants:master_pub(), NewPub, 1, [Bet], 10000, 10000, 1, 0, Entropy),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK, Accounts5), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
@@ -127,8 +128,8 @@ test2(NewPub) ->
     SS1 = settle(SPD),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, shares, delay
-    %{60,1000001,[],999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
-	%spk:run(fast, [SS1], SPK, 1, 0, Trees5),
+    {60,1000001,[],999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
+	spk:run(fast, [SS1], SPK, 1, 0, Trees5),
 
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
     SS2 = no_publish(),

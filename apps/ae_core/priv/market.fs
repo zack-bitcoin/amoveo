@@ -68,11 +68,11 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	    %The biggest price means the most money goes to the server. So a trade that can get matched has a price that  is lower than the price we asked for.
 	>r height print > not print or_die
 	bet ( delay nonce amount ) print
-        rot Expires height - * tuck ( delay2 nonce amount )
-	height swap (delay nonce height amount )
+        rot Expires height - * tuck ( delay2 nonce amount ) print
+	height swap ( delay nonce height amount )
 	>r ( delay nonce height ) 
 	swap mil + ( delay height big_nonce ) 
-	swap - r> ( delay new_nonce new_amount ) 
+	swap - r> ( delay new_nonce new_amount ) print 
 	PRICE @ MaxPrice ==
 	if
 	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book 
@@ -84,8 +84,14 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	then	
 ;
 macro unmatched ( OracleProof -- delay nonce amount )
-      helper int 0 == not or_die
-      int 50 int 500000 int 10000 MaxPrice -
+        helper print print print print print
+	int 0 == if
+     		Expires Period + height - int 100 +
+        	int 100000
+	 	int 10000 MaxPrice -
+      	else
+		int 0 int 500000 int 10000 MaxPrice -
+      	then
 ;
 macro main
 swap

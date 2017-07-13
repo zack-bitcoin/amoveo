@@ -83,10 +83,12 @@ class ApiUser(unittest.TestCase):
 
     def _request(self, node, action, args, seconds_to_sleep):
         url = self.urls[node]
-        data = str([action] + args)
-        data = data.replace("\'", "\"")
+        data = [action] + args#
+        #data = str([action] + args)
+        #data = data.replace("\'", "\"")
 
-        response = self.session.post(url, data)
+        #response = self.session.post(url, data)
+        response = self.post(url, data)#
         self.assertEqual(response.status_code, 200)
         sleep(seconds_to_sleep)
         return response.json()

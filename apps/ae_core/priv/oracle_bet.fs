@@ -2,15 +2,10 @@
 
 macro helper
 %first unwrap the oracle data from the proof structure.
-print
 car drop
-print
 car swap drop
-print
 car swap drop
-print
 car drop
-print
 
 %next extract the result from the oracle
 %    <<(X#oracle.id):256, %32 bytes
@@ -19,9 +14,7 @@ print
 
 %int 32 split MarketID == or_die drop drop drop drop ( make sure the marketid is the same )
 int 32 split drop
-print
 int 1 split swap drop
-print
 
 %for testing that result=1 works.
 %binary 1 AQ==
@@ -31,12 +24,11 @@ binary 3 AAAA swap  ++
 ;
 
 macro bet ( ProofStructure -- delay nonce amount )
-print
 helper
-print print
 %1 means that the oracle returned true
 int 1 == if drop drop 
      %delay, nonce, amount
+     %delay has to be 1 or 0. it is multiplied by a bigger number to possibly set the delay to 0.
      int 0 int 3 bet_amount else
 
 %2 is false
@@ -49,8 +41,8 @@ drop int 3 == if drop drop
 
 %0 means the oracle is still unresolved
 drop int 0 == if drop drop 
-     fail else
-     % int 1 int 1 int 10000 MaxPrice - else
+     % fail else
+     int 1 int 1 int 10000 MaxPrice - else
 
 then then then then
 ;
