@@ -26,7 +26,7 @@ handle_cast({write, CID, Data}, X) ->
     %this db:save is only for power failures. Without it, you could lose channel data on power failure. This line can be removed to make the node update channels faster.
     {noreply, NewX};
 handle_cast({delete, CID}, X) -> 
-    NewX = dict:delete(CID, X),
+    NewX = dict:erase(CID, X),
     db:save(?LOC, NewX),
     %this db:save is only for power failures. Without it, you could lose channel data on power failure. This line can be removed to make the node update channels faster.
     {noreply, NewX};

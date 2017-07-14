@@ -19,11 +19,9 @@ killall:
 	@echo "Kill all beam processes from this host"
 	@pkill -9 beam || true
 
-dialyzer: $(OTP_PLT)
-	@nice -19 \
-		dialyzer apps/*/ebin/ --plts $(OTP_PLT) \
-		-Wno_undefined_callbacks \
-		-Wno_improper_lists
+dialyzer:
+	@./rebar3 dialyzer
+
 
 # Local
 
@@ -154,7 +152,7 @@ $(LOCAL)/ae_core/keys:
 venv-present:
 	@virtualenv -q .
 
-prepare-nose-env: venv-present
+nose-env: venv-present
 	@. bin/activate && $(PIP) -q install -r requirements.txt
 
 python-tests:
@@ -254,7 +252,7 @@ local-quick: kill local-build local-clean
 	go3 stop3 clean3 attach3 \
 	dialyzer \
 	venv-present \
-	prepare-nose-env \
+	nose-env \
 	python-tests \
 	tests \
 	unit-tests \

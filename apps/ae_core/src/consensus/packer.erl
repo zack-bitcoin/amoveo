@@ -135,7 +135,6 @@ is_b_atom(X) when is_binary(X) ->
     io:fwrite("FAILED TO UNPACK ATOM "),
     io:fwrite(X),
     io:fwrite("\n"),
-    1=2,
     false;
 is_b_atom(_) -> false.
 test() -> 

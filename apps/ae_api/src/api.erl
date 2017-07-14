@@ -1,5 +1,7 @@
 -module(api).
 
+%keys_new and new_pubkey are the same. one should be removed.
+
 -export([height/0, off/0, balance/0, spend/2, mempool/0,
          top/0, sign/1, mine_block/0, mine_block/2,
          add_peer/2, sync/2, load_key/3]).
@@ -68,8 +70,6 @@ tx_maker(F) ->
 create_account(NewAddr, Amount) ->
     io:fwrite("easy create account \n"),
     {Trees, _, _} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
-    %ID = find_id(accounts, Accounts),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(ca, Governance),
     create_account(NewAddr, Amount, ?Fee + Cost).
@@ -300,9 +300,8 @@ integer_channel_balance() ->
     SPK = testnet_sign:data(SSPK),
     SS = channel_feeder:script_sig_them(CD),
     {Trees, NewHeight, _Txs} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
     Channels = trees:accounts(Trees),
-    {Amount, _} = spk:run(fast, SS, SPK, NewHeight, 0, Accounts, Channels),
+    {Amount, _, _, _} = spk:run(fast, SS, SPK, NewHeight, 0, Trees),
     CID = spk:cid(SPK),
     {_, Channel, _} = channels:get(CID, Channels),
     channels:bal1(Channel)-Amount.
@@ -349,26 +348,26 @@ channel_team_close(CID, Amount) ->
 channel_team_close(CID, Amount, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    keys:sign(channel_team_close_tx:make(CID, Trees, Amount, Fee), Accounts).
+    keys:sign(channel_team_close_tx:make(CID, Trees, Amount, [], Fee), Accounts).
 
 channel_repo(CID, Fee) ->
     F = fun(Trees) ->
 		channel_repo_tx:make(keys:pubkey(), CID, Fee, Trees) end,
     tx_maker(F).
 
-channel_solo_close(CID, Fee, SPK, ScriptSig) ->
+channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
     F = fun(Trees) ->
-		channel_solo_close:make(keys:pubkey(), CID, Fee, SPK, ScriptSig, Trees) end,
+		channel_solo_close:make(keys:pubkey(), Fee, SPK, ScriptSig, Trees) end,
     tx_maker(F).
 
 channel_timeout(CID, Fee) ->
     F = fun(Trees) ->
-		channel_timeout_tx:make(keys:pubkey(), Trees, CID, Fee) end,
+		channel_timeout_tx:make(keys:pubkey(), Trees, CID, [], Fee) end,
     tx_maker(F).
 
-channel_slash(CID, Fee, SPK, SS) ->
+channel_slash(_CID, Fee, SPK, SS) ->
     F = fun(Trees) ->
-		channel_slash_tx:make(keys:pubkey(), CID, Fee, SPK, SS, Trees) end,
+		channel_slash_tx:make(keys:pubkey(), Fee, SPK, SS, Trees) end,
     tx_maker(F).
 new_question_oracle(Start, Question, DiffOracleID)->
     {Trees, _, _} = tx_pool:data(),
@@ -450,13 +449,13 @@ oracle_unmatched(Fee, OracleID, OrderID) ->
 	end,
     tx_maker(F).
 
-account(ID) ->
+account(Pubkey) ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    case accounts:get(ID, Accounts) of
+    case accounts:get(Pubkey, Accounts) of
 	{_,empty,_} ->
-	    io:fwrite("this account does not yet exist\n"),
-	    accounts:new(-1,0,0,0);
+        lager:info("This account does not yet exist"),
+	    accounts:new(Pubkey, 0, 0);
 	{_, A, _} -> A
     end.
 account() -> account(keys:pubkey()).
@@ -624,11 +623,11 @@ test_oracle_unmatched() ->
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     Ctx = new_channel_tx(1, 2, 1, 1, 1, 1),
-    Stx = testnet_sign:sign_tx(Ctx, Pub, Priv, 2, Accounts),
+    Stx = testnet_sign:sign_tx(Ctx, Pub, Priv, Accounts),
     tx_pool_feeder:absorb(Stx),
     timer:sleep(100),
     Ctx2 = grow_channel(1, 0.1, 0.1),
-    Stx2 = testnet_sign:sign_tx(Ctx2, Pub, Priv, 2, Accounts),
+    Stx2 = testnet_sign:sign_tx(Ctx2, Pub, Priv, Accounts),
     tx_pool_feeder:absorb(Stx2),
     test_txs:mine_blocks(1),
     timer:sleep(100),
