@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 doit/1, doit_ask/1, garbage/0,
+	 doit/1, garbage/0,
 	 save_helper/1]).
 init(ok) -> 
     {ok, []}.
@@ -31,12 +31,6 @@ doit([H|T]) ->
     doit(T);
 doit(InputBlock) ->
     gen_server:cast(?MODULE, {doit, InputBlock}).
-doit_ask([]) -> ok;
-doit_ask([H|T]) ->
-    doit_ask(H),
-    doit_ask(T);
-doit_ask(InputBlock) ->
-    gen_server:call(?MODULE, {doit, InputBlock}).
 
     
 absorb(BP) ->
