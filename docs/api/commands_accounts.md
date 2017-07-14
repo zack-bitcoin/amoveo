@@ -3,9 +3,9 @@ Commands related to accounts
 
 #### Find out your account ID
 ```
-keys:id().
+keys:pubkey().
 ```
-If it returns something less than 1, that means you don't have an account yet.
+It returns pub key that identifies an account
 
 
 ### Find out your address:
