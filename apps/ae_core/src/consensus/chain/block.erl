@@ -478,7 +478,7 @@ mine_blocks(N, Times, Cores) ->
 				block_absorber:garbage();
 			    _ -> ok
 			end,
-			block_absorber:doit_ask(PBlock)
+			block_absorber:doit(PBlock)
 		end
 	end,
     spawn_many(Cores-1, F),
