@@ -17,7 +17,7 @@
          channel_close/2, channel_close/3, new_channel_with_server/7,
          channel_solo_close/1, channel_solo_close/2,
          lightning_spend/2, lightning_spend/5, lightning_spend/7, 
-	 settle_bets/0, market_match/1, trade/5, trade/7, 
+	 settle_bets/0, market_match/1, trade/5, trade/7,
 	 dump_channels/0]).
 
 -export([new_difficulty_oracle/2, new_question_oracle/3,
@@ -47,7 +47,7 @@ height() ->
     {ok, block:height(block:read(top:doit()))}.
 top() ->
     TopHash = top:doit(),
-    Height = height(),
+    {ok, Height} = height(),
     {top, TopHash, Height}.
     
 sign(Tx) ->
@@ -522,6 +522,7 @@ add_peer(IP, Port) ->
     peers:add(IP, Port),
     0.
 sync(IP, Port) ->
+    io:fwrite("api sync\n"),
     MyHeight = block:height(block:read(top:doit())),
     download_blocks:sync_all([{IP, Port}], MyHeight),
     0.

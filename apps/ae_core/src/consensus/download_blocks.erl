@@ -27,7 +27,7 @@ sync_all([{IP, Port}|T], Height) ->
 sync(IP, Port, MyHeight) ->
     %lower their ranking
     %peers:update_score(IP, Port, peers:initial_score()),
-    %io:fwrite("top of sync\n"),
+    io:fwrite("top of sync\n"),
     %S = erlang:timestamp(),
     talk({top}, IP, Port, 
 	 fun(X) ->
@@ -138,15 +138,16 @@ absorb_txs([H|T]) ->
     tx_pool_feeder:absorb(H),
     absorb_txs(T).
 talk(CMD, IP, Port, F) ->
-    %io:fwrite("start talk\n"),
+    io:fwrite("start talk\n"),
     talk(CMD, IP, Port, F, 1).
 talk(_, _, _, _, 0) -> 
     io:fwrite("talk error \n"),
     error;
 talk(CMD, IP, Port, F, N) ->
-    %io:fwrite("talk number "),
-    %io:fwrite(integer_to_list(N)),
-    %io:fwrite("\n"),
+    io:fwrite("talk number "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(CMD)),
     case talker:talk(CMD, IP, Port) of
 	{error, failed_connect} -> talk(CMD, IP, Port, F, N-1);
 	{ok, X} -> F(X);
