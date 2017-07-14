@@ -1,7 +1,7 @@
 import unittest
 from time import sleep
 
-import requests
+import requests, json
 
 OK_RESPONSE = "ok"
 
@@ -11,6 +11,18 @@ DEV_2 = "dev_2"
 DEV_2_INT = "dev_2_int"
 DEV_3 = "dev_3"
 DEV_3_INT = "dev_3_int"
+
+
+def byteify(input):
+    if isinstance(input, dict):
+        return {byteify(key): byteify(value)
+                for key, value in input.iteritems()}
+    elif isinstance(input, list):
+        return [byteify(element) for element in input]
+    elif isinstance(input, unicode):
+        return str(input)
+    else:
+        return input
 
 
 class ApiUser(unittest.TestCase):
@@ -33,6 +45,7 @@ class ApiUser(unittest.TestCase):
     CHANNEL_SPEND = 'channel_spend'
     LIGHTNING_SPEND = 'lightning_spend'
     PULL_CHANNEL_STATE = 'pull_channel_state'
+    LOAD_KEY = 'load_key'
 
     def __init__(self, *args, **kwargs):
         super(ApiUser, self).__init__(*args, **kwargs)
@@ -81,14 +94,17 @@ class ApiUser(unittest.TestCase):
     def pull_channel_state(self, node, args, sleep=0):
         return self._request(node, self.PULL_CHANNEL_STATE, args, sleep)
 
-    def _request(self, node, action, args, seconds_to_sleep):
-        url = self.urls[node]
-        data = [action] + args#
-        #data = str([action] + args)
-        #data = data.replace("\'", "\"")
+    def load_key(self, node, args, sleep=0):
+        return self._request(node, self.LOAD_KEY, args, sleep)
 
-        #response = self.session.post(url, data)
-        response = self.post(url, data)#
+
+    def request(self, action, node, args, sleep=0):#seconds to sleep
+        return self._request(node, action, args, sleep)
+        
+    def _request(self, node, action, args, seconds_to_sleep=0):
+        url = self.urls[node]
+        data = [action] + args
+        response = self.session.post(url, json=byteify(data))
         self.assertEqual(response.status_code, 200)
         sleep(seconds_to_sleep)
         return response.json()

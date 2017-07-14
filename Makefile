@@ -61,7 +61,7 @@ prod-clean: clean
 
 # Test
 
-multi-build: config/dev1/sys.config config/dev2/sys.config config/dev3/sys.config test1-build
+multi-build: config/dev1/sys.config config/dev2/sys.config config/dev3/sys.config build1
 	@rm -rf _build/dev2 _build/dev3
 	@for x in dev2 dev3; do \
 		cp -R _build/dev1 _build/$$x; \
@@ -85,8 +85,8 @@ multi-clean:
 	@make clean2
 	@make clean3
 
-test1-build: KIND=dev1
-test1-build: build
+build1: KIND=dev1
+build1: build
 
 go1: KIND=dev1
 go1: go
@@ -232,7 +232,7 @@ config/dev3/sys.config: config/sys.config.tmpl
     :\
     " $< > $@
 
-run-tests: killall
+tests: killall
 	make multi-build
 	make multi-clean
 	make multi-go
@@ -256,6 +256,6 @@ local-quick: kill local-build local-clean
 	venv-present \
 	prepare-nose-env \
 	python-tests \
-	run_tests \
+	tests \
 	unit-tests \
 	dependency-unlock dependency-lock

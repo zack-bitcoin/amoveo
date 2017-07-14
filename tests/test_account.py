@@ -1,7 +1,8 @@
 from base import ApiUser
+from nose.tools import nottest
 
 import json
-
+@nottest
 class AccountTest(ApiUser):
     def test_single(self):
         uri = "http://localhost:3012/v1/account"

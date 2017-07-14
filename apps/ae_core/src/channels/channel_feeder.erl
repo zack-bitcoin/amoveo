@@ -27,7 +27,10 @@ live(X) ->
 new_cd(Me, Them, SSMe, SSThem, Entropy, CID) ->
     #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, entropy = Entropy, cid = CID}.
 me(X) -> X#cd.me.
+cid({ok, CD}) -> cid(CD);
 cid(X) when is_binary(X) ->
+    %{ok, CD} = channel_manager:read(X),
+    %cid(CD);
     %{ok, CD} = 
     cid(channel_manager:read(X));
     %CD#cd.cid;

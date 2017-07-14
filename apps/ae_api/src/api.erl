@@ -2,7 +2,7 @@
 
 -export([height/0, off/0, balance/0, spend/2, mempool/0,
          top/0, sign/1, mine_block/0, mine_block/2,
-         add_peer/2, sync/2]).
+         add_peer/2, sync/2, load_key/3]).
 
 -export([create_account/2, delete_account/1, account/1,
          repo_account/1, repo_account/2]).
@@ -17,7 +17,8 @@
          channel_close/2, channel_close/3, new_channel_with_server/7,
          channel_solo_close/1, channel_solo_close/2,
          lightning_spend/2, lightning_spend/5, lightning_spend/7, 
-	 settle_bets/0, market_match/1, trade/5, trade/7]).
+	 settle_bets/0, market_match/1, trade/5, trade/7, 
+	 dump_channels/0]).
 
 -export([new_difficulty_oracle/2, new_question_oracle/3,
          new_governance_oracle/4, oracle_bet/3, 
@@ -38,6 +39,10 @@
 -define(IP, {46,101,103,165}).
 -define(Port, 8080).
 
+dump_channels() ->
+    channel_manager:dump().
+load_key(Pub, Priv, Brainwallet) ->
+    keys:load(Pub, Priv, Brainwallet).
 height() ->    
     {ok, block:height(block:read(top:doit()))}.
 top() ->
@@ -522,10 +527,6 @@ sync(IP, Port) ->
     0.
 pubkey() ->
     keys:pubkey().
-%address() ->
-%    address(pubkey()).
-%address(Pub) ->
-%    testnet_sign:pubkey2address(Pub).
 new_pubkey(Password) ->    
     keys:new(Password).
 test() ->

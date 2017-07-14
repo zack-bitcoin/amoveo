@@ -106,8 +106,9 @@ send_blocks(IP, Port, T, T, L, _N) ->
     send_blocks2(IP, Port, L);
 send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
     %io:fwrite("send blocks 1 \n"),
+    GH = block:hash(block:read_int(0)),
     if
-	TopHash == 0 -> send_blocks2(IP, Port, L);
+	TopHash == GH -> send_blocks2(IP, Port, L);
 	%N>4000 -> send_blocks2(IP, Port, L);
 	true -> 
 	    BlockPlus = block:read(TopHash),
@@ -123,7 +124,7 @@ send_blocks2(IP, Port, [Block|T]) ->
 sync3([]) -> ok;
 sync3([B|T]) -> 
     %io:fwrite("sync 3 \n"),
-    block_absorber:doit_tell(B),
+    block_absorber:doit(B),
     sync3(T).
 absorb_txs([]) -> ok;
 absorb_txs([H|T]) -> 
