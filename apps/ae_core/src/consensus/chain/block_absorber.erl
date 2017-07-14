@@ -3,8 +3,15 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 doit/1, garbage/0,
 	 save_helper/1]).
+
+%% API
+-export([
+    enqueue/1, %% async request
+    save/1,    %% returs after saving
+    garbage/0
+]).
+
 init(ok) -> 
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -24,13 +31,16 @@ handle_call(_, _From, X) -> {reply, X, X}.
 garbage() ->
     gen_server:cast(?MODULE, garbage).
 
-
-doit([]) -> ok;
-doit([H|T]) ->
-    doit(H),
-    doit(T);
-doit(InputBlock) ->
+enqueue(InputBlocks) when is_list(InputBlocks) ->
+    [enqueue(InputBlock) || InputBlock <- InputBlocks];
+enqueue(InputBlock) ->
     gen_server:cast(?MODULE, {doit, InputBlock}).
+
+
+save(InputBlocks) when is_list(InputBlocks) ->
+    [save(InputBlock) || InputBlock <- InputBlocks];
+save(InputBlock) ->
+    gen_server:call(?MODULE, {doit, InputBlock}).
 
     
 absorb(BP) ->
@@ -45,7 +55,7 @@ absorb(BP) ->
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 	    BP2 = block:check2(BP),
 	    %io:fwrite(packer:pack(BP)),
-	    save(BP2)
+	    do_save(BP2)
     end.   
 save_helper(BlockPlus) ->
     Z = zlib:compress(term_to_binary(BlockPlus)),
@@ -55,7 +65,7 @@ save_helper(BlockPlus) ->
     BF = block:binary_to_file(Hash),
     ok = db:save(BF, Z).
     
-save(BlockPlus) ->
+do_save(BlockPlus) ->
     save_helper(BlockPlus),
     top:add(BlockPlus),
     block:hash(BlockPlus).

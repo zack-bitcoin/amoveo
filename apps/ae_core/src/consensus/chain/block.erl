@@ -445,7 +445,7 @@ mine_test() ->
     PH = top:doit(),
     BP = make(PH, [], keys:pubkey()),
     PBlock = mine(BP, 1000000000),
-    block_absorber:doit(PBlock),
+    block_absorber:save(PBlock),
     mine_blocks(10, 100000),
     success.
 mine_blocks(A, B) -> 
@@ -478,7 +478,7 @@ mine_blocks(N, Times, Cores) ->
 				block_absorber:garbage();
 			    _ -> ok
 			end,
-			block_absorber:doit(PBlock)
+			block_absorber:enqueue(PBlock)
 		end
 	end,
     spawn_many(Cores-1, F),

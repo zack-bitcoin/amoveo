@@ -33,7 +33,7 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
     trade_peers(Peer).
 
 trade_blocks(_, L, 1) ->
-	block_absorber:doit(L);
+	block_absorber:enqueue(L);
 trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     PrevHash = block:hash(PrevBlock),
     {PrevHash, NextHash} = block:check1(PrevBlock),
@@ -44,7 +44,7 @@ trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
             NextHash = block:hash(RemoteBlockThatWeMiss),
             trade_blocks(Peer, [RemoteBlockThatWeMiss|CurrentBlocks], Height-1);
         _ ->
-            block_absorber:doit(PBT),
+            block_absorber:enqueue(PBT),
             send_blocks(Peer, top:doit(), PrevHash, [], 0)
     end.
 

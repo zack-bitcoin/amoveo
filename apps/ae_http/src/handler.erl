@@ -32,7 +32,7 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 %doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
     %true = block:height(SignedBlock) < api:height() + 2,
-    block_absorber:doit(SignedBlock),
+    block_absorber:enqueue(SignedBlock),
     {ok, 0};
 doit({block, N, Many}) -> 
     {ok, block:read_many(N, Many)};
