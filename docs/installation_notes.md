@@ -145,6 +145,7 @@ You can also clean all 3 at once
 
 [Read about the commands in depth in the docs](commands.md)
 
+
 #### Sync with the network
 To sync with the network and download the blockchain: 
 ```
@@ -172,97 +173,8 @@ mine:status().
 api:spend(To, Amount).
 ```
 
-#### Last transactions
-```
-tx_pool:data().
-```
 
+#### Contact
 
-#### Create an account
-(does get done automatically when no account and mining starts)
-[Make an account](docs/new_account.md)
-
-#### Check your balance
-```
-easy:balance().
-```
-
-#### Stop a node
-To stop a node run:
-```
-easy:off().
-```
-
-
-### Else
 If you want to know more, get in touch with us via [gitter chat](https://gitter.im/aeternity/Lobby)
-Attach to erlang node
-
-```
-make local-release-attach
-```
-
-Build and deploy three independent Aeterniy nodes (with the same test master key)
-
-```
-make dev-release-unikey
-```
-
-Clean test blocks and test data (but preserve the keys config)
-
-```
-make dev-release-clean
-```
-
-
-```
-_build/
-├── default
-│   ├── lib
-│   └── plugins
-├── dev1
-│   ├── lib
-│   ├── plugins
-│   └── rel
-├── dev2
-│   ├── lib
-│   ├── plugins
-│   └── rel
-├── dev3
-│   ├── lib
-│   ├── plugins
-│   └── rel
-└── local
-    ├── lib
-    ├── plugins
-    └── rel
-```
-
-
-### Compiling and Runing
-
-[TODO: check if still valid after rebar]
-
-you will need Erlang and a couple of libraries. Please follow instructions:
-
-[For Ubuntu](docs/compile_ubuntu.md)
-
-[For Mac](docs/compile_mac.md)
-
-
-### Blockchain Commands
-
-[Read about the commands in depth in the docs](docs/commands.md)
-
-#### Start the blockchain
-Start your node with following script:
-```
-sh start.sh
-```
-
-#### Sync with the network
-To sync with the network and download the blockchain: 
-```
-sync:start().
-```
 
