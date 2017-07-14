@@ -172,9 +172,9 @@ mine:status().
 ```
 api:spend(To, Amount).
 ```
-To is the recipient's account ID
 
 
 #### Contact
 
 If you want to know more, get in touch with us via [gitter chat](https://gitter.im/aeternity/Lobby)
+

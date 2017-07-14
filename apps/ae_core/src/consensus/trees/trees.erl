@@ -4,7 +4,8 @@
 	 update_channels/2,update_existence/2,
 	 update_burn/2,update_oracles/2,
 	 update_governance/2, governance/1,
-	 root_hash/1, name/1, garbage/0]).
+	 root_hash/1, name/1, garbage/0,
+	 hash2int/1]).
 -record(trees, {accounts, channels, existence,
 		burn, oracles, governance}).
 name(<<"accounts">>) -> accounts;
@@ -73,6 +74,13 @@ garbage() ->
     garbage(accounts),
     garbage(existence),
     garbage(governance).
+
+hash2int(X) ->
+    U = size(X),
+    U = constants:hash_size(),
+    S = constants:hash_size()*8,
+    <<A:S>> = X,
+    A.
     
     %we also need to garbage orders, oracle_bets, shares, proof of burn.
     %proof of burn doesn't exist yet.

@@ -88,7 +88,7 @@ handle_call({match, OID}, _From, X) ->
     %crawl upwards accepting the same volume of trades on each side, until they no longer profitably arbitrage. The final price should only close orders that are fully matched.
     %update a bunch of channels with this new price declaration.
     {ok, OB} = dict:find(OID, X),
-    {OB2, PriceDeclaration, Accounts} = match_internal(OB, []),
+    {OB2, PriceDeclaration, Accounts} = match_internal(OID, OB, []),
     X2 = dict:store(OID, OB2, X),
     db:save(?LOC, X2),
     %Accounts are the account ids of the channels that needs to be updated.
@@ -106,17 +106,17 @@ handle_call({ratio, OID}, _From, X) ->
     {ok, OB} = dict:find(OID, X),
     {reply, OB#ob.ratio, X};
 handle_call(_, _From, X) -> {reply, X, X}.
-finished_matching(OB, Accounts) ->
+finished_matching(OID, OB, Accounts) ->
     E = OB#ob.exposure,
     Ratio = OB#ob.ratio,
     Price = OB#ob.price,
     {_, Height, _}  = tx_pool:data(),
-    MarketID = 1,
+    MarketID = OID,
     PriceDeclaration = market:price_declaration_maker(Height, Price, Ratio, MarketID),
     OB2 = OB#ob{exposure = E},
     {OB2, PriceDeclaration, Accounts}.
     
-match_internal(OB, Accounts) ->
+match_internal(OID, OB, Accounts) ->
     %io:fwrite("match internal\n"),
     %E = OB#ob.exposure,
     Buys = OB#ob.buys,
@@ -124,7 +124,7 @@ match_internal(OB, Accounts) ->
     if
 	((Buys == []) or
 	(Sells == [])) -> 
-	    finished_matching(OB, Accounts);
+	    finished_matching(OID, OB, Accounts);
 	true ->
 	    [Buy|B] = Buys,
 	    [Sell|S] = Sells,
@@ -132,12 +132,12 @@ match_internal(OB, Accounts) ->
 	    SellPrice = Sell#order.price,
 	    if
 		(BuyPrice+SellPrice) < 10000 ->
-		    finished_matching(OB, Accounts);
+		    finished_matching(OID, OB, Accounts);
 		true ->
-		    match_internal3(OB, Accounts, [Buy|B], [Sell|S])
+		    match_internal3(OID, OB, Accounts, [Buy|B], [Sell|S])
 	    end
     end.
-match_internal3(OB, Accounts, [Buy|B], [Sell|S]) ->
+match_internal3(OID, OB, Accounts, [Buy|B], [Sell|S]) ->
     E = OB#ob.exposure,
     X = E - Sell#order.amount,
     Y = E + Buy#order.amount,
@@ -160,7 +160,7 @@ match_internal3(OB, Accounts, [Buy|B], [Sell|S]) ->
 		 Buy#order.acc,
 		 Sell#order.acc}
 	end,
-    match_internal(X4, [AID1|[AID2|Accounts]]).
+    match_internal(OID, X4, [AID1|[AID2|Accounts]]).
 remove_if_exists(_, _, []) -> [];
 remove_if_exists(AID, Price, [X|T]) -> 
     AID2 = X#order.acc,

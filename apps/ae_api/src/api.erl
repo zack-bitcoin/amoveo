@@ -1,14 +1,16 @@
 -module(api).
 
+%keys_new and new_pubkey are the same. one should be removed.
+
 -export([height/0, off/0, balance/0, spend/2, mempool/0,
          top/0, sign/1, mine_block/0, mine_block/2,
-         add_peer/2, sync/2]).
+         add_peer/2, sync/2, load_key/3]).
 
 -export([create_account/2, delete_account/1, account/1,
          repo_account/1, repo_account/2]).
 
 -export([channel_balance/0, solo_close_channel/0, channel_timeout/0,
-         new_channel_with_server/3, lightning_spend/3, pull_channel_state/2,
+         new_channel_with_server/3, pull_channel_state/2,
          add_secret/2, pull_channel_state/0, channel_spend/1, channel_spend/3,
          new_channel_tx/6, new_channel_tx/7, close_channel_with_server/0,
          grow_channel/3, grow_channel/4, channel_solo_close/4, 
@@ -16,7 +18,7 @@
          channel_timeout/2, channel_slash/4, channel_close/0, 
          channel_close/2, channel_close/3, new_channel_with_server/7,
          channel_solo_close/1, channel_solo_close/2,
-         lightning_spend/3, lightning_spend/6, lightning_spend/8]).
+         lightning_spend/2, lightning_spend/5, lightning_spend/7]).
 
 -export([new_difficulty_oracle/2, new_question_oracle/3,
          new_governance_oracle/4, oracle_bet/3, 
@@ -24,9 +26,9 @@
          oracle_unmatched/2, oracle_unmatched/3,
          dice/1]).
 
--export([pubkey/0, address/0, address/1, id/0, new_pubkey/1,
+-export([pubkey/0, new_pubkey/1,
          channel_keys/0, keys_status/0, keys_unlock/1, 
-         keys_id_update/1, keys_new/1, market_match/1, 
+         keys_new/1, market_match/1, 
          new_market/3, trade/5, trade/7, test_it_out/0, test/0]).
 
 %% Described in the docs but not found
@@ -36,6 +38,8 @@
 -define(IP, {46,101,103,165}).
 -define(Port, 8080).
 
+load_key(Pub, Priv, Brainwallet) ->
+    keys:load(Pub, Priv, Brainwallet).
 height() ->    
     {ok, block:height(block:read(top:doit()))}.
 top() ->
@@ -62,16 +66,16 @@ create_account(NewAddr, Amount) ->
     io:fwrite("easy create account \n"),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    ID = find_id(accounts, Accounts),
+    %ID = find_id(accounts, Accounts),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(ca, Governance),
-    create_account(NewAddr, Amount, ?Fee + Cost, ID).
-create_account(NewAddr, Amount, Fee, ID) ->
+    create_account(NewAddr, Amount, ?Fee + Cost).
+create_account(NewAddr, Amount, Fee) ->
     F = fun(Trees) ->
-		create_account_tx:make(NewAddr, to_int(Amount), Fee, keys:id(), ID, Trees) end,
+		create_account_tx:make(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees) end,
     tx_maker(F).
 spend(ID, Amount) ->
-    K = keys:id(),
+    K = keys:pubkey(),
     if 
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
 	true -> 
@@ -83,7 +87,7 @@ spend(ID, Amount) ->
     end.
 spend(ID, Amount, Fee) ->
     F = fun(Trees) ->
-		spend_tx:make(ID, Amount, Fee, keys:id(), Trees, []) end,
+		spend_tx:make(ID, Amount, Fee, keys:pubkey(), Trees, []) end,
     tx_maker(F).
     
 delete_account(ID) ->
@@ -93,7 +97,7 @@ delete_account(ID) ->
     delete_account(ID, ?Fee+Cost).
 delete_account(ID, Fee) ->
     F = fun(Trees) ->
-		delete_account_tx:make(keys:id(), ID, Fee, Trees) end,
+		delete_account_tx:make(keys:pubkey(), ID, Fee, Trees) end,
     tx_maker(F).
 
 repo_account(ID) ->   
@@ -103,7 +107,7 @@ repo_account(ID) ->
     repo_account(ID, ?Fee+Cost).
 repo_account(ID, Fee) ->   
     F = fun(Trees) ->
-		repo_tx:make(ID, Fee, keys:id(), Trees) end,
+		repo_tx:make(ID, Fee, keys:pubkey(), Trees) end,
     tx_maker(F).
 
 %new_channel(Bal1, Bal2) ->
@@ -139,7 +143,7 @@ new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Fee, Delay) ->
     %entropy needs to be a different number every time you make a new channel with the same partner.
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    {Tx, _} = new_channel_tx:make(CID, Trees, keys:id(), Acc2, Bal1, Bal2, Entropy, Delay, Fee),
+    {Tx, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Acc2, Bal1, Bal2, Entropy, Delay, Fee),
     keys:sign(Tx, Accounts).
     
 new_channel_with_server(Bal1, Bal2, Delay) ->
@@ -168,8 +172,8 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
 		true -> PR = PC
 	    end
     end,
-    Acc1 = keys:id(),
-    {ok, Acc2} = talker:talk({id}, IP, Port),
+    Acc1 = keys:pubkey(),
+    {ok, Acc2} = talker:talk({pubkey}, IP, Port),
     Entropy = channel_feeder:entropy([Acc1, Acc2]) + 1,
     {Trees,_,_} = tx_pool:data(),
     {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Entropy, Delay, Fee),
@@ -186,14 +190,14 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
 pull_channel_state() ->
     pull_channel_state(?IP, ?Port).
 pull_channel_state(IP, Port) ->
-    {ok, ServerID} = talker:talk({id}, IP, Port),
+    {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     {ok, CD0} = channel_manager:read(ServerID),
     true = channel_feeder:live(CD0),
     SPKME = channel_feeder:me(CD0),
-    CID = spk:cid(SPKME),
-    {ok, CD, ThemSPK} = talker:talk({spk, CID}, IP, Port),
+    %CID = spk:cid(SPKME),
+    {ok, CD, ThemSPK} = talker:talk({spk, keys:pubkey()}, IP, Port),
     Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),
-    talker:talk({channel_sync, keys:id(), Return}, IP, Port),
+    talker:talk({channel_sync, keys:pubkey(), Return}, IP, Port),
     decrypt_msgs(channel_feeder:emsg(CD)),
     bet_unlock(IP, Port),
     ok.
@@ -219,16 +223,16 @@ add_secret(Code, Secret) ->
 bet_unlock() ->
     bet_unlock(?IP, ?Port).
 bet_unlock(IP, Port) ->
-    {ok, ServerID} = talker:talk({id}, IP, Port),
+    {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     {ok, CD0} = channel_manager:read(ServerID),
-    CID = channel_feeder:cid(CD0),
+    %CID = channel_feeder:cid(CD0),
     [{Secrets, SPK}] = channel_feeder:bets_unlock([ServerID]),
     io:fwrite("teach secrets \n"),
-    teach_secrets(keys:id(), Secrets, IP, Port),
+    teach_secrets(keys:pubkey(), Secrets, IP, Port),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    talker:talk({channel_sync, keys:id(), keys:sign(SPK, Accounts)}, IP, Port),
-    {ok, _CD, ThemSPK} = talker:talk({spk, CID}, IP, Port),
+    talker:talk({channel_sync, keys:pubkey(), keys:sign(SPK, Accounts)}, IP, Port),
+    {ok, _CD, ThemSPK} = talker:talk({spk, keys:pubkey()}, IP, Port),
     channel_feeder:update_to_me(ThemSPK, ServerID),
     ok.
 teach_secrets(_, [], _, _) -> ok;
@@ -238,10 +242,10 @@ teach_secrets(ID, [{secret, Secret, Code}|Secrets], IP, Port) ->
 channel_spend(Amount) ->
     channel_spend(?IP, ?Port, Amount).
 channel_spend(IP, Port, Amount) ->
-    {ok, PeerId} = talker:talk({id}, IP, Port),
+    {ok, PeerId} = talker:talk({pubkey}, IP, Port),
     {ok, CD} = channel_manager:read(PeerId),
     OldSPK = testnet_sign:data(channel_feeder:them(CD)),
-    ID = keys:id(),
+    ID = keys:pubkey(),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
@@ -250,18 +254,18 @@ channel_spend(IP, Port, Amount) ->
     {ok, Response} = talker:talk(M, IP, Port),
     channel_feeder:spend(Response, -Amount),
     ok.
-lightning_spend(Recipient, Pubkey, Amount) ->
+lightning_spend(Pubkey, Amount) ->
     {ok, LFee} = application:get_env(ae_core, lightning_fee),
-    lightning_spend(?IP, ?Port, Recipient, Pubkey, Amount, LFee).
-lightning_spend(IP, Port, Recipient, Pubkey, Amount, Fee) ->
+    lightning_spend(?IP, ?Port, Pubkey, Amount, LFee).
+lightning_spend(IP, Port, Pubkey, Amount, Fee) ->
     {Code, SS} = secrets:new_lightning(),
-    lightning_spend(IP, Port, Recipient, Pubkey, Amount, Fee, Code, SS).
-lightning_spend(IP, Port, Recipient, Pubkey, Amount, Fee, Code, SS) ->
-    {ok, ServerID} = talker:talk({id}, IP, Port),
+    lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS).
+lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
+    {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     %ChannelID,
     ESS = keys:encrypt([SS, Code], Pubkey),
     SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code, []),
-    {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:id(), Recipient, ESS}, IP, Port),
+    {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:pubkey(), Pubkey, ESS}, IP, Port),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK2, Accounts), Accounts),
@@ -288,7 +292,7 @@ channel_balance() ->
     I = integer_channel_balance(),
     pretty_display(I).
 integer_channel_balance() ->
-    {ok, Other} = talker:talk({id}, constants:server_ip(), constants:server_port()),
+    {ok, Other} = talker:talk({pubkey}, constants:server_ip(), constants:server_port()),
     {ok, CD} = channel_manager:read(Other),
     SSPK = channel_feeder:them(CD),
     SPK = testnet_sign:data(SSPK),
@@ -307,15 +311,15 @@ dice(Amount) ->
 close_channel_with_server() ->
     internal_handler:doit({close_channel, constants:server_ip(), constants:server_port()}).
 solo_close_channel() ->
-    {ok, Other} = talker:talk({id}, constants:server_ip(), constants:server_port()),
+    {ok, Other} = talker:talk({pubkey}, constants:server_ip(), constants:server_port()),
     internal_handler:doit({channel_solo_close, Other}).
 channel_timeout() ->
-    {ok, Other} = talker:talk({id}, constants:server_ip(), constants:server_port()),
+    {ok, Other} = talker:talk({pubkey}, constants:server_ip(), constants:server_port()),
     Fee = free_constants:tx_fee(),
     {Trees,_,_} = tx_pool:data(),
     {ok, CD} = channel_manager:read(Other),
     CID = channel_feeder:cid(CD),
-    {Tx, _} = channel_timeout:make(keys:id(), Trees, CID, Fee),
+    {Tx, _} = channel_timeout:make(keys:pubkey(), Trees, CID, Fee),
     Accounts = trees:accounts(Trees),
     Stx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(Stx).
@@ -347,22 +351,22 @@ channel_team_close(CID, Amount, Fee) ->
 
 channel_repo(CID, Fee) ->
     F = fun(Trees) ->
-		channel_repo_tx:make(keys:id(), CID, Fee, Trees) end,
+		channel_repo_tx:make(keys:pubkey(), CID, Fee, Trees) end,
     tx_maker(F).
 
 channel_solo_close(CID, Fee, SPK, ScriptSig) ->
     F = fun(Trees) ->
-		channel_solo_close:make(keys:id(), CID, Fee, SPK, ScriptSig, Trees) end,
+		channel_solo_close:make(keys:pubkey(), CID, Fee, SPK, ScriptSig, Trees) end,
     tx_maker(F).
 
 channel_timeout(CID, Fee) ->
     F = fun(Trees) ->
-		channel_timeout_tx:make(keys:id(), Trees, CID, Fee) end,
+		channel_timeout_tx:make(keys:pubkey(), Trees, CID, Fee) end,
     tx_maker(F).
 
 channel_slash(CID, Fee, SPK, SS) ->
     F = fun(Trees) ->
-		channel_slash_tx:make(keys:id(), CID, Fee, SPK, SS, Trees) end,
+		channel_slash_tx:make(keys:pubkey(), CID, Fee, SPK, SS, Trees) end,
     tx_maker(F).
 new_question_oracle(Start, Question, DiffOracleID)->
     {Trees, _, _} = tx_pool:data(),
@@ -377,7 +381,7 @@ new_question_oracle(Start, Question, DiffOracleID, ID)->
     Governance = trees:governance(Trees),
     Cost = governance:get_value(oracle_new, Governance),
     F = fun(Trs) ->
-		oracle_new_tx:make(keys:id(), ?Fee+Cost, Question, Start, ID, Difficulty, DiffOracleID, 0, 0, Trs) end,
+		oracle_new_tx:make(keys:pubkey(), ?Fee+Cost, Question, Start, ID, Difficulty, DiffOracleID, 0, 0, Trs) end,
     tx_maker(F).
 new_difficulty_oracle(Start, Difficulty) ->
     {Trees, _, _} = tx_pool:data(),
@@ -389,7 +393,7 @@ new_difficulty_oracle(Start, Difficulty) ->
 new_difficulty_oracle(Fee, Start, ID, Difficulty) ->
     %used to measure the difficulty at which negative and positive shares are worth the same
     F = fun(Trees) ->
-		oracle_new_tx:make(keys:id(), Fee, <<"">>, Start, ID, Difficulty, 0, 0, 0, Trees) end,
+		oracle_new_tx:make(keys:pubkey(), Fee, <<"">>, Start, ID, Difficulty, 0, 0, 0, Trees) end,
     tx_maker(F).
 new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
     GovNumber = governance:name2number(GovName),
@@ -400,7 +404,7 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		Difficulty = oracles:difficulty(Recent) div 2,
 		Governance = trees:governance(Trs),
 		Cost = governance:get_value(oracle_new, Governance),
-		oracle_new_tx:make(keys:id(), ?Fee + Cost, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
+		oracle_new_tx:make(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
     tx_maker(F).
     
 oracle_bet(OID, Type, Amount) ->
@@ -410,7 +414,7 @@ oracle_bet(OID, Type, Amount) ->
     oracle_bet(?Fee+Cost, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->
     F = fun(Trees) ->
-		oracle_bet_tx:make(keys:id(), Fee, OID, Type, to_int(Amount), Trees)
+		oracle_bet_tx:make(keys:pubkey(), Fee, OID, Type, to_int(Amount), Trees)
 	end,
     tx_maker(F).
 oracle_close(OID) ->
@@ -420,7 +424,7 @@ oracle_close(OID) ->
     oracle_close(?Fee+Cost, OID).
 oracle_close(Fee, OID) ->
     F = fun(Trees) ->
-		oracle_close_tx:make(keys:id(), Fee, OID, Trees)
+		oracle_close_tx:make(keys:pubkey(), Fee, OID, Trees)
 	end,
     tx_maker(F).
 oracle_shares(OID) ->
@@ -430,7 +434,7 @@ oracle_shares(OID) ->
     oracle_shares(?Fee+Cost, OID).
 oracle_shares(Fee, OID) ->
     F = fun(Trees) ->
-		oracle_shares_tx:make(keys:id(), Fee, OID, Trees)
+		oracle_shares_tx:make(keys:pubkey(), Fee, OID, Trees)
 	end,
     tx_maker(F).
 oracle_unmatched(OracleID, OrderID) ->
@@ -440,7 +444,7 @@ oracle_unmatched(OracleID, OrderID) ->
     oracle_unmatched(?Fee+Cost, OracleID, OrderID).
 oracle_unmatched(Fee, OracleID, OrderID) ->
     F = fun(Trees) ->
-		oracle_unmatched_tx:make(keys:id(), Fee, OracleID, OrderID, Trees)
+		oracle_unmatched_tx:make(keys:pubkey(), Fee, OracleID, OrderID, Trees)
 	end,
     tx_maker(F).
 
@@ -453,10 +457,10 @@ account(ID) ->
 	    accounts:new(-1,0,0,0);
 	{_, A, _} -> A
     end.
-account() -> account(keys:id()).
+account() -> account(keys:pubkey()).
 integer_balance() -> accounts:balance(account()).
 balance() ->
-    I = case keys:id() of
+    I = case keys:pubkey() of
 	    -1 -> 0;
 	    _ -> integer_balance()
 	end,
@@ -484,7 +488,7 @@ channel_close(IP, Port) ->
     Cost = governance:get_value(ctc, Governance),
     channel_close(IP, Port, ?Fee+Cost).
 channel_close(IP, Port, Fee) ->
-    {ok, PeerId} = talker:talk({id}, IP, Port),
+    {ok, PeerId} = talker:talk({pubkey}, IP, Port),
     {ok, CD} = channel_manager:read(PeerId),
     SPK = testnet_sign:data(channel_feeder:them(CD)),
     {Trees,_,_} = tx_pool:data(),
@@ -495,11 +499,11 @@ channel_close(IP, Port, Fee) ->
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, [], Fee),
     Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx, Accounts),
-    {ok, SSTx} = talker:talk({close_channel, CID, keys:id(), SS, STx}, IP, Port),
+    {ok, SSTx} = talker:talk({close_channel, CID, keys:pubkey(), SS, STx}, IP, Port),
     tx_pool_feeder:absorb(SSTx),
     0.
 channel_solo_close(IP, Port) ->
-    {ok, Other} = talker:talk({id}, IP, Port),
+    {ok, Other} = talker:talk({pubkey}, IP, Port),
     channel_solo_close(Other).
 channel_solo_close(Other) ->
     Fee = free_constants:tx_fee(),
@@ -508,7 +512,7 @@ channel_solo_close(Other) ->
     {ok, CD} = channel_manager:read(Other),
     SSPK = channel_feeder:them(CD),
     SS = channel_feeder:script_sig_them(CD),
-    {Tx, _} = channel_solo_close:make(keys:id(), Fee, keys:sign(SSPK, Accounts), SS, Trees),
+    {Tx, _} = channel_solo_close:make(keys:pubkey(), Fee, keys:sign(SSPK, Accounts), SS, Trees),
     STx = keys:sign(Tx, Accounts),
     tx_pool_feeder:absorb(STx),
     0.
@@ -517,16 +521,10 @@ add_peer(IP, Port) ->
     0.
 sync(IP, Port) ->
     MyHeight = block:height(block:read(top:doit())),
-    download_blocks:sync({IP, Port}, MyHeight),
+    download_blocks:sync_all([{IP, Port}], MyHeight),
     0.
 pubkey() ->
     keys:pubkey().
-address() ->
-    address(pubkey()).
-address(Pub) ->
-    testnet_sign:pubkey2address(Pub).
-id() ->
-    keys:id().
 new_pubkey(Password) ->    
     keys:new(Password).
 test() ->
@@ -537,9 +535,6 @@ keys_status() ->
     list_to_binary(atom_to_list(keys:status())).
 keys_unlock(Password) ->
     keys:unlock(Password),
-    0.
-keys_id_update(ID) ->
-    keys:update_id(ID),
     0.
 keys_new(Password) ->
     keys:new(Password),
@@ -569,7 +564,7 @@ trade(Price, Type, Amount, OID, Fee) ->
     trade(Price, Type, Amount, OID, Fee, ?IP, ?Port).
 trade(Price, Type, A, OID, Fee, IP, Port) ->
     Amount = to_int(A),
-    {ok, ServerID} = talker:talk({id}, IP, Port),
+    {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     {ok, {Expires, 
 	  Pubkey, %pubkey of market maker
 	  Period}} = 
@@ -580,7 +575,7 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
     SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID),
     SSPK = channel_feeder:trade(Amount, SC, ServerID, OID),
     MSG = {trade, 
-	   keys:id(),
+	   keys:pubkey(),
 	   Price,
 	   Type,
 	   Amount,
@@ -589,7 +584,7 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
 	   Fee},
     {ok, SSPK2} =
 	talker:talk({trade, 
-		     keys:id(),
+		     keys:pubkey(),
 		     Price,
 		     Type,
 		     Amount,
@@ -613,24 +608,25 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
 test_it_out() ->
     %create_account(Address, 10, 2),
     %delete_account(2),
-    {NewAddr,NewPub,NewPriv} = testnet_sign:hard_new_key(),
-    create_account(NewAddr, 0.0000001),
+    {Pub,Priv} = testnet_sign:new_key(),
+    {Pub2,Priv2} = testnet_sign:new_key(),
+    create_account(Pub, 0.0000001),
     timer:sleep(100),
-    test_txs:mine_blocks(1),
-    repo_account(2),
+    test_txs:mine_blocks(Pub),
+    repo_account(Pub2),
     timer:sleep(100),
-    create_account(NewAddr, 10),
+    create_account(Pub2, 10),
     timer:sleep(100),
-    spend(2, 1),
+    spend(Pub2, Pub),
     timer:sleep(100),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     Ctx = new_channel_tx(1, 2, 1, 1, 1, 1),
-    Stx = testnet_sign:sign_tx(Ctx, NewPub, NewPriv, 2, Accounts),
+    Stx = testnet_sign:sign_tx(Ctx, Pub, Priv, 2, Accounts),
     tx_pool_feeder:absorb(Stx),
     timer:sleep(100),
     Ctx2 = grow_channel(1, 0.1, 0.1),
-    Stx2 = testnet_sign:sign_tx(Ctx2, NewPub, NewPriv, 2, Accounts),
+    Stx2 = testnet_sign:sign_tx(Ctx2, Pub, Priv, 2, Accounts),
     tx_pool_feeder:absorb(Stx2),
     test_txs:mine_blocks(1),
     timer:sleep(100),

@@ -35,10 +35,13 @@ handle_call({read, CID}, _From, X) ->
     {reply, dict:find(CID, X), X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
-read(CID) -> gen_server:call(?MODULE, {read, CID}).
+read(CID) -> 
+    gen_server:call(?MODULE, {read, CID}).
 keys() -> gen_server:call(?MODULE, keys).
 delete(CID) -> gen_server:cast(?MODULE, {delete, CID}).
 write(CID, Data) -> 
+    io:fwrite("writing channel "),
+    io:fwrite(packer:pack({ch, CID})),
     true = is_list(channel_feeder:script_sig_them(Data)),
     true = is_list(channel_feeder:script_sig_me(Data)),
     gen_server:cast(?MODULE, {write, CID, Data}).

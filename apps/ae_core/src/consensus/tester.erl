@@ -35,9 +35,8 @@ test1() ->
     S = existence:test(),
     io:fwrite("mine test\n"),
     S = block:mine_test(),
-    io:fwrite("market smart contract test\n"),
-    %% Zack says so /joel
-    %% S = market:test(),
+    %io:fwrite("market smart contract test\n"),
+    %S = market:test(),
     S = order_book:test(),
     %S = inbox:test(),
     %io:fwrite("chalang test\n"),

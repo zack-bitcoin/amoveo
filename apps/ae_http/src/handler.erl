@@ -57,9 +57,9 @@ doit({txs}) ->
     {_,_,Txs} = tx_pool:data(),
     {ok, Txs};
 doit({txs, Txs}) ->
+    io:fwrite("received txs\n"),
     tx_pool_feeder:absorb(Txs),
     {ok, 0};
-doit({id}) -> {ok, keys:id()};
 doit({top}) -> 
     Top = block:read(top:doit()),
     Height = block:height(Top),

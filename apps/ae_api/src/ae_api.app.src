@@ -18,6 +18,6 @@
                  ]},
   {modules, []},
   {env, [
-	  {error_logger, {file, "log.db"}}
-	]}
+	   {error_logger, {file, "log.db"}}
+	 ]}
  ]}.

@@ -5,9 +5,9 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2, 
-	 pubkey/0,sign/2,raw_sign/1,load/4,unlock/1,
+	 pubkey/0,sign/2,raw_sign/1,load/3,unlock/1,
 	 lock/0,status/0,change_password/2,new/1,
-	 shared_secret/1,id/0,update_id/1,address/0,
+	 shared_secret/1,%address/0,
 	 encrypt/2,decrypt/1,
 	 test/0,format_status/2]).
 %-define(LOC, "keys.db").
@@ -17,26 +17,27 @@ start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:fwrite("keys died"), ok.
 format_status(_,[_,_]) -> [{[], [{"State", []}]}].
--record(f, {pub = "", priv = "", sanity = "", id = -1}).
+-record(f, {pub = "", priv = "", sanity = ""}).
 %sanity is only used on the hard drive, not in ram.
 init(ok) -> 
     io:fwrite("start keys\n"),
     X = db:read(?LOC),
     Ka = if
 	     X == "" -> 
-		 {_, Pub, Priv} = 
-		     testnet_sign:hard_new_key(),
-		 store(Pub, Priv, "", -1),
+		 {Pub, Priv} = 
+		     testnet_sign:new_key(),
+		 store(Pub, Priv, ""),
 		 K = #f{pub = Pub, priv=Priv},
 		 %K = #f{},
 		 %db:save(?LOC,#f{}),
 		 K;
-	     true -> #f{pub=X#f.pub, id=X#f.id}
+	     true -> #f{pub=X#f.pub}
 	 end,
     erlang:send_after(1000, self(), set_initial_keys),
     {ok, Ka}.
-store(Pub, Priv, Brainwallet, Id) -> 
-    X = #f{pub=Pub, priv=encryption:encrypt(Priv, Brainwallet), sanity=encryption:encrypt(?SANE(), Brainwallet), id = Id},
+store(Pub, Priv, Brainwallet) -> 
+    true = size(Pub) == constants:pubkey_size(),
+    X = #f{pub=Pub, priv=encryption:encrypt(Priv, Brainwallet), sanity=encryption:encrypt(?SANE(), Brainwallet)},
     db:save(?LOC, X),
     X.
 handle_call({ss, Pub}, _From, R) ->
@@ -48,7 +49,7 @@ handle_call({raw_sign, M}, _From, X) when not is_binary(M) ->
 handle_call({raw_sign, M}, _From, R) ->
     {reply, testnet_sign:sign(M, R#f.priv), R};
 handle_call({sign, M, Accounts}, _From, R) -> 
-    {reply, testnet_sign:sign_tx(M, R#f.pub, R#f.priv, R#f.id, Accounts), R};
+    {reply, testnet_sign:sign_tx(M, R#f.pub, R#f.priv, Accounts), R};
 handle_call(status, _From, R) ->
     Y = db:read(?LOC),
     Out = if
@@ -58,10 +59,9 @@ handle_call(status, _From, R) ->
           end,
     {reply, Out, R};
 handle_call(pubkey, _From, R) -> {reply, R#f.pub, R};
-handle_call(id, _From, R) -> {reply, R#f.id, R};
 handle_call({encrypt, Message, Pubkey}, _From, R) ->
-    io:fwrite(packer:pack({encrytion, base64:encode(Pubkey), R#f.pub})),
-    EM=encryption:send_msg(Message, base64:encode(Pubkey), R#f.pub, R#f.priv),
+    io:fwrite(packer:pack({encrytion, base64:encode(Pubkey), base64:encode(R#f.pub)})),
+    EM=encryption:send_msg(Message, base64:encode(Pubkey), base64:encode(R#f.pub), base64:encode(R#f.priv)),
     io:fwrite("sending encrypted message "),
     io:fwrite(packer:pack(EM)),
     io:fwrite("\n"),
@@ -70,52 +70,43 @@ handle_call({decrypt, EMsg}, _From, R) ->
     io:fwrite("getting encrypted message "),
     io:fwrite(packer:pack(EMsg)),
     io:fwrite("\n"),
-    Message = encryption:get_msg(EMsg, R#f.priv),
+    Message = encryption:get_msg(EMsg, base64:encode(R#f.priv)),
     {reply, Message, R}.
-handle_cast({load, Pub, Priv, Brainwallet, Id}, _R) ->
+handle_cast({load, Pub, Priv, Brainwallet}, _R) ->
     io:fwrite("load 2\n"),
-    store(Pub, Priv, Brainwallet, Id),
-    {noreply, #f{pub=Pub, priv=Priv, id = Id}};
-handle_cast({id_update, Id}, R) -> 
-    DB = db:read(?LOC),
-    X = DB#f{id = Id},
-    db:save(?LOC, X),
-    {noreply, #f{pub = R#f.pub, priv = R#f.priv, id = Id}};
+    store(Pub, Priv, Brainwallet),
+    {noreply, #f{pub=Pub, priv=Priv}};
 handle_cast({new, Brainwallet}, _R) ->
-    {_, Pub, Priv} = testnet_sign:hard_new_key(),
-    store(Pub, Priv, Brainwallet, -1),
+    {Pub, Priv} = testnet_sign:new_key(),
+    store(Pub, Priv, Brainwallet),
     {noreply, #f{pub=Pub, priv=Priv}};
 handle_cast({unlock, Brainwallet}, _) ->
     X = db:read(?LOC),
-    
     ?SANE() = encryption:decrypt(X#f.sanity, Brainwallet),
     Priv = encryption:decrypt(X#f.priv, Brainwallet),%err
-    {noreply, #f{pub=X#f.pub, priv=Priv, id=X#f.id}};
-handle_cast(lock, R) -> {noreply, #f{pub=R#f.pub, id=R#f.id}};
+    {noreply, #f{pub=X#f.pub, priv=Priv}};
+handle_cast(lock, R) -> {noreply, #f{pub=R#f.pub}};
 handle_cast({change_password, Current, New}, R) ->
     X = db:read(?LOC),
     ?SANE() = encryption:decrypt(X#f.sanity, Current),
-    Priv = encryption:decrypt(X#f.priv, Current),
-    store(R#f.pub, Priv, New, X#f.id),
+    Priv = encryption:decrypt(base64:encode(X#f.priv), Current),
+    store(R#f.pub, Priv, New),
     {noreply, R};
 handle_cast(_, X) -> {noreply, X}.
 
 handle_info(set_initial_keys, State) ->
     KeysEnvs = {application:get_env(ae_core, keys_pub),
                 application:get_env(ae_core, keys_priv),
-                application:get_env(ae_core, keys_pass),
-                application:get_env(ae_core, keys_id)},
+                application:get_env(ae_core, keys_pass)},
 
     case KeysEnvs of
-        {undefined, undefined, {ok, Pass}, {ok, Id}} ->
-            keys:unlock(Pass),
-            keys:update_id(Id);
-        {{ok, Pub}, {ok, Priv}, {ok, Pass}, {ok, Id}} ->
-            keys:load(Pub, Priv, Pass, Id),
-            keys:unlock(Pass),
-            keys:update_id(Id);
-        {undefined, undefined, {ok, Pass}, undefined} ->
-            keys:unlock(Pass);
+        {{ok, Pub}, {ok, Priv}, {ok, Pass}} ->
+	    Pub2 = base64:decode(Pub),
+	    true = size(Pub2) == constants:pubkey_size(),
+            load(Pub2, base64:decode(Priv), Pass),
+            unlock(Pass);
+        {undefined, undefined, {ok, Pass}} ->
+            unlock(Pass);
         _ ->
             ok
     end,
@@ -124,7 +115,7 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 pubkey() -> gen_server:call(?MODULE, pubkey).
-address() -> testnet_sign:pubkey2address(pubkey()).
+%address() -> accounts:pub_decode(pubkey()).
 %sign(M) -> gen_server:call(?MODULE, {sign, M, tx_pool:accounts()}).
 sign(M, Accounts) -> 
     S = status(),
@@ -135,21 +126,19 @@ sign(M, Accounts) ->
 	     {error, locked}
     end.
 raw_sign(M) -> gen_server:call(?MODULE, {raw_sign, M}).
-load(Pub, Priv, Brainwallet, ID) when is_list(Pub) -> 
-    load(list_to_binary(Pub), Priv, Brainwallet, ID);
-load(Pub, Priv, Brainwallet, ID) when is_list(Priv) -> 
-    load(Pub, list_to_binary(Priv), Brainwallet, ID);
-load(Pub, Priv, Brainwallet, ID) when (is_binary(Pub) and is_binary(Priv))-> 
+%load(Pub, Priv, Brainwallet) when is_list(Pub) -> 
+%    load(list_to_binary(Pub), Priv, Brainwallet);
+%load(Pub, Priv, Brainwallet) when is_list(Priv) -> 
+%    load(Pub, list_to_binary(Priv), Brainwallet);
+load(Pub, Priv, Brainwallet) when (is_binary(Pub) and is_binary(Priv))-> 
     io:fwrite("load key"),
-    gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet, ID}).
+    gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet}).
 unlock(Brainwallet) -> gen_server:cast(?MODULE, {unlock, Brainwallet}).
 lock() -> gen_server:cast(?MODULE, lock).
 status() -> gen_server:call(?MODULE, status).
 change_password(Current, New) -> gen_server:cast(?MODULE, {change_password, Current, New}).
 new(Brainwallet) -> gen_server:cast(?MODULE, {new, Brainwallet}).
 shared_secret(Pub) -> gen_server:call(?MODULE, {ss, Pub}).
-id() -> gen_server:call(?MODULE, id).
-update_id(Id) -> gen_server:cast(?MODULE, {id_update, Id}).
 decrypt(EMessage) ->
     binary_to_term(element(3, gen_server:call(?MODULE, {decrypt, EMessage}))).
 encrypt(Message, Pubkey) ->

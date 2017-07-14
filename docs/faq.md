@@ -14,7 +14,8 @@ Each transaction type has a different command for checking who spent that transa
 * if you are running a node and you query the balance of another address?
 
 To query the balance of another address is difficult. You would need to look up every account until you found the account that stored the matching address.
-Querying the balance of an id is easy. do this: `accounts:balance(api:account(ID)).`
+
+Querying the balance of an id is easy. do this: `accounts:balance(api:account(Pubkey)).`
 
 
 u have

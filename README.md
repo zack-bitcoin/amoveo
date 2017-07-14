@@ -1,7 +1,9 @@
 Aeternity
 ==========
 
-A new scalable blockchain, written in Erlang. 
+A blockchain for trust-free financial derivatives.
+Optimized for scalability.
+Written in Erlang. 
 
 #### Installing dependencies
 

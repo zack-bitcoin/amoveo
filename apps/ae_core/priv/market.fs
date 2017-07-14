@@ -33,7 +33,7 @@ macro contradictory_prices ( signed_price_declaration signed_price_declaration2 
 extract PM1 ! >r >r extract PM2 !
 swap r> diff Period int 2 / < or_die %height equal %instead we should check if heights are within half a period of each other or less.
       
-     r> == not swap drop swap drop %or_die %price unequal
+     r> == not swap drop swap drop %price unequal
      PM1 @ PM2 @ == not swap drop swap drop %portion_matched unequal
      or or_die
      int 0 mil mil + int 0
@@ -50,12 +50,9 @@ macro no_publish ( -- delay nonce amount )
 %If you try doing a no_publish while the server is publishing, this is how the server stops you from stealing money.
 macro evidence ( signed_price_declaration -- delay nonce amount )
       extract drop drop ( declaration_height )
-      	  %dup height < or_die
-      	      %height Period - < or_die 
 	      drop
       Expires height -  ( delay )
       mil height + Period int 2 / - ( delay nonce )
-      %int 5000
       int 10000 MaxPrice -
 ;
       
@@ -67,15 +64,15 @@ macro evidence ( signed_price_declaration -- delay nonce amount )
 macro match_order ( signed_price_declaration -- delay nonce amount )
         extract ( height price portion_matched )
 	PM ! dup PRICE !
-	dup MaxPrice > not or_die %make sure it is better than the agreed upon price.
+	dup MaxPrice check_size or_die %make sure it is better than the agreed upon price.
 	    %The biggest price means the most money goes to the server. So a trade that can get matched has a price that  is lower than the price we asked for.
-	>r height > or_die
+	>r height < not or_die
 	bet ( delay nonce amount )
         rot Expires height - * tuck ( delay2 nonce amount )
 	height swap (delay nonce height amount )
-	>r ( delay nonce height )
+	>r ( delay nonce height ) 
 	swap mil + ( delay height big_nonce ) 
-	swap - r> ( delay new_nonce new_amount )
+	swap - r> ( delay new_nonce new_amount ) 
 	PRICE @ MaxPrice ==
 	if
 	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book 

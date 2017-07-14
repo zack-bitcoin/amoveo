@@ -1,3 +1,6 @@
+#unmatched trades from off-chain market should be undone.
+#winners in off-chain market should collect their winnings.
+#losers in the off-chain market should update their channel to reflect the new state.
 #!/usr/bin/env python
 
 import requests, json, time

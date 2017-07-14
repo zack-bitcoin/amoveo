@@ -6,7 +6,8 @@
 	 new_channel/3,spend/2,close/2,lock_spend/7,
 	 agree_bet/4,garbage/0,entropy/1,
 	 new_channel_check/1,
-	 cid/1,them/1,script_sig_them/1,me/1,script_sig_me/1,
+	 cid/1,them/1,script_sig_them/1,me/1,
+	 script_sig_me/1,
 	 update_to_me/2, new_cd/6, 
 	 make_locked_payment/4, live/1, they_simplify/3,
 	 bets_unlock/1, emsg/1, trade/4, trade/7
@@ -26,7 +27,7 @@ live(X) ->
 new_cd(Me, Them, SSMe, SSThem, Entropy, CID) ->
     #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, entropy = Entropy, cid = CID}.
 me(X) -> X#cd.me.
-cid(X) when is_integer(X) ->
+cid(X) when is_binary(X) ->
     %{ok, CD} = 
     cid(channel_manager:read(X));
     %CD#cd.cid;
@@ -67,7 +68,7 @@ handle_cast({close, SS, STx}, X) ->
     SPK = testnet_sign:data(CD#cd.them),
     A3 = channel_team_close_tx:acc1(Tx),
     A4 = channel_team_close_tx:acc2(Tx),
-    K = keys:id(),
+    K = keys:pubkey(),
     true = (((A1 == A3) and (A2 == A4)) or ((A1 == A4) and (A2 == A3))),
     Direction = if
 		    K == A1 -> -1;
@@ -127,7 +128,14 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     true = Fee > LightningFee,
     Return = make_locked_payment(Sender, Amount+Fee, Code, []),
     SPK = testnet_sign:data(SSPK),
-    SPK = testnet_sign:data(Return),
+    SPK22 = testnet_sign:data(Return),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack({channel_feeder_lock_spend, SPK})),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack({channel_feeder_lock_spend, SPK22})),
+    io:fwrite("\n"),
+    
+    SPK = SPK22,
     {ok, OldCD} = channel_manager:read(Sender),
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = [<<>>|OldCD#cd.ssme],
@@ -153,7 +161,7 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
     OldSPK = OldCD#cd.me,
-    SPK = spk:get_paid(OldSPK, keys:id(), Amount),
+    SPK = spk:get_paid(OldSPK, keys:pubkey(), Amount),
     Return = keys:sign(SPK, Accounts),
     NewCD = OldCD#cd{them = SSPK, me = SPK},
     channel_manager:write(Other, NewCD),
@@ -162,7 +170,7 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
     %this updates our partner's side of the channel state to include the bet that we already included.
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    MyID = keys:id(),
+    MyID = keys:pubkey(),
     SPK = testnet_sign:data(SSPK),
     Acc1 = spk:acc1(SPK),
     Acc2 = spk:acc2(SPK),
@@ -183,6 +191,8 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
 handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     %if your partner found a way to close the channel at a higher nonced state, or a state that they think you will find preferable, then this is how you request the proof from them, and then update your data about the channel to reflect this new information.
     %send your partner a signed copy of the spk so that they can update to the current state.
+    io:fwrite(packer:pack({channel_feeder_1, From, ThemSPK, CD})),
+    io:fwrite("\n"),
     {ok, CD0} = channel_manager:read(From),
     true = live(CD0),
     SPKME = me(CD0),
@@ -195,6 +205,8 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     SS = script_sig_me(CD),
     SS4 = script_sig_them(CD),
     Entropy = entropy(CD),
+    io:fwrite(packer:pack({channel_feeder, SPKME, SSME, NewSPK, SS})),
+    io:fwrite("\n"),
     B = spk:is_improvement(SPKME, SSME,
 			   NewSPK, SS),
     CID = CD#cd.cid,
@@ -281,7 +293,7 @@ depth_check2(SPK, C, OldC) ->
     A12 = channels:acc1(OldChannel),
     A21 = channels:acc2(Channel),
     A22 = channels:acc2(OldChannel),
-    K = keys:id(),
+    K = keys:pubkey(),
     B = ((K == A11) or (K == A21)),
     Both = (E1 == E2)  %both is true if the channel has existed a long time.
 	and (E1 == E3) 
@@ -308,11 +320,11 @@ other(Tx) when element(1, Tx) == nc ->
     other(new_channel_tx:acc1(Tx),
 	  new_channel_tx:acc2(Tx)).
 other(Aid1, Aid2) ->
-    K = keys:id(),
+    K = keys:pubkey(),
     Out = if
 	Aid1 == K -> Aid2;
 	Aid2 == K -> Aid1;
-	true -> Aid1 == K
+	true -> Aid1 = K
     end,
     Out.
     

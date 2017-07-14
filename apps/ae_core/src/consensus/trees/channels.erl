@@ -89,7 +89,7 @@ new(ID, Acc1, Acc2, Bal1, Bal2, Height, Entropy, Delay) ->
 	     last_modified = Height, entropy = Entropy,
 	     delay = Delay}.
 serialize(C) ->
-    ACC = constants:acc_bits(),
+    %ACC = constants:address_bits(),
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
     NON = constants:channel_nonce_bits(),
@@ -110,9 +110,9 @@ serialize(C) ->
     HS = constants:hash_size(),
     Shares = shares:root_hash(C#channel.shares),
     HS = size(Shares),
-    << CID:KL,
-       (C#channel.acc1):ACC,
-       (C#channel.acc2):ACC,
+    true = size(C#channel.acc1) == constants:pubkey_size(),
+    true = size(C#channel.acc2) == constants:pubkey_size(),
+    << CID:(HS*8),
        (C#channel.bal1):BAL,
        (C#channel.bal2):BAL,
        (Amount+HB):BAL,
@@ -122,10 +122,13 @@ serialize(C) ->
        Entropy:ENT,
        (C#channel.delay):Delay,
        CR:8,
+       (C#channel.acc1)/binary,
+       (C#channel.acc2)/binary,
        Shares/binary
     >>.
 deserialize(B) ->
-    ACC = constants:acc_bits(),
+    PS = constants:pubkey_size()*8,
+    ACC = constants:address_bits(),
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
     NON = constants:channel_nonce_bits(),
@@ -133,9 +136,7 @@ deserialize(B) ->
     ENT = constants:channel_entropy(),
     Delay = constants:channel_delay_bits(),
     HS = constants:hash_size()*8,
-    << ID:KL,
-       B1:ACC,
-       B2:ACC,
+    << ID:HS,
        B3:BAL,
        B4:BAL,
        B8:BAL,
@@ -145,13 +146,15 @@ deserialize(B) ->
        B11:ENT,
        B12:Delay,
        Closed:8,
+       B1:PS,
+       B2:PS,
        _:HS
     >> = B,
     CR = case Closed of
 	     0 -> false;
 	     1 -> true
 	 end,
-    #channel{id = ID, acc1 = B1, acc2 = B2, 
+    #channel{id = ID, acc1 = <<B1:PS>>, acc2 = <<B2:PS>>, 
 	     bal1 = B3, bal2 = B4, amount = B8-constants:half_bal(),
 	     nonce = B5, timeout_height = B6, 
 	     last_modified = B7,
@@ -179,8 +182,8 @@ root_hash(Channels) ->
     
 test() ->
     ID = 1,
-    Acc1 = 1,
-    Acc2 = 2,
+    Acc1 = constants:master_pub(),
+    Acc2 = constants:master_pub(),
     Bal1 = 200,
     Bal2 = 300,
     Height = 1,

@@ -9,7 +9,13 @@
 %<<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>).
 
 key_length() ->
-    48. %so at most, we could store 16^11 =~ 17.6 trillion accounts and channels.
+    24. 
+address_bits() ->
+    hash_size()*8.
+    %48. 
+
+pubkey_size()->
+    65. %bytes
 
 initial_coins() -> 1080000000000.
 block_reward() -> round(math:pow(2, 29)) - 1.
@@ -29,8 +35,8 @@ master_pub() ->
     {ok, X} = application:get_env(ae_core, master_pub),
     X.
 
-master_address() ->
-    testnet_sign:pubkey2address(master_pub()).
+%master_address() ->
+%    testnet_sign:pubkey2address(master_pub()).
 max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
 gas_limit() -> 1000000.
 %200,000,000 is enough to find the first 10001 prime numbers.
@@ -83,14 +89,15 @@ channel_rent_bits() -> 8.
 channel_delay_bits() -> 32. %2^this is the maximum amount of blocks you could have to channel_slash if your channel partner tries to cheat.
 orders_bits() -> 32.
 account_size() ->    
-	((balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length()) div 8) + (2*hash_size()).
+	%((balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length()) div 8) + (2*hash_size()).
+	((balance_bits() + height_bits() + account_nonce_bits()) div 8) + (2*hash_size()) + pubkey_size().
 channel_size() ->    
-    ((key_length() + (acc_bits()*2) + 
+    ((%key_length() + %(address_bits()*2) + 
 	  (balance_bits()*3) + channel_nonce_bits() + 
 	  (height_bits()*2) + 
 	  channel_entropy() + channel_delay_bits()) div 8) 
-	+ 1 + hash_size().
-existence_size() -> acc_bits().%hash_size*8
+	+ 1 + (2 * hash_size()) + (2 * pubkey_size()).
+existence_size() -> hash_size()*8.
 
 channel_rent() -> account_rent().
 account_rent() -> round(math:pow(2, 13)).

@@ -18,7 +18,7 @@ good(Tx) ->
     {ok, MaxChannelDelay} = application:get_env(ae_core, max_channel_delay),
     true = Delay > MinChannelDelay,
     true = Delay < MaxChannelDelay,
-    K = keys:id(),
+    K = keys:pubkey(),
     Acc1 = Tx#nc.acc1,
     Acc2 = Tx#nc.acc2,
     Bal1 = Tx#nc.bal1,

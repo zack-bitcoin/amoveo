@@ -10,7 +10,8 @@ new(Address) -> #burn{address = Address}.
 serialize(E) ->
     HS = constants:hash_size(),
     BAL = constants:balance_bits(),
-    A = testnet_sign:address2binary(E#burn.address),
+    %A = testnet_sign:address2binary(E#burn.address),
+    A = E#burn.address,
     HS = size(A),
     <<(E#burn.amount):BAL,
       A/binary>>.
@@ -18,10 +19,10 @@ deserialize(B) ->
     HS = constants:hash_size() * 8,
     BAL = constants:balance_bits(),
     <<I:BAL, A:HS>> = B,
-    #burn{address = testnet_sign:binary2address(<<A:HS>>),
+    #burn{address = <<A:HS>>,
 	  amount = I}.
-get(Address, Tree) ->
-    B = testnet_sign:address2binary(Address),
+get(B, Tree) ->
+    %B = testnet_sign:address2binary(Address),
     Key = existence:hash2int(B),
     {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
     V = case Leaf of
@@ -31,20 +32,21 @@ get(Address, Tree) ->
     {X, V, Proof}.
 write(A, Tree) ->
     Address = A#burn.address,
-    Binary = testnet_sign:address2binary(Address),
-    Key = existence:hash2int(Binary),
+    %Binary = testnet_sign:address2binary(Address),
+    Key = existence:hash2int(Address),
     X = serialize(A), 
     trie:put(Key, X, 0, Tree, ?name).
 root_hash(Root) ->
     trie:root_hash(?name, Root).
     
 test() ->
-    Address = constants:master_address(),
-    C = new(Address),
-    {_, empty, _} = get(Address, 0),
+    X = testnet_hasher:doit(<<>>),
+    %Address = constants:master_address(),
+    C = new(X),
+    {_, empty, _} = get(X, 0),
     NewLoc = write(C, 0),
-    {_, C, _} = get(Address, NewLoc),
-    {_, empty, _} = get(Address, 0),
+    {_, C, _} = get(X, NewLoc),
+    {_, empty, _} = get(X, 0),
     success.
     
     

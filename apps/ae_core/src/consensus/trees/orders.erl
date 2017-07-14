@@ -44,39 +44,44 @@ available_id(Root, N) ->
 	_ -> available_id(Root, N+1)
     end.
 new(ID, AID, Amount) ->
-    true = ID > 1,
     #order{id = ID, aid = AID, amount = Amount, pointer = 0}.
 serialize_head(Head, Many) ->
-    KL = constants:key_length(),
+    %KL = constants:key_length(),
+    %HS = constants:hash_size()*8,
+    PS = constants:pubkey_size() * 8,
     OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
     Y = OL+OL,
-    AB = KL+BAL,
+    AB = PS+BAL,
     <<Head:Y, Many:AB>>.
 deserialize_head(X) ->
-    KL = constants:key_length(),
+    %KL = constants:key_length(),
+    PS = constants:pubkey_size() * 8,
+    %HS = constants:hash_size()*8,
     OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
     Y = OL+OL,
-    AB = KL+BAL,
+    AB = PS+BAL,
     <<Head:Y, Many:AB>> = X,
     {Head, Many}.
     
 serialize(A) ->
-    KL = constants:key_length(),
     OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
+    true = size(A#order.aid) == constants:pubkey_size(),
     <<(A#order.id):OL,
-      (A#order.aid):KL,
+      %(A#order.aid):KL,
       (A#order.amount):BAL,
-      (A#order.pointer):OL>>.
+      (A#order.pointer):OL,
+      (A#order.aid)/binary>>.
 deserialize(B) ->
-    KL = constants:key_length(),
     OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
-    <<ID:OL, AID:KL,
-      Amount:BAL, P:OL>> = B,
-    #order{id = ID, aid = AID, amount = Amount,
+    PS = constants:pubkey_size() * 8,
+    <<ID:OL, %AID:KL,
+      Amount:BAL, P:OL,
+    AID:PS>> = B,
+    #order{id = ID, aid = <<AID:PS>>, amount = Amount,
 	   pointer = P}.
 write(X, Root) -> 
     V = serialize(X),
@@ -110,7 +115,7 @@ add(Order, Root) ->
     %make the end of the list point to the new order.
     {Head, Many} = head_get(Root),
     case Head of
-	0 ->
+	0 -> %adding an element to an empty list
 	    Root2 = head_put(X, Many+1, Root),
 	    write(Order, Root2);
 	Y ->
@@ -133,10 +138,15 @@ remove(ID, Root) ->
     {Head, Many} = head_get(Root),
     {_,Order,_} = get(Head, Root),
     Q = Order#order.id,
+    io:fwrite(packer:pack({id_q_pointer_are, ID, Q, Order#order.pointer})),
+    io:fwrite("\n"),
     if 
 	ID == Q -> 
-	    head_put(Order#order.pointer, Many-1, Root);
+	    io:fwrite("remove path 1\n"),
+	    Root2 = head_put(Order#order.pointer, Many-1, Root),
+	    delete(ID, Root2);
 	true ->
+	    io:fwrite("remove path 2\n"),
 	    Root2 = head_put(Head, Many-1, Root),
 	    remove2(ID, Root2, Head)
     end.
@@ -145,11 +155,14 @@ remove2(ID, Root, P) ->
     N = L#order.pointer,
     case N of
 	ID ->
+	    io:fwrite("remove path 3\n"),
 	    {_, L2, _} = get(ID, Root),
-	    N = update_pointer(L, id(L2)),
+	    L3 = update_pointer(L, id(L2)),
 	    Root2 = delete(N, Root),
-	    write(N, Root2);
-	X -> remove2(ID, Root, X)
+	    write(L3, Root2);
+	X -> 
+	    io:fwrite("remove path 4\n"),
+	    remove2(ID, Root, X)
     end.
 delete(ID, Root) ->
     trie:delete(ID, Root, ?name).
@@ -197,23 +210,33 @@ root_hash(Root) ->
 
 test() ->
     Root0 = empty_book(),
+    {Pub1,_} = testnet_sign:new_key(),
+    {Pub2,_} = testnet_sign:new_key(),
     ID1 = 5,
     ID2 = 3,
-    Order1 = new(ID1, 2, 100),
-    Order2 = new(ID2, 2, 100),
+    Order1 = new(ID1, Pub2, 100),
+    Order2 = new(ID2, Pub2, 100),
     Root1 = add(Order1, Root0),
     Root2 = add(Order2, Root1),
-    Order3 = new(6, 5, 110),
+    Order3 = new(6, Pub1, 110),
     {Matches1, Matches2, same, Root3} = match(Order3, Root2),
     {_, empty, _} = get(ID1, 0),
-    {_, {order, 5, 2, 100, _}, _} = get(ID1, Root2),
-    {_, {order, 3, 2, 100, _}, _} = get(ID2, Root2),
+    {_, {order, 5, Pub2, 100, _}, _} = get(ID1, Root2),
+    {_, {order, 3, Pub2, 100, _}, _} = get(ID2, Root2),
     {_, empty, _} = get(ID1, Root3),
 
     Root4 = add(Order1, Root0),
     {Matches3, Matches4, switch, Root5} = match(Order3, Root4),
     {_, empty, _} = get(ID1, Root5), 
-    {_, {order, 6, 5, 10, 0}, _} = get(6, Root5),
+    {_, {order, 6, Pub1, 10, 0}, _} = get(6, Root5),
     {Matches1, Matches2, Matches3, Matches4},
+    io:fwrite("TEST orders, about to remove \n"),
+    Root6 = remove(ID1, Root2),
+    {_, empty, _} = get(ID1, Root6),
+    {_, {order, 3, Pub2, 100, _}, _} = get(ID2, Root6),
+    Root7 = remove(ID2, Root2),
+    {_, empty, _} = get(ID2, Root7),
+    {_, {order, 5, Pub2, 100, _}, _} = get(ID1, Root7),
+    
     success.
     

@@ -27,20 +27,20 @@ block_to_header(B) ->
     Height = Block#block.height,
     PH = Block#block.prev_hash,
     Trees = Block#block.trees,
-    Miner = case Block#block.mines_block of
-		{ID, _} -> ID;
-		ID -> ID
-	    end,
+    Miner = Block#block.mines_block,
     Time = Block#block.time,
     Diff = Block#block.difficulty,
     Magic = Block#block.magic,
     TxHash = testnet_hasher:doit(Block#block.txs),
+    %io:fwrite(packer:pack({block_to_header, size(Miner), constants:pubkey_size()})),
+    true = size(Miner) == constants:pubkey_size(),
     <<PH/binary,
       Height:(constants:height_bits()),
-      Miner:(constants:acc_bits()),
+      %Miner:(constants:address_bits()),
       Time:(constants:time_bits()),
       Diff:(constants:difficulty_bits()),
       Magic:(constants:magic_bits()),
+      Miner/binary,
       Trees/binary,
       TxHash/binary>>.
       
@@ -90,12 +90,15 @@ time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
     %the pointer to an empty trie is 0.
-    Address = constants:master_address(),
-    ID = 1,
-    First = accounts:new(ID, Address, constants:initial_coins(), 0),
+    Pub = constants:master_pub(),
+    First = accounts:new(Pub, constants:initial_coins(), 0),
+    %io:fwrite(packer:pack(First)),
+    %io:fwrite("\nblock genesis 1\n"),
     Accounts = accounts:write(0, First),
+    %io:fwrite("block genesis 2\n"),
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
+    %io:fwrite(Trees),
     TreeRoot = trees:root_hash(Trees),
     Block = {block_plus,{block,0,
 		     <<0:(8*constants:hash_size())>>,
@@ -103,7 +106,7 @@ genesis_maker() ->
                    [],
 		     TreeRoot,
                    %<<86,31,143,142,73,28,203,208,227,116,25,154>>,
-                   1,0,4080,<<>>,%1},
+                   Pub,0,4080,<<>>,%1},
 		     constants:magic()},
             {pow,<<>>,4080,44358461744572027408730},
 	 Trees,
@@ -115,17 +118,7 @@ genesis_maker() ->
 	%     4080,44358461744572027408730},
     Block.
     %#block_plus{block = Block, trees = Trees}.
-%genesis() ->
-%{block_plus,{block,0,
-%                   <<0,0,0,0,0,0,0,0,0,0,0,0>>,
-%                   [],
-%                   <<86,31,143,142,73,28,203,208,227,116,25,154>>,
-%                   1,0,4080,<<>>,1},
-%            {pow,<<>>,4080,44358461744572027408730},
-%            {trees,1,0,0,0,0,72},
-%            0,
-%            {prev_hashes}}.
-block_reward(Trees, Height, ID) ->
+block_reward(Trees, Height, ID) -> 
     OldAccounts = trees:accounts(Trees),
     Governance = trees:governance(Trees),
     BCM = governance:get_value(block_creation_maturity, Governance),
@@ -146,104 +139,46 @@ tx_costs([STx|T], Governance, Out) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
-absorb_txs(PrevPlus, Height, Txs, {MinerID, MinerAddress}) -> 
-    %this part reserves your ID.
-    Trees = PrevPlus#block_plus.trees,
-    OldAccounts = trees:accounts(Trees),
-    Governance = trees:governance(Trees),
-    BCM = governance:get_value(block_creation_maturity, Governance),
-    Rent = governance:get_value(account_rent, Governance),
-    Acc2 = accounts:new(MinerID, MinerAddress, Rent * BCM * 13 div 10, Height),
-    Accounts2 = accounts:write(OldAccounts, Acc2),
-    Trees2 = trees:update_accounts(Trees, Accounts2),
-    absorb_txs2(Trees2, Height, BCM, Txs);
-absorb_txs(PrevPlus, Height, Txs, MinerID) -> 
-    Trees = PrevPlus#block_plus.trees,
-    OldAccounts = trees:accounts(Trees),
-    Governance = trees:governance(Trees),
-    BCM = governance:get_value(block_creation_maturity, Governance),
-    Rent = governance:get_value(account_rent, Governance),
-    %create Miner's account
-    Acc1 = accounts:update(MinerID, Trees, Rent * BCM * 13 div 10, none, Height),%gives 30% more than the amount of money you need to keep the account open until you get your reward.
-    Accounts2 = accounts:write(OldAccounts, Acc1),
-    Trees2 = trees:update_accounts(Trees, Accounts2),
-    absorb_txs2(Trees2, Height, BCM, Txs).
-
-absorb_txs2(Trees2, Height, BCM, Txs) ->
+absorb_txs(PrevPlus, Height, Txs, Pub) -> 
     %this part gives a block reward
+    Trees2 = PrevPlus#block_plus.trees,
     Governance = trees:governance(Trees2),
     Accounts2 = trees:accounts(Trees2),
+    BCM = governance:get_value(block_creation_maturity, Governance),
     BlocksAgo = Height - BCM,
-    Trees3 = 
+    Trees4 = 
 	if
 	    BlocksAgo > 0 ->
 		%block reward
 		MinesBlock = mine_block_ago(BlocksAgo),
-		case MinesBlock of
-		    -1 -> Trees2;
-		    ID ->
-			BR = governance:get_value(block_reward, Governance),
-			Acc2 = accounts:update(ID, Trees2, BR, none, Height),
-			Accounts3 = accounts:write(Accounts2, Acc2),
-			trees:update_accounts(Trees2, Accounts3)
-		end;
-	    true -> Trees2
+		BR = governance:get_value(block_reward, Governance),
+		Acc = case accounts:get(MinesBlock, Accounts2) of
+			  {_, empty, _} ->
+			      accounts:new(Pub, BR, Height);
+			  _ ->
+			      accounts:update(Pub, Trees2, BR, none, Height)%gives 30% more than the amount of money you need to keep the account open until you get your reward.
+		      end,
+		Accounts3 = accounts:write(Accounts2, Acc),
+		Trees3 = trees:update_accounts(Trees2, Accounts3);
+	    true ->
+		Trees2
 	end,
     txs:digest(Txs, 
-	       Trees3,
+	       Trees4,
 	       Height).
     
-absorb_txs_old(PrevPlus, Height, Txs) ->
-    Trees = PrevPlus#block_plus.trees,
-    OldAccounts = trees:accounts(Trees),
-    Governance = trees:governance(Trees),
-    %BlockReward = governance:get_value(block_reward, Governance),
-    BCM = governance:get_value(block_creation_maturity, Governance),
-    BlocksAgo = Height - BCM,
-    MinesBlock = mine_block_ago(BlocksAgo),
-    NewAccounts = 
-	case MinesBlock of
-	    -1 ->
-		OldAccounts;
-	    {ID, Address} -> %for miners who don't yet have an account.
-		{_, Acc, _} = accounts:get(ID, OldAccounts),
-		Trees3 = 
-		    case Acc of
-			empty ->
-			    NM = accounts:new(ID, Address, 0, Height),
-			    io:fwrite("absorb_txs accounts write \n"),
-			    Accounts2 = accounts:write(OldAccounts, NM),
-			    trees:update_accounts(Trees, Accounts2);
-			_ ->
-			    Trees
-		    end,
-		    block_reward(Trees3, Height, ID);
-	    MB -> %If you already have an account.
-		{_, OldAcc, _} = accounts:get(MB, OldAccounts),
-		MB2 = 
-		    case OldAcc of
-		    empty -> 1;
-		    _ -> MB
-		end,
-		block_reward(Trees, Height, MB2)
-	end,
-    NewTrees = trees:update_accounts(Trees, NewAccounts),
-    txs:digest(Txs, 
-	       NewTrees,
-	       Height).
-    
-make(PrevHash, Txs, ID) ->%ID is the user who gets rewarded for mining this block.
+make(PrevHash, Txs, Pub) ->%Pub is the user who gets rewarded for mining this block.
     ParentPlus = read(PrevHash),
     Parent = block(ParentPlus),
     Height = Parent#block.height + 1,
-    NewTrees = absorb_txs(ParentPlus, Height, Txs, ID),
+    NewTrees = absorb_txs(ParentPlus, Height, Txs, Pub),
     NextDifficulty = next_difficulty(ParentPlus),
     #block_plus{block = 
 		#block{height = Height,
 		       prev_hash = PrevHash,
 		       txs = Txs,
 		       trees = trees:root_hash(NewTrees),
-		       mines_block = ID,
+		       mines_block = Pub,
 		       time = time_now()-5,
 		       difficulty = NextDifficulty},
 		accumulative_difficulty = next_acc(ParentPlus, NextDifficulty),
@@ -332,8 +267,6 @@ check1(BP) ->
 	    {BH, Block#block.prev_hash}
     end.
 
-%check2(BP) when is_record(BP, block_plus) ->
-%    check2(pow_block(BP));
 check_pow(BP) ->
     Pow = BP#block_plus.pow,
     A = pow:check_pow(Pow, constants:hash_size()),
@@ -341,9 +274,6 @@ check_pow(BP) ->
     A and B.
 
 check2(BP) ->
-    %check that the time is later than the median of the last 100 blocks.
-
-    %check2 assumes that the parent is in the database already.
     Block = block(BP),
     Difficulty = Block#block.difficulty,
     PH = Block#block.prev_hash,
@@ -389,14 +319,6 @@ check2(BP) ->
     MinerID = Block#block.mines_block,
     Trees = absorb_txs(ParentPlus, Height, Block#block.txs, MinerID),
     TreeHash = trees:root_hash(Trees),
-    MyAddress = keys:address(),
-    MTB = Block#block.mines_block,
-    case MTB of
-	{ID, MyAddress} ->
-	    keys:update_id(ID);
-	    %because of hash_check, this function is only run once per block. 
-	_ -> ok
-    end,
     BP#block_plus{block = Block, trees = Trees, accumulative_difficulty = next_acc(ParentPlus, Block#block.difficulty), prev_hashes = prev_hashes(hash(Prev))}.
 
 mine_block_ago(Height) when Height < 1 ->
@@ -421,24 +343,11 @@ block_times(X, N) ->
 	    [T|block_times(BH2, N-1)]
     end.
 	 
-%block_times(_, 0) -> [];
-%block_times(<<0:96>>, N) ->
-%    list_many(N, 0);
-%block_times(H, N) ->
-%    BP = block:read(H),
-%    Block = block(BP),
-%    BH2 = Block#block.prev_hash,
-%    T = Block#block.time,
-%    [T|block_times(BH2, N-1)].
 list_many(0, _) -> [];
 list_many(N, X) -> [X|list_many(N-1, X)].
 
 binary_to_file(B) ->
     C = base58:binary_to_base58(B),
-    %File1 = "blocks/"++[G],
-    %os:cmd("mkdir " ++ File1),
-    %File2 = File1 ++ "/" ++ [H],
-    %os:cmd("mkdir " ++ File2),
     "blocks/" ++C++".db".
 read(Hash) ->
     BF = binary_to_file(Hash),
@@ -455,7 +364,6 @@ lg(X) ->
 lgh(1, X) -> X;
 lgh(N, X) -> lgh(N div 2, X+1).
 read_many(N, Many) ->
-    io:fwrite(packer:pack({read_many, N, Many})),
     X = read_int(N),
     PH = prev_hash(X),
     [X|read_many2(PH, Many)].
@@ -479,9 +387,6 @@ read_int(N, BH) ->
     if 
 	D<0 -> 
 	    empty;
-	    %io:fwrite("D is "),
-	       %io:fwrite(integer_to_list(D)),
-	       %D = 5;
 	D == 0 -> Block;
 	true ->
 	    read_int(N, prev_hash(lg(D), Block))
@@ -489,9 +394,6 @@ read_int(N, BH) ->
 one_tx_per_account(Block) ->
     %make sure that every account and channel only gets updated once per block.
     true.
-	    
-    
-    
 
 
 test() ->
@@ -499,12 +401,11 @@ test() ->
     block:read(top:doit()),
     PH = top:doit(),
     BP = read(PH),
+    PH = hash(BP),
     Trees = trees(BP),
     Accounts = trees:accounts(Trees),
-    %Accounts = BP#block_plus.accounts,
-    _ = accounts:get(1, Accounts),
-    %{block_plus, Block, _, _, _} = make(PH, [], 1),
-    Block = make(PH, [], 1),
+    _ = accounts:get(constants:master_pub(), Accounts),
+    Block = make(PH, [], constants:master_pub()),
     io:fwrite(packer:pack(Block)),
     io:fwrite("top 2, \n"),
     MBlock = mine(Block, 100000000),
@@ -542,7 +443,7 @@ new_id2(N, Accounts) ->
 	   
 mine_test() ->
     PH = top:doit(),
-    BP = make(PH, [], keys:id()),
+    BP = make(PH, [], keys:pubkey()),
     PBlock = mine(BP, 1000000000),
     block_absorber:doit(PBlock),
     mine_blocks(10, 100000),
@@ -552,7 +453,6 @@ mine_blocks(A, B) ->
     mine_blocks(A,B,Cores).
 mine_blocks(0, _, _) -> 
     block_absorber:garbage(),
-    %trees:garbage(), 
     success;
 mine_blocks(N, Times, Cores) -> 
     io:fwrite("mine blocks\n"),
@@ -562,48 +462,11 @@ mine_blocks(N, Times, Cores) ->
     Pub = keys:pubkey(),
     case Pub of
 	[] ->
-	     io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
+	    io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
 	    Pub = 444;
 	_ -> ok
     end,
-    ID = case keys:id() of
-	-1 -> {new_id(1), keys:address()};
-	_ ->
-	    {_, A, _} = accounts:get(keys:id(), Accounts),
-	    case A of
-		empty -> 
-		    NewID = new_id(1),
-		    {new_id(1), keys:address()};
-		_ -> 
-		    Address = accounts:addr(A),
-		    MyAddress = keys:address(),
-		    case MyAddress of
-			Address -> keys:id();
-			_ -> {new_id(1), keys:address()}
-		    end
-	    end
-    end,
-    %ID = case {keys:pubkey(), keys:id()} of
-	%     {[], X} -> io:fwrite("you need to make an account before you can mine. look at docs/new_account.md"),
-	%		X = 294393793232;
-	%     {_, -1} ->
-	%	 NewID = new_id(1),
-	%	 {NewID, keys:address()};
-	%     {_, Identity} -> Identity
-	% end,
-    BP = make(PH, Txs, ID),
-    
-    %io:fwrite("mining attempt #"),
-    %io:fwrite(integer_to_list(N)),
-    %io:fwrite(" time "),
-    %io:fwrite(integer_to_list(time_now())),
-    %io:fwrite(" diff "),
-    %io:fwrite(integer_to_list(Block#block.difficulty)),
-    %erlang:system_info(logical_processors_available)
-    %io:fwrite(" using "),
-    %io:fwrite(integer_to_list(Cores)),
-    %io:fwrite(" CPU"),
-    %io:fwrite("\n"),
+    BP = make(PH, Txs, Pub),
     F = fun() ->
 		case mine(BP, Times) of
 		    false -> false;
@@ -615,13 +478,11 @@ mine_blocks(N, Times, Cores) ->
 				block_absorber:garbage();
 			    _ -> ok
 			end,
-			block_absorber:doit(PBlock)
-			%timer:sleep(250)
+			block_absorber:doit_ask(PBlock)
 		end
 	end,
     spawn_many(Cores-1, F),
     F(),
-    %timer:sleep(100),
     mine_blocks(N-1, Times, Cores).
     
 spawn_many(N, _) when N < 1 -> ok;

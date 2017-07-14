@@ -73,7 +73,7 @@ check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
 		CDNonce > TheirNonce ->
 		    Governance = trees:governance(Trees),
 		    GovCost = governance:get_value(cs, Governance),
-		    {Tx, _} = channel_slash_tx:make(keys:id(), free_constants:tx_fee() + GovCost, keys:sign(SPK, Accounts), SS, Trees),
+		    {Tx, _} = channel_slash_tx:make(keys:pubkey(), free_constants:tx_fee() + GovCost, keys:sign(SPK, Accounts), SS, Trees),
 		    Stx = keys:sign(Tx, Accounts),
 		    tx_pool_feeder:absorb(Stx);
 		true -> ok

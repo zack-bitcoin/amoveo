@@ -1,20 +1,23 @@
-
-
 -module(accounts).
--export([new/4,nonce/1,write/2,get/2,update/5,update/7,addr/1,id/1,balance/1,root_hash/1,now_balance/4,delete/2,
+-export([new/3,nonce/1,write/2,get/2,update/5,update/7,
+	 %addr/1, id/1,
+	 balance/1,root_hash/1,now_balance/4,delete/2,
 	 receive_shares/4, send_shares/4,
 	 shares/1, bets/1, update_bets/2,
-	 serialize/1, test/0]).
+	 pub_decode/1,
+	 serialize/1, pubkey/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
-	      addr = [], %addr is the hash of the public key we use to spend money.
-	      id = 0,%id is your location in the merkle trie. It is also used as an identification for sending money, since it is shorter than your address.
+	      pubkey = [],
+	      %addr = [], %addr is the hash of the public key we use to spend money.
+	      %id = 0,%id is your location in the merkle trie. It is also used as an identification for sending money, since it is shorter than your address.
 	      bets = 0,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
 	      shares = 0}). %shares is a pointer to a merkel tree that stores how many shares you have at each price.
 -define(id, accounts).
-addr(X) -> X#acc.addr.
-id(X) -> X#acc.id.
+pubkey(X) -> X#acc.pubkey.
+%addr(X) -> X#acc.addr.
+%id(X) -> X#acc.id.
 balance(X) -> X#acc.balance.
 shares(X) -> X#acc.shares.
 bets(X) -> X#acc.bets.
@@ -31,24 +34,27 @@ send_shares(Acc, Shares, Height, Trees) ->
 now_balance(Acc, Amount, NewHeight, Trees) ->
     OldHeight = Acc#acc.height,
     Governance = trees:governance(Trees),
-    ID = Acc#acc.id,
+    %ID = Acc#acc.id,
+    Pub = Acc#acc.pubkey,
     DH = NewHeight - OldHeight,
+    MasterPub = constants:master_pub(),
     Rent = 
-	case ID of
-	    1 ->
+	case Pub of
+	    MasterPub ->
 		-(governance:get_value(developer_reward, Governance));
 	    _ ->
 		governance:get_value(account_rent, Governance)
 	end,
     Amount + Acc#acc.balance - (Rent * DH).
     
-update(Id, Trees, Amount, NewNonce, NewHeight) ->
+update(Pub0, Trees, Amount, NewNonce, NewHeight) ->
+    Pub = pub_decode(Pub0),
     Accounts = trees:accounts(Trees),
-    {_, Acc, _} = get(Id, Accounts),
-    update(Id, Trees, Amount, NewNonce, NewHeight, Acc#acc.shares, Acc#acc.bets).
-update(Id, Trees, Amount, NewNonce, NewHeight, Shares, Bets) ->
+    {_, Acc, _} = get(Pub, Accounts),
+    update(Pub, Trees, Amount, NewNonce, NewHeight, Acc#acc.shares, Acc#acc.bets).
+update(Pub, Trees, Amount, NewNonce, NewHeight, Shares, Bets) ->
     Accounts = trees:accounts(Trees),
-    {_, Acc, _} = get(Id, Accounts),
+    {_, Acc, _} = get(Pub, Accounts),
     OldNonce = Acc#acc.nonce,
     FinalNonce = case NewNonce of
 	none -> Acc#acc.nonce;
@@ -64,32 +70,36 @@ update(Id, Trees, Amount, NewNonce, NewHeight, Shares, Bets) ->
 	    height = NewHeight,
 	    shares = Shares,
 	    bets = Bets}.
-new(Id, Addr, Balance, Height) ->
-    #acc{id = Id, addr = Addr, balance = Balance, nonce = 0, height = Height, bets = 0, shares = 0}.
+new(Pub0, Balance, Height) ->
+    %Pub = pub_decode(Pub0),
+    %PubSize = constants:pubkey_size(),
+    %PubSize2 = size(Pub),
+    #acc{pubkey = Pub0, balance = Balance, nonce = 0, height = Height, bets = 0, shares = 0}.
 nonce(X) -> X#acc.nonce.
 serialize(A) ->
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
-    Addr = A#acc.addr,
-    Baddr = testnet_sign:address2binary(Addr),
-    SizeAddr = size(Baddr),
-    SizeAddr = constants:hash_size(),
+    Pubkey = A#acc.pubkey,
+    PubSize = constants:pubkey_size(),
+    PubSize2 = size(Pubkey),
+    
+    SizePubkey = constants:pubkey_size(),
+    SizePubkey = size(Pubkey),
     Nbits = constants:account_nonce_bits(),
-    KL = key_length(),
     SharesRoot = shares:root_hash(A#acc.shares),
     BetsRoot = oracle_bets:root_hash(A#acc.bets),
     HS = constants:hash_size(),
     HS = size(BetsRoot),
     HS = size(SharesRoot),
-    ID = A#acc.id,
-    true = (ID - 1) < math:pow(2, KL),
+    %PubkeyBits = SizePubkey * 8,
+    PS = size(A#acc.pubkey),
+    PS = SizePubkey,
     Out = <<(A#acc.balance):BAL, 
-	    (A#acc.nonce):(Nbits), 
-	    (A#acc.height):HEI,
-	    ID:KL,
-	    Baddr/binary,
-	    BetsRoot/binary,
-	    SharesRoot/binary>>,
+	     (A#acc.nonce):Nbits, 
+	     (A#acc.height):HEI,
+	     (A#acc.pubkey)/binary,
+	     BetsRoot/binary,
+	     SharesRoot/binary>>,
     Size = size(Out),
     Size = constants:account_size(),
     Out.
@@ -101,35 +111,56 @@ deserialize(A) ->
     HD = HS*8,
     Nbits = constants:account_nonce_bits(),
     KL = constants:key_length(),
+    SizePubkey = constants:pubkey_size(),
+    PubkeyBits = SizePubkey * 8,
     <<B1:BAL,
       B2:Nbits,
       B4:HEI,
-      B5:KL,
-      B6:HD,
+      B5:PubkeyBits,
       _:HD,
       _:HD
     >> = A,
-    #acc{balance = B1, nonce = B2, height = B4, id = B5, addr = testnet_sign:binary2address(<<B6:HD>>)}.
+    #acc{balance = B1, nonce = B2, height = B4, pubkey = <<B5:PubkeyBits>>}.
     
 write(Root, Account) ->%These are backwards.
-    ID = Account#acc.id,
+    Pub = Account#acc.pubkey,
+    SizePubkey = constants:pubkey_size(),
+    SizePubkey = size(Pub),
+    HP = pub_decode(Pub),
     M = serialize(Account),
+    true = size(M) == constants:account_size(),
     KL = constants:key_length(),
     KL2 = KL * 2,
-    %BetsRoot = oracle_bets:root_hash(Account#acc.bets),
-    %SharesRoot = shares:root_hash(Account#acc.shares),
     <<Meta:KL2>> = <<(Account#acc.bets):KL, (Account#acc.shares):KL>>,
-    trie:put(ID, M, Meta, Root, ?id).%returns a pointer to the new root.
-delete(ID, Accounts) ->
-    trie:delete(ID, Accounts, ?id).
+    HPID = trees:hash2int(HP),
+    trie:put(HPID, M, Meta, Root, ?id).%returns a pointer to the new root.
+delete(Pub0, Accounts) ->
+    HP = pub_decode(Pub0),
+    trie:delete(trees:hash2int(HP), Accounts, ?id).
 key_length() ->
     constants:key_length().
-get(Id, Accounts) ->
+pub_decode(Pub) ->
+    HS = constants:hash_size(),
+    SizePubkey = constants:pubkey_size(),
+    case size(Pub) of
+	HS -> Pub;
+	SizePubkey ->
+	    testnet_hasher:doit(Pub);
+	_ -> 
+	    io:fwrite("pub decode problem "),
+	    io:fwrite(Pub),
+	    io:fwrite("\n"),
+	    testnet_hasher:doit(base64:decode(Pub))
+    end.
+    
+get(Pub, Accounts) ->
+    HS = constants:hash_size(),
+    %SizePubkey = constants:pubkey_size(),
+    HP = pub_decode(Pub),
     KL = constants:key_length(),
     KL2 = KL * 2,
-    true = Id > 0,
-    true = Id  < math:pow(2, KL),
-    {RH, Leaf, Proof} = trie:get(Id, Accounts, ?id),
+    HPID = trees:hash2int(HP),
+    {RH, Leaf, Proof} = trie:get(HPID, Accounts, ?id),
     V = case Leaf of
 	    empty -> empty;
 	    L -> X = deserialize(leaf:value(L)),
@@ -145,12 +176,11 @@ root_hash(Accounts) ->
 %garbage() -> trees:garbage(?id).
 
 test() ->
-    {Address, _Pub, _Priv} = testnet_sign:hard_new_key(),
-    ID = 3,
-    Acc = new(ID, Address, 0, 0),
+    {Pub, _Priv} = testnet_sign:new_key(),
+    Acc = new(Pub, 0, 0),
     %io:fwrite(Acc),
     S = serialize(Acc),
     Acc = deserialize(S),
     NewLoc = write(0, Acc),
-    {_, Acc, _} = get(ID, NewLoc),
+    {_, Acc, _} = get(Pub, NewLoc),
     success.

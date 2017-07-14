@@ -1,94 +1,63 @@
 -module(tx_pool_feeder).
 -behaviour(gen_server).
-
-%% API
--export([absorb/1,
-         absorb_unsafe/1]).
-
--export([start_link/0]).
--export([init/1,
-         handle_call/3,
-         handle_cast/2,
-         handle_info/2,
-         terminate/2,
-         code_change/3]).
-
-%% API functions
-
-absorb(Txs) when is_list(Txs) ->
-    [absorb(Tx) || Tx <- Txs];
-
-absorb(SignedTx) ->
-    {_, _, Txs} = tx_pool:data(),
-    case is_in(SignedTx, Txs) of
-        true ->
-            ok;
-        false ->
-            gen_server:cast(?MODULE, {absorb, SignedTx})
-    end.
-
-absorb_unsafe(SignedTx) ->
-    {Trees, Height, _} = tx_pool:data(),
-    absorb_unsafe(SignedTx, Trees, Height).
-
-absorb_unsafe(SignedTx, Trees, Height) ->
-    NewTrees = txs:digest([SignedTx], Trees, Height + 1),
-    tx_pool:absorb_tx(NewTrees, SignedTx).
-
-
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
-
-
-%% gen_server callbacks
-
-init(ok) ->
-    {ok, []}.
-
-handle_call(_, _From, State) ->
-    {reply, State, State}.
-
-handle_cast({absorb, SignedTx}, State) ->
+-export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, absorb/1, absorb_unsafe/1]).
+init(ok) -> {ok, []}.
+start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
+code_change(_OldVsn, State, _Extra) -> {ok, State}.
+terminate(_, _) -> io:format("died!"), ok.
+handle_info(_, X) -> {noreply, X}.
+handle_cast({absorb, SignedTx}, X) ->
     {Trees, Height, Txs} = tx_pool:data(),
     Governance = trees:governance(Trees),
+    io:fwrite("tx pool feeder tx "),
+    io:fwrite(packer:pack(SignedTx)),
+    io:fwrite("\n"),
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
+    io:fwrite(packer:pack({tx_pool_feeder_absorb, Fee, MinimumTxFee, Cost})),
     true = Fee > (MinimumTxFee + Cost),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(SignedTx, Accounts),
-    case is_in(SignedTx, Txs) of
-        true ->
-            ok = lager:info("Already have this tx");
-        false ->
-            absorb_unsafe(SignedTx, Trees, Height)
+    B = is_in(SignedTx, Txs), %this is very ugly. once we have a proper CLI we can get rid of this crutch.
+    if
+	B ->  io:fwrite("already have this tx"),
+	    ok;
+	true ->
+	    absorb_unsafe(SignedTx, Trees, Height)
     end,
-    {noreply, State};
-handle_cast(_Msg, State) ->
-    {noreply, State}.
-
-handle_info(_Info, State) ->
-    {noreply, State}.
-
-terminate(_Reason, _State) ->
-    ok = lager:warning("~p died!", [?MODULE]).
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
-
-
-%% Internals
-
-is_in(_, []) ->
-    false;
-is_in(STx, [STx2 | T]) ->
+    {noreply, X};
+handle_cast(_, X) -> {noreply, X}.
+handle_call(_, _From, X) -> {reply, X, X}.
+absorb_unsafe(SignedTx) -> 
+    {Trees, Height, _} = tx_pool:data(),
+    absorb_unsafe(SignedTx, Trees, Height).
+absorb_unsafe(SignedTx, Trees, Height) -> 
+    NewTrees = 
+	txs:digest([SignedTx], Trees, Height+1),
+    tx_pool:absorb_tx(NewTrees, SignedTx).
+    
+    
+absorb([]) -> ok;
+absorb([H|T]) ->
+    absorb(H),
+    absorb(T);
+absorb(SignedTx) -> 
+    {_, _, Txs} = tx_pool:data(),
+    B = is_in(SignedTx, Txs),
+    if
+	B -> ok;
+	true ->
+	    gen_server:cast(?MODULE, {absorb, SignedTx})
+    end.
+is_in(_, []) -> false;
+is_in(STx, [STx2|T]) ->
     Tx = testnet_sign:data(STx),
     Tx2 = testnet_sign:data(STx2),
-    case Tx == Tx2 of
-        true ->
-            true;
-        false ->
-            is_in(STx, T)
+    if
+	Tx == Tx2 -> true;
+	true -> is_in(STx, T)
     end.
+
