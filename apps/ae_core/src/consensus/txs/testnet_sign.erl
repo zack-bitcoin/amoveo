@@ -1,9 +1,8 @@
 -module(testnet_sign).
 -export([test/0,test2/1,sign_tx/4,sign/2,verify_sig/3,shared_secret/2,verify/2,data/1,
 	 empty/1,empty/0,
-	 verify_1/2,verify_2/2, 
-	 %pubkey2address/1, valid_address/1, 
-	 new_key/0,pub/1,pub2/1%,address2binary/1,binary2address/1
+	 verify_1/2,verify_2/2,
+	 new_key/0,pub/1,pub2/1
 ]).
 -record(signed, {data="", sig="", pub = "", sig2="", pub2=""}).
 pub(X) -> X#signed.pub.

@@ -19,11 +19,9 @@ killall:
 	@echo "Kill all beam processes from this host"
 	@pkill -9 beam || true
 
-dialyzer: $(OTP_PLT)
-	@nice -19 \
-		dialyzer apps/*/ebin/ --plts $(OTP_PLT) \
-		-Wno_undefined_callbacks \
-		-Wno_improper_lists
+dialyzer:
+	@./rebar3 dialyzer
+
 
 # Local
 

@@ -1,6 +1,6 @@
 -module(mail).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, pop/2,pop_hashes/1,cost/2,register/2,send/3,status/0,test/0,register_cost/0,internal_send/3]).
+-export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, pop/2,pop_hashes/1,cost/2,register/2,send/3,status/0,register_cost/0,internal_send/3]).
 -record(msg, {start, lasts, msg, size = 0, to}).
 -record(d, {db = dict:new(), accs = 0, msgs = 0}).
 init(ok) -> {ok, #d{}}.
@@ -100,52 +100,10 @@ cost(MsgSize, Time) -> 10000 * MsgSize * Time. %time in seconds
 register_cost() -> ?REGISTER.
 status() -> gen_server:call(?MODULE, status).
 register(Payment, Acc) ->
-    ChId = hd(channel_manager:id(Acc)),
+    ChId = hd(channel_manager:read(Acc)),
     channel_manager_feeder:recieve(ChId, ?REGISTER, Payment),
     gen_server:cast(?MODULE, {new, Acc}).
 send(To, Msg, Seconds) ->
     gen_server:cast(?MODULE, {send, To, Msg, Seconds}).
 internal_send(To, Msg, Seconds) ->
     send(To, Msg, Seconds).
-%delete_account(Acc, Sig) ->
-%    Time = abs(timer:now_diff(erlang:monotonic_time(), M#msg.time) div 1000000),
-%    true = Time < 10,%time must be within 10 seconds of now
-    %Sig must be over Time appended with <<"delete account">>.
-%    ok = gen_server:call(?MODULE, {del_acc, Acc}),
-%    channel_manager:spend_acc(Acc, ?REGISTER div 10 * 9).
-
-            
-test() ->            
-    {Addr, Pub, Priv} = testnet_sign:hard_new_key(),
-    %{Addr, Pub, Priv} = {<<"UrNC5nqd7uERs6m">>, <<"BIDUw/Dagrmh3R4akgRfCwH1/EIoCIAKrfMwPAKSoCn0h2iyjUb/lq8ZrngfARRlAdOsNSVp1gW0DQ8Xp+fz910=">>, <<"P1h6YBH65iQy/4lzvNhhPecYJrvoMoqeX+IR912bIjM=">>},
-    tx_pool_feeder:absorb(keys:sign(create_account_tx:create_account(Pub, 620000, 0))),
-    tx_pool_feeder:absorb(keys:sign(spend_tx:spend(1, 10, 0, keys:id()))),
-    tx_pool_feeder:absorb(keys:sign(sign_tx:sign(keys:id()))),
-    %tx_pool_feeder:absorb(keys:sign(reveal:reveal(keys:id()))),
-    block_tree:buy_block(),
-    CreateTx1 = keys:sign(to_channel_tx:create_channel(3, 110000, 1000, <<"delegated_1">>, 0)),
-    P5 = accounts:addr(block_tree:account(5)),
-    P4 = accounts:addr(block_tree:account(4)),
-    P3 = accounts:addr(block_tree:account(3)),
-    P2 = accounts:addr(block_tree:account(2)),
-    P1 = accounts:addr(block_tree:account(1)),
-    ID = case Addr of 
-	P1 -> 1;
-	P2 -> 2;
-	P3 -> 3;
-	P4 -> 4;
-	P5 -> 5
-    end,
-    SignedCreateTx1 = testnet_sign:sign_tx(CreateTx1, Pub, Priv, ID, tx_pool:accounts()),
-    tx_pool_feeder:absorb(SignedCreateTx1),
-    tx_pool_feeder:absorb(keys:sign(sign_tx:sign(keys:id()))),
-    %tx_pool_feeder:absorb(keys:sign(reveal:reveal(keys:id()))),
-    block_tree:buy_block(),
-    gen_server:cast(?MODULE, {new, 3}),
-    Msg = <<"test">>,
-    gen_server:cast(?MODULE, {send, 3, Msg, 0}),
-    gen_server:cast(?MODULE, {send, 3, Msg, 0}),
-    PH = pop_hashes(3),
-    {ok, Out} = gen_server:call(?MODULE, {pop, 3, hd(PH)}),
-    Msg = Out#msg.msg,
-    success.
