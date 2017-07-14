@@ -48,6 +48,7 @@ sync(IP, Port, MyHeight) ->
 					      trade_blocks(IP, Port, [Y], HH)
 						    end);
 			     true ->
+				 io:fwrite("trade blocks 2\n"),
 				 trade_blocks(IP, Port, [TopBlock], Height)
 				     
 			 end,
@@ -55,7 +56,10 @@ sync(IP, Port, MyHeight) ->
 			 trade_peers(IP, Port);
 			 %Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
 			 %Score = abs(Time)*(1+abs(Height - MyHeight));
-		     X -> io:fwrite(X)
+		     X -> 
+			 io:fwrite("\nTOP FAILED\n"),
+			 io:fwrite(X),
+			 io:fwrite("\nTOP FAILED\n")
 		 end
 	 end).
 
@@ -77,16 +81,19 @@ get_blocks(Height, N, IP, Port, _) ->
 %	 end).
     
 trade_blocks(IP, Port, L, 1) ->
-    sync3(L);
+    sync3(L),
+    Genesis = block:read_int(0),
+    GH = block:hash(Genesis),
+    send_blocks(IP, Port, top:doit(), GH, [], 0);
 trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
-    %io:fwrite("trade blocks\n"),
-    %io:fwrite("height "),
-    %io:fwrite(integer_to_list(Height)),
-    %io:fwrite("\n"),
+    io:fwrite("trade blocks\n"),
+    io:fwrite("height "),
+    io:fwrite(integer_to_list(Height)),
+    io:fwrite("\n"),
     %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
-    %io:fwrite("prev block is "),
-    %io:fwrite(PrevBlock),
-    %io:fwrite("\n"),
+    io:fwrite("prev block is "),
+    io:fwrite(packer:pack(PrevBlock)),
+    io:fwrite("\n"),
     PrevHash = block:hash(PrevBlock),
     %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
     {PrevHash, NextHash} = block:check1(PrevBlock),
@@ -150,9 +157,9 @@ get_txs(IP, Port) ->
     io:fwrite("download blocks get txs\n"),
     talk({txs}, IP, Port, 
 	 fun(X) ->
-		 absorb_txs(X),
 		 {_,_,Mine} = tx_pool:data(),
-		 talker:talk({txs, Mine}, IP, Port)
+		 talker:talk({txs, Mine}, IP, Port),
+		 absorb_txs(X)
 	 end).
 trade_peers(IP, Port) ->
     talk({peers}, IP, Port,
