@@ -27,7 +27,7 @@ handle_info(_Info, State) ->
 
 handle_cast({remove, IP, Port}, X) ->
     K = key(IP, Port),
-    NewX = dict:remove(K, X),
+    NewX = dict:erase(K, X),
     {noreply, NewX};
 handle_cast({add, IP, Port}, X) -> 
     NewX = load_peers([{IP, Port}], X),
