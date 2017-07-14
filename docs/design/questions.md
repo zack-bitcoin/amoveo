@@ -29,9 +29,12 @@ The state channel is programmable, you can decide how long you want the dispute 
 
 How does the oracle consensus work? How can the oracle answer all kinds of questions?
 here are several documents describing the oracle:
-https://github.com/aeternity/testnet/blob/master/docs/oracle_motivations.md
-https://github.com/aeternity/testnet/blob/master/docs/oracle_simple.md
-https://github.com/aeternity/testnet/blob/master/docs/oracle_design.md
+
+[oracle motivations](oracle_motivations.md)
+
+[oracle](oracle_simple.md)
+
+[oracle design](oracle_design.md)
 
 The oracle does need to lock money. We can use dominant assurance contracts, which I like to call "insured crowdfunding" to raise money to run the oracle.
 An oracle is a public good, raising money for public goods is usually done in one of 2 ways: either by charity or taxation.

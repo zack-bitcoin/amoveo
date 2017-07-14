@@ -1,182 +1,91 @@
 -module(download_blocks).
--export([sync_cron/0, sync_cron/1, sync_all/2, 
-	 sync/3, absorb_txs/1, tuples2lists/1]).
+-export([sync_all/2, sync/2, do_send_blocks/2]).
 
-sync_cron() -> sync_cron(30000).
-sync_cron(N) -> %30000 is 30 second.
-    timer:sleep(N),
-    Height = block:height(block:read(top:doit())),
-    P = peers:all(),
-    P2 = rank_filter(P),
-    sync_all(P2, Height),
-    sync_cron(N).
+%% TODO: introduce ranking mechanism. It may be based on initial top request.
+%%       The quickest and the longest chains are promoted
+%%       There is no point of quering thousands of peers and updating our chain at once from all of them
 
-rank_filter(P) ->
-    %probabilistically select a peer. prefer lower ranked pers.
-    P.
-    
-    
-sync_all([], _) -> success;
-sync_all([{IP, Port}|T], Height) ->
+sync_all([], _) -> ok;
+sync_all([Peer|T], Height) ->
     spawn(fun() ->
-		  sync(IP, Port, Height)
+		  sync(Peer, Height)
 	  end),
-    %spawn(download_blocks, sync, [IP, Port, Height]),
-    %timer:sleep(3000),
     sync_all(T, Height).
-sync(IP, Port, MyHeight) ->
-    %lower their ranking
-    %peers:update_score(IP, Port, peers:initial_score()),
-    io:fwrite("top of sync\n"),
-    %S = erlang:timestamp(),
-    talk({top}, IP, Port, 
-	 fun(X) ->
-		 case X of
-		     {error, failed_connect} -> 
-			 io:fwrite("failed connect"),
-			 ok;
-		     {ok, TopBlock, Height}  ->
-			 %io:fwrite("got topblock\n"),
-			 {ok, DBB} = application:get_env(ae_core, download_blocks_batch),
-			 HH = MyHeight + DBB,
-			 if
-			     HH < Height ->
-				 {ok, Block} = talker:talk({block, HH}, IP, Port),
-				 io:fwrite("HH < Height\n"),
-				 talk({block, HH}, IP, Port,
-				      fun(Y) -> 
-					      trade_blocks(IP, Port, [Y], HH)
-						    end);
-			     true ->
-				 io:fwrite("trade blocks 2\n"),
-				 trade_blocks(IP, Port, [TopBlock], Height)
-				     
-			 end,
-			 get_txs(IP, Port),
-			 trade_peers(IP, Port);
-			 %Time = timer:now_diff(erlang:timestamp(), S),%1 second is 1000000.
-			 %Score = abs(Time)*(1+abs(Height - MyHeight));
-		     X -> 
-			 io:fwrite("\nTOP FAILED\n"),
-			 io:fwrite(X),
-			 io:fwrite("\nTOP FAILED\n")
-		 end
-	 end).
 
+sync(Peer, MyHeight) ->
+    RemoteTop = remote_peer({top}, Peer),
+	do_sync(RemoteTop, MyHeight, Peer).
 
-    %peers:update_score(IP, Port, Score).
-    %raise their ranking.
-get_blocks(Height, N, IP, Port, _) ->
-    %heigh is the heighest we download. Height-n is lowest.
-    
-    talk({block, max(Height-N, 0), N}, IP, Port, 
-	 fun(X) -> X end).
+do_sync(error, _, _) ->
+    ok;
+do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
+    {ok, DBB} = application:get_env(ae_core, download_blocks_batch),
+    JumpHeight = MyHeight + DBB,
+    if
+        JumpHeight < Height ->
+            io:fwrite("JumpHeight < Height\n"),
+            BlockAtJumpHeight = remote_peer({block, JumpHeight}, Peer),
+            trade_blocks(Peer, [BlockAtJumpHeight], JumpHeight);
+        true ->
+            trade_blocks(Peer, [TopBlock], Height)
+    end,
+    get_txs(Peer),
+    trade_peers(Peer).
 
-%get_blocks(_, 0, _, _, L) -> L;
-%get_blocks(H, _, _, _, L) when H < 1 -> L;
-%get_blocks(Height, N, IP, Port, L) -> 
-    %should send multliple blocks at a time!!
-%    talk({block, Height}, IP, Port,
-%	 fun(X) -> get_blocks(Height-1, N-1, IP, Port, [X|L])
-%	 end).
-    
-trade_blocks(IP, Port, L, 1) ->
-    sync3(L),
+trade_blocks(Peer, L, 1) ->
+    block_absorber:enqueue(L),
     Genesis = block:read_int(0),
     GH = block:hash(Genesis),
-    send_blocks(IP, Port, top:doit(), GH, [], 0);
-trade_blocks(IP, Port, [PrevBlock|PBT], Height) ->
-    io:fwrite("trade blocks\n"),
-    io:fwrite("height "),
-    io:fwrite(integer_to_list(Height)),
-    io:fwrite("\n"),
-    %"nextBlock" is from earlier in the chain than prevblock. we are walking backwards
-    io:fwrite("prev block is "),
-    io:fwrite(packer:pack(PrevBlock)),
-    io:fwrite("\n"),
+    send_blocks(Peer, top:doit(), GH, [], 0);
+trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     PrevHash = block:hash(PrevBlock),
-    %{ok, PowBlock} = talker:talk({block, Height}, IP, Port),
     {PrevHash, NextHash} = block:check1(PrevBlock),
-    M = block:read(PrevHash),%check if it is in our memory already.
-    case M of
-	empty -> 
-	    talk({block, Height-1}, IP, Port,
-		 fun(NextBlock) ->
-			 NextHash = block:hash(NextBlock),
-			 trade_blocks(IP, Port, [NextBlock|[PrevBlock|PBT]], Height - 1)
-		 end);
-	_ -> 
-	    sync3(PBT),
-	    send_blocks(IP, Port, top:doit(), PrevHash, [], 0)
+	OurChainAtPrevHash = block:read(PrevHash),
+	case OurChainAtPrevHash of
+        empty ->
+            RemoteBlockThatWeMiss = remote_peer({block, Height-1}, Peer),
+            NextHash = block:hash(RemoteBlockThatWeMiss),
+            trade_blocks(Peer, [RemoteBlockThatWeMiss|CurrentBlocks], Height-1);
+        _ ->
+            block_absorber:enqueue(PBT),
+            send_blocks(Peer, top:doit(), PrevHash, [], 0)
     end.
-send_blocks(IP, Port, T, T, L, _N) -> 
-    send_blocks2(IP, Port, L);
-send_blocks(IP, Port, TopHash, CommonHash, L, N) ->
-    %io:fwrite("send blocks 1 \n"),
+
+send_blocks(Peer, Hash, Hash, Blocks, _N) ->
+    send_blocks_external(Peer, Blocks);
+send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
     GH = block:hash(block:read_int(0)),
     if
-	TopHash == GH -> send_blocks2(IP, Port, L);
-	%N>4000 -> send_blocks2(IP, Port, L);
-	true -> 
-	    BlockPlus = block:read(TopHash),
-	    PrevHash = block:prev_hash(BlockPlus),
-	    send_blocks(IP, Port, PrevHash, CommonHash, [BlockPlus|L], N+1)
+        OurTopHash == GH -> send_blocks_external(Peer, Blocks);
+        true ->
+            BlockPlus = block:read(OurTopHash),
+            PrevHash = block:prev_hash(BlockPlus),
+            send_blocks(Peer, PrevHash, CommonHash, [BlockPlus|Blocks], N+1)
     end.
-send_blocks2(_, _, []) -> ok;
-send_blocks2(IP, Port, [Block|T]) -> 
-    talker:talk({give_block, Block}, IP, Port),
+
+send_blocks_external(Peer, Blocks) ->
+    spawn(?MODULE, do_send_blocks, [Peer, Blocks]).
+
+do_send_blocks(_, []) -> ok;
+do_send_blocks(Peer, [Block|T]) ->
+    remote_peer({give_block, Block}, Peer),
     timer:sleep(20),
-    send_blocks2(IP, Port, T).
-    
-sync3([]) -> ok;
-sync3([B|T]) -> 
-    %io:fwrite("sync 3 \n"),
-    block_absorber:doit(B),
-    sync3(T).
-absorb_txs([]) -> ok;
-absorb_txs([H|T]) -> 
-    tx_pool_feeder:absorb(H),
-    absorb_txs(T).
-talk(CMD, IP, Port, F) ->
-    io:fwrite("start talk\n"),
-    talk(CMD, IP, Port, F, 1).
-talk(_, _, _, _, 0) -> 
-    io:fwrite("talk error \n"),
-    error;
-talk(CMD, IP, Port, F, N) ->
-    io:fwrite("talk number "),
-    io:fwrite(integer_to_list(N)),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(CMD)),
-    case talker:talk(CMD, IP, Port) of
-	{error, failed_connect} -> talk(CMD, IP, Port, F, N-1);
-	{ok, X} -> F(X);
-	X -> F(X)
+    do_send_blocks(Peer, T).
+
+get_txs(Peer) ->
+    Txs = remote_peer({txs}, Peer),
+    tx_pool_feeder:absorb(Txs),
+    {_,_,Mine} = tx_pool:data(),
+    remote_peer({txs, Mine}, Peer).
+
+trade_peers(Peer) ->
+    TheirsPeers = remote_peer({peers}, Peer),
+    MyPeers = ae_utils:tuples2lists(peers:all()),
+    remote_peer({peers, MyPeers}, Peer),
+    peers:add(TheirsPeers).
+
+remote_peer(Transaction, Peer) ->
+    case talker:talk(Transaction, Peer) of
+        {ok, Return0} -> Return0;
+        Return1 -> Return1
     end.
-	   
-get_txs(IP, Port) ->
-    io:fwrite("download blocks get txs\n"),
-    talk({txs}, IP, Port, 
-	 fun(X) ->
-		 {_,_,Mine} = tx_pool:data(),
-		 talker:talk({txs, Mine}, IP, Port),
-		 absorb_txs(X)
-	 end).
-trade_peers(IP, Port) ->
-    talk({peers}, IP, Port,
-	 fun(X) ->
-		 MyPeers = tuples2lists(peers:all()),
-		 talker:talk({peers, MyPeers}, IP, Port),
-		 peers:add(X)
-	 end).
-tuples2lists(X) when is_tuple(X) ->
-    tuples2lists(tuple_to_list(X));
-tuples2lists([]) -> [];
-tuples2lists([H|T]) -> 
-    [tuples2lists(H)|tuples2lists(T)];
-tuples2lists(X) -> X.
-    
-    
-    
-
-

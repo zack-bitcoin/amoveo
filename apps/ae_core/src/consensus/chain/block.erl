@@ -153,7 +153,7 @@ absorb_txs(PrevPlus, Height, Txs, Pub) ->
 		MinesBlock = mine_block_ago(BlocksAgo),
 		BR = governance:get_value(block_reward, Governance),
 		Acc = case accounts:get(MinesBlock, Accounts2) of
-			  empty ->
+			  {_, empty, _} ->
 			      accounts:new(Pub, BR, Height);
 			  _ ->
 			      accounts:update(Pub, Trees2, BR, none, Height)%gives 30% more than the amount of money you need to keep the account open until you get your reward.
@@ -445,7 +445,7 @@ mine_test() ->
     PH = top:doit(),
     BP = make(PH, [], keys:pubkey()),
     PBlock = mine(BP, 1000000000),
-    block_absorber:doit(PBlock),
+    block_absorber:save(PBlock),
     mine_blocks(10, 100000),
     success.
 mine_blocks(A, B) -> 
@@ -471,14 +471,16 @@ mine_blocks(N, Times, Cores) ->
 		case mine(BP, Times) of
 		    false -> false;
 		    PBlock -> 
-			io:fwrite("FOUND A BLOCK !\n"),
+			io:fwrite("FOUND A BLOCK "),
+			io:fwrite(integer_to_list(height(block(PBlock)))),
+			io:fwrite("\n"),
 			H = height(PBlock) rem 10,
 			case H of
 			    0 ->
 				block_absorber:garbage();
 			    _ -> ok
 			end,
-			block_absorber:doit_ask(PBlock)
+			block_absorber:save(PBlock)
 		end
 	end,
     spawn_many(Cores-1, F),
