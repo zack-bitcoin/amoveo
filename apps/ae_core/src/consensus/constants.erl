@@ -33,7 +33,7 @@ finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> hash_size()*8.
 master_pub() ->
     {ok, X} = application:get_env(ae_core, master_pub),
-    X.
+    base64:decode(X).
 
 %master_address() ->
 %    testnet_sign:pubkey2address(master_pub()).
