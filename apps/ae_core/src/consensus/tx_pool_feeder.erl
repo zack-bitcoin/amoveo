@@ -16,18 +16,14 @@
 %% API functions
 
 absorb([]) ->
+    %Absorb needs to feed every tx into the gen_server seperately.
+    %This way if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
     ok;
 absorb([H | T]) ->
     absorb(H),
     absorb(T);
 absorb(SignedTx) ->
-    {_, _, Txs} = tx_pool:data(),
-    case is_in(SignedTx, Txs) of
-        true ->
-            ok;
-        false ->
-            gen_server:cast(?MODULE, {absorb, SignedTx})
-    end.
+    gen_server:cast(?MODULE, {absorb, SignedTx}).
 
 absorb_unsafe(SignedTx) ->
     {Trees, Height, _} = tx_pool:data(),
@@ -51,22 +47,7 @@ handle_call(_, _From, State) ->
     {reply, State, State}.
 
 handle_cast({absorb, SignedTx}, State) ->
-    {Trees, Height, Txs} = tx_pool:data(),
-    Governance = trees:governance(Trees),
-    Tx = testnet_sign:data(SignedTx),
-    Fee = element(4, Tx),
-    Type = element(1, Tx),
-    Cost = governance:get_value(Type, Governance),
-    {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
-    true = Fee > (MinimumTxFee + Cost),
-    Accounts = trees:accounts(Trees),
-    true = testnet_sign:verify(SignedTx, Accounts),
-    case is_in(SignedTx, Txs) of
-        true ->
-            ok = lager:info("Already have this tx");
-        false ->
-            absorb_unsafe(SignedTx, Trees, Height)
-    end,
+    absorb_internal(SignedTx),
     {noreply, State};
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -94,3 +75,22 @@ is_in(STx, [STx2 | T]) ->
         false ->
             is_in(STx, T)
     end.
+
+absorb_internal(SignedTx) ->
+    {Trees, Height, Txs} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    Tx = testnet_sign:data(SignedTx),
+    Fee = element(4, Tx),
+    Type = element(1, Tx),
+    Cost = governance:get_value(Type, Governance),
+    {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
+    true = Fee > (MinimumTxFee + Cost),
+    Accounts = trees:accounts(Trees),
+    true = testnet_sign:verify(SignedTx, Accounts),
+    case is_in(SignedTx, Txs) of
+        true ->
+            ok = lager:info("Already have this tx");
+        false ->
+            absorb_unsafe(SignedTx, Trees, Height)
+    end.
+    

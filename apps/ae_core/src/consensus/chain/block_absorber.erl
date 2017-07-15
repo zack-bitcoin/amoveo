@@ -34,12 +34,15 @@ garbage() ->
 enqueue(InputBlocks) when is_list(InputBlocks) ->
     [enqueue(InputBlock) || InputBlock <- InputBlocks];
 enqueue(InputBlock) ->
+    headers:absorb([block:block_to_header_new(InputBlock)]),
     gen_server:cast(?MODULE, {doit, InputBlock}).
 
 
 save(InputBlocks) when is_list(InputBlocks) ->
     [save(InputBlock) || InputBlock <- InputBlocks];
 save(InputBlock) ->
+    Header = headers:serialize(block:block_to_header_new(InputBlock)),
+    headers:absorb([Header]),
     gen_server:call(?MODULE, {doit, InputBlock}).
 
     

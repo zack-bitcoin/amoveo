@@ -22,7 +22,7 @@ block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 
     case application:get_env(ae_core, test_mode, false) of
-	true -> 1;
+	true -> 0;
 	_ -> 6452
     end.
 difficulty_bits() -> 24.
@@ -79,6 +79,7 @@ secrets() -> root() ++ "secrets.db".
 order_book() -> root() ++ "order_book.db".
 scripts_root() -> "lib/ae_core-0.1.0/priv/".
 oracle_bet() -> scripts_root() ++ "oracle_bet.fs".
+headers_file() -> root() ++ "headers.db".
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
 half_bal() -> round(math:pow(2, balance_bits()-1)).
@@ -143,8 +144,8 @@ peers() ->
     [].%[{IP, Port}| ...]
 comment_limit() -> %When a miner mines a block, they can set this many bytes to whatever they want.
     140.
-magic() -> 3.
-magic_bits() -> 16.%so we can update it more than 60000 times.
+version() -> 3.
+version_bits() -> 16.%so we can update it more than 60000 times.
 %rename to "Protocol VERSION".
 server_ip() -> {46,101,103,165}.
 server_port() -> 8080.

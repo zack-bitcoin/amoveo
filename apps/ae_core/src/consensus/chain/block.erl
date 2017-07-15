@@ -8,13 +8,14 @@
 	 block_to_header/1,
 	 median_last/2, trees/1, trees_hash/1,
 	 guess_number_of_cpu_cores/0, difficulty/1,
-	 txs/1, genesis_maker/0, new_id/1, read_many/2
+	 txs/1, genesis_maker/0, new_id/1, read_many/2,
+	 block_to_header_new/1
 	]).
 
 -record(block, {height, prev_hash, txs, trees, 
 		mines_block, time, 
 		difficulty, comment = <<>>,
-		magic = constants:magic()}).%tries: txs, channels, census, 
+		version = constants:version()}).%tries: txs, channels, census, 
 -record(block_plus, {block, pow, trees, accumulative_difficulty = 0, prev_hashes = {prev_hashes}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
 %this gets wrapped in a signature and then wrapped in a pow.
@@ -22,6 +23,23 @@ txs(X) ->
     X#block.txs.
 trees_hash(X) ->
     X#block.trees.
+txs_hash(X) ->
+    testnet_hasher:doit(X).
+block_to_header_new(BP) ->
+    B = block(BP),
+    POW = BP#block_plus.pow,
+    Nonce = pow:nonce(POW),
+    io:fwrite("make header\n"),
+    H = headers:make_header(B#block.prev_hash,
+			    B#block.height,
+			    B#block.time,
+			    B#block.version,
+			    B#block.trees,
+			    txs_hash(B#block.txs),
+			    Nonce,
+			    B#block.difficulty),
+    headers:serialize(H).
+
 block_to_header(B) ->
     Block = block(B),
     Height = Block#block.height,
@@ -29,8 +47,8 @@ block_to_header(B) ->
     Trees = Block#block.trees,
     Miner = Block#block.mines_block,
     Time = Block#block.time,
-    Diff = Block#block.difficulty,
-    Magic = Block#block.magic,
+    %Diff = Block#block.difficulty,
+    Version = Block#block.version,
     TxHash = testnet_hasher:doit(Block#block.txs),
     %io:fwrite(packer:pack({block_to_header, size(Miner), constants:pubkey_size()})),
     true = size(Miner) == constants:pubkey_size(),
@@ -38,11 +56,12 @@ block_to_header(B) ->
       Height:(constants:height_bits()),
       %Miner:(constants:address_bits()),
       Time:(constants:time_bits()),
-      Diff:(constants:difficulty_bits()),
-      Magic:(constants:magic_bits()),
+      %Diff:(constants:difficulty_bits()),
+      Version:(constants:version_bits()),
       Miner/binary,
       Trees/binary,
       TxHash/binary>>.
+    
       
 hashes(BP) ->
     BP#block_plus.prev_hashes.
@@ -84,8 +103,8 @@ prev_hash(N, BP) ->%N=0 should be the same as prev_hash(BP)
 prev_hash(X) -> 
     B = block(X),
     B#block.prev_hash.
-hash(X) -> 
-    testnet_hasher:doit(block_to_header(block(X))).
+hash(BP) -> 
+    testnet_hasher:doit(block_to_header_new(BP)).
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
@@ -107,14 +126,14 @@ genesis_maker() ->
 		     TreeRoot,
                    %<<86,31,143,142,73,28,203,208,227,116,25,154>>,
                    Pub,0,4080,<<>>,%1},
-		     constants:magic()},
+		     constants:version()},
             {pow,<<>>,4080,44358461744572027408730},
 	 Trees,
             %{trees,1,0,0,0,0,38},
             0,
             {prev_hashes}},
     %Block = {pow,{block,0,<<0:(8*constants:hash_size())>>,[], TreeRoot,
-	%	  1,0,4080, <<>>, constants:magic()},
+	%	  1,0,4080, <<>>, constants:version()},
 	%     4080,44358461744572027408730},
     Block.
     %#block_plus{block = Block, trees = Trees}.
@@ -181,7 +200,8 @@ make(PrevHash, Txs, Pub) ->%Pub is the user who gets rewarded for mining this bl
 		       mines_block = Pub,
 		       time = time_now()-5,
 		       difficulty = NextDifficulty},
-		accumulative_difficulty = next_acc(ParentPlus, NextDifficulty),
+	
+	accumulative_difficulty = next_acc(ParentPlus, NextDifficulty),
 		trees = NewTrees,
 		prev_hashes = prev_hashes(PrevHash)
       }.
@@ -210,8 +230,8 @@ next_difficulty(ParentPlus) ->
     Height = Parent#block.height + 1,
     RF = constants:retarget_frequency(),
     Governance = trees:governance(Trees),
-    RP = governance:get_value(retarget_period, Governance),
-    X = Height rem RP,
+    %RP = governance:get_value(retarget_period, Governance),
+    X = Height rem RF,
     OldDiff = Parent#block.difficulty,
     PrevHash = hash(ParentPlus),
     if
@@ -249,7 +269,7 @@ retarget2(Hash, N, L) ->
     retarget2(H, N-1, [T|L]).
 check1(BP) ->    
     Block = block(BP),
-    true = Block#block.magic == constants:magic(),
+    true = Block#block.version == constants:version(),
     BH = hash(BP),
     GH = hash(read_int(0)),
     if
