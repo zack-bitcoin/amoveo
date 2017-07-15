@@ -43,7 +43,8 @@ now_balance(Acc, Amount, NewHeight, Trees) ->
 	    MasterPub ->
 		-(governance:get_value(developer_reward, Governance));
 	    _ ->
-		governance:get_value(account_rent, Governance)
+		%governance:get_value(account_rent, Governance)
+		0
 	end,
     Amount + Acc#acc.balance - (Rent * DH).
     

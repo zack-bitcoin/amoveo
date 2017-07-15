@@ -50,11 +50,11 @@ digest2(Tx, Trees, H) ->
         oracle_close -> oracle_close_tx:doit(Tx, Trees, H);
         unmatched -> oracle_unmatched_tx:doit(Tx, Trees,H);
         oracle_shares -> oracle_shares_tx:doit(Tx,Trees,H);
+	coinbase -> coinbase_tx:doit(Tx, Trees, H);
         X -> X = 2
     end.
 
-fees([]) ->
-	0;
+fees([]) -> 0;
 fees([H | T]) ->
     element(4, element(2, H)) + fees(T).
 

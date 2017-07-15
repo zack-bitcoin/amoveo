@@ -26,8 +26,8 @@ genesis_state() ->
 	 [delete_channel_reward, 240],
 	 [create_account_fee, 250],
 	 [delete_account_reward, 240],
-	 [channel_rent, 600],
-	 [account_rent, 600],
+	 %[channel_rent, 600],
+	 %[account_rent, 600],
 	 [block_time, BlockTime],
 	 [oracle_future_limit, 335],
 	 [shares_conversion, 575],
@@ -145,8 +145,8 @@ name2number(create_channel_fee) -> 4;
 name2number(delete_channel_reward) -> 5;
 name2number(create_account_fee) -> 6;
 name2number(delete_account_reward) -> 7;
-name2number(channel_rent) -> 9;
-name2number(account_rent) -> 10;
+%name2number(channel_rent) -> 9;
+%name2number(account_rent) -> 10;
 name2number(block_time) -> 11;
 name2number(oracle_future_limit) -> 12;
 name2number(shares_conversion) -> 13;

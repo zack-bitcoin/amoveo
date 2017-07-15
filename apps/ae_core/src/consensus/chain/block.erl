@@ -145,8 +145,8 @@ block_reward(Trees, Height, ID) ->
     Txs = block:txs(block:block(block:read_int(BlocksAgo))),
     TransactionFees = txs:fees(Txs),
     TransactionCosts = tx_costs(Txs, Governance, 0),
-    BlockReward = governance:get_value(block_reward, Governance),
-    NM = accounts:update(ID, Trees, BlockReward + TransactionFees - TransactionCosts, none, Height),
+    %BlockReward = governance:get_value(block_reward, Governance),
+    NM = accounts:update(ID, Trees, TransactionFees - TransactionCosts, none, Height),
     %NM2 = accounts:update(1, Trees, ((BlockReward * 8) div 100), none, Height),
     accounts:write(
       %accounts:write(OldAccounts, NM2),
@@ -268,7 +268,9 @@ retarget2(Hash, N, L) ->
     H = B#block.prev_hash,
     retarget2(H, N-1, [T|L]).
 check1(BP) ->    
+    %make sure there is only 1 coinbase transaction.
     Block = block(BP),
+    Txs = txs(Block),
     true = Block#block.version == constants:version(),
     BH = hash(BP),
     GH = hash(read_int(0)),
@@ -283,7 +285,7 @@ check1(BP) ->
 	    Header = hash(Block),
 	    Header = pow:data(PowBlock),
 	    true = Block#block.time < time_now(),
-	    true = one_tx_per_account(Block),
+	    true = one_coinbase(Txs, 0),
 	    {BH, Block#block.prev_hash}
     end.
 
@@ -411,9 +413,17 @@ read_int(N, BH) ->
 	true ->
 	    read_int(N, prev_hash(lg(D), Block))
     end.
-one_tx_per_account(Block) ->
-    %make sure that every account and channel only gets updated once per block.
-    true.
+one_coinbase([], 0) -> true;
+one_coinbase([], 1) -> true;
+one_coinbase([A|T], N) ->
+    Tx = testnet_sign:data(A),
+    Type = element(1, Tx),
+    case Type of
+	coinbase -> one_coinbase(T, N+1);
+	_ -> one_coinbase(T, N)
+    end;
+one_coinbase([], _) -> false.
+    
 
 
 test() ->

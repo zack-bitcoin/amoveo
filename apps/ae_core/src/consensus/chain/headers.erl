@@ -111,22 +111,20 @@ check_pow(Header) ->
     W = hash:doit(S, constants:hash_size()),
     I = pow:hash2integer(W),
     I > Header#header.difficulty.
-check_difficulty(A) ->
-    case read(A#header.prev_hash) of
-	error ->
-	    throw(this_header_has_no_parent);
-	 {ok, PHeader} ->
-	    D1 = PHeader#header.difficulty,
-	    D2 = A#header.difficulty,
-	    RF = constants:retarget_frequency(),
-	    X = A#header.height rem RF,
-	    if
-		X == 0 ->
-		    {check_difficulty2(A, PHeader), PHeader};
-		true ->
-		    {D1 == D2, PHeader}
-	    end
+difficulty_should_be(A) ->
+    D1 = A#header.difficulty,
+    RF = constants:retarget_frequency(),
+    X = A#header.height rem RF,
+    if
+	X == 0 ->
+	    check_difficulty2(A, PHeader);
+	true ->
+	    D1
     end.
+check_difficulty(A) ->
+    {ok, PHeader} = read(A#header.prev_hash),
+    B = difficulty_should_be(PHeader),
+    {B == A#header.difficulty, PHeader}.
 median(L) ->
     S = length(L),
     F = fun(A, B) -> A > B end,
@@ -143,8 +141,8 @@ check_difficulty2(Header, PHeader) ->
     NT = pow:recalculate(PHeader#header.difficulty, 
 			 constants:block_time(),
 			 max(1, T)),
-    true = Header#header.difficulty == 
-	max(NT, constants:initial_difficulty()).
+    
+    max(NT, constants:initial_difficulty()).
 retarget(Header, 0, L) -> {L, Header};
 retarget(Header, N, L) ->
     PH = read(Header#header.prev_hash),

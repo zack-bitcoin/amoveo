@@ -51,11 +51,5 @@ init([]) ->
 	     tree_child(shares, KL, (KL + 1 + ((BB + HB) div 8))),
 	     tree_child(governance, 8, 4)
 	    ],
-    io:fwrite("testnet sup 00\n"),
-    io:fwrite("testnet sup 01\n"),
-    io:fwrite("testnet sup 02\n"),
-    io:fwrite("testnet sup 03\n"),
-    io:fwrite("testnet sup 04\n"),
-    io:fwrite("testnet sup 05\n"),
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 

@@ -7,7 +7,7 @@
          add_peer/2, sync/2, load_key/3]).
 
 -export([create_account/2, delete_account/1, account/1,
-         repo_account/1, repo_account/2]).
+         repo_account/1, repo_account/2, coinbase/1]).
 
 -export([channel_balance/0, solo_close_channel/0, channel_timeout/0,
          new_channel_with_server/3, pull_channel_state/2,
@@ -76,6 +76,12 @@ create_account(NewAddr, Amount) ->
 create_account(NewAddr, Amount, Fee) ->
     F = fun(Trees) ->
 		create_account_tx:make(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees) end,
+    tx_maker(F).
+coinbase(ID) ->
+    K = keys:pubkey(),
+    {Trees, _, _} = tx_pool:data(),
+    F = fun(Trees) ->
+		coinbase_tx:make(K, Trees) end,
     tx_maker(F).
 spend(ID, Amount) ->
     K = keys:pubkey(),
