@@ -161,12 +161,12 @@ python-tests:
 unit-tests:
 	@./rebar3 do eunit,ct
 
-#swagger: config/swagger.yaml
-#	@swagger-codegen generate -i $< -l erlang-server -o $(SWTEMP)
-#	@echo "Swagger tempdir: $(SWTEMP)"
-#	@cp $(SWTEMP)/priv/swagger.json apps/ae_http/priv/
-#	@cp $(SWTEMP)/src/*.erl $(SWAGGER)/
-#	@rm -fr $(SWTEMP)
+swagger: config/swagger.yaml
+	@swagger-codegen generate -i $< -l erlang-server -o $(SWTEMP)
+	@echo "Swagger tempdir: $(SWTEMP)"
+	@cp $(SWTEMP)/priv/swagger.json apps/ae_http/priv/
+	@cp $(SWTEMP)/src/*.erl $(SWAGGER)/
+	@rm -fr $(SWTEMP)
 
 #for rebar.lock
 dependency-unlock:

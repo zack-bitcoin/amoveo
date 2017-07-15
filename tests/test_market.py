@@ -1,7 +1,7 @@
 from base import ApiUser, DEV_1_INT, DEV_2_INT, DEV_3_INT
 from nose.tools import nottest
 
-#@nottest
+
 class MarketTest(ApiUser):
     def test_market(self):
         #self.mine_block(DEV_1_INT, [1, 1], sleep=5)

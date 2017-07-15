@@ -1,7 +1,7 @@
 from base import ApiUser, DEV_1_INT, DEV_2_INT
 from nose.tools import nottest
 
-#@nottest
+
 class SpendTest(ApiUser):
     def test_mine_and_sync(self):
         pub = "BGRv3asifl1g/nACvsJoJiB1UiKU7Ll8O1jN/VD2l/rV95aRPrMm1cfV1917dxXVERzaaBGYtsGB5ET+4aYz7ws="

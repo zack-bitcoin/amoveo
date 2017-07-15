@@ -59,25 +59,25 @@ Its useful for multinode transactions and payments
 
 ```Dev```
 
-``` make test-build```
+``` make multi-build```
 
 ## Starting your nodes
 
-Starting a test node
-
-``` make test-start ```
-
 Starting a production node
 
-``` make prod-start ```
+``` make prod-go ```
+
+Starting a test node
+
+``` make local-go ```
 
 Starting one of the 3 test nodes
 
-``` make test1-start ``` ``` test2-start ``` ``` test3-start ```
+``` make go1 ``` ``` make go2 ``` ``` make go3```
 
 Starting all 3 test nodes at once
 
-``` make test-start ```
+``` make multi-go ```
 
 ## Communicating with your nodes
 
@@ -95,13 +95,13 @@ make local-attach
 
 3 different commands to attach to one of the 3 nodes for testing
 
-``` make test1-attach ``` ``` test2-attach ``` ``` test3-attach ```
+``` make attach1 ``` ``` make attach2 ``` ``` make attach3 ```
 
 ## Turning off your node
 
 The test node is turned off this way
 
-``` make test-stop ```
+``` make local-stop ```
 
 The production node is turned off this way
 
@@ -109,11 +109,11 @@ The production node is turned off this way
 
 An individual of the 3 test nodes can be turned off like this
 
-``` make test1-stop ``` ``` test2-stop ``` ``` test3-stop ```
+``` make stop1 ``` ``` make stop2 ``` ``` make stop3 ```
 
 You can turn off all 3 at once like this
 
-``` make test-stop ```
+``` make multi-stop ```
 
 ## Deleting your database to restart from the genesis block.
 
@@ -134,11 +134,11 @@ make prod-clean
 clean blocks and transactions from one of the 3-nodes.
 3 different commands for 3 different nodes
 
-``` make test1-clean ``` ``` test2-clean ``` ``` test3-clean ```
+``` make clean1 ``` ``` make clean2 ``` ``` make clean3 ```
 
 You can also clean all 3 at once
 
-``` make test-clean ```
+``` make multi-clean ```
 
 
 ### Blockchain Commands
