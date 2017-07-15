@@ -21,10 +21,16 @@ talk_helper(_, _, 0) ->
     {error, failed_connect};
 talk_helper(Msg, Peer, N) ->
     PM = packer:pack(Msg),
+    %io:fwrite("talk helper msg is "),
+    %io:fwrite(PM),
+    %io:fwrite("\n"),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}], []) of
         {ok, {_Status, _Headers, []}} ->
             talk_helper(Msg, Peer, N - 1);
         {ok, {_, _, R}} ->
+	    io:fwrite("response was \n"),
+	    io:fwrite(R),
+	    io:fwrite("\n"),
             packer:unpack(R);
         {error, socket_closed_remotely} ->
             talk_helper(Msg, Peer, N - 1);

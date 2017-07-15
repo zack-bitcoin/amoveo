@@ -1,3 +1,7 @@
+get rid of repetition in /apps/ae_core/src/consensus/txs/spk.erl
+
+
+
 ### Needed before launch of mainnet
 
 The half-life of shares should be a governance variable.
@@ -108,3 +112,8 @@ A2 = amount of money in biggest possible bet,
 B = A2 div 10000,
 0 == A1 rem B
 Making A1 rem B == 0 limits the possible output values of the contract, which slightly reduces liquidity. Being able to reduce the fee to zero is worth this small cost.
+
+Maybe we should avoid revealing pubkeys until the last minute. For quantum security.
+Maybe we should make pubkey vs addresses be optional,
+
+Blocks should be serialized to be fully compressed.

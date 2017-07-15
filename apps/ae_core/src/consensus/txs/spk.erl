@@ -6,7 +6,8 @@
 	 run/6,settle_bet/4,chalang_state/3,
 	 prove/1, new_bet/4, delay/1,
 	 is_improvement/4, bet_unlock/2,
-	 code/1, key/1,
+	 code/1, key/1, test2/0,
+	 force_update/3,
 	 test/0
 	]).
 -record(bet, {code, amount, prove, key}).%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
@@ -47,9 +48,6 @@ prove_facts(X, Trees) ->
 	macro ] swap cons reverse ;
         [">>,
     B = prove_facts2(X, Trees),
-    io:fwrite("prove script "),
-    io:fwrite(B),
-    io:fwrite("\n"),
     compiler_chalang:doit(<<A/binary, B/binary>>).
 prove_facts2([], _) ->
     <<"]">>;
@@ -114,8 +112,6 @@ bet_unlock(SPK, SS) ->
     %check if we have the secret to unlock each bet.
     %unlock the ones we can, and return an SPK with the remaining bets and the new amount of money that is moved.
     {Remaining, AmountChange, SSRemaining, Secrets, Dnonce, SSThem} = bet_unlock2(Bets, [], 0, SS, [], [], 0, []),
-    io:fwrite("spk bet unlock remaining "),
-    io:fwrite(packer:pack(Remaining)),
     {lists:reverse(SSRemaining),
      SPK#spk{bets = lists:reverse(Remaining),
 	     amount = SPK#spk.amount + AmountChange,
@@ -135,39 +131,42 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
 	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
 	    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
-	    io:fwrite("\n"),
-	    io:fwrite("\n"),
-	    io:fwrite("\n"),
-	    io:fwrite("spk bet unlock 2 Bet is "),
-	    io:fwrite(packer:pack(Bet)),
-	    io:fwrite("\n"),
-	    io:fwrite("\n"),
-	    io:fwrite("\n"),
-	   
 	    true = chalang:none_of(SS2),
 	    F = prove_facts(Bet#bet.prove, Trees),
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
 	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2, Code, State, constants:hash_size()),
+
 	    Data2 = chalang:run5([SS2], Data),
 	    Data3 = chalang:run5([Code], Data2),
 	    case Data3 of
 		{error, E} -> 
-		    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
-		X ->
-		    [ShareRoot, <<ContractAmount:32>>, <<Nonce2:32>>, <<_Delay:32>>|_] = chalang:stack(X),
-		    io:fwrite("bet unlock 2 R is "),
-		    io:fwrite(packer:pack({r, ContractAmount, Nonce2, ShareRoot})),
-		    io:fwrite("\n"),
-		    ShareRoot = [],%deal with lightning shares later.
-		    CGran = constants:channel_granularity(),
-		    true = ContractAmount =< CGran,
-		    A3 = ContractAmount * Bet#bet.amount div CGran,
-		    bet_unlock2(T, B, A+A3, SSIn, SSOut, [{secret, SS2, Key}|Secrets], Nonce + Nonce2, [SS2|SSThem]);
-		{error, _} ->
-		    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem])
+		    Data4 = chalang:run5([SS], Data),
+		    Y = chalang:run5([Code], Data4),
+		    case Y of
+			{error, E2} ->
+			    io:fwrite("bet unlock2 ERROR"),
+			    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
+			Z -> 
+			    bet_unlock3(Z, T, B, A, Bet, SSIn, SSOut, SS, Secrets, Nonce, SSThem)
+		    end;
+		X -> bet_unlock3(X, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem)
 	    end
     end.
+bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
+    [ShareRoot, <<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
+    ShareRoot = [],%deal with lightning shares later.
+   if
+        Delay > 50 ->
+	    
+	   bet_unlock2(T, [Bet|B], A, SSIn, [SS2|SSOut], Secrets, Nonce, [SS2|SSThem]);
+       true -> 
+	   CGran = constants:channel_granularity(),
+	   true = ContractAmount =< CGran,
+	   A3 = ContractAmount * Bet#bet.amount div CGran,
+	   Key = Bet#bet.key, 
+	   bet_unlock2(T, B, A+A3, SSIn, SSOut, [{secret, SS2, Key}|Secrets], Nonce + Nonce2, [SS2|SSThem])
+   end.
 	    
 %many(_, 0) -> [];
 %many(X, N) -> [X|many(X, N-1)].
@@ -185,8 +184,6 @@ settle_bet(SPK, Bets, Amount, N) ->
 get_paid(SPK, ID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
     Aid2 = SPK#spk.acc2,
-    io:fwrite(packer:pack({get_paid, ID, Aid1, Aid2})),
-    io:fwrite("\n"),
     D = case ID of
 	Aid1 -> -1;
 	Aid2 -> 1;
@@ -261,8 +258,6 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     %case chalang:run5([Code], Data2) of
 	%{error, E} -> {error, E};
     Data3 = chalang:run5([Code], Data2),
-    %io:fwrite("spk run3 "),
-    %io:fwrite(packer:pack(Data2)),
     [ShareRoot|
      [<<Amount:32>>|
       [<<Nonce:32>>|
@@ -273,7 +268,43 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     {A3, Nonce, ShareRoot, Delay,
      chalang:time_gas(Data3)
     }.
-
+force_update(SPK, SSOld, SSNew) ->
+    {Trees, Height, _} = tx_pool:data(),
+    {_, NonceOld, _, _} =  run(fast, SSOld, SPK, Height, 0, Trees),
+    {_, NonceNew, _, _} =  run(fast, SSNew, SPK, Height, 0, Trees),
+    if
+	NonceNew >= NonceOld ->
+	    {NewBets, FinalSS, Amount, Nonce} = force_update2(SPK#spk.bets, SSNew, [], [], 0, 0),
+	    NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + Amount), nonce = (SPK#spk.nonce + Nonce)},
+	    {NewSPK, FinalSS};
+	true -> false
+    end.
+force_update2([], [], NewBets, NewSS, A, Nonce) ->
+    {NewBets, NewSS, A, Nonce};
+force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
+    {Trees, Height, _} = tx_pool:data(),
+    State = chalang_state(Height, 0, Trees),
+    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
+    {ok, VarLimit} = application:get_env(ae_core, var_limit),
+    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
+    true = chalang:none_of(SS),
+    F = prove_facts(Bet#bet.prove, Trees),
+    C = Bet#bet.code,
+    Code = <<F/binary, C/binary>>,
+    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS, Code, State, constants:hash_size()),
+    Data2 = chalang:run5([SS], Data),
+    Data3 = chalang:run5([Code], Data2),
+    [ShareRoot, <<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),
+    if
+	Delay > 50 ->
+	    force_update2(BetsIn, SSIn, [Bet|BetsOut], [SS|SSOut], Amount, Nonce);
+	true ->
+	    CGran = constants:channel_granularity(),
+	    true = ContractAmount =< CGran,
+	    A = ContractAmount * Bet#bet.amount div CGran,
+	    force_update2(BetsIn, SSIn, BetsOut, SSOut, Amount + A, Nonce + N)
+    end.
+    
 is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     {Trees, Height, _} = tx_pool:data(),
     {_, Nonce2, _, Delay2} =  run(fast, NewSS, NewSPK, Height, 0, Trees),
@@ -286,9 +317,9 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     {ok, MaxChannelDelay} = application:get_env(ae_core, max_channel_delay),
     {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
     {ok, TimeLimit} = application:get_env(ae_core, time_limit),
-    true = Delay2 < MaxChannelDelay,
-    true = SG < SpaceLimit,
-    true = TG < TimeLimit,
+    true = Delay2 =< MaxChannelDelay,
+    true = SG =< SpaceLimit,
+    true = TG =< TimeLimit,
     Amount2 = NewSPK#spk.amount,
     Amount1 = OldSPK#spk.amount,
     NewSPK = OldSPK#spk{bets = Bets2,
@@ -385,6 +416,13 @@ obligations(2, [A|T]) ->
 %remove(A, [B|T]) -> 
 %    [B|remove(A, T)].
 
+test2() ->
+    {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
+    SSME = channel_feeder:script_sig_me(CD),
+    SPK = channel_feeder:me(CD),
+    {Trees, Height, _} = tx_pool:data(),
+    run(fast, SSME, SPK, Height, 0, Trees).
+    
 	
 test() ->
     %test prove_facts.

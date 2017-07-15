@@ -6,7 +6,7 @@ First compile it
 ```
 start the node
 ```
-  make prod-start
+  make prod-go
 ```
 You can communicate with the running node like this:
 ```

@@ -1,12 +1,11 @@
 -module(testnet_sign).
 -export([test/0,test2/1,sign_tx/4,sign/2,verify_sig/3,shared_secret/2,verify/2,data/1,
 	 empty/1,empty/0,
-	 verify_1/2,verify_2/2,
-	 new_key/0,pub/1,pub2/1
+	 verify_1/2,verify_2/2, 
+	 %pubkey2address/1, valid_address/1, 
+	 new_key/0%,pub/1,pub2/1%,address2binary/1,binary2address/1
 ]).
--record(signed, {data="", sig="", pub = "", sig2="", pub2=""}).
-pub(X) -> X#signed.pub.
-pub2(X) -> X#signed.pub2.
+-record(signed, {data="", sig="", sig2=""}).
 empty() -> #signed{}.
 empty(X) -> #signed{data=X}.
 data(X) -> X#signed.data.
@@ -24,10 +23,8 @@ verify_sig(S, Sig, Pub) ->
     PD = Pub,
     crypto:verify(ecdsa, sha256, term_to_binary(S), SD, [PD, params()]).
 verify_1(Tx, Pub) -> 
-    Pub == Tx#signed.pub,
     verify_sig(Tx#signed.data, Tx#signed.sig, Pub).
 verify_2(Tx, Pub) -> 
-    Pub == Tx#signed.pub2,
     verify_sig(Tx#signed.data, Tx#signed.sig2, Pub).
 verify_both(Tx, Addr1, Addr2) ->
     X = verify_1(Tx, Addr1),
@@ -55,14 +52,14 @@ verify(SignedTx, Accounts) ->
 	true -> 
 	    verify_1(SignedTx, N1)
     end.
-sign_tx(SignedTx, Pub, Priv, Accounts) when element(1, SignedTx) == signed ->
+sign_tx(SignedTx, Pub, Priv, _) when element(1, SignedTx) == signed ->
     Tx = SignedTx#signed.data,
     N = element(2, Tx),
     %{_, Acc, _Proof} = accounts:get(N, Accounts),
     if
 	(N == Pub)-> 
 	    Sig = sign(Tx, Priv),
-	    SignedTx#signed{sig=Sig, pub=Pub};
+	    SignedTx#signed{sig=Sig};
 	true ->
 	    %make sure Tx is one of the types that has 2 signatures: tc, ctc, gc
 	    Type = element(1, Tx),
@@ -73,19 +70,19 @@ sign_tx(SignedTx, Pub, Priv, Accounts) when element(1, SignedTx) == signed ->
 	    if
 		(N2 == Pub) ->
 		    Sig = sign(Tx, Priv),
-		    SignedTx#signed{sig2=Sig, pub2=Pub};
+		    SignedTx#signed{sig2=Sig};
 		true -> {error, <<"cannot sign">>}
 	    end
 	 end;
-sign_tx(Tx, Pub, Priv, Accounts) ->
+sign_tx(Tx, Pub, Priv, _) ->
     Sig = sign(Tx, Priv),
     N = element(2, Tx),
     N2 = element(3, Tx),
     ST = if
 	(N == Pub) -> 
-	    #signed{data=Tx, sig=Sig, pub=Pub};
+	    #signed{data=Tx, sig=Sig};
 	(N2 == Pub) ->
-	    #signed{data=Tx, sig2=Sig, pub2=Pub};
+	    #signed{data=Tx, sig2=Sig};
 	true -> {error, <<"cannot sign">>}
     end,
     ST.

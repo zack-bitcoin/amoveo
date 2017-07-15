@@ -15,7 +15,7 @@
 		mines_block, time, 
 		difficulty, comment = <<>>,
 		magic = constants:magic()}).%tries: txs, channels, census, 
--record(block_plus, {block, pow, trees, accumulative_difficulty = 0, prev_hashes = {}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
+-record(block_plus, {block, pow, trees, accumulative_difficulty = 0, prev_hashes = {prev_hashes}}).%The accounts and channels in this structure only matter for the local node. they are pointers to the locations in memory that are the root locations of the account and channel tries on this node.
 %prev_hash is the hash of the previous block.
 %this gets wrapped in a signature and then wrapped in a pow.
 txs(X) ->
@@ -70,7 +70,7 @@ prev_hashes(PH) ->
 prev_hashes([PH|Hashes], Height, N) ->
     NHeight = Height - N,
     if
-	NHeight < 1 -> list_to_tuple(lists:reverse([PH|Hashes]));
+	NHeight < 1 -> list_to_tuple([prev_hashes|lists:reverse([PH|Hashes])]);
 	true ->
 	    B = read_int(NHeight, PH),
 	    prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
@@ -80,7 +80,7 @@ prev_hashes([PH|Hashes], Height, N) ->
 prev_hash(0, BP) ->
     prev_hash(BP);
 prev_hash(N, BP) ->%N=0 should be the same as prev_hash(BP)
-    element(N, BP#block_plus.prev_hashes).
+    element(N+1, BP#block_plus.prev_hashes).
 prev_hash(X) -> 
     B = block(X),
     B#block.prev_hash.
@@ -471,14 +471,16 @@ mine_blocks(N, Times, Cores) ->
 		case mine(BP, Times) of
 		    false -> false;
 		    PBlock -> 
-			io:fwrite("FOUND A BLOCK !\n"),
+			io:fwrite("FOUND A BLOCK "),
+			io:fwrite(integer_to_list(height(block(PBlock)))),
+			io:fwrite("\n"),
 			H = height(PBlock) rem 10,
 			case H of
 			    0 ->
 				block_absorber:garbage();
 			    _ -> ok
 			end,
-			block_absorber:enqueue(PBlock)
+			block_absorber:save(PBlock)
 		end
 	end,
     spawn_many(Cores-1, F),

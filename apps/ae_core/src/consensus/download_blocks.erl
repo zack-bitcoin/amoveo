@@ -32,8 +32,11 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
     get_txs(Peer),
     trade_peers(Peer).
 
-trade_blocks(_, L, 1) ->
-	block_absorber:enqueue(L);
+trade_blocks(Peer, L, 1) ->
+    block_absorber:enqueue(L),
+    Genesis = block:read_int(0),
+    GH = block:hash(Genesis),
+    send_blocks(Peer, top:doit(), GH, [], 0);
 trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     PrevHash = block:hash(PrevBlock),
     {PrevHash, NextHash} = block:check1(PrevBlock),
@@ -51,8 +54,9 @@ trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
 send_blocks(Peer, Hash, Hash, Blocks, _N) ->
     send_blocks_external(Peer, Blocks);
 send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
+    GH = block:hash(block:read_int(0)),
     if
-        OurTopHash == 0 -> send_blocks_external(Peer, Blocks);
+        OurTopHash == GH -> send_blocks_external(Peer, Blocks);
         true ->
             BlockPlus = block:read(OurTopHash),
             PrevHash = block:prev_hash(BlockPlus),
@@ -66,7 +70,7 @@ do_send_blocks(_, []) -> ok;
 do_send_blocks(Peer, [Block|T]) ->
     remote_peer({give_block, Block}, Peer),
     timer:sleep(20),
-	do_send_blocks(Peer, T).
+    do_send_blocks(Peer, T).
 
 get_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),

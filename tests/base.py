@@ -97,7 +97,11 @@ class ApiUser(unittest.TestCase):
     def load_key(self, node, args, sleep=0):
         return self._request(node, self.LOAD_KEY, args, sleep)
 
-    def _request(self, node, action, args, seconds_to_sleep):
+
+    def request(self, action, node, args, sleep=0):#seconds to sleep
+        return self._request(node, action, args, sleep)
+        
+    def _request(self, node, action, args, seconds_to_sleep=0):
         url = self.urls[node]
         data = [action] + args
         response = self.session.post(url, json=byteify(data))

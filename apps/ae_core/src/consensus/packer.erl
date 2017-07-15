@@ -20,22 +20,19 @@ unpack_helper(J) ->
     Out = if
 	      %is_binary(K) -> binary_to_atom(K, latin1);
 	      B -> 
-		  io:fwrite("K is "),
-		  io:fwrite(K),
-		  io:fwrite("\n"),
 		  binary_to_atom(K, latin1);
 	      is_integer(K) -> K;
-	      true -> 
-		  io:fwrite("unpacker failed "),
-		  io:fwrite(K),
-		  io:fwrite("\n"),
-		  1=2
-		   
+	      true -> 1=2
 	  end,
     list_to_tuple([Out|lists:map(fun(X) -> unpack_helper(X) end, tl(J))]).
 pack(X) -> jiffy:encode(untup(X)).
 -record(d, {a = "", b = "" }).
+is_b_atom(<<"settle_bets">>) -> true;
+is_b_atom(<<"market">>) -> true;
+is_b_atom(<<"oracles">>) -> true;
+is_b_atom(<<"market_data">>) -> true;
 is_b_atom(<<"learn_secret">>) -> true;
+is_b_atom(<<"give_block">>) -> true;
 is_b_atom(<<"channel_sync">>) -> true;
 is_b_atom(<<"locked_payment">>) -> true;
 is_b_atom(<<"peers">>) -> true;
@@ -132,6 +129,7 @@ is_b_atom(<<"market_match">>) -> true;
 is_b_atom(<<"new_market">>) -> true;
 is_b_atom(<<"trade">>) -> true;
 is_b_atom(<<"test_it_out">>) -> true;
+is_b_atom(<<"dump_channels">>) -> true;
 is_b_atom(<<"test">>) -> true;
 is_b_atom(X) when is_binary(X) -> 
     io:fwrite("FAILED TO UNPACK ATOM "),

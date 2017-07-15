@@ -182,6 +182,7 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     SPK = testnet_sign:data(SSPK2),
     Order = order_book:make_order(Account, Price, Type, Amount),
     order_book:add(Order, OID),
+    %api:channel_manager_update(Account, SSPK2, market:unmatched()),
     {ok, SSPK2};
 doit({remove_trade, AccountID, Price, Type, Amount, OID, SSPK}) ->
     %make sure they signed.
