@@ -43,7 +43,6 @@ txs_and_proof_hash(Txs, Proofs) ->
     testnet_hasher:doit({Txs, Proofs}).
 block_to_header(B) ->
     Nonce = B#block.nonce,
-    io:fwrite("make header\n"),
     headers:make_header(B#block.prev_hash,
 			B#block.height,
 			B#block.time,
@@ -94,8 +93,7 @@ lgh(1, X) -> X;
 lgh(N, X) -> lgh(N div 2, X+1).
 read_int(N, BH) ->
     Block = read(BH),
-    io:fwrite(packer:pack({read_int, N, Block, BH})),
-    M = headers:height(Block),
+    M = height(Block),
     D = M-N,
     if 
 	D<0 -> 
@@ -118,8 +116,6 @@ genesis_maker() ->
     Accounts = accounts:write(0, First),
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
-    io:fwrite(packer:pack({trees, Trees})),
-    io:fwrite("\n"),
     TreesRoot = trees:root_hash(Trees),
     #block{height = 0,
 	   prev_hash = <<0:(constants:hash_size()*8)>>,
@@ -163,7 +159,6 @@ make(Header, Txs0, Trees, Pub) ->
     Height = headers:height(Header),
     NewTrees0 = txs:digest(Txs, Trees, Height+1),
     NewTrees = block_reward(NewTrees0, Height+1, Pub, hash(Header)), 
-    io:fwrite(packer:pack({header, Header})),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -204,18 +199,13 @@ test() ->
     Accounts = accounts:write(0, First),
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
-    %TreeRoot = trees:root_hash(Trees),
     GB = genesis_maker(),
     do_save(GB),
     Header0 = block_to_header(GB),
     GH = hash(Header0),
-    io:fwrite("write hash "),
-    io:fwrite(packer:pack(GH)),
-    io:fwrite("\n"),
     gen_server:call(headers, {add, GH, Header0, 0}),
     Pub = keys:pubkey(),
     Block1 = make(Header0, [], Trees, Pub),
-    io:fwrite("\nblock new test 01\n"),
     Header1 = block_to_header(Block1).
 
 

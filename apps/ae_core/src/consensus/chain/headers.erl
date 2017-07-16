@@ -28,13 +28,8 @@ init([]) ->
     {ok, dict:new()}.
 
 handle_call({read, Hash}, _From, State) ->
-    io:fwrite(packer:pack({read_internal, Hash})),
-    io:fwrite("\n"),
     {reply, dict:find(Hash, State), State};
 handle_call({add, Hash, Header, AccumulativeDifficulty}, _From, State) ->
-    io:fwrite("headers add\n"),
-    io:fwrite(packer:pack({add_internal, Hash, Header})),
-    io:fwrite("\n"),
     State2 = dict:store(Hash, {Header, AccumulativeDifficulty}, State),
     {reply, ok, State2}.
 %handle_call(_, _From, State) ->
@@ -59,11 +54,7 @@ make_header(PH, 0, Time, Version, Trees, Txs, Nonce, Difficulty) ->
 	    difficulty = Difficulty,
 	    accumulative_difficulty = AC};
 make_header(PH, Height, Time, Version, Trees, Txs, Nonce, Difficulty) ->
-    io:fwrite("read hash "),
-    io:fwrite(packer:pack(PH)),
-    io:fwrite("\n"),
-    PrevHeader = read(PH),
-    io:fwrite(packer:pack({prevheader, PrevHeader})),
+    {ok, {PrevHeader, _}} = read(PH),
     AC = accumulate_diff(Difficulty, PrevHeader),
     #header{prev_hash = PH,
 	    height = Height, 
@@ -178,12 +169,8 @@ absorb([First|T]) when is_binary(First) ->
 absorb([A|T]) ->
     true = A#header.difficulty >= constants:initial_difficulty(),
     Hash = block_new:hash(A),
-    %io:fwrite(packer:pack({write, Hash})),
-    %io:fwrite("\n"),
     case read(Hash) of 
-	{ok, _} -> 
-	    io:fwrite("read success!\n"),
-	    ok; %don't store the same header more than once.
+	{ok, _} -> ok; %don't store the same header more than once.
 	error ->
 	    true = check_pow(A),%check that there is enough pow for the difficulty written on the block
 	    N = A#header.height > 1,
@@ -194,16 +181,14 @@ absorb([A|T]) ->
 			accumulate_diff(A#header.difficulty, PrevHeader);
 		    true -> pow:sci2int(A#header.difficulty)
 	    end,
-	    %io:fwrite("add info to db \n"),
-	    io:fwrite(packer:pack({add, Hash, A, AccumulativeDifficulty})),
 	    ok = gen_server:call(?MODULE, {add, Hash, A, AccumulativeDifficulty}),
 	    file:write_file(constants:headers_file(), serialize(A), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
     end,
     absorb(T).
 accumulate_diff(Diff, PrevHeader) ->
     Hash = block_new:hash(PrevHeader),
-    GH = block_new:block_to_header(block_new:read_int(0, Hash)),
-    io:fwrite(packer:pack({ad_headers, GH, PrevHeader})),
+    GB = block_new:read_int(0, Hash),
+    GH = block_new:block_to_header(GB),
     if
 	PrevHeader == GH -> 0;
 	true ->
@@ -213,12 +198,7 @@ accumulate_diff(Diff, PrevHeader) ->
     
 
 read(Hash) ->
-    io:fwrite(packer:pack({read, Hash})),
-    io:fwrite("\n"),
-    Out = gen_server:call(?MODULE, {read, Hash}),
-    io:fwrite(packer:pack({read_got, Out})),
-    io:fwrite("\n"),
-    Out.
+    gen_server:call(?MODULE, {read, Hash}).
     
 	    
 test() ->
