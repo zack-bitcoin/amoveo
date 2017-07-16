@@ -167,7 +167,7 @@ make(Header, Txs0, Trees, Pub) ->
 		   difficulty = headers:difficulty_should_be(Header),
 		   version = constants:version(),
 		   trees = NewTrees,
-		   prev_hashes = {block}%calculate_prev_hashes(Header)
+		   prev_hashes = calculate_prev_hashes(Header)
 		  }.
 mine(Block, Times) ->
     PH = Block#block.prev_hash,
@@ -191,7 +191,68 @@ do_save(BlockPlus) ->
     BF = binary_to_file(Hash),
     ok = db:save(BF, Z).
     
-
+guess_number_of_cpu_cores() ->
+    case application:get_env(ae_core, test_mode, false) of
+	true -> 1;
+	false ->
+	    X = erlang:system_info(logical_processors_available),
+	    Y = if
+		    X == unknown ->
+						% Happens on Mac OS X.
+			erlang:system_info(schedulers);
+		    is_integer(X) -> 
+						%ubuntu
+			X;
+		    true -> io:fwrite("number of CPU unknown, only using 1"), 1
+		end,
+        {ok, CoresToMine} = application:get_env(ae_core, cores_to_mine),
+        min(Y, CoresToMine)
+    end.
+spawn_many(0, _) -> ok;
+spawn_many(N, F) -> 
+    spawn(F()),
+    spawn_many(N-1, F).
+    
+mine(Block, Periods, Rounds) ->
+    Cores = guess_number_of_cpu_cores(),
+    mine(Block, Periods, Rounds, Cores).
+mine(Block, 0, Rounds, Cores) -> done;
+mine(Block, Periods, Rounds, Cores) ->
+    F = fun() ->
+		case mine2(Block, Rounds) of
+		    false -> false;
+		    PBlock -> 
+			io:fwrite("FOUND A BLOCK "),
+			io:fwrite(integer_to_list(PBlock)),
+			io:fwrite("\n"),
+			H = height(PBlock) rem 10,
+			case H of
+			    0 ->
+				block_absorber:garbage();
+			    _ -> ok
+			end,
+			block_absorber:save(PBlock)
+		end
+	end,
+    spawn_many(Cores-1, F),
+    F(),
+    mine(Block, Periods - 1, Rounds, Cores).
+mine2(Block, Times) ->
+    PH = Block#block.prev_hash,
+    ParentPlus = read(PH),
+    Trees = ParentPlus#block.trees,
+    Difficulty = Block#block.difficulty,
+    Governance = trees:governance(Trees),
+    BlockReward = governance:get_value(block_reward, Governance),
+    MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
+    case pow:pow(hash(Block), MineDiff, Times, constants:hash_size()) of
+	false -> false;
+	Pow ->
+	    Nonce = pow:nonce(Pow),
+	    Block#block{nonce = Nonce}
+    end.
+    
+    
  
 test() ->
     Pub = constants:master_pub(),
@@ -202,12 +263,17 @@ test() ->
     GB = genesis_maker(),
     do_save(GB),
     Header0 = block_to_header(GB),
-    GH = hash(Header0),
-    gen_server:call(headers, {add, GH, Header0, 0}),
+    headers:absorb([Header0]),
     Pub = keys:pubkey(),
     Block1 = make(Header0, [], Trees, Pub),
-    Header1 = block_to_header(Block1).
-
+    Header1 = block_to_header(Block1),
+    headers:absorb([Header1]),
+    H1 = hash(Header1),
+    do_save(Block1),
+    Block1 = read(H1),
+    Block1 = read_int(1, H1),
+    GB = read_int(0, H1),
+    mine2(Block1, 10).
 
     %H2 = hash(Header1),
     %gen_server:call(headers, {add, H2, Header1, 0}),
