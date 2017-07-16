@@ -4,7 +4,8 @@
 %% External exports
 -export([start_link/0, absorb/1, read/1, make_header/8, 
 	 serialize/1, test/0,
-	 prev_hash/1, height/1, time/1, version/1, trees/1, txs/1, nonce/1, difficulty/1, accumulative_difficulty/1
+	 prev_hash/1, height/1, time/1, version/1, trees/1, txs/1, nonce/1, difficulty/1, accumulative_difficulty/1,
+	 difficulty_should_be/1
 	]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -21,24 +22,23 @@ nonce(H) -> H#header.nonce.
 difficulty(H) -> H#header.difficulty.
 accumulative_difficulty(H) -> H#header.accumulative_difficulty.
     
-    
-    
-    
-    
-    
-
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 init([]) ->
     {ok, dict:new()}.
 
 handle_call({read, Hash}, _From, State) ->
+    io:fwrite(packer:pack({read_internal, Hash})),
+    io:fwrite("\n"),
     {reply, dict:find(Hash, State), State};
-handle_call({add, Hash, Header, State}, _From, State) ->
-    State2 = dict:store(Hash, Header, State),
-    {reply, ok, State2};
-handle_call(_, _From, State) ->
-    {reply, ok, State}.
+handle_call({add, Hash, Header, AccumulativeDifficulty}, _From, State) ->
+    io:fwrite("headers add\n"),
+    io:fwrite(packer:pack({add_internal, Hash, Header})),
+    io:fwrite("\n"),
+    State2 = dict:store(Hash, {Header, AccumulativeDifficulty}, State),
+    {reply, ok, State2}.
+%handle_call(_, _From, State) ->
+%    {reply, ok, State}.
 handle_cast(_, State) ->
     {noreply, State}.
 handle_info(_Info, State) ->
@@ -59,10 +59,11 @@ make_header(PH, 0, Time, Version, Trees, Txs, Nonce, Difficulty) ->
 	    difficulty = Difficulty,
 	    accumulative_difficulty = AC};
 make_header(PH, Height, Time, Version, Trees, Txs, Nonce, Difficulty) ->
-    io:fwrite("make header ph is "),
-    io:fwrite(integer_to_list(size(PH))),
+    io:fwrite("read hash "),
+    io:fwrite(packer:pack(PH)),
     io:fwrite("\n"),
     PrevHeader = read(PH),
+    io:fwrite(packer:pack({prevheader, PrevHeader})),
     AC = accumulate_diff(Difficulty, PrevHeader),
     #header{prev_hash = PH,
 	    height = Height, 
@@ -73,6 +74,8 @@ make_header(PH, Height, Time, Version, Trees, Txs, Nonce, Difficulty) ->
 	    nonce = Nonce,
 	    difficulty = Difficulty,
 	    accumulative_difficulty = AC}.
+txs_hash(X) ->
+    testnet_hasher:doit(X).
 serialize(H) ->
     PH = H#header.prev_hash,
     Height = H#header.height,
@@ -132,9 +135,10 @@ check_pow(Header) ->
 difficulty_should_be(A) ->
     D1 = A#header.difficulty,
     RF = constants:retarget_frequency(),
-    X = A#header.height rem RF,
+    Height = A#header.height,
+    X = Height rem RF,
     if
-	X == 0 ->
+	X == 0 and not(Height < 10)->
 	    check_difficulty2(A);
 	true ->
 	    D1
@@ -160,7 +164,7 @@ check_difficulty2(Header) ->
 			 constants:block_time(),
 			 max(1, T)),
     max(NT, constants:initial_difficulty()).
-retarget(Header, 0, L) -> {L, Header};
+retarget(Header, 1, L) -> {L, Header};
 retarget(Header, N, L) ->
     PH = read(Header#header.prev_hash),
     T = PH#header.time,
@@ -173,9 +177,13 @@ absorb([First|T]) when is_binary(First) ->
     absorb([A|T]);
 absorb([A|T]) ->
     true = A#header.difficulty >= constants:initial_difficulty(),
-    Hash = testnet_hasher:doit(A),
+    Hash = block_new:hash(A),
+    %io:fwrite(packer:pack({write, Hash})),
+    %io:fwrite("\n"),
     case read(Hash) of 
-	{ok, _} -> ok; %don't store the same header more than once.
+	{ok, _} -> 
+	    io:fwrite("read success!\n"),
+	    ok; %don't store the same header more than once.
 	error ->
 	    true = check_pow(A),%check that there is enough pow for the difficulty written on the block
 	    N = A#header.height > 1,
@@ -186,13 +194,16 @@ absorb([A|T]) ->
 			accumulate_diff(A#header.difficulty, PrevHeader);
 		    true -> pow:sci2int(A#header.difficulty)
 	    end,
-	    gen_server:call(?MODULE, {add, Hash, A, AccumulativeDifficulty}),
+	    %io:fwrite("add info to db \n"),
+	    io:fwrite(packer:pack({add, Hash, A, AccumulativeDifficulty})),
+	    ok = gen_server:call(?MODULE, {add, Hash, A, AccumulativeDifficulty}),
 	    file:write_file(constants:headers_file(), serialize(A), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
     end,
     absorb(T).
 accumulate_diff(Diff, PrevHeader) ->
-    GH = serialize(block:block_to_header_new(block:read_int(0))),
-    io:fwrite(packer:pack({accumulate_diff, PrevHeader, GH})),
+    Hash = block_new:hash(PrevHeader),
+    GH = block_new:block_to_header(block_new:read_int(0, Hash)),
+    io:fwrite(packer:pack({ad_headers, GH, PrevHeader})),
     if
 	PrevHeader == GH -> 0;
 	true ->
@@ -202,7 +213,13 @@ accumulate_diff(Diff, PrevHeader) ->
     
 
 read(Hash) ->
-    gen_server:call(?MODULE, {read, Hash}).
+    io:fwrite(packer:pack({read, Hash})),
+    io:fwrite("\n"),
+    Out = gen_server:call(?MODULE, {read, Hash}),
+    io:fwrite(packer:pack({read_got, Out})),
+    io:fwrite("\n"),
+    Out.
+    
 	    
 test() ->
     H = testnet_hasher:doit(<<>>),
@@ -211,6 +228,8 @@ test() ->
     absorb([Header]),
     H1 = testnet_hasher:doit(serialize(Header)),
     Header2 = setelement(10, make_header(H1, 0, 0, 0, H, H, 0, 0), undefined),
-    absorb([Header2]).
+    absorb([Header2]),
+    H1 = block_new:hash(Header),
+    {ok, {Header, _}} = read(H1).
     
 
