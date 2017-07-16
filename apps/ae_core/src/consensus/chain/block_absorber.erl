@@ -41,7 +41,7 @@ enqueue(InputBlock) ->
 save(InputBlocks) when is_list(InputBlocks) ->
     [save(InputBlock) || InputBlock <- InputBlocks];
 save(InputBlock) ->
-    Header = headers:serialize(block:block_to_header_new(InputBlock)),
+    Header = block_new:block_to_header(InputBlock),
     headers:absorb([Header]),
     gen_server:call(?MODULE, {doit, InputBlock}).
 

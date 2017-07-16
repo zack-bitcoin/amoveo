@@ -5,13 +5,13 @@
 -export([start_link/0, absorb/1, read/1, make_header/8, 
 	 serialize/1, test/0,
 	 prev_hash/1, height/1, time/1, version/1, trees/1, txs/1, nonce/1, difficulty/1, accumulative_difficulty/1,
-	 difficulty_should_be/1
+	 difficulty_should_be/1, top/0
 	]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -record(header, {prev_hash, height, time, version, trees, txs, nonce, difficulty, accumulative_difficulty}).
-
+-record(s, {headers = dict:new(), top = <<>>, adiff = 0}).
 prev_hash(H) -> H#header.prev_hash.
 height(H) -> H#header.height.
 time(H) -> H#header.time.
@@ -21,17 +21,23 @@ txs(H) -> H#header.txs.
 nonce(H) -> H#header.nonce.
 difficulty(H) -> H#header.difficulty.
 accumulative_difficulty(H) -> H#header.accumulative_difficulty.
-    
+ 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 init([]) ->
-    {ok, dict:new()}.
+    {ok, #s{}}.
 
 handle_call({read, Hash}, _From, State) ->
-    {reply, dict:find(Hash, State), State};
+    {reply, dict:find(Hash, State#s.headers), State};
+handle_call({top}, _From, State) ->
+    {reply, State#s.top, State};
 handle_call({add, Hash, Header, AccumulativeDifficulty}, _From, State) ->
-    State2 = dict:store(Hash, {Header, AccumulativeDifficulty}, State),
-    {reply, ok, State2}.
+    {H, D} = case AccumulativeDifficulty > State#s.adiff of
+		 true -> {Header, AccumulativeDifficulty};
+		 false -> {State#s.top, State#s.adiff}
+	     end,
+    Headers = dict:store(Hash, {Header, AccumulativeDifficulty}, State#s.headers),
+    {reply, ok, State#s{headers = Headers, top = H, adiff = D}}.
 %handle_call(_, _From, State) ->
 %    {reply, ok, State}.
 handle_cast(_, State) ->
@@ -199,7 +205,8 @@ accumulate_diff(Diff, PrevHeader) ->
 
 read(Hash) ->
     gen_server:call(?MODULE, {read, Hash}).
-    
+top() ->    
+    gen_server:call(?MODULE, {top}).
 	    
 test() ->
     H = testnet_hasher:doit(<<>>),

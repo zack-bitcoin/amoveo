@@ -88,6 +88,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internals
 
 current_state() ->
-    Block = block:read(top:doit()),
-    #f{trees = block:trees(Block),
-       height = block:height(Block)}.
+    Header = block_new:initialize_chain(),
+    Block = block_new:read(Header),
+    #f{trees = block_new:trees(Block),
+       height = block_new:height(Block)}.

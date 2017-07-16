@@ -32,7 +32,7 @@ absorb(Tx) ->
 test(1) ->
     io:fwrite(" create_account tx\n"),
     %create account, spend, delete account
-    BP = block:read_int(0),
+    BP = block:read_int(0, headers:top()),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -560,7 +560,7 @@ test(11) ->
     Stx5 = keys:sign(Tx5, Accounts5),
     absorb(Stx5),
     {_,_,Txs} = tx_pool:data(),
-    Block = block:mine(block:make(top:doit(), Txs, constants:master_pub()), 10000000000),%1 is the master pub
+    Block = block:mine(block:make(headers:top(), Txs, constants:master_pub()), 10000000000),%1 is the master pub
     block:check2(Block),
     success;
 test(12) ->
@@ -655,7 +655,7 @@ test(13) ->
     absorb(Stx4),
 
     {_,_,Txs} = tx_pool:data(),
-    Block = block:mine(block:make(top:doit(), Txs, constants:master_pub()), 10000000000),%1 is the master pub
+    Block = block:mine(block:make(headers:top(), Txs, constants:master_pub()), 10000000000),%1 is the master pub
     block:check2(Block),
 
     success;

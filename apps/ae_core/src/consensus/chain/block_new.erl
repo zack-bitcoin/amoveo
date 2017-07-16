@@ -1,7 +1,7 @@
 -module(block_new).
 -export([block_to_header/1, test/0,
 	 height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, comment/1, version/1, pow/1, trees/1, prev_hashes/1, 
-	 read_int/2, hash/1
+	 read_int/2, hash/1, read/1, initialize_chain/0
 
 	]).
 -record(block, {height, 
@@ -154,8 +154,10 @@ tx_costs([STx|T], Governance, Out) ->
     tx_costs(T, Governance, Cost+Out).
   
 new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
-    A = txs:digest(Txs, Trees, Height),
-    block_reward(A, Height, Pub, HeaderHash).
+    %convert trees to dictionary format
+    Trees2 = txs:digest(Txs, Trees, Height),
+    block_reward(Trees2, Height, Pub, HeaderHash).
+    %convert back to merkle tree format.
 make(Header, Txs0, Trees, Pub) ->
     {CB, Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [keys:sign(CB)|Txs0],
@@ -171,20 +173,6 @@ make(Header, Txs0, Trees, Pub) ->
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header)
 		  }.
-mine(Block, Times) ->
-    PH = Block#block.prev_hash,
-    Difficulty = Block#block.difficulty,
-    ParentPlus = read(PH),
-    Trees = ParentPlus#block.trees,
-    Governance = trees:governance(Trees),
-    BlockReward = governance:get_value(block_reward, Governance),
-    MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
-    case pow:pow(hash(Block), MineDiff, Times, constants:hash_size()) of
-	false -> fail;
-	Pow -> 
-	    Nonce = pow:nonce(Pow),
-	    Block#block{nonce = Nonce}
-    end.
 do_save(BlockPlus) ->
     Z = zlib:compress(term_to_binary(BlockPlus)),
     binary_to_term(zlib:uncompress(Z)),%sanity check, not important for long-term.
@@ -218,7 +206,7 @@ spawn_many(N, F) ->
 mine(Block, Periods, Rounds) ->
     Cores = guess_number_of_cpu_cores(),
     mine(Block, Periods, Rounds, Cores).
-mine(Block, 0, Rounds, Cores) -> done;
+mine(_Block, 0, _Rounds, _Cores) -> done;
 mine(Block, Periods, Rounds, Cores) ->
     F = fun() ->
 		case mine2(Block, Rounds) of
@@ -258,8 +246,9 @@ absorb(Block) ->
     {ok, _} = headers:read(BlockHash),
     OldBlock = read(Block#block.prev_hash),
     OldTrees = OldBlock#block.trees,
-    %check that the proofs are sufficient for the txs.
+    %check that hash(proofs) is the same as the header.
     %check that every proof is valid to the previous state root.
+    %load the data into a dictionary, feed this dictionary into new_trees/ instead of OldTrees.
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
@@ -268,9 +257,8 @@ absorb(Block) ->
     TreesHash = trees:root_hash(NewTrees),
     TreesHash = Block#block.trees_hash,
     do_save(Block#block{trees = NewTrees}).
-    
- 
-test() ->
+
+initialize_chain() -> 
     Pub = constants:master_pub(),
     First = accounts:new(Pub, constants:initial_coins(), 0),
     Accounts = accounts:write(0, First),
@@ -280,6 +268,26 @@ test() ->
     do_save(GB),
     Header0 = block_to_header(GB),
     headers:absorb([Header0]),
+    Header0.
+ 
+test() ->
+    test(1).%,
+    %test(2).
+test(1) ->
+    %Pub = constants:master_pub(),
+    %First = accounts:new(Pub, constants:initial_coins(), 0),
+    %Accounts = accounts:write(0, First),
+    %GovInit = governance:genesis_state(),
+    %Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
+    %GB = genesis_maker(),
+    %do_save(GB),
+    %Header0 = block_to_header(GB),
+    %headers:absorb([Header0]),
+
+    Header0 = headers:top(),
+    Block0 = read(Header0),
+    Trees = trees(Block0),
+
     Pub = keys:pubkey(),
     Block1 = make(Header0, [], Trees, Pub),
     WBlock10 = mine2(Block1, 10),
@@ -292,9 +300,14 @@ test() ->
     %do_save(Block1),
     WBlock11 = read(H1),
     WBlock11 = read_int(1, H1),
-    WBlock10 = WBlock11#block{trees = WBlock10#block.trees}.
+    WBlock10 = WBlock11#block{trees = WBlock10#block.trees},
+    success;
     %GB = read_int(0, H1).
 
     %H2 = hash(Header1),
     %gen_server:call(headers, {add, H2, Header1, 0}),
     %make(Header1, [], Block1#block.trees, Pub).
+test(2) ->
+    {_, _, Proofs} = accounts:get(keys:pubkey(), 1),
+    Proof = hd(Proofs).
+    %proofs_root(Proofs).
