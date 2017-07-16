@@ -26,8 +26,7 @@ txs() ->
 digest([], Trees, _) ->
 	Trees;
 digest([SignedTx | Txs], Trees, Height) ->
-    Accounts = trees:accounts(Trees),
-    true = testnet_sign:verify(SignedTx, Accounts),
+    true = testnet_sign:verify(SignedTx),
     Tx = testnet_sign:data(SignedTx),
     NewTrees = digest2(Tx, Trees, Height),
     digest(Txs, NewTrees, Height).

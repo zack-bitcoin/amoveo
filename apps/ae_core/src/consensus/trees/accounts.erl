@@ -46,6 +46,8 @@ now_balance(Acc, Amount, NewHeight, Trees) ->
 		%governance:get_value(account_rent, Governance)
 		0
 	end,
+    io:fwrite(packer:pack({now_balance, Amount, Acc#acc.balance, Rent, DH})),
+    io:fwrite("\n"),
     Amount + Acc#acc.balance - (Rent * DH).
     
 update(Pub0, Trees, Amount, NewNonce, NewHeight) ->

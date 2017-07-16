@@ -3,11 +3,29 @@
 -behaviour(gen_server).
 %% External exports
 -export([start_link/0, absorb/1, read/1, make_header/8, 
-	 serialize/1, test/0]).
+	 serialize/1, test/0,
+	 prev_hash/1, height/1, time/1, version/1, trees/1, txs/1, nonce/1, difficulty/1, accumulative_difficulty/1
+	]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -record(header, {prev_hash, height, time, version, trees, txs, nonce, difficulty, accumulative_difficulty}).
+
+prev_hash(H) -> H#header.prev_hash.
+height(H) -> H#header.height.
+time(H) -> H#header.time.
+version(H) -> H#header.version.
+trees(H) -> H#header.trees.
+txs(H) -> H#header.txs.
+nonce(H) -> H#header.nonce.
+difficulty(H) -> H#header.difficulty.
+accumulative_difficulty(H) -> H#header.accumulative_difficulty.
+    
+    
+    
+    
+    
+    
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
@@ -117,7 +135,7 @@ difficulty_should_be(A) ->
     X = A#header.height rem RF,
     if
 	X == 0 ->
-	    check_difficulty2(A, PHeader);
+	    check_difficulty2(A);
 	true ->
 	    D1
     end.
@@ -130,7 +148,7 @@ median(L) ->
     F = fun(A, B) -> A > B end,
     Sorted = lists:sort(F, L),
     lists:nth(S div 2, Sorted).
-check_difficulty2(Header, PHeader) ->
+check_difficulty2(Header) ->
     F = constants:retarget_frequency() div 2,
     {Times1, Hash2000} = retarget(Header, F, []),
     {Times2, _} = retarget(Hash2000, F, []),
@@ -138,10 +156,9 @@ check_difficulty2(Header, PHeader) ->
     M2 = median(Times2),
     Tbig = M1 - M2,
     T = Tbig div F,
-    NT = pow:recalculate(PHeader#header.difficulty, 
+    NT = pow:recalculate(Header#header.difficulty, 
 			 constants:block_time(),
 			 max(1, T)),
-    
     max(NT, constants:initial_difficulty()).
 retarget(Header, 0, L) -> {L, Header};
 retarget(Header, N, L) ->
