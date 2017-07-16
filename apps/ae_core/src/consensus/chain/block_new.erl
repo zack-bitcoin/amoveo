@@ -152,13 +152,15 @@ tx_costs([STx|T], Governance, Out) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
-   
+  
+new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
+    A = txs:digest(Txs, Trees, Height),
+    block_reward(A, Height, Pub, HeaderHash).
 make(Header, Txs0, Trees, Pub) ->
     {CB, Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [keys:sign(CB)|Txs0],
     Height = headers:height(Header),
-    NewTrees0 = txs:digest(Txs, Trees, Height+1),
-    NewTrees = block_reward(NewTrees0, Height+1, Pub, hash(Header)), 
+    NewTrees = new_trees(Txs, Trees, Height+1, Pub, hash(Header)),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -251,7 +253,21 @@ mine2(Block, Times) ->
 	    Nonce = pow:nonce(Pow),
 	    Block#block{nonce = Nonce}
     end.
-    
+absorb(Block) ->
+    BlockHash = hash(Block),
+    {ok, _} = headers:read(BlockHash),
+    OldBlock = read(Block#block.prev_hash),
+    OldTrees = OldBlock#block.trees,
+    %check that the proofs are sufficient for the txs.
+    %check that every proof is valid to the previous state root.
+    Height = Block#block.height,
+    PrevHash = Block#block.prev_hash,
+    Txs = Block#block.txs,
+    Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
+    NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
+    TreesHash = trees:root_hash(NewTrees),
+    TreesHash = Block#block.trees_hash,
+    do_save(Block#block{trees = NewTrees}).
     
  
 test() ->
@@ -266,14 +282,18 @@ test() ->
     headers:absorb([Header0]),
     Pub = keys:pubkey(),
     Block1 = make(Header0, [], Trees, Pub),
-    Header1 = block_to_header(Block1),
+    WBlock10 = mine2(Block1, 10),
+    Header1 = block_to_header(WBlock10),
     headers:absorb([Header1]),
     H1 = hash(Header1),
-    do_save(Block1),
-    Block1 = read(H1),
-    Block1 = read_int(1, H1),
-    GB = read_int(0, H1),
-    mine2(Block1, 10).
+    H1 = hash(WBlock10),
+    {ok, _} = headers:read(H1),
+    absorb(WBlock10),
+    %do_save(Block1),
+    WBlock11 = read(H1),
+    WBlock11 = read_int(1, H1),
+    WBlock10 = WBlock11#block{trees = WBlock10#block.trees}.
+    %GB = read_int(0, H1).
 
     %H2 = hash(Header1),
     %gen_server:call(headers, {add, H2, Header1, 0}),
