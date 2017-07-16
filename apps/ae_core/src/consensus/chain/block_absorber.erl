@@ -41,14 +41,16 @@ enqueue(InputBlock) ->
 save(InputBlocks) when is_list(InputBlocks) ->
     [save(InputBlock) || InputBlock <- InputBlocks];
 save(InputBlock) ->
-    Header = block_new:block_to_header(InputBlock),
-    headers:absorb([Header]),
     gen_server:call(?MODULE, {doit, InputBlock}).
 
     
 absorb(BP) ->
     %BH = block:hash(BP),
-    BH = block:hash(BP),
+    Header = block_new:block_to_header(BP),
+    headers:absorb([Header]),
+    BH = block_new:hash(BP),
+
+
     {BH, NextBlock} = block:check1(BP),
     case block_hashes:check(BH) of
 	true -> ok;%If we have seen this block before, then don't process it again.

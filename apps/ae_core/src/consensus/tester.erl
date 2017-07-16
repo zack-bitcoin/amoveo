@@ -26,7 +26,7 @@ test1() ->
     io:fwrite("block hashes test\n"),
     S = block_hashes:test(),
     io:fwrite("block test\n"),
-    S = block_new:test(),
+    S = block:test(),
     io:fwrite("spk test\n"),
     S = spk:test(),
     io:fwrite("txs test\n"),

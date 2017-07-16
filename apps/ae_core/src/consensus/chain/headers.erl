@@ -174,7 +174,7 @@ absorb([First|T]) when is_binary(First) ->
     absorb([A|T]);
 absorb([A|T]) ->
     true = A#header.difficulty >= constants:initial_difficulty(),
-    Hash = block_new:hash(A),
+    Hash = block:hash(A),
     case read(Hash) of 
 	{ok, _} -> ok; %don't store the same header more than once.
 	error ->
@@ -192,9 +192,9 @@ absorb([A|T]) ->
     end,
     absorb(T).
 accumulate_diff(Diff, PrevHeader) ->
-    Hash = block_new:hash(PrevHeader),
-    GB = block_new:read_int(0, Hash),
-    GH = block_new:block_to_header(GB),
+    Hash = block:hash(PrevHeader),
+    GB = block:read_int(0, Hash),
+    GH = block:block_to_header(GB),
     if
 	PrevHeader == GH -> 0;
 	true ->
@@ -216,7 +216,7 @@ test() ->
     H1 = testnet_hasher:doit(serialize(Header)),
     Header2 = setelement(10, make_header(H1, 0, 0, 0, H, H, 0, 0), undefined),
     absorb([Header2]),
-    H1 = block_new:hash(Header),
+    H1 = block:hash(Header),
     {ok, {Header, _}} = read(H1).
     
 
