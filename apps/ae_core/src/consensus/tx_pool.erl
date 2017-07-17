@@ -67,10 +67,12 @@ handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
                 NewTxs
         end,
     {reply, 0, F#f{txs = FinalTxs, trees = NewTrees}};
-handle_call({absorb, NewTrees, Txs, Height}, _From, _) ->
-    {reply, 0, #f{txs = Txs, trees = NewTrees, height = Height}};
+handle_call({absorb, NewTrees, Txs, _}, _From, _) ->
+    {reply, 0, #f{txs = Txs, trees = NewTrees}};
 handle_call(data, _From, F) ->
-    {reply, {F#f.trees, F#f.height, lists:reverse(F#f.txs)}, F}.
+    {ok, {Header, _}} = headers:read(block:hash(headers:top())),
+    H = headers:height(Header),
+    {reply, {F#f.trees, H, lists:reverse(F#f.txs)}, F}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.

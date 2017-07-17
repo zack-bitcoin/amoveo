@@ -128,7 +128,11 @@ get_value(X, Tree) ->
     tree_number_to_value(Y#gov.value).
 get(Name, Tree) when is_atom(Name) ->
     Key = name2number(Name),
-    get(Key, Tree);
+    case Key of
+	bad -> fail;
+	K ->
+	    get(K, Tree)
+    end;
 get(Key, Tree) when is_integer(Key) ->
     {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
     V = case Leaf of

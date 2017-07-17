@@ -90,7 +90,7 @@ macro unmatched ( OracleProof -- delay nonce amount )
         	int 100000
 	 	int 10000 MaxPrice -
       	else
-		int 0 int 500000 int 10000 MaxPrice -
+		int 50 int 500000 int 10000 MaxPrice -
       	then
 ;
 macro main

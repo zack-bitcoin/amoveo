@@ -71,10 +71,12 @@ test() ->
     Fee = 20,
     Entropy = 555,
     tx_pool:dump(),
+    headers:dump(),
+    block:initialize_chain(),
     {Trees,_,_Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, constants:initial_difficulty(), 0, 0, 0, Trees),
-    Stx = keys:sign(Tx, Accounts),
+    Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     Fee = 20,
     Entropy = 555,
@@ -87,7 +89,7 @@ test() ->
     Governance2 = trees:governance(Trees2),
     OIL = governance:get_value(oracle_initial_liquidity, Governance2),
     {Tx2, _} = oracle_bet_tx:make(constants:master_pub(), Fee, OID, 1, OIL*2, Trees2), 
-    Stx2 = keys:sign(Tx2, Accounts2),
+    Stx2 = keys:sign(Tx2),
     test_txs:absorb(Stx2),
 
     {Trees3, _, _} = tx_pool:data(),
@@ -95,7 +97,7 @@ test() ->
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Amount = 1000000,
     {Ctx, _Proof} = create_account_tx:make(NewPub, Amount, Fee, constants:master_pub(), Trees3),
-    Stx3 = keys:sign(Ctx, Accounts3),
+    Stx3 = keys:sign(Ctx),
     test_txs:absorb(Stx3),
     {Trees4, _, _} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),
@@ -104,8 +106,8 @@ test() ->
     Delay = 0,
     
     {Ctx4, _} = new_channel_tx:make(CID, Trees4, constants:master_pub(), NewPub, 10000, 20000, Entropy, Delay, Fee),
-    Stx4 = keys:sign(Ctx4, Accounts4),
-    SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv, Accounts4), 
+    Stx4 = keys:sign(Ctx4),
+    SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv), 
     test_txs:absorb(SStx4),
     timer:sleep(400),
     test2(NewPub). 
@@ -120,7 +122,7 @@ test2(NewPub) ->
     Location = constants:oracle_bet(),
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),101,100,OID),
     SPK = spk:new(constants:master_pub(), NewPub, 1, [Bet], 10000, 10000, 1, 0, Entropy),
-						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK, Accounts5), NewPub, NewPriv, ID2, Accounts5),
+						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
     Height = 1,
@@ -161,7 +163,7 @@ test2(NewPub) ->
     Accounts6 = trees:accounts(Trees6),
     %close the oracle with oracle_close
     {Tx6, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees6),
-    Stx6 = keys:sign(Tx6, Accounts6),
+    Stx6 = keys:sign(Tx6),
     test_txs:absorb(Stx6),
     timer:sleep(1000),
     %amount, newnonce, shares, delay
@@ -172,7 +174,7 @@ test2(NewPub) ->
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),
-    Bet2 = market_smart_contract(PrivDir ++ "/oracle_bet.fs", MarketID,2, 1000, 4000, keys:pubkey(),101,100,OID),
+    Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),101,100,OID),
     SPK2 = spk:new(constants:master_pub(), NewPub, 1, [Bet2], 10000, 10000, 1, 0, Entropy),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet, so we keep all 100.
@@ -191,9 +193,8 @@ test2(NewPub) ->
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
     SS6 = unmatched(), 
     %amount, newnonce, shares, delay
-    {60, 500001, [], 50} = spk:run(fast, [SS6], SPK, 1, 0, Trees5).
-
-    %success.
+    {60, 500001, [], 50} = spk:run(fast, [SS6], SPK, 1, 0, Trees5),
+    success.
     
     
     

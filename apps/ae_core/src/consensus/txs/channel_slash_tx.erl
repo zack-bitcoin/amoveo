@@ -38,7 +38,7 @@ doit(Tx, Trees, NewHeight) ->
     {_, OldChannel, _} = channels:get(CID, Channels),
     %CA = channels:amount(OldChannel),
     %false = CA == 0,
-    true = testnet_sign:verify(SignedSPK, Accounts),
+    true = testnet_sign:verify(SignedSPK),
     Acc1 = channels:acc1(OldChannel),
     Acc2 = channels:acc2(OldChannel),
     Acc1 = spk:acc1(SPK),

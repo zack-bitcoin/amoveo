@@ -86,7 +86,7 @@ absorb_internal(SignedTx) ->
     {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
     true = Fee > (MinimumTxFee + Cost),
     Accounts = trees:accounts(Trees),
-    true = testnet_sign:verify(SignedTx, Accounts),
+    true = testnet_sign:verify(SignedTx),
     case is_in(SignedTx, Txs) of
         true ->
             ok = lager:info("Already have this tx");

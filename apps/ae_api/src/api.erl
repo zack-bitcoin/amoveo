@@ -46,10 +46,12 @@ dump_channels() ->
 load_key(Pub, Priv, Brainwallet) ->
     keys:load(Pub, Priv, Brainwallet).
 height() ->    
-    {ok, block:height(block:read(top:doit()))}.
+    H = headers:height(headers:top()),
+    {ok, H}.
 top() ->
-    TopHash = top:doit(),
-    {ok, Height} = height(),
+    TopHash = headers:top(),
+    TopBlock = blocks:read(TopHash),
+    {ok, Height} = blocks:height(TopBlock),
     {top, TopHash, Height}.
     
 sign(Tx) ->
@@ -499,7 +501,7 @@ channel_close(IP, Port, Fee) ->
     {ok, CD} = channel_manager:read(PeerId),
     SPK = testnet_sign:data(channel_feeder:them(CD)),
     {Trees,_,_} = tx_pool:data(),
-    Height = block:height(block:read(top:doit())),
+    Height = block:height(block:read(headers:top())),
     SS = channel_feeder:script_sig_them(CD),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = spk:cid(SPK),
@@ -528,7 +530,7 @@ add_peer(IP, Port) ->
     0.
 sync(IP, Port) ->
     io:fwrite("api sync\n"),
-    MyHeight = block:height(block:read(top:doit())),
+    MyHeight = block:height(block:read(headers:top())),
     download_blocks:sync_all([{IP, Port}], MyHeight),
     0.
 pubkey() ->

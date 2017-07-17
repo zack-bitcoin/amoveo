@@ -29,7 +29,7 @@ doit(Tx, Trees, NewHeight) ->
     CID = spk:cid(testnet_sign:data(SPK)),
     {_, OldChannel, _} = channels:get(CID, Channels),
     0 = channels:amount(OldChannel),
-    true = testnet_sign:verify(SPK, Accounts),
+    true = testnet_sign:verify(SPK),
     Acc1 = channels:acc1(OldChannel),
     Acc2 = channels:acc2(OldChannel),
     Acc1 = spk:acc1(ScriptPubkey),
@@ -55,8 +55,11 @@ doit(Tx, Trees, NewHeight) ->
    %If our channel is closing somewhere we don't like, then we should try to use a channel_slash transaction to save our money.
     Trees3.
 check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
+    io:fwrite("check slash\n"),
     case channel_manager:read(From) of
-	error -> ok;
+	error -> 
+	    io:fwrite("not in channel manager\n"),
+	    ok;
 	{ok, CD} ->
 	    SPK = channel_feeder:them(CD),
 	    SS = channel_feeder:script_sig_them(CD), 
@@ -65,16 +68,19 @@ check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
 			SS,
 			testnet_sign:data(SPK),
 			NewHeight, 1, Trees),
-	    %io:fwrite("\n "),
-	    %io:fwrite("channel solo close "),
-	    %io:fwrite(packer:pack({csc, CDNonce, TheirNonce, CD})),
-	    %io:fwrite("\n "),
+	    io:fwrite("\n "),
+	    io:fwrite("channel solo close "),
+	    io:fwrite(packer:pack({csc, CDNonce, TheirNonce, CD})),
+	    io:fwrite("\n "),
 	    if
 		CDNonce > TheirNonce ->
+		    io:fwrite("CDNONCE BIGGER\n"),
 		    Governance = trees:governance(Trees),
 		    GovCost = governance:get_value(cs, Governance),
-		    {Tx, _} = channel_slash_tx:make(keys:pubkey(), free_constants:tx_fee() + GovCost, keys:sign(SPK, Accounts), SS, Trees),
-		    Stx = keys:sign(Tx, Accounts),
+		    {Tx, _} = channel_slash_tx:make(keys:pubkey(), free_constants:tx_fee() + GovCost, keys:sign(SPK), SS, Trees),
+		    Stx = keys:sign(Tx),
+		    io:fwrite(packer:pack({stx, Stx})),
+		    io:fwrite("\n "),
 		    tx_pool_feeder:absorb(Stx);
 		true -> ok
 	    end

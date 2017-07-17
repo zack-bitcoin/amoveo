@@ -35,11 +35,11 @@ digest2(Tx, Trees, H) ->
         ca -> create_account_tx:doit(Tx, Trees, H);
         spend -> spend_tx:doit(Tx, Trees, H);
         da -> delete_account_tx:doit(Tx, Trees, H);
-        repo -> repo_tx:doit(Tx, Trees, H);
+        %repo -> repo_tx:doit(Tx, Trees, H);
         nc -> new_channel_tx:doit(Tx, Trees, H);
         gc -> grow_channel_tx:doit(Tx, Trees, H);
         ctc -> channel_team_close_tx:doit(Tx, Trees, H);
-        cr -> channel_repo_tx:doit(Tx, Trees, H);
+        %cr -> channel_repo_tx:doit(Tx, Trees, H);
         csc -> channel_solo_close:doit(Tx, Trees, H);
         timeout -> channel_timeout_tx:doit(Tx, Trees, H);
         cs -> channel_slash_tx:doit(Tx, Trees, H);

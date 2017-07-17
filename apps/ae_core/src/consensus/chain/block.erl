@@ -1,7 +1,8 @@
 -module(block).
 -export([block_to_header/1, test/0,
 	 height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, comment/1, version/1, pow/1, trees/1, prev_hashes/1, 
-	 read_int/2, read_int/1, hash/1, read/1, initialize_chain/0, make/4
+	 read_int/2, read_int/1, hash/1, read/1, initialize_chain/0, make/4,
+	 mine/3, mine2/2, check/1
 
 	]).
 -record(block, {height, 
@@ -91,6 +92,20 @@ lg(X) ->
     lgh(X, 0).
 lgh(1, X) -> X;
 lgh(N, X) -> lgh(N div 2, X+1).
+
+%read_int(N) ->
+%    read_int(N, headers:top()).
+%read_int(N, BH) ->
+%    M = headers:height(BH),
+%    D = M-N,
+%    if
+%	D<0 -> empty;
+%	D == 0 -> read(M);
+%	true ->
+%	    read_int(N, prev_hash(lg(D), BH))
+%    end.
+	    
+
 read_int(N) ->
     read_int(N, headers:top()).
 read_int(N, BH) ->
@@ -215,15 +230,11 @@ mine(Block, Periods, Rounds, Cores) ->
 		    false -> false;
 		    PBlock -> 
 			io:fwrite("FOUND A BLOCK "),
-			io:fwrite(integer_to_list(PBlock)),
+			io:fwrite(integer_to_list(height(PBlock))),
 			io:fwrite("\n"),
-			H = height(PBlock) rem 10,
-			case H of
-			    0 ->
-				block_absorber:garbage();
-			    _ -> ok
-			end,
-			block_absorber:save(PBlock)
+			Header = block_to_header(PBlock),
+			headers:absorb([Header]),
+			absorb(PBlock)
 		end
 	end,
     spawn_many(Cores-1, F),
@@ -241,9 +252,10 @@ mine2(Block, Times) ->
 	false -> false;
 	Pow ->
 	    Nonce = pow:nonce(Pow),
-	    Block#block{nonce = Nonce}
+	    B2 = Block#block{nonce = Nonce},
+	    B2
     end.
-absorb(Block) ->
+check(Block) ->
     BlockHash = hash(Block),
     {ok, _} = headers:read(BlockHash),
     OldBlock = read(Block#block.prev_hash),
@@ -258,7 +270,14 @@ absorb(Block) ->
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     TreesHash = trees:root_hash(NewTrees),
     TreesHash = Block#block.trees_hash,
-    do_save(Block#block{trees = NewTrees}).
+    {true, NewTrees}.
+
+absorb(Block) ->
+    {true, NewTrees} = check(Block),
+    do_save(Block#block{trees = NewTrees}),
+    {_, _, Txs} = tx_pool:data(),
+    tx_pool:dump(),
+    tx_pool_feeder:absorb(Txs).
 
 initialize_chain() -> 
     Pub = constants:master_pub(),

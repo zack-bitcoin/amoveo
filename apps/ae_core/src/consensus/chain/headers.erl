@@ -5,7 +5,7 @@
 -export([start_link/0, absorb/1, read/1, make_header/8, 
 	 serialize/1, test/0,
 	 prev_hash/1, height/1, time/1, version/1, trees/1, txs/1, nonce/1, difficulty/1, accumulative_difficulty/1,
-	 difficulty_should_be/1, top/0
+	 difficulty_should_be/1, top/0, dump/0
 	]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -29,10 +29,12 @@ init([]) ->
 
 handle_call({read, Hash}, _From, State) ->
     {reply, dict:find(Hash, State#s.headers), State};
+handle_call({dump}, _From, _State) ->
+    {reply, ok, #s{}};
 handle_call({top}, _From, State) ->
     {reply, State#s.top, State};
 handle_call({add, Hash, Header, AccumulativeDifficulty}, _From, State) ->
-    {H, D} = case AccumulativeDifficulty > State#s.adiff of
+    {H, D} = case AccumulativeDifficulty >= State#s.adiff of
 		 true -> {Header, AccumulativeDifficulty};
 		 false -> {State#s.top, State#s.adiff}
 	     end,
@@ -49,7 +51,6 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 make_header(PH, 0, Time, Version, Trees, Txs, Nonce, Difficulty) ->
-    AC = pow:sci2int(Difficulty),
     #header{prev_hash = PH,
 	    height = 0, 
 	    time = Time, 
@@ -58,10 +59,10 @@ make_header(PH, 0, Time, Version, Trees, Txs, Nonce, Difficulty) ->
 	    txs = Txs,
 	    nonce = Nonce,
 	    difficulty = Difficulty,
-	    accumulative_difficulty = AC};
+	    accumulative_difficulty = 0};
 make_header(PH, Height, Time, Version, Trees, Txs, Nonce, Difficulty) ->
-    {ok, {PrevHeader, _}} = read(PH),
-    AC = accumulate_diff(Difficulty, PrevHeader),
+    {ok, {_, X}} = read(PH),
+    AC = pow:sci2int(Difficulty) + X,
     #header{prev_hash = PH,
 	    height = Height, 
 	    time = Time, 
@@ -141,7 +142,7 @@ difficulty_should_be(A) ->
 	    D1
     end.
 check_difficulty(A) ->
-    {ok, PHeader} = read(A#header.prev_hash),
+    {ok, {PHeader, _}} = read(A#header.prev_hash),
     B = difficulty_should_be(PHeader),
     {B == A#header.difficulty, PHeader}.
 median(L) ->
@@ -163,7 +164,7 @@ check_difficulty2(Header) ->
     max(NT, constants:initial_difficulty()).
 retarget(Header, 1, L) -> {L, Header};
 retarget(Header, N, L) ->
-    PH = read(Header#header.prev_hash),
+    {ok, {PH, _}} = read(Header#header.prev_hash),
     T = PH#header.time,
     retarget(PH, N-1, [T|L]).
     
@@ -176,7 +177,9 @@ absorb([A|T]) ->
     true = A#header.difficulty >= constants:initial_difficulty(),
     Hash = block:hash(A),
     case read(Hash) of 
-	{ok, _} -> ok; %don't store the same header more than once.
+	{ok, _} -> 
+	    io:fwrite("absorb header repeat\n"),
+	    ok; %don't store the same header more than once.
 	error ->
 	    true = check_pow(A),%check that there is enough pow for the difficulty written on the block
 	    N = A#header.height > 1,
@@ -205,6 +208,8 @@ accumulate_diff(Diff, PrevHeader) ->
 
 read(Hash) ->
     gen_server:call(?MODULE, {read, Hash}).
+dump() ->    
+    gen_server:call(?MODULE, {dump}).
 top() ->    
     gen_server:call(?MODULE, {top}).
 	    
