@@ -1,10 +1,10 @@
 -module(coinbase_tx).
 -export([doit/3, make/2, from/1]).
--record(coinbase, {from = 0, x = 0}).
+-record(coinbase, {from = 0, nonce = 0}).
 from(X) -> X#coinbase.from.
 make(From, Trees) ->
     Accounts = trees:accounts(Trees),
-    {_, _, Proof} = accounts:get(From, Accounts),
+    {_, Acc, Proof} = accounts:get(From, Accounts),
     Tx = #coinbase{from = From},
     {Tx, [Proof]}.
 doit(Tx, Trees, NewHeight) ->

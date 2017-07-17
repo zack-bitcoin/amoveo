@@ -277,6 +277,7 @@ absorb(Block) ->
     do_save(Block#block{trees = NewTrees}),
     {_, _, Txs} = tx_pool:data(),
     tx_pool:dump(),
+    timer:sleep(100),
     tx_pool_feeder:absorb(Txs).
 
 initialize_chain() -> 

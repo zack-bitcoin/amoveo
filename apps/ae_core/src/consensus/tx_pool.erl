@@ -47,7 +47,7 @@ start_link() ->
 
 init(ok) ->
     lager:info("~p started", [?MODULE]),
-    State = current_state(),
+    State = initial_state(),
     {ok, State}.
 
 handle_call(dump, _From, _OldState) ->
@@ -89,8 +89,13 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internals
 
-current_state() ->
+initial_state() ->
     Header = block:initialize_chain(),
     Block = block:read(Header),
+    #f{trees = block:trees(Block),
+       height = block:height(Block)}.
+current_state() ->
+    Header = headers:top(),
+    Block = block:read(block:hash(Header)),
     #f{trees = block:trees(Block),
        height = block:height(Block)}.

@@ -100,9 +100,9 @@ test(2) ->
 test(3) ->
     io:fwrite(" new channel tx\n"),
     %new channel, grow channel, channel team close
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     BP = block:read_int(0),
     PH = block:hash(BP),
     Trees = block:trees(BP),
@@ -154,9 +154,9 @@ test(4) ->
     tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     BP = block:read_int(0),
     PH = block:hash(BP),
-    tx_pool:dump(),
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
@@ -202,12 +202,11 @@ test(4) ->
 test(5) -> 
     %channel solo close, channel timeout
     io:fwrite("channel solo close tx\n"),
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     BP = block:read_int(0),
     PH = block:hash(BP),
-    tx_pool:dump(),
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
@@ -258,9 +257,9 @@ test(5) ->
 test(6) -> 
     %channel slash
     io:fwrite("\nchannel slash tx\n"),
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     BP = block:read_int(0),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -330,7 +329,6 @@ test(6) ->
 
 test(7) ->
     %existence tx
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
     io:fwrite("\nexistence test \n"),
@@ -356,9 +354,9 @@ test(7) ->
 test(8) ->
     %spend shares
     io:fwrite("\nspend shares test\n"),
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
@@ -417,9 +415,9 @@ test(8) ->
 test(9) ->
    %spend shares with channel. 
     io:fwrite("spend shares with channel\n"),
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
@@ -483,9 +481,9 @@ test(9) ->
 test(10) ->
    %spend shares with channel, with solo_close
     io:fwrite("spend_shares with channel solo_close"),
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
@@ -567,9 +565,9 @@ test(11) ->
     Question = <<>>,
     OID = 1,
     Fee = 20,
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     {Trees,_,_Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, constants:initial_difficulty(), 0, 0, 0, Trees),
@@ -628,9 +626,9 @@ test(11) ->
 test(12) ->
     %multiple bets in a single channel
     io:fwrite("multiple bets in a single channel\n"),
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     {Trees, _, _Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
@@ -688,10 +686,12 @@ test(13) ->
     Question = <<>>,
     OID = 6,
     Fee = 20,
+    headers:dump(),
+    block:initialize_chain(),
     tx_pool:dump(),
+    timer:sleep(100),
     Diff = constants:initial_difficulty(),
     {Trees,_,_} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, Diff, 0, 0, 0, Trees),
     Stx = keys:sign(Tx),
     absorb(Stx),
@@ -699,16 +699,12 @@ test(13) ->
     mine_blocks(2),
     timer:sleep(100),
     {Trees2, _, _} = tx_pool:data(),
-    Accounts2 = trees:accounts(Trees2),
     %close the oracle with oracle_close
     {Tx2, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees2),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
     OID2 = 2,
     {Trees3,_,_} = tx_pool:data(),
-    %OraclesEE = trees:oracles(Trees3),
-    %{_, Oracle4, _} = oracles:get(OID, OraclesEE),
-    Accounts3 = trees:accounts(Trees3),
     {Tx3, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID2, Diff, OID, 1, 5, Trees3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
@@ -716,7 +712,6 @@ test(13) ->
     Question2 = <<"1+1=2">>,
     OID3 = 3,
     {Trees4,_,_} = tx_pool:data(),
-    Accounts4 = trees:accounts(Trees4),
     {Tx4, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question2, 1, OID3, Diff div 2, OID, 0, 0, Trees4),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
@@ -732,9 +727,9 @@ test(13) ->
 test(14) -> 
     %options
     io:fwrite("options derivatives enforcement\n"),
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     BP = block:read_int(0),
     PH = block:hash(BP),
     Trees = block:trees(BP),
@@ -804,12 +799,11 @@ test(14) ->
 test(15) ->
     %If your partner tries closing at a low-nonced channel state, your node needs to automatically create a channel_slash to stop them.
     io:fwrite("channel slash automatic\n"),
-    tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
+    tx_pool:dump(),
     BP = block:read_int(0),
     PH = block:hash(BP),
-    tx_pool:dump(),
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
@@ -871,7 +865,8 @@ mine_blocks(Many) ->
     %only works if you set the difficulty very low.
     Top = headers:top(),
     PB = block:read(Top),
-    Block = block:make(Top, block:txs(PB), block:trees(PB), keys:pubkey()),
+    {_, _, Txs} = tx_pool:data(),
+    Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
     block:mine(Block, 1, 10000000),
-    timer:sleep(200),
+    timer:sleep(400),
     mine_blocks(Many-1).

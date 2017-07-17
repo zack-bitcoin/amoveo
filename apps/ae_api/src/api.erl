@@ -486,7 +486,7 @@ mempool() ->
     Txs.
 off() -> testnet_sup:stop().
 mine_block() ->
-    block:mine_blocks(1, 100000).
+    block:mine(1, 100000).
 mine_block(Many, Times) ->
     block:mine_blocks(Many, Times).
 channel_close() ->
