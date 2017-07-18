@@ -9,9 +9,9 @@
        ) -> {Status :: cowboy:http_status(), Headers :: cowboy:http_headers(), Body :: #{}}.
 
 handle_request('AddAccount', Req, _Context) ->
-    Acc = maps:get('Account', Req),
-    Pub = maps:get(<<"pubkey">>, Acc),
-    Amt = maps:get(<<"amount">>, Acc),
+    Data = maps:get('Account', Req),
+    Pub = maps:get(<<"pubkey">>, Data),
+    Amt = maps:get(<<"amount">>, Data),
     ok = api:create_account(base64:decode(Pub), Amt),
     {200, [], #{}};
 
@@ -22,6 +22,16 @@ handle_request('GetKeyPair', _Req, _Context) ->
             <<"private">> => base64:encode(Priv)
            }};
 
+handle_request('LoadKeyPair', Req, _Context) ->
+    Data = maps:get('LoadKeyPair', Req),
+    Pub = maps:get(<<"public">>, Data),
+    Priv = maps:get(<<"private">>, Data),
+    Pub1 = base64:decode(Pub),
+    Priv1 = base64:decode(Priv),
+    BrainWallet = maps:get(<<"brain-wallet">>, Data),
+    ok = api:load_key(Pub1, Priv1, BrainWallet),
+    {200, [], #{}};
+
 handle_request('GetTop', _Req, _Context) ->
     {top, Hash, Height} = api:top(),
     {200, [], #{
@@ -30,9 +40,9 @@ handle_request('GetTop', _Req, _Context) ->
            }};
 
 handle_request('AddPeer', Req, _Context) ->
-    Peer = maps:get('Peer', Req),
-    Port = maps:get(<<"port">>, Peer),
-    IP = maps:get(<<"ip">>, Peer),
+    Data = maps:get('Peer', Req),
+    Port = maps:get(<<"port">>, Data),
+    IP = maps:get(<<"ip">>, Data),
     case inet_parse:address(binary_to_list(IP)) of
         {ok, IP1} -> 
             0 = api:add_peer(IP1, Port),
@@ -43,11 +53,72 @@ handle_request('AddPeer', Req, _Context) ->
     end;
 
 handle_request('Spend', Req, _Context) ->
-    Spend = maps:get('Spend', Req),
-    Pub = maps:get(<<"pubkey">>, Spend),
-    Amt = maps:get(<<"amount">>, Spend),
+    Data = maps:get('Spend', Req),
+    Pub = maps:get(<<"pubkey">>, Data),
+    Amt = maps:get(<<"amount">>, Data),
     ok = api:spend(base64:decode(Pub), Amt),
     {200, [], #{}};
+
+handle_request('NewChannelWithServer', Req, _Context) ->
+    Data = maps:get('NewChannelWithServer', Req),
+    IP = maps:get(<<"ip">>, Data),
+    Port = maps:get(<<"port">>, Data),
+    CID = maps:get(<<"channel-id">>, Data),
+    Bal = maps:get(<<"balance">>, Data),
+    Limit = maps:get(<<"receive-limit">>, Data),
+    Fee = maps:get(<<"fee">>, Data),
+    Delay = maps:get(<<"delay">>, Data),
+    case inet_parse:address(binary_to_list(IP)) of
+        {ok, IP1} -> 
+            ok = api:new_channel_with_server(IP1, Port, CID, Bal, Limit, Fee, Delay),
+            {200, [], #{}};
+        Err -> 
+            lager:error("Failed to parse IP ~p: ~p", [IP, Err]),
+            {405, [], #{}}
+    end;
+
+handle_request('ChannelSpend', Req, _Context) ->
+    Data = maps:get('ChannelSpend', Req),
+    IP = maps:get(<<"ip">>, Data),
+    Port = maps:get(<<"port">>, Data),
+    Amt = maps:get(<<"amount">>, Data),
+    case inet_parse:address(binary_to_list(IP)) of
+        {ok, IP1} -> 
+            ok = api:channel_spend(IP1, Port, Amt),
+            {200, [], #{}};
+        Err -> 
+            lager:error("Failed to parse IP ~p: ~p", [IP, Err]),
+            {405, [], #{}}
+    end;
+
+handle_request('LightningSpend', Req, _Context) ->
+    Data = maps:get('LightningSpend', Req),
+    IP = maps:get(<<"ip">>, Data),
+    Port = maps:get(<<"port">>, Data),
+    Pub = maps:get(<<"pubkey">>, Data),
+    Amt = maps:get(<<"amount">>, Data),
+    Fee = maps:get(<<"fee">>, Data),
+    case inet_parse:address(binary_to_list(IP)) of
+        {ok, IP1} -> 
+            ok = api:lightning_spend(IP1, Port, base64:decode(Pub), Amt, Fee),
+            {200, [], #{}};
+        Err -> 
+            lager:error("Failed to parse IP ~p: ~p", [IP, Err]),
+            {405, [], #{}}
+    end;
+
+handle_request('PullChannelState', Req, _Context) ->
+    Data = maps:get('PullChannelState', Req),
+    IP = maps:get(<<"ip">>, Data),
+    Port = maps:get(<<"port">>, Data),
+    case inet_parse:address(binary_to_list(IP)) of
+        {ok, IP1} -> 
+            ok = api:pull_channel_state(IP1, Port),
+            {200, [], #{}};
+        Err -> 
+            lager:error("Failed to parse peer IP ~p: ~p", [IP, Err]),
+            {405, [], #{}}
+    end;
 
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(
