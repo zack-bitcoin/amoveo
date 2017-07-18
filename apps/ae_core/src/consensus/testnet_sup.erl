@@ -21,7 +21,6 @@ tree_child(Id, KeySize, Size, Meta) ->
     Sup = list_to_atom(atom_to_list(Id) ++ "_sup"),
     {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd]}, permanent, 5000, supervisor, [trie_sup]}.
 init([]) ->
-    os:putenv("ERL_CRASH_DUMP_SECONDS", <<0>>),
     KL = constants:key_length(), 
     AB = constants:address_bits(),
     HS = constants:hash_size(),
