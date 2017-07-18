@@ -1,4 +1,4 @@
--module(main_handler).
+-module(int_file_handler).
 
 -export([init/3, handle/2, terminate/3]).
 %example of talking to this handler:
