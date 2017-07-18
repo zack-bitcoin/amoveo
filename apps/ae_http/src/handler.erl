@@ -44,7 +44,7 @@ doit({headers, Many, N}) ->
     X = many_headers(Many, N),
     {ok, X};
     %{ok, block_tree:read_int(N)};
-doit({tophash}) -> {ok, top:doit()};
+doit({tophash}) -> {ok, headers:top()};
 %doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
 doit({peers}) ->
     P = peers:all(),
@@ -61,7 +61,7 @@ doit({txs, Txs}) ->
     tx_pool_feeder:absorb(Txs),
     {ok, 0};
 doit({top}) -> 
-    Top = block:read(top:doit()),
+    Top = block:read(headers:top()),
     Height = block:height(Top),
     {ok, Top, Height};
 doit({test}) -> 
@@ -112,7 +112,7 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Fee = channel_team_close_tx:fee(Tx),
     {ok, CD} = channel_manager:read(PeerId),
     SPK = channel_feeder:me(CD),
-    Height = block:height(block:read(top:doit())),
+    Height = headers:height(headers:top()),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),

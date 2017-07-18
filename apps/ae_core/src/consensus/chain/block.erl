@@ -2,7 +2,8 @@
 -export([block_to_header/1, test/0,
 	 height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, comment/1, version/1, pow/1, trees/1, prev_hashes/1, 
 	 read_int/2, read_int/1, hash/1, read/1, initialize_chain/0, make/4,
-	 mine/3, mine2/2, check/1
+	 mine/1, mine/2, mine2/2, check/1,
+	 guess_number_of_cpu_cores/0
 
 	]).
 -record(block, {height, 
@@ -219,12 +220,18 @@ spawn_many(0, _) -> ok;
 spawn_many(N, F) -> 
     spawn(F()),
     spawn_many(N-1, F).
+   
+mine(Rounds) -> 
+    Top = headers:top(),
+    PB = block:read(Top),
+    {_, _, Txs} = tx_pool:data(),
+    Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
+    mine(Block, Rounds).
     
-mine(Block, Periods, Rounds) ->
+mine(Block, Rounds) ->
     Cores = guess_number_of_cpu_cores(),
-    mine(Block, Periods, Rounds, Cores).
-mine(_Block, 0, _Rounds, _Cores) -> done;
-mine(Block, Periods, Rounds, Cores) ->
+    mine(Block, Rounds, Cores).
+mine(Block, Rounds, Cores) ->
     F = fun() ->
 		case mine2(Block, Rounds) of
 		    false -> false;
@@ -238,8 +245,7 @@ mine(Block, Periods, Rounds, Cores) ->
 		end
 	end,
     spawn_many(Cores-1, F),
-    F(),
-    mine(Block, Periods - 1, Rounds, Cores).
+    F().
 mine2(Block, Times) ->
     PH = Block#block.prev_hash,
     ParentPlus = read(PH),

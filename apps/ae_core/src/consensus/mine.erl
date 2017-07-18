@@ -9,15 +9,16 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(mine, go) ->
+    io:fwrite("mine loop\n"),
     case application:get_env(ae_core, test_mode, false) of
 	true ->
 	    spawn(fun() ->
-			  block:mine_blocks(1, 5, 1),
+			  block:mine(5),
 			  mine()
 		  end);
 	false -> 
 	    spawn(fun() ->
-			  block:mine_blocks(1, 1000000),
+			  block:mine(1000000),
 			  mine()
 		  end)
     end,
