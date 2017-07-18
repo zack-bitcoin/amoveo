@@ -476,7 +476,8 @@ pretty_display(I) ->
 mempool() ->
     {_, _, Txs} = tx_pool:data(),
     Txs.
-off() -> testnet_sup:stop().
+off() ->
+    ok = application:stop(ae_core).
 mine_block() ->
     block:mine_blocks(1, 100000).
 mine_block(Many, Times) ->
