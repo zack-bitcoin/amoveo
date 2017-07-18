@@ -5,13 +5,14 @@
 -export([start_link/0, absorb/1, read/1, make_header/8, 
 	 serialize/1, test/0,
 	 prev_hash/1, height/1, time/1, version/1, trees/1, txs/1, nonce/1, difficulty/1, accumulative_difficulty/1,
-	 difficulty_should_be/1, top/0, dump/0
+	 difficulty_should_be/1, top/0, dump/0,
+	 hard_set_top/1
 	]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--record(header, {prev_hash, height, time, version, trees, txs, nonce, difficulty, accumulative_difficulty}).
--record(s, {headers = dict:new(), top = <<>>, adiff = 0}).
+-record(header, {prev_hash, height, time, version, trees, txs, nonce, difficulty, accumulative_difficulty = 0}).
+-record(s, {headers = dict:new(), top = #header{}}).
 prev_hash(H) -> H#header.prev_hash.
 height(H) -> H#header.height.
 time(H) -> H#header.time.
@@ -33,13 +34,20 @@ handle_call({dump}, _From, _State) ->
     {reply, ok, #s{}};
 handle_call({top}, _From, State) ->
     {reply, State#s.top, State};
-handle_call({add, Hash, Header, AccumulativeDifficulty}, _From, State) ->
-    {H, D} = case AccumulativeDifficulty >= State#s.adiff of
-		 true -> {Header, AccumulativeDifficulty};
-		 false -> {State#s.top, State#s.adiff}
+handle_call({hard_set_top, Header}, _From, State) ->
+    H = block:hash(Header),
+    D = dict:store(H, Header, dict:new()),
+    {reply, ok, #s{headers = D, top = Header}};
+handle_call({add, Hash, Header}, _From, State) ->
+    AD = Header#header.accumulative_difficulty,
+    AA = (State#s.top),
+    AF = AA#header.accumulative_difficulty,
+    H = case AD > AF of
+		 true -> Header;
+		 false -> AA
 	     end,
-    Headers = dict:store(Hash, {Header, AccumulativeDifficulty}, State#s.headers),
-    {reply, ok, State#s{headers = Headers, top = H, adiff = D}}.
+    Headers = dict:store(Hash, Header, State#s.headers),
+    {reply, ok, State#s{headers = Headers, top = H}}.
 %handle_call(_, _From, State) ->
 %    {reply, ok, State}.
 handle_cast(_, State) ->
@@ -61,8 +69,8 @@ make_header(PH, 0, Time, Version, Trees, Txs, Nonce, Difficulty) ->
 	    difficulty = Difficulty,
 	    accumulative_difficulty = 0};
 make_header(PH, Height, Time, Version, Trees, Txs, Nonce, Difficulty) ->
-    {ok, {_, X}} = read(PH),
-    AC = pow:sci2int(Difficulty) + X,
+    {ok, PrevHeader} = read(PH),
+    AC = pow:sci2int(Difficulty) + PrevHeader#header.accumulative_difficulty,
     #header{prev_hash = PH,
 	    height = Height, 
 	    time = Time, 
@@ -142,9 +150,13 @@ difficulty_should_be(A) ->
 	    D1
     end.
 check_difficulty(A) ->
-    {ok, {PHeader, _}} = read(A#header.prev_hash),
-    B = difficulty_should_be(PHeader),
-    {B == A#header.difficulty, PHeader}.
+    B = if
+	    A#header.height < 2 -> constants:initial_difficulty();
+	    true ->
+		{ok, PHeader} = read(A#header.prev_hash),
+		difficulty_should_be(PHeader)
+	end,
+    {B == A#header.difficulty, B}.
 median(L) ->
     S = length(L),
     F = fun(A, B) -> A > B end,
@@ -164,7 +176,7 @@ check_difficulty2(Header) ->
     max(NT, constants:initial_difficulty()).
 retarget(Header, 1, L) -> {L, Header};
 retarget(Header, N, L) ->
-    {ok, {PH, _}} = read(Header#header.prev_hash),
+    {ok, PH} = read(Header#header.prev_hash),
     T = PH#header.time,
     retarget(PH, N-1, [T|L]).
     
@@ -183,27 +195,23 @@ absorb([A|T]) ->
 	error ->
 	    true = check_pow(A),%check that there is enough pow for the difficulty written on the block
 	    N = A#header.height > 1,
-	    AccumulativeDifficulty = 
-		if
-		    N ->
-			{true, PrevHeader} = check_difficulty(A),%check that the difficulty written on the block is correctly calculated
-			accumulate_diff(A#header.difficulty, PrevHeader);
-		    true -> pow:sci2int(A#header.difficulty)
-	    end,
-	    ok = gen_server:call(?MODULE, {add, Hash, A, AccumulativeDifficulty}),
+	    {true, _} = check_difficulty(A),%check that the difficulty written on the block is correctly calculated
+	    ok = gen_server:call(?MODULE, {add, Hash, A}),
 	    file:write_file(constants:headers_file(), serialize(A), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
     end,
     absorb(T).
+hard_set_top(Header) ->
+    gen_server:call(?MODULE, {hard_set_top, Header}).
 accumulate_diff(Diff, PrevHeader) ->
-    Hash = block:hash(PrevHeader),
-    GB = block:read_int(0, Hash),
-    GH = block:block_to_header(GB),
-    if
-	PrevHeader == GH -> 0;
-	true ->
-	    pow:sci2int(Diff),
-	    + PrevHeader#header.accumulative_difficulty
-    end.
+    %Hash = block:hash(PrevHeader),
+    %GB = block:read_int(0, Hash),
+    %GH = block:block_to_header(GB),
+    %if
+	%PrevHeader == GH -> 0;
+	%true ->
+    pow:sci2int(Diff),
+    + PrevHeader#header.accumulative_difficulty.
+    %end.
     
 
 read(Hash) ->
@@ -222,6 +230,6 @@ test() ->
     Header2 = setelement(10, make_header(H1, 0, 0, 0, H, H, 0, 0), undefined),
     absorb([Header2]),
     H1 = block:hash(Header),
-    {ok, {Header, _}} = read(H1).
+    {ok, Header} = read(H1).
     
 

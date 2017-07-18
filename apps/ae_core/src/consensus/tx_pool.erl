@@ -70,7 +70,7 @@ handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
 handle_call({absorb, NewTrees, Txs, _}, _From, _) ->
     {reply, 0, #f{txs = Txs, trees = NewTrees}};
 handle_call(data, _From, F) ->
-    {ok, {Header, _}} = headers:read(block:hash(headers:top())),
+    {ok, Header} = headers:read(block:hash(headers:top())),
     H = headers:height(Header),
     {reply, {F#f.trees, H, lists:reverse(F#f.txs)}, F}.
 

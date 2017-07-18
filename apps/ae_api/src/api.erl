@@ -494,6 +494,7 @@ mine_block(Periods, Times) ->
     {_, _, Txs} = tx_pool:data(),
     Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
     block:mine(Block, Times),
+    timer:sleep(100),
     mine_block(Periods-1, Times).
 channel_close() ->
     channel_close(?IP, ?Port).

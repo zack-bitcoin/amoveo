@@ -111,13 +111,11 @@ lgh(N, X) -> lgh(N div 2, X+1).
 read_int(N) ->
     read_int(N, headers:top()).
 read_int(N, BH) when N > -1 ->
-    io:fwrite(packer:pack({read_int, N, BH})),
-    io:fwrite("\n"),
     Block = read(hash(BH)),
     case Block of
 	empty ->
 	    PrevHash = headers:prev_hash(BH),
-	    {ok, {PrevHeader, _}} = headers:read(PrevHash),
+	    {ok, PrevHeader} = headers:read(PrevHash),
 	    read_int(N, PrevHeader);
 	_  ->
 	    M = height(Block),
@@ -128,7 +126,7 @@ read_int(N, BH) when N > -1 ->
 		D == 0 -> Block;
 		true ->
 		    PrevHash = prev_hash(lg(D), Block),
-		    {ok, {PrevHeader, _}} = headers:read(PrevHash),
+		    {ok, PrevHeader} = headers:read(PrevHash),
 		    read_int(N, PrevHeader),
 		    read_int(N, prev_hash(lg(D), Block))
 	    end
@@ -185,8 +183,6 @@ tx_costs([STx|T], Governance, Out) ->
     tx_costs(T, Governance, Cost+Out).
   
 new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
-    io:fwrite(packer:pack({new_trees, Trees, Height, Pub, HeaderHash, Txs})),
-    io:fwrite("\n"),
     %convert trees to dictionary format
     Trees2 = txs:digest(Txs, Trees, Height),
     block_reward(Trees2, Height, Pub, HeaderHash).
@@ -281,16 +277,12 @@ check(Block) ->
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
-    io:fwrite("block check about to new_trees\n"),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     Block2 = Block#block{trees = NewTrees},
-    %TreesHash = trees:root_hash(Block#block.trees),
     TreesHash = trees:root_hash(Block2#block.trees),
     TreesHash = Block2#block.trees_hash,
-    io:fwrite(packer:pack({blocks, Block, Block2})),
-    io:fwrite("\n"),
     %true = block_to_header(Block) == block_to_header(Block2),
-    %true = hash(Block) == hash(Block2),
+    true = hash(Block) == hash(Block2),
     {true, Block#block{trees = NewTrees}}.
 
 
@@ -303,7 +295,7 @@ initialize_chain() ->
     GB = genesis_maker(),
     block_absorber:do_save(GB),
     Header0 = block_to_header(GB),
-    headers:absorb([Header0]),
+    headers:hard_set_top(Header0),
     block_hashes:add(hash(Header0)),
     Header0.
  

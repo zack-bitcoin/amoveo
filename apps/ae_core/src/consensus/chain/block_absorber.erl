@@ -41,18 +41,12 @@ enqueue(InputBlock) ->
 save(InputBlocks) when is_list(InputBlocks) ->
     [save(InputBlock) || InputBlock <- InputBlocks];
 save(InputBlock) ->
-    io:fwrite("block absorber save block external \n"),
     gen_server:call(?MODULE, {doit, InputBlock}).
 
     
 absorb_internal(Block) ->
-    io:fwrite("block absorber save block internal \n"),
-    %BH = block:hash(Block),
-    %Header = block:block_to_header(Block),
     BH = block:hash(Block),
     NextBlock = block:prev_hash(Block),
-
-    %{BH, NextBlock} = block:check1(Block),
     case block_hashes:check(BH) of
 	true -> 
 	    io:fwrite("we have seen this block before, so block_absorber will ignore it\n"),
@@ -63,21 +57,11 @@ absorb_internal(Block) ->
 	    Header = block:block_to_header(Block),
 	    headers:absorb([Header]),
 	    {true, Block2} = block:check(Block),
-	    BH = block:hash(Block),
-	    BH = block:hash(Header),
-	    BH = block:hash(headers:top()),
-	    io:fwrite("processed block "),
-	    io:fwrite(packer:pack({processed, Block2})),
-	    io:fwrite("\n"),
-	    BH = block:hash(Block2),
 	    do_save(Block2),
 	    timer:sleep(100),
 	    {_, _, Txs} = tx_pool:data(),
-	    %tx_pool:dump(),
+	    tx_pool:dump(),
 	    tx_pool_feeder:absorb(Txs)
-	    %{BH, _} = block:check1(Block),
-	    %io:fwrite(packer:pack(Block)),
-	    %do_sao[jke(Block2)
     end.   
 do_save(BlockPlus) ->
     Z = zlib:compress(term_to_binary(BlockPlus)),

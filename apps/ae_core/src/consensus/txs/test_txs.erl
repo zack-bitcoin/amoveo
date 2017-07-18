@@ -867,6 +867,6 @@ mine_blocks(Many) ->
     PB = block:read(Top),
     {_, _, Txs} = tx_pool:data(),
     Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
-    block:mine(Block, 1, 10000000),
+    block:mine(Block, 10),
     timer:sleep(400),
     mine_blocks(Many-1).
