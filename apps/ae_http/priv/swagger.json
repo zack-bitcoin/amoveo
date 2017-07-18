@@ -74,13 +74,38 @@
         },
         "security" : [ ]
       }
+    },
+    "/peer" : {
+      "post" : {
+        "tags" : [ "peer" ],
+        "summary" : "Add a new peer",
+        "description" : "",
+        "operationId" : "AddPeer",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "Peer object that needs to be added",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/Peer"
+          }
+        } ],
+        "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
     }
   },
   "definitions" : {
     "Account" : {
       "type" : "object",
       "properties" : {
-        "address" : {
+        "pubkey" : {
           "type" : "string"
         },
         "amount" : {
@@ -109,6 +134,18 @@
         },
         "private" : {
           "type" : "string"
+        }
+      }
+    },
+    "Peer" : {
+      "type" : "object",
+      "properties" : {
+        "ip" : {
+          "type" : "string"
+        },
+        "port" : {
+          "type" : "integer",
+          "format" : "int16"
         }
       }
     }

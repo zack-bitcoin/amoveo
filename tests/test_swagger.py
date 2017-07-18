@@ -21,10 +21,7 @@ class SwaggerTest(ApiUser):
     def test_account(self):
         pub = self.new_pubkey()
         uri = self.URL + "/account"
-        data = {
-            "address": pub,
-            "amount": 10
-            }
+        data = {"pubkey": pub, "amount": 10}
         response = self.session.post(uri, json=data)
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -35,4 +32,14 @@ class SwaggerTest(ApiUser):
         response = self.session.get(uri)
         self.assertEqual(response.status_code, 200)
 
-
+    def test_add_peer(self):
+        uri = self.URL + "/peer"
+        # valid
+        data = {"ip": "46.101.103.165", "port": 8080}
+        response = self.session.post(uri, json=data)
+        self.assertEqual(response.status_code, 200)
+        # invalid
+        data = {"ip": "46.101.103165", "port": 8080}
+        response = self.session.post(uri, json=data)
+        self.assertEqual(response.status_code, 405)
+        

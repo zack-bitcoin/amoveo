@@ -65,6 +65,11 @@ get_operations() ->
             method => <<"GET">>,
             handler => 'swagger_keypair_handler'
         },
+        'AddPeer' => #{
+            path => "/v1/peer",
+            method => <<"POST">>,
+            handler => 'swagger_peer_handler'
+        },
         'GetTop' => #{
             path => "/v1/top",
             method => <<"GET">>,
