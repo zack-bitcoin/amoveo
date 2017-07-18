@@ -52,7 +52,7 @@ start_swagger() ->
                                        ip => {127, 0, 0, 1}, 
                                        port => Port,
                                        net_opts => [],
-                                       logic_handler => dispatch
+                                       logic_handler => ae_http_dispatch
                                       }),
     {ok, _} = supervisor:start_child(ae_http_sup, Spec),
     ok.
