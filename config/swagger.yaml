@@ -17,9 +17,9 @@ paths:
     post:
       tags:
         - account
+      operationId: AddAccount
       summary: Add a new account
       description: ''
-      operationId: add-account
       consumes:
         - application/json
       produces:
@@ -34,11 +34,115 @@ paths:
       responses:
         '405':
           description: Invalid input
+      security: []
+  /top:
+    get:
+      tags:
+        - top
+      operationId: GetTop
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Top'
+      security: []
+  /keypair:
+    get:
+      tags:
+        - keypair
+      operationId: GetKeyPair
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/KeyPair'
+      security: []
+  /peer:
+    post:
+      tags:
+        - peer
+      operationId: AddPeer
+      summary: Add a new peer
+      description: ''
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Peer object that needs to be added
+          required: true
+          schema:
+            $ref: '#/definitions/Peer'
+      responses:
+        '405':
+          description: Invalid input
+      security: []
+  /spend:
+    post:
+      tags:
+        - spend
+      operationId: Spend
+      summary: Spend
+      description: ''
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Spend object
+          required: true
+          schema:
+            $ref: '#/definitions/Spend'
+      responses:
+        '405':
+          description: Invalid input
+      security: []
 definitions:
   Account:
     type: object
     properties:
-      address:
+      pubkey:
+        type: string
+      amount:
+        type: integer
+        format: int64
+  Top:
+    type: object
+    properties:
+      hash:
+        type: string
+      height:
+        type: integer
+        format: int64
+  KeyPair:
+    type: object
+    properties:
+      public:
+        type: string
+      private:
+        type: string
+  Peer:
+    type: object
+    properties:
+      ip:
+        type: string
+      port:
+        type: integer
+        format: int16
+  Spend:
+    type: object
+    properties:
+      pubkey:
         type: string
       amount:
         type: integer

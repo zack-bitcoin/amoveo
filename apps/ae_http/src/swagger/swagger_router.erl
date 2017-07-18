@@ -59,6 +59,26 @@ get_operations() ->
             path => "/v1/account",
             method => <<"POST">>,
             handler => 'swagger_account_handler'
+        },
+        'GetKeyPair' => #{
+            path => "/v1/keypair",
+            method => <<"GET">>,
+            handler => 'swagger_keypair_handler'
+        },
+        'AddPeer' => #{
+            path => "/v1/peer",
+            method => <<"POST">>,
+            handler => 'swagger_peer_handler'
+        },
+        'Spend' => #{
+            path => "/v1/spend",
+            method => <<"POST">>,
+            handler => 'swagger_spend_handler'
+        },
+        'GetTop' => #{
+            path => "/v1/top",
+            method => <<"GET">>,
+            handler => 'swagger_top_handler'
         }
     }.
 

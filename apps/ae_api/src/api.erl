@@ -4,7 +4,7 @@
 
 -export([height/0, off/0, balance/0, spend/2, mempool/0,
          top/0, sign/1, mine_block/0, mine_block/2,
-         add_peer/2, sync/2, load_key/3]).
+         add_peer/2, sync/2, load_key/3, new_keypair/0]).
 
 -export([create_account/2, delete_account/1, account/1,
          repo_account/1, repo_account/2]).
@@ -530,6 +530,8 @@ pubkey() ->
     keys:pubkey().
 new_pubkey(Password) ->    
     keys:new(Password).
+new_keypair() ->
+    testnet_sign:new_key().
 test() ->
     {test_response}.
 channel_keys() ->
