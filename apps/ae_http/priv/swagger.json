@@ -175,27 +175,44 @@
         "security" : [ ]
       }
     },
+<<<<<<< HEAD
     "/channel-spend" : {
       "post" : {
         "tags" : [ "channel-spend" ],
         "summary" : "",
         "description" : "",
         "operationId" : "ChannelSpend",
+=======
+    "/sync" : {
+      "post" : {
+        "tags" : [ "sync" ],
+        "summary" : "Sync with a node",
+        "description" : "Sync object",
+        "operationId" : "Sync",
+>>>>>>> AE-109 Implement POST /sync
         "consumes" : [ "application/json" ],
         "produces" : [ "application/json" ],
         "parameters" : [ {
           "in" : "body",
           "name" : "body",
+<<<<<<< HEAD
           "description" : "",
           "required" : true,
           "schema" : {
             "$ref" : "#/definitions/ChannelSpend"
+=======
+          "description" : "Sync parameters that needs to be sent",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/Sync"
+>>>>>>> AE-109 Implement POST /sync
           }
         } ],
         "responses" : {
           "405" : {
             "description" : "Invalid input"
           }
+<<<<<<< HEAD
         },
         "security" : [ ]
       }
@@ -248,6 +265,9 @@
           }
         },
         "security" : [ ]
+=======
+        }
+>>>>>>> AE-109 Implement POST /sync
       }
     }
   },
@@ -325,7 +345,11 @@
         }
       }
     },
+<<<<<<< HEAD
     "NewChannelWithServer" : {
+=======
+    "Sync" : {
+>>>>>>> AE-109 Implement POST /sync
       "type" : "object",
       "properties" : {
         "ip" : {
@@ -333,6 +357,7 @@
         },
         "port" : {
           "type" : "integer",
+<<<<<<< HEAD
           "format" : "int16"
         },
         "channel-id" : {
@@ -407,6 +432,11 @@
           "format" : "int16"
         }
       }
+=======
+          "format" : "int64"
+        }
+      }
+>>>>>>> AE-109 Implement POST /sync
     }
   },
   "externalDocs" : {

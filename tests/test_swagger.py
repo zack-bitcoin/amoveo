@@ -1,7 +1,4 @@
 from base import ApiUser
-from nose.tools import nottest
-
-import json
 
 
 class SwaggerTest(ApiUser):
@@ -43,7 +40,7 @@ class SwaggerTest(ApiUser):
         response = self.session.post(uri, json=data)
         self.assertEqual(response.status_code, 405)
 
-    def create_account(self, amount):
+    def _create_account(self, amount):
         pub = self.new_pubkey()
         uri = self.URL + "/account"
         data = {"pubkey": pub, "amount": amount}
@@ -51,7 +48,7 @@ class SwaggerTest(ApiUser):
         return pub
 
     def test_spend(self):
-        pub = self.create_account(10)
+        pub = self._create_account(10)
         uri = self.URL + "/spend"
         data = {"pubkey": pub, "amount": 5}
         response = self.session.post(uri, json=data)
@@ -65,3 +62,14 @@ class SwaggerTest(ApiUser):
             "brain-wallet": brainwallet
         }
         self.session.post(uri, json=data)
+
+    def test_sync(self):
+        uri = self.URL + "/sync"
+        # valid
+        data = {"ip": "127.0.0.1", "port": 3020}
+        response = self.session.post(uri, json=data)
+        self.assertEqual(response.status_code, 200)
+        # invalid
+        data = {"ip": "127.0.0.1.1", "port": 3020}
+        response = self.session.post(uri, json=data)
+        self.assertEqual(response.status_code, 405)

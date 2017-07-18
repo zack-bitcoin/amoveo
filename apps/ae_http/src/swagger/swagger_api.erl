@@ -66,6 +66,12 @@ request_params('Spend') ->
     ];
 
 
+request_params('Sync') ->
+    [
+        'Sync'
+    ];
+
+
 request_params('GetTop') ->
     [
     ];
@@ -181,6 +187,16 @@ request_param_info('Spend', 'Spend') ->
     };
 
 
+request_param_info('Sync', 'Sync') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+
 request_param_info(OperationID, Name) ->
     error({unknown_param, OperationID, Name}).
 
@@ -257,6 +273,10 @@ validate_response('PullChannelState', 405, Body, ValidatorState) ->
 
 
 validate_response('Spend', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+
+validate_response('Sync', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 

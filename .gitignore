@@ -19,3 +19,4 @@ nosetests.xml
 pip-selfcheck.json
 config/*/sys.config
 man
+compile_commands.json

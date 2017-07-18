@@ -15,9 +15,9 @@
 
 start(_StartType, _StartArgs) ->
     {ok, Pid} = ae_http_sup:start_link(),
-    start_internal(),
-    start_external(),
-    start_swagger(),
+    ok = start_internal(),
+    ok = start_external(),
+    ok = start_swagger(),
     {ok, Pid}.
 
 stop(_State) ->

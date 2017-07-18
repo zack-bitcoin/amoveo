@@ -100,6 +100,11 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_spend_handler'
         },
+        'Sync' => #{
+            path => "/v1/sync",
+            method => <<"POST">>,
+            handler => 'swagger_sync_handler'
+        },
         'GetTop' => #{
             path => "/v1/top",
             method => <<"GET">>,
