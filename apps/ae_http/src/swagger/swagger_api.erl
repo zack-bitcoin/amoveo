@@ -19,8 +19,32 @@ request_params('AddAccount') ->
     ];
 
 
+request_params('ChannelSpend') ->
+    [
+        'ChannelSpend'
+    ];
+
+
 request_params('GetKeyPair') ->
     [
+    ];
+
+
+request_params('LightningSpend') ->
+    [
+        'LightningSpend'
+    ];
+
+
+request_params('LoadKeyPair') ->
+    [
+        'LoadKeyPair'
+    ];
+
+
+request_params('NewChannelWithServer') ->
+    [
+        'NewChannelWithServer'
     ];
 
 
@@ -79,6 +103,46 @@ request_param_info('AddAccount', 'Account') ->
         ]
     };
 
+
+request_param_info('ChannelSpend', 'ChannelSpend') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+
+
+request_param_info('LightningSpend', 'LightningSpend') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+
+request_param_info('LoadKeyPair', 'LoadKeyPair') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+
+request_param_info('NewChannelWithServer', 'NewChannelWithServer') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
 
 
 request_param_info('AddPeer', 'Peer') ->
@@ -148,8 +212,24 @@ validate_response('AddAccount', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 
+validate_response('ChannelSpend', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+
 validate_response('GetKeyPair', 200, Body, ValidatorState) ->
     validate_response_body('KeyPair', 'KeyPair', Body, ValidatorState);
+
+
+validate_response('LightningSpend', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+
+validate_response('LoadKeyPair', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+
+validate_response('NewChannelWithServer', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
 
 
 validate_response('AddPeer', 405, Body, ValidatorState) ->

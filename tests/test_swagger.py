@@ -56,3 +56,12 @@ class SwaggerTest(ApiUser):
         data = {"pubkey": pub, "amount": 5}
         response = self.session.post(uri, json=data)
         self.assertEqual(response.status_code, 200)
+
+    def load_keypair(self, public, private, brainwallet):
+        uri = self.URL + "/load-keypair"
+        data = {
+            "public": public,
+            "private": private,
+            "brain-wallet": brainwallet
+        }
+        self.session.post(uri, json=data)

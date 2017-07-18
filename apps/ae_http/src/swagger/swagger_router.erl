@@ -60,10 +60,30 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_account_handler'
         },
+        'ChannelSpend' => #{
+            path => "/v1/channel-spend",
+            method => <<"POST">>,
+            handler => 'swagger_channelspend_handler'
+        },
         'GetKeyPair' => #{
             path => "/v1/keypair",
             method => <<"GET">>,
             handler => 'swagger_keypair_handler'
+        },
+        'LightningSpend' => #{
+            path => "/v1/lightning-spend",
+            method => <<"POST">>,
+            handler => 'swagger_lightningspend_handler'
+        },
+        'LoadKeyPair' => #{
+            path => "/v1/load-keypair",
+            method => <<"POST">>,
+            handler => 'swagger_loadkeypair_handler'
+        },
+        'NewChannelWithServer' => #{
+            path => "/v1/new-channel-with-server",
+            method => <<"POST">>,
+            handler => 'swagger_newchannelwithserver_handler'
         },
         'AddPeer' => #{
             path => "/v1/peer",
