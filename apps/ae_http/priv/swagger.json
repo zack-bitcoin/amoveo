@@ -175,44 +175,27 @@
         "security" : [ ]
       }
     },
-<<<<<<< HEAD
     "/channel-spend" : {
       "post" : {
         "tags" : [ "channel-spend" ],
         "summary" : "",
         "description" : "",
         "operationId" : "ChannelSpend",
-=======
-    "/sync" : {
-      "post" : {
-        "tags" : [ "sync" ],
-        "summary" : "Sync with a node",
-        "description" : "Sync object",
-        "operationId" : "Sync",
->>>>>>> AE-109 Implement POST /sync
         "consumes" : [ "application/json" ],
         "produces" : [ "application/json" ],
         "parameters" : [ {
           "in" : "body",
           "name" : "body",
-<<<<<<< HEAD
           "description" : "",
           "required" : true,
           "schema" : {
             "$ref" : "#/definitions/ChannelSpend"
-=======
-          "description" : "Sync parameters that needs to be sent",
-          "required" : true,
-          "schema" : {
-            "$ref" : "#/definitions/Sync"
->>>>>>> AE-109 Implement POST /sync
           }
         } ],
         "responses" : {
           "405" : {
             "description" : "Invalid input"
           }
-<<<<<<< HEAD
         },
         "security" : [ ]
       }
@@ -265,9 +248,56 @@
           }
         },
         "security" : [ ]
-=======
-        }
->>>>>>> AE-109 Implement POST /sync
+      }
+    },
+    "/sync" : {
+      "post" : {
+        "tags" : [ "sync" ],
+        "summary" : "Sync with a node",
+        "description" : "",
+        "operationId" : "Sync",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "Sync parameters that needs to be sent",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/Sync"
+          }
+        } ],
+        "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
+    },
+    "/mine_block" : {
+      "post" : {
+        "tags" : [ "mine_block" ],
+        "summary" : "Mine blocks on a node",
+        "description" : "",
+        "operationId" : "MineBlock",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "Mine blocks parameters that needs to be sent",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/MineBlock"
+          }
+        } ],
+        "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
       }
     }
   },
@@ -345,11 +375,7 @@
         }
       }
     },
-<<<<<<< HEAD
     "NewChannelWithServer" : {
-=======
-    "Sync" : {
->>>>>>> AE-109 Implement POST /sync
       "type" : "object",
       "properties" : {
         "ip" : {
@@ -357,7 +383,6 @@
         },
         "port" : {
           "type" : "integer",
-<<<<<<< HEAD
           "format" : "int16"
         },
         "channel-id" : {
@@ -432,11 +457,31 @@
           "format" : "int16"
         }
       }
-=======
+    },
+    "Sync" : {
+      "type" : "object",
+      "properties" : {
+        "ip" : {
+          "type" : "string"
+        },
+        "port" : {
+          "type" : "integer",
           "format" : "int64"
         }
       }
->>>>>>> AE-109 Implement POST /sync
+    },
+    "MineBlock" : {
+      "type" : "object",
+      "properties" : {
+        "count" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "times" : {
+          "type" : "integer",
+          "format" : "int64"
+        }
+      }
     }
   },
   "externalDocs" : {

@@ -42,6 +42,12 @@ request_params('LoadKeyPair') ->
     ];
 
 
+request_params('MineBlock') ->
+    [
+        'MineBlock'
+    ];
+
+
 request_params('NewChannelWithServer') ->
     [
         'NewChannelWithServer'
@@ -138,6 +144,16 @@ request_param_info('LightningSpend', 'LightningSpend') ->
 
 
 request_param_info('LoadKeyPair', 'LoadKeyPair') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+
+request_param_info('MineBlock', 'MineBlock') ->
     #{
         source =>   body,
         rules => [
@@ -257,6 +273,10 @@ validate_response('LightningSpend', 405, Body, ValidatorState) ->
 
 
 validate_response('LoadKeyPair', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+
+validate_response('MineBlock', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 

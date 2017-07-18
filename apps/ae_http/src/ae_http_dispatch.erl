@@ -134,6 +134,13 @@ handle_request('Sync', Req, _Context) ->
             {405, [], #{<<"error">> => <<"Invalid IP">>}}
     end;
 
+handle_request('MineBlock', Req, _Context) ->
+    MineBlocks = maps:get('MineBlock', Req),
+    Count = maps:get(<<"count">>, MineBlocks),
+    Times = maps:get(<<"times">>, MineBlocks),
+    ok = api:mine_block(Count, Times),
+    {200, [], #{}};
+
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(
       ">>> Got not implemented request to process: ~p~n",

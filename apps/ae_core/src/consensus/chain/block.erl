@@ -453,12 +453,11 @@ mine_blocks(A, B) ->
     mine_blocks(A,B,Cores).
 mine_blocks(0, _, _) -> 
     block_absorber:garbage(),
-    success;
+    ok;
 mine_blocks(N, Times, Cores) -> 
-    io:fwrite("mine blocks\n"),
+    lager:info("Mine blocks"),
     PH = top:doit(),
-    {Trees,_,Txs} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
+    {_Trees, _, Txs} = tx_pool:data(),
     Pub = keys:pubkey(),
     case Pub of
 	[] ->

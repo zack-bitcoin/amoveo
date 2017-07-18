@@ -73,3 +73,9 @@ class SwaggerTest(ApiUser):
         data = {"ip": "127.0.0.1.1", "port": 3020}
         response = self.session.post(uri, json=data)
         self.assertEqual(response.status_code, 405)
+
+    def test_mine_block(self):
+        uri = self.URL + "/mine_block"
+        data = {"count": 2, "times": 1}
+        response = self.session.post(uri, json=data)
+        self.assertEqual(response.status_code, 200)

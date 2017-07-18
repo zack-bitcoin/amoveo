@@ -80,6 +80,11 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_loadkeypair_handler'
         },
+        'MineBlock' => #{
+            path => "/v1/mine_block",
+            method => <<"POST">>,
+            handler => 'swagger_mine_block_handler'
+        },
         'NewChannelWithServer' => #{
             path => "/v1/new-channel-with-server",
             method => <<"POST">>,
