@@ -17,9 +17,9 @@ paths:
     post:
       tags:
         - account
+      operationId: AddAccount
       summary: Add a new account
       description: ''
-      operationId: add-account
       consumes:
         - application/json
       produces:
@@ -34,6 +34,35 @@ paths:
       responses:
         '405':
           description: Invalid input
+      security: []
+  /top:
+    get:
+      tags:
+        - top
+      operationId: GetTop
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Top'
+      security: []
+  /keypair:
+    get:
+      tags:
+        - keypair
+      operationId: GetKeyPair
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/KeyPair'
+      security: []
 definitions:
   Account:
     type: object
@@ -43,6 +72,21 @@ definitions:
       amount:
         type: integer
         format: int64
+  Top:
+    type: object
+    properties:
+      hash:
+        type: string
+      height:
+        type: integer
+        format: int64
+  KeyPair:
+    type: object
+    properties:
+      public:
+        type: string
+      private:
+        type: string
 externalDocs:
   description: Find out more about Aeternity
   url: 'http://www.aeternity.com'

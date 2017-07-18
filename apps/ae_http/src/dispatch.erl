@@ -15,9 +15,24 @@ handle_request('AddAccount', Req, _Context) ->
     ok = api:create_account(Addr, Amt),
     {200, [], #{}};
 
+handle_request('GetKeyPair', _Req, _Context) ->
+    {Pub, Priv} = api:new_keypair(),
+    {200, [], #{
+            <<"public">> => base64:encode(Pub),
+            <<"private">> => base64:encode(Priv)
+           }};
+
+handle_request('GetTop', _Req, _Context) ->
+    {top, Hash, Height} = api:top(),
+    {200, [], #{
+            <<"hash">> => base64:encode(Hash),
+            <<"height">> => Height
+           }};
+
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(
       ">>> Got not implemented request to process: ~p~n",
       [{OperationID, Req, Context}]
      ),
     {501, [], #{}}.
+

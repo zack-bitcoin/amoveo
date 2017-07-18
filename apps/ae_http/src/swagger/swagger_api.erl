@@ -18,6 +18,16 @@ request_params('AddAccount') ->
         'Account'
     ];
 
+
+request_params('GetKeyPair') ->
+    [
+    ];
+
+
+request_params('GetTop') ->
+    [
+    ];
+
 request_params(_) ->
     error(unknown_operation).
 
@@ -56,6 +66,8 @@ request_param_info('AddAccount', 'Account') ->
             required
         ]
     };
+
+
 
 request_param_info(OperationID, Name) ->
     error({unknown_param, OperationID, Name}).
@@ -102,6 +114,14 @@ populate_request_param(OperationID, Name, Req0, ValidatorState) ->
 
 validate_response('AddAccount', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
+
+
+validate_response('GetKeyPair', 200, Body, ValidatorState) ->
+    validate_response_body('KeyPair', 'KeyPair', Body, ValidatorState);
+
+
+validate_response('GetTop', 200, Body, ValidatorState) ->
+    validate_response_body('Top', 'Top', Body, ValidatorState);
 
 
 validate_response(_OperationID, _Code, _Body, _ValidatorState) ->
