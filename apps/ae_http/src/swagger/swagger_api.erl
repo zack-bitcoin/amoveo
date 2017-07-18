@@ -54,6 +54,12 @@ request_params('AddPeer') ->
     ];
 
 
+request_params('PullChannelState') ->
+    [
+        'PullChannelState'
+    ];
+
+
 request_params('Spend') ->
     [
         'Spend'
@@ -155,6 +161,16 @@ request_param_info('AddPeer', 'Peer') ->
     };
 
 
+request_param_info('PullChannelState', 'PullChannelState') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+
 request_param_info('Spend', 'Spend') ->
     #{
         source =>   body,
@@ -233,6 +249,10 @@ validate_response('NewChannelWithServer', 405, Body, ValidatorState) ->
 
 
 validate_response('AddPeer', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+
+validate_response('PullChannelState', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 

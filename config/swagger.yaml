@@ -195,6 +195,28 @@ paths:
         '405':
           description: Invalid input
       security: []
+  /pull-channel-state:
+    post:
+      tags:
+        - pull-channel-state
+      operationId: PullChannelState
+      summary: ''
+      description: ''
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: ''
+          required: true
+          schema:
+            $ref: '#/definitions/PullChannelState'
+      responses:
+        '405':
+          description: Invalid input
+      security: []
 definitions:
   Account:
     type: object
@@ -294,6 +316,14 @@ definitions:
       fee:
         type: integer
         format: int64
+  PullChannelState:
+    type: object
+    properties:
+      ip:
+        type: string
+      port:
+        type: integer
+        format: int16
 externalDocs:
   description: Find out more about Aeternity
   url: 'http://www.aeternity.com'

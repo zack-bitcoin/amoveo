@@ -107,6 +107,19 @@ handle_request('LightningSpend', Req, _Context) ->
             {405, [], #{}}
     end;
 
+handle_request('PullChannelState', Req, _Context) ->
+    Data = maps:get('PullChannelState', Req),
+    IP = maps:get(<<"ip">>, Data),
+    Port = maps:get(<<"port">>, Data),
+    case inet_parse:address(binary_to_list(IP)) of
+        {ok, IP1} -> 
+            ok = api:pull_channel_state(IP1, Port),
+            {200, [], #{}};
+        Err -> 
+            lager:error("Failed to parse peer IP ~p: ~p", [IP, Err]),
+            {405, [], #{}}
+    end;
+
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(
       ">>> Got not implemented request to process: ~p~n",

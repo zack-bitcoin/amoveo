@@ -90,6 +90,11 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_peer_handler'
         },
+        'PullChannelState' => #{
+            path => "/v1/pull-channel-state",
+            method => <<"POST">>,
+            handler => 'swagger_pullchannelstate_handler'
+        },
         'Spend' => #{
             path => "/v1/spend",
             method => <<"POST">>,
