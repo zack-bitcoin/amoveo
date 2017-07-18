@@ -37,6 +37,8 @@ doit({give_block, SignedBlock}) ->
 doit({block, N, Many}) -> 
     {ok, block:read_many(N, Many)};
 doit({block, N}) -> 
+    true = is_integer(N),
+    true = N > -1,
     {ok, block:read_int(N)};
 doit({header, N}) -> 
     {ok, block:block_to_header(block:read_int(N))};

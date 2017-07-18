@@ -12,6 +12,17 @@ sync_all([Peer|T], Height) ->
 	  end),
     sync_all(T, Height).
 
+    
+%new_sync(Peer, MyHeight) ->
+%    if
+	%MyHeight + 100 < Height -> get_all_headers(Peer);
+%	MyHeight < Height -> get_headers(Peer, Height, headers:top());
+%	true -> give_headers(Peer, headers:top(), Height - free_constants:fork_tolerance())
+%    end,
+%    download_blocks(Peer, headers:top()).
+%get_headers(Peer, PeerHeight, TopHeader) ->
+    %first walk backward fork_tolerance() headers, then download all the headers from there until peerHeight
+
 sync(Peer, MyHeight) ->
     RemoteTop = remote_peer({top}, Peer),
 	do_sync(RemoteTop, MyHeight, Peer).
@@ -24,6 +35,7 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
     if
         JumpHeight < Height ->
             io:fwrite("JumpHeight < Height\n"),
+	    true = JumpHeight > 0,
             BlockAtJumpHeight = remote_peer({block, JumpHeight}, Peer),
             trade_blocks(Peer, [BlockAtJumpHeight], JumpHeight);
         true ->
@@ -32,22 +44,31 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
     get_txs(Peer),
     trade_peers(Peer).
 
-trade_blocks(Peer, L, 1) ->
+trade_blocks(Peer, L, 0) ->
+    io:fwrite("downloader blocks trade blocks 0 absorbing blocks\n"),
     block_absorber:enqueue(L),
     Genesis = block:read_int(0),
     GH = block:hash(Genesis),
     send_blocks(Peer, top:doit(), GH, [], 0);
 trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
+    io:fwrite(packer:pack({prev_block, PrevBlock, PBT})),
+    io:fwrite("\n"),
     PrevHash = block:hash(PrevBlock),
-    {PrevHash, NextHash} = block:check1(PrevBlock),
-	OurChainAtPrevHash = block:read(PrevHash),
-	case OurChainAtPrevHash of
+    NextHash = block:prev_hash(PrevBlock),
+    %{PrevHash, NextHash} = block:check1(PrevBlock),
+    %OurChainAtPrevHash = block:read(PrevHash),
+    OurChainAtPrevHash = block:read(NextHash),
+    case OurChainAtPrevHash of
         empty ->
+	    io:fwrite("we don't have a parent for this block\n"),
+	    true = Height > 1,
             RemoteBlockThatWeMiss = remote_peer({block, Height-1}, Peer),
+	    io:fwrite(packer:pack({got_block, RemoteBlockThatWeMiss})),
             NextHash = block:hash(RemoteBlockThatWeMiss),
             trade_blocks(Peer, [RemoteBlockThatWeMiss|CurrentBlocks], Height-1);
         _ ->
-            block_absorber:enqueue(PBT),
+	    io:fwrite("we have a parent for this block\n"),
+            block_absorber:save(CurrentBlocks),
             send_blocks(Peer, top:doit(), PrevHash, [], 0)
     end.
 

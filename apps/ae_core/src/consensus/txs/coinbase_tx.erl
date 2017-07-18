@@ -12,6 +12,10 @@ doit(Tx, Trees, NewHeight) ->
     Governance = trees:governance(Trees),
     BlockReward = governance:get_value(block_reward, Governance),
     From = Tx#coinbase.from,
-    Nacc = accounts:update(From, Trees, BlockReward, none, NewHeight),
+    {_, X, _} = accounts:get(From, Accounts),
+    Nacc = case X of 
+	       empty -> accounts:new(From, BlockReward, NewHeight);
+	       _ -> accounts:update(From, Trees, BlockReward, none, NewHeight)
+	   end,
     NewAccounts = accounts:write(Accounts, Nacc),
     trees:update_accounts(Trees, NewAccounts).

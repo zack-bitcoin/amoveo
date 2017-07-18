@@ -2,8 +2,9 @@
 -export([block_to_header/1, test/0,
 	 height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, comment/1, version/1, pow/1, trees/1, prev_hashes/1, 
 	 read_int/2, read_int/1, hash/1, read/1, initialize_chain/0, make/4,
-	 mine/1, mine/2, mine2/2, check/1,
-	 guess_number_of_cpu_cores/0
+	 mine/1, mine/2, mine2/2, check/1, 
+	 guess_number_of_cpu_cores/0,
+	 binary_to_file/1
 
 	]).
 -record(block, {height, 
@@ -49,7 +50,7 @@ block_to_header(B) ->
 			B#block.height,
 			B#block.time,
 			B#block.version,
-			trees:root_hash(B#block.trees),
+			B#block.trees_hash,
 			txs_and_proof_hash(B#block.txs, B#block.proofs),
 			Nonce,
 			B#block.difficulty).
@@ -109,16 +110,28 @@ lgh(N, X) -> lgh(N div 2, X+1).
 
 read_int(N) ->
     read_int(N, headers:top()).
-read_int(N, BH) ->
-    Block = read(BH),
-    M = height(Block),
-    D = M-N,
-    if 
-	D<0 -> 
-	    empty;
-	D == 0 -> Block;
-	true ->
-	    read_int(N, prev_hash(lg(D), Block))
+read_int(N, BH) when N > -1 ->
+    io:fwrite(packer:pack({read_int, N, BH})),
+    io:fwrite("\n"),
+    Block = read(hash(BH)),
+    case Block of
+	empty ->
+	    PrevHash = headers:prev_hash(BH),
+	    {ok, {PrevHeader, _}} = headers:read(PrevHash),
+	    read_int(N, PrevHeader);
+	_  ->
+	    M = height(Block),
+	    D = M-N,
+	    if 
+		D<0 -> 
+		    empty;
+		D == 0 -> Block;
+		true ->
+		    PrevHash = prev_hash(lg(D), Block),
+		    {ok, {PrevHeader, _}} = headers:read(PrevHash),
+		    read_int(N, PrevHeader),
+		    read_int(N, prev_hash(lg(D), Block))
+	    end
     end.
 prev_hash(0, BP) ->
     prev_hash(BP);
@@ -172,6 +185,8 @@ tx_costs([STx|T], Governance, Out) ->
     tx_costs(T, Governance, Cost+Out).
   
 new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
+    io:fwrite(packer:pack({new_trees, Trees, Height, Pub, HeaderHash, Txs})),
+    io:fwrite("\n"),
     %convert trees to dictionary format
     Trees2 = txs:digest(Txs, Trees, Height),
     block_reward(Trees2, Height, Pub, HeaderHash).
@@ -191,13 +206,6 @@ make(Header, Txs0, Trees, Pub) ->
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header)
 		  }.
-do_save(BlockPlus) ->
-    Z = zlib:compress(term_to_binary(BlockPlus)),
-    binary_to_term(zlib:uncompress(Z)),%sanity check, not important for long-term.
-    %Hash = testnet_hasher:doit(BlockPlus),
-    Hash = hash(BlockPlus),
-    BF = binary_to_file(Hash),
-    ok = db:save(BF, Z).
     
 guess_number_of_cpu_cores() ->
     case application:get_env(ae_core, test_mode, false) of
@@ -241,7 +249,7 @@ mine(Block, Rounds, Cores) ->
 			io:fwrite("\n"),
 			Header = block_to_header(PBlock),
 			headers:absorb([Header]),
-			absorb(PBlock)
+			block_absorber:save(PBlock)
 		end
 	end,
     spawn_many(Cores-1, F),
@@ -273,18 +281,18 @@ check(Block) ->
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
+    io:fwrite("block check about to new_trees\n"),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
-    TreesHash = trees:root_hash(NewTrees),
-    TreesHash = Block#block.trees_hash,
-    {true, NewTrees}.
+    Block2 = Block#block{trees = NewTrees},
+    %TreesHash = trees:root_hash(Block#block.trees),
+    TreesHash = trees:root_hash(Block2#block.trees),
+    TreesHash = Block2#block.trees_hash,
+    io:fwrite(packer:pack({blocks, Block, Block2})),
+    io:fwrite("\n"),
+    %true = block_to_header(Block) == block_to_header(Block2),
+    %true = hash(Block) == hash(Block2),
+    {true, Block#block{trees = NewTrees}}.
 
-absorb(Block) ->
-    {true, NewTrees} = check(Block),
-    do_save(Block#block{trees = NewTrees}),
-    {_, _, Txs} = tx_pool:data(),
-    tx_pool:dump(),
-    timer:sleep(100),
-    tx_pool_feeder:absorb(Txs).
 
 initialize_chain() -> 
     Pub = constants:master_pub(),
@@ -293,9 +301,10 @@ initialize_chain() ->
     GovInit = governance:genesis_state(),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
     GB = genesis_maker(),
-    do_save(GB),
+    block_absorber:do_save(GB),
     Header0 = block_to_header(GB),
     headers:absorb([Header0]),
+    block_hashes:add(hash(Header0)),
     Header0.
  
 test() ->
@@ -324,7 +333,7 @@ test(1) ->
     H1 = hash(Header1),
     H1 = hash(WBlock10),
     {ok, _} = headers:read(H1),
-    absorb(WBlock10),
+    block_absorber:save(WBlock10),
     %do_save(Block1),
     WBlock11 = read(H1),
     WBlock11 = read_int(1, H1),
