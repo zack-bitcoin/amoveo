@@ -30,6 +30,12 @@ request_params('AddPeer') ->
     ];
 
 
+request_params('Spend') ->
+    [
+        'Spend'
+    ];
+
+
 request_params('GetTop') ->
     [
     ];
@@ -76,6 +82,16 @@ request_param_info('AddAccount', 'Account') ->
 
 
 request_param_info('AddPeer', 'Peer') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+
+request_param_info('Spend', 'Spend') ->
     #{
         source =>   body,
         rules => [
@@ -137,6 +153,10 @@ validate_response('GetKeyPair', 200, Body, ValidatorState) ->
 
 
 validate_response('AddPeer', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+
+validate_response('Spend', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 

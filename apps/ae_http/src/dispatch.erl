@@ -42,6 +42,13 @@ handle_request('AddPeer', Req, _Context) ->
             {405, [], #{}}
     end;
 
+handle_request('Spend', Req, _Context) ->
+    Spend = maps:get('Spend', Req),
+    Pub = maps:get(<<"pubkey">>, Spend),
+    Amt = maps:get(<<"amount">>, Spend),
+    ok = api:spend(base64:decode(Pub), Amt),
+    {200, [], #{}};
+
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(
       ">>> Got not implemented request to process: ~p~n",

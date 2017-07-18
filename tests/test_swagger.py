@@ -42,4 +42,17 @@ class SwaggerTest(ApiUser):
         data = {"ip": "46.101.103165", "port": 8080}
         response = self.session.post(uri, json=data)
         self.assertEqual(response.status_code, 405)
-        
+
+    def create_account(self, amount):
+        pub = self.new_pubkey()
+        uri = self.URL + "/account"
+        data = {"pubkey": pub, "amount": amount}
+        self.session.post(uri, json=data)
+        return pub
+
+    def test_spend(self):
+        pub = self.create_account(10)
+        uri = self.URL + "/spend"
+        data = {"pubkey": pub, "amount": 5}
+        response = self.session.post(uri, json=data)
+        self.assertEqual(response.status_code, 200)

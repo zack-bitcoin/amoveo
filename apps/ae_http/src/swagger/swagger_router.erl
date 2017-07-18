@@ -70,6 +70,11 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_peer_handler'
         },
+        'Spend' => #{
+            path => "/v1/spend",
+            method => <<"POST">>,
+            handler => 'swagger_spend_handler'
+        },
         'GetTop' => #{
             path => "/v1/top",
             method => <<"GET">>,
