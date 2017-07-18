@@ -1,4 +1,4 @@
--module(external_handler).
+-module(ext_file_handler).
 
 -export([init/3, handle/2, terminate/3]).
 %example of talking to this handler:
