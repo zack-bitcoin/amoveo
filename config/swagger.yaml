@@ -217,6 +217,50 @@ paths:
         '405':
           description: Invalid input
       security: []
+  /sync:
+    post:
+      tags:
+        - sync
+      summary: Sync with a node
+      description: ''
+      operationId: Sync
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Sync parameters that needs to be sent
+          required: true
+          schema:
+            $ref: '#/definitions/Sync'
+      responses:
+        '405':
+          description: Invalid input
+      security: []
+  /mine_block:
+    post:
+      tags:
+        - mine_block
+      summary: Mine blocks on a node
+      description: ''
+      operationId: MineBlock
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Mine blocks parameters that needs to be sent
+          required: true
+          schema:
+            $ref: '#/definitions/MineBlock'
+      responses:
+        '405':
+          description: Invalid input
+      security: []
 definitions:
   Account:
     type: object
@@ -324,6 +368,24 @@ definitions:
       port:
         type: integer
         format: int16
+  Sync:
+    type: object
+    properties:
+      ip:
+        type: string
+      port:
+        type: integer
+        format: int64
+  MineBlock:
+    type: object
+    properties:
+      count:
+        type: integer
+        format: int64
+      times:
+        type: integer
+        format: int64
+
 externalDocs:
   description: Find out more about Aeternity
   url: 'http://www.aeternity.com'

@@ -42,6 +42,12 @@ request_params('LoadKeyPair') ->
     ];
 
 
+request_params('MineBlock') ->
+    [
+        'MineBlock'
+    ];
+
+
 request_params('NewChannelWithServer') ->
     [
         'NewChannelWithServer'
@@ -63,6 +69,12 @@ request_params('PullChannelState') ->
 request_params('Spend') ->
     [
         'Spend'
+    ];
+
+
+request_params('Sync') ->
+    [
+        'Sync'
     ];
 
 
@@ -141,6 +153,16 @@ request_param_info('LoadKeyPair', 'LoadKeyPair') ->
     };
 
 
+request_param_info('MineBlock', 'MineBlock') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+
 request_param_info('NewChannelWithServer', 'NewChannelWithServer') ->
     #{
         source =>   body,
@@ -172,6 +194,16 @@ request_param_info('PullChannelState', 'PullChannelState') ->
 
 
 request_param_info('Spend', 'Spend') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+
+request_param_info('Sync', 'Sync') ->
     #{
         source =>   body,
         rules => [
@@ -244,6 +276,10 @@ validate_response('LoadKeyPair', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 
+validate_response('MineBlock', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+
 validate_response('NewChannelWithServer', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
@@ -257,6 +293,10 @@ validate_response('PullChannelState', 405, Body, ValidatorState) ->
 
 
 validate_response('Spend', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+
+validate_response('Sync', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 

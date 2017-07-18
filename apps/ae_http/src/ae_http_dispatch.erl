@@ -120,6 +120,27 @@ handle_request('PullChannelState', Req, _Context) ->
             {405, [], #{}}
     end;
 
+handle_request('Sync', Req, _Context) ->
+    Sync = maps:get('Sync', Req),
+    Ip = maps:get(<<"ip">>, Sync),
+    Port = maps:get(<<"port">>, Sync),
+    case inet_parse:address(binary_to_list(Ip)) of
+        {ok, IpAddress} ->
+            IPSyncFormat = erlang:tuple_to_list(IpAddress),
+            ok = api:sync(IPSyncFormat, Port),
+            {200, [], #{}};
+        {error, einval} ->
+            lager:error("Failed to parse IP: ~p", [Ip]),
+            {405, [], #{<<"error">> => <<"Invalid IP">>}}
+    end;
+
+handle_request('MineBlock', Req, _Context) ->
+    MineBlocks = maps:get('MineBlock', Req),
+    Count = maps:get(<<"count">>, MineBlocks),
+    Times = maps:get(<<"times">>, MineBlocks),
+    ok = api:mine_block(Count, Times),
+    {200, [], #{}};
+
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(
       ">>> Got not implemented request to process: ~p~n",

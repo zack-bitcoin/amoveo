@@ -1,5 +1,4 @@
 from base import ApiUser, DEV_1, OK_RESPONSE
-from nose.tools import nottest
 
 
 class HeaderTest(ApiUser):

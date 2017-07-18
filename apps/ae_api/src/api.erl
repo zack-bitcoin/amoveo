@@ -522,10 +522,9 @@ add_peer(IP, Port) ->
     peers:add(IP, Port),
     0.
 sync(IP, Port) ->
-    io:fwrite("api sync\n"),
+    lager:info("Sync with ~p ~p ~n", [IP, Port]),
     MyHeight = block:height(block:read(top:doit())),
-    download_blocks:sync_all([{IP, Port}], MyHeight),
-    0.
+    ok = download_blocks:sync_all([{IP, Port}], MyHeight).
 pubkey() ->
     keys:pubkey().
 new_pubkey(Password) ->    

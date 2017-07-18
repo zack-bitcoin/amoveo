@@ -1,7 +1,7 @@
 import unittest
 from time import sleep
 
-import requests, json
+import requests
 
 OK_RESPONSE = "ok"
 
@@ -86,7 +86,7 @@ class ApiUser(unittest.TestCase):
     def new_key_pair(self, node, sleep=0):
         return self._request(node, 'new_key_pair', [], sleep)
 
-    def request(self, action, node, args, sleep=0):#seconds to sleep
+    def request(self, action, node, args, sleep=0):  # seconds to sleep
         return self._request(node, action, args, sleep)
 
     def _request(self, node, action, args, seconds_to_sleep=0):
