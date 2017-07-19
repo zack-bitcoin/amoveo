@@ -1,5 +1,5 @@
 %% basic handler
--module(swagger_account_handler).
+-module(swagger_external_handler).
 
 %% Cowboy REST callbacks
 -export([allowed_methods/2]).
@@ -56,10 +56,10 @@ rest_init(Req0, {Operations, LogicHandler, ValidatorState}) ->
 allowed_methods(
     Req,
     State = #state{
-        operation_id = 'AddAccount'
+        operation_id = 'GetHeader'
     }
 ) ->
-    {[<<"POST">>], Req, State};
+    {[<<"GET">>], Req, State};
 
 allowed_methods(Req, State) ->
     {[], Req, State}.
@@ -95,7 +95,7 @@ content_types_accepted(Req, State) ->
 valid_content_headers(
     Req0,
     State = #state{
-        operation_id = 'AddAccount'
+        operation_id = 'GetHeader'
     }
 ) ->
     Headers = [],

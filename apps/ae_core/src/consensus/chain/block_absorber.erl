@@ -45,8 +45,6 @@ save(InputBlock) ->
 
     
 absorb_internal(Block) ->
-    io:fwrite(packer:pack({absorb_internal, Block})),
-    io:fwrite("\n"),
     BH = block:hash(Block),
     NextBlock = block:prev_hash(Block),
     case block_hashes:check(BH) of

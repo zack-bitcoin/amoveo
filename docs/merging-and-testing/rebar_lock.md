@@ -13,6 +13,6 @@ Our build system (rebar) supports that with lock/unlock api
 To update rebar lock on local machine.
 
 ```
-./rebar3 unlock
+./rebar3 dependency-unlock
 make local-build
 ```

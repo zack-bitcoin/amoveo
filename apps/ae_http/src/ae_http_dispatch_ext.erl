@@ -1,4 +1,4 @@
--module(dispatch).
+-module(ae_http_dispatch_ext).
 
 -export([handle_request/3]).
 
@@ -8,12 +8,9 @@
         Context :: #{}
        ) -> {Status :: cowboy:http_status(), Headers :: cowboy:http_headers(), Body :: #{}}.
 
-handle_request('AddAccount', Req, _Context) ->
-    Acc = maps:get('Account', Req),
-    Addr = maps:get(<<"address">>, Acc),
-    Amt = maps:get(<<"amount">>, Acc),
-    ok = api:create_account(Addr, Amt),
-    {200, [], #{}};
+handle_request('GetHeader', #{blockId := BlockId}, _Context) ->
+    Header = block:block_to_header(block:read_int(BlockId)),
+    {200, [], #{<<"header">> => base64:encode(Header)}};
 
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(

@@ -55,10 +55,70 @@ group_paths() ->
 
 get_operations() ->
     #{ 
+        'GetHeader' => #{
+            path => "/v1/header/:blockId",
+            method => <<"GET">>,
+            handler => 'swagger_external_handler'
+        },
         'AddAccount' => #{
             path => "/v1/account",
             method => <<"POST">>,
-            handler => 'swagger_account_handler'
+            handler => 'swagger_internal_handler'
+        },
+        'AddPeer' => #{
+            path => "/v1/peer",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'ChannelSpend' => #{
+            path => "/v1/channel-spend",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'GetKeyPair' => #{
+            path => "/v1/keypair",
+            method => <<"GET">>,
+            handler => 'swagger_internal_handler'
+        },
+        'GetTop' => #{
+            path => "/v1/top",
+            method => <<"GET">>,
+            handler => 'swagger_internal_handler'
+        },
+        'LightningSpend' => #{
+            path => "/v1/lightning-spend",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'LoadKeyPair' => #{
+            path => "/v1/load-keypair",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'MineBlock' => #{
+            path => "/v1/mine_block",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'NewChannelWithServer' => #{
+            path => "/v1/new-channel-with-server",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'PullChannelState' => #{
+            path => "/v1/pull-channel-state",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'Spend' => #{
+            path => "/v1/spend",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'Sync' => #{
+            path => "/v1/sync",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
         }
     }.
 

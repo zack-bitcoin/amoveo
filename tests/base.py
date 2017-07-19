@@ -1,7 +1,7 @@
 import unittest
 from time import sleep
 
-import requests, json
+import requests
 
 OK_RESPONSE = "ok"
 
@@ -33,20 +33,6 @@ class ApiUser(unittest.TestCase):
     URL_DEV_3 = "http://localhost:3030"
     URL_DEV_3_INT = "http://localhost:3031"
 
-    MINE_BLOCK = 'mine_block'
-    SYNC = 'sync'
-    HEADER = 'header'
-    HEADERS = 'headers'
-    TOP = 'top'
-    ADD_PEER = 'add_peer'
-    CREATE_ACCOUNT = 'create_account'
-    SPEND = 'spend'
-    NEW_CHANNEL_WITH_SERVER = 'new_channel_with_server'
-    CHANNEL_SPEND = 'channel_spend'
-    LIGHTNING_SPEND = 'lightning_spend'
-    PULL_CHANNEL_STATE = 'pull_channel_state'
-    LOAD_KEY = 'load_key'
-
     def __init__(self, *args, **kwargs):
         super(ApiUser, self).__init__(*args, **kwargs)
         self.session = requests.Session()
@@ -59,48 +45,50 @@ class ApiUser(unittest.TestCase):
                      DEV_3_INT: self.URL_DEV_3_INT}
 
     def mine_block(self, node, args, sleep=0):
-        return self._request(node, self.MINE_BLOCK, args, sleep)
+        return self._request(node, 'mine_block', args, sleep)
 
     def sync(self, node, args, sleep=0):
-        return self._request(node, self.SYNC, args, sleep)
+        return self._request(node, 'sync', args, sleep)
 
     def header(self, node, args, sleep=0):
-        return self._request(node, self.HEADER, args, sleep)
+        return self._request(node, 'header', args, sleep)
 
     def headers(self, node, args, sleep=0):
-        return self._request(node, self.HEADERS, args, sleep)
+        return self._request(node, 'headers', args, sleep)
 
     def top(self, node, args, sleep=0):
-        return self._request(node, self.TOP, args, sleep)
+        return self._request(node, 'top', args, sleep)
 
     def add_peer(self, node, args, sleep=0):
-        return self._request(node, self.ADD_PEER, args, sleep)
+        return self._request(node, 'add_peer', args, sleep)
 
     def create_account(self, node, args, sleep=0):
-        return self._request(node, self.CREATE_ACCOUNT, args, sleep)
+        return self._request(node, 'create_account', args, sleep)
 
     def spend(self, node, args, sleep=0):
-        return self._request(node, self.SPEND, args, sleep)
+        return self._request(node, 'spend', args, sleep)
 
     def new_channel_with_server(self, node, args, sleep=0):
-        return self._request(node, self.NEW_CHANNEL_WITH_SERVER, args, sleep)
+        return self._request(node, 'new_channel_with_server', args, sleep)
 
     def channel_spend(self, node, args, sleep=0):
-        return self._request(node, self.CHANNEL_SPEND, args, sleep)
+        return self._request(node, 'channel_spend', args, sleep)
 
     def lightning_spend(self, node, args, sleep=0):
-        return self._request(node, self.LIGHTNING_SPEND, args, sleep)
+        return self._request(node, 'lightning_spend', args, sleep)
 
     def pull_channel_state(self, node, args, sleep=0):
-        return self._request(node, self.PULL_CHANNEL_STATE, args, sleep)
+        return self._request(node, 'pull_channel_state', args, sleep)
 
     def load_key(self, node, args, sleep=0):
-        return self._request(node, self.LOAD_KEY, args, sleep)
+        return self._request(node, 'load_key', args, sleep)
 
+    def new_key_pair(self, node, sleep=0):
+        return self._request(node, 'new_key_pair', [], sleep)
 
-    def request(self, action, node, args, sleep=0):#seconds to sleep
+    def request(self, action, node, args, sleep=0):  # seconds to sleep
         return self._request(node, action, args, sleep)
-        
+
     def _request(self, node, action, args, seconds_to_sleep=0):
         url = self.urls[node]
         data = [action] + args
