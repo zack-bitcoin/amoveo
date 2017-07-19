@@ -161,12 +161,12 @@ python-tests:
 unit-tests:
 	@./rebar3 do eunit,ct
 
-#swagger: config/swagger.yaml
-#	@swagger-codegen generate -i $< -l erlang-server -o $(SWTEMP)
-#	@echo "Swagger tempdir: $(SWTEMP)"
-#	@cp $(SWTEMP)/priv/swagger.json apps/ae_http/priv/
-#	@cp $(SWTEMP)/src/*.erl $(SWAGGER)/
-#	@rm -fr $(SWTEMP)
+swagger: config/swagger.yaml
+	@swagger-codegen generate -i $< -l erlang-server -o $(SWTEMP)
+	@echo "Swagger tempdir: $(SWTEMP)"
+	@cp $(SWTEMP)/priv/swagger.json apps/ae_http/priv/
+	@cp $(SWTEMP)/src/*.erl $(SWAGGER)/
+	@rm -fr $(SWTEMP)
 
 #for rebar.lock
 dependency-unlock:
@@ -180,6 +180,8 @@ config/local/sys.config: config/sys.config.tmpl
 	s:%% comment:\
 	{port, 3010},\
 	{internal_port, 3011},\
+	{swagger_port_internal, 3012},\
+	{swagger_port_external, 3013},\
 	{keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\
 	{keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
 	{keys_pass, \"\"},\
@@ -191,6 +193,8 @@ config/prod/sys.config: config/sys.config.tmpl
     s:%% comment:\
     {port, 8040},\
     {internal_port, 8041},\
+    {swagger_port_internal, 8042},\
+    {swagger_port_external, 8043},\
     {peers, [[{46,101,103,165}, 8080]]},\
     {master_pub, <<\"BO8I1h5yIliI8XPCT89TMTqWvsmZ0J0D13cwF8UZ9YrL2oIdKZUAVg2L100okp1wtYCecxPC8kyPigBMC/lvg1Y=\">>},\
     {test_mode,false},\
@@ -202,6 +206,8 @@ config/dev1/sys.config: config/sys.config.tmpl
     s:%% comment:\
     {port, 3010},\
     {internal_port, 3011},\
+    {swagger_port_internal, 3012},\
+    {swagger_port_external, 3013},\
     {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\
     {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
     {keys_pass, \"\"},\
@@ -213,6 +219,8 @@ config/dev2/sys.config: config/sys.config.tmpl
     s:%% comment:\
     {port, 3020},\
     {internal_port, 3021},\
+    {swagger_port_internal, 3022},\
+    {swagger_port_external, 3023},\
     {keys_pub, <<\"BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=\">>},\
     {keys_priv, <<\"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=\">>},\
     {keys_pass, \"\"},\
@@ -224,6 +232,8 @@ config/dev3/sys.config: config/sys.config.tmpl
     s:%% comment:\
     {port, 3030},\
     {internal_port, 3031},\
+    {swagger_port_internal, 3032},\
+    {swagger_port_external, 3033},\
     {keys_pub, <<\"BOnadmMfDIoCmio3ReSinirULreS3TbCEdr0R6FDDvoVB5xoAJnvwlL3yMgNhBzEb5l36z7bgizw2EKGn0W9rY8=\">>},\
     {keys_priv, <<\"M/1xsM1DBO82qQcVJVoWVJd4p9YjpwygQJmmYkVLFd8=\">>},\
     {keys_pass, \"\"},\

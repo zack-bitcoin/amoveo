@@ -139,10 +139,6 @@ write(Root, Account) ->%These are backwards.
 delete(Pub0, Accounts) ->
     HP = pub_decode(Pub0),
     trie:delete(trees:hash2int(HP), Accounts, ?id).
-
-key_length() ->
-    constants:key_length().
-
 pub_decode(Pub) ->
     HS = constants:hash_size(),
     SizePubkey = constants:pubkey_size(),

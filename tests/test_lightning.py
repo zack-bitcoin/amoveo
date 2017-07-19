@@ -7,9 +7,8 @@
 # It lightning spends 4 tokens one way, then spends the same 4 back.
 
 from base import ApiUser, DEV_1_INT, DEV_2_INT, DEV_3_INT
-from nose.tools import nottest
 
-#@nottest
+
 class LightningTest(ApiUser):
     def test_payments(self):
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.5)

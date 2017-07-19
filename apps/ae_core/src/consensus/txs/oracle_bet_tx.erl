@@ -57,7 +57,7 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 		 true -> 
 		     oracles:set_done_timer(Oracle0, NewHeight + MOT)
 	     end,
-    io:fwrite(packer:pack({oracle_bet, NewHeight, oracles:starts(Oracle)})),
+    %io:fwrite(packer:pack({oracle_bet, NewHeight, oracles:starts(Oracle)})),
     true = NewHeight > oracles:starts(Oracle),
     
     %take some money from them. 

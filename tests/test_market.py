@@ -1,10 +1,8 @@
 from base import ApiUser, DEV_1_INT, DEV_2_INT, DEV_3_INT
-from nose.tools import nottest
 
-#@nottest
+
 class MarketTest(ApiUser):
     def test_market(self):
-        #self.mine_block(DEV_1_INT, [1, 1], sleep=5)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
         pub1 = "BOLh/UTJK6g4bgC4hSh941OEVdNfTBvqAU5OvgWWL3Dnv8M/dy6oioTIH9fHXdWaXXPop1BxQ/x3MfoEd3lnV7g="
@@ -56,5 +54,3 @@ class MarketTest(ApiUser):
         #self.request('oracle_unmatched', DEV_1_INT, [2, 1], sleep=0.1)
         self.request('pull_channel_state', DEV_1_INT, [[127,0,0,1], 3030], sleep=0.1)
         self.request('pull_channel_state', DEV_2_INT, [[127,0,0,1], 3030], sleep=0.1)
-        
-        

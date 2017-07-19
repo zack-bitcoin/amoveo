@@ -1,4 +1,5 @@
--module(handler).
+
+-module(ext_handler).
 
 -export([init/3, handle/2, terminate/3, doit/1]).
 %example of talking to this handler:

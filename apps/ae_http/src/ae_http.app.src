@@ -10,6 +10,7 @@
                   cowboy,
                   jsx,
                   jesse,
+                  lager,
                   ae_api
                  ]},
   {modules, []},
