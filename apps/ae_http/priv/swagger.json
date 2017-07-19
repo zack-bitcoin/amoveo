@@ -19,7 +19,7 @@
   } ],
   "schemes" : [ "http" ],
   "paths" : {
-    "/account" : {
+    "/create-account" : {
       "post" : {
         "tags" : [ "internal" ],
         "summary" : "Add a new account",
@@ -33,10 +33,94 @@
           "description" : "Account object that needs to be added",
           "required" : true,
           "schema" : {
-            "$ref" : "#/definitions/Account"
+            "$ref" : "#/definitions/CreateAccount"
           }
         } ],
         "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
+    },
+    "/delete-account" : {
+      "post" : {
+        "tags" : [ "internal" ],
+        "summary" : "Delete account",
+        "description" : "",
+        "operationId" : "DeleteAccount",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "Pubkey of the account to be deleted",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/PubKey"
+          }
+        } ],
+        "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
+    },
+    "/repo-account" : {
+      "post" : {
+        "tags" : [ "internal" ],
+        "summary" : "",
+        "description" : "",
+        "operationId" : "RepoAccount",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "Pubkey of the account",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/PubKey"
+          }
+        } ],
+        "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
+    },
+    "/fetch-account" : {
+      "post" : {
+        "tags" : [ "internal" ],
+        "summary" : "",
+        "description" : "",
+        "operationId" : "FetchAccount",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "Pubkey of the account",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/PubKey"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Account"
+            }
+          },
+          "404" : {
+            "description" : "Not found"
+          },
           "405" : {
             "description" : "Invalid input"
           }
@@ -61,10 +145,10 @@
         "security" : [ ]
       }
     },
-    "/keypair" : {
+    "/create-keypair" : {
       "get" : {
         "tags" : [ "internal" ],
-        "operationId" : "GetKeyPair",
+        "operationId" : "CreateKeyPair",
         "produces" : [ "application/json" ],
         "parameters" : [ ],
         "responses" : {
@@ -78,12 +162,12 @@
         "security" : [ ]
       }
     },
-    "/load-keypair" : {
+    "/set-keypair" : {
       "post" : {
         "tags" : [ "internal" ],
         "summary" : "",
         "description" : "",
-        "operationId" : "LoadKeyPair",
+        "operationId" : "SetKeyPair",
         "consumes" : [ "application/json" ],
         "produces" : [ "application/json" ],
         "parameters" : [ {
@@ -92,12 +176,29 @@
           "description" : "",
           "required" : true,
           "schema" : {
-            "$ref" : "#/definitions/LoadKeyPair"
+            "$ref" : "#/definitions/SetKeyPair"
           }
         } ],
         "responses" : {
           "405" : {
             "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
+    },
+    "/fetch-pubkey" : {
+      "get" : {
+        "tags" : [ "internal" ],
+        "operationId" : "FetchPubKey",
+        "produces" : [ "application/json" ],
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/PubKey"
+            }
           }
         },
         "security" : [ ]
@@ -351,7 +452,7 @@
     }
   },
   "definitions" : {
-    "Account" : {
+    "CreateAccount" : {
       "type" : "object",
       "properties" : {
         "pubkey" : {
@@ -386,7 +487,7 @@
         }
       }
     },
-    "LoadKeyPair" : {
+    "SetKeyPair" : {
       "type" : "object",
       "properties" : {
         "public" : {
@@ -547,6 +648,42 @@
         },
         "block_header" : {
           "type" : "string"
+        }
+      }
+    },
+    "PubKey" : {
+      "type" : "object",
+      "properties" : {
+        "pubkey" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Account" : {
+      "type" : "object",
+      "properties" : {
+        "pubkey" : {
+          "type" : "string"
+        },
+        "balance" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "nonce" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "height" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "bets" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "shares" : {
+          "type" : "integer",
+          "format" : "int64"
         }
       }
     }
