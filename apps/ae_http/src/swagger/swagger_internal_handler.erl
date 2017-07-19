@@ -80,7 +80,31 @@ allowed_methods(
 allowed_methods(
     Req,
     State = #state{
-        operation_id = 'GetKeyPair'
+        operation_id = 'CreateKeyPair'
+    }
+) ->
+    {[<<"GET">>], Req, State};
+
+allowed_methods(
+    Req,
+    State = #state{
+        operation_id = 'DeleteAccount'
+    }
+) ->
+    {[<<"POST">>], Req, State};
+
+allowed_methods(
+    Req,
+    State = #state{
+        operation_id = 'FetchAccount'
+    }
+) ->
+    {[<<"POST">>], Req, State};
+
+allowed_methods(
+    Req,
+    State = #state{
+        operation_id = 'FetchPubKey'
     }
 ) ->
     {[<<"GET">>], Req, State};
@@ -97,14 +121,6 @@ allowed_methods(
     Req,
     State = #state{
         operation_id = 'LightningSpend'
-    }
-) ->
-    {[<<"POST">>], Req, State};
-
-allowed_methods(
-    Req,
-    State = #state{
-        operation_id = 'LoadKeyPair'
     }
 ) ->
     {[<<"POST">>], Req, State};
@@ -136,6 +152,22 @@ allowed_methods(
 allowed_methods(
     Req,
     State = #state{
+        operation_id = 'RepoAccount'
+    }
+) ->
+    {[<<"POST">>], Req, State};
+
+allowed_methods(
+    Req,
+    State = #state{
+        operation_id = 'SetKeyPair'
+    }
+) ->
+    {[<<"POST">>], Req, State};
+
+allowed_methods(
+    Req,
+    State = #state{
         operation_id = 'Spend'
     }
 ) ->
@@ -158,6 +190,18 @@ allowed_methods(Req, State) ->
         Req :: cowboy_req:req(),
         State :: state()
     }.
+
+is_authorized(Req, State) ->
+    {true, Req, State};
+
+is_authorized(Req, State) ->
+    {true, Req, State};
+
+is_authorized(Req, State) ->
+    {true, Req, State};
+
+is_authorized(Req, State) ->
+    {true, Req, State};
 
 is_authorized(Req, State) ->
     {true, Req, State};
@@ -246,7 +290,37 @@ valid_content_headers(
 valid_content_headers(
     Req0,
     State = #state{
-        operation_id = 'GetKeyPair'
+        operation_id = 'CreateKeyPair'
+    }
+) ->
+    Headers = [],
+    {Result, Req} = validate_headers(Headers, Req0),
+    {Result, Req, State};
+
+valid_content_headers(
+    Req0,
+    State = #state{
+        operation_id = 'DeleteAccount'
+    }
+) ->
+    Headers = [],
+    {Result, Req} = validate_headers(Headers, Req0),
+    {Result, Req, State};
+
+valid_content_headers(
+    Req0,
+    State = #state{
+        operation_id = 'FetchAccount'
+    }
+) ->
+    Headers = [],
+    {Result, Req} = validate_headers(Headers, Req0),
+    {Result, Req, State};
+
+valid_content_headers(
+    Req0,
+    State = #state{
+        operation_id = 'FetchPubKey'
     }
 ) ->
     Headers = [],
@@ -267,16 +341,6 @@ valid_content_headers(
     Req0,
     State = #state{
         operation_id = 'LightningSpend'
-    }
-) ->
-    Headers = [],
-    {Result, Req} = validate_headers(Headers, Req0),
-    {Result, Req, State};
-
-valid_content_headers(
-    Req0,
-    State = #state{
-        operation_id = 'LoadKeyPair'
     }
 ) ->
     Headers = [],
@@ -307,6 +371,26 @@ valid_content_headers(
     Req0,
     State = #state{
         operation_id = 'PullChannelState'
+    }
+) ->
+    Headers = [],
+    {Result, Req} = validate_headers(Headers, Req0),
+    {Result, Req, State};
+
+valid_content_headers(
+    Req0,
+    State = #state{
+        operation_id = 'RepoAccount'
+    }
+) ->
+    Headers = [],
+    {Result, Req} = validate_headers(Headers, Req0),
+    {Result, Req, State};
+
+valid_content_headers(
+    Req0,
+    State = #state{
+        operation_id = 'SetKeyPair'
     }
 ) ->
     Headers = [],

@@ -100,7 +100,7 @@ delete_account(ID) ->
     delete_account(ID, ?Fee+Cost).
 delete_account(ID, Fee) ->
     F = fun(Trees) ->
-		delete_account_tx:make(keys:pubkey(), ID, Fee, Trees) end,
+		delete_account_tx:make(ID, keys:pubkey(), Fee, Trees) end,
     tx_maker(F).
 
 repo_account(ID) ->   
@@ -453,10 +453,8 @@ account(Pubkey) ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     case accounts:get(Pubkey, Accounts) of
-	{_,empty,_} ->
-        lager:info("This account does not yet exist"),
-	    accounts:new(Pubkey, 0, 0);
-	{_, A, _} -> A
+        {_,empty,_} -> empty;
+        {_, A, _} -> A
     end.
 account() -> account(keys:pubkey()).
 integer_balance() -> accounts:balance(account()).

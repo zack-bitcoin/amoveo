@@ -61,7 +61,7 @@ get_operations() ->
             handler => 'swagger_external_handler'
         },
         'AddAccount' => #{
-            path => "/v1/account",
+            path => "/v1/create-account",
             method => <<"POST">>,
             handler => 'swagger_internal_handler'
         },
@@ -75,8 +75,23 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_internal_handler'
         },
-        'GetKeyPair' => #{
-            path => "/v1/keypair",
+        'CreateKeyPair' => #{
+            path => "/v1/create-keypair",
+            method => <<"GET">>,
+            handler => 'swagger_internal_handler'
+        },
+        'DeleteAccount' => #{
+            path => "/v1/delete-account",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'FetchAccount' => #{
+            path => "/v1/fetch-account",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'FetchPubKey' => #{
+            path => "/v1/fetch-pubkey",
             method => <<"GET">>,
             handler => 'swagger_internal_handler'
         },
@@ -87,11 +102,6 @@ get_operations() ->
         },
         'LightningSpend' => #{
             path => "/v1/lightning-spend",
-            method => <<"POST">>,
-            handler => 'swagger_internal_handler'
-        },
-        'LoadKeyPair' => #{
-            path => "/v1/load-keypair",
             method => <<"POST">>,
             handler => 'swagger_internal_handler'
         },
@@ -107,6 +117,16 @@ get_operations() ->
         },
         'PullChannelState' => #{
             path => "/v1/pull-channel-state",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'RepoAccount' => #{
+            path => "/v1/repo-account",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'SetKeyPair' => #{
+            path => "/v1/set-keypair",
             method => <<"POST">>,
             handler => 'swagger_internal_handler'
         },
