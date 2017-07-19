@@ -85,4 +85,19 @@ class SwaggerTest(ApiUser):
         uri = self.EXTERNAL_URL + "/header/0"
         response = self.session.get(uri)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["block_id"], 0)
         self.assertTrue("header" in response.json())
+
+    def test_headers(self):
+        uri = self.INTERNAL_URL + "/mine_block"
+        data = {"count": 1, "times": 1}
+        response = self.session.post(uri, json=data)
+        self.assertEqual(response.status_code, 200)
+
+        uri = self.EXTERNAL_URL + "/headers?block_ids=0,1"
+        response = self.session.get(uri)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(2, len(data))
+        self.assertTrue("header" in data[0])
+        self.assertTrue("block_id" in data[0])
