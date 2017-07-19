@@ -56,7 +56,12 @@ group_paths() ->
 get_operations() ->
     #{ 
         'GetHeader' => #{
-            path => "/v1/header/:blockId",
+            path => "/v1/header/:block_id",
+            method => <<"GET">>,
+            handler => 'swagger_external_handler'
+        },
+        'GetHeaders' => #{
+            path => "/v1/headers",
             method => <<"GET">>,
             handler => 'swagger_external_handler'
         },

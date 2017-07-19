@@ -263,7 +263,7 @@ paths:
         '405':
           description: Invalid input
       security: []
-  /header/{blockId}:
+  /header/{block_id}:
     get:
       tags:
         - external
@@ -272,7 +272,7 @@ paths:
         - application/json
       parameters:
         - in: path
-          name: blockId
+          name: block_id
           description: Block number
           required: true
           allowMultiple: false
@@ -283,6 +283,24 @@ paths:
           description: successful operation
           schema:
             $ref: '#/definitions/Header'
+      security: []
+  /headers:
+    get:
+      tags:
+        - external
+      operationId: GetHeaders
+      produces:
+        - application/json
+      parameters:
+        - name: block_ids
+          in: query
+          type: string
+          required: true
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Headers'
       security: []
 definitions:
   Account:
@@ -408,9 +426,16 @@ definitions:
       times:
         type: integer
         format: int64
+  Headers:
+    type: array
+    items:
+      $ref: '#/definitions/Header'
   Header:
     type: object
     properties:
+      block_id:
+        type: integer
+        format: int64
       block_header:
         type: string
 

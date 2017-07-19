@@ -15,7 +15,12 @@
 
 request_params('GetHeader') ->
     [
-        'blockId'
+        'block_id'
+    ];
+
+request_params('GetHeaders') ->
+    [
+        'block_ids'
     ];
 
 
@@ -107,11 +112,20 @@ request_params(_) ->
 
 
 
-request_param_info('GetHeader', 'blockId') ->
+request_param_info('GetHeader', 'block_id') ->
     #{
         source =>  binding ,
         rules => [
             {type, 'integer'},
+            required
+        ]
+    };
+
+request_param_info('GetHeaders', 'block_ids') ->
+    #{
+        source => qs_val  ,
+        rules => [
+            {type, 'binary'},
             required
         ]
     };
@@ -252,6 +266,9 @@ populate_request_param(OperationID, Name, Req0, ValidatorState) ->
 
 validate_response('GetHeader', 200, Body, ValidatorState) ->
     validate_response_body('Header', 'Header', Body, ValidatorState);
+
+validate_response('GetHeaders', 200, Body, ValidatorState) ->
+    validate_response_body('Headers', 'Headers', Body, ValidatorState);
 
 
 validate_response('AddAccount', 405, Body, ValidatorState) ->
