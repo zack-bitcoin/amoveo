@@ -9,21 +9,51 @@
        ) -> {Status :: cowboy:http_status(), Headers :: cowboy:http_headers(), Body :: #{}}.
 
 handle_request('AddAccount', Req, _Context) ->
-    Data = maps:get('Account', Req),
+    Data = maps:get('CreateAccount', Req),
     Pub = maps:get(<<"pubkey">>, Data),
     Amt = maps:get(<<"amount">>, Data),
     ok = api:create_account(base64:decode(Pub), Amt),
     {200, [], #{}};
 
-handle_request('GetKeyPair', _Req, _Context) ->
+handle_request('DeleteAccount', Req, _Context) ->
+    Data = maps:get('PubKey', Req),
+    Pub = maps:get(<<"pubkey">>, Data),
+    ok = api:delete_account(base64:decode(Pub)),
+    {200, [], #{}};
+
+handle_request('RepoAccount', Req, _Context) ->
+    Data = maps:get('PubKey', Req),
+    Pub = maps:get(<<"pubkey">>, Data),
+    ok = api:repo_account(base64:decode(Pub)),
+    {200, [], #{}};
+
+handle_request('FetchAccount', Req, _Context) ->
+    Data = maps:get('PubKey', Req),
+    Pub = maps:get(<<"pubkey">>, Data),
+    case api:account(base64:decode(Pub)) of
+        empty -> 
+            {404, [], #{}};
+        Acc ->
+            JSON = #{
+              <<"pubkey">> => base64:encode(accounts:pubkey(Acc)),
+              <<"balance">> => accounts:balance(Acc),
+              <<"nonce">> => accounts:nonce(Acc),
+              <<"height">> => accounts:height(Acc),
+              <<"bets">> => accounts:bets(Acc),
+              <<"shares">> => accounts:shares(Acc)
+             },
+            {200, [], JSON}
+    end;
+
+handle_request('CreateKeyPair', _Req, _Context) ->
     {Pub, Priv} = api:new_keypair(),
     {200, [], #{
             <<"public">> => base64:encode(Pub),
             <<"private">> => base64:encode(Priv)
            }};
 
-handle_request('LoadKeyPair', Req, _Context) ->
-    Data = maps:get('LoadKeyPair', Req),
+handle_request('SetKeyPair', Req, _Context) ->
+    Data = maps:get('SetKeyPair', Req),
     Pub = maps:get(<<"public">>, Data),
     Priv = maps:get(<<"private">>, Data),
     Pub1 = base64:decode(Pub),
@@ -31,6 +61,10 @@ handle_request('LoadKeyPair', Req, _Context) ->
     BrainWallet = maps:get(<<"brain-wallet">>, Data),
     ok = api:load_key(Pub1, Priv1, BrainWallet),
     {200, [], #{}};
+
+handle_request('FetchPubKey', _Req, _Context) ->
+    Pub = api:pubkey(),
+    {200, [], #{<<"pubkey">> => base64:encode(Pub)}};
 
 handle_request('GetTop', _Req, _Context) ->
     {top, Hash, Height} = api:top(),
@@ -45,7 +79,7 @@ handle_request('AddPeer', Req, _Context) ->
     IP = maps:get(<<"ip">>, Data),
     case inet_parse:address(binary_to_list(IP)) of
         {ok, IP1} -> 
-            0 = api:add_peer(IP1, Port),
+            0 = api:add_peer(erlang:tuple_to_list(IP1), Port),
             {200, [], #{}};
         Err -> 
             lager:error("Failed to parse peer IP ~p: ~p", [IP, Err]),

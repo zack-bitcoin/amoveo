@@ -15,7 +15,7 @@ tags:
 schemes:
   - http
 paths:
-  /account:
+  /create-account:
     post:
       tags:
         - internal
@@ -32,10 +32,82 @@ paths:
           description: Account object that needs to be added
           required: true
           schema:
-            $ref: '#/definitions/Account'
+            $ref: '#/definitions/CreateAccount'
       responses:
         '405':
           description: Invalid input
+      security: []
+  /delete-account:
+    post:
+      tags:
+        - internal
+      operationId: DeleteAccount
+      summary: Delete account
+      description: ''
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Pubkey of the account to be deleted
+          required: true
+          schema:
+            $ref: '#/definitions/PubKey'
+      responses:
+        '405':
+          description: Invalid input
+      security: []
+  /repo-account:
+    post:
+      tags:
+        - internal
+      operationId: RepoAccount
+      summary: ''
+      description: ''
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Pubkey of the account
+          required: true
+          schema:
+            $ref: '#/definitions/PubKey'
+      responses:
+        '405':
+          description: Invalid input
+      security: []
+  /fetch-account:
+    post:
+      tags:
+        - internal
+      operationId: FetchAccount
+      summary: ''
+      description: ''
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Pubkey of the account
+          required: true
+          schema:
+            $ref: '#/definitions/PubKey'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Account'
+        '405':
+          description: Invalid input
+        '404':
+          description: Not found
       security: []
   /top:
     get:
@@ -51,11 +123,11 @@ paths:
           schema:
             $ref: '#/definitions/Top'
       security: []
-  /keypair:
+  /create-keypair:
     get:
       tags:
         - internal
-      operationId: GetKeyPair
+      operationId: CreateKeyPair
       produces:
         - application/json
       parameters: []
@@ -65,11 +137,11 @@ paths:
           schema:
             $ref: '#/definitions/KeyPair'
       security: []
-  /load-keypair:
+  /set-keypair:
     post:
       tags:
         - internal
-      operationId: LoadKeyPair
+      operationId: SetKeyPair
       summary: ''
       description: ''
       consumes:
@@ -82,10 +154,24 @@ paths:
           description: ''
           required: true
           schema:
-            $ref: '#/definitions/LoadKeyPair'
+            $ref: '#/definitions/SetKeyPair'
       responses:
         '405':
           description: Invalid input
+      security: []
+  /fetch-pubkey:
+    get:
+      tags:
+        - internal
+      operationId: FetchPubKey
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/PubKey'
       security: []
   /peer:
     post:
@@ -303,7 +389,7 @@ paths:
             $ref: '#/definitions/Headers'
       security: []
 definitions:
-  Account:
+  CreateAccount:
     type: object
     properties:
       pubkey:
@@ -326,7 +412,7 @@ definitions:
         type: string
       private:
         type: string
-  LoadKeyPair:
+  SetKeyPair:
     type: object
     properties:
       public:
@@ -438,7 +524,31 @@ definitions:
         format: int64
       block_header:
         type: string
-
+  PubKey:
+    type: object
+    properties:
+      pubkey:
+        type: string
+  Account:
+    type: object
+    properties:
+      pubkey:
+        type: string
+      balance:
+        type: integer
+        format: int64
+      nonce:
+        type: integer
+        format: int64
+      height:
+        type: integer
+        format: int64
+      bets:
+        type: integer
+        format: int64
+      shares:
+        type: integer
+        format: int64
 externalDocs:
   description: Find out more about Aeternity
   url: 'http://www.aeternity.com'

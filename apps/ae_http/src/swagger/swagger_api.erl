@@ -26,7 +26,7 @@ request_params('GetHeaders') ->
 
 request_params('AddAccount') ->
     [
-        'Account'
+        'CreateAccount'
     ];
 
 request_params('AddPeer') ->
@@ -39,7 +39,21 @@ request_params('ChannelSpend') ->
         'ChannelSpend'
     ];
 
-request_params('GetKeyPair') ->
+request_params('CreateKeyPair') ->
+    [
+    ];
+
+request_params('DeleteAccount') ->
+    [
+        'PubKey'
+    ];
+
+request_params('FetchAccount') ->
+    [
+        'PubKey'
+    ];
+
+request_params('FetchPubKey') ->
     [
     ];
 
@@ -50,11 +64,6 @@ request_params('GetTop') ->
 request_params('LightningSpend') ->
     [
         'LightningSpend'
-    ];
-
-request_params('LoadKeyPair') ->
-    [
-        'LoadKeyPair'
     ];
 
 request_params('MineBlock') ->
@@ -70,6 +79,16 @@ request_params('NewChannelWithServer') ->
 request_params('PullChannelState') ->
     [
         'PullChannelState'
+    ];
+
+request_params('RepoAccount') ->
+    [
+        'PubKey'
+    ];
+
+request_params('SetKeyPair') ->
+    [
+        'SetKeyPair'
     ];
 
 request_params('Spend') ->
@@ -131,7 +150,7 @@ request_param_info('GetHeaders', 'block_ids') ->
     };
 
 
-request_param_info('AddAccount', 'Account') ->
+request_param_info('AddAccount', 'CreateAccount') ->
     #{
         source =>   body,
         rules => [
@@ -158,7 +177,7 @@ request_param_info('ChannelSpend', 'ChannelSpend') ->
         ]
     };
 
-request_param_info('LightningSpend', 'LightningSpend') ->
+request_param_info('DeleteAccount', 'PubKey') ->
     #{
         source =>   body,
         rules => [
@@ -167,7 +186,16 @@ request_param_info('LightningSpend', 'LightningSpend') ->
         ]
     };
 
-request_param_info('LoadKeyPair', 'LoadKeyPair') ->
+request_param_info('FetchAccount', 'PubKey') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+request_param_info('LightningSpend', 'LightningSpend') ->
     #{
         source =>   body,
         rules => [
@@ -195,6 +223,24 @@ request_param_info('NewChannelWithServer', 'NewChannelWithServer') ->
     };
 
 request_param_info('PullChannelState', 'PullChannelState') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+request_param_info('RepoAccount', 'PubKey') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+request_param_info('SetKeyPair', 'SetKeyPair') ->
     #{
         source =>   body,
         rules => [
@@ -280,16 +326,26 @@ validate_response('AddPeer', 405, Body, ValidatorState) ->
 validate_response('ChannelSpend', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
-validate_response('GetKeyPair', 200, Body, ValidatorState) ->
+validate_response('CreateKeyPair', 200, Body, ValidatorState) ->
     validate_response_body('KeyPair', 'KeyPair', Body, ValidatorState);
+
+validate_response('DeleteAccount', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('FetchAccount', 200, Body, ValidatorState) ->
+    validate_response_body('Account', 'Account', Body, ValidatorState);
+validate_response('FetchAccount', 404, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+validate_response('FetchAccount', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('FetchPubKey', 200, Body, ValidatorState) ->
+    validate_response_body('PubKey', 'PubKey', Body, ValidatorState);
 
 validate_response('GetTop', 200, Body, ValidatorState) ->
     validate_response_body('Top', 'Top', Body, ValidatorState);
 
 validate_response('LightningSpend', 405, Body, ValidatorState) ->
-    validate_response_body('', '', Body, ValidatorState);
-
-validate_response('LoadKeyPair', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 validate_response('MineBlock', 405, Body, ValidatorState) ->
@@ -299,6 +355,12 @@ validate_response('NewChannelWithServer', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 validate_response('PullChannelState', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('RepoAccount', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('SetKeyPair', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 validate_response('Spend', 405, Body, ValidatorState) ->
