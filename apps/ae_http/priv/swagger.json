@@ -11,14 +11,17 @@
   },
   "basePath" : "/v1",
   "tags" : [ {
-    "name" : "account",
-    "description" : "Everything about your accounts"
+    "name" : "external",
+    "description" : "External API"
+  }, {
+    "name" : "internal",
+    "description" : "Internal API"
   } ],
   "schemes" : [ "http" ],
   "paths" : {
     "/account" : {
       "post" : {
-        "tags" : [ "account" ],
+        "tags" : [ "internal" ],
         "summary" : "Add a new account",
         "description" : "",
         "operationId" : "AddAccount",
@@ -43,7 +46,7 @@
     },
     "/top" : {
       "get" : {
-        "tags" : [ "top" ],
+        "tags" : [ "internal" ],
         "operationId" : "GetTop",
         "produces" : [ "application/json" ],
         "parameters" : [ ],
@@ -60,7 +63,7 @@
     },
     "/keypair" : {
       "get" : {
-        "tags" : [ "keypair" ],
+        "tags" : [ "internal" ],
         "operationId" : "GetKeyPair",
         "produces" : [ "application/json" ],
         "parameters" : [ ],
@@ -77,7 +80,7 @@
     },
     "/load-keypair" : {
       "post" : {
-        "tags" : [ "load-keypair" ],
+        "tags" : [ "internal" ],
         "summary" : "",
         "description" : "",
         "operationId" : "LoadKeyPair",
@@ -102,7 +105,7 @@
     },
     "/peer" : {
       "post" : {
-        "tags" : [ "peer" ],
+        "tags" : [ "internal" ],
         "summary" : "Add a new peer",
         "description" : "",
         "operationId" : "AddPeer",
@@ -127,7 +130,7 @@
     },
     "/new-channel-with-server" : {
       "post" : {
-        "tags" : [ "new-channel-with-server" ],
+        "tags" : [ "internal" ],
         "summary" : "",
         "description" : "",
         "operationId" : "NewChannelWithServer",
@@ -152,7 +155,7 @@
     },
     "/spend" : {
       "post" : {
-        "tags" : [ "spend" ],
+        "tags" : [ "internal" ],
         "summary" : "Spend",
         "description" : "",
         "operationId" : "Spend",
@@ -177,7 +180,7 @@
     },
     "/channel-spend" : {
       "post" : {
-        "tags" : [ "channel-spend" ],
+        "tags" : [ "internal" ],
         "summary" : "",
         "description" : "",
         "operationId" : "ChannelSpend",
@@ -202,7 +205,7 @@
     },
     "/lightning-spend" : {
       "post" : {
-        "tags" : [ "lightning-spend" ],
+        "tags" : [ "internal" ],
         "summary" : "",
         "description" : "",
         "operationId" : "LightningSpend",
@@ -227,7 +230,7 @@
     },
     "/pull-channel-state" : {
       "post" : {
-        "tags" : [ "pull-channel-state" ],
+        "tags" : [ "internal" ],
         "summary" : "",
         "description" : "",
         "operationId" : "PullChannelState",
@@ -252,7 +255,7 @@
     },
     "/sync" : {
       "post" : {
-        "tags" : [ "sync" ],
+        "tags" : [ "internal" ],
         "summary" : "Sync with a node",
         "description" : "",
         "operationId" : "Sync",
@@ -277,7 +280,7 @@
     },
     "/mine_block" : {
       "post" : {
-        "tags" : [ "mine_block" ],
+        "tags" : [ "internal" ],
         "summary" : "Mine blocks on a node",
         "description" : "",
         "operationId" : "MineBlock",
@@ -295,6 +298,30 @@
         "responses" : {
           "405" : {
             "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
+    },
+    "/header/{blockId}" : {
+      "get" : {
+        "tags" : [ "external" ],
+        "operationId" : "GetHeader",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "blockId",
+          "in" : "path",
+          "description" : "Block number",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int16"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Header"
+            }
           }
         },
         "security" : [ ]
@@ -480,6 +507,14 @@
         "times" : {
           "type" : "integer",
           "format" : "int64"
+        }
+      }
+    },
+    "Header" : {
+      "type" : "object",
+      "properties" : {
+        "block_header" : {
+          "type" : "string"
         }
       }
     }
