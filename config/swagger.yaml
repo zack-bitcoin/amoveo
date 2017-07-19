@@ -8,15 +8,17 @@ info:
     email: apiteam@aeternity.com
 basePath: /v1
 tags:
-  - name: account
-    description: Everything about your accounts
+  - name: external
+    description: External API
+  - name: internal
+    description: Internal API
 schemes:
   - http
 paths:
   /account:
     post:
       tags:
-        - account
+        - internal
       operationId: AddAccount
       summary: Add a new account
       description: ''
@@ -38,7 +40,7 @@ paths:
   /top:
     get:
       tags:
-        - top
+        - internal
       operationId: GetTop
       produces:
         - application/json
@@ -52,7 +54,7 @@ paths:
   /keypair:
     get:
       tags:
-        - keypair
+        - internal
       operationId: GetKeyPair
       produces:
         - application/json
@@ -66,7 +68,7 @@ paths:
   /load-keypair:
     post:
       tags:
-        - load-keypair
+        - internal
       operationId: LoadKeyPair
       summary: ''
       description: ''
@@ -88,7 +90,7 @@ paths:
   /peer:
     post:
       tags:
-        - peer
+        - internal
       operationId: AddPeer
       summary: Add a new peer
       description: ''
@@ -110,7 +112,7 @@ paths:
   /new-channel-with-server:
     post:
       tags:
-        - new-channel-with-server
+        - internal
       operationId: NewChannelWithServer
       summary: ''
       description: ''
@@ -132,7 +134,7 @@ paths:
   /spend:
     post:
       tags:
-        - spend
+        - internal
       operationId: Spend
       summary: Spend
       description: ''
@@ -154,7 +156,7 @@ paths:
   /channel-spend:
     post:
       tags:
-        - channel-spend
+        - internal
       operationId: ChannelSpend
       summary: ''
       description: ''
@@ -176,7 +178,7 @@ paths:
   /lightning-spend:
     post:
       tags:
-        - lightning-spend
+        - internal
       operationId: LightningSpend
       summary: ''
       description: ''
@@ -198,7 +200,7 @@ paths:
   /pull-channel-state:
     post:
       tags:
-        - pull-channel-state
+        - internal
       operationId: PullChannelState
       summary: ''
       description: ''
@@ -220,7 +222,7 @@ paths:
   /sync:
     post:
       tags:
-        - sync
+        - internal
       summary: Sync with a node
       description: ''
       operationId: Sync
@@ -242,7 +244,7 @@ paths:
   /mine_block:
     post:
       tags:
-        - mine_block
+        - internal
       summary: Mine blocks on a node
       description: ''
       operationId: MineBlock
@@ -264,7 +266,7 @@ paths:
   /header/{blockId}:
     get:
       tags:
-        - header
+        - external
       operationId: GetHeader
       produces:
         - application/json
@@ -275,7 +277,7 @@ paths:
           required: true
           allowMultiple: false
           type: integer
-          format: int64
+          format: int16
       responses:
         '200':
           description: successful operation

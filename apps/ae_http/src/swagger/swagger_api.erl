@@ -13,79 +13,68 @@
 -spec request_params(OperationID :: operation_id()) -> [Param :: request_param()].
 
 
-request_params('AddAccount') ->
-    [
-        'Account'
-    ];
-
-
-request_params('ChannelSpend') ->
-    [
-        'ChannelSpend'
-    ];
-
-
 request_params('GetHeader') ->
     [
         'blockId'
     ];
 
 
-request_params('GetKeyPair') ->
+request_params('AddAccount') ->
     [
+        'Account'
     ];
-
-
-request_params('LightningSpend') ->
-    [
-        'LightningSpend'
-    ];
-
-
-request_params('LoadKeyPair') ->
-    [
-        'LoadKeyPair'
-    ];
-
-
-request_params('MineBlock') ->
-    [
-        'MineBlock'
-    ];
-
-
-request_params('NewChannelWithServer') ->
-    [
-        'NewChannelWithServer'
-    ];
-
 
 request_params('AddPeer') ->
     [
         'Peer'
     ];
 
+request_params('ChannelSpend') ->
+    [
+        'ChannelSpend'
+    ];
+
+request_params('GetKeyPair') ->
+    [
+    ];
+
+request_params('GetTop') ->
+    [
+    ];
+
+request_params('LightningSpend') ->
+    [
+        'LightningSpend'
+    ];
+
+request_params('LoadKeyPair') ->
+    [
+        'LoadKeyPair'
+    ];
+
+request_params('MineBlock') ->
+    [
+        'MineBlock'
+    ];
+
+request_params('NewChannelWithServer') ->
+    [
+        'NewChannelWithServer'
+    ];
 
 request_params('PullChannelState') ->
     [
         'PullChannelState'
     ];
 
-
 request_params('Spend') ->
     [
         'Spend'
     ];
 
-
 request_params('Sync') ->
     [
         'Sync'
-    ];
-
-
-request_params('GetTop') ->
-    [
     ];
 
 request_params(_) ->
@@ -118,26 +107,6 @@ request_params(_) ->
 
 
 
-request_param_info('AddAccount', 'Account') ->
-    #{
-        source =>   body,
-        rules => [
-            schema,
-            required
-        ]
-    };
-
-
-request_param_info('ChannelSpend', 'ChannelSpend') ->
-    #{
-        source =>   body,
-        rules => [
-            schema,
-            required
-        ]
-    };
-
-
 request_param_info('GetHeader', 'blockId') ->
     #{
         source =>  binding ,
@@ -148,8 +117,7 @@ request_param_info('GetHeader', 'blockId') ->
     };
 
 
-
-request_param_info('LightningSpend', 'LightningSpend') ->
+request_param_info('AddAccount', 'Account') ->
     #{
         source =>   body,
         rules => [
@@ -157,37 +125,6 @@ request_param_info('LightningSpend', 'LightningSpend') ->
             required
         ]
     };
-
-
-request_param_info('LoadKeyPair', 'LoadKeyPair') ->
-    #{
-        source =>   body,
-        rules => [
-            schema,
-            required
-        ]
-    };
-
-
-request_param_info('MineBlock', 'MineBlock') ->
-    #{
-        source =>   body,
-        rules => [
-            schema,
-            required
-        ]
-    };
-
-
-request_param_info('NewChannelWithServer', 'NewChannelWithServer') ->
-    #{
-        source =>   body,
-        rules => [
-            schema,
-            required
-        ]
-    };
-
 
 request_param_info('AddPeer', 'Peer') ->
     #{
@@ -198,6 +135,50 @@ request_param_info('AddPeer', 'Peer') ->
         ]
     };
 
+request_param_info('ChannelSpend', 'ChannelSpend') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+request_param_info('LightningSpend', 'LightningSpend') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+request_param_info('LoadKeyPair', 'LoadKeyPair') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+request_param_info('MineBlock', 'MineBlock') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+request_param_info('NewChannelWithServer', 'NewChannelWithServer') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
 
 request_param_info('PullChannelState', 'PullChannelState') ->
     #{
@@ -208,7 +189,6 @@ request_param_info('PullChannelState', 'PullChannelState') ->
         ]
     };
 
-
 request_param_info('Spend', 'Spend') ->
     #{
         source =>   body,
@@ -218,7 +198,6 @@ request_param_info('Spend', 'Spend') ->
         ]
     };
 
-
 request_param_info('Sync', 'Sync') ->
     #{
         source =>   body,
@@ -227,7 +206,6 @@ request_param_info('Sync', 'Sync') ->
             required
         ]
     };
-
 
 request_param_info(OperationID, Name) ->
     error({unknown_param, OperationID, Name}).
@@ -272,56 +250,45 @@ populate_request_param(OperationID, Name, Req0, ValidatorState) ->
 ) -> ok | no_return().
 
 
-validate_response('AddAccount', 405, Body, ValidatorState) ->
-    validate_response_body('', '', Body, ValidatorState);
-
-
-validate_response('ChannelSpend', 405, Body, ValidatorState) ->
-    validate_response_body('', '', Body, ValidatorState);
-
-
 validate_response('GetHeader', 200, Body, ValidatorState) ->
     validate_response_body('Header', 'Header', Body, ValidatorState);
 
 
-validate_response('GetKeyPair', 200, Body, ValidatorState) ->
-    validate_response_body('KeyPair', 'KeyPair', Body, ValidatorState);
-
-
-validate_response('LightningSpend', 405, Body, ValidatorState) ->
+validate_response('AddAccount', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
-
-
-validate_response('LoadKeyPair', 405, Body, ValidatorState) ->
-    validate_response_body('', '', Body, ValidatorState);
-
-
-validate_response('MineBlock', 405, Body, ValidatorState) ->
-    validate_response_body('', '', Body, ValidatorState);
-
-
-validate_response('NewChannelWithServer', 405, Body, ValidatorState) ->
-    validate_response_body('', '', Body, ValidatorState);
-
 
 validate_response('AddPeer', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
+validate_response('ChannelSpend', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('GetKeyPair', 200, Body, ValidatorState) ->
+    validate_response_body('KeyPair', 'KeyPair', Body, ValidatorState);
+
+validate_response('GetTop', 200, Body, ValidatorState) ->
+    validate_response_body('Top', 'Top', Body, ValidatorState);
+
+validate_response('LightningSpend', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('LoadKeyPair', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('MineBlock', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('NewChannelWithServer', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
 
 validate_response('PullChannelState', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
-
 validate_response('Spend', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
-
 validate_response('Sync', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
-
-
-validate_response('GetTop', 200, Body, ValidatorState) ->
-    validate_response_body('Top', 'Top', Body, ValidatorState);
 
 
 validate_response(_OperationID, _Code, _Body, _ValidatorState) ->
