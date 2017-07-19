@@ -1,4 +1,4 @@
--module(ae_http_dispatch).
+-module(ae_http_dispatch_int).
 
 -export([handle_request/3]).
 

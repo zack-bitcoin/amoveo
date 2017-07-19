@@ -25,6 +25,12 @@ request_params('ChannelSpend') ->
     ];
 
 
+request_params('GetHeader') ->
+    [
+        'blockId'
+    ];
+
+
 request_params('GetKeyPair') ->
     [
     ];
@@ -127,6 +133,16 @@ request_param_info('ChannelSpend', 'ChannelSpend') ->
         source =>   body,
         rules => [
             schema,
+            required
+        ]
+    };
+
+
+request_param_info('GetHeader', 'blockId') ->
+    #{
+        source =>  binding ,
+        rules => [
+            {type, 'integer'},
             required
         ]
     };
@@ -262,6 +278,10 @@ validate_response('AddAccount', 405, Body, ValidatorState) ->
 
 validate_response('ChannelSpend', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
+
+
+validate_response('GetHeader', 200, Body, ValidatorState) ->
+    validate_response_body('Header', 'Header', Body, ValidatorState);
 
 
 validate_response('GetKeyPair', 200, Body, ValidatorState) ->

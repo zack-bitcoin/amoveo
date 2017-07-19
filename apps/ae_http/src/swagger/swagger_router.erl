@@ -65,6 +65,11 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_channelspend_handler'
         },
+        'GetHeader' => #{
+            path => "/v1/header/:blockId",
+            method => <<"GET">>,
+            handler => 'swagger_header_handler'
+        },
         'GetKeyPair' => #{
             path => "/v1/keypair",
             method => <<"GET">>,
