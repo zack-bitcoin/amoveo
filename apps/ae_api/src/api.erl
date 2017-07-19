@@ -489,8 +489,8 @@ mine_block() ->
     block:mine(1, 100000).
 mine_block(0, Times) -> ok;
 mine_block(Periods, Times) ->
-    Top = headers:top(),
-    PB = block:read(Top),
+    PB = block:top(),
+    Top = block:block_to_header(PB),
     {_, _, Txs} = tx_pool:data(),
     Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
     block:mine(Block, Times),

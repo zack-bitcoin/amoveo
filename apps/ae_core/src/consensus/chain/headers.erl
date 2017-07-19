@@ -69,17 +69,20 @@ make_header(PH, 0, Time, Version, Trees, Txs, Nonce, Difficulty) ->
 	    difficulty = Difficulty,
 	    accumulative_difficulty = 0};
 make_header(PH, Height, Time, Version, Trees, Txs, Nonce, Difficulty) ->
-    {ok, PrevHeader} = read(PH),
-    AC = pow:sci2int(Difficulty) + PrevHeader#header.accumulative_difficulty,
-    #header{prev_hash = PH,
+    case read(PH) of
+	{ok, PrevHeader} ->
+	    AC = pow:sci2int(Difficulty) + PrevHeader#header.accumulative_difficulty,
+	    #header{prev_hash = PH,
 	    height = Height, 
-	    time = Time, 
-	    version = Version,
-	    trees = Trees,
-	    txs = Txs,
-	    nonce = Nonce,
-	    difficulty = Difficulty,
-	    accumulative_difficulty = AC}.
+		    time = Time, 
+		    version = Version,
+		    trees = Trees,
+		    txs = Txs,
+		    nonce = Nonce,
+		    difficulty = Difficulty,
+		    accumulative_difficulty = AC};
+	_ -> error %the parent is unknown
+    end.
 txs_hash(X) ->
     testnet_hasher:doit(X).
 serialize(H) ->

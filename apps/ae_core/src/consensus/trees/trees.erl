@@ -63,7 +63,7 @@ keepers(TreeID, Hash, Many) ->
     end,
     [Root|T].
 garbage(TreeID) ->
-    Top = top:doit(),
+    Top = headers:top(),
     {ok, RD} = application:get_env(ae_core, revert_depth),
     Keepers = keepers(TreeID, Top, RD),
     trie:garbage(Keepers, TreeID).

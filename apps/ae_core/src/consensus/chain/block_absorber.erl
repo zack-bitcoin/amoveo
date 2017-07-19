@@ -45,6 +45,8 @@ save(InputBlock) ->
 
     
 absorb_internal(Block) ->
+    io:fwrite(packer:pack({absorb_internal, Block})),
+    io:fwrite("\n"),
     BH = block:hash(Block),
     NextBlock = block:prev_hash(Block),
     case block_hashes:check(BH) of
@@ -53,11 +55,13 @@ absorb_internal(Block) ->
 	    ok;%If we have seen this block before, then don't process it again.
 	false ->
 	    true = block_hashes:check(NextBlock), %check that the previous block is known.
+	    false = empty == block:read(NextBlock), %check that previous block was valid
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 	    Header = block:block_to_header(Block),
 	    headers:absorb([Header]),
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
+	    BH = block:hash(Block2),
 	    timer:sleep(100),
 	    {_, _, Txs} = tx_pool:data(),
 	    tx_pool:dump(),

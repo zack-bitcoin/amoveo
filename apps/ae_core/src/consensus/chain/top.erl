@@ -2,8 +2,9 @@
 -behaviour(gen_server).
 
 %% API
--export([add/1,
-         doit/0]).
+-export([%add/1,
+         %doit/0
+	]).
 
 -export([start_link/0]).
 -export([init/1,

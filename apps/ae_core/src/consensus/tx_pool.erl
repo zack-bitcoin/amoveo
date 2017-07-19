@@ -97,5 +97,13 @@ current_state() ->
     state2(Header).
 state2(Header) ->
     Block = block:read(block:hash(Header)),
-    #f{trees = block:trees(Block),
-       height = block:height(Block)}.
+    case Block of
+	empty -> 
+	    {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),
+	    state2(PrevHeader);
+	_ ->
+	    io:fwrite(packer:pack({state2_header, Header, Block})),
+	    io:fwrite("\n"),
+	    #f{trees = block:trees(Block),
+	       height = block:height(Block)}
+    end.

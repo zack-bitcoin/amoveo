@@ -3,7 +3,7 @@
 	 height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, comment/1, version/1, pow/1, trees/1, prev_hashes/1, 
 	 read_int/2, read_int/1, hash/1, read/1, initialize_chain/0, make/4,
 	 mine/1, mine/2, mine2/2, check/1, 
-	 guess_number_of_cpu_cores/0,
+	 guess_number_of_cpu_cores/0, top/0,
 	 binary_to_file/1
 
 	]).
@@ -54,6 +54,7 @@ block_to_header(B) ->
 			txs_and_proof_hash(B#block.txs, B#block.proofs),
 			Nonce,
 			B#block.difficulty).
+hash(error) -> error;
 hash(B) when is_binary(B) ->
     A = size(B) == constants:hash_size(),
     if
@@ -88,6 +89,19 @@ read(H) ->
 	[] -> empty;
 	A -> binary_to_term(zlib:uncompress(A))
     end.
+top() ->
+    TH = headers:top(),
+    top(TH).
+top(Header) ->
+    case read(hash(Header)) of
+	empty -> 
+	    {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),
+	    top(PrevHeader);
+	Block -> Block
+    end.
+	    
+	    
+    
 lg(X) ->
     true = X > 0,
     true = is_integer(X),

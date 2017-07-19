@@ -49,7 +49,7 @@ trade_blocks(Peer, L, 0) ->
     block_absorber:enqueue(L),
     Genesis = block:read_int(0),
     GH = block:hash(Genesis),
-    send_blocks(Peer, top:doit(), GH, [], 0);
+    send_blocks(Peer, block:hash(block:top()), GH, [], 0);
 trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     io:fwrite(packer:pack({prev_block, PrevBlock, PBT})),
     io:fwrite("\n"),
@@ -58,23 +58,32 @@ trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     %{PrevHash, NextHash} = block:check1(PrevBlock),
     %OurChainAtPrevHash = block:read(PrevHash),
     OurChainAtPrevHash = block:read(NextHash),
+    Height = block:height(PrevBlock),
     case OurChainAtPrevHash of
         empty ->
 	    io:fwrite("we don't have a parent for this block\n"),
 	    true = Height > 1,
             RemoteBlockThatWeMiss = remote_peer({block, Height-1}, Peer),
 	    io:fwrite(packer:pack({got_block, RemoteBlockThatWeMiss})),
-            NextHash = block:hash(RemoteBlockThatWeMiss),
+            %NextHash = block:hash(RemoteBlockThatWeMiss),
             trade_blocks(Peer, [RemoteBlockThatWeMiss|CurrentBlocks], Height-1);
         _ ->
 	    io:fwrite("we have a parent for this block\n"),
             block_absorber:save(CurrentBlocks),
-            send_blocks(Peer, top:doit(), PrevHash, [], 0)
+	    io:fwrite("about to send blocks\n"),
+	    H = headers:top(),
+	    case headers:height(H) of
+		0 -> ok;
+		_ ->
+		    send_blocks(Peer, block:hash(block:top()), PrevHash, [], 0)
+	    end
     end.
 
 send_blocks(Peer, Hash, Hash, Blocks, _N) ->
+    io:fwrite("send blocks 1\n"),
     send_blocks_external(Peer, Blocks);
 send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
+    io:fwrite("send blocks 2 " ++ integer_to_list(N) ++ " \n"),
     GH = block:hash(block:read_int(0)),
     if
         OurTopHash == GH -> send_blocks_external(Peer, Blocks);
@@ -85,6 +94,8 @@ send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
     end.
 
 send_blocks_external(Peer, Blocks) ->
+    io:fwrite(packer:pack({sending_blocks, Blocks})),
+    io:fwrite("\n"),
     spawn(?MODULE, do_send_blocks, [Peer, Blocks]).
 
 do_send_blocks(_, []) -> ok;
