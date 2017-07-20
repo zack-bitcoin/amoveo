@@ -66,6 +66,17 @@ handle_request('FetchPubKey', _Req, _Context) ->
     Pub = api:pubkey(),
     {200, [], #{<<"pubkey">> => base64:encode(Pub)}};
 
+handle_request('FetchKeyPair', _Req, _Context) ->
+    case api:keypair() of 
+        {Pub, Priv} ->
+            {200, [], #{
+                    <<"public">> => base64:encode(Pub),
+                    <<"private">> => base64:encode(Priv)
+                   }};
+        _ ->
+            {403, [], #{}}
+    end;
+
 handle_request('GetTop', _Req, _Context) ->
     {top, Hash, Height} = api:top(),
     {200, [], #{
@@ -79,7 +90,7 @@ handle_request('AddPeer', Req, _Context) ->
     IP = maps:get(<<"ip">>, Data),
     case inet_parse:address(binary_to_list(IP)) of
         {ok, IP1} -> 
-            0 = api:add_peer(erlang:tuple_to_list(IP1), Port),
+            0 = api:add_peer(IP1, Port),
             {200, [], #{}};
         Err -> 
             lager:error("Failed to parse peer IP ~p: ~p", [IP, Err]),
@@ -160,8 +171,7 @@ handle_request('Sync', Req, _Context) ->
     Port = maps:get(<<"port">>, Sync),
     case inet_parse:address(binary_to_list(Ip)) of
         {ok, IpAddress} ->
-            IPSyncFormat = erlang:tuple_to_list(IpAddress),
-            ok = api:sync(IPSyncFormat, Port),
+            ok = api:sync(IpAddress, Port),
             {200, [], #{}};
         {error, einval} ->
             lager:error("Failed to parse IP: ~p", [Ip]),
