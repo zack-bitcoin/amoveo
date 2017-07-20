@@ -95,6 +95,11 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_internal_handler'
         },
+        'FetchKeyPair' => #{
+            path => "/v1/fetch-keypair",
+            method => <<"GET">>,
+            handler => 'swagger_internal_handler'
+        },
         'FetchPubKey' => #{
             path => "/v1/fetch-pubkey",
             method => <<"GET">>,

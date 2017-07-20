@@ -4,7 +4,7 @@
 
 -export([height/0, off/0, balance/0, spend/2, mempool/0,
          top/0, sign/1, mine_block/0, mine_block/2,
-         add_peer/2, sync/2, load_key/3, new_keypair/0]).
+         add_peer/2, sync/2, load_key/3, keypair/0, new_keypair/0]).
 
 -export([create_account/2, delete_account/1, account/1,
          repo_account/1, repo_account/2]).
@@ -19,8 +19,8 @@
          channel_close/2, channel_close/3, new_channel_with_server/7,
          channel_solo_close/1, channel_solo_close/2,
          lightning_spend/2, lightning_spend/5, lightning_spend/7, 
-	 settle_bets/0, market_match/1, trade/5, trade/7,
-	 dump_channels/0]).
+         settle_bets/0, market_match/1, trade/5, trade/7,
+         dump_channels/0]).
 
 -export([new_difficulty_oracle/2, new_question_oracle/3,
          new_governance_oracle/4, oracle_bet/3, 
@@ -523,6 +523,9 @@ sync(IP, Port) ->
     lager:info("Sync with ~p ~p ~n", [IP, Port]),
     MyHeight = block:height(block:read(top:doit())),
     ok = download_blocks:sync_all([{IP, Port}], MyHeight).
+
+keypair() ->
+    keys:keypair().
 pubkey() ->
     keys:pubkey().
 new_pubkey(Password) ->    

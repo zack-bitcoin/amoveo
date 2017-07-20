@@ -53,6 +53,10 @@ request_params('FetchAccount') ->
         'PubKey'
     ];
 
+request_params('FetchKeyPair') ->
+    [
+    ];
+
 request_params('FetchPubKey') ->
     [
     ];
@@ -337,6 +341,11 @@ validate_response('FetchAccount', 200, Body, ValidatorState) ->
 validate_response('FetchAccount', 404, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 validate_response('FetchAccount', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('FetchKeyPair', 200, Body, ValidatorState) ->
+    validate_response_body('KeyPair', 'KeyPair', Body, ValidatorState);
+validate_response('FetchKeyPair', 403, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 validate_response('FetchPubKey', 200, Body, ValidatorState) ->
