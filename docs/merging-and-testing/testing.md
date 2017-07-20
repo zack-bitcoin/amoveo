@@ -6,7 +6,7 @@ The only system-wide requirements to run the tests is to have `Python 2.x` and `
 
 ### Test setup
 
-To prepare your environment for acceptance tests, run `make prepare-nose-env`.
+To prepare your environment for acceptance tests, run `make nose-env`.
 This will create a `virualenv` in your project directory and install all the necessary libs into it.
 
 ### Basic usage
