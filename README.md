@@ -7,7 +7,7 @@ Written in Erlang.
 
 #### Installing dependencies
 
-you will need Erlang and a couple of libraries before you are able to run this software.
+You will need Erlang and a couple of libraries before you are able to run this software.
 
 [For Ubuntu](docs/ubuntu_dependencies.md)
 
@@ -29,6 +29,8 @@ Read here about how to secure your private key with a password. That way you can
 [Read about the commands in depth in the docs](docs/api/commands.md) This is how you control the node once it is started.
 
 ### Testing
+
+[![Build Status](https://travis-ci.org/aeternity/testnet.svg?branch=master)](https://travis-ci.org/aeternity/testnet)
 
 We maintain two kinds of tests: unit tests and integration tests. Final test is always syncing fresh node with public testnet node.
 
