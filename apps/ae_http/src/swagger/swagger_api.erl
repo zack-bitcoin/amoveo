@@ -13,6 +13,11 @@
 -spec request_params(OperationID :: operation_id()) -> [Param :: request_param()].
 
 
+request_params('ChannelSync') ->
+    [
+        'ChannelSync'
+    ];
+
 request_params('GetHeader') ->
     [
         'block_id'
@@ -134,6 +139,15 @@ request_params(_) ->
 }.
 
 
+
+request_param_info('ChannelSync', 'ChannelSync') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
 
 request_param_info('GetHeader', 'block_id') ->
     #{
@@ -313,6 +327,9 @@ populate_request_param(OperationID, Name, Req0, ValidatorState) ->
     ValidatorState :: jesse_state:state()
 ) -> ok | no_return().
 
+
+validate_response('ChannelSync', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
 
 validate_response('GetHeader', 200, Body, ValidatorState) ->
     validate_response_body('Header', 'Header', Body, ValidatorState);

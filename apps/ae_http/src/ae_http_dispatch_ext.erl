@@ -20,6 +20,15 @@ handle_request('GetHeaders', #{block_ids := AllBlockIds}, _Context) ->
               <<"block_id">> => B} || B <- BlockIds],
     {200, [], Resp};
 
+handle_request('ChannelSync', #{'ChannelSync' := Data}, _Context) ->
+    Pub = maps:get(<<"pubkey">>, Data),
+    Sig = maps:get(<<"sig">>, Data),
+    Pub1 = base64:decode(Pub),
+    Sig1 = base64:decode(Sig),
+    Res = channel_feeder:update_to_me(Sig1, Pub1),
+    io:format("XXX Res = ~p~n", [Res]),
+    {200, [], #{}};
+
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(
       ">>> Got not implemented request to process: ~p~n",

@@ -74,3 +74,39 @@ class InternalAPITest(SwaggerTest):
         self.c(api.fetch_account(pub2))
         # XXX check pub2's balance?
 
+    def test_lightning_payments(self):
+        api1 = self.API['dev1']
+        api2 = self.API['dev2']
+        api3 = self.API['dev3']
+        # grab dev1's pubkey
+        pub1 = self.c(api1.fetch_pubkey())
+        # sync dev1 with dev2 and dev3
+        self.c(api1.sync('127.0.0.1', 3020)); sleep(0.5)
+        self.c(api1.sync('127.0.0.1', 3030)); sleep(0.5)
+        # set keys on dev2 and dev3
+        pub2, priv2 = self.c(api2.create_keypair())
+        self.c(api2.set_keypair(pub2, priv2))
+        pub3, priv3 = self.c(api3.create_keypair())
+        self.c(api3.set_keypair(pub3, priv3))
+        # let dev1 know about dev2 and dev3
+        self.c(api1.create_account_with_key(pub2, 10)); sleep(0.5)
+        self.c(api1.create_account_with_key(pub3, 10)); sleep(0.5)
+        # sync dev1 and dev2 with dev3
+        self.c(api1.sync('127.0.0.1', 3030)); sleep(0.1)
+        self.c(api2.sync('127.0.0.1', 3030)); sleep(0.1)
+        # 2 step handshake to make channel
+        self.c(api1.new_channel_with_server('127.0.0.1', 3030, 1, 10000, 10001, 50, 4)); sleep(0.1)
+        self.c(api2.sync('127.0.0.1', 3030)); sleep(0.1)
+        self.c(api2.new_channel_with_server('127.0.0.1', 3030, 2, 10000, 10001, 50, 4)); sleep(0.1)
+        self.c(api1.sync('127.0.0.1', 3030)); sleep(0.1)
+        # spend
+        self.c(api1.channel_spend('127.0.0.1', 3030, 777)); sleep(0.1)
+        self.c(api1.lightning_spend('127.0.0.1', 3030, pub2, 4, 10)); sleep(0.1)
+        # XXX Can't pull dev1 first. Why?
+        self.c(api2.pull_channel_state('127.0.0.1', 3030)); sleep(0.1)
+        self.c(api1.pull_channel_state('127.0.0.1', 3030)); sleep(0.1)
+        # spend again
+        self.c(api2.lightning_spend('127.0.0.1', 3030, pub1, 4, 10)); sleep(0.1)
+        self.c(api1.pull_channel_state('127.0.0.1', 3030)); sleep(0.1)
+        self.c(api2.pull_channel_state('127.0.0.1', 3030)); sleep(0.1)
+
