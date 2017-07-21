@@ -6,7 +6,7 @@ class SpendTest(ApiUser):
         pub = "BGRv3asifl1g/nACvsJoJiB1UiKU7Ll8O1jN/VD2l/rV95aRPrMm1cfV1917dxXVERzaaBGYtsGB5ET+4aYz7ws="
         priv = "nJgWyLTX1La8eCbPv85r3xs7DfmJ9AG4tLrJ5fiW6qY="
         brainwallet = ''
-        self.load_key(DEV_2_INT, [pub, priv, brainwallet])
+        self.load_key(DEV_2_INT, [pub, priv, brainwallet], sleep=1)
         self.add_peer(DEV_2_INT, [[127, 0, 0, 1], 3010])
         self.add_peer(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
 

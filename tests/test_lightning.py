@@ -21,8 +21,8 @@ class LightningTest(ApiUser):
         pub2 = 'BFRjuCgudSTRU79SVoCBvWi55+N1QethvQI6LKUCoEPHvIfedkQLxnuD2VJHqoLrULmXyexRWs2sOTwyLsdyL+E='
         priv2 = 'IxHs+qu1daOGQ/PfBN4LHM3h2W/5X3dGYfb4q3lkupw='
         brainwallet = ''
-        self.load_key(DEV_2_INT, [pub1, priv1, brainwallet])
-        self.load_key(DEV_3_INT, [pub2, priv2, brainwallet], sleep=0.5)
+        self.load_key(DEV_2_INT, [pub1, priv1, brainwallet], sleep=1)
+        self.load_key(DEV_3_INT, [pub2, priv2, brainwallet], sleep=1)
         self.create_account(DEV_1_INT, [pub1, 10], sleep=0.5)
         self.create_account(DEV_1_INT, [pub2, 10], sleep=0.5)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
