@@ -1,5 +1,5 @@
-from time import sleep
 from swagger import SwaggerTest, IntAPI, ExtAPI
+
 
 class ExternalAPITest(SwaggerTest):
     INT_API = {
@@ -9,8 +9,8 @@ class ExternalAPITest(SwaggerTest):
     }
     API = {
         'dev1': ExtAPI('localhost', 3013),
-        'dev1': ExtAPI('localhost', 3023),
-        'dev1': ExtAPI('localhost', 3033)
+        'dev2': ExtAPI('localhost', 3023),
+        'dev3': ExtAPI('localhost', 3033)
     }
     URL = {
         'dev1': 'http://localhost:3013/v1',
@@ -30,4 +30,3 @@ class ExternalAPITest(SwaggerTest):
         api = self.API['dev1']
         a = self.c(api.headers([0, 1]))
         self.assertEqual(len(a), 2)
-

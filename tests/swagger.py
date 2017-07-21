@@ -201,23 +201,27 @@ class IntAPI(API):
         r = self.session.post(uri, json=data)
         return r.status_code
 
+
 class ExtAPI(API):
     def __init__(self, *args, **kwargs):
         super(ExtAPI, self).__init__(*args, **kwargs)
 
-    def header(self, block_id):
-        uri = self.URL + "/header/" + str(block_id)
-        r = self.session.get(uri)
+    def header(self, blockid):
+        uri = self.URL + "/header"
+        data = {'block-id': blockid}
+        r = self.session.post(uri, json=data)
         code = r.status_code
         if code != 200:
             return code, None
         o = r.json()
-        return code, o['block_id'], o['header']
+        return code, o['block-id'], o['header']
 
     def headers(self, block_ids):
-        uri = self.URL + '/headers?block_ids='
-        ids = ','.join(map(str, block_ids)) 
-        r = self.session.get(uri + ids)
+        uri = self.URL + "/headers"
+        data = []
+        for block_id in block_ids:
+            data.append({'block-id': block_id})
+        r = self.session.post(uri, json=data)
         code = r.status_code
         if code != 200:
             return code, None
@@ -231,4 +235,3 @@ class ExtAPI(API):
         if code != 200:
             return code, None
         return code, r.json()
-

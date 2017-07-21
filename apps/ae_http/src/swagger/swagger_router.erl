@@ -61,13 +61,13 @@ get_operations() ->
             handler => 'swagger_external_handler'
         },
         'GetHeader' => #{
-            path => "/v1/header/:block_id",
-            method => <<"GET">>,
+            path => "/v1/header",
+            method => <<"POST">>,
             handler => 'swagger_external_handler'
         },
         'GetHeaders' => #{
             path => "/v1/headers",
-            method => <<"GET">>,
+            method => <<"POST">>,
             handler => 'swagger_external_handler'
         },
         'AddAccount' => #{

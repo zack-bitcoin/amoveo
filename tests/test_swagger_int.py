@@ -2,6 +2,7 @@ from time import sleep
 from swagger import SwaggerTest, IntAPI
 from nose.tools import nottest
 
+
 class InternalAPITest(SwaggerTest):
     API = {
         'dev1': IntAPI('localhost', 3012),

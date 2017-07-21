@@ -365,44 +365,47 @@ paths:
         '405':
           description: Invalid input
       security: []
-  /header/{block_id}:
-    get:
+  /header:
+    post:
       tags:
         - external
+      summary: Get header of a block
+      description: ''
       operationId: GetHeader
+      consumes:
+        - application/json
       produces:
         - application/json
       parameters:
-        - in: path
-          name: block_id
-          description: Block number
+        - in: body
+          name: body
+          description: Header parameters that needs to be sent
           required: true
-          allowMultiple: false
-          type: integer
-          format: int16
-      responses:
-        '200':
-          description: successful operation
           schema:
-            $ref: '#/definitions/Header'
+            $ref: '#/definitions/HeaderId'
+      responses:
+        '405':
+          description: Invalid input
       security: []
   /headers:
-    get:
+    post:
       tags:
         - external
       operationId: GetHeaders
+      consumes:
+        - application/json
       produces:
         - application/json
       parameters:
-        - name: block_ids
-          in: query
-          type: string
+        - in: body
+          name: body
+          description: Headers parameters that needs to be sent
           required: true
-      responses:
-        '200':
-          description: successful operation
           schema:
-            $ref: '#/definitions/Headers'
+            $ref: '#/definitions/HeaderIds'
+      responses:
+        '405':
+          description: Invalid input
       security: []
   /channel-sync:
     post:
@@ -426,6 +429,7 @@ paths:
         '405':
           description: Invalid input
       security: []
+
 definitions:
   CreateAccount:
     type: object
@@ -550,6 +554,16 @@ definitions:
       times:
         type: integer
         format: int64
+  HeaderIds:
+    type: array
+    items:
+      $ref: '#/definitions/HeaderId'
+  HeaderId:
+    type: object
+    properties:
+      block-id:
+        type: integer
+        format: int16
   Headers:
     type: array
     items:
@@ -557,10 +571,10 @@ definitions:
   Header:
     type: object
     properties:
-      block_id:
+      block-id:
         type: integer
         format: int64
-      block_header:
+      block-header:
         type: string
   PubKey:
     type: object
