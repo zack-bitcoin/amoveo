@@ -404,6 +404,28 @@ paths:
           schema:
             $ref: '#/definitions/Headers'
       security: []
+  /channel-sync:
+    post:
+      tags:
+        - external
+      operationId: ChannelSync
+      summary: ''
+      description: ''
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: ''
+          required: true
+          schema:
+            $ref: '#/definitions/ChannelSync'
+      responses:
+        '405':
+          description: Invalid input
+      security: []
 definitions:
   CreateAccount:
     type: object
@@ -565,6 +587,13 @@ definitions:
       shares:
         type: integer
         format: int64
+  ChannelSync:
+    type: object
+    properties:
+      pubkey:
+        type: string
+      sig:
+        type: string
 externalDocs:
   description: Find out more about Aeternity
   url: 'http://www.aeternity.com'

@@ -55,6 +55,11 @@ group_paths() ->
 
 get_operations() ->
     #{ 
+        'ChannelSync' => #{
+            path => "/v1/channel-sync",
+            method => <<"POST">>,
+            handler => 'swagger_external_handler'
+        },
         'GetHeader' => #{
             path => "/v1/header/:block_id",
             method => <<"GET">>,

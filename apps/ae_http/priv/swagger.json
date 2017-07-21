@@ -469,6 +469,31 @@
         },
         "security" : [ ]
       }
+    },
+    "/channel-sync" : {
+      "post" : {
+        "tags" : [ "external" ],
+        "summary" : "",
+        "description" : "",
+        "operationId" : "ChannelSync",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/ChannelSync"
+          }
+        } ],
+        "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
     }
   },
   "definitions" : {
@@ -704,6 +729,17 @@
         "shares" : {
           "type" : "integer",
           "format" : "int64"
+        }
+      }
+    },
+    "ChannelSync" : {
+      "type" : "object",
+      "properties" : {
+        "pubkey" : {
+          "type" : "string"
+        },
+        "sig" : {
+          "type" : "string"
         }
       }
     }
