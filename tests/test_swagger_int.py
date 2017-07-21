@@ -1,5 +1,6 @@
 from time import sleep
 from swagger import SwaggerTest, IntAPI
+from nose.tools import nottest
 
 class InternalAPITest(SwaggerTest):
     API = {
@@ -74,6 +75,7 @@ class InternalAPITest(SwaggerTest):
         self.c(api.fetch_account(pub2))
         # XXX check pub2's balance?
 
+    @nottest
     def test_lightning_payments(self):
         api1 = self.API['dev1']
         api2 = self.API['dev2']
