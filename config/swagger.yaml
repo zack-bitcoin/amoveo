@@ -343,7 +343,7 @@ paths:
         '405':
           description: Invalid input
       security: []
-  /mine_block:
+  /mine-block:
     post:
       tags:
         - internal

@@ -399,7 +399,7 @@
         "security" : [ ]
       }
     },
-    "/mine_block" : {
+    "/mine-block" : {
       "post" : {
         "tags" : [ "internal" ],
         "summary" : "Mine blocks on a node",
