@@ -116,7 +116,7 @@ get_operations() ->
             handler => 'swagger_internal_handler'
         },
         'MineBlock' => #{
-            path => "/v1/mine_block",
+            path => "/v1/mine-block",
             method => <<"POST">>,
             handler => 'swagger_internal_handler'
         },
