@@ -37,8 +37,8 @@ class LightningTest(ApiUser):
         self.request("dump_channels", DEV_1_INT, [], sleep=0.1)
         self.request("dump_channels", DEV_2_INT, [], sleep=0.1)
         self.request("dump_channels", DEV_3_INT, [], sleep=0.1)
-        self.load_key(DEV_2_INT, [pub1, priv1, brainwallet], sleep=0.1)
-        self.load_key(DEV_3_INT, [pub2, priv2, brainwallet], sleep=0.1)
+        self.load_key(DEV_2_INT, [pub1, priv1, brainwallet], sleep=1)
+        self.load_key(DEV_3_INT, [pub2, priv2, brainwallet], sleep=1)
         self.create_account(DEV_1_INT, [pub1, 10], sleep=0.1)
         self.create_account(DEV_1_INT, [pub2, 10], sleep=0.1)
 

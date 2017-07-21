@@ -67,7 +67,7 @@ allowed_methods(
         operation_id = 'GetHeader'
     }
 ) ->
-    {[<<"GET">>], Req, State};
+    {[<<"POST">>], Req, State};
 
 allowed_methods(
     Req,
@@ -75,7 +75,7 @@ allowed_methods(
         operation_id = 'GetHeaders'
     }
 ) ->
-    {[<<"GET">>], Req, State};
+    {[<<"POST">>], Req, State};
 
 allowed_methods(Req, State) ->
     {[], Req, State}.

@@ -20,12 +20,12 @@ request_params('ChannelSync') ->
 
 request_params('GetHeader') ->
     [
-        'block_id'
+        'HeaderId'
     ];
 
 request_params('GetHeaders') ->
     [
-        'block_ids'
+        'HeaderIds'
     ];
 
 
@@ -149,20 +149,20 @@ request_param_info('ChannelSync', 'ChannelSync') ->
         ]
     };
 
-request_param_info('GetHeader', 'block_id') ->
+request_param_info('GetHeader', 'HeaderId') ->
     #{
-        source =>  binding ,
+        source =>   body,
         rules => [
-            {type, 'integer'},
+            schema,
             required
         ]
     };
 
-request_param_info('GetHeaders', 'block_ids') ->
+request_param_info('GetHeaders', 'HeaderIds') ->
     #{
-        source => qs_val  ,
+        source =>   body,
         rules => [
-            {type, 'binary'},
+            schema,
             required
         ]
     };
@@ -331,11 +331,11 @@ populate_request_param(OperationID, Name, Req0, ValidatorState) ->
 validate_response('ChannelSync', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
-validate_response('GetHeader', 200, Body, ValidatorState) ->
-    validate_response_body('Header', 'Header', Body, ValidatorState);
+validate_response('GetHeader', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
 
-validate_response('GetHeaders', 200, Body, ValidatorState) ->
-    validate_response_body('Headers', 'Headers', Body, ValidatorState);
+validate_response('GetHeaders', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
 
 
 validate_response('AddAccount', 405, Body, ValidatorState) ->
