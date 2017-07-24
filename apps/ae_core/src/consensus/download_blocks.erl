@@ -12,6 +12,7 @@ sync_all([Peer|T], Height) ->
 	  end),
     sync_all(T, Height).
 
+
 sync(Peer, MyHeight) ->
     RemoteTop = remote_peer({top}, Peer),
 	do_sync(RemoteTop, MyHeight, Peer).
@@ -23,7 +24,8 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
     JumpHeight = MyHeight + DBB,
     if
         JumpHeight < Height ->
-            io:fwrite("JumpHeight < Height\n"),
+            lager:debug("JumpHeight < Height"),
+	    true = JumpHeight > 0,
             BlockAtJumpHeight = remote_peer({block, JumpHeight}, Peer),
             trade_blocks(Peer, [BlockAtJumpHeight], JumpHeight);
         true ->
@@ -32,28 +34,42 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
     get_txs(Peer),
     trade_peers(Peer).
 
-trade_blocks(Peer, L, 1) ->
+trade_blocks(Peer, L, 0) ->
+    lager:debug("downloader blocks trade blocks 0 absorbing blocks"),
     block_absorber:enqueue(L),
     Genesis = block:read_int(0),
     GH = block:hash(Genesis),
-    send_blocks(Peer, top:doit(), GH, [], 0);
+    send_blocks(Peer, block:hash(block:top()), GH, [], 0);
 trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
+    lager:debug("trade_blocks: ~p", [packer:pack({prev_block, PrevBlock, PBT})]),
     PrevHash = block:hash(PrevBlock),
-    {PrevHash, NextHash} = block:check1(PrevBlock),
-	OurChainAtPrevHash = block:read(PrevHash),
-	case OurChainAtPrevHash of
+    NextHash = block:prev_hash(PrevBlock),
+    OurChainAtPrevHash = block:read(NextHash),
+    Height = block:height(PrevBlock),
+    case OurChainAtPrevHash of
         empty ->
+    	    lager:debug("we don't have a parent for this block ~p", [OurChainAtPrevHash]),
+	    true = Height > 1,
             RemoteBlockThatWeMiss = remote_peer({block, Height-1}, Peer),
-            NextHash = block:hash(RemoteBlockThatWeMiss),
+    	    lager:debug("trade_blocks: height > 1 ~p", [packer:pack({got_block, RemoteBlockThatWeMiss})]),
             trade_blocks(Peer, [RemoteBlockThatWeMiss|CurrentBlocks], Height-1);
         _ ->
-            block_absorber:enqueue(PBT),
-            send_blocks(Peer, top:doit(), PrevHash, [], 0)
+    	    lager:debug("we have a parent for this block ~p", [OurChainAtPrevHash]),
+            block_absorber:save(CurrentBlocks),
+    	    lager:debug("about to send blocks"),
+    	    H = headers:top(),
+    	    case headers:height(H) of
+        		0 -> ok;
+        		_ ->
+        		    send_blocks(Peer, block:hash(block:top()), PrevHash, [], 0)
+    	    end
     end.
 
 send_blocks(Peer, Hash, Hash, Blocks, _N) ->
+    lager:debug("send blocks 1 (OurTopHash = CommonHash)"),
     send_blocks_external(Peer, Blocks);
 send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
+    lager:debug("send blocks 2 ~p", [integer_to_list(N)]),
     GH = block:hash(block:read_int(0)),
     if
         OurTopHash == GH -> send_blocks_external(Peer, Blocks);
@@ -64,6 +80,7 @@ send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
     end.
 
 send_blocks_external(Peer, Blocks) ->
+    lager:debug("send_blocks_external: ~p" ,[packer:pack({sending_blocks, Blocks})]),
     spawn(?MODULE, do_send_blocks, [Peer, Blocks]).
 
 do_send_blocks(_, []) -> ok;

@@ -27,6 +27,7 @@ unpack_helper(J) ->
     list_to_tuple([Out|lists:map(fun(X) -> unpack_helper(X) end, tl(J))]).
 pack(X) -> jiffy:encode(untup(X)).
 -record(d, {a = "", b = "" }).
+is_b_atom(<<"coinbase">>) -> true;
 is_b_atom(<<"settle_bets">>) -> true;
 is_b_atom(<<"market">>) -> true;
 is_b_atom(<<"oracles">>) -> true;

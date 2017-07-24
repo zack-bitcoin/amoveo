@@ -16,5 +16,6 @@ class SpendTest(ApiUser):
         self.spend(DEV_1_INT, [pub, 5])
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
 
-        self.mine_block(DEV_1_INT, [])
+        #self.mine_block(DEV_1_INT, [])
+        self.mine_block(DEV_1_INT, [1, 1], sleep=0.3)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020])

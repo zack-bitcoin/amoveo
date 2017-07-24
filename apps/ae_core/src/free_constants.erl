@@ -29,3 +29,6 @@ vm(SS, State) ->
     {ok, FunLimit} = application:get_env(ae_core, fun_limit),
     {ok, VarLimit} = application:get_env(ae_core, var_limit),
     chalang:vm(SS, TimeLimit, SpaceLimit, FunLimit, VarLimit, State).
+
+fork_tolerance() ->
+    50.

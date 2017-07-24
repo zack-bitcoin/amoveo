@@ -1,9 +1,8 @@
 -module(testnet_sign).
--export([test/0,test2/1,sign_tx/4,sign/2,verify_sig/3,shared_secret/2,verify/2,data/1,
+-export([test/0,test2/1,sign_tx/3,sign/2,verify_sig/3,shared_secret/2,verify/1,data/1,
 	 empty/1,empty/0,
 	 verify_1/2,verify_2/2, 
-	 %pubkey2address/1, valid_address/1, 
-	 new_key/0%,pub/1,pub2/1%,address2binary/1,binary2address/1
+	 new_key/0
 ]).
 -record(signed, {data="", sig="", sig2=""}).
 empty() -> #signed{}.
@@ -38,24 +37,21 @@ type_check(Type) -> %these are the types that get signed twice
     lists:any(fun(X) -> X==Type end, [gc, nc, ctc, spk]).
 	%(Type == gc) or (Type == nc) or (Type == ctc) or (type == spk)
 
-verify(SignedTx, Accounts) ->
+verify(SignedTx) ->
     Tx = SignedTx#signed.data,
     N1 = element(2, Tx),
-    %{_, Acc1, _Proof} = accounts:get(N1, Accounts),
     Type = element(1, Tx),
     B = type_check(Type),
     if
 	B ->
 	    N2 = element(3, Tx),
-	    %{_, Acc2, _Proof2} = accounts:get(N2, Accounts),
 	    verify_both(SignedTx, N1, N2);
 	true -> 
 	    verify_1(SignedTx, N1)
     end.
-sign_tx(SignedTx, Pub, Priv, _) when element(1, SignedTx) == signed ->
+sign_tx(SignedTx, Pub, Priv) when element(1, SignedTx) == signed ->
     Tx = SignedTx#signed.data,
     N = element(2, Tx),
-    %{_, Acc, _Proof} = accounts:get(N, Accounts),
     if
 	(N == Pub)-> 
 	    Sig = sign(Tx, Priv),
@@ -65,8 +61,6 @@ sign_tx(SignedTx, Pub, Priv, _) when element(1, SignedTx) == signed ->
 	    Type = element(1, Tx),
 	    true = type_check(Type),
 	    N2 = element(3, Tx),
-	    %{_, Acc2, _Proof2} = accounts:get(N2, Accounts),
-	    %BAddr = accounts:addr(Acc2),
 	    if
 		(N2 == Pub) ->
 		    Sig = sign(Tx, Priv),
@@ -74,7 +68,7 @@ sign_tx(SignedTx, Pub, Priv, _) when element(1, SignedTx) == signed ->
 		true -> {error, <<"cannot sign">>}
 	    end
 	 end;
-sign_tx(Tx, Pub, Priv, _) ->
+sign_tx(Tx, Pub, Priv) ->
     Sig = sign(Tx, Priv),
     N = element(2, Tx),
     N2 = element(3, Tx),
@@ -105,9 +99,9 @@ test() ->
     Accounts1 = accounts:write(0, Acc),
     Accounts = accounts:write(Accounts1, Acc2),
     Tx = {ctc, Pub, Pub2},
-    Signed1 = sign_tx(Tx, Pub, Priv, Accounts), 
-    Signed = sign_tx(Signed1, Pub2, Priv2, Accounts),
-    Signed2 = sign_tx({spend, Pub, 0, Pub2, 1, 1}, Pub, Priv, Accounts),
+    Signed1 = sign_tx(Tx, Pub, Priv), 
+    Signed = sign_tx(Signed1, Pub2, Priv2),
+    Signed2 = sign_tx({spend, Pub, 0, Pub2, 1, 1}, Pub, Priv),
     Verbose = false,
     if
 	Verbose ->
@@ -126,8 +120,8 @@ test() ->
 	    io:fwrite("\n");
 	true -> ok
     end,
-    true = verify(Signed2, Accounts),
-    true = verify(Signed, Accounts),
+    true = verify(Signed2),
+    true = verify(Signed),
     true = verify_both(Signed, Pub, Pub2),
     true = verify_both(Signed, Pub2, Pub),
     false = verify_both(Signed, Pub, Pub),

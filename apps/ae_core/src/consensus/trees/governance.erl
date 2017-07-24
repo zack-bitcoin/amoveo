@@ -26,8 +26,8 @@ genesis_state() ->
 	 [delete_channel_reward, 240],
 	 [create_account_fee, 250],
 	 [delete_account_reward, 240],
-	 [channel_rent, 600],
-	 [account_rent, 600],
+	 %[channel_rent, 600],
+	 %[account_rent, 600],
 	 [block_time, BlockTime],
 	 [oracle_future_limit, 335],
 	 [shares_conversion, 575],
@@ -41,7 +41,7 @@ genesis_state() ->
 	 [maximum_question_size, 352],
 	 [block_time_after_median, 100],
 	 [channel_closed_time, 352],
-	 [retarget_period, 429],
+	 %[retarget_period, 429],
 	 [question_delay, 216],
 	 [governance_delay, 72],
 	 [governance_change_limit, 51],
@@ -128,7 +128,11 @@ get_value(X, Tree) ->
     tree_number_to_value(Y#gov.value).
 get(Name, Tree) when is_atom(Name) ->
     Key = name2number(Name),
-    get(Key, Tree);
+    case Key of
+	bad -> fail;
+	K ->
+	    get(K, Tree)
+    end;
 get(Key, Tree) when is_integer(Key) ->
     {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
     V = case Leaf of
@@ -145,8 +149,8 @@ name2number(create_channel_fee) -> 4;
 name2number(delete_channel_reward) -> 5;
 name2number(create_account_fee) -> 6;
 name2number(delete_account_reward) -> 7;
-name2number(channel_rent) -> 9;
-name2number(account_rent) -> 10;
+%name2number(channel_rent) -> 9;
+%name2number(account_rent) -> 10;
 name2number(block_time) -> 11;
 name2number(oracle_future_limit) -> 12;
 name2number(shares_conversion) -> 13;
@@ -160,7 +164,7 @@ name2number(maximum_oracle_time) -> 8;
 name2number(maximum_question_size) -> 20;
 name2number(block_time_after_median) -> 21;
 name2number(channel_closed_time) -> 22;
-name2number(retarget_period) -> 23;
+%name2number(retarget_period) -> 23;
 name2number(question_delay) -> 24;
 name2number(governance_delay) -> 25;
 name2number(governance_change_limit) -> 26;

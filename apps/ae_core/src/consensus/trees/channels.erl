@@ -58,12 +58,12 @@ update(Slasher, ID, Trees, Nonce, Inc1, Inc2, Amount, Delay, Height, Close, Shar
     T1 = Channel#channel.last_modified,
     DH = Height - T1,
     Governance = trees:governance(Trees),
-    CR = governance:get_value(channel_rent, Governance),
-    Rent = CR * DH,
-    RH = Rent div 2,%everyone needs to pay the network for the cost of having a channel open.
+    %CR = governance:get_value(channel_rent, Governance),
+    %Rent = CR * DH,
+    %RH = Rent div 2,%everyone needs to pay the network for the cost of having a channel open.
     %CR = S * Channel#channel.rent,
-    Bal1a = Channel#channel.bal1 + Inc1 - RH,
-    Bal2a = Channel#channel.bal2 + Inc2 - RH,
+    Bal1a = Channel#channel.bal1 + Inc1,% - RH,
+    Bal2a = Channel#channel.bal2 + Inc2,% - RH,
     Bal1b = max(Bal1a, 0),
     Bal2b = max(Bal2a, 0),
     Bal1c = min(Bal1b, Bal1a+Bal2a),

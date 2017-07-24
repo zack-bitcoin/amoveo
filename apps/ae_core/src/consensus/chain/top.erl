@@ -2,8 +2,9 @@
 -behaviour(gen_server).
 
 %% API
--export([add/1,
-         doit/0]).
+-export([%add/1,
+         %doit/0
+	]).
 
 -export([start_link/0]).
 -export([init/1,
@@ -31,27 +32,35 @@ start_link() ->
 
 init(ok) ->
     lager:info("Start ~p", [?MODULE]),
+    io:fwrite("top init 00\n"),
     GenesisMakerBlock = block:genesis_maker(),
-    GenesisMakerBlockHash = block:hash(GenesisMakerBlock),
+    GHeader = block:block_to_header_new(GenesisMakerBlock),
+    GBH = block:hash(block:block(GenesisMakerBlock)),
+    ok = block_absorber:save_helper(GenesisMakerBlock),
+    spawn(fun() ->
+		  gen_server:call(headers, {add, testnet_hasher:doit(GHeader),
+					    GHeader, 0})
+	  end),
+    io:fwrite("top init 01\n"),
+    %GenesisMakerBlockHash = block:hash(GenesisMakerBlock),
+    io:fwrite("top init 02\n"),
     Top = db:read(?LOC),
     TopHash =
         case Top == "" of
             true ->
-                ok = block_absorber:save_helper(GenesisMakerBlock),
-                ok = save_hash(GenesisMakerBlockHash),
-                GenesisMakerBlockHash;
-            false ->
+                GBH;
+	    false ->
                 Top
         end,
-    spawn(fun() ->
-                  block_hashes:add(GenesisMakerBlockHash)
-          end),
+    %spawn(fun() ->
+    %              block_hashes:add(GenesisMakerBlockHash)
+    %      end),
     {ok, TopHash}.
 
 handle_call({add, Block}, _From, OldBlockHash) ->
     %% Check which block is higher and store it's hash as the top.
     %% For tiebreakers, prefer the older block.
-
+    {_,_,OldTxs} = tx_pool:data(),
     OldBlock = block:read(OldBlockHash),
     NH = block:height(Block),
     OH = block:height(OldBlock),
@@ -61,7 +70,9 @@ handle_call({add, Block}, _From, OldBlockHash) ->
                 Trees = block:trees(Block),
                 NH = block:height(Block),
                 tx_pool:absorb(Trees, [], NH),
-                _NewBlockHash = hash_and_save(Block);
+                NBH = hash_and_save(Block),
+		tx_pool_feeder:absorb(OldTxs),
+		NBH;
             false ->
                 OldBlockHash
         end,
@@ -69,6 +80,8 @@ handle_call({add, Block}, _From, OldBlockHash) ->
 handle_call(_, _From, BlockHash) ->
     {reply, BlockHash, BlockHash}.
 
+handle_cast({set_top, TH}, _State) ->
+    {noreply, TH};
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
@@ -82,7 +95,8 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %% Internals
-
+set_top(TH) ->
+    gen_server:cast(?MODULE, {set_top, TH}).
 save_hash(BlockHash) ->
     ok = db:save(?LOC, BlockHash).
 

@@ -78,9 +78,9 @@ handle_request('FetchKeyPair', _Req, _Context) ->
     end;
 
 handle_request('GetTop', _Req, _Context) ->
-    {top, Hash, Height} = api:top(),
+    {top, TopHeader, Height} = api:top(),
     {200, [], #{
-            <<"hash">> => base64:encode(Hash),
+            <<"hash">> => base64:encode(headers:serialize(TopHeader)),
             <<"height">> => Height
            }};
 
