@@ -48,11 +48,11 @@ load_key(Pub, Priv, Brainwallet) ->
 height() ->    
     H = headers:height(headers:top()),
     {ok, H}.
+%% Q: do we want to return whole header or just hash?
 top() ->
-    TopHash = headers:top(),
-    TopBlock = blocks:read(TopHash),
-    {ok, Height} = blocks:height(TopBlock),
-    {top, TopHash, Height}.
+    TopHeader = headers:top(),
+    Height = headers:height(TopHeader),
+    {top, TopHeader, Height}.
     
 sign(Tx) ->
     {Trees,_,_} = tx_pool:data(),

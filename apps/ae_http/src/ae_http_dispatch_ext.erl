@@ -12,13 +12,13 @@ handle_request('GetHeader', Req, _Context) ->
     Data = maps:get('HeaderId', Req),
     BlockId = maps:get(<<"block-id">>, Data),
     Header = block:block_to_header(block:read_int(BlockId)),
-    {200, [], #{<<"header">> => base64:encode(Header),
+    {200, [], #{<<"header">> => base64:encode(headers:serialize(Header)),
                 <<"block-id">> => BlockId}};
 
 handle_request('GetHeaders', Req, _Context) ->
     Data = maps:get('HeaderIds', Req),
     BlockIds = [maps:get(<<"block-id">>, B) || B <- Data],
-    Resp = [#{<<"header">> => base64:encode(block:block_to_header(block:read_int(B))),
+    Resp = [#{<<"header">> => base64:encode(headers:serialize(block:block_to_header(block:read_int(B)))),
               <<"block-id">> => B} || B <- BlockIds],
     {200, [], Resp};
 
