@@ -3,6 +3,7 @@ otp_release:
   - 19.3
 before_install:
   - make nose-env
+install: true
 script:
   - make tests
 
