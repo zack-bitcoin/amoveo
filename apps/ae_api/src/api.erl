@@ -7,7 +7,7 @@
          add_peer/2, sync/2, load_key/3, keypair/0, new_keypair/0]).
 
 -export([create_account/2, delete_account/1, account/1,
-         repo_account/1, repo_account/2]).
+         repo_account/1, repo_account/2, coinbase/1]).
 
 -export([channel_balance/0, solo_close_channel/0, channel_timeout/0,
          new_channel_with_server/3, pull_channel_state/2,
@@ -46,22 +46,24 @@ dump_channels() ->
 load_key(Pub, Priv, Brainwallet) ->
     keys:load(Pub, Priv, Brainwallet).
 height() ->    
-    {ok, block:height(block:read(top:doit()))}.
+    H = headers:height(headers:top()),
+    {ok, H}.
 top() ->
-    TopHash = top:doit(),
-    {ok, Height} = height(),
+    TopHash = headers:top(),
+    TopBlock = blocks:read(TopHash),
+    {ok, Height} = blocks:height(TopBlock),
     {top, TopHash, Height}.
     
 sign(Tx) ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    keys:sign(Tx, Accounts).
+    keys:sign(Tx).
     
 tx_maker(F) -> 
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {Tx, _} = F(Trees),
-    case keys:sign(Tx, Accounts) of
+    case keys:sign(Tx) of
 	{error, locked} -> 
 	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
 	    ok;
@@ -76,6 +78,12 @@ create_account(NewAddr, Amount) ->
 create_account(NewAddr, Amount, Fee) ->
     F = fun(Trees) ->
 		create_account_tx:make(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees) end,
+    tx_maker(F).
+coinbase(ID) ->
+    K = keys:pubkey(),
+    {Trees, _, _} = tx_pool:data(),
+    F = fun(Trees) ->
+		coinbase_tx:make(K, Trees) end,
     tx_maker(F).
 spend(ID, Amount) ->
     K = keys:pubkey(),
@@ -147,7 +155,7 @@ new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Fee, Delay) ->
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {Tx, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Acc2, Bal1, Bal2, Entropy, Delay, Fee),
-    keys:sign(Tx, Accounts).
+    keys:sign(Tx).
     
 new_channel_with_server(Bal1, Bal2, Delay) ->
     {Trees, _, _} = tx_pool:data(),
@@ -183,8 +191,8 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     {ok, ChannelDelay} = application:get_env(ae_core, channel_delay),
     SPK = new_channel_tx:spk(Tx, ChannelDelay),
     Accounts = trees:accounts(Trees),
-    STx = keys:sign(Tx, Accounts),
-    SSPK = keys:sign(SPK, Accounts),
+    STx = keys:sign(Tx),
+    SSPK = keys:sign(SPK),
     Msg = {new_channel, STx, SSPK},
     {ok, SSTx, S2SPK} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(SSTx),
@@ -233,7 +241,7 @@ bet_unlock(IP, Port) ->
     teach_secrets(keys:pubkey(), Secrets, IP, Port),
     %{Trees, _, _} = tx_pool:data(),
     %Accounts = trees:accounts(Trees),
-    %talker:talk({channel_sync, keys:pubkey(), keys:sign(SPK, Accounts)}, IP, Port),
+    %talker:talk({channel_sync, keys:pubkey(), keys:sign(SPK)}, IP, Port),
     {ok, _CD, ThemSPK} = talker:talk({spk, keys:pubkey()}, IP, Port),
     channel_feeder:update_to_me(ThemSPK, ServerID),
     ok.
@@ -251,7 +259,7 @@ channel_spend(IP, Port, Amount) ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
-    Payment = keys:sign(SPK, Accounts),
+    Payment = keys:sign(SPK),
     M = {channel_payment, Payment, Amount},
     {ok, Response} = talker:talk(M, IP, Port),
     channel_feeder:spend(Response, -Amount),
@@ -270,7 +278,7 @@ lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
     {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:pubkey(), Pubkey, ESS}, IP, Port),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    true = testnet_sign:verify(keys:sign(SSPK2, Accounts), Accounts),
+    true = testnet_sign:verify(keys:sign(SSPK2)),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     channel_manager_update(ServerID, SSPK2, <<>>),
@@ -322,7 +330,7 @@ channel_timeout() ->
     CID = channel_feeder:cid(CD),
     {Tx, _} = channel_timeout:make(keys:pubkey(), Trees, CID, Fee),
     Accounts = trees:accounts(Trees),
-    Stx = keys:sign(Tx, Accounts),
+    Stx = keys:sign(Tx),
     tx_pool_feeder:absorb(Stx).
     
 to_int(X) ->
@@ -338,7 +346,7 @@ grow_channel(CID, Bal1, Bal2, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     {Tx, _} = grow_channel_tx:make(CID, Trees, to_int(Bal1), to_int(Bal2), Fee),
     Accounts = trees:accounts(Trees),
-    keys:sign(Tx, Accounts).
+    keys:sign(Tx).
 
 channel_team_close(CID, Amount) ->
     {Trees, _, _} = tx_pool:data(),
@@ -348,7 +356,7 @@ channel_team_close(CID, Amount) ->
 channel_team_close(CID, Amount, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    keys:sign(channel_team_close_tx:make(CID, Trees, Amount, [], Fee), Accounts).
+    keys:sign(channel_team_close_tx:make(CID, Trees, Amount, [], Fee)).
 
 channel_repo(CID, Fee) ->
     F = fun(Trees) ->
@@ -477,9 +485,16 @@ mempool() ->
 off() ->
     ok = application:stop(ae_core).
 mine_block() ->
-    block:mine_blocks(1, 100000).
-mine_block(Many, Times) ->
-    block:mine_blocks(Many, Times).
+    block:mine(1, 100000).
+mine_block(0, Times) -> ok;
+mine_block(Periods, Times) ->
+    PB = block:top(),
+    Top = block:block_to_header(PB),
+    {_, _, Txs} = tx_pool:data(),
+    Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
+    block:mine(Block, Times),
+    timer:sleep(100),
+    mine_block(Periods-1, Times).
 channel_close() ->
     channel_close(?IP, ?Port).
 channel_close(IP, Port) ->
@@ -492,13 +507,13 @@ channel_close(IP, Port, Fee) ->
     {ok, CD} = channel_manager:read(PeerId),
     SPK = testnet_sign:data(channel_feeder:them(CD)),
     {Trees,_,_} = tx_pool:data(),
-    Height = block:height(block:read(top:doit())),
+    Height = block:height(block:read(headers:top())),
     SS = channel_feeder:script_sig_them(CD),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = spk:cid(SPK),
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, [], Fee),
     Accounts = trees:accounts(Trees),
-    STx = keys:sign(Tx, Accounts),
+    STx = keys:sign(Tx),
     {ok, SSTx} = talker:talk({close_channel, CID, keys:pubkey(), SS, STx}, IP, Port),
     tx_pool_feeder:absorb(SSTx),
     0.
@@ -512,8 +527,8 @@ channel_solo_close(Other) ->
     {ok, CD} = channel_manager:read(Other),
     SSPK = channel_feeder:them(CD),
     SS = channel_feeder:script_sig_them(CD),
-    {Tx, _} = channel_solo_close:make(keys:pubkey(), Fee, keys:sign(SSPK, Accounts), SS, Trees),
-    STx = keys:sign(Tx, Accounts),
+    {Tx, _} = channel_solo_close:make(keys:pubkey(), Fee, keys:sign(SSPK), SS, Trees),
+    STx = keys:sign(Tx),
     tx_pool_feeder:absorb(STx),
     0.
 add_peer(IP, Port) ->
@@ -521,7 +536,7 @@ add_peer(IP, Port) ->
     0.
 sync(IP, Port) ->
     lager:info("Sync with ~p ~p ~n", [IP, Port]),
-    MyHeight = block:height(block:read(top:doit())),
+    MyHeight = block:height(block:read(headers:top())),
     ok = download_blocks:sync_all([{IP, Port}], MyHeight).
 
 keypair() ->

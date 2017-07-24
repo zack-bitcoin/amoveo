@@ -4,9 +4,11 @@
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 %-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, infinity, Type, [I]}).
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
--define(keys, [keys,
-	       block_hashes, top, block_absorber,
-	       tx_pool, peers, tx_pool_feeder, 
+-define(keys, [keys, headers, %top,
+	       block_hashes, 
+	       block_absorber,
+	       tx_pool, 
+	       peers, tx_pool_feeder, 
 	       mine, channel_manager, channel_feeder,
 	       request_frequency, sync, secrets,
 	       arbitrage, order_book]).
@@ -41,9 +43,5 @@ init([]) ->
 	     tree_child(shares, KL, (KL + 1 + ((BB + HB) div 8))),
 	     tree_child(governance, 8, 4)
 	    ],
-    %spawn(fun() ->
-	%	  timer:sleep(1000),
-	%	  block:genesis_maker()
-%	  end),
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 

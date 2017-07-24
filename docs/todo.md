@@ -1,8 +1,18 @@
+the prev_hashes should be stored with headers, not with blocks. That way we can look up headers quickly.
+
+
 get rid of repetition in /apps/ae_core/src/consensus/txs/spk.erl
 
 
 
 ### Needed before launch of mainnet
+
+We need to make sure every time we take the hash of something, it is already a binary.
+We don't want to have to reprogram term_to_binary in other languages.
+all transaction types need to be serialized.
+blocks need to be serialized.
+
+Instead of writing the miner into the header, the miner should make a coinbase transaction.
 
 The half-life of shares should be a governance variable.
 The difficulty threshold between rewarding positive and negative shares should be a governance variable.

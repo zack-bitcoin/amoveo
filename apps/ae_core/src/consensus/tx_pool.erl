@@ -47,7 +47,7 @@ start_link() ->
 
 init(ok) ->
     lager:info("~p started", [?MODULE]),
-    State = current_state(),
+    State = initial_state(),
     {ok, State}.
 
 handle_call(dump, _From, _OldState) ->
@@ -67,10 +67,12 @@ handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
                 NewTxs
         end,
     {reply, 0, F#f{txs = FinalTxs, trees = NewTrees}};
-handle_call({absorb, NewTrees, Txs, Height}, _From, _) ->
-    {reply, 0, #f{txs = Txs, trees = NewTrees, height = Height}};
+handle_call({absorb, NewTrees, Txs, _}, _From, _) ->
+    {reply, 0, #f{txs = Txs, trees = NewTrees}};
 handle_call(data, _From, F) ->
-    {reply, {F#f.trees, F#f.height, lists:reverse(F#f.txs)}, F}.
+    {ok, Header} = headers:read(block:hash(headers:top())),
+    H = headers:height(Header),
+    {reply, {F#f.trees, H, lists:reverse(F#f.txs)}, F}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -87,7 +89,19 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internals
 
+initial_state() ->
+    Header = block:initialize_chain(),
+    state2(Header).
 current_state() ->
-    Block = block:read(top:doit()),
-    #f{trees = block:trees(Block),
-       height = block:height(Block)}.
+    Header = headers:top(),
+    state2(Header).
+state2(Header) ->
+    Block = block:read(block:hash(Header)),
+    case Block of
+	empty -> 
+	    {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),
+	    state2(PrevHeader);
+	_ ->
+	    #f{trees = block:trees(Block),
+	       height = block:height(Block)}
+    end.

@@ -10,6 +10,8 @@ make(From, Fee, OID, Trees) ->
     Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = accounts:nonce(Acc) + 1},
     {Tx, []}.
 doit(Tx, Trees, NewHeight) ->
+    io:fwrite(packer:pack({oracle_close_tx, NewHeight})),
+    io:fwrite("\n"),
     Accounts = trees:accounts(Trees),
     Acc = accounts:update(Tx#oracle_close.from, Trees, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
     NewAccounts = accounts:write(Accounts, Acc),
@@ -17,7 +19,9 @@ doit(Tx, Trees, NewHeight) ->
     OID = Tx#oracle_close.oracle_id,
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
-    true = oracles:starts(Oracle) < NewHeight,
+    io:fwrite(packer:pack({oracle_close, oracles:starts(Oracle), NewHeight})),
+    io:fwrite("\n"),
+    true = oracles:starts(Oracle) =< NewHeight,
     %if the volume of orders in the oracle is too low, then set the oracle:type to 3.
     %Result = oracles:type(Oracle),
     Orders0 = oracles:orders(Oracle),
@@ -43,6 +47,8 @@ doit(Tx, Trees, NewHeight) ->
 	case Gov of
 	    0 -> 
 		%is not a governance oracle.
+		io:fwrite(packer:pack({done_timer, oracles:done_timer(Oracle), oracles:starts(Oracle3)})),
+		io:fwrite("\n"),
 		B1 = oracles:done_timer(Oracle) < NewHeight,
 		B2 = oracles:starts(Oracle3) + MOT < NewHeight,
 		true = (B1 or B2),

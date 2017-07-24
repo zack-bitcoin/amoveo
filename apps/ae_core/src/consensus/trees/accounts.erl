@@ -44,7 +44,8 @@ now_balance(Acc, Amount, NewHeight, Trees) ->
 	    MasterPub ->
 		-(governance:get_value(developer_reward, Governance));
 	    _ ->
-		governance:get_value(account_rent, Governance)
+		%governance:get_value(account_rent, Governance)
+		0
 	end,
     Amount + Acc#acc.balance - (Rent * DH).
     
@@ -135,6 +136,7 @@ write(Root, Account) ->%These are backwards.
     <<Meta:KL2>> = <<(Account#acc.bets):KL, (Account#acc.shares):KL>>,
     HPID = trees:hash2int(HP),
     trie:put(HPID, M, Meta, Root, ?id).%returns a pointer to the new root.
+
 delete(Pub0, Accounts) ->
     HP = pub_decode(Pub0),
     trie:delete(trees:hash2int(HP), Accounts, ?id).
@@ -154,7 +156,6 @@ pub_decode(Pub) ->
     
 get(Pub, Accounts) ->
     HS = constants:hash_size(),
-    %SizePubkey = constants:pubkey_size(),
     HP = pub_decode(Pub),
     KL = constants:key_length(),
     KL2 = KL * 2,
@@ -168,6 +169,15 @@ get(Pub, Accounts) ->
 		 X#acc{bets = Bets, shares = Shares}
 	end,
     {RH, V, Proof}.
+verify_proof(RootHash, Path, Proof) ->
+    KL = constants:key_length(),
+    MetaSize = KL div 4,%all in bytes
+    HashSize = constants:hash_size(),
+    IDSize = constants:hash_size(),
+    ValueSize = constants:account_size(),
+    PathSize = constants:hash_size(),
+    CFG = cfg:new(PathSize, ValueSize, IDSize, MetaSize, HashSize),
+    verify:proof(RootHash, Path, Proof, CFG).
 
 root_hash(Accounts) ->
     trie:root_hash(?id, Accounts).

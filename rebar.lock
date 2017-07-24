@@ -38,7 +38,7 @@
   0},
  {<<"pink_hash">>,
   {git,"https://github.com/BumblebeeBat/pink_crypto",
-       {ref,"3c4b828ab357afe34dd6d52d304e467e4bb8d285"}},
+       {ref,"b0e918563c7f8a961adfec53a1d00e0ebdf756d4"}},
   1},
  {<<"ranch">>,
   {git,"https://github.com/ninenines/ranch.git",
