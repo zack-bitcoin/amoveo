@@ -80,6 +80,11 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_internal_handler'
         },
+        'ChannelBalance' => #{
+            path => "/v1/channel-balance",
+            method => <<"GET">>,
+            handler => 'swagger_internal_handler'
+        },
         'ChannelSpend' => #{
             path => "/v1/channel-spend",
             method => <<"POST">>,

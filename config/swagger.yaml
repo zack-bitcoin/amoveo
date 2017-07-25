@@ -429,6 +429,20 @@ paths:
         '405':
           description: Invalid input
       security: []
+  /channel-balance:
+    get:
+      tags:
+        - internal
+      operationId: ChannelBalance
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/ChannelBalance'
+      security: []
 
 definitions:
   CreateAccount:
@@ -607,6 +621,11 @@ definitions:
       pubkey:
         type: string
       sig:
+        type: string
+  ChannelBalance:
+    type: object
+    properties:
+      Balance:
         type: string
 externalDocs:
   description: Find out more about Aeternity

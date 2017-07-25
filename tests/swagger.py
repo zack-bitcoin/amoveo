@@ -201,6 +201,14 @@ class IntAPI(API):
         r = self.session.post(uri, json=data)
         return r.status_code
 
+    def channel_balance(self):
+        uri = self.URL + '/channel-balance'
+        r = self.session.get(uri)
+        code = r.status_code
+        if code != 200:
+            return code, None
+        return code, r.json()['balance']
+
 
 class ExtAPI(API):
     def __init__(self, *args, **kwargs):
