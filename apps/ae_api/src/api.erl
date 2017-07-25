@@ -299,8 +299,10 @@ channel_manager_update(ServerID, SSPK2, DefaultSS) ->
     
     
 channel_balance() ->
-    I = integer_channel_balance(),
-    pretty_display(I).
+    Balance = integer_channel_balance(),
+    FormattedBalance = pretty_display(Balance),
+    lager:info("Channel balance: ~p", [FormattedBalance]),
+    FormattedBalance.
 integer_channel_balance() ->
     {ok, Other} = talker:talk({pubkey}, constants:server_ip(), constants:server_port()),
     {ok, CD} = channel_manager:read(Other),
@@ -477,8 +479,8 @@ balance() ->
 pretty_display(I) ->
     {ok, TokenDecimals} = application:get_env(ae_core, token_decimals),
     F = I / TokenDecimals,
-    io:fwrite(hd(io_lib:format("~.8f", [F]))),
-    io:fwrite("\n").
+    [Formatted] = io_lib:format("~.8f", [F]),
+    Formatted.
 mempool() ->
     {_, _, Txs} = tx_pool:data(),
     Txs.

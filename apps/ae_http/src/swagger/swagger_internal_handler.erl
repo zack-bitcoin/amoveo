@@ -72,6 +72,14 @@ allowed_methods(
 allowed_methods(
     Req,
     State = #state{
+        operation_id = 'ChannelBalance'
+    }
+) ->
+    {[<<"GET">>], Req, State};
+
+allowed_methods(
+    Req,
+    State = #state{
         operation_id = 'ChannelSpend'
     }
 ) ->
@@ -251,6 +259,9 @@ is_authorized(Req, State) ->
     {true, Req, State};
 
 is_authorized(Req, State) ->
+    {true, Req, State};
+
+is_authorized(Req, State) ->
     {{false, <<"">>}, Req, State}.
 
 -spec content_types_accepted(Req :: cowboy_req:req(), State :: state()) ->
@@ -282,6 +293,16 @@ valid_content_headers(
     Req0,
     State = #state{
         operation_id = 'AddPeer'
+    }
+) ->
+    Headers = [],
+    {Result, Req} = validate_headers(Headers, Req0),
+    {Result, Req, State};
+
+valid_content_headers(
+    Req0,
+    State = #state{
+        operation_id = 'ChannelBalance'
     }
 ) ->
     Headers = [],

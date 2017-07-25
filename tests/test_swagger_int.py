@@ -76,6 +76,13 @@ class InternalAPITest(SwaggerTest):
         self.c(api.fetch_account(pub2))
         # XXX check pub2's balance?
 
+    # todo: fix api:integer_channel_balance/0
+    @nottest
+    def test_channel_balance(self):
+        api = self.API['dev1']
+        balance = self.c(api.channel_balance())
+        self.assertIsNotNone(balance)
+
     @nottest
     def test_lightning_payments(self):
         api1 = self.API['dev1']

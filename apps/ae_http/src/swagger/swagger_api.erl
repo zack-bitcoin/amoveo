@@ -39,6 +39,10 @@ request_params('AddPeer') ->
         'Peer'
     ];
 
+request_params('ChannelBalance') ->
+    [
+    ];
+
 request_params('ChannelSpend') ->
     [
         'ChannelSpend'
@@ -343,6 +347,9 @@ validate_response('AddAccount', 405, Body, ValidatorState) ->
 
 validate_response('AddPeer', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
+
+validate_response('ChannelBalance', 200, Body, ValidatorState) ->
+    validate_response_body('ChannelBalance', 'ChannelBalance', Body, ValidatorState);
 
 validate_response('ChannelSpend', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);

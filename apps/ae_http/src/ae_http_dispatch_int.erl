@@ -185,6 +185,10 @@ handle_request('MineBlock', Req, _Context) ->
     ok = api:mine_block(Count, Times),
     {200, [], #{}};
 
+handle_request('ChannelBalance', _Req, _Context) ->
+    ChannelBalance = api:channel_balance(),
+    {200, [], #{<<"balance">> => list_to_binary(ChannelBalance)}};
+
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(
       ">>> Got not implemented request to process: ~p~n",
