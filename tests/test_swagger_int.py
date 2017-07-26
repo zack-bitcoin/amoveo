@@ -84,6 +84,11 @@ class InternalAPITest(SwaggerTest):
         self.assertIsNotNone(balance)
 
     @nottest
+    def test_channel_solo_close(self):
+        api = self.API['dev1']
+        self.c(api.channel_solo_close())
+
+    @nottest
     def test_lightning_payments(self):
         api1 = self.API['dev1']
         api2 = self.API['dev2']

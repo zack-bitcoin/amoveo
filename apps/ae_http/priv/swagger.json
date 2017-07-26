@@ -513,6 +513,21 @@
         },
         "security" : [ ]
       }
+    },
+    "/channel-solo-close" : {
+      "post" : {
+        "tags" : [ "internal" ],
+        "operationId" : "ChannelSoloClose",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ ],
+        "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
     }
   },
   "definitions" : {
@@ -780,7 +795,7 @@
     "ChannelBalance" : {
       "type" : "object",
       "properties" : {
-        "Balance" : {
+        "balance" : {
           "type" : "string"
         }
       }
