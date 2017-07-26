@@ -443,6 +443,34 @@ paths:
           schema:
             $ref: '#/definitions/ChannelBalance'
       security: []
+  /channel-solo-close:
+    post:
+      tags:
+        - internal
+      operationId: ChannelSoloClose
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '405':
+          description: Invalid input
+      security: []
+  /channel-timeout:
+    post:
+      tags:
+        - internal
+      operationId: ChannelTimeout
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '405':
+          description: Invalid input
+      security: []
 
 definitions:
   CreateAccount:
@@ -625,7 +653,7 @@ definitions:
   ChannelBalance:
     type: object
     properties:
-      Balance:
+      balance:
         type: string
 externalDocs:
   description: Find out more about Aeternity

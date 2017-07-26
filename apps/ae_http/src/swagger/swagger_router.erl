@@ -85,6 +85,11 @@ get_operations() ->
             method => <<"GET">>,
             handler => 'swagger_internal_handler'
         },
+        'ChannelSoloClose' => #{
+            path => "/v1/channel-solo-close",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
         'ChannelSpend' => #{
             path => "/v1/channel-spend",
             method => <<"POST">>,

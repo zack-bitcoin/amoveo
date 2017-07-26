@@ -189,6 +189,14 @@ handle_request('ChannelBalance', _Req, _Context) ->
     ChannelBalance = api:channel_balance(),
     {200, [], #{<<"balance">> => list_to_binary(ChannelBalance)}};
 
+handle_request('ChannelSoloClose', _Req, _Context) ->
+    ok = api:channel_solo_close(),
+    {200, [], #{}};
+
+handle_request('ChannelTimeout', _Req, _Context) ->
+    ok = api:channel_timeout(),
+    {200, [], #{}};
+
 handle_request(OperationID, Req, Context) ->
     error_logger:error_msg(
       ">>> Got not implemented request to process: ~p~n",

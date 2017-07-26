@@ -209,6 +209,16 @@ class IntAPI(API):
             return code, None
         return code, r.json()['balance']
 
+    def channel_solo_close(self):
+        uri = self.URL + '/channel-solo-close'
+        r = self.session.post(uri, json={})
+        return r.status_code
+
+    def channel_timeout(self):
+        uri = self.URL + '/channel-timeout'
+        r = self.session.post(uri, json={})
+        return r.status_code
+
 
 class ExtAPI(API):
     def __init__(self, *args, **kwargs):
