@@ -214,6 +214,12 @@ class IntAPI(API):
         r = self.session.post(uri, json={})
         return r.status_code
 
+    def channel_timeout(self):
+        uri = self.URL + '/channel-timeout'
+        r = self.session.post(uri, json={})
+        return r.status_code
+
+
 class ExtAPI(API):
     def __init__(self, *args, **kwargs):
         super(ExtAPI, self).__init__(*args, **kwargs)

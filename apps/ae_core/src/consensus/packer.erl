@@ -107,7 +107,6 @@ is_b_atom(<<"grow_channel">>) -> true;
 is_b_atom(<<"channel_solo_close">>) -> true;
 is_b_atom(<<"channel_team_close">>) -> true;
 is_b_atom(<<"channel_repo">>) -> true;
-is_b_atom(<<"channel_timeout">>) -> true;
 is_b_atom(<<"channel_slash">>) -> true;
 is_b_atom(<<"channel_close">>) -> true;
 is_b_atom(<<"lightning_spend">>) -> true;

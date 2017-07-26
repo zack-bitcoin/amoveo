@@ -9,13 +9,13 @@
 -export([create_account/2, delete_account/1, account/1,
          repo_account/1, repo_account/2, coinbase/1]).
 
--export([channel_balance/0, channel_timeout/0,
+-export([channel_balance/0,
          new_channel_with_server/3, pull_channel_state/2,
          add_secret/2, pull_channel_state/0, channel_spend/1, channel_spend/3,
          new_channel_tx/6, new_channel_tx/7, close_channel_with_server/0,
          grow_channel/3, grow_channel/4,
          channel_team_close/2, channel_team_close/3, channel_repo/2,
-         channel_timeout/2, channel_slash/4, channel_close/0, 
+         channel_timeout/0, channel_timeout/2, channel_slash/4, channel_close/0,
          channel_close/2, channel_close/3, new_channel_with_server/7,
          channel_solo_close/0, channel_solo_close/1, channel_solo_close/2, channel_solo_close/4,
          lightning_spend/2, lightning_spend/5, lightning_spend/7, 
@@ -121,28 +121,6 @@ repo_account(ID, Fee) ->
 		repo_tx:make(ID, Fee, keys:pubkey(), Trees) end,
     tx_maker(F).
 
-%new_channel(Bal1, Bal2) ->
-%    {Trees, _, _} = tx_pool:data(),
-%    Governance = trees:governance(Trees),
-%    Cost = governance:get_value(nc, Governance),
-%    new_channel(Bal1, Bal2, ?Fee+Cost, 10).
-%new_channel(Bal1, Bal2, Fee, Delay) ->
-%    {Trees, _,_} = tx_pool:data(),
-
-%%    Channels = trees:channels(Trees),
-%    CID = new_channel2(1, Channels),
-%    B1 = to_int(Bal1),
-%    B2 = to_int(Bal2),
-%    new_channel_tx(constants:server_ip(), 
-%		constants:server_port(), 
-%		CID, B1, B2, Fee, Delay).
-%new_channel2(ID, Channels) ->
-%    <<X:8>> = crypto:strong_rand_bytes(1),
-%    case channels:get(ID+X, Channels) of
-%	{_, empty, _} -> ID+X;
-
-%%	X -> new_channel2(ID+256, Channels)
-%    end.
 new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Delay) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
@@ -153,7 +131,6 @@ new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Fee, Delay) ->
     %delay is also how long you have to stop your partner from closing at the wrong state.
     %entropy needs to be a different number every time you make a new channel with the same partner.
     {Trees, _, _} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
     {Tx, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Acc2, Bal1, Bal2, Entropy, Delay, Fee),
     keys:sign(Tx).
     
@@ -331,16 +308,6 @@ dice(Amount) ->
 close_channel_with_server() ->
     internal_handler:doit({close_channel, constants:server_ip(), constants:server_port()}).
 
-channel_timeout() ->
-    {ok, Other} = talker:talk({pubkey}, constants:server_ip(), constants:server_port()),
-    Fee = free_constants:tx_fee(),
-    {Trees,_,_} = tx_pool:data(),
-    {ok, CD} = channel_manager:read(Other),
-    CID = channel_feeder:cid(CD),
-    {Tx, _} = channel_timeout:make(keys:pubkey(), Trees, CID, Fee),
-    Stx = keys:sign(Tx),
-    tx_pool_feeder:absorb(Stx).
-
 to_int(X) ->
     {ok, TokenDecimals} = application:get_env(ae_core, token_decimals),
     round(X * TokenDecimals).
@@ -369,10 +336,23 @@ channel_repo(CID, Fee) ->
 		channel_repo_tx:make(keys:pubkey(), CID, Fee, Trees) end,
     tx_maker(F).
 
-channel_timeout(CID, Fee) ->
-    F = fun(Trees) ->
-		channel_timeout_tx:make(keys:pubkey(), Trees, CID, [], Fee) end,
-    tx_maker(F).
+channel_timeout() ->
+    %% Why prod address?
+    channel_timeout(constants:server_ip(), constants:server_port()).
+
+channel_timeout(Ip, Port) ->
+    {ok, Other} = talker:talk({pubkey}, Ip, Port),
+    Fee = free_constants:tx_fee(),
+    {Trees,_,_} = tx_pool:data(),
+    {ok, CD} = channel_manager:read(Other),
+    CID = channel_feeder:cid(CD),
+    {Tx, _} = channel_timeout_tx:make(keys:pubkey(), Trees, CID, [], Fee),
+    case keys:sign(Tx) of
+        {error, locked} ->
+            lager:error("Your password is locked");
+        Stx ->
+            tx_pool_feeder:absorb(Stx)
+    end.
 
 channel_slash(_CID, Fee, SPK, SS) ->
     F = fun(Trees) ->

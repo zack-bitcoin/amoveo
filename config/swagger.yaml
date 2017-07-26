@@ -457,6 +457,20 @@ paths:
         '405':
           description: Invalid input
       security: []
+  /channel-timeout:
+    post:
+      tags:
+        - internal
+      operationId: ChannelTimeout
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '405':
+          description: Invalid input
+      security: []
 
 definitions:
   CreateAccount:
