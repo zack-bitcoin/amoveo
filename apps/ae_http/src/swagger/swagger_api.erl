@@ -39,6 +39,11 @@ request_params('AddPeer') ->
         'Peer'
     ];
 
+request_params('AddSecret') ->
+    [
+        'Secret'
+    ];
+
 request_params('ChannelBalance') ->
     [
     ];
@@ -50,6 +55,10 @@ request_params('ChannelSoloClose') ->
 request_params('ChannelSpend') ->
     [
         'ChannelSpend'
+    ];
+
+request_params('ChannelTimeout') ->
+    [
     ];
 
 request_params('CreateKeyPair') ->
@@ -186,6 +195,15 @@ request_param_info('AddAccount', 'CreateAccount') ->
     };
 
 request_param_info('AddPeer', 'Peer') ->
+    #{
+        source =>   body,
+        rules => [
+            schema,
+            required
+        ]
+    };
+
+request_param_info('AddSecret', 'Secret') ->
     #{
         source =>   body,
         rules => [
@@ -352,6 +370,9 @@ validate_response('AddAccount', 405, Body, ValidatorState) ->
 validate_response('AddPeer', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
+validate_response('AddSecret', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
 validate_response('ChannelBalance', 200, Body, ValidatorState) ->
     validate_response_body('ChannelBalance', 'ChannelBalance', Body, ValidatorState);
 
@@ -359,6 +380,9 @@ validate_response('ChannelSoloClose', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 validate_response('ChannelSpend', 405, Body, ValidatorState) ->
+    validate_response_body('', '', Body, ValidatorState);
+
+validate_response('ChannelTimeout', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
 validate_response('CreateKeyPair', 200, Body, ValidatorState) ->

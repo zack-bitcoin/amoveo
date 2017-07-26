@@ -196,29 +196,20 @@ decrypt_msgs([Emsg|T]) ->
     [Secret, Code] = keys:decrypt(Emsg),
     learn_secret(Secret, Code),
     decrypt_msgs(T).
-%learn_secrets([]) ->
-%    ok;
-%learn_secrets([[Secret, Code]|T]) ->
-%    learn_secret(Secret, Code),
-%    learn_secrets(T).
+
 learn_secret(Secret, Code) ->
     secrets:add(Code, Secret).
+
 add_secret(Code, Secret) ->
-    pull_channel_state(),
+    ok = pull_channel_state(?IP, ?Port),
     secrets:add(Code, Secret),
-    bet_unlock().
-bet_unlock() ->
-    bet_unlock(?IP, ?Port).
+    ok = bet_unlock(?IP, ?Port).
+
 bet_unlock(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
-    %{ok, CD0} = channel_manager:read(ServerID),
-    %CID = channel_feeder:cid(CD0),
-    [{Secrets, SPK}] = channel_feeder:bets_unlock([ServerID]),
-    io:fwrite("teach secrets \n"),
+    [{Secrets, _SPK}] = channel_feeder:bets_unlock([ServerID]),
+    lager:info("Teach secrets"),
     teach_secrets(keys:pubkey(), Secrets, IP, Port),
-    %{Trees, _, _} = tx_pool:data(),
-    %Accounts = trees:accounts(Trees),
-    %talker:talk({channel_sync, keys:pubkey(), keys:sign(SPK)}, IP, Port),
     {ok, _CD, ThemSPK} = talker:talk({spk, keys:pubkey()}, IP, Port),
     channel_feeder:update_to_me(ThemSPK, ServerID),
     ok.

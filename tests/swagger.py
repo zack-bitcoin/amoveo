@@ -219,6 +219,15 @@ class IntAPI(API):
         r = self.session.post(uri, json={})
         return r.status_code
 
+    def add_secret(self, code, secret):
+        uri = self.URL + '/add-secret'
+        data = {
+            'code': code,
+            'secret': secret
+        }
+        r = self.session.post(uri, json=data)
+        return r.status_code
+
 
 class ExtAPI(API):
     def __init__(self, *args, **kwargs):

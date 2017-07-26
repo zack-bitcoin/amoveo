@@ -528,6 +528,44 @@
         },
         "security" : [ ]
       }
+    },
+    "/channel-timeout" : {
+      "post" : {
+        "tags" : [ "internal" ],
+        "operationId" : "ChannelTimeout",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ ],
+        "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
+    },
+    "/add-secret" : {
+      "post" : {
+        "tags" : [ "internal" ],
+        "operationId" : "AddSecret",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/Secret"
+          }
+        } ],
+        "responses" : {
+          "405" : {
+            "description" : "Invalid input"
+          }
+        },
+        "security" : [ ]
+      }
     }
   },
   "definitions" : {
@@ -796,6 +834,17 @@
       "type" : "object",
       "properties" : {
         "balance" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Secret" : {
+      "type" : "object",
+      "properties" : {
+        "code" : {
+          "type" : "string"
+        },
+        "secret" : {
           "type" : "string"
         }
       }

@@ -94,6 +94,14 @@ class InternalAPITest(SwaggerTest):
         self.c(api.channel_timeout())
 
     @nottest
+    def test_add_secret(self):
+        api = self.API['dev1']
+        code = 'AgAAAAwr/nWTT4zbCS4lAuc='
+        secret = 'WgAAAAAAOkYAAAAAMgAAAAABAAAAAACEC0dIFBQoAgAAAAx3wv4k7MKMmFva1BoKOhYUFhRGAAAAAAAAAAAAAgAAACcQRwAAAAAxAAAAAAEAAAAAAEiECw=='
+
+        self.c(api.add_secret(code, secret))
+
+    @nottest
     def test_lightning_payments(self):
         api1 = self.API['dev1']
         api2 = self.API['dev2']

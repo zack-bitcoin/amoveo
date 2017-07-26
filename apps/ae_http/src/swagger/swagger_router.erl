@@ -80,6 +80,11 @@ get_operations() ->
             method => <<"POST">>,
             handler => 'swagger_internal_handler'
         },
+        'AddSecret' => #{
+            path => "/v1/add-secret",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
         'ChannelBalance' => #{
             path => "/v1/channel-balance",
             method => <<"GET">>,
@@ -92,6 +97,11 @@ get_operations() ->
         },
         'ChannelSpend' => #{
             path => "/v1/channel-spend",
+            method => <<"POST">>,
+            handler => 'swagger_internal_handler'
+        },
+        'ChannelTimeout' => #{
+            path => "/v1/channel-timeout",
             method => <<"POST">>,
             handler => 'swagger_internal_handler'
         },
