@@ -577,15 +577,10 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
     %type is true or false or one other thing...
     SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID),
     SSPK = channel_feeder:trade(Amount, SC, ServerID, OID),
+    Msg = {trade, keys:pubkey(), Price, Type, Amount, OID, SSPK, Fee},
+    Msg = packer:unpack(packer:pack(Msg)),%sanity check
     {ok, SSPK2} =
-	talker:talk({trade, 
-		     keys:pubkey(),
-		     Price,
-		     Type,
-		     Amount,
-		     OID,
-		     SSPK, 
-		     Fee}, IP, Port),
+	talker:talk(Msg, IP, Port),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     channel_manager_update(ServerID, SSPK2, market:unmatched()),

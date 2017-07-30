@@ -155,10 +155,15 @@ time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
     Pub = constants:master_pub(),
-    First = accounts:new(Pub, constants:initial_coins(), 0),
-    Accounts = accounts:write(0, First),
+    First0 = accounts:new(Pub, constants:initial_coins(), 0),
+    Accounts0 = accounts:write(0, First0),
     GovInit = governance:genesis_state(),
+    Trees0 = trees:new(Accounts0, 0, 0, 0, 0, GovInit),
+    Share = shares:new(1, 100, 0),
+    First = accounts:receive_shares(First0, [Share], 0, Trees0),
+    Accounts = accounts:write(0, First),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
+
     TreesRoot = trees:root_hash(Trees),
     #block{height = 0,
 	   prev_hash = <<0:(constants:hash_size()*8)>>,
@@ -204,6 +209,9 @@ new_trees(Txs, Trees, Height, Pub, HeaderHash) ->
 make(Header, Txs0, Trees, Pub) ->
     {CB, Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [keys:sign(CB)|Txs0],
+    Querys = proofs:txs_to_querys(Txs),
+    io:fwrite(packer:pack({block_querys, Querys})),
+    io:fwrite("\n"),
     Height = headers:height(Header),
     NewTrees = new_trees(Txs, Trees, Height+1, Pub, hash(Header)),
     Block = #block{height = Height + 1,
@@ -214,7 +222,8 @@ make(Header, Txs0, Trees, Pub) ->
 		   difficulty = headers:difficulty_should_be(Header),
 		   version = constants:version(),
 		   trees = NewTrees,
-		   prev_hashes = calculate_prev_hashes(Header)
+		   prev_hashes = calculate_prev_hashes(Header),
+		   proofs = proofs:prove(Querys, Trees)
 		  }.
     
 guess_number_of_cpu_cores() ->
@@ -280,8 +289,14 @@ mine2(Block, Times) ->
 	    B2
     end.
 check(Block) ->
+    Facts = Block#block.proofs,
+    Header = block_to_header(Block),
     BlockHash = hash(Block),
-    {ok, _} = headers:read(BlockHash),
+    {ok, Header} = headers:read(BlockHash),
+
+    Dict = proofs:facts_to_dict(Facts, dict:new()),
+    
+
     OldBlock = read(Block#block.prev_hash),
     OldTrees = OldBlock#block.trees,
     %check that hash(proofs) is the same as the header.
@@ -301,11 +316,12 @@ check(Block) ->
 
 
 initialize_chain() -> 
-    Pub = constants:master_pub(),
-    First = accounts:new(Pub, constants:initial_coins(), 0),
-    Accounts = accounts:write(0, First),
-    GovInit = governance:genesis_state(),
-    Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
+    %Pub = constants:master_pub(),
+    %First = accounts:new(Pub, constants:initial_coins(), 0),
+    %Accounts = accounts:write(0, First),
+    %GovInit = governance:genesis_state(),
+    %Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
+
     GB = genesis_maker(),
     block_absorber:do_save(GB),
     Header0 = block_to_header(GB),

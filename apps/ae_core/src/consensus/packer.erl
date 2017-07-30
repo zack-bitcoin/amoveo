@@ -1,9 +1,11 @@
 %We should add some rules about which atoms can be used with tuples. If peers can trick us into decoding new atoms, they can overflow erlang with too many atoms.
 -module(packer).
 -export([pack/1,unpack/1,test/0, untup/1, unpack_helper/1]).
--define(KEY, -6).
-untup(X) when is_tuple(X) -> lists:map(fun(Z) ->untup(Z) end, tuple_to_list(X));
-untup(X) when is_list(X) -> [?KEY|lists:map(fun(Z)->untup(Z) end,X)];
+-define(LIST_KEY, -6).
+-define(TUPLE_KEY, -7).
+untup(X) when is_tuple(X) and is_atom(element(1, X)) -> lists:map(fun(Z) ->untup(Z) end, tuple_to_list(X));
+untup(X) when is_tuple(X) -> lists:map(fun(Z) ->untup(Z) end, [?TUPLE_KEY|tuple_to_list(X)]);
+untup(X) when is_list(X) -> [?LIST_KEY|lists:map(fun(Z)->untup(Z) end,X)];
 untup(X) when is_binary(X) -> base64:encode(X);
 %untup(X) when is_atom(X) -> 
 untup(X) -> X.
@@ -12,8 +14,10 @@ unpack(JSON) -> unpack_helper(jiffy:decode(JSON)).
 unpack_helper(J) when is_binary(J) -> base64:decode(J);
 %unpack_helper(J) when is_binary(J) -> J;%bad
 unpack_helper(J) when not is_list(J) -> J;
-unpack_helper(J) when hd(J) == ?KEY -> 
+unpack_helper(J) when hd(J) == ?LIST_KEY -> 
     lists:map(fun(X) -> unpack_helper(X) end, tl(J));
+unpack_helper(J) when hd(J) == ?TUPLE_KEY ->
+    list_to_tuple(lists:map(fun(X) -> unpack_helper(X) end, tl(J)));
 unpack_helper(J) -> 
     K = hd(J),
     B = is_b_atom(K),
@@ -27,6 +31,7 @@ unpack_helper(J) ->
     list_to_tuple([Out|lists:map(fun(X) -> unpack_helper(X) end, tl(J))]).
 pack(X) -> jiffy:encode(untup(X)).
 -record(d, {a = "", b = "" }).
+is_b_atom(<<"proof">>) -> true;
 is_b_atom(<<"coinbase">>) -> true;
 is_b_atom(<<"settle_bets">>) -> true;
 is_b_atom(<<"market">>) -> true;
@@ -147,4 +152,6 @@ test() ->
     true = is_record(unpack(pack(Record)), d),
     Record = unpack(pack(Record)),
     true = is_binary(pack(Record)),
+    Tuple = {{1,2},{<<>>}, [{<<1,2>>, <<>>}, 3, Record]},
+    Tuple = unpack(pack(Tuple)),
     success.
