@@ -34,6 +34,8 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 doit({give_block, SignedBlock}) -> 
     %true = block:height(SignedBlock) < api:height() + 2,
     io:fwrite("received block\n"),
+    io:fwrite(packer:pack(SignedBlock)),
+    io:fwrite("\n"),
     block_absorber:enqueue(SignedBlock),
     {ok, 0};
 doit({block, N, Many}) -> 

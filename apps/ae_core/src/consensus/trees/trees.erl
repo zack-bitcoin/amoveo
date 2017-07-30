@@ -81,6 +81,7 @@ hash2int(X) ->
     S = constants:hash_size()*8,
     <<A:S>> = X,
     A.
+
     
     %we also need to garbage orders, oracle_bets, shares, proof of burn.
     %proof of burn doesn't exist yet.

@@ -160,6 +160,7 @@ get(Pub, Accounts) ->
     KL2 = KL * 2,
     HPID = trees:hash2int(HP),
     {RH, Leaf, Proof} = trie:get(HPID, Accounts, ?id),
+    %{RH, Leaf, Proof} = trees:get(HPID, Accounts, ?id),
     V = case Leaf of
 	    empty -> empty;
 	    L -> X = deserialize(leaf:value(L)),

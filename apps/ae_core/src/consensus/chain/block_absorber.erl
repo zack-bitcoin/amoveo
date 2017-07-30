@@ -57,6 +57,9 @@ absorb_internal(Block) ->
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 	    Header = block:block_to_header(Block),
 	    headers:absorb([Header]),
+
+	    %check that the proofs root matches the header.
+
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),
