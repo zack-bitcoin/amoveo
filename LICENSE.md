@@ -1,7 +1,7 @@
 ```
 ISC License
 
-Copyright (c) ''[year(s)]'', ''[copyright holder]''
+Copyright (c) 2017, aeternity developers
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -15,5 +15,4 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ```
-donations: 1GbpRPE83Vjg73KFvTVZ4EnS2qNkiLY5TT
 
