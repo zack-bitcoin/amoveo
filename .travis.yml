@@ -16,6 +16,7 @@ matrix:
     - env: JOB=xref
   fast_finish: true
 env:
+  - JOB=swagger
   - JOB=tests
   - JOB=unit-tests
   - JOB=dialyzer

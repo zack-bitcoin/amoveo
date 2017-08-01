@@ -4,6 +4,16 @@ set -ev # Ref https://docs.travis-ci.com/user/customizing-the-build/#Implementin
 set -x
 
 case "${1:?}"-"${2:?}" in
+    before_install-swagger)
+        BuildDir="${3:?}"
+        V="2.2.3"
+        ( cd "${BuildDir:?}" && curl -fL -o swagger-codegen-cli.jar "https://search.maven.org/remotecontent?filepath=io/swagger/swagger-codegen-cli/${V:?}/swagger-codegen-cli-${V:?}.jar"; )
+        cat > "${BuildDir:?}"/swagger-codegen <<EOF
+#!/bin/bash
+exec java -jar "${BuildDir:?}"/swagger-codegen-cli.jar "\$@"
+EOF
+        chmod +x "${BuildDir:?}"/swagger-codegen
+        ;;
     before_install-tests)
         BuildDir="${3:?}"
         ( cd "${BuildDir:?}" && make nose-env; )
@@ -18,6 +28,20 @@ case "${1:?}"-"${2:?}" in
         ;;
     install-*)
         true
+        ;;
+    script-swagger)
+        BuildDir="${3:?}"
+        Y="${BuildDir:?}"/config/swagger.yaml
+        J="${BuildDir:?}"/apps/ae_http/priv/swagger.json
+        file "${Y:?}"
+        file "${J:?}"
+        ## Check that re-generating JSON from YAML same JSON is obtained.
+        OldJ="${J:?}".backup
+        cp -p "${J:?}" "${OldJ:?}"
+        ( cd "${BuildDir:?}" && PATH=.:"$PATH" make swagger; )
+        diff "${OldJ:?}" "${J:?}"
+        ## Check whether spec is valid, and if not print why.
+        curl -f -X POST -d @"${J:?}" -H 'Content-Type:application/json' http://online.swagger.io/validator/debug
         ;;
     script-tests)
         BuildDir="${3:?}"
