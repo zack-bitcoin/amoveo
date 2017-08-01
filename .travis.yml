@@ -1,16 +1,25 @@
 language: erlang
 otp_release:
-  - 19.3
+  - 19.3.6.1
 before_install:
-  - make nose-env
-install: true
+  - ./ci before_install "${JOB:?}" "${TRAVIS_BUILD_DIR:?}"
+install:
+  - ./ci install "${JOB:?}" "${TRAVIS_BUILD_DIR:?}"
 script:
-  - make tests
-
+  - ./ci script "${JOB:?}" "${TRAVIS_BUILD_DIR:?}"
 after_failure:
-  - ls -l _build/dev3/rel/ae_core/log/*
-  - for F in _build/dev3/rel/ae_core/log/*; do echo "${F:?}"; cat "${F:?}"; echo; done
-  - ls -l _build/dev1/rel/ae_core/log/*
-  - for F in _build/dev1/rel/ae_core/log/*; do echo "${F:?}"; cat "${F:?}"; echo; done
-  - ls -l _build/dev2/rel/ae_core/log/*
-  - for F in _build/dev2/rel/ae_core/log/*; do echo "${F:?}"; cat "${F:?}"; echo; done
+  - ./ci after_failure "${JOB:?}" "${TRAVIS_BUILD_DIR:?}"
+matrix:
+  allow_failures:
+    - env: JOB=unit-tests
+    - env: JOB=dialyzer
+    - env: JOB=xref
+  fast_finish: true
+env:
+  - JOB=tests
+  - JOB=unit-tests
+  - JOB=dialyzer
+  - JOB=xref
+cache:
+  directories:
+    - .plt
