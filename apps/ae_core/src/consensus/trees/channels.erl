@@ -4,7 +4,7 @@
 	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
 	 last_modified/1, entropy/1,
 	 nonce/1,delay/1, amount/1, slasher/1,
-	 closed/1, shares/1, 
+	 closed/1, shares/1, verify_proof/4,
 	 test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
@@ -179,6 +179,23 @@ delete(ID,Channels) ->
     trie:delete(ID, Channels, channels).
 root_hash(Channels) ->
     trie:root_hash(channels, Channels).
+cfg() ->
+    HashSize = constants:hash_size(),
+    PathSize = constants:hash_size()*8,
+    ValueSize = constants:channel_size(),
+    MetaSize = 0,
+    cfg:new(PathSize, ValueSize, accounts, 0, HashSize).
+    %tree_child(accounts, HS*8, constants:account_size(), KL*2 div 8),
+    %tree_child(channels, HS*8, constants:channel_size(), KL div 8),
+verify_proof(RootHash, Key, Value, Proof) ->
+    CFG = cfg(),
+    V = case Value of
+	    0 -> empty;
+	    X -> serialize(X)
+	end,
+    verify:proof(RootHash, 
+		 leaf:new(Key, V, 0, CFG), 
+		 Proof, CFG).
     
 test() ->
     ID = 1,
@@ -189,18 +206,12 @@ test() ->
     Height = 1,
     Entropy = 500,
     Delay = 11,
-    %Slasher = 1,
     A = new(ID,Acc1,Acc2,Bal1,Bal2,Height,Entropy,Delay),
     A = deserialize(serialize(A)),
-    %io:fwrite("channel test"),
-    %io:fwrite("\n"),
-    %io:fwrite(packer:pack(C)),
-    %io:fwrite("\n"),
-    %io:fwrite(packer:pack(D)),
-    %io:fwrite("\n"),
     C = A#channel{shares = 27},
     NewLoc = write(C, 0),
-    {_, C, _} = get(ID, NewLoc),
+    {Root, C, Proof} = get(ID, NewLoc),
+    true = verify_proof(Root, ID, C, Proof),
     success.
     
 

@@ -2,10 +2,13 @@
 
 -module(channel_team_close_tx).
 -export([doit/3, make/5, acc1/1, acc2/1, fee/1, amount/1,
-	 sum_share_amounts/1]).
+	 sum_share_amounts/1, aid1/1, aid2/1, id/1]).
 -record(ctc, {aid1 = 0, aid2 = 0, fee = 0,
 	      nonce = 0, id = 0, amount = 0, 
 	      shares}).
+aid1(X) -> X#ctc.aid1.
+aid2(X) -> X#ctc.aid2.
+id(X) -> X#ctc.id.
 amount(Tx) -> Tx#ctc.amount.
 fee(Tx) -> Tx#ctc.fee.
 acc1(Tx) -> Tx#ctc.aid1.

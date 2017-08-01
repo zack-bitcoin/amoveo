@@ -1,8 +1,12 @@
 -module(channel_solo_close).
--export([doit/3, make/5]).
+-export([doit/3, make/5, from/1, id/1]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
 
+from(X) -> X#csc.from.
+id(X) -> 
+    SPK = X#csc.scriptpubkey,
+    spk:cid(SPK).
 make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     Accounts = trees:accounts(Trees),
     Channels = trees:channels(Trees),

@@ -13,7 +13,7 @@
   1},
  {<<"dump">>,
   {git,"https://github.com/BumblebeeBat/dump",
-       {ref,"ef998b753fc8a80210cc12c991865d4bf842ea4f"}},
+       {ref,"c95a32228880142019766460a0fa5bd792ce176f"}},
   1},
  {<<"encrypter">>,
   {git,"https://github.com/zack-bitcoin/encrypter",
@@ -38,7 +38,7 @@
   0},
  {<<"pink_hash">>,
   {git,"https://github.com/BumblebeeBat/pink_crypto",
-       {ref,"b0e918563c7f8a961adfec53a1d00e0ebdf756d4"}},
+       {ref,"4ca125df99113038c79e0d785349def1c3cb0825"}},
   1},
  {<<"ranch">>,
   {git,"https://github.com/ninenines/ranch.git",
@@ -50,7 +50,7 @@
   1},
  {<<"trie">>,
   {git,"https://github.com/BumblebeeBat/MerkleTrie",
-       {ref,"bf4e46cb860540cdbb0db6c8ca5eb1dd31486cd4"}},
+       {ref,"97636c16a0b8db73bdfa670ceb5440def1dce544"}},
   0}]}.
 [
 {pkg_hash,[

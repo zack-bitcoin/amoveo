@@ -1,6 +1,8 @@
 -module(delete_account_tx).
--export([doit/3, make/4]).
+-export([doit/3, make/4, from/1, to/1]).
 -record(da, {from = 0, nonce = 0, fee = 0, to = 0}).
+from(X) -> X#da.from.
+to(X) -> X#da.to.
 make(To, ID, Fee, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Facc, Fproof} = accounts:get(ID, Accounts),

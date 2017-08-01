@@ -4,7 +4,7 @@
 	 balance/1,root_hash/1,now_balance/4,delete/2,
 	 receive_shares/4, send_shares/4,
 	 shares/1, bets/1, update_bets/2,
-	 pub_decode/1, height/1,
+	 pub_decode/1, height/1, verify_proof/4,
 	 serialize/1, pubkey/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
@@ -170,20 +170,28 @@ get(Pub, Accounts) ->
 		 X#acc{bets = Bets, shares = Shares}
 	end,
     {RH, V, Proof}.
-verify_proof(RootHash, Path, Proof) ->
-    KL = constants:key_length(),
-    MetaSize = KL div 4,%all in bytes
-    HashSize = constants:hash_size(),
-    IDSize = constants:hash_size(),
-    ValueSize = constants:account_size(),
-    PathSize = constants:hash_size(),
-    CFG = cfg:new(PathSize, ValueSize, IDSize, MetaSize, HashSize),
-    verify:proof(RootHash, Path, Proof, CFG).
 
 root_hash(Accounts) ->
     trie:root_hash(?id, Accounts).
 
 %garbage() -> trees:garbage(?id).
+cfg() ->
+    KL = constants:key_length(),
+    MetaSize = KL div 4,%all in bytes
+    HashSize = constants:hash_size(),
+    ValueSize = constants:account_size(),
+    PathSize = constants:hash_size()*8,
+    cfg:new(PathSize, ValueSize, accounts, MetaSize, HashSize).
+verify_proof(RootHash, Key, Value, Proof) ->
+    CFG = cfg(),
+    V = case Value of
+	    0 -> empty;
+	    X -> serialize(X)
+	end,
+    verify:proof(RootHash, 
+		 leaf:new(trees:hash2int(pub_decode(Key)), 
+			  V, 0, CFG), 
+		 Proof, CFG).
 
 test() ->
     {Pub, _Priv} = testnet_sign:new_key(),
@@ -192,5 +200,8 @@ test() ->
     S = serialize(Acc),
     Acc = deserialize(S),
     NewLoc = write(0, Acc),
-    {_, Acc, _} = get(Pub, NewLoc),
+    {Root, Acc, Proof} = get(Pub, NewLoc),
+    true = verify_proof(Root, Pub, Acc, Proof),
+    {Root2, empty, Proof2} = get(Pub, 0),
+    true = verify_proof(Root2, Pub, 0, Proof2),
     success.

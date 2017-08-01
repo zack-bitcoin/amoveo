@@ -5,7 +5,8 @@
 	 get/2, write/3, root_hash/1, new/3,
 	 receive_shares/4, send_shares/4,
 	 write_many/3, write_many/2,
-	 to_code/1, from_code/1]).
+	 to_code/1, from_code/1,
+	 verify_proof/4]).
 -record(share, {id, amount, 
 	       modified}).%we need to keep a record of when it was modified so that users can get paid for having shares.
 -define(name, shares).
@@ -155,6 +156,28 @@ get_paid2(Step, End, Diff, Shares, Tokens, SC) when Shares > 0 ->
 root_hash(Root) ->
     true = is_integer(Root),
     trie:root_hash(?name, Root).
+
+%tree_child(accounts, HS*8, constants:account_size(), KL*2 div 8),
+%tree_child(shares, KL, (KL + 1 + ((BB + HB) div 8))),
+cfg() ->
+    HB = constants:height_bits(),
+    BB = constants:balance_bits(),
+    PathSize = constants:key_length(),
+    ValueSize = PathSize + 1 + ((BB + HB) div 8),
+    MetaSize = 0,
+    HashSize = constants:hash_size(),
+    cfg:new(PathSize, ValueSize, shares, MetaSize, HashSize).
+verify_proof(RootHash, Key, Value, Proof) ->
+    CFG = cfg(),
+    io:fwrite(packer:pack({shares_verify_value, Value})),
+    io:fwrite("\n"),
+    V = case Value of
+	    0 -> empty;
+	    X -> serialize(X)
+	end,
+    verify:proof(RootHash, 
+		 leaf:new(Key, V, 0, CFG), 
+		 Proof, CFG).
 	    
 
 test() ->
@@ -162,7 +185,9 @@ test() ->
     C = new(Key, -100, 1),
     {_, empty, _} = get(Key, 0),
     NewLoc = write(C, 0, 1),
-    {_, C, _} = get(Key, NewLoc),
+    {Root, C, Proof} = get(Key, NewLoc),
     root_hash(NewLoc),
-    {_, empty, _} = get(Key, 0),
+    {Root2, empty, Proof2} = get(Key, 0),
+    true = verify_proof(Root, Key, C, Proof),
+    true = verify_proof(Root2, Key, 0, Proof2),
     success.

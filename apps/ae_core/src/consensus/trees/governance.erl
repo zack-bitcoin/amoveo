@@ -3,6 +3,7 @@
 	 is_locked/1, change/3, genesis_state/0,
 	 get/2, write/2, lock/2, unlock/2,
 	 get_value/2, serialize/1, name2number/1,
+	 verify_proof/4,
 	 test/0]).
 
 -record(gov, {id, value, lock}).
@@ -188,14 +189,33 @@ name2number(oracle_shares) -> 44;
 name2number(developer_reward) -> 45;
 name2number(_) -> bad.
 max() -> 46.
+cfg() ->
+    KL = 8,
+    MetaSize = 0,%all in bytes
+    HashSize = constants:hash_size(),
+    ValueSize = 4*8,
+    PathSize = 8,
+    cfg:new(PathSize, ValueSize, accounts, MetaSize, HashSize).
+verify_proof(RootHash, Key, Value, Proof) ->
+    CFG = cfg(),
+    V = case Value of
+	    0 -> empty;
+	    X -> serialize(X)
+	end,
+    L = leaf:new(name2number(Key), V, 0, CFG),
+    io:fwrite(packer:pack(L)),
+    verify:proof(RootHash, L, Proof, CFG).
 
 test() ->
     C = new(14, 1, 0),
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
-    {_, {gov, 14, 350, 0}, _} = get(fun_limit, Governance),
+    Leaf = {gov, 14, 350, 0},
+    Leaf = deserialize(serialize(Leaf)),
+    {_, Leaf, _} = get(fun_limit, Governance),
     G2 = write(C, Governance),
     {_, C, _} = get(fun_limit, G2),
-    {_, {gov, 14, 350, 0}, _} = get(fun_limit, Governance),
+    {Root, Leaf, Proof} = get(fun_limit, Governance),
+    true = verify_proof(Root, fun_limit, Leaf, Proof),
     success.
     

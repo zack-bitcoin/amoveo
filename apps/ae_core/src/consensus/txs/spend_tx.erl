@@ -1,6 +1,8 @@
 -module(spend_tx).
--export([doit/3, make/6]).
+-export([doit/3, make/6, from/1, to/1]).
 -record(spend, {from = 0, nonce = 0, fee = 0, to = 0, amount = 0, shares = []}).
+from(X) -> X#spend.from.
+to(X) -> X#spend.to. 
 make(To, Amount, Fee, From, Trees, Shares) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),

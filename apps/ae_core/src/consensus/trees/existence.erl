@@ -1,6 +1,6 @@
 -module(existence).
 -export([get/2,write/2,new/1,hash2int/1,root_hash/1,hash/1, 
-	 serialize/1,
+	 serialize/1, verify_proof/4,
 	 test/0]).
 %for accessing the proof of existence tree
 -record(exist, {hash}).
@@ -48,6 +48,22 @@ hash2int(<<X, Y/binary>>, N) ->
     hash2int(Y, M).
 root_hash(Root) ->
     trie:root_hash(?name, Root).
+cfg() ->
+    HashSize = constants:hash_size(),
+    PathSize = constants:hash_size()*8,
+    cfg:new(PathSize, HashSize, existence, 0, HashSize).
+%tree_child(accounts, HS*8, constants:account_size(), KL*2 div 8),
+%tree_child(existence, HS*8, HS),
+verify_proof(RootHash, Key, Value, Proof) ->
+    CFG = cfg(),
+    V = case Value of
+	    0 -> empty;
+	    X -> serialize(X)
+	end,
+    verify:proof(RootHash, 
+		 leaf:new(trees:hash2int(Key), 
+			  V, 0, CFG), 
+		 Proof, CFG).
 
 
 test() ->
@@ -58,6 +74,8 @@ test() ->
     NewLoc = write(C, 0),
     C2 = new(testnet_hasher:doit(4)),
     NewLoc2 = write(C2, NewLoc),
-    {_, C, _} = get(Hash, NewLoc2),
-    {_, empty, _} = get(Hash, 0),
+    {Root1, C, Path1} = get(Hash, NewLoc2),
+    {Root2, empty, Path2} = get(Hash, 0),
+    true = verify_proof(Root1, Hash, C, Path1),
+    true = verify_proof(Root2, Hash, 0, Path2),
     success.
