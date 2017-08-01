@@ -52,8 +52,6 @@ cfg() ->
     HashSize = constants:hash_size(),
     PathSize = constants:hash_size()*8,
     cfg:new(PathSize, HashSize, existence, 0, HashSize).
-%tree_child(accounts, HS*8, constants:account_size(), KL*2 div 8),
-%tree_child(existence, HS*8, HS),
 verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
     V = case Value of

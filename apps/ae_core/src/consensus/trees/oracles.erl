@@ -5,6 +5,7 @@
 	 set_orders/2, done_timer/1, set_done_timer/2,
 	 set_result/2, set_type/2, governance/1,
 	 governance_amount/1, creator/1, serialize/1,
+	 verify_proof/4,
 	 test/0]).
 -define(name, oracles).
 -record(oracle, {id, 
@@ -134,6 +135,26 @@ get(ID, Root) ->
 		X#oracle{orders = M}
 	end,
     {RH, V, Proof}.
+cfg() ->
+    KL = constants:key_length(), 
+    HB = constants:height_bits(),
+    DB = constants:difficulty_bits(),
+    HS = constants:hash_size(),
+    PS = HS*8,
+    ValueSize = ((((HB*2)+DB) div 8) + 4 + (3*HS)) + PS, 
+    MetaSize = (KL div 8),
+    cfg:new(PS, ValueSize, existence, MetaSize , HS).
+%tree_child(oracles, HS*8, ((((HB*2)+DB) div 8) + 4 + (3*HS)) + PS, (KL div 8)),
+%tree_child(existence, HS*8, HS),
+verify_proof(RootHash, Key, Value, Proof) ->
+    CFG = cfg(),
+    V = case Value of
+	    0 -> empty;
+	    X -> serialize(X)
+	end,
+    verify:proof(RootHash, 
+		 leaf:new(Key, V, 0, CFG), 
+		 Proof, CFG).
 
 
 test() ->
@@ -146,8 +167,10 @@ test() ->
     io:fwrite(packer:pack({oracles_test, X, X3})),
     X = X3,
     NewLoc = write(X, Root),
-    {_, X, _} = get(X#oracle.id, NewLoc),
+    {Root1, X, Path1} = get(X#oracle.id, NewLoc),
     %io:fwrite({X, X3}),
-    {_, empty, _} = get(X#oracle.id, 0),
+    {Root2, empty, Path2} = get(X#oracle.id, 0),
+    true = verify_proof(Root1, X#oracle.id, X, Path1),
+    true = verify_proof(Root2, X#oracle.id, 0, Path2),
     success.
     

@@ -170,18 +170,22 @@ test() ->
     {Trees, _, _} = tx_pool:data(),
     Pub2 = <<"BL6uM2W6RVAI341uFO7Ps5mgGp4VKZQsCuLlDkVh5g0O4ZqsDwFEbS9GniFykgDJxYv8bNGJ+/NdrFjKV/gJa6c=">>,
     Querys = [{accounts, keys:pubkey()},
+	      {accounts, keys:pubkey()},%repeats are ignored
 	      {shares, #key{pub = keys:pubkey(), id = 1}},
 	      {shares, #key{pub = keys:pubkey(), id = 2}},
-	      {accounts, keys:pubkey()},
-	      {accounts, base64:decode(Pub2)},%,%empty account
+	      {accounts, base64:decode(Pub2)},%empty account
 	      {governance, block_reward},
 	      {channels, 1},
-	      {existence, testnet_hasher:doit(1)}
+	      {existence, testnet_hasher:doit(1)},
+	      {oracles, 1},
+	      {burn, testnet_hasher:doit(1)}
+	      %{orders, #key{}}
+	      %{oracle_bets, #key{}}%need to create oracle first.
 	     ],
     Facts = prove(Querys, Trees),
     io:fwrite(packer:pack({prove_facts, Facts})),
     ProofRoot = hash(Facts),
-    Dict = facts_to_dict(Facts, dict:new()),
+    Dict = facts_to_dict(Facts, dict:new()), %when processing txs, we use this dictionary to look up the state.
     Querys2 = dict:fetch_keys(Dict),
     Facts = prove(Querys2, Trees),
     Dict.
