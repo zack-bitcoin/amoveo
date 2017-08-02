@@ -1,7 +1,11 @@
 -module(channel_slash_tx).
--export([doit/3, make/5, is_tx/1]).
+-export([doit/3, make/5, is_tx/1, from/1, id/1]).
 -record(cs, {from, nonce, fee = 0, 
 	     scriptpubkey, scriptsig}).
+from(X) -> X#cs.from.
+id(X) -> 
+    SPK = X#cs.scriptpubkey,
+    spk:cid(testnet_sign:data(SPK)).
 is_tx(Tx) ->
     is_record(Tx, cs).
 make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->

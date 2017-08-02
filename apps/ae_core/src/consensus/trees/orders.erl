@@ -3,7 +3,7 @@
 	 pointer/1, new/3, get/2, empty_book/0,
 	 remove/2, update_amount/2, set_amount/2,
 	 available_id/1, many/1, aid/1, head_get/1,
-	 significant_volume/2,
+	 significant_volume/2, verify_proof/4,
 	 test/0]).
 -define(name, orders).
 -record(order, {id, aid, amount, pointer}).
@@ -208,6 +208,22 @@ match2(Order, Root, T, Matches1, Matches2) ->
 root_hash(Root) ->
     trie:root_hash(?name, Root).
 
+cfg() ->
+    HashSize = constants:hash_size(),
+    BB = constants:balance_bits(),
+    KL = constants:key_length(), 
+    cfg:new(KL, (((constants:orders_bits()*2) + BB) div 8), 
+            orders, 0, HashSize).
+verify_proof(RootHash, Key, Value, Proof) ->
+    CFG = cfg(),
+    V = case Value of
+	    0 -> empty;
+	    X -> serialize(X)
+	end,
+    verify:proof(RootHash, 
+		 leaf:new(Key, V, 0, CFG), 
+		 Proof, CFG).
+
 test() ->
     Root0 = empty_book(),
     {Pub1,_} = testnet_sign:new_key(),
@@ -235,8 +251,9 @@ test() ->
     {_, empty, _} = get(ID1, Root6),
     {_, {order, 3, Pub2, 100, _}, _} = get(ID2, Root6),
     Root7 = remove(ID2, Root2),
-    {_, empty, _} = get(ID2, Root7),
-    {_, {order, 5, Pub2, 100, _}, _} = get(ID1, Root7),
-    
+    {Root8, empty, Path1} = get(ID2, Root7),
+    {Root9, {order, 5, Pub2, 100, Pointer2}, Path2} = get(ID1, Root7),
+    true = verify_proof(Root8, ID2, 0, Path1),
+    true = verify_proof(Root9, ID1, {order, 5, Pub2, 100, Pointer2}, Path2),
     success.
     

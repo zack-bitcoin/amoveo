@@ -1,6 +1,6 @@
 
 -module(oracle_new_tx).
--export([test/0, doit/3, make/10, from/1]).
+-export([test/0, doit/3, make/10, from/1, id/1]).
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
 		     fee = 0, 
@@ -18,8 +18,8 @@
 %The entire text of the question is written into the transaction, but only the hash of the text is stored into a consensus state merkel tree.
 %The oracle has a start-date written in it. Trading doesn't start until the start-date.
 %The oracle can be published before we know the outcome of the question, that way the oracle id can be used to make channel contracts that bet on the eventual outcome of the oracle.
-from(X) ->
-    X#oracle_new.from.
+from(X) -> X#oracle_new.from.
+id(X) -> X#oracle_new.id.
 make(From, Fee, Question, Start, ID, Difficulty, Recent, Governance, GovAmount, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),

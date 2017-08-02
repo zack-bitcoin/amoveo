@@ -30,7 +30,7 @@ compare({Ta, Ka}, {Tb, Kb}) ->
     T0 = tree_to_int(Ta),
     T1 = tree_to_int(Tb),
     if
-	T0 < T1 -> true;
+        T0 < T1 -> true;
 	T0 > T1 -> false;
 	Ka < Kb -> true;
 	Ka > Kb -> false;
@@ -66,10 +66,42 @@ prove(Querys, Trees) ->
     prove2(F2, Trees).
 prove2([], _) ->
    [];
+prove2([{oracle_bets, Key}|T], Trees) ->
+    Oracles = trees:oracles(Trees),
+    io:fwrite(packer:pack({oracle_bets, Key#key.pub, Oracles})),
+    io:fwrite("\n"),
+    {_, Data0, _} = oracles:get(Key#key.pub, Oracles),
+    OrdersTree = oracles:orders(Data0),%%%%
+    {Root, Data, Path} = oracle_bets:get(Key#key.id, OrdersTree),
+    Data2 = case Data of
+		empty -> 0;
+		_ -> Data
+	    end,
+    Proof = #proof{root = Root,
+		   key = Key,
+		   path = Path,
+		   value = Data2,
+		   tree = tree_to_int(oracle_bets)},
+    [Proof|prove2(T, Trees)];
+prove2([{orders, Key}|T], Trees) ->
+    Accounts = trees:accounts(Trees),
+    {_, Data0, _} = accounts:get(Key#key.pub, Accounts),
+    OrdersTree = accounts:bets(Data0),%%%%
+    {Root, Data, Path} = orders:get(Key#key.id, OrdersTree),
+    Data2 = case Data of
+		empty -> 0;
+		_ -> Data
+	    end,
+    Proof = #proof{root = Root,
+		   key = Key,
+		   path = Path,
+		   value = Data2,
+		   tree = tree_to_int(orders)},
+    [Proof|prove2(T, Trees)];
 prove2([{shares, Key}|T], Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Data0, _} = accounts:get(Key#key.pub, Accounts),
-    SharesTree = accounts:shares(Data0),
+    SharesTree = accounts:shares(Data0),%%%%%
     {Root, Data, Path} = shares:get(Key#key.id, SharesTree),
     Data2 = case Data of
 		empty -> 0;
@@ -101,9 +133,38 @@ facts_to_dict([F|T], D) ->
 %-record(proof, {tree, value, root, key, path}).
     %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
-    io:fwrite(packer:pack({to_dict, Tree, F})),
+    io:fwrite("proofs: facts to dict "),
+    io:fwrite(Tree),
     io:fwrite("\n"),
     case Tree of
+	oracle_bets -> 
+	    K = F#proof.key,
+	    Pub = K#key.pub,
+	    ID = K#key.id,
+	    Oracle = dict:fetch({oracles, Pub}, D),
+	    OB = oracles:orders(Oracle),
+	    RH = oracle_bets:root_hash(OB),
+	    RH = F#proof.root,
+	    true = 
+		Tree:verify_proof(
+		  F#proof.root,
+		  ID,
+		  F#proof.value,
+		  F#proof.path);
+	orders -> 
+	    K = F#proof.key,
+	    Pub = K#key.pub,
+	    ID = K#key.id,
+	    Account = dict:fetch({accounts, Pub}, D),
+	    Shares = accounts:bets(Account),
+	    RH = orders:root_hash(Shares),
+	    RH = F#proof.root,
+	    true = 
+		Tree:verify_proof(
+		  F#proof.root,
+		  ID,
+		  F#proof.value,
+		  F#proof.path);
 	shares -> 
 	    K = F#proof.key,
 	    Pub = K#key.pub,
@@ -142,48 +203,81 @@ txs_to_querys([STx|T]) ->
     L = case element(1, Tx) of
 	    ca -> [{accounts, create_account_tx:from(Tx)},
 		   {accounts, create_account_tx:pubkey(Tx)}];
-	    spend -> [{accounts, spend_tx:from(Tx)},
-		      {accounts, spend_tx:to(Tx)}];
+	    spend -> 
+                %calculate which types of shares we need to prove.
+                [{accounts, spend_tx:from(Tx)},
+                 {accounts, spend_tx:to(Tx)}];
 	    da -> [{accounts, delete_account_tx:from(Tx)},
 		   {accounts, delete_account_tx:to(Tx)}];
+            nc -> [];
 	    gc -> [{accounts, grow_channel_tx:acc1(Tx)},
 		   {accounts, grow_channel_tx:acc2(Tx)},
 		   {channels, grow_channel_tx:id(Tx)}];
 	    ctc -> [{accounts, channel_team_close_tx:aid1(Tx)},
 		    {accounts, channel_team_close_tx:aid2(Tx)},
 		    {channels, channel_team_close_tx:id(Tx)}];
-	    csc -> [];
-	    timeout -> [];
-	    cs -> [];
-	    ex -> [];
-	    oracle_new -> [{accounts, oracle_new_tx:from(Tx)}];
-	    oracle_bet -> [];
-	    oracle_close -> [];
-	    unmatched -> [];
-	    oracle_shares -> [];
-	    coinbase -> [];
-	    _ -> [] 
+	    csc -> 
+                [{accounts, channel_solo_close:from(Tx)},
+                 {channels, channel_solo_close:id(Tx)}];
+	    timeout -> 
+                [{accounts, channel_timeout_tx:aid(Tx)},
+                 {channels, channel_timeout_tx:cid(Tx)}];
+	    cs -> 
+                [{accounts, channel_slash_tx:from(Tx)},
+                 {channels, channel_slash_tx:id(Tx)}];
+	    ex -> 
+                [{accounts, existence_tx:from(Tx)},
+                   {existence, existence_tx:commit(Tx)}];
+	    oracle_new -> [{accounts, oracle_new_tx:from(Tx)},
+                           {oracles, oracle_new_tx:id(Tx)}];
+	    oracle_bet -> 
+                %calculate the oracle bets proof
+                %calculate the orders proof
+                [{accounts, oracle_bet_tx:from(Tx)},
+                 {oracles, oracle_bet_tx:id(Tx)}];
+	    oracle_close -> [{accounts, oracle_close_tx:from(Tx)},
+                             {oracles, oracle_close_tx:oracle_id(Tx)}];
+	    unmatched -> 
+                %calculate the order proof.
+                [{accounts, oracle_unmatched_tx:from(Tx)},
+                 {oracles, oracle_unmatched_tx:oracle_id(Tx)}];
+	    oracle_shares -> 
+                %calculate oracle bets proof
+                %calculate shares proof
+                [];
+	    coinbase -> [{accounts, coinbase_tx:from(Tx)}]
+	    %_ -> [] 
 	end,
     L ++ txs_to_querys(T).
 
 test() ->
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    {Trees0, _, _} = tx_pool:data(),
+    Question = <<>>,
+    OID = 1,
+    Fee = 20,
+    {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, constants:initial_difficulty(), 0, 0, 0, Trees0),
+    tx_pool_feeder:absorb(keys:sign(Tx)),
+    test_txs:mine_blocks(1),
     {Trees, _, _} = tx_pool:data(),
     Pub2 = <<"BL6uM2W6RVAI341uFO7Ps5mgGp4VKZQsCuLlDkVh5g0O4ZqsDwFEbS9GniFykgDJxYv8bNGJ+/NdrFjKV/gJa6c=">>,
     Querys = [{accounts, keys:pubkey()},
-	      {accounts, keys:pubkey()},%repeats are ignored
 	      {shares, #key{pub = keys:pubkey(), id = 1}},
 	      {shares, #key{pub = keys:pubkey(), id = 2}},
+	      {accounts, keys:pubkey()},%repeats are ignored
 	      {accounts, base64:decode(Pub2)},%empty account
 	      {governance, block_reward},
 	      {channels, 1},
 	      {existence, testnet_hasher:doit(1)},
 	      {oracles, 1},
-	      {burn, testnet_hasher:doit(1)}
-	      %{orders, #key{}}
-	      %{oracle_bets, #key{}}%need to create oracle first.
+	      {burn, testnet_hasher:doit(1)},
+	      {orders, #key{pub = keys:pubkey(), id = 1}},
+	      {oracle_bets, #key{pub = OID, id = 1}}%need to create oracle first.
 	     ],
     Facts = prove(Querys, Trees),
-    io:fwrite(packer:pack({prove_facts, Facts})),
+    %io:fwrite(packer:pack({prove_facts, Facts})),
     ProofRoot = hash(Facts),
     Dict = facts_to_dict(Facts, dict:new()), %when processing txs, we use this dictionary to look up the state.
     Querys2 = dict:fetch_keys(Dict),

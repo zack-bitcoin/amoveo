@@ -6,7 +6,7 @@
 from(X) -> X#csc.from.
 id(X) -> 
     SPK = X#csc.scriptpubkey,
-    spk:cid(SPK).
+    spk:cid(testnet_sign:data(SPK)).
 make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     Accounts = trees:accounts(Trees),
     Channels = trees:channels(Trees),

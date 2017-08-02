@@ -1,8 +1,12 @@
 -module(oracle_unmatched_tx).
--export([test/0, make/5, doit/3]).
+-export([test/0, make/5, doit/3, from/1, oracle_id/1, order_id/1]).
 %If you had money in orders in the oracle order book when the oracle_close transaction happened, this is how you get the money out.
 -record(unmatched, {from, nonce, fee, oracle_id, order_id}).
 
+from(X) -> X#unmatched.from.
+oracle_id(X) -> X#unmatched.oracle_id.
+order_id(X) -> X#unmatched.order_id.
+           
 make(From, Fee, OracleID, OrderID, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),

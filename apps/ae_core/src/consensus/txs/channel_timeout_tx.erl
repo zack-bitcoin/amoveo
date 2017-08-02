@@ -1,8 +1,10 @@
 -module(channel_timeout_tx).
--export([doit/3, make/5]).
+-export([doit/3, make/5, cid/1, aid/1]).
 -record(timeout, {aid = 0, nonce = 0, fee = 0, cid = 0, shares}).
 %If your partner is not helping you, this is how you start the process of closing the channel. 
 %you don't provide the channel state now, instead you use a channel_slash to provide that data.
+cid(X) -> X#timeout.cid.
+aid(X) -> X#timeout.aid.
 make(ID,Trees,CID,Shares,Fee) ->
     %shares is a list of shares.
     %The root hash of this list must match the hash stored in the channel
@@ -66,9 +68,7 @@ doit(Tx, Trees, NewHeight) ->
     Slasher = channels:slasher(Channel),
     Acc4 = accounts:update(From, Trees3, -Fee, none, NewHeight),
     NewAccounts = accounts:write(Accounts3, Acc4),
-    NewChannel = channels:update(Slasher, CID, Trees, none, 0, 0, CA, channels:delay(Channel), NewHeight, true, []),
-    NewChannels = channels:write(NewChannel, Channels),
-    %NewChannels = channels:delete(CID, Channels),
+    NewChannels = channels:delete(CID, Channels),%
     Trees2 = trees:update_channels(Trees3, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 

@@ -2,7 +2,7 @@
 -export([test/0, new/3, increase/3, id/1,
 	 true/1, false/1, bad/1,
 	 write/2, get/2, root_hash/1, add_bet/4,
-	 to_shares/3, delete/2,
+	 to_shares/3, delete/2, verify_proof/4,
 	 remove_bet/3]).
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
 -record(bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle
@@ -83,16 +83,36 @@ remove_bet(_, _, _) ->
 root_hash(A) ->
     trie:root_hash(?name, A).
 
+cfg() ->
+    KL = constants:key_length(), 
+    BB = constants:balance_bits(),
+    %tree_child(oracle_bets, KL, (KL + (3 * BB div 8))),
+    %tree_child(existence, HS*8, HS),
+    HashSize = constants:hash_size(),
+    cfg:new(KL, KL + (3 * BB div 8), oracle_bets, 0, HashSize).
+verify_proof(RootHash, Key, Value, Proof) ->
+    CFG = cfg(),
+    V = case Value of
+	    0 -> empty;
+	    X -> serialize(X)
+	end,
+    verify:proof(RootHash, 
+		 leaf:new(Key, V, 0, CFG), 
+		 Proof, CFG).
+
 test() ->
     C = new(1, 3, 100),
     ID = C#bet.id,
     {_, empty, _} = get(ID, 0),
     Root = write(C, 0),
-    {_, C, _} = get(ID, Root),
-    {_, empty, _} = get(ID, 0),
+    {Root1, C, Path1} = get(ID, Root),
+    {Root2, empty, Path2} = get(ID, 0),
     Tree2 = add_bet(ID, 1, 100, Root),
     {_, Bet2, _} = get(ID, Tree2),
     Bet2 = increase(C, 1, 100),
+
+    true = verify_proof(Root1, ID, C, Path1),
+    true = verify_proof(Root2, ID, 0, Path2),
     success.
     
     

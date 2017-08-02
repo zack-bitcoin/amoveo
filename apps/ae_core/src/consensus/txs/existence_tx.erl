@@ -1,7 +1,9 @@
 -module(existence_tx).
--export([doit/3, make/4]).
+-export([doit/3, make/4, from/1, commit/1]).
 -record(ex, {from, nonce = 0, fee = 0, commit = 0}).
 
+from(X) -> X#ex.from.
+commit(X) -> existence:hash(X#ex.commit).
 make(From, Fee, C, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),

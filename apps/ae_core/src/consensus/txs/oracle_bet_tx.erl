@@ -1,5 +1,5 @@
 -module(oracle_bet_tx).
--export([test/0, doit/3, doit2/3, make/6]).
+-export([test/0, doit/3, doit2/3, make/6, id/1, from/1]).
 -record(oracle_bet, {from, %your account id.
 		     nonce, 
 		     fee, 
@@ -13,6 +13,8 @@
 %If you want your order to be held in the order book, it needs to be bigger than a minimum size.
 %There is a maximum number of orders that can be stored in the order book at a time.
 %If your order isn't big enough to be in the order book, you cannot buy shares of the type that are stored in the order book.
+from(X) -> X#oracle_bet.from.
+id(X) -> X#oracle_bet.id.
 make(From, Fee, OID, Type, Amount, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),

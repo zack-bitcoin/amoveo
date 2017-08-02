@@ -1,3 +1,6 @@
+channel_timeout_tx is not deleting the channel. it should be.
+
+
 the prev_hashes should be stored with headers, not with blocks. That way we can look up headers quickly.
 
 

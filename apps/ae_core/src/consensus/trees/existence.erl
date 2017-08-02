@@ -22,6 +22,9 @@ deserialize(B) ->
     #exist{hash = <<Hash:HS>>}.
 
 get(Hash, Tree) ->
+    io:fwrite("existence get hash is "),
+    io:fwrite(Hash),
+    io:fwrite("\n"),
     true = is_binary(Hash),
     Key = hash2int(Hash),
     {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
