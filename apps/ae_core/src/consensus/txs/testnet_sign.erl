@@ -14,7 +14,7 @@ params() -> crypto:ec_curve(secp256k1).
 shared_secret(Pub, Priv) -> en(crypto:compute_key(ecdh, de(Pub), de(Priv), params())).
 generate() -> crypto:generate_key(ecdh, params()).
 new_key() -> %We keep this around for the encryption library. it is used to generate 1-time encryption keys.
-    {Pub, Priv} = generate(),%crypto:generate_key(ecdh, params()),
+    {Pub, Priv} = generate(),
     {Pub, Priv}.
 sign(S, Priv) -> en(crypto:sign(ecdsa, sha256, term_to_binary(S), [Priv, params()])).
 verify_sig(S, Sig, Pub) -> 
