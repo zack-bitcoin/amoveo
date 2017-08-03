@@ -32,14 +32,19 @@ EOF
     script-swagger)
         BuildDir="${3:?}"
         Y="${BuildDir:?}"/config/swagger.yaml
-        J="${BuildDir:?}"/apps/ae_http/priv/swagger.json
+        C="${BuildDir:?}"/apps ## Code in general - including Swagger-generated code. Be broad on the path in order to avoid checking wrong directory following any Makefile changes.
+        J="${C:?}"/ae_http/priv/swagger.json
         file "${Y:?}"
         file "${J:?}"
-        ## Check that re-generating JSON from YAML same JSON is obtained.
-        OldJ="${J:?}".backup
-        cp -p "${J:?}" "${OldJ:?}"
+        TmpDir="$(mktemp -d)"
+        cp -pR "${C:?}" "${TmpDir:?}"/backup
+        OldC="${TmpDir:?}"/backup
+        OldJ="${OldC:?}"/ae_http/priv/swagger.json
         ( cd "${BuildDir:?}" && PATH=.:"$PATH" make swagger; )
+        ## Check that re-generating JSON from YAML leads to same generated JSON.
         diff "${OldJ:?}" "${J:?}"
+        ## Check that re-generating code from YAML leads to same generated code.
+        diff -r -N "${OldC:?}" "${C:?}"
         ## Check whether spec is valid, and if not print why.
         curl -f -X POST -d @"${J:?}" -H 'Content-Type:application/json' http://online.swagger.io/validator/debug
         ;;
