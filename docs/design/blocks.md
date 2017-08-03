@@ -6,7 +6,7 @@ the block.
 ## Block
 
 It includes:
-* Block header;
+* [Block header](#block-header);
 * Transactions;
 * Partial representation of state Merkle trees (e.g. accounts,
   channels) before application of transactions;
