@@ -241,7 +241,7 @@ class ExtAPI(API):
         if code != 200:
             return code, None
         o = r.json()
-        return code, o['block-id'], o['header']
+        return code, o['block-id'], o['block-header']
 
     def headers(self, block_ids):
         uri = self.URL + "/headers"
