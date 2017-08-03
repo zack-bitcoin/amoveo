@@ -43,14 +43,13 @@ proofs(B) -> B#block.proofs.
 txs_and_proof_hash(Txs, Proofs) ->
     testnet_hasher:doit({Txs, Proofs}).
 block_to_header(B) ->
-    Nonce = B#block.nonce,
     headers:make_header(B#block.prev_hash,
                         B#block.height,
                         B#block.time,
                         B#block.version,
                         B#block.trees_hash,
                         txs_and_proof_hash(B#block.txs, B#block.proofs),
-                        Nonce,
+                        B#block.nonce,
                         B#block.difficulty).
 
 hash(error) -> error;

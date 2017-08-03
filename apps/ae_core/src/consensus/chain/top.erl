@@ -41,9 +41,6 @@ init(ok) ->
 		  gen_server:call(headers, {add, testnet_hasher:doit(GHeader),
 					    GHeader, 0})
 	  end),
-    io:fwrite("top init 01\n"),
-    %GenesisMakerBlockHash = block:hash(GenesisMakerBlock),
-    io:fwrite("top init 02\n"),
     Top = db:read(?LOC),
     TopHash =
         case Top == "" of
@@ -52,9 +49,6 @@ init(ok) ->
 	    false ->
                 Top
         end,
-    %spawn(fun() ->
-    %              block_hashes:add(GenesisMakerBlockHash)
-    %      end),
     {ok, TopHash}.
 
 handle_call({add, Block}, _From, OldBlockHash) ->
