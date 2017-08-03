@@ -17,14 +17,14 @@
          code_change/3]).
 -export([test/0]).
 
--record(header, {prev_hash,
-                 height,
-                 time,
-                 version,
-                 trees,
+-record(header, {height,
+                 prev_hash,
                  txs,
-                 nonce,
+                 time,
                  difficulty,
+                 version,
+                 nonce,
+                 trees,
                  accumulative_difficulty = 0}).
 -record(s, {headers = dict:new(),
             top = #header{}}).
