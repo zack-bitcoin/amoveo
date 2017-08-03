@@ -1,12 +1,12 @@
 -module(orders).
--export([match/2, add/2, root_hash/1, id/1, amount/1,
-	 pointer/1, new/3, get/2, empty_book/0,
+-export([match/2, add/2, root_hash/1, amount/1,
+	 pointer/1, new/2, get/2, empty_book/0,
 	 remove/2, update_amount/2, set_amount/2,
-	 available_id/1, many/1, aid/1, head_get/1,
+	 many/1, head_get/1, aid/1,
 	 significant_volume/2, verify_proof/4,
 	 test/0]).
 -define(name, orders).
--record(order, {id, aid, amount, pointer}).
+-record(order, {aid, amount, pointer}).
 significant_volume(Root, Trees) ->
     ManyOrders = many(Root),
     if
@@ -24,7 +24,6 @@ many(Root) ->
     {_, Many} = head_get(Root),
     Many.
 aid(X) -> X#order.aid.
-id(X) -> X#order.id.
 amount(X) -> X#order.amount.
 pointer(X) -> X#order.pointer.
 update_pointer(X, P) ->
@@ -35,67 +34,61 @@ update_amount(X, A) ->
     B = X#order.amount + A,
     true = B>0,
     X#order{amount = B}.
-available_id(Root) ->
-    available_id(Root, 1).
-available_id(Root, N) ->
-    {_, A, _} = get(N, Root),
-    case A of
-	empty -> N;
-	_ -> available_id(Root, N+1)
-    end.
-new(ID, AID, Amount) ->
-    #order{id = ID, aid = AID, amount = Amount, pointer = 0}.
+new(AID, Amount) ->
+    PS = constants:pubkey_size() * 8,
+    #order{aid = AID, amount = Amount, pointer = <<0:PS>>}.
 serialize_head(Head, Many) ->
     %KL = constants:key_length(),
     %HS = constants:hash_size()*8,
     PS = constants:pubkey_size() * 8,
-    OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
-    Y = OL+OL,
+    Y = PS,
     AB = PS+BAL,
-    <<Head:Y, Many:AB>>.
+    <<Head2:Y>> = Head,
+    <<Head2:Y, Many:AB>>.
 deserialize_head(X) ->
     %KL = constants:key_length(),
     PS = constants:pubkey_size() * 8,
     %HS = constants:hash_size()*8,
-    OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
-    Y = OL+OL,
+    Y = PS,
     AB = PS+BAL,
     <<Head:Y, Many:AB>> = X,
-    {Head, Many}.
+    {<<Head:Y>>, Many}.
     
 serialize(A) ->
-    OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
     true = size(A#order.aid) == constants:pubkey_size(),
-    <<(A#order.id):OL,
-      %(A#order.aid):KL,
-      (A#order.amount):BAL,
-      (A#order.pointer):OL,
+    true = size(A#order.pointer) == constants:pubkey_size(),
+    <<(A#order.amount):BAL,
+      (A#order.pointer)/binary,
       (A#order.aid)/binary>>.
 deserialize(B) ->
     OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
     PS = constants:pubkey_size() * 8,
-    <<ID:OL, %AID:KL,
-      Amount:BAL, P:OL,
-    AID:PS>> = B,
-    #order{id = ID, aid = <<AID:PS>>, amount = Amount,
-	   pointer = P}.
+    <<Amount:BAL, P:PS,
+     AID:PS>> = B,
+    #order{aid = <<AID:PS>>, amount = Amount,
+	   pointer = <<P:PS>>}.
 write(X, Root) -> 
     V = serialize(X),
-    Key = id(X),
-    trie:put(Key, V, 0, Root, ?name).
-get(ID, Root) ->
-    {RH, Leaf, Proof} = trie:get(ID, Root, ?name),
+    Pubkey = aid(X),
+    HP = accounts:pub_decode(Pubkey),
+    HPID = trees:hash2int(HP),
+    trie:put(HPID, V, 0, Root, ?name).
+get(Pub, Root) ->
+    HP = accounts:pub_decode(Pub),
+    HPID = trees:hash2int(HP),
+    {RH, Leaf, Proof} = trie:get(HPID, Root, ?name),
     V = case Leaf of
 	    empty -> empty;
 	    L -> deserialize(leaf:value(L))
 	end,
     {RH, V, Proof}.
 empty_book() ->
-    X = serialize_head(0, 0),
+    PS = constants:pubkey_size() * 8,
+    X = serialize_head(<<0:PS>>, 0),
     trie:put(1, X, 0, 0, ?name).
 head_get(Root) ->
     {_, L, _} = trie:get(1, Root, ?name),
@@ -110,26 +103,34 @@ head_put(Head, Many, Root) ->
     Y = serialize_head(Head, Many),
     trie:put(1, Y, 0, Root, ?name).
 add(Order, Root) ->
-    X = id(Order),
-    {_, empty, _} = get(X, Root),
+    X = aid(Order),
+    {_, OldOrder, _} = get(X, Root),
+    PS = constants:pubkey_size() * 8,
     %make the end of the list point to the new order.
-    {Head, Many} = head_get(Root),
-    case Head of
-	0 -> %adding an element to an empty list
-	    Root2 = head_put(X, Many+1, Root),
-	    write(Order, Root2);
-	Y ->
-	    Root2 = head_put(Head, Many+1, Root),
-	    add2(Order, Root2, Y)
+    case OldOrder of
+        empty ->
+            {Head, Many} = head_get(Root),
+            case Head of
+                <<0:PS>> -> %adding an element to an empty list
+                    Root2 = head_put(X, Many+1, Root),
+                    write(Order, Root2);
+                Y ->
+                    Root2 = head_put(Head, Many+1, Root),
+                    add2(Order, Root2, Y)
+            end;
+        Old ->
+            New = Old#order{amount = Old#order.amount + Order#order.amount},
+            write(New, Root)
     end.
 add2(Order, Root, P) ->
     {_, L, _} = get(P, Root),
     N = L#order.pointer,
+    PS = constants:pubkey_size() * 8,
     case N of
-	0 ->
-	    L2 = update_pointer(L, id(Order)),
+	<<0:PS>> ->
+	    L2 = update_pointer(L, aid(Order)),
 	    Root2 = write(L2, Root),
-	    0 = Order#order.pointer,
+	    <<0:PS>> = Order#order.pointer,
 	    write(Order, Root2);
 	M ->
 	    add2(Order, Root, M)
@@ -137,7 +138,7 @@ add2(Order, Root, P) ->
 remove(ID, Root) ->
     {Head, Many} = head_get(Root),
     {_,Order,_} = get(Head, Root),
-    Q = Order#order.id,
+    Q = Order#order.aid,
     io:fwrite(packer:pack({id_q_pointer_are, ID, Q, Order#order.pointer})),
     io:fwrite("\n"),
     if 
@@ -157,15 +158,17 @@ remove2(ID, Root, P) ->
 	ID ->
 	    io:fwrite("remove path 3\n"),
 	    {_, L2, _} = get(ID, Root),
-	    L3 = update_pointer(L, id(L2)),
+	    L3 = update_pointer(L, aid(L2)),
 	    Root2 = delete(N, Root),
 	    write(L3, Root2);
 	X -> 
 	    io:fwrite("remove path 4\n"),
 	    remove2(ID, Root, X)
     end.
-delete(ID, Root) ->
-    trie:delete(ID, Root, ?name).
+delete(Pub, Root) ->
+    HP = accounts:pub_decode(Pub),
+    HPID = trees:hash2int(HP),
+    trie:delete(HPID, Root, ?name).
 match(Order, Root) ->
     {Head, Many} = head_get(Root),
     {Switch, NewRoot, Matches1, Matches2} = match2(Order, Root, Head, [], []),
@@ -181,7 +184,7 @@ match2(Order, Root, T, Matches1, Matches2) ->
     {_, La, _} = get(T, Root),
     case La of
 	empty -> 
-	    P = Order#order.id,
+	    P = Order#order.aid,
 	    Root2 = head_update(P, Root),
 	    NewRoot = write(Order, Root2),
 	    {switch, NewRoot, Matches1, Matches2};
@@ -193,7 +196,7 @@ match2(Order, Root, T, Matches1, Matches2) ->
 		NewA > OldA ->
 		    Root2 = head_update(P, Root),
 		    Order2 = update_amount(Order, -OldA),
-		    Root3 = delete(id(L), Root2),
+		    Root3 = delete(aid(L), Root2),
 		    Order3 = set_amount(Order, OldA),
 		    match2(Order2, Root3, P, [Order3|Matches1], [L|Matches2]);
 		NewA == OldA ->
@@ -209,10 +212,12 @@ root_hash(Root) ->
     trie:root_hash(?name, Root).
 
 cfg() ->
+    PS = constants:pubkey_size(),
     HashSize = constants:hash_size(),
     BB = constants:balance_bits(),
     KL = constants:key_length(), 
-    cfg:new(KL, (((constants:orders_bits()*2) + BB) div 8), 
+    PathSize = constants:hash_size()*8,
+    cfg:new(PathSize, ((BB div 8) + (PS * 2)), 
             orders, 0, HashSize).
 verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
@@ -221,39 +226,40 @@ verify_proof(RootHash, Key, Value, Proof) ->
 	    X -> serialize(X)
 	end,
     verify:proof(RootHash, 
-		 leaf:new(Key, V, 0, CFG), 
+		 leaf:new(trees:hash2int(accounts:pub_decode(Key)), 
+                          V, 0, CFG), 
 		 Proof, CFG).
 
 test() ->
     Root0 = empty_book(),
     {Pub1,_} = testnet_sign:new_key(),
     {Pub2,_} = testnet_sign:new_key(),
-    ID1 = 5,
-    ID2 = 3,
-    Order1 = new(ID1, Pub2, 100),
-    Order2 = new(ID2, Pub2, 100),
+    Order1 = new(Pub2, 100),
+    Order2 = new(Pub2, 100),
     Root1 = add(Order1, Root0),
     Root2 = add(Order2, Root1),
-    Order3 = new(6, Pub1, 110),
+    Order3 = new(Pub1, 110),
     {Matches1, Matches2, same, Root3} = match(Order3, Root2),
-    {_, empty, _} = get(ID1, 0),
-    {_, {order, 5, Pub2, 100, _}, _} = get(ID1, Root2),
-    {_, {order, 3, Pub2, 100, _}, _} = get(ID2, Root2),
-    {_, empty, _} = get(ID1, Root3),
+    {_, empty, _} = get(Pub1, 0),
+    %{_, {order, Pub1, 110, _}, _} = get(Pub1, Root2),
+    {_, {order, Pub2, 200, _}, _} = get(Pub2, Root2),
+    {_, empty, _} = get(Pub1, Root3),
 
     Root4 = add(Order1, Root0),
     {Matches3, Matches4, switch, Root5} = match(Order3, Root4),
-    {_, empty, _} = get(ID1, Root5), 
-    {_, {order, 6, Pub1, 10, 0}, _} = get(6, Root5),
+    {_, empty, _} = get(Pub2, Root5), 
+    PS = constants:pubkey_size() * 8,
+    {_, {order, Pub1, 10, <<0:PS>>}, _} = get(Pub1, Root5),
     {Matches1, Matches2, Matches3, Matches4},
     io:fwrite("TEST orders, about to remove \n"),
-    Root6 = remove(ID1, Root2),
-    {_, empty, _} = get(ID1, Root6),
-    {_, {order, 3, Pub2, 100, _}, _} = get(ID2, Root6),
-    Root7 = remove(ID2, Root2),
-    {Root8, empty, Path1} = get(ID2, Root7),
-    {Root9, {order, 5, Pub2, 100, Pointer2}, Path2} = get(ID1, Root7),
-    true = verify_proof(Root8, ID2, 0, Path1),
-    true = verify_proof(Root9, ID1, {order, 5, Pub2, 100, Pointer2}, Path2),
+    Root6 = remove(Pub2, Root2),
+    {_, empty, _} = get(Pub1, Root6),
+    {Root8, empty, Path1} = get(Pub2, Root6),
+    {Root9, {order, Pub2, 200, Pointer2}, Path2} = get(Pub2, Root2),
+    %Root7 = remove(Pub2, Root2),
+    %{Root8, empty, Path1} = get(Pub2, Root7),
+    %{Root9, {order, Pub2, 100, Pointer2}, Path2} = get(Pub1, Root7),
+    true = verify_proof(Root8, Pub2, 0, Path1),
+    true = verify_proof(Root9, Pub2, {order, Pub2, 200, Pointer2}, Path2),
     success.
     

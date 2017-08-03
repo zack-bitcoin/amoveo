@@ -1,10 +1,14 @@
 -module(channel_timeout_tx).
--export([doit/3, make/5, cid/1, aid/1]).
--record(timeout, {aid = 0, nonce = 0, fee = 0, cid = 0, shares}).
+-export([doit/3, make/5, cid/1, aid/1, spk_aid1/1, spk_aid2/1]).
+-record(timeout, {aid = 0, nonce = 0, fee = 0, cid = 0, shares, spk_aid1, spk_aid2}).
 %If your partner is not helping you, this is how you start the process of closing the channel. 
 %you don't provide the channel state now, instead you use a channel_slash to provide that data.
 cid(X) -> X#timeout.cid.
 aid(X) -> X#timeout.aid.
+spk_aid1(X) -> X#timeout.spk_aid1.
+spk_aid2(X) -> X#timeout.spk_aid2.
+    
+    
 make(ID,Trees,CID,Shares,Fee) ->
     %shares is a list of shares.
     %The root hash of this list must match the hash stored in the channel
@@ -21,7 +25,8 @@ make(ID,Trees,CID,Shares,Fee) ->
     {_, _, Proof2} = accounts:get(Accb, Accounts),
     Nonce = accounts:nonce(Acc),
     Tx = #timeout{aid = ID, nonce = Nonce + 1,
-		  fee = Fee, cid = CID, shares = Shares},
+		  fee = Fee, cid = CID, shares = Shares,
+                  spk_aid1 = Acc1, spk_aid2 = Acc2},
     {Tx, [Proof, Proof2, Proofc]}.
 
 doit(Tx, Trees, NewHeight) ->
@@ -46,7 +51,9 @@ doit(Tx, Trees, NewHeight) ->
     true = TD >= channels:delay(Channel),
     %Mode = channels:mode(Channel),
     Aid1 = channels:acc1(Channel),
+    Aid1 = Tx#timeout.spk_aid1,
     Aid2 = channels:acc2(Channel),
+    Aid2 = Tx#timeout.spk_aid2,
     Amount = channels:amount(Channel),
     Fee = Tx#timeout.fee,
     %SR = channels:slash_reward(Channel),

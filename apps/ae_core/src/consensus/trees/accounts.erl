@@ -155,7 +155,6 @@ pub_decode(Pub) ->
     end.
     
 get(Pub, Accounts) ->
-    HS = constants:hash_size(),
     HP = pub_decode(Pub),
     KL = constants:key_length(),
     KL2 = KL * 2,

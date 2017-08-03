@@ -63,6 +63,7 @@ det_order(Querys) ->
 
 prove(Querys, Trees) ->
     F2 = det_order(Querys),
+    timer:sleep(300),
     prove2(F2, Trees).
 prove2([], _) ->
    [];
@@ -204,12 +205,13 @@ txs_to_querys([STx|T]) ->
 	    ca -> [{accounts, create_account_tx:from(Tx)},
 		   {accounts, create_account_tx:pubkey(Tx)}];
 	    spend -> 
-                %calculate which types of shares we need to prove.
                 [{accounts, spend_tx:from(Tx)},
                  {accounts, spend_tx:to(Tx)}];
 	    da -> [{accounts, delete_account_tx:from(Tx)},
 		   {accounts, delete_account_tx:to(Tx)}];
-            nc -> [];
+            nc -> [{accounts, new_channel_tx:acc1(Tx)},
+                   {accounts, new_channel_tx:acc2(Tx)},
+                   {channels, new_channel_tx:cid(Tx)}];
 	    gc -> [{accounts, grow_channel_tx:acc1(Tx)},
 		   {accounts, grow_channel_tx:acc2(Tx)},
 		   {channels, grow_channel_tx:id(Tx)}];
@@ -220,7 +222,8 @@ txs_to_querys([STx|T]) ->
                 [{accounts, channel_solo_close:from(Tx)},
                  {channels, channel_solo_close:id(Tx)}];
 	    timeout -> 
-                [{accounts, channel_timeout_tx:aid(Tx)},
+                [{accounts, channel_timeout_tx:spk_aid1(Tx)},
+                 {accounts, channel_timeout_tx:spk_aid2(Tx)},
                  {channels, channel_timeout_tx:cid(Tx)}];
 	    cs -> 
                 [{accounts, channel_slash_tx:from(Tx)},
@@ -231,20 +234,28 @@ txs_to_querys([STx|T]) ->
 	    oracle_new -> [{accounts, oracle_new_tx:from(Tx)},
                            {oracles, oracle_new_tx:id(Tx)}];
 	    oracle_bet -> 
-                %calculate the oracle bets proof
                 %calculate the orders proof
-                [{accounts, oracle_bet_tx:from(Tx)},
+                %We should probably include all the orders proofs, because this bet could potentially match them all.
+                %This potentially changes a lot of accounts. If many bets get matched against this bet.
+                %maybe the safe thing to do for now is to prove all of the account that could possibly be matched.
+                OID = oracle_bet_tx:id(Tx),
+                [{oracle_bets, #key{pub = OID, id = OID}},
+                 {accounts, oracle_bet_tx:from(Tx)},
                  {oracles, oracle_bet_tx:id(Tx)}];
 	    oracle_close -> [{accounts, oracle_close_tx:from(Tx)},
                              {oracles, oracle_close_tx:oracle_id(Tx)}];
 	    unmatched -> 
-                %calculate the order proof.
-                [{accounts, oracle_unmatched_tx:from(Tx)},
+                [
+                %{orders, #key{pub = oracle_unmatched_tx:from(Tx), 
+                %               id = oracle_unmatched_tx:order_id(Tx)}},
+                 {accounts, oracle_unmatched_tx:from(Tx)},
                  {oracles, oracle_unmatched_tx:oracle_id(Tx)}];
 	    oracle_shares -> 
-                %calculate oracle bets proof
-                %calculate shares proof
-                [];
+                OID = oracle_shares_tx:oracle_id(Tx),
+                [
+                 {oracle_bets, #key{pub = OID, id = OID}},
+                 {accounts, oracle_shares_tx:from(Tx)},
+                 {oracles, OID}];
 	    coinbase -> [{accounts, coinbase_tx:from(Tx)}]
 	    %_ -> [] 
 	end,
@@ -274,7 +285,7 @@ test() ->
 	      {oracles, 1},
 	      {burn, testnet_hasher:doit(1)},
 	      {orders, #key{pub = keys:pubkey(), id = 1}},
-	      {oracle_bets, #key{pub = OID, id = 1}}%need to create oracle first.
+	      {oracle_bets, #key{pub = OID, id = 1}}
 	     ],
     Facts = prove(Querys, Trees),
     %io:fwrite(packer:pack({prove_facts, Facts})),

@@ -71,8 +71,7 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 		 3 -> 3
 	     end,
     Amount = Tx#oracle_bet.amount,
-    ID = orders:available_id(Orders),
-    NewOrder = orders:new(ID, Tx#oracle_bet.from, Amount),
+    NewOrder = orders:new(Tx#oracle_bet.from, Amount),
     if
 	TxType == OracleType ->
 	    ManyOrders = orders:many(Orders0),

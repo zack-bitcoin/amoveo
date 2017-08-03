@@ -1,5 +1,15 @@
-channel_timeout_tx is not deleting the channel. it should be.
+There is a problem with how orders are stored in the order book. When we store by id, you can't make a proof of the order's current state, because you don't know what it is until the tx runs.
+So instead we should store orders by the account id that made it.
 
+
+spending shares is really messy right now.
+The person who spends shares needs to be trustlessly paid in some other currency, preferably any other currency that hashlocks with sha256.
+
+
+If we want to use a market to trade shares, then we need to be able to hashlock 2 channels, each moving both shares and tokens.
+In order to do this, the shares would have to be locked into the channel the same way AE tokens are.
+
+The shares in a channel need to be stored as a tree, the same way as accounts hold shares. this way channels are constant sized.
 
 the prev_hashes should be stored with headers, not with blocks. That way we can look up headers quickly.
 
@@ -22,8 +32,6 @@ The difficulty threshold between rewarding positive and negative shares should b
 
 right now when we do easy:market_match it isn't updating ssme in the channels. it should.
 I set it up so the contract fails until the oracle is closed. This is probably a mistake. The contract should be able to close, but with a long delay, and the money gets distributed the same was as if the oracle closed on state bad.
-
-It looks like shares and oracle_bets in accounts are switched.
 
 It would be cool if we could simultaniously create an account and a channel with that account. That way users can get started faster. We would need a new transaction type. 2000 CHF
 

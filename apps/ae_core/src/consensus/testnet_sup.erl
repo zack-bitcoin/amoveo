@@ -37,7 +37,7 @@ init([]) ->
 	     tree_child(channels, HS*8, constants:channel_size(), KL div 8),
 	     tree_child(existence, HS*8, HS),
 	     tree_child(oracles, HS*8, ((((HB*2)+DB) div 8) + 4 + (3*HS)) + PS, (KL div 8)),
-	     tree_child(orders, KL, (((constants:orders_bits()*2) + BB) div 8) + PS),
+	     tree_child(orders, HS*8, ((BB div 8) + (PS * 2))),
 	     tree_child(burn, HS*8, (BB div 8) + HS),
 	     tree_child(oracle_bets, KL, (KL + (3 * BB div 8))),
 	     tree_child(shares, KL, (KL + 1 + ((BB + HB) div 8))),
