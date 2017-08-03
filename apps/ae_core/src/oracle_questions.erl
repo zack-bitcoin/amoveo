@@ -11,21 +11,19 @@ all2([Leaf|T]) ->
     Oracle = leaf:value(Leaf),
     Q = oracles:question(Oracle),
     [Q|all2(T)].
-binary_to_file(B) ->
-    C = base58:binary_to_base58(B),
-    "oracle_questions/"++C++".db".
+
 read(Hash) ->
-    BF = binary_to_file(Hash),
-    Z = db:read(BF),
-    case Z of
-	[] -> empty;
-	A -> zlib:uncompress(A)
+    OracleQuestionsFile = ae_utils:binary_to_file_path(oracle_questions, Hash),
+    case db:read(OracleQuestionsFile) of
+        [] ->
+            empty;
+        OracleQuestion ->
+            zlib:uncompress(OracleQuestion)
     end.
+
 save(Binary) ->
-    Z = zlib:compress(Binary),
-    Binary = zlib:uncompress(Z),%sanity check, not important for long-term.
-    %Hash = testnet_hasher:doit(BlockPlus),
+    CompressedOracleQuestion = zlib:compress(Binary),
+    Binary = zlib:uncompress(CompressedOracleQuestion), % Sanity check, not important for long-term
     Hash = block:hash(Binary),
-    BF = binary_to_file(Hash),
-    db:save(BF, Z).
-    
+    OracleQuestionFile = ae_utils:binary_to_file_path(oracle_questions, Hash),
+    db:save(OracleQuestionFile, CompressedOracleQuestion).

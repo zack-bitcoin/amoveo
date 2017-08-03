@@ -1,23 +1,25 @@
 -module(block).
+
 -export([block_to_header/1, test/0,
          height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, comment/1, version/1, pow/1, trees/1, prev_hashes/1, 
          read_int/2, read_int/1, hash/1, read/1, initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
-         guess_number_of_cpu_cores/0, top/0,
-         binary_to_file/1
+         guess_number_of_cpu_cores/0, top/0
         ]).
--record(block, {height, 
-                prev_hash, 
-                txs, 
-                trees_hash, 
-                time, 
-                difficulty, 
-                comment = <<>>,
+
+-record(block, {height,
+                prev_hash,
+                txs,
+                time,
+                difficulty,
                 version,
-                nonce = 0, 
-                trees, 
+                nonce = 0,
+                trees,
+                comment = <<>>,
+                trees_hash,
                 prev_hashes = {prev_hashes},
                 proofs = []}).
+
 %proofs is for this
 %If the attacker sends a valid block with a valid header,
 % but makes one of the proofs of the state tree wrong.
@@ -80,14 +82,10 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
             calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
     end.
 
-binary_to_file(B) ->
-    C = base58:binary_to_base58(B),
-    "blocks/" ++C++".db".
-
 read(H) ->
     Hash = hash(H),
-    BF = binary_to_file(Hash),
-    case db:read(BF) of
+    BlockFile = ae_utils:binary_to_file_path(blocks, Hash),
+    case db:read(BlockFile) of
         [] -> empty;
         Block -> binary_to_term(zlib:uncompress(Block))
     end.
@@ -244,9 +242,7 @@ mine(Block, Rounds, Cores) ->
                 case mine2(Block, Rounds) of
                     false -> false;
                     PBlock ->
-                        io:fwrite("FOUND A BLOCK "),
-                        io:fwrite(integer_to_list(height(PBlock))),
-                        io:fwrite("\n"),
+                        lager:info("Found a block: ~p", [integer_to_list(height(PBlock))]),
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
                         block_absorber:save(PBlock)
