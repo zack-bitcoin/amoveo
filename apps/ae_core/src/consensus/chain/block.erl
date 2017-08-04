@@ -9,16 +9,16 @@
 
 -record(block, {height,
                 prev_hash,
-                txs,
+                trees_hash,
                 time,
                 difficulty,
                 version,
                 nonce = 0,
                 trees,
-                comment = <<>>,
-                trees_hash,
+                txs,
                 prev_hashes = {prev_hashes},
-                proofs = []}).
+                proofs = [],
+                comment = <<>>}).
 
 %proofs is for this
 %If the attacker sends a valid block with a valid header,
@@ -42,7 +42,7 @@ trees(B) -> B#block.trees.
 prev_hashes(B) -> B#block.prev_hashes.
 proofs(B) -> B#block.proofs.
 
-txs_and_proof_hash(Txs, Proofs) ->
+txs_proofs_hash(Txs, Proofs) ->
     testnet_hasher:doit({Txs, Proofs}).
 block_to_header(B) ->
     headers:make_header(B#block.prev_hash,
@@ -50,7 +50,7 @@ block_to_header(B) ->
                         B#block.time,
                         B#block.version,
                         B#block.trees_hash,
-                        txs_and_proof_hash(B#block.txs, B#block.proofs),
+                        txs_proofs_hash(B#block.txs, B#block.proofs),
                         B#block.nonce,
                         B#block.difficulty).
 

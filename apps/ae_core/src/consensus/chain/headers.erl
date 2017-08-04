@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 
 %% API
--export([prev_hash/1, height/1, time/1, version/1, trees/1, txs/1, nonce/1, difficulty/1, accumulative_difficulty/1,
+-export([prev_hash/1, height/1, time/1, version/1, trees_hash/1, txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1,
          absorb/1, read/1, top/0, dump/0, hard_set_top/1,
          make_header/8,
          serialize/1, deserialize/1,
@@ -19,12 +19,12 @@
 
 -record(header, {height,
                  prev_hash,
-                 txs,
+                 trees_hash,
+                 txs_proof_hash,
                  time,
                  difficulty,
                  version,
                  nonce,
-                 trees,
                  accumulative_difficulty = 0}).
 -record(s, {headers = dict:new(),
             top = #header{}}).
@@ -35,8 +35,8 @@ prev_hash(H) -> H#header.prev_hash.
 height(H) -> H#header.height.
 time(H) -> H#header.time.
 version(H) -> H#header.version.
-trees(H) -> H#header.trees.
-txs(H) -> H#header.txs.
+trees_hash(H) -> H#header.trees_hash.
+txs_proof_hash(H) -> H#header.txs_proof_hash.
 nonce(H) -> H#header.nonce.
 difficulty(H) -> H#header.difficulty.
 accumulative_difficulty(H) -> H#header.accumulative_difficulty.
@@ -46,27 +46,27 @@ absorb([]) ->
 absorb([First|T]) when is_binary(First) ->
     A = deserialize(First),
     absorb([A|T]);
-absorb([A|T]) ->
-    true = A#header.difficulty >= constants:initial_difficulty(),
-    Hash = block:hash(A),
+absorb([Header | T]) ->
+    true = Header#header.difficulty >= constants:initial_difficulty(),
+    Hash = block:hash(Header),
     case read(Hash) of
         {ok, _} ->
             lager:info("Absorb header repeat"),
             ok; %don't store the same header more than once.
         error ->
-            true = check_pow(A),%check that there is enough pow for the difficulty written on the block
-            A#header.height > 1,
-            {true, _} = check_difficulty(A),%check that the difficulty written on the block is correctly calculated
-            ok = gen_server:call(?MODULE, {add, Hash, A}),
-            file:write_file(constants:headers_file(), serialize(A), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
+            true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
+            Header#header.height > 1,
+            {true, _} = check_difficulty(Header),%check that the difficulty written on the block is correctly calculated
+            ok = gen_server:call(?MODULE, {add, Hash, Header}),
+            file:write_file(constants:headers_file(), serialize(Header), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
     end,
     absorb(T).
 
 check_pow(Header) ->
-    S = serialize(Header),
-    W = hash:doit(S, constants:hash_size()),
-    I = pow:hash2integer(W),
-    I > Header#header.difficulty.
+    Serialized = serialize(Header),
+    Hashed = hash:doit(Serialized, constants:hash_size()),
+    Integer = pow:hash2integer(Hashed),
+    Integer > Header#header.difficulty.
 
 check_difficulty(A) ->
     B = case A#header.height < 2 of
@@ -90,17 +90,17 @@ dump() ->
 hard_set_top(Header) ->
     gen_server:call(?MODULE, {hard_set_top, Header}).
 
-make_header(PH, 0, Time, Version, Trees, Txs, Nonce, Difficulty) ->
+make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty) ->
     #header{prev_hash = PH,
             height = 0,
             time = Time,
             version = Version,
-            trees = Trees,
-            txs = Txs,
+            trees_hash = TreesHash,
+            txs_proof_hash = TxsProofHash,
             nonce = Nonce,
             difficulty = Difficulty,
             accumulative_difficulty = 0};
-make_header(PH, Height, Time, Version, Trees, Txs, Nonce, Difficulty) ->
+make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty) ->
     case read(PH) of
         {ok, PrevHeader} ->
             AC = pow:sci2int(Difficulty) + PrevHeader#header.accumulative_difficulty,
@@ -108,8 +108,8 @@ make_header(PH, Height, Time, Version, Trees, Txs, Nonce, Difficulty) ->
                     height = Height,
                     time = Time,
                     version = Version,
-                    trees = Trees,
-                    txs = Txs,
+                    trees_hash = Trees,
+                    txs_proof_hash = TxsProodHash,
                     nonce = Nonce,
                     difficulty = Difficulty,
                     accumulative_difficulty = AC};
@@ -121,19 +121,19 @@ serialize(H) ->
     Height = H#header.height,
     Time = H#header.time,
     Version = H#header.version,
-    Trees = H#header.trees,
-    Txs = H#header.txs,
+    TreesHash = H#header.trees_hash,
+    TxsProofHash = H#header.txs_proof_hash,
     Nonce = H#header.nonce,
     Difficulty = H#header.difficulty,
     true = size(PH) == constants:hash_size(),
-    true = size(Trees) == constants:hash_size(),
-    true = size(Txs) == constants:hash_size(),
+    true = size(TreesHash) == constants:hash_size(),
+    true = size(TxsProofHash) == constants:hash_size(),
     <<PH/binary,
       Height:(constants:height_bits()),
       Time:(constants:time_bits()),
       Version:(constants:version_bits()),
-      Trees/binary,
-      Txs/binary,
+      TreesHash/binary,
+      TxsProofHash/binary,
       Difficulty:16,
       Nonce:(constants:hash_size()*8)
     >>.
@@ -148,8 +148,8 @@ deserialize(B) ->
       Height:HB,
       Time:TB,
       Version:VB,
-      Trees:HS,
-      Txs:HS,
+      TreesHash:HS,
+      TxsProofHash:HS,
       Difficulty:16,
       Nonce:HS
     >> = B,
@@ -157,8 +157,8 @@ deserialize(B) ->
             height = Height,
             time = Time,
             version = Version,
-            trees = <<Trees:HS>>,
-            txs = <<Txs:HS>>,
+            trees_hash = <<TreesHash:HS>>,
+            txs_proof_hash = <<TxsProofHash:HS>>,
             difficulty = Difficulty,
             nonce = Nonce}.
 
