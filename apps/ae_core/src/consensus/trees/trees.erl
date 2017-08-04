@@ -51,7 +51,6 @@ root_hash(Trees) ->
 			>>).
 keepers(_, _, 0) -> [];
 keepers(TreeID, Hash, Many) ->
-    %io:fwrite(packer:pack({keepers_hash, Hash})),
     BP = block:read(Hash),
     Trees = block:trees(BP),
     Height = block:height(BP),
