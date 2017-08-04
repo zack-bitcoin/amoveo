@@ -36,9 +36,7 @@ doit({give_block, SignedBlock}) ->
     io:fwrite("received block\n"),
     block_absorber:enqueue(SignedBlock),
     {ok, 0};
-doit({block, N, Many}) -> 
-    {ok, block:read_many(N, Many)};
-doit({block, N}) -> 
+doit({block, N}) ->
     true = is_integer(N),
     true = N > -1,
     {ok, block:read_int(N)};
