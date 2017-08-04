@@ -1,58 +1,115 @@
 # Block
 
-The following is a simplified model of the data structures related to
-the block.
+The following describes the block-related data structures as exchanged
+among peers in the network.  It also maps, where possible, items in
+such network-exchanged data structures to items in the internal
+representation of data structures in the Erlang codebase.
+
+The following describes how things are meant to be, and maps to how
+things are in the Erlang codebase.  Items described here and known not
+to be reflected yet in the codebase are noted with a *TO-BE* prefix.
+
+## Glossary
+
+["Merkle tree"](https://en.wikipedia.org/wiki/Merkle_tree).
+
+"Leaf datum", in the context of a Merkle tree: value of the leaf.
+
+"Leaf proof", in the context of a Merkle tree: list of Merkle tree
+nodes from the leaf to the root proving the inclusion of the chosen
+leaf datum.
 
 ## Block
 
-It includes:
+The block includes:
 * [Block header](#block-header);
 * Transactions;
+  ```erlang
+  #block.txs
+  ```
 * Partial representation of state Merkle trees (e.g. accounts,
-  channels) before application of transactions;
-  * Each of such state Merkle tree is represented as:
-    * Proof and datum of each leaf affected by at least one
-      transaction in the block;
-    * Hash of the root.
-* Hash of the root of each of the state Merkle trees (e.g. accounts,
-  channels) after application of transactions.
+  channels) before application of transactions, specifically proof and
+  datum of each leaf affected by at least one transaction in the
+  block.
+  ```erlang
+  #block.proofs
+  ```
+  * Explicating further the description above:
+    * Each block does not necessarily contain proof and datum of every
+      leaf;
+    * The datum of any leaves not affected by at least one transaction
+      in the block cannot be determined only from the information in
+      the block, neither can the presence or the proof of most leaves
+      not affected by at least one transaction in the block be
+      determined only from the information in the block.
+  * *TO-BE The codebase holds a place but does not use such item.  The item shall be used.*
+
+See also [aeternity whitepaper] subsection "II-A.4) Block contents".
 
 ## Block header
 
-It includes:
+*TO-BE The codebase always exchanges among peers in the network the block - never the block header.  The block header shall be exchanged among peers in the network on its own.*
+
+The block header includes:
 * Hash of previous block header;
+  ```erlang
+  #header.prev_hash
+  #block.prev_hash
+  ```
 * Height;
-* Approximate timestamp of mining;
-* Difficulty;
-* Hash summarizing transactions (in block);
+  ```erlang
+  #header.height
+  #block.height
+  ```
+* Hash summarizing partial representation of state Merkle trees before
+  application of transactions (in block) and transactions (in block);
+  ```erlang
+  #header.txs_proof_hash
+  ```
 * Hash summarizing all state Merkle trees (e.g. accounts, channels) as
   after application of transactions;
+  ```erlang
+  #header.trees_hash
+  #block.trees_hash
+  ```
+* Approximate timestamp of mining;
+  ```erlang
+  #header.time
+  #block.time
+  ```
+* Difficulty;
+  ```erlang
+  #header.difficulty
+  #block.difficulty
+  ```
 * Proof of work.
+  ```erlang
+  #header.nonce
+  #block.nonce
+  ```
+  * A proof of work depends on the whole block header and is
+    parametrized by the difficulty.
 
-### Examples
+See also [aeternity whitepaper] subsection "II-E.2) Light clients".
 
-#### Example - Block with only one transaction
+## References
 
-The aim of this example is explicating that each block contains only
-the leaves affected by the transactions in the block.  This also means
-that each block does not necessarily contain proof and datum of every
-leaf of each state Merkle tree before application of transactions.
+[aeternity whitepaper]: https://blockchain.aeternity.com/%C3%A6ternity-blockchain-whitepaper.pdf
 
-For example, an oversimplified block B with only one transaction could
-include:
-* One transaction T, decreasing balance of account A1 by 5 and
-  increasing balance of account A2 by 5;
-* Hash of the root of the accounts Merkle tree M1 before application
-  of transaction T;
-* Proof and datum for each of the following leaves of the accounts
-  Merkle tree M1:
-  * Account A1 with balance 10;
-  * Account A2 with balance 20.
-* Hash of the root of the accounts Merkle tree M2 after application of
-  transaction T.  In tree M2, account A1 is present with balance 5 and
-  account A2 with balance 25.
-  * The datum of any leaves of the accounts tree M2 distinct from A1
-    and A2 cannot be inferred only from the information in block B;
-    neither can the presence or the proof of leaves of the accounts
-    tree M2 distinct from A1 and A2 be inferred only from the
-    information in block B.
+## TODO
+
+Check in codebase and describe computation of difficulty. E.g. every 2000th block retargets the difficulty based on the previous 2000 block headers.
+
+Assuming that transactions in block are meant to be able to be applied in arbitrary order on the state Merkle trees, both when making the block header to-be-mined and when verifying the block, explicate constraints on transactions in block. E.g. can a block include for the same account a transaction crediting it and another debiting it - where the debiting transaction would make the account balance negative if applied before the crediting one?
+
+Confirm from the codebase that `#leaf.meta` (as opposed to `#leaf.value`) is not meant to be exchanged on the network as part of the data structures described in this document, then reconsider using the term "value" rather than "datum" for leaves of Merkle trees.
+
+Detail Merkle tree and Merkle proof.
+
+Decide whether to include `#header.accumulative_difficulty` in this description.
+
+Decide whether to include `#header.version` and `#block.version` in this description.
+
+Decide whether to include `#block.comment` in this description.
+
+Confirm exclusion of `#block.prev_hashes` from this description.
