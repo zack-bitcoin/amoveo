@@ -85,8 +85,7 @@ channel_nonce_bits() -> 32.%maximum number of times you can update a channel's s
 channel_rent_bits() -> 8.
 channel_delay_bits() -> 32. %2^this is the maximum amount of blocks you could have to channel_slash if your channel partner tries to cheat.
 orders_bits() -> 32.
-account_size() ->    
-	%((balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length()) div 8) + (2*hash_size()).
+account_size() ->
 	((balance_bits() + height_bits() + account_nonce_bits()) div 8) + (2*hash_size()) + pubkey_size().
 channel_size() ->    
     ((%key_length() + %(address_bits()*2) + 

@@ -129,20 +129,7 @@ receive_share(Share, Tree, Height, Trees) ->
 	    end
     end.
 diff(ID) -> ID.%+constants:initial_difficulty().
-%diff_old(ID) ->
-    %Base = constants:initial_difficulty(),
-    %DiffFrac = {101, 100},%so every new difficulty is 1% higher
-    %expt(Base, DiffFrac, ID).
-%expt(Base, {T, B}, ID) ->
-    %calculates the exponential of fraction T/B deterministically in log2(ID) steps
-%    A = ID rem 2,
-%    case A of
-%	0 ->
-%	    C = expt(Base, {T, B}, ID div 2),
-%	    C*C;
-%	1 -> expt(((Base * T) div B), {T, B}, ID-1)
-%    end.
-	    
+
 get_paid(Share, Height, Trees) ->
     OldHeight = Share#share.modified,
     %for every height in the range, get the difficulty.
@@ -161,10 +148,7 @@ get_paid2(Step, End, Diff, Shares, Tokens, SC) when Shares > 0 ->
 	    true -> 0
 	end,
     get_paid2(Step+1, End, Diff, Shares-M, Tokens+T, SC).
-    
-    %constants:shares_conversion(Many). %this tells how many shares disappear on this block.
 
-	    
 root_hash(Root) ->
     true = is_integer(Root),
     trie:root_hash(?name, Root).
