@@ -126,8 +126,7 @@ read_int(N, BH) when N > -1 ->
                 true ->
                     PrevHash = prev_hash(lg(D), Block),
                     {ok, PrevHeader} = headers:read(PrevHash),
-                    read_int(N, PrevHeader),
-                    read_int(N, prev_hash(lg(D), Block))
+                    read_int(N, PrevHeader)
             end
     end.
 
@@ -282,7 +281,7 @@ check(Block) ->
     TreesHash = trees:root_hash(Block2#block.trees),
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
-    {true, Block#block{trees = NewTrees}}.
+    {true, Block2}.
 
 initialize_chain() -> 
     GB = genesis_maker(),
