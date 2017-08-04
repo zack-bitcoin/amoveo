@@ -209,7 +209,7 @@ new_trees(Txs, Trees, Height, Pub, HeaderHash) ->
 make(Header, Txs0, Trees, Pub) ->
     {CB, Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [keys:sign(CB)|Txs0],
-    Querys = proofs:txs_to_querys(Txs),
+    Querys = proofs:txs_to_querys(Txs, Trees),
     io:fwrite(packer:pack({block_querys, Querys})),
     io:fwrite("\n"),
     Height = headers:height(Header),

@@ -4,6 +4,7 @@
 	 remove/2, update_amount/2, set_amount/2,
 	 many/1, head_get/1, aid/1,
 	 significant_volume/2, verify_proof/4,
+         deserialize/1, all/1,
 	 test/0]).
 -define(name, orders).
 -record(order, {aid, amount, pointer}).
@@ -102,6 +103,18 @@ many_update(Many, Root) ->
 head_put(Head, Many, Root) ->
     Y = serialize_head(Head, Many),
     trie:put(1, Y, 0, Root, ?name).
+all(Root) ->
+    {Head, _Many} = head_get(Root),
+    all2(Head, Root).
+all2(X, Root) ->
+    PS = constants:pubkey_size() * 8,
+    case X of
+        <<0:PS>> -> [<<0:PS>>];
+        Pub -> 
+            {_, Order, _} = get(Pub, Root),
+            [Pub|all2(Order#order.pointer, Root)]
+    end.
+            
 add(Order, Root) ->
     X = aid(Order),
     {_, OldOrder, _} = get(X, Root),

@@ -1,5 +1,5 @@
 -module(proofs).
--export([prove/2, test/0, hash/1, facts_to_dict/2, txs_to_querys/1]).
+-export([prove/2, test/0, hash/1, facts_to_dict/2, txs_to_querys/2]).
 -record(proof, {tree, value, root, key, path}).
 -record(key, {pub, id}). %used for shared, oracle_bets, and orders
 
@@ -63,16 +63,28 @@ det_order(Querys) ->
 
 prove(Querys, Trees) ->
     F2 = det_order(Querys),
-    timer:sleep(300),
     prove2(F2, Trees).
 prove2([], _) ->
    [];
-prove2([{oracle_bets, Key}|T], Trees) ->
+prove2([{orders, Key}|T], Trees) ->
     Oracles = trees:oracles(Trees),
-    io:fwrite(packer:pack({oracle_bets, Key#key.pub, Oracles})),
-    io:fwrite("\n"),
-    {_, Data0, _} = oracles:get(Key#key.pub, Oracles),
+    {_, Data0, _} = oracles:get(Key#key.id, Oracles),
     OrdersTree = oracles:orders(Data0),%%%%
+    {Root, Data, Path} = orders:get(Key#key.pub, OrdersTree),
+    Data2 = case Data of
+		empty -> 0;
+		_ -> Data
+	    end,
+    Proof = #proof{root = Root,
+		   key = Key,
+		   path = Path,
+		   value = Data2,
+		   tree = tree_to_int(orders)},
+    [Proof|prove2(T, Trees)];
+prove2([{oracle_bets, Key}|T], Trees) ->
+    Accounts = trees:accounts(Trees),
+    {_, Data0, _} = accounts:get(Key#key.pub, Accounts),
+    OrdersTree = accounts:bets(Data0),%%%%
     {Root, Data, Path} = oracle_bets:get(Key#key.id, OrdersTree),
     Data2 = case Data of
 		empty -> 0;
@@ -83,21 +95,6 @@ prove2([{oracle_bets, Key}|T], Trees) ->
 		   path = Path,
 		   value = Data2,
 		   tree = tree_to_int(oracle_bets)},
-    [Proof|prove2(T, Trees)];
-prove2([{orders, Key}|T], Trees) ->
-    Accounts = trees:accounts(Trees),
-    {_, Data0, _} = accounts:get(Key#key.pub, Accounts),
-    OrdersTree = accounts:bets(Data0),%%%%
-    {Root, Data, Path} = orders:get(Key#key.id, OrdersTree),
-    Data2 = case Data of
-		empty -> 0;
-		_ -> Data
-	    end,
-    Proof = #proof{root = Root,
-		   key = Key,
-		   path = Path,
-		   value = Data2,
-		   tree = tree_to_int(orders)},
     [Proof|prove2(T, Trees)];
 prove2([{shares, Key}|T], Trees) ->
     Accounts = trees:accounts(Trees),
@@ -134,31 +131,28 @@ facts_to_dict([F|T], D) ->
 %-record(proof, {tree, value, root, key, path}).
     %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
-    io:fwrite("proofs: facts to dict "),
-    io:fwrite(Tree),
-    io:fwrite("\n"),
     case Tree of
-	oracle_bets -> 
-	    K = F#proof.key,
-	    Pub = K#key.pub,
-	    ID = K#key.id,
-	    Oracle = dict:fetch({oracles, Pub}, D),
-	    OB = oracles:orders(Oracle),
-	    RH = oracle_bets:root_hash(OB),
-	    RH = F#proof.root,
-	    true = 
-		Tree:verify_proof(
-		  F#proof.root,
-		  ID,
-		  F#proof.value,
-		  F#proof.path);
 	orders -> 
 	    K = F#proof.key,
 	    Pub = K#key.pub,
 	    ID = K#key.id,
+	    Oracle = dict:fetch({oracles, ID}, D),
+	    OB = oracles:orders(Oracle),
+	    RH = orders:root_hash(OB),
+	    RH = F#proof.root,
+	    true =
+		Tree:verify_proof(
+		  RH,
+		  Pub,
+		  F#proof.value,
+		  F#proof.path);
+	oracle_bets -> 
+	    K = F#proof.key,
+	    Pub = K#key.pub,
+	    ID = K#key.id,
 	    Account = dict:fetch({accounts, Pub}, D),
-	    Shares = accounts:bets(Account),
-	    RH = orders:root_hash(Shares),
+	    OB = accounts:bets(Account),
+	    RH = oracle_bets:root_hash(OB),
 	    RH = F#proof.root,
 	    true = 
 		Tree:verify_proof(
@@ -198,8 +192,8 @@ facts_to_dict([F|T], D) ->
     facts_to_dict(T, D2).
 hash(F) ->
     testnet_hasher:doit(F).
-txs_to_querys([]) -> [];
-txs_to_querys([STx|T]) ->
+txs_to_querys([], _) -> [];
+txs_to_querys([STx|T], Trees) ->
     Tx = testnet_sign:data(STx),
     L = case element(1, Tx) of
 	    ca -> [{accounts, create_account_tx:from(Tx)},
@@ -238,29 +232,44 @@ txs_to_querys([STx|T]) ->
                 %We should probably include all the orders proofs, because this bet could potentially match them all.
                 %This potentially changes a lot of accounts. If many bets get matched against this bet.
                 %maybe the safe thing to do for now is to prove all of the account that could possibly be matched.
+                % need to prove id 0, and the loaction about to be filled
                 OID = oracle_bet_tx:id(Tx),
-                [{oracle_bets, #key{pub = OID, id = OID}},
+                Pubkeys = oracle_bet_tx:to_prove(Tx, Trees),% everything from matches2, and the last bet, if it exists.
+                PS = constants:pubkey_size() * 8,
+                Prove = 
+                    %tagify(accounts, remove(<<0:PS>>, Pubkeys)) ++ 
+                    tagify(orders, Pubkeys),
+                %make_oracle_bets(Matched),
+                %OID = oracle_bet_tx:id(Tx),
+	      %{orders, keys:pubkey()},
+                [%{oracle_bets, #key{pub = OID, id = OID}},
                  {accounts, oracle_bet_tx:from(Tx)},
-                 {oracles, oracle_bet_tx:id(Tx)}];
+                 {oracles, oracle_bet_tx:id(Tx)}] ++
+                    Prove;
 	    oracle_close -> [{accounts, oracle_close_tx:from(Tx)},
                              {oracles, oracle_close_tx:oracle_id(Tx)}];
 	    unmatched -> 
                 [
-                %{orders, #key{pub = oracle_unmatched_tx:from(Tx), 
-                %               id = oracle_unmatched_tx:order_id(Tx)}},
+                %{orders, oracle_unmatched_tx:from(Tx)},
                  {accounts, oracle_unmatched_tx:from(Tx)},
                  {oracles, oracle_unmatched_tx:oracle_id(Tx)}];
 	    oracle_shares -> 
                 OID = oracle_shares_tx:oracle_id(Tx),
+                From = oracle_shares_tx:from(Tx),
                 [
-                 {oracle_bets, #key{pub = OID, id = OID}},
-                 {accounts, oracle_shares_tx:from(Tx)},
+                 {oracle_bets, #key{pub = From, id = OID}},
+                 {accounts, From},
                  {oracles, OID}];
 	    coinbase -> [{accounts, coinbase_tx:from(Tx)}]
 	    %_ -> [] 
 	end,
-    L ++ txs_to_querys(T).
-
+    L ++ txs_to_querys(T, Trees).
+remove(_, []) -> [];
+remove(X, [X|A]) -> remove(X, A);
+remove(X, [Y|A]) -> [Y|remove(X, A)].
+tagify(_, []) -> [];
+tagify(X, [H|T]) ->
+    [{X, H}|tagify(X, T)].
 test() ->
     headers:dump(),
     block:initialize_chain(),
@@ -272,8 +281,10 @@ test() ->
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, constants:initial_difficulty(), 0, 0, 0, Trees0),
     tx_pool_feeder:absorb(keys:sign(Tx)),
     test_txs:mine_blocks(1),
+    timer:sleep(200),
     {Trees, _, _} = tx_pool:data(),
     Pub2 = <<"BL6uM2W6RVAI341uFO7Ps5mgGp4VKZQsCuLlDkVh5g0O4ZqsDwFEbS9GniFykgDJxYv8bNGJ+/NdrFjKV/gJa6c=">>,
+    PS = constants:pubkey_size() * 8,
     Querys = [{accounts, keys:pubkey()},
 	      {shares, #key{pub = keys:pubkey(), id = 1}},
 	      {shares, #key{pub = keys:pubkey(), id = 2}},
@@ -282,10 +293,10 @@ test() ->
 	      {governance, block_reward},
 	      {channels, 1},
 	      {existence, testnet_hasher:doit(1)},
-	      {oracles, 1},
+	      {oracles, OID},
 	      {burn, testnet_hasher:doit(1)},
 	      {orders, #key{pub = keys:pubkey(), id = 1}},
-	      {oracle_bets, #key{pub = OID, id = 1}}
+              {oracle_bets, #key{pub = keys:pubkey(), id = OID}}
 	     ],
     Facts = prove(Querys, Trees),
     %io:fwrite(packer:pack({prove_facts, Facts})),
@@ -296,4 +307,3 @@ test() ->
     Dict.
     %success.
 
-%["prove_facts",[-6,["proof",1,["acc",1080000000000,0,0,"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",0,1],"OpYNdZnsFT8WXXHehd0L/hl7Mq8z0p701BxnXGpOSLk=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","81OTmtuiaO7i5W48IEmf8pG3WQsvX5/5MZnozSc1Riw=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]],["proof",1,0,"OpYNdZnsFT8WXXHehd0L/hl7Mq8z0p701BxnXGpOSLk=","BL6uM2W6RVAI341uFO7Ps5mgGp4VKZQsCuLlDkVh5g0O4ZqsDwFEbS9GniFykgDJxYv8bNGJ+/NdrFjKV/gJa6c=",[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","81OTmtuiaO7i5W48IEmf8pG3WQsvX5/5MZnozSc1Riw=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]],["proof",2,0,"B2onx55azio9R/ndLoPk/26ohys8Ihj2bJK4m1XzZWA=",1,[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]],["proof",6,["gov",1,1800,0],"cLq/gC1tK0aZakdMlK/q25vfgGX4LPEZBQJ678pU3/I=","block_reward",[-6,[-7,"u+GsDrSJqi++s8tlJVSAYMKfFvhx+p7KgsPKb2f2L7s=","3nwrzTuk6cAN38yzMEJ/MtOdBy2d3m3cThi1F0YQAhY=","KPs0sTJysNQ70AQC0meK7wYFs5WVvitneKzEZ8yqUBg=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="],[-7,"IZRiPjeHHdkWkIK0/taQBy1FseH832DRFBZw4b5W19A=","qsVFAjWhSALUUxLt/Ee0lY9zmoSqkX0YHKrgme7R1no=","QfqYpbBDS12QWVeO+gT7QwqToFKwG1ABD71n2zqVKEg=","fZGeglV4LHILKKsAWQCnSQR0nledB7WhSG3k/k9s3kA=","inNs/nI/ejO64/LMlVx8AOJA8jO1XuiQ+v00388auhw=","x4rEwUY//VPkxGsMqeiTS2f4vIDfWA1IRSyDsoBpFtY=","8X/ckE4N8i830Rc8IE3G9yoP74h5j3Xy0Impkexkdgw=","zKE/sBD1r+h+fZl8oxWP4Nj+ksmgFlx7+/jp9DHDajc=","12GvIcqtsmWUkvikuqclZv9tKPoyGjs177DwpvSwQMQ=","Z3F8LFsRJlA6iHhbwVUSNPx0KcdZ/M0p7vgav3mo9PM=","MK/uhrelqpxAoWCYb5+uiw0LqFg6jHXgIx4hMVUmiHU=","INYL4mF5HFbNGRx3NjOdLo6vfiKEQq5GBDDu0Su/FwM=","hW2Yy8E50+OuE18HGv7ygNuBxzAwplnN0+pr0JHH3dI=","ZB1pbxc4XFWh29Hhcw0Yiaq/ivnLBCPeIUz6MpvdsOc=","P6NmCntVmzTFjNv4CIInEd7+DVfZkEkJSJwHG6nYzaw=","pe7Wbu+ktsOPuAaMg239Uz+67PDzPOGSVNGgf7d62ZY="]]],["proof",9,["share",1,100,0],"I00UBtfsIomvNGvnL7OJrEtifeND2PWdpIhmsYIsEl8=",["key","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",1],[-6,[-7,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","FV4JqyX1iNSGtf6UnFfYn/adRIkEOuCdaIN312w1hq0=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="]]]]]** exception error: no match of right hand side value 2

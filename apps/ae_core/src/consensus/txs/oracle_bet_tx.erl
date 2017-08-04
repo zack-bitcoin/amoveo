@@ -1,11 +1,12 @@
 -module(oracle_bet_tx).
--export([test/0, doit/3, doit2/3, make/6, id/1, from/1]).
+-export([test/0, doit/3, doit2/3, make/6, id/1, from/1, to_prove/2]).
 -record(oracle_bet, {from, %your account id.
 		     nonce, 
 		     fee, 
 		     id, %id is the id of the oracle they want to participate in.
 		     type, %either "true", "false" or "bad_question"
-		     amount}).%how many shares do you want to buy?
+		     amount
+                     }).%how many shares do you want to buy?
 %This is how you can participate in an existing oracle.
 %The market is an order book with 3 types of shares: "true", "false", "bad_question"
 %All trades are matched into the order book in pairs at even odds.
@@ -13,11 +14,23 @@
 %If you want your order to be held in the order book, it needs to be bigger than a minimum size.
 %There is a maximum number of orders that can be stored in the order book at a time.
 %If your order isn't big enough to be in the order book, you cannot buy shares of the type that are stored in the order book.
+to_prove(Tx, Trees) ->
+    Oracles = trees:oracles(Trees),
+    OID = Tx#oracle_bet.id,
+    {_, Oracle, _} = oracles:get(OID, Oracles),
+    Orders = oracles:orders(Oracle),
+    orders:all(Orders).
+    
 from(X) -> X#oracle_bet.from.
 id(X) -> X#oracle_bet.id.
 make(From, Fee, OID, Type, Amount, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),
+    %Oracles = trees:oracles(Trees),
+    %{_, Oracle, _} = oracles:get(OID, Oracles),
+    %Orders = oracles:orders(Oracle),
+    %AllOrders = merge_sort(ids(trie:get_all(Orders, orders))),
+    %AllOrders = Tx#oracle_bet.to_prove,
     Tx = #oracle_bet{
        from = From, 
        nonce = accounts:nonce(Acc) + 1,
@@ -37,6 +50,9 @@ doit(Tx, Trees, NewHeight) ->
     %io:fwrite("oracle is "),
     %io:fwrite(packer:pack(Oracle)),
     %io:fwrite("\n"),
+    %Orders = oracles:orders(Oracle),
+    %AllOrders = merge_sort(ids(trie:get_all(Orders, orders))),
+    %AllOrders = Tx#oracle_bet.to_prove,
   
     0 = oracles:result(Oracle),%check that the oracle isn't already closed.
     Trees2 = trees:update_accounts(Trees, Accounts2),
@@ -85,6 +101,9 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 	true ->
 	    {Matches1, Matches2, Next, NewOrders} =
 		orders:match(NewOrder, Orders),
+            %io:fwrite(packer:pack({oracle_bet_tx_matches2, Matches2})),
+            %io:fwrite("\n"),%everything from matches2, id 0, The location about to be filled, the last bet if it exists.
+            
 	    Oracle2 = oracles:set_orders(Oracle, NewOrders),
 	    Accounts3 = give_bets_main(From, Matches1, TxType, Accounts2, oracles:id(Oracle2)),
 	    Accounts4 = give_bets(Matches2, OracleType, Accounts3, oracles:id(Oracle2)),
@@ -99,6 +118,24 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 	    NewOracles = oracles:write(Oracle3, Oracles),
 	    trees:update_oracles(Trees3, NewOracles)
     end.
+merge_sort(L) ->
+    M = to_singles(L),
+    merge2(M).
+to_singles([]) -> [];
+to_singles([H|T]) -> [[H]|to_singles(T)].
+merge2([]) -> [];
+merge2([L]) -> L;
+merge2(L) -> merge2(improve(L)).
+improve([]) -> [];
+improve([X]) -> [X];
+improve([A|[B|T]]) -> [merge3(A, B)|improve(T)].
+merge3([], X) -> X;
+merge3(X, []) -> X;
+merge3([A|Ta], [B|Tb]) when A > B -> [A|merge3(Ta, [B|Tb])];
+merge3([A|Ta], [B|Tb]) -> [B|merge3([A|Ta], Tb)].
+ids([]) -> [];
+ids([X|T]) ->
+    [orders:aid(orders:deserialize(leaf:value(X)))|ids(T)].
 det_pow(X, 1) -> X;
 det_pow(Base, Ex) ->
     B = Ex rem 2,
