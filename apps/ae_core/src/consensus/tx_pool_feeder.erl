@@ -23,7 +23,7 @@ absorb([H | T]) ->
     absorb(H),
     absorb(T);
 absorb(SignedTx) ->
-    gen_server:cast(?MODULE, {absorb, SignedTx}).
+    gen_server:call(?MODULE, {absorb, SignedTx}).
 
 absorb_unsafe(SignedTx) ->
     {Trees, Height, _} = tx_pool:data(),
@@ -43,12 +43,12 @@ start_link() ->
 init(ok) ->
     {ok, []}.
 
+handle_call({absorb, SignedTx}, _From, State) ->
+    absorb_internal(SignedTx),
+    {reply, ok, State};
 handle_call(_, _From, State) ->
     {reply, State, State}.
 
-handle_cast({absorb, SignedTx}, State) ->
-    absorb_internal(SignedTx),
-    {noreply, State};
 handle_cast(_Msg, State) ->
     {noreply, State}.
 

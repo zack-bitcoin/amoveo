@@ -7,8 +7,7 @@ test() ->
     Pub = keys:pubkey(),
 
     S = success,
-    S = test(1),%create account, spend, delete
-    %S = test(2),%repo tx
+    S = test(1),%create account, spend, delete %S = test(2),%repo tx
     S = test(3),%channel team close, channel grow
     %S = test(4),%channel repo
     S = test(5),%channel timeout
@@ -26,8 +25,8 @@ test() ->
     timer:sleep(300),
     S.
 absorb(Tx) -> 
-    tx_pool_feeder:absorb_unsafe(Tx).
-    %tx_pool_feeder:absorb(Tx),
+    %tx_pool_feeder:absorb_unsafe(Tx).
+    tx_pool_feeder:absorb(Tx).
     %timer:sleep(400).
 test(1) ->
     io:fwrite(" create_account tx\n"),
@@ -697,7 +696,6 @@ test(13) ->
     absorb(Stx),
 
     mine_blocks(2),
-    timer:sleep(100),
     {Trees2, _, _} = tx_pool:data(),
     %close the oracle with oracle_close
     {Tx2, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees2),

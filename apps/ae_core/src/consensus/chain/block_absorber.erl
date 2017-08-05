@@ -6,7 +6,7 @@
 
 %% API
 -export([
-	 enqueue/1, %% async request
+	 %enqueue/1, %% async request
 	 save/1,    %% returs after saving
 	 garbage/0,
 	 do_save/1
@@ -63,10 +63,12 @@ absorb_internal(Block) ->
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),
-	    timer:sleep(100),
-	    {_, _, Txs} = tx_pool:data(),
-	    tx_pool:dump(),
-	    tx_pool_feeder:absorb(Txs)
+            spawn(fun () ->
+                          timer:sleep(50),
+                          {_, _, Txs} = tx_pool:data(),
+                          tx_pool:dump(),
+                          tx_pool_feeder:absorb(Txs)
+                  end)
     end.   
 do_save(BlockPlus) ->
     Z = zlib:compress(term_to_binary(BlockPlus)),

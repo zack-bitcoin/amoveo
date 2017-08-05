@@ -138,7 +138,7 @@ raw_sign(M) -> gen_server:call(?MODULE, {raw_sign, M}).
 %load(Pub, Priv, Brainwallet) when is_list(Priv) -> 
 %    load(Pub, list_to_binary(Priv), Brainwallet);
 load(Pub, Priv, Brainwallet) when (is_binary(Pub) and is_binary(Priv))-> 
-    io:fwrite("load key"),
+    io:fwrite("load key\n"),
     gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet}).
 unlock(Brainwallet) -> gen_server:cast(?MODULE, {unlock, Brainwallet}).
 lock() -> gen_server:cast(?MODULE, lock).

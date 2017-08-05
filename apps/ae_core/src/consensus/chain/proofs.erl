@@ -263,7 +263,6 @@ txs_to_querys([STx|T], Trees) ->
                  {accounts, From},
                  {oracles, OID}];
 	    coinbase -> [{accounts, coinbase_tx:from(Tx)}]
-	    %_ -> [] 
 	end,
     L ++ txs_to_querys(T, Trees).
 remove(_, []) -> [];

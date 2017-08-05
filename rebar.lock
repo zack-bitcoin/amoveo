@@ -13,7 +13,7 @@
   1},
  {<<"dump">>,
   {git,"https://github.com/BumblebeeBat/dump",
-       {ref,"c95a32228880142019766460a0fa5bd792ce176f"}},
+       {ref,"0ecc3ef10a0b348835b3b0b297a0bc3f25b8dafe"}},
   1},
  {<<"encrypter">>,
   {git,"https://github.com/zack-bitcoin/encrypter",
@@ -50,7 +50,7 @@
   1},
  {<<"trie">>,
   {git,"https://github.com/BumblebeeBat/MerkleTrie",
-       {ref,"97636c16a0b8db73bdfa670ceb5440def1dce544"}},
+       {ref,"2afe672c7bcde4721cc7519bca2d95b61e40e2da"}},
   0}]}.
 [
 {pkg_hash,[

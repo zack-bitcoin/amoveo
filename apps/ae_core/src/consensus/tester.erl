@@ -10,6 +10,7 @@ test() ->
     end.
 
 test1() ->
+    timer:sleep(2000),
     S = success,
     io:fwrite("constants test\n"),
     S = constants:test(),

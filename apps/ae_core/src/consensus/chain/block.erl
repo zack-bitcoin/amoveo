@@ -207,7 +207,7 @@ new_trees(Txs, Trees, Height, Pub, HeaderHash) ->
     block_reward(Trees2, Height, Pub, HeaderHash).
     %convert back to merkle tree format.
 make(Header, Txs0, Trees, Pub) ->
-    {CB, Proofs} = coinbase_tx:make(Pub, Trees),
+    {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [keys:sign(CB)|Txs0],
     Querys = proofs:txs_to_querys(Txs, Trees),
     io:fwrite(packer:pack({block_querys, Querys})),
@@ -267,8 +267,11 @@ mine(Block, Rounds, Cores) ->
 			io:fwrite(integer_to_list(height(PBlock))),
 			io:fwrite("\n"),
 			Header = block_to_header(PBlock),
+                        io:fwrite("made the header\n"),
 			headers:absorb([Header]),
-			block_absorber:save(PBlock)
+                        io:fwrite("absorb the header\n"),
+			block_absorber:save(PBlock),
+                        io:fwrite("saved the block\n")
 		end
 	end,
     spawn_many(Cores-1, F),
@@ -295,7 +298,6 @@ check(Block) ->
     {ok, Header} = headers:read(BlockHash),
 
     Dict = proofs:facts_to_dict(Facts, dict:new()),
-    
 
     OldBlock = read(Block#block.prev_hash),
     OldTrees = OldBlock#block.trees,
