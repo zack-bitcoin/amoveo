@@ -227,7 +227,7 @@ txs_to_querys([STx|T], Trees) ->
                  {channels, channel_slash_tx:id(Tx)}];
 	    ex -> 
                 [{accounts, existence_tx:from(Tx)},
-                   {existence, existence_tx:commit(Tx)}];
+                 {existence, existence_tx:commit(Tx)}];
 	    oracle_new -> [{accounts, oracle_new_tx:from(Tx)},
                            {oracles, oracle_new_tx:id(Tx)}];
 	    oracle_bet -> 

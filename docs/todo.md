@@ -1,3 +1,17 @@
+the unit tests are failing probablistically. Sometimes the proofs are invalid. We need to find out why, and fix it.
+
+grow_channel_tx:good/1 needs to be implemented
+
+grow_channel is bad.
+To use it trustlessly, you need to make many grow_channel transaction to add a small amount of money to the channel.
+We want the ability to atomically do a grow_channel transaction, and update the channel state.
+So, the channel should hold one more number.
+This number gets updated every time there is a grow_channel transaction for this channel.
+The SPK should reference this number.
+If the SPK doesn't match this number, then it is an invalid tx.
+With this update, it probably becomes secure to withdraw some of the money from the channel without closing the channel.
+
+
 We tests for oracle_bet. multi-block tests, so that we have to generate a proof of the intermediate data.
 
 We need to test the case where someone who is participating in the oracle deletes their own account. It needs to still be possible to bet in the oracle and close the oracle.
