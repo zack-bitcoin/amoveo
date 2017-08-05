@@ -13,7 +13,7 @@
 cid(X) -> X#r.cid.
 init(ok) ->
     erlang:send_after(1000, self(), set_initial_peers),
-    {ok, default_peers()}.
+    {ok, dict:new()}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
@@ -98,9 +98,6 @@ update(IP, Port, Height, Hash) ->
 remove(IP, Port) -> gen_server:cast(?MODULE, {remove, IP, Port}).
 read(IP, Port) -> gen_server:call(?MODULE, {read, IP, Port}).
 
-default_peers() -> 
-    D = constants:peers(),
-    load_peers(D, dict:new()).
 load_peers([], D) -> D;
 load_peers([{IP, Port}|T], Dict) ->
     K = key(IP, Port),

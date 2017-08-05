@@ -1,6 +1,6 @@
 -module(create_account_tx).
 -export([doit/3, make/5]).
--record(ca, {from = 0, nonce = 0, fee = 0, pubkey = <<"">>, amount = 0}).
+-record(ca, {from = 0, nonce = 0, fee = 0, pubkey = <<>>, amount = 0}).
 
 make(Pub, Amount, Fee, From, Trees) -> %To is a new ID. set it to any unused ID.
     Accounts = trees:accounts(Trees),
@@ -20,4 +20,3 @@ doit(Tx, Trees, NewHeight) ->
     Accounts2 = accounts:write(Accounts, Nacc),
     NewAccounts = accounts:write(Accounts2, Facc2),
     trees:update_accounts(Trees, NewAccounts).
-
