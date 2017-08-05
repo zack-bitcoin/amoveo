@@ -603,7 +603,7 @@ test(11) ->
     {_, Oracle, _} = oracles:get(OID, Oracles),
     Orders = oracles:orders(Oracle),
     {OrderID, _} = orders:head_get(Orders),%This only works because there is exactly 1 order in the order book.
-    {Tx4, _} = oracle_unmatched_tx:make(constants:master_pub(), Fee, OID, OrderID, Trees4),
+    {Tx4, _} = oracle_unmatched_tx:make(constants:master_pub(), Fee, OID, Trees4),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     timer:sleep(100),

@@ -131,6 +131,9 @@ facts_to_dict([F|T], D) ->
 %-record(proof, {tree, value, root, key, path}).
     %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
+    io:fwrite("facts to dict "),
+    io:fwrite(packer:pack({Tree, F#proof.key})),
+    io:fwrite("\n"),
     case Tree of
 	orders -> 
 	    K = F#proof.key,
@@ -229,30 +232,29 @@ txs_to_querys([STx|T], Trees) ->
                            {oracles, oracle_new_tx:id(Tx)}];
 	    oracle_bet -> 
                 %calculate the orders proof
-                %We should probably include all the orders proofs, because this bet could potentially match them all.
                 %This potentially changes a lot of accounts. If many bets get matched against this bet.
-                %maybe the safe thing to do for now is to prove all of the account that could possibly be matched.
-                % need to prove id 0, and the loaction about to be filled
+                %the safe thing to do for now is to prove all of the account that could possibly be matched,
+                %and all the orders proofs,
+                %and all the oracle_bet proofs.
                 OID = oracle_bet_tx:id(Tx),
-                Pubkeys = oracle_bet_tx:to_prove(Tx, Trees),% everything from matches2, and the last bet, if it exists.
+                Pubkeys = [oracle_bet_tx:from(Tx)|
+                           oracle_bet_tx:to_prove(Tx, Trees)],
                 PS = constants:pubkey_size() * 8,
-                Prove = 
-                    %tagify(accounts, remove(<<0:PS>>, Pubkeys)) ++ 
-                    tagify(orders, Pubkeys),
-                %make_oracle_bets(Matched),
-                %OID = oracle_bet_tx:id(Tx),
-	      %{orders, keys:pubkey()},
-                [%{oracle_bets, #key{pub = OID, id = OID}},
-                 {accounts, oracle_bet_tx:from(Tx)},
-                 {oracles, oracle_bet_tx:id(Tx)}] ++
+                Pubkeys2 = remove(<<0:PS>>, Pubkeys),
+                Prove = tagify(accounts, Pubkeys2) ++ 
+                    make_oracle_bets(Pubkeys2, OID) ++
+                    make_orders(Pubkeys, OID),
+                 [{oracles, oracle_bet_tx:id(Tx)}] ++
                     Prove;
 	    oracle_close -> [{accounts, oracle_close_tx:from(Tx)},
                              {oracles, oracle_close_tx:oracle_id(Tx)}];
 	    unmatched -> 
+                OID = oracle_unmatched_tx:oracle_id(Tx),
+                From = oracle_unmatched_tx:from(Tx),
                 [
-                %{orders, oracle_unmatched_tx:from(Tx)},
-                 {accounts, oracle_unmatched_tx:from(Tx)},
-                 {oracles, oracle_unmatched_tx:oracle_id(Tx)}];
+                 {orders, #key{pub = From, id = OID}},
+                 {accounts, From},
+                 {oracles, OID}];
 	    oracle_shares -> 
                 OID = oracle_shares_tx:oracle_id(Tx),
                 From = oracle_shares_tx:from(Tx),
@@ -270,6 +272,14 @@ remove(X, [Y|A]) -> [Y|remove(X, A)].
 tagify(_, []) -> [];
 tagify(X, [H|T]) ->
     [{X, H}|tagify(X, T)].
+make_oracle_bets([], _) -> [];
+make_oracle_bets([H|T], OID) ->
+    [{oracle_bets, #key{pub = H, id = OID}}|
+     make_oracle_bets(T, OID)].
+make_orders([], _) -> [];
+make_orders([H|T], OID) ->
+    [{orders, #key{pub = H, id = OID}}|
+     make_orders(T, OID)].
 test() ->
     headers:dump(),
     block:initialize_chain(),
@@ -295,7 +305,7 @@ test() ->
 	      {existence, testnet_hasher:doit(1)},
 	      {oracles, OID},
 	      {burn, testnet_hasher:doit(1)},
-	      {orders, #key{pub = keys:pubkey(), id = 1}},
+	      {orders, #key{pub = keys:pubkey(), id = OID}},
               {oracle_bets, #key{pub = keys:pubkey(), id = OID}}
 	     ],
     Facts = prove(Querys, Trees),
