@@ -77,7 +77,7 @@ create_account(NewAddr, Amount) ->
     create_account(NewAddr, Amount, ?Fee + Cost).
 create_account(NewAddr, Amount, Fee) ->
     F = fun(Trees) ->
-		create_account_tx:make(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees) end,
+		create_account_tx:new(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees) end,
     tx_maker(F).
 coinbase(ID) ->
     K = keys:pubkey(),
@@ -108,7 +108,7 @@ delete_account(ID) ->
     delete_account(ID, ?Fee+Cost).
 delete_account(ID, Fee) ->
     F = fun(Trees) ->
-		delete_account_tx:make(ID, keys:pubkey(), Fee, Trees) end,
+		delete_account_tx:new(ID, keys:pubkey(), Fee, Trees) end,
     tx_maker(F).
 
 repo_account(ID) ->   
