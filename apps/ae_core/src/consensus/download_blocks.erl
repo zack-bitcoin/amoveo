@@ -37,14 +37,14 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
 trade_blocks(Peer, L, 0) ->
     lager:debug("downloader blocks trade blocks 0 absorbing blocks"),
     block_absorber:enqueue(L),
-    Genesis = block:read_int(0),
+    Genesis = block:get_by_height(0),
     GH = block:hash(Genesis),
     send_blocks(Peer, block:hash(block:top()), GH, [], 0);
 trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     lager:debug("trade_blocks: ~p", [packer:pack({prev_block, PrevBlock, PBT})]),
     PrevHash = block:hash(PrevBlock),
     NextHash = block:prev_hash(PrevBlock),
-    OurChainAtPrevHash = block:read(NextHash),
+    OurChainAtPrevHash = block:get_by_hash(NextHash),
     Height = block:height(PrevBlock),
     case OurChainAtPrevHash of
         empty ->
@@ -70,11 +70,11 @@ send_blocks(Peer, Hash, Hash, Blocks, _N) ->
     send_blocks_external(Peer, Blocks);
 send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
     lager:debug("send blocks 2 ~p", [integer_to_list(N)]),
-    GH = block:hash(block:read_int(0)),
+    GH = block:hash(block:get_by_height(0)),
     if
         OurTopHash == GH -> send_blocks_external(Peer, Blocks);
         true ->
-            BlockPlus = block:read(OurTopHash),
+            BlockPlus = block:get_by_hash(OurTopHash),
             PrevHash = block:prev_hash(BlockPlus),
             send_blocks(Peer, PrevHash, CommonHash, [BlockPlus|Blocks], N+1)
     end.

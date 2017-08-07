@@ -51,7 +51,7 @@ root_hash(Trees) ->
 			>>).
 keepers(_, _, 0) -> [];
 keepers(TreeID, Hash, Many) ->
-    BP = block:read(Hash),
+    BP = block:get_by_hash(Hash),
     Trees = block:trees(BP),
     Height = block:height(BP),
     Root = trees:TreeID(Trees),

@@ -9,10 +9,10 @@ api:mempool().
 
 #### Lookup block number 5
 ```
-block:read_int(5).
+block:get_by_height(5).
 ```
 
 ### Lookup the top blocks
 ```
-block:read_int(api:height()).
+block:get_by_height(api:height()).
 ```

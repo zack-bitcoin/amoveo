@@ -30,7 +30,7 @@ start() ->
     gen_server:cast(?MODULE, doit).
 
 height() ->    
-    block:height(block:read(headers:top())).
+    block:height(block:get_by_hash(headers:top())).
 
 sync3() -> sync3(false).
 sync3(B) ->
@@ -45,7 +45,7 @@ sync2(_Height, 0, B) ->
     ok;
 sync2(Height, N, B) ->
     timer:sleep(100),
-    Height2 = block:height(block:read(headers:top())),
+    Height2 = block:height(block:get_by_hash(headers:top())),
     {ok, DownloadBlocksBatch} = application:get_env(ae_core, download_blocks_batch),
     Height3 = Height + DownloadBlocksBatch - 1,
     if
