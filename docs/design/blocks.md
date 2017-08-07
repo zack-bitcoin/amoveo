@@ -48,8 +48,6 @@ See also [aeternity whitepaper] subsection "II-A.4) Block contents".
 
 ## Block header
 
-*TO-BE The codebase always exchanges among peers in the network the block - never the block header.  The block header shall be exchanged among peers in the network on its own.*
-
 The block header includes:
 * Hash of previous block header;
   ```erlang
@@ -60,6 +58,11 @@ The block header includes:
   ```erlang
   #header.height
   #block.height
+  ```
+* Protocol version;
+  ```erlang
+  #header.version
+  #block.version
   ```
 * Hash summarizing partial representation of state Merkle trees before
   application of transactions (in block) and transactions (in block);
@@ -90,6 +93,26 @@ The block header includes:
   * A proof of work depends on the whole block header and is
     parametrized by the difficulty.
 
+The block header `H` is serialized as per function
+`headers:serialize/1`:
+
+```erlang
+HB = 32*8,
+HtB = 32,
+TB = 32,
+VB = 16,
+DB = 16,
+<<(H#header.prev_hash):HB/bitstring,
+  (H#header.height):HtB,
+  (H#header.time):TB,
+  (H#header.version):VB,
+  (H#header.trees_hash):HB/bitstring,
+  (H#header.txs_proof_hash):HB/bistring,
+  (H#header.difficulty):DB,
+  (H#header.nonce):HB
+>>.
+```
+
 See also [aeternity whitepaper] subsection "II-E.2) Light clients".
 
 ## References
@@ -107,8 +130,6 @@ Confirm from the codebase that `#leaf.meta` (as opposed to `#leaf.value`) is not
 Detail Merkle tree and Merkle proof.
 
 Decide whether to include `#header.accumulative_difficulty` in this description.
-
-Decide whether to include `#header.version` and `#block.version` in this description.
 
 Decide whether to include `#block.comment` in this description.
 
