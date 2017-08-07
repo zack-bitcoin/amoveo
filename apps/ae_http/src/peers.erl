@@ -14,40 +14,40 @@
 ]).
 
 -record(r, {}). %that's empty for now, in future we will implement ranking mechanics and store bunch of properties here
--record(s, {peers}). %state record
+-record(state, {peers}). %state record
 
 init(ok) ->
     erlang:send_after(1000, self(), set_initial_peers),
-    {ok, #s{peers = dict:new()}}.
+    {ok, #state{peers = dict:new()}}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, S, _Extra) -> {ok, S}.
 terminate(_, _) -> io:format("died!"), ok.
 
-handle_info(set_initial_peers, S) ->
+handle_info(set_initial_peers, State) ->
     {ok, Peers} = application:get_env(ae_core, peers),
     add(Peers),
-    {noreply, S};
-handle_info(_Info, S) ->
-    {noreply, S}.
+    {noreply, State};
+handle_info(_Info, State) ->
+    {noreply, State}.
 
-handle_cast({remove, {_,_}=Peer}, S) ->
-    NewPeers = dict:erase(Peer, S#s.peers),
-    {noreply, S#s{peers = NewPeers}};
-handle_cast({add, {_,_}=Peer}, S) -> 
-    NewPeers = load_peers([Peer], S#s.peers),
-    {noreply, S#s{peers = NewPeers}};
-handle_cast({update, {_,_}=Peer, NewProperties}, S) ->
-    NewPeers = dict:store(Peer, NewProperties, S#s.peers),
-    {noreply, S#s{peers = NewPeers}}.
+handle_cast({remove, {_,_}=Peer}, State) ->
+    NewPeers = dict:erase(Peer, State#state.peers),
+    {noreply, State#state{peers = NewPeers}};
+handle_cast({add, {_,_}=Peer}, State) -> 
+    NewPeers = load_peers([Peer], State#state.peers),
+    {noreply, State#state{peers = NewPeers}};
+handle_cast({update, {_,_}=Peer, NewProperties}, State) ->
+    NewPeers = dict:store(Peer, NewProperties, State#state.peers),
+    {noreply, State#state{peers = NewPeers}}.
 
-handle_call(all, _From, S) ->
-    {reply, dict:fetch_keys(S#s.peers), S};
-handle_call({read, {_,_}=Peer}, _From, S) ->
-    Properties = case dict:find(Peer, S) of
+handle_call(all, _From, State) ->
+    {reply, dict:fetch_keys(State#state.peers), State};
+handle_call({read, {_,_}=Peer}, _From, State) ->
+    Properties = case dict:find(Peer, State) of
         error -> <<"none">>;
         {ok, Val} -> Val
     end,
-    {reply, Properties, S}.
+    {reply, Properties, State}.
 
 all() -> gen_server:call(?MODULE, all).
 
