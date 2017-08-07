@@ -15,7 +15,7 @@
 
 
 genesis_state() ->
-    {BlockTime, MiOT, MaOT} = 
+    {BlockTime, MinimumOracleTime, MaximumOracleTime} =
         case application:get_env(ae_core, test_mode, false) of
             true -> {1, 1, 1};
             false -> {297, 352, 505}
@@ -39,12 +39,11 @@ genesis_state() ->
          [comment_limit, 137], 
          [block_creation_maturity, 100],
          [oracle_initial_liquidity, 1728],
-         [minimum_oracle_time, MiOT],
-         [maximum_oracle_time, MaOT],
+         [minimum_oracle_time, MinimumOracleTime],
+         [maximum_oracle_time, MaximumOracleTime],
          [maximum_question_size, 352],
          [block_time_after_median, 100],
          [channel_closed_time, 352],
-         %[retarget_period, 429],
          [question_delay, 216],
          [governance_delay, 72],
          [governance_change_limit, 51],
@@ -64,34 +63,37 @@ genesis_state() ->
          [oracle_bet, 10],
          [oracle_close, 10],
          [unmatched, 10],
-         [oracle_shares, 10]
-        ],
-    genesis_state2(G, 0).
+         [oracle_shares, 10]],
+    {ok, GenesisTree} = genesis_state(G, 0),
+    GenesisTree.
 
-genesis_state2([], T) -> T;
-genesis_state2([[Name, Value] | T], Tree) ->
-    Tree2 = write(Name, Value, 0, Tree),
-    genesis_state2(T, Tree2).
+genesis_state([], Tree) ->
+    {ok, Tree};
+genesis_state([[Name, Value] | Rest], Tree0) ->
+    Id = name2number(Name),
+    NewGovernance = new(Id, Value),
+    Tree = write(NewGovernance, Tree0),
+    genesis_state(Rest, Tree).
 
 change(Name, Amount, Tree) ->
-    {_, V, _} = get(Name, Tree),
-    NV1 = V#gov.value + Amount,
-    NV2 = max(NV1, 1),
-    V2 = V#gov{value = NV2, lock = 0},
-    write(V2, Tree).
+    {_, Gov0, _} = get(Name, Tree),
+    Value0 = Gov0#gov.value + Amount,
+    Value = max(Value0, 1),
+    Gov = Gov0#gov{value = Value, lock = 0},
+    write(Gov, Tree).
 
 lock(Name, Tree) ->
-    {_, V, _} = get(Name, Tree),
-    V2 = V#gov{lock = 1},
-    write(V2, Tree).
+    {_, Gov0, _} = get(Name, Tree),
+    Gov = Gov0#gov{lock = 1},
+    write(Gov, Tree).
 
 unlock(Name, Tree) ->
-    {_, V, _} = get(Name, Tree),
-    V2 = V#gov{lock = 0},
-    write(V2, Tree).
+    {_, Gov0, _} = get(Name, Tree),
+    Gov = Gov0#gov{lock = 0},
+    write(Gov, Tree).
 
-is_locked(V) ->
-    case V#gov.lock of
+is_locked(Gov) ->
+    case Gov#gov.lock of
         0 ->
             false;
         1 ->
@@ -122,34 +124,21 @@ det_power(Base, Top, Bottom, T) ->
             det_power(Base, (Top*Top) div Bottom, Bottom, T div 2)
     end.
 
-serialize(G) ->
-    <<(G#gov.id):8,
-      (G#gov.value):16,
-      (G#gov.lock):8>>.
+serialize(Gov) ->
+    <<(Gov#gov.id):8,
+      (Gov#gov.value):16,
+      (Gov#gov.lock):8>>.
 
-deserialize(B) ->
-    <<ID:8, Val:16, Lock:8>> = B,
-    #gov{id = ID, value = Val, lock = Lock}.
-
-write(Name, Value, Lock, Tree) ->
-    ID = name2number(Name),
-    E = new(ID, Value, Lock),
-    write(E, Tree).
-write(E, Tree) ->
-    Key = E#gov.id,
-    X = serialize(E),
-    trie:put(Key, X, 0, Tree, ?name).
-
-get_value(X, Tree) ->
-    {_, Y, _} = get(X, Tree),
-    tree_number_to_value(Y#gov.value).
+get_value(Name, Tree) ->
+    {_, Gov, _} = get(Name, Tree),
+    tree_number_to_value(Gov#gov.value).
 
 get(Name, Tree) when is_atom(Name) ->
     case name2number(Name) of
         bad ->
             {error, unknown_name};
-        K ->
-            get(K, Tree)
+        Key ->
+            get(Key, Tree)
     end;
 get(Key, Tree) when is_integer(Key) ->
     {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
@@ -185,7 +174,6 @@ name2number(maximum_oracle_time) -> 8;
 name2number(maximum_question_size) -> 20;
 name2number(block_time_after_median) -> 21;
 name2number(channel_closed_time) -> 22;
-%name2number(retarget_period) -> 23;
 name2number(question_delay) -> 24;
 name2number(governance_delay) -> 25;
 name2number(governance_change_limit) -> 26;
@@ -214,18 +202,29 @@ max() -> 46.
 %% Internals
 
 %% Try to fit everything into 32-bit values
-new(ID, Value, Lock) ->
-    #gov{id = ID, value = Value, lock = Lock}.
+new(Id, Value) ->
+    new(Id, Value, 0).
+new(Id, Value, Lock) ->
+    #gov{id = Id, value = Value, lock = Lock}.
+
+write(Gov, Tree) ->
+    Key = Gov#gov.id,
+    Serialized = serialize(Gov),
+    trie:put(Key, Serialized, 0, Tree, ?name).
+
+deserialize(SerializedGov) ->
+    <<Id:8, Value:16, Lock:8>> = SerializedGov,
+    #gov{id = Id, value = Value, lock = Lock}.
 
 
 %% Tests
 
 test() ->
-    C = new(14, 1, 0),
+    NewGov = new(14, 1, 0),
     {Trees, _, _} = tx_pool:data(),
-    Governance = trees:governance(Trees),
-    {_, {gov, 14, 350, 0}, _} = get(fun_limit, Governance),
-    G2 = write(C, Governance),
-    {_, C, _} = get(fun_limit, G2),
-    {_, {gov, 14, 350, 0}, _} = get(fun_limit, Governance),
+    Gov = trees:governance(Trees),
+    {_, {gov, 14, 350, 0}, _} = get(fun_limit, Gov),
+    G2 = write(NewGov, Gov),
+    {_, NewGov, _} = get(fun_limit, G2),
+    {_, {gov, 14, 350, 0}, _} = get(fun_limit, Gov),
     success.
