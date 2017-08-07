@@ -2,7 +2,7 @@
 
 -export([block_to_header/1, test/0,
          height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, comment/1, version/1, pow/1, trees/1, prev_hashes/1, 
-         read_int/2, read_int/1, hash/1, read/1, initialize_chain/0, make/4,
+         get_by_height_in_chain/2, get_by_height/1, hash/1, get_by_hash/1, initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          guess_number_of_cpu_cores/0, top/0
         ]).
@@ -78,11 +78,11 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
         true ->
             list_to_tuple([prev_hashes|lists:reverse([PH|Hashes])]);
         false ->
-            B = read_int(NHeight, PH),
+            B = get_by_height_in_chain(NHeight, PH),
             calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
     end.
 
-read(H) ->
+get_by_hash(H) ->
     Hash = hash(H),
     BlockFile = ae_utils:binary_to_file_path(blocks, Hash),
     case db:read(BlockFile) of
@@ -93,7 +93,7 @@ top() ->
     TH = headers:top(),
     top(TH).
 top(Header) ->
-    case read(hash(Header)) of
+    case get_by_hash(hash(Header)) of
         empty -> 
             {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),
             top(PrevHeader);
@@ -107,15 +107,15 @@ lgh(1, X) ->
 lgh(N, X) ->
     lgh(N div 2, X+1).
 
-read_int(N) ->
-    read_int(N, headers:top()).
-read_int(N, BH) when N > -1 ->
-    Block = read(hash(BH)),
+get_by_height(N) ->
+    get_by_height_in_chain(N, headers:top()).
+get_by_height_in_chain(N, BH) when N > -1 ->
+    Block = get_by_hash(hash(BH)),
     case Block of
         empty ->
             PrevHash = headers:prev_hash(BH),
             {ok, PrevHeader} = headers:read(PrevHash),
-            read_int(N, PrevHeader);
+            get_by_height_in_chain(N, PrevHeader);
         _  ->
             M = height(Block),
             D = M - N,
@@ -126,7 +126,7 @@ read_int(N, BH) when N > -1 ->
                 true ->
                     PrevHash = prev_hash(lg(D), Block),
                     {ok, PrevHeader} = headers:read(PrevHash),
-                    read_int(N, PrevHeader)
+                    get_by_height_in_chain(N, PrevHeader)
             end
     end.
 
@@ -161,7 +161,7 @@ block_reward(Trees, Height, ID, PH) ->
     BlocksAgo = Height - BCM,
     case BlocksAgo > 0 of
         true ->
-            Txs = txs(read_int(BlocksAgo, PH)),
+            Txs = txs(get_by_height_in_chain(BlocksAgo, PH)),
             TransactionFees = txs:fees(Txs),
             TransactionCosts = tx_costs(Txs, Governance, 0),
             BlockReward = governance:get_value(block_reward, Governance),
@@ -228,7 +228,7 @@ spawn_many(N, F) ->
 
 mine(Rounds) -> 
     Top = headers:top(),
-    PB = block:read(Top),
+    PB = block:get_by_hash(Top),
     {_, _, Txs} = tx_pool:data(),
     Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
     mine(Block, Rounds).
@@ -251,7 +251,7 @@ mine(Block, Rounds, Cores) ->
     F().
 mine2(Block, Times) ->
     PH = Block#block.prev_hash,
-    ParentPlus = read(PH),
+    ParentPlus = get_by_hash(PH),
     Trees = ParentPlus#block.trees,
     Difficulty = Block#block.difficulty,
     Governance = trees:governance(Trees),
@@ -267,7 +267,7 @@ mine2(Block, Times) ->
 check(Block) ->
     BlockHash = hash(Block),
     {ok, _} = headers:read(BlockHash),
-    OldBlock = read(Block#block.prev_hash),
+    OldBlock = get_by_hash(Block#block.prev_hash),
     OldTrees = OldBlock#block.trees,
     %check that hash(proofs) is the same as the header.
     %check that every proof is valid to the previous state root.
@@ -298,7 +298,7 @@ test() ->
     test(1).
 test(1) ->
     Header0 = headers:top(),
-    Block0 = read(Header0),
+    Block0 = get_by_hash(Header0),
     Trees = trees(Block0),
     Pub = keys:pubkey(),
     Block1 = make(Header0, [], Trees, Pub),
@@ -309,8 +309,8 @@ test(1) ->
     H1 = hash(WBlock10),
     {ok, _} = headers:read(H1),
     block_absorber:save(WBlock10),
-    WBlock11 = read(H1),
-    WBlock11 = read_int(1, H1),
+    WBlock11 = get_by_hash(H1),
+    WBlock11 = get_by_height_in_chain(1, H1),
     WBlock10 = WBlock11#block{trees = WBlock10#block.trees},
     success;
 test(2) ->

@@ -55,7 +55,7 @@ handle_call({add, Block}, _From, OldBlockHash) ->
     %% Check which block is higher and store it's hash as the top.
     %% For tiebreakers, prefer the older block.
     {_,_,OldTxs} = tx_pool:data(),
-    OldBlock = block:read(OldBlockHash),
+    OldBlock = block:get_by_hash(OldBlockHash),
     NH = block:height(Block),
     OH = block:height(OldBlock),
     NewBlockHash =

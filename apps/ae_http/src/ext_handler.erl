@@ -39,13 +39,12 @@ doit({give_block, SignedBlock}) ->
 doit({block, N}) ->
     true = is_integer(N),
     true = N > -1,
-    {ok, block:read_int(N)};
+    {ok, block:get_by_height(N)};
 doit({header, N}) -> 
-    {ok, block:block_to_header(block:read_int(N))};
+    {ok, block:block_to_header(block:get_by_height(N))};
 doit({headers, Many, N}) -> 
     X = many_headers(Many, N),
     {ok, X};
-    %{ok, block_tree:read_int(N)};
 doit({tophash}) -> {ok, headers:top()};
 %doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
 doit({peers}) ->
@@ -203,7 +202,7 @@ proof_packer(X) -> X.
     %Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
 many_headers(M, _) when M < 1 -> [];
 many_headers(Many, N) ->    
-    [block:block_to_header(block:read_int(N))|
+    [block:block_to_header(block:get_by_height(N))|
      many_headers(Many-1, N+1)].
     
     

@@ -142,7 +142,7 @@ get_paid2(Start, Start, _, Shares, T, _) -> {Shares, T};
 get_paid2(Step, End, Diff, Shares, Tokens, SC) when Shares > 0 -> 
     %M = constants:shares_conversion(Shares),
     M = Shares * SC,
-    BlockDiff = block:difficulty(block:read_int(Step)),
+    BlockDiff = block:difficulty(block:get_by_height(Step)),
     T = if 
 	    BlockDiff > Diff -> M;
 	    true -> 0
