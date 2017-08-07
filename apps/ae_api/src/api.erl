@@ -152,16 +152,6 @@ find_id(Name, N, Tree) ->
 	_ -> find_id(Name, N+1, Tree)
     end.
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
-    PR = peers:read(IP, Port),
-    if
-	<<"none">> == PR -> ok;
-	true ->
-	    PC = peers:cid(PR),
-	    if 
-		undefined == PC -> ok;
-		true -> PR = PC
-	    end
-    end,
     Acc1 = keys:pubkey(),
     {ok, Acc2} = talker:talk({pubkey}, IP, Port),
     Entropy = channel_feeder:entropy([Acc1, Acc2]) + 1,
@@ -510,7 +500,7 @@ channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
     tx_maker(F).
 
 add_peer(IP, Port) ->
-    peers:add(IP, Port),
+    peers:add({IP, Port}),
     0.
 sync(IP, Port) ->
     lager:info("Sync with ~p ~p ~n", [IP, Port]),
