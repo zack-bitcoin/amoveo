@@ -61,7 +61,6 @@ sign(Tx) ->
     
 tx_maker(F) -> 
     {Trees,_,_} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
     {Tx, _} = F(Trees),
     case keys:sign(Tx) of
 	{error, locked} -> 
@@ -70,15 +69,17 @@ tx_maker(F) ->
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
 create_account(NewAddr, Amount) ->
-    io:fwrite("easy create account \n"),
+    lager:info("Create account"),
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
-    Cost = governance:get_value(ca, Governance),
+    Cost = governance:get_value(create_acc_tx, Governance),
     create_account(NewAddr, Amount, ?Fee + Cost).
 create_account(NewAddr, Amount, Fee) ->
-    F = fun(Trees) ->
-		create_account_tx:make(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees) end,
-    tx_maker(F).
+    tx_maker(
+      fun(Trees) ->
+              create_account_tx:new(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees)
+      end).
+
 coinbase(ID) ->
     K = keys:pubkey(),
     {Trees, _, _} = tx_pool:data(),
@@ -100,16 +101,17 @@ spend(ID, Amount, Fee) ->
     F = fun(Trees) ->
 		spend_tx:make(ID, Amount, Fee, keys:pubkey(), Trees, []) end,
     tx_maker(F).
-    
+
 delete_account(ID) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
-    Cost = governance:get_value(da, Governance),
-    delete_account(ID, ?Fee+Cost).
+    Cost = governance:get_value(delete_acc_tx, Governance),
+    delete_account(ID, ?Fee + Cost).
 delete_account(ID, Fee) ->
-    F = fun(Trees) ->
-		delete_account_tx:make(ID, keys:pubkey(), Fee, Trees) end,
-    tx_maker(F).
+    tx_maker(
+      fun(Trees) ->
+              delete_account_tx:new(ID, keys:pubkey(), Fee, Trees)
+      end).
 
 repo_account(ID) ->   
     {Trees, _, _} = tx_pool:data(),

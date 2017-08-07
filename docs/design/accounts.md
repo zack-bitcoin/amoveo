@@ -2,6 +2,10 @@
 
 The following describes accounts, which are one of merkel trees, responsible for keeping address and balance associated with it.
 
+In order to create an account one has to pay fee, which prevents spam.
+
+Account deletion is rewarded, which incentivizes the reclaiming of space.
+
 ## Overview
 
 Account consists of:
@@ -41,3 +45,16 @@ Serialized account is Erlang binary consisting of:
 * pubkey
 * hash of pointer to bets merkle trie
 * hash of pointer to shares merkle trie
+
+#### Creation and deletion
+
+During account creation one has to pay `create_account_fee`, driven by governance.
+Account creation transaction is defined in `create_account_tx.erl`.
+
+During account deletion `delete_account_reward` is paid.
+Account deletion transaction is defined in `delete_account_tx.erl`.
+
+
+#### TODO
+
+Describe `create_acc_tx` and `delete_acc_tx` records.
