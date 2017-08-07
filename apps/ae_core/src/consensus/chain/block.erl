@@ -285,11 +285,6 @@ check(Block) ->
     {true, Block#block{trees = NewTrees}}.
 
 initialize_chain() -> 
-    Pub = constants:master_pub(),
-    First = accounts:new(Pub, constants:initial_coins(), 0),
-    Accounts = accounts:write(0, First),
-    GovInit = governance:genesis_state(),
-    _Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
     GB = genesis_maker(),
     block_absorber:do_save(GB),
     Header0 = block_to_header(GB),
