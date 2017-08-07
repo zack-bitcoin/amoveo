@@ -117,48 +117,46 @@ make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty) -
     end.
 
 serialize(H) ->
-    PH = H#header.prev_hash,
-    Height = H#header.height,
-    Time = H#header.time,
-    Version = H#header.version,
-    TreesHash = H#header.trees_hash,
-    TxsProofHash = H#header.txs_proof_hash,
-    Nonce = H#header.nonce,
-    Difficulty = H#header.difficulty,
-    true = size(PH) == constants:hash_size(),
-    true = size(TreesHash) == constants:hash_size(),
-    true = size(TxsProofHash) == constants:hash_size(),
-    <<PH/binary,
-      Height:(constants:height_bits()),
-      Time:(constants:time_bits()),
-      Version:(constants:version_bits()),
-      TreesHash/binary,
-      TxsProofHash/binary,
-      Difficulty:16,
-      Nonce:(constants:hash_size()*8)
-    >>.
-
-deserialize(B) ->
-    HS = constants:hash_size()*8,
-    HB = constants:height_bits(),
+    HB = constants:hash_size()*8,
+    HtB = constants:height_bits(),
     TB = constants:time_bits(),
     VB = constants:version_bits(),
+    DB = 16,
+    HB = bit_size(H#header.prev_hash),
+    HB = bit_size(H#header.trees_hash),
+    HB = bit_size(H#header.txs_proof_hash),
+    <<(H#header.prev_hash)/binary,
+      (H#header.height):HtB,
+      (H#header.time):TB,
+      (H#header.version):VB,
+      (H#header.trees_hash)/binary,
+      (H#header.txs_proof_hash)/binary,
+      (H#header.difficulty):DB,
+      (H#header.nonce):HB
+    >>.
+
+deserialize(H) ->
+    HB = constants:hash_size()*8,
+    HtB = constants:height_bits(),
+    TB = constants:time_bits(),
+    VB = constants:version_bits(),
+    DB = 16,
     <<
-      PH:HS,
-      Height:HB,
+      PrevHash:HB/bitstring,
+      Height:HtB,
       Time:TB,
       Version:VB,
-      TreesHash:HS,
-      TxsProofHash:HS,
-      Difficulty:16,
-      Nonce:HS
-    >> = B,
-    #header{prev_hash = <<PH:HS>>,
+      TreesHash:HB/bitstring,
+      TxsProofHash:HB/bitstring,
+      Difficulty:DB,
+      Nonce:HB
+    >> = H,
+    #header{prev_hash = PrevHash,
             height = Height,
             time = Time,
             version = Version,
-            trees_hash = <<TreesHash:HS>>,
-            txs_proof_hash = <<TxsProofHash:HS>>,
+            trees_hash = TreesHash,
+            txs_proof_hash = TxsProofHash,
             difficulty = Difficulty,
             nonce = Nonce}.
 
