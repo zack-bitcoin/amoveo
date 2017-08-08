@@ -52,6 +52,10 @@ EOF
         BuildDir="${3:?}"
         ( cd "${BuildDir:?}" && make tests; )
         ;;
+    script-tester)
+        BuildDir="${3:?}"
+        ( cd "${BuildDir:?}" && make local-build && make local-go && until ./_build/local/rel/ae_core/bin/ae_core ping; do printf "."; sleep 1; done; ./_build/local/rel/ae_core/bin/ae_core eval 'success = tester:test().'; )
+        ;;
     script-unit-tests)
         BuildDir="${3:?}"
         ( cd "${BuildDir:?}" && make unit-tests; )

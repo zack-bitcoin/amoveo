@@ -1,9 +1,8 @@
 -module(tester).
 -export([test/0]).
 test() ->
-    %this tests modules individually. To test all of them together, use block_tree:test() which adds some test blocks to the blocktree.
-    %you need to run clean.sh to empty out the databases before running this test. Make sure you don't download anything from peers before running this test.
-    %you need to run clean.sh after running this test, before you can run a Flying Fox node.
+    io:fwrite("You need to clean the state of the node before running this test. Make sure you don't download anything from peers before running this test.\n"),
+    io:fwrite("You need to clean the state of the node after running this test, before you can run an Aeternity node.\n"),
     case keys:status() of
 	unlocked -> test1();
 	_ -> "you need to unlock with keys:unlock(""password"") first"
@@ -19,8 +18,8 @@ test1() ->
     S = packer:test(),
     io:fwrite("encryption test\n"),
     S = encryption:test(),
-    %io:fwrite("fractions test\n"),
-    %S = ae_core_fractions:test(),
+    io:fwrite("fractions test\n"),
+    S = ae_core_fractions:test(),
     io:fwrite("merkel tree tests\n"),
     S = tree_test:test(),
     io:fwrite("block hashes test\n"),
@@ -33,18 +32,14 @@ test1() ->
     S = test_txs:test(),
     io:fwrite("existence test\n"),
     S = existence:test(),
-    %io:fwrite("mine test\n"),
-    %S = block:mine_test(),
-    %io:fwrite("market smart contract test\n"),
     io:fwrite("order_book test\n"),
     S = order_book:test(),
     %io:fwrite("market test\n"),
-    %S = market:test(),
-    %S = inbox:test(),
+    %S = market:test(), %% This test has side effects i.e. it absorbs transactions.
     %io:fwrite("chalang test\n"),
-    %S = test_chalang:test("deps/chalang/examples/"),
-    %S = channel_manager:test(),
-    %S = arbitrage:test(),
-    %S = mail:test(),
+    %S = test_chalang:test(), %% Module test_chalang needs review as even passing folder it runs other tests with hardcoded folder.
+    %io:fwrite("block header test\n"),
+    %S = headers:test(), %% This test has side effects i.e. it absorbs header.
+    %io:fwrite("keys test\n"),
+    %S = keys:test(), %% Fails with `{error,<<"cannot sign">>}`.
     S.
-    

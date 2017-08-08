@@ -250,4 +250,5 @@ test() ->
     Header2 = setelement(10, make_header(H1, 0, 0, 0, H, H, 0, 0), undefined),
     absorb([Header2]),
     H1 = block:hash(Header),
-    {ok, Header} = read(H1).
+    {ok, Header} = read(H1),
+    success.

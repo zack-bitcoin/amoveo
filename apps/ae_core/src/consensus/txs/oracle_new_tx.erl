@@ -1,6 +1,5 @@
-
 -module(oracle_new_tx).
--export([test/0, doit/3, make/10]).
+-export([doit/3, make/10]).
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
 		     fee = 0, 
@@ -88,6 +87,3 @@ doit(Tx, Trees0, NewHeight) ->
     NewOracles = oracles:write(ON, Oracles),
     Trees2 = trees:update_oracles(Trees, NewOracles),
     trees:update_accounts(Trees2, NewAccounts).
-    
-test() ->
-    success.
