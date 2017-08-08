@@ -1,6 +1,7 @@
 from base import ApiUser, DEV_1_INT, DEV_2_INT, DEV_3_INT
+from nose.tools import nottest
 
-
+@nottest
 class MarketTest(ApiUser):
     def test_market(self):
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
@@ -25,6 +26,7 @@ class MarketTest(ApiUser):
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
         self.request('new_difficulty_oracle', DEV_1_INT, [0, 7000], sleep=0.1)
+        self.request('mine_block', DEV_1_INT, [1, 1], sleep=3)
         self.request('oracle_bet', DEV_1_INT, [1, 3, 269], sleep=0.1)
         self.request('mine_block', DEV_1_INT, [3, 1], sleep=3)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)

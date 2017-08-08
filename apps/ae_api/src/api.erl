@@ -280,7 +280,7 @@ integer_channel_balance(Ip, Port) ->
     SPK = testnet_sign:data(SSPK),
     SS = channel_feeder:script_sig_them(CD),
     {Trees, NewHeight, _Txs} = tx_pool:data(),
-    Channels = trees:accounts(Trees),
+    Channels = trees:channels(Trees),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, NewHeight, 0, Trees),
     CID = spk:cid(SPK),
     {_, Channel, _} = channels:get(CID, Channels),

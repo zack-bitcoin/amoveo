@@ -1,4 +1,12 @@
-the unit tests are failing probablistically. Sometimes the proofs are invalid. We need to find out why, and fix it.
+proofs:facts_to_dict needs to verify that the root hash of each tree is valid for the header.
+
+we need to make sure it is possible for channels to tell if an oracle asking a particular question was launched. That way we can conditionally send a payment depending on if it does.
+It doesn't matter the number of the oracle, which question it asks matters.
+Maybe oracles should be stored by the hash of the question.
+
+Spending should optionally reference a recent hash. That way it is easy to spend coins only on one side of the fork, if the blockchain should split.
+
+We need to test the case where your channel partner deletes their account. It needs to still be possible to get your money out of the channel.
 
 grow_channel_tx:good/1 needs to be implemented
 
@@ -11,15 +19,9 @@ The SPK should reference this number.
 If the SPK doesn't match this number, then it is an invalid tx.
 With this update, it probably becomes secure to withdraw some of the money from the channel without closing the channel.
 
-
 We tests for oracle_bet. multi-block tests, so that we have to generate a proof of the intermediate data.
 
 We need to test the case where someone who is participating in the oracle deletes their own account. It needs to still be possible to bet in the oracle and close the oracle.
-
-
-There is a problem with how orders are stored in the order book. When we store by id, you can't make a proof of the order's current state, because you don't know what it is until the tx runs.
-So instead we should store orders by the account id that made it.
-
 
 spending shares is really messy right now.
 The person who spends shares needs to be trustlessly paid in some other currency, preferably any other currency that hashlocks with sha256.
@@ -28,6 +30,12 @@ If we want to use a market to trade shares, then we need to be able to hashlock 
 In order to do this, the shares would have to be locked into the channel the same way AE tokens are.
 
 The shares in a channel need to be stored as a tree, the same way as accounts hold shares. this way channels are constant sized.
+Storing the shares as a tree might not work.
+Maybe shares is a bad idea.
+Maybe each channel should only hold one kind of share at a time.
+
+We cannot store channels this way. The final channel state is calculated in a channel_slash_tx or a channel_solo_close_tx, but the oracle's money is transfered to the accounts on a channel_timeout_tx.
+If there were unlimited shares, we would have to include in the merkle structure who gets which shares.
 
 the prev_hashes should be stored with headers, not with blocks. That way we can look up headers quickly.
 

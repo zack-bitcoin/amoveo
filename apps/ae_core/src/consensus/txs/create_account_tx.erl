@@ -8,6 +8,9 @@ pubkey(X) ->
     X#ca.pubkey.
 
 make(Pub, Amount, Fee, From, Trees) -> %To is a new ID. set it to any unused ID.
+    PS = size(Pub),
+    PS = size(From),
+    PS = constants:pubkey_size(),
     Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),
     Tx = #ca{from = From, nonce = accounts:nonce(Acc) + 1, pubkey = Pub, amount = Amount, fee = Fee},

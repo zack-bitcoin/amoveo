@@ -125,6 +125,9 @@ prove2([{Tree, Key}|T], Trees) ->
 		  path = Path, 
 		  value = Data2,
 		  tree = tree_to_int(Tree)},
+    io:fwrite(packer:pack({proofs_prove2_proof, Proof})),
+    io:fwrite("\n"),
+    true = Tree:verify_proof(Root, Key, Data2, Path),
     [Proof|prove2(T, Trees)].
 facts_to_dict([], D) -> D;
 facts_to_dict([F|T], D) ->
@@ -132,7 +135,7 @@ facts_to_dict([F|T], D) ->
     %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
     io:fwrite("facts to dict "),
-    io:fwrite(packer:pack({Tree, F#proof.key})),
+    io:fwrite(packer:pack({Tree, F#proof.key, F})),
     io:fwrite("\n"),
     case Tree of
 	orders -> 
@@ -199,37 +202,59 @@ txs_to_querys([], _) -> [];
 txs_to_querys([STx|T], Trees) ->
     Tx = testnet_sign:data(STx),
     L = case element(1, Tx) of
-	    ca -> [{accounts, create_account_tx:from(Tx)},
-		   {accounts, create_account_tx:pubkey(Tx)}];
+	    ca -> [
+                   {accounts, create_account_tx:from(Tx)}% ,
+		   %{accounts, create_account_tx:pubkey(Tx)}%%
+                  ];
 	    spend -> 
-                [{accounts, spend_tx:from(Tx)},
-                 {accounts, spend_tx:to(Tx)}];
-	    da -> [{accounts, delete_account_tx:from(Tx)},
-		   {accounts, delete_account_tx:to(Tx)}];
-            nc -> [{accounts, new_channel_tx:acc1(Tx)},
-                   {accounts, new_channel_tx:acc2(Tx)},
-                   {channels, new_channel_tx:cid(Tx)}];
-	    gc -> [{accounts, grow_channel_tx:acc1(Tx)},
+                [
+                 {accounts, spend_tx:from(Tx)},
+                 {accounts, spend_tx:to(Tx)}
+                ];
+	    da -> [
+                   {accounts, delete_account_tx:from(Tx)},
+		   {accounts, delete_account_tx:to(Tx)}
+                  ];
+            nc -> [
+                   %{accounts, new_channel_tx:acc1(Tx)},%%
+                   %{accounts, new_channel_tx:acc2(Tx)},%%
+                   {channels, new_channel_tx:cid(Tx)}
+                  ];
+	    gc -> [
+                   {accounts, grow_channel_tx:acc1(Tx)},
 		   {accounts, grow_channel_tx:acc2(Tx)},
-		   {channels, grow_channel_tx:id(Tx)}];
-	    ctc -> [{accounts, channel_team_close_tx:aid1(Tx)},
+		   {channels, grow_channel_tx:id(Tx)}
+                  ];
+	    ctc -> [
+                    {accounts, channel_team_close_tx:aid1(Tx)},
 		    {accounts, channel_team_close_tx:aid2(Tx)},
-		    {channels, channel_team_close_tx:id(Tx)}];
+		    {channels, channel_team_close_tx:id(Tx)}
+                   ];
 	    csc -> 
-                [{accounts, channel_solo_close:from(Tx)},
-                 {channels, channel_solo_close:id(Tx)}];
+                [
+                 {accounts, channel_solo_close:from(Tx)},
+                 {channels, channel_solo_close:id(Tx)}
+                ];
 	    timeout -> 
-                [{accounts, channel_timeout_tx:spk_aid1(Tx)},
+                [
+                 {accounts, channel_timeout_tx:spk_aid1(Tx)},
                  {accounts, channel_timeout_tx:spk_aid2(Tx)},
-                 {channels, channel_timeout_tx:cid(Tx)}];
+                 {channels, channel_timeout_tx:cid(Tx)}
+                ];
 	    cs -> 
-                [{accounts, channel_slash_tx:from(Tx)},
-                 {channels, channel_slash_tx:id(Tx)}];
+                [
+                 {accounts, channel_slash_tx:from(Tx)},
+                 {channels, channel_slash_tx:id(Tx)}
+                ];
 	    ex -> 
-                [{accounts, existence_tx:from(Tx)},
-                 {existence, existence_tx:commit(Tx)}];
-	    oracle_new -> [{accounts, oracle_new_tx:from(Tx)},
-                           {oracles, oracle_new_tx:id(Tx)}];
+                [
+                 {accounts, existence_tx:from(Tx)},
+                 {existence, existence_tx:commit(Tx)}
+                ];
+	    oracle_new -> [
+                           {accounts, oracle_new_tx:from(Tx)},
+                           {oracles, oracle_new_tx:id(Tx)}
+                          ];
 	    oracle_bet -> 
                 %calculate the orders proof
                 %This potentially changes a lot of accounts. If many bets get matched against this bet.
@@ -246,23 +271,29 @@ txs_to_querys([STx|T], Trees) ->
                     make_orders(Pubkeys, OID),
                  [{oracles, oracle_bet_tx:id(Tx)}] ++
                     Prove;
-	    oracle_close -> [{accounts, oracle_close_tx:from(Tx)},
-                             {oracles, oracle_close_tx:oracle_id(Tx)}];
+	    oracle_close -> [
+                             {accounts, oracle_close_tx:from(Tx)},
+                             {oracles, oracle_close_tx:oracle_id(Tx)}
+                            ];
 	    unmatched -> 
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
                 [
                  {orders, #key{pub = From, id = OID}},
                  {accounts, From},
-                 {oracles, OID}];
+                 {oracles, OID}
+                ];
 	    oracle_shares -> 
                 OID = oracle_shares_tx:oracle_id(Tx),
                 From = oracle_shares_tx:from(Tx),
                 [
                  {oracle_bets, #key{pub = From, id = OID}},
                  {accounts, From},
-                 {oracles, OID}];
-	    coinbase -> [{accounts, coinbase_tx:from(Tx)}]
+                 {oracles, OID}
+                ];
+	    coinbase -> [
+                         {accounts, coinbase_tx:from(Tx)}
+                        ]
 	end,
     L ++ txs_to_querys(T, Trees).
 remove(_, []) -> [];
@@ -313,6 +344,23 @@ test() ->
     Dict = facts_to_dict(Facts, dict:new()), %when processing txs, we use this dictionary to look up the state.
     Querys2 = dict:fetch_keys(Dict),
     Facts = prove(Querys2, Trees),
-    Dict.
-    %success.
+    Dict,
+    
+    ETxs = "g2wAAAAEaARkAAZzaWduZWRoBmQAAmNhbQAAAEEEhVmGzXqC2hD+5Qy6OXlpK62kiYLi9rwx7CAK96HowS4OOgO+1CphnkV5hxSFj9AuOkIGteOq9O0WI3iWLQ2GOmEBYRRtAAAAQQRHXAXlfMl3JIv7Ni5NmiaAhuff/NsmnCCnWElvuaemWoQ2aCFJzogO/dHY9yrDUsIHaqtS+iD1OW3KuPrpBgoCYjuaygBtAAAAYE1FVUNJUUR5Q0p1Y2h6TlEzUXBkbTk4VjFkWGNxQklEUjVlNDFoRWtlMGRvUkVNd2hBSWdKbjcza3hISzhNUXZDVUttcGEzbzRSWkJYR3FoMXNWV2NZZXNyQ3NRVlo4PWpoBGQABnNpZ25lZGgGZAACY2FtAAAAQQSFWYbNeoLaEP7lDLo5eWkrraSJguL2vDHsIAr3oejBLg46A77UKmGeRXmHFIWP0C46Qga146r07RYjeJYtDYY6YQJhFG0AAABBBFRjuCgudSTRU79SVoCBvWi55+N1QethvQI6LKUCoEPHvIfedkQLxnuD2VJHqoLrULmXyexRWs2sOTwyLsdyL+FiO5rKAG0AAABgTUVVQ0lRRG1naWwvSkxGRVJaN05LUEpZMHZFQ21nZUlsNFdkdU5SbmlzWkw2R25ZVFFJZ1dBOExUazNENEVva3EvWUY4U3d4SnljR1Ixd2RLejlRMWpJUmpyeEFzSDQ9amgEZAAGc2lnbmVkaApkAAJuY20AAABBBIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0NhjptAAAAQQRUY7goLnUk0VO/UlaAgb1ouefjdUHrYb0COiylAqBDx7yH3nZEC8Z7g9lSR6qC61C5l8nsUVrNrDk8Mi7Hci/hYTJhA2IAACcQYgAAJxFhAmEEYQFtAAAAYE1FWUNJUUQ4U1hNeUYxQmRnbWRaRVdHbWFFR3JncXRxTXUvRGZJYmZVMnE1eE94ZUdnSWhBTTU3L21wcmFucDdiVTBSK2RoMS9wZjBOeHViVWJIU256UEFrcFY5b1gwNW0AAABgTUVVQ0lIeTdhenJyYmxIdzdSdEVmRVRMcU5ERTdCUUhmb1Rnd29CVHlZV0JKcHd0QWlFQWxPcnRhY1k1NVFSNUZUVUpoVFltbW5TWldtSGZ4cFUvbmExbjJsSVhJdm89aARkAAZzaWduZWRoCmQAAm5jbQAAAEEER1wF5XzJdySL+zYuTZomgIbn3/zbJpwgp1hJb7mnplqENmghSc6IDv3R2Pcqw1LCB2qrUvog9Tltyrj66QYKAm0AAABBBFRjuCgudSTRU79SVoCBvWi55+N1QethvQI6LKUCoEPHvIfedkQLxnuD2VJHqoLrULmXyexRWs2sOTwyLsdyL+FhMmEBYgAAJxBiAAAnEWECYQRhAm0AAABgTUVRQ0lCZHlWUUhxRlZyQWFGMTVsN0NmajlyckU5THI3RFFUWVJrc3c5d3dMek1nQWlBOGZrMXpIVVgwdlN6b0dVQ05JTGRmRER5Y2lNMnlWVldLb0pnTGNUbUZhdz09bQAAAGBNRVFDSUJvV3pJQU9oUExqTXJjN0tnV3ZFOUxhWmdXdllqYTY0Mk10YzE0S3RFdXNBaUFhRktDTmNhQUFSck9NUVNCUmZMKzdPV054aHduaWdwRUZBc1JaL0c3MmVBPT1q",
+    %Txs = binary_to_term(base64:decode(ETxs)),
+    %io:fwrite(Txs),
+    {Pub3, Priv3} = testnet_sign:new_key(),
+    {Pub4, _} = testnet_sign:new_key(),
+    {NewTx, _} = create_account_tx:make(Pub3, 10, 10, keys:pubkey(), Trees),
+    {NewTx2, _} = create_account_tx:make(Pub4, 10, 10, keys:pubkey(), Trees),
+    CID = 7,
+    {NewTx3, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Pub3, 1, 1, 1, 1, 1),
+    Txs = [keys:sign(NewTx),
+           keys:sign(NewTx2),
+           testnet_sign:sign_tx(NewTx3, Pub3, Priv3)],
+    %io:fwrite(Txs),
+    Q2 = txs_to_querys(Txs, Trees),
+    prove(Q2, Trees).
+    
+    
 

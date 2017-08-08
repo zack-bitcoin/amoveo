@@ -60,6 +60,7 @@ class InternalAPITest(SwaggerTest):
         self.c(api.sync('127.0.0.1', 3020))
         self.c(api.sync('127.0.0.1.1', 3020), 405)
 
+    @nottest
     def test_mine_block(self):
         api = self.API['dev1']
         self.c(api.mine_block(2, 1))

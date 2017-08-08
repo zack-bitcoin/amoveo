@@ -36,7 +36,8 @@ doit({give_block, SignedBlock}) ->
     io:fwrite("received block\n"),
     io:fwrite(packer:pack(SignedBlock)),
     io:fwrite("\n"),
-    block_absorber:enqueue(SignedBlock),
+    %block_absorber:enqueue(SignedBlock),
+    block_absorber:save(SignedBlock),
     {ok, 0};
 doit({block, N, Many}) -> 
     {ok, block:read_many(N, Many)};

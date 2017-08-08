@@ -214,6 +214,7 @@ make(Header, Txs0, Trees, Pub) ->
     io:fwrite("\n"),
     Height = headers:height(Header),
     NewTrees = new_trees(Txs, Trees, Height+1, Pub, hash(Header)),
+    Proofs = proofs:prove(Querys, Trees),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -223,8 +224,10 @@ make(Header, Txs0, Trees, Pub) ->
 		   version = constants:version(),
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header),
-		   proofs = proofs:prove(Querys, Trees)
-		  }.
+		   proofs = Proofs
+		  },
+    _Dict = proofs:facts_to_dict(Proofs, dict:new()),
+    Block.
     
 guess_number_of_cpu_cores() ->
     case application:get_env(ae_core, test_mode, false) of
@@ -250,6 +253,7 @@ spawn_many(N, F) ->
    
 mine(Rounds) -> 
     Top = headers:top(),
+    timer:sleep(100),
     PB = block:read(Top),
     {_, _, Txs} = tx_pool:data(),
     Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
@@ -296,7 +300,7 @@ check(Block) ->
     Header = block_to_header(Block),
     BlockHash = hash(Block),
     {ok, Header} = headers:read(BlockHash),
-
+    
     Dict = proofs:facts_to_dict(Facts, dict:new()),
 
     OldBlock = read(Block#block.prev_hash),

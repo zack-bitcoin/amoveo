@@ -43,6 +43,7 @@ spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
 			  [], 0,0, 0, Delay, 
 			  Tx#nc.entropy).
 make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Entropy,Delay, Fee) ->
+    true = is_integer(Entropy),
     Accounts = trees:accounts(Trees),
     {_, A, Proof} = accounts:get(Acc1, Accounts),
     Nonce = accounts:nonce(A),

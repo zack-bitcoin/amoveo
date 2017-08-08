@@ -48,6 +48,7 @@ start_link() ->
 init(ok) ->
     lager:info("~p started", [?MODULE]),
     State = initial_state(),
+    io:fwrite("blockchain ready\n"),
     {ok, State}.
 
 handle_call(dump, _From, _OldState) ->

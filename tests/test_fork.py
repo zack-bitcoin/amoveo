@@ -1,6 +1,5 @@
 from base import ApiUser, DEV_1_INT, DEV_2_INT, DEV_3_INT
 
-
 class ForkTest(ApiUser):
     #@nottest
     def test_mine_and_sync(self):

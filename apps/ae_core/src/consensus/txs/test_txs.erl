@@ -861,11 +861,10 @@ is_slash(STx) ->
 mine_blocks(Many) when Many < 1 -> ok;
 mine_blocks(Many) ->
     %only works if you set the difficulty very low.
-    timer:sleep(100),
     Top = headers:top(),
     PB = block:read(Top),
     {_, _, Txs} = tx_pool:data(),
     Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
     block:mine(Block, 10),
-    timer:sleep(400),
+    timer:sleep(1000),
     mine_blocks(Many-1).

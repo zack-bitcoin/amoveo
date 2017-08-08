@@ -36,7 +36,8 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
 
 trade_blocks(Peer, L, 0) ->
     lager:debug("downloader blocks trade blocks 0 absorbing blocks"),
-    block_absorber:enqueue(L),
+    %block_absorber:enqueue(L),
+    block_absorber:save(L),
     Genesis = block:read_int(0),
     GH = block:hash(Genesis),
     send_blocks(Peer, block:hash(block:top()), GH, [], 0);

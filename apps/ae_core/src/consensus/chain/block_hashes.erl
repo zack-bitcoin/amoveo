@@ -18,11 +18,11 @@ terminate(_, X) ->
     db:save(?LOC, X),
     io:format("block_hashes died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({add, H}, X) ->
+handle_cast(_, X) -> {noreply, X}.
+handle_call({add, H}, _From, X) ->
     N = i_insert(H, X),
     db:save(?LOC, N),%This line is only necessary for power failures
-    {noreply, N};
-handle_cast(_, X) -> {noreply, X}.
+    {reply, ok, N};
 handle_call({check, H}, _From, X) ->
     B = i_check(H, X), 
     {reply, B, X} ;
@@ -30,7 +30,7 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 add(X) -> 
     true = size(X) == constants:hash_size(),
-    gen_server:cast(?MODULE, {add, X}).
+    gen_server:call(?MODULE, {add, X}).
 
 check(X) ->
     true = size(X) == constants:hash_size(),
