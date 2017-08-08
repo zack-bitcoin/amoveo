@@ -190,4 +190,4 @@ test() ->
     Account = deserialize(Serialized),
     NewLoc = write(0, Account),
     {_, Account, _} = get(Pub, NewLoc),
-    ok.
+    success.

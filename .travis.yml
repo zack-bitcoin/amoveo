@@ -18,6 +18,7 @@ matrix:
 env:
   - JOB=swagger
   - JOB=tests
+  - JOB=tester
   - JOB=unit-tests
   - JOB=dialyzer
   - JOB=xref

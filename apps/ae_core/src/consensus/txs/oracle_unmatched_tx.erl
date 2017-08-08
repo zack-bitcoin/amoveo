@@ -1,5 +1,5 @@
 -module(oracle_unmatched_tx).
--export([test/0, make/5, doit/3]).
+-export([make/5, doit/3]).
 %If you had money in orders in the oracle order book when the oracle_close transaction happened, this is how you get the money out.
 -record(unmatched, {from, nonce, fee, oracle_id, order_id}).
 
@@ -27,6 +27,3 @@ doit(Tx, Trees, NewHeight) ->
     Facc = accounts:update(AID, Trees, Amount-Tx#unmatched.fee, Tx#unmatched.nonce, NewHeight),
     Accounts2 = accounts:write(Accounts, Facc),
     trees:update_accounts(Trees2, Accounts2).
-
-test() ->
-    success.

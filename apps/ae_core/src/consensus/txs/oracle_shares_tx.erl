@@ -1,5 +1,5 @@
 -module(oracle_shares_tx).
--export([test/0, doit/3, make/4]).
+-export([doit/3, make/4]).
 
 %If you bet in an oracle, and the oracle has closed, this is how you get your shares out.
 %If you bet on the winning outcome, then you get positive shares. If you bet on one of the losing outcomes, then you get negative shares.
@@ -36,5 +36,3 @@ doit(Tx, Trees, NewHeight) ->
     
     Accounts2 = accounts:write(Accounts, Acc3),
     trees:update_accounts(Trees, Accounts2).
-test() ->
-    success.
