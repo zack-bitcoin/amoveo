@@ -230,7 +230,7 @@ test() ->
     {_, empty, _} = get(ID1, Root5), 
     {_, {order, 6, Pub1, 10, 0}, _} = get(6, Root5),
     {Matches1, Matches2, Matches3, Matches4},
-    io:fwrite("TEST orders, about to remove \n"),
+    lager:info("TEST orders, about to remove"),
     Root6 = remove(ID1, Root2),
     {_, empty, _} = get(ID1, Root6),
     {_, {order, 3, Pub2, 100, _}, _} = get(ID2, Root6),

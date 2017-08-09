@@ -143,11 +143,10 @@ test() ->
     X = set_result(X0, 3),
     X2 = deserialize(serialize(X)),
     X3 = X2#oracle{orders = X#oracle.orders},
-    io:fwrite(packer:pack({oracles_test, X, X3})),
+    lager:info("~s", [packer:pack({oracles_test, X, X3})]),
     X = X3,
     NewLoc = write(X, Root),
     {_, X, _} = get(X#oracle.id, NewLoc),
-    %io:fwrite({X, X3}),
     {_, empty, _} = get(X#oracle.id, 0),
     success.
     
