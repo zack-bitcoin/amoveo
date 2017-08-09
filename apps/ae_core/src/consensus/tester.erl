@@ -1,8 +1,8 @@
 -module(tester).
 -export([test/0]).
 test() ->
-    io:fwrite("You need to clean the state of the node before running this test. Make sure you don't download anything from peers before running this test.\n"),
-    io:fwrite("You need to clean the state of the node after running this test, before you can run an Aeternity node.\n"),
+    lager:info("You need to clean the state of the node before running this test. Make sure you don't download anything from peers before running this test.~n"
+               "You need to clean the state of the node after running this test, before you can run an Aeternity node."),
     case keys:status() of
 	unlocked -> test1();
 	_ -> "you need to unlock with keys:unlock(""password"") first"
@@ -10,34 +10,36 @@ test() ->
 
 test1() ->
     S = success,
+    lager:info("db test"),
     S = db:test(),
-    io:fwrite("sign test\n"),
+    lager:info("sign test"),
     S = testnet_sign:test(),
+    lager:info("packer test"),
     S = packer:test(),
-    io:fwrite("encryption test\n"),
+    lager:info("encryption test"),
     S = encryption:test(),
-    io:fwrite("fractions test\n"),
+    lager:info("fractions test"),
     S = ae_core_fractions:test(),
-    io:fwrite("merkel tree tests\n"),
+    lager:info("merkel tree tests"),
     S = tree_test:test(),
-    io:fwrite("block hashes test\n"),
+    lager:info("block hashes test"),
     S = block_hashes:test(),
-    io:fwrite("block test\n"),
+    lager:info("block test"),
     S = block:test(),
-    io:fwrite("spk test\n"),
+    lager:info("spk test"),
     S = spk:test(),
-    io:fwrite("txs test\n"),
+    lager:info("txs test"),
     S = test_txs:test(),
-    io:fwrite("existence test\n"),
+    lager:info("existence test"),
     S = existence:test(),
-    io:fwrite("order_book test\n"),
+    lager:info("order_book test"),
     S = order_book:test(),
-    %io:fwrite("market test\n"),
+    %lager:info("market test"),
     %S = market:test(), %% This test has side effects i.e. it absorbs transactions.
-    %io:fwrite("chalang test\n"),
+    %lager:info("chalang test"),
     %S = test_chalang:test(), %% Module test_chalang needs review as even passing folder it runs other tests with hardcoded folder.
-    %io:fwrite("block header test\n"),
+    %lager:info("block header test"),
     %S = headers:test(), %% This test has side effects i.e. it absorbs header.
-    %io:fwrite("keys test\n"),
+    %lager:info("keys test"),
     %S = keys:test(), %% Fails with `{error,<<"cannot sign">>}`.
     S.
