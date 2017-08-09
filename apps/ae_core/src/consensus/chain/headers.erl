@@ -17,8 +17,10 @@
          code_change/3]).
 -export([test/0]).
 
--record(header, {height,
-                 prev_hash,
+-export_type([header/0, height/0, block_header_hash/0, serialized_header/0]).
+
+-record(header, {height :: height(),
+                 prev_hash :: block_header_hash(),
                  trees_hash,
                  txs_proof_hash,
                  time,
@@ -26,8 +28,13 @@
                  version,
                  nonce,
                  accumulative_difficulty = 0}).
--record(s, {headers = dict:new(),
-            top = #header{}}).
+-record(s, {headers = dict:new() :: dict:dict(block_header_hash(), header()),
+            top = #header{} :: header()}).
+
+-type height() :: non_neg_integer().
+-type block_header_hash() :: binary().
+-opaque header() :: #header{}.
+-type serialized_header() :: binary().
 
 %% API functions
 
@@ -41,6 +48,7 @@ nonce(H) -> H#header.nonce.
 difficulty(H) -> H#header.difficulty.
 accumulative_difficulty(H) -> H#header.accumulative_difficulty.
 
+-spec absorb([header()]) -> ok.
 absorb([]) ->
     ok;
 absorb([First|T]) when is_binary(First) ->
@@ -78,15 +86,18 @@ check_difficulty(A) ->
         end,
     {B == A#header.difficulty, B}.
 
+-spec read(block_header_hash()) -> {ok, header()}.
 read(Hash) ->
     gen_server:call(?MODULE, {read, Hash}).
 
+-spec top() -> header().
 top() ->
     gen_server:call(?MODULE, {top}).
 
 dump() ->
     gen_server:call(?MODULE, {dump}).
 
+-spec hard_set_top(header()) -> ok.
 hard_set_top(Header) ->
     gen_server:call(?MODULE, {hard_set_top, Header}).
 
@@ -116,6 +127,7 @@ make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty) -
         _ -> error %the parent is unknown
     end.
 
+-spec serialize(header()) -> serialized_header().
 serialize(H) ->
     HB = constants:hash_size()*8,
     HtB = constants:height_bits(),
@@ -135,6 +147,7 @@ serialize(H) ->
       (H#header.nonce):HB
     >>.
 
+-spec deserialize(serialized_header()) -> header().
 deserialize(H) ->
     HB = constants:hash_size()*8,
     HtB = constants:height_bits(),
