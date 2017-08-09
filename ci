@@ -77,6 +77,11 @@ EOF
         ls -l "${BuildDir:?}"/_build/dev2/rel/ae_core/log/*
         for F in "${BuildDir:?}"/_build/dev2/rel/ae_core/log/*; do echo "${F:?}"; cat "${F:?}"; echo; done
         ;;
+    after_failure-tester)
+        BuildDir="${3:?}"
+        ls -l "${BuildDir:?}"/_build/local/rel/ae_core/log/*
+        for F in "${BuildDir:?}"/_build/local/rel/ae_core/log/*; do echo "${F:?}"; cat "${F:?}"; echo; done
+        ;;
     after_failure-*)
         true
         ;;
