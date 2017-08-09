@@ -24,4 +24,4 @@ env:
   - JOB=xref
 cache:
   directories:
-    - .plt
+    - $HOME/.cache/rebar3
