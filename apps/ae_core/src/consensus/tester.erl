@@ -10,8 +10,6 @@ test() ->
 
 test1() ->
     S = success,
-    io:fwrite("constants test\n"),
-    S = constants:test(),
     S = db:test(),
     io:fwrite("sign test\n"),
     S = testnet_sign:test(),

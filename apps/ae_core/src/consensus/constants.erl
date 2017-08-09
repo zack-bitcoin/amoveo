@@ -175,8 +175,3 @@ channel_granularity() ->
 channel_nonce_space() ->    
     %this is how big the nonce output from a smart contract can be without changing the nonce of the channel.
     1000.
-
-test() ->
-    success.
-
-
