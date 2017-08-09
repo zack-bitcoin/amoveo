@@ -7,8 +7,10 @@
          guess_number_of_cpu_cores/0, top/0
         ]).
 
--record(block, {height,
-                prev_hash,
+-export_type([block/0]).
+
+-record(block, {height :: headers:height(),
+                prev_hash :: headers:block_header_hash(),
                 trees_hash,
                 time,
                 difficulty,
@@ -29,6 +31,9 @@
 %A hash of a datastructure containing all the proofs for this block.
 %So when you are loading the block,
 %you can know if a proof has been manipulated immediately.
+
+-opaque block() :: #block{}.
+
 height(B) -> B#block.height.
 prev_hash(B) -> B#block.prev_hash.
 txs(B) -> B#block.txs.
@@ -54,6 +59,12 @@ block_to_header(B) ->
                         B#block.nonce,
                         B#block.difficulty).
 
+-spec hash(block() |
+           headers:header() |
+           headers:serialized_header() |
+           headers:block_header_hash()
+          ) -> headers:block_header_hash();
+          (error) -> error.
 hash(error) -> error;
 hash(B) when is_binary(B) ->
     case size(B) == constants:hash_size() of
@@ -82,6 +93,11 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
             calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
     end.
 
+-spec get_by_hash(Hash) -> empty | block() when
+      Hash :: block()
+            | headers:header()
+            | headers:serialized_header()
+            | headers:block_header_hash().
 get_by_hash(H) ->
     Hash = hash(H),
     BlockFile = ae_utils:binary_to_file_path(blocks, Hash),
@@ -89,9 +105,12 @@ get_by_hash(H) ->
         [] -> empty;
         Block -> binary_to_term(zlib:uncompress(Block))
     end.
+
+-spec top() -> block().
 top() ->
     TH = headers:top(),
     top(TH).
+
 top(Header) ->
     case get_by_hash(hash(Header)) of
         empty -> 
@@ -107,8 +126,12 @@ lgh(1, X) ->
 lgh(N, X) ->
     lgh(N div 2, X+1).
 
+-spec get_by_height(headers:height()) -> empty | block().
 get_by_height(N) ->
     get_by_height_in_chain(N, headers:top()).
+
+-spec get_by_height_in_chain(headers:height(), Chain::headers:header()) ->
+                                    empty | block().
 get_by_height_in_chain(N, BH) when N > -1 ->
     Block = get_by_hash(hash(BH)),
     case Block of
