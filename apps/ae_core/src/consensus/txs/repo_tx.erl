@@ -20,7 +20,7 @@ doit(Tx, Trees, NewHeight) ->
     To = Tx#repo.target,
     false = From == To,
     {_, Tacc, _} = accounts:get(To, Accounts),
-    NB = accounts:now_balance(Tacc, 0, NewHeight, Trees),
+    NB = accounts:new_balance(Tacc, 0, NewHeight, Trees),
     true = NB =< 0,
     Governance = trees:governance(Trees),
     DAR = governance:get_value(delete_account_reward, Governance),

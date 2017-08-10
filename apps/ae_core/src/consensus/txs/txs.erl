@@ -32,9 +32,9 @@ digest([SignedTx | Txs], Trees, Height) ->
     digest(Txs, NewTrees, Height).
 digest2(Tx, Trees, H) ->
     case element(1, Tx) of
-        ca -> create_account_tx:doit(Tx, Trees, H);
+        create_acc_tx -> create_account_tx:doit(Tx, Trees, H);
         spend -> spend_tx:doit(Tx, Trees, H);
-        da -> delete_account_tx:doit(Tx, Trees, H);
+        delete_acc_tx -> delete_account_tx:doit(Tx, Trees, H);
         %repo -> repo_tx:doit(Tx, Trees, H);
         nc -> new_channel_tx:doit(Tx, Trees, H);
         gc -> grow_channel_tx:doit(Tx, Trees, H);

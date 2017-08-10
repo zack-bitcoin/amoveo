@@ -46,7 +46,7 @@ function tx2html(tx) {
     if (t[0] == "channel_slash") {
 	return "stop your partner from closing channel at wrong state. this account ".concat(t[1]).concat(" used this nonce ").concat(t[2]).concat(" to close the channel with this id: ").concat(t[3][1][6]).concat(" and paid this fee ").concat(t[4]).concat("<br/>");
     }
-    if (t[0] == "ca") {
+    if (t[0] == "create_account_tx") {
 	return "create a new account. Created by ".concat(t[1]).concat(" used this nonce: ").concat(t[2]).concat(" with initial balance: ").concat(t[4]).concat(" paying this fee ").concat(t[5]).concat(" with this pubkey: ").concat(atob(t[3])).concat("<br/>");
     }
     if (t[0] == "spend") {

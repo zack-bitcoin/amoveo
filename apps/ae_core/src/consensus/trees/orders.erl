@@ -75,11 +75,11 @@ deserialize(B) ->
 write(X, Root) -> 
     V = serialize(X),
     Pubkey = aid(X),
-    HP = accounts:pub_decode(Pubkey),
+    HP = accounts:ensure_decoded_hashed(Pubkey),
     HPID = trees:hash2int(HP),
     trie:put(HPID, V, 0, Root, ?name).
 get(Pub, Root) ->
-    HP = accounts:pub_decode(Pub),
+    HP = accounts:ensure_decoded_hashed(Pub),
     HPID = trees:hash2int(HP),
     {RH, Leaf, Proof} = trie:get(HPID, Root, ?name),
     V = case Leaf of
@@ -179,7 +179,7 @@ remove2(ID, Root, P) ->
 	    remove2(ID, Root, X)
     end.
 delete(Pub, Root) ->
-    HP = accounts:pub_decode(Pub),
+    HP = accounts:ensure_decoded_hashed(Pub),
     HPID = trees:hash2int(HP),
     trie:delete(HPID, Root, ?name).
 match(Order, Root) ->
@@ -239,7 +239,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
 	    X -> serialize(X)
 	end,
     verify:proof(RootHash, 
-		 leaf:new(trees:hash2int(accounts:pub_decode(Key)), 
+		 leaf:new(trees:hash2int(accounts:ensure_decoded_hashed(Key)), 
                           V, 0, CFG), 
 		 Proof, CFG).
 

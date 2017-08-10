@@ -96,7 +96,7 @@ test() ->
     Accounts3 = trees:accounts(Trees3),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:make(NewPub, Amount, Fee, constants:master_pub(), Trees3),
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees3),
     Stx3 = keys:sign(Ctx),
     test_txs:absorb(Stx3),
     {Trees4, _, _} = tx_pool:data(),

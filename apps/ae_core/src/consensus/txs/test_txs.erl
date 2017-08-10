@@ -29,9 +29,9 @@ absorb(Tx) ->
     tx_pool_feeder:absorb(Tx).
     %timer:sleep(400).
 test(1) ->
-    io:fwrite(" create_account tx\n"),
+    lager:info(" create_account tx"),
     %create account, spend, delete account
-    BP = block:read_int(0, headers:top()),
+    BP = block:get_by_height_in_chain(0, headers:top()),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -39,7 +39,7 @@ test(1) ->
     {NewPub,NewPriv} = testnet_sign:new_key(),
 
     Fee = 20,
-    {Ctx, _} = create_account_tx:make(NewPub, 100000000, Fee, constants:master_pub(), Trees),
+    {Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2,  _, _} = tx_pool:data(),
@@ -49,17 +49,17 @@ test(1) ->
     absorb(Stx2),
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
-    {Ctx3, _} = delete_account_tx:make(constants:master_pub(), NewPub, Fee, Trees3),
+    {Ctx3, _} = delete_account_tx:new(constants:master_pub(), NewPub, Fee, Trees3),
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
     {Trees4, _, _} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),
-    {Ctx4, _} = create_account_tx:make(NewPub, 100000000, Fee, constants:master_pub(), Trees4),
+    {Ctx4, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees4),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
 
     {Trees5, _, Txs} = tx_pool:data(),
-    BP2 = block:read_int(0),
+    BP2 = block:get_by_height(0),
     PH = block:hash(BP2),
 
     Block = block:make(block:block_to_header(BP2), Txs, Trees, constants:master_pub()),%1 is the master pub
@@ -70,9 +70,8 @@ test(1) ->
     success;
     
 test(2) ->
-    io:fwrite(" repo tx\n"),
-    %repo_tx
-    BP = block:read_int(0),
+    lager:info(" repo tx"),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -80,7 +79,7 @@ test(2) ->
     {NewPub,_NewPriv} = testnet_sign:new_key(),
 
     Fee = 20,
-    {Ctx, _Proof} = create_account_tx:make(NewPub, 0, Fee, constants:master_pub(), Trees),
+    {Ctx, _Proof} = create_account_tx:new(NewPub, 0, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
@@ -97,12 +96,12 @@ test(2) ->
     {true, _} = block:check(Block),
     success;
 test(3) ->
-    io:fwrite(" new channel tx\n"),
+    lager:info(" new channel tx"),
     %new channel, grow channel, channel team close
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
@@ -110,7 +109,7 @@ test(3) ->
 
     Fee = 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:make(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
@@ -148,27 +147,26 @@ test(3) ->
     success;
     
 test(4) -> 
-    %channel repo
-    io:fwrite(" channel repo tx\n"),
+    lager:info(" channel repo tx"),
     tx_pool:dump(),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
-    io:fwrite(" channel repo tx22\n"),
+    lager:info(" channel repo tx22"),
 
     Fee = 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:make(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
     Accounts2 = trees:accounts(Trees2),
-    io:fwrite(" channel repo tx3\n"),
+    lager:info(" channel repo tx3"),
 
     CID = 5,
     Entropy = 432, 
@@ -180,31 +178,31 @@ test(4) ->
     absorb(SStx2),
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
-    io:fwrite(" channel repo tx4\n"),
+    lager:info(" channel repo tx4"),
 
     {Ctx4, _} = channel_repo_tx:make(constants:master_pub(), CID, Fee, Trees3),
-    io:fwrite(" channel repo tx5\n"),
+    lager:info(" channel repo tx5"),
     Stx4 = keys:sign(Ctx4),
-    io:fwrite(" channel repo tx51\n"),
+    lager:info(" channel repo tx51"),
     absorb(Stx4),
-    io:fwrite(" channel repo tx52\n"),
+    lager:info(" channel repo tx52"),
     {_,_,Txs} = tx_pool:data(),
-    io:fwrite(" channel repo tx6\n"),
+    lager:info(" channel repo tx6"),
 
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
     {true, _} = block:check(Block),
-    io:fwrite(" channel repo tx7\n"),
+    lager:info(" channel repo tx7"),
     success;
     
 test(5) -> 
     %channel solo close, channel timeout
-    io:fwrite("channel solo close tx\n"),
+    lager:info("channel solo close tx"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
@@ -212,7 +210,7 @@ test(5) ->
     
     Fee = 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:make(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
@@ -254,12 +252,11 @@ test(5) ->
     {true, _} = block:check(Block),
     success;
 test(6) -> 
-    %channel slash
-    io:fwrite("\nchannel slash tx\n"),
+    lager:info("channel slash tx"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     tx_pool:dump(),
     Trees = block:trees(BP),
@@ -268,7 +265,7 @@ test(6) ->
 
     Fee = 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:make(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
@@ -330,7 +327,7 @@ test(7) ->
     %existence tx
     headers:dump(),
     block:initialize_chain(),
-    io:fwrite("\nexistence test \n"),
+    lager:info("existence test"),
     S = <<"test data">>,
     tx_pool:dump(),
     {Trees,_,_} = tx_pool:data(),
@@ -342,7 +339,7 @@ test(7) ->
     {Trees2, _, _} = tx_pool:data(),
     ETree = trees:existence(Trees2),
     {_, C, _} = existence:get(existence:hash(C), ETree),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
@@ -351,8 +348,7 @@ test(7) ->
     {true, _} = block:check(Block),
     success;
 test(8) ->
-    %spend shares
-    io:fwrite("\nspend shares test\n"),
+    lager:info("spend shares test"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -360,7 +356,7 @@ test(8) ->
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Fee = 20,
-    {Ctx, _} = create_account_tx:make(NewPub, 1000000000, Fee, constants:master_pub(), Trees),
+    {Ctx, _} = create_account_tx:new(NewPub, 1000000000, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
@@ -402,7 +398,7 @@ test(8) ->
     {_, empty, _} = shares:get(100, S4),
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
@@ -412,8 +408,7 @@ test(8) ->
     %success;
     success;
 test(9) ->
-   %spend shares with channel. 
-    io:fwrite("spend shares with channel\n"),
+    lager:info("spend shares with channel"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -421,7 +416,7 @@ test(9) ->
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Fee = 20,
-    {Ctx, _} = create_account_tx:make(NewPub, 1000000000, Fee, constants:master_pub(), Trees),
+    {Ctx, _} = create_account_tx:new(NewPub, 1000000000, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
@@ -465,12 +460,10 @@ test(9) ->
     {_, empty, _} = shares:get(100, S4),
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
-    io:fwrite("txs are "),
-    io:fwrite(packer:pack(Txs)),
-    io:fwrite("\n"),
+    lager:info("txs are ~s", [packer:pack(Txs)]),
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
@@ -479,7 +472,7 @@ test(9) ->
     success;
 test(10) ->
    %spend shares with channel, with solo_close
-    io:fwrite("spend_shares with channel solo_close"),
+    lager:info("spend_shares with channel solo_close"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -487,7 +480,7 @@ test(10) ->
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Fee = 20,
-    {Ctx, _} = create_account_tx:make(NewPub, 1000000000, Fee, constants:master_pub(), Trees),
+    {Ctx, _} = create_account_tx:new(NewPub, 1000000000, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
@@ -516,7 +509,6 @@ test(10) ->
     {Trees4, _, _} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),
     SC = shares:to_code(Shares),
-    %io:fwrite(SC),
     Code = compiler_chalang:doit(
 	     <<<<"int 50 ">>/binary,%channel nonce is 1, sends 50.
 	       SC/binary>>),
@@ -532,7 +524,6 @@ test(10) ->
     Accounts5 = trees:accounts(Trees5),
     %Channels3 = trees:channels(Trees5),
     {Ctx5, _} = channel_timeout_tx:make(constants:master_pub(),Trees5,CID,Shares,Fee),
-    %io:fwrite(packer:pack(Ctx5)),
     Stx5 = keys:sign(Ctx5),
     absorb(Stx5),
 
@@ -549,7 +540,7 @@ test(10) ->
     {_, empty, _} = shares:get(101, S4),
     {_, empty, _} = shares:get(110, S4),
     {_, _, Txs} = tx_pool:data(),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
     Header = block:block_to_header(Block),
@@ -558,7 +549,7 @@ test(10) ->
     timer:sleep(1000),
     success;
 test(11) ->
-    io:fwrite("testing an oracle\n"),
+    lager:info("testing an oracle"),
     %testing the oracle
     %launch an oracle with oracle_new
     Question = <<>>,
@@ -614,17 +605,15 @@ test(11) ->
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     timer:sleep(100),
-    %BP = block:read_int(0),
     {_,Height6,Txs} = tx_pool:data(),
-    BP = block:read_int(Height6),
+    BP = block:get_by_height(Height6),
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, block:trees(BP), constants:master_pub()), 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
     {true, _} = block:check(Block),
     success;
 test(12) ->
-    %multiple bets in a single channel
-    io:fwrite("multiple bets in a single channel\n"),
+    lager:info("multiple bets in a single channel"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -634,7 +623,7 @@ test(12) ->
     
     Fee = 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:make(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
@@ -670,7 +659,7 @@ test(12) ->
     {Ctx4, _} = channel_timeout_tx:make(constants:master_pub(),Trees4,CID,[],Fee),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
-    BP = block:read_int(Height4),
+    BP = block:get_by_height(Height4),
     PH = block:hash(BP),
     {_,_,Txs} = tx_pool:data(),
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, block:trees(BP), constants:master_pub()), 10),
@@ -681,7 +670,7 @@ test(12) ->
 test(13) ->
     %testing the governance
     %launch an oracle with oracle_new, close it on state "bad", 
-    io:fwrite("test governance\n"),
+    lager:info("test governance"),
     Question = <<>>,
     OID = 6,
     Fee = 20,
@@ -715,7 +704,7 @@ test(13) ->
     absorb(Stx4),
 
     {_,H,Txs} = tx_pool:data(),
-    BP = block:read_int(H),
+    BP = block:get_by_height(H),
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, block:trees(BP), constants:master_pub()), 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
@@ -724,11 +713,11 @@ test(13) ->
     success;
 test(14) -> 
     %options
-    io:fwrite("options derivatives enforcement\n"),
+    lager:info("options derivatives enforcement"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
@@ -736,7 +725,7 @@ test(14) ->
 
     Fee = 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:make(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
@@ -784,7 +773,7 @@ test(14) ->
     {Ctx6, _} = channel_timeout_tx:make(constants:master_pub(),Trees6,CID,[],Fee),
     Stx6 = keys:sign(Ctx6),
     absorb(Stx6),
-    BP2 = block:read_int(0),
+    BP2 = block:get_by_height(0),
     PH = block:hash(BP2),
 
     {_,_,Txs} = tx_pool:data(),
@@ -796,11 +785,11 @@ test(14) ->
 
 test(15) ->
     %If your partner tries closing at a low-nonced channel state, your node needs to automatically create a channel_slash to stop them.
-    io:fwrite("channel slash automatic\n"),
+    lager:info("channel slash automatic"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    BP = block:read_int(0),
+    BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
@@ -808,7 +797,7 @@ test(15) ->
 
     Fee = 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:make(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
@@ -844,9 +833,7 @@ test(15) ->
     absorb(Stx3),
     timer:sleep(200),
     {_, _, Txs2} = tx_pool:data(),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack({slash_exists, Txs2})),
-    io:fwrite("\n"),
+    lager:info("~s", [packer:pack({slash_exists, Txs2})]),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),
@@ -862,7 +849,7 @@ mine_blocks(Many) when Many < 1 -> ok;
 mine_blocks(Many) ->
     %only works if you set the difficulty very low.
     Top = headers:top(),
-    PB = block:read(Top),
+    PB = block:get_by_hash(Top),
     {_, _, Txs} = tx_pool:data(),
     Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
     block:mine(Block, 10),

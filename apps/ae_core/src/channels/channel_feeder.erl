@@ -272,12 +272,12 @@ garbage_helper([H|T], C, OldC) ->
     garbage_helper(T, C, OldC).
    
 c_oldc() ->
-    Top = block:read(headers:top()),
+    Top = block:get_by_hash(headers:top()),
     Height = block:height(Top),
     {ok, ForkTolerance} = application:get_env(ae_core, fork_tolerance),
     OldHeight = Height - ForkTolerance,
     true = OldHeight > 0,
-    Old = block:read_int(OldHeight),
+    Old = block:get_by_height(OldHeight),
     C = block:channels(Top),
     OldC = block:channels(Old),
     {C, OldC}.

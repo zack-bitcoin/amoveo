@@ -384,6 +384,10 @@ paths:
           schema:
             $ref: '#/definitions/HeaderId'
       responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Header'
         '405':
           description: Invalid input
       security: []
@@ -404,6 +408,10 @@ paths:
           schema:
             $ref: '#/definitions/HeaderIds'
       responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Headers'
         '405':
           description: Invalid input
       security: []

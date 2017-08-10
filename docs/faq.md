@@ -7,7 +7,7 @@ The address is the hash of your public key. It is used to verify that your signa
 * how would one go about getting the transactions of an address
 
 To get the transactions created by an address you would have to look at every block, and check if that address made an payment. This is not easy to do by default.
-`PBlock = block:read_int(4).` would look up the 4th block_plus and store it in a variable.
+`PBlock = block:get_by_height(4).` would look up the 4th block_plus and store it in a variable.
 `block:txs(block:block(PBlock)).` returns the transactions spent in that block.
 Each transaction type has a different command for checking who spent that transaction. you can look up commands to deal with transactions in /src/consensus/txs/
 

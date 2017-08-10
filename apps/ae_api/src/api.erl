@@ -61,7 +61,6 @@ sign(Tx) ->
     
 tx_maker(F) -> 
     {Trees,_,_} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
     {Tx, _} = F(Trees),
     case keys:sign(Tx) of
 	{error, locked} -> 
@@ -70,15 +69,17 @@ tx_maker(F) ->
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
 create_account(NewAddr, Amount) ->
-    io:fwrite("easy create account \n"),
+    lager:info("Create account"),
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
-    Cost = governance:get_value(ca, Governance),
+    Cost = governance:get_value(create_acc_tx, Governance),
     create_account(NewAddr, Amount, ?Fee + Cost).
 create_account(NewAddr, Amount, Fee) ->
-    F = fun(Trees) ->
-		create_account_tx:make(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees) end,
-    tx_maker(F).
+    tx_maker(
+      fun(Trees) ->
+              create_account_tx:new(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees)
+      end).
+
 coinbase(ID) ->
     K = keys:pubkey(),
     {Trees, _, _} = tx_pool:data(),
@@ -100,16 +101,17 @@ spend(ID, Amount, Fee) ->
     F = fun(Trees) ->
 		spend_tx:make(ID, Amount, Fee, keys:pubkey(), Trees, []) end,
     tx_maker(F).
-    
+
 delete_account(ID) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
-    Cost = governance:get_value(da, Governance),
-    delete_account(ID, ?Fee+Cost).
+    Cost = governance:get_value(delete_acc_tx, Governance),
+    delete_account(ID, ?Fee + Cost).
 delete_account(ID, Fee) ->
-    F = fun(Trees) ->
-		delete_account_tx:make(ID, keys:pubkey(), Fee, Trees) end,
-    tx_maker(F).
+    tx_maker(
+      fun(Trees) ->
+              delete_account_tx:new(ID, keys:pubkey(), Fee, Trees)
+      end).
 
 repo_account(ID) ->   
     {Trees, _, _} = tx_pool:data(),
@@ -150,16 +152,6 @@ find_id(Name, N, Tree) ->
 	_ -> find_id(Name, N+1, Tree)
     end.
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
-    PR = peers:read(IP, Port),
-    if
-	<<"none">> == PR -> ok;
-	true ->
-	    PC = peers:cid(PR),
-	    if 
-		undefined == PC -> ok;
-		true -> PR = PC
-	    end
-    end,
     Acc1 = keys:pubkey(),
     {ok, Acc2} = talker:talk({pubkey}, IP, Port),
     Entropy = channel_feeder:entropy([Acc1, Acc2]) + 1,
@@ -473,7 +465,7 @@ channel_close(IP, Port, Fee) ->
     {ok, CD} = channel_manager:read(PeerId),
     SPK = testnet_sign:data(channel_feeder:them(CD)),
     {Trees,_,_} = tx_pool:data(),
-    Height = block:height(block:read(headers:top())),
+    Height = block:height(block:get_by_hash(headers:top())),
     SS = channel_feeder:script_sig_them(CD),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = spk:cid(SPK),
@@ -508,11 +500,11 @@ channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
     tx_maker(F).
 
 add_peer(IP, Port) ->
-    peers:add(IP, Port),
+    peers:add({IP, Port}),
     0.
 sync(IP, Port) ->
     lager:info("Sync with ~p ~p ~n", [IP, Port]),
-    MyHeight = block:height(block:read(headers:top())),
+    MyHeight = block:height(block:get_by_hash(headers:top())),
     ok = download_blocks:sync_all([{IP, Port}], MyHeight).
 
 keypair() ->
