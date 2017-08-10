@@ -1,0 +1,88 @@
+#!/bin/bash
+
+set -ev # Ref https://docs.travis-ci.com/user/customizing-the-build/#Implementing-Complex-Build-Steps
+set -x
+
+case "${1:?}"-"${2:?}" in
+    before_install-swagger)
+        BuildDir="${3:?}"
+        V="2.2.3"
+        ( cd "${BuildDir:?}" && curl -fL -o swagger-codegen-cli.jar "https://search.maven.org/remotecontent?filepath=io/swagger/swagger-codegen-cli/${V:?}/swagger-codegen-cli-${V:?}.jar"; )
+        cat > "${BuildDir:?}"/swagger-codegen <<EOF
+#!/bin/bash
+exec java -jar "${BuildDir:?}"/swagger-codegen-cli.jar "\$@"
+EOF
+        chmod +x "${BuildDir:?}"/swagger-codegen
+        ;;
+    before_install-tests)
+        BuildDir="${3:?}"
+        ( cd "${BuildDir:?}" && make nose-env; )
+        ;;
+    before_install-*)
+        true
+        ;;
+    install-dialyzer)
+        BuildDir="${3:?}"
+        ( cd "${BuildDir:?}" && ./rebar3 tree; )
+        ( cd "${BuildDir:?}" && ./rebar3 dialyzer -u true -s false; )
+        ;;
+    install-*)
+        true
+        ;;
+    script-swagger)
+        BuildDir="${3:?}"
+        Y="${BuildDir:?}"/config/swagger.yaml
+        C="${BuildDir:?}"/apps ## Code in general - including Swagger-generated code. Be broad on the path in order to avoid checking wrong directory following any Makefile changes.
+        J="${C:?}"/ae_http/priv/swagger.json
+        file "${Y:?}"
+        file "${J:?}"
+        TmpDir="$(mktemp -d)"
+        cp -pR "${C:?}" "${TmpDir:?}"/backup
+        OldC="${TmpDir:?}"/backup
+        OldJ="${OldC:?}"/ae_http/priv/swagger.json
+        ( cd "${BuildDir:?}" && PATH=.:"$PATH" make swagger; )
+        ## Check that re-generating JSON from YAML leads to same generated JSON.
+        diff "${OldJ:?}" "${J:?}"
+        ## Check that re-generating code from YAML leads to same generated code.
+        diff -r -N "${OldC:?}" "${C:?}"
+        ## Check whether spec is valid, and if not print why.
+        curl -f -X POST -d @"${J:?}" -H 'Content-Type:application/json' http://online.swagger.io/validator/debug
+        ;;
+    script-tests)
+        BuildDir="${3:?}"
+        ( cd "${BuildDir:?}" && make tests; )
+        ;;
+    script-tester)
+        BuildDir="${3:?}"
+        ( cd "${BuildDir:?}" && make local-build && make local-go && until ./_build/local/rel/ae_core/bin/ae_core ping; do printf "."; sleep 1; done; ./_build/local/rel/ae_core/bin/ae_core eval 'success = tester:test().'; )
+        ;;
+    script-unit-tests)
+        BuildDir="${3:?}"
+        ( cd "${BuildDir:?}" && make unit-tests; )
+        ;;
+    script-dialyzer)
+        BuildDir="${3:?}"
+        ( cd "${BuildDir:?}" && make dialyzer; )
+        ;;
+    script-xref)
+        BuildDir="${3:?}"
+        ( cd "${BuildDir:?}" && ./rebar3 xref; )
+        ;;
+    after_failure-tests)
+        BuildDir="${3:?}"
+        ls -l "${BuildDir:?}"/_build/dev3/rel/ae_core/log/*
+        for F in "${BuildDir:?}"/_build/dev3/rel/ae_core/log/*; do echo "${F:?}"; cat "${F:?}"; echo; done
+        ls -l "${BuildDir:?}"/_build/dev1/rel/ae_core/log/*
+        for F in "${BuildDir:?}"/_build/dev1/rel/ae_core/log/*; do echo "${F:?}"; cat "${F:?}"; echo; done
+        ls -l "${BuildDir:?}"/_build/dev2/rel/ae_core/log/*
+        for F in "${BuildDir:?}"/_build/dev2/rel/ae_core/log/*; do echo "${F:?}"; cat "${F:?}"; echo; done
+        ;;
+    after_failure-tester)
+        BuildDir="${3:?}"
+        ls -l "${BuildDir:?}"/_build/local/rel/ae_core/log/*
+        for F in "${BuildDir:?}"/_build/local/rel/ae_core/log/*; do echo "${F:?}"; cat "${F:?}"; echo; done
+        ;;
+    after_failure-*)
+        true
+        ;;
+esac

@@ -1,16 +1,20 @@
-
 -module(block_absorber).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,
-	 handle_cast/2,handle_info/2,init/1,terminate/2]).
 
 %% API
 -export([
-	 %enqueue/1, %% async request
+	 enqueue/1, %% async request
 	 save/1,    %% returs after saving
 	 garbage/0,
 	 do_save/1
 ]).
+-export([start_link/0]).
+-export([init/1,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         terminate/2,
+         code_change/3]).
 
 init(ok) -> 
     {ok, []}.
@@ -27,9 +31,10 @@ handle_cast({doit, BP}, X) ->
 handle_call({doit, BP}, _From, X) -> 
     absorb_internal(BP),
     {reply, ok, X}.
-%handle_call(_, _From, X) -> {reply, X, X}.
 garbage() ->
     gen_server:cast(?MODULE, garbage).
+
+%% API functions
 
 enqueue(InputBlocks) when is_list(InputBlocks) ->
     [enqueue(InputBlock) || InputBlock <- InputBlocks];
@@ -37,23 +42,21 @@ enqueue(InputBlock) ->
     headers:absorb([block:block_to_header(InputBlock)]),
     gen_server:cast(?MODULE, {doit, InputBlock}).
 
-
 save(InputBlocks) when is_list(InputBlocks) ->
     [save(InputBlock) || InputBlock <- InputBlocks];
 save(InputBlock) ->
     gen_server:call(?MODULE, {doit, InputBlock}).
 
-    
 absorb_internal(Block) ->
     BH = block:hash(Block),
     NextBlock = block:prev_hash(Block),
     case block_hashes:check(BH) of
 	true -> 
-	    io:fwrite("we have seen this block before, so block_absorber will ignore it\n"),
+            lager:info("We have seen this block before, so block_absorber will ignore it"),
 	    ok;%If we have seen this block before, then don't process it again.
 	false ->
 	    true = block_hashes:check(NextBlock), %check that the previous block is known.
-	    false = empty == block:read(NextBlock), %check that previous block was valid
+	    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 	    Header = block:block_to_header(Block),
 	    headers:absorb([Header]),
@@ -71,9 +74,12 @@ absorb_internal(Block) ->
                   end)
     end.   
 do_save(BlockPlus) ->
-    Z = zlib:compress(term_to_binary(BlockPlus)),
-    binary_to_term(zlib:uncompress(Z)),%sanity check, not important for long-term.
-    %Hash = testnet_hasher:doit(BlockPlus),
+    CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
+    binary_to_term(zlib:uncompress(CompressedBlockPlus)), % Sanity check, not important for long-term
     Hash = block:hash(BlockPlus),
-    BF = block:binary_to_file(Hash),
-    ok = db:save(BF, Z).
+    BlockFile = ae_utils:binary_to_file_path(blocks, Hash),
+    ok = db:save(BlockFile, CompressedBlockPlus).
+
+
+
+

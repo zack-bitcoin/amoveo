@@ -5,9 +5,6 @@
 %2^74 bits is 25 bitcoin =~ $10,000
 %2^64 bits is $10
 
-%-define(DEFAULT_MASTER_PUB, <<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>).
-%<<"BMs9FJOY3/h4Ip+lah0Rc4lZDEBbV3wHDZXtqUsWS1kz88bnBr18Q52HnuzdS7IzRuQCU1HVp/AWOnQM6LVcWWw=">>).
-
 key_length() ->
     24. 
 address_bits() ->
@@ -35,8 +32,6 @@ master_pub() ->
     {ok, X} = application:get_env(ae_core, master_pub),
     base64:decode(X).
 
-%master_address() ->
-%    testnet_sign:pubkey2address(master_pub()).
 max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
 gas_limit() -> 1000000.
 %200,000,000 is enough to find the first 10001 prime numbers.
@@ -90,8 +85,7 @@ channel_nonce_bits() -> 32.%maximum number of times you can update a channel's s
 channel_rent_bits() -> 8.
 channel_delay_bits() -> 32. %2^this is the maximum amount of blocks you could have to channel_slash if your channel partner tries to cheat.
 orders_bits() -> 32.
-account_size() ->    
-	%((balance_bits() + height_bits() + account_nonce_bits() + acc_bits() + key_length()) div 8) + (2*hash_size()).
+account_size() ->
 	((balance_bits() + height_bits() + account_nonce_bits()) div 8) + (2*hash_size()) + pubkey_size().
 channel_size() ->    
     ((%key_length() + %(address_bits()*2) + 
@@ -140,8 +134,6 @@ channel_entropy() -> 16. %Channel contracts only work for a channel with the sam
 fun_limit() -> 1000.
 var_limit() -> 10000.
 
-peers() ->
-    [].%[{IP, Port}| ...]
 comment_limit() -> %When a miner mines a block, they can set this many bytes to whatever they want.
     140.
 version() -> 3.
@@ -183,8 +175,3 @@ channel_granularity() ->
 channel_nonce_space() ->    
     %this is how big the nonce output from a smart contract can be without changing the nonce of the channel.
     1000.
-
-test() ->
-    success.
-
-

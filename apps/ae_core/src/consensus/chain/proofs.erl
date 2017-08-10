@@ -125,8 +125,8 @@ prove2([{Tree, Key}|T], Trees) ->
 		  path = Path, 
 		  value = Data2,
 		  tree = tree_to_int(Tree)},
-    io:fwrite(packer:pack({proofs_prove2_proof, Proof})),
-    io:fwrite("\n"),
+    %io:fwrite(packer:pack({proofs_prove2_proof, Proof})),
+    %io:fwrite("\n"),
     true = Tree:verify_proof(Root, Key, Data2, Path),
     [Proof|prove2(T, Trees)].
 facts_to_dict([], D) -> D;
@@ -134,9 +134,9 @@ facts_to_dict([F|T], D) ->
 %-record(proof, {tree, value, root, key, path}).
     %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
-    io:fwrite("facts to dict "),
-    io:fwrite(packer:pack({Tree, F#proof.key, F})),
-    io:fwrite("\n"),
+    %io:fwrite("facts to dict "),
+    %io:fwrite(packer:pack({Tree, F#proof.key, F})),
+    %io:fwrite("\n"),
     case Tree of
 	orders -> 
 	    K = F#proof.key,
@@ -202,7 +202,7 @@ txs_to_querys([], _) -> [];
 txs_to_querys([STx|T], Trees) ->
     Tx = testnet_sign:data(STx),
     L = case element(1, Tx) of
-	    ca -> [
+	    create_acc_tx -> [
                    {accounts, create_account_tx:from(Tx)}% ,
 		   %{accounts, create_account_tx:pubkey(Tx)}%%
                   ];
@@ -211,7 +211,7 @@ txs_to_querys([STx|T], Trees) ->
                  {accounts, spend_tx:from(Tx)},
                  {accounts, spend_tx:to(Tx)}
                 ];
-	    da -> [
+	    delete_acc_tx -> [
                    {accounts, delete_account_tx:from(Tx)},
 		   {accounts, delete_account_tx:to(Tx)}
                   ];
@@ -351,8 +351,8 @@ test() ->
     %io:fwrite(Txs),
     {Pub3, Priv3} = testnet_sign:new_key(),
     {Pub4, _} = testnet_sign:new_key(),
-    {NewTx, _} = create_account_tx:make(Pub3, 10, 10, keys:pubkey(), Trees),
-    {NewTx2, _} = create_account_tx:make(Pub4, 10, 10, keys:pubkey(), Trees),
+    {NewTx, _} = create_account_tx:new(Pub3, 10, 10, keys:pubkey(), Trees),
+    {NewTx2, _} = create_account_tx:new(Pub4, 10, 10, keys:pubkey(), Trees),
     CID = 7,
     {NewTx3, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Pub3, 1, 1, 1, 1, 1),
     Txs = [keys:sign(NewTx),

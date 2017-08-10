@@ -130,7 +130,6 @@ receive_share(Share, Tree, Height, Trees) ->
 	    end
     end.
 diff(ID) -> ID.%+constants:initial_difficulty().
-	    
 get_paid(Share, Height, Trees) ->
     OldHeight = Share#share.modified,
     %for every height in the range, get the difficulty.
@@ -143,16 +142,13 @@ get_paid2(Start, Start, _, Shares, T, _) -> {Shares, T};
 get_paid2(Step, End, Diff, Shares, Tokens, SC) when Shares > 0 -> 
     %M = constants:shares_conversion(Shares),
     M = Shares div SC,
-    BlockDiff = block:difficulty(block:read_int(Step)),
+    BlockDiff = block:difficulty(block:get_by_height(Step)),
     T = if 
 	    BlockDiff > Diff -> M;
 	    true -> 0
 	end,
     get_paid2(Step+1, End, Diff, Shares-M, Tokens+T, SC).
-    
-    %constants:shares_conversion(Many). %this tells how many shares disappear on this block.
 
-	    
 root_hash(Root) ->
     true = is_integer(Root),
     trie:root_hash(?name, Root).

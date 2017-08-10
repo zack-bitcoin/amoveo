@@ -1,5 +1,5 @@
 -module(oracle_bet_tx).
--export([test/0, doit/3, doit2/3, make/6, id/1, from/1, to_prove/2]).
+-export([doit/3, doit2/3, make/6, id/1, from/1, to_prove/2]).
 -record(oracle_bet, {from, %your account id.
 		     nonce, 
 		     fee, 
@@ -165,5 +165,3 @@ give_bets([Order|T], Type, Accounts, OID) ->
     Acc2 = accounts:update_bets(Acc, NewBets),
     Accounts2 = accounts:write(Accounts, Acc2),
     give_bets(T, Type, Accounts2, OID).
-test() ->
-    success.

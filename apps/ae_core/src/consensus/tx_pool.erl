@@ -97,7 +97,7 @@ current_state() ->
     Header = headers:top(),
     state2(Header).
 state2(Header) ->
-    Block = block:read(block:hash(Header)),
+    Block = block:get_by_hash(block:hash(Header)),
     case Block of
 	empty -> 
 	    {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),

@@ -357,9 +357,13 @@ populate_request_param(OperationID, Name, Req0, ValidatorState) ->
 validate_response('ChannelSync', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
+validate_response('GetHeader', 200, Body, ValidatorState) ->
+    validate_response_body('Header', 'Header', Body, ValidatorState);
 validate_response('GetHeader', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 
+validate_response('GetHeaders', 200, Body, ValidatorState) ->
+    validate_response_body('Headers', 'Headers', Body, ValidatorState);
 validate_response('GetHeaders', 405, Body, ValidatorState) ->
     validate_response_body('', '', Body, ValidatorState);
 

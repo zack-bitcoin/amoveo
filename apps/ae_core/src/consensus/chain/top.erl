@@ -41,9 +41,6 @@ init(ok) ->
 		  gen_server:call(headers, {add, testnet_hasher:doit(GHeader),
 					    GHeader, 0})
 	  end),
-    io:fwrite("top init 01\n"),
-    %GenesisMakerBlockHash = block:hash(GenesisMakerBlock),
-    io:fwrite("top init 02\n"),
     Top = db:read(?LOC),
     TopHash =
         case Top == "" of
@@ -52,16 +49,13 @@ init(ok) ->
 	    false ->
                 Top
         end,
-    %spawn(fun() ->
-    %              block_hashes:add(GenesisMakerBlockHash)
-    %      end),
     {ok, TopHash}.
 
 handle_call({add, Block}, _From, OldBlockHash) ->
     %% Check which block is higher and store it's hash as the top.
     %% For tiebreakers, prefer the older block.
     {_,_,OldTxs} = tx_pool:data(),
-    OldBlock = block:read(OldBlockHash),
+    OldBlock = block:get_by_hash(OldBlockHash),
     NH = block:height(Block),
     OH = block:height(OldBlock),
     NewBlockHash =

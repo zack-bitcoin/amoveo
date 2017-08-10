@@ -1,5 +1,5 @@
 -module(oracle_close_tx).
--export([test/0, make/4, doit/3, from/1, oracle_id/1]).
+-export([make/4, doit/3, from/1, oracle_id/1]).
 -record(oracle_close, {from, nonce, fee, oracle_id}).
 %If there is a lot of open orders for one type of share in an oracle for a long enough period of time, then this transaction can be done.
 %This ends betting in the market.
@@ -96,5 +96,3 @@ doit(Tx, Trees, NewHeight) ->
     Trees4 = oracle_bet_tx:doit2(OBTx, Trees3, NewHeight),
     Accounts4 = trees:accounts(Trees4),
     trees:update_accounts(Trees3, Accounts4).
-test() ->
-    success.
