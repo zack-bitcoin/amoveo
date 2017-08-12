@@ -197,7 +197,7 @@ cfg() ->
     KL = 8,
     MetaSize = 0,%all in bytes
     HashSize = constants:hash_size(),
-    ValueSize = 4*8,
+    ValueSize = 4,
     PathSize = 8,
     cfg:new(PathSize, ValueSize, accounts, MetaSize, HashSize).
 verify_proof(RootHash, Key, Value, Proof) ->
@@ -209,7 +209,6 @@ verify_proof(RootHash, Key, Value, Proof) ->
     L = leaf:new(name2number(Key), V, 0, CFG),
     io:fwrite(packer:pack(L)),
     verify:proof(RootHash, L, Proof, CFG).
-
 
 %% Internals
 

@@ -76,6 +76,8 @@ serialize(X) ->
     HB = constants:height_bits(),
     DB = constants:difficulty_bits(),
     true = size(X#oracle.creator) == PS,
+    true = size(Question) == HS,
+    true = size(Orders) == HS,
     <<(X#oracle.id):(HS*8),
       (X#oracle.result):8,
       (X#oracle.type):8,
@@ -140,10 +142,11 @@ cfg() ->
     HB = constants:height_bits(),
     DB = constants:difficulty_bits(),
     HS = constants:hash_size(),
-    PS = HS*8,
-    ValueSize = ((((HB*2)+DB) div 8) + 4 + (3*HS)) + PS, 
+    PathSize = HS*8,
+    PS = constants:pubkey_size(),
+    ValueSize = ((((HB*2)+DB) div 8) + 4 + (3*HS)) + PS,
     MetaSize = (KL div 8),
-    cfg:new(PS, ValueSize, existence, MetaSize , HS).
+    cfg:new(PathSize, ValueSize, oracles, MetaSize , HS).
 %tree_child(oracles, HS*8, ((((HB*2)+DB) div 8) + 4 + (3*HS)) + PS, (KL div 8)),
 %tree_child(existence, HS*8, HS),
 verify_proof(RootHash, Key, Value, Proof) ->

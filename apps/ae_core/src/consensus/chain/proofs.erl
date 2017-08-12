@@ -125,8 +125,8 @@ prove2([{Tree, Key}|T], Trees) ->
 		  path = Path, 
 		  value = Data2,
 		  tree = tree_to_int(Tree)},
-    %io:fwrite(packer:pack({proofs_prove2_proof, Proof})),
-    %io:fwrite("\n"),
+    io:fwrite(packer:pack({proofs_prove2_proof, Proof})),
+    io:fwrite("\n"),
     true = Tree:verify_proof(Root, Key, Data2, Path),
     [Proof|prove2(T, Trees)].
 facts_to_dict([], D) -> D;
@@ -202,10 +202,15 @@ txs_to_querys([], _) -> [];
 txs_to_querys([STx|T], Trees) ->
     Tx = testnet_sign:data(STx),
     L = case element(1, Tx) of
-	    create_acc_tx -> [
-                   {accounts, create_account_tx:from(Tx)}% ,
-		   %{accounts, create_account_tx:pubkey(Tx)}%%
-                  ];
+	    create_acc_tx -> 
+                io:fwrite(packer:pack({txs_to_querys,
+                                       create_account_tx:from(Tx),
+                                       create_account_tx:pubkey(Tx)})),
+                io:fwrite("\n"),
+                [
+                 {accounts, create_account_tx:pubkey(Tx)},%%
+                 {accounts, create_account_tx:from(Tx)}
+                ];
 	    spend -> 
                 [
                  {accounts, spend_tx:from(Tx)},
@@ -216,8 +221,8 @@ txs_to_querys([STx|T], Trees) ->
 		   {accounts, delete_account_tx:to(Tx)}
                   ];
             nc -> [
-                   %{accounts, new_channel_tx:acc1(Tx)},%%
-                   %{accounts, new_channel_tx:acc2(Tx)},%%
+                   {accounts, new_channel_tx:acc1(Tx)},%%
+                   {accounts, new_channel_tx:acc2(Tx)},%%
                    {channels, new_channel_tx:cid(Tx)}
                   ];
 	    gc -> [
@@ -324,12 +329,19 @@ test() ->
     timer:sleep(200),
     {Trees, _, _} = tx_pool:data(),
     Pub2 = <<"BL6uM2W6RVAI341uFO7Ps5mgGp4VKZQsCuLlDkVh5g0O4ZqsDwFEbS9GniFykgDJxYv8bNGJ+/NdrFjKV/gJa6c=">>,
+    Pub3 = <<"BIG0bGOtCeH+ik2zxohHNOHyydjzIfi2fhKwFCZ0TFh99y+C8eiwHWwWkFrfGtEL7HcKP+5jdQmRc6wfnG32wlc=">>,
+    %Master = <<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>
+    {Pub55, _} = testnet_sign:new_key(),
     PS = constants:pubkey_size() * 8,
     Querys = [{accounts, keys:pubkey()},
-	      {shares, #key{pub = keys:pubkey(), id = 1}},
-	      {shares, #key{pub = keys:pubkey(), id = 2}},
+	      %{shares, #key{pub = keys:pubkey(), id = 1}},
+	      %{shares, #key{pub = keys:pubkey(), id = 2}},
 	      {accounts, keys:pubkey()},%repeats are ignored
 	      {accounts, base64:decode(Pub2)},%empty account
+              {accounts, Pub55},
+              {accounts, Pub3},
+              {accounts, <<297:520>>},
+              {accounts, <<744:520>>},
 	      {governance, block_reward},
 	      {channels, 1},
 	      {existence, testnet_hasher:doit(1)},
@@ -349,18 +361,19 @@ test() ->
     ETxs = "g2wAAAAEaARkAAZzaWduZWRoBmQAAmNhbQAAAEEEhVmGzXqC2hD+5Qy6OXlpK62kiYLi9rwx7CAK96HowS4OOgO+1CphnkV5hxSFj9AuOkIGteOq9O0WI3iWLQ2GOmEBYRRtAAAAQQRHXAXlfMl3JIv7Ni5NmiaAhuff/NsmnCCnWElvuaemWoQ2aCFJzogO/dHY9yrDUsIHaqtS+iD1OW3KuPrpBgoCYjuaygBtAAAAYE1FVUNJUUR5Q0p1Y2h6TlEzUXBkbTk4VjFkWGNxQklEUjVlNDFoRWtlMGRvUkVNd2hBSWdKbjcza3hISzhNUXZDVUttcGEzbzRSWkJYR3FoMXNWV2NZZXNyQ3NRVlo4PWpoBGQABnNpZ25lZGgGZAACY2FtAAAAQQSFWYbNeoLaEP7lDLo5eWkrraSJguL2vDHsIAr3oejBLg46A77UKmGeRXmHFIWP0C46Qga146r07RYjeJYtDYY6YQJhFG0AAABBBFRjuCgudSTRU79SVoCBvWi55+N1QethvQI6LKUCoEPHvIfedkQLxnuD2VJHqoLrULmXyexRWs2sOTwyLsdyL+FiO5rKAG0AAABgTUVVQ0lRRG1naWwvSkxGRVJaN05LUEpZMHZFQ21nZUlsNFdkdU5SbmlzWkw2R25ZVFFJZ1dBOExUazNENEVva3EvWUY4U3d4SnljR1Ixd2RLejlRMWpJUmpyeEFzSDQ9amgEZAAGc2lnbmVkaApkAAJuY20AAABBBIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0NhjptAAAAQQRUY7goLnUk0VO/UlaAgb1ouefjdUHrYb0COiylAqBDx7yH3nZEC8Z7g9lSR6qC61C5l8nsUVrNrDk8Mi7Hci/hYTJhA2IAACcQYgAAJxFhAmEEYQFtAAAAYE1FWUNJUUQ4U1hNeUYxQmRnbWRaRVdHbWFFR3JncXRxTXUvRGZJYmZVMnE1eE94ZUdnSWhBTTU3L21wcmFucDdiVTBSK2RoMS9wZjBOeHViVWJIU256UEFrcFY5b1gwNW0AAABgTUVVQ0lIeTdhenJyYmxIdzdSdEVmRVRMcU5ERTdCUUhmb1Rnd29CVHlZV0JKcHd0QWlFQWxPcnRhY1k1NVFSNUZUVUpoVFltbW5TWldtSGZ4cFUvbmExbjJsSVhJdm89aARkAAZzaWduZWRoCmQAAm5jbQAAAEEER1wF5XzJdySL+zYuTZomgIbn3/zbJpwgp1hJb7mnplqENmghSc6IDv3R2Pcqw1LCB2qrUvog9Tltyrj66QYKAm0AAABBBFRjuCgudSTRU79SVoCBvWi55+N1QethvQI6LKUCoEPHvIfedkQLxnuD2VJHqoLrULmXyexRWs2sOTwyLsdyL+FhMmEBYgAAJxBiAAAnEWECYQRhAm0AAABgTUVRQ0lCZHlWUUhxRlZyQWFGMTVsN0NmajlyckU5THI3RFFUWVJrc3c5d3dMek1nQWlBOGZrMXpIVVgwdlN6b0dVQ05JTGRmRER5Y2lNMnlWVldLb0pnTGNUbUZhdz09bQAAAGBNRVFDSUJvV3pJQU9oUExqTXJjN0tnV3ZFOUxhWmdXdllqYTY0Mk10YzE0S3RFdXNBaUFhRktDTmNhQUFSck9NUVNCUmZMKzdPV054aHduaWdwRUZBc1JaL0c3MmVBPT1q",
     %Txs = binary_to_term(base64:decode(ETxs)),
     %io:fwrite(Txs),
-    {Pub3, Priv3} = testnet_sign:new_key(),
+    {Pub30, Priv30} = testnet_sign:new_key(),
     {Pub4, _} = testnet_sign:new_key(),
-    {NewTx, _} = create_account_tx:new(Pub3, 10, 10, keys:pubkey(), Trees),
+    {NewTx, _} = create_account_tx:new(Pub30, 10, 10, keys:pubkey(), Trees),
     {NewTx2, _} = create_account_tx:new(Pub4, 10, 10, keys:pubkey(), Trees),
     CID = 7,
     {NewTx3, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Pub3, 1, 1, 1, 1, 1),
     Txs = [keys:sign(NewTx),
            keys:sign(NewTx2),
-           testnet_sign:sign_tx(NewTx3, Pub3, Priv3)],
+           testnet_sign:sign_tx(NewTx3, Pub3, Priv30)],
     %io:fwrite(Txs),
     Q2 = txs_to_querys(Txs, Trees),
-    prove(Q2, Trees).
+    prove(Q2, Trees),
+    success.
     
     
 

@@ -2,7 +2,7 @@ from time import sleep
 from swagger import SwaggerTest, IntAPI
 from nose.tools import nottest
 
-
+@nottest
 class InternalAPITest(SwaggerTest):
     API = {
         'dev1': IntAPI('localhost', 3012),
@@ -64,7 +64,8 @@ class InternalAPITest(SwaggerTest):
     def test_mine_block(self):
         api = self.API['dev1']
         self.c(api.mine_block(2, 1))
-
+        
+    @nottest
     def test_delete_account(self):
         api = self.API['dev1']
         master = self.c(api.fetch_pubkey())

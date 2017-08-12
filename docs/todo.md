@@ -1,3 +1,7 @@
+leaves currently can store the value "empty". this is no good, we cannot use packer on atoms. So it should store a -1 instead.
+
+make shre governance tree is included in header.
+
 proofs:facts_to_dict needs to verify that the root hash of each tree is valid for the header.
 
 we need to make sure it is possible for channels to tell if an oracle asking a particular question was launched. That way we can conditionally send a payment depending on if it does.

@@ -29,7 +29,7 @@ unpack_helper(J) ->
 	      true -> 1=2
 	  end,
     list_to_tuple([Out|lists:map(fun(X) -> unpack_helper(X) end, tl(J))]).
-pack(X) -> jiffy:encode(untup(X)).
+pack(X) -> iolist_to_binary(jiffy:encode(untup(X))).
 -record(d, {a = "", b = "" }).
 is_b_atom(<<"proof">>) -> true;
 is_b_atom(<<"coinbase">>) -> true;

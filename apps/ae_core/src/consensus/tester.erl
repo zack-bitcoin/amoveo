@@ -35,6 +35,8 @@ test1() ->
     S = existence:test(),
     lager:info("order_book test"),
     S = order_book:test(),
+    lager:info("proofs test"),
+    S = proofs:test(),
     %lager:info("market test"),
     %S = market:test(), %% This test has side effects i.e. it absorbs transactions.
     %lager:info("chalang test"),
