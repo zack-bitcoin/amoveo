@@ -154,8 +154,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    end
     end.
 bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
-    [ShareRoot, <<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
-    ShareRoot = [],%deal with lightning shares later.
+    [<<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
    if
         Delay > 50 ->
 	    
@@ -197,10 +196,9 @@ run(Mode, SS, SPK, Height, Slash, Trees) ->
     %Channels = trees:channels(Trees),
     %State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
     State = chalang_state(Height, Slash, Trees),
-    {Amount, NewNonce, CodeShares, Delay, _} = run2(Mode, SS, SPK, State, Trees),
+    {Amount, NewNonce, Delay, _} = run2(Mode, SS, SPK, State, Trees),
     %true = NewNonce < 1000,
-    Shares = shares:from_code(CodeShares),
-    {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce, Shares, Delay}.
+    {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce, Delay}.
 run2(fast, SS, SPK, State, Trees) -> 
     Governance = trees:governance(Trees),
     FunLimit = governance:get_value(fun_limit, Governance),
@@ -239,14 +237,14 @@ run2(safe, SS, SPK, State, Trees) ->
 chalang_state(Height, Slash, Trees) ->	    
     chalang:new_state(Height, Slash, Trees).
 run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay) ->
-    run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay, []).
+    run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay).
 
-run([], [], OpGas, _, _, _, _, Amount, Nonce, Delay, ShareRoot) ->
-    {Amount, Nonce, ShareRoot, Delay, OpGas};
-run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Share0) ->
-    {A2, N2, Share, Delay2, EOpGas} = 
+run([], [], OpGas, _, _, _, _, Amount, Nonce, Delay) ->
+    {Amount, Nonce, Delay, OpGas};
+run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay) ->
+    {A2, N2, Delay2, EOpGas} = 
 	run3(SS, Code, OpGas, RamGas, Funs, Vars, State),
-    run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Share ++ Share0).
+    run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2)).
 run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     true = chalang:none_of(ScriptSig),
     {Trees, _, _} = tx_pool:data(),
@@ -258,20 +256,19 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     %case chalang:run5([Code], Data2) of
 	%{error, E} -> {error, E};
     Data3 = chalang:run5([Code], Data2),
-    [ShareRoot|
-     [<<Amount:32>>|
-      [<<Nonce:32>>|
-       [<<Delay:32>>|_]]]] = chalang:stack(Data3),%#d.stack,
+    [<<Amount:32>>|
+     [<<Nonce:32>>|
+      [<<Delay:32>>|_]]] = chalang:stack(Data3),%#d.stack,
     CGran = constants:channel_granularity(),
     true = Amount =< CGran,
     A3 = Amount * Bet#bet.amount div CGran,
-    {A3, Nonce, ShareRoot, Delay,
+    {A3, Nonce, Delay,
      chalang:time_gas(Data3)
     }.
 force_update(SPK, SSOld, SSNew) ->
     {Trees, Height, _} = tx_pool:data(),
-    {_, NonceOld, _, _} =  run(fast, SSOld, SPK, Height, 0, Trees),
-    {_, NonceNew, _, _} =  run(fast, SSNew, SPK, Height, 0, Trees),
+    {_, NonceOld,  _} =  run(fast, SSOld, SPK, Height, 0, Trees),
+    {_, NonceNew,  _} =  run(fast, SSNew, SPK, Height, 0, Trees),
     if
 	NonceNew >= NonceOld ->
 	    {NewBets, FinalSS, Amount, Nonce} = force_update2(SPK#spk.bets, SSNew, [], [], 0, 0),
@@ -294,7 +291,7 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS, Code, State, constants:hash_size()),
     Data2 = chalang:run5([SS], Data),
     Data3 = chalang:run5([Code], Data2),
-    [ShareRoot, <<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),
+    [<<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),
     if
 	Delay > 50 ->
 	    force_update2(BetsIn, SSIn, [Bet|BetsOut], [SS|SSOut], Amount, Nonce);
@@ -307,8 +304,8 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     
 is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     {Trees, Height, _} = tx_pool:data(),
-    {_, Nonce2, _, Delay2} =  run(fast, NewSS, NewSPK, Height, 0, Trees),
-    {_, Nonce1, _, _} =  run(fast, OldSS, OldSPK, Height, 0, Trees),
+    {_, Nonce2, Delay2} =  run(fast, NewSS, NewSPK, Height, 0, Trees),
+    {_, Nonce1, _} =  run(fast, OldSS, OldSPK, Height, 0, Trees),
     true = Nonce2 > Nonce1,
     Bets2 = NewSPK#spk.bets,
     Bets1 = OldSPK#spk.bets,

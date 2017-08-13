@@ -224,7 +224,7 @@ test(5) ->
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     
-    Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50, []),
@@ -278,7 +278,7 @@ test(6) ->
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     
-    Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50, []),
@@ -436,8 +436,8 @@ test(12) ->
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     
-    Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
-    Code2 = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
+    Code2 = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50, []),
@@ -537,7 +537,7 @@ test(14) ->
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     
-    Code = compiler_chalang:doit(<<"int 50 nil">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50, []),
@@ -606,7 +606,7 @@ test(15) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    Code = compiler_chalang:doit(<<"int 50 nil">>),%sends 50.
+    Code = compiler_chalang:doit(<<"int 50">>),%sends 50.
     Secret = compiler_chalang:doit(<<" int 0 int 2 ">>),
     %secrets:add(Code, Secret),
     %timer:sleep(100),

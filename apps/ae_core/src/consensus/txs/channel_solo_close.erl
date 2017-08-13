@@ -41,7 +41,7 @@ doit(Tx, Trees, NewHeight) ->
     true = channels:entropy(OldChannel) == spk:entropy(ScriptPubkey),
     %NewCNonce = spk:nonce(ScriptPubkey),
     SS = Tx#csc.scriptsig,
-    {Amount, NewCNonce, _Shares, Delay} = spk:run(fast, SS, ScriptPubkey, NewHeight, 0, Trees),
+    {Amount, NewCNonce, Delay} = spk:run(fast, SS, ScriptPubkey, NewHeight, 0, Trees),
     %false = Amount == 0,
     true = NewCNonce > channels:nonce(OldChannel),
     %SharesRoot = shares:root_hash(shares:write_many(Shares, 0)),
@@ -66,7 +66,7 @@ check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
 	{ok, CD} ->
 	    SPK = channel_feeder:them(CD),
 	    SS = channel_feeder:script_sig_them(CD), 
-	    {_, CDNonce, _, _} = 
+	    {_, CDNonce, _} = 
 		spk:run(fast, 
 			SS,
 			testnet_sign:data(SPK),

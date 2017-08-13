@@ -39,13 +39,13 @@ new_lightning() ->
     S = crypto:strong_rand_bytes(constants:hash_size()),
     SH = testnet_hasher:doit(S),
     ESH = "stack_size int 0 == if
-int 50 int 1 int 0 nil crash else then  drop drop
+int 50 int 1 int 0 crash else then  drop drop
 hash binary " ++ integer_to_list(constants:hash_size())++ " " ++
 	binary_to_list(base64:encode(SH)) ++
 	" print == swap drop swap drop if
 int 0 int 2 int 10000
 else
-int 49 int 1 int 0 then nil crash",
+int 49 int 1 int 0 then crash",
     ESS = "binary " ++ integer_to_list(constants:hash_size()) ++ " " ++ base64:encode(S),
     Code = compiler_chalang:doit(list_to_binary(ESH)),
     SS = compiler_chalang:doit(list_to_binary(ESS)),
@@ -53,7 +53,7 @@ int 49 int 1 int 0 then nil crash",
     Amount = 200,
     Bet = spk:new_bet(Code, Code, Amount, []),
     SPK = spk:new(1, 2, 3, [Bet], 9000, 9000, 1, 1, 1),
-    {Amount, _, _, _} = spk:run(fast, [SS], SPK, Height, 0, Trees),%for sanity check
+    {Amount, _, _} = spk:run(fast, [SS], SPK, Height, 0, Trees),%for sanity check
     add(Code, SS),
     {Code, SS}.
 
