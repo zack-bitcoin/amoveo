@@ -3,7 +3,7 @@
 	 is_locked/1, change/3, genesis_state/0,
 	 get/2, write/2, lock/2, unlock/2,
 	 get_value/2, serialize/1, name2number/1,
-	 verify_proof/4,
+	 verify_proof/4, root_hash/1,
 	 test/0]).
 -record(gov, {id, value, lock}).
 
@@ -193,6 +193,8 @@ name2number(oracle_shares) -> 44;
 name2number(developer_reward) -> 45;
 name2number(_) -> bad.
 max() -> 46.
+root_hash(Root) ->
+    trie:root_hash(?name, Root).
 cfg() ->
     KL = 8,
     MetaSize = 0,%all in bytes
@@ -207,7 +209,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
 	    X -> serialize(X)
 	end,
     L = leaf:new(name2number(Key), V, 0, CFG),
-    io:fwrite(packer:pack(L)),
+    %io:fwrite(packer:pack(L)),
     verify:proof(RootHash, L, Proof, CFG).
 
 %% Internals

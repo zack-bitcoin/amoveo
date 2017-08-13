@@ -42,12 +42,14 @@ root_hash(Trees) ->
     E = existence:root_hash(trees:existence(Trees)),
     B = burn:root_hash(trees:burn(Trees)),
     O = oracles:root_hash(trees:oracles(Trees)),
+    G = governance:root_hash(trees:governance(Trees)),
     testnet_hasher:doit(<<
 			  A/binary,
 			  C/binary,
 			  E/binary,
 			  B/binary,
-			  O/binary
+			  O/binary,
+			  G/binary
 			>>).
 keepers(_, _, 0) -> [];
 keepers(TreeID, Hash, Many) ->

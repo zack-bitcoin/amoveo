@@ -12,8 +12,6 @@ make(From, Fee, OID, Trees) ->
     Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = accounts:nonce(Acc) + 1},
     {Tx, []}.
 doit(Tx, Trees, NewHeight) ->
-    io:fwrite(packer:pack({oracle_close_tx, NewHeight})),
-    io:fwrite("\n"),
     Accounts = trees:accounts(Trees),
     Acc = accounts:update(Tx#oracle_close.from, Trees, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
     NewAccounts = accounts:write(Accounts, Acc),
@@ -21,8 +19,6 @@ doit(Tx, Trees, NewHeight) ->
     OID = Tx#oracle_close.oracle_id,
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
-    io:fwrite(packer:pack({oracle_close, oracles:starts(Oracle), NewHeight})),
-    io:fwrite("\n"),
     true = oracles:starts(Oracle) =< NewHeight,
     %if the volume of orders in the oracle is too low, then set the oracle:type to 3.
     %Result = oracles:type(Oracle),
@@ -34,9 +30,6 @@ doit(Tx, Trees, NewHeight) ->
 	     end,
     Oracle2 = oracles:set_result(Oracle, Result),
     Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
-    %io:fwrite("after setting result "),
-    %io:fwrite(packer:pack(Oracle3)),
-    %io:fwrite("\n"),
     Oracles2 = oracles:write(Oracle3, Oracles),
     Trees2 = trees:update_accounts(trees:update_oracles(Trees, Oracles2), NewAccounts),
     Gov = oracles:governance(Oracle3),
@@ -49,8 +42,8 @@ doit(Tx, Trees, NewHeight) ->
 	case Gov of
 	    0 -> 
 		%is not a governance oracle.
-		io:fwrite(packer:pack({done_timer, oracles:done_timer(Oracle), oracles:starts(Oracle3)})),
-		io:fwrite("\n"),
+		%io:fwrite(packer:pack({done_timer, oracles:done_timer(Oracle), oracles:starts(Oracle3)})),
+		%io:fwrite("\n"),
 		B1 = oracles:done_timer(Oracle) < NewHeight,
 		B2 = oracles:starts(Oracle3) + MOT < NewHeight,
 		true = (B1 or B2),
@@ -77,9 +70,6 @@ doit(Tx, Trees, NewHeight) ->
 	end,
     OraclesEE = trees:oracles(Trees3),
     {_, Oracle4, _} = oracles:get(OID, OraclesEE),
-    %io:fwrite("after setting result 2 "),
-    %io:fwrite(packer:pack(Oracle4)),
-    %io:fwrite("\n"),
     OracleType = oracles:type(Oracle4),
     LoserType = 
 	case OracleType of
@@ -90,9 +80,6 @@ doit(Tx, Trees, NewHeight) ->
     OBTx = {oracle_bet, oracles:creator(Oracle4), 
 	  none, 0, OID, LoserType, 
 	  constants:oracle_initial_liquidity()},
-    %io:fwrite("OBTX is "),
-    %io:fwrite(packer:pack(OBTx)),
-    %io:fwrite("\n"),
     Trees4 = oracle_bet_tx:doit2(OBTx, Trees3, NewHeight),
     Accounts4 = trees:accounts(Trees4),
     trees:update_accounts(Trees3, Accounts4).

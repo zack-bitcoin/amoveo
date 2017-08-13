@@ -125,8 +125,6 @@ prove2([{Tree, Key}|T], Trees) ->
 		  path = Path, 
 		  value = Data2,
 		  tree = tree_to_int(Tree)},
-    io:fwrite(packer:pack({proofs_prove2_proof, Proof})),
-    io:fwrite("\n"),
     true = Tree:verify_proof(Root, Key, Data2, Path),
     [Proof|prove2(T, Trees)].
 facts_to_dict([], D) -> D;
@@ -134,9 +132,6 @@ facts_to_dict([F|T], D) ->
 %-record(proof, {tree, value, root, key, path}).
     %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
-    %io:fwrite("facts to dict "),
-    %io:fwrite(packer:pack({Tree, F#proof.key, F})),
-    %io:fwrite("\n"),
     case Tree of
 	orders -> 
 	    K = F#proof.key,
@@ -203,12 +198,8 @@ txs_to_querys([STx|T], Trees) ->
     Tx = testnet_sign:data(STx),
     L = case element(1, Tx) of
 	    create_acc_tx -> 
-                io:fwrite(packer:pack({txs_to_querys,
-                                       create_account_tx:from(Tx),
-                                       create_account_tx:pubkey(Tx)})),
-                io:fwrite("\n"),
                 [
-                 {accounts, create_account_tx:pubkey(Tx)},%%
+                 {accounts, create_account_tx:pubkey(Tx)},
                  {accounts, create_account_tx:from(Tx)}
                 ];
 	    spend -> 
@@ -221,8 +212,8 @@ txs_to_querys([STx|T], Trees) ->
 		   {accounts, delete_account_tx:to(Tx)}
                   ];
             nc -> [
-                   {accounts, new_channel_tx:acc1(Tx)},%%
-                   {accounts, new_channel_tx:acc2(Tx)},%%
+                   {accounts, new_channel_tx:acc1(Tx)},
+                   {accounts, new_channel_tx:acc2(Tx)},
                    {channels, new_channel_tx:cid(Tx)}
                   ];
 	    gc -> [
@@ -321,7 +312,7 @@ test() ->
     tx_pool:dump(),
     {Trees0, _, _} = tx_pool:data(),
     Question = <<>>,
-    OID = 1,
+    OID = 2,
     Fee = 20,
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, constants:initial_difficulty(), 0, 0, 0, Trees0),
     tx_pool_feeder:absorb(keys:sign(Tx)),

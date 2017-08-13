@@ -152,15 +152,13 @@ remove(ID, Root) ->
     {Head, Many} = head_get(Root),
     {_,Order,_} = get(Head, Root),
     Q = Order#order.aid,
-    io:fwrite(packer:pack({id_q_pointer_are, ID, Q, Order#order.pointer})),
-    io:fwrite("\n"),
     if 
 	ID == Q -> 
-	    io:fwrite("remove path 1\n"),
+	    %io:fwrite("remove path 1\n"),
 	    Root2 = head_put(Order#order.pointer, Many-1, Root),
 	    delete(ID, Root2);
 	true ->
-	    io:fwrite("remove path 2\n"),
+	    %io:fwrite("remove path 2\n"),
 	    Root2 = head_put(Head, Many-1, Root),
 	    remove2(ID, Root2, Head)
     end.
@@ -169,13 +167,13 @@ remove2(ID, Root, P) ->
     N = L#order.pointer,
     case N of
 	ID ->
-	    io:fwrite("remove path 3\n"),
+	    %io:fwrite("remove path 3\n"),
 	    {_, L2, _} = get(ID, Root),
 	    L3 = update_pointer(L, aid(L2)),
 	    Root2 = delete(N, Root),
 	    write(L3, Root2);
 	X -> 
-	    io:fwrite("remove path 4\n"),
+	    %io:fwrite("remove path 4\n"),
 	    remove2(ID, Root, X)
     end.
 delete(Pub, Root) ->
@@ -264,7 +262,7 @@ test() ->
     PS = constants:pubkey_size() * 8,
     {_, {order, Pub1, 10, <<0:PS>>}, _} = get(Pub1, Root5),
     {Matches1, Matches2, Matches3, Matches4},
-    io:fwrite("TEST orders, about to remove \n"),
+    %io:fwrite("TEST orders, about to remove \n"),
     Root6 = remove(Pub2, Root2),
     {_, empty, _} = get(Pub1, Root6),
     {Root8, empty, Path1} = get(Pub2, Root6),

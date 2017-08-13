@@ -8,6 +8,7 @@ There are 8 merkel trees.
 * shares
 * proof of burn+
 * proof of existence+
+* governance+
 
 (The ones with +'s are included in the generation of the state-hash that is recorded on the block's header)
 
@@ -49,3 +50,7 @@ This data is available to the VM.
 
 This tree stores by hash. It returns a 1 if the thing exists, a 0 otherwise.
 This data is available to the VM.
+
+=== governance
+
+This tree stores by atom name. It contains many variables that define the consensus protocol. The oracles can be used to update these variables.

@@ -165,8 +165,8 @@ cfg() ->
     cfg:new(PathSize, ValueSize, shares, MetaSize, HashSize).
 verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
-    io:fwrite(packer:pack({shares_verify_value, Value})),
-    io:fwrite("\n"),
+    %io:fwrite(packer:pack({shares_verify_value, Value})),
+    %io:fwrite("\n"),
     V = case Value of
 	    0 -> empty;
 	    X -> serialize(X)
