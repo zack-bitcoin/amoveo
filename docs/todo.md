@@ -1,6 +1,4 @@
 
-proofs:facts_to_dict needs to verify that the root hash of each tree is valid for the header.
-
 we need to make sure it is possible for channels to tell if an oracle asking a particular question was launched. That way we can conditionally send a payment depending on if it does.
 It doesn't matter the number of the oracle, which question it asks matters.
 Oracles should be stored by the hash of the question.

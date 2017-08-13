@@ -319,6 +319,27 @@ mine2(Block, Times) ->
             B2 = Block#block{nonce = Nonce},
             B2
     end.
+proofs_roots_match([], _) -> true;
+proofs_roots_match([P|T], R) ->
+    Tree = proofs:tree(P),
+    Root = proofs:root(P),
+    case Tree of
+        accounts ->
+            true = R#roots.accounts == Root;
+        channels -> 
+            true = R#roots.channels == Root;
+        existence -> 
+            true = R#roots.existence == Root;
+        burn -> 
+            true = R#roots.burn == Root;
+        oracles ->
+            true = R#roots.oracles == Root;
+        governance ->
+            true = R#roots.governance == Root;
+        _ -> ok
+    end,
+    proofs_roots_match(T, R).
+            
 check(Block) ->
     Facts = Block#block.proofs,
     Header = block_to_header(Block),
@@ -332,6 +353,7 @@ check(Block) ->
     PrevStateHash = roots_hash(Block#block.roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = headers:trees_hash(PrevHeader),
+    true = proofs_roots_match(Block#block.proofs, Block#block.roots),
     
     %check that hash(proofs) is the same as the header.
     %check that every proof is valid to the previous state root.
