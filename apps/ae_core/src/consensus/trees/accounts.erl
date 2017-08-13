@@ -2,8 +2,7 @@
 -export([new/3,nonce/1,write/2,get/2,update/5,update/7,
 	 %addr/1, id/1,
 	 balance/1,root_hash/1,now_balance/4,delete/2,
-	 receive_shares/4, send_shares/4,
-	 shares/1, bets/1, update_bets/2,
+	 bets/1, update_bets/2,
 	 ensure_decoded_hashed/1, height/1, verify_proof/4,
 	 serialize/1, pubkey/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
@@ -19,7 +18,7 @@ nonce(Account) -> Account#acc.nonce.
 height(Account) -> Account#acc.height.
 pubkey(Account) -> Account#acc.pubkey.
 bets(Account) -> Account#acc.bets.
-shares(Account) -> Account#acc.shares.
+%shares(Account) -> Account#acc.shares.
 
 root_hash(Accounts) ->
     trie:root_hash(?id, Accounts).
@@ -31,9 +30,10 @@ update(Pub, Trees, Amount, NewNonce, NewHeight) ->
     PubHash = ensure_decoded_hashed(Pub),
     Accounts = trees:accounts(Trees),
     {_, Account, _} = get(PubHash, Accounts),
-    update(PubHash, Trees, Amount, NewNonce, NewHeight, Account#acc.shares, Account#acc.bets).
+    update(PubHash, Trees, Amount, NewNonce, NewHeight, [], Account#acc.bets).
 
 update(PubHash, Trees, Amount, NewNonce, NewHeight, Shares, Bets) ->
+    Shares = [],
     Accounts = trees:accounts(Trees),
     {_, Account, _} = get(PubHash, Accounts),
     OldNonce = Account#acc.nonce,
@@ -85,8 +85,8 @@ get(Pub, Accounts) ->
                       Meta = leaf:meta(Leaf),
                       KeyLength = constants:key_length(),
                       DoubledKeyLength = KeyLength * 2,
-                      <<Bets:KeyLength, Shares:KeyLength>> = <<Meta:DoubledKeyLength>>,
-                      Account0#acc{bets = Bets, shares = Shares}
+                      <<Bets:KeyLength, _Shares:KeyLength>> = <<Meta:DoubledKeyLength>>,
+                      Account0#acc{bets = Bets, shares = 0}
               end,
     {RH, Account, Proof}.
 
@@ -99,7 +99,7 @@ write(Root, Account) ->
     true = size(SerializedAccount) == constants:account_size(),
     KeyLength = constants:key_length(),
     DoubledKeyLength = KeyLength * 2,
-    <<Meta:DoubledKeyLength>> = <<(Account#acc.bets):KeyLength, (Account#acc.shares):KeyLength>>,
+    <<Meta:DoubledKeyLength>> = <<(Account#acc.bets):KeyLength, 0:KeyLength>>,
     PubId = trees:hash2int(PubHash),
     trie:put(PubId, SerializedAccount, Meta, Root, ?id). % returns a pointer to the new root
 
@@ -123,15 +123,15 @@ new_balance(Account, Amount, NewHeight, Trees) ->
         end,
     Amount + Account#acc.balance - (Rent * HeightDiff).
 
-receive_shares(Account, Shares, Height, Trees) ->
-    SharesTree = Account#acc.shares,
-    {Tokens, NewTree} = shares:receive_shares(Shares, SharesTree, Height, Trees),
-    Account#acc{shares = NewTree, balance = Account#acc.balance + Tokens}.
+%receive_shares(Account, Shares, Height, Trees) ->
+%    SharesTree = Account#acc.shares,
+%    {Tokens, NewTree} = shares:receive_shares(Shares, SharesTree, Height, Trees),
+%    Account#acc{shares = NewTree, balance = Account#acc.balance + Tokens}.
 
-send_shares(Account, Shares, Height, Trees) ->
-    SharesTree = Account#acc.shares,
-    {Tokens, NewTree} = shares:send_shares(Shares, SharesTree, Height, Trees),
-    Account#acc{shares = NewTree, balance = Account#acc.balance + Tokens}.
+%send_shares(Account, Shares, Height, Trees) ->
+%    SharesTree = Account#acc.shares,
+%    {Tokens, NewTree} = shares:send_shares(Shares, SharesTree, Height, Trees),
+%    Account#acc{shares = NewTree, balance = Account#acc.balance + Tokens}.
 
 serialize(Account) ->
     true = size(Account#acc.pubkey) == constants:pubkey_size(),
@@ -139,19 +139,20 @@ serialize(Account) ->
     HeightSize = constants:height_bits(),
     NonceSize = constants:account_nonce_bits(),
 
-    SharesRoot = shares:root_hash(Account#acc.shares),
+    %SharesRoot = shares:root_hash(Account#acc.shares),
+    
     BetsRoot = oracle_bets:root_hash(Account#acc.bets),
     HashSize = constants:hash_size(),
     true = size(BetsRoot) == HashSize,
-    true = size(SharesRoot) == HashSize,
+    %true = size(SharesRoot) == HashSize,
 
     SerializedAccount =
         <<(Account#acc.balance):BalanceSize,
           (Account#acc.nonce):NonceSize,
           (Account#acc.height):HeightSize,
           (Account#acc.pubkey)/binary,
-          BetsRoot/binary,
-          SharesRoot/binary>>,
+          BetsRoot/binary>>,
+         % SharesRoot/binary>>,
 
     true = size(SerializedAccount) == constants:account_size(),
     SerializedAccount.
@@ -171,8 +172,7 @@ deserialize(SerializedAccount) ->
       Nonce:NonceSize,
       Height:HeightSize,
       Pubkey:PubkeyBits,
-      _BetsRoot:HashSizeBits,
-      _SharesRoot:HashSizeBits>> = SerializedAccount,
+      _BetsRoot:HashSizeBits>> = SerializedAccount,
     #acc{balance = Balance,
          nonce = Nonce,
          height = Height,

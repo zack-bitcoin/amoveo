@@ -25,14 +25,15 @@ doit(Tx, Trees, NewHeight) ->
     %true = NewHeight - MOT < DT,
     AID = Tx#oracle_shares.from,
     Accounts = trees:accounts(Trees),
-    Acc = accounts:update(AID, Trees, -Tx#oracle_shares.fee, Tx#oracle_shares.nonce, NewHeight),
-    %transform their bets into shares.
-
+    {_, Acc, _} = accounts:get(AID, Accounts),
     Bets = accounts:bets(Acc),
     {_, Bet, _} = oracle_bets:get(OID, Bets),
-    B2Shares =oracle_bets:to_shares(Bet, Result, NewHeight),
+    Reward = oracle_bets:reward(Bet, Result, NewHeight),
+    Acc2 = accounts:update(AID, Trees, -Tx#oracle_shares.fee + Reward, Tx#oracle_shares.nonce, NewHeight),
+    %transform their bets into shares.
+
     %Shares = accounts:shares(Acc),
-    Acc2 = accounts:receive_shares(Acc, B2Shares, NewHeight, Trees),
+    %Acc2 = accounts:receive_shares(Acc, B2Shares, NewHeight, Trees),
     Bets2 = oracle_bets:delete(OID, Bets),
     Acc3 = accounts:update_bets(Acc2, Bets2),
     

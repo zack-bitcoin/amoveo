@@ -165,12 +165,10 @@ time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
     Pub = constants:master_pub(),
-    First0 = accounts:new(Pub, constants:initial_coins(), 0),
-    Accounts0 = accounts:write(0, First0),
+    First = accounts:new(Pub, constants:initial_coins(), 0),
+    Accounts0 = accounts:write(0, First),
     GovInit = governance:genesis_state(),
     Trees0 = trees:new(Accounts0, 0, 0, 0, 0, GovInit),
-    Share = shares:new(1, 100, 0),
-    First = accounts:receive_shares(First0, [Share], 0, Trees0),
     Accounts = accounts:write(0, First),
     Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
 

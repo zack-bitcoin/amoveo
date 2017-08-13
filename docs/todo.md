@@ -1,7 +1,13 @@
+get rid of shares.
+
+We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
+
+verifying a block should not require looking at the previous block. This way we can verify them in parallel.
 
 we need to make sure it is possible for channels to tell if an oracle asking a particular question was launched. That way we can conditionally send a payment depending on if it does.
 It doesn't matter the number of the oracle, which question it asks matters.
 Oracles should be stored by the hash of the question.
+Then how are governance oracles stored? {gov_id, oracle_height}
 
 Spending should optionally reference a recent hash. That way it is easy to spend coins only on one side of the fork, if the blockchain should split.
 
@@ -50,21 +56,12 @@ We don't want to have to reprogram term_to_binary in other languages.
 all transaction types need to be serialized.
 blocks need to be serialized.
 
-Instead of writing the miner into the header, the miner should make a coinbase transaction.
-
-The half-life of shares should be a governance variable.
-The difficulty threshold between rewarding positive and negative shares should be a governance variable.
-
 right now when we do easy:market_match it isn't updating ssme in the channels. it should.
 I set it up so the contract fails until the oracle is closed. This is probably a mistake. The contract should be able to close, but with a long delay, and the money gets distributed the same was as if the oracle closed on state bad.
 
 It would be cool if we could simultaniously create an account and a channel with that account. That way users can get started faster. We would need a new transaction type. 2000 CHF
 
-Accounts should query by address instead of id.
-The problem with querying by id is that anyone can stop a create_account transaction from being published by making another create_account transaction with a higher fee.
-If we use addresses instead, then only the person who created the first create_account transaction has the ability to publish another contradictory transaction and do a double-spend. 1000 CHF
-
-If we decide to do both of the above updates, then we should also store channels by hash rather than id. 500 CHF
+Maybe channels should be stored by hash too.
 
 The options test in test_txs.erl is broken.
 Right now both parties need to sign the grow_channel_tx.
@@ -96,8 +93,6 @@ We need an integration test where one node is a market, and the other two nodes 
 [AE-65] We need to regularly check on our channels to see if either participant is running out of funds. There needs to be enough money left to cover the cost of the channel for the amount of time until you can close the channel without your partner's help.
 When you are running short on funds you need to ask your partner to close the channel. If they don't, you need to start closing the channel without their help.
 
-[AE-66] In spk prove_facts2, the burn and existence trees store by hash not by integer, so the code needs to be modified for them. 60 CHF (paid in ETH or BTC)
-
 [AE-68] Make sure that if something was garbage collected from a merkel tree, and we try accessing the thing, it gives a different message than trying to access something that doesn't exist. Make sure we don't assume a block is invalid just because we don't have the proof of it's validity. 200 CHF (paid in ETH or BTC)
 
 [AE-69] We need to also add a way for the two parties to work together to close the channel early, so they don't have to wait to do a timeout_tx. We can either make a new tx, or make channel_team_close more complicated. 200 CHF (paid in ETH or BTC)
@@ -109,24 +104,11 @@ We need a test showing that it works.
 
 ### Things we can do after launch of mainnet
 
-[AE-70] it would be nice if instead of embedding those sed commands into the makefile, if instead we read them from a different file.
-Then we wouldn't have to escape all the newlines and double-quotes.
-
-[AE-71] Secrets seems unnecessary. As soon as we find out a secret, why not use arbitrage to update all the channels immediately?
-
-[AE-26 - @zp] tests holds tests that use multiple nodes. Currently these tests use curl, so it isn't obvious if an error happens. You have to review the log by hand.
-It would be much better if these test were re-written in python or erlang, and we could check the responses from each command, that way an error is thrown when it happens, and it will be easier to diagnose what went wrong.
-Also, we wont have to open 4 terminals to run these tests.
+[AE-71] Secrets module seems unnecessary. As soon as we find out a secret, why not use arbitrage to update all the channels immediately?
 
 [AE-72 - this should go to pre-launch list] maybe accessing the internal handler should require a signed request with a nonce.
 The server should ignore commands that don't increment the nonce from last time.
 alternatively, we could just turn on a firewall. This is simpler, but it has the drawback that commands on a local node have to originate from the same computer.
-
-Prices listed are minimums. If the code is high quality, you can get much more.
-(Bounty program hasn't started yet. Talk to Zack before starting a bounty)
-
-[AE-73 - Zack works on that] Off-chain markets. 500 CHF (paid in ETH or BTC)
-We need an integration test where one node is a market, and the other two nodes are traders. 
 
 [DONE?] download_blocks:get_blocks should download multiple blocks at a time. 100 CHF (paid in ETH or BTC)
 
@@ -136,15 +118,9 @@ We need an integration test where one node is a market, and the other two nodes 
 
 [AE-75] Download blocks talk/1 seems useless. talker:talk is accomplishing the same goal. 40 CHF (paid in ETH or BTC)
 
-[AE-76 - maybe this to pre-launch] It is possible to use channel_slash to store data in a channel such that the channel can't be closed with a channel_timeout.
-Maybe this is a mistake.
-
 [AE-77] Javascript light wallets need to be able to do all the channel stuff that full nodes do. 2000 CHF (paid in ETH or BTC)
 
 [There is some sort of ranking already?] We need to update download_blocks so that peers get ranked, and we spend more time talking to higher-ranked peers.
-
-[Duplicate?] download_blocks could be more efficient.
-
 
 [AE-78] It would be nice if there were some macros for chalang/src/compiler_lisp2.erl that did backtracking. that way we wouldn't have to think about control flow when making smart contracts.
 

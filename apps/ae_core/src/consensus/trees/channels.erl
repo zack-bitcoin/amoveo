@@ -108,8 +108,8 @@ serialize(C) ->
 	     false -> 0
 	 end,
     HS = constants:hash_size(),
-    Shares = shares:root_hash(C#channel.shares),
-    HS = size(Shares),
+    %Shares = shares:root_hash(C#channel.shares),
+    %HS = size(Shares),
     true = size(C#channel.acc1) == constants:pubkey_size(),
     true = size(C#channel.acc2) == constants:pubkey_size(),
     << CID:(HS*8),
@@ -123,8 +123,7 @@ serialize(C) ->
        (C#channel.delay):Delay,
        CR:8,
        (C#channel.acc1)/binary,
-       (C#channel.acc2)/binary,
-       Shares/binary
+       (C#channel.acc2)/binary
     >>.
 deserialize(B) ->
     PS = constants:pubkey_size()*8,
@@ -147,8 +146,8 @@ deserialize(B) ->
        B12:Delay,
        Closed:8,
        B1:PS,
-       B2:PS,
-       _:HS
+       B2:PS
+       %_:HS
     >> = B,
     CR = case Closed of
 	     0 -> false;

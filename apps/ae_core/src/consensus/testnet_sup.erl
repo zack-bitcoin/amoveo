@@ -40,7 +40,7 @@ init([]) ->
 	     tree_child(orders, HS*8, ((BB div 8) + (PS * 2))),
 	     tree_child(burn, HS*8, (BB div 8) + HS),
 	     tree_child(oracle_bets, KL, (KL + (3 * BB div 8))),
-	     tree_child(shares, KL, (KL + 1 + ((BB + HB) div 8))),
+	     %tree_child(shares, KL, (KL + 1 + ((BB + HB) div 8))),
 	     tree_child(governance, 8, 4)
 	    ],
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.

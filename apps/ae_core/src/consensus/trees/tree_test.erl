@@ -9,7 +9,7 @@ test() ->
     S = oracles:test(),
     S = burn:test(),
     S = oracle_bets:test(),
-    S = shares:test(),
+    %S = shares:test(),
     S = orders:test(),
     S = governance:test(),
     S.
