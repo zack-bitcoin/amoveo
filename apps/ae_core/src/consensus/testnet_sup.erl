@@ -33,8 +33,8 @@ init([]) ->
     HB = constants:height_bits(),
     DB = constants:difficulty_bits(),
     Tries = [
-	     tree_child(accounts, HS*8, constants:account_size(), KL*2 div 8),
-	     tree_child(channels, HS*8, constants:channel_size(), KL div 8),
+	     tree_child(accounts, HS*8, constants:account_size(), KL div 8),
+	     tree_child(channels, HS*8, constants:channel_size()),
 	     tree_child(existence, HS*8, HS),
 	     tree_child(oracles, HS*8, ((((HB*2)+DB) div 8) + 4 + (3*HS)) + PS, (KL div 8)),
 	     tree_child(orders, HS*8, ((BB div 8) + (PS * 2))),

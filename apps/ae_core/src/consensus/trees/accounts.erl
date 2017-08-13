@@ -1,5 +1,5 @@
 -module(accounts).
--export([new/3,nonce/1,write/2,get/2,update/5,update/7,
+-export([new/3,nonce/1,write/2,get/2,update/5,update/6,
 	 %addr/1, id/1,
 	 balance/1,root_hash/1,now_balance/4,delete/2,
 	 bets/1, update_bets/2,
@@ -9,8 +9,8 @@
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
 	      pubkey = <<>>,
-	      bets = 0,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
-	      shares = 0}). %shares is a pointer to a merkel tree that stores how many shares you have at each price.
+	      bets = 0}).%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
+	      %shares = 0}). %shares is a pointer to a merkel tree that stores how many shares you have at each price.
 -define(id, accounts).
 
 balance(Account) -> Account#acc.balance.
@@ -24,16 +24,15 @@ root_hash(Accounts) ->
     trie:root_hash(?id, Accounts).
 
 new(Pub, Balance, Height) ->
-    #acc{pubkey = Pub, balance = Balance, nonce = 0, height = Height, bets = 0, shares = 0}.
+    #acc{pubkey = Pub, balance = Balance, nonce = 0, height = Height, bets = 0}.
 
 update(Pub, Trees, Amount, NewNonce, NewHeight) ->
     PubHash = ensure_decoded_hashed(Pub),
     Accounts = trees:accounts(Trees),
     {_, Account, _} = get(PubHash, Accounts),
-    update(PubHash, Trees, Amount, NewNonce, NewHeight, [], Account#acc.bets).
+    update(PubHash, Trees, Amount, NewNonce, NewHeight, Account#acc.bets).
 
-update(PubHash, Trees, Amount, NewNonce, NewHeight, Shares, Bets) ->
-    Shares = [],
+update(PubHash, Trees, Amount, NewNonce, NewHeight, Bets) ->
     Accounts = trees:accounts(Trees),
     {_, Account, _} = get(PubHash, Accounts),
     OldNonce = Account#acc.nonce,
@@ -51,7 +50,6 @@ update(PubHash, Trees, Amount, NewNonce, NewHeight, Shares, Bets) ->
     Account#acc{balance = NewBalance,
                 nonce = FinalNonce,
                 height = NewHeight,
-                shares = Shares,
                 bets = Bets}.
 
 now_balance(Acc, Amount, NewHeight, Trees) ->
@@ -84,9 +82,8 @@ get(Pub, Accounts) ->
                       Account0 = deserialize(leaf:value(Leaf)),
                       Meta = leaf:meta(Leaf),
                       KeyLength = constants:key_length(),
-                      DoubledKeyLength = KeyLength * 2,
-                      <<Bets:KeyLength, _Shares:KeyLength>> = <<Meta:DoubledKeyLength>>,
-                      Account0#acc{bets = Bets, shares = 0}
+                      <<Bets:KeyLength>> = <<Meta:KeyLength>>,
+                      Account0#acc{bets = Bets}
               end,
     {RH, Account, Proof}.
 
@@ -98,8 +95,7 @@ write(Root, Account) ->
     SerializedAccount = serialize(Account),
     true = size(SerializedAccount) == constants:account_size(),
     KeyLength = constants:key_length(),
-    DoubledKeyLength = KeyLength * 2,
-    <<Meta:DoubledKeyLength>> = <<(Account#acc.bets):KeyLength, 0:KeyLength>>,
+    <<Meta:KeyLength>> = <<(Account#acc.bets):KeyLength>>,
     PubId = trees:hash2int(PubHash),
     trie:put(PubId, SerializedAccount, Meta, Root, ?id). % returns a pointer to the new root
 
@@ -123,37 +119,21 @@ new_balance(Account, Amount, NewHeight, Trees) ->
         end,
     Amount + Account#acc.balance - (Rent * HeightDiff).
 
-%receive_shares(Account, Shares, Height, Trees) ->
-%    SharesTree = Account#acc.shares,
-%    {Tokens, NewTree} = shares:receive_shares(Shares, SharesTree, Height, Trees),
-%    Account#acc{shares = NewTree, balance = Account#acc.balance + Tokens}.
-
-%send_shares(Account, Shares, Height, Trees) ->
-%    SharesTree = Account#acc.shares,
-%    {Tokens, NewTree} = shares:send_shares(Shares, SharesTree, Height, Trees),
-%    Account#acc{shares = NewTree, balance = Account#acc.balance + Tokens}.
-
 serialize(Account) ->
     true = size(Account#acc.pubkey) == constants:pubkey_size(),
     BalanceSize = constants:balance_bits(),
     HeightSize = constants:height_bits(),
     NonceSize = constants:account_nonce_bits(),
-
-    %SharesRoot = shares:root_hash(Account#acc.shares),
     
     BetsRoot = oracle_bets:root_hash(Account#acc.bets),
     HashSize = constants:hash_size(),
     true = size(BetsRoot) == HashSize,
-    %true = size(SharesRoot) == HashSize,
-
     SerializedAccount =
         <<(Account#acc.balance):BalanceSize,
           (Account#acc.nonce):NonceSize,
           (Account#acc.height):HeightSize,
           (Account#acc.pubkey)/binary,
           BetsRoot/binary>>,
-         % SharesRoot/binary>>,
-
     true = size(SerializedAccount) == constants:account_size(),
     SerializedAccount.
 
@@ -196,7 +176,7 @@ ensure_decoded_hashed(Pub) ->
     
 cfg() ->
     KL = constants:key_length(),
-    MetaSize = KL div 4,%all in bytes
+    MetaSize = KL div 8,%all in bytes
     HashSize = constants:hash_size(),
     ValueSize = constants:account_size(),
     PathSize = constants:hash_size()*8,

@@ -43,7 +43,7 @@ doit(Tx,Trees,NewHeight) ->
     true = Inc1 + Inc2 >= 0,
     %Rent = Tx#gc.rent,
     CNonce = Tx#gc.channel_nonce,
-    NewChannel = channels:update(0, ID, Trees, CNonce, Inc1, Inc2, 0, channels:delay(OldChannel), NewHeight, false, []),
+    NewChannel = channels:update(0, ID, Trees, CNonce, Inc1, Inc2, 0, channels:delay(OldChannel), NewHeight, false),
     %io:fwrite("grow channel tx new channel is "),
     %io:fwrite(packer:pack(NewChannel)),
     %io:fwrite("\n"),
