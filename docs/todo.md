@@ -1,8 +1,9 @@
+
 proofs:facts_to_dict needs to verify that the root hash of each tree is valid for the header.
 
 we need to make sure it is possible for channels to tell if an oracle asking a particular question was launched. That way we can conditionally send a payment depending on if it does.
 It doesn't matter the number of the oracle, which question it asks matters.
-Maybe oracles should be stored by the hash of the question.
+Oracles should be stored by the hash of the question.
 
 Spending should optionally reference a recent hash. That way it is easy to spend coins only on one side of the fork, if the blockchain should split.
 

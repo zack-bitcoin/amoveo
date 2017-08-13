@@ -20,7 +20,9 @@
                 txs,
                 prev_hashes = {prev_hashes},
                 proofs = [],
-                comment = <<>>}).
+                comment = <<>>,
+                roots}).
+-record(roots, {accounts, channels, existence, burn, oracles, governance}).
 
 %proofs is for this
 %If the attacker sends a valid block with a valid header,
@@ -233,10 +235,28 @@ make(Header, Txs0, Trees, Pub) ->
 		   version = constants:version(),
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header),
-		   proofs = Proofs
+		   proofs = Proofs,
+                   roots = make_roots(Trees)
 		  },
     _Dict = proofs:facts_to_dict(Proofs, dict:new()),
     Block.
+make_roots(Trees) ->
+    #roots{accounts = accounts:root_hash(trees:accounts(Trees)),
+           channels = channels:root_hash(trees:channels(Trees)),
+           existence = existence:root_hash(trees:existence(Trees)),
+           burn = burn:root_hash(trees:burn(Trees)),
+           oracles = oracles:root_hash(trees:oracles(Trees)),
+           governance = governance:root_hash(trees:governance(Trees))}.
+roots_hash(X) when is_record(X, roots) ->
+    A = X#roots.accounts,
+    C = X#roots.channels,
+    E = X#roots.existence,
+    B = X#roots.burn,
+    O = X#roots.oracles,
+    G = X#roots.governance,
+    testnet_hasher:doit(<<A/binary, C/binary, E/binary, 
+                         B/binary, O/binary, G/binary>>).
+    
 guess_number_of_cpu_cores() ->
     case application:get_env(ae_core, test_mode, false) of
         true -> 1;
@@ -309,6 +329,10 @@ check(Block) ->
 
     OldBlock = get_by_hash(Block#block.prev_hash),
     OldTrees = OldBlock#block.trees,
+    PrevStateHash = roots_hash(Block#block.roots),
+    {ok, PrevHeader} = headers:read(Block#block.prev_hash),
+    PrevStateHash = headers:trees_hash(PrevHeader),
+    
     %check that hash(proofs) is the same as the header.
     %check that every proof is valid to the previous state root.
     %load the data into a dictionary, feed this dictionary into new_trees/ instead of OldTrees.
@@ -340,6 +364,7 @@ test(1) ->
     Header0 = headers:top(),
     Block0 = get_by_hash(Header0),
     Trees = trees(Block0),
+    make_roots(Trees),
     Pub = keys:pubkey(),
     Block1 = make(Header0, [], Trees, Pub),
     WBlock10 = mine2(Block1, 10),
