@@ -31,6 +31,7 @@ unpack_helper(J) ->
     list_to_tuple([Out|lists:map(fun(X) -> unpack_helper(X) end, tl(J))]).
 pack(X) -> iolist_to_binary(jiffy:encode(untup(X))).
 -record(d, {a = "", b = "" }).
+is_b_atom(<<"key">>) -> true;
 is_b_atom(<<"roots">>) -> true;
 is_b_atom(<<"proof">>) -> true;
 is_b_atom(<<"coinbase">>) -> true;

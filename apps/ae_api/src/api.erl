@@ -25,7 +25,7 @@
 -export([new_difficulty_oracle/2, new_question_oracle/3,
          new_governance_oracle/4, oracle_bet/3, 
          oracle_close/1, oracle_shares/1, 
-         oracle_unmatched/2, oracle_unmatched/3,
+         oracle_unmatched/1, oracle_unmatched/2,
          dice/1]).
 
 -export([pubkey/0, new_pubkey/1,
@@ -410,14 +410,14 @@ oracle_shares(Fee, OID) ->
 		oracle_shares_tx:make(keys:pubkey(), Fee, OID, Trees)
 	end,
     tx_maker(F).
-oracle_unmatched(OracleID, OrderID) ->
+oracle_unmatched(OracleID) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(unmatched, Governance),
-    oracle_unmatched(?Fee+Cost, OracleID, OrderID).
-oracle_unmatched(Fee, OracleID, OrderID) ->
+    oracle_unmatched(?Fee+Cost, OracleID).
+oracle_unmatched(Fee, OracleID) ->
     F = fun(Trees) ->
-		oracle_unmatched_tx:make(keys:pubkey(), Fee, OracleID, OrderID, Trees)
+		oracle_unmatched_tx:make(keys:pubkey(), Fee, OracleID, Trees)
 	end,
     tx_maker(F).
 
@@ -625,7 +625,7 @@ test_oracle_unmatched() ->
     timer:sleep(100),
     oracle_shares(1),
     timer:sleep(100),
-    oracle_unmatched(1, 2),
+    oracle_unmatched(1),
     timer:sleep(100),
     tx_pool:data().
     

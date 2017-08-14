@@ -180,7 +180,8 @@ genesis_maker() ->
            time = 0,
            difficulty = constants:initial_difficulty(),
            version = constants:version(),
-           trees = Trees
+           trees = Trees,
+           roots = make_roots(Trees)
           }.
 block_reward(Trees, Height, ID, PH) -> 
     OldAccounts = trees:accounts(Trees),
@@ -236,6 +237,7 @@ make(Header, Txs0, Trees, Pub) ->
 		   proofs = Proofs,
                    roots = make_roots(Trees)
 		  },
+    Block = packer:unpack(packer:pack(Block)),
     _Dict = proofs:facts_to_dict(Proofs, dict:new()),
     Block.
 make_roots(Trees) ->
@@ -344,7 +346,7 @@ check(Block) ->
     BlockHash = hash(Block),
     {ok, Header} = headers:read(BlockHash),
     
-    Dict = proofs:facts_to_dict(Facts, dict:new()),
+    %Dict = proofs:facts_to_dict(Facts, dict:new()),
 
     OldBlock = get_by_hash(Block#block.prev_hash),
     OldTrees = OldBlock#block.trees,

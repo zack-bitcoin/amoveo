@@ -1,5 +1,3 @@
-get rid of shares.
-
 We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
 
 verifying a block should not require looking at the previous block. This way we can verify them in parallel.

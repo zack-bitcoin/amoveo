@@ -81,8 +81,8 @@ handle_cast({close, SS, STx}, X) ->
     DemandedAmount = channel_team_close_tx:amount(Tx),
     {Trees, Height, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    {CalculatedAmount, NewNonce, [], _} = spk:run(safe, SS, SPK, Height, 0, Trees),
-    {OldAmount, OldNonce, [], _} = spk:run(safe, CD#cd.ssthem, SPK, Height, 0, Trees),
+    {CalculatedAmount, NewNonce, _} = spk:run(safe, SS, SPK, Height, 0, Trees),
+    {OldAmount, OldNonce, _} = spk:run(safe, CD#cd.ssthem, SPK, Height, 0, Trees),
     if
 	NewNonce > OldNonce -> ok; 
 	NewNonce == OldNonce ->
@@ -185,6 +185,7 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
 handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     %if your partner found a way to close the channel at a higher nonced state, or a state that they think you will find preferable, then this is how you request the proof from them, and then update your data about the channel to reflect this new information.
     %send your partner a signed copy of the spk so that they can update to the current state.
+    io:fwrite("the simplify 01 \n"),
     {ok, CD0} = channel_manager:read(From),
     true = live(CD0),
     SPKME = me(CD0),
@@ -193,11 +194,15 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     true = live(CD),
     NewSPK = testnet_sign:data(ThemSPK),
     NewSPK = me(CD),
+    io:fwrite("the simplify 02 \n"),
     SS = script_sig_me(CD),
     SS4 = script_sig_them(CD),
     Entropy = entropy(CD),
     B2 = spk:force_update(SPKME, SSME, SS4),
+    io:fwrite(packer:pack({channel_feeder, B2, {NewSPK, SS}})),
+    io:fwrite("\n"),
     CID = CD#cd.cid,
+    io:fwrite("the simplify 03 \n"),
     Return2 = 
 	if
 	    (B2 == {NewSPK, SS}) ->
@@ -217,7 +222,7 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 			channel_manager:write(From, NewCD),
 			Return;
 		    true ->
-			{SS5, Return} = simplify_helper(From, SS4),
+			{SS5, Return} = simplify_helper(From, SS4),%this should get rid of one of the bets.
 			SPK = testnet_sign:data(ThemSPK),
 			SPK2 = testnet_sign:data(Return),
 			SPK = SPK2,
@@ -361,7 +366,9 @@ simplify_helper(From, SS) ->
     SPK = CD#cd.me,
     %this is giving the new SS to bet_unlock. channel_feeder:bets_unlock feeds the old SS and old SPK to it.
     %spk:run(fast, SS, OldSPK
-
+    io:fwrite("simplify_helper "),
+    io:fwrite(packer:pack({sh, SPK, SS})),
+    io:fwrite("\n"),
     {SSRemaining, NewSPK, _, _} = spk:bet_unlock(SPK, SS),
     Return = keys:sign(NewSPK),
     {SSRemaining, Return}. 

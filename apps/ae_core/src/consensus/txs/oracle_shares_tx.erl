@@ -5,7 +5,7 @@
 %If you bet on the winning outcome, then you get positive shares. If you bet on one of the losing outcomes, then you get negative shares.
 %[you can read about shares here](docs/shares.md)
 %The difficulty of the shares was announced when the oracle was launched.
--record(oracle_shares, {from, nonce, fee, oracle_id, order_id}).
+-record(oracle_shares, {from, nonce, fee, oracle_id}).
 from(X) -> X#oracle_shares.from.
 oracle_id(X) -> X#oracle_shares.oracle_id.
 make(From, Fee, OID, Trees) ->

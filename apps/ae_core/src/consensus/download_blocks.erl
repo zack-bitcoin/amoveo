@@ -102,6 +102,9 @@ trade_peers(Peer) ->
     peers:add(TheirsPeers).
 
 remote_peer(Transaction, Peer) ->
+    io:fwrite("transaction is "),
+    io:fwrite(packer:pack(Transaction)),
+    io:fwrite("\n"),
     case talker:talk(Transaction, Peer) of
         {ok, Return0} -> Return0;
         Return1 -> Return1

@@ -99,10 +99,12 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 	    NewOracles = oracles:write(NewOracle, Oracles),
 	    trees:update_oracles(Trees2, NewOracles);
 	true ->
+            io:fwrite("oracle bet tx path2\n"),
 	    {Matches1, Matches2, Next, NewOrders} =
 		orders:match(NewOrder, Orders),
-            %io:fwrite(packer:pack({oracle_bet_tx_matches2, Matches2})),
-            %io:fwrite("\n"),%everything from matches2, id 0, The location about to be filled, the last bet if it exists.
+            %Matches2 is empty.
+            io:fwrite(packer:pack({oracle_bet_tx_matches2, Matches1, Matches2, NewOrders})),
+            io:fwrite("\n"),%everything from matches2, id 0, The location about to be filled, the last bet if it exists.
             
 	    Oracle2 = oracles:set_orders(Oracle, NewOrders),
 	    Accounts3 = give_bets_main(From, Matches1, TxType, Accounts2, oracles:id(Oracle2)),
@@ -147,7 +149,10 @@ give_bets_main(Id, Orders, Type, Accounts, OID) ->
     %Id bought many orders of the same type. sum up all the amounts, and give him this many bets.
     %return the new accounts tree
     Amount = sum_order_amounts(Orders, 0),
-    {_, Acc, _} = accounts:get(Id, Accounts),
+    io:fwrite("give bets main amount "),
+    io:fwrite(integer_to_list(Amount)),
+    io:fwrite("\n"),
+{_, Acc, _} = accounts:get(Id, Accounts),
     OldBets = accounts:bets(Acc),
     NewBets = oracle_bets:add_bet(OID, Type, 2*Amount, OldBets),
     Acc2 = accounts:update_bets(Acc, NewBets),
@@ -155,6 +160,9 @@ give_bets_main(Id, Orders, Type, Accounts, OID) ->
 sum_order_amounts([], N) -> N;
 sum_order_amounts([H|T], N) -> 
     A = orders:amount(H),
+    io:fwrite("order amount "),
+    io:fwrite(integer_to_list(A)),
+    io:fwrite("\n"),
     sum_order_amounts(T, A+N).
 give_bets([], _Type, Accounts, _OID) -> Accounts;
 give_bets([Order|T], Type, Accounts, OID) ->

@@ -64,11 +64,11 @@ macro evidence ( signed_price_declaration -- delay nonce amount )
 macro match_order ( signed_price_declaration -- delay nonce amount )
         extract ( SPD height price portion_matched )
 	PM ! dup PRICE ! ( SPD height price )
-	dup MaxPrice print check_size print or_die print %make sure it is better than the agreed upon price.
+	dup MaxPrice check_size or_die %make sure it is better than the agreed upon price.
 	    %The biggest price means the most money goes to the server. So a trade that can get matched has a price that  is lower than the price we asked for.
-	>r height print > not print or_die
-	bet ( delay nonce amount ) print
-        rot Expires height - * tuck ( delay2 nonce amount ) print
+	>r height > not or_die
+	bet ( delay nonce amount ) 
+        rot Expires height - * tuck ( delay2 nonce amount )
 	height swap ( delay nonce height amount )
 	>r ( delay nonce height ) 
 	swap mil + ( delay height big_nonce ) 
@@ -79,8 +79,8 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	  int 10000 MaxPrice - int 10000 PM @ -
 	  * int 10000 / +
 %we add on some more money for how much refund we get from the unmatched portion.
-	else
-	  drop drop
+	else print
+	  drop drop print
 	then	
 ;
 macro unmatched ( OracleProof -- delay nonce amount )
@@ -102,6 +102,7 @@ swap
       int 3 == if drop drop drop evidence else drop
       int 4 == if drop drop unmatched else drop
       then then then then then
-      nil crash
+      print
+      crash
 ;
-main nil
+main

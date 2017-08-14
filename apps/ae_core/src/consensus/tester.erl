@@ -1,5 +1,5 @@
 -module(tester).
--export([test/0]).
+-export([test/0, oracle_test/0]).
 test() ->
     lager:info("You need to clean the state of the node before running this test. Make sure you don't download anything from peers before running this test.~n"
                "You need to clean the state of the node after running this test, before you can run an Aeternity node."),
@@ -37,8 +37,8 @@ test1() ->
     S = order_book:test(),
     io:fwrite("proofs test\n"),
     S = proofs:test(),
-    %io:fwrite("market test\n"),
-    %S = market:test(), %% This test has side effects i.e. it absorbs transactions.
+    io:fwrite("market test\n"),
+    S = market:test(), %% This test has side effects i.e. it absorbs transactions.
     %io:fwrite("chalang test\n"),
     %S = test_chalang:test(), %% Module test_chalang needs review as even passing folder it runs other tests with hardcoded folder.
     %io:fwrite("block header test\n"),
@@ -46,3 +46,17 @@ test1() ->
     %io:fwrite("keys test\n"),
     %S = keys:test(), %% Fails with `{error,<<"cannot sign">>}`.
     S.
+
+oracle_test() ->
+    N = 2,
+    {Trees, _, _} = tx_pool:data(),
+    Accounts = trees:accounts(Trees),
+    {_, Acc, _} = accounts:get(keys:pubkey(), Accounts),
+    OBTree = accounts:bets(Acc),
+    {_, OB, _} = oracle_bets:get(N, OBTree),
+    Oracles = trees:oracles(Trees),
+    {_, Oracle, _} = oracles:get(N, Oracles),
+    OrdersTree = oracles:orders(Oracle),
+    {_, Order, _} = orders:get(keys:pubkey(), OrdersTree),
+    {OB, Order}.
+    

@@ -48,5 +48,5 @@ then then then then
 ;
 
 macro doit
-bet nil crash
+bet crash
 ;		 

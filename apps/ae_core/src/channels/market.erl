@@ -130,19 +130,19 @@ test2(NewPub) ->
     SS1 = settle(SPD),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, shares, delay
-    {60,1000001,[],999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
+    {60,1000001,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
 	spk:run(fast, [SS1], SPK, 1, 0, Trees5),
 
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
     SS2 = no_publish(),
     %amount, newnonce, shares, delay
-    {0, 999901, [],101} = 
+    {0, 999901, 101} = 
 	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
     
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
     SS3 = evidence(SPD),
     %amount, newnonce, shares, delay
-    {60, 999952, [], 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
+    {60, 999952, 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
 	spk:run(fast, [SS3], SPK, 1, 0, Trees5),
 
@@ -150,7 +150,7 @@ test2(NewPub) ->
     SPD2 = price_declaration_maker(Height+1, Price-1, 5000, MarketID),
     SS4 = contradictory_prices(SPD, SPD2),
     %amount, newnonce, shares, delay
-    {0,2000001,[],0} = 
+    {0,2000001,0} = 
 	%The nonce is super high, and the delay is zero, because if the market maker is publishing contradictory prices, he should be punished immediately.
 	%Amount is 0 because none of the money goes to the market maker.
        spk:run(fast, [SS4], SPK, 1, 0, Trees5),
@@ -170,7 +170,7 @@ test2(NewPub) ->
     %Now that the bet is settled the delay is only zero so that we can get our money out as fast as possible.
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
-    {100,1000003,[],0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
+    {100,1000003,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),
@@ -179,13 +179,13 @@ test2(NewPub) ->
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet, so we keep all 100.
     %amount, newnonce, shares, delay
-    {0,1000003,[],0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
+    {0,1000003,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
 
     %test a trade that gets only partly matched.
     SPD3 = price_declaration_maker(Height, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3),
     %amount, newnonce, shares, delay
-    {100, 1000003, [], 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
+    {100, 1000003, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
@@ -193,7 +193,7 @@ test2(NewPub) ->
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
     SS6 = unmatched(), 
     %amount, newnonce, shares, delay
-    {60, 500001, [], 50} = spk:run(fast, [SS6], SPK, 1, 0, Trees5),
+    {60, 500001, 50} = spk:run(fast, [SS6], SPK, 1, 0, Trees5),
     success.
     
     
