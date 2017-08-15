@@ -192,12 +192,12 @@ match(Order, Root) ->
 
     {Matches1, Matches2, Switch2, Root2}.
 match2(Order, Root, T, Matches1, Matches2) ->
-    io:fwrite(packer:pack({match2, Order})),
-    io:fwrite("\n"),
+    %io:fwrite(packer:pack({match2, Order})),
+    %io:fwrite("\n"),
     {_, La, _} = get(T, Root),
     case La of
 	empty -> 
-            io:fwrite("was empty\n"),
+            %io:fwrite("was empty\n"),
 	    P = Order#order.aid,
 	    Root2 = head_update(P, Root),
 	    NewRoot = write(Order, Root2),
@@ -208,14 +208,14 @@ match2(Order, Root, T, Matches1, Matches2) ->
 	    P = L#order.pointer,
 	    if
 		NewA > OldA ->
-                    io:fwrite("new bigger\n"),
+                    %io:fwrite("new bigger\n"),
 		    Root2 = head_update(P, Root),
 		    Order2 = update_amount(Order, -OldA),
 		    Root3 = delete(aid(L), Root2),
 		    Order3 = set_amount(Order, OldA),
 		    match2(Order2, Root3, P, [Order3|Matches1], [L|Matches2]);
 		NewA == OldA ->
-                    io:fwrite("same\n"),
+                    %io:fwrite("same\n"),
 		    {same_exact, head_update(P, Root), [Order|Matches1], [L|Matches2]};
 		NewA < OldA ->
 		    Order2 = update_amount(L, -NewA),

@@ -213,7 +213,7 @@ tx_costs([STx|T], Governance, Out) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
-new_trees_from_dict(Txs, Dict, Height, Pub, PrevHash) ->
+new_dict(Txs, Dict, Height, Pub, PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
     block_reward_dict(Dict2, Height, Pub, PrevHash).
     
@@ -360,13 +360,14 @@ check(Block) ->
     true = proofs_roots_match(Block#block.proofs, Block#block.roots),
     GovQueries = proofs:governance_to_querys(trees:governance(OldTrees)),
     GovProofs = proofs:prove(GovQueries, OldTrees),
-    Dict = proofs:facts_to_dict(Block#block.proofs ++ GovProofs, dict:new()),
+    %Dict = proofs:facts_to_dict(Block#block.proofs ++ GovProofs, dict:new()),
     %load the data into a dictionary, feed this dictionary into new_trees/ instead of OldTrees.
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
-    %NewTrees = new_trees_from_dict(Txs, Dict, Height, Pub, PrevHash),
+    %NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
+    %use NewDict to generate NewTrees
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     Block2 = Block#block{trees = NewTrees},
     TreesHash = trees:root_hash(Block2#block.trees),

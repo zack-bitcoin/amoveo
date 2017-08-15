@@ -123,7 +123,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
     Key = Bet#bet.key, 
     case secrets:read(Key) of
 	<<"none">> -> 
-            io:fwrite("no secret known\n"),
+            %io:fwrite("no secret known\n"),
 	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 	SS2 -> 
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
@@ -137,19 +137,19 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
 	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2, Code, State, constants:hash_size()),
-            io:fwrite("spk bet_unlock2 chalang run first\n"),
+            %io:fwrite("spk bet_unlock2 chalang run first\n"),
 	    Data2 = chalang:run5([SS2], Data),
-            io:fwrite("spk bet_unlock2 chalang run second\n"),
+            %io:fwrite("spk bet_unlock2 chalang run second\n"),
 	    Data3 = chalang:run5([Code], Data2),
 	    case Data3 of
 		{error, E} -> 
-                    io:fwrite("spk bet_unlock2 chalang run third\n"),
+                    %io:fwrite("spk bet_unlock2 chalang run third\n"),
 		    Data4 = chalang:run5([SS], Data),
-                    io:fwrite("spk bet_unlock2 chalang run fourth\n"),
+                    %io:fwrite("spk bet_unlock2 chalang run fourth\n"),
 		    Y = chalang:run5([Code], Data4),
 		    case Y of
 			{error, E2} ->
-			    io:fwrite("bet unlock2 ERROR"),
+			    %io:fwrite("bet unlock2 ERROR"),
 			    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 			Z -> 
 			    bet_unlock3(Z, T, B, A, Bet, SSIn, SSOut, SS, Secrets, Nonce, SSThem)
@@ -256,11 +256,11 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
-    io:fwrite("spk run3 about to run script\n"),
+    %io:fwrite("spk run3 about to run script\n"),
     Data2 = chalang:run5([ScriptSig], Data),
     %case chalang:run5([Code], Data2) of
 	%{error, E} -> {error, E};
-    io:fwrite("spk run3 about to run second script\n"),
+    %io:fwrite("spk run3 about to run second script\n"),
     Data3 = chalang:run5([Code], Data2),
     [<<Amount:32>>|
      [<<Nonce:32>>|
@@ -295,9 +295,9 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
     Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS, Code, State, constants:hash_size()),
-    io:fwrite("force update first\n"),
+    %io:fwrite("force update first\n"),
     Data2 = chalang:run5([SS], Data),
-    io:fwrite("force update second\n"),
+    %io:fwrite("force update second\n"),
     Data3 = chalang:run5([Code], Data2),
     [<<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),
     if
