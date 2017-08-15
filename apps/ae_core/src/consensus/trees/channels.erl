@@ -14,7 +14,7 @@
 		  bal1 = 0, 
 		  bal2 = 0, 
 		  amount = 0, %this is how we remember the outcome of the last contract we tested, that way we can undo it.
-		  nonce = 0,%How many times has this channel-state been updated. If your partner has a state that was updated more times, then they can use it to replace your final state.
+		  nonce = 1,%How many times has this channel-state been updated. If your partner has a state that was updated more times, then they can use it to replace your final state.
 		  timeout_height = 0,%when one partner disappears, the other partner needs to wait so many blocks until they can access their money. This records the time they started waiting. 
 		  last_modified = 0,%this is used so that the owners of the channel can pay a fee for how long the channel has been open.
 % we can set timeout_height to 0 to signify that we aren't in timeout mode. So we don't need the timeout flag.
@@ -51,7 +51,7 @@ update(Slasher, ID, Trees, Nonce, Inc1, Inc2, Amount, Delay, Height, Close) ->
     NewNonce = if
 		   Nonce == none -> CNonce;
 		   true -> 
-		       true = Nonce > CNonce,
+		       %true = Nonce > CNonce,
 		       Nonce
 	       end,
     %true = Nonce > Channel#channel.nonce,

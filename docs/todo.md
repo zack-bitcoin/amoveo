@@ -1,3 +1,5 @@
+Every node should keep track of the entire governance tree, that way we don't have to prove so many things.
+
 We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
 
 verifying a block should not require looking at the previous block. This way we can verify them in parallel.
@@ -11,6 +13,8 @@ Spending should optionally reference a recent hash. That way it is easy to spend
 
 We need to test the case where your channel partner deletes their account. It needs to still be possible to get your money out of the channel.
 
+We need to test the case where someone who is participating in the oracle deletes their own account. It needs to still be possible to bet in the oracle and close the oracle.
+
 grow_channel_tx:good/1 needs to be implemented
 
 grow_channel is bad.
@@ -21,27 +25,6 @@ This number gets updated every time there is a grow_channel transaction for this
 The SPK should reference this number.
 If the SPK doesn't match this number, then it is an invalid tx.
 With this update, it probably becomes secure to withdraw some of the money from the channel without closing the channel.
-
-We tests for oracle_bet. multi-block tests, so that we have to generate a proof of the intermediate data.
-
-We need to test the case where someone who is participating in the oracle deletes their own account. It needs to still be possible to bet in the oracle and close the oracle.
-
-spending shares is really messy right now.
-The person who spends shares needs to be trustlessly paid in some other currency, preferably any other currency that hashlocks with sha256.
-
-If we want to use a market to trade shares, then we need to be able to hashlock 2 channels, each moving both shares and tokens.
-In order to do this, the shares would have to be locked into the channel the same way AE tokens are.
-
-The shares in a channel need to be stored as a tree, the same way as accounts hold shares. this way channels are constant sized.
-Storing the shares as a tree might not work.
-Maybe shares is a bad idea.
-Maybe each channel should only hold one kind of share at a time.
-
-We cannot store channels this way. The final channel state is calculated in a channel_slash_tx or a channel_solo_close_tx, but the oracle's money is transfered to the accounts on a channel_timeout_tx.
-If there were unlimited shares, we would have to include in the merkle structure who gets which shares.
-
-the prev_hashes should be stored with headers, not with blocks. That way we can look up headers quickly.
-
 
 get rid of repetition in /apps/ae_core/src/consensus/txs/spk.erl
 

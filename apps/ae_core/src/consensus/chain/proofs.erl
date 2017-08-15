@@ -1,6 +1,6 @@
 -module(proofs).
 -export([prove/2, test/0, hash/1, facts_to_dict/2, txs_to_querys/2, 
-         root/1, tree/1]).
+         root/1, tree/1, governance_to_querys/1]).
 -record(proof, {tree, value, root, key, path}).
 -record(key, {pub, id}). %used for shared, oracle_bets, and orders
 
@@ -197,12 +197,20 @@ facts_to_dict([F|T], D) ->
     facts_to_dict(T, D2).
 hash(F) ->
     testnet_hasher:doit(F).
+governance_to_querys(Gov) ->
+    Leaves = trie:get_all(Gov, governance),
+    Keys = leaves_to_querys(Leaves).
+leaves_to_querys([]) -> [];
+leaves_to_querys([L|T]) ->
+    Q = {governance, leaf:key(L)},
+    [Q|leaves_to_querys(T)].
 txs_to_querys([], _) -> [];
 txs_to_querys([STx|T], Trees) ->
     Tx = testnet_sign:data(STx),
     L = case element(1, Tx) of
 	    create_acc_tx -> 
                 [
+                 %governance create_account_fee
                  {accounts, create_account_tx:pubkey(Tx)},
                  {accounts, create_account_tx:from(Tx)}
                 ];
@@ -212,10 +220,13 @@ txs_to_querys([STx|T], Trees) ->
                  {accounts, spend_tx:to(Tx)}
                 ];
 	    delete_acc_tx -> [
+                   %governance delete_account_reward
                    {accounts, delete_account_tx:from(Tx)},
 		   {accounts, delete_account_tx:to(Tx)}
                   ];
             nc -> [
+                   %governance channel_closed_time (what??)
+                   %governance create_channel_fee
                    {accounts, new_channel_tx:acc1(Tx)},
                    {accounts, new_channel_tx:acc2(Tx)},
                    {channels, new_channel_tx:cid(Tx)}
@@ -231,6 +242,11 @@ txs_to_querys([STx|T], Trees) ->
 		    {channels, channel_team_close_tx:id(Tx)}
                    ];
 	    csc -> 
+                %governance time_gas
+                %governance space_gas
+                %governance cs (should probably be csc)
+                %governance fun_limit
+                %governance var_limit
                 [
                  {accounts, channel_solo_close:from(Tx)},
                  {channels, channel_solo_close:id(Tx)}
@@ -242,6 +258,10 @@ txs_to_querys([STx|T], Trees) ->
                  {channels, channel_timeout_tx:cid(Tx)}
                 ];
 	    cs -> 
+                %governance time_gas
+                %governance space_gas
+                %governance fun_limit
+                %governance var_limit
                 [
                  {accounts, channel_slash_tx:from(Tx)},
                  {channels, channel_slash_tx:id(Tx)}
@@ -252,6 +272,12 @@ txs_to_querys([STx|T], Trees) ->
                  {existence, existence_tx:commit(Tx)}
                 ];
 	    oracle_new -> [
+                           %governance governance_change_limit
+                           %governance governance_delay
+                           %governance maximum_question_size
+                           %governance question_delay
+                           %governance oracle_initial_liquidity
+                           %governance oracle_future_limit
                            {accounts, oracle_new_tx:from(Tx)},
                            {oracles, oracle_new_tx:id(Tx)}
                           ];
@@ -269,9 +295,14 @@ txs_to_querys([STx|T], Trees) ->
                 Prove = tagify(accounts, Pubkeys2) ++ 
                     make_oracle_bets(Pubkeys2, OID) ++
                     make_orders(Pubkeys, OID),
+                %governance minimum_oracle_time
+                %governance oracle_initial_liquidity
                  [{oracles, oracle_bet_tx:id(Tx)}] ++
                     Prove;
 	    oracle_close -> [
+                             %governance minimum_oracle_time
+                             %governance maximum_oracle_time
+                             %whichever governance variable is being updated.
                              {accounts, oracle_close_tx:from(Tx)},
                              {oracles, oracle_close_tx:oracle_id(Tx)}
                             ];
@@ -287,11 +318,13 @@ txs_to_querys([STx|T], Trees) ->
                 OID = oracle_shares_tx:oracle_id(Tx),
                 From = oracle_shares_tx:from(Tx),
                 [
+                 %governance minimum_oracle_time
                  {oracle_bets, #key{pub = From, id = OID}},
                  {accounts, From},
                  {oracles, OID}
                 ];
 	    coinbase -> [
+                         %governance block_reward
                          {accounts, coinbase_tx:from(Tx)}
                         ]
 	end,
@@ -344,7 +377,8 @@ test() ->
 	      {burn, testnet_hasher:doit(1)},
 	      {orders, #key{pub = keys:pubkey(), id = OID}},
               {oracle_bets, #key{pub = keys:pubkey(), id = OID}}
-	     ],
+	     ] ++
+        governance_to_querys(trees:governance(Trees)),
     Facts = prove(Querys, Trees),
     %io:fwrite(packer:pack({prove_facts, Facts})),
     ProofRoot = hash(Facts),

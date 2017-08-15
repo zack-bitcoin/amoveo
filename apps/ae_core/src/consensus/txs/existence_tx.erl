@@ -1,5 +1,5 @@
 -module(existence_tx).
--export([doit/3, make/4, from/1, commit/1]).
+-export([doit/3, go/3, make/4, from/1, commit/1]).
 -record(ex, {from, nonce = 0, fee = 0, commit = 0}).
 
 from(X) -> X#ex.from.
@@ -22,6 +22,8 @@ doit(Tx, Trees, NewHeight) ->
     NewAccounts = accounts:write(Accounts, Acc),
     Trees2 = trees:update_accounts(Trees, NewAccounts),
     trees:update_existence(Trees2, NewCommits).
+go(Tx, Trees, NewHeight) ->
+    ok.
     
 
     

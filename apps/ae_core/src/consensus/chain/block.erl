@@ -186,7 +186,8 @@ genesis_maker() ->
 block_reward(Trees, Height, ID, PH) -> 
     OldAccounts = trees:accounts(Trees),
     Governance = trees:governance(Trees),
-    BCM = governance:get_value(block_creation_maturity, Governance),
+    %BCM = governance:get_value(block_creation_maturity, Governance),
+    BCM = 100,
     BlocksAgo = Height - BCM,
     case BlocksAgo > 0 of
         true ->
@@ -204,13 +205,18 @@ block_reward(Trees, Height, ID, PH) ->
         false ->
             Trees
     end.
+block_reward_dict(Trees, Height, ID, PH) ->
+    ok.
 tx_costs([], _, Out) -> Out;
 tx_costs([STx|T], Governance, Out) ->
     Tx = testnet_sign:data(STx),
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
-
+new_trees_from_dict(Txs, Dict, Height, Pub, PrevHash) ->
+    Dict2 = txs:digest_from_dict(Txs, Dict, Height),
+    block_reward_dict(Dict2, Height, Pub, PrevHash).
+    
 new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
 %convert trees to dictionary format
     Trees2 = txs:digest(Txs, Trees, Height),
@@ -220,8 +226,6 @@ make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [keys:sign(CB)|Txs0],
     Querys = proofs:txs_to_querys(Txs, Trees),
-    %io:fwrite(packer:pack({block_querys, Querys})),
-    %io:fwrite("\n"),
     Height = headers:height(Header),
     NewTrees = new_trees(Txs, Trees, Height+1, Pub, hash(Header)),
     Proofs = proofs:prove(Querys, Trees),
@@ -354,17 +358,19 @@ check(Block) ->
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = headers:trees_hash(PrevHeader),
     true = proofs_roots_match(Block#block.proofs, Block#block.roots),
-    
-    %check that hash(proofs) is the same as the header.
-    %check that every proof is valid to the previous state root.
+    GovQueries = proofs:governance_to_querys(trees:governance(OldTrees)),
+    GovProofs = proofs:prove(GovQueries, OldTrees),
+    Dict = proofs:facts_to_dict(Block#block.proofs ++ GovProofs, dict:new()),
     %load the data into a dictionary, feed this dictionary into new_trees/ instead of OldTrees.
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
+    %NewTrees = new_trees_from_dict(Txs, Dict, Height, Pub, PrevHash),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     Block2 = Block#block{trees = NewTrees},
     TreesHash = trees:root_hash(Block2#block.trees),
+    TreesHash = headers:trees_hash(Header),
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     {true, Block2}.
@@ -388,15 +394,20 @@ test(1) ->
     Trees = trees(Block0),
     make_roots(Trees),
     Pub = keys:pubkey(),
+    io:fwrite("block test 5\n"),
     Block1 = make(Header0, [], Trees, Pub),
+    io:fwrite("block test 6\n"),
     WBlock10 = mine2(Block1, 10),
+    io:fwrite("block test 7\n"),
     Header1 = block_to_header(WBlock10),
     headers:absorb([Header1]),
+    io:fwrite("block test 10\n"),
     H1 = hash(Header1),
     H1 = hash(WBlock10),
     {ok, _} = headers:read(H1),
     block_absorber:save(WBlock10),
     WBlock11 = get_by_hash(H1),
+    io:fwrite("block test 15\n"),
     WBlock11 = get_by_height_in_chain(1, H1),
     WBlock10 = WBlock11#block{trees = WBlock10#block.trees},
     success;

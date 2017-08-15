@@ -1,5 +1,5 @@
 -module(channel_solo_close).
--export([doit/3, make/5, from/1, id/1]).
+-export([doit/3, go/3, make/5, from/1, id/1]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
 
@@ -88,3 +88,5 @@ check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
 		true -> ok
 	    end
     end.
+go(Tx, Trees, NewHeight) ->
+    ok.

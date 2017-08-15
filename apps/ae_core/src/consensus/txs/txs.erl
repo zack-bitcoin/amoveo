@@ -3,9 +3,10 @@
 
 %% API
 -export([dump/0,
-	     txs/0,
-	     digest/3,
-	     fees/1]).
+         txs/0,
+         digest/3,
+         digest_from_dict/3,
+         fees/1]).
 
 -export([start_link/0]).
 -export([init/1,
@@ -23,8 +24,35 @@ dump() ->
 txs() ->
 	gen_server:call(?MODULE, txs).
 
+digest_from_dict([], Dict, _) ->
+    Dict;
+digest_from_dict([STx|T], Dict, Height) ->
+    true = testnet_sign:verify(STx),
+    Tx = testnet_sign:data(STx),
+    NewDict = digest_from_dict2(Tx, Dict, Height),
+    digest_from_dict(T, NewDict, Height).
+digest_from_dict2(Tx, Dict, H) ->
+    case element(1, Tx) of
+        create_acc_tx -> create_account_tx:go(Tx, Dict, H);
+        spend -> spend_tx:go(Tx, Dict, H);
+        delete_acc_tx -> delete_account_tx:go(Tx, Dict, H);
+        nc -> new_channel_tx:go(Tx, Dict, H);
+        gc -> grow_channel_tx:go(Tx, Dict, H);
+        ctc -> channel_team_close_tx:go(Tx, Dict, H);
+        csc -> channel_solo_close:go(Tx, Dict, H);
+        timeout -> channel_timeout_tx:go(Tx, Dict, H);
+        cs -> channel_slash_tx:go(Tx, Dict, H);
+        ex -> existence_tx:go(Tx, Dict, H);
+        oracle_new -> oracle_new_tx:go(Tx, Dict, H);
+        oracle_bet -> oracle_bet_tx:go(Tx, Dict, H);
+        oracle_close -> oracle_close_tx:go(Tx, Dict, H);
+        unmatched -> oracle_unmatched_tx:go(Tx, Dict,H);
+        oracle_shares -> oracle_shares_tx:go(Tx,Dict,H);
+	coinbase -> coinbase_tx:go(Tx, Dict, H);
+        X -> X = 2
+    end.
 digest([], Trees, _) ->
-	Trees;
+    Trees;
 digest([SignedTx | Txs], Trees, Height) ->
     true = testnet_sign:verify(SignedTx),
     Tx = testnet_sign:data(SignedTx),

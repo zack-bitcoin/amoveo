@@ -1,5 +1,5 @@
 -module(new_channel_tx).
--export([doit/3, make/9, good/1, spk/2, cid/1,
+-export([doit/3, go/3, make/9, good/1, spk/2, cid/1,
 	 entropy/1, acc1/1, acc2/1, id/1]).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, entropy = 0, 
@@ -89,3 +89,5 @@ doit(Tx, Trees, NewHeight) ->
     NewAccounts = accounts:write(Accounts2, Acc2),
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
+go(Tx, Trees, NewHeight) ->
+    ok.

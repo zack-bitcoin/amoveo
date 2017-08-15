@@ -1,6 +1,6 @@
 -module(channel_timeout_tx).
--export([doit/3, make/5, cid/1, aid/1, spk_aid1/1, spk_aid2/1]).
--record(timeout, {aid = 0, nonce = 0, fee = 0, cid = 0, shares, spk_aid1, spk_aid2}).
+-export([doit/3, go/3, make/5, cid/1, aid/1, spk_aid1/1, spk_aid2/1]).
+-record(timeout, {aid = 0, nonce = 0, fee = 0, cid = 0, spk_aid1, spk_aid2}).
 %If your partner is not helping you, this is how you start the process of closing the channel. 
 %you don't provide the channel state now, instead you use a channel_slash to provide that data.
 cid(X) -> X#timeout.cid.
@@ -78,4 +78,6 @@ doit(Tx, Trees, NewHeight) ->
     NewChannels = channels:delete(CID, Channels),%
     Trees2 = trees:update_channels(Trees3, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
+go(Tx, Trees, NewHeight) ->
+    ok.
 

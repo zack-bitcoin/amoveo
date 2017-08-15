@@ -1,5 +1,5 @@
 -module(create_account_tx).
--export([doit/3, new/5, from/1, pubkey/1]).
+-export([doit/3, go/3, new/5, from/1, pubkey/1]).
 -record(create_acc_tx, {from = 0,
                         nonce = 0,
                         fee = 0,
@@ -45,3 +45,5 @@ doit(Tx, Trees, NewHeight) ->
     NewAccounts = accounts:write(Accounts, Account),
 
     trees:update_accounts(Trees, NewAccounts).
+go(Tx, Trees, NewHeight) ->
+    ok.

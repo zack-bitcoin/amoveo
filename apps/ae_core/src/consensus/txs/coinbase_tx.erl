@@ -1,6 +1,6 @@
 -module(coinbase_tx).
--export([doit/3, make/2, from/1]).
--record(coinbase, {from = 0, nonce = 0}).
+-export([doit/3, go/3, make/2, from/1]).
+-record(coinbase, {from = 0, nonce = 0, fee = 0}).
 from(X) -> X#coinbase.from.
 make(From, Trees) ->
     Accounts = trees:accounts(Trees),
@@ -19,3 +19,5 @@ doit(Tx, Trees, NewHeight) ->
 	   end,
     NewAccounts = accounts:write(Accounts, Nacc),
     trees:update_accounts(Trees, NewAccounts).
+go(Tx, Dict, NewHeight) ->
+    ok.

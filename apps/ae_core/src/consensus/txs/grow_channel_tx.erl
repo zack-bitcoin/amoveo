@@ -1,6 +1,6 @@
 -module(grow_channel_tx).
--export([doit/3, make/5, good/1, acc1/1, acc2/1, id/1]).
--record(gc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, inc1 = 0, inc2 = 0, channel_nonce = none, id = -1}).
+-export([doit/3, go/3, make/5, good/1, acc1/1, acc2/1, id/1]).
+-record(gc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, inc1 = 0, inc2 = 0, channel_nonce = 0, id = -1}).
 acc1(X) -> X#gc.acc1.
 acc2(X) -> X#gc.acc2.
 id(X) -> X#gc.id.
@@ -19,9 +19,10 @@ make(ID,Trees,Inc1,Inc2,Fee) ->
     {_, Acc1, Proof1} = accounts:get(A1, Accounts),
     {_, _, Proof2} = accounts:get(A2, Accounts),
     Nonce = accounts:nonce(Acc1),
+    CNonce = channels:nonce(C),
     Tx = #gc{id = ID, acc1 = A1, acc2 = A2, 
 	     fee = Fee, nonce = Nonce+1, inc1 = Inc1,
-	     inc2 = Inc2},
+	     inc2 = Inc2, channel_nonce = CNonce + 1},
     {Tx, [CProof, Proof1, Proof2]}.
     
 doit(Tx,Trees,NewHeight) ->
@@ -54,5 +55,7 @@ doit(Tx,Trees,NewHeight) ->
     NewAccounts = accounts:write(Accounts2, Acc2),
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
+go(Tx, Trees, NewHeight) ->
+    ok.
     
     

@@ -1,5 +1,5 @@
 -module(spend_tx).
--export([doit/3, make/6, from/1, to/1]).
+-export([doit/3, go/3, make/6, from/1, to/1]).
 -record(spend, {from = 0, nonce = 0, fee = 0, to = 0, amount = 0, shares = []}).
 from(X) -> X#spend.from.
 to(X) -> X#spend.to. 
@@ -22,3 +22,5 @@ doit(Tx, Trees, NewHeight) ->
     Accounts2 = accounts:write(Accounts, Facc),
     NewAccounts = accounts:write(Accounts2, Tacc),
     trees:update_accounts(Trees, NewAccounts).
+go(Tx, Trees, NewHeight) ->
+    ok.

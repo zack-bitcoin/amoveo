@@ -27,9 +27,9 @@ genesis_state() ->
          [delete_account_reward, 240],
          %[channel_rent, 600],
          %[account_rent, 600],
-         [block_time, BlockTime],
+         [block_time, BlockTime],%remove
          [oracle_future_limit, 335],
-         [shares_conversion, 575],
+         %[shares_conversion, 575],
          [fun_limit, 350],
          [var_limit, 600],
          [comment_limit, 137], 
@@ -125,6 +125,7 @@ serialize(Gov) ->
       (Gov#gov.value):16,
       (Gov#gov.lock):8>>.
 
+get_value(coinbase, _) -> 0;
 get_value(Name, Tree) ->
     {_, Gov, _} = get(Name, Tree),
     tree_number_to_value(Gov#gov.value).
@@ -208,7 +209,11 @@ verify_proof(RootHash, Key, Value, Proof) ->
 	    0 -> empty;
 	    X -> serialize(X)
 	end,
-    L = leaf:new(name2number(Key), V, 0, CFG),
+    Key2 = if
+               is_integer(Key) -> Key;
+               true -> name2number(Key)
+           end,
+    L = leaf:new(Key2, V, 0, CFG),
     %io:fwrite(packer:pack(L)),
     verify:proof(RootHash, L, Proof, CFG).
 

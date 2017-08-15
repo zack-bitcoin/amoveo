@@ -1,5 +1,5 @@
 -module(delete_account_tx).
--export([doit/3, new/4, from/1, to/1]).
+-export([doit/3, go/3, new/4, from/1, to/1]).
 -record(delete_acc_tx, {from = 0,
                         nonce = 0,
                         fee = 0,
@@ -42,3 +42,5 @@ doit(Tx, Trees, NewHeight) ->
     NewAccounts = accounts:delete(From, Accounts),
 
     trees:update_accounts(Trees, NewAccounts).
+go(Tx, Trees, NewHeight) ->
+    ok.
