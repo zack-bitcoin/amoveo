@@ -123,45 +123,33 @@ facts_to_dict([F|T], D) ->
 %-record(proof, {tree, value, root, key, path}).
     %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
-    io:fwrite("proofs type is "),
-    io:fwrite(packer:pack({proof_type, Tree, F})),
-    io:fwrite("\n"),
-    case Tree of
-	orders -> 
-	    K = F#proof.key,
-	    Pub = K#key.pub,
-	    ID = K#key.id,
-	    Oracle = dict:fetch({oracles, ID}, D),
-	    RH = oracles:orders_hash(oracles:deserialize(Oracle)),
-	    RH = F#proof.root,
-	    true =
-		Tree:verify_proof(
-		  RH,
-		  Pub,
-		  F#proof.value,
-		  F#proof.path);
-	oracle_bets -> 
-	    K = F#proof.key,
-	    Pub = K#key.pub,
-	    ID = K#key.id,
-	    Account = dict:fetch({accounts, Pub}, D),
-	    RH = accounts:bets_hash(accounts:deserialize(Account)),
-	    %RH = oracle_bets:root_hash(OB),
-	    RH = F#proof.root,
-	    true = 
-		Tree:verify_proof(
-		  F#proof.root,
-		  ID,
-		  F#proof.value,
-		  F#proof.path);
+    Key2 = 
+        case Tree of
+            orders -> 
+                K = F#proof.key,
+                Pub = K#key.pub,
+                ID = K#key.id,
+                Oracle = dict:fetch({oracles, ID}, D),
+                RH = oracles:orders_hash(oracles:deserialize(Oracle)),
+                RH = F#proof.root,
+                Pub;
+            oracle_bets -> 
+                K = F#proof.key,
+                Pub = K#key.pub,
+                ID = K#key.id,
+                Account = dict:fetch({accounts, Pub}, D),
+                RH = accounts:bets_hash(accounts:deserialize(Account)),
+                RH = F#proof.root,
+                ID;
 	_ ->
-	    true = 
-		Tree:verify_proof(
-		  F#proof.root,
-		  F#proof.key,
-		  F#proof.value,
-		  F#proof.path)
+            F#proof.key
     end,
+    true = 
+        Tree:verify_proof(
+          F#proof.root,
+          Key2,
+          F#proof.value,
+          F#proof.path),
     Key = F#proof.key,
     Value = F#proof.value,
     Value2 = case Value of
@@ -257,11 +245,6 @@ txs_to_querys([STx|T], Trees) ->
                            {oracles, oracle_new_tx:id(Tx)}
                           ];
 	    oracle_bet -> 
-                %calculate the orders proof
-                %This potentially changes a lot of accounts. If many bets get matched against this bet.
-                %the safe thing to do for now is to prove all of the account that could possibly be matched,
-                %and all the orders proofs,
-                %and all the oracle_bet proofs.
                 OID = oracle_bet_tx:id(Tx),
                 Pubkeys = [oracle_bet_tx:from(Tx)|
                            oracle_bet_tx:to_prove(Tx, Trees)],
