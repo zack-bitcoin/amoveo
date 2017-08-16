@@ -23,8 +23,8 @@ genesis_state() ->
          [max_block_size, 940],
          [create_channel_fee, 250],
          [delete_channel_reward, 240],
-         [create_account_fee, 250],
-         [delete_account_reward, 240],
+         [create_account_fee, 250],%get rid of this. we already charge a fee for making this tx.
+         [delete_account_reward, 240],%get rid of this. instead we should make the fee negative
          %[channel_rent, 600],
          %[account_rent, 600],
          [block_time, BlockTime],%remove

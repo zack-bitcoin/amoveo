@@ -1,3 +1,9 @@
+in the proofs dict we should have a flag for each thing to know if it has been updated. That way we can know exactly what to include in the batch update of the tree.
+
+don't charge 2 different fees for making accounts. combine them.
+
+Instead of rewarding and charging for making delete_account transactions, we should only have a reward.
+
 Every node should keep track of the entire governance tree, that way we don't have to prove so many things.
 
 We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
