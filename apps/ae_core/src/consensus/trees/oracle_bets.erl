@@ -2,7 +2,8 @@
 -export([test/0, new/3, increase/3, id/1,
 	 true/1, false/1, bad/1,
 	 write/2, get/2, root_hash/1, add_bet/4,
-	 reward/3, delete/2, verify_proof/4]).
+	 reward/3, delete/2, verify_proof/4,
+         serialize/1]).
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
 -record(bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle
 -define(name, oracle_bets).
@@ -91,7 +92,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
     V = case Value of
 	    0 -> empty;
-	    X -> serialize(X)
+	    X -> X
 	end,
     verify:proof(RootHash, 
 		 leaf:new(Key, V, 0, CFG), 
@@ -108,7 +109,7 @@ test() ->
     {_, Bet2, _} = get(ID, Tree2),
     Bet2 = increase(C, 1, 100),
 
-    true = verify_proof(Root1, ID, C, Path1),
+    true = verify_proof(Root1, ID, serialize(C), Path1),
     true = verify_proof(Root2, ID, 0, Path2),
     success.
     

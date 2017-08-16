@@ -361,6 +361,7 @@ check(Block) ->
     GovQueries = proofs:governance_to_querys(trees:governance(OldTrees)),
     GovProofs = proofs:prove(GovQueries, OldTrees),
     %Dict = proofs:facts_to_dict(Block#block.proofs ++ GovProofs, dict:new()),
+    Dict = proofs:facts_to_dict(Facts, dict:new()),
     %load the data into a dictionary, feed this dictionary into new_trees/ instead of OldTrees.
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,

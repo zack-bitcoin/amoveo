@@ -1,10 +1,10 @@
 -module(oracles).
 -export([new/8,write/2,get/2,id/1,result/1,
 	 question/1,starts/1,root_hash/1, 
-	 type/1, difficulty/1, orders/1,
+	 type/1, difficulty/1, orders/1, orders_hash/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
 	 set_result/2, set_type/2, governance/1,
-	 governance_amount/1, creator/1, serialize/1,
+	 governance_amount/1, creator/1, serialize/1, deserialize/1,
 	 verify_proof/4,
 	 test/0]).
 -define(name, oracles).
@@ -13,7 +13,8 @@
 		 question, 
 		 starts, 
 		 type, %0 means order book is empty, 1 means the order book is holding shares of true, 2 means it holds false, 3 means that it holds shares of "bad question".
-		 orders, 
+		 orders,
+		 orders_hash,
 		 creator,
 		 difficulty,
 		 done_timer,
@@ -31,9 +32,10 @@ starts(X) -> X#oracle.starts.
 type(X) -> X#oracle.type.
 difficulty(X) -> X#oracle.difficulty.
 orders(X) -> X#oracle.orders.
+orders_hash(X) -> X#oracle.orders_hash.
 done_timer(X) -> X#oracle.done_timer.
 set_orders(X, Orders) ->
-    X#oracle{orders = Orders}.
+    X#oracle{orders = Orders, orders_hash = orders:root_hash(Orders)}.
 set_done_timer(X, H) ->
     X#oracle{done_timer = H}.
 set_result(X, R) ->
@@ -56,6 +58,7 @@ new(ID, Question, Starts, Creator, Difficulty, GovernanceVar, GovAmount, Trees) 
 	    starts = Starts,
 	    type = 3,%1 means we are storing orders of true, 2 is false, 3 is bad.
 	    orders = Orders,
+            orders_hash = orders:root_hash(Orders),
 	    creator = Creator,
 	    difficulty = Difficulty,
 	    done_timer = Starts + MOT,
@@ -70,6 +73,7 @@ serialize(X) ->
     PS = constants:pubkey_size(),
     Question = X#oracle.question,
     Orders = orders:root_hash(X#oracle.orders),
+    Orders = X#oracle.orders_hash,
     %Orders = X#oracle.orders,
     HS = size(Question),
     HS = size(Orders),
@@ -97,29 +101,29 @@ deserialize(X) ->
     HEI = constants:height_bits(),
     DB = constants:difficulty_bits(),
     <<ID:HS,
-      Result:8,
-      Type:8,
-      Starts:HEI,
-      %Creator:KL,
-      Diff:DB,
-      DT:HEI,
-      Gov:8,
-      GovAmount:8,
-      Creator:PS,
-      Question:HS,
-      _Orders:HS
-    >> = X,
+     Result:8,
+     Type:8,
+     Starts:HEI,
+     Diff:DB,
+     DT:HEI,
+     Gov:8,
+     GovAmount:8,
+     Creator:PS,
+     Question:HS,
+     Orders:HS
+     >> = X,
     #oracle{
-       id = ID,
-       type = Type,
-       result = Result,
-       starts = Starts,
-       question = <<Question:HS>>,
-       creator = <<Creator:PS>>,
-       difficulty = Diff,
-       done_timer = DT,
-       governance = Gov,
-       governance_amount = GovAmount
+           id = ID,
+           type = Type,
+           result = Result,
+           starts = Starts,
+           question = <<Question:HS>>,
+           creator = <<Creator:PS>>,
+           difficulty = Diff,
+           done_timer = DT,
+           governance = Gov,
+           governance_amount = GovAmount,
+           orders_hash = <<Orders:HS>>
       }.
 write(Oracle, Root) ->
     %meta is a pointer to the orders tree.
@@ -153,11 +157,11 @@ verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
     V = case Value of
 	    0 -> empty;
-	    X -> serialize(X)
+	    X -> X
 	end,
     verify:proof(RootHash, 
-		 leaf:new(Key, V, 0, CFG), 
-		 Proof, CFG).
+                 leaf:new(Key, V, 0, CFG), 
+                 Proof, CFG).
 
 
 test() ->
@@ -172,7 +176,7 @@ test() ->
     NewLoc = write(X, Root),
     {Root1, X, Path1} = get(X#oracle.id, NewLoc),
     {Root2, empty, Path2} = get(X#oracle.id, 0),
-    true = verify_proof(Root1, X#oracle.id, X, Path1),
+    true = verify_proof(Root1, X#oracle.id, serialize(X), Path1),
     true = verify_proof(Root2, X#oracle.id, 0, Path2),
     success.
     

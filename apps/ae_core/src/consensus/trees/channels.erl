@@ -189,7 +189,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
     V = case Value of
 	    0 -> empty;
-	    X -> serialize(X)
+	    X -> X
 	end,
     verify:proof(RootHash, 
 		 leaf:new(Key, V, 0, CFG), 
@@ -209,7 +209,7 @@ test() ->
     C = A,
     NewLoc = write(C, 0),
     {Root, C, Proof} = get(ID, NewLoc),
-    true = verify_proof(Root, ID, C, Proof),
+    true = verify_proof(Root, ID, serialize(C), Proof),
     success.
     
 

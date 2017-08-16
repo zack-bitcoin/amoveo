@@ -77,13 +77,14 @@ prove2([{orders, Key}|T], Trees) ->
     {Root, Data, Path} = orders:get(Key#key.pub, OrdersTree),
     Data2 = case Data of
 		empty -> 0;
-		_ -> Data
+		_ -> orders:serialize(Data)
 	    end,
     Proof = #proof{root = Root,
 		   key = Key,
 		   path = Path,
 		   value = Data2,
 		   tree = tree_to_int(orders)},
+    true = orders:verify_proof(Root, Key#key.pub, Data2, Path),
     [Proof|prove2(T, Trees)];
 prove2([{oracle_bets, Key}|T], Trees) ->
     Accounts = trees:accounts(Trees),
@@ -92,28 +93,14 @@ prove2([{oracle_bets, Key}|T], Trees) ->
     {Root, Data, Path} = oracle_bets:get(Key#key.id, OrdersTree),
     Data2 = case Data of
 		empty -> 0;
-		_ -> Data
+		_ -> oracle_bets:serialize(Data)
 	    end,
     Proof = #proof{root = Root,
 		   key = Key,
 		   path = Path,
 		   value = Data2,
 		   tree = tree_to_int(oracle_bets)},
-    [Proof|prove2(T, Trees)];
-prove2([{shares, Key}|T], Trees) ->
-    Accounts = trees:accounts(Trees),
-    {_, Data0, _} = accounts:get(Key#key.pub, Accounts),
-    SharesTree = accounts:shares(Data0),%%%%%
-    {Root, Data, Path} = shares:get(Key#key.id, SharesTree),
-    Data2 = case Data of
-		empty -> 0;
-		_ -> Data
-	    end,
-    Proof = #proof{root = Root,
-		   key = Key,
-		   path = Path,
-		   value = Data2,
-		   tree = tree_to_int(shares)},
+    true = oracle_bets:verify_proof(Root, Key#key.id, Data2, Path),
     [Proof|prove2(T, Trees)];
     
 prove2([{Tree, Key}|T], Trees) ->
@@ -121,7 +108,7 @@ prove2([{Tree, Key}|T], Trees) ->
     {Root, Data, Path} = Tree:get(Key, Branch),
     Data2 = case Data of
 		empty -> 0;
-		_ -> Data
+		_ -> Tree:serialize(Data)
 	    end,
     %SD = Tree:serialize(Data),
     Proof = #proof{root = Root,
@@ -136,14 +123,16 @@ facts_to_dict([F|T], D) ->
 %-record(proof, {tree, value, root, key, path}).
     %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
+    io:fwrite("proofs type is "),
+    io:fwrite(packer:pack({proof_type, Tree, F})),
+    io:fwrite("\n"),
     case Tree of
 	orders -> 
 	    K = F#proof.key,
 	    Pub = K#key.pub,
 	    ID = K#key.id,
 	    Oracle = dict:fetch({oracles, ID}, D),
-	    OB = oracles:orders(Oracle),
-	    RH = orders:root_hash(OB),
+	    RH = oracles:orders_hash(oracles:deserialize(Oracle)),
 	    RH = F#proof.root,
 	    true =
 		Tree:verify_proof(
@@ -156,22 +145,8 @@ facts_to_dict([F|T], D) ->
 	    Pub = K#key.pub,
 	    ID = K#key.id,
 	    Account = dict:fetch({accounts, Pub}, D),
-	    OB = accounts:bets(Account),
-	    RH = oracle_bets:root_hash(OB),
-	    RH = F#proof.root,
-	    true = 
-		Tree:verify_proof(
-		  F#proof.root,
-		  ID,
-		  F#proof.value,
-		  F#proof.path);
-	shares -> 
-	    K = F#proof.key,
-	    Pub = K#key.pub,
-	    ID = K#key.id,
-	    Account = dict:fetch({accounts, Pub}, D),
-	    Shares = accounts:shares(Account),
-	    RH = shares:root_hash(Shares),
+	    RH = accounts:bets_hash(accounts:deserialize(Account)),
+	    %RH = oracle_bets:root_hash(OB),
 	    RH = F#proof.root,
 	    true = 
 		Tree:verify_proof(
@@ -358,12 +333,9 @@ test() ->
     {Trees, _, _} = tx_pool:data(),
     Pub2 = <<"BL6uM2W6RVAI341uFO7Ps5mgGp4VKZQsCuLlDkVh5g0O4ZqsDwFEbS9GniFykgDJxYv8bNGJ+/NdrFjKV/gJa6c=">>,
     Pub3 = <<"BIG0bGOtCeH+ik2zxohHNOHyydjzIfi2fhKwFCZ0TFh99y+C8eiwHWwWkFrfGtEL7HcKP+5jdQmRc6wfnG32wlc=">>,
-    %Master = <<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>
     {Pub55, _} = testnet_sign:new_key(),
     PS = constants:pubkey_size() * 8,
     Querys = [{accounts, keys:pubkey()},
-	      %{shares, #key{pub = keys:pubkey(), id = 1}},
-	      %{shares, #key{pub = keys:pubkey(), id = 2}},
 	      {accounts, keys:pubkey()},%repeats are ignored
 	      {accounts, base64:decode(Pub2)},%empty account
               {accounts, Pub55},
@@ -374,13 +346,13 @@ test() ->
 	      {channels, 1},
 	      {existence, testnet_hasher:doit(1)},
 	      {oracles, OID},
+	      {oracles, 1},
 	      {burn, testnet_hasher:doit(1)},
 	      {orders, #key{pub = keys:pubkey(), id = OID}},
               {oracle_bets, #key{pub = keys:pubkey(), id = OID}}
 	     ] ++
         governance_to_querys(trees:governance(Trees)),
     Facts = prove(Querys, Trees),
-    %io:fwrite(packer:pack({prove_facts, Facts})),
     ProofRoot = hash(Facts),
     Dict = facts_to_dict(Facts, dict:new()), %when processing txs, we use this dictionary to look up the state.
     Querys2 = dict:fetch_keys(Dict),

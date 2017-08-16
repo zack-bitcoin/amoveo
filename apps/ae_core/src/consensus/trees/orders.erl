@@ -4,7 +4,7 @@
 	 remove/2, update_amount/2, set_amount/2,
 	 many/1, head_get/1, aid/1,
 	 significant_volume/2, verify_proof/4,
-         deserialize/1, all/1,
+         serialize/1, deserialize/1, all/1,
 	 test/0]).
 -define(name, orders).
 -record(order, {aid, amount, pointer}).
@@ -239,7 +239,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
     V = case Value of
 	    0 -> empty;
-	    X -> serialize(X)
+	    X -> X
 	end,
     verify:proof(RootHash, 
 		 leaf:new(trees:hash2int(accounts:ensure_decoded_hashed(Key)), 
@@ -276,6 +276,6 @@ test() ->
     %{Root8, empty, Path1} = get(Pub2, Root7),
     %{Root9, {order, Pub2, 100, Pointer2}, Path2} = get(Pub1, Root7),
     true = verify_proof(Root8, Pub2, 0, Path1),
-    true = verify_proof(Root9, Pub2, {order, Pub2, 200, Pointer2}, Path2),
+    true = verify_proof(Root9, Pub2, serialize({order, Pub2, 200, Pointer2}), Path2),
     success.
     

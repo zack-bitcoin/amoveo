@@ -49,7 +49,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
     V = case Value of
 	    0 -> empty;
-	    X -> serialize(X)
+	    X -> X
 	end,
     verify:proof(RootHash, 
 		 leaf:new(trees:hash2int(Key), 
@@ -64,7 +64,7 @@ test() ->
     NewLoc = write(C, 0),
     {Root1, C, Path1} = get(X, NewLoc),
     {Root2, empty, Path2} = get(X, 0),
-    true = verify_proof(Root1, X, C, Path1),
+    true = verify_proof(Root1, X, serialize(C), Path1),
     true = verify_proof(Root2, X, 0, Path2),
     success.
     

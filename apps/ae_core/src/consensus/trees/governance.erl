@@ -207,7 +207,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
     V = case Value of
 	    0 -> empty;
-	    X -> serialize(X)
+	    X -> X
 	end,
     Key2 = if
                is_integer(Key) -> Key;
@@ -247,5 +247,5 @@ test() ->
     G2 = write(C, Governance),
     {_, C, _} = get(fun_limit, G2),
     {Root, Leaf, Proof} = get(fun_limit, Governance),
-    true = verify_proof(Root, fun_limit, Leaf, Proof),
+    true = verify_proof(Root, fun_limit, serialize(Leaf), Proof),
     success.

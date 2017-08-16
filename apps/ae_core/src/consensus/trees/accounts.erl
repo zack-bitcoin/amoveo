@@ -2,14 +2,15 @@
 -export([new/3,nonce/1,write/2,get/2,update/5,update/6,
 	 %addr/1, id/1,
 	 balance/1,root_hash/1,now_balance/4,delete/2,
-	 bets/1, update_bets/2,
+	 bets/1, bets_hash/1, update_bets/2,
 	 ensure_decoded_hashed/1, height/1, verify_proof/4,
-	 serialize/1, pubkey/1, test/0]).
+	 serialize/1, deserialize/1, pubkey/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
 	      pubkey = <<>>,
-	      bets = 0}).%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
+	      bets = 0,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
+              bets_hash = <<>>}).
 	      %shares = 0}). %shares is a pointer to a merkel tree that stores how many shares you have at each price.
 -define(id, accounts).
 
@@ -18,13 +19,14 @@ nonce(Account) -> Account#acc.nonce.
 height(Account) -> Account#acc.height.
 pubkey(Account) -> Account#acc.pubkey.
 bets(Account) -> Account#acc.bets.
+bets_hash(Account) -> Account#acc.bets_hash.
 %shares(Account) -> Account#acc.shares.
 
 root_hash(Accounts) ->
     trie:root_hash(?id, Accounts).
 
 new(Pub, Balance, Height) ->
-    #acc{pubkey = Pub, balance = Balance, nonce = 0, height = Height, bets = 0}.
+    #acc{pubkey = Pub, balance = Balance, nonce = 0, height = Height, bets = 0, bets_hash = oracle_bets:root_hash(0)}.
 
 update(Pub, Trees, Amount, NewNonce, NewHeight) ->
     PubHash = ensure_decoded_hashed(Pub),
@@ -50,7 +52,8 @@ update(PubHash, Trees, Amount, NewNonce, NewHeight, Bets) ->
     Account#acc{balance = NewBalance,
                 nonce = FinalNonce,
                 height = NewHeight,
-                bets = Bets}.
+                bets = Bets,
+                bets_hash = oracle_bets:root_hash(Bets)}.
 
 now_balance(Acc, Amount, NewHeight, Trees) ->
     OldHeight = Acc#acc.height,
@@ -69,21 +72,19 @@ now_balance(Acc, Amount, NewHeight, Trees) ->
     Amount + Acc#acc.balance - (Rent * DH).
 
 update_bets(Account, Bets) ->
-    Account#acc{bets = Bets}.
+    Account#acc{bets = Bets,
+                bets_hash = oracle_bets:root_hash(Bets)}.
 
 get(Pub, Accounts) ->
     PubHash = ensure_decoded_hashed(Pub),
     PubId = trees:hash2int(PubHash),
     {RH, Leaf, Proof} = trie:get(PubId, Accounts, ?id),
     Account = case Leaf of
-                  empty ->
-                      empty;
+                  empty -> empty;
                   Leaf ->
                       Account0 = deserialize(leaf:value(Leaf)),
                       Meta = leaf:meta(Leaf),
-                      KeyLength = constants:key_length(),
-                      <<Bets:KeyLength>> = <<Meta:KeyLength>>,
-                      Account0#acc{bets = Bets}
+                      Account0#acc{bets = Meta}
               end,
     {RH, Account, Proof}.
 
@@ -133,7 +134,7 @@ serialize(Account) ->
           (Account#acc.nonce):NonceSize,
           (Account#acc.height):HeightSize,
           (Account#acc.pubkey)/binary,
-          BetsRoot/binary>>,
+         BetsRoot/binary>>,
     true = size(SerializedAccount) == constants:account_size(),
     SerializedAccount.
 
@@ -152,11 +153,12 @@ deserialize(SerializedAccount) ->
       Nonce:NonceSize,
       Height:HeightSize,
       Pubkey:PubkeyBits,
-      _BetsRoot:HashSizeBits>> = SerializedAccount,
+      BetsRoot:HashSizeBits>> = SerializedAccount,
     #acc{balance = Balance,
          nonce = Nonce,
          height = Height,
-         pubkey = <<Pubkey:PubkeyBits>>}.
+         pubkey = <<Pubkey:PubkeyBits>>,
+         bets_hash = <<BetsRoot:HashSizeBits>>}.
 
 
 %% Internals
@@ -185,7 +187,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
     CFG = cfg(),
     V = case Value of
 	    0 -> empty;
-	    X -> serialize(X)
+	    X -> X
 	end,
     verify:proof(RootHash, 
 		 leaf:new(trees:hash2int(ensure_decoded_hashed(Key)), 
@@ -200,7 +202,7 @@ test() ->
     Acc = deserialize(S),
     NewLoc = write(0, Acc),
     {Root, Acc, Proof} = get(Pub, NewLoc),
-    true = verify_proof(Root, Pub, Acc, Proof),
+    true = verify_proof(Root, Pub, serialize(Acc), Proof),
     {Root2, empty, Proof2} = get(Pub, 0),
     true = verify_proof(Root2, Pub, 0, Proof2),
     success.
