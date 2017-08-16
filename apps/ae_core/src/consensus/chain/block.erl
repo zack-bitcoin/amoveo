@@ -349,8 +349,6 @@ check(Block) ->
     Header = block_to_header(Block),
     BlockHash = hash(Block),
     {ok, Header} = headers:read(BlockHash),
-    
-    %Dict = proofs:facts_to_dict(Facts, dict:new()),
 
     OldBlock = get_by_hash(Block#block.prev_hash),
     OldTrees = OldBlock#block.trees,
@@ -358,8 +356,8 @@ check(Block) ->
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = headers:trees_hash(PrevHeader),
     true = proofs_roots_match(Block#block.proofs, Block#block.roots),
-    GovQueries = proofs:governance_to_querys(trees:governance(OldTrees)),
-    GovProofs = proofs:prove(GovQueries, OldTrees),
+    %GovQueries = proofs:governance_to_querys(trees:governance(OldTrees)),
+    %GovProofs = proofs:prove(GovQueries, OldTrees),
     %Dict = proofs:facts_to_dict(Block#block.proofs ++ GovProofs, dict:new()),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     %load the data into a dictionary, feed this dictionary into new_trees/ instead of OldTrees.
@@ -367,6 +365,7 @@ check(Block) ->
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
+    true = no_coinbase(tl(Block#block.txs)),
     %NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
     %use NewDict to generate NewTrees
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
@@ -376,6 +375,12 @@ check(Block) ->
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     {true, Block2}.
+no_coinbase([]) -> true;
+no_coinbase([STx|T]) ->
+    Tx = testnet_sign:data(STx),
+    Type = element(1, Tx),
+    false = Type == coinbase,
+    no_coinbase(T).
 
 initialize_chain() -> 
     GB = genesis_maker(),
