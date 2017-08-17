@@ -10,17 +10,22 @@ make(To, Amount, Fee, From, Trees, _Shares) ->
     Tx = #spend{from = From, nonce = accounts:nonce(Acc) + 1, to = To, amount = Amount, fee = Fee},
     {Tx, [Proof, Proof2]}.
 doit(Tx, Trees, NewHeight) ->
-    Accounts = trees:accounts(Trees),
     From = Tx#spend.from,
     To = Tx#spend.to,
     false = From == To,
     A = Tx#spend.amount,
     Facc = accounts:update(From, Trees, -A-Tx#spend.fee, Tx#spend.nonce, NewHeight),
-    %Facc2 = accounts:send_shares(Facc, Tx#spend.shares, NewHeight, Trees),
     Tacc = accounts:update(To, Trees, A, none, NewHeight),
-    %Tacc2 = accounts:receive_shares(Tacc, Tx#spend.shares, NewHeight, Trees),
+    Accounts = trees:accounts(Trees),
     Accounts2 = accounts:write(Accounts, Facc),
     NewAccounts = accounts:write(Accounts2, Tacc),
     trees:update_accounts(Trees, NewAccounts).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    From = Tx#spend.from,
+    To = Tx#spend.to,
+    false = From == To,
+    A = Tx#spend.amount,
+    Facc = accounts:dict_update(From, Dict, -A-Tx#spend.fee, Tx#spend.nonce, NewHeight),
+    Tacc = accounts:dict_update(To, Dict, A, none, NewHeight),
+    Dict2 = accounts:dict_write(Facc, Dict),
+    accounts:dict_write(Tacc, Dict2).

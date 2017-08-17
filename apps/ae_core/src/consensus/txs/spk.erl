@@ -3,7 +3,7 @@
 	 bets/1,space_gas/1,time_gas/1,
 	 new/9,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
-	 run/6,settle_bet/4,chalang_state/3,
+	 run/6,dict_run/6,settle_bet/4,chalang_state/3,
 	 prove/1, new_bet/4, delay/1,
 	 is_improvement/4, bet_unlock/2,
 	 code/1, key/1, test2/0,
@@ -195,13 +195,43 @@ get_paid(SPK, ID, Amount) -> %if Amount is positive, that means money is going t
     SPK#spk{amount = (SPK#spk.amount + (D*Amount)), 
 	    nonce = SPK#spk.nonce + 1}.
 	    
+dict_run(Mode, SS, SPK, Height, Slash, Dict) ->
+    State = chalang_state(Height, Slash, 0),
+    {Amount, NewNonce, Delay, _} = dict_run2(Mode, SS, SPK, State, Dict),
+    {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce, Delay}.
+dict_run2(fast, SS, SPK, State, Dict) ->
+    FunLimit = governance:dict_get_value(fun_limit, Dict),
+    VarLimit = governance:dict_get_value(var_limit, Dict),
+    true = is_list(SS),
+    Bets = SPK#spk.bets,
+    %Scripts = bets2scripts(Bets, Trees),
+    Delay = SPK#spk.delay,
+    run(SS, 
+	Bets,
+	SPK#spk.time_gas,
+	SPK#spk.space_gas,
+	FunLimit,
+	VarLimit,
+	State, 
+	Delay);
+dict_run2(safe, SS, SPK, State, Dict) -> 
+    %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
+    S = self(),
+    spawn(fun() ->
+		  X = dict_run2(fast, SS, SPK, State, Dict),
+		  S ! X
+	  end),
+    spawn(fun() ->
+		  timer:sleep(5000),%wait enough time for the chalang contracts to finish
+		  S ! error
+	  end),
+    receive 
+	Z -> Z
+    end.
+    
 run(Mode, SS, SPK, Height, Slash, Trees) ->
-    %Accounts = trees:accounts(Trees),
-    %Channels = trees:channels(Trees),
-    %State = chalang:new_state(0, Height, Slash, 0, Accounts, Channels),
     State = chalang_state(Height, Slash, Trees),
     {Amount, NewNonce, Delay, _} = run2(Mode, SS, SPK, State, Trees),
-    %true = NewNonce < 1000,
     {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce, Delay}.
 run2(fast, SS, SPK, State, Trees) -> 
     Governance = trees:governance(Trees),
@@ -238,8 +268,8 @@ run2(safe, SS, SPK, State, Trees) ->
 %    F = prove_facts(B#bet.prove, Trees),
 %    C = B#bet.code,
 %    [<<F/binary, C/binary>>|bets2scripts(T, Trees)].
-chalang_state(Height, Slash, Trees) ->	    
-    chalang:new_state(Height, Slash, Trees).
+chalang_state(Height, Slash, _) ->	    
+    chalang:new_state(Height, Slash, 0).
 run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay) ->
     run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay).
 

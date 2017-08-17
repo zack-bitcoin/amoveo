@@ -90,4 +90,28 @@ doit(Tx, Trees, NewHeight) ->
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    ID = Tx#nc.id,
+    OldChannel = channels:dict_get(ID, Dict),
+    true = case OldChannel of
+	       empty -> true;
+	       _ ->
+                   CCT = governance:dict_get_value(channel_closed_time, Dict),
+		   channels:closed(OldChannel)
+		       and ((NewHeight - channels:last_modified(OldChannel)) > CCT)
+	   end,
+    Aid1 = Tx#nc.acc1,
+    Aid2 = Tx#nc.acc2,
+    false = Aid1 == Aid2,
+    Bal1 = Tx#nc.bal1,
+    true = Bal1 >= 0,
+    Bal2 = Tx#nc.bal2,
+    true = Bal2 >= 0,
+    Entropy = Tx#nc.entropy,
+    Delay = Tx#nc.delay,
+    NewChannel = channels:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Entropy, Delay),
+    Dict2 = channels:dict_write(NewChannel, Dict),
+    CCFee = governance:dict_get_value(create_channel_fee, Dict) div 2,
+    Acc1 = accounts:dict_update(Aid1, Dict, -Bal1-CCFee, Tx#nc.nonce, NewHeight),
+    Acc2 = accounts:dict_update(Aid2, Dict, -Bal2-CCFee, none, NewHeight),
+    Dict3 = accounts:dict_write(Acc1, Dict2),
+    accounts:dict_write(Acc2, Dict3).

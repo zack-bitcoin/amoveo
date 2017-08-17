@@ -61,4 +61,26 @@ sum_share_amounts([H|T]) ->
     shares:amount(H)+
 	sum_share_amounts(T).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    ID = Tx#ctc.id,
+    OldChannel = channels:dict_get(ID, Dict),
+    false = channels:closed(OldChannel),
+    Aid1 = channels:acc1(OldChannel),
+    Aid2 = channels:acc2(OldChannel),
+    %ID = channels:id(OldChannel),
+    Aid1 = Tx#ctc.aid1,
+    Aid2 = Tx#ctc.aid2,
+    false = Aid1 == Aid2,
+    Dict2 = channels:dict_delete(ID, Dict),
+    Bal1 = channels:bal1(OldChannel),
+    Bal2 = channels:bal2(OldChannel),
+    ShareAmount = sum_share_amounts(Tx#ctc.shares) div 2,
+    Amount = Tx#ctc.amount,
+    true = Bal1 + Bal2 >= ShareAmount * 2,
+    true = Bal1 + Amount - ShareAmount > 0,
+    true = Bal2 - Amount - ShareAmount > 0,
+    Acc1 = accounts:dict_update(Aid1, Dict, Bal1 + Amount - ShareAmount, Tx#ctc.nonce, NewHeight),
+    %Acc1a = accounts:send_shares(Acc1, Tx#ctc.shares, NewHeight, Trees),
+    Acc2 = accounts:dict_update(Aid2, Dict, Bal2 - Amount - ShareAmount, none, NewHeight),
+    %Acc2a = accounts:receive_shares(Acc2, Tx#ctc.shares, NewHeight, Trees),
+    Dict3 = accounts:dict_write(Acc1, Dict2),
+    accounts:dict_write(Acc2, Dict3).

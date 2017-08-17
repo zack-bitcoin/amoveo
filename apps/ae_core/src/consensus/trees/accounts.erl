@@ -241,8 +241,7 @@ dict_get(Key, Dict) ->
     X = dict:fetch({accounts, Key}, Dict),
     case X of
         0 -> empty;
-        _ ->
-            deserialize(X)
+        _ -> deserialize(X)
     end.
 
 test() ->

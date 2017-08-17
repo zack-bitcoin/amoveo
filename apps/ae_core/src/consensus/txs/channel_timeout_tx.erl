@@ -79,4 +79,27 @@ doit(Tx, Trees, NewHeight) ->
     Trees2 = trees:update_channels(Trees3, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    From = Tx#timeout.aid,
+    CID = Tx#timeout.cid,
+    Channel = channels:dict_get(CID, Dict),
+    false = channels:closed(Channel),
+    CA = channels:amount(Channel),
+    LM = channels:last_modified(Channel),
+    TD = NewHeight - LM,
+    true = TD >= channels:delay(Channel),
+    Aid1 = channels:acc1(Channel),
+    Aid1 = Tx#timeout.spk_aid1,
+    Aid2 = channels:acc2(Channel),
+    Aid2 = Tx#timeout.spk_aid2,
+    Amount = channels:amount(Channel),
+    Fee = Tx#timeout.fee,
+    Bal1 = channels:bal1(Channel),
+    Bal2 = channels:bal2(Channel),
+    Acc1 = accounts:dict_update(Aid1, Dict, Bal1-Amount, none, NewHeight),
+    Acc2 = accounts:dict_update(Aid2, Dict, Bal2+Amount, none, NewHeight),
+    Dict2 = accounts:dict_write(Acc1, Dict),
+    Dict3 = accounts:dict_write(Acc2, Dict2),
+    Slasher = channels:slasher(Channel),
+    Acc4 = accounts:dict_update(From, Dict3, -Fee, none, NewHeight),
+    Dict4 = accounts:dict_write(Acc4, Dict3),
+    channels:dict_delete(CID, Dict4).

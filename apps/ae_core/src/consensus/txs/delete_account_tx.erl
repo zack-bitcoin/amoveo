@@ -20,27 +20,20 @@ new(To, ID, Fee, Trees) ->
 
 doit(Tx, Trees, NewHeight) ->
     Accounts0 = trees:accounts(Trees),
-
     From = Tx#delete_acc_tx.from,
     To = Tx#delete_acc_tx.to,
     Nonce = Tx#delete_acc_tx.nonce,
     AccountFee = Tx#delete_acc_tx.fee,
-
     false = From == To,
-
     {_, FromAccount, _} = accounts:get(From, Accounts0),
     Balance = accounts:balance(FromAccount),
     Amount = Balance - AccountFee,
     true = Amount > 0,
-
     Governance = trees:governance(Trees),
-    %GovernanceReward = governance:get_value(delete_account_reward, Governance),
-
     ToAccount = accounts:update(To, Trees, Amount, none, NewHeight),
     _UpdatedAccount = accounts:update(From, Trees, 0, Nonce, NewHeight),
     Accounts = accounts:write(Accounts0, ToAccount),
     NewAccounts = accounts:delete(From, Accounts),
-
     trees:update_accounts(Trees, NewAccounts).
 go(Tx, Dict, NewHeight) ->
     From = Tx#delete_acc_tx.from,
@@ -52,7 +45,6 @@ go(Tx, Dict, NewHeight) ->
     Balance = accounts:balance(FromAccount),
     Amount = Balance - AccountFee,
     true = Amount > 0,
-    %GovernanceReward = governance:dict_get_value(delete_account_reward, Dict),
     ToAccount = accounts:dict_update(To, Dict, Amount, none, NewHeight),
     _UpdatedAccount = accounts:dict_update(From, Dict, 0, Nonce, NewHeight),
     Dict2 = accounts:dict_write(ToAccount, Dict),

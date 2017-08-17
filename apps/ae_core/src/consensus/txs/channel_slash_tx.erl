@@ -67,4 +67,25 @@ doit(Tx, Trees, NewHeight) ->
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    From = Tx#cs.from,
+    SignedSPK = Tx#cs.scriptpubkey,
+    SPK = testnet_sign:data(SignedSPK),
+    CID = spk:cid(SPK),
+    OldChannel = channels:dict_get(CID, Dict),
+    true = testnet_sign:verify(SignedSPK),
+    Acc1 = channels:acc1(OldChannel),
+    Acc2 = channels:acc2(OldChannel),
+    Acc1 = spk:acc1(SPK),
+    Acc2 = spk:acc2(SPK),
+    true = channels:entropy(OldChannel) == spk:entropy(SPK),
+    Fee = Tx#cs.fee,
+    Nonce = Tx#cs.nonce,
+    {Amount, NewCNonce, Delay} = spk:dict_run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Dict),
+    true = NewCNonce > channels:nonce(OldChannel),
+    true = (-1 < (channels:bal1(OldChannel)-Amount)),%channels can only delete money that was inside the channel.
+    true = (-1 < (channels:bal2(OldChannel)+Amount)),
+    NewChannel = channels:dict_update(From, CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
+    Dict2 = channels:dict_write(NewChannel, Dict),
+    ID = Tx#cs.from,
+    Account = accounts:dict_update(ID, Dict, -Fee, Nonce, NewHeight),
+    accounts:dict_write(Account, Dict2).

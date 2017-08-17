@@ -5,6 +5,7 @@
 	 last_modified/1, entropy/1,
 	 nonce/1,delay/1, amount/1, slasher/1,
 	 closed/1, verify_proof/4,
+         dict_update/10, dict_delete/2, dict_write/2, dict_get/2,
 	 test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
@@ -42,6 +43,35 @@ slasher(C) -> C#channel.slasher.
 closed(C) -> C#channel.closed.
 %shares(C) -> C#channel.shares.
 
+dict_update(Slasher, ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close) ->
+    true = (Close == true) or (Close == false),
+    true = Inc1 + Inc2 >= 0,
+    Channel = dict_get(ID, Dict),
+    CNonce = Channel#channel.nonce,
+    NewNonce = if
+		   Nonce == none -> CNonce;
+		   true -> 
+		       Nonce
+	       end,
+    T1 = Channel#channel.last_modified,
+    DH = Height - T1,
+    Bal1a = Channel#channel.bal1 + Inc1,% - RH,
+    Bal2a = Channel#channel.bal2 + Inc2,% - RH,
+    Bal1b = max(Bal1a, 0),
+    Bal2b = max(Bal2a, 0),
+    Bal1c = min(Bal1b, Bal1a+Bal2a),
+    Bal2c = min(Bal2b, Bal1a+Bal2a),
+    C = Channel#channel{bal1 = Bal1c,
+                        bal2 = Bal2c,
+                        amount = Amount,
+                        nonce = NewNonce,
+                        last_modified = Height,
+                        delay = Delay,
+                        slasher = Slasher,
+                        closed = Close
+		       },
+    C.
+    
 update(Slasher, ID, Trees, Nonce, Inc1, Inc2, Amount, Delay, Height, Close) ->
     Channels = trees:channels(Trees),
     true = (Close == true) or (Close == false),
@@ -159,6 +189,11 @@ deserialize(B) ->
 	     last_modified = B7,
 	     entropy = B11, delay = B12,
 	     closed = CR}.
+dict_write(Channel, Dict) ->
+    ID = Channel#channel.id,
+    dict:store({channels, ID},
+               serialize(Channel),
+               Dict).
 write(Channel, Root) ->
     ID = Channel#channel.id,
     M = serialize(Channel),
@@ -173,6 +208,14 @@ get(ID, Channels) ->
 	    L -> deserialize(leaf:value(L))
 	end,
     {RH, V, Proof}.
+dict_get(Key, Dict) ->
+    X = dict:fetch({channels, Key}, Dict),
+    case X of
+        0 -> empty;
+        _ -> deserialize(X)
+    end.
+dict_delete(Key, Dict) ->      
+    dict:store({channels, Key}, 0, Dict).
 delete(ID,Channels) ->
     trie:delete(ID, Channels, channels).
 root_hash(Channels) ->
