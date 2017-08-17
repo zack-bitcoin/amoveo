@@ -1,9 +1,11 @@
 -module(accounts).
 -export([new/3,nonce/1,write/2,get/2,update/5,update/6,
+         dict_update/5, dict_update/6, dict_get/2,
 	 %addr/1, id/1,
 	 balance/1,root_hash/1,now_balance/4,delete/2,
 	 bets/1, bets_hash/1, update_bets/2,
 	 ensure_decoded_hashed/1, height/1, verify_proof/4,
+         dict_write/2, dict_delete/2,
 	 serialize/1, deserialize/1, pubkey/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
@@ -27,6 +29,30 @@ root_hash(Accounts) ->
 
 new(Pub, Balance, Height) ->
     #acc{pubkey = Pub, balance = Balance, nonce = 0, height = Height, bets = 0, bets_hash = oracle_bets:root_hash(0)}.
+
+dict_update(Pub, Dict, Amount, NewNonce, NewHeight) ->
+    Account = dict_get(Pub, Dict),
+    dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Account#acc.bets).
+dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Bets) ->
+    PubHash = ensure_decoded_hashed(Pub),
+    Account = dict_get(Pub, Dict),
+    OldNonce = Account#acc.nonce,
+    FinalNonce = case NewNonce of
+                     none ->
+                         Account#acc.nonce;
+                     NewNonce ->
+                         true = NewNonce > OldNonce,
+                         NewNonce
+                 end,
+    OldHeight = Account#acc.height,
+    true = NewHeight >= OldHeight,
+    NewBalance = new_balance_dict(Account, Amount, NewHeight, Dict),
+    true = NewBalance > 0,
+    Account#acc{balance = NewBalance,
+                nonce = FinalNonce,
+                height = NewHeight,
+                bets = Bets,
+                bets_hash = oracle_bets:root_hash(Bets)}.
 
 update(Pub, Trees, Amount, NewNonce, NewHeight) ->
     PubHash = ensure_decoded_hashed(Pub),
@@ -87,7 +113,11 @@ get(Pub, Accounts) ->
                       Account0#acc{bets = Meta}
               end,
     {RH, Account, Proof}.
-
+dict_write(Account, Dict) ->
+    Pub = Account#acc.pubkey,
+    dict:store({accounts, Pub}, 
+               serialize(Account),
+               Dict).
 write(Root, Account) ->
     Pub = Account#acc.pubkey,
     SizePubkey = constants:pubkey_size(),
@@ -104,7 +134,24 @@ delete(Pub0, Accounts) ->
     PubHash = ensure_decoded_hashed(Pub0),
     PubId = trees:hash2int(PubHash),
     trie:delete(PubId, Accounts, ?id).
+dict_delete(Pub, Dict) ->
+    dict:store({accounts, Pub}, 
+               0,
+               Dict).
 
+new_balance_dict(Account, Amount, NewHeight, Dict) ->
+    OldHeight = Account#acc.height,
+    Pub = Account#acc.pubkey,
+    HeightDiff = NewHeight - OldHeight,
+    MasterPub = constants:master_pub(),
+    Rent =
+        case Pub of
+            MasterPub ->
+                -(governance:dict_get_value(developer_reward, Dict));
+            _Other ->
+                0
+        end,
+    Amount + Account#acc.balance - (Rent * HeightDiff).
 new_balance(Account, Amount, NewHeight, Trees) ->
     OldHeight = Account#acc.height,
     Governance = trees:governance(Trees),
@@ -160,9 +207,6 @@ deserialize(SerializedAccount) ->
          pubkey = <<Pubkey:PubkeyBits>>,
          bets_hash = <<BetsRoot:HashSizeBits>>}.
 
-
-%% Internals
-
 ensure_decoded_hashed(Pub) ->
     HashSize = constants:hash_size(),
     PubkeySize = constants:pubkey_size(),
@@ -193,6 +237,13 @@ verify_proof(RootHash, Key, Value, Proof) ->
 		 leaf:new(trees:hash2int(ensure_decoded_hashed(Key)), 
 			  V, 0, CFG), 
 		 Proof, CFG).
+dict_get(Key, Dict) ->
+    X = dict:fetch({accounts, Key}, Dict),
+    case X of
+        0 -> empty;
+        _ ->
+            deserialize(X)
+    end.
 
 test() ->
     {Pub, _Priv} = testnet_sign:new_key(),

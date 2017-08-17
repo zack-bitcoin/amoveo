@@ -83,5 +83,5 @@ doit(Tx, Trees, NewHeight) ->
     Trees4 = oracle_bet_tx:doit2(OBTx, Trees3, NewHeight),
     Accounts4 = trees:accounts(Trees4),
     trees:update_accounts(Trees3, Accounts4).
-go(Tx, Trees, NewHeight) ->
-    ok.
+go(Tx, Dict, NewHeight) ->
+    Dict.

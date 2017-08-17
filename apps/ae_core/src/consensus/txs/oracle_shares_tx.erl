@@ -39,5 +39,5 @@ doit(Tx, Trees, NewHeight) ->
     
     Accounts2 = accounts:write(Accounts, Acc3),
     trees:update_accounts(Trees, Accounts2).
-go(Tx, Trees, NewHeight) ->
-    ok.
+go(Tx, Dict, NewHeight) ->
+    Dict.

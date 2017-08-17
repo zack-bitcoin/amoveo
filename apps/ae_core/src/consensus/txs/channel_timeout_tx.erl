@@ -78,6 +78,5 @@ doit(Tx, Trees, NewHeight) ->
     NewChannels = channels:delete(CID, Channels),%
     Trees2 = trees:update_channels(Trees3, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
-go(Tx, Trees, NewHeight) ->
-    ok.
-
+go(Tx, Dict, NewHeight) ->
+    Dict.

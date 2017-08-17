@@ -3,7 +3,8 @@
 	 is_locked/1, change/3, genesis_state/0,
 	 get/2, write/2, lock/2, unlock/2,
 	 get_value/2, serialize/1, name2number/1,
-	 verify_proof/4, root_hash/1,
+	 verify_proof/4, root_hash/1, dict_get/2,
+         dict_get_value/2,
 	 test/0]).
 -record(gov, {id, value, lock}).
 
@@ -22,9 +23,9 @@ genesis_state() ->
          [space_gas, 1113],
          [max_block_size, 940],
          [create_channel_fee, 250],
-         [delete_channel_reward, 240],
-         [create_account_fee, 250],%get rid of this. we already charge a fee for making this tx.
-         [delete_account_reward, 240],%get rid of this. instead we should make the fee negative
+         %[delete_channel_reward, 240],
+         %[create_account_fee, 250],%get rid of this. we already charge a fee for making this tx.
+         %[delete_account_reward, 240],%get rid of this. instead we should make the fee negative
          %[channel_rent, 600],
          %[account_rent, 600],
          [block_time, BlockTime],%remove
@@ -153,9 +154,9 @@ name2number(time_gas) -> 2;
 name2number(space_gas) -> 27;
 name2number(max_block_size) -> 3;
 name2number(create_channel_fee) -> 4;
-name2number(delete_channel_reward) -> 5;
-name2number(create_account_fee) -> 6;
-name2number(delete_account_reward) -> 7;
+%name2number(delete_channel_reward) -> 5;
+%name2number(create_account_fee) -> 6;
+%name2number(delete_account_reward) -> 7;
 %name2number(channel_rent) -> 9;
 %name2number(account_rent) -> 10;
 name2number(block_time) -> 11;
@@ -233,6 +234,17 @@ write(Gov, Tree) ->
 deserialize(SerializedGov) ->
     <<Id:8, Value:16, Lock:8>> = SerializedGov,
     #gov{id = Id, value = Value, lock = Lock}.
+
+dict_get_value(Key, Dict) when ((Key == timeout) or (Key == delete_acc_tx)) ->
+    Gov = dict_get(Key, Dict),
+    V = Gov#gov.value,
+    -tree_number_to_value(V);
+dict_get_value(Key, Dict) ->
+    Gov = dict_get(Key, Dict),
+    V = Gov#gov.value,
+    tree_number_to_value(V).
+dict_get(Key, Dict) ->
+    deserialize(dict:fetch({governance, name2number(Key)}, Dict)).
 
 
 %% Tests

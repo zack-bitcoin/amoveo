@@ -89,5 +89,5 @@ doit(Tx, Trees0, NewHeight) ->
     NewOracles = oracles:write(ON, Oracles),
     Trees2 = trees:update_oracles(Trees, NewOracles),
     trees:update_accounts(Trees2, NewAccounts).
-go(Tx, Trees, NewHeight) ->
-    ok.
+go(Tx, Dict, NewHeight) ->
+    Dict.

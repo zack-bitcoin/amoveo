@@ -31,5 +31,5 @@ doit(Tx, Trees, NewHeight) ->
     Facc = accounts:update(AID, Trees, Amount-Tx#unmatched.fee, Tx#unmatched.nonce, NewHeight),
     Accounts2 = accounts:write(Accounts, Facc),
     trees:update_accounts(Trees2, Accounts2).
-go(Tx, Trees, NewHeight) ->
-    ok.
+go(Tx, Dict, NewHeight) ->
+    Dict.

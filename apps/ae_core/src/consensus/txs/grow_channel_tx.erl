@@ -55,7 +55,6 @@ doit(Tx,Trees,NewHeight) ->
     NewAccounts = accounts:write(Accounts2, Acc2),
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
-go(Tx, Trees, NewHeight) ->
-    ok.
-    
+go(Tx, Dict, NewHeight) ->
+    Dict.
     

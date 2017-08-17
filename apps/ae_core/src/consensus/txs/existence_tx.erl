@@ -22,8 +22,7 @@ doit(Tx, Trees, NewHeight) ->
     NewAccounts = accounts:write(Accounts, Acc),
     Trees2 = trees:update_accounts(Trees, NewAccounts),
     trees:update_existence(Trees2, NewCommits).
-go(Tx, Trees, NewHeight) ->
-    ok.
-    
+go(Tx, Dict, NewHeight) ->
+    Dict.
 
     

@@ -304,6 +304,7 @@ txs_to_querys([STx|T], Trees) ->
 	    coinbase -> 
                 [
                  {governance, ?n2i(block_reward)},
+                 {governance, ?n2i(developer_reward)},
                  {accounts, coinbase_tx:from(Tx)}
                 ]
 	end,

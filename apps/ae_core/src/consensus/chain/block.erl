@@ -205,8 +205,33 @@ block_reward(Trees, Height, ID, PH) ->
         false ->
             Trees
     end.
-block_reward_dict(Trees, Height, ID, PH) ->
-    ok.
+block_reward_dict(Dict, Height, ID, PH) ->
+    BCM = 100,
+    BlocksAgo = Height - BCM,
+    case BlocksAgo > 0 of
+        true ->
+            Txs = txs(get_by_height_in_chain(BlocksAgo, PH)),
+            TransactionFees = txs:fees(Txs),
+            TransactionCosts = tx_costs_dict(Txs, Dict, 0),
+            BlockReward = dict:fetch({governance, 
+                                      governance:name2number(block_reward)},
+                                     Dict),
+            Amount = BlockReward + TransactionFees - TransactionCosts,
+            NM = case dict:fetch({accounts, ID}, Dict) of
+                     empty ->  accounts:new(ID, Amount, Height);
+                     _ -> accounts:dict_update(ID, Dict, Amount, none, Height)
+                 end,
+            dict:store({accounts, ID}, NM, Dict);
+        false -> Dict
+    end.
+   
+tx_costs_dict([], _, Out) -> Out;
+tx_costs_dict([STx|T], Dict, Out) ->
+    Tx = testnet_sign:data(STx),
+    Type = element(1, Tx),
+    Cost = dict:fetch({governance, governance:name2number(Type)},
+                      Dict),
+    tx_costs_dict(T, Dict, Cost+Out).
 tx_costs([], _, Out) -> Out;
 tx_costs([STx|T], Governance, Out) ->
     Tx = testnet_sign:data(STx),
@@ -366,7 +391,7 @@ check(Block) ->
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
-    %NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
+    NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
     %use NewDict to generate NewTrees
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     Block2 = Block#block{trees = NewTrees},
@@ -401,20 +426,15 @@ test(1) ->
     Trees = trees(Block0),
     make_roots(Trees),
     Pub = keys:pubkey(),
-    io:fwrite("block test 5\n"),
     Block1 = make(Header0, [], Trees, Pub),
-    io:fwrite("block test 6\n"),
     WBlock10 = mine2(Block1, 10),
-    io:fwrite("block test 7\n"),
     Header1 = block_to_header(WBlock10),
     headers:absorb([Header1]),
-    io:fwrite("block test 10\n"),
     H1 = hash(Header1),
     H1 = hash(WBlock10),
     {ok, _} = headers:read(H1),
     block_absorber:save(WBlock10),
     WBlock11 = get_by_hash(H1),
-    io:fwrite("block test 15\n"),
     WBlock11 = get_by_height_in_chain(1, H1),
     WBlock10 = WBlock11#block{trees = WBlock10#block.trees},
     success;

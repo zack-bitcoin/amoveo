@@ -60,5 +60,5 @@ sum_share_amounts([]) -> 0;
 sum_share_amounts([H|T]) -> 
     shares:amount(H)+
 	sum_share_amounts(T).
-go(Tx, Trees, NewHeight) ->
-    ok.
+go(Tx, Dict, NewHeight) ->
+    Dict.

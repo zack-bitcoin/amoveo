@@ -173,5 +173,5 @@ give_bets([Order|T], Type, Accounts, OID) ->
     Acc2 = accounts:update_bets(Acc, NewBets),
     Accounts2 = accounts:write(Accounts, Acc2),
     give_bets(T, Type, Accounts2, OID).
-go(Tx, Trees, NewHeight) ->
-    ok.
+go(Tx, Dict, NewHeight) ->
+    Dict.

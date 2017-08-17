@@ -88,5 +88,5 @@ check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
 		true -> ok
 	    end
     end.
-go(Tx, Trees, NewHeight) ->
-    ok.
+go(Tx, Dict, NewHeight) ->
+    Dict.

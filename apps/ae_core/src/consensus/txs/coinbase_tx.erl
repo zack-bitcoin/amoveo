@@ -20,4 +20,11 @@ doit(Tx, Trees, NewHeight) ->
     NewAccounts = accounts:write(Accounts, Nacc),
     trees:update_accounts(Trees, NewAccounts).
 go(Tx, Dict, NewHeight) ->
-    ok.
+    From = Tx#coinbase.from,
+    X = accounts:dict_get(From, Dict),
+    BlockReward = governance:dict_get_value(block_reward, Dict),
+    Nacc = case X of
+               empty -> accounts:new(From, BlockReward, NewHeight);
+               _ -> accounts:dict_update(From, Dict, BlockReward, none, NewHeight)
+           end,
+    accounts:dict_write(Nacc, Dict).

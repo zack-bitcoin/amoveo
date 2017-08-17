@@ -1,5 +1,5 @@
 The channels in Aeternity are more scalable for 2 reasons.
-1) Channels move computation off-chain, so we can parallelize the smart contracts. So there is no limit to the amount of smart contract computation that can happen per second. Ethereum channels also have this capability.
+1) Channels move computation off-chain, so we can parallelize the smart contracts. So there is no limit to the amount of smart contract computation that can happen per second. 
 2) The channels don't share state, so we can process all the channel-transactions in a block in parallel. So there is no limit to the volume of channels that can be closed and opened per second. Ethereum channels do not have this capability.
 
 The typical transaction has 2.5 merkle proofs.
@@ -36,3 +36,6 @@ So consensus costs of running a mining pool that only mines empty blocks will ei
 The cost for a light node to have N confirmations of security will stay below (N * $0.07). 
 
 The consensus cost to run an extra-light node will be about $0.0000001 per day, but you have to wait about 10 minutes for each confirmation of security.
+
+Im guessing we would have about 1000 light or full nodes. So $5000 per day.
+Bitcoin is giving out 12.5*144= $7 million a day in block rewards, so $5k shouldn't matter.

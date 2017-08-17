@@ -433,14 +433,15 @@ test() ->
     %test prove_facts.
     {Trees, _, _} = tx_pool:data(),
     Pub = constants:master_pub(),
-    Code = prove_facts([{governance, 5},{accounts, Pub}], Trees),
+    GovID = 2,
+    Code = prove_facts([{governance, GovID},{accounts, Pub}], Trees),
     lager:info("spk test prove facts ~s", [packer:pack(Code)]),
     State = chalang_state(1, 0, Trees),
-    [[[<<6:32>>, <<5:32>>, Gov5], %6th tree is governance. 5th thing is "delete channel reward"
+    [[[<<6:32>>, <<GovID:32>>, Gov5], %6th tree is governance. 5th thing is "delete channel reward"
       [<<1:32>>, BPub, Acc1]]] = %1st tree is accounts. 1 is for account id 1.
 	chalang:vm(Code, 100000, 100000, 1000, 1000, State),
     Governance = trees:governance(Trees),
-    {_, Govern5, _} = governance:get(5, Governance),
+    {_, Govern5, _} = governance:get(GovID, Governance),
     Accounts = trees:accounts(Trees),
     {_, Account1, _} = accounts:get(constants:master_pub(), Accounts),
     Acc1 = accounts:serialize(Account1),

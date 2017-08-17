@@ -36,14 +36,24 @@ doit(Tx, Trees, NewHeight) ->
     {_RH, empty, _Proof} = accounts:get(Pub, Accounts0),
 
     Governance = trees:governance(Trees),
-    GovernanceFee = governance:get_value(create_account_fee, Governance),
+    %GovernanceFee = governance:get_value(create_account_fee, Governance),
 
-    Account = accounts:update(From, Trees, -Amount - AccountFee - GovernanceFee, Nonce, NewHeight),
+    %Account = accounts:update(From, Trees, -Amount - AccountFee - GovernanceFee, Nonce, NewHeight),
+    Account = accounts:update(From, Trees, -Amount - AccountFee, Nonce, NewHeight),
 
     NewAccount = accounts:new(Pub, Amount, NewHeight),
     Accounts = accounts:write(Accounts0, NewAccount),
     NewAccounts = accounts:write(Accounts, Account),
 
     trees:update_accounts(Trees, NewAccounts).
-go(Tx, Trees, NewHeight) ->
-    ok.
+go(Tx, Dict, NewHeight) ->
+    Pub = Tx#create_acc_tx.pubkey,
+    Amount = Tx#create_acc_tx.amount,
+    From = Tx#create_acc_tx.from,
+    Nonce = Tx#create_acc_tx.nonce,
+    AccountFee = Tx#create_acc_tx.fee,
+    empty = accounts:dict_get(Pub, Dict),
+    Account = accounts:dict_update(From, Dict, -Amount - AccountFee, Nonce, NewHeight),
+    NewAccount = accounts:new(Pub, Amount, NewHeight),
+    Dict2 = accounts:dict_write(Account, Dict),
+    accounts:dict_write(NewAccount, Dict2).
