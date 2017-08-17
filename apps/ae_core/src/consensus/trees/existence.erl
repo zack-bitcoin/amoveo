@@ -1,6 +1,6 @@
 -module(existence).
 -export([get/2,write/2,new/1,hash2int/1,root_hash/1,hash/1, 
-	 serialize/1, verify_proof/4,
+	 serialize/1, verify_proof/4, dict_get/2, dict_write/2,
 	 test/0]).
 %for accessing the proof of existence tree
 -record(exist, {hash}).
@@ -21,6 +21,13 @@ deserialize(B) ->
     <<Hash:HS>> = B,
     #exist{hash = <<Hash:HS>>}.
 
+dict_get(Hash, Dict) ->
+    true = is_binary(Hash),
+    X = dict:fetch({existence, Hash}, Dict),
+    case X of
+        0 -> empty;
+        _ -> deserialize(X)
+    end.
 get(Hash, Tree) ->
     %io:fwrite("existence get hash is "),
     %io:fwrite(Hash),
@@ -35,6 +42,12 @@ get(Hash, Tree) ->
 		deserialize(Y)
 	end,
     {X, V, Proof}.
+dict_write(C, Dict) ->
+    Hash = C#exist.hash,
+    dict:store({existence, Hash},
+               serialize(C),
+               Dict).
+    
 write(E, Tree) ->
     Hash = E#exist.hash,
     Key = hash2int(Hash),
