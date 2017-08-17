@@ -56,5 +56,24 @@ doit(Tx,Trees,NewHeight) ->
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    ID = Tx#gc.id,
+    OldChannel = channels:dict_get(ID, Dict),
+    0 = channels:slasher(OldChannel),
+    false = channels:closed(OldChannel),
+    Aid1 = channels:acc1(OldChannel),
+    Aid2 = channels:acc2(OldChannel),
+    ID = channels:id(OldChannel),
+    Aid1 = Tx#gc.acc1,
+    Aid2 = Tx#gc.acc2,
+    false = Aid1 == Aid2,
+    Inc1 = Tx#gc.inc1,
+    Inc2 = Tx#gc.inc2,
+    true = Inc1 + Inc2 >= 0,
+    CNonce = Tx#gc.channel_nonce,
+    NewChannel = channels:dict_update(0, ID, Dict, CNonce, Inc1, Inc2, 0, channels:delay(OldChannel), NewHeight, false),
+    Dict2 = channels:dict_write(NewChannel, Dict),
+    Acc1 = accounts:dict_update(Aid1, Dict, -Inc1, Tx#gc.nonce, NewHeight),
+    Acc2 = accounts:dict_update(Aid2, Dict, -Inc2, none, NewHeight),
+    Dict3 = accounts:dict_write(Acc1, Dict2),
+    account:dict_write(Acc2, Dict3).
     
