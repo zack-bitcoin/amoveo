@@ -1,3 +1,15 @@
+
+consider reducing the block time to 2 minutes. This way the extra-light nodes don't have to download as much to see that a block is invalid. But it also makes it cheaper to create invalid blocks proportionately, so maybe 10 minutes is just as good.
+
+The proofs are currently not deterministic. They contain pointers that only make sense on the node that created the proof.
+Making proofs deterministic is a big advantage because full nodes don't have to download the proofs. They can generate it themselves, and check that the hash matches.
+
+There is danger that we could be tricked into receiving invalid blocks repeatedly. The severity of this attack is currently in proportion to the size of the block.
+So, we should merkelize the downloading of the blocks. The proofs and txs should be in merkle trees.
+This way we can verify each piece as we get it and reject bad pieces. If one node give a single bad pieces, we don't have to reject the good pieces they gave.
+The severity of the attack would be in proportion to the biggest piece we could have to download.
+For now just focus on merkelizing the pieces, and making sure each piece has finite size, we can do the rest after launch.
+
 in the proofs dict we should have a flag for each thing to know if it has been updated. That way we can know exactly what to include in the batch update of the tree.
 
 don't charge 2 different fees for making accounts. combine them.
