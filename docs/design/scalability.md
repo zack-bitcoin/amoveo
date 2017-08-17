@@ -33,6 +33,6 @@ If you are running a node for less than a year, then it is likely better to use 
 
 So consensus costs of running a mining pool that only mines empty blocks will either (stay below $10 per day) or a (one time payment of less than $3825 and daily payments of less than $0.50).
 
-The cost for a light node to have N confirmations of security will stay below (N * $0.07). You can pay money to get more confirmations quickly by downloading blocks.
+The cost for a light node to have N confirmations of security will stay below (N * $0.07). 
 
 The consensus cost to run an extra-light node will be about $0.0000001 per day, but you have to wait about 10 minutes for each confirmation of security.
