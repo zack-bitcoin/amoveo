@@ -159,13 +159,8 @@ give_bets_main(Id, Orders, Type, Accounts, OID) ->
     accounts:write(Accounts, Acc2).
 dict_give_bets_main(Id, Orders, Type, Dict, OID) ->
     %Id bought many orders of the same type. sum up all the amounts, and give him this many bets.
-    %return the new accounts tree
     Amount = sum_order_amounts(Orders, 0),
-    Acc = accounts:dict_get(Id, Dict),
-    OldBets = accounts:bets(Acc),
-    NewBets = oracle_bets:add_bet(OID, Type, 2*Amount, OldBets),
-    Acc2 = accounts:update_bets(Acc, NewBets),
-    accounts:dict_write(Acc2, Dict).
+    oracle_bets:dict_add_bet(Id, OID, Type, 2*Amount, Dict).
 sum_order_amounts([], N) -> N;
 sum_order_amounts([H|T], N) -> 
     A = orders:amount(H),
@@ -185,11 +180,7 @@ give_bets([Order|T], Type, Accounts, OID) ->
 dict_give_bets([], _Type, Dict, _OID) -> Dict;
 dict_give_bets([Order|T], Type, Dict, OID) ->
     ID = orders:aid(Order),
-    Acc = accounts:dict_get(ID, Dict),
-    OldBets = accounts:bets(Acc),
-    NewBets = oracle_bets:add_bet(OID, Type, 2*orders:amount(Order), OldBets),
-    Acc2 = accounts:update_bets(Acc, NewBets),
-    Dict2 = accounts:dict_write(Acc2, Dict),
+    Dict2 = oracle_bets:dict_add_bet(ID, OID, Type, 2*orders:amount(Order), Dict),
     give_bets(T, Type, Dict2, OID).
 go(Tx, Dict, NewHeight) ->
     io:fwrite("oracle bet 00\n"),

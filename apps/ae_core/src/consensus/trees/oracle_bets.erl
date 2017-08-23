@@ -3,6 +3,7 @@
 	 true/1, false/1, bad/1,
 	 write/2, get/2, root_hash/1, add_bet/4,
 	 reward/3, delete/2, verify_proof/4,
+         dict_add_bet/5, dict_get/2,
          serialize/1]).
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
 -record(bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle
@@ -58,10 +59,24 @@ deserialize(B) ->
     BAL = constants:balance_bits(),
     <<ID:KL, True:BAL, False:BAL, Bad:BAL>> = B,
     #bet{true = True, false = False, bad = Bad, id = ID}.
+dict_write(X, Pub, Dict) ->
+    Key = X#bet.id,
+    io:fwrite("oracle bets X is "),
+    io:fwrite(packer:pack(X)),
+    io:fwrite("\n"),
+    dict:store({oracle_bets, Pub, Key},
+               serialize(X),
+               Dict).
 write(X, Tree) ->
     Key = X#bet.id,
     Z = serialize(X),
     trie:put(Key, Z, 0, Tree, ?name).
+dict_get(Key, Dict) ->
+    X = dict:fetch({oracle_bets, Key}, Dict),
+    case X of
+        0 -> empty;
+        _ -> deserialize(X)
+    end.
 get(ID, Tree) ->
     {X, Leaf, Proof} = trie:get(ID, Tree, ?name),
     V = case Leaf of 
@@ -71,6 +86,14 @@ get(ID, Tree) ->
     {X, V, Proof}.
 delete(ID, Tree) ->
     trie:delete(ID, Tree, ?name).
+dict_add_bet(Id, OID, Type, Amount, Dict) ->
+    X = dict_get({key, Id, OID}, Dict),
+    Y = case X of
+            empty -> new(OID, Type, Amount);
+            Bet -> increase(Bet, Type, Amount)
+        end, 
+    dict_write(Y, Id, Dict).
+    
 add_bet(Id, Type, Amount, Tree) ->
     {_, X, _} = get(Id, Tree),
     Y = case X of

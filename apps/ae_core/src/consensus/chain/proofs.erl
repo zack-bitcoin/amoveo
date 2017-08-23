@@ -247,6 +247,9 @@ txs_to_querys([STx|T], Trees) ->
                  {existence, existence_tx:commit(Tx)}
                 ];
 	    oracle_new -> 
+                PS = constants:pubkey_size() * 8,
+                OID = oracle_new_tx:id(Tx),
+                AID = oracle_new_tx:from(Tx),
                 [
                  {governance, ?n2i(oracle_new)},
                  {governance, ?n2i(governance_change_limit)},
@@ -256,8 +259,10 @@ txs_to_querys([STx|T], Trees) ->
                  {governance, ?n2i(oracle_initial_liquidity)},
                  {governance, ?n2i(oracle_future_limit)},
                  {governance, ?n2i(minimum_oracle_time)},
-                 {accounts, oracle_new_tx:from(Tx)},
-                 {oracles, oracle_new_tx:id(Tx)}
+                 %{oracles, oracle_new_tx:recent_price(Tx)},
+                 %{oracle_bets, {key, AID, OID}},
+                 {accounts, AID},
+                 {oracles, OID}
                 ];
 	    oracle_bet -> 
                 OID = oracle_bet_tx:id(Tx),
@@ -265,9 +270,6 @@ txs_to_querys([STx|T], Trees) ->
                            oracle_bet_tx:to_prove(Tx, Trees)],
                 PS = constants:pubkey_size() * 8,
                 Pubkeys2 = remove(<<0:PS>>, Pubkeys),
-                io:fwrite("txs_prove pubkeys are \n"),
-                io:fwrite(packer:pack(Pubkeys)),
-                io:fwrite("\n"),
                 Prove = tagify(accounts, Pubkeys2) ++ 
                     make_oracle_bets(Pubkeys2, OID) ++
                     make_orders(Pubkeys, OID),
@@ -281,6 +283,8 @@ txs_to_querys([STx|T], Trees) ->
 	    oracle_close -> 
                 PS = constants:pubkey_size() * 8,
                 OID = oracle_close_tx:oracle_id(Tx),
+                Oracles = trees:oracles(Trees),
+                {_, Oracle, _} = oracles:get(OID, Oracles),
                 [
                              %whichever governance variable is being updated.
                  {governance, ?n2i(minimum_oracle_time)},
@@ -288,6 +292,7 @@ txs_to_querys([STx|T], Trees) ->
                  {governance, ?n2i(oracle_close)},
                  {governance, ?n2i(oracle_initial_liquidity)},
                  {orders, #key{pub = <<0:PS>>, id = OID}},
+                 {oracle_bets, #key{pub = oracles:creator(Oracle), id = OID}},
                  {accounts, oracle_close_tx:from(Tx)},
                  {oracles, OID}
                 ];

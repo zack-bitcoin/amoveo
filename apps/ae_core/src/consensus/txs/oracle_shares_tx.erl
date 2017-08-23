@@ -20,7 +20,7 @@ doit(Tx, Trees, NewHeight) ->
     Result = oracles:result(Oracle),
     false = Result == 0,
     %DT = oracles:done_timer(Oracle),
-    Governance = trees:governance(Trees),
+    %Governance = trees:governance(Trees),
     %MOT = governance:get_value(minimum_oracle_time, Governance),
     %true = NewHeight - MOT < DT,
     AID = Tx#oracle_shares.from,
@@ -41,3 +41,19 @@ doit(Tx, Trees, NewHeight) ->
     trees:update_accounts(Trees, Accounts2).
 go(Tx, Dict, NewHeight) ->
     Dict.
+dont_go(Tx, Dict, NewHeight) ->
+    OID = Tx#oracle_shares.oracle_id,
+    Oracle = oracles:dict_get(OID, Dict),
+    Result = oracles:result(Oracle),
+    false = Result == 0,
+    AID = Tx#oracle_shares.from,
+    %Acc = accounts:dict_get(AID, Dict),
+    %Bets = accounts:bets(Acc),
+    Bet = oracle_bets:dict_get({key, AID, OID}, Dict),
+    Reward = oracle_bets:reward(Bet, Result, NewHeight),
+    Dict2 = accounts:dict_update(AID, Dict, -Tx#oracle_shares.fee + Reward, Tx#oracle_shares.nonce, NewHeight),
+    oracle_bets:dict_delete({key, AID, OID}, Dict2).
+    
+    
+    
+    
