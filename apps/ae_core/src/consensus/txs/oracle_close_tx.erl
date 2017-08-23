@@ -84,4 +84,55 @@ doit(Tx, Trees, NewHeight) ->
     Accounts4 = trees:accounts(Trees4),
     trees:update_accounts(Trees3, Accounts4).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    Acc = accounts:dict_update(Tx#oracle_close.from, Dict, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
+    Dict2 = accounts:dict_write(Acc, Dict),
+    OID = Tx#oracle_close.oracle_id,
+    Oracle = oracles:dict_get(OID, Dict2),
+    true = oracles:starts(Oracle) =< NewHeight,
+    OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
+    VolumeCheck = orders:dict_significant_volume(Dict2, OID, OIL),
+    Result = if
+		 VolumeCheck -> oracles:type(Oracle);
+		 true -> 3
+	     end,
+    Oracle2 = oracles:set_result(Oracle, Result),
+    Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
+    Dict3 = oracles:dict_write(Oracle3, Dict2),
+    Gov = oracles:governance(Oracle3),
+    MOT = governance:dict_get_value(maximum_oracle_time, Dict3),
+    Dict4 = 
+        case Gov of
+            0 ->
+		%is not a governance oracle.
+		B1 = oracles:done_timer(Oracle) < NewHeight,
+		B2 = oracles:starts(Oracle3) + MOT < NewHeight,
+		true = (B1 or B2),
+		Dict3;
+	    G ->
+		GA = oracles:governance_amount(Oracle3),
+		case Result of
+		    1 -> 
+			true = oracles:done_timer(Oracle3) < NewHeight,
+			governance:dict_change(GA, Gov, Dict3);
+		    2 ->
+			true = oracles:done_timer(Oracle3) < NewHeight,
+			governance:dict_change(-GA, Gov, Dict3);
+		    3 -> 
+			true = oracles:starts(Oracle3) + MOT < NewHeight,
+			governance:dict_unlock(G, Dict3)
+                end
+        end,
+    Oracle4 = oracles:dict_get(OID, Dict4),
+    OracleType = oracles:type(Oracle4),
+    LoserType = 
+	case OracleType of
+	    1 -> 2;
+	    2 -> 1;
+	    3 -> 1
+	end,
+    OBTx = {oracle_bet, oracles:creator(Oracle4), 
+	  none, 0, OID, LoserType, 
+	  constants:oracle_initial_liquidity()},
+    oracle_bet_tx:go2(OBTx, Dict4, NewHeight).%maybe this is bad. maybe we only want to update the one account and it's bets.
+    
+                

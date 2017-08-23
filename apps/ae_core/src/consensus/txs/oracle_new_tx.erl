@@ -90,4 +90,58 @@ doit(Tx, Trees0, NewHeight) ->
     Trees2 = trees:update_oracles(Trees, NewOracles),
     trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    Gov = Tx#oracle_new.governance,
+    GovAmount = Tx#oracle_new.governance_amount,
+    GCL = governance:dict_get_value(governance_change_limit, Dict),
+    true = GovAmount > -1,
+    true = GovAmount < GCL,
+    Question = Tx#oracle_new.question,
+    Dict2 = 
+        case Gov of
+            0 ->
+                GovAmount = 0,
+                Dict;
+            G ->
+                Recent = oracles:dict_get(Tx#oracle_new.recent_price, Dict),
+                true = GovAmount > 0,
+                3 = oracles:result(Recent),
+                GD = governance:dict_get_value(governance_delay, Dict),
+                true = NewHeight - oracles:done_timer(Recent) < GD,
+		Dif = oracles:difficulty(Recent),
+		Dif = Tx#oracle_new.difficulty,
+		Question = <<"">>,
+                GVar = governance:dict_get(G, Dict),
+                false = governance:is_locked(GVar),
+                governance:dict_lock(G, Dict)
+        end,
+    ok = case Question of
+             <<"">> -> ok;
+             Q ->
+                 Recent2 = oracles:dict_get(Tx#oracle_new.recent_price, Dict),
+                 MQS = governance:dict_get_value(maximum_question_size, Dict2),
+                 true = size(Q) < MQS,
+                 0 = GovAmount,
+		 Di = oracles:difficulty(Recent2) div 2,
+		 Di = Tx#oracle_new.difficulty,
+		 3 = oracles:result(Recent2),
+		 QD = governance:dict_get_value(question_delay, Dict2),
+                 true = NewHeight - oracles:done_timer(Recent2) < QD,
+                 ok
+         end,
+    From = Tx#oracle_new.from,
+    OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
+    Facc = accounts:dict_update(From, Dict2, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce, NewHeight),
+    Dict3 = accounts:dict_write(Facc, Dict2),
+    Starts = Tx#oracle_new.start,
+    OFL = governance:dict_get_value(oracle_future_limit, Dict3),
+    true = (Starts - NewHeight) < OFL,
+    ID = Tx#oracle_new.id,
+    Question = Tx#oracle_new.question,
+    true = is_binary(Question),
+    QH = testnet_hasher:doit(Question),
+    Diff = Tx#oracle_new.difficulty,
+    ON = oracles:dict_new(ID, QH, Starts, From, Diff, Gov, GovAmount, Dict),
+    empty = oracles:dict_get(ID, Dict),
+    Dict4 = oracles:dict_write(ON, Dict3).
+    
+    

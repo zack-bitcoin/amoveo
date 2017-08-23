@@ -255,6 +255,7 @@ txs_to_querys([STx|T], Trees) ->
                  {governance, ?n2i(question_delay)},
                  {governance, ?n2i(oracle_initial_liquidity)},
                  {governance, ?n2i(oracle_future_limit)},
+                 {governance, ?n2i(minimum_oracle_time)},
                  {accounts, oracle_new_tx:from(Tx)},
                  {oracles, oracle_new_tx:id(Tx)}
                 ];
@@ -264,23 +265,31 @@ txs_to_querys([STx|T], Trees) ->
                            oracle_bet_tx:to_prove(Tx, Trees)],
                 PS = constants:pubkey_size() * 8,
                 Pubkeys2 = remove(<<0:PS>>, Pubkeys),
+                io:fwrite("txs_prove pubkeys are \n"),
+                io:fwrite(packer:pack(Pubkeys)),
+                io:fwrite("\n"),
                 Prove = tagify(accounts, Pubkeys2) ++ 
                     make_oracle_bets(Pubkeys2, OID) ++
                     make_orders(Pubkeys, OID),
                  [
+                  {orders, #key{pub = <<0:PS>>, id = OID}},
                   {governance, ?n2i(oracle_bet)},
                   {governance, ?n2i(minimum_oracle_time)},
                   {governance, ?n2i(oracle_initial_liquidity)},
                   {oracles, oracle_bet_tx:id(Tx)}] ++
                     Prove;
 	    oracle_close -> 
+                PS = constants:pubkey_size() * 8,
+                OID = oracle_close_tx:oracle_id(Tx),
                 [
                              %whichever governance variable is being updated.
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
                  {governance, ?n2i(oracle_close)},
+                 {governance, ?n2i(oracle_initial_liquidity)},
+                 {orders, #key{pub = <<0:PS>>, id = OID}},
                  {accounts, oracle_close_tx:from(Tx)},
-                 {oracles, oracle_close_tx:oracle_id(Tx)}
+                 {oracles, OID}
                 ];
 	    unmatched -> 
                 OID = oracle_unmatched_tx:oracle_id(Tx),

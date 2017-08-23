@@ -1,11 +1,11 @@
 -module(oracles).
--export([new/8,write/2,get/2,id/1,result/1,
+-export([new/8,dict_new/8,write/2,get/2,id/1,result/1,
 	 question/1,starts/1,root_hash/1, 
 	 type/1, difficulty/1, orders/1, orders_hash/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
 	 set_result/2, set_type/2, governance/1,
 	 governance_amount/1, creator/1, serialize/1, deserialize/1,
-	 verify_proof/4,
+	 verify_proof/4, dict_get/2, dict_write/2,
 	 test/0]).
 -define(name, oracles).
 -record(oracle, {id, 
@@ -45,6 +45,25 @@ set_type(X, T) ->
     true = T > -1,
     true = T < 5,
     X#oracle{type = T}.
+dict_new(ID, Question, Starts, Creator, Difficulty, GovernanceVar, GovAmount, Dict) ->
+    true = size(Creator) == constants:pubkey_size(),
+    true = (GovernanceVar > -1) and (GovernanceVar < governance:max()),
+    Orders = orders:empty_book(),
+    MOT = governance:dict_get_value(minimum_oracle_time, Dict),
+    #oracle{id = ID,
+	    result = 0,
+	    question = Question,
+	    starts = Starts,
+	    type = 3,%1 means we are storing orders of true, 2 is false, 3 is bad.
+	    orders = Orders,
+            orders_hash = orders:root_hash(Orders),
+	    creator = Creator,
+	    difficulty = Difficulty,
+	    done_timer = Starts + MOT,
+	    governance = GovernanceVar,
+	    governance_amount = GovAmount
+	   }.
+    
 new(ID, Question, Starts, Creator, Difficulty, GovernanceVar, GovAmount, Trees) ->
     true = size(Creator) == constants:pubkey_size(),
     GovTree = trees:governance(Trees),
@@ -67,14 +86,13 @@ new(ID, Question, Starts, Creator, Difficulty, GovernanceVar, GovAmount, Trees) 
 	   }.
 root_hash(Root) ->
     trie:root_hash(?name, Root).
-serialize(X) ->
+dict_serialize(X) ->
     KL = constants:key_length(),
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),
     Question = X#oracle.question,
-    Orders = orders:root_hash(X#oracle.orders),
+    %Orders = orders:root_hash(X#oracle.orders),
     Orders = X#oracle.orders_hash,
-    %Orders = X#oracle.orders,
     HS = size(Question),
     HS = size(Orders),
     HB = constants:height_bits(),
@@ -94,6 +112,10 @@ serialize(X) ->
       (X#oracle.creator)/binary,
       Question/binary,
       Orders/binary>>.
+serialize(X) ->
+    Orders = orders:root_hash(X#oracle.orders),
+    Orders = X#oracle.orders_hash,
+    dict_serialize(X).
 deserialize(X) ->
     KL = constants:key_length(),
     PS = constants:pubkey_size()*8,
@@ -125,12 +147,23 @@ deserialize(X) ->
            governance_amount = GovAmount,
            orders_hash = <<Orders:HS>>
       }.
+dict_write(Oracle, Dict) ->
+    Key = Oracle#oracle.id,
+    dict:store({oracles, Key},
+               dict_serialize(Oracle),
+               Dict).
 write(Oracle, Root) ->
     %meta is a pointer to the orders tree.
     V = serialize(Oracle),
     Key = Oracle#oracle.id,
     Meta = Oracle#oracle.orders,
     trie:put(Key, V, Meta, Root, ?name).
+dict_get(ID, Dict) ->
+    X = dict:fetch({oracles, ID}, Dict),
+    case X of
+        0 -> empty;
+        _ -> deserialize(X)
+    end.
 get(ID, Root) ->
     {RH, Leaf, Proof} = trie:get(ID, Root, ?name),
     V = case Leaf of 

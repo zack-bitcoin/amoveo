@@ -75,5 +75,5 @@ go(Tx, Dict, NewHeight) ->
     Acc1 = accounts:dict_update(Aid1, Dict, -Inc1, Tx#gc.nonce, NewHeight),
     Acc2 = accounts:dict_update(Aid2, Dict, -Inc2, none, NewHeight),
     Dict3 = accounts:dict_write(Acc1, Dict2),
-    account:dict_write(Acc2, Dict3).
+    accounts:dict_write(Acc2, Dict3).
     

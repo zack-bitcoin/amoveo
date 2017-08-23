@@ -1,3 +1,5 @@
+remove the difficulty-style oracles.
+review how governance locks are working. They are supposed to prevent multiple oracles updating the same governance variable simultaniously.
 
 consider reducing the block time to 2 minutes. This way the extra-light nodes don't have to download as much to see that a block is invalid. But it also makes it cheaper to create invalid blocks proportionately, so maybe 10 minutes is just as good.
 

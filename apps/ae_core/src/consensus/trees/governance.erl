@@ -4,7 +4,7 @@
 	 get/2, write/2, lock/2, unlock/2,
 	 get_value/2, serialize/1, name2number/1,
 	 verify_proof/4, root_hash/1, dict_get/2,
-         dict_get_value/2,
+         dict_get_value/2, dict_lock/2, dict_unlock/2,
 	 test/0]).
 -record(gov, {id, value, lock}).
 
@@ -78,7 +78,15 @@ change(Name, Amount, Tree) ->
     Value = max(Value0, 1),
     Gov = Gov0#gov{value = Value, lock = 0},
     write(Gov, Tree).
-
+dict_lock(Name, Dict) ->
+    Gov0 = dict_get(Name, Dict),
+    Gov = Gov0#gov{lock = 1},
+    dict_write(Gov, Dict).
+dict_unlock(Name, Dict) ->
+    Gov0 = dict_get(Name, Dict),
+    Gov = Gov0#gov{lock = 0},
+    dict_write(Gov, Dict).
+    
 lock(Name, Tree) ->
     {_, Gov0, _} = get(Name, Tree),
     Gov = Gov0#gov{lock = 1},
@@ -225,7 +233,11 @@ new(Id, Value) ->
     new(Id, Value, 0).
 new(Id, Value, Lock) ->
     #gov{id = Id, value = Value, lock = Lock}.
-
+dict_write(Gov, Dict) ->
+    Key = Gov#gov.id,
+    dict:store({governance, Key},
+               serialize(Gov),
+               Dict).
 write(Gov, Tree) ->
     Key = Gov#gov.id,
     Serialized = serialize(Gov),
@@ -243,6 +255,8 @@ dict_get_value(Key, Dict) ->
     Gov = dict_get(Key, Dict),
     V = Gov#gov.value,
     tree_number_to_value(V).
+dict_get(Key, Dict) when is_integer(Key) ->
+    deserialize(dict:fetch({governance, Key}, Dict));
 dict_get(Key, Dict) ->
     deserialize(dict:fetch({governance, name2number(Key)}, Dict)).
 

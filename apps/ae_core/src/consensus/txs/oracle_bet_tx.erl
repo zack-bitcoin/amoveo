@@ -1,5 +1,5 @@
 -module(oracle_bet_tx).
--export([doit/3, go/3, doit2/3, make/6, id/1, from/1, to_prove/2]).
+-export([doit/3, go/3, doit2/3, go2/3, make/6, id/1, from/1, to_prove/2]).
 -record(oracle_bet, {from, %your account id.
 		     nonce, 
 		     fee, 
@@ -157,6 +157,15 @@ give_bets_main(Id, Orders, Type, Accounts, OID) ->
     NewBets = oracle_bets:add_bet(OID, Type, 2*Amount, OldBets),
     Acc2 = accounts:update_bets(Acc, NewBets),
     accounts:write(Accounts, Acc2).
+dict_give_bets_main(Id, Orders, Type, Dict, OID) ->
+    %Id bought many orders of the same type. sum up all the amounts, and give him this many bets.
+    %return the new accounts tree
+    Amount = sum_order_amounts(Orders, 0),
+    Acc = accounts:dict_get(Id, Dict),
+    OldBets = accounts:bets(Acc),
+    NewBets = oracle_bets:add_bet(OID, Type, 2*Amount, OldBets),
+    Acc2 = accounts:update_bets(Acc, NewBets),
+    accounts:dict_write(Acc2, Dict).
 sum_order_amounts([], N) -> N;
 sum_order_amounts([H|T], N) -> 
     A = orders:amount(H),
@@ -173,5 +182,86 @@ give_bets([Order|T], Type, Accounts, OID) ->
     Acc2 = accounts:update_bets(Acc, NewBets),
     Accounts2 = accounts:write(Accounts, Acc2),
     give_bets(T, Type, Accounts2, OID).
+dict_give_bets([], _Type, Dict, _OID) -> Dict;
+dict_give_bets([Order|T], Type, Dict, OID) ->
+    ID = orders:aid(Order),
+    Acc = accounts:dict_get(ID, Dict),
+    OldBets = accounts:bets(Acc),
+    NewBets = oracle_bets:add_bet(OID, Type, 2*orders:amount(Order), OldBets),
+    Acc2 = accounts:update_bets(Acc, NewBets),
+    Dict2 = accounts:dict_write(Acc2, Dict),
+    give_bets(T, Type, Dict2, OID).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    io:fwrite("oracle bet 00\n"),
+    From = Tx#oracle_bet.from,
+    Facc = accounts:dict_update(From, Dict, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce, NewHeight),
+    Dict2 = accounts:dict_write(Facc, Dict),
+    Oracle = oracles:dict_get(Tx#oracle_bet.id, Dict2),
+    0 = oracles:result(Oracle),%check that the oracle isn't already closed.
+    go2(Tx, Dict2, NewHeight).
+go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close the oracle we want to insert one last bet.
+    From = Tx#oracle_bet.from,
+    io:fwrite("oracle bet 10\n"),
+    OID = Tx#oracle_bet.id,
+    Oracle0 = oracles:dict_get(OID, Dict),
+    %Orders0 = orders:dict_get({key, From, OID}, Dict),
+    io:fwrite("oracle bet 20\n"),
+    OIL = governance:dict_get_value(oracle_initial_liquidity, Dict),
+    io:fwrite("oracle bet 30\n"),
+    VolumeCheck = orders:dict_significant_volume(Dict, OID, OIL),
+    io:fwrite("oracle bet 40\n"),
+    MOT = governance:dict_get_value(minimum_oracle_time, Dict),
+    io:fwrite("oracle bet 01\n"),
+    Oracle = if
+    %if the volume of trades it too low, then reset the done_timer to another week in the future.
+		 VolumeCheck -> Oracle0;
+		 true -> 
+		     oracles:set_done_timer(Oracle0, NewHeight + MOT)
+	     end,
+    io:fwrite("oracle bet 010\n"),
+    true = NewHeight > oracles:starts(Oracle),
+    io:fwrite("oracle bet 011\n"),
+    %take some money from them. 
+    %Orders = oracles:orders(Oracle),
+    io:fwrite("oracle bet 012\n"),
+    OracleType = oracles:type(Oracle),
+    io:fwrite("oracle bet 013\n"),
+    TxType = case Tx#oracle_bet.type of
+		 1 -> 1;
+		 2 -> 2;
+		 3 -> 3
+	     end,
+    Amount = Tx#oracle_bet.amount,
+    io:fwrite("oracle bet 014\n"),
+    NewOrder = orders:new(Tx#oracle_bet.from, Amount),
+    io:fwrite("oracle bet 02\n"),
+    if
+	TxType == OracleType ->
+            io:fwrite("oracle bet 03\n"),
+	    ManyOrders = dict_orders_many(OID, Dict),
+	    Minimum = OIL * det_pow(2, max(1, ManyOrders)), 
+	    true = Amount >= Minimum,
+	    %NewOrders = orders:add(NewOrder, Orders),
+            Dict2 = orders:dict_add(NewOrder, OID, Dict),
+	    %NewOracle = oracles:set_orders(Oracle, NewOrders),
+	    oracles:dict_write(Oracle, Dict2);
+	true ->
+            io:fwrite("oracle bet tx path2\n"),
+	    {Matches1, Matches2, Next, NewOrders} =
+		orders:dict_match(NewOrder, OID, Dict),
+	    %Oracle2 = oracles:set_orders(Oracle, NewOrders),
+	    Dict2 = dict_give_bets_main(From, Matches1, TxType, Dict, oracles:id(Oracle)),
+	    Dict3 = dict_give_bets(Matches2, OracleType, Dict, oracles:id(Oracle)),
+	    Oracle3 = case Next of
+			   same -> 
+			       Dict2;
+			   switch ->
+			       Oracle4 = oracles:set_done_timer(Oracle, NewHeight + MOT),
+			       oracles:set_type(Oracle4, TxType)
+		       end,
+	    oracles:dict_write(Oracle3, Dict3)
+    end.
+dict_orders_many(OID, Dict) ->
+    {_, Many} = orders:dict_head_get(Dict, OID),
+    Many.
+    
