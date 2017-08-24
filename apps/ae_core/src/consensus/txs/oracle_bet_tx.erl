@@ -99,12 +99,12 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 	    NewOracles = oracles:write(NewOracle, Oracles),
 	    trees:update_oracles(Trees2, NewOracles);
 	true ->
-            io:fwrite("oracle bet tx path2\n"),
+            %io:fwrite("oracle bet tx path2\n"),
 	    {Matches1, Matches2, Next, NewOrders} =
 		orders:match(NewOrder, Orders),
             %Matches2 is empty.
-            io:fwrite(packer:pack({oracle_bet_tx_matches2, Matches1, Matches2, NewOrders})),
-            io:fwrite("\n"),%everything from matches2, id 0, The location about to be filled, the last bet if it exists.
+            %io:fwrite(packer:pack({oracle_bet_tx_matches2, Matches1, Matches2, NewOrders})),
+            %io:fwrite("\n"),%everything from matches2, id 0, The location about to be filled, the last bet if it exists.
             
 	    Oracle2 = oracles:set_orders(Oracle, NewOrders),
 	    Accounts3 = give_bets_main(From, Matches1, TxType, Accounts2, oracles:id(Oracle2)),

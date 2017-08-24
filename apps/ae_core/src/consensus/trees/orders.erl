@@ -7,7 +7,7 @@
          serialize/1, deserialize/1, all/1,
          dict_significant_volume/3, dict_match/3,
          dict_write/3, dict_get/2, dict_head_get/2,
-         dict_add/3,
+         dict_add/3, dict_remove/3,
          test/0]).
 -define(name, orders).
 -record(order, {aid, amount, pointer}).

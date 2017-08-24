@@ -32,4 +32,11 @@ doit(Tx, Trees, NewHeight) ->
     Accounts2 = accounts:write(Accounts, Facc),
     trees:update_accounts(Trees2, Accounts2).
 go(Tx, Dict, NewHeight) ->
-    Dict.
+    OracleID = Tx#unmatched.oracle_id,
+    AID = Tx#unmatched.from,
+    %Oracle = oracles:dict_get(OracleID, Oracles),
+    Order = orders:dict_get({key, AID, OracleID}, Dict),
+    Amount = orders:amount(Order),
+    Dict2 = orders:dict_remove(AID, OracleID, Dict),
+    Facc = accounts:dict_update(AID, Dict2, Amount - Tx#unmatched.fee, Tx#unmatched.nonce, NewHeight),
+    accounts:dict_write(Facc, Dict2).
