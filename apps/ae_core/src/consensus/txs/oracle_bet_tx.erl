@@ -149,9 +149,6 @@ give_bets_main(Id, Orders, Type, Accounts, OID) ->
     %Id bought many orders of the same type. sum up all the amounts, and give him this many bets.
     %return the new accounts tree
     Amount = sum_order_amounts(Orders, 0),
-    io:fwrite("give bets main amount "),
-    io:fwrite(integer_to_list(Amount)),
-    io:fwrite("\n"),
 {_, Acc, _} = accounts:get(Id, Accounts),
     OldBets = accounts:bets(Acc),
     NewBets = oracle_bets:add_bet(OID, Type, 2*Amount, OldBets),
@@ -164,9 +161,6 @@ dict_give_bets_main(Id, Orders, Type, Dict, OID) ->
 sum_order_amounts([], N) -> N;
 sum_order_amounts([H|T], N) -> 
     A = orders:amount(H),
-    io:fwrite("order amount "),
-    io:fwrite(integer_to_list(A)),
-    io:fwrite("\n"),
     sum_order_amounts(T, A+N).
 give_bets([], _Type, Accounts, _OID) -> Accounts;
 give_bets([Order|T], Type, Accounts, OID) ->
@@ -183,7 +177,6 @@ dict_give_bets([Order|T], Type, Dict, OID) ->
     Dict2 = oracle_bets:dict_add_bet(ID, OID, Type, 2*orders:amount(Order), Dict),
     give_bets(T, Type, Dict2, OID).
 go(Tx, Dict, NewHeight) ->
-    io:fwrite("oracle bet 00\n"),
     From = Tx#oracle_bet.from,
     Facc = accounts:dict_update(From, Dict, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce, NewHeight),
     Dict2 = accounts:dict_write(Facc, Dict),
@@ -192,43 +185,31 @@ go(Tx, Dict, NewHeight) ->
     go2(Tx, Dict2, NewHeight).
 go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close the oracle we want to insert one last bet.
     From = Tx#oracle_bet.from,
-    io:fwrite("oracle bet 10\n"),
     OID = Tx#oracle_bet.id,
     Oracle0 = oracles:dict_get(OID, Dict),
     %Orders0 = orders:dict_get({key, From, OID}, Dict),
-    io:fwrite("oracle bet 20\n"),
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict),
-    io:fwrite("oracle bet 30\n"),
     VolumeCheck = orders:dict_significant_volume(Dict, OID, OIL),
-    io:fwrite("oracle bet 40\n"),
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
-    io:fwrite("oracle bet 01\n"),
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
 		 true -> 
 		     oracles:set_done_timer(Oracle0, NewHeight + MOT)
 	     end,
-    io:fwrite("oracle bet 010\n"),
     true = NewHeight > oracles:starts(Oracle),
-    io:fwrite("oracle bet 011\n"),
     %take some money from them. 
     %Orders = oracles:orders(Oracle),
-    io:fwrite("oracle bet 012\n"),
     OracleType = oracles:type(Oracle),
-    io:fwrite("oracle bet 013\n"),
     TxType = case Tx#oracle_bet.type of
 		 1 -> 1;
 		 2 -> 2;
 		 3 -> 3
 	     end,
     Amount = Tx#oracle_bet.amount,
-    io:fwrite("oracle bet 014\n"),
     NewOrder = orders:new(Tx#oracle_bet.from, Amount),
-    io:fwrite("oracle bet 02\n"),
     if
 	TxType == OracleType ->
-            io:fwrite("oracle bet 03\n"),
 	    ManyOrders = dict_orders_many(OID, Dict),
 	    Minimum = OIL * det_pow(2, max(1, ManyOrders)), 
 	    true = Amount >= Minimum,
@@ -237,7 +218,6 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 	    %NewOracle = oracles:set_orders(Oracle, NewOrders),
 	    oracles:dict_write(Oracle, Dict2);
 	true ->
-            io:fwrite("oracle bet tx path2\n"),
 	    {Matches1, Matches2, Next, NewOrders} =
 		orders:dict_match(NewOrder, OID, Dict),
 	    %Oracle2 = oracles:set_orders(Oracle, NewOrders),

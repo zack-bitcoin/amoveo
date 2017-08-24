@@ -3,7 +3,7 @@
 	 true/1, false/1, bad/1,
 	 write/2, get/2, root_hash/1, add_bet/4,
 	 reward/3, delete/2, verify_proof/4,
-         dict_add_bet/5, dict_get/2,
+         dict_add_bet/5, dict_get/2, dict_delete/2,
          serialize/1]).
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
 -record(bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle
@@ -84,6 +84,8 @@ get(ID, Tree) ->
 	    L -> deserialize(leaf:value(L))
 	end,
     {X, V, Proof}.
+dict_delete(Key, Dict) ->
+    dict:store({oracle_bets, Key}, 0, Dict).
 delete(ID, Tree) ->
     trie:delete(ID, Tree, ?name).
 dict_add_bet(Id, OID, Type, Amount, Dict) ->
