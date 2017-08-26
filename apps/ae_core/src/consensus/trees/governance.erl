@@ -61,7 +61,7 @@ genesis_state() ->
          [oracle_close, 10],
          [unmatched, 10],
          [oracle_shares, 10]],
-    {ok, GenesisTree} = genesis_state(G, 0),
+    {ok, GenesisTree} = genesis_state(G, 1),
     GenesisTree.
 
 genesis_state([], Tree) ->

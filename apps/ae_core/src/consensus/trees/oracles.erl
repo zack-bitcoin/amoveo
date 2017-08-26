@@ -199,16 +199,16 @@ verify_proof(RootHash, Key, Value, Proof) ->
 
 test() ->
     {Trees, _, _} = tx_pool:data(),
-    Root = 0,
+    Root0 = constants:root0(),
     X0 = new(1, testnet_hasher:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
     X = set_result(X0, 3),
     X2 = deserialize(serialize(X)),
     X3 = X2#oracle{orders = X#oracle.orders},
     lager:info("~s", [packer:pack({oracles_test, X, X3})]),
     X = X3,
-    NewLoc = write(X, Root),
+    NewLoc = write(X, Root0),
     {Root1, X, Path1} = get(X#oracle.id, NewLoc),
-    {Root2, empty, Path2} = get(X#oracle.id, 0),
+    {Root2, empty, Path2} = get(X#oracle.id, Root0),
     true = verify_proof(Root1, X#oracle.id, serialize(X), Path1),
     true = verify_proof(Root2, X#oracle.id, 0, Path2),
     success.

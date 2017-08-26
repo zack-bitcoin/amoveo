@@ -11,9 +11,8 @@
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
 	      pubkey = <<>>,
-	      bets = 0,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
+	      bets = 1,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
               bets_hash = <<>>}).
-	      %shares = 0}). %shares is a pointer to a merkel tree that stores how many shares you have at each price.
 -define(id, accounts).
 
 balance(Account) -> Account#acc.balance.
@@ -28,7 +27,8 @@ root_hash(Accounts) ->
     trie:root_hash(?id, Accounts).
 
 new(Pub, Balance, Height) ->
-    #acc{pubkey = Pub, balance = Balance, nonce = 0, height = Height, bets = 0, bets_hash = oracle_bets:root_hash(0)}.
+    Root0 = constants:root0(),
+    #acc{pubkey = Pub, balance = Balance, nonce = 0, height = Height, bets = Root0, bets_hash = oracle_bets:root_hash(Root0)}.
 
 dict_update(Pub, Dict, Amount, NewNonce, NewHeight) ->
     Account = dict_get(Pub, Dict),
@@ -249,10 +249,13 @@ test() ->
     Acc = new(Pub, 0, 0),
     %io:fwrite(Acc),
     S = serialize(Acc),
+    io:fwrite("Acc DecAcc "),
+    io:fwrite(packer:pack({accs_test, Acc, deserialize(S)})),
     Acc = deserialize(S),
-    NewLoc = write(0, Acc),
+    Root0 = constants:root0(),
+    NewLoc = write(Root0, Acc),
     {Root, Acc, Proof} = get(Pub, NewLoc),
     true = verify_proof(Root, Pub, serialize(Acc), Proof),
-    {Root2, empty, Proof2} = get(Pub, 0),
+    {Root2, empty, Proof2} = get(Pub, Root0),
     true = verify_proof(Root2, Pub, 0, Proof2),
     success.

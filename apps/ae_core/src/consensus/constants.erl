@@ -4,7 +4,7 @@
 %-define(InitialCoins, round(math:pow(2, 48)) - 1).
 %2^74 bits is 25 bitcoin =~ $10,000
 %2^64 bits is $10
-
+root0() -> 1.
 key_length() ->
     24. 
 address_bits() ->

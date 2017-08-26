@@ -297,10 +297,12 @@ txs_to_querys([STx|T], Trees) ->
                  {oracles, OID}
                 ];
 	    unmatched -> 
+                PS = constants:pubkey_size() * 8,
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
                 [
                  {governance, ?n2i(unmatched)},
+                 {orders, #key{pub = <<0:PS>>, id = OID}},
                  {orders, #key{pub = From, id = OID}},
                  {accounts, From},
                  {oracles, OID}

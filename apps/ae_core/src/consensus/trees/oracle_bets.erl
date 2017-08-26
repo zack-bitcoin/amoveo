@@ -61,9 +61,6 @@ deserialize(B) ->
     #bet{true = True, false = False, bad = Bad, id = ID}.
 dict_write(X, Pub, Dict) ->
     Key = X#bet.id,
-    io:fwrite("oracle bets X is "),
-    io:fwrite(packer:pack(X)),
-    io:fwrite("\n"),
     dict:store({oracle_bets, Pub, Key},
                serialize(X),
                Dict).
@@ -126,10 +123,11 @@ verify_proof(RootHash, Key, Value, Proof) ->
 test() ->
     C = new(1, 3, 100),
     ID = C#bet.id,
-    {_, empty, _} = get(ID, 0),
-    Root = write(C, 0),
+    Root0 = constants:root0(),
+    {_, empty, _} = get(ID, Root0),
+    Root = write(C, Root0),
     {Root1, C, Path1} = get(ID, Root),
-    {Root2, empty, Path2} = get(ID, 0),
+    {Root2, empty, Path2} = get(ID, Root0),
     Tree2 = add_bet(ID, 1, 100, Root),
     {_, Bet2, _} = get(ID, Tree2),
     Bet2 = increase(C, 1, 100),

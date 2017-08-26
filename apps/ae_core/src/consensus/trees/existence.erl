@@ -83,13 +83,14 @@ verify_proof(RootHash, Key, Value, Proof) ->
 test() ->
     Hash = testnet_hasher:doit(2),
     C = new(Hash),
+    Root0 = constants:root0(),
     %C = testnet_hasher:doit(2),
-    {_, empty, _} = get(Hash, 0),
-    NewLoc = write(C, 0),
+    {_, empty, _} = get(Hash, Root0),
+    NewLoc = write(C, Root0),
     C2 = new(testnet_hasher:doit(4)),
     NewLoc2 = write(C2, NewLoc),
     {Root1, C, Path1} = get(Hash, NewLoc2),
-    {Root2, empty, Path2} = get(Hash, 0),
+    {Root2, empty, Path2} = get(Hash, Root0),
     true = verify_proof(Root1, Hash, serialize(C), Path1),
     true = verify_proof(Root2, Hash, 0, Path2),
     success.

@@ -77,6 +77,11 @@ of the employees, and reduces cost of legal compliance.
 
 Blockchain offers a way to circumvent government.
 
+* ICOs are not sustainable.
+
+The money raised from an ICO decreases over time.
+If the project is successful, then the financial demands for development would increase over time.
+
 * Blockchain can save us!
 
 I propose an alternative way to raise money

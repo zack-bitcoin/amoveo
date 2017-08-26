@@ -91,7 +91,11 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internals
 
 initial_state() ->
+    io:fwrite("initialize 1\n"),
     Header = block:initialize_chain(),
+    io:fwrite("initialize state "),
+    io:fwrite(packer:pack(Header)),
+    io:fwrite("\n"),
     state2(Header).
 current_state() ->
     Header = headers:top(),

@@ -120,7 +120,7 @@ get(Pub, Root) ->
 empty_book() ->
     PS = constants:pubkey_size() * 8,
     X = serialize_head(<<0:PS>>, 0),
-    trie:put(1, X, 0, 0, ?name).
+    trie:put(1, X, 0, constants:root0(), ?name).
 dict_head_get(Dict, OID) ->
     PS = constants:pubkey_size() * 8,
     Key = {key, <<0:PS>>, OID},
@@ -405,7 +405,7 @@ test() ->
     Root2 = add(Order2, Root1),
     Order3 = new(Pub1, 110),
     {Matches1, Matches2, same, Root3} = match(Order3, Root2),
-    {_, empty, _} = get(Pub1, 0),
+    {_, empty, _} = get(Pub1, constants:root0()),
     %{_, {order, Pub1, 110, _}, _} = get(Pub1, Root2),
     {_, {order, Pub2, 200, _}, _} = get(Pub2, Root2),
     {_, empty, _} = get(Pub1, Root3),

@@ -250,7 +250,7 @@ test() ->
     A = new(ID,Acc1,Acc2,Bal1,Bal2,Height,Entropy,Delay),
     A = deserialize(serialize(A)),
     C = A,
-    NewLoc = write(C, 0),
+    NewLoc = write(C, constants:root0()),
     {Root, C, Proof} = get(ID, NewLoc),
     true = verify_proof(Root, ID, serialize(C), Proof),
     success.

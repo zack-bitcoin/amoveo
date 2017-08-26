@@ -164,13 +164,14 @@ prev_hash(N, BP) -> %N=0 should be the same as prev_hash(BP)
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
+    Root0 = constants:root0(),
     Pub = constants:master_pub(),
     First = accounts:new(Pub, constants:initial_coins(), 0),
-    Accounts0 = accounts:write(0, First),
+    Accounts0 = accounts:write(Root0, First),
     GovInit = governance:genesis_state(),
-    Trees0 = trees:new(Accounts0, 0, 0, 0, 0, GovInit),
-    Accounts = accounts:write(0, First),
-    Trees = trees:new(Accounts, 0, 0, 0, 0, GovInit),
+    Trees0 = trees:new(Accounts0, Root0, Root0, Root0, Root0, GovInit),
+    Accounts = accounts:write(Root0, First),
+    Trees = trees:new(Accounts, Root0, Root0, Root0, Root0, GovInit),
 
     TreesRoot = trees:root_hash(Trees),
     #block{height = 0,
@@ -380,7 +381,8 @@ check(Block) ->
     PrevStateHash = roots_hash(Block#block.roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = headers:trees_hash(PrevHeader),
-    true = proofs_roots_match(Block#block.proofs, Block#block.roots),
+    Roots = Block#block.roots,
+    true = proofs_roots_match(Block#block.proofs, Roots),
     %GovQueries = proofs:governance_to_querys(trees:governance(OldTrees)),
     %GovProofs = proofs:prove(GovQueries, OldTrees),
     %Dict = proofs:facts_to_dict(Block#block.proofs ++ GovProofs, dict:new()),
@@ -392,6 +394,8 @@ check(Block) ->
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
+    %OldSparseTree = facts_to_trie(Facts, Roots),
+    %NewTrees = dict_update_trie(OldSparseTree, NewDict),
     %use NewDict to generate NewTrees
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     Block2 = Block#block{trees = NewTrees},
@@ -400,6 +404,16 @@ check(Block) ->
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     {true, Block2}.
+facts_to_trie(Facts, Roots) ->
+    T = trees:new(
+          accounts:empty_trie(Roots#roots.accounts),
+          channel:empty_trie(Roots#roots.channels),
+          existence:empty_trie(Roots#roots.existence), 
+          burn:empty_trie(Roots#roots.burn), 
+          oracles:empty_trie(Roots#roots.oracles), 
+          governance:empty_trie(Roots#roots.governance)),
+    %insert_facts(Facts, T).
+    ok.
 no_coinbase([]) -> true;
 no_coinbase([STx|T]) ->
     Tx = testnet_sign:data(STx),

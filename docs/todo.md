@@ -1,3 +1,10 @@
+The merkle trie has problems when garbage:garbage_leaves/2
+Currently garbage collecting is only flipping a bit in dump, that way when we are to write new data, we know which data can be overwritten.
+This is not enough.
+Once the data gets replaced, the old pointers now point to incorrect data.
+When we delete data, we should change everything that points at it to instead point to 0.
+This will also allow us to have better errors when looking up stuff in the database. We can distinguish between errors when looking up things that don't exist, and looking up things that might exist but we don't know about.
+
 remove the difficulty-style oracles.
 review how governance locks are working. They are supposed to prevent multiple oracles updating the same governance variable simultaniously.
 
