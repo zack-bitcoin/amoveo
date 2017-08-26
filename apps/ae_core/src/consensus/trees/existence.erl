@@ -64,12 +64,8 @@ hash2int(<<X, Y/binary>>, N) ->
     hash2int(Y, M).
 root_hash(Root) ->
     trie:root_hash(?name, Root).
-cfg() ->
-    HashSize = constants:hash_size(),
-    PathSize = constants:hash_size()*8,
-    cfg:new(PathSize, HashSize, existence, 0, HashSize).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = cfg(),
+    CFG = trie:cfg(existence),
     V = case Value of
 	    0 -> empty;
 	    X -> X

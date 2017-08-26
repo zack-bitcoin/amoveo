@@ -376,16 +376,8 @@ match2(Order, Root, T, Matches1, Matches2) ->
 root_hash(Root) ->
     trie:root_hash(?name, Root).
 
-cfg() ->
-    PS = constants:pubkey_size(),
-    HashSize = constants:hash_size(),
-    BB = constants:balance_bits(),
-    KL = constants:key_length(), 
-    PathSize = constants:hash_size()*8,
-    cfg:new(PathSize, ((BB div 8) + (PS * 2)), 
-            orders, 0, HashSize).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = cfg(),
+    CFG = trie:cfg(?MODULE),
     V = case Value of
             0 -> empty;
             X -> X

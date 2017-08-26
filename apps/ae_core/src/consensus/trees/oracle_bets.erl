@@ -103,15 +103,8 @@ add_bet(Id, Type, Amount, Tree) ->
 root_hash(A) ->
     trie:root_hash(?name, A).
 
-cfg() ->
-    KL = constants:key_length(), 
-    BB = constants:balance_bits(),
-    %tree_child(oracle_bets, KL, (KL + (3 * BB div 8))),
-    %tree_child(existence, HS*8, HS),
-    HashSize = constants:hash_size(),
-    cfg:new(KL, KL + (3 * BB div 8), oracle_bets, 0, HashSize).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = cfg(),
+    CFG = trie:cfg(oracle_bets),
     V = case Value of
 	    0 -> empty;
 	    X -> X

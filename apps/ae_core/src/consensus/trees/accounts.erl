@@ -220,15 +220,8 @@ ensure_decoded_hashed(Pub) ->
             testnet_hasher:doit(base64:decode(Pub))
     end.
     
-cfg() ->
-    KL = constants:key_length(),
-    MetaSize = KL div 8,%all in bytes
-    HashSize = constants:hash_size(),
-    ValueSize = constants:account_size(),
-    PathSize = constants:hash_size()*8,
-    cfg:new(PathSize, ValueSize, accounts, MetaSize, HashSize).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = cfg(),
+    CFG = trie:cfg(accounts),
     V = case Value of
 	    0 -> empty;
 	    X -> X

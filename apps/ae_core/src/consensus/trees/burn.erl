@@ -39,14 +39,8 @@ write(A, Tree) ->
     trie:put(Key, X, 0, Tree, ?name).
 root_hash(Root) ->
     trie:root_hash(?name, Root).
-
-cfg() ->
-    BB = constants:balance_bits(),
-    HashSize = constants:hash_size(),
-    PathSize = constants:hash_size()*8,
-    cfg:new(PathSize, HashSize + (BB div 8), burn, 0, HashSize).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = cfg(),
+    CFG = trie:cfg(burn),
     V = case Value of
 	    0 -> empty;
 	    X -> X

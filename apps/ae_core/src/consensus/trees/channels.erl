@@ -220,16 +220,8 @@ delete(ID,Channels) ->
     trie:delete(ID, Channels, channels).
 root_hash(Channels) ->
     trie:root_hash(channels, Channels).
-cfg() ->
-    HashSize = constants:hash_size(),
-    PathSize = constants:hash_size()*8,
-    ValueSize = constants:channel_size(),
-    MetaSize = 0,
-    cfg:new(PathSize, ValueSize, accounts, 0, HashSize).
-    %tree_child(accounts, HS*8, constants:account_size(), KL*2 div 8),
-    %tree_child(channels, HS*8, constants:channel_size(), KL div 8),
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = cfg(),
+    CFG = trie:cfg(channels),
     V = case Value of
 	    0 -> empty;
 	    X -> X

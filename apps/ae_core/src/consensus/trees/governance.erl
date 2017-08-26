@@ -205,15 +205,8 @@ name2number(_) -> bad.
 max() -> 46.
 root_hash(Root) ->
     trie:root_hash(?name, Root).
-cfg() ->
-    KL = 8,
-    MetaSize = 0,%all in bytes
-    HashSize = constants:hash_size(),
-    ValueSize = 4,
-    PathSize = 8,
-    cfg:new(PathSize, ValueSize, accounts, MetaSize, HashSize).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = cfg(),
+    CFG = trie:cfg(governance),
     V = case Value of
 	    0 -> empty;
 	    X -> X

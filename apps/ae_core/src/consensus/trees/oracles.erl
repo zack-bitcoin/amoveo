@@ -174,20 +174,8 @@ get(ID, Root) ->
 		X#oracle{orders = M}
 	end,
     {RH, V, Proof}.
-cfg() ->
-    KL = constants:key_length(), 
-    HB = constants:height_bits(),
-    DB = constants:difficulty_bits(),
-    HS = constants:hash_size(),
-    PathSize = HS*8,
-    PS = constants:pubkey_size(),
-    ValueSize = ((((HB*2)+DB) div 8) + 4 + (3*HS)) + PS,
-    MetaSize = (KL div 8),
-    cfg:new(PathSize, ValueSize, oracles, MetaSize , HS).
-%tree_child(oracles, HS*8, ((((HB*2)+DB) div 8) + 4 + (3*HS)) + PS, (KL div 8)),
-%tree_child(existence, HS*8, HS),
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = cfg(),
+    CFG = trie:cfg(?MODULE),
     V = case Value of
 	    0 -> empty;
 	    X -> X
