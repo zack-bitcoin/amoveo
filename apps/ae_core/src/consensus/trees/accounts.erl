@@ -221,7 +221,7 @@ ensure_decoded_hashed(Pub) ->
     end.
     
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = trie:cfg(accounts),
+    CFG = trie:cfg(?MODULE),
     V = case Value of
 	    0 -> empty;
 	    X -> X
@@ -240,10 +240,7 @@ dict_get(Key, Dict) ->
 test() ->
     {Pub, _Priv} = testnet_sign:new_key(),
     Acc = new(Pub, 0, 0),
-    %io:fwrite(Acc),
     S = serialize(Acc),
-    io:fwrite("Acc DecAcc "),
-    io:fwrite(packer:pack({accs_test, Acc, deserialize(S)})),
     Acc = deserialize(S),
     Root0 = constants:root0(),
     NewLoc = write(Root0, Acc),

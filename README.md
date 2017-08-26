@@ -32,8 +32,6 @@ Read here about how to secure your private key with a password. That way you can
 
 ### Testing
 
-[![Build Status](https://travis-ci.org/aeternity/testnet.svg?branch=master)](https://travis-ci.org/aeternity/testnet)
-
 We maintain two kinds of tests: unit tests and integration tests. Final test is always syncing fresh node with public testnet node.
 
 Varied scenarions require specific test setup, e.g. multi hop payment requires three node deployment. This is why we prepared number of testing setups.
