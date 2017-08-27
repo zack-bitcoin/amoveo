@@ -1,9 +1,5 @@
-The merkle trie has problems when garbage:garbage_leaves/2
-Currently garbage collecting is only flipping a bit in dump, that way when we are to write new data, we know which data can be overwritten.
-This is not enough.
-Once the data gets replaced, the old pointers now point to incorrect data.
-When we delete data, we should change everything that points at it to instead point to 0.
-This will also allow us to have better errors when looking up stuff in the database. We can distinguish between errors when looking up things that don't exist, and looking up things that might exist but we don't know about.
+
+verifying a block should not require looking at the previous block. This way we can verify them in parallel.
 
 remove the difficulty-style oracles.
 review how governance locks are working. They are supposed to prevent multiple oracles updating the same governance variable simultaniously.
@@ -12,6 +8,7 @@ consider reducing the block time to 2 minutes. This way the extra-light nodes do
 
 The proofs are currently not deterministic. They contain pointers that only make sense on the node that created the proof.
 Making proofs deterministic is a big advantage because full nodes don't have to download the proofs. They can generate it themselves, and check that the hash matches.
+Even if the proofs aren't deterministic, if at least the hash of the proofs is deterministic, that would be enough.
 
 There is danger that we could be tricked into receiving invalid blocks repeatedly. The severity of this attack is currently in proportion to the size of the block.
 So, we should merkelize the downloading of the blocks. The proofs and txs should be in merkle trees.
@@ -25,11 +22,10 @@ don't charge 2 different fees for making accounts. combine them.
 
 Instead of rewarding and charging for making delete_account transactions, we should only have a reward.
 
-Every node should keep track of the entire governance tree, that way we don't have to prove so many things.
+maybe- Every node should keep track of the entire governance tree, that way we don't have to prove so many things.
 
 We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
 
-verifying a block should not require looking at the previous block. This way we can verify them in parallel.
 
 we need to make sure it is possible for channels to tell if an oracle asking a particular question was launched. That way we can conditionally send a payment depending on if it does.
 It doesn't matter the number of the oracle, which question it asks matters.
@@ -57,6 +53,10 @@ get rid of repetition in /apps/ae_core/src/consensus/txs/spk.erl
 
 
 
+
+
+
+
 ### Needed before launch of mainnet
 
 We need to make sure every time we take the hash of something, it is already a binary.
@@ -71,18 +71,11 @@ It would be cool if we could simultaniously create an account and a channel with
 
 Maybe channels should be stored by hash too.
 
-The options test in test_txs.erl is broken.
-Right now both parties need to sign the grow_channel_tx.
-It isn't an option if your partner can refuse to sign.
-
-
-[AE-80 CLARIFY Please elaborate on usecase] block:one_tx_per_account/1 needs to be implemented
-
 [AE-59] parts of the api need to be encrypted, to keep channel state private.
 
 [CLARIFY Is it about unit testing all transactions? (via internal API)?] test transaction types in easy.
 
-[AE-4] [AE-67] There should be a way to start the node in lite-mode. So that it only downloads headers, not full blocks. 2000CHF (paid in ETH or BTC)
+[AE-4] [AE-67] There should be a way to start the node in extra-lite-mode. So that it only downloads headers, not full blocks. 2000CHF (paid in ETH or BTC)
 Naively implementing lite-mode makes it possible for an attacker to trick us into ignoring a good block. They trick us into storing a good blocks hash into block_hashes as if it was a bad block.
 We need to make sure that if something was garbage collected from a merkel tree, and we try accessing the thing, it gives a different message than trying to access something that doesn't exist. Make sure we don't assume a block is invalid just because we don't have the proof of it's validity.
 
@@ -101,13 +94,15 @@ We need an integration test where one node is a market, and the other two nodes 
 [AE-65] We need to regularly check on our channels to see if either participant is running out of funds. There needs to be enough money left to cover the cost of the channel for the amount of time until you can close the channel without your partner's help.
 When you are running short on funds you need to ask your partner to close the channel. If they don't, you need to start closing the channel without their help.
 
-[AE-68] Make sure that if something was garbage collected from a merkel tree, and we try accessing the thing, it gives a different message than trying to access something that doesn't exist. Make sure we don't assume a block is invalid just because we don't have the proof of it's validity. 200 CHF (paid in ETH or BTC)
-
 [AE-69] We need to also add a way for the two parties to work together to close the channel early, so they don't have to wait to do a timeout_tx. We can either make a new tx, or make channel_team_close more complicated. 200 CHF (paid in ETH or BTC)
 We need a test showing that it works.
 (maybe this task was already done? need to check)
 
 [Specify more? Done?] Maybe nodes need to advertise their own IP/port combo as a peer? Right now users would need to manually add their IP/port to the list of peers.
+
+
+
+
 
 
 ### Things we can do after launch of mainnet

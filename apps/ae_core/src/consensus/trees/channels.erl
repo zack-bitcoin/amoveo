@@ -6,6 +6,7 @@
 	 nonce/1,delay/1, amount/1, slasher/1,
 	 closed/1, verify_proof/4,
          dict_update/10, dict_delete/2, dict_write/2, dict_get/2,
+         make_leaf/3,
 	 test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
@@ -220,15 +221,10 @@ delete(ID,Channels) ->
     trie:delete(ID, Channels, channels).
 root_hash(Channels) ->
     trie:root_hash(channels, Channels).
+make_leaf(Key, V, CFG) ->
+    leaf:new(Key, V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = trie:cfg(channels),
-    V = case Value of
-	    0 -> empty;
-	    X -> X
-	end,
-    verify:proof(RootHash, 
-		 leaf:new(Key, V, 0, CFG), 
-		 Proof, CFG).
+    trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
     
 test() ->
     ID = 1,

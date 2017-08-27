@@ -5,6 +5,7 @@
 	 get_value/2, serialize/1, name2number/1,
 	 verify_proof/4, root_hash/1, dict_get/2,
          dict_get_value/2, dict_lock/2, dict_unlock/2,
+         make_leaf/3,
 	 test/0]).
 -record(gov, {id, value, lock}).
 
@@ -205,19 +206,14 @@ name2number(_) -> bad.
 max() -> 46.
 root_hash(Root) ->
     trie:root_hash(?name, Root).
-verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = trie:cfg(governance),
-    V = case Value of
-	    0 -> empty;
-	    X -> X
-	end,
+make_leaf(Key, V, CFG) ->
     Key2 = if
                is_integer(Key) -> Key;
                true -> name2number(Key)
            end,
-    L = leaf:new(Key2, V, 0, CFG),
-    %io:fwrite(packer:pack(L)),
-    verify:proof(RootHash, L, Proof, CFG).
+    leaf:new(Key2, V, 0, CFG).
+verify_proof(RootHash, Key, Value, Proof) ->
+    trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 
 %% Internals
 

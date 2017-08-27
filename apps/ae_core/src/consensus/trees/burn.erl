@@ -1,7 +1,7 @@
 -module(burn).
 -export([test/0, new/1, get/2, write/2, address/1, 
 	 amount/1, root_hash/1, serialize/1,
-	 verify_proof/4]).
+	 verify_proof/4, make_leaf/3]).
 %The proof of burn tree stores by address. It stores the number of AE tokens that this address has burned.
 -record(burn, {address, amount = 0}).
 -define(name, burn).
@@ -39,16 +39,11 @@ write(A, Tree) ->
     trie:put(Key, X, 0, Tree, ?name).
 root_hash(Root) ->
     trie:root_hash(?name, Root).
+make_leaf(Key, V, CFG) ->
+    leaf:new(trees:hash2int(Key), 
+             V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = trie:cfg(burn),
-    V = case Value of
-	    0 -> empty;
-	    X -> X
-	end,
-    verify:proof(RootHash, 
-		 leaf:new(trees:hash2int(Key), 
-			  V, 0, CFG), 
-		 Proof, CFG).
+    trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
     
 test() ->
     X = testnet_hasher:doit(<<>>),

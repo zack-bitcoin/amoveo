@@ -5,7 +5,7 @@
 	 set_orders/2, done_timer/1, set_done_timer/2,
 	 set_result/2, set_type/2, governance/1,
 	 governance_amount/1, creator/1, serialize/1, deserialize/1,
-	 verify_proof/4, dict_get/2, dict_write/2,
+	 verify_proof/4, dict_get/2, dict_write/2, make_leaf/3,
 	 test/0]).
 -define(name, oracles).
 -record(oracle, {id, 
@@ -174,16 +174,11 @@ get(ID, Root) ->
 		X#oracle{orders = M}
 	end,
     {RH, V, Proof}.
+make_leaf(Key, V, CFG) ->
+    leaf:new(Key, V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = trie:cfg(?MODULE),
-    V = case Value of
-	    0 -> empty;
-	    X -> X
-	end,
-    verify:proof(RootHash, 
-                 leaf:new(Key, V, 0, CFG), 
-                 Proof, CFG).
-
+    trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
+    
 
 test() ->
     {Trees, _, _} = tx_pool:data(),

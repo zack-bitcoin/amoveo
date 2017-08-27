@@ -1,6 +1,7 @@
 -module(existence).
 -export([get/2,write/2,new/1,hash2int/1,root_hash/1,hash/1, 
 	 serialize/1, verify_proof/4, dict_get/2, dict_write/2,
+         make_leaf/3,
 	 test/0]).
 %for accessing the proof of existence tree
 -record(exist, {hash}).
@@ -64,16 +65,11 @@ hash2int(<<X, Y/binary>>, N) ->
     hash2int(Y, M).
 root_hash(Root) ->
     trie:root_hash(?name, Root).
+make_leaf(Key, V, CFG) ->
+    leaf:new(trees:hash2int(Key), 
+             V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = trie:cfg(existence),
-    V = case Value of
-	    0 -> empty;
-	    X -> X
-	end,
-    verify:proof(RootHash, 
-		 leaf:new(trees:hash2int(Key), 
-			  V, 0, CFG), 
-		 Proof, CFG).
+    trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 
 
 test() ->

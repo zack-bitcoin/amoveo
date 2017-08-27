@@ -6,6 +6,7 @@
 	 bets/1, bets_hash/1, update_bets/2,
 	 ensure_decoded_hashed/1, height/1, verify_proof/4,
          dict_write/2, dict_delete/2,
+         make_leaf/3,
 	 serialize/1, deserialize/1, pubkey/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
@@ -219,17 +220,12 @@ ensure_decoded_hashed(Pub) ->
             lager:warning("Pub decode problem: ~p", [Pub]),
             testnet_hasher:doit(base64:decode(Pub))
     end.
-    
+   
+make_leaf(Key, V, CFG)  ->
+    leaf:new(trees:hash2int(ensure_decoded_hashed(Key)),
+             V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = trie:cfg(?MODULE),
-    V = case Value of
-	    0 -> empty;
-	    X -> X
-	end,
-    verify:proof(RootHash, 
-		 leaf:new(trees:hash2int(ensure_decoded_hashed(Key)), 
-			  V, 0, CFG), 
-		 Proof, CFG).
+    trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 dict_get(Key, Dict) ->
     X = dict:fetch({accounts, Key}, Dict),
     case X of

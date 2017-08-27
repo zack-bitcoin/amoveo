@@ -394,8 +394,11 @@ check(Block) ->
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
-    %OldSparseTree = facts_to_trie(Facts, Roots),
-    %NewTrees = dict_update_trie(OldSparseTree, NewDict),
+    %OldSparseTree = facts_to_trie(Facts, trees:new(empty, empty, empty,
+    %                                               empty, empty, empty)),
+    %NewTrees = dict_update_trie(Roots, 
+    %                            OldSparseTree,
+    %                            NewDict),
     %use NewDict to generate NewTrees
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     Block2 = Block#block{trees = NewTrees},
@@ -404,16 +407,54 @@ check(Block) ->
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     {true, Block2}.
-facts_to_trie(Facts, Roots) ->
-    T = trees:new(
-          accounts:empty_trie(Roots#roots.accounts),
-          channel:empty_trie(Roots#roots.channels),
-          existence:empty_trie(Roots#roots.existence), 
-          burn:empty_trie(Roots#roots.burn), 
-          oracles:empty_trie(Roots#roots.oracles), 
-          governance:empty_trie(Roots#roots.governance)),
-    %insert_facts(Facts, T).
-    ok.
+
+    %Initially some things in trees is the atom 'empty'.
+    %Once we insert the root stem into the trie, then we instead store a pointer to the root stem. 
+dict_update_trie(Roots, Trees, Dict) ->
+    %do the orders and oracle_bets first, then insert their state roots into the accounts and oracles.
+    %pointers are integers, root hashes are binary.
+    Keys = dict:fetch_keys(Dict),
+    {Orders, Keys2} = get_things(orders, Keys),
+    {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
+    %{Accounts, Keys4} = get_things(accounts, Keys3),
+    %{Oracles, Keys5} = get_things(oracles, Keys4),
+    
+    Dict.
+get_things(Key, L) ->
+    get_things(Key, L, [], []).
+get_things(Key, [], A, B) -> {A, B};
+get_things(Key, [{Key, X}|L], A, B) ->
+    get_things(Key, L, [{Key, X}|A], B);
+get_things(Key, [{Key2, X}|L], A, B) ->
+    get_things(Key, L, A, [{Key, X}|B]).
+facts_to_trie([], Tree) -> Tree;
+facts_to_trie([Fact|T], Tree) ->
+    %facts are proofs.
+    Tree2 = ftt2(Fact, Tree),
+    facts_to_trie(T, Tree2).
+ftt2(Fact, Trees) ->
+    Type = proofs:tree(Fact),
+    %Tree = trees:Type(Trees),
+    Path = proofs:path(Fact),
+    Tree = case trees:Type(Trees) of
+               empty -> %make pointer to empty
+                   Stem = hd(lists:reverse(Path)),
+                   trie:new_trie(Type, Stem),
+                   ok;
+               X -> X
+           end,
+    V = proofs:value(Fact),
+    Key = proofs:key(Fact),
+    io:fwrite(packer:pack(Fact)),
+    io:fwrite("\n"),
+    %Leaf = Type:make_leaf(Key, Type:serialize(V), trie:cfg(Type)),
+    Leaf = Type:make_leaf(Key, V, trie:cfg(Type)),
+    Hash = Type:root_hash(Tree),
+    store:store(Leaf, Hash, 
+                Path, 
+                Tree, 
+                trie:cfg(Type)).
+
 no_coinbase([]) -> true;
 no_coinbase([STx|T]) ->
     Tx = testnet_sign:data(STx),

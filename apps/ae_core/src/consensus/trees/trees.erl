@@ -5,7 +5,7 @@
 	 update_burn/2,update_oracles/2,
 	 update_governance/2, governance/1,
 	 root_hash/1, name/1, garbage/0,
-	 hash2int/1]).
+	 hash2int/1, verify_proof/5, new/6]).
 -record(trees, {accounts, channels, existence,
 		burn, oracles, governance}).
 name(<<"accounts">>) -> accounts;
@@ -82,7 +82,16 @@ hash2int(X) ->
     S = constants:hash_size()*8,
     <<A:S>> = X,
     A.
-
+verify_proof(TreeID, RootHash, Key, Value, Proof) ->
+    CFG = trie:cfg(TreeID),
+    V = case Value of
+            0 -> empty;
+            X -> X
+        end,
+    verify:proof(RootHash, 
+                 TreeID:make_leaf(Key, V, CFG),
+                 Proof, CFG).
+                
     
     %we also need to garbage orders, oracle_bets, shares, proof of burn.
     %proof of burn doesn't exist yet.

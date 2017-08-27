@@ -7,7 +7,7 @@
          serialize/1, deserialize/1, all/1,
          dict_significant_volume/3, dict_match/3,
          dict_write/3, dict_get/2, dict_head_get/2,
-         dict_add/3, dict_remove/3,
+         dict_add/3, dict_remove/3, make_leaf/3,
          test/0]).
 -define(name, orders).
 -record(order, {aid, amount, pointer}).
@@ -82,7 +82,7 @@ serialize(A) ->
       (A#order.pointer)/binary,
       (A#order.aid)/binary>>.
 deserialize(B) ->
-    OL = constants:orders_bits(),
+    %OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
     PS = constants:pubkey_size() * 8,
     <<Amount:BAL, P:PS,
@@ -375,17 +375,11 @@ match2(Order, Root, T, Matches1, Matches2) ->
 
 root_hash(Root) ->
     trie:root_hash(?name, Root).
-
+make_leaf(Key, V, CFG) ->
+    leaf:new(trees:hash2int(accounts:ensure_decoded_hashed(Key)), 
+             V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
-    CFG = trie:cfg(?MODULE),
-    V = case Value of
-            0 -> empty;
-            X -> X
-        end,
-    verify:proof(RootHash, 
-                 leaf:new(trees:hash2int(accounts:ensure_decoded_hashed(Key)), 
-                          V, 0, CFG), 
-                 Proof, CFG).
+    trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 
 test() ->
     Root0 = empty_book(),

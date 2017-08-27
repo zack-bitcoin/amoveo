@@ -1,10 +1,14 @@
 -module(proofs).
 -export([prove/2, test/0, hash/1, facts_to_dict/2, txs_to_querys/2, 
-         root/1, tree/1, governance_to_querys/1]).
+         root/1, tree/1, path/1, value/1, governance_to_querys/1,
+         key/1]).
 -record(proof, {tree, value, root, key, path}).
 -record(key, {pub, id}). %used for shared, oracle_bets, and orders
 
 root(X) -> X#proof.root.
+key(X) -> X#proof.key.
+value(X) -> X#proof.value.
+path(X) -> X#proof.path.
 tree(X) -> int_to_tree(X#proof.tree).
 
 %we use a deterministic merge sort that removes repeats while sorting.
