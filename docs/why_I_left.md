@@ -114,9 +114,9 @@ I finally feel safe enough to communicate with the community again.
 
 * What comes next?
 
-If Aeternity is going to use the technology invented, and they wont pay me to make their software secure,
-then my only way to get paid is to exploit vulnerabilities in Aeternity.
-Consider this a warning to anyone holding AE tokens: if I find a way to take the tokens, I wont give them back.
+If Aeternity is going to use the technology invented,
+and they wont pay me to make their software secure,
+then my only way to get paid is by selling zero-day exploits for Aeternity.
 
 As far as I know, Marion also has not been paid. Aeternity might steal from her too, which could be a disaster.
 
