@@ -125,9 +125,6 @@ So it is impossible for them to hire programmers who do understand.
 They will be able to sell most of their AE tokens before the blockchain gets launched.
 So they have little incentive to deliver a working product.
 
-No one lives forever.
-I work on blockchains because I think this the most effective way for me to leave the world different than how I found it.
-I want to change the world towards my preferences.
 I want to work on blockchains for at least the next decade.
 Keep an eye on my github.
 https://github.com/zack-bitcoin
