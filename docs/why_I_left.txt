@@ -10,7 +10,7 @@ For my own safety I waited until I was far away from the rest of the Aeternity t
 
 * How did this happen?
 I am young.
-I didn't think it mattered who owned the company "Aeternity".
+I didn't think it mattered who owned the Aeternity company.
 I didn't find out who owns Aeternity until the token sale was over, and all the $77 million were controlled by the owner of Aeternity.
 
 Things I have done for Aeternity:
@@ -125,9 +125,6 @@ So it is impossible for them to hire programmers who do understand.
 They will be able to sell most of their AE tokens before the blockchain gets launched.
 So they have little incentive to deliver a working product.
 
-No one lives forever.
-I work on blockchains because I think this the most effective way for me to leave the world different than how I found it.
-I want to change the world towards my preferences.
 I want to work on blockchains for at least the next decade.
 Keep an eye on my github.
 https://github.com/zack-bitcoin
