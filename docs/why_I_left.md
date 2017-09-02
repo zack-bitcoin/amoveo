@@ -36,6 +36,7 @@ Things I have done for Aeternity:
 * * *
 
 *  What I should reasonably get:
+
 The team that raised the money had about 6 members.
 Out of these 6 people, I was the only one working on the technology.
 Since this is a technology startup, I should be controlling at least half of this money.
@@ -46,10 +47,13 @@ Instead the anonymous owner of Aeternity is deciding how the money is spent.
 * How much I was willing to work for:
 
 For about $3.5 million I was willing to work exclusively on Aeternity.
+
 For about $1.7 million I was willing to make Aeternity secure and work on Aeternity non-exclusively.
+
 For about $300 000 I was willing to leave Aeternity, as long as Aeternity didn't use the technology I invented.
 
 * To the Aeternity investors:
+
 I am very sorry that this has happened to you.
 Many of you were tricked because I was tricked first.
 I shouldn't have let myself fall for this.
