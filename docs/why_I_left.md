@@ -43,6 +43,12 @@ I should be deciding how Aeternity uses it's money in regard to developing the t
 I should be deciding what programmers to hire, and what tasks should be worked on.
 Instead the anonymous owner of Aeternity is deciding how the money is spent.
 
+* How much I was willing to work for:
+
+For about $3.5 million I was willing to work exclusively on Aeternity.
+For about $1.7 million I was willing to make Aeternity secure and work on Aeternity non-exclusively.
+For about $300 000 I was willing to leave Aeternity, as long as Aeternity didn't use the technology I invented.
+
 * To the Aeternity investors:
 I am very sorry that this has happened to you.
 Many of you were tricked because I was tricked first.
@@ -74,7 +80,7 @@ I demanded that Aeternity and I come to agreement about how I will get paid.
 August-
 The owner of Aeternity tells me that I am not a founder.
 The owner tells me that I am a junior erlang programmer, and that he already has other more experienced erlang programmers who want to work for him. 
-The owner tells me that Aeternity is not interested in using any of the technology I invented, or any of the software I have written. So, he asks me how much I think would be a fair payment under these circumstances. I am comfortable being paid $X. 
+The owner tells me that Aeternity is not interested in using any of the technology I invented, or any of the software I have written. So, he asks me how much I think would be a fair payment under these circumstances. I am comfortable being paid $300 000. 
 If Aeternity doesn't want to use my technology, then this means I have failed, so I am willing to be paid a small amount.
 
 Aeternity developers are still working on the technology that I invented.
@@ -90,7 +96,7 @@ So, it is impossible for the owner to understand the technology, or to hire peop
 
 Immediately after the awful experience, Aeternity's owner and three other employees get together to pressure me into signing a contract where I would agree to not talk about what happened to me.
 They tell me I wont get paid unless I sign.
-The contract says "Zack agrees that all of his work is worth $X, and that Aeternity owes him nothing more". and "Zack agrees to never say anything about Aeternity, or else Aeternity can sue him for damages."
+The contract says "Zack agrees that all of his work is worth $300 000, and that Aeternity owes him nothing more". and "Zack agrees to never say anything about Aeternity, or else Aeternity can sue him for damages."
 I have not signed. 
 
 It is very hard for me to program while in a state of fear. I cannot work with people who make me feel this way.
