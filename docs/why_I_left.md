@@ -1,6 +1,6 @@
 1 August 2017
 
-[discuss this on reddit](https://www.reddit.com/r/Amoveo/comments/6xjby4/explanation_of_why_i_am_not_working_on_aeternity/)
+[discuss this on reddit](https://www.reddit.com/r/Amoveo/comments/6xjcgm/why_i_stopped_working_on_aeternity_why_amoveo_is/)
 
 * What is going on?
 I left Aeternity.
