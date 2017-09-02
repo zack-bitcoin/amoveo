@@ -40,4 +40,5 @@ If you are looking for more detailed explanation on how the nodes are started lo
 If you want to know more about how the tests are run see [testing](/docs/merging-and-testing/testing.md).
 
 ### Else
-If you want to know more, get in touch with us via [gitter chat](https://gitter.im/aeternity/Lobby)
+
+[Discuss with the community on the Amoveo reddit](https://www.reddit.com/r/Amoveo/)
