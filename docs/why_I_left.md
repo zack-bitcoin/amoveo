@@ -33,7 +33,9 @@ Things I have done for Aeternity:
 * I maintained the testnet and github for over 9 months.
 * I let Aeternity use my name.
 
-* What I should reasonably get:
+* * *
+
+*  What I should reasonably get:
 The team that raised the money had about 6 members.
 Out of these 6 people, I was the only one working on the technology.
 Since this is a technology startup, I should be controlling at least half of this money.
@@ -116,7 +118,7 @@ I finally feel safe enough to communicate with the community again.
 
 If Aeternity is going to use the technology invented,
 and they wont pay me to make their software secure,
-then my only way to get paid is by selling zero-day exploits for Aeternity.
+then my only way to get paid is by selling zero-day exploits for people who want to attack Aeternity.
 
 As far as I know, Marion also has not been paid. Aeternity might steal from her too, which could be a disaster.
 
