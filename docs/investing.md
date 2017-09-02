@@ -1,6 +1,6 @@
 Amoveo doesn't use investing in the traditional sense.
 
-[I think icos are bad](/icos.md)
+[I think icos are bad](icos.md)
 
 I don't want to spend your money for you.
 
