@@ -1,5 +1,5 @@
-Thank you for your interest in Aeternity.
-There are issues on the github that need taking care of: https://github.com/aeternity/testnet/issues
+Thank you for your interest.
+There are issues on the github that need taking care of: https://github.com/zack-bitcoin/amoveo/issues
 Erlang is a rewarding language http://learnyousomeerlang.com/content
 You can help us plenty without learning Erlang, we have lots of javascript that needs to be written.
 If you have any questions about Aeternity or blockchain technology, feel free to email me: zack@aeternity.com
