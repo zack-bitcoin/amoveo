@@ -429,32 +429,60 @@ get_things(Key, [{Key2, X}|L], A, B) ->
     get_things(Key, L, A, [{Key, X}|B]).
 facts_to_trie([], Tree) -> Tree;
 facts_to_trie([Fact|T], Tree) ->
+    %io:fwrite("facts to trie trees are "),
+    %io:fwrite(packer:pack(Tree)),
+    %io:fwrite("\n"),
     %facts are proofs.
     Tree2 = ftt2(Fact, Tree),
     facts_to_trie(T, Tree2).
 ftt2(Fact, Trees) ->
     Type = proofs:tree(Fact),
+    io:fwrite("tree type is "),
+    io:fwrite(Type),
+    io:fwrite("\n"),
     %Tree = trees:Type(Trees),
     Path = proofs:path(Fact),
     Tree = case trees:Type(Trees) of
                empty -> %make pointer to empty
-                   Stem = hd(lists:reverse(Path)),
-                   trie:new_trie(Type, Stem),
-                   ok;
+                   Hashes = hd(lists:reverse(Path)),
+                   Stem = stem:make(stem:empty_tuple(), 
+                                    stem:empty_tuple(), 
+                                    Hashes),
+                   %io:fwrite("new trie "),
+                   %io:fwrite(packer:pack(Stem)),
+                   %io:fwrite("\n"),
+                   trie:new_trie(Type, Stem);
                X -> X
            end,
     V = proofs:value(Fact),
     Key = proofs:key(Fact),
-    io:fwrite(packer:pack(Fact)),
-    io:fwrite("\n"),
+    %io:fwrite("fact is "),
+    %io:fwrite(packer:pack(Fact)),
+    %io:fwrite("\n"),
     %Leaf = Type:make_leaf(Key, Type:serialize(V), trie:cfg(Type)),
     Leaf = Type:make_leaf(Key, V, trie:cfg(Type)),
+    %io:fwrite("about to root hash \n"),
+    %io:fwrite(packer:pack({Type, Tree})),
+    %io:fwrite("\n"),
     Hash = Type:root_hash(Tree),
-    store:store(Leaf, Hash, 
-                Path, 
-                Tree, 
-                trie:cfg(Type)).
-
+    io:fwrite("about to store \n"),
+    io:fwrite(packer:pack({leaf, Tree, Leaf})),
+    io:fwrite(" \n"),
+    %io:fwrite(packer:pack({hash_path_tree_type, Hash, Path, Tree, Type})),
+    {Hash, Tree2, _} = 
+        store:store(Leaf, Hash, 
+                    Path, 
+                    Tree, 
+                    trie:cfg(Type)),
+    Update = list_to_atom("update_" ++ atom_to_list(Type)),
+    %io:fwrite("update tree "),
+    %io:fwrite(Type),
+    %io:fwrite(" "),
+    %io:fwrite(Update),
+    %io:fwrite("trie 2 is "),
+    %io:fwrite(packer:pack(Tree2)),
+    %io:fwrite("\n"),
+    trees:Update(Trees, Tree2).
 no_coinbase([]) -> true;
 no_coinbase([STx|T]) ->
     Tx = testnet_sign:data(STx),

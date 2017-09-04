@@ -103,6 +103,15 @@ They tell me I wont get paid unless I sign.
 The contract says "Zack agrees that all of his work is worth $300 000, and that Aeternity owes him nothing more". and "Zack agrees to never say anything about Aeternity, or else Aeternity can sue him for damages."
 I have not signed. 
 
+I feel that using the police would have been a mistake, so I did not.
+I was in a foreign country where I didn't know the language.
+The owner did know the language.
+They threatened to bribe the police to arrest me on false charges.
+Every witness is an employee.
+Aeternity has a big legal team already.
+I have many severe allergies. If I was held in custody by foreign police for a long enough period, I could die.
+
+
 It is very hard for me to program while in a state of fear. I cannot work with people who make me feel this way.
 I stopped communicating with the community because I was afraid for my physical security.
 
@@ -129,6 +138,7 @@ I finally feel safe enough to communicate with the community again.
 If Aeternity is going to use the technology invented,
 and they wont pay me to make their software secure,
 then my only way to get paid is by selling zero-day exploits for people who want to attack Aeternity.
+I do not plan on doing anything illegal. I will only use exploits in legal ways.
 
 As far as I know, Marion also has not been paid. Aeternity might steal from her too, which could be a disaster.
 
