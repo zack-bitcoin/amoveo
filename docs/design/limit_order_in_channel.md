@@ -78,7 +78,7 @@ Here is what it would look like if the market maker choose the incorrect price. 
 
 therefore, `if A, then B` is proved.
 
-To prove it is secure, we also need to check the case of [censorship](off_chain_censored_orders.md)
+To prove it is secure, we also need to check the case of [censorship](censored_orders_in_channel.md)
 
 Some people think that it is a drawback that this market design uses batches instead of accepting trades instantly.
 Markets can only be secure if batches of single price are used.
