@@ -26,7 +26,7 @@ absorb(Tx) ->
     tx_pool_feeder:absorb(Tx).
     %timer:sleep(400).
 test(1) ->
-    lager:info(" create_account tx"),
+    io:fwrite(" create_account tx"),
     %create account, spend, delete account
     BP = block:get_by_height_in_chain(0, headers:top()),
     PH = block:hash(BP),
@@ -67,7 +67,7 @@ test(1) ->
     success;
     
 test(2) ->
-    lager:info(" repo tx"),
+    io:fwrite(" repo tx"),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -93,7 +93,7 @@ test(2) ->
     {true, _} = block:check(Block),
     success;
 test(3) ->
-    lager:info(" new channel tx"),
+    io:fwrite(" new channel tx"),
     %new channel, grow channel, channel team close
     headers:dump(),
     block:initialize_chain(),
@@ -143,59 +143,9 @@ test(3) ->
     {true, _} = block:check(Block),
     success;
     
-test(4) -> 
-    lager:info(" channel repo tx"),
-    tx_pool:dump(),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
-    BP = block:get_by_height(0),
-    PH = block:hash(BP),
-    Trees = block:trees(BP),
-    Accounts = trees:accounts(Trees),
-    {NewPub,NewPriv} = testnet_sign:new_key(),
-    lager:info(" channel repo tx22"),
-
-    Fee = 20,
-    Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
-    Stx = keys:sign(Ctx),
-    absorb(Stx),
-    {Trees2, _, _} = tx_pool:data(),
-    Accounts2 = trees:accounts(Trees2),
-    lager:info(" channel repo tx3"),
-
-    CID = 5,
-    Entropy = 432, 
-    Delay = 0,
-
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 0, 0, Entropy, Delay, Fee),
-    Stx2 = keys:sign(Ctx2),
-    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
-    absorb(SStx2),
-    {Trees3, _, _} = tx_pool:data(),
-    Accounts3 = trees:accounts(Trees3),
-    lager:info(" channel repo tx4"),
-
-    {Ctx4, _} = channel_repo_tx:make(constants:master_pub(), CID, Fee, Trees3),
-    lager:info(" channel repo tx5"),
-    Stx4 = keys:sign(Ctx4),
-    lager:info(" channel repo tx51"),
-    absorb(Stx4),
-    lager:info(" channel repo tx52"),
-    {_,_,Txs} = tx_pool:data(),
-    lager:info(" channel repo tx6"),
-
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
-    lager:info(" channel repo tx7"),
-    success;
-    
 test(5) -> 
     %channel solo close, channel timeout
-    lager:info("channel solo close tx"),
+    io:fwrite("channel solo close tx"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -249,7 +199,7 @@ test(5) ->
     {true, _} = block:check(Block),
     success;
 test(6) -> 
-    lager:info("channel slash tx"),
+    io:fwrite("channel slash tx"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -324,7 +274,7 @@ test(7) ->
     %existence tx
     headers:dump(),
     block:initialize_chain(),
-    lager:info("existence test"),
+    io:fwrite("existence test"),
     S = <<"test data">>,
     tx_pool:dump(),
     {Trees,_,_} = tx_pool:data(),
@@ -345,7 +295,7 @@ test(7) ->
     {true, _} = block:check(Block),
     success;
 test(11) ->
-    lager:info("testing an oracle"),
+    io:fwrite("testing an oracle"),
     %testing the oracle
     %launch an oracle with oracle_new
     Question = <<>>,
@@ -409,7 +359,7 @@ test(11) ->
     {true, _} = block:check(Block),
     success;
 test(12) ->
-    lager:info("multiple bets in a single channel"),
+    io:fwrite("multiple bets in a single channel"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -466,7 +416,7 @@ test(12) ->
 test(13) ->
     %testing the governance
     %launch an oracle with oracle_new, close it on state "bad", 
-    lager:info("test governance"),
+    io:fwrite("test governance"),
     Question = <<>>,
     OID = 6,
     Fee = 20,
@@ -509,7 +459,7 @@ test(13) ->
     success;
 test(14) -> 
     %options
-    lager:info("options derivatives enforcement"),
+    io:fwrite("options derivatives enforcement"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -581,7 +531,7 @@ test(14) ->
 
 test(15) ->
     %If your partner tries closing at a low-nonced channel state, your node needs to automatically create a channel_slash to stop them.
-    lager:info("channel slash automatic"),
+    io:fwrite("channel slash automatic"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -629,7 +579,7 @@ test(15) ->
     absorb(Stx3),
     timer:sleep(200),
     {_, _, Txs2} = tx_pool:data(),
-    lager:info("~s", [packer:pack({slash_exists, Txs2})]),
+    io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),
