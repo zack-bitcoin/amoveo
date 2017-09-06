@@ -11,8 +11,7 @@ Since it is off-chain, you don't have to pay a transaction fee, or wait for any 
 Today these services are provided by centralized people or companies that you have to trust. The only way to find people trustworthy to not take your money is if you pay them a high enough salary so that they prefer the long-term profits of the salary over the short term profit of robbing you.
 This makes it very expensive.
 Additionally these centralized companies have to comply with expensive regulations.
-Still, it is a market worth over $1000 trillion.
-The demand is so high, no blockchain can fit all this trading data on-chain.
+The demand is so high, no public blockchain can fit all this trading data on-chain.
 Providing these markets off-chain will be the killer app of blockchain.
 
 ## What does an off-chain smart contract for a market look like?
