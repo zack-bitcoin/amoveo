@@ -35,3 +35,15 @@ an account is the part of the on-chain state that records the address and balanc
 
 [9:53]
 an address is the hash of a pubkey.
+
+
+How will you get people to work on Amoveo?
+Amoveo is a new way for people to work together. Amoveo can bootstrap itself. Amoveo can build its own team and hire its own employees without anyone's input.
+
+How large is your potential user base?
+
+The potential user base is huge. Just online gambling for example is a massive market. Amoveo will be trustless and have lower fees. This is just one of the markets that amoveo can distrupt.
+
+What’s your plan to market what you create?
+
+Amoveo can hire people to advertise for Amoveo. We don't need a plan.
