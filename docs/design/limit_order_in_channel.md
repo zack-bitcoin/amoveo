@@ -1,20 +1,21 @@
 The goal of this contract is to have a market off-chain in the channels.
 This market should allow for limit orders. That means you can tell the market
 "I really want to buy tomatoes, but only for less than $1 per kilo. I will leave my money
-here, if the price ever goes below $1 per kilo, then please buy the tomatoes. I will come
-back later to either pick up the tomatoes, or my money."
+here, if the price ever goes below $1 per kilo, then please buy the tomatoes. I will come back later to either pick up the tomatoes, or my money."
 The market will honor your trade, and buy the tomatoes for you.
 
 Since this is a smart contract, you do not have to trust the person running the market.
 It is a trust free relationship. There is zero risk of them taking your money.
 Since it is off-chain, you don't have to pay a transaction fee, or wait for any confirmations.
 
-Today these services are provided by centralized companys that you have to trust.
+Today these services are provided by centralized people or companies that you have to trust. The only way to find people trustworthy to not take your money is if you pay them a high enough salary so that they prefer the long-term profits of the salary over the short term profit of robbing you.
+This makes it very expensive.
+Additionally these centralized companies have to comply with expensive regulations.
 Still, it is a market worth over $1000 trillion.
 The demand is so high, no blockchain can fit all this trading data on-chain.
 Providing these markets off-chain will be the killer app of blockchain.
 
-## What does a smart contract look like?
+## What does an off-chain smart contract for a market look like?
 
 You make a channel with an account that manages a market.
 Everyone who wants to trade is making channels with this same account.
@@ -77,6 +78,8 @@ Here is what it would look like if the market maker choose the incorrect price. 
 ![unbalanced trading](batch_channel_unbalanced.png "unbalanced")
 
 therefore, `if A, then B` is proved.
+
+
 
 To prove it is secure, we also need to check the case of [censorship](censored_orders_in_channel.md)
 
