@@ -113,7 +113,7 @@ OpenSuSE requires manual compilation and instalation of Erlang.
 Next, download Aeternity Testnet. You should run following steps with a non-root user, for better security.
 
 ```
-git clone https://github.com/aeternity/testnet.git
+git clone https://github.com/zack-bitcoin/amoveo.git
 ```
 Now you can go into the directory, and compile the aeternity testnet.
 
