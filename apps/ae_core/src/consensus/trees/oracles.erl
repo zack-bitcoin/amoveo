@@ -6,6 +6,7 @@
 	 set_result/2, set_type/2, governance/1,
 	 governance_amount/1, creator/1, serialize/1, deserialize/1,
 	 verify_proof/4, dict_get/2, dict_write/2, make_leaf/3,
+         key_to_int/1,
 	 test/0]).
 -define(name, oracles).
 -record(oracle, {id, 
@@ -154,9 +155,11 @@ dict_write(Oracle, Dict) ->
                Dict).
 write(Oracle, Root) ->
     %meta is a pointer to the orders tree.
+    io:fwrite("before serialize\n"),
     V = serialize(Oracle),
     Key = Oracle#oracle.id,
     Meta = Oracle#oracle.orders,
+    io:fwrite("about to write oracle\n"),
     trie:put(Key, V, Meta, Root, ?name).
 dict_get(ID, Dict) ->
     X = dict:fetch({oracles, ID}, Dict),
@@ -164,6 +167,7 @@ dict_get(ID, Dict) ->
         0 -> empty;
         _ -> deserialize(X)
     end.
+key_to_int(X) -> X.
 get(ID, Root) ->
     {RH, Leaf, Proof} = trie:get(ID, Root, ?name),
     V = case Leaf of 

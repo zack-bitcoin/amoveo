@@ -42,8 +42,8 @@ doit(Tx, Trees, NewHeight) ->
     Account = accounts:update(From, Trees, -Amount - AccountFee, Nonce, NewHeight),
 
     NewAccount = accounts:new(Pub, Amount, NewHeight),
-    Accounts = accounts:write(Accounts0, NewAccount),
-    NewAccounts = accounts:write(Accounts, Account),
+    Accounts = accounts:write(NewAccount, Accounts0),
+    NewAccounts = accounts:write(Account, Accounts),
 
     trees:update_accounts(Trees, NewAccounts).
 go(Tx, Dict, NewHeight) ->

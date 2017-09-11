@@ -5,7 +5,7 @@
 	 get_value/2, serialize/1, name2number/1,
 	 verify_proof/4, root_hash/1, dict_get/2,
          dict_get_value/2, dict_lock/2, dict_unlock/2,
-         make_leaf/3,
+         make_leaf/3, key_to_int/1,
 	 test/0]).
 -record(gov, {id, value, lock}).
 
@@ -139,7 +139,9 @@ get_value(coinbase, _) -> 0;
 get_value(Name, Tree) ->
     {_, Gov, _} = get(Name, Tree),
     tree_number_to_value(Gov#gov.value).
-
+key_to_int(X) when is_atom (X) ->
+    name2number(X);
+key_to_int(X) -> X.
 get(Name, Tree) when is_atom(Name) ->
     case name2number(Name) of
         bad ->

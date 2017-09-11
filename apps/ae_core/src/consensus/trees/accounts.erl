@@ -6,7 +6,7 @@
 	 bets/1, bets_hash/1, update_bets/2,
 	 ensure_decoded_hashed/1, height/1, verify_proof/4,
          dict_write/2, dict_delete/2,
-         make_leaf/3,
+         make_leaf/3, key_to_int/1,
 	 serialize/1, deserialize/1, pubkey/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
@@ -101,10 +101,11 @@ now_balance(Acc, Amount, NewHeight, Trees) ->
 update_bets(Account, Bets) ->
     Account#acc{bets = Bets,
                 bets_hash = oracle_bets:root_hash(Bets)}.
-
+key_to_int(X) ->
+    trees:hash2int(ensure_decoded_hashed(X)).
+    
 get(Pub, Accounts) ->
-    PubHash = ensure_decoded_hashed(Pub),
-    PubId = trees:hash2int(PubHash),
+    PubId = key_to_int(Pub),
     {RH, Leaf, Proof} = trie:get(PubId, Accounts, ?id),
     Account = case Leaf of
                   empty -> empty;
@@ -119,21 +120,21 @@ dict_write(Account, Dict) ->
     dict:store({accounts, Pub}, 
                serialize(Account),
                Dict).
-write(Root, Account) ->
+write(Account, Root) ->
     Pub = Account#acc.pubkey,
     SizePubkey = constants:pubkey_size(),
     SizePubkey = size(Pub),
-    PubHash = ensure_decoded_hashed(Pub),
+    %PubHash = ensure_decoded_hashed(Pub),
     SerializedAccount = serialize(Account),
     true = size(SerializedAccount) == constants:account_size(),
     KeyLength = constants:key_length(),
     <<Meta:KeyLength>> = <<(Account#acc.bets):KeyLength>>,
-    PubId = trees:hash2int(PubHash),
+    %PubId = trees:hash2int(PubHash),
+    PubId = key_to_int(Pub),
     trie:put(PubId, SerializedAccount, Meta, Root, ?id). % returns a pointer to the new root
 
 delete(Pub0, Accounts) ->
-    PubHash = ensure_decoded_hashed(Pub0),
-    PubId = trees:hash2int(PubHash),
+    PubId = key_to_int(Pub0),
     trie:delete(PubId, Accounts, ?id).
 dict_delete(Pub, Dict) ->
     dict:store({accounts, Pub}, 
@@ -222,7 +223,7 @@ ensure_decoded_hashed(Pub) ->
     end.
    
 make_leaf(Key, V, CFG)  ->
-    leaf:new(trees:hash2int(ensure_decoded_hashed(Key)),
+    leaf:new(key_to_int(Key),
              V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
@@ -239,7 +240,7 @@ test() ->
     S = serialize(Acc),
     Acc = deserialize(S),
     Root0 = constants:root0(),
-    NewLoc = write(Root0, Acc),
+    NewLoc = write(Acc, Root0),
     {Root, Acc, Proof} = get(Pub, NewLoc),
     true = verify_proof(Root, Pub, serialize(Acc), Proof),
     {Root2, empty, Proof2} = get(Pub, Root0),

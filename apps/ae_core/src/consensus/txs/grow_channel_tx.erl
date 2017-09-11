@@ -51,8 +51,8 @@ doit(Tx,Trees,NewHeight) ->
     NewChannels = channels:write(NewChannel, Channels),
     Acc1 = accounts:update(Aid1, Trees, -Inc1, Tx#gc.nonce, NewHeight),
     Acc2 = accounts:update(Aid2, Trees, -Inc2, none, NewHeight),
-    Accounts2 = accounts:write(Accounts, Acc1),
-    NewAccounts = accounts:write(Accounts2, Acc2),
+    Accounts2 = accounts:write(Acc1, Accounts),
+    NewAccounts = accounts:write(Acc2, Accounts2),
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->

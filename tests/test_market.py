@@ -29,7 +29,6 @@ class MarketTest(ApiUser):
         self.request('new_difficulty_oracle', DEV_1_INT, [0, 7000], sleep=0.04)
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.04)
         self.request('oracle_bet', DEV_1_INT, [1, 3, 269], sleep=0.04)
-        #self.request('mine_block', DEV_1_INT, [3, 1], sleep=3)
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)

@@ -265,6 +265,8 @@ txs_to_querys([STx|T], Trees) ->
                  {governance, ?n2i(minimum_oracle_time)},
                  %{oracles, oracle_new_tx:recent_price(Tx)},
                  %{oracle_bets, {key, AID, OID}},
+                 %{orders, {key, <<0:PS>>, OID}},
+                 %{oracle_bets, {key, <<0:PS>>, OID}},
                  {accounts, AID},
                  {oracles, OID}
                 ];

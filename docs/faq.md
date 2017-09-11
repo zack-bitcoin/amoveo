@@ -37,13 +37,33 @@ an account is the part of the on-chain state that records the address and balanc
 an address is the hash of a pubkey.
 
 
-How will you get people to work on Amoveo?
+> How will you get people to work on Amoveo?
+
 Amoveo is a new way for people to work together. Amoveo can bootstrap itself. Amoveo can build its own team and hire its own employees without anyone's input.
 
-How large is your potential user base?
+> How large is your potential user base?
 
 The potential user base is huge. Just online gambling for example is a massive market. Amoveo will be trustless and have lower fees. This is just one of the markets that amoveo can distrupt.
 
-What’s your plan to market what you create?
+> What’s your plan to market what you create?
 
 Amoveo can hire people to advertise for Amoveo. We don't need a plan.
+
+
+
+> If I understand correctly, everything is valued in Veo and you are not tokenizing real world securities. I do not think this is in direct competition to the financial derivatives market. Most derivatives are used for hedging, if everything becomes priced in Veo it adds an extra dimension because now the volatility of Veo has to be factored in. It also means some option sellers will have extra capital costs because now they have to own Veo and their shares, instead of just their shares. If I got that right, Amoveo will be competing for markets like sports betting and perhaps other types of speculation/prediction.
+
+
+I think you are confusing financial derivatives with things like stocks. Stocks allow you to tokenize ownership of something. A derivative is a financial asset that gets it's value from some publicly available information.
+
+The total market cap of stocks world wide, is around $80 trillion. The total market cap of derivatives is around $1200 trillion. People are not so interested in tokenizing. People are 100x more interested in betting.
+
+A cash settled derivative is economically the same as a derivative for the actual asset.
+
+Using traditional financial tools, if someone is owning stock and a financial derivative, it is usually stock and a put option. This way there is a limit to their loss. This financial strategy has the same capital costs using traditional finance, or using a blockchain.
+
+Another common strategy is a bond and call option. Together they can give the same risk profile as a stock and a put. This financial strategy has the same capital costs whether using traditional finance, or using a blockchain.
+
+Could you give a specific example of a financial strategy that would require locking up more capital on the blockchain in comparison to traditional finance?
+
+Financial derivatives allow you to hedge risk. So long as there are people who want to invest in Amoveo with leverage, then it will be affordable to make stablecoins. I expect most financial derivatives to be priced in stable-coins. Amoveo is a turing complete platform, so you can program stuff like this.

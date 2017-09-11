@@ -29,7 +29,7 @@ doit(Tx, Trees, NewHeight) ->
 
     Accounts = trees:accounts(Trees),
     Facc = accounts:update(AID, Trees, Amount-Tx#unmatched.fee, Tx#unmatched.nonce, NewHeight),
-    Accounts2 = accounts:write(Accounts, Facc),
+    Accounts2 = accounts:write(Facc, Accounts),
     trees:update_accounts(Trees2, Accounts2).
 go(Tx, Dict, NewHeight) ->
     OracleID = Tx#unmatched.oracle_id,

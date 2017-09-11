@@ -52,7 +52,7 @@ doit(Tx, Trees, NewHeight) ->
 
     NewChannels = channels:write(NewChannel, Channels),
     Facc = accounts:update(From, Trees, -Tx#csc.fee, Tx#csc.nonce, NewHeight),
-    NewAccounts = accounts:write(Accounts, Facc),
+    NewAccounts = accounts:write(Facc, Accounts),
     Trees2 = trees:update_channels(Trees, NewChannels),
     Trees3 = trees:update_accounts(Trees2, NewAccounts),
     spawn(fun() -> check_slash(From, Trees3, NewAccounts,NewHeight, NewCNonce) end), 

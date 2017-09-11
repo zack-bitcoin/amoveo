@@ -69,12 +69,12 @@ doit(Tx, Trees, NewHeight) ->
     %Acc1a = accounts:send_shares(Acc1, Tx#timeout.shares, NewHeight, Trees),
     Acc2 = accounts:update(Aid2, Trees, Bal2+Amount, none, NewHeight),
     %Acc2a = accounts:receive_shares(Acc2, Tx#timeout.shares, NewHeight, Trees),
-    Accounts2 = accounts:write(Accounts, Acc1),
-    Accounts3 = accounts:write(Accounts2, Acc2),
+    Accounts2 = accounts:write(Acc1, Accounts),
+    Accounts3 = accounts:write(Acc2, Accounts2),
     Trees3 = trees:update_accounts(Trees, Accounts3),
     Slasher = channels:slasher(Channel),
     Acc4 = accounts:update(From, Trees3, -Fee, none, NewHeight),
-    NewAccounts = accounts:write(Accounts3, Acc4),
+    NewAccounts = accounts:write(Acc4, Accounts3),
     NewChannels = channels:delete(CID, Channels),%
     Trees2 = trees:update_channels(Trees3, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).

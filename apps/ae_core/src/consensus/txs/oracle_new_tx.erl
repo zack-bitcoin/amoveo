@@ -75,7 +75,7 @@ doit(Tx, Trees0, NewHeight) ->
     From = Tx#oracle_new.from,
     OIL = governance:get_value(oracle_initial_liquidity, Governance),
     Facc = accounts:update(From, Trees, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce, NewHeight),
-    NewAccounts = accounts:write(Accounts, Facc),
+    NewAccounts = accounts:write(Facc, Accounts),
     Starts = Tx#oracle_new.start,
     OFL = governance:get_value(oracle_future_limit, Governance),
     %true = (Starts - NewHeight) < constants:oracle_future_limit(),

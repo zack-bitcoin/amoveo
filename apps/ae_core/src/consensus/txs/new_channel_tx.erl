@@ -85,8 +85,8 @@ doit(Tx, Trees, NewHeight) ->
     %CCFee = constants:create_channel_fee() div 2,
     Acc1 = accounts:update(Aid1, Trees, -Bal1-CCFee, Tx#nc.nonce, NewHeight),
     Acc2 = accounts:update(Aid2, Trees, -Bal2-CCFee, none, NewHeight),
-    Accounts2 = accounts:write(Accounts, Acc1),
-    NewAccounts = accounts:write(Accounts2, Acc2),
+    Accounts2 = accounts:write(Acc1, Accounts),
+    NewAccounts = accounts:write(Acc2, Accounts2),
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->

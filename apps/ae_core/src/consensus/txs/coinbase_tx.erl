@@ -17,7 +17,7 @@ doit(Tx, Trees, NewHeight) ->
 	       empty -> accounts:new(From, BlockReward, NewHeight);
 	       _ -> accounts:update(From, Trees, BlockReward, none, NewHeight)
 	   end,
-    NewAccounts = accounts:write(Accounts, Nacc),
+    NewAccounts = accounts:write(Nacc, Accounts),
     trees:update_accounts(Trees, NewAccounts).
 go(Tx, Dict, NewHeight) ->
     From = Tx#coinbase.from,

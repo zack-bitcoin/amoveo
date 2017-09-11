@@ -37,7 +37,7 @@ doit(Tx, Trees, NewHeight) ->
     io:fwrite("channel repo doit 2\n"),
     Rent = CR * DH,
     true = B =< Rent,
-    NewAccounts = accounts:write(Accounts, Facc),
+    NewAccounts = accounts:write(Facc, Accounts),
     NewChannels = channels:delete(CID, Channels),
     io:fwrite("channel repo doit 3\n"),
     Trees2 = trees:update_channels(Trees, NewChannels),

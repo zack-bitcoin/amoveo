@@ -63,7 +63,7 @@ doit(Tx, Trees, NewHeight) ->
     NewChannels = channels:write(NewChannel, Channels),
     ID = Tx#cs.from,
     Account = accounts:update(ID, Trees, -Fee, Nonce, NewHeight),
-    NewAccounts = accounts:write(Accounts, Account), 
+    NewAccounts = accounts:write(Account, Accounts), 
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->

@@ -37,7 +37,7 @@ doit(Tx, Trees, NewHeight) ->
     Bets2 = oracle_bets:delete(OID, Bets),
     Acc3 = accounts:update_bets(Acc2, Bets2),
     
-    Accounts2 = accounts:write(Accounts, Acc3),
+    Accounts2 = accounts:write(Acc3, Accounts),
     trees:update_accounts(Trees, Accounts2).
 go(Tx, Dict, NewHeight) ->
     OID = Tx#oracle_shares.oracle_id,

@@ -32,7 +32,7 @@ doit(Tx, Trees, NewHeight) ->
     Governance = trees:governance(Trees),
     ToAccount = accounts:update(To, Trees, Amount, none, NewHeight),
     _UpdatedAccount = accounts:update(From, Trees, 0, Nonce, NewHeight),
-    Accounts = accounts:write(Accounts0, ToAccount),
+    Accounts = accounts:write(ToAccount, Accounts0),
     NewAccounts = accounts:delete(From, Accounts),
     trees:update_accounts(Trees, NewAccounts).
 go(Tx, Dict, NewHeight) ->

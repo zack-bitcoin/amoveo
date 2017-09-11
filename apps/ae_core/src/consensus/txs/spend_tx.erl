@@ -17,8 +17,8 @@ doit(Tx, Trees, NewHeight) ->
     Facc = accounts:update(From, Trees, -A-Tx#spend.fee, Tx#spend.nonce, NewHeight),
     Tacc = accounts:update(To, Trees, A, none, NewHeight),
     Accounts = trees:accounts(Trees),
-    Accounts2 = accounts:write(Accounts, Facc),
-    NewAccounts = accounts:write(Accounts2, Tacc),
+    Accounts2 = accounts:write(Facc, Accounts),
+    NewAccounts = accounts:write(Tacc, Accounts2),
     trees:update_accounts(Trees, NewAccounts).
 go(Tx, Dict, NewHeight) ->
     From = Tx#spend.from,

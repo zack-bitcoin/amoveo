@@ -25,6 +25,6 @@ doit(Tx, Trees, NewHeight) ->
     Governance = trees:governance(Trees),
     DAR = governance:get_value(delete_account_reward, Governance),
     Facc = accounts:update(From, Trees, DAR, Tx#repo.nonce, NewHeight),
-    Accounts2 = accounts:write(Accounts, Facc),
+    Accounts2 = accounts:write(Facc, Accounts),
     Accounts3 = accounts:delete(To, Accounts2),
     trees:update_accounts(Trees, Accounts3).

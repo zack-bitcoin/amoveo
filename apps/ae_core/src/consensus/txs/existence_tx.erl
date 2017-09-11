@@ -19,7 +19,7 @@ doit(Tx, Trees, NewHeight) ->
     {_, empty, _} = existence:get(existence:hash(C),Commits),
     NewCommits = existence:write(C, Commits),
     Acc = accounts:update(From, Trees, -Tx#ex.fee, Tx#ex.nonce, NewHeight),
-    NewAccounts = accounts:write(Accounts, Acc),
+    NewAccounts = accounts:write(Acc, Accounts),
     Trees2 = trees:update_accounts(Trees, NewAccounts),
     trees:update_existence(Trees2, NewCommits).
 go(Tx, Dict, NewHeight) ->

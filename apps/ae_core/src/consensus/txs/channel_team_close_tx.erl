@@ -51,8 +51,8 @@ doit(Tx,Trees,NewHeight) ->
     %Acc1a = accounts:send_shares(Acc1, Tx#ctc.shares, NewHeight, Trees),
     Acc2 = accounts:update(Aid2, Trees, Bal2 - Amount - ShareAmount, none, NewHeight),
     %Acc2a = accounts:receive_shares(Acc2, Tx#ctc.shares, NewHeight, Trees),
-    Accounts2 = accounts:write(Accounts, Acc1),
-    NewAccounts = accounts:write(Accounts2, Acc2),
+    Accounts2 = accounts:write(Acc1, Accounts),
+    NewAccounts = accounts:write(Acc2, Accounts2),
     Trees2 = trees:update_channels(Trees, NewChannels),
     trees:update_accounts(Trees2, NewAccounts).
     

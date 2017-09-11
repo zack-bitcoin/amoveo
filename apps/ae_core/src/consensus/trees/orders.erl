@@ -8,6 +8,7 @@
          dict_significant_volume/3, dict_match/3,
          dict_write/3, dict_get/2, dict_head_get/2,
          dict_add/3, dict_remove/3, make_leaf/3,
+         key_to_int/1, write/2, delete/2,
          test/0]).
 -define(name, orders).
 -record(order, {aid, amount, pointer}).
@@ -98,8 +99,7 @@ dict_write(Order, OID, Dict) ->
 write(X, Root) -> 
     V = serialize(X),
     Pubkey = aid(X),
-    HP = accounts:ensure_decoded_hashed(Pubkey),
-    HPID = trees:hash2int(HP),
+    HPID = key_to_int2(Pubkey),
     trie:put(HPID, V, 0, Root, ?name).
 dict_get(Key, Dict) ->
     X = dict:fetch({orders, Key}, Dict),
@@ -108,9 +108,13 @@ dict_get(Key, Dict) ->
         _ -> deserialize(X)
     end.
     
+key_to_int({key, Pubkey, _}) ->
+    key_to_int2(Pubkey).
+key_to_int2(Pubkey) ->
+    HP = accounts:ensure_decoded_hashed(Pubkey),
+    trees:hash2int(HP).
 get(Pub, Root) ->
-    HP = accounts:ensure_decoded_hashed(Pub),
-    HPID = trees:hash2int(HP),
+    HPID = key_to_int2(Pub),
     {RH, Leaf, Proof} = trie:get(HPID, Root, ?name),
     V = case Leaf of
                 empty -> empty;

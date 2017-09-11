@@ -6,7 +6,7 @@
 	 nonce/1,delay/1, amount/1, slasher/1,
 	 closed/1, verify_proof/4,
          dict_update/10, dict_delete/2, dict_write/2, dict_get/2,
-         make_leaf/3,
+         make_leaf/3, key_to_int/1,
 	 test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
@@ -201,6 +201,7 @@ write(Channel, Root) ->
     %Shares = Channel#channel.shares,
     trie:put(ID, M, 0, Root, channels). %returns a pointer to the new root
 id_size() -> constants:key_length().
+key_to_int(X) when is_integer(X) -> X.
 get(ID, Channels) ->
     true = (ID - 1) < math:pow(2, id_size()),
     {RH, Leaf, Proof} = trie:get(ID, Channels, channels),

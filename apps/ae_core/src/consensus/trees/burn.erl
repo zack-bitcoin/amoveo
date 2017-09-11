@@ -1,6 +1,6 @@
 -module(burn).
 -export([test/0, new/1, get/2, write/2, address/1, 
-	 amount/1, root_hash/1, serialize/1,
+	 amount/1, root_hash/1, serialize/1, key_to_int/1,
 	 verify_proof/4, make_leaf/3]).
 %The proof of burn tree stores by address. It stores the number of AE tokens that this address has burned.
 -record(burn, {address, amount = 0}).
@@ -22,6 +22,8 @@ deserialize(B) ->
     <<I:BAL, A:HS>> = B,
     #burn{address = <<A:HS>>,
 	  amount = I}.
+key_to_int(X) ->
+    existence:hash2int(X).
 get(B, Tree) ->
     %B = testnet_sign:address2binary(Address),
     Key = existence:hash2int(B),
