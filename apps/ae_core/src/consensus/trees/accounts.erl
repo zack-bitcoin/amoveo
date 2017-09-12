@@ -24,7 +24,7 @@ bets(Account) -> Account#acc.bets.
 bets_hash(Account) -> Account#acc.bets_hash.
 %shares(Account) -> Account#acc.shares.
 
-root_hash(Accounts) ->
+root_hash(Accounts) when is_integer(Accounts) ->
     trie:root_hash(?id, Accounts).
 
 new(Pub, Balance, Height) ->

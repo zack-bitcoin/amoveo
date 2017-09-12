@@ -14,7 +14,7 @@
 		 question, 
 		 starts, 
 		 type, %0 means order book is empty, 1 means the order book is holding shares of true, 2 means it holds false, 3 means that it holds shares of "bad question".
-		 orders,
+		 orders = 1,
 		 orders_hash,
 		 creator,
 		 difficulty,
@@ -114,8 +114,8 @@ dict_serialize(X) ->
       Question/binary,
       Orders/binary>>.
 serialize(X) ->
-    Orders = orders:root_hash(X#oracle.orders),
-    Orders = X#oracle.orders_hash,
+    %Orders = orders:root_hash(X#oracle.orders),
+    %Orders = X#oracle.orders_hash,
     dict_serialize(X).
 deserialize(X) ->
     KL = constants:key_length(),

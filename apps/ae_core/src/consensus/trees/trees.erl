@@ -6,6 +6,7 @@
 	 update_governance/2, governance/1,
 	 root_hash/1, name/1, garbage/0,
 	 hash2int/1, verify_proof/5, new/6, 
+         root_hash2/2,
          restore/3]).
 -record(trees, {accounts, channels, existence,
 		burn, oracles, governance}).
@@ -37,6 +38,43 @@ update_burn(X, E) ->
     X#trees{burn = E}.
 update_oracles(X, A) ->
     X#trees{oracles = A}.
+root_hash2(Trees, Roots) ->
+    A = rh2(accounts, Trees, Roots),
+    C = rh2(channels, Trees, Roots),
+    E = rh2(existence, Trees, Roots),
+    B = rh2(burn, Trees, Roots),
+    O = rh2(oracles, Trees, Roots),
+    G = rh2(governance, Trees, Roots),
+    HS = constants:hash_size(),
+    HS = size(A),
+    HS = size(C),
+    HS = size(E),
+    HS = size(B),
+    HS = size(O),
+    HS = size(G),
+    testnet_hasher:doit(<<
+			  A/binary,
+			  C/binary,
+			  E/binary,
+			  B/binary,
+			  O/binary,
+			  G/binary
+			>>).
+rh2(Type, Trees, Roots) ->
+    X = trees:Type(Trees),
+    Out = case X of
+        empty -> 
+            Fun = list_to_atom(atom_to_list(Type) ++ "_root"),
+            block:Fun(Roots);
+        Y -> 
+            Type:root_hash(Y)
+    end,
+    io:fwrite("out is "),
+    io:fwrite(packer:pack(Out)),
+    io:fwrite("\n"),
+    Out.
+            
+    
 root_hash(Trees) ->
     A = accounts:root_hash(trees:accounts(Trees)),
     C = channels:root_hash(trees:channels(Trees)),

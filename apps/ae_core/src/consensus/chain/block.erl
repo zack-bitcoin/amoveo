@@ -4,7 +4,9 @@
          height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, comment/1, version/1, pow/1, trees/1, prev_hashes/1, 
          get_by_height_in_chain/2, get_by_height/1, hash/1, get_by_hash/1, initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
-         guess_number_of_cpu_cores/0, top/0
+         guess_number_of_cpu_cores/0, top/0,
+         accounts_root/1, channels_root/1,existence_root/1,
+         burn_root/1,oracles_root/1,governance_root/1
         ]).
 
 -export_type([block/0]).
@@ -277,6 +279,18 @@ make_roots(Trees) ->
            burn = burn:root_hash(trees:burn(Trees)),
            oracles = oracles:root_hash(trees:oracles(Trees)),
            governance = governance:root_hash(trees:governance(Trees))}.
+accounts_root(X) ->
+    X#roots.accounts.
+channels_root(X) ->
+    X#roots.channels.
+existence_root(X) ->
+    X#roots.existence.
+burn_root(X) ->
+    X#roots.burn.
+oracles_root(X) ->
+    X#roots.oracles.
+governance_root(X) ->
+    X#roots.governance.
 roots_hash(X) when is_record(X, roots) ->
     A = X#roots.accounts,
     C = X#roots.channels,
@@ -372,6 +386,9 @@ proofs_roots_match([P|T], R) ->
             
 check(Block) ->
     Facts = Block#block.proofs,
+    io:fwrite("check facts \n"),
+    io:fwrite(packer:pack(Facts)),
+    io:fwrite("\n"),
     Header = block_to_header(Block),
     BlockHash = hash(Block),
     {ok, Header} = headers:read(BlockHash),
@@ -388,6 +405,8 @@ check(Block) ->
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
+    io:fwrite(packer:pack({txs_are, Txs})),
+    io:fwrite("\n"),
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
@@ -395,13 +414,23 @@ check(Block) ->
         facts_to_trie(
           Facts, trees:new(empty, empty, empty,
                            empty, empty, empty)),
-    %NewTrees2 = dict_update_trie(Roots, 
-    %                             OldSparseTrees,
-    %                             NewDict),
+    PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
+    PrevTreesHash = headers:trees_hash(PrevHeader),
+    NewTrees2 = dict_update_trie(Roots, 
+                                 OldSparseTrees,
+                                 NewDict),
     %use NewDict to generate NewTrees
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     Block2 = Block#block{trees = NewTrees},
     TreesHash = trees:root_hash(Block2#block.trees),
+    %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
+    io:fwrite("block check compare "),
+    io:fwrite(integer_to_list(Height)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack({Block2#block.trees, NewTrees2, OldSparseTrees})),
+    io:fwrite("\n"),
+    %io:fwrite(packer:pack(governance:get(1, trees:governance(OldSparseTrees)))),
+    %TreesHash = trees:root_hash2(NewTrees2, Roots),
     TreesHash = headers:trees_hash(Header),
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
@@ -415,10 +444,6 @@ dict_update_trie(_Roots, Trees, Dict) ->
     Keys = dict:fetch_keys(Dict),
     {Orders, Keys2} = get_things(orders, Keys),
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
-    %{Accounts, Keys4} = get_things(accounts, Keys3),
-    %{Oracles, Keys5} = get_things(oracles, Keys4),
-    io:fwrite(packer:pack({dict_update_trie_keys, Keys})),
-    io:fwrite("\n"),
     Dict2 = dict_update_trie_orders(Trees, Orders, Dict),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets, Dict2),
     dict_update_trie2(Trees, Keys3, Dict3).
@@ -427,17 +452,12 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     {Type, Key} = H,
     New = Type:dict_get(Key, Dict),
     Tree = trees:Type(Trees),
-    io:fwrite(packer:pack({dict_update_trie_2_new, New})),
-    io:fwrite("\n"),
     Tree2 = case New of
                 empty -> Type:delete(Key, Tree);
                 _ -> Type:write(New, Tree)
             end,
-    io:fwrite("after write \n"),
-    %Tree2 = Type:write(New, Tree),
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
-    io:fwrite("after update \n"),
     dict_update_trie2(Trees2, T, Dict).
 dict_update_trie_orders(_, [], D) -> D;
 dict_update_trie_orders(Trees, [H|T], Dict) ->

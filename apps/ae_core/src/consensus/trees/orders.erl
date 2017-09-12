@@ -11,7 +11,7 @@
          key_to_int/1, write/2, delete/2,
          test/0]).
 -define(name, orders).
--record(order, {aid, amount, pointer}).
+-record(orders, {aid, amount, pointer}).
 dict_significant_volume(Dict, OID, OIL) ->
     ManyOrders = dict_many(Dict, OID),
     if 
@@ -42,20 +42,20 @@ dict_many(Dict, OID) ->
 many(Root) ->
     {_, Many} = head_get(Root),
     Many.
-aid(X) -> X#order.aid.
-amount(X) -> X#order.amount.
-pointer(X) -> X#order.pointer.
+aid(X) -> X#orders.aid.
+amount(X) -> X#orders.amount.
+pointer(X) -> X#orders.pointer.
 update_pointer(X, P) ->
-    X#order{pointer = P}.
+    X#orders{pointer = P}.
 set_amount(X, A) ->
-    X#order{amount = A}.
+    X#orders{amount = A}.
 update_amount(X, A) ->
-    B = X#order.amount + A,
+    B = X#orders.amount + A,
     true = B>0,
-    X#order{amount = B}.
+    X#orders{amount = B}.
 new(AID, Amount) ->
     PS = constants:pubkey_size() * 8,
-    #order{aid = AID, amount = Amount, pointer = <<0:PS>>}.
+    #orders{aid = AID, amount = Amount, pointer = <<0:PS>>}.
 serialize_head(Head, Many) ->
     %KL = constants:key_length(),
     %HS = constants:hash_size()*8,
@@ -77,18 +77,18 @@ deserialize_head(X) ->
     
 serialize(A) ->
     BAL = constants:balance_bits(),
-    true = size(A#order.aid) == constants:pubkey_size(),
-    true = size(A#order.pointer) == constants:pubkey_size(),
-    <<(A#order.amount):BAL,
-      (A#order.pointer)/binary,
-      (A#order.aid)/binary>>.
+    true = size(A#orders.aid) == constants:pubkey_size(),
+    true = size(A#orders.pointer) == constants:pubkey_size(),
+    <<(A#orders.amount):BAL,
+      (A#orders.pointer)/binary,
+      (A#orders.aid)/binary>>.
 deserialize(B) ->
     %OL = constants:orders_bits(),
     BAL = constants:balance_bits(),
     PS = constants:pubkey_size() * 8,
     <<Amount:BAL, P:PS,
      AID:PS>> = B,
-    #order{aid = <<AID:PS>>, amount = Amount,
+    #orders{aid = <<AID:PS>>, amount = Amount,
               pointer = <<P:PS>>}.
 dict_write(Order, OID, Dict) ->
     Pub = aid(Order), 
@@ -153,7 +153,7 @@ dict_head_put(Head, Many, OID, Dict) ->
     Y = serialize_head(Head, Many),
     PS = constants:pubkey_size() * 8,
     Key = {key, <<0:PS>>, OID},
-    dict:store({order, Key},
+    dict:store({orders, Key},
                Y,
                Dict).
 head_put(Head, Many, Root) ->
@@ -168,7 +168,7 @@ all2(X, Root) ->
         <<0:PS>> -> [<<0:PS>>];
         Pub -> 
             {_, Order, _} = get(Pub, Root),
-            [Pub|all2(Order#order.pointer, Root)]
+            [Pub|all2(Order#orders.pointer, Root)]
     end.
 dict_add(Order, OID, Dict) ->
     X = aid(Order),
@@ -186,14 +186,14 @@ dict_add(Order, OID, Dict) ->
                     dict_add2(Order, Dict2, Y, OID)
             end;
         Old ->
-            New = Old#order{amount = Old#order.amount + Order#order.amount},
+            New = Old#orders{amount = Old#orders.amount + Order#orders.amount},
             dict_write(New, OID, Dict)
     end.
 add(Order, Root) ->
     X = aid(Order),
     {_, OldOrder, _} = get(X, Root),
     PS = constants:pubkey_size() * 8,
-    %make the end of the list point to the new order.
+    %make the end of the list point to the new orders.
     case OldOrder of
         empty ->
             {Head, Many} = head_get(Root),
@@ -206,30 +206,30 @@ add(Order, Root) ->
                     add2(Order, Root2, Y)
             end;
         Old ->
-            New = Old#order{amount = Old#order.amount + Order#order.amount},
+            New = Old#orders{amount = Old#orders.amount + Order#orders.amount},
             write(New, Root)
     end.
 dict_add2(Order, Dict, P, OID) ->
     L = dict_get({key, P, OID}, Dict),
-    N = L#order.pointer,
+    N = L#orders.pointer,
     PS = constants:pubkey_size() * 8,
     case N of
         <<0:PS>> ->
-            L2 = L#order{pointer = aid(Order)},
+            L2 = L#orders{pointer = aid(Order)},
             Dict2 = dict_write(L2, OID, Dict),
-            <<0:PS>> = Order#order.pointer,
+            <<0:PS>> = Order#orders.pointer,
             dict_write(Order, OID, Dict2);
         M -> dict_add2(Order, Dict, M, OID)
     end.
 add2(Order, Root, P) ->
     {_, L, _} = get(P, Root),
-    N = L#order.pointer,
+    N = L#orders.pointer,
     PS = constants:pubkey_size() * 8,
     case N of
         <<0:PS>> ->
                 L2 = update_pointer(L, aid(Order)),
                 Root2 = write(L2, Root),
-                <<0:PS>> = Order#order.pointer,
+                <<0:PS>> = Order#orders.pointer,
                 write(Order, Root2);
         M ->
                 add2(Order, Root, M)
@@ -237,10 +237,10 @@ add2(Order, Root, P) ->
 dict_remove(ID, OID, Dict) ->
     {Head, Many} = dict_head_get(Dict, OID),
     Order = dict_get({key, ID, OID}, Dict),
-    Q = Order#order.aid,
+    Q = Order#orders.aid,
     if
         ID == Q ->
-            Dict2 = dict_head_put(Order#order.pointer, Many-1, OID, Dict),
+            Dict2 = dict_head_put(Order#orders.pointer, Many-1, OID, Dict),
             dict_delete(ID, OID, Dict2);
         true ->
             Dict2 = dict_head_put(Head, Many - 1, OID, Dict),
@@ -249,11 +249,11 @@ dict_remove(ID, OID, Dict) ->
 remove(ID, Root) ->
     {Head, Many} = head_get(Root),
     {_,Order,_} = get(Head, Root),
-    Q = Order#order.aid,
+    Q = Order#orders.aid,
     if 
         ID == Q -> 
                 %io:fwrite("remove path 1\n"),
-                Root2 = head_put(Order#order.pointer, Many-1, Root),
+                Root2 = head_put(Order#orders.pointer, Many-1, Root),
                 delete(ID, Root2);
         true ->
                 %io:fwrite("remove path 2\n"),
@@ -262,11 +262,11 @@ remove(ID, Root) ->
     end.
 dict_remove2(ID, OID, Dict, P) ->
     L = dict_get({key, ID, OID}, Dict),
-    N = L#order.pointer,
+    N = L#orders.pointer,
     case N of
         ID ->
             L2 = dict_get({key, ID, OID}, Dict),
-            L3 = L#order{pointer = aid(L2)},
+            L3 = L#orders{pointer = aid(L2)},
             Dict2 = dict_delete(N, OID, Dict),
             dict_write(L3, OID, Dict2);
         X ->
@@ -274,7 +274,7 @@ dict_remove2(ID, OID, Dict, P) ->
     end.
 remove2(ID, Root, P) ->
     {_, L, _} = get(P, Root),
-    N = L#order.pointer,
+    N = L#orders.pointer,
     case N of
         ID ->
                 %io:fwrite("remove path 3\n"),
@@ -320,14 +320,14 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
     La = dict_get({key, T, OID}, Dict),
     case La of
         empty ->
-            P = Order#order.aid,
+            P = Order#orders.aid,
             Dict2 = dict_head_update(P, OID, Dict),
             Dict3 = dict_write(Order, OID, Dict2),
             {switch, Dict3, [Order|Matches1], Matches2};
         L ->
-            OldA = L#order.amount,
-            NewA = Order#order.amount,
-            P = L#order.pointer,
+            OldA = L#orders.amount,
+            NewA = Order#orders.amount,
+            P = L#orders.pointer,
             if
                 NewA > OldA ->
                     Dict2 = dict_head_update(P, OID, Dict),
@@ -351,14 +351,14 @@ match2(Order, Root, T, Matches1, Matches2) ->
     case La of
         empty -> 
             %io:fwrite("was empty\n"),
-            P = Order#order.aid,
+            P = Order#orders.aid,
             Root2 = head_update(P, Root),
             NewRoot = write(Order, Root2),
             {switch, NewRoot, [Order|Matches1], Matches2};
         L ->
-            OldA = L#order.amount,
-            NewA = Order#order.amount,
-            P = L#order.pointer,
+            OldA = L#orders.amount,
+            NewA = Order#orders.amount,
+            P = L#orders.pointer,
             if
                 NewA > OldA ->
                                                 %io:fwrite("new bigger\n"),
@@ -396,25 +396,25 @@ test() ->
     Order3 = new(Pub1, 110),
     {Matches1, Matches2, same, Root3} = match(Order3, Root2),
     {_, empty, _} = get(Pub1, constants:root0()),
-    %{_, {order, Pub1, 110, _}, _} = get(Pub1, Root2),
-    {_, {order, Pub2, 200, _}, _} = get(Pub2, Root2),
+    %{_, {orders, Pub1, 110, _}, _} = get(Pub1, Root2),
+    {_, {orders, Pub2, 200, _}, _} = get(Pub2, Root2),
     {_, empty, _} = get(Pub1, Root3),
 
     Root4 = add(Order1, Root0),
     {Matches3, Matches4, switch, Root5} = match(Order3, Root4),
     {_, empty, _} = get(Pub2, Root5), 
     PS = constants:pubkey_size() * 8,
-    {_, {order, Pub1, 10, <<0:PS>>}, _} = get(Pub1, Root5),
+    {_, {orders, Pub1, 10, <<0:PS>>}, _} = get(Pub1, Root5),
     {Matches1, Matches2, Matches3, Matches4},
     %io:fwrite("TEST orders, about to remove \n"),
     Root6 = remove(Pub2, Root2),
     {_, empty, _} = get(Pub1, Root6),
     {Root8, empty, Path1} = get(Pub2, Root6),
-    {Root9, {order, Pub2, 200, Pointer2}, Path2} = get(Pub2, Root2),
+    {Root9, {orders, Pub2, 200, Pointer2}, Path2} = get(Pub2, Root2),
     %Root7 = remove(Pub2, Root2),
     %{Root8, empty, Path1} = get(Pub2, Root7),
-    %{Root9, {order, Pub2, 100, Pointer2}, Path2} = get(Pub1, Root7),
+    %{Root9, {orders, Pub2, 100, Pointer2}, Path2} = get(Pub1, Root7),
     true = verify_proof(Root8, Pub2, 0, Path1),
-    true = verify_proof(Root9, Pub2, serialize({order, Pub2, 200, Pointer2}), Path2),
+    true = verify_proof(Root9, Pub2, serialize({orders, Pub2, 200, Pointer2}), Path2),
     success.
     
