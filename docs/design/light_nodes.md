@@ -35,3 +35,15 @@ In Amoveo every header includes a cryptographic checksum of a minimal datastruct
 We only check at most one set of state proofs per block verified.
 This stops the DDOS.
 
+## Mining with light nodes
+
+With bitcoin or ethereum, light nodes can only mine empty blocks, because a light node cannot tell which txs are valid.
+With Amoveo, every tx submitted to a miner can include the merkle proof to show that it is valid.
+The miner can use these proofs to build the state proofs that get included with the block he is mining.
+The miner can update these proofs with each block added to his chain, so he is always ready to include them in the block he is mining.
+
+## Why can Amoveo make this light node upgrades? Can Ethereum copy our upgrades?
+
+Ethereum is committed to having turing completeness on-chain. So the amount of consensus state you need to know about to verify a particular block can be big.
+Ethereum might do a hard fork to start including a checksum of the minimal proofs into the ethereum headers, but this could make it much more expensive to verify blocks. You need to construct the proof of the consensus state necessary to verify the block in order to know it's checksum. 
+Ethereum probably can't mine full blocks with light nodes, because of the commitment to turing completeness. It is too complicated to update the merkle proofs when blocks are added to the chain.
