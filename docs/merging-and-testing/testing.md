@@ -13,7 +13,7 @@ This will create a `virualenv` in your project directory and install all the nec
 
 To run the tests, run `make tests`.
 This will:
-* kill all running `testnet` nodes
+* kill all running `amoveo` nodes
 * build 3 test nodes
 * start all 3 tests nodes
 * run python tests on these nodes
@@ -24,7 +24,7 @@ This will:
 If you are in development process and have already 3 nodes running, simply run `make python-tests`.
 This will run acceptance Python tests on the running nodes.
 
-Command `make python-tests` runs tests suites describes in `nose` tests config file - [nose.cfg](https://github.com/aeternity/testnet/blob/master/tests/nose.cfg).
+Command `make python-tests` runs tests suites describes in `nose` tests config file - [nose.cfg](https://github.com/zack-bitcoin/amoveo/blob/master/tests/nose.cfg).
 
 By default, it runs all tests from `tests` directory:
 

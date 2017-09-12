@@ -2,7 +2,7 @@ you don't need to know very much about git to program for Aeternity.
 
 you will need a github account.  https://github.com/
 
-once you have a github account, click the fork button on this page: https://github.com/aeternity/testnet
+once you have a github account, click the fork button on this page: https://github.com/zack-bitcoin/amoveo
 
 you should clone your own version from your profile on github with this command:
 `git clone https://github.com/YOUR_GITHUB_ACCOUNT/testnet.git`
