@@ -155,11 +155,9 @@ dict_write(Oracle, Dict) ->
                Dict).
 write(Oracle, Root) ->
     %meta is a pointer to the orders tree.
-    io:fwrite("before serialize\n"),
     V = serialize(Oracle),
     Key = Oracle#oracle.id,
     Meta = Oracle#oracle.orders,
-    io:fwrite("about to write oracle\n"),
     trie:put(Key, V, Meta, Root, ?name).
 dict_get(ID, Dict) ->
     X = dict:fetch({oracles, ID}, Dict),

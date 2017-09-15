@@ -69,9 +69,9 @@ rh2(Type, Trees, Roots) ->
         Y -> 
             Type:root_hash(Y)
     end,
-    io:fwrite("out is "),
-    io:fwrite(packer:pack(Out)),
-    io:fwrite("\n"),
+    %io:fwrite("out is "),
+    %io:fwrite(packer:pack(Out)),
+    %io:fwrite("\n"),
     Out.
             
     
@@ -118,7 +118,7 @@ garbage() ->
 hash2int(X) ->
     U = size(X),
     U = constants:hash_size(),
-    S = constants:hash_size()*8,
+    S = U*8,
     <<A:S>> = X,
     A.
 verify_proof(TreeID, RootHash, Key, Value, Proof) ->
@@ -142,7 +142,16 @@ restore(Root, Fact, Meta) ->
     Hash = TreeID:root_hash(Root),
     Hash = proofs:root(Fact),
     KeyInt = TreeID:key_to_int(Key),
-    trie:restore(KeyInt, Value, Meta, Hash, Path, Root, TreeID).
+    Leaf = leaf:new(KeyInt, Value, Meta, trie:cfg(TreeID)),
+    Out = trie:restore(Leaf, Hash, Path, Root, TreeID),
+    {Hash, Leaf2, _} = trie:get(KeyInt, Out, TreeID),
+    case Leaf2 of %sanity check
+        empty -> 
+            Value = empty;
+        _ -> Leaf = Leaf2
+    end,
+    Out.
+    
                 
     
     %we also need to garbage orders, oracle_bets, shares, proof of burn.

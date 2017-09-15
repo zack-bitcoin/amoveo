@@ -431,11 +431,14 @@ test(13) ->
     absorb(Stx),
 
     mine_blocks(2),
+    timer:sleep(150),
     {Trees2, _, _} = tx_pool:data(),
     %close the oracle with oracle_close
     {Tx2, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees2),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
+    mine_blocks(1),
+    timer:sleep(150),
     OID2 = 2,
     {Trees3,_,_} = tx_pool:data(),
     {Tx3, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID2, Diff, OID, 1, 5, Trees3),

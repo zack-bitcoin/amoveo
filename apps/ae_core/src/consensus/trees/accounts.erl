@@ -217,8 +217,7 @@ ensure_decoded_hashed(Pub) ->
             Pub;
         PubkeySize ->
             testnet_hasher:doit(Pub);
-        _Other ->
-            lager:warning("Pub decode problem: ~p", [Pub]),
+        _ ->
             testnet_hasher:doit(base64:decode(Pub))
     end.
    

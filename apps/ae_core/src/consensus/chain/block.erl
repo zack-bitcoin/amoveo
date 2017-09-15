@@ -243,6 +243,18 @@ tx_costs([STx|T], Governance, Out) ->
     tx_costs(T, Governance, Cost+Out).
 new_dict(Txs, Dict, Height, Pub, PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
+    io:fwrite("block: new dict "),
+    io:fwrite(integer_to_list(Height)),
+    io:fwrite("\n"),
+    if
+        Height > 2 ->
+            O = oracle_bets:dict_get({key, keys:pubkey(), 6}, Dict2),
+            false = empty == O,
+            io:fwrite("block new dict oracle_bets is "),
+            io:fwrite(packer:pack(O)),
+            io:fwrite("\n");
+        true -> ok
+    end,
     block_reward_dict(Dict2, Height, Pub, PrevHash).
     
 new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
@@ -386,13 +398,12 @@ proofs_roots_match([P|T], R) ->
             
 check(Block) ->
     Facts = Block#block.proofs,
-    io:fwrite("check facts \n"),
-    io:fwrite(packer:pack(Facts)),
-    io:fwrite("\n"),
+    %io:fwrite("check facts \n"),
+    %io:fwrite(packer:pack(Facts)),
+    %io:fwrite("\n"),
     Header = block_to_header(Block),
     BlockHash = hash(Block),
     {ok, Header} = headers:read(BlockHash),
-
     OldBlock = get_by_hash(Block#block.prev_hash),
     OldTrees = OldBlock#block.trees,
     PrevStateHash = roots_hash(Block#block.roots),
@@ -407,33 +418,78 @@ check(Block) ->
     Txs = Block#block.txs,
     io:fwrite(packer:pack({txs_are, Txs})),
     io:fwrite("\n"),
+    %io:fwrite(packer:pack({facts_are, Facts})),
+    %io:fwrite("\n"),
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
-    NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
+    %NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
+    if 
+        Height > 2 ->
+            io:fwrite("block newdict error "),
+            %io:fwrite(packer:pack(accounts:dict_get(keys:pubkey(), NewDict))),
+            io:fwrite("\n"),
+            %io:fwrite(packer:pack(dict:fetch_keys(NewDict))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(dict:fetch_keys(Dict))),
+            io:fwrite("\n"),
+            %io:fwrite(packer:pack(oracle_bets:dict_get({key, keys:pubkey(), 6}, Dict))),
+            io:fwrite("\n"),
+            %io:fwrite(packer:pack(oracle_bets:dict_get({key, keys:pubkey(), 6}, NewDict))),
+            %false = empty == oracle_bets:dict_get({key, keys:pubkey(), 6}, NewDict),
+            io:fwrite("\n");
+        true -> ok
+    end,
     OldSparseTrees = 
         facts_to_trie(
           Facts, trees:new(empty, empty, empty,
                            empty, empty, empty)),
+    %io:fwrite(packer:pack(governance:get(1, trees:governance(OldTrees)))),
+    %io:fwrite(packer:pack(governance:get(1, trees:governance(OldSparseTrees)))),
     PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
     PrevTreesHash = headers:trees_hash(PrevHeader),
-    NewTrees2 = dict_update_trie(Roots, 
-                                 OldSparseTrees,
-                                 NewDict),
+    %NewTrees2 = dict_update_trie(Roots, 
+    %                             OldSparseTrees,
+    %                             NewDict),
     %use NewDict to generate NewTrees
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
+    NewTrees2 = NewTrees,
     Block2 = Block#block{trees = NewTrees},
     TreesHash = trees:root_hash(Block2#block.trees),
-    %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
+    TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     io:fwrite("block check compare "),
     io:fwrite(integer_to_list(Height)),
     io:fwrite("\n"),
     io:fwrite(packer:pack({Block2#block.trees, NewTrees2, OldSparseTrees})),
+%[-7,["trees",298,1,1,1,32,1115],["trees",293,"empty","empty","empty",28,1113],["trees",292,"empty","empty","empty",25,1089]]
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack(stem:get(trees:accounts(NewTrees), trie:cfg(accounts)))),
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack(stem:get(trees:accounts(NewTrees2), trie:cfg(accounts)))),
     io:fwrite("\n"),
-    %io:fwrite(packer:pack(governance:get(1, trees:governance(OldSparseTrees)))),
-    %TreesHash = trees:root_hash2(NewTrees2, Roots),
+    io:fwrite(packer:pack(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees))))),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees2))))),
+    io:fwrite("\n"),
+    io:fwrite("block check keys  "),
+    %io:fwrite(packer:pack(dict:fetch_keys(NewDict))),
+    %Keys = dict:fetch_keys(NewDict),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack({key, keys:pubkey(), 6, Height})),
+    io:fwrite("\n"),
+    if
+        Height > 2 ->
+            Key = {oracle_bets, {key, keys:pubkey(), 6}},
+            %true = lists:member(Key, Keys),
+            io:fwrite("oracle bets check "),
+            %io:fwrite(packer:pack(oracle_bets:dict_get({key, keys:pubkey(), 6}, NewDict))),
+            io:fwrite("\n");
+        true -> ok
+    end,
+    TreesHash = headers:trees_hash(Header),
     TreesHash = headers:trees_hash(Header),
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
+    %TreesHash = trees:root_hash2(NewTrees2, Roots),
     {true, Block2}.
 
     %Initially some things in trees is the atom 'empty'.
@@ -458,6 +514,9 @@ dict_update_trie2(Trees, [H|T], Dict) ->
             end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
+    io:fwrite("dict update trie 2 "),
+    io:fwrite(packer:pack(New)),
+    io:fwrite("\n"),
     dict_update_trie2(Trees2, T, Dict).
 dict_update_trie_orders(_, [], D) -> D;
 dict_update_trie_orders(Trees, [H|T], Dict) ->
@@ -481,8 +540,9 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
     {oracle_bets, Key} = H,
     {key, Pub, OID} = Key,
     New = oracle_bets:dict_get(Key, Dict),
-    Accounts = trees:accounts(Trees),
-    {_, Account, _} = accounts:get(Pub, Accounts),
+    %Accounts = trees:accounts(Trees),
+    Account = accounts:dict_get(Pub, Dict),
+    %{_, Account, _} = accounts:get(Pub, Accounts),
     OracleBets = accounts:bets(Account),
     OracleBets2 = case New of
                   empty ->
@@ -491,7 +551,13 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
                       oracle_bets:write(New, OracleBets)
               end,
     Account2 = accounts:update_bets(Account, OracleBets2),
+    io:fwrite("block update_trie_oracle_bets "),
+    io:fwrite(packer:pack({New, Account, Account2})),
+    io:fwrite("\n"),
     Dict2 = accounts:dict_write(Account2, Dict),
+    Account20 = accounts:dict_get(Pub, Dict2),
+    io:fwrite(packer:pack({accounts_crash, Account2, Account20})),
+    Account2 = Account20,
     dict_update_trie_oracle_bets(Trees, T, Dict2).
     
 get_things(Key, L) ->
@@ -513,7 +579,7 @@ setup_tree(Empty, Start, Path, Type) ->
             Stem = stem:make(stem:empty_tuple(),
                              stem:empty_tuple(),
                              Hashes),
-                             trie:new_trie(Type, Stem);
+            trie:new_trie(Type, Stem);
         X -> X
     end.
             
@@ -530,7 +596,7 @@ ftt2(Fact, Trees) ->
             Orders3 = trees:restore(Orders2, Fact, 0),
             Oracle2 = oracles:set_orders(Oracle, Orders3),
             Oracles2 = oracles:write(Oracle2, Oracles),
-            Trees2 = trees:update_oracles(Trees, Oracles2);
+            trees:update_oracles(Trees, Oracles2);
         oracle_bets -> 
             {key, Pubkey, _OID} = proofs:key(Fact),
             Path = proofs:path(Fact),
@@ -541,10 +607,13 @@ ftt2(Fact, Trees) ->
             Bets3 = trees:restore(Bets2, Fact, 0),
             Account2 = accounts:update_bets(Account, Bets3),
             Accounts2 = accounts:write(Account2, Accounts),
-            Trees2 = trees:update_accounts(Trees, Accounts2);
+            trees:update_accounts(Trees, Accounts2);
         _ ->
             Path = proofs:path(Fact),
             Tree = setup_tree(empty, trees:Type(Trees), Path, Type),
+            %io:fwrite("ftt2 restore fact "),
+            %io:fwrite(packer:pack(Fact)),
+            %io:fwrite("\n"),
             Tree2 = trees:restore(Tree, Fact, 0),
             Update = list_to_atom("update_" ++ atom_to_list(Type)),
             trees:Update(Trees, Tree2)

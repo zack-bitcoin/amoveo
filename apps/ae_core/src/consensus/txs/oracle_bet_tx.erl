@@ -208,8 +208,10 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 	     end,
     Amount = Tx#oracle_bet.amount,
     NewOrder = orders:new(Tx#oracle_bet.from, Amount),
-    if
+    Out = 
+        if
 	TxType == OracleType ->
+                io:fwrite("oracle bet tx case 1\n"),
 	    ManyOrders = dict_orders_many(OID, Dict),
 	    Minimum = OIL * det_pow(2, max(1, ManyOrders)), 
 	    true = Amount >= Minimum,
@@ -218,20 +220,35 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 	    %NewOracle = oracles:set_orders(Oracle, NewOrders),
 	    oracles:dict_write(Oracle, Dict2);
 	true ->
-	    {Matches1, Matches2, Next, NewOrders} =
-		orders:dict_match(NewOrder, OID, Dict),
-	    %Oracle2 = oracles:set_orders(Oracle, NewOrders),
-	    Dict2 = dict_give_bets_main(From, Matches1, TxType, Dict, oracles:id(Oracle)),
-	    Dict3 = dict_give_bets(Matches2, OracleType, Dict, oracles:id(Oracle)),
-	    Oracle3 = case Next of
-			   same -> 
-			       Dict2;
-			   switch ->
-			       Oracle4 = oracles:set_done_timer(Oracle, NewHeight + MOT),
-			       oracles:set_type(Oracle4, TxType)
-		       end,
-	    oracles:dict_write(Oracle3, Dict3)
-    end.
+                io:fwrite("oracle bet tx case 2\n"),
+                %{Matches1, Matches2, Next, NewOrders} =
+                {Matches1, Matches2, Next, Dict2} =
+                    orders:dict_match(NewOrder, OID, Dict),
+                Dict3 = dict_give_bets_main(From, Matches1, TxType, Dict2, oracles:id(Oracle)),
+                Dict4 = dict_give_bets(Matches2, OracleType, Dict3, oracles:id(Oracle)),
+                Oracle3 = case Next of
+                              same -> 
+                                                %Dict2;
+                                  Oracle;
+                              switch ->
+                                                %Oracle4 = oracles:set_done_timer(Oracle, NewHeight + MOT),
+                                  Oracle4 = oracles:set_done_timer(Oracle, NewHeight + MOT),
+                                  oracles:set_type(Oracle4, TxType)
+                          end,
+                oracles:dict_write(Oracle3, Dict4)
+        end,
+    if
+        NewHeight > 2 ->
+            KeyF = {key, keys:pubkey(), 6},
+            O = oracle_bets:dict_get(KeyF, Out),
+            io:fwrite("oracle bet tx oracle_bets is "),
+            io:fwrite(packer:pack(O)),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack({KeyF, dict:fetch_keys(Out)})),
+            io:fwrite("\n");
+        true -> ok
+    end,
+    Out.
 dict_orders_many(OID, Dict) ->
     {_, Many} = orders:dict_head_get(Dict, OID),
     Many.

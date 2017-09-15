@@ -60,8 +60,7 @@ deserialize(B) ->
     <<ID:KL, True:BAL, False:BAL, Bad:BAL>> = B,
     #bet{true = True, false = False, bad = Bad, id = ID}.
 dict_write(X, Pub, Dict) ->
-    Key = X#bet.id,
-    dict:store({oracle_bets, Pub, Key},
+    dict:store({oracle_bets, {key, Pub, X#bet.id}},
                serialize(X),
                Dict).
 write(X, Tree) ->
@@ -86,13 +85,13 @@ dict_delete(Key, Dict) ->
     dict:store({oracle_bets, Key}, 0, Dict).
 delete(ID, Tree) ->
     trie:delete(ID, Tree, ?name).
-dict_add_bet(Id, OID, Type, Amount, Dict) ->
-    X = dict_get({key, Id, OID}, Dict),
+dict_add_bet(Pub, OID, Type, Amount, Dict) ->
+    X = dict_get({key, Pub, OID}, Dict),
     Y = case X of
             empty -> new(OID, Type, Amount);
             Bet -> increase(Bet, Type, Amount)
         end, 
-    dict_write(Y, Id, Dict).
+    dict_write(Y, Pub, Dict).
     
 add_bet(Id, Type, Amount, Tree) ->
     {_, X, _} = get(Id, Tree),
@@ -122,6 +121,21 @@ test() ->
 
     true = verify_proof(Root1, ID, serialize(C), Path1),
     true = verify_proof(Root2, ID, 0, Path2),
+    test2().
+test2() ->
+    OID = 1,
+    C = new(OID, 3, 100),
+    ID = C#bet.id,
+    CFG = trie:cfg(oracle_bets),
+    Dict0 = dict:new(),
+    Pub = keys:pubkey(),
+    Key = {key, Pub, ID},
+    Dict1 = dict_write(C, Pub, Dict0),
+    C = dict_get(Key, Dict1),
+    Dict2 = dict_add_bet(Pub, OID, 1, 100, Dict1),
+    Bet2 = dict_get(Key, Dict2),
+    Bet2 = increase(C, 1, 100),
     success.
     
     
+
