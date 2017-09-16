@@ -245,18 +245,6 @@ tx_costs([STx|T], Governance, Out) ->
     tx_costs(T, Governance, Cost+Out).
 new_dict(Txs, Dict, Height, Pub, PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
-    io:fwrite("block: new dict "),
-    io:fwrite(integer_to_list(Height)),
-    io:fwrite("\n"),
-    if
-        Height > 2 ->
-            %O = oracle_bets:dict_get({key, keys:pubkey(), 6}, Dict2),
-            %false = empty == O,
-            %io:fwrite("block new dict oracle_bets is "),
-            %io:fwrite(packer:pack(O)),
-            io:fwrite("\n");
-        true -> ok
-    end,
     block_reward_dict(Dict2, Height, Pub, PrevHash).
     
 new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
@@ -400,10 +388,6 @@ proofs_roots_match([P|T], R) ->
             
 check(Block) ->
     Facts = Block#block.proofs,
-    io:fwrite("block 01\n"),
-    %io:fwrite("check facts \n"),
-    %io:fwrite(packer:pack(Facts)),
-    %io:fwrite("\n"),
     Header = block_to_header(Block),
     BlockHash = hash(Block),
     {ok, Header} = headers:read(BlockHash),
@@ -411,7 +395,6 @@ check(Block) ->
     OldTrees = OldBlock#block.trees,
     PrevStateHash = roots_hash(Block#block.roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
-    io:fwrite("block 02\n"),
     PrevStateHash = headers:trees_hash(PrevHeader),
     Roots = Block#block.roots,
     true = proofs_roots_match(Block#block.proofs, Roots),
@@ -420,33 +403,9 @@ check(Block) ->
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
-    io:fwrite(packer:pack({txs_are, Txs})),
-    io:fwrite("\n"),
-    io:fwrite("block 03\n"),
-    %io:fwrite(packer:pack({facts_are, Facts})),
-    %io:fwrite("\n"),
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
-    %NewDict = Dict,
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
-    io:fwrite("block 04\n"),
-    if 
-        Height > 2 ->
-            io:fwrite("block newdict error "),
-            %io:fwrite(packer:pack(accounts:dict_get(keys:pubkey(), NewDict))),
-            io:fwrite("\n"),
-            %io:fwrite(packer:pack(dict:fetch_keys(NewDict))),
-            io:fwrite("\n"),
-            %io:fwrite(packer:pack(dict:fetch_keys(Dict))),
-            io:fwrite("\n"),
-            %io:fwrite(packer:pack(oracle_bets:dict_get({key, keys:pubkey(), 6}, Dict))),
-            io:fwrite("\n"),
-            %io:fwrite(packer:pack(oracle_bets:dict_get({key, keys:pubkey(), 6}, NewDict))),
-            %false = empty == oracle_bets:dict_get({key, keys:pubkey(), 6}, NewDict),
-            io:fwrite("\n");
-        true -> ok
-    end,
-    io:fwrite("block 05\n"),
     OldSparseTrees = 
         facts_to_trie(
           Facts, trees:new(empty, empty, empty,
@@ -455,9 +414,9 @@ check(Block) ->
     %io:fwrite(packer:pack(governance:get(1, trees:governance(OldSparseTrees)))),
     PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
     PrevTreesHash = headers:trees_hash(PrevHeader),
-    %NewTrees2 = dict_update_trie(Roots, 
-    %                             OldSparseTrees,
-    %                             NewDict),
+    NewTrees2 = dict_update_trie(Roots, 
+                                 OldSparseTrees,
+                                 NewDict),
     %use NewDict to generate NewTrees
     io:fwrite("block 06\n"),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
@@ -549,9 +508,7 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
     {oracle_bets, Key} = H,
     {key, Pub, OID} = Key,
     New = oracle_bets:dict_get(Key, Dict),
-    %Accounts = trees:accounts(Trees),
     Account = accounts:dict_get(Pub, Dict),
-    %{_, Account, _} = accounts:get(Pub, Accounts),
     OracleBets = accounts:bets(Account),
     OracleBets2 = case New of
                   empty ->
@@ -559,14 +516,7 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
                   _ ->
                       oracle_bets:write(New, OracleBets)
               end,
-    Account2 = accounts:update_bets(Account, OracleBets2),
-    io:fwrite("block update_trie_oracle_bets "),
-    io:fwrite(packer:pack({New, Account, Account2})),
-    io:fwrite("\n"),
-    Dict2 = accounts:dict_write(Account2, Dict),
-    Account20 = accounts:dict_get(Pub, Dict2),
-    io:fwrite(packer:pack({accounts_crash, Account2, Account20})),
-    Account2 = Account20,
+    Dict2 = accounts:dict_write(Account, OracleBets2, Dict),
     dict_update_trie_oracle_bets(Trees, T, Dict2).
     
 get_things(Key, L) ->

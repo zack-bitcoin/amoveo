@@ -178,12 +178,10 @@ new_balance(Account, Amount, NewHeight, Trees) ->
     Amount + Account#acc.balance - (Rent * HeightDiff).
 
 serialize(Account) ->
-    io:fwrite("accounts serialize 99\n"),
     true = size(Account#acc.pubkey) == constants:pubkey_size(),
     BalanceSize = constants:balance_bits(),
     HeightSize = constants:height_bits(),
     NonceSize = constants:account_nonce_bits(),
-    io:fwrite("accounts serialize 00\n"),
     HS = constants:hash_size()*8,
     BetsRoot = case Account#acc.bets of
                    0 -> <<0:HS>>;
@@ -192,14 +190,12 @@ serialize(Account) ->
     %BetsRoot = oracle_bets:root_hash(Account#acc.bets),
     HashSize = constants:hash_size(),
     true = size(BetsRoot) == HashSize,
-    io:fwrite("accounts serialize 01\n"),
     SerializedAccount =
         <<(Account#acc.balance):BalanceSize,
           (Account#acc.nonce):NonceSize,
           (Account#acc.height):HeightSize,
           (Account#acc.pubkey)/binary,
          BetsRoot/binary>>,
-    io:fwrite("accounts serialize 02\n"),
     true = size(SerializedAccount) == constants:account_size(),
     SerializedAccount.
 
@@ -265,4 +261,5 @@ test() ->
     true = verify_proof(Root, Pub, serialize(Acc), Proof),
     {Root2, empty, Proof2} = get(Pub, Root0),
     true = verify_proof(Root2, Pub, 0, Proof2),
+
     success.
