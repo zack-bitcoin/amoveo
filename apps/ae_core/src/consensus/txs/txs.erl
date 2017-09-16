@@ -32,6 +32,9 @@ digest_from_dict([STx|T], Dict, Height) ->
     NewDict = digest_from_dict2(Tx, Dict, Height),
     digest_from_dict(T, NewDict, Height).
 digest_from_dict2(Tx, Dict, H) ->
+    io:fwrite("processing block of type "),
+    io:fwrite(element(1, Tx)),
+    io:fwrite("\n"),
     case element(1, Tx) of
         create_acc_tx -> create_account_tx:go(Tx, Dict, H);
         spend -> spend_tx:go(Tx, Dict, H);

@@ -214,6 +214,7 @@ dict_get(Key, Dict) ->
     X = dict:fetch({channels, Key}, Dict),
     case X of
         0 -> empty;
+        empty -> empty;
         _ -> deserialize(X)
     end.
 dict_delete(Key, Dict) ->      

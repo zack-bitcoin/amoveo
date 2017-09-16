@@ -5,14 +5,14 @@
 	 balance/1,root_hash/1,now_balance/4,delete/2,
 	 bets/1, bets_hash/1, update_bets/2,
 	 ensure_decoded_hashed/1, height/1, verify_proof/4,
-         dict_write/2, dict_delete/2,
+         dict_write/2, dict_write/3, dict_delete/2,
          make_leaf/3, key_to_int/1,
 	 serialize/1, deserialize/1, pubkey/1, test/0]).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
 	      pubkey = <<>>,
-	      bets = 1,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
+	      bets = 0,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
               bets_hash = <<>>}).
 -define(id, accounts).
 
@@ -49,11 +49,16 @@ dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Bets) ->
     true = NewHeight >= OldHeight,
     NewBalance = new_balance_dict(Account, Amount, NewHeight, Dict),
     true = NewBalance > 0,
+    BH = case Bets of
+             0 -> Account#acc.bets_hash;
+             X -> oracle_bets:root_hash(X)
+         end,
+    %BH = oracle_bets:root_hash(Bets),
     Account#acc{balance = NewBalance,
                 nonce = FinalNonce,
                 height = NewHeight,
                 bets = Bets,
-                bets_hash = oracle_bets:root_hash(Bets)}.
+                bets_hash = BH}.
 
 update(Pub, Trees, Amount, NewNonce, NewHeight) ->
     PubHash = ensure_decoded_hashed(Pub),
@@ -116,12 +121,13 @@ get(Pub, Accounts) ->
               end,
     {RH, Account, Proof}.
 dict_write(Account, Dict) ->
-    dict_write(Account, 0, Dict).
+    dict_write(Account, 1, Dict).
 dict_write(Account, Meta, Dict) ->
     Pub = Account#acc.pubkey,
-    dict:store({accounts, Pub}, 
-               {serialize(Account), Meta},
-               Dict).
+    Out = dict:store({accounts, Pub}, 
+                     {serialize(Account), Meta},
+                     Dict),
+    Out.
 write(Account, Root) ->
     Pub = Account#acc.pubkey,
     SizePubkey = constants:pubkey_size(),
@@ -172,20 +178,28 @@ new_balance(Account, Amount, NewHeight, Trees) ->
     Amount + Account#acc.balance - (Rent * HeightDiff).
 
 serialize(Account) ->
+    io:fwrite("accounts serialize 99\n"),
     true = size(Account#acc.pubkey) == constants:pubkey_size(),
     BalanceSize = constants:balance_bits(),
     HeightSize = constants:height_bits(),
     NonceSize = constants:account_nonce_bits(),
-    
-    BetsRoot = oracle_bets:root_hash(Account#acc.bets),
+    io:fwrite("accounts serialize 00\n"),
+    HS = constants:hash_size()*8,
+    BetsRoot = case Account#acc.bets of
+                   0 -> <<0:HS>>;
+                   X -> oracle_bets:root_hash(X)
+               end,
+    %BetsRoot = oracle_bets:root_hash(Account#acc.bets),
     HashSize = constants:hash_size(),
     true = size(BetsRoot) == HashSize,
+    io:fwrite("accounts serialize 01\n"),
     SerializedAccount =
         <<(Account#acc.balance):BalanceSize,
           (Account#acc.nonce):NonceSize,
           (Account#acc.height):HeightSize,
           (Account#acc.pubkey)/binary,
          BetsRoot/binary>>,
+    io:fwrite("accounts serialize 02\n"),
     true = size(SerializedAccount) == constants:account_size(),
     SerializedAccount.
 
@@ -232,6 +246,7 @@ dict_get(Key, Dict) ->
     X = dict:fetch({accounts, Key}, Dict),
     case X of
         0 -> empty;
+        {0, _} -> empty;
         {Y, Meta} -> 
             Y2 = deserialize(Y),
             Y2#acc{bets = Meta}%;
@@ -242,7 +257,8 @@ test() ->
     {Pub, _Priv} = testnet_sign:new_key(),
     Acc = new(Pub, 0, 0),
     S = serialize(Acc),
-    Acc = deserialize(S),
+    Acc1 = deserialize(S),
+    Acc = Acc1#acc{bets = Acc#acc.bets},
     Root0 = constants:root0(),
     NewLoc = write(Acc, Root0),
     {Root, Acc, Proof} = get(Pub, NewLoc),

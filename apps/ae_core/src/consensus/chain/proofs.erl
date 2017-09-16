@@ -163,8 +163,8 @@ facts_to_dict([F|T], D) ->
 	_ -> Value0
     end,
     Value3 = case Tree of
-                accounts -> {Value2, 0};
-                _ -> Value2
+                 accounts -> {Value0, 0};
+                 _ -> Value0
             end,
     D2 = dict:store({Tree, Key}, Value3, D),
     facts_to_dict(T, D2).

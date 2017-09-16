@@ -25,6 +25,13 @@ go(Tx, Dict, NewHeight) ->
     BlockReward = governance:dict_get_value(block_reward, Dict),
     Nacc = case X of
                empty -> accounts:new(From, BlockReward, NewHeight);
-               _ -> accounts:dict_update(From, Dict, BlockReward, none, NewHeight)
+               _ -> 
+                   io:fwrite("update\n"),
+                   accounts:dict_update(From, Dict, BlockReward, none, NewHeight)
            end,
-    accounts:dict_write(Nacc, Dict).
+    io:fwrite(packer:pack(Nacc)),
+    io:fwrite("\n"),
+    Out = accounts:dict_write(Nacc, Dict),
+    io:fwrite("end\n"),
+    Out.
+    

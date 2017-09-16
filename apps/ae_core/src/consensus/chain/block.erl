@@ -427,17 +427,17 @@ check(Block) ->
     %io:fwrite("\n"),
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
-    NewDict = Dict,
-    %NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
+    %NewDict = Dict,
+    NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
     io:fwrite("block 04\n"),
     if 
         Height > 2 ->
             io:fwrite("block newdict error "),
-            io:fwrite(packer:pack(accounts:dict_get(keys:pubkey(), NewDict))),
+            %io:fwrite(packer:pack(accounts:dict_get(keys:pubkey(), NewDict))),
             io:fwrite("\n"),
-            io:fwrite(packer:pack(dict:fetch_keys(NewDict))),
+            %io:fwrite(packer:pack(dict:fetch_keys(NewDict))),
             io:fwrite("\n"),
-            io:fwrite(packer:pack(dict:fetch_keys(Dict))),
+            %io:fwrite(packer:pack(dict:fetch_keys(Dict))),
             io:fwrite("\n"),
             %io:fwrite(packer:pack(oracle_bets:dict_get({key, keys:pubkey(), 6}, Dict))),
             io:fwrite("\n"),
