@@ -5,7 +5,8 @@
 	 get_value/2, serialize/1, name2number/1,
 	 verify_proof/4, root_hash/1, dict_get/2,
          dict_get_value/2, dict_lock/2, dict_unlock/2,
-         make_leaf/3, key_to_int/1,
+         make_leaf/3, key_to_int/1, deserialize/1,
+         dict_write/2,
 	 test/0]).
 -record(gov, {id, value, lock}).
 

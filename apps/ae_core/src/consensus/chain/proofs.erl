@@ -141,8 +141,10 @@ facts_to_dict([F|T], D) ->
                 K = F#proof.key,
                 Pub = K#key.pub,
                 ID = K#key.id,
-                Account = dict:fetch({accounts, Pub}, D),
-                RH = accounts:bets_hash(accounts:deserialize(Account)),
+                %Account = accounts:dict_get(Pub, D),
+                %Account = dict:fetch({accounts, Pub}, D),
+                %RH = accounts:bets_hash(accounts:deserialize(Account)),
+                %RH = accounts:bets_hash(Account),
                 RH = F#proof.root,
                 ID;
 	_ ->
@@ -155,12 +157,16 @@ facts_to_dict([F|T], D) ->
           F#proof.value,
           F#proof.path),
     Key = F#proof.key,
-    Value = F#proof.value,
-    Value2 = case Value of
+    Value0 = F#proof.value,
+    Value2 = case Value0 of
 	0 -> empty;
-	_ -> Value
+	_ -> Value0
     end,
-    D2 = dict:store({Tree, Key}, Value, D),
+    Value3 = case Tree of
+                accounts -> {Value2, 0};
+                _ -> Value2
+            end,
+    D2 = dict:store({Tree, Key}, Value3, D),
     facts_to_dict(T, D2).
 hash(F) ->
     testnet_hasher:doit(F).

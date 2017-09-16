@@ -103,13 +103,13 @@ go(Tx, Dict, NewHeight) ->
                 GovAmount = 0,
                 Dict;
             G ->
-                Recent = oracles:dict_get(Tx#oracle_new.recent_price, Dict),
+                %Recent = oracles:dict_get(Tx#oracle_new.recent_price, Dict),
                 true = GovAmount > 0,
-                3 = oracles:result(Recent),
+                %3 = oracles:result(Recent),
                 GD = governance:dict_get_value(governance_delay, Dict),
-                true = NewHeight - oracles:done_timer(Recent) < GD,
-		Dif = oracles:difficulty(Recent),
-		Dif = Tx#oracle_new.difficulty,
+                %true = NewHeight - oracles:done_timer(Recent) < GD,
+		%Dif = oracles:difficulty(Recent),
+		%Dif = Tx#oracle_new.difficulty,
 		Question = <<"">>,
                 GVar = governance:dict_get(G, Dict),
                 false = governance:is_locked(GVar),
@@ -118,15 +118,15 @@ go(Tx, Dict, NewHeight) ->
     ok = case Question of
              <<"">> -> ok;
              Q ->
-                 Recent2 = oracles:dict_get(Tx#oracle_new.recent_price, Dict),
+                 %Recent2 = oracles:dict_get(Tx#oracle_new.recent_price, Dict),
                  MQS = governance:dict_get_value(maximum_question_size, Dict2),
                  true = size(Q) < MQS,
                  0 = GovAmount,
-		 Di = oracles:difficulty(Recent2) div 2,
+		 %Di = oracles:difficulty(Recent2) div 2,
 		 Di = Tx#oracle_new.difficulty,
-		 3 = oracles:result(Recent2),
-		 QD = governance:dict_get_value(question_delay, Dict2),
-                 true = NewHeight - oracles:done_timer(Recent2) < QD,
+		 %3 = oracles:result(Recent2),
+		 %QD = governance:dict_get_value(question_delay, Dict2),
+                 %true = NewHeight - oracles:done_timer(Recent2) < QD,
                  ok
          end,
     From = Tx#oracle_new.from,

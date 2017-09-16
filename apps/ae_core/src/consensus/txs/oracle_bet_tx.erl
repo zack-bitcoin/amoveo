@@ -187,7 +187,6 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     From = Tx#oracle_bet.from,
     OID = Tx#oracle_bet.id,
     Oracle0 = oracles:dict_get(OID, Dict),
-    %Orders0 = orders:dict_get({key, From, OID}, Dict),
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict),
     VolumeCheck = orders:dict_significant_volume(Dict, OID, OIL),
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
@@ -239,12 +238,12 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
         end,
     if
         NewHeight > 2 ->
-            KeyF = {key, keys:pubkey(), 6},
-            O = oracle_bets:dict_get(KeyF, Out),
-            io:fwrite("oracle bet tx oracle_bets is "),
-            io:fwrite(packer:pack(O)),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack({KeyF, dict:fetch_keys(Out)})),
+            %KeyF = {key, keys:pubkey(), 6},
+            %O = oracle_bets:dict_get(KeyF, Out),
+            %io:fwrite("oracle bet tx oracle_bets is "),
+            %io:fwrite(packer:pack(O)),
+            %io:fwrite("\n"),
+            %io:fwrite(packer:pack({KeyF, dict:fetch_keys(Out)})),
             io:fwrite("\n");
         true -> ok
     end,

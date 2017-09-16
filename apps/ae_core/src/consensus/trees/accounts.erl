@@ -116,9 +116,11 @@ get(Pub, Accounts) ->
               end,
     {RH, Account, Proof}.
 dict_write(Account, Dict) ->
+    dict_write(Account, 0, Dict).
+dict_write(Account, Meta, Dict) ->
     Pub = Account#acc.pubkey,
     dict:store({accounts, Pub}, 
-               serialize(Account),
+               {serialize(Account), Meta},
                Dict).
 write(Account, Root) ->
     Pub = Account#acc.pubkey,
@@ -230,7 +232,10 @@ dict_get(Key, Dict) ->
     X = dict:fetch({accounts, Key}, Dict),
     case X of
         0 -> empty;
-        _ -> deserialize(X)
+        {Y, Meta} -> 
+            Y2 = deserialize(Y),
+            Y2#acc{bets = Meta}%;
+        %Z -> deserialize(Z)
     end.
 
 test() ->
