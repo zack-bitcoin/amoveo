@@ -5,12 +5,12 @@
 	 set_orders/2, done_timer/1, set_done_timer/2,
 	 set_result/2, set_type/2, governance/1,
 	 governance_amount/1, creator/1, serialize/1, deserialize/1,
-	 verify_proof/4, dict_get/2, dict_write/2, make_leaf/3,
-         key_to_int/1,
+	 verify_proof/4, dict_get/2, dict_write/2, dict_write/3, 
+         make_leaf/3, key_to_int/1,
 	 test/0]).
 -define(name, oracles).
 -record(oracle, {id, 
-		 result, 
+		 result, % 3 0
 		 question, 
 		 starts, 
 		 type, %0 means order book is empty, 1 means the order book is holding shares of true, 2 means it holds false, 3 means that it holds shares of "bad question".
@@ -18,7 +18,7 @@
 		 orders_hash,
 		 creator,
 		 difficulty,
-		 done_timer,
+		 done_timer, % 3 2
 		 governance = 0,%if it is non-zero, then this is a governance oracle which can update the value of the variables that define the protocol.
 		 governance_amount = 0}).
 %we need to store a pointer to the orders tree in the meta data.
@@ -87,7 +87,7 @@ new(ID, Question, Starts, Creator, Difficulty, GovernanceVar, GovAmount, Trees) 
 	   }.
 root_hash(Root) ->
     trie:root_hash(?name, Root).
-dict_serialize(X) ->
+serialize(X) ->
     KL = constants:key_length(),
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),
@@ -113,10 +113,6 @@ dict_serialize(X) ->
       (X#oracle.creator)/binary,
       Question/binary,
       Orders/binary>>.
-serialize(X) ->
-    %Orders = orders:root_hash(X#oracle.orders),
-    %Orders = X#oracle.orders_hash,
-    dict_serialize(X).
 deserialize(X) ->
     KL = constants:key_length(),
     PS = constants:pubkey_size()*8,
@@ -149,9 +145,11 @@ deserialize(X) ->
            orders_hash = <<Orders:HS>>
       }.
 dict_write(Oracle, Dict) ->
+    dict_write(Oracle, 1, Dict).
+dict_write(Oracle, Meta, Dict) ->
     Key = Oracle#oracle.id,
     dict:store({oracles, Key},
-               dict_serialize(Oracle),
+               {serialize(Oracle), Meta},
                Dict).
 write(Oracle, Root) ->
     %meta is a pointer to the orders tree.
@@ -163,7 +161,11 @@ dict_get(ID, Dict) ->
     X = dict:fetch({oracles, ID}, Dict),
     case X of
         0 -> empty;
-        _ -> deserialize(X)
+        {0, _} -> empty;
+        {Y, Meta} ->
+            Y2 = deserialize(Y),
+            Y2#oracle{orders = Meta}
+        %_ -> deserialize(X)
     end.
 key_to_int(X) -> X.
 get(ID, Root) ->

@@ -410,49 +410,20 @@ check(Block) ->
         facts_to_trie(
           Facts, trees:new(empty, empty, empty,
                            empty, empty, empty)),
-    %io:fwrite(packer:pack(governance:get(1, trees:governance(OldTrees)))),
-    %io:fwrite(packer:pack(governance:get(1, trees:governance(OldSparseTrees)))),
     PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
     PrevTreesHash = headers:trees_hash(PrevHeader),
     NewTrees2 = dict_update_trie(Roots, 
                                  OldSparseTrees,
                                  NewDict),
-    %use NewDict to generate NewTrees
     io:fwrite("block 06\n"),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
-    %NewTrees2 = NewTrees,
     Block2 = Block#block{trees = NewTrees},
     TreesHash = trees:root_hash(Block2#block.trees),
     TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     io:fwrite("block check compare "),
     io:fwrite(integer_to_list(Height)),
     io:fwrite("\n"),
-    %io:fwrite(packer:pack({Block2#block.trees, NewTrees2, OldSparseTrees})),
-%[-7,["trees",298,1,1,1,32,1115],["trees",293,"empty","empty","empty",28,1113],["trees",292,"empty","empty","empty",25,1089]]
-    %io:fwrite("\n"),
-    %io:fwrite(packer:pack(stem:get(trees:accounts(NewTrees), trie:cfg(accounts)))),
-    %io:fwrite("\n"),
-    %io:fwrite(packer:pack(stem:get(trees:accounts(NewTrees2), trie:cfg(accounts)))),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees))))),
-    io:fwrite("\n"),
-    %io:fwrite(packer:pack(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees2))))),
-    io:fwrite("\n"),
-    io:fwrite("block check keys  "),
-    %io:fwrite(packer:pack(dict:fetch_keys(NewDict))),
-    %Keys = dict:fetch_keys(NewDict),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack({key, keys:pubkey(), 6, Height})),
-    io:fwrite("\n"),
-    if
-        Height > 2 ->
-            Key = {oracle_bets, {key, keys:pubkey(), 6}},
-            %true = lists:member(Key, Keys),
-            io:fwrite("oracle bets check "),
-            %io:fwrite(packer:pack(oracle_bets:dict_get({key, keys:pubkey(), 6}, NewDict))),
-            io:fwrite("\n");
-        true -> ok
-    end,
+    io:fwrite(packer:pack({Block2#block.trees, NewTrees2})),%, OldSparseTrees})),
     TreesHash = headers:trees_hash(Header),
     TreesHash = headers:trees_hash(Header),
     TreesHash = Block2#block.trees_hash,
@@ -500,8 +471,8 @@ dict_update_trie_orders(Trees, [H|T], Dict) ->
                   _ ->
                       orders:write(New, Orders)
               end,
-    Oracle2 = oracles:set_orders(Oracle, Orders2),
-    Dict2 = oracles:dict_write(Oracle2, Dict),
+    %Oracle2 = oracles:set_orders(Oracle, Orders2),
+    Dict2 = oracles:dict_write(Oracle, Orders2, Dict),
     dict_update_trie_orders(Trees, T, Dict2).
 dict_update_trie_oracle_bets(_, [], D) -> D;
 dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
@@ -535,9 +506,10 @@ setup_tree(Empty, Start, Path, Type) ->
     case Start of
         Empty ->
             Hashes = hd(lists:reverse(Path)),
-            Stem = stem:make(stem:empty_tuple(),
-                             stem:empty_tuple(),
-                             Hashes),
+            Stem = stem:make(Hashes, Type),
+            %Stem = stem:make(stem:empty_tuple(),
+            %                 stem:empty_tuple(),
+            %                 Hashes),
             trie:new_trie(Type, Stem);
         X -> X
     end.

@@ -28,6 +28,9 @@ doit(Tx, Trees, NewHeight) ->
 		 VolumeCheck -> oracles:type(Oracle);
 		 true -> 3
 	     end,
+    io:fwrite("oracle close tree result "),
+    io:fwrite(packer:pack(Result)),
+    io:fwrite("\n"),
     Oracle2 = oracles:set_result(Oracle, Result),
     Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
     Oracles2 = oracles:write(Oracle3, Oracles),
@@ -91,10 +94,19 @@ go(Tx, Dict, NewHeight) ->
     true = oracles:starts(Oracle) =< NewHeight,
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
     VolumeCheck = orders:dict_significant_volume(Dict2, OID, OIL),
+    io:fwrite("oracle close dict oracle "),
+    io:fwrite(packer:pack(Oracle)),
+    io:fwrite("\n"),
+    io:fwrite("oracle close dict volume check "),
+    io:fwrite(packer:pack(VolumeCheck)),
+    io:fwrite("\n"),
     Result = if
 		 VolumeCheck -> oracles:type(Oracle);
 		 true -> 3
 	     end,
+    io:fwrite("oracle close dict result "),
+    io:fwrite(packer:pack(Result)),
+    io:fwrite("\n"),
     Oracle2 = oracles:set_result(Oracle, Result),
     Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
     Dict4 = oracles:dict_write(Oracle3, Dict2),

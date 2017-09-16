@@ -1,7 +1,9 @@
 Our current strategy doesn't work.
 serialized accounts don't store the pointer to the oracle_bets.
-maybe we should build trees in a different order.
 maybe account and oracle dicts should store an extra pointer called "meta", just like they do in the dictionary.
+
+The above worked correctly for accounts and oracle bets.
+Next we want to do the same for oracles and orders.
 
 
 verifying a block should not require looking at the previous block. This way we can verify them in parallel.

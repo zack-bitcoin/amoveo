@@ -132,20 +132,20 @@ facts_to_dict([F|T], D) ->
             orders -> 
                 K = F#proof.key,
                 Pub = K#key.pub,
-                ID = K#key.id,
-                Oracle = dict:fetch({oracles, ID}, D),
-                RH = oracles:orders_hash(oracles:deserialize(Oracle)),
-                RH = F#proof.root,
+                %ID = K#key.id,
+                %Oracle = dict:fetch({oracles, ID}, D),
+                %RH = oracles:orders_hash(oracles:deserialize(Oracle)),
+                %RH = F#proof.root,
                 Pub;
             oracle_bets -> 
                 K = F#proof.key,
-                Pub = K#key.pub,
+                %Pub = K#key.pub,
                 ID = K#key.id,
                 %Account = accounts:dict_get(Pub, D),
                 %Account = dict:fetch({accounts, Pub}, D),
                 %RH = accounts:bets_hash(accounts:deserialize(Account)),
                 %RH = accounts:bets_hash(Account),
-                RH = F#proof.root,
+                %RH = F#proof.root,
                 ID;
 	_ ->
             F#proof.key
@@ -164,6 +164,7 @@ facts_to_dict([F|T], D) ->
     end,
     Value3 = case Tree of
                  accounts -> {Value0, 0};
+                 oracles -> {Value0, 0};
                  _ -> Value0
             end,
     D2 = dict:store({Tree, Key}, Value3, D),

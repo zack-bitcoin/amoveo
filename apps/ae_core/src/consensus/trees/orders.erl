@@ -14,10 +14,14 @@
 -record(orders, {aid, amount, pointer}).
 dict_significant_volume(Dict, OID, OIL) ->
     ManyOrders = dict_many(Dict, OID),
+    io:fwrite("dict sig volume many is "),
+    io:fwrite(integer_to_list(ManyOrders)),
+    io:fwrite("\n"),
     if 
         ManyOrders == 0 -> false;
         ManyOrders > 2 -> true;
         true ->
+            io:fwrite("dict complex\n"),
             {Head, _} = dict_head_get(Dict, OID),
             Order0 = dict_get({key, Head, OID}, Dict),
             amount(Order0) > OIL
@@ -25,16 +29,20 @@ dict_significant_volume(Dict, OID, OIL) ->
             
 significant_volume(Root, Trees) ->
     ManyOrders = many(Root),
+    io:fwrite("sig volume many is "),
+    io:fwrite(integer_to_list(ManyOrders)),
+    io:fwrite("\n"),
         if
             ManyOrders == 0 ->
                  false;
             ManyOrders > 2 -> true;
             true -> 
-                    {Head, _} = head_get(Root),
-                    {_, Order0, _} = get(Head, Root),
-                    Governance = trees:governance(Trees),
-                    OIL = governance:get_value(oracle_initial_liquidity, Governance),
-                    (orders:amount(Order0) > OIL)
+                io:fwrite("complex\n"),
+                {Head, _} = head_get(Root),
+                {_, Order0, _} = get(Head, Root),
+                Governance = trees:governance(Trees),
+                OIL = governance:get_value(oracle_initial_liquidity, Governance),
+                (orders:amount(Order0) > OIL)
     end.
 dict_many(Dict, OID) -> 
     {_, Many} = dict_head_get(Dict, OID),
