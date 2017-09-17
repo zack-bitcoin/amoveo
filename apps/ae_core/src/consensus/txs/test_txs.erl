@@ -26,7 +26,7 @@ absorb(Tx) ->
     tx_pool_feeder:absorb(Tx).
     %timer:sleep(400).
 test(1) ->
-    io:fwrite(" create_account tx"),
+    io:fwrite(" create_account tx test \n"),
     %create account, spend, delete account
     BP = block:get_by_height_in_chain(0, headers:top()),
     PH = block:hash(BP),
@@ -67,7 +67,7 @@ test(1) ->
     success;
     
 test(2) ->
-    io:fwrite(" repo tx"),
+    io:fwrite(" repo tx test \n"),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     tx_pool:dump(),
@@ -93,7 +93,7 @@ test(2) ->
     {true, _} = block:check(Block),
     success;
 test(3) ->
-    io:fwrite(" new channel tx"),
+    io:fwrite(" new channel tx test \n"),
     %new channel, grow channel, channel team close
     headers:dump(),
     block:initialize_chain(),
@@ -145,7 +145,7 @@ test(3) ->
     
 test(5) -> 
     %channel solo close, channel timeout
-    io:fwrite("channel solo close tx"),
+    io:fwrite("channel solo close tx test \n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -199,7 +199,7 @@ test(5) ->
     {true, _} = block:check(Block),
     success;
 test(6) -> 
-    io:fwrite("channel slash tx"),
+    io:fwrite("channel slash tx test \n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -274,7 +274,7 @@ test(7) ->
     %existence tx
     headers:dump(),
     block:initialize_chain(),
-    io:fwrite("existence test"),
+    io:fwrite("existence test \n"),
     S = <<"test data">>,
     tx_pool:dump(),
     {Trees,_,_} = tx_pool:data(),
@@ -295,7 +295,7 @@ test(7) ->
     {true, _} = block:check(Block),
     success;
 test(11) ->
-    io:fwrite("testing an oracle"),
+    io:fwrite("testing an oracle \n"),
     %testing the oracle
     %launch an oracle with oracle_new
     Question = <<>>,
@@ -359,7 +359,7 @@ test(11) ->
     {true, _} = block:check(Block),
     success;
 test(12) ->
-    io:fwrite("multiple bets in a single channel"),
+    io:fwrite("multiple bets in a single channel test \n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -416,7 +416,7 @@ test(12) ->
 test(13) ->
     %testing the governance
     %launch an oracle with oracle_new, close it on state "bad", 
-    io:fwrite("test governance"),
+    io:fwrite("test governance \n"),
     Question = <<>>,
     OID = 6,
     Fee = 20,
@@ -462,7 +462,7 @@ test(13) ->
     success;
 test(14) -> 
     %options
-    io:fwrite("options derivatives enforcement"),
+    io:fwrite("options derivatives enforcement test\n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -534,7 +534,7 @@ test(14) ->
 
 test(15) ->
     %If your partner tries closing at a low-nonced channel state, your node needs to automatically create a channel_slash to stop them.
-    io:fwrite("channel slash automatic"),
+    io:fwrite("channel slash automatic test\n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -582,7 +582,7 @@ test(15) ->
     absorb(Stx3),
     timer:sleep(200),
     {_, _, Txs2} = tx_pool:data(),
-    io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
+    %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),

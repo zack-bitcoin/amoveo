@@ -26,12 +26,8 @@ go(Tx, Dict, NewHeight) ->
     Nacc = case X of
                empty -> accounts:new(From, BlockReward, NewHeight);
                _ -> 
-                   io:fwrite("update\n"),
                    accounts:dict_update(From, Dict, BlockReward, none, NewHeight)
            end,
-    io:fwrite(packer:pack(Nacc)),
-    io:fwrite("\n"),
     Out = accounts:dict_write(Nacc, Dict),
-    io:fwrite("end\n"),
     Out.
     

@@ -68,7 +68,9 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
     VolumeCheck = orders:significant_volume(Orders0, Trees2),
     Governance = trees:governance(Trees2),
     MOT = governance:get_value(minimum_oracle_time, Governance),
-
+    io:fwrite("oracle bet tx volume check doit2 "),
+    io:fwrite(packer:pack(NewHeight + MOT)),
+    io:fwrite("\n"),
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
@@ -99,9 +101,12 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 	    NewOracles = oracles:write(NewOracle, Oracles),
 	    trees:update_oracles(Trees2, NewOracles);
 	true ->
-            %io:fwrite("oracle bet tx path2\n"),
+            io:fwrite("oracle bet tx path2\n"),
 	    {Matches1, Matches2, Next, NewOrders} =
 		orders:match(NewOrder, Orders),
+            %io:fwrite("doit next is "),
+            %io:fwrite(packer:pack(Next)),
+            %io:fwrite("\n"),
             %Matches2 is empty.
             %io:fwrite(packer:pack({oracle_bet_tx_matches2, Matches1, Matches2, NewOrders})),
             %io:fwrite("\n"),%everything from matches2, id 0, The location about to be filled, the last bet if it exists.
@@ -117,6 +122,9 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 			       Oracle4 = oracles:set_done_timer(Oracle2, NewHeight + MOT),
 			       oracles:set_type(Oracle4, TxType)
 		       end,
+            io:fwrite("final oracle tree mode "),
+            io:fwrite(packer:pack(Oracle3)),
+            io:fwrite("\n"),
 	    NewOracles = oracles:write(Oracle3, Oracles),
 	    trees:update_oracles(Trees3, NewOracles)
     end.
@@ -149,7 +157,7 @@ give_bets_main(Id, Orders, Type, Accounts, OID) ->
     %Id bought many orders of the same type. sum up all the amounts, and give him this many bets.
     %return the new accounts tree
     Amount = sum_order_amounts(Orders, 0),
-{_, Acc, _} = accounts:get(Id, Accounts),
+    {_, Acc, _} = accounts:get(Id, Accounts),
     OldBets = accounts:bets(Acc),
     NewBets = oracle_bets:add_bet(OID, Type, 2*Amount, OldBets),
     Acc2 = accounts:update_bets(Acc, NewBets),
@@ -190,6 +198,9 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict),
     VolumeCheck = orders:dict_significant_volume(Dict, OID, OIL),
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
+    io:fwrite("oracle bet tx volume check go2 "),
+    io:fwrite(packer:pack(NewHeight + MOT )),
+    io:fwrite("\n"),
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
@@ -223,6 +234,9 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                 %{Matches1, Matches2, Next, NewOrders} =
                 {Matches1, Matches2, Next, Dict2} =
                     orders:dict_match(NewOrder, OID, Dict),
+                %io:fwrite("go TxType is "),
+                %io:fwrite(packer:pack(TxType)),
+                %io:fwrite("\n"),
                 Dict3 = dict_give_bets_main(From, Matches1, TxType, Dict2, oracles:id(Oracle)),
                 Dict4 = dict_give_bets(Matches2, OracleType, Dict3, oracles:id(Oracle)),
                 Oracle3 = case Next of
@@ -230,18 +244,23 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                                                 %Dict2;
                                   Oracle;
                               switch ->
-                                                %Oracle4 = oracles:set_done_timer(Oracle, NewHeight + MOT),
                                   Oracle4 = oracles:set_done_timer(Oracle, NewHeight + MOT),
                                   oracles:set_type(Oracle4, TxType)
                           end,
+                io:fwrite("final oracle dict mode "),
+                io:fwrite(packer:pack(Oracle3)),
+                io:fwrite("\n"),
                 oracles:dict_write(Oracle3, Dict4)
         end,
     if
         NewHeight > 2 ->
             %KeyF = {key, keys:pubkey(), 6},
-            %O = oracle_bets:dict_get(KeyF, Out),
+            %OB = oracle_bets:dict_get(KeyF, Out),
             %io:fwrite("oracle bet tx oracle_bets is "),
-            %io:fwrite(packer:pack(O)),
+            %io:fwrite(packer:pack(OB)),
+            %io:fwrite("\n"),
+            %O = oracles:dict_get(6, Out),
+            %io:fwrite(packer:pack({oracle_6, O})),
             %io:fwrite("\n"),
             %io:fwrite(packer:pack({KeyF, dict:fetch_keys(Out)})),
             io:fwrite("\n");

@@ -10,15 +10,15 @@
 	 test/0]).
 -define(name, oracles).
 -record(oracle, {id, 
-		 result, % 3 0
+		 result, 
 		 question, 
 		 starts, 
-		 type, %0 means order book is empty, 1 means the order book is holding shares of true, 2 means it holds false, 3 means that it holds shares of "bad question".
+		 type, %0 means order book is empty, 1 means the order book is holding shares of true, 2 means it holds false, 3 means that it holds shares of "bad question". % 3 1
 		 orders = 1,
 		 orders_hash,
 		 creator,
 		 difficulty,
-		 done_timer, % 3 2
+		 done_timer, % 3 4
 		 governance = 0,%if it is non-zero, then this is a governance oracle which can update the value of the variables that define the protocol.
 		 governance_amount = 0}).
 %we need to store a pointer to the orders tree in the meta data.
@@ -105,7 +105,6 @@ serialize(X) ->
       (X#oracle.result):8,
       (X#oracle.type):8,
       (X#oracle.starts):HB,
-      %(X#oracle.creator):KL,
       (X#oracle.difficulty):DB,
       (X#oracle.done_timer):HB,
       (X#oracle.governance):8,
@@ -198,5 +197,19 @@ test() ->
     {Root2, empty, Path2} = get(X#oracle.id, Root0),
     true = verify_proof(Root1, X#oracle.id, serialize(X), Path1),
     true = verify_proof(Root2, X#oracle.id, 0, Path2),
+    test2().
+test2() ->
+    {Trees, _, _} = tx_pool:data(),
+    OID = 2,
+    Root0 = constants:root0(),
+    X0 = new(OID, testnet_hasher:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
+    io:fwrite("test oracle "),
+    io:fwrite(packer:pack(X0)),
+    io:fwrite("\n"),
+    Dict0 = dict:new(),
+    Dict1 = dict_write(X0, orders(X0), Dict0),
+    io:fwrite(packer:pack(dict:fetch_keys(Dict1))),
+    io:fwrite("\n"),
+    X0 = dict_get(OID, Dict1),
     success.
     

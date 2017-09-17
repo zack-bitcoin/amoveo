@@ -424,5 +424,16 @@ test() ->
     %{Root9, {orders, Pub2, 100, Pointer2}, Path2} = get(Pub1, Root7),
     true = verify_proof(Root8, Pub2, 0, Path1),
     true = verify_proof(Root9, Pub2, serialize({orders, Pub2, 200, Pointer2}), Path2),
+    test2().
+test2()->
+    Root0 = empty_book(),
+    OID = 1,
+    {Pub,_} = testnet_sign:new_key(),
+    Order1 = new(Pub, 100),
+    CFG = trie:cfg(orders),
+    Dict0 = dict:new(),
+    Key = {key, Pub, OID},
+    Dict1 = dict_write(Order1, OID, Dict0),
+    Order1 = dict_get(Key, Dict1),
     success.
     

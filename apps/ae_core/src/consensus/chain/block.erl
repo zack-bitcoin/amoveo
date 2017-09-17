@@ -403,6 +403,9 @@ check(Block) ->
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
+    %io:fwrite("block check txs "),
+    %io:fwrite(packer:pack(Txs)),
+    %io:fwrite("\n"),
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
@@ -412,11 +415,12 @@ check(Block) ->
                            empty, empty, empty)),
     PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
     PrevTreesHash = headers:trees_hash(PrevHeader),
-    NewTrees2 = dict_update_trie(Roots, 
-                                 OldSparseTrees,
-                                 NewDict),
+    %NewTrees2 = dict_update_trie(Roots, 
+    %                             OldSparseTrees,
+    %                             NewDict),
     io:fwrite("block 06\n"),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
+    NewTrees2 = NewTrees,
     Block2 = Block#block{trees = NewTrees},
     TreesHash = trees:root_hash(Block2#block.trees),
     TreesHash = trees:root_hash2(Block2#block.trees, Roots),
@@ -424,11 +428,29 @@ check(Block) ->
     io:fwrite(integer_to_list(Height)),
     io:fwrite("\n"),
     io:fwrite(packer:pack({Block2#block.trees, NewTrees2})),%, OldSparseTrees})),
+    io:fwrite("\n"),
     TreesHash = headers:trees_hash(Header),
     TreesHash = headers:trees_hash(Header),
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
-    %TreesHash = trees:root_hash2(NewTrees2, Roots),
+    TreesHash2 = trees:root_hash2(NewTrees2, Roots),
+    if
+        TreesHash2 == TreesHash -> ok;
+        false -> 
+            {_, Oracle1, Proof1} = oracles:get(6, trees:oracles(NewTrees)),
+            {_, Oracle2, Proof2} = oracles:get(6, trees:oracles(NewTrees2)),
+            io:fwrite("fail here\n"),
+            io:fwrite(packer:pack(
+                        {tree_oracle, 
+                         Oracle1, element(7, hd(Proof1))})),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(
+                        {dict_oracle, 
+                         Oracle2, element(7, hd(Proof2))})),
+            io:fwrite("\n");
+        true -> ok
+    end,
+    %TreesHash2 = TreesHash,
     {true, Block2}.
 
     %Initially some things in trees is the atom 'empty'.
@@ -441,7 +463,8 @@ dict_update_trie(_Roots, Trees, Dict) ->
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
     Dict2 = dict_update_trie_orders(Trees, Orders, Dict),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets, Dict2),
-    dict_update_trie2(Trees, Keys3, Dict3).
+    Dict4 = dict_update_trie2(Trees, Keys3, Dict3).
+    %dict_update_trie_orders(Trees, Orders, Dict4).
 dict_update_trie2(T, [], _) -> T;
 dict_update_trie2(Trees, [H|T], Dict) ->
     {Type, Key} = H,
@@ -453,17 +476,16 @@ dict_update_trie2(Trees, [H|T], Dict) ->
             end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
-    io:fwrite("dict update trie 2 "),
-    io:fwrite(packer:pack(New)),
-    io:fwrite("\n"),
+    %io:fwrite("dict update trie 2 "),
+    %io:fwrite(packer:pack(New)),
+    %io:fwrite("\n"),
     dict_update_trie2(Trees2, T, Dict).
 dict_update_trie_orders(_, [], D) -> D;
 dict_update_trie_orders(Trees, [H|T], Dict) ->
     {orders, Key} = H,
     {key, Pub, OID} = Key,
     New = orders:dict_get(Key, Dict),
-    Oracles = trees:oracles(Trees),
-    {_, Oracle, _} = oracles:get(OID, Oracles),
+    Oracle = oracles:dict_get(OID, Dict),
     Orders = oracles:orders(Oracle),
     Orders2 = case New of
                   empty ->
@@ -471,8 +493,12 @@ dict_update_trie_orders(Trees, [H|T], Dict) ->
                   _ ->
                       orders:write(New, Orders)
               end,
-    %Oracle2 = oracles:set_orders(Oracle, Orders2),
+    %io:fwrite("dict update trie orders "),
+    %io:fwrite(integer_to_list(Orders2)),
+    %io:fwrite("\n"),
     Dict2 = oracles:dict_write(Oracle, Orders2, Dict),
+    Oracle2 = oracles:dict_get(OID, Dict),
+    Orders = oracles:orders(Oracle2),
     dict_update_trie_orders(Trees, T, Dict2).
 dict_update_trie_oracle_bets(_, [], D) -> D;
 dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
