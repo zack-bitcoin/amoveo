@@ -20,3 +20,6 @@ Even contracts to play the game blackjack could be offered as a market, that way
 Techniques like [hashlocking](https://en.bitcoin.it/wiki/Atomic_cross-chain_trading) are used to connect many channels together into markets.
 
 Amoveo has passing tests for smart contracts that connect many channels together to make a big market. Amoveo has off-chain order books to enforce these markets in the channels.
+
+Because of (2), we know that most contracts will be formatted in a simple way that will be useful to the maximum number of people, that way the markets can be as big as possible.
+Traditional markets for financial contracts face these same problems. They have settled on a handful of popular contracts, like: contract for difference, options, forwards.
