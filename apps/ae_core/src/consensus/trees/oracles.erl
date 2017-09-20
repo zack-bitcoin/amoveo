@@ -93,7 +93,7 @@ serialize(X) ->
     PS = constants:pubkey_size(),
     Question = X#oracle.question,
     %Orders = orders:root_hash(X#oracle.orders),
-    Orders = X#oracle.orders_hash,
+    %Orders = X#oracle.orders_hash,
     Orders = case X#oracle.orders of
                  0 -> X#oracle.orders_hash;
                      %Account#acc.bets_hash;

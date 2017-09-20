@@ -182,6 +182,7 @@ leaves_to_querys([L|T]) ->
 txs_to_querys([], _) -> [];
 txs_to_querys([STx|T], Trees) ->
     Tx = testnet_sign:data(STx),
+    PS = constants:pubkey_size() * 8,
     L = case element(1, Tx) of
 	    create_acc_tx -> 
                 [
@@ -258,7 +259,6 @@ txs_to_querys([STx|T], Trees) ->
                  {existence, existence_tx:commit(Tx)}
                 ];
 	    oracle_new -> 
-                PS = constants:pubkey_size() * 8,
                 OID = oracle_new_tx:id(Tx),
                 AID = oracle_new_tx:from(Tx),
                 [
@@ -278,7 +278,6 @@ txs_to_querys([STx|T], Trees) ->
                  {oracles, OID}
                 ];
 	    oracle_bet -> 
-                PS = constants:pubkey_size() * 8,
                 OID = oracle_bet_tx:id(Tx),
                 Pubkeys = [oracle_bet_tx:from(Tx)|
                            oracle_bet_tx:to_prove(Tx, Trees)],
@@ -291,26 +290,42 @@ txs_to_querys([STx|T], Trees) ->
                   {governance, ?n2i(oracle_bet)},
                   {governance, ?n2i(minimum_oracle_time)},
                   {governance, ?n2i(oracle_initial_liquidity)},
-                  {oracles, oracle_bet_tx:id(Tx)}] ++
+                  {oracles, OID}] ++
                     Prove;
 	    oracle_close -> 
-                PS = constants:pubkey_size() * 8,
                 OID = oracle_close_tx:oracle_id(Tx),
                 Oracles = trees:oracles(Trees),
                 {_, Oracle, _} = oracles:get(OID, Oracles),
+                OracleType = oracles:type(Oracle),
+                LoserType = 
+                    case OracleType of
+                        1 -> 2;
+                        2 -> 1;
+                        3 -> 1
+                    end,
+                From = oracle_close_tx:from(Tx),
+                OBTx = {oracle_bet, From, 
+                        none, 0, OID, LoserType, 
+                        constants:oracle_initial_liquidity()},
+                Pubkeys = [From|
+                           oracle_bet_tx:to_prove(OBTx, Trees)],
+                Pubkeys2 = remove(<<0:PS>>, Pubkeys),
+                Prove = tagify(accounts, Pubkeys2) ++ 
+                    make_oracle_bets(Pubkeys2, OID) ++
+                    make_orders(Pubkeys, OID),
                 [
                              %whichever governance variable is being updated.
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
                  {governance, ?n2i(oracle_close)},
                  {governance, ?n2i(oracle_initial_liquidity)},
+                  {governance, ?n2i(oracle_bet)},
                  {orders, #key{pub = <<0:PS>>, id = OID}},
                  {oracle_bets, #key{pub = oracles:creator(Oracle), id = OID}},
-                 {accounts, oracle_close_tx:from(Tx)},
+                 %{accounts, From},
                  {oracles, OID}
-                ];
+                ] ++ Prove;
 	    unmatched -> 
-                PS = constants:pubkey_size() * 8,
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
                 [
