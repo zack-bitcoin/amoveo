@@ -90,8 +90,10 @@ doit(Tx, Trees, NewHeight) ->
 	  none, 0, OID, LoserType, 
 	  constants:oracle_initial_liquidity()},
     Trees4 = oracle_bet_tx:doit2(OBTx, Trees3, NewHeight),
-    Accounts4 = trees:accounts(Trees4),
-    trees:update_accounts(Trees3, Accounts4).
+    %Accounts4 = trees:accounts(Trees4),
+    %trees:update_accounts(Trees3, Accounts4),
+    Trees4.
+        
 go(Tx, Dict, NewHeight) ->
     From = Tx#oracle_close.from,
     Acc = accounts:dict_update(From, Dict, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
@@ -153,8 +155,9 @@ go(Tx, Dict, NewHeight) ->
 	  none, 0, OID, LoserType, 
 	  constants:oracle_initial_liquidity()},
     Dict6 = oracle_bet_tx:go2(OBTx, Dict5, NewHeight),%maybe this is bad. maybe we only want to update the one account.
-    Acc6 = accounts:dict_get(From, Dict6),
-    Dict7 = accounts:dict_write(Acc6, accounts:bets(Acc6), Dict5).
+    %Acc6 = accounts:dict_get(From, Dict6),
+    %Dict7 = accounts:dict_write(Acc6, accounts:bets(Acc6), Dict5),
+    Dict6.
     
     
     

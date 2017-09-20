@@ -278,10 +278,10 @@ txs_to_querys([STx|T], Trees) ->
                  {oracles, OID}
                 ];
 	    oracle_bet -> 
+                PS = constants:pubkey_size() * 8,
                 OID = oracle_bet_tx:id(Tx),
                 Pubkeys = [oracle_bet_tx:from(Tx)|
                            oracle_bet_tx:to_prove(Tx, Trees)],
-                PS = constants:pubkey_size() * 8,
                 Pubkeys2 = remove(<<0:PS>>, Pubkeys),
                 Prove = tagify(accounts, Pubkeys2) ++ 
                     make_oracle_bets(Pubkeys2, OID) ++

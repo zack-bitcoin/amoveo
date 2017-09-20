@@ -94,6 +94,11 @@ serialize(X) ->
     Question = X#oracle.question,
     %Orders = orders:root_hash(X#oracle.orders),
     Orders = X#oracle.orders_hash,
+    Orders = case X#oracle.orders of
+                 0 -> X#oracle.orders_hash;
+                     %Account#acc.bets_hash;
+                 Z -> orders:root_hash(Z)
+             end,
     HS = size(Question),
     HS = size(Orders),
     HB = constants:height_bits(),
@@ -144,7 +149,7 @@ deserialize(X) ->
            orders_hash = <<Orders:HS>>
       }.
 dict_write(Oracle, Dict) ->
-    dict_write(Oracle, 1, Dict).
+    dict_write(Oracle, 0, Dict).
 dict_write(Oracle, Meta, Dict) ->
     Key = Oracle#oracle.id,
     dict:store({oracles, Key},

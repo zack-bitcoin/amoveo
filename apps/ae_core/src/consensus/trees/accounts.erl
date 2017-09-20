@@ -121,7 +121,7 @@ get(Pub, Accounts) ->
               end,
     {RH, Account, Proof}.
 dict_write(Account, Dict) ->
-    dict_write(Account, 1, Dict).
+    dict_write(Account, 0, Dict).
 dict_write(Account, Meta, Dict) ->
     Pub = Account#acc.pubkey,
     Out = dict:store({accounts, Pub}, 
@@ -183,8 +183,9 @@ serialize(Account) ->
     HeightSize = constants:height_bits(),
     NonceSize = constants:account_nonce_bits(),
     HS = constants:hash_size()*8,
+    %BetsRoot = Account#acc.bets_hash,
     BetsRoot = case Account#acc.bets of
-                   0 -> <<0:HS>>;
+                   0 -> Account#acc.bets_hash;
                    X -> oracle_bets:root_hash(X)
                end,
     %BetsRoot = oracle_bets:root_hash(Account#acc.bets),
