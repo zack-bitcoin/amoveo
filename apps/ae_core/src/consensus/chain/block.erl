@@ -403,9 +403,9 @@ check(Block) ->
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
-    %io:fwrite("block check txs "),
-    %io:fwrite(packer:pack(Txs)),
-    %io:fwrite("\n"),
+    io:fwrite("block check txs "),
+    io:fwrite(packer:pack(Txs)),
+    io:fwrite("\n"),
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
@@ -484,7 +484,7 @@ dict_update_trie_orders(Trees, [H|T], Dict) ->
     {orders, Key} = H,
     {key, Pub, OID} = Key,
     New = orders:dict_get(Key, Dict),
-    %Oracle = oracles:dict_get(OID, Dict),
+    DictOracle = oracles:dict_get(OID, Dict),
     {_, Oracle, _} = oracles:get(OID, trees:oracles(Trees)),
     Orders = oracles:orders(Oracle),
     case Orders of 
@@ -501,7 +501,7 @@ dict_update_trie_orders(Trees, [H|T], Dict) ->
     %io:fwrite("dict update trie orders "),
     %io:fwrite(integer_to_list(Orders2)),
     %io:fwrite("\n"),
-    Dict2 = oracles:dict_write(Oracle, Orders2, Dict),
+    Dict2 = oracles:dict_write(DictOracle, Orders2, Dict),
     %Oracle2 = oracles:dict_get(OID, Dict),
     %Orders = oracles:orders(Oracle2),
     dict_update_trie_orders(Trees, T, Dict2).
@@ -513,7 +513,7 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
     io:fwrite(packer:pack({Key, dict:fetch_keys(Dict)})),
     io:fwrite("\n"),
     New = oracle_bets:dict_get(Key, Dict),
-    %Account = accounts:dict_get(Pub, Dict),
+    DictAccount = accounts:dict_get(Pub, Dict),
     {_, Account, _} = accounts:get(Pub, trees:accounts(Trees)),
     OracleBets = accounts:bets(Account),
     OracleBets2 = case New of
@@ -525,7 +525,7 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
                       _ ->
                           oracle_bets:write(New, OracleBets)
               end,
-    Dict2 = accounts:dict_write(Account, OracleBets2, Dict),
+    Dict2 = accounts:dict_write(DictAccount, OracleBets2, Dict),
     dict_update_trie_oracle_bets(Trees, T, Dict2).
     
 get_things(Key, L) ->

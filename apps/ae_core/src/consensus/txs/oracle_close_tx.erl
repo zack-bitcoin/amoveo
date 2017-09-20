@@ -157,6 +157,9 @@ go(Tx, Dict, NewHeight) ->
     Dict6 = oracle_bet_tx:go2(OBTx, Dict5, NewHeight),%maybe this is bad. maybe we only want to update the one account.
     %Acc6 = accounts:dict_get(From, Dict6),
     %Dict7 = accounts:dict_write(Acc6, accounts:bets(Acc6), Dict5),
+    %io:fwrite("oracle close tx account is "),
+    %io:fwrite(packer:pack(accounts:dict_get(keys:pubkey(), Dict6))),
+    %io:fwrite("\n"),
     Dict6.
     
     
