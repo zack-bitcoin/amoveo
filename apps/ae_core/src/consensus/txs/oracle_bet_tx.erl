@@ -47,9 +47,6 @@ doit(Tx, Trees, NewHeight) ->
     Accounts2 = accounts:write(Facc, Accounts),
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(Tx#oracle_bet.id, Oracles),
-    %io:fwrite("oracle is "),
-    %io:fwrite(packer:pack(Oracle)),
-    %io:fwrite("\n"),
     %Orders = oracles:orders(Oracle),
     %AllOrders = merge_sort(ids(trie:get_all(Orders, orders))),
     %AllOrders = Tx#oracle_bet.to_prove,
@@ -64,7 +61,6 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
     Oracles = trees:oracles(Trees2),
     {_, Oracle0, _} = oracles:get(Tx#oracle_bet.id, Oracles),
     Orders0 = oracles:orders(Oracle0),
-    %{Head, _} = orders:head_get(Orders0),
     VolumeCheck = orders:significant_volume(Orders0, Trees2),
     Governance = trees:governance(Trees2),
     MOT = governance:get_value(minimum_oracle_time, Governance),
@@ -77,9 +73,7 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 		 true -> 
 		     oracles:set_done_timer(Oracle0, NewHeight + MOT)
 	     end,
-    %io:fwrite(packer:pack({oracle_bet, NewHeight, oracles:starts(Oracle)})),
     true = NewHeight > oracles:starts(Oracle),
-    
     %take some money from them. 
     Orders = oracles:orders(Oracle),
     OracleType = oracles:type(Oracle),
@@ -104,13 +98,6 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
             io:fwrite("oracle bet tx path2\n"),
 	    {Matches1, Matches2, Next, NewOrders} =
 		orders:match(NewOrder, Orders),
-            %io:fwrite("doit next is "),
-            %io:fwrite(packer:pack(Next)),
-            %io:fwrite("\n"),
-            %Matches2 is empty.
-            %io:fwrite(packer:pack({oracle_bet_tx_matches2, Matches1, Matches2, NewOrders})),
-            %io:fwrite("\n"),%everything from matches2, id 0, The location about to be filled, the last bet if it exists.
-            
 	    Oracle2 = oracles:set_orders(Oracle, NewOrders),
 	    Accounts3 = give_bets_main(From, Matches1, TxType, Accounts2, oracles:id(Oracle2)),
 	    Accounts4 = give_bets(Matches2, OracleType, Accounts3, oracles:id(Oracle2)),
@@ -122,9 +109,6 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 			       Oracle4 = oracles:set_done_timer(Oracle2, NewHeight + MOT),
 			       oracles:set_type(Oracle4, TxType)
 		       end,
-            io:fwrite("final oracle tree mode "),
-            io:fwrite(packer:pack(Oracle3)),
-            io:fwrite("\n"),
 	    NewOracles = oracles:write(Oracle3, Oracles),
 	    trees:update_oracles(Trees3, NewOracles)
     end.
@@ -198,9 +182,6 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict),
     VolumeCheck = orders:dict_significant_volume(Dict, OID, OIL),
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
-    io:fwrite("oracle bet tx volume check go2 "),
-    io:fwrite(packer:pack(NewHeight + MOT )),
-    io:fwrite("\n"),
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
@@ -209,7 +190,6 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 	     end,
     true = NewHeight > oracles:starts(Oracle),
     %take some money from them. 
-    %Orders = oracles:orders(Oracle),
     OracleType = oracles:type(Oracle),
     TxType = case Tx#oracle_bet.type of
 		 1 -> 1;
@@ -225,20 +205,16 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 	    ManyOrders = dict_orders_many(OID, Dict),
 	    Minimum = OIL * det_pow(2, max(1, ManyOrders)), 
 	    true = Amount >= Minimum,
-	    %NewOrders = orders:add(NewOrder, Orders),
             Dict2 = orders:dict_add(NewOrder, OID, Dict),
-	    %NewOracle = oracles:set_orders(Oracle, NewOrders),
 	    oracles:dict_write(Oracle, Dict2);
 	true ->
                 io:fwrite("oracle bet tx case 2\n"),
-                %{Matches1, Matches2, Next, NewOrders} =
                 {Matches1, Matches2, Next, Dict2} =
                     orders:dict_match(NewOrder, OID, Dict),
-                %io:fwrite("go TxType is "),
-                %io:fwrite(packer:pack(TxType)),
-                %io:fwrite("\n"),
-                Dict3 = dict_give_bets_main(From, Matches1, TxType, Dict2, oracles:id(Oracle)),
-                Dict4 = dict_give_bets(Matches2, OracleType, Dict3, oracles:id(Oracle)),
+    %Match1 is orders that are still open.
+    %Match2 is orders that are already closed. We need to pay them their winnings.
+                Dict3 = dict_give_bets_main(From, Matches1, TxType, Dict2, oracles:id(Oracle)),%gives a single oracle bet to this person
+                Dict4 = dict_give_bets(Matches2, OracleType, Dict3, oracles:id(Oracle)),%gives oracle_bets to each account that got matched
                 Oracle3 = case Next of
                               same -> 
                                                 %Dict2;
@@ -247,25 +223,8 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                                   Oracle4 = oracles:set_done_timer(Oracle, NewHeight + MOT),
                                   oracles:set_type(Oracle4, TxType)
                           end,
-                io:fwrite("final oracle dict mode "),
-                io:fwrite(packer:pack(Oracle3)),
-                io:fwrite("\n"),
                 oracles:dict_write(Oracle3, Dict4)
         end,
-    if
-        NewHeight > 2 ->
-            %KeyF = {key, keys:pubkey(), 6},
-            %OB = oracle_bets:dict_get(KeyF, Out),
-            %io:fwrite("oracle bet tx oracle_bets is "),
-            %io:fwrite(packer:pack(OB)),
-            %io:fwrite("\n"),
-            %O = oracles:dict_get(6, Out),
-            %io:fwrite(packer:pack({oracle_6, O})),
-            %io:fwrite("\n"),
-            %io:fwrite(packer:pack({KeyF, dict:fetch_keys(Out)})),
-            io:fwrite("\n");
-        true -> ok
-    end,
     Out.
 dict_orders_many(OID, Dict) ->
     {_, Many} = orders:dict_head_get(Dict, OID),

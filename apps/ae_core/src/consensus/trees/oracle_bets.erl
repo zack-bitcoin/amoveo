@@ -87,11 +87,18 @@ dict_delete(Key, Dict) ->
 delete(ID, Tree) ->
     trie:delete(ID, Tree, ?name).
 dict_add_bet(Pub, OID, Type, Amount, Dict) ->
+    io:fwrite("dict add bet \n"),
     X = dict_get({key, Pub, OID}, Dict),
+    io:fwrite("dict got was \n"),
+    io:fwrite(packer:pack(X)),
+    io:fwrite("\n"),
     Y = case X of
             empty -> new(OID, Type, Amount);
             Bet -> increase(Bet, Type, Amount)
         end, 
+    io:fwrite("about to write "),
+    io:fwrite(packer:pack(Y)),
+    io:fwrite("\n"),
     dict_write(Y, Pub, Dict).
     
 add_bet(Id, Type, Amount, Tree) ->

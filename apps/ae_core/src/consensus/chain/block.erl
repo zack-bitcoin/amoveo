@@ -415,9 +415,7 @@ check(Block) ->
                            empty, empty, empty)),
     PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
     PrevTreesHash = headers:trees_hash(PrevHeader),
-    NewTrees3 = dict_update_trie(Roots, 
-                                 OldSparseTrees,
-                                 NewDict),
+    NewTrees3 = dict_update_trie(OldSparseTrees, NewDict),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     NewTrees2 = NewTrees,
     Block2 = Block#block{trees = NewTrees},
@@ -431,6 +429,7 @@ check(Block) ->
     if
         TreesHash2 == TreesHash -> ok;
         true -> 
+            PS = constants:pubkey_size()*8,
             %{_, Oracle1, Proof1} = oracles:get(6, trees:oracles(NewTrees)),
             %{_, Oracle2, Proof2} = oracles:get(6, trees:oracles(NewTrees2)),
             io:fwrite("fail here\n"),
@@ -438,13 +437,38 @@ check(Block) ->
             io:fwrite(integer_to_list(Height)),
             io:fwrite("\n"),
             io:fwrite(packer:pack({NewTrees, NewTrees2})),%, OldSparseTrees})),
-            %io:fwrite(packer:pack(
-            %            {tree_oracle, 
-            %             Oracle1, element(7, hd(Proof1))})),
-            %io:fwrite("\n"),
-            %io:fwrite(packer:pack(
-            %            {dict_oracle, 
-            %             Oracle2, element(7, hd(Proof2))})),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(
+                        {element(4, stem:get(trees:accounts(NewTrees), trie:cfg(accounts))) == 
+                         element(4, stem:get(trees:accounts(NewTrees2), trie:cfg(accounts))),
+                        element(4, stem:get(trees:oracles(NewTrees), trie:cfg(oracles))) == 
+                         element(4, stem:get(trees:oracles(NewTrees2), trie:cfg(oracles)))
+                        })),
+            io:fwrite("\n"),
+            io:fwrite("grab oracles test \n"),
+            Oracle1 = element(2, oracles:get(1, trees:oracles(NewTrees))),
+            Oracle2 = element(2, oracles:get(1, trees:oracles(NewTrees2))),
+            io:fwrite(packer:pack(Oracle1)),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(Oracle2)),
+            io:fwrite("\n"),
+            Orders1 = oracles:orders(Oracle1),
+            Orders2 = oracles:orders(Oracle2),
+            io:fwrite(packer:pack(stem:get(Orders1, trie:cfg(orders)))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(stem:get(Orders2, trie:cfg(orders)))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(element(2, orders:get(keys:pubkey(), Orders1)))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(element(2, orders:get(<<0:PS>>, Orders1)))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(element(2, orders:get(keys:pubkey(), Orders2)))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(element(2, orders:get(<<0:PS>>, Orders2)))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(orders:dict_get({key, keys:pubkey(), 1}, NewDict))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(orders:dict_get({key, <<0:PS>>, 1}, NewDict))),
             io:fwrite("\n")
     end,
     TreesHash2 = TreesHash,
@@ -452,7 +476,7 @@ check(Block) ->
 
     %Initially some things in trees is the atom 'empty'.
     %Once we insert the root stem into the trie, then we instead store a pointer to the root stem. 
-dict_update_trie(_Roots, Trees, Dict) ->
+dict_update_trie(Trees, Dict) ->
     %do the orders and oracle_bets last, then insert their state roots into the accounts and oracles.
     %pointers are integers, root hashes are binary.
     Keys = dict:fetch_keys(Dict),
@@ -460,8 +484,7 @@ dict_update_trie(_Roots, Trees, Dict) ->
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
     Dict2 = dict_update_trie_orders(Trees, Orders, Dict),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets, Dict2),
-    Dict4 = dict_update_trie2(Trees, Keys3, Dict3).
-    %dict_update_trie_orders(Trees, Orders, Dict4).
+    dict_update_trie2(Trees, Keys3, Dict3).
 dict_update_trie2(T, [], _) -> T;
 dict_update_trie2(Trees, [H|T], Dict) ->
     {Type, Key} = H,
@@ -475,9 +498,6 @@ dict_update_trie2(Trees, [H|T], Dict) ->
             end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
-    %io:fwrite("dict update trie 2 "),
-    %io:fwrite(packer:pack(New)),
-    %io:fwrite("\n"),
     dict_update_trie2(Trees2, T, Dict).
 dict_update_trie_orders(_, [], D) -> D;
 dict_update_trie_orders(Trees, [H|T], Dict) ->
@@ -486,41 +506,31 @@ dict_update_trie_orders(Trees, [H|T], Dict) ->
     New = orders:dict_get(Key, Dict),
     DictOracle = oracles:dict_get(OID, Dict),
     {_, Oracle, _} = oracles:get(OID, trees:oracles(Trees)),
-    Orders = oracles:orders(Oracle),
-    case Orders of 
-        0 -> throw(block_dict_update_trie_orders_error);
-        _ -> ok
-    end,
+    Orders = case oracles:orders(DictOracle) of
+                 0 -> oracles:orders(Oracle);
+                 Z -> Z
+             end,
     Orders2 = case New of
                   empty ->
-                          io:fwrite("order delete \n"),
                       orders:delete(Pub, Orders);
                   _ ->
                       orders:write(New, Orders)
               end,
-    %io:fwrite("dict update trie orders "),
-    %io:fwrite(integer_to_list(Orders2)),
-    %io:fwrite("\n"),
     Dict2 = oracles:dict_write(DictOracle, Orders2, Dict),
-    %Oracle2 = oracles:dict_get(OID, Dict),
-    %Orders = oracles:orders(Oracle2),
     dict_update_trie_orders(Trees, T, Dict2).
 dict_update_trie_oracle_bets(_, [], D) -> D;
 dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
     {oracle_bets, Key} = H,
     {key, Pub, OID} = Key,
-    io:fwrite("dict update trie oracle bets \n"),
-    io:fwrite(packer:pack({Key, dict:fetch_keys(Dict)})),
-    io:fwrite("\n"),
     New = oracle_bets:dict_get(Key, Dict),
     DictAccount = accounts:dict_get(Pub, Dict),
     {_, Account, _} = accounts:get(Pub, trees:accounts(Trees)),
-    OracleBets = accounts:bets(Account),
+    OracleBets = case accounts:bets(DictAccount) of
+                     0 -> accounts:bets(Account);
+                     Z -> Z
+                 end,
     OracleBets2 = case New of
                       empty ->
-                          io:fwrite("oracle bet delete \n"),
-                          io:fwrite(packer:pack({OID, OracleBets})),
-                          io:fwrite("\n"),
                           oracle_bets:delete(OID, OracleBets);
                       _ ->
                           oracle_bets:write(New, OracleBets)

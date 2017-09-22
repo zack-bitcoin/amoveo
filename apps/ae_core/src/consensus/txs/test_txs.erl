@@ -330,6 +330,7 @@ test(11) ->
     {Tx3, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
+    mine_blocks(1),
     timer:sleep(100),
 
     {Trees4, _, _} = tx_pool:data(),
@@ -342,6 +343,7 @@ test(11) ->
     {Tx4, _} = oracle_unmatched_tx:make(constants:master_pub(), Fee, OID, Trees4),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
+    mine_blocks(1),
     timer:sleep(100),
 
     {Trees5, _, _} = tx_pool:data(),

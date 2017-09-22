@@ -189,6 +189,9 @@ verify_proof(RootHash, Key, Value, Proof) ->
     
 
 test() ->
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
     {Trees, _, _} = tx_pool:data(),
     Root0 = constants:root0(),
     X0 = new(1, testnet_hasher:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),

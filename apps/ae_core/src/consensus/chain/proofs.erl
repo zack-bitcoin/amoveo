@@ -2,6 +2,8 @@
 -export([prove/2, test/0, hash/1, facts_to_dict/2, txs_to_querys/2, 
          root/1, tree/1, path/1, value/1, governance_to_querys/1,
          key/1]).
+-define(Null, 0).
+-define(Header, 1).
 -record(proof, {tree, value, root, key, path}).
 -record(key, {pub, id}). %used for shared, oracle_bets, and orders
 
@@ -92,6 +94,9 @@ prove2([{orders, Key}|T], Trees) ->
     [Proof|prove2(T, Trees)];
 prove2([{oracle_bets, Key}|T], Trees) ->
     Accounts = trees:accounts(Trees),
+    io:fwrite("oracle bet key is "),
+    io:fwrite(packer:pack(Key)),
+    io:fwrite("\n"),
     {_, Data0, _} = accounts:get(Key#key.pub, Accounts),
     OrdersTree = accounts:bets(Data0),%%%%
     {Root, Data, Path} = oracle_bets:get(Key#key.id, OrdersTree),
@@ -272,8 +277,8 @@ txs_to_querys([STx|T], Trees) ->
                  {governance, ?n2i(minimum_oracle_time)},
                  %{oracles, oracle_new_tx:recent_price(Tx)},
                  %{oracle_bets, {key, AID, OID}},
-                 %{orders, {key, <<0:PS>>, OID}},
-                 %{oracle_bets, {key, <<0:PS>>, OID}},
+                 %{orders, {key, <<?Null:PS>>, OID}},
+                 %{oracle_bets, {key, <<?Null:PS>>, OID}},
                  {accounts, AID},
                  {oracles, OID}
                 ];
@@ -281,12 +286,13 @@ txs_to_querys([STx|T], Trees) ->
                 OID = oracle_bet_tx:id(Tx),
                 Pubkeys = [oracle_bet_tx:from(Tx)|
                            oracle_bet_tx:to_prove(Tx, Trees)],
-                Pubkeys2 = remove(<<0:PS>>, Pubkeys),
+                Pubkeys2 = remove(<<?Null:PS>>, Pubkeys),
                 Prove = tagify(accounts, Pubkeys2) ++ 
                     make_oracle_bets(Pubkeys2, OID) ++
                     make_orders(Pubkeys, OID),
                  [
-                  {orders, #key{pub = <<0:PS>>, id = OID}},
+                  {orders, #key{pub = <<?Null:PS>>, id = OID}},
+                  {orders, #key{pub = <<?Header:PS>>, id = OID}},
                   {governance, ?n2i(oracle_bet)},
                   {governance, ?n2i(minimum_oracle_time)},
                   {governance, ?n2i(oracle_initial_liquidity)},
@@ -309,7 +315,7 @@ txs_to_querys([STx|T], Trees) ->
                         constants:oracle_initial_liquidity()},
                 Pubkeys = [From|
                            oracle_bet_tx:to_prove(OBTx, Trees)],
-                Pubkeys2 = remove(<<0:PS>>, Pubkeys),
+                Pubkeys2 = remove(<<?Null:PS>>, Pubkeys),
                 Prove = tagify(accounts, Pubkeys2) ++ 
                     make_oracle_bets(Pubkeys2, OID) ++
                     make_orders(Pubkeys, OID),
@@ -320,7 +326,8 @@ txs_to_querys([STx|T], Trees) ->
                  {governance, ?n2i(oracle_close)},
                  {governance, ?n2i(oracle_initial_liquidity)},
                   {governance, ?n2i(oracle_bet)},
-                 {orders, #key{pub = <<0:PS>>, id = OID}},
+                 {orders, #key{pub = <<?Null:PS>>, id = OID}},
+                 {orders, #key{pub = <<?Header:PS>>, id = OID}},
                  {oracle_bets, #key{pub = oracles:creator(Oracle), id = OID}},
                  %{accounts, From},
                  {oracles, OID}
@@ -330,7 +337,8 @@ txs_to_querys([STx|T], Trees) ->
                 From = oracle_unmatched_tx:from(Tx),
                 [
                  {governance, ?n2i(unmatched)},
-                 {orders, #key{pub = <<0:PS>>, id = OID}},
+                 {orders, #key{pub = <<?Null:PS>>, id = OID}},
+                 {orders, #key{pub = <<?Header:PS>>, id = OID}},
                  {orders, #key{pub = From, id = OID}},
                  {accounts, From},
                  {oracles, OID}

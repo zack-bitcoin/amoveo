@@ -1,7 +1,6 @@
 -module(orders).
 -export([match/2, add/2, root_hash/1, amount/1,
-         pointer/1, new/2, 
-         get/2, empty_book/0,
+         pointer/1, new/2, get/2, empty_book/0,
          remove/2, update_amount/2, set_amount/2,
          many/1, head_get/1, aid/1,
          significant_volume/2, verify_proof/4,
@@ -12,37 +11,34 @@
          key_to_int/1, write/2, delete/2,
          test/0]).
 -define(name, orders).
--define(Null, 0).
--define(Header, 1).
+-define(HL, 1).%pointer to where the header is stored
 -record(orders, {aid, amount, pointer}).
 dict_significant_volume(Dict, OID, OIL) ->
-    
     ManyOrders = dict_many(Dict, OID),
-        %io:fwrite("dict sig volume many is "),
-        %io:fwrite(integer_to_list(ManyOrders)),
-        %io:fwrite("\n"),
-        if 
-            ManyOrders == 0 ->
-                false;
-            ManyOrders > 2 -> true;
-            true ->
-                io:fwrite("dict complex\n"),
-                {Head, _} = dict_head_get(Dict, OID),
-                Order0 = dict_get({key, Head, OID}, Dict),
-                amount(Order0) > OIL
-        end.
+    io:fwrite("dict sig volume many is "),
+    io:fwrite(integer_to_list(ManyOrders)),
+    io:fwrite("\n"),
+    if 
+        ManyOrders == 0 -> false;
+        ManyOrders > 2 -> true;
+        true ->
+            io:fwrite("dict complex\n"),
+            {Head, _} = dict_head_get(Dict, OID),
+            Order0 = dict_get({key, Head, OID}, Dict),
+            amount(Order0) > OIL
+    end.
             
 significant_volume(Root, Trees) ->
     ManyOrders = many(Root),
-    %io:fwrite("sig volume many is "),
-    %io:fwrite(integer_to_list(ManyOrders)),
-    %io:fwrite("\n"),
+    io:fwrite("sig volume many is "),
+    io:fwrite(integer_to_list(ManyOrders)),
+    io:fwrite("\n"),
         if
             ManyOrders == 0 ->
                  false;
             ManyOrders > 2 -> true;
             true -> 
-                %io:fwrite("complex\n"),
+                io:fwrite("complex\n"),
                 {Head, _} = head_get(Root),
                 {_, Order0, _} = get(Head, Root),
                 Governance = trees:governance(Trees),
@@ -68,15 +64,16 @@ update_amount(X, A) ->
     X#orders{amount = B}.
 new(AID, Amount) ->
     PS = constants:pubkey_size() * 8,
-    #orders{aid = AID, amount = Amount, pointer = <<?Null:PS>>}.
+    #orders{aid = AID, amount = Amount, pointer = <<?HL:PS>>}.
 serialize_head(Head, Many) ->
     %KL = constants:key_length(),
     %HS = constants:hash_size()*8,
     PS = constants:pubkey_size() * 8,
     BAL = constants:balance_bits(),
+    Y = PS,
     AB = PS+BAL,
-    <<Head2:PS>> = Head,
-    <<Head2:PS, Many:AB>>.
+    <<Head2:Y>> = Head,
+    <<Head2:Y, Many:AB>>.
 deserialize_head(X) ->
     %KL = constants:key_length(),
     PS = constants:pubkey_size() * 8,
@@ -112,6 +109,9 @@ write(X, Root) ->
     V = serialize(X),
     Pubkey = aid(X),
     HPID = key_to_int2(Pubkey),
+    %io:fwrite("orders write HPID is "),
+    %io:fwrite(integer_to_list(HPID)),
+    %io:fwrite("\n"),
     trie:put(HPID, V, 0, Root, ?name).
 dict_get(Key, Dict) ->
     X = dict:fetch({orders, Key}, Dict),
@@ -135,27 +135,37 @@ get(Pub, Root) ->
     {RH, V, Proof}.
 empty_book() ->
     PS = constants:pubkey_size() * 8,
-    X = serialize_head(<<?Null:PS>>, 0),
-    ID = key_to_int2(<<?Header:PS>>),
+    X = serialize_head(<<0:PS>>, 0),
+    %X = serialize_head(<<?HL:PS>>, 0),
+    ID = key_to_int2(<<?HL:PS>>),
     trie:put(ID, X, 0, constants:root0(), ?name).
 dict_head_get(Dict, OID) ->
     PS = constants:pubkey_size() * 8,
-    Key = {key, <<?Header:PS>>, OID},
+    Key = {key, <<?HL:PS>>, OID},
     X = dict:fetch({orders, Key}, Dict),
     case X of
-        0 -> {<<?Null:PS>>, 0};
+        0 -> {<<?HL:PS>>, 0};
         _ ->
             deserialize_head(X)
     end.
 head_get(Root) ->
     PS = constants:pubkey_size() * 8,
-    ID = key_to_int2(<<?Header:PS>>),
+    ID = key_to_int2(<<?HL:PS>>),
+    %io:fwrite("orders head get HPID is "),
+    %io:fwrite(integer_to_list(ID)),
+    %io:fwrite("\n"),
     {_, L, _} = trie:get(ID, Root, ?name),
+    io:fwrite("head get leaf is "),
+    io:fwrite(packer:pack(L)),
+    io:fwrite("\n"),
     deserialize_head(leaf:value(L)).
 dict_head_update(Head, OID, Dict) ->
     {_, Many} = dict_head_get(Dict, OID),
     dict_head_put(Head, Many, OID, Dict).
 head_update(Head, Root) ->
+    io:fwrite("head update root is "),
+    io:fwrite(integer_to_list(Root)),
+    io:fwrite("\n"),
     {_, Many} = head_get(Root),
     head_put(Head, Many, Root).
 dict_many_update(Many, OID, Dict) ->
@@ -167,14 +177,17 @@ many_update(Many, Root) ->
 dict_head_put(Head, Many, OID, Dict) ->
     Y = serialize_head(Head, Many),
     PS = constants:pubkey_size() * 8,
-    Key = {key, <<?Header:PS>>, OID},
+    Key = {key, <<?HL:PS>>, OID},
     dict:store({orders, Key},
                Y,
                Dict).
 head_put(Head, Many, Root) ->
-    PS = constants:pubkey_size() * 8,
     Y = serialize_head(Head, Many),
-    ID = key_to_int2(<<?Header:PS>>),
+    PS = constants:pubkey_size() * 8,
+    ID = key_to_int2(<<?HL:PS>>),
+    %io:fwrite("orders head put HPID is "),
+    %io:fwrite(integer_to_list(ID)),
+    %io:fwrite("\n"),
     trie:put(ID, Y, 0, Root, ?name).
 all(Root) ->
     {Head, _Many} = head_get(Root),
@@ -182,7 +195,7 @@ all(Root) ->
 all2(X, Root) ->
     PS = constants:pubkey_size() * 8,
     case X of
-        <<?Null:PS>> -> [<<?Null:PS>>];
+        <<0:PS>> -> [<<0:PS>>];
         Pub -> 
             {_, Order, _} = get(Pub, Root),
             [Pub|all2(Order#orders.pointer, Root)]
@@ -195,7 +208,7 @@ dict_add(Order, OID, Dict) ->
         empty ->
             {Head, Many} = dict_head_get(Dict, OID),
             case Head of
-                <<?Null:PS>> ->
+                <<0:PS>> ->
                     Dict2 = dict_head_put(X, Many+1, OID, Dict),
                     dict_write(Order, OID, Dict2);
                 Y ->
@@ -213,16 +226,20 @@ add(Order, Root) ->
     %make the end of the list point to the new orders.
     case OldOrder of
         empty ->
+            io:fwrite("add case 01\n"),
             {Head, Many} = head_get(Root),
             case Head of
-                <<?Null:PS>> -> %adding an element to an empty list
+                <<0:PS>> -> %adding an element to an empty list
+                    io:fwrite("add case 03\n"),
                     Root2 = head_put(X, Many+1, Root),
                     write(Order, Root2);
                 Y ->
+                    io:fwrite("add case 04\n"),
                     Root2 = head_put(Head, Many+1, Root),
                     add2(Order, Root2, Y)
             end;
         Old ->
+            io:fwrite("add case 02\n"),
             New = Old#orders{amount = Old#orders.amount + Order#orders.amount},
             write(New, Root)
     end.
@@ -231,30 +248,32 @@ dict_add2(Order, Dict, P, OID) ->
     N = L#orders.pointer,
     PS = constants:pubkey_size() * 8,
     case N of
-        <<?Null:PS>> ->
+        <<?HL:PS>> ->
             L2 = L#orders{pointer = aid(Order)},
             Dict2 = dict_write(L2, OID, Dict),
-            <<?Null:PS>> = Order#orders.pointer,
+            <<?HL:PS>> = Order#orders.pointer,
             dict_write(Order, OID, Dict2);
         M -> dict_add2(Order, Dict, M, OID)
     end.
 add2(Order, Root, P) ->
     {_, L, _} = get(P, Root),
+    io:fwrite("add2 L is "),
+    io:fwrite(packer:pack(L)),
+    io:fwrite("\n"),
     N = L#orders.pointer,
     PS = constants:pubkey_size() * 8,
     case N of
-        <<?Null:PS>> ->
+        <<?HL:PS>> ->
                 L2 = update_pointer(L, aid(Order)),
                 Root2 = write(L2, Root),
-                <<?Null:PS>> = Order#orders.pointer,
+                <<?HL:PS>> = Order#orders.pointer,
                 write(Order, Root2);
         M ->
                 add2(Order, Root, M)
     end.
 dict_remove(ID, OID, Dict) ->
     {Head, Many} = dict_head_get(Dict, OID),
-    %Order = dict_get({key, ID, OID}, Dict),
-    Order = dict_get({key, Head, OID}, Dict),
+    Order = dict_get({key, ID, OID}, Dict),
     Q = Order#orders.aid,
     if
         ID == Q ->
@@ -265,22 +284,27 @@ dict_remove(ID, OID, Dict) ->
             dict_remove2(ID, OID, Dict2, Head)
     end.
 remove(ID, Root) ->
+    PS = constants:pubkey_size() * 8,
     {Head, Many} = head_get(Root),
     {_,Order,_} = get(Head, Root),
     Q = Order#orders.aid,
     if 
         ID == Q -> 
                 %io:fwrite("remove path 1\n"),
-                Root2 = head_put(Order#orders.pointer, Many-1, Root),
-                delete(ID, Root2);
+            %P = case Order#orders.pointer of
+            %        <<1:PS>> -> <<0:PS>>;
+            %        X -> X
+            %    end,
+            P = Order#orders.pointer,
+            Root2 = head_put(P, Many-1, Root),
+            delete(ID, Root2);
         true ->
                 %io:fwrite("remove path 2\n"),
-                Root2 = head_put(Head, Many-1, Root),
-                remove2(ID, Root2, Head)
+            Root2 = head_put(Head, Many-1, Root),
+            remove2(ID, Root2, Head)
     end.
 dict_remove2(ID, OID, Dict, P) ->
-    %L = dict_get({key, ID, OID}, Dict),
-    L = dict_get({key, P, OID}, Dict),
+    L = dict_get({key, ID, OID}, Dict),
     N = L#orders.pointer,
     case N of
         ID ->
@@ -294,6 +318,9 @@ dict_remove2(ID, OID, Dict, P) ->
 remove2(ID, Root, P) ->
     {_, L, _} = get(P, Root),
     N = L#orders.pointer,
+    io:fwrite("remove 2 "),
+    io:fwrite(packer:pack({N, ID})),
+    io:fwrite("\n"),
     case N of
         ID ->
                 %io:fwrite("remove path 3\n"),
@@ -309,11 +336,16 @@ dict_delete(Pub, OID, Dict) ->
     Key = {key, Pub, OID},
     dict:store({orders, Key}, 0, Dict).
 delete(Pub, Root) ->
-    ID = key_to_int2(Pub),
-    trie:delete(ID, Root, ?name).
+    %HP = accounts:ensure_decoded_hashed(Pub),
+    %HPID = trees:hash2int(HP),
+    PS = constants:pubkey_size() * 8,
+    HPID = key_to_int2(Pub),
+    case Pub of
+        <<?HL:PS>> -> throw(cannot_delete_header);
+        _ -> ok
+    end,
+    trie:delete(HPID, Root, ?name).
 dict_match(Order, OID, Dict) ->
-    %Match1 is orders that are still open.
-    %Match2 is orders that are already closed. We need to pay them their winnings.
     {Head, Many} = dict_head_get(Dict, OID),
     {Switch, Dict2, Matches1, Matches2} = 
         dict_match2(Order, OID, Dict, Head, [], []),
@@ -327,15 +359,14 @@ dict_match(Order, OID, Dict) ->
     {Matches1, Matches2, Switch2, Root2}.
 match(Order, Root) ->
     {Head, Many} = head_get(Root),
-    {Switch, NewRoot, Matches1, Matches2} = 
-        match2(Order, Root, Head, [], []),
-    {Many2, Switch2} = 
-        case Switch of
-            same_exact -> {Many - length(Matches2), same};
-            switch -> {1, switch};
-            same -> {Many - length(Matches2) + 1, same}
-        end,
+    {Switch, NewRoot, Matches1, Matches2} = match2(Order, Root, Head, [], []),
+    {Many2, Switch2} = case Switch of
+                                  same_exact -> {Many - length(Matches2), same};
+                                  switch -> {1, switch};
+                                  same -> {Many - length(Matches2) + 1, same}
+                                                 end,
     Root2 = many_update(Many2, NewRoot),
+
     {Matches1, Matches2, Switch2, Root2}.
 dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
     La = dict_get({key, T, OID}, Dict),
@@ -366,8 +397,8 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
             end
     end.
 match2(Order, Root, T, Matches1, Matches2) ->
-    %io:fwrite(packer:pack({match2, Order})),
-    %io:fwrite("\n"),
+    io:fwrite(packer:pack({match2, Order})),
+    io:fwrite("\n"),
     {_, La, _} = get(T, Root),
     case La of
         empty -> 
@@ -382,7 +413,7 @@ match2(Order, Root, T, Matches1, Matches2) ->
             P = L#orders.pointer,
             if
                 NewA > OldA ->
-                                                %io:fwrite("new bigger\n"),
+                    %io:fwrite("new bigger\n"),
                     Root2 = head_update(P, Root),
                     Order2 = update_amount(Order, -OldA),
                     Root3 = delete(aid(L), Root2),
@@ -407,6 +438,11 @@ verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 
 test() ->
+    E = empty_book(),
+    PS = constants:pubkey_size() * 8,
+    {<<0:PS>>, 0} = head_get(E),
+    test0().
+test0() ->
     Root0 = empty_book(),
     {Pub1,_} = testnet_sign:new_key(),
     {Pub2,_} = testnet_sign:new_key(),
@@ -425,7 +461,7 @@ test() ->
     {Matches3, Matches4, switch, Root5} = match(Order3, Root4),
     {_, empty, _} = get(Pub2, Root5), 
     PS = constants:pubkey_size() * 8,
-    {_, {orders, Pub1, 10, <<?Null:PS>>}, _} = get(Pub1, Root5),
+    {_, {orders, Pub1, 10, <<?HL:PS>>}, _} = get(Pub1, Root5),
     {Matches1, Matches2, Matches3, Matches4},
     %io:fwrite("TEST orders, about to remove \n"),
     Root6 = remove(Pub2, Root2),
@@ -449,3 +485,4 @@ test2()->
     Dict1 = dict_write(Order1, OID, Dict0),
     Order1 = dict_get(Key, Dict1),
     success.
+    
