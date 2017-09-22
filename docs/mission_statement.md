@@ -14,7 +14,7 @@ When they print, they are robbing everyone, they are pushing us towards the chao
 When money flows from a centralized source like this, the resulting economy is filled with hierarchies and pyramids. Everyone is begging for handouts from the counterfeiters, the best strategy is to team together into centralized institutions, that way you can afford to lobby the counterfeiters.
 
 
-# Derivatives are for Insurance
+# Derivatives are for insurance
 
 Derivatives are a way to exchance money from one point in time for the value of something else at a different point in time.
 
