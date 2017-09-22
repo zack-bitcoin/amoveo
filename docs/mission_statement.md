@@ -39,14 +39,6 @@ Without derivatives the farmer doesn't know how many vegetables to plant of each
 
 Bribing governments to outlaw derivatives can be an effective strategy for traders. It makes the price of vegetables more volatile, so there are more money making opportunities for speculators.
 
-Amoveo is a latin word that means something like "cast-off", "withdraw", or "banish".
-
-Amoveo is built to help us:
-* amoveo the fiat currency.
-* amoveo the hierarchies.
-* amoveo the centralized markets
-* amoveo ourselves to a decentralized economy.
-
 Amoveo is being built to create a world where everyone has equal access to these life-sustaining tools: money and derivatives.
 These tools are important in much the same way access to electricity, sanitation, or clean drinking water is important.
 Without one of these basic necessities, survival becomes difficult and people start dying at younger ages.
