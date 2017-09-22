@@ -14,9 +14,10 @@ When they print, they are robbing everyone, they are pushing us towards the chao
 When money flows from a centralized source like this, the resulting economy is filled with hierarchies and pyramids. Everyone is begging for handouts from the counterfeiters, the best strategy is to team together into centralized institutions, that way you can afford to lobby the counterfeiters.
 
 
-# Markets for Derivatives and Insurance
+# Derivatives are for Insurance
 
 Derivatives are a way to exchance money from one point in time for the value of something else at a different point in time.
+
 These are the tools that allow us to take bigger risks, and efficiently and fairly share the rewards to protect everyone who participates.
 They protect us from risk, so some individuals can participate in more profitable economic activities which would otherwise be too dangerous.
 
@@ -31,13 +32,18 @@ The governments can't resist the allure of restricting access to derivatives and
 The people with access can easily outcompete everyone else economically. Almost any business can be significantly improved with access to these financial tools.
 Restricting access to these financial tools is part of how the elite maintain their control.
 
-Markets for derivatives is how people communicate their needs to each other across time. If the price of wheat futures is high in 6 months, then farmers can know to plan their farming to provide more wheat in 6 months for when the people will need it. 
+# Derivatives are for communicating future needs
+
+Markets for goods is how people communicate their need for the goods right now.
+Markets for derivatives is how people communicate their needs for goods across time. If the price of wheat futures is high in 6 months, then farmers can know to plan their farming to provide more wheat in 6 months for when the people will need it. 
 
 Sometimes governments outlaw some derivatives markets.
 Derivatives markets are for communicating needs. When they are gone, people can no longer communicate their needs.
 Without derivatives the farmer doesn't know how many vegetables to plant of each variety, because he doesn't know how many vegetables people will need.
 
 Bribing governments to outlaw derivatives can be an effective strategy for traders. It makes the price of vegetables more volatile, so there are more money making opportunities for speculators.
+
+# Aeternity protects basic human rights
 
 Amoveo is being built to create a world where everyone has equal access to these life-sustaining tools: money and derivatives.
 These tools are important in much the same way access to electricity, sanitation, or clean drinking water is important.
