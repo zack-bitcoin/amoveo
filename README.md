@@ -4,7 +4,9 @@ Amoveo
 A scalable blockchain for financial derivatives.
 Optimized for scalability via smart contracts inside state-channels.
 Has a build-in oracle for integration with real-world data.
-Written in Erlang. 
+Written in Erlang.
+
+Non-technical [mission statement](docs/mission_statement.md).
 
 #### Installing dependencies
 

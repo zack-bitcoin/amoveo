@@ -1,11 +1,3 @@
-Our current strategy doesn't work.
-serialized accounts don't store the pointer to the oracle_bets.
-maybe account and oracle dicts should store an extra pointer called "meta", just like they do in the dictionary.
-
-The above worked correctly for accounts and oracle bets.
-Next we want to do the same for oracles and orders.
-
-
 verifying a block should not require looking at the previous block. This way we can verify them in parallel.
 
 remove the difficulty-style oracles.
@@ -13,9 +5,8 @@ review how governance locks are working. They are supposed to prevent multiple o
 
 consider reducing the block time to 2 minutes. This way the extra-light nodes don't have to download as much to see that a block is invalid. But it also makes it cheaper to create invalid blocks proportionately, so maybe 10 minutes is just as good.
 
-The proofs are currently not deterministic. They contain pointers that only make sense on the node that created the proof.
-Making proofs deterministic is a big advantage because full nodes don't have to download the proofs. They can generate it themselves, and check that the hash matches.
-Even if the proofs aren't deterministic, if at least the hash of the proofs is deterministic, that would be enough.
+The proofs are currently not deterministic? They contain pointers that only make sense on the node that created the proof?
+Making proofs deterministic is an advantage because full nodes don't have to download the proofs. They can generate it themselves, and check that the hash matches.
 
 There is danger that we could be tricked into receiving invalid blocks repeatedly. The severity of this attack is currently in proportion to the size of the block.
 So, we should merkelize the downloading of the blocks. The proofs and txs should be in merkle trees.
@@ -65,6 +56,8 @@ get rid of repetition in /apps/ae_core/src/consensus/txs/spk.erl
 
 
 ### Needed before launch of mainnet
+
+We need more tests of the order book for the oracle.
 
 We need to make sure every time we take the hash of something, it is already a binary.
 We don't want to have to reprogram term_to_binary in other languages.
