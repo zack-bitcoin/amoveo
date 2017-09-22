@@ -43,7 +43,7 @@ Without derivatives the farmer doesn't know how many vegetables to plant of each
 
 Bribing governments to outlaw derivatives can be an effective strategy for traders. It makes the price of vegetables more volatile, so there are more money making opportunities for speculators.
 
-# Aeternity protects basic human rights
+# Amoveo protects basic human rights
 
 Amoveo is being built to create a world where everyone has equal access to these life-sustaining tools: money and derivatives.
 These tools are important in much the same way access to electricity, sanitation, or clean drinking water is important.
