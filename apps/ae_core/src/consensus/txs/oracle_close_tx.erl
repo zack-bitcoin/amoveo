@@ -20,39 +20,24 @@ doit(Tx, Trees, NewHeight) ->
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
     true = oracles:starts(Oracle) =< NewHeight,
-    %if the volume of orders in the oracle is too low, then set the oracle:type to 3.
-    %Result = oracles:type(Oracle),
     Orders0 = oracles:orders(Oracle),
     VolumeCheck = orders:significant_volume(Orders0, Trees),
-    %io:fwrite("oracle close tree oracle "),
-    %io:fwrite(packer:pack(Oracle)),
-    %io:fwrite("\n"),
-    %io:fwrite("oracle close tree volume check "),
-    %io:fwrite(packer:pack(VolumeCheck)),
-    %io:fwrite("\n"),
+    %if the volume of orders in the oracle is too low, then set the oracle:type to 3.
     Result = if
 		 VolumeCheck -> oracles:type(Oracle);
 		 true -> 3
 	     end,
-    %io:fwrite("oracle close tree result "),
-    %io:fwrite(packer:pack(Result)),
-    %io:fwrite("\n"),
     Oracle2 = oracles:set_result(Oracle, Result),
     Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
     Oracles2 = oracles:write(Oracle3, Oracles),
     Trees2 = trees:update_accounts(trees:update_oracles(Trees, Oracles2), NewAccounts),
     Gov = oracles:governance(Oracle3),
     Governance = trees:governance(Trees),
-    %Mot = governance:get_value(minimum_oracle_time, Governance),
-    %DT = oracles:done_timer(Oracle),
-    %true = NewHeight - Mot < DT,
     MOT = governance:get_value(maximum_oracle_time, Governance),
     Trees3 = 
 	case Gov of
 	    0 -> 
 		%is not a governance oracle.
-		%io:fwrite(packer:pack({done_timer, oracles:done_timer(Oracle), oracles:starts(Oracle3)})),
-		%io:fwrite("\n"),
 		B1 = oracles:done_timer(Oracle) < NewHeight,
 		B2 = oracles:starts(Oracle3) + MOT < NewHeight,
 		true = (B1 or B2),
@@ -103,19 +88,10 @@ go(Tx, Dict, NewHeight) ->
     true = oracles:starts(Oracle) =< NewHeight,
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
     VolumeCheck = orders:dict_significant_volume(Dict2, OID, OIL),
-    %io:fwrite("oracle close dict oracle "),
-    %io:fwrite(packer:pack(Oracle)),
-    %io:fwrite("\n"),
-    %io:fwrite("oracle close dict volume check "),
-    %io:fwrite(packer:pack(VolumeCheck)),
-    %io:fwrite("\n"),
     Result = if
 		 VolumeCheck -> oracles:type(Oracle);
 		 true -> 3
 	     end,
-    %io:fwrite("oracle close dict result "),
-    %io:fwrite(packer:pack(Result)),
-    %io:fwrite("\n"),
     Oracle2 = oracles:set_result(Oracle, Result),
     Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
     Dict4 = oracles:dict_write(Oracle3, Dict2),
@@ -155,11 +131,6 @@ go(Tx, Dict, NewHeight) ->
 	  none, 0, OID, LoserType, 
 	  constants:oracle_initial_liquidity()},
     Dict6 = oracle_bet_tx:go2(OBTx, Dict5, NewHeight),%maybe this is bad. maybe we only want to update the one account.
-    %Acc6 = accounts:dict_get(From, Dict6),
-    %Dict7 = accounts:dict_write(Acc6, accounts:bets(Acc6), Dict5),
-    %io:fwrite("oracle close tx account is "),
-    %io:fwrite(packer:pack(accounts:dict_get(keys:pubkey(), Dict6))),
-    %io:fwrite("\n"),
     Dict6.
     
     

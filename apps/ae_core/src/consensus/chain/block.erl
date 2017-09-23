@@ -414,7 +414,6 @@ check(Block) ->
     PrevTreesHash = headers:trees_hash(PrevHeader),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
-    %NewTrees2 = NewTrees,
     Block2 = Block#block{trees = NewTrees},
     TreesHash = trees:root_hash(Block2#block.trees),
     TreesHash = trees:root_hash2(Block2#block.trees, Roots),
@@ -423,59 +422,6 @@ check(Block) ->
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     TreesHash2 = trees:root_hash2(NewTrees2, Roots),
-    if
-        TreesHash2 == TreesHash -> ok;
-        true -> 
-            PS = constants:pubkey_size()*8,
-            %{_, Oracle1, Proof1} = oracles:get(6, trees:oracles(NewTrees)),
-            %{_, Oracle2, Proof2} = oracles:get(6, trees:oracles(NewTrees2)),
-            io:fwrite("fail here\n"),
-            io:fwrite("block check compare "),
-            io:fwrite(integer_to_list(Height)),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack({NewTrees, NewTrees2})),%, OldSparseTrees})),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(
-                        {element(4, stem:get(trees:accounts(NewTrees), trie:cfg(accounts))) == 
-                         element(4, stem:get(trees:accounts(NewTrees2), trie:cfg(accounts))),
-                        element(4, stem:get(trees:oracles(NewTrees), trie:cfg(oracles))) == 
-                         element(4, stem:get(trees:oracles(NewTrees2), trie:cfg(oracles))),
-                        element(4, stem:get(trees:governance(NewTrees), trie:cfg(governance))) == 
-                         element(4, stem:get(trees:governance(NewTrees2), trie:cfg(governance)))
-                        })),
-            io:fwrite("\n"),
-            io:fwrite("grab oracles test \n"),
-            Oracle1 = element(2, oracles:get(1, trees:oracles(NewTrees))),
-            Oracle2 = element(2, oracles:get(1, trees:oracles(NewTrees2))),
-            io:fwrite(packer:pack(Oracle1)),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(Oracle2)),
-            io:fwrite("\n"),
-            Orders1 = oracles:orders(Oracle1),
-            Orders2 = oracles:orders(Oracle2),
-            %io:fwrite(packer:pack(stem:get(Orders1, trie:cfg(orders)))),
-            io:fwrite("\n"),
-            %io:fwrite(packer:pack(stem:get(Orders2, trie:cfg(orders)))),
-            io:fwrite(packer:pack(Orders1)),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(Orders2)),
-            io:fwrite("\n"),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(element(2, orders:get(keys:pubkey(), Orders1)))),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(element(2, orders:get(<<1:PS>>, Orders1)))),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(element(2, orders:get(keys:pubkey(), Orders2)))),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(element(2, orders:get(<<1:PS>>, Orders2)))),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(element(2, orders:get(<<1:PS>>, 102)))),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(orders:dict_get({key, keys:pubkey(), 1}, NewDict))),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack(orders:dict_get({key, <<1:PS>>, 1}, NewDict))),
-            io:fwrite("\n")
-    end,
     TreesHash2 = TreesHash,
     {true, Block2}.
 

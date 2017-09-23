@@ -25,11 +25,6 @@ id(X) -> X#oracle_bet.id.
 make(From, Fee, OID, Type, Amount, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),
-    %Oracles = trees:oracles(Trees),
-    %{_, Oracle, _} = oracles:get(OID, Oracles),
-    %Orders = oracles:orders(Oracle),
-    %AllOrders = merge_sort(ids(trie:get_all(Orders, orders))),
-    %AllOrders = Tx#oracle_bet.to_prove,
     Tx = #oracle_bet{
        from = From, 
        nonce = accounts:nonce(Acc) + 1,
@@ -46,10 +41,6 @@ doit(Tx, Trees, NewHeight) ->
     Accounts2 = accounts:write(Facc, Accounts),
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(Tx#oracle_bet.id, Oracles),
-    %Orders = oracles:orders(Oracle),
-    %AllOrders = merge_sort(ids(trie:get_all(Orders, orders))),
-    %AllOrders = Tx#oracle_bet.to_prove,
-  
     0 = oracles:result(Oracle),%check that the oracle isn't already closed.
     Trees2 = trees:update_accounts(Trees, Accounts2),
 
@@ -63,9 +54,6 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
     VolumeCheck = orders:significant_volume(Orders0, Trees2),
     Governance = trees:governance(Trees2),
     MOT = governance:get_value(minimum_oracle_time, Governance),
-    io:fwrite("oracle bet tx volume check doit2 "),
-    io:fwrite(packer:pack(NewHeight + MOT)),
-    io:fwrite("\n"),
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
@@ -94,7 +82,6 @@ doit2(Tx, Trees2, NewHeight) -> %doit is split into two pieces because when we c
 	    NewOracles = oracles:write(NewOracle, Oracles),
 	    trees:update_oracles(Trees2, NewOracles);
 	true ->
-            io:fwrite("oracle bet tx path2\n"),
 	    {Matches1, Matches2, Next, NewOrders} =
 		orders:match(NewOrder, Orders),
 	    Oracle2 = oracles:set_orders(Oracle, NewOrders),
@@ -200,14 +187,12 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     Out = 
         if
 	TxType == OracleType ->
-                io:fwrite("oracle bet tx case 1\n"),
 	    ManyOrders = dict_orders_many(OID, Dict),
 	    Minimum = OIL * det_pow(2, max(1, ManyOrders)), 
 	    true = Amount >= Minimum,
             Dict2 = orders:dict_add(NewOrder, OID, Dict),
 	    oracles:dict_write(Oracle, Dict2);
 	true ->
-                io:fwrite("oracle bet tx case 2\n"),
                 {Matches1, Matches2, Next, Dict2} =
                     orders:dict_match(NewOrder, OID, Dict),
     %Match1 is orders that are still open.

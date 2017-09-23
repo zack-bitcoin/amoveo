@@ -93,9 +93,6 @@ prove2([{orders, Key}|T], Trees) ->
     [Proof|prove2(T, Trees)];
 prove2([{oracle_bets, Key}|T], Trees) ->
     Accounts = trees:accounts(Trees),
-    io:fwrite("oracle bet key is "),
-    io:fwrite(packer:pack(Key)),
-    io:fwrite("\n"),
     {_, Data0, _} = accounts:get(Key#key.pub, Accounts),
     OrdersTree = accounts:bets(Data0),%%%%
     {Root, Data, Path} = oracle_bets:get(Key#key.id, OrdersTree),
@@ -325,9 +322,6 @@ txs_to_querys([STx|T], Trees) ->
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
                 Pubkeys = [From|oracle_bet_tx:to_prove(OID, Trees)],
-                io:fwrite("proofs pubkeys "),
-                io:fwrite(packer:pack(Pubkeys)),
-                io:fwrite("\n"),
                 Prove = make_orders(Pubkeys, OID),
                 [
                  {governance, ?n2i(unmatched)},

@@ -17,11 +17,7 @@
 -define(Header, 1).
 -record(orders, {aid, amount, pointer}).
 dict_significant_volume(Dict, OID, OIL) ->
-    
     ManyOrders = dict_many(Dict, OID),
-        %io:fwrite("dict sig volume many is "),
-        %io:fwrite(integer_to_list(ManyOrders)),
-        %io:fwrite("\n"),
         if 
             ManyOrders == 0 ->
                 false;
@@ -35,15 +31,11 @@ dict_significant_volume(Dict, OID, OIL) ->
             
 significant_volume(Root, Trees) ->
     ManyOrders = many(Root),
-    %io:fwrite("sig volume many is "),
-    %io:fwrite(integer_to_list(ManyOrders)),
-    %io:fwrite("\n"),
         if
             ManyOrders == 0 ->
                  false;
             ManyOrders > 2 -> true;
             true -> 
-                %io:fwrite("complex\n"),
                 {Head, _} = head_get(Root),
                 {_, Order0, _} = get(Head, Root),
                 Governance = trees:governance(Trees),
@@ -259,7 +251,6 @@ dict_remove(ID, OID, Dict) ->
     Q = Order#orders.aid,
     if
         ID == Q ->
-            %io:fwrite("dict remove path 1 \n"),
             Dict2 = dict_head_put(Order#orders.pointer, Many-1, OID, Dict),
             dict_delete(ID, OID, Dict2);
         true ->
@@ -272,16 +263,13 @@ remove(ID, Root) ->
     Q = Order#orders.aid,
     if 
         ID == Q -> 
-                %io:fwrite("remove path 1\n"),
                 Root2 = head_put(Order#orders.pointer, Many-1, Root),
                 delete(ID, Root2);
         true ->
-                %io:fwrite("remove path 2\n"),
                 Root2 = head_put(Head, Many-1, Root),
                 remove2(ID, Root2, Head)
     end.
 dict_remove2(ID, OID, Dict, P) ->
-    %L = dict_get({key, ID, OID}, Dict),
     L = dict_get({key, P, OID}, Dict),
     N = L#orders.pointer,
     case N of
@@ -298,17 +286,14 @@ remove2(ID, Root, P) ->
     N = L#orders.pointer,
     case N of
         ID ->
-                %io:fwrite("remove path 3\n"),
                 {_, L2, _} = get(ID, Root),
                 L3 = update_pointer(L, aid(L2)),
                 Root2 = delete(N, Root),
                 write(L3, Root2);
         X -> 
-                %io:fwrite("remove path 4\n"),
                 remove2(ID, Root, X)
     end.
 dict_delete(Pub, OID, Dict) ->
-    io:fwrite("dict delete \n"),
     Key = {key, Pub, OID},
     dict:store({orders, Key}, 0, Dict).
 delete(Pub, Root) ->
@@ -379,12 +364,9 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
             end
     end.
 match2(Order, Root, T, Matches1, Matches2) ->
-    %io:fwrite(packer:pack({match2, Order})),
-    %io:fwrite("\n"),
     {_, La, _} = get(T, Root),
     case La of
         empty -> 
-            %io:fwrite("was empty\n"),
             P = Order#orders.aid,
             Root2 = head_update(P, Root),
             NewRoot = write(Order, Root2),
@@ -395,7 +377,7 @@ match2(Order, Root, T, Matches1, Matches2) ->
             P = L#orders.pointer,
             if
                 NewA > OldA ->
-                                                %io:fwrite("new bigger\n"),
+                    %io:fwrite("new bigger\n"),
                     Root2 = head_update(P, Root),
                     Order2 = update_amount(Order, -OldA),
                     Root3 = delete(aid(L), Root2),

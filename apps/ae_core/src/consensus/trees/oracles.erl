@@ -211,13 +211,13 @@ test2() ->
     OID = 2,
     Root0 = constants:root0(),
     X0 = new(OID, testnet_hasher:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
-    io:fwrite("test oracle "),
-    io:fwrite(packer:pack(X0)),
-    io:fwrite("\n"),
+    %io:fwrite("test oracle "),
+    %io:fwrite(packer:pack(X0)),
+    %io:fwrite("\n"),
     Dict0 = dict:new(),
     Dict1 = dict_write(X0, orders(X0), Dict0),
-    io:fwrite(packer:pack(dict:fetch_keys(Dict1))),
-    io:fwrite("\n"),
+    %io:fwrite(packer:pack(dict:fetch_keys(Dict1))),
+    %io:fwrite("\n"),
     X0 = dict_get(OID, Dict1),
     success.
     
