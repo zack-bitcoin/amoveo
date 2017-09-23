@@ -37,6 +37,7 @@ class MarketTest(ApiUser):
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
+    #def dont_doit():
         self.request('new_market', DEV_3_INT, [2, 10, 10], sleep=0.04)
 
         self.request('trade', DEV_1_INT, [1000, 1, 1, 2, 20, [127,0,0,1], 3030], sleep=0.04)

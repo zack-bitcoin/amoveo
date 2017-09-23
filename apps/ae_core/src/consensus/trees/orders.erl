@@ -10,6 +10,7 @@
          dict_write/3, dict_get/2, dict_head_get/2,
          dict_add/3, dict_remove/3, make_leaf/3,
          key_to_int/1, write/2, delete/2,
+         deserialize_head/1, head_put/3,
          test/0]).
 -define(name, orders).
 -define(Null, 0).
@@ -182,7 +183,7 @@ all(Root) ->
 all2(X, Root) ->
     PS = constants:pubkey_size() * 8,
     case X of
-        <<?Null:PS>> -> [<<?Null:PS>>];
+        <<?Null:PS>> -> [<<?Header:PS>>];
         Pub -> 
             {_, Order, _} = get(Pub, Root),
             [Pub|all2(Order#orders.pointer, Root)]
@@ -258,6 +259,7 @@ dict_remove(ID, OID, Dict) ->
     Q = Order#orders.aid,
     if
         ID == Q ->
+            %io:fwrite("dict remove path 1 \n"),
             Dict2 = dict_head_put(Order#orders.pointer, Many-1, OID, Dict),
             dict_delete(ID, OID, Dict2);
         true ->
@@ -306,6 +308,7 @@ remove2(ID, Root, P) ->
                 remove2(ID, Root, X)
     end.
 dict_delete(Pub, OID, Dict) ->
+    io:fwrite("dict delete \n"),
     Key = {key, Pub, OID},
     dict:store({orders, Key}, 0, Dict).
 delete(Pub, Root) ->
@@ -338,31 +341,41 @@ match(Order, Root) ->
     Root2 = many_update(Many2, NewRoot),
     {Matches1, Matches2, Switch2, Root2}.
 dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
-    La = dict_get({key, T, OID}, Dict),
-    case La of
-        empty ->
+    PS = constants:pubkey_size() * 8,
+    case T of
+        <<?Null:PS>> ->
             P = Order#orders.aid,
             Dict2 = dict_head_update(P, OID, Dict),
             Dict3 = dict_write(Order, OID, Dict2),
             {switch, Dict3, [Order|Matches1], Matches2};
-        L ->
-            OldA = L#orders.amount,
-            NewA = Order#orders.amount,
-            P = L#orders.pointer,
-            if
-                NewA > OldA ->
+        _ ->
+            La = dict_get({key, T, OID}, Dict),
+            case La of
+                empty ->
+                    throw(orders_check_if_path_needed),
+                    P = Order#orders.aid,
                     Dict2 = dict_head_update(P, OID, Dict),
-                    Order2 = update_amount(Order, -OldA),
+                    Dict3 = dict_write(Order, OID, Dict2),
+                    {switch, Dict3, [Order|Matches1], Matches2};
+                L ->
+                    OldA = L#orders.amount,
+                    NewA = Order#orders.amount,
+                    P = L#orders.pointer,
+                    if
+                        NewA > OldA ->
+                            Dict2 = dict_head_update(P, OID, Dict),
+                            Order2 = update_amount(Order, -OldA),
                     Dict3 = dict_delete(aid(L), OID, Dict2),
-                    Order3 = update_amount(Order, OldA),
-                    dict_match2(Order2, OID, Dict3, P, [Order3|Matches1], [L|Matches2]);
-               NewA == OldA ->
-                    {same_exact, dict_head_update(P, OID, Dict), [Order|Matches1], [L|Matches2]};
-                NewA < OldA ->
-                    Order2 = update_amount(L, -NewA),
-                    L3 = set_amount(L, NewA),
-                    {same, dict_write(Order2, OID, Dict), 
-                     [Order|Matches1], [L3|Matches2]}
+                            Order3 = update_amount(Order, OldA),
+                            dict_match2(Order2, OID, Dict3, P, [Order3|Matches1], [L|Matches2]);
+                        NewA == OldA ->
+                            {same_exact, dict_head_update(P, OID, Dict), [Order|Matches1], [L|Matches2]};
+                        NewA < OldA ->
+                            Order2 = update_amount(L, -NewA),
+                            L3 = set_amount(L, NewA),
+                            {same, dict_write(Order2, OID, Dict), 
+                             [Order|Matches1], [L3|Matches2]}
+                    end
             end
     end.
 match2(Order, Root, T, Matches1, Matches2) ->

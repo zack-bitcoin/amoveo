@@ -14,9 +14,8 @@
 %If you want your order to be held in the order book, it needs to be bigger than a minimum size.
 %There is a maximum number of orders that can be stored in the order book at a time.
 %If your order isn't big enough to be in the order book, you cannot buy shares of the type that are stored in the order book.
-to_prove(Tx, Trees) ->
+to_prove(OID, Trees) ->
     Oracles = trees:oracles(Trees),
-    OID = Tx#oracle_bet.id,
     {_, Oracle, _} = oracles:get(OID, Oracles),
     Orders = oracles:orders(Oracle),
     orders:all(Orders).
