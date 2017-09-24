@@ -431,11 +431,20 @@ check(Block) ->
     %io:fwrite(packer:pack(accounts:get(keys:pubkey(), trees:accounts(OldSparseTrees)))),
     %io:fwrite("\n"),
     NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
+
     %NewTrees2 = NewTrees,
     io:fwrite("block check 21\n"),
-    %NewTrees3 = dict_update_trie(OldTrees, NewDict),
-    NewTrees3 = NewTrees,
+    %NewTrees3 = NewTrees,
     %io:fwrite(packer:packaccounts:bets(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees)))),
+    %io:fwrite(packer:pack(accounts:dict_get(keys:pubkey(), NewDict))),
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack(accounts:get(keys:pubkey(), NewTrees2))),
+    %io:fwrite("\n"),
+    NewTrees3 = dict_update_trie(OldTrees, NewDict),
+    %NewTrees3 = NewTrees,
+    io:fwrite("finished newtrees3\n"),
+    %io:fwrite(packer:pack(accounts:get(keys:pubkey(), NewTrees3))),
+    %io:fwrite("\n"),
     %true = 0 == accounts:bets(accounts:dict_get(keys:pubkey(), Dict)),
     %true = 0 == accounts:bets(accounts:dict_get(keys:pubkey(), NewDict)),
     %false = 0 == accounts:bets(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees)))),
@@ -453,6 +462,21 @@ check(Block) ->
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     TreesHash2 = trees:root_hash2(NewTrees2, Roots),
+    if
+        TreesHash2 == TreesHash -> ok;
+        true ->
+            io:fwrite("treehashes do not match\n"),
+            io:fwrite(packer:pack({OldSparseTrees, NewTrees2})),
+            io:fwrite("\n"),
+            %io:fwrite(packer:pack(element(2, accounts:get(keys:pubkey(), trees:accounts(OldSparseTrees))))),
+            %io:fwrite("\n"),
+            io:fwrite(packer:pack(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees2))))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(accounts:dict_get(keys:pubkey(), NewDict))),
+            io:fwrite("\n")
+    end,
+            
+    TreesHash2 = TreesHash,
     io:fwrite(packer:pack({NewTrees, NewTrees2, NewTrees3})),
     io:fwrite("\n"),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
@@ -469,16 +493,11 @@ dict_update_trie(Trees, Dict) ->
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
     {Accounts, Keys4} = get_things(accounts, Keys3),
     {Oracles, Keys5} = get_things(oracles, Keys4),
-    io:fwrite("dict update trie 0\n"),
     Dict2 = dict_update_trie_orders(Trees, Orders, Dict),
-    io:fwrite("dict update trie 1\n"),
-    Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets, Dict2),
-    io:fwrite("dict update trie 2\n"),
-    Dict4 = dict_update_trie_account(Trees, Accounts, Dict3),
-    io:fwrite("dict update trie 3\n"),
-    Dict5 = dict_update_trie_oracles(Trees, Oracles, Dict4),
-    io:fwrite("dict update trie 4\n"),
-    dict_update_trie2(Trees, Keys5, Dict5).
+    Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2),
+    Trees2 = dict_update_trie_account(Trees, Accounts, Dict3),
+    Trees3 = dict_update_trie_oracles(Trees2, Oracles, Dict3),
+    dict_update_trie2(Trees3, Keys5, Dict3).
 dict_update_trie2(T, [], _) -> T;
 dict_update_trie2(Trees, [H|T], Dict) ->
     {Type, Key} = H,
@@ -495,7 +514,7 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
     dict_update_trie2(Trees2, T, Dict).
-dict_update_trie_oracles(_, [], D) -> D;
+dict_update_trie_oracles(D, [], _) -> D;
 dict_update_trie_oracles(Trees, [H|T], Dict) ->
     {Type, Key} = H,
     oracles = Type,
@@ -522,7 +541,7 @@ dict_update_trie_oracles(Trees, [H|T], Dict) ->
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
     dict_update_trie_oracles(Trees2, T, Dict).
-dict_update_trie_account(_, [], D) -> D;
+dict_update_trie_account(T, [], _) -> T;
 dict_update_trie_account(Trees, [H|T], Dict) ->
     {Type, Key} = H,
     accounts = Type,
@@ -544,6 +563,9 @@ dict_update_trie_account(Trees, [H|T], Dict) ->
                                       true -> New0
                                   end
                           end,
+                    io:fwrite("update trie "),
+                    io:fwrite(packer:pack(New)),
+                    io:fwrite("\n"),
                     Type:write(New, Tree)
             end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),

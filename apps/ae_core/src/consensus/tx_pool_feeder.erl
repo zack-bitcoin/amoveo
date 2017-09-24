@@ -87,10 +87,10 @@ absorb_internal(SignedTx) ->
     true = Fee > (MinimumTxFee + Cost),
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(SignedTx),
-    case is_in(SignedTx, Txs) of
+    Out = case is_in(SignedTx, Txs) of
         true ->
             ok = lager:info("Already have this tx");
         false ->
             absorb_unsafe(SignedTx, Trees, Height)
-    end.
-    
+    end,
+    Out. 

@@ -23,7 +23,6 @@ dict_significant_volume(Dict, OID, OIL) ->
                 false;
             ManyOrders > 2 -> true;
             true ->
-                io:fwrite("dict complex\n"),
                 {Head, _} = dict_head_get(Dict, OID),
                 Order0 = dict_get({key, Head, OID}, Dict),
                 amount(Order0) > OIL
@@ -31,16 +30,16 @@ dict_significant_volume(Dict, OID, OIL) ->
             
 significant_volume(Root, Trees) ->
     ManyOrders = many(Root),
-        if
-            ManyOrders == 0 ->
-                 false;
-            ManyOrders > 2 -> true;
-            true -> 
-                {Head, _} = head_get(Root),
-                {_, Order0, _} = get(Head, Root),
-                Governance = trees:governance(Trees),
-                OIL = governance:get_value(oracle_initial_liquidity, Governance),
-                (orders:amount(Order0) > OIL)
+    if
+        ManyOrders == 0 ->
+            false;
+        ManyOrders > 2 -> true;
+        true -> 
+            {Head, _} = head_get(Root),
+            {_, Order0, _} = get(Head, Root),
+            Governance = trees:governance(Trees),
+            OIL = governance:get_value(oracle_initial_liquidity, Governance),
+            (orders:amount(Order0) > OIL)
     end.
 dict_many(Dict, OID) -> 
     {_, Many} = dict_head_get(Dict, OID),
@@ -141,6 +140,7 @@ dict_head_get(Dict, OID) ->
             deserialize_head(X)
     end.
 head_get(Root) ->
+    false = Root == 0,
     PS = constants:pubkey_size() * 8,
     ID = key_to_int2(<<?Header:PS>>),
     {_, L, _} = trie:get(ID, Root, ?name),
