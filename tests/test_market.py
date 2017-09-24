@@ -4,7 +4,8 @@ from nose.tools import nottest
 #@nottest
 class MarketTest(ApiUser):
     def test_market(self):
-        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=5)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
+        #self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=5)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
         pub1 = "BOLh/UTJK6g4bgC4hSh941OEVdNfTBvqAU5OvgWWL3Dnv8M/dy6oioTIH9fHXdWaXXPop1BxQ/x3MfoEd3lnV7g="
@@ -49,7 +50,7 @@ class MarketTest(ApiUser):
         self.request('pull_channel_state', DEV_1_INT, [[127,0,0,1], 3030], sleep=0.04)
         self.request('oracle_bet', DEV_1_INT, [2, 1, 269], sleep=0.04)
         #self.request('mine_block', DEV_3_INT, [11, 1], sleep=3)
-        self.request('mine_block', DEV_1_INT, [11, 1], sleep=0.04)
+        self.request('mine_block', DEV_1_INT, [11, 1], sleep=0.1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
     #def dont_doit():

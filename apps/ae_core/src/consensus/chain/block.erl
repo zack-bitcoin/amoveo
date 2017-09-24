@@ -411,9 +411,11 @@ check(Block) ->
           Facts, trees:new(empty, empty, empty,
                            empty, empty, empty)),
     PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
+    PrevTreesHash = trees:root_hash2(OldTrees, Roots),
     PrevTreesHash = headers:trees_hash(PrevHeader),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
+    NewTrees3 = dict_update_trie(OldTrees, NewDict),
     Block2 = Block#block{trees = NewTrees},
     TreesHash = trees:root_hash(Block2#block.trees),
     TreesHash = trees:root_hash2(Block2#block.trees, Roots),
@@ -422,6 +424,7 @@ check(Block) ->
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     TreesHash2 = trees:root_hash2(NewTrees2, Roots),
+    TreesHash2 = trees:root_hash2(NewTrees3, Roots),
     TreesHash2 = TreesHash,
     {true, Block2}.
 
