@@ -28,9 +28,11 @@ absorb(Tx) ->
 test(1) ->
     io:fwrite(" create_account tx test \n"),
     %create account, spend, delete account
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
     BP = block:get_by_height_in_chain(0, headers:top()),
     PH = block:hash(BP),
-    tx_pool:dump(),
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
@@ -430,7 +432,7 @@ test(13) ->
     Stx = keys:sign(Tx),
     absorb(Stx),
 
-    mine_blocks(2),
+    mine_blocks(2),%error here<
     timer:sleep(150),
     {Trees2, _, _} = tx_pool:data(),
     %close the oracle with oracle_close

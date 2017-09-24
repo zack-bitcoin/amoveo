@@ -258,6 +258,7 @@ make(Header, Txs0, Trees, Pub) ->
     Querys = proofs:txs_to_querys(Txs, Trees),
     Height = headers:height(Header),
     NewTrees = new_trees(Txs, Trees, Height+1, Pub, hash(Header)),
+    %NewDict = new_dict(Txs, Dict, Height+1, Pub, hash(Header)),
     Proofs = proofs:prove(Querys, Trees),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
@@ -272,7 +273,7 @@ make(Header, Txs0, Trees, Pub) ->
                    roots = make_roots(Trees)
 		  },
     Block = packer:unpack(packer:pack(Block)),
-    _Dict = proofs:facts_to_dict(Proofs, dict:new()),
+    %_Dict = proofs:facts_to_dict(Proofs, dict:new()),
     Block.
 make_roots(Trees) ->
     #roots{accounts = accounts:root_hash(trees:accounts(Trees)),
@@ -387,6 +388,7 @@ proofs_roots_match([P|T], R) ->
     proofs_roots_match(T, R).
             
 check(Block) ->
+    {ok, LN} = application:get_env(ae_core, light_node),
     Facts = Block#block.proofs,
     Header = block_to_header(Block),
     BlockHash = hash(Block),
@@ -397,6 +399,14 @@ check(Block) ->
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = headers:trees_hash(PrevHeader),
     Roots = Block#block.roots,
+
+    case LN of
+        true -> 
+            ok;
+        false ->
+            ok
+    end,
+
     true = proofs_roots_match(Block#block.proofs, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     %load the data into a dictionary, feed this dictionary into new_trees/ instead of OldTrees.
@@ -404,6 +414,7 @@ check(Block) ->
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
+    io:fwrite("block check2 \n"),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
     OldSparseTrees = 
@@ -411,11 +422,29 @@ check(Block) ->
           Facts, trees:new(empty, empty, empty,
                            empty, empty, empty)),
     PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
+    io:fwrite("block check 20\n"),
     PrevTreesHash = trees:root_hash2(OldTrees, Roots),
+    io:fwrite("block check 200\n"),
     PrevTreesHash = headers:trees_hash(PrevHeader),
     NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
+    io:fwrite("block check 201\n"),
+    %io:fwrite(packer:pack(accounts:get(keys:pubkey(), trees:accounts(OldSparseTrees)))),
+    %io:fwrite("\n"),
     NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
-    NewTrees3 = dict_update_trie(OldTrees, NewDict),
+    %NewTrees2 = NewTrees,
+    io:fwrite("block check 21\n"),
+    %NewTrees3 = dict_update_trie(OldTrees, NewDict),
+    NewTrees3 = NewTrees,
+    %io:fwrite(packer:packaccounts:bets(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees)))),
+    %true = 0 == accounts:bets(accounts:dict_get(keys:pubkey(), Dict)),
+    %true = 0 == accounts:bets(accounts:dict_get(keys:pubkey(), NewDict)),
+    %false = 0 == accounts:bets(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees)))),
+    %false = 0 == accounts:bets(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees2)))),
+   % false = 0 == accounts:bets(element(2, accounts:get(keys:pubkey(), trees:accounts(NewTrees3)))),
+    %io:fwrite("block check 3\n"),
+    %io:fwrite("trees compare \n"),
+    %io:fwrite(packer:pack({NewTrees, NewTrees3})),
+    %io:fwrite("\n"),
     Block2 = Block#block{trees = NewTrees},
     TreesHash = trees:root_hash(Block2#block.trees),
     TreesHash = trees:root_hash2(Block2#block.trees, Roots),
@@ -424,8 +453,10 @@ check(Block) ->
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     TreesHash2 = trees:root_hash2(NewTrees2, Roots),
-    TreesHash2 = trees:root_hash2(NewTrees3, Roots),
-    TreesHash2 = TreesHash,
+    io:fwrite(packer:pack({NewTrees, NewTrees2, NewTrees3})),
+    io:fwrite("\n"),
+    TreesHash = trees:root_hash2(NewTrees3, Roots),
+    io:fwrite("block check 4 \n"),
     {true, Block2}.
 
     %Initially some things in trees is the atom 'empty'.
@@ -436,13 +467,25 @@ dict_update_trie(Trees, Dict) ->
     Keys = dict:fetch_keys(Dict),
     {Orders, Keys2} = get_things(orders, Keys),
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
+    {Accounts, Keys4} = get_things(accounts, Keys3),
+    {Oracles, Keys5} = get_things(oracles, Keys4),
+    io:fwrite("dict update trie 0\n"),
     Dict2 = dict_update_trie_orders(Trees, Orders, Dict),
+    io:fwrite("dict update trie 1\n"),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets, Dict2),
-    dict_update_trie2(Trees, Keys3, Dict3).
+    io:fwrite("dict update trie 2\n"),
+    Dict4 = dict_update_trie_account(Trees, Accounts, Dict3),
+    io:fwrite("dict update trie 3\n"),
+    Dict5 = dict_update_trie_oracles(Trees, Oracles, Dict4),
+    io:fwrite("dict update trie 4\n"),
+    dict_update_trie2(Trees, Keys5, Dict5).
 dict_update_trie2(T, [], _) -> T;
 dict_update_trie2(Trees, [H|T], Dict) ->
     {Type, Key} = H,
     New = Type:dict_get(Key, Dict),
+    io:fwrite("dict update trie 2\n"),
+    io:fwrite(packer:pack(New)),
+    io:fwrite("\n"),
     Tree = trees:Type(Trees),
     Tree2 = case New of
                 empty -> 
@@ -452,6 +495,61 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
     dict_update_trie2(Trees2, T, Dict).
+dict_update_trie_oracles(_, [], D) -> D;
+dict_update_trie_oracles(Trees, [H|T], Dict) ->
+    {Type, Key} = H,
+    oracles = Type,
+    New0 = Type:dict_get(Key, Dict),
+    Tree = trees:Type(Trees),
+    Tree2 = case New0 of
+                empty -> 
+                    Type:delete(Key, Tree);
+                _ -> 
+                    ABN = Type:orders(New0),
+                    {_, Old, _} = Type:get(Key, trees:Type(Trees)),
+                    New = if
+                              Old == empty -> New0;
+                              true ->
+                                  ABO = Type:orders(Old), 
+                                  if
+                                      ABO == 0 -> New0;
+                                      0 == ABN -> Type:set_orders(New0, oracles:orders(Old));
+                                      true -> New0
+                                  end
+                          end,
+                    Type:write(New, Tree)
+            end,
+    Update = list_to_atom("update_" ++ atom_to_list(Type)),
+    Trees2 = trees:Update(Trees, Tree2),
+    dict_update_trie_oracles(Trees2, T, Dict).
+dict_update_trie_account(_, [], D) -> D;
+dict_update_trie_account(Trees, [H|T], Dict) ->
+    {Type, Key} = H,
+    accounts = Type,
+    New0 = Type:dict_get(Key, Dict),
+    Tree = trees:Type(Trees),
+    Tree2 = case New0 of
+                empty -> 
+                    Type:delete(Key, Tree);
+                _ -> 
+                    ABN = Type:bets(New0),
+                    {_, Old, _} = Type:get(Key, trees:Type(Trees)),
+                    New = if
+                              Old == empty -> New0;
+                              true ->
+                                  ABO = Type:bets(Old),
+                                  if
+                                      ABO == 0 -> New0;
+                                      0 == ABN -> Type:update_bets(New0, accounts:bets(Old));
+                                      true -> New0
+                                  end
+                          end,
+                    Type:write(New, Tree)
+            end,
+    Update = list_to_atom("update_" ++ atom_to_list(Type)),
+    Trees2 = trees:Update(Trees, Tree2),
+    dict_update_trie_account(Trees2, T, Dict).
+
 dict_update_trie_orders(_, [], D) -> D;
 dict_update_trie_orders(Trees, [H|T], Dict) ->
     {orders, Key} = H,

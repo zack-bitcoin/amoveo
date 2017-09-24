@@ -1,5 +1,5 @@
 -module(accounts).
--export([new/3,nonce/1,write/2,get/2,update/5,update/6,
+-export([new/3,nonce/1,write/2,get/2,update/5,%update/6,
          dict_update/5, dict_update/6, dict_get/2,
 	 %addr/1, id/1,
 	 balance/1,root_hash/1,now_balance/4,delete/2,
@@ -81,11 +81,12 @@ update(PubHash, Trees, Amount, NewNonce, NewHeight, Bets) ->
     true = NewHeight >= OldHeight,
     NewBalance = new_balance(Account, Amount, NewHeight, Trees),
     true = NewBalance > 0,
+    %false = Bets == 0,
     Account#acc{balance = NewBalance,
                 nonce = FinalNonce,
                 height = NewHeight,
-                bets = Bets,
-                bets_hash = oracle_bets:root_hash(Bets)}.
+                bets = Bets}.%,
+                %bets_hash = oracle_bets:root_hash(Bets)}.
 
 now_balance(Acc, Amount, NewHeight, Trees) ->
     OldHeight = Acc#acc.height,
@@ -104,6 +105,7 @@ now_balance(Acc, Amount, NewHeight, Trees) ->
     Amount + Acc#acc.balance - (Rent * DH).
 
 update_bets(Account, Bets) ->
+    %false = Bets == 0,
     Account#acc{bets = Bets,
                 bets_hash = oracle_bets:root_hash(Bets)}.
 key_to_int(X) ->
