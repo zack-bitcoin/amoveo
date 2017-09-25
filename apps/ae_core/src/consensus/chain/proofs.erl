@@ -78,7 +78,14 @@ prove2([], _) ->
 prove2([{orders, Key}|T], Trees) ->
     Oracles = trees:oracles(Trees),
     {_, Data0, _} = oracles:get(Key#key.id, Oracles),
-    OrdersTree = oracles:orders(Data0),%%%%
+    OrdersTree = 
+        if
+            Data0 == empty ->
+                orders:empty_book();
+            true ->
+                oracles:orders(Data0)
+        end,
+    %OrdersTree = oracles:orders(Data0),%%%%
     {Root, Data, Path} = orders:get(Key#key.pub, OrdersTree),
     Data2 = case Data of
 		empty -> 0;
@@ -273,7 +280,7 @@ txs_to_querys([STx|T], Trees) ->
                  {governance, ?n2i(minimum_oracle_time)},
                  %{oracles, oracle_new_tx:recent_price(Tx)},
                  %{oracle_bets, {key, AID, OID}},
-                 %{orders, {key, <<?Null:PS>>, OID}},
+                 %{orders, {key, <<?Header:PS>>, OID}},
                  %{oracle_bets, {key, <<?Null:PS>>, OID}},
                  {accounts, AID},
                  {oracles, OID}

@@ -4,8 +4,9 @@ from nose.tools import nottest
 #@nottest
 class MarketTest(ApiUser):
     def test_market(self):
+        self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.04)
         #self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
-        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=1)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=2)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
         pub1 = "BOLh/UTJK6g4bgC4hSh941OEVdNfTBvqAU5OvgWWL3Dnv8M/dy6oioTIH9fHXdWaXXPop1BxQ/x3MfoEd3lnV7g="
@@ -38,8 +39,8 @@ class MarketTest(ApiUser):
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
-    #def dont_doit():
         self.request('new_market', DEV_3_INT, [2, 10, 10], sleep=0.04)
+    def dont_doit():
 
         self.request('trade', DEV_1_INT, [1000, 1, 1, 2, 20, [127,0,0,1], 3030], sleep=0.04)
         self.request('trade', DEV_1_INT, [3000, 1, 1, 2, 20, [127,0,0,1], 3030], sleep=0.04)
