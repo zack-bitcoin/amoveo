@@ -4,8 +4,8 @@ from nose.tools import nottest
 #@nottest
 class MarketTest(ApiUser):
     def test_market(self):
-        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
-        #self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=5)
+        #self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=1)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
         pub1 = "BOLh/UTJK6g4bgC4hSh941OEVdNfTBvqAU5OvgWWL3Dnv8M/dy6oioTIH9fHXdWaXXPop1BxQ/x3MfoEd3lnV7g="
