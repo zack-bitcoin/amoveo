@@ -21,9 +21,7 @@ doit(Tx, Trees, NewHeight) ->
     {_, Oracle, _} = oracles:get(OID, Oracles),
     true = oracles:starts(Oracle) =< NewHeight,
     Orders0 = oracles:orders(Oracle),
-    io:fwrite("oracle close tx 12\n"),
     VolumeCheck = orders:significant_volume(Orders0, Trees),
-    io:fwrite("oracle close tx 2\n"),
     %if the volume of orders in the oracle is too low, then set the oracle:type to 3.
     Result = if
 		 VolumeCheck -> oracles:type(Oracle);
@@ -82,7 +80,6 @@ doit(Tx, Trees, NewHeight) ->
     Trees4.
         
 go(Tx, Dict, NewHeight) ->
-    io:fwrite("oracle close top\n"),
     From = Tx#oracle_close.from,
     Acc = accounts:dict_update(From, Dict, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
     Dict2 = accounts:dict_write(Acc, Dict),
