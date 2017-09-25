@@ -32,8 +32,32 @@ absorb_unsafe(SignedTx) ->
 absorb_unsafe(SignedTx, Trees, Height) ->
     NewTrees = txs:digest([SignedTx], Trees, Height + 1),
     tx_pool:absorb_tx(NewTrees, SignedTx).
-
-
+absorb_unsafe_new(SignedTx, Dict, Facts, Trees, Height) ->
+    %The trees shows the state after the previous block.
+    %Dict holds the state after applying all the recent txs.
+    Querys = proofs:txs_to_querys([SignedTx], Trees),
+    Querys = proofs:facts_to_querys(Facts),%verify that these facts are trying to prove the validity of this tx.
+    %check that the facts are valid.
+    true = verify_proofs(Facts, Trees),
+    NewDict = txs:digest_from_dict([SignedTx], Dict, Height + 1),
+    tx_pool:absorb_tx_facts(NewDict, SignedTx, Facts).
+verify_proofs([], _) -> true;
+verify_proofs([F|T], Trees) ->
+    Type = proofs:tree(F),
+    true = is_atom(Type),
+    Root = proofs:root(F),
+    Root = Type:root_hash(trees:Type(Trees)),
+    X = Type:verify_proof(
+          Root,
+          proofs:key(F),
+          proofs:value(F),
+          proofs:path(F)),
+    if
+        X -> verify_proofs(T, Trees);
+        true -> false
+    end.
+            
+    
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 

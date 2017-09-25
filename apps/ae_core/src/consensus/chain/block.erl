@@ -186,28 +186,28 @@ genesis_maker() ->
            trees = Trees,
            roots = make_roots(Trees)
           }.
-block_reward(Trees, Height, ID, PH) -> 
-    OldAccounts = trees:accounts(Trees),
-    Governance = trees:governance(Trees),
+%block_reward_expired(Trees, Height, ID, PH) -> 
+%    OldAccounts = trees:accounts(Trees),
+%    Governance = trees:governance(Trees),
     %BCM = governance:get_value(block_creation_maturity, Governance),
-    BCM = 100,
-    BlocksAgo = Height - BCM,
-    case BlocksAgo > 0 of
-        true ->
-            Txs = txs(get_by_height_in_chain(BlocksAgo, PH)),
-            TransactionFees = txs:fees(Txs),
-            TransactionCosts = tx_costs(Txs, Governance, 0),
-            BlockReward = governance:get_value(block_reward, Governance),
-            Amount = BlockReward + TransactionFees - TransactionCosts,
-            NM = case accounts:get(ID, OldAccounts) of
-                     {_, empty,_} ->  accounts:new(ID, Amount, Height);
-                     _ -> accounts:update(ID, Trees, Amount, none, Height)
-                 end,
-            NewAccounts = accounts:write(NM, OldAccounts),
-            trees:update_accounts(Trees, NewAccounts);
-        false ->
-            Trees
-    end.
+%    BCM = 100,
+%    BlocksAgo = Height - BCM,
+%    case BlocksAgo > 0 of
+%        true ->
+%            Txs = txs(get_by_height_in_chain(BlocksAgo, PH)),
+%            TransactionFees = txs:fees(Txs),
+%            TransactionCosts = tx_costs(Txs, Governance, 0),
+%            BlockReward = governance:get_value(block_reward, Governance),
+%            Amount = BlockReward + TransactionFees - TransactionCosts,
+%            NM = case accounts:get(ID, OldAccounts) of
+%                     {_, empty,_} ->  accounts:new(ID, Amount, Height);
+%                     _ -> accounts:update(ID, Trees, Amount, none, Height)
+%                 end,
+%            NewAccounts = accounts:write(NM, OldAccounts),
+%            trees:update_accounts(Trees, NewAccounts);
+%        false ->
+%            Trees
+%    end.
 block_reward_dict(Dict, Height, ID, PH) ->
     BCM = 100,
     BlocksAgo = Height - BCM,
@@ -221,12 +221,10 @@ block_reward_dict(Dict, Height, ID, PH) ->
                                      Dict),
             Amount = BlockReward + TransactionFees - TransactionCosts,
             NM = case accounts:dict_get(ID, Dict) of
-            %NM = case dict:fetch({accounts, ID}, Dict) of
                      empty ->  accounts:new(ID, Amount, Height);
                      _ -> accounts:dict_update(ID, Dict, Amount, none, Height)
                  end,
             accounts:dict_write(NM, Dict);
-            %dict:store({accounts, ID}, NM, Dict);
         false -> Dict
     end.
    
@@ -247,19 +245,20 @@ new_dict(Txs, Dict, Height, Pub, PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
     block_reward_dict(Dict2, Height, Pub, PrevHash).
     
-new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
+%new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
 %convert trees to dictionary format
-    Trees2 = txs:digest(Txs, Trees, Height),
-    block_reward(Trees2, Height, Pub, HeaderHash).
+    %Trees2 = txs:digest(Txs, Trees, Height),
+    %block_reward(Trees2, Height, Pub, HeaderHash).
 %convert back to merkle tree format.
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [keys:sign(CB)|Txs0],
     Querys = proofs:txs_to_querys(Txs, Trees),
     Height = headers:height(Header),
-    NewTrees = new_trees(Txs, Trees, Height+1, Pub, hash(Header)),
-    %NewDict = new_dict(Txs, Dict, Height+1, Pub, hash(Header)),
-    Proofs = proofs:prove(Querys, Trees),
+    Facts = proofs:prove(Querys, Trees),
+    Dict = proofs:facts_to_dict(Facts, dict:new()),
+    NewDict = new_dict(Txs, Dict, Height+1, keys:pubkey(), hash(Header)),
+    NewTrees = dict_update_trie(Trees, NewDict),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -269,7 +268,7 @@ make(Header, Txs0, Trees, Pub) ->
 		   version = constants:version(),
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header),
-		   proofs = Proofs,
+		   proofs = Facts,
                    roots = make_roots(Trees)
 		  },
     Block = packer:unpack(packer:pack(Block)),
@@ -423,7 +422,7 @@ check(Block) ->
     PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
     PrevTreesHash = trees:root_hash2(OldTrees, Roots),
     PrevTreesHash = headers:trees_hash(PrevHeader),
-    NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
+    %NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
     NewTrees3 = dict_update_trie(OldTrees, NewDict),
     Block2 = Block#block{trees = NewTrees3},
