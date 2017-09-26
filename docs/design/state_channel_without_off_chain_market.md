@@ -15,3 +15,5 @@ If you are going to trust a centralized market to give your channel the right am
 Most state channel projects today do not put any effort into off-chain markets, because for most projects "state channel" is just a buzz word. 
 
 Amoveo is being developed by the person who invented state channels and turing complete state channels. Amoveo cares about doing channels right.
+
+Discuss this on reddit https://www.reddit.com/r/Amoveo/comments/72cy4l/state_channel_without_offchain_markets_are/

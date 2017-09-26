@@ -16,3 +16,4 @@ Doing everything on-chain would be a similar cost to using subcurrencies in chan
 
 Given the relative costs, it is clear that derivatives is the better strategy than subcurrencies.
 
+discuss this on reddit https://www.reddit.com/r/Amoveo/comments/72cynt/putting_subcurrencies_into_channels_is_a_bad/

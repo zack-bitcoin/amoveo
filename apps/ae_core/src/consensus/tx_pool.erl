@@ -18,13 +18,22 @@
          handle_info/2,
          terminate/2,
          code_change/3]).
-
+-export([txs/1, trees/1, dict/1, facts/1, height/1, data_new/0]).
 -record(f, {txs = [],
             trees,
+            dict = dict:new(),
+            facts = [],
             height = 0}).
 
 %% API functions
+txs(F) -> F#f.txs.
+trees(F) -> F#f.trees.
+dict(F) -> F#f.dict.
+facts(F) -> F#f.facts.
+height(F) -> F#f.height.
 
+data_new() ->
+    gen_server:call(?MODULE, data).
 data() ->
     {Trees, Height, Txs} = gen_server:call(?MODULE, data),
     {Trees, Height, Txs}.
@@ -68,11 +77,13 @@ handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
                 NewTxs
         end,
     {reply, 0, F#f{txs = FinalTxs, trees = NewTrees}};
-handle_call({absorb, NewTrees, Txs, _}, _From, _) ->
-    {reply, 0, #f{txs = Txs, trees = NewTrees}};
+handle_call({absorb, NewTrees, Txs, Height}, _From, _) ->
+    {reply, 0, #f{txs = Txs, trees = NewTrees, height = Height}};
+handle_call(data_new, _From, F) ->
+    {reply, F, F};
 handle_call(data, _From, F) ->
     {ok, Header} = headers:read(block:hash(headers:top())),
-    H = headers:height(Header),
+    H = F#f.height,
     {reply, {F#f.trees, H, lists:reverse(F#f.txs)}, F}.
 
 handle_cast(_Msg, State) ->
