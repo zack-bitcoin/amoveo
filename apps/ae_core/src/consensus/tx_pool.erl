@@ -18,9 +18,10 @@
          handle_info/2,
          terminate/2,
          code_change/3]).
--export([txs/1, trees/1, dict/1, facts/1, height/1, data_new/0]).
+-export([txs/1, trees/1, dict/1, facts/1, height/1, data_new/0, new_trees/1]).
 -record(f, {txs = [],
             trees,
+            new_trees,
             dict = dict:new(),
             facts = [],
             height = 0}).
@@ -28,6 +29,7 @@
 %% API functions
 txs(F) -> F#f.txs.
 trees(F) -> F#f.trees.
+new_trees(F) -> F#f.new_trees.
 dict(F) -> F#f.dict.
 facts(F) -> F#f.facts.
 height(F) -> F#f.height.
