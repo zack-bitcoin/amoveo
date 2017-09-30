@@ -23,3 +23,5 @@ These are some common misconceptions about programmable state channels:
 * "State channels are useful even if they are not programmable". [This is false](state_channel_without_off_chain_market.md)
 State channels need to be at least programmable enough to build off-chain markets, otherwise they are no more valuable than payment channels. This is why "State channel" should mean "programmable state channel", there is no reason to build non-programmable state channels.
 * "State channels can be used to hold multiple currencies". [This is false](why_not_channels_with_multiple_currencies.md)
+
+[Discuss this on Reddit](https://www.reddit.com/r/Amoveo/comments/73hdf7/programmable_state_channels_explained/)
