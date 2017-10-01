@@ -6,7 +6,7 @@ For example, if we play a card game enforced by smart contract, the blockchain w
 Still, the blockchain can enforce that the winner of the card game gets their money.
 
 Contracts inside of programmable state channels are called "off-chain".
-Contracts that store state on-chain are called "on-chain".
+Contracts that store state on the blockchain are called "on-chain". When state is "on the blockchain", that means that every full node has to download and store the state, and every light node is able to verify a merkle proof of the state from headers.
 
 
 The advantages of off-chain contracts are similar to the advantages of channel payments over on-chain payments:
@@ -19,9 +19,11 @@ The advantages of off-chain contracts are similar to the advantages of channel p
 These are some common misconceptions about programmable state channels:
 
 * "Smart contracts in channels can only have 2 participants." This is false. We can use hashlocking to connect multiple channels together, this way more than 2 people can participate in a smart contract. [This was invented for cross chain atomic swaps.](https://en.bitcoin.it/wiki/Atomic_cross-chain_trading)
-* "channel smart contracts are vulnerable to front running or the free-option problem." This is false. [There is an off-chain mechanism that can be used to protect participants.](limit_order_in_channel.md)
-* "State channels are useful even if they are not programmable". [This is false](state_channel_without_off_chain_market.md)
-State channels need to be at least programmable enough to build off-chain markets, otherwise they are no more valuable than payment channels. This is why "State channel" should mean "programmable state channel", there is no reason to build non-programmable state channels.
-* "State channels can be used to hold multiple currencies". [This is false](why_not_channels_with_multiple_currencies.md)
+* "channel smart contracts are vulnerable to front running, or the free-option problem." This is false. [There is an off-chain mechanism that can be used to protect participants.](limit_order_in_channel.md)
+* "State channels are useful even without off-chain markets". [This is false](state_channel_without_off_chain_market.md)
+State channels need off-chain markets, otherwise they are no more valuable than payment channels.
+Without markets, any contract inside of a state-channel will either be vulnerable to arbitrage, or front-running. 
+* "State channels can be used to hold multiple currencies". [This is possible, but it gets rid of most of the benefits of having a channel.](why_not_channels_with_multiple_currencies.md)
+Any time you want to change the amount of any currency in a channel, you need to do an on-chain transaction. Having to do so much on-chain reduces the utility of channels.
 
 [Discuss this on Reddit](https://www.reddit.com/r/Amoveo/comments/73hdf7/programmable_state_channels_explained/)
