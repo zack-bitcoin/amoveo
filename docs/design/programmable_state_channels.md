@@ -22,7 +22,7 @@ These are some common misconceptions about programmable state channels:
 * "channel smart contracts are vulnerable to front running, or the free-option problem." This is false. [There is an off-chain mechanism that can be used to protect participants.](limit_order_in_channel.md)
 * "State channels are useful even without off-chain markets". [This is false](state_channel_without_off_chain_market.md)
 State channels need off-chain markets, otherwise they are no more valuable than payment channels.
-Without markets, any contract inside of a state-channel will either be vulnerable to arbitrage, or front-running. 
+Without markets, any smart contract inside of a state-channel will either be vulnerable to arbitrage, or front-running.
 * "State channels can be used to hold multiple currencies". [This is possible, but it gets rid of most of the benefits of having a channel.](why_not_channels_with_multiple_currencies.md)
 Any time you want to change the amount of any currency in a channel, you need to do an on-chain transaction. Having to do so much on-chain reduces the utility of channels.
 
