@@ -46,4 +46,6 @@ Oracles that cannot escalate are prohibitivly expensive, or they don't work.
 [For an oracle to be useful, it needs to give accurate information about the outside world, even when the amount of money being gambled on the oracle's result is much bigger than the amount of money in the oracle mechanism. For an oracle to function in those conditions, it needs to be possible for users to commit more money to the oracle to make it more secure. This way the situation can escalate to having more money at stake.](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/oracle_motivations.md)
 
 
+[Discuss this on Reddit](https://www.reddit.com/r/Amoveo/comments/73tn7z/progress_of_each_of_5_teams_competing_for_the/)
+
 If you want to add an additional team to this list, or you want to correct any mistakes in this document, make an issue or pull request on github.
