@@ -42,10 +42,20 @@ On-chain markets cannot scale enough.
 
 Most teams got a score of 0 for their oracle because their oracle mechanism cannot escalate.
 Oracles that cannot escalate are prohibitivly expensive, or they don't work.
+For an oracle to be useful, it needs to give accurate information about the outside world, even when the amount of money being gambled on the oracle's result is much bigger than the amount of money in the oracle mechanism. For an oracle to function in those conditions, it needs to be possible for users to commit more money to the oracle to make it more secure. This way the situation can escalate to having more money at stake.[read more here](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/oracle_motivations.md)
 
-[For an oracle to be useful, it needs to give accurate information about the outside world, even when the amount of money being gambled on the oracle's result is much bigger than the amount of money in the oracle mechanism. For an oracle to function in those conditions, it needs to be possible for users to commit more money to the oracle to make it more secure. This way the situation can escalate to having more money at stake.](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/oracle_motivations.md)
+[Here is bitcoin hivemind's plan for channels](http://bitcoinhivemind.com/blog/lightning-network/)
+
+I can't find any work on channels from gnosis or augur, but they have both announced that they will use channels. Augur said they will use Ox for this.
+
+Amoveo channels are tested. Lightning payments are tested [here](/tests/test_lightning.py)
+
+Gnosis gives an explanation of their oracle with escalation [here](https://blog.gnosis.pm/a-visit-to-the-oracle-fefc9dec5462). the "Ultimate Oracle" is the part with escalation. It is implemented in solidity [here](https://github.com/gnosis/gnosis-contracts/tree/master/contracts/Oracles)
+
+https://medium.com/@Cryptokeeper/the-gnosis-oracle-system-1cf8b8956950) 
 
 
 [Discuss this on Reddit](https://www.reddit.com/r/Amoveo/comments/73tn7z/progress_of_each_of_5_teams_competing_for_the/)
 
 If you want to add an additional team to this list, or you want to correct any mistakes in this document, make an issue or pull request on github.
+
