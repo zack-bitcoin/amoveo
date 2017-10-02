@@ -8,7 +8,7 @@
 %% API
 -export([data/0,
          dump/0,
-         absorb_tx/2,
+         absorb_tx/3,
          absorb/2]).
 
 -export([start_link/0]).
@@ -43,8 +43,8 @@ data() ->
 dump() ->
     gen_server:call(?MODULE, dump).
 
-absorb_tx(Trees, Tx) ->
-    gen_server:call(?MODULE, {absorb_tx, Trees, Tx}).
+absorb_tx(Trees, NewDict, Tx) ->
+    gen_server:call(?MODULE, {absorb_tx, Trees, NewDict, Tx}).
 
 absorb(Trees, Height) ->
     gen_server:call(?MODULE, {absorb, Trees, Height}).
@@ -65,20 +65,19 @@ init(ok) ->
 handle_call(dump, _From, _OldState) ->
     State = current_state(),
     {reply, 0, State};
-handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
+handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
     NewTxs = [Tx | F#f.txs],
     BlockSize = size(term_to_binary(NewTxs)),
     Governance = trees:governance(NewTrees),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
-    FinalTxs =
-        case BlockSize > MaxBlockSize of
-            true ->
-                lager:warning("Cannot absorb tx - block is already full"),
-                F#f.txs;
-            false ->
-                NewTxs
-        end,
-    {reply, 0, F#f{txs = FinalTxs, trees = NewTrees}};
+    F2 = case BlockSize > MaxBlockSize of
+             true ->
+                 lager:warning("Cannot absorb tx - block is already full"),
+                 F;
+             false ->
+                 F#f{txs = NewTxs, trees = NewTrees, dict = NewDict}
+         end,
+    {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
     {reply, 0, #f{txs = [], trees = NewTrees, new_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) ->

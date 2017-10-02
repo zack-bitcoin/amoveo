@@ -36,7 +36,8 @@ absorb_unsafe(SignedTx) ->
 absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     NewTrees = txs:digest([SignedTx], Trees, Height + 1),
     %NewDict = txs:digest_from_dict([SignedTx], Dict, Height + 1),
-    tx_pool:absorb_tx(NewTrees, SignedTx).
+    NewDict = dict:new(),
+    tx_pool:absorb_tx(NewTrees, NewDict, SignedTx).
 absorb_unsafe_new(SignedTx, Dict, Facts, Trees, Height) ->
     %The trees shows the state after the previous block.
     %Dict holds the state after applying all the recent txs.
