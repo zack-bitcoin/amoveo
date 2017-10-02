@@ -32,7 +32,7 @@ Amoveo     8    8  8  6  0      30
 Gnosis     1    0  8  10 10     29
 Augur      1    0  0  10 4      15
 BH         2    0  0  8  1      11
-Aeternity  0    0  0  1  3      4
+Aeternity  0    0  0  4  3      7
 ```
 
 Each team has a total score between 0 and 50.
