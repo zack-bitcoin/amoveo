@@ -48,8 +48,9 @@ Amoveo channels are tested. Lightning payments are tested [here](/tests/test_lig
 
 ### markets
 
-Most teams got a score of 0 for market because they are putting their markets on-chain.
-On-chain markets cannot scale enough.
+Most teams got a score of 0 for market because they are putting their markets on-chain. On-chain markets cannot scale with channels.
+
+Aeternity gets a 0 because they [incorrectly think that state channels are useful without markets.](/docs/design/state_channel_without_off_chain_market.md)
 
 Amoveo off-chain markets are tested [here](/tests/test_market.py), edge cases for these markets are tested [here](/apps/ae_core/src/channels/market.erl).
 
