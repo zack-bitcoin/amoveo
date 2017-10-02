@@ -63,7 +63,7 @@ handle_call({add, Block}, _From, OldBlockHash) ->
             true ->
                 Trees = block:trees(Block),
                 NH = block:height(Block),
-                tx_pool:absorb(Trees, [], NH),
+                tx_pool:absorb(Trees, NH),
                 NBH = hash_and_save(Block),
 		tx_pool_feeder:absorb(OldTxs),
 		NBH;

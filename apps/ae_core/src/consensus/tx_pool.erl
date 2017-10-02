@@ -9,7 +9,7 @@
 -export([data/0,
          dump/0,
          absorb_tx/2,
-         absorb/3]).
+         absorb/2]).
 
 -export([start_link/0]).
 -export([init/1,
@@ -46,8 +46,8 @@ dump() ->
 absorb_tx(Trees, Tx) ->
     gen_server:call(?MODULE, {absorb_tx, Trees, Tx}).
 
-absorb(Trees, Txs, Height) ->
-    gen_server:call(?MODULE, {absorb, Trees, Txs, Height}).
+absorb(Trees, Height) ->
+    gen_server:call(?MODULE, {absorb, Trees, Height}).
 
 
 start_link() ->
@@ -79,8 +79,8 @@ handle_call({absorb_tx, NewTrees, Tx}, _From, F) ->
                 NewTxs
         end,
     {reply, 0, F#f{txs = FinalTxs, trees = NewTrees}};
-handle_call({absorb, NewTrees, Txs, Height}, _From, _) ->
-    {reply, 0, #f{txs = Txs, trees = NewTrees, height = Height}};
+handle_call({absorb, NewTrees, Height}, _From, _) ->
+    {reply, 0, #f{txs = [], trees = NewTrees, new_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) ->
     {reply, F, F};
 handle_call(data, _From, F) ->
