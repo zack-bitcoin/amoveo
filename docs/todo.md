@@ -1,3 +1,6 @@
+The tx_pool should use dicts instead of tries.
+
+
 verifying a block should not require looking at the previous block. This way we can verify them in parallel.
 
 remove the difficulty-style oracles.

@@ -26,11 +26,16 @@ absorb(SignedTx) ->
     gen_server:call(?MODULE, {absorb, SignedTx}).
 
 absorb_unsafe(SignedTx) ->
-    {Trees, Height, _} = tx_pool:data(),
-    absorb_unsafe(SignedTx, Trees, Height).
+    %{Trees, Height, _} = tx_pool:data(),
+    F = tx_pool:data_new(),
+    Trees = tx_pool:trees(F),
+    Height = tx_pool:height(F),
+    Dict = tx_pool:dict(F),
+    absorb_unsafe(SignedTx, Trees, Height, Dict).
 
-absorb_unsafe(SignedTx, Trees, Height) ->
+absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     NewTrees = txs:digest([SignedTx], Trees, Height + 1),
+    %NewDict = txs:digest_from_dict([SignedTx], Dict, Height + 1),
     tx_pool:absorb_tx(NewTrees, SignedTx).
 absorb_unsafe_new(SignedTx, Dict, Facts, Trees, Height) ->
     %The trees shows the state after the previous block.
@@ -40,7 +45,7 @@ absorb_unsafe_new(SignedTx, Dict, Facts, Trees, Height) ->
     %check that the facts are valid.
     true = verify_proofs(Facts, Trees),
     NewDict = txs:digest_from_dict([SignedTx], Dict, Height + 1),
-    tx_pool:absorb_tx_facts(NewDict, SignedTx, Facts).
+    tx_pool:absorb_tx_new(NewDict, SignedTx, Facts).
 verify_proofs([], _) -> true;
 verify_proofs([F|T], Trees) ->
     Type = proofs:tree(F),
@@ -101,7 +106,12 @@ is_in(STx, [STx2 | T]) ->
     end.
 
 absorb_internal(SignedTx) ->
-    {Trees, Height, Txs} = tx_pool:data(),
+    %{Trees, Height, Txs} = tx_pool:data(),
+    F = tx_pool:data_new(),
+    Trees = tx_pool:trees(F),
+    Height = tx_pool:height(F),
+    Txs = tx_pool:txs(F),
+    Dict = tx_pool:dict(F),
     Governance = trees:governance(Trees),
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
@@ -115,6 +125,6 @@ absorb_internal(SignedTx) ->
         true ->
             ok = lager:info("Already have this tx");
         false ->
-            absorb_unsafe(SignedTx, Trees, Height)
+            absorb_unsafe(SignedTx, Trees, Height, Dict)
     end,
     Out. 

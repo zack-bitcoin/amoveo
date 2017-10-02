@@ -35,7 +35,7 @@ facts(F) -> F#f.facts.
 height(F) -> F#f.height.
 
 data_new() ->
-    gen_server:call(?MODULE, data).
+    gen_server:call(?MODULE, data_new).
 data() ->
     {Trees, Height, Txs} = gen_server:call(?MODULE, data),
     {Trees, Height, Txs}.
