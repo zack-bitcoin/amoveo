@@ -9,11 +9,11 @@ The most popular cryptocurrency project that facilitates financial derivatives w
 This purpose of this monthly progress report is to review the teams that are developing this technology, to see who is closer to winning the prize. This information is important to anyone who is investing in any of the teams.
 
 ## What does a blockchain need to win?
-1) state channels, necessary for scalability
-2) off chain markets [explanation for why it is needed](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/state_channel_without_off_chain_market.md) 
-3) oracle, to teach the blockchain the results of each bet.
-4) a blockchain to host all the technology
-5) a community of users
+* state channels, necessary for scalability
+* off chain markets [explanation for why it is needed](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/state_channel_without_off_chain_market.md) 
+* oracle, to teach the blockchain the results of each bet.
+* a blockchain to host all the technology
+* a community of users
 
 ## What teams are working on this technology?
 Amoveo, Augur, Gnosis, Aeternity, and Bitcoin Hivemind.
@@ -36,6 +36,7 @@ Aeternity  0    0  0  4  3      7
 ```
 
 Each team has a total score between 0 and 50.
+A team needs all 50 points to have a shot at the $ trillion prize.
 
 
 ### channels
@@ -43,14 +44,17 @@ Each team has a total score between 0 and 50.
 [Here is bitcoin hivemind's plan for channels](http://bitcoinhivemind.com/blog/lightning-network/)
 
 I can't find any work on channels from gnosis or augur, but they have both announced that they will use channels. Augur said they will use Ox for this.
+I may be misinformed, as there are many Ethereum channels now. It seems likely that Augur and Gnosis can use them.
 
 Amoveo channels are tested. Lightning payments are tested [here](/tests/test_lightning.py), many edge-cases for channels are tested [here](/apps/ae_core/src/consensus/txs/test_txs.erl).
+
+Aeternity has no software for channels on their github, and they have not announced any plan for how their channels will work. They have hinted that Aeternity will have turing complete state channels capable of running off-chain smart contracts.
 
 ### markets
 
 Most teams got a score of 0 for market because they are putting their markets on-chain. On-chain markets cannot scale with channels.
 
-Aeternity gets a 0 because they [incorrectly think that state channels are useful without markets.](/docs/design/state_channel_without_off_chain_market.md)
+Aeternity gets a 0 because they think that state channels are useful without markets. [This is false](/docs/design/state_channel_without_off_chain_market.md)
 
 Amoveo off-chain markets are tested [here](/tests/test_market.py), edge cases for these markets are tested [here](/apps/ae_core/src/channels/market.erl).
 
@@ -76,12 +80,13 @@ Bitcoin hivemind has a live testnet. They reused bitcoin code as much as possibl
 
 ### Community
 
-Amoveo is an untraded blockchain, so it's community size is hard to measure. Based on Reddit and Twitter, the community is by far the smallest.
+Amoveo's community is by far the smallest.
 
 Bitcoin Hivemind has only had private funding, so it is harder to measure it's community size. They have 1600 twitter followers, so I am using that to estimate.
-To invest in bitcoin hivemind, you buy bitcoin. It is too hard to measure what portion of bitcoin holders choose to hold bitcoin because of the potential of hivemind.
 
-Aeternity is worth around $100 million. Gnosis is worth around $1200 million. Augur is worth around $200 million.
+Aeternity is worth around $100 million.
+Augur is worth around $200 million.
+Gnosis is worth around $1200 million.
 
 # Discuss on reddit
 
