@@ -9,8 +9,8 @@ The most popular cryptocurrency project that facilitates financial derivatives w
 This purpose of this monthly progress report is to review the teams that are developing this technology, to see who is closer to winning the prize. This information is important to anyone who is investing in any of the teams.
 
 ## What does a blockchain need to win?
-1) state channels (necessary for scalability)
-2) off chain markets (explanation for why it is needed: https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/state_channel_without_off_chain_market.md )
+1) state channels, necessary for scalability
+2) off chain markets [explanation for why it is needed](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/state_channel_without_off_chain_market.md) 
 3) oracle, to teach the blockchain the results of each bet.
 4) a blockchain to host all the technology
 5) a community of users
@@ -28,7 +28,7 @@ Each team will be ranked in each of the categories from 0 to 10.
 ```
 channels, markets, oracle, blockchain, community
            Chan M  O  B  Comm   total
-Amoveo     8    8  8  7  1      32
+Amoveo     8    8  8  6  1      31
 Gnosis     1    0  8  10 10     29
 Augur      1    0  0  10 10     21
 BH         2    0  0  8  8      18
@@ -42,9 +42,8 @@ On-chain markets cannot scale enough.
 
 Most teams got a score of 0 for their oracle because their oracle mechanism cannot escalate.
 Oracles that cannot escalate are prohibitivly expensive, or they don't work.
-For an oracle to be useful, it needs to give accurate information about the outside world, even when the amount of money being gambled on the oracle's result is much bigger than the amount of money in the oracle mechanism.
-For an oracle to function in those conditions, it needs to be possible for users to commit more money to the oracle to make it more secure. This way the situation can escalate to having more money at stake.
-https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/oracle_motivations.md
+
+[For an oracle to be useful, it needs to give accurate information about the outside world, even when the amount of money being gambled on the oracle's result is much bigger than the amount of money in the oracle mechanism. For an oracle to function in those conditions, it needs to be possible for users to commit more money to the oracle to make it more secure. This way the situation can escalate to having more money at stake.](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/oracle_motivations.md)
 
 
 If you want to add an additional team to this list, or you want to correct any mistakes in this document, make an issue or pull request on github.
