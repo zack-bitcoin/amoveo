@@ -1,5 +1,5 @@
 -module(accounts).
--export([new/3,nonce/1,write/2,get/2,update/5,%update/6,
+-export([new/3,nonce/1,write/2,get/2,%update/5,%update/6,
          dict_update/5, dict_update/6, dict_get/2,
 	 %addr/1, id/1,
 	 balance/1,root_hash/1,new_balance/4,delete/2,

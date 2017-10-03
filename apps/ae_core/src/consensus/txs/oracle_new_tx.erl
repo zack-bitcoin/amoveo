@@ -1,5 +1,5 @@
 -module(oracle_new_tx).
--export([doit/3, go/3, make/10, from/1, id/1, recent_price/1, governance/1]).
+-export([go/3, make/10, from/1, id/1, recent_price/1, governance/1]).
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
 		     fee = 0, 
@@ -26,71 +26,6 @@ make(From, Fee, Question, Start, ID, Difficulty, Recent, Governance, GovAmount, 
     {_, Acc, _Proof} = accounts:get(From, Accounts),
     Tx = #oracle_new{from = From, nonce = accounts:nonce(Acc) + 1, fee = Fee, question = Question, start = Start, id = ID, recent_price = Recent, difficulty = Difficulty, governance = Governance, governance_amount = GovAmount},
     {Tx, []}.
-doit(Tx, Trees0, NewHeight) ->
-    %If the question is <<"">>, let it run.
-    %If the question is not <<"">>, then they need to show that a different oracle with the question "" recently returned "bad", and the difficulty of this oracle is 1/2 as high as that oracle.
-    Oracles = trees:oracles(Trees0),
-    GovTree = trees:governance(Trees0),
-    Gov = Tx#oracle_new.governance,
-    GovAmount = Tx#oracle_new.governance_amount,
-    GCL = governance:get_value(governance_change_limit, GovTree),
-    true = GovAmount > -1,
-    true = GovAmount < GCL,
-    Question = Tx#oracle_new.question,
-    {_, Recent, _} = oracles:get(Tx#oracle_new.recent_price,Oracles),
-    Trees = 
-	case Gov of
-	    0 -> 
-		GovAmount = 0,
-		Trees0;
-	    G ->
-		true = GovAmount > 0,
-		3 = oracles:result(Recent),
-		GD = governance:get_value(governance_delay, GovTree),
-		true = NewHeight - oracles:done_timer(Recent) < GD,
-		Dif = oracles:difficulty(Recent),
-		Dif = Tx#oracle_new.difficulty,
-		Question = <<"">>,
-		{_, GVar, _} = governance:get(G, GovTree),
-		false = governance:is_locked(GVar),
-		NewGovTree = governance:lock(G, GovTree),
-		%NewGovTree = governance:write(NewGVar, GovTree),
-		trees:update_governance(Trees0, NewGovTree)
-	end,
-    Governance = trees:governance(Trees),
-    ok = case Question of
-	     <<"">>-> ok;
-	     Q -> 
-		 %get the recent oracle, make sure it's question was <<"">>, make sure our difficulty is half as high as that difficulty.
-		 MQS = governance:get_value(maximum_question_size, Governance),
-		 true = size(Q) < MQS,
-		 0 = GovAmount,
-		 Di = oracles:difficulty(Recent) div 2,
-		 Di = Tx#oracle_new.difficulty,
-		 3 = oracles:result(Recent),
-		 QD = governance:get_value(question_delay, Governance),
-		 true = NewHeight - oracles:done_timer(Recent) < QD,
-		 ok
-	 end,
-    Accounts = trees:accounts(Trees),
-    From = Tx#oracle_new.from,
-    OIL = governance:get_value(oracle_initial_liquidity, Governance),
-    Facc = accounts:update(From, Trees, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce, NewHeight),
-    NewAccounts = accounts:write(Facc, Accounts),
-    Starts = Tx#oracle_new.start,
-    OFL = governance:get_value(oracle_future_limit, Governance),
-    %true = (Starts - NewHeight) < constants:oracle_future_limit(),
-    true = (Starts - NewHeight) < OFL,
-    ID = Tx#oracle_new.id,
-    Question = Tx#oracle_new.question,
-    true = is_binary(Question),
-    QH = testnet_hasher:doit(Question),
-    Diff = Tx#oracle_new.difficulty,
-    ON = oracles:new(ID, QH, Starts, From, Diff, Gov, GovAmount, Trees),
-    {_, empty, _} = oracles:get(ID, Oracles),
-    NewOracles = oracles:write(ON, Oracles),
-    Trees2 = trees:update_oracles(Trees, NewOracles),
-    trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->
     Gov = Tx#oracle_new.governance,
     GovAmount = Tx#oracle_new.governance_amount,

@@ -1,5 +1,5 @@
 -module(grow_channel_tx).
--export([doit/3, go/3, make/5, good/1, acc1/1, acc2/1, id/1]).
+-export([go/3, make/5, good/1, acc1/1, acc2/1, id/1]).
 -record(gc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, inc1 = 0, inc2 = 0, channel_nonce = 0, id = -1}).
 acc1(X) -> X#gc.acc1.
 acc2(X) -> X#gc.acc2.
@@ -25,36 +25,6 @@ make(ID,Trees,Inc1,Inc2,Fee) ->
 	     inc2 = Inc2, channel_nonce = CNonce + 1},
     {Tx, [CProof, Proof1, Proof2]}.
     
-doit(Tx,Trees,NewHeight) ->
-    %it already exists with these two accounts.
-    Channels = trees:channels(Trees),
-    Accounts = trees:accounts(Trees),
-    ID = Tx#gc.id,
-    {_, OldChannel, _} = channels:get(ID, Channels),
-    0 = channels:slasher(OldChannel),
-    false = channels:closed(OldChannel),
-    Aid1 = channels:acc1(OldChannel),
-    Aid2 = channels:acc2(OldChannel),
-    ID = channels:id(OldChannel),
-    Aid1 = Tx#gc.acc1,
-    Aid2 = Tx#gc.acc2,
-    false = Aid1 == Aid2,
-    Inc1 = Tx#gc.inc1,
-    Inc2 = Tx#gc.inc2,
-    true = Inc1 + Inc2 >= 0,
-    %Rent = Tx#gc.rent,
-    CNonce = Tx#gc.channel_nonce,
-    NewChannel = channels:update(0, ID, Trees, CNonce, Inc1, Inc2, 0, channels:delay(OldChannel), NewHeight, false),
-    %io:fwrite("grow channel tx new channel is "),
-    %io:fwrite(packer:pack(NewChannel)),
-    %io:fwrite("\n"),
-    NewChannels = channels:write(NewChannel, Channels),
-    Acc1 = accounts:update(Aid1, Trees, -Inc1, Tx#gc.nonce, NewHeight),
-    Acc2 = accounts:update(Aid2, Trees, -Inc2, none, NewHeight),
-    Accounts2 = accounts:write(Acc1, Accounts),
-    NewAccounts = accounts:write(Acc2, Accounts2),
-    Trees2 = trees:update_channels(Trees, NewChannels),
-    trees:update_accounts(Trees2, NewAccounts).
 go(Tx, Dict, NewHeight) ->
     ID = Tx#gc.id,
     OldChannel = channels:dict_get(ID, Dict),

@@ -34,9 +34,8 @@ absorb_unsafe(SignedTx) ->
 
 absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %The trees shows the state after the recent txs
-    % new_trees shows the state after the recent block.
+    %new_trees shows the state after the recent block.
     %Dict holds the state after applying all the recent txs.
-    %NewTrees = txs:digest([SignedTx], Trees, Height + 1),
     Querys = proofs:txs_to_querys([SignedTx], Trees),
     Facts = proofs:prove(Querys, Trees),
     Dict2 = proofs:facts_to_dict(Facts, Dict),

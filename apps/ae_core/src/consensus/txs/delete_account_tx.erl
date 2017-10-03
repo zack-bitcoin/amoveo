@@ -1,5 +1,5 @@
 -module(delete_account_tx).
--export([doit/3, go/3, new/4, from/1, to/1]).
+-export([go/3, new/4, from/1, to/1]).
 -record(delete_acc_tx, {from = 0,
                         nonce = 0,
                         fee = 0,
@@ -18,23 +18,6 @@ new(To, ID, Fee, Trees) ->
                         fee = Fee},
     {Tx, [FromProof, ToProof]}.
 
-doit(Tx, Trees, NewHeight) ->
-    Accounts0 = trees:accounts(Trees),
-    From = Tx#delete_acc_tx.from,
-    To = Tx#delete_acc_tx.to,
-    Nonce = Tx#delete_acc_tx.nonce,
-    AccountFee = Tx#delete_acc_tx.fee,
-    false = From == To,
-    {_, FromAccount, _} = accounts:get(From, Accounts0),
-    Balance = accounts:balance(FromAccount),
-    Amount = Balance - AccountFee,
-    true = Amount > 0,
-    Governance = trees:governance(Trees),
-    ToAccount = accounts:update(To, Trees, Amount, none, NewHeight),
-    _UpdatedAccount = accounts:update(From, Trees, 0, Nonce, NewHeight),
-    Accounts = accounts:write(ToAccount, Accounts0),
-    NewAccounts = accounts:delete(From, Accounts),
-    trees:update_accounts(Trees, NewAccounts).
 go(Tx, Dict, NewHeight) ->
     From = Tx#delete_acc_tx.from,
     To = Tx#delete_acc_tx.to,
