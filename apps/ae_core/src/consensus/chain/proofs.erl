@@ -269,6 +269,10 @@ txs_to_querys([STx|T], Trees) ->
 	    oracle_new -> 
                 OID = oracle_new_tx:id(Tx),
                 AID = oracle_new_tx:from(Tx),
+                G = case oracle_new_tx:governance(Tx) of
+                        0 -> [];
+                        N -> [{governance, N}]
+                    end,
                 [
                  {governance, ?n2i(oracle_new)},
                  {governance, ?n2i(governance_change_limit)},
@@ -278,13 +282,9 @@ txs_to_querys([STx|T], Trees) ->
                  {governance, ?n2i(oracle_initial_liquidity)},
                  {governance, ?n2i(oracle_future_limit)},
                  {governance, ?n2i(minimum_oracle_time)},
-                 %{oracles, oracle_new_tx:recent_price(Tx)},
-                 %{oracle_bets, {key, AID, OID}},
-                 %{orders, {key, <<?Header:PS>>, OID}},
-                 %{oracle_bets, {key, <<?Null:PS>>, OID}},
                  {accounts, AID},
                  {oracles, OID}
-                ];
+                ] ++ G;
 	    oracle_bet -> 
                 OID = oracle_bet_tx:id(Tx),
                 Pubkeys = [oracle_bet_tx:from(Tx)|
@@ -294,7 +294,6 @@ txs_to_querys([STx|T], Trees) ->
                     make_oracle_bets(Pubkeys2, OID) ++
                     make_orders(Pubkeys, OID),
                  [
-                  %{orders, #key{pub = <<?Null:PS>>, id = OID}},
                   {orders, #key{pub = <<?Header:PS>>, id = OID}},
                   {governance, ?n2i(oracle_bet)},
                   {governance, ?n2i(minimum_oracle_time)},
@@ -319,10 +318,8 @@ txs_to_querys([STx|T], Trees) ->
                  {governance, ?n2i(oracle_close)},
                  {governance, ?n2i(oracle_initial_liquidity)},
                  {governance, ?n2i(oracle_bet)},
-                 %{orders, #key{pub = <<?Null:PS>>, id = OID}},
                  {orders, #key{pub = <<?Header:PS>>, id = OID}},
                  {oracle_bets, #key{pub = oracles:creator(Oracle), id = OID}},
-                 %{accounts, From},
                  {oracles, OID}
                 ] ++ Prove;
 	    unmatched -> 

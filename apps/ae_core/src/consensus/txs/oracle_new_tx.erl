@@ -1,5 +1,5 @@
 -module(oracle_new_tx).
--export([doit/3, go/3, make/10, from/1, id/1, recent_price/1]).
+-export([doit/3, go/3, make/10, from/1, id/1, recent_price/1, governance/1]).
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
 		     fee = 0, 
@@ -20,6 +20,7 @@
 from(X) -> X#oracle_new.from.
 recent_price(X) -> X#oracle_new.recent_price.
 id(X) -> X#oracle_new.id.
+governance(X) -> X#oracle_new.governance.
 make(From, Fee, Question, Start, ID, Difficulty, Recent, Governance, GovAmount, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),

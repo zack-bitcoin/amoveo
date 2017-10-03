@@ -6,7 +6,8 @@
          mine/1, mine/2, mine2/2, check/1, 
          guess_number_of_cpu_cores/0, top/0,
          accounts_root/1, channels_root/1,existence_root/1,
-         burn_root/1,oracles_root/1,governance_root/1
+         burn_root/1,oracles_root/1,governance_root/1,
+         dict_update_trie/2
         ]).
 
 -export_type([block/0]).

@@ -2,7 +2,7 @@
 -export([new/3,nonce/1,write/2,get/2,update/5,%update/6,
          dict_update/5, dict_update/6, dict_get/2,
 	 %addr/1, id/1,
-	 balance/1,root_hash/1,now_balance/4,delete/2,
+	 balance/1,root_hash/1,new_balance/4,delete/2,
 	 bets/1, bets_hash/1, update_bets/2,
 	 ensure_decoded_hashed/1, height/1, verify_proof/4,
          dict_write/2, dict_write/3, dict_delete/2,
@@ -88,22 +88,6 @@ update(PubHash, Trees, Amount, NewNonce, NewHeight, Bets) ->
                 bets = Bets}.%,
                 %bets_hash = oracle_bets:root_hash(Bets)}.
 
-now_balance(Acc, Amount, NewHeight, Trees) ->
-    OldHeight = Acc#acc.height,
-        Governance = trees:governance(Trees),
-        %ID = Acc#acc.id,
-    Pub = Acc#acc.pubkey,
-        DH = NewHeight - OldHeight,
-        MasterPub = constants:master_pub(),
-        Rent = 
-        case Pub of
-                MasterPub ->
-                -(governance:get_value(developer_reward, Governance));
-            _ ->%governance:get_value(account_rent, Governance)
-                0
-                    end,
-    Amount + Acc#acc.balance - (Rent * DH).
-
 update_bets(Account, Bets) ->
     %false = Bets == 0,
     Account#acc{bets = Bets,
@@ -155,28 +139,28 @@ new_balance_dict(Account, Amount, NewHeight, Dict) ->
     OldHeight = Account#acc.height,
     Pub = Account#acc.pubkey,
     HeightDiff = NewHeight - OldHeight,
-    MasterPub = constants:master_pub(),
-    Rent =
-        case Pub of
-            MasterPub ->
-                -(governance:dict_get_value(developer_reward, Dict));
-            _Other ->
-                0
-        end,
+    %MasterPub = constants:master_pub(),
+    Rent = 0,
+    %    case Pub of
+    %        MasterPub ->
+    %            -(governance:dict_get_value(developer_reward, Dict));
+    %        _Other ->
+    %            0
+    %    end,
     Amount + Account#acc.balance - (Rent * HeightDiff).
 new_balance(Account, Amount, NewHeight, Trees) ->
     OldHeight = Account#acc.height,
     Governance = trees:governance(Trees),
     Pub = Account#acc.pubkey,
     HeightDiff = NewHeight - OldHeight,
-    MasterPub = constants:master_pub(),
-    Rent =
-        case Pub of
-            MasterPub ->
-                -(governance:get_value(developer_reward, Governance));
-            _Other ->
-                0
-        end,
+    %MasterPub = constants:master_pub(),
+    Rent = 0,
+    %    case Pub of
+    %        MasterPub ->
+    %            -(governance:get_value(developer_reward, Governance));
+    %        _Other ->
+    %            0
+    %    end,
     Amount + Account#acc.balance - (Rent * HeightDiff).
 
 serialize(Account) ->

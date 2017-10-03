@@ -20,8 +20,8 @@
          code_change/3]).
 -export([txs/1, trees/1, dict/1, facts/1, height/1, data_new/0, new_trees/1]).
 -record(f, {txs = [],
-            trees,
-            new_trees,
+            trees,%this changes once per tx
+            new_trees,%this changes once per block
             dict = dict:new(),
             facts = [],
             height = 0}).
@@ -75,7 +75,9 @@ handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
                  lager:warning("Cannot absorb tx - block is already full"),
                  F;
              false ->
-                 F#f{txs = NewTxs, trees = NewTrees, dict = NewDict}
+                 F#f{txs = NewTxs, 
+                     trees = NewTrees, 
+                     dict = NewDict}
          end,
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
@@ -85,6 +87,8 @@ handle_call(data_new, _From, F) ->
 handle_call(data, _From, F) ->
     {ok, Header} = headers:read(block:hash(headers:top())),
     H = F#f.height,
+    %Trees = block:dict_update_trie(F#f.new_trees, F#f.dict),
+    %{reply, {Trees, H, lists:reverse(F#f.txs)}, F}.
     {reply, {F#f.trees, H, lists:reverse(F#f.txs)}, F}.
 
 handle_cast(_Msg, State) ->
@@ -119,6 +123,8 @@ state2(Header) ->
 	    {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),
 	    state2(PrevHeader);
 	_ ->
-	    #f{trees = block:trees(Block),
+            Trees = block:trees(Block),
+	    #f{trees = Trees,
+               new_trees = Trees, 
 	       height = block:height(Block)}
     end.

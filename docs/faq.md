@@ -1,7 +1,10 @@
-* What is the difference between id and adress
+* Why isn't Amoveo an app on Ethereum?
 
-An ID is an integer. it is used to look up an account in the database. The database stores addresses and balances. Addresses cannot be used to look up accounts in the database.
-The address is the hash of your public key. It is used to verify that your signature was created using your private key.
+On-chain markets can't scale with off-chain assets. Building off-chain markets for ethereum channels seemed pretty hackish. Raiden needed a big team, and it is far simpler.
+
+Since the smart contracts are all off chain, amoveo can be designed differently than ethereum to be much more scalable.
+
+Amoveo is a lot smaller and simpler than ethereum. I cut out complexity that isn't necessary for off-chain smart contracts.
 
 
 * how would one go about getting the transactions of an address

@@ -26,7 +26,6 @@ absorb(SignedTx) ->
     gen_server:call(?MODULE, {absorb, SignedTx}).
 
 absorb_unsafe(SignedTx) ->
-    %{Trees, Height, _} = tx_pool:data(),
     F = tx_pool:data_new(),
     Trees = tx_pool:trees(F),
     Height = tx_pool:height(F),
@@ -34,19 +33,16 @@ absorb_unsafe(SignedTx) ->
     absorb_unsafe(SignedTx, Trees, Height, Dict).
 
 absorb_unsafe(SignedTx, Trees, Height, Dict) ->
-    NewTrees = txs:digest([SignedTx], Trees, Height + 1),
-    %NewDict = txs:digest_from_dict([SignedTx], Dict, Height + 1),
-    NewDict = dict:new(),
-    tx_pool:absorb_tx(NewTrees, NewDict, SignedTx).
-absorb_unsafe_new(SignedTx, Dict, Facts, Trees, Height) ->
-    %The trees shows the state after the previous block.
+    %The trees shows the state after the recent txs
+    % new_trees shows the state after the recent block.
     %Dict holds the state after applying all the recent txs.
+    %NewTrees = txs:digest([SignedTx], Trees, Height + 1),
     Querys = proofs:txs_to_querys([SignedTx], Trees),
-    Querys = proofs:facts_to_querys(Facts),%verify that these facts are trying to prove the validity of this tx.
-    %check that the facts are valid.
-    true = verify_proofs(Facts, Trees),
-    NewDict = txs:digest_from_dict([SignedTx], Dict, Height + 1),
-    tx_pool:absorb_tx_new(NewDict, SignedTx, Facts).
+    Facts = proofs:prove(Querys, Trees),
+    Dict2 = proofs:facts_to_dict(Facts, Dict),
+    NewDict = txs:digest_from_dict([SignedTx], Dict2, Height + 1),
+    NewTrees = block:dict_update_trie(Trees, NewDict), 
+    tx_pool:absorb_tx(NewTrees, NewDict, SignedTx).
 verify_proofs([], _) -> true;
 verify_proofs([F|T], Trees) ->
     Type = proofs:tree(F),
@@ -107,7 +103,7 @@ is_in(STx, [STx2 | T]) ->
     end.
 
 absorb_internal(SignedTx) ->
-    %{Trees, Height, Txs} = tx_pool:data(),
+    %{NewTrees, _Height, _Txs} = tx_pool:data(),
     F = tx_pool:data_new(),
     Trees = tx_pool:trees(F),
     Height = tx_pool:height(F),
