@@ -12,8 +12,6 @@ This way we can verify each piece as we get it and reject bad pieces. If one nod
 The severity of the attack would be in proportion to the biggest piece we could have to download.
 For now just focus on merkelizing the pieces, and making sure each piece has finite size, we can do the rest after launch.
 
-
-
 * we need to make sure it is possible for channels to tell if an oracle asking a particular question was launched. That way we can conditionally send a payment depending on if it does.
 It doesn't matter the number of the oracle, which question it asks matters.
 Oracles should be stored by the hash of the question.
@@ -59,9 +57,6 @@ Make sure delay isn't too big, and the fees aren't too high.
 
 * we need a cron like process to match trades in the markets. It should be cautious to not match too frequently, or too infrequently.
 
-* We need to also add a way for the two parties to work together to close the channel early, so they don't have to wait to do a timeout_tx. We can either make a new tx, or make channel_team_close more complicated. 200 CHF (paid in ETH or BTC)
-We need a test showing that it works.
-(maybe this task was already done? need to check)
 
 
 
@@ -86,6 +81,8 @@ We need a plan on how nodes are going to sync with each other. Trying to sync wi
 
 
 ### Things we can do after launch of mainnet
+
+Get rid of any reference to "ae", "aeternity", and "testnet".
 
 in the proofs dict we should have a flag for each thing to know if it has been updated. That way we can know exactly what to include in the batch update of the tree.
 

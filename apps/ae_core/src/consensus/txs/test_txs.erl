@@ -9,9 +9,10 @@ test() ->
     S = success,
     S = test(1),%create account, spend, delete %S = test(2),%repo tx
     S = test(3),%channel team close, channel grow
-    %S = test(4),%channel repo
     S = test(5),%channel timeout
     S = test(6),%channel slash
+    S = test(8),%channel solo close - channel team close
+    S = test(9),%channel slash - channel team close
     S = test(7),%existence
     S = test(14),%financial options
     S = test(12),%multiple bets in a single channel
@@ -95,15 +96,13 @@ test(2) ->
     {true, _} = block:check(Block),
     success;
 test(3) ->
-    io:fwrite(" new channel tx test \n"),
-    %new channel, grow channel, channel team close
+    io:fwrite(" new channel tx, grow channel tx, and channel team close tx test \n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block:trees(BP),
-    Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
 
     Fee = 20,
@@ -113,7 +112,6 @@ test(3) ->
     absorb(Stx),
     timer:sleep(100),
     {Trees2, _, _} = tx_pool:data(),
-    Accounts2 = trees:accounts(Trees2),
 
     CID = 5,
     Entropy = 432,
@@ -124,14 +122,12 @@ test(3) ->
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
     {Trees3, _, _} = tx_pool:data(),
-    Accounts3 = trees:accounts(Trees3),
 
     {Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, Fee),
     Stx3 = keys:sign(Ctx3),
     SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv),
     absorb(SStx3),
     {Trees4, _, _} = tx_pool:data(),
-    Accounts4 = trees:accounts(Trees4),
 
     {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, [], Fee),
     Stx4 = keys:sign(Ctx4),
@@ -265,6 +261,116 @@ test(6) ->
     {Trees7, _, Txs} = tx_pool:data(),
     Channels7 = trees:channels(Trees7),
     {_, empty, _} = channels:get(1, Channels7),
+
+    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    Header = block:block_to_header(Block),
+    headers:absorb([Header]),
+    {true, _} = block:check(Block),
+    success;
+test(8) ->
+    io:fwrite(" channel solo close, and channel team close tx test \n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Trees = block:trees(BP),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+
+    Fee = 20,
+    Amount = 1000000,
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    timer:sleep(100),
+    {Trees2, _, _} = tx_pool:data(),
+
+    CID = 5,
+    Entropy = 432,
+
+    Delay = 10,
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Entropy, Delay, Fee),
+    Stx2 = keys:sign(Ctx2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
+    absorb(SStx2),
+    {Trees3, _, _} = tx_pool:data(),
+    
+    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
+    Bet = spk:new_bet(Code, Code, 50, []),
+    ChannelNonce = 0,
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
+    ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
+    {Ctx3, _} = channel_solo_close:make(constants:master_pub(),Fee, SignedScriptPubKey, [ScriptSig], Trees3),
+    %{Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, Fee),
+    Stx3 = keys:sign(Ctx3),
+    %SStx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
+    absorb(Stx3),
+    {Trees4, _, _} = tx_pool:data(),
+
+    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, [], Fee),
+    Stx4 = keys:sign(Ctx4),
+    SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
+    absorb(SStx4),
+    {_,_,Txs} = tx_pool:data(),
+
+    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    Header = block:block_to_header(Block),
+    headers:absorb([Header]),
+    {true, _} = block:check(Block),
+    success;
+test(9) ->
+    io:fwrite(" channel slash tx, and channel team close tx test \n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Trees = block:trees(BP),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+
+    Fee = 20,
+    Amount = 1000000,
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    timer:sleep(100),
+    {Trees2, _, _} = tx_pool:data(),
+
+    CID = 5,
+    Entropy = 432,
+
+    Delay = 10,
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Entropy, Delay, Fee),
+    Stx2 = keys:sign(Ctx2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
+    absorb(SStx2),
+    {Trees3, _, _} = tx_pool:data(),
+    
+    Code = compiler_chalang:doit(<<"int 50">>),%channel nonce is 1, sends 50.
+    Bet = spk:new_bet(Code, Code, 50, []),
+    ChannelNonce = 0,
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
+    ScriptSig = compiler_chalang:doit(<<" int 0 int 1 ">>),
+    {Ctx3, _} = channel_solo_close:make(constants:master_pub(),Fee, SignedScriptPubKey, [ScriptSig], Trees3),
+    %{Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, Fee),
+    Stx3 = keys:sign(Ctx3),
+    %SStx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
+    absorb(Stx3),
+    {Trees35, _, _} = tx_pool:data(),
+    ScriptSig2 = compiler_chalang:doit(<<" int 0 int 2 ">>),
+    {Ctx35, _} = channel_slash_tx:make(keys:pubkey(), Fee, SignedScriptPubKey, [ScriptSig2], Trees35),
+    Stx35 = keys:sign(Ctx35),
+    absorb(Stx35),
+
+    {Trees4, _, _} = tx_pool:data(),
+
+    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, [], Fee),
+    Stx4 = keys:sign(Ctx4),
+    SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
+    absorb(SStx4),
+    {_,_,Txs} = tx_pool:data(),
 
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
     Header = block:block_to_header(Block),
