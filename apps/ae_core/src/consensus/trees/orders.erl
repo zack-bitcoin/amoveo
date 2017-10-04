@@ -1,13 +1,10 @@
 -module(orders).
--export([%match/2, add/2, 
-         root_hash/1, amount/1,
+-export([root_hash/1, amount/1,
          pointer/1, new/2, 
          get/2, empty_book/0,
-         %remove/2, 
          update_amount/2, set_amount/2,
          many/1, head_get/1, 
          aid/1,
-         %significant_volume/2, 
          verify_proof/4,
          serialize/1, deserialize/1, all/1,
          dict_significant_volume/3, dict_match/3,
@@ -145,9 +142,6 @@ head_update(Head, Root) ->
 dict_many_update(Many, OID, Dict) ->
     {Head, _} = dict_head_get(Dict, OID),
     dict_head_put(Head, Many, OID, Dict).
-many_update(Many, Root) ->
-    {Head, _} = head_get(Root),
-    head_put(Head, Many, Root). 
 dict_head_put(Head, Many, OID, Dict) ->
     Y = serialize_head(Head, Many),
     PS = constants:pubkey_size() * 8,
@@ -201,19 +195,6 @@ dict_add2(Order, Dict, P, OID) ->
             <<?Null:PS>> = Order#orders.pointer,
             dict_write(Order, OID, Dict2);
         M -> dict_add2(Order, Dict, M, OID)
-    end.
-add2(Order, Root, P) ->
-    {_, L, _} = get(P, Root),
-    N = L#orders.pointer,
-    PS = constants:pubkey_size() * 8,
-    case N of
-        <<?Null:PS>> ->
-                L2 = update_pointer(L, aid(Order)),
-                Root2 = write(L2, Root),
-                <<?Null:PS>> = Order#orders.pointer,
-                write(Order, Root2);
-        M ->
-                add2(Order, Root, M)
     end.
 dict_remove(ID, OID, Dict) ->
     {Head, Many} = dict_head_get(Dict, OID),
