@@ -51,7 +51,30 @@ pow(B) -> B#block.nonce.
 trees(B) -> B#block.trees.
 prev_hashes(B) -> B#block.prev_hashes.
 proofs(B) -> B#block.proofs.
-
+tx_hash(T) ->
+    testnet_hasher:doit(T).
+proof_hash(P) ->
+    testnet_hasher:doit(P).
+merkelize_thing(X) when is_binary(X) ->
+    X;
+merkelize_thing(X) ->
+    T = element(1, X),
+    case T of
+        proof -> proof_hash(X);
+        _ -> tx_hash(X)
+    end.
+merkelize_pair(A, B) ->
+    C = {merkelize_thing(A), merkelize_thing(B)},
+    testnet_hasher:doit(C).
+merkelize([A]) -> merkelize_thing(A);
+merkelize([A|[B|T]]) ->
+    merkelize(merkelize2([A|[B|T]])).
+merkelize2([]) -> [];
+merkelize2([A]) -> [merkelize_thing(A)];
+merkelize2([A|[B|T]]) ->
+    [merkelize_pair(A, B)|
+     merkelize2(T)].
+    
 txs_proofs_hash(Txs, Proofs) ->
     testnet_hasher:doit({Txs, Proofs}).
 block_to_header(B) ->
@@ -71,7 +94,7 @@ block_to_header(B) ->
           ) -> headers:block_header_hash();
           (error) -> error.
 hash(error) -> error;
-hash(B) when is_binary(B) ->
+hash(B) when is_binary(B) ->%accepts binary headers
     case size(B) == constants:hash_size() of
         true ->
             B;

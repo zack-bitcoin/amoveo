@@ -401,7 +401,6 @@ test() ->
 	     ],% ++
         %governance_to_querys(trees:governance(Trees)),
     Facts = prove(Querys, Trees),
-    io:fwrite(packer:pack({proofs_facts, Facts})),
     ProofRoot = hash(Facts),
     Dict = facts_to_dict(Facts, dict:new()), %when processing txs, we use this dictionary to look up the state.
     Querys2 = dict:fetch_keys(Dict),

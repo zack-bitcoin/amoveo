@@ -1,14 +1,9 @@
 ### Needed before launch of mainnet
 
 
-* verifying a block should not require looking at the previous block. This way we can verify them in parallel.
-
-* light nodes should only download headers and a few recent blocks.
-
-
-* There is danger that we could be tricked into receiving invalid blocks repeatedly. The severity of this attack is currently in proportion to the size of the block.
+* There is danger that we could be tricked into receiving invalid blocks repeatedly. The severity of this attack is currently in proportion to the size of the biggest packet we download.
 So, we should merkelize the downloading of the blocks. The proofs and txs should be in merkle trees.
-This way we can verify each piece as we get it and reject bad pieces. If one node give a single bad pieces, we don't have to reject the good pieces they gave.
+This way we can verify each piece as we get it and reject bad pieces. If one node gives some bad pieces, we don't have to reject the good pieces they gave.
 The severity of the attack would be in proportion to the biggest piece we could have to download.
 For now just focus on merkelizing the pieces, and making sure each piece has finite size, we can do the rest after launch.
 
@@ -81,6 +76,8 @@ We need a plan on how nodes are going to sync with each other. Trying to sync wi
 
 
 ### Things we can do after launch of mainnet
+
+light nodes should only download headers and a few recent blocks. They should verify blocks in parallel.
 
 Get rid of any reference to "ae", "aeternity", and "testnet".
 
