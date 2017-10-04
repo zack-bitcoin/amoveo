@@ -236,6 +236,8 @@ test(6) ->
     {Ctx3, _} = channel_solo_close:make(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
+    mine_blocks(1),
+    timer:sleep(50),
     {Trees4, _, _} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),
 
@@ -244,6 +246,8 @@ test(6) ->
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv),
     %Stx4 = keys:sign(Ctx4, Accounts4),
     absorb(Stx4),
+    mine_blocks(1),
+    timer:sleep(50),
     {Trees5, _, _} = tx_pool:data(),
     Accounts5 = trees:accounts(Trees5),
 
@@ -262,10 +266,11 @@ test(6) ->
     Channels7 = trees:channels(Trees7),
     {_, empty, _} = channels:get(1, Channels7),
 
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    mine_blocks(1),
+    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    %Header = block:block_to_header(Block),
+    %headers:absorb([Header]),
+    %{true, _} = block:check(Block),
     success;
 test(8) ->
     io:fwrite(" channel solo close, and channel team close tx test \n"),
@@ -358,6 +363,8 @@ test(9) ->
     Stx3 = keys:sign(Ctx3),
     %SStx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
+    mine_blocks(1),
+    timer:sleep(50),
     {Trees35, _, _} = tx_pool:data(),
     ScriptSig2 = compiler_chalang:doit(<<" int 0 int 2 ">>),
     {Ctx35, _} = channel_slash_tx:make(keys:pubkey(), Fee, SignedScriptPubKey, [ScriptSig2], Trees35),
@@ -370,12 +377,12 @@ test(9) ->
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
-    {_,_,Txs} = tx_pool:data(),
-
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    mine_blocks(1),
+    %{_,_,Txs} = tx_pool:data(),
+    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    %Header = block:block_to_header(Block),
+    %headers:absorb([Header]),
+    %{true, _} = block:check(Block),
     success;
 
 test(7) ->
@@ -607,6 +614,8 @@ test(14) ->
     {Ctx3, _} = channel_solo_close:make(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
+    mine_blocks(1),
+    timer:sleep(50),
     {Trees4, _, _} = tx_pool:data(),
     Accounts4 = trees:accounts(Trees4),
 
@@ -631,12 +640,13 @@ test(14) ->
     absorb(Stx6),
     BP2 = block:get_by_height(0),
     PH = block:hash(BP2),
+    mine_blocks(1),
 
-    {_,_,Txs} = tx_pool:data(),
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    %{_,_,Txs} = tx_pool:data(),
+    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    %Header = block:block_to_header(Block),
+    %headers:absorb([Header]),
+    %{true, _} = block:check(Block),
     success;
 
 test(15) ->
@@ -687,9 +697,12 @@ test(15) ->
     {Ctx3, _} = channel_solo_close:make(NewPub, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
-    timer:sleep(200),
+    timer:sleep(100),
+    mine_blocks(1),
+    timer:sleep(50),
     {_, _, Txs2} = tx_pool:data(),
     %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
+    timer:sleep(2000),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),

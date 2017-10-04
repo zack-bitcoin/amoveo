@@ -64,7 +64,7 @@ prove_facts2([{Tree, Key}|T], Trees) when is_integer(Key)->
 	", binary " ++
 	integer_to_list(Size) ++ " " ++
 	binary_to_list(base64:encode(Tree:serialize(Data)))++ 
-	"]",%this comma is used one too many times.
+	"]",
     A2 = list_to_binary(A),
     B = prove_facts2(T, Trees),
     C = case T of
@@ -144,7 +144,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
             %io:fwrite("spk bet_unlock2 chalang run second\n"),
 	    Data3 = chalang:run5([Code], Data2),
 	    case Data3 of
-		{error, E} -> 
+		{error, _E} -> 
                     %io:fwrite("spk bet_unlock2 chalang run third\n"),
 		    Data4 = chalang:run5([SS], Data),
                     %io:fwrite("spk bet_unlock2 chalang run fourth\n"),

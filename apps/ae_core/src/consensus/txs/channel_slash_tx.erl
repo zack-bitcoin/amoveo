@@ -37,6 +37,8 @@ go(Tx, Dict, NewHeight) ->
     SPK = testnet_sign:data(SignedSPK),
     CID = spk:cid(SPK),
     OldChannel = channels:dict_get(CID, Dict),
+    LM = channels:last_modified(OldChannel),
+    true = LM < NewHeight,
     true = testnet_sign:verify(SignedSPK),
     Acc1 = channels:acc1(OldChannel),
     Acc2 = channels:acc2(OldChannel),

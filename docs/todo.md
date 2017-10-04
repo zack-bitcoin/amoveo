@@ -1,16 +1,8 @@
 ### Needed before launch of mainnet
 
-
-* There is danger that we could be tricked into receiving invalid blocks repeatedly. The severity of this attack is currently in proportion to the size of the biggest packet we download.
-So, we should merkelize the downloading of the blocks. The proofs and txs should be in merkle trees.
-This way we can verify each piece as we get it and reject bad pieces. If one node gives some bad pieces, we don't have to reject the good pieces they gave.
-The severity of the attack would be in proportion to the biggest piece we could have to download.
-For now just focus on merkelizing the pieces, and making sure each piece has finite size, we can do the rest after launch.
-
-* we need to make sure it is possible for channels to tell if an oracle asking a particular question was launched. That way we can conditionally send a payment depending on if it does.
-It doesn't matter the number of the oracle, which question it asks matters.
-Oracles should be stored by the hash of the question.
-Then how are governance oracles stored? {gov_id, oracle_height}
+* We could let the ScriptSig request as many proofs as it wants.
+spk's record 'bet' should no longer have the key "prove".
+script sigs should be records with 2 keys: "code" and "prove".
 
 * Spending should optionally reference a recent hash. That way it is easy to spend coins only on one side of the fork, if the blockchain should split.
 
@@ -43,14 +35,16 @@ I set it up so the contract fails until the oracle is closed. This is probably a
 
 * review how governance locks are working. They are supposed to prevent multiple oracles updating the same governance variable simultaniously.
 
-* trees:garbage needs to garbage collect more trees. 100 CHF (paid in ETH or BTC)
+* trees:garbage needs to garbage collect more trees.
 
-* We should optionally garbage collect old blocks, only keep the headers. 400 CHF (paid in ETH or BTC)
+* review how garbage collection is working
 
 * spk:is_improvement needs better checks. 50 CHF (paid in ETH or BTC)
 Make sure delay isn't too big, and the fees aren't too high.
 
 * we need a cron like process to match trades in the markets. It should be cautious to not match too frequently, or too infrequently.
+
+* test mining thousands of blocks
 
 
 
@@ -72,12 +66,17 @@ parts of the api need to be encrypted, to keep channel state private.
 
 We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
 
-
+Maybe oracles should be stored by the hash of the question. Since each question is unique.
+Then how are governance oracles stored? {gov_id, oracle_height}
 
 
 ### Things we can do after launch of mainnet
 
+We should optionally garbage collect old blocks, only keep the headers. 400 CHF (paid in ETH or BTC)
+
 light nodes should only download headers and a few recent blocks. They should verify blocks in parallel.
+
+Light nodes should garbage collect almost everything from every trie they build.
 
 Get rid of any reference to "ae", "aeternity", and "testnet".
 

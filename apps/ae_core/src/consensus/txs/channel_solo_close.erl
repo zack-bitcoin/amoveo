@@ -21,7 +21,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
 	      scriptsig = ScriptSig},
     {Tx, [Proof1, Proofc]}.
 
-check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
+old_check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
     case channel_manager:read(From) of
 	error -> 
 	    %io:fwrite("not in channel manager\n"),
@@ -40,13 +40,13 @@ check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
 	    %io:fwrite("\n "),
 	    if
 		CDNonce > TheirNonce ->
-		    %io:fwrite("CDNONCE BIGGER\n"),
+		    io:fwrite("CDNONCE BIGGER\n"),
 		    Governance = trees:governance(Trees),
 		    GovCost = governance:get_value(cs, Governance),
 		    {Tx, _} = channel_slash_tx:make(keys:pubkey(), free_constants:tx_fee() + GovCost, keys:sign(SPK), SS, Trees),
 		    Stx = keys:sign(Tx),
-		    %io:fwrite(packer:pack({stx, Stx})),
-		    %io:fwrite("\n "),
+		    io:fwrite(packer:pack({stx, Stx})),
+		    io:fwrite("\n "),
 		    tx_pool_feeder:absorb(Stx);
 		true -> ok
 	    end
@@ -98,12 +98,24 @@ dict_check_slash(From, Dict, NewHeight, TheirNonce) ->
 			NewHeight, 1, Dict),
 	    if
 		CDNonce > TheirNonce ->
-                    {Trees, _, _} = tx_pool:data(),
-		    Governance = trees:governance(Trees),
-		    GovCost = governance:get_value(cs, Governance),
-		    {Tx, _} = channel_slash_tx:make(keys:pubkey(), free_constants:tx_fee() + GovCost, keys:sign(SPK), SS, Trees),
-		    Stx = keys:sign(Tx),
-		    tx_pool_feeder:absorb(Stx);
+                    io:fwrite("other nonce bigger\n"),
+                    wait_block(NewHeight, SPK, SS);
 		true -> ok
 	    end
     end.
+wait_block(X, SPK, SS) ->
+    io:fwrite("wait block\n"),
+    {ok, Y} = api:height(),
+    case Y of
+        X -> slash_it(SPK, SS);
+        _ -> 
+            timer:sleep(500),
+            wait_block(X, SPK, SS)
+    end.
+slash_it(SPK, SS) ->
+    {Trees, _, _} = tx_pool:data(),
+    Governance = trees:governance(Trees),
+    GovCost = governance:get_value(cs, Governance),
+    {Tx, _} = channel_slash_tx:make(keys:pubkey(), free_constants:tx_fee() + GovCost, keys:sign(SPK), SS, Trees),
+    Stx = keys:sign(Tx),
+    tx_pool_feeder:absorb(Stx).
