@@ -32,9 +32,6 @@ dict_get(Hash, Dict) ->
 key_to_int(X) ->
     hash2int(X).
 get(Hash, Tree) ->
-    %io:fwrite("existence get hash is "),
-    %io:fwrite(Hash),
-    %io:fwrite("\n"),
     true = is_binary(Hash),
     Key = hash2int(Hash),
     {X, Leaf, Proof} = trie:get(Key, Tree, ?name),

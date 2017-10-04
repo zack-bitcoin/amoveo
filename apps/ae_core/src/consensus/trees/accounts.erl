@@ -60,34 +60,6 @@ dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Bets) ->
                 bets = Bets,
                 bets_hash = BH}.
 
-update(Pub, Trees, Amount, NewNonce, NewHeight) ->
-    PubHash = ensure_decoded_hashed(Pub),
-    Accounts = trees:accounts(Trees),
-    {_, Account, _} = get(PubHash, Accounts),
-    update(PubHash, Trees, Amount, NewNonce, NewHeight, Account#acc.bets).
-
-update(PubHash, Trees, Amount, NewNonce, NewHeight, Bets) ->
-    Accounts = trees:accounts(Trees),
-    {_, Account, _} = get(PubHash, Accounts),
-    OldNonce = Account#acc.nonce,
-    FinalNonce = case NewNonce of
-                     none ->
-                         Account#acc.nonce;
-                     NewNonce ->
-                         true = NewNonce > OldNonce,
-                         NewNonce
-                 end,
-    OldHeight = Account#acc.height,
-    true = NewHeight >= OldHeight,
-    NewBalance = new_balance(Account, Amount, NewHeight, Trees),
-    true = NewBalance > 0,
-    %false = Bets == 0,
-    Account#acc{balance = NewBalance,
-                nonce = FinalNonce,
-                height = NewHeight,
-                bets = Bets}.%,
-                %bets_hash = oracle_bets:root_hash(Bets)}.
-
 update_bets(Account, Bets) ->
     %false = Bets == 0,
     Account#acc{bets = Bets,

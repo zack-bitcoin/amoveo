@@ -1,7 +1,7 @@
 -module(governance).
 -export([det_power/3,tree_number_to_value/1, max/0,
 	 is_locked/1, change/3, genesis_state/0,
-	 get/2, write/2, lock/2, unlock/2,
+	 get/2, write/2, %lock/2, unlock/2,
 	 get_value/2, serialize/1, name2number/1,
 	 verify_proof/4, root_hash/1, dict_get/2,
          dict_get_value/2, dict_lock/2, dict_unlock/2,
@@ -89,16 +89,6 @@ dict_unlock(Name, Dict) ->
     Gov = Gov0#gov{lock = 0},
     dict_write(Gov, Dict).
     
-lock(Name, Tree) ->
-    {_, Gov0, _} = get(Name, Tree),
-    Gov = Gov0#gov{lock = 1},
-    write(Gov, Tree).
-
-unlock(Name, Tree) ->
-    {_, Gov0, _} = get(Name, Tree),
-    Gov = Gov0#gov{lock = 0},
-    write(Gov, Tree).
-
 is_locked(Gov) ->
     case Gov#gov.lock of
         0 ->

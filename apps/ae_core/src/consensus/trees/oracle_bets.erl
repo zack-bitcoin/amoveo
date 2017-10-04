@@ -1,7 +1,7 @@
 -module(oracle_bets).
 -export([test/0, new/3, increase/3, id/1,
 	 true/1, false/1, bad/1,
-	 write/2, get/2, root_hash/1, add_bet/4,
+	 write/2, get/2, root_hash/1, %add_bet/4,
 	 reward/3, delete/2, verify_proof/4,
          dict_add_bet/5, dict_get/2, dict_delete/2,
          serialize/1, make_leaf/3, key_to_int/1,
@@ -94,13 +94,6 @@ dict_add_bet(Pub, OID, Type, Amount, Dict) ->
         end, 
     dict_write(Y, Pub, Dict).
     
-add_bet(Id, Type, Amount, Tree) ->
-    {_, X, _} = get(Id, Tree),
-    Y = case X of
-	    empty -> new(Id, Type, Amount);
-	    Bet -> increase(Bet, Type, Amount)
-	end,
-    write(Y, Tree).
 root_hash(A) ->
     trie:root_hash(?name, A).
 make_leaf(Key, V, CFG) ->
@@ -116,9 +109,6 @@ test() ->
     Root = write(C, Root0),
     {Root1, C, Path1} = get(ID, Root),
     {Root2, empty, Path2} = get(ID, Root0),
-    Tree2 = add_bet(ID, 1, 100, Root),
-    {_, Bet2, _} = get(ID, Tree2),
-    Bet2 = increase(C, 1, 100),
 
     true = verify_proof(Root1, ID, serialize(C), Path1),
     true = verify_proof(Root2, ID, 0, Path2),

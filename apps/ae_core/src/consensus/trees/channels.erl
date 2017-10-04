@@ -1,5 +1,5 @@
 -module(channels).
--export([new/8,serialize/1,deserialize/1,update/10,
+-export([new/8,serialize/1,deserialize/1,%update/10,
 	 write/2,get/2,delete/2,root_hash/1,
 	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
 	 last_modified/1, entropy/1,
@@ -70,47 +70,6 @@ dict_update(Slasher, ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close) 
                         delay = Delay,
                         slasher = Slasher,
                         closed = Close
-		       },
-    C.
-    
-update(Slasher, ID, Trees, Nonce, Inc1, Inc2, Amount, Delay, Height, Close) ->
-    Channels = trees:channels(Trees),
-    true = (Close == true) or (Close == false),
-    true = Inc1 + Inc2 >= 0,
-    {_, Channel, _} = get(ID, Channels),
-    CNonce = Channel#channel.nonce,
-    NewNonce = if
-		   Nonce == none -> CNonce;
-		   true -> 
-		       %true = Nonce > CNonce,
-		       Nonce
-	       end,
-    %true = Nonce > Channel#channel.nonce,
-    T1 = Channel#channel.last_modified,
-    DH = Height - T1,
-    Governance = trees:governance(Trees),
-    %CR = governance:get_value(channel_rent, Governance),
-    %Rent = CR * DH,
-    %RH = Rent div 2,%everyone needs to pay the network for the cost of having a channel open.
-    %CR = S * Channel#channel.rent,
-    Bal1a = Channel#channel.bal1 + Inc1,% - RH,
-    Bal2a = Channel#channel.bal2 + Inc2,% - RH,
-    Bal1b = max(Bal1a, 0),
-    Bal2b = max(Bal2a, 0),
-    Bal1c = min(Bal1b, Bal1a+Bal2a),
-    Bal2c = min(Bal2b, Bal1a+Bal2a),
-    %true = Bal1 >= 0,
-    %true = Bal2 >= 0,
-    %SR = shares:write_many(Shares, 0),
-    C = Channel#channel{bal1 = Bal1c,
-                        bal2 = Bal2c,
-                        amount = Amount,
-                        nonce = NewNonce,
-                        last_modified = Height,
-                        delay = Delay,
-                        slasher = Slasher,
-                        closed = Close
-                        %shares = SR
 		       },
     C.
     
