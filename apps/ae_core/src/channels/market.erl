@@ -75,7 +75,7 @@ test() ->
     block:initialize_chain(),
     {Trees,_,_Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, constants:initial_difficulty(), 0, 0, 0, Trees),
+    {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees),
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     Fee = 20,

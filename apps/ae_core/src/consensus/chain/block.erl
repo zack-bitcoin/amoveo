@@ -246,11 +246,6 @@ new_dict(Txs, Dict, Height, Pub, PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
     block_reward_dict(Dict2, Height, Pub, PrevHash).
     
-%new_trees(Txs, Trees, Height, Pub, HeaderHash) -> 
-%convert trees to dictionary format
-    %Trees2 = txs:digest(Txs, Trees, Height),
-    %block_reward(Trees2, Height, Pub, HeaderHash).
-%convert back to merkle tree format.
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [keys:sign(CB)|Txs0],
@@ -399,32 +394,30 @@ check(Block) ->
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = headers:trees_hash(PrevHeader),
     Roots = Block#block.roots,
-
     case LN of
         true -> 
+            OldSparseTrees = 
+                facts_to_trie(
+                  Facts, trees:new(empty, empty, empty,
+                                   empty, empty, empty)),
+            %PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
+            %NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
+            %TreesHash = trees:root_hash2(NewTrees2, Roots),
             ok;
         false ->
             ok
     end,
-
     true = proofs_roots_match(Block#block.proofs, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
-    %load the data into a dictionary, feed this dictionary into new_trees/ instead of OldTrees.
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
-    OldSparseTrees = 
-        facts_to_trie(
-          Facts, trees:new(empty, empty, empty,
-                           empty, empty, empty)),
-    PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
     PrevTreesHash = trees:root_hash2(OldTrees, Roots),
     PrevTreesHash = headers:trees_hash(PrevHeader),
     %NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
-    NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
     NewTrees3 = dict_update_trie(OldTrees, NewDict),
     Block2 = Block#block{trees = NewTrees3},
     TreesHash = trees:root_hash(Block2#block.trees),
@@ -433,7 +426,6 @@ check(Block) ->
     TreesHash = headers:trees_hash(Header),
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
-    TreesHash = trees:root_hash2(NewTrees2, Roots),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
 

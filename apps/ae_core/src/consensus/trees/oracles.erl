@@ -1,7 +1,9 @@
 -module(oracles).
--export([dict_new/8,write/2,get/2,id/1,result/1,
+-export([dict_new/7,write/2,get/2,id/1,result/1,
 	 question/1,starts/1,root_hash/1, 
-	 type/1, difficulty/1, orders/1, orders_hash/1,
+	 type/1, 
+         %difficulty/1, 
+         orders/1, orders_hash/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
 	 set_result/2, set_type/2, governance/1,
 	 governance_amount/1, creator/1, serialize/1, deserialize/1,
@@ -17,7 +19,7 @@
 		 orders = 1,
 		 orders_hash,
 		 creator,
-		 difficulty,
+		 %difficulty = 0,
 		 done_timer, % 3 4
 		 governance = 0,%if it is non-zero, then this is a governance oracle which can update the value of the variables that define the protocol.
 		 governance_amount = 0}).
@@ -31,7 +33,7 @@ result(X) -> X#oracle.result.
 question(X) -> X#oracle.question.
 starts(X) -> X#oracle.starts.
 type(X) -> X#oracle.type.
-difficulty(X) -> X#oracle.difficulty.
+%difficulty(X) -> X#oracle.difficulty.
 orders(X) -> X#oracle.orders.
 orders_hash(X) -> X#oracle.orders_hash.
 done_timer(X) -> X#oracle.done_timer.
@@ -46,7 +48,7 @@ set_type(X, T) ->
     true = T > -1,
     true = T < 5,
     X#oracle{type = T}.
-dict_new(ID, Question, Starts, Creator, Difficulty, GovernanceVar, GovAmount, Dict) ->
+dict_new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
     true = size(Creator) == constants:pubkey_size(),
     true = (GovernanceVar > -1) and (GovernanceVar < governance:max()),
     Orders = orders:empty_book(),
@@ -59,7 +61,7 @@ dict_new(ID, Question, Starts, Creator, Difficulty, GovernanceVar, GovAmount, Di
 	    orders = Orders,
             orders_hash = orders:root_hash(Orders),
 	    creator = Creator,
-	    difficulty = Difficulty,
+	    %difficulty = Difficulty,
 	    done_timer = Starts + MOT,
 	    governance = GovernanceVar,
 	    governance_amount = GovAmount
@@ -81,7 +83,7 @@ serialize(X) ->
     HS = size(Question),
     HS = size(Orders),
     HB = constants:height_bits(),
-    DB = constants:difficulty_bits(),
+    %DB = constants:difficulty_bits(),
     true = size(X#oracle.creator) == PS,
     true = size(Question) == HS,
     true = size(Orders) == HS,
@@ -89,7 +91,7 @@ serialize(X) ->
       (X#oracle.result):8,
       (X#oracle.type):8,
       (X#oracle.starts):HB,
-      (X#oracle.difficulty):DB,
+      %(X#oracle.difficulty):DB,
       (X#oracle.done_timer):HB,
       (X#oracle.governance):8,
       (X#oracle.governance_amount):8,
@@ -101,12 +103,12 @@ deserialize(X) ->
     PS = constants:pubkey_size()*8,
     HS = constants:hash_size()*8,
     HEI = constants:height_bits(),
-    DB = constants:difficulty_bits(),
+    %DB = constants:difficulty_bits(),
     <<ID:HS,
      Result:8,
      Type:8,
      Starts:HEI,
-     Diff:DB,
+     %Diff:DB,
      DT:HEI,
      Gov:8,
      GovAmount:8,
@@ -121,7 +123,7 @@ deserialize(X) ->
            starts = Starts,
            question = <<Question:HS>>,
            creator = <<Creator:PS>>,
-           difficulty = Diff,
+           %difficulty = Diff,
            done_timer = DT,
            governance = Gov,
            governance_amount = GovAmount,

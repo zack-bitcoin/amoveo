@@ -1,13 +1,13 @@
 -module(oracle_new_tx).
--export([go/3, make/10, from/1, id/1, recent_price/1, governance/1]).
+-export([go/3, make/8, from/1, id/1, governance/1]).
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
 		     fee = 0, 
 		     question = <<>>, 
 		     start, 
 		     id, 
-		     recent_price, %if this is a governance oracle, or if it is asking a question, then we need to reference another oracle that closed recently with the state "bad". We reference it so we know the current price of shares.
-		     difficulty, 
+		     %recent_price, %if this is a governance oracle, or if it is asking a question, then we need to reference another oracle that closed recently with the state "bad". We reference it so we know the current price of shares.
+		     difficulty = 0, 
 		     governance, 
 		     governance_amount}).
 %This asks the oracle a question.
@@ -18,13 +18,13 @@
 %The oracle has a start-date written in it. Trading doesn't start until the start-date.
 %The oracle can be published before we know the outcome of the question, that way the oracle id can be used to make channel contracts that bet on the eventual outcome of the oracle.
 from(X) -> X#oracle_new.from.
-recent_price(X) -> X#oracle_new.recent_price.
+%recent_price(X) -> X#oracle_new.recent_price.
 id(X) -> X#oracle_new.id.
 governance(X) -> X#oracle_new.governance.
-make(From, Fee, Question, Start, ID, Difficulty, Recent, Governance, GovAmount, Trees) ->
+make(From, Fee, Question, Start, ID, Governance, GovAmount, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),
-    Tx = #oracle_new{from = From, nonce = accounts:nonce(Acc) + 1, fee = Fee, question = Question, start = Start, id = ID, recent_price = Recent, difficulty = Difficulty, governance = Governance, governance_amount = GovAmount},
+    Tx = #oracle_new{from = From, nonce = accounts:nonce(Acc) + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount},
     {Tx, []}.
 go(Tx, Dict, NewHeight) ->
     Gov = Tx#oracle_new.governance,
@@ -59,7 +59,7 @@ go(Tx, Dict, NewHeight) ->
                  true = size(Q) < MQS,
                  0 = GovAmount,
 		 %Di = oracles:difficulty(Recent2) div 2,
-		 Di = Tx#oracle_new.difficulty,
+		 %Di = Tx#oracle_new.difficulty,
 		 %3 = oracles:result(Recent2),
 		 %QD = governance:dict_get_value(question_delay, Dict2),
                  %true = NewHeight - oracles:done_timer(Recent2) < QD,
@@ -77,7 +77,7 @@ go(Tx, Dict, NewHeight) ->
     true = is_binary(Question),
     QH = testnet_hasher:doit(Question),
     Diff = Tx#oracle_new.difficulty,
-    ON = oracles:dict_new(ID, QH, Starts, From, Diff, Gov, GovAmount, Dict),
+    ON = oracles:dict_new(ID, QH, Starts, From, Gov, GovAmount, Dict),
     empty = oracles:dict_get(ID, Dict),
     Dict4 = oracles:dict_write(ON, Dict3).
     

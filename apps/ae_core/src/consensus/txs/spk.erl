@@ -54,6 +54,8 @@ prove_facts2([], _) ->
 prove_facts2([{Tree, Key}|T], Trees) when is_integer(Key)->
     ID = tree2id(Tree),
     Branch = trees:Tree(Trees),
+    io:fwrite(packer:pack({prove_facts_keys, Tree, Key})),
+    io:fwrite("\n"),
     {_, Data, _} = Tree:get(Key, Branch),
     SerializedData = Tree:serialize(Data),
     Size = size(SerializedData),

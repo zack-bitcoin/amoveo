@@ -22,7 +22,8 @@
          settle_bets/0, market_match/1, trade/5, trade/7,
          dump_channels/0]).
 
--export([new_difficulty_oracle/2, new_question_oracle/3,
+-export([new_question_oracle/2,
+         new_question_oracle/3,
          new_governance_oracle/4, oracle_bet/3, 
          oracle_close/1, oracle_shares/1, 
          oracle_unmatched/1, oracle_unmatched/2,
@@ -341,43 +342,44 @@ channel_slash(_CID, Fee, SPK, SS) ->
     F = fun(Trees) ->
 		channel_slash_tx:make(keys:pubkey(), Fee, SPK, SS, Trees) end,
     tx_maker(F).
-new_question_oracle(Start, Question, DiffOracleID)->
+new_question_oracle(Start, Question)->
+    io:fwrite("api new question oracle top \n"),
     {Trees, _, _} = tx_pool:data(),
     Oracles = trees:oracles(Trees),
     ID = find_id(oracles, Oracles),
-    new_question_oracle(Start, Question, DiffOracleID, ID).
-new_question_oracle(Start, Question, DiffOracleID, ID)->
+    new_question_oracle(Start, Question, ID).
+new_question_oracle(Start, Question, ID)->
     {Trees, _, _} = tx_pool:data(),
     Oracles = trees:oracles(Trees),
-    {_, Recent, _} = oracles:get(DiffOracleID, Oracles),
-    Difficulty = oracles:difficulty(Recent) div 2,
+    %{_, Recent, _} = oracles:get(DiffOracleID, Oracles),
+    %Difficulty = oracles:difficulty(Recent) div 2,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(oracle_new, Governance),
     F = fun(Trs) ->
-		oracle_new_tx:make(keys:pubkey(), ?Fee+Cost, Question, Start, ID, Difficulty, DiffOracleID, 0, 0, Trs) end,
+		oracle_new_tx:make(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0, Trs) end,
     tx_maker(F).
-new_difficulty_oracle(Start, Difficulty) ->
-    {Trees, _, _} = tx_pool:data(),
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(oracle_new, Governance),
-    Oracles = trees:oracles(Trees),
-    ID = find_id(oracles, Oracles),
-    new_difficulty_oracle(?Fee+Cost, Start, ID, Difficulty).
-new_difficulty_oracle(Fee, Start, ID, Difficulty) ->
+%new_difficulty_oracle(Start, Difficulty) ->
+%    {Trees, _, _} = tx_pool:data(),
+%    Governance = trees:governance(Trees),
+%    Cost = governance:get_value(oracle_new, Governance),
+%    Oracles = trees:oracles(Trees),
+%    ID = find_id(oracles, Oracles),
+%    new_difficulty_oracle(?Fee+Cost, Start, ID, Difficulty).
+%new_difficulty_oracle(Fee, Start, ID, Difficulty) ->
     %used to measure the difficulty at which negative and positive shares are worth the same
-    F = fun(Trees) ->
-		oracle_new_tx:make(keys:pubkey(), Fee, <<"">>, Start, ID, Difficulty, 0, 0, 0, Trees) end,
-    tx_maker(F).
+%    F = fun(Trees) ->
+%		oracle_new_tx:make(keys:pubkey(), Fee, <<"">>, Start, ID, Difficulty, 0, 0, 0, Trees) end,
+%    tx_maker(F).
 new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
     GovNumber = governance:name2number(GovName),
     F = fun(Trs) ->
 		Oracles = trees:oracles(Trs),
 		ID = find_id(oracles, Oracles),
 		{_, Recent, _} = oracles:get(DiffOracleID, Oracles),
-		Difficulty = oracles:difficulty(Recent) div 2,
+		%Difficulty = oracles:difficulty(Recent) div 2,
 		Governance = trees:governance(Trs),
 		Cost = governance:get_value(oracle_new, Governance),
-		oracle_new_tx:make(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, Difficulty, DiffOracleID, GovNumber, GovAmount, Trs) end,
+		oracle_new_tx:make(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, DiffOracleID, GovNumber, GovAmount, Trs) end,
     tx_maker(F).
     
 oracle_bet(OID, Type, Amount) ->
@@ -613,8 +615,8 @@ test_oracle_unmatched() ->
     test_txs:mine_blocks(1),
     timer:sleep(100),
     {_Trees, Height, _} = tx_pool:data(),
-    Difficulty = constants:initial_difficulty(),
-    new_difficulty_oracle(Height+1, Difficulty),
+    %Difficulty = constants:initial_difficulty(),
+    %new_difficulty_oracle(Height+1, Difficulty),
     timer:sleep(100),
     test_txs:mine_blocks(2),
     timer:sleep(100),

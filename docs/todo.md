@@ -1,12 +1,11 @@
-The tx_pool should use dicts instead of tries.
 
 
 verifying a block should not require looking at the previous block. This way we can verify them in parallel.
 
-remove the difficulty-style oracles.
 review how governance locks are working. They are supposed to prevent multiple oracles updating the same governance variable simultaniously.
 
-consider reducing the block time to 2 minutes. This way the extra-light nodes don't have to download as much to see that a block is invalid. But it also makes it cheaper to create invalid blocks proportionately, so maybe 10 minutes is just as good.
+consider reducing the block time to 2 minutes.
+Then we could have faster trading in the markets.
 
 The proofs are currently not deterministic? They contain pointers that only make sense on the node that created the proof?
 Making proofs deterministic is an advantage because full nodes don't have to download the proofs. They can generate it themselves, and check that the hash matches.

@@ -373,7 +373,7 @@ test() ->
     Question = <<>>,
     OID = 2,
     Fee = 20,
-    {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, constants:initial_difficulty(), 0, 0, 0, Trees0),
+    {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees0),
     tx_pool_feeder:absorb(keys:sign(Tx)),
     test_txs:mine_blocks(1),
     timer:sleep(200),
