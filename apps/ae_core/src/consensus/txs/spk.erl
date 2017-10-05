@@ -39,8 +39,8 @@ prove(X) -> X#bet.prove.
 code(X) -> X#bet.code.
 key(X) -> X#bet.key.
 
-prove_facts([], _) ->
-    <<>>;
+prove_facts([], _) ->%we need to return an empty list here.
+    compiler_chalang:doit(<<" nil ">>);
 prove_facts(X, Trees) ->
 	   %[int 5,int 6,int 7] 
     A = <<"macro [ nil ;
@@ -135,7 +135,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
 	    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
 	    true = chalang:none_of(SS2),
-	    F = prove_facts(Bet#bet.prove, Trees),
+	    F = prove_facts(Bet#bet.prove, Trees),%instead of getting prove from betts, it should come from the SS.
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
 	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2, Code, State, constants:hash_size()),

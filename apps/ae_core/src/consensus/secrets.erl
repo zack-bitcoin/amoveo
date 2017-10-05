@@ -38,7 +38,7 @@ delete(SH) ->
 new_lightning() ->
     S = crypto:strong_rand_bytes(constants:hash_size()),
     SH = testnet_hasher:doit(S),
-    ESH = "stack_size int 0 == if
+    ESH = "drop stack_size int 0 == if
 int 50 int 1 int 0 crash else then  drop drop
 hash binary " ++ integer_to_list(constants:hash_size())++ " " ++
 	binary_to_list(base64:encode(SH)) ++
