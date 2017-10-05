@@ -539,7 +539,7 @@ market_match(OID) ->
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
-    SS = market:settle(PriceDeclaration),
+    SS = market:settle(PriceDeclaration, OID),
     secrets:add(CodeKey, SS),
     %channel_feeder:bets_unlock(Accounts),
     channel_feeder:bets_unlock(channel_manager:keys()),
@@ -577,7 +577,7 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
 	talker:talk(Msg, IP, Port),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    channel_manager_update(ServerID, SSPK2, market:unmatched()),
+    channel_manager_update(ServerID, SSPK2, market:unmatched(OID)),
     ok.
     
 

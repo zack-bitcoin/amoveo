@@ -113,7 +113,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     {ok, OldCD} = channel_manager:read(ID),
-    DefaultSS = market:unmatched(),
+    DefaultSS = market:unmatched(OID),
     SSME = [DefaultSS|OldCD#cd.ssme],
     SSThem = [DefaultSS|OldCD#cd.ssthem],
     spk:run(fast, SSME, SPK, Height, 0, Trees),%sanity test

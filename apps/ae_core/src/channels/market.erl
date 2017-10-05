@@ -1,8 +1,8 @@
 -module(market).
 -export([price_declaration_maker/4, market_smart_contract/9,
-	 settle/1,no_publish/0,evidence/1,
-	 contradictory_prices/2, market_smart_contract_key/5,
-	 unmatched/0,
+	 settle/2,no_publish/1,evidence/2,
+	 contradictory_prices/3, market_smart_contract_key/5,
+	 unmatched/1,
 	 test/0]).
 
 market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts that can be arbitraged against each other have the same result.
@@ -31,25 +31,26 @@ macro Period int " ++ integer_to_list(Period) ++ " ;\
     %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
-    spk:new_bet(Compiled, CodeKey, Amount, [{oracles, OID}]).
-unmatched() ->
+    ToProve = [{oracles, OID}],
+    spk:new_bet(Compiled, CodeKey, Amount, ToProve).
+unmatched(OID) ->
     SS = " int 4 ",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), []).
-settle(SPD) ->
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
+settle(SPD, OID) ->
     %If the oracle comes to a decision, this is how you get your money out.
     PriceDeclare = binary_to_list(base64:encode(SPD)),
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
 " " ++ PriceDeclare ++ " int 1",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), []).
-no_publish() ->
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), [{oracles, OID}]).
+no_publish(OID) ->
     %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
     SS2a = " int 0 ",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS2a)), []).
-evidence(SPD) ->
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS2a)), [{oracles, OID}]).
+evidence(SPD, OID) ->
     %If users try withdrawing funds while the market maker is still publishing prices, this is how he stops them from taking their money out early and robbing the market maker.
     SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int 3 ",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS3a)), []).
-contradictory_prices(SPD, SPD2) ->
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS3a)), [{oracles, OID}]).
+contradictory_prices(SPD, SPD2, OID) ->
     %If the market maker publishes two prices too close to the same time, then this is how you can withdraw your funds from the market early.
     PriceDeclare1 = binary_to_list(base64:encode(SPD)),
     PriceDeclare2 = binary_to_list(base64:encode(SPD2)),
@@ -57,7 +58,7 @@ contradictory_prices(SPD, SPD2) ->
 	" binary " ++ integer_to_list(size(SPD)) ++ " " ++ PriceDeclare1 ++ 
 	" binary " ++ integer_to_list(size(SPD2)) ++ " " ++ PriceDeclare2 ++
 	" int 2 ",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS4a)), []).
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS4a)), [{oracles, OID}]).
 price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
     PD = <<Height:32, Price:16, PortionMatched:16, MarketID:16>>,
     Signature = keys:raw_sign(PD),
@@ -127,20 +128,20 @@ test2(NewPub) ->
     Price = 3500,
     Height = 1,
     SPD = price_declaration_maker(Height, Price, 5000, MarketID),
-    SS1 = settle(SPD),
+    SS1 = settle(SPD, OID),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, shares, delay
     {60,1000001,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
 	spk:run(fast, [SS1], SPK, 1, 0, Trees5),
 
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
-    SS2 = no_publish(),
+    SS2 = no_publish(OID),
     %amount, newnonce, shares, delay
     {0, 999901, 101} = 
 	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
     
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
-    SS3 = evidence(SPD),
+    SS3 = evidence(SPD, OID),
     %amount, newnonce, shares, delay
     {60, 999952, 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
@@ -148,7 +149,7 @@ test2(NewPub) ->
 
     %Next we try closing the bet as if the market maker cheated by publishing 2 different prices too near to each other in time.
     SPD2 = price_declaration_maker(Height+1, Price-1, 5000, MarketID),
-    SS4 = contradictory_prices(SPD, SPD2),
+    SS4 = contradictory_prices(SPD, SPD2, OID),
     %amount, newnonce, shares, delay
     {0,2000001,0} = 
 	%The nonce is super high, and the delay is zero, because if the market maker is publishing contradictory prices, he should be punished immediately.
@@ -183,7 +184,7 @@ test2(NewPub) ->
 
     %test a trade that gets only partly matched.
     SPD3 = price_declaration_maker(Height, 3000, 5000, MarketID),%5000 means it gets 50% matched.
-    SS5 = settle(SPD3),
+    SS5 = settle(SPD3, OID),
     %amount, newnonce, shares, delay
     {100, 1000003, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
@@ -191,7 +192,7 @@ test2(NewPub) ->
     %test a trade that goes unmatched.
     %since it is unmatched, they each get their money back.
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
-    SS6 = unmatched(), 
+    SS6 = unmatched(OID), 
     %amount, newnonce, shares, delay
     {60, 500001, 50} = spk:run(fast, [SS6], SPK, 1, 0, Trees5),
     success.
