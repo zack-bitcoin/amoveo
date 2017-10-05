@@ -4,7 +4,8 @@
 	 new/9,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,dict_run/6,settle_bet/4,chalang_state/3,
-	 prove/1, new_bet/4, delay/1,
+	 %prove/1, 
+         new_bet/4, delay/1,
 	 is_improvement/4, bet_unlock/2,
 	 code/1, key/1, test2/0,
 	 force_update/3,
@@ -16,7 +17,9 @@
 %Each contract should output an amount between 0 and constants:channel_granularity(), which is the portion of the money that goes to one of the participants. Which participant it signifies depends on what value is stored in a flag.
 %each contract needs a value saying how much of the money is locked into that contract.
 
--record(bet, {code, amount, prove, key}).%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
+-record(bet, {code, amount, 
+              %prove, 
+              key}).%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
 
 -record(spk, {acc1,acc2, entropy, 
 	      bets, space_gas, time_gas, 
@@ -41,7 +44,7 @@ amount(X) -> X#spk.amount.
 nonce(X) -> X#spk.nonce.
 
 %bet_amount(X) -> X#bet.amount.
-prove(X) -> X#bet.prove.
+%prove(X) -> X#bet.prove.
 code(X) -> X#bet.code.
 key(X) -> X#bet.key.
 
@@ -113,8 +116,8 @@ ss_code(X) when is_binary(X) ->
     X;
 ss_code(X) -> X#ss.code.
 ss_prove(X) -> X#ss.prove.
-new_bet(Code, Key, Amount, Prove) ->
-    #bet{code = Code, key = Key, amount = Amount, prove = Prove}.
+new_bet(Code, Key, Amount, _) ->
+    #bet{code = Code, key = Key, amount = Amount}.%, prove = Prove}.
 new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
 	 bets = Bets, space_gas = SG, time_gas = TG,
