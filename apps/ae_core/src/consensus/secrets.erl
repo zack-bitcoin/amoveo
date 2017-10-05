@@ -48,7 +48,7 @@ else
 int 49 int 1 int 0 then crash",
     ESS = "binary " ++ integer_to_list(constants:hash_size()) ++ " " ++ base64:encode(S),
     Code = compiler_chalang:doit(list_to_binary(ESH)),
-    SS = compiler_chalang:doit(list_to_binary(ESS)),
+    SS = spk:new_ss(compiler_chalang:doit(list_to_binary(ESS)), []),
     {Trees, Height, _} = tx_pool:data(),%for sanity check
     Amount = 200,
     Bet = spk:new_bet(Code, Code, Amount, []),

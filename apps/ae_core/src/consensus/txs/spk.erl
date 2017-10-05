@@ -11,11 +11,13 @@
          new_ss/2, ss_code/1, ss_prove/1,
 	 test/0
 	]).
--record(bet, {code, amount, prove, key}).%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
 
 %We want channel that are using the same contract to be able to calculate a contract hash that is the same. This makes it easier to tell if 2 channels are betting on the same thing.
 %Each contract should output an amount between 0 and constants:channel_granularity(), which is the portion of the money that goes to one of the participants. Which participant it signifies depends on what value is stored in a flag.
-%So each contract needs a value saying how much of the money is locked into that contract.
+%each contract needs a value saying how much of the money is locked into that contract.
+
+-record(bet, {code, amount, prove, key}).%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
+
 -record(spk, {acc1,acc2, entropy, 
 	      bets, space_gas, time_gas, 
 	      cid, amount = 0, nonce = 0,
@@ -24,6 +26,7 @@
 %scriptpubkey is the name that Satoshi gave to this part of the transactions in bitcoin.
 %This is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
+
 -record(ss, {code, prove}).
 
 delay(X) -> X#spk.delay.
@@ -107,6 +110,9 @@ tree2id(governance) -> 6.
 
 new_ss(Code, Prove) ->
     #ss{code = Code, prove = Prove}.
+ss_code(X) when is_binary(X) -> 
+    throw(ss_error),
+    X;
 ss_code(X) -> X#ss.code.
 ss_prove(X) -> X#ss.prove.
 new_bet(Code, Key, Amount, Prove) ->
@@ -141,19 +147,19 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
 	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
 	    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
-	    true = chalang:none_of(SS2),
+	    true = chalang:none_of(ss_code(SS2)),
 	    F = prove_facts(Bet#bet.prove, Trees),%instead of getting prove from betts, it should come from the SS.
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
-	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2, Code, State, constants:hash_size()),
+	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS2), Code, State, constants:hash_size()),
             %io:fwrite("spk bet_unlock2 chalang run first\n"),
-	    Data2 = chalang:run5([SS2], Data),
+	    Data2 = chalang:run5([ss_code(SS2)], Data),
             %io:fwrite("spk bet_unlock2 chalang run second\n"),
 	    Data3 = chalang:run5([Code], Data2),
 	    case Data3 of
 		{error, _E} -> 
                     %io:fwrite("spk bet_unlock2 chalang run third\n"),
-		    Data4 = chalang:run5([SS], Data),
+		    Data4 = chalang:run5([ss_code(SS)], Data),
                     %io:fwrite("spk bet_unlock2 chalang run fourth\n"),
 		    Y = chalang:run5([Code], Data4),
 		    case Y of
@@ -288,7 +294,8 @@ run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, De
     {A2, N2, Delay2, EOpGas} = 
 	run3(SS, Code, OpGas, RamGas, Funs, Vars, State),
     run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2)).
-run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
+run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
+    ScriptSig = ss_code(SS),
     true = chalang:none_of(ScriptSig),
     {Trees, _, _} = tx_pool:data(),
     F = prove_facts(Bet#bet.prove, Trees),
@@ -307,8 +314,14 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
      chalang:time_gas(Data3)
     }.
 force_update(SPK, SSOld, SSNew) ->
-    {Trees, Height, _} = tx_pool:data(),
+    %{_Trees, Height, _} = tx_pool:data(),
+    F = tx_pool:data_new(),
+    Dict = tx_pool:dict(F),
+    Trees = tx_pool:trees(F),
+    Height = tx_pool:height(F),
     {_, NonceOld,  _} =  run(fast, SSOld, SPK, Height, 0, Trees),
+    %we can't use dict here, because not all the information we need is stored in the dict.
+    %{_, NonceOld,  _} =  dict_run(fast, SSOld, SPK, Height, 0, Dict),
     {_, NonceNew,  _} =  run(fast, SSNew, SPK, Height, 0, Trees),
     if
 	NonceNew >= NonceOld ->
@@ -325,13 +338,13 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     {ok, FunLimit} = application:get_env(ae_core, fun_limit),
     {ok, VarLimit} = application:get_env(ae_core, var_limit),
     {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
-    true = chalang:none_of(SS),
+    true = chalang:none_of(ss_code(SS)),
     F = prove_facts(Bet#bet.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
-    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS, Code, State, constants:hash_size()),
+    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS), Code, State, constants:hash_size()),
     %io:fwrite("force update first\n"),
-    Data2 = chalang:run5([SS], Data),
+    Data2 = chalang:run5([ss_code(SS)], Data),
     %io:fwrite("force update second\n"),
     Data3 = chalang:run5([Code], Data2),
     [<<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),

@@ -34,21 +34,21 @@ macro Period int " ++ integer_to_list(Period) ++ " ;\
     spk:new_bet(Compiled, CodeKey, Amount, [{oracles, OID}]).
 unmatched() ->
     SS = " int 4 ",
-    compiler_chalang:doit(list_to_binary(SS)).
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), []).
 settle(SPD) ->
     %If the oracle comes to a decision, this is how you get your money out.
     PriceDeclare = binary_to_list(base64:encode(SPD)),
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
 " " ++ PriceDeclare ++ " int 1",
-    compiler_chalang:doit(list_to_binary(SS1a)).
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), []).
 no_publish() ->
     %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
     SS2a = " int 0 ",
-    compiler_chalang:doit(list_to_binary(SS2a)).
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS2a)), []).
 evidence(SPD) ->
     %If users try withdrawing funds while the market maker is still publishing prices, this is how he stops them from taking their money out early and robbing the market maker.
     SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int 3 ",
-    compiler_chalang:doit(list_to_binary(SS3a)).
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS3a)), []).
 contradictory_prices(SPD, SPD2) ->
     %If the market maker publishes two prices too close to the same time, then this is how you can withdraw your funds from the market early.
     PriceDeclare1 = binary_to_list(base64:encode(SPD)),
@@ -57,7 +57,7 @@ contradictory_prices(SPD, SPD2) ->
 	" binary " ++ integer_to_list(size(SPD)) ++ " " ++ PriceDeclare1 ++ 
 	" binary " ++ integer_to_list(size(SPD2)) ++ " " ++ PriceDeclare2 ++
 	" int 2 ",
-    compiler_chalang:doit(list_to_binary(SS4a)).
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS4a)), []).
 price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
     PD = <<Height:32, Price:16, PortionMatched:16, MarketID:16>>,
     Signature = keys:raw_sign(PD),

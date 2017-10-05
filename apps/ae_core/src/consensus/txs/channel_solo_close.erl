@@ -21,36 +21,6 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
 	      scriptsig = ScriptSig},
     {Tx, [Proof1, Proofc]}.
 
-old_check_slash(From, Trees, Accounts, NewHeight, TheirNonce) ->
-    case channel_manager:read(From) of
-	error -> 
-	    %io:fwrite("not in channel manager\n"),
-	    ok;
-	{ok, CD} ->
-	    SPK = channel_feeder:them(CD),
-	    SS = channel_feeder:script_sig_them(CD), 
-	    {_, CDNonce, _} = 
-		spk:run(fast, 
-			SS,
-			testnet_sign:data(SPK),
-			NewHeight, 1, Trees),
-	    %io:fwrite("\n "),
-	    %io:fwrite("channel solo close "),
-	    %io:fwrite(packer:pack({csc, CDNonce, TheirNonce, CD})),
-	    %io:fwrite("\n "),
-	    if
-		CDNonce > TheirNonce ->
-		    io:fwrite("CDNONCE BIGGER\n"),
-		    Governance = trees:governance(Trees),
-		    GovCost = governance:get_value(cs, Governance),
-		    {Tx, _} = channel_slash_tx:make(keys:pubkey(), free_constants:tx_fee() + GovCost, keys:sign(SPK), SS, Trees),
-		    Stx = keys:sign(Tx),
-		    io:fwrite(packer:pack({stx, Stx})),
-		    io:fwrite("\n "),
-		    tx_pool_feeder:absorb(Stx);
-		true -> ok
-	    end
-    end.
 go(Tx, Dict, NewHeight) ->
     From = Tx#csc.from, 
     SPK = Tx#csc.scriptpubkey,
@@ -91,6 +61,9 @@ dict_check_slash(From, Dict, NewHeight, TheirNonce) ->
 	{ok, CD} ->
 	    SPK = channel_feeder:them(CD),
 	    SS = channel_feeder:script_sig_them(CD), 
+            io:fwrite("SS them is "),
+            io:fwrite(packer:pack(SS)),
+            io:fwrite("\n"),
 	    {_, CDNonce, _} = 
 		spk:dict_run(fast, 
 			SS,
@@ -98,7 +71,6 @@ dict_check_slash(From, Dict, NewHeight, TheirNonce) ->
 			NewHeight, 1, Dict),
 	    if
 		CDNonce > TheirNonce ->
-                    io:fwrite("other nonce bigger\n"),
                     wait_block(NewHeight, SPK, SS);
 		true -> ok
 	    end

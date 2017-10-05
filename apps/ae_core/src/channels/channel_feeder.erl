@@ -138,8 +138,8 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     SPK = SPK22,
     {ok, OldCD} = channel_manager:read(Sender),
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
-		     ssme = [<<>>|OldCD#cd.ssme],
-		     ssthem = [<<>>|OldCD#cd.ssthem]},
+		     ssme = [spk:new_ss(<<>>, [])|OldCD#cd.ssme],
+		     ssthem = [spk:new_ss(<<>>, [])|OldCD#cd.ssthem]},
     channel_manager:write(Sender, NewCD),
     
     arbitrage:write(Code, [Sender, Recipient]),
@@ -147,7 +147,7 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     Channel2 = make_locked_payment(Recipient, -Amount, Code, []),
     {ok, OldCD2} = channel_manager:read(Recipient),
     NewCD2 = OldCD2#cd{me = testnet_sign:data(Channel2),
-		       ssme = [<<>>|OldCD2#cd.ssme],
+		       ssme = [spk:new_ss(<<>>, [])|OldCD2#cd.ssme],
 		       emsg = [ESS|OldCD2#cd.emsg]},
     channel_manager:write(Recipient, NewCD2),
     {reply, Return, X};
@@ -198,6 +198,9 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     SS = script_sig_me(CD),
     SS4 = script_sig_them(CD),
     Entropy = entropy(CD),
+    io:fwrite("they simplify about to force update "),
+    io:fwrite(packer:pack({SSME, SS4, SPKME})),
+    io:fwrite("\n"),
     B2 = spk:force_update(SPKME, SSME, SS4),
     io:fwrite(packer:pack({channel_feeder, B2, {NewSPK, SS}})),
     io:fwrite("\n"),
@@ -248,10 +251,6 @@ trade(ID, Price, Type, Amount, OID, SSPK, Fee) ->
 
 update_to_me(SSPK, From) ->
     gen_server:call(?MODULE, {update_to_me, SSPK, From}).
-    
-	    
-	    
-    
     
 agree_bet(Name, SSPK, Vars, Secret) -> 
     gen_server:call(?MODULE, {agree_bet, Name, SSPK, Vars, Secret}).

@@ -1,8 +1,12 @@
 ## Needed before launch of mainnet
 
+* Consider giving a developer reward to one of the accounts.
+
+* channel_feeder:garbage looks dangerous. is it deleting too much?
+
 * We could let the ScriptSig request as many proofs as it wants.
 spk's record 'bet' should no longer have the key "prove".
-script sigs should be records with 2 keys: "code" and "prove".
+Finish replacing all the binary script sigs with the new record format.
 
 * We need to test the case where your channel partner deletes their account. It needs to still be possible to get your money out of the channel.
 
@@ -112,3 +116,5 @@ B = A2 div 10000,
 Making A1 rem B == 0 limits the possible output values of the contract, which slightly reduces liquidity. Being able to reduce the fee to zero is worth this small cost.
 
 Blocks should be serialized to be fully compressed.
+
+* spk.erl is currently using trees when processing channel contracts. This is no good, trees are too slow. We should upgrade it to use dictionaries whenever possible.

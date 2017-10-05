@@ -156,16 +156,11 @@ name2number(time_gas) -> 2;
 name2number(space_gas) -> 27;
 name2number(max_block_size) -> 3;
 name2number(create_channel_fee) -> 4;
-%name2number(delete_channel_reward) -> 5;
-%name2number(create_account_fee) -> 6;
-%name2number(delete_account_reward) -> 7;
-%name2number(channel_rent) -> 9;
-%name2number(account_rent) -> 10;
 name2number(block_time) -> 11;
 name2number(oracle_future_limit) -> 12;
 name2number(shares_conversion) -> 13;
-name2number(fun_limit) -> 14;
-name2number(var_limit) -> 15;
+name2number(fun_limit) -> 14;%needed to run smart contracts
+name2number(var_limit) -> 15;%needed to run smart contracts
 name2number(comment_limit) -> 16;
 name2number(block_creation_maturity) -> 17;
 name2number(oracle_initial_liquidity) -> 18;
@@ -177,7 +172,7 @@ name2number(channel_closed_time) -> 22;
 name2number(question_delay) -> 24;
 name2number(governance_delay) -> 25;
 name2number(governance_change_limit) -> 26;
-name2number(create_acc_tx) -> 28;%these store the minimum fee for each transaction type. "ca" is the name of the record of the create_account_tx.
+name2number(create_acc_tx) -> 28;%these store the minimum fee for each transaction type. "create_acc_tx" is the name of the record of the create_account_tx.
 name2number(spend) -> 29;
 name2number(delete_acc_tx) -> 30;
 name2number(repo) -> 31;

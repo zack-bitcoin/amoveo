@@ -242,7 +242,7 @@ lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
     true = testnet_sign:verify(keys:sign(SSPK2)),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    channel_manager_update(ServerID, SSPK2, <<>>),
+    channel_manager_update(ServerID, SSPK2, spk:new_ss(compiler_chalang:doit(<<>>), [])),
     ok.
 channel_manager_update(ServerID, SSPK2, DefaultSS) ->
     %store SSPK2 in channel manager, it is their most recent signature.
