@@ -20,7 +20,8 @@ With this update, it probably becomes secure to withdraw some of the money from 
 * We need more tests of the order book for the oracle.
 
 * We need to make sure every time we take the hash of something, it is already a binary.
-We don't want to have to reprogram term_to_binary in other languages.
+It looks like term_to_binary is available in other languages, so we should consider using that.
+We probably don't want to take the hash of something packed with the "packer" library.
 all transaction types need to be serialized.
 blocks need to be serialized.
 
@@ -33,7 +34,7 @@ I set it up so the contract fails until the oracle is closed. This is probably a
 
 * review how garbage collection is working
 
-* spk:is_improvement needs better checks. 50 CHF (paid in ETH or BTC)
+* spk:is_improvement needs better checks. 
 Make sure delay isn't too big, and the fees aren't too high.
 
 * we need a cron like process to match trades in the markets. It should be cautious to not match too frequently, or too infrequently.
@@ -52,7 +53,7 @@ Make sure delay isn't too big, and the fees aren't too high.
 consider reducing the block time below 10 minutes.
 Then we could have faster trading in the markets.
 
-It would be cool if we could simultaniously create an account and a channel with that account. That way users can get started faster. We would need a new transaction type. 2000 CHF
+It would be cool if we could simultaniously create an account and a channel with that account. That way users can get started faster. We would need a new transaction type. 
 
 Maybe channels should be stored by hash too.
 
@@ -66,7 +67,7 @@ Then how are governance oracles stored? {gov_id, oracle_height}
 
 ### Things we can do after launch of mainnet
 
-We should optionally garbage collect old blocks, only keep the headers. 400 CHF (paid in ETH or BTC)
+We should optionally garbage collect old blocks, only keep the headers. 
 
 light nodes should only download headers and a few recent blocks. They should verify blocks in parallel.
 
@@ -76,27 +77,26 @@ Get rid of any reference to "ae", "aeternity", and "testnet".
 
 in the proofs dict we should have a flag for each thing to know if it has been updated. That way we can know exactly what to include in the batch update of the tree.
 
-[AE-71] Secrets module seems unnecessary. As soon as we find out a secret, why not use arbitrage to update all the channels immediately?
+ Secrets module seems unnecessary. As soon as we find out a secret, why not use arbitrage to update all the channels immediately?
 
-[AE-72 - this should go to pre-launch list] maybe accessing the internal handler should require a signed request with a nonce.
+[this should go to pre-launch list] maybe accessing the internal handler should require a signed request with a nonce.
 The server should ignore commands that don't increment the nonce from last time.
 alternatively, we could just turn on a firewall. This is simpler, but it has the drawback that commands on a local node have to originate from the same computer.
 
-[DONE?] download_blocks:get_blocks should download multiple blocks at a time. 100 CHF (paid in ETH or BTC)
+[DONE?] download_blocks:get_blocks should download multiple blocks at a time. 
 
-[DONE?] We need to test channel_solo_close and channel_slash and channel_timeout from easy. 30 CHF (paid in ETH or BTC)
+[DONE?] We need to test channel_solo_close and channel_slash and channel_timeout from easy.
 
-[AE-74] Cold storage and tools. 150 CHF (paid in ETH or BTC)
+Cold storage and tools.
 
-[AE-75] Download blocks talk/1 seems useless. talker:talk is accomplishing the same goal. 40 CHF (paid in ETH or BTC)
+Download blocks talk/1 seems useless. talker:talk is accomplishing the same goal.
 
-[AE-77] Javascript light wallets need to be able to do all the channel stuff that full nodes do. 2000 CHF (paid in ETH or BTC)
+Javascript light wallets need to be able to do all the channel stuff that full nodes do. 
 
 [There is some sort of ranking already?] We need to update download_blocks so that peers get ranked, and we spend more time talking to higher-ranked peers.
 
-[AE-78] It would be nice if there were some macros for chalang/src/compiler_lisp2.erl that did backtracking. that way we wouldn't have to think about control flow when making smart contracts.
+It would be nice if there were some macros for chalang/src/compiler_lisp2.erl that did backtracking. that way we wouldn't have to think about control flow when making smart contracts.
 
-[AE-79]
 The current market design charges a 1/10000 fee on every trade. This is to protect from rounding errors.
 There is a more elegant way to stop rounding errors. Set a certain maximum trade size. All orders must be measured in increments of the same size
 A limitation of channels is that their output amounts are measured in integers from 0 to 10000.
