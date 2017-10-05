@@ -1,5 +1,10 @@
 ### Needed before launch of mainnet
 
+* We need a version function which returns an integer. The function takes as input the height, that way old blocks can have the old version number from before the fork.
+
+
+* A choice needs to be made. We can have replay protection, which makes it easy to split your money when a fork happens, or we can let blocks be verified out of order.
+
 * We could let the ScriptSig request as many proofs as it wants.
 spk's record 'bet' should no longer have the key "prove".
 script sigs should be records with 2 keys: "code" and "prove".

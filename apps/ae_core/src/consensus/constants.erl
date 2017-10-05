@@ -136,7 +136,7 @@ var_limit() -> 10000.
 
 comment_limit() -> %When a miner mines a block, they can set this many bytes to whatever they want.
     140.
-version() -> 3.
+%version() -> 3.
 version_bits() -> 16.%so we can update it more than 60000 times.
 %rename to "Protocol VERSION".
 server_ip() -> {46,101,103,165}.

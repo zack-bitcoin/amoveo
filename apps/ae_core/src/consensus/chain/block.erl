@@ -206,7 +206,7 @@ genesis_maker() ->
            trees_hash = TreesRoot,
            time = 0,
            difficulty = constants:initial_difficulty(),
-           version = constants:version(),
+           version = version:doit(0),%constants:version(),
            trees = Trees,
            roots = make_roots(Trees)
           }.
@@ -284,7 +284,7 @@ make(Header, Txs0, Trees, Pub) ->
 		   trees_hash = trees:root_hash(NewTrees),
 		   time = time_now(),
 		   difficulty = headers:difficulty_should_be(Header),
-		   version = constants:version(),
+		   version = version:doit(Height+1),%constants:version(),
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header),
 		   proofs = Facts,
