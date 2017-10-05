@@ -258,6 +258,7 @@ garbage() ->
     gen_server:cast(?MODULE, garbage).
 garbage_helper([], _C, _OldC) -> ok;
 garbage_helper([H|T], C, OldC) -> 
+    throw(untested_code_error),
     {ok, CD} = channel_manager:read(H),
     if
 	CD#cd.live -> ok;

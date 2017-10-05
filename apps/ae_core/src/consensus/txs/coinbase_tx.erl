@@ -16,6 +16,8 @@ go(Tx, Dict, NewHeight) ->
                _ -> 
                    accounts:dict_update(From, Dict, BlockReward, none, NewHeight)
            end,
-    Out = accounts:dict_write(Nacc, Dict),
-    Out.
+    Dict2 = accounts:dict_write(Nacc, Dict),
+    DeveloperReward = governance:dict_get_value(developer_reward, Dict),
+    M = accounts:dict_update(constants:master_pub(), Dict2, DeveloperReward, none, NewHeight),
+    accounts:dict_write(M, Dict2).
     

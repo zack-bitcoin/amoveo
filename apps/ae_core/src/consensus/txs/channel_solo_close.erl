@@ -61,9 +61,6 @@ dict_check_slash(From, Dict, NewHeight, TheirNonce) ->
 	{ok, CD} ->
 	    SPK = channel_feeder:them(CD),
 	    SS = channel_feeder:script_sig_them(CD), 
-            io:fwrite("SS them is "),
-            io:fwrite(packer:pack(SS)),
-            io:fwrite("\n"),
 	    {_, CDNonce, _} = 
 		spk:dict_run(fast, 
 			SS,
@@ -76,7 +73,6 @@ dict_check_slash(From, Dict, NewHeight, TheirNonce) ->
 	    end
     end.
 wait_block(X, SPK, SS) ->
-    io:fwrite("wait block\n"),
     {ok, Y} = api:height(),
     case Y of
         X -> slash_it(SPK, SS);
