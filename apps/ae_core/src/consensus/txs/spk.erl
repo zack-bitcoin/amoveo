@@ -60,8 +60,6 @@ prove_facts2([], _) ->
 prove_facts2([{Tree, Key}|T], Trees) when is_integer(Key)->
     ID = tree2id(Tree),
     Branch = trees:Tree(Trees),
-    io:fwrite(packer:pack({prove_facts_keys, Tree, Key})),
-    io:fwrite("\n"),
     {_, Data, _} = Tree:get(Key, Branch),
     SerializedData = Tree:serialize(Data),
     Size = size(SerializedData),
@@ -148,7 +146,8 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
 	    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
 	    true = chalang:none_of(ss_code(SS2)),
-	    F = prove_facts(Bet#bet.prove, Trees),%instead of getting prove from betts, it should come from the SS.
+	    F = prove_facts(SS#ss.prove, Trees),%instead of getting prove from betts, it should come from the SS.
+	    %F = prove_facts(Bet#bet.prove, Trees),%instead of getting prove from betts, it should come from the SS.
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
 	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS2), Code, State, constants:hash_size()),
@@ -298,7 +297,8 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     ScriptSig = ss_code(SS),
     true = chalang:none_of(ScriptSig),
     {Trees, _, _} = tx_pool:data(),
-    F = prove_facts(Bet#bet.prove, Trees),
+    %F = prove_facts(Bet#bet.prove, Trees),
+    F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
@@ -339,7 +339,8 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     {ok, VarLimit} = application:get_env(ae_core, var_limit),
     {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
     true = chalang:none_of(ss_code(SS)),
-    F = prove_facts(Bet#bet.prove, Trees),
+    %F = prove_facts(Bet#bet.prove, Trees),
+    F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
     Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS), Code, State, constants:hash_size()),
