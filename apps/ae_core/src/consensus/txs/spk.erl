@@ -8,6 +8,7 @@
 	 is_improvement/4, bet_unlock/2,
 	 code/1, key/1, test2/0,
 	 force_update/3,
+         new_ss/2, ss_code/1, ss_prove/1,
 	 test/0
 	]).
 -record(bet, {code, amount, prove, key}).%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
@@ -23,6 +24,8 @@
 %scriptpubkey is the name that Satoshi gave to this part of the transactions in bitcoin.
 %This is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
+-record(ss, {code, prove}).
+
 delay(X) -> X#spk.delay.
 acc1(X) -> X#spk.acc1.
 acc2(X) -> X#spk.acc2.
@@ -102,6 +105,10 @@ tree2id(burn) -> 4;
 tree2id(oracles) -> 5;
 tree2id(governance) -> 6.
 
+new_ss(Code, Prove) ->
+    #ss{code = Code, prove = Prove}.
+ss_code(X) -> X#ss.code.
+ss_prove(X) -> X#ss.prove.
 new_bet(Code, Key, Amount, Prove) ->
     #bet{code = Code, key = Key, amount = Amount, prove = Prove}.
 new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
@@ -288,11 +295,7 @@ run3(ScriptSig, Bet, OpGas, RamGas, Funs, Vars, State) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
-    %io:fwrite("spk run3 about to run script\n"),
     Data2 = chalang:run5([ScriptSig], Data),
-    %case chalang:run5([Code], Data2) of
-	%{error, E} -> {error, E};
-    %io:fwrite("spk run3 about to run second script\n"),
     Data3 = chalang:run5([Code], Data2),
     [<<Amount:32>>|
      [<<Nonce:32>>|
