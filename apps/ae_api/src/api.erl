@@ -235,7 +235,7 @@ lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     %ChannelID,
     ESS = keys:encrypt([SS, Code], Pubkey),
-    SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code, []),
+    SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code),
     {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:pubkey(), Pubkey, ESS}, IP, Port),
     {Trees, _, _} = tx_pool:data(),
     Accounts = trees:accounts(Trees),

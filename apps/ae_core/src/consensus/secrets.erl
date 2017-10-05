@@ -51,7 +51,7 @@ int 49 int 1 int 0 then crash",
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(ESS)), []),
     {Trees, Height, _} = tx_pool:data(),%for sanity check
     Amount = 200,
-    Bet = spk:new_bet(Code, Code, Amount, []),
+    Bet = spk:new_bet(Code, Code, Amount),
     SPK = spk:new(1, 2, 3, [Bet], 9000, 9000, 1, 1, 1),
     {Amount, _, _} = spk:run(fast, [SS], SPK, Height, 0, Trees),%for sanity check
     add(Code, SS),

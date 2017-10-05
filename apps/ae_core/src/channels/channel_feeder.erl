@@ -9,7 +9,7 @@
 	 cid/1,them/1,script_sig_them/1,me/1,
 	 script_sig_me/1,
 	 update_to_me/2, new_cd/6, 
-	 make_locked_payment/4, live/1, they_simplify/3,
+	 make_locked_payment/3, live/1, they_simplify/3,
 	 bets_unlock/1, emsg/1, trade/4, trade/7
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
@@ -131,7 +131,7 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     true = Amount > 0,
     {ok, LightningFee} = application:get_env(ae_core, lightning_fee),
     true = Fee > LightningFee,
-    Return = make_locked_payment(Sender, Amount+Fee, Code, []),
+    Return = make_locked_payment(Sender, Amount+Fee, Code),
     SPK = testnet_sign:data(SSPK),
     SPK22 = testnet_sign:data(Return),
     
@@ -144,7 +144,7 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     
     arbitrage:write(Code, [Sender, Recipient]),
 
-    Channel2 = make_locked_payment(Recipient, -Amount, Code, []),
+    Channel2 = make_locked_payment(Recipient, -Amount, Code),
     {ok, OldCD2} = channel_manager:read(Recipient),
     NewCD2 = OldCD2#cd{me = testnet_sign:data(Channel2),
 		       ssme = [spk:new_ss(<<>>, [])|OldCD2#cd.ssme],
@@ -372,13 +372,13 @@ simplify_helper(From, SS) ->
     Return = keys:sign(NewSPK),
     {SSRemaining, Return}. 
 
-make_locked_payment(To, Amount, Code, Prove) -> 
+make_locked_payment(To, Amount, Code) -> 
 	 %look up our current SPK,
     {ok, CD} = channel_manager:read(To),
     SPK = CD#cd.me,
     %OldSPK = CD#cd.them,
     %SPK = testnet_sign:data(OldSPK),
-    Bet = spk:new_bet(Code, Code, Amount, Prove),
+    Bet = spk:new_bet(Code, Code, Amount),
     NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
     {Trees, _, _} = tx_pool:data(),
     keys:sign(NewSPK).

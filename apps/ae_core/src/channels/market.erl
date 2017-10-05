@@ -31,8 +31,8 @@ macro Period int " ++ integer_to_list(Period) ++ " ;\
     %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
-    ToProve = [{oracles, OID}],
-    spk:new_bet(Compiled, CodeKey, Amount, ToProve).
+    %ToProve = [{oracles, OID}],
+    spk:new_bet(Compiled, CodeKey, Amount).
 unmatched(OID) ->
     SS = " int 4 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).

@@ -175,7 +175,7 @@ test(5) ->
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50),
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
@@ -229,7 +229,7 @@ test(6) ->
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50),
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
@@ -301,7 +301,7 @@ test(8) ->
     {Trees3, _, _} = tx_pool:data(),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
-    Bet = spk:new_bet(Code, Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50),
     ChannelNonce = 0,
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
@@ -353,7 +353,7 @@ test(9) ->
     {Trees3, _, _} = tx_pool:data(),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
-    Bet = spk:new_bet(Code, Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50),
     ChannelNonce = 0,
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
@@ -505,8 +505,8 @@ test(12) ->
     Code2 = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, Code, 50, []),
-    Bet2 = spk:new_bet(Code2, Code2, 50, []),
+    Bet = spk:new_bet(Code, Code, 50),
+    Bet2 = spk:new_bet(Code2, Code2, 50),
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet, Bet2], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
@@ -607,7 +607,7 @@ test(14) ->
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50),
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
@@ -685,7 +685,7 @@ test(15) ->
     
     Delay = 0,
     ChannelNonce = 0,
-    Bet = spk:new_bet(Code, Code, 50, []),
+    Bet = spk:new_bet(Code, Code, 50),
     SPK = spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy),
     TheySPK = testnet_sign:sign_tx(SPK, NewPub, NewPriv),
     CD = channel_feeder:new_cd(SPK, TheySPK, [Secret], [Secret], Entropy, CID),

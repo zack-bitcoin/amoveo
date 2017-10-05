@@ -4,8 +4,7 @@
 	 new/9,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,dict_run/6,settle_bet/4,chalang_state/3,
-	 %prove/1, 
-         new_bet/4, delay/1,
+         new_bet/3, delay/1,
 	 is_improvement/4, bet_unlock/2,
 	 code/1, key/1, test2/0,
 	 force_update/3,
@@ -43,8 +42,6 @@ cid(X) -> X#spk.cid.
 amount(X) -> X#spk.amount.
 nonce(X) -> X#spk.nonce.
 
-%bet_amount(X) -> X#bet.amount.
-%prove(X) -> X#bet.prove.
 code(X) -> X#bet.code.
 key(X) -> X#bet.key.
 
@@ -116,8 +113,8 @@ ss_code(X) when is_binary(X) ->
     X;
 ss_code(X) -> X#ss.code.
 ss_prove(X) -> X#ss.prove.
-new_bet(Code, Key, Amount, _) ->
-    #bet{code = Code, key = Key, amount = Amount}.%, prove = Prove}.
+new_bet(Code, Key, Amount) ->
+    #bet{code = Code, key = Key, amount = Amount}.
 new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
 	 bets = Bets, space_gas = SG, time_gas = TG,
