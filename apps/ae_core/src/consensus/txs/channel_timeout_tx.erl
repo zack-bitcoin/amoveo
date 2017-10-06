@@ -46,10 +46,18 @@ go(Tx, Dict, NewHeight) ->
     Fee = Tx#timeout.fee,
     Bal1 = channels:bal1(Channel),
     Bal2 = channels:bal2(Channel),
-    Acc1 = accounts:dict_update(Aid1, Dict, Bal1-Amount, none, NewHeight),
-    Acc2 = accounts:dict_update(Aid2, Dict, Bal2+Amount, none, NewHeight),
-    Dict2 = accounts:dict_write(Acc1, Dict),
-    Dict3 = accounts:dict_write(Acc2, Dict2),
+    Dict2 = case accounts:dict_get(Aid1, Dict) of
+                empty -> Dict;
+                _ ->
+                    Acc1 = accounts:dict_update(Aid1, Dict, Bal1-Amount, none, NewHeight),
+                    accounts:dict_write(Acc1, Dict)
+            end,
+    Dict3 = case accounts:dict_get(Aid2, Dict2) of
+                empty -> Dict2;
+                _ ->
+                    Acc2 = accounts:dict_update(Aid2, Dict2, Bal2+Amount, none, NewHeight),
+                    accounts:dict_write(Acc2, Dict2)
+            end,
     Slasher = channels:slasher(Channel),
     Acc4 = accounts:dict_update(From, Dict3, -Fee, none, NewHeight),
     Dict4 = accounts:dict_write(Acc4, Dict3),

@@ -9,7 +9,8 @@ test() ->
     S = success,
     S = test(1),%create account, spend, delete %S = test(2),%repo tx
     S = test(3),%channel team close, channel grow
-    S = test(5),%channel timeout
+    S = test(4),%channel timeout
+    S = test(5),%account delete, channel timeout
     S = test(6),%channel slash
     S = test(8),%channel solo close - channel team close
     S = test(9),%channel slash - channel team close
@@ -141,9 +142,9 @@ test(3) ->
     {true, _} = block:check(Block),
     success;
     
-test(5) -> 
+test(4) -> 
     %channel solo close, channel timeout
-    io:fwrite("channel solo close tx test \n"),
+    io:fwrite("channel solo close tx, channel timeout tx test \n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -169,6 +170,65 @@ test(5) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
+    {Trees3, _, _} = tx_pool:data(),
+    Accounts3 = trees:accounts(Trees3),
+    
+    Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
+    Delay = 0,
+    ChannelNonce = 0,
+    Bet = spk:new_bet(Code, Code, 50),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
+    {Ctx3, _} = channel_solo_close:make(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
+    Stx3 = keys:sign(Ctx3),
+    absorb(Stx3),
+    %mine_blocks(1),
+    timer:sleep(500),
+    {Trees4, _, _Txs} = tx_pool:data(),
+    Accounts4 = trees:accounts(Trees4),
+    {Ctx4, _} = channel_timeout_tx:make(constants:master_pub(),Trees4,CID,[],Fee),
+    Stx4 = keys:sign(Ctx4),
+    absorb(Stx4),
+    {_, _, Txs} = tx_pool:data(),
+
+    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    Header = block:block_to_header(Block),
+    headers:absorb([Header]),
+    {true, _} = block:check(Block),
+    success;
+test(5) -> 
+    %channel solo close, channel timeout
+    io:fwrite("account delete tx, channel solo close tx, channel timeout tx test \n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Trees = block:trees(BP),
+    Accounts = trees:accounts(Trees),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    
+    Fee = 20,
+    Amount = 1000000,
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    {Trees2, _, _} = tx_pool:data(),
+    Accounts2 = trees:accounts(Trees2),
+    
+    CID = 5,
+    Entropy = 432,
+    Delay = 0,
+    
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 10000, 20000, Entropy, Delay, Fee),
+    Stx2 = keys:sign(Ctx2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
+    absorb(SStx2),
+    {Trees25, _, _} = tx_pool:data(),
+    {Ctx25, _} = delete_account_tx:new(keys:pubkey(), NewPub, Fee, Trees25),
+    Stx25 = testnet_sign:sign_tx(Ctx25, NewPub, NewPriv),
+    absorb(Stx25),
     {Trees3, _, _} = tx_pool:data(),
     Accounts3 = trees:accounts(Trees3),
     
