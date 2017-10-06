@@ -1,8 +1,10 @@
 Amoveo
 ==========
 
-Bitcoin Gifts to developer: 1GbpRPE83Vjg73KFvTVZ4EnS2qNkiLY5TT
+```
+Bitcoin Donations: 1GbpRPE83Vjg73KFvTVZ4EnS2qNkiLY5TT
 Gifts must be less than $10 000 per person.
+```
 
 A scalable blockchain for financial derivatives.
 Optimized for scalability via smart contracts inside state-channels.
