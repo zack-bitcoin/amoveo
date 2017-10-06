@@ -59,15 +59,6 @@ det_pow(Base, Ex) ->
 	0 -> det_pow(Base*Base, Ex div 2);
 	1 -> Base * det_pow(Base, Ex - 1)
     end.
-give_bets_main(Id, Orders, Type, Accounts, OID) ->
-    %Id bought many orders of the same type. sum up all the amounts, and give him this many bets.
-    %return the new accounts tree
-    Amount = sum_order_amounts(Orders, 0),
-    {_, Acc, _} = accounts:get(Id, Accounts),
-    OldBets = accounts:bets(Acc),
-    NewBets = oracle_bets:add_bet(OID, Type, 2*Amount, OldBets),
-    Acc2 = accounts:update_bets(Acc, NewBets),
-    accounts:write(Acc2, Accounts).
 dict_give_bets_main(Id, Orders, Type, Dict, OID) ->
     %Id bought many orders of the same type. sum up all the amounts, and give him this many bets.
     Amount = sum_order_amounts(Orders, 0),

@@ -301,6 +301,7 @@ txs_to_querys([STx|T], Trees) ->
                   {oracles, OID}] ++
                     Prove;
 	    oracle_close -> 
+                AID = oracle_close_tx:from(Tx),
                 OID = oracle_close_tx:oracle_id(Tx),
                 Oracles = trees:oracles(Trees),
                 {_, Oracle, _} = oracles:get(OID, Oracles),
@@ -308,11 +309,12 @@ txs_to_querys([STx|T], Trees) ->
                 Pubkeys = [From|
                            oracle_bet_tx:to_prove(OID, Trees)],
                 Pubkeys2 = remove(<<?Header:PS>>, Pubkeys),
-                Prove = tagify(accounts, Pubkeys) ++ 
-                    make_oracle_bets(Pubkeys2, OID) ++
+                Prove = %tagify(accounts, Pubkeys) ++ 
+                    %make_oracle_bets(Pubkeys2, OID) ++
                     make_orders(Pubkeys, OID),
                 [
                              %whichever governance variable is being updated.
+                 {accounts, AID},
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
                  {governance, ?n2i(oracle_close)},

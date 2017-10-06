@@ -1,8 +1,5 @@
 ## Needed before launch of mainnet
 
-
-* get rid of repetition in /apps/ae_core/src/consensus/txs/spk.erl
-
 * We need more tests of the order book for the oracle.
 
 * We need to make sure every time we take the hash of something, it is already a binary.
