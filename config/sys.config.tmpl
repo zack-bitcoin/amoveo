@@ -10,15 +10,18 @@
     {test_mode, true},
     {cores_to_mine, 1000}, %% The maximum number of cores to use when mining.
 
-    {light_node, false},
 
-    {trie_size, 10000}, %%  we can adjust this many accounts and channels in all the blocks in free_constants:revert_depth()
-    {revert_depth, 100}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state.
     {channel_delay, 10},
     {max_message_size, 10000},
     {token_decimals, 100000000},
 
     %% Everything above this line is needed for blockchain consensus. Everything below this line can be modified for your node.
+
+    {smart_contract_runtime_limit, 5000}, %% in miliseconds.
+    {revert_depth, 100}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state.
+
+    {light_node, false},
+    {trie_size, 10000}, %%  we can adjust this many accounts and channels in all the blocks in free_constants:revert_depth()
 
     {tx_fee, 10},
     {lightning_fee, 9},

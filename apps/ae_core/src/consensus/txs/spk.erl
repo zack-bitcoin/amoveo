@@ -146,14 +146,11 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
 	    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
 	    true = chalang:none_of(ss_code(SS2)),
-	    F = prove_facts(SS#ss.prove, Trees),%instead of getting prove from betts, it should come from the SS.
-	    %F = prove_facts(Bet#bet.prove, Trees),%instead of getting prove from betts, it should come from the SS.
+	    F = prove_facts(SS#ss.prove, Trees),
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
 	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS2), Code, State, constants:hash_size()),
-            %io:fwrite("spk bet_unlock2 chalang run first\n"),
 	    Data2 = chalang:run5([ss_code(SS2)], Data),
-            %io:fwrite("spk bet_unlock2 chalang run second\n"),
 	    Data3 = chalang:run5([Code], Data2),
 	    case Data3 of
 		{error, _E} -> 
@@ -185,9 +182,6 @@ bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
 	   bet_unlock2(T, B, A+A3, SSIn, SSOut, [{secret, SS2, Key}|Secrets], Nonce + Nonce2, [SS2|SSThem])
    end.
 	    
-%many(_, 0) -> [];
-%many(X, N) -> [X|many(X, N-1)].
-    
 apply_bet(Bet, Amount, SPK, Time, Space) ->
 %bet is binary, the SPK portion of the script.
 %SPK is the old SPK, we output the new one.
@@ -236,7 +230,8 @@ dict_run2(safe, SS, SPK, State, Dict) ->
 		  S ! X
 	  end),
     spawn(fun() ->
-		  timer:sleep(5000),%wait enough time for the chalang contracts to finish
+                  {ok, A} = application:get_env(ae_core, smart_contract_runtime_limit),
+		  timer:sleep(A),%wait enough time for the chalang contracts to finish
 		  S ! error
 	  end),
     receive 
@@ -339,14 +334,11 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     {ok, VarLimit} = application:get_env(ae_core, var_limit),
     {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
     true = chalang:none_of(ss_code(SS)),
-    %F = prove_facts(Bet#bet.prove, Trees),
     F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
     Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS), Code, State, constants:hash_size()),
-    %io:fwrite("force update first\n"),
     Data2 = chalang:run5([ss_code(SS)], Data),
-    %io:fwrite("force update second\n"),
     Data3 = chalang:run5([Code], Data2),
     [<<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),
     if
@@ -449,27 +441,6 @@ obligations(2, [A|T]) ->
 	end,
     C + obligations(2, T).
     
-%find_extra(New, Old) -> 
-%    find_extra(New, Old, 0).
-%find_extra([], [], Amount) ->
-%    {true, Amount};
-%find_extra(_, [], Amount) ->
-%    {false, Amount};
-%find_extra(B, [A|T], Amount) ->
-%    C = is_in(A, B),
-%    if
-%	C ->
-%	    find_extra(remove(A, B), T, Amount);
-%	true ->
-%	    find_extra(B, T, Amount + abs(A#bet.amount))
-%    end.
-%is_in(_, []) -> false;
-%is_in(A, [A|_]) -> true;
-%is_in(A, [_|C]) -> is_in(A, C).
-%remove(A, [A|T]) -> T;
-%remove(A, [B|T]) -> 
-%    [B|remove(A, T)].
-
 test2() ->
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
     SSME = channel_feeder:script_sig_me(CD),
