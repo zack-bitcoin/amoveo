@@ -1,7 +1,5 @@
 ## Needed before launch of mainnet
 
-* We need to test the case where someone who is participating in the oracle deletes their own account. It needs to still be possible to bet in the oracle and close the oracle.
-
 * grow_channel_tx:good/1 needs to be implemented
 
 * grow_channel is bad.
