@@ -36,7 +36,8 @@ good(Tx) ->
     io:fwrite(" "),
     io:fwrite(float_to_list(MCR)),
     io:fwrite("\n"),
-    Frac > MCR.
+    true = Frac > MCR,
+    true.
 cid(Tx) -> Tx#nc.id.
 entropy(Tx) -> Tx#nc.entropy.
 spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,

@@ -1,15 +1,5 @@
 ## Needed before launch of mainnet
 
-* grow_channel_tx:good/1 needs to be implemented
-
-* grow_channel is bad.
-To use it trustlessly, you need to make many grow_channel transaction to add a small amount of money to the channel.
-We want the ability to atomically do a grow_channel transaction, and update the channel state.
-So, the channel should hold one more number.
-This number gets updated every time there is a grow_channel transaction for this channel.
-The SPK should reference this number.
-If the SPK doesn't match this number, then it is an invalid tx.
-With this update, it probably becomes secure to withdraw some of the money from the channel without closing the channel.
 
 * get rid of repetition in /apps/ae_core/src/consensus/txs/spk.erl
 
@@ -108,3 +98,5 @@ Blocks should be serialized to be fully compressed.
 * spk.erl is currently using trees when processing channel contracts. This is no good, trees are too slow. We should upgrade it to use dictionaries whenever possible.
 
 * We need some way of garbage collecting old channels from the channels manager once the channel has been closed long enough.
+
+* It would be cool if we could trustlessly combine a grow_channel_tx with a channel payment. This might involve a hard fork.

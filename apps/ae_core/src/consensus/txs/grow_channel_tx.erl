@@ -4,10 +4,27 @@
 acc1(X) -> X#gc.acc1.
 acc2(X) -> X#gc.acc2.
 id(X) -> X#gc.id.
-good(_Tx) ->
-    %make sure they aren't taking our money.
-    %check that it is still meeting the min_channel_ratio.
-    %check that it is a valid transaction.
+good(Tx) ->
+    I1 = Tx#gc.inc1,
+    I2 = Tx#gc.inc2,
+    Acc1 = Tx#gc.acc1,
+    Acc2 = Tx#gc.acc2,
+    {Me, Other} = 
+        case keys:pubkey() of
+            Acc1 -> {I1, I2};
+            Acc2 -> {I2, I1}
+        end,
+    NewCNLimit = Tx#gc.channel_nonce,
+    {ok, CD} = channel_manager:read(Other),
+    SPK = channel_feeder:me(CD),
+    CN = spk:nonce(SPK),
+    true = CN > NewCNLimit,%This checks that our SPK is still valid.
+    SSPK = channel_feeder:them(CD),
+    CN2 = spk:nonce(testnet_sign:data(SSPK)),
+    true = CN2 > NewCNLimit,%This checks that the SPK they signed is still valid.
+    Frac = Me / (I1 + I2),
+    {ok, MCR} = application:get_env(ae_core, min_channel_ratio),
+    true = Frac > MCR,
     true.
     
 make(ID,Trees,Inc1,Inc2,Fee) ->
