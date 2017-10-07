@@ -535,7 +535,7 @@ test(11) ->
     {true, _} = block:check(Block),
     success;
 test(16) ->
-    io:fwrite("testing an oracle \n"),
+    io:fwrite("testing an oracle with more bets\n"),
     %testing the oracle
     %launch an oracle with oracle_new
     {Pub1,Priv1} = testnet_sign:new_key(),
@@ -557,7 +557,6 @@ test(16) ->
     Stx_2 = keys:sign(Ctx_2),
     absorb(Stx_2),
 
-
     {Trees,_,_Txs} = tx_pool:data(),
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees),
     Stx = keys:sign(Tx),
@@ -572,16 +571,14 @@ test(16) ->
     {Tx2, _} = oracle_bet_tx:make(constants:master_pub(), Fee, OID, 1, OIL, Trees2), 
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
-    %timer:sleep(100),
 
-    timer:sleep(100),
     {Trees21, _, _} = tx_pool:data(),
     {Tx21, _} = oracle_bet_tx:make(Pub1, Fee, OID, 1, OIL*2, Trees21), 
     Stx21 = testnet_sign:sign_tx(Tx21, Pub1, Priv1),
     absorb(Stx21),
 
     {Trees22, _, _} = tx_pool:data(),
-    {Tx22, _} = oracle_bet_tx:make(Pub2, Fee, OID, 2, OIL div 10, Trees22), 
+    {Tx22, _} = oracle_bet_tx:make(Pub2, Fee, OID, 2, OIL, Trees22), 
     Stx22 = testnet_sign:sign_tx(Tx22, Pub2, Priv2),
     absorb(Stx22),
 
@@ -592,25 +589,27 @@ test(16) ->
     {Tx3, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
-    %mine_blocks(1),
-    timer:sleep(100),
 
-    {Trees4, _, _} = tx_pool:data(),
-    %get your spare money out with oracle_unmatched
-    Oracles = trees:oracles(Trees4),
-    {_, Oracle, _} = oracles:get(OID, Oracles),
-    Orders = oracles:orders(Oracle),
-    {OrderID, _} = orders:head_get(Orders),%This only works because there is exactly 1 order in the order book.
-    {Tx4, _} = oracle_unmatched_tx:make(constants:master_pub(), Fee, OID, Trees4),
-    Stx4 = keys:sign(Tx4),
-    absorb(Stx4),
-    timer:sleep(100),
+    {Trees41, _, _} = tx_pool:data(),
+    {Tx41, _} = oracle_unmatched_tx:make(Pub1, Fee, OID, Trees41),
+    Stx41 = testnet_sign:sign_tx(Tx41, Pub1, Priv1),
+    absorb(Stx41),
 
     {Trees5, _, _} = tx_pool:data(),
-    %get your shares out with oracle_shares
-    {Tx5, _}=oracle_shares_tx:make(constants:master_pub(), Fee, OID, Trees5),
+    {Tx5, _} = oracle_shares_tx:make(constants:master_pub(), Fee, OID, Trees5),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
+
+    {Trees51, _, _} = tx_pool:data(),
+    {Tx51, _} = oracle_shares_tx:make(Pub1, Fee, OID, Trees51),
+    Stx51 = testnet_sign:sign_tx(Tx51, Pub1, Priv1),
+    absorb(Stx51),
+
+    {Trees52, _, _} = tx_pool:data(),
+    {Tx52, _} = oracle_shares_tx:make(Pub2, Fee, OID, Trees52),
+    Stx52 = testnet_sign:sign_tx(Tx52, Pub2, Priv2),
+    absorb(Stx52),
+
     timer:sleep(100),
     {_,Height6,Txs} = tx_pool:data(),
     BP = block:get_by_height(Height6),

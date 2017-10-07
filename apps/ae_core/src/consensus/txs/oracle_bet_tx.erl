@@ -95,7 +95,6 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict),
     VolumeCheck = orders:dict_significant_volume(Dict, OID, OIL),
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
-    io:fwrite("oracle bet 1 \n"),
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
@@ -110,46 +109,32 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 		 2 -> 2;
 		 3 -> 3
 	     end,
-    io:fwrite("oracle bet 2 \n"),
     Amount = Tx#oracle_bet.amount,
     NewOrder = orders:new(Tx#oracle_bet.from, Amount),
     Out = 
         if
 	TxType == OracleType ->
-                io:fwrite("oracle bet 3 \n"),
                 ManyOrders = dict_orders_many(OID, Dict),
                 Minimum = OIL * det_pow(2, max(1, ManyOrders)), 
                 true = Amount >= Minimum,
                 Dict2 = orders:dict_add(NewOrder, OID, Dict),
                 oracles:dict_write(Oracle, Dict2);
 	true ->
-                io:fwrite("oracle bet 4 \n"),
                 {Matches1, Matches2, Next, Dict2} =
                     orders:dict_match(NewOrder, OID, Dict),
-                io:fwrite("oracle bet matches are "),
-                io:fwrite(packer:pack({matches, Matches1, Matches2})),
-                io:fwrite("\n"),
     %Match1 is orders that are still open.
     %Match2 is orders that are already closed. We need to pay them their winnings.
-                io:fwrite("oracle bet 5 \n"),
                 Dict3 = dict_give_bets_main(From, Matches1, TxType, Dict2, oracles:id(Oracle)),%gives a single oracle bet to this person
-                io:fwrite("oracle bet 6 \n"),
                 Dict4 = dict_give_bets(Matches2, OracleType, Dict3, oracles:id(Oracle)),%gives oracle_bets to each account that got matched
-                io:fwrite("oracle bet 7 \n"),
                 Oracle3 = case Next of
                               same -> 
-                                  io:fwrite("oracle bet 8 \n"),
-                                                %Dict2;
                                   Oracle;
                               switch ->
-                                  io:fwrite("oracle bet 9 \n"),
                                   Oracle4 = oracles:set_done_timer(Oracle, NewHeight + MOT),
                                   oracles:set_type(Oracle4, TxType)
                           end,
-                io:fwrite("oracle bet 10 \n"),
                 oracles:dict_write(Oracle3, Dict4)
         end,
-    io:fwrite("oracle bet 11 \n"),
     Out.
 dict_orders_many(OID, Dict) ->
     {_, Many} = orders:dict_head_get(Dict, OID),

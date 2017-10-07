@@ -37,18 +37,10 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %new_trees shows the state after the recent block.
     %Dict holds the state after applying all the recent txs.
     Querys = proofs:txs_to_querys([SignedTx], Trees),
-    %io:fwrite("absorb unsafe 11\n"),
-    %io:fwrite("about to prove "),
-    %io:fwrite(packer:pack(Querys)),
-    %io:fwrite("\n"),
     Facts = proofs:prove(Querys, Trees),
-    io:fwrite("absorb unsafe 11\n"),
     Dict2 = proofs:facts_to_dict(Facts, Dict),
-    io:fwrite("absorb unsafe 12\n"),
     NewDict = txs:digest_from_dict([SignedTx], Dict2, Height + 1),
-    io:fwrite("absorb unsafe 13\n"),
     NewTrees = block:dict_update_trie(Trees, NewDict), 
-    io:fwrite("absorb unsafe 15\n"),
     tx_pool:absorb_tx(NewTrees, NewDict, SignedTx).
 verify_proofs([], _) -> true;
 verify_proofs([F|T], Trees) ->
@@ -110,7 +102,6 @@ is_in(STx, [STx2 | T]) ->
     end.
 
 absorb_internal(SignedTx) ->
-    %{NewTrees, _Height, _Txs} = tx_pool:data(),
     %io:fwrite("absorb internal 0\n"),
     F = tx_pool:data_new(),
     Trees = tx_pool:trees(F),

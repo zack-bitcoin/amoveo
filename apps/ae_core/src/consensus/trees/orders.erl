@@ -274,8 +274,6 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
                             {same_exact, dict_head_update(P, OID, Dict), [Order|Matches1], [L|Matches2]};
                         NewA < OldA ->
                             Order2 = update_amount(L, -NewA),
-                            io:fwrite(packer:pack({update_order, Order2})),
-                            io:fwrite("\n"),
                             L3 = set_amount(L, NewA),
                             {same, dict_write(Order2, OID, Dict), 
                              [Order2|Matches1], [L3|Matches2]}
