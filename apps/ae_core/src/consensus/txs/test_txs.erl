@@ -21,7 +21,7 @@ test() ->
     %warning! after running test(11), we can no longer run other tests. because test(11) mines blocks, so tx_pool:dump can no longer undo transactions.
     S = test(13),%testing governance
     S = test(11),%try out the oracle
-    %S = test(16),%try out the oracle further
+    S = test(16),%try out the oracle further
     timer:sleep(300),
     S.
 absorb(Tx) -> 
@@ -580,18 +580,19 @@ test(16) ->
     Stx21 = testnet_sign:sign_tx(Tx21, Pub1, Priv1),
     absorb(Stx21),
 
-    %{Trees22, _, _} = tx_pool:data(),
-    %{Tx22, _} = oracle_bet_tx:make(Pub2, Fee, OID, 2, OIL div 2, Trees22), 
-    %Stx22 = testnet_sign:sign_tx(Tx22, Pub2, Priv2),
-    %absorb(Stx22),
+    {Trees22, _, _} = tx_pool:data(),
+    {Tx22, _} = oracle_bet_tx:make(Pub2, Fee, OID, 2, OIL div 10, Trees22), 
+    Stx22 = testnet_sign:sign_tx(Tx22, Pub2, Priv2),
+    absorb(Stx22),
 
-    mine_blocks(1),
+    %mine_blocks(1),
     timer:sleep(150),
     {Trees3, _, _} = tx_pool:data(),
     %close the oracle with oracle_close
     {Tx3, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
+    %mine_blocks(1),
     timer:sleep(100),
 
     {Trees4, _, _} = tx_pool:data(),

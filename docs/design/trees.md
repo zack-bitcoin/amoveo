@@ -1,4 +1,4 @@
-There are 8 merkel trees.
+There are 8 [merkel trees](/docs/basics/merkle.md).
 
 * oracles+
 * orders

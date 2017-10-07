@@ -253,7 +253,7 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
             La = dict_get({key, T, OID}, Dict),
             case La of
                 empty ->
-                    throw(orders_check_if_path_needed),
+                    %throw(orders_check_if_path_needed),
                     P = Order#orders.aid,
                     Dict2 = dict_head_update(P, OID, Dict),
                     Dict3 = dict_write(Order, OID, Dict2),
@@ -264,18 +264,21 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
                     P = L#orders.pointer,
                     if
                         NewA > OldA ->
+                            throw(check),
                             Dict2 = dict_head_update(P, OID, Dict),
                             Order2 = update_amount(Order, -OldA),
-                    Dict3 = dict_delete(aid(L), OID, Dict2),
+                            Dict3 = dict_delete(aid(L), OID, Dict2),
                             Order3 = update_amount(Order, OldA),
                             dict_match2(Order2, OID, Dict3, P, [Order3|Matches1], [L|Matches2]);
                         NewA == OldA ->
                             {same_exact, dict_head_update(P, OID, Dict), [Order|Matches1], [L|Matches2]};
                         NewA < OldA ->
                             Order2 = update_amount(L, -NewA),
+                            io:fwrite(packer:pack({update_order, Order2})),
+                            io:fwrite("\n"),
                             L3 = set_amount(L, NewA),
                             {same, dict_write(Order2, OID, Dict), 
-                             [Order|Matches1], [L3|Matches2]}
+                             [Order2|Matches1], [L3|Matches2]}
                     end
             end
     end.

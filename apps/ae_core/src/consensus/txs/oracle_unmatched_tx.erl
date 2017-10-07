@@ -16,7 +16,6 @@ go(Tx, Dict, NewHeight) ->
     OracleID = Tx#unmatched.oracle_id,
     AID = Tx#unmatched.from,
     %Oracle = oracles:dict_get(OracleID, Oracles),
-    io:fwrite("oracle unmatched 0\n"),
     Order = orders:dict_get({key, AID, OracleID}, Dict),
     io:fwrite("oracle unmatched order is "),
     io:fwrite(packer:pack(Order)),

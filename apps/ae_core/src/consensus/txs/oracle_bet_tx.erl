@@ -126,6 +126,9 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                 io:fwrite("oracle bet 4 \n"),
                 {Matches1, Matches2, Next, Dict2} =
                     orders:dict_match(NewOrder, OID, Dict),
+                io:fwrite("oracle bet matches are "),
+                io:fwrite(packer:pack({matches, Matches1, Matches2})),
+                io:fwrite("\n"),
     %Match1 is orders that are still open.
     %Match2 is orders that are already closed. We need to pay them their winnings.
                 io:fwrite("oracle bet 5 \n"),
