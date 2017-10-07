@@ -1,6 +1,6 @@
 -module(governance).
 -export([det_power/3,tree_number_to_value/1, max/0,
-	 is_locked/1, change/3, genesis_state/0,
+	 is_locked/1, dict_change/3, genesis_state/0,
 	 get/2, write/2, %lock/2, unlock/2,
 	 get_value/2, serialize/1, name2number/1,
 	 verify_proof/4, root_hash/1, dict_get/2,
@@ -20,7 +20,8 @@ genesis_state() ->
             false -> {297, 352, 505}
         end,
     G = [[block_reward, 1800],
-         [developer_reward, 1520], 
+         %[developer_reward, 1520], 
+         [developer_reward, 1800], 
          [time_gas, 1113],
          [space_gas, 1113],
          [max_block_size, 940],
@@ -73,13 +74,12 @@ genesis_state([[Name, Value] | Rest], Tree0) ->
     NewGovernance = new(Id, Value),
     Tree = write(NewGovernance, Tree0),
     genesis_state(Rest, Tree).
-
-change(Name, Amount, Tree) ->
-    {_, Gov0, _} = get(Name, Tree),
+dict_change(Name, Amount, Dict) ->
+    Gov0 = dict_get(Name, Dict),
     Value0 = Gov0#gov.value + Amount,
     Value = max(Value0, 1),
     Gov = Gov0#gov{value = Value, lock = 0},
-    write(Gov, Tree).
+    dict_write(Gov, Dict).
 dict_lock(Name, Dict) ->
     Gov0 = dict_get(Name, Dict),
     Gov = Gov0#gov{lock = 1},

@@ -12,7 +12,7 @@
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      height = 0,  %The last height at which you paid the tax
 	      pubkey = <<>>,
-	      bets = 0,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
+	      bets = 1,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
               bets_hash = <<>>}).
 -define(id, accounts).
 

@@ -21,6 +21,7 @@ test() ->
     %warning! after running test(11), we can no longer run other tests. because test(11) mines blocks, so tx_pool:dump can no longer undo transactions.
     S = test(13),%testing governance
     S = test(11),%try out the oracle
+    %S = test(16),%try out the oracle further
     timer:sleep(300),
     S.
 absorb(Tx) -> 
@@ -521,6 +522,90 @@ test(11) ->
 
     {Trees5, _, _} = tx_pool:data(),
     Accounts5 = trees:accounts(Trees5),
+    %get your shares out with oracle_shares
+    {Tx5, _}=oracle_shares_tx:make(constants:master_pub(), Fee, OID, Trees5),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    timer:sleep(100),
+    {_,Height6,Txs} = tx_pool:data(),
+    BP = block:get_by_height(Height6),
+    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block:trees(BP), constants:master_pub()), 10),
+    Header = block:block_to_header(Block),
+    headers:absorb([Header]),
+    {true, _} = block:check(Block),
+    success;
+test(16) ->
+    io:fwrite("testing an oracle \n"),
+    %testing the oracle
+    %launch an oracle with oracle_new
+    {Pub1,Priv1} = testnet_sign:new_key(),
+    {Pub2,Priv2} = testnet_sign:new_key(),
+    Question = <<>>,
+    OID = 1,
+    Fee = 20,
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    {Trees_1, _, _} = tx_pool:data(),
+    Amount = 1000000000,
+    {Ctx_1, _} = create_account_tx:new(Pub1, Amount, Fee, constants:master_pub(), Trees_1),
+    Stx_1 = keys:sign(Ctx_1),
+    absorb(Stx_1),
+    
+    {Trees_2, _, _} = tx_pool:data(),
+    {Ctx_2, _} = create_account_tx:new(Pub2, Amount, Fee, constants:master_pub(), Trees_2),
+    Stx_2 = keys:sign(Ctx_2),
+    absorb(Stx_2),
+
+
+    {Trees,_,_Txs} = tx_pool:data(),
+    {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    timer:sleep(150),
+    mine_blocks(5),
+    timer:sleep(150),
+    {Trees2, _, _} = tx_pool:data(),
+    %make some bets in the oracle with oracle_bet
+    Governance2 = trees:governance(Trees2),
+    OIL = governance:get_value(oracle_initial_liquidity, Governance2),
+    {Tx2, _} = oracle_bet_tx:make(constants:master_pub(), Fee, OID, 1, OIL, Trees2), 
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    %timer:sleep(100),
+
+    timer:sleep(100),
+    {Trees21, _, _} = tx_pool:data(),
+    {Tx21, _} = oracle_bet_tx:make(Pub1, Fee, OID, 1, OIL*2, Trees21), 
+    Stx21 = testnet_sign:sign_tx(Tx21, Pub1, Priv1),
+    absorb(Stx21),
+
+    %{Trees22, _, _} = tx_pool:data(),
+    %{Tx22, _} = oracle_bet_tx:make(Pub2, Fee, OID, 2, OIL div 2, Trees22), 
+    %Stx22 = testnet_sign:sign_tx(Tx22, Pub2, Priv2),
+    %absorb(Stx22),
+
+    mine_blocks(1),
+    timer:sleep(150),
+    {Trees3, _, _} = tx_pool:data(),
+    %close the oracle with oracle_close
+    {Tx3, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees3),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    timer:sleep(100),
+
+    {Trees4, _, _} = tx_pool:data(),
+    %get your spare money out with oracle_unmatched
+    Oracles = trees:oracles(Trees4),
+    {_, Oracle, _} = oracles:get(OID, Oracles),
+    Orders = oracles:orders(Oracle),
+    {OrderID, _} = orders:head_get(Orders),%This only works because there is exactly 1 order in the order book.
+    {Tx4, _} = oracle_unmatched_tx:make(constants:master_pub(), Fee, OID, Trees4),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    timer:sleep(100),
+
+    {Trees5, _, _} = tx_pool:data(),
     %get your shares out with oracle_shares
     {Tx5, _}=oracle_shares_tx:make(constants:master_pub(), Fee, OID, Trees5),
     Stx5 = keys:sign(Tx5),

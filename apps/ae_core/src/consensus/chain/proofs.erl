@@ -85,7 +85,6 @@ prove2([{orders, Key}|T], Trees) ->
             true ->
                 oracles:orders(Data0)
         end,
-    %OrdersTree = oracles:orders(Data0),%%%%
     {Root, Data, Path} = orders:get(Key#key.pub, OrdersTree),
     Data2 = case Data of
 		empty -> 0;
@@ -102,7 +101,9 @@ prove2([{oracle_bets, Key}|T], Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Data0, _} = accounts:get(Key#key.pub, Accounts),
     OrdersTree = accounts:bets(Data0),%%%%
+    %io:fwrite("\n"),
     {Root, Data, Path} = oracle_bets:get(Key#key.id, OrdersTree),
+    %io:fwrite("oracle bets prove 2\n"),
     Data2 = case Data of
 		empty -> 0;
 		_ -> oracle_bets:serialize(Data)
@@ -309,12 +310,12 @@ txs_to_querys([STx|T], Trees) ->
                 Pubkeys = [From|
                            oracle_bet_tx:to_prove(OID, Trees)],
                 Pubkeys2 = remove(<<?Header:PS>>, Pubkeys),
-                Prove = %tagify(accounts, Pubkeys) ++ 
-                    %make_oracle_bets(Pubkeys2, OID) ++
+                Prove = tagify(accounts, Pubkeys) ++ 
+                    make_oracle_bets(Pubkeys2, OID) ++
                     make_orders(Pubkeys, OID),
                 [
                              %whichever governance variable is being updated.
-                 {accounts, AID},
+                 %{accounts, AID},
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
                  {governance, ?n2i(oracle_close)},
@@ -327,14 +328,15 @@ txs_to_querys([STx|T], Trees) ->
 	    unmatched -> 
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
-                Pubkeys = [From|oracle_bet_tx:to_prove(OID, Trees)],
-                Prove = make_orders(Pubkeys, OID),
+                %Pubkeys = [From|oracle_bet_tx:to_prove(OID, Trees)],
+                %Prove = make_orders(Pubkeys, OID),
                 [
                  {governance, ?n2i(unmatched)},
                  {orders, #key{pub = <<?Header:PS>>, id = OID}},
+                 {orders, #key{pub = From, id = OID}},
                  {accounts, From},
                  {oracles, OID}
-                ] ++ Prove;
+                ];% ++ Prove;
 	    oracle_shares -> 
                 OID = oracle_shares_tx:oracle_id(Tx),
                 From = oracle_shares_tx:from(Tx),

@@ -14,7 +14,8 @@ address_bits() ->
 pubkey_size()->
     65. %bytes
 
-initial_coins() -> 1080000000000.
+initial_coins() -> 27017593349040. %about 1 year.
+                  %1080000000000. %about 2 weeks
 block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 

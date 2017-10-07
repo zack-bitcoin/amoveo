@@ -521,11 +521,12 @@ dict_update_trie_account(Trees, [H|T], Dict) ->
                     ABN = Type:bets(New0),
                     {_, Old, _} = Type:get(Key, trees:Type(Trees)),
                     New = if
-                              Old == empty -> New0;
+                              Old == empty -> Type:update_bets(New0, constants:root0());
                               true ->
                                   ABO = Type:bets(Old),
                                   if
-                                      ABO == 0 -> New0;
+                                      ABO == 0 -> 
+                                          New0;
                                       0 == ABN -> Type:update_bets(New0, accounts:bets(Old));
                                       true -> New0
                                   end

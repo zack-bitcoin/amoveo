@@ -177,7 +177,7 @@ dict_add(Order, OID, Dict) ->
                     Dict2 = dict_head_put(X, Many+1, OID, Dict),
                     dict_write(Order, OID, Dict2);
                 Y ->
-                    Dict2 = head_put(Head, Many+1, Dict),
+                    Dict2 = dict_head_put(Head, Many+1, OID, Dict),
                     dict_add2(Order, Dict2, Y, OID)
             end;
         Old ->
