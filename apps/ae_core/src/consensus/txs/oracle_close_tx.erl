@@ -39,15 +39,19 @@ go(Tx, Dict, NewHeight) ->
 		true = (B1 or B2),
 		Dict4;
 	    G ->
+                io:fwrite("governance branch\n"),
 		GA = oracles:governance_amount(Oracle3),
 		case Result of
 		    1 -> 
-			true = oracles:done_timer(Oracle3) < NewHeight,
-			governance:dict_change(GA, Gov, Dict4);
+                        io:fwrite("gov 1\n"),
+			true = oracles:done_timer(Oracle) < NewHeight,
+			governance:dict_change(Gov, GA, Dict4);
 		    2 ->
-			true = oracles:done_timer(Oracle3) < NewHeight,
-			governance:dict_change(-GA, Gov, Dict4);
+                        io:fwrite("gov 2\n"),
+			true = oracles:done_timer(Oracle) < NewHeight,
+			governance:dict_change(Gov, -GA, Dict4);
 		    3 -> 
+                        io:fwrite("gov 3\n"),
 			true = oracles:starts(Oracle3) + MOT < NewHeight,
 			governance:dict_unlock(G, Dict4)
                 end

@@ -1,7 +1,5 @@
 ## Needed before launch of mainnet
 
-* We need a test where a governance variable gets changed. Make sure it changes the right amount in the right direction. Then change it a second time to make sure it unlocked properly.
-
 * We need to make sure every time we take the hash of something, it is already a binary.
 It looks like term_to_binary is available in other languages, so we should consider using that.
 We probably don't want to take the hash of something packed with the "packer" library.

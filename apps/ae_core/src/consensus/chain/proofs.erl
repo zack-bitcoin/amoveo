@@ -306,6 +306,11 @@ txs_to_querys([STx|T], Trees) ->
                 OID = oracle_close_tx:oracle_id(Tx),
                 Oracles = trees:oracles(Trees),
                 {_, Oracle, _} = oracles:get(OID, Oracles),
+                Gov = oracles:governance(Oracle),
+                G = case Gov of
+                        0 -> [];
+                        _ -> [{governance, Gov}]
+                    end,
                 From = oracle_close_tx:from(Tx),
                 Pubkeys = [From|
                            oracle_bet_tx:to_prove(OID, Trees)],
@@ -324,7 +329,7 @@ txs_to_querys([STx|T], Trees) ->
                  {orders, #key{pub = <<?Header:PS>>, id = OID}},
                  {oracle_bets, #key{pub = oracles:creator(Oracle), id = OID}},
                  {oracles, OID}
-                ] ++ Prove;
+                ] ++ Prove ++ G;
 	    unmatched -> 
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
