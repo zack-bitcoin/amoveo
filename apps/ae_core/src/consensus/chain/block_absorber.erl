@@ -5,7 +5,7 @@
 -export([
 	 enqueue/1, %% async request
 	 save/1,    %% returs after saving
-	 garbage/0,
+	 %garbage/0,
 	 do_save/1
 ]).
 -export([start_link/0]).
@@ -22,9 +22,9 @@ start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> lager:debug("terminating block_absorber gen_srv"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast(garbage, X) -> 
-    trees:garbage(),
-    {noreply, X};
+%handle_cast(garbage, X) -> 
+%    trees:garbage(),
+%    {noreply, X};
 handle_cast({doit, BP}, X) ->
     absorb_internal(BP),
     {noreply, X}.
@@ -66,6 +66,7 @@ absorb_internal(Block) ->
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),
+            trees:garbage_block(Block2),
             spawn(fun () ->
                           timer:sleep(50),
                           {_, _, Txs} = tx_pool:data(),

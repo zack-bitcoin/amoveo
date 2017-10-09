@@ -18,10 +18,12 @@
     %% Everything above this line is needed for blockchain consensus. Everything below this line can be modified for your node.
 
     {smart_contract_runtime_limit, 5000}, %% in miliseconds.
-    {revert_depth, 100}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state.
+    {revert_depth, 20}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state. For light nodes this should be set to 0.
+    %% if a fork is bigger than revert_depth, your full node will have to reprocess all the blocks, or it will have to download a bunch of proofs.
 
     {light_node, false},
-    {trie_size, 10000}, %%  we can adjust this many accounts and channels in all the blocks in free_constants:revert_depth()
+    {trie_size, 20000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. Max block size starts around 207560.
+    %% There are several trees, they are all stored in ram. It is important that trie_size*sum(size of an element in each trie) < (amount of ram you have).
 
     {tx_fee, 10},
     {lightning_fee, 9},

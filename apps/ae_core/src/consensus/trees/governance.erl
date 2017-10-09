@@ -190,7 +190,9 @@ name2number(oracle_close) -> 42;
 name2number(unmatched) -> 43;
 name2number(oracle_shares) -> 44;
 name2number(developer_reward) -> 45;
-name2number(_) -> bad.
+name2number(X) -> 
+    io:fwrite(X),
+    throw(invalid_governance_atom).
 max() -> 46.
 root_hash(Root) ->
     trie:root_hash(?name, Root).

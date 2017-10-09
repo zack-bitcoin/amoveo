@@ -44,8 +44,8 @@ sync2(_Height, 0, B) ->
     end,
     ok;
 sync2(Height, N, B) ->
-    timer:sleep(100),
-    Height2 = block:height(block:get_by_hash(headers:top())),
+    timer:sleep(200),
+    Height2 = block:height(block:get_by_hash(headers:top())),%maybe this should be simplified? or maybe we want to crash here?
     {ok, DownloadBlocksBatch} = application:get_env(ae_core, download_blocks_batch),
     Height3 = Height + DownloadBlocksBatch - 1,
     if

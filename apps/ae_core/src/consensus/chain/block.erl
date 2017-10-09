@@ -267,7 +267,8 @@ tx_costs([STx|T], Governance, Out) ->
     tx_costs(T, Governance, Cost+Out).
 new_dict(Txs, Dict, Height, Pub, PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
-    block_reward_dict(Dict2, Height, Pub, PrevHash).
+    %block_reward_dict(Dict2, Height, Pub, PrevHash).
+    Dict2.
     
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
@@ -365,6 +366,8 @@ mine(Block, Rounds, Cores) ->
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
                         block_absorber:save(PBlock)
+                        %block_absorber:garbage()
+                        %timer:sleep(2000)
                 end
         end,
     spawn_many(Cores-1, F),

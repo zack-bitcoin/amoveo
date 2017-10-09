@@ -4,8 +4,9 @@
 	 update_channels/2,update_existence/2,
 	 update_burn/2,update_oracles/2,
 	 update_governance/2, governance/1,
-	 root_hash/1, name/1, garbage/0,
-	 hash2int/1, verify_proof/5, new/6, 
+	 root_hash/1, name/1, %garbage/0, 
+         garbage_block/1,
+	 hash2int/1, verify_proof/5,
          root_hash2/2,
          restore/3]).
 -record(trees, {accounts, channels, existence,
@@ -90,30 +91,44 @@ root_hash(Trees) ->
 			  O/binary,
 			  G/binary
 			>>).
-keepers(_, _, 0) -> [];
-keepers(TreeID, Hash, Many) ->
-    BP = block:get_by_hash(Hash),
+keepers_block(_, _, 0) -> [1];
+keepers_block(TreeID, BP, Many) ->
     Trees = block:trees(BP),
     Height = block:height(BP),
     Root = trees:TreeID(Trees),
     T = case Height of
-	0 -> [];
-	_N ->
-	    keepers(TreeID, block:prev_hash(BP), Many-1)
+	0 -> [1];
+	_ ->
+	    keepers_block(TreeID, block:get_by_hash(block:prev_hash(BP)), Many-1)
     end,
     [Root|T].
-garbage(TreeID) ->
-    Top = headers:top(),
+garbage_block(Block, TreeID) -> 
     {ok, RD} = application:get_env(ae_core, revert_depth),
-    Keepers = keepers(TreeID, Top, RD),
+    Keepers = keepers_block(TreeID, Block, RD),
     trie:garbage(Keepers, TreeID).
     
-garbage() ->
-    garbage(oracles),
-    garbage(channels),
-    garbage(accounts),
-    garbage(existence),
-    garbage(governance).
+garbage_block(Block) ->
+    Trees = [accounts, channels, oracles, existence, governance, burn],
+    gb2(Block, Trees),
+    ALeaves = trie:get_all(trees:accounts(block:trees(Block)), accounts),
+    OLeaves = trie:get_all(trees:oracles(block:trees(Block)), oracles),
+    OBK = oracle_bets_keepers(ALeaves),
+    trie:garbage(OBK, oracle_bets),
+    OK = orders_keepers(OLeaves),
+    trie:garbage(OK, orders),
+    ok.
+oracle_bets_keepers([]) -> [1];
+oracle_bets_keepers([L|T]) ->
+    M = leaf:meta(L),
+    [M|oracle_bets_keepers(T)].
+orders_keepers([]) -> [1];
+orders_keepers([L|T]) ->
+    [leaf:meta(L)|
+     orders_keepers(T)].
+gb2(_, []) -> ok;
+gb2(B, [H|T]) ->
+    garbage_block(B, H),
+    gb2(B, T).
 
 hash2int(X) ->
     U = size(X),

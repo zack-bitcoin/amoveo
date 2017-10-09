@@ -1,26 +1,9 @@
 ## Needed before launch of mainnet
 
-* We need to make sure every time we take the hash of something, it is already a binary.
-It looks like term_to_binary is available in other languages, so we should consider using that.
-We probably don't want to take the hash of something packed with the "packer" library.
-all transaction types need to be serialized.
-blocks need to be serialized.
-
-* right now when we do easy:market_match it isn't updating ssme in the channels. it should.
-I set it up so the contract fails until the oracle is closed. This is probably a mistake. The contract should be able to close, but with a long delay, and the money gets distributed the same was as if the oracle closed on state bad.
-
-* review how governance locks are working. They are supposed to prevent multiple oracles updating the same governance variable simultaniously.
-
-* trees:garbage needs to garbage collect more trees.
-
-* review how garbage collection is working
-
 * spk:is_improvement needs better checks. 
 Make sure delay isn't too big, and the fees aren't too high.
 
 * we need a cron like process to match trades in the markets. It should be cautious to not match too frequently, or too infrequently.
-
-* test mining thousands of blocks
 
 
 
@@ -47,6 +30,8 @@ Then how are governance oracles stored? {gov_id, oracle_height}
 
 
 ### Things we can do after launch of mainnet
+
+we should use trie:garbage_leaves on light nodes to prune even more things from the trie that we don't care about.
 
 We should optionally garbage collect old blocks, only keep the headers. 
 

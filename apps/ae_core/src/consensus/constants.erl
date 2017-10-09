@@ -150,6 +150,7 @@ block_time_after_median() ->
     100.
 oracle_initial_liquidity() ->
     block_reward() div 2.
+
 day() ->
     24*60*60 div block_time().
 governance_delay() ->

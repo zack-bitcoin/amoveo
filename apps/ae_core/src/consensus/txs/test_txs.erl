@@ -706,6 +706,7 @@ test(13) ->
 
     OID3 = 2,
     {Trees7,_,_} = tx_pool:data(),
+    BR2 = governance:get_value(block_reward, trees:governance(Trees7)),
     {Tx7, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID3, 1, 5, Trees7),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
@@ -727,7 +728,6 @@ test(13) ->
 
     {Trees6, _, _} = tx_pool:data(),
     BR1 = governance:get_value(block_reward, trees:governance(Trees2)),
-    BR2 = governance:get_value(block_reward, trees:governance(Trees7)),
     BR3 = governance:get_value(block_reward, trees:governance(Trees6)),
     true = BR1 < BR2,
     true = BR2 < BR3,
@@ -867,7 +867,7 @@ test(15) ->
     timer:sleep(50),
     {_, _, Txs2} = tx_pool:data(),
     %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
-    timer:sleep(2000),
+    %timer:sleep(2000),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),
