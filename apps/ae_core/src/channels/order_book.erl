@@ -11,7 +11,7 @@
 %The market maker needs to refuse to remove some trades from the order book, if those trades are needed to cover his risk against trades that have already been matched.
 %To keep track of how much exposure has been matched, the market maker needs to remember a number.
 %We need to keep track of how much depth we have matched on one side, that way we can refuse to remove trades that are locked against money we need to cover commitments we already made in channels.
--record(ob, {exposure = 0, price = 5000, buys = [], sells = [], ratio = 5000, expires, period}).%this is the price of buys, sells is 1-this.
+-record(ob, {exposure = 0, price = 5000, buys = [], sells = [], ratio = 5000, expires, period, height = 0}).%this is the price of buys, sells is 1-this.
 %Exposure to buys is positive.
 -record(order, {acc = 0, price, type=buy, amount}). %type is buy/sell
 -define(LOC, constants:order_book()).
@@ -88,11 +88,22 @@ handle_call({match, OID}, _From, X) ->
     %crawl upwards accepting the same volume of trades on each side, until they no longer profitably arbitrage. The final price should only close orders that are fully matched.
     %update a bunch of channels with this new price declaration.
     {ok, OB} = dict:find(OID, X),
-    {OB2, PriceDeclaration, Accounts} = match_internal(OID, OB, []),
-    X2 = dict:store(OID, OB2, X),
-    db:save(?LOC, X2),
+    {_, Height, _} = tx_pool:data(),
+    B = (Height - OB#ob.height) >= (OB#ob.period * 3 div 4),
+    {Out, X2}  = 
+        case B of
+            true ->
+                {OB2, PriceDeclaration, Accounts} = match_internal(Height, OID, OB, []),
+                OB3 = OB2#ob{height = Height},
+                X3 = dict:store(OID, OB3, X),
+                db:save(?LOC, X3),
+                {{PriceDeclaration, Accounts}, X3};
+            false ->
+                {ok, X}
+        end,
+            
     %Accounts are the account ids of the channels that needs to be updated.
-    {reply, {PriceDeclaration, Accounts}, X2};
+    {reply, Out, X2};
 handle_call({data, OID}, _From, Y) ->
     X = dict:fetch(OID, Y),
     {reply, X, Y};
@@ -106,17 +117,16 @@ handle_call({ratio, OID}, _From, X) ->
     {ok, OB} = dict:find(OID, X),
     {reply, OB#ob.ratio, X};
 handle_call(_, _From, X) -> {reply, X, X}.
-finished_matching(OID, OB, Accounts) ->
+finished_matching(Height, OID, OB, Accounts) ->
     E = OB#ob.exposure,
     Ratio = OB#ob.ratio,
     Price = OB#ob.price,
-    {_, Height, _}  = tx_pool:data(),
     MarketID = OID,
     PriceDeclaration = market:price_declaration_maker(Height, Price, Ratio, MarketID),
-    OB2 = OB#ob{exposure = E},
+    OB2 = OB#ob{exposure = E, height = Height},
     {OB2, PriceDeclaration, Accounts}.
     
-match_internal(OID, OB, Accounts) ->
+match_internal(Height, OID, OB, Accounts) ->
     %io:fwrite("match internal\n"),
     %E = OB#ob.exposure,
     Buys = OB#ob.buys,
@@ -124,7 +134,7 @@ match_internal(OID, OB, Accounts) ->
     if
 	((Buys == []) or
 	(Sells == [])) -> 
-	    finished_matching(OID, OB, Accounts);
+	    finished_matching(Height, OID, OB, Accounts);
 	true ->
 	    [Buy|B] = Buys,
 	    [Sell|S] = Sells,
@@ -132,12 +142,12 @@ match_internal(OID, OB, Accounts) ->
 	    SellPrice = Sell#order.price,
 	    if
 		(BuyPrice+SellPrice) < 10000 ->
-		    finished_matching(OID, OB, Accounts);
+		    finished_matching(Height, OID, OB, Accounts);
 		true ->
-		    match_internal3(OID, OB, Accounts, [Buy|B], [Sell|S])
+		    match_internal3(Height, OID, OB, Accounts, [Buy|B], [Sell|S])
 	    end
     end.
-match_internal3(OID, OB, Accounts, [Buy|B], [Sell|S]) ->
+match_internal3(Height, OID, OB, Accounts, [Buy|B], [Sell|S]) ->
     E = OB#ob.exposure,
     X = E - Sell#order.amount,
     Y = E + Buy#order.amount,
@@ -160,7 +170,7 @@ match_internal3(OID, OB, Accounts, [Buy|B], [Sell|S]) ->
 		 Buy#order.acc,
 		 Sell#order.acc}
 	end,
-    match_internal(OID, X4, [AID1|[AID2|Accounts]]).
+    match_internal(Height, OID, X4, [AID1|[AID2|Accounts]]).
 remove_if_exists(_, _, []) -> [];
 remove_if_exists(AID, Price, [X|T]) -> 
     AID2 = X#order.acc,
@@ -205,9 +215,9 @@ test() ->
     %add(#order{price = 5999, amount = 100, type = sell}),
     %add(#order{price = 6001, amount = 100, type = sell}),
     OID = 1,
-    new_market(OID, 0, 10),
+    new_market(OID, 0, 0),
     dump(OID),
-    new_market(OID, 0, 10),
+    new_market(OID, 0, 0),
     add(#order{price = 4000, amount = 1000, type = 2, acc = 3}, OID),
     add(#order{price = 5999, amount = 100, type = 1, acc = 2}, OID),
     add(#order{price = 6001, amount = 100, type = 1, acc = 4}, OID),
@@ -215,13 +225,14 @@ test() ->
     {6000, 100, 1000} = {price(OID), exposure(OID), ratio(OID)},
     %1000 means 1/10th because only 1/10th of the big bet got matched.
     dump(OID),
-    new_market(OID, 0, 10),
+    new_market(OID, 0, 0),
     add(#order{price = 5000, amount = 100, type = 1}, OID),
     add(#order{price = 6000, amount = 100, type = 1}, OID),
     add(#order{price = 4500, amount = 100, type = 2}, OID),
     add(#order{price = 3500, amount = 100, type = 2}, OID),
     match(OID),
     {6000, -100,10000} = {price(OID), exposure(OID), ratio(OID)},
+    dump(OID),
     success.
     
     

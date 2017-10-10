@@ -1,9 +1,8 @@
-## Needed before launch of mainnet
-
-* spk:is_improvement needs better checks. 
-Make sure delay isn't too big, and the fees aren't too high.
+## Needed before launch of next testnet.
 
 * we need a cron like process to match trades in the markets. It should be cautious to not match too frequently, or too infrequently.
+
+* order book needs to be protected. We can not risk losing this data in a crash, it should be backed up to the hard drive even.
 
 
 
