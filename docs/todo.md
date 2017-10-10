@@ -1,8 +1,8 @@
 ## Needed before launch of next testnet.
 
-* we need a cron like process to match trades in the markets. It should be cautious to not match too frequently, or too infrequently.
+* We need a test to make sure that markets are automatically matching bets at the correct interval.
+* We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 
-* order book needs to be protected. We can not risk losing this data in a crash, it should be backed up to the hard drive even.
 
 
 
@@ -79,3 +79,5 @@ Blocks should be serialized to be fully compressed.
 * We need some way of garbage collecting old channels from the channels manager once the channel has been closed long enough.
 
 * It would be cool if we could trustlessly combine a grow_channel_tx with a channel payment. This might involve a hard fork.
+
+* reading from the hard drive can be slow. order_book can be updated to recover from errors without having to re-read everything from the hard drive.

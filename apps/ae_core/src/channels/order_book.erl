@@ -3,7 +3,7 @@
 -module(order_book).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
-	 add/2,match/1,price/1,remove/4,exposure/1,
+	 add/2,match/1,match/0,price/1,remove/4,exposure/1,
 	 new_market/3, make_order/4, data/1,
 	 expires/1, period/1,
 	 test/0]).
@@ -44,7 +44,9 @@ handle_cast({new_market, OID, Expires, Period}, X) ->
     error = dict:find(OID, X),
     OB = #ob{expires = Expires, 
 	     period = Period},
-    {noreply, dict:store(OID, OB, X)};
+    NewX = dict:store(OID, OB, X),
+    db:save(?LOC, NewX),
+    {noreply, NewX};
 handle_cast({add, Order, OID}, X) -> 
     {ok, OB} = dict:find(OID, X),
     true = is_integer(Order#order.price),
@@ -84,6 +86,9 @@ handle_cast({dump, OID}, X) ->
     db:save(?LOC, X2),
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
+handle_call(keys, _From, X) -> 
+    K = dict:fetch_keys(X),
+    {reply, K, X};
 handle_call({match, OID}, _From, X) -> 
     %crawl upwards accepting the same volume of trades on each side, until they no longer profitably arbitrage. The final price should only close orders that are fully matched.
     %update a bunch of channels with this new price declaration.
@@ -188,11 +193,21 @@ add_trade(Order, [H|Trades]) ->
 	P1 > P2 -> [Order|[H|Trades]];
 	true -> [H|add_trade(Order, Trades)]
     end.
-
+keys() ->
+    gen_server:call(?MODULE, keys).
+    
 add(Order, OID) ->
     gen_server:cast(?MODULE, {add, Order, OID}).
 match(OID) ->
     gen_server:call(?MODULE, {match, OID}).
+match() ->
+    Keys = keys(),
+    match_all(Keys).
+match_all([]) -> ok;
+match_all([H|T]) -> 
+    match(H),
+    match_all(T).
+                    
 remove(AccountID, Type, Price, OID) ->
     gen_server:cast(?MODULE, {remove, AccountID, Type, Price, OID}).
 %reduce(AccountID, Type, Price, Amount) ->

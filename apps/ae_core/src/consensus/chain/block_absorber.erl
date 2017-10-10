@@ -71,7 +71,8 @@ absorb_internal(Block) ->
                           timer:sleep(50),
                           {_, _, Txs} = tx_pool:data(),
                           tx_pool:dump(),
-                          tx_pool_feeder:absorb(Txs)
+                          tx_pool_feeder:absorb(Txs),
+                          order_book:match()
                   end)
     end.   
 do_save(BlockPlus) ->
