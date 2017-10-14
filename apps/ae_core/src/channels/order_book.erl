@@ -102,6 +102,14 @@ handle_call({match, OID}, _From, X) ->
                 OB3 = OB2#ob{height = Height},
                 X3 = dict:store(OID, OB3, X),
                 db:save(?LOC, X3),
+                %new VVV
+                %Expires = expires(OB3),
+                %Period = period(OB3),
+                %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+                %SS = market:settle(PriceDeclaration, OID),
+                %secrets:add(CodeKey, SS),
+                %channel_feeder:bets_unlock(channel_manager:keys()),
+                %new ^^^
                 {{PriceDeclaration, Accounts}, X3};
             false ->
                 {ok, X}
