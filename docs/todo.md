@@ -4,10 +4,6 @@
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 * order_book match needs to have B turned back on.
 
-* There is a problem with closing bets in a channel. If each partner tries to close at a different height, they disagree on the final nonce.
-This shows a deeper underlying problem.
-When a contract is settled, we need to updated the SPK's nonce to the highest that that contract could have ever updated it to. Otherwise the contract might become valid again in the future.
-
 
 
 

@@ -171,7 +171,7 @@ test2(NewPub) ->
     %Now that the bet is settled the delay is only zero so that we can get our money out as fast as possible.
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
-    {100,1000003,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
+    {100,1000004,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),
@@ -180,13 +180,13 @@ test2(NewPub) ->
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet, so we keep all 100.
     %amount, newnonce, shares, delay
-    {0,1000003,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
+    {0,1000004,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
 
     %test a trade that gets only partly matched.
     SPD3 = price_declaration_maker(Height, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3, OID),
     %amount, newnonce, shares, delay
-    {100, 1000003, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
+    {100, 1000004, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
