@@ -8,7 +8,6 @@
 	 new_market/3, make_order/4, data/1,
 	 expires/1, period/1,
 	 test/0]).
-%To make the smart contract simpler, all trades matched are all-or-nothing. So we need to be a little careful to make sure the market maker isn't holding risk.
 %The market maker needs to refuse to remove some trades from the order book, if those trades are needed to cover his risk against trades that have already been matched.
 %To keep track of how much exposure has been matched, the market maker needs to remember a number.
 %We need to keep track of how much depth we have matched on one side, that way we can refuse to remove trades that are locked against money we need to cover commitments we already made in channels.
@@ -101,17 +100,16 @@ handle_call({match, OID}, _From, X) ->
         case B of
             true ->
                 {OB2, PriceDeclaration, Accounts} = match_internal(Height, OID, OB, []),
+                %false = Accounts == [],
                 OB3 = OB2#ob{height = Height},
                 X3 = dict:store(OID, OB3, X),
                 db:save(?LOC, X3),
-                %new VVV
                 Expires = expires(OB3),
                 Period = period(OB3),
                 CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
                 SS = market:settle(PriceDeclaration, OID),
                 secrets:add(CodeKey, SS),
                 channel_feeder:bets_unlock(channel_manager:keys()),
-                %new ^^^
                 {{PriceDeclaration, Accounts}, X3};
             false ->
                 {ok, X}

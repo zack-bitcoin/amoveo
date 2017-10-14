@@ -36,16 +36,17 @@ delete(SH) ->
     gen_server:cast(?MODULE, {del, SH}).
 
 new_lightning() ->
+    %delay for canceling is 100
     S = crypto:strong_rand_bytes(constants:hash_size()),
     SH = testnet_hasher:doit(S),
     ESH = "drop stack_size int 0 == if
-int 50 int 1 int 0 crash else then  drop drop
+int 100 int 1 int 0 crash else then  drop drop
 hash binary " ++ integer_to_list(constants:hash_size())++ " " ++
 	binary_to_list(base64:encode(SH)) ++
 	" print == swap drop swap drop if
 int 0 int 2 int 10000
 else
-int 49 int 1 int 0 then crash",
+int 100 int 1 int 0 then crash",
     ESS = "binary " ++ integer_to_list(constants:hash_size()) ++ " " ++ base64:encode(S),
     Code = compiler_chalang:doit(list_to_binary(ESH)),
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(ESS)), []),

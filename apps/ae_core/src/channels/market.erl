@@ -9,8 +9,8 @@ market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts 
     {market, 1, MarketID, Expires, Pubkey, Period, OID}.
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
-		1 -> <<" macro bet_amount int 10000 ; macro check_size > not ; ">>;
-		2 -> <<" macro bet_amount int 0 ; macro check_size int 10000 swap - < not ; ">> % maybe should be 10000 - MaxPrice0
+		1 -> <<" macro bet_amount int 10000 ; macro flip ; macro check_size flip > not ; ">>;
+		2 -> <<" macro bet_amount int 0 ; macro flip int 10000 swap - ; macro check_size flip < not ; ">> % maybe should be 10000 - MaxPrice0
 			 
 	    end,
     {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
@@ -130,8 +130,8 @@ test2(NewPub) ->
     SPD = price_declaration_maker(Height, Price, 5000, MarketID),
     SS1 = settle(SPD, OID),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
-    %amount, newnonce, shares, delay
-    {60,1000001,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
+    %amount, newnonce, delay
+    {60,1000002,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
 	spk:run(fast, [SS1], SPK, 1, 0, Trees5),
 
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
@@ -193,8 +193,8 @@ test2(NewPub) ->
     %since it is unmatched, they each get their money back.
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
     SS6 = unmatched(OID), 
-    %amount, newnonce, shares, delay
-    {60, 500001, 50} = spk:run(fast, [SS6], SPK, 1, 0, Trees5),
+    %amount, newnonce, delay
+    {60, 500001, 51} = spk:run(fast, [SS6], SPK, 1, 0, Trees5),
     success.
     
     

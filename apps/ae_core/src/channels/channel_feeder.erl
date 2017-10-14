@@ -374,6 +374,8 @@ simplify_helper(From, SS) ->
     io:fwrite(packer:pack({sh, SPK, SS})),
     io:fwrite("\n"),
     {SSRemaining, NewSPK, _, _} = spk:bet_unlock(SPK, SS),
+    io:fwrite(packer:pack({sh2, NewSPK})),
+    io:fwrite("\n"),
     Return = keys:sign(NewSPK),
     {SSRemaining, Return}. 
 
@@ -402,15 +404,16 @@ trade(Amount, Bet, Other, OID) ->
     keys:sign(SPK2).
     
 bets_unlock(X) -> 
-    bets_unlock(X, []).
-bets_unlock([], Out) -> Out;
-bets_unlock([ID|T], OutT) ->
+    bets_unlock2(X, []).
+bets_unlock2([], Out) -> Out;
+bets_unlock2([ID|T], OutT) ->
     {ok, CD0} = channel_manager:read(ID),
     true = live(CD0),
     SPKME = me(CD0),
     SSOld = script_sig_me(CD0),
     {NewSS, SPK, Secrets, SSThem} = spk:bet_unlock(SPKME, SSOld),
+    
     NewCD = CD0#cd{me = SPK, ssme = NewSS, ssthem = SSThem},
     channel_manager:write(ID, NewCD),
     Out = {Secrets, SPK},
-    bets_unlock(T, [Out|OutT]).
+    bets_unlock2(T, [Out|OutT]).

@@ -532,26 +532,6 @@ keys_new(Password) ->
 market_match(OID) ->
     order_book:match_all([OID]),
     {ok, ok}.
-market_match_old(OID) ->
-    %check that we haven't matched too recently. (otherwise we lose all our money in all the channels.)
-    {PriceDeclaration, _Accounts} = order_book:match(OID),
-    %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
-
-    %false = Accounts == [],
-    OB = order_book:data(OID),
-    Expires = order_book:expires(OB),
-    Period = order_book:period(OB),
-    CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
-    SS = market:settle(PriceDeclaration, OID),
-    secrets:add(CodeKey, SS),
-    %channel_feeder:bets_unlock(Accounts),
-    channel_feeder:bets_unlock(channel_manager:keys()),
-    %io:fwrite(packer:pack({api_market_match, Accounts, SS})),
-    
-    %channel_feeder:market_ss_me(Accounts),
-    %channel_feeder:market_ss_me(channel_manager:keys()),
-    %add this to channels_manager ss_me for every bet in the channel that participated.
-    {ok, ok}.
 settle_bets() ->
     channel_feeder:bets_unlock(channel_manager:keys()),
     {ok, ok}.

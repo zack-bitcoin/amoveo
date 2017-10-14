@@ -170,9 +170,12 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
     end.
 bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
     [<<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
+    io:fwrite("bet_unlock3 stack is "),
+    io:fwrite(packer:pack({Delay, chalang:stack(Data5)})),
+    io:fwrite("\n"),
    if
-        Delay > 50 ->
-	    
+        %Delay > 50 ->
+        Delay > 0 ->
 	   bet_unlock2(T, [Bet|B], A, SSIn, [SS2|SSOut], Secrets, Nonce, [SS2|SSThem]);
        true -> 
 	   CGran = constants:channel_granularity(),
@@ -342,6 +345,7 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     Data3 = chalang:run5([Code], Data2),
     [<<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),
     if
+	%Delay > 50 ->
 	Delay > 50 ->
 	    force_update2(BetsIn, SSIn, [Bet|BetsOut], [SS|SSOut], Amount, Nonce);
 	true ->
@@ -355,6 +359,14 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     {Trees, Height, _} = tx_pool:data(),
     {_, Nonce2, Delay2} =  run(fast, NewSS, NewSPK, Height, 0, Trees),
     {_, Nonce1, _} =  run(fast, OldSS, OldSPK, Height, 0, Trees),
+    io:fwrite("is improvement "),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack({nonces, Nonce1, Nonce2})),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack({spk1, OldSPK})),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack({spk2, NewSPK})),
+    io:fwrite("\n"),
     true = Nonce2 > Nonce1,
     Bets2 = NewSPK#spk.bets,
     Bets1 = OldSPK#spk.bets,

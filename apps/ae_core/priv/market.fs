@@ -28,7 +28,10 @@ macro diff ( A B -- D )
       min >r max r> ( Max Min )
       -
 ;
-%If the market maker publishes contradictory prices at the same time, with the same market id, he loses all the money in every bet. 
+macro minus_zero ( A B -- D ) % if A is bigger, returns A-B, else returns 0.
+      2dup > if - else drop drop int 0 then
+;
+  %If the market maker publishes contradictory prices at the same time, with the same market id, he loses all the money in every bet. 
 macro contradictory_prices ( signed_price_declaration signed_price_declaration2 -- delay nonce amount ) 
 extract PM1 ! >r >r extract PM2 !
 swap r> diff Period int 2 / < or_die %height equal %instead we should check if heights are within half a period of each other or less.
@@ -67,13 +70,15 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	dup MaxPrice check_size or_die %make sure it is better than the agreed upon price.
 	    %The biggest price means the most money goes to the server. So a trade that can get matched has a price that  is lower than the price we asked for.
 	>r height > not or_die
-	bet ( delay nonce amount ) 
-        rot Expires height - * tuck ( delay2 nonce amount )
+	bet ( delay nonce amount )
+            %if price_declaration_maker.price is better than the price we requested, then change delay from 1 to 0.
+        rot Expires height minus_zero * tuck ( delay2 nonce amount )
 	height swap ( delay nonce height amount )
 	>r ( delay nonce height ) 
 	swap mil + ( delay height big_nonce ) 
-	swap - r> ( delay new_nonce new_amount )
-	PRICE @ MaxPrice ==
+	% swap - r> ( delay new_nonce amount )
+	swap drop r> ( delay new_nonce amount )
+	PRICE @ MaxPrice flip print ==
 	if
 	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book 
 	  int 10000 MaxPrice - int 10000 PM @ -
@@ -81,16 +86,18 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 %we add on some more money for how much refund we get from the unmatched portion.
 	else
 	  drop drop
+          % rot drop int 0 tuck %set delay to 0
 	then	
 ;
 macro unmatched ( OracleProof -- delay nonce amount )
-        helper 
+        helper print print print
 	int 0 == if
+            print print print print
      		Expires Period + height - int 100 +
         	int 100000
 	 	int 10000 MaxPrice -
       	else
-		int 50 int 500000 int 10000 MaxPrice -
+		int 51 int 500000 int 10000 MaxPrice -
       	then
 ;
 macro main
@@ -104,3 +111,4 @@ swap
       crash
 ;
 main
+
