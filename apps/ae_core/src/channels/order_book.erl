@@ -3,7 +3,8 @@
 -module(order_book).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
-	 add/2,match/1,match/0,price/1,remove/4,exposure/1,
+	 add/2,match/1,match/0,match_all/1,
+         price/1,remove/4,exposure/1,
 	 new_market/3, make_order/4, data/1,
 	 expires/1, period/1,
 	 test/0]).
@@ -104,12 +105,12 @@ handle_call({match, OID}, _From, X) ->
                 X3 = dict:store(OID, OB3, X),
                 db:save(?LOC, X3),
                 %new VVV
-                %Expires = expires(OB3),
-                %Period = period(OB3),
-                %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
-                %SS = market:settle(PriceDeclaration, OID),
-                %secrets:add(CodeKey, SS),
-                %channel_feeder:bets_unlock(channel_manager:keys()),
+                Expires = expires(OB3),
+                Period = period(OB3),
+                CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+                SS = market:settle(PriceDeclaration, OID),
+                secrets:add(CodeKey, SS),
+                channel_feeder:bets_unlock(channel_manager:keys()),
                 %new ^^^
                 {{PriceDeclaration, Accounts}, X3};
             false ->

@@ -530,6 +530,9 @@ keys_new(Password) ->
     keys:new(Password),
     0.
 market_match(OID) ->
+    order_book:match_all([OID]),
+    {ok, ok}.
+market_match_old(OID) ->
     %check that we haven't matched too recently. (otherwise we lose all our money in all the channels.)
     {PriceDeclaration, _Accounts} = order_book:match(OID),
     %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
