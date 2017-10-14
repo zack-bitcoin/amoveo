@@ -94,7 +94,8 @@ handle_call({match, OID}, _From, X) ->
     %update a bunch of channels with this new price declaration.
     {ok, OB} = dict:find(OID, X),
     {_, Height, _} = tx_pool:data(),
-    B = (Height - OB#ob.height) >= (OB#ob.period * 3 div 4),
+    %B = (Height - OB#ob.height) >= (OB#ob.period * 3 div 4),
+    B = true,
     {Out, X2}  = 
         case B of
             true ->

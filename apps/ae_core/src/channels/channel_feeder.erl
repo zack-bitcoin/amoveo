@@ -228,6 +228,10 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 			{SS5, Return} = simplify_helper(From, SS4),%this should get rid of one of the bets.
 			SPK = testnet_sign:data(ThemSPK),
 			SPK2 = testnet_sign:data(Return),
+                        io:fwrite(packer:pack({compare_spks, SPK})), %this has 1 bet in it
+                        io:fwrite("\n"),
+                        io:fwrite(packer:pack({compare_spks2, SPK2})), %this has 2 bets in it
+                        io:fwrite("\n"),
 			SPK = SPK2,
 			Data = new_cd(SPK, ThemSPK, SS5, SS5, Entropy, CID),
 			channel_manager:write(From, Data),

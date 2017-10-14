@@ -37,10 +37,11 @@ class MarketTest(ApiUser):
         #self.request('oracle_close', DEV_1_INT, [1], sleep=0.04)
         self.request('new_question_oracle', DEV_1_INT, [0, 'aXMgMisyPTQ/'], sleep=0.04)
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.04)
+        #self.request('mine_block', DEV_1_INT, [10, 1], sleep=0.5)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
         oid = 1
-        self.request('new_market', DEV_3_INT, [oid, 10, 10], sleep=0.04)
+        self.request('new_market', DEV_3_INT, [oid, 10, 10], sleep=0.1)
         self.request('trade', DEV_1_INT, [1000, 1, 1, oid, 20, [127,0,0,1], 3030], sleep=0.04)
         self.request('trade', DEV_1_INT, [3000, 1, 1, oid, 20, [127,0,0,1], 3030], sleep=0.04)
         self.request('trade', DEV_2_INT, [6000, 2, 2, oid, 20, [127,0,0,1], 3030], sleep=0.04)

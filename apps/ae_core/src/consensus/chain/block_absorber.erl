@@ -72,7 +72,7 @@ absorb_internal(Block) ->
                           {_, _, Txs} = tx_pool:data(),
                           tx_pool:dump(),
                           tx_pool_feeder:absorb(Txs),
-                          order_book:match(),
+                          %order_book:match(),
                           ok
                   end)
     end.   
