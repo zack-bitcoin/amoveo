@@ -3,7 +3,7 @@
 * We need a test to make sure that markets are automatically matching bets at the correct interval.
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 * order_book match needs to have B turned back on.
-
+* spk bet_unlock3 should return a nonce that is 1 higher for every bet settled.
 
 
 

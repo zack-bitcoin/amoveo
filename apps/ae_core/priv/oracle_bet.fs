@@ -24,7 +24,7 @@ binary 3 AAAA swap  ++
 ;
 
 macro bet ( ProofStructure -- delay nonce amount )
-helper
+helper print print print
 %1 means that the oracle returned true
 int 1 == if drop drop 
      %delay, nonce, amount
@@ -39,7 +39,7 @@ drop int 2 == if drop drop
 drop int 3 == if drop drop 
      int 0 int 3 int 10000 MaxPrice - else
 
-%0 means the oracle is still unresolved
+%0 means the oracle is still unresolved %or maybe it means your bet never got matched?
 drop int 0 == if drop drop 
      % fail else
      int 1 int 1 int 10000 MaxPrice - else

@@ -78,7 +78,7 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	swap mil + ( delay height big_nonce ) 
 	% swap - r> ( delay new_nonce amount )
 	swap drop r> ( delay new_nonce amount )
-	PRICE @ MaxPrice flip print ==
+	PRICE @ MaxPrice flip ==
 	if
 	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book 
 	  int 10000 MaxPrice - int 10000 PM @ -
@@ -92,11 +92,11 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 macro unmatched ( OracleProof -- delay nonce amount )
         helper print print print
 	int 0 == if
-            print print print print
      		Expires Period + height - int 100 +
         	int 100000
 	 	int 10000 MaxPrice -
       	else
+                %maybe we should get rid of this ending.
 		int 51 int 500000 int 10000 MaxPrice -
       	then
 ;

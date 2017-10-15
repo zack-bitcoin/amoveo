@@ -41,7 +41,9 @@ class MarketTest(ApiUser):
         self.request('mine_block', DEV_1_INT, [21, 1], sleep=1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
-        self.request('market_match', DEV_3_INT, [oid], sleep=0.04)
+        self.request('market_match', DEV_3_INT, [oid], sleep=0.2)
+    #def dont_doit():
+        #self.request('market_match', DEV_3_INT, [oid], sleep=0.04)
         self.request('pull_channel_state', DEV_2_INT, [[127,0,0,1], 3030], sleep=0.04)
         self.request('pull_channel_state', DEV_1_INT, [[127,0,0,1], 3030], sleep=0.04)
         self.request('oracle_bet', DEV_1_INT, [oid, 1, 269], sleep=0.04)
@@ -51,8 +53,9 @@ class MarketTest(ApiUser):
         self.request('oracle_close', DEV_1_INT, [oid], sleep=0.04)
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.3)
-        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.3)
-        self.request('settle_bets', DEV_3_INT, [], sleep=0.04)
+        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=2)
+        self.request('settle_bets', DEV_3_INT, [], sleep=0.4)
+    #def dont_doit():
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.3)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.3)

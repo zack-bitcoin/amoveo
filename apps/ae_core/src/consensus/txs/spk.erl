@@ -3,7 +3,8 @@
 	 bets/1,space_gas/1,time_gas/1,
 	 new/9,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
-	 run/6,dict_run/6,settle_bet/4,chalang_state/3,
+	 run/6,dict_run/6,%settle_bet/4,
+         chalang_state/3,
          new_bet/3, delay/1,
 	 is_improvement/4, bet_unlock/2,
 	 code/1, key/1, test2/0,
@@ -193,8 +194,8 @@ apply_bet(Bet, Amount, SPK, Time, Space) ->
 	    time_gas = SPK#spk.time_gas + Time, 
 	    space_gas = max(SPK#spk.space_gas, Space), 
 	    amount = SPK#spk.amount + Amount}.
-settle_bet(SPK, Bets, Amount, N) ->
-    SPK#spk{bets = Bets, amount = Amount, nonce = SPK#spk.nonce + N}.
+%settle_bet(SPK, Bets, Amount, N) ->
+%    SPK#spk{bets = Bets, amount = Amount, nonce = SPK#spk.nonce + N}.
 get_paid(SPK, ID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
     Aid2 = SPK#spk.acc2,
