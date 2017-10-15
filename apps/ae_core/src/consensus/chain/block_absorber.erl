@@ -70,8 +70,10 @@ absorb_internal(Block) ->
             spawn(fun () ->
                           {_, _, Txs} = tx_pool:data(),
                           tx_pool:dump(),
-                          tx_pool_feeder:absorb(Txs),
-                          order_book:match(),
+                          tx_pool_feeder:absorb(Txs)
+                  end),
+            spawn(fun () ->
+                          %order_book:match(),
                           ok
                   end),
             timer:sleep(10)
