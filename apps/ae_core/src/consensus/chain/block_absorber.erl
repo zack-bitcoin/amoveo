@@ -68,14 +68,14 @@ absorb_internal(Block) ->
 	    BH = block:hash(Block2),
             trees:garbage_block(Block2),
             spawn(fun () ->
-                          timer:sleep(50),
                           {_, _, Txs} = tx_pool:data(),
                           tx_pool:dump(),
                           tx_pool_feeder:absorb(Txs),
-                          %order_book:match(),
+                          order_book:match(),
                           ok
-                  end)
-    end.   
+                  end),
+            timer:sleep(10)
+    end.
 do_save(BlockPlus) ->
     CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
     binary_to_term(zlib:uncompress(CompressedBlockPlus)), % Sanity check, not important for long-term
