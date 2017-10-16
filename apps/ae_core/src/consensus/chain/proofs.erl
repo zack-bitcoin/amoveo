@@ -188,8 +188,20 @@ leaves_to_querys([L|T]) ->
     Q = {governance, leaf:key(L)},
     [Q|leaves_to_querys(T)].
 -define(n2i(X), governance:name2number(X)).
-txs_to_querys([], _) -> [];
-txs_to_querys([STx|T], Trees) ->
+txs_to_querys([C|T], Trees) -> 
+    case element(1, C) of
+        coinbase ->
+            [
+             {governance, ?n2i(block_reward)},
+             {governance, ?n2i(developer_reward)},
+             {accounts, constants:master_pub()},
+             {accounts, coinbase_tx:from(C)}
+            ] ++
+                txs_to_querys2(T, Trees);
+        signed -> txs_to_querys2([C|T], Trees)
+    end.
+txs_to_querys2([], _) -> [];
+txs_to_querys2([STx|T], Trees) ->
     Tx = testnet_sign:data(STx),
     PS = constants:pubkey_size() * 8,
     L = case element(1, Tx) of
@@ -352,7 +364,7 @@ txs_to_querys([STx|T], Trees) ->
                  {accounts, From},
                  {oracles, OID}
                 ];
-	    coinbase -> 
+	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},
                  {governance, ?n2i(developer_reward)},
@@ -360,7 +372,7 @@ txs_to_querys([STx|T], Trees) ->
                  {accounts, coinbase_tx:from(Tx)}
                 ]
 	end,
-    L ++ txs_to_querys(T, Trees).
+    L ++ txs_to_querys2(T, Trees).
 remove(_, []) -> [];
 remove(X, [X|A]) -> remove(X, A);
 remove(X, [Y|A]) -> [Y|remove(X, A)].
@@ -428,7 +440,7 @@ test() ->
     Txs = [keys:sign(NewTx),
            keys:sign(NewTx2),
            testnet_sign:sign_tx(NewTx3, Pub3, Priv30)],
-    Q2 = txs_to_querys(Txs, Trees),
+    Q2 = txs_to_querys2(Txs, Trees),
     prove(Q2, Trees),
     success.
     

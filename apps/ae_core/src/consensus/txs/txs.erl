@@ -23,13 +23,21 @@ dump() ->
 txs() ->
 	gen_server:call(?MODULE, txs).
 
-digest_from_dict([], Dict, _) ->
+digest_from_dict([C|T], Dict, H) ->
+    case element(1, C) of
+        coinbase ->
+            NewDict = coinbase_tx:go(C, Dict, H),
+            digest_from_dict3(T, NewDict, H);
+        signed ->
+            digest_from_dict3([C|T], Dict, H)
+    end.
+digest_from_dict3([], Dict, _) ->
     Dict;
-digest_from_dict([STx|T], Dict, Height) ->
+digest_from_dict3([STx|T], Dict, Height) ->
     true = testnet_sign:verify(STx),
     Tx = testnet_sign:data(STx),
     NewDict = digest_from_dict2(Tx, Dict, Height),
-    digest_from_dict(T, NewDict, Height).
+    digest_from_dict3(T, NewDict, Height).
 digest_from_dict2(Tx, Dict, H) ->
     case element(1, Tx) of
         create_acc_tx -> create_account_tx:go(Tx, Dict, H);
@@ -47,7 +55,7 @@ digest_from_dict2(Tx, Dict, H) ->
         oracle_close -> oracle_close_tx:go(Tx, Dict, H);
         unmatched -> oracle_unmatched_tx:go(Tx, Dict,H);
         oracle_shares -> oracle_shares_tx:go(Tx,Dict,H);
-	coinbase -> coinbase_tx:go(Tx, Dict, H);
+	coinbase_old -> coinbase_tx:go(Tx, Dict, H);
         X -> X = 2
     end.
 

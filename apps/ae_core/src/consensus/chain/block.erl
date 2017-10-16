@@ -265,14 +265,15 @@ tx_costs([STx|T], Governance, Out) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
-new_dict(Txs, Dict, Height, Pub, PrevHash) ->
+new_dict(Txs, Dict, Height, _Pub, _PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
     %block_reward_dict(Dict2, Height, Pub, PrevHash).
     Dict2.
     
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
-    Txs = [keys:sign(CB)|Txs0],
+    %Txs = [keys:sign(CB)|Txs0],
+    Txs = [CB|Txs0],
     Querys = proofs:txs_to_querys(Txs, Trees),
     Height = headers:height(Header),
     Facts = proofs:prove(Querys, Trees),
@@ -438,7 +439,7 @@ check(Block) ->
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
-    Pub = coinbase_tx:from(testnet_sign:data(hd(Block#block.txs))),
+    Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
     PrevTreesHash = trees:root_hash2(OldTrees, Roots),
