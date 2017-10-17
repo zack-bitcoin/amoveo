@@ -76,7 +76,7 @@ absorb_internal(Block) ->
                           %order_book:match(),
                           ok
                   end),
-            timer:sleep(10)
+            timer:sleep(20)
     end.
 do_save(BlockPlus) ->
     CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
