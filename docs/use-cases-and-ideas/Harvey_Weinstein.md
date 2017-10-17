@@ -25,6 +25,7 @@ Once the blockchain says something like this, it isn't politically possible for 
 Everyone who invested in the movie will look at the blockchain, and they will fire Alice for making the wrong decision.
 So Alice loses her ability to abuse the actors.
 
+[You can read more about how Amove will flatten hierarchies here](/docs/use-cases-and-ideas/flat_hierarchy)
 
 This same type of abuse occurs in many industries besides acting.
 Every employee-employer relationship has a power imbalance that can incentivize this type of abuse.
