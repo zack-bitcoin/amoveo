@@ -24,3 +24,12 @@ Once we are able to know the actual odds of a nuclear blast, we wont have to wat
 We will have the information we need clearly and concisely, so we can quickly know whether it is a problem worth dealing with, or if it is something you can afford to ignore.
 This will remove a lot of the terror associated with nuclear bombs, and make nuclear bombs a less effective weapon for terrorism.
 It will restore our peace of mind, so we can stop wasting energy on crazy people.
+
+Markets are the ideal tool to solve all these problems, because markets are more secure against manipulation in comparison to any other mechanism we could build.
+
+In order to be useful for these purposes, the blockchain markets need to be scalable so it is affordable to participate, so as many people have access as possible.
+On-chain markets cannot scale to achieve these goals.
+Naively implemented off-chain trading is vulnerable to front-running.
+Amoveo is the only blockchain project working on off-chain markets with single-price batches, to protect our traders from front running and offer the best price.
+If whistle-blowers aren't protected from front running, then their profit would be smaller.
+They would have less incentive to release the information.
