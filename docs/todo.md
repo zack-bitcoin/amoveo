@@ -4,6 +4,9 @@
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 * We need to automatically match trades when possible.
 
+* maybe we should seperately calculate both match_bets and match_bets_them. Just in case our partner has a different set of bets in their spk from us.
+Maybe this is unnecessary, since we try to always make the copies the same.
+
 
 
 

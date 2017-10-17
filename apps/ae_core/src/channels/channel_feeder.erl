@@ -139,7 +139,8 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     {ok, OldCD} = channel_manager:read(Sender),
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = [spk:new_ss(<<>>, [])|OldCD#cd.ssme],
-		     ssthem = [spk:new_ss(<<>>, [])|OldCD#cd.ssthem]},
+		     ssthem = [spk:new_ss(<<>>, [])|OldCD#cd.ssme]},
+		     %ssthem = [spk:new_ss(<<>>, [])|OldCD#cd.ssthem]},
     channel_manager:write(Sender, NewCD),
     
     arbitrage:write(Code, [Sender, Recipient]),

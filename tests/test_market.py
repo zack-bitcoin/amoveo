@@ -34,6 +34,7 @@ class MarketTest(ApiUser):
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
         oid = 1
         self.request('new_market', DEV_3_INT, [oid, 20, 10], sleep=0.1)
+        self.request('market_match', DEV_3_INT, [oid], sleep=0.2)
         self.request('trade', DEV_1_INT, [1000, 1, 1, oid, 20, [127,0,0,1], 3030], sleep=0.04)
         self.request('trade', DEV_1_INT, [3000, 1, 1, oid, 20, [127,0,0,1], 3030], sleep=0.04)
         self.request('trade', DEV_2_INT, [6000, 2, 2, oid, 20, [127,0,0,1], 3030], sleep=0.04)
@@ -55,6 +56,8 @@ class MarketTest(ApiUser):
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
         self.request('oracle_close', DEV_1_INT, [oid], sleep=0.04)
+        #self.request('settle_bets', DEV_3_INT, [], sleep=0.4)
+        #self.request('market_match', DEV_3_INT, [oid], sleep=0.2)
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.3)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=2)
