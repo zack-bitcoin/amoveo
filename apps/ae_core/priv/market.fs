@@ -2,9 +2,13 @@
 %we need a smart contract for the trust-free markets for financial derivatives.
 %It acts as an order book.
 %the market maker has to publish the price periodically, every trade is matched at the earliest price possible.
-
+int 200 die_number !
 macro mil int 1000000 ;
-macro or_die int 0 == if fail else then drop drop ;
+macro or_die int 0 == if
+  die_number @ print fail
+else
+  die_number @ int 1 + die_number !
+then drop drop ;
 
 %<<height:32, price:16, market_id:16, signature/binary>>
 %sig data pub
@@ -67,7 +71,7 @@ macro evidence ( signed_price_declaration -- delay nonce amount )
 macro match_order ( signed_price_declaration -- delay nonce amount )
         extract ( SPD height price portion_matched )
 	PM ! dup PRICE ! ( SPD height price )
-	dup MaxPrice check_size or_die %make sure it is better than the agreed upon price.
+	dup MaxPrice print check_size or_die %make sure it is better than the agreed upon price.
 	    %The biggest price means the most money goes to the server. So a trade that can get matched has a price that  is lower than the price we asked for.
 	>r height > not or_die
 	bet ( delay nonce amount )
