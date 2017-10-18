@@ -1,11 +1,8 @@
 ## Needed before launch of next testnet.
 
-* We need a test to make sure that markets are automatically matching bets at the correct interval.
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
-* We need to automatically match trades when possible.
+* We need to run "settle_bets" whenever an oracle is closed.
 
-* maybe we should seperately calculate both match_bets and match_bets_them. Just in case our partner has a different set of bets in their spk from us.
-Maybe this is unnecessary, since we try to always make the copies the same.
 
 
 
