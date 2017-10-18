@@ -72,11 +72,7 @@ absorb_internal(Block) ->
                           tx_pool:dump(),
                           tx_pool_feeder:absorb(Txs)
                   end),
-            spawn(fun () ->
-                          %order_book:match(),
-                          ok
-                  end),
-            %order_book:match(),
+            order_book:match(),
             timer:sleep(20)
     end.
 do_save(BlockPlus) ->
