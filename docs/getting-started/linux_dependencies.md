@@ -29,7 +29,7 @@ Finally proceed to [instructions after dependencies](#after-dependencies)
 
 3. Install following dependencies:
    ```
-   sudo apt-get install erlang libncurses5-dev libssl-dev unixodbc-dev g++ git erlang-base-hipe
+   sudo apt-get install erlang libncurses5-dev libssl-dev unixodbc-dev g++ git erlang-base-hipe make
    ```
 
 ## For ArchLinux

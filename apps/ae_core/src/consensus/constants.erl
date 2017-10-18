@@ -140,7 +140,7 @@ comment_limit() -> %When a miner mines a block, they can set this many bytes to 
 %version() -> 3.
 version_bits() -> 16.%so we can update it more than 60000 times.
 %rename to "Protocol VERSION".
-server_ip() -> {46,101,103,165}.
+server_ip() -> {146,185,142,103}.
 server_port() -> 8080.
 
 block_creation_maturity() ->    

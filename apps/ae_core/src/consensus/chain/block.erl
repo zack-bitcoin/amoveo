@@ -344,7 +344,7 @@ guess_number_of_cpu_cores() ->
 
 spawn_many(0, _) -> ok;
 spawn_many(N, F) -> 
-    spawn(F()),
+    spawn(F),
     spawn_many(N-1, F).
 
 mine(Rounds) -> 
