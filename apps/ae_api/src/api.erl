@@ -39,7 +39,7 @@
 %% close_channel/0, new_channel/2, oracle_unmatched/1, sync/0
 
 -define(Fee, free_constants:tx_fee()).
--define(IP, {46,101,103,165}).
+-define(IP, {146,185,142,103}).
 -define(Port, 8080).
 
 dump_channels() ->
