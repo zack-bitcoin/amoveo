@@ -68,6 +68,11 @@ go(Tx, Dict, NewHeight) ->
 	  none, 0, OID, LoserType, 
 	  constants:oracle_initial_liquidity() div 2},
     Dict6 = oracle_bet_tx:go2(OBTx, Dict5, NewHeight),%maybe this is bad. maybe we only want to update the one account.
+    spawn(fun() ->
+                  timer:sleep(100),
+                  api:settle_bets(),
+                  ok
+                  end),
     Dict6.
     
     

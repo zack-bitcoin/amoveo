@@ -1,8 +1,6 @@
 ## Needed before launch of next testnet.
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
-* We need to run "settle_bets" whenever an oracle is closed.
-
 
 
 
