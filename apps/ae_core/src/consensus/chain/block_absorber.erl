@@ -76,6 +76,7 @@ absorb_internal(Block) ->
                           %order_book:match(),
                           ok
                   end),
+            %order_book:match(),
             timer:sleep(20)
     end.
 do_save(BlockPlus) ->

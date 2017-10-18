@@ -47,18 +47,6 @@ handle_cast({new_market, OID, Expires, Period}, X) ->
     NewX = dict:store(OID, OB, X),
     db:save(?LOC, NewX),
     {noreply, NewX};
-handle_cast({add, Order, OID}, X) -> 
-    {ok, OB} = dict:find(OID, X),
-    true = is_integer(Order#order.price),
-    true = Order#order.price > -1,
-    true = Order#order.price < 10001,
-    OB2 = case Order#order.type of
-	      1 -> OB#ob{buys = add_trade(Order, OB#ob.buys)};
-	      2 -> OB#ob{sells = add_trade(Order, OB#ob.sells)}
-	  end,
-    X2 = dict:store(OID, OB2, X),
-    db:save(?LOC, X2),
-    {noreply, X2};
 handle_cast({remove, AccountID, Type, Price, OID}, X) -> 
     %remove this order from the book, if it exists.
     case dict:find(OID, X) of
@@ -86,6 +74,18 @@ handle_cast({dump, OID}, X) ->
     db:save(?LOC, X2),
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
+handle_call({add, Order, OID}, _From, X) -> 
+    {ok, OB} = dict:find(OID, X),
+    true = is_integer(Order#order.price),
+    true = Order#order.price > -1,
+    true = Order#order.price < 10001,
+    OB2 = case Order#order.type of
+	      1 -> OB#ob{buys = add_trade(Order, OB#ob.buys)};
+	      2 -> OB#ob{sells = add_trade(Order, OB#ob.sells)}
+	  end,
+    X2 = dict:store(OID, OB2, X),
+    db:save(?LOC, X2),
+    {reply, ok, X2};
 handle_call(keys, _From, X) -> 
     K = dict:fetch_keys(X),
     {reply, K, X};
@@ -205,7 +205,7 @@ keys() ->
     gen_server:call(?MODULE, keys).
     
 add(Order, OID) ->
-    gen_server:cast(?MODULE, {add, Order, OID}).
+    gen_server:call(?MODULE, {add, Order, OID}).
 match(OID) ->
     {Trees, _, _} = tx_pool:data(),
     Oracles = trees:oracles(Trees),
@@ -251,7 +251,8 @@ test() ->
     add(#order{price = 4000, amount = 1000, type = 2, acc = 3}, OID),
     add(#order{price = 5999, amount = 100, type = 1, acc = 2}, OID),
     add(#order{price = 6001, amount = 100, type = 1, acc = 4}, OID),
-    {_, [4,3]} = match(OID),
+    %{_, [4,3]} = match(OID),
+    {_, [4,3]} = gen_server:call(?MODULE, {match, OID}),
     {6000, 100, 1000} = {price(OID), exposure(OID), ratio(OID)},
     %1000 means 1/10th because only 1/10th of the big bet got matched.
     dump(OID),
@@ -260,7 +261,7 @@ test() ->
     add(#order{price = 6000, amount = 100, type = 1}, OID),
     add(#order{price = 4500, amount = 100, type = 2}, OID),
     add(#order{price = 3500, amount = 100, type = 2}, OID),
-    match(OID),
+    gen_server:call(?MODULE, {match, OID}),
     {6000, -100,10000} = {price(OID), exposure(OID), ratio(OID)},
     dump(OID),
     success.
