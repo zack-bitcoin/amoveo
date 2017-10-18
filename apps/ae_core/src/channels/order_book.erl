@@ -207,7 +207,14 @@ keys() ->
 add(Order, OID) ->
     gen_server:cast(?MODULE, {add, Order, OID}).
 match(OID) ->
-    gen_server:call(?MODULE, {match, OID}).
+    {Trees, _, _} = tx_pool:data(),
+    Oracles = trees:oracles(Trees),
+    {_, Oracle, _} = oracles:get(OID, Oracles),
+    Result = oracles:result(Oracle),
+    case Result of
+        0 -> gen_server:call(?MODULE, {match, OID});
+        _ -> ok
+    end.
 match() ->
     Keys = keys(),
     match_all(Keys).
