@@ -1,6 +1,9 @@
-## Needed before launch of next testnet.
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
+
+* We need to redesign sharing blocks so that we don't overwhelm our partners.
+
+* We need to let people use light-node strategy to download blocks.
 
 
 

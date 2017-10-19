@@ -1,9 +1,9 @@
 This is a roadmap that is less precise than my todo list, and more exciting for the community to look at.
 
-* dots mark what is completed.
-  * circles are what Aeternity is working on now.
+* what is completed.
+  - what Amoveo is working on now.
 
-Core protocol
+### Core protocol
 
 * merkel trees
 * Virtual Machine for smart contracts
@@ -13,20 +13,20 @@ Core protocol
 * database for channel data
 * lightning payments
 * API
-  - oracles
-  - governance
-  - fully encrypted api
+* oracles
+* governance
+  - encrypted api
 
-javascript SPV Wallet
+### javascript SPV Wallet
 
 * library to communicate with node API
 * compatible hash function
-  - merkel proofs
-  - account key holder
-  - database for channel data
+* merkel proofs
+* account key holder
+* database for channel data
   - gui
 
-block explorer
+### block explorer
 
 * api to communicate with nodes
   - website
@@ -36,15 +36,16 @@ block explorer
   - channels
   - oracles
 
-Trustless Markets
+### Trustless Markets
 
 * example smart contracts
-  - smart contract for markets with batches at single price.
-  - upgrade api to support market contracts.
+* smart contract for markets with batches at single price.
+* upgrade api to support market contracts.
   - website to display markets, integrated with javascript SPV wallets.
 
 
-Security Audit
+### Security Audit
+
 * none
   - Core
   - SPV javascript wallet
