@@ -195,7 +195,7 @@ config/prod/sys.config: config/sys.config.tmpl
     {internal_port, 8081},\
     {swagger_port_internal, 8042},\
     {swagger_port_external, 8043},\
-    %% {peers, [[{146,185,142,103}, 8080]]},\
+    {peers, [[{146,185,142,103}, 8080]]},\
     {master_pub, <<\"BL18ctFCJ4/i0HuiIJbF/F/ktgjADSub5rbe3RBIrsDUHBUVqqoEmv5wLEmjq3d8pTA07J2PQo87CY2B+0baQQk=\">>},\
     {test_mode,false},\
     :\
@@ -252,12 +252,11 @@ multi-quick: kill multi-clean multi-build multi-go
 
 local-quick: kill local-build local-clean
 	./_build/local/rel/ae_core/bin/ae_core console
-prod-quick: kill prod-clean prod-build
-	./_build/prod/rel/ae_core/bin/ae_core console
+prod-quick: kill prod-stop prod-clean prod-build prod-go
 
 .PHONY: \
 	local-build local-go local-stop local-attach local-clean \
-	prod-build prod-go prod-stop prod-attach prod-clean \
+	prod-build prod-go prod-stop prod-attach prod-clean prod-quick\
 	multi-build  multi-go multi-stop multi-clean \
 	go1 stop1 clean1 attach1 \
 	go2 stop2 clean2 attach2 \
