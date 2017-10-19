@@ -71,10 +71,18 @@ absorb([Header | T]) ->
     absorb(T).
 
 check_pow(Header) ->
+    MineDiff = Header#header.difficulty,
+    Data = block:hash(Header),
+    Nonce = Header#header.nonce,
     Serialized = serialize(Header),
-    Hashed = hash:doit(Serialized, constants:hash_size()),
-    Integer = pow:hash2integer(Hashed),
-    Integer > Header#header.difficulty.
+    %Hashed = hash:doit(Serialized, constants:hash_size()),
+    io:fwrite("check pow "),
+    io:fwrite(packer:pack({pow, Data, MineDiff, Nonce})),
+    io:fwrite("\n"),
+    pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size()).
+    %Hashed = testnet_hasher:doit(Serialized),
+    %Integer = pow:hash2integer(Hashed),
+    %Integer > Header#header.difficulty.
 
 check_difficulty(A) ->
     B = case A#header.height < 2 of

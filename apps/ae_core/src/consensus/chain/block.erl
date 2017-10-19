@@ -356,7 +356,8 @@ mine(Rounds) ->
     mine(Block, Rounds).
 
 mine(Block, Rounds) ->
-    Cores = guess_number_of_cpu_cores(),
+    %Cores = guess_number_of_cpu_cores(),
+    Cores = 1, %slow down mining so I don't break the computer.
     mine(Block, Rounds, Cores).
 mine(Block, Rounds, Cores) ->
     F = fun() ->
@@ -384,6 +385,9 @@ mine2(Block, Times) ->
     case pow:pow(hash(Block), MineDiff, Times, constants:hash_size()) of
         false -> false;
         Pow ->
+            io:fwrite("made pow "),
+            io:fwrite(packer:pack(Pow)),
+            io:fwrite("\n"),
             Nonce = pow:nonce(Pow),
             B2 = Block#block{nonce = Nonce},
             B2
