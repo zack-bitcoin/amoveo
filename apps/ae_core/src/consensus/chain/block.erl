@@ -379,17 +379,19 @@ mine2(Block, Times) ->
     ParentPlus = get_by_hash(PH),
     Trees = ParentPlus#block.trees,
     Difficulty = Block#block.difficulty,
-    Governance = trees:governance(Trees),
-    BlockReward = governance:get_value(block_reward, Governance),
-    MineDiff = (Difficulty * BlockReward) div constants:initial_block_reward(),
+    %Governance = trees:governance(Trees),
+    %BlockReward = governance:get_value(block_reward, Governance),
+    MineDiff = Difficulty,
     case pow:pow(hash(Block), MineDiff, Times, constants:hash_size()) of
         false -> false;
         Pow ->
             io:fwrite("made pow "),
             io:fwrite(packer:pack(Pow)),
-            io:fwrite("\n"),
+            io:fwrite(" "),
             Nonce = pow:nonce(Pow),
             B2 = Block#block{nonce = Nonce},
+            io:fwrite(packer:pack(hash(B2))),
+            io:fwrite("\n"),
             B2
     end.
 proofs_roots_match([], _) -> true;

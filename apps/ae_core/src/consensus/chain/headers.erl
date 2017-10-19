@@ -72,7 +72,7 @@ absorb([Header | T]) ->
 
 check_pow(Header) ->
     MineDiff = Header#header.difficulty,
-    Data = block:hash(Header),
+    Data = block:hash(Header#header{nonce = 0}),
     Nonce = Header#header.nonce,
     Serialized = serialize(Header),
     %Hashed = hash:doit(Serialized, constants:hash_size()),
