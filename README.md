@@ -34,7 +34,7 @@ Read here about how to secure your private key with a password. That way you can
 
 ### Blockchain Commands
 
-[Read about the commands in depth in the docs](docs/api/commands.md) This is how you control the node once it is started.
+[Read about the commands in depth in the docs](docs/api/commands.md) This is how you control the node once it is started. Includes commands for mining, accounts, channels, oracles, and more.
 
 ### Testing
 
