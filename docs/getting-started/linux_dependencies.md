@@ -115,7 +115,7 @@ Next, download Aeternity Testnet. You should run following steps with a non-root
 ```
 git clone https://github.com/zack-bitcoin/amoveo.git
 ```
-Now you can go into the directory, and compile the aeternity testnet.
+Now you can go into the directory, and compile the amoveo testnet.
 
 ```
 cd testnet/
