@@ -44,7 +44,6 @@ The block includes:
       determined only from the information in the block.
   * *TO-BE The codebase holds a place but does not use such item.  The item shall be used.*
 
-See also [aeternity whitepaper] subsection "II-A.4) Block contents".
 
 ## Block header
 
@@ -113,24 +112,16 @@ DB = 16,
 >>.
 ```
 
-See also [aeternity whitepaper] subsection "II-E.2) Light clients".
 
-## References
-
-[aeternity whitepaper]: https://blockchain.aeternity.com/%C3%A6ternity-blockchain-whitepaper.pdf
 
 ## TODO
 
 Check in codebase and describe computation of difficulty. E.g. every 2000th block retargets the difficulty based on the previous 2000 block headers.
-
-Assuming that transactions in block are meant to be able to be applied in arbitrary order on the state Merkle trees, both when making the block header to-be-mined and when verifying the block, explicate constraints on transactions in block. E.g. can a block include for the same account a transaction crediting it and another debiting it - where the debiting transaction would make the account balance negative if applied before the crediting one?
 
 Confirm from the codebase that `#leaf.meta` (as opposed to `#leaf.value`) is not meant to be exchanged on the network as part of the data structures described in this document, then reconsider using the term "value" rather than "datum" for leaves of Merkle trees.
 
 Detail Merkle tree and Merkle proof.
 
 Decide whether to include `#header.accumulative_difficulty` in this description.
-
-Decide whether to include `#block.comment` in this description.
 
 Confirm exclusion of `#block.prev_hashes` from this description.
