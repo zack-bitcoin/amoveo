@@ -118,7 +118,7 @@ git clone https://github.com/zack-bitcoin/amoveo.git
 Now you can go into the directory, and compile the Amoveo testnet.
 
 ```
-cd testnet/
+cd amoveo/
 make prod-build
 ```
 

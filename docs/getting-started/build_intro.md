@@ -174,7 +174,7 @@ api:spend(To, Amount).
 ```
 
 
-#### Contact
+#### Learn more
 
-If you want to know more, get in touch with us via [gitter chat](https://gitter.im/aeternity/Lobby)
+If you want to know more, go to the Amoveo Reddit, and see if someone else asked your question. https://www.reddit.com/r/Amoveo
 

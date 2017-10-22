@@ -14,5 +14,5 @@ brew install gnu-sed --with-default-names
 Use git to download the software, then go into the testnet directory
 ```
 git clone https://github.com/zack-bitcoin/amoveo.git
-cd testnet
+cd amoveo
 ```

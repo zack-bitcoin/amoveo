@@ -1,16 +1,17 @@
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 
-* We need to redesign sharing blocks so that we don't overwhelm our partners.
-
 * We need to let people use light-node strategy to download blocks.
 
+* the password is being recorded in the log. This is bad.
 
+* If you use an incorrect password, there should be a useful error message.
 
 
 
 ### Things to consider doing before launch
 
+* We need to redesign sharing blocks so that we don't overwhelm our partners.
 
 consider reducing the block time below 10 minutes.
 Then we could have faster trading in the markets.
