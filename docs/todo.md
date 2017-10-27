@@ -1,3 +1,7 @@
+* it is only downloading 100 blocks at a time.
+
+* we share blocks unnecessarily. download_blocks stuff needs to be re-written for efficiency.
+
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 

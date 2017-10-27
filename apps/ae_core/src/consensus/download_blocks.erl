@@ -33,13 +33,19 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
     end,
     get_txs(Peer),
     trade_peers(Peer).
-
+case_sync(L, Peer) ->
+    B = length(L) > 1,
+    if
+        B -> sync(Peer, block:height(block:top()));
+        true -> ok
+    end.
 trade_blocks(Peer, L, 0) ->
     lager:debug("downloader blocks trade blocks 0 absorbing blocks"),
-    block_absorber:enqueue(L),
     Genesis = block:get_by_height(0),
     GH = block:hash(Genesis),
-    send_blocks(Peer, block:hash(block:top()), GH, [], 0);
+    send_blocks(Peer, block:hash(block:top()), GH, [], 0),
+    block_absorber:enqueue(L),
+    case_sync(L, Peer);
 trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     lager:debug("trade_blocks: ~p", [packer:pack({prev_block, PrevBlock, PBT})]),
     PrevHash = block:hash(PrevBlock),
@@ -56,6 +62,7 @@ trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
         _ ->
     	    lager:debug("we have a parent for this block ~p", [OurChainAtPrevHash]),
             block_absorber:save(CurrentBlocks),
+            case_sync(CurrentBlocks, Peer),
     	    lager:debug("about to send blocks"),
     	    H = headers:top(),
     	    case headers:height(H) of
@@ -102,9 +109,9 @@ trade_peers(Peer) ->
     peers:add(TheirsPeers).
 
 remote_peer(Transaction, Peer) ->
-    io:fwrite("transaction is "),
-    io:fwrite(packer:pack(Transaction)),
-    io:fwrite("\n"),
+    %io:fwrite("transaction is "),
+    %io:fwrite(packer:pack(Transaction)),
+    %io:fwrite("\n"),
     case talker:talk(Transaction, Peer) of
         {ok, Return0} -> Return0;
         Return1 -> Return1

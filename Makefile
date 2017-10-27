@@ -256,7 +256,7 @@ prod-quick: kill prod-stop prod-clean prod-build prod-go
 
 .PHONY: \
 	local-build local-go local-stop local-attach local-clean \
-	prod-build prod-go prod-stop prod-attach prod-clean prod-quick\
+	prod-build prod-go prod-stop prod-attach prod-clean prod-quick \
 	multi-build  multi-go multi-stop multi-clean \
 	go1 stop1 clean1 attach1 \
 	go2 stop2 clean2 attach2 \

@@ -367,7 +367,8 @@ mine(Block, Rounds, Cores) ->
                         lager:info("Found a block: ~p", [integer_to_list(height(PBlock))]),
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
-                        block_absorber:save(PBlock)
+                        block_absorber:save(PBlock),
+                        sync:start()
                         %block_absorber:garbage()
                         %timer:sleep(2000)
                 end
@@ -385,13 +386,13 @@ mine2(Block, Times) ->
     case pow:pow(hash(Block), MineDiff, Times, constants:hash_size()) of
         false -> false;
         Pow ->
-            io:fwrite("made pow "),
-            io:fwrite(packer:pack(Pow)),
-            io:fwrite(" "),
+            %io:fwrite("made pow "),
+            %io:fwrite(packer:pack(Pow)),
+            %io:fwrite(" "),
             Nonce = pow:nonce(Pow),
             B2 = Block#block{nonce = Nonce},
-            io:fwrite(packer:pack(hash(B2))),
-            io:fwrite("\n"),
+            %io:fwrite(packer:pack(hash(B2))),
+            %io:fwrite("\n"),
             B2
     end.
 proofs_roots_match([], _) -> true;

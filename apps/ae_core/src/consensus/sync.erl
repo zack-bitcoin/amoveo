@@ -26,7 +26,7 @@ stop() ->
     gen_server:cast(?MODULE, stop).
 start() ->
     gen_server:cast(?MODULE, start),
-    timer:sleep(100),
+    timer:sleep(20),
     gen_server:cast(?MODULE, doit).
 
 height() ->    
@@ -45,6 +45,18 @@ sync2(_Height, 0, B) ->
     ok;
 sync2(Height, N, B) ->
     timer:sleep(200),
+    Block = block:get_by_hash(headers:top()),
+    io:fwrite(packer:pack(Block)),
+    io:fwrite("\n"),
+    B = element(1, Block) == block,
+    case B of
+        true -> ok;
+        false ->
+            io:fwrite("B \n"),
+            io:fwrite(packer:pack(B)),
+            io:fwrite("\n"),
+            1=2
+    end,
     Height2 = block:height(block:get_by_hash(headers:top())),%maybe this should be simplified? or maybe we want to crash here?
     {ok, DownloadBlocksBatch} = application:get_env(ae_core, download_blocks_batch),
     Height3 = Height + DownloadBlocksBatch - 1,
