@@ -31,11 +31,9 @@ To manually sign raw binary data:
 keys:raw_sign(<<"binary data">>).
 ```
 
-To find out your id, pubkey, and address, there are these three commands
+To find out your pubkey
 ```
-keys:id().
 keys:pubkey().
-keys:address().
 ```
 
 To calculate a shared_secret with a partner, you need a copy of their pubkey:
