@@ -138,11 +138,11 @@ txs_hash(X) ->
     testnet_hasher:doit(X).
 -spec serialize(header()) -> serialized_header().
 serialize(H) ->
-    HB = constants:hash_size()*8,
     HtB = constants:height_bits(),
     TB = constants:time_bits(),
     VB = constants:version_bits(),
     DB = 16,
+    HB = constants:hash_size()*8,
     HB = bit_size(H#header.prev_hash),
     HB = bit_size(H#header.trees_hash),
     HB = bit_size(H#header.txs_proof_hash),
@@ -225,9 +225,54 @@ start_link() ->
 
 
 %% gen_server callbacks
-
+-define(LOC, constants:headers_file()).
 init([]) ->
     {ok, #s{}}.
+init_new([]) ->
+    X = file:read_file(?LOC),
+    GB = block:get_by_height(0),
+    GHeader = block:block_to_header(GB),
+    GHash = block:hash(GHeader),
+    D1 = dict:store(GHash, GHeader, dict:new()),
+    S = #s{headers = D1},
+    Ka = case X of
+             {ok, Y} -> remember_headers(Y, S);
+             _ -> S
+         end,
+    {ok, Ka}.
+remember_headers(<<>>, S) -> S;
+remember_headers(B, S) ->
+    io:fwrite("remembering header \n"),
+    HeaderSize = header_size(),
+    <<H:HeaderSize, B2/binary>> = B,
+    Header0 = deserialize(<<H:HeaderSize>>),
+    {ok, PrevHeader} = read(Header0#header.prev_hash),
+    Header = Header0#header{accumulative_difficulty = 
+                           PrevHeader#header.accumulative_difficulty +
+                           pow:sci2int(Header0#header.difficulty)},
+    io:fwrite(packer:pack(Header)),
+    io:fwrite("\n"),
+    Hash = block:hash(Header),
+    D2 = dict:store(Hash, Header, S#s.headers),
+    AD = Header#header.accumulative_difficulty,
+    AA = S#s.top,
+    AF = AA#header.accumulative_difficulty,
+    Top = case AD > AF of
+              true -> Header;
+              false -> AA
+          end,
+    S2 = S#s{headers = D2, top = Top},
+    remember_headers(B2, S2).
+header_size() ->
+    HB = constants:hash_size()*8,
+    HtB = constants:height_bits(),
+    TB = constants:time_bits(),
+    VB = constants:version_bits(),
+    DB = 16,
+    ((HB*4) + HtB + TB + VB + DB).
+    
+    
+    
 
 handle_call({read, Hash}, _From, State) ->
     {reply, dict:find(Hash, State#s.headers), State};

@@ -29,7 +29,7 @@ init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 %-define(WORD, 10000000).%10 megabytes.
 doit({pubkey}) -> {ok, keys:pubkey()};
-%doit({height}) -> {ok, block_tree:height()};
+doit({height}) -> {ok, block_tree:height()};
 %doit({total_coins}) -> {ok, block_tree:total_coins()};
 doit({give_block, SignedBlock}) -> 
     %true = block:height(SignedBlock) < api:height() + 2,

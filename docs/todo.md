@@ -1,5 +1,11 @@
+* do not sync twice in parallel.
+* sync:stop() isn't working.
+
 * we share blocks unnecessarily. download_blocks stuff needs to be re-written for efficiency.
 
+* we are recording headers to the hard drive, but we are having difficulty reading these headers into ram when we start a node.
+We can't store accumulative difficulty with the headers on the hard drive, it needs to be calculated when we move this info to ram.
+* it should be possible to restart a node without having to re-verify or re-download any blocks.
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 
@@ -9,7 +15,7 @@
 
 * If you use an incorrect password, there should be a useful error message.
 
-* the ability to restart a node without re-downloading all the blocks.
+* make sure that ae_http_app:start_external() isn't exposing files that we don't want to expose.    
 
 
 

@@ -8,9 +8,6 @@
 %% Supervisor callbacks
 -export([init/1]).
 
--define(CHILD(Mod, Type), {Mod, {Mod, start_link, []},
-                           permanent, 5000, Type, [Mod]}).
-
 -define(CHILD(Mod, Type, Args), {Mod, {Mod, start_link, Args},
                                  permanent, 5000, Type, [Mod]}).
 
