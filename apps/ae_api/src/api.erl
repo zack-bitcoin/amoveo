@@ -31,7 +31,7 @@
 
 -export([pubkey/0, new_pubkey/1,
          channel_keys/0, keys_status/0, keys_unlock/1, 
-         keys_new/1,
+         keys_new/1, account/0,
          new_market/3, test_oracle_unmatched/0, test/0,
 	 channel_manager_update/3]).
 
@@ -431,14 +431,13 @@ account(Pubkey) ->
         {_, A, _} -> A
     end.
 account() -> account(keys:pubkey()).
-integer_balance() -> accounts:balance(account()).
-balance() ->
-    I = case keys:pubkey() of
-	    -1 -> 0;
-	    _ -> integer_balance()
-	end,
-    I.
-
+integer_balance() -> 
+    A = account(),
+    case A of
+        empty -> 0;
+        A -> accounts:balance(A)
+    end.
+balance() -> integer_balance().
 mempool() ->
     {_, _, Txs} = tx_pool:data(),
     Txs.
