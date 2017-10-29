@@ -1,6 +1,6 @@
-var IP = [52, 36, 106, 100];// server
+var IP = [146, 185, 142, 103];// server
 //var IP = [127, 0, 0, 1];
-var Port = 3010;
+var Port = 8080;
 //var Port = 3030;
 function getter(t, u, callback){
     t = JSON.stringify(t);
@@ -30,7 +30,7 @@ function refresh_helper(x, callback) {
 };
 
 my_status = "nil";
-var x = local_get(["test"]);
+//var x = local_get(["test"]);
 
 refresh_helper(x, function(){ 
     my_status = JSON.parse(xml_out(x)); 

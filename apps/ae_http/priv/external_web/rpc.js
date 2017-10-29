@@ -1,4 +1,4 @@
-var IP = [52, 36, 106, 100];// server
+//var IP = [52, 36, 106, 100];// server
 //var IP = [127, 0, 0, 1];
 //var Port = 3011;
 //var Port = 3030;

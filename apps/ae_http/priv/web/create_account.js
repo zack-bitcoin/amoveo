@@ -15,12 +15,12 @@ function create_account1() {
     document.body.appendChild(balance_info);
     document.body.appendChild(create_balance);
 
-    var spend_fee = document.createElement("INPUT");
-    spend_fee.setAttribute("type", "text"); 
-    var fee_info = document.createElement("h8");
-    fee_info.innerHTML = "fee: ";
-    document.body.appendChild(fee_info);
-    document.body.appendChild(spend_fee);
+    //var spend_fee = document.createElement("INPUT");
+    //spend_fee.setAttribute("type", "text"); 
+    //var fee_info = document.createElement("h8");
+    //fee_info.innerHTML = "fee: ";
+    //document.body.appendChild(fee_info);
+    //document.body.appendChild(spend_fee);
     
     
     var create_button = document.createElement("BUTTON");
@@ -30,8 +30,8 @@ function create_account1() {
     create_button.onclick = function() {
 	var to = create_pubkey.value;
 	var amount = parseInt(create_balance.value, 10);
-	var fee = parseInt(spend_fee.value, 10);
-	local_get(["create_account", to, amount, fee]);
+	// var fee = parseInt(spend_fee.value, 10);
+	local_get(["create_account", to, amount]);
 	local_get(["sync", IP, Port]);
     };
     document.body.appendChild(create_button);

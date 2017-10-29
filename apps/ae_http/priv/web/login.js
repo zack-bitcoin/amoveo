@@ -1,5 +1,5 @@
 document.body.appendChild(document.createElement("br"));
-variable_get(["key_status"], function(x) {login_1(x)});
+variable_get(["key_status"], login_1);
 function login_1(x) {
     if ( x == btoa("locked") ) {
 	login_locked();
@@ -41,7 +41,7 @@ function login_new() {
     spend_button.onclick = function() {
 	if (new_password.value == new_password_check.value) {
 	    local_get(["key_new", btoa(new_password.value)]);
-	    variable_get(["key_status"], function(x) {login_0(x)});
+	    variable_get(["key_status"], login_0);
 	} else {
 	    var con = document.createElement("p");
 	    con.innerHTML = "passwords don't match";

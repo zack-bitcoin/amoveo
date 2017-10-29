@@ -9,6 +9,8 @@
 
 * If you use an incorrect password, there should be a useful error message.
 
+* the ability to restart a node without re-downloading all the blocks.
+
 
 
 ### Things to consider doing before launch

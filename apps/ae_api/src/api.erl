@@ -2,38 +2,8 @@
 
 %keys_new and new_pubkey are the same. one should be removed.
 
--export([height/0, off/0, balance/0, spend/2, mempool/0,
-         top/0, sign/1, mine_block/0, mine_block/2,
-         add_peer/2, sync/2, load_key/3, keypair/0, new_keypair/0]).
+-compile(export_all).
 
--export([create_account/2, delete_account/1, account/1,
-         repo_account/1, repo_account/2, coinbase/1]).
-
--export([channel_balance/0,
-         new_channel_with_server/3, pull_channel_state/2,
-         add_secret/2, pull_channel_state/0, channel_spend/1, channel_spend/3,
-         new_channel_tx/6, new_channel_tx/7, close_channel_with_server/0,
-         grow_channel/3, grow_channel/4,
-         channel_team_close/2, channel_team_close/3, channel_repo/2,
-         channel_timeout/0, channel_timeout/2, channel_slash/4, channel_close/0,
-         channel_close/2, channel_close/3, new_channel_with_server/7,
-         channel_solo_close/0, channel_solo_close/1, channel_solo_close/2, channel_solo_close/4,
-         lightning_spend/2, lightning_spend/5, lightning_spend/7, 
-         settle_bets/0, market_match/1, trade/5, trade/7,
-         dump_channels/0]).
-
--export([new_question_oracle/2,
-         new_question_oracle/3,
-         new_governance_oracle/4, oracle_bet/3, 
-         oracle_close/1, oracle_shares/1, 
-         oracle_unmatched/1, oracle_unmatched/2,
-         dice/1]).
-
--export([pubkey/0, new_pubkey/1,
-         channel_keys/0, keys_status/0, keys_unlock/1, 
-         keys_new/1, account/0,
-         new_market/3, test_oracle_unmatched/0, test/0,
-	 channel_manager_update/3]).
 
 %% Described in the docs but not found
 %% close_channel/0, new_channel/2, oracle_unmatched/1, sync/0
@@ -48,7 +18,7 @@ load_key(Pub, Priv, Brainwallet) ->
     keys:load(Pub, Priv, Brainwallet).
 height() ->    
     H = headers:height(headers:top()),
-    {ok, H}.
+    H.
 %% Q: do we want to return whole header or just hash?
 top() ->
     TopHeader = headers:top(),
@@ -441,6 +411,7 @@ balance() -> integer_balance().
 mempool() ->
     {_, _, Txs} = tx_pool:data(),
     Txs.
+halt() -> off().
 off() ->
     ok = application:stop(ae_core).
 mine_block() ->
@@ -503,6 +474,7 @@ channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
 add_peer(IP, Port) ->
     peers:add({IP, Port}),
     0.
+sync() -> sync(?IP, ?Port).
 sync(IP, Port) ->
     lager:info("Sync with ~p ~p ~n", [IP, Port]),
     %MyHeight = block:height(block:get_by_hash(headers:top())),

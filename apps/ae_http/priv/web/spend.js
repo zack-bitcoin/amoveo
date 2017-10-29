@@ -15,22 +15,23 @@ function spend1() {
     document.body.appendChild(amount_info);
     document.body.appendChild(spend_amount);
     
-    var spend_fee = document.createElement("INPUT");
-    spend_fee.setAttribute("type", "text"); 
-    var fee_info = document.createElement("h8");
-    fee_info.innerHTML = "fee: ";
-    document.body.appendChild(fee_info);
-    document.body.appendChild(spend_fee);
+    //var spend_fee = document.createElement("INPUT");
+    //spend_fee.setAttribute("type", "text"); 
+    //var fee_info = document.createElement("h8");
+    //fee_info.innerHTML = "fee: ";
+    //document.body.appendChild(fee_info);
+    //document.body.appendChild(spend_fee);
     
     var spend_button = document.createElement("BUTTON");
     spend_button.id = "spend_button";
     var spend_button_text = document.createTextNode("spend");
     spend_button.appendChild(spend_button_text);
     spend_button.onclick = function() {
-	var to = parseInt(spend_address.value, 10);
+	// var to = parseInt(spend_address.value, 10);
+        var to = spend_address.value;
 	var amount = parseInt(spend_amount.value, 10);
-	var fee = parseInt(spend_fee.value, 10);
-	local_get(["spend", to, amount, fee]);
+	// var fee = parseInt(spend_fee.value, 10);
+	local_get(["spend", to, amount]);
     };
     document.body.appendChild(spend_button);
 
