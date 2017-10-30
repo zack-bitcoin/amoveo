@@ -81,3 +81,6 @@ If it works, then it should be able to support markets with any volume of bettin
 If it works, then it should be much more affordable than the alternatives.
 
 Group Gnosis, and Amoveo follow this religion.
+
+
+[Discuss this on reddit](https://www.reddit.com/r/Amoveo/comments/79kzm4/comparing_strategies_of_7_teams_competing_for_the/)
