@@ -13,9 +13,18 @@ Written in Erlang.
 
 Non-technical [mission statement](docs/mission_statement.md).
 
+[Evidence that Amoveo's goal is technologically possible](docs/design/limit_order_in_channel.md)
+
+### Community
+
+[Discuss with the community on the Amoveo reddit](https://www.reddit.com/r/Amoveo/)
+[Amoveo on twitter](https://twitter.com/zack_bitcoin)
+
 #### Installing dependencies
 
 You will need Erlang and a couple of libraries before you are able to run this software.
+
+[dep_check](docs/getting-started/dependencies.md)
 
 [For Linux](docs/getting-started/linux_dependencies.md)
 
@@ -45,8 +54,3 @@ For tests you need to build one of the test versions of the code instead of the 
 [If you want to run the multi-node tests](/docs/merging-and-testing/testing.md).
 
 [Single-node tests are explained here](/docs/merging-and-testing/unit_testing.md).
-
-### Else
-
-[Discuss with the community on the Amoveo reddit](https://www.reddit.com/r/Amoveo/)
-[Follow me on twitter](https://twitter.com/zack_bitcoin)

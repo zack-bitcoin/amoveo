@@ -1,5 +1,6 @@
-The goal of this contract is to have a market off-chain in the channels.
-This market should allow for limit orders. That means you can tell the market
+The killer app of blockchain is a scalable market to trade assets who's price is determined by a trust-free and affordable oracle.
+Amoveo attempts to achieve this goal by keeping the oracle on-chain, and moving the market off-chain onto the channels.
+The market allows for limit orders. That means you can tell the market
 "I really want to buy tomatoes, but only for less than $1 per kilo. I will leave my money
 here, if the price ever goes below $1 per kilo, then please buy the tomatoes. I will come back later to either pick up the tomatoes, or my money."
 The market will honor your trade, and buy the tomatoes for you.
