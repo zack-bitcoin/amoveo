@@ -15,30 +15,30 @@ Non-technical [mission statement](docs/mission_statement.md).
 
 [Evidence that Amoveo's goal is technologically possible](docs/design/limit_order_in_channel.md)
 
-### Community
+## Community
 
 [Discuss with the community on the Amoveo reddit](https://www.reddit.com/r/Amoveo/)
 [Amoveo on twitter](https://twitter.com/zack_bitcoin)
 
 
-#### Running the blockchain
+## Running the blockchain
 
 If you just want to launch a node and connect to the network, [look at the quick start guide](docs/getting-started/turn_it_on.md)
 
 
-#### Using the wallet
+## Using the wallet
 
 Included is a wallet. A wallet is for storing your private key, and for making signatures.
 Read here about how to secure your private key with a password. That way you can have tokens.
 [Secure your keys](docs/api/securing_keys.md)
 
 
-### Blockchain Commands
+## Blockchain Commands
 
 [Read about the commands in depth in the docs](docs/api/commands.md) This is how you control the node once it is started. Includes commands for mining, accounts, channels, oracles, and more.
 
 
-### Testing
+## Testing
 
 We maintain two kinds of tests: unit tests and integration tests. Final test is syncing fresh node with public testnet node.
 
