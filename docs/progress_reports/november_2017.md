@@ -12,8 +12,7 @@ Market religions: off-chain markets with single-price batches, off-chain brokers
 
 Oracle religions: subcurrency voting oracles, betting oracles, public feeds.
 
-Teams: Amoveo
-[Gnosis](https://gnosis.pm/), [Augur](https://augur.net/), [Bitshares](https://bitshares.org/), [Bitcoin Hivemind](http://bitcoinhivemind.com/), [Zen](https://www.zenprotocol.com/), [Aeternity](https://www.aeternity.com/), [Amoveo](https://github.com/zack-bitcoin/amoveo)
+Teams: [Gnosis](https://gnosis.pm/), [Augur](https://augur.net/), [Bitshares](https://bitshares.org/), [Bitcoin Hivemind](http://bitcoinhivemind.com/), [Zen](https://www.zenprotocol.com/), [Aeternity](https://www.aeternity.com/), [Amoveo](https://github.com/zack-bitcoin/amoveo)
 
 
 
