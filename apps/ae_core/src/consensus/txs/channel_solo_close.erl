@@ -73,7 +73,7 @@ dict_check_slash(From, Dict, NewHeight, TheirNonce) ->
 	    end
     end.
 wait_block(X, SPK, SS) ->
-    {ok, Y} = api:height(),
+    Y = api:height(),
     case Y of
         X -> slash_it(SPK, SS);
         _ -> 
