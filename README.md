@@ -17,19 +17,20 @@ Non-technical [mission statement](docs/mission_statement.md).
 
 ## Community
 
-[Discuss with the community on the Amoveo reddit](https://www.reddit.com/r/Amoveo/)
-[Amoveo on twitter](https://twitter.com/zack_bitcoin)
+[Amoveo forum on reddit](https://www.reddit.com/r/Amoveo/)
+
+[Amoveo announcements on twitter](https://twitter.com/zack_bitcoin)
 
 
 ## Running the blockchain
 
-If you just want to launch a node and connect to the network, [look at the quick start guide](docs/getting-started/turn_it_on.md)
+Launch a node and connect to the network; [look at the quick start guide](docs/getting-started/turn_it_on.md)
 
 
 ## Using the wallet
 
-Included is a wallet. A wallet is for storing your private key, and for making signatures.
-Read here about how to secure your private key with a password. That way you can have tokens.
+Amove is also a wallet. A wallet is for storing your private key, and for making signatures.
+Read here about how to secure your private key with a password. That way you can have assets on Amoveo.
 [Secure your keys](docs/api/securing_keys.md)
 
 

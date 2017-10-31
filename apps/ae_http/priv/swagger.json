@@ -1,12 +1,12 @@
 {
   "swagger" : "2.0",
   "info" : {
-    "description" : "This is the [Aeternity](https://www.aeternity.com/) Testnet API.",
+    "description" : "",
     "version" : "1.0.0",
-    "title" : "Aeternity Testnet",
-    "termsOfService" : "https://www.aeternity.com/terms/",
+    "title" : "Amoveo Testnet",
+    "termsOfService" : "",
     "contact" : {
-      "email" : "apiteam@aeternity.com"
+      "email" : ""
     }
   },
   "basePath" : "/v1",
@@ -863,7 +863,7 @@
     }
   },
   "externalDocs" : {
-    "description" : "Find out more about Aeternity",
-    "url" : "http://www.aeternity.com"
+    "description" : "",
+    "url" : ""
   }
 }
