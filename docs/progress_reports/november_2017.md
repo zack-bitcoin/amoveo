@@ -12,7 +12,8 @@ Market religions: off-chain markets with single-price batches, off-chain brokers
 
 Oracle religions: subcurrency voting oracles, betting oracles, public feeds.
 
-Teams: Zen, Augur, Bitcoin Hivemind, Amoveo, Aeternity, Bitshares, Group Gnosis
+Teams: Amoveo
+[Gnosis](https://gnosis.pm/), [Augur](https://augur.net/), [Bitshares](https://bitshares.org/), [Bitcoin Hivemind](http://bitcoinhivemind.com/), [Zen](https://www.zenprotocol.com/), [Aeternity](https://www.aeternity.com/), [Amoveo](https://github.com/zack-bitcoin/amoveo)
 
 
 
@@ -32,7 +33,7 @@ Teams: Zen, Augur, Bitcoin Hivemind, Amoveo, Aeternity, Bitshares, Group Gnosis
  This type of market does not scale. Big markets are better, so this is almost certainly a bad design. That is why most projects that use this type of market also allow for some type of off-chain trading as well.
  This type of market depends upon on-chain order books, and an on-chain market-maker or liquidity maker.
 
-Group Gnosis, Augur, Bitshares, and Bitcoin Hivemind are all following this religion.
+Gnosis, Augur, Bitshares, and Bitcoin Hivemind are all following this religion.
 
 
 ## off-chain brokers

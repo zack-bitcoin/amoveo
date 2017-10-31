@@ -38,14 +38,15 @@ Read here about how to secure your private key with a password. That way you can
 
 ### Testing
 
-We maintain two kinds of tests: unit tests and integration tests. Final test is always syncing fresh node with public testnet node.
+We maintain two kinds of tests: unit tests and integration tests. Final test is syncing fresh node with public testnet node.
 
-Varied scenarions require specific test setup, e.g. multi hop payment requires three node deployment. This is why we prepared number of testing setups.
+For tests you need to build one of the test versions of the code instead of the production version. You need to know how to send commands to the test versions. [advanced notes on running any version of the node](docs/getting-started/build_intro.md).
 
-If you are looking for more detailed explanation on how the nodes are started look at the [advanced notes on installation](docs/getting-started/build_intro.md).
+[If you want to run the multi-node tests](/docs/merging-and-testing/testing.md).
 
-If you want to know more about how the tests are run see [testing](/docs/merging-and-testing/testing.md).
+[Single-node tests are explained here](/docs/merging-and-testing/unit_testing.md).
 
 ### Else
 
 [Discuss with the community on the Amoveo reddit](https://www.reddit.com/r/Amoveo/)
+[Follow me on twitter](https://twitter.com/zack_bitcoin)

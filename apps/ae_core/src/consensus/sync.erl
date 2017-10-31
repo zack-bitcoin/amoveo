@@ -12,7 +12,7 @@ handle_cast(doit, go) ->
 		  sync3(),
 		  gen_server:cast(?MODULE, doit) end),
     {noreply, go};
-handle_cast(start, stop) -> 
+handle_cast(start, _) -> 
     {noreply, go};
 handle_cast(stop, _) -> 
     {noreply, stop};
