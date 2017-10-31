@@ -1,5 +1,7 @@
 ### Introduction
 
+[first, if you haven't installed the dependencies for amoveo, do that.](docs/getting-started/dependencies.md)
+
 Acceptance tests are written in `Python 2.x`, using `nose` testing framework.
 
 The only system-wide requirements to run the tests is to have `Python 2.x` and `virtualenv` installed ([virtualenv](https://virtualenv.pypa.io/en/stable/)).
@@ -55,3 +57,5 @@ You can also always use `nose` commands to run single test suite/class or even s
 ./bin/nosetests ./tests/test_fork.py:ForkTest
 ./bin/nosetests ./tests/test_fork.py:ForkTest.test_mine_and_sync
 ```
+
+[you can read about single-node tests here](unit_testing.md)

@@ -20,20 +20,11 @@ Non-technical [mission statement](docs/mission_statement.md).
 [Discuss with the community on the Amoveo reddit](https://www.reddit.com/r/Amoveo/)
 [Amoveo on twitter](https://twitter.com/zack_bitcoin)
 
-#### Installing dependencies
-
-You will need Erlang and a couple of libraries before you are able to run this software.
-
-[dep_check](docs/getting-started/dependencies.md)
-
-[For Linux](docs/getting-started/linux_dependencies.md)
-
-[For Mac](docs/getting-started/mac_dependencies.md)
-
 
 #### Running the blockchain
 
 If you just want to launch a node and connect to the network, [look at the quick start guide](docs/getting-started/turn_it_on.md)
+
 
 #### Using the wallet
 
@@ -41,9 +32,11 @@ Included is a wallet. A wallet is for storing your private key, and for making s
 Read here about how to secure your private key with a password. That way you can have tokens.
 [Secure your keys](docs/api/securing_keys.md)
 
+
 ### Blockchain Commands
 
 [Read about the commands in depth in the docs](docs/api/commands.md) This is how you control the node once it is started. Includes commands for mining, accounts, channels, oracles, and more.
+
 
 ### Testing
 
