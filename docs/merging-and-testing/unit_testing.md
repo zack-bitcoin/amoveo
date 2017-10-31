@@ -1,5 +1,3 @@
-[first, if you haven't installed the dependencies for amoveo, do that.](docs/getting-started/dependencies.md)
-
 start a local node, and attach to it:
 `make local-quick'
 
