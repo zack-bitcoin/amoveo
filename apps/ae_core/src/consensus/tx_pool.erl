@@ -59,15 +59,15 @@ start_link() ->
 init(ok) ->
     lager:info("~p started", [?MODULE]),
     State = initial_state(),
-    io:fwrite("blockchain ready\n"),
+    io:fwrite("tx_pool- blockchain ready\n"),
     {ok, State}.
 
 handle_call(dump, _From, _OldState) ->
-    io:fwrite("tx pool dump \n"),
+    %io:fwrite("tx pool dump \n"),
     State = current_state(),
     {reply, 0, State};
 handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
-    io:fwrite("tx pool absorb_tx \n"),
+    %io:fwrite("tx pool absorb_tx \n"),
     NewTxs = [Tx | F#f.txs],
     BlockSize = size(term_to_binary(NewTxs)),
     Governance = trees:governance(NewTrees),
@@ -83,7 +83,7 @@ handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
          end,
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
-    io:fwrite("tx pool absorb \n"),
+    %io:fwrite("tx pool absorb \n"),
     {reply, 0, #f{txs = [], trees = NewTrees, new_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) ->
     {reply, F, F};
@@ -114,17 +114,17 @@ initial_state() ->
     io:fwrite("initialize 1\n"),
     _Header = block:initialize_chain(),
     Block = block:top(),
-    io:fwrite("initialize state "),
-    io:fwrite(packer:pack(Block)),
-    io:fwrite("\n"),
+    %io:fwrite("initialize state "),
+    %io:fwrite(packer:pack(Block)),
+    %io:fwrite("\n"),
     state2(Block).
 current_state() ->
     %Header = headers:top(),
     %Block = block:get_by_hash(block:hash(Header)),
     Block = block:top(),
-    io:fwrite("tx_pool current state block is "),
-    io:fwrite(packer:pack(Block)),
-    io:fwrite("\n"),
+    %io:fwrite("tx_pool current state block is "),
+    %io:fwrite(packer:pack(Block)),
+    %io:fwrite("\n"),
     state2(Block).
 state2(Block) ->
     %Block = block:get_by_hash(block:hash(Header)),

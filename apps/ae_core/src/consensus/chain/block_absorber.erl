@@ -76,7 +76,10 @@ absorb_internal(Block) ->
                           tx_pool_feeder:absorb(Txs)
                   end),
             order_book:match(),
-            timer:sleep(20)
+            timer:sleep(20),
+            io:fwrite("absorb block number "),
+            io:fwrite(integer_to_list(block:height(Block2))),
+            io:fwrite("\n")
     end.
 do_save(BlockPlus) ->
     CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
