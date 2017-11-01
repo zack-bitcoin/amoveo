@@ -102,7 +102,6 @@ top() ->
     X = gen_server:call(?MODULE, {top}),
     false = element(2, X) == undefined,
     X.
-         
 
 dump() -> gen_server:call(?MODULE, {dump}).
 

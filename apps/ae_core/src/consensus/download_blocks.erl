@@ -42,8 +42,8 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
 case_sync(L, Peer) ->
     B = length(L) > 1,
     if
-        B -> %sync(Peer, block:height(block:top()));
-            ok;
+        B -> sync(Peer, block:height(block:top()));
+            %ok;
         true -> ok
     end.
 trade_blocks(Peer, L, 0) ->
