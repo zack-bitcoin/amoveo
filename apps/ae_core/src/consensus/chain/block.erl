@@ -7,6 +7,7 @@
          guess_number_of_cpu_cores/0, top/0,
          accounts_root/1, channels_root/1,existence_root/1,
          burn_root/1,oracles_root/1,governance_root/1,
+         genesis_maker/0, height/0,
          dict_update_trie/2
         ]).
 
@@ -93,7 +94,7 @@ block_to_header(B) ->
            headers:block_header_hash()
           ) -> headers:block_header_hash();
           (error) -> error.
-hash(error) -> error;
+hash(error) -> 1=2;
 hash(B) when is_binary(B) ->%accepts binary headers
     case size(B) == constants:hash_size() of
         true ->
@@ -101,7 +102,7 @@ hash(B) when is_binary(B) ->%accepts binary headers
         false ->
             testnet_hasher:doit(B)
     end;
-hash(B) when element(1, B) ==  header ->
+hash(B) when element(1, B) == header ->
     hash(headers:serialize(B));
 hash(B) when is_record(B, block) ->
     hash(block_to_header(B)).
@@ -140,12 +141,15 @@ top() ->
     top(TH).
 
 top(Header) ->
+    false = element(2, Header) == undefined,
     case get_by_hash(hash(Header)) of
         empty -> 
             {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),
             top(PrevHeader);
         Block -> Block
     end.
+height() ->
+    height(top()).
 
 lg(X) when is_integer(X) andalso X > 0 ->
     lgh(X, 0).
@@ -368,6 +372,7 @@ mine(Block, Rounds, Cores) ->
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
                         block_absorber:save(PBlock),
+                        
                         sync:start()
                         %block_absorber:garbage()
                         %timer:sleep(2000)
@@ -424,10 +429,11 @@ check(Block) ->
     {ok, Header} = headers:read(BlockHash),
     OldBlock = get_by_hash(Block#block.prev_hash),
     OldTrees = OldBlock#block.trees,
-    PrevStateHash = roots_hash(Block#block.roots),
+    Roots = Block#block.roots,
+    PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = headers:trees_hash(PrevHeader),
-    Roots = Block#block.roots,
+    PrevStateHash = trees:root_hash2(OldTrees, Roots),
     case LN of
         true -> 
             OldSparseTrees = 
@@ -449,8 +455,6 @@ check(Block) ->
     Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
-    PrevTreesHash = trees:root_hash2(OldTrees, Roots),
-    PrevTreesHash = headers:trees_hash(PrevHeader),
     %NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     NewTrees3 = dict_update_trie(OldTrees, NewDict),
     Block2 = Block#block{trees = NewTrees3},
@@ -678,8 +682,8 @@ initialize_chain() ->
     GB = genesis_maker(),
     block_absorber:do_save(GB),
     Header0 = block_to_header(GB),
-    headers:hard_set_top(Header0),
-    block_hashes:add(hash(Header0)),
+    %headers:hard_set_top(Header0),
+    %block_hashes:add(hash(Header0)),
     Header0.
 
 %% Tests

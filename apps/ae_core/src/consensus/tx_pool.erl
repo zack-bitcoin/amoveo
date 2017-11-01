@@ -63,9 +63,11 @@ init(ok) ->
     {ok, State}.
 
 handle_call(dump, _From, _OldState) ->
+    io:fwrite("tx pool dump \n"),
     State = current_state(),
     {reply, 0, State};
 handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
+    io:fwrite("tx pool absorb_tx \n"),
     NewTxs = [Tx | F#f.txs],
     BlockSize = size(term_to_binary(NewTxs)),
     Governance = trees:governance(NewTrees),
@@ -81,6 +83,7 @@ handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
          end,
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
+    io:fwrite("tx pool absorb \n"),
     {reply, 0, #f{txs = [], trees = NewTrees, new_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) ->
     {reply, F, F};
@@ -98,6 +101,7 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_Reason, _State) ->
+    io:fwrite("tx_pool crashed \n this should never happen.\n"),
     ok = lager:warning("~p died!", [?MODULE]).
 
 code_change(_OldVsn, State, _Extra) ->
@@ -108,16 +112,23 @@ code_change(_OldVsn, State, _Extra) ->
 
 initial_state() ->
     io:fwrite("initialize 1\n"),
-    Header = block:initialize_chain(),
+    _Header = block:initialize_chain(),
+    Block = block:top(),
     io:fwrite("initialize state "),
-    io:fwrite(packer:pack(Header)),
+    io:fwrite(packer:pack(Block)),
     io:fwrite("\n"),
-    state2(Header).
+    state2(Block).
 current_state() ->
-    Header = headers:top(),
-    state2(Header).
-state2(Header) ->
-    Block = block:get_by_hash(block:hash(Header)),
+    %Header = headers:top(),
+    %Block = block:get_by_hash(block:hash(Header)),
+    Block = block:top(),
+    io:fwrite("tx_pool current state block is "),
+    io:fwrite(packer:pack(Block)),
+    io:fwrite("\n"),
+    state2(Block).
+state2(Block) ->
+    %Block = block:get_by_hash(block:hash(Header)),
+    Header = block:block_to_header(Block),
     case Block of
 	empty -> 
 	    {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),

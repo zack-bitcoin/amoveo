@@ -170,11 +170,11 @@ verify_proof(RootHash, Key, Value, Proof) ->
     
 
 test() ->
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
-    {Trees, _, _} = tx_pool:data(),
-    Root0 = constants:root0(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
+    %{Trees, _, _} = tx_pool:data(),
+    %Root0 = constants:root0(),
     %X0 = new(1, testnet_hasher:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
     %X = set_result(X0, 3),
     %X2 = deserialize(serialize(X)),
@@ -188,14 +188,14 @@ test() ->
     %true = verify_proof(Root2, X#oracle.id, 0, Path2),
     test2().
 test2() ->
-    {Trees, _, _} = tx_pool:data(),
-    OID = 2,
-    Root0 = constants:root0(),
+    %{Trees, _, _} = tx_pool:data(),
+    %OID = 2,
+    %Root0 = constants:root0(),
     %X0 = new(OID, testnet_hasher:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
     %io:fwrite("test oracle "),
     %io:fwrite(packer:pack(X0)),
     %io:fwrite("\n"),
-    Dict0 = dict:new(),
+    %Dict0 = dict:new(),
     %Dict1 = dict_write(X0, orders(X0), Dict0),
     %io:fwrite(packer:pack(dict:fetch_keys(Dict1))),
     %io:fwrite("\n"),

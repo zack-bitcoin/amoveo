@@ -28,8 +28,6 @@ init(ok) ->
 		     testnet_sign:new_key(),
 		 store(Pub, Priv, ""),
 		 K = #f{pub = Pub, priv=Priv},
-		 %K = #f{},
-		 %db:save(?LOC,#f{}),
 		 K;
 	     true -> #f{pub=X#f.pub}
 	 end,

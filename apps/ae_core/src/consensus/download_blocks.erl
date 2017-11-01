@@ -14,6 +14,7 @@ sync_all([Peer|T], Height) ->
 
 
 sync(Peer, MyHeight) ->
+    io:fwrite("download blocks sync\n"),
     RemoteTop = remote_peer({top}, Peer),
 	do_sync(RemoteTop, MyHeight, Peer).
 
@@ -28,6 +29,11 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
 	    true = JumpHeight > 0,
             BlockAtJumpHeight = remote_peer({block, JumpHeight}, Peer),
             trade_blocks(Peer, [BlockAtJumpHeight], JumpHeight);
+        Height < MyHeight ->
+            {ok, PBB} = application:get_env(ae_core, push_blocks_batch),
+            B = block:get_by_height(max(0, Height - PBB)),
+            CommonHash = block:hash(B),
+            send_blocks(Peer, block:hash(block:top()), CommonHash, [], 0);
         true ->
             trade_blocks(Peer, [TopBlock], Height)
     end,
@@ -36,18 +42,21 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
 case_sync(L, Peer) ->
     B = length(L) > 1,
     if
-        B -> sync(Peer, block:height(block:top()));
+        B -> %sync(Peer, block:height(block:top()));
+            ok;
         true -> ok
     end.
 trade_blocks(Peer, L, 0) ->
     lager:debug("downloader blocks trade blocks 0 absorbing blocks"),
     Genesis = block:get_by_height(0),
     GH = block:hash(Genesis),
-    send_blocks(Peer, block:hash(block:top()), GH, [], 0),
+    %send_blocks(Peer, block:hash(block:top()), GH, [], 0),
     block_absorber:enqueue(L),
     case_sync(L, Peer);
 trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
-    lager:debug("trade_blocks: ~p", [packer:pack({prev_block, PrevBlock, PBT})]),
+    %io:fwrite("trade_blocks: \n"),
+    %io:fwrite(packer:pack({prev_block, PrevBlock, PBT, block:block_to_header(PrevBlock)})),
+    %io:fwrite("\n"),
     PrevHash = block:hash(PrevBlock),
     NextHash = block:prev_hash(PrevBlock),
     OurChainAtPrevHash = block:get_by_hash(NextHash),
@@ -66,9 +75,10 @@ trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     	    lager:debug("about to send blocks"),
     	    H = headers:top(),
     	    case headers:height(H) of
-        		0 -> ok;
-        		_ ->
-        		    send_blocks(Peer, block:hash(block:top()), PrevHash, [], 0)
+                0 -> ok;
+                _ ->
+        		    %send_blocks(Peer, block:hash(block:top()), PrevHash, [], 0)
+                    ok
     	    end
     end.
 

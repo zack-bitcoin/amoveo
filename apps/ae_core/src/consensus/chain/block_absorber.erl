@@ -48,6 +48,9 @@ save(InputBlock) ->
     gen_server:call(?MODULE, {doit, InputBlock}).
 
 absorb_internal(Block) ->
+    %io:fwrite("about to absorb a block \n"),
+    %io:fwrite(packer:pack(Block)),
+    %io:fwrite("\n"),
     BH = block:hash(Block),
     NextBlock = block:prev_hash(Block),
     case block_hashes:check(BH) of

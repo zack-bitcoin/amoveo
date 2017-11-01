@@ -4,8 +4,9 @@
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 %-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, infinity, Type, [I]}).
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
--define(keys, [keys, headers, %top,
+-define(keys, [keys, 
 	       block_hashes, 
+               headers, %top,
 	       block_absorber,
 	       tx_pool, 
 	       peers, tx_pool_feeder, 

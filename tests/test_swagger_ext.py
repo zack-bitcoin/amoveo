@@ -1,7 +1,7 @@
 from swagger import SwaggerTest, IntAPI, ExtAPI
 from nose.tools import nottest
 
-#@nottest
+@nottest
 class ExternalAPITest(SwaggerTest):
     INT_API = {
         'dev1': IntAPI('localhost', 3012),

@@ -3,6 +3,7 @@
 
 %% API
 -export([prev_hash/1, height/1, time/1, version/1, trees_hash/1, txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1,
+         check/0,
          absorb/1, read/1, top/0, dump/0, hard_set_top/1,
          make_header/8,
          serialize/1, deserialize/1,
@@ -28,6 +29,7 @@
                  version,
                  nonce,
                  accumulative_difficulty = 0}).
+-define(LOC, constants:headers_file()).
 -record(s, {headers = dict:new() :: dict:dict(block_header_hash(), header()),
             top = #header{} :: header()}).
 
@@ -65,8 +67,8 @@ absorb([Header | T]) ->
             true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
             Header#header.height > 1,
             {true, _} = check_difficulty(Header),%check that the difficulty written on the block is correctly calculated
-            ok = gen_server:call(?MODULE, {add, Hash, Header}),
-            file:write_file(constants:headers_file(), serialize(Header), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
+            ok = gen_server:call(?MODULE, {add, Hash, Header})
+            %file:write_file(?LOC, serialize(Header), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
     end,
     absorb(T).
 
@@ -76,9 +78,6 @@ check_pow(Header) ->
     Nonce = Header#header.nonce,
     Serialized = serialize(Header),
     %Hashed = hash:doit(Serialized, constants:hash_size()),
-    io:fwrite("check pow "),
-    io:fwrite(packer:pack({pow, Data, MineDiff, Nonce})),
-    io:fwrite("\n"),
     pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size()).
     %Hashed = testnet_hasher:doit(Serialized),
     %Integer = pow:hash2integer(Hashed),
@@ -95,15 +94,17 @@ check_difficulty(A) ->
     {B == A#header.difficulty, B}.
 
 -spec read(block_header_hash()) -> {ok, header()}.
-read(Hash) ->
-    gen_server:call(?MODULE, {read, Hash}).
+read(Hash) -> gen_server:call(?MODULE, {read, Hash}).
+check() -> gen_server:call(?MODULE, {check}).
 
 -spec top() -> header().
-top() ->
-    gen_server:call(?MODULE, {top}).
+top() -> 
+    X = gen_server:call(?MODULE, {top}),
+    false = element(2, X) == undefined,
+    X.
+         
 
-dump() ->
-    gen_server:call(?MODULE, {dump}).
+dump() -> gen_server:call(?MODULE, {dump}).
 
 -spec hard_set_top(header()) -> ok.
 hard_set_top(Header) ->
@@ -120,24 +121,27 @@ make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty) ->
 	    difficulty = Difficulty,
 	    accumulative_difficulty = 0};
 make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty) ->
-    case read(PH) of
-        {ok, PrevHeader} ->
-            AC = pow:sci2int(Difficulty) + PrevHeader#header.accumulative_difficulty,
-            #header{prev_hash = PH,
-                    height = Height,
-                    time = Time,
-                    version = Version,
-                    trees_hash = Trees,
-                    txs_proof_hash = TxsProodHash,
-                    nonce = Nonce,
-                    difficulty = Difficulty,
-                    accumulative_difficulty = AC};
-        _ -> error %the parent is unknown
-    end.
+    AC = case read(PH) of
+            {ok, PrevHeader} ->
+                pow:sci2int(Difficulty) + 
+                     PrevHeader#header.accumulative_difficulty;
+            _ -> Height %the parent is unknown
+        end,
+    #header{prev_hash = PH,
+            height = Height,
+            time = Time,
+            version = Version,
+            trees_hash = Trees,
+            txs_proof_hash = TxsProodHash,
+            nonce = Nonce,
+            difficulty = Difficulty,
+            accumulative_difficulty = AC}.
+    
 txs_hash(X) ->
     testnet_hasher:doit(X).
 -spec serialize(header()) -> serialized_header().
 serialize(H) ->
+    false = H#header.prev_hash == undefined,
     HtB = constants:height_bits(),
     TB = constants:time_bits(),
     VB = constants:version_bits(),
@@ -223,12 +227,25 @@ median(L) ->
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-
+empty_data() ->
+    %GB = block:get_by_height(0),
+    GB = block:genesis_maker(),
+    Header0 = block:block_to_header(GB),
+    HH = block:hash(Header0),
+    block_hashes:add(HH),
+    #s{top = Header0, headers = dict:store(HH,Header0,dict:new())}.
+    
 %% gen_server callbacks
--define(LOC, constants:headers_file()).
 init([]) ->
-    {ok, #s{}}.
-init_new([]) ->
+    process_flag(trap_exit, true),
+    X = db:read(?LOC),
+    K = if
+	    X == "" -> 
+                empty_data();
+	    true -> X
+	end,
+    {ok, K}.
+init_new_unused([]) ->
     X = file:read_file(?LOC),
     GB = block:get_by_height(0),
     GHeader = block:block_to_header(GB),
@@ -242,7 +259,6 @@ init_new([]) ->
     {ok, Ka}.
 remember_headers(<<>>, S) -> S;
 remember_headers(B, S) ->
-    io:fwrite("remembering header \n"),
     HeaderSize = header_size(),
     <<H:HeaderSize, B2/binary>> = B,
     Header0 = deserialize(<<H:HeaderSize>>),
@@ -276,8 +292,10 @@ header_size() ->
 
 handle_call({read, Hash}, _From, State) ->
     {reply, dict:find(Hash, State#s.headers), State};
+handle_call({check}, _From, State) ->
+    {reply, State, State};
 handle_call({dump}, _From, _State) ->
-    {reply, ok, #s{}};
+    {reply, ok, empty_data()};
 handle_call({top}, _From, State) ->
     {reply, State#s.top, State};
 handle_call({hard_set_top, Header}, _From, _State) ->
@@ -301,8 +319,10 @@ handle_cast(_, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
-terminate(_Reason, _State) ->
-    ok = lager:warning("~p died!", [?MODULE]).
+terminate(_Reason, X) ->
+    db:save(?LOC, X),
+    io:fwrite("headers died!\n"),
+    ok.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

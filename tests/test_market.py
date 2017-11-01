@@ -66,4 +66,4 @@ class MarketTest(ApiUser):
         self.request('pull_channel_state', DEV_2_INT, [[127,0,0,1], 3030], sleep=0.04)
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.2)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
-        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
+        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=1)
