@@ -112,6 +112,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 initial_state() ->
     io:fwrite("initialize 1\n"),
+    %only initialize the chain once.
     _Header = block:initialize_chain(),
     Block = block:top(),
     %io:fwrite("initialize state "),

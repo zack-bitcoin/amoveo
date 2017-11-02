@@ -1,6 +1,6 @@
 -module(testnet_sup).
 -behaviour(supervisor).
--export([start_link/0,init/1]).
+-export([start_link/0,init/1, stop/0]).
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 %-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, infinity, Type, [I]}).
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
@@ -13,6 +13,13 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       mine, channel_manager, channel_feeder,
 	       request_frequency, sync, secrets,
 	       arbitrage, order_book]).
+child_killer([]) ->
+    [];
+child_killer([H|T]) -> 
+    supervisor:terminate_child(testnet_sup, H),
+    child_killer(T).
+stop() -> 
+    child_killer(?keys).
 
 child_maker([]) -> [];
 child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].

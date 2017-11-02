@@ -1,3 +1,5 @@
+* after restarting a node, the governance trie is mostly deleted. only the 2-branch remains.
+
 * do not sync twice in parallel.
 * sync:stop() isn't working.
 

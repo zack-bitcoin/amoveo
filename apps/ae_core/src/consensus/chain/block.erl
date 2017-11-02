@@ -352,11 +352,14 @@ spawn_many(N, F) ->
     spawn_many(N-1, F).
 
 mine(Rounds) -> 
-    Top = headers:top(),
+    %Top = headers:top(),
     %timer:sleep(100),
-    PB = block:get_by_hash(Top),
+    %PB = block:get_by_hash(Top),
+    PB = top(),
+    Top = block_to_header(PB),
+    %Top = headers:read(hash(PB)),
     {_, _, Txs} = tx_pool:data(),
-    Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
+    Block = make(Top, Txs, trees(PB), keys:pubkey()),
     mine(Block, Rounds).
 
 mine(Block, Rounds) ->
@@ -679,9 +682,17 @@ no_coinbase([STx|T]) ->
     no_coinbase(T).
 
 initialize_chain() -> 
-    GB = genesis_maker(),
-    block_absorber:do_save(GB),
+    %only run genesis maker once, or else it corrupts the database.
+    {ok, L} = file:list_dir("blocks"),
+    B = length(L) < 1,
+    GB = if
+        B -> G = genesis_maker(),
+             block_absorber:do_save(G),
+             G;
+        true -> get_by_height(1)
+         end,
     Header0 = block_to_header(GB),
+    %GH = hash(Header0),
     %headers:hard_set_top(Header0),
     %block_hashes:add(hash(Header0)),
     Header0.

@@ -413,9 +413,11 @@ mempool() ->
     Txs.
 halt() -> off().
 off() ->
+    testnet_sup:stop(),
     ok = application:stop(ae_core),
     ok = application:stop(ae_api),
     ok = application:stop(ae_http).
+    %halt().
 mine_block() ->
     block:mine(1, 100000).
 mine_block(0, Times) -> ok;
