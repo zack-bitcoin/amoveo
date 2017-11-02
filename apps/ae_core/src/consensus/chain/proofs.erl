@@ -293,7 +293,7 @@ txs_to_querys2([STx|T], Trees) ->
                  {governance, ?n2i(maximum_question_size)},
                  {governance, ?n2i(question_delay)},
                  {governance, ?n2i(oracle_initial_liquidity)},
-                 {governance, ?n2i(oracle_future_limit)},
+                 %{governance, ?n2i(oracle_future_limit)},
                  {governance, ?n2i(minimum_oracle_time)},
                  {accounts, AID},
                  {oracles, OID}

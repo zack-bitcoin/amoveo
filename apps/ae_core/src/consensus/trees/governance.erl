@@ -32,7 +32,7 @@ genesis_state() ->
          %[channel_rent, 600],
          %[account_rent, 600],
          [block_time, BlockTime],%remove
-         [oracle_future_limit, 335],
+         %[oracle_future_limit, 335],
          %[shares_conversion, 575],
          [fun_limit, 350],
          [var_limit, 600],
@@ -157,7 +157,7 @@ name2number(space_gas) -> 27;
 name2number(max_block_size) -> 3;
 name2number(create_channel_fee) -> 4;
 name2number(block_time) -> 11;
-name2number(oracle_future_limit) -> 12;
+%name2number(oracle_future_limit) -> 12;
 name2number(shares_conversion) -> 13;
 name2number(fun_limit) -> 14;%needed to run smart contracts
 name2number(var_limit) -> 15;%needed to run smart contracts
