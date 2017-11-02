@@ -1,3 +1,7 @@
+* we need to display your public key on the gui.
+
+* titles on the gui browser pages so you know what it is.
+
 * in web/main.html, we should display a warning if your private key is locked. We should turn off all the interfaces that require an unlocked private key. we should add a link to the web/login.html page so you can unlock your private key.
 
 * do not sync twice in parallel.

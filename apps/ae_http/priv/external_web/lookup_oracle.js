@@ -38,7 +38,7 @@ function lookup_oracle1() {
     lookup_oracle_button.onclick = lookup_oracle_helper;
     document.body.appendChild(lookup_oracle_button);
     function lookup_oracle_helper() {
-        var x = lookup_oracle_address.value;
+        var x = parseInt(lookup_oracle_address.value, 10);
         variable_public_get(["oracle", x], lookup_oracle_helper2);
     }
     function lookup_oracle_helper2(x) {
