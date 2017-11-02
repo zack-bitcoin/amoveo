@@ -28,9 +28,10 @@ handle(Req, State) ->
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 %-define(WORD, 10000000).%10 megabytes.
+doit({account, Pubkey}) -> 
+    {ok, api:account(Pubkey)};
 doit({pubkey}) -> {ok, keys:pubkey()};
-doit({height}) -> {ok, block_tree:height()};
-%doit({total_coins}) -> {ok, block_tree:total_coins()};
+doit({height}) -> {ok, block:height()};
 doit({give_block, SignedBlock}) -> 
     %true = block:height(SignedBlock) < api:height() + 2,
     io:fwrite("received block\n"),
@@ -49,7 +50,6 @@ doit({headers, Many, N}) ->
     X = many_headers(Many, N),
     {ok, X};
 doit({tophash}) -> {ok, headers:top()};
-%doit({recent_hash, H}) -> {ok, block_tree:is_key(H)};
 doit({peers}) ->
     P = peers:all(),
     P2 = ae_utils:tuples2lists(P),

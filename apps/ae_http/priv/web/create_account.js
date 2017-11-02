@@ -5,6 +5,7 @@ function create_account1() {
     var pubkey_info = document.createElement("h8");
     pubkey_info.innerHTML = "new account address: ";
     document.body.appendChild(document.createElement("br"));
+    document.body.appendChild(document.createElement("br"));
     document.body.appendChild(pubkey_info);
     document.body.appendChild(create_pubkey);
     

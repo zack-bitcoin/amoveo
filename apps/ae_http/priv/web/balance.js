@@ -1,3 +1,5 @@
+document.body.appendChild(document.createElement("br"));
+document.body.appendChild(document.createElement("br"));
 var balance = document.createElement("div");
 balance.id = "balance";
 document.body.appendChild(balance);

@@ -395,13 +395,15 @@ oracle_unmatched(Fee, OracleID) ->
 	end,
     tx_maker(F).
 
-account(Pubkey) ->
+account(Pubkey) when size(Pubkey) == 65 ->
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     case accounts:get(Pubkey, Accounts) of
         {_,empty,_} -> empty;
         {_, A, _} -> A
-    end.
+    end;
+account(Pubkey) ->
+    account(base64:decode(Pubkey)).
 account() -> account(keys:pubkey()).
 integer_balance() -> 
     A = account(),

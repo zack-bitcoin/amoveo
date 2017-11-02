@@ -1,3 +1,6 @@
+
+document.body.appendChild(document.createElement("br"));
+document.body.appendChild(document.createElement("br"));
 var height = document.createElement("div");
 height.id = "height";
 document.body.appendChild(height);
