@@ -1,4 +1,4 @@
-* document prod-quick and prod-restart
+* in web/main.html, we should display a warning if your private key is locked. We should turn off all the interfaces that require an unlocked private key. we should add a link to the web/login.html page so you can unlock your private key.
 
 * do not sync twice in parallel.
 * sync:stop() isn't working.

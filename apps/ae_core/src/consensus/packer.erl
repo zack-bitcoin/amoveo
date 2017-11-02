@@ -31,6 +31,9 @@ unpack_helper(J) ->
     list_to_tuple([Out|lists:map(fun(X) -> unpack_helper(X) end, tl(J))]).
 pack(X) -> iolist_to_binary(jiffy:encode(untup(X))).
 -record(d, {a = "", b = "" }).
+is_b_atom(<<"keys_status">>) -> true;
+is_b_atom(<<"keys_unlock">>) -> true;
+is_b_atom(<<"keys_new">>) -> true;
 is_b_atom(<<"halt">>) -> true;
 is_b_atom(<<"ss">>) -> true;
 is_b_atom(<<"exist">>) -> true;
@@ -131,9 +134,6 @@ is_b_atom(<<"oracle_unmatched">>) -> true;
 is_b_atom(<<"pubkey">>) -> true;
 is_b_atom(<<"new_pubkey">>) -> true;
 is_b_atom(<<"channel_keys">>) -> true;
-is_b_atom(<<"key_status">>) -> true;
-is_b_atom(<<"keys_unlock">>) -> true;
-is_b_atom(<<"keys_new">>) -> true;
 is_b_atom(<<"market_match">>) -> true;
 is_b_atom(<<"new_market">>) -> true;
 is_b_atom(<<"trade">>) -> true;

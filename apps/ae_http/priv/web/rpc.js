@@ -32,10 +32,10 @@ function refresh_helper(x, callback) {
 my_status = "nil";
 //var x = local_get(["test"]);
 
-refresh_helper(x, function(){ 
-    my_status = JSON.parse(xml_out(x)); 
-    console.log("test response ".concat(JSON.stringify(my_status)));
-});
+//refresh_helper(x, function(){ 
+//    my_status = JSON.parse(xml_out(x)); 
+//    console.log("test response ".concat(JSON.stringify(my_status)));
+//});
 function variable_get(cmd, callback) {
     var x = local_get(cmd);
     var_get(x, callback);

@@ -14,6 +14,8 @@
 
 dump_channels() ->
     channel_manager:dump().
+keys_status() ->
+    keys:status().
 load_key(Pub, Priv, Brainwallet) ->
     keys:load(Pub, Priv, Brainwallet).
 height() ->    
@@ -497,8 +499,8 @@ test() ->
     {test_response}.
 channel_keys() ->
     channel_manager:keys().
-keys_status() ->
-    list_to_binary(atom_to_list(keys:status())).
+%keys_status() ->
+%    list_to_binary(atom_to_list(keys:status())).
 keys_unlock(Password) ->
     keys:unlock(Password),
     0.

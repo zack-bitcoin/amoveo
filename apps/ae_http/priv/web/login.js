@@ -1,12 +1,15 @@
 document.body.appendChild(document.createElement("br"));
-variable_get(["key_status"], login_1);
+variable_get(["keys_status"], login_1);
 function login_1(x) {
-    if ( x == btoa("locked") ) {
+    if ( x == "locked" ) {
 	login_locked();
-    } else if ( x == btoa("empty") ) {
+    } else if ( x == "empty" ) {
 	login_new();
-    } else if ( x == btoa("unlocked") ) {
+    } else if ( x == "unlocked" ) {
 	login_unlocked();
+    } else {
+        console.log("can't understand key status");
+        console.log(x);
    }
 }
 function login_0(x) {
@@ -14,7 +17,7 @@ function login_0(x) {
 	var con = document.createElement("p");
 	con.innerHTML = "password no good";
 	document.body.appendChild(con);	    
-    } else if ( x == btoa("unlocked") ) {
+    } else if ( x == "unlocked" ) {
 	login_unlocked();
    }
 }
@@ -40,8 +43,8 @@ function login_new() {
     spend_button.appendChild(spend_button_text);
     spend_button.onclick = function() {
 	if (new_password.value == new_password_check.value) {
-	    local_get(["key_new", btoa(new_password.value)]);
-	    variable_get(["key_status"], login_0);
+	    local_get(["keys_new", btoa(new_password.value)]);
+	    variable_get(["keys_status"], login_0);
 	} else {
 	    var con = document.createElement("p");
 	    con.innerHTML = "passwords don't match";
@@ -54,7 +57,9 @@ function login_unlocked() {
     console.log("unlocked option");
     var con = document.createElement("a");
     con.href = "/main.html"
-    con.innerHTML = "continue";
+    con.innerHTML = "continue to unlocked wallet";
+    document.body.appendChild(document.createElement("br"));
+    document.body.appendChild(document.createElement("br"));
     document.body.appendChild(document.createElement("br"));
     document.body.appendChild(con);
 }
@@ -71,8 +76,8 @@ function login_locked() {
     var login_button_text = document.createTextNode("continue");
     login_button.appendChild(login_button_text);
     login_button.onclick = function() {
-	local_get(["key_unlock", btoa(password.value)]);
-	variable_get(["key_status"], function(x) {login_0(x)});
+	local_get(["keys_unlock", btoa(password.value)]);
+	variable_get(["keys_status"], function(x) {login_0(x)});
     };
     document.body.appendChild(login_button);
 }

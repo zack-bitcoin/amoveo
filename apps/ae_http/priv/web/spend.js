@@ -3,7 +3,7 @@ function spend1() {
     var spend_address = document.createElement("INPUT");
     spend_address.setAttribute("type", "text"); 
     var input_info = document.createElement("h8");
-    input_info.innerHTML = "spend to: ";
+    input_info.innerHTML = "spend to address: ";
     document.body.appendChild(document.createElement("br"));
     document.body.appendChild(input_info);
     document.body.appendChild(spend_address);
