@@ -43,6 +43,19 @@ function lookup_oracle1() {
     }
     function lookup_oracle_helper2(x) {
         console.log(x);
+        price = x[2];
+        console.log("price is ");
+        console.log(price/100);
+        console.log("expires at ");
+        console.log(x[6]);
+        console.log("batch period is ");
+        console.log(x[7]);
+        console.log("height last matched is ");
+        console.log(x[8]);
+        console.log("buy orders ");
+        console.log(x[3]);
+        console.log("sell orders ");
+        console.log(x[4]);
         //lookup_oracle.innerHTML = "balance: ".concat(x[1]);
     }
 
