@@ -16,7 +16,7 @@ When money flows from a centralized source like this, the resulting economy is f
 
 # Derivatives are for insurance
 
-Derivatives are a way to exchance money from one point in time for the value of something else at a different point in time.
+Derivatives are a way to exchange money from one point in time for the value of something else at a different point in time.
 
 These are the tools that allow us to take bigger risks, and efficiently and fairly share the rewards to protect everyone who participates.
 They protect us from risk, so some individuals can participate in more profitable economic activities which would otherwise be too dangerous.
