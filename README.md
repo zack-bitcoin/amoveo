@@ -27,6 +27,12 @@ Non-technical [mission statement](docs/mission_statement.md).
 Launch a node and connect to the network; [look at the quick start guide](docs/getting-started/turn_it_on.md)
 
 
+## Graphic user interface
+
+[After starting your node, use a web browser on the same computer to visit this website.](http://localhost:8081/login.html)
+It is being served by the node you are running.
+
+
 ## Using the wallet
 
 Amove is also a wallet. A wallet is for storing your private key, and for making signatures.
