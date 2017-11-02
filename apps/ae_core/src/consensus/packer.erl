@@ -31,6 +31,7 @@ unpack_helper(J) ->
     list_to_tuple([Out|lists:map(fun(X) -> unpack_helper(X) end, tl(J))]).
 pack(X) -> iolist_to_binary(jiffy:encode(untup(X))).
 -record(d, {a = "", b = "" }).
+is_b_atom(<<"list_oracles">>) -> true;
 is_b_atom(<<"keys_status">>) -> true;
 is_b_atom(<<"keys_unlock">>) -> true;
 is_b_atom(<<"keys_new">>) -> true;

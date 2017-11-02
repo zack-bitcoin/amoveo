@@ -15,6 +15,9 @@ handle(Req, State) ->
     {{IP, _}, Req3} = cowboy_req:peer(Req2),
     request_frequency:doit(IP),
     true = is_binary(Data),
+    io:fwrite("ext handler got data: "),
+    io:fwrite(Data),
+    io:fwrite("\n"),
     A = packer:unpack(Data),
     B = doit(A),
     D = packer:pack(B),
@@ -163,6 +166,10 @@ doit({proof, TreeName, ID}) ->
     {RootHash, Value, Proof} = TN:get(ID, Root),
     Proof2 = proof_packer(Proof),
     {ok, {return, RootHash, Value, Proof2}};
+doit({list_oracles}) ->
+    {ok, order_book:keys()};
+doit({oracle, X}) ->
+    {ok, order_book:data(X)};
 doit({market_data, OID}) ->
     OB = order_book:data(OID),
     Expires = order_book:expires(OB),
