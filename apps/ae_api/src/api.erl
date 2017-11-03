@@ -144,15 +144,32 @@ pull_channel_state() ->
     pull_channel_state(?IP, ?Port).
 pull_channel_state(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
-    {ok, CD0} = channel_manager:read(ServerID),
-    true = channel_feeder:live(CD0),
-    SPKME = channel_feeder:me(CD0),
     {ok, CD, ThemSPK} = talker:talk({spk, keys:pubkey()}, IP, Port),
-    Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),%here
-    talker:talk({channel_sync, keys:pubkey(), Return}, IP, Port),
-    decrypt_msgs(channel_feeder:emsg(CD)),
-    bet_unlock(IP, Port),
-    ok.
+    case channel_manager:read(ServerID) of
+        error  -> 
+            SPKME = channel_feeder:them(CD),
+            io:fwrite(packer:pack(SPKME)),
+            io:fwrite("\n"),
+            %true = testnet_sign:verify_1(SPKME),
+            true = testnet_sign:verify(keys:sign(ThemSPK)),
+            SPK = testnet_sign:data(ThemSPK),
+            SPK = testnet_sign:data(SPKME),
+            true = keys:pubkey() == element(2, SPK),
+            NewCD = channel_feeder:new_cd(SPK, ThemSPK, 
+                                         channel_feeder:script_sig_them(CD),
+                                         channel_feeder:script_sig_me(CD),
+                                         channel_feeder:entropy(CD),
+                                         channel_feeder:cid(CD)),
+            channel_manager:write(ServerID, NewCD);
+        {ok, CD0} ->
+            true = channel_feeder:live(CD0),
+            SPKME = channel_feeder:me(CD0),
+            Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),%here
+            talker:talk({channel_sync, keys:pubkey(), Return}, IP, Port),
+            decrypt_msgs(channel_feeder:emsg(CD)),
+            bet_unlock(IP, Port),
+            ok
+    end.
 decrypt_msgs([]) ->
     [];
 decrypt_msgs([{msg, _, Msg, _}|T]) ->
@@ -271,13 +288,18 @@ close_channel_with_server() ->
 to_int(X) ->
     {ok, TokenDecimals} = application:get_env(ae_core, token_decimals),
     round(X * TokenDecimals).
-
-grow_channel(CID, Bal1, Bal2) ->
+grow_channel(IP, Port, Bal1, Bal2) ->
+    %This only works if we only have 1 channel partner. If there are multiple channel partners, then we need to look up their pubkey some other way than the head of the channel_manager:keys().
+    {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
+    CID = channel_feeder:cid(CD),
+    Stx = grow_channel_tx(CID, Bal1, Bal2),
+    talker:talk({grow_channel, Stx}, IP, Port).
+grow_channel_tx(CID, Bal1, Bal2) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(gc, Governance),
     grow_channel(CID, Bal1, Bal2, ?Fee+Cost).
-grow_channel(CID, Bal1, Bal2, Fee) ->
+grow_channel_tx(CID, Bal1, Bal2, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     {Tx, _} = grow_channel_tx:make(CID, Trees, to_int(Bal1), to_int(Bal2), Fee),
     keys:sign(Tx).
@@ -576,7 +598,7 @@ test_oracle_unmatched() ->
     Stx = testnet_sign:sign_tx(Ctx, Pub, Priv, Accounts),
     tx_pool_feeder:absorb(Stx),
     timer:sleep(100),
-    Ctx2 = grow_channel(1, 0.1, 0.1),
+    Ctx2 = grow_channel_tx(1, 0.1, 0.1),
     Stx2 = testnet_sign:sign_tx(Ctx2, Pub, Priv, Accounts),
     tx_pool_feeder:absorb(Stx2),
     test_txs:mine_blocks(1),

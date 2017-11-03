@@ -1,5 +1,3 @@
-document.body.appendChild(document.createElement("br"));
-document.body.appendChild(document.createElement("br"));
 var login_warning = document.createElement("div");
 login_warning.id = "login_warning";
 document.body.appendChild(login_warning);

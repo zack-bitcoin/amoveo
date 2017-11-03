@@ -1,3 +1,5 @@
+* api:pull_channel_state might need more checks for the error banch. or maybe it will only be used for testing purposes, so we don't need more checks.
+
 * remove ae_http/src/ae_http_dispatch_int.erl
 
 * we need to display your public key on the gui.

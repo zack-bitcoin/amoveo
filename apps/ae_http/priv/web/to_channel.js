@@ -5,6 +5,7 @@ function to_channel1() {
     var input_info = document.createElement("h8");
     input_info.innerHTML = "you pay: ";
     document.body.appendChild(document.createElement("br"));
+    document.body.appendChild(document.createElement("br"));
     document.body.appendChild(input_info);
     document.body.appendChild(inc1);
     
@@ -30,7 +31,7 @@ function to_channel1() {
 	var b1 = parseInt(inc1.value, 10);
 	var b2 = parseInt(inc2.value, 10);
 	var fee = parseInt(spend_fee.value, 10);
-	local_get(["to_channel", IP, Port, b1, b2, fee]);
+	local_get(["grow_channel", IP, Port, b1, b2]);
 	local_get(["sync", IP, Port]);
     };
     document.body.appendChild(spend_button);
