@@ -64,9 +64,10 @@ function lookup_oracle1() {
         console.log(x[3]);
         console.log("sell orders ");
         console.log(x[4]);
-        var Z = ((x[2])/100).toString();
+        var Z = ((x[2])/100);
         console.log("calculated z");
-        price.innerHTML = "price 0-100 : ".concat(Z);
+        console.log(Z);
+        price.innerHTML = "price 0-100 : ".concat(Z.toString());
         console.log("last line");
         //lookup_oracle.innerHTML = "balance: ".concat(x[1]);
     }
