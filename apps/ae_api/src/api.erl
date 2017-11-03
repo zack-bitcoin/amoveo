@@ -232,11 +232,15 @@ channel_balance() ->
     %% Why prod address?
     channel_balance(constants:server_ip(), constants:server_port()).
 
+channel_balance2(Ip, Port) ->
+    {_, Bal} = integer_channel_balance(Ip, Port),
+    Bal.
 channel_balance(Ip, Port) ->
-    Balance = integer_channel_balance(Ip, Port),
+    {Balance, _} = integer_channel_balance(Ip, Port),
     FormattedBalance = pretty_display(Balance),
     lager:info("Channel balance: ~p", [FormattedBalance]),
-    FormattedBalance.
+    FormattedBalance,
+    Balance.
 
 integer_channel_balance(Ip, Port) ->
     {ok, Other} = talker:talk({pubkey}, Ip, Port),
@@ -246,10 +250,10 @@ integer_channel_balance(Ip, Port) ->
     SS = channel_feeder:script_sig_them(CD),
     {Trees, NewHeight, _Txs} = tx_pool:data(),
     Channels = trees:channels(Trees),
-    {Amount, _, _, _} = spk:run(fast, SS, SPK, NewHeight, 0, Trees),
+    {Amount, _, _} = spk:run(fast, SS, SPK, NewHeight, 0, Trees),
     CID = spk:cid(SPK),
     {_, Channel, _} = channels:get(CID, Channels),
-    channels:bal1(Channel)-Amount.
+    {channels:bal1(Channel)-Amount, channels:bal2(Channel)+Amount}.
 
 pretty_display(I) ->
     {ok, TokenDecimals} = application:get_env(ae_core, token_decimals),

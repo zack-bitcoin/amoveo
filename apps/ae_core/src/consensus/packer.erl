@@ -110,6 +110,7 @@ is_b_atom(<<"delete_account">>) -> true;
 is_b_atom(<<"account">>) -> true;
 is_b_atom(<<"repo_account">>) -> true;
 is_b_atom(<<"channel_balance">>) -> true;
+is_b_atom(<<"channel_balance2">>) -> true;
 is_b_atom(<<"channel_timeout">>) -> true;
 is_b_atom(<<"new_channel_with_server">>) -> true;
 is_b_atom(<<"pull_channel_state">>) -> true;

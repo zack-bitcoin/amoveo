@@ -36,7 +36,7 @@ good(Tx) ->
     io:fwrite(" "),
     io:fwrite(float_to_list(MCR)),
     io:fwrite("\n"),
-    true = Frac > MCR,
+    true = Frac < MCR,
     true.
 cid(Tx) -> Tx#nc.id.
 entropy(Tx) -> Tx#nc.entropy.
