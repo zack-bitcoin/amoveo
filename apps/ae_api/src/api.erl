@@ -292,13 +292,16 @@ grow_channel(IP, Port, Bal1, Bal2) ->
     %This only works if we only have 1 channel partner. If there are multiple channel partners, then we need to look up their pubkey some other way than the head of the channel_manager:keys().
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
     CID = channel_feeder:cid(CD),
-    Stx = grow_channel_tx(CID, Bal1, Bal2),
+    Stx = grow_channel_tx(CID, Bal1, Bal2),%this line freezes.
+    io:fwrite("signed grow channel tx "),
+    io:fwrite(packer:pack(Stx)),
+    io:fwrite("\n"),
     talker:talk({grow_channel, Stx}, IP, Port).
 grow_channel_tx(CID, Bal1, Bal2) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(gc, Governance),
-    grow_channel(CID, Bal1, Bal2, ?Fee+Cost).
+    grow_channel_tx(CID, Bal1, Bal2, ?Fee+Cost).
 grow_channel_tx(CID, Bal1, Bal2, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     {Tx, _} = grow_channel_tx:make(CID, Trees, to_int(Bal1), to_int(Bal2), Fee),

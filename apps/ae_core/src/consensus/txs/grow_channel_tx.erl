@@ -11,8 +11,8 @@ good(Tx) ->
     Acc2 = Tx#gc.acc2,
     {Me, Other} = 
         case keys:pubkey() of
-            Acc1 -> {I1, I2};
-            Acc2 -> {I2, I1}
+            Acc1 -> {I1, Acc2};
+            Acc2 -> {I2, Acc1}
         end,
     NewCNLimit = Tx#gc.channel_nonce,
     {ok, CD} = channel_manager:read(Other),

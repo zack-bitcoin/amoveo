@@ -16,12 +16,12 @@ function to_channel1() {
     document.body.appendChild(amount_info);
     document.body.appendChild(inc2);
     
-    var spend_fee = document.createElement("INPUT");
-    spend_fee.setAttribute("type", "text"); 
-    var fee_info = document.createElement("h8");
-    fee_info.innerHTML = "fee: ";
-    document.body.appendChild(fee_info);
-    document.body.appendChild(spend_fee);
+    //var spend_fee = document.createElement("INPUT");
+    //spend_fee.setAttribute("type", "text"); 
+    //var fee_info = document.createElement("h8");
+    //fee_info.innerHTML = "fee: ";
+    //document.body.appendChild(fee_info);
+    //document.body.appendChild(spend_fee);
     
     var spend_button = document.createElement("BUTTON");
     spend_button.id = "spend_button";
@@ -30,7 +30,7 @@ function to_channel1() {
     spend_button.onclick = function() {
 	var b1 = parseInt(inc1.value, 10);
 	var b2 = parseInt(inc2.value, 10);
-	var fee = parseInt(spend_fee.value, 10);
+	//var fee = parseInt(spend_fee.value, 10);
 	local_get(["grow_channel", IP, Port, b1, b2]);
 	local_get(["sync", IP, Port]);
     };
