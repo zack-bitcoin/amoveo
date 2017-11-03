@@ -1,8 +1,8 @@
+* remove ae_http/src/ae_http_dispatch_int.erl
+
 * we need to display your public key on the gui.
 
 * titles on the gui browser pages so you know what it is.
-
-* in web/main.html, we should display a warning if your private key is locked. We should turn off all the interfaces that require an unlocked private key. we should add a link to the web/login.html page so you can unlock your private key.
 
 * do not sync twice in parallel.
 * sync:stop() isn't working.
@@ -15,7 +15,9 @@
 
 * If you use an incorrect password, there should be a useful error message.
 
-* make sure that ae_http_app:start_external() isn't exposing files that we don't want to expose.    
+* make sure that ae_http_app:start_external() isn't exposing files that we don't want to expose.
+
+* when we do `make prod-build` it is preserving the keys, and replacing all the other databases. Instead it should preserve them all. only delete with `make prod-clean`. This way `make prod-restart` could update the code without deleting the databases.
 
 
 

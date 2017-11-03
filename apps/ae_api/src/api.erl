@@ -496,7 +496,7 @@ sync(IP, Port) ->
 keypair() ->
     keys:keypair().
 pubkey() ->
-    keys:pubkey().
+    base64:encode(keys:pubkey()).
 new_pubkey(Password) ->    
     keys:new(Password).
 new_keypair() ->
