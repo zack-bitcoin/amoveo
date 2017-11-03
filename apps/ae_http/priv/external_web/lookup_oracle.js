@@ -64,10 +64,13 @@ function lookup_oracle1() {
         console.log(x[3]);
         console.log("sell orders ");
         console.log(x[4]);
-        var Z = (x[2])/100;
-        console.log("calculated z");
-        console.log(Z);
-        price.innerHTML = "price 0-100 : ".concat(Z.toString());
+        //var Z = (x[2])/100;
+        //console.log("calculated z");
+        //console.log(Z);
+        price.innerHTML = "price between 0 to 100: ".concat(((x[2])/100).toString());
+        expires.innerHTML = "expires at height: ".concat((x[6]).toString());
+        batch_period.innerHTML = "batch period: ".concat((x[7]).toString());
+        height.innerHTML = "last height matched: ".concat((x[8]).toString());
         console.log("last line");
         //lookup_oracle.innerHTML = "balance: ".concat(x[1]);
     }
