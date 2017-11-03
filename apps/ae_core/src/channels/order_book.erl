@@ -27,6 +27,7 @@ data(OID) ->
 %init(ok) -> {ok, #ob{}}.
 init(ok) -> 
     io:fwrite("start order book \n"),
+    process_flag(trap_exit, true),
     X = db:read(?LOC),
     KA = if
 	     X == "" ->
@@ -38,7 +39,10 @@ init(ok) ->
     {ok, KA}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, X) -> 
+    db:save(?LOC, X),
+    io:format("order book died!"), 
+    ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({new_market, OID, Expires, Period}, X) ->
     error = dict:find(OID, X),
