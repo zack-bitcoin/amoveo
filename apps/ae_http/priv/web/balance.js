@@ -19,6 +19,12 @@ document.body.appendChild(b_button);
 
 function balance_update() {
     console.log("update balance");
+    var balance1 = document.getElementById("balance");
+    var balance2 = document.getElementById("channel_balance");
+    var balance3 = document.getElementById("channel_balance2");
+    balance1.innerHTML = "";
+    balance2.innerHTML = "";
+    balance3.innerHTML = "";
     variable_get(["balance"], balance_update2);
 }
 function balance_update2(bal) {

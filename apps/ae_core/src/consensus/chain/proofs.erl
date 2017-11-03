@@ -389,7 +389,7 @@ make_orders([H|T], OID) ->
      make_orders(T, OID)].
 test() ->
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     {Trees0, _, _} = tx_pool:data(),
     Question = <<>>,

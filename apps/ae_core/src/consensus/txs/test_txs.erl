@@ -32,7 +32,7 @@ test(1) ->
     io:fwrite(" create_account tx test \n"),
     %create account, spend, delete account
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height_in_chain(0, headers:top()),
     PH = block:hash(BP),
@@ -100,7 +100,7 @@ test(2) ->
 test(3) ->
     io:fwrite(" new channel tx, grow channel tx, and channel team close tx test \n"),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -147,7 +147,7 @@ test(4) ->
     %channel solo close, channel timeout
     io:fwrite("channel solo close tx, channel timeout tx test \n"),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -202,7 +202,7 @@ test(5) ->
     %channel solo close, channel timeout
     io:fwrite("account delete tx, channel solo close tx, channel timeout tx test \n"),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -260,7 +260,7 @@ test(5) ->
 test(6) -> 
     io:fwrite("channel slash tx test \n"),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -336,7 +336,7 @@ test(6) ->
 test(8) ->
     io:fwrite(" channel solo close, and channel team close tx test \n"),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -388,7 +388,7 @@ test(8) ->
 test(9) ->
     io:fwrite(" channel slash tx, and channel team close tx test \n"),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -449,7 +449,7 @@ test(9) ->
 test(7) ->
     %existence tx
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     io:fwrite("existence test \n"),
     S = <<"test data">>,
     tx_pool:dump(),
@@ -478,7 +478,7 @@ test(11) ->
     OID = 1,
     Fee = 20,
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     {Trees,_,_Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
@@ -541,7 +541,7 @@ test(16) ->
     OID = 1,
     Fee = 20,
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     {Trees_1, _, _} = tx_pool:data(),
     Amount = 1000000000,
@@ -618,7 +618,7 @@ test(16) ->
 test(12) ->
     io:fwrite("multiple bets in a single channel test \n"),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     {Trees, _, _Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
@@ -677,7 +677,7 @@ test(13) ->
     Question = <<>>,
     Fee = 20,
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     OID2 = 1,
     {Trees3,_,_} = tx_pool:data(),
@@ -743,7 +743,7 @@ test(14) ->
     %options
     io:fwrite("options derivatives enforcement test\n"),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -818,7 +818,7 @@ test(15) ->
     %If your partner tries closing at a low-nonced channel state, your node needs to automatically create a channel_slash to stop them.
     io:fwrite("channel slash automatic test\n"),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),

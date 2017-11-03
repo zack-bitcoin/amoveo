@@ -73,7 +73,7 @@ test() ->
     Entropy = 555,
     tx_pool:dump(),
     headers:dump(),
-    block:initialize_chain(),
+    %block:initialize_chain(),
     {Trees,_,_Txs} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees),

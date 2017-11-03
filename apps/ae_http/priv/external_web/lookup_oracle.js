@@ -1,5 +1,3 @@
-// we should also list the active oracles. order_book:keys().
-
 list_oracles1();
 function list_oracles1() {
     document.body.appendChild(document.createElement("br"));
@@ -27,9 +25,6 @@ function lookup_oracle1() {
     document.body.appendChild(lookup_oracle);
     var lookup_oracle_address = document.createElement("INPUT");
     lookup_oracle_address.setAttribute("type", "text");
-    //var input_info = document.createElement("h8");
-    //input_info.innerHTML = "pubkey: ";
-    //document.body.appendChild(input_info);
     document.body.appendChild(lookup_oracle_address);
 
     var lookup_oracle_button = document.createElement("BUTTON");
@@ -46,33 +41,35 @@ function lookup_oracle1() {
     document.body.appendChild(expires);
     var height = document.createElement("div");
     document.body.appendChild(height);
+    var chart = document.createElement("div");
+    document.body.appendChild(chart);
     function lookup_oracle_helper() {
         var x = parseInt(lookup_oracle_address.value, 10);
         variable_public_get(["oracle", x], lookup_oracle_helper2);
     }
     function lookup_oracle_helper2(x) {
         console.log(x);
-        console.log("price is ");
-        console.log((x[2])/100);
-        console.log("expires at ");
-        console.log(x[6]);
-        console.log("batch period is ");
-        console.log(x[7]);
-        console.log("height last matched is ");
-        console.log(x[8]);
         console.log("buy orders ");
         console.log(x[3]);
         console.log("sell orders ");
         console.log(x[4]);
-        //var Z = (x[2])/100;
-        //console.log("calculated z");
-        //console.log(Z);
-        price.innerHTML = "price between 0 to 100: ".concat(((x[2])/100).toString());
+        var P = ((x[2])/100);
+        price.innerHTML = "odds of event occuring: ".concat(P.toString()).concat("%");
         expires.innerHTML = "expires at height: ".concat((x[6]).toString());
         batch_period.innerHTML = "batch period: ".concat((x[7]).toString());
         height.innerHTML = "last height matched: ".concat((x[8]).toString());
         console.log("last line");
+        var buys = JSON.stringify(price_amount(x[3]));
+        var sells = JSON.stringify(price_amount(x[4]));
+        chart.innerHTML = "open orders: {price from 0 to 10000, amount}, buys: ".concat(buys).concat(" sells: ").concat(sells);
         //lookup_oracle.innerHTML = "balance: ".concat(x[1]);
     }
 
+}
+function price_amount(L) {
+    var x = [];
+    for (var i = 1; i < L.length; i++) {
+        x.push([L[i][2], L[i][4]]);
+    }
+    return x.reverse();
 }

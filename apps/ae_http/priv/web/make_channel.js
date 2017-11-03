@@ -5,13 +5,16 @@ function make_channel2() {
     var height = document.createElement("div");
     height.id = "make_channel";
     document.body.appendChild(height);
-    variable_get(["channel_keys"], make_channel2);
+    variable_get(["channel_keys"], make_channel3);
 }
-function make_channel2(keys) {
-    if ( ( keys.length == 1) && ( keys.pop() == -6 )) {
+function make_channel3(x) {
+    console.log("make channel 2");
+    console.log(x);
+    if ( ( x.length == 1) && ( x.pop() == -6 )) {
         make_channel1();
     } else {
-        channel_data();
+        to_channel1();
+        //channel_data();
     }
 }
 

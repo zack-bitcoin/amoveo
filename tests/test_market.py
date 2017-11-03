@@ -49,6 +49,7 @@ class MarketTest(ApiUser):
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.2)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.2)
         self.request('pull_channel_state', DEV_1_INT, [[127,0,0,1], 3030], sleep=0.04)
+    #def dont_doit(): #good for testing market gui stuff.
         self.request('oracle_bet', DEV_1_INT, [oid, 1, 269], sleep=0.04)
         self.request('mine_block', DEV_1_INT, [11, 1], sleep=1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.2)

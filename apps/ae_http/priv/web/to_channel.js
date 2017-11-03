@@ -1,4 +1,3 @@
-to_channel1();
 function to_channel1() {
     var inc1 = document.createElement("INPUT");
     inc1.setAttribute("type", "text"); 
