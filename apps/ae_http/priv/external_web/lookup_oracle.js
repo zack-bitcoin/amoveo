@@ -37,6 +37,15 @@ function lookup_oracle1() {
     lookup_oracle_button.appendChild(lookup_oracle_text_node);
     lookup_oracle_button.onclick = lookup_oracle_helper;
     document.body.appendChild(lookup_oracle_button);
+    document.body.appendChild(document.createElement("br"));
+    var price = document.createElement("div");
+    document.body.appendChild(price);
+    var expires = document.createElement("div");
+    document.body.appendChild(expires);
+    var batch_period = document.createElement("div");
+    document.body.appendChild(expires);
+    var height = document.createElement("div");
+    document.body.appendChild(height);
     function lookup_oracle_helper() {
         var x = parseInt(lookup_oracle_address.value, 10);
         variable_public_get(["oracle", x], lookup_oracle_helper2);
@@ -44,8 +53,7 @@ function lookup_oracle1() {
     function lookup_oracle_helper2(x) {
         console.log(x);
         console.log("price is ");
-        price = x[2];
-        console.log(price/100);
+        console.log((x[2])/100);
         console.log("expires at ");
         console.log(x[6]);
         console.log("batch period is ");
@@ -56,6 +64,7 @@ function lookup_oracle1() {
         console.log(x[3]);
         console.log("sell orders ");
         console.log(x[4]);
+        price.innerHTML = "price 0-100 :".concat(x[2]);
         //lookup_oracle.innerHTML = "balance: ".concat(x[1]);
     }
 
