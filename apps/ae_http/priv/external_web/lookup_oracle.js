@@ -64,7 +64,9 @@ function lookup_oracle1() {
         console.log(x[3]);
         console.log("sell orders ");
         console.log(x[4]);
-        price.innerHTML = "price 0-100 :".concat(((x[2])/100).toString());
+        pr = document.getElementById("price");
+        //price.innerHTML = "price 0-100 :".concat(((x[2])/100).toString());
+        pr.innerHTML = "price 0-100 :".concat(((x[2])/100).toString());
         //lookup_oracle.innerHTML = "balance: ".concat(x[1]);
     }
 
