@@ -5,6 +5,7 @@
 	 keys/0,read/1,delete/1,write/2]).
 -define(LOC, constants:channel_manager()).
 init(ok) -> 
+    process_flag(trap_exit, true),
     X = db:read(?LOC),
     Ka = if
 	     X == "" -> dict:new();
