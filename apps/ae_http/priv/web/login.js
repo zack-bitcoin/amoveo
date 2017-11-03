@@ -1,4 +1,5 @@
 document.body.appendChild(document.createElement("br"));
+document.body.appendChild(document.createElement("br"));
 variable_get(["keys_status"], login_1);
 function login_1(x) {
     if ( x == "locked" ) {
@@ -56,7 +57,7 @@ function login_new() {
 function login_unlocked() {
     console.log("unlocked option");
     var con = document.createElement("a");
-    con.href = "/main.html"
+    con.href = "/main.html";
     con.innerHTML = "continue to unlocked wallet";
     document.body.appendChild(document.createElement("br"));
     document.body.appendChild(document.createElement("br"));
