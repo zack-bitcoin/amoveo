@@ -43,8 +43,8 @@ function lookup_oracle1() {
     }
     function lookup_oracle_helper2(x) {
         console.log(x);
-        price = x[2];
         console.log("price is ");
+        price = x[2];
         console.log(price/100);
         console.log("expires at ");
         console.log(x[6]);
