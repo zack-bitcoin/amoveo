@@ -76,6 +76,7 @@ go(Tx, Dict, NewHeight) ->
     Question = Tx#oracle_new.question,
     true = is_binary(Question),
     QH = testnet_hasher:doit(Question),
+    oracle_questions:store(QH, Question),
     Diff = Tx#oracle_new.difficulty,
     ON = oracles:dict_new(ID, QH, Starts, From, Gov, GovAmount, Dict),
     empty = oracles:dict_get(ID, Dict),

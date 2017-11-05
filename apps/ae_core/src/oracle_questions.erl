@@ -1,29 +1,37 @@
 -module(oracle_questions).
--export([save/1, read/1, all/0]).
--define(LOC, constants:oracle_questions()).
-all() ->
-    {Trees, _, _} = tx_pool:data(),
-    Oracles = trees:oracles(Trees),
-    Oracles2 = trie:get_all(Oracles, oracles),
-    all2(Oracles2).
-all2([]) -> ok;
-all2([Leaf|T]) -> 
-    Oracle = leaf:value(Leaf),
-    Q = oracles:question(Oracle),
-    [Q|all2(T)].
+-behaviour(gen_server).
+-export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
+        store/2, get/1, dump/0]).
+-define(LOC, constants:oracle_questions_file()).
+init(ok) -> 
+    process_flag(trap_exit, true),
+    X = db:read(?LOC),
+    K = if
+	    X == "" -> 
+                dict:new();
+	    true -> X
+	end,
+    {ok, K}.
+start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
+code_change(_OldVsn, State, _Extra) -> {ok, State}.
+terminate(_, X) -> 
+    db:save(?LOC, X),
+    io:format("oracle_questions died!"), 
+    ok.
+handle_info(_, X) -> {noreply, X}.
+handle_cast(dump, _) -> 
+    {noreply, dict:new()};
+handle_cast(_, X) -> {noreply, X}.
+handle_call({get, Key}, _From, X) -> 
+    {reply, dict:find(Key, X), X};
+handle_call({store, Key, Value}, _From, X) -> 
+    NewX = dict:store(Key, Value, X),
+    {reply, ok, NewX};
+handle_call(_, _From, X) -> {reply, X, X}.
 
-read(Hash) ->
-    OracleQuestionsFile = ae_utils:binary_to_file_path(oracle_questions, Hash),
-    case db:read(OracleQuestionsFile) of
-        [] ->
-            empty;
-        OracleQuestion ->
-            zlib:uncompress(OracleQuestion)
-    end.
-
-save(Binary) ->
-    CompressedOracleQuestion = zlib:compress(Binary),
-    Binary = zlib:uncompress(CompressedOracleQuestion), % Sanity check, not important for long-term
-    Hash = block:hash(Binary),
-    OracleQuestionFile = ae_utils:binary_to_file_path(oracle_questions, Hash),
-    db:save(OracleQuestionFile, CompressedOracleQuestion).
+store(Key, Value) ->
+    gen_server:call(?MODULE, {store, Key, Value}).
+get(Key) ->
+    gen_server:call(?MODULE, {get, Key}).
+dump() ->
+    gen_server:call(?MODULE, dump).
