@@ -169,7 +169,11 @@ doit({proof, TreeName, ID}) ->
 doit({list_oracles}) ->
     {ok, order_book:keys()};
 doit({oracle, X}) ->
-    {ok, order_book:data(X)};
+    {Trees, _, _} = tx_pool:data(),
+    Oracles = trees:oracles(Trees),
+    {_, Oracle, _} = oracles:get(X, Oracles),
+    {ok, Question} = oracle_questions:get(oracles:question(Oracle)),
+    {ok, {order_book:data(X), Question}};
 doit({market_data, OID}) ->
     OB = order_book:data(OID),
     Expires = order_book:expires(OB),

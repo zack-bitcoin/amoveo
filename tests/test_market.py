@@ -19,8 +19,8 @@ class MarketTest(ApiUser):
         self.request("dump_channels", DEV_3_INT, [], sleep=0.04)
         self.load_key(DEV_2_INT, [pub1, priv1, brainwallet], sleep=0)
         self.load_key(DEV_3_INT, [pub2, priv2, brainwallet], sleep=0.04)
-        self.create_account(DEV_1_INT, [pub1, 10], sleep=0.04)
-        self.create_account(DEV_1_INT, [pub2, 10], sleep=0.1)
+        self.create_account(DEV_1_INT, [pub1, 1000000000], sleep=0.04)
+        self.create_account(DEV_1_INT, [pub2, 1000000000], sleep=0.1)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
         self.request('new_channel_with_server', DEV_1_INT, [[127, 0, 0, 1], 3030, 17, 10000, 9999, 50, 4], sleep=0.04)
@@ -49,8 +49,8 @@ class MarketTest(ApiUser):
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.2)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.2)
         self.request('pull_channel_state', DEV_1_INT, [[127,0,0,1], 3030], sleep=0.04)
-    def dont_doit(): #good for testing market gui stuff.
-        self.request('oracle_bet', DEV_1_INT, [oid, 1, 269], sleep=0.04)
+    #def dont_doit(): #good for testing market gui stuff.
+        self.request('oracle_bet', DEV_1_INT, [oid, 1, 26900000000], sleep=0.04)
         self.request('mine_block', DEV_1_INT, [11, 1], sleep=1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.2)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.2)

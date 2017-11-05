@@ -16,7 +16,6 @@ function list_oracles1() {
         lookup_oracle.innerHTML = "live markets: ".concat(x.slice(1));
     }
 }
-
 lookup_oracle1();
 function lookup_oracle1() {
     document.body.appendChild(document.createElement("br"));
@@ -52,26 +51,35 @@ function lookup_oracle1() {
         var x = parseInt(lookup_oracle_address.value, 10);
         variable_public_get(["oracle", x], lookup_oracle_helper2);
     }
-    function lookup_oracle_helper2(x) {
-        console.log(x);
-        console.log("buy orders ");
-        console.log(x[3]);
-        console.log("sell orders ");
-        console.log(x[4]);
+    function lookup_oracle_helper2(l) {
+        price.innerHTML = "";
+        console.log(l);
+        var question = l.pop();
+        var x = l.pop();
         var P = ((x[2])/100);
-        price.innerHTML = "odds of event occuring: ".concat(P.toString()).concat("%");
-        expires.innerHTML = "expires at height: ".concat((x[6]).toString());
-        batch_period.innerHTML = "batch period: ".concat((x[7]).toString());
-        height.innerHTML = "last height matched: ".concat((x[8]).toString());
+        console.log("question");
+        console.log(atob(question));
+        //price.innerHTML = "odds of event occuring: ".concat(P.toString()).concat("%");
+        var question_info = document.createElement("p");
+        question_info.innerHTML = "betting on this: ".concat(atob(question));
+        price.appendChild(question_info);
+        var odds_info = document.createElement("p");
+        odds_info.innerHTML = "odds of event occuring: ".concat(P.toString()).concat("%");
+        price.appendChild(odds_info);
+        var expires_info = document.createElement("p");
+        expires_info.innerHTML = "expires at height: ".concat((x[6]).toString());
+        price.appendChild(expires_info);
+        var batch_info = document.createElement("p");
+        batch_info.innerHTML = "batch period: ".concat((x[7]).toString());
+        price.appendChild(batch_info);
+        var height_info = document.createElement("p");
+        height_info.innerHTML = "last height matched: ".concat((x[8]).toString());
+        price.appendChild(height_info);
         console.log("last line");
         var buys = price_amount(x[3]);
         var sells = price_amount(x[4]);
         var graph_height = Math.max(sum_amounts(buys), sum_amounts(sells));
-        //console.log("height is ");
-        //console.log(graph_height);
-        //chart.innerHTML = "open orders: {price from 0 to 10000, amount}, buys: ".concat(JSON.stringify(buys)).concat(" sells: ").concat(JSON.stringify(sells));
         var ctx = canvas.getContext("2d");
-
         empty_canvas(ctx);
         background_color("black", ctx);
         draw_buys("blue", graph_height, buys, ctx);
@@ -149,10 +157,10 @@ function x_units(ctx) {
     }
 }
 function y_units(M, ctx) {
-    ctx.font="10px Georgia";
-    ctx.fillText((M*9/10).toString(), 0, 46);
+    ctx.font="20px Georgia";
     for (var i = 1; i < 10; i++) {
-        ctx.fillText((M*(10-i)/10).toString(), 0, 6 + (40 * i));
+        //ctx.fillText((M*(10-i)/10).toString(), 0, 6 + (40 * i));
+        ctx.fillText((M*(10-i)/1000000000).toString(), 0, 6 + (40 * i));
     }
 }
 function make_lines_horizontal(l, ctx) {

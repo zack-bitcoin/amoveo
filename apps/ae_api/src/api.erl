@@ -50,7 +50,7 @@ create_account(NewAddr, Amount) ->
 create_account(NewAddr, Amount, Fee) ->
     tx_maker(
       fun(Trees) ->
-              create_account_tx:new(NewAddr, to_int(Amount), Fee, keys:pubkey(), Trees)
+              create_account_tx:new(NewAddr, Amount, Fee, keys:pubkey(), Trees)
       end).
 
 coinbase(ID) ->
@@ -64,7 +64,7 @@ spend(ID, Amount) ->
     if 
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
 	true -> 
-	    A = to_int(Amount),
+	    A = Amount,
 	    {Trees, _, _} = tx_pool:data(),
 	    Governance = trees:governance(Trees),
 	    Cost = governance:get_value(spend, Governance),
@@ -217,6 +217,8 @@ channel_spend(IP, Port, Amount) ->
 lightning_spend(Pubkey, Amount) ->
     {ok, LFee} = application:get_env(ae_core, lightning_fee),
     lightning_spend(?IP, ?Port, Pubkey, Amount, LFee).
+lightning_spend(IP, Port, Pubkey, Amount) ->
+    lightning_spend(IP, Port, Pubkey, Amount, ?Fee).
 lightning_spend(IP, Port, Pubkey, Amount, Fee) ->
     {Code, SS} = secrets:new_lightning(),
     lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS).
@@ -254,9 +256,9 @@ channel_balance2(Ip, Port) ->
     Bal.
 channel_balance(Ip, Port) ->
     {Balance, _} = integer_channel_balance(Ip, Port),
-    FormattedBalance = pretty_display(Balance),
-    lager:info("Channel balance: ~p", [FormattedBalance]),
-    FormattedBalance,
+    %FormattedBalance = pretty_display(Balance),
+    %lager:info("Channel balance: ~p", [FormattedBalance]),
+    %FormattedBalance,
     Balance.
 
 integer_channel_balance(Ip, Port) ->
@@ -280,7 +282,7 @@ pretty_display(I) ->
 
 dice(Amount) ->
     unlocked = keys:status(),
-    A = to_int(Amount),
+    A = Amount,
     internal_handler:doit({dice, A, constants:server_ip(), constants:server_port()}).
 close_channel_with_server() ->
     internal_handler:doit({close_channel, constants:server_ip(), constants:server_port()}).
@@ -304,7 +306,7 @@ grow_channel_tx(CID, Bal1, Bal2) ->
     grow_channel_tx(CID, Bal1, Bal2, ?Fee+Cost).
 grow_channel_tx(CID, Bal1, Bal2, Fee) ->
     {Trees, _, _} = tx_pool:data(),
-    {Tx, _} = grow_channel_tx:make(CID, Trees, to_int(Bal1), to_int(Bal2), Fee),
+    {Tx, _} = grow_channel_tx:make(CID, Trees, Bal1, Bal2, Fee),
     keys:sign(Tx).
 
 channel_team_close(CID, Amount) ->
@@ -390,7 +392,7 @@ oracle_bet(OID, Type, Amount) ->
     oracle_bet(?Fee+Cost, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->
     F = fun(Trees) ->
-		oracle_bet_tx:make(keys:pubkey(), Fee, OID, Type, to_int(Amount), Trees)
+		oracle_bet_tx:make(keys:pubkey(), Fee, OID, Type, Amount, Trees)
 	end,
     tx_maker(F).
 oracle_close(OID) ->
@@ -549,10 +551,12 @@ new_market(OID, Expires, Period) ->
     order_book:new_market(OID, Expires, Period).
     %set up an order book.
     %turn on the api for betting.
+trade(Price, Type, Amount, OID) ->
+    trade(Price, Type, Amount, OID, ?Fee*2).
 trade(Price, Type, Amount, OID, Fee) ->
     trade(Price, Type, Amount, OID, Fee, ?IP, ?Port).
 trade(Price, Type, A, OID, Fee, IP, Port) ->
-    Amount = to_int(A),
+    Amount = A,
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     {ok, {Expires, 
 	  Pubkey, %pubkey of market maker

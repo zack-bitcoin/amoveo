@@ -1,7 +1,5 @@
 make_channel2();
 function make_channel2() {
-    document.body.appendChild(document.createElement("br"));
-    document.body.appendChild(document.createElement("br"));
     var height = document.createElement("div");
     height.id = "make_channel";
     document.body.appendChild(height);
@@ -14,6 +12,8 @@ function make_channel3(x) {
         make_channel1();
     } else {
         to_channel1();
+        lightning_spend1();
+        market_bet1();
         //channel_data();
     }
 }
@@ -21,6 +21,8 @@ function make_channel3(x) {
 //make_channel1();
 function make_channel1() {
     var height = document.getElementById("make_channel");
+    height.appendChild(document.createElement("br"));
+    height.appendChild(document.createElement("br"));
     var height_button = document.createElement("BUTTON");
     var button_text_node = document.createTextNode("make channel");
     height_button.appendChild(button_text_node);

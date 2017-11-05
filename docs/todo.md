@@ -1,3 +1,9 @@
+* the explorer and wallet both need an interface so you can choose which server to connect to. Maybe wallets should support multiple servers, one channel with each.
+
+* after you make a channel in the gui, there should be a message saying to refresh the page.
+
+* channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
+
 * we need an interface in the wallet gui for making bets in the market.
 
 * we should write the oracle question onto the explorer with each market, that way users know what is being bet on.

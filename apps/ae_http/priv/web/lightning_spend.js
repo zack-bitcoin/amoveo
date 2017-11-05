@@ -1,22 +1,26 @@
 //local_get(["lightning_spend", [127,0,0,1], 3020, partner, amount]);
-
-spend1();
-function spend1() {
+var lightning_spend_div = document.createElement("div");
+lightning_spend_div.id = "lightning_spend_div";
+document.body.appendChild(lightning_spend_div);
+function lightning_spend1() {
+    var div = document.getElementById("lightning_spend_div");
+    div.appendChild(document.createElement("br"));
+    div.appendChild(document.createElement("br"));
     var spend_address = document.createElement("INPUT");
     spend_address.setAttribute("type", "text"); 
     var input_info = document.createElement("h8");
     input_info.innerHTML = "spend to: ";
-    document.body.appendChild(document.createElement("br"));
-    document.body.appendChild(input_info);
-    document.body.appendChild(spend_address);
+    //div.appendChild(document.createElement("br"));
+    div.appendChild(input_info);
+    div.appendChild(spend_address);
 
 
     var amount = document.createElement("INPUT");
     amount.setAttribute("type", "text"); 
     var amount_info = document.createElement("h8");
     amount_info.innerHTML = "channel spend amount: ";
-    document.body.appendChild(amount_info);
-    document.body.appendChild(amount);
+    div.appendChild(amount_info);
+    div.appendChild(amount);
     
     var spend_button = document.createElement("BUTTON");
     spend_button.id = "lightning_button";
@@ -25,8 +29,8 @@ function spend1() {
     spend_button.onclick = function() {
 	var B = parseInt(amount.value, 10);
 	var C = B + (B%2);
-	local_get(["lightning_spend", IP, Port, parseInt(spend_address.value, 10), C]);
+	local_get(["lightning_spend", IP, Port, spend_address.value, C]);
     };
-    document.body.appendChild(spend_button);
+    div.appendChild(spend_button);
 
 }
