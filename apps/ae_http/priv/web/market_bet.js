@@ -10,14 +10,14 @@ function market_bet1() {
     var price = document.createElement("INPUT");
     price.setAttribute("type", "text");
     var price_info = document.createElement("h8");
-    price_info.innerHTML = "price: ";
+    price_info.innerHTML = "price (between 0 and 100) : ";
     market_bet_div.appendChild(price_info);
     market_bet_div.appendChild(price);
 
     var trade_type = document.createElement("INPUT");
     trade_type.setAttribute("type", "text");
     var trade_type_info = document.createElement("h8");
-    trade_type_info.innerHTML = "trade_type: ";
+    trade_type_info.innerHTML = "trade_type (either 'true' or 'false'): ";
     market_bet_div.appendChild(trade_type_info);
     market_bet_div.appendChild(trade_type);
 
@@ -44,14 +44,14 @@ function market_bet1() {
 
     function make_bet() {
         //trade(Price, Type, Amount, OID)
-        var price_final = parseInt(price.value, 10);
+        var price_final = Math.floor(100 * parseFloat(price.value, 10));
         var type_final;
         if (trade_type.value == "true") {
             type_final = 1;
         } else if (trade_type.value == "false") {
             type_final = 2;
         }
-        var amount_final = parseInt(amount.value, 10);
+        var amount_final = c2s(amount);
         var oid_final = parseInt(oid.value, 10);
         local_get(["trade", price_final, type_final, amount_final, oid_final]);
     }

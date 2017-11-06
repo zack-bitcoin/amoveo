@@ -1,4 +1,6 @@
-* CPU goes to 100% after a while, not sure why.
+* the wallet should display outstanding bets.
+
+* we need a button for recovering your channel state after an update.
 
 * the readme should explain about public keys better
 
@@ -14,13 +16,9 @@
 
 * we need an interface in the wallet gui for making bets in the market.
 
-* we should write the oracle question onto the explorer with each market, that way users know what is being bet on.
-
 * api:pull_channel_state might need more checks for the error banch. or maybe it will only be used for testing purposes, so we don't need more checks.
 
 * remove ae_http/src/ae_http_dispatch_int.erl
-
-* titles on the gui browser pages so you know what it is.
 
 * do not sync twice in parallel.
 * sync:stop() isn't working.

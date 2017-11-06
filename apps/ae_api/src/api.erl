@@ -272,7 +272,7 @@ integer_channel_balance(Ip, Port) ->
     {Amount, _, _} = spk:run(fast, SS, SPK, NewHeight, 0, Trees),
     CID = spk:cid(SPK),
     {_, Channel, _} = channels:get(CID, Channels),
-    {channels:bal1(Channel)-Amount, channels:bal2(Channel)+Amount}.
+    {channels:bal1(Channel)-Amount, channels:bal2(Channel)-Amount}.
 
 pretty_display(I) ->
     {ok, TokenDecimals} = application:get_env(ae_core, token_decimals),

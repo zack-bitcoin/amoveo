@@ -22,8 +22,8 @@ function to_channel1() {
     var spend_button_text = document.createTextNode("pay money into channel");
     spend_button.appendChild(spend_button_text);
     spend_button.onclick = function() {
-	var b1 = parseInt(inc1.value, 10);
-	var b2 = parseInt(inc2.value, 10);
+	var b1 = c2s(inc1);
+	var b2 = c2s(inc2);
 	local_get(["grow_channel", IP, Port, b1, b2]);
 	local_get(["sync", IP, Port]);
     };

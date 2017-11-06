@@ -18,7 +18,7 @@ function lightning_spend1() {
     var amount = document.createElement("INPUT");
     amount.setAttribute("type", "text"); 
     var amount_info = document.createElement("h8");
-    amount_info.innerHTML = "channel spend amount: ";
+    amount_info.innerHTML = "spend amount: ";
     div.appendChild(amount_info);
     div.appendChild(amount);
     
@@ -27,7 +27,7 @@ function lightning_spend1() {
     var spend_button_text = document.createTextNode("lightning spend");
     spend_button.appendChild(spend_button_text);
     spend_button.onclick = function() {
-	var B = parseInt(amount.value, 10);
+	var B = c2s(amount);
 	var C = B + (B%2);
 	local_get(["lightning_spend", IP, Port, spend_address.value, C]);
     };

@@ -1,27 +1,31 @@
+document.body.appendChild(document.createElement("br"));
+document.body.appendChild(document.createElement("br"));
+var spend_div = document.createElement("div");
+spend_div.id = "spend_div";
+document.body.appendChild(spend_div);
 spend1();
 function spend1() {
-    var spend_address = document.createElement("INPUT");
-    spend_address.setAttribute("type", "text"); 
-    var input_info = document.createElement("h8");
-    input_info.innerHTML = "spend to pubkey: ";
-    document.body.appendChild(document.createElement("br"));
-    document.body.appendChild(document.createElement("br"));
-    document.body.appendChild(input_info);
-    document.body.appendChild(spend_address);
-    
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text"); 
     var amount_info = document.createElement("h8");
     amount_info.innerHTML = "amount to spend: ";
-    document.body.appendChild(amount_info);
-    document.body.appendChild(spend_amount);
+    div.appendChild(amount_info);
+    div.appendChild(spend_amount);
+    
+    div = document.getElementById("spend_div");
+    var spend_address = document.createElement("INPUT");
+    spend_address.setAttribute("type", "text"); 
+    var input_info = document.createElement("h8");
+    input_info.innerHTML = "to pubkey: ";
+    div.appendChild(input_info);
+    div.appendChild(spend_address);
     
     //var spend_fee = document.createElement("INPUT");
     //spend_fee.setAttribute("type", "text"); 
     //var fee_info = document.createElement("h8");
     //fee_info.innerHTML = "fee: ";
-    //document.body.appendChild(fee_info);
-    //document.body.appendChild(spend_fee);
+    //div.appendChild(fee_info);
+    //div.appendChild(spend_fee);
     
     var spend_button = document.createElement("BUTTON");
     spend_button.id = "spend_button";
@@ -30,10 +34,9 @@ function spend1() {
     spend_button.onclick = function() {
 	// var to = parseInt(spend_address.value, 10);
         var to = spend_address.value;
-	var amount = parseInt(spend_amount.value, 10);
 	// var fee = parseInt(spend_fee.value, 10);
-	local_get(["spend", to, amount]);
+	local_get(["spend", to, c2s(spend_amount)]);
     };
-    document.body.appendChild(spend_button);
+    div.appendChild(spend_button);
 
 }

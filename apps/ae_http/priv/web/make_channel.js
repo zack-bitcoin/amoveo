@@ -39,7 +39,7 @@ function make_channel1() {
     var spend_delay = document.createElement("INPUT");
     spend_delay.setAttribute("type", "text"); 
     var delay_info = document.createElement("h8");
-    delay_info.innerHTML = "channel delay: ";
+    delay_info.innerHTML = "channel delay (in blocks): ";
     //document.body.appendChild(delay_info);
     //document.body.appendChild(spend_delay);
     height.appendChild(delay_info);
@@ -52,7 +52,7 @@ function make_channel1() {
         //if (typeof x == 'undefined'){
 	//    setTimeout(function() {variable_get(["channel_keys"], function(x) {register_doit(x)});}, 1000);
         if ( ( x.length == 1 ) && ( x.pop() == -6 ) ) {
-            var amount = parseInt(spend_amount.value, 10);
+            var amount = c2s(spend_amount);
             var delay = parseInt(spend_delay.value, 10);
             //var bal2 = parseInt(amount * 101 / 100);
             var bal2 = amount - 1;
