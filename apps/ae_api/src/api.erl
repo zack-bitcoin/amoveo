@@ -433,7 +433,7 @@ account(Pubkey) when size(Pubkey) == 65 ->
         {_,empty,_} -> empty;
         {_, A, _} -> A
     end;
-account(Pubkey) ->
+account(Pubkey) when ((size(Pubkey) > 85) and (size(Pubkey) < 90)) ->
     account(base64:decode(Pubkey)).
 account() -> account(keys:pubkey()).
 integer_balance() -> 
