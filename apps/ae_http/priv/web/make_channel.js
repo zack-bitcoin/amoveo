@@ -10,11 +10,11 @@ function make_channel3(x) {
     console.log(x);
     if ( ( x.length == 1) && ( x.pop() == -6 )) {
         make_channel1();
+        recover_channel1();
     } else {
         to_channel1();
         lightning_spend1();
         market_bet1();
-        //channel_data();
     }
 }
 
@@ -57,7 +57,7 @@ function make_channel1() {
             //var bal2 = parseInt(amount * 101 / 100);
             var bal2 = amount - 1;
             local_get(["new_channel_with_server", amount, bal2, delay]);
-	    //variable_get(["id"], new_channel);
+            made_channel_refresh();
         } else {
 	    console.log("did not work, x was");
 	    console.log(x);
@@ -65,6 +65,12 @@ function make_channel1() {
     }
 }
 
-function channel_data() {
+function made_channel_refresh() {
+    var mydiv = document.getElementById("login_warning");
+    var refresh_link = document.createElement("a");
+    refresh_link.setAttribute('href',"/main.html");
+    refresh_link.innerHTML = "refresh the page to access channel features.";
+    mydiv.appendChild(refresh_link);
+	    //variable_get(["id"], new_channel);
 
 }

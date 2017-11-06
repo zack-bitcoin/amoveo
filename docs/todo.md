@@ -1,20 +1,10 @@
 * the wallet should display outstanding bets.
 
-* we need a button for recovering your channel state after an update.
-
 * the readme should explain about public keys better
-
-* we need explanations for what units to enter when making bets. 0-10000 is too weird of a range. floating point from 0.0 to 100.0 is probably better.
-
-* after buying shares, at least one of the boxes you entered should be emptied. This prevents people from accidentally clicking twice.
 
 * the explorer and wallet both need an interface so you can choose which server to connect to. Maybe wallets should support multiple servers, one channel with each.
 
-* after you make a channel in the gui, there should be a message saying to refresh the page, this way you have access to the channel interfaces.
-
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
-
-* we need an interface in the wallet gui for making bets in the market.
 
 * api:pull_channel_state might need more checks for the error banch. or maybe it will only be used for testing purposes, so we don't need more checks.
 

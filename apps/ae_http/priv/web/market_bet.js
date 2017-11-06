@@ -54,5 +54,6 @@ function market_bet1() {
         var amount_final = c2s(amount);
         var oid_final = parseInt(oid.value, 10);
         local_get(["trade", price_final, type_final, amount_final, oid_final]);
+        amount.value = "";
     }
 }

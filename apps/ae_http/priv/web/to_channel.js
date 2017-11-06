@@ -19,7 +19,7 @@ function to_channel1() {
     
     var spend_button = document.createElement("BUTTON");
     spend_button.id = "spend_button";
-    var spend_button_text = document.createTextNode("pay money into channel");
+    var spend_button_text = document.createTextNode("add money to channel to increase the limits");
     spend_button.appendChild(spend_button_text);
     spend_button.onclick = function() {
 	var b1 = c2s(inc1);
