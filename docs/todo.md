@@ -1,10 +1,10 @@
+* CPU goes to 100% after a while, not sure why.
+
 * the readme should explain about public keys better
 
 * we need explanations for what units to enter when making bets. 0-10000 is too weird of a range. floating point from 0.0 to 100.0 is probably better.
 
 * after buying shares, at least one of the boxes you entered should be emptied. This prevents people from accidentally clicking twice.
-
-* CPU goes to 100% after a while, not sure why, and the oracle trie is disappearing.
 
 * the explorer and wallet both need an interface so you can choose which server to connect to. Maybe wallets should support multiple servers, one channel with each.
 
