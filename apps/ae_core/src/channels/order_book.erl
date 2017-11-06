@@ -125,7 +125,7 @@ handle_call({match, OID}, _From, X) ->
     %Accounts are the account ids of the channels that needs to be updated.
     {reply, Out, X2};
 handle_call({data, OID}, _From, Y) ->
-    X = dict:fetch(OID, Y),
+    X = dict:find(OID, Y),
     {reply, X, Y};
 handle_call({price, OID}, _From, X) -> 
     {ok, OB} = dict:find(OID, X),

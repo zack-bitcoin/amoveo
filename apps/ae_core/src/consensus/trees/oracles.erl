@@ -154,6 +154,7 @@ dict_get(ID, Dict) ->
     end.
 key_to_int(X) -> X.
 get(ID, Root) ->
+    true = is_integer(ID),
     {RH, Leaf, Proof} = trie:get(ID, Root, ?name),
     V = case Leaf of 
 	    empty -> empty;

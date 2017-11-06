@@ -72,9 +72,9 @@ function lookup_oracle1() {
         var batch_info = document.createElement("p");
         batch_info.innerHTML = "batch period: ".concat((x[7]).toString());
         price.appendChild(batch_info);
-        var height_info = document.createElement("p");
-        height_info.innerHTML = "last height matched: ".concat((x[8]).toString());
-        price.appendChild(height_info);
+        //var height_info = document.createElement("p");
+        //height_info.innerHTML = "last height matched: ".concat((x[8]).toString());
+        //price.appendChild(height_info);
         console.log("last line");
         var buys = price_amount(x[3]);
         var sells = price_amount(x[4]);

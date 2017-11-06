@@ -103,7 +103,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     true = Amount > 0,
     {ok, LF} = application:get_env(ae_core, lightning_fee),
     true = Fee > LF,
-    OB = order_book:data(OID),
+    {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     BetLocation = constants:oracle_bet(),
