@@ -46,9 +46,10 @@ function outstanding_bets1() {
     }
     function cancel_trade(n) {
         //the nth bet in the channel (starting at 1) is a unmatched trade that we want to cancel.
+        console.log("cancel trade");
         variable_get(["cancel_trade", n], cancel_trade2);
     }
-    function cancel_trade(x) {
+    function cancel_trade2(x) {
         if ( x == 0 ) {
             outstanding_bets();
         }
@@ -77,7 +78,7 @@ function outstanding_bets1() {
                 var cancel_button = document.createElement("BUTTON");
                 var cancel_text_node = document.createTextNode("cancel trade");
                 cancel_button.appendChild(cancel_text_node);
-                cancel_button.on_click = function() { cancel_trade(i); }
+                cancel_button.onclick = function() { cancel_trade(i); };
                 div.appendChild(cancel_button);
 
             } else {

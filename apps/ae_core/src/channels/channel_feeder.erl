@@ -11,7 +11,7 @@
 	 update_to_me/2, new_cd/6, 
 	 make_locked_payment/3, live/1, they_simplify/3,
 	 bets_unlock/1, emsg/1, trade/4, trade/7,
-         cancel_trade/4
+         cancel_trade/4, cancel_trade_server/3
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -286,6 +286,8 @@ trade(ID, Price, Type, Amount, OID, SSPK, Fee) ->
     gen_server:call(?MODULE, {trade, ID, Price, Type, Amount, OID, SSPK, Fee}).
 cancel_trade(N, TheirPub, IP, Port) ->
     gen_server:call(?MODULE, {cancel_trade, N, TheirPub, IP, Port}).
+cancel_trade_server(N, TheirPub, SSPK2) ->
+    gen_server:call(?MODULE, {cancel_trade, N, TheirPub, SSPK2}).
 
 update_to_me(SSPK, From) ->
     gen_server:call(?MODULE, {update_to_me, SSPK, From}).
@@ -439,9 +441,12 @@ trade(Amount, Bet, Other, OID) ->
 cancel_trade_common(N, TheirPubkey) ->
     {ok, OldCD} = channel_manager:read(TheirPubkey),
     SPK = channel_feeder:me(OldCD),
-    SS = element(N, list_to_tuple(OldCD#cd.ssme)),
-    true = SS == <<0,0,0,0,4>>,%this is what it looks like when a bet is unmatched
-    SPK2 = spk:remove_bet(N, SPK),
+    io:fwrite("cancel trade common "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite("\n"),
+    SS = element(N-1, list_to_tuple(OldCD#cd.ssme)),
+    true = spk:ss_code(SS) == <<0,0,0,0,4>>,%this is what it looks like when a bet is unmatched
+    SPK2 = spk:remove_bet(N-1, SPK),
     keys:sign(SPK2).
             
     
