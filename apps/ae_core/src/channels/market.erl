@@ -32,7 +32,7 @@ macro Period int " ++ integer_to_list(Period) ++ " ;\
     Compiled = compiler_chalang:doit(FullCode),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
     %ToProve = [{oracles, OID}],
-    spk:new_bet(Compiled, CodeKey, Amount, Direction).
+    spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
 unmatched(OID) ->
     SS = " int 4 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
