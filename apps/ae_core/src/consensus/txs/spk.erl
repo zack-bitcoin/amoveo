@@ -5,7 +5,7 @@
 	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,dict_run/6,%settle_bet/4,
          chalang_state/3,
-         new_bet/3, delay/1,
+         new_bet/3, new_bet/4, delay/1,
 	 is_improvement/4, bet_unlock/2,
 	 code/1, key/1, test2/0,
 	 force_update/3,
@@ -19,7 +19,8 @@
 
 -record(bet, {code, amount, 
               %prove, 
-              key}).%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
+              key,%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
+              meta}).%meta is which direction we bet in.
 
 -record(spk, {acc1,acc2, entropy, 
 	      bets, space_gas, time_gas, 
@@ -115,7 +116,9 @@ ss_code(X) when is_binary(X) ->
 ss_code(X) -> X#ss.code.
 ss_prove(X) -> X#ss.prove.
 new_bet(Code, Key, Amount) ->
-    #bet{code = Code, key = Key, amount = Amount}.
+    new_bet(Code, Key, Amount, 0).
+new_bet(Code, Key, Amount, Meta) ->
+    #bet{code = Code, key = Key, amount = Amount, meta = Meta}.
 new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
     #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
 	 bets = Bets, space_gas = SG, time_gas = TG,

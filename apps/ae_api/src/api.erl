@@ -170,6 +170,8 @@ pull_channel_state(IP, Port) ->
             bet_unlock(IP, Port),
             ok
     end.
+channel_state() -> 
+    channel_manager:read(hd(channel_manager:keys())).
 decrypt_msgs([]) ->
     [];
 decrypt_msgs([{msg, _, Msg, _}|T]) ->

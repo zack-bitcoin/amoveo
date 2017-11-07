@@ -1,4 +1,11 @@
+### Things to do before the launch of the official Amoveo blockchain.
+
 * the wallet should display outstanding bets.
+
+* the wallet should have some error messages:
+- insufficient funds
+- address incorrectly formatted
+- lightning partner doesn't have a channel
 
 * the readme should explain about public keys better
 
@@ -27,7 +34,6 @@
 
 
 
-### Things to consider doing before launch
 
 * We need to redesign sharing blocks so that we don't overwhelm our partners.
 
@@ -65,8 +71,6 @@ in the proofs dict we should have a flag for each thing to know if it has been u
 [this should go to pre-launch list] maybe accessing the internal handler should require a signed request with a nonce.
 The server should ignore commands that don't increment the nonce from last time.
 alternatively, we could just turn on a firewall. This is simpler, but it has the drawback that commands on a local node have to originate from the same computer.
-
-[DONE?] download_blocks:get_blocks should download multiple blocks at a time. 
 
 [DONE?] We need to test channel_solo_close and channel_slash and channel_timeout from easy.
 

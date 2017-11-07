@@ -15,6 +15,7 @@ function make_channel3(x) {
         to_channel1();
         lightning_spend1();
         market_bet1();
+        outstanding_bets1();
     }
 }
 
