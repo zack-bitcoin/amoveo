@@ -10,7 +10,8 @@
 	 script_sig_me/1,
 	 update_to_me/2, new_cd/6, 
 	 make_locked_payment/3, live/1, they_simplify/3,
-	 bets_unlock/1, emsg/1, trade/4, trade/7
+	 bets_unlock/1, emsg/1, trade/4, trade/7,
+         cancel_trade/4
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -97,6 +98,36 @@ handle_cast({close, SS, STx}, X) ->
     tx_pool_feeder:absorb(keys:sign(STx)),
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
+handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
+    {ok, OldCD} = channel_manager:read(TheirPub),
+    SSPK = cancel_trade_common(N, TheirPub), 
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    Bets = spk:bets(SPK),
+    Bet = element(N, list_to_tuple(Bets)),
+    {Type, Price} = spk:bet_meta(Bet),
+    CodeKey = spk:key(Bet),
+    {market, 1, _, _, _, _, OID} = CodeKey,
+    NewCD = OldCD#cd{them = SSPK2, me = SPK,
+                     ssme = spk:remove_nth(N, OldCD#cd.ssme),
+                     ssthem = spk:remove_nth(N, OldCD#cd.ssthem)},
+    ok = order_book:remove(TheirPub, Type, Price, OID),
+    channel_manager:write(TheirPub, NewCD),
+    {reply, SSPK, X};
+handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
+    {ok, OldCD} = channel_manager:read(TheirPub),
+    SSPK = cancel_trade_common(N, TheirPub),
+
+    Msg = {cancel_trade, keys:pubkey(), N, SSPK},
+    Msg = packer:unpack(packer:pack(Msg)),
+    {ok, SSPK2} = talker:talk(Msg, IP, Port),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    NewCD = OldCD#cd{them = SSPK2, me = SPK,
+                     ssme = spk:remove_nth(N, OldCD#cd.ssme),
+                     ssthem = spk:remove_nth(N, OldCD#cd.ssthem)},
+    channel_manager:write(TheirPub, NewCD),
+    {reply, {SSPK, NewCD}, X};
 handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     {Trees,Height,_} = tx_pool:data(),
     true = testnet_sign:verify(keys:sign(SSPK)),
@@ -253,6 +284,8 @@ lock_spend(SSPK, Amount, Fee, SecretHash, Sender, Recipient, ESS) ->
     gen_server:call(?MODULE, {lock_spend, SSPK, Amount, Fee, SecretHash, Sender, Recipient, ESS}).
 trade(ID, Price, Type, Amount, OID, SSPK, Fee) ->
     gen_server:call(?MODULE, {trade, ID, Price, Type, Amount, OID, SSPK, Fee}).
+cancel_trade(N, TheirPub, IP, Port) ->
+    gen_server:call(?MODULE, {cancel_trade, N, TheirPub, IP, Port}).
 
 update_to_me(SSPK, From) ->
     gen_server:call(?MODULE, {update_to_me, SSPK, From}).
@@ -403,6 +436,15 @@ trade(Amount, Bet, Other, OID) ->
     {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
     SPK2 = spk:apply_bet(Bet, 0, SPK, TimeLimit div 10 , SpaceLimit),
     keys:sign(SPK2).
+cancel_trade_common(N, TheirPubkey) ->
+    {ok, OldCD} = channel_manager:read(TheirPubkey),
+    SPK = channel_feeder:me(OldCD),
+    SS = element(N, list_to_tuple(OldCD#cd.ssme)),
+    true = SS == <<0,0,0,0,4>>,%this is what it looks like when a bet is unmatched
+    SPK2 = spk:remove_bet(N, SPK),
+    keys:sign(SPK2).
+            
+    
     
 bets_unlock(X) -> 
     bets_unlock2(X, []).

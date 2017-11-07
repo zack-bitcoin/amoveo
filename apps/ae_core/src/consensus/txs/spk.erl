@@ -10,6 +10,8 @@
 	 code/1, key/1, test2/0,
 	 force_update/3,
          new_ss/2, ss_code/1, ss_prove/1,
+         bet_meta/1, remove_bet/2,
+         remove_nth/2,
 	 test/0
 	]).
 
@@ -46,6 +48,13 @@ nonce(X) -> X#spk.nonce.
 
 code(X) -> X#bet.code.
 key(X) -> X#bet.key.
+bet_meta(X) -> X#bet.meta.
+remove_bet(N, SPK) ->
+    NewBets = remove_nth(N, SPK#spk.bets),
+    SPK#spk{bets = NewBets}.
+remove_nth(N, _) when N < 1 -> 1=2;
+remove_nth(1, [A|B]) -> B;
+remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
 
 prove_facts([], _) ->%we need to return an empty list here.
     compiler_chalang:doit(<<" nil ">>);

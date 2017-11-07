@@ -44,6 +44,16 @@ function outstanding_bets1() {
         //["market",1,1,3000,"BJjOADT/mMg0BsqQkCDcEb/ylv6W85wipEKrY3qV5z3XvVrNygvVoEXsA6tncAoMuyvMB5Prepzqql3zZ1sDjjo=",40,1]
     //{market, 1, MarketID, Expires, Pubkey, Period, OID}.
     }
+    function cancel_trade(n) {
+        //the nth bet in the channel (starting at 1) is a unmatched trade that we want to cancel.
+        variable_get(["cancel_trade", n], cancel_trade2);
+    }
+    function cancel_trade(x) {
+        if ( x == 0 ) {
+            outstanding_bets();
+        }
+        return 0;
+    }
     function print_bets(bets, ssme) {
         for (var i = 1; i < bets.length; i++) {
             var bet = bets[i];
@@ -63,7 +73,13 @@ function outstanding_bets1() {
                 //console.log("unmatched");
                 //console.log(JSON.stringify([i, oid, amount, "unmatched", bet[4]]));
                 order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you have an open order to trade this many tokens ").concat(s2c(amount)).concat(", you are trading at this price: ").concat(parseFloat(((bet[4][2])/100), 10)).concat(", you are betting on outcome: ").concat(outcome);
-            div.appendChild(order);
+                div.appendChild(order);
+                var cancel_button = document.createElement("BUTTON");
+                var cancel_text_node = document.createTextNode("cancel trade");
+                cancel_button.appendChild(cancel_text_node);
+                cancel_button.on_click = function() { cancel_trade(i); }
+                div.appendChild(cancel_button);
+
             } else {
                 //console.log("matched");
                 //console.log(JSON.stringify([i, oid, amount, "matched", bet[4]]));

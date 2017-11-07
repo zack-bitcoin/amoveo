@@ -194,6 +194,9 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     Order = order_book:make_order(Account, Price, Type, Amount),
     order_book:add(Order, OID),
     {ok, SSPK2};
+doit({cancel_trade, TheirPub, N, SSPK}) ->
+    SSPK2 = channel_feeder:cancel_trade_server(N, TheirPub, SSPK),
+    {ok, SSPK2};
 doit({remove_trade, AccountID, Price, Type, Amount, OID, SSPK}) ->
     %make sure they signed.
     %make sure they paid enough of a fee.

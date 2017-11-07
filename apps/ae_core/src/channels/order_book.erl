@@ -51,10 +51,19 @@ handle_cast({new_market, OID, Expires, Period}, X) ->
     NewX = dict:store(OID, OB, X),
     db:save(?LOC, NewX),
     {noreply, NewX};
-handle_cast({remove, AccountID, Type, Price, OID}, X) -> 
+%handle_cast({reduce, AccountID, Type, Price, Amount}, X) -> 
+    %reduce this order by this amount, if it exists.
+    %X2 = ok,
+%    {noreply, X};
+handle_cast({dump, OID}, X) -> 
+    X2 = dict:erase(OID, X),
+    db:save(?LOC, X2),
+    {noreply, X2};
+handle_cast(_, X) -> {noreply, X}.
+handle_call({remove, AccountID, Type, Price, OID}, _From, X) -> 
     %remove this order from the book, if it exists.
     case dict:find(OID, X) of
-	error -> {noreply, X};
+	error -> {reply, error, X};
 	{ok, OB} ->
 	    Trades = case Type of
 			 buy -> OB#ob.buys;
@@ -67,17 +76,8 @@ handle_cast({remove, AccountID, Type, Price, OID}, X) ->
 		  end,
 	    X2 = dict:store(OID, OB2, X),
 	    db:save(?LOC, X2),
-	    {noreply, X2}
+	    {reply, ok, X2}
     end;
-%handle_cast({reduce, AccountID, Type, Price, Amount}, X) -> 
-    %reduce this order by this amount, if it exists.
-    %X2 = ok,
-%    {noreply, X};
-handle_cast({dump, OID}, X) -> 
-    X2 = dict:erase(OID, X),
-    db:save(?LOC, X2),
-    {noreply, X2};
-handle_cast(_, X) -> {noreply, X}.
 handle_call({add, Order, OID}, _From, X) -> 
     {ok, OB} = dict:find(OID, X),
     true = is_integer(Order#order.price),
@@ -231,7 +231,7 @@ match_all([H|T]) ->
     match_all(T).
                     
 remove(AccountID, Type, Price, OID) ->
-    gen_server:cast(?MODULE, {remove, AccountID, Type, Price, OID}).
+    gen_server:call(?MODULE, {remove, AccountID, Type, Price, OID}).
 %reduce(AccountID, Type, Price, Amount) ->
 %    gen_server:cast(?MODULE, {reduce, AccountID, Type, Price, Amount}).
 price(OID) ->

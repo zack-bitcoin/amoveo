@@ -577,14 +577,14 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
     SPK = testnet_sign:data(SSPK2),
     channel_manager_update(ServerID, SSPK2, market:unmatched(OID)),
     ok.
-    
+cancel_trade(N) ->
+    cancel_trade(N, ?IP, ?Port).
+cancel_trade(N, IP, Port) ->
+    %the nth bet in the channel (starting at 1) is an unmatched trade that we want to cancel.
+    {ok, ServerID} = talker:talk({pubkey}, IP, Port),
+    SSPK = channel_feeder:cancel_trade(N, ServerID, IP, Port),
+    0.
 
-%mine() ->
-%    mine:start().
-    %mine(10000000000).
-%mine(N) -> 
-    %sync(),
-    %block:mine_blocks(N, 100000, 30). 
 %second number is how many nonces we try per round.
 %first number is how many rounds we do.
 test_oracle_unmatched() ->
