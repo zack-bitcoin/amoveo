@@ -104,13 +104,13 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     Bets = spk:bets(SPK),
-    Bet = element(N, list_to_tuple(Bets)),
+    Bet = element(N-1, list_to_tuple(Bets)),
     {Type, Price} = spk:bet_meta(Bet),
     CodeKey = spk:key(Bet),
     {market, 1, _, _, _, _, OID} = CodeKey,
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
-                     ssme = spk:remove_nth(N, OldCD#cd.ssme),
-                     ssthem = spk:remove_nth(N, OldCD#cd.ssthem)},
+                     ssme = spk:remove_nth(N-1, OldCD#cd.ssme),
+                     ssthem = spk:remove_nth(N-1, OldCD#cd.ssthem)},
     ok = order_book:remove(TheirPub, Type, Price, OID),
     channel_manager:write(TheirPub, NewCD),
     {reply, SSPK, X};
@@ -129,8 +129,8 @@ handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
-                     ssme = spk:remove_nth(N, OldCD#cd.ssme),
-                     ssthem = spk:remove_nth(N, OldCD#cd.ssthem)},
+                     ssme = spk:remove_nth(N-1, OldCD#cd.ssme),
+                     ssthem = spk:remove_nth(N-1, OldCD#cd.ssthem)},
     channel_manager:write(TheirPub, NewCD),
     {reply, {SSPK, NewCD}, X};
 handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
