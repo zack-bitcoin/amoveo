@@ -1,6 +1,8 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* the wallet should display outstanding bets.
+* the partially matched order looks completely matched in the wallet, and it looks non-matched in the explorer. it should look partially matched in each.
+
+* there should be a way to cancel out owned assets or open orders, so if you buy something the opposite of what you have, you can make them both disappear to unlock the liquidity.
 
 * the wallet should have some error messages:
 - insufficient funds
@@ -9,7 +11,7 @@
 
 * the readme should explain about public keys better
 
-* the explorer and wallet both need an interface so you can choose which server to connect to. Maybe wallets should support multiple servers, one channel with each.
+* the explorer and wallet both need an interface so you can choose which server to connect to. Maybe wallets should support multiple servers, one channel with each. We can't use hd(channel_manager:keys()) any more if we support multiple channels.
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 

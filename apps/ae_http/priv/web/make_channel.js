@@ -10,7 +10,6 @@ function make_channel3(x) {
     console.log(x);
     if ( ( x.length == 1) && ( x.pop() == -6 )) {
         make_channel1();
-        recover_channel1();
     } else {
         to_channel1();
         lightning_spend1();
