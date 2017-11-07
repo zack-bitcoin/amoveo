@@ -121,6 +121,11 @@ handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
     Msg = {cancel_trade, keys:pubkey(), N, SSPK},
     Msg = packer:unpack(packer:pack(Msg)),
     {ok, SSPK2} = talker:talk(Msg, IP, Port),
+    io:fwrite("channel feeder don't match \n"),
+    io:fwrite(packer:pack(SSPK)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(SSPK2)),
+    io:fwrite("\n"),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
@@ -287,7 +292,7 @@ trade(ID, Price, Type, Amount, OID, SSPK, Fee) ->
 cancel_trade(N, TheirPub, IP, Port) ->
     gen_server:call(?MODULE, {cancel_trade, N, TheirPub, IP, Port}).
 cancel_trade_server(N, TheirPub, SSPK2) ->
-    gen_server:call(?MODULE, {cancel_trade, N, TheirPub, SSPK2}).
+    gen_server:call(?MODULE, {cancel_trade_server, N, TheirPub, SSPK2}).
 
 update_to_me(SSPK, From) ->
     gen_server:call(?MODULE, {update_to_me, SSPK, From}).
