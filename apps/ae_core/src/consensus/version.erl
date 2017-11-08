@@ -1,4 +1,4 @@
 -module(version).
 -export([doit/1]).
 
-doit(_) -> 5.
+doit(_) -> 6.

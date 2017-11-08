@@ -103,7 +103,7 @@ handle_call({match, OID}, _From, X) ->
     {Out, X2}  = 
         case B of
             true ->
-                {OB2, PriceDeclaration, Accounts} = match_internal(Height, OID, OB, []),
+                {OB2, PriceDeclaration, Accounts, MatchPrice} = match_internal(Height, OID, OB, []),
                 case Accounts of
                     [] -> {ok, X};%if there is nothing to match, then don't match anything.
                     _ ->
@@ -113,7 +113,7 @@ handle_call({match, OID}, _From, X) ->
                         Expires = expires(OB3),
                         Period = period(OB3),
                         CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
-                        SS = market:settle(PriceDeclaration, OID),
+                        SS = market:settle(PriceDeclaration, OID, MatchPrice),
                         secrets:add(CodeKey, SS),
                         channel_feeder:bets_unlock(channel_manager:keys()),
                         {{PriceDeclaration, Accounts}, X3}
@@ -144,7 +144,7 @@ finished_matching(Height, OID, OB, Accounts) ->
     MarketID = OID,
     PriceDeclaration = market:price_declaration_maker(Height, Price, Ratio, MarketID),
     OB2 = OB#ob{exposure = E, height = Height},
-    {OB2, PriceDeclaration, Accounts}.
+    {OB2, PriceDeclaration, Accounts, Price}.
     
 match_internal(Height, OID, OB, Accounts) ->
     %io:fwrite("match internal\n"),

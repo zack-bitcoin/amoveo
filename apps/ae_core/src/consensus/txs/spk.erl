@@ -10,8 +10,9 @@
 	 code/1, key/1, test2/0,
 	 force_update/3,
          new_ss/2, ss_code/1, ss_prove/1,
-         bet_meta/1, remove_bet/2,
-         remove_nth/2,
+         bet_meta/1, remove_bet/2, bet_amount/1,
+         remove_nth/2, update_bets/2, 
+         set_ss_meta/2, ss_meta/1, update_bet_amount/2,
 	 test/0
 	]).
 
@@ -33,7 +34,7 @@
 %This is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
 
--record(ss, {code, prove}).
+-record(ss, {code, prove, meta = 0}).
 
 delay(X) -> X#spk.delay.
 acc1(X) -> X#spk.acc1.
@@ -49,9 +50,14 @@ nonce(X) -> X#spk.nonce.
 code(X) -> X#bet.code.
 key(X) -> X#bet.key.
 bet_meta(X) -> X#bet.meta.
+bet_amount(X) -> X#bet.amount.
 remove_bet(N, SPK) ->
     NewBets = remove_nth(N, SPK#spk.bets),
     SPK#spk{bets = NewBets}.
+update_bets(SPK, Bets) ->
+    SPK#spk{bets = Bets}.
+update_bet_amount(Bet, Amount) ->
+    Bet#bet{amount = Amount}.
 remove_nth(N, _) when N < 1 -> 1=2;
 remove_nth(1, [A|B]) -> B;
 remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
@@ -120,10 +126,13 @@ tree2id(governance) -> 6.
 new_ss(Code, Prove) ->
     #ss{code = Code, prove = Prove}.
 ss_code(X) when is_binary(X) -> 
-    throw(ss_error),
+    1=2,
     X;
 ss_code(X) -> X#ss.code.
 ss_prove(X) -> X#ss.prove.
+ss_meta(X) -> X#ss.meta.
+set_ss_meta(X, Meta) ->
+    X#ss{meta = Meta}.
 new_bet(Code, Key, Amount) ->
     new_bet(Code, Key, Amount, 0).
 new_bet(Code, Key, Amount, Meta) ->

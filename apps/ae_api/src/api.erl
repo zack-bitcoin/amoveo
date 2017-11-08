@@ -582,8 +582,15 @@ cancel_trade(N) ->
 cancel_trade(N, IP, Port) ->
     %the nth bet in the channel (starting at 1) is an unmatched trade that we want to cancel.
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
-    SSPK = channel_feeder:cancel_trade(N, ServerID, IP, Port),
+    channel_feeder:cancel_trade(N, ServerID, IP, Port),
     0.
+combine_cancel_assets() ->
+    combine_cancel_assets(?IP, ?Port).
+combine_cancel_assets(IP, Port) ->
+    {ok, ServerID} = talker:talk({pubkey}, IP, Port),
+    channel_feeder:combine_cancel_assets(ServerID, IP, Port),
+    0.
+    
 
 %second number is how many nonces we try per round.
 %first number is how many rounds we do.

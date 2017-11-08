@@ -11,7 +11,9 @@
 	 update_to_me/2, new_cd/6, 
 	 make_locked_payment/3, live/1, they_simplify/3,
 	 bets_unlock/1, emsg/1, trade/4, trade/7,
-         cancel_trade/4, cancel_trade_server/3
+         cancel_trade/4, cancel_trade_server/3,
+         combine_cancel_assets/3,
+         combine_cancel_assets_server/2
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -98,9 +100,32 @@ handle_cast({close, SS, STx}, X) ->
     tx_pool_feeder:absorb(keys:sign(STx)),
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
+handle_call({combine_cancel_assets, TheirPub, IP, Port}, _From, X) ->
+    {ok, OldCD} = channel_manager:read(TheirPub),
+    {SSPK, NewSS} = combine_cancel_common(OldCD),
+    Msg = {combine_cancel_assets, keys:pubkey(), SSPK},
+    Msg = packer:unpack(packer:pack(Msg)),
+    {ok, SSPK2} = talker:talk(Msg, IP, Port),
+    true = testnet_sign:verify(keys:sign(SSPK2)),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    NewCD = OldCD#cd{them = SSPK2, me = SPK,
+                     ssme = NewSS, ssthem = NewSS},
+    channel_manager:write(TheirPub, NewCD),
+    {reply, ok, X};
+handle_call({combine_cancel_assets_server, TheirPub, SSPK2}, _From, X) ->
+    {ok, OldCD} = channel_manager:read(TheirPub),
+    {SSPK, NewSS} = combine_cancel_common(OldCD),
+    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK2),
+    Bets = spk:bets(me(OldCD)),
+    NewCD = OldCD#cd{them = SSPK2, me = SPK,
+                     ssme = NewSS, ssthem = NewSS},
+    channel_manager:write(TheirPub, NewCD),
+    {reply, SSPK, X};
 handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     {ok, OldCD} = channel_manager:read(TheirPub),
-    SSPK = cancel_trade_common(N, TheirPub), 
+    SSPK = cancel_trade_common(N, OldCD), 
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     Bets = spk:bets(me(OldCD)),
@@ -120,23 +145,19 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     {reply, SSPK, X};
 handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
     {ok, OldCD} = channel_manager:read(TheirPub),
-    SSPK = cancel_trade_common(N, TheirPub),
+    SSPK = cancel_trade_common(N, OldCD),
 
     Msg = {cancel_trade, keys:pubkey(), N, SSPK},
     Msg = packer:unpack(packer:pack(Msg)),
     {ok, SSPK2} = talker:talk(Msg, IP, Port),
-    io:fwrite("channel feeder don't match \n"),
-    io:fwrite(packer:pack(SSPK)),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(SSPK2)),
-    io:fwrite("\n"),
+    true = testnet_sign:verify(keys:sign(SSPK2)),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
                      ssme = spk:remove_nth(N-1, OldCD#cd.ssme),
                      ssthem = spk:remove_nth(N-1, OldCD#cd.ssthem)},
     channel_manager:write(TheirPub, NewCD),
-    {reply, {SSPK, NewCD}, X};
+    {reply, ok, X};
 handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     {Trees,Height,_} = tx_pool:data(),
     true = testnet_sign:verify(keys:sign(SSPK)),
@@ -293,6 +314,10 @@ lock_spend(SSPK, Amount, Fee, SecretHash, Sender, Recipient, ESS) ->
     gen_server:call(?MODULE, {lock_spend, SSPK, Amount, Fee, SecretHash, Sender, Recipient, ESS}).
 trade(ID, Price, Type, Amount, OID, SSPK, Fee) ->
     gen_server:call(?MODULE, {trade, ID, Price, Type, Amount, OID, SSPK, Fee}).
+combine_cancel_assets(TheirPub, IP, Port) ->
+    gen_server:call(?MODULE, {combine_cancel_assets, TheirPub, IP, Port}).
+combine_cancel_assets_server(TheirPub, SSPK2) ->
+    gen_server:call(?MODULE, {combine_cancel_assets_server, TheirPub, SSPK2}).
 cancel_trade(N, TheirPub, IP, Port) ->
     gen_server:call(?MODULE, {cancel_trade, N, TheirPub, IP, Port}).
 cancel_trade_server(N, TheirPub, SSPK2) ->
@@ -447,18 +472,94 @@ trade(Amount, Bet, Other, OID) ->
     {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
     SPK2 = spk:apply_bet(Bet, 0, SPK, TimeLimit div 10 , SpaceLimit),
     keys:sign(SPK2).
-cancel_trade_common(N, TheirPubkey) ->
-    {ok, OldCD} = channel_manager:read(TheirPubkey),
+cancel_trade_common(N, OldCD) ->
     SPK = channel_feeder:me(OldCD),
-    io:fwrite("cancel trade common "),
-    io:fwrite(integer_to_list(N)),
-    io:fwrite("\n"),
     SS = element(N-1, list_to_tuple(OldCD#cd.ssme)),
     true = spk:ss_code(SS) == <<0,0,0,0,4>>,%this is what it looks like when a bet is unmatched
     SPK2 = spk:remove_bet(N-1, SPK),
     keys:sign(SPK2).
-            
-    
+matchable(Bet, SS) ->
+    SSC = spk:ss_code(SS),
+    BK = spk:key(Bet),
+    {Direction, Price} = spk:bet_meta(Bet),
+    Price2 = spk:ss_meta(SS),
+    if 
+        SSC == <<0,0,0,0,4>> -> false; %this means it is unmatched.
+        not(size(BK) == 7) -> false; %this means it is not a market contract
+        not(element(1, BK) == market) -> false; %this means it is not a market contract
+        not(element(2, BK) == 1) -> false; %this means it is not a standard market contract
+        Price2 == Price -> false; %this means that the bet is only partially matched.
+        true ->  true
+    end.
+combine_cancel_common(OldCD) ->
+    %someday, if we wanted to unlock money in a partially matched trade, we would probably also have to adjust some info in the order book. This is risky, so lets not do it yet.
+    SPK = channel_feeder:me(OldCD),
+    Bets = spk:bets(SPK),
+    io:fwrite("combine_cancel common\n"),
+    {NewBets, NewSSMe} = combine_cancel_common2(Bets, OldCD#cd.ssme, [], []),
+    SPK2 = spk:update_bets(SPK, NewBets),
+    %identify matched trades in the same market that go in opposite directions. remove the same amount from opposite directions to unlock liquidity.
+
+    {keys:sign(SPK2), NewSSMe}.
+combine_cancel_common2([], [], A, B) ->
+    %O((number of bets)^2) in time.
+    %comparing every pair of bets.
+    {lists:reverse(A), lists:reverse(B)};
+combine_cancel_common2([Bet|BT], [SSM|MT], OB, OM) ->
+    Amount = spk:bet_amount(Bet),
+    if
+        Amount == 0 -> combine_cancel_common2(BT, MT, OB, OM);
+        true ->
+            B = matchable(Bet, SSM),
+            if
+                B -> combine_cancel_common3(Bet, SSM, BT, MT, OB, OM);
+                true -> combine_cancel_common2(BT, MT, [Bet|OB], [SSM|OM])
+            end
+    end.
+combine_cancel_common3(Bet, SSM, BT, MT, OB, OM) ->
+    %check if bet can combine with any others, if it can, reduce the amounts of both accordinly.
+    %if any amount goes to zero, remove that bet and it's SS entirely.
+    {BK, SK, BF, MF} = combine_cancel_common4(Bet, SSM, BT, MT, [], []),
+    combine_cancel_common2(BF, MF, BK ++ OB, SK ++ OM).
+combine_cancel_common4(Bet, SSM, [], [], BO, MO) ->
+    Amount = spk:bet_amount(Bet),
+    if
+        Amount == 0 -> {[], [], BO, MO};%if amount is zero, we can't match any more things, and the trade should be removed.
+        true -> {[Bet], [SSM], BO, MO}
+    end;
+combine_cancel_common4(Bet, SSM, [BH|BT], [MH|MT], BO, MO) ->
+    Amount = spk:bet_amount(Bet),
+    {Direction1, _} = spk:bet_meta(Bet),
+    {Direction2, _} = spk:bet_meta(BH),
+    Key1 = spk:key(Bet),
+    Key2 = spk:key(BH),
+    OID2 = element(7, Key2),
+    OID = element(7, Key1),
+    B = matchable(BH, SSM),
+    if
+        Amount == 0 -> {[], [], 
+                        lists:reverse([BH|BT]) ++ BO,
+                        lists:reverse([MH|MT]) ++ MO};
+        not(B) or
+        not(OID == OID2) or %must be same market to match
+        Direction1 == Direction2 -> %must be opposite directions to match
+            combine_cancel_common4(Bet, SSM, BT, MT, [BH|BO], [MH|MO]);
+        true -> 
+            A1 = spk:bet_amount(Bet),
+            A2 = spk:bet_amount(BH),
+            if
+                A1 == A2 -> {[], [],
+                             lists:reverse(BT) ++ BO,
+                             lists:reverse(MT) ++ MO};
+                A1 > A2 ->
+                    Bet2 = spk:update_bet_amount(Bet, A1 - A2),
+                    combine_cancel_common4(Bet2, SSM, BT, MT, BO, MO);
+                A1 < A2 -> 
+                    BH2 = spk:update_bet_amount(BH, A2 - A1),
+                    {[], [], lists:reverse(BT) ++ [BH2] ++ BO,
+                     lists:reverse([MH|MT]) ++ MO}
+            end
+    end.
     
 bets_unlock(X) -> 
     bets_unlock2(X, []).

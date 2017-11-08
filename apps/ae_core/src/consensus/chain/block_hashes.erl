@@ -29,6 +29,7 @@ handle_call({check, H}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 
 add(X) -> 
+    true = is_binary(X),
     true = size(X) == constants:hash_size(),
     gen_server:call(?MODULE, {add, X}).
 

@@ -154,7 +154,6 @@ test(4) ->
     Trees = block:trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
-    
     Fee = 20,
     Amount = 1000000,
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
@@ -192,8 +191,9 @@ test(4) ->
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
     {_, _, Txs} = tx_pool:data(),
-
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    Header0 = block:block_to_header(BP),
+    Block0 = block:make(Header0, Txs, Trees, constants:master_pub()),
+    Block = block:mine2(Block0, 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
     {true, _} = block:check(Block),

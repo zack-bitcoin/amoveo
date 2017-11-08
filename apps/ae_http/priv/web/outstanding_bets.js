@@ -89,7 +89,8 @@ function outstanding_bets2() {
                 //console.log("matched");
                 //console.log(JSON.stringify([i, oid, amount, "matched", bet[4]]));
                 order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you are betting on outcome ").concat(outcome).concat(" with this many tokens: ").concat(s2c(amount));
-            oadiv.appendChild(order);
+                oadiv.appendChild(order);
+                oadiv.appendChild(document.createElement("br"));
             }
         }
 

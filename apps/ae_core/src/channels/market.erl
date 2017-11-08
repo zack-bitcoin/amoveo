@@ -1,6 +1,6 @@
 -module(market).
 -export([price_declaration_maker/4, market_smart_contract/9,
-	 settle/2,no_publish/1,evidence/2,
+	 settle/3,no_publish/1,evidence/2,
 	 contradictory_prices/3, market_smart_contract_key/5,
 	 unmatched/1,
 	 test/0]).
@@ -36,12 +36,13 @@ macro Period int " ++ integer_to_list(Period) ++ " ;\
 unmatched(OID) ->
     SS = " int 4 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
-settle(SPD, OID) ->
+settle(SPD, OID, Price) ->
     %If the oracle comes to a decision, this is how you get your money out.
     PriceDeclare = binary_to_list(base64:encode(SPD)),
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
 " " ++ PriceDeclare ++ " int 1",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), [{oracles, OID}]).
+    SS = spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), [{oracles, OID}]),
+    spk:set_ss_meta(SS, Price).
 no_publish(OID) ->
     %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
     SS2a = " int 0 ",
@@ -128,7 +129,7 @@ test2(NewPub) ->
     Price = 3500,
     Height = 1,
     SPD = price_declaration_maker(Height, Price, 5000, MarketID),
-    SS1 = settle(SPD, OID),
+    SS1 = settle(SPD, OID, Price),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, delay
     {60,1000002,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
@@ -184,7 +185,7 @@ test2(NewPub) ->
 
     %test a trade that gets only partly matched.
     SPD3 = price_declaration_maker(Height, 3000, 5000, MarketID),%5000 means it gets 50% matched.
-    SS5 = settle(SPD3, OID),
+    SS5 = settle(SPD3, OID, 3000),
     %amount, newnonce, shares, delay
     {100, 1000004, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.

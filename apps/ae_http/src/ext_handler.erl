@@ -197,12 +197,15 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
 doit({cancel_trade, TheirPub, N, SSPK}) ->
     SSPK2 = channel_feeder:cancel_trade_server(N, TheirPub, SSPK),
     {ok, SSPK2};
-doit({remove_trade, AccountID, Price, Type, Amount, OID, SSPK}) ->
+doit({combine_cancel_assets, TheirPub, SSPK}) ->
+    SSPK2 = channel_feeder:combine_cancel_assets_server(TheirPub, SSPK),
+    {ok, SSPK2};
+%doit({remove_trade, AccountID, Price, Type, Amount, OID, SSPK}) ->
     %make sure they signed.
     %make sure they paid enough of a fee.
     %give them their money back
     %don't remove trades that are already being matched.
-    ok;
+%    ok;
     
 doit(X) ->
     io:fwrite("I can't handle this \n"),

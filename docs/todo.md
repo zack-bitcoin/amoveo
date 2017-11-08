@@ -1,5 +1,7 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* update test_market.py to test out canceling unmatched orders, and recovering liquidity by combining opposite assets.
+
 * the partially matched order looks completely matched in the wallet, and it looks non-matched in the explorer. it should look partially matched in each.
 
 * there should be a way to cancel out owned assets or open orders, so if you buy something the opposite of what you have, you can make them both disappear to unlock the liquidity.
