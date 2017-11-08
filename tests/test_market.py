@@ -39,6 +39,7 @@ class MarketTest(ApiUser):
         self.request('trade', DEV_2_INT, [6000, 2, 2, oid, 20, [127,0,0,1], 3030], sleep=0.04)
         self.request('trade', DEV_2_INT, [8000, 2, 2, oid, 20, [127,0,0,1], 3030], sleep=0.04)
         self.request('trade', DEV_1_INT, [9000, 2, 1, oid, 20, [127,0,0,1], 3030], sleep=0.04)
+    #def dont_doit(): #good for testing market gui overlaped open trades stuff.
         self.request('mine_block', DEV_1_INT, [11, 1], sleep=1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.2)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.2)

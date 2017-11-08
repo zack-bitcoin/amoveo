@@ -82,8 +82,15 @@ function lookup_oracle1() {
         var ctx = canvas.getContext("2d");
         empty_canvas(ctx);
         background_color("black", ctx);
-        draw_buys("blue", graph_height, buys, ctx);
+        draw_buys(graph_height, buys, ctx);
+        var buy_color = "blue";
+        ctx.fillStyle = buy_color;
+        ctx.fill();
         draw_sells("orange", graph_height, sells, ctx);
+        draw_buys(graph_height, buys, ctx);
+        ctx.lineWidth="2";
+        ctx.strokeStyle = buy_color;
+        ctx.stroke();
         ctx.fillStyle = "black";
         make_lines_vertical(numbers(180, 80, 9), ctx);
         make_lines_horizontal(numbers(40, 40, 19), ctx);
@@ -111,7 +118,7 @@ function draw_sells(color, max_height, sells, ctx) {
     ctx.fillStyle = color;
     ctx.fill();
 }
-function draw_buys(color, max_height, buys, ctx) {
+function draw_buys(max_height, buys, ctx) {
     var buy_height = sum_amounts(buys);
     var portion = buy_height * 400 / max_height;
     ctx.beginPath();
@@ -127,8 +134,6 @@ function draw_buys(color, max_height, buys, ctx) {
         ctx.lineTo(x, y);
     }
     ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
 }
 function numbers(start, gap, many) {
     // example numbers(10, 2, 5) -> [10, 12, 14, 16, 18].

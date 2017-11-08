@@ -33,6 +33,7 @@ function create_account1() {
 	// var fee = parseInt(spend_fee.value, 10);
 	local_get(["create_account", to, c2s(create_balance)]);
 	local_get(["sync", IP, Port]);
+        create_balance.value = "";
     };
     document.body.appendChild(create_button);
     

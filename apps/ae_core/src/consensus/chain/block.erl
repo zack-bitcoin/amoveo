@@ -384,7 +384,7 @@ mine(Block, Rounds, Cores) ->
     spawn_many(Cores-1, F),
     F().
 mine2(Block, Times) ->
-    io:fwrite("mine2\n"),
+    %io:fwrite("mine2\n"),
     PH = Block#block.prev_hash,
     ParentPlus = get_by_hash(PH),
     Trees = ParentPlus#block.trees,

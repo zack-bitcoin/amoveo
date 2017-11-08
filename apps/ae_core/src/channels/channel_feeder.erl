@@ -495,7 +495,6 @@ combine_cancel_common(OldCD) ->
     %someday, if we wanted to unlock money in a partially matched trade, we would probably also have to adjust some info in the order book. This is risky, so lets not do it yet.
     SPK = channel_feeder:me(OldCD),
     Bets = spk:bets(SPK),
-    io:fwrite("combine_cancel common\n"),
     {NewBets, NewSSMe} = combine_cancel_common2(Bets, OldCD#cd.ssme, [], []),
     SPK2 = spk:update_bets(SPK, NewBets),
     %identify matched trades in the same market that go in opposite directions. remove the same amount from opposite directions to unlock liquidity.
