@@ -103,7 +103,7 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     SSPK = cancel_trade_common(N, TheirPub), 
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    Bets = spk:bets(SPK),
+    Bets = spk:bets(me(OldCD)),
     Bet = element(N-1, list_to_tuple(Bets)),
     {Type, Price} = spk:bet_meta(Bet),
     CodeKey = spk:key(Bet),
