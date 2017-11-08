@@ -10,18 +10,20 @@ offchain_assets_div.id = "offchain_assets_div";
 document.body.appendChild(offchain_assets_div);
 function outstanding_bets1() {
     var button_div = document.getElementById("outstanding_bets_button_div");
+    button_div.innerHTML = "";
     var div = document.getElementById("outstanding_bets_div");
     div.appendChild(document.createElement("br"));
     div.appendChild(document.createElement("br"));
-    var oadiv = document.getElementById("offchain_assets_div");
     var button = document.createElement("BUTTON");
     var button_text_node = document.createTextNode("update balance of off-chain assets");
     button.appendChild(button_text_node);
     button.onclick = outstanding_bets2;
     button_div.appendChild(button);
-    function outstanding_bets2() {
-        variable_get(["channel_state"], outstanding_bets3);
-    }
+}
+function outstanding_bets2() {
+    var div = document.getElementById("outstanding_bets_div");
+    var oadiv = document.getElementById("offchain_assets_div");
+    variable_get(["channel_state"], outstanding_bets3);
     function outstanding_bets3(x) {
         x = x.pop();
         console.log("outstanding_bets3");
@@ -51,7 +53,8 @@ function outstanding_bets1() {
     }
     function cancel_trade2(x) {
         if ( x == 0 ) {
-            outstanding_bets();
+            outstanding_bets2();
+            balance_update();
         }
         return 0;
     }
@@ -60,7 +63,7 @@ function outstanding_bets1() {
             var bet = bets[i];
             var oid = bet[3][6];
             var amount = bet[2];
-            var order = document.createElement("p");
+            var order = document.createElement("h8");
             var outcome = "";
             var meta = bet[4];
             console.log("meta");
@@ -80,6 +83,7 @@ function outstanding_bets1() {
                 cancel_button.appendChild(cancel_text_node);
                 cancel_button.onclick = function() { cancel_trade(i); };
                 div.appendChild(cancel_button);
+                div.appendChild(document.createElement("br"));
 
             } else {
                 //console.log("matched");
