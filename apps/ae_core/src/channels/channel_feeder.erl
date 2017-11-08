@@ -111,7 +111,11 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
                      ssme = spk:remove_nth(N-1, OldCD#cd.ssme),
                      ssthem = spk:remove_nth(N-1, OldCD#cd.ssthem)},
-    ok = order_book:remove(TheirPub, Type, Price, OID),
+    Type2 = case Type of
+                1 -> buy;
+                2 -> sell;
+                end,
+    ok = order_book:remove(TheirPub, Type2, Price, OID),
     channel_manager:write(TheirPub, NewCD),
     {reply, SSPK, X};
 handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
