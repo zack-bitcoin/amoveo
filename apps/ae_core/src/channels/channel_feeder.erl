@@ -484,12 +484,17 @@ matchable(Bet, SS) ->
     {Direction, Price} = spk:bet_meta(Bet),
     Price2 = spk:ss_meta(SS),
     if 
-        SSC == <<0,0,0,0,4>> -> false; %this means it is unmatched.
+        SSC == <<0,0,0,0,4>> -> 
+            io:fwrite("not cancelable because it is an open order.\n"),
+            false; %this means it is unmatched.
         not(size(BK) == 7) -> false; %this means it is not a market contract
         not(element(1, BK) == market) -> false; %this means it is not a market contract
         not(element(2, BK) == 1) -> false; %this means it is not a standard market contract
-        Price2 == Price -> false; %this means that the bet is only partially matched.
-        true ->  true
+        Price2 == Price -> 
+            io:fwrite("not cancelable because it is a partially open order."),
+            false; %this means that the bet is only partially matched.
+        true ->  io:fwrite("is matchable \n"),
+            true
     end.
 combine_cancel_common(OldCD) ->
     %someday, if we wanted to unlock money in a partially matched trade, we would probably also have to adjust some info in the order book. This is risky, so lets not do it yet.
@@ -503,12 +508,19 @@ combine_cancel_common(OldCD) ->
 combine_cancel_common2([], [], A, B) ->
     %O((number of bets)^2) in time.
     %comparing every pair of bets.
+    io:fwrite("combine cancel common finish "),
+    io:fwrite(packer:pack([length(A), length(B)])),
+    io:fwrite("\n"),
     {lists:reverse(A), lists:reverse(B)};
 combine_cancel_common2([Bet|BT], [SSM|MT], OB, OM) ->
+    io:fwrite("combine cancel common 2\n"),
     Amount = spk:bet_amount(Bet),
     if
-        Amount == 0 -> combine_cancel_common2(BT, MT, OB, OM);
+        Amount == 0 -> 
+            io:fwrite("amount is 0\n"),
+            combine_cancel_common2(BT, MT, OB, OM);
         true ->
+            io:fwrite("amount is >0\n"),
             B = matchable(Bet, SSM),
             if
                 B -> combine_cancel_common3(Bet, SSM, BT, MT, OB, OM);
@@ -516,6 +528,7 @@ combine_cancel_common2([Bet|BT], [SSM|MT], OB, OM) ->
             end
     end.
 combine_cancel_common3(Bet, SSM, BT, MT, OB, OM) ->
+    io:fwrite("combine cancel common 3\n"),
     %check if bet can combine with any others, if it can, reduce the amounts of both accordinly.
     %if any amount goes to zero, remove that bet and it's SS entirely.
     {BK, SK, BF, MF} = combine_cancel_common4(Bet, SSM, BT, MT, [], []),
@@ -523,7 +536,9 @@ combine_cancel_common3(Bet, SSM, BT, MT, OB, OM) ->
 combine_cancel_common4(Bet, SSM, [], [], BO, MO) ->
     Amount = spk:bet_amount(Bet),
     if
-        Amount == 0 -> {[], [], BO, MO};%if amount is zero, we can't match any more things, and the trade should be removed.
+        Amount == 0 -> 
+            io:fwrite("combine cancel common4 amount 0 1\n");
+            {[], [], BO, MO};
         true -> {[Bet], [SSM], BO, MO}
     end;
 combine_cancel_common4(Bet, SSM, [BH|BT], [MH|MT], BO, MO) ->
@@ -534,26 +549,33 @@ combine_cancel_common4(Bet, SSM, [BH|BT], [MH|MT], BO, MO) ->
     Key2 = spk:key(BH),
     OID2 = element(7, Key2),
     OID = element(7, Key1),
-    B = matchable(BH, SSM),
+    B = matchable(BH, MH),
     if
-        Amount == 0 -> {[], [], 
-                        lists:reverse([BH|BT]) ++ BO,
-                        lists:reverse([MH|MT]) ++ MO};
+        Amount == 0 -> 
+            io:fwrite("combine cancel common4 amount 0 2\n"),
+            {[], [], 
+             lists:reverse([BH|BT]) ++ BO,
+             lists:reverse([MH|MT]) ++ MO};
         not(B) or
         not(OID == OID2) or %must be same market to match
-        Direction1 == Direction2 -> %must be opposite directions to match
+        (Direction1 == Direction2) -> %must be opposite directions to match
+            io:fwrite("not matchable or different oracle, or different direction \n"),
             combine_cancel_common4(Bet, SSM, BT, MT, [BH|BO], [MH|MO]);
         true -> 
             A1 = spk:bet_amount(Bet),
             A2 = spk:bet_amount(BH),
             if
-                A1 == A2 -> {[], [],
-                             lists:reverse(BT) ++ BO,
-                             lists:reverse(MT) ++ MO};
+                A1 == A2 -> 
+                    io:fwrite("match both away\n"),
+                    {[], [],
+                     lists:reverse(BT) ++ BO,
+                     lists:reverse(MT) ++ MO};
                 A1 > A2 ->
+                    io:fwrite("match 1 away \n"),
                     Bet2 = spk:update_bet_amount(Bet, A1 - A2),
                     combine_cancel_common4(Bet2, SSM, BT, MT, BO, MO);
                 A1 < A2 -> 
+                    io:fwrite("match other away \n"),
                     BH2 = spk:update_bet_amount(BH, A2 - A1),
                     {[], [], lists:reverse(BT) ++ [BH2] ++ BO,
                      lists:reverse([MH|MT]) ++ MO}
