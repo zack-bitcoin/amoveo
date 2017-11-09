@@ -15,6 +15,8 @@ Non-technical [mission statement](docs/mission_statement.md).
 
 [Evidence that Amoveo's goal is technologically possible](docs/design/limit_order_in_channel.md)
 
+[testnet block explorer](http://146.185.142.103:8080/explorer.html)
+
 ## Community
 
 [Amoveo forum on reddit](https://www.reddit.com/r/Amoveo/)
@@ -32,10 +34,13 @@ Launch a node and connect to the network; [look at the quick start guide](docs/g
 [After starting your node, use a web browser on the same computer to visit this website.](http://localhost:8081/login.html)
 It is being served by the node you are running.
 
+The block explorer for the network is [here](http://146.185.142.103:8080/explorer.html)
+Go to the block explorer to see all the markets that are being run on that node.
+
 
 ## Using the wallet
 
-Amove is also a wallet. A wallet is for storing your private key, and for making signatures.
+Amoveo is also a wallet. A wallet is for storing your private key, and for making signatures.
 Read here about how to secure your private key with a password. That way you can have assets on Amoveo.
 [Secure your keys](docs/api/securing_keys.md)
 

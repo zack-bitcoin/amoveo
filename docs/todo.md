@@ -1,5 +1,7 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* it is so annoying when the entire wallet slides up and down every time the balance is recalculated. make it stop.
+
 * outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
 
 * update test_market.py to test out canceling unmatched orders, and recovering liquidity by combining opposite assets.
