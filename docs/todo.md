@@ -1,14 +1,12 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* it is so annoying when the entire wallet slides up and down every time the balance is recalculated. make it stop.
+* maybe the gui should allow you to mine.
+
+* We need to make it impossible for the server and node to have different states from each other in the channel manager.
 
 * outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
 
-* update test_market.py to test out canceling unmatched orders, and recovering liquidity by combining opposite assets.
-
 * the partially matched order looks completely matched in the wallet, and it looks non-matched in the explorer. it should look partially matched in each.
-
-* there should be a way to cancel out owned assets or open orders, so if you buy something the opposite of what you have, you can make them both disappear to unlock the liquidity.
 
 * the wallet should have some error messages:
 - insufficient funds

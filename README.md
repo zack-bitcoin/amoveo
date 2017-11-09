@@ -1,12 +1,8 @@
 Amoveo
 ==========
 
-```
-Bitcoin Donations: 1GbpRPE83Vjg73KFvTVZ4EnS2qNkiLY5TT
-Gifts must be less than $10 000 per person.
-```
 
-A scalable blockchain for financial derivatives.
+A blockchain for financial derivatives.
 Optimized for scalability via smart contracts inside state-channels.
 Has a build-in oracle for integration with real-world data.
 Written in Erlang.
@@ -59,3 +55,8 @@ For tests you need to build one of the test versions of the code instead of the 
 [If you want to run the multi-node tests](/docs/merging-and-testing/testing.md).
 
 [Single-node tests are explained here](/docs/merging-and-testing/unit_testing.md).
+
+```
+Bitcoin Donations: 1GbpRPE83Vjg73KFvTVZ4EnS2qNkiLY5TT
+Gifts must be less than $10 000 per person.
+```

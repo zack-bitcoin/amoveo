@@ -25,6 +25,9 @@ function balance_update() {
     balance1.innerHTML = "";
     balance2.innerHTML = "";
     balance3.innerHTML = "";
+    balance1.appendChild(document.createElement("br"));
+    balance2.appendChild(document.createElement("br"));
+    balance3.appendChild(document.createElement("br"));
     variable_get(["balance"], balance_update2);
 }
 function balance_update2(bal) {
