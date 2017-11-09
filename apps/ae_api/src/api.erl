@@ -110,13 +110,15 @@ new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Fee, Delay) ->
     keys:sign(Tx).
     
 new_channel_with_server(Bal1, Bal2, Delay) ->
+new_channel_with_server(Bal1, Bal2, Delay, ?IP, ?Port).
+new_channel_with_server(Bal1, Bal2, Delay, IP, Port) ->
     {Trees, _, _} = tx_pool:data(),
     Channels = trees:channels(Trees),
     CID = find_id(channels, Channels),
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(nc, Governance),
-    new_channel_with_server(?IP, ?Port, CID, Bal1, Bal2, ?Fee+Cost, Delay).
+    new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay).
 find_id(Name, Tree) ->
     find_id(Name, 1, Tree).
 find_id(Name, N, Tree) ->
@@ -554,9 +556,9 @@ new_market(OID, Expires, Period) ->
     %set up an order book.
     %turn on the api for betting.
 trade(Price, Type, Amount, OID) ->
-    trade(Price, Type, Amount, OID, ?Fee*2).
-trade(Price, Type, Amount, OID, Fee) ->
-    trade(Price, Type, Amount, OID, Fee, ?IP, ?Port).
+    trade(Price, Type, Amount, OID, ?IP, ?Port).
+trade(Price, Type, Amount, OID, IP, Port) ->
+    trade(Price, Type, Amount, OID, ?Fee*2, IP, Port).
 trade(Price, Type, A, OID, Fee, IP, Port) ->
     Amount = A,
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),

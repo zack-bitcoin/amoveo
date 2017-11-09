@@ -57,7 +57,9 @@ function make_channel1() {
             var delay = parseInt(spend_delay.value, 10);
             //var bal2 = parseInt(amount * 101 / 100);
             var bal2 = amount - 1;
-            local_get(["new_channel_with_server", amount, bal2, delay]);
+            local_get(["new_channel_with_server", amount, bal2, delay,
+                       JSON.parse(server_ip.value),
+                       parseInt(server_port.value, 10)]);
             spend_amount.value = "";
             made_channel_refresh();
         } else {

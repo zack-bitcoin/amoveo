@@ -32,7 +32,8 @@ function create_account1() {
 	var to = create_pubkey.value;
 	// var fee = parseInt(spend_fee.value, 10);
 	local_get(["create_account", to, c2s(create_balance)]);
-	local_get(["sync", IP, Port]);
+	local_get(["sync", JSON.parse(server_ip.value),
+                   parseInt(server_port.value, 10)]);
         create_balance.value = "";
     };
     document.body.appendChild(create_button);

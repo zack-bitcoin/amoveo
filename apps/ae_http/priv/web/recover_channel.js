@@ -12,7 +12,9 @@ function recover_channel1() {
     button.onclick = recover_channel2;
     div.appendChild(button);
     function recover_channel2() {
-        variable_get(["pull_channel_state"], recover_channel3);
+        variable_get(["pull_channel_state",
+                      JSON.parse(server_ip.value),
+                      parseInt(server_port.value, 10)], recover_channel3);
     }
     function recover_channel3() {
         return made_channel_refresh();

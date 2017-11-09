@@ -13,7 +13,10 @@ function combine_cancel_assets1() {
     div.appendChild(document.createElement("br"));
     div.appendChild(button);
     function combine_cancel_assets2() {
-        variable_get(["combine_cancel_assets"], combine_cancel_assets3);
+        variable_get(["combine_cancel_assets",
+                      JSON.parse(server_ip.value),
+                      parseInt(server_port.value, 10)],
+                     combine_cancel_assets3);
     }
     function combine_cancel_assets3(x) {
         return 0

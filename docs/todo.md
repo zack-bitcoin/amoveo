@@ -15,8 +15,6 @@
 
 * the readme should explain about public keys better
 
-* the explorer and wallet both need an interface so you can choose which server to connect to. Maybe wallets should support multiple servers, one channel with each. We can't use hd(channel_manager:keys()) any more if we support multiple channels.
-
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
 * api:pull_channel_state might need more checks for the error banch. or maybe it will only be used for testing purposes, so we don't need more checks.

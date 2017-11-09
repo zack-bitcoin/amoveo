@@ -29,6 +29,9 @@ function spend1() {
         var to = spend_address.value;
 	// var fee = parseInt(spend_fee.value, 10);
 	local_get(["spend", to, c2s(spend_amount)]);
+	local_get(["sync", JSON.parse(server_ip.value),
+                   parseInt(server_port.value, 10)]);
+        spend_amount.value = "";
     };
     spend_amount.value = "";
     div.appendChild(spend_button);

@@ -41,7 +41,10 @@ function balance_update2(bal) {
 function balance_update3(channel_balance) {
     var balance = document.getElementById("channel_balance");
     balance.innerHTML = "channel balance ".concat((s2c(channel_balance)).toString());
-    variable_get(["channel_balance2", IP, Port], balance_update4);
+    variable_get(["channel_balance2",
+                  JSON.parse(server_ip.value),
+                  parseInt(server_port.value, 10)],
+                 balance_update4);
 }
 function balance_update4(channel_balance) {
     var balance = document.getElementById("channel_balance2");

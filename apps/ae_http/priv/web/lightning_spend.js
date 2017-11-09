@@ -29,7 +29,10 @@ function lightning_spend1() {
     spend_button.onclick = function() {
 	var B = c2s(amount);
 	var C = B + (B%2);
-	local_get(["lightning_spend", IP, Port, spend_address.value, C]);
+	local_get(["lightning_spend",
+                   JSON.parse(server_ip.value),
+                   parseInt(server_port, 10),
+                   spend_address.value, C]);
     };
     div.appendChild(spend_button);
 
