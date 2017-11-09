@@ -1,5 +1,7 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
+
 * update test_market.py to test out canceling unmatched orders, and recovering liquidity by combining opposite assets.
 
 * the partially matched order looks completely matched in the wallet, and it looks non-matched in the explorer. it should look partially matched in each.

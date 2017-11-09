@@ -42,57 +42,69 @@ function outstanding_bets2() {
         console.log(JSON.stringify(ssme));
         div.innerHTML = "";
         oadiv.innerHTML = "";
-        print_bets(bets, ssme);
+        outstanding_bets_print_bets(bets, ssme);
         //["market",1,1,3000,"BJjOADT/mMg0BsqQkCDcEb/ylv6W85wipEKrY3qV5z3XvVrNygvVoEXsA6tncAoMuyvMB5Prepzqql3zZ1sDjjo=",40,1]
     //{market, 1, MarketID, Expires, Pubkey, Period, OID}.
     }
-    function cancel_trade(n) {
+}
+function cancel_trade(n) {
         //the nth bet in the channel (starting at 1) is a unmatched trade that we want to cancel.
-        console.log("cancel trade");
-        variable_get(["cancel_trade", n], cancel_trade2);
+    console.log("cancel trade");
+    console.log(n);
+    variable_get(["cancel_trade", n], cancel_trade2);
+}
+function cancel_trade2(x) {
+    if ( x == 0 ) {
+        outstanding_bets2();
+        balance_update();
     }
-    function cancel_trade2(x) {
-        if ( x == 0 ) {
-            outstanding_bets2();
-            balance_update();
-        }
-        return 0;
-    }
-    function print_bets(bets, ssme) {
-        for (var i = 1; i < bets.length; i++) {
-            var bet = bets[i];
-            var oid = bet[3][6];
-            var amount = bet[2];
-            var order = document.createElement("h8");
+    return 0;
+}
+function outstanding_bets_print_bets(bets, ssme) {
+    var div = document.getElementById("outstanding_bets_div");
+    var oadiv = document.getElementById("offchain_assets_div");
+    var cancel_buttons = [];
+    for (var i = 1; i < bets.length; i++) {
+        var bet = bets[i];
+        var oid = bet[3][6];
+        var amount = bet[2];
+        var order = document.createElement("h8");
             var outcome = "";
-            var meta = bet[4];
-            console.log("meta");
-            console.log(meta);
-            if (bet[4][1] == 1) {
-                outcome = "true";
-            } else if (bet[4][1] == 2) {
-                outcome = "false";
-            }
-            if ( ssme[i][1] == "AAAAAAQ=" ) {
-                //console.log("unmatched");
-                //console.log(JSON.stringify([i, oid, amount, "unmatched", bet[4]]));
-                order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you have an open order to trade this many tokens ").concat(s2c(amount)).concat(", you are trading at this price: ").concat(parseFloat(((bet[4][2])/100), 10)).concat(", you are betting on outcome: ").concat(outcome);
-                div.appendChild(order);
-                var cancel_button = document.createElement("BUTTON");
-                var cancel_text_node = document.createTextNode("cancel trade");
-                cancel_button.appendChild(cancel_text_node);
-                cancel_button.onclick = function() { cancel_trade(i); };
-                div.appendChild(cancel_button);
-                div.appendChild(document.createElement("br"));
-
-            } else {
-                //console.log("matched");
-                //console.log(JSON.stringify([i, oid, amount, "matched", bet[4]]));
-                order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you are betting on outcome ").concat(outcome).concat(" with this many tokens: ").concat(s2c(amount));
-                oadiv.appendChild(order);
-                oadiv.appendChild(document.createElement("br"));
-            }
+        var meta = bet[4];
+        console.log("meta");
+        console.log(meta);
+        if (bet[4][1] == 1) {
+            outcome = "true";
+        } else if (bet[4][1] == 2) {
+            outcome = "false";
         }
-
+        if ( ssme[i][1] == "AAAAAAQ=" ) {
+            //console.log("unmatched");
+            //console.log(JSON.stringify([i, oid, amount, "unmatched", bet[4]]));
+            order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you have an open order to trade this many tokens ").concat(s2c(amount)).concat(", you are trading at this price: ").concat(parseFloat(((bet[4][2])/100), 10)).concat(", you are betting on outcome: ").concat(outcome);
+            div.appendChild(order);
+            //var cancel_button = document.createElement("BUTTON");
+            var cancel_button = document.createElement("input");
+            cancel_button.type = 'button';
+            cancel_button.value = 'cancel trade';
+            //cancel_button.id = "cancel_button".concat(i.toString());
+            //cancel_button.onclick = function() { cancel_trade(i); };
+            div.appendChild(cancel_button);
+            div.appendChild(document.createElement("br"));
+            cancel_buttons.push(cancel_button);
+            
+        } else {
+            //console.log("matched");
+            //console.log(JSON.stringify([i, oid, amount, "matched", bet[4]]));
+            order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you are betting on outcome ").concat(outcome).concat(" with this many tokens: ").concat(s2c(amount));
+            oadiv.appendChild(order);
+            oadiv.appendChild(document.createElement("br"));
+        }
+    }
+    for (var i = 0; i < cancel_buttons.length; i++) {
+        (function(k){
+            cancel_buttons[i].onclick = function() { cancel_trade(k+2); };
+                                                    
+        })(i);
     }
 }

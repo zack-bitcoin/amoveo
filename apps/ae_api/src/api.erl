@@ -580,7 +580,7 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
 cancel_trade(N) ->
     cancel_trade(N, ?IP, ?Port).
 cancel_trade(N, IP, Port) ->
-    %the nth bet in the channel (starting at 1) is an unmatched trade that we want to cancel.
+    %the nth bet in the channel (starting at 2) is an unmatched trade that we want to cancel.
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     channel_feeder:cancel_trade(N, ServerID, IP, Port),
     0.
