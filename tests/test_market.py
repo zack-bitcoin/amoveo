@@ -24,7 +24,7 @@ class MarketTest(ApiUser):
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
         self.request('new_channel_with_server', DEV_1_INT, [[127, 0, 0, 1], 3030, 17, 10000, 9999, 50, 4], sleep=0.04)
-        self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
+        self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.2)
         self.request('new_channel_with_server', DEV_2_INT, [[127, 0, 0, 1], 3030, 27, 10000, 9999, 50, 4], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)

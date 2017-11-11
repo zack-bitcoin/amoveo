@@ -3,6 +3,7 @@
 //var Port = 3011;
 //var Port = 3030;
 var IP = document.URL.split("/")[2].split(":")[0];
+var PORT = parseInt(document.URL.split(":")[2].substring(0, 4), 10);
 function getter(t, u, callback){
     t = JSON.stringify(t);
     //console.log("getter ".concat(t));
@@ -13,7 +14,6 @@ function getter(t, u, callback){
     return xmlhttp
 }
 //var PORT = parseInt(document.URL.substring(17, 21), 10);
-var PORT = parseInt(document.URL.split(":")[2].substring(0, 4), 10);
 function get(t, callback) {
     //u = url(PORT - 1, "localhost");
     //u = url(PORT, "localhost");
