@@ -65,7 +65,7 @@ absorb([Header | T]) ->
             ok; %don't store the same header more than once.
         error ->
             true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
-            Header#header.height > 1,
+            %Header#header.height > 1,
             {true, _} = check_difficulty(Header),%check that the difficulty written on the block is correctly calculated
             ok = gen_server:call(?MODULE, {add, Hash, Header})
             %file:write_file(?LOC, serialize(Header), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
