@@ -1,10 +1,10 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* test lightning from the gui.
+
 * the gui needs to make it convenient to collect winnings after a market is closed.
 
 * maybe the gui should allow for betting in the oracle?
-
-* maybe the gui should allow you to mine.
 
 * We need to make it impossible for the server and node to have different states from each other in the channel manager.
 

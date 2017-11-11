@@ -1,14 +1,41 @@
-list_oracles1();
+document.body.appendChild(document.createElement("br"));
+document.body.appendChild(document.createElement("br"));
+var show_markets = document.createElement("input");
+show_markets.type = "button";
+show_markets.id = "show_markets_button";
+document.body.appendChild(show_markets);
+document.body.appendChild(document.createElement("br"));
+var market_div = document.createElement("div");
+market_div.id = "market_div";
+document.body.appendChild(market_div);
+
+show_markets2();
+function show_markets2() {
+    var div = document.getElementById("market_div");
+    list_oracles1();
+    lookup_oracle1();
+    var button = document.getElementById("show_markets_button");
+    button.value = "hide markets";
+    button.onclick = hide_markets;
+}
+function hide_markets() {
+    var div = document.getElementById("market_div");
+    div.innerHTML = "";
+    var button = document.getElementById("show_markets_button");
+    button.value = "show markets";
+    button.onclick = show_markets2;
+}
+
+//list_oracles1();
 function list_oracles1() {
-    document.body.appendChild(document.createElement("br"));
-    document.body.appendChild(document.createElement("br"));
+    var div = document.getElementById("market_div");
     var lookup_oracle = document.createElement("div");
-    document.body.appendChild(lookup_oracle);
+    div.appendChild(lookup_oracle);
     var lookup_oracle_button = document.createElement("BUTTON");
     var lookup_oracle_text_node = document.createTextNode("list markets");
     lookup_oracle_button.appendChild(lookup_oracle_text_node);
     lookup_oracle_button.onclick = lookup_helper;
-    document.body.appendChild(lookup_oracle_button);
+    div.appendChild(lookup_oracle_button);
     function lookup_helper() {
         variable_public_get(["list_oracles"], lookup_helper2);
     }
@@ -16,37 +43,38 @@ function list_oracles1() {
         lookup_oracle.innerHTML = "live markets: ".concat(x.slice(1));
     }
 }
-lookup_oracle1();
+//lookup_oracle1();
 function lookup_oracle1() {
-    document.body.appendChild(document.createElement("br"));
-    document.body.appendChild(document.createElement("br"));
+    var div = document.getElementById("market_div");
+    div.appendChild(document.createElement("br"));
+    div.appendChild(document.createElement("br"));
     var lookup_oracle = document.createElement("div");
-    document.body.appendChild(lookup_oracle);
+    div.appendChild(lookup_oracle);
     var lookup_oracle_address = document.createElement("INPUT");
     lookup_oracle_address.setAttribute("type", "text");
-    document.body.appendChild(lookup_oracle_address);
+    div.appendChild(lookup_oracle_address);
 
     var lookup_oracle_button = document.createElement("BUTTON");
     var lookup_oracle_text_node = document.createTextNode("lookup market");
     lookup_oracle_button.appendChild(lookup_oracle_text_node);
     lookup_oracle_button.onclick = lookup_oracle_helper;
-    document.body.appendChild(lookup_oracle_button);
-    document.body.appendChild(document.createElement("br"));
+    div.appendChild(lookup_oracle_button);
+    div.appendChild(document.createElement("br"));
     var price = document.createElement("div");
-    document.body.appendChild(price);
+    div.appendChild(price);
     var expires = document.createElement("div");
-    document.body.appendChild(expires);
+    div.appendChild(expires);
     var batch_period = document.createElement("div");
-    document.body.appendChild(expires);
+    div.appendChild(expires);
     var height = document.createElement("div");
-    document.body.appendChild(height);
+    div.appendChild(height);
     var chart = document.createElement("div");
-    document.body.appendChild(chart);
+    div.appendChild(chart);
     var canvas = document.createElement("canvas");
     canvas.id = "oracleCanvas";
     canvas.width = 900;//maybe number should be a string
     canvas.height = 500;
-    document.body.appendChild(canvas);
+    div.appendChild(canvas);
     function lookup_oracle_helper() {
         var x = parseInt(lookup_oracle_address.value, 10);
         variable_public_get(["oracle", x], lookup_oracle_helper2);
