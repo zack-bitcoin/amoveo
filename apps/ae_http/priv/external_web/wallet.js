@@ -20,9 +20,6 @@ function wallet_doit1() {
         }
         return array;
     }
-    function i2s(i, a) {
-        return integer_to_array(i, a);
-    }
     function string_to_array(x) {
         var a = new Uint8Array(x.length);
         for (var i=0; i<x.length; i++) {
@@ -47,8 +44,6 @@ function wallet_doit1() {
         return a.reverse();
     }
     function serialize_header(x) {
-        //convert the header to binary form.
-
         //Array [ "header", 0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…", "vvbP//eI8ByxXmJKP7/0hN32AUaOPjY/xnC…", "oZlvyvtE4uKNxKmQYuIZqQTRib+b5qh0u8Q…", 0, 1, 6, 0, 0 ]
         var height = x[1]; //4 bytes
         var prev_hash = atob(x[2]); //bin
@@ -61,12 +56,12 @@ function wallet_doit1() {
         //var accumulative_difficulty = x[9]; //don't include
         var y = string_to_array(prev_hash);
         return y.concat(
-            i2s(height, 4)).concat(
-                i2s(time, 4)).concat(
-                    i2s(version, 2).concat(
+            integer_to_array(height, 4)).concat(
+                integer_to_array(time, 4)).concat(
+                    integer_to_array(version, 2).concat(
                         string_to_array(trees_hash).concat(
                             string_to_array(txs_proof_hash).concat(
-                                i2s(difficulty, 2).concat(
+                                integer_to_array(difficulty, 2).concat(
                                     string_to_array(nonce))))));
     }
     function pair2sci(x, b) {
@@ -235,8 +230,20 @@ function wallet_doit1() {
             var b =check_pow(h[i]);
             if ( b ) {
                 console.log("absorbing header");
-                hh = hash(serialize_header(h[i]));
-                db[hh] = h[i]; }
+                var header = h[i];
+                var height = header[1];
+                if ( height == 0 ) {
+                    header[9] = 0;
+                } else {
+                    var prev_hash = string_to_array(atob(header[2]));
+                    var prev_header = db[prev_hash];
+                    prev_ac = prev_header[9];
+                    diff = header[6];
+                    var ac = sci2int(diff);
+                    header[9] = prev_ac + ac;
+                }
+                hh = hash(serialize_header(header));
+                db[hh] = header; }
             else {
                 console.log("bad header");
                 console.log(h[i]); }
@@ -244,7 +251,6 @@ function wallet_doit1() {
     }
     function hash_test() {
         console.log(hash([1,4,6,1,2,3,4,4]));
-        //var array = new Uint8Array(4);
         var z = integer_to_array(1000, 4);
         var s = array_to_string(z);
         var a = atob("AAAD6A==");
@@ -263,22 +269,7 @@ function wallet_doit1() {
     }
     function header_test2(hl) {
         console.log(hl);
-        //hl.pop();
         absorb_headers(hl);
-        //var header0 = hl[1];
-        //var hash0 = hash(serialize_header(header0));
-        //db[hash0] = header0;
-        //var header = hl[2];
-        //console.log(header);
-        //var d = serialize_header(header);
-        //console.log(JSON.stringify(d));
-        //var c = hash(d);
-        //console.log(c);
-        //var e = check_pow(header);
-        //if ( e ) { db[c] = header; }
-        //else { console.log("bad pow"); }
-        //calculate hash of header
-        //store the hash/header pair into the db.
     }
 }
 
