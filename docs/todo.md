@@ -1,7 +1,5 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* headers should store the nonce as binary, that way conversion to JSON object is simple. (JSON has max number size that is smaller than 32 bytes.)
-
 * test lightning from the gui.
 
 * the gui needs to make it convenient to collect winnings after a market is closed.

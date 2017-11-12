@@ -73,10 +73,12 @@ function wallet_doit1() {
         var time = x[5]; //4 bytes
         var difficulty = x[6]; // 3 bytes
         var version = x[7]; // 2 bytes
-        var nonce = x[8]; // 32 bytes
+        var nonce = atob(x[8]); // 32 bytes
         //var accumulative_difficulty = x[9]; //don't include
         console.log("prev hash is");
         console.log(prev_hash);
+        console.log("nonce is");
+        console.log(nonce);
         var y = string_to_array(prev_hash);
         console.log("prev hash to array is");
         console.log(y);
@@ -88,7 +90,7 @@ function wallet_doit1() {
                         string_to_array(trees_hash).concat(
                             string_to_array(txs_proof_hash).concat(
                                 i2s(difficulty, 2).concat(
-                                    i2s(nonce, 32))))));
+                                    string_to_array(nonce))))));
     }
     function header_test() {
         variable_public_get(["headers", 1, 1], header_test2);
