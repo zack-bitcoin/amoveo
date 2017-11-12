@@ -222,8 +222,13 @@ proof_packer(X) -> X.
     %Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
 many_headers(M, _) when M < 1 -> [];
 many_headers(Many, N) ->    
-    [block:block_to_header(block:get_by_height(N))|
-     many_headers(Many-1, N+1)].
+    H = api:height(),
+    if
+        N > H -> [];
+        true ->
+            [block:block_to_header(block:get_by_height(N))|
+             many_headers(Many-1, N+1)]
+    end.
     
     
 minus([T|X], T) -> X;

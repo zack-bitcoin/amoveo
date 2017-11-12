@@ -2,19 +2,23 @@ wallet_doit1();
 function wallet_doit1() {
     var button = document.createElement("input");
     button.type = "button";
-    button.value = "test";
+    button.value = "get more headers";
     button.id = "wallet_button_test";
-    button.onclick = header_test;
+    button.onclick = more_headers;
     //button.onclick = test;
     document.body.appendChild(button);
-    var headers_db = {};
-    var top;
-    var top_diff = 0;
+    wallet_text = document.createElement("p");
+    wallet_text.innerHTML = "";
+    document.body.appendChild(wallet_text);
+    var headers_db = {};//store valid headers by hash
+    var top = 0;//stores a header
+    var top_diff = 0;//accumulative difficulty of top
     function write_header(header) {
         var acc_difficulty = header[9];
         if (acc_difficulty > top_diff) {
             top_diff = acc_difficulty;
             top = header;
+            wallet_text.innerHTML = JSON.stringify({"height": header[1], "total_work":header[9]});
         }
         h = hash(serialize_header(header));
         headers_db[h] = header;
@@ -137,6 +141,24 @@ function wallet_doit1() {
         }
     }
     function retarget(header, n) {
+        return retarget2(header, n, []);
+    }
+    function retarget2(header, n, ts) {
+        var t = header[5];
+        ts.push(t);
+        var height = header[1];
+        console.log("retarget 2");
+        console.log(height);
+        if ((height == 0) || (n == 0)) {
+            return {"header":header, "times":ts};
+        }
+        else {
+            var prev_hash = string_to_array(atob(header[2]));
+            var prev_header = headers_db[prev_hash];
+            return retarget2(prev_header, n-1, ts);
+        }
+    }
+    /*function retarget(header, n) {
         var l = [];
         for (var i = n; i > 0; i--) {
             var t = header[5];//header.time
@@ -145,7 +167,7 @@ function wallet_doit1() {
             l.push(t);
         }
         return l;
-    }
+    }*/
     function median(l) {
         l.sort(function(a, b) {return a - b;});
         var half = Math.floor(l.length / 2);
@@ -154,10 +176,10 @@ function wallet_doit1() {
     function difficulty_should_be2(header) {
         var f = Math.floor(2000 / 2); //constants:retarget frequencey is 2000
         var a1 = retarget(header, f, []);
-        var times1 = a1.pop();
-        var hash2000 = a1.pop();
+        var times1 = a1.times;
+        var hash2000 = a1.header;
         var a2 = retarget(hash2000, f, []);
-        var times2 = a2.pop();
+        var times2 = a2.times;
         var m1 = median(times1);
         var m2 = median(times2);
         var tbig = m1 - m2;
@@ -165,7 +187,10 @@ function wallet_doit1() {
         var nt = pow_recalculate(diff,
                                  600,//constants:block_time()
                                  Math.max(1, t));
-        return Math.max(nt, 6452);//initial difficulty
+        var done = Math.max(nt, 6452);
+        console.log("difficulty_should_be2");
+        console.log(done);
+        return done;//initial difficulty
         
     }
     function pow_recalculate(oldDiff, top, bottom) {
@@ -214,23 +239,35 @@ function wallet_doit1() {
     }
     function check_pow(header) {
         //calculate Data, a serialized version of this header where the nonce is 0.
+        console.log("check header ");
+        console.log(header);
         var height = header[1];
-        if (height == 0) { return true; }
+        if (height < 1) { return true; }
         else {
             var prev_hash = string_to_array(atob(header[2]));
+            console.log("prev hash ");
+            console.log(prev_hash);
             var diff0 = difficulty_should_be(prev_hash);
             var diff = header[6];
             if (diff == diff0) {
+                console.log("error below here");
                 var data = JSON.parse(JSON.stringify(header));
                 data[8] = btoa(array_to_string(integer_to_array(0, 32)));
-                var h1 = hash(serialize_header(data));
+                var s1 = serialize_header(data);
+                console.log("s1 is ");
+                console.log(JSON.stringify(s1));
+                var h1 = hash(s1);
                 var nonce = atob(header[8]);
                 var h2 = hash(h1.concat(
                     integer_to_array(diff, 2)).concat(
                         string_to_array(nonce)));
                 var I = hash2integer(h2);
+                console.log("error above here");
                 return I > diff;
             } else {
+                console.log("bad diff");
+                console.log(diff);
+                console.log(diff0);
                 return false;
                 
             }
@@ -240,7 +277,6 @@ function wallet_doit1() {
         for (var i = 1; i < h.length; i++ ) {
             var b =check_pow(h[i]);
             if ( b ) {
-                console.log("absorbing header");
                 var header = h[i];
                 var height = header[1];
                 if ( height == 0 ) {
@@ -251,15 +287,27 @@ function wallet_doit1() {
                     prev_ac = prev_header[9];
                     diff = header[6];
                     var ac = sci2int(diff);
-                    header[9] = prev_ac + ac;
+                    header[9] = prev_ac + ac - 1;
                 }
                 write_header(header);}
                 //hh = hash(serialize_header(header));
                 //headers_db[hh] = header; }
             else {
+                //console.log(headers_db);
                 console.log("bad header");
                 console.log(h[i]); }
         }
+    }
+    function more_headers() {
+        var n;
+        if ( top == 0 ) {
+            n = 0;
+        } else {
+            n = top[1];
+        }
+        console.log("more headers n is ");
+        console.log(n);
+        variable_public_get(["headers", 10, n], absorb_headers);
     }
     function hash_test() {
         console.log(hash([1,4,6,1,2,3,4,4]));
