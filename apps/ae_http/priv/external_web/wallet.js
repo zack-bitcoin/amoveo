@@ -7,7 +7,18 @@ function wallet_doit1() {
     button.onclick = header_test;
     //button.onclick = test;
     document.body.appendChild(button);
-    var db = {};
+    var headers_db = {};
+    var top;
+    var top_diff = 0;
+    function write_header(header) {
+        var acc_difficulty = header[9];
+        if (acc_difficulty > top_diff) {
+            top_diff = acc_difficulty;
+            top = header;
+        }
+        h = hash(serialize_header(header));
+        headers_db[h] = header;
+    }
     function hash(input) {//array of bytes -- array of bytes
         var b = sjcl.codec.bytes.toBits(input);
         var x = sjcl.hash.sha256.hash(b);
@@ -109,9 +120,9 @@ function wallet_doit1() {
         // calculate B. take the next 8 bits from h after calculating x, and interpret it as an integer.
         //return pair2sci(X, B);
     function difficulty_should_be(hash) {
-        var header = db[hash];
+        var header = headers_db[hash];
         if ( header == undefined ) {
-            console.log(db);
+            console.log(headers_db);
             console.log(hash);
             console.log("received an orphan header");
             return "unknown parent";
@@ -130,7 +141,7 @@ function wallet_doit1() {
         for (var i = n; i > 0; i--) {
             var t = header[5];//header.time
             var prev_hash = string_to_array(atob(header[2]));
-            var header = db[prev_hash];
+            var header = headers_db[prev_hash];
             l.push(t);
         }
         return l;
@@ -236,14 +247,15 @@ function wallet_doit1() {
                     header[9] = 0;
                 } else {
                     var prev_hash = string_to_array(atob(header[2]));
-                    var prev_header = db[prev_hash];
+                    var prev_header = headers_db[prev_hash];
                     prev_ac = prev_header[9];
                     diff = header[6];
                     var ac = sci2int(diff);
                     header[9] = prev_ac + ac;
                 }
-                hh = hash(serialize_header(header));
-                db[hh] = header; }
+                write_header(header);}
+                //hh = hash(serialize_header(header));
+                //headers_db[hh] = header; }
             else {
                 console.log("bad header");
                 console.log(h[i]); }
