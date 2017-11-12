@@ -205,7 +205,7 @@ check_difficulty2(Header) ->
     M1 = median(Times1),
     M2 = median(Times2),
     Tbig = M1 - M2,
-    T = Tbig div F,
+    T = Tbig div F,%T is the estimated block time over last 2000 blocks.
     NT = pow:recalculate(Header#header.difficulty,
                          constants:block_time(),
                          max(1, T)),
