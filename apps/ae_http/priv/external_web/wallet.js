@@ -73,8 +73,6 @@ function wallet_doit1() {
         return (256 * x) + b;
     }
     function hash2integer(h) {
-        console.log("hash2integer");
-        console.log(h);
         return hash2integer2(h.concat([255]), 0, 0);
     }
     function hash2integer2(h, i, n) {
@@ -82,8 +80,6 @@ function wallet_doit1() {
         if  ( x == 0 ) {
             return hash2integer2(h, i+1, n+(256*8));
         } else {
-            console.log("hash2integer 2 ");
-            console.log(n);
             return n + hash2integer3(x, h[i+1]);
         }
     }
@@ -100,12 +96,8 @@ function wallet_doit1() {
         var x = binary[i];
         if ( x == "0" ) { return hash2integer4(binary, i+1, n+256) }
         else {
-            console.log("hash2integer 4 ");
-            console.log(n);
             var b2 = binary.slice(i, i+8);
             var y = hash2integer5(b2) + n;
-            console.log("hash2integer 4 2");
-            console.log(7);
             return y;
         }
     }
@@ -216,24 +208,38 @@ function wallet_doit1() {
     }
     function check_pow(header) {
         //calculate Data, a serialized version of this header where the nonce is 0.
-        var prev_hash = string_to_array(atob(header[2]));
-        var diff0 = difficulty_should_be(prev_hash);
-        var diff = header[6];
-        if (diff == diff0) {
-        //check if difficulty is the same as what we calculate it should be from the headers we already have.
-            var data = header;
-            data[8] = btoa(array_to_string(integer_to_array(0, 32)));
-            //console.log(data);
-            var h1 = hash(serialize_header(data));
-            var nonce = atob(header[8]);
-            var h2 = hash(h1.concat(
-                integer_to_array(diff, 2)).concat(
-                    string_to_array(nonce)));
-            var I = hash2integer(h2);
-            return I > diff;
-        } else {
-            return false;
-            
+        var height = header[1];
+        if (height == 0) { return true; }
+        else {
+            var prev_hash = string_to_array(atob(header[2]));
+            var diff0 = difficulty_should_be(prev_hash);
+            var diff = header[6];
+            if (diff == diff0) {
+                var data = JSON.parse(JSON.stringify(header));
+                data[8] = btoa(array_to_string(integer_to_array(0, 32)));
+                var h1 = hash(serialize_header(data));
+                var nonce = atob(header[8]);
+                var h2 = hash(h1.concat(
+                    integer_to_array(diff, 2)).concat(
+                        string_to_array(nonce)));
+                var I = hash2integer(h2);
+                return I > diff;
+            } else {
+                return false;
+                
+            }
+        }
+    }
+    function absorb_headers(h) {
+        for (var i = 1; i < h.length; i++ ) {
+            var b =check_pow(h[i]);
+            if ( b ) {
+                console.log("absorbing header");
+                hh = hash(serialize_header(h[i]));
+                db[hh] = h[i]; }
+            else {
+                console.log("bad header");
+                console.log(h[i]); }
         }
     }
     function hash_test() {
@@ -253,24 +259,25 @@ function wallet_doit1() {
         console.log(JSON.stringify(hash(f)));
     }
     function header_test() {
-        variable_public_get(["headers", 2, 0], header_test2);
+        variable_public_get(["headers", 10, 0], header_test2);
     }
     function header_test2(hl) {
-        var header0 = hl[1];
-        var hash0 = hash(serialize_header(header0));
-        db[hash0] = header0;
-        var header = hl[2];
+        console.log(hl);
+        //hl.pop();
+        absorb_headers(hl);
+        //var header0 = hl[1];
+        //var hash0 = hash(serialize_header(header0));
+        //db[hash0] = header0;
+        //var header = hl[2];
         //console.log(header);
-        var d = serialize_header(header);
+        //var d = serialize_header(header);
         //console.log(JSON.stringify(d));
-        var c = hash(d);
+        //var c = hash(d);
         //console.log(c);
-        var e = check_pow(header);
-        if ( e ) { console.log("good pow"); }
-        else { console.log("bad pow"); }
+        //var e = check_pow(header);
+        //if ( e ) { db[c] = header; }
+        //else { console.log("bad pow"); }
         //calculate hash of header
-        //check pow on header is valid for difficulty on header.
-        //check that the difficulty on header is high enough.
         //store the hash/header pair into the db.
     }
 }
