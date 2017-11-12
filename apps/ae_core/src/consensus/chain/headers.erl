@@ -74,8 +74,8 @@ absorb([Header | T]) ->
 
 check_pow(Header) ->
     MineDiff = Header#header.difficulty,
-    Data = block:hash(Header#header{nonce = 0}),
-    Nonce = Header#header.nonce,
+    Data = block:hash(Header#header{nonce = <<0:256>>}),
+    <<Nonce:256>> = Header#header.nonce,
     Serialized = serialize(Header),
     %Hashed = hash:doit(Serialized, constants:hash_size()),
     pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size()).
@@ -116,7 +116,7 @@ make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty) ->
 	    version = Version,
 	    trees_hash = TreesHash,
 	    txs_proof_hash = TxsProofHash,
-	    nonce = Nonce,
+	    nonce = <<Nonce:256>>,
 	    difficulty = Difficulty,
 	    accumulative_difficulty = 0};
 make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty) ->
@@ -132,7 +132,7 @@ make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty) -
             version = Version,
             trees_hash = Trees,
             txs_proof_hash = TxsProodHash,
-            nonce = Nonce,
+	    nonce = <<Nonce:256>>,
             difficulty = Difficulty,
             accumulative_difficulty = AC}.
     
@@ -149,6 +149,7 @@ serialize(H) ->
     HB = bit_size(H#header.prev_hash),
     HB = bit_size(H#header.trees_hash),
     HB = bit_size(H#header.txs_proof_hash),
+    HB = bit_size(H#header.nonce),
     <<(H#header.prev_hash)/binary,
       (H#header.height):HtB,
       (H#header.time):TB,
@@ -156,7 +157,7 @@ serialize(H) ->
       (H#header.trees_hash)/binary,
       (H#header.txs_proof_hash)/binary,
       (H#header.difficulty):DB,
-      (H#header.nonce):HB
+      (H#header.nonce)/binary
     >>.
 
 -spec deserialize(serialized_header()) -> header().
@@ -174,7 +175,7 @@ deserialize(H) ->
       TreesHash:HB/bitstring,
       TxsProofHash:HB/bitstring,
       Difficulty:DB,
-      Nonce:HB
+      Nonce:HB/bitstring
     >> = H,
     #header{prev_hash = PrevHash,
             height = Height,

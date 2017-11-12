@@ -46,8 +46,8 @@ function variable_get(cmd, callback) {
     var_get(x, callback);
 }
 function variable_public_get(cmd, callback) {
-    var x = get(cmd);
-    var_get(x, callback);
+    var foobar = get(cmd);
+    var_get(foobar, callback);
 }
 function var_get(x, callback) {
     refresh_helper(x, function(){
