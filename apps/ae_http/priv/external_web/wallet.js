@@ -132,14 +132,87 @@ function wallet_doit1() {
             var Diff = header[6];
             var RF = 2000; //constants:retarget_frequency();
             var height = header[1];
-            var X = height % RF;
-            if ( ( X == 0 ) && (! (height < 10) )) {
+            var x = height % RF;
+            if ( ( x == 0 ) && (! (height < 10) )) {
                 return difficulty_should_be2(header);
             } else { return Diff; }
         }
     }
+    function retarget(header, n) {
+        var l = [];
+        for (var i = n; i > 0; i--) {
+            var t = header[5];//header.time
+            var prev_hash = string_to_array(atob(header[2]));
+            var header = db[prev_hash];
+            l.push(t);
+        }
+        return l;
+    }
+    function median(l) {
+        l.sort(function(a, b) {return a - b;});
+        var half = Math.floor(l.length / 2);
+        return l[half];
+    }
     function difficulty_should_be2(header) {
+        var f = Math.floor(2000 / 2); //constants:retarget frequencey is 2000
+        var a1 = retarget(header, f, []);
+        var times1 = a1.pop();
+        var hash2000 = a1.pop();
+        var a2 = retarget(hash2000, f, []);
+        var times2 = a2.pop();
+        var m1 = median(times1);
+        var m2 = median(times2);
+        var tbig = m1 - m2;
+        var t = Math.floor(tbig / f);
+        var nt = pow_recalculate(diff,
+                                 600,//constants:block_time()
+                                 Math.max(1, t));
+        return Math.max(nt, 6452);//initial difficulty
         
+    }
+    function pow_recalculate(oldDiff, top, bottom) {
+        var old = sci2int(oldDiff);
+        var n = Math.max(1, Math.floor(( old * top ) / bottom));
+        var d = int2sci(n);
+        return Math.max(1, d);
+    }
+    function log2(x) {
+        if (x == 1) { return 1; }
+        else { return 1 + log2(Math.floor(x / 2))}
+    }
+    function exponent(a, b) {
+        if (b == 0) { return 1; }
+        else if (b == 1) { return a; }
+        else if ((b % 2) == 0) {return exponent(a*a, Math.floor(b / 2)); }
+        else {return a*exponent(a, b-1); }
+    }
+    function sci2int(x) {
+        function pair2int(l) {
+            var a = l.pop();
+            var b = l.pop();
+            var c = exponent(2, a);
+            return Math.floor((c * (256 + b)) / 256);
+        }
+        function sci2pair(i) {
+            var a = Math.floor(i / 256);
+            var b = i % 256;
+            return [a, b];
+        }
+        return pair2int(sci2pair(x));
+    }
+    function int2sci(x) {
+        function pair2sci(l) {
+            var a = l.pop();
+            var b = l.pop();
+            return (256 * a) + b;
+        }
+        function int2pair(x) {
+            var a = log2(x) - 1;
+            var c = exponent(2, a);
+            var b = Math.floor((x * 256) / c) - 256;
+            return [a, b];
+        }
+        return pair2sci(int2pair(x));
     }
     function check_pow(header) {
         //calculate Data, a serialized version of this header where the nonce is 0.
