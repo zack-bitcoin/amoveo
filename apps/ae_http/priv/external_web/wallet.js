@@ -283,7 +283,7 @@ function wallet_doit1() {
         } else {
             n = top[1];
         }
-        variable_public_get(["headers", 1001, n], absorb_headers);
+        variable_public_get(["headers", 51, n], absorb_headers);
     }
     function hash_test() {
         console.log(hash([1,4,6,1,2,3,4,4]));
