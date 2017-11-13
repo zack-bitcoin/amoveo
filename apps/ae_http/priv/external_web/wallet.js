@@ -268,10 +268,7 @@ function wallet_doit1() {
                     header[9] = prev_ac + ac - 1;
                 }
                 write_header(header);}
-                //hh = hash(serialize_header(header));
-                //headers_db[hh] = header; }
             else {
-                //console.log(headers_db);
                 console.log("bad header");
                 console.log(h[i]); }
         }
