@@ -275,6 +275,9 @@ function wallet_doit1() {
                 console.log("bad header");
                 console.log(h[i]); }
         }
+        if (h.length > 1) {
+            more_headers();
+        }
     }
     function more_headers() {
         var n;
@@ -283,7 +286,7 @@ function wallet_doit1() {
         } else {
             n = top[1];
         }
-        variable_public_get(["headers", 10, n], absorb_headers);
+        variable_public_get(["headers", 1001, n], absorb_headers);
     }
     function hash_test() {
         console.log(hash([1,4,6,1,2,3,4,4]));
@@ -301,7 +304,7 @@ function wallet_doit1() {
         console.log(JSON.stringify(hash(f)));
     }
     function header_test() {
-        variable_public_get(["headers", 1001, 0], header_test2);
+        variable_public_get(["headers", 10, 0], header_test2);
     }
     function header_test2(hl) {
         console.log(hl);
