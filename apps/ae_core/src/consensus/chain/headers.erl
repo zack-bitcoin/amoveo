@@ -78,6 +78,8 @@ check_pow(Header) ->
     <<Nonce:256>> = Header#header.nonce,
     Serialized = serialize(Header),
     %Hashed = hash:doit(Serialized, constants:hash_size()),
+    io:fwrite("check pow "),
+    io:fwrite(packer:pack({pow, Data, MineDiff, Nonce})),
     pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size()).
     %Hashed = testnet_hasher:doit(Serialized),
     %Integer = pow:hash2integer(Hashed),

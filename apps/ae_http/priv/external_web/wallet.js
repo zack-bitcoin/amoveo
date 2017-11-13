@@ -52,7 +52,6 @@ function wallet_doit1() {
     function integer_to_array(i, size) {
         var a = [];
         for ( var b = 0; b < size ; b++ ) {
-            var c = a.length - b - 1;
             a.push(i % 256);
             i = Math.floor(i/256);
         }
@@ -147,8 +146,6 @@ function wallet_doit1() {
         var t = header[5];
         ts.push(t);
         var height = header[1];
-        console.log("retarget 2");
-        console.log(height);
         if ((height == 0) || (n == 0)) {
             return {"header":header, "times":ts};
         }
@@ -158,16 +155,6 @@ function wallet_doit1() {
             return retarget2(prev_header, n-1, ts);
         }
     }
-    /*function retarget(header, n) {
-        var l = [];
-        for (var i = n; i > 0; i--) {
-            var t = header[5];//header.time
-            var prev_hash = string_to_array(atob(header[2]));
-            var header = headers_db[prev_hash];
-            l.push(t);
-        }
-        return l;
-    }*/
     function median(l) {
         l.sort(function(a, b) {return a - b;});
         var half = Math.floor(l.length / 2);
@@ -188,8 +175,6 @@ function wallet_doit1() {
                                  600,//constants:block_time()
                                  Math.max(1, t));
         var done = Math.max(nt, 6452);
-        console.log("difficulty_should_be2");
-        console.log(done);
         return done;//initial difficulty
         
     }
@@ -239,30 +224,23 @@ function wallet_doit1() {
     }
     function check_pow(header) {
         //calculate Data, a serialized version of this header where the nonce is 0.
-        console.log("check header ");
-        console.log(header);
         var height = header[1];
         if (height < 1) { return true; }
         else {
             var prev_hash = string_to_array(atob(header[2]));
-            console.log("prev hash ");
-            console.log(prev_hash);
             var diff0 = difficulty_should_be(prev_hash);
             var diff = header[6];
             if (diff == diff0) {
-                console.log("error below here");
+                var nonce = atob(header[8]);
                 var data = JSON.parse(JSON.stringify(header));
                 data[8] = btoa(array_to_string(integer_to_array(0, 32)));
                 var s1 = serialize_header(data);
-                console.log("s1 is ");
-                console.log(JSON.stringify(s1));
-                var h1 = hash(s1);
-                var nonce = atob(header[8]);
-                var h2 = hash(h1.concat(
+                var h1 = hash(hash(s1));
+                var foo = h1.concat(
                     integer_to_array(diff, 2)).concat(
-                        string_to_array(nonce)));
+                        string_to_array(nonce));
+                var h2 = hash(foo);
                 var I = hash2integer(h2);
-                console.log("error above here");
                 return I > diff;
             } else {
                 console.log("bad diff");
@@ -305,8 +283,6 @@ function wallet_doit1() {
         } else {
             n = top[1];
         }
-        console.log("more headers n is ");
-        console.log(n);
         variable_public_get(["headers", 10, n], absorb_headers);
     }
     function hash_test() {
@@ -325,7 +301,7 @@ function wallet_doit1() {
         console.log(JSON.stringify(hash(f)));
     }
     function header_test() {
-        variable_public_get(["headers", 10, 0], header_test2);
+        variable_public_get(["headers", 1001, 0], header_test2);
     }
     function header_test2(hl) {
         console.log(hl);
