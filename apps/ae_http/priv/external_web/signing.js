@@ -33,3 +33,6 @@ function toHex(str) {
 
 console.log(toHex(pub2));
 //04b3b85bd3de95dd135cc6b521c6d0a860d2e8ed813894fc4b718494326702c96e3a9f789aadce9a556ebe0ee88626f2a69843fe569ee5ee2f2b941674b6a2c3
+
+var EC = require('elliptic').ec;
+var ec = new EC('secp256k1');
