@@ -47,11 +47,28 @@ function sign(data, key) {
     var sig = key.sign(h);
     return sig.toDER();
 }
-function verify(sig, data, key) {
+function verify(data, sig, key) {
     var d2 = json2erlb(data);
     var h = hash(d2);
     return key.verify(h, sig);
     
 }
 
-console.log(verify(sign([], key1), [], key1));
+console.log(verify([], sign([], key1), key1));
+
+bytes_test  = [131,104,10,100,0,6,104,101,97,100,101,114,97,0,109,0,0,
+              0,32,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+              0,0,0,0,0,0,0,109,0,0,0,32,35,140,48,80,16,197,111,105,
+              90,87,4,86,159,208,106,228,50,120,168,222,27,214,44,154,
+              109,158,154,150,130,224,222,51,109,0,0,0,32,161,153,111,
+              202,251,68,226,226,141,196,169,144,98,226,25,169,4,209,
+              137,191,155,230,168,116,187,196,23,202,9,163,215,194,97,
+              0,98,0,0,25,52,97,6,109,0,0,0,32,0,0,0,0,0,0,0,0,0,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,97,0];
+console.log(JSON.stringify(erlb2json(bytes_test)));
+
+var data0 = stx[1];
+var sig0 = toHex(atob(stx[3]));
+var key0 = ec.keyFromPublic(toHex(atob(stx[1][1])), "hex");
+var foo = verify(data0, sig0, key0);
+console.log(foo);

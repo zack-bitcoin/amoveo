@@ -1,7 +1,7 @@
 -module(testnet_sign).
 -export([test/0,test2/1,sign_tx/3,sign/2,verify_sig/3,shared_secret/2,verify/1,data/1,
 	 empty/1,empty/0,
-	 verify_1/2,verify_2/2, 
+	 verify_1/2,verify_2/2,
 	 new_key/0
 ]).
 -record(signed, {data="", sig="", sig2=""}).
@@ -16,11 +16,13 @@ generate() -> crypto:generate_key(ecdh, params()).
 new_key() -> %We keep this around for the encryption library. it is used to generate 1-time encryption keys.
     {Pub, Priv} = generate(),
     {Pub, Priv}.
-sign(S, Priv) -> en(crypto:sign(ecdsa, sha256, term_to_binary(S), [Priv, params()])).
-verify_sig(S, Sig, Pub) -> 
-    SD = de(Sig),
-    PD = Pub,
-    crypto:verify(ecdsa, sha256, term_to_binary(S), SD, [PD, params()]).
+sign(S, Priv) -> sign:sign(S, Priv).
+verify_sig(S, Sig, Pub) -> sign:verify_sig(S, Sig, Pub).
+%sign(S, Priv) -> en(crypto:sign(ecdsa, sha256, serialize(S), [Priv, params()])).
+%verify_sig(S, Sig, Pub) -> 
+%    SD = de(Sig),
+%    PD = Pub,
+%    crypto:verify(ecdsa, sha256, serialize(S), SD, [PD, params()]).
 verify_1(Tx, Pub) -> 
     verify_sig(Tx#signed.data, Tx#signed.sig, Pub).
 verify_2(Tx, Pub) -> 

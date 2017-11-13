@@ -1,0 +1,2 @@
+one way a channel contract can fail is if the nonce is always increasing with height.
+This means the attacker can publish slash transactions over and over to keep the channel open as long as they want.
