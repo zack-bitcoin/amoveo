@@ -3,6 +3,21 @@ function hash(input) {//array of bytes -- array of bytes
     var x = sjcl.hash.sha256.hash(b);
     return sjcl.codec.bytes.fromBits(x);
 }
+function integer_to_array(i, size) {
+    var a = [];
+    for ( var b = 0; b < size ; b++ ) {
+        a.push(i % 256);
+        i = Math.floor(i/256);
+    }
+    return a.reverse();
+}
+function string_to_array(x) {
+    var a = new Uint8Array(x.length);
+    for (var i=0; i<x.length; i++) {
+        a[i] = x.charCodeAt(i);
+    }
+    return Array.from(a);
+}
 wallet_doit1();
 function wallet_doit1() {
     var button = document.createElement("input");
@@ -35,27 +50,12 @@ function wallet_doit1() {
         }
         return array;
     }
-    function string_to_array(x) {
-        var a = new Uint8Array(x.length);
-        for (var i=0; i<x.length; i++) {
-            a[i] = x.charCodeAt(i);
-        }
-        return Array.from(a);
-    }
     function array_to_string(x) {
         var a = "";
         for (var i=0; i<x.length ; i++) {
             a += String.fromCharCode(x[i]);
         }
         return a;
-    }
-    function integer_to_array(i, size) {
-        var a = [];
-        for ( var b = 0; b < size ; b++ ) {
-            a.push(i % 256);
-            i = Math.floor(i/256);
-        }
-        return a.reverse();
     }
     function serialize_header(x) {
         //Array [ "header", 0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…", "vvbP//eI8ByxXmJKP7/0hN32AUaOPjY/xnC…", "oZlvyvtE4uKNxKmQYuIZqQTRib+b5qh0u8Q…", 0, 1, 6, 0, 0 ]
@@ -72,11 +72,11 @@ function wallet_doit1() {
         return y.concat(
             integer_to_array(height, 4)).concat(
                 integer_to_array(time, 4)).concat(
-                    integer_to_array(version, 2).concat(
-                        string_to_array(trees_hash).concat(
-                            string_to_array(txs_proof_hash).concat(
-                                integer_to_array(difficulty, 2).concat(
-                                    string_to_array(nonce))))));
+                    integer_to_array(version, 2)).concat(
+                        string_to_array(trees_hash)).concat(
+                            string_to_array(txs_proof_hash)).concat(
+                                integer_to_array(difficulty, 2)).concat(
+                                    string_to_array(nonce));
     }
     function pair2sci(x, b) {
         return (256 * x) + b;
