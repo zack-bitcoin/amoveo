@@ -1,3 +1,8 @@
+function hash(input) {//array of bytes -- array of bytes
+    var b = sjcl.codec.bytes.toBits(input);
+    var x = sjcl.hash.sha256.hash(b);
+    return sjcl.codec.bytes.fromBits(x);
+}
 wallet_doit1();
 function wallet_doit1() {
     var button = document.createElement("input");
@@ -22,11 +27,6 @@ function wallet_doit1() {
         }
         h = hash(serialize_header(header));
         headers_db[h] = header;
-    }
-    function hash(input) {//array of bytes -- array of bytes
-        var b = sjcl.codec.bytes.toBits(input);
-        var x = sjcl.hash.sha256.hash(b);
-        return sjcl.codec.bytes.fromBits(x);
     }
     function list_to_uint8(l) {
         var array = new Uint8Array(l.length);
