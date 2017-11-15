@@ -80,16 +80,14 @@ serialize_list([A|B]) ->
 */
 function serialize(data) {
     if (Number.isInteger(data)) {
-        console.log("serialize integer");
+        //console.log("serialize integer");
         //<<3:8, X:512>>;
-        console.log(integer_to_array(3, 1));
         var x = integer_to_array(3, 1).concat(
             integer_to_array(data, 64));
-        console.log(JSON.stringify(x));
         return x;
     } else if (Array.isArray(data)) {
         if (data[0] == -6) { //its a list.
-            console.log("serialize array");
+            //console.log("serialize array");
             //<<1:8, S:32, A/binary>>;
             var d0 = data.slice(1);
             var rest = serialize_list(d0);
@@ -98,16 +96,15 @@ function serialize(data) {
                     rest);
 
         } else if (data[0] == -7) { //it is a tuple
+            //console.log("serialize tuple 1");
             //<<2:8, S:32, A/binary>>;
-            console.log("serialize tuple 1");
             var d0 = data.slice(1);
             var rest = serialize_list(d0);
             return integer_to_array(2, 1).concat(
                 integer_to_array(rest.length, 4)).concat(
                     rest);
         } else { //assume it is a record. a tuple where the first element is an atom. This is the only place that atoms can occur.
-            console.log("serialize tuple 2");
-            console.log(data[0]);
+            //console.log("serialize tuple 2");
             var h = data[0];
             var d0 = data.slice(1);
             //<<4:8, S:32, A/binary>>;
@@ -123,8 +120,8 @@ function serialize(data) {
                     rest);
         }
     } else {//assume it is a binary
+        //console.log("serialize binary");
         //<<0:8, S:32, X/binary>>;
-        console.log("serialize binary");
         var rest = string_to_array(atob(data));
         return integer_to_array(0, 1).concat(
             integer_to_array(rest.length, 4)).concat(
@@ -144,14 +141,17 @@ function sign(data, key) {
     var d2 = serialize(data);
     var h = hash(d2);
     var sig = key.sign(h);
+    console.log("made signature in sign ");
+    console.log(JSON.stringify(sig));
     return sig.toDER();
 }
 function verify(data, sig, key) {
     var d2 = serialize(data);
-    console.log("serialized ");
-    console.log(JSON.stringify(d2));
+    console.log("serialized hash");
     var h = hash(d2);
-    return key.verify(h, sig, 'hex');
+    console.log(JSON.stringify(h));
+    console.log(JSON.stringify(sig));
+    return key.verify(h, sig, "hex");
 }
 
 
@@ -173,34 +173,52 @@ function signing_test() {
 }
 function signing_test2() {
 
-
-    bytes_test  = [131,104,10,100,0,6,104,101,97,100,101,114,97,0,109,0,0,
-                   0,32,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                   0,0,0,0,0,0,0,109,0,0,0,32,35,140,48,80,16,197,111,105,
-                   90,87,4,86,159,208,106,228,50,120,168,222,27,214,44,154,
-                   109,158,154,150,130,224,222,51,109,0,0,0,32,161,153,111,
-                   202,251,68,226,226,141,196,169,144,98,226,25,169,4,209,
-                   137,191,155,230,168,116,187,196,23,202,9,163,215,194,97,
-                   0,98,0,0,25,52,97,6,109,0,0,0,32,0,0,0,0,0,0,0,0,0,0,0,
-                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,97,0];
     var data0 = stx[1];
-    var sig0 = toHex(atob(stx[2]));
-    console.log(sig0);
+    var sig0 = atob(atob(stx[2]));
+    //console.log(sig0);
     //console.log(stx[1][1]);
     //BHuqX6EKohvveqkcbyGgE247jQ5O0i2YKO27Yx50cXd+8J/dCVTnMz8QWUUS9L5oGWUx5CPtseeHddZcygmGVaM=
     //console.log(toHex(atob(stx[1][1])));
     //047baa5fa1aa21bef7aa91c6f21a0136e3b8de4ed22d9828edbb631e7471777ef09fdd954e7333f10594512f4be68196531e423edb1e78775d65cca98655a3
     var key0 = ec.keyFromPublic(toHex(atob(stx[1][1])), "hex");
     console.log("made key");
-    //var foo = key0.verify(data0, sig0);
-    console.log(verify(data0, sign(data0, key1), key1));
-    console.log(sig0);
-    console.log(sig0.length);
+
+    var sig1 = sign([-6, 1], key1);
+    console.log("signed");
+    console.log(verify([-6, 1], sig1, key1));
+
     
-    var m = sig0.match(/([a-f\d]{64})/gi);
+    var m = toHex(sig0).match(/([a-f\d]{64})/gi);
     var r = m[0];
     var s = m[1];
+    sig2 = bin2rs(sig0);
     sig = {"r": r, "s": s};
+    console.log(JSON.stringify(sig));
+    console.log(JSON.stringify(sig2));
     var foo = verify(data0, sig, key0);
     console.log(foo);
+}
+function bin2rs(x) {
+    /*
+    0x30 b1 0x02 b2 (vr) 0x02 b3 (vs)
+    where:
+
+    b1 is a single byte value, equal to the length, in bytes, of the remaining list of bytes (from the first 0x02 to the end of the encoding);
+    b2 is a single byte value, equal to the length, in bytes, of (vr);
+    b3 is a single byte value, equal to the length, in bytes, of (vs);
+    (vr) is the signed big-endian encoding of the value "r", of minimal length;
+    (vs) is the signed big-endian encoding of the value "s", of minimal length.
+    */
+    //var a1 = x.charCodeAt(1);
+    var h = toHex(x);
+    var a2 = x.charCodeAt(3);
+    console.log("a2");
+    console.log(a2);
+    console.log("h");
+    console.log(h);
+    var r = h.slice(8, 8+(a2*2));
+    var s = h.slice(12+(a2*2));
+    //var r = toHex(r1);
+    //var s = toHex(s1);
+    return {"r": r, "s": s};
 }
