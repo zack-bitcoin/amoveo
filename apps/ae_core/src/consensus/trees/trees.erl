@@ -7,7 +7,7 @@
 	 root_hash/1, name/1, %garbage/0, 
          garbage_block/1,
 	 hash2int/1, verify_proof/5,
-         root_hash2/2,
+         root_hash2/2, serialized_roots/1,
          restore/3]).
 -record(trees, {accounts, channels, existence,
 		burn, oracles, governance}).
@@ -75,22 +75,24 @@ rh2(Type, Trees, Roots) ->
     %io:fwrite("\n"),
     Out.
             
-    
-root_hash(Trees) ->
+   
+serialized_roots(Trees) -> 
     A = accounts:root_hash(trees:accounts(Trees)),
     C = channels:root_hash(trees:channels(Trees)),
     E = existence:root_hash(trees:existence(Trees)),
     B = burn:root_hash(trees:burn(Trees)),
     O = oracles:root_hash(trees:oracles(Trees)),
     G = governance:root_hash(trees:governance(Trees)),
-    testnet_hasher:doit(<<
-			  A/binary,
-			  C/binary,
-			  E/binary,
-			  B/binary,
-			  O/binary,
-			  G/binary
-			>>).
+    <<
+     A/binary,
+     C/binary,
+     E/binary,
+     B/binary,
+     O/binary,
+     G/binary
+     >>.
+root_hash(Trees) ->
+    testnet_hasher:doit(serialized_roots(Trees)).
 keepers_block(_, _, 0) -> [1];
 keepers_block(TreeID, BP, Many) ->
     Trees = block:trees(BP),

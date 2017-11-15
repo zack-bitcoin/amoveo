@@ -77,6 +77,10 @@ merkelize2([A|[B|T]]) ->
      merkelize2(T)].
     
 txs_proofs_hash(Txs, Proofs) ->
+    %TB = merkelize(Txs),
+    %PB = merkelize(Proofs);
+    %X = <<TB/binary, PB/binary>>,
+    %testnet_hasher:doit(X).
     testnet_hasher:doit({Txs, Proofs}).
 block_to_header(B) ->
     headers:make_header(B#block.prev_hash,

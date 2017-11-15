@@ -1,5 +1,7 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* we should merkelize txs and proofs before hashing them into the header.
+
 * channel balance and channel_partner balance aren't being calculated very well in javascript. We should calculate it better, and do tests to make sure as much of this liquidity is available as is securely possible.
 
 * analyze contracts to make sure they aren't unclosable, as explained in the attacks analyzed doc.
