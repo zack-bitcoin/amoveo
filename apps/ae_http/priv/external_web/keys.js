@@ -24,8 +24,6 @@ function keys_function1() {
 
     var pub_div = document.createElement("div");
     div.appendChild(pub_div);
-    var bal_div = document.createElement("div");
-    div.appendChild(bal_div);
 
     var save_button = document.createElement("input");
     save_button.type = "button";
@@ -36,14 +34,11 @@ function keys_function1() {
     div.appendChild(document.createElement("br"));
     var file_selector = document.createElement("input");
     file_selector.type = "file";
-    //file_selector.value = "select file";
-    //file_selector.onclick = load_keys;
+    file_selector.onchange = load_keys;
+
+    var load_text = document.createTextNode("get key from file ");
+    div.appendChild(load_text);
     div.appendChild(file_selector);
-    var load_button = document.createElement("input");
-    load_button.type = "button";
-    load_button.value = "load keys";
-    load_button.onclick = load_keys;
-    div.appendChild(load_button);
 
     div.appendChild(document.createElement("br"));
     var new_pubkey_button = document.createElement("input");
@@ -60,6 +55,8 @@ function keys_function1() {
     balance_button.type = "button";
     balance_button.value = "check balance";
     balance_button.onclick = update_balance;
+    var bal_div = document.createElement("div");
+    div.appendChild(bal_div);
     div.appendChild(balance_button);
 
     update_pubkey();
@@ -70,7 +67,7 @@ function keys_function1() {
         return btoa(fromHex(pubPoint));
     }
     function update_pubkey() {
-        pub_div.innerHTML = pubkey_64();
+        pub_div.innerHTML = ("your pubkey: ").concat(pubkey_64());
     }
     function new_keys_check() {
         //alert("this will delete your old keys. If you have money secured by this key, and you haven't saved your key, then this money will be destroyed.");
@@ -141,16 +138,11 @@ function keys_function1() {
     function load_keys() {
         var file = (file_selector.files)[0];
         var reader = new FileReader();
-        console.log("load keys");
         reader.onload = function(e) {
-            console.log("reader onload");
-            console.log(reader.result);
             keys = ec.keyFromPrivate(reader.result, "hex");
             update_pubkey();
             update_balance();
         }
         reader.readAsText(file);
-        //console.log("priv hex");
-        //console.log(priv_hex);
     }
 }
