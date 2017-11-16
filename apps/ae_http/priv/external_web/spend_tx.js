@@ -1,5 +1,7 @@
 function spend_tokens() {
+    spend_address = document.getElementById("spend_address");
     var to = spend_address.value;
+    spend_amount = document.getElementById("spend_amount");
     var amount = parseFloat(spend_amount.value, 10) * 100000000;
     var from = pubkey_64();
     var fee = 20;

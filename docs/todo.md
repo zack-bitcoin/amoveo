@@ -1,5 +1,11 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* merkle.js should be able to verify proofs of the trie being empty in some places.
+
+* the light node should give the option to connect to other servers.
+
+* we need channels for the light nodes.
+
 * signatures are currently double base64 encoded when in JSON. this seems unnecessary. let's reduce it to just once.
 
 * remove shares from spend record.

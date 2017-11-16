@@ -63,14 +63,16 @@ function keys_function1() {
 
     div.appendChild(document.createElement("br"));
     var spend_amount = document.createElement("INPUT");
-    spend_amount.setAttribute("type", "text"); 
+    spend_amount.setAttribute("type", "text");
+    spend_amount.id = "spend_amount";
     var spend_amount_info = document.createElement("h8");
     spend_amount_info.innerHTML = "amount to spend: ";
     div.appendChild(spend_amount_info);
     div.appendChild(spend_amount);
 
     var spend_address = document.createElement("INPUT");
-    spend_address.setAttribute("type", "text"); 
+    spend_address.setAttribute("type", "text");
+    spend_address.id = "spend_address";
     var input_info = document.createElement("h8");
     input_info.innerHTML = "to pubkey: ";
     div.appendChild(input_info);
