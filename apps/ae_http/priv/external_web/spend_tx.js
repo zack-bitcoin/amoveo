@@ -7,8 +7,6 @@ function spend_tokens() {
                         spend_tokens2);
 
     function spend_tokens2(tx) {
-        console.log("spend tx is");
-        console.log(tx);
         var amount = parseFloat(spend_amount.value, 10) * 100000000;
         var amount0 = tx[5];
         var to = spend_address.value;

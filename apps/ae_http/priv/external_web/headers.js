@@ -273,9 +273,9 @@ function wallet_doit1() {
                 console.log("bad header");
                 console.log(h[i]); }
         }
-        if (h.length > 1) {
-            more_headers();
-        }
+       // if (h.length > 1) {
+       //     more_headers();
+       // }
     }
     function more_headers() {
         var n;

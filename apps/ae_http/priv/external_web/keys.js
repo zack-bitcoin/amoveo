@@ -1,4 +1,13 @@
 
+function new_keys() {
+    var crypto_keys = ec.genKeyPair();
+    return crypto_keys;
+}
+var keys = new_keys();
+function pubkey_64() {
+    var pubPoint = keys.getPublic("hex");
+    return btoa(fromHex(pubPoint));
+}
 function sign_tx(tx) {
     sig = btoa(btoa(array_to_string(sign(tx, keys))));
     return ["signed", tx, sig, [-6]];
@@ -7,11 +16,6 @@ keys_function1();
 function keys_function1() {
     var div = document.createElement("div");
     document.body.appendChild(div);
-    var keys = new_keys();
-    function new_keys() {
-        var crypto_keys = ec.genKeyPair();
-        return crypto_keys;
-    }
     
     //button to update displayed pubkey.
     var pubkey_button = document.createElement("input");
@@ -60,9 +64,9 @@ function keys_function1() {
     div.appendChild(document.createElement("br"));
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text"); 
-    var amount_info = document.createElement("h8");
-    amount_info.innerHTML = "amount to spend: ";
-    div.appendChild(amount_info);
+    var spend_amount_info = document.createElement("h8");
+    spend_amount_info.innerHTML = "amount to spend: ";
+    div.appendChild(spend_amount_info);
     div.appendChild(spend_amount);
 
     var spend_address = document.createElement("INPUT");
@@ -79,13 +83,33 @@ function keys_function1() {
     spend_button.onclick = spend_tokens;
     div.appendChild(spend_button);
 
+    div.appendChild(document.createElement("br"));
+    var create_amount = document.createElement("INPUT");
+    create_amount.id = "create_amount";
+    create_amount.setAttribute("type", "text"); 
+    var create_amount_info = document.createElement("h8");
+    create_amount_info.innerHTML = "initial balance of new account: ";
+    div.appendChild(create_amount_info);
+    div.appendChild(create_amount);
+
+    var create_address = document.createElement("INPUT");
+    create_address.id = "create_address";
+    create_address.setAttribute("type", "text"); 
+    var create_info = document.createElement("h8");
+    create_info.innerHTML = "new pubkey: ";
+    div.appendChild(create_info);
+    div.appendChild(create_address);
+
+    var create_button = document.createElement("BUTTON");
+    create_button.id = "create_button";
+    var create_button_text = document.createTextNode("create new account");
+    create_button.appendChild(create_button_text);
+    create_button.onclick = create_account;
+    div.appendChild(create_button);
+
     update_pubkey();
 
     //console.log(fromHex(toHex("abc")));
-    function pubkey_64() {
-        var pubPoint = keys.getPublic("hex");
-        return btoa(fromHex(pubPoint));
-    }
     function update_pubkey() {
         pub_div.innerHTML = ("your pubkey: ").concat(pubkey_64());
     }

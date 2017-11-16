@@ -79,11 +79,12 @@ doit({test, N}) ->
 doit({min_channel_ratio}) ->
     application:get_env(ae_core, min_channel_ratio);
 doit({spend_tx, Amount, Fee, From, To}) ->
-    io:fwrite("ext handler amount is "),
-    io:fwrite(packer:pack({Amount, Fee})),
-    io:fwrite("\n"),
     {Trees, _, _} = tx_pool:data(),
     {Tx, _} = spend_tx:make(To, Amount, Fee, From, Trees, []),
+    {ok, Tx};
+doit({create_account_tx, Amount, Fee, From, To}) ->
+    {Trees, _, _} = tx_pool:data(),
+    {Tx, _} = create_account_tx:new(To, Amount, Fee, From, Trees),
     {ok, Tx};
 doit({new_channel, STx, SSPK}) ->
     unlocked = keys:status(),
