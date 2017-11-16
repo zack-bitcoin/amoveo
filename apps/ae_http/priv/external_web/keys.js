@@ -92,13 +92,19 @@ function keys_function1() {
         }
     }
     function update_balance() {
-        //variable_public_get(["proof", btoa("accounts"), pubkey_64()], update_balance2);
-        variable_public_get(["proof", btoa("governance"), 5], update_balance2);
+        var trie_key = pubkey_64();
+        variable_public_get(["proof", btoa("accounts"), trie_key], function(x) { update_balance2(trie_key, x); });
+        //var trie_key = 1;
+        //variable_public_get(["proof", btoa("governance"), trie_key], function(x) { update_balance2(trie_key, x); } );
     }
-    function update_balance2(x) {
+    function update_balance2(trie_key, x) {
         console.log(JSON.stringify(x));
         console.log("header");
         console.log(JSON.stringify(top_header));
+        var val = verify_merkle(trie_key, x);
+        console.log(val);
+    }
+    function verify_merkle(trie_key, x) {
         //x is {return tree_roots, tree_root, value, proof_chain}
         var tree_roots = string_to_array(atob(x[1]));
         console.log("tree roots");
@@ -127,8 +133,22 @@ function keys_function1() {
                     //verify that every link of the proof_chain is linked.
                     if (check4) {
                         console.log("check4");
+                        var last = chain[chain.length - 1];
+                        var value = x[3];
+                        console.log(value);
+                        var lh = leaf_hash(value, trie_key);
+                        console.log("about to check 5");
+                        console.log("lh is ");
+                        console.log(lh);
+                        var check5 = chain_links_array_member(last, lh);
                         //verify that the value is linked to the last link of the proof chain.
-                        //if value is empty, return 0, otherwise grab the balance from the account and return that.
+                        if (check5) {
+                            return value;
+                            //if value is empty, return 0, otherwise grab the balance from the account and return that.
+                        } else {
+                            console.log("the proof chain doesn't point to that value");
+                            return 0
+                        } 
                     } else {
                         console.log("the proof chain has a broken link");
                     }
@@ -184,9 +204,9 @@ function keys_function1() {
         }
         reader.readAsText(file);
     }
-    function check_equal(a, b) {
+    function check_equal(a, check_b) {
         for (var i = 0; i < a.length; i++) {
-            if (!(a[i] == b[i])) {
+            if (!(a[i] == check_b[i])) {
                 return false
             }
         }
@@ -223,5 +243,44 @@ function keys_function1() {
             if (b) { return true; }
         }
         return false;
+    }
+    function leaf_hash(v, trie_key) {
+        var t = v[0];
+        console.log("leaf_hash");
+        console.log(t);
+        if ( t == "gov" ) {
+            /* <<(Gov#gov.id):8,
+               (Gov#gov.value):16,
+               (Gov#gov.lock):8>>. */
+            var id = integer_to_array(v[1], 1);
+            var value = integer_to_array(v[2], 2);
+            var lock = integer_to_array(v[3], 1);
+            var serialized =  integer_to_array(trie_key, 8).concat(
+                id).concat(value).concat(serialized);
+            return hash(serialized);
+        } else if ( t == "acc" ) {
+        /* <<(Account#acc.balance):BalanceSize, balance bits
+          (Account#acc.nonce):NonceSize, account_nonce_bits
+          (Account#acc.height):HeightSize, height_bits
+          (Account#acc.pubkey)/binary, pubkey_size
+          BetsRoot/binary>>,  32 bytes */
+            var balance = integer_to_array(v[1], 6);
+            var nonce = integer_to_array(v[2], 3);
+            var height = integer_to_array(v[3], 4);
+            var pubkey = string_to_array(atob(v[4]));
+            var bets = string_to_array(atob(v[6]));
+            //The key is the hash of the pubkey.
+            var serialized = integer_to_array(0, 32*7).concat(
+                hash(pubkey)).concat(
+                    balance).concat(nonce).concat(
+                        height).concat(
+                            pubkey).concat(
+                                bets);
+            return hash(serialized);
+            
+        } else {
+            console.log("cannot decode type ");
+            console.log(t);
+        }
     }
 }

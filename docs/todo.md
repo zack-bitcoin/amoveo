@@ -1,5 +1,7 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* the merkle proofs serialized things strangely. The key uses 8 times as much space as it needs. It isn't a problem, but it is ugly.
+
 * we should merkelize txs and proofs before hashing them into the header.
 
 * channel balance and channel_partner balance aren't being calculated very well in javascript. We should calculate it better, and do tests to make sure as much of this liquidity is available as is securely possible.
