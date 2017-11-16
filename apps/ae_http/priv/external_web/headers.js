@@ -1,3 +1,5 @@
+var top_header = 0;//stores the valid header with the most accumulated work.
+
 function hash(input) {//array of bytes -- array of bytes
     var b = sjcl.codec.bytes.toBits(input);
     var x = sjcl.hash.sha256.hash(b);
@@ -20,6 +22,8 @@ function string_to_array(x) {
 }
 wallet_doit1();
 function wallet_doit1() {
+    var headers_db = {};//store valid headers by hash
+    var top_diff = 0;//accumulative difficulty of top
     var button = document.createElement("input");
     button.type = "button";
     button.value = "get more headers";
@@ -30,14 +34,11 @@ function wallet_doit1() {
     wallet_text = document.createElement("p");
     wallet_text.innerHTML = "";
     document.body.appendChild(wallet_text);
-    var headers_db = {};//store valid headers by hash
-    var top = 0;//stores a header
-    var top_diff = 0;//accumulative difficulty of top
     function write_header(header) {
         var acc_difficulty = header[9];
         if (acc_difficulty > top_diff) {
             top_diff = acc_difficulty;
-            top = header;
+            top_header = header;
             wallet_text.innerHTML = JSON.stringify({"height": header[1], "total_work":header[9]});
         }
         h = hash(serialize_header(header));
@@ -178,9 +179,9 @@ function wallet_doit1() {
         return done;//initial difficulty
         
     }
-    function pow_recalculate(oldDiff, top, bottom) {
+    function pow_recalculate(oldDiff, t, bottom) {
         var old = sci2int(oldDiff);
-        var n = Math.max(1, Math.floor(( old * top ) / bottom));
+        var n = Math.max(1, Math.floor(( old * t ) / bottom));
         var d = int2sci(n);
         return Math.max(1, d);
     }
@@ -278,10 +279,10 @@ function wallet_doit1() {
     }
     function more_headers() {
         var n;
-        if ( top == 0 ) {
+        if ( top_header == 0 ) {
             n = 0;
         } else {
-            n = top[1];
+            n = top_header[1];
         }
         variable_public_get(["headers", 101, n], absorb_headers);
     }

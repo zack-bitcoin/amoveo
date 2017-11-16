@@ -1,10 +1,4 @@
 
-//we need to be able to:
-// * generate new keys.
-// * save your key to a file.
-// https://stackoverflow.com/questions/13405129/javascript-create-and-save-file
-// * load a key from a file.
-// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file
 keys_function1();
 function keys_function1() {
     var div = document.createElement("div");
@@ -102,14 +96,47 @@ function keys_function1() {
     }
     function update_balance2(x) {
         console.log(JSON.stringify(x));
+        console.log("header");
+        console.log(JSON.stringify(top_header));
         //x is {return tree_roots, tree_root, value, proof_chain}
+        var tree_roots = string_to_array(atob(x[1]));
+        console.log("tree roots");
+        console.log(JSON.stringify(tree_roots));
+        var header_trees_hash = string_to_array(atob(top_header[3]));
+        var hash_tree_roots = hash(tree_roots);
+        var check = check_equal(header_trees_hash, hash_tree_roots);
         //verify that the hash of tree_roots matches the hash in our top header.
-        //verify that tree root is one of the roots in tree_roots.
+        if (check) {
+            var tree_root = string_to_array(atob(x[2]));
+            //set_balance(0);
+            console.log("tree root");
+            console.log(JSON.stringify(tree_root));
+            var check2 = hash_member(tree_root, tree_roots);
+            //verify that tree root is one of the roots in tree_roots.
+            if (check2) {
+                console.log("proof chain");
+
+
         //verify that the first link of the proof_chain is linked to tree root.
         //verify that every link of the proof_chain is linked.
         //verify that the value is linked to the last link of the proof chain.
-        //if value is empty, return 0, otherwise grab the balance from the account and return that.
-        set_balance(0);
+                //if value is empty, return 0, otherwise grab the balance from the account and return that.
+            } else {
+                console.log("the proof chain doesn't link to the tree root");
+            }
+        } else {
+            console.log("the hash of the trees in header didn't match the proof.");
+        }
+    }
+    function hash_member(hash, members) {
+        for (var i = 0; i < 6; i++) {
+            var h2 = members.slice(32*i, 32*(i+1));
+            var b = check_equal(hash, h2);
+            if (b) {
+                return true;
+            }
+        }
+        return false;
     }
     function set_balance(n) {
         bal_div.innerHTML = ("balance: ").concat((n).toString());
@@ -144,5 +171,13 @@ function keys_function1() {
             update_balance();
         }
         reader.readAsText(file);
+    }
+    function check_equal(a, b) {
+        for (var i = 0; i < a.length; i++) {
+            if (!(a[i] == b[i])) {
+                return false
+            }
+        }
+        return true;
     }
 }
