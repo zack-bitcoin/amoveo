@@ -1,5 +1,9 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* signatures are currently double base64 encoded when in JSON. this seems unnecessary. let's reduce it to just once.
+
+* remove shares from spend record.
+
 * the merkle proofs serialized things strangely. The key uses 8 times as much space as it needs. It isn't a problem, but it is ugly.
 
 * we should merkelize txs and proofs before hashing them into the header.
