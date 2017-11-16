@@ -115,26 +115,34 @@ function keys_function1() {
             //verify that tree root is one of the roots in tree_roots.
             if (check2) {
                 console.log("proof chain");
-
-
-        //verify that the first link of the proof_chain is linked to tree root.
-        //verify that every link of the proof_chain is linked.
-        //verify that the value is linked to the last link of the proof chain.
-                //if value is empty, return 0, otherwise grab the balance from the account and return that.
+                console.log(JSON.stringify(x[4]));
+                var chain_hd = x[4][1];
+                var h = link_hash(chain_hd);
+                console.log("chain_hd hashed ");
+                console.log(JSON.stringify(h));
+                var check3 = check_equal(h, tree_root);
+                //verify that the first link of the proof_chain is linked to tree root.
+                if (check3) {
+                    console.log("proof chain2");
+                //verify that every link of the proof_chain is linked.
+                
+                //verify that the value is linked to the last link of the proof chain.
+                    //if value is empty, return 0, otherwise grab the balance from the account and return that.
+                } else {
+                    console.log("the proof chain doesn't link to the tree root");
+                }
             } else {
-                console.log("the proof chain doesn't link to the tree root");
+                console.log("the tree root doesen't link to the tree hashes");
             }
         } else {
-            console.log("the hash of the trees in header didn't match the proof.");
+            console.log("the tree hashes don't match the hash in the header.");
         }
     }
     function hash_member(hash, members) {
         for (var i = 0; i < 6; i++) {
             var h2 = members.slice(32*i, 32*(i+1));
             var b = check_equal(hash, h2);
-            if (b) {
-                return true;
-            }
+            if (b) { return true; }
         }
         return false;
     }
@@ -179,5 +187,14 @@ function keys_function1() {
             }
         }
         return true;
+    }
+    function link_hash(link) {
+        var h = [];
+        for (var i = 1; i < link.length; i++) {
+            //console.log(link[i]);
+            var x = string_to_array(atob(link[i]));
+            h = x.concat(h);
+        }
+        return hash(h);
     }
 }
