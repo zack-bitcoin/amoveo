@@ -93,22 +93,21 @@ function keys_function1() {
     }
     function update_balance() {
         var trie_key = pubkey_64();
-        variable_public_get(["proof", btoa("accounts"), trie_key], function(x) { update_balance2(trie_key, x); });
+        var top_hash = hash(serialize_header(top_header));
+        variable_public_get(["proof", btoa("accounts"), trie_key, btoa(array_to_string(top_hash))], function(x) { update_balance2(trie_key, x); });
         //var trie_key = 1;
         //variable_public_get(["proof", btoa("governance"), trie_key], function(x) { update_balance2(trie_key, x); } );
     }
-    function update_balance2(trie_key, x) {
-        console.log(JSON.stringify(x));
-        console.log("header");
-        console.log(JSON.stringify(top_header));
-        var val = verify_merkle(trie_key, x);
+    function update_balance2(trie_key, proof0) {
+        console.log(JSON.stringify(proof0));
+        var val = verify_merkle(trie_key, proof0);
         console.log(val);
+        var balance = val[1] / 100000000;
+        bal_div.innerHTML = "your balance: " + (balance).toString();
     }
     function verify_merkle(trie_key, x) {
         //x is {return tree_roots, tree_root, value, proof_chain}
         var tree_roots = string_to_array(atob(x[1]));
-        console.log("tree roots");
-        console.log(JSON.stringify(tree_roots));
         var header_trees_hash = string_to_array(atob(top_header[3]));
         var hash_tree_roots = hash(tree_roots);
         var check = check_equal(header_trees_hash, hash_tree_roots);
@@ -116,8 +115,6 @@ function keys_function1() {
         if (check) {
             var tree_root = string_to_array(atob(x[2]));
             //set_balance(0);
-            console.log("tree root");
-            console.log(JSON.stringify(tree_root));
             var check2 = hash_member(tree_root, tree_roots);
             //verify that tree root is one of the roots in tree_roots.
             if (check2) {
@@ -127,19 +124,12 @@ function keys_function1() {
                 var check3 = check_equal(h, tree_root);
                 //verify that the first link of the proof_chain is linked to tree root.
                 if (check3) {
-                    console.log("proof chain2");
                     var check4 = chain_links(chain);
-                    console.log(check4);
                     //verify that every link of the proof_chain is linked.
                     if (check4) {
-                        console.log("check4");
                         var last = chain[chain.length - 1];
                         var value = x[3];
-                        console.log(value);
                         var lh = leaf_hash(value, trie_key);
-                        console.log("about to check 5");
-                        console.log("lh is ");
-                        console.log(lh);
                         var check5 = chain_links_array_member(last, lh);
                         //verify that the value is linked to the last link of the proof chain.
                         if (check5) {
@@ -200,7 +190,7 @@ function keys_function1() {
         reader.onload = function(e) {
             keys = ec.keyFromPrivate(reader.result, "hex");
             update_pubkey();
-            update_balance();
+            //update_balance();
         }
         reader.readAsText(file);
     }
@@ -227,12 +217,13 @@ function keys_function1() {
             var parent = chain[i-1];
             var child = chain[i];
             var lh = link_hash(child);
-            console.log("chain links parent lh");
-            console.log(parent);
-            console.log(lh);
-            out = out && chain_links_array_member(parent, lh);
+            var chain_links_b = chain_links_array_member(parent, lh);
+            if (chain_links_b == false) {
+                return false;
+            }
+            //out = out && chain_links_array_member(parent, lh);
         }
-        return out;
+        return true;
     }
     function chain_links_array_member(parent, h) {
         for (var i = 1; i < parent.length; i++) {

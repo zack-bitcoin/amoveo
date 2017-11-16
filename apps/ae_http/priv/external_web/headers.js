@@ -20,6 +20,34 @@ function string_to_array(x) {
     }
     return Array.from(a);
 }
+function array_to_string(x) {
+    var a = "";
+    for (var i=0; i<x.length ; i++) {
+        a += String.fromCharCode(x[i]);
+    }
+    return a;
+}
+function serialize_header(x) {
+    //Array [ "header", 0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…", "vvbP//eI8ByxXmJKP7/0hN32AUaOPjY/xnC…", "oZlvyvtE4uKNxKmQYuIZqQTRib+b5qh0u8Q…", 0, 1, 6, 0, 0 ]
+    var height = x[1]; //4 bytes
+    var prev_hash = atob(x[2]); //bin
+    var trees_hash = atob(x[3]); //bin
+    var txs_proof_hash = atob(x[4]); //bin
+    var time = x[5]; //4 bytes
+    var difficulty = x[6]; // 3 bytes
+    var version = x[7]; // 2 bytes
+    var nonce = atob(x[8]); // 32 bytes
+    //var accumulative_difficulty = x[9]; //don't include
+    var y = string_to_array(prev_hash);
+    return y.concat(
+        integer_to_array(height, 4)).concat(
+            integer_to_array(time, 4)).concat(
+                integer_to_array(version, 2)).concat(
+                    string_to_array(trees_hash)).concat(
+                        string_to_array(txs_proof_hash)).concat(
+                            integer_to_array(difficulty, 2)).concat(
+                                string_to_array(nonce));
+}
 wallet_doit1();
 function wallet_doit1() {
     var headers_db = {};//store valid headers by hash
@@ -50,34 +78,6 @@ function wallet_doit1() {
             a[i] = l[i];
         }
         return array;
-    }
-    function array_to_string(x) {
-        var a = "";
-        for (var i=0; i<x.length ; i++) {
-            a += String.fromCharCode(x[i]);
-        }
-        return a;
-    }
-    function serialize_header(x) {
-        //Array [ "header", 0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…", "vvbP//eI8ByxXmJKP7/0hN32AUaOPjY/xnC…", "oZlvyvtE4uKNxKmQYuIZqQTRib+b5qh0u8Q…", 0, 1, 6, 0, 0 ]
-        var height = x[1]; //4 bytes
-        var prev_hash = atob(x[2]); //bin
-        var trees_hash = atob(x[3]); //bin
-        var txs_proof_hash = atob(x[4]); //bin
-        var time = x[5]; //4 bytes
-        var difficulty = x[6]; // 3 bytes
-        var version = x[7]; // 2 bytes
-        var nonce = atob(x[8]); // 32 bytes
-        //var accumulative_difficulty = x[9]; //don't include
-        var y = string_to_array(prev_hash);
-        return y.concat(
-            integer_to_array(height, 4)).concat(
-                integer_to_array(time, 4)).concat(
-                    integer_to_array(version, 2)).concat(
-                        string_to_array(trees_hash)).concat(
-                            string_to_array(txs_proof_hash)).concat(
-                                integer_to_array(difficulty, 2)).concat(
-                                    string_to_array(nonce));
     }
     function pair2sci(x, b) {
         return (256 * x) + b;
