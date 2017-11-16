@@ -92,7 +92,8 @@ function keys_function1() {
         }
     }
     function update_balance() {
-        variable_public_get(["proof", btoa("accounts"), pubkey_64()], update_balance2);
+        //variable_public_get(["proof", btoa("accounts"), pubkey_64()], update_balance2);
+        variable_public_get(["proof", btoa("governance"), 5], update_balance2);
     }
     function update_balance2(x) {
         console.log(JSON.stringify(x));
@@ -114,20 +115,23 @@ function keys_function1() {
             var check2 = hash_member(tree_root, tree_roots);
             //verify that tree root is one of the roots in tree_roots.
             if (check2) {
-                console.log("proof chain");
-                console.log(JSON.stringify(x[4]));
-                var chain_hd = x[4][1];
-                var h = link_hash(chain_hd);
-                console.log("chain_hd hashed ");
-                console.log(JSON.stringify(h));
+                var chain = x[4].slice(1);
+                chain.reverse();
+                var h = link_hash(chain[0]);
                 var check3 = check_equal(h, tree_root);
                 //verify that the first link of the proof_chain is linked to tree root.
                 if (check3) {
                     console.log("proof chain2");
-                //verify that every link of the proof_chain is linked.
-                
-                //verify that the value is linked to the last link of the proof chain.
-                    //if value is empty, return 0, otherwise grab the balance from the account and return that.
+                    var check4 = chain_links(chain);
+                    console.log(check4);
+                    //verify that every link of the proof_chain is linked.
+                    if (check4) {
+                        console.log("check4");
+                        //verify that the value is linked to the last link of the proof chain.
+                        //if value is empty, return 0, otherwise grab the balance from the account and return that.
+                    } else {
+                        console.log("the proof chain has a broken link");
+                    }
                 } else {
                     console.log("the proof chain doesn't link to the tree root");
                 }
@@ -188,13 +192,36 @@ function keys_function1() {
         }
         return true;
     }
-    function link_hash(link) {
+    function link_hash(l) {
         var h = [];
-        for (var i = 1; i < link.length; i++) {
+        for (var i = 1; i < l.length; i++) {
             //console.log(link[i]);
-            var x = string_to_array(atob(link[i]));
+            var x = string_to_array(atob(l[i]));
             h = x.concat(h);
         }
         return hash(h);
+    }
+    function chain_links(chain) {
+        var out = true;
+        for (var i = 1; i < chain.length; i++) {
+            var parent = chain[i-1];
+            var child = chain[i];
+            var lh = link_hash(child);
+            console.log("chain links parent lh");
+            console.log(parent);
+            console.log(lh);
+            out = out && chain_links_array_member(parent, lh);
+        }
+        return out;
+    }
+    function chain_links_array_member(parent, h) {
+        for (var i = 1; i < parent.length; i++) {
+            var x = parent[i];
+            var p = string_to_array(atob(x));
+            console.log(p);
+            var b = check_equal(p, h);
+            if (b) { return true; }
+        }
+        return false;
     }
 }
