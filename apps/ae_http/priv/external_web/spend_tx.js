@@ -1,13 +1,40 @@
-function spend_tokens() {
-    spend_address = document.getElementById("spend_address");
-    var to = spend_address.value;
-    spend_amount = document.getElementById("spend_amount");
-    var amount = parseFloat(spend_amount.value, 10) * 100000000;
-    var from = pubkey_64();
-    var fee = 20;
-    variable_public_get(["spend_tx", amount, fee, from, to],
-                        spend_tokens2);
+spend_1();
+function spend_1() {
+    var div = document.createElement("div");
+    document.body.appendChild(div);
+    div.appendChild(document.createElement("br"));
+    var spend_amount = document.createElement("INPUT");
+    spend_amount.setAttribute("type", "text");
+    //spend_amount.id = "spend_amount";
+    var spend_amount_info = document.createElement("h8");
+    spend_amount_info.innerHTML = "amount to spend: ";
+    div.appendChild(spend_amount_info);
+    div.appendChild(spend_amount);
 
+    var spend_address = document.createElement("INPUT");
+    spend_address.setAttribute("type", "text");
+    //spend_address.id = "spend_address";
+    var input_info = document.createElement("h8");
+    input_info.innerHTML = "to pubkey: ";
+    div.appendChild(input_info);
+    div.appendChild(spend_address);
+
+    var spend_button = document.createElement("BUTTON");
+    //spend_button.id = "spend_button";
+    var spend_button_text = document.createTextNode("spend");
+    spend_button.appendChild(spend_button_text);
+    spend_button.onclick = spend_tokens;
+    div.appendChild(spend_button);
+    function spend_tokens() {
+        //spend_address = document.getElementById("spend_address");
+        var to = spend_address.value;
+        //spend_amount = document.getElementById("spend_amount");
+        var amount = parseFloat(spend_amount.value, 10) * 100000000;
+        var from = pubkey_64();
+        var fee = 20;
+        variable_public_get(["spend_tx", amount, fee, from, to],
+                            spend_tokens2);
+    }
     function spend_tokens2(tx) {
         var amount = parseFloat(spend_amount.value, 10) * 100000000;
         var amount0 = tx[5];

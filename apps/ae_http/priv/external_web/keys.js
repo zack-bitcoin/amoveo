@@ -17,13 +17,6 @@ function keys_function1() {
     var div = document.createElement("div");
     document.body.appendChild(div);
     
-    //button to update displayed pubkey.
-    var pubkey_button = document.createElement("input");
-    pubkey_button.type = "button";
-    pubkey_button.value = "check pubkey value";
-    pubkey_button.onclick = update_pubkey;
-    //div.appendChild(pubkey_button);
-
     var pub_div = document.createElement("div");
     div.appendChild(pub_div);
 
@@ -51,7 +44,7 @@ function keys_function1() {
 
     var new_pubkey_div = document.createElement("div");
     div.appendChild(new_pubkey_div);
-
+    
     div.appendChild(document.createElement("br"));
     var balance_button = document.createElement("input");
     balance_button.type = "button";
@@ -60,55 +53,7 @@ function keys_function1() {
     var bal_div = document.createElement("div");
     div.appendChild(bal_div);
     div.appendChild(balance_button);
-
-    div.appendChild(document.createElement("br"));
-    var spend_amount = document.createElement("INPUT");
-    spend_amount.setAttribute("type", "text");
-    spend_amount.id = "spend_amount";
-    var spend_amount_info = document.createElement("h8");
-    spend_amount_info.innerHTML = "amount to spend: ";
-    div.appendChild(spend_amount_info);
-    div.appendChild(spend_amount);
-
-    var spend_address = document.createElement("INPUT");
-    spend_address.setAttribute("type", "text");
-    spend_address.id = "spend_address";
-    var input_info = document.createElement("h8");
-    input_info.innerHTML = "to pubkey: ";
-    div.appendChild(input_info);
-    div.appendChild(spend_address);
-
-    var spend_button = document.createElement("BUTTON");
-    spend_button.id = "spend_button";
-    var spend_button_text = document.createTextNode("spend");
-    spend_button.appendChild(spend_button_text);
-    spend_button.onclick = spend_tokens;
-    div.appendChild(spend_button);
-
-    div.appendChild(document.createElement("br"));
-    var create_amount = document.createElement("INPUT");
-    create_amount.id = "create_amount";
-    create_amount.setAttribute("type", "text"); 
-    var create_amount_info = document.createElement("h8");
-    create_amount_info.innerHTML = "initial balance of new account: ";
-    div.appendChild(create_amount_info);
-    div.appendChild(create_amount);
-
-    var create_address = document.createElement("INPUT");
-    create_address.id = "create_address";
-    create_address.setAttribute("type", "text"); 
-    var create_info = document.createElement("h8");
-    create_info.innerHTML = "new pubkey: ";
-    div.appendChild(create_info);
-    div.appendChild(create_address);
-
-    var create_button = document.createElement("BUTTON");
-    create_button.id = "create_button";
-    var create_button_text = document.createTextNode("create new account");
-    create_button.appendChild(create_button_text);
-    create_button.onclick = create_account;
-    div.appendChild(create_button);
-
+    
     update_pubkey();
 
     //console.log(fromHex(toHex("abc")));
