@@ -129,7 +129,15 @@ clean3: clean
 .SECONDEXPANSION:
 
 build: $$(KIND)
+	#@mkdir temp
+	#@if [ -e "./_build/($KIND)"]
+	#then 
+		#@mv ./_build/($KIND)/rel/ae_core/data temp
+		#@mv ./_build/($KIND)/rel/ae_core/blocks temp
+		#@mv ./_build/($KIND)/rel/ae_core/blocks temp
+	#@fi
 	@./rebar3 as $(KIND) release
+	#@rm -rf temp
 
 go: $$(KIND)
 	@./_build/$(KIND)/$(CORE) start
@@ -253,7 +261,7 @@ multi-quick: kill multi-clean multi-build multi-go
 local-quick: kill local-build local-clean
 	./_build/local/rel/ae_core/bin/ae_core console
 prod-quick: kill prod-stop prod-clean prod-build prod-go
-prod-restart: kill prod-stop prod-go
+prod-restart: kill prod-stop prod-build prod-go
 
 .PHONY: \
 	local-build local-go local-stop local-attach local-clean \
