@@ -28,37 +28,6 @@ function fromHex(h) {
     }
     return s;
 }
-
-//var pubPoint = key1.getPublic();
-/*
-//first in erlang, for clarity.
-serialize(X) when is_binary(X) -> 
-    S = size(X),
-    <<0:8, S:32, X/binary>>;
-serialize(L) when is_list(L) ->
-    A = serialize_list(L),
-    S = size(A),
-    <<1:8, S:32, A/binary>>;
-serialize(X) when is_tuple(X) -> 
-    A = serialize_list(tuple_to_list(X)),
-    S = size(A),
-    <<2:8, S:32, A/binary>>;
-serialize(X) when is_integer(X) -> 
-    <<3:8, X:512>>;
-serialize(X) when is_atom(X) -> 
-    A = list_to_binary(atom_to_list(X)),
-    S = size(A),
-    <<4:8, S:32, A/binary>>;
-serialize(X) -> 
-    io:fwrite("testnet sign serialize error"),
-    io:fwrite(packer:pack(X)),
-    1=2.
-serialize_list([]) -> <<>>;
-serialize_list([A|B]) -> 
-    C = serialize(A),
-    D = serialize_list(B),
-    <<C/binary, D/binary>>.
-*/
 function serialize(data) {
     if (Number.isInteger(data)) {
         //console.log("serialize integer");
@@ -107,18 +76,18 @@ function serialize(data) {
             integer_to_array(rest.length, 4)).concat(
                 rest);
     }
-}
-function serialize_list(l) {
-    var m = [];
-    for (var i = 0; i < l.length; i++) {
-        m = m.concat(serialize(l[i]));
+    function serialize_list(l) {
+        var m = [];
+        for (var i = 0; i < l.length; i++) {
+            m = m.concat(serialize(l[i]));
+        }
+        return m;
     }
-    return m;
 }
 function sign(data, key) {
     //ecdsa, sha356
     var d2 = serialize(data);
-    var h = hash(d2);
+    var h = hash(2);
     var sig = key.sign(h);
     return sig.toDER();
 }
@@ -127,10 +96,26 @@ function verify(data, sig0, key) {
     var d2 = serialize(data);
     var h = hash(d2);
     return key.verify(h, sig, "hex");
+    function bin2rs(x) {
+        /*
+          0x30 b1 0x02 b2 (vr) 0x02 b3 (vs)
+          where:
+          
+          b1 is a single byte value, equal to the length, in bytes, of the remaining list of bytes (from the first 0x02 to the end of the encoding);
+          b2 is a single byte value, equal to the length, in bytes, of (vr);
+          b3 is a single byte value, equal to the length, in bytes, of (vs);
+          (vr) is the signed big-endian encoding of the value "r", of minimal length;
+          (vs) is the signed big-endian encoding of the value "s", of minimal length.
+        */
+        var h = toHex(x);
+        var a2 = x.charCodeAt(3);
+        var r = h.slice(8, 8+(a2*2));
+        var s = h.slice(12+(a2*2));
+        return {"r": r, "s": s};
+    }
 }
 
-
-signing_test();
+//signing_test();
 function signing_test() {
 
     //priv1 = atob("2kYbRu2TECMJzZy55fxdILBvM5wJM482lKLTRu2e42U=");
@@ -146,21 +131,4 @@ function signing_test() {
 
     var foo = verify(data0, sig0, key0);
     console.log(foo);
-}
-function bin2rs(x) {
-    /*
-    0x30 b1 0x02 b2 (vr) 0x02 b3 (vs)
-    where:
-
-    b1 is a single byte value, equal to the length, in bytes, of the remaining list of bytes (from the first 0x02 to the end of the encoding);
-    b2 is a single byte value, equal to the length, in bytes, of (vr);
-    b3 is a single byte value, equal to the length, in bytes, of (vs);
-    (vr) is the signed big-endian encoding of the value "r", of minimal length;
-    (vs) is the signed big-endian encoding of the value "s", of minimal length.
-    */
-    var h = toHex(x);
-    var a2 = x.charCodeAt(3);
-    var r = h.slice(8, 8+(a2*2));
-    var s = h.slice(12+(a2*2));
-    return {"r": r, "s": s};
 }

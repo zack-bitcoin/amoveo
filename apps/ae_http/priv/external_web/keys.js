@@ -1,7 +1,6 @@
 
 function new_keys() {
-    var crypto_keys = ec.genKeyPair();
-    return crypto_keys;
+    return ec.genKeyPair();
 }
 var keys = new_keys();
 function pubkey_64() {

@@ -41,8 +41,6 @@ function make_channel1() {
     spend_delay.setAttribute("type", "text"); 
     var delay_info = document.createElement("h8");
     delay_info.innerHTML = "channel delay (in blocks): ";
-    //document.body.appendChild(delay_info);
-    //document.body.appendChild(spend_delay);
     height.appendChild(delay_info);
     height.appendChild(spend_delay);
 

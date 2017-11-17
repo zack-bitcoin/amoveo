@@ -1,5 +1,7 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* sign.erl in encryter shouldn't decode siggs in verify_sign.
+
 * merkle.js should be able to verify proofs of the trie being empty in some places.
 
 * the light node should give the option to connect to other servers.

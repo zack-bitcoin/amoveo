@@ -103,6 +103,9 @@ handle_cast(_, X) -> {noreply, X}.
 handle_call({combine_cancel_assets, TheirPub, IP, Port}, _From, X) ->
     {ok, OldCD} = channel_manager:read(TheirPub),
     {SSPK, NewSS} = combine_cancel_common(OldCD),
+    io:fwrite("channel feeder spks "),
+    io:fwrite(packer:pack({testnet_sign:data(SSPK), NewSS})),
+    io:fwrite("\n"),
     Msg = {combine_cancel_assets, keys:pubkey(), SSPK},
     Msg = packer:unpack(packer:pack(Msg)),
     {ok, SSPK2} = talker:talk(Msg, IP, Port),
@@ -116,6 +119,10 @@ handle_call({combine_cancel_assets, TheirPub, IP, Port}, _From, X) ->
 handle_call({combine_cancel_assets_server, TheirPub, SSPK2}, _From, X) ->
     {ok, OldCD} = channel_manager:read(TheirPub),
     {SSPK, NewSS} = combine_cancel_common(OldCD),
+    io:fwrite("channel feeder spks "),
+    io:fwrite(packer:pack({testnet_sign:data(SSPK),
+                           testnet_sign:data(SSPK2)})),
+    io:fwrite("\n"),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     Bets = spk:bets(me(OldCD)),

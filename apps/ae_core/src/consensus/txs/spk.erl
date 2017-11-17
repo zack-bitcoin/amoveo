@@ -324,6 +324,8 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
     Data2 = chalang:run5([ScriptSig], Data),
     Data3 = chalang:run5([Code], Data2),
+    %io:fwrite(packer:pack(Data3)),
+    %io:fwrite("\n"),
     [<<Amount:32>>|
      [<<Nonce:32>>|
       [<<Delay:32>>|_]]] = chalang:stack(Data3),%#d.stack,

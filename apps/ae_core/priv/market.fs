@@ -13,7 +13,8 @@ then drop drop ;
 %<<height:32, price:16, market_id:16, signature/binary>>
 %sig data pub
 macro extract ( signed_price_declaration -- height price portion_matched)
-int 10 split dup tuck Pubkey verify_sig or_die
+int 10 split dup tuck Pubkey print verify_sig print or_die
+print print print print print 
 int 4 split swap
 int 2 split binary 2 AAA= swap ++ swap
 int 2 split binary 2 AAA= swap ++ swap
@@ -94,7 +95,7 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	then	
 ;
 macro unmatched ( OracleProof -- delay nonce amount )
-        helper print print print
+        helper
 	int 0 == if
      		Expires Period + height - int 100 +
         	int 100000
