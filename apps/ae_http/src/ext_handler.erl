@@ -86,6 +86,13 @@ doit({create_account_tx, Amount, Fee, From, To}) ->
     {Trees, _, _} = tx_pool:data(),
     {Tx, _} = create_account_tx:new(To, Amount, Fee, From, Trees),
     {ok, Tx};
+doit({new_channel_tx, Acc1, Acc2, B1, B2, Delay, Fee}) ->
+    {Trees, _, _} = tx_pool:data(),
+    Channels = trees:channels(Trees),
+    CID = api:find_id(channels, Channels),
+    Entropy = 127,
+    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, B1, B2, Entropy, Delay, Fee),
+    {ok, Tx};
 doit({new_channel, STx, SSPK}) ->
     unlocked = keys:status(),
     %io:fwrite(STx),

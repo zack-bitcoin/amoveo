@@ -253,6 +253,7 @@ function wallet_doit1() {
         }
     }
     function absorb_headers(h) {
+        var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
             var b =check_pow(h[i]);
             if ( b ) {
@@ -268,14 +269,18 @@ function wallet_doit1() {
                     var ac = sci2int(diff);
                     header[9] = prev_ac + ac - 1;
                 }
+                var header_hash = hash(serialize_header(header));
+                if (!(header_hash in headers_db)) {
+                    get_more = true;
+                }
                 write_header(header);}
             else {
                 console.log("bad header");
                 console.log(h[i]); }
         }
-       // if (h.length > 1) {
-       //     more_headers();
-       // }
+        if (get_more) {
+            more_headers();
+        }
     }
     function more_headers() {
         var n;

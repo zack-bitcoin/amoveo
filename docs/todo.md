@@ -1,6 +1,8 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* sign.erl in encryter shouldn't decode siggs in verify_sign.
+* it seems like the empty list isn't serializeing the same way in javascript and erlang signing libraries.
+
+* sign.erl in encryter shouldn't decode sigs in verify_sign.
 
 * merkle.js should be able to verify proofs of the trie being empty in some places.
 

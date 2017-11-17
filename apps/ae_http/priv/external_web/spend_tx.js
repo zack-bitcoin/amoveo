@@ -56,6 +56,9 @@ function spend_1() {
             console.log(JSON.stringify(tx));
             var stx = sign_tx(tx);
             console.log(JSON.stringify(stx));
+            console.log("pubkey is ");
+            console.log(to);
+            console.log(pubkey_64());
             variable_public_get(["txs", [-6, stx]], function(x) {});
         }
     }

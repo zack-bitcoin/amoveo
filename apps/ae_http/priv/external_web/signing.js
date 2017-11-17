@@ -87,7 +87,7 @@ function serialize(data) {
 function sign(data, key) {
     //ecdsa, sha356
     var d2 = serialize(data);
-    var h = hash(2);
+    var h = hash(d2);
     var sig = key.sign(h);
     return sig.toDER();
 }

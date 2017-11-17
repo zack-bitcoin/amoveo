@@ -8,6 +8,8 @@ function pubkey_64() {
     return btoa(fromHex(pubPoint));
 }
 function sign_tx(tx) {
+    console.log("absout to sign tx");
+    console.log(JSON.stringify(tx));
     sig = btoa(btoa(array_to_string(sign(tx, keys))));
     return ["signed", tx, sig, [-6]];
 }
