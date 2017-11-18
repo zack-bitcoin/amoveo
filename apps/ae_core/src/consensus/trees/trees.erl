@@ -12,11 +12,17 @@
 -record(trees, {accounts, channels, existence,
 		burn, oracles, governance}).
 name(<<"accounts">>) -> accounts;
+name("accounts") -> accounts;
+name(<<"channels">>) -> channels;
 name("channels") -> channels;
+name(<<"existence">>) -> existence;
 name("existence") -> existence;
+name(<<"burn">>) -> burn;
 name("burn") -> burn;
+name(<<"oracles">>) -> oracles;
 name("oracles") -> oracles;
-name(<<"governance">>) -> governance.
+name(<<"governance">>) -> governance;
+name("governance") -> governance.
 accounts(X) -> X#trees.accounts.
 channels(X) -> X#trees.channels.
 existence(X) -> X#trees.existence.

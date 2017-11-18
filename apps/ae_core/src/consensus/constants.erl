@@ -79,7 +79,7 @@ headers_file() -> root() ++ "headers.db".
 oracle_questions_file() -> root() ++ "oracle_questions.db".
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
-half_bal() -> round(math:pow(2, balance_bits()-1)).
+half_bal() -> round(math:pow(2, balance_bits())-1).
 acc_bits() -> hash_size()*8.%total number of accounts is 2^(acc_bits()) 800 billion.
 height_bits() -> 32. %maximum number of blocks is 2^this
 account_nonce_bits() -> 24.%maximum number of times you can update an account's state is 2^this.

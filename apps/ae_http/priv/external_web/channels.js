@@ -5,6 +5,7 @@ function channels1() {
     //check if we have a chnnel with the server yet.
     //if we don't, then give an interface for making one.
     var cd;
+    document.body.appendChild(document.createElement("br"));
     var channels_div = document.createElement("div");
     document.body.append(channels_div);
     var channel_warning_div = document.createElement("div");
@@ -96,6 +97,7 @@ function channels1() {
         console.log(cd);
         channel_manager[acc2] = cd;
         channel_warning();
+        variable_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
     }
     function channel_warning() {
         channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
@@ -104,11 +106,12 @@ function channels1() {
         download(JSON.stringify(channel_manager), "amoveo_channel_state", "text/plain");
         channel_warning_div.innerHTML = "channel state is saved.";
     }
-    function load_channels(file_selector) {
-        var file = (file_selector.files)[0];
+    function load_channels() {
+        var file = (load_button.files)[0];
         var reader = new FileReader();
         reader.onload = function(e) {
-            0;
+            channel_manager = JSON.parse(reader.result);
+            variable_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
         }
         reader.readAsText(file);
     }
@@ -146,6 +149,30 @@ function channels1() {
             
         } else {
             console.log("give interfaces for: lightning spending, and making bets in channels.");
+            console.log("display channel balance");
+            var balance_div = document.createElement("div");
+            balance_div.id = "balance_div";
+            div.appendChild(balance_div);
+
+            var channel_balance_button = document.createElement("input");
+            channel_balance_button.type = "button";
+            channel_balance_button.value = "check channel balance";
+            channel_balance_button.onclick = function() {refresh_balance(pubkey);};
+            div.appendChild(channel_balance_button);
         }
+    }
+    function refresh_balance(pubkey) {
+        console.log(channel_manager[pubkey]);
+        var cd = channel_manager[pubkey];
+        var trie_key = cd.me[7];//channel id, cid
+        var top_hash = hash(serialize_header(top_header));
+        variable_public_get(["proof", btoa("channels"), trie_key, btoa(array_to_string(top_hash))], function(x) { refresh_balance2(trie_key, x); });
+
+    }
+    function refresh_balance2(trie_key, proof) {
+        var val = verify_merkle(trie_key, proof);
+        var balance_div = document.getElementById("balance_div");
+        //add or remove more based on any channel state we are storing.
+        console.log(val);
     }
 }

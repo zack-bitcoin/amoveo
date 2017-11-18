@@ -83,6 +83,21 @@ function verify_merkle(trie_key, x) {
                                 bets);
             return hash(serialized);
             
+        } else if ( t == "channel" ) {
+            var cid = integer_to_array(v[1], );
+            var acc1 = integer_to_array(v[2], );
+            var acc2 = integer_to_array(v[3], );
+            var acc1 = integer_to_array(v[4], );
+            var acc1 = integer_to_array(v[5], );
+            var acc1 = integer_to_array(v[6], );
+            var acc1 = integer_to_array(v[7], );
+            var acc1 = integer_to_array(v[8], );
+            var acc1 = integer_to_array(v[9], );
+            var acc1 = integer_to_array(v[10], );
+            var acc1 = integer_to_array(v[11], );
+            var acc1 = integer_to_array(v[12], );
+            var closed = integer_to_array(v[13], );
+
         } else {
             console.log("cannot decode type ");
             console.log(t);
