@@ -22,6 +22,7 @@ function create_account1() {
     create_button.appendChild(create_button_text);
     create_button.onclick = create_account;
     div.appendChild(create_button);
+    div.appendChild(document.createElement("br"));
 
     function create_account() {
         var to = create_address.value;
@@ -53,5 +54,6 @@ function create_account1() {
             var stx = sign_tx(tx);
             variable_public_get(["txs", [-6, stx]], function(x) {});
         }
+        create_amount.value = "";
     }
 }

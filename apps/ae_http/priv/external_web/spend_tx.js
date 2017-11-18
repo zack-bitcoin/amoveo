@@ -61,5 +61,6 @@ function spend_1() {
             console.log(pubkey_64());
             variable_public_get(["txs", [-6, stx]], function(x) {});
         }
+        spend_amount.value = "";
     }
 }

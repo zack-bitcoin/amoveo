@@ -63,9 +63,9 @@ contradictory_prices(SPD, SPD2, OID) ->
 price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
     PD = <<Height:32, Price:16, PortionMatched:16, MarketID:16>>,
     Signature = keys:raw_sign(PD),
-    %Sig1 = base64:decode(Signature),
-    %<<PD/binary, Sig1/binary>>.
-    <<PD/binary, Signature/binary>>.
+    Sig1 = base64:decode(Signature),
+    <<PD/binary, Sig1/binary>>.
+    %<<PD/binary, Signature/binary>>.
 
 
 test() ->

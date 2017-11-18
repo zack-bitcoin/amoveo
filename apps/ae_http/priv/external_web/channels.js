@@ -11,12 +11,20 @@ function channels1() {
     channels_div.appendChild(channel_warning_div);
     var channel_interface_div = document.createElement("div");
     channels_div.appendChild(channel_interface_div);
+    
+    var load_button = document.createElement("input");
+    load_button.type = "file";
+    load_button.onchange = load_channels;
+    channels_div.appendChild(load_button);
+
+    channels_div.appendChild(document.createElement("br"));
     var save_button = document.createElement("input");
-    save_button.type = "file";
-    save_button.onchange = function () { save_channels(save_button); };
-    var save_text = document.createTextNode("save channel state to file");
-    channels_div.appendChild(save_text);
+    save_button.type = "button";
+    save_button.value = "save channel data to file";
+    save_button.onclick = save_channel_data;
     channels_div.appendChild(save_button);
+
+
     variable_get(["pubkey"], refresh_channels_interfaces);//ask for their pubkey
     function make_channel_func(pubkey) {
         var spend_amount = document.getElementById("spend_amount");
@@ -92,8 +100,8 @@ function channels1() {
     function channel_warning() {
         channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
     }
-    function save_channels(file_selector) {
-        download(channel_manager, "amoveo_channel_state", "text/plain");
+    function save_channel_data() {
+        download(JSON.stringify(channel_manager), "amoveo_channel_state", "text/plain");
         channel_warning_div.innerHTML = "channel state is saved.";
     }
     function load_channels(file_selector) {
@@ -114,7 +122,6 @@ function channels1() {
             var make_channel = document.createElement("div");
             console.log("give interface for making channels.");
             div.appendChild(make_channel);
-            make_channel.appendChild(document.createElement("br"));
             var height_button = document.createElement("BUTTON");
             var button_text_node = document.createTextNode("make channel");
             height_button.appendChild(button_text_node);

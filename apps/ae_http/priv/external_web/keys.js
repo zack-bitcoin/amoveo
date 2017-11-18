@@ -13,6 +13,23 @@ function sign_tx(tx) {
     sig = btoa(btoa(array_to_string(sign(tx, keys))));
     return ["signed", tx, sig, [-6]];
 }
+function download(data, filename, type) {
+    var file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var a = document.createElement("a"),
+            url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+    }
+}
 keys_function1();
 function keys_function1() {
     var div = document.createElement("div");
@@ -109,23 +126,6 @@ function keys_function1() {
     }
     function save_keys() {
         download(keys.getPrivate("hex"), "amoveo_light_keys", "text/plain");
-    }
-    function download(data, filename, type) {
-        var file = new Blob([data], {type: type});
-        if (window.navigator.msSaveOrOpenBlob) // IE10+
-            window.navigator.msSaveOrOpenBlob(file, filename);
-        else { // Others
-            var a = document.createElement("a"),
-                url = URL.createObjectURL(file);
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(function() {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }, 0);
-        }
     }
     function load_keys() {
         var file = (file_selector.files)[0];
