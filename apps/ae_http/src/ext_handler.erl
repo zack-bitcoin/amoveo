@@ -40,8 +40,8 @@ doit({give_block, Block}) ->
     %io:fwrite("received block "),
     %io:fwrite(integer_to_list(block:height(Block))),
     %io:fwrite("\n"),
-    %block_absorber:enqueue(SignedBlock),
-    block_absorber:save(SignedBlock),
+    %block_absorber:enqueue(Block),
+    block_absorber:save(Block),
     {ok, 0};
 doit({block, N}) ->
     true = is_integer(N),
