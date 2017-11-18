@@ -35,11 +35,11 @@ doit({account, Pubkey}) ->
     {ok, api:account(Pubkey)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
-doit({give_block, SignedBlock}) -> 
+doit({give_block, Block}) -> 
     %true = block:height(SignedBlock) < api:height() + 2,
-    io:fwrite("received block\n"),
-    io:fwrite(packer:pack(SignedBlock)),
-    io:fwrite("\n"),
+    %io:fwrite("received block "),
+    %io:fwrite(integer_to_list(block:height(Block))),
+    %io:fwrite("\n"),
     %block_absorber:enqueue(SignedBlock),
     block_absorber:save(SignedBlock),
     {ok, 0};
