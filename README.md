@@ -19,8 +19,16 @@ Non-technical [mission statement](docs/mission_statement.md).
 
 [Amoveo announcements on twitter](https://twitter.com/zack_bitcoin)
 
+## Running a light node of the blockchain
 
-## Running the blockchain
+Simply visit [this webpage](http://146.185.142.103:8080/wallet.html) to participate in Amoveo, no installation necessary.
+This light node downloads headers and verifies the proof of work.
+It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
+
+
+## Running a full node of the blockchain
+
+If you want to mine blocks you will need a full node.
 
 Launch a node and connect to the network; [look at the quick start guide](docs/getting-started/turn_it_on.md)
 

@@ -27,13 +27,7 @@ You can delete the database to restart from the genesis block. This preserves yo
   make prod-clean
 ```
 
-For convenience, there are a couple more ways to start it. To kill any running processes, delete the database, rebuild the code, and start a node that can connect to the network, do this:
-```
-  make prod-quick
-```
-
-Additionally, there is this command to kill all running nodes, and then start a node that can connect to the network:
+For convenience, there is a way to wrap this all into one command. To kill any running processes, rebuild the code, and start a node that can connect to the network, do this:
 ```
   make prod-restart
 ```
-This keeps the old database around, so you don't have to re-sync any blocks.

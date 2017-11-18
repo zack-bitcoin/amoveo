@@ -60,7 +60,7 @@ function wallet_doit1() {
     //button.onclick = test;
     document.body.appendChild(button);
     wallet_text = document.createElement("p");
-    wallet_text.innerHTML = "";
+    wallet_text.innerHTML = JSON.stringify({"height": 0, "total_work": 0});
     document.body.appendChild(wallet_text);
     function write_header(header) {
         var acc_difficulty = header[9];

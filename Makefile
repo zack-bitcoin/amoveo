@@ -254,6 +254,8 @@ local-quick: kill local-build local-clean
 	./_build/local/rel/ae_core/bin/ae_core console
 #prod-quick: kill prod-stop prod-clean prod-build prod-go
 prod-restart: kill prod-stop prod-build prod-go
+	@sleep 1
+	@make prod-attach
 
 .PHONY: \
 	local-build local-go local-stop local-attach local-clean \

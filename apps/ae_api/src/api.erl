@@ -138,7 +138,7 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     STx = keys:sign(Tx),
     SSPK = keys:sign(SPK),
     Msg = {new_channel, STx, SSPK},
-    {ok, SSTx, S2SPK} = talker:talk(Msg, IP, Port),
+    {ok, [SSTx, S2SPK]} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(SSTx),
     channel_feeder:new_channel(Tx, S2SPK, Accounts),
     ok.

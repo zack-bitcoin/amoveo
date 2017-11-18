@@ -17,6 +17,7 @@ api:height().
 #### Stop a node
 ```
 api:off().
+halt().
 ```
 
 #### sign a transaction

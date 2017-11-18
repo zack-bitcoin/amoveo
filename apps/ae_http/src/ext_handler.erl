@@ -108,7 +108,7 @@ doit({new_channel, STx, SSPK}) ->
     S2SPK = keys:sign(SPK),
     channel_feeder:new_channel(Tx, SSPK, Accounts),
     %api:sync(),
-    {ok, SSTx, S2SPK};
+    {ok, [SSTx, S2SPK]};
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
     true = grow_channel_tx:good(Tx),%checks the min_channel_ratio
