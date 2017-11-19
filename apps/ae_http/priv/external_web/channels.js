@@ -152,6 +152,7 @@ function channels1() {
             console.log("display channel balance");
             var balance_div = document.createElement("div");
             balance_div.id = "balance_div";
+            balance_div.innerHTML = "unknown";
             div.appendChild(balance_div);
 
             var channel_balance_button = document.createElement("input");
@@ -170,8 +171,18 @@ function channels1() {
 
     }
     function refresh_balance2(trie_key, proof) {
+        // id acc1 acc2 bal1 bal2 amount nonce timeout_height, last_modified,
+        // entropy, delay, slasher, closed
         var val = verify_merkle(trie_key, proof);
         var balance_div = document.getElementById("balance_div");
+        var mybalance = (val[4] / 100000000).toString();
+        var serverbalance = (val[5] / 100000000).toString();
+        console.log(val[4]);
+        console.log(parseInt(val[4], 10));
+        console.log(mybalance);
+        balance_div.innerHTML = ("your balance: ").concat(
+            mybalance).concat("  server balance: ").concat(
+                serverbalance);
         //add or remove more based on any channel state we are storing.
         console.log(val);
     }
