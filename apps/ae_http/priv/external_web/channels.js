@@ -173,6 +173,8 @@ function channels1() {
     function refresh_balance2(trie_key, proof) {
         // id acc1 acc2 bal1 bal2 amount nonce timeout_height, last_modified,
         // entropy, delay, slasher, closed
+
+        //we should modify the balances based on the contract code we store
         var val = verify_merkle(trie_key, proof);
         var balance_div = document.getElementById("balance_div");
         var mybalance = (val[4] / 100000000).toString();

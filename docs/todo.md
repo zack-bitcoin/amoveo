@@ -1,6 +1,7 @@
 ### things to do immediately before the next hard fork of the testnet
 
 * signatures shouldn't be double base64 encoded.
+* sign.erl in encryter shouldn't decode sigs in verify_sign.
 
 * the merkle tree library should not pad keys so excessively before hashing them.
 
@@ -8,17 +9,15 @@
 
 * we should merkelize txs and proofs before hashing them into the header.
 
+
+
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* the javascript light node needs to be able to merkelize channels.
-
-* sign.erl in encryter shouldn't decode sigs in verify_sign.
+* we need channels for the light nodes.
 
 * merkle.js should be able to verify proofs of the trie being empty in some places.
 
 * the light node should give the option to connect to other servers.
-
-* we need channels for the light nodes.
 
 * channel balance and channel_partner balance aren't being calculated very well in javascript. We should calculate it better, and do tests to make sure as much of this liquidity is available as is securely possible.
 

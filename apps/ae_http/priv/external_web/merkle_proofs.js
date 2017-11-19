@@ -54,21 +54,15 @@ function verify_merkle(trie_key, x) {
         console.log("leaf_hash");
         console.log(t);
         if ( t == "gov" ) {
-            /* <<(Gov#gov.id):8,
-               (Gov#gov.value):16,
-               (Gov#gov.lock):8>>. */
             var id = integer_to_array(v[1], 1);
             var value = integer_to_array(v[2], 2);
             var lock = integer_to_array(v[3], 1);
             var serialized =  integer_to_array(trie_key, 8).concat(
-                id).concat(value).concat(serialized);
+                id).concat(
+                    value).concat(
+                        lock);
             return hash(serialized);
         } else if ( t == "acc" ) {
-        /* <<(Account#acc.balance):BalanceSize, balance bits
-          (Account#acc.nonce):NonceSize, account_nonce_bits
-          (Account#acc.height):HeightSize, height_bits
-          (Account#acc.pubkey)/binary, pubkey_size
-          BetsRoot/binary>>,  32 bytes */
             var balance = integer_to_array(v[1], 6);
             var nonce = integer_to_array(v[2], 3);
             var height = integer_to_array(v[3], 4);
@@ -77,10 +71,11 @@ function verify_merkle(trie_key, x) {
             //The key is the hash of the pubkey.
             var serialized = integer_to_array(0, 32*7).concat(
                 hash(pubkey)).concat(
-                    balance).concat(nonce).concat(
-                        height).concat(
-                            pubkey).concat(
-                                bets);
+                    balance).concat(
+                        nonce).concat(
+                            height).concat(
+                                pubkey).concat(
+                                    bets);
             return hash(serialized);
             
         } else if ( t == "channel" ) {
@@ -91,11 +86,11 @@ function verify_merkle(trie_key, x) {
             var bal2 = integer_to_array(v[5], 6);
             var amount = integer_to_array(128, 1).concat(
                 integer_to_array(v[6], 5));
-            var nonce = integer_to_array(v[7], 4);//channel_nonce_bits
-            var timeout_height = integer_to_array(v[8], 4);//height_bits
-            var last_modified = integer_to_array(v[9], 4);//height_bits
-            var entropy = integer_to_array(v[10], 2);//channel_entropy
-            var delay = integer_to_array(v[11], 4);//channel_delay_bits
+            var nonce = integer_to_array(v[7], 4);
+            var timeout_height = integer_to_array(v[8], 4);
+            var last_modified = integer_to_array(v[9], 4);
+            var entropy = integer_to_array(v[10], 2);
+            var delay = integer_to_array(v[11], 4);
             var closed = integer_to_array(v[13], 1);
             var serialized = integer_to_array(v[1], 256).concat(
                 cid).concat(
@@ -110,8 +105,6 @@ function verify_merkle(trie_key, x) {
                                                     closed).concat(
                                                         acc1).concat(
                                                             acc2);
-            console.log("serialized channel");
-            console.log(JSON.stringify(serialized));
             return hash(serialized);
         } else {
             console.log("cannot decode type ");
@@ -119,53 +112,42 @@ function verify_merkle(trie_key, x) {
         }
     }
 
-
-
-
     
     //x is {return tree_roots, tree_root, value, proof_chain}
     var tree_roots = string_to_array(atob(x[1]));
     var header_trees_hash = string_to_array(atob(top_header[3]));
     var hash_tree_roots = hash(tree_roots);
     var check = check_equal(header_trees_hash, hash_tree_roots);
-    //verify that the hash of tree_roots matches the hash in our top header.
-    if (check) {
+    if (!(check)) {
+        console.log("the hash of tree roots doesn't match the hash in the header.");
+    } else {
         var tree_root = string_to_array(atob(x[2]));
-        //set_balance(0);
         var check2 = hash_member(tree_root, tree_roots);
-        //verify that tree root is one of the roots in tree_roots.
-        if (check2) {
+        if (!(check2)) {
+            console.log("that tree root is not one of the valid tree roots.");
+        } else {
             var chain = x[4].slice(1);
             chain.reverse();
             var h = link_hash(chain[0]);
             var check3 = check_equal(h, tree_root);
-            //verify that the first link of the proof_chain is linked to tree root.
-            if (check3) {
-                var check4 = chain_links(chain);
-                //verify that every link of the proof_chain is linked.
-                if (check4) {
-                    var last = chain[chain.length - 1];
-                    var value = x[3];
-                    var lh = leaf_hash(value, trie_key);
-                    var check5 = chain_links_array_member(last, lh);
-                    //verify that the value is linked to the last link of the proof chain.
-                    if (check5) {
-                        return value;
-                        //if value is empty, return 0, otherwise grab the balance from the account and return that.
-                    } else {
-                        console.log("the proof chain doesn't point to that value");
-                        return 0
-                    } 
-                } else {
-                    console.log("the proof chain has a broken link");
-                }
-            } else {
+            var check4 = chain_links(chain);
+            if (!(check3)) {
                 console.log("the proof chain doesn't link to the tree root");
+            } else if (!(check4)){
+                console.log("the proof chain has a broken link");
+            } else {
+                var last = chain[chain.length - 1];
+                var value = x[3];
+                var lh = leaf_hash(value, trie_key);
+                var check5 = chain_links_array_member(last, lh);
+                if (check5) {
+                    return value;
+                    //we should really learn to deal with proofs of empty data.
+                } else {
+                    console.log("the value doesn't match the proof");
+                    return 0
+                }
             }
-        } else {
-            console.log("the tree root doesen't link to the tree hashes");
         }
-    } else {
-        console.log("the tree hashes don't match the hash in the header.");
     }
 }
