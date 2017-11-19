@@ -11,7 +11,6 @@ function channels1() {
     var channel_warning_div = document.createElement("div");
     channels_div.appendChild(channel_warning_div);
     var channel_interface_div = document.createElement("div");
-    channels_div.appendChild(channel_interface_div);
     
     var load_button = document.createElement("input");
     load_button.type = "file";
@@ -19,14 +18,16 @@ function channels1() {
     channels_div.appendChild(load_button);
 
     channels_div.appendChild(document.createElement("br"));
+    channels_div.appendChild(document.createElement("br"));
     var save_button = document.createElement("input");
     save_button.type = "button";
     save_button.value = "save channel data to file";
     save_button.onclick = save_channel_data;
     channels_div.appendChild(save_button);
-
-
-    variable_get(["pubkey"], refresh_channels_interfaces);//ask for their pubkey
+    channels_div.appendChild(document.createElement("br"));
+    channels_div.appendChild(channel_interface_div);
+    
+    variable_get(["pubkey"], refresh_channels_interfaces);
     function make_channel_func(pubkey) {
         var spend_amount = document.getElementById("spend_amount");
         var amount = parseFloat(spend_amount.value, 10) * 100000000;
@@ -148,11 +149,10 @@ function channels1() {
             make_channel.appendChild(spend_delay);
             
         } else {
-            console.log("give interfaces for: lightning spending, and making bets in channels.");
-            console.log("display channel balance");
+            console.log("give interface for making bets in channels.");
             var balance_div = document.createElement("div");
             balance_div.id = "balance_div";
-            balance_div.innerHTML = "unknown";
+            balance_div.innerHTML = "your balance: unknown";
             div.appendChild(balance_div);
 
             var channel_balance_button = document.createElement("input");
@@ -160,6 +160,68 @@ function channels1() {
             channel_balance_button.value = "check channel balance";
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             div.appendChild(channel_balance_button);
+            div.appendChild(document.createElement("br"));
+
+            var price = document.createElement("INPUT");
+            price.setAttribute("type", "text");
+            var price_info = document.createElement("h8");
+            price_info.innerHTML = "price (between 0 and 100) : ";
+            div.appendChild(price_info);
+            div.appendChild(price);
+
+            var trade_type = document.createElement("INPUT");
+            trade_type.setAttribute("type", "text");
+            var trade_type_info = document.createElement("h8");
+            trade_type_info.innerHTML = "trade_type (either 'true' or 'false'): ";
+            div.appendChild(trade_type_info);
+            div.appendChild(trade_type);
+
+            var amount = document.createElement("INPUT");
+            amount.setAttribute("type", "text");
+            var amount_info = document.createElement("h8");
+            amount_info.innerHTML = "amount: ";
+            div.appendChild(amount_info);
+            div.appendChild(amount);
+
+            var oid = document.createElement("INPUT");
+            oid.setAttribute("type", "text");
+            var oid_info = document.createElement("h8");
+            oid_info.innerHTML = "market id: ";
+            div.appendChild(oid_info);
+            div.appendChild(oid);
+
+            var button = document.createElement("BUTTON");
+            button.id = "button";
+            var buttonText = document.createTextNode("make bet");
+            button.appendChild(buttonText);
+            button.onclick = make_bet;
+            div.appendChild(button);
+            function make_bet() {
+                var price_final = Math.floor(100 * parseFloat(price.value, 10));
+                var type_final;
+                if (trade_type.value == "true") {
+                    type_final = 1;
+                } else if (trade_type.value == "false") {
+                    type_final = 2;
+                }
+                var amount_final = Math.floor(parseFloat(amount.value, 10) * 100000000);
+                var oid_final = parseInt(oid.value, 10);
+                var fee = 20
+                //server's pubkey is pubkey.
+                variable_public_get(["market_data", oid_final], make_bet2);
+            }
+            function make_bet2(l) {
+                console.log("expires, pubkey, period");
+                console.log(JSON.stringify(l));
+                //JSON.parse(server_ip.value);
+                //parseInt(server_port.value, 10);
+                //local_get(["trade", price_final, type_final, amount_final, oid_final,
+                //          JSON.parse(server_ip.value),
+                //         parseInt(server_port.value, 10)]);
+                amount.value = "";
+                
+
+            }
         }
     }
     function refresh_balance(pubkey) {

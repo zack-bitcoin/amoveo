@@ -13,6 +13,8 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* There needs to be a way to choose which server you are connecting to with the javascript light node. This will make some kinds of testing much easier.
+
 * we need channels for the light nodes.
 
 * merkle.js should be able to verify proofs of the trie being empty in some places.
