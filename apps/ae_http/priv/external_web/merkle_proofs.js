@@ -3,6 +3,7 @@ function verify_merkle(trie_key, x) {
     function hash_member(hash, members) {
         for (var i = 0; i < 6; i++) {
             var h2 = members.slice(32*i, 32*(i+1));
+            console.log("check that hash is a member");
             var b = check_equal(hash, h2);
             if (b) { return true; }
         }
@@ -84,19 +85,24 @@ function verify_merkle(trie_key, x) {
             return hash(serialized);
             
         } else if ( t == "channel" ) {
-            var cid = integer_to_array(v[1], );
-            var acc1 = integer_to_array(v[2], );
-            var acc2 = integer_to_array(v[3], );
-            var acc1 = integer_to_array(v[4], );
-            var acc1 = integer_to_array(v[5], );
-            var acc1 = integer_to_array(v[6], );
-            var acc1 = integer_to_array(v[7], );
-            var acc1 = integer_to_array(v[8], );
-            var acc1 = integer_to_array(v[9], );
-            var acc1 = integer_to_array(v[10], );
-            var acc1 = integer_to_array(v[11], );
-            var acc1 = integer_to_array(v[12], );
+            var cid = integer_to_array(v[1], 32);
+            var acc1 = v[2];
+            var acc2 = v[3];
+            var bal1 = integer_to_array(v[4], 6);//balance bits
+            var bal2 = integer_to_array(v[5], 6);
+            var hb = Math.floor(Math.pow(2, 47));
+            var amount = integer_to_array(v[6]+hb, 6);
+            var nonce = integer_to_array(v[7], );
+            var timeout_height = integer_to_array(v[8], );
+            var last_modified = integer_to_array(v[9], );
+            var entropy = integer_to_array(v[10], );
+            var delay = integer_to_array(v[11], );
+            var slasher = integer_to_array(v[12], );
             var closed = integer_to_array(v[13], );
+
+            
+
+            console.log("working here");
 
         } else {
             console.log("cannot decode type ");
