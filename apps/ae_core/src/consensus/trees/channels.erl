@@ -93,6 +93,7 @@ serialize(C) ->
     Amount = C#channel.amount,
     HB = constants:half_bal(),
     true = Amount < HB,
+    true = Amount > -HB,
     CR = case (C#channel.closed) of
 	     true -> 1;
 	     false -> 0

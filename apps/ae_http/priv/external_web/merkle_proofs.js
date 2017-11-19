@@ -44,7 +44,6 @@ function verify_merkle(trie_key, x) {
         for (var i = 1; i < parent.length; i++) {
             var x = parent[i];
             var p = string_to_array(atob(x));
-            console.log(p);
             var b = check_equal(p, h);
             if (b) { return true; }
         }
@@ -86,24 +85,34 @@ function verify_merkle(trie_key, x) {
             
         } else if ( t == "channel" ) {
             var cid = integer_to_array(v[1], 32);
-            var acc1 = v[2];
-            var acc2 = v[3];
-            var bal1 = integer_to_array(v[4], 6);//balance bits
+            var acc1 = string_to_array(atob(v[2]));
+            var acc2 = string_to_array(atob(v[3]));
+            var bal1 = integer_to_array(v[4], 6);
             var bal2 = integer_to_array(v[5], 6);
-            var hb = Math.floor(Math.pow(2, 47));
-            var amount = integer_to_array(v[6]+hb, 6);
-            var nonce = integer_to_array(v[7], );
-            var timeout_height = integer_to_array(v[8], );
-            var last_modified = integer_to_array(v[9], );
-            var entropy = integer_to_array(v[10], );
-            var delay = integer_to_array(v[11], );
-            var slasher = integer_to_array(v[12], );
-            var closed = integer_to_array(v[13], );
-
-            
-
-            console.log("working here");
-
+            var amount = integer_to_array(128, 1).concat(
+                integer_to_array(v[6], 5));
+            var nonce = integer_to_array(v[7], 4);//channel_nonce_bits
+            var timeout_height = integer_to_array(v[8], 4);//height_bits
+            var last_modified = integer_to_array(v[9], 4);//height_bits
+            var entropy = integer_to_array(v[10], 2);//channel_entropy
+            var delay = integer_to_array(v[11], 4);//channel_delay_bits
+            var closed = integer_to_array(v[13], 1);
+            var serialized = integer_to_array(v[1], 256).concat(
+                cid).concat(
+                    bal1).concat(
+                        bal2).concat(
+                            amount).concat(
+                                nonce).concat(
+                                    timeout_height).concat(
+                                        last_modified).concat(
+                                            entropy).concat(
+                                                delay).concat(
+                                                    closed).concat(
+                                                        acc1).concat(
+                                                            acc2);
+            console.log("serialized channel");
+            console.log(JSON.stringify(serialized));
+            return hash(serialized);
         } else {
             console.log("cannot decode type ");
             console.log(t);
