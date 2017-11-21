@@ -27,7 +27,7 @@ function channels1() {
     channels_div.appendChild(document.createElement("br"));
     channels_div.appendChild(channel_interface_div);
     
-    variable_get(["pubkey"], refresh_channels_interfaces);
+    variable_public_get(["pubkey"], refresh_channels_interfaces);
     function make_channel_func(pubkey) {
         var spend_amount = document.getElementById("spend_amount");
         var amount = parseFloat(spend_amount.value, 10) * 100000000;
@@ -77,7 +77,7 @@ function channels1() {
             var sspk = sign_tx(spk);
             console.log("signed spk");
             console.log(JSON.stringify(sspk));
-            variable_get(["new_channel", stx, sspk], channels3);
+            variable_public_get(["new_channel", stx, sspk], channels3);
         }
     }
     function channels3(x) {
@@ -98,7 +98,7 @@ function channels1() {
         console.log(cd);
         channel_manager[acc2] = cd;
         channel_warning();
-        variable_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
+        variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
     }
     function channel_warning() {
         channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
@@ -112,7 +112,7 @@ function channels1() {
         var reader = new FileReader();
         reader.onload = function(e) {
             channel_manager = JSON.parse(reader.result);
-            variable_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
+            variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
         }
         reader.readAsText(file);
     }
@@ -197,6 +197,11 @@ function channels1() {
             button.onclick = make_bet;
             div.appendChild(button);
             function make_bet() {
+                //server's pubkey is pubkey.
+                var oid_final = parseInt(oid.value, 10);
+                variable_public_get(["market_data", oid_final], make_bet2);
+            }
+            function make_bet2(l) {
                 var price_final = Math.floor(100 * parseFloat(price.value, 10));
                 var type_final;
                 if (trade_type.value == "true") {
@@ -207,17 +212,19 @@ function channels1() {
                 var amount_final = Math.floor(parseFloat(amount.value, 10) * 100000000);
                 var oid_final = parseInt(oid.value, 10);
                 var fee = 20
-                //server's pubkey is pubkey.
-                variable_public_get(["market_data", oid_final], make_bet2);
-            }
-            function make_bet2(l) {
                 console.log("expires, pubkey, period");
                 console.log(JSON.stringify(l));
-                //JSON.parse(server_ip.value);
-                //parseInt(server_port.value, 10);
-                //local_get(["trade", price_final, type_final, amount_final, oid_final,
-                //          JSON.parse(server_ip.value),
-                //         parseInt(server_port.value, 10)]);
+                //pubkey is server id.
+                sc = market:market_smart_contract(betlocation, marketid, type, expires, price, pubkey, period, amount, oid);
+                sspk = channel_feeder:trade(amount, sc, pubkey, oid_final)
+                msg = {"trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee};
+                variable_public_get(msg, make_bet3);
+            }
+            function make_bet3(sspk2) {
+                //make sure that both spks match
+                //store sspk2 and the new SS into the channel_manager.
+                var ss = market:unmatched(oid);
+                var ssk;
                 amount.value = "";
                 
 
