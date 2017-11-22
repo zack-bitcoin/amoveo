@@ -124,11 +124,11 @@ function keys_function1() {
             var val = verify_merkle(trie_key, proof0);
             console.log(val);
             var balance = val[1] / 100000000;
-            bal_div.innerHTML = "your balance: " + (balance).toString();
+            set_balance(balance);
         }
     }
     function set_balance(n) {
-        bal_div.innerHTML = ("balance: ").concat((n).toString());
+        bal_div.innerHTML = ("your balance: ").concat((n).toString());
         
     }
     function save_keys() {
