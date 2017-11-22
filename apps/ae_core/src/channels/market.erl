@@ -11,7 +11,6 @@ market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubke
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		1 -> <<" macro bet_amount int 10000 ; macro flip ; macro check_size flip > not ; ">>;
 		2 -> <<" macro bet_amount int 0 ; macro flip int 10000 swap - ; macro check_size flip < not ; ">> % maybe should be 10000 - MaxPrice0
-			 
 	    end,
     {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
     %MaxPrice is in the range 0 to 10000,

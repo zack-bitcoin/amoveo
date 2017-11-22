@@ -7,7 +7,7 @@ function sync1() {
     var button_text = document.createTextNode("download and share blocks");
     button.appendChild(button_text);
     button.onclick = function() {
-	local_get(["sync", JSON.parse(server_ip.value), parseInt(server_port.value, 10)]);
+	local_get(["sync", get_ip(), get_port()]);
     };
     document.body.appendChild(button);
 }

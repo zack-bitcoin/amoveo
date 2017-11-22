@@ -1,5 +1,5 @@
 //register_doit();
-local_get(["sync", IP, Port]);
+local_get(["sync", get_ip(), get_port()]);
 variable_get(["channel_keys"], function(x) {register_doit(x)});
 function register_doit(x) {
     if (typeof x == 'undefined'){

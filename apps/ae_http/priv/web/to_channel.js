@@ -24,8 +24,8 @@ function to_channel1() {
     spend_button.onclick = function() {
 	var b1 = c2s(inc1);
 	var b2 = c2s(inc2);
-	local_get(["grow_channel", IP, Port, b1, b2]);
-	local_get(["sync", IP, Port]);
+	local_get(["grow_channel", get_ip(), get_port(), b1, b2]);
+	local_get(["sync", get_ip(), get_port()]);
     };
     to_channel_div.appendChild(spend_button);
 

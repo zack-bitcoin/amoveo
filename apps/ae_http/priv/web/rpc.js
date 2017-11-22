@@ -1,6 +1,6 @@
-var IP = [146, 185, 142, 103];// server
+//var IP = [146, 185, 142, 103];// server
 //var IP = [127, 0, 0, 1];
-var Port = 8080;
+//var Port = 8080;
 //var Port = 3030;
 function getter(t, u, callback){
     t = JSON.stringify(t);
@@ -12,14 +12,16 @@ function getter(t, u, callback){
     return xmlhttp
 }
 var PORT = parseInt(document.URL.substring(17, 21), 10);
-function get(t, callback) {
-    u = url(PORT - 1, "localhost");
+/*function get(t, callback) {
+    //u = url(PORT - 1, "localhost");
+    u = url(get_port(), "localhost");
     return getter(t, u, callback);
-}
+}*/
 function url(port, ip) { return "http://".concat(ip).concat(":").concat(port.toString().concat("/")); }
 //PORT = 3010;
 function local_get(t, callback) {
     u = url(PORT, "localhost");
+    //u = url(get_port(), "localhost");
     return getter(t, u, callback);
 }
 function xml_check(x) { return ((x.readyState === 4) && (x.status === 200)); };

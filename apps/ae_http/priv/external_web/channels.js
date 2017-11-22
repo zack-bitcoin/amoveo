@@ -147,7 +147,6 @@ function channels1() {
             delay_info.innerHTML = "channel delay (in blocks): ";
             make_channel.appendChild(delay_info);
             make_channel.appendChild(spend_delay);
-            
         } else {
             console.log("give interface for making bets in channels.");
             var balance_div = document.createElement("div");
@@ -215,18 +214,20 @@ function channels1() {
                 console.log("expires, pubkey, period");
                 console.log(JSON.stringify(l));
                 //pubkey is server id.
-                sc = market:market_smart_contract(betlocation, marketid, type, expires, price, pubkey, period, amount, oid);
-                sspk = channel_feeder:trade(amount, sc, pubkey, oid_final)
-                msg = {"trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee};
-                variable_public_get(msg, make_bet3);
+                sc = market_smart_contract(oid_final, type_final, expires, price_final, pubkey, period, amount_final);
+                //sspk = channel_feeder:trade(amount, sc, pubkey, oid_final)
+                //msg = {"trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee};
+                //variable_public_get(msg, make_bet3);
             }
             function make_bet3(sspk2) {
                 //make sure that both spks match
                 //store sspk2 and the new SS into the channel_manager.
-                var ss = market:unmatched(oid);
+                //var ss = market:unmatched(oid);
                 var ssk;
                 amount.value = "";
-                
+
+            }
+            function market_smart_contract(oid, type, expires, price, pubkey,period, amount) {
 
             }
         }

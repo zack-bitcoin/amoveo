@@ -13,7 +13,7 @@ function spend1() {
     var spend_button_text = document.createTextNode("channel spend");
     spend_button.appendChild(spend_button_text);
     spend_button.onclick = function() {
-	local_get(["channel_spend", IP, Port, parseInt(amount.value, 10)]);
+	local_get(["channel_spend", get_ip(), get_port(), parseInt(amount.value, 10)]);
     };
     document.body.appendChild(spend_button);
 

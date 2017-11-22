@@ -36,15 +36,15 @@ function balance_update2(bal) {
     var balance = document.getElementById("balance");
     var b = (bal).toString();
     balance.innerHTML = "your balance ".concat(s2c(b));
-    variable_get(["channel_balance", IP, Port], balance_update3);
+    variable_get(["channel_balance", get_ip(), get_port()], balance_update3);
 }
 function balance_update3(channel_balance) {
     var balance = document.getElementById("channel_balance");
     balance.innerHTML = "channel balance ".concat((s2c(channel_balance)).toString());
     variable_get(["channel_balance2",
-                  JSON.parse(server_ip.value),
-                  parseInt(server_port.value, 10)],
-                 balance_update4);
+                  get_ip(),
+                  get_port()],
+                  balance_update4);
 }
 function balance_update4(channel_balance) {
     var balance = document.getElementById("channel_balance2");
