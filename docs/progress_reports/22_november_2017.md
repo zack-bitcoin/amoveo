@@ -62,13 +62,9 @@ Aeternity has no software for channels on their github, and they have not announ
 
 Gnosis and Augur use Ethereum, which lacks sharding.
 
-Bitcoin Hivemind is forking from bitcoin, which lacks sharding.
+Bitcoin Hivemind is reusing the bitcoin source code, which lacks sharding.
 
-Zen Protocol has no plan for sharding that I can find.
-
-Aeterniy has no sharding.
-
-Bitshares has no plan for sharing that I can find.
+Zen Protocol, Aeternity, and Bitshares have no plans for sharding that I can find.
 
 ### Light Nodes
 
@@ -82,12 +78,13 @@ None of the other projects have light nodes, or a plan on how to make light node
 
 ### Markets
 
-Most teams got a score of 0 for market because they are putting their markets on-chain. On-chain markets cannot scale with channels.
+Some teams got a score of 0 for market because they are putting their markets on-chain. On-chain markets cannot scale with channels.
+Bitshares, Zen Protocol, and Aeternity.
 
 A few teams plan to put markets off-chain, but they are markets of brokers, which is much less efficient than an order book. This design also gets a 0.
 Bitcoin Hivemind, Group Gnosis, and Augur.
 
-Amoveo has off-chain markets in the channels in the testnet. [You can see graphs of the market state here](http://146.185.142.103:8080/explorer.html)
+Amoveo has off-chain markets with order books and single-price batches in the testnet. [You can see graphs of the market state here](http://146.185.142.103:8080/explorer.html)
 
 ### oracles
 
