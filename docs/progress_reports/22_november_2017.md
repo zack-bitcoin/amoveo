@@ -52,6 +52,7 @@ I can't find any work on channels from gnosis or augur, but they have both annou
 I may be misinformed, as there are many Ethereum channels now. It seems likely that Augur and Gnosis can use them.
 
 Amoveo channels are tested. Lightning payments are tested [here](/tests/test_lightning.py), many edge-cases for channels are tested [here](/apps/ae_core/src/consensus/txs/test_txs.erl).
+You can try out Amoveo channels by installing the erlang full node and using the web browser interface.
 
 Aeternity has no software for channels on their github, and they have not announced any plan for how their channels will work. They have hinted that Aeternity will have turing complete state channels capable of running off-chain smart contracts.
 
