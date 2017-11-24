@@ -78,8 +78,6 @@ check_pow(Header) ->
     <<Nonce:256>> = Header#header.nonce,
     Serialized = serialize(Header),
     %Hashed = hash:doit(Serialized, constants:hash_size()),
-    io:fwrite("check pow "),
-    io:fwrite(packer:pack({pow, Data, MineDiff, Nonce})),
     pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size()).
     %Hashed = testnet_hasher:doit(Serialized),
     %Integer = pow:hash2integer(Hashed),
@@ -206,23 +204,11 @@ check_difficulty2(Header) ->
     {Times2, _} = retarget(Hash2000, F, []),
     M1 = median(Times1),
     M2 = median(Times2),
-    io:fwrite(packer:pack({medians, M1, M2})),
-    io:fwrite("\n"),
     Tbig = M1 - M2,
-    io:fwrite(packer:pack({tbig, Tbig})),
-    io:fwrite("\n"),
     T = Tbig div F,%T is the estimated block time over last 2000 blocks.
-    io:fwrite(packer:pack({t, T})),
-    io:fwrite("\n"),
-    %io:fwrite("estimated block time "),
-    %io:fwrite(packer:pack(T)),%2262
-    %{ok, Header2000} = read(Hash2000),
     NT = pow:recalculate(Hash2000#header.difficulty,
                          constants:block_time(),
                          max(1, T)),
-    %io:fwrite("check_difficulty2"),
-    io:fwrite(packer:pack({nt, NT})),%5958
-    io:fwrite("\n"),
     max(NT, constants:initial_difficulty()).
 
 retarget(Header, 1, L) -> {L, Header};
@@ -280,8 +266,6 @@ remember_headers(B, S) ->
     Header = Header0#header{accumulative_difficulty = 
                            PrevHeader#header.accumulative_difficulty +
                            pow:sci2int(Header0#header.difficulty)},
-    io:fwrite(packer:pack(Header)),
-    io:fwrite("\n"),
     Hash = block:hash(Header),
     D2 = dict:store(Hash, Header, S#s.headers),
     AD = Header#header.accumulative_difficulty,
