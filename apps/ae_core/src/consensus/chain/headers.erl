@@ -194,7 +194,7 @@ difficulty_should_be(A) ->
     Height = A#header.height,
     X = Height rem RF,
     if
-        X == 0 and not(Height < 10)->
+        (X == 0) and (not(Height < 10)) ->
             check_difficulty2(A);
         true ->
             D1
@@ -206,11 +206,23 @@ check_difficulty2(Header) ->
     {Times2, _} = retarget(Hash2000, F, []),
     M1 = median(Times1),
     M2 = median(Times2),
+    io:fwrite(packer:pack({medians, M1, M2})),
+    io:fwrite("\n"),
     Tbig = M1 - M2,
+    io:fwrite(packer:pack({tbig, Tbig})),
+    io:fwrite("\n"),
     T = Tbig div F,%T is the estimated block time over last 2000 blocks.
-    NT = pow:recalculate(Header#header.difficulty,
+    io:fwrite(packer:pack({t, T})),
+    io:fwrite("\n"),
+    %io:fwrite("estimated block time "),
+    %io:fwrite(packer:pack(T)),%2262
+    %{ok, Header2000} = read(Hash2000),
+    NT = pow:recalculate(Hash2000#header.difficulty,
                          constants:block_time(),
                          max(1, T)),
+    %io:fwrite("check_difficulty2"),
+    io:fwrite(packer:pack({nt, NT})),%5958
+    io:fwrite("\n"),
     max(NT, constants:initial_difficulty()).
 
 retarget(Header, 1, L) -> {L, Header};

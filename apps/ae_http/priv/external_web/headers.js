@@ -135,6 +135,8 @@ function wallet_doit1() {
             var RF = 2000; //constants:retarget_frequency();
             var height = header[1];
             var x = height % RF;
+            //console.log("x height");
+            //console.log(JSON.stringify([x, height]));
             if ( ( x == 0 ) && (! (height < 10) )) {
                 return difficulty_should_be2(header);
             } else { return Diff; }
@@ -162,19 +164,29 @@ function wallet_doit1() {
         return l[half];
     }
     function difficulty_should_be2(header) {
+        console.log("difficulty_should_be2");
         var f = Math.floor(2000 / 2); //constants:retarget frequencey is 2000
         var a1 = retarget(header, f, []);
         var times1 = a1.times;
-        var hash2000 = a1.header;
-        var a2 = retarget(hash2000, f, []);
+        var header2000 = a1.header;
+        var a2 = retarget(header2000, f, []);
         var times2 = a2.times;
         var m1 = median(times1);
         var m2 = median(times2);
+        console.log("medians");
+        console.log(m1);
+        console.log(m2);
         var tbig = m1 - m2;
+        console.log("tbig");
+        console.log(tbig);
         var t = Math.floor(tbig / f);
-        var nt = pow_recalculate(diff,
-                                 600,//constants:block_time()
-                                 Math.max(1, t));
+        console.log("t");
+        console.log(t);
+        var nt = pow_recalculate(header2000[6],//old difficulty
+                                 6000,//goal block time()
+                                 Math.max(1, t));//current estimated block time
+        console.log("nt");
+        console.log(nt);
         var done = Math.max(nt, 6452);
         return done;//initial difficulty
         
@@ -197,8 +209,8 @@ function wallet_doit1() {
     }
     function sci2int(x) {
         function pair2int(l) {
-            var a = l.pop();
             var b = l.pop();
+            var a = l.pop();
             var c = exponent(2, a);
             return Math.floor((c * (256 + b)) / 256);
         }
@@ -211,8 +223,8 @@ function wallet_doit1() {
     }
     function int2sci(x) {
         function pair2sci(l) {
-            var a = l.pop();
             var b = l.pop();
+            var a = l.pop();
             return (256 * a) + b;
         }
         function int2pair(x) {
@@ -312,6 +324,13 @@ function wallet_doit1() {
     function header_test2(hl) {
         console.log(hl);
         absorb_headers(hl);
+    }
+    test();
+    function test() {
+        console.log(sci2int(2000));//should be 232
+        console.log(int2sci(2000));//should be 2804
+        console.log(sci2int(int2sci(2000)));// should be 2000
+
     }
 }
 

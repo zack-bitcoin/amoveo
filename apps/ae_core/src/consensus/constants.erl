@@ -20,6 +20,7 @@ block_reward() -> round(math:pow(2, 29)) - 1.
 initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 
     case application:get_env(ae_core, test_mode, false) of
+	%true -> 2500;
 	true -> 1;
 	_ -> 6452
     end.
@@ -106,8 +107,9 @@ account_rent() -> round(math:pow(2, 13)).
 retarget_frequency() -> %how many blocks till we recalculate the difficulty
     %40000.
     2000.
+    %10.
 block_time() -> 
-    600.
+    6000.
     %10.
 channel_closed_time() ->
     60*24*60*60 div block_time(). %about 2 months, in blocks
