@@ -20,7 +20,7 @@ This purpose of this monthly progress report is to review the teams that are dev
 
 
 ## What teams are working on this technology?
-Amoveo, Augur, Group Gnosis, Aeternity, Zen Protocol, Bitshares and Bitcoin Hivemind.
+Amoveo, Augur, Group Gnosis, Aeternity, Zen Protocol, Bitshares, stox, and Bitcoin Hivemind.
 
 
 Each team will be ranked in each of the categories from 0 to 10.
@@ -38,6 +38,7 @@ Group Gnosis     1  0  5  0  8  10 10   34
 Augur            1  0  5  0  0  10 4    20
 Bitshares        0  0  0  0  0  10 4    14
 Bitcoin Hivemind 2  0  0  0  0  8  3    13
+Stox             0  0  0  0  0  10 2    12
 Zen Protocol     0  0  0  0  0  9  2    11
 Aeternity        0  0  0  0  0  1  3    4
 ```
@@ -56,11 +57,13 @@ You can try out Amoveo channels by installing the erlang full node and using the
 
 Aeternity has no software for channels on their github, and they have not announced any plan for how their channels will work. They have hinted that Aeternity will have turing complete state channels capable of running off-chain smart contracts.
 
+I can find no mention of channels in the stox white paper.
+
 ### Shards
 
 [Here is a document explaining sharding in Amoveo](/docs/design/sharding.md). Since Amoveo doesn't store any contract state on-chain, sharding is simple.
 
-Gnosis and Augur use Ethereum, which lacks sharding.
+Gnosis, Stox, and Augur use Ethereum, which lacks sharding.
 
 Bitcoin Hivemind is reusing the bitcoin source code, which lacks sharding.
 
@@ -72,14 +75,14 @@ Zen Protocol, Aeternity, and Bitshares have no plans for sharding that I can fin
 Amoveo miners can use light nodes, they don't need full nodes.
 The Amoveo network has no requirement for full nodes, it could be 100% light nodes.
 
-Gnosis and Augur use Ethereum, which has a light node, but the Ethereum light node has a very expensive worst case scenario because the blocks do not include the proofs needed for all the consensus state that the block uses. In the worst case, an Ethereum light node has to do everything that a full node does.
+Gnosis, Stox, and Augur use Ethereum, which has a light node, but the Ethereum light node has a very expensive worst case scenario because the blocks do not include the proofs needed for all the consensus state that the block uses. In the worst case, an Ethereum light node has to do everything that a full node does.
 
 None of the other projects have light nodes, or a plan on how to make light nodes.
 
 ### Markets
 
 Some teams got a score of 0 for market because they are putting their markets on-chain. On-chain markets cannot scale with channels.
-Bitshares, Zen Protocol, and Aeternity.
+Bitshares, Zen Protocol, Stox, and Aeternity.
 
 A few teams plan to put markets off-chain, but they are markets of brokers, which is much less efficient than an order book. This design also gets a 0.
 Bitcoin Hivemind, Group Gnosis, and Augur.
@@ -91,7 +94,11 @@ Amoveo has off-chain markets with order books and single-price batches in the te
 Most teams got a score of 0 for their oracle because their oracle mechanism cannot escalate, or because they used an insecure mechanism like voting or a trusted feed.
 
 Oracles that cannot escalate are prohibitivly expensive, or they don't work.
-For an oracle to be useful, it needs to give accurate information about the outside world, even when the amount of money being gambled on the oracle's result is much bigger than the amount of money in the oracle mechanism. For an oracle to function in those conditions, it needs to be possible for users to commit more money to the oracle to make it more secure. This way the situation can escalate to having more money at stake.[read more here](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/oracle_motivations.md)
+For an oracle to be useful, it needs to give accurate information about the outside world, even when the amount of money being gambled on the oracle's result is much bigger than the amount of money in the oracle mechanism. For an oracle to function in those conditions, it needs to be possible for users realize that an attack is occuring, and to be incentivized to commit more money to the oracle to make it more secure. This way the situation can escalate to having more money at stake.[read more here](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/oracle_motivations.md)
+
+Stox has a collateral which is given by the person who creates the oracle. The amount of collateral does not change, the volume of bets is limited by how much collateral is given by the oracle creator. Stox cannot escalate.
+
+Augur has collateral in the form of rep, a subcurrency. The amount of collateral is the market cap of rep. The volume of bets happening in all markets secured by the Augur oracle is limited by the market cap of the Augur oracle, including off-chain bets in the channels. Augur cannot escalate.
 
 Gnosis gives an explanation of their oracle with escalation [here](https://blog.gnosis.pm/a-visit-to-the-oracle-fefc9dec5462). the "Ultimate Oracle" is the part with escalation. It is implemented in solidity [here](https://github.com/gnosis/gnosis-contracts/tree/master/contracts/Oracles)
 
@@ -100,7 +107,7 @@ The Amoveo oracle is live on the Amoveo testnet.
 
 ### blockchain
 
-Gnosis and Augur use Ethereum, which is a very popular blockchain.
+Gnosis, Stox, and Augur use Ethereum, which is a very popular blockchain.
 
 Bitshares is a popular blockchain.
 
@@ -117,6 +124,8 @@ Bitshares is about $356 million
 Augur is about $270 million.
 
 Aeternity is about $169 million.
+
+Stox is worth about $25 million.
 
 The rest do not yet have value.
 
