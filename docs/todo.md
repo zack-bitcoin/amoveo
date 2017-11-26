@@ -13,6 +13,8 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* the market smart contract should use functions instead of macros in some places. Each variable should be a function, that way it is easy for javascript to replace the variable in just 1 place. Everything that is different between the two directions should be functions. This way it is easy for javascript to replace the functions in just 1 place.
+
 * we need channels for the light nodes.
 
 * merkle.js should be able to verify proofs of the trie being empty in some places.

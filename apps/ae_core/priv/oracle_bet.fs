@@ -29,20 +29,20 @@ helper print print print
 int 1 == if drop drop 
      %delay, nonce, amount
      %delay has to be 1 or 0. it is multiplied by a bigger number to possibly set the delay to 0.
-     int 0 int 3 bet_amount else
+     int 0 int 3 bet_amount call else
 
 %2 is false
 drop int 2 == if drop drop 
-     int 0 int 3 int 10000 bet_amount - else
+     int 0 int 3 int 10000 bet_amount call - else
 
 % 3 means that the oracle decided that the question was a bad question to ask that does not have a clear binary answer.
 drop int 3 == if drop drop 
-     int 0 int 3 int 10000 MaxPrice - else
+     int 0 int 3 int 10000 MaxPrice call - else
 
 %0 means the oracle is still unresolved %or maybe it means your bet never got matched?
 drop int 0 == if drop drop 
      % fail else
-     int 1 int 1 int 10000 MaxPrice - else
+     int 1 int 1 int 10000 MaxPrice call - else
 
 then then then then
 ;
