@@ -27,7 +27,7 @@ market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubke
     PrivDir = code:priv_dir(ae_core),
     {ok, Code3} = file:read_file(PrivDir ++ "/market.fs"),
     FullCode = <<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>,
-    io:fwrite(FullCode),
+    %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
     %ToProve = [{oracles, OID}],
