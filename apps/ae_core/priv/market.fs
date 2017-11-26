@@ -5,21 +5,21 @@
 int 200 die_number !
 macro mil int 1000000 ;
 macro or_die int 0 == if
-  die_number @ print fail
+  die_number @ fail
 else
   die_number @ int 1 + die_number !
 then drop drop ;
 
 %<<height:32, price:16, market_id:16, signature/binary>>
 %sig data pub
-macro extract ( signed_price_declaration -- height price portion_matched)
-int 10 split dup tuck Pubkey call print verify_sig print or_die
-print print print print print 
+ ( signed_price_declaration -- height price portion_matched)
+ macro extract
+int 10 split dup tuck Pubkey @ verify_sig or_die
 int 4 split swap
 int 2 split binary 2 AAA= swap ++ swap
 int 2 split binary 2 AAA= swap ++ swap
             binary 2 AAA= swap ++ 
-MarketID call == or_die drop drop 
+MarketID @ == or_die drop drop 
 ;
 
 macro max ( A B -- M )
@@ -39,7 +39,7 @@ macro minus_zero ( A B -- D ) % if A is bigger, returns A-B, else returns 0.
   %If the market maker publishes contradictory prices at the same time, with the same market id, he loses all the money in every bet. 
 macro contradictory_prices ( signed_price_declaration signed_price_declaration2 -- delay nonce amount ) 
 extract PM1 ! >r >r extract PM2 !
-swap r> diff Period call int 2 / < or_die %height equal %instead we should check if heights are within half a period of each other or less.
+swap r> diff Period @ int 2 / < or_die %height equal %instead we should check if heights are within half a period of each other or less.
       
      r> == not swap drop swap drop %price unequal
      PM1 @ PM2 @ == not swap drop swap drop %portion_matched unequal
@@ -50,8 +50,8 @@ swap r> diff Period call int 2 / < or_die %height equal %instead we should check
 %if the market maker fails to publish by a certain point in time, then everyone can take all the money from the channels.
 %delay = medium-low, nonce = (lower than if the market maker had published )
 macro no_publish ( -- delay nonce amount )
-      Period call
-      mil height + Period call -
+      Period @
+      mil height + Period @ -
       int 0
 ;
 
@@ -59,9 +59,9 @@ macro no_publish ( -- delay nonce amount )
 macro evidence ( signed_price_declaration -- delay nonce amount )
       extract drop drop ( declaration_height )
 	      drop
-      Expires call height -  ( delay )
-      mil height + Period call int 2 / - ( delay nonce )
-      int 10000 MaxPrice call -
+      Expires @ height -  ( delay )
+      mil height + Period @ int 2 / - ( delay nonce )
+      int 10000 MaxPrice @ -
 ;
       
 
@@ -72,21 +72,21 @@ macro evidence ( signed_price_declaration -- delay nonce amount )
 macro match_order ( signed_price_declaration -- delay nonce amount )
         extract ( SPD height price portion_matched )
 	PM ! dup PRICE ! ( SPD height price )
-	dup MaxPrice call print check_size call or_die %make sure it is better than the agreed upon price.
+	dup MaxPrice @ check_size or_die %make sure it is better than the agreed upon price.
 	    %The biggest price means the most money goes to the server. So a trade that can get matched has a price that  is lower than the price we asked for.
 	>r height > not or_die
 	bet ( delay nonce amount )
             %if price_declaration_maker.price is better than the price we requested, then change delay from 1 to 0.
-        rot Expires call height minus_zero * tuck ( delay2 nonce amount )
+        rot Expires @ height minus_zero * tuck ( delay2 nonce amount )
 	height swap ( delay nonce height amount )
 	>r ( delay nonce height ) 
 	swap mil + ( delay height big_nonce ) 
 	% swap - r> ( delay new_nonce amount )
 	swap drop r> ( delay new_nonce amount )
-	PRICE @ MaxPrice call flip call ==
+	PRICE @ MaxPrice @ flip ==
 	if
 	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book 
-	  int 10000 MaxPrice call - int 10000 PM @ -
+	  int 10000 MaxPrice @ - int 10000 PM @ -
 	  * int 10000 / +
 %we add on some more money for how much refund we get from the unmatched portion.
 	else
@@ -97,12 +97,12 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 macro unmatched ( OracleProof -- delay nonce amount )
         helper
 	int 0 == if
-     		Expires call Period call + height - int 100 +
+     		Expires @ Period @ + height - int 100 +
         	int 100000
-	 	int 10000 MaxPrice call -
+	 	int 10000 MaxPrice @ -
       	else
                 %maybe we should get rid of this ending.
-		int 51 int 500000 int 10000 MaxPrice call -
+		int 51 int 500000 int 10000 MaxPrice @ -
       	then
 ;
 macro main

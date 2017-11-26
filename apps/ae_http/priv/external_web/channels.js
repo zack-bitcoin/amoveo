@@ -214,7 +214,11 @@ function channels1() {
                 console.log("expires, pubkey, period");
                 console.log(JSON.stringify(l));
                 //pubkey is server id.
-                sc = market_smart_contract(oid_final, type_final, expires, price_final, pubkey, period, amount_final);
+                var expires = l[1];
+                var server_pubkey = l[2];
+                var period = l[3];
+                sc = market_contract(type_final, expires, price_final, server_pubkey, period);
+                //sc = market_smart_contract(oid_final, type_final, expires, price_final, pubkey, period, amount_final);
                 //sspk = channel_feeder:trade(amount, sc, pubkey, oid_final)
                 //msg = {"trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee};
                 //variable_public_get(msg, make_bet3);
