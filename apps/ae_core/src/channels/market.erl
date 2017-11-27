@@ -180,9 +180,9 @@ test2(NewPub) ->
     Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),101,100,OID),
     SPK2 = spk:new(constants:master_pub(), NewPub, 1, [Bet2], 10000, 10000, 1, 0, Entropy),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
-    %This time we won the bet, so we keep all 100.
+    %This time we won the bet.
     %amount, newnonce, shares, delay
-    {0,1000004,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
+    {15,1000004,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
 
     %test a trade that gets only partly matched.
     SPD3 = price_declaration_maker(Height, 3000, 5000, MarketID),%5000 means it gets 50% matched.

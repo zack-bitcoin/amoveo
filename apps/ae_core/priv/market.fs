@@ -89,11 +89,11 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	  int 10000 MaxPrice @ - int 10000 PM @ -
 	  * int 10000 / +
 %we add on some more money for how much refund we get from the unmatched portion.
-	else % since the prices don't match, we might get a partial refund. If we were willing to pay a higher price than was actually matched.
+	else % since the prices don't match, we get a partial refund. If we were willing to pay a higher price than was actually matched.
           swap - >r
-          int 0 == % if it is 0, that means we won the bet, so there is no additional refund.
+          int 0 == % if it is 0, that means we won the bet.
           if
-            drop r> drop
+            drop r> +
           else
             drop r> -
           then
