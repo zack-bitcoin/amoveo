@@ -5,6 +5,7 @@ local_port = 8081;
 var server_ip = document.createElement("INPUT");
 server_ip.setAttribute("type", "text");
 server_ip.value = "[146, 185, 142, 103]";// server
+//server_ip.value = "[127, 0, 0, 1]";// server
 var server_ip_info = document.createElement("h8");
 server_ip_info.innerHTML = "channel node ip: ";
 var server_port = document.createElement("INPUT");

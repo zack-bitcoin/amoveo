@@ -53,7 +53,7 @@ bet_meta(X) -> X#bet.meta.
 bet_amount(X) -> X#bet.amount.
 remove_bet(N, SPK) ->
     NewBets = remove_nth(N, SPK#spk.bets),
-    B = element(N, SPK#spk.bets),
+    B = element(N, list_to_tuple(SPK#spk.bets)),
     A = case bet_meta(B) of
             0 -> 0;
             {Direction, Price} -> 

@@ -253,7 +253,7 @@ channel_manager_update(ServerID, SSPK2, DefaultSS) ->
 
 channel_balance() ->
     %% Why prod address?
-    channel_balance(constants:server_ip(), constants:server_port()).
+    channel_balance({127,0,0,1}, constants:server_port()).
 
 channel_balance2(Ip, Port) ->
     {_, Bal} = integer_channel_balance(Ip, Port),
@@ -275,16 +275,9 @@ integer_channel_balance(Ip, Port) ->
     Channels = trees:channels(Trees),
     Amount = spk:amount(SPK),
     BetAmounts = sum_bets(spk:bets(SPK)),
-    io:fwrite("api bet amounts is "),
-    io:fwrite(integer_to_list(BetAmounts)),
-    io:fwrite("\n"),
-    io:fwrite("spk bets "),
-    io:fwrite(packer:pack(spk:bets(SPK))),
-    io:fwrite("\n"),
-    %{Amount, _, _} = spk:run(fast, SS, SPK, NewHeight, 0, Trees),
     CID = spk:cid(SPK),
     {_, Channel, _} = channels:get(CID, Channels),
-    {channels:bal1(Channel)-Amount-BetAmounts, channels:bal2(Channel)+Amount}.
+    {channels:bal1(Channel)+Amount, channels:bal2(Channel)-Amount-BetAmounts}.
 sum_bets([]) -> 0;
 sum_bets([B|T]) ->
     spk:bet_amount(B) + sum_bets(T).
