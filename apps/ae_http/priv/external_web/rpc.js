@@ -26,17 +26,15 @@ function refresh_helper(x, cmd, innercallback, callback, n) {
         setTimeout(function() {
                        return refresh_helper(x, cmd, innercallback,
                                              callback, n - 1);
-                   }, 50);
+                   }, 150);
     }
     else if (xml_check(x)) {
         //this means that the server got our message, and it sent a response. The response is ready to read, so lets read it.
         callback(xml_out(x));}
     else {
-        //this is bad. Maybe you are connecting to a different server than you expected, and the server is running different software from you.
-        console.log("should not happen");
-        console.log(x.readyState);
-        console.log(x.status);
-        setTimeout(function() {return refresh_helper(x, cmd, innercallback, callback, n - 1);}, 300);}
+        //console.log(x.readyState);
+        //console.log(x.status);
+        setTimeout(function() {return refresh_helper(x, cmd, innercallback, callback, n - 1);}, 10);}
 }
 
 my_status = "nil";
@@ -53,6 +51,6 @@ function var_get(x, callback, cmd) {
     refresh_helper(x, cmd, callback, function(){
 	p = JSON.parse(xml_out(x));
 	callback(p[1]);
-    }, 10);
+    }, 100);
 }
 
