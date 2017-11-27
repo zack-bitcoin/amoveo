@@ -12,9 +12,6 @@ function local_get(t, callback) {
     return getter(t, url(PORT, "localhost"), callback);
 }
 function xml_check(x) {
-    console.log("xml check ");
-    console.log(JSON.stringify(x.status));
-    console.log(JSON.stringify(x));
     return ((x.readyState === 4) && (x.status === 200)); };
 function xml_out(x) { return x.responseText; }
 function refresh_helper(x, cmd, innercallback, callback, n) {
@@ -23,7 +20,18 @@ function refresh_helper(x, cmd, innercallback, callback, n) {
         setTimeout(function() {
             return variable_get(cmd, innercallback);
         }, 200); }
-    else if (x.status == 0) {setTimeout(function() {return refresh_helper(x, cmd, innercallback, callback, n - 1);}, 150);}
+    else if (x.status == 0)
+    {
+        setTimeout(function()
+                   {
+                       return refresh_helper(x,
+                                             cmd,
+                                             innercallback,
+                                             callback,
+                                             n - 1);
+                   },
+                   150);
+    }
     else if (xml_check(x)) {return callback(xml_out(x));}
     else {
         console.log("should not happen");
