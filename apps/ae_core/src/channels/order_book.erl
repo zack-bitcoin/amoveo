@@ -6,7 +6,7 @@
 	 add/2,match/1,match/0,match_all/1,
          price/1,remove/4,exposure/1,
 	 new_market/3, make_order/4, data/1,
-	 expires/1, period/1, keys/0,
+	 expires/1, period/1, keys/0, dump/1, dump_all/0,
 	 test/0]).
 %The market maker needs to refuse to remove some trades from the order book, if those trades are needed to cover his risk against trades that have already been matched.
 %To keep track of how much exposure has been matched, the market maker needs to remember a number.
@@ -55,6 +55,8 @@ handle_cast({new_market, OID, Expires, Period}, X) ->
     %reduce this order by this amount, if it exists.
     %X2 = ok,
 %    {noreply, X};
+handle_cast(dump_all, _) -> 
+    {noreply, dict:new()};
 handle_cast({dump, OID}, X) -> 
     X2 = dict:erase(OID, X),
     db:save(?LOC, X2),
@@ -240,6 +242,8 @@ exposure(OID) ->
     gen_server:call(?MODULE, {exposure, OID}).
 ratio(OID) ->
     gen_server:call(?MODULE, {ratio, OID}).
+dump_all() ->
+    gen_server:cast(?MODULE, dump_all).
 dump(OID) ->
     gen_server:cast(?MODULE, {dump, OID}).
 new_market(OID, Expires, Period) ->
