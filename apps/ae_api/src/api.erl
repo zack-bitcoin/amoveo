@@ -275,14 +275,19 @@ integer_channel_balance(Ip, Port) ->
     Channels = trees:channels(Trees),
     Amount = spk:amount(SPK),
     BetAmounts = sum_bets(spk:bets(SPK)),
+    io:fwrite("api bet amounts is "),
+    io:fwrite(integer_to_list(BetAmounts)),
+    io:fwrite("\n"),
+    io:fwrite("spk bets "),
+    io:fwrite(packer:pack(spk:bets(SPK))),
+    io:fwrite("\n"),
     %{Amount, _, _} = spk:run(fast, SS, SPK, NewHeight, 0, Trees),
     CID = spk:cid(SPK),
     {_, Channel, _} = channels:get(CID, Channels),
     {channels:bal1(Channel)-Amount-BetAmounts, channels:bal2(Channel)+Amount}.
 sum_bets([]) -> 0;
 sum_bets([B|T]) ->
-    spk:bet_amount(B),
-    + sum_bets(T).
+    spk:bet_amount(B) + sum_bets(T).
 
 pretty_display(I) ->
     {ok, TokenDecimals} = application:get_env(ae_core, token_decimals),

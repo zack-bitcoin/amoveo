@@ -15,6 +15,9 @@ handle(Req, _) ->
     {ok, Req2} = cowboy_req:reply(200, Headers, Text, Req),
     {ok, Req2, File}.
 read_file(F) ->
+    io:fwrite("int file handler read "),
+    io:fwrite(F),
+    io:fwrite("\n"),
     {ok, File } = file:open(F, [read, binary, raw]),
     {ok, O} =file:pread(File, 0, filelib:file_size(F)),
     file:close(File),

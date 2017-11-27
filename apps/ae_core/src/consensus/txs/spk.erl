@@ -53,7 +53,15 @@ bet_meta(X) -> X#bet.meta.
 bet_amount(X) -> X#bet.amount.
 remove_bet(N, SPK) ->
     NewBets = remove_nth(N, SPK#spk.bets),
-    SPK#spk{bets = NewBets}.
+    B = element(N, SPK#spk.bets),
+    A = case bet_meta(B) of
+            0 -> 0;
+            {Direction, Price} -> 
+                CGran = constants:channel_granularity(),
+                Amount = bet_amount(B),
+                (Amount * Price) div CGran
+        end,
+    SPK#spk{bets = NewBets, amount = SPK#spk.amount + A}.
 update_bets(SPK, Bets) ->
     SPK#spk{bets = Bets}.
 update_bet_amount(Bet, Amount) ->
