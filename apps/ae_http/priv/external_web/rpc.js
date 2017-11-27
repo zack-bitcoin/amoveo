@@ -19,11 +19,13 @@ function url(port, ip) { return "http://".concat(ip).concat(":").concat(port.toS
     u = url(PORT, IP);
     return getter(t, u, callback);
 }*/
-function xml_check(x) { return ((x.readyState === 4) && (x.status === 200)); };
+function xml_check(x) {
+    return ((x.readyState === 4) && (x.status === 200)); };
 function xml_out(x) { return x.responseText; }
-function refresh_helper(x, callback) {
-    if (xml_check(x)) {callback(xml_out(x));}
-    else {setTimeout(function() {refresh_helper(x, callback);}, 1000);}
+function refresh_helper(x, callback, n) {
+    if (n < 1) { return "failed to connect"; }
+    else if (xml_check(x)) {callback(xml_out(x));}
+    else {setTimeout(function() {refresh_helper(x, callback, n - 1);}, 1000);}
 };
 
 my_status = "nil";
@@ -40,6 +42,6 @@ function var_get(x, callback) {
     refresh_helper(x, function(){
 	p = JSON.parse(xml_out(x));
 	callback(p[1]);
-    });
+    }, 5);
 }
 

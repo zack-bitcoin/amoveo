@@ -1,34 +1,33 @@
-//var IP = [146, 185, 142, 103];// server
-//var IP = [127, 0, 0, 1];
-//var Port = 8080;
-//var Port = 3030;
 function getter(t, u, callback){
-    t = JSON.stringify(t);
-    //console.log("getter ".concat(t));
     var xmlhttp=new XMLHttpRequest();
     xmlhttp.onreadystatechange = callback;
     xmlhttp.open("POST",u,true);
-    xmlhttp.send(t);
+    xmlhttp.send(JSON.stringify(t));
     return xmlhttp
 }
 var PORT = parseInt(document.URL.substring(17, 21), 10);
-/*function get(t, callback) {
-    //u = url(PORT - 1, "localhost");
-    u = url(get_port(), "localhost");
-    return getter(t, u, callback);
-}*/
 function url(port, ip) { return "http://".concat(ip).concat(":").concat(port.toString().concat("/")); }
-//PORT = 3010;
 function local_get(t, callback) {
     u = url(PORT, "localhost");
-    //u = url(get_port(), "localhost");
-    return getter(t, u, callback);
+    return getter(t, url(PORT, "localhost"), callback);
 }
-function xml_check(x) { return ((x.readyState === 4) && (x.status === 200)); };
+function xml_check(x) {
+    console.log("xml check ");
+    console.log(JSON.stringify(x.status));
+    console.log(JSON.stringify(x));
+    return ((x.readyState === 4) && (x.status === 200)); };
 function xml_out(x) { return x.responseText; }
-function refresh_helper(x, callback) {
-    if (xml_check(x)) {callback(xml_out(x));}
-    else {setTimeout(function() {refresh_helper(x, callback);}, 1000);}
+function refresh_helper(x, cmd, innercallback, callback, n) {
+    if (n < 1) { return "failed to connect"; }
+    else if (x.status == 400) {
+        setTimeout(function() {
+            return variable_get(cmd, innercallback);
+        }, 200); }
+    else if (x.status == 0) {setTimeout(function() {return refresh_helper(x, cmd, innercallback, callback, n - 1);}, 150);}
+    else if (xml_check(x)) {return callback(xml_out(x));}
+    else {
+        console.log("should not happen");
+        setTimeout(function() {return refresh_helper(x, cmd, innercallback, callback, n - 1);}, 150);}
 };
 
 my_status = "nil";
@@ -39,17 +38,16 @@ my_status = "nil";
 //    console.log("test response ".concat(JSON.stringify(my_status)));
 //});
 function variable_get(cmd, callback) {
-    var x = local_get(cmd);
-    var_get(x, callback);
+    return var_get(local_get(cmd), callback, cmd);
 }
-function variable_public_get(cmd, callback) {
-    var x = get(cmd);
-    var_get(x, callback);
-}
-function var_get(x, callback) {
-    refresh_helper(x, function(){
-	p = JSON.parse(xml_out(x));
-	callback(p[1]);
-    });
+//function variable_public_get(cmd, callback) {
+//    var_get(get(cmd), callback);
+//}
+function var_get(x, callback, cmd) {
+    return refresh_helper(x, cmd, callback, function(){
+        var xml_is = xml_out(x);
+	p = JSON.parse(xml_is);
+	return callback(p[1]);
+    }, 5);
 }
 
