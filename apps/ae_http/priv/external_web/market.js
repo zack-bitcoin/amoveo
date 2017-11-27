@@ -1,4 +1,4 @@
-function market_contract(direction, expires, maxprice, pubkey, period) {
+function market_contract(direction, expires, maxprice, server_pubkey, period) {
     var a = string_to_array(atob("AAAAJxAAAAAAAXgA"));
     var b = string_to_array(atob("AAAAAAJ4AA=="));
     var c = string_to_array(atob("AAAAAAN4AA=="));
@@ -21,7 +21,7 @@ function market_contract(direction, expires, maxprice, pubkey, period) {
                     c).concat(
                         integer_to_array(oid, 4)).concat(
                             d).concat(
-                                pubkey).concat(
+                                string_to_array(atob(server_pubkey))).concat(
                                     e).concat(
                                         integer_to_array(period, 4)).concat(
                                             f);

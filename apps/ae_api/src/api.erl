@@ -273,10 +273,16 @@ integer_channel_balance(Ip, Port) ->
     SS = channel_feeder:script_sig_them(CD),
     {Trees, NewHeight, _Txs} = tx_pool:data(),
     Channels = trees:channels(Trees),
-    {Amount, _, _} = spk:run(fast, SS, SPK, NewHeight, 0, Trees),
+    Amount = spk:amount(SPK),
+    BetAmounts = sum_bets(spk:bets(SPK)),
+    %{Amount, _, _} = spk:run(fast, SS, SPK, NewHeight, 0, Trees),
     CID = spk:cid(SPK),
     {_, Channel, _} = channels:get(CID, Channels),
-    {channels:bal1(Channel)-Amount, channels:bal2(Channel)-Amount}.
+    {channels:bal1(Channel)-Amount-BetAmounts, channels:bal2(Channel)+Amount}.
+sum_bets([]) -> 0;
+sum_bets([B|T]) ->
+    spk:bet_amount(B),
+    + sum_bets(T).
 
 pretty_display(I) ->
     {ok, TokenDecimals} = application:get_env(ae_core, token_decimals),
@@ -570,7 +576,7 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
     MarketID = OID,
     %type is true or false or one other thing...
     SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID),
-    SSPK = channel_feeder:trade(Amount, SC, ServerID, OID),
+    SSPK = channel_feeder:trade(Amount, Price, SC, ServerID, OID),
     Msg = {trade, keys:pubkey(), Price, Type, Amount, OID, SSPK, Fee},
     Msg = packer:unpack(packer:pack(Msg)),%sanity check
     {ok, SSPK2} =

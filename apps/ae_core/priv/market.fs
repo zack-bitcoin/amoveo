@@ -83,14 +83,22 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	swap mil + ( delay height big_nonce ) 
 	% swap - r> ( delay new_nonce amount )
 	swap drop r> ( delay new_nonce amount )
-	PRICE @ MaxPrice @ flip ==
+	PRICE @ flip MaxPrice @ ==
 	if
 	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book 
 	  int 10000 MaxPrice @ - int 10000 PM @ -
 	  * int 10000 / +
 %we add on some more money for how much refund we get from the unmatched portion.
-	else
-	  drop drop
+	else % since the prices don't match, we might get a partial refund. If we were willing to pay a higher price than was actually matched.
+          swap - >r
+          int 0 == % if it is 0, that means we won the bet, so there is no additional refund.
+          if
+            drop r> drop
+          else
+            drop r> -
+          then
+          print
+	  %print swap - print * print int 10000 / print
           % rot drop int 0 tuck %set delay to 0
 	then	
 ;

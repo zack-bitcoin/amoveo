@@ -143,13 +143,18 @@ new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
 	 cid = CID, nonce = Nonce, delay = Delay
 	}.
 bet_unlock(SPK, SS) ->
+    %io:fwrite("spk bet unlock\n"),
     Bets = SPK#spk.bets,
     %check if we have the secret to unlock each bet.
     %unlock the ones we can, and return an SPK with the remaining bets and the new amount of money that is moved.
     {Remaining, AmountChange, SSRemaining, Secrets, Dnonce, SSThem} = bet_unlock2(Bets, [], 0, SS, [], [], 0, []),
+    %io:fwrite("ss remaining size\n"),
+    %io:fwrite(packer:pack(length(SSRemaining))),
+    %io:fwrite("\n"),
     {lists:reverse(SSRemaining),
      SPK#spk{bets = lists:reverse(Remaining),
-	     amount = SPK#spk.amount + AmountChange,
+	     %amount = SPK#spk.amount + (AmountChange div 2),
+	     amount = SPK#spk.amount + (AmountChange),
 	     nonce = SPK#spk.nonce + Dnonce},
      Secrets, SSThem}.
 bet_unlock2([], B, A, [], SS, Secrets, Nonce, SSThem) ->
@@ -162,6 +167,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 	SS2 -> 
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
+            %io:fwrite("we have a secret\n"),
 	    {Trees, Height, _} = tx_pool:data(),
 	    State = chalang_state(Height, 0, Trees),
 	    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
@@ -182,7 +188,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 		    Y = chalang:run5([Code], Data4),
 		    case Y of
 			{error, E2} ->
-			    %io:fwrite("bet unlock2 ERROR"),
+			    io:fwrite("bet unlock2 ERROR"),
 			    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 			Z -> 
 			    bet_unlock3(Z, T, B, A, Bet, SSIn, SSOut, SS, Secrets, Nonce, SSThem)
@@ -192,9 +198,9 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
     end.
 bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
     [<<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
-    io:fwrite("bet_unlock3 stack is "),
-    io:fwrite(packer:pack({Delay, chalang:stack(Data5)})),
-    io:fwrite("\n"),
+    %io:fwrite("bet_unlock3 stack is "),
+    %io:fwrite(packer:pack({ContractAmount, Nonce2, Delay})),
+    %io:fwrite("\n"),
    if
         %Delay > 50 ->
         Delay > 0 ->
@@ -329,8 +335,11 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     [<<Amount:32>>|
      [<<Nonce:32>>|
       [<<Delay:32>>|_]]] = chalang:stack(Data3),%#d.stack,
+    %io:fwrite(packer:pack({stack, Amount, Nonce, Delay})),
+    %io:fwrite("\n"),
     CGran = constants:channel_granularity(),
     true = Amount =< CGran,
+    true = Amount >= -CGran,
     A3 = Amount * Bet#bet.amount div CGran,
     {A3, Nonce, Delay,
      chalang:time_gas(Data3)
@@ -348,7 +357,8 @@ force_update(SPK, SSOld, SSNew) ->
     if
 	NonceNew >= NonceOld ->
 	    {NewBets, FinalSS, Amount, Nonce} = force_update2(SPK#spk.bets, SSNew, [], [], 0, 0),
-	    NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + Amount), nonce = (SPK#spk.nonce + Nonce)},
+	    %NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + (Amount div 2)), nonce = (SPK#spk.nonce + Nonce)},
+	    NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + (Amount)), nonce = (SPK#spk.nonce + Nonce)},
 	    {NewSPK, FinalSS};
 	true -> false
     end.
@@ -383,14 +393,14 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     {Trees, Height, _} = tx_pool:data(),
     {_, Nonce2, Delay2} =  run(fast, NewSS, NewSPK, Height, 0, Trees),
     {_, Nonce1, _} =  run(fast, OldSS, OldSPK, Height, 0, Trees),
-    io:fwrite("is improvement "),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack({nonces, Nonce1, Nonce2})),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack({spk1, OldSPK})),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack({spk2, NewSPK})),
-    io:fwrite("\n"),
+    %io:fwrite("is improvement "),
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack({nonces, Nonce1, Nonce2})),
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack({spk1, OldSPK})),
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack({spk2, NewSPK})),
+    %io:fwrite("\n"),
     true = Nonce2 > Nonce1,
     Bets2 = NewSPK#spk.bets,
     Bets1 = OldSPK#spk.bets,
@@ -399,9 +409,9 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     %{ok, MaxChannelDelay} = application:get_env(ae_core, max_channel_delay),
     {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
     {ok, TimeLimit} = application:get_env(ae_core, time_limit),
-    io:fwrite("delay2 is "),
-    io:fwrite(packer:pack(Delay2)),
-    io:fwrite("\n"),
+    %io:fwrite("delay2 is "),
+    %io:fwrite(packer:pack(Delay2)),
+    %io:fwrite("\n"),
     %true = Delay2 =< MaxChannelDelay,
     true = SG =< SpaceLimit,
     true = TG =< TimeLimit,

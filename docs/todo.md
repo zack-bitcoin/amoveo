@@ -9,17 +9,19 @@
 
 * we should merkelize txs and proofs before hashing them into the header.
 
+* every trie should store by the hash of the key. Otherwise an attacker will make one branch of the tree too long, and proofs will have to be huge.
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* the market smart contract should use functions instead of macros in some places. Each variable should be a function, that way it is easy for javascript to replace the variable in just 1 place. Everything that is different between the two directions should be functions. This way it is easy for javascript to replace the functions in just 1 place.
+** do these things before we can teach the javascript light node how to do channel bets.
 
-* we need channels for the light nodes.
+
+
+
+* we need to be able to grow channels, and close channels from the light node.
 
 * merkle.js should be able to verify proofs of the trie being empty in some places.
-
-* the light node should give the option to connect to other servers.
 
 * channel balance and channel_partner balance aren't being calculated very well in javascript. We should calculate it better, and do tests to make sure as much of this liquidity is available as is securely possible.
 

@@ -10,7 +10,7 @@
 	 script_sig_me/1,
 	 update_to_me/2, new_cd/6, 
 	 make_locked_payment/3, live/1, they_simplify/3,
-	 bets_unlock/1, emsg/1, trade/4, trade/7,
+	 bets_unlock/1, emsg/1, trade/5, trade/7,
          cancel_trade/4, cancel_trade_server/3,
          combine_cancel_assets/3,
          combine_cancel_assets_server/2
@@ -175,9 +175,12 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     BetLocation = constants:oracle_bet(),
+    io:fwrite("market_smart contract amount is "),
+    io:fwrite(integer_to_list(Amount)),
+    io:fwrite("\n"),
     SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
     CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
-    SSPK2 = trade(Amount, SC, ID, OID),
+    SSPK2 = trade(Amount, Price, SC, ID, OID),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     {ok, OldCD} = channel_manager:read(ID),
@@ -466,7 +469,7 @@ make_locked_payment(To, Amount, Code) ->
     NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
     {Trees, _, _} = tx_pool:data(),
     keys:sign(NewSPK).
-trade(Amount, Bet, Other, OID) ->
+trade(Amount, Price, Bet, Other, OID) ->
     {ok, CD} = channel_manager:read(Other),
     Prove = [{oracles, OID}],
     %Bet = spk:new_bet(Code, Amount, Prove),
@@ -477,7 +480,9 @@ trade(Amount, Bet, Other, OID) ->
     CID = spk:cid(SPK),
     {ok, TimeLimit} = application:get_env(ae_core, time_limit),
     {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
-    SPK2 = spk:apply_bet(Bet, 0, SPK, TimeLimit div 10 , SpaceLimit),
+    CGran = constants:channel_granularity(),
+    A = (Amount * Price) div CGran,
+    SPK2 = spk:apply_bet(Bet, -A, SPK, TimeLimit div 10 , SpaceLimit),
     keys:sign(SPK2).
 cancel_trade_common(N, OldCD) ->
     SPK = channel_feeder:me(OldCD),

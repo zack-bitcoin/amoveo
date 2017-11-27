@@ -122,6 +122,7 @@ test2(NewPub) ->
     MarketID = 405,
     PrivDir = code:priv_dir(ae_core),
     Location = constants:oracle_bet(),
+%market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),101,100,OID),
     SPK = spk:new(constants:master_pub(), NewPub, 1, [Bet], 10000, 10000, 1, 0, Entropy),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
@@ -132,7 +133,7 @@ test2(NewPub) ->
     SS1 = settle(SPD, OID, Price),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, delay
-    {60,1000002,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
+    {55,1000002,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
 	spk:run(fast, [SS1], SPK, 1, 0, Trees5),
 
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
@@ -172,7 +173,7 @@ test2(NewPub) ->
     %Now that the bet is settled the delay is only zero so that we can get our money out as fast as possible.
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
-    {100,1000004,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
+    {95,1000004,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),
@@ -187,7 +188,7 @@ test2(NewPub) ->
     SPD3 = price_declaration_maker(Height, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3, OID, 3000),
     %amount, newnonce, shares, delay
-    {100, 1000004, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
+    {90, 1000004, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
