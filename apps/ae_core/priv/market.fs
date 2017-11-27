@@ -97,9 +97,6 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
           else
             drop r> -
           then
-          print
-	  %print swap - print * print int 10000 / print
-          % rot drop int 0 tuck %set delay to 0
 	then	
 ;
 macro unmatched ( OracleProof -- delay nonce amount )
