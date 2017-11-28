@@ -7,23 +7,14 @@ car swap drop
 car swap drop
 car drop
 
-%next extract the result from the oracle
-%    <<(X#oracle.id):256, %32 bytes
-%      (X#oracle.result):8, % 1 byte
-%      _/binary>>.
-
-%int 32 split MarketID == or_die drop drop drop drop ( make sure the marketid is the same )
 int 32 split drop
 int 1 split swap drop
-
-%for testing that result=1 works.
-%binary 1 AQ==
 
 %convert from 8 bit to 32 bit.
 binary 3 AAAA swap  ++
 ;
 
-macro bet ( ProofStructure -- delay nonce amount )
+macro bet ( ProofStructure -- delay nonce amount ) % no reason to return a nonce. only delay and amount are sufficient.
 helper 
 %1 means that the oracle returned true
 int 1 == if drop drop 
@@ -39,10 +30,10 @@ drop int 2 == if drop drop
 drop int 3 == if drop drop 
      int 0 int 3 int 10000 MaxPrice @ - else
 
-%0 means the oracle is still unresolved %or maybe it means your bet never got matched?
-drop int 0 == if drop drop 
-     % fail else
-     int 1 int 1 int 10000 MaxPrice @ - else
+%0 means the oracle is still unresolved 
+drop int 0 == if drop drop
+     fail else
+     % int 1 int 1 int 10000 MaxPrice @ - else
 
 then then then then
 ;

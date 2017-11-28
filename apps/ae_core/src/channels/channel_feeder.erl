@@ -470,12 +470,12 @@ make_locked_payment(To, Amount, Code) ->
     {Trees, _, _} = tx_pool:data(),
     keys:sign(NewSPK).
 trade(Amount, Price, Bet, Other, OID) ->
-    {ok, CD} = channel_manager:read(Other),
     Prove = [{oracles, OID}],
     %Bet = spk:new_bet(Code, Amount, Prove),
     io:fwrite("trade bet is "),
     io:fwrite(packer:pack(Bet)),
     io:fwrite("\n"),
+    {ok, CD} = channel_manager:read(Other),
     SPK = channel_feeder:me(CD),
     CID = spk:cid(SPK),
     {ok, TimeLimit} = application:get_env(ae_core, time_limit),

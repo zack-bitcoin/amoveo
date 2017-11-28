@@ -16,8 +16,18 @@
 
 ** do these things before we can teach the javascript light node how to do channel bets.
 
+-the javascript contract needs to be updates to match these changes.
 
 
+
+
+
+
+
+* there needs to be an off switch on each market, so the market maker can gracefully stop his losses before too much information leaks.
+- the market contract delays need to be long enough so that the contract is still live, even if the oracle takes a while to publish.
+
+* if a customer tries closing the market early and we are at risk of losing money, then the market maker needs to keep periodically publishing evidence to the contrary, until the channel can be settled, or until someone else can be found to take on the risk of the missing channel. It works similar to combine-cancel.
 
 * we need to be able to grow channels, and close channels from the light node.
 

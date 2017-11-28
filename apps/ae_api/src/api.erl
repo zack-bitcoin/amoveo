@@ -559,11 +559,11 @@ new_market(OID, Expires, Period) ->
     order_book:new_market(OID, Expires, Period).
     %set up an order book.
     %turn on the api for betting.
-trade(Price, Type, Amount, OID) ->
-    trade(Price, Type, Amount, OID, ?IP, ?Port).
-trade(Price, Type, Amount, OID, IP, Port) ->
-    trade(Price, Type, Amount, OID, ?Fee*2, IP, Port).
-trade(Price, Type, A, OID, Fee, IP, Port) ->
+trade(Price, Type, Amount, OID, Height) ->
+    trade(Price, Type, Amount, OID, Height, ?IP, ?Port).
+trade(Price, Type, Amount, OID, Height, IP, Port) ->
+    trade(Price, Type, Amount, OID, Height, ?Fee*2, IP, Port).
+trade(Price, Type, A, OID, Height, Fee, IP, Port) ->
     Amount = A,
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     {ok, {Expires, 
@@ -573,7 +573,9 @@ trade(Price, Type, A, OID, Fee, IP, Port) ->
     BetLocation = constants:oracle_bet(),
     MarketID = OID,
     %type is true or false or one other thing...
-    SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID),
+    MyHeight = api:height(),
+    true = Height =< MyHeight,
+    SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height),
     SSPK = channel_feeder:trade(Amount, Price, SC, ServerID, OID),
     Msg = {trade, keys:pubkey(), Price, Type, Amount, OID, SSPK, Fee},
     Msg = packer:unpack(packer:pack(Msg)),%sanity check

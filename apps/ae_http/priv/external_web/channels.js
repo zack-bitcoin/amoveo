@@ -93,7 +93,7 @@ function channels1() {
         console.log(JSON.stringify(sstx));
         //variable_public_get(["txs", [-6, sstx]], function(x) {});
         var spk = s2spk[1];
-        var cd = {"me": spk, "them": s2spk, "entropy": entropy, "cid": cid};
+        var cd = {"me": spk, "them": s2spk, "ssme": [-6], "ssthem":[-6], "entropy": entropy, "cid": cid};
         console.log("cd is ");
         console.log(cd);
         channel_manager[acc2] = cd;
@@ -217,19 +217,38 @@ function channels1() {
                 var expires = l[1];
                 var server_pubkey = l[2];
                 var period = l[3];
-                sc = market_contract(type_final, expires, price_final, server_pubkey, period);
-                //sc = market_smart_contract(oid_final, type_final, expires, price_final, pubkey, period, amount_final);
-                //sspk = channel_feeder:trade(amount, sc, pubkey, oid_final)
-                //msg = {"trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee};
-                //variable_public_get(msg, make_bet3);
+                var sc = market_contract(type_final, expires, price_final, server_pubkey, period, oid_final, top_header[1]);
+                var cd = JSON.parse(JSON.stringify(channel_manager[pubkey]));
+                var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
+                var sspk = sign_tx(spk);
+                var msg = ["trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee];
+                return variable_public_get(msg, function(x) {
+                    make_bet3(x, sspk, server_pubkey, oid_final);
+                });
             }
-            function make_bet3(sspk2) {
-                //make sure that both spks match
-                //store sspk2 and the new SS into the channel_manager.
-                //var ss = market:unmatched(oid);
-                var ssk;
-                amount.value = "";
-
+            function make_bet3(sspk2, sspk, server_pubkey, oid_final) {
+                //check that the signature is valid.
+                var hspk2 = hash(sspk2[1]);
+                var hspk = hash(sspk[1]);
+                if (hspk2 == hspk) { //make sure that both spks match
+                    var cd = channel_manager[server_pubkey];
+                    cd.me = sspk[1];
+                    cd.them = sspk2;
+                    var newss = [0,0,0,0,4];
+                    console.log(JSON.stringify(sspk[1]));
+                    console.log(JSONS.stringify(newss));
+                    cd.ssme[0] = newss;
+                    cd.ssthem[0] = newss;
+                    cd.ssme = ([-6]).concat(cd.ssme);
+                    cd.ssthem = ([-6]).concat(cd.ssthem);
+                    channel_manager[server_pubkey] = cd;
+                    amount.value = "";
+                } else {
+                    console.log("error, we calculated the spk differently from the server. you calculated this: ");
+                    console.log(JSON.stringify(sspk[1]));
+                    console.log("the server calculated this: ");
+                    console.log(JSON.stringify(sspk2[1]));
+                }
             }
             function market_smart_contract(oid, type, expires, price, pubkey,period, amount) {
 
