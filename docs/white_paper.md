@@ -146,19 +146,19 @@ Here is an [explanation of how the market smart contract works.](docs/design/lim
 Using the oracle, the parameters that define the system can be modified. The mechanism is built with the goal that the oracle will choose parameters that make the value of VEO increase.
 
 Here are all the parameters that can be changed:
-block_reward - miner gets this reward when they find a block.
-developer_reward - developers get this reward when a block is mined.
-time_gas - this is a limit on how many CPU cycles a smart contract can use.
-space_gas - this is a limit on how much ram a smart contract can use.
-fun_limit - this is how many functions a smart contract can define.
-var_limit - this is how many variables a smart contract can define.
-oracle_initial_liquidity - the cost to launch an oracle.
-minimum_oracle_time
-maximum_oracle_time
-maximum_question_size - how many bytes big can a question for the oracle be?
-block_time_after_median 
-channel_closed_time
-question_delay
-governance_delay
-governance_change_limit - this is a limit on how quickly you can modify the governance variables.
-fees for each of the different transaction types.
+* block_reward - miner gets this reward when they find a block.
+* developer_reward - developers get this reward when a block is mined.
+* time_gas - this is a limit on how many CPU cycles a smart contract can use.
+* space_gas - this is a limit on how much ram a smart contract can use.
+* fun_limit - this is how many functions a smart contract can define.
+* var_limit - this is how many variables a smart contract can define.
+* oracle_initial_liquidity - the cost to launch an oracle.
+* minimum_oracle_time
+* maximum_oracle_time
+* maximum_question_size - how many bytes big can a question for the oracle be?
+* block_time_after_median 
+* channel_closed_time
+* question_delay
+* governance_delay
+* governance_change_limit - this is a limit on how quickly you can modify the governance variables.
+* fees for each of the different transaction types.
