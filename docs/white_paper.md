@@ -3,11 +3,6 @@
 ## abstract
 Blockchain is a form of cryptographic database technology. The state stored in a blockchain is called consensus state. Each blockchain host a cryptocurrency in the consensus state. Cryptocurrencies are a form of wealth that is made secure by blockchain technology.
 Amoveo is a blockchain which secures a cryptocurrency called veo.
-Amoveo includes these systems:
-* blockchain
-* turing complete state channels, so we can support a large number of people at a low cost.
-* oracles which lets the blockchain learn facts about our world, so the blockchain can enforce contracts.
-* markets are built inside the channels. Markets provide liquidity for trading.
 Using veo in the markets, you can buy and sell risk in anything.
 Using Amoveo you can host a market on a server where you make money every time anyone trades.
 With Amoveo it is impossible for customers to steal from a market, and it is impossible for the market to steal from its customers.
