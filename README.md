@@ -7,9 +7,7 @@ Optimized for scalability via smart contracts inside state-channels.
 Has a build-in oracle for integration with real-world data.
 Written in Erlang.
 
-Non-technical [mission statement](docs/mission_statement.md).
-
-[Evidence that Amoveo's goal is technologically possible](docs/design/limit_order_in_channel.md)
+[Amoveo whitepaper](docs/white_paper.md).
 
 [testnet block explorer](http://146.185.142.103:8080/explorer.html)
 
