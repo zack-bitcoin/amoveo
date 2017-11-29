@@ -10,10 +10,10 @@ With Amoveo it is impossible for customers to steal from a market, and it is imp
 
 ## motivation
 Seperating church and state is good. It makes both the church and the state less dangerous.
-Combining religious convictions with a monopoly on violence was a deadly combination. It meant that people could be easily convinced to kill you at any time, and there was no consequence to the religious leader who called for your death. 
+Combining religious convictions with a monopoly on violence was deadly. It meant that people could be easily convinced to kill you at any time, and there was no consequence to the religious leader who called for your death. 
 
 Seperating finance and state will also be good. It will make both the state and finance less dangerous.
-Combining finance with a monopoly on violence means that we can't truly trust the finance system. If the people who are holding our money are easily able to steal our money whenever they want without consequence, this is a terrible combination.
+Combining finance with a monopoly on violence means that we can't truly trust the finance system. The people who are holding our money are able to steal our money without consequence. This is a terrible combination.
 [Amoveo mission statement](design/mission_statement.md)
 
 
