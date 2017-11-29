@@ -57,8 +57,8 @@ contract has: $1498, contract code: "
 
 ## Is it secure according to game theory?
 
-One goal is to make sure that the market manager can only choose a price once in each batch.
-So that he sells the shares for the same price he is buying them for.
+One goal is to make sure that the market manager can only choose a price once in each batch. This is important to prevent front-running. 
+This way the market maker sells the shares for the same price he is buying them for.
 The contract can let his customers take all the money if the market manager signs on contradictory forks.
 
 ```
