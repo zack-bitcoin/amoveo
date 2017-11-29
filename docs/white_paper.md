@@ -1,5 +1,23 @@
 ## Amoveo White Paper
 
+## table of contents
+* abstract
+* motivation
+* blockchain
+* accounts
+* channels
+* smart contracts inside channels
+* lightning network
+* light nodes and sharding
+* chalang smart contract VM
+* oracles
+* oracle game theory
+* derivatives, not subcurrency
+* markets
+* example use cases
+* governance
+
+
 ## abstract
 Blockchain is a form of cryptographic database technology. The state stored in a blockchain is called consensus state. Each blockchain hosts a cryptocurrency in the consensus state. Cryptocurrencies are a form of wealth that is made secure by blockchain technology.
 Amoveo is a blockchain which secures a cryptocurrency called veo.
@@ -17,7 +35,7 @@ Combining finance with a monopoly on violence means that we can't truly trust th
 [Amoveo mission statement](design/mission_statement.md)
 
 
-## block consensus
+## blockchain
 Amoveo uses Nakamoto consensus, just like bitcoin. It this system, some people act as miners. They receive a reward for producing blocks. Producing a block involves doing an expensive calculation called proof of work. The difficulty of this work is reset every 2000 blocks so that the rate of block production stays about 10 minutes per block.
 
 
@@ -33,7 +51,7 @@ Once 2 people have a channel together, they can instantly move the money inside 
 When the channel is closed, the money goes back to the accounts that created it according to the final distribution of money in the channel.
 
 
-## move the smart contracts onto the channels
+## smart contracts inside channels
 Amoveo smart contracts are built on top of the Amoveo channel system. Amoveo channels allow for bets, which are turing complete contracts written as a part of the channel.
 In the case of a disagreement, the blockchain can look at the channel and it's bets and know how to distribute the money from the channel to the participants.
 
