@@ -26,7 +26,7 @@ function create_account1() {
 
     function create_account() {
         var to = create_address.value;
-        var amount = parseFloat(create_amount.value, 10) * 100000000;
+        var amount = Math.floor(parseFloat(create_amount.value, 10) * 100000000);
         var from = pubkey_64();
         var fee = 20;
         console.log([amount, fee, from, to]);
@@ -45,6 +45,8 @@ function create_account1() {
         var to0 = tx[4];
         var amount0 = tx[5];
         if (!(amount == amount0)) {
+            console.log(amount);
+            console.log(amount0);
             console.log("abort: server changed the amount.");
         } else if (!(to == to0)) {
             console.log("abort: server changed who we are sending money to.");

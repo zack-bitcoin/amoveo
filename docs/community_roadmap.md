@@ -24,15 +24,15 @@ This is a roadmap that is less precise than my todo list, and more exciting for 
 * merkel proofs
 * account key holder
 * database for channel data
-  - gui
+* gui
 
 ### block explorer
 
 * api to communicate with nodes
-  - website
+* website
   - blocks
   - transactions
-  - accounts
+* accounts
   - channels
   - oracles
 
@@ -41,7 +41,7 @@ This is a roadmap that is less precise than my todo list, and more exciting for 
 * example smart contracts
 * smart contract for markets with batches at single price.
 * upgrade api to support market contracts.
-  - website to display markets, integrated with javascript SPV wallets.
+* website to display markets, integrated with javascript SPV wallets.
 
 
 ### Security Audit

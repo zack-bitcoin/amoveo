@@ -31,11 +31,13 @@ function market_contract(direction, expires, maxprice, server_pubkey, period, oi
                                             e).concat(
                                                 string_to_array(atob(server_pubkey))).concat(
                                                     f);
-    return g;
+    return btoa(array_to_string(g));
 }
 
 function market_trade(cd, amount, price, bet, oid) {
     var market_spk = cd.me;
+    console.log("market trade spk before ");
+    console.log(JSON.stringify(market_spk));
     var cid = market_spk[7];
     var time_limit = 10000;//actually time_limit div 10
     var space_limit = 100000;
@@ -47,5 +49,7 @@ function market_trade(cd, amount, price, bet, oid) {
     market_spk[6] = market_spk[6] + time_limit;// time_gas/10
     market_spk[5] = Math.max(market_spk[5], space_limit); //space_gas
     market_spk[8] = market_spk[8] - a; //amount
+    console.log("market trade spk after ");
+    console.log(JSON.stringify(market_spk));
     return market_spk;
 }

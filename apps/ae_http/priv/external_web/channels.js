@@ -221,7 +221,11 @@ function channels1() {
                 var cd = JSON.parse(JSON.stringify(channel_manager[pubkey]));
                 var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
                 var sspk = sign_tx(spk);
+                console.log("signed spk");
+                console.log(JSON.stringify(sspk));
                 var msg = ["trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee];
+                //the bet is currently an array, should be a binary string.
+                //the bet is currently just the smart contract. it should be a record that includes some other stuff too.
                 return variable_public_get(msg, function(x) {
                     make_bet3(x, sspk, server_pubkey, oid_final);
                 });

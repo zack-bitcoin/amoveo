@@ -31,13 +31,13 @@ genesis_state() ->
          %[delete_account_reward, 240],%get rid of this. instead we should make the fee negative
          %[channel_rent, 600],
          %[account_rent, 600],
-         [block_time, BlockTime],%remove
+         %[block_time, BlockTime],%remove
          %[oracle_future_limit, 335],
          %[shares_conversion, 575],
          [fun_limit, 350],
          [var_limit, 600],
          [comment_limit, 137], 
-         [block_creation_maturity, 100],
+         %[block_creation_maturity, 100],
          [oracle_initial_liquidity, 1728],
          [minimum_oracle_time, MinimumOracleTime],
          [maximum_oracle_time, MaximumOracleTime],

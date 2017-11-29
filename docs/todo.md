@@ -11,6 +11,10 @@
 
 * every trie should store by the hash of the key. Otherwise an attacker will make one branch of the tree too long, and proofs will have to be huge.
 
+* remove comments from the block, remove comment_limit from governance.
+
+* constants:minimum_oracle_time() is way too low. 
+
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
@@ -21,8 +25,21 @@
 
 
 
+* what is block_time_after_median from governance used for?
+* what is governance:channel_closed_time used for?
+* question_delay?
+* governance_delay?
+* why is there a new_channel_tx fee AND a fee for making channels? We can simplify this.
+* we have both a constants:minimum_oracle_time and also minimum_oracle_time from the governance. We should check if both are necessary.
+* same thing with maximum oracle time.
 
+* chalang "crash" should be called "return"
 
+* if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
+
+* arithmetic_chalang, pow is not deterministic. We should make it deterministic, put checks on the size of inputs so we don't waste time calculating unnecessary things, and we should increase the price to reflect the computational difficulty.
+
+* we need to look at the test for options again. What if our channel partner refuses to let us add more money to the channel? Then we couldn't buy the option. There needs to be a way for just one of the participants to put their own money into the channel if they choose to.
 
 * there needs to be an off switch on each market, so the market maker can gracefully stop his losses before too much information leaks.
 - the market contract delays need to be long enough so that the contract is still live, even if the oracle takes a while to publish.
