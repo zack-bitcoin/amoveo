@@ -52,7 +52,7 @@ Putting the smart contracts into the channels gives Amoveo many advantages
 
 ## lightning network - smart contracts with more than 2 participants
 Amoveo uses the hub and spoke model. Each user finds a hub to make a channel with. The user pays the hub a fee to route their payments and bets where they need to go using the lightning network.
-Lightning contracts are made by hash time-locking and similar techniques. This connects multiple bets from different channels together, so their either all update, or all do not update. This way users can participate in a smart contract that has more than 2 participants.
+Lightning contracts are made by hash time-locking and similar techniques. This connects multiple bets from different channels together, so either they all update, or they all do not update. This way users can participate in a smart contract that has more than 2 participants.
 
 If a bet follows a long path, it could be locking up more liquidity than necessary. We can recover the excess in a trust-free way, without interupting the bet.
 
@@ -67,13 +67,12 @@ This unlocks Bob's $2, so he can use them for something different.
 
 ## light nodes and sharding
 * light nodes don't download blocks, they only download small headers, and small proofs of the blockchain state.
-* each block includes all the proof needed to verify it. So, blocks can be processed in any order.
+* each block includes all the proof needed to verify it. So, light nodes can verify blocks in any order.
 * light nodes can mine, which is important for sharding.
-* in bitcoin the computational requirement for trust-free access to the blockchain is O((number of blocks) * (transactions per block ~= 2000) * (size of a average tx ~= 1 kb)). This is so expensive that most people cannot afford to run a secure bitcoin node. Or alternatively, you can pay a server to scan the entire UTXO set every time you want to check your balance, but this is too expensive as well, no one even made a server like this yet.
+* in bitcoin the bandwidth requirement for trust-free access to the blockchain is O((number of blocks) * (transactions per block ~= 2000) * (size of a average tx ~= 1 kb)). This is so expensive that most people cannot afford to run a secure bitcoin node. Or alternatively, you can pay a server to scan the entire UTXO set every time you want to check your balance, but this is too expensive as well, no one even made a server like this yet.
 * In amoveo the computational requirement for trust-free access to the blockchain is O((number of blocks) * (size of average header ~= 200 bytes)). So, per block, Amoveo will be able to sync about 10 000 times faster than bitcoin.
-* Amove can operate without any full nodes.
-* each light node can verify as few or as many of the blocks as it wants, and in any order.
-* scalability- parallel block computation. Since miners don't have to store any of the consensus state, the blockchain would still be functional under these conditions: it takes more than 10 minutes for a miner to verify a block. The blocktime is 10 minutes. Compare with bitcoin or ethereum, where the time to verify a block needs to be significantly less than the blocktime to maintain security. Ethereum tried to solve this problem with GHOST, but GHOST is only a small improvement, and it comes at the large cost of inflating ETH to pay for uncle blocks. This means that Amoveo can do much more computation per block.
+* Amoveo can operate without any full nodes.
+* scalability- parallel block computation. Since miners don't have to store any of the consensus state, the blockchain would still be functional under these conditions: it takes more than 10 minutes for a miner to verify a block. The blocktime is 10 minutes. Compare with bitcoin or ethereum, where security depends on the fact that the time to verify a block is significantly less than the blocktime. Ethereum tried to solve this problem with GHOST, but GHOST is only a small improvement, and it comes at the large cost of inflating ETH to pay for uncle blocks. Amoveo can do much more computation per block.
 
 
 ## Chalang Smart contract VM
@@ -123,7 +122,7 @@ You could participate in a market that is priced in synthetic-Euros.
 The killer app of blockchain is a scalable market to trade assets who's price is determined by a trust-free and affordable oracle.
 [State channels are worthless without markets](design/state_channel_without_off_chain_market.md).
 There is no value in being able to make smart contracts if you can't securely determine the market price for those contracts.
-All the rest of the security doesn't matter if they can get away charging you 10x the market rate.
+All the rest of the security doesn't matter if they can get away charging you above the market rate.
 A market provides liquidity so you can trade financial risk with other users at the *current market price*.
 Markets on Amoveo are centralized and trust-free.
 Each market exists on a centralized server.
