@@ -33,7 +33,7 @@ Once 2 people have a channel together, they can instantly move the money inside 
 When the channel is closed, the money goes back to the accounts that created it according to the final distribution of money in the channel.
 
 
-## move the smart contracts off-chain into the lightning network
+## move the smart contracts onto the channels
 Amoveo smart contracts are built on top of the Amoveo channel system. Amoveo channels allow for bets, which are turing complete contracts written as a part of the channel.
 In the case of a disagreement, the blockchain can look at the channel and it's bets and know how to distribute the money from the channel to the participants.
 

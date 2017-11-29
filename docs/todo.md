@@ -25,6 +25,7 @@
 
 
 
+* the block reward should be a governance value
 * what is block_time_after_median from governance used for?
 * what is governance:channel_closed_time used for?
 * question_delay?
