@@ -204,7 +204,7 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
-    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
+    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, api:height()),
     SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
