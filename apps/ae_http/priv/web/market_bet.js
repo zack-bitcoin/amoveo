@@ -44,6 +44,9 @@ function market_bet1() {
     
     function make_bet() {
         //trade(Price, Type, Amount, OID)
+        return variable_get(["height"], make_bet2);
+    }
+    function make_bet2(height_integer) {
         var price_final = Math.floor(100 * parseFloat(price.value, 10));
         var type_final;
         if (trade_type.value == "true") {
@@ -54,6 +57,7 @@ function market_bet1() {
         var amount_final = c2s(amount);
         var oid_final = parseInt(oid.value, 10);
         local_get(["trade", price_final, type_final, amount_final, oid_final,
+                   height_integer,
                    JSON.parse(server_ip.value),
                    parseInt(server_port.value, 10)]);
         amount.value = "";

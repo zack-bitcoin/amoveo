@@ -107,10 +107,10 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 macro unmatched ( OracleProof -- delay nonce amount )
         helper
 	int 0 == if % the 0 means that the oracle is unresolved still.
-            fail
-     		%Expires @ Period @ + int 2000 +
-        	%int 100000
-	 	%int 10000 MaxPrice @ -
+            %fail
+                Expires @ Period @ + int 2000 +
+        	int 100000
+	 	int 10000 MaxPrice @ -
       	else
                 %give the market at least a period to prove that it was published.
 		Period @
