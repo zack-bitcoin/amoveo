@@ -8,7 +8,7 @@ function hash(input) {//array of bytes -- array of bytes
 function integer_to_array(i, size) {
     var a = [];
     for ( var b = 0; b < size ; b++ ) {
-        a.push(i % 256);
+        a.push(((i % 256) + 256) % 256);
         i = Math.floor(i/256);
     }
     return a.reverse();

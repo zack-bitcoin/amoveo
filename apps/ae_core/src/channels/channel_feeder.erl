@@ -181,7 +181,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     io:fwrite("market_smart contract amount is "),
     io:fwrite(integer_to_list(Amount)),
     io:fwrite("\n"),
-    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID),
+    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
     CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
     SSPK2 = trade(Amount, Price, SC, ID, OID),
     SPK = testnet_sign:data(SSPK),

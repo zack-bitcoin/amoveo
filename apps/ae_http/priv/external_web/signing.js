@@ -132,3 +132,11 @@ function signing_test() {
     var foo = verify(data0, sig0, key0);
     console.log(foo);
 }
+
+//signing_test2();
+function signing_test2() {
+    var d = ["record", [-6, 4], [-7, 8000], -50];
+    console.log("signing test");
+    console.log(JSON.stringify(serialize(d)));
+    console.log(integer_to_array(-1, 2));
+}
