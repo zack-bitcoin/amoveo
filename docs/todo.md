@@ -23,7 +23,7 @@
 -the javascript contract needs to be updates to match these changes.
 
 
-
+*sync is becoming a zombie process when it cannot connect.
 
 * the block reward should be a governance value
 * what is block_time_after_median from governance used for?

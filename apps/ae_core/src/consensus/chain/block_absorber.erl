@@ -53,11 +53,14 @@ absorb_internal(Block) ->
     %io:fwrite("\n"),
     BH = block:hash(Block),
     NextBlock = block:prev_hash(Block),
-    case block_hashes:check(BH) of
-	true -> 
+    Height = block:height(Block),
+    BHC = block_hashes:check(BH),
+    if
+        Height == 0 -> ok;
+        BHC ->
             lager:info("We have seen this block before, so block_absorber will ignore it"),
 	    ok;%If we have seen this block before, then don't process it again.
-	false ->
+	true ->
 	    true = block_hashes:check(NextBlock), %check that the previous block is known.
 	    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.

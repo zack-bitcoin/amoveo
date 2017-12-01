@@ -28,6 +28,21 @@ function fromHex(h) {
     }
     return s;
 }
+function string_to_array(x) {
+    var a = new Uint8Array(x.length);
+    for (var i=0; i<x.length; i++) {
+        a[i] = x.charCodeAt(i);
+    }
+    return Array.from(a);
+}
+function integer_to_array(i, size) {
+    var a = [];
+    for ( var b = 0; b < size ; b++ ) {
+        a.push(((i % 256) + 256) % 256);
+        i = Math.floor(i/256);
+    }
+    return a.reverse();
+}
 function serialize(data) {
     if (Number.isInteger(data)) {
         //console.log("serialize integer");
@@ -133,9 +148,10 @@ function signing_test() {
     console.log(foo);
 }
 
-//signing_test2();
+signing_test2();
 function signing_test2() {
-    var d = ["record", [-6, 4], [-7, 8000], -50];
+    //var d = ["record", [-6, 4], [-7, 8000], -50];
+    var d = ["record", [-6, ["a", -2000]]];
     console.log("signing test");
     console.log(JSON.stringify(serialize(d)));
     console.log(integer_to_array(-1, 2));
