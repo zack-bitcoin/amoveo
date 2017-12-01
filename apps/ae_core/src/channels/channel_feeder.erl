@@ -184,16 +184,23 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     io:fwrite(packer:pack([SPK, SPK2])),
     io:fwrite("\n"),
     SPK = SPK2,
+    io:fwrite("channel feeder 0\n"),
     {ok, OldCD} = channel_manager:read(ID),
+    io:fwrite("channel feeder 1\n"),
     DefaultSS = market:unmatched(OID),
+    io:fwrite("channel feeder 2\n"),
     SSME = [DefaultSS|OldCD#cd.ssme],
     SSThem = [DefaultSS|OldCD#cd.ssthem],
+    io:fwrite("channel feeder 3\n"),
     spk:run(fast, SSME, SPK, Height, 0, Trees),%sanity test
+    io:fwrite("channel feeder 4\n"),
     spk:run(fast, SSThem, SPK, Height, 0, Trees),%sanity test
+    io:fwrite("channel feeder 5\n"),
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = SSME, ssthem = SSThem},
     %arbitrage:write(CodeKey, [ID]),
     channel_manager:write(ID, NewCD),
+    io:fwrite("channel feeder 6\n"),
     {reply, SSPK2, X};
 handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
