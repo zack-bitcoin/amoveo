@@ -61,12 +61,8 @@ absorb_internal(Block) ->
             lager:info("We have seen this block before, so block_absorber will ignore it"),
 	    ok;%If we have seen this block before, then don't process it again.
 	true ->
-            if
-                (Height == 1) -> ok;
-                true ->
-                    true = block_hashes:check(NextBlock), %check that the previous block is known.
-                    false = empty == block:get_by_hash(NextBlock) %check that previous block was valid
-            end,
+	    true = block_hashes:check(NextBlock), %check that the previous block is known.
+	    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 	    Header = block:block_to_header(Block),
 	    headers:absorb([Header]),
