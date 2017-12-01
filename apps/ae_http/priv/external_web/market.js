@@ -1,6 +1,9 @@
 //use market:teset3() to generate this compiled binary.
 
-function market_contract(direction, expires, maxprice, server_pubkey, period, oid, bet_height) {
+function market_key(market_id, expires, server_pubkey, period, oid){
+    return ["market", 1, market_id, expires, server_pubkey, period, oid];
+}
+function market_contract(direction, expires, maxprice, server_pubkey, period, amount, oid, bet_height) {
   //var a = string_to_array(atob("AAAAJxAAAAAAAXgA"));
     var a = string_to_array(atob("AAAAJxAAAAAAAXgA"));
     var a2 = string_to_array(atob("AAAAAAJ4AA=="));
@@ -31,15 +34,22 @@ function market_contract(direction, expires, maxprice, server_pubkey, period, oi
                                             e).concat(
                                                 string_to_array(atob(server_pubkey))).concat(
                                                     f);
-    return btoa(array_to_string(g));
+    var contract =  btoa(array_to_string(g));
+    var codekey = market_key(oid, expires, server_pubkey, period, oid);
+    return new_bet(contract, codekey, amount, [-7, direction, maxprice]);
+}
+function new_bet(code, key, amount, meta) {
+    //key is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
+    return ["bet", code, amount, key, meta];
 }
 
 function market_trade(cd, amount, price, bet, oid) {
+                //var code_key = market_key(oid_final, expires, my_pubkey, period, oid_final);
     var market_spk = cd.me;
     console.log("market trade spk before ");
     console.log(JSON.stringify(market_spk));
     var cid = market_spk[7];
-    var time_limit = 10000;//actually time_limit div 10
+    var time_limit = 10000;//actually constants:time_limit div 10
     var space_limit = 100000;
     var cGran = 10000;
     var a = Math.floor((amount * price) / cGran);

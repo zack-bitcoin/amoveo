@@ -23,7 +23,7 @@
 -record(bet, {code, amount, 
               %prove, 
               key,%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
-              meta}).%meta is which direction we bet in.
+              meta}).%meta is {direction_we_bet, maxprice}
 
 -record(spk, {acc1,acc2, entropy, 
 	      bets, space_gas, time_gas, 

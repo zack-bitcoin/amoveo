@@ -29,14 +29,14 @@ function spend_1() {
         //spend_address = document.getElementById("spend_address");
         var to = spend_address.value;
         //spend_amount = document.getElementById("spend_amount");
-        var amount = parseFloat(spend_amount.value, 10) * 100000000;
+        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
         var from = pubkey_64();
         var fee = 20;
         variable_public_get(["spend_tx", amount, fee, from, to],
                             spend_tokens2);
     }
     function spend_tokens2(tx) {
-        var amount = parseFloat(spend_amount.value, 10) * 100000000;
+        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
         var amount0 = tx[5];
         var to = spend_address.value;
         var to0 = tx[4];

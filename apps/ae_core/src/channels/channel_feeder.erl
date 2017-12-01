@@ -167,6 +167,9 @@ handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
     {reply, ok, X};
 handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     {Trees,Height,_} = tx_pool:data(),
+    io:fwrite("try to trade with spk"),
+    io:fwrite(packer:pack(SSPK)),
+    io:fwrite("\n"),
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
     {ok, LF} = application:get_env(ae_core, lightning_fee),
@@ -470,7 +473,7 @@ make_locked_payment(To, Amount, Code) ->
     {Trees, _, _} = tx_pool:data(),
     keys:sign(NewSPK).
 trade(Amount, Price, Bet, Other, OID) ->
-    Prove = [{oracles, OID}],
+    %Prove = [{oracles, OID}],
     %Bet = spk:new_bet(Code, Amount, Prove),
     io:fwrite("trade bet is "),
     io:fwrite(packer:pack(Bet)),

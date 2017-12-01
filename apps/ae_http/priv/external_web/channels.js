@@ -30,7 +30,7 @@ function channels1() {
     variable_public_get(["pubkey"], refresh_channels_interfaces);
     function make_channel_func(pubkey) {
         var spend_amount = document.getElementById("spend_amount");
-        var amount = parseFloat(spend_amount.value, 10) * 100000000;
+        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
         var spend_delay = document.getElementById("spend_delay");
         var delay = parseInt(spend_delay.value, 10);
         var bal2 = amount - 1;
@@ -217,7 +217,9 @@ function channels1() {
                 var expires = l[1];
                 var server_pubkey = l[2];
                 var period = l[3];
-                var sc = market_contract(type_final, expires, price_final, server_pubkey, period, oid_final, top_header[1]);
+                var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, top_header[1]);
+
+                
                 var cd = JSON.parse(JSON.stringify(channel_manager[pubkey]));
                 var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
                 var sspk = sign_tx(spk);
@@ -253,9 +255,6 @@ function channels1() {
                     console.log("the server calculated this: ");
                     console.log(JSON.stringify(sspk2[1]));
                 }
-            }
-            function market_smart_contract(oid, type, expires, price, pubkey,period, amount) {
-
             }
         }
     }
