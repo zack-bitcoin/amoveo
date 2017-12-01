@@ -3,19 +3,19 @@
 ## table of contents
 * abstract
 * motivation
-* blockchain
+* blockchain consensus protocol
 * accounts
+* oracles
+* governance
 * channels
 * smart contracts inside channels
-* lightning network
-* light nodes and sharding
-* chalang smart contract VM
-* oracles
-* oracle game theory
 * derivatives, not subcurrency
+* chalang smart contract VM
+* lightning network
 * markets
+* light nodes and sharding
 * example use cases
-* governance
+* oracle game theory
 
 
 ## abstract
@@ -35,12 +35,35 @@ Combining finance with a monopoly on violence means that we can't truly trust th
 [Amoveo mission statement](design/mission_statement.md)
 
 
-## blockchain
+## blockchain consensus protocol
 Amoveo uses Nakamoto consensus, just like Bitcoin. It this system, some people act as miners. They receive a reward for producing blocks. Producing a block involves doing an expensive calculation called proof of work. The difficulty of this work is reset every 2000 blocks so that the rate of block production stays about 10 minutes per block.
 
 
 ## accounts
 Accounts are data structures recorded in the blockchain consensus state. Each account has a positive balance of Veo that it can spend to other accounts. Anyone with sufficient Veo to pay the fee can create new accounts. Spending from an account requires a signature from the private key that the owner of the account knows. To give someone Veo, you need to know their public key.
+
+
+## oracles
+Anyone can ask the oracle any question, if they are willing to pay the cost.
+The oracle can settle in 3 states: True, False, Bad Question.
+Unlike some competitors, Amoveo does not have a subcurrency to power the oracle. Because this subcurrency doesn't exist, the users of the oracle don't have to pay rent to the owners. This means Amoveo's oracle will be more affordable than competitors whose oracles depend on subcurrencies, like Augur or Bitcoin Hivemind.
+The Amoveo oracle does not usually have much collateral at stake, so the cost of launching an oracle is small. To launch an oracle, you pay just enough to provide initial liquidity to get a market going.
+Amoveo's oracle has the ability to escalate its defense in response to an attack. Oracles that cannot escalate are prohibitively expensive, or they aren't secure.
+It is this ability to escalate that allows Amoveo to keep the collateral for each oracle so low most of the time. 
+
+
+## governance
+Using the oracle, the parameters that define the system can be modified. The mechanism is built with the goal that the oracle will choose parameters that make the value of Veo increase.
+Some example parameters that can be modified are:
+* block reward - how much reward the miner gets for finding a block.
+* developer_reward - developers get this reward when a block is mined.
+* fun_limit - how many functions can a smart contract use.
+* time_gas - this is a limit on how many CPU cycles a smart contract can use.
+* space_limit - how much ram can a smart contract use.
+* oracle_initial_liquidity - how much does it cost to launch an oracle.
+* maximum_question_size - how many bytes big can a question for the oracle be
+* governance_change_limit - this is a limit on how quickly you can modify the governance variables.
+* fees for each of the different transaction types.
 
 
 ## channels
@@ -56,11 +79,29 @@ Amoveo smart contracts are built on top of the Amoveo channel system. Amoveo cha
 In the case of a disagreement, the blockchain can look at the channel and its bets and know how to distribute the money from the channel to the participants.
 
 Putting the smart contracts into the channels gives Amoveo many advantages
-
 * speed - off-chain state can be updated as quickly as you can communicate with your channel partner. This is much faster than waiting for confirmations on-chain. If your partner is a server, you can use Amoveo smart contracts instantly.
 * privacy - off-chain state can stay secret. As long as neither channel participant disappears or tries to cheat, they never have to publish the contract on-chain.
 * scalability- parallel off-chain computation. The channel contracts are usually only processed by the 2 participants in the channel. Every pair of channel participants can be running different channel contracts simultaneously.
 * scalability- parallel on-chain transaction computation. Most transactions in a block do not depend on each other. Since there is no on-chain smart contract state, it is easy to calculate which transactions depend on each other. So we can parallelize processing of transactions within the same block on the same machine.
+
+
+## derivatives, not subcurrencies
+Since there is no on-chain state, it would be impossible to put subcurrencies onto Amoveo. Subcurrencies are contrary to Amoveo's scaling strategy.
+So, it is also impossible to do ICOs on Amoveo, but Amoveo does support other forms of fundraising.
+Amoveo has something much better than subcurrencies, it has derivatives.
+With derivatives you can build an asset that stays the same value as a Euro, it is a synthetic asset. 
+You can spend these synthetic-Euros to your friends, and treat them like Euros.
+You could participate in a market that is priced in synthetic-Euros. 
+[I wrote more about subcurrencies and why they are incompatible with channels here.](design/why_not_channels_with_multiple_currencies.md)
+
+
+## Chalang Smart contract VM
+* [official chalang github repository](https://github.com/zack-bitcoin/chalang)
+* used for the smart contracts in the channels.
+* chalang has 2 stacks for storing values during computation. So you can write highly optimized forth-style code.
+* chalang has variables for storing values. So you can write easier to read javascript-style code.
+* chalang functions are tail call optimized, so you don't have to worry about call stack overflow when you do lots of recursion.
+* Chalang forth-like compiler is the compiler that was used to write the smart contracts currently in use on the testnet.
 
 
 ## lightning network - smart contracts with more than 2 participants
@@ -78,32 +119,37 @@ Alice and Carol could make a new channel directly between them, and they could t
 This unlocks Bob's $2, so he can use them for something different.
 
 
+## markets
+The killer app of blockchain is a scalable market to trade assets whose price is determined by a trust-free and affordable oracle.
+[State channels are worthless without markets](design/state_channel_without_off_chain_market.md).
+There is no value in being able to make smart contracts if you can't securely determine the market price for those contracts.
+All the rest of the security doesn't matter if they can get away charging you above the market rate.
+A market provides liquidity, so you can trade financial risk with other users at the *current market price*.
+Markets on Amoveo are centralized and trust-free.
+Each market exists on a centralized server.
+The market is secure because the rules are enforced by channel smart contracts.
+Here is an [explanation of how the market smart contract works.](docs/design/limit_order_in_channel.md)
+
+
 ## light nodes and sharding
-* light nodes don't download blocks, they only download small headers, and small proofs of the blockchain state.
+* light nodes can securely maintain consensus, just like a full node. light nodes don't download blocks, they only download small headers, and small proofs of the blockchain state. Light nodes cost much less time and space to operate than full nodes.
+* [Amoveo can operate without any full nodes](design/sharding.md)
 * each block includes all the proof needed to verify it. So, light nodes can verify blocks in any order.
 * light nodes can mine, which is important for sharding.
 * in Bitcoin the bandwidth requirement for trust-free access to the blockchain is O((number of blocks) * (transactions per block ~= 2000) * (size of a average tx ~= 1 kb)). This is so expensive that most people cannot afford to run a secure Bitcoin node. Or alternatively, you can pay a server to scan the entire UTXO set every time you want to check your balance, but this is too expensive as well, no one even made a server like this yet.
 * In Amoveo the computational requirement for trust-free access to the blockchain is O((number of blocks) * (size of average header ~= 200 bytes)). So, per block, Amoveo will be able to sync about 10 000 times faster than Bitcoin.
-* Amoveo can operate without any full nodes.
 * scalability- parallel block computation. Since miners don't have to store any of the consensus state, the blockchain would still be functional under these conditions: it takes more than 10 minutes for a miner to verify a block. The block time is 10 minutes. Compare with Bitcoin or Ethereum, where security depends on the fact that the time to verify a block is significantly less than the block time. Ethereum tried to solve this problem with GHOST, but GHOST is only a small improvement, and it comes at the large cost of inflating ETH to pay for uncle blocks. Amoveo can do much more computation per block.
 
 
-## Chalang Smart contract VM
-* [official chalang github repository](https://github.com/zack-bitcoin/chalang)
-* used for the smart contracts in the channels.
-* chalang has 2 stacks for storing values during computation. So you can write highly optimized forth-style code.
-* chalang has variables for storing values. So you can write easier to read javascript-style code.
-* chalang functions are tail call optimized, so you don't have to worry about call stack overflow when you do lots of recursion.
-* Chalang forth-like compiler is the compiler that was used to write the smart contracts currently in use on the testnet.
-
-
-## oracles
-Anyone can ask the oracle any question, if they are willing to pay the cost.
-The oracle can settle in 3 states: True, False, Bad Question.
-Unlike some competitors, Amoveo does not have a subcurrency to power the oracle. Because this subcurrency doesn't exist, the users of the oracle don't have to pay rent to the owners. This means Amoveo's oracle will be more affordable than competitors whose oracles depend on subcurrencies, like Augur or Bitcoin Hivemind.
-The Amoveo oracle does not usually have much collateral at stake, so the cost of launching an oracle is small. To launch an oracle, you pay just enough to provide initial liquidity to get a market going.
-Amoveo's oracle has the ability to escalate its defense in response to an attack. Oracles that cannot escalate are prohibitively expensive, or they aren't secure.
-It is this ability to escalate that allows Amoveo to keep the collateral for each oracle so low most of the time. 
+## examples use cases
+* [fund-raising for creation of public goods](use-cases-and-ideas/insured_crowdfund.md) This is how we will fund further development of Amoveo.
+* [prediction markets](use-cases-and-ideas/prediction_market.md) This is how we will plan further development of Amoveo.
+* [insurance](use-cases-and-ideas/insurance.md)
+* gambling
+* [stablecoin, also called "synthetic assets"](use-cases-and-ideas/stablecoin.md) This way you can own US dollars on Amoveo.
+* [preventing nuclear disaster](use-cases-and-ideas/north_korea.md)
+* [preventing sexual abuse in the workplace](use-cases-and-ideas/Harvey_Weinstein.md)
+* [options](use-cases-and-ideas/options.md)
 
 
 ## oracle game theory
@@ -120,57 +166,3 @@ Yes there is a cost for the miners to keep an eye on the oracle this way, but ev
 The Nash equilibrium will be for miners to put some effort into watching the oracle for potential cheaters.
 So, the Nash equilibrium will be an honest oracle.
 
-
-## derivatives, not subcurrencies
-Since there is no on-chain state, it would be impossible to put subcurrencies onto Amoveo. Subcurrencies are contrary to the goal of scalability.
-Since there are no subcurrencies, it is also impossible to do ICOs on Amoveo, but we do allow for other types of fundraising.
-Amoveo has something much better than subcurrencies, it has derivatives.
-With derivatives you can build an asset that stays the same value as a Euro, it is a synthetic asset. 
-You can spend these synthetic-Euros to your friends, and treat them like Euros.
-You could participate in a market that is priced in synthetic-Euros. 
-[I wrote more about subcurrencies and why they are incompatible with channels here.](design/why_not_channels_with_multiple_currencies.md)
-
-
-## markets
-The killer app of blockchain is a scalable market to trade assets whose price is determined by a trust-free and affordable oracle.
-[State channels are worthless without markets](design/state_channel_without_off_chain_market.md).
-There is no value in being able to make smart contracts if you can't securely determine the market price for those contracts.
-All the rest of the security doesn't matter if they can get away charging you above the market rate.
-A market provides liquidity, so you can trade financial risk with other users at the *current market price*.
-Markets on Amoveo are centralized and trust-free.
-Each market exists on a centralized server.
-The market is secure because the rules are enforced by channel smart contracts.
-Here is an [explanation of how the market smart contract works.](docs/design/limit_order_in_channel.md)
-
-
-## examples use cases
-* [fund-raising for creation of public goods](use-cases-and-ideas/insured_crowdfund.md) This is how we will fund further development of Amoveo.
-* [prediction markets](use-cases-and-ideas/prediction_market.md) This is how we will plan further development of Amoveo.
-* [insurance](use-cases-and-ideas/insurance.md)
-* gambling
-* [stablecoin, also called "synthetic assets"](use-cases-and-ideas/stablecoin.md) This way you can own US dollars on Amoveo.
-* [preventing nuclear disaster](use-cases-and-ideas/north_korea.md)
-* [preventing sexual abuse in the workplace](use-cases-and-ideas/Harvey_Weinstein.md)
-* [options](use-cases-and-ideas/options.md)
-
-
-## governance
-Using the oracle, the parameters that define the system can be modified. The mechanism is built with the goal that the oracle will choose parameters that make the value of Veo increase.
-
-Here are all the parameters that can be changed:
-* block_reward - miner gets this reward when they find a block.
-* developer_reward - developers get this reward when a block is mined.
-* time_gas - this is a limit on how many CPU cycles a smart contract can use.
-* space_gas - this is a limit on how much ram a smart contract can use.
-* fun_limit - this is how many functions a smart contract can define.
-* var_limit - this is how many variables a smart contract can define.
-* oracle_initial_liquidity - the cost to launch an oracle.
-* minimum_oracle_time
-* maximum_oracle_time
-* maximum_question_size - how many bytes big can a question for the oracle be?
-* block_time_after_median 
-* channel_closed_time
-* question_delay
-* governance_delay
-* governance_change_limit - this is a limit on how quickly you can modify the governance variables.
-* fees for each of the different transaction types.

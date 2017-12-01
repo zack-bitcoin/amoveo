@@ -13,6 +13,8 @@
 
 * constants:minimum_oracle_time() is way too low. This should be one of the governance variables.
 
+* block_time_after_median should not be a governance variable. We should review all the governance variables.
+
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
