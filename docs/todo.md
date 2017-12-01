@@ -9,11 +9,9 @@
 
 * we should merkelize txs and proofs before hashing them into the header.
 
-* every trie should store by the hash of the key. Otherwise an attacker will make one branch of the tree too long, and proofs will have to be huge.
+* every trie (besides governance) should store by the hash of the key. Otherwise an attacker will make one branch of the tree too long, and proofs will have to be huge.
 
-* remove comments from the block, remove comment_limit from governance.
-
-* constants:minimum_oracle_time() is way too low. 
+* constants:minimum_oracle_time() is way too low. This should be one of the governance variables.
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
@@ -23,7 +21,7 @@
 -the javascript contract needs to be updates to match these changes.
 
 
-*sync is becoming a zombie process when it cannot connect.
+* sync is becoming a zombie process when it cannot connect.
 
 * the block reward should be a governance value
 * what is block_time_after_median from governance used for?

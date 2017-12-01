@@ -1,7 +1,7 @@
 -module(block).
 
 -export([block_to_header/1, test/0,
-         height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, comment/1, version/1, pow/1, trees/1, prev_hashes/1, 
+         height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, version/1, pow/1, trees/1, prev_hashes/1, 
          get_by_height_in_chain/2, get_by_height/1, hash/1, get_by_hash/1, initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          guess_number_of_cpu_cores/0, top/0,
@@ -24,7 +24,6 @@
                 txs,
                 prev_hashes = {prev_hashes},
                 proofs = [],
-                comment = <<>>,
                 roots}).
 -record(roots, {accounts, channels, existence, burn, oracles, governance}).
 
@@ -46,7 +45,6 @@ txs(B) -> B#block.txs.
 trees_hash(B) -> B#block.trees_hash.
 time(B) -> B#block.time.
 difficulty(B) -> B#block.difficulty.
-comment(B) -> B#block.comment.
 version(B) -> B#block.version.
 pow(B) -> B#block.nonce.
 trees(B) -> B#block.trees.
