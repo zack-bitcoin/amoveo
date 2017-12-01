@@ -181,7 +181,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     SPK = testnet_sign:data(SSPK),
     SPK2 = testnet_sign:data(SSPK2),
     io:fwrite("comparing spks for trade "),
-    io:fwrite(packer:pack(SPK, SPK2)),
+    io:fwrite(packer:pack([SPK, SPK2])),
     io:fwrite("\n"),
     SPK = SPK2,
     {ok, OldCD} = channel_manager:read(ID),
