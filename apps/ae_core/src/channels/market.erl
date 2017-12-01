@@ -30,6 +30,9 @@ binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode
     FullCode = <<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>,
     %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
+    io:fwrite("compiled code is \n"),
+    io:fwrite(base64:encode(Compiled)),
+    io:fwrite("\n"),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
     %ToProve = [{oracles, OID}],
     spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
@@ -205,15 +208,15 @@ test3() ->
     BetLocation = constants:oracle_bet(),
     Pubkey = keys:pubkey(),
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    A = market_smart_contract(BetLocation, OID, 1, 124, 125, Pubkey, 126, 0, OID, 0),
+    A = market_smart_contract(BetLocation, OID, 2, 124, 125, Pubkey, 126, 0, OID, 0),
     Max = 4294967295,
-    B = market_smart_contract(BetLocation, Max, 1, Max, Max, <<0:520>>, Max, 0, Max, Max),
+    B = market_smart_contract(BetLocation, Max, 2, Max, Max, <<0:520>>, Max, Max, Max, Max),
     A2 = element(2, A),
     B2 = element(2, B),
     compare_test(A2, B2, 0, <<>>),
     success.
 compare_test(<<>>, _, _, Final) ->
-    io:fwrite(base64:encode(Final)),
+    io:fwrite(base64:encode(binary_reverse(Final, <<>>))),
     io:fwrite("\n"),
     ok;
 compare_test(<<A, AT/binary>>, <<B, BT/binary>>, N, Final) ->
