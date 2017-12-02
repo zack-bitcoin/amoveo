@@ -8,6 +8,9 @@
 market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts that can be arbitraged against each other have the same result.
     {market, 1, MarketID, Expires, Pubkey, Period, OID}.
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height) ->
+    io:fwrite("market smart contract expires "),
+    io:fwrite(packer:pack([MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height])),
+    io:fwrite("\n"),
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		1 -> <<" int 10000 bet_amount ! macro flip int 0 swap + ; macro check_size flip > not ; ">>; %this is for when the customer bets on true.
 		2 -> <<" int 0 bet_amount ! macro flip int 10000 swap - ; macro check_size flip < not ; ">> % maybe should be 10000 - MaxPrice0

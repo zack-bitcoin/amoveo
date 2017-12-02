@@ -18,6 +18,8 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* pull channel state shouldn't cause a crash when the state is already synced.
+
 ** do these things before we can teach the javascript light node how to do channel bets.
 
 -the javascript contract needs to be updates to match these changes.

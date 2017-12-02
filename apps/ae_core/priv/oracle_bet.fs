@@ -32,8 +32,8 @@ drop int 3 == if drop drop
 
 %0 means the oracle is still unresolved 
 drop int 0 == if drop drop
-     fail else
-     % int 1 int 1 int 10000 MaxPrice @ - else
+     % fail else
+     int 1 int 1 int 10000 MaxPrice @ - else
 
 then then then then
 ;

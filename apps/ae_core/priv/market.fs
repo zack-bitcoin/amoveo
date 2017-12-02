@@ -22,7 +22,10 @@ int 2 split binary 2 AAA= swap ++ swap
             binary 2 AAA= swap ++ 
 MarketID @ == or_die drop drop ( height price portion_matched )
 rot
-    dup Height > not or_die %check that the price declaration was made after the bet, or at the same time.
+        % Height is when the bet happened is 2
+        % top of stack is when the price declaration happened is 12
+        % Height < height
+    dup Height < not or_die %check that the price declaration was made after the bet, or at the same time.
 tuck ( height price portion_matched )
 ;
 

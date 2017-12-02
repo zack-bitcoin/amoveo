@@ -171,7 +171,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
     Key = Bet#bet.key, 
     case secrets:read(Key) of
 	<<"none">> -> 
-            %io:fwrite("no secret known\n"),
+            io:fwrite("no secret known\n"),
 	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 	SS2 -> 
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
@@ -206,9 +206,9 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
     end.
 bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
     [<<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
-    %io:fwrite("bet_unlock3 stack is "),
-    %io:fwrite(packer:pack({ContractAmount, Nonce2, Delay})),
-    %io:fwrite("\n"),
+    io:fwrite("bet_unlock3 stack is "),
+    io:fwrite(packer:pack({ContractAmount, Nonce2, Delay})),
+    io:fwrite("\n"),
    if
         %Delay > 50 ->
         Delay > 0 ->

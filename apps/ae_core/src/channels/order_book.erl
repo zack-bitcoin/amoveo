@@ -98,6 +98,7 @@ handle_call(keys, _From, X) ->
 handle_call({match, OID}, _From, X) -> 
     %crawl upwards accepting the same volume of trades on each side, until they no longer profitably arbitrage. The final price should only close orders that are fully matched.
     %update a bunch of channels with this new price declaration.
+    io:fwrite("match internal\n"),
     {ok, OB} = dict:find(OID, X),
     {_, Height, _} = tx_pool:data(),
     B = (Height - OB#ob.height) >= (OB#ob.period * 3 div 4),
@@ -105,9 +106,12 @@ handle_call({match, OID}, _From, X) ->
     {Out, X2}  = 
         case B of
             true ->
+                io:fwrite("do match\n"),
                 {OB2, PriceDeclaration, Accounts, MatchPrice} = match_internal(Height, OID, OB, []),
                 case Accounts of
-                    [] -> {ok, X};%if there is nothing to match, then don't match anything.
+                    [] -> 
+                        io:fwrite("nothing to match\n"),
+                        {ok, X};%if there is nothing to match, then don't match anything.
                     _ ->
                         OB3 = OB2#ob{height = Height},
                         X3 = dict:store(OID, OB3, X),
@@ -121,6 +125,7 @@ handle_call({match, OID}, _From, X) ->
                         {{PriceDeclaration, Accounts}, X3}
                 end;
             false ->
+                io:fwrite("do not match\n"),
                 {ok, X}
         end,
             
@@ -149,13 +154,14 @@ finished_matching(Height, OID, OB, Accounts) ->
     {OB2, PriceDeclaration, Accounts, Price}.
     
 match_internal(Height, OID, OB, Accounts) ->
-    %io:fwrite("match internal\n"),
-    %E = OB#ob.exposure,
+    io:fwrite("match internal internal\n"),
+    E = OB#ob.exposure,
     Buys = OB#ob.buys,
     Sells = OB#ob.sells,
     if
 	((Buys == []) or
 	(Sells == [])) -> 
+            io:fwrite("no trades left to match in match internal\n"),
 	    finished_matching(Height, OID, OB, Accounts);
 	true ->
 	    [Buy|B] = Buys,
@@ -164,8 +170,10 @@ match_internal(Height, OID, OB, Accounts) ->
 	    SellPrice = Sell#order.price,
 	    if
 		(BuyPrice+SellPrice) < 10000 ->
+                    io:fwrite("finished match internal \n"),
 		    finished_matching(Height, OID, OB, Accounts);
 		true ->
+                    io:fwrite("matching a trade\n"),
 		    match_internal3(Height, OID, OB, Accounts, [Buy|B], [Sell|S])
 	    end
     end.
@@ -178,14 +186,14 @@ match_internal3(Height, OID, OB, Accounts, [Buy|B], [Sell|S]) ->
     {X4, AID1, AID2} = 
 	if
 	    X2 > Y2 -> %match the buy;
-		%io:fwrite("match buy \n"),
+		io:fwrite("match buy \n"),
 		Ratio = (10000 * abs(Y)) div 
 		    Sell#order.amount,
 		{OB#ob{exposure = Y, buys = B, ratio = Ratio, price = (10000 - Sell#order.price)},
 		 Buy#order.acc,
 		 Sell#order.acc};
 	    true -> %match the sell
-		%io:fwrite("match sell \n"),
+		io:fwrite("match sell \n"),
 		Ratio = (10000 * abs(X)) div 
 		    Buy#order.amount,
 		{OB#ob{exposure = X, sells = S, ratio = Ratio, price = Buy#order.price}, 

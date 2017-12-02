@@ -37,6 +37,12 @@ doit({Key, A, B, C, D, E, F}) ->
     {ok, api:Key(A, B, C, D, E, F)};
 doit({Key, A, B, C, D, E, F, G}) ->
     {ok, api:Key(A, B, C, D, E, F, G)};
+doit({Key, A, B, C, D, E, F, G, H}) ->
+    {ok, api:Key(A, B, C, D, E, F, G, H)};
+doit({Key, A, B, C, D, E, F, G, H, I}) ->
+    {ok, api:Key(A, B, C, D, E, F, G, H, I)};
+doit({Key, A, B, C, D, E, F, G, H, J}) ->
+    {ok, api:Key(A, B, C, D, E, F, G, H, J)};
 
 doit(X) ->
     io:fwrite("don't know how to handle it \n"),

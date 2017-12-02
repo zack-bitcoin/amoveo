@@ -564,6 +564,9 @@ trade(Price, Type, Amount, OID, Height) ->
 trade(Price, Type, Amount, OID, Height, IP, Port) ->
     trade(Price, Type, Amount, OID, Height, ?Fee*2, IP, Port).
 trade(Price, Type, A, OID, Height, Fee, IP, Port) ->
+    io:fwrite("api trade height is "),
+    io:fwrite(packer:pack([Height])),
+    io:fwrite("\n"),
     Amount = A,
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     {ok, {Expires, 
