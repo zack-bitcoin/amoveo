@@ -31,17 +31,16 @@ These are the 18 types of transaction that can be in blocks.
 
 # account_new
 
-This creates a new account on the blockchain and gives it some tokens and possibly some shares.
+This creates a new account on the blockchain and gives it some tokens.
 The account loses a little money every block. This stops attackers from making tons of accounts to spam the network.
 
 # account_spend
 
-Spends AE tokens and/or shares to a different account.
+Spends tokens to a different account.
 
 # account_delete
 
 This deletes an account on the blockchain and sends all of it's AE tokens to a different account.
-Warning, this deletes all your share. Make sure to use account_spend to move all your shares somewhere else before deleting your account.
 
 # account_recycle
 
@@ -68,7 +67,7 @@ This transaction can update the minimum nonce accepted when a channel is closed.
 
 Both parties need to sign.
 This closes the channel.
-The AE tokens in the channel are distributed to the 2 account owners in the form of AE tokens and shares of any type.
+The tokens in the channel are distributed to the 2 account owners.
 
 # channel_solo_close
 
@@ -123,7 +122,7 @@ If you had money in orders in the oracle order book when the oracle_close transa
 
 # oracle_shares
 
-If you bet in an oracle, and the oracle has closed, this is how you get your shares out.
+If you bet in an oracle, and the oracle has closed, this is how you get your winnings out.
 If you bet on the winning outcome, then you get positive shares. If you bet on one of the losing outcomes, then you get negative shares.
 [you can read about shares here](shares.md)
 The difficulty of the shares was announced when the oracle was launched.
@@ -138,3 +137,5 @@ The virtual machine can verify that data exists in the existence tree.
 This destroys some coins in a provable way.
 There will be a merkel tree that stores by address. It stores the number of coins that that address has burned.
 Anyone holding the private key for that address can prove how big of a burn they did.
+
+[transaction types are the ways to modify blockchain consensus state. All the consensus state is stored in trees. Read about the trees here](trees.md)

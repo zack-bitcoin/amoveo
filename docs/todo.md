@@ -15,8 +15,14 @@
 
 * block_time_after_median should not be a governance variable. We should review all the governance variables.
 
+* either implement proof of burn and proof of existence, or else remove it from the docs.
+
 
 ### Things to do before the launch of the official Amoveo blockchain.
+
+* rename oracle_shares to "oracle_winnings" or something like that.
+
+* we need a test to make sure that when we close a channel, the correct amounts of money transfer, even if we slashed more than once.
 
 * pull channel state shouldn't cause a crash when the state is already synced.
 

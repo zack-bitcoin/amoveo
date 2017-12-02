@@ -14,3 +14,6 @@ This technology can be used to insure against the state, which is equivalent to 
 This gives government people the option to make a bet that government will shrink, and since they have the power to make the government shrink, they will.
 
 It is a peaceful, voluntary, incentive compatible way to dismantle the state.
+
+[dominant assurance contracts](dominant_assurance_contract.md)
+[insured crowdfunding](insured_crowdfund.md)

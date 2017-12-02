@@ -5,7 +5,6 @@ There are 8 [merkel trees](/docs/basics/merkle.md).
 * channels+
 * accounts+
 * oracle bets
-* shares
 * proof of burn+
 * proof of existence+
 * governance+
@@ -19,6 +18,7 @@ The hash of the text of the question is stored.
 These are the results of oracles that have existed. They are stored by id.
 This data is available to the VM.
 The result is stored in 1 byte. Either it is 0 for false, 1 for true, or 2 if the questions was bad, or a 4 if the question hasn't been answered yet.
+[read more about oracles here](oracle.md)
 
 === Orders
 
@@ -27,19 +27,12 @@ Every oracle has an order book. The order book is a linked list of orders. Each 
 === channels
 
 This tree stores channels by an integer channel id.
+[more about channels](channels.md)
 
 === accounts
 
-This tree stores accounts by integer id. Each account has 2 merkel roots written in them. One is for a shares tree, the other is for an oracle bets tree.
-
-=== oracle bets
-
-Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
-
-=== shares
-
-Each account has a tree of shares. The shares are stored by share id. The id of a share determines it's difficulty. You can own either a negative, positive, or zero amount of each type of share. Shares are transferable
-[you can read about shares here](shares.md)
+This tree stores accounts by integer id. Each account has a merkel root written in it. It is for the oracle bets tree.
+[more about accounts](accounts.md)
 
 === proof of burn
 

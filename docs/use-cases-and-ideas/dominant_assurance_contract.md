@@ -12,3 +12,6 @@ There are 4 possibilities:
 Option 1 is the most profitable, but it is risky because option 2 might happen.
 If Bob donates $9000, then he knows he will get $1000 profit either way. His risk is completely gone.
 I expect most people to do a mixed strategy that only partially gets rid of their risk, like paying only $5000.
+
+[insured crowdfunding](insured_crowdfund.md)
+[raising funds with amoveo](raising_funds.md)

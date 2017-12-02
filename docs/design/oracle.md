@@ -1,15 +1,20 @@
 For questions that are in the process of being answered, we store a market in the on-chain state.
 The market remembers how many shares of each type have been sold, and it remembers what it's initial liquidity was, and it should have an order-book.
-The market has 4 possible outcomes:
-1) difficulty goes up, and oracle's outcome is true
-2) difficulty goes up, and oracle's outcome is false
-3) difficulty goes down, and oracle's outcome is true
-4) difficulty goes down, and oracle's outcome is false
 
+The first order in the book needs to be as big as the initial liquidity.
+Every order after that needs to be twice as big as the previous order.
 
-The initial liquidity will be collected using an off-chain dominant assurance contract.
+There are 3 possible outcomes for an oracle:
+True, False, Bad Question
 
 the result of the oracle is determined by which side of the order book has open orders. If one side has open orders for a long enough period of time, then that side wins.
 
-Since we use an order book, it is expensive for attackers to DDOS us by moving the price past 50% every time the oracle is almost done.
+The initial liquidity can be collected using a [dominant assurance contract](/docs/use-cases-and-ideas/dominant_assurance_contract.md) in a [market](/docs/use-cases-and-ideas/trustless_markets.md).
 
+[to see the short and clear cryptoeconomic explanation for why this oracle will work, look at the bottom of the white paper](/docs/white_paper.md)
+
+Oracles are stored in one of the consensus state merkle trees. [read more about these trees here](trees.md)
+
+[motivations that lead to this oracle design](oracle_motivations.md)
+
+[Explaining the oracle from a different perspective](oracle_simple.md)
