@@ -20,7 +20,7 @@ This purpose of this monthly progress report is to review the teams that are dev
 
 
 ## What teams are working on this technology?
-Amoveo, Augur, Group Gnosis, Aeternity, Zen Protocol, Bitshares, STOX, Bodhi, Spectre.ai, and Bitcoin Hivemind.
+Amoveo, Augur, Group Gnosis, Aeternity, Zen Protocol, Bitshares, STOX, Bodhi, spectre.ai and Bitcoin Hivemind.
 
 
 Each team will be ranked in each of the categories from 0 to 10.
@@ -31,20 +31,19 @@ Each team will be ranked in each of the categories from 0 to 10.
 * 10 there is an active community of people using this tool
 
 ```
-channels, shards, light nodes, channel markets, oracles, blockchain, community
-                 C  S  L  M  O  B  C    total
-Amoveo           9  8  9  9  8  9  2    54
-Group Gnosis     1  0  5  0  8  10 10   34
-Augur            1  0  5  0  0  10 4    20
-Stox             0  0  5  0  0  10 2    17
-Bodhi            0  0  3  0  0  10 2    15
-Bitshares        0  0  0  0  0  10 4    14
-Bitcoin Hivemind 2  0  0  0  0  8  3    13
-Zen Protocol     0  0  0  0  0  9  2    11
-Aeternity        0  0  0  0  0  1  3    4
+channels, shards, light nodes, channel markets, oracles, blockchain, community, trading fees
+                 C  S  L  M  O  B  C  F    total
+Amoveo           9  8  9  9  8  9  2  10   64
+Group Gnosis     1  0  5  0  8  10 10 5    39
+Stox             0  0  5  0  0  10 2  0    17
+Augur            1  0  5  0  0  10 4  -5   15
+Bodhi            0  0  3  0  0  10 2  -5   10
+Bitshares        0  0  0  0  0  10 4  -5   14
+Bitcoin Hivemind 2  0  0  0  0  8  3  -5   8
+Spectre.ai       0  0  5  0  0  10 2  -10  7
+Zen Protocol     0  0  0  0  0  9  2  -5   6
+Aeternity        0  0  0  0  0  1  3  -5   -1
 ```
-
-
 
 ### Channels
 
@@ -114,7 +113,7 @@ The Amoveo oracle is live on the Amoveo testnet.
 
 ### blockchain
 
-Gnosis, Stox, and Augur use Ethereum, which is a very popular blockchain.
+Gnosis, Stox, Spectre.ai, and Augur use Ethereum, which is a very popular blockchain.
 
 Bodhi uses QTUM, which is a very successful blockchain.
 
@@ -124,22 +123,39 @@ Amoveo, Bitcoin Hivemind, and Zen Protocol have live testnets where you can try 
 
 Aeternity does not yet have a testnet.
 
+
 ### Community
 
-Gnosis is worth about $1.6 billion (only 5% were distributed so far).
+Gnosis is worth about $2.5 billion (only 5% were distributed so far).
 
-Bodhi is on Qtum. The 24 hour volume of Bodhi is $170 000. I can't find out the market cap.
+Bodhi is on Qtum. The 24 hour volume of Bodhi is $260 000. I can't find out the market cap.
 
-Bitshares is about $356 million
+Bitshares is about $382 million
 
-Augur is about $270 million.
+Augur is about $439 million.
 
 Aeternity is about $169 million.
 
 Stox is worth about $25 million.
 
+Spectre.ai is worth about $15 million.
+
 The rest do not yet have value.
+
+
+### Trading fees
+
+This section works different. You start out with 10 points, and there are several ways you can lose them.
+
+Any project with on-chain markets will lose 5 points, because of blockchain transaction fees to participate in the market. 
+Any project with an oracle-subcurrency will lose 5 points, because of the trading fee that pays the oracle. Bitcoin Hivemind, Augur.
+Any project with trusted feeds will lose 5 points, because of the losses from theft. Aeternity, Bitshares.
+Any project where the oracle cannot escalate will lose 5 points, because this means that the oracles will need to be paid orders of magnitude more money.
+
+Spectre.ai plans to charge trading fees between 4% and 11%. This is far more expensive than anyone else, so Spectre.ai loses an additional 5 points.
+
 
 ### How to make changes to this document
 
 If you want to add an additional team to this list, or you want to correct any mistakes in this document, make an issue or pull request on github.
+
