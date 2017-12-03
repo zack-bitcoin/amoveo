@@ -211,9 +211,9 @@ test3() ->
     BetLocation = constants:oracle_bet(),
     Pubkey = keys:pubkey(),
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    A = market_smart_contract(BetLocation, OID, 1, 124, 125, Pubkey, 126, 0, OID, 0),
+    A = market_smart_contract(BetLocation, OID, 2, 124, 125, Pubkey, 126, 0, OID, 0),
     Max = 4294967295,
-    B = market_smart_contract(BetLocation, Max, 1, Max, Max, <<0:520>>, Max, Max, Max, Max),
+    B = market_smart_contract(BetLocation, Max, 2, Max, Max, <<0:520>>, Max, Max, Max, Max),
     A2 = element(2, A),
     B2 = element(2, B),
     compare_test(A2, B2, 0, <<>>),

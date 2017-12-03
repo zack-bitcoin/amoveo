@@ -38,10 +38,15 @@ function keys_function1() {
     var pub_div = document.createElement("div");
     div.appendChild(pub_div);
 
+    var save_name = document.createElement("INPUT");
+    save_name.type = "text";
+    save_name.id = "save_name";
+    save_name.value = "amoveo_light_keys";
     var save_button = document.createElement("input");
     save_button.type = "button";
     save_button.value = "save keys to file";
     save_button.onclick = save_keys;
+    div.appendChild(save_name);
     div.appendChild(save_button);
 
     div.appendChild(document.createElement("br"));
@@ -129,10 +134,10 @@ function keys_function1() {
     }
     function set_balance(n) {
         bal_div.innerHTML = ("your balance: ").concat((n).toString());
-        
     }
     function save_keys() {
-        download(keys.getPrivate("hex"), "amoveo_light_keys", "text/plain");
+        var save_name = document.getElementById("save_name");
+        download(keys.getPrivate("hex"), save_name.value, "text/plain");
     }
     function load_keys() {
         var file = (file_selector.files)[0];

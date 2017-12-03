@@ -19,10 +19,15 @@ function channels1() {
 
     channels_div.appendChild(document.createElement("br"));
     channels_div.appendChild(document.createElement("br"));
+    var save_name = document.createElement("INPUT");
+    save_name.type = "text";
+    save_name.id = "channel_name";
+    save_name.value = "amoveo_channel_state";
     var save_button = document.createElement("input");
     save_button.type = "button";
     save_button.value = "save channel data to file";
     save_button.onclick = save_channel_data;
+    channels_div.appendChild(save_name);
     channels_div.appendChild(save_button);
     channels_div.appendChild(document.createElement("br"));
     channels_div.appendChild(channel_interface_div);
@@ -104,7 +109,8 @@ function channels1() {
         channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
     }
     function save_channel_data() {
-        download(JSON.stringify(channel_manager), "amoveo_channel_state", "text/plain");
+        var save_name = document.getElementById("channel_name");
+        download(JSON.stringify(channel_manager), save_name.value, "text/plain");
         channel_warning_div.innerHTML = "channel state is saved.";
     }
     function load_channels() {
@@ -236,21 +242,22 @@ function channels1() {
             }
             function make_bet3(sspk2, sspk, server_pubkey, oid_final) {
                 //check that the signature is valid.
-                var hspk2 = hash(sspk2[1]);
-                var hspk = hash(sspk[1]);
+                var hspk2 = JSON.stringify(hash(serialize(sspk2[1])));
+                var hspk = JSON.stringify(hash(serialize(sspk[1])));
                 if (hspk2 == hspk) { //make sure that both spks match
                     var cd = channel_manager[server_pubkey];
                     cd.me = sspk[1];
                     cd.them = sspk2;
                     var newss = [0,0,0,0,4];
                     console.log(JSON.stringify(sspk[1]));
-                    console.log(JSONS.stringify(newss));
+                    console.log(JSON.stringify(newss));
                     cd.ssme[0] = newss;
                     cd.ssthem[0] = newss;
                     cd.ssme = ([-6]).concat(cd.ssme);
                     cd.ssthem = ([-6]).concat(cd.ssthem);
                     channel_manager[server_pubkey] = cd;
                     amount.value = "";
+                    channel_warning();
                 } else {
                     console.log("error, we calculated the spk differently from the server. you calculated this: ");
                     console.log(JSON.stringify(sspk[1]));
