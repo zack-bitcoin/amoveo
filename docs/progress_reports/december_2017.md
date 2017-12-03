@@ -17,6 +17,7 @@ This purpose of this monthly progress report is to review the teams that are dev
 * oracle, to teach the blockchain the results of each bet.
 * a blockchain to host it all
 * a community of users
+* low trading fees
 
 
 ## What teams are working on this technology?
@@ -138,21 +139,20 @@ Aeternity is about $169 million.
 
 Stox is worth about $25 million.
 
-Spectre.ai is worth about $15 million.
+Spectre.ai raised about $15 million in it's ICO so far.
 
 The rest do not yet have value.
 
 
 ### Trading fees
 
-This section works different. You start out with 10 points, and there are several ways you can lose them.
+This section works different. Each project starts out with 10 points, and there are several ways to lose them.
 
-Any project with on-chain markets will lose 5 points, because of blockchain transaction fees to participate in the market. 
-Any project with an oracle-subcurrency will lose 5 points, because of the trading fee that pays the oracle. Bitcoin Hivemind, Augur.
-Any project with trusted feeds will lose 5 points, because of the losses from theft. Aeternity, Bitshares.
-Any project where the oracle cannot escalate will lose 5 points, because this means that the oracles will need to be paid orders of magnitude more money.
-
-Spectre.ai plans to charge trading fees between 4% and 11%. This is far more expensive than anyone else, so Spectre.ai loses an additional 5 points.
+* Any project with on-chain markets will lose 5 points, because of blockchain transaction fees to participate in the market. 
+* Any project with an oracle-subcurrency will lose 5 points, because of the trading fee that pays the oracle. Bitcoin Hivemind, Augur.
+* Any project with trusted feeds will lose 5 points, because of the losses from theft. Aeternity, Bitshares.
+* Any project where the oracle cannot escalate will lose 5 points, because this either means the oracle will either be too expensive for the security required, or else it will have insufficient security.
+* Spectre.ai plans to charge trading fees between 4% and 11%, charging winners more than losers. This is far more expensive than anyone else's plan, so Spectre.ai loses an additional 5 points.
 
 
 ### How to make changes to this document
