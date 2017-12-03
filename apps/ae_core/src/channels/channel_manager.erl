@@ -11,7 +11,6 @@ init(ok) ->
 	     X == "" -> dict:new();
 	     true -> X
 	 end,
-    %process_flag(trap_exit, true),
     {ok, Ka}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -39,6 +38,7 @@ handle_call({read, CID}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 dump() ->
     gen_server:cast(?MODULE, {dump}).
+    
 read(CID) -> 
     gen_server:call(?MODULE, {read, CID}).
 keys() -> gen_server:call(?MODULE, keys).

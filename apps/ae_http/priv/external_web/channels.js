@@ -122,6 +122,8 @@ function channels1() {
         var div = channel_interface_div;
         div.innerHTML = "";
         var v = channel_manager[pubkey];
+        console.log("v is ");
+        console.log(JSON.stringify(v));
         if (v == undefined) {
             var make_channel = document.createElement("div");
             console.log("give interface for making channels.");

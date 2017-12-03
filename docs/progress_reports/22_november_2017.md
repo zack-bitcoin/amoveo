@@ -20,7 +20,7 @@ This purpose of this monthly progress report is to review the teams that are dev
 
 
 ## What teams are working on this technology?
-Amoveo, Augur, Group Gnosis, Aeternity, Zen Protocol, Bitshares, STOX, Bodhi, Spectre.ai, and Bitcoin Hivemind.
+Amoveo, Augur, Group Gnosis, Aeternity, Zen Protocol, Bitshares, STOX, Bodhi, and Bitcoin Hivemind.
 
 
 Each team will be ranked in each of the categories from 0 to 10.
@@ -123,6 +123,7 @@ Bitshares is a popular blockchain.
 Amoveo, Bitcoin Hivemind, and Zen Protocol have live testnets where you can try out the services being built.
 
 Aeternity does not yet have a testnet.
+
 
 ### Community
 

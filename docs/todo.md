@@ -17,18 +17,18 @@
 
 * either implement proof of burn and proof of existence, or else remove it from the docs.
 
+* rename oracle_shares tx type to "oracle_winnings" or something like that.
+
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* rename oracle_shares to "oracle_winnings" or something like that.
+* the light node needs a way to pull the channel state from the server.
 
 * we need a test to make sure that when we close a channel, the correct amounts of money transfer, even if we slashed more than once.
 
 * pull channel state shouldn't cause a crash when the state is already synced.
 
-** do these things before we can teach the javascript light node how to do channel bets.
 
--the javascript contract needs to be updates to match these changes.
 
 
 * sync is becoming a zombie process when it cannot connect.
