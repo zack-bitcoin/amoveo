@@ -123,16 +123,16 @@ function channels1() {
         reader.readAsText(file);
     }
     function refresh_channels_interfaces(pubkey) {
-        console.log("server pubkey is ");
-        console.log(pubkey);
+        //console.log("server pubkey is ");
+        //console.log(pubkey);
         var div = channel_interface_div;
         div.innerHTML = "";
         var v = channel_manager[pubkey];
-        console.log("v is ");
-        console.log(JSON.stringify(v));
+        //console.log("v is ");
+        //console.log(JSON.stringify(v));
         if (v == undefined) {
             var make_channel = document.createElement("div");
-            console.log("give interface for making channels.");
+            //console.log("give interface for making channels.");
             div.appendChild(make_channel);
             var height_button = document.createElement("BUTTON");
             var button_text_node = document.createTextNode("make channel");

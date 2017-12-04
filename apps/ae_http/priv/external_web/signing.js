@@ -148,7 +148,7 @@ function signing_test() {
     console.log(foo);
 }
 
-signing_test2();
+//signing_test2();
 function signing_test2() {
     //var d = ["record", [-6, 4], [-7, 8000], -50];
     var d = ["record", [-6, ["a", -2000]]];

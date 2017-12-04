@@ -1,3 +1,8 @@
+//bet: code, amount, key, meta
+//spk: acc1, acc2, entropy, bets, space_gas, time_gas, cid, amount, nonce, delay
+//cd: me, them, ssme, ssthem, emsg, live, entropy, cid
+//["market",1,1,3000,"BJjOADT/mMg0BsqQkCDcEb/ylv6W85wipEKrY3qV5z3XvVrNygvVoEXsA6tncAoMuyvMB5Prepzqql3zZ1sDjjo=",40,1]
+//{market, 1, MarketID, Expires, Pubkey, Period, OID}.
 var outstanding_bets_button_div = document.createElement("div");
 outstanding_bets_button_div.id = "outstanding_bets_button_div";
 document.body.appendChild(outstanding_bets_button_div);
@@ -23,23 +28,14 @@ function outstanding_bets1() {
 function outstanding_bets2() {
     var div = document.getElementById("outstanding_bets_div");
     var oadiv = document.getElementById("offchain_assets_div");
-    //find out the server's pubkey, and look it up in the channel manager.
-    //store the CD in x.
     variable_public_get(["pubkey"], outstanding_bets3);
     function outstanding_bets3(server_pubkey) {
         var x = channel_manager[server_pubkey];
-        //console.log("outstanding_bets3");
-        //console.log(JSON.stringify(x));
-        //bet: code, amount, key, meta
-        //spk: acc1, acc2, entropy, bets, space_gas, time_gas, cid, amount, nonce, delay
-        //cd: me, them, ssme, ssthem, emsg, live, entropy, cid
         var bets = me[4];
         var ssme = x.ssme;
         div.innerHTML = "";
         oadiv.innerHTML = "";
         outstanding_bets_print_bets(bets, ssme, server_pubkey);
-        //["market",1,1,3000,"BJjOADT/mMg0BsqQkCDcEb/ylv6W85wipEKrY3qV5z3XvVrNygvVoEXsA6tncAoMuyvMB5Prepzqql3zZ1sDjjo=",40,1]
-    //{market, 1, MarketID, Expires, Pubkey, Period, OID}.
     }
 }
 function cancel_trade(n, server_pubkey) {
@@ -53,7 +49,7 @@ function cancel_trade(n, server_pubkey) {
         var sspk2 = sign_tx(spk2);
         var msg = ["cancel_trade", pubkey_64(), n, sspk2];
         variable_public_get(msg, function(x) {
-            return cancel_trade3(x, sspk2, server_pubkey, n-1);
+            return cancel_trade2(x, sspk2, server_pubkey, n-1);
         });
     } else {
         console.log(ss);
@@ -79,7 +75,7 @@ function remove_bet(n, spk0) {
     spk[8] = spk[8] + a;
     return spk;
 }
-function cancel_trade3(sspk2, sspk, server_pubkey, n) {
+function cancel_trade2(sspk2, sspk, server_pubkey, n) {
     var cd = channel_manager[server_pubkey];
     //verify that sspk2 is signed by our partner.
     var spk = sspk[1];
@@ -119,22 +115,17 @@ function outstanding_bets_print_bets(bets, ssme, server_pubkey) {
         } else if (bet[4][1] == 2) {
             outcome = "false";
         }
-        //if ( ssme[i][1] == "AAAAAAQ=" ) {
         if ( JSON.stringify(ssme[i]) == JSON.stringify([0,0,0,0,4]) ) {
             //console.log("unmatched");
             //console.log(JSON.stringify([i, oid, amount, "unmatched", bet[4]]));
             order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you have an open order to trade this many tokens ").concat(s2c(amount)).concat(", you are trading at this price: ").concat(parseFloat(((bet[4][2])/100), 10)).concat(", you are betting on outcome: ").concat(outcome);
             div.appendChild(order);
-            //var cancel_button = document.createElement("BUTTON");
             var cancel_button = document.createElement("input");
             cancel_button.type = 'button';
             cancel_button.value = 'cancel trade';
-            //cancel_button.id = "cancel_button".concat(i.toString());
-            //cancel_button.onclick = function() { cancel_trade(i); };
             div.appendChild(cancel_button);
             div.appendChild(document.createElement("br"));
             cancel_buttons.push(cancel_button);
-            
         } else {
             //console.log("matched");
             //console.log(JSON.stringify([i, oid, amount, "matched", bet[4]]));

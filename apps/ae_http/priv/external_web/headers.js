@@ -310,7 +310,7 @@ function wallet_doit1() {
         console.log(hl);
         absorb_headers(hl);
     }
-    test();
+    //test();
     function test() {
         console.log(sci2int(2000));//should be 232
         console.log(int2sci(2000));//should be 2804
