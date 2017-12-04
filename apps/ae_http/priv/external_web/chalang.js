@@ -2,7 +2,7 @@ chalang_test();
 function chalang_test() {
     var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));
     console.log("chalang test");
-    var x = run5([], d);
+    var x = run5([0,0,0,0,7], d);
     console.log(JSON.stringify(x.stack));
 }
 function chalang_new_state(height, slash) {
@@ -15,6 +15,13 @@ function chalang_make_array(m) {
     var arr = [];
     arr.length = m;
     return arr;
+}
+function array_to_int(l) {
+    var x = 0;
+    for (var i = 0; i < l.length; i++) {
+        x = (256 * x) + l[i];
+    }
+    return x;
 }
 function run5(code, d) {
     const int_op = 0,
@@ -85,17 +92,37 @@ function run5(code, d) {
     }
     function run2(code, d) {
         for (var i = 0; i<code.length; i++) {
-            //check if we are out of time.
-            //check if we are out of space.
+            if (d.ram_current > d.ram_most) {
+                d.ram_most = d.ram_current;
+            }
+            if (d.op_gas < 0) {
+                console.log("out of time");
+                return ["error", "out of time"];
+            } else if (d.ram_current > d.ram_limit) {
+                console.log("out of space. limit was: ");
+                console.log(d.ram_limit);
+                return ["error", "out of space"];
+            } else if (code[i] == int_op) {
+                var int_array = code.slice(i+1, i+5);
+                i = i + 4;
+                var new_int = array_to_int(int_array);
+                d.stack = [new_int].concat(d.stack);
+                d.ram_current = d.ram_current + 1;
+                d.op_gas = d.op_gas - 1;
+            }
             
-            //working here;
+                //working here;
+    
         }
         return d;
     }
+
     var b = is_balanced_f(code);
     if (b) {
-        return run2(code, d);
+        var x = run2(code, d);
+        return x;
     } else {
         console.log("misformed function. : ; ");
+        return ["error", "mismatched function"];
     }
 }
