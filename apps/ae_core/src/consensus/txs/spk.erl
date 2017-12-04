@@ -56,7 +56,7 @@ remove_bet(N, SPK) ->
     B = element(N, list_to_tuple(SPK#spk.bets)),
     A = case bet_meta(B) of
             0 -> 0;
-            {Direction, Price} -> 
+            {_Direction, Price} -> 
                 CGran = constants:channel_granularity(),
                 Amount = bet_amount(B),
                 (Amount * Price) div CGran
