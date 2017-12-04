@@ -19,9 +19,6 @@
 
 * rename oracle_shares tx type to "oracle_winnings" or something like that.
 
-* it is really weird how chalang accepts contracts as a list with just one element. We should just give the one element instead. oh, this is because the vm sometimes breaks the input binary into sub-binaries, and stores them in this same list.
-
-
 ### Things to do before the launch of the official Amoveo blockchain.
 
 * the javascript light node "is_list" function in chalang has a problem. we need to check if a thing is an array in javascript.

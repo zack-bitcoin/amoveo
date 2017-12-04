@@ -1,10 +1,5 @@
 var top_header = 0;//stores the valid header with the most accumulated work.
 
-function hash(input) {//array of bytes -- array of bytes
-    var b = sjcl.codec.bytes.toBits(input);
-    var x = sjcl.hash.sha256.hash(b);
-    return sjcl.codec.bytes.fromBits(x);
-}
 function array_to_string(x) {
     var a = "";
     for (var i=0; i<x.length ; i++) {
