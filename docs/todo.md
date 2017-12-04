@@ -24,6 +24,8 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* the javascript light node "is_list" function in chalang has a problem. we need to check if a thing is an array in javascript.
+
 * the light node needs a way to pull the channel state from the server.
 
 * we need a test to make sure that when we close a channel, the correct amounts of money transfer, even if we slashed more than once.
