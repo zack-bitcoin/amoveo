@@ -148,7 +148,7 @@ function run5(code, d) {
             } else if (binary[i] == int_op) {
                 i += 4;
             } else if (binary[i] == binary_op) {
-                var h = array_to_integer(binary.slice(i+1, i+5));
+                var h = array_to_int(binary.slice(i+1, i+5));
                 i += (4 + h);
             }
         }
@@ -177,6 +177,10 @@ function run5(code, d) {
         }
         x = ((x % word_size) + word_size) % word_size;
         return [x];
+    }
+    function small_hash(l) {
+        var h = hash(l);
+        return h.slice(0, 12);
     }
     function run2(code, d) {
         var error_check = 0;
@@ -214,7 +218,9 @@ function run5(code, d) {
                 var int_array = code.slice(i+1, i+5);
                 var new_int = array_to_int(int_array);
                 var bin_array = code.slice(i+5, i+5+new_int);
-                d.stack = (["binary"]).concat([bin_array]).concat(d.stack);
+                d.stack = ([(["binary"]).concat(
+                    bin_array)]).concat(
+                        d.stack);
                 d.ram_current = d.ram_current + 1;
                 d.op_gas = d.op_gas - new_int;
                 i = i + 4 + new_int;
@@ -254,8 +260,13 @@ function run5(code, d) {
                 //return run2(definition.concat(rest), d);
             } else if (code[i] == call) {
                 //non-optimized function call.
-                //console.log"function call op");
-                definition = d.funs[d.stack[0]];
+                console.log("function call op");
+                console.log(d.stack[0]);
+                console.log(d.stack);
+                console.log(d.funs);
+                var code_hash = btoa(array_to_string(d.stack[0].slice(1, d.stack[0].length)));
+                console.log(code_hash);
+                definition = d.funs[code_hash];
                 var s = definition.length;
                 d.op_gas = d.op_gas - s - 10;
                 d.ram_current = d.ram_current + s - 1;
@@ -264,9 +275,9 @@ function run5(code, d) {
             } else if (code[i] == define) {
                 //console.log"define op");
                 var skipped_size = count_till(code, i, fun_end);
-                var definition = code.slice(i+1, i+1+skipped_size);
+                var definition = code.slice(i+1, i+skipped_size);
                 i = i + skipped_size;
-                var b = hash(definition);
+                var b = btoa(array_to_string(small_hash(definition)));
                 var definition2 = replace(recurse, ([binary_op]).concat(integer_to_array(32)), definition);
                 d.funs[b] = definition2;
                 var s = definition2.length + 4;
@@ -279,7 +290,7 @@ function run5(code, d) {
                     d.many_funs = mf;
                 }
             } else if (code[i] == crash) {
-                //console.log"crash op");
+                console.log("crash op");
                 return d;
             } else if (code[i] == print) {
                 console.log("print op");
@@ -614,23 +625,42 @@ function run5(code, d) {
     function chalang_test() {
         var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));
         console.log("chalang test");
-        var x = main([
-            int_op, 0,0,0,0,
-            0,0,0,0,3,
-            0,0,0,0,1, set, //fetch,
-            0,0,0,0,1, fetch,
-            print,
-            //bool_flip,
-            print,
-            caseif, 0,0,0,0,5,
-            caseelse, 0,0,0,0,6,
-            casethen,
-            //0,0,0,0,1, fetch,
-            print
-        ], d);
+        var function_contract =
+            [110,21,52,111,110,2,0,0,0,12,239,24,7,129,222,179,141,
+             148,74,245,17,98,113,2,0,0,0,12,239,24,7,129,222,179,
+             141,148,74,245,17,98,113,111,0,0,0,0,2,2,0,0,0,12,248,
+             21,87,89,106,92,199,6,67,69,197,184,113,0,0,0,0,16,58,
+             22,20,22,20];
+        var map_contract =
+            [define,dup,mul,fun_end,
+             define,car,swap,0,0,0,0,1,121,113,24,130,swap,
+             132,58,70,20,20,136,71,20,112,113,72,fun_end,
+             define,0,0,0,0,1,
+             set,nil,swap,
+             binary_op,0,0,0,12,
+             71,192,142,101,22,36,27,88,17,55,152,169,
+             call,fun_end,132,0,0,0,0,5,22,130,0,0,0,0,6,22,130,0,
+             0,0,0,7,22,130,136,2,0,0,0,12,239,24,7,129,222,179,141,
+             148,74,245,17,98,2,0,0,0,12,53,181,176,16,58,242,45,201,
+             243,134,253,139,113,132,0,0,0,0,25,22,130,0,0,0,0,36,22,
+             130,0,0,0,0,49,22,130,136,58,30,20,20,31];
+        var contract =
+            [
+                int_op, 0,0,0,0,
+                0,0,0,0,3,
+                0,0,0,0,1, set, //fetch,
+                0,0,0,0,1, fetch,
+                print,
+                //bool_flip,
+                print,
+                caseif, 0,0,0,0,5,
+                caseelse, 0,0,0,0,6,
+                casethen,
+                //0,0,0,0,1, fetch,
+                print];
+        var x = main(function_contract, d);
         console.log(JSON.stringify(x.stack));
     }
-
 
 
     if (code == undefined) {

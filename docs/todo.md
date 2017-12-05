@@ -19,6 +19,9 @@
 
 * rename oracle_shares tx type to "oracle_winnings" or something like that.
 
+* chalang needs to use 32 byte hashes for identifying functions. 12 bytes is not enough.
+
+
 ### Things to do before the launch of the official Amoveo blockchain.
 
 * the javascript light node "is_list" function in chalang has a problem. we need to check if a thing is an array in javascript.
