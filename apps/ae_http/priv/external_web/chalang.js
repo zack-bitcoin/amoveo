@@ -118,16 +118,38 @@ function run5(code, d) {
         return true;
     }
     function count_till(code, i, opcode) {
-        for (var j = 0; j < code.length - i; j++) {
-            if (opcode == code[i+j]) {
+        console.log("count till ");
+        console.log(JSON.stringify([code, i, opcode]));
+        for (var j = 0; (j + i) < code.length; j++) {
+            if ((code[i+j]) == int_op) {
+                console.log("count till int_op");
+                j += 4;
+            } else if (code[i+j] == binary_op) {
+                console.log("count till binary_op");
+                var h = array_to_int(code.slice(i+j+1, i+j+5));
+                console.log(h);
+                j += (4 + h);
+            //}
+            /*
+              } else if ((code[i+j] == caseif) && (1 == 2)){
+                console.log("count till caseif");
+                var k = count_till(code, i+j+1, casethen);
+                console.log("k is ");
+                console.log(k);
+                j += (k);
+            */
+            } else if (opcode == code[i+j]) {
                 return j;
             }
         }
         console.log("count till reached end without finding goal");
+        throw(error);
         console.log(opcode);
         return ["error", "count till"];
     }
     function memory(x) {
+        //console.log("in memory function");
+        //console.log(JSON.stringify(x));
         if (JSON.stringify(x) == JSON.stringify([])) {
             return 1;
         } else if (Number.isInteger(x)) {
@@ -223,8 +245,8 @@ function run5(code, d) {
                 d.stack = ([(["binary"]).concat(
                     bin_array)]).concat(
                         d.stack);
-                d.ram_current = d.ram_current + 1;
-                d.op_gas = d.op_gas - new_int;
+                d.ram_current += 1;
+                d.op_gas -= new_int;
                 i = i + 4 + new_int;
             } else if (code[i] == caseif) {
                 //console.log("if op");
@@ -234,18 +256,18 @@ function run5(code, d) {
                 var size_case2 = count_till(code, i + size_case1, casethen);
                 if (b == 0) {
                     skipped_size = size_case1;
-                    i = i + skipped_size;
+                    i += skipped_size;
                     //maybe we should remove the case_then from code, that way we can do tail optimized recursion after a conditional.
                 } else {
                     var skipped_size = size_case2;
                 }
                 d.stack = d.stack.slice(1, d.stack.length);
-                d.ram_current = d.ram_current - skipped_size - 1;
-                d.op_gas = d.op_gas - size_case1 - size_case2;
+                d.ram_current -= (skipped_size + 1);
+                d.op_gas -= (size_case1 + size_case2);
             } else if (code[i] == caseelse) {
                 //console.log("else op");
                 var skipped_size = count_till(code, i, casethen);
-                i = i + skipped_size;
+                i += skipped_size;
             } else if (code[i] == casethen) {
                 //console.log("then op");
                 // do nothing.
@@ -303,6 +325,7 @@ function run5(code, d) {
                 console.log(JSON.stringify(d.stack));
             } else if (code[i] == drop) {
                 //console.log("drop op");
+                //console.log(JSON.stringify(d.stack));
                 error_check = underflow_check(d, 1, "drop", function() {
                     d.ram_current = d.ram_current - memory(d.stack[0]) - 2;
                     d.stack = d.stack.slice(1, d.stack.length);
@@ -532,7 +555,7 @@ function run5(code, d) {
                     }
                     d.op_gas -= 1;
                     d.ram_current += (1 + memory(val));
-                    d.stack = ([val]).concat(d.stack);
+                    d.stack = ([val]).concat(d.stack.slice(1, d.stack.length));
                 });
             } else if (code[i] == cons) {
                 //console.log("bool cons op");
@@ -544,16 +567,20 @@ function run5(code, d) {
                     d.stack = ([l]).concat(
                         d.stack.slice(2, d.stack.length));
                 });
-                                              
             } else if (code[i] == car) {
-                console.log("bool car op");
-                console.log(JSON.stringify(d.stack));
+                //console.log("car op");
                 error_check = underflow_check(d, 1, "car", function(){
-                    d.op_gas -= 1;
-                    d.ram_current -= 1;
-                    d.stack = ([d.stack[0].slice(1, d.stack[0].length)]).concat(
-                        ([d.stack[0][0]])).concat(
-                            d.stack.slice(1, d.stack.length));
+                    if (!(Array.isArray(d.stack[0]))) {
+                        console.log(JSON.stringify(d.stack));
+                        throw("car op error");
+                        return ["error", "not a list", "car"];
+                    } else {
+                        d.op_gas -= 1;
+                        d.ram_current -= 1;
+                        d.stack = ([d.stack[0].slice(1, d.stack[0].length)]).concat(
+                            ([d.stack[0][0]])).concat(
+                                d.stack.slice(1, d.stack.length));
+                    }
                 });
             } else if (code[i] == empty_list) {
                 d.op_gas -= 1;
@@ -646,6 +673,36 @@ function run5(code, d) {
              call,
              0,0,0,0,16,
              eq,swap,drop,swap,drop];
+        var variable_contract =
+            [0,0,0,0,12,
+             0,0,0,0,1,
+             set,
+             0,0,0,0,11,
+             0,0,0,0,2,
+             set,
+             0,0,0,0,1,
+             fetch,
+             print,
+             0,0,0,0,1,
+             fetch,
+             0,0,0,0,10,
+             0,0,0,0,1,
+             set,
+             0,0,0,0,1,
+             fetch,
+             0,0,0,0,2,
+             fetch,
+             0,0,0,0,11,
+             eq,to_r,drop,drop,
+             0,0,0,0,10,
+             eq,to_r,drop,drop,
+             0,0,0,0,12,
+             eq,to_r,drop,drop,
+             0,0,0,0,12,
+             eq,to_r,drop,drop,
+             from_r,from_r,from_r,from_r,
+             bool_and,bool_and,bool_and
+            ];
         var map_contract =
             [define,dup,mul,fun_end, //square
              define,//map2
@@ -741,6 +798,33 @@ function run5(code, d) {
                 from_r,from_r,from_r,from_r,from_r,
                 bool_and,bool_and,bool_and,bool_and
             ];
+        var contract3 = [
+            //0,0,0,0,5, drop,
+            //0,0,0,0,1, to_r, from_r,
+            empty_list,
+            0,0,0,0,5,
+            swap,cons,
+            0,0,0,0,6,swap,cons,
+            0,0,0,0,7,
+            swap,cons,reverse,
+            car, cons,
+            reverse
+        ];
+        var contract4 = [
+            0,0,0,0,5,
+            dup, mul
+        ];
+        var contract5 = [
+            0,0,0,0,2,
+            0,0,0,0,3,
+            0,0,0,0,4,
+            rot
+        ];
+        var contract6 = [
+            empty_list, dup,
+            eq,
+            caseif, caseelse, casethen
+        ];
         var x = main(map_contract, d);
         console.log(JSON.stringify(x.stack));
     }
