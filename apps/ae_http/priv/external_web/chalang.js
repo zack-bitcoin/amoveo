@@ -97,12 +97,13 @@ function run5(code, d) {
           fetch = 121,
           cons = 130,
           car = 131,
-          nil = 132,
+          empty_list = 132,
           append = 134,
           split = 135,
           reverse = 136,
           is_list = 137,
-          word_size = 4294967296;
+          word_size = 4294967296,
+          hash_size = 12;
     function is_balanced_f(code) {
         var x = 0;
         for (var i = 0; i<code.length; i++) {
@@ -143,8 +144,8 @@ function run5(code, d) {
     function replace(old_character, new_code, binary) {
         for (var i = 0; i < binary.length; i++) {
             if (binary[i] == old_character) {
-                var r2 = replace(old_character, new_code, binary.split(i+1, binary.length));
-                return binary.split(0,i).concat(new_code).concat(r2);
+                var r2 = replace(old_character, new_code, binary.slice(i+1, binary.length));
+                return binary.slice(0,i).concat(new_code).concat(r2);
             } else if (binary[i] == int_op) {
                 i += 4;
             } else if (binary[i] == binary_op) {
@@ -233,6 +234,7 @@ function run5(code, d) {
                 if (b == 0) {
                     skipped_size = size_case1;
                     i = i + skipped_size;
+                    //maybe we should remove the case_then from code, that way we can do tail optimized recursion after a conditional.
                 } else {
                     var j = count_till(code, i, caseelse);
                     var skipped_size = size_case2;
@@ -262,7 +264,7 @@ function run5(code, d) {
                 //non-optimized function call.
                 console.log("function call op");
                 console.log(d.stack[0]);
-                console.log(d.stack);
+                console.log(JSON.stringify(d.stack));
                 console.log(d.funs);
                 var code_hash = btoa(array_to_string(d.stack[0].slice(1, d.stack[0].length)));
                 console.log(code_hash);
@@ -277,8 +279,11 @@ function run5(code, d) {
                 var skipped_size = count_till(code, i, fun_end);
                 var definition = code.slice(i+1, i+skipped_size);
                 i = i + skipped_size;
-                var b = btoa(array_to_string(small_hash(definition)));
-                var definition2 = replace(recurse, ([binary_op]).concat(integer_to_array(32)), definition);
+                var hash_array = small_hash(definition);
+                var b = btoa(array_to_string(hash_array));
+                var definition2 = replace(recurse, ([binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array), definition);
+                console.log("definition 2 of new function");
+                console.log(definition2);
                 d.funs[b] = definition2;
                 var s = definition2.length + 4;
                 var mf = d.many_funs + 1;
@@ -513,8 +518,9 @@ function run5(code, d) {
                     d.op_gas -= 1;
                     d.stack = d.stack.slice(2, d.stack.length);
                 });
-            } else if (code[i] = fetch) {
-                //console.log("bool fetch op");
+            } else if (code[i] == fetch) {
+                console.log("fetch op");
+                console.log(JSON.stringify(d.stack));
                 error_check = underflow_check(d, 1, "fetch", function(){
                     var val;
                     var foo = d.vars[d.stack[0]];
@@ -532,8 +538,8 @@ function run5(code, d) {
                 error_check = underflow_check(d, 2, "cons", function(){
                     d.op_gas -= 1;
                     d.ram_current += 1;
-                    var l = ([d.stack[0]]).concat(
-                        [d.stack[1]]);
+                    var l = ([d.stack[1]]).concat(
+                        d.stack[0]);
                     d.stack = ([l]).concat(
                         d.stack.slice(2, d.stack.length));
                 });
@@ -547,7 +553,7 @@ function run5(code, d) {
                         ([d.stack[0][0]])).concat(
                             d.stack.slice(1, d.stack.length));
                 });
-            } else if (code[i] == nil) {
+            } else if (code[i] == empty_list) {
                 d.op_gas -= 1;
                 d.ram_current += 1;
                 d.stack = ([[]]).concat(d.stack);
@@ -626,24 +632,61 @@ function run5(code, d) {
         var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));
         console.log("chalang test");
         var function_contract =
-            [110,21,52,111,110,2,0,0,0,12,239,24,7,129,222,179,141,
-             148,74,245,17,98,113,2,0,0,0,12,239,24,7,129,222,179,
-             141,148,74,245,17,98,113,111,0,0,0,0,2,2,0,0,0,12,248,
-             21,87,89,106,92,199,6,67,69,197,184,113,0,0,0,0,16,58,
-             22,20,22,20];
+            [define,21,52,fun_end,
+             define,
+               2,0,0,0,12,239,24,7,129,222,179,141,
+               148,74,245,17,98,113,2,0,0,0,12,239,24,7,129,222,179,
+               141,148,74,245,17,98,113,
+             fun_end,
+             0,0,0,0,2,
+             2,0,0,0,12,
+             248,21,87,89,106,92,199,6,67,69,197,184,
+             call,
+             0,0,0,0,16,
+             eq,swap,drop,swap,drop];
         var map_contract =
-            [define,dup,mul,fun_end,
-             define,car,swap,0,0,0,0,1,121,113,24,130,swap,
-             132,58,70,20,20,136,71,20,112,113,72,fun_end,
-             define,0,0,0,0,1,
-             set,nil,swap,
-             binary_op,0,0,0,12,
-             71,192,142,101,22,36,27,88,17,55,152,169,
-             call,fun_end,132,0,0,0,0,5,22,130,0,0,0,0,6,22,130,0,
-             0,0,0,7,22,130,136,2,0,0,0,12,239,24,7,129,222,179,141,
-             148,74,245,17,98,2,0,0,0,12,53,181,176,16,58,242,45,201,
-             243,134,253,139,113,132,0,0,0,0,25,22,130,0,0,0,0,36,22,
-             130,0,0,0,0,49,22,130,136,58,30,20,20,31];
+            [define,dup,mul,fun_end, //square
+             define,//map2
+               car,swap,
+               0,0,0,0,1,
+               fetch,call,rot,cons,swap,
+               empty_list,eq,caseif,
+                 drop,drop,reverse,
+               caseelse,
+                 drop,recurse,call,
+               casethen,
+             fun_end,
+             define, //map
+               0,0,0,0,1,
+               set,empty_list,swap,
+               binary_op,0,0,0,12,
+               71,192,142,101,22,36,27,88,17,55,152,169,
+               call,
+             fun_end,
+             print,
+             empty_list,
+             0,0,0,0,5,
+             swap,cons,
+             0,0,0,0,6,swap,cons,
+             0,0,0,0,7,
+             swap,cons,reverse,
+             print,
+             2,0,0,0,12,
+             239,24,7,129,222,179,141,148,74,245,17,98,
+             print,
+             2,0,0,0,12,
+             53,181,176,16,58,242,45,201,243,134,253,139,
+             print,
+             call,
+             print,
+             empty_list,
+             0,0,0,0,25,
+             swap,cons,
+             0,0,0,0,36,
+             swap,cons,
+             0,0,0,0,49,
+             swap,cons,reverse, print,
+             eq,to_r,drop,drop,from_r];
         var contract =
             [
                 int_op, 0,0,0,0,
@@ -658,7 +701,7 @@ function run5(code, d) {
                 casethen,
                 //0,0,0,0,1, fetch,
                 print];
-        var x = main(function_contract, d);
+        var x = main(map_contract, d);
         console.log(JSON.stringify(x.stack));
     }
 
