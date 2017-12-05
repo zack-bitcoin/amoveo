@@ -660,17 +660,18 @@ function run5(code, d) {
     function chalang_test() {
         var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));
         console.log("chalang test");
+        //each of these test contracts should return a stack like this: [1]
         var function_contract =
-            [define,21,52,fun_end,
-             define,
-               2,0,0,0,12,239,24,7,129,222,179,141,
-               148,74,245,17,98,113,2,0,0,0,12,239,24,7,129,222,179,
-               141,148,74,245,17,98,113,
+            [define,dup,mul,fun_end, //square
+             define, //quad
+               2,0,0,0,12,239,24,7,129,222,179,141,148,74,245,17,98, 
+               call, //square
+               2,0,0,0,12,239,24,7,129,222,179,141,148,74,245,17,98,
+               call, //square
              fun_end,
              0,0,0,0,2,
-             2,0,0,0,12,
-             248,21,87,89,106,92,199,6,67,69,197,184,
-             call,
+             2,0,0,0,12,248,21,87,89,106,92,199,6,67,69,197,184,
+             call, //quad
              0,0,0,0,16,
              eq,swap,drop,swap,drop];
         var variable_contract =
@@ -722,22 +723,15 @@ function run5(code, d) {
                71,192,142,101,22,36,27,88,17,55,152,169,
                call,
              fun_end,
-             //print,
              empty_list,
              0,0,0,0,5,
              swap,cons,
              0,0,0,0,6,swap,cons,
              0,0,0,0,7,
              swap,cons,reverse,
-             //print,
-             2,0,0,0,12,
-             239,24,7,129,222,179,141,148,74,245,17,98,
-             //print,
-             2,0,0,0,12,
-             53,181,176,16,58,242,45,201,243,134,253,139,
-             //print,
+             2,0,0,0,12,239,24,7,129,222,179,141,148,74,245,17,98,
+             2,0,0,0,12,53,181,176,16,58,242,45,201,243,134,253,139,
              call,
-             //print,
              empty_list,
              0,0,0,0,25,
              swap,cons,
@@ -746,27 +740,6 @@ function run5(code, d) {
              0,0,0,0,49,
              swap,cons,reverse, print,
              eq,to_r,drop,drop,from_r];
-        var contract =
-            [
-                int_op, 0,0,0,0,
-                0,0,0,0,3,
-                0,0,0,0,1, set, //fetch,
-                0,0,0,0,1, fetch,
-                print,
-                //bool_flip,
-                print,
-                caseif, 0,0,0,0,5,
-                caseelse, 0,0,0,0,6,
-                casethen,
-                //0,0,0,0,1, fetch,
-                print];
-        var contract2 =
-            [
-                empty_list,
-                0,0,0,0,5,
-                swap, cons, reverse, print,
-                car, print
-            ];
         var recursion_contract =
             [
                 define,
@@ -798,33 +771,6 @@ function run5(code, d) {
                 from_r,from_r,from_r,from_r,from_r,
                 bool_and,bool_and,bool_and,bool_and
             ];
-        var contract3 = [
-            //0,0,0,0,5, drop,
-            //0,0,0,0,1, to_r, from_r,
-            empty_list,
-            0,0,0,0,5,
-            swap,cons,
-            0,0,0,0,6,swap,cons,
-            0,0,0,0,7,
-            swap,cons,reverse,
-            car, cons,
-            reverse
-        ];
-        var contract4 = [
-            0,0,0,0,5,
-            dup, mul
-        ];
-        var contract5 = [
-            0,0,0,0,2,
-            0,0,0,0,3,
-            0,0,0,0,4,
-            rot
-        ];
-        var contract6 = [
-            empty_list, dup,
-            eq,
-            caseif, caseelse, casethen
-        ];
         var x = main(map_contract, d);
         console.log(JSON.stringify(x.stack));
     }
