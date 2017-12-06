@@ -2,49 +2,12 @@ function chalang_new_state(height, slash) {
     return {"name": "state", "height": height, "slash": slash};
 }
 function chalang_data_maker(op_gas, ram_gas, many_vs, many_funs, script_sig, code, state) {
-    return {"name": "d", "op_gas":op_gas, "stack": [], "alt": [], "ram_most": 0, "ram_limit":ram_gas, "vars": chalang_make_array(many_vs), "funs":{}, "many_funs": 0, "fun_limit":many_funs, "ram_current":(script_sig.length + code.length), "state":state};
-}
-function chalang_make_array(m) {
     var arr = [];
-    arr.length = m;
-    return arr;
+    arr.length = many_vs;
+    return {"name": "d", "op_gas":op_gas, "stack": [], "alt": [], "ram_most": 0, "ram_limit":ram_gas, "vars": arr, "funs":{}, "many_funs": 0, "fun_limit":many_funs, "ram_current":(script_sig.length + code.length), "state":state};
 }
-function array_to_int(l) {
-    var x = 0;
-    for (var i = 0; i < l.length; i++) {
-        x = (256 * x) + l[i];
-    }
-    return x;
-}
-function exponential(b, a) {
-    if (b == 0) {
-        return 0;
-    } else if (a == 0) {
-        return 1;
-    }
-    return exponential2(b, a, 1);
-}
-function exponential2(b, a, n) {
-    while (!(a == 1)) {
-        if ((a % 2) == 0) {
-            b = b*b;
-            a = Math.floor(a / 2);
-        } else {
-            a = a - 1;
-            n = n * b;
-        }
-    }
-    return b * n;
-}
-function underflow_check(d, min_size, op_name, continuation) {
-    if (d.stack.length < min_size) {
-        return ["error", "stack underflow", op_name];
-    } else {
-        continuation();
-        return 0;
-    }
-}
-function run5(code, d) {
+//function run5(code, d) {
+function chalang(command) {
     const int_op = 0,
           binary_op = 2,
           print = 10,
@@ -104,108 +67,121 @@ function run5(code, d) {
           is_list = 137,
           word_size = 4294967296,
           hash_size = 12;
-    function is_balanced_f(code) {
-        var x = 0;
-        for (var i = 0; i<code.length; i++) {
-            if ((code[i] == define) && (x == 0)){
-                x = 1;
-            } else if ((code[i] == fun_end) && (x == 1)) {
-                x = 0;
-            } else if ((code[i] == define) || (code[i] == fun_end)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    function count_till(code, i, opcode) {
-        console.log("count till ");
-        console.log(JSON.stringify([code, i, opcode]));
-        for (var j = 0; (j + i) < code.length; j++) {
-            if ((code[i+j]) == int_op) {
-                console.log("count till int_op");
-                j += 4;
-            } else if (code[i+j] == binary_op) {
-                console.log("count till binary_op");
-                var h = array_to_int(code.slice(i+j+1, i+j+5));
-                console.log(h);
-                j += (4 + h);
-            //}
-            /*
-              } else if ((code[i+j] == caseif) && (1 == 2)){
-                console.log("count till caseif");
-                var k = count_till(code, i+j+1, casethen);
-                console.log("k is ");
-                console.log(k);
-                j += (k);
-            */
-            } else if (opcode == code[i+j]) {
-                return j;
-            }
-        }
-        console.log("count till reached end without finding goal");
-        throw(error);
-        console.log(opcode);
-        return ["error", "count till"];
-    }
-    function memory(x) {
-        //console.log("in memory function");
-        //console.log(JSON.stringify(x));
-        if (JSON.stringify(x) == JSON.stringify([])) {
-            return 1;
-        } else if (Number.isInteger(x)) {
-            return 4;
-        } else if (x[0] == "binary") {
-            return x.length - 1;
-        } else {
-            var a = memory(x[0]);
-            var y = x.slice(1, x.length);
-            var b = memory(y);
-            return a+b;
-        }
-    }
-    function replace(old_character, new_code, binary) {
-        for (var i = 0; i < binary.length; i++) {
-            if (binary[i] == old_character) {
-                var r2 = replace(old_character, new_code, binary.slice(i+1, binary.length));
-                return binary.slice(0,i).concat(new_code).concat(r2);
-            } else if (binary[i] == int_op) {
-                i += 4;
-            } else if (binary[i] == binary_op) {
-                var h = array_to_int(binary.slice(i+1, i+5));
-                i += (4 + h);
-            }
-        }
-        return binary;
-    }
-    function arithmetic_chalang(op, a, b) { //returns a list to concat with stack.
-        var x;
-        if (op == add) { x = a + b;
-        } else if (op == subtract) { x = b - a;
-        } else if (op == mul) { x = b * a;
-        } else if (op == div) { x = Math.floor(b / a);
-        } else if (op == pow) { x = exponential(b, a);
-        } else if (op == rem) { x = b % a;
-        } else if (op == gt) {
-            if (a < b) {
-                x = 1;
-            } else {
-                x = 0;
-            }
-        } else if (op == lt) {
-            if (a > b) {
-                x = 1;
-            } else {
-                x = 0;
-            }
-        }
-        x = ((x % word_size) + word_size) % word_size;
-        return [x];
-    }
-    function small_hash(l) {
-        var h = hash(l);
-        return h.slice(0, 12);
-    }
     function run2(code, d) {
+        //the stuff inside this function is from the chalang repository.
+        function memory(x) {
+            //console.log("in memory function");
+            //console.log(JSON.stringify(x));
+            if (JSON.stringify(x) == JSON.stringify([])) {
+                return 1;
+            } else if (Number.isInteger(x)) {
+                return 4;
+            } else if (x[0] == "binary") {
+                return x.length - 1;
+            } else {
+                var a = memory(x[0]);
+                var y = x.slice(1, x.length);
+                var b = memory(y);
+                return a+b;
+            }
+        }
+        function underflow_check(d, min_size, op_name, continuation) {
+            if (d.stack.length < min_size) {
+                return ["error", "stack underflow", op_name];
+            } else {
+                continuation();
+                return 0;
+            }
+        }
+        function arithmetic_chalang(op, a, b) { //returns a list to concat with stack.
+            function exponential(b, a) {
+                if (b == 0) {
+                    return 0;
+                } else if (a == 0) {
+                    return 1;
+                }
+                var n = 1;
+                while (!(a == 1)) {
+                    if ((a % 2) == 0) {
+                        b = b*b;
+                        a = Math.floor(a / 2);
+                    } else {
+                        a = a - 1;
+                        n = n * b;
+                    }
+                }
+                return b * n;
+            }
+            var x;
+            if (op == add) {
+                x = a + b;
+            } else if (op == subtract) {
+                x = b - a;
+            } else if (op == mul) {
+                x = b * a;
+            } else if (op == div) {
+                x = Math.floor(b / a);
+            } else if (op == pow) {
+                x = exponential(b, a);
+            } else if (op == rem) {
+                x = b % a;
+            } else if (op == gt) {
+                if (a < b) {
+                x = 1;
+                }
+            } else if (op == lt) {
+                if (a > b) {
+                    x = 1;
+                } else {
+                    x = 0;
+                }
+            }
+            x = ((x % word_size) + word_size) % word_size;
+            return [x];
+        }
+        function small_hash(l) {
+            var h = hash(l);
+            return h.slice(0, 12);
+        }
+        function count_till(code, i, opcode) {
+            for (var j = 0; (j + i) < code.length; j++) {
+                if ((code[i+j]) == int_op) {
+                    j += 4;
+                } else if (code[i+j] == binary_op) {
+                    var h = array_to_int(code.slice(i+j+1, i+j+5));
+                    j += (4 + h);
+                    //}
+                    /*
+                    // we don't need this part because chalang doesn't support if-statements inside of if-statements. 
+                    } else if ((code[i+j] == caseif) && (1 == 2)){
+                    console.log("count till caseif");
+                    var k = count_till(code, i+j+1, casethen);
+                    console.log("k is ");
+                    console.log(k);
+                    j += (k);
+                    */
+                } else if (opcode == code[i+j]) {
+                    return j;
+                }
+            }
+            console.log("count till reached end without finding goal");
+            console.log(opcode);
+            throw(error);
+        }
+        function replace(old_character, new_code, binary) {
+            for (var i = 0; i < binary.length; i++) {
+                if (binary[i] == old_character) {
+                    var r2 = replace(old_character, new_code, binary.slice(i+1, binary.length));
+                    return binary.slice(0,i).concat(new_code).concat(r2);
+                } else if (binary[i] == int_op) {
+                    i += 4;
+                } else if (binary[i] == binary_op) {
+                    var h = array_to_int(binary.slice(i+1, i+5));
+                    i += (4 + h);
+                }
+            }
+            return binary;
+        }
         var error_check = 0;
         for (var i = 0; i<code.length; i++) {
             //console.log"run cycle");
@@ -430,7 +406,13 @@ function run5(code, d) {
                 //console.log("verify_sig op");
                 error_check = underflow_check(d, 3, "verify_sig", function(){
                     //data, sig, key
-                    var b = verify(d.stack[1], d.stack[2], d.stack[0]);
+                    console.log(JSON.stringify(d.stack));
+                    var pub1 = d.stack[0].slice(1, d.stack[0].length);//internal format puts "binary" at the front of each binary.
+                    var data1 = d.stack[1].slice(1, d.stack[1].length);
+                    var sig1 = d.stack[2].slice(1, d.stack[2].length);
+                    temp_key = ec.keyFromPublic(toHex(array_to_string(pub1)), "hex");
+                    var sig2 = bin2rs(array_to_string(sig1));
+                    var b = temp_key.verify(hash(serialize(data1)), sig2, "hex")
                     var c;
                     if (b) {
                         c = 1;
@@ -647,20 +629,45 @@ function run5(code, d) {
         }
         return d;
     }
-    function main(code, d) {
-        var b = is_balanced_f(code);
-        if (b) {
-            var x = run2(code, d);
-            return x;
+    function run5(code, d) {
+        function is_balanced_f(code) {
+            var x = 0;
+            for (var i = 0; i<code.length; i++) {
+                if ((code[i] == define) && (x == 0)){
+                    x = 1;
+                } else if ((code[i] == fun_end) && (x == 1)) {
+                    x = 0;
+                } else if ((code[i] == define) || (code[i] == fun_end)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (is_balanced_f(code)) {
+            return run2(code, d);
         } else {
             console.log("misformed function. : ; ");
             return ["error", "mismatched function"];
         }
     }
     function chalang_test() {
+        //these are some compiled contracts from chalang/src/forth/. the chalang repository.
         var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));
         console.log("chalang test");
         //each of these test contracts should return a stack like this: [1]
+        var verify_signature_contract =
+            [2,0,0,0,71,48,69,2,32,112,134,203,180,124,166,163,247,
+             94,210,211,101,253,157,198,109,165,100,230,213,193,22,
+             236,82,240,187,161,163,143,174,252,77,2,33,0,252,160,42,
+             76,157,218,69,96,18,53,9,86,91,223,194,87,4,167,121,112,
+             117,103,139,226,37,133,252,41,247,43,137,118, //this is the signature.
+             2,0,0,0,3,1,2,3, //this is the data
+             2,0,0,0,65,4,133,89,134,205,122,130,218,16,254,
+             229,12,186,57,121,105,43,173,164,137,130,226,246,188,49,
+             236,32,10,247,161,232,193,46,14,58,3,190,212,42,97,158,
+             69,121,135,20,133,143,208,46,58,66,6,181,227,170,244,
+             237,22,35,120,150,45,13,134,58, //this is the pubkey
+             print,verify_sig];
         var function_contract =
             [define,dup,mul,fun_end, //square
              define, //quad
@@ -771,15 +778,215 @@ function run5(code, d) {
                 from_r,from_r,from_r,from_r,from_r,
                 bool_and,bool_and,bool_and,bool_and
             ];
-        var x = main(map_contract, d);
+        var x = run5(verify_signature_contract, d);
         console.log(JSON.stringify(x.stack));
     }
-
-
-    if (code == undefined) {
-        return chalang_test();
-    } else {
-        return main(code, d);
+    function prove_facts(facts) {
+        if (JSON.stringify(facts) == JSON.stringify([])) {
+            return [empty_list];
+        }
+        var r = [empty_list]; // [
+        for (var i = 0; i<facts.length; i++) {
+            console.log(facts[i]); //guess [-7, tree, key]
+            //ask the server for a proof.
+            //check if this is an integer key, or a binary key
+            //twitter.com/i/notifications
+            //"[ int id, key, binary size serialized_data ]
+            r = r.concat([empty_list]); // [
+            r = r.concat([0]).concat(integer_to_array(id, 4));
+            r = r.concat([swap, cons]); // ,
+            if (Integer.isInteger(key)) {
+                r = r.concat([0]);
+                r = r.concat(integer_to_list(key, 4));
+            } else {
+                r = r.concat([2]);
+                r = r.concat(integer_to_list(key.length, 4));
+                r = r.concat(key);
+            }
+            r = r.concat([swap, cons]); // ,
+            var s = serialized_data.length;
+            r = r.concat([2]).concat([integer_to_list(s, 4)]);
+            r = r.concat(serialized_data);
+            r = r.concat([swap, cons, reverse]); // ]
+            r = r.concat([swap, cons]); // ,
+        }
+        return r.concat([reverse]); // converts a , to a ]
     }
+    function spk_force_update(spk, ssold, ssnew) {
+        var height;
+        var ran1 = spk_run("fast", ssold, spk, height, 0);
+        var nonceOld = ran1.nonce;
+        var ran2 = spk_run("fast", ssnew, spk, height, 0);
+        var nonceNew = ran2.nonce;
+        if (nonceNew > nonceOld) {
+            var updated = spk_force_update2(spk.bets, ssnew, height);
+            var new_spk;
+	    //{NewBets, FinalSS, Amount, Nonce} = force_update2(SPK#spk.bets, SSNew, [], [], 0, 0),
+	    // NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + (Amount)), nonce = (SPK#spk.nonce + Nonce)},
+            return [newspk, updated.finalss];
+        }
+    }
+    function chalang_none_of(c) {
+        var n;
+        for (var i = 0; i < c.length; i++) {
+            if ( c[i] == crash ) {
+                return false;
+            } else if ( c[i] == integer_op ) {
+                i += 4
+            } else if ( c[i] == binary_op ) {
+                n = array_to_integer(c.slice(i+1, i+5));
+                i += (4 + n);
+            }
+        }
+        return true;
+    }
+        /*
+none_of(X) -> none_of(X, ?crash).
+none_of(<<>>, _) -> true;
+none_of(<<X:8, _/binary>>, X) -> false;
+none_of(<<?int:8, _:?int_bits, Script/binary>>, X) -> 
+    none_of(Script, X);
+none_of(<<?binary:8, H:32, Script/binary>>, D) -> 
+    X = H * 8,
+    <<_:X, Script2/binary>> = Script,
+    none_of(Script2, D);
+none_of(<<_:8, Script/binary>>, X) -> 
+            none_of(Script, X).
+            */
+    function spk_force_update2(bets, ss, height) {
+        var amount = 0;
+        var nonce = 0;
+        var new_bets = JSON.parse(JSON.stringify(bets));
+        var newss = JSON.parse(JSON.stringify(ss));
+        var fun_limit = 1000;//config
+        var var_limit = 10000;
+        var bet_gas_limit = 100000;
+        var cgran = 10000; //constants.erl
+        
+        var state;
+        var b;
+        var f;
+        var c;
+        var code;
+        var data;
+        var data2;
+        var data3;
+        var s;
+        for (var i = bets.length-1; i > -1; i--) {
+            b = chalang_none_of(ss[i].code);//ss.code
+            if (!(b)) {
+                throw("you can't put crash into the ss");
+                return ["error", "cannot put crash into the ss"];
+            }
+            state = chalang_new_state(height, 0);
+            f = prove_facts(ss[i].prove);
+            code = f.concat(bets[i].code);
+            data = chalang_data_maker(bet_gas_limit, bet_gas_limit, var_limit, fun_limit, ss.code, code, state);
+            data2 = run5([JSON.parse(JSON.stringify(ss[i].code))], data);
+            data3 = run5([code], data2);
+            s = data3.stack;
+            if (!(s[2] > 50)) { //if the delay is long, then don't close the trade.
+                if (s[0] > cgran) {
+                    throw("you can't spend money that you don't have");
+                    return ["error", "you cant spend more money than you have"]
+                }
+                amount += Math.floor(s[0] * bets[i] / cgran);
+                nonce += s[1];
+                new_bets = new_bets.slice(0, i).concat(new_bets.slice(i+1, new_bets.length));
+                newss = newss.slice(0, i).concat(newss.slice(i+1, newss.length));
+            }
+        }
+        return {"new_bets": new_bets, "newss": newss, "amount": amount, "nonce": nonce};
+    }
+    function channel_feeder_they_simplify(from, themspk, cd) {
+        cd0 = channel_manager[from];
+        //true = cd0.live; //verify this is true
+        //true = cd.live; //verify this is true
+        var spkme = cd0.md;
+        var ssme = cd0.ssme;
+        //verify that they signed themspk
+        var newspk = themspk[1];
+        var newspk2 = cd.me;
+        //verify that newspk == newspk2
+        var ss = cd.ssme;
+        var ss4 = cd.ssthem;
+        var entropy = cd.entropy;
+        var b2 = spk_force_update(spkme, ssme, ss4);
+        var cid = cd.cid;
+        if ( JSON.stringify(b2) == JSON.stringify([newspk, ss])) {
+            var ret = sign_tx(newspk);
+            var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
+            channel_manager[from] = newcd;
+            return ret;
+        } else {
+            var b3 = is_improvement(spkme, ssme, newspk, ss);
+            if ( b3 ) {
+                ret = sign_tx(newspk);
+                var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
+                channel_manager[from] = newcd;
+                return ret;
+            } else {
+                var sh = simplify_helper(From, ss4);
+                var ss5 = sh.ss;
+                var ret = sh.ret;
+                var spk = themspk[1];
+                var spk2 = ret[1];
+                if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
+                    console.log("spks do not match");
+                } else {
+                    var data = new_cd(spk, themspk, ss5, ss5, entropy, cid);
+                    channel_manager[from] = data;
+                    return ret;
+                }
+            }
+        }
+    }
+    function is_improvement(old_spk, old_ss, new_spk, new_ss) {
+        //get height
+        var run2 = spk_run("fast", new_ss, new_spk, height, 0);
+        var nonce2 = run2.nonce;
+        var delay2 = run2.nonce;
+        var run1 = spk_run("fast", old_ss, old_spk, height, 0);
+        var nonce1 = run1.nonce;
+        if (!(nonce2 > nonce1)) {
+            console.log("the new spk can't produce a lower nonce than the old.");
+            return false;
+        }
+        
+    }
+    function pull_channel_state(ip, port) {
+        //get their pubkey
+        var msg1 = ["spk", my_pubkey, ip, port];
+        //returns cd and them_spk
+        var cd0 = channel_manager[server_id];
+        if (cd0 == undefined) {
+            console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
+            throw("pull channel state error");
+        }
+        if (!(cd0.live == true)) {
+            var s = "this channel has been closed";
+            console.log(s);
+            throw(s);
+        }
+        var ret = channel_feeder_they_simplify(server_id, them_spk, cd);
+        var msg2 = ["channel_sync", my_pubkey, ret];
+        // eventually decrypt msgs here, for lightning payments.
+        // eventually needed for lightning: api_bet_unlock(ip, port);
+
+    }
+    return {"run5": run5, "test": chalang_test, "pull_channel_state": pull_channel_state};
 }
-run5();//this is how you make the test run.
+/*
+//this is an example of calling run5, the chalang library.
+var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));
+var code = [
+    0,0,0,0,5,
+    21, 52
+];
+var stack = chalang("run5")(code, d).stack
+console.log(JSON.stringify(stack));
+*/
+
+var chalang_object = chalang();
+var foo = chalang_object.test();//this is how you make the test run.
+console.log(JSON.stringify(foo));

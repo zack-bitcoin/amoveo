@@ -34,7 +34,7 @@ Each team will be ranked in each of the categories from 0 to 10.
 ```
 channels, shards, light nodes, channel markets, oracles, blockchain, community, trading fees
                  C  S  L  M  O  B  C  F    total
-Amoveo           9  8  9  9  8  9  2  10   64
+Amoveo           9  8  9  9  8  8  2  10   63
 Group Gnosis     1  0  5  0  8  10 10 5    39
 Stox             0  0  5  0  0  10 2  0    17
 Augur            1  0  5  0  0  10 4  -5   15
@@ -42,8 +42,8 @@ Bodhi            0  0  3  0  0  10 2  -5   10
 Bitshares        0  0  0  0  0  10 4  -5   14
 Bitcoin Hivemind 2  0  0  0  0  8  3  -5   8
 Spectre.ai       0  0  5  0  0  10 2  -10  7
+Aeternity        0  0  0  0  0  8  3  -5   7
 Zen Protocol     0  0  0  0  0  9  2  -5   6
-Aeternity        0  0  0  0  0  1  3  -5   -1
 ```
 
 ### Channels

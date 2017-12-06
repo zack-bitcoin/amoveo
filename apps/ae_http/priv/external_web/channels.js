@@ -85,6 +85,9 @@ function channels1() {
             variable_public_get(["new_channel", stx, sspk], channels3);
         }
     }
+    function empty_ss() {
+        return {"code": [], "prove": []};
+    }
     function channels3(x) {
         console.log("channels3 ");
         console.log(x);
@@ -98,7 +101,7 @@ function channels1() {
         console.log(JSON.stringify(sstx));
         //variable_public_get(["txs", [-6, sstx]], function(x) {});
         var spk = s2spk[1];
-        var cd = {"me": spk, "them": s2spk, "ssme": [-6], "ssthem":[-6], "entropy": entropy, "cid": cid};
+        var cd = {"me": spk, "them": s2spk, "ssme": empty_ss(), "ssthem": empty_ss(), "entropy": entropy, "cid": cid};
         console.log("cd is ");
         console.log(cd);
         channel_manager[acc2] = cd;
@@ -246,13 +249,12 @@ function channels1() {
                     var cd = channel_manager[server_pubkey];
                     cd.me = sspk[1];
                     cd.them = sspk2;
-                    var newss = [0,0,0,0,4];
+                    var newss = {"code": [0,0,0,0,4], "prove":[]};
+                    //var newss = [0,0,0,0,4];
                     console.log(JSON.stringify(sspk[1]));
                     console.log(JSON.stringify(newss));
-                    cd.ssme[0] = newss;
-                    cd.ssthem[0] = newss;
-                    cd.ssme = ([-6]).concat(cd.ssme);
-                    cd.ssthem = ([-6]).concat(cd.ssthem);
+                    cd.ssme = ([newss]).concat(cd.ssme);
+                    cd.ssthem = ([newss]).concat(cd.ssthem);
                     channel_manager[server_pubkey] = cd;
                     amount.value = "";
                     channel_warning();

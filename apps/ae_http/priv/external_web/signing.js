@@ -68,7 +68,7 @@ function serialize(data) {
             return integer_to_array(2, 1).concat(
                 integer_to_array(rest.length, 4)).concat(
                     rest);
-        } else { //assume it is a record. a tuple where the first element is an atom. This is the only place that atoms can occur.
+        } else if (typeof(data[0]) == "string") { //assume it is a record. a tuple where the first element is an atom. This is the only place that atoms can occur.
             //console.log("serialize tuple 2");
             var h = data[0];
             var d0 = data.slice(1);
@@ -83,13 +83,19 @@ function serialize(data) {
                 integer_to_array(rest.length, 4)).concat(
                     rest);
         }
-    } else {//assume it is a binary
-        //console.log("serialize binary");
-        //<<0:8, S:32, X/binary>>;
+    }
+    //assume it is a binary
+    //console.log("serialize binary");
+    //<<0:8, S:32, X/binary>>;
+    if (typeof(data) == "string") {
         var rest = string_to_array(atob(data));
         return integer_to_array(0, 1).concat(
             integer_to_array(rest.length, 4)).concat(
                 rest);
+    } else {
+        return integer_to_array(0, 1).concat(
+            integer_to_array(data.length, 4)).concat(
+                data);
     }
     function serialize_list(l) {
         var m = [];
@@ -111,24 +117,25 @@ function verify(data, sig0, key) {
     var d2 = serialize(data);
     var h = hash(d2);
     return key.verify(h, sig, "hex");
-    function bin2rs(x) {
-        /*
-          0x30 b1 0x02 b2 (vr) 0x02 b3 (vs)
-          where:
-          
-          b1 is a single byte value, equal to the length, in bytes, of the remaining list of bytes (from the first 0x02 to the end of the encoding);
-          b2 is a single byte value, equal to the length, in bytes, of (vr);
-          b3 is a single byte value, equal to the length, in bytes, of (vs);
-          (vr) is the signed big-endian encoding of the value "r", of minimal length;
-          (vs) is the signed big-endian encoding of the value "s", of minimal length.
-        */
-        var h = toHex(x);
-        var a2 = x.charCodeAt(3);
-        var r = h.slice(8, 8+(a2*2));
-        var s = h.slice(12+(a2*2));
-        return {"r": r, "s": s};
-    }
 }
+function bin2rs(x) {
+    /*
+      0x30 b1 0x02 b2 (vr) 0x02 b3 (vs)
+      where:
+      
+      b1 is a single byte value, equal to the length, in bytes, of the remaining list of bytes (from the first 0x02 to the end of the encoding);
+      b2 is a single byte value, equal to the length, in bytes, of (vr);
+      b3 is a single byte value, equal to the length, in bytes, of (vs);
+      (vr) is the signed big-endian encoding of the value "r", of minimal length;
+      (vs) is the signed big-endian encoding of the value "s", of minimal length.
+    */
+    var h = toHex(x);
+    var a2 = x.charCodeAt(3);
+    var r = h.slice(8, 8+(a2*2));
+    var s = h.slice(12+(a2*2));
+    return {"r": r, "s": s};
+}
+
 
 //signing_test();
 function signing_test() {
