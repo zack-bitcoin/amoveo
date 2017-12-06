@@ -40,10 +40,10 @@ Stox             0  0  5  0  0  10 2  0    17
 Augur            1  0  5  0  0  10 4  -5   15
 Bodhi            0  0  3  0  0  10 2  -5   10
 Bitshares        0  0  0  0  0  10 4  -5   14
+Zen Protocol     0  0  0  0  0  9  2  -2   9
 Bitcoin Hivemind 2  0  0  0  0  8  3  -5   8
 Spectre.ai       0  0  5  0  0  10 2  -10  7
 Aeternity        0  0  0  0  0  8  3  -5   7
-Zen Protocol     0  0  0  0  0  9  2  -5   6
 ```
 
 ### Channels
@@ -148,7 +148,7 @@ The rest do not yet have value.
 
 This section works different. Each project starts out with 10 points, and there are several ways to lose them.
 
-* Any project with on-chain markets will lose 5 points, because of blockchain transaction fees to participate in the market. 
+* Any project with on-chain markets will lose 5 points, because of blockchain transaction fees to participate in the market.  (Zen only loses 2 points here because they allow for parallel transaction processing in the same block).
 * Any project with an oracle-subcurrency will lose 5 points, because of the trading fee that pays the oracle. Bitcoin Hivemind, Augur.
 * Any project with trusted feeds will lose 5 points, because of the losses from theft. Aeternity, Bitshares.
 * Any project where the oracle cannot escalate will lose 5 points, because this either means the oracle will either be too expensive for the security required, or else it will have insufficient security.
