@@ -146,7 +146,7 @@ pull_channel_state() ->
     pull_channel_state(?IP, ?Port).
 pull_channel_state(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
-    {ok, CD, ThemSPK} = talker:talk({spk, keys:pubkey()}, IP, Port),
+    {ok, [CD, ThemSPK]} = talker:talk({spk, keys:pubkey()}, IP, Port),
     case channel_manager:read(ServerID) of
         error  -> 
             SPKME = channel_feeder:them(CD),
@@ -196,7 +196,7 @@ bet_unlock(IP, Port) ->
     [{Secrets, _SPK}] = channel_feeder:bets_unlock([ServerID]),
     lager:info("Teach secrets"),
     teach_secrets(keys:pubkey(), Secrets, IP, Port),
-    {ok, _CD, ThemSPK} = talker:talk({spk, keys:pubkey()}, IP, Port),
+    {ok, [_CD, ThemSPK]} = talker:talk({spk, keys:pubkey()}, IP, Port),
     channel_feeder:update_to_me(ThemSPK, ServerID),
     ok.
 teach_secrets(_, [], _, _) -> ok;

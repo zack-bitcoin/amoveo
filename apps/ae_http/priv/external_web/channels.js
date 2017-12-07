@@ -31,6 +31,16 @@ function channels1() {
     channels_div.appendChild(save_button);
     channels_div.appendChild(document.createElement("br"));
     channels_div.appendChild(channel_interface_div);
+
+    channels_div.appendChild(document.createElement("br"));
+    var bet_update_button = document.createElement("input");
+    bet_update_button.type = "button";
+    bet_update_button.value = "check if any bets have been settled";
+    bet_update_button.onclick = function() {
+        chalang_object.pull_channel_state();
+        variable_public_get(["pubkey"], refresh_channels_interfaces);
+    };
+    channels_div.appendChild(bet_update_button);
     
     variable_public_get(["pubkey"], refresh_channels_interfaces);
     function make_channel_func(pubkey) {

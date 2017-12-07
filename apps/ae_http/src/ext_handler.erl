@@ -115,12 +115,10 @@ doit({grow_channel, Stx}) ->
     SStx = keys:sign(Stx),
     tx_pool_feeder:absorb(SStx),
     {ok, ok};
-doit({spk, CID})->
-    {ok, CD} = channel_manager:read(CID),
+doit({spk, TheirPub})->
+    {ok, CD} = channel_manager:read(TheirPub),
     ME = keys:sign(channel_feeder:me(CD)),
-    Out = {ok, CD, ME},
-    Out = packer:unpack(packer:pack(Out)),
-    Out;
+    {ok, [CD, ME]};
 doit({channel_payment, SSPK, Amount}) ->
     R = channel_feeder:spend(SSPK, Amount),
     {ok, R};

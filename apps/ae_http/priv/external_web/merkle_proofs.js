@@ -106,6 +106,30 @@ function verify_merkle(trie_key, x) {
                                                         acc1).concat(
                                                             acc2);
             return hash(serialized);
+        } else if (t == "oracle") {
+            var id = integer_to_array(v[1], 32);
+            var result = integer_to_array(v[2], 1);
+            var t = integer_to_array(v[5], 1);
+            var starts = integer_to_array(v[4], 4); 
+            var done_timer = integer_to_array(v[9], 4); //height_bits/8 bytes
+            var governance = integer_to_array(v[10], 1); //one byte
+            var governance_amount = integer_to_array(v[11], 1); //one byte
+            var creator = string_to_array(atob(v[8])); //pubkey size
+            var question = string_to_array(atob(v[3])); //32 bytes size
+            var orders = string_to_array(atob(v[7])); //32 bytes
+            var serialized = integer_to_array(v[1], 256).concat(
+                id).concat(
+                    results).concat(
+                        t).concat(
+                            starts).concat(
+                                done_timer).concat(
+                                    governance).concat(
+                                        governance_amount).concat(
+                                            creator).concat(
+                                                question).concat(
+                                                    orders);
+            return hash(serialized);
+                                                        
         } else {
             console.log("cannot decode type ");
             console.log(t);

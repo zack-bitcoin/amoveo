@@ -87,7 +87,7 @@ function chalang(command) {
         }
         function underflow_check(d, min_size, op_name, continuation) {
             if (d.stack.length < min_size) {
-                return ["error", "stack underflow", op_name];
+                throw(JSON.stringify(["error", "stack underflow", op_name]));
             } else {
                 continuation();
                 return 0;
@@ -555,7 +555,6 @@ function chalang(command) {
                     if (!(Array.isArray(d.stack[0]))) {
                         console.log(JSON.stringify(d.stack));
                         throw("car op error");
-                        return ["error", "not a list", "car"];
                     } else {
                         d.op_gas -= 1;
                         d.ram_current -= 1;
@@ -646,8 +645,7 @@ function chalang(command) {
         if (is_balanced_f(code)) {
             return run2(code, d);
         } else {
-            console.log("misformed function. : ; ");
-            return ["error", "mismatched function"];
+            throw("misformed function. : ; ");
         }
     }
     function chalang_test() {
@@ -788,29 +786,74 @@ function chalang(command) {
         var r = [empty_list]; // [
         for (var i = 0; i<facts.length; i++) {
             console.log(facts[i]); //guess [-7, tree, key]
-            //ask the server for a proof.
-            //check if this is an integer key, or a binary key
-            //twitter.com/i/notifications
-            //"[ int id, key, binary size serialized_data ]
-            r = r.concat([empty_list]); // [
-            r = r.concat([0]).concat(integer_to_array(id, 4));
-            r = r.concat([swap, cons]); // ,
-            if (Integer.isInteger(key)) {
-                r = r.concat([0]);
-                r = r.concat(integer_to_list(key, 4));
-            } else {
-                r = r.concat([2]);
-                r = r.concat(integer_to_list(key.length, 4));
-                r = r.concat(key);
-            }
-            r = r.concat([swap, cons]); // ,
-            var s = serialized_data.length;
-            r = r.concat([2]).concat([integer_to_list(s, 4)]);
-            r = r.concat(serialized_data);
-            r = r.concat([swap, cons, reverse]); // ]
-            r = r.concat([swap, cons]); // ,
+            //variable_public_get(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
+            variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof) {
+                var value = verify_merkle(key, proof);
+                //we are making chalang like this:
+                //[ int id, key, binary size serialized_data ]
+                // '[', ']', and ',' are macros for making a list.
+                r = r.concat([empty_list]); // [
+                r = r.concat([0]).concat(integer_to_array(id, 4));
+                r = r.concat([swap, cons]); // ,
+                if (Integer.isInteger(key)) {
+                    r = r.concat([0]);
+                    r = r.concat(integer_to_list(key, 4));
+                } else {
+                    r = r.concat([2]);
+                    r = r.concat(integer_to_list(key.length, 4));
+                    r = r.concat(key);
+                }
+                r = r.concat([swap, cons]); // ,
+                var serialized_data;//this is the serialized version of the thing who's existence we are proving. make it from value.
+                var s = serialized_data.length;
+                r = r.concat([2]).concat([integer_to_list(s, 4)]);
+                r = r.concat(serialized_data);
+                r = r.concat([swap, cons, reverse]); // ]
+                r = r.concat([swap, cons]); // ,
+            });
         }
         return r.concat([reverse]); // converts a , to a ]
+    }
+    function spk_run(mode, ss, spk, height, slash) {
+        var state = chalang_state(height, slash, 0);
+        var fun_limit;//from governance
+        var var_limit;//from governance,
+        return spk_run2(ss, spk[4], spk[6], spk[5], fun_limit, var_limit, state, spk.delay);
+    }
+    function spk_run2(ss, bets, opgas, ramgas, funs, vars, state, delay) {
+        if (!(ss.length == bets.length)) {
+            throw("ss and bets need to be the same length");
+        }
+        var amount = 0;
+        var delay = 0;
+        for (var i = 0; i < ss.length; i++) {
+            var run_object = spk_run3(ss[i], bets[i], opgas, ramgas, funs, vars, state);
+            amount += run_object.amount;
+            nonce += run_object.nonce;
+            delay = Math.max(delay, run_object.delay);
+        }
+        return {"amount": amount, "nonce": nonce, "delay": delay, "opgas": opgas};
+    }
+    function spk_run3(ss, bet, opgas, ramgas, funs, vars, state) {
+        var script_sig = ss.code;
+        if (!(chalang_none_of(script_sig))) {
+            throw("error: crash op in the script sig");
+        }
+        var f = prove_facts(ss.prove);
+        var c = bet.code;
+        var code = f.concat(c);
+        var data = chalang_data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
+        var data2 = run5(script_sig, data);
+        var data3 = run5(code, data2);
+        var amount = data3.stack[0];
+        var nonce = data3.stack[1];
+        var delay = data3.stack[2];
+        var cgran;
+        if ((amount > cgran) || (amount < -cgran)) {
+            throw("you can't spend money you don't have in the channel.");
+        }
+        var a3 = Math.floor(amount * bet.amount / cgran);
+        return {"amount": a3, "nonce": nonce, "delay": delay, "opgas": data3.opgas};
     }
     function spk_force_update(spk, ssold, ssnew) {
         var height;
@@ -819,11 +862,11 @@ function chalang(command) {
         var ran2 = spk_run("fast", ssnew, spk, height, 0);
         var nonceNew = ran2.nonce;
         if (nonceNew > nonceOld) {
-            var updated = spk_force_update2(spk.bets, ssnew, height);
-            var new_spk;
-	    //{NewBets, FinalSS, Amount, Nonce} = force_update2(SPK#spk.bets, SSNew, [], [], 0, 0),
-	    // NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + (Amount)), nonce = (SPK#spk.nonce + Nonce)},
-            return [newspk, updated.finalss];
+            var updated = spk_force_update2(spk[4], ssnew, height);
+            spk[4] = updated.new_bets;
+            spk[8] += updated.amount;
+            spk[9] += updated.nonce;
+            return {"spk":spk, "ss":updated.finalss};
         }
     }
     function chalang_none_of(c) {
@@ -840,19 +883,6 @@ function chalang(command) {
         }
         return true;
     }
-        /*
-none_of(X) -> none_of(X, ?crash).
-none_of(<<>>, _) -> true;
-none_of(<<X:8, _/binary>>, X) -> false;
-none_of(<<?int:8, _:?int_bits, Script/binary>>, X) -> 
-    none_of(Script, X);
-none_of(<<?binary:8, H:32, Script/binary>>, D) -> 
-    X = H * 8,
-    <<_:X, Script2/binary>> = Script,
-    none_of(Script2, D);
-none_of(<<_:8, Script/binary>>, X) -> 
-            none_of(Script, X).
-            */
     function spk_force_update2(bets, ss, height) {
         var amount = 0;
         var nonce = 0;
@@ -876,7 +906,6 @@ none_of(<<_:8, Script/binary>>, X) ->
             b = chalang_none_of(ss[i].code);//ss.code
             if (!(b)) {
                 throw("you can't put crash into the ss");
-                return ["error", "cannot put crash into the ss"];
             }
             state = chalang_new_state(height, 0);
             f = prove_facts(ss[i].prove);
@@ -888,7 +917,6 @@ none_of(<<_:8, Script/binary>>, X) ->
             if (!(s[2] > 50)) { //if the delay is long, then don't close the trade.
                 if (s[0] > cgran) {
                     throw("you can't spend money that you don't have");
-                    return ["error", "you cant spend more money than you have"]
                 }
                 amount += Math.floor(s[0] * bets[i] / cgran);
                 nonce += s[1];
@@ -906,8 +934,14 @@ none_of(<<_:8, Script/binary>>, X) ->
         var ssme = cd0.ssme;
         //verify that they signed themspk
         var newspk = themspk[1];
+        console.log("cd is ");
+        console.log(JSON.stringify(cd));
         var newspk2 = cd.me;
-        //verify that newspk == newspk2
+        if (!(JSON.stringify(newspk) == JSON.stringify(newspk2))) {
+            console.log(JSON.stringify(newspk));
+            console.log(JSON.stringify(newspk2));
+            throw("spks do not match");
+        }
         var ss = cd.ssme;
         var ss4 = cd.ssthem;
         var entropy = cd.entropy;
@@ -943,6 +977,17 @@ none_of(<<_:8, Script/binary>>, X) ->
     }
     function is_improvement(old_spk, old_ss, new_spk, new_ss) {
         //get height
+        //check that space gas and time limit are below or equal to what is in the config file.
+        if (new_spk[5] > 100000) {//space gas
+            console.log("this contract uses too much space.");
+            return false;
+        }
+        if (new_spk[6] > 100000) {//time gas
+            console.log("this contract uses too much time");
+            return false;
+        }
+        new_spk[5];
+        new_spk[6];
         var run2 = spk_run("fast", new_ss, new_spk, height, 0);
         var nonce2 = run2.nonce;
         var delay2 = run2.nonce;
@@ -952,27 +997,117 @@ none_of(<<_:8, Script/binary>>, X) ->
             console.log("the new spk can't produce a lower nonce than the old.");
             return false;
         }
-        
+        var old_bets = old_spk[4];
+        var old_amount = old_spk[8];
+        old_spk[4] = new_spk[4];
+        old_spk[6] = tg;
+        old_spk[5] = sg;
+        old_spk[8] = new_spk[8];
+        old_spk[9] = new_spk[9];
+        if (!(JSON.stringify(old_spk) == JSON.stringify(new_spk))) {
+            console.log("spk was changed in unexpected ways");
+            return false;
+        }
+        var cid = new_spk[7];
+        variable_public_get(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
+            var channel = verify_merkle(cid, proof);
+            var acc1 = channel[2]
+            var acc2 = channel[3]
+            var profit;
+            if (pubkey_64() == acc1) {
+                profit = new_spk[8] - old_amount;
+            } else {
+                profit = old_amount - new_spk[8];
+            }
+            var bets2 = new_spk[4];
+            if ((JSON.stringify(old_bets) == JSON.stringify(bets2)) && (profit > 0)) {
+                //if they give us money for no reason, then accept.
+                return true;
+            }
+            if ((!(profit < 0)) && //costs nothing
+                ((new_spk[4].length - old_bets.length) > 0)) { //increases number of bets
+	        //if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
+                var new_bet = bets2[0];
+                var t = bets2.slice(1, bets2.length);
+                if (!(JSON.stringify(t) == old_bets)) {
+                    console.log("we can only absorb one bet at a time this way.");
+                    return false;
+                }
+                var betAmount = new_bet.amount;
+                var potentialGain;
+                if (pubkey_64() == acc1) {
+                    potentialGain = -betAmount;
+                } else if (pubkey_64() == acc2) {
+                    potentialGain = betAmount;
+                } else {
+                    console.log("error, this spk isn't for your pubkey")
+                    return false;
+                }
+                if (!(potentialGain > 0)) {
+                    return false;
+                }
+                var obligations1 = spk_obligations(1, bets2);
+                var obligations2 = spk_obligations(2, bets2);
+                var channelbal1 = channel[4];
+                var channelbal2 = channel[5];
+                if (obligations1 > channelbal1) {
+                    console.log("acc1 doesn't have enough money in the channel to make that bet");
+                    return false;
+                }
+                if (obligations2 > channelbal2) {
+                    console.log("acc2 doesn't have enough money in the channel to make that bet");
+                    return false;
+                }
+                return true;
+            }    
+            return false;
+        });
     }
-    function pull_channel_state(ip, port) {
+    function spk_obligations(n, bets) {
+        var x = 0;
+        for (var i = 0; i < n; i++) {
+            var b = bets[i].amount;
+            if (b > 0) {
+                if (b > 0) {
+                    x += b;
+                }
+            } else if (n == 2) {
+                if (b < 0) {
+                    x -= b;
+                }
+            } else {
+                throw("spk_obligations error");
+            }
+        }
+        return x;
+    }
+    function pull_channel_state() {
         //get their pubkey
-        var msg1 = ["spk", my_pubkey, ip, port];
-        //returns cd and them_spk
-        var cd0 = channel_manager[server_id];
-        if (cd0 == undefined) {
-            console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
-            throw("pull channel state error");
-        }
-        if (!(cd0.live == true)) {
-            var s = "this channel has been closed";
-            console.log(s);
-            throw(s);
-        }
-        var ret = channel_feeder_they_simplify(server_id, them_spk, cd);
-        var msg2 = ["channel_sync", my_pubkey, ret];
-        // eventually decrypt msgs here, for lightning payments.
-        // eventually needed for lightning: api_bet_unlock(ip, port);
-
+        variable_public_get(["pubkey"], function(server_pubkey) {
+            variable_public_get(["spk", pubkey_64()], function(spk_return) {
+                console.log("spk return");
+                console.log(JSON.stringify(spk_return));
+                var cd = spk_return[1];
+                var them_spk = spk_return[2];
+                //returns cd and them_spk
+                var cd0 = channel_manager[server_pubkey];
+                if (cd0 == undefined) {
+                    console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
+                    throw("pull channel state error");
+                }
+                /*
+                  if (!(cd0.live == true)) {
+                    var s = "this channel has been closed";
+                    console.log(s);
+                    throw(s);
+                }
+                */
+                var ret = channel_feeder_they_simplify(server_pubkey, them_spk, cd);
+                var msg2 = ["channel_sync", my_pubkey, ret];
+                // eventually decrypt msgs here, for lightning payments.
+                // eventually needed for lightning: api_bet_unlock(ip, port);
+            });
+        });
     }
     return {"run5": run5, "test": chalang_test, "pull_channel_state": pull_channel_state};
 }
@@ -988,5 +1123,5 @@ console.log(JSON.stringify(stack));
 */
 
 var chalang_object = chalang();
-var foo = chalang_object.test();//this is how you make the test run.
-console.log(JSON.stringify(foo));
+//var foo = chalang_object.test();//this is how you make the test run.
+//console.log(JSON.stringify(foo));

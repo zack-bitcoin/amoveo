@@ -31,7 +31,7 @@ function outstanding_bets2() {
     variable_public_get(["pubkey"], outstanding_bets3);
     function outstanding_bets3(server_pubkey) {
         var x = channel_manager[server_pubkey];
-        var bets = me[4];
+        var bets = x.me[4];
         var ssme = x.ssme;
         div.innerHTML = "";
         oadiv.innerHTML = "";
@@ -105,6 +105,8 @@ function outstanding_bets_print_bets(bets, ssme, server_pubkey) {
     var cancel_buttons = [];
     for (var i = 1; i < bets.length; i++) {
         var bet = bets[i];
+        console.log("bet is ");
+        console.log(bet);
         var oid = bet[3][6];
         var amount = bet[2];
         var order = document.createElement("h8");
