@@ -294,25 +294,31 @@ function channels1() {
         var cd = channel_manager[pubkey];
         var trie_key = cd.me[7];//channel id, cid
         var top_hash = hash(serialize_header(top_header));
-        variable_public_get(["proof", btoa("channels"), trie_key, btoa(array_to_string(top_hash))], function(x) { refresh_balance2(trie_key, x); });
-
-    }
-    function refresh_balance2(trie_key, proof) {
         // id acc1 acc2 bal1 bal2 amount nonce timeout_height, last_modified,
         // entropy, delay, slasher, closed
-
         //we should modify the balances based on the contract code we store
-        var val = verify_merkle(trie_key, proof);
-        var balance_div = document.getElementById("balance_div");
-        var mybalance = (val[4] / 100000000).toString();
-        var serverbalance = (val[5] / 100000000).toString();
-        console.log(val[4]);
-        console.log(parseInt(val[4], 10));
-        console.log(mybalance);
-        balance_div.innerHTML = ("your balance: ").concat(
-            mybalance).concat("  server balance: ").concat(
-                serverbalance);
-        //add or remove more based on any channel state we are storing.
-        console.log(val);
+
+        verify_callback("channels", trie_key, function(val) {
+            var balance_div = document.getElementById("balance_div");
+            var spk = cd.them[1];
+            var amount = spk[8];
+            var betAmount = sum_bets(spk[4]);
+
+            var mybalance = ((val[4] + amount)/ 100000000).toString();
+            var serverbalance = ((val[5] - amount - betAmount) / 100000000).toString();
+            balance_div.innerHTML = ("your balance: ").concat(
+                mybalance).concat("  server balance: ").concat(
+                    serverbalance);
+            //add or remove more based on any channel state we are storing.
+        });
     }
-}
+    function sum_bets(bets) {
+        var x = 0;
+        for (var i = 1; i < bets.length; i++) {
+            console.log("sum bets bet is ");
+            console.log(JSON.stringify(bets[i][2]));
+            x += bets[i][2];
+        }
+        return x;
+    }
+}         
