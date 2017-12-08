@@ -1,6 +1,12 @@
 
 var channel_manager = {};
 channels1();
+function new_cd(me, them, ssme, ssthem, entropy, cid) {
+    return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "entropy": entropy, "cid":cid};
+}
+function new_ss(code, prove) {
+    return {"code": code, "prove": prove};
+}
 function channels1() {
     //check if we have a chnnel with the server yet.
     //if we don't, then give an interface for making one.
@@ -96,7 +102,7 @@ function channels1() {
         }
     }
     function empty_ss() {
-        return {"code": [], "prove": []};
+        return [];
     }
     function channels3(x) {
         console.log("channels3 ");
@@ -111,9 +117,9 @@ function channels1() {
         console.log(JSON.stringify(sstx));
         //variable_public_get(["txs", [-6, sstx]], function(x) {});
         var spk = s2spk[1];
-        var cd = {"me": spk, "them": s2spk, "ssme": empty_ss(), "ssthem": empty_ss(), "entropy": entropy, "cid": cid};
-        console.log("cd is ");
-        console.log(cd);
+        var cd = new_cd(spk, s2spk, empty_ss(), empty_ss(), entropy, cid);
+        //console.log("cd is ");
+        //console.log(cd);
         channel_manager[acc2] = cd;
         channel_warning();
         variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
@@ -131,6 +137,8 @@ function channels1() {
         var reader = new FileReader();
         reader.onload = function(e) {
             channel_manager = JSON.parse(reader.result);
+            //console.log("loaded channel manager");
+            //console.log(JSON.stringify(channel_manager));
             variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
         }
         reader.readAsText(file);
@@ -259,8 +267,12 @@ function channels1() {
                     var cd = channel_manager[server_pubkey];
                     cd.me = sspk[1];
                     cd.them = sspk2;
-                    var newss = {"code": [0,0,0,0,4], "prove":[]};
+                    //var newss = {"code": [0,0,0,0,4], "prove":[]};
+                    var newss = new_ss([0,0,0,0,4], []);
                     //var newss = [0,0,0,0,4];
+                    console.log("about to update channel manager after having made a bet");
+                    console.log("cd.ssme currently is");
+                    console.log(JSON.stringify(cd.ssme));
                     console.log(JSON.stringify(sspk[1]));
                     console.log(JSON.stringify(newss));
                     cd.ssme = ([newss]).concat(cd.ssme);

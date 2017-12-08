@@ -1,4 +1,12 @@
 
+function verify_callback(tree, key, callback) {
+    var top_hash = hash(serialize_header(top_header));
+    variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
+        var val = verify_merkle(key, proof);
+        return callback(val);
+    });
+}
+
 function verify_merkle(trie_key, x) {
     function hash_member(hash, members) {
         for (var i = 0; i < 6; i++) {

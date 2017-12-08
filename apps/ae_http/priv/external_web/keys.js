@@ -114,23 +114,9 @@ function keys_function1() {
     function update_balance() {
         var trie_key = pubkey_64();
         var top_hash = hash(serialize_header(top_header));
-        variable_public_get(["proof", btoa("accounts"), trie_key, btoa(array_to_string(top_hash))], function(x) { update_balance2(trie_key, x); });
-        //var trie_key = 1;
-        //variable_public_get(["proof", btoa("governance"), trie_key, btoa(array_to_string(top_hash)], function(x) { update_balance2(trie_key, x); } );
-    }
-    function update_balance2(trie_key, proof0) {
-        console.log("update balance2");
-        if (proof0[3] == "empty") {
-            bal_div.innerHTML = "your balance: unknown";
-        } else {
-            console.log(JSON.stringify(proof0));
-            console.log("trie_key is ");
-            console.log(JSON.stringify(trie_key));
-            var val = verify_merkle(trie_key, proof0);
-            console.log(val);
-            var balance = val[1] / 100000000;
-            set_balance(balance);
-        }
+        verify_callback("accounts", trie_key, function(x) {
+            set_balance(x[1] / 100000000);
+        });
     }
     function set_balance(n) {
         bal_div.innerHTML = ("your balance: ").concat((n).toString());

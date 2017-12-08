@@ -779,102 +779,128 @@ function chalang(command) {
         var x = run5(verify_signature_contract, d);
         console.log(JSON.stringify(x.stack));
     }
-    function prove_facts(facts) {
+    function prove_facts(facts, callback) {
         if (JSON.stringify(facts) == JSON.stringify([])) {
             return [empty_list];
         }
-        var r = [empty_list]; // [
-        for (var i = 0; i<facts.length; i++) {
-            console.log(facts[i]); //guess [-7, tree, key]
-            //variable_public_get(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
-            variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof) {
-                var value = verify_merkle(key, proof);
-                //we are making chalang like this:
-                //[ int id, key, binary size serialized_data ]
-                // '[', ']', and ',' are macros for making a list.
-                r = r.concat([empty_list]); // [
-                r = r.concat([0]).concat(integer_to_array(id, 4));
-                r = r.concat([swap, cons]); // ,
-                if (Integer.isInteger(key)) {
-                    r = r.concat([0]);
-                    r = r.concat(integer_to_list(key, 4));
-                } else {
-                    r = r.concat([2]);
-                    r = r.concat(integer_to_list(key.length, 4));
-                    r = r.concat(key);
-                }
-                r = r.concat([swap, cons]); // ,
-                var serialized_data;//this is the serialized version of the thing who's existence we are proving. make it from value.
-                var s = serialized_data.length;
-                r = r.concat([2]).concat([integer_to_list(s, 4)]);
-                r = r.concat(serialized_data);
-                r = r.concat([swap, cons, reverse]); // ]
-                r = r.concat([swap, cons]); // ,
-            });
+        return prove_facts2(facts, 0, [empty_list], callback); // [
+    }
+    function prove_facts2(facts, i, r, callback) {
+        if (i == facts.length) {
+            r.concat([reverse]); // converts a , to a ]
+            return callback(r);
         }
+        var tree = facts[i][1];
+        var key = facts [i][2];
+        verify_callback(tree, key, function(value) {
+            //var value = verify_merkle(key, proof);
+            //we are making chalang like this:
+            //[ int id, key, binary size serialized_data ]
+            // '[', ']', and ',' are macros for making a list.
+            r = r.concat([empty_list]); // [
+            r = r.concat([0]).concat(integer_to_array(id, 4));
+            r = r.concat([swap, cons]); // ,
+            if (Integer.isInteger(key)) {
+                r = r.concat([0]);
+                r = r.concat(integer_to_list(key, 4));
+            } else {
+                r = r.concat([2]);
+                r = r.concat(integer_to_list(key.length, 4));
+                r = r.concat(key);
+            }
+            r = r.concat([swap, cons]); // ,
+            var serialized_data;//this is the serialized version of the thing who's existence we are proving. make it from value.
+            var s = serialized_data.length;
+            r = r.concat([2]).concat([integer_to_list(s, 4)]);
+            r = r.concat(serialized_data);
+            r = r.concat([swap, cons, reverse]); // ]
+            r = r.concat([swap, cons]); // ,
+            return prove_facts2(facts, i+1, r, callback);
+        });
         return r.concat([reverse]); // converts a , to a ]
     }
-    function spk_run(mode, ss, spk, height, slash) {
-        var state = chalang_state(height, slash, 0);
-        var fun_limit;//from governance
-        var var_limit;//from governance,
-        return spk_run2(ss, spk[4], spk[6], spk[5], fun_limit, var_limit, state, spk.delay);
-    }
-    function spk_run2(ss, bets, opgas, ramgas, funs, vars, state, delay) {
-        if (!(ss.length == bets.length)) {
+    function spk_run(mode, ss, spk, height, slash, fun_limit, var_limit, callback) {
+        var state = chalang_new_state(height, slash);
+        var key1 = "fun_limit";
+        var ret;
+        if (!(ss.length == (spk[4].length - 1))) {//spk[4] == bets is formated with a -6 in front for packer.erl
+            console.log(JSON.stringify(ss));
+            console.log(JSON.stringify(spk[4]));
             throw("ss and bets need to be the same length");
         }
-        var amount = 0;
-        var delay = 0;
-        for (var i = 0; i < ss.length; i++) {
-            var run_object = spk_run3(ss[i], bets[i], opgas, ramgas, funs, vars, state);
-            amount += run_object.amount;
-            nonce += run_object.nonce;
-            delay = Math.max(delay, run_object.delay);
-        }
-        return {"amount": amount, "nonce": nonce, "delay": delay, "opgas": opgas};
+        spk_run2(ss, spk[4], spk[6], spk[5], fun_limit, var_limit, state, spk.delay, 0, 0, 0, function(ret) {
+            return callback(ret)
+        });
     }
-    function spk_run3(ss, bet, opgas, ramgas, funs, vars, state) {
+    function spk_run2(ss, bets, opgas, ramgas, funs, vars, state, delay, nonce, amount, i, callback) {
+        console.log("spk run 2");
+        if (i > ss.length) {
+            return callback({"amount": amount, "nonce": nonce, "delay": delay});//, "opgas": opgas});
+        }
+        spk_run3(ss[i], bets[i], opgas, ramgas, funs, vars, state, function(run_object) {
+            return spk_run2(ss, bets, opgas, ramgas, funs, vars, state,
+                            Math.max(delay, run_object.delay),
+                            nonce + run_object.nonce,
+                            amount + run_object.amount,
+                            i+1);
+        });
+    }
+    function spk_run3(ss, bet, opgas, ramgas, funs, vars, state, callback) {
+        console.log("spk_run3 ss is ");
+        console.log(JSON.stringify(ss));
         var script_sig = ss.code;
         if (!(chalang_none_of(script_sig))) {
             throw("error: crash op in the script sig");
         }
-        var f = prove_facts(ss.prove);
-        var c = bet.code;
-        var code = f.concat(c);
-        var data = chalang_data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
-        var data2 = run5(script_sig, data);
-        var data3 = run5(code, data2);
-        var amount = data3.stack[0];
-        var nonce = data3.stack[1];
-        var delay = data3.stack[2];
-        var cgran;
-        if ((amount > cgran) || (amount < -cgran)) {
-            throw("you can't spend money you don't have in the channel.");
-        }
-        var a3 = Math.floor(amount * bet.amount / cgran);
-        return {"amount": a3, "nonce": nonce, "delay": delay, "opgas": data3.opgas};
+        prove_facts(ss.prove, function(f) {
+            var c = bet.code;
+            var code = f.concat(c);
+            console.log("about to make data, var is ");
+            console.log(vars);
+            var data = chalang_data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
+            var data2 = run5(script_sig, data);
+            var data3 = run5(code, data2);
+            var amount = data3.stack[0];
+            var nonce = data3.stack[1];
+            var delay = data3.stack[2];
+            var cgran;
+            if ((amount > cgran) || (amount < -cgran)) {
+                throw("you can't spend money you don't have in the channel.");
+            }
+            var a3 = Math.floor(amount * bet.amount / cgran);
+            return callback({"amount": a3, "nonce": nonce, "delay": delay, "opgas": data3.opgas});
+        });
     }
-    function spk_force_update(spk, ssold, ssnew) {
-        var height;
-        var ran1 = spk_run("fast", ssold, spk, height, 0);
-        var nonceOld = ran1.nonce;
-        var ran2 = spk_run("fast", ssnew, spk, height, 0);
-        var nonceNew = ran2.nonce;
-        if (nonceNew > nonceOld) {
-            var updated = spk_force_update2(spk[4], ssnew, height);
-            spk[4] = updated.new_bets;
-            spk[8] += updated.amount;
-            spk[9] += updated.nonce;
-            return {"spk":spk, "ss":updated.finalss};
-        }
+    function spk_force_update(spk, ssold, ssnew, fun_limit, var_limit, callback) {
+        console.log("force update ss's are ");
+        console.log(JSON.stringify([ssold, ssnew]));
+        var height = top_header[1];
+        var ret;
+        spk_run("fast", ssold, spk, height, 0, fun_limit, var_limit, function(ran1) {
+            console.log("spk run returned ");
+            console.log(JSON.stringify(ran1));
+            var nonceOld = ran1.nonce;
+            spk_run("fast", ssnew, spk, height, 0, fun_limit, var_limit, function(ran2) {
+                var nonceNew = ran2.nonce;
+                if (nonceNew > nonceOld) {
+                    spk_force_update2(spk[4], ssnew, height, function(updated) {
+                        spk[4] = updated.new_bets;
+                        spk[8] += updated.amount;
+                        spk[9] += updated.nonce;
+                        return callback({"spk":spk, "ss":updated.finalss});
+                    });
+                } else {
+                    throw("spk force update error");
+                }
+            });
+        });
     }
     function chalang_none_of(c) {
         var n;
         for (var i = 0; i < c.length; i++) {
             if ( c[i] == crash ) {
                 return false;
-            } else if ( c[i] == integer_op ) {
+            } else if ( c[i] == int_op ) {
                 i += 4
             } else if ( c[i] == binary_op ) {
                 n = array_to_integer(c.slice(i+1, i+5));
@@ -883,7 +909,7 @@ function chalang(command) {
         }
         return true;
     }
-    function spk_force_update2(bets, ss, height) {
+    function spk_force_update2(bets, ss, height, callback) {
         var amount = 0;
         var nonce = 0;
         var new_bets = JSON.parse(JSON.stringify(bets));
@@ -892,28 +918,23 @@ function chalang(command) {
         var var_limit = 10000;
         var bet_gas_limit = 100000;
         var cgran = 10000; //constants.erl
-        
-        var state;
-        var b;
-        var f;
-        var c;
-        var code;
-        var data;
-        var data2;
-        var data3;
-        var s;
-        for (var i = bets.length-1; i > -1; i--) {
-            b = chalang_none_of(ss[i].code);//ss.code
-            if (!(b)) {
-                throw("you can't put crash into the ss");
-            }
-            state = chalang_new_state(height, 0);
-            f = prove_facts(ss[i].prove);
-            code = f.concat(bets[i].code);
-            data = chalang_data_maker(bet_gas_limit, bet_gas_limit, var_limit, fun_limit, ss.code, code, state);
-            data2 = run5([JSON.parse(JSON.stringify(ss[i].code))], data);
-            data3 = run5([code], data2);
-            s = data3.stack;
+        spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, bets.length-1, callback);
+    }
+    function spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i, callback) {
+        if (i < 0) {
+            return callback({"new_bets": new_bets, "newss": newss, "amount": amount, "nonce": nonce});
+        }
+        var b = chalang_none_of(ss[i].code);//ss.code
+        if (!(b)) {
+            throw("you can't put crash into the ss");
+        }
+        var state = chalang_new_state(height, 0);
+        prove_facts(ss[i].prove, function(f) { //PROBLEM HERE
+            var code = f.concat(bets[i].code);
+            var data = chalang_data_maker(bet_gas_limit, bet_gas_limit, var_limit, fun_limit, ss.code, code, state);
+            var data2 = run5([JSON.parse(JSON.stringify(ss[i].code))], data);
+            var data3 = run5([code], data2);
+            var s = data3.stack;
             if (!(s[2] > 50)) { //if the delay is long, then don't close the trade.
                 if (s[0] > cgran) {
                     throw("you can't spend money that you don't have");
@@ -923,59 +944,87 @@ function chalang(command) {
                 new_bets = new_bets.slice(0, i).concat(new_bets.slice(i+1, new_bets.length));
                 newss = newss.slice(0, i).concat(newss.slice(i+1, newss.length));
             }
-        }
-        return {"new_bets": new_bets, "newss": newss, "amount": amount, "nonce": nonce};
+            return spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i-1, callback); 
+        });
     }
-    function channel_feeder_they_simplify(from, themspk, cd) {
+    function channel_feeder_they_simplify(from, themspk, cd, callback) {
         cd0 = channel_manager[from];
         //true = cd0.live; //verify this is true
         //true = cd.live; //verify this is true
-        var spkme = cd0.md;
+        var spkme = cd0.me;
         var ssme = cd0.ssme;
+        console.log("ssme is ");
+        console.log(JSON.stringify(ssme));
         //verify that they signed themspk
         var newspk = themspk[1];
-        console.log("cd is ");
-        console.log(JSON.stringify(cd));
-        var newspk2 = cd.me;
+        //console.log("spkme is ");
+        var newspk2 = cd[1];
         if (!(JSON.stringify(newspk) == JSON.stringify(newspk2))) {
             console.log(JSON.stringify(newspk));
             console.log(JSON.stringify(newspk2));
-            throw("spks do not match");
+            throw("spks they gave us do not match");
         }
-        var ss = cd.ssme;
-        var ss4 = cd.ssthem;
-        var entropy = cd.entropy;
-        var b2 = spk_force_update(spkme, ssme, ss4);
-        var cid = cd.cid;
-        if ( JSON.stringify(b2) == JSON.stringify([newspk, ss])) {
-            var ret = sign_tx(newspk);
-            var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
-            channel_manager[from] = newcd;
-            return ret;
-        } else {
-            var b3 = is_improvement(spkme, ssme, newspk, ss);
-            if ( b3 ) {
-                ret = sign_tx(newspk);
-                var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
-                channel_manager[from] = newcd;
-                return ret;
-            } else {
-                var sh = simplify_helper(From, ss4);
-                var ss5 = sh.ss;
-                var ret = sh.ret;
-                var spk = themspk[1];
-                var spk2 = ret[1];
-                if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
-                    console.log("spks do not match");
-                } else {
-                    var data = new_cd(spk, themspk, ss5, ss5, entropy, cid);
-                    channel_manager[from] = data;
-                    return ret;
-                }
-            }
+        var ss = [];
+        for (var i = 1; i< cd[3].length; i++) {
+            ss = [new_ss(cd[3][i][1], cd[3][i][2])].concat(ss);
         }
+        var ss4 = [];
+        for (var i = 1; i< cd[4].length; i++) {
+            ss4 = [new_ss(string_to_array(atob(cd[4][i][1])), cd[4][i][2])].concat(ss4);
+        }
+        console.log("ss4 should have a prove");
+        console.log(JSON.stringify(ss4));
+        console.log("prove should be");
+        console.log(JSON.stringify(cd[4][2]));
+        console.log("cd is ");
+        console.log(JSON.stringify(cd));
+        console.log("cd3 is ");
+        console.log(JSON.stringify(cd[3]));
+        console.log("cd4 is ");
+        console.log(JSON.stringify(cd[4]));
+
+        verify_callback("governance", 14, function(fun_limit) {
+            verify_callback("governance", 15, function(var_limit) {
+                var entropy = cd[7];
+                spk_force_update(spkme, ssme, ss4, fun_limit, var_limit, function(b2) {
+                    var cid = cd[8];
+                    if ( JSON.stringify(b2) == JSON.stringify([newspk, ss])) {
+                        var ret = sign_tx(newspk);
+                        var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
+                        channel_manager[from] = newcd;
+                        return callback(ret);
+                    } else {
+                        var b3 = is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit);
+                        if ( b3 ) {
+                            ret = sign_tx(newspk);
+                            var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
+                            channel_manager[from] = newcd;
+                            return callback(ret);
+                        } else {
+                            console.log("this part should not happen until we start programming lightning");
+                            return false;
+                        //this part is only used for lightning.
+                        /*
+                          var sh=channel_feeder_simplify_helper(From, ss4);
+                          var ss5 = sh.ss;
+                          var ret = sh.ret;
+                          var spk = themspk[1];
+                          var spk2 = ret[1];
+                          if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
+                          console.log("spks do not match");
+                          } else {
+                          var data = new_cd(spk, themspk, ss5, ss5, entropy, cid);
+                          channel_manager[from] = data;
+                          return ret;
+                          }
+                        */
+                        }
+                    }
+                });
+            });
+        });
     }
-    function is_improvement(old_spk, old_ss, new_spk, new_ss) {
+    function is_improvement(old_spk, old_ss, new_spk, new_ss, fun_limit, var_limit) {
         //get height
         //check that space gas and time limit are below or equal to what is in the config file.
         if (new_spk[5] > 100000) {//space gas
@@ -988,84 +1037,97 @@ function chalang(command) {
         }
         new_spk[5];
         new_spk[6];
-        var run2 = spk_run("fast", new_ss, new_spk, height, 0);
-        var nonce2 = run2.nonce;
-        var delay2 = run2.nonce;
-        var run1 = spk_run("fast", old_ss, old_spk, height, 0);
-        var nonce1 = run1.nonce;
-        if (!(nonce2 > nonce1)) {
-            console.log("the new spk can't produce a lower nonce than the old.");
-            return false;
-        }
-        var old_bets = old_spk[4];
-        var old_amount = old_spk[8];
-        old_spk[4] = new_spk[4];
-        old_spk[6] = tg;
-        old_spk[5] = sg;
-        old_spk[8] = new_spk[8];
-        old_spk[9] = new_spk[9];
-        if (!(JSON.stringify(old_spk) == JSON.stringify(new_spk))) {
-            console.log("spk was changed in unexpected ways");
-            return false;
-        }
-        var cid = new_spk[7];
-        variable_public_get(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
-            var channel = verify_merkle(cid, proof);
-            var acc1 = channel[2]
-            var acc2 = channel[3]
-            var profit;
-            if (pubkey_64() == acc1) {
-                profit = new_spk[8] - old_amount;
-            } else {
-                profit = old_amount - new_spk[8];
-            }
-            var bets2 = new_spk[4];
-            if ((JSON.stringify(old_bets) == JSON.stringify(bets2)) && (profit > 0)) {
-                //if they give us money for no reason, then accept.
-                return true;
-            }
-            if ((!(profit < 0)) && //costs nothing
-                ((new_spk[4].length - old_bets.length) > 0)) { //increases number of bets
-	        //if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
-                var new_bet = bets2[0];
-                var t = bets2.slice(1, bets2.length);
-                if (!(JSON.stringify(t) == old_bets)) {
-                    console.log("we can only absorb one bet at a time this way.");
+        spk_run("fast", new_ss, new_spk, height, 0, function(run2) {
+            var nonce2 = run2.nonce;
+            var delay2 = run2.delay;
+            spk_run("fast", old_ss, old_spk, height, 0, function(run1) {
+                var nonce1 = run1.nonce;
+                if (!(nonce2 > nonce1)) {
+                    console.log("the new spk can't produce a lower nonce than the old.");
                     return false;
                 }
-                var betAmount = new_bet.amount;
-                var potentialGain;
-                if (pubkey_64() == acc1) {
-                    potentialGain = -betAmount;
-                } else if (pubkey_64() == acc2) {
-                    potentialGain = betAmount;
-                } else {
-                    console.log("error, this spk isn't for your pubkey")
+                var old_bets = old_spk[4];
+                var old_amount = old_spk[8];
+                old_spk[4] = new_spk[4];
+                old_spk[6] = tg;
+                old_spk[5] = sg;
+                old_spk[8] = new_spk[8];
+                old_spk[9] = new_spk[9];
+                if (!(JSON.stringify(old_spk) == JSON.stringify(new_spk))) {
+                    console.log("spk was changed in unexpected ways");
                     return false;
                 }
-                if (!(potentialGain > 0)) {
-                    return false;
-                }
-                var obligations1 = spk_obligations(1, bets2);
-                var obligations2 = spk_obligations(2, bets2);
-                var channelbal1 = channel[4];
-                var channelbal2 = channel[5];
-                if (obligations1 > channelbal1) {
-                    console.log("acc1 doesn't have enough money in the channel to make that bet");
-                    return false;
-                }
-                if (obligations2 > channelbal2) {
-                    console.log("acc2 doesn't have enough money in the channel to make that bet");
-                    return false;
-                }
-                return true;
-            }    
-            return false;
+                var cid = new_spk[7];
+                var ret = false;
+                verify_callback("channels", cid, function(channel) {
+                    //variable_public_get(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
+                    var channel = verify_merkle(cid, proof);
+                    var acc1 = channel[2]
+                    var acc2 = channel[3]
+                    var profit;
+                    if (pubkey_64() == acc1) {
+                        profit = new_spk[8] - old_amount;
+                    } else {
+                        profit = old_amount - new_spk[8];
+                    }
+                    var bets2 = new_spk[4];
+                    if ((JSON.stringify(old_bets) == JSON.stringify(bets2)) && (profit > 0)) {
+                        //if they give us money for no reason, then accept.
+                        ret = true;
+                        return 0;
+                    }
+                    if ((!(profit < 0)) && //costs nothing
+                        ((new_spk[4].length - old_bets.length) > 0)) { //increases number of bets
+	                //if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
+                        var new_bet = bets2[0];
+                        var t = bets2.slice(1, bets2.length);
+                        if (!(JSON.stringify(t) == old_bets)) {
+                            console.log("we can only absorb one bet at a time this way.");
+                            ret = false;
+                            return 0;
+                        }
+                        var betAmount = new_bet.amount;
+                        var potentialGain;
+                        if (pubkey_64() == acc1) {
+                            potentialGain = -betAmount;
+                        } else if (pubkey_64() == acc2) {
+                            potentialGain = betAmount;
+                        } else {
+                            console.log("error, this spk isn't for your pubkey")
+                            ret = false;
+                            return 0;
+                        }
+                        if (!(potentialGain > 0)) {
+                            ret = false;
+                            return 0;
+                        }
+                        var obligations1 = spk_obligations(1, bets2);
+                        var obligations2 = spk_obligations(2, bets2);
+                        var channelbal1 = channel[4];
+                        var channelbal2 = channel[5];
+                        if (obligations1 > channelbal1) {
+                            console.log("acc1 doesn't have enough money in the channel to make that bet");
+                            ret = false;
+                            return 0;
+                        }
+                        if (obligations2 > channelbal2) {
+                            console.log("acc2 doesn't have enough money in the channel to make that bet");
+                            ret = false;
+                            return 0;
+                        }
+                        ret = true;
+                        return 0;
+                    }
+                    ret = false;
+                    return 0;
+                });
+                return ret;
+            });
         });
     }
-    function spk_obligations(n, bets) {
-        var x = 0;
-        for (var i = 0; i < n; i++) {
+        function spk_obligations(n, bets) {
+            var x = 0;
+            for (var i = 0; i < n; i++) {
             var b = bets[i].amount;
             if (b > 0) {
                 if (b > 0) {
@@ -1085,8 +1147,6 @@ function chalang(command) {
         //get their pubkey
         variable_public_get(["pubkey"], function(server_pubkey) {
             variable_public_get(["spk", pubkey_64()], function(spk_return) {
-                console.log("spk return");
-                console.log(JSON.stringify(spk_return));
                 var cd = spk_return[1];
                 var them_spk = spk_return[2];
                 //returns cd and them_spk
@@ -1102,8 +1162,10 @@ function chalang(command) {
                     throw(s);
                 }
                 */
-                var ret = channel_feeder_they_simplify(server_pubkey, them_spk, cd);
-                var msg2 = ["channel_sync", my_pubkey, ret];
+                channel_feeder_they_simplify(server_pubkey, them_spk, cd, function(ret) {
+                    var msg2 = ["channel_sync", my_pubkey, ret];
+                    variable_public_get(msg2, function(foo) {});
+                });
                 // eventually decrypt msgs here, for lightning payments.
                 // eventually needed for lightning: api_bet_unlock(ip, port);
             });
