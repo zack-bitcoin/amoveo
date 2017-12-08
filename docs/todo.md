@@ -24,7 +24,7 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* the javascript light node "is_list" function in chalang has a problem. we need to check if a thing is an array in javascript.
+* when you cancel a bet, it should increase the spk's nonce. otherwise the bet could come back to life.
 
 * the light node needs a way to pull the channel state from the server.
 

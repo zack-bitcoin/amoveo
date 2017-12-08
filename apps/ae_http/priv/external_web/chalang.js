@@ -829,12 +829,14 @@ function chalang(command) {
             throw("ss and bets need to be the same length");
         }
         spk_run2(ss, spk[4], spk[6], spk[5], fun_limit, var_limit, state, spk.delay, 0, 0, 0, function(ret) {
-            return callback(ret)
+            return callback(ret);
         });
     }
     function spk_run2(ss, bets, opgas, ramgas, funs, vars, state, delay, nonce, amount, i, callback) {
         console.log("spk run 2");
-        if (i > ss.length) {
+        console.log("ss is ");
+        console.log(JSON.stringify(ss));
+        if (i > (ss.length - 1)) {
             return callback({"amount": amount, "nonce": nonce, "delay": delay});//, "opgas": opgas});
         }
         spk_run3(ss[i], bets[i], opgas, ramgas, funs, vars, state, function(run_object) {
@@ -842,7 +844,7 @@ function chalang(command) {
                             Math.max(delay, run_object.delay),
                             nonce + run_object.nonce,
                             amount + run_object.amount,
-                            i+1);
+                            i+1, callback);
         });
     }
     function spk_run3(ss, bet, opgas, ramgas, funs, vars, state, callback) {
@@ -890,7 +892,8 @@ function chalang(command) {
                         return callback({"spk":spk, "ss":updated.finalss});
                     });
                 } else {
-                    throw("spk force update error");
+                    console.log("nothing to update");
+                    return callback(false);
                 }
             });
         });
@@ -1001,8 +1004,8 @@ function chalang(command) {
                             channel_manager[from] = newcd;
                             return callback(ret);
                         } else {
-                            console.log("this part should not happen until we start programming lightning");
-                            return false;
+                            console.log("nothing to update");
+                            return callback(false);
                         //this part is only used for lightning.
                         /*
                           var sh=channel_feeder_simplify_helper(From, ss4);
@@ -1037,10 +1040,10 @@ function chalang(command) {
         }
         new_spk[5];
         new_spk[6];
-        spk_run("fast", new_ss, new_spk, height, 0, function(run2) {
+        spk_run("fast", new_ss, new_spk, height, 0, fun_limit, var_limit, function(run2) {
             var nonce2 = run2.nonce;
             var delay2 = run2.delay;
-            spk_run("fast", old_ss, old_spk, height, 0, function(run1) {
+            spk_run("fast", old_ss, old_spk, height, 0, fun_limit, var_limit, function(run1) {
                 var nonce1 = run1.nonce;
                 if (!(nonce2 > nonce1)) {
                     console.log("the new spk can't produce a lower nonce than the old.");
@@ -1125,7 +1128,7 @@ function chalang(command) {
             });
         });
     }
-        function spk_obligations(n, bets) {
+    function spk_obligations(n, bets) {
             var x = 0;
             for (var i = 0; i < n; i++) {
             var b = bets[i].amount;
@@ -1163,8 +1166,10 @@ function chalang(command) {
                 }
                 */
                 channel_feeder_they_simplify(server_pubkey, them_spk, cd, function(ret) {
-                    var msg2 = ["channel_sync", my_pubkey, ret];
-                    variable_public_get(msg2, function(foo) {});
+                    if (!(ret == false)) {
+                        var msg2 = ["channel_sync", pubkey_64(), ret];
+                        variable_public_get(msg2, function(foo) {});
+                    }
                 });
                 // eventually decrypt msgs here, for lightning payments.
                 // eventually needed for lightning: api_bet_unlock(ip, port);

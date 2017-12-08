@@ -42,14 +42,18 @@ function cancel_trade(n, server_pubkey) {
         //the nth bet in the channel (starting at 1) is a unmatched trade that we want to cancel.
     var oldCD = channel_manager[server_pubkey];
     var spk = oldCD.me;
-    var ss = oldCD.ssme[n-1];
+    var ss = oldCD.ssme[n-2];
     //var sscode = ss[1];
-    if (JSON.stringify(ss) == JSON.stringify([0,0,0,0,4])) {//this is what an unmatched trade looks like.
+    console.log("oldCD ssme, n");
+    console.log(JSON.stringify([oldCD.ssme, n]));
+    console.log("cancel trade ss is");
+    console.log(JSON.stringify(ss));
+    if (JSON.stringify(ss.code) == JSON.stringify([0,0,0,0,4])) {//this is what an unmatched trade looks like.
         var spk2 = remove_bet(n-1, spk);
         var sspk2 = sign_tx(spk2);
         var msg = ["cancel_trade", pubkey_64(), n, sspk2];
         variable_public_get(msg, function(x) {
-            return cancel_trade2(x, sspk2, server_pubkey, n-1);
+            return cancel_trade2(x, sspk2, server_pubkey, n-2);
         });
     } else {
         console.log(ss);
@@ -117,7 +121,9 @@ function outstanding_bets_print_bets(bets, ssme, server_pubkey) {
         } else if (bet[4][1] == 2) {
             outcome = "false";
         }
-        if ( JSON.stringify(ssme[i]) == JSON.stringify([0,0,0,0,4]) ) {
+        console.log("making cancel orders button, ssme is");
+        console.log(JSON.stringify(ssme));
+        if ( JSON.stringify(ssme[i-1].code) == JSON.stringify([0,0,0,0,4]) ) {
             //console.log("unmatched");
             //console.log(JSON.stringify([i, oid, amount, "unmatched", bet[4]]));
             order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you have an open order to trade this many tokens ").concat(s2c(amount)).concat(", you are trading at this price: ").concat(parseFloat(((bet[4][2])/100), 10)).concat(", you are betting on outcome: ").concat(outcome);
