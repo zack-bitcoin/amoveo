@@ -373,14 +373,10 @@ mine(Block, Rounds, Cores) ->
                 case mine2(Block, Rounds) of
                     false -> false;
                     PBlock ->
-                        lager:info("Found a block: ~p", [integer_to_list(height(PBlock))]),
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
                         block_absorber:save(PBlock),
-                        
                         sync:start()
-                        %block_absorber:garbage()
-                        %timer:sleep(2000)
                 end
         end,
     spawn_many(Cores-1, F),
@@ -692,7 +688,7 @@ initialize_chain() ->
         B -> G = genesis_maker(),
              block_absorber:do_save(G),
              G;
-        true -> get_by_height(1)
+        true -> get_by_height(0)
          end,
     Header0 = block_to_header(GB),
     %GH = hash(Header0),

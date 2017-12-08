@@ -57,7 +57,6 @@ start_link() ->
 %% gen_server callbacks
 
 init(ok) ->
-    lager:info("~p started", [?MODULE]),
     State = initial_state(),
     io:fwrite("tx_pool- blockchain ready\n"),
     {ok, State}.
@@ -74,7 +73,7 @@ handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
     MaxBlockSize = governance:get_value(max_block_size, Governance),
     F2 = case BlockSize > MaxBlockSize of
              true ->
-                 lager:warning("Cannot absorb tx - block is already full"),
+                 io:fwrite("Cannot absorb tx - block is already full"),
                  F;
              false ->
                  F#f{txs = NewTxs, 
@@ -102,7 +101,7 @@ handle_info(_Info, State) ->
 
 terminate(_Reason, _State) ->
     io:fwrite("tx_pool crashed \n this should never happen.\n"),
-    ok = lager:warning("~p died!", [?MODULE]).
+    ok.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

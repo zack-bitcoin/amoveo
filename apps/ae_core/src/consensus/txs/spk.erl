@@ -443,7 +443,7 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
 	    KID == Acc2 ->
 		Amount1 - Amount2
 	end,
-    LT = length(Bets2),
+    LT = length(Bets2) - length(Bets1),
     if
 	(Bets1 == Bets2) and 
 	Profit > 0 -> 
@@ -456,7 +456,8 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
 	    %Good verifies that bets were only removed, not added.
 	    %amount is the total volume of money controlled by those bets that were removed.
 	    %(Profit == Amount) and Good;
-	(Profit >= 0) and (LT > 0)->
+	(Profit >= 0) and %costs nothing
+        (LT > 0)->
 	    %if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
 	    [NewBet|T] = Bets2,
 	    BetAmount = NewBet#bet.amount,
@@ -472,7 +473,6 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
 	    ChannelBal1 = channels:bal1(Channel),
 	    ChannelBal2 = channels:bal2(Channel),
 	    if
-		(Profit >= 0) and %costs nothing
 		(T == Bets1) and %only add one more bet
 		(PotentialGain > 0) and %potentially gives us money
 		(Obligations2 =< ChannelBal2) and
@@ -512,7 +512,6 @@ test() ->
     Pub = constants:master_pub(),
     GovID = 2,
     Code = prove_facts([{governance, GovID},{accounts, Pub}], Trees),
-    lager:info("spk test prove facts ~s", [packer:pack(Code)]),
     State = chalang_state(1, 0, Trees),
     [[[<<6:32>>, <<GovID:32>>, Gov5], %6th tree is governance. 5th thing is "delete channel reward"
       [<<1:32>>, BPub, Acc1]]] = %1st tree is accounts. 1 is for account id 1.

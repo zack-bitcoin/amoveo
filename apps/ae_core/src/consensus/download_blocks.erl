@@ -25,7 +25,7 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
     JumpHeight = MyHeight + DBB,
     if
         JumpHeight < Height ->
-            lager:debug("JumpHeight < Height"),
+            io:fwrite("JumpHeight < Height"),
 	    true = JumpHeight > 0,
             BlockAtJumpHeight = remote_peer({block, JumpHeight}, Peer),
             trade_blocks(Peer, [BlockAtJumpHeight], JumpHeight);
@@ -47,7 +47,7 @@ case_sync(L, Peer) ->
         true -> ok
     end.
 trade_blocks(Peer, L, 0) ->
-    lager:debug("downloader blocks trade blocks 0 absorbing blocks"),
+    io:fwrite("downloader blocks trade blocks 0 absorbing blocks"),
     Genesis = block:get_by_height(0),
     GH = block:hash(Genesis),
     %send_blocks(Peer, block:hash(block:top()), GH, [], 0),
@@ -63,16 +63,16 @@ trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     Height = block:height(PrevBlock),
     case OurChainAtPrevHash of
         empty ->
-    	    lager:debug("we don't have a parent for this block ~p", [OurChainAtPrevHash]),
+    	    io:fwrite("we don't have a parent for this block ~p", [OurChainAtPrevHash]),
 	    true = Height > 1,
             RemoteBlockThatWeMiss = remote_peer({block, Height-1}, Peer),
-    	    lager:debug("trade_blocks: height > 1 ~p", [packer:pack({got_block, RemoteBlockThatWeMiss})]),
+    	    io:fwrite("trade_blocks: height > 1 ~p", [packer:pack({got_block, RemoteBlockThatWeMiss})]),
             trade_blocks(Peer, [RemoteBlockThatWeMiss|CurrentBlocks], Height-1);
         _ ->
-    	    lager:debug("we have a parent for this block ~p", [OurChainAtPrevHash]),
+    	    io:fwrite("we have a parent for this block ~p", [OurChainAtPrevHash]),
             block_absorber:save(CurrentBlocks),
             case_sync(CurrentBlocks, Peer),
-    	    lager:debug("about to send blocks"),
+    	    io:fwrite("about to send blocks"),
     	    H = headers:top(),
     	    case headers:height(H) of
                 0 -> ok;
@@ -83,10 +83,10 @@ trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     end.
 
 send_blocks(Peer, Hash, Hash, Blocks, _N) ->
-    lager:debug("send blocks 1 (OurTopHash = CommonHash)"),
+    io:fwrite("send blocks 1 (OurTopHash = CommonHash)"),
     send_blocks_external(Peer, Blocks);
 send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
-    lager:debug("send blocks 2 ~p", [integer_to_list(N)]),
+    io:fwrite("send blocks 2 ~p", [integer_to_list(N)]),
     GH = block:hash(block:get_by_height(0)),
     if
         OurTopHash == GH -> send_blocks_external(Peer, Blocks);
@@ -97,7 +97,7 @@ send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
     end.
 
 send_blocks_external(Peer, Blocks) ->
-    lager:debug("send_blocks_external: ~p" ,[packer:pack({sending_blocks, Blocks})]),
+    io:fwrite("send_blocks_external: ~p" ,[packer:pack({sending_blocks, Blocks})]),
     spawn(?MODULE, do_send_blocks, [Peer, Blocks]).
 
 do_send_blocks(_, []) -> ok;

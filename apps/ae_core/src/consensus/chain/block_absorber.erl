@@ -20,7 +20,9 @@ init(ok) ->
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> lager:debug("terminating block_absorber gen_srv"), ok.
+terminate(_, _) -> 
+    io:fwrite("block absorber died\n"),
+    ok.
 handle_info(_, X) -> {noreply, X}.
 %handle_cast(garbage, X) -> 
 %    trees:garbage(),
@@ -58,8 +60,8 @@ absorb_internal(Block) ->
     if
         Height == 0 -> ok;
         BHC ->
-            lager:info("We have seen this block before, so block_absorber will ignore it"),
-	    ok;%If we have seen this block before, then don't process it again.
+            io:fwrite("we have seen this block before. so block absorber will ignore it.\n"),
+	    ok;
 	true ->
 	    true = block_hashes:check(NextBlock), %check that the previous block is known.
 	    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid

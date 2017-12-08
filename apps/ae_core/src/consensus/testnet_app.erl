@@ -15,7 +15,7 @@ start(_StartType, _StartArgs) ->
     application:start(inets),
     inets:start(),
 
-    lager:info("Starting Testnet node"),
+    io:fwrite("starting testnet node"),
 
     testnet_sup:start_link().
 

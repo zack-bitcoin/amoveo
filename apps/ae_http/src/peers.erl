@@ -58,7 +58,7 @@ add([[IP, Port]|T]) when ((size(IP) == 4) or (size(IP) == 16)) ->
 add([{IP, Port}|T]) -> 
     add([[IP, Port]|T]);
 add([MalformedPeer|T]) ->
-    lager:warning("Tried to add malformed peer:~p. Skipping...", [MalformedPeer]),
+    io:fwrite("tried to add malformed peer, skipping."),
     add(T);
 add({IP, Port}) -> 
     NIP = if

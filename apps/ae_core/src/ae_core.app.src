@@ -14,8 +14,8 @@
                   pink_hash,
                   chalang,
                   ae_http,
-                  encrypter,
-                  lager
+                  lager,
+                  encrypter
                  ]},
   {modules, []},
   {mod, { testnet_app, []}},

@@ -68,7 +68,7 @@ start_link() ->
 %% gen_server callbacks
 
 init(ok) ->
-    lager:info("Starting ~p", [?MODULE]),
+    io:fwrite("starting secrets\n"),
     process_flag(trap_exit, true),
         K = case db:read(?LOC) of
 		"" ->
@@ -82,7 +82,6 @@ handle_call(check, _From, State) ->
     {reply, State, State};
 handle_call({read, Code}, _From, X) ->
     Packed = packer:pack({secret_read, Code}),
-    lager:info("Reading secret: ~p", [Packed]),
     Z = case dict:find(Code, X) of
 	    error -> ?none;
 	    {ok, Y} -> Y
@@ -93,7 +92,6 @@ handle_cast({add, Code, ?none}, X) ->
     {noreply, dict:erase(Code, X)};
 handle_cast({add, Code, SS}, X) ->
     Packed = packer:pack({secret_add, Code, SS}),
-    lager:info("Adding secret: ~p", [Packed]),
     {noreply, dict:store(Code, SS, X)};
 handle_cast({delete, Code}, X) ->
     {noreply, dict:erase(Code, X)}.
@@ -103,7 +101,8 @@ handle_info(_Info, State) ->
 
 terminate(_Reason, State) ->
     db:save(?LOC, term_to_binary(State)),
-    ok = lager:warning("~p died!", [?MODULE]).
+    io:fwrite("secrets died"),
+    ok.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

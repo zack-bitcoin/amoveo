@@ -180,7 +180,6 @@ test() ->
     %X = set_result(X0, 3),
     %X2 = deserialize(serialize(X)),
     %X3 = X2#oracle{orders = X#oracle.orders},
-    %lager:info("~s", [packer:pack({oracles_test, X, X3})]),
     %X = X3,
     %NewLoc = write(X, Root0),
     %{Root1, X, Path1} = get(X#oracle.id, NewLoc),

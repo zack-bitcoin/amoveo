@@ -1,8 +1,6 @@
 -module(tester).
 -export([test/0, oracle_test/0]).
 test() ->
-    lager:info("You need to clean the state of the node before running this test. Make sure you don't download anything from peers before running this test.~n"
-               "You need to clean the state of the node after running this test, before you can run an Aeternity node."),
     case keys:status() of
 	unlocked -> test1();
 	_ -> "you need to unlock with keys:unlock(""password"") first"

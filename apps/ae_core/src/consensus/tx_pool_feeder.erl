@@ -81,7 +81,7 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_Reason, _State) ->
-    ok = lager:warning("~p died!", [?MODULE]).
+    io:fwrite("tx_pool_feeder died\n").
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
@@ -119,9 +119,8 @@ absorb_internal(SignedTx) ->
     true = testnet_sign:verify(SignedTx),
     Out = case is_in(SignedTx, Txs) of
         true ->
-                  ok = lager:info("Already have this tx");
+                  ok;
         false ->
-                  %io:fwrite("absorb internal 1\n"),
                   absorb_unsafe(SignedTx, Trees, Height, Dict)
     end,
     Out. 

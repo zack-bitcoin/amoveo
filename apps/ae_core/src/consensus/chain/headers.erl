@@ -61,7 +61,7 @@ absorb([Header | T]) ->
     Hash = block:hash(Header),
     case read(Hash) of
         {ok, _} ->
-            lager:info("Absorb header repeat"),
+            io:fwrite("absorb header repeat"),
             ok; %don't store the same header more than once.
         error ->
             true = check_pow(Header),%check that there is enough pow for the difficulty written on the block

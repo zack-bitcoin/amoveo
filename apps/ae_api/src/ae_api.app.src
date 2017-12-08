@@ -13,11 +13,11 @@
                   trie,
                   pink_hash,
                   chalang,
-                  encrypter,
-                  lager
+                  lager,
+                  encrypter
                  ]},
   {modules, []},
-  {env, [
+   {env, [
 	   {error_logger, {file, "log.db"}}
 	 ]}
  ]}.

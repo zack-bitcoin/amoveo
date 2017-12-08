@@ -31,7 +31,6 @@ start_link() ->
 %% gen_server callbacks
 
 init(ok) ->
-    lager:info("Start ~p", [?MODULE]),
     io:fwrite("top init 00\n"),
     GenesisMakerBlock = block:genesis_maker(),
     GHeader = block:block_to_header_new(GenesisMakerBlock),
@@ -83,7 +82,8 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_Reason, _State) ->
-    ok = lager:warning("~p died!", [?MODULE]).
+    io:fwrite("top died\n"),
+    ok.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

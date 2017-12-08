@@ -9,7 +9,6 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(mine, go) ->
-    lager:debug("mine loop ~p", [go]),
     case application:get_env(ae_core, test_mode, false) of
 	true ->
 	    spawn(fun() ->
@@ -26,7 +25,6 @@ handle_cast(mine, go) ->
     {noreply, go};
 handle_cast(start, stop) ->
     Cores = block:guess_number_of_cpu_cores(),
-    lager:debug("start mining with ~p cores.", [Cores]),
     {noreply, go};
 handle_cast(stop, _) ->
     {noreply, stop};

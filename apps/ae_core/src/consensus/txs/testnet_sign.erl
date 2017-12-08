@@ -107,9 +107,9 @@ test() ->
     Verbose = false,
     if
 	Verbose ->
-            lager:info("pubkeys: 1 ~s, 2 ~s", [Pub, Pub2]),
-            lager:info("privkeys: 1 ~s, 2 ~s", [Priv, Priv2]),
-            lager:info("signed tx: ~s", [packer:pack(Signed)]);
+            io:fwrite("pubkeys: 1 ~s, 2 ~s", [Pub, Pub2]),
+            io:fwrite("privkeys: 1 ~s, 2 ~s", [Priv, Priv2]),
+            io:fwrite("signed tx: ~s", [packer:pack(Signed)]);
 	true -> ok
     end,
     true = verify(Signed2),

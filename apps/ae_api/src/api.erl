@@ -42,7 +42,7 @@ tx_maker(F) ->
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
 create_account(NewAddr, Amount) ->
-    lager:info("Create account"),
+    %lager:info("Create account"),
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(create_acc_tx, Governance),
@@ -194,7 +194,7 @@ add_secret(Code, Secret) ->
 bet_unlock(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     [{Secrets, _SPK}] = channel_feeder:bets_unlock([ServerID]),
-    lager:info("Teach secrets"),
+    %lager:info("Teach secrets"),
     teach_secrets(keys:pubkey(), Secrets, IP, Port),
     {ok, [_CD, ThemSPK]} = talker:talk({spk, keys:pubkey()}, IP, Port),
     channel_feeder:update_to_me(ThemSPK, ServerID),
@@ -344,7 +344,8 @@ channel_timeout(Ip, Port) ->
     {Tx, _} = channel_timeout_tx:make(keys:pubkey(), Trees, CID, [], Fee),
     case keys:sign(Tx) of
         {error, locked} ->
-            lager:error("Your password is locked");
+            %lager:error("Your password is locked");
+            io:fwrite("your password is locked");
         Stx ->
             tx_pool_feeder:absorb(Stx)
     end.
@@ -523,7 +524,7 @@ add_peer(IP, Port) ->
     0.
 sync() -> sync(?IP, ?Port).
 sync(IP, Port) ->
-    lager:info("Sync with ~p ~p ~n", [IP, Port]),
+    %lager:info("Sync with ~p ~p ~n", [IP, Port]),
     %MyHeight = block:height(block:get_by_hash(headers:top())),
     MyHeight = block:height(block:top()),
     ok = download_blocks:sync_all([{IP, Port}], MyHeight).
