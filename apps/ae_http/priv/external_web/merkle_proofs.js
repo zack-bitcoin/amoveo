@@ -58,92 +58,9 @@ function verify_merkle(trie_key, x) {
         return false;
     }
     function leaf_hash(v, trie_key) {
-        var t = v[0];
-        console.log("leaf_hash");
-        console.log(t);
-        if ( t == "gov" ) {
-            var id = integer_to_array(v[1], 1);
-            var value = integer_to_array(v[2], 2);
-            var lock = integer_to_array(v[3], 1);
-            var serialized =  integer_to_array(trie_key, 8).concat(
-                id).concat(
-                    value).concat(
-                        lock);
-            return hash(serialized);
-        } else if ( t == "acc" ) {
-            var balance = integer_to_array(v[1], 6);
-            var nonce = integer_to_array(v[2], 3);
-            var height = integer_to_array(v[3], 4);
-            var pubkey = string_to_array(atob(v[4]));
-            var bets = string_to_array(atob(v[6]));
-            //The key is the hash of the pubkey.
-            var serialized = integer_to_array(0, 32*7).concat(
-                hash(pubkey)).concat(
-                    balance).concat(
-                        nonce).concat(
-                            height).concat(
-                                pubkey).concat(
-                                    bets);
-            return hash(serialized);
-            
-        } else if ( t == "channel" ) {
-            var cid = integer_to_array(v[1], 32);
-            var acc1 = string_to_array(atob(v[2]));
-            var acc2 = string_to_array(atob(v[3]));
-            var bal1 = integer_to_array(v[4], 6);
-            var bal2 = integer_to_array(v[5], 6);
-            var amount = integer_to_array(128, 1).concat(
-                integer_to_array(v[6], 5));
-            var nonce = integer_to_array(v[7], 4);
-            var timeout_height = integer_to_array(v[8], 4);
-            var last_modified = integer_to_array(v[9], 4);
-            var entropy = integer_to_array(v[10], 2);
-            var delay = integer_to_array(v[11], 4);
-            var closed = integer_to_array(v[13], 1);
-            var serialized = integer_to_array(v[1], 256).concat(
-                cid).concat(
-                    bal1).concat(
-                        bal2).concat(
-                            amount).concat(
-                                nonce).concat(
-                                    timeout_height).concat(
-                                        last_modified).concat(
-                                            entropy).concat(
-                                                delay).concat(
-                                                    closed).concat(
-                                                        acc1).concat(
-                                                            acc2);
-            return hash(serialized);
-        } else if (t == "oracle") {
-            var id = integer_to_array(v[1], 32);
-            var result = integer_to_array(v[2], 1);
-            var t = integer_to_array(v[5], 1);
-            var starts = integer_to_array(v[4], 4); 
-            var done_timer = integer_to_array(v[9], 4); //height_bits/8 bytes
-            var governance = integer_to_array(v[10], 1); //one byte
-            var governance_amount = integer_to_array(v[11], 1); //one byte
-            var creator = string_to_array(atob(v[8])); //pubkey size
-            var question = string_to_array(atob(v[3])); //32 bytes size
-            var orders = string_to_array(atob(v[7])); //32 bytes
-            var serialized = integer_to_array(v[1], 256).concat(
-                id).concat(
-                    results).concat(
-                        t).concat(
-                            starts).concat(
-                                done_timer).concat(
-                                    governance).concat(
-                                        governance_amount).concat(
-                                            creator).concat(
-                                                question).concat(
-                                                    orders);
-            return hash(serialized);
-                                                        
-        } else {
-            console.log("cannot decode type ");
-            console.log(t);
-        }
+        var serialized = serialize_tree_element(v, trie_key);
+        return hash(serialized);
     }
-
     
     //x is {return tree_roots, tree_root, value, proof_chain}
     var tree_roots = string_to_array(atob(x[1]));
@@ -183,3 +100,90 @@ function verify_merkle(trie_key, x) {
         }
     }
 }
+function serialize_tree_element(v, trie_key) {
+    var t = v[0];
+    console.log("leaf_hash");
+    console.log(t);
+    if ( t == "gov" ) {
+        var id = integer_to_array(v[1], 1);
+        var value = integer_to_array(v[2], 2);
+        var lock = integer_to_array(v[3], 1);
+        var serialized = integer_to_array(trie_key, 8).concat(
+            id).concat(
+                value).concat(
+                    lock);
+        return serialized;
+    } else if ( t == "acc" ) {
+        var balance = integer_to_array(v[1], 6);
+        var nonce = integer_to_array(v[2], 3);
+        var height = integer_to_array(v[3], 4);
+        var pubkey = string_to_array(atob(v[4]));
+        var bets = string_to_array(atob(v[6]));
+        //The key is the hash of the pubkey.
+        var serialized = integer_to_array(0, 32*7).concat(
+            hash(pubkey)).concat(
+                balance).concat(
+                    nonce).concat(
+                        height).concat(
+                            pubkey).concat(
+                                bets);
+        return serialized;
+        
+    } else if ( t == "channel" ) {
+        var cid = integer_to_array(v[1], 32);
+        var acc1 = string_to_array(atob(v[2]));
+        var acc2 = string_to_array(atob(v[3]));
+        var bal1 = integer_to_array(v[4], 6);
+        var bal2 = integer_to_array(v[5], 6);
+        var amount = integer_to_array(128, 1).concat(
+            integer_to_array(v[6], 5));
+        var nonce = integer_to_array(v[7], 4);
+        var timeout_height = integer_to_array(v[8], 4);
+        var last_modified = integer_to_array(v[9], 4);
+        var entropy = integer_to_array(v[10], 2);
+        var delay = integer_to_array(v[11], 4);
+        var closed = integer_to_array(v[13], 1);
+        var serialized = integer_to_array(v[1], 256).concat(
+            cid).concat(
+                bal1).concat(
+                    bal2).concat(
+                        amount).concat(
+                            nonce).concat(
+                                timeout_height).concat(
+                                    last_modified).concat(
+                                        entropy).concat(
+                                            delay).concat(
+                                                closed).concat(
+                                                    acc1).concat(
+                                                        acc2);
+        return serialized;
+    } else if (t == "oracle") {
+        var id = integer_to_array(v[1], 32);
+        var result = integer_to_array(v[2], 1);
+        var t = integer_to_array(v[5], 1);
+        var starts = integer_to_array(v[4], 4); 
+        var done_timer = integer_to_array(v[9], 4); //height_bits/8 bytes
+        var governance = integer_to_array(v[10], 1); //one byte
+        var governance_amount = integer_to_array(v[11], 1); //one byte
+        var creator = string_to_array(atob(v[8])); //pubkey size
+        var question = string_to_array(atob(v[3])); //32 bytes size
+        var orders = string_to_array(atob(v[7])); //32 bytes
+        var serialized = integer_to_array(v[1], 256).concat(
+            id).concat(
+                result).concat(
+                    t).concat(
+                        starts).concat(
+                            done_timer).concat(
+                                governance).concat(
+                                    governance_amount).concat(
+                                        creator).concat(
+                                            question).concat(
+                                                orders);
+        return serialized;
+        
+    } else {
+        console.log("cannot decode type ");
+        console.log(t);
+    }
+}
+

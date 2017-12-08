@@ -43,6 +43,7 @@ function channels1() {
     bet_update_button.type = "button";
     bet_update_button.value = "check if any bets have been settled";
     bet_update_button.onclick = function() {
+        //var chalang_object = chalang();
         chalang_object.pull_channel_state();
         variable_public_get(["pubkey"], refresh_channels_interfaces);
     };
@@ -261,14 +262,14 @@ function channels1() {
             }
             function make_bet3(sspk2, sspk, server_pubkey, oid_final) {
                 //check that the signature is valid.
-                var hspk2 = JSON.stringify(hash(serialize(sspk2[1])));
-                var hspk = JSON.stringify(hash(serialize(sspk[1])));
+                var hspk2 = JSON.stringify(sspk2[1]);
+                var hspk = JSON.stringify(sspk[1]);
                 if (hspk2 == hspk) { //make sure that both spks match
                     var cd = channel_manager[server_pubkey];
                     cd.me = sspk[1];
                     cd.them = sspk2;
                     //var newss = {"code": [0,0,0,0,4], "prove":[]};
-                    var newss = new_ss([0,0,0,0,4], []);
+                    var newss = new_ss([0,0,0,0,4], [-6, ["oracles", oid_final]]);
                     //var newss = [0,0,0,0,4];
                     console.log("about to update channel manager after having made a bet");
                     console.log("cd.ssme currently is");
@@ -290,13 +291,10 @@ function channels1() {
         }
     }
     function refresh_balance(pubkey) {
-        console.log(channel_manager[pubkey]);
+        //console.log(channel_manager[pubkey]);
         var cd = channel_manager[pubkey];
         var trie_key = cd.me[7];//channel id, cid
         var top_hash = hash(serialize_header(top_header));
-        // id acc1 acc2 bal1 bal2 amount nonce timeout_height, last_modified,
-        // entropy, delay, slasher, closed
-        //we should modify the balances based on the contract code we store
 
         verify_callback("channels", trie_key, function(val) {
             var balance_div = document.getElementById("balance_div");
@@ -309,7 +307,6 @@ function channels1() {
             balance_div.innerHTML = ("your balance: ").concat(
                 mybalance).concat("  server balance: ").concat(
                     serverbalance);
-            //add or remove more based on any channel state we are storing.
         });
     }
     function sum_bets(bets) {

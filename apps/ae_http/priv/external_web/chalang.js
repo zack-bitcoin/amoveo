@@ -182,6 +182,12 @@ function chalang(command) {
             }
             return binary;
         }
+        var verbose = true;
+        function op_print(x) {
+            if (verbose) {
+                console.log(x);
+            }
+        }
         var error_check = 0;
         for (var i = 0; i<code.length; i++) {
             //console.log"run cycle");
@@ -206,26 +212,27 @@ function chalang(command) {
                 console.log(d.ram_limit);
                 return ["error", "out of space"];
             } else if (code[i] == int_op) {
-                //console.log("int op");
+                op_print("int op");
                 var int_array = code.slice(i+1, i+5);
                 var new_int = array_to_int(int_array);
+                op_print(JSON.stringify(d.stack[new_int]));
                 d.stack = ([new_int]).concat(d.stack);
                 d.ram_current = d.ram_current + 1;
                 d.op_gas = d.op_gas - 1;
                 i = i + 4;
             } else if (code[i] == binary_op) {
-                //console.log("bin op");
+                op_print("bin op");
                 var int_array = code.slice(i+1, i+5);
                 var new_int = array_to_int(int_array);
                 var bin_array = code.slice(i+5, i+5+new_int);
-                d.stack = ([(["binary"]).concat(
-                    bin_array)]).concat(
+                var bin1 = (["binary"]).concat(bin_array);
+                d.stack = ([bin1]).concat(
                         d.stack);
                 d.ram_current += 1;
                 d.op_gas -= new_int;
                 i = i + 4 + new_int;
             } else if (code[i] == caseif) {
-                //console.log("if op");
+                op_print("if op");
                 var b = d.stack[0];
                 var skipped_size;
                 var size_case1 = count_till(code, i, caseelse);
@@ -241,11 +248,11 @@ function chalang(command) {
                 d.ram_current -= (skipped_size + 1);
                 d.op_gas -= (size_case1 + size_case2);
             } else if (code[i] == caseelse) {
-                //console.log("else op");
+                op_print("else op");
                 var skipped_size = count_till(code, i, casethen);
                 i += skipped_size;
             } else if (code[i] == casethen) {
-                //console.log("then op");
+                op_print("then op");
                 // do nothing.
             } else if ((code[i] == call) && (code[i+1] == fun_end)){
                 //tail call optimized function call
@@ -261,7 +268,7 @@ function chalang(command) {
                 //return run2(definition.concat(rest), d);
             } else if (code[i] == call) {
                 //non-optimized function call.
-                //console.log("function call op");
+                op_print("function call op");
                 //console.log(d.stack[0]);
                 //console.log(JSON.stringify(d.stack));
                 //console.log(d.funs);
@@ -274,7 +281,7 @@ function chalang(command) {
                 d.stack = d.stack.slice(1, d.stack.length);
                 d = run2(definition, d);
             } else if (code[i] == define) {
-                //console.log("define op");
+                op_print("define op");
                 var skipped_size = count_till(code, i, fun_end);
                 var definition = code.slice(i+1, i+skipped_size);
                 i = i + skipped_size;
@@ -294,13 +301,13 @@ function chalang(command) {
                     d.many_funs = mf;
                 }
             } else if (code[i] == crash) {
-                console.log("crash op");
+                op_print("crash op");
                 return d;
             } else if (code[i] == print) {
-                console.log("print op");
+                op_print("print op");
                 console.log(JSON.stringify(d.stack));
             } else if (code[i] == drop) {
-                //console.log("drop op");
+                op_print("drop op");
                 //console.log(JSON.stringify(d.stack));
                 error_check = underflow_check(d, 1, "drop", function() {
                     d.ram_current = d.ram_current - memory(d.stack[0]) - 2;
@@ -308,14 +315,14 @@ function chalang(command) {
                     d.op_gas = d.op_gas - 1;
                 });
             } else if (code[i] == dup) {
-                //console.log("dup op");
+                op_print("dup op");
                 error_check = underflow_check(d, 1, "dup", function() {
                     d.stack = ([d.stack[0]]).concat(d.stack);
                     d.ram_current = d.ram_current + memory(d.stack[0]);
                     d.op_gas = d.op_gs - 1;
                 });
             } else if (code[i] == swap) {
-                //console.log("swap op");
+                op_print("swap op");
                 error_check = underflow_check(d, 2, "swap", function() {
                     d.op_gas = d.op_gas - 1;
                     d.stack = ([d.stack[1]]).concat(
@@ -323,7 +330,7 @@ function chalang(command) {
                             d.stack.slice(2, d.stack.length));
                 });
             } else if (code[i] == tuck) {
-                //console.log("tuck op");
+                op_print("tuck op");
                 error_check = underflow_check(d, 3, "tuck", function() {
                     d.op_gas = d.op_gas - 1;
                     d.stack = ([d.stack[1]]).concat(
@@ -332,7 +339,7 @@ function chalang(command) {
                                 d.stack.slice(3, d.stack.length));
                 });
             } else if (code[i] == rot) {
-                //console.log("rot op");
+                op_print("rot op");
                 error_check = underflow_check(d, 3, "rot", function() {
                     d.op_gas = d.op_gas - 1;
                     d.stack = ([d.stack[2]]).concat(
@@ -341,14 +348,14 @@ function chalang(command) {
                                 d.stack.slice(3, d.stack.length));
                 });
             } else if (code[i] == ddup) {
-                //console.log("ddup op");
+                op_print("ddup op");
                 error_check = underflow_check(d, 2, "ddup", function() {
                     d.op_gas = d.op_gas - 1;
                     d.ram_current = d.ram_current + memory(d.stack[0]) + memory(d.stack[1]);
                     d.stack = d.stack.slice(0, 2).concat(d.stack);
                 });
             } else if (code[i] == tuckn) {
-                //console.log("tuckn op");
+                op_print("tuckn op");
                 if (d.stack.length < 2) {
                     return ["error", "stack underflow", "tuckn"];
                 } else {
@@ -361,7 +368,7 @@ function chalang(command) {
                     });
                 }
             } else if (code[i] == pickn) {
-                //console.log("pickn op");
+                op_print("pickn op");
                 var n = d.stack[0];
                 if (d.stack.length < (n + 1)) {
                     return ["error", "stack underflow", "pickn"];
@@ -372,14 +379,14 @@ function chalang(command) {
                             d.stack.slice(2+n, d.stack.length));
                 }
             } else if (code[i] == to_r) {
-                //console.log(">r op");
+                op_print(">r op");
                 error_check = underflow_check(d, 1, "to_r", function() {
                     d.op_gas = d.op_gas - 1;
                     d.alt = ([d.stack[0]]).concat(d.alt);
                     d.stack = d.stack.slice(1, d.stack.length);
                 });
             } else if (code[i] == from_r) {
-                //console.log("r> op");
+                op_print("r> op");
                 if (d.alt.length < 1) {
                     return ["error", "alt stack underflow", "from_r"];
                 } else {
@@ -388,7 +395,7 @@ function chalang(command) {
                     d.atl = d.alt.slice(1, d.alt.length);
                 }
             } else if (code[i] == r_fetch) {
-                //console.log("r@ op");
+                op_print("r@ op");
                 if (d.alt.length < 1) {
                     return ["error", "alt stack underflow", "r_fetch"];
                 } else {
@@ -396,14 +403,14 @@ function chalang(command) {
                     d.stack = ([d.alt[0]]).concat(d.stack);
                 }
             } else if (code[i] == hash_op) {
-                //console.log("hash op");
+                op_print("hash op");
                 error_check = underflow_check(d, 1, "hash", function() {
                     d.op_gas = d.op_gas - 20;
                     d.stack = ([hash(d.stack[0])]).concat(
                         d.stack.slice(1, d.stack.length));
                 });
             } else if (code[i] == verify_sig) {
-                //console.log("verify_sig op");
+                op_print("verify_sig op");
                 error_check = underflow_check(d, 3, "verify_sig", function(){
                     //data, sig, key
                     console.log(JSON.stringify(d.stack));
@@ -432,7 +439,8 @@ function chalang(command) {
                     d.stack = a.concat(d.stack.slice(2, d.stack.length));
                 });
             } else if (code[i] == eq) {
-                //console.log("eq op");
+                op_print("eq op");
+                console.log(JSON.stringify(d.stack.slice(0, 2)));
                 error_check = underflow_check(d, 2, "eq", function(){
                     d.op_gas = d.op_gas - 1;
                     d.ram_current = d.ram_current + 1;
@@ -444,7 +452,7 @@ function chalang(command) {
                                        
                 });
             } else if (code[i] == bool_flip) {
-                //console.log("bool flip op");
+                op_print("bool flip op");
                 error_check = underflow_check(d, 1, "bool_flip", function(){
                     if (d.stack[0] == 0) {
                         d.stack = ([1]).concat(d.stack.slice(1, d.stack.length));
@@ -454,7 +462,7 @@ function chalang(command) {
                     d.op_gas = d.op_gas - 1;
                 });
             } else if (code[i] == bool_and) {
-                //console.log("bool and op");
+                op_print("bool and op");
                 error_check = underflow_check(d, 2, "bool_and", function(){
                     if ((d.stack[0] == 0) || (d.stack[1] == 0)) {
                         d.stack = ([0]).concat(d.stack.slice(2, d.stack.length));
@@ -465,7 +473,7 @@ function chalang(command) {
                     d.ram_current = d.ram_current - 2;
                 });
             } else if (code[i] == bool_or) {
-                //console.log("bool or op");
+                op_print("bool or op");
                 error_check = underflow_check(d, 2, "bool_or", function(){
                     if ((d.stack[0] == 0) && (d.stack[1] == 0)) {
                         d.stack = ([0]).concat(d.stack.slice(2, d.stack.length));
@@ -476,7 +484,7 @@ function chalang(command) {
                     d.ram_current = d.ram_current - 2;
                 });
             } else if (code[i] == bool_xor) {
-                //console.log("bool xor op");
+                op_print("bool xor op");
                 error_check = underflow_check(d, 2, "bool_xor", function(){
                     var j = 0;
                     if ((d.stack[0] == 0) && (d.stack[0] == 0)) {
@@ -489,35 +497,35 @@ function chalang(command) {
                     d.ram_current = d.ram_current - 2;
                 });
             } else if (code[i] == stack_size) {
-                //console.log("bool stack_size op");
+                op_print("bool stack_size op");
                 d.op_gas = d.op_gas - 1;
                 d.ram_current = d.ram_current + 2;
                 d.stack = ([d.stack.length]).concat(d.stack);
             } else if (code[i] == height) {
-                //console.log("bool height op");
+                op_print("bool height op");
                 d.op_gas = d.op_gas - 1;
                 d.ram_current = d.ram_current + 2;
                 d.stack = ([d.state.height]).concat(d.stack);
             } else if (code[i] == gas) {
-                //console.log("bool gas op");
+                op_print("bool gas op");
                 d.op_gas = d.op_gas - 1;
                 d.stack = ([d.op_gas]).concat(d.stack);
                 d.ram_current += 2;
             } else if (code[i] == many_vars) {
-                //console.log("bool many vars op");
+                op_print("bool many vars op");
                 d.op_gas -= 1;
                 d.stack = ([d.vars.length]).concat(d.stack);
                 d.ram_current += 2;
             } else if (code[i] == many_funs) {
-                //console.log("bool many funs op");
+                op_print("bool many funs op");
                 d.op_gas -= 1;
                 d.ram_current += 2;
                 d.stack = (d.many_funs).concat(d.stack);
             } else if (code[i] == fun_end) {
-                //console.log("bool fun end op");
+                op_print("bool fun end op");
                 d.op_gas -= 1;
             } else if (code[i] == set) {
-                //console.log("running set");
+                op_print("set op");
                 error_check = underflow_check(d, 2, "set", function(){
                     //console.log("no underflow error");
                     d.vars[d.stack[0]] = d.stack[1];
@@ -525,7 +533,7 @@ function chalang(command) {
                     d.stack = d.stack.slice(2, d.stack.length);
                 });
             } else if (code[i] == fetch) {
-                //console.log("fetch op");
+                op_print("fetch op");
                 //console.log(JSON.stringify(d.stack));
                 error_check = underflow_check(d, 1, "fetch", function(){
                     var val;
@@ -540,7 +548,7 @@ function chalang(command) {
                     d.stack = ([val]).concat(d.stack.slice(1, d.stack.length));
                 });
             } else if (code[i] == cons) {
-                //console.log("bool cons op");
+                op_print("bool cons op");
                 error_check = underflow_check(d, 2, "cons", function(){
                     d.op_gas -= 1;
                     d.ram_current += 1;
@@ -550,7 +558,7 @@ function chalang(command) {
                         d.stack.slice(2, d.stack.length));
                 });
             } else if (code[i] == car) {
-                //console.log("car op");
+                op_print("car op");
                 error_check = underflow_check(d, 1, "car", function(){
                     if (!(Array.isArray(d.stack[0]))) {
                         console.log(JSON.stringify(d.stack));
@@ -564,10 +572,12 @@ function chalang(command) {
                     }
                 });
             } else if (code[i] == empty_list) {
+                op_print("empty list op");
                 d.op_gas -= 1;
                 d.ram_current += 1;
                 d.stack = ([[]]).concat(d.stack);
             } else if (code[i] == append) {
+                op_print("append op");
                 error_check = underflow_check(d, 2, "append", function(){
                     var a;
                     if (("binary" == d.stack[0][0]) &&
@@ -581,10 +591,11 @@ function chalang(command) {
                     }
                     d.op_gas -= 1;
                     d.ram_current +- 1;
-                    d.stack = (a).concat(
+                    d.stack = ([a]).concat(
                         d.stack.slice(2, d.stack.length));
                 });
             } else if (code[i] == split) {
+                op_print("split op");
                 error_check = underflow_check(d, 2, "split", function(){
                     if (!(d.stack[0][0] == "binary")) {
                         return ["error", "cannot split a list", "split"]; 
@@ -592,13 +603,14 @@ function chalang(command) {
                         d.op_gas -= 1;
                         d.ram_current -= 1;
                         var n = d.stack[0];
-                        var bin1 = d.stack[1].split(0, n+1);
+                        var bin1 = d.stack[1].slice(0, n+1);
                         var bin2 = (["binary"]).concat(d.stack[1].split(n+1, d.stack[1].length));
-                        d.stack = [bin1].concat(
+                        d.stack = ([bin1]).concat(
                             [bin2]).concat(
                                 d.stack.slice(2, d.stack.length));
                     }});
             } else if (code[i] == reverse) {
+                op_print("reverse op");
                 error_check = underflow_check(d, 1, "reverse", function(){
                     if (d.stack[0][0] == "binary") {
                         return ["error", "cannot reverse a binary", "reverse"];
@@ -608,6 +620,7 @@ function chalang(command) {
                             d.stack.slice(1, d.stack.length));
                     }});
             } else if (code[i] == is_list) {
+                op_print("is_list op");
                 var j;
                 error_check = underflow_check(d, 1, "is_list", function(){
                     if (!(d.stack[0].is_array())) {
@@ -622,7 +635,10 @@ function chalang(command) {
                     d.stack = ([j]).concat(d.stack);
                 });
             } else if (code[i] == nop) {
+                op_print("nop op");
             } else if (code[i] == fail) {
+                op_print("fail op");
+                op_print(JSON.stringify(d.stack));
                 return ["error", "fail opcode", "fail"];
             }
         }
@@ -632,7 +648,12 @@ function chalang(command) {
         function is_balanced_f(code) {
             var x = 0;
             for (var i = 0; i<code.length; i++) {
-                if ((code[i] == define) && (x == 0)){
+                if (code[i] == int_op) {
+                    i += 4;
+                } else if (code[i] == binary_op) {
+                    n = array_to_int(code.slice(i+1, i+5));
+                    i += (4 + n);
+                } else if ((code[i] == define) && (x == 0)){
                     x = 1;
                 } else if ((code[i] == fun_end) && (x == 1)) {
                     x = 0;
@@ -783,41 +804,63 @@ function chalang(command) {
         if (JSON.stringify(facts) == JSON.stringify([])) {
             return [empty_list];
         }
-        return prove_facts2(facts, 0, [empty_list], callback); // [
+        return prove_facts2(facts, 1, [empty_list], callback); // [
+    }
+    function tree2id(tree) {
+        if (tree == "accounts") {
+            return 1;
+        } else if (tree == "channels") {
+            return 2;
+        } else if (tree == "existence") {
+            return 3;
+        } else if (tree == "burn") {
+            return 4;
+        } else if (tree == "oracles") {
+            return 5;
+        } else if (tree == "governance") {
+            return 6;
+        } else {
+            console.log(JSON.stringify(tree));
+            throw("tree2id error");
+        }
     }
     function prove_facts2(facts, i, r, callback) {
         if (i == facts.length) {
             r.concat([reverse]); // converts a , to a ]
             return callback(r);
         }
-        var tree = facts[i][1];
-        var key = facts [i][2];
+        console.log("prove facts 2");
+        console.log(JSON.stringify(facts));
+        var tree = facts[i][0];
+        var key = facts[i][1];
         verify_callback(tree, key, function(value) {
             //var value = verify_merkle(key, proof);
             //we are making chalang like this:
             //[ int id, key, binary size serialized_data ]
             // '[', ']', and ',' are macros for making a list.
+            var id = tree2id(tree);
             r = r.concat([empty_list]); // [
             r = r.concat([0]).concat(integer_to_array(id, 4));
             r = r.concat([swap, cons]); // ,
-            if (Integer.isInteger(key)) {
+            if (Number.isInteger(key)) {
                 r = r.concat([0]);
-                r = r.concat(integer_to_list(key, 4));
+                r = r.concat(integer_to_array(key, 4));
             } else {
                 r = r.concat([2]);
-                r = r.concat(integer_to_list(key.length, 4));
+                r = r.concat(integer_to_array(key.length, 4));
                 r = r.concat(key);
             }
             r = r.concat([swap, cons]); // ,
+            var serialized_data = serialize_tree_element(value, key);
             var serialized_data;//this is the serialized version of the thing who's existence we are proving. make it from value.
             var s = serialized_data.length;
-            r = r.concat([2]).concat([integer_to_list(s, 4)]);
+            r = r.concat([2]).concat(integer_to_array(s, 4));
             r = r.concat(serialized_data);
             r = r.concat([swap, cons, reverse]); // ]
             r = r.concat([swap, cons]); // ,
             return prove_facts2(facts, i+1, r, callback);
         });
-        return r.concat([reverse]); // converts a , to a ]
+        //return r.concat([reverse]); // converts a , to a ]
     }
     function spk_run(mode, ss, spk, height, slash, fun_limit, var_limit, callback) {
         var state = chalang_new_state(height, slash);
@@ -828,18 +871,20 @@ function chalang(command) {
             console.log(JSON.stringify(spk[4]));
             throw("ss and bets need to be the same length");
         }
-        spk_run2(ss, spk[4], spk[6], spk[5], fun_limit, var_limit, state, spk.delay, 0, 0, 0, function(ret) {
+        spk_run2(ss, spk[4], spk[6], spk[5], fun_limit, var_limit, state, spk.delay, 0, 0, 1, function(ret) {
             return callback(ret);
         });
     }
     function spk_run2(ss, bets, opgas, ramgas, funs, vars, state, delay, nonce, amount, i, callback) {
         console.log("spk run 2");
-        console.log("ss is ");
-        console.log(JSON.stringify(ss));
-        if (i > (ss.length - 1)) {
+        //console.log("ss is ");
+        //console.log(JSON.stringify(ss));
+        if (i > (ss.length)) {
             return callback({"amount": amount, "nonce": nonce, "delay": delay});//, "opgas": opgas});
         }
-        spk_run3(ss[i], bets[i], opgas, ramgas, funs, vars, state, function(run_object) {
+        spk_run3(ss[i-1], bets[i], opgas, ramgas, funs, vars, state, function(run_object) {
+            console.log("spk run 2 nonce are");
+            console.log(JSON.stringify([nonce, run_object.nonce]));
             return spk_run2(ss, bets, opgas, ramgas, funs, vars, state,
                             Math.max(delay, run_object.delay),
                             nonce + run_object.nonce,
@@ -848,20 +893,30 @@ function chalang(command) {
         });
     }
     function spk_run3(ss, bet, opgas, ramgas, funs, vars, state, callback) {
-        console.log("spk_run3 ss is ");
-        console.log(JSON.stringify(ss));
+        //console.log("spk_run3 ss is ");
+        //console.log(JSON.stringify(ss));
         var script_sig = ss.code;
         if (!(chalang_none_of(script_sig))) {
             throw("error: crash op in the script sig");
         }
         prove_facts(ss.prove, function(f) {
-            var c = bet.code;
+            console.log("spk run 3 bet is ");
+            console.log(JSON.stringify(bet));
+            var c = string_to_array(atob(bet[1]));
+            //var c = bet.code;
             var code = f.concat(c);
-            console.log("about to make data, var is ");
-            console.log(vars);
             var data = chalang_data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
+            console.log("about to run ss part");
+            console.log(JSON.stringify(script_sig));
             var data2 = run5(script_sig, data);
+            console.log("about to run code part");
+            console.log(JSON.stringify(bet));
+            console.log(JSON.stringify([f, c]));
+            console.log(JSON.stringify(code));
             var data3 = run5(code, data2);
+            //console.log("finished contract");
+            console.log("just ran contract, stack returned as ");
+            console.log(JSON.stringify(data3.stack));
             var amount = data3.stack[0];
             var nonce = data3.stack[1];
             var delay = data3.stack[2];
@@ -874,13 +929,13 @@ function chalang(command) {
         });
     }
     function spk_force_update(spk, ssold, ssnew, fun_limit, var_limit, callback) {
-        console.log("force update ss's are ");
-        console.log(JSON.stringify([ssold, ssnew]));
+        //console.log("force update ss's are ");
+        //console.log(JSON.stringify([ssold, ssnew]));
         var height = top_header[1];
         var ret;
         spk_run("fast", ssold, spk, height, 0, fun_limit, var_limit, function(ran1) {
-            console.log("spk run returned ");
-            console.log(JSON.stringify(ran1));
+            //console.log("spk run returned ");
+            //console.log(JSON.stringify(ran1));
             var nonceOld = ran1.nonce;
             spk_run("fast", ssnew, spk, height, 0, fun_limit, var_limit, function(ran2) {
                 var nonceNew = ran2.nonce;
@@ -892,7 +947,7 @@ function chalang(command) {
                         return callback({"spk":spk, "ss":updated.finalss});
                     });
                 } else {
-                    console.log("nothing to update");
+                    console.log("spk force update had nothing to do.");
                     return callback(false);
                 }
             });
@@ -906,7 +961,7 @@ function chalang(command) {
             } else if ( c[i] == int_op ) {
                 i += 4
             } else if ( c[i] == binary_op ) {
-                n = array_to_integer(c.slice(i+1, i+5));
+                n = array_to_int(c.slice(i+1, i+5));
                 i += (4 + n);
             }
         }
@@ -950,14 +1005,45 @@ function chalang(command) {
             return spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i-1, callback); 
         });
     }
+    function tree_number_to_value(t) {
+        if (t < 101) {
+            return t;
+        } else {
+            var top = 101;
+            var bottom = 100;
+            var x = tree_number_det_power(10000, top, bottom, t);
+            return Math.floor(x / 100);
+        }
+    }
+    function tree_number_det_power(base, top, bottom, t) {
+        if (t == 1) {
+            return Math.floor((base * top) / bottom);
+        }
+        var r = Math.floor(t % 2);
+        if (r == 1) {
+            var base2 = Math.floor((base * top) / bottom);
+            return tree_number_det_power(base2, top, bottom, t-1);
+        } else if (r == 0) {
+            var top2 = Math.floor((top * top)  / bottom);
+            return tree_number_det_power(base, top2, bottom,
+                                         Math.floor(t / 2));
+        }
+    }
+    function ss_to_internal(ess) {
+        var ss = [];
+        for (var i = 1; i < ess.length; i++) {
+            ss = ss.concat([new_ss(string_to_array(atob(ess[i][1])), ess[i][2])])
+        }
+        return ss;
+    }
     function channel_feeder_they_simplify(from, themspk, cd, callback) {
         cd0 = channel_manager[from];
         //true = cd0.live; //verify this is true
         //true = cd.live; //verify this is true
         var spkme = cd0.me;
         var ssme = cd0.ssme;
-        console.log("ssme is ");
-        console.log(JSON.stringify(ssme));
+        //console.log("ssme is ");
+        //console.log(JSON.stringify(ssme));
         //verify that they signed themspk
         var newspk = themspk[1];
         //console.log("spkme is ");
@@ -967,27 +1053,12 @@ function chalang(command) {
             console.log(JSON.stringify(newspk2));
             throw("spks they gave us do not match");
         }
-        var ss = [];
-        for (var i = 1; i< cd[3].length; i++) {
-            ss = [new_ss(cd[3][i][1], cd[3][i][2])].concat(ss);
-        }
-        var ss4 = [];
-        for (var i = 1; i< cd[4].length; i++) {
-            ss4 = [new_ss(string_to_array(atob(cd[4][i][1])), cd[4][i][2])].concat(ss4);
-        }
-        console.log("ss4 should have a prove");
-        console.log(JSON.stringify(ss4));
-        console.log("prove should be");
-        console.log(JSON.stringify(cd[4][2]));
-        console.log("cd is ");
-        console.log(JSON.stringify(cd));
-        console.log("cd3 is ");
-        console.log(JSON.stringify(cd[3]));
-        console.log("cd4 is ");
-        console.log(JSON.stringify(cd[4]));
-
-        verify_callback("governance", 14, function(fun_limit) {
-            verify_callback("governance", 15, function(var_limit) {
+        var ss = ss_to_internal(cd[3]);
+        var ss4 = ss_to_internal(cd[4]);
+        verify_callback("governance", 14, function(tree_fun_limit) {
+            var fun_limit = tree_number_to_value(tree_fun_limit[2]);
+            verify_callback("governance", 15, function(tree_var_limit) {
+                var var_limit = tree_number_to_value(tree_var_limit[2]);
                 var entropy = cd[7];
                 spk_force_update(spkme, ssme, ss4, fun_limit, var_limit, function(b2) {
                     var cid = cd[8];
@@ -997,46 +1068,47 @@ function chalang(command) {
                         channel_manager[from] = newcd;
                         return callback(ret);
                     } else {
-                        var b3 = is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit);
-                        if ( b3 ) {
-                            ret = sign_tx(newspk);
-                            var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
-                            channel_manager[from] = newcd;
-                            return callback(ret);
-                        } else {
-                            console.log("nothing to update");
-                            return callback(false);
-                        //this part is only used for lightning.
-                        /*
-                          var sh=channel_feeder_simplify_helper(From, ss4);
-                          var ss5 = sh.ss;
-                          var ret = sh.ret;
-                          var spk = themspk[1];
-                          var spk2 = ret[1];
-                          if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
-                          console.log("spks do not match");
-                          } else {
-                          var data = new_cd(spk, themspk, ss5, ss5, entropy, cid);
-                          channel_manager[from] = data;
-                          return ret;
-                          }
-                        */
-                        }
+                        is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {
+                            if ( b3 ) {
+                                ret = sign_tx(newspk);
+                                var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
+                                channel_manager[from] = newcd;
+                                return callback(ret);
+                            } else {
+                                console.log("channel feeder they simplify had nothing to do");
+                                return callback(false);
+                                //this part is only used for lightning.
+                                /*
+                                  var sh=channel_feeder_simplify_helper(From, ss4);
+                                  var ss5 = sh.ss;
+                                  var ret = sh.ret;
+                                  var spk = themspk[1];
+                                  var spk2 = ret[1];
+                                  if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
+                                  console.log("spks do not match");
+                                  } else {
+                                  var data = new_cd(spk, themspk, ss5, ss5, entropy, cid);
+                                  channel_manager[from] = data;
+                                  return ret;
+                                  }
+                                */
+                            }
+                        });
                     }
                 });
             });
         });
     }
-    function is_improvement(old_spk, old_ss, new_spk, new_ss, fun_limit, var_limit) {
+    function is_improvement(old_spk, old_ss, new_spk, new_ss, fun_limit, var_limit, callback) {
         //get height
         //check that space gas and time limit are below or equal to what is in the config file.
         if (new_spk[5] > 100000) {//space gas
             console.log("this contract uses too much space.");
-            return false;
+            return callback(false);
         }
         if (new_spk[6] > 100000) {//time gas
             console.log("this contract uses too much time");
-            return false;
+            return callback(false);
         }
         new_spk[5];
         new_spk[6];
@@ -1046,8 +1118,10 @@ function chalang(command) {
             spk_run("fast", old_ss, old_spk, height, 0, fun_limit, var_limit, function(run1) {
                 var nonce1 = run1.nonce;
                 if (!(nonce2 > nonce1)) {
+                    console.log(JSON.stringify([new_ss, old_ss]));
+                    console.log(JSON.stringify([nonce2, nonce1]));
                     console.log("the new spk can't produce a lower nonce than the old.");
-                    return false;
+                    return callback(false);
                 }
                 var old_bets = old_spk[4];
                 var old_amount = old_spk[8];
@@ -1058,7 +1132,7 @@ function chalang(command) {
                 old_spk[9] = new_spk[9];
                 if (!(JSON.stringify(old_spk) == JSON.stringify(new_spk))) {
                     console.log("spk was changed in unexpected ways");
-                    return false;
+                    return callback(false);
                 }
                 var cid = new_spk[7];
                 var ret = false;
@@ -1124,7 +1198,7 @@ function chalang(command) {
                     ret = false;
                     return 0;
                 });
-                return ret;
+                return callback(ret);
             });
         });
     }
@@ -1176,8 +1250,8 @@ function chalang(command) {
             });
         });
     }
-    return {"run5": run5, "test": chalang_test, "pull_channel_state": pull_channel_state};
-}
+        return {"run5": run5, "test": chalang_test, "pull_channel_state": pull_channel_state};
+    }
 /*
 //this is an example of calling run5, the chalang library.
 var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));
