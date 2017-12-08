@@ -60,7 +60,7 @@ absorb_internal(Block) ->
     if
         Height == 0 -> ok;
         BHC ->
-            io:fwrite("we have seen this block before. so block absorber will ignore it.\n"),
+            %io:fwrite("we have seen this block before. so block absorber will ignore it.\n"),
 	    ok;
 	true ->
 	    true = block_hashes:check(NextBlock), %check that the previous block is known.
@@ -82,7 +82,7 @@ absorb_internal(Block) ->
                   end),
             order_book:match(),
             timer:sleep(20),
-            io:fwrite("absorb block number "),
+            io:fwrite("absorb block "),
             io:fwrite(integer_to_list(block:height(Block2))),
             io:fwrite("\n")
     end.

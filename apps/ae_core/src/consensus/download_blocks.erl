@@ -14,7 +14,7 @@ sync_all([Peer|T], Height) ->
 
 
 sync(Peer, MyHeight) ->
-    io:fwrite("download blocks sync\n"),
+    %io:fwrite("download blocks sync\n"),
     RemoteTop = remote_peer({top}, Peer),
 	do_sync(RemoteTop, MyHeight, Peer).
 
@@ -25,7 +25,6 @@ do_sync({ok, TopBlock, Height} = _RemoteTopResult, MyHeight, Peer) ->
     JumpHeight = MyHeight + DBB,
     if
         JumpHeight < Height ->
-            io:fwrite("JumpHeight < Height"),
 	    true = JumpHeight > 0,
             BlockAtJumpHeight = remote_peer({block, JumpHeight}, Peer),
             trade_blocks(Peer, [BlockAtJumpHeight], JumpHeight);
@@ -63,16 +62,14 @@ trade_blocks(Peer, [PrevBlock|PBT] = CurrentBlocks, Height) ->
     Height = block:height(PrevBlock),
     case OurChainAtPrevHash of
         empty ->
-    	    io:fwrite("we don't have a parent for this block ~p", [OurChainAtPrevHash]),
+    	    %io:fwrite("we don't have a parent for this block ~p", [NextHash]),
 	    true = Height > 1,
             RemoteBlockThatWeMiss = remote_peer({block, Height-1}, Peer),
-    	    io:fwrite("trade_blocks: height > 1 ~p", [packer:pack({got_block, RemoteBlockThatWeMiss})]),
             trade_blocks(Peer, [RemoteBlockThatWeMiss|CurrentBlocks], Height-1);
         _ ->
-    	    io:fwrite("we have a parent for this block ~p", [OurChainAtPrevHash]),
             block_absorber:save(CurrentBlocks),
             case_sync(CurrentBlocks, Peer),
-    	    io:fwrite("about to send blocks"),
+    	    %io:fwrite("about to send blocks"),
     	    H = headers:top(),
     	    case headers:height(H) of
                 0 -> ok;

@@ -52,6 +52,8 @@ handle_call({read, {_,_}=Peer}, _From, State) ->
 all() -> gen_server:call(?MODULE, all).
 
 add([]) -> ok;
+add([[IP, Port]|T]) when (is_list(IP)) ->
+    add([[list_to_tuple(IP), Port]|T]);
 add([[IP, Port]|T]) when ((size(IP) == 4) or (size(IP) == 16)) ->
     add({IP, Port}),
     add(T);
@@ -59,6 +61,7 @@ add([{IP, Port}|T]) ->
     add([[IP, Port]|T]);
 add([MalformedPeer|T]) ->
     io:fwrite("tried to add malformed peer, skipping."),
+    io:fwrite(packer:pack(MalformedPeer)),
     add(T);
 add({IP, Port}) -> 
     NIP = if
