@@ -114,22 +114,30 @@ function chalang(command) {
             }
             var x;
             if (op == add) {
+                op_print("add op");
                 x = a + b;
             } else if (op == subtract) {
+                op_print("subtract op");
                 x = b - a;
             } else if (op == mul) {
+                op_print("mul op");
                 x = b * a;
             } else if (op == div) {
+                op_print("div op");
                 x = Math.floor(b / a);
             } else if (op == pow) {
+                op_print("pow op");
                 x = exponential(b, a);
             } else if (op == rem) {
+                op_print("rem op");
                 x = b % a;
             } else if (op == gt) {
+                op_print("gt op");
                 if (a < b) {
                 x = 1;
                 }
             } else if (op == lt) {
+                op_print("lt op");
                 if (a > b) {
                     x = 1;
                 } else {
@@ -150,23 +158,18 @@ function chalang(command) {
                 } else if (code[i+j] == binary_op) {
                     var h = array_to_int(code.slice(i+j+1, i+j+5));
                     j += (4 + h);
-                    //}
-                    /*
-                    // we don't need this part because chalang doesn't support if-statements inside of if-statements. 
-                    } else if ((code[i+j] == caseif) && (1 == 2)){
-                    console.log("count till caseif");
+                } else if ((code[i+j] == caseif)){
+                    console.log("count till caseif recursion");
                     var k = count_till(code, i+j+1, casethen);
                     console.log("k is ");
                     console.log(k);
                     j += (k);
-                    */
                 } else if (opcode == code[i+j]) {
                     return j;
                 }
             }
-            console.log("count till reached end without finding goal");
             console.log(opcode);
-            throw(error);
+            throw("count till reached end without finding goal");
         }
         function replace(old_character, new_code, binary) {
             for (var i = 0; i < binary.length; i++) {
@@ -215,17 +218,22 @@ function chalang(command) {
                 op_print("int op");
                 var int_array = code.slice(i+1, i+5);
                 var new_int = array_to_int(int_array);
-                op_print(JSON.stringify(d.stack[new_int]));
                 d.stack = ([new_int]).concat(d.stack);
                 d.ram_current = d.ram_current + 1;
                 d.op_gas = d.op_gas - 1;
                 i = i + 4;
+                op_print(JSON.stringify(d.stack));
             } else if (code[i] == binary_op) {
                 op_print("bin op");
                 var int_array = code.slice(i+1, i+5);
                 var new_int = array_to_int(int_array);
                 var bin_array = code.slice(i+5, i+5+new_int);
-                var bin1 = (["binary"]).concat(bin_array);
+                var bin1;
+                //if (new_int == 4) {
+                //    bin1 = array_to_int(bin_array);
+                //} else {
+                    bin1 = (["binary"]).concat(bin_array);
+                //}
                 d.stack = ([bin1]).concat(
                         d.stack);
                 d.ram_current += 1;
@@ -235,13 +243,19 @@ function chalang(command) {
                 op_print("if op");
                 var b = d.stack[0];
                 var skipped_size;
-                var size_case1 = count_till(code, i, caseelse);
-                var size_case2 = count_till(code, i + size_case1, casethen);
+                var size_case1 = count_till(code, i + 1, caseelse);
+                op_print("size case 1");
+                op_print(JSON.stringify(size_case1));
+                var size_case2 = count_till(code, i + size_case1 + 1, casethen);
                 if (b == 0) {
+                    console.log("false");
                     skipped_size = size_case1;
-                    i += skipped_size;
+                    i += skipped_size + 1;
+                    console.log("increase i by ");
+                    console.log(skipped_size + 1);
                     //maybe we should remove the case_then from code, that way we can do tail optimized recursion after a conditional.
                 } else {
+                    console.log("true");
                     var skipped_size = size_case2;
                 }
                 d.stack = d.stack.slice(1, d.stack.length);
@@ -255,6 +269,7 @@ function chalang(command) {
                 op_print("then op");
                 // do nothing.
             } else if ((code[i] == call) && (code[i+1] == fun_end)){
+                op_print("optimized call op");
                 //tail call optimized function call
                 //console.log("tail call optimized function call op");
                 //console.log(d.stack[0]);
@@ -268,7 +283,7 @@ function chalang(command) {
                 //return run2(definition.concat(rest), d);
             } else if (code[i] == call) {
                 //non-optimized function call.
-                op_print("function call op");
+                op_print("slow call op");
                 //console.log(d.stack[0]);
                 //console.log(JSON.stringify(d.stack));
                 //console.log(d.funs);
@@ -583,6 +598,9 @@ function chalang(command) {
                     if (("binary" == d.stack[0][0]) &&
                         ("binary" == d.stack[1][0])) {
                         a = (d.stack[0]).concat(d.stack[1].slice(1, d.stack[1].length));
+                        if (a.length == 5) {
+                            a = array_to_int(a.slice(1, a.length));
+                        }
                     } else if (!("binary" == d.stack[0][0]) &&
                                !("binary" == d.stack[1][0])) {
                         a = (d.stack[0]).concat(d.stack[1]);
@@ -597,18 +615,32 @@ function chalang(command) {
             } else if (code[i] == split) {
                 op_print("split op");
                 error_check = underflow_check(d, 2, "split", function(){
-                    if (!(d.stack[0][0] == "binary")) {
+                    if (!(d.stack[1][0] == "binary")) {
+                        throw("cannot split a list");
                         return ["error", "cannot split a list", "split"]; 
                     } else {
                         d.op_gas -= 1;
                         d.ram_current -= 1;
                         var n = d.stack[0];
-                        var bin1 = d.stack[1].slice(0, n+1);
-                        var bin2 = (["binary"]).concat(d.stack[1].split(n+1, d.stack[1].length));
+                        var bin1;
+                        if (n == 4) {
+                            bin1 = array_to_int(d.stack[1].slice(0, n+1));
+                        } else {
+                            bin1 = d.stack[1].slice(0, n+1);
+                        }
+                        var bin2;
+                        if ((d.stack[1].length - n - 1) == 4) {
+                            bin2 = array_to_int(d.stack[1].slice(n+1, d.stack[1].length));
+                        } else {
+                            bin2 = (["binary"]).concat(d.stack[1].slice(n+1, d.stack[1].length));
+                        }
                         d.stack = ([bin1]).concat(
                             [bin2]).concat(
                                 d.stack.slice(2, d.stack.length));
-                    }});
+                        console.log(JSON.stringify(d.stack));
+                        //throw("split check");
+                    }
+                });
             } else if (code[i] == reverse) {
                 op_print("reverse op");
                 error_check = underflow_check(d, 1, "reverse", function(){
@@ -797,8 +829,28 @@ function chalang(command) {
                 from_r,from_r,from_r,from_r,from_r,
                 bool_and,bool_and,bool_and,bool_and
             ];
-        var x = run5(verify_signature_contract, d);
+        var case_contract = [
+            0,0,0,0,0,
+            0,0,0,0,1,
+            eq, swap, drop, swap, drop,
+            print,
+            caseif,
+             print,
+             0,0,0,0,2,
+            caseelse,
+             print,
+            0,0,0,0,1,
+            caseif,
+            0,0,0,0,3,
+            caseelse,
+            0,0,0,0,4,
+            casethen,
+            casethen
+        ];
+        //var x = run5(verify_signature_contract, d);
+        var x = run5(case_contract, d);
         console.log(JSON.stringify(x.stack));
+        return x.stack;
     }
     function prove_facts(facts, callback) {
         if (JSON.stringify(facts) == JSON.stringify([])) {
@@ -851,8 +903,7 @@ function chalang(command) {
                 r = r.concat(key);
             }
             r = r.concat([swap, cons]); // ,
-            var serialized_data = serialize_tree_element(value, key);
-            var serialized_data;//this is the serialized version of the thing who's existence we are proving. make it from value.
+            var serialized_data = serialize_tree_element(value, key);//this is the serialized version of the thing who's existence we are proving. make it from value.
             var s = serialized_data.length;
             r = r.concat([2]).concat(integer_to_array(s, 4));
             r = r.concat(serialized_data);
@@ -885,6 +936,10 @@ function chalang(command) {
         spk_run3(ss[i-1], bets[i], opgas, ramgas, funs, vars, state, function(run_object) {
             console.log("spk run 2 nonce are");
             console.log(JSON.stringify([nonce, run_object.nonce]));
+            if (!(Number.isInteger(run_object.nonce))) {
+                console.log(JSON.stringify(run_object.nonce));
+                throw("nonce should be an integer");
+            }
             return spk_run2(ss, bets, opgas, ramgas, funs, vars, state,
                             Math.max(delay, run_object.delay),
                             nonce + run_object.nonce,

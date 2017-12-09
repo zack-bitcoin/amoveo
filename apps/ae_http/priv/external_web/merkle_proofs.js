@@ -58,7 +58,9 @@ function verify_merkle(trie_key, x) {
         return false;
     }
     function leaf_hash(v, trie_key) {
-        var serialized = serialize_tree_element(v, trie_key);
+        var serialized =
+            serialize_key(v, trie_key).concat(
+                serialize_tree_element(v, trie_key));
         return hash(serialized);
     }
     
@@ -91,13 +93,28 @@ function verify_merkle(trie_key, x) {
                 var check5 = chain_links_array_member(last, lh);
                 if (check5) {
                     return value;
-                    //we should really learn to deal with proofs of empty data.
+                    //we should learn to deal with proofs of empty data.
                 } else {
                     console.log("the value doesn't match the proof");
                     return 0
                 }
             }
         }
+    }
+}
+function serialize_key(v, trie_key) {
+    var t = v[0];
+    if ( t == "gov" ) {
+        return integer_to_array(trie_key, 8);
+    } else if ( t == "acc" ) {
+        var pubkey = string_to_array(atob(v[4]));
+        return integer_to_array(0, 32*7).concat(hash(pubkey));
+    } else if ( t == "channel" ) {
+        return integer_to_array(v[1], 256);
+    } else if (t == "oracle") {
+        return integer_to_array(v[1], 256);
+    } else {
+        throw("serialize trie bad trie type");
     }
 }
 function serialize_tree_element(v, trie_key) {
@@ -108,7 +125,8 @@ function serialize_tree_element(v, trie_key) {
         var id = integer_to_array(v[1], 1);
         var value = integer_to_array(v[2], 2);
         var lock = integer_to_array(v[3], 1);
-        var serialized = integer_to_array(trie_key, 8).concat(
+        //var serialized = integer_to_array(trie_key, 8).concat(
+        var serialized = ([]).concat(
             id).concat(
                 value).concat(
                     lock);
@@ -120,15 +138,15 @@ function serialize_tree_element(v, trie_key) {
         var pubkey = string_to_array(atob(v[4]));
         var bets = string_to_array(atob(v[6]));
         //The key is the hash of the pubkey.
-        var serialized = integer_to_array(0, 32*7).concat(
-            hash(pubkey)).concat(
-                balance).concat(
-                    nonce).concat(
-                        height).concat(
-                            pubkey).concat(
-                                bets);
+        //var serialized = integer_to_array(0, 32*7).concat(
+        //    hash(pubkey)).concat(
+        var serialized = ([]).concat(
+            balance).concat(
+                nonce).concat(
+                    height).concat(
+                        pubkey).concat(
+                            bets);
         return serialized;
-        
     } else if ( t == "channel" ) {
         var cid = integer_to_array(v[1], 32);
         var acc1 = string_to_array(atob(v[2]));
@@ -143,7 +161,8 @@ function serialize_tree_element(v, trie_key) {
         var entropy = integer_to_array(v[10], 2);
         var delay = integer_to_array(v[11], 4);
         var closed = integer_to_array(v[13], 1);
-        var serialized = integer_to_array(v[1], 256).concat(
+        //var serialized = integer_to_array(v[1], 256).concat(
+        var serialized = ([]).concat(
             cid).concat(
                 bal1).concat(
                     bal2).concat(
@@ -168,7 +187,8 @@ function serialize_tree_element(v, trie_key) {
         var creator = string_to_array(atob(v[8])); //pubkey size
         var question = string_to_array(atob(v[3])); //32 bytes size
         var orders = string_to_array(atob(v[7])); //32 bytes
-        var serialized = integer_to_array(v[1], 256).concat(
+        //var serialized = integer_to_array(v[1], 256).concat(
+        var serialized = ([]).concat(
             id).concat(
                 result).concat(
                     t).concat(
@@ -180,7 +200,6 @@ function serialize_tree_element(v, trie_key) {
                                             question).concat(
                                                 orders);
         return serialized;
-        
     } else {
         console.log("cannot decode type ");
         console.log(t);
