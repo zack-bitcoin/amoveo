@@ -68,6 +68,7 @@ function chalang(command) {
           word_size = 4294967296,
           hash_size = 12;
     function run2(code, d) {
+        console.log("run 2");
         //the stuff inside this function is from the chalang repository.
         function memory(x) {
             //console.log("in memory function");
@@ -159,7 +160,7 @@ function chalang(command) {
                     i += 4;
                 } else if (code[i] == binary_op) {
                     var h = array_to_int(code.slice(i+1, i+5));
-                    j += (4 + h);
+                    i += (4 + h);
                 } else if ((code[i] == caseif)){
                     var k = count_till(code, i+1, casethen);
                     i += (k);
@@ -183,7 +184,7 @@ function chalang(command) {
                     var k = count_till(code, i+j+1, casethen);
                     //console.log("k is ");
                     //console.log(k);
-                    j += (k);
+                    j += (k + 1);
                 } else if (opcode == code[i+j]) {
                     return j;
                 }
@@ -218,7 +219,7 @@ function chalang(command) {
             }
         }
         for (var i = 0; i<code.length; i++) {
-            //console.log"run cycle");
+            //console.log("run cycle");
             //console.logi);
             //console.log"opcode: ");
             //console.logcode[i]);
@@ -276,31 +277,46 @@ function chalang(command) {
                 code = code.slice(0, i).concat(
                     foo.concat(
                         split2.rest));
-            } else if (code[i] == caseif) {
+            } else if (false && (code[i] == caseif)) {
                 var b = d.stack[0];
                 var skipped_size;
                 var size_case1 = count_till(code, i + 1, caseelse);
-                var size_case2 = count_till(code, i + size_case1, casethen);
+                var size_case2 = count_till(code, i + 1 + size_case1, casethen);
+                console.log(JSON.stringify(code));
                 if (b == 0) {
                     console.log("false");
-                    skipped_size = size_case1;
-                    i += (skipped_size + 1);
+                    i += (size_case1 + 1);
                     //maybe we should remove the case_then from code, that way we can do tail optimized recursion after a conditional.
                 } else {
                     console.log("true");
-                    var skipped_size = size_case2 + 1;
-                    code = code.slice(0, size_case1 + 1 + i).concat(
-                        code.slice(size_case1 + 1 + i + skipped_size, code.length));
-                    //i = 0;
+                    //console.log("code part 1 ");
+                    console.log(JSON.stringify(code.slice(i, size_case1 + i + 1)));
+                    console.log(JSON.stringify(code.slice(size_case1 + i + 3 + size_case2, code.length)));
+                    //code = code.slice(i + 1, size_case1 + i + 1).concat(
+                    code = code.slice(i, size_case1 + i + 1).concat(
+                        code.slice(size_case1 + i + 3 + size_case2, code.length));
+                    i = 0;
                 }
+                console.log(JSON.stringify(code));
                 d.stack = d.stack.slice(1, d.stack.length);
                 d.ram_current -= (skipped_size + 1);
                 d.op_gas -= (size_case1 + size_case2);
                 op_print(d, i, "if op");
+            } else if (code[i] == caseif) {
+                var b = d.stack[0];
+                var size_case1 = count_till(code, i + 1, caseelse);
+                if (b == 0) {
+                    i += (size_case1 + 0);
+                }
+                d.stack = d.stack.slice(1, d.stack.length);
+                op_print(d, i, "if op");
+                
             } else if (code[i] == caseelse) {
-                throw("else error");
-                var skipped_size = count_till(code, i, casethen);
-                i += (skipped_size - 1);
+                console.log(JSON.stringify(i));
+                console.log(JSON.stringify(code));
+                //throw("else error");
+                var skipped_size = count_till(code, i + 1, casethen);
+                i += (skipped_size + 0);
                 op_print(d, i, "else op");
             } else if (code[i] == casethen) {
                 op_print(d, i, "then op");
@@ -848,21 +864,32 @@ function chalang(command) {
                 bool_and,bool_and,bool_and,bool_and
             ];
         var case_contract = [
+            /*
             0,0,0,0,0,
             0,0,0,0,1,
             eq, swap, drop, swap, drop,
-            //bool_flip,
+            bool_flip,
+            */
+
+            0,0,0,0,2,
             caseif,
              //0,0,0,0,0,
-            0,0,0,0,1,
-            0,0,0,0,0,
-            caseif, 0,0,0,0,7, caseelse, casethen,
+            0,0,0,0,3,
+            //0,0,0,0,2,
+            caseif, 0,0,0,0,7,
+            caseelse, casethen,
+            //print, //when I comment this print, the error disappears.
+            caseif, caseelse, 0,0,0,0,0, casethen,
+            /*
+            //print,
              caseif,
-              0,0,0,0,5,
+              //0,0,0,0,5,
              caseelse,
-              0,0,0,0,6,
+              //0,0,0,0,6,
              casethen,
+            */
             caseelse,
+            /*
              0,0,0,0,0,
              //0,0,0,0,1,
              caseif,
@@ -870,6 +897,8 @@ function chalang(command) {
              caseelse,
               0,0,0,0,4,
              casethen,
+            */
+            0,0,0,0,27,
             casethen
         ];
         var split_append_contract = [
@@ -951,6 +980,7 @@ function chalang(command) {
         //return r.concat([reverse]); // converts a , to a ]
     }
     function spk_run(mode, ss, spk, height, slash, fun_limit, var_limit, callback) {
+        console.log("spk run");
         var state = chalang_new_state(height, slash);
         var key1 = "fun_limit";
         var ret;
@@ -985,6 +1015,7 @@ function chalang(command) {
         });
     }
     function spk_run3(ss, bet, opgas, ramgas, funs, vars, state, callback) {
+        console.log("spk run 3");
         //console.log("spk_run3 ss is ");
         //console.log(JSON.stringify(ss));
         var script_sig = ss.code;
@@ -1021,6 +1052,7 @@ function chalang(command) {
         });
     }
     function spk_force_update(spk, ssold, ssnew, fun_limit, var_limit, callback) {
+        console.log("force update");
         //console.log("force update ss's are ");
         //console.log(JSON.stringify([ssold, ssnew]));
         var height = top_header[1];
@@ -1046,6 +1078,7 @@ function chalang(command) {
         });
     }
     function chalang_none_of(c) {
+        console.log("none of");
         var n;
         for (var i = 0; i < c.length; i++) {
             if ( c[i] == crash ) {
@@ -1071,6 +1104,7 @@ function chalang(command) {
         spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, bets.length-1, callback);
     }
     function spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i, callback) {
+        console.log("spke force update 22");
         if (i < 0) {
             return callback({"new_bets": new_bets, "newss": newss, "amount": amount, "nonce": nonce});
         }
@@ -1108,6 +1142,7 @@ function chalang(command) {
         }
     }
     function tree_number_det_power(base, top, bottom, t) {
+        console.log("tree number det power");
         if (t == 1) {
             return Math.floor((base * top) / bottom);
         }
