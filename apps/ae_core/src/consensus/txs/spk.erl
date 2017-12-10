@@ -34,7 +34,7 @@
 %This is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
 
--record(ss, {code, prove, meta = 0}).
+-record(ss, {code, prove, meta = 0}). %meta is the price being matched at.
 
 delay(X) -> X#spk.delay.
 acc1(X) -> X#spk.acc1.

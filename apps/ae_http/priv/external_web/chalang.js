@@ -1175,7 +1175,7 @@ function chalang(command) {
     function ss_to_internal(ess) {
         var ss = [];
         for (var i = 1; i < ess.length; i++) {
-            ss = ss.concat([new_ss(string_to_array(atob(ess[i][1])), ess[i][2])])
+            ss = ss.concat([new_ss(string_to_array(atob(ess[i][1])), ess[i][2], ess[i][3])])
         }
         return ss;
     }
@@ -1213,7 +1213,6 @@ function chalang(command) {
                         channel_manager[from] = newcd;
                         return callback(ret);
                     } else {
-                    throw("did not force update");
                         is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {
                             if ( b3 ) {
                                 ret = sign_tx(newspk);

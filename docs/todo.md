@@ -24,6 +24,8 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* there are some places in the javascript light node where we aren't verifying signatures that we should  be verifying.
+
 * it is weird how spk_force_update22 in chalang.js calls run5. Since it's parent function is already calling the VM, it seems like we are running it multiple times unnecessarily.
 
 * when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.

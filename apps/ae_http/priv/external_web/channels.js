@@ -2,13 +2,21 @@
 var channel_manager = {};
 channels1();
 function channel_manager_read(x) {
-    return JSON.parse(JSON.stringify(channel_manager[x]));
+    var y = channel_manager[x];
+    if (y == undefined) {
+        return undefined;
+    } else {
+        return JSON.parse(JSON.stringify(y));
+    }
 }
 function new_cd(me, them, ssme, ssthem, entropy, cid) {
     return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "entropy": entropy, "cid":cid};
 }
-function new_ss(code, prove) {
-    return {"code": code, "prove": prove};
+function new_ss(code, prove, meta) {
+    if (meta == undefined) {
+        meta = 0;
+    }
+    return {"code": code, "prove": prove, "meta": meta};
 }
 function channels1() {
     //check if we have a chnnel with the server yet.
@@ -51,6 +59,15 @@ function channels1() {
         variable_public_get(["pubkey"], refresh_channels_interfaces);
     };
     channels_div.appendChild(bet_update_button);
+    channels_div.appendChild(document.createElement("br"));
+    var combine_cancel_button = document.createElement("input");
+    combine_cancel_button.type = "button";
+    combine_cancel_button.value = "combine bets in opposite directions to recover money from the market";
+    combine_cancel_button.onclick = function() {
+        variable_public_get(["pubkey"], combine_cancel_object.main);
+    }
+    channels_div.appendChild(combine_cancel_button);
+    channels_div.appendChild(document.createElement("br"));
     
     variable_public_get(["pubkey"], refresh_channels_interfaces);
     function make_channel_func(pubkey) {
@@ -124,7 +141,7 @@ function channels1() {
         var cd = new_cd(spk, s2spk, empty_ss(), empty_ss(), entropy, cid);
         //console.log("cd is ");
         //console.log(cd);
-        channel_manager_read(acc2) = cd;
+        channel_manager[acc2] = cd;
         channel_warning();
         variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
     }
