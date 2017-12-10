@@ -176,6 +176,8 @@ function chalang(command) {
             for (var j = 0; (j + i) < code.length; j++) {
                 if ((code[i+j]) == int_op) {
                     j += 4;
+                } else if (opcode == code[i+j]) {
+                    return j;
                 } else if (code[i+j] == binary_op) {
                     var h = array_to_int(code.slice(i+j+1, i+j+5));
                     j += (4 + h);
@@ -185,8 +187,6 @@ function chalang(command) {
                     //console.log("k is ");
                     //console.log(k);
                     j += (k + 1);
-                } else if (opcode == code[i+j]) {
-                    return j;
                 }
             }
             console.log(opcode);
@@ -306,14 +306,14 @@ function chalang(command) {
                 var b = d.stack[0];
                 var size_case1 = count_till(code, i + 1, caseelse);
                 if (b == 0) {
-                    i += (size_case1 + 0);
+                    i += (size_case1 + 1);
                 }
                 d.stack = d.stack.slice(1, d.stack.length);
                 op_print(d, i, "if op");
                 
             } else if (code[i] == caseelse) {
-                console.log(JSON.stringify(i));
-                console.log(JSON.stringify(code));
+                //console.log(JSON.stringify(i));
+                //console.log(JSON.stringify(code));
                 //throw("else error");
                 var skipped_size = count_till(code, i + 1, casethen);
                 i += (skipped_size + 0);
@@ -871,15 +871,17 @@ function chalang(command) {
             bool_flip,
             */
 
-            0,0,0,0,2,
+            0,0,0,0,0,
             caseif,
              //0,0,0,0,0,
             0,0,0,0,3,
             //0,0,0,0,2,
             caseif, 0,0,0,0,7,
-            caseelse, casethen,
+            caseelse, 0,0,0,0,8, casethen,
             //print, //when I comment this print, the error disappears.
-            caseif, caseelse, 0,0,0,0,0, casethen,
+            caseif, caseelse, 0,0,0,0,0,
+            caseif, caseelse, casethen,
+            casethen,
             /*
             //print,
              caseif,
@@ -889,7 +891,6 @@ function chalang(command) {
              casethen,
             */
             caseelse,
-            /*
              0,0,0,0,0,
              //0,0,0,0,1,
              caseif,
@@ -897,7 +898,6 @@ function chalang(command) {
              caseelse,
               0,0,0,0,4,
              casethen,
-            */
             0,0,0,0,27,
             casethen
         ];
@@ -1043,7 +1043,7 @@ function chalang(command) {
             var amount = data3.stack[0];
             var nonce = data3.stack[1];
             var delay = data3.stack[2];
-            var cgran;
+            var cgran = 10000; //constants.erl
             if ((amount > cgran) || (amount < -cgran)) {
                 throw("you can't spend money you don't have in the channel.");
             }
@@ -1105,20 +1105,21 @@ function chalang(command) {
     }
     function spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i, callback) {
         console.log("spke force update 22");
-        if (i < 0) {
+        if (i < 1) {
             return callback({"new_bets": new_bets, "newss": newss, "amount": amount, "nonce": nonce});
         }
-        var b = chalang_none_of(ss[i].code);//ss.code
+        var b = chalang_none_of(ss[i-1].code);//ss.code
         if (!(b)) {
             throw("you can't put crash into the ss");
         }
         var state = chalang_new_state(height, 0);
-        prove_facts(ss[i].prove, function(f) { //PROBLEM HERE
+        prove_facts(ss[i-1].prove, function(f) { //PROBLEM HERE
             var code = f.concat(bets[i].code);
-            var data = chalang_data_maker(bet_gas_limit, bet_gas_limit, var_limit, fun_limit, ss.code, code, state);
-            var data2 = run5([JSON.parse(JSON.stringify(ss[i].code))], data);
+            var data = chalang_data_maker(bet_gas_limit, bet_gas_limit, var_limit, fun_limit, ss[i-1].code, code, state);
+            var data2 = run5([JSON.parse(JSON.stringify(ss[i-1].code))], data);
             var data3 = run5([code], data2);
             var s = data3.stack;
+            var cgran = 10000; //constants.erl
             if (!(s[2] > 50)) { //if the delay is long, then don't close the trade.
                 if (s[0] > cgran) {
                     throw("you can't spend money that you don't have");
@@ -1142,7 +1143,6 @@ function chalang(command) {
         }
     }
     function tree_number_det_power(base, top, bottom, t) {
-        console.log("tree number det power");
         if (t == 1) {
             return Math.floor((base * top) / bottom);
         }
