@@ -12,7 +12,7 @@ document.body.appendChild(outstanding_bets_div);
 var offchain_assets_div = document.createElement("div");
 offchain_assets_div.id = "offchain_assets_div";
 document.body.appendChild(offchain_assets_div);
-outstanding_bets1();
+//outstanding_bets1();
 function outstanding_bets1() {
     var button_div = document.getElementById("outstanding_bets_button_div");
     button_div.innerHTML = "";

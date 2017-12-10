@@ -22,7 +22,6 @@ function channels1() {
     //check if we have a chnnel with the server yet.
     //if we don't, then give an interface for making one.
     var cd;
-    document.body.appendChild(document.createElement("br"));
     var channels_div = document.createElement("div");
     document.body.append(channels_div);
     var channel_warning_div = document.createElement("div");
@@ -47,27 +46,14 @@ function channels1() {
     channels_div.appendChild(save_name);
     channels_div.appendChild(save_button);
     channels_div.appendChild(document.createElement("br"));
+    channels_div.appendChild(document.createElement("br"));
     channels_div.appendChild(channel_interface_div);
 
-    channels_div.appendChild(document.createElement("br"));
-    var bet_update_button = document.createElement("input");
-    bet_update_button.type = "button";
-    bet_update_button.value = "check if any bets have been settled";
-    bet_update_button.onclick = function() {
-        //var chalang_object = chalang();
-        chalang_object.pull_channel_state();
-        variable_public_get(["pubkey"], refresh_channels_interfaces);
-    };
-    channels_div.appendChild(bet_update_button);
-    channels_div.appendChild(document.createElement("br"));
-    var combine_cancel_button = document.createElement("input");
-    combine_cancel_button.type = "button";
-    combine_cancel_button.value = "combine bets in opposite directions to recover money from the market";
-    combine_cancel_button.onclick = function() {
-        variable_public_get(["pubkey"], combine_cancel_object.main);
-    }
-    channels_div.appendChild(combine_cancel_button);
-    channels_div.appendChild(document.createElement("br"));
+
+
+
+
+
     
     variable_public_get(["pubkey"], refresh_channels_interfaces);
     function make_channel_func(pubkey) {
@@ -198,6 +184,7 @@ function channels1() {
             make_channel.appendChild(delay_info);
             make_channel.appendChild(spend_delay);
         } else {
+
             console.log("give interface for making bets in channels.");
             var balance_div = document.createElement("div");
             balance_div.id = "balance_div";
@@ -209,6 +196,15 @@ function channels1() {
             channel_balance_button.value = "check channel balance";
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             div.appendChild(channel_balance_button);
+            div.appendChild(document.createElement("br"));
+            var market_title = document.createElement("h3");
+            market_title.innerHTML = "markets";
+            div.appendChild(market_title);
+
+            var market_link = document.createElement("a");
+            market_link.innerHTML = "see the available markets here";
+            market_link.href = "http://146.185.142.103:8080/explorer.html";
+            div.appendChild(market_link);
             div.appendChild(document.createElement("br"));
 
             var price = document.createElement("INPUT");
@@ -245,6 +241,38 @@ function channels1() {
             button.appendChild(buttonText);
             button.onclick = make_bet;
             div.appendChild(button);
+
+            div.appendChild(document.createElement("br"));
+            var bet_update_button = document.createElement("input");
+            bet_update_button.type = "button";
+            bet_update_button.value = "check if any bets have been settled";
+            bet_update_button.onclick = function() {
+                //var chalang_object = chalang();
+                chalang_object.pull_channel_state();
+                variable_public_get(["pubkey"], refresh_channels_interfaces);
+            };
+            div.appendChild(bet_update_button);
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createElement("br"));
+            var combine_cancel_button = document.createElement("input");
+            combine_cancel_button.type = "button";
+            combine_cancel_button.value = "combine bets in opposite directions to recover money from the market";
+            combine_cancel_button.onclick = function() {
+                variable_public_get(["pubkey"], combine_cancel_object.main);
+            }
+            div.appendChild(combine_cancel_button);
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createElement("br"));
+
+            var list_bets_button = document.createElement("input");
+            list_bets_button.type = "button";
+            list_bets_button.value = "update balance of off-chain assets";
+            list_bets_button.onclick = outstanding_bets2;
+            
+            div.appendChild(list_bets_button);
+            div.appendChild(document.createElement("br"));
+            
+
             function make_bet() {
                 //server's pubkey is pubkey.
                 var oid_final = parseInt(oid.value, 10);

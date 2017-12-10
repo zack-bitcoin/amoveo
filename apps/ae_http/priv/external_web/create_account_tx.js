@@ -6,7 +6,7 @@ function create_account1() {
     var create_amount = document.createElement("INPUT");
     create_amount.setAttribute("type", "text"); 
     var create_amount_info = document.createElement("h8");
-    create_amount_info.innerHTML = "initial balance of new account: ";
+    create_amount_info.innerHTML = "create account- initial balance: ";
     div.appendChild(create_amount_info);
     div.appendChild(create_amount);
 

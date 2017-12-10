@@ -35,9 +35,6 @@ function keys_function1() {
     var div = document.createElement("div");
     document.body.appendChild(div);
     
-    var pub_div = document.createElement("div");
-    div.appendChild(pub_div);
-
     var save_name = document.createElement("INPUT");
     save_name.type = "text";
     save_name.id = "save_name";
@@ -46,10 +43,6 @@ function keys_function1() {
     save_button.type = "button";
     save_button.value = "save keys to file";
     save_button.onclick = save_keys;
-    div.appendChild(save_name);
-    div.appendChild(save_button);
-
-    div.appendChild(document.createElement("br"));
     var file_selector = document.createElement("input");
     file_selector.type = "file";
     file_selector.onchange = load_keys;
@@ -57,6 +50,14 @@ function keys_function1() {
     var load_text = document.createTextNode("get key from file ");
     div.appendChild(load_text);
     div.appendChild(file_selector);
+    div.appendChild(document.createElement("br"));
+    var pub_div = document.createElement("div");
+    div.appendChild(pub_div);
+
+    div.appendChild(document.createElement("br"));
+    div.appendChild(save_name);
+    div.appendChild(save_button);
+
 
     div.appendChild(document.createElement("br"));
     var new_pubkey_button = document.createElement("input");
