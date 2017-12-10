@@ -24,9 +24,9 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* when you cancel a bet, it should increase the spk's nonce. otherwise the bet could come back to life.
+* it is weird how spk_force_update22 in chalang.js calls run5. Since it's parent function is already calling the VM, it seems like we are running it multiple times unnecessarily.
 
-* the light node needs a way to pull the channel state from the server.
+* when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
 
 * we need a test to make sure that when we close a channel, the correct amounts of money transfer, even if we slashed more than once.
 

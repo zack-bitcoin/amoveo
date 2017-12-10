@@ -1,6 +1,9 @@
 
 var channel_manager = {};
 channels1();
+function channel_manager_read(x) {
+    return JSON.parse(JSON.stringify(channel_manager[x]));
+}
 function new_cd(me, them, ssme, ssthem, entropy, cid) {
     return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "entropy": entropy, "cid":cid};
 }
@@ -121,7 +124,7 @@ function channels1() {
         var cd = new_cd(spk, s2spk, empty_ss(), empty_ss(), entropy, cid);
         //console.log("cd is ");
         //console.log(cd);
-        channel_manager[acc2] = cd;
+        channel_manager_read(acc2) = cd;
         channel_warning();
         variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
     }
@@ -149,7 +152,7 @@ function channels1() {
         //console.log(pubkey);
         var div = channel_interface_div;
         div.innerHTML = "";
-        var v = channel_manager[pubkey];
+        var v = channel_manager_read(pubkey);
         //console.log("v is ");
         //console.log(JSON.stringify(v));
         if (v == undefined) {
@@ -250,7 +253,7 @@ function channels1() {
                 var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, top_header[1]);
 
                 
-                var cd = JSON.parse(JSON.stringify(channel_manager[pubkey]));
+                var cd = channel_manager_read(pubkey);
                 var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
                 var sspk = sign_tx(spk);
                 console.log("signed spk");
@@ -265,7 +268,7 @@ function channels1() {
                 var hspk2 = JSON.stringify(sspk2[1]);
                 var hspk = JSON.stringify(sspk[1]);
                 if (hspk2 == hspk) { //make sure that both spks match
-                    var cd = channel_manager[server_pubkey];
+                    var cd = channel_manager_read(server_pubkey);
                     cd.me = sspk[1];
                     cd.them = sspk2;
                     //var newss = {"code": [0,0,0,0,4], "prove":[]};
@@ -292,7 +295,7 @@ function channels1() {
     }
     function refresh_balance(pubkey) {
         //console.log(channel_manager[pubkey]);
-        var cd = channel_manager[pubkey];
+        var cd = channel_manager_read(pubkey);
         var trie_key = cd.me[7];//channel id, cid
         var top_hash = hash(serialize_header(top_header));
 

@@ -206,8 +206,8 @@ function chalang(command) {
             }
             return binary;
         }
-        var verbose = true;
-        var stack_verbose = true;
+        var verbose = false;
+        var stack_verbose = false;
         function op_print(d, i, x) {
             if (verbose) {
                 console.log(("# ").concat(
@@ -494,7 +494,7 @@ function chalang(command) {
                 d.stack = a.concat(d.stack.slice(2, d.stack.length));
                 op_print(d, i, ("math ").concat((code[i]).toString()));
             } else if (code[i] == eq) {
-                console.log(JSON.stringify(d.stack.slice(0, 2)));
+                //console.log(JSON.stringify(d.stack.slice(0, 2)));
                 underflow_check(d, 2, "eq"),
                 d.op_gas = d.op_gas - 1;
                 d.ram_current = d.ram_current + 1;
@@ -979,7 +979,9 @@ function chalang(command) {
         });
         //return r.concat([reverse]); // converts a , to a ]
     }
-    function spk_run(mode, ss, spk, height, slash, fun_limit, var_limit, callback) {
+    function spk_run(mode, ss0, spk0, height, slash, fun_limit, var_limit, callback) {
+        var spk = JSON.parse(JSON.stringify(spk0));
+        var ss = JSON.parse(JSON.stringify(ss0));
         console.log("spk run");
         var state = chalang_new_state(height, slash);
         var key1 = "fun_limit";
@@ -1051,7 +1053,10 @@ function chalang(command) {
             return callback({"amount": a3, "nonce": nonce, "delay": delay, "opgas": data3.opgas});
         });
     }
-    function spk_force_update(spk, ssold, ssnew, fun_limit, var_limit, callback) {
+    function spk_force_update(spk0, ssold0, ssnew0, fun_limit, var_limit, callback) {
+        var spk = JSON.parse(JSON.stringify(spk0));
+        var ssold = JSON.parse(JSON.stringify(ssold0));
+        var ssnew = JSON.parse(JSON.stringify(ssnew0));
         console.log("force update");
         //console.log("force update ss's are ");
         //console.log(JSON.stringify([ssold, ssnew]));
@@ -1068,7 +1073,9 @@ function chalang(command) {
                         spk[4] = updated.new_bets;
                         spk[8] += updated.amount;
                         spk[9] += updated.nonce;
-                        return callback({"spk":spk, "ss":updated.finalss});
+                        console.log("force udpate final ss is ");
+                        console.log(JSON.stringify(updated.newss));
+                        return callback({"spk":spk, "ss":updated.newss});
                     });
                 } else {
                     console.log("spk force update had nothing to do.");
@@ -1114,12 +1121,21 @@ function chalang(command) {
         }
         var state = chalang_new_state(height, 0);
         prove_facts(ss[i-1].prove, function(f) { //PROBLEM HERE
-            var code = f.concat(bets[i].code);
+            //var code = f.concat(bets[i].code);
+            var code = f.concat(string_to_array(atob(bets[i][1])));
             var data = chalang_data_maker(bet_gas_limit, bet_gas_limit, var_limit, fun_limit, ss[i-1].code, code, state);
-            var data2 = run5([JSON.parse(JSON.stringify(ss[i-1].code))], data);
-            var data3 = run5([code], data2);
+            var data2 = run5(ss[i-1].code, data);
+            var data3 = run5(code, data2);
             var s = data3.stack;
             var cgran = 10000; //constants.erl
+            console.log(JSON.stringify([
+                //"code", code,
+                "ss", ss[i-1],
+                "data2", data2.stack,
+                "data3", data3.stack,
+                "delay", s[2],
+                "amount", s[0],
+                "nonce", s[1]]));
             if (!(s[2] > 50)) { //if the delay is long, then don't close the trade.
                 if (s[0] > cgran) {
                     throw("you can't spend money that you don't have");
@@ -1164,7 +1180,7 @@ function chalang(command) {
         return ss;
     }
     function channel_feeder_they_simplify(from, themspk, cd, callback) {
-        cd0 = channel_manager[from];
+        cd0 = channel_manager_read(from);
         //true = cd0.live; //verify this is true
         //true = cd.live; //verify this is true
         var spkme = cd0.me;
@@ -1189,12 +1205,15 @@ function chalang(command) {
                 var entropy = cd[7];
                 spk_force_update(spkme, ssme, ss4, fun_limit, var_limit, function(b2) {
                     var cid = cd[8];
-                    if ( JSON.stringify(b2) == JSON.stringify([newspk, ss])) {
+                    console.log("are we able to force update?");
+                    console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
+                    if ( JSON.stringify(b2) == JSON.stringify({"spk": newspk, "ss": ss})) {
                         var ret = sign_tx(newspk);
                         var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
                         channel_manager[from] = newcd;
                         return callback(ret);
                     } else {
+                    throw("did not force update");
                         is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {
                             if ( b3 ) {
                                 ret = sign_tx(newspk);
@@ -1354,7 +1373,7 @@ function chalang(command) {
                 var cd = spk_return[1];
                 var them_spk = spk_return[2];
                 //returns cd and them_spk
-                var cd0 = channel_manager[server_pubkey];
+                var cd0 = channel_manager_read(server_pubkey);
                 if (cd0 == undefined) {
                     console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
                     throw("pull channel state error");
