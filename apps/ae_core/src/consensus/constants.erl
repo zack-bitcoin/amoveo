@@ -21,7 +21,7 @@ initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 
     case application:get_env(ae_core, test_mode, false) of
 	%true -> 2500;
-	true -> 1;
+	true -> 500;
 	_ -> 6452
     end.
 difficulty_bits() -> 24.

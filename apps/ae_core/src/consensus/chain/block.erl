@@ -1,7 +1,7 @@
 -module(block).
 
 -export([block_to_header/1, test/0,
-         height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, version/1, pow/1, trees/1, prev_hashes/1, 
+         height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, version/1, pow/1, set_pow/2, trees/1, prev_hashes/1, 
          get_by_height_in_chain/2, get_by_height/1, hash/1, get_by_hash/1, initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          guess_number_of_cpu_cores/0, top/0,
@@ -47,6 +47,8 @@ time(B) -> B#block.time.
 difficulty(B) -> B#block.difficulty.
 version(B) -> B#block.version.
 pow(B) -> B#block.nonce.
+set_pow(B, N) -> 
+    B#block{nonce = N}.
 trees(B) -> B#block.trees.
 prev_hashes(B) -> B#block.prev_hashes.
 proofs(B) -> B#block.proofs.
@@ -373,6 +375,7 @@ mine(Block, Rounds, Cores) ->
                 case mine2(Block, Rounds) of
                     false -> false;
                     PBlock ->
+                        io:fwrite("found a block"),
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
                         block_absorber:save(PBlock),
@@ -397,6 +400,9 @@ mine2(Block, Times) ->
             %io:fwrite(packer:pack(Pow)),
             %io:fwrite(" "),
             Nonce = pow:nonce(Pow),
+            io:fwrite("mining made nonce "),
+            io:fwrite(packer:pack(Nonce)),
+            io:fwrite("\n"),
             B2 = Block#block{nonce = Nonce},
             %io:fwrite(packer:pack(hash(B2))),
             %io:fwrite("\n"),

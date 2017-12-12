@@ -602,6 +602,36 @@ combine_cancel_assets(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     channel_feeder:combine_cancel_assets(ServerID, IP, Port),
     0.
+-define(mining, "data/mining_block.db").
+mining_data(Nonce) ->
+    <<N:256>> = Nonce,
+    Block = db:read(?mining),
+    Block2 = block:set_pow(Block, N),
+    io:fwrite("api mining data new block is "),
+    io:fwrite(packer:pack(Block2)),
+    io:fwrite("\n"),
+    Header = block:block_to_header(Block2),
+    io:fwrite("api mining data new Header is "),
+    io:fwrite(packer:pack(Header)),
+    io:fwrite("\n"),
+    headers:absorb([Header]),
+    block_absorber:save(Block2),
+    spawn(fun() ->
+              sync:start()
+          end),
+    ok.
+    %mining_data().
+mining_data() ->
+    PB = block:top(),
+    Top = block:block_to_header(PB),
+    {_, _, Txs} = tx_pool:data(),
+    Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
+    spawn(fun() ->
+                 db:save(?mining, Block)
+                 %file:write_file("", packer:pack(Block)),
+                 end),
+    [hash:doit(block:hash(Block)), crypto:strong_rand_bytes(32), block:difficulty(PB)].
+
     
 
 %second number is how many nonces we try per round.
