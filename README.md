@@ -24,6 +24,12 @@ This light node downloads headers and verifies the proof of work.
 It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
 
 
+## Block Explorer
+
+The block explorer for the network is [here](http://146.185.142.103:8080/explorer.html)
+Go to the block explorer to see all the markets that are being run on that node.
+
+
 ## Running a full node of the blockchain
 
 If you want to mine blocks you will need a full node.
@@ -35,15 +41,10 @@ Launch a node and connect to the network; [look at the quick start guide](docs/g
 
 [Here is mining software that works with Amoveo](https://github.com/zack-bitcoin/amoveo-c-miner)
 
-## Block Explorer
-
-The block explorer for the network is [here](http://146.185.142.103:8080/explorer.html)
-Go to the block explorer to see all the markets that are being run on that node.
-
 
 ## Blockchain Commands
 
-[Read about the commands in depth in the docs](docs/api/commands.md) This is how you control the node once it is started. Includes commands for mining, accounts, channels, oracles, and more.
+[Read about the commands in depth in the docs](docs/api/commands.md) This is how you control the node once it is started. Includes commands for accounts, channels, oracles, and more.
 
 
 ## Testing
@@ -63,7 +64,7 @@ Gifts must be less than $10 000 per person.
 
 ## Browser GUI for using wallet integrated into the full node
 
-Now that the browser light node works so well, the browser wallet is only used for testing.
+Now that the browser light node works so well, the browser wallet is only used for testing and as a development tool.
 
 [After starting your node, use a web browser on the same computer to visit this website.](http://localhost:8081/login.html)
 It is being served by the node you are running.
@@ -73,6 +74,6 @@ Go to the block explorer to see all the markets that are being run on that node.
 
 ## Wallet integrated into the full node
 
-It is still possible to use the wallet integrated into the node, and it is necessary for testing.
+It is still possible to use the wallet integrated into the node, and it is necessary as a development tool.
 Read here about how to secure your private key with a password. That way you can have assets on Amoveo.
 [Secure your keys](docs/api/securing_keys.md)
