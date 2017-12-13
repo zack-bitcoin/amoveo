@@ -31,20 +31,14 @@ If you want to mine blocks you will need a full node.
 Launch a node and connect to the network; [look at the quick start guide](docs/getting-started/turn_it_on.md)
 
 
-## Graphic user interface
+## Mining
 
-[After starting your node, use a web browser on the same computer to visit this website.](http://localhost:8081/login.html)
-It is being served by the node you are running.
+[Here is mining software that works with Amoveo](https://github.com/zack-bitcoin/amoveo-c-miner)
+
+## Block Explorer
 
 The block explorer for the network is [here](http://146.185.142.103:8080/explorer.html)
 Go to the block explorer to see all the markets that are being run on that node.
-
-
-## Using the wallet
-
-Amoveo is also a wallet. A wallet is for storing your private key, and for making signatures.
-Read here about how to secure your private key with a password. That way you can have assets on Amoveo.
-[Secure your keys](docs/api/securing_keys.md)
 
 
 ## Blockchain Commands
@@ -66,3 +60,19 @@ For tests you need to build one of the test versions of the code instead of the 
 Bitcoin Donations: 1GbpRPE83Vjg73KFvTVZ4EnS2qNkiLY5TT
 Gifts must be less than $10 000 per person.
 ```
+
+## Browser GUI for using wallet integrated into the full node
+
+Now that the browser light node works so well, the browser wallet is only used for testing.
+
+[After starting your node, use a web browser on the same computer to visit this website.](http://localhost:8081/login.html)
+It is being served by the node you are running.
+
+The block explorer for the network is [here](http://146.185.142.103:8080/explorer.html)
+Go to the block explorer to see all the markets that are being run on that node.
+
+## Wallet integrated into the full node
+
+It is still possible to use the wallet integrated into the node, and it is necessary for testing.
+Read here about how to secure your private key with a password. That way you can have assets on Amoveo.
+[Secure your keys](docs/api/securing_keys.md)
