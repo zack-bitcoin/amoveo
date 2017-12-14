@@ -3,6 +3,7 @@
 function miner_main() {
 
     var work_loop = 30000;//how many times to mine before checking if the user clicked a button.
+    var mining_state = false; //set to false to stop mining.
     function miner_get(cmd, callback) {
         //var u = url(get_port() + 5, get_ip());
         var u = url(get_port() + 5, "localhost");
@@ -25,6 +26,10 @@ function miner_main() {
         if (times < 1) {
             console.log("failed to find a block");
             return(test());
+        }
+        if (mining_state == false) {
+            console.log("stopped mining");
+            return(0);
         }
         setTimeout(function() {
             for(var i = 0; i < work_loop; i++) {
@@ -63,10 +68,10 @@ function miner_main() {
             mine(d_hash, d_nonce, d_diff, 1000000);
         });
     }
-    return({"test": test, "mine": mine});
+    return({"test": test, "mine": mine, "mining_state": mining_state});
 };
 
 var miner_object = miner_main();
-miner_object.test();
+//miner_object.test();
 
     
