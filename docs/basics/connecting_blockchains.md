@@ -1,5 +1,5 @@
 Connecting blockchains together
-
+==========
 
 There are 3 popular strategies for building applications that use multiple blockchains.
 
@@ -18,7 +18,7 @@ There are 3 popular strategies for building applications that use multiple block
 
 
 Why aren't bitcoin's light nodes good enough?
-=========
+===
 
 2 works really well with Amoveo, because Amoveo light nodes are so light
 light nodes of bitcoin are really bad because making a proof of an account's balance takes a long time to generate.
