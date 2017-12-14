@@ -78,9 +78,9 @@ check_pow(Header) ->
     <<Nonce:256>> = Header#header.nonce,
     Serialized = serialize(Header),
     %Hashed = hash:doit(Serialized, constants:hash_size()),
-    io:fwrite("about to check pow "),
-    io:fwrite(packer:pack({pow, Data, MineDiff, Nonce})),
-    io:fwrite("\n"),
+    %io:fwrite("about to check pow "),
+    %io:fwrite(packer:pack({pow, Data, MineDiff, Nonce})),
+    %io:fwrite("\n"),
     pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size()).
     %check_pow(P, HashSize) ->
     %HashSize = 32,

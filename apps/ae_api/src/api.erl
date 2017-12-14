@@ -603,7 +603,7 @@ combine_cancel_assets(IP, Port) ->
     channel_feeder:combine_cancel_assets(ServerID, IP, Port),
     0.
 -define(mining, "data/mining_block.db").
-mining_data(Nonce) ->
+work(Nonce, _) ->
     <<N:256>> = Nonce,
     Block = db:read(?mining),
     Block2 = block:set_pow(Block, N),
@@ -619,7 +619,7 @@ mining_data(Nonce) ->
     spawn(fun() ->
               sync:start()
           end),
-    ok.
+    0.
     %mining_data().
 mining_data() ->
     PB = block:top(),

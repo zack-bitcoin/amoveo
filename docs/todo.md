@@ -24,6 +24,8 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* raise the fees so it isn't affordable to spam the blocks.
+
 * there are some places in the javascript light node where we aren't verifying signatures that we should  be verifying.
 
 * it is weird how spk_force_update22 in chalang.js calls run5. Since it's parent function is already calling the VM, it seems like we are running it multiple times unnecessarily.

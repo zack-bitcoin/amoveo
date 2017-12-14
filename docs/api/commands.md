@@ -6,8 +6,6 @@ Different types of commands:
 
 [blockchain_basics](commands_basics.md)
 
-[mining](commands_mining.md)
-
 [accounts](commands_accounts.md)
 
 [channels](commands_channels.md)
@@ -15,6 +13,8 @@ Different types of commands:
 [oracle](commands_oracle.md)
 
 [other](commands_other.md)
+
+[erlang mining](commands_mining.md)
 
 
 
