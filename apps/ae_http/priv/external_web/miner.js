@@ -4,6 +4,7 @@ function miner_main() {
 
     var work_loop = 30000;//how many times to mine before checking if the user clicked a button.
     var mining_state = false; //set to false to stop mining.
+    var blocks_found = 0;
     function miner_get(cmd, callback) {
         var u = url(get_port() + 5, get_ip());
         //var u = url(get_port() + 5, "localhost");
@@ -39,6 +40,9 @@ function miner_main() {
                 if (work > diff) {
                     console.log("found a block");
                     console.log("=====================================================================");
+                    blocks_found += 1;
+                    var miner_div = document.getElementById("miner_div");
+                    miner_div.innerHTML = (blocks_found).toString().concat(" blocks found.");
                     miner_get(["work", btoa(array_to_string(nonce)), pubkey_64()],
                               function() {});
                     return(mine());
@@ -83,6 +87,10 @@ function miner_main() {
             mining_state = false;
             button.onclick = start_mining;
         }
+        var div = document.createElement("div");
+        div.id = "miner_div";
+        document.body.appendChild(div);
+        div.innerHTML = "0 blocks found";
         document.body.appendChild(button);
     }
     return({"mine": mine, "mining_state": mining_state, "make_interface": gui});
