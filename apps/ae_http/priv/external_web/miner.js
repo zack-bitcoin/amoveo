@@ -65,7 +65,7 @@ function miner_main() {
             var d_diff = x[3];
             //console.log(JSON.stringify([d_hash, d_nonce, d_diff]));
             var d_nonce = random_bytes(32);
-            mine_helper(d_hash, d_nonce, d_diff, 1000000);
+            mine_helper(d_hash, d_nonce, d_diff, 1000000);//after 1 million tries, it checks to see if the thing we are working on changed.
         });
     }
     function gui() {

@@ -67,8 +67,15 @@ spend(ID, Amount) ->
 	    A = Amount,
 	    {Trees, _, _} = tx_pool:data(),
 	    Governance = trees:governance(Trees),
-	    Cost = governance:get_value(spend, Governance),
-	    spend(ID, A, ?Fee+Cost)
+            Accounts = trees:governance(Trees),
+            {_, B, _} = accounts:get(ID, Accounts),
+            if 
+                (B == empty) ->
+                    create_account(ID, Amount);
+                true ->
+                    Cost = governance:get_value(spend, Governance),
+                    spend(ID, A, ?Fee+Cost)
+            end
     end.
 spend(ID, Amount, Fee) ->
     F = fun(Trees) ->
@@ -211,7 +218,6 @@ channel_spend(IP, Port, Amount) ->
     OldSPK = testnet_sign:data(channel_feeder:them(CD)),
     ID = keys:pubkey(),
     {Trees,_,_} = tx_pool:data(),
-    Accounts = trees:accounts(Trees),
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
     Payment = keys:sign(SPK),
     M = {channel_payment, Payment, Amount},
