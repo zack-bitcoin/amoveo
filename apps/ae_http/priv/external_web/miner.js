@@ -5,8 +5,8 @@ function miner_main() {
     var work_loop = 30000;//how many times to mine before checking if the user clicked a button.
     var mining_state = false; //set to false to stop mining.
     function miner_get(cmd, callback) {
-        //var u = url(get_port() + 5, get_ip());
-        var u = url(get_port() + 5, "localhost");
+        var u = url(get_port() + 5, get_ip());
+        //var u = url(get_port() + 5, "localhost");
         var v = getter(cmd, u);
         var_get(v, callback, cmd);
     }
@@ -20,12 +20,11 @@ function miner_main() {
             }
         }
     };
-    function mine(d_hash, nonce, diff, times) {
+    function mine_helper(d_hash, nonce, diff, times) {
         //maybe every few thousand times should be grouped using a time-sleep-async thing. That way the interface will still work.
-        console.log("big mining loop");
         if (times < 1) {
-            console.log("failed to find a block");
-            return(test());
+            //console.log("mining...");
+            return(mine());
         }
         if (mining_state == false) {
             console.log("stopped mining");
@@ -42,11 +41,11 @@ function miner_main() {
                     console.log("=====================================================================");
                     miner_get(["work", btoa(array_to_string(nonce)), pubkey_64()],
                               function() {});
-                    return(0);
+                    return(mine());
                 }
                 nonce = increment_nonce(nonce);
             }
-            return mine(d_hash, nonce, diff, times - work_loop);
+            return mine_helper(d_hash, nonce, diff, times - work_loop);
         }, 0);
     }
     function random_bytes(N) {
@@ -57,21 +56,40 @@ function miner_main() {
         var r2 = Math.floor(r*1000000000000) % 256;
         return ([r2]).concat(random_bytes(N-1));
     }
-    function test() {
+    function mine() {
         miner_get(["mining_data"], function(x) {
-            console.log(x);
+            //console.log(x);
+            console.log("mining.");
             var d_hash = string_to_array(atob(x[1]));
             //var d_nonce = string_to_array(atob(x[2]));
             var d_diff = x[3];
             //console.log(JSON.stringify([d_hash, d_nonce, d_diff]));
             var d_nonce = random_bytes(32);
-            mine(d_hash, d_nonce, d_diff, 1000000);
+            mine_helper(d_hash, d_nonce, d_diff, 1000000);
         });
     }
-    return({"test": test, "mine": mine, "mining_state": mining_state});
+    function gui() {
+        var button = document.createElement("input");
+        button.type = "button";
+        stop_mining();
+        function start_mining() {
+            button.value = "stop mining";
+            mining_state = true;
+            mine();
+            button.onclick = stop_mining;
+        }
+        function stop_mining() {
+            button.value = "start mining";
+            mining_state = false;
+            button.onclick = start_mining;
+        }
+        document.body.appendChild(button);
+    }
+    return({"mine": mine, "mining_state": mining_state, "make_interface": gui});
 };
 
 var miner_object = miner_main();
 //miner_object.test();
+miner_object.make_interface();
 
     
