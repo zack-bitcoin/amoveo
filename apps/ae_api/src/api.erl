@@ -150,8 +150,8 @@ pull_channel_state(IP, Port) ->
     case channel_manager:read(ServerID) of
         error  -> 
             SPKME = channel_feeder:them(CD),
-            io:fwrite(packer:pack(SPKME)),
-            io:fwrite("\n"),
+            %io:fwrite(packer:pack(SPKME)),
+            %io:fwrite("\n"),
             %true = testnet_sign:verify_1(SPKME),
             true = testnet_sign:verify(keys:sign(ThemSPK)),
             SPK = testnet_sign:data(ThemSPK),
@@ -607,13 +607,7 @@ work(Nonce, _) ->
     <<N:256>> = Nonce,
     Block = db:read(?mining),
     Block2 = block:set_pow(Block, N),
-    io:fwrite("api mining data new block is "),
-    io:fwrite(packer:pack(Block2)),
-    io:fwrite("\n"),
     Header = block:block_to_header(Block2),
-    io:fwrite("api mining data new Header is "),
-    io:fwrite(packer:pack(Header)),
-    io:fwrite("\n"),
     headers:absorb([Header]),
     block_absorber:save(Block2),
     spawn(fun() ->

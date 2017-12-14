@@ -38,7 +38,6 @@ start_external() ->
           [{'_', [{"/:file", ext_file_handler, []},
                   {"/", ext_handler, []}
                  ]}]),
-    %Port = application:get_env(ae_core, port, ?DEFAULT_PORT),
     {ok, Port} = application:get_env(ae_core, port),
     {ok, _} = cowboy:start_http(http, 100,
                                 [{ip, {0, 0, 0, 0}}, {port, Port}],

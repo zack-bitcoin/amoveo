@@ -19,7 +19,7 @@ function refresh_helper(x, cmd, innercallback, callback, n) {
         //the data we sent to the server got mixed up along the way, so it looks invalid to the server.
         //So lets re-send the command.
         setTimeout(function() {
-            return variable_get(cmd, innercallback);
+            return variable_public_get(cmd, innercallback);
         }, 200); }
     else if (x.status == 0) {
         //this means that the server got our message, and it is still processing a response for us. So lets wait a bit, and then check if it is ready.

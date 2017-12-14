@@ -1409,5 +1409,5 @@ console.log(JSON.stringify(stack));
 */
 
 var chalang_object = chalang();
-var foo = chalang_object.test();//this is how you make the test run.
-console.log(JSON.stringify(foo));
+//var foo = chalang_object.test();//this is how you make the test run.
+//console.log(JSON.stringify(foo));
