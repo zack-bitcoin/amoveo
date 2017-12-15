@@ -1,8 +1,5 @@
 ### things to do immediately before the next hard fork of the testnet
 
-* signatures shouldn't be double base64 encoded.
-* sign.erl in encryter shouldn't decode sigs in verify_sign.
-
 * the merkle tree library should not pad keys so excessively before hashing them.
 
 * remove shares from spend record.

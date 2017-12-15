@@ -69,9 +69,9 @@ contradictory_prices(SPD, SPD2, OID) ->
 price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
     PD = <<Height:32, Price:16, PortionMatched:16, MarketID:16>>,
     Signature = keys:raw_sign(PD),
-    Sig1 = base64:decode(Signature),
-    <<PD/binary, Sig1/binary>>.
-    %<<PD/binary, Signature/binary>>.
+    %Sig1 = base64:decode(Signature),
+    %<<PD/binary, Sig1/binary>>.
+    <<PD/binary, Signature/binary>>.
 
 
 test() ->
@@ -136,7 +136,7 @@ test2(NewPub) ->
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
     Height = 1,
-    SPD = price_declaration_maker(Height, Price, 5000, MarketID),
+    SPD = price_declaration_maker(Height+5, Price, 5000, MarketID),
     SS1 = settle(SPD, OID, Price),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, delay
@@ -150,11 +150,12 @@ test2(NewPub) ->
 	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
     
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
+    {Trees6, _, _} = tx_pool:data(),
     SS3 = evidence(SPD, OID),
     %amount, newnonce, shares, delay
     {60, 2, 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
-	spk:run(fast, [SS3], SPK, 1, 0, Trees5),
+	spk:run(fast, [SS3], SPK, 1, 0, Trees6),
 
     %Next we try closing the bet as if the market maker cheated by publishing 2 different prices too near to each other in time.
     SPD2 = price_declaration_maker(Height+1, Price-1, 5000, MarketID),
@@ -163,16 +164,16 @@ test2(NewPub) ->
     {0,2000001,0} = 
 	%The nonce is super high, and the delay is zero, because if the market maker is publishing contradictory prices, he should be punished immediately.
 	%Amount is 0 because none of the money goes to the market maker.
-       spk:run(fast, [SS4], SPK, 1, 0, Trees5),
+       spk:run(fast, [SS4], SPK, 1, 0, Trees6),
 
     Fee = 20,
 
     test_txs:mine_blocks(1),
     timer:sleep(1000),
-    {Trees6, _, _} = tx_pool:data(),
-    Accounts6 = trees:accounts(Trees6),
+    {Trees60, _, _} = tx_pool:data(),
+    Accounts6 = trees:accounts(Trees60),
     %close the oracle with oracle_close
-    {Tx6, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees6),
+    {Tx6, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees60),
     Stx6 = keys:sign(Tx6),
     test_txs:absorb(Stx6),
     timer:sleep(1000),
@@ -180,7 +181,7 @@ test2(NewPub) ->
     %Now that the bet is settled the delay is only zero so that we can get our money out as fast as possible.
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
-    {95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees6),
+    {95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees60),
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),
@@ -189,10 +190,10 @@ test2(NewPub) ->
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay
-    {15,1000001,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
+    {15,1000001,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees60),
 
     %test a trade that gets only partly matched.
-    SPD3 = price_declaration_maker(Height, 3000, 5000, MarketID),%5000 means it gets 50% matched.
+    SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3, OID, 3000),
     %amount, newnonce, shares, delay
     {90, 1000001, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),

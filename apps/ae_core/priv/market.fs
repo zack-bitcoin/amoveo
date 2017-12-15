@@ -14,19 +14,20 @@ then drop drop ;
 %sig data pub
  ( signed_price_declaration -- height price portion_matched )
  macro extract
-int 10 split dup tuck Pubkey @ verify_sig or_die
-int 4 split
-swap
-int 2 split binary 2 AAA= swap ++ swap
-int 2 split binary 2 AAA= swap ++ swap
-            binary 2 AAA= swap ++ 
+int 10 split dup tuck Pubkey @ verify_sig  or_die 
+int 4 split 
+swap  
+int 2 split binary 2 AAA= swap ++ swap 
+int 2 split binary 2 AAA= swap ++ swap 
+            binary 2 AAA= swap ++  
 MarketID @ == or_die drop drop ( height price portion_matched )
-rot
+rot print
         % Height is when the bet happened is 2
         % top of stack is when the price declaration happened is 12
         % Height < height
-    dup Height < not or_die %check that the price declaration was made after the bet, or at the same time.
+    dup Height print < not print or_die %check that the price declaration was made after the bet, or at the same time.
 tuck ( height price portion_matched )
+print
 ;
 
 macro max ( A B -- M )
