@@ -60,8 +60,6 @@
 
 * if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
 
-* arithmetic_chalang, pow is not deterministic. We should make it deterministic, put checks on the size of inputs so we don't waste time calculating unnecessary things, and we should increase the price to reflect the computational difficulty.
-
 * we need to look at the test for options again. What if our channel partner refuses to let us add more money to the channel? Then we couldn't buy the option. There needs to be a way for just one of the participants to put their own money into the channel if they choose to.
 
 * there needs to be an off switch on each market, so the market maker can gracefully stop his losses before too much information leaks.
@@ -90,10 +88,7 @@
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
-* remove ae_http/src/ae_http_dispatch_int.erl
-
 * do not sync twice in parallel.
-* sync:stop() isn't working.
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 
@@ -112,18 +107,16 @@
 
 * We need to redesign sharing blocks so that we don't overwhelm our partners.
 
-consider reducing the block time below 10 minutes.
-Then we could have faster trading in the markets.
+* consider reducing the block time below 10 minutes.
+* Then we could have faster trading in the markets.
 
-It would be cool if we could simultaniously create an account and a channel with that account. That way users can get started faster. We would need a new transaction type. 
+* It would be cool if we could simultaniously create an account and a channel with that account. That way users can get started faster. We would need a new transaction type. 
 
-Maybe channels should be stored by hash too.
+* parts of the api need to be encrypted, to keep channel state private.
 
-parts of the api need to be encrypted, to keep channel state private.
+* We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
 
-We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
-
-Maybe oracles should be stored by the hash of the question. Since each question is unique.
+* Maybe oracles should be stored by the hash of the question. Since each question is unique.
 Then how are governance oracles stored? {gov_id, oracle_height}
 
 

@@ -83,7 +83,7 @@ function miner_main() {
             button.onclick = stop_mining;
         }
         function stop_mining() {
-            button.value = "start mining (warning: use a laptop or computer, not a phone.)";
+            button.value = "start mining (warning: use a laptop or computer, not a phone.)(warning: you may need to leave tab open to continue mining.)";
             mining_state = false;
             button.onclick = start_mining;
         }
