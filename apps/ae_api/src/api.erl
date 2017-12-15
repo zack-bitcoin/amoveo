@@ -60,6 +60,8 @@ coinbase(ID) ->
 		coinbase_tx:make(K, Trees) end,
     tx_maker(F).
 spend(ID, Amount) ->
+    io:fwrite(packer:pack({spend_api, ID})),
+    io:fwrite("\n"),
     K = keys:pubkey(),
     if 
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
@@ -67,8 +69,10 @@ spend(ID, Amount) ->
 	    A = Amount,
 	    {Trees, _, _} = tx_pool:data(),
 	    Governance = trees:governance(Trees),
-            Accounts = trees:governance(Trees),
+            Accounts = trees:accounts(Trees),
             {_, B, _} = accounts:get(ID, Accounts),
+            io:fwrite(packer:pack({b_is, B})),
+            io:fwrite("\n"),
             if 
                 (B == empty) ->
                     create_account(ID, Amount);
@@ -156,6 +160,7 @@ pull_channel_state(IP, Port) ->
     {ok, [CD, ThemSPK]} = talker:talk({spk, keys:pubkey()}, IP, Port),
     case channel_manager:read(ServerID) of
         error  -> 
+            %This trusts the server and downloads a new version of the state from them. It is only suitable for testing and development. Do not use this in production.
             SPKME = channel_feeder:them(CD),
             %io:fwrite(packer:pack(SPKME)),
             %io:fwrite("\n"),

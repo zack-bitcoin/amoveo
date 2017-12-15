@@ -15,8 +15,13 @@ sync_all([Peer|T], Height) ->
 
 sync(Peer, MyHeight) ->
     %io:fwrite("download blocks sync\n"),
-    RemoteTop = remote_peer({top}, Peer),
-	do_sync(RemoteTop, MyHeight, Peer).
+    S = sync:status(),
+    if 
+        (S == stop) -> "stopped syncing";
+        true ->
+            RemoteTop = remote_peer({top}, Peer),
+            do_sync(RemoteTop, MyHeight, Peer)
+    end.
 
 do_sync(error, _, _) ->
     ok;
@@ -99,9 +104,14 @@ send_blocks_external(Peer, Blocks) ->
 
 do_send_blocks(_, []) -> ok;
 do_send_blocks(Peer, [Block|T]) ->
-    remote_peer({give_block, Block}, Peer),
-    timer:sleep(20),
-    do_send_blocks(Peer, T).
+    S = sync:status(),
+    if 
+        (S == stop) -> "stopped sending blocks";
+        true ->
+            remote_peer({give_block, Block}, Peer),
+            timer:sleep(20),
+            do_send_blocks(Peer, T)
+    end.
 
 get_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),

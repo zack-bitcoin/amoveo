@@ -9,7 +9,7 @@ class SpendTest(ApiUser):
         brainwallet = ''
         self.load_key(DEV_2_INT, [pub, priv, brainwallet], sleep=1)
 
-        self.create_account(DEV_1_INT, [pub, 1])
+        self.create_account(DEV_1_INT, [pub, 1], sleep=0.1)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
 
         self.spend(DEV_1_INT, [pub, 5])

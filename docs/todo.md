@@ -22,22 +22,28 @@
 * chalang needs to use 32 byte hashes for identifying functions. 12 bytes is not enough.
 
 
+
+
+
+
+
+
+
+
+
+
+
 ### Things to do before the launch of the official Amoveo blockchain.
 
 * raise the fees so it isn't affordable to spam the blocks.
 
 * there are some places in the javascript light node where we aren't verifying signatures that we should  be verifying.
 
-* it is weird how spk_force_update22 in chalang.js calls run5. Since it's parent function is already calling the VM, it seems like we are running it multiple times unnecessarily.
-
 * when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
 
 * we need a test to make sure that when we close a channel, the correct amounts of money transfer, even if we slashed more than once.
 
 * pull channel state shouldn't cause a crash when the state is already synced.
-
-
-
 
 * sync is becoming a zombie process when it cannot connect.
 
@@ -65,10 +71,6 @@
 
 * we need to be able to grow channels, and close channels from the light node.
 
-* merkle.js should be able to verify proofs of the trie being empty in some places.
-
-* channel balance and channel_partner balance aren't being calculated very well in javascript. We should calculate it better, and do tests to make sure as much of this liquidity is available as is securely possible.
-
 * analyze contracts to make sure they aren't unclosable, as explained in the attacks analyzed doc.
 
 * test lightning from the gui.
@@ -77,11 +79,7 @@
 
 * maybe the gui should allow for betting in the oracle?
 
-* We need to make it impossible for the server and node to have different states from each other in the channel manager.
-
 * outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
-
-* the partially matched order looks completely matched in the wallet, and it looks non-matched in the explorer. it should look partially matched in each.
 
 * the wallet should have some error messages:
 - insufficient funds
@@ -91,8 +89,6 @@
 * the readme should explain about public keys better
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
-
-* api:pull_channel_state might need more checks for the error banch. or maybe it will only be used for testing purposes, so we don't need more checks.
 
 * remove ae_http/src/ae_http_dispatch_int.erl
 
@@ -131,15 +127,22 @@ Maybe oracles should be stored by the hash of the question. Since each question 
 Then how are governance oracles stored? {gov_id, oracle_height}
 
 
+
+
+
+
+
+
+
 ### Things we can do after launch of mainnet
 
-we should use trie:garbage_leaves on light nodes to prune even more things from the trie that we don't care about.
+* merkle.js should be able to verify proofs of the trie being empty in some places.
 
-We should optionally garbage collect old blocks, only keep the headers. 
+* we should use trie:garbage_leaves on light nodes to prune even more things from the trie that we don't care about.
 
-light nodes should only download headers and a few recent blocks. They should verify blocks in parallel.
+* We should optionally garbage collect old blocks, only keep the headers. 
 
-Light nodes should garbage collect almost everything from every trie they build.
+* light nodes should only download headers and a few recent blocks. They should verify blocks in parallel.
 
 Get rid of any reference to "ae", "aeternity", and "testnet".
 
@@ -159,7 +162,7 @@ Download blocks talk/1 seems useless. talker:talk is accomplishing the same goal
 
 Javascript light wallets need to be able to do all the channel stuff that full nodes do. 
 
-[There is some sort of ranking already?] We need to update download_blocks so that peers get ranked, and we spend more time talking to higher-ranked peers.
+Maybe we should update download_blocks so that peers get ranked, and we spend more time talking to higher-ranked peers.
 
 It would be nice if there were some macros for chalang/src/compiler_lisp2.erl that did backtracking. that way we wouldn't have to think about control flow when making smart contracts.
 
@@ -182,3 +185,5 @@ Blocks should be serialized to be fully compressed.
 * It would be cool if we could trustlessly combine a grow_channel_tx with a channel payment. This might involve a hard fork.
 
 * reading from the hard drive can be slow. order_book can be updated to recover from errors without having to re-read everything from the hard drive.
+
+* it is weird how spk_force_update22 in chalang.js calls run5. Since it's parent function is already calling the VM, it seems like we are running it multiple times unnecessarily.
