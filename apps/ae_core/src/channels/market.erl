@@ -136,7 +136,7 @@ test2(NewPub) ->
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
     Height = 1,
-    SPD = price_declaration_maker(Height, Price, 5000, MarketID),
+    SPD = price_declaration_maker(Height+5, Price, 5000, MarketID),
     SS1 = settle(SPD, OID, Price),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, delay
@@ -192,7 +192,7 @@ test2(NewPub) ->
     {15,1000001,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees6),
 
     %test a trade that gets only partly matched.
-    SPD3 = price_declaration_maker(Height, 3000, 5000, MarketID),%5000 means it gets 50% matched.
+    SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3, OID, 3000),
     %amount, newnonce, shares, delay
     {90, 1000001, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),

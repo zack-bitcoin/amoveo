@@ -14,7 +14,7 @@ then drop drop ;
 %sig data pub
  ( signed_price_declaration -- height price portion_matched )
  macro extract
-int 10 split dup tuck Pubkey @ verify_sig or_die
+int 10 split dup tuck Pubkey @ verify_sig print or_die
 int 4 split
 swap
 int 2 split binary 2 AAA= swap ++ swap
@@ -25,7 +25,7 @@ rot
         % Height is when the bet happened is 2
         % top of stack is when the price declaration happened is 12
         % Height < height
-    dup Height < not or_die %check that the price declaration was made after the bet, or at the same time.
+    dup Height < not print or_die %check that the price declaration was made after the bet, or at the same time.
 tuck ( height price portion_matched )
 ;
 
@@ -68,7 +68,7 @@ macro no_publish ( -- delay nonce amount )
 
 %If you try doing a no_publish while the server is publishing, this is how the server stops you from stealing money.
 macro evidence ( signed_price_declaration -- delay nonce amount )
-      extract drop drop ( declaration_height )
+      print extract print drop drop ( declaration_height )
       Period @ / int 1 + ( nonce )
       >r Expires @ height -  ( delay )
       % mil height + Period @ int 2 / - 

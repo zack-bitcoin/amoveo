@@ -115,7 +115,6 @@ absorb_internal(SignedTx) ->
     Cost = governance:get_value(Type, Governance),
     {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
     true = Fee > (MinimumTxFee + Cost),
-    Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(SignedTx),
     Out = case is_in(SignedTx, Txs) of
         true ->

@@ -76,23 +76,12 @@ check_pow(Header) ->
     MineDiff = Header#header.difficulty,
     Data = block:hash(Header#header{nonce = <<0:256>>}),
     <<Nonce:256>> = Header#header.nonce,
-    Serialized = serialize(Header),
+    %Serialized = serialize(Header),
     %Hashed = hash:doit(Serialized, constants:hash_size()),
     %io:fwrite("about to check pow "),
     %io:fwrite(packer:pack({pow, Data, MineDiff, Nonce})),
     %io:fwrite("\n"),
     pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size()).
-    %check_pow(P, HashSize) ->
-    %HashSize = 32,
-    %N = P#pow.nonce,
-    %Diff = P#pow.difficulty,
-    %Data = P#pow.data,
-    %H1 = hash:doit(Data, HashSize),
-    %X = HashSize*8,
-    %Y = <<H1/binary, Diff:16, N:X>>,
-    %H2 = hash:doit(Y, HashSize),
-    %I = hash2integer(H2),
-    %I > Diff.
 
 check_difficulty(A) ->
     B = case A#header.height < 2 of
