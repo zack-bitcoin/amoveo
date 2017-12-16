@@ -47,7 +47,7 @@ init([]) ->
 	     tree_child(oracles, HS, (((HB*2) div 8) + 4 + (3*HS)) + PS, (KL div 8)),
 	     tree_child(orders, HS, ((BB div 8) + (PS * 2))),
 	     tree_child(burn, HS, (BB div 8) + HS),
-	     tree_child(oracle_bets, KL, (KL + (3 * BB div 8))),
+	     tree_child(oracle_bets, HS, (KL + (3 * BB div 8))),
 	     %tree_child(shares, KL, (KL + 1 + ((BB + HB) div 8))),
 	     tree_child(governance, 8, 4)
 	    ],
