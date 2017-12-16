@@ -103,8 +103,7 @@ dict_get(Key, Dict) ->
 key_to_int({key, Pubkey, _}) ->
     key_to_int2(Pubkey).
 key_to_int2(Pubkey) ->
-    HP = accounts:ensure_decoded_hashed(Pubkey),
-    trees:hash2int(HP).
+    accounts:key_to_int(Pubkey).
 get(Pub, Root) ->
     HPID = key_to_int2(Pub),
     {RH, Leaf, Proof} = trie:get(HPID, Root, ?name),
@@ -284,7 +283,7 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
 root_hash(Root) ->
     trie:root_hash(?name, Root).
 make_leaf(Key, V, CFG) ->
-    leaf:new(trees:hash2int(accounts:ensure_decoded_hashed(Key)), 
+    leaf:new(accounts:key_to_int(Key), 
              V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
