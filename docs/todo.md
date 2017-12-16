@@ -1,8 +1,6 @@
-### things to do immediately before the next hard fork of the testnet
+### things to do for the next hard fork of the testnet
 
 * the merkle tree library should not pad keys so excessively before hashing them.
-
-* we should merkelize txs and proofs before hashing them into the header.
 
 * every trie (besides governance) should store by the hash of the key. Otherwise an attacker will make one branch of the tree too long, and proofs will have to be huge.
 
@@ -13,6 +11,21 @@
 * either implement proof of burn and proof of existence, or else remove it from the docs.
 
 * rename oracle_shares tx type to "oracle_winnings" or something like that.
+
+* the block reward should be a governance value
+* what is block_time_after_median from governance used for?
+* what is governance:channel_closed_time used for?
+* question_delay?
+* governance_delay?
+* why is there a new_channel_tx fee AND a fee for making channels? We can simplify this.
+* we have both a constants:minimum_oracle_time and also minimum_oracle_time from the governance. We should check if both are necessary.
+* same thing with maximum oracle time.
+
+* if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
+
+* Maybe oracles should be stored by the hash of the question. Since each question is unique.
+Then how are governance oracles stored? {gov_id, oracle_height}
+
 
 
 
@@ -34,26 +47,17 @@
 
 * when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
 
-* we need a test to make sure that when we close a channel, the correct amounts of money transfer, even if we slashed more than once.
+* we need a test to make sure that when we close a channel, the correct amounts of money transfers, even if we slashed more than once.
 
 * pull channel state shouldn't cause a crash when the state is already synced.
 
 * sync is becoming a zombie process when it cannot connect.
 
-* the block reward should be a governance value
-* what is block_time_after_median from governance used for?
-* what is governance:channel_closed_time used for?
-* question_delay?
-* governance_delay?
-* why is there a new_channel_tx fee AND a fee for making channels? We can simplify this.
-* we have both a constants:minimum_oracle_time and also minimum_oracle_time from the governance. We should check if both are necessary.
-* same thing with maximum oracle time.
 
 * chalang "crash" should be called "return"
 
-* if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
-
 * we need to look at the test for options again. What if our channel partner refuses to let us add more money to the channel? Then we couldn't buy the option. There needs to be a way for just one of the participants to put their own money into the channel if they choose to.
+Oh, we should have our partner sign a transaction that allows us to put money into the channel, and we can choose whether or not to sign it in the future.
 
 * there needs to be an off switch on each market, so the market maker can gracefully stop his losses before too much information leaks.
 - the market contract delays need to be long enough so that the contract is still live, even if the oracle takes a while to publish.
@@ -85,32 +89,19 @@
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 
-* We need to let people use light-node strategy to download blocks.
-
 * the password is being recorded in the log. This is bad.
 
 * If you use an incorrect password, there should be a useful error message.
 
 * make sure that ae_http_app:start_external() isn't exposing files that we don't want to expose.
 
-* when we do `make prod-build` it is preserving the keys, and replacing all the other databases. Instead it should preserve them all. only delete with `make prod-clean`. This way `make prod-restart` could update the code without deleting the databases.
-
-
-
-
 * We need to redesign sharing blocks so that we don't overwhelm our partners.
-
-* consider reducing the block time below 10 minutes.
-* Then we could have faster trading in the markets.
-
-* It would be cool if we could simultaniously create an account and a channel with that account. That way users can get started faster. We would need a new transaction type. 
 
 * parts of the api need to be encrypted, to keep channel state private.
 
 * We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
 
-* Maybe oracles should be stored by the hash of the question. Since each question is unique.
-Then how are governance oracles stored? {gov_id, oracle_height}
+* We should make a way to run internal handler commands externally. Add a new command to the external api. To call this command, you need to sign the info with your private key, and it has a nonce inside that needs to have incremented from last time.
 
 
 
@@ -135,10 +126,6 @@ Get rid of any reference to "ae", "aeternity", and "testnet".
 in the proofs dict we should have a flag for each thing to know if it has been updated. That way we can know exactly what to include in the batch update of the tree.
 
  Secrets module seems unnecessary. As soon as we find out a secret, why not use arbitrage to update all the channels immediately?
-
-[this should go to pre-launch list] maybe accessing the internal handler should require a signed request with a nonce.
-The server should ignore commands that don't increment the nonce from last time.
-alternatively, we could just turn on a firewall. This is simpler, but it has the drawback that commands on a local node have to originate from the same computer.
 
 [DONE?] We need to test channel_solo_close and channel_slash and channel_timeout from easy.
 
