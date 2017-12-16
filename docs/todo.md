@@ -32,7 +32,6 @@ Then how are governance oracles stored? {gov_id, oracle_height}
 
 
 
-
 ### Things to do before the launch of the official Amoveo blockchain.
 
 * raise the fees so it isn't affordable to spam the blocks.

@@ -1,23 +1,10 @@
 -module(constants).
 -compile(export_all).
-%-export([export_all]).
-%-define(InitialCoins, round(math:pow(2, 48)) - 1).
-%2^74 bits is 25 bitcoin =~ $10,000
-%2^64 bits is $10
 root0() -> 1.
-key_length() ->
-    24. 
-address_bits() ->
-    hash_size()*8.
-    %48. 
-
-pubkey_size()->
-    65. %bytes
-
+key_length() -> 24. 
+address_bits() -> hash_size()*8.
+pubkey_size()-> 65. %bytes
 initial_coins() -> 27017593349040. %about 1 year.
-                  %1080000000000. %about 2 weeks
-%block_reward() -> round(math:pow(2, 29)) - 1.
-%initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 
     case application:get_env(ae_core, test_mode, false) of
 	%true -> 2500;
@@ -25,48 +12,11 @@ initial_difficulty() ->
 	_ -> 6452
     end.
 difficulty_bits() -> 24.
-
 hash_size() -> 32.
-
-%finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> hash_size()*8.
 master_pub() ->
     {ok, X} = application:get_env(ae_core, master_pub),
     base64:decode(X).
-
-%max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
-%gas_limit() -> 1000000.
-%200,000,000 is enough to find the first 10001 prime numbers.
-%max_block_size() -> 200000.%in bytes
-%this is only a limit to the size of the transactions.
-%the other block parts are also limited. Height must be an integer one greater than the previous.
-%prev_hash must be the output of a hash function, which is fixed sized.
-%channels is the root of a trie, which is the output of a hash function.
-%accounts is the root of a trie.
-%mines_block must point to an account id, which is limited, or a tuple of an account id and an address, which is limited in the account:serialize function.
-% time must be less than the current time. and greater than 0.
-% difficulty must be calculated from the previous difficulty.
-% the comment must be less than 140 bytes.
-% the magic number is fixed.
-
-%so, the block is limited in size
-
-%-define(ConsensusBytePrice, initial_coins() div max_size()).%instead we should have a maximum number of bytes per block, and garbage collect old blocks.
-%consensus_byte_price() -> ?ConsensusBytePrice.
-%-define(MaxAddress, max_size() div 5 div 85).%use about 20% of space to store addresses. Each one is 85 bytes
-%max_channel() -> ?MaxChannel.
-%-define(MinChannel, constants:initial_coins() div constants:max_channel()).%use about 30% of space to store channels. Each one is 30 bytes
-%this constant is also used to determine the minimum amount of money we can put into a channel at a time.
-create_channel_fee() -> 0.%consensus_byte_price() * 30.
-delete_channel_reward() -> 0.
-%decided to charge for accounts based on how long it is open, instead of flat fee.
-create_account_fee() -> 0.%consensus_byte_price() * 85.
-delete_account_reward() -> 0.%create_account_fee() * 19 div 20. % 95% refund.
-%At most, a channel can contain 1/4000th of the money.
-initial_channels() -> %Around 10000 channels.
-    1.
-    %MVB = minimum_validators_per_block(),
-%burn_ratio() -> ?BR.
 root() -> "data/".
 block_hashes() -> root() ++ "block_hashes.db".
 keys() -> "keys/keys.db".
@@ -96,39 +46,15 @@ channel_size() ->
 	  (height_bits()*2) + 
 	  channel_entropy() + channel_delay_bits()) div 8) 
 	+ 1 + (hash_size()) + (2 * pubkey_size()).
-existence_size() -> hash_size()*8.
-
-channel_rent() -> account_rent().
-account_rent() -> round(math:pow(2, 13)).
-%48 bits is max money, 42 bits is initial money.
-%if we had a billion accounts, we would want the blockchain to last at least 20 years. 
-%144*52*20
-
-retarget_frequency() -> %how many blocks till we recalculate the difficulty
-    %40000.
-    2000.
-    %10.
-block_time() -> 
-    6000.
-    %10.
-channel_closed_time() ->
-    60*24*60*60 div block_time(). %about 2 months, in blocks
-oracle_future_limit() -> %this is a limit of how far in the future an oracle can start.
-    60*24*60*60 div block_time(). %about 2 months, in blocks
-time_units() -> %1000 = 1 second, 100 = 0.1 seconds
-   100. 
+retarget_frequency() -> 2000.
+%how many blocks till we recalculate the difficulty
+block_time() -> 6000. %600 seconds = 10 minutes
+time_units() -> 100. % 0.1 seconds
 start_time() -> 14825749780.
 time_bits() -> 32.
-    
 channel_entropy() -> 16. %Channel contracts only work for a channel with the same 2 account addresses, and with the same channel_entropy that has this many bits.
 %this is like another channel nonce, but we only increment it if the channel gets closed and re-created.
-
 version_bits() -> 16.%so we can update it more than 60000 times.
-%rename to "Protocol VERSION".
 server_ip() -> {146,185,142,103}.
 server_port() -> 8080.
-block_time_after_median() -> 100.
 channel_granularity() -> 10000.
-channel_nonce_space() ->    
-    %this is how big the nonce output from a smart contract can be without changing the nonce of the channel.
-    1000.
