@@ -14,8 +14,6 @@
 
 * rename oracle_shares tx type to "oracle_winnings" or something like that.
 
-* chalang needs to use 32 byte hashes for identifying functions. 12 bytes is not enough.
-
 
 
 
@@ -32,7 +30,7 @@
 
 * raise the fees so it isn't affordable to spam the blocks.
 
-* there are some places in the javascript light node where we aren't verifying signatures that we should  be verifying.
+* there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 
 * when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
 

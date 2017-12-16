@@ -65,11 +65,12 @@ merkelize_thing(X) ->
         _ -> tx_hash(X)
     end.
 merkelize_pair(A, B) ->
-    C = {merkelize_thing(A), merkelize_thing(B)},
+    C = [merkelize_thing(A), merkelize_thing(B)],
     testnet_hasher:doit(C).
 merkelize([A]) -> merkelize_thing(A);
 merkelize([A|[B|T]]) ->
-    merkelize(merkelize2([A|[B|T]])).
+    merkelize(merkelize2([A|[B|T]]));
+merkelize([]) -> <<0:256>>.
 merkelize2([]) -> [];
 merkelize2([A]) -> [merkelize_thing(A)];
 merkelize2([A|[B|T]]) ->
@@ -77,11 +78,11 @@ merkelize2([A|[B|T]]) ->
      merkelize2(T)].
     
 txs_proofs_hash(Txs, Proofs) ->
-    %TB = merkelize(Txs),
-    %PB = merkelize(Proofs);
-    %X = <<TB/binary, PB/binary>>,
-    %testnet_hasher:doit(X).
-    testnet_hasher:doit({Txs, Proofs}).
+    TB = merkelize(Txs),
+    PB = merkelize(Proofs),
+    X = <<TB/binary, PB/binary>>,
+    testnet_hasher:doit(X).
+    %testnet_hasher:doit({Txs, Proofs}).
 block_to_header(B) ->
     headers:make_header(B#block.prev_hash,
                         B#block.height,
