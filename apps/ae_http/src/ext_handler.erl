@@ -80,7 +80,7 @@ doit({min_channel_ratio}) ->
     application:get_env(ae_core, min_channel_ratio);
 doit({spend_tx, Amount, Fee, From, To}) ->
     {Trees, _, _} = tx_pool:data(),
-    {Tx, _} = spend_tx:make(To, Amount, Fee, From, Trees, []),
+    {Tx, _} = spend_tx:make(To, Amount, Fee, From, Trees),
     {ok, Tx};
 doit({create_account_tx, Amount, Fee, From, To}) ->
     {Trees, _, _} = tx_pool:data(),
@@ -131,8 +131,7 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Height = headers:height(headers:top()),
     {Trees,_,_} = tx_pool:data(),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
-    Shares = [],
-    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Shares, Fee),
+    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
     SSTx = keys:sign(STx),
     tx_pool_feeder:absorb(SSTx),
     {ok, SSTx};

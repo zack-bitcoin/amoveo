@@ -46,7 +46,7 @@ test(1) ->
     absorb(Stx),
     {Trees2,  _, _} = tx_pool:data(),
     Accounts2 = trees:accounts(Trees2),
-    {Ctx2, _} = spend_tx:make(NewPub, 10, Fee, constants:master_pub(), Trees2, []),
+    {Ctx2, _} = spend_tx:make(NewPub, 10, Fee, constants:master_pub(), Trees2),
     Stx2 = keys:sign(Ctx2),
     absorb(Stx2),
     {Trees3, _, _} = tx_pool:data(),
@@ -105,7 +105,7 @@ test(3) ->
     absorb(SStx3),
     {Trees4, _, _} = tx_pool:data(),
 
-    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, [], Fee),
+    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
@@ -350,7 +350,7 @@ test(8) ->
     absorb(Stx3),
     {Trees4, _, _} = tx_pool:data(),
 
-    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, [], Fee),
+    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
@@ -410,7 +410,7 @@ test(9) ->
 
     {Trees4, _, _} = tx_pool:data(),
 
-    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, [], Fee),
+    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),

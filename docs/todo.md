@@ -2,8 +2,6 @@
 
 * the merkle tree library should not pad keys so excessively before hashing them.
 
-* remove shares from spend record.
-
 * we should merkelize txs and proofs before hashing them into the header.
 
 * every trie (besides governance) should store by the hash of the key. Otherwise an attacker will make one branch of the tree too long, and proofs will have to be huge.

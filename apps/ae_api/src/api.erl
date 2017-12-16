@@ -83,7 +83,7 @@ spend(ID, Amount) ->
     end.
 spend(ID, Amount, Fee) ->
     F = fun(Trees) ->
-		spend_tx:make(ID, Amount, Fee, keys:pubkey(), Trees, []) end,
+		spend_tx:make(ID, Amount, Fee, keys:pubkey(), Trees) end,
     tx_maker(F).
 
 delete_account(ID) ->
@@ -335,7 +335,7 @@ channel_team_close(CID, Amount) ->
     channel_team_close(CID, Amount, ?Fee+Cost).
 channel_team_close(CID, Amount, Fee) ->
     {Trees, _, _} = tx_pool:data(),
-    keys:sign(channel_team_close_tx:make(CID, Trees, Amount, [], Fee)).
+    keys:sign(channel_team_close_tx:make(CID, Trees, Amount, Fee)).
 
 channel_repo(CID, Fee) ->
     F = fun(Trees) ->
@@ -500,7 +500,7 @@ channel_close(IP, Port, Fee) ->
     SS = channel_feeder:script_sig_them(CD),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = spk:cid(SPK),
-    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, [], Fee),
+    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
     STx = keys:sign(Tx),
     {ok, SSTx} = talker:talk({close_channel, CID, keys:pubkey(), SS, STx}, IP, Port),
     tx_pool_feeder:absorb(SSTx),

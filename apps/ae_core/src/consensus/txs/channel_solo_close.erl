@@ -43,7 +43,6 @@ go(Tx, Dict, NewHeight) ->
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict),
     %false = Amount == 0,
     true = NewCNonce > channels:nonce(OldChannel),
-    %SharesRoot = shares:root_hash(shares:write_many(Shares, 0)),
     NewChannel = channels:dict_update(From, CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false),
 
     true = (-1 < (channels:bal1(NewChannel)-Amount)),
