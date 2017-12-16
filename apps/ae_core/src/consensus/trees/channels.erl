@@ -159,12 +159,14 @@ write(Channel, Root) ->
     ID = Channel#channel.id,
     M = serialize(Channel),
     %Shares = Channel#channel.shares,
-    trie:put(ID, M, 0, Root, channels). %returns a pointer to the new root
+    trie:put(key_to_int(ID), M, 0, Root, channels). %returns a pointer to the new root
 id_size() -> constants:key_length().
-key_to_int(X) when is_integer(X) -> X.
+key_to_int(X) when is_integer(X) -> 
+    <<Y:256>> = testnet_hasher:doit(<<X:256>>),
+    Y.
 get(ID, Channels) ->
     true = (ID - 1) < math:pow(2, id_size()),
-    {RH, Leaf, Proof} = trie:get(ID, Channels, channels),
+    {RH, Leaf, Proof} = trie:get(key_to_int(ID), Channels, channels),
     V = case Leaf of
 	    empty -> empty;
 	    L -> deserialize(leaf:value(L))
@@ -184,7 +186,7 @@ delete(ID,Channels) ->
 root_hash(Channels) ->
     trie:root_hash(channels, Channels).
 make_leaf(Key, V, CFG) ->
-    leaf:new(Key, V, 0, CFG).
+    leaf:new(key_to_int(Key), V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
     
