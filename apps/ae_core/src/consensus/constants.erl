@@ -165,14 +165,6 @@ two_days() ->
 governance_change_limit() ->
     51.
     
-maximum_oracle_time() ->
-    minimum_oracle_time()*4.
-    
-minimum_oracle_time() ->
-    %a week in block
-    %7*24*60*60 div block_time().
-    7.%for testing purposes
-
 maximum_question_size() ->
     1000.
 channel_granularity() ->    
