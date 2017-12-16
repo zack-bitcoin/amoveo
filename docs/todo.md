@@ -1,7 +1,5 @@
 ### things to do for the next hard fork of the testnet
 
-* the merkle tree library should not pad keys so excessively before hashing them.
-
 * every trie (besides governance) should store by the hash of the key. Otherwise an attacker will make one branch of the tree too long, and proofs will have to be huge.
 
 * constants:minimum_oracle_time() is way too low. This should be one of the governance variables.
