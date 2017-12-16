@@ -20,7 +20,7 @@
 * Maybe oracles should be stored by the hash of the question. Since each question is unique.
 Then how are governance oracles stored? {gov_id, oracle_height}
 
-
+* make the addresses more convenient for copy/pasting
 
 
 

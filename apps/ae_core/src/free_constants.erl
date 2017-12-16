@@ -20,8 +20,6 @@ bets() -> %tuple list. {Name, BetFile}
     [
      {dice, code:priv_dir(ae_core) ++ "/bets/dice.fs"}
     ].
-gas_limit() ->
-    constants:gas_limit().
 
 vm(SS, State) ->
     {ok, TimeLimit} = application:get_env(ae_core, time_limit),

@@ -16,8 +16,8 @@ pubkey_size()->
 
 initial_coins() -> 27017593349040. %about 1 year.
                   %1080000000000. %about 2 weeks
-block_reward() -> round(math:pow(2, 29)) - 1.
-initial_block_reward() -> round(math:pow(2, 29)) - 1.
+%block_reward() -> round(math:pow(2, 29)) - 1.
+%initial_block_reward() -> round(math:pow(2, 29)) - 1.
 initial_difficulty() -> 
     case application:get_env(ae_core, test_mode, false) of
 	%true -> 2500;
@@ -28,16 +28,16 @@ difficulty_bits() -> 24.
 
 hash_size() -> 32.
 
-finality() -> 26.%/docs/security.py explains why.
+%finality() -> 26.%/docs/security.py explains why.
 address_entropy() -> hash_size()*8.
 master_pub() ->
     {ok, X} = application:get_env(ae_core, master_pub),
     base64:decode(X).
 
-max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
-gas_limit() -> 1000000.
+%max_size() -> 2000000000.%should be 2 gigabytes, does not include old blocks.
+%gas_limit() -> 1000000.
 %200,000,000 is enough to find the first 10001 prime numbers.
-max_block_size() -> 200000.%in bytes
+%max_block_size() -> 200000.%in bytes
 %this is only a limit to the size of the transactions.
 %the other block parts are also limited. Height must be an integer one greater than the previous.
 %prev_hash must be the output of a hash function, which is fixed sized.
@@ -51,8 +51,8 @@ max_block_size() -> 200000.%in bytes
 
 %so, the block is limited in size
 
--define(ConsensusBytePrice, initial_coins() div max_size()).%instead we should have a maximum number of bytes per block, and garbage collect old blocks.
-consensus_byte_price() -> ?ConsensusBytePrice.
+%-define(ConsensusBytePrice, initial_coins() div max_size()).%instead we should have a maximum number of bytes per block, and garbage collect old blocks.
+%consensus_byte_price() -> ?ConsensusBytePrice.
 %-define(MaxAddress, max_size() div 5 div 85).%use about 20% of space to store addresses. Each one is 85 bytes
 %max_channel() -> ?MaxChannel.
 %-define(MinChannel, constants:initial_coins() div constants:max_channel()).%use about 30% of space to store channels. Each one is 30 bytes
@@ -127,11 +127,8 @@ version_bits() -> 16.%so we can update it more than 60000 times.
 %rename to "Protocol VERSION".
 server_ip() -> {146,185,142,103}.
 server_port() -> 8080.
-
-block_time_after_median() ->
-    100.
-channel_granularity() ->    
-    10000.
+block_time_after_median() -> 100.
+channel_granularity() -> 10000.
 channel_nonce_space() ->    
     %this is how big the nonce output from a smart contract can be without changing the nonce of the channel.
     1000.
