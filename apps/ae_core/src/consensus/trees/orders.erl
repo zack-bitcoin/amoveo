@@ -91,7 +91,7 @@ dict_write(Order, OID, Dict) ->
 write(X, Root) -> 
     V = serialize(X),
     Pubkey = aid(X),
-    HPID = key_to_int2(Pubkey),
+    HPID = key_to_int(Pubkey),
     trie:put(HPID, V, 0, Root, ?name).
 dict_get(Key, Dict) ->
     X = dict:fetch({orders, Key}, Dict),
@@ -100,12 +100,15 @@ dict_get(Key, Dict) ->
         _ -> deserialize(X)
     end.
     
-key_to_int({key, Pubkey, _}) ->
-    key_to_int2(Pubkey).
-key_to_int2(Pubkey) ->
+%key_to_int({key, Pubkey, _}) ->
+%    key_to_int(Pubkey).
+%key_to_int(X) -> 
+%    <<Y:256>> = testnet_hasher:doit(<<X:256>>),
+%    Y.
+key_to_int(Pubkey) ->
     accounts:key_to_int(Pubkey).
 get(Pub, Root) ->
-    HPID = key_to_int2(Pub),
+    HPID = key_to_int(Pub),
     {RH, Leaf, Proof} = trie:get(HPID, Root, ?name),
     V = case Leaf of
                 empty -> empty;
@@ -115,7 +118,7 @@ get(Pub, Root) ->
 empty_book() ->
     PS = constants:pubkey_size() * 8,
     X = serialize_head(<<?Null:PS>>, 0),
-    ID = key_to_int2(<<?Header:PS>>),
+    ID = key_to_int(<<?Header:PS>>),
     trie:put(ID, X, 0, constants:root0(), ?name).
 dict_head_get(Dict, OID) ->
     PS = constants:pubkey_size() * 8,
@@ -129,7 +132,7 @@ dict_head_get(Dict, OID) ->
 head_get(Root) ->
     false = Root == 0,
     PS = constants:pubkey_size() * 8,
-    ID = key_to_int2(<<?Header:PS>>),
+    ID = key_to_int(<<?Header:PS>>),
     {_, L, _} = trie:get(ID, Root, ?name),
     deserialize_head(leaf:value(L)).
 dict_head_update(Head, OID, Dict) ->
@@ -151,7 +154,7 @@ dict_head_put(Head, Many, OID, Dict) ->
 head_put(Head, Many, Root) ->
     PS = constants:pubkey_size() * 8,
     Y = serialize_head(Head, Many),
-    ID = key_to_int2(<<?Header:PS>>),
+    ID = key_to_int(<<?Header:PS>>),
     trie:put(ID, Y, 0, Root, ?name).
 all(Root) ->
     {Head, _Many} = head_get(Root),
@@ -224,7 +227,7 @@ dict_delete(Pub, OID, Dict) ->
     Key = {key, Pub, OID},
     dict:store({orders, Key}, 0, Dict).
 delete(Pub, Root) ->
-    ID = key_to_int2(Pub),
+    ID = key_to_int(Pub),
     trie:delete(ID, Root, ?name).
 dict_match(Order, OID, Dict) ->
     %Match1 is orders that are still open.

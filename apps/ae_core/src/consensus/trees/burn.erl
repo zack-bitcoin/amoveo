@@ -23,7 +23,8 @@ deserialize(B) ->
     #burn{address = <<A:HS>>,
 	  amount = I}.
 key_to_int(X) ->
-    existence:hash2int(X).
+    <<Y:256>> = testnet_hasher:doit(<<X:256>>),
+    Y.
 get(B, Tree) ->
     %B = testnet_sign:address2binary(Address),
     Key = existence:hash2int(B),

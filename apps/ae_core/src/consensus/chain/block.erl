@@ -445,10 +445,10 @@ check(Block) ->
     PrevStateHash = trees:root_hash2(OldTrees, Roots),
     case LN of
         true -> 
-            OldSparseTrees = 
-                facts_to_trie(
-                  Facts, trees:new(empty, empty, empty,
-                                   empty, empty, empty)),
+            %OldSparseTrees = 
+            %    facts_to_trie(
+            %      Facts, trees:new(empty, empty, empty,
+            %                       empty, empty, empty)),
             %PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
             %NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
             %TreesHash = trees:root_hash2(NewTrees2, Roots),

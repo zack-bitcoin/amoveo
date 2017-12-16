@@ -101,7 +101,7 @@ Oh, we should have our partner sign a transaction that allows us to put money in
 
 * We should make a way to run internal handler commands externally. Add a new command to the external api. To call this command, you need to sign the info with your private key, and it has a nonce inside that needs to have incremented from last time.
 
-
+* the explorer should display in coins, not satoshis.
 
 
 
