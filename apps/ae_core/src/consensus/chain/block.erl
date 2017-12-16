@@ -6,7 +6,7 @@
          mine/1, mine/2, mine2/2, check/1, 
          guess_number_of_cpu_cores/0, top/0,
          accounts_root/1, channels_root/1,existence_root/1,
-         burn_root/1,oracles_root/1,governance_root/1,
+         oracles_root/1,governance_root/1,
          genesis_maker/0, height/0,
          dict_update_trie/2
         ]).
@@ -25,7 +25,7 @@
                 prev_hashes = {prev_hashes},
                 proofs = [],
                 roots}).
--record(roots, {accounts, channels, existence, burn, oracles, governance}).
+-record(roots, {accounts, channels, existence, oracles, governance}).
 
 %proofs is for this
 %If the attacker sends a valid block with a valid header,
@@ -308,7 +308,6 @@ make_roots(Trees) ->
     #roots{accounts = accounts:root_hash(trees:accounts(Trees)),
            channels = channels:root_hash(trees:channels(Trees)),
            existence = existence:root_hash(trees:existence(Trees)),
-           burn = burn:root_hash(trees:burn(Trees)),
            oracles = oracles:root_hash(trees:oracles(Trees)),
            governance = governance:root_hash(trees:governance(Trees))}.
 accounts_root(X) ->
@@ -317,8 +316,6 @@ channels_root(X) ->
     X#roots.channels.
 existence_root(X) ->
     X#roots.existence.
-burn_root(X) ->
-    X#roots.burn.
 oracles_root(X) ->
     X#roots.oracles.
 governance_root(X) ->
@@ -327,11 +324,10 @@ roots_hash(X) when is_record(X, roots) ->
     A = X#roots.accounts,
     C = X#roots.channels,
     E = X#roots.existence,
-    B = X#roots.burn,
     O = X#roots.oracles,
     G = X#roots.governance,
     testnet_hasher:doit(<<A/binary, C/binary, E/binary, 
-                         B/binary, O/binary, G/binary>>).
+                         O/binary, G/binary>>).
     
 guess_number_of_cpu_cores() ->
     case application:get_env(ae_core, test_mode, false) of
@@ -420,8 +416,6 @@ proofs_roots_match([P|T], R) ->
             true = R#roots.channels == Root;
         existence -> 
             true = R#roots.existence == Root;
-        burn -> 
-            true = R#roots.burn == Root;
         oracles ->
             true = R#roots.oracles == Root;
         governance ->

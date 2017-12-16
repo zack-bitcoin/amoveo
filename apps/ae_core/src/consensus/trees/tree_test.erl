@@ -12,8 +12,6 @@ test() ->
     S = existence:test(),
     io:fwrite("oracles test\n"),
     S = oracles:test(),
-    io:fwrite("burn test\n"),
-    S = burn:test(),
     io:fwrite("oracle_bets test\n"),
     S = oracle_bets:test(),
     io:fwrite("orders test\n"),

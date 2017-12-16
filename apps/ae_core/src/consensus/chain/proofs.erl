@@ -16,7 +16,6 @@ tree(X) -> int_to_tree(X#proof.tree).
 tree_to_int(accounts) -> 1;
 tree_to_int(channels) -> 2;
 tree_to_int(existence) -> 3;
-tree_to_int(burn) -> 4;
 tree_to_int(oracles) -> 5;
 tree_to_int(governance) -> 6;
 tree_to_int(oracle_bets) -> 7;
@@ -26,7 +25,6 @@ tree_to_int(shares) -> 9.
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
 int_to_tree(3) -> existence;
-int_to_tree(4) -> burn;
 int_to_tree(5) -> oracles;
 int_to_tree(6) -> governance;
 int_to_tree(7) -> oracle_bets;
@@ -417,7 +415,6 @@ test() ->
 	      {existence, testnet_hasher:doit(1)},
 	      {oracles, OID},
 	      {oracles, 1},
-	      {burn, testnet_hasher:doit(1)},
 	      {orders, #key{pub = keys:pubkey(), id = OID}},
               {oracle_bets, #key{pub = keys:pubkey(), id = OID}}
 	     ],% ++

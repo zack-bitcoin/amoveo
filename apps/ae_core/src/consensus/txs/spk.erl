@@ -127,7 +127,6 @@ prove_facts2([{Tree, Key}|T], Trees) ->
 tree2id(accounts) -> 1;
 tree2id(channels) -> 2;
 tree2id(existence) -> 3;
-tree2id(burn) -> 4;
 tree2id(oracles) -> 5;
 tree2id(governance) -> 6.
 

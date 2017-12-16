@@ -25,9 +25,8 @@ These are the 18 types of transaction that can be in blocks.
 * oracle_unmatched
 * oracle_shares
 
-2 bonus transactions:
+1 bonus transactions:
 * existence
-* burn
 
 # account_new
 
@@ -131,11 +130,5 @@ The difficulty of the shares was announced when the oracle was launched.
 
 This transaction adds 256 bits of data to the existence tree. This is done to prove that certain data existed at a certain time.
 The virtual machine can verify that data exists in the existence tree.
-
-# burn
-
-This destroys some coins in a provable way.
-There will be a merkel tree that stores by address. It stores the number of coins that that address has burned.
-Anyone holding the private key for that address can prove how big of a burn they did.
 
 [transaction types are the ways to modify blockchain consensus state. All the consensus state is stored in trees. Read about the trees here](trees.md)

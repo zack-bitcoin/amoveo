@@ -1,8 +1,8 @@
 -module(trees).
--export([accounts/1,channels/1,existence/1,burn/1,
+-export([accounts/1,channels/1,existence/1,
 	 oracles/1,new/6,update_accounts/2,
 	 update_channels/2,update_existence/2,
-	 update_burn/2,update_oracles/2,
+	 update_oracles/2,
 	 update_governance/2, governance/1,
 	 root_hash/1, name/1, %garbage/0, 
          garbage_block/1,
@@ -10,15 +10,13 @@
          root_hash2/2, serialized_roots/1,
          restore/3]).
 -record(trees, {accounts, channels, existence,
-		burn, oracles, governance}).
+		oracles, governance}).
 name(<<"accounts">>) -> accounts;
 name("accounts") -> accounts;
 name(<<"channels">>) -> channels;
 name("channels") -> channels;
 name(<<"existence">>) -> existence;
 name("existence") -> existence;
-name(<<"burn">>) -> burn;
-name("burn") -> burn;
 name(<<"oracles">>) -> oracles;
 name("oracles") -> oracles;
 name(<<"governance">>) -> governance;
@@ -26,12 +24,11 @@ name("governance") -> governance.
 accounts(X) -> X#trees.accounts.
 channels(X) -> X#trees.channels.
 existence(X) -> X#trees.existence.
-burn(X) -> X#trees.burn.
 oracles(X) -> X#trees.oracles.
 governance(X) -> X#trees.governance.
 new(A, C, E, B, O, G) ->
     #trees{accounts = A, channels = C,
-	   existence = E, burn = B, 
+	   existence = E, 
 	   oracles = O, governance = G}.
 update_governance(X, A) ->
     X#trees{governance = A}.
@@ -41,29 +38,24 @@ update_channels(X, A) ->
     X#trees{channels = A}.
 update_existence(X, E) ->
     X#trees{existence = E}.
-update_burn(X, E) ->
-    X#trees{burn = E}.
 update_oracles(X, A) ->
     X#trees{oracles = A}.
 root_hash2(Trees, Roots) ->
     A = rh2(accounts, Trees, Roots),
     C = rh2(channels, Trees, Roots),
     E = rh2(existence, Trees, Roots),
-    B = rh2(burn, Trees, Roots),
     O = rh2(oracles, Trees, Roots),
     G = rh2(governance, Trees, Roots),
     HS = constants:hash_size(),
     HS = size(A),
     HS = size(C),
     HS = size(E),
-    HS = size(B),
     HS = size(O),
     HS = size(G),
     testnet_hasher:doit(<<
 			  A/binary,
 			  C/binary,
 			  E/binary,
-			  B/binary,
 			  O/binary,
 			  G/binary
 			>>).
@@ -86,14 +78,12 @@ serialized_roots(Trees) ->
     A = accounts:root_hash(trees:accounts(Trees)),
     C = channels:root_hash(trees:channels(Trees)),
     E = existence:root_hash(trees:existence(Trees)),
-    B = burn:root_hash(trees:burn(Trees)),
     O = oracles:root_hash(trees:oracles(Trees)),
     G = governance:root_hash(trees:governance(Trees)),
     <<
      A/binary,
      C/binary,
      E/binary,
-     B/binary,
      O/binary,
      G/binary
      >>.
@@ -116,7 +106,7 @@ garbage_block(Block, TreeID) ->
     trie:garbage(Keepers, TreeID).
     
 garbage_block(Block) ->
-    Trees = [accounts, channels, oracles, existence, governance, burn],
+    Trees = [accounts, channels, oracles, existence, governance],
     gb2(Block, Trees),
     ALeaves = trie:get_all(trees:accounts(block:trees(Block)), accounts),
     OLeaves = trie:get_all(trees:oracles(block:trees(Block)), oracles),

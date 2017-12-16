@@ -50,7 +50,7 @@ genesis_state() ->
          [create_acc_tx, 10],
          [spend, 10],
          [delete_acc_tx, 5],
-         [repo, 5],
+         %[repo, 5],
          [nc, 10],
          [gc, 10],
          [ctc, 10],
@@ -175,7 +175,7 @@ name2number(governance_change_limit) -> 26;
 name2number(create_acc_tx) -> 28;%these store the minimum fee for each transaction type. "create_acc_tx" is the name of the record of the create_account_tx.
 name2number(spend) -> 29;
 name2number(delete_acc_tx) -> 30;
-name2number(repo) -> 31;
+%name2number(repo) -> 31;
 name2number(nc) -> 32;
 name2number(gc) -> 33;
 name2number(ctc) -> 34;

@@ -1,12 +1,8 @@
 ### things to do for the next hard fork of the testnet
 
-* every trie (besides governance) should store by the hash of the key. Otherwise an attacker will make one branch of the tree too long, and proofs will have to be huge.
-
 * constants:minimum_oracle_time() is way too low. This should be one of the governance variables.
 
 * block_time_after_median should not be a governance variable. We should review all the governance variables.
-
-* either implement proof of burn and proof of existence, or else remove it from the docs.
 
 * rename oracle_shares tx type to "oracle_winnings" or something like that.
 
