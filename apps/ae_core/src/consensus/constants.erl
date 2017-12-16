@@ -41,13 +41,12 @@ orders_bits() -> 32.
 account_size() ->
 	((balance_bits() + height_bits() + account_nonce_bits()) div 8) + (hash_size()) + pubkey_size().
 channel_size() ->    
-    ((%key_length() + %(address_bits()*2) + 
+    ((
 	  (balance_bits()*3) + channel_nonce_bits() + 
 	  (height_bits()*2) + 
 	  channel_entropy() + channel_delay_bits()) div 8) 
 	+ 1 + (hash_size()) + (2 * pubkey_size()).
-retarget_frequency() -> 2000.
-%how many blocks till we recalculate the difficulty
+retarget_frequency() -> 2000. %how many blocks till we recalculate the difficulty
 block_time() -> 6000. %600 seconds = 10 minutes
 time_units() -> 100. % 0.1 seconds
 start_time() -> 14825749780.

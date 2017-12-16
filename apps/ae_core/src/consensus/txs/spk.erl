@@ -496,6 +496,12 @@ obligations(2, [A|T]) ->
 	    true -> 0
 	end,
     C + obligations(2, T).
+vm(SS, State) ->
+    {ok, TimeLimit} = application:get_env(ae_core, time_limit),
+    {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
+    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
+    {ok, VarLimit} = application:get_env(ae_core, var_limit),
+    chalang:vm(SS, TimeLimit, SpaceLimit, FunLimit, VarLimit, State).
     
 test2() ->
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
