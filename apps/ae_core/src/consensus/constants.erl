@@ -119,36 +119,15 @@ time_units() -> %1000 = 1 second, 100 = 0.1 seconds
    100. 
 start_time() -> 14825749780.
 time_bits() -> 32.
-% Seconds_130_years = 60*60*24*365.24
-% 32 =~ math:log(130*60*60*24*365.24)/math:log(2). 
-shares_conversion(Many) -> Many div 7583.
-    % half life of 1 year.
-    %HalfLife = 365*24*60*60 div block_time(),
-    %if blocktime is 6000, then HalfLife is 5256
-    %(Ratio^HalfLife) = 1/2,
-    %HalfLife*log(Ratio) = log(1/2)
-	%Ratio = 2^(log(1/2)/HalfLife)
-	%0.99986813137
-	%Ratio = 7582/7583
-    
     
 channel_entropy() -> 16. %Channel contracts only work for a channel with the same 2 account addresses, and with the same channel_entropy that has this many bits.
 %this is like another channel nonce, but we only increment it if the channel gets closed and re-created.
 
-fun_limit() -> 1000.
-var_limit() -> 10000.
-
-comment_limit() -> %When a miner mines a block, they can set this many bytes to whatever they want.
-    140.
-%version() -> 3.
 version_bits() -> 16.%so we can update it more than 60000 times.
 %rename to "Protocol VERSION".
 server_ip() -> {146,185,142,103}.
 server_port() -> 8080.
 
-block_creation_maturity() ->    
-    100.
-    %10.%testing
 block_time_after_median() ->
     100.
 channel_granularity() ->    
