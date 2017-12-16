@@ -83,6 +83,7 @@ slash_it(SPK, SS) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     GovCost = governance:get_value(cs, Governance),
-    {Tx, _} = channel_slash_tx:make(keys:pubkey(), free_constants:tx_fee() + GovCost, keys:sign(SPK), SS, Trees),
+    {ok, TxFee} = application:get_env(ae_core, tx_fee),
+    {Tx, _} = channel_slash_tx:make(keys:pubkey(), TxFee + GovCost, keys:sign(SPK), SS, Trees),
     Stx = keys:sign(Tx),
     tx_pool_feeder:absorb(Stx).

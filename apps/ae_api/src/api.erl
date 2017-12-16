@@ -8,7 +8,7 @@
 %% Described in the docs but not found
 %% close_channel/0, new_channel/2, oracle_unmatched/1, sync/0
 
--define(Fee, free_constants:tx_fee()).
+-define(Fee, element(2, application:get_env(ae_core, tx_fee))).
 -define(IP, constants:server_ip()).
 -define(Port, constants:server_port()).
 
