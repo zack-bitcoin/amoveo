@@ -141,7 +141,7 @@ write(Oracle, Root) ->
     V = serialize(Oracle),
     Key = Oracle#oracle.id,
     Meta = Oracle#oracle.orders,
-    trie:put(Key, V, Meta, Root, ?name).
+    trie:put(key_to_int(Key), V, Meta, Root, ?name).
 dict_get(ID, Dict) ->
     X = dict:fetch({oracles, ID}, Dict),
     case X of
@@ -152,10 +152,12 @@ dict_get(ID, Dict) ->
             Y2#oracle{orders = Meta}
         %_ -> deserialize(X)
     end.
-key_to_int(X) -> X.
+key_to_int(X) -> 
+    <<Y:256>> = testnet_hasher:doit(<<X:256>>),
+    Y.
 get(ID, Root) ->
     true = is_integer(ID),
-    {RH, Leaf, Proof} = trie:get(ID, Root, ?name),
+    {RH, Leaf, Proof} = trie:get(key_to_int(ID), Root, ?name),
     V = case Leaf of 
 	    empty -> empty;
 	    L -> 
@@ -165,7 +167,8 @@ get(ID, Root) ->
 	end,
     {RH, V, Proof}.
 make_leaf(Key, V, CFG) ->
-    leaf:new(Key, V, 0, CFG).
+    leaf:new(key_to_int(Key), 
+             V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
     
