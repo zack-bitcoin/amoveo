@@ -151,22 +151,6 @@ block_creation_maturity() ->
     %10.%testing
 block_time_after_median() ->
     100.
-oracle_initial_liquidity() ->
-    block_reward() div 2.
-
-day() ->
-    24*60*60 div block_time().
-governance_delay() ->
-    day() div 2.
-question_delay() ->
-    2*day().
-two_days() ->
-    2*day().
-governance_change_limit() ->
-    51.
-    
-maximum_question_size() ->
-    1000.
 channel_granularity() ->    
     10000.
 channel_nonce_space() ->    

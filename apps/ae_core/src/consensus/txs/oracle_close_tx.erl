@@ -66,7 +66,7 @@ go(Tx, Dict, NewHeight) ->
 	end,
     OBTx = {oracle_bet, oracles:creator(Oracle4), 
 	  none, 0, OID, LoserType, 
-	  constants:oracle_initial_liquidity() div 2},
+	  OIL div 2},
     Dict6 = oracle_bet_tx:go2(OBTx, Dict5, NewHeight),%maybe this is bad. maybe we only want to update the one account.
     spawn(fun() ->
                   timer:sleep(100),
