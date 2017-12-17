@@ -335,13 +335,7 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
-    Data2 = chalang:run5(ScriptSig, Data),
-    Data3 = chalang:run5(Code, Data2),
-    %io:fwrite(packer:pack(Data3)),
-    %io:fwrite("\n"),
-    [<<Amount:32>>|
-     [<<Nonce:32>>|
-      [<<Delay:32>>|_]]] = chalang:stack(Data3),%#d.stack,
+    {Amount, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
     %io:fwrite(packer:pack({stack, Amount, Nonce, Delay})),
     %io:fwrite("\n"),
     CGran = constants:channel_granularity(),
@@ -349,7 +343,7 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     true = Amount >= -CGran,
     A3 = Amount * Bet#bet.amount div CGran,
     {A3, Nonce, Delay,
-     chalang:time_gas(Data3)
+     chalang:time_gas(Data2)
     }.
 force_update(SPK, SSOld, SSNew) ->
     %{_Trees, Height, _} = tx_pool:data(),
@@ -382,9 +376,7 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
     Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS), Code, State, constants:hash_size()),
-    Data2 = chalang:run5(ss_code(SS), Data),
-    Data3 = chalang:run5(Code, Data2),
-    [<<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),
+    {ContractAmount, N, Delay, _} = chalang_error_handling(ss_code(SS), Code, Data),
     if
 	%Delay > 50 ->
 	Delay > 50 ->
@@ -502,6 +494,28 @@ vm(SS, State) ->
     {ok, FunLimit} = application:get_env(ae_core, fun_limit),
     {ok, VarLimit} = application:get_env(ae_core, var_limit),
     chalang:vm(SS, TimeLimit, SpaceLimit, FunLimit, VarLimit, State).
+chalang_error_handling(SS, Code, Data) ->
+    case chalang:run5(SS, Data) of
+        {error, S} ->
+            io:fwrite("script sig has an error when executed: "),
+            io:fwrite(S),
+            io:fwrite("\n"),
+            1 = 2;
+        Data2 ->
+            case chalang:run5(Code, Data2) of
+                {error, S2} ->
+                    io:fwrite("code has an error when executed with that script sig: "),
+                    io:fwrite(S2),
+                    io:fwrite("\n"),
+                    1 = 2;
+                Data3 ->
+                    [<<Amount:32>>|
+                     [<<Nonce:32>>|
+                      [<<Delay:32>>|_]]] = chalang:stack(Data3),%#d.stack,
+                    {Amount, Nonce, Delay, Data3}
+            end
+    end.
+                    
     
 test2() ->
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
