@@ -76,8 +76,7 @@ go(Tx, Dict, NewHeight) ->
     Delay = Tx#nc.delay,
     NewChannel = channels:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Entropy, Delay),
     Dict2 = channels:dict_write(NewChannel, Dict),
-    CCFee = governance:dict_get_value(create_channel_fee, Dict) div 2,
-    Acc1 = accounts:dict_update(Aid1, Dict, -Bal1-CCFee, Tx#nc.nonce, NewHeight),
-    Acc2 = accounts:dict_update(Aid2, Dict, -Bal2-CCFee, none, NewHeight),
+    Acc1 = accounts:dict_update(Aid1, Dict, -Bal1, Tx#nc.nonce, NewHeight),
+    Acc2 = accounts:dict_update(Aid2, Dict, -Bal2, none, NewHeight),
     Dict3 = accounts:dict_write(Acc1, Dict2),
     accounts:dict_write(Acc2, Dict3).

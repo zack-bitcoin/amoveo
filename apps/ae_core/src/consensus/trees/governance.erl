@@ -22,14 +22,12 @@ genesis_state() ->
          [time_gas, 1113],
          [space_gas, 1113],
          [max_block_size, 940],
-         [create_channel_fee, 250],%
          [fun_limit, 350],
          [var_limit, 600],
          [oracle_initial_liquidity, 1728],
          [minimum_oracle_time, MinimumOracleTime],
          [maximum_oracle_time, MaximumOracleTime],
          [maximum_question_size, 352],
-         %[channel_closed_time, 352],%
          [governance_change_limit, 51],
          [create_acc_tx, 10],
          [spend, 10],
@@ -137,14 +135,12 @@ name2number(block_reward) -> 1;
 name2number(time_gas) -> 2;
 name2number(space_gas) -> 27;
 name2number(max_block_size) -> 3;
-name2number(create_channel_fee) -> 4;
-name2number(fun_limit) -> 14;%needed to run smart contracts
-name2number(var_limit) -> 15;%needed to run smart contracts
+name2number(fun_limit) -> 14;%how many functions can the vm make
+name2number(var_limit) -> 15;%how many variables can the vm store
 name2number(oracle_initial_liquidity) -> 18;
 name2number(minimum_oracle_time) -> 19;
 name2number(maximum_oracle_time) -> 8;
 name2number(maximum_question_size) -> 20;
-%name2number(channel_closed_time) -> 22;
 name2number(governance_change_limit) -> 26;
 name2number(create_acc_tx) -> 28;%these store the minimum fee for each transaction type. "create_acc_tx" is the name of the record of the create_account_tx.
 name2number(spend) -> 29;

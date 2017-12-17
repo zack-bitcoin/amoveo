@@ -1,12 +1,6 @@
 ### things to do for the next hard fork of the testnet
 
-* block_time_after_median should not be a governance variable. We should review all the governance variables.
-
-* what is governance:channel_closed_time used for?
-* why is there a new_channel_tx fee AND a fee for making channels? We can simplify this.
-
 * if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
-
 
 * either use request_frequency, or get rid of it.
 
@@ -18,6 +12,10 @@
 
 * add block_time back to governance. Use it when retargetting. add it to the header so that the light node can retarget correctly.
 
+* review if we need "entropy" in channels now that channel ids cannot be reused.
+
+* make sure we are using every governance variable between 0 and max exclusive. Don't have empty spots.
+
 
 
 
@@ -28,6 +26,12 @@
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
+
+* the config constant "garbage_period" is unused. We should review the garbage collection mechanism to see if this constant is needed. We also  need to know if this constant limits any other contants, in particular "fork_tolerance".
+
+* review the rules about increasing the balance of channels. We should require a payment that make sense.
+- there is an attack where someone makes lots of channels, then moves all their money to a small number of channels, and closes all the channels where they had lots of money. The result of this attack is that the server's money is all locked up in channels.
+- ideally, we should charge based on the amount of time that the server's money is locked up. We should have the customer pay for X number of days as a minimum, and eventually we request that they pay for more days. If the customer doesn't pay in time, then we close the channel to recover the funds.
 
 * rename oracle_shares tx type to "oracle_winnings" or something like that.
 

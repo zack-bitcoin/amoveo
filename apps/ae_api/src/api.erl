@@ -292,7 +292,7 @@ channel_timeout() ->
     channel_timeout(constants:server_ip(), constants:server_port()).
 channel_timeout(Ip, Port) ->
     {ok, Other} = talker:talk({pubkey}, Ip, Port),
-    Fee = free_constants:tx_fee(),
+    {ok, Fee} = application:get_env(ae_core, tx_fee),
     {Trees,_,_} = tx_pool:data(),
     {ok, CD} = channel_manager:read(Other),
     CID = channel_feeder:cid(CD),
