@@ -431,7 +431,7 @@ test() ->
     {NewTx, _} = create_account_tx:new(Pub30, 10, 10, keys:pubkey(), Trees),
     {NewTx2, _} = create_account_tx:new(Pub4, 10, 10, keys:pubkey(), Trees),
     CID = 7,
-    {NewTx3, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Pub3, 1, 1, 1, 1, 1),
+    {NewTx3, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Pub3, 1, 1, 1, 1),
     Txs = [keys:sign(NewTx),
            keys:sign(NewTx2),
            testnet_sign:sign_tx(NewTx3, Pub3, Priv30)],

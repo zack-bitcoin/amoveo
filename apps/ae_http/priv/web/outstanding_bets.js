@@ -29,8 +29,8 @@ function outstanding_bets2() {
         console.log("outstanding_bets3");
         console.log(JSON.stringify(x));
         //bet: code, amount, key, meta
-        //spk: acc1, acc2, entropy, bets, space_gas, time_gas, cid, amount, nonce, delay
-        //cd: me, them, ssme, ssthem, emsg, live, entropy, cid
+        //spk: acc1, acc2, bets, space_gas, time_gas, cid, amount, nonce, delay
+        //cd: me, them, ssme, ssthem, emsg, live, cid
         var me = x[1];
         console.log("me");
         console.log(JSON.stringify(me));

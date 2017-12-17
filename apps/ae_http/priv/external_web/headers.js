@@ -66,7 +66,7 @@ function hash2integer5(bin) {
         else { x = 1 + (x * 2) }
     }
     return x;
-s}
+}
 
 
 wallet_doit1();

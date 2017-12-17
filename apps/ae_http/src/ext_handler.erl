@@ -72,8 +72,7 @@ doit({new_channel_tx, Acc1, Acc2, B1, B2, Delay, Fee}) ->
     {Trees, _, _} = tx_pool:data(),
     Channels = trees:channels(Trees),
     CID = api:find_id(channels, Channels),
-    Entropy = 127,
-    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, B1, B2, Entropy, Delay, Fee),
+    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, B1, B2, Delay, Fee),
     {ok, Tx};
 doit({new_channel, STx, SSPK}) ->
     unlocked = keys:status(),
@@ -132,7 +131,6 @@ doit({learn_secret, From, Secret, Code}) ->
 	    NewCD = channel_feeder:new_cd(
 		      SPK, channel_feeder:them(OldCD),
 		      NewSS, SSThem,
-		      channel_feeder:entropy(OldCD),
 		      channel_feeder:cid(OldCD)),
 	    channel_manager:write(From, NewCD),
 	    {ok, Current} = arbitrage:check(Code),

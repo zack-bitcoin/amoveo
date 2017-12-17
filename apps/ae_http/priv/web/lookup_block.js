@@ -72,7 +72,7 @@ function tx2html(tx) {
 function lookup_block2(block) {
     block2 = block[1];
     var current_block = document.getElementById("block div");
-    //acc, number, hash, txs, power, entropy, total_coins, db_root
+    //acc, number, hash, txs, power, nonce, total_coins, db_root
     current_block.innerHTML = "block is ".concat(block2);
     current_block.innerHTML = "<br/>created by account number ".concat(block2[1]).concat("<br/>at height: ").concat(block2[2]).concat("<br/>containing transactions: ").concat(txs2html(block2[4], 1, "<br/>"));
     //console.log(block[1]);

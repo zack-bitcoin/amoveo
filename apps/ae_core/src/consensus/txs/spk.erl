@@ -1,7 +1,7 @@
 -module(spk).
--export([acc1/1,acc2/1,entropy/1,
+-export([acc1/1,acc2/1,
 	 bets/1,space_gas/1,time_gas/1,
-	 new/9,cid/1,amount/1, 
+	 new/8,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,dict_run/6,%settle_bet/4,
          chalang_state/3,
@@ -25,7 +25,7 @@
               key,%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
               meta}).%meta is {direction_we_bet, maxprice}
 
--record(spk, {acc1,acc2, entropy, 
+-record(spk, {acc1,acc2, 
 	      bets, space_gas, time_gas, 
 	      cid, amount = 0, nonce = 0,
 	      delay = 0
@@ -40,7 +40,6 @@ delay(X) -> X#spk.delay.
 acc1(X) -> X#spk.acc1.
 acc2(X) -> X#spk.acc2.
 bets(X) -> X#spk.bets.
-entropy(X) -> X#spk.entropy.
 space_gas(X) -> X#spk.space_gas.
 time_gas(X) -> X#spk.time_gas.
 cid(X) -> X#spk.cid.
@@ -133,8 +132,7 @@ tree2id(governance) -> 6.
 new_ss(Code, Prove) ->
     #ss{code = Code, prove = Prove}.
 ss_code(X) when is_binary(X) -> 
-    1=2,
-    X;
+    1=2;
 ss_code(X) -> X#ss.code.
 ss_prove(X) -> X#ss.prove.
 ss_meta(X) -> X#ss.meta.
@@ -144,11 +142,10 @@ new_bet(Code, Key, Amount) ->
     new_bet(Code, Key, Amount, 0).
 new_bet(Code, Key, Amount, Meta) ->
     #bet{code = Code, key = Key, amount = Amount, meta = Meta}.
-new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
-    #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
+new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay) ->
+    #spk{acc1 = Acc1, acc2 = Acc2,
 	 bets = Bets, space_gas = SG, time_gas = TG,
-	 cid = CID, nonce = Nonce, delay = Delay
-	}.
+	 cid = CID, nonce = Nonce, delay = Delay}.
 bet_unlock(SPK, SS) ->
     %io:fwrite("spk bet unlock\n"),
     Bets = SPK#spk.bets,

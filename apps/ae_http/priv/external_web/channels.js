@@ -9,8 +9,8 @@ function channel_manager_read(x) {
         return JSON.parse(JSON.stringify(y));
     }
 }
-function new_cd(me, them, ssme, ssthem, entropy, cid) {
-    return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "entropy": entropy, "cid":cid};
+function new_cd(me, them, ssme, ssthem, cid) {
+    return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "cid":cid};
 }
 function new_ss(code, prove, meta) {
     if (meta == undefined) {
@@ -66,7 +66,6 @@ function channels1() {
         var fee = 20;
         var acc1 = pubkey_64();
         var acc2 = pubkey;
-        //we only allow one channel per pair of accounts when you are off-chain, because we do not keep track of entropy.
         //let the server choose an unused cid for us.
         variable_public_get(["new_channel_tx", acc1, pubkey, amount, bal2,delay, fee], function(x) { make_channel_func2(x, amount, bal2, fee, acc1, acc2, delay); } );
     }
@@ -79,9 +78,8 @@ function channels1() {
         var fee0 = tx[3];
         var acc10 = tx[1];
         var acc20 = tx[2];
-        var entropy = tx[7];
-        var cid = tx[9];
-        var delay0 = tx[8];
+        var cid = tx[8];
+        var delay0 = tx[7];
         if ((!(delay == delay0)) || (!(amount == amount0)) ||
             (!(bal2 == bal20)) || (!(fee == fee0)) ||
             (!(acc1 == acc10)) || (!(acc2 == acc20))) {
@@ -94,8 +92,8 @@ function channels1() {
             console.log("server edited the tx. aborting");
         } else {
             console.log("tx is valid");
-            var spk = ["spk", acc1, acc2, entropy, [-6], 0, 0, cid, 0, 0, delay];
-            /*-record(spk, {acc1,acc2, entropy, 
+            var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, 0, 0, delay];
+            /*-record(spk, {acc1,acc2, 
 	      bets, space_gas, time_gas, 
 	      cid, amount = 0, nonce = 0,
 	      delay = 0
@@ -117,14 +115,13 @@ function channels1() {
         var sstx = x[1];
         var s2spk = x[2];
         var tx = sstx[1];
-        var entropy = tx[7];
         var cid = tx[9];
         var acc2 = tx[2];
         console.log("double signed tx ");
         console.log(JSON.stringify(sstx));
         //variable_public_get(["txs", [-6, sstx]], function(x) {});
         var spk = s2spk[1];
-        var cd = new_cd(spk, s2spk, empty_ss(), empty_ss(), entropy, cid);
+        var cd = new_cd(spk, s2spk, empty_ss(), empty_ss(), cid);
         //console.log("cd is ");
         //console.log(cd);
         channel_manager[acc2] = cd;
@@ -347,8 +344,8 @@ function channels1() {
         verify_callback("channels", trie_key, function(val) {
             var balance_div = document.getElementById("balance_div");
             var spk = cd.them[1];
-            var amount = spk[8];
-            var betAmount = sum_bets(spk[4]);
+            var amount = spk[7];
+            var betAmount = sum_bets(spk[3]);
 
             var mybalance = ((val[4] + amount)/ 100000000).toString();
             var serverbalance = ((val[5] - amount - betAmount) / 100000000).toString();

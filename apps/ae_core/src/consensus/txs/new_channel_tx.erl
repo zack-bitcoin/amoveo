@@ -1,8 +1,8 @@
 -module(new_channel_tx).
--export([go/3, make/9, good/1, spk/2, cid/1,
-	 entropy/1, acc1/1, acc2/1, id/1]).
+-export([go/3, make/8, good/1, spk/2, cid/1,
+	 acc1/1, acc2/1, id/1]).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
-	     bal1 = 0, bal2 = 0, entropy = 0, 
+	     bal1 = 0, bal2 = 0, 
 	     delay = 10, id = -1}).
 
 acc1(X) -> X#nc.acc1.
@@ -39,21 +39,17 @@ good(Tx) ->
     true = Frac < MCR,
     true.
 cid(Tx) -> Tx#nc.id.
-entropy(Tx) -> Tx#nc.entropy.
 spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
-			  [], 0,0, 0, Delay, 
-			  Tx#nc.entropy).
-make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Entropy,Delay, Fee) ->
-    true = is_integer(Entropy),
+			  [], 0,0, 0, Delay).
+make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
     Accounts = trees:accounts(Trees),
     {_, A, Proof} = accounts:get(Acc1, Accounts),
     Nonce = accounts:nonce(A),
     {_, _, Proof2} = accounts:get(Acc2, Accounts),
-    %Entropy = channel_feeder:entropy(ID, [Acc1, Acc2])+1,
     %true = (Rent == 0) or (Rent == 1),
     Tx = #nc{id = ID, acc1 = Acc1, acc2 = Acc2, 
 	     fee = Fee, nonce = Nonce+1, bal1 = Inc1,
-	     bal2 = Inc2, entropy = Entropy, 
+	     bal2 = Inc2, 
 	     delay = Delay
 	     },
     {Tx, [Proof, Proof2]}.
@@ -72,9 +68,8 @@ go(Tx, Dict, NewHeight) ->
     true = Bal1 >= 0,
     Bal2 = Tx#nc.bal2,
     true = Bal2 >= 0,
-    Entropy = Tx#nc.entropy,
     Delay = Tx#nc.delay,
-    NewChannel = channels:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Entropy, Delay),
+    NewChannel = channels:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Delay),
     Dict2 = channels:dict_write(NewChannel, Dict),
     Acc1 = accounts:dict_update(Aid1, Dict, -Bal1, Tx#nc.nonce, NewHeight),
     Acc2 = accounts:dict_update(Aid2, Dict, -Bal2, none, NewHeight),

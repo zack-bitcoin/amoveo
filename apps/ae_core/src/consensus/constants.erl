@@ -44,14 +44,14 @@ channel_size() ->
     ((
 	  (balance_bits()*3) + channel_nonce_bits() + 
 	  (height_bits()*2) + 
-	  channel_entropy() + channel_delay_bits()) div 8) 
+	  channel_delay_bits()) div 8) 
 	+ 1 + (hash_size()) + (2 * pubkey_size()).
 retarget_frequency() -> 2000. %how many blocks till we recalculate the difficulty
 block_time() -> 6000. %600 seconds = 10 minutes
 time_units() -> 100. % 0.1 seconds
 start_time() -> 14825749780.
 time_bits() -> 32.
-channel_entropy() -> 16. %Channel contracts only work for a channel with the same 2 account addresses, and with the same channel_entropy that has this many bits.
+%channel_entropy() -> 16. %Channel contracts only work for a channel with the same 2 account addresses, and with the same channel_entropy that has this many bits.
 %this is like another channel nonce, but we only increment it if the channel gets closed and re-created.
 version_bits() -> 16.%so we can update it more than 60000 times.
 server_ip() -> {146,185,142,103}.

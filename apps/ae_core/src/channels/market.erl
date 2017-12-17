@@ -78,7 +78,6 @@ test() ->
     Question = <<>>,
     OID = 3,
     Fee = 20,
-    Entropy = 555,
     tx_pool:dump(),
     headers:dump(),
     %block:initialize_chain(),
@@ -88,7 +87,6 @@ test() ->
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     Fee = 20,
-    Entropy = 555,
     timer:sleep(200),
     test_txs:mine_blocks(1),
     timer:sleep(1000),
@@ -114,7 +112,7 @@ test() ->
     CID = 5,
     Delay = 0,
     
-    {Ctx4, _} = new_channel_tx:make(CID, Trees4, constants:master_pub(), NewPub, 10000, 20000, Entropy, Delay, Fee),
+    {Ctx4, _} = new_channel_tx:make(CID, Trees4, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv), 
     test_txs:absorb(SStx4),
@@ -122,7 +120,6 @@ test() ->
     test2(NewPub). 
 
 test2(NewPub) ->
-    Entropy = 555,
     OID = 3,
     {Trees5, _, _} = tx_pool:data(),
     %Accounts5 = trees:accounts(Trees5),
@@ -131,7 +128,7 @@ test2(NewPub) ->
     Location = constants:oracle_bet(),
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),101,100,OID, 0),
-    SPK = spk:new(constants:master_pub(), NewPub, 1, [Bet], 10000, 10000, 1, 0, Entropy),
+    SPK = spk:new(constants:master_pub(), NewPub, 1, [Bet], 10000, 10000, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
@@ -186,7 +183,7 @@ test2(NewPub) ->
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),
     Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),101,100,OID, 0),
-    SPK2 = spk:new(constants:master_pub(), NewPub, 1, [Bet2], 10000, 10000, 1, 0, Entropy),
+    SPK2 = spk:new(constants:master_pub(), NewPub, 1, [Bet2], 10000, 10000, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay

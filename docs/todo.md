@@ -1,11 +1,5 @@
 ### things to do for the next hard fork of the testnet
 
-* if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
-* or how about we split the money 50-50, and we set the nonce to 0, and we set the delay super high. like 50 years. So you cannot close a channel on a crashing state.
-* we should capture every type of input with chalang, so that chalang can never crash.
-
-* either use request_frequency, or get rid of it.
-
 * Syncing should split the process of headers and blocks. If you try to mine, it shouldn't start mining until you download almost all the blocks for the headers you know about.
 
 * a new test for oracles would be good.
@@ -13,8 +7,6 @@
 * we need a test to make sure that when we close a channel, the correct amounts of money transfers, even if we slashed more than once.
 
 * add block_time back to governance. Use it when retargetting. add it to the header so that the light node can retarget correctly.
-
-* review if we need "entropy" in channels now that channel ids cannot be reused.
 
 * make sure we are using every governance variable between 0 and max exclusive. Don't have empty spots.
 
@@ -28,6 +20,9 @@
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
+
+
+* Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
 
 * the config constant "garbage_period" is unused. We should review the garbage collection mechanism to see if this constant is needed. We also  need to know if this constant limits any other contants, in particular "fork_tolerance".
 

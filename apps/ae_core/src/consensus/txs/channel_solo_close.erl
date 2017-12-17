@@ -2,7 +2,6 @@
 -export([go/3, make/5, from/1, id/1]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
-
 from(X) -> X#csc.from.
 id(X) -> 
     SPK = X#csc.scriptpubkey,
@@ -37,7 +36,6 @@ go(Tx, Dict, NewHeight) ->
     Acc2 = channels:acc2(OldChannel),
     Acc1 = spk:acc1(ScriptPubkey),
     Acc2 = spk:acc2(ScriptPubkey),
-    true = channels:entropy(OldChannel) == spk:entropy(ScriptPubkey),
     %NewCNonce = spk:nonce(ScriptPubkey),
     SS = Tx#csc.scriptsig,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict),

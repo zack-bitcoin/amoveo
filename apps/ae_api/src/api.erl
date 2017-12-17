@@ -85,17 +85,16 @@ repo_account(ID, Fee) ->
     F = fun(Trees) ->
 		repo_tx:make(ID, Fee, keys:pubkey(), Trees) end,
     tx_maker(F).
-new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Delay) ->
+new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(nc, Governance),
-    new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, ?Fee+Cost, Delay).
-new_channel_tx(CID, Acc2, Bal1, Bal2, Entropy, Fee, Delay) ->
+    new_channel_tx(CID, Acc2, Bal1, Bal2, ?Fee+Cost, Delay).
+new_channel_tx(CID, Acc2, Bal1, Bal2, Fee, Delay) ->
     %the delay is how many blocks you have to wait to close the channel if your partner disappears.
     %delay is also how long you have to stop your partner from closing at the wrong state.
-    %entropy needs to be a different number every time you make a new channel with the same partner.
     {Trees, _, _} = tx_pool:data(),
-    {Tx, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Acc2, Bal1, Bal2, Entropy, Delay, Fee),
+    {Tx, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Acc2, Bal1, Bal2, Delay, Fee),
     keys:sign(Tx).
 new_channel_with_server(Bal1, Bal2, Delay) ->
 new_channel_with_server(Bal1, Bal2, Delay, ?IP, ?Port).
@@ -117,9 +116,8 @@ find_id(Name, N, Tree) ->
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     Acc1 = keys:pubkey(),
     {ok, Acc2} = talker:talk({pubkey}, IP, Port),
-    Entropy = channel_feeder:entropy([Acc1, Acc2]) + 1,
     {Trees,_,_} = tx_pool:data(),
-    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Entropy, Delay, Fee),
+    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
     {ok, ChannelDelay} = application:get_env(ae_core, channel_delay),
     SPK = new_channel_tx:spk(Tx, ChannelDelay),
     Accounts = trees:accounts(Trees),
@@ -146,7 +144,6 @@ pull_channel_state(IP, Port) ->
             NewCD = channel_feeder:new_cd(SPK, ThemSPK, 
                                          channel_feeder:script_sig_them(CD),
                                          channel_feeder:script_sig_me(CD),
-                                         channel_feeder:entropy(CD),
                                          channel_feeder:cid(CD)),
             channel_manager:write(ServerID, NewCD);
         {ok, CD0} ->
@@ -223,11 +220,10 @@ channel_manager_update(ServerID, SSPK2, DefaultSS) ->
     %store SSPK2 in channel manager, it is their most recent signature.
     {ok, CD} = channel_manager:read(ServerID),
     CID = channel_feeder:cid(CD),
-    Entropy = channel_feeder:entropy(CD),
     ThemSS = channel_feeder:script_sig_them(CD),
     MeSS = channel_feeder:script_sig_me(CD),
     SPK = testnet_sign:data(SSPK2),
-    NewCD = channel_feeder:new_cd(SPK, SSPK2, [DefaultSS|MeSS], [DefaultSS|ThemSS], Entropy, CID),
+    NewCD = channel_feeder:new_cd(SPK, SSPK2, [DefaultSS|MeSS], [DefaultSS|ThemSS], CID),
     channel_manager:write(ServerID, NewCD),
     ok.
 channel_balance() ->

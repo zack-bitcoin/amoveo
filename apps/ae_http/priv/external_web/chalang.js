@@ -1202,21 +1202,20 @@ function chalang(command) {
             var fun_limit = tree_number_to_value(tree_fun_limit[2]);
             verify_callback("governance", 15, function(tree_var_limit) {
                 var var_limit = tree_number_to_value(tree_var_limit[2]);
-                var entropy = cd[7];
                 spk_force_update(spkme, ssme, ss4, fun_limit, var_limit, function(b2) {
-                    var cid = cd[8];
+                    var cid = cd[7];
                     console.log("are we able to force update?");
                     console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
                     if ( JSON.stringify(b2) == JSON.stringify({"spk": newspk, "ss": ss})) {
                         var ret = sign_tx(newspk);
-                        var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
+                        var newcd = new_cd(newspk, themspk, ss, ss, cid);
                         channel_manager[from] = newcd;
                         return callback(ret);
                     } else {
                         is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {
                             if ( b3 ) {
                                 ret = sign_tx(newspk);
-                                var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
+                                var newcd = new_cd(newspk, themspk, ss, ss, cid);
                                 channel_manager[from] = newcd;
                                 return callback(ret);
                             } else {
@@ -1232,7 +1231,7 @@ function chalang(command) {
                                   if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
                                   console.log("spks do not match");
                                   } else {
-                                  var data = new_cd(spk, themspk, ss5, ss5, entropy, cid);
+                                  var data = new_cd(spk, themspk, ss5, ss5, cid);
                                   channel_manager[from] = data;
                                   return ret;
                                   }

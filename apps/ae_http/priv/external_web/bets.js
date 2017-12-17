@@ -1,6 +1,6 @@
 //bet: code, amount, key, meta
-//spk: acc1, acc2, entropy, bets, space_gas, time_gas, cid, amount, nonce, delay
-//cd: me, them, ssme, ssthem, emsg, live, entropy, cid
+//spk: acc1, acc2, bets, space_gas, time_gas, cid, amount, nonce, delay
+//cd: me, them, ssme, ssthem, emsg, live, cid
 //["market",1,1,3000,"BJjOADT/mMg0BsqQkCDcEb/ylv6W85wipEKrY3qV5z3XvVrNygvVoEXsA6tncAoMuyvMB5Prepzqql3zZ1sDjjo=",40,1]
 //{market, 1, MarketID, Expires, Pubkey, Period, OID}.
 var outstanding_bets_button_div = document.createElement("div");
@@ -62,7 +62,7 @@ function cancel_trade(n, server_pubkey) {
 }
 function remove_bet(n, spk0) {
     var spk = JSON.parse(JSON.stringify(spk0));
-    var bets = spk[4];
+    var bets = spk[3];
     var bet = bets[n];
     var bets2 = remove_nth(n, bets);
     var bet_meta = bet[4];
@@ -75,8 +75,8 @@ function remove_bet(n, spk0) {
         var price = bet_meta[2];
         a = Math.floor((bet_amount * price) / cgran);
     }
-    spk[4] = bets2;
-    spk[8] = spk[8] + a;
+    spk[3] = bets2;
+    spk[7] = spk[7] + a;
     return spk;
 }
 function cancel_trade2(sspk2, sspk, server_pubkey, n) {
