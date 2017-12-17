@@ -64,7 +64,7 @@ handle_call(keypair, _From, R) ->
            end,
     {reply, Keys, R};
 handle_call({encrypt, Message, Pubkey}, _From, R) ->
-    io:fwrite(packer:pack({encryption, base64:encode(Pubkey), base64:encode(R#f.pub)})),
+    %io:fwrite(packer:pack({encryption, base64:encode(Pubkey), base64:encode(R#f.pub)})),
     EM=encryption:send_msg(Message, base64:encode(Pubkey), base64:encode(R#f.pub), base64:encode(R#f.priv)),
     io:fwrite("sending encrypted message "),
     io:fwrite(packer:pack(EM)),

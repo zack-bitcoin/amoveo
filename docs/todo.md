@@ -18,7 +18,7 @@
 
 * make the pubkeys more convenient for copy/pasting. It would be nice if we used compressed pubkeys instead of full pubkeys. Maybe we should use the base58 library, or the pubkey checksum library.
 
-
+* either use request_frequency, or get rid of it.
 
 
 
