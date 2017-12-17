@@ -130,7 +130,7 @@ swap
       int 3 == if drop drop drop evidence else drop
       int 4 == if drop drop unmatched else drop
       then then then then then
-      crash
+      return
 ;
 main
 

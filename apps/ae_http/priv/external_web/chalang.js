@@ -11,7 +11,7 @@ function chalang(command) {
     const int_op = 0,
           binary_op = 2,
           print = 10,
-          crash = 11,
+          finish = 11, //because 'return' is reserved.
           nop = 12,
           fail = 13,
           drop = 20,
@@ -367,8 +367,8 @@ function chalang(command) {
                     d.many_funs = mf;
                 }
                 op_print(d, i, "define op");
-            } else if (code[i] == crash) {
-                op_print(d, i, "crash op");
+            } else if (code[i] == finish) {
+                op_print(d, i, "return op");
                 return d;
             } else if (code[i] == print) {
                 console.log(JSON.stringify(d.stack));
@@ -1022,7 +1022,7 @@ function chalang(command) {
         //console.log(JSON.stringify(ss));
         var script_sig = ss.code;
         if (!(chalang_none_of(script_sig))) {
-            throw("error: crash op in the script sig");
+            throw("error: return op in the script sig");
         }
         prove_facts(ss.prove, function(f) {
             console.log("spk run 3 bet is ");
@@ -1088,7 +1088,7 @@ function chalang(command) {
         console.log("none of");
         var n;
         for (var i = 0; i < c.length; i++) {
-            if ( c[i] == crash ) {
+            if ( c[i] == finish ) {
                 return false;
             } else if ( c[i] == int_op ) {
                 i += 4
@@ -1117,7 +1117,7 @@ function chalang(command) {
         }
         var b = chalang_none_of(ss[i-1].code);//ss.code
         if (!(b)) {
-            throw("you can't put crash into the ss");
+            throw("you can't put return op into the ss");
         }
         var state = chalang_new_state(height, 0);
         prove_facts(ss[i-1].prove, function(f) { //PROBLEM HERE

@@ -48,8 +48,6 @@ Maybe encoding the pubkeys should happen at the wallet level, not the node level
 
 * sync is becoming a zombie process when it cannot connect.
 
-* chalang "crash" should be called "return"
-
 * we need to look at the test for options again. What if our channel partner refuses to let us add more money to the channel? Then we couldn't buy the option. There needs to be a way for just one of the participants to put their own money into the channel if they choose to.
 Oh, we should have our partner sign a transaction that allows us to put money into the channel, and we can choose whether or not to sign it in the future.
 

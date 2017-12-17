@@ -39,5 +39,5 @@ then then then then
 ;
 
 macro doit
-bet crash
+bet return
 ;		 
