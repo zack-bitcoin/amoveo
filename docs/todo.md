@@ -1,6 +1,8 @@
 ### things to do for the next hard fork of the testnet
 
 * if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
+* or how about we split the money 50-50, and we set the nonce to 0, and we set the delay super high. like 50 years. So you cannot close a channel on a crashing state.
+* we should capture every type of input with chalang, so that chalang can never crash.
 
 * either use request_frequency, or get rid of it.
 

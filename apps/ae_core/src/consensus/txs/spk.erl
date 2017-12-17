@@ -185,14 +185,14 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
 	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS2), Code, State, constants:hash_size()),
-	    Data2 = chalang:run5([ss_code(SS2)], Data),
-	    Data3 = chalang:run5([Code], Data2),
+	    Data2 = chalang:run5(ss_code(SS2), Data),
+	    Data3 = chalang:run5(Code, Data2),
 	    case Data3 of
 		{error, _E} -> 
                     %io:fwrite("spk bet_unlock2 chalang run third\n"),
-		    Data4 = chalang:run5([ss_code(SS)], Data),
+		    Data4 = chalang:run5(ss_code(SS), Data),
                     %io:fwrite("spk bet_unlock2 chalang run fourth\n"),
-		    Y = chalang:run5([Code], Data4),
+		    Y = chalang:run5(Code, Data4),
 		    case Y of
 			{error, E2} ->
 			    io:fwrite("bet unlock2 ERROR"),
@@ -335,8 +335,8 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
-    Data2 = chalang:run5([ScriptSig], Data),
-    Data3 = chalang:run5([Code], Data2),
+    Data2 = chalang:run5(ScriptSig, Data),
+    Data3 = chalang:run5(Code, Data2),
     %io:fwrite(packer:pack(Data3)),
     %io:fwrite("\n"),
     [<<Amount:32>>|
@@ -382,8 +382,8 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
     Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS), Code, State, constants:hash_size()),
-    Data2 = chalang:run5([ss_code(SS)], Data),
-    Data3 = chalang:run5([Code], Data2),
+    Data2 = chalang:run5(ss_code(SS), Data),
+    Data3 = chalang:run5(Code, Data2),
     [<<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),
     if
 	%Delay > 50 ->
