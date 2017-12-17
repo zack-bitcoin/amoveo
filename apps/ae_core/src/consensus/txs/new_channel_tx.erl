@@ -63,10 +63,7 @@ go(Tx, Dict, NewHeight) ->
     OldChannel = channels:dict_get(ID, Dict),
     true = case OldChannel of
 	       empty -> true;
-	       _ ->
-                   CCT = governance:dict_get_value(channel_closed_time, Dict),
-		   channels:closed(OldChannel)
-		       and ((NewHeight - channels:last_modified(OldChannel)) > CCT)
+	       _ -> false
 	   end,
     Aid1 = Tx#nc.acc1,
     Aid2 = Tx#nc.acc2,

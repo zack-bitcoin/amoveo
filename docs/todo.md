@@ -2,18 +2,11 @@
 
 * block_time_after_median should not be a governance variable. We should review all the governance variables.
 
-* rename oracle_shares tx type to "oracle_winnings" or something like that.
-
-* what is block_time_after_median from governance used for?
 * what is governance:channel_closed_time used for?
-* question_delay?
-* governance_delay?
 * why is there a new_channel_tx fee AND a fee for making channels? We can simplify this.
 
 * if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
 
-* make the pubkeys more convenient for copy/pasting. It would be nice if we used compressed pubkeys instead of full pubkeys. Maybe we should use the base58 library, or the pubkey checksum library.
-Maybe encoding the pubkeys should happen at the wallet level, not the node level.
 
 * either use request_frequency, or get rid of it.
 
@@ -22,6 +15,8 @@ Maybe encoding the pubkeys should happen at the wallet level, not the node level
 * a new test for oracles would be good.
 
 * we need a test to make sure that when we close a channel, the correct amounts of money transfers, even if we slashed more than once.
+
+* add block_time back to governance. Use it when retargetting. add it to the header so that the light node can retarget correctly.
 
 
 
@@ -34,7 +29,12 @@ Maybe encoding the pubkeys should happen at the wallet level, not the node level
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* rename oracle_shares tx type to "oracle_winnings" or something like that.
+
 * raise the fees so it isn't affordable to spam the blocks.
+
+* make the pubkeys more convenient for copy/pasting. It would be nice if we used compressed pubkeys instead of full pubkeys. Maybe we should use the base58 library, or the pubkey checksum library.
+Maybe encoding the pubkeys should happen at the wallet level, not the node level.
 
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 
@@ -105,7 +105,7 @@ Oh, we should have our partner sign a transaction that allows us to put money in
 
 * merkle.js should be able to verify proofs of the trie being empty in some places.
 
-* we should use trie:garbage_leaves on light nodes to prune even more things from the trie that we don't care about.
+* we should use trie:garbage_leaves on erlang light nodes to prune even more things from the trie that we don't care about.
 
 * We should optionally garbage collect old blocks, only keep the headers. 
 
@@ -117,15 +117,11 @@ in the proofs dict we should have a flag for each thing to know if it has been u
 
  Secrets module seems unnecessary. As soon as we find out a secret, why not use arbitrage to update all the channels immediately?
 
-[DONE?] We need to test channel_solo_close and channel_slash and channel_timeout from easy.
-
 Cold storage and tools.
 
 Download blocks talk/1 seems useless. talker:talk is accomplishing the same goal.
 
 Javascript light wallets need to be able to do all the channel stuff that full nodes do. 
-
-Maybe we should update download_blocks so that peers get ranked, and we spend more time talking to higher-ranked peers.
 
 It would be nice if there were some macros for chalang/src/compiler_lisp2.erl that did backtracking. that way we wouldn't have to think about control flow when making smart contracts.
 

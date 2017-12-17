@@ -224,7 +224,7 @@ txs_to_querys2([STx|T], Trees) ->
             nc -> 
                 [
                  {governance, ?n2i(nc)},
-                 {governance, ?n2i(channel_closed_time)},%what is this for??
+                 %{governance, ?n2i(channel_closed_time)},%what is this for??
                  {governance, ?n2i(create_channel_fee)},
                  {accounts, new_channel_tx:acc1(Tx)},
                  {accounts, new_channel_tx:acc2(Tx)},
