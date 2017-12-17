@@ -38,7 +38,7 @@ delete(SH) ->
 new_lightning() ->
     %delay for canceling is 100
     S = crypto:strong_rand_bytes(constants:hash_size()),
-    SH = testnet_hasher:doit(S),
+    SH = hash:doit(S),
     ESH = "drop stack_size int 0 == if
 int 100 int 1 int 0 crash else then  drop drop
 hash binary " ++ integer_to_list(constants:hash_size())++ " " ++

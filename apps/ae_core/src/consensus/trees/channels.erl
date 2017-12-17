@@ -162,7 +162,7 @@ write(Channel, Root) ->
     trie:put(key_to_int(ID), M, 0, Root, channels). %returns a pointer to the new root
 id_size() -> constants:key_length().
 key_to_int(X) when is_integer(X) -> 
-    <<Y:256>> = testnet_hasher:doit(<<X:256>>),
+    <<Y:256>> = hash:doit(<<X:256>>),
     Y.
 get(ID, Channels) ->
     true = (ID - 1) < math:pow(2, id_size()),

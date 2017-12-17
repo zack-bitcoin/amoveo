@@ -431,7 +431,7 @@ test(7) ->
     tx_pool:dump(),
     {Trees,_,Height00} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    Data = testnet_hasher:doit(S),
+    Data = hash:doit(S),
     {Tx, _} = existence_tx:make(constants:master_pub(), 1000, Data, Trees),
     Stx = keys:sign(Tx),
     absorb(Stx),

@@ -186,9 +186,9 @@ ensure_decoded_hashed(Pub) ->
         HashSize ->
             Pub;
         PubkeySize ->
-            testnet_hasher:doit(Pub);
+            hash:doit(Pub);
         _ ->
-            testnet_hasher:doit(base64:decode(Pub))
+            hash:doit(base64:decode(Pub))
     end.
    
 make_leaf(Key, V, CFG)  ->

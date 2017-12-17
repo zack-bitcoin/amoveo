@@ -38,7 +38,7 @@ dict_get(Hash, Dict) ->
         _ -> deserialize(X)
     end.
 key_to_int(X) ->
-    <<Y:256>> = testnet_hasher:doit(X),
+    <<Y:256>> = hash:doit(X),
     Y.
 get(Hash, Tree) ->
     %io:fwrite(Hash),
@@ -93,13 +93,13 @@ verify_proof(RootHash, Key, Value, Proof) ->
 
 test() ->
     {_, Height, _} = tx_pool:data(),
-    Hash = testnet_hasher:doit(2),
+    Hash = hash:doit(2),
     C = new(Hash, Height),
     Root0 = constants:root0(),
-    %C = testnet_hasher:doit(2),
+    %C = hash:doit(2),
     {_, empty, _} = get(Hash, Root0),
     NewLoc = write(C, Root0),
-    C2 = new(testnet_hasher:doit(4), Height),
+    C2 = new(hash:doit(4), Height),
     NewLoc2 = write(C2, NewLoc),
     {Root1, C, Path1} = get(Hash, NewLoc2),
     {Root2, empty, Path2} = get(Hash, Root0),

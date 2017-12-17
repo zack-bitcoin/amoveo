@@ -37,7 +37,7 @@ init(ok) ->
     GBH = block:hash(block:block(GenesisMakerBlock)),
     ok = block_absorber:save_helper(GenesisMakerBlock),
     spawn(fun() ->
-		  gen_server:call(headers, {add, testnet_hasher:doit(GHeader),
+		  gen_server:call(headers, {add, hash:doit(GHeader),
 					    GHeader, 0})
 	  end),
     Top = db:read(?LOC),

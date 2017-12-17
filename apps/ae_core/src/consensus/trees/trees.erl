@@ -52,13 +52,13 @@ root_hash2(Trees, Roots) ->
     HS = size(E),
     HS = size(O),
     HS = size(G),
-    testnet_hasher:doit(<<
-			  A/binary,
-			  C/binary,
-			  E/binary,
-			  O/binary,
-			  G/binary
-			>>).
+    hash:doit(<<
+               A/binary,
+               C/binary,
+               E/binary,
+               O/binary,
+               G/binary
+               >>).
 rh2(Type, Trees, Roots) ->
     X = trees:Type(Trees),
     Out = case X of
@@ -68,12 +68,7 @@ rh2(Type, Trees, Roots) ->
         Y -> 
             Type:root_hash(Y)
     end,
-    %io:fwrite("out is "),
-    %io:fwrite(packer:pack(Out)),
-    %io:fwrite("\n"),
     Out.
-            
-   
 serialized_roots(Trees) -> 
     A = accounts:root_hash(trees:accounts(Trees)),
     C = channels:root_hash(trees:channels(Trees)),
@@ -88,7 +83,7 @@ serialized_roots(Trees) ->
      G/binary
      >>.
 root_hash(Trees) ->
-    testnet_hasher:doit(serialized_roots(Trees)).
+    hash:doit(serialized_roots(Trees)).
 keepers_block(_, _, 0) -> [1];
 keepers_block(TreeID, BP, Many) ->
     Trees = block:trees(BP),
@@ -127,7 +122,6 @@ gb2(_, []) -> ok;
 gb2(B, [H|T]) ->
     garbage_block(B, H),
     gb2(B, T).
-
 hash2int(X) ->
     U = size(X),
     U = constants:hash_size(),

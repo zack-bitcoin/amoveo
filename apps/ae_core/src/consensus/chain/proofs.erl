@@ -177,7 +177,7 @@ facts_to_dict([F|T], D) ->
     D2 = dict:store({Tree, Key}, Value3, D),
     facts_to_dict(T, D2).
 hash(F) ->
-    testnet_hasher:doit(F).
+    hash:doit(F).
 governance_to_querys(Gov) ->
     Leaves = trie:get_all(Gov, governance),
     Keys = leaves_to_querys(Leaves).
@@ -412,7 +412,7 @@ test() ->
 	      {governance, block_reward},
 	      {governance, 1},
 	      {channels, 1},
-	      {existence, testnet_hasher:doit(1)},
+	      {existence, hash:doit(1)},
 	      {oracles, OID},
 	      {oracles, 1},
 	      {orders, #key{pub = keys:pubkey(), id = OID}},

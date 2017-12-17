@@ -7,12 +7,9 @@ commit(X) -> X#ex.commit.
 make(From, Fee, Data, Trees) ->
     true = is_binary(Data),
     32 = size(Data),
-    %C = existence:hash(Data),
-    %C = testnet_hasher:doit(Data),
     Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),
     Nonce = accounts:nonce(Acc) + 1,
-    %C = existence:new(testnet_hasher:doit(Data)),
     Tx = #ex{from = From,fee=Fee,nonce=Nonce,commit=Data},
     {Tx, [Proof]}.
 go(Tx, Dict, NewHeight) ->

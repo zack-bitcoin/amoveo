@@ -41,14 +41,14 @@ is_in(_, []) -> false;
 is_in(X, [X|_]) -> true;
 is_in(X, [_|T]) -> is_in(X, T).
 check(Code) ->
-    SH = testnet_hasher:doit(Code),
+    SH = hash:doit(Code),
     gen_server:call(?MODULE, {check, SH}).
 write(Code, L) ->
-    SH = testnet_hasher:doit(Code),
+    SH = hash:doit(Code),
     gen_server:cast(?MODULE, {write, SH, L}).
 remove(Code, L) ->
-    SH = testnet_hasher:doit(Code),
+    SH = hash:doit(Code),
     gen_server:cast(?MODULE, {remove, SH, L}).
 remove_row(Code) ->
-    SH = testnet_hasher:doit(Code),
+    SH = hash:doit(Code),
     gen_server:cast(?MODULE, {remove_row, SH}).

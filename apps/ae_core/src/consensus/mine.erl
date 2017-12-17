@@ -31,7 +31,6 @@ handle_cast(stop, _) ->
 handle_cast(_, X) -> {noreply, X}.
 handle_call(status, _From, X) -> {reply, X, X};
 handle_call(_, _From, X) -> {reply, X, X}.
-
 start() ->
     sync:start(),
     gen_server:cast(?MODULE, start),
@@ -39,7 +38,6 @@ start() ->
     mine().
 mine() ->
     gen_server:cast(?MODULE, mine).
-
 stop() -> gen_server:cast(?MODULE, stop).
 status() ->
     gen_server:call(?MODULE, status).

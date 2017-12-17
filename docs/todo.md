@@ -20,6 +20,10 @@
 
 * either use request_frequency, or get rid of it.
 
+* Syncing should split the process of headers and blocks. If you try to mine, it shouldn't start mining until you download almost all the blocks for the headers you know about.
+
+* a new test for oracles would be good.
+
 
 
 

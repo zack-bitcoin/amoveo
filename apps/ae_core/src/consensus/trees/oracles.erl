@@ -153,7 +153,7 @@ dict_get(ID, Dict) ->
         %_ -> deserialize(X)
     end.
 key_to_int(X) -> 
-    <<Y:256>> = testnet_hasher:doit(<<X:256>>),
+    <<Y:256>> = hash:doit(<<X:256>>),
     Y.
 get(ID, Root) ->
     true = is_integer(ID),
@@ -179,7 +179,7 @@ test() ->
     %tx_pool:dump(),
     %{Trees, _, _} = tx_pool:data(),
     %Root0 = constants:root0(),
-    %X0 = new(1, testnet_hasher:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
+    %X0 = new(1, hash:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
     %X = set_result(X0, 3),
     %X2 = deserialize(serialize(X)),
     %X3 = X2#oracle{orders = X#oracle.orders},
@@ -194,7 +194,7 @@ test2() ->
     %{Trees, _, _} = tx_pool:data(),
     %OID = 2,
     %Root0 = constants:root0(),
-    %X0 = new(OID, testnet_hasher:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
+    %X0 = new(OID, hash:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
     %io:fwrite("test oracle "),
     %io:fwrite(packer:pack(X0)),
     %io:fwrite("\n"),

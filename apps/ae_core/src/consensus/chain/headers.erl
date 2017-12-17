@@ -148,7 +148,7 @@ make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty) -
             accumulative_difficulty = AC}.
     
 txs_hash(X) ->
-    testnet_hasher:doit(X).
+    hash:doit(X).
 -spec serialize(header()) -> serialized_header().
 serialize(H) ->
     false = H#header.prev_hash == undefined,
@@ -338,11 +338,11 @@ code_change(_OldVsn, State, _Extra) ->
 
 
 test() ->
-    H = testnet_hasher:doit(<<>>),
+    H = hash:doit(<<>>),
     Header = setelement(10, make_header(H, 0, 0, 0, H, H, 0, 0), undefined),
     Header = deserialize(serialize(Header)),
     absorb([Header]),
-    H1 = testnet_hasher:doit(serialize(Header)),
+    H1 = hash:doit(serialize(Header)),
     Header2 = setelement(10, make_header(H1, 0, 0, 0, H, H, 0, 0), undefined),
     absorb([Header2]),
     H1 = block:hash(Header),

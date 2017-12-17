@@ -75,7 +75,7 @@ dict_get(Key, Dict) ->
         _ -> deserialize(X)
     end.
 key_to_int(X) -> 
-    <<Y:256>> = testnet_hasher:doit(<<X:256>>),
+    <<Y:256>> = hash:doit(<<X:256>>),
     Y.
 get(ID, Tree) ->
     {X, Leaf, Proof} = trie:get(key_to_int(ID), Tree, ?name),

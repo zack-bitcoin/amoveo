@@ -53,9 +53,9 @@ trees(B) -> B#block.trees.
 prev_hashes(B) -> B#block.prev_hashes.
 proofs(B) -> B#block.proofs.
 tx_hash(T) ->
-    testnet_hasher:doit(T).
+    hash:doit(T).
 proof_hash(P) ->
-    testnet_hasher:doit(P).
+    hash:doit(P).
 merkelize_thing(X) when is_binary(X) ->
     X;
 merkelize_thing(X) ->
@@ -66,7 +66,7 @@ merkelize_thing(X) ->
     end.
 merkelize_pair(A, B) ->
     C = [merkelize_thing(A), merkelize_thing(B)],
-    testnet_hasher:doit(C).
+    hash:doit(C).
 merkelize([A]) -> merkelize_thing(A);
 merkelize([A|[B|T]]) ->
     merkelize(merkelize2([A|[B|T]]));
@@ -81,8 +81,8 @@ txs_proofs_hash(Txs, Proofs) ->
     TB = merkelize(Txs),
     PB = merkelize(Proofs),
     X = <<TB/binary, PB/binary>>,
-    testnet_hasher:doit(X).
-    %testnet_hasher:doit({Txs, Proofs}).
+    hash:doit(X).
+    %hash:doit({Txs, Proofs}).
 block_to_header(B) ->
     headers:make_header(B#block.prev_hash,
                         B#block.height,
@@ -105,7 +105,7 @@ hash(B) when is_binary(B) ->%accepts binary headers
         true ->
             B;
         false ->
-            testnet_hasher:doit(B)
+            hash:doit(B)
     end;
 hash(B) when element(1, B) == header ->
     hash(headers:serialize(B));
@@ -326,7 +326,7 @@ roots_hash(X) when is_record(X, roots) ->
     E = X#roots.existence,
     O = X#roots.oracles,
     G = X#roots.governance,
-    testnet_hasher:doit(<<A/binary, C/binary, E/binary, 
+    hash:doit(<<A/binary, C/binary, E/binary, 
                          O/binary, G/binary>>).
     
 guess_number_of_cpu_cores() ->

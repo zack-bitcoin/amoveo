@@ -99,12 +99,6 @@ dict_get(Key, Dict) ->
         0 -> empty;
         _ -> deserialize(X)
     end.
-    
-%key_to_int({key, Pubkey, _}) ->
-%    key_to_int(Pubkey).
-%key_to_int(X) -> 
-%    <<Y:256>> = testnet_hasher:doit(<<X:256>>),
-%    Y.
 key_to_int(Pubkey) ->
     accounts:key_to_int(Pubkey).
 get(Pub, Root) ->
