@@ -1,7 +1,5 @@
 ### things to do for the next hard fork of the testnet
 
-* constants:minimum_oracle_time() is way too low. This should be one of the governance variables.
-
 * block_time_after_median should not be a governance variable. We should review all the governance variables.
 
 * rename oracle_shares tx type to "oracle_winnings" or something like that.
@@ -11,18 +9,20 @@
 * question_delay?
 * governance_delay?
 * why is there a new_channel_tx fee AND a fee for making channels? We can simplify this.
-* we have both a constants:minimum_oracle_time and also minimum_oracle_time from the governance. We should check if both are necessary.
-* same thing with maximum oracle time.
 
 * if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
 
 * make the pubkeys more convenient for copy/pasting. It would be nice if we used compressed pubkeys instead of full pubkeys. Maybe we should use the base58 library, or the pubkey checksum library.
+Maybe encoding the pubkeys should happen at the wallet level, not the node level.
 
 * either use request_frequency, or get rid of it.
 
 * Syncing should split the process of headers and blocks. If you try to mine, it shouldn't start mining until you download almost all the blocks for the headers you know about.
 
 * a new test for oracles would be good.
+
+* we need a test to make sure that when we close a channel, the correct amounts of money transfers, even if we slashed more than once.
+
 
 
 
@@ -40,12 +40,9 @@
 
 * when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
 
-* we need a test to make sure that when we close a channel, the correct amounts of money transfers, even if we slashed more than once.
-
 * pull channel state shouldn't cause a crash when the state is already synced.
 
 * sync is becoming a zombie process when it cannot connect.
-
 
 * chalang "crash" should be called "return"
 

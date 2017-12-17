@@ -9,10 +9,7 @@
          dict_write/2,
 	 test/0]).
 -record(gov, {id, value, lock}).
-
 -define(name, governance).
-
-
 genesis_state() ->
     {BlockTime, MinimumOracleTime, MaximumOracleTime} =
         case application:get_env(ae_core, test_mode, false) of
@@ -26,23 +23,13 @@ genesis_state() ->
          [space_gas, 1113],
          [max_block_size, 940],
          [create_channel_fee, 250],
-         %[delete_channel_reward, 240],
-         %[create_account_fee, 250],%get rid of this. we already charge a fee for making this tx.
-         %[delete_account_reward, 240],%get rid of this. instead we should make the fee negative
-         %[channel_rent, 600],
-         %[account_rent, 600],
-         %[block_time, BlockTime],%remove
-         %[oracle_future_limit, 335],
-         %[shares_conversion, 575],
          [fun_limit, 350],
          [var_limit, 600],
          [comment_limit, 137], 
-         %[block_creation_maturity, 100],
          [oracle_initial_liquidity, 1728],
          [minimum_oracle_time, MinimumOracleTime],
          [maximum_oracle_time, MaximumOracleTime],
          [maximum_question_size, 352],
-         [block_time_after_median, 100],
          [channel_closed_time, 352],
          [question_delay, 216],
          [governance_delay, 72],
@@ -50,11 +37,9 @@ genesis_state() ->
          [create_acc_tx, 10],
          [spend, 10],
          [delete_acc_tx, 5],
-         %[repo, 5],
          [nc, 10],
          [gc, 10],
          [ctc, 10],
-         [cr, 5],
          [csc, 10],
          [timeout, 10],
          [cs, 10],
@@ -156,18 +141,13 @@ name2number(time_gas) -> 2;
 name2number(space_gas) -> 27;
 name2number(max_block_size) -> 3;
 name2number(create_channel_fee) -> 4;
-name2number(block_time) -> 11;
-%name2number(oracle_future_limit) -> 12;
-name2number(shares_conversion) -> 13;
 name2number(fun_limit) -> 14;%needed to run smart contracts
 name2number(var_limit) -> 15;%needed to run smart contracts
 name2number(comment_limit) -> 16;
-name2number(block_creation_maturity) -> 17;
 name2number(oracle_initial_liquidity) -> 18;
 name2number(minimum_oracle_time) -> 19;
 name2number(maximum_oracle_time) -> 8;
 name2number(maximum_question_size) -> 20;
-name2number(block_time_after_median) -> 21;
 name2number(channel_closed_time) -> 22;
 name2number(question_delay) -> 24;
 name2number(governance_delay) -> 25;
@@ -175,11 +155,9 @@ name2number(governance_change_limit) -> 26;
 name2number(create_acc_tx) -> 28;%these store the minimum fee for each transaction type. "create_acc_tx" is the name of the record of the create_account_tx.
 name2number(spend) -> 29;
 name2number(delete_acc_tx) -> 30;
-%name2number(repo) -> 31;
 name2number(nc) -> 32;
 name2number(gc) -> 33;
 name2number(ctc) -> 34;
-name2number(cr) -> 35;
 name2number(csc) -> 36;
 name2number(timeout) -> 37;
 name2number(cs) -> 38;
