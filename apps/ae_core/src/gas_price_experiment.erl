@@ -1,4 +1,4 @@
--module(gas_price).
+-module(gas_price_experiment).
 -export([test/0, timer0/0, timer1/0, timer2/0, timer3/0, timer4/0, timer5/0, timer6/0, timer7/0]).
 timer0() -> %4 microseconds
     [{integer, 1}].
@@ -17,71 +17,7 @@ timer3() -> %24
 ">>).
 timer4() -> %550
     Swaps = ae_core_compiler:compile(<<"
-: a 1 ;
-: b 1 ;
-: ac 1 ;
-: bc 1 ;
-: da 1 ;
-: db 1 ;
-: dac 1 ;
-: dbc 1 ;
-: ea 1 ;
-: eb 1 ;
-: eac 1 ;
-: ebc 1 ;
-: eda 1 ;
-: edb 1 ;
-: edac 1 ;
-: edbc 1 ;
-: af 1 ;
-: fb 1 ;
-: fac 1 ;
-: fbc 1 ;
-: fda 1 ;
-: fdb 1 ;
-: fdac 1 ;
-: fdbc 1 ;
-: fea 1 ;
-: feb 1 ;
-: feac 1 ;
-: febc 1 ;
-: edfa 1 ;
-: edfb 1 ;
-: fedac 1 ;
-: fedbc 1 ;
-: ag 1 ;
-: gb 1 ;
-: gac 1 ;
-: gbc 1 ;
-: gda 1 ;
-: gdb 1 ;
-: gdac 1 ;
-: gdbc 1 ;
-: gea 1 ;
-: geb 1 ;
-: geac 1 ;
-: gebc 1 ;
-: geda 1 ;
-: gedb 1 ;
-: gedac 1 ;
-: gedbc 1 ;
-: gaf 1 ;
-: gfb 1 ;
-: gfac 1 ;
-: gfbc 1 ;
-: gfda 1 ;
-: gfdb 1 ;
-: gfdac 1 ;
-: gfdbc 1 ;
-: gfea 1 ;
-: gfeb 1 ;
-: gfeac 1 ;
-: gfebc 1 ;
-: gedfa 1 ;
-: gedfb 1 ;
-: gfedac 1 ;
-: gfedbc 1 ;
-">>),
+: a 1 ; : b 1 ; : ac 1 ; : bc 1 ; : da 1 ; : db 1 ; : dac 1 ; : dbc 1 ; : ea 1 ; : eb 1 ; : eac 1 ; : ebc 1 ; : eda 1 ; : edb 1 ; : edac 1 ; : edbc 1 ; : af 1 ; : fb 1 ; : fac 1 ; : fbc 1 ; : fda 1 ; : fdb 1 ; : fdac 1 ; : fdbc 1 ; : fea 1 ; : feb 1 ; : feac 1 ; : febc 1 ; : edfa 1 ; : edfb 1 ; : fedac 1 ; : fedbc 1 ; : ag 1 ; : gb 1 ; : gac 1 ; : gbc 1 ; : gda 1 ; : gdb 1 ; : gdac 1 ; : gdbc 1 ; : gea 1 ; : geb 1 ; : geac 1 ; : gebc 1 ; : geda 1 ; : gedb 1 ; : gedac 1 ; : gedbc 1 ; : gaf 1 ; : gfb 1 ; : gfac 1 ; : gfbc 1 ; : gfda 1 ; : gfdb 1 ; : gfdac 1 ; : gfdbc 1 ; : gfea 1 ; : gfeb 1 ; : gfeac 1 ; : gfebc 1 ; : gedfa 1 ; : gedfb 1 ; : gfedac 1 ; : gfedbc 1 ; ">>),
     Swaps.
 timer5() -> %257
     Swaps = ae_core_compiler:compile(<<"

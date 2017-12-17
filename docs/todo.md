@@ -6,7 +6,6 @@
 
 * rename oracle_shares tx type to "oracle_winnings" or something like that.
 
-* the block reward should be a governance value
 * what is block_time_after_median from governance used for?
 * what is governance:channel_closed_time used for?
 * question_delay?
@@ -17,10 +16,7 @@
 
 * if a smart contract runs out of gas, then the tx should still be valid. We just delete the money from that bet. This stops certain types of DDOS attacks. maybe we need to do the same thing with fail.
 
-* Maybe oracles should be stored by the hash of the question. Since each question is unique.
-Then how are governance oracles stored? {gov_id, oracle_height}
-
-* make the addresses more convenient for copy/pasting
+* make the pubkeys more convenient for copy/pasting. It would be nice if we used compressed pubkeys instead of full pubkeys. Maybe we should use the base58 library, or the pubkey checksum library.
 
 
 
