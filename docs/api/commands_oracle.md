@@ -42,5 +42,5 @@ api:oracle_shares(OracleID).
 ####Oracle unmatched
 If you had unmatched trades sitting in the order book when the oracle closed, this is how you get your money back.
 ```
-api:oracle_unmatched(OracleID, OrderID).
+api:oracle_unmatched(OracleID).
 ```
