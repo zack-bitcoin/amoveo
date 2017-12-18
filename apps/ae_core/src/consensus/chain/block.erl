@@ -437,40 +437,21 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     dict_update_trie2(Trees2, T, Dict).
 dict_update_trie_oracles(T, [], _) -> T;
 dict_update_trie_oracles(Trees, [H|T], Dict) ->
-    {Type, Key} = H,
-    oracles = Type,
-    Type2 = orders,
+    {oracles, Key} = H,
+    EmptyType2 = orders:empty_book(),
     UpdateType2 = set_orders,
-    New0 = Type:dict_get(Key, Dict),
-    Tree = trees:Type(Trees),
-    Tree2 = case New0 of
-                empty -> 
-                    Type:delete(Key, Tree);
-                _ -> 
-                    ABN = Type:Type2(New0),
-                    {_, Old, _} = Type:get(Key, trees:Type(Trees)),
-                    New = if
-                              Old == empty -> Type:UpdateType2(New0, orders:empty_book());
-                              true ->
-                                  ABO = Type:Type2(Old), 
-                                  if
-                                      ABO == 0 -> throw(dict_update_trie_oracles_error),
-                                                  New0;
-                                      0 == ABN -> Type:UpdateType2(New0, Type:Type2(Old));
-                                      true -> New0
-                                  end
-                          end,
-                    Type:write(New, Tree)
-            end,
-    Update = list_to_atom("update_" ++ atom_to_list(Type)),
-    Trees2 = trees:Update(Trees, Tree2),
+    Trees2 = dict_update_account_oracle_helper(oracles, Key, orders, Trees, EmptyType2, UpdateType2, Dict),
     dict_update_trie_oracles(Trees2, T, Dict).
 dict_update_trie_account(T, [], _) -> T;
 dict_update_trie_account(Trees, [H|T], Dict) ->
     {Type, Key} = H,
     accounts = Type,
-    Type2 = bets,
+    EmptyType2 = constants:root0(),
     UpdateType2 = update_bets,
+    Trees2 = dict_update_account_oracle_helper(accounts, Key, bets, Trees, EmptyType2, UpdateType2, Dict),
+    dict_update_trie_account(Trees2, T, Dict).
+
+dict_update_account_oracle_helper(Type, Key, Type2, Trees, EmptyType2, UpdateType2, Dict) ->
     New0 = Type:dict_get(Key, Dict),
     Tree = trees:Type(Trees),
     Tree2 = 
@@ -480,26 +461,24 @@ dict_update_trie_account(Trees, [H|T], Dict) ->
             _ -> 
                 ABN = Type:Type2(New0),
                 {_, Old, _} = Type:get(Key, trees:Type(Trees)),
-                New = if
-                          Old == empty -> 
-                              Type:UpdateType2(New0, constants:root0());
-                          true ->
-                              ABO = Type:Type2(Old),
-                              if
-                                  ABO == 0 -> 
-                                      throw(dict_update_trie_account),
-                                      New0;
-                                  0 == ABN -> 
-                                      Type:UpdateType2(New0, Type:Type2(Old));
-                                  true -> New0
-                              end
-                      end,
-                Type:write(New, Tree)
-        end,
+            New = if
+                      Old == empty -> 
+                          Type:UpdateType2(New0, EmptyType2);
+                      true ->
+                          ABO = Type:Type2(Old),
+                          if
+                              ABO == 0 -> 
+                                  throw("dict update trie account oracle"),
+                                  New0;
+                              0 == ABN -> 
+                                  Type:UpdateType2(New0, Type:Type2(Old));
+                              true -> New0
+                          end
+                  end,
+            Type:write(New, Tree)
+    end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
-    Trees2 = trees:Update(Trees, Tree2),
-    dict_update_trie_account(Trees2, T, Dict).
-
+    trees:Update(Trees, Tree2).
 dict_update_trie_orders(_, [], D) -> D;
 dict_update_trie_orders(Trees, [H|T], Dict) ->
     {orders, Key} = H,
