@@ -28,15 +28,7 @@
                 roots}).
 -record(roots, {accounts, channels, existence, oracles, governance}).
 
-%proofs is for this
-%If the attacker sends a valid block with a valid header,
-% but makes one of the proofs of the state tree wrong.
-%The node getting attacked would have to verify all the proofs until it found a bad one.
-%I think this might be making it too affordable to DDOS our nodes.
-%So I am thinking of adding something more to the header.
-%A hash of a datastructure containing all the proofs for this block.
-%So when you are loading the block,
-%you can know if a proof has been manipulated immediately.
+%Read about why there are so many proofs in each block in docs/design/light_nodes.md
 
 -opaque block() :: #block{}.
 
@@ -83,7 +75,6 @@ txs_proofs_hash(Txs, Proofs) ->
     PB = merkelize(Proofs),
     X = <<TB/binary, PB/binary>>,
     hash:doit(X).
-    %hash:doit({Txs, Proofs}).
 block_to_header(B) ->
     headers:make_header(B#block.prev_hash,
                         B#block.height,
@@ -158,12 +149,10 @@ top(Header) ->
 height() ->
     height(top()).
 
-lg(X) when is_integer(X) andalso X > 0 ->
+lg(X) when (is_integer(X) and (X > 0)) ->
     lgh(X, 0).
-lgh(1, X) ->
-    X;
-lgh(N, X) ->
-    lgh(N div 2, X+1).
+lgh(1, X) -> X;
+lgh(N, X) -> lgh(N div 2, X+1).
 
 -spec get_by_height(headers:height()) -> empty | block().
 get_by_height(N) ->
@@ -182,8 +171,7 @@ get_by_height_in_chain(N, BH) when N > -1 ->
             M = height(Block),
             D = M - N,
             if
-                D < 0 ->
-                    empty;
+                D < 0 -> empty;
                 D == 0 -> Block;
                 true ->
                     PrevHash = prev_hash(lg(D), Block),
@@ -191,13 +179,9 @@ get_by_height_in_chain(N, BH) when N > -1 ->
                     get_by_height_in_chain(N, PrevHeader)
             end
     end.
-
-
-prev_hash(0, BP) ->
-    prev_hash(BP);
-prev_hash(N, BP) -> %N=0 should be the same as prev_hash(BP)
+prev_hash(0, BP) -> prev_hash(BP);
+prev_hash(N, BP) -> 
     element(N+1, BP#block.prev_hashes).
-
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
@@ -219,32 +203,10 @@ genesis_maker() ->
            time = 0,
            difficulty = constants:initial_difficulty(),
            period = BlockPeriod,
-           version = version:doit(0),%constants:version(),
+           version = version:doit(0),
            trees = Trees,
            roots = make_roots(Trees)
           }.
-%block_reward_expired(Trees, Height, ID, PH) -> 
-%    OldAccounts = trees:accounts(Trees),
-%    Governance = trees:governance(Trees),
-    %BCM = governance:get_value(block_creation_maturity, Governance),
-%    BCM = 100,
-%    BlocksAgo = Height - BCM,
-%    case BlocksAgo > 0 of
-%        true ->
-%            Txs = txs(get_by_height_in_chain(BlocksAgo, PH)),
-%            TransactionFees = txs:fees(Txs),
-%            TransactionCosts = tx_costs(Txs, Governance, 0),
-%            BlockReward = governance:get_value(block_reward, Governance),
-%            Amount = BlockReward + TransactionFees - TransactionCosts,
-%            NM = case accounts:get(ID, OldAccounts) of
-%                     {_, empty,_} ->  accounts:new(ID, Amount, Height);
-%                     _ -> accounts:update(ID, Trees, Amount, none, Height)
-%                 end,
-%            NewAccounts = accounts:write(NM, OldAccounts),
-%            trees:update_accounts(Trees, NewAccounts);
-%        false ->
-%            Trees
-%    end.
 block_reward_dict(Dict, Height, ID, PH) ->
     BCM = 100,
     BlocksAgo = Height - BCM,
@@ -280,12 +242,10 @@ tx_costs([STx|T], Governance, Out) ->
     tx_costs(T, Governance, Cost+Out).
 new_dict(Txs, Dict, Height, _Pub, _PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
-    %block_reward_dict(Dict2, Height, Pub, PrevHash).
     Dict2.
     
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
-    %Txs = [keys:sign(CB)|Txs0],
     Txs = [CB|Txs0],
     Querys = proofs:txs_to_querys(Txs, Trees),
     Height = headers:height(Header),
@@ -314,19 +274,14 @@ make(Header, Txs0, Trees, Pub) ->
 make_roots(Trees) ->
     #roots{accounts = accounts:root_hash(trees:accounts(Trees)),
            channels = channels:root_hash(trees:channels(Trees)),
-           existence = existence:root_hash(trees:existence(Trees)),
+           existence =existence:root_hash(trees:existence(Trees)),
            oracles = oracles:root_hash(trees:oracles(Trees)),
            governance = governance:root_hash(trees:governance(Trees))}.
-accounts_root(X) ->
-    X#roots.accounts.
-channels_root(X) ->
-    X#roots.channels.
-existence_root(X) ->
-    X#roots.existence.
-oracles_root(X) ->
-    X#roots.oracles.
-governance_root(X) ->
-    X#roots.governance.
+accounts_root(X) -> X#roots.accounts.
+channels_root(X) -> X#roots.channels.
+existence_root(X) -> X#roots.existence.
+oracles_root(X) -> X#roots.oracles.
+governance_root(X) -> X#roots.governance.
 roots_hash(X) when is_record(X, roots) ->
     A = X#roots.accounts,
     C = X#roots.channels,
@@ -353,23 +308,16 @@ guess_number_of_cpu_cores() ->
             {ok, CoresToMine} = application:get_env(ae_core, cores_to_mine),
             min(Y, CoresToMine)
     end.
-
 spawn_many(0, _) -> ok;
 spawn_many(N, F) -> 
     spawn(F),
     spawn_many(N-1, F).
-
 mine(Rounds) -> 
-    %Top = headers:top(),
-    %timer:sleep(100),
-    %PB = block:get_by_hash(Top),
     PB = top(),
     Top = block_to_header(PB),
-    %Top = headers:read(hash(PB)),
     {_, _, Txs} = tx_pool:data(),
     Block = make(Top, Txs, trees(PB), keys:pubkey()),
     mine(Block, Rounds).
-
 mine(Block, Rounds) ->
     %Cores = guess_number_of_cpu_cores(),
     Cores = 1, %slow down mining so I don't break the computer.
@@ -389,17 +337,13 @@ mine(Block, Rounds, Cores) ->
     spawn_many(Cores-1, F),
     F().
 mine2(Block, Times) ->
-    %io:fwrite("mine2\n"),
     PH = Block#block.prev_hash,
     ParentPlus = get_by_hash(PH),
     Trees = ParentPlus#block.trees,
     MineDiff = Block#block.difficulty,
     case pow:pow(hash(Block), MineDiff, Times, constants:hash_size()) of
         false -> false;
-        Pow ->
-            Nonce = pow:nonce(Pow),
-            B2 = Block#block{nonce = Nonce},
-            B2
+        Pow -> Block#block{nonce = pow:nonce(Pow)}
     end.
 proofs_roots_match([], _) -> true;
 proofs_roots_match([P|T], R) ->
@@ -525,25 +469,27 @@ dict_update_trie_account(Trees, [H|T], Dict) ->
     accounts = Type,
     New0 = Type:dict_get(Key, Dict),
     Tree = trees:Type(Trees),
-    Tree2 = case New0 of
-                empty -> 
-                    Type:delete(Key, Tree);
-                _ -> 
-                    ABN = Type:bets(New0),
-                    {_, Old, _} = Type:get(Key, trees:Type(Trees)),
-                    New = if
-                              Old == empty -> Type:update_bets(New0, constants:root0());
-                              true ->
-                                  ABO = Type:bets(Old),
-                                  if
-                                      ABO == 0 -> 
-                                          New0;
-                                      0 == ABN -> Type:update_bets(New0, accounts:bets(Old));
-                                      true -> New0
-                                  end
-                          end,
-                    Type:write(New, Tree)
-            end,
+    Tree2 = 
+        case New0 of
+            empty -> 
+                Type:delete(Key, Tree);
+            _ -> 
+                ABN = Type:bets(New0),
+                {_, Old, _} = Type:get(Key, trees:Type(Trees)),
+                New = if
+                          Old == empty -> 
+                              Type:update_bets(New0, constants:root0());
+                          true ->
+                              ABO = Type:bets(Old),
+                              if
+                                  ABO == 0 -> New0;
+                                  0 == ABN -> 
+                                      Type:update_bets(New0, accounts:bets(Old));
+                                  true -> New0
+                              end
+                      end,
+                Type:write(New, Tree)
+        end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
     dict_update_trie_account(Trees2, T, Dict).
@@ -572,14 +518,11 @@ dict_update_trie_orders(Trees, [H|T], Dict) ->
                 orders:head_put(Pointer, Many, Orders);
             _ ->
                 New = orders:dict_get(Key, Dict),
-                Orders2 = case New of
-                              empty ->
-                                  orders:delete(Pub, Orders);
-                              _ ->
-                                  Out = orders:write(New, Orders),
-                                  {_, New, _} = orders:get(Pub, Out),
-                                  Out
-                          end,
+                Orders2 = 
+                    case New of
+                        empty -> orders:delete(Pub, Orders);
+                        _ -> orders:write(New, Orders)
+                    end,
                 Orders2
         end,
     Dict2 = oracles:dict_write(DictOracle, Orders3, Dict),
@@ -591,19 +534,18 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
     New = oracle_bets:dict_get(Key, Dict),
     DictAccount = accounts:dict_get(Pub, Dict),
     {_, Account, _} = accounts:get(Pub, trees:accounts(Trees)),
-    OracleBets = case accounts:bets(DictAccount) of
-                     0 -> accounts:bets(Account);
-                     Z -> Z
-                 end,
-    OracleBets2 = case New of
-                      empty ->
-                          oracle_bets:delete(OID, OracleBets);
-                      _ ->
-                          oracle_bets:write(New, OracleBets)
-              end,
+    OracleBets = 
+        case accounts:bets(DictAccount) of
+            0 -> accounts:bets(Account);
+            Z -> Z
+        end,
+    OracleBets2 = 
+        case New of
+            empty -> oracle_bets:delete(OID, OracleBets);
+            _ -> oracle_bets:write(New, OracleBets)
+        end,
     Dict2 = accounts:dict_write(DictAccount, OracleBets2, Dict),
     dict_update_trie_oracle_bets(Trees, T, Dict2).
-    
 get_things(Key, L) ->
     get_things(Key, L, [], []).
 get_things(Key, [], A, B) -> {A, B};
@@ -613,7 +555,6 @@ get_things(Key, [{Key2, X}|L], A, B) ->
     get_things(Key, L, A, [{Key2, X}|B]).
 facts_to_trie([], Tree) -> Tree;
 facts_to_trie([Fact|T], Tree) ->
-    %We need to deal with the case where the fact is proving that it is empty.
     Tree2 = ftt2(Fact, Tree),
     facts_to_trie(T, Tree2).
 setup_tree(Empty, Start, Path, Type) ->
@@ -621,13 +562,9 @@ setup_tree(Empty, Start, Path, Type) ->
         Empty ->
             Hashes = hd(lists:reverse(Path)),
             Stem = stem:make(Hashes, Type),
-            %Stem = stem:make(stem:empty_tuple(),
-            %                 stem:empty_tuple(),
-            %                 Hashes),
             trie:new_trie(Type, Stem);
         X -> X
     end.
-            
 ftt2(Fact, Trees) ->
     Type = proofs:tree(Fact),
     case Type of
@@ -638,11 +575,9 @@ ftt2(Fact, Trees) ->
             {_, Oracle, _} = oracles:get(OID, Oracles),
             case Oracle of 
                 empty -> 
-                    %Orders = orders:empty_book();
                     Trees;
                 _ -> 
                     Orders = oracles:orders(Oracle),
-            %Orders = oracles:orders(Oracle),
                     Orders2 = setup_tree(0, Orders, Path, Type),
                     Orders3 = trees:restore(Orders2, Fact, 0),
                     Oracle2 = oracles:set_orders(Oracle, Orders3),
@@ -685,12 +620,7 @@ initialize_chain() ->
         true -> get_by_height(0)
          end,
     Header0 = block_to_header(GB),
-    %GH = hash(Header0),
-    %headers:hard_set_top(Header0),
-    %block_hashes:add(hash(Header0)),
     Header0.
-
-%% Tests
 
 test() ->
     test(1).
