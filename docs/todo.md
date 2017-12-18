@@ -3,6 +3,8 @@
 
 * set the governance tx fees to reasonable values to deincentivize miners from filling up the blocks with junk data.
 
+* explain minimum and maximum oracle time in the governance.md doc. Publish to twitter.
+
 
 
 

@@ -217,14 +217,17 @@ dict_get(Key, Dict) ->
 %% Tests
 
 test() ->
-    C = new(14, 1, 0),
+    Num = name2number(fun_limit),
+    C = new(Num, 1, 0),
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
-    Leaf = {gov, 14, 350, 0},
+    Leaf = {gov, Num, 350, 0},
     Leaf = deserialize(serialize(Leaf)),
     {_, Leaf, _} = get(fun_limit, Governance),
     G2 = write(C, Governance),
-    {_, C, _} = get(fun_limit, G2),
+    {_, C2, _} = get(fun_limit, G2),
+    io:fwrite(packer:pack([C, C2])),
+    C = C2,
     {Root, Leaf, Proof} = get(fun_limit, Governance),
     true = verify_proof(Root, fun_limit, serialize(Leaf), Proof),
     success.

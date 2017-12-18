@@ -285,11 +285,8 @@ txs_to_querys2([STx|T], Trees) ->
                 [
                  {governance, ?n2i(oracle_new)},
                  {governance, ?n2i(governance_change_limit)},
-                 %{governance, ?n2i(governance_delay)},
                  {governance, ?n2i(maximum_question_size)},
-                 %{governance, ?n2i(question_delay)},
                  {governance, ?n2i(oracle_initial_liquidity)},
-                 %{governance, ?n2i(oracle_future_limit)},
                  {governance, ?n2i(minimum_oracle_time)},
                  {accounts, AID},
                  {oracles, OID}
@@ -328,7 +325,6 @@ txs_to_querys2([STx|T], Trees) ->
                     make_orders(Pubkeys, OID),
                 [
                              %whichever governance variable is being updated.
-                 %{accounts, AID},
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
                  {governance, ?n2i(oracle_close)},
@@ -341,15 +337,13 @@ txs_to_querys2([STx|T], Trees) ->
 	    unmatched -> 
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
-                %Pubkeys = [From|oracle_bet_tx:to_prove(OID, Trees)],
-                %Prove = make_orders(Pubkeys, OID),
                 [
                  {governance, ?n2i(unmatched)},
                  {orders, #key{pub = <<?Header:PS>>, id = OID}},
                  {orders, #key{pub = From, id = OID}},
                  {accounts, From},
                  {oracles, OID}
-                ];% ++ Prove;
+                ];
 	    oracle_shares -> 
                 OID = oracle_shares_tx:oracle_id(Tx),
                 From = oracle_shares_tx:from(Tx),
