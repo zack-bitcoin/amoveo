@@ -8,7 +8,7 @@ initial_coins() -> 27017593349040. %about 1 year.
 initial_difficulty() -> 
     case application:get_env(ae_core, test_mode, false) of
 	%true -> 2500;
-	true -> 0;
+	true -> 500;
 	_ -> 6452
     end.
 difficulty_bits() -> 24.
@@ -46,7 +46,8 @@ channel_size() ->
 	  (height_bits()*2) + 
 	  channel_delay_bits()) div 8) 
 	+ 1 + (hash_size()) + (2 * pubkey_size()).
-retarget_frequency() -> 2000. %how many blocks till we recalculate the difficulty
+%retarget_frequency() -> 2000. %how many blocks till we recalculate the difficulty
+retarget_frequency() -> 20. %how many blocks till we recalculate the difficulty
 block_time() -> 6000. %600 seconds = 10 minutes
 time_units() -> 100. % 0.1 seconds
 start_time() -> 14825749780.
