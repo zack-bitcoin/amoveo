@@ -3,20 +3,18 @@ The miner profits by including transactions that pay above the minimum fee for t
 
 These are the 18 types of transaction that can be in blocks.
 
-4 transactions for accounts:
+3 transactions for accounts:
 * account_new
 * account_spend
 * account_delete
-* account_recycle
 
-7 transactions for channels:
+6 transactions for channels:
 * channel_new
 * channel_grow
 * channel_team_close
 * channel_solo_close
 * channel_slash
 * channel_timeout
-* channel_recycle
 
 5 transactions for the oracle:
 * oracle_new
@@ -40,10 +38,6 @@ Spends tokens to a different account.
 # account_delete
 
 This deletes an account on the blockchain and sends all of it's AE tokens to a different account.
-
-# account_recycle
-
-If an account runs out of money anyone can do this transaction to delete the account. The user who deletes the empty account recieves a reward which is smaller than the cost of creating an account.
 
 # channel_new
 
@@ -83,11 +77,6 @@ The channel can be slashed many times, but each time it is slashed the evidence 
 # channel_timeout
 
 If you did a channel_solo_close, and then waited the delay number of blocks after the final channel_slash, now you can do this transaction to close the channel.
-
-# channel_recycle
-
-If a channel has no money in it, then anyone can use this transaction to delete the channel.
-The maker of this transaction gets a reward which is smaller than the cost of making the channel.
 
 # oracle_new
 
