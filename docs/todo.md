@@ -1,16 +1,9 @@
 ### things to do for the next hard fork of the testnet
 
-* Syncing should split the process of headers and blocks. If you try to mine, it shouldn't start mining until you download almost all the blocks for the headers you know about.
-
-* a new test for oracles would be good.
-
-* we need a test to make sure that when we close a channel, the correct amounts of money transfers, even if we slashed more than once.
-
 * add block_time back to governance. Use it when retargetting. add it to the header so that the light node can retarget correctly.
+Maybe only every 2000th header should say the block time, since we only recalculate difficulty every 2000 blocks.
 
 * make sure we are using every governance variable between 0 and max exclusive. Don't have empty spots.
-
-
 
 
 
@@ -23,6 +16,8 @@
 
 
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
+
+* Syncing should split the process of headers and blocks. If you try to mine, it shouldn't start mining until you download almost all the blocks for the headers you know about. 
 
 * the config constant "garbage_period" is unused. We should review the garbage collection mechanism to see if this constant is needed. We also  need to know if this constant limits any other contants, in particular "fork_tolerance".
 

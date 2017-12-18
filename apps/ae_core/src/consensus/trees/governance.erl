@@ -22,6 +22,7 @@ genesis_state() ->
          [time_gas, 1113],
          [space_gas, 1113],
          [max_block_size, 940],
+         [block_period, 550],
          [fun_limit, 350],
          [var_limit, 600],
          [oracle_initial_liquidity, 1728],
@@ -135,6 +136,7 @@ name2number(block_reward) -> 1;
 name2number(time_gas) -> 2;
 name2number(space_gas) -> 27;
 name2number(max_block_size) -> 3;
+name2number(block_period) -> 4;
 name2number(fun_limit) -> 14;%how many functions can the vm make
 name2number(var_limit) -> 15;%how many variables can the vm store
 name2number(oracle_initial_liquidity) -> 18;

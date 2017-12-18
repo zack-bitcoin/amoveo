@@ -2,10 +2,10 @@
 -behaviour(gen_server).
 
 %% API
--export([prev_hash/1, height/1, time/1, version/1, trees_hash/1, txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1,
+-export([prev_hash/1, height/1, time/1, version/1, trees_hash/1, txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1, period/1,
          check/0,
          absorb/1, read/1, top/0, dump/0, hard_set_top/1,
-         make_header/8,
+         make_header/9,
          serialize/1, deserialize/1,
          difficulty_should_be/1]).
 
@@ -28,7 +28,8 @@
                  difficulty,
                  version,
                  nonce,
-                 accumulative_difficulty = 0}).
+                 accumulative_difficulty = 0,
+                 period}).
 -define(LOC, constants:headers_file()).
 -record(s, {headers = dict:new() :: dict:dict(block_header_hash(), header()),
             top = #header{} :: header()}).
@@ -41,6 +42,7 @@
 %% API functions
 
 prev_hash(H) -> H#header.prev_hash.
+period(H) -> H#header.period.
 height(H) -> H#header.height.
 time(H) -> H#header.time.
 version(H) -> H#header.version.
@@ -71,29 +73,11 @@ absorb([Header | T]) ->
             %file:write_file(?LOC, serialize(Header), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
     end,
     absorb(T).
-
 check_pow(Header) ->
     MineDiff = Header#header.difficulty,
     Data = block:hash(Header#header{nonce = <<0:256>>}),
     <<Nonce:256>> = Header#header.nonce,
-    Serialized = serialize(Header),
-    %Hashed = hash:doit(Serialized, constants:hash_size()),
-    %io:fwrite("about to check pow "),
-    %io:fwrite(packer:pack({pow, Data, MineDiff, Nonce})),
-    %io:fwrite("\n"),
     pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size()).
-    %check_pow(P, HashSize) ->
-    %HashSize = 32,
-    %N = P#pow.nonce,
-    %Diff = P#pow.difficulty,
-    %Data = P#pow.data,
-    %H1 = hash:doit(Data, HashSize),
-    %X = HashSize*8,
-    %Y = <<H1/binary, Diff:16, N:X>>,
-    %H2 = hash:doit(Y, HashSize),
-    %I = hash2integer(H2),
-    %I > Diff.
-
 check_difficulty(A) ->
     B = case A#header.height < 2 of
             true ->
@@ -120,7 +104,7 @@ dump() -> gen_server:call(?MODULE, {dump}).
 hard_set_top(Header) ->
     gen_server:call(?MODULE, {hard_set_top, Header}).
 
-make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty) ->
+make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty, Period) ->
     #header{prev_hash = PH,
 	    height = 0, 
 	    time = Time, 
@@ -129,8 +113,9 @@ make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty) ->
 	    txs_proof_hash = TxsProofHash,
 	    nonce = <<Nonce:256>>,
 	    difficulty = Difficulty,
-	    accumulative_difficulty = 0};
-make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty) ->
+	    accumulative_difficulty = 0,
+            period = Period};
+make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty, Period) ->
     AC = case read(PH) of
             {ok, PrevHeader} ->
                 pow:sci2int(Difficulty) + 
@@ -145,7 +130,8 @@ make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty) -
             txs_proof_hash = TxsProodHash,
 	    nonce = <<Nonce:256>>,
             difficulty = Difficulty,
-            accumulative_difficulty = AC}.
+            accumulative_difficulty = AC,
+            period = Period}.
     
 txs_hash(X) ->
     hash:doit(X).
@@ -156,19 +142,21 @@ serialize(H) ->
     TB = constants:time_bits(),
     VB = constants:version_bits(),
     DB = 16,
+    PB = constants:period_bits(),
     HB = constants:hash_size()*8,
     HB = bit_size(H#header.prev_hash),
     HB = bit_size(H#header.trees_hash),
     HB = bit_size(H#header.txs_proof_hash),
     HB = bit_size(H#header.nonce),
     <<(H#header.prev_hash)/binary,
-      (H#header.height):HtB,
-      (H#header.time):TB,
-      (H#header.version):VB,
-      (H#header.trees_hash)/binary,
-      (H#header.txs_proof_hash)/binary,
-      (H#header.difficulty):DB,
-      (H#header.nonce)/binary
+     (H#header.height):HtB,
+     (H#header.time):TB,
+     (H#header.version):VB,
+     (H#header.trees_hash)/binary,
+     (H#header.txs_proof_hash)/binary,
+     (H#header.difficulty):DB,
+     (H#header.nonce)/binary,
+     (H#header.period):PB
     >>.
 
 -spec deserialize(serialized_header()) -> header().
@@ -177,16 +165,18 @@ deserialize(H) ->
     HtB = constants:height_bits(),
     TB = constants:time_bits(),
     VB = constants:version_bits(),
+    PB = constants:period_bits(),
     DB = 16,
     <<
-      PrevHash:HB/bitstring,
-      Height:HtB,
-      Time:TB,
-      Version:VB,
-      TreesHash:HB/bitstring,
-      TxsProofHash:HB/bitstring,
-      Difficulty:DB,
-      Nonce:HB/bitstring
+     PrevHash:HB/bitstring,
+     Height:HtB,
+     Time:TB,
+     Version:VB,
+     TreesHash:HB/bitstring,
+     TxsProofHash:HB/bitstring,
+     Difficulty:DB,
+     Nonce:HB/bitstring,
+     Period:PB
     >> = H,
     #header{prev_hash = PrevHash,
             height = Height,
@@ -195,6 +185,7 @@ deserialize(H) ->
             trees_hash = TreesHash,
             txs_proof_hash = TxsProofHash,
             difficulty = Difficulty,
+            period = Period,
             nonce = Nonce}.
 
 difficulty_should_be(A) ->
@@ -218,7 +209,8 @@ check_difficulty2(Header) ->
     Tbig = M1 - M2,
     T = Tbig div F,%T is the estimated block time over last 2000 blocks.
     NT = pow:recalculate(Hash2000#header.difficulty,
-                         constants:block_time(),
+                         %constants:block_time(),
+                         Header#header.period,
                          max(1, T)),
     max(NT, constants:initial_difficulty()).
 
@@ -339,11 +331,11 @@ code_change(_OldVsn, State, _Extra) ->
 
 test() ->
     H = hash:doit(<<>>),
-    Header = setelement(10, make_header(H, 0, 0, 0, H, H, 0, 0), undefined),
+    Header = setelement(10, make_header(H, 0, 0, 0, H, H, 0, 0, 0), undefined),
     Header = deserialize(serialize(Header)),
     absorb([Header]),
     H1 = hash:doit(serialize(Header)),
-    Header2 = setelement(10, make_header(H1, 0, 0, 0, H, H, 0, 0), undefined),
+    Header2 = setelement(10, make_header(H1, 0, 0, 0, H, H, 0, 0, 0), undefined),
     absorb([Header2]),
     H1 = block:hash(Header),
     {ok, Header} = read(H1),

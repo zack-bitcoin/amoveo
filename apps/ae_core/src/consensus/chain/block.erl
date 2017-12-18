@@ -18,6 +18,7 @@
                 trees_hash,
                 time,
                 difficulty,
+                period,
                 version,
                 nonce = 0,
                 trees,
@@ -91,7 +92,8 @@ block_to_header(B) ->
                         B#block.trees_hash,
                         txs_proofs_hash(B#block.txs, B#block.proofs),
                         B#block.nonce,
-                        B#block.difficulty).
+                        B#block.difficulty,
+                        B#block.period).
 
 -spec hash(block() |
            headers:header() |
@@ -209,12 +211,14 @@ genesis_maker() ->
     Trees = trees:new(Accounts, Root0, Root0, Root0, Root0, GovInit),
 
     TreesRoot = trees:root_hash(Trees),
+    BlockPeriod = governance:get_value(block_period, GovInit),
     #block{height = 0,
            prev_hash = <<0:(constants:hash_size()*8)>>,
            txs = [],
            trees_hash = TreesRoot,
            time = 0,
            difficulty = constants:initial_difficulty(),
+           period = BlockPeriod,
            version = version:doit(0),%constants:version(),
            trees = Trees,
            roots = make_roots(Trees)
@@ -289,12 +293,15 @@ make(Header, Txs0, Trees, Pub) ->
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     NewDict = new_dict(Txs, Dict, Height+1, keys:pubkey(), hash(Header)),
     NewTrees = dict_update_trie(Trees, NewDict),
+    Governance = trees:governance(NewTrees),
+    BlockPeriod = governance:get_value(block_period, Governance),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
 		   trees_hash = trees:root_hash(NewTrees),
 		   time = time_now(),
 		   difficulty = headers:difficulty_should_be(Header),
+                   period = BlockPeriod,
 		   version = version:doit(Height+1),%constants:version(),
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header),
