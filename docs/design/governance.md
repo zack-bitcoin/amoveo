@@ -1,8 +1,6 @@
 Using the oracle, the parameters that define the system can be modified. The mechanism is built with the goal that the oracle will choose parameters that make the value of Veo increase.
 
-We have an oracle that asks "should this variable be pushed up or down?".
-
-Depending on the final state of the oracle, the variable is changed.
+We have an oracle that asks "should this variable be pushed up or down?". Depending on the final state of the oracle, the variable is changed.
 
 
 The parameters that can be modified are of 4 different types:
@@ -10,6 +8,7 @@ The parameters that can be modified are of 4 different types:
 2) virtual machine variables
 3) oracle variables
 4) transaction fees
+
 
 1 blockchain variables
 ======
