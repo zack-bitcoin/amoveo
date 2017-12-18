@@ -121,7 +121,6 @@ prove2([{Tree, Key}|T], Trees) ->
 		empty -> 0;
 		_ -> Tree:serialize(Data)
 	    end,
-    %SD = Tree:serialize(Data),
     Proof = #proof{root = Root,
 		  key = Key,
 		  path = Path, 
@@ -131,29 +130,13 @@ prove2([{Tree, Key}|T], Trees) ->
     [Proof|prove2(T, Trees)].
 facts_to_dict([], D) -> D;
 facts_to_dict([F|T], D) ->
-%-record(proof, {tree, value, root, key, path}).
-    %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
     Key2 = 
         case Tree of
             orders -> 
-                K = F#proof.key,
-                Pub = K#key.pub,
-                %ID = K#key.id,
-                %Oracle = dict:fetch({oracles, ID}, D),
-                %RH = oracles:orders_hash(oracles:deserialize(Oracle)),
-                %RH = F#proof.root,
-                Pub;
+                F#proof.key#key.pub;
             oracle_bets -> 
-                K = F#proof.key,
-                %Pub = K#key.pub,
-                ID = K#key.id,
-                %Account = accounts:dict_get(Pub, D),
-                %Account = dict:fetch({accounts, Pub}, D),
-                %RH = accounts:bets_hash(accounts:deserialize(Account)),
-                %RH = accounts:bets_hash(Account),
-                %RH = F#proof.root,
-                ID;
+                F#proof.key#key.id;
 	_ ->
             F#proof.key
     end,

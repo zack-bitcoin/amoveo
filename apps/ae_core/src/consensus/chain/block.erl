@@ -405,19 +405,16 @@ proofs_roots_match([], _) -> true;
 proofs_roots_match([P|T], R) ->
     Tree = proofs:tree(P),
     Root = proofs:root(P),
-    case Tree of
-        accounts ->
-            true = R#roots.accounts == Root;
-        channels -> 
-            true = R#roots.channels == Root;
-        existence -> 
-            true = R#roots.existence == Root;
-        oracles ->
-            true = R#roots.oracles == Root;
-        governance ->
-            true = R#roots.governance == Root;
-        _ -> ok
-    end,
+    Root = 
+        case Tree of
+            oracle_bets -> Root;
+            orders -> Root;
+            accounts -> R#roots.accounts;
+            channels -> R#roots.channels;
+            existence -> R#roots.existence;
+            oracles -> R#roots.oracles;
+            governance -> R#roots.governance
+           end,
     proofs_roots_match(T, R).
             
 check(Block) ->
@@ -446,7 +443,7 @@ check(Block) ->
         false ->
             ok
     end,
-    true = proofs_roots_match(Block#block.proofs, Roots),
+    true = proofs_roots_match(Facts, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
