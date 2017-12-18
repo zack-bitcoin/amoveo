@@ -1,13 +1,9 @@
 ### things to do for the next hard fork of the testnet
 
-* add block_time back to governance. Use it when retargetting. add it to the header so that the light node can retarget correctly.
-Maybe only every 2000th header should say the block time, since we only recalculate difficulty every 2000 blocks.
 
 * make sure we are using every governance variable between 0 and max exclusive. Don't have empty spots.
 
-
-
-
+* set the governance tx fees to reasonable values to deincentivize miners from filling up the blocks with junk data.
 
 
 
