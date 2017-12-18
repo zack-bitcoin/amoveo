@@ -132,39 +132,42 @@ get(Key, Tree) when is_integer(Key) ->
                 deserialize(LeafValue)
         end,
     {X, V, Proof}.
-
+%Blockchain variables
 name2number(block_reward) -> 1;
-name2number(time_gas) -> 2;
-name2number(space_gas) -> 27;
+name2number(developer_reward) -> 2;
 name2number(max_block_size) -> 3;
 name2number(block_period) -> 4;
-name2number(fun_limit) -> 14;%how many functions can the vm make
-name2number(var_limit) -> 15;%how many variables can the vm store
-name2number(oracle_initial_liquidity) -> 18;
-name2number(minimum_oracle_time) -> 19;
-name2number(maximum_oracle_time) -> 8;
-name2number(maximum_question_size) -> 20;
-name2number(governance_change_limit) -> 26;
-name2number(create_acc_tx) -> 28;%these store the minimum fee for each transaction type. "create_acc_tx" is the name of the record of the create_account_tx.
-name2number(spend) -> 29;
-name2number(delete_acc_tx) -> 30;
-name2number(nc) -> 32;
-name2number(gc) -> 33;
-name2number(ctc) -> 34;
-name2number(csc) -> 36;
-name2number(timeout) -> 37;
-name2number(cs) -> 38;
-name2number(ex) -> 39;
-name2number(oracle_new) -> 40;
-name2number(oracle_bet) -> 41;
-name2number(oracle_close) -> 42;
-name2number(unmatched) -> 43;
-name2number(oracle_shares) -> 44;
-name2number(developer_reward) -> 45;
+%VM variables
+name2number(time_gas) -> 5;
+name2number(space_gas) -> 6;
+name2number(fun_limit) -> 7;%how many functions can the vm make
+name2number(var_limit) -> 8;%how many variables can the vm store
+%Oracle variables
+name2number(governance_change_limit) -> 9;
+name2number(oracle_initial_liquidity) -> 10;
+name2number(minimum_oracle_time) -> 11;
+name2number(maximum_oracle_time) -> 12;
+name2number(maximum_question_size) -> 13;
+%Transaction fees
+name2number(create_acc_tx) -> 14;%these store the minimum fee for each transaction type. "create_acc_tx" is the name of the record of the create_account_tx.
+name2number(spend) -> 15;
+name2number(delete_acc_tx) -> 16;
+name2number(nc) -> 17;
+name2number(gc) -> 18;
+name2number(ctc) -> 19;
+name2number(csc) -> 20;
+name2number(timeout) -> 21;
+name2number(cs) -> 22;
+name2number(ex) -> 23;
+name2number(oracle_new) -> 24;
+name2number(oracle_bet) -> 25;
+name2number(oracle_close) -> 26;
+name2number(unmatched) -> 27;
+name2number(oracle_shares) -> 28;
 name2number(X) -> 
     io:fwrite(X),
     throw(invalid_governance_atom).
-max() -> 46.
+max() -> 29.
 root_hash(Root) ->
     trie:root_hash(?name, Root).
 make_leaf(Key, V, CFG) ->

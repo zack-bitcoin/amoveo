@@ -1,8 +1,6 @@
 ### things to do for the next hard fork of the testnet
 
 
-* make sure we are using every governance variable between 0 and max exclusive. Don't have empty spots.
-
 * set the governance tx fees to reasonable values to deincentivize miners from filling up the blocks with junk data.
 
 
