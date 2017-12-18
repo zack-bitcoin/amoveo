@@ -72,6 +72,7 @@ function hash2integer5(bin) {
 
 wallet_doit1();
 function wallet_doit1() {
+    var retarget_frequency = 2000;
     var headers_db = {};//store valid headers by hash
     var top_diff = 0;//accumulative difficulty of top
     var button = document.createElement("input");
@@ -122,7 +123,7 @@ function wallet_doit1() {
             return "unknown parent";
         } else {
             var Diff = header[6];
-            var RF = 2000; //constants:retarget_frequency();
+            var RF = retarget_frequency; //constants:retarget_frequency();
             var height = header[1];
             var x = height % RF;
             //console.log("x height");
@@ -156,7 +157,7 @@ function wallet_doit1() {
     function difficulty_should_be2(header) {
         console.log("difficulty_should_be2");
         var period = header[10];
-        var f = Math.floor(2000 / 2); //constants:retarget frequencey is 2000
+        var f = Math.floor(retarget_frequency / 2); //constants:retarget frequencey is 2000
         var a1 = retarget(header, f, []);
         var times1 = a1.times;
         var header2000 = a1.header;
@@ -237,6 +238,8 @@ function wallet_doit1() {
             var prev_hash = string_to_array(atob(header[2]));
             var diff0 = difficulty_should_be(prev_hash);
             var diff = header[6];
+            console.log("diff0, diff1");
+            console.log([diff0, diff]);
             if (diff == diff0) {
                 var nonce = atob(header[8]);
                 var data = JSON.parse(JSON.stringify(header));

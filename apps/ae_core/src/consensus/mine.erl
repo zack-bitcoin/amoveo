@@ -17,8 +17,9 @@ handle_cast(mine, go) ->
 		  end);
 	false -> 
 	    spawn(fun() ->
-			  block:mine(1000000),
-                          timer:sleep(50),%slow down mining so I don't break my computer.
+			  %block:mine(1000000),
+                          %timer:sleep(50),%slow down mining so I don't break my computer.
+                          block:mine(5),
 			  mine()
 		  end)
     end,
