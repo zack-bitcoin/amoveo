@@ -76,15 +76,16 @@ txs_proofs_hash(Txs, Proofs) ->
     X = <<TB/binary, PB/binary>>,
     hash:doit(X).
 block_to_header(B) ->
-    headers:make_header(B#block.prev_hash,
-                        B#block.height,
-                        B#block.time,
-                        B#block.version,
-                        B#block.trees_hash,
-                        txs_proofs_hash(B#block.txs, B#block.proofs),
-                        B#block.nonce,
-                        B#block.difficulty,
-                        B#block.period).
+    headers:make_header(
+      B#block.prev_hash,
+      B#block.height,
+      B#block.time,
+      B#block.version,
+      B#block.trees_hash,
+      txs_proofs_hash(B#block.txs, B#block.proofs),
+      B#block.nonce,
+      B#block.difficulty,
+      B#block.period).
 
 -spec hash(block() |
            headers:header() |
@@ -437,21 +438,15 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     dict_update_trie2(Trees2, T, Dict).
 dict_update_trie_oracles(T, [], _) -> T;
 dict_update_trie_oracles(Trees, [H|T], Dict) ->
-    {oracles, Key} = H,
-    EmptyType2 = orders:empty_book(),
-    UpdateType2 = set_orders,
-    Trees2 = dict_update_account_oracle_helper(oracles, Key, orders, Trees, EmptyType2, UpdateType2, Dict),
+    Trees2 = dict_update_account_oracle_helper(oracles, H, orders, Trees, orders:empty_book(), set_orders, Dict),
     dict_update_trie_oracles(Trees2, T, Dict).
 dict_update_trie_account(T, [], _) -> T;
 dict_update_trie_account(Trees, [H|T], Dict) ->
-    {Type, Key} = H,
-    accounts = Type,
-    EmptyType2 = constants:root0(),
-    UpdateType2 = update_bets,
-    Trees2 = dict_update_account_oracle_helper(accounts, Key, bets, Trees, EmptyType2, UpdateType2, Dict),
+    Trees2 = dict_update_account_oracle_helper(accounts, H, bets, Trees, constants:root0(), update_bets, Dict),
     dict_update_trie_account(Trees2, T, Dict).
 
-dict_update_account_oracle_helper(Type, Key, Type2, Trees, EmptyType2, UpdateType2, Dict) ->
+dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2, Dict) ->
+    {_, Key} = H,
     New0 = Type:dict_get(Key, Dict),
     Tree = trees:Type(Trees),
     Tree2 = 

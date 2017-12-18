@@ -31,8 +31,8 @@ The parameters that can be modified are of 4 different types:
 
 * governance_change_limit - this is a limit on how much a governance variable can be changed at once.
 * oracle_initial_liquidity - how much does it cost to launch an oracle.
-* minimum_oracle_time - ???
-* maximum_oracle_time - ???
+* minimum_oracle_time - This is the minimum length of time an oracle market is required to be in a single state before it can be closed.
+* maximum_oracle_time - This is the maximum delay between when an oracle is created, and when betting can start.
 * maximum_question_size - how many bytes big can a question for the oracle be
 
 4 Transaction fees
