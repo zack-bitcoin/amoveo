@@ -1,10 +1,6 @@
 ### things to do for the next hard fork of the testnet
 
 
-* set the governance tx fees to reasonable values to deincentivize miners from filling up the blocks with junk data.
-
-
-
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
