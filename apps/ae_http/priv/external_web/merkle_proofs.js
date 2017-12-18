@@ -158,7 +158,6 @@ function serialize_tree_element(v, trie_key) {
         var nonce = integer_to_array(v[7], 4);
         var timeout_height = integer_to_array(v[8], 4);
         var last_modified = integer_to_array(v[9], 4);
-        var entropy = integer_to_array(v[10], 2);
         var delay = integer_to_array(v[11], 4);
         var closed = integer_to_array(v[13], 1);
         //var serialized = integer_to_array(v[1], 256).concat(
@@ -170,11 +169,10 @@ function serialize_tree_element(v, trie_key) {
                             nonce).concat(
                                 timeout_height).concat(
                                     last_modified).concat(
-                                        entropy).concat(
-                                            delay).concat(
-                                                closed).concat(
-                                                    acc1).concat(
-                                                        acc2);
+                                        delay).concat(
+                                            closed).concat(
+                                                acc1).concat(
+                                                    acc2);
         return serialized;
     } else if (t == "oracle") {
         var id = integer_to_array(v[1], 32);

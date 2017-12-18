@@ -2,7 +2,6 @@
 -export([go/3, make/5, from/1, id/1]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
-
 from(X) -> X#csc.from.
 id(X) -> 
     SPK = X#csc.scriptpubkey,
@@ -37,13 +36,11 @@ go(Tx, Dict, NewHeight) ->
     Acc2 = channels:acc2(OldChannel),
     Acc1 = spk:acc1(ScriptPubkey),
     Acc2 = spk:acc2(ScriptPubkey),
-    true = channels:entropy(OldChannel) == spk:entropy(ScriptPubkey),
     %NewCNonce = spk:nonce(ScriptPubkey),
     SS = Tx#csc.scriptsig,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict),
     %false = Amount == 0,
     true = NewCNonce > channels:nonce(OldChannel),
-    %SharesRoot = shares:root_hash(shares:write_many(Shares, 0)),
     NewChannel = channels:dict_update(From, CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false),
 
     true = (-1 < (channels:bal1(NewChannel)-Amount)),
@@ -84,6 +81,7 @@ slash_it(SPK, SS) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     GovCost = governance:get_value(cs, Governance),
-    {Tx, _} = channel_slash_tx:make(keys:pubkey(), free_constants:tx_fee() + GovCost, keys:sign(SPK), SS, Trees),
+    {ok, TxFee} = application:get_env(ae_core, tx_fee),
+    {Tx, _} = channel_slash_tx:make(keys:pubkey(), TxFee + GovCost, keys:sign(SPK), SS, Trees),
     Stx = keys:sign(Tx),
     tx_pool_feeder:absorb(Stx).

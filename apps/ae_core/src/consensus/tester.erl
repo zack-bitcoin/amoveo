@@ -17,8 +17,6 @@ test1() ->
     S = packer:test(),
     io:fwrite("encryption test\n"),
     S = encryption:test(),
-    io:fwrite("fractions test\n"),
-    S = ae_core_fractions:test(),
     io:fwrite("merkel tree tests\n"),
     S = tree_test:test(),
     io:fwrite("block hashes test\n"),

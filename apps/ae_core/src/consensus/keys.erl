@@ -64,7 +64,7 @@ handle_call(keypair, _From, R) ->
            end,
     {reply, Keys, R};
 handle_call({encrypt, Message, Pubkey}, _From, R) ->
-    io:fwrite(packer:pack({encryption, base64:encode(Pubkey), base64:encode(R#f.pub)})),
+    %io:fwrite(packer:pack({encryption, base64:encode(Pubkey), base64:encode(R#f.pub)})),
     EM=encryption:send_msg(Message, base64:encode(Pubkey), base64:encode(R#f.pub), base64:encode(R#f.priv)),
     io:fwrite("sending encrypted message "),
     io:fwrite(packer:pack(EM)),
@@ -77,7 +77,6 @@ handle_call({decrypt, EMsg}, _From, R) ->
     Message = encryption:get_msg(EMsg, base64:encode(R#f.priv)),
     {reply, Message, R}.
 handle_cast({load, Pub, Priv, Brainwallet}, _R) ->
-    io:fwrite("load 2\n"),
     store(Pub, Priv, Brainwallet),
     {noreply, #f{pub=Pub, priv=Priv}};
 handle_cast({new, Brainwallet}, _R) ->
@@ -97,7 +96,6 @@ handle_cast({change_password, Current, New}, R) ->
     store(R#f.pub, Priv, New),
     {noreply, R};
 handle_cast(_, X) -> {noreply, X}.
-
 handle_info(set_initial_keys, State) ->
     KeysEnvs = {application:get_env(ae_core, keys_pub),
                 application:get_env(ae_core, keys_priv),
@@ -117,11 +115,8 @@ handle_info(set_initial_keys, State) ->
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
-
 keypair() -> gen_server:call(?MODULE, keypair).
 pubkey() -> gen_server:call(?MODULE, pubkey).
-%address() -> accounts:pub_decode(pubkey()).
-%sign(M) -> gen_server:call(?MODULE, {sign, M, tx_pool:accounts()}).
 sign(M) -> 
     S = status(),
     case S of
@@ -131,13 +126,7 @@ sign(M) ->
 	     {error, locked}
     end.
 raw_sign(M) -> gen_server:call(?MODULE, {raw_sign, M}).
-%load(Pub, Priv, Brainwallet) when is_list(Pub) -> 
-%    load(list_to_binary(Pub), Priv, Brainwallet);
-%load(Pub, Priv, Brainwallet) when is_list(Priv) -> 
-%    load(Pub, list_to_binary(Priv), Brainwallet);
-load(Pub, Priv, Brainwallet) when (is_binary(Pub) and is_binary(Priv))-> 
-    io:fwrite("load key\n"),
-    gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet}).
+load(Pub, Priv, Brainwallet) when (is_binary(Pub) and is_binary(Priv))-> gen_server:cast(?MODULE, {load, Pub, Priv, Brainwallet}).
 unlock(Brainwallet) -> gen_server:cast(?MODULE, {unlock, Brainwallet}).
 lock() -> gen_server:cast(?MODULE, lock).
 status() -> gen_server:call(?MODULE, status).
@@ -148,14 +137,9 @@ decrypt(EMessage) ->
     binary_to_term(element(3, gen_server:call(?MODULE, {decrypt, EMessage}))).
 encrypt(Message, Pubkey) ->
     gen_server:call(?MODULE, {encrypt, term_to_binary(Message), Pubkey}).
-    
 test() ->
     unlocked = keys:status(),
     Tx = {spend, 1, 1, 2, 1, 1},
     Stx = sign(Tx),
-    %{signed,{spend,1,1,2,1,1},
-    %<<"MEQCIHfFk8egH3Jz15NyipyuTxBBY9bP1u078CFn+lhDbsKoAiB4rMgteg8mXXJ2GGbfcvySR7RmoK6xn5kbNoIE88drjw==">>,
-    %<<"QkF4eUUvV2htL1NyMG5PTmJjN2pjaXlBZjhvNHZSZXhOc0ovaVZweVRpMmxTd0lMb0ZJTm1JUjNVdDNpMGRTaEIrd1Fz"...>>,
-    % [],[],[]},
     true = testnet_sign:verify(Stx, 1),
     success.

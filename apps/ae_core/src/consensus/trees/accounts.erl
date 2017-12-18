@@ -4,7 +4,7 @@
 	 %addr/1, id/1,
 	 balance/1,root_hash/1,new_balance/4,delete/2,
 	 bets/1, bets_hash/1, update_bets/2,
-	 ensure_decoded_hashed/1, height/1, verify_proof/4,
+	 height/1, verify_proof/4,
          dict_write/2, dict_write/3, dict_delete/2,
          make_leaf/3, key_to_int/1,
 	 serialize/1, deserialize/1, pubkey/1, test/0]).
@@ -35,7 +35,6 @@ dict_update(Pub, Dict, Amount, NewNonce, NewHeight) ->
     Account = dict_get(Pub, Dict),
     dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Account#acc.bets).
 dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Bets) ->
-    PubHash = ensure_decoded_hashed(Pub),
     Account = dict_get(Pub, Dict),
     OldNonce = Account#acc.nonce,
     FinalNonce = case NewNonce of
@@ -187,9 +186,9 @@ ensure_decoded_hashed(Pub) ->
         HashSize ->
             Pub;
         PubkeySize ->
-            testnet_hasher:doit(Pub);
+            hash:doit(Pub);
         _ ->
-            testnet_hasher:doit(base64:decode(Pub))
+            hash:doit(base64:decode(Pub))
     end.
    
 make_leaf(Key, V, CFG)  ->

@@ -4,11 +4,11 @@
 -export([start_link/0,code_change/3,handle_call/3,
 	 handle_cast/2,handle_info/2,init/1,terminate/2,
 	 new_channel/3,spend/2,close/2,lock_spend/7,
-	 agree_bet/4,garbage/0,entropy/1,
+	 agree_bet/4,garbage/0,
 	 new_channel_check/1,
 	 cid/1,them/1,script_sig_them/1,me/1,
 	 script_sig_me/1,
-	 update_to_me/2, new_cd/6, 
+	 update_to_me/2, new_cd/5,
 	 make_locked_payment/3, live/1, they_simplify/3,
 	 bets_unlock/1, emsg/1, trade/5, trade/7,
          cancel_trade/4, cancel_trade_server/3,
@@ -21,14 +21,13 @@
 	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
 	     emsg = [],
 	     live = true,
-	     entropy = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
 emsg(X) ->
     X#cd.emsg.
 live(X) ->
     X#cd.live.
-new_cd(Me, Them, SSMe, SSThem, Entropy, CID) ->
-    #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, entropy = Entropy, cid = CID}.
+new_cd(Me, Them, SSMe, SSThem, CID) ->
+    #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, cid = CID}.
 me(X) -> X#cd.me.
 cid({ok, CD}) -> cid(CD);
 cid(X) when is_binary(X) ->
@@ -59,7 +58,7 @@ handle_cast({new_channel, Tx, SSPK, _Accounts}, X) ->
     SPK = testnet_sign:data(SSPK),
     %Delay = spk:delay(SPK),
     %SPK2 = new_channel_tx:spk(Tx, Delay),%doesn't move the money
-    CD = #cd{me = SPK, them = SSPK, entropy = spk:entropy(SPK), cid = new_channel_tx:id(Tx)},
+    CD = #cd{me = SPK, them = SSPK, cid = new_channel_tx:id(Tx)},
     channel_manager:write(other(Tx), CD),
     {noreply, X};
 handle_cast({close, SS, STx}, X) ->
@@ -280,7 +279,6 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     io:fwrite("the simplify 02 \n"),
     SS = script_sig_me(CD),
     SS4 = script_sig_them(CD),
-    Entropy = entropy(CD),
     io:fwrite("they simplify about to force update "),
     io:fwrite(packer:pack({SSME, SS4, SPKME})),
     io:fwrite("\n"),
@@ -294,7 +292,7 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 	    (B2 == {NewSPK, SS}) ->
 %if they find a way to unlock funds, then give it to them.
 		Return = keys:sign(NewSPK),
-		NewCD = new_cd(NewSPK, ThemSPK, SS, SS, Entropy, CID),
+		NewCD = new_cd(NewSPK, ThemSPK, SS, SS, CID),
 		channel_manager:write(From, NewCD),
 		Return;
 	    true ->
@@ -304,7 +302,7 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 		    B ->
 	    %if they give free stuff, then accept.
 			Return = keys:sign(NewSPK),
-			NewCD = new_cd(NewSPK, ThemSPK, SS, SS, Entropy, CID),
+			NewCD = new_cd(NewSPK, ThemSPK, SS, SS, CID),
 			channel_manager:write(From, NewCD),
 			Return;
 		    true ->
@@ -316,7 +314,7 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
                         io:fwrite(packer:pack({compare_spks2, SPK2})), %this has 2 bets in it
                         io:fwrite("\n"),
 			SPK = SPK2,
-			Data = new_cd(SPK, ThemSPK, SS5, SS5, Entropy, CID),
+			Data = new_cd(SPK, ThemSPK, SS5, SS5, CID),
 			channel_manager:write(From, Data),
 			Return
 		end
@@ -363,9 +361,7 @@ garbage_helper([H|T], C, OldC) ->
 	    case B of
 		neither -> 
 	 %If it has been deleted in both places
-		    %CID = spk:cid(SPK),
-		    channel_manager:write(H, #cd{entropy = CD#cd.entropy}); 
-		    %channel_manager:delete(CID);
+		    channel_manager:write(H, #cd{});
 		_ -> ok
 	    end
     end,
@@ -386,22 +382,16 @@ depth_check2(SPK, C, OldC) ->
     PartnerID = other(SPK),
     Channel = channels:get(PartnerID, C),
     OldChannel = channels:get(PartnerID, OldC),
-    E1 = spk:entropy(SPK),
-    E2 = channels:entropy(Channel),
-    E3 = channels:entropy(OldChannel),
     A11 = channels:acc1(Channel),
     A12 = channels:acc1(OldChannel),
     A21 = channels:acc2(Channel),
     A22 = channels:acc2(OldChannel),
     K = keys:pubkey(),
     B = ((K == A11) or (K == A21)),
-    Both = (E1 == E2)  %both is true if the channel has existed a long time.
-	and (E1 == E3) 
-	and (A11 == A12) 
+    Both = (A11 == A12) %both is true if the channel has existed a long time.
 	and (A21 == A22)
 	and B,
     One = (B or (K == A12) or (K == A22)) %One is true if the channel is young, or old and gone.
-	and ((E1 == E2) or (E1 == E3))
 	and ((A11 == A12) or (A21 == A22)),
     if
 	Both -> both;
@@ -427,29 +417,13 @@ other(Aid1, Aid2) ->
 	true -> Aid1 = K
     end,
     Out.
-    
-	    
-entropy([Aid1, Aid2]) ->
-    Other = other(Aid1, Aid2),
-    entropy(Other);
-entropy(CD) when is_record(CD, cd)->
-    CD#cd.entropy;
-entropy(Other) ->
-    case channel_manager:read(Other) of
-	{ok, CD} ->  
-	    CD#cd.entropy;
-	error -> 1
-    end.
 new_channel_check(Tx) ->
     %make sure we aren't already storing a channel with the same CID/partner combo.
     Other = other(Tx),
     %CID = new_channel_tx:id(Tx),
     case channel_manager:read(Other) of
 	{ok, CD} ->
-	    true = CD#cd.me == [],%this is the case if it was deleted before
-	    OldEntropy = CD#cd.entropy,
-	    NewEntropy = new_channel_tx:entropy(Tx),
-	    NewEntropy>OldEntropy;
+	    true = CD#cd.me == [];%this is the case if it was deleted before
 	error -> true %we have never used this CID partner combo before.
     end.
 

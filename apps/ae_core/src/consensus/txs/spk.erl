@@ -1,7 +1,7 @@
 -module(spk).
--export([acc1/1,acc2/1,entropy/1,
+-export([acc1/1,acc2/1,
 	 bets/1,space_gas/1,time_gas/1,
-	 new/9,cid/1,amount/1, 
+	 new/8,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,dict_run/6,%settle_bet/4,
          chalang_state/3,
@@ -25,7 +25,7 @@
               key,%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
               meta}).%meta is {direction_we_bet, maxprice}
 
--record(spk, {acc1,acc2, entropy, 
+-record(spk, {acc1,acc2, 
 	      bets, space_gas, time_gas, 
 	      cid, amount = 0, nonce = 0,
 	      delay = 0
@@ -40,7 +40,6 @@ delay(X) -> X#spk.delay.
 acc1(X) -> X#spk.acc1.
 acc2(X) -> X#spk.acc2.
 bets(X) -> X#spk.bets.
-entropy(X) -> X#spk.entropy.
 space_gas(X) -> X#spk.space_gas.
 time_gas(X) -> X#spk.time_gas.
 cid(X) -> X#spk.cid.
@@ -127,15 +126,13 @@ prove_facts2([{Tree, Key}|T], Trees) ->
 tree2id(accounts) -> 1;
 tree2id(channels) -> 2;
 tree2id(existence) -> 3;
-tree2id(burn) -> 4;
 tree2id(oracles) -> 5;
 tree2id(governance) -> 6.
 
 new_ss(Code, Prove) ->
     #ss{code = Code, prove = Prove}.
 ss_code(X) when is_binary(X) -> 
-    1=2,
-    X;
+    1=2;
 ss_code(X) -> X#ss.code.
 ss_prove(X) -> X#ss.prove.
 ss_meta(X) -> X#ss.meta.
@@ -145,11 +142,10 @@ new_bet(Code, Key, Amount) ->
     new_bet(Code, Key, Amount, 0).
 new_bet(Code, Key, Amount, Meta) ->
     #bet{code = Code, key = Key, amount = Amount, meta = Meta}.
-new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Entropy) ->
-    #spk{acc1 = Acc1, acc2 = Acc2, entropy = Entropy,
+new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay) ->
+    #spk{acc1 = Acc1, acc2 = Acc2,
 	 bets = Bets, space_gas = SG, time_gas = TG,
-	 cid = CID, nonce = Nonce, delay = Delay
-	}.
+	 cid = CID, nonce = Nonce, delay = Delay}.
 bet_unlock(SPK, SS) ->
     %io:fwrite("spk bet unlock\n"),
     Bets = SPK#spk.bets,
@@ -186,14 +182,14 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
 	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS2), Code, State, constants:hash_size()),
-	    Data2 = chalang:run5([ss_code(SS2)], Data),
-	    Data3 = chalang:run5([Code], Data2),
+	    Data2 = chalang:run5(ss_code(SS2), Data),
+	    Data3 = chalang:run5(Code, Data2),
 	    case Data3 of
 		{error, _E} -> 
                     %io:fwrite("spk bet_unlock2 chalang run third\n"),
-		    Data4 = chalang:run5([ss_code(SS)], Data),
+		    Data4 = chalang:run5(ss_code(SS), Data),
                     %io:fwrite("spk bet_unlock2 chalang run fourth\n"),
-		    Y = chalang:run5([Code], Data4),
+		    Y = chalang:run5(Code, Data4),
 		    case Y of
 			{error, E2} ->
 			    io:fwrite("bet unlock2 ERROR"),
@@ -336,13 +332,7 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
-    Data2 = chalang:run5([ScriptSig], Data),
-    Data3 = chalang:run5([Code], Data2),
-    %io:fwrite(packer:pack(Data3)),
-    %io:fwrite("\n"),
-    [<<Amount:32>>|
-     [<<Nonce:32>>|
-      [<<Delay:32>>|_]]] = chalang:stack(Data3),%#d.stack,
+    {Amount, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
     %io:fwrite(packer:pack({stack, Amount, Nonce, Delay})),
     %io:fwrite("\n"),
     CGran = constants:channel_granularity(),
@@ -350,7 +340,7 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     true = Amount >= -CGran,
     A3 = Amount * Bet#bet.amount div CGran,
     {A3, Nonce, Delay,
-     chalang:time_gas(Data3)
+     chalang:time_gas(Data2)
     }.
 force_update(SPK, SSOld, SSNew) ->
     %{_Trees, Height, _} = tx_pool:data(),
@@ -383,9 +373,7 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
     Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS), Code, State, constants:hash_size()),
-    Data2 = chalang:run5([ss_code(SS)], Data),
-    Data3 = chalang:run5([Code], Data2),
-    [<<ContractAmount:32>>, <<N:32>>, <<Delay:32>>|_] = chalang:stack(Data3),
+    {ContractAmount, N, Delay, _} = chalang_error_handling(ss_code(SS), Code, Data),
     if
 	%Delay > 50 ->
 	Delay > 50 ->
@@ -497,6 +485,34 @@ obligations(2, [A|T]) ->
 	    true -> 0
 	end,
     C + obligations(2, T).
+vm(SS, State) ->
+    {ok, TimeLimit} = application:get_env(ae_core, time_limit),
+    {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
+    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
+    {ok, VarLimit} = application:get_env(ae_core, var_limit),
+    chalang:vm(SS, TimeLimit, SpaceLimit, FunLimit, VarLimit, State).
+chalang_error_handling(SS, Code, Data) ->
+    case chalang:run5(SS, Data) of
+        {error, S} ->
+            io:fwrite("script sig has an error when executed: "),
+            io:fwrite(S),
+            io:fwrite("\n"),
+            1 = 2;
+        Data2 ->
+            case chalang:run5(Code, Data2) of
+                {error, S2} ->
+                    io:fwrite("code has an error when executed with that script sig: "),
+                    io:fwrite(S2),
+                    io:fwrite("\n"),
+                    1 = 2;
+                Data3 ->
+                    [<<Amount:32>>|
+                     [<<Nonce:32>>|
+                      [<<Delay:32>>|_]]] = chalang:stack(Data3),%#d.stack,
+                    {Amount, Nonce, Delay, Data3}
+            end
+    end.
+                    
     
 test2() ->
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),

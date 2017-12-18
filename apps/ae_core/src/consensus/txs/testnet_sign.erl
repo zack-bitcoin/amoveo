@@ -18,11 +18,6 @@ new_key() -> %We keep this around for the encryption library. it is used to gene
     {Pub, Priv}.
 sign(S, Priv) -> sign:sign(S, Priv).
 verify_sig(S, Sig, Pub) -> sign:verify_sig(S, Sig, Pub).
-%sign(S, Priv) -> en(crypto:sign(ecdsa, sha256, serialize(S), [Priv, params()])).
-%verify_sig(S, Sig, Pub) -> 
-%    SD = de(Sig),
-%    PD = Pub,
-%    crypto:verify(ecdsa, sha256, serialize(S), SD, [PD, params()]).
 verify_1(Tx, Pub) -> 
     verify_sig(Tx#signed.data, Tx#signed.sig, Pub).
 verify_2(Tx, Pub) -> 
@@ -37,8 +32,6 @@ verify_both(Tx, Addr1, Addr2) ->
     end.
 type_check(Type) -> %these are the types that get signed twice
     lists:any(fun(X) -> X==Type end, [gc, nc, ctc, spk]).
-	%(Type == gc) or (Type == nc) or (Type == ctc) or (type == spk)
-
 verify(SignedTx) ->
     Tx = SignedTx#signed.data,
     N1 = element(2, Tx),
@@ -48,8 +41,7 @@ verify(SignedTx) ->
 	B ->
 	    N2 = element(3, Tx),
 	    verify_both(SignedTx, N1, N2);
-	true -> 
-	    verify_1(SignedTx, N1)
+	true -> verify_1(SignedTx, N1)
     end.
 sign_tx(SignedTx, Pub, Priv) when element(1, SignedTx) == signed ->
     Tx = SignedTx#signed.data,
@@ -125,5 +117,3 @@ times(N, F) ->
     times(N-1, F).
 test2(X) ->
     times(X, fun() -> generate() end ).
-		     
-

@@ -125,3 +125,18 @@ Detail Merkle tree and Merkle proof.
 Decide whether to include `#header.accumulative_difficulty` in this description.
 
 Confirm exclusion of `#block.prev_hashes` from this description.
+
+
+
+a governance variable limits the total size of the transactions in a single block.
+the other block parts are also limited. Height must be an integer one greater than the previous.
+prev_hash must be the output of a hash function, which is fixed sized.
+channels is the root of a trie, which is the output of a hash function.
+accounts is the root of a trie.
+mines_block must point to an account id, which is limited, or a tuple of an account id and an address, which is limited in the account:serialize function.
+ time must be less than the current time. and greater than 0.
+ difficulty must be calculated from the previous difficulty.
+ the comment must be less than 140 bytes.
+ the magic number is fixed.
+
+so, the block is limited in size

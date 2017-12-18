@@ -46,7 +46,7 @@ test(1) ->
     absorb(Stx),
     {Trees2,  _, _} = tx_pool:data(),
     Accounts2 = trees:accounts(Trees2),
-    {Ctx2, _} = spend_tx:make(NewPub, 10, Fee, constants:master_pub(), Trees2, []),
+    {Ctx2, _} = spend_tx:make(NewPub, 10, Fee, constants:master_pub(), Trees2),
     Stx2 = keys:sign(Ctx2),
     absorb(Stx2),
     {Trees3, _, _} = tx_pool:data(),
@@ -90,10 +90,9 @@ test(3) ->
     {Trees2, _, _} = tx_pool:data(),
 
     CID = 5,
-    Entropy = 432,
 
     Delay = 30,
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -105,7 +104,7 @@ test(3) ->
     absorb(SStx3),
     {Trees4, _, _} = tx_pool:data(),
 
-    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, [], Fee),
+    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
@@ -137,10 +136,9 @@ test(4) ->
     Accounts2 = trees:accounts(Trees2),
     
     CID = 5,
-    Entropy = 432,
     Delay = 0,
     
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 10000, 20000, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -151,7 +149,7 @@ test(4) ->
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
-    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
     {Ctx3, _} = channel_solo_close:make(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
@@ -193,10 +191,9 @@ test(5) ->
     Accounts2 = trees:accounts(Trees2),
     
     CID = 5,
-    Entropy = 432,
     Delay = 0,
     
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 10000, 20000, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -211,7 +208,7 @@ test(5) ->
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
-    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
     {Ctx3, _} = channel_solo_close:make(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
@@ -252,9 +249,8 @@ test(6) ->
     Accounts2 = trees:accounts(Trees2),
 
     CID = 5,
-    Entropy = 432,
 
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Entropy, 10, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -265,14 +261,14 @@ test(6) ->
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
-    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
     {Ctx3, _} = channel_solo_close:make(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
     %ok;
-%test([600, Fee, NewPub, NewPriv, CID, Entropy, SignedScriptPubKey]) ->
+%test([600, Fee, NewPub, NewPriv, CID, SignedScriptPubKey]) ->
     mine_blocks(1),
     timer:sleep(50),
     {Trees4, _, _} = tx_pool:data(),
@@ -328,10 +324,9 @@ test(8) ->
     {Trees2, _, _} = tx_pool:data(),
 
     CID = 5,
-    Entropy = 432,
 
     Delay = 10,
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -340,7 +335,7 @@ test(8) ->
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Bet = spk:new_bet(Code, Code, 50),
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
     {Ctx3, _} = channel_solo_close:make(constants:master_pub(),Fee, SignedScriptPubKey, [ScriptSig], Trees3),
@@ -350,7 +345,7 @@ test(8) ->
     absorb(Stx3),
     {Trees4, _, _} = tx_pool:data(),
 
-    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, [], Fee),
+    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
@@ -380,10 +375,9 @@ test(9) ->
     {Trees2, _, _} = tx_pool:data(),
 
     CID = 5,
-    Entropy = 432,
 
     Delay = 10,
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -392,7 +386,7 @@ test(9) ->
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Bet = spk:new_bet(Code, Code, 50),
     ChannelNonce = 0,
-    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
     {Ctx3, _} = channel_solo_close:make(constants:master_pub(),Fee, SignedScriptPubKey, [ScriptSig], Trees3),
@@ -410,7 +404,7 @@ test(9) ->
 
     {Trees4, _, _} = tx_pool:data(),
 
-    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, [], Fee),
+    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
@@ -429,15 +423,16 @@ test(7) ->
     io:fwrite("existence test \n"),
     S = <<"test data">>,
     tx_pool:dump(),
-    {Trees,_,_} = tx_pool:data(),
+    {Trees,_,Height00} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    C = existence:new(testnet_hasher:doit(S)),
-    {Tx, _} = existence_tx:make(constants:master_pub(), 1000, C, Trees),
+    Data = hash:doit(S),
+    {Tx, _} = existence_tx:make(constants:master_pub(), 1000, Data, Trees),
     Stx = keys:sign(Tx),
     absorb(Stx),
     {Trees2, _, _} = tx_pool:data(),
     ETree = trees:existence(Trees2),
-    {_, C, _} = existence:get(existence:hash(C), ETree),
+    {_, C, _} = existence:get(Data, ETree),
+    Data = existence:hash(C),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     {_, _, Txs} = tx_pool:data(),
@@ -609,10 +604,9 @@ test(12) ->
     Accounts2 = trees:accounts(Trees2),
     
     CID = 5,
-    Entropy = 432,
     Delay = 0,
     
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 10000, 20000, Entropy, Delay, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -625,7 +619,7 @@ test(12) ->
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
     Bet2 = spk:new_bet(Code2, Code2, 50),
-    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet, Bet2], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet, Bet2], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
     ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
@@ -736,9 +730,8 @@ test(14) ->
     Accounts2 = trees:accounts(Trees2),
 
     CID = 5,
-    Entropy = 432,
 
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Entropy, 10, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -749,7 +742,7 @@ test(14) ->
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
-    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy)),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
     {Ctx3, _} = channel_solo_close:make(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
@@ -811,9 +804,8 @@ test(15) ->
     Accounts2 = trees:accounts(Trees2),
 
     CID = 5,
-    Entropy = 432,
 
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Entropy, 10, Fee),
+    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -827,9 +819,9 @@ test(15) ->
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
-    SPK = spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay, Entropy),
+    SPK = spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay),
     TheySPK = testnet_sign:sign_tx(SPK, NewPub, NewPriv),
-    CD = channel_feeder:new_cd(SPK, TheySPK, [Secret], [Secret], Entropy, CID),
+    CD = channel_feeder:new_cd(SPK, TheySPK, [Secret], [Secret], CID),
     channel_manager:write(NewPub, CD),
     timer:sleep(100),
     ScriptPubKey = keys:sign(SPK),

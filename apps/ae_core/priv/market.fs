@@ -14,12 +14,13 @@ then drop drop ;
 %sig data pub
  ( signed_price_declaration -- height price portion_matched )
  macro extract
-int 10 split dup tuck Pubkey @ verify_sig print or_die
-int 4 split
-swap
-int 2 split binary 2 AAA= swap ++ swap
-int 2 split binary 2 AAA= swap ++ swap
-            binary 2 AAA= swap ++ 
+int 10 split dup tuck Pubkey @ verify_sig  or_die 
+int 4 split 
+swap  
+int 2 split binary 2 AAA= swap ++ swap 
+int 2 split binary 2 AAA= swap ++ swap 
+            binary 2 AAA= swap ++  
+
 MarketID @ == or_die drop drop ( height price portion_matched )
 rot
         % Height is when the bet happened is 2
@@ -130,7 +131,7 @@ swap
       int 3 == if drop drop drop evidence else drop
       int 4 == if drop drop unmatched else drop
       then then then then then
-      crash
+      return
 ;
 main
 

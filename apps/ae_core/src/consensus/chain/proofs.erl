@@ -16,7 +16,6 @@ tree(X) -> int_to_tree(X#proof.tree).
 tree_to_int(accounts) -> 1;
 tree_to_int(channels) -> 2;
 tree_to_int(existence) -> 3;
-tree_to_int(burn) -> 4;
 tree_to_int(oracles) -> 5;
 tree_to_int(governance) -> 6;
 tree_to_int(oracle_bets) -> 7;
@@ -26,7 +25,6 @@ tree_to_int(shares) -> 9.
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
 int_to_tree(3) -> existence;
-int_to_tree(4) -> burn;
 int_to_tree(5) -> oracles;
 int_to_tree(6) -> governance;
 int_to_tree(7) -> oracle_bets;
@@ -123,7 +121,6 @@ prove2([{Tree, Key}|T], Trees) ->
 		empty -> 0;
 		_ -> Tree:serialize(Data)
 	    end,
-    %SD = Tree:serialize(Data),
     Proof = #proof{root = Root,
 		  key = Key,
 		  path = Path, 
@@ -133,29 +130,13 @@ prove2([{Tree, Key}|T], Trees) ->
     [Proof|prove2(T, Trees)].
 facts_to_dict([], D) -> D;
 facts_to_dict([F|T], D) ->
-%-record(proof, {tree, value, root, key, path}).
-    %CFG is different for each trie
     Tree = int_to_tree(F#proof.tree),
     Key2 = 
         case Tree of
             orders -> 
-                K = F#proof.key,
-                Pub = K#key.pub,
-                %ID = K#key.id,
-                %Oracle = dict:fetch({oracles, ID}, D),
-                %RH = oracles:orders_hash(oracles:deserialize(Oracle)),
-                %RH = F#proof.root,
-                Pub;
+                F#proof.key#key.pub;
             oracle_bets -> 
-                K = F#proof.key,
-                %Pub = K#key.pub,
-                ID = K#key.id,
-                %Account = accounts:dict_get(Pub, D),
-                %Account = dict:fetch({accounts, Pub}, D),
-                %RH = accounts:bets_hash(accounts:deserialize(Account)),
-                %RH = accounts:bets_hash(Account),
-                %RH = F#proof.root,
-                ID;
+                F#proof.key#key.id;
 	_ ->
             F#proof.key
     end,
@@ -179,7 +160,7 @@ facts_to_dict([F|T], D) ->
     D2 = dict:store({Tree, Key}, Value3, D),
     facts_to_dict(T, D2).
 hash(F) ->
-    testnet_hasher:doit(F).
+    hash:doit(F).
 governance_to_querys(Gov) ->
     Leaves = trie:get_all(Gov, governance),
     Keys = leaves_to_querys(Leaves).
@@ -226,8 +207,6 @@ txs_to_querys2([STx|T], Trees) ->
             nc -> 
                 [
                  {governance, ?n2i(nc)},
-                 {governance, ?n2i(channel_closed_time)},%what is this for??
-                 {governance, ?n2i(create_channel_fee)},
                  {accounts, new_channel_tx:acc1(Tx)},
                  {accounts, new_channel_tx:acc2(Tx)},
                  {channels, new_channel_tx:cid(Tx)}
@@ -289,11 +268,8 @@ txs_to_querys2([STx|T], Trees) ->
                 [
                  {governance, ?n2i(oracle_new)},
                  {governance, ?n2i(governance_change_limit)},
-                 {governance, ?n2i(governance_delay)},
                  {governance, ?n2i(maximum_question_size)},
-                 {governance, ?n2i(question_delay)},
                  {governance, ?n2i(oracle_initial_liquidity)},
-                 %{governance, ?n2i(oracle_future_limit)},
                  {governance, ?n2i(minimum_oracle_time)},
                  {accounts, AID},
                  {oracles, OID}
@@ -332,7 +308,6 @@ txs_to_querys2([STx|T], Trees) ->
                     make_orders(Pubkeys, OID),
                 [
                              %whichever governance variable is being updated.
-                 %{accounts, AID},
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
                  {governance, ?n2i(oracle_close)},
@@ -345,15 +320,13 @@ txs_to_querys2([STx|T], Trees) ->
 	    unmatched -> 
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
-                %Pubkeys = [From|oracle_bet_tx:to_prove(OID, Trees)],
-                %Prove = make_orders(Pubkeys, OID),
                 [
                  {governance, ?n2i(unmatched)},
                  {orders, #key{pub = <<?Header:PS>>, id = OID}},
                  {orders, #key{pub = From, id = OID}},
                  {accounts, From},
                  {oracles, OID}
-                ];% ++ Prove;
+                ];
 	    oracle_shares -> 
                 OID = oracle_shares_tx:oracle_id(Tx),
                 From = oracle_shares_tx:from(Tx),
@@ -414,10 +387,9 @@ test() ->
 	      {governance, block_reward},
 	      {governance, 1},
 	      {channels, 1},
-	      {existence, testnet_hasher:doit(1)},
+	      {existence, hash:doit(1)},
 	      {oracles, OID},
 	      {oracles, 1},
-	      {burn, testnet_hasher:doit(1)},
 	      {orders, #key{pub = keys:pubkey(), id = OID}},
               {oracle_bets, #key{pub = keys:pubkey(), id = OID}}
 	     ],% ++
@@ -436,7 +408,7 @@ test() ->
     {NewTx, _} = create_account_tx:new(Pub30, 10, 10, keys:pubkey(), Trees),
     {NewTx2, _} = create_account_tx:new(Pub4, 10, 10, keys:pubkey(), Trees),
     CID = 7,
-    {NewTx3, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Pub3, 1, 1, 1, 1, 1),
+    {NewTx3, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Pub3, 1, 1, 1, 1),
     Txs = [keys:sign(NewTx),
            keys:sign(NewTx2),
            testnet_sign:sign_tx(NewTx3, Pub3, Priv30)],

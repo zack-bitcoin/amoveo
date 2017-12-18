@@ -5,7 +5,6 @@ There are 8 [merkel trees](/docs/basics/merkle.md).
 * channels+
 * accounts+
 * oracle bets
-* proof of burn+
 * proof of existence+
 * governance+
 
@@ -33,11 +32,6 @@ This tree stores channels by an integer channel id.
 
 This tree stores accounts by integer id. Each account has a merkel root written in it. It is for the oracle bets tree.
 [more about accounts](accounts.md)
-
-=== proof of burn
-
-The proof of burn tree stores by address. It stores the number of AE tokens that this address has burned.
-This data is available to the VM.
 
 === proof of existence
 

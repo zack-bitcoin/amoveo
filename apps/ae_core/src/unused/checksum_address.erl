@@ -11,7 +11,7 @@ checksum(N, <<>>) ->
 pubkey2address(P) when size(P) > 66 ->
     pubkey2address(base64:decode(P));
 pubkey2address(P) ->
-    binary2address(testnet_hasher:doit(P)).
+    binary2address(hash:doit(P)).
 address2binary(A) ->
     S = ?AddressEntropy,
     <<C:?cs, B:S>> = base58:base58_to_binary(binary_to_list((A))),

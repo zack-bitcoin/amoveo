@@ -8,44 +8,27 @@
 %curl -i -d echotxt http://localhost:3010
 
 handle(Req, State) ->
-    %{Length, Req2} = cowboy_req:body_length(Req),
-    %{ok, X, Req1}
-	%= cowboy_req:parse_header(<<"te">>, Req),
     {ok, Data, Req2} = cowboy_req:body(Req),
     {{IP, _}, Req3} = cowboy_req:peer(Req2),
     request_frequency:doit(IP),
     true = is_binary(Data),
-    %io:fwrite("ext handler got data: "),
-    %io:fwrite(Data),
-    %io:fwrite("\n"),
     A = packer:unpack(Data),
     B = doit(A),
     D = packer:pack(B),
-    %io:fwrite("response is "),
-    %io:fwrite(D),
-    %io:fwrite("\n"),
     Headers = [{<<"content-type">>, <<"application/octet-stream">>},
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],
     {ok, Req4} = cowboy_req:reply(200, Headers, D, Req3),
     {ok, Req4, State}.
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
-%-define(WORD, 10000000).%10 megabytes.
 doit({account, Pubkey}) -> 
     {ok, api:account(Pubkey)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({give_block, Block}) -> 
-    %true = block:height(SignedBlock) < api:height() + 2,
-    %io:fwrite("received block "),
-    %io:fwrite(integer_to_list(block:height(Block))),
-    %io:fwrite("\n"),
-    %block_absorber:enqueue(Block),
     block_absorber:save(Block),
     {ok, 0};
-doit({block, N}) ->
-    true = is_integer(N),
-    true = N > -1,
+doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
 doit({header, N}) -> 
     {ok, block:block_to_header(block:get_by_height(N))};
@@ -64,7 +47,6 @@ doit({txs}) ->
     {_,_,Txs} = tx_pool:data(),
     {ok, Txs};
 doit({txs, Txs}) ->
-    io:fwrite("received txs\n"),
     tx_pool_feeder:absorb(Txs),
     {ok, 0};
 doit({top}) -> 
@@ -80,7 +62,7 @@ doit({min_channel_ratio}) ->
     application:get_env(ae_core, min_channel_ratio);
 doit({spend_tx, Amount, Fee, From, To}) ->
     {Trees, _, _} = tx_pool:data(),
-    {Tx, _} = spend_tx:make(To, Amount, Fee, From, Trees, []),
+    {Tx, _} = spend_tx:make(To, Amount, Fee, From, Trees),
     {ok, Tx};
 doit({create_account_tx, Amount, Fee, From, To}) ->
     {Trees, _, _} = tx_pool:data(),
@@ -90,12 +72,10 @@ doit({new_channel_tx, Acc1, Acc2, B1, B2, Delay, Fee}) ->
     {Trees, _, _} = tx_pool:data(),
     Channels = trees:channels(Trees),
     CID = api:find_id(channels, Channels),
-    Entropy = 127,
-    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, B1, B2, Entropy, Delay, Fee),
+    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, B1, B2, Delay, Fee),
     {ok, Tx};
 doit({new_channel, STx, SSPK}) ->
     unlocked = keys:status(),
-    %io:fwrite(STx),
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
     {Trees,_,_} = tx_pool:data(),
@@ -107,7 +87,6 @@ doit({new_channel, STx, SSPK}) ->
     tx_pool_feeder:absorb(SSTx),
     S2SPK = keys:sign(SPK),
     channel_feeder:new_channel(Tx, SSPK, Accounts),
-    %api:sync(),
     {ok, [SSTx, S2SPK]};
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
@@ -131,8 +110,7 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Height = headers:height(headers:top()),
     {Trees,_,_} = tx_pool:data(),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
-    Shares = [],
-    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Shares, Fee),
+    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
     SSTx = keys:sign(STx),
     tx_pool_feeder:absorb(SSTx),
     {ok, SSTx};
@@ -142,22 +120,17 @@ doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}) ->
     {ok, R};
 doit({learn_secret, From, Secret, Code}) ->
     {ok, OldCD} = channel_manager:read(From),
-    %check that code is actually used in the channel state.
     secrets:add(Code, Secret),
-    
     SS = channel_feeder:script_sig_me(OldCD),
     CFME = channel_feeder:me(OldCD),
     {NewSS, SPK, _Secrets, SSThem} = 
 	spk:bet_unlock(CFME, SS),
-    io:fwrite("learn secret new ss is "),
-    io:fwrite(packer:pack(NewSS)),
     if
 	NewSS == SS -> ok;
 	true -> 
 	    NewCD = channel_feeder:new_cd(
 		      SPK, channel_feeder:them(OldCD),
 		      NewSS, SSThem,
-		      channel_feeder:entropy(OldCD),
 		      channel_feeder:cid(OldCD)),
 	    channel_manager:write(From, NewCD),
 	    {ok, Current} = arbitrage:check(Code),
@@ -173,8 +146,6 @@ doit({bets}) ->
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
 %curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5]' http://localhost:8040
-    %{Trees, _, _} = tx_pool:data(),
-    %Trees = block:trees(block:top()),
     Trees = block:trees(block:get_by_hash(Hash)),
     TN = trees:name(TreeName),
     Root = trees:TN(Trees),
@@ -197,7 +168,6 @@ doit({market_data, OID}) ->
     {ok, {Expires, keys:pubkey(), Period}};
 doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     %make sure they pay a fee in channel for having their trade listed. 
-    %make sure they paid enough to afford the shares.
     BetLocation = constants:oracle_bet(),
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
@@ -215,26 +185,16 @@ doit({cancel_trade, TheirPub, N, SSPK}) ->
 doit({combine_cancel_assets, TheirPub, SSPK}) ->
     SSPK2 = channel_feeder:combine_cancel_assets_server(TheirPub, SSPK),
     {ok, SSPK2};
-%doit({remove_trade, AccountID, Price, Type, Amount, OID, SSPK}) ->
-    %make sure they signed.
-    %make sure they paid enough of a fee.
-    %give them their money back
-    %don't remove trades that are already being matched.
-%    ok;
-    
 doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2
     {error}.
-    
 proof_packer(X) when is_tuple(X) ->
     proof_packer(tuple_to_list(X));
 proof_packer([]) -> [];
 proof_packer([H|T]) ->
     [proof_packer(H)|proof_packer(T)];
 proof_packer(X) -> X.
- 
-    %Proof2 = list_to_tuple([proof|tuple_to_list(Proof)]),
 many_headers(M, _) when M < 1 -> [];
 many_headers(Many, N) ->    
     H = api:height(),
@@ -244,7 +204,5 @@ many_headers(Many, N) ->
             [block:block_to_header(block:get_by_height(N))|
              many_headers(Many-1, N+1)]
     end.
-    
-    
 minus([T|X], T) -> X;
 minus([A|T], X) -> [A|minus(T, X)].

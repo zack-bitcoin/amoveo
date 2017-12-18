@@ -1,5 +1,5 @@
 
-macro Draw int 1 int 0 int 0 crash ;
+macro Draw int 1 int 0 int 0 return ;
 
 : or_die not if Draw else then ;
 
@@ -23,7 +23,7 @@ macro player2revealed Commit2 reveal drop int 2 Win2 ;
 
 %syntax for case statements.
 macro -> == if drop drop ;
-macro -- crash else then drop ;
+macro -- return else then drop ;
 
 macro main
   int 1 -> player1revealed -- 

@@ -9,15 +9,12 @@
          dict_write/2,
 	 test/0]).
 -record(gov, {id, value, lock}).
-
 -define(name, governance).
-
-
 genesis_state() ->
-    {BlockTime, MinimumOracleTime, MaximumOracleTime} =
+    {MinimumOracleTime, MaximumOracleTime} =
         case application:get_env(ae_core, test_mode, false) of
-            true -> {1, 1, 1};
-            false -> {297, 352, 505}
+            true -> {1, 1};
+            false -> {352, 505}
         end,
     G = [[block_reward, 1800],
          %[developer_reward, 1520], 
@@ -25,36 +22,21 @@ genesis_state() ->
          [time_gas, 1113],
          [space_gas, 1113],
          [max_block_size, 940],
-         [create_channel_fee, 250],
-         %[delete_channel_reward, 240],
-         %[create_account_fee, 250],%get rid of this. we already charge a fee for making this tx.
-         %[delete_account_reward, 240],%get rid of this. instead we should make the fee negative
-         %[channel_rent, 600],
-         %[account_rent, 600],
-         %[block_time, BlockTime],%remove
-         %[oracle_future_limit, 335],
-         %[shares_conversion, 575],
+         [block_period, 550],
+         %[block_period, 50],
          [fun_limit, 350],
          [var_limit, 600],
-         [comment_limit, 137], 
-         %[block_creation_maturity, 100],
          [oracle_initial_liquidity, 1728],
          [minimum_oracle_time, MinimumOracleTime],
          [maximum_oracle_time, MaximumOracleTime],
          [maximum_question_size, 352],
-         [block_time_after_median, 100],
-         [channel_closed_time, 352],
-         [question_delay, 216],
-         [governance_delay, 72],
          [governance_change_limit, 51],
          [create_acc_tx, 10],
          [spend, 10],
          [delete_acc_tx, 5],
-         [repo, 5],
          [nc, 10],
          [gc, 10],
          [ctc, 10],
-         [cr, 5],
          [csc, 10],
          [timeout, 10],
          [cs, 10],
@@ -150,50 +132,42 @@ get(Key, Tree) when is_integer(Key) ->
                 deserialize(LeafValue)
         end,
     {X, V, Proof}.
-
+%Blockchain variables
 name2number(block_reward) -> 1;
-name2number(time_gas) -> 2;
-name2number(space_gas) -> 27;
+name2number(developer_reward) -> 2;
 name2number(max_block_size) -> 3;
-name2number(create_channel_fee) -> 4;
-name2number(block_time) -> 11;
-%name2number(oracle_future_limit) -> 12;
-name2number(shares_conversion) -> 13;
-name2number(fun_limit) -> 14;%needed to run smart contracts
-name2number(var_limit) -> 15;%needed to run smart contracts
-name2number(comment_limit) -> 16;
-name2number(block_creation_maturity) -> 17;
-name2number(oracle_initial_liquidity) -> 18;
-name2number(minimum_oracle_time) -> 19;
-name2number(maximum_oracle_time) -> 8;
-name2number(maximum_question_size) -> 20;
-name2number(block_time_after_median) -> 21;
-name2number(channel_closed_time) -> 22;
-name2number(question_delay) -> 24;
-name2number(governance_delay) -> 25;
-name2number(governance_change_limit) -> 26;
-name2number(create_acc_tx) -> 28;%these store the minimum fee for each transaction type. "create_acc_tx" is the name of the record of the create_account_tx.
-name2number(spend) -> 29;
-name2number(delete_acc_tx) -> 30;
-name2number(repo) -> 31;
-name2number(nc) -> 32;
-name2number(gc) -> 33;
-name2number(ctc) -> 34;
-name2number(cr) -> 35;
-name2number(csc) -> 36;
-name2number(timeout) -> 37;
-name2number(cs) -> 38;
-name2number(ex) -> 39;
-name2number(oracle_new) -> 40;
-name2number(oracle_bet) -> 41;
-name2number(oracle_close) -> 42;
-name2number(unmatched) -> 43;
-name2number(oracle_shares) -> 44;
-name2number(developer_reward) -> 45;
+name2number(block_period) -> 4;
+%VM variables
+name2number(time_gas) -> 5;
+name2number(space_gas) -> 6;
+name2number(fun_limit) -> 7;%how many functions can the vm make
+name2number(var_limit) -> 8;%how many variables can the vm store
+%Oracle variables
+name2number(governance_change_limit) -> 9;
+name2number(oracle_initial_liquidity) -> 10;
+name2number(minimum_oracle_time) -> 11;
+name2number(maximum_oracle_time) -> 12;
+name2number(maximum_question_size) -> 13;
+%Transaction fees
+name2number(create_acc_tx) -> 14;%these store the minimum fee for each transaction type. "create_acc_tx" is the name of the record of the create_account_tx.
+name2number(spend) -> 15;
+name2number(delete_acc_tx) -> 16;
+name2number(nc) -> 17;
+name2number(gc) -> 18;
+name2number(ctc) -> 19;
+name2number(csc) -> 20;
+name2number(timeout) -> 21;
+name2number(cs) -> 22;
+name2number(ex) -> 23;
+name2number(oracle_new) -> 24;
+name2number(oracle_bet) -> 25;
+name2number(oracle_close) -> 26;
+name2number(unmatched) -> 27;
+name2number(oracle_shares) -> 28;
 name2number(X) -> 
     io:fwrite(X),
     throw(invalid_governance_atom).
-max() -> 46.
+max() -> 29.
 root_hash(Root) ->
     trie:root_hash(?name, Root).
 make_leaf(Key, V, CFG) ->
@@ -243,14 +217,17 @@ dict_get(Key, Dict) ->
 %% Tests
 
 test() ->
-    C = new(14, 1, 0),
+    Num = name2number(fun_limit),
+    C = new(Num, 1, 0),
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
-    Leaf = {gov, 14, 350, 0},
+    Leaf = {gov, Num, 350, 0},
     Leaf = deserialize(serialize(Leaf)),
     {_, Leaf, _} = get(fun_limit, Governance),
     G2 = write(C, Governance),
-    {_, C, _} = get(fun_limit, G2),
+    {_, C2, _} = get(fun_limit, G2),
+    io:fwrite(packer:pack([C, C2])),
+    C = C2,
     {Root, Leaf, Proof} = get(fun_limit, Governance),
     true = verify_proof(Root, fun_limit, serialize(Leaf), Proof),
     success.

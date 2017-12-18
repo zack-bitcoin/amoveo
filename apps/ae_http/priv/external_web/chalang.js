@@ -11,7 +11,7 @@ function chalang(command) {
     const int_op = 0,
           binary_op = 2,
           print = 10,
-          crash = 11,
+          finish = 11, //because 'return' is reserved.
           nop = 12,
           fail = 13,
           drop = 20,
@@ -367,8 +367,8 @@ function chalang(command) {
                     d.many_funs = mf;
                 }
                 op_print(d, i, "define op");
-            } else if (code[i] == crash) {
-                op_print(d, i, "crash op");
+            } else if (code[i] == finish) {
+                op_print(d, i, "return op");
                 return d;
             } else if (code[i] == print) {
                 console.log(JSON.stringify(d.stack));
@@ -1022,7 +1022,7 @@ function chalang(command) {
         //console.log(JSON.stringify(ss));
         var script_sig = ss.code;
         if (!(chalang_none_of(script_sig))) {
-            throw("error: crash op in the script sig");
+            throw("error: return op in the script sig");
         }
         prove_facts(ss.prove, function(f) {
             console.log("spk run 3 bet is ");
@@ -1088,7 +1088,7 @@ function chalang(command) {
         console.log("none of");
         var n;
         for (var i = 0; i < c.length; i++) {
-            if ( c[i] == crash ) {
+            if ( c[i] == finish ) {
                 return false;
             } else if ( c[i] == int_op ) {
                 i += 4
@@ -1117,7 +1117,7 @@ function chalang(command) {
         }
         var b = chalang_none_of(ss[i-1].code);//ss.code
         if (!(b)) {
-            throw("you can't put crash into the ss");
+            throw("you can't put return op into the ss");
         }
         var state = chalang_new_state(height, 0);
         prove_facts(ss[i-1].prove, function(f) { //PROBLEM HERE
@@ -1202,21 +1202,20 @@ function chalang(command) {
             var fun_limit = tree_number_to_value(tree_fun_limit[2]);
             verify_callback("governance", 15, function(tree_var_limit) {
                 var var_limit = tree_number_to_value(tree_var_limit[2]);
-                var entropy = cd[7];
                 spk_force_update(spkme, ssme, ss4, fun_limit, var_limit, function(b2) {
-                    var cid = cd[8];
+                    var cid = cd[7];
                     console.log("are we able to force update?");
                     console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
                     if ( JSON.stringify(b2) == JSON.stringify({"spk": newspk, "ss": ss})) {
                         var ret = sign_tx(newspk);
-                        var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
+                        var newcd = new_cd(newspk, themspk, ss, ss, cid);
                         channel_manager[from] = newcd;
                         return callback(ret);
                     } else {
                         is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {
                             if ( b3 ) {
                                 ret = sign_tx(newspk);
-                                var newcd = new_cd(newspk, themspk, ss, ss, entropy, cid);
+                                var newcd = new_cd(newspk, themspk, ss, ss, cid);
                                 channel_manager[from] = newcd;
                                 return callback(ret);
                             } else {
@@ -1232,7 +1231,7 @@ function chalang(command) {
                                   if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
                                   console.log("spks do not match");
                                   } else {
-                                  var data = new_cd(spk, themspk, ss5, ss5, entropy, cid);
+                                  var data = new_cd(spk, themspk, ss5, ss5, cid);
                                   channel_manager[from] = data;
                                   return ret;
                                   }

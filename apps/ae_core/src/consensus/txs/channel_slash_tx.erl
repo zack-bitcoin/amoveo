@@ -47,7 +47,6 @@ go(Tx, Dict, NewHeight) ->
     Acc2 = channels:acc2(OldChannel),
     Acc1 = spk:acc1(SPK),
     Acc2 = spk:acc2(SPK),
-    true = channels:entropy(OldChannel) == spk:entropy(SPK),
     Fee = Tx#cs.fee,
     Nonce = Tx#cs.nonce,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Dict),
