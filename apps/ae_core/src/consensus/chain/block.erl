@@ -439,22 +439,24 @@ dict_update_trie_oracles(T, [], _) -> T;
 dict_update_trie_oracles(Trees, [H|T], Dict) ->
     {Type, Key} = H,
     oracles = Type,
+    Type2 = orders,
+    UpdateType2 = set_orders,
     New0 = Type:dict_get(Key, Dict),
     Tree = trees:Type(Trees),
     Tree2 = case New0 of
                 empty -> 
                     Type:delete(Key, Tree);
                 _ -> 
-                    ABN = Type:orders(New0),
+                    ABN = Type:Type2(New0),
                     {_, Old, _} = Type:get(Key, trees:Type(Trees)),
                     New = if
-                              Old == empty -> Type:set_orders(New0, orders:empty_book());
+                              Old == empty -> Type:UpdateType2(New0, orders:empty_book());
                               true ->
-                                  ABO = Type:orders(Old), 
+                                  ABO = Type:Type2(Old), 
                                   if
                                       ABO == 0 -> throw(dict_update_trie_oracles_error),
                                                   New0;
-                                      0 == ABN -> Type:set_orders(New0, oracles:orders(Old));
+                                      0 == ABN -> Type:UpdateType2(New0, Type:Type2(Old));
                                       true -> New0
                                   end
                           end,
@@ -467,6 +469,8 @@ dict_update_trie_account(T, [], _) -> T;
 dict_update_trie_account(Trees, [H|T], Dict) ->
     {Type, Key} = H,
     accounts = Type,
+    Type2 = bets,
+    UpdateType2 = update_bets,
     New0 = Type:dict_get(Key, Dict),
     Tree = trees:Type(Trees),
     Tree2 = 
@@ -474,17 +478,19 @@ dict_update_trie_account(Trees, [H|T], Dict) ->
             empty -> 
                 Type:delete(Key, Tree);
             _ -> 
-                ABN = Type:bets(New0),
+                ABN = Type:Type2(New0),
                 {_, Old, _} = Type:get(Key, trees:Type(Trees)),
                 New = if
                           Old == empty -> 
-                              Type:update_bets(New0, constants:root0());
+                              Type:UpdateType2(New0, constants:root0());
                           true ->
-                              ABO = Type:bets(Old),
+                              ABO = Type:Type2(Old),
                               if
-                                  ABO == 0 -> New0;
+                                  ABO == 0 -> 
+                                      throw(dict_update_trie_account),
+                                      New0;
                                   0 == ABN -> 
-                                      Type:update_bets(New0, accounts:bets(Old));
+                                      Type:UpdateType2(New0, Type:Type2(Old));
                                   true -> New0
                               end
                       end,
