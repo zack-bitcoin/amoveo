@@ -33,7 +33,7 @@ The parameters that can be modified are of 4 different types:
 * oracle_initial_liquidity - how much does it cost to launch an oracle.
 * minimum_oracle_time - This is the minimum length of time an oracle market is required to be in a single state before it can be closed.
 * maximum_oracle_time - This is the maximum delay between when an oracle is created, and when betting can start.
-* maximum_question_size - how many bytes big can a question for the oracle be
+* maximum_question_size - how many bytes big can a question for the oracle can be.
 
 4 Transaction fees
 ======
@@ -41,3 +41,5 @@ The parameters that can be modified are of 4 different types:
 Each of the 15 transaction types has a fee who's size is determined by a governance variable.
 This fee does not go to the miner, it is deleted.
 The miner fee is a different fee from this one.
+
+[The transaction types are listed here](transaction_types.md)
