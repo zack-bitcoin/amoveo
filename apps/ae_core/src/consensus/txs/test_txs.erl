@@ -490,8 +490,8 @@ test(11) ->
 
     {Trees5, _, _} = tx_pool:data(),
     Accounts5 = trees:accounts(Trees5),
-    %get your shares out with oracle_shares
-    {Tx5, _}=oracle_shares_tx:make(constants:master_pub(), Fee, OID, Trees5),
+    %get your winnings with oracle_shares
+    {Tx5, _} = oracle_winnings_tx:make(constants:master_pub(), Fee, OID, Trees5),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     timer:sleep(100),
@@ -564,17 +564,17 @@ test(16) ->
     absorb(Stx41),
 
     {Trees5, _, _} = tx_pool:data(),
-    {Tx5, _} = oracle_shares_tx:make(constants:master_pub(), Fee, OID, Trees5),
+    {Tx5, _} = oracle_winnings_tx:make(constants:master_pub(), Fee, OID, Trees5),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
 
     {Trees51, _, _} = tx_pool:data(),
-    {Tx51, _} = oracle_shares_tx:make(Pub1, Fee, OID, Trees51),
+    {Tx51, _} = oracle_winnings_tx:make(Pub1, Fee, OID, Trees51),
     Stx51 = testnet_sign:sign_tx(Tx51, Pub1, Priv1),
     absorb(Stx51),
 
     {Trees52, _, _} = tx_pool:data(),
-    {Tx52, _} = oracle_shares_tx:make(Pub2, Fee, OID, Trees52),
+    {Tx52, _} = oracle_winnings_tx:make(Pub2, Fee, OID, Trees52),
     Stx52 = testnet_sign:sign_tx(Tx52, Pub2, Priv2),
     absorb(Stx52),
 

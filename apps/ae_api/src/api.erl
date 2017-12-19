@@ -346,14 +346,14 @@ oracle_close(Fee, OID) ->
 		oracle_close_tx:make(keys:pubkey(), Fee, OID, Trees)
 	end,
     tx_maker(F).
-oracle_shares(OID) ->
+oracle_winnings(OID) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
-    Cost = governance:get_value(oracle_shares, Governance),
-    oracle_shares(?Fee+Cost, OID).
-oracle_shares(Fee, OID) ->
+    Cost = governance:get_value(oracle_winnings, Governance),
+    oracle_winnings(?Fee+Cost, OID).
+oracle_winnings(Fee, OID) ->
     F = fun(Trees) ->
-		oracle_shares_tx:make(keys:pubkey(), Fee, OID, Trees)
+		oracle_winnings_tx:make(keys:pubkey(), Fee, OID, Trees)
 	end,
     tx_maker(F).
 oracle_unmatched(OracleID) ->

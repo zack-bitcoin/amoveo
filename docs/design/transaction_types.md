@@ -21,7 +21,7 @@ These are the 15 types of transaction that can be in blocks.
 * oracle_bet
 * oracle_close
 * oracle_unmatched
-* oracle_shares
+* oracle_winnings
 
 1 bonus transactions:
 * existence
@@ -108,12 +108,10 @@ The fee that was used to start the oracle is the final bet included. It bets aga
 
 If you had money in orders in the oracle order book when the oracle_close transaction happened, this is how you get the money out.
 
-# oracle_shares
+# oracle_winnings
 
 If you bet in an oracle, and the oracle has closed, this is how you get your winnings out.
-If you bet on the winning outcome, then you get positive shares. If you bet on one of the losing outcomes, then you get negative shares.
-[you can read about shares here](shares.md)
-The difficulty of the shares was announced when the oracle was launched.
+If you bet on the winning outcome, then you get twice as much money back, otherwise you get nothing.
 
 # existence
 

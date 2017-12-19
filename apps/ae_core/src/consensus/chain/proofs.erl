@@ -19,8 +19,7 @@ tree_to_int(existence) -> 3;
 tree_to_int(oracles) -> 5;
 tree_to_int(governance) -> 6;
 tree_to_int(oracle_bets) -> 7;
-tree_to_int(orders) -> 8;
-tree_to_int(shares) -> 9.
+tree_to_int(orders) -> 8.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -28,8 +27,7 @@ int_to_tree(3) -> existence;
 int_to_tree(5) -> oracles;
 int_to_tree(6) -> governance;
 int_to_tree(7) -> oracle_bets;
-int_to_tree(8) -> orders;
-int_to_tree(9) -> shares.
+int_to_tree(8) -> orders.
     
 
 %deterministic merge-sort    
@@ -328,12 +326,12 @@ txs_to_querys2([STx|T], Trees) ->
                  {accounts, From},
                  {oracles, OID}
                 ];
-	    oracle_shares -> 
-                OID = oracle_shares_tx:oracle_id(Tx),
-                From = oracle_shares_tx:from(Tx),
+	    oracle_winnings -> 
+                OID = oracle_winnings_tx:oracle_id(Tx),
+                From = oracle_winnings_tx:from(Tx),
                 [
                  {governance, ?n2i(minimum_oracle_time)},
-                 {governance, ?n2i(oracle_shares)},
+                 {governance, ?n2i(oracle_winnings)},
                  {oracle_bets, #key{pub = From, id = OID}},
                  {accounts, From},
                  {oracles, OID}

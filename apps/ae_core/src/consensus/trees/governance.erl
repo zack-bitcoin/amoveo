@@ -45,7 +45,7 @@ genesis_state() ->
          [oracle_bet, 10],
          [oracle_close, 10],
          [unmatched, 10],
-         [oracle_shares, 10]],
+         [oracle_winnings, 10]],
     {ok, GenesisTree} = genesis_state(G, 1),
     GenesisTree.
 
@@ -163,7 +163,7 @@ name2number(oracle_new) -> 24;
 name2number(oracle_bet) -> 25;
 name2number(oracle_close) -> 26;
 name2number(unmatched) -> 27;
-name2number(oracle_shares) -> 28;
+name2number(oracle_winnings) -> 28;
 name2number(X) -> 
     io:fwrite(X),
     throw(invalid_governance_atom).

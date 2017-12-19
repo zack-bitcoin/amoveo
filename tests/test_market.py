@@ -73,7 +73,7 @@ class MarketTest(ApiUser):
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.3)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.3)
-        self.request('oracle_shares', DEV_1_INT, [oid], sleep=0.04)
+        self.request('oracle_winnings', DEV_1_INT, [oid], sleep=0.04)
         self.request('oracle_unmatched', DEV_1_INT, [oid], sleep=0.04)
         #self.request('pull_channel_state', DEV_1_INT, [[127,0,0,1], 3030], sleep=0.04)
         self.request('pull_channel_state', DEV_2_INT, [[127,0,0,1], 3030], sleep=0.04)

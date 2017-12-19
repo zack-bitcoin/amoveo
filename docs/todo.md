@@ -1,7 +1,5 @@
 ### things to do for the next hard fork of the testnet
 
-* rename oracle_shares tx type to "oracle_winnings" or something like that.
-
 
 
 ### Things to do before the launch of the official Amoveo blockchain.

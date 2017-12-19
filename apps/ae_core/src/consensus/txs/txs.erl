@@ -54,7 +54,7 @@ digest_from_dict2(Tx, Dict, H) ->
         oracle_bet -> oracle_bet_tx:go(Tx, Dict, H);
         oracle_close -> oracle_close_tx:go(Tx, Dict, H);
         unmatched -> oracle_unmatched_tx:go(Tx, Dict,H);
-        oracle_shares -> oracle_shares_tx:go(Tx,Dict,H);
+        oracle_winnings -> oracle_winnings_tx:go(Tx,Dict,H);
 	coinbase_old -> coinbase_tx:go(Tx, Dict, H);
         X -> X = 2
     end.
