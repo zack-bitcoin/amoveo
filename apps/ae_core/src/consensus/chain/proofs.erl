@@ -115,6 +115,7 @@ prove2([{oracle_bets, Key}|T], Trees) ->
     [Proof|prove2(T, Trees)];
     
 prove2([{Tree, Key}|T], Trees) ->
+    %io:fwrite(packer:pack({prove2, Tree, Key})),
     Branch = trees:Tree(Trees),
     {Root, Data, Path} = Tree:get(Key, Branch),
     Data2 = case Data of
