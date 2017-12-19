@@ -4,7 +4,7 @@
 %% API
 -export([prev_hash/1, height/1, time/1, version/1, trees_hash/1, txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1, period/1,
          check/0,
-         absorb/1, read/1, top/0, dump/0, hard_set_top/1,
+         absorb/1, read/1, top/0, dump/0, 
          make_header/9,
          serialize/1, deserialize/1,
          difficulty_should_be/1]).
@@ -32,7 +32,7 @@
                  period}).
 -define(LOC, constants:headers_file()).
 -record(s, {headers = dict:new() :: dict:dict(block_header_hash(), header()),
-            top = #header{} :: header()}).
+            top = [#header{}]}).
 
 -type height() :: non_neg_integer().
 -type block_header_hash() :: binary().
@@ -100,10 +100,6 @@ top() ->
     X.
 
 dump() -> gen_server:call(?MODULE, {dump}).
-
--spec hard_set_top(header()) -> ok.
-hard_set_top(Header) ->
-    gen_server:call(?MODULE, {hard_set_top, Header}).
 
 make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty, Period) ->
     #header{prev_hash = PH,
@@ -237,7 +233,7 @@ empty_data() ->
     Header0 = block:block_to_header(GB),
     HH = block:hash(Header0),
     block_hashes:add(HH),
-    #s{top = Header0, headers = dict:store(HH,Header0,dict:new())}.
+    #s{top = [Header0], headers = dict:store(HH,Header0,dict:new())}.
     
 %% gen_server callbacks
 init([]) ->
@@ -288,6 +284,15 @@ header_size() ->
     VB = constants:version_bits(),
     DB = 16,
     ((HB*4) + HtB + TB + VB + DB).
+-define(FT, application:get_env(ae_core, fork_tolerance)).
+add_to_top(H, T) ->
+    B = length(T) < ?FT,
+    if
+        B -> [H|T];
+        true ->
+            {T2, _} = lists:split(?FT-1, T),%remove last element so we only remember ?FT at a time.
+            [H|T2]
+    end.
     
     
     
@@ -298,22 +303,21 @@ handle_call({check}, _From, State) ->
     {reply, State, State};
 handle_call({dump}, _From, _State) ->
     {reply, ok, empty_data()};
-handle_call({top}, _From, State) ->
+handle_call({recent_tops}, _From, State) ->
     {reply, State#s.top, State};
-handle_call({hard_set_top, Header}, _From, _State) ->
-    H = block:hash(Header),
-    D = dict:store(H, Header, dict:new()),
-    {reply, ok, #s{headers = D, top = Header}};
+handle_call({top}, _From, State) ->
+    {reply, hd(State#s.top), State};
 handle_call({add, Hash, Header}, _From, State) ->
     AD = Header#header.accumulative_difficulty,
-    AA = (State#s.top),
+    Top = State#s.top,
+    AA = hd(Top),
     AF = AA#header.accumulative_difficulty,
-    H = case AD > AF of
-            true -> Header;
-            false -> AA
+    NewTop = case AD > AF of
+                 true -> add_to_top(Header, Top);
+                 false -> Top
         end,
     Headers = dict:store(Hash, Header, State#s.headers),
-    {reply, ok, State#s{headers = Headers, top = H}}.
+    {reply, ok, State#s{headers = Headers, top = NewTop}}.
 
 handle_cast(_, State) ->
     {noreply, State}.
