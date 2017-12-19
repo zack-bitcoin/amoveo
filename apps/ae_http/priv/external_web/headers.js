@@ -86,11 +86,7 @@ function wallet_doit1() {
     wallet_text.innerHTML = JSON.stringify({"height": 0, "total_work": 0});
     document.body.appendChild(wallet_text);
     function write_header(header) {
-        console.log("write header");
         var acc_difficulty = header[9];
-        console.log("acc_difficulty");
-        console.log(acc_difficulty);
-        console.log(top_diff);
         if (acc_difficulty > top_diff) {
             top_diff = acc_difficulty;
             top_header = header;
@@ -155,7 +151,6 @@ function wallet_doit1() {
         return l[half];
     }
     function difficulty_should_be2(header) {
-        console.log("difficulty_should_be2");
         var period = header[10];
         var f = Math.floor(retarget_frequency / 2); //constants:retarget frequencey is 2000
         var a1 = retarget(header, f, []);
@@ -165,21 +160,12 @@ function wallet_doit1() {
         var times2 = a2.times;
         var m1 = median(times1);
         var m2 = median(times2);
-        console.log("medians");
-        console.log(m1);
-        console.log(m2);
         var tbig = m1 - m2;
-        console.log("tbig");
-        console.log(tbig);
         var t = Math.floor(tbig / f);
-        console.log("t");
-        console.log(t);
         var nt = pow_recalculate(header2000[6],//old difficulty
                                  //6000,//goal block time()
                                  period,
                                  Math.max(1, t));//current estimated block time
-        console.log("nt");
-        console.log(nt);
         var done = Math.max(nt, 6452);
         return done;//initial difficulty
         
@@ -231,15 +217,11 @@ function wallet_doit1() {
     function check_pow(header) {
         //calculate Data, a serialized version of this header where the nonce is 0.
         var height = header[1];
-        console.log("height is ");
-        console.log(height);
         if (height < 1) { return true; }
         else {
             var prev_hash = string_to_array(atob(header[2]));
             var diff0 = difficulty_should_be(prev_hash);
             var diff = header[6];
-            console.log("diff0, diff1");
-            console.log([diff0, diff]);
             if (diff == diff0) {
                 var nonce = atob(header[8]);
                 var data = JSON.parse(JSON.stringify(header));
@@ -264,10 +246,8 @@ function wallet_doit1() {
     function absorb_headers(h) {
         var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
-            console.log("absorb header 1");
             var b =check_pow(h[i]);
             if ( b ) {
-                console.log("absorb header 2");
                 var header = h[i];
                 var height = header[1];
                 if ( height == 0 ) {
@@ -280,7 +260,6 @@ function wallet_doit1() {
                     var ac = sci2int(diff);
                     header[9] = prev_ac + ac - 1;
                 }
-                console.log("absorb header 3");
                 var header_hash = hash(serialize_header(header));
                 if (!(header_hash in headers_db)) {
                     get_more = true;
