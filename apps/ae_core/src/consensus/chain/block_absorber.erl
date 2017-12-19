@@ -5,7 +5,6 @@
 -export([
 	 enqueue/1, %% async request
 	 save/1,    %% returs after saving
-	 %garbage/0,
 	 do_save/1
 ]).
 -export([start_link/0]).
@@ -24,17 +23,13 @@ terminate(_, _) ->
     io:fwrite("block absorber died\n"),
     ok.
 handle_info(_, X) -> {noreply, X}.
-%handle_cast(garbage, X) -> 
-%    trees:garbage(),
-%    {noreply, X};
 handle_cast({doit, BP}, X) ->
     absorb_internal(BP),
     {noreply, X}.
 handle_call({doit, BP}, _From, X) -> 
     absorb_internal(BP),
     {reply, ok, X}.
-garbage() ->
-    gen_server:cast(?MODULE, garbage).
+garbage() -> gen_server:cast(?MODULE, garbage).
 
 %% API functions
 
@@ -74,10 +69,10 @@ absorb_internal(Block) ->
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),
-            {ok, GarbagePeriod} = application:get_env(ae_core, garbage_period),
+            {ok, PrunePeriod} = application:get_env(ae_core, prune_period),
             if
-                ((Height rem GarbagePeriod) == 0) ->
-                    trees:garbage_block(Block2);
+                ((Height rem PrunePeriod) == 0) ->
+                    trees:prune(Block2);
                 true -> ok
             end,
             spawn(fun () ->

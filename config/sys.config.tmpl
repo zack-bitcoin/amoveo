@@ -18,8 +18,8 @@
 
     {smart_contract_runtime_limit, 5000}, %% in miliseconds.
 
-    {garbage_period, 10}, %% this is how frequently we prune all the data from the trees from before rever_depth.
-    %% if garbage period is low, then you will use less ram, but you will waste more cpu on garbage collecting.
+    {prune_period, 10}, %% this is how frequently we prune all the data from the trees from before revert_depth.
+    %% if prune period is low, then you will use less ram, but you will waste more cpu on pruning.
     {revert_depth, 20}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state. For light nodes this should be set to 0.
     %% if a fork is bigger than revert_depth, your full node will have to reprocess all the blocks, or it will have to download a bunch of proofs.
 

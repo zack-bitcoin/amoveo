@@ -5,7 +5,7 @@
 	 update_oracles/2,
 	 update_governance/2, governance/1,
 	 root_hash/1, name/1, %garbage/0, 
-         garbage_block/1,
+         prune/1,
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
          restore/3]).
@@ -95,18 +95,16 @@ keepers_block(TreeID, BP, Many) ->
 	    keepers_block(TreeID, block:get_by_hash(block:prev_hash(BP)), Many-1)
     end,
     [Root|T].
-garbage_block(Block, TreeID) -> 
-    {ok, RD} = application:get_env(ae_core, revert_depth),
-    Keepers = keepers_block(TreeID, Block, RD),
-    trie:garbage(Keepers, TreeID).
     
-garbage_block(Block) ->
+prune(Block) ->
     Trees = [accounts, channels, oracles, existence, governance],
-    gb2(Block, Trees),
+    gb2(Block, Trees),%deletes everything from Trees that isn't referenced in the most recent N blocks.
+    %This is deleting too much, if there is a recent small fork, we want to remember both sides.
     ALeaves = trie:get_all(trees:accounts(block:trees(Block)), accounts),
     OLeaves = trie:get_all(trees:oracles(block:trees(Block)), oracles),
     OBK = oracle_bets_keepers(ALeaves),
-    trie:garbage(OBK, oracle_bets),
+    trie:garbage(OBK, oracle_bets),%this is deleting every oracle_bet that isn't pointed to by an account in this block.
+    %This is deleting too much. we want to remember all the oracle_bets since revert_depth.
     OK = orders_keepers(OLeaves),
     trie:garbage(OK, orders),
     ok.
@@ -122,6 +120,10 @@ gb2(_, []) -> ok;
 gb2(B, [H|T]) ->
     garbage_block(B, H),
     gb2(B, T).
+garbage_block(Block, TreeID) -> 
+    {ok, RD} = application:get_env(ae_core, revert_depth),
+    Keepers = keepers_block(TreeID, Block, RD),
+    trie:garbage(Keepers, TreeID).
 hash2int(X) ->
     U = size(X),
     U = constants:hash_size(),
