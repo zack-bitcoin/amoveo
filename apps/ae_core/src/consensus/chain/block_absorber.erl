@@ -74,7 +74,12 @@ absorb_internal(Block) ->
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),
-            trees:garbage_block(Block2),
+            {ok, GarbagePeriod} = application:get_env(ae_core, garbage_period),
+            if
+                ((Height rem GarbagePeriod) == 0) ->
+                    trees:garbage_block(Block2);
+                true -> ok
+            end,
             spawn(fun () ->
                           {_, _, Txs} = tx_pool:data(),
                           tx_pool:dump(),

@@ -4,13 +4,9 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* When the javascript miner finds a block, it is getting trapped in an infinite loop.
-
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
 
 * Syncing should split the process of headers and blocks. If you try to mine, it shouldn't start mining until you download almost all the blocks for the headers you know about. 
-
-* the config constant "garbage_period" is unused. We should review the garbage collection mechanism to see if this constant is needed. We also  need to know if this constant limits any other contants, in particular "fork_tolerance".
 
 * review the rules about increasing the balance of channels. We should require a payment that make sense.
 - there is an attack where someone makes lots of channels, then moves all their money to a small number of channels, and closes all the channels where they had lots of money. The result of this attack is that the server's money is all locked up in channels.
