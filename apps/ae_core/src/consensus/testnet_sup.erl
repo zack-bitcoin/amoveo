@@ -32,14 +32,13 @@ tree_child(Id, KeySize, Size, Meta) ->
     {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd]}, permanent, 5000, supervisor, [trie_sup]}.
 init([]) ->
     KL = constants:key_length(), 
-    AB = constants:address_bits(),
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),
-    FullLength = KL*2,
+    %FullLength = KL*2,
     BB = constants:balance_bits(),
     Children = child_maker(?keys),
     HB = constants:height_bits(),
-    DB = constants:difficulty_bits(),
+    %DB = constants:difficulty_bits(),
     Tries = [
 	     tree_child(accounts, HS, constants:account_size(), KL div 8),
 	     tree_child(channels, HS, constants:channel_size()),
