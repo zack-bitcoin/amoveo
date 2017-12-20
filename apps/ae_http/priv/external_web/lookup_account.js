@@ -21,7 +21,7 @@ function lookup_account1() {
         variable_public_get(["account", x], lookup_account_helper2);
     }
     function lookup_account_helper2(x) {
-        lookup_account.innerHTML = "balance: ".concat(x[1]);
+        lookup_account.innerHTML = "balance: ".concat(x[1] / 100000000);
     }
 
 }

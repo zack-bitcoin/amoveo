@@ -60,15 +60,10 @@ Oh, we should have our partner sign a transaction that allows us to put money in
 
 * If you use an incorrect password, there should be a useful error message.
 
-* We need to redesign sharing blocks so that we don't overwhelm our partners.
-
 * parts of the api need to be encrypted, to keep channel state private.
 
-* We need a plan on how nodes are going to sync with each other. Trying to sync with everyone simultaniously is a bad strategy.
+* Maybe we should make a way to run internal handler commands externally. Add a new command to the external api. To call this command, you need to sign the info with your private key, and it has a nonce inside that needs to have incremented from last time.
 
-* We should make a way to run internal handler commands externally. Add a new command to the external api. To call this command, you need to sign the info with your private key, and it has a nonce inside that needs to have incremented from last time.
-
-* the explorer should display in coins, not satoshis.
 
 
 
