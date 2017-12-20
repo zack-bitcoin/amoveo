@@ -7,9 +7,6 @@
 handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
     PrivDir = list_to_binary(code:priv_dir(ae_http)),
-    io:fwrite("ext file handler F is "),
-    io:fwrite(F),
-    io:fwrite("\n"),
     true = case F of
                <<"/bets.js">> -> true;
                <<"/miner.js">> -> true;
