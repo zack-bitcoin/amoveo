@@ -33,7 +33,7 @@ class MarketTest(ApiUser):
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.2)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.2)
         oid = 1
-        self.request('new_market', DEV_3_INT, [oid, 20, 5], sleep=0.8)
+        self.request('new_market', DEV_3_INT, [oid, 20, 5], sleep=1.8)
         #self.request('trade', DEV_1_INT, [1000, 1, 1, oid, 20, [127,0,0,1], 3030], sleep=0.04)
         height = self.request('height', DEV_3_INT, [], sleep=0.1)
         height = height[1]
@@ -47,7 +47,7 @@ class MarketTest(ApiUser):
         self.request('mine_block', DEV_1_INT, [11, 1], sleep=1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.2)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.2)
-    #def dont_doit(): #good for testing market gui overlaped open trades stuff.
+        #def dont_doit(): #good for testing market gui overlaped open trades stuff.
         self.request('mine_block', DEV_1_INT, [11, 1], sleep=1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.2)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.2)
@@ -56,7 +56,7 @@ class MarketTest(ApiUser):
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.5)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.5)
         #self.request('pull_channel_state', DEV_1_INT, [[127,0,0,1], 3030], sleep=0.1)
-    #def dont_doit(): #good for testing market gui stuff.
+        #def dont_doit(): #good for testing market gui stuff.
         self.request('combine_cancel_assets', DEV_1_INT, [[127,0,0,1], 3030], sleep = 0.04)
         self.request('oracle_bet', DEV_1_INT, [oid, 1, 26900000000], sleep=0.04)
         self.request('mine_block', DEV_1_INT, [11, 1], sleep=1)
@@ -65,11 +65,11 @@ class MarketTest(ApiUser):
         self.request('oracle_close', DEV_1_INT, [oid], sleep=0.4)
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.4)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.3)
-        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=2)
+        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=5)
     #def dont_doit():
         self.request('pull_channel_state', DEV_1_INT, [[127,0,0,1], 3030], sleep=0.1)
         self.request('pull_channel_state', DEV_2_INT, [[127,0,0,1], 3030], sleep=0.1)
-    #def dont_doit(): #good for testing market gui stuff.
+        #def dont_doit(): #good for testing market gui stuff.
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.1)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.3)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.3)
@@ -80,3 +80,4 @@ class MarketTest(ApiUser):
         self.request('mine_block', DEV_1_INT, [1, 1], sleep=0.2)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=1)
+        

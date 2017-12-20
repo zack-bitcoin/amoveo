@@ -62,10 +62,7 @@ absorb([Header | T], CommonHash) ->
     true = Header#header.difficulty >= constants:initial_difficulty(),
     Hash = block:hash(Header),
     case read(Hash) of
-        {ok, _} ->
-            io:fwrite("absorb header repeat"),
-            absorb(T, Hash),
-            ok; %don't store the same header more than once.
+        {ok, _} -> absorb(T, Hash); %don't store the same header more than once.
         error ->
             true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
             %Header#header.height > 1,

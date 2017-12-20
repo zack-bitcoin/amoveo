@@ -50,4 +50,11 @@ class LightningTest(ApiUser):
         self.lightning_spend(DEV_2_INT, [[127, 0, 0, 1], 3030, pub3, 4, 10], sleep=0.1)
         self.pull_channel_state(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
         self.pull_channel_state(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=2)
+        height1 = self.request('height', DEV_1_INT, [], sleep=0.1)
+        height2 = self.request('height', DEV_2_INT, [], sleep=0.1)
+        height3 = self.request('height', DEV_3_INT, [], sleep=0.1)
+        self.assertEqual(height1, height2)
+        self.assertEqual(height1, height3)
 

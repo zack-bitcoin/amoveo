@@ -1,11 +1,11 @@
 -module(sync).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	doit/0, start/1, start/0, stop/0, status/0]).
+	start/1, start/0, stop/0, status/0]).
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, _) -> io:format("sync died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(start, _) -> {noreply, go};
 handle_cast(stop, _) -> {noreply, stop};
@@ -13,17 +13,23 @@ handle_cast({main, Peer}, go) ->
     trade_peers(Peer),
     MyTop = headers:top(),
     TheirTop = remote_peer({header}, Peer), 
-    io:fwrite(packer:pack({tops, MyTop, TheirTop})),
-    1=2,
-    %if their top header is different than ours:
-    CommonHash = get_headers(Peer),
-    %if their top header has less work than ours:
-    %give_blocks(Peer, CommonHash),
-    %else if their top header has more work than ours:
-    CommonBlockHeight = common_block_height(CommonHash),
-    get_blocks(Peer, CommonBlockHeight),
-    %endif
-    %endif
+    if
+        not(MyTop == TheirTop) ->
+            CommonHash = get_headers(Peer),
+            {ok, TBH} = headers:read(block:hash(block:top())),
+            MD = headers:accumulative_difficulty(TBH),
+            TD = headers:accumulative_difficulty(TheirTop),
+            if
+                TD < MD -> 
+                    io:fwrite("give blocks\n"),
+                    give_blocks(Peer, CommonHash);
+                true ->
+                    io:fwrite("get blocks\n"),
+                    CommonBlockHeight = common_block_height(CommonHash),
+                    B = get_blocks(Peer, CommonBlockHeight)
+            end;
+        true -> ok
+    end,
     trade_txs(Peer),
     {noreply, go};
 handle_cast(_, X) -> {noreply, X}.
@@ -31,15 +37,15 @@ handle_call(status, _From, X) -> {reply, X, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 status() -> gen_server:call(?MODULE, status).
 stop() -> gen_server:cast(?MODULE, stop).
+%doit() ->
+%    P = peers:all(),
+%    start(P).
+%start(P) ->
+%    download_blocks:sync_all(P, block:height()).
 start() ->
     P = peers:all(),
     start(P).
 start(P) ->
-    download_blocks:sync_all(P, block:height()).
-doit() ->
-    P = peers:all(),
-    start_new(P).
-start_new(P) ->
     io:fwrite("sync with peer "),
     io:fwrite(packer:pack(P)),
     io:fwrite("\n"),
@@ -51,8 +57,38 @@ doit2([Peer|T]) ->
     %check if our version is the same.
     gen_server:cast(?MODULE, {main, Peer}),
     doit2(T).
-give_headers(_, _) -> ok.
-give_blocks(_, _) -> ok.
+blocks(CommonHash, Block) ->
+    io:fwrite("blocks function"),
+    BH = block:hash(Block),
+    if 
+        BH == CommonHash -> [];
+        true ->
+            PrevBlock = block:get_by_hash(block:prev_hash(Block)),
+            [Block|blocks(CommonHash, PrevBlock)]
+    end.
+give_blocks(Peer, CommonHash) -> 
+    io:fwrite("give blocks function \n"),
+    Blocks = lists:reverse(blocks(CommonHash, block:top())),
+    io:fwrite("give this many blocks"),
+    io:fwrite(integer_to_list(length(Blocks))),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(Blocks)),
+    io:fwrite("\n"),
+    if 
+        length(Blocks) > 0 ->
+            %spawn(fun() -> do_send_blocks(Peer, Blocks) end);
+            do_send_blocks(Peer, Blocks);
+        true -> false
+    end.
+do_send_blocks(_, []) -> ok;
+do_send_blocks(Peer, [Block|T]) ->
+    io:fwrite("do send blocks function \n"),
+    io:fwrite("give block "),
+    io:fwrite(integer_to_list(block:height(Block))),
+    io:fwrite("\n"),
+    remote_peer({give_block, Block}, Peer),
+    timer:sleep(20),
+    do_send_blocks(Peer, T).
 remote_peer(Transaction, Peer) ->
     case talker:talk(Transaction, Peer) of
         {ok, Return0} -> Return0;
@@ -71,14 +107,18 @@ get_headers(Peer) ->
     {ok, FT} = ?ForkTolerance,
     Start = max(0, N - FT), %start earlier in case they are on a fork.
     L = get_headers2(Peer, Start, []),
-    hd(lists:reverse(L)).%returns the hash of the header that we have in common which has the most difficulty.
+    LL = length(L),
+    if
+        LL < 1 -> block:hash(block:get_by_height(0));
+        true -> hd(lists:reverse(L))
+    end.%returns the hash of the header that we have in common which has the most difficulty.
 get_headers2(Peer, N, CHT) ->
     Headers = remote_peer({headers, ?HeadersBatch, N}, Peer),
     CommonHash = headers:absorb(Headers),
     if
         length(Headers) > (?HeadersBatch div 2) -> 
             get_headers2(Peer, N+?HeadersBatch, [CommonHash|CHT]);
-        true -> ok
+        true -> []
     end.
 common_block_height(CommonHash) ->
     case block:get_by_hash(CommonHash) of
@@ -88,7 +128,6 @@ common_block_height(CommonHash) ->
             common_block_height(PrevCommonHash);
         B -> block:height(B)
     end.
-            
 get_blocks(Peer, N) ->
     Blocks = remote_peer({blocks, ?BlocksBatch, N}, Peer),
     block_absorber:save(Blocks),
@@ -97,7 +136,6 @@ get_blocks(Peer, N) ->
             get_blocks(Peer, N+?BlocksBatch);
         true -> ok
     end.
-    
 trade_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),
     tx_pool_feeder:absorb(Txs),
