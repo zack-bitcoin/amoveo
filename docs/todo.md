@@ -6,7 +6,7 @@
 
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
 
-* Syncing should split the process of headers and blocks. If you try to mine, it shouldn't start mining until you download almost all the blocks for the headers you know about. 
+* lightning payments from the light node.
 
 * review the rules about increasing the balance of channels. We should require a payment that make sense.
 - there is an attack where someone makes lots of channels, then moves all their money to a small number of channels, and closes all the channels where they had lots of money. The result of this attack is that the server's money is all locked up in channels.
@@ -54,15 +54,11 @@ Oh, we should have our partner sign a transaction that allows us to put money in
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
-* do not sync twice in parallel.
-
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 
 * the password is being recorded in the log. This is bad.
 
 * If you use an incorrect password, there should be a useful error message.
-
-* make sure that ae_http_app:start_external() isn't exposing files that we don't want to expose.
 
 * We need to redesign sharing blocks so that we don't overwhelm our partners.
 

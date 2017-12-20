@@ -7,6 +7,44 @@
 handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
     PrivDir = list_to_binary(code:priv_dir(ae_http)),
+    io:fwrite("ext file handler F is "),
+    io:fwrite(F),
+    io:fwrite("\n"),
+    true = case F of
+               <<"/bets.js">> -> true;
+               <<"/miner.js">> -> true;
+               <<"/chalang.js">> -> true;
+               <<"/format.js">> -> true;
+               <<"/rpc.js">> -> true;
+               <<"/channels.js">> -> true;
+               <<"/headers.js">> -> true;
+               <<"/server.js">> -> true;
+               <<"/codecBytes.js">> -> true;
+               <<"/height.js">> -> true;
+               <<"/sha256.js">> -> true;
+               <<"/combine_cancel_assets.js">> -> true;
+               <<"/hexbase64.js">> -> true;
+               <<"/signing.js">> -> true;
+               <<"/create_account.js">> -> true;
+               <<"/keys.js">> -> true;
+               <<"/sjcl.js">> -> true;
+               <<"/crypto.js">> -> true;
+               <<"/lookup_account.js">> -> true;
+               <<"/spend_tx.js">> -> true;
+               <<"/elliptic.min.js">> -> true;
+               <<"/lookup_block.js">> -> true;
+               <<"/spk.js">> -> true;
+               <<"/explorer.html">> -> true;
+               <<"/lookup_oracle.js">> -> true;
+               <<"/total_coins.js">> -> true;
+               <<"/favicon.ico">> -> true;
+               <<"/market.js">> -> true;
+               <<"/unused.js">> -> true;
+               <<"/finance_game.js">> -> true;
+               <<"/merkle_proofs.js">> -> true;
+               <<"/wallet.html">> -> true;
+               _ -> false
+           end,
     File = << PrivDir/binary, <<"/external_web">>/binary, F/binary>>,
     {ok, _Data, _} = cowboy_req:body(Req),
     Headers = [{<<"content-type">>, <<"text/html">>},
