@@ -38,7 +38,7 @@ doit({header, N}) ->
 doit({headers, Many, N}) -> 
     X = many_headers(Many, N),
     {ok, X};
-doit({tophash}) -> {ok, headers:top()};
+doit({header}) -> {ok, headers:top()};
 doit({peers}) ->
     P = peers:all(),
     P2 = ae_utils:tuples2lists(P),

@@ -52,27 +52,27 @@ nonce(H) -> H#header.nonce.
 difficulty(H) -> H#header.difficulty.
 accumulative_difficulty(H) -> H#header.accumulative_difficulty.
 
--spec absorb([header()]) -> ok.
-absorb([]) ->
-    ok;
-absorb([First|T]) when is_binary(First) ->
+absorb(X) -> absorb(X, <<>>).
+absorb([], CommonHash) ->
+    CommonHash;
+absorb([First|T], R) when is_binary(First) ->
     A = deserialize(First),
-    absorb([A|T]);
-absorb([Header | T]) ->
+    absorb([A|T], R);
+absorb([Header | T], CommonHash) ->
     true = Header#header.difficulty >= constants:initial_difficulty(),
     Hash = block:hash(Header),
     case read(Hash) of
         {ok, _} ->
             io:fwrite("absorb header repeat"),
+            absorb(T, Hash),
             ok; %don't store the same header more than once.
         error ->
             true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
             %Header#header.height > 1,
             {true, _} = check_difficulty(Header),%check that the difficulty written on the block is correctly calculated
-            ok = gen_server:call(?MODULE, {add, Hash, Header})
-            %file:write_file(?LOC, serialize(Header), [append]) %we keep all the good headers we know about in the order we learned about them. This is used for sharing the entire history of headers quickly.
-    end,
-    absorb(T).
+            ok = gen_server:call(?MODULE, {add, Hash, Header}),
+            absorb(T, CommonHash)
+    end.
 check_pow(Header) ->
     MineDiff = Header#header.difficulty,
     Data = block:hash(Header#header{nonce = <<0:256>>}),
