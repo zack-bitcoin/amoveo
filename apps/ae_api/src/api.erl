@@ -446,9 +446,7 @@ add_peer(IP, Port) ->
     peers:add({IP, Port}),
     0.
 sync() -> sync(?IP, ?Port).
-sync(IP, Port) ->
-    MyHeight = block:height(block:top()),
-    ok = download_blocks:sync_all([{IP, Port}], MyHeight).
+sync(IP, Port) -> sync:start([{IP, Port}]).
 keypair() -> keys:keypair().
 pubkey() -> base64:encode(keys:pubkey()).
 new_pubkey(Password) -> keys:new(Password).
