@@ -147,7 +147,8 @@ orders_keepers([L|T]) ->
      orders_keepers(T)].
 prune2(_, []) -> ok;
 prune2(Blocks, [TID|Trees]) ->
-    Pointers = remove_repeats(prune3(Blocks, TID)),
+    P3 = prune3(Blocks, TID),
+    Pointers = remove_repeats(P3),
     trie:garbage(Pointers, TID),
     prune2(Blocks, Trees).
 prune3([], _) -> [1];

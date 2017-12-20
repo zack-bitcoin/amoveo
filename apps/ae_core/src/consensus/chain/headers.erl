@@ -285,13 +285,13 @@ header_size() ->
     VB = constants:version_bits(),
     DB = 16,
     ((HB*4) + HtB + TB + VB + DB).
--define(FT, application:get_env(ae_core, fork_tolerance)).
 add_to_top(H, T) ->
-    B = length(T) < ?FT,
+    {ok, FT} = application:get_env(ae_core, fork_tolerance),
+    B = length(T) < FT,
     if
         B -> [H|T];
         true ->
-            {T2, _} = lists:split(?FT-1, T),%remove last element so we only remember ?FT at a time.
+            {T2, _} = lists:split(FT-1, T),%remove last element so we only remember ?FT at a time.
             [H|T2]
     end.
     

@@ -81,7 +81,7 @@ send_blocks(Peer, OurTopHash, CommonHash, Blocks, N) ->
             send_blocks(Peer, PrevHash, CommonHash, [BlockPlus|Blocks], N+1)
     end.
 send_blocks_external(Peer, Blocks) ->
-    io:fwrite("send_blocks_external: ~p" ,[packer:pack({sending_blocks, Blocks})]),
+    %io:fwrite("send_blocks_external: ~p" ,[packer:pack({sending_blocks, Blocks})]),
     spawn(?MODULE, do_send_blocks, [Peer, Blocks]).
 
 do_send_blocks(_, []) -> ok;

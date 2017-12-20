@@ -30,6 +30,9 @@ doit({give_block, Block}) ->
     {ok, 0};
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
+doit({blocks, Many, N}) -> 
+    X = many_blocks(Many, N),
+    {ok, X};
 doit({header, N}) -> 
     {ok, block:block_to_header(block:get_by_height(N))};
 doit({headers, Many, N}) -> 
@@ -172,7 +175,7 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
-    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, api:height()),
+    %SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, api:height()),
     SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
@@ -195,14 +198,29 @@ proof_packer([]) -> [];
 proof_packer([H|T]) ->
     [proof_packer(H)|proof_packer(T)];
 proof_packer(X) -> X.
-many_headers(M, _) when M < 1 -> [];
-many_headers(Many, N) ->    
+many_blocks(M, _) when M < 1 -> [];
+many_blocks(Many, N) ->
     H = api:height(),
-    if
-        N > H -> [];
-        true ->
-            [block:block_to_header(block:get_by_height(N))|
-             many_headers(Many-1, N+1)]
+    if N > H -> [];
+       true ->
+            [block:get_by_height(N)|
+             many_blocks(Many-1, N+1)]
     end.
+many_headers(M, N) ->
+    B = many_blocks(M, N),
+    blocks2headers(B).
+blocks2headers([]) -> [];
+blocks2headers([B|T]) ->
+    [block:block_to_header(B)|
+    blocks2headers(T)].
+%many_headers(M, _) when M < 1 -> [];
+%many_headers(Many, N) ->    
+%    H = api:height(),
+%    if
+%        N > H -> [];
+%        true ->
+%            [block:block_to_header(block:get_by_height(N))|
+%             many_headers(Many-1, N+1)]
+%    end.
 minus([T|X], T) -> X;
 minus([A|T], X) -> [A|minus(T, X)].
