@@ -72,7 +72,8 @@ absorb_internal(Block) ->
             {ok, PrunePeriod} = application:get_env(ae_core, prune_period),
             if
                 ((Height rem PrunePeriod) == 0) ->
-                    trees:prune(Block2);
+                    %trees:prune(Block2);
+                    trees:prune();
                 true -> ok
             end,
             spawn(fun () ->

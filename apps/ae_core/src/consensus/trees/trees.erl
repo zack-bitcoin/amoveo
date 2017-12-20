@@ -5,7 +5,7 @@
 	 update_oracles/2,
 	 update_governance/2, governance/1,
 	 root_hash/1, name/1, %garbage/0, 
-         prune/1,
+         prune/0,
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
          restore/3]).
@@ -84,7 +84,7 @@ serialized_roots(Trees) ->
      >>.
 root_hash(Trees) ->
     hash:doit(serialized_roots(Trees)).
-keepers_block(_, _, 0) -> [1];
+keepers_block(_, _, 0) -> [1];%gather the pointer to every trie that we don't want to prune.
 keepers_block(TreeID, BP, Many) ->
     Trees = block:trees(BP),
     Height = block:height(BP),
@@ -95,8 +95,37 @@ keepers_block(TreeID, BP, Many) ->
 	    keepers_block(TreeID, block:get_by_hash(block:prev_hash(BP)), Many-1)
     end,
     [Root|T].
-    
-prune(Block) ->
+  
+headers2blocks([]) -> [];
+headers2blocks([Header|T]) ->
+    [block:get_by_hash(block:hash(Header))|headers2blocks(T)].
+prune() -> 
+    Blocks = headers2blocks(headers:recent_tops()),
+    Trees = [accounts, channels, oracles, existence, governance],
+    prune2(Blocks, Trees),
+    ALeaves = get_all_leaves0(Blocks, accounts, fun(X) -> trees:accounts(block:trees(X)) end),
+    OLeaves = get_all_leaves0(Blocks, oracles, fun(X) -> trees:oracles(block:trees(X)) end),
+    OBK = oracle_bets_keepers(ALeaves),
+    trie:garbage(OBK, oracle_bets),
+    OK = orders_keepers(OLeaves),
+    trie:garbage(OK, orders),
+    ok.
+get_all_leaves0(B, K, F) ->
+    remove_repeats(get_all_leaves(B, K, F)).
+remove_repeats([]) -> [];
+remove_repeats([H|T]) ->
+    T2 = remove_element(H, T),
+    [H|remove_repeats(T)].
+remove_element(_, []) -> [];
+remove_element(E, [E|T]) ->
+    remove_element(E, T);
+remove_element(E, [A|T]) ->
+    [A|remove_element(E, T)].
+get_all_leaves([], _, _) -> [];
+get_all_leaves([Block|T], Key, Fun) ->
+    trie:get_all(Fun(Block), Key) ++
+        get_all_leaves(T, Key, Fun).
+prune_old(Block) ->
     Trees = [accounts, channels, oracles, existence, governance],
     gb2(Block, Trees),%deletes everything from Trees that isn't referenced in the most recent N blocks.
     %This is deleting too much, if there is a recent small fork, we want to remember both sides.
@@ -116,6 +145,21 @@ orders_keepers([]) -> [1];
 orders_keepers([L|T]) ->
     [leaf:meta(L)|
      orders_keepers(T)].
+prune2(_, []) -> ok;
+prune2(Blocks, [TID|Trees]) ->
+    Pointers = remove_repeats(prune3(Blocks, TID)),
+    trie:garbage(Pointers, TID),
+    prune2(Blocks, Trees).
+prune3([], _) -> [1];
+prune3([B|Blocks], TID) ->
+    H = block:height(B),
+    case H of
+        0 -> [1];
+        _ ->
+            Trees = block:trees(B),
+            Root = trees:TID(Trees),
+            [Root|prune3(Blocks, TID)]
+    end.
 gb2(_, []) -> ok;
 gb2(B, [H|T]) ->
     garbage_block(B, H),

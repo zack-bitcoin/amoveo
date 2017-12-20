@@ -4,8 +4,6 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* garbage collection is deleting too much stuff. there are nots on trees:prune/1
-
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
 
 * Syncing should split the process of headers and blocks. If you try to mine, it shouldn't start mining until you download almost all the blocks for the headers you know about. 

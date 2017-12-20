@@ -3,7 +3,7 @@
 
 %% API
 -export([prev_hash/1, height/1, time/1, version/1, trees_hash/1, txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1, period/1,
-         check/0,
+         check/0, recent_tops/0,
          absorb/1, read/1, top/0, dump/0, 
          make_header/9,
          serialize/1, deserialize/1,
@@ -93,6 +93,7 @@ check_difficulty(A) ->
 read(Hash) -> gen_server:call(?MODULE, {read, Hash}).
 check() -> gen_server:call(?MODULE, {check}).
 
+recent_tops() -> gen_server:call(?MODULE, {recent_tops}).
 -spec top() -> header().
 top() -> 
     X = gen_server:call(?MODULE, {top}),

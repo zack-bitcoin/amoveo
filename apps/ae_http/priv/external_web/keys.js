@@ -38,10 +38,10 @@ function keys_function1() {
     var save_name = document.createElement("INPUT");
     save_name.type = "text";
     save_name.id = "save_name";
-    save_name.value = "amoveo_light_keys";
+    save_name.value = "amoveo_private_key";
     var save_button = document.createElement("input");
     save_button.type = "button";
-    save_button.value = "save keys to file";
+    save_button.value = "save private key to file";
     save_button.onclick = save_keys;
     var file_selector = document.createElement("input");
     file_selector.type = "file";
