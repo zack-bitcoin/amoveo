@@ -32,7 +32,7 @@ Combining religious convictions with a monopoly on violence was deadly. It meant
 
 Separating finance and state will also be good. It will make both the state and finance less dangerous.
 Combining finance with a monopoly on violence means that we can't truly trust the finance system. The people who are holding our money are able to steal our money without consequence. This is a terrible combination.
-[Amoveo mission statement](design/mission_statement.md)
+[Amoveo mission statement](mission_statement.md)
 
 
 ## blockchain consensus protocol

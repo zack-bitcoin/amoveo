@@ -18,8 +18,8 @@ grow_channel_tx:good and new_channel_tx:good should move into the /channels dire
 - there is an attack where someone makes lots of channels, then moves all their money to a small number of channels, and closes all the channels where they had lots of money. The result of this attack is that the server's money is all locked up in channels.
 - ideally, we should charge based on the amount of time that the server's money is locked up. We should have the customer pay for X number of days as a minimum, and eventually we request that they pay for more days. If the customer doesn't pay in time, then we close the channel to recover the funds.
 - Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
-Market contracts need some sort of default, so they can be closed within the limit. The default should probably be that the server wins, this way the customer can have the freedom to set up the bet however they want, at their own risk.
-- we should have a constants in the config file be "time_value", and we use this to calculate how much it costs to have the server's money locked up for a period of time.
+Market contracts need some sort of default, so they can be closed within the limit. The default should probably be that the server wins, this way the customer can have the freedom to set up the bet with whatever time constraints they want, at their own risk. It is a sort of "I cut, you choose" protocol.
+- we should have a constant in the config file be "time_value", and we use this to calculate how much it costs to have the server's money locked up for a period of time.
 
 * raise the fees so it isn't affordable to spam the blocks.
 
