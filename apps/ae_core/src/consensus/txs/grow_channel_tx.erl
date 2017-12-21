@@ -5,6 +5,8 @@ acc1(X) -> X#gc.acc1.
 acc2(X) -> X#gc.acc2.
 id(X) -> X#gc.id.
 good(Tx) ->
+    %ChannelLife = how long they are requesting the channel to be open for.
+    %charge a fee = ((time_value) * (ChannelLife + Delay) * (how much the server puts into the channel)) + (max(0, ChannelLife - (OldChannelLife - OldChannelAge)) * (how much server already had in the channel) * (time_value))
     I1 = Tx#gc.inc1,
     I2 = Tx#gc.inc2,
     Acc1 = Tx#gc.acc1,

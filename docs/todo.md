@@ -1,4 +1,9 @@
-### things to do for the next hard fork of the testnet
+### things to do for the next hard fork
+
+* reduce constants initial developer reward and block reward.
+* increase constants initial difficulty.
+* reduce constants initial_balance
+* raise the initial governance tx fees, it would decrease the severity of many kinds of attacks. We can always lower them later. Set it up so the block reward isn't enough money to completely fill a block with transactions.
 
 
 
@@ -9,8 +14,12 @@
 * lightning payments from the light node.
 
 * review the rules about increasing the balance of channels. We should require a payment that make sense.
+grow_channel_tx:good and new_channel_tx:good should move into the /channels directory, since they aren't related to consensus.
 - there is an attack where someone makes lots of channels, then moves all their money to a small number of channels, and closes all the channels where they had lots of money. The result of this attack is that the server's money is all locked up in channels.
 - ideally, we should charge based on the amount of time that the server's money is locked up. We should have the customer pay for X number of days as a minimum, and eventually we request that they pay for more days. If the customer doesn't pay in time, then we close the channel to recover the funds.
+- Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
+Market contracts need some sort of default, so they can be closed within the limit. The default should probably be that the server wins, this way the customer can have the freedom to set up the bet however they want, at their own risk.
+- we should have a constants in the config file be "time_value", and we use this to calculate how much it costs to have the server's money locked up for a period of time.
 
 * raise the fees so it isn't affordable to spam the blocks.
 
@@ -23,10 +32,9 @@ Maybe encoding the pubkeys should happen at the wallet level, not the node level
 
 * pull channel state shouldn't cause a crash when the state is already synced.
 
-* sync is becoming a zombie process when it cannot connect.
-
 * we need to look at the test for options again. What if our channel partner refuses to let us add more money to the channel? Then we couldn't buy the option. There needs to be a way for just one of the participants to put their own money into the channel if they choose to.
 Oh, we should have our partner sign a transaction that allows us to put money into the channel, and we can choose whether or not to sign it in the future.
+So it is important that a channel_grow transaction ignores the nonces of the two accounts that sign it.
 
 * there needs to be an off switch on each market, so the market maker can gracefully stop his losses before too much information leaks.
 - the market contract delays need to be long enough so that the contract is still live, even if the oracle takes a while to publish.

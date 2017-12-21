@@ -9,6 +9,8 @@ acc1(X) -> X#nc.acc1.
 acc2(X) -> X#nc.acc2.
 id(X) -> X#nc.id.
 good(Tx) ->
+    %ChannelLife = how long they are requesting the channel to be open for.
+    %charge a fee = (time_value) * (ChannelLife + Delay) * (how much the server puts into the channel)
     %make sure that the money is a fair balance of ours and theirs.
     Delay = Tx#nc.delay,
     io:fwrite("new channel "),
