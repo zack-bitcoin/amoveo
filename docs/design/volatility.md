@@ -1,4 +1,4 @@
-User Base and Volatility
+Volatility
 ============
 
 Cryptocurrency is very volatile. This means that the price of cryptocurrency changes a lot from one day to the next.
