@@ -105,14 +105,15 @@ function verify_merkle(trie_key, x) {
 function serialize_key(v, trie_key) {
     var t = v[0];
     if ( t == "gov" ) {
-        return integer_to_array(trie_key, 8);
+        return integer_to_array(trie_key, 1);
     } else if ( t == "acc" ) {
         var pubkey = string_to_array(atob(v[4]));
-        return integer_to_array(0, 32*7).concat(hash(pubkey));
+        //return integer_to_array(0, 32*7).concat(hash(pubkey));
+        return hash(pubkey);
     } else if ( t == "channel" ) {
-        return integer_to_array(v[1], 256);
+        return integer_to_array(v[1], 32);
     } else if (t == "oracle") {
-        return integer_to_array(v[1], 256);
+        return integer_to_array(v[1], 32);
     } else {
         throw("serialize trie bad trie type");
     }

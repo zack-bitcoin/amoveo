@@ -27,6 +27,7 @@ handle(Req, _) ->
                <<"/sjcl.js">> -> true;
                <<"/crypto.js">> -> true;
                <<"/lookup_account.js">> -> true;
+               <<"/create_account_tx.js">> -> true;
                <<"/spend_tx.js">> -> true;
                <<"/elliptic.min.js">> -> true;
                <<"/lookup_block.js">> -> true;
@@ -40,7 +41,11 @@ handle(Req, _) ->
                <<"/finance_game.js">> -> true;
                <<"/merkle_proofs.js">> -> true;
                <<"/wallet.html">> -> true;
-               _ -> false
+               X -> 
+                   io:fwrite("ext file handler block access to: "),
+                   io:fwrite(X),
+                   io:fwrite("\n"),
+                   false
            end,
     File = << PrivDir/binary, <<"/external_web">>/binary, F/binary>>,
     {ok, _Data, _} = cowboy_req:body(Req),
