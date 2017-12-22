@@ -10,7 +10,7 @@ For financial markets like Amoveo will support, volatility is an especially bad 
 Why does volatility happen?
 =============
 
-There are different kinds of traders. Some traders try to understand the value of a currency before investing. These types of traders tend to ignore market trends, and focus on the technology.
+There are different kinds of traders. Some traders types of traders tend to ignore market trends, and focus on the technology.
 If some new technology is created in a competitor, or a security vulnerability is discovered, then the technology focused investors may all leave at once.
 
 Other traders see it as a thrilling way to gamble. These types of investors are probably the worst. They contribute to volatility because they tend to get involved only when the price is rising, and then they suddenly all leave when the price is falling.
@@ -31,7 +31,7 @@ How can we avoid volatility?
 
 2) We should avoid inviting people into the community if they are a bad investor. Like a thrill-seeking gambler for example.
 
-3) We should maintain a futures market for the price of the currency, that way users have more time to coordinate on a price for each moment in time, so we have a better prediction of the future price, and the price would move less overall. Amoveo already supports this.
+3) We should maintain a futures market for the price of the currency, that way users have more time to coordinate on a price for each moment in time, so we have a better prediction of the future price. Amoveo already supports this.
 
 4) We should grow the market cap as much as possible. Amoveo's block reward is set by a governance system. So Amoveo can change the rate of coin production to match the rate of community growth. This has the benefit that Amoveo's market cap can grow more quickly. But this comes at the cost that Amoveo's tokens won't increase in value as quickly.
 
