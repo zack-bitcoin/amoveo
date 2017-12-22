@@ -1,5 +1,5 @@
 -module(new_channel_tx).
--export([go/3, make/8, good/1, spk/2, cid/1,
+-export([go/3, make/8, good/1, spk/2, spk/3, cid/1,
 	 acc1/1, acc2/1, id/1]).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, 
@@ -41,8 +41,11 @@ good(Tx) ->
     true = Frac < MCR,
     true.
 cid(Tx) -> Tx#nc.id.
-spk(Tx, Delay) -> spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
-			  [], 0,0, 0, Delay).
+spk(Tx, Delay) -> 
+    spk(Tx, Delay, 0).
+spk(Tx, Delay, CFee) -> 
+    spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
+            [], 0,0, 0, Delay, CFee).
 make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
     Accounts = trees:accounts(Trees),
     {_, A, Proof} = accounts:get(Acc1, Accounts),

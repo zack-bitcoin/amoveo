@@ -9,9 +9,13 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* channels need a minimum fee for opening them.
+
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
 
 * lightning payments from the light node.
+
+* the market node shouldn't let you make a bet that it doesn't expect to settle within the lifetime of the channel.
 
 * review the rules about increasing the balance of channels. We should require a payment that make sense.
 grow_channel_tx:good and new_channel_tx:good should move into the /channels directory, since they aren't related to consensus.

@@ -77,6 +77,8 @@ doit({new_channel_tx, Acc1, Acc2, B1, B2, Delay, Fee}) ->
     CID = api:find_id(channels, Channels),
     {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, B1, B2, Delay, Fee),
     {ok, Tx};
+doit({time_value}) ->
+    application:get_env(ae_core, time_value);
 doit({new_channel, STx, SSPK}) ->
     unlocked = keys:status(),
     Tx = testnet_sign:data(STx),

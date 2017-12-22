@@ -70,9 +70,11 @@ absorb_internal(Block) ->
 	    do_save(Block2),
 	    BH = block:hash(Block2),
             {ok, PrunePeriod} = application:get_env(ae_core, prune_period),
+            HeaderHeight = api:height(),
             if
-                ((Height rem PrunePeriod) == 0) ->
-                    %trees:prune(Block2);
+                (((Height rem PrunePeriod) == 0) and ((HeaderHeight - Height) > PrunePeriod)) ->
+                    trees:prune([Block2]);
+                (Height == HeaderHeight) ->
                     trees:prune();
                 true -> ok
             end,

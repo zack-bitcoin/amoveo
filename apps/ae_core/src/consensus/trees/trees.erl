@@ -5,7 +5,7 @@
 	 update_oracles/2,
 	 update_governance/2, governance/1,
 	 root_hash/1, name/1, %garbage/0, 
-         prune/0,
+         prune/0, prune/1,
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
          restore/3]).
@@ -101,6 +101,8 @@ headers2blocks([Header|T]) ->
     [block:get_by_hash(block:hash(Header))|headers2blocks(T)].
 prune() -> 
     Blocks = headers2blocks(headers:recent_tops()),
+    prune(Blocks).
+prune(Blocks) ->
     Trees = [accounts, channels, oracles, existence, governance],
     prune2(Blocks, Trees),
     ALeaves = get_all_leaves0(Blocks, accounts, fun(X) -> trees:accounts(block:trees(X)) end),

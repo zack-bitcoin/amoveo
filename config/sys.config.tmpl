@@ -33,6 +33,11 @@
 
     {fork_tolerance, 20}, %% This is used by the channel manager. If the channel has been closed this many blocks, then the channel managers garbage collection would delete it.
 
+    {time_value, 1250}, %% This is / (10 expt 8)
+    %% there are around 8000 blocks a month. This node is designed to double its balance at least every 10 months, if it is working at full capacity. It is expected to double its money every 5 months.
+    %% the customer is paying about 10% of the money in the channel per month as a fee.
+    %% 1250.0 == (math:pow(10, 8) div 80000).
+    {min_channel_fee, 100000000},
     {min_channel_ratio, 0.5}, %% So the customer needs to put in twice as much money as the server.
 
     {bet_gas_limit, 100000},%% these limits are for when you are making channels off-chain. you are avoiding making a channel that would be excessively expensive to close on-chain.
