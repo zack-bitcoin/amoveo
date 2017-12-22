@@ -2,21 +2,12 @@
 -behaviour(gen_server).
 
 %% API
--export([
-	 enqueue/1, %% async request
-	 save/1,    %% returs after saving
-	 do_save/1
+-export([enqueue/1, %% async request
+	 save/1,    %% returns after saving
+	 do_save/1 %% run without gen_server
 ]).
--export([start_link/0]).
--export([init/1,
-         handle_call/3,
-         handle_cast/2,
-         handle_info/2,
-         terminate/2,
-         code_change/3]).
-
-init(ok) -> 
-    {ok, []}.
+-export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
+init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> 
@@ -63,9 +54,6 @@ absorb_internal(Block) ->
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 	    Header = block:block_to_header(Block),
 	    headers:absorb([Header]),
-
-	    %check that the proofs root matches the header.
-
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),
@@ -84,7 +72,7 @@ absorb_internal(Block) ->
                           tx_pool_feeder:absorb(Txs)
                   end),
             order_book:match(),
-            timer:sleep(20),
+            %timer:sleep(20),
             io:fwrite("absorb block "),
             io:fwrite(integer_to_list(block:height(Block2))),
             io:fwrite("\n")
