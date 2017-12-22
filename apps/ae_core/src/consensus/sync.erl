@@ -103,15 +103,15 @@ trade_peers(Peer) ->
 get_headers(Peer) -> 
     N = headers:height(headers:top()),
     {ok, FT} = application:get_env(ae_core, fork_tolerance),
-    Start = max(0, N - FT), %start earlier in case they are on a fork.
-    _CommonHash = get_headers2(Peer, Start).
-get_headers2(Peer, N) ->%get_headers2 only gets called more than once if the forkTolerance is bigger than HeadersBatch.
+    Start = max(0, N - FT), 
+    get_headers2(Peer, Start).
+get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
-    CommonHash = headers:absorb(Headers),%Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
+    CommonHash = headers:absorb(Headers),
     case CommonHash of
         <<>> -> get_headers2(Peer, N+HB-1);
-        _ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
+        _ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),%Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
              CommonHash
     end.
 get_headers3(Peer, N) ->

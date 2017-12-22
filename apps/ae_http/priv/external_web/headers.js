@@ -85,6 +85,7 @@ function wallet_doit1() {
     wallet_text = document.createElement("p");
     wallet_text.innerHTML = JSON.stringify({"height": 0, "total_work": 0});
     document.body.appendChild(wallet_text);
+    more_headers();
     function write_header(header) {
         var acc_difficulty = header[9];
         if (acc_difficulty > top_diff) {
