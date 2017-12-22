@@ -16,6 +16,9 @@ handle_cast({main, Peer}, go) ->
     if
         not(MyTop == TheirTop) ->
             CommonHash = get_headers(Peer),
+            io:fwrite("main commonHash is "),
+            io:fwrite(packer:pack(CommonHash)),
+            io:fwrite("\n"),
             {ok, TBH} = headers:read(block:hash(block:top())),
             MD = headers:accumulative_difficulty(TBH),
             TD = headers:accumulative_difficulty(TheirTop),
@@ -71,9 +74,6 @@ give_blocks(Peer, CommonHash) ->
     Blocks = lists:reverse(blocks(CommonHash, block:top())),
     io:fwrite("give this many blocks"),
     io:fwrite(integer_to_list(length(Blocks))),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(Blocks)),
-    io:fwrite("\n"),
     if 
         length(Blocks) > 0 ->
             %spawn(fun() -> do_send_blocks(Peer, Blocks) end);
@@ -115,10 +115,11 @@ get_headers(Peer) ->
 get_headers2(Peer, N, CHT) ->
     Headers = remote_peer({headers, ?HeadersBatch, N}, Peer),
     CommonHash = headers:absorb(Headers),
+    Next = [CommonHash|CHT],
     if
         length(Headers) > (?HeadersBatch div 2) -> 
-            get_headers2(Peer, N+?HeadersBatch, [CommonHash|CHT]);
-        true -> []
+            get_headers2(Peer, N+?HeadersBatch, Next);
+        true -> Next
     end.
 common_block_height(CommonHash) ->
     case block:get_by_hash(CommonHash) of
