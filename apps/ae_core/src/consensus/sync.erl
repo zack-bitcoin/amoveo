@@ -106,20 +106,18 @@ get_headers(Peer) ->
     N = headers:height(headers:top()),
     {ok, FT} = ?ForkTolerance,
     Start = max(0, N - FT), %start earlier in case they are on a fork.
-    L = get_headers2(Peer, Start, []),
-    LL = length(L),
-    if
-        LL < 1 -> block:hash(block:get_by_height(0));
-        true -> hd(lists:reverse(L))
-    end.%returns the hash of the header that we have in common which has the most difficulty.
+    _CommonHash = get_headers2(Peer, Start, []).
 get_headers2(Peer, N, CHT) ->
     Headers = remote_peer({headers, ?HeadersBatch, N}, Peer),
-    CommonHash = headers:absorb(Headers),
-    Next = [CommonHash|CHT],
+    CommonHash = headers:absorb(Headers),%we only actually care about the CommonHash from the first iteration of get_headers2. Not from any recursive call.
+    spawn(fun() -> get_headers3(Peer, N+?HeadersBatch-1) end),
+    CommonHash.
+get_headers3(Peer, N) ->
+    Headers = remote_peer({headers, ?HeadersBatch, N}, Peer),
     if
         length(Headers) > (?HeadersBatch div 2) -> 
-            get_headers2(Peer, N+?HeadersBatch, Next);
-        true -> Next
+            get_headers3(Peer, N+?HeadersBatch-1);
+        true -> ok
     end.
 common_block_height(CommonHash) ->
     case block:get_by_hash(CommonHash) of
