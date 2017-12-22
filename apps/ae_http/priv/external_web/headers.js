@@ -91,7 +91,7 @@ function wallet_doit1() {
         if (acc_difficulty > top_diff) {
             top_diff = acc_difficulty;
             top_header = header;
-            wallet_text.innerHTML = JSON.stringify({"height": header[1], "total_work":(Math.floor(header[9]/10000000000000))});
+            wallet_text.innerHTML = JSON.stringify({"height": header[1], "total_work":(Math.floor(header[9]/100000000))});
         }
         h = hash(serialize_header(header));
         headers_db[h] = header;
