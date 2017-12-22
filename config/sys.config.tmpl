@@ -32,6 +32,8 @@
     {minimum_tx_fee, 9}, %% Only txs with this fee or higher get accepted into your mempool. If you are a miner, you are censoring all txs with lower fees.
 
     {fork_tolerance, 20}, %% This is used by the channel manager. If the channel has been closed this many blocks, then the channel managers garbage collection would delete it.
+                     %% it is also used when syncing. You download this many extra headers to check if you are on a fork.
+    {headers_batch, 101}, %% You download up to this many headers per request.
 
     {time_value, 1250}, %% This is / (10 expt 8)
     %% there are around 8000 blocks a month. This node is designed to double its balance at least every 10 months, if it is working at full capacity. It is expected to double its money every 5 months.

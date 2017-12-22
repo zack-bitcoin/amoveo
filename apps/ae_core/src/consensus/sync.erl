@@ -99,24 +99,27 @@ trade_peers(Peer) ->
     MyPeers = ae_utils:tuples2lists(peers:all()),
     remote_peer({peers, MyPeers}, Peer),
     peers:add(TheirsPeers).
--define(HeadersBatch, 101).
--define(BlocksBatch, 10).
--define(ForkTolerance, application:get_env(ae_core, fork_tolerance)).
+-define(HeadersBatch, application:get_env(ae_core, headers_batch)).
 get_headers(Peer) -> 
     N = headers:height(headers:top()),
-    {ok, FT} = ?ForkTolerance,
+    {ok, FT} = application:get_env(ae_core, fork_tolerance),
     Start = max(0, N - FT), %start earlier in case they are on a fork.
-    _CommonHash = get_headers2(Peer, Start, []).
-get_headers2(Peer, N, CHT) ->
-    Headers = remote_peer({headers, ?HeadersBatch, N}, Peer),
-    CommonHash = headers:absorb(Headers),%we only actually care about the CommonHash from the first iteration of get_headers2. Not from any recursive call.
-    spawn(fun() -> get_headers3(Peer, N+?HeadersBatch-1) end),
-    CommonHash.
+    _CommonHash = get_headers2(Peer, Start).
+get_headers2(Peer, N) ->%get_headers2 only gets called more than once if the forkTolerance is bigger than HeadersBatch.
+    {ok, HB} = ?HeadersBatch,
+    Headers = remote_peer({headers, HB, N}, Peer),
+    CommonHash = headers:absorb(Headers),%Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
+    case CommonHash of
+        <<>> -> get_headers2(Peer, N+HB-1);
+        _ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
+             CommonHash
+    end.
 get_headers3(Peer, N) ->
-    Headers = remote_peer({headers, ?HeadersBatch, N}, Peer),
+    {ok, HB} = ?HeadersBatch,
+    Headers = remote_peer({headers, HB, N}, Peer),
     if
-        length(Headers) > (?HeadersBatch div 2) -> 
-            get_headers3(Peer, N+?HeadersBatch-1);
+        length(Headers) > (HB div 2) -> 
+            get_headers3(Peer, N+HB-1);
         true -> ok
     end.
 common_block_height(CommonHash) ->
@@ -128,11 +131,12 @@ common_block_height(CommonHash) ->
         B -> block:height(B)
     end.
 get_blocks(Peer, N) ->
-    Blocks = remote_peer({blocks, ?BlocksBatch, N}, Peer),
+    {ok, BB} = application:get_env(ae_core, download_blocks_batch),
+    Blocks = remote_peer({blocks, BB, N}, Peer),
     block_absorber:save(Blocks),
     if
-        length(Blocks) > (?BlocksBatch div 2) ->
-            get_blocks(Peer, N+?BlocksBatch);
+        length(Blocks) > (BB div 2) ->
+            get_blocks(Peer, N+BB);
         true -> ok
     end.
 trade_txs(Peer) ->
