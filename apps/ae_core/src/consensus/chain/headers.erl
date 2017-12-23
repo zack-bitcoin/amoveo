@@ -52,7 +52,7 @@ nonce(H) -> H#header.nonce.
 difficulty(H) -> H#header.difficulty.
 accumulative_difficulty(H) -> H#header.accumulative_difficulty.
 
-absorb(X) -> absorb(X, <<>>).
+absorb(X) -> absorb(X, block:hash(block:get_by_height(0))).
 absorb([], CommonHash) ->
     CommonHash;
 absorb([First|T], R) when is_binary(First) ->

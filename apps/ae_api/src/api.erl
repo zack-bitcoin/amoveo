@@ -120,16 +120,16 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
     {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
     {ok, ChannelDelay} = application:get_env(ae_core, channel_delay),
     {ok, TV} = talker:talk({time_value}, IP, Port),
-    %CFee = TV * ChannelDelay * (Bal1 + Bal2) div 100000000,
+    %CFee = TV * (ChannelDelay + LifeSpan) * (Bal1 + Bal2) div 100000000,
     CFee = 0,
     SPK = new_channel_tx:spk(Tx, ChannelDelay, CFee),
     Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx),
     SSPK = keys:sign(SPK),
-    Msg = {new_channel, STx, SSPK},
+    Msg = {new_channel, STx, SSPK},%LifeSpan
     {ok, [SSTx, S2SPK]} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(SSTx),
-    channel_feeder:new_channel(Tx, S2SPK, Accounts),
+    channel_feeder:new_channel(Tx, S2SPK, Accounts),%LifeSpan
     ok.
 pull_channel_state() ->
     pull_channel_state(?IP, ?Port).

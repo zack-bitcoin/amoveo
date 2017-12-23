@@ -87,7 +87,9 @@ doit({new_channel, STx, SSPK}) ->
     Accounts = trees:accounts(Trees),
     undefined = channel_feeder:cid(Tx),
     true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
-    true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same CID/partner combo. Also makes sure that we aren't reusing entropy.
+    %_CFee = new_channel_tx:fee(SPK),
+    %true = CFee >= (),
+    true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same partner.
     SSTx = keys:sign(STx),
     tx_pool_feeder:absorb(SSTx),
     S2SPK = keys:sign(SPK),

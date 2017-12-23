@@ -120,7 +120,7 @@ A market provides liquidity, so you can trade financial risk with other users at
 Markets on Amoveo are centralized and trust-free.
 Each market exists on a centralized server.
 The market is secure because the rules are enforced by channel smart contracts.
-Here is an [explanation of how the market smart contract works.](docs/design/limit_order_in_channel.md)
+Here is an [explanation of how the market smart contract works.](design/limit_order_in_channel.md)
 
 
 ## light nodes and sharding

@@ -61,7 +61,6 @@ doit2([Peer|T]) ->
     gen_server:cast(?MODULE, {main, Peer}),
     doit2(T).
 blocks(CommonHash, Block) ->
-    io:fwrite("blocks function"),
     BH = block:hash(Block),
     if 
         BH == CommonHash -> [];
@@ -70,10 +69,10 @@ blocks(CommonHash, Block) ->
             [Block|blocks(CommonHash, PrevBlock)]
     end.
 give_blocks(Peer, CommonHash) -> 
-    io:fwrite("give blocks function \n"),
     Blocks = lists:reverse(blocks(CommonHash, block:top())),
-    io:fwrite("give this many blocks"),
+    io:fwrite("give this many blocks "),
     io:fwrite(integer_to_list(length(Blocks))),
+    io:fwrite("\n"),
     if 
         length(Blocks) > 0 ->
             %spawn(fun() -> do_send_blocks(Peer, Blocks) end);

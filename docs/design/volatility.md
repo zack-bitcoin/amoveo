@@ -5,7 +5,7 @@ Cryptocurrency is very volatile. This means that the price of cryptocurrency cha
 
 Volatility is a bad thing. It increases the risk of holding the currency.
 
-For financial markets like Amoveo will support, volatility is an especially bad thing. Higher volatility increases the cost of leaving money locked in a contract because it increases the risk that the value of the tokens locked in the contract will fall significantly.
+For financial markets, volatility is an especially bad thing. Higher volatility increases the cost of leaving money locked in a contract because it increases the risk that the value of the tokens locked in the contract will fall significantly.
 
 Why does volatility happen?
 =============

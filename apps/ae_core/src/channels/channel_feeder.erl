@@ -418,7 +418,7 @@ other(Aid1, Aid2) ->
     end,
     Out.
 new_channel_check(Tx) ->
-    %make sure we aren't already storing a channel with the same CID/partner combo.
+    %make sure we aren't already storing a channel with the same partner.
     Other = other(Tx),
     %CID = new_channel_tx:id(Tx),
     case channel_manager:read(Other) of
