@@ -60,16 +60,18 @@ doit2([Peer|T]) ->
     %check if our version is the same.
     gen_server:cast(?MODULE, {main, Peer}),
     doit2(T).
-blocks(CommonHash, Block) ->
+blocks(CommonHash, Block, N) ->
     BH = block:hash(Block),
     if 
+        N < 1 -> [];
         BH == CommonHash -> [];
         true ->
             PrevBlock = block:get_by_hash(block:prev_hash(Block)),
-            [Block|blocks(CommonHash, PrevBlock)]
+            [Block|blocks(CommonHash, PrevBlock, N-1)]
     end.
 give_blocks(Peer, CommonHash) -> 
-    Blocks = lists:reverse(blocks(CommonHash, block:top())),
+    {ok, DBB} = application:get_env(ae_core, download_blocks_batch),
+    Blocks = lists:reverse(blocks(CommonHash, block:top(), DBB)),
     io:fwrite("give this many blocks "),
     io:fwrite(integer_to_list(length(Blocks))),
     io:fwrite("\n"),

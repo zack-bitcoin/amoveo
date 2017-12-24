@@ -9,8 +9,6 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* sync:give_blocks is loading too many blocks into ram at once. Lets do download_blocks_batch many at a time.
-
 * key "expiration" should be added to the channel manager. Contracts made in the channel should all finish at or earlier than this expiration.
 
 *Maybe there should be 2 modes. in safe mode you can only use approved contracts, and if you run out of time without being able to close the contract, then you win all the money in the bet.
