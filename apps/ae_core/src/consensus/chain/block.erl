@@ -314,9 +314,11 @@ spawn_many(N, F) ->
     spawn(F),
     spawn_many(N-1, F).
 mine(Rounds) -> 
-    PB = top(),
+    %PB = top(),
+    %Top = block_to_header(PB),
+    {_, T, Txs} = tx_pool:data(),
+    PB = get_by_height(T),
     Top = block_to_header(PB),
-    {_, _, Txs} = tx_pool:data(),
     Block = make(Top, Txs, trees(PB), keys:pubkey()),
     mine(Block, Rounds).
 mine(Block, Rounds) ->
@@ -459,21 +461,21 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
             _ -> 
                 ABN = Type:Type2(New0),
                 {_, Old, _} = Type:get(Key, trees:Type(Trees)),
-            New = if
-                      Old == empty -> 
-                          Type:UpdateType2(New0, EmptyType2);
-                      true ->
-                          ABO = Type:Type2(Old),
-                          if
-                              ABO == 0 -> 
-                                  throw("dict update trie account oracle"),
-                                  New0;
-                              0 == ABN -> 
-                                  Type:UpdateType2(New0, Type:Type2(Old));
-                              true -> New0
-                          end
-                  end,
-            Type:write(New, Tree)
+                New = if
+                          Old == empty -> 
+                              Type:UpdateType2(New0, EmptyType2);
+                          true ->
+                              ABO = Type:Type2(Old),
+                              if
+                                  ABO == 0 -> 
+                                      throw("dict update trie account oracle"),
+                                      New0;
+                                  0 == ABN -> 
+                                      Type:UpdateType2(New0, Type:Type2(Old));
+                                  true -> New0
+                              end
+                      end,
+                Type:write(New, Tree)
     end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     trees:Update(Trees, Tree2).

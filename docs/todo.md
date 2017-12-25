@@ -9,11 +9,6 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* with the full node, we recently switch to downloading headers and blocks seperately. This is convenient for some things.
-This is contradictory with another recent design choice. We are using the recent_headers from headers.erl to help with pruning.
-If we download lots of headers, then the recent_headers will be completely different from the recent blocks.
-For pruning we need to know about the recent blocks, not the recent headers.
-
 
 * key "expiration" should be added to the channel manager. Contracts made in the channel should all finish at or earlier than this expiration.
 

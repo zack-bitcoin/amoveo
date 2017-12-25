@@ -17,7 +17,7 @@ handle_cast({main, Peer}, go) ->
     if
         not(MyTop == TheirTop) ->
             CommonHash = get_headers(Peer),
-            io:fwrite("main commonHash is "),
+            io:fwrite("main commonHash is "),%bad, we don't have this commonhash.
             io:fwrite(packer:pack(CommonHash)),
             io:fwrite("\n"),
             {ok, TBH} = headers:read(block:hash(block:top())),
@@ -156,11 +156,15 @@ get_blocks(Peer, N) ->
     io:fwrite("\n"),
     {ok, BB} = application:get_env(ae_core, download_blocks_batch),
     Blocks = remote_peer({blocks, BB, N}, Peer),
-    block_absorber:save(Blocks),
-    if
-        length(Blocks) > (BB div 2) ->
-            get_blocks(Peer, N+BB);
-        true -> ok
+    case Blocks of
+        {error, _} -> get_blocks(Peer, N);
+        _ ->
+            block_absorber:save(Blocks),
+            if
+                length(Blocks) > (BB div 2) ->
+                    get_blocks(Peer, N+BB);
+                true -> ok
+            end
     end.
 trade_txs(Peer) ->
     io:fwrite("trade txs 2\n"),
