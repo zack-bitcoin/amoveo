@@ -104,7 +104,8 @@ prune() ->
     prune(Blocks).
 prune(Blocks) ->
     Trees = case application:get_env(ae_core, test_mode) of
-                {ok, true} -> [];
+                {ok, true} -> %[];
+                    [accounts, channels, oracles, existence, governance];
                 {ok, false} -> 
                     [accounts, channels, oracles, existence, governance]
             end,

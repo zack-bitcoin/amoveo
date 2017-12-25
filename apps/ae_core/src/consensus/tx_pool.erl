@@ -44,7 +44,6 @@ handle_call({absorb, NewTrees, Height}, _From, _) ->
 handle_call(data_new, _From, F) ->
     {reply, F, F};
 handle_call(data, _From, F) ->
-    {ok, Header} = headers:read(block:hash(headers:top())),
     H = F#f.height,
     {reply, {F#f.trees, H, lists:reverse(F#f.txs)}, F}.
 handle_cast(_Msg, State) -> {noreply, State}.

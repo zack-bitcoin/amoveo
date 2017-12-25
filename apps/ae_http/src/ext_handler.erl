@@ -208,7 +208,11 @@ many_blocks(Many, N) ->
     if N > H -> [];
        true ->
             B = block:get_by_height(N),
-            [B|many_blocks(Many-1, N+1)]
+            case B of
+                empty -> many_blocks(Many-1, N+1);
+                _ ->
+                    [B|many_blocks(Many-1, N+1)]
+            end
     end.
 many_headers(M, N) ->
     B = many_blocks(M, N),

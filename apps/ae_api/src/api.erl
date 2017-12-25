@@ -523,9 +523,9 @@ work(Nonce, _) ->
     spawn(fun() -> sync:start() end),
     0.
 mining_data() ->
-    PB = block:top(),
-    Top = block:block_to_header(PB),
-    {_, _, Txs} = tx_pool:data(),
+    {_, Height, Txs} = tx_pool:data(),
+    PB = block:get_by_height(Height),
+    {ok, Top} = headers:read(block:hash(PB)),
     Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
     spawn(fun() ->
                  db:save(?mining, Block)

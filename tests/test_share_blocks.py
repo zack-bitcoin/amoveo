@@ -13,7 +13,7 @@ class ShareBlocksTest(ApiUser):
         self.mine_block(DEV_2_INT, [1, 100000], sleep=0.2)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep =0.2)
     def test_2(self):
-        self.mine_block(DEV_1_INT, [7, 100000], sleep=0.1)
+        self.mine_block(DEV_1_INT, [7, 100000], sleep=0.5)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep =0.2)
         self.mine_block(DEV_1_INT, [3, 100000], sleep=0.1)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep =0.2)
