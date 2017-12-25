@@ -5,7 +5,7 @@
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("sync died!"), ok.
+terminate(_, _) -> io:format("sync died!\n"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(start, _) -> {noreply, go};
 handle_cast(stop, _) -> {noreply, stop};
@@ -13,6 +13,7 @@ handle_cast({main, Peer}, go) ->
     trade_peers(Peer),
     MyTop = headers:top(),
     TheirTop = remote_peer({header}, Peer), 
+    MyBlockHeight = block:height(),
     if
         not(MyTop == TheirTop) ->
             CommonHash = get_headers(Peer),
@@ -29,8 +30,11 @@ handle_cast({main, Peer}, go) ->
                 true ->
                     io:fwrite("get blocks\n"),
                     CommonBlockHeight = common_block_height(CommonHash),
-                    B = get_blocks(Peer, CommonBlockHeight)
+                    get_blocks(Peer, CommonBlockHeight)
             end;
+        MyBlockHeight < TheirTop ->
+            {ok, FT} = application:get_env(ae_core, fork_tolerance),
+            get_blocks(Peer, max(0, MyBlockHeight - FT));
         true -> ok
     end,
     trade_txs(Peer),
@@ -60,18 +64,29 @@ doit2([Peer|T]) ->
     %check if our version is the same.
     gen_server:cast(?MODULE, {main, Peer}),
     doit2(T).
-blocks(CommonHash, Block, N) ->
+blocks(CommonHash, Block) ->
     BH = block:hash(Block),
     if 
-        N < 1 -> [];
         BH == CommonHash -> [];
         true ->
             PrevBlock = block:get_by_hash(block:prev_hash(Block)),
-            [Block|blocks(CommonHash, PrevBlock, N-1)]
+            if
+                Block == empty -> 
+                    blocks(CommonHash, PrevBlock);
+                true ->
+                    [Block|blocks(CommonHash, PrevBlock)]
+            end
     end.
 give_blocks(Peer, CommonHash) -> 
+    io:fwrite("give blocks 2\n"),
     {ok, DBB} = application:get_env(ae_core, download_blocks_batch),
-    Blocks = lists:reverse(blocks(CommonHash, block:top(), DBB)),
+    Blocks0 = lists:reverse(blocks(CommonHash, block:top())),
+    Blocks = if
+                 length(Blocks0) < DBB -> Blocks0;
+                 true ->
+                     {X, _} = lists:split(DBB, Blocks0),
+                     X
+             end,
     io:fwrite("give this many blocks "),
     io:fwrite(integer_to_list(length(Blocks))),
     io:fwrite("\n"),
@@ -107,6 +122,7 @@ get_headers(Peer) ->
     Start = max(0, N - FT), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
+    io:fwrite("get headers 2\n"),
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
     CommonHash = headers:absorb(Headers),
@@ -116,14 +132,17 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
              CommonHash
     end.
 get_headers3(Peer, N) ->
+    io:fwrite("get headers 3\n"),
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
+    headers:absorb(Headers),
     if
         length(Headers) > (HB div 2) -> 
             get_headers3(Peer, N+HB-1);
         true -> ok
     end.
 common_block_height(CommonHash) ->
+    io:fwrite("common block height\n"),
     case block:get_by_hash(CommonHash) of
         empty -> 
             Header = headers:read(CommonHash),
@@ -132,6 +151,9 @@ common_block_height(CommonHash) ->
         B -> block:height(B)
     end.
 get_blocks(Peer, N) ->
+    io:fwrite("downloading blocks\n"),
+    io:fwrite(packer:pack(N)),
+    io:fwrite("\n"),
     {ok, BB} = application:get_env(ae_core, download_blocks_batch),
     Blocks = remote_peer({blocks, BB, N}, Peer),
     block_absorber:save(Blocks),
@@ -141,6 +163,7 @@ get_blocks(Peer, N) ->
         true -> ok
     end.
 trade_txs(Peer) ->
+    io:fwrite("trade txs 2\n"),
     Txs = remote_peer({txs}, Peer),
     tx_pool_feeder:absorb(Txs),
     {_,_,Mine} = tx_pool:data(),

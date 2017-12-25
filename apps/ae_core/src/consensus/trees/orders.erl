@@ -159,6 +159,10 @@ all2(X, Root) ->
         <<?Null:PS>> -> [<<?Header:PS>>];
         Pub -> 
             {_, Order, _} = get(Pub, Root),
+            io:fwrite("\n"),
+            io:fwrite("orders all 2 "),
+            io:fwrite(packer:pack([Pub, Root, Order])),%root is 9...
+            io:fwrite("\n"),
             [Pub|all2(Order#orders.pointer, Root)]
     end.
 dict_add(Order, OID, Dict) ->

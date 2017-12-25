@@ -11,7 +11,7 @@ init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> 
-    io:fwrite("block absorber died\n"),
+    io:fwrite("block absorber died! \n"),
     ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({doit, BP}, X) ->
@@ -61,7 +61,8 @@ absorb_internal(Block) ->
             HeaderHeight = api:height(),
             if
                 (((Height rem PrunePeriod) == 0) and ((HeaderHeight - Height) > PrunePeriod)) ->
-                    trees:prune([Block2]);
+                    %trees:prune([Block2]);
+                    trees:prune();
                 (Height == HeaderHeight) ->
                     trees:prune();
                 true -> ok
@@ -72,7 +73,9 @@ absorb_internal(Block) ->
                           tx_pool_feeder:absorb(Txs)
                   end),
             order_book:match(),
-            %timer:sleep(20),
+            recent_blocks:add(BH, Height),
+            %recent_blocks:read(),
+            timer:sleep(20),
             io:fwrite("absorb block "),
             io:fwrite(integer_to_list(block:height(Block2))),
             io:fwrite("\n")

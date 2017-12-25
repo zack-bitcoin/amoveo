@@ -179,6 +179,7 @@ config/local/sys.config: config/sys.config.tmpl
 	sed -e "\
 	s:%% comment:\
 	{port, 3010},\
+	{kind, \"local\"},\
 	{internal_port, 3011},\
 	{swagger_port_internal, 3012},\
 	{swagger_port_external, 3013},\
@@ -192,6 +193,7 @@ config/prod/sys.config: config/sys.config.tmpl
 	sed -e "\
     s:%% comment:\
     {port, 8080},\
+    {kind, \"production\"},\
     {internal_port, 8081},\
     {swagger_port_internal, 8042},\
     {swagger_port_external, 8043},\
@@ -205,6 +207,7 @@ config/dev1/sys.config: config/sys.config.tmpl
 	sed -e "\
     s:%% comment:\
     {port, 3010},\
+    {kind, \"integration\"},\
     {internal_port, 3011},\
     {swagger_port_internal, 3012},\
     {swagger_port_external, 3013},\
@@ -218,6 +221,7 @@ config/dev2/sys.config: config/sys.config.tmpl
 	sed -e "\
     s:%% comment:\
     {port, 3020},\
+    {kind, \"integration\"},\
     {internal_port, 3021},\
     {swagger_port_internal, 3022},\
     {swagger_port_external, 3023},\
@@ -231,6 +235,7 @@ config/dev3/sys.config: config/sys.config.tmpl
 	sed -e "\
     s:%% comment:\
     {port, 3030},\
+    {kind, \"integration\"},\
     {internal_port, 3031},\
     {swagger_port_internal, 3032},\
     {swagger_port_external, 3033},\

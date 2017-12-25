@@ -6,10 +6,10 @@ address_bits() -> hash_size()*8.
 pubkey_size()-> 65. %bytes
 initial_coins() -> 27017593349040. %about 1 year.
 initial_difficulty() -> 
-    case application:get_env(ae_core, test_mode, false) of
-	%true -> 2500;
-	true -> 0;
-	_ -> 6452
+    case application:get_env(ae_core, kind) of
+        {ok, "local"} -> 0;%unit tests
+        {ok, "integration"} -> 2500;%integration tests.
+        {ok, "production"} -> 6452
     end.
 difficulty_bits() -> 24.
 hash_size() -> 32.

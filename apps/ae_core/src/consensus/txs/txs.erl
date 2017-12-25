@@ -60,22 +60,16 @@ digest_from_dict2(Tx, Dict, H) ->
     end.
 
 fees([]) -> 0;
-fees([H | T]) ->
-    element(4, element(2, H)) + fees(T).
-
-
+fees([H|T]) -> element(4, element(2, H)) + fees(T).
 start_link() ->
 	gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 
 
 %% gen_server callbacks
 
-init(ok) ->
-	{ok, []}.
-
+init(ok) -> {ok, []}.
 handle_call(txs, _From, Txs) ->
 	{reply, Txs, Txs}.
-
 handle_cast(dump, _) ->
 	{noreply, []};
 handle_cast({add_tx, Tx}, Txs) ->

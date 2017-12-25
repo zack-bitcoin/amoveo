@@ -429,9 +429,12 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     New = Type:dict_get(Key, Dict),
     Tree = trees:Type(Trees),
     Tree2 = case New of
-                empty -> 
-                    Type:delete(Key, Tree);
-                _ -> Type:write(New, Tree)
+                empty -> Type:delete(Key, Tree);
+                _ -> 
+                    %io:fwrite("about to write into tree "),
+                    %io:fwrite(packer:pack([Type, New, Tree])),
+                    %io:fwrite("\n"),
+                    Type:write(New, Tree)
             end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),

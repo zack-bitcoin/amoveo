@@ -3,7 +3,7 @@
 
 %% API
 -export([prev_hash/1, height/1, time/1, version/1, trees_hash/1, txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1, period/1,
-         check/0, recent_tops/0,
+         check/0, 
          absorb/1, read/1, top/0, dump/0, 
          make_header/9,
          serialize/1, deserialize/1,
@@ -32,7 +32,7 @@
                  period}).
 -define(LOC, constants:headers_file()).
 -record(s, {headers = dict:new() :: dict:dict(block_header_hash(), header()),
-            top = [#header{}]}).
+            top = #header{}}).
 
 -type height() :: non_neg_integer().
 -type block_header_hash() :: binary().
@@ -90,7 +90,7 @@ check_difficulty(A) ->
 read(Hash) -> gen_server:call(?MODULE, {read, Hash}).
 check() -> gen_server:call(?MODULE, {check}).
 
-recent_tops() -> gen_server:call(?MODULE, {recent_tops}).
+%recent_tops() -> gen_server:call(?MODULE, {recent_tops}).
 -spec top() -> header().
 top() -> 
     X = gen_server:call(?MODULE, {top}),
@@ -231,7 +231,7 @@ empty_data() ->
     Header0 = block:block_to_header(GB),
     HH = block:hash(Header0),
     block_hashes:add(HH),
-    #s{top = [Header0], headers = dict:store(HH,Header0,dict:new())}.
+    #s{top = Header0, headers = dict:store(HH,Header0,dict:new())}.
     
 %% gen_server callbacks
 init([]) ->
@@ -301,17 +301,16 @@ handle_call({check}, _From, State) ->
     {reply, State, State};
 handle_call({dump}, _From, _State) ->
     {reply, ok, empty_data()};
-handle_call({recent_tops}, _From, State) ->
-    {reply, State#s.top, State};
+%handle_call({recent_tops}, _From, State) ->
+%    {reply, State#s.top, State};
 handle_call({top}, _From, State) ->
-    {reply, hd(State#s.top), State};
+    {reply, State#s.top, State};
 handle_call({add, Hash, Header}, _From, State) ->
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top,
-    AA = hd(Top),
-    AF = AA#header.accumulative_difficulty,
+    AF = Top#header.accumulative_difficulty,
     NewTop = case AD > AF of
-                 true -> add_to_top(Header, Top);
+                 true -> Header;
                  false -> Top
         end,
     Headers = dict:store(Hash, Header, State#s.headers),

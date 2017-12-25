@@ -96,21 +96,25 @@ keepers_block(TreeID, BP, Many) ->
     end,
     [Root|T].
   
-headers2blocks([]) -> [];
-headers2blocks([Header|T]) ->
-    [block:get_by_hash(block:hash(Header))|headers2blocks(T)].
+hash2blocks([]) -> [];
+hash2blocks([H|T]) ->
+    [block:get_by_hash(H)|hash2blocks(T)].
 prune() -> 
-    Blocks = headers2blocks(headers:recent_tops()),
+    Blocks = hash2blocks(recent_blocks:read()),
     prune(Blocks).
 prune(Blocks) ->
-    Trees = [accounts, channels, oracles, existence, governance],
+    Trees = case application:get_env(ae_core, test_mode) of
+                {ok, true} -> [];
+                {ok, false} -> 
+                    [accounts, channels, oracles, existence, governance]
+            end,
     prune2(Blocks, Trees),
     ALeaves = get_all_leaves0(Blocks, accounts, fun(X) -> trees:accounts(block:trees(X)) end),
     OLeaves = get_all_leaves0(Blocks, oracles, fun(X) -> trees:oracles(block:trees(X)) end),
     OBK = oracle_bets_keepers(ALeaves),
     trie:garbage(OBK, oracle_bets),
     OK = orders_keepers(OLeaves),
-    trie:garbage(OK, orders),
+    %trie:garbage(OK, orders),
     ok.
 get_all_leaves0(B, K, F) ->
     remove_repeats(get_all_leaves(B, K, F)).
@@ -124,21 +128,23 @@ remove_element(E, [E|T]) ->
 remove_element(E, [A|T]) ->
     [A|remove_element(E, T)].
 get_all_leaves([], _, _) -> [];
+get_all_leaves([empty|T], Key, Fun) ->
+    get_all_leaves(T, Key, Fun);
 get_all_leaves([Block|T], Key, Fun) ->
     trie:get_all(Fun(Block), Key) ++
         get_all_leaves(T, Key, Fun).
-prune_old(Block) ->
-    Trees = [accounts, channels, oracles, existence, governance],
-    gb2(Block, Trees),%deletes everything from Trees that isn't referenced in the most recent N blocks.
+%prune_old(Block) ->
+%    Trees = [accounts, channels, oracles, existence, governance],
+%    gb2(Block, Trees),%deletes everything from Trees that isn't referenced in the most recent N blocks.
     %This is deleting too much, if there is a recent small fork, we want to remember both sides.
-    ALeaves = trie:get_all(trees:accounts(block:trees(Block)), accounts),
-    OLeaves = trie:get_all(trees:oracles(block:trees(Block)), oracles),
-    OBK = oracle_bets_keepers(ALeaves),
-    trie:garbage(OBK, oracle_bets),%this is deleting every oracle_bet that isn't pointed to by an account in this block.
+%    ALeaves = trie:get_all(trees:accounts(block:trees(Block)), accounts),
+%    OLeaves = trie:get_all(trees:oracles(block:trees(Block)), oracles),
+%    OBK = oracle_bets_keepers(ALeaves),
+%    trie:garbage(OBK, oracle_bets),%this is deleting every oracle_bet that isn't pointed to by an account in this block.
     %This is deleting too much. we want to remember all the oracle_bets since revert_depth.
-    OK = orders_keepers(OLeaves),
-    trie:garbage(OK, orders),
-    ok.
+%    OK = orders_keepers(OLeaves),
+%    trie:garbage(OK, orders),
+%    ok.
 oracle_bets_keepers([]) -> [1];
 oracle_bets_keepers([L|T]) ->
     M = leaf:meta(L),
@@ -156,17 +162,13 @@ prune2(Blocks, [TID|Trees]) ->
 prune3([], _) -> [1];
 prune3([B|Blocks], TID) ->
     H = block:height(B),
-    case H of
-        0 -> [1];
-        _ ->
-            Trees = block:trees(B),
-            Root = trees:TID(Trees),
-            [Root|prune3(Blocks, TID)]
-    end.
-gb2(_, []) -> ok;
-gb2(B, [H|T]) ->
-    garbage_block(B, H),
-    gb2(B, T).
+    Trees = block:trees(B),
+    Root = trees:TID(Trees),
+    [Root|prune3(Blocks, TID)].
+%gb2(_, []) -> ok;
+%gb2(B, [H|T]) ->
+%    garbage_block(B, H),
+%    gb2(B, T).
 garbage_block(Block, TreeID) -> 
     {ok, RD} = application:get_env(ae_core, revert_depth),
     Keepers = keepers_block(TreeID, Block, RD),

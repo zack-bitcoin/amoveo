@@ -475,6 +475,7 @@ test(11) ->
     {Tx3, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
+    mine_blocks(1),
     timer:sleep(100),
 
     {Trees4, _, _} = tx_pool:data(),
@@ -486,6 +487,7 @@ test(11) ->
     {Tx4, _} = oracle_unmatched_tx:make(constants:master_pub(), Fee, OID, Trees4),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
+    mine_blocks(1),
     timer:sleep(100),
 
     {Trees5, _, _} = tx_pool:data(),
@@ -494,6 +496,7 @@ test(11) ->
     {Tx5, _} = oracle_winnings_tx:make(constants:master_pub(), Fee, OID, Trees5),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
+    mine_blocks(1),
     timer:sleep(100),
     {_,Height6,Txs} = tx_pool:data(),
     BP = block:get_by_height(Height6),
@@ -673,6 +676,7 @@ test(13) ->
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     timer:sleep(50),
+    mine_blocks(1),
 
     OID3 = 2,
     {Trees7,_,_} = tx_pool:data(),
@@ -850,9 +854,10 @@ is_slash(STx) ->
 mine_blocks(Many) when Many < 1 -> ok;
 mine_blocks(Many) ->
     %only works if you set the difficulty very low.
-    Top = headers:top(),
-    PB = block:get_by_hash(Top),
-    {_, _, Txs} = tx_pool:data(),
+    {_, Height, Txs} = tx_pool:data(),
+    PB = block:get_by_height(Height),
+    Hash = block:hash(PB),
+    {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
     block:mine(Block, 10),
     timer:sleep(1000),
