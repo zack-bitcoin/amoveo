@@ -204,14 +204,11 @@ proof_packer([H|T]) ->
 proof_packer(X) -> X.
 many_blocks(M, _) when M < 1 -> [];
 many_blocks(Many, N) ->
-    H = api:height(),
+    H = block:height(),
     if N > H -> [];
        true ->
             B = block:get_by_height(N),
-            case B of
-                empty -> [];
-                _ -> [B|many_blocks(Many-1, N+1)]
-            end
+            [B|many_blocks(Many-1, N+1)]
     end.
 many_headers(M, N) ->
     B = many_blocks(M, N),
