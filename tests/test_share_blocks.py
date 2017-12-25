@@ -7,11 +7,11 @@ class ShareBlocksTest(ApiUser):
         self.add_peer(DEV_2_INT, [[127, 0, 0, 1], 3010])
         self.add_peer(DEV_1_INT, [[127, 0, 0, 1], 3020])
 
-        self.mine_block(DEV_1_INT, [1, 1], sleep=0.2)
+        self.mine_block(DEV_1_INT, [1, 100000], sleep=0.2)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=2.0)
 
-        self.mine_block(DEV_2_INT, [1, 1], sleep=0.2)
+        self.mine_block(DEV_2_INT, [1, 100000], sleep=0.2)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep =0.2)
 
-        self.mine_block(DEV_1_INT, [10, 1], sleep=0.2)
+        self.mine_block(DEV_1_INT, [100, 100000], sleep=0.2)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep =0.2)
