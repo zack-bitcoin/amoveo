@@ -20,7 +20,7 @@ handle_cast({doit, BP}, X) ->
 handle_call({doit, BP}, _From, X) -> 
     absorb_internal(BP),
     {reply, ok, X}.
-garbage() -> gen_server:cast(?MODULE, garbage).
+%garbage() -> gen_server:cast(?MODULE, garbage).
 
 %% API functions
 

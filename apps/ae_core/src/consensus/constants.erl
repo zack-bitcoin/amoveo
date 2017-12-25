@@ -8,7 +8,7 @@ initial_coins() -> 27017593349040. %about 1 year.
 initial_difficulty() -> 
     case application:get_env(ae_core, kind) of
         {ok, "local"} -> 0;%unit tests
-        {ok, "integration"} -> 2500;%integration tests.
+        {ok, "integration"} -> 1000;%2500;%integration tests.
         {ok, "production"} -> 6452
     end.
 difficulty_bits() -> 24.

@@ -17,18 +17,15 @@ handle_cast({main, Peer}, go) ->
     if
         not(MyTop == TheirTop) ->
             CommonHash = get_headers(Peer),
-            io:fwrite("main commonHash is "),%bad, we don't have this commonhash.
-            io:fwrite(packer:pack(CommonHash)),
-            io:fwrite("\n"),
             {ok, TBH} = headers:read(block:hash(block:top())),
             MD = headers:accumulative_difficulty(TBH),
             TD = headers:accumulative_difficulty(TheirTop),
             if
                 TD < MD -> 
-                    io:fwrite("give blocks\n"),
+                    %io:fwrite("give blocks\n"),
                     give_blocks(Peer, CommonHash);
                 true ->
-                    io:fwrite("get blocks\n"),
+                    %io:fwrite("get blocks\n"),
                     CommonBlockHeight = common_block_height(CommonHash),
                     get_blocks(Peer, CommonBlockHeight)
             end;
@@ -44,18 +41,13 @@ handle_call(status, _From, X) -> {reply, X, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 status() -> gen_server:call(?MODULE, status).
 stop() -> gen_server:cast(?MODULE, stop).
-%doit() ->
-%    P = peers:all(),
-%    start(P).
-%start(P) ->
-%    download_blocks:sync_all(P, block:height()).
 start() ->
     P = peers:all(),
     start(P).
 start(P) ->
-    io:fwrite("sync with peer "),
-    io:fwrite(packer:pack(P)),
-    io:fwrite("\n"),
+    %io:fwrite("sync with peer "),
+    %io:fwrite(packer:pack(P)),
+    %io:fwrite("\n"),
     gen_server:cast(?MODULE, start),
     doit2(P).
 doit2([]) ->
@@ -78,7 +70,7 @@ blocks(CommonHash, Block) ->
             end
     end.
 give_blocks(Peer, CommonHash) -> 
-    io:fwrite("give blocks 2\n"),
+    %io:fwrite("give blocks 2\n"),
     {ok, DBB} = application:get_env(ae_core, download_blocks_batch),
     Blocks0 = lists:reverse(blocks(CommonHash, block:top())),
     Blocks = if
@@ -87,9 +79,6 @@ give_blocks(Peer, CommonHash) ->
                      {X, _} = lists:split(DBB, Blocks0),
                      X
              end,
-    io:fwrite("give this many blocks "),
-    io:fwrite(integer_to_list(length(Blocks))),
-    io:fwrite("\n"),
     if 
         length(Blocks) > 0 ->
             %spawn(fun() -> do_send_blocks(Peer, Blocks) end);
@@ -98,10 +87,6 @@ give_blocks(Peer, CommonHash) ->
     end.
 do_send_blocks(_, []) -> ok;
 do_send_blocks(Peer, [Block|T]) ->
-    io:fwrite("do send blocks function \n"),
-    io:fwrite("give block "),
-    io:fwrite(integer_to_list(block:height(Block))),
-    io:fwrite("\n"),
     remote_peer({give_block, Block}, Peer),
     timer:sleep(20),
     do_send_blocks(Peer, T).
@@ -122,7 +107,6 @@ get_headers(Peer) ->
     Start = max(0, N - FT), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
-    io:fwrite("get headers 2\n"),
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
     CommonHash = headers:absorb(Headers),
@@ -132,7 +116,6 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
              CommonHash
     end.
 get_headers3(Peer, N) ->
-    io:fwrite("get headers 3\n"),
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
     headers:absorb(Headers),
@@ -142,7 +125,6 @@ get_headers3(Peer, N) ->
         true -> ok
     end.
 common_block_height(CommonHash) ->
-    io:fwrite("common block height\n"),
     case block:get_by_hash(CommonHash) of
         empty -> 
             Header = headers:read(CommonHash),
@@ -151,9 +133,6 @@ common_block_height(CommonHash) ->
         B -> block:height(B)
     end.
 get_blocks(Peer, N) ->
-    io:fwrite("downloading blocks\n"),
-    io:fwrite(packer:pack(N)),
-    io:fwrite("\n"),
     {ok, BB} = application:get_env(ae_core, download_blocks_batch),
     Blocks = remote_peer({blocks, BB, N}, Peer),
     case Blocks of
@@ -167,7 +146,6 @@ get_blocks(Peer, N) ->
             end
     end.
 trade_txs(Peer) ->
-    io:fwrite("trade txs 2\n"),
     Txs = remote_peer({txs}, Peer),
     tx_pool_feeder:absorb(Txs),
     {_,_,Mine} = tx_pool:data(),
