@@ -59,6 +59,7 @@ absorb_internal(Block) ->
 	    BH = block:hash(Block2),
             {ok, PrunePeriod} = application:get_env(ae_core, prune_period),
             HeaderHeight = api:height(),
+            recent_blocks:add(BH, Height),
             if
                 (((Height rem PrunePeriod) == 0) and (HeaderHeight > PrunePeriod)) ->
                     io:fwrite("prune trees\n"),
@@ -71,7 +72,6 @@ absorb_internal(Block) ->
                           tx_pool_feeder:absorb(Txs)
                   end),
             order_book:match(),
-            recent_blocks:add(BH, Height),
             io:fwrite("absorb block "),
             io:fwrite(integer_to_list(block:height(Block2))),
             io:fwrite("\n")

@@ -86,12 +86,16 @@ root_hash(Trees) ->
     hash:doit(serialized_roots(Trees)).
 hash2blocks([]) -> [];
 hash2blocks([H|T]) ->
-    [block:get_by_hash(H)|hash2blocks(T)].
+    B = block:get_by_hash(H),
+    case B of
+        empty -> hash2blocks(T);
+        _ -> [B|hash2blocks(T)]
+    end.
 prune() -> 
     Blocks = hash2blocks(recent_blocks:read()),
     prune(Blocks).
 prune(Blocks) ->
-    Trees = [accounts, channels, oracles, existence],% governance],
+    Trees = [accounts, channels, oracles, existence, governance],
     prune2(Blocks, Trees),
     ALeaves = get_all_leaves0(Blocks, accounts, fun(X) -> trees:accounts(block:trees(X)) end),
     OLeaves = get_all_leaves0(Blocks, oracles, fun(X) -> trees:oracles(block:trees(X)) end),
