@@ -112,7 +112,8 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
     CommonHash = headers:absorb(Headers),
     case CommonHash of
         <<>> -> get_headers2(Peer, N+HB-1);
-        _ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),%Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
+        _ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
+             %Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
              CommonHash
     end.
 get_headers3(Peer, N) ->

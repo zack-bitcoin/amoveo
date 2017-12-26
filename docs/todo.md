@@ -4,6 +4,7 @@
 * increase constants initial difficulty.
 * reduce constants initial_balance
 * raise the initial governance tx fees, it would decrease the severity of many kinds of attacks. We can always lower them later. Set it up so the block reward isn't enough money to completely fill a block with transactions.
+* we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 
 
 

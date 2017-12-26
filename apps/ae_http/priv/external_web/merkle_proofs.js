@@ -115,6 +115,9 @@ function serialize_key(v, trie_key) {
     } else if (t == "oracle") {
         return integer_to_array(v[1], 32);
     } else {
+        console.log("type is ");
+        console.log(t);
+        console.log(v);
         throw("serialize trie bad trie type");
     }
 }

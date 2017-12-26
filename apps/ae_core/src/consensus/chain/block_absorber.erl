@@ -61,6 +61,7 @@ absorb_internal(Block) ->
             HeaderHeight = api:height(),
             if
                 (((Height rem PrunePeriod) == 0) and (HeaderHeight > PrunePeriod)) ->
+                    io:fwrite("prune trees\n"),
                     trees:prune();
                 true -> ok
             end,
@@ -71,7 +72,6 @@ absorb_internal(Block) ->
                   end),
             order_book:match(),
             recent_blocks:add(BH, Height),
-            timer:sleep(20),
             io:fwrite("absorb block "),
             io:fwrite(integer_to_list(block:height(Block2))),
             io:fwrite("\n")
