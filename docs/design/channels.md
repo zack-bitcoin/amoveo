@@ -4,6 +4,8 @@ Channels are 2 party relationships recorded on the blockchain. Each channel has 
 Once 2 people have a channel together, they can instantly move the money inside the channel back and forth. This is much faster than publishing a transaction to the blockchain and waiting for confirmations.
 When the channel is closed, the money goes back to the accounts that created it according to the final distribution of money in the channel.
 
+[here is an explanation of the data stored for channels.](channel_state.md)
+
 
 There are 5 transaction types for controlling channels:
 

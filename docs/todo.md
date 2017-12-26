@@ -6,11 +6,17 @@
 * raise the initial governance tx fees, it would decrease the severity of many kinds of attacks. We can always lower them later. Set it up so the block reward isn't enough money to completely fill a block with transactions.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * chalang signatures are double-base64 encoded. they should only be single-encoded.
-
+* in channels tree timeout_height is unused.
+* maybe grow_channel should be able to adjust the channel_delay.
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* change vocabulary for channels. spk is a "contract". ss is "evidence".
+
+* There is an attack where someone mines a bunch of low-difficulty blocks. This would cause our recent_blocks module to delete the blocks we care about.
+recent_blocks should probably care about accumulative difficulty, not height.
+This attack only works against nodes where fork_tolerance is bigger than the retargetting frequency.
 
 * key "expiration" should be added to the channel manager. Contracts made in the channel should all finish at or earlier than this expiration.
 

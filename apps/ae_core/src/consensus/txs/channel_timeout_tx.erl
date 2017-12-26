@@ -58,7 +58,7 @@ go(Tx, Dict, NewHeight) ->
                     Acc2 = accounts:dict_update(Aid2, Dict2, Bal2+Amount, none, NewHeight),
                     accounts:dict_write(Acc2, Dict2)
             end,
-    Slasher = channels:slasher(Channel),
+    %Slasher = channels:slasher(Channel),
     Acc4 = accounts:dict_update(From, Dict3, -Fee, none, NewHeight),
     Dict4 = accounts:dict_write(Acc4, Dict3),
     channels:dict_delete(CID, Dict4).

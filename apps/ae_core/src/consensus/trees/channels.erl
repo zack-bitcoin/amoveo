@@ -11,21 +11,19 @@
 %This is the part of the channel that is written onto the hard drive.
 
 -record(channel, {id = 0, %the unique id number that identifies this channel
-		  acc1 = 0, 
-		  acc2 = 0, 
-		  bal1 = 0, 
-		  bal2 = 0, 
+		  acc1 = 0, % a pubkey
+		  acc2 = 0, % a different pubkey
+		  bal1 = 0, %part of the money initially controlled by acc1.
+		  bal2 = 0, %part of the money initially controlled by acc2.
 		  amount = 0, %this is how we remember the outcome of the last contract we tested, that way we can undo it.
 		  nonce = 1,%How many times has this channel-state been updated. If your partner has a state that was updated more times, then they can use it to replace your final state.
 		  timeout_height = 0,%when one partner disappears, the other partner needs to wait so many blocks until they can access their money. This records the time they started waiting. 
-		  last_modified = 0,%this is used so that the owners of the channel can pay a fee for how long the channel has been open.
+		  last_modified = 0,%this is used to know if a channel_timeout_tx can be called yet. 
 % we can set timeout_height to 0 to signify that we aren't in timeout mode. So we don't need the timeout flag.
-		  %mode = 0,%0 means an active channel where money can be spent. 1 means that the channel is being closed by acc1. 2 means that the channel is being closed by acc2.
-		  delay = 0,%this is how long you have to wait since "last_modified" to do a channel_timeout_tx.
-		  %we need to store this between a solo_close_tx and a channel_timeout_tx. That way we know we waited for long enough.
-		  slasher = 0, %this is how we remember who was the last user to do a slash on a channel. If he is the last person to slash, then he gets a reward.
+		  delay = 0,%this is the minimum of how long you have to wait since "last_modified" to do a channel_timeout_tx. 
+                  %every time a channel_slash_tx happens, this delay is updated. This is how long you need to wait before you can do a channel_timeout tx.
+		  slasher = 0, %If the channel was slashed, then we shouldn't allow grow_channel txs any more.
 		  closed = false %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
-		  %shares = 0 %This is a pointer to the root of a tree that holds all the shares.
 		  }%
        ).
 acc1(C) -> C#channel.acc1.

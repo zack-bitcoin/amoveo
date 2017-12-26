@@ -1,3 +1,11 @@
+Trees
+=======
+
+Consensus state is the data that every full node of the blockchain keeps an identical copy of.
+The consensus state of a blockchain is the current blockchain protocol after syncing your node with the network. 
+
+Amoveo stores it's consensus state in merkle trees.
+
 There are 8 [merkel trees](/docs/basics/merkle.md).
 
 * oracles+
