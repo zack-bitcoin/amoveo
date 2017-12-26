@@ -35,6 +35,8 @@ If one of them breaks the rules, then the other can post the channel contract to
 It is expensive to have the blockchain enforce the channel contract.
 The 2 participants are incentivized to follow the rules of the contract, that way they wont waste money paying the blockchain to enforce rules.
 
+[In Amoveo the contract is turing complete](programmable_state_channels.md)
+
 
 ## channel evidence
 
