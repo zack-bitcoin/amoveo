@@ -83,7 +83,9 @@ function wallet_doit1() {
     //button.onclick = test;
     document.body.appendChild(button);
     wallet_text = document.createElement("p");
-    wallet_text.innerHTML = JSON.stringify({"height": 0, "total_work": 0});
+    var height_string = get_words("height");
+    var total_work = get_words("total_work");
+    wallet_text.innerHTML = JSON.stringify([[height_string, 0], [total_work, 0]]);
     document.body.appendChild(wallet_text);
     more_headers();
     function write_header(header) {
@@ -91,7 +93,7 @@ function wallet_doit1() {
         if (acc_difficulty > top_diff) {
             top_diff = acc_difficulty;
             top_header = header;
-            wallet_text.innerHTML = JSON.stringify({"height": header[1], "total_work":(Math.floor(header[9]/100000000))});
+            wallet_text.innerHTML = JSON.stringify([[height_string, header[1]], [total_work, (Math.floor(header[9]/100000000))]]);
         }
         h = hash(serialize_header(header));
         headers_db[h] = header;

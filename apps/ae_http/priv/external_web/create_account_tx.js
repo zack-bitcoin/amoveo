@@ -6,19 +6,19 @@ function create_account1() {
     var create_amount = document.createElement("INPUT");
     create_amount.setAttribute("type", "text"); 
     var create_amount_info = document.createElement("h8");
-    create_amount_info.innerHTML = "create account- initial balance: ";
+    create_amount_info.innerHTML = get_words("create_account").concat("- ").concat(get_words("initial_balance")).concat(": ");
     div.appendChild(create_amount_info);
     div.appendChild(create_amount);
 
     var create_address = document.createElement("INPUT");
     create_address.setAttribute("type", "text"); 
     var create_info = document.createElement("h8");
-    create_info.innerHTML = "new pubkey: ";
+    create_info.innerHTML = get_words("to_pubkey").concat(": ");
     div.appendChild(create_info);
     div.appendChild(create_address);
 
     var create_button = document.createElement("BUTTON");
-    var create_button_text = document.createTextNode("create new account");
+    var create_button_text = document.createTextNode(get_words("create_account"));
     create_button.appendChild(create_button_text);
     create_button.onclick = create_account;
     div.appendChild(create_button);

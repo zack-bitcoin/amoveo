@@ -32,22 +32,26 @@ function download(data, filename, type) {
 }
 keys_function1();
 function keys_function1() {
+    var account_title = document.createElement("h3");
+    account_title.innerHTML = get_words("account");
+    document.body.appendChild(account_title);
+
     var div = document.createElement("div");
     document.body.appendChild(div);
     
     var save_name = document.createElement("INPUT");
     save_name.type = "text";
     save_name.id = "save_name";
-    save_name.value = "amoveo_private_key";
+    save_name.value = "Amoveo ".concat(get_words("private_key"));
     var save_button = document.createElement("input");
     save_button.type = "button";
-    save_button.value = "save private key to file";
+    save_button.value = get_words("save_key");
     save_button.onclick = save_keys;
     var file_selector = document.createElement("input");
     file_selector.type = "file";
     file_selector.onchange = load_keys;
 
-    var load_text = document.createTextNode("get key from file ");
+    var load_text = document.createTextNode(get_words("get_key"));
     div.appendChild(load_text);
     div.appendChild(file_selector);
     div.appendChild(document.createElement("br"));
@@ -62,7 +66,7 @@ function keys_function1() {
     div.appendChild(document.createElement("br"));
     var new_pubkey_button = document.createElement("input");
     new_pubkey_button.type = "button";
-    new_pubkey_button.value = "generate new keys";
+    new_pubkey_button.value = get_words("make_key");
     new_pubkey_button.onclick = new_keys_check;
     div.appendChild(new_pubkey_button);
 
@@ -72,7 +76,7 @@ function keys_function1() {
     div.appendChild(document.createElement("br"));
     var balance_button = document.createElement("input");
     balance_button.type = "button";
-    balance_button.value = "check balance";
+    balance_button.value = get_words("check_balance");
     balance_button.onclick = update_balance;
     var bal_div = document.createElement("div");
     div.appendChild(bal_div);
@@ -82,23 +86,23 @@ function keys_function1() {
 
     //console.log(fromHex(toHex("abc")));
     function update_pubkey() {
-        pub_div.innerHTML = ("your pubkey: ").concat(pubkey_64());
+        pub_div.innerHTML = get_words("your_pubkey").concat(pubkey_64());
     }
     function new_keys_check() {
         //alert("this will delete your old keys. If you have money secured by this key, and you haven't saved your key, then this money will be destroyed.");
         var warning = document.createElement("h3");
-        warning.innerHTML = "This will delete your old keys. If money is sent to them, it will be deleted.";
+        warning.innerHTML = get_words("key_warning");
         new_pubkey_div.append(warning);
         
         var button = document.createElement("input");
         button.type = "button";
-        button.value = "cancel";
+        button.value = get_words("cancel");
         button.onclick = cancel;
         new_pubkey_div.appendChild(button);
 
         var button2 = document.createElement("input");
         button2.type = "button";
-        button2.value = "continue";
+        button2.value = get_words("continue");
         button2.onclick = doit;
         new_pubkey_div.appendChild(button2);
 
@@ -120,7 +124,7 @@ function keys_function1() {
         });
     }
     function set_balance(n) {
-        bal_div.innerHTML = ("your balance: ").concat((n).toString());
+        bal_div.innerHTML = get_words("your_balance").concat((n).toString());
     }
     function save_keys() {
         var save_name = document.getElementById("save_name");

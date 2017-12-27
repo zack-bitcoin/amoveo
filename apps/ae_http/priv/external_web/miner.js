@@ -83,14 +83,14 @@ function miner_main() {
             button.onclick = stop_mining;
         }
         function stop_mining() {
-            button.value = "start mining (warning: use a laptop or computer, not a phone.)(warning: you may need to leave tab open to continue mining.)";
+            button.value = get_words("start_mining");
             mining_state = false;
             button.onclick = start_mining;
         }
         var div = document.createElement("div");
         div.id = "miner_div";
         document.body.appendChild(div);
-        div.innerHTML = "0 blocks found";
+        div.innerHTML = "0 ".concat(get_words("blocks_found"));
         document.body.appendChild(button);
     }
     return({"mine": mine, "mining_state": mining_state, "make_interface": gui});

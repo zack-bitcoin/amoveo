@@ -1,8 +1,6 @@
 title_maker();
 function title_maker() {
     var title = document.createElement("h1");
-    //title.innerHTML = "Amoveo Light Wallet";
-    //title.innerHTML = language_object.light_title[language_mode];
     title.innerHTML = get_words("light_title");
     document.body.appendChild(title);
 

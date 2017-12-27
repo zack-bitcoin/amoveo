@@ -15,14 +15,14 @@ function show_markets2() {
     list_oracles1();
     lookup_oracle1();
     var button = document.getElementById("show_markets_button");
-    button.value = "hide markets";
+    button.value = get_words("hide_markets");
     button.onclick = hide_markets;
 }
 function hide_markets() {
     var div = document.getElementById("market_div");
     div.innerHTML = "";
     var button = document.getElementById("show_markets_button");
-    button.value = "show markets";
+    button.value = get_words("show_markets");
     button.onclick = show_markets2;
 }
 

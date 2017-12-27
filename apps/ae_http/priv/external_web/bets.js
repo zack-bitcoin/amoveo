@@ -20,7 +20,8 @@ function outstanding_bets1() {
     div.appendChild(document.createElement("br"));
     div.appendChild(document.createElement("br"));
     var button = document.createElement("BUTTON");
-    var button_text_node = document.createTextNode("update balance of off-chain assets");
+    //var button_text_node = document.createTextNode("update balance of off-chain assets");
+    var button_text_node = document.createTextNode(get_words(refresh_bets));
     button.appendChild(button_text_node);
     button.onclick = outstanding_bets2;
     button_div.appendChild(button);
@@ -130,14 +131,15 @@ function outstanding_bets_print_bets(bets, ssme, server_pubkey) {
             div.appendChild(order);
             var cancel_button = document.createElement("input");
             cancel_button.type = 'button';
-            cancel_button.value = 'cancel trade';
+            //cancel_button.value = 'cancel trade';
+            cancel_button.value = get_words("cancel").concat(get_words("contract"));
             div.appendChild(cancel_button);
             div.appendChild(document.createElement("br"));
             cancel_buttons.push(cancel_button);
         } else {
             //console.log("matched");
             //console.log(JSON.stringify([i, oid, amount, "matched", bet[4]]));
-            order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you are betting on outcome ").concat(outcome).concat(" with this many tokens: ").concat(s2c(amount));
+            order.innerHTML = get_words("market").concat(parseInt(oid)).concat(get_words("win_if")).concat(outcome).concat(get_words("amount")).concat(s2c(amount));
             oadiv.appendChild(order);
             oadiv.appendChild(document.createElement("br"));
         }

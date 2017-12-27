@@ -7,7 +7,7 @@ function spend_1() {
     spend_amount.setAttribute("type", "text");
     //spend_amount.id = "spend_amount";
     var spend_amount_info = document.createElement("h8");
-    spend_amount_info.innerHTML = "amount to spend: ";
+    spend_amount_info.innerHTML = get_words("amount_send").concat(": ");
     div.appendChild(spend_amount_info);
     div.appendChild(spend_amount);
 
@@ -15,13 +15,13 @@ function spend_1() {
     spend_address.setAttribute("type", "text");
     //spend_address.id = "spend_address";
     var input_info = document.createElement("h8");
-    input_info.innerHTML = "to pubkey: ";
+    input_info.innerHTML = get_words("to_pubkey").concat(": ");
     div.appendChild(input_info);
     div.appendChild(spend_address);
 
     var spend_button = document.createElement("BUTTON");
     //spend_button.id = "spend_button";
-    var spend_button_text = document.createTextNode("spend");
+    var spend_button_text = document.createTextNode(get_words("spend"));
     spend_button.appendChild(spend_button_text);
     spend_button.onclick = spend_tokens;
     div.appendChild(spend_button);
