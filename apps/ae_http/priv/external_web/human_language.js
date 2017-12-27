@@ -221,7 +221,7 @@ function human_language() {
                             "sp": "su llave publico"},
             "to_pubkey": {"cn": "往公钥地",
                           "en": "to pubkey",
-                          "tp": "pana e poke",
+                          "tp": "pana e poki",
                           "sp": "a esta llave"},
             "key_warning": {"cn": "这将会删除旧的密钥对. 其中的余额也将被删除",
                             "en": "This will delete your old keys. If money is sent to them, it will be deleted.",
