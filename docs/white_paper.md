@@ -19,7 +19,7 @@
 
 
 ## abstract
-Blockchain is a form of cryptographic database technology. The state stored in a blockchain is called consensus state. Each blockchain hosts a cryptocurrency in the consensus state. Cryptocurrencies are a form of wealth that is made secure by blockchain technology.
+Blockchain is a form of cryptographic database technology. Each blockchain hosts a cryptocurrency. Cryptocurrencies are a form of wealth that is made secure by blockchain technology.
 Amoveo is a blockchain which secures a cryptocurrency called Veo.
 Using Amoveo you can host a market on a server where you make money every time anyone trades.
 Using Veo in the markets, you can buy and sell risk in anything.
