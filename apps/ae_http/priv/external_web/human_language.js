@@ -19,6 +19,12 @@ function human_language() {
     return {"light_title": {"cn": "Amoveo 轻钱包",
                             "en": "Amoveo Light Wallet ",
                             "tp": "poki lili pi mani Amoveo"},
+            "home_page": {"cn": "主页",
+                          "en": "home page ",
+                          "tp": "lipu insa"},
+            "discuss_on_reddit": {"cn": "在 reddit 上讨论",
+                                  "en": "discuss on reddit",
+                                  "tp": "kulupu Reddit"},
             "blockchain": {"cn": "区块链",
                            "en": "blockchain ",
                            "tp": "mani sin"},
@@ -154,3 +160,6 @@ function human_language() {
            };
 }
 var language_object = human_language();
+function get_words (x) {
+    return language_object[x][language_mode];
+}
