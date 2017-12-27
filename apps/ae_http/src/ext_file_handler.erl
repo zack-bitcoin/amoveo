@@ -8,6 +8,8 @@ handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
     PrivDir = list_to_binary(code:priv_dir(ae_http)),
     true = case F of
+               <<"/human_language.js">> -> true;
+               <<"/title.js">> -> true;
                <<"/bets.js">> -> true;
                <<"/miner.js">> -> true;
                <<"/chalang.js">> -> true;

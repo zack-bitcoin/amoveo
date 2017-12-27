@@ -1,3 +1,20 @@
+var language_mode;
+(function () {
+    var x = window.location.href;
+    var l = x.slice(-3);
+    if (l == "?en") {
+        language_mode = "en";
+    } else if (l == "?cn") {
+        language_mode = "cn";
+    } else if (l == "?tp") {
+        language_mode = "tp";
+    } else if (l == "tml" ) {
+        language_mode = "en";
+    } else {
+        console.log("confused about language input. default is english. ");
+        language_mode = "en";
+    }
+})();
 function human_language() {
     return {"light_title": {"cn": "Amoveo 轻钱包",
                             "en": "Amoveo Light Wallet ",
@@ -28,10 +45,10 @@ function human_language() {
                            "tp": "wile pana"},
             "amount": {"cn": "数量",
                        "en": "amount ",
-                       "tp": "mute wile"},
+                       "tp": "mute kama jo"},
             "price": {"cn": "价格",
                       "en": "price ",
-                      "tp": "??"},
+                      "tp": "mute kama pana"},
             "amount_send": {"cn": "要发送的数量",
                             "en": "amount to send ",
                             "tp": "mute pana"},
@@ -58,33 +75,45 @@ function human_language() {
                          "tp": "pana en kama jo"},
             "save_channel": {"cn": "保存通道数据到文件",
                              "en": "save channel data to file",
-                             "tp": ""},
+                             "tp": "o jo ilo tu mani"},
             "channel_state": {"cn": "通道状态",
-                              "en": "channel state "},
+                              "en": "channel state ",
+                              "tp": "toki pi ilo tu mani"},
             "channel_warn": {"cn":"通道状态需要保存!~~~~~~~",
-                             "en":"channel state needs to be saved!~~~~~~~~~ "},
+                             "en":"channel state needs to be saved!~~~~~~~~~ ",
+                             "tp":"sina wile ala pakala. o jo toki pi ilo tu mani"},
             "save_confirm": {"cn": "通道状态已保存",
-                             "en": "channel state is saved."},
+                             "en": "channel state is saved.",
+                             "tp": "kama pini la sina jo toki pi ilo tu mani"},
             "make_channel": {"cn": "创建通道",
-                             "en": "make channel "},
+                             "en": "make channel ",
+                             "tp": "kama la ilo pi tu mani"},
             "amount_channel": {"cn": "锁定在通道中的数量",
-                               "en": "amount to lock in channel "},
+                               "en": "amount to lock in channel ",
+                               "tp": "mute pana e ilo pi tu mani"},
             "channel_delay": {"cn": "通道延迟(在区块)",
-                              "en": "channel delay (in blocks) "},
+                              "en": "channel delay (in blocks) ",
+                              "tp": "mute tenpo pi pipi e ilo pi tu mani"},
             "unknown": {"cn": "未知",
-                        "en": "unknown "},
+                        "en": "unknown ",
+                        "tp": "sona ala"},
             "your_balance": {"cn": "账户余额",
-                             "en": "your balance "},
+                             "en": "your balance ",
+                             "tp": "sina jo "},
             "check_channel": {"cn": "检查账户余额",
-                              "en": "check channel balance"},
+                              "en": "check channel balance",
+                              "tp": "o toki e mute jo"},
             "markets": {"cn": "市场",
                         "en": "markets"},
             "markets_link": {"cn": "可以在下边查看可用的市场",
-                             "en": "see the available markets here "},
+                             "en": "see the available markets here ",
+                             "tp": "ni ken lukin e esun mute"},
             "trade_type": {"cn": "贸易类型",
-                           "en": "trade type"},
+                           "en": "trade type",
+                           "tp": "lon ala lon"},
             "make_bet": {"cn": "打个赌",
-                         "en": "make bet "},
+                         "en": "make bet ",
+                         "tp": "??"},
             "finalize_bets": {"cn": "检查是否有赌局已经完成",
                              "en": "check if any bets have been settled"},
             "gather_bets": {"cn": "汇集赌注",
@@ -123,3 +152,4 @@ function human_language() {
                              "en": "start mining (warning: use a laptop or computer, not a phone.)(warning: you may need to leave tab open to continue mining.)"}
            };
 }
+var language_object = human_language();
