@@ -77,7 +77,7 @@ function wallet_doit1() {
     var top_diff = 0;//accumulative difficulty of top
     var button = document.createElement("input");
     button.type = "button";
-    button.value = "get more headers";
+    button.value = get_words("more_headers");
     button.id = "wallet_button_test";
     button.onclick = more_headers;
     //button.onclick = test;

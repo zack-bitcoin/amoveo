@@ -49,7 +49,7 @@ function human_language() {
                        "tp": "esun"},
             "open_order": {"cn": "??",
                            "en": "unmatched order ",
-                           "tp": "wile pana"},
+                           "tp": "wile ??"},
             "amount": {"cn": "数量",
                        "en": "amount ",
                        "tp": "mute kama jo"},
