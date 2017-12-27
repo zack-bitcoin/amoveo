@@ -15,32 +15,23 @@ handle_cast({main, Peer}, go) ->
     TheirTop = remote_peer({header}, Peer), 
     MyBlockHeight = block:height(),
     TheirTopHeight = headers:height(TheirTop),
-    io:fwrite("trade blocks\n"),
     if
         not(MyTop == TheirTop) ->
-            io:fwrite("trade headers\n"),
             CommonHash = get_headers(Peer),
             {ok, TBH} = headers:read(block:hash(block:top())),
             MD = headers:accumulative_difficulty(TBH),
             TD = headers:accumulative_difficulty(TheirTop),
-            io:fwrite("trade blocks\n"),
             if
-                TD < MD -> 
-                    give_blocks(Peer, CommonHash);
+                TD < MD -> give_blocks(Peer, CommonHash);
                 true ->
-                    %io:fwrite("get blocks\n"),
                     CommonBlockHeight = common_block_height(CommonHash),
                     get_blocks(Peer, CommonBlockHeight)
             end;
         MyBlockHeight < TheirTopHeight ->
-            io:fwrite("headers already synced, focus on blocks\n"),
-            io:fwrite(packer:pack({compare_height, MyBlockHeight, TheirTop})),
-            io:fwrite("\n"),
             {ok, FT} = application:get_env(ae_core, fork_tolerance),
             get_blocks(Peer, max(0, MyBlockHeight - FT));
         true -> ok
     end,
-    io:fwrite("trade txs\n"),
     trade_txs(Peer),
     {noreply, go};
 handle_cast(_, X) -> {noreply, X}.
@@ -52,9 +43,6 @@ start() ->
     P = peers:all(),
     start(P).
 start(P) ->
-    %io:fwrite("sync with peer "),
-    %io:fwrite(packer:pack(P)),
-    %io:fwrite("\n"),
     gen_server:cast(?MODULE, start),
     doit2(P).
 doit2([]) ->
@@ -77,7 +65,6 @@ blocks(CommonHash, Block) ->
             end
     end.
 give_blocks(Peer, CommonHash) -> 
-    %io:fwrite("give blocks 2\n"),
     {ok, DBB} = application:get_env(ae_core, push_blocks_batch),
     Blocks0 = lists:reverse(blocks(CommonHash, block:top())),
     Blocks = if
@@ -89,7 +76,6 @@ give_blocks(Peer, CommonHash) ->
     if 
         length(Blocks) > 0 ->
             %spawn(fun() -> do_send_blocks(Peer, Blocks) end);
-            io:fwrite("do send blocks\n"),
             do_send_blocks(Peer, Blocks),
             NewCommonHash = block:hash(hd(lists:reverse(Blocks))),
             give_blocks(Peer, NewCommonHash);
@@ -99,9 +85,6 @@ give_blocks(Peer, CommonHash) ->
     end.
 do_send_blocks(_, []) -> ok;
 do_send_blocks(Peer, [Block|T]) ->
-    io:fwrite("give block number "),
-    io:fwrite(integer_to_list(block:height(Block))),
-    io:fwrite("\n"),
     remote_peer({give_block, Block}, Peer),
     timer:sleep(20),
     do_send_blocks(Peer, T).
