@@ -22,7 +22,7 @@ handle_cast({main, Peer}, go) ->
             TD = headers:accumulative_difficulty(TheirTop),
             if
                 TD < MD -> 
-                    %io:fwrite("give blocks\n"),
+                    io:fwrite("give blocks\n"),
                     give_blocks(Peer, CommonHash);
                 true ->
                     %io:fwrite("get blocks\n"),
@@ -71,7 +71,7 @@ blocks(CommonHash, Block) ->
     end.
 give_blocks(Peer, CommonHash) -> 
     %io:fwrite("give blocks 2\n"),
-    {ok, DBB} = application:get_env(ae_core, download_blocks_batch),
+    {ok, DBB} = application:get_env(ae_core, push_blocks_batch),
     Blocks0 = lists:reverse(blocks(CommonHash, block:top())),
     Blocks = if
                  length(Blocks0) < DBB -> Blocks0;
@@ -82,11 +82,19 @@ give_blocks(Peer, CommonHash) ->
     if 
         length(Blocks) > 0 ->
             %spawn(fun() -> do_send_blocks(Peer, Blocks) end);
-            do_send_blocks(Peer, Blocks);
-        true -> false
+            io:fwrite("do send blocks\n"),
+            do_send_blocks(Peer, Blocks),
+            NewCommonHash = block:hash(hd(lists:reverse(Blocks))),
+            give_blocks(Peer, NewCommonHash);
+        true -> 
+            io:fwrite("finished sending blocks"),
+            false
     end.
 do_send_blocks(_, []) -> ok;
 do_send_blocks(Peer, [Block|T]) ->
+    io:fwrite("give block number "),
+    io:fwrite(integer_to_list(block:height(Block))),
+    io:fwrite("\n"),
     remote_peer({give_block, Block}, Peer),
     timer:sleep(20),
     do_send_blocks(Peer, T).

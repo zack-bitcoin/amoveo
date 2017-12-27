@@ -149,7 +149,8 @@ function human_language() {
             "stop_mining": {"cn": "停止挖矿",
                             "en": "stop mining"},
             "start_mining": {"cn": "开始挖矿 (注意: 使用电脑或者笔记本, 不要用手机. 想要持续挖矿的话页面不能关闭)",
-                             "en": "start mining (warning: use a laptop or computer, not a phone.)(warning: you may need to leave tab open to continue mining.)"}
+                             "en": "start mining (warning: use a laptop or computer, not a phone.)(warning: you may need to leave tab open to continue mining.)",
+                             "tp": "o alasa mani. "}
            };
 }
 var language_object = human_language();
