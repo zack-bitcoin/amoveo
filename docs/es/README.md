@@ -9,7 +9,7 @@ Escrito en Erlang.
 
 ## abstracto del papel blanco
 
-Blockchain es una forma de tecnología de base de datos criptográfica. Cada blockchain alberga una criptomoneda. Las criptomonedas son una forma de moneda que está asegurado por la tecnología blockchain.
+Cadena de bloques es una forma de tecnología de base de datos criptográfica. Cada blockchain tiene una criptomoneda. Las criptomonedas son una forma de moneda que está asegurado por la tecnología blockchain.
 Amoveo es una cadena de bloques que asegura una criptomoneda llamada Veo.
 Usando Amoveo puede tener un mercado en un servidor donde gana dinero cada vez que alguien negocia.
 Al usar Veo en los mercados, puede comprar y vender riesgos en cualquier cosa.
