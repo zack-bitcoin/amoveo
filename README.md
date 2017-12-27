@@ -1,6 +1,7 @@
 Amoveo
 ==========
 
+[Español](docs/es/README.md)
 
 A blockchain for financial derivatives.
 Optimized for scalability via smart contracts inside state-channels.

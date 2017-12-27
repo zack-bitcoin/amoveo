@@ -8,14 +8,15 @@ var language_mode;
         language_mode = "cn";//simplified chinese
     } else if (l == "?tp") {
         language_mode = "tp";//toki pona
-    } else if (l == "?sp") {
-        language_mode = "sp";
+    } else if ((l == "?sp") || (l == "?es")) {
+        language_mode = "sp";//spanish
     } else if (l == "tml" ) {
         language_mode = "en";//default is english
     } else {
-        //if something goes wrong, still default to english.
-        console.log("confused about language input. default is english. ");
-        language_mode = "en";
+        console.log("language selection error. ");
+        console.log(l);
+        console.log("is not a valid language selection");
+        language_mode = "en";//still default to english
     }
 })();
 function human_language() {
