@@ -18,6 +18,7 @@ Con Amoveo es imposible para los clientes robar en un mercado, y es imposible qu
 ## comunidad
 
 [Amoveo comunidad en reddit](https://www.reddit.com/r/Amoveo/)
+
 [Amoveo anuncios twitter](https://twitter.com/zack_bitcoin)
 
 ## Usar Amoveo

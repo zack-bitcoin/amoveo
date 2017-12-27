@@ -27,6 +27,7 @@ It verifies merkle proof of all blockchain state you download to give as much se
 ## Community
 
 [Amoveo forum on reddit](https://www.reddit.com/r/Amoveo/)
+
 [Amoveo announcements on twitter](https://twitter.com/zack_bitcoin)
 
 
