@@ -17,7 +17,7 @@ With Amoveo it is impossible for customers to steal from a market, and it is imp
 
 ## Use Amoveo
 
-Simply visit [this webpage](http://146.185.142.103:8080/wallet.html) to participate in Amoveo, no installation necessary.
+Simply visit [this webpage](http://146.185.142.103:8080/wallet.html?cn) to participate in Amoveo, no installation necessary.
 This light node downloads headers and verifies the proof of work.
 It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
 
