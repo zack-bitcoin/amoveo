@@ -14,26 +14,33 @@ handle_cast({main, Peer}, go) ->
     MyTop = headers:top(),
     TheirTop = remote_peer({header}, Peer), 
     MyBlockHeight = block:height(),
+    TheirTopHeight = headers:height(TheirTop),
+    io:fwrite("trade blocks\n"),
     if
         not(MyTop == TheirTop) ->
+            io:fwrite("trade headers\n"),
             CommonHash = get_headers(Peer),
             {ok, TBH} = headers:read(block:hash(block:top())),
             MD = headers:accumulative_difficulty(TBH),
             TD = headers:accumulative_difficulty(TheirTop),
+            io:fwrite("trade blocks\n"),
             if
                 TD < MD -> 
-                    io:fwrite("give blocks\n"),
                     give_blocks(Peer, CommonHash);
                 true ->
                     %io:fwrite("get blocks\n"),
                     CommonBlockHeight = common_block_height(CommonHash),
                     get_blocks(Peer, CommonBlockHeight)
             end;
-        MyBlockHeight < TheirTop ->
+        MyBlockHeight < TheirTopHeight ->
+            io:fwrite("headers already synced, focus on blocks\n"),
+            io:fwrite(packer:pack({compare_height, MyBlockHeight, TheirTop})),
+            io:fwrite("\n"),
             {ok, FT} = application:get_env(ae_core, fork_tolerance),
             get_blocks(Peer, max(0, MyBlockHeight - FT));
         true -> ok
     end,
+    io:fwrite("trade txs\n"),
     trade_txs(Peer),
     {noreply, go};
 handle_cast(_, X) -> {noreply, X}.
