@@ -86,7 +86,7 @@ function keys_function1() {
 
     //console.log(fromHex(toHex("abc")));
     function update_pubkey() {
-        pub_div.innerHTML = get_words("your_pubkey").concat(pubkey_64());
+        pub_div.innerHTML = get_words("your_pubkey").concat(" ").concat(pubkey_64());
     }
     function new_keys_check() {
         //alert("this will delete your old keys. If you have money secured by this key, and you haven't saved your key, then this money will be destroyed.");

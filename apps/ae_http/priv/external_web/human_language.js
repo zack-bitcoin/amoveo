@@ -3,14 +3,15 @@ var language_mode;
     var x = window.location.href;
     var l = x.slice(-3);
     if (l == "?en") {
-        language_mode = "en";
+        language_mode = "en";//english
     } else if (l == "?cn") {
-        language_mode = "cn";
+        language_mode = "cn";//simplified chinese
     } else if (l == "?tp") {
-        language_mode = "tp";
+        language_mode = "tp";//toki pona
     } else if (l == "tml" ) {
-        language_mode = "en";
+        language_mode = "en";//default is english
     } else {
+        //if something goes wrong, still default to english.
         console.log("confused about language input. default is english. ");
         language_mode = "en";
     }
@@ -101,7 +102,7 @@ function human_language() {
                                "tp": "mute pana e ilo pi tu mani"},
             "channel_delay": {"cn": "通道延迟(在区块)",
                               "en": "channel delay (in blocks) ",
-                              "tp": "mute tenpo pi pipi e ilo pi tu mani"},
+                              "tp": "mute tenpo pipi e ilo pi tu mani"},
             "unknown": {"cn": "未知",
                         "en": "unknown ",
                         "tp": "sona ala"},
@@ -125,25 +126,25 @@ function human_language() {
                            "tp": "lon ala lon"},
             "make_bet": {"cn": "打个赌",
                          "en": "make bet ",
-                         "tp": "??"},
+                         "tp": "pali e ??"},
             "finalize_bets": {"cn": "检查是否有赌局已经完成",
                               "en": "check if any bets have been settled",
-                              "tp": "??"},
+                              "tp": "lukin e ?? pini"},
             "gather_bets": {"cn": "汇集赌注",
                             "en": "combine bets in opposite directions to recover money from the market ",
-                            "tp": "??"},
+                            "tp": "alasa e ??"},
             "refresh_bets": {"cn": "更新链下资产余额",
                              "en": "update balance of off-chain assets ",
-                             "tp": "??"},
+                             "tp": "lukin e ?? sin"},
             "create_account": {"cn": "创建新帐号",
                                "en": "create account ",
-                               "tp": "??"},
+                               "tp": "pali e ilo jo mani"},
             "initial_balance": {"cn": "初始化余额",
                                 "en": "initial balance",
-                                "tp": "??"},
+                                "tp": "pana mute mani"},
             "more_headers": {"cn": "获取更多的头信息",
                              "en": "get more headers",
-                             "tp": "??"},
+                             "tp": "alasa toki Amoveo"},
             "height": {"cn": "高度",
                        "en": "height ",
                        "tp": "nanpa suli"},
@@ -155,34 +156,34 @@ function human_language() {
                             "tp": "nanpa sina sina"},
             "save_key": {"cn": "保存私钥到文件",
                          "en": "save private key to file",
-                         "tp": "??"},
+                         "tp": "jo e poki"},
             "get_key": {"cn": "从文件中读取密钥",
                         "en": "get key from file ",
-                        "tp": "??"},
+                        "tp": "alasa e poki"},
             "make_key": {"cn": "生成新的密钥对",
                          "en": "generate new keys ",
-                         "tp": "??"},
+                         "tp": "o pali poki sin"},
             "check_balance": {"cn": "检查余额",
                               "en": "check balance ",
-                              "tp": "??"},
+                              "tp": "o lukin mute mani"},
             "your_pubkey": {"cn": "你的公钥",
                             "en": "your pubkey ",
                             "tp": "nimi sina"},
             "to_pubkey": {"cn": "往公钥地",
                           "en": "to pubkey",
-                          "tp": "??"},
+                          "tp": "pana e poke"},
             "key_warning": {"cn": "这将会删除旧的密钥对. 其中的余额也将被删除",
                             "en": "This will delete your old keys. If money is sent to them, it will be deleted.",
-                            "tp": "??"},
+                            "tp": "kama la ni li pakala e poki"},
             "stop_mining": {"cn": "停止挖矿",
                             "en": "stop mining",
-                            "tp": "??"},
+                            "tp": "o pini alasa mani"},
             "start_mining": {"cn": "开始挖矿 (注意: 使用电脑或者笔记本, 不要用手机. 想要持续挖矿的话页面不能关闭)",
                              "en": "start mining (warning: use a laptop or computer, not a phone.)(warning: you may need to leave tab open to continue mining.)",
                              "tp": "o alasa mani. "},
             "blocks_found": {"cn": "??",
                              "en": "blocks found",
-                             "tp": "??"}
+                             "tp": "pini la alasa e mute nanpa "}
            };
 }
 var language_object = human_language();
