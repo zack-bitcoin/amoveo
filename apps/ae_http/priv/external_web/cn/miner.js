@@ -83,7 +83,7 @@ function miner_main() {
             button.onclick = stop_mining;
         }
         function stop_mining() {
-            button.value = "开始挖矿 (注意: 使用电脑活着笔记本, 不要用手机. 想要持续挖矿的话页面不能关闭)";
+            button.value = "开始挖矿 (注意: 使用电脑或者笔记本, 不要用手机. 想要持续挖矿的话页面不能关闭)";
             mining_state = false;
             button.onclick = start_mining;
         }
