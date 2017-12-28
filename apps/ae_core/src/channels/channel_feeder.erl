@@ -72,8 +72,8 @@ handle_cast({close, SS, STx}, X) ->
     {ok, CD} = channel_manager:read(OtherID),
     true = CD#cd.live,
     SPKM = CD#cd.me,
-    A1 = spk:acc1(SPKM), 
-    A2 = spk:acc2(SPKM),
+    A1 = SPKM#spk.acc1, 
+    A2 = SPKM#spk.acc2,
     SPK = testnet_sign:data(CD#cd.them),
     A3 = channel_team_close_tx:acc1(Tx),
     A4 = channel_team_close_tx:acc2(Tx),
@@ -128,7 +128,7 @@ handle_call({combine_cancel_assets_server, TheirPub, SSPK2}, _From, X) ->
     io:fwrite("\n"),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    Bets = spk:bets(me(OldCD)),
+    Bets = (me(OldCD))#spk.bets,
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
                      ssme = NewSS, ssthem = NewSS},
     channel_manager:write(TheirPub, NewCD),
@@ -141,7 +141,7 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     io:fwrite(packer:pack({spks, SPK, SPK2})),
     io:fwrite("\n"),
     SPK = SPK2,
-    Bets = spk:bets(me(OldCD)),
+    Bets = (me(OldCD))#spk.bets,
     Bet = element(N-1, list_to_tuple(Bets)),
     {Type, Price} = spk:bet_meta(Bet),
     CodeKey = spk:key(Bet),
@@ -254,9 +254,8 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
     %this updates our partner's side of the channel state to include the bet that we already included.
     MyID = keys:pubkey(),
     SPK = testnet_sign:data(SSPK),
-    Acc1 = spk:acc1(SPK),
     Acc1 = SPK#spk.acc1,
-    Acc2 = spk:acc2(SPK),
+    Acc2 = SPK#spk.acc2,
     From = case MyID of
 	Acc1 -> Acc2;
 	Acc2 -> Acc1;
@@ -383,7 +382,6 @@ c_oldc() ->
     OldC = block:channels(Old),
     {C, OldC}.
 depth_check2(SPK, C, OldC) -> 
-    %CID = spk:cid(SPK),
     PartnerID = other(SPK),
     Channel = channels:get(PartnerID, C),
     OldChannel = channels:get(PartnerID, OldC),
@@ -407,7 +405,7 @@ depth_check2(SPK, C, OldC) ->
 other(X) when element(1, X) == signed ->
     other(testnet_sign:data(X));
 other(SPK) when element(1, SPK) == spk ->
-    other(spk:acc1(SPK), spk:acc2(SPK));
+    other(SPK#spk.acc1, SPK#spk.acc2);
 other(Tx) when element(1, Tx) == ctc ->
     other(channel_team_close_tx:acc1(Tx),
 	  channel_team_close_tx:acc2(Tx));
@@ -467,7 +465,7 @@ trade(Amount, Price, Bet, Other, OID) ->
     io:fwrite("\n"),
     {ok, CD} = channel_manager:read(Other),
     SPK = channel_feeder:me(CD),
-    CID = spk:cid(SPK),
+    CID = SPK#spk.cid,
     {ok, TimeLimit} = application:get_env(ae_core, time_limit),
     {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
     CGran = constants:channel_granularity(),
@@ -501,7 +499,7 @@ matchable(Bet, SS) ->
 combine_cancel_common(OldCD) ->
     %someday, if we wanted to unlock money in a partially matched trade, we would probably also have to adjust some info in the order book. This is risky, so lets not do it yet.
     SPK = channel_feeder:me(OldCD),
-    Bets = spk:bets(SPK),
+    Bets = SPK#spk.bets,
     {NewBets, NewSSMe} = combine_cancel_common2(Bets, OldCD#cd.ssme, [], []),
     SPK2 = spk:update_bets(SPK, NewBets),
     %identify matched trades in the same market that go in opposite directions. remove the same amount from opposite directions to unlock liquidity.

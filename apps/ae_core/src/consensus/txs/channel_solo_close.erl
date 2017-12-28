@@ -2,15 +2,16 @@
 -export([go/3, make/5, from/1, id/1]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
+-include("../../spk.hrl").
 from(X) -> X#csc.from.
 id(X) -> 
     SPK = X#csc.scriptpubkey,
-    spk:cid(testnet_sign:data(SPK)).
+    (testnet_sign:data(SPK))#spk.cid.
 make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     Accounts = trees:accounts(Trees),
     Channels = trees:channels(Trees),
     true = is_list(ScriptSig),
-    CID = spk:cid(testnet_sign:data(ScriptPubkey)),
+    CID = (testnet_sign:data(ScriptPubkey))#spk.cid,
     {_, Acc, Proof1} = accounts:get(From, Accounts),
     {_, _Channel, Proofc} = channels:get(CID, Channels),
     
@@ -26,16 +27,16 @@ go(Tx, Dict, NewHeight) ->
     ScriptPubkey = testnet_sign:data(SPK),
     TimeGas = governance:dict_get_value(time_gas, Dict),
     SpaceGas = governance:dict_get_value(space_gas, Dict),
-    true = spk:time_gas(ScriptPubkey) < TimeGas,
-    true = spk:space_gas(ScriptPubkey) < SpaceGas,
-    CID = spk:cid(testnet_sign:data(SPK)),
+    true = ScriptPubkey#spk.time_gas < TimeGas,
+    true = ScriptPubkey#spk.space_gas < SpaceGas,
+    CID = (testnet_sign:data(SPK))#spk.cid,
     OldChannel = channels:dict_get(CID, Dict),
     0 = channels:amount(OldChannel),
     true = testnet_sign:verify(SPK),
     Acc1 = channels:acc1(OldChannel),
     Acc2 = channels:acc2(OldChannel),
-    Acc1 = spk:acc1(ScriptPubkey),
-    Acc2 = spk:acc2(ScriptPubkey),
+    Acc1 = ScriptPubkey#spk.acc1,
+    Acc2 = ScriptPubkey#spk.acc2,
     %NewCNonce = spk:nonce(ScriptPubkey),
     SS = Tx#csc.scriptsig,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict),

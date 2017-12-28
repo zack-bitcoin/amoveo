@@ -1,5 +1,6 @@
 -module(spk).
--export([acc1/1,acc2/1,
+-export([%acc1/1,
+         acc2/1,
 	 bets/1,space_gas/1,time_gas/1,
 	 new/8,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
@@ -34,7 +35,6 @@
 -record(ss, {code, prove, meta = 0}). %meta is the price being matched at.
 set_spk_amount(S, Amount) ->
     S#spk{amount = Amount}.
-acc1(X) -> X#spk.acc1.
 acc2(X) -> X#spk.acc2.
 bets(X) -> X#spk.bets.
 space_gas(X) -> X#spk.space_gas.
