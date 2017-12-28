@@ -3,17 +3,16 @@
 	 new/8,
 	 apply_bet/5,get_paid/3,
 	 run/6,dict_run/6,
-         %set_spk_amount/2,
          chalang_state/3,
          new_bet/3, new_bet/4, 
 	 is_improvement/4, bet_unlock/2,
-         test2/0,
 	 force_update/3,
-         new_ss/2, ss_prove/1,
+         new_ss/2, 
          remove_bet/2,
          remove_nth/2, update_bets/2, 
-         set_ss_meta/2, ss_meta/1, update_bet_amount/2,
-	 test/0
+         set_ss_meta/2, 
+         update_bet_amount/2,
+	 test/0, test2/0
 	]).
 
 %We want channel that are using the same contract to be able to calculate a contract hash that is the same. This makes it easier to tell if 2 channels are betting on the same thing.
@@ -107,8 +106,6 @@ tree2id(governance) -> 6.
 
 new_ss(Code, Prove) ->
     #ss{code = Code, prove = Prove}.
-ss_prove(X) -> X#ss.prove.
-ss_meta(X) -> X#ss.meta.
 set_ss_meta(X, Meta) ->
     X#ss{meta = Meta}.
 new_bet(Code, Key, Amount) ->

@@ -482,7 +482,7 @@ matchable(Bet, SS) ->
     SSC = SS#ss.code,
     BK = Bet#bet.key,
     {Direction, Price} = Bet#bet.meta,
-    Price2 = spk:ss_meta(SS),
+    Price2 = SS#ss.meta,
     if 
         SSC == <<0,0,0,0,4>> -> 
             io:fwrite("not cancelable because it is an open order.\n"),
