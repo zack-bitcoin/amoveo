@@ -64,8 +64,6 @@ add([MalformedPeer|T]) ->
     io:fwrite(packer:pack(MalformedPeer)),
     add(T);
 add({IP, Port}) -> 
-    io:fwrite(packer:pack([IP, Port])),
-    io:fwrite("\n"),
     NIP = if
               is_tuple(IP) -> IP;
               is_list(IP) -> list_to_tuple(IP)
