@@ -21,9 +21,10 @@ new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
 me(X) -> X#cd.me.
 %cid(X) when is_binary(X) ->
 %    cid(channel_manager:read(X));
-cid(X) when is_record(X, cd) -> X#cd.cid;
-cid(error) -> undefined;
-cid(X) -> cid(other(X)).
+cid(X) -> X#cd.cid.
+%cid(X) when is_record(X, cd) -> X#cd.cid;
+%cid(error) -> undefined;
+%cid(X) -> cid(other(X)).
 expiration(X) -> X#cd.expiration.
 them(X) -> X#cd.them.
 script_sig_them(X) -> X#cd.ssthem.
