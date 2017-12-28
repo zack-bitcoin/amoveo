@@ -14,6 +14,10 @@
 
 use .hrl files to simplify the records.
 
+* headers:test() is broken and unused.
+* keys:test() is broken and unused.
+* tester:oracle_test is unused.
+
 * in api we shouldn't get time_value from the server at the last minute. The user needs to be aware of the size of the fee before they run this function.
 
 * change vocabulary for channels. spk is a "contract". ss is "evidence".
