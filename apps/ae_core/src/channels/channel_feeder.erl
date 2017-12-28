@@ -16,6 +16,7 @@
          combine_cancel_assets_server/2,
          expiration/1
 	 ]).
+-include("../spk.hrl").
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
 	     ssme = [], %ss is the highest nonced ScriptSig that works with me
@@ -254,6 +255,7 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
     MyID = keys:pubkey(),
     SPK = testnet_sign:data(SSPK),
     Acc1 = spk:acc1(SPK),
+    Acc1 = SPK#spk.acc1,
     Acc2 = spk:acc2(SPK),
     From = case MyID of
 	Acc1 -> Acc2;

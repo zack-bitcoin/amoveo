@@ -6,7 +6,7 @@
 	 run/6,dict_run/6,%settle_bet/4,
          set_spk_amount/2,
          chalang_state/3,
-         new_bet/3, new_bet/4, delay/1,
+         new_bet/3, new_bet/4, 
 	 is_improvement/4, bet_unlock/2,
 	 code/1, key/1, test2/0,
 	 force_update/3,
@@ -26,11 +26,7 @@
               key,%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
               meta}).%meta is {direction_we_bet, maxprice}
 
--record(spk, {acc1,acc2, 
-	      bets, space_gas, time_gas, 
-	      cid, amount = 0, nonce = 0,
-	      delay = 0
-	     }).
+-include("../../spk.hrl").
 %scriptpubkey is the name that Satoshi gave to this part of the transactions in bitcoin.
 %This is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
@@ -38,7 +34,6 @@
 -record(ss, {code, prove, meta = 0}). %meta is the price being matched at.
 set_spk_amount(S, Amount) ->
     S#spk{amount = Amount}.
-delay(X) -> X#spk.delay.
 acc1(X) -> X#spk.acc1.
 acc2(X) -> X#spk.acc2.
 bets(X) -> X#spk.bets.
