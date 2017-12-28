@@ -17,24 +17,14 @@
          terminate/2,
          code_change/3]).
 -export([test/0]).
+-include("../../spk.hrl").
 
 -export_type([header/0, height/0, block_header_hash/0, serialized_header/0]).
 
--record(header, {height :: height(),
-                 prev_hash :: block_header_hash(),
-                 trees_hash,
-                 txs_proof_hash,
-                 time,
-                 difficulty,
-                 version,
-                 nonce,
-                 accumulative_difficulty = 0,
-                 period}).
 -define(LOC, constants:headers_file()).
 -record(s, {headers = dict:new() :: dict:dict(block_header_hash(), header()),
             top = #header{}}).
 
--type height() :: non_neg_integer().
 -type block_header_hash() :: binary().
 -opaque header() :: #header{}.
 -type serialized_header() :: binary().
