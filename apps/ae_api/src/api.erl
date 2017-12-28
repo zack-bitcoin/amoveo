@@ -10,10 +10,10 @@ keys_status() -> keys:status().
 load_key(Pub, Priv, Brainwallet) ->
     keys:load(Pub, Priv, Brainwallet).
 height() ->    
-    headers:height(headers:top()).
+    (headers:top())#header.height.
 top() ->
     TopHeader = headers:top(),
-    Height = headers:height(TopHeader),
+    Height = TopHeader#header.height,
     {top, TopHeader, Height}.
 sign(Tx) ->
     {Trees,_,_} = tx_pool:data(),

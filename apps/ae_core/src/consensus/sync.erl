@@ -2,6 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 	start/1, start/0, stop/0, status/0]).
+-include("../spk.hrl").
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -14,7 +15,7 @@ handle_cast({main, Peer}, go) ->
     MyTop = headers:top(),
     TheirTop = remote_peer({header}, Peer), 
     MyBlockHeight = block:height(),
-    TheirTopHeight = headers:height(TheirTop),
+    TheirTopHeight = TheirTop#header.height,
     if
         not(MyTop == TheirTop) ->
             CommonHash = get_headers(Peer),
@@ -100,7 +101,7 @@ trade_peers(Peer) ->
     peers:add(TheirsPeers).
 -define(HeadersBatch, application:get_env(ae_core, headers_batch)).
 get_headers(Peer) -> 
-    N = headers:height(headers:top()),
+    N = (headers:top())#header.height,
     {ok, FT} = application:get_env(ae_core, fork_tolerance),
     Start = max(0, N - FT), 
     get_headers2(Peer, Start).
@@ -127,7 +128,7 @@ common_block_height(CommonHash) ->
     case block:get_by_hash(CommonHash) of
         empty -> 
             Header = headers:read(CommonHash),
-            PrevCommonHash = headers:prev_hash(Header),
+            PrevCommonHash = Header#header.prev_hash,
             common_block_height(PrevCommonHash);
         B -> block:height(B)
     end.

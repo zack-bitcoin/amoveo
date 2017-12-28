@@ -4,6 +4,7 @@
 -export([data/0, data_new/0, dump/0, absorb_tx/3, absorb/2,
          txs/1, trees/1, new_trees/1, dict/1, facts/1, height/1]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
+-include("../spk.hrl").
 -record(f, {txs = [],
             trees,%this changes once per tx
             new_trees,%this changes once per block
@@ -72,7 +73,7 @@ state2(Block) ->
     Header = block:block_to_header(Block),
     case Block of
 	empty -> 
-	    {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),
+	    {ok, PrevHeader} = headers:read(Header#header.prev_hash),
 	    state2(PrevHeader);
 	_ ->
             Trees = block:trees(Block),

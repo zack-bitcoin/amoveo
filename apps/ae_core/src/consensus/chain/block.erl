@@ -10,10 +10,11 @@
          genesis_maker/0, height/0,
          dict_update_trie/2
         ]).
+-include("../../spk.hrl").
 
 -export_type([block/0]).
 
--record(block, {height :: headers:height(),
+-record(block, {height,
                 prev_hash :: headers:block_header_hash(),
                 trees_hash,
                 time,
@@ -107,7 +108,7 @@ hash(B) when is_record(B, block) ->
     hash(block_to_header(B)).
 
 calculate_prev_hashes(Parent) ->
-    H = headers:height(Parent),
+    H = Parent#header.height,
     PH = hash(Parent),
     calculate_prev_hashes([PH], H, 2).
 
@@ -143,7 +144,7 @@ top(Header) ->
     false = element(2, Header) == undefined,
     case get_by_hash(hash(Header)) of
         empty -> 
-            {ok, PrevHeader} = headers:read(headers:prev_hash(Header)),
+            {ok, PrevHeader} = headers:read(Header#header.prev_hash),
             top(PrevHeader);
         Block -> Block
     end.
@@ -155,17 +156,13 @@ lg(X) when (is_integer(X) and (X > 0)) ->
 lgh(1, X) -> X;
 lgh(N, X) -> lgh(N div 2, X+1).
 
--spec get_by_height(headers:height()) -> empty | block().
 get_by_height(N) ->
     get_by_height_in_chain(N, headers:top()).
-
--spec get_by_height_in_chain(headers:height(), Chain::headers:header()) ->
-                                    empty | block().
 get_by_height_in_chain(N, BH) when N > -1 ->
     Block = get_by_hash(hash(BH)),
     case Block of
         empty ->
-            PrevHash = headers:prev_hash(BH),
+            PrevHash = BH#header.prev_hash,
             {ok, PrevHeader} = headers:read(PrevHash),
             get_by_height_in_chain(N, PrevHeader);
         _  ->
@@ -249,7 +246,7 @@ make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [CB|Txs0],
     Querys = proofs:txs_to_querys(Txs, Trees),
-    Height = headers:height(Header),
+    Height = Header#header.height,
     Facts = proofs:prove(Querys, Trees),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     NewDict = new_dict(Txs, Dict, Height+1, keys:pubkey(), hash(Header)),
@@ -375,7 +372,7 @@ check(Block) ->
     Roots = Block#block.roots,
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
-    PrevStateHash = headers:trees_hash(PrevHeader),
+    PrevStateHash = PrevHeader#header.trees_hash,
     PrevStateHash = trees:root_hash2(OldTrees, Roots),
     case LN of
         true -> 
@@ -403,8 +400,7 @@ check(Block) ->
     Block2 = Block#block{trees = NewTrees3},
     TreesHash = trees:root_hash(Block2#block.trees),
     TreesHash = trees:root_hash2(Block2#block.trees, Roots),
-    TreesHash = headers:trees_hash(Header),
-    TreesHash = headers:trees_hash(Header),
+    TreesHash = Header#header.trees_hash,
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     TreesHash = trees:root_hash2(NewTrees3, Roots),

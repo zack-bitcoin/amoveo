@@ -2,7 +2,8 @@
 -behaviour(gen_server).
 
 %% API
--export([prev_hash/1, height/1, time/1, version/1, trees_hash/1, txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1, period/1,
+-export([
+         txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1,
          check/0, 
          absorb/1, read/1, top/0, dump/0, 
          make_header/9,
@@ -31,12 +32,6 @@
 
 %% API functions
 
-prev_hash(H) -> H#header.prev_hash.
-period(H) -> H#header.period.
-height(H) -> H#header.height.
-time(H) -> H#header.time.
-version(H) -> H#header.version.
-trees_hash(H) -> H#header.trees_hash.
 txs_proof_hash(H) -> H#header.txs_proof_hash.
 nonce(H) -> H#header.nonce.
 difficulty(H) -> H#header.difficulty.

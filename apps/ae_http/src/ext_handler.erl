@@ -121,7 +121,7 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Fee = channel_team_close_tx:fee(Tx),
     {ok, CD} = channel_manager:read(PeerId),
     SPK = channel_feeder:me(CD),
-    Height = headers:height(headers:top()),
+    Height = (headers:top())#header.height,
     {Trees,_,_} = tx_pool:data(),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
