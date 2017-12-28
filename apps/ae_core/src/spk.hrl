@@ -20,3 +20,16 @@
                  nonce,
                  accumulative_difficulty = 0,
                  period}).
+-record(block, {height,
+                prev_hash,
+                trees_hash,
+                time,
+                difficulty,
+                period,
+                version,
+                nonce = 0,
+                trees,
+                txs,
+                prev_hashes = {prev_hashes},
+                proofs = [],
+                roots}).

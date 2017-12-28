@@ -42,7 +42,7 @@ absorb_internal(Block) ->
     %io:fwrite("\n"),
     BH = block:hash(Block),
     NextBlock = block:prev_hash(Block),
-    Height = block:height(Block),
+    Height = Block#block.height,
     BHC = block_hashes:check(BH),
     if
         Height == 0 -> ok;
@@ -72,7 +72,7 @@ absorb_internal(Block) ->
                   end),
             order_book:match(),
             io:fwrite("absorb block "),
-            io:fwrite(integer_to_list(block:height(Block2))),
+            io:fwrite(integer_to_list(Block2#block.height)),
             io:fwrite("\n")
     end.
 do_save(BlockPlus) ->

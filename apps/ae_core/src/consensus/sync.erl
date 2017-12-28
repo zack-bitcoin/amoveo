@@ -130,7 +130,7 @@ common_block_height(CommonHash) ->
             Header = headers:read(CommonHash),
             PrevCommonHash = Header#header.prev_hash,
             common_block_height(PrevCommonHash);
-        B -> block:height(B)
+        B -> B#block.height
     end.
 get_blocks(Peer, N) ->
     {ok, BB} = application:get_env(ae_core, download_blocks_batch),

@@ -421,7 +421,7 @@ channel_close(IP, Port, Fee) ->
     {ok, CD} = channel_manager:read(PeerId),
     SPK = testnet_sign:data(channel_feeder:them(CD)),
     {Trees,_,_} = tx_pool:data(),
-    Height = block:height(block:get_by_hash(headers:top())),
+    Height = (block:get_by_hash(headers:top()))#block.height,
     SS = channel_feeder:script_sig_them(CD),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = SPK#spk.cid,

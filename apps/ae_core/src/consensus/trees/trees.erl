@@ -9,6 +9,7 @@
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
          restore/3]).
+-include("../../spk.hrl").
 -record(trees, {accounts, channels, existence,
 		oracles, governance}).
 name(<<"accounts">>) -> accounts;
@@ -145,7 +146,7 @@ prune2(Blocks, [TID|Trees]) ->
     prune2(Blocks, Trees).
 prune3([], _) -> [1];
 prune3([B|Blocks], TID) ->
-    H = block:height(B),
+    H = B#block.height,
     Trees = block:trees(B),
     Root = trees:TID(Trees),
     [Root|prune3(Blocks, TID)].

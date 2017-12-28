@@ -55,7 +55,7 @@ doit({txs, Txs}) ->
     {ok, 0};
 doit({top}) -> 
     Top = block:top(),
-    Height = block:height(Top),
+    Height = Top#block.height,
     {ok, Top, Height};
 doit({test}) -> 
     {test_response};

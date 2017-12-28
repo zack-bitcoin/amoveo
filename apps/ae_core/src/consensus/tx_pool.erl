@@ -79,5 +79,5 @@ state2(Block) ->
             Trees = block:trees(Block),
 	    #f{trees = Trees,
                new_trees = Trees, 
-	       height = block:height(Block)}
+	       height = Block#block.height}
     end.

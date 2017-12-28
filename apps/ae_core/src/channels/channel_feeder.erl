@@ -373,7 +373,7 @@ garbage_helper([H|T], C, OldC) ->
    
 c_oldc() ->
     Top = block:get_by_hash(headers:top()),
-    Height = block:height(Top),
+    Height = Top#block.height,
     {ok, ForkTolerance} = application:get_env(ae_core, fork_tolerance),
     OldHeight = Height - ForkTolerance,
     true = OldHeight > 0,

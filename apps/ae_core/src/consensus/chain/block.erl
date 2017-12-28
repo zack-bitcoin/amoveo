@@ -1,7 +1,7 @@
 -module(block).
 
 -export([block_to_header/1, test/0,
-         height/1, prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, version/1, pow/1, set_pow/2, trees/1, prev_hashes/1, 
+         prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, version/1, pow/1, set_pow/2, trees/1, prev_hashes/1, 
          get_by_height_in_chain/2, get_by_height/1, hash/1, get_by_hash/1, initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          guess_number_of_cpu_cores/0, top/0,
@@ -10,30 +10,10 @@
          genesis_maker/0, height/0,
          dict_update_trie/2
         ]).
+%Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../spk.hrl").
-
--export_type([block/0]).
-
--record(block, {height,
-                prev_hash :: headers:block_header_hash(),
-                trees_hash,
-                time,
-                difficulty,
-                period,
-                version,
-                nonce = 0,
-                trees,
-                txs,
-                prev_hashes = {prev_hashes},
-                proofs = [],
-                roots}).
 -record(roots, {accounts, channels, existence, oracles, governance}).
 
-%Read about why there are so many proofs in each block in docs/design/light_nodes.md
-
--opaque block() :: #block{}.
-
-height(B) -> B#block.height.
 prev_hash(B) -> B#block.prev_hash.
 txs(B) -> B#block.txs.
 trees_hash(B) -> B#block.trees_hash.
@@ -88,12 +68,6 @@ block_to_header(B) ->
       B#block.difficulty,
       B#block.period).
 
--spec hash(block() |
-           headers:header() |
-           headers:serialized_header() |
-           headers:block_header_hash()
-          ) -> headers:block_header_hash();
-          (error) -> error.
 hash(error) -> 1=2;
 hash(B) when is_binary(B) ->%accepts binary headers
     case size(B) == constants:hash_size() of
@@ -121,12 +95,6 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
             B = get_by_height_in_chain(NHeight, PH),
             calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
     end.
-
--spec get_by_hash(Hash) -> empty | block() when
-      Hash :: block()
-            | headers:header()
-            | headers:serialized_header()
-            | headers:block_header_hash().
 get_by_hash(H) ->
     Hash = hash(H),
     BlockFile = ae_utils:binary_to_file_path(blocks, Hash),
@@ -135,7 +103,6 @@ get_by_hash(H) ->
         Block -> binary_to_term(zlib:uncompress(Block))
     end.
 
--spec top() -> block().
 top() ->
     TH = headers:top(),
     top(TH).
