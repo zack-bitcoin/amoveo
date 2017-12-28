@@ -7,7 +7,8 @@ Amoveo
 
 A blockchain for financial derivatives.
 Optimized for scalability via smart contracts inside state-channels.
-Has a build-in oracle for integration with real-world data.
+Has a build-in oracle for integration with real-world data
+A governance system is used to set system parameters. The block size, block reward, and many other variables can be adjusted by the community.
 Written in Erlang.
 
 [Amoveo whitepaper](docs/white_paper.md).
