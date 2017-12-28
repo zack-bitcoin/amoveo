@@ -141,16 +141,12 @@ pull_channel_state(IP, Port) ->
     case channel_manager:read(ServerID) of
         error  -> 
             %This trusts the server and downloads a new version of the state from them. It is only suitable for testing and development. Do not use this in production.
-            SPKME = channel_feeder:them(CD),
+            SPKME = CD#cd.them,
             true = testnet_sign:verify(keys:sign(ThemSPK)),
             SPK = testnet_sign:data(ThemSPK),
             SPK = testnet_sign:data(SPKME),
             true = keys:pubkey() == element(2, SPK),
-            NewCD = channel_feeder:new_cd(SPK, ThemSPK, 
-                                         channel_feeder:script_sig_them(CD),
-                                         channel_feeder:script_sig_me(CD),
-                                         CD#cd.cid,
-                                         channel_feeder:expiration(CD)),
+            NewCD = CD#cd{me = SPK, them = ThemSPK, ssme = CD#cd.ssthem, ssthem = CD#cd.ssme},
             channel_manager:write(ServerID, NewCD);
         {ok, CD0} ->
             true = CD0#cd.live,
@@ -193,7 +189,7 @@ channel_spend(Amount) ->
 channel_spend(IP, Port, Amount) ->
     {ok, PeerId} = talker:talk({pubkey}, IP, Port),
     {ok, CD} = channel_manager:read(PeerId),
-    OldSPK = testnet_sign:data(channel_feeder:them(CD)),
+    OldSPK = testnet_sign:data(CD#cd.them),
     ID = keys:pubkey(),
     {Trees,_,_} = tx_pool:data(),
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
@@ -225,11 +221,8 @@ lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
 channel_manager_update(ServerID, SSPK2, DefaultSS) ->
     %store SSPK2 in channel manager, it is their most recent signature.
     {ok, CD} = channel_manager:read(ServerID),
-    CID = CD#cd.cid,
-    ThemSS = channel_feeder:script_sig_them(CD),
-    MeSS = channel_feeder:script_sig_me(CD),
     SPK = testnet_sign:data(SSPK2),
-    NewCD = channel_feeder:new_cd(SPK, SSPK2, [DefaultSS|MeSS], [DefaultSS|ThemSS], CID, channel_feeder:expiration(CD)),
+    NewCD = CD#cd{me = SPK, them = SSPK2, ssme = [DefaultSS|CD#cd.ssme], ssthem = [DefaultSS|CD#cd.ssthem]},
     channel_manager:write(ServerID, NewCD),
     ok.
 channel_balance() ->
@@ -243,9 +236,9 @@ channel_balance2(Ip, Port) ->
 integer_channel_balance(Ip, Port) ->
     {ok, Other} = talker:talk({pubkey}, Ip, Port),
     {ok, CD} = channel_manager:read(Other),
-    SSPK = channel_feeder:them(CD),
+    SSPK = CD#cd.them,
     SPK = testnet_sign:data(SSPK),
-    SS = channel_feeder:script_sig_them(CD),
+    SS = CD#cd.ssthem,
     {Trees, NewHeight, _Txs} = tx_pool:data(),
     Channels = trees:channels(Trees),
     Amount = SPK#spk.amount,
@@ -419,10 +412,10 @@ channel_close(IP, Port) ->
 channel_close(IP, Port, Fee) ->
     {ok, PeerId} = talker:talk({pubkey}, IP, Port),
     {ok, CD} = channel_manager:read(PeerId),
-    SPK = testnet_sign:data(channel_feeder:them(CD)),
+    SPK = testnet_sign:data(CD#cd.them),
     {Trees,_,_} = tx_pool:data(),
     Height = (block:get_by_hash(headers:top()))#block.height,
-    SS = channel_feeder:script_sig_them(CD),
+    SS = CD#cd.ssthem,
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = SPK#spk.cid,
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
@@ -438,8 +431,8 @@ channel_solo_close(Other) ->
     Fee = free_constants:tx_fee(),
     {Trees,_,_} = tx_pool:data(),
     {ok, CD} = channel_manager:read(Other),
-    SSPK = channel_feeder:them(CD),
-    SS = channel_feeder:script_sig_them(CD),
+    SSPK = CD#cd.them,
+    SS = CD#cd.ssthem,
     {Tx, _} = channel_solo_close:make(keys:pubkey(), Fee, keys:sign(SSPK), SS, Trees),
     STx = keys:sign(Tx),
     tx_pool_feeder:absorb(STx),

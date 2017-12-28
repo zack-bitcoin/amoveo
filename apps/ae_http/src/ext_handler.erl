@@ -144,11 +144,7 @@ doit({learn_secret, From, Secret, Code}) ->
     if
 	NewSS == SS -> ok;
 	true -> 
-	    NewCD = channel_feeder:new_cd(
-		      SPK, OldCD#cd.them,
-		      NewSS, SSThem,
-		      OldCD#cd.cid,
-                      channel_feeder:expiration(OldCD)),
+            NewCD = OldCD#cd{me = SPK, ssme = NewSS, ssthem = SSThem},
 	    channel_manager:write(From, NewCD),
 	    {ok, Current} = arbitrage:check(Code),
 	    IDS = minus(Current, From),
@@ -190,7 +186,7 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     {ok, CD} = channel_manager:read(Account),
-    true = Expires < channel_feeder:expiration(CD),
+    true = Expires < CD#cd.expiration,
     %SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, api:height()),
     SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
     SPK = testnet_sign:data(SSPK),
