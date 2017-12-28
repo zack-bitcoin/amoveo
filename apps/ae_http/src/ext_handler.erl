@@ -138,7 +138,8 @@ doit({learn_secret, From, Secret, Code}) ->
 	    NewCD = channel_feeder:new_cd(
 		      SPK, channel_feeder:them(OldCD),
 		      NewSS, SSThem,
-		      channel_feeder:cid(OldCD)),
+		      channel_feeder:cid(OldCD),
+                      channel_feeder:expiration(OldCD)),
 	    channel_manager:write(From, NewCD),
 	    {ok, Current} = arbitrage:check(Code),
 	    IDS = minus(Current, From),

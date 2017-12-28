@@ -8,12 +8,13 @@
 	 new_channel_check/1,
 	 cid/1,them/1,script_sig_them/1,me/1,
 	 script_sig_me/1,
-	 update_to_me/2, new_cd/5,
+	 update_to_me/2, new_cd/6,
 	 make_locked_payment/3, live/1, they_simplify/3,
 	 bets_unlock/1, emsg/1, trade/5, trade/7,
          cancel_trade/4, cancel_trade_server/3,
          combine_cancel_assets/3,
-         combine_cancel_assets_server/2
+         combine_cancel_assets_server/2,
+         expiration/1
 	 ]).
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
 	     them = [], %them is the highest-nonced SPK signed by the other node. 
@@ -21,13 +22,14 @@
 	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
 	     emsg = [],
 	     live = true,
+             expiration = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
 emsg(X) ->
     X#cd.emsg.
 live(X) ->
     X#cd.live.
-new_cd(Me, Them, SSMe, SSThem, CID) ->
-    #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, cid = CID}.
+new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
+    #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, cid = CID, expiration = Expiration}.
 me(X) -> X#cd.me.
 cid({ok, CD}) -> cid(CD);
 cid(X) when is_binary(X) ->
@@ -39,6 +41,7 @@ cid(X) when is_binary(X) ->
 cid(X) when is_record(X, cd) -> X#cd.cid;
 cid(error) -> undefined;
 cid(X) -> cid(other(X)).
+expiration(X) -> X#cd.expiration.
 them(X) -> X#cd.them.
 script_sig_them(X) -> X#cd.ssthem.
 script_sig_me(X) -> X#cd.ssme.
@@ -287,12 +290,12 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     io:fwrite("\n"),
     CID = CD#cd.cid,
     io:fwrite("the simplify 03 \n"),
+    NewCD = CD#cd{me = NewSPK, them = ThemSPK, ssthem = SS, ssme = SS},
     Return2 = 
 	if
 	    (B2 == {NewSPK, SS}) ->
 %if they find a way to unlock funds, then give it to them.
 		Return = keys:sign(NewSPK),
-		NewCD = new_cd(NewSPK, ThemSPK, SS, SS, CID),
 		channel_manager:write(From, NewCD),
 		Return;
 	    true ->
@@ -302,7 +305,7 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 		    B ->
 	    %if they give free stuff, then accept.
 			Return = keys:sign(NewSPK),
-			NewCD = new_cd(NewSPK, ThemSPK, SS, SS, CID),
+			%NewCD = new_cd(NewSPK, ThemSPK, SS, SS, CID),
 			channel_manager:write(From, NewCD),
 			Return;
 		    true ->
@@ -314,7 +317,7 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
                         io:fwrite(packer:pack({compare_spks2, SPK2})), %this has 2 bets in it
                         io:fwrite("\n"),
 			SPK = SPK2,
-			Data = new_cd(SPK, ThemSPK, SS5, SS5, CID),
+			Data = new_cd(SPK, ThemSPK, SS5, SS5, CID, CD#cd.expiration),
 			channel_manager:write(From, Data),
 			Return
 		end

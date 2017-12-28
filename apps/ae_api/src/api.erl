@@ -147,7 +147,8 @@ pull_channel_state(IP, Port) ->
             NewCD = channel_feeder:new_cd(SPK, ThemSPK, 
                                          channel_feeder:script_sig_them(CD),
                                          channel_feeder:script_sig_me(CD),
-                                         channel_feeder:cid(CD)),
+                                         channel_feeder:cid(CD),
+                                         channel_feeder:expiration(CD)),
             channel_manager:write(ServerID, NewCD);
         {ok, CD0} ->
             true = channel_feeder:live(CD0),
@@ -226,7 +227,7 @@ channel_manager_update(ServerID, SSPK2, DefaultSS) ->
     ThemSS = channel_feeder:script_sig_them(CD),
     MeSS = channel_feeder:script_sig_me(CD),
     SPK = testnet_sign:data(SSPK2),
-    NewCD = channel_feeder:new_cd(SPK, SSPK2, [DefaultSS|MeSS], [DefaultSS|ThemSS], CID),
+    NewCD = channel_feeder:new_cd(SPK, SSPK2, [DefaultSS|MeSS], [DefaultSS|ThemSS], CID, channel_feeder:expiration(CD)),
     channel_manager:write(ServerID, NewCD),
     ok.
 channel_balance() ->

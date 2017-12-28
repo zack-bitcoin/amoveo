@@ -825,7 +825,7 @@ test(15) ->
     Bet = spk:new_bet(Code, Code, 50),
     SPK = spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay),
     TheySPK = testnet_sign:sign_tx(SPK, NewPub, NewPriv),
-    CD = channel_feeder:new_cd(SPK, TheySPK, [Secret], [Secret], CID),
+    CD = channel_feeder:new_cd(SPK, TheySPK, [Secret], [Secret], CID, 1000),
     channel_manager:write(NewPub, CD),
     timer:sleep(100),
     ScriptPubKey = keys:sign(SPK),
