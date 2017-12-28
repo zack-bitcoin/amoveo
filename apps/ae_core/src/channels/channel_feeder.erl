@@ -10,23 +10,13 @@
 	 script_sig_me/1,
 	 update_to_me/2, new_cd/6,
 	 make_locked_payment/3, live/1, they_simplify/3,
-	 bets_unlock/1, emsg/1, trade/5, trade/7,
+	 bets_unlock/1, trade/5, trade/7,
          cancel_trade/4, cancel_trade_server/3,
          combine_cancel_assets/3,
          combine_cancel_assets_server/2,
          expiration/1
 	 ]).
 -include("../spk.hrl").
--record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
-	     them = [], %them is the highest-nonced SPK signed by the other node. 
-	     ssme = [], %ss is the highest nonced ScriptSig that works with me
-	     ssthem = [], %ss is the highest nonced ScriptSig that works with them. 
-	     emsg = [],
-	     live = true,
-             expiration = 0,
-	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
-emsg(X) ->
-    X#cd.emsg.
 live(X) ->
     X#cd.live.
 new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
@@ -34,11 +24,7 @@ new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
 me(X) -> X#cd.me.
 cid({ok, CD}) -> cid(CD);
 cid(X) when is_binary(X) ->
-    %{ok, CD} = channel_manager:read(X),
-    %cid(CD);
-    %{ok, CD} = 
     cid(channel_manager:read(X));
-    %CD#cd.cid;
 cid(X) when is_record(X, cd) -> X#cd.cid;
 cid(error) -> undefined;
 cid(X) -> cid(other(X)).

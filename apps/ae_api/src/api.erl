@@ -157,7 +157,7 @@ pull_channel_state(IP, Port) ->
             SPKME = channel_feeder:me(CD0),
             Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),
             talker:talk({channel_sync, keys:pubkey(), Return}, IP, Port),
-            decrypt_msgs(channel_feeder:emsg(CD)),
+            decrypt_msgs(CD#cd.emsg),
             bet_unlock(IP, Port),
             ok
     end.

@@ -58,14 +58,11 @@ dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Bets) ->
                 height = NewHeight,
                 bets = Bets,
                 bets_hash = BH}.
-
 update_bets(Account, Bets) ->
-    %false = Bets == 0,
     Account#acc{bets = Bets,
                 bets_hash = oracle_bets:root_hash(Bets)}.
 key_to_int(X) ->
     trees:hash2int(ensure_decoded_hashed(X)).
-    
 get(Pub, Accounts) ->
     PubId = key_to_int(Pub),
     {RH, Leaf, Proof} = trie:get(PubId, Accounts, ?id),
@@ -89,49 +86,29 @@ write(Account, Root) ->
     Pub = Account#acc.pubkey,
     SizePubkey = constants:pubkey_size(),
     SizePubkey = size(Pub),
-    %PubHash = ensure_decoded_hashed(Pub),
     SerializedAccount = serialize(Account),
     true = size(SerializedAccount) == constants:account_size(),
     KeyLength = constants:key_length(),
     <<Meta:KeyLength>> = <<(Account#acc.bets):KeyLength>>,
-    %PubId = trees:hash2int(PubHash),
     PubId = key_to_int(Pub),
     trie:put(PubId, SerializedAccount, Meta, Root, ?id). % returns a pointer to the new root
-
 delete(Pub0, Accounts) ->
     PubId = key_to_int(Pub0),
     trie:delete(PubId, Accounts, ?id).
 dict_delete(Pub, Dict) ->
-    dict:store({accounts, Pub}, 
-               0,
-               Dict).
-
+    dict:store({accounts, Pub}, 0, Dict).
 new_balance_dict(Account, Amount, NewHeight, Dict) ->
     OldHeight = Account#acc.height,
     Pub = Account#acc.pubkey,
     HeightDiff = NewHeight - OldHeight,
-    %MasterPub = constants:master_pub(),
     Rent = 0,
-    %    case Pub of
-    %        MasterPub ->
-    %            -(governance:dict_get_value(developer_reward, Dict));
-    %        _Other ->
-    %            0
-    %    end,
     Amount + Account#acc.balance - (Rent * HeightDiff).
 new_balance(Account, Amount, NewHeight, Trees) ->
     OldHeight = Account#acc.height,
     Governance = trees:governance(Trees),
     Pub = Account#acc.pubkey,
     HeightDiff = NewHeight - OldHeight,
-    %MasterPub = constants:master_pub(),
     Rent = 0,
-    %    case Pub of
-    %        MasterPub ->
-    %            -(governance:get_value(developer_reward, Governance));
-    %        _Other ->
-    %            0
-    %    end,
     Amount + Account#acc.balance - (Rent * HeightDiff).
 
 serialize(Account) ->
@@ -140,12 +117,10 @@ serialize(Account) ->
     HeightSize = constants:height_bits(),
     NonceSize = constants:account_nonce_bits(),
     HS = constants:hash_size()*8,
-    %BetsRoot = Account#acc.bets_hash,
     BetsRoot = case Account#acc.bets of
                    0 -> Account#acc.bets_hash;
                    X -> oracle_bets:root_hash(X)
                end,
-    %BetsRoot = oracle_bets:root_hash(Account#acc.bets),
     HashSize = constants:hash_size(),
     true = size(BetsRoot) == HashSize,
     SerializedAccount =
@@ -156,9 +131,6 @@ serialize(Account) ->
          BetsRoot/binary>>,
     true = size(SerializedAccount) == constants:account_size(),
     SerializedAccount.
-
-
-%% Internals
 
 deserialize(SerializedAccount) ->
     BalanceSize = constants:balance_bits(),
@@ -203,10 +175,8 @@ dict_get(Key, Dict) ->
         {0, _} -> empty;
         {Y, Meta} -> 
             Y2 = deserialize(Y),
-            Y2#acc{bets = Meta}%;
-        %Z -> deserialize(Z)
+            Y2#acc{bets = Meta}
     end.
-
 test() ->
     {Pub, _Priv} = testnet_sign:new_key(),
     Acc = new(Pub, 0, 0),
@@ -219,5 +189,4 @@ test() ->
     true = verify_proof(Root, Pub, serialize(Acc), Proof),
     {Root2, empty, Proof2} = get(Pub, Root0),
     true = verify_proof(Root2, Pub, 0, Proof2),
-
     success.

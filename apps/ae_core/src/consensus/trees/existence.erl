@@ -6,10 +6,7 @@
 %for accessing the proof of existence tree
 -record(exist, {hash, height}).
 -define(name, existence).
-height(X) ->
-    X#exist.height.
-hash(X) ->
-    X#exist.hash.
+hash(X) -> X#exist.hash.
 new(Hash, Height) ->
     HS = constants:hash_size(),
     HS = size(Hash),
@@ -29,7 +26,6 @@ deserialize(B) ->
     <<Height:HB,
      Hash:HS>> = B,
     #exist{hash = <<Hash:HS>>, height = Height}.
-
 dict_get(Hash, Dict) ->
     true = is_binary(Hash),
     X = dict:fetch({existence, Hash}, Dict),
@@ -41,14 +37,8 @@ key_to_int(X) ->
     <<Y:256>> = hash:doit(X),
     Y.
 get(Hash, Tree) ->
-    %io:fwrite(Hash),
     true = is_binary(Hash),
     Key = key_to_int(Hash),
-    io:fwrite("get key"),
-    io:fwrite(packer:pack(<<Key:256>>)),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(Hash)),
-    io:fwrite("\n"),
     {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
     V = case Leaf of
 	    empty -> empty;
@@ -62,18 +52,11 @@ dict_write(C, Dict) ->
     dict:store({existence, Hash},
                serialize(C),
                Dict).
-    
 write(E, Tree) ->
     Hash = E#exist.hash,
     Key = key_to_int(Hash),
-    io:fwrite("write key is "),
-    io:fwrite(packer:pack(<<Key:256>>)),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(Hash)),
-    io:fwrite("\n"),
     X = serialize(E),
     trie:put(Key, X, 0, Tree, ?name).
-	     
 hash2int(X) -> 
     S = size(X),
     S = constants:hash_size(),
@@ -89,8 +72,6 @@ make_leaf(Key, V, CFG) ->
              V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
-
-
 test() ->
     {_, Height, _} = tx_pool:data(),
     Hash = hash:doit(2),
