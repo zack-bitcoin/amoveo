@@ -1,9 +1,10 @@
 -module(spk).
 -export([acc1/1,acc2/1,
 	 bets/1,space_gas/1,time_gas/1,
-	 new/8,new/9,cid/1,amount/1, 
+	 new/8,cid/1,amount/1, 
 	 nonce/1,apply_bet/5,get_paid/3,
 	 run/6,dict_run/6,%settle_bet/4,
+         set_spk_amount/2,
          chalang_state/3,
          new_bet/3, new_bet/4, delay/1,
 	 is_improvement/4, bet_unlock/2,
@@ -35,7 +36,8 @@
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
 
 -record(ss, {code, prove, meta = 0}). %meta is the price being matched at.
-
+set_spk_amount(S, Amount) ->
+    S#spk{amount = Amount}.
 delay(X) -> X#spk.delay.
 acc1(X) -> X#spk.acc1.
 acc2(X) -> X#spk.acc2.
@@ -143,8 +145,6 @@ new_bet(Code, Key, Amount) ->
 new_bet(Code, Key, Amount, Meta) ->
     #bet{code = Code, key = Key, amount = Amount, meta = Meta}.
 new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay) ->
-    new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, 0).
-new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay, Amount) ->
     #spk{acc1 = Acc1, acc2 = Acc2,
 	 bets = Bets, space_gas = SG, time_gas = TG,
 	 cid = CID, nonce = Nonce, delay = Delay}.

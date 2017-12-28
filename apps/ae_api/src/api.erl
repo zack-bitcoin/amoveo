@@ -96,16 +96,16 @@ new_channel_tx(CID, Acc2, Bal1, Bal2, Fee, Delay) ->
     {Trees, _, _} = tx_pool:data(),
     {Tx, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Acc2, Bal1, Bal2, Delay, Fee),
     keys:sign(Tx).
-new_channel_with_server(Bal1, Bal2, Delay) ->
-new_channel_with_server(Bal1, Bal2, Delay, ?IP, ?Port).
-new_channel_with_server(Bal1, Bal2, Delay, IP, Port) ->
+new_channel_with_server(Bal1, Bal2, Delay, Expires) ->
+    new_channel_with_server(Bal1, Bal2, Delay, Expires, ?IP, ?Port).
+new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
     {Trees, _, _} = tx_pool:data(),
     Channels = trees:channels(Trees),
     CID = find_id(channels, Channels),
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(nc, Governance),
-    new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay).
+    new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires).
 find_id(Name, Tree) ->
     find_id(Name, 1, Tree).
 find_id(Name, N, Tree) ->
@@ -113,23 +113,25 @@ find_id(Name, N, Tree) ->
 	{_, empty, _} -> N;
 	_ -> find_id(Name, N+1, Tree)
     end.
-new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay) ->
+new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     Acc1 = keys:pubkey(),
     {ok, Acc2} = talker:talk({pubkey}, IP, Port),
     {Trees,_,_} = tx_pool:data(),
     {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
     {ok, ChannelDelay} = application:get_env(ae_core, channel_delay),
-    {ok, TV} = talker:talk({time_value}, IP, Port),
-    %CFee = TV * (ChannelDelay + LifeSpan) * (Bal1 + Bal2) div 100000000,
-    CFee = 0,
-    SPK = new_channel_tx:spk(Tx, ChannelDelay, CFee),
+    {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
+    %make sure the customer is aware of the time_value before they click this button. Don't request time_value now, it should have been requested earlier.
+    LifeSpan = Expires - api:height(),
+    CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
+    SPK0 = new_channel_tx:spk(Tx, ChannelDelay),
+    SPK = spk:set_spk_amount(SPK0, CFee),
     Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx),
     SSPK = keys:sign(SPK),
-    Msg = {new_channel, STx, SSPK},%LifeSpan
+    Msg = {new_channel, STx, SSPK, Expires},
     {ok, [SSTx, S2SPK]} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(SSTx),
-    channel_feeder:new_channel(Tx, S2SPK, Accounts),%LifeSpan
+    channel_feeder:new_channel(Tx, S2SPK, Expires),
     ok.
 pull_channel_state() ->
     pull_channel_state(?IP, ?Port).

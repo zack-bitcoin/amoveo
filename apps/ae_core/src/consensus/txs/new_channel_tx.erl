@@ -1,12 +1,15 @@
 -module(new_channel_tx).
--export([go/3, make/8, good/1, spk/2, spk/3, cid/1,
-	 acc1/1, acc2/1, id/1]).
+-export([go/3, make/8, good/1, spk/2, cid/1,
+	 acc1/1, acc2/1, bal1/1, bal2/1, id/1, delay/1]).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, 
 	     delay = 10, id = -1}).
 
 acc1(X) -> X#nc.acc1.
 acc2(X) -> X#nc.acc2.
+bal1(X) -> X#nc.bal1.
+bal2(X) -> X#nc.bal2.
+delay(X) -> X#nc.delay.
 id(X) -> X#nc.id.
 good(Tx) ->
     %ChannelLife = how long they are requesting the channel to be open for.
@@ -42,10 +45,8 @@ good(Tx) ->
     true.
 cid(Tx) -> Tx#nc.id.
 spk(Tx, Delay) -> 
-    spk(Tx, Delay, 0).
-spk(Tx, Delay, CFee) -> 
     spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
-            [], 0,0, 0, Delay, CFee).
+            [], 0,0, 0, Delay).
 make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
     Accounts = trees:accounts(Trees),
     {_, A, Proof} = accounts:get(Acc1, Accounts),

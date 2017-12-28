@@ -56,12 +56,12 @@ handle_cast(garbage, X) ->
     {C, OldC} = c_oldc(),
     garbage_helper(Keys, C, OldC),
     {noreply, X};
-handle_cast({new_channel, Tx, SSPK, _Accounts}, X) ->
+handle_cast({new_channel, Tx, SSPK, Expires}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
     SPK = testnet_sign:data(SSPK),
     %Delay = spk:delay(SPK),
     %SPK2 = new_channel_tx:spk(Tx, Delay),%doesn't move the money
-    CD = #cd{me = SPK, them = SSPK, cid = new_channel_tx:id(Tx)},
+    CD = #cd{me = SPK, them = SSPK, cid = new_channel_tx:id(Tx), expiration = Expires},
     channel_manager:write(other(Tx), CD),
     {noreply, X};
 handle_cast({close, SS, STx}, X) ->
@@ -325,8 +325,8 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     {reply, Return2, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
-new_channel(Tx, SSPK, Accounts) ->
-    gen_server:cast(?MODULE, {new_channel, Tx, SSPK, Accounts}).
+new_channel(Tx, SSPK, Expires) ->
+    gen_server:cast(?MODULE, {new_channel, Tx, SSPK, Expires}).
 spend(SPK, Amount) -> 
     gen_server:call(?MODULE, {spend, SPK, Amount}).
 close(SS, Tx) ->

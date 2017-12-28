@@ -79,21 +79,27 @@ doit({new_channel_tx, Acc1, Acc2, B1, B2, Delay, Fee}) ->
     {ok, Tx};
 doit({time_value}) ->
     application:get_env(ae_core, time_value);
-doit({new_channel, STx, SSPK}) ->
+doit({new_channel, STx, SSPK, Expires}) ->
     unlocked = keys:status(),
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
     undefined = channel_feeder:cid(Tx),
-    true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
-    %_CFee = new_channel_tx:fee(SPK),
-    %true = CFee >= (),
-    true = channel_feeder:new_channel_check(Tx), %make sure we aren't already storing a channel with this same partner.
+    %true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
+    CFee = spk:amount(SPK),
+    Bal1 = new_channel_tx:bal1(Tx),
+    Bal2 = new_channel_tx:bal2(Tx),
+    Delay = new_channel_tx:delay(Tx),
+    LifeSpan = Expires - api:height(),
+    {ok, TV} = application:get_env(ae_core, time_value),
+    CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
+    true = CFee < Bal1,%make sure they can afford the fee.
+    true = channel_feeder:new_channel_check(Tx), %make sure we are not already storing a channel with this same partner.
     SSTx = keys:sign(STx),
     tx_pool_feeder:absorb(SSTx),
     S2SPK = keys:sign(SPK),
-    channel_feeder:new_channel(Tx, SSPK, Accounts),
+    channel_feeder:new_channel(Tx, SSPK, Expires),
     {ok, [SSTx, S2SPK]};
 doit({grow_channel, Stx}) ->
     Tx = testnet_sign:data(Stx),
@@ -180,6 +186,8 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
+    {ok, CD} = channel_manager:read(Account),
+    true = Expires < channel_feeder:expiration(CD),
     %SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, api:height()),
     SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
     SPK = testnet_sign:data(SSPK),

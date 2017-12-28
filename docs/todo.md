@@ -12,16 +12,25 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+use .hrl files to simplify the records.
+
+* in api we shouldn't get time_value from the server at the last minute. The user needs to be aware of the size of the fee before they run this function.
+
 * change vocabulary for channels. spk is a "contract". ss is "evidence".
 
 * translate the word "Amoveo" for Chinese and Toki Pona. 易币 and "mani kon Amoveo"
 
-* key "expiration" should be added to the channel manager. Contracts made in the channel should all finish at or earlier than this expiration.
 
-*Maybe there should be 2 modes. in safe mode you can only use approved contracts, and if you run out of time without being able to close the contract, then you win all the money in the bet.
-* in free mode you can use many more types of contract, but if you run out of time without being able to close the channel, then you lose all the money in the bet.
+* there should be a refund if you close a channel early.
+
+* there needs to be an interface to pushing the channel expiration further into the future by paying a fee.
+
+* channel_grow tx type needs to change the expiration date, or charge a fee.
 
 * channels need a minimum fee for opening them.
+
+
+
 
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
 
