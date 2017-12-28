@@ -7,3 +7,4 @@
 -record(bet, {code, amount, 
               key,%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
               meta}).%meta is {direction_we_bet, maxprice}
+-record(ss, {code, prove, meta = 0}). %meta is the price being matched at.

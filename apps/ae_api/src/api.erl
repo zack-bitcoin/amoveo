@@ -124,7 +124,7 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     LifeSpan = Expires - api:height(),
     CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
     SPK0 = new_channel_tx:spk(Tx, ChannelDelay),
-    SPK = spk:set_spk_amount(SPK0, CFee),
+    SPK = SPK0#spk{amount = CFee},
     Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx),
     SSPK = keys:sign(SPK),

@@ -3,13 +3,13 @@
 	 new/8,
 	 apply_bet/5,get_paid/3,
 	 run/6,dict_run/6,
-         set_spk_amount/2,
+         %set_spk_amount/2,
          chalang_state/3,
          new_bet/3, new_bet/4, 
 	 is_improvement/4, bet_unlock/2,
          test2/0,
 	 force_update/3,
-         new_ss/2, ss_code/1, ss_prove/1,
+         new_ss/2, ss_prove/1,
          remove_bet/2,
          remove_nth/2, update_bets/2, 
          set_ss_meta/2, ss_meta/1, update_bet_amount/2,
@@ -25,9 +25,6 @@
 %This is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
 
--record(ss, {code, prove, meta = 0}). %meta is the price being matched at.
-set_spk_amount(S, Amount) ->
-    S#spk{amount = Amount}.
 
 remove_bet(N, SPK) ->
     NewBets = remove_nth(N, SPK#spk.bets),
@@ -110,9 +107,6 @@ tree2id(governance) -> 6.
 
 new_ss(Code, Prove) ->
     #ss{code = Code, prove = Prove}.
-ss_code(X) when is_binary(X) -> 
-    1=2;
-ss_code(X) -> X#ss.code.
 ss_prove(X) -> X#ss.prove.
 ss_meta(X) -> X#ss.meta.
 set_ss_meta(X, Meta) ->
@@ -156,17 +150,17 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
 	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
 	    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
-	    true = chalang:none_of(ss_code(SS2)),
+	    true = chalang:none_of(SS2#ss.code),
 	    F = prove_facts(SS#ss.prove, Trees),
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
-	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS2), Code, State, constants:hash_size()),
-	    Data2 = chalang:run5(ss_code(SS2), Data),
+	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2#ss.code, Code, State, constants:hash_size()),
+	    Data2 = chalang:run5(SS2#ss.code, Data),
 	    Data3 = chalang:run5(Code, Data2),
 	    case Data3 of
 		{error, _E} -> 
                     %io:fwrite("spk bet_unlock2 chalang run third\n"),
-		    Data4 = chalang:run5(ss_code(SS), Data),
+		    Data4 = chalang:run5(SS#ss.code, Data),
                     %io:fwrite("spk bet_unlock2 chalang run fourth\n"),
 		    Y = chalang:run5(Code, Data4),
 		    case Y of
@@ -303,7 +297,7 @@ run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, De
 	run3(SS, Code, OpGas, RamGas, Funs, Vars, State),
     run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2)).
 run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
-    ScriptSig = ss_code(SS),
+    ScriptSig = SS#ss.code,
     true = chalang:none_of(ScriptSig),
     {Trees, _, _} = tx_pool:data(),
     %F = prove_facts(Bet#bet.prove, Trees),
@@ -347,12 +341,12 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     {ok, FunLimit} = application:get_env(ae_core, fun_limit),
     {ok, VarLimit} = application:get_env(ae_core, var_limit),
     {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
-    true = chalang:none_of(ss_code(SS)),
+    true = chalang:none_of(SS#ss.code),
     F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
-    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, ss_code(SS), Code, State, constants:hash_size()),
-    {ContractAmount, N, Delay, _} = chalang_error_handling(ss_code(SS), Code, Data),
+    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS#ss.code, Code, State, constants:hash_size()),
+    {ContractAmount, N, Delay, _} = chalang_error_handling(SS#ss.code, Code, Data),
     if
 	%Delay > 50 ->
 	Delay > 50 ->

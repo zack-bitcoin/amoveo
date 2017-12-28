@@ -475,11 +475,11 @@ trade(Amount, Price, Bet, Other, OID) ->
 cancel_trade_common(N, OldCD) ->
     SPK = channel_feeder:me(OldCD),
     SS = element(N-1, list_to_tuple(OldCD#cd.ssme)),
-    true = spk:ss_code(SS) == <<0,0,0,0,4>>,%this is what it looks like when a bet is unmatched
+    true = ((SS#ss.code) == <<0,0,0,0,4>>),%this is what it looks like when a bet is unmatched
     SPK2 = spk:remove_bet(N-1, SPK),
     keys:sign(SPK2).
 matchable(Bet, SS) ->
-    SSC = spk:ss_code(SS),
+    SSC = SS#ss.code,
     BK = Bet#bet.key,
     {Direction, Price} = Bet#bet.meta,
     Price2 = spk:ss_meta(SS),
