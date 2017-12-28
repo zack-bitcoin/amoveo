@@ -1,11 +1,10 @@
 %this is the only thing that contact the channel_manager. That way, we are safe from race-conditions on updating the channel state.
 -module(channel_feeder).
 -behaviour(gen_server).
--export([start_link/0,code_change/3,handle_call/3,
-	 handle_cast/2,handle_info/2,init/1,terminate/2,
-	 new_channel/3,spend/2,close/2,lock_spend/7,
-	 agree_bet/4,garbage/0,
-	 new_channel_check/1,
+-export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
+	 new_channel/3, spend/2, close/2, lock_spend/7,
+	 agree_bet/4, garbage/0,
+	 new_channel_check/1, other/1,
 	 cid/1,them/1,script_sig_them/1,me/1,
 	 script_sig_me/1,
 	 update_to_me/2, new_cd/6,
@@ -17,13 +16,11 @@
          expiration/1
 	 ]).
 -include("../spk.hrl").
-%live(X) -> X#cd.live.
 new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
     #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, cid = CID, expiration = Expiration}.
 me(X) -> X#cd.me.
-cid({ok, CD}) -> cid(CD);
-cid(X) when is_binary(X) ->
-    cid(channel_manager:read(X));
+%cid(X) when is_binary(X) ->
+%    cid(channel_manager:read(X));
 cid(X) when is_record(X, cd) -> X#cd.cid;
 cid(error) -> undefined;
 cid(X) -> cid(other(X)).
@@ -408,7 +405,6 @@ other(Aid1, Aid2) ->
 new_channel_check(Tx) ->
     %make sure we aren't already storing a channel with the same partner.
     Other = other(Tx),
-    %CID = new_channel_tx:id(Tx),
     case channel_manager:read(Other) of
 	{ok, CD} ->
 	    true = CD#cd.me == [];%this is the case if it was deleted before

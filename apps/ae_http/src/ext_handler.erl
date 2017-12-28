@@ -86,7 +86,9 @@ doit({new_channel, STx, SSPK, Expires}) ->
     SPK = testnet_sign:data(SSPK),
     {Trees,_,_} = tx_pool:data(),
     Accounts = trees:accounts(Trees),
-    undefined = channel_feeder:cid(Tx),
+    TheirPub = channel_feeder:other(Tx),
+    error = channel_manager:read(TheirPub),
+    %undefined = channel_feeder:cid(Tx),
     %true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
     CFee = SPK#spk.amount,
     Bal1 = new_channel_tx:bal1(Tx),
