@@ -143,8 +143,8 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     SPK = SPK2,
     Bets = (me(OldCD))#spk.bets,
     Bet = element(N-1, list_to_tuple(Bets)),
-    {Type, Price} = spk:bet_meta(Bet),
-    CodeKey = spk:key(Bet),
+    {Type, Price} = Bet#bet.meta,
+    CodeKey = Bet#bet.key,
     {market, 1, _, _, _, _, OID} = CodeKey,
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
                      ssme = spk:remove_nth(N-1, OldCD#cd.ssme),
@@ -480,8 +480,8 @@ cancel_trade_common(N, OldCD) ->
     keys:sign(SPK2).
 matchable(Bet, SS) ->
     SSC = spk:ss_code(SS),
-    BK = spk:key(Bet),
-    {Direction, Price} = spk:bet_meta(Bet),
+    BK = Bet#bet.key,
+    {Direction, Price} = Bet#bet.meta,
     Price2 = spk:ss_meta(SS),
     if 
         SSC == <<0,0,0,0,4>> -> 
@@ -514,7 +514,7 @@ combine_cancel_common2([], [], A, B) ->
     {lists:reverse(A), lists:reverse(B)};
 combine_cancel_common2([Bet|BT], [SSM|MT], OB, OM) ->
     io:fwrite("combine cancel common 2\n"),
-    Amount = spk:bet_amount(Bet),
+    Amount = Bet#bet.amount,
     if
         Amount == 0 -> 
             io:fwrite("amount is 0\n"),
@@ -534,7 +534,7 @@ combine_cancel_common3(Bet, SSM, BT, MT, OB, OM) ->
     {BK, SK, BF, MF} = combine_cancel_common4(Bet, SSM, BT, MT, [], []),
     combine_cancel_common2(BF, MF, BK ++ OB, SK ++ OM).
 combine_cancel_common4(Bet, SSM, [], [], BO, MO) ->
-    Amount = spk:bet_amount(Bet),
+    Amount = Bet#bet.amount,
     if
         Amount == 0 -> 
             io:fwrite("combine cancel common4 amount 0 1\n");
@@ -542,11 +542,11 @@ combine_cancel_common4(Bet, SSM, [], [], BO, MO) ->
         true -> {[Bet], [SSM], BO, MO}
     end;
 combine_cancel_common4(Bet, SSM, [BH|BT], [MH|MT], BO, MO) ->
-    Amount = spk:bet_amount(Bet),
-    {Direction1, _} = spk:bet_meta(Bet),
-    {Direction2, _} = spk:bet_meta(BH),
-    Key1 = spk:key(Bet),
-    Key2 = spk:key(BH),
+    Amount = Bet#bet.amount,
+    {Direction1, _} = Bet#bet.meta,
+    {Direction2, _} = BH#bet.meta,
+    Key1 = Bet#bet.key,
+    Key2 = BH#bet.key,
     OID2 = element(7, Key2),
     OID = element(7, Key1),
     B = matchable(BH, MH),
@@ -562,8 +562,8 @@ combine_cancel_common4(Bet, SSM, [BH|BT], [MH|MT], BO, MO) ->
             io:fwrite("not matchable or different oracle, or different direction \n"),
             combine_cancel_common4(Bet, SSM, BT, MT, [BH|BO], [MH|MO]);
         true -> 
-            A1 = spk:bet_amount(Bet),
-            A2 = spk:bet_amount(BH),
+            A1 = Bet#bet.amount,
+            A2 = BH#bet.amount,
             if
                 A1 == A2 -> 
                     io:fwrite("match both away\n"),

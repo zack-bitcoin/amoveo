@@ -1,4 +1,5 @@
 -module(grow_channel_tx).
+-include("../../spk.hrl").
 -export([go/3, make/5, good/1, acc1/1, acc2/1, id/1]).
 -record(gc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, inc1 = 0, inc2 = 0, channel_nonce = 0, id = -1}).
 acc1(X) -> X#gc.acc1.
@@ -19,10 +20,10 @@ good(Tx) ->
     NewCNLimit = Tx#gc.channel_nonce,
     {ok, CD} = channel_manager:read(Other),
     SPK = channel_feeder:me(CD),
-    CN = spk:nonce(SPK),
+    CN = SPK#spk.nonce,
     true = CN > NewCNLimit,%This checks that our SPK is still valid.
     SSPK = channel_feeder:them(CD),
-    CN2 = spk:nonce(testnet_sign:data(SSPK)),
+    CN2 = (testnet_sign:data(SSPK))#spk.nonce,
     true = CN2 > NewCNLimit,%This checks that the SPK they signed is still valid.
     Frac = Me / (I1 + I2),
     {ok, MCR} = application:get_env(ae_core, min_channel_ratio),

@@ -1,16 +1,16 @@
 -module(spk).
 -export([
 	 new/8,
-	 nonce/1,apply_bet/5,get_paid/3,
-	 run/6,dict_run/6,%settle_bet/4,
+	 apply_bet/5,get_paid/3,
+	 run/6,dict_run/6,
          set_spk_amount/2,
          chalang_state/3,
          new_bet/3, new_bet/4, 
 	 is_improvement/4, bet_unlock/2,
-	 code/1, key/1, test2/0,
+         test2/0,
 	 force_update/3,
          new_ss/2, ss_code/1, ss_prove/1,
-         bet_meta/1, remove_bet/2, bet_amount/1,
+         remove_bet/2,
          remove_nth/2, update_bets/2, 
          set_ss_meta/2, ss_meta/1, update_bet_amount/2,
 	 test/0
@@ -20,11 +20,6 @@
 %Each contract should output an amount between 0 and constants:channel_granularity(), which is the portion of the money that goes to one of the participants. Which participant it signifies depends on what value is stored in a flag.
 %each contract needs a value saying how much of the money is locked into that contract.
 
--record(bet, {code, amount, 
-              %prove, 
-              key,%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
-              meta}).%meta is {direction_we_bet, maxprice}
-
 -include("../../spk.hrl").
 %scriptpubkey is the name that Satoshi gave to this part of the transactions in bitcoin.
 %This is where we hold the channel contracts. They are turing complete smart contracts.
@@ -33,20 +28,15 @@
 -record(ss, {code, prove, meta = 0}). %meta is the price being matched at.
 set_spk_amount(S, Amount) ->
     S#spk{amount = Amount}.
-nonce(X) -> X#spk.nonce.
 
-code(X) -> X#bet.code.
-key(X) -> X#bet.key.
-bet_meta(X) -> X#bet.meta.
-bet_amount(X) -> X#bet.amount.
 remove_bet(N, SPK) ->
     NewBets = remove_nth(N, SPK#spk.bets),
     B = element(N, list_to_tuple(SPK#spk.bets)),
-    A = case bet_meta(B) of
+    A = case B#bet.meta of
             0 -> 0;
             {_Direction, Price} -> 
                 CGran = constants:channel_granularity(),
-                Amount = bet_amount(B),
+                Amount = B#bet.amount,
                 (Amount * Price) div CGran
         end,
     SPK#spk{bets = NewBets, amount = SPK#spk.amount + A}.

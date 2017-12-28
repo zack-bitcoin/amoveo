@@ -255,7 +255,7 @@ integer_channel_balance(Ip, Port) ->
     {channels:bal1(Channel)+Amount, channels:bal2(Channel)-Amount-BetAmounts}.
 sum_bets([]) -> 0;
 sum_bets([B|T]) ->
-    spk:bet_amount(B) + sum_bets(T).
+    B#bet.amount + sum_bets(T).
 pretty_display(I) ->
     {ok, TokenDecimals} = application:get_env(ae_core, token_decimals),
     F = I / TokenDecimals,

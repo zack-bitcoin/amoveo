@@ -37,7 +37,6 @@ go(Tx, Dict, NewHeight) ->
     Acc2 = channels:acc2(OldChannel),
     Acc1 = ScriptPubkey#spk.acc1,
     Acc2 = ScriptPubkey#spk.acc2,
-    %NewCNonce = spk:nonce(ScriptPubkey),
     SS = Tx#csc.scriptsig,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict),
     %false = Amount == 0,
