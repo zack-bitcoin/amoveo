@@ -57,7 +57,7 @@ blocks(CommonHash, Block) ->
     if 
         BH == CommonHash -> [];
         true ->
-            PrevBlock = block:get_by_hash(block:prev_hash(Block)),
+            PrevBlock = block:get_by_hash(Block#block.prev_hash),
             if
                 Block == empty -> 
                     blocks(CommonHash, PrevBlock);

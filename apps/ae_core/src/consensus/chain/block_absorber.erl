@@ -41,7 +41,7 @@ absorb_internal(Block) ->
     %io:fwrite(packer:pack(Block)),
     %io:fwrite("\n"),
     BH = block:hash(Block),
-    NextBlock = block:prev_hash(Block),
+    NextBlock = Block#block.prev_hash,
     Height = Block#block.height,
     BHC = block_hashes:check(BH),
     if

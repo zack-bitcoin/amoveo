@@ -1,7 +1,7 @@
 -module(block).
 
 -export([block_to_header/1, test/0,
-         prev_hash/1, txs/1, trees_hash/1, time/1, difficulty/1, version/1, pow/1, set_pow/2, trees/1, prev_hashes/1, 
+         txs/1, trees_hash/1, time/1, difficulty/1, version/1, pow/1, set_pow/2, trees/1, prev_hashes/1, 
          get_by_height_in_chain/2, get_by_height/1, hash/1, get_by_hash/1, initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          guess_number_of_cpu_cores/0, top/0,
@@ -14,7 +14,6 @@
 -include("../../spk.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).
 
-prev_hash(B) -> B#block.prev_hash.
 txs(B) -> B#block.txs.
 trees_hash(B) -> B#block.trees_hash.
 time(B) -> B#block.time.
@@ -116,7 +115,7 @@ top(Header) ->
         Block -> Block
     end.
 height() ->
-    height(top()).
+    (top())#block.height.
 
 lg(X) when (is_integer(X) and (X > 0)) ->
     lgh(X, 0).
@@ -133,7 +132,7 @@ get_by_height_in_chain(N, BH) when N > -1 ->
             {ok, PrevHeader} = headers:read(PrevHash),
             get_by_height_in_chain(N, PrevHeader);
         _  ->
-            M = height(Block),
+            M = Block#block.height,
             D = M - N,
             if
                 D < 0 -> empty;
@@ -144,7 +143,7 @@ get_by_height_in_chain(N, BH) when N > -1 ->
                     get_by_height_in_chain(N, PrevHeader)
             end
     end.
-prev_hash(0, BP) -> prev_hash(BP);
+prev_hash(0, BP) -> BP#block.prev_hash;
 prev_hash(N, BP) -> 
     element(N+1, BP#block.prev_hashes).
 time_now() ->
