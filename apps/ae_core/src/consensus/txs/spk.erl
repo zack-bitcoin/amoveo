@@ -9,9 +9,7 @@
 	 force_update/3,
          new_ss/2, 
          remove_bet/2,
-         remove_nth/2, update_bets/2, 
-         set_ss_meta/2, 
-         update_bet_amount/2,
+         remove_nth/2, 
 	 test/0, test2/0
 	]).
 
@@ -36,10 +34,6 @@ remove_bet(N, SPK) ->
                 (Amount * Price) div CGran
         end,
     SPK#spk{bets = NewBets, amount = SPK#spk.amount + A}.
-update_bets(SPK, Bets) ->
-    SPK#spk{bets = Bets}.
-update_bet_amount(Bet, Amount) ->
-    Bet#bet{amount = Amount}.
 remove_nth(N, _) when N < 1 -> 1=2;
 remove_nth(1, [A|B]) -> B;
 remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
@@ -106,8 +100,6 @@ tree2id(governance) -> 6.
 
 new_ss(Code, Prove) ->
     #ss{code = Code, prove = Prove}.
-set_ss_meta(X, Meta) ->
-    X#ss{meta = Meta}.
 new_bet(Code, Key, Amount) ->
     new_bet(Code, Key, Amount, 0).
 new_bet(Code, Key, Amount, Meta) ->

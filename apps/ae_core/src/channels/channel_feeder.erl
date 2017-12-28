@@ -501,7 +501,7 @@ combine_cancel_common(OldCD) ->
     SPK = channel_feeder:me(OldCD),
     Bets = SPK#spk.bets,
     {NewBets, NewSSMe} = combine_cancel_common2(Bets, OldCD#cd.ssme, [], []),
-    SPK2 = spk:update_bets(SPK, NewBets),
+    SPK2 = SPK#spk{bets = NewBets},
     %identify matched trades in the same market that go in opposite directions. remove the same amount from opposite directions to unlock liquidity.
 
     {keys:sign(SPK2), NewSSMe}.
@@ -572,11 +572,11 @@ combine_cancel_common4(Bet, SSM, [BH|BT], [MH|MT], BO, MO) ->
                      lists:reverse(MT) ++ MO};
                 A1 > A2 ->
                     io:fwrite("match 1 away \n"),
-                    Bet2 = spk:update_bet_amount(Bet, A1 - A2),
+                    Bet2 = Bet#bet{amount = A1 - A2},
                     combine_cancel_common4(Bet2, SSM, BT, MT, BO, MO);
                 A1 < A2 -> 
                     io:fwrite("match other away \n"),
-                    BH2 = spk:update_bet_amount(BH, A2 - A1),
+                    BH2 = BH#bet{amount = A2 - A1},
                     {[], [], lists:reverse(BT) ++ [BH2] ++ BO,
                      lists:reverse([MH|MT]) ++ MO}
             end

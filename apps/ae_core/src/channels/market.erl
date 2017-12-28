@@ -4,6 +4,7 @@
 	 contradictory_prices/3, market_smart_contract_key/5,
 	 unmatched/1,
 	 test/0, test3/0]).
+-include("../spk.hrl").
 
 market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts that can be arbitraged against each other have the same result.
     {market, 1, MarketID, Expires, Pubkey, Period, OID}.
@@ -48,7 +49,7 @@ settle(SPD, OID, Price) ->
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
 " " ++ PriceDeclare ++ " int 1",
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), [{oracles, OID}]),
-    spk:set_ss_meta(SS, Price).
+    SS#ss{meta = Price}.
 no_publish(OID) ->
     %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
     SS2a = " int 0 ",
