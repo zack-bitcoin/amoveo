@@ -149,7 +149,7 @@ pull_channel_state(IP, Port) ->
             NewCD = channel_feeder:new_cd(SPK, ThemSPK, 
                                          channel_feeder:script_sig_them(CD),
                                          channel_feeder:script_sig_me(CD),
-                                         channel_feeder:cid(CD),
+                                         CD#cd.cid,
                                          channel_feeder:expiration(CD)),
             channel_manager:write(ServerID, NewCD);
         {ok, CD0} ->
@@ -225,7 +225,7 @@ lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
 channel_manager_update(ServerID, SSPK2, DefaultSS) ->
     %store SSPK2 in channel manager, it is their most recent signature.
     {ok, CD} = channel_manager:read(ServerID),
-    CID = channel_feeder:cid(CD),
+    CID = CD#cd.cid,
     ThemSS = channel_feeder:script_sig_them(CD),
     MeSS = channel_feeder:script_sig_me(CD),
     SPK = testnet_sign:data(SSPK2),
@@ -266,7 +266,7 @@ close_channel_with_server() ->
 grow_channel(IP, Port, Bal1, Bal2) ->
     %This only works if we only have 1 channel partner. If there are multiple channel partners, then we need to look up their pubkey some other way than the head of the channel_manager:keys().
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
-    CID = channel_feeder:cid(CD),
+    CID = CD#cd.cid,
     Stx = grow_channel_tx(CID, Bal1, Bal2),
     talker:talk({grow_channel, Stx}, IP, Port).
 grow_channel_tx(CID, Bal1, Bal2) ->
@@ -297,7 +297,7 @@ channel_timeout(Ip, Port) ->
     {ok, Fee} = application:get_env(ae_core, tx_fee),
     {Trees,_,_} = tx_pool:data(),
     {ok, CD} = channel_manager:read(Other),
-    CID = channel_feeder:cid(CD),
+    CID = CD#cd.cid,
     {Tx, _} = channel_timeout_tx:make(keys:pubkey(), Trees, CID, [], Fee),
     case keys:sign(Tx) of
         {error, locked} ->
