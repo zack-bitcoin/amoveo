@@ -107,8 +107,6 @@ make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty, P
             accumulative_difficulty = AC,
             period = Period}.
     
-txs_hash(X) ->
-    hash:doit(X).
 -spec serialize(header()) -> serialized_header().
 serialize(H) ->
     false = H#header.prev_hash == undefined,
@@ -201,9 +199,6 @@ median(L) ->
     lists:nth(S div 2, Sorted).
 
 
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-
 empty_data() ->
     %GB = block:get_by_height(0),
     GB = block:genesis_maker(),
@@ -222,38 +217,6 @@ init([]) ->
 	    true -> X
 	end,
     {ok, K}.
-init_new_unused([]) ->
-    X = file:read_file(?LOC),
-    GB = block:get_by_height(0),
-    GHeader = block:block_to_header(GB),
-    GHash = block:hash(GHeader),
-    D1 = dict:store(GHash, GHeader, dict:new()),
-    S = #s{headers = D1},
-    Ka = case X of
-             {ok, Y} -> remember_headers(Y, S);
-             _ -> S
-         end,
-    {ok, Ka}.
-remember_headers(<<>>, S) -> S;
-remember_headers(B, S) ->
-    HeaderSize = header_size(),
-    <<H:HeaderSize, B2/binary>> = B,
-    Header0 = deserialize(<<H:HeaderSize>>),
-    {ok, PrevHeader} = read(Header0#header.prev_hash),
-    Header = Header0#header{accumulative_difficulty = 
-                           PrevHeader#header.accumulative_difficulty +
-                           pow:sci2int(Header0#header.difficulty)},
-    Hash = block:hash(Header),
-    D2 = dict:store(Hash, Header, S#s.headers),
-    AD = Header#header.accumulative_difficulty,
-    AA = S#s.top,
-    AF = AA#header.accumulative_difficulty,
-    Top = case AD > AF of
-              true -> Header;
-              false -> AA
-          end,
-    S2 = S#s{headers = D2, top = Top},
-    remember_headers(B2, S2).
 header_size() ->
     HB = constants:hash_size()*8,
     HtB = constants:height_bits(),
@@ -270,18 +233,15 @@ add_to_top(H, T) ->
             {T2, _} = lists:split(FT-1, T),%remove last element so we only remember ?FT at a time.
             [H|T2]
     end.
-    
-    
-    
 
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 handle_call({read, Hash}, _From, State) ->
     {reply, dict:find(Hash, State#s.headers), State};
 handle_call({check}, _From, State) ->
     {reply, State, State};
 handle_call({dump}, _From, _State) ->
     {reply, ok, empty_data()};
-%handle_call({recent_tops}, _From, State) ->
-%    {reply, State#s.top, State};
 handle_call({top}, _From, State) ->
     {reply, State#s.top, State};
 handle_call({add, Hash, Header}, _From, State) ->
@@ -294,18 +254,14 @@ handle_call({add, Hash, Header}, _From, State) ->
         end,
     Headers = dict:store(Hash, Header, State#s.headers),
     {reply, ok, State#s{headers = Headers, top = NewTop}}.
-
 handle_cast(_, State) ->
     {noreply, State}.
-
 handle_info(_Info, State) ->
     {noreply, State}.
-
 terminate(_Reason, X) ->
     db:save(?LOC, X),
     io:fwrite("headers died!\n"),
     ok.
-
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
