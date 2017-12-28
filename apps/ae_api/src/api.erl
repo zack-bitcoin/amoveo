@@ -519,7 +519,7 @@ combine_cancel_assets(IP, Port) ->
 work(Nonce, _) ->
     <<N:256>> = Nonce,
     Block = db:read(?mining),
-    Block2 = block:set_pow(Block, N),
+    Block2 = Block#block{nonce = N},
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
     block_absorber:save(Block2),
@@ -533,6 +533,6 @@ mining_data() ->
     spawn(fun() ->
                  db:save(?mining, Block)
                  end),
-    [hash:doit(block:hash(Block)), crypto:strong_rand_bytes(32), block:difficulty(PB)].
+    [hash:doit(block:hash(Block)), crypto:strong_rand_bytes(32), PB#block.difficulty].
     
     

@@ -1,7 +1,7 @@
 -module(block).
 
 -export([block_to_header/1, test/0,
-         txs/1, trees_hash/1, time/1, difficulty/1, version/1, pow/1, set_pow/2, trees/1, prev_hashes/1, 
+         trees/1, prev_hashes/1, 
          get_by_height_in_chain/2, get_by_height/1, hash/1, get_by_hash/1, initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          guess_number_of_cpu_cores/0, top/0,
@@ -14,14 +14,6 @@
 -include("../../spk.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).
 
-txs(B) -> B#block.txs.
-trees_hash(B) -> B#block.trees_hash.
-time(B) -> B#block.time.
-difficulty(B) -> B#block.difficulty.
-version(B) -> B#block.version.
-pow(B) -> B#block.nonce.
-set_pow(B, N) -> 
-    B#block{nonce = N}.
 trees(B) -> B#block.trees.
 prev_hashes(B) -> B#block.prev_hashes.
 proofs(B) -> B#block.proofs.
@@ -176,7 +168,7 @@ block_reward_dict(Dict, Height, ID, PH) ->
     BlocksAgo = Height - BCM,
     case BlocksAgo > 0 of
         true ->
-            Txs = txs(get_by_height_in_chain(BlocksAgo, PH)),
+            Txs = (get_by_height_in_chain(BlocksAgo, PH))#block.txs,
             TransactionFees = txs:fees(Txs),
             TransactionCosts = tx_costs_dict(Txs, Dict, 0),
             BlockReward = dict:fetch({governance, 
