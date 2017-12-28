@@ -25,7 +25,6 @@ handle_cast(mine, go) ->
     end,
     {noreply, go};
 handle_cast(start, stop) ->
-    Cores = block:guess_number_of_cpu_cores(),
     {noreply, go};
 handle_cast(stop, _) ->
     {noreply, stop};

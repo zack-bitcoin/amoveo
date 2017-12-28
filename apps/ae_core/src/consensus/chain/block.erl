@@ -1,24 +1,17 @@
 -module(block).
-
--export([block_to_header/1, test/0,
-         get_by_height_in_chain/2, get_by_height/1, hash/1, get_by_hash/1, initialize_chain/0, make/4,
+-export([block_to_header/1,
+         get_by_height/1, hash/1, get_by_hash/1, 
+         initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
-         guess_number_of_cpu_cores/0, top/0,
-         accounts_root/1, channels_root/1,existence_root/1,
-         oracles_root/1,governance_root/1,
-         genesis_maker/0, height/0,
-         dict_update_trie/2
-        ]).
+         top/0, genesis_maker/0, height/0,
+         dict_update_trie/2, test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../spk.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).
 
-tx_hash(T) ->
-    hash:doit(T).
-proof_hash(P) ->
-    hash:doit(P).
-merkelize_thing(X) when is_binary(X) ->
-    X;
+tx_hash(T) -> hash:doit(T).
+proof_hash(P) -> hash:doit(P).
+merkelize_thing(X) when is_binary(X) -> X;
 merkelize_thing(X) ->
     T = element(1, X),
     case T of
@@ -264,7 +257,7 @@ mine(Rounds) ->
     {_, T, Txs} = tx_pool:data(),
     PB = get_by_height(T),
     Top = block_to_header(PB),
-    Block = make(Top, Txs, trees(PB), keys:pubkey()),
+    Block = make(Top, Txs, PB#block.trees, keys:pubkey()),
     mine(Block, Rounds).
 mine(Block, Rounds) ->
     %Cores = guess_number_of_cpu_cores(),
@@ -556,7 +549,7 @@ test() ->
 test(1) ->
     Header0 = headers:top(),
     Block0 = get_by_hash(Header0),
-    Trees = trees(Block0),
+    Trees = Block0#block.trees,
     make_roots(Trees),
     Pub = keys:pubkey(),
     Block1 = make(Header0, [], Trees, Pub),
