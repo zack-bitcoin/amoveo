@@ -1,15 +1,8 @@
 -module(spk).
--export([
-	 new/8,
-	 apply_bet/5,get_paid/3,
-	 run/6,dict_run/6,
-         chalang_state/3,
-         new_bet/3, new_bet/4, 
-	 is_improvement/4, bet_unlock/2,
-	 force_update/3,
-         new_ss/2, 
-         remove_bet/2,
-         remove_nth/2, 
+-export([new/8, apply_bet/5, get_paid/3, run/6, dict_run/6,
+         chalang_state/3, new_bet/3, new_bet/4, 
+	 is_improvement/4, bet_unlock/2, force_update/3,
+         new_ss/2, remove_bet/2, remove_nth/2, 
 	 test/0, test2/0
 	]).
 
@@ -18,9 +11,8 @@
 %each contract needs a value saying how much of the money is locked into that contract.
 
 -include("../../spk.hrl").
-%scriptpubkey is the name that Satoshi gave to this part of the transactions in bitcoin.
-%This is where we hold the channel contracts. They are turing complete smart contracts.
-%Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, only one signs the SS.
+%SPK is where we hold the channel contracts. They are turing complete smart contracts.
+%Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, neither signs the SS.
 
 
 remove_bet(N, SPK) ->
@@ -41,7 +33,6 @@ remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
 prove_facts([], _) ->%we need to return an empty list here.
     compiler_chalang:doit(<<" nil ">>);
 prove_facts(X, Trees) ->
-	   %[int 5,int 6,int 7] 
     A = <<"macro [ nil ;
 	macro , swap cons ;
 	macro ] swap cons reverse ;
@@ -76,7 +67,6 @@ prove_facts2([{Tree, Key}|T], Trees) ->
     SerializedData = Tree:serialize(Data),
     Size = size(SerializedData),
     A = "[int " ++ integer_to_list(ID) ++ 
-	%", int " ++ integer_to_list(Key) ++%burn and existence store by hash, not by integer.
 	", binary " ++
 	integer_to_list(size(Key)) ++ " " ++
 	binary_to_list(base64:encode(Key)) ++
@@ -114,12 +104,8 @@ bet_unlock(SPK, SS) ->
     %check if we have the secret to unlock each bet.
     %unlock the ones we can, and return an SPK with the remaining bets and the new amount of money that is moved.
     {Remaining, AmountChange, SSRemaining, Secrets, Dnonce, SSThem} = bet_unlock2(Bets, [], 0, SS, [], [], 0, []),
-    %io:fwrite("ss remaining size\n"),
-    %io:fwrite(packer:pack(length(SSRemaining))),
-    %io:fwrite("\n"),
     {lists:reverse(SSRemaining),
      SPK#spk{bets = lists:reverse(Remaining),
-	     %amount = SPK#spk.amount + (AmountChange div 2),
 	     amount = SPK#spk.amount + (AmountChange),
 	     nonce = SPK#spk.nonce + Dnonce},
      Secrets, SSThem}.
@@ -164,11 +150,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
     end.
 bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
     [<<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
-    %io:fwrite("bet_unlock3 stack is "),
-    %io:fwrite(packer:pack({ContractAmount, Nonce2, Delay})),
-    %io:fwrite("\n"),
    if
-        %Delay > 50 ->
         Delay > 0 ->
 	   bet_unlock2(T, [Bet|B], A, SSIn, [SS2|SSOut], Secrets, Nonce, [SS2|SSThem]);
        true -> 
@@ -187,8 +169,6 @@ apply_bet(Bet, Amount, SPK, Time, Space) ->
 	    time_gas = SPK#spk.time_gas + Time, 
 	    space_gas = max(SPK#spk.space_gas, Space), 
 	    amount = SPK#spk.amount + Amount}.
-%settle_bet(SPK, Bets, Amount, N) ->
-%    SPK#spk{bets = Bets, amount = Amount, nonce = SPK#spk.nonce + N}.
 get_paid(SPK, ID, Amount) -> %if Amount is positive, that means money is going to Aid2.
     Aid1 = SPK#spk.acc1,
     Aid2 = SPK#spk.acc2,
@@ -209,7 +189,6 @@ dict_run2(fast, SS, SPK, State, Dict) ->
     VarLimit = governance:dict_get_value(var_limit, Dict),
     true = is_list(SS),
     Bets = SPK#spk.bets,
-    %Scripts = bets2scripts(Bets, Trees),
     Delay = SPK#spk.delay,
     run(SS, 
 	Bets,
@@ -245,7 +224,6 @@ run2(fast, SS, SPK, State, Trees) ->
     VarLimit = governance:get_value(var_limit, Governance),
     true = is_list(SS),
     Bets = SPK#spk.bets,
-    %Scripts = bets2scripts(Bets, Trees),
     Delay = SPK#spk.delay,
     run(SS, 
 	Bets,
@@ -269,11 +247,6 @@ run2(safe, SS, SPK, State, Trees) ->
     receive 
 	Z -> Z
     end.
-%bets2scripts([], _) -> [];
-%bets2scripts([B|T], Trees) ->
-%    F = prove_facts(B#bet.prove, Trees),
-%    C = B#bet.code,
-%    [<<F/binary, C/binary>>|bets2scripts(T, Trees)].
 chalang_state(Height, Slash, _) ->	    
     chalang:new_state(Height, Slash, 0).
 run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay) ->
@@ -357,14 +330,6 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     true = TG =< TimeLimit,
     {_, Nonce2, Delay2} =  run(fast, NewSS, NewSPK, Height, 0, Trees),
     {_, Nonce1, _} =  run(fast, OldSS, OldSPK, Height, 0, Trees),
-    %io:fwrite("is improvement "),
-    %io:fwrite("\n"),
-    %io:fwrite(packer:pack({nonces, Nonce1, Nonce2})),
-    %io:fwrite("\n"),
-    %io:fwrite(packer:pack({spk1, OldSPK})),
-    %io:fwrite("\n"),
-    %io:fwrite(packer:pack({spk2, NewSPK})),
-    %io:fwrite("\n"),
     true = Nonce2 > Nonce1,
     Bets2 = NewSPK#spk.bets,
     Bets1 = OldSPK#spk.bets,
@@ -474,16 +439,12 @@ chalang_error_handling(SS, Code, Data) ->
                     {Amount, Nonce, Delay, Data3}
             end
     end.
-                    
-    
 test2() ->
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
     SSME = channel_feeder:script_sig_me(CD),
     SPK = channel_feeder:me(CD),
     {Trees, Height, _} = tx_pool:data(),
     run(fast, SSME, SPK, Height, 0, Trees).
-    
-	
 test() ->
     %test prove_facts.
     {Trees, _, _} = tx_pool:data(),
