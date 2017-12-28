@@ -19,10 +19,10 @@ good(Tx) ->
         end,
     NewCNLimit = Tx#gc.channel_nonce,
     {ok, CD} = channel_manager:read(Other),
-    SPK = channel_feeder:me(CD),
+    SPK = CD#cd.me,
     CN = SPK#spk.nonce,
     true = CN > NewCNLimit,%This checks that our SPK is still valid.
-    SSPK = channel_feeder:them(CD),
+    SSPK = CD#cd.them,
     CN2 = (testnet_sign:data(SSPK))#spk.nonce,
     true = CN2 > NewCNLimit,%This checks that the SPK they signed is still valid.
     Frac = Me / (I1 + I2),

@@ -47,12 +47,12 @@ delete(CID) -> gen_server:cast(?MODULE, {delete, CID}).
 write(CID, Data) -> 
     %io:fwrite("writing channel "),
     %io:fwrite(packer:pack({ch, CID})),
-    A = is_list(channel_feeder:script_sig_them(Data)),
-    B = is_list(channel_feeder:script_sig_me(Data)),
-    C = length(channel_feeder:script_sig_me(Data)) == 
-        length((channel_feeder:me(Data))#spk.bets),
-    D = length(channel_feeder:script_sig_them(Data)) == 
-        length((testnet_sign:data(channel_feeder:them(Data)))#spk.bets),
+    A = is_list(Data#cd.ssthem),
+    B = is_list(Data#cd.ssme),
+    C = length(Data#cd.ssme) == 
+        length((Data#cd.me)#spk.bets),
+    D = length(Data#cd.ssthem) == 
+        length((testnet_sign:data(Data#cd.them))#spk.bets),
     if
         A and B and C and D ->
             gen_server:cast(?MODULE, {write, CID, Data});

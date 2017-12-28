@@ -112,7 +112,7 @@ doit({grow_channel, Stx}) ->
     {ok, ok};
 doit({spk, TheirPub})->
     {ok, CD} = channel_manager:read(TheirPub),
-    ME = keys:sign(channel_feeder:me(CD)),
+    ME = keys:sign(CD#cd.me),
     {ok, [CD, ME]};
 doit({channel_payment, SSPK, Amount}) ->
     R = channel_feeder:spend(SSPK, Amount),
@@ -122,7 +122,7 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     Tx = testnet_sign:data(STx),
     Fee = channel_team_close_tx:fee(Tx),
     {ok, CD} = channel_manager:read(PeerId),
-    SPK = channel_feeder:me(CD),
+    SPK = CD#cd.me,
     Height = (headers:top())#header.height,
     {Trees,_,_} = tx_pool:data(),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
@@ -137,8 +137,8 @@ doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}) ->
 doit({learn_secret, From, Secret, Code}) ->
     {ok, OldCD} = channel_manager:read(From),
     secrets:add(Code, Secret),
-    SS = channel_feeder:script_sig_me(OldCD),
-    CFME = channel_feeder:me(OldCD),
+    SS = OldCD#cd.ssme,
+    CFME = OldCD#cd.me,
     {NewSS, SPK, _Secrets, SSThem} = 
 	spk:bet_unlock(CFME, SS),
     if

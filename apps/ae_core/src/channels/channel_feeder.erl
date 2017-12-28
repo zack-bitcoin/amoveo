@@ -5,7 +5,7 @@
 	 new_channel/3, spend/2, close/2, lock_spend/7,
 	 agree_bet/4, garbage/0,
 	 new_channel_check/1, other/1,
-	 them/1,script_sig_them/1,me/1,
+	 them/1,script_sig_them/1,
 	 script_sig_me/1,
 	 update_to_me/2, new_cd/6,
 	 make_locked_payment/3, they_simplify/3,
@@ -18,7 +18,6 @@
 -include("../spk.hrl").
 new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
     #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, cid = CID, expiration = Expiration}.
-me(X) -> X#cd.me.
 expiration(X) -> X#cd.expiration.
 them(X) -> X#cd.them.
 script_sig_them(X) -> X#cd.ssthem.
@@ -105,7 +104,7 @@ handle_call({combine_cancel_assets_server, TheirPub, SSPK2}, _From, X) ->
     io:fwrite("\n"),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    Bets = (me(OldCD))#spk.bets,
+    Bets = (OldCD#cd.me)#spk.bets,
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
                      ssme = NewSS, ssthem = NewSS},
     channel_manager:write(TheirPub, NewCD),
@@ -118,7 +117,7 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     io:fwrite(packer:pack({spks, SPK, SPK2})),
     io:fwrite("\n"),
     SPK = SPK2,
-    Bets = (me(OldCD))#spk.bets,
+    Bets = (OldCD#cd.me)#spk.bets,
     Bet = element(N-1, list_to_tuple(Bets)),
     {Type, Price} = Bet#bet.meta,
     CodeKey = Bet#bet.key,
@@ -251,15 +250,15 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     io:fwrite("the simplify 01 \n"),
     {ok, CD0} = channel_manager:read(From),
     true = CD0#cd.live,
-    SPKME = me(CD0),
-    SSME = script_sig_me(CD0),
+    SPKME = CD0#cd.me,
+    SSME = CD0#cd.ssme,
     true = testnet_sign:verify(keys:sign(ThemSPK)),
     true = CD#cd.live,
     NewSPK = testnet_sign:data(ThemSPK),
     NewSPK = CD#cd.me,
     io:fwrite("the simplify 02 \n"),
-    SS = script_sig_me(CD),
-    SS4 = script_sig_them(CD),
+    SS = CD#cd.ssme,
+    SS4 = CD#cd.ssthem,
     io:fwrite("they simplify about to force update "),
     io:fwrite(packer:pack({SSME, SS4, SPKME})),
     io:fwrite("\n"),
@@ -440,7 +439,7 @@ trade(Amount, Price, Bet, Other, OID) ->
     io:fwrite(packer:pack(Bet)),
     io:fwrite("\n"),
     {ok, CD} = channel_manager:read(Other),
-    SPK = channel_feeder:me(CD),
+    SPK = CD#cd.me,
     CID = SPK#spk.cid,
     {ok, TimeLimit} = application:get_env(ae_core, time_limit),
     {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
@@ -449,7 +448,7 @@ trade(Amount, Price, Bet, Other, OID) ->
     SPK2 = spk:apply_bet(Bet, -A, SPK, TimeLimit div 10 , SpaceLimit),
     keys:sign(SPK2).
 cancel_trade_common(N, OldCD) ->
-    SPK = channel_feeder:me(OldCD),
+    SPK = OldCD#cd.me,
     SS = element(N-1, list_to_tuple(OldCD#cd.ssme)),
     true = ((SS#ss.code) == <<0,0,0,0,4>>),%this is what it looks like when a bet is unmatched
     SPK2 = spk:remove_bet(N-1, SPK),
@@ -474,7 +473,7 @@ matchable(Bet, SS) ->
     end.
 combine_cancel_common(OldCD) ->
     %someday, if we wanted to unlock money in a partially matched trade, we would probably also have to adjust some info in the order book. This is risky, so lets not do it yet.
-    SPK = channel_feeder:me(OldCD),
+    SPK = OldCD#cd.me,
     Bets = SPK#spk.bets,
     {NewBets, NewSSMe} = combine_cancel_common2(Bets, OldCD#cd.ssme, [], []),
     SPK2 = SPK#spk{bets = NewBets},

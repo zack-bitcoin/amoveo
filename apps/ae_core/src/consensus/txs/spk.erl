@@ -441,8 +441,8 @@ chalang_error_handling(SS, Code, Data) ->
     end.
 test2() ->
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
-    SSME = channel_feeder:script_sig_me(CD),
-    SPK = channel_feeder:me(CD),
+    SSME = CD#cd.ssme,
+    SPK = CD#cd.me,
     {Trees, Height, _} = tx_pool:data(),
     run(fast, SSME, SPK, Height, 0, Trees).
 test() ->
