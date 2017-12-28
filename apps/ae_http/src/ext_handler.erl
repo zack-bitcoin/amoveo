@@ -1,5 +1,6 @@
 
 -module(ext_handler).
+-include("../../ae_core/src/spk.hrl").
 
 -export([init/3, handle/2, terminate/3, doit/1]).
 %example of talking to this handler:
@@ -87,7 +88,7 @@ doit({new_channel, STx, SSPK, Expires}) ->
     Accounts = trees:accounts(Trees),
     undefined = channel_feeder:cid(Tx),
     %true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
-    CFee = spk:amount(SPK),
+    CFee = SPK#spk.amount,
     Bal1 = new_channel_tx:bal1(Tx),
     Bal2 = new_channel_tx:bal2(Tx),
     Delay = new_channel_tx:delay(Tx),

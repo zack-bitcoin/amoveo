@@ -1,5 +1,6 @@
 
 -module(channel_manager).
+-include("../spk.hrl").
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, dump/0,
 	 keys/0,read/1,delete/1,write/2]).
@@ -49,9 +50,9 @@ write(CID, Data) ->
     A = is_list(channel_feeder:script_sig_them(Data)),
     B = is_list(channel_feeder:script_sig_me(Data)),
     C = length(channel_feeder:script_sig_me(Data)) == 
-        length(spk:bets(channel_feeder:me(Data))),
+        length((channel_feeder:me(Data))#spk.bets),
     D = length(channel_feeder:script_sig_them(Data)) == 
-        length(spk:bets(testnet_sign:data(channel_feeder:them(Data)))),
+        length((testnet_sign:data(channel_feeder:them(Data)))#spk.bets),
     if
         A and B and C and D ->
             gen_server:cast(?MODULE, {write, CID, Data});

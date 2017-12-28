@@ -3,7 +3,7 @@
 -define(Fee, element(2, application:get_env(ae_core, tx_fee))).
 -define(IP, constants:server_ip()).
 -define(Port, constants:server_port()).
-
+-include("../../ae_core/src/spk.hrl").
 dump_channels() ->
     channel_manager:dump().
 keys_status() -> keys:status().
@@ -248,9 +248,9 @@ integer_channel_balance(Ip, Port) ->
     SS = channel_feeder:script_sig_them(CD),
     {Trees, NewHeight, _Txs} = tx_pool:data(),
     Channels = trees:channels(Trees),
-    Amount = spk:amount(SPK),
-    BetAmounts = sum_bets(spk:bets(SPK)),
-    CID = spk:cid(SPK),
+    Amount = SPK#spk.amount,
+    BetAmounts = sum_bets(SPK#spk.bets),
+    CID = SPK#spk.cid,
     {_, Channel, _} = channels:get(CID, Channels),
     {channels:bal1(Channel)+Amount, channels:bal2(Channel)-Amount-BetAmounts}.
 sum_bets([]) -> 0;
@@ -424,7 +424,7 @@ channel_close(IP, Port, Fee) ->
     Height = block:height(block:get_by_hash(headers:top())),
     SS = channel_feeder:script_sig_them(CD),
     {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
-    CID = spk:cid(SPK),
+    CID = SPK#spk.cid,
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
     STx = keys:sign(Tx),
     {ok, SSTx} = talker:talk({close_channel, CID, keys:pubkey(), SS, STx}, IP, Port),
