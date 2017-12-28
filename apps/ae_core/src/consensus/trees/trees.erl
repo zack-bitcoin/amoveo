@@ -98,8 +98,8 @@ prune() ->
 prune(Blocks) ->
     Trees = [accounts, channels, oracles, existence, governance],
     prune2(Blocks, Trees),
-    ALeaves = get_all_leaves0(Blocks, accounts, fun(X) -> trees:accounts(block:trees(X)) end),
-    OLeaves = get_all_leaves0(Blocks, oracles, fun(X) -> trees:oracles(block:trees(X)) end),
+    ALeaves = get_all_leaves0(Blocks, accounts, fun(X) -> trees:accounts(X#block.trees) end),
+    OLeaves = get_all_leaves0(Blocks, oracles, fun(X) -> trees:oracles(X#block.trees) end),
     OBK = oracle_bets_keepers(ALeaves),
     trie:garbage(OBK, oracle_bets),
     OK = orders_keepers(OLeaves),
@@ -147,8 +147,7 @@ prune2(Blocks, [TID|Trees]) ->
 prune3([], _) -> [1];
 prune3([B|Blocks], TID) ->
     H = B#block.height,
-    Trees = block:trees(B),
-    Root = trees:TID(Trees),
+    Root = trees:TID(B#block.trees),
     [Root|prune3(Blocks, TID)].
 hash2int(X) ->
     U = size(X),

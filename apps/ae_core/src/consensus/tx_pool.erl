@@ -76,7 +76,7 @@ state2(Block) ->
 	    {ok, PrevHeader} = headers:read(Header#header.prev_hash),
 	    state2(PrevHeader);
 	_ ->
-            Trees = block:trees(Block),
+            Trees = Block#block.trees,
 	    #f{trees = Trees,
                new_trees = Trees, 
 	       height = Block#block.height}

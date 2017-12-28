@@ -1,7 +1,6 @@
 -module(block).
 
 -export([block_to_header/1, test/0,
-         trees/1, prev_hashes/1, 
          get_by_height_in_chain/2, get_by_height/1, hash/1, get_by_hash/1, initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          guess_number_of_cpu_cores/0, top/0,
@@ -14,9 +13,6 @@
 -include("../../spk.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).
 
-trees(B) -> B#block.trees.
-prev_hashes(B) -> B#block.prev_hashes.
-proofs(B) -> B#block.proofs.
 tx_hash(T) ->
     hash:doit(T).
 proof_hash(P) ->
@@ -93,27 +89,21 @@ get_by_hash(H) ->
         [] -> empty;
         Block -> binary_to_term(zlib:uncompress(Block))
     end.
-
-top() ->
-    TH = headers:top(),
-    top(TH).
-
+top() -> top(headers:top()).
 top(Header) ->
     false = element(2, Header) == undefined,
     case get_by_hash(hash(Header)) of
         empty -> 
-            {ok, PrevHeader} = headers:read(Header#header.prev_hash),
+            {ok, PrevHeader} = 
+                headers:read(Header#header.prev_hash),
             top(PrevHeader);
         Block -> Block
     end.
-height() ->
-    (top())#block.height.
-
+height() -> (top())#block.height.
 lg(X) when (is_integer(X) and (X > 0)) ->
     lgh(X, 0).
 lgh(1, X) -> X;
 lgh(N, X) -> lgh(N div 2, X+1).
-
 get_by_height(N) ->
     get_by_height_in_chain(N, headers:top()).
 get_by_height_in_chain(N, BH) when N > -1 ->

@@ -405,7 +405,7 @@ mine_block(Periods, Times) ->
     PB = block:top(),
     Top = block:block_to_header(PB),
     {_, _, Txs} = tx_pool:data(),
-    Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
+    Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
     block:mine(Block, Times),
     timer:sleep(100),
     mine_block(Periods-1, Times).
@@ -529,7 +529,7 @@ mining_data() ->
     {_, Height, Txs} = tx_pool:data(),
     PB = block:get_by_height(Height),
     {ok, Top} = headers:read(block:hash(PB)),
-    Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
+    Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
     spawn(fun() ->
                  db:save(?mining, Block)
                  end),

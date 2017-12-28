@@ -1,6 +1,7 @@
 -module(test_txs).
 -export([test/0, test/1, mine_blocks/1, absorb/1]).
  
+-include("../../spk.hrl").
 test() ->
     unlocked = keys:status(),
     Pub = constants:master_pub(),
@@ -28,6 +29,8 @@ absorb(Tx) ->
     %tx_pool_feeder:absorb_unsafe(Tx).
     tx_pool_feeder:absorb(Tx).
     %timer:sleep(400).
+block_trees(X) ->
+    X#block.trees.
 test(1) ->
     io:fwrite(" create_account tx test \n"),
     %create account, spend, delete account
@@ -36,7 +39,7 @@ test(1) ->
     tx_pool:dump(),
     BP = block:get_by_height_in_chain(0, headers:top()),
     PH = block:hash(BP),
-    Trees = block:trees(BP),
+    Trees = block_trees(BP),
     {NewPub,NewPriv} = testnet_sign:new_key(),
 
     Fee = 20,
@@ -78,7 +81,7 @@ test(3) ->
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block:trees(BP),
+    Trees = block_trees(BP),
     {NewPub,NewPriv} = testnet_sign:new_key(),
 
     Fee = 20,
@@ -124,7 +127,7 @@ test(4) ->
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block:trees(BP),
+    Trees = block_trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Fee = 20,
@@ -178,7 +181,7 @@ test(5) ->
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block:trees(BP),
+    Trees = block_trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     
@@ -236,7 +239,7 @@ test(6) ->
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     tx_pool:dump(),
-    Trees = block:trees(BP),
+    Trees = block_trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
 
@@ -312,7 +315,7 @@ test(8) ->
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block:trees(BP),
+    Trees = block_trees(BP),
     {NewPub,NewPriv} = testnet_sign:new_key(),
 
     Fee = 20,
@@ -363,7 +366,7 @@ test(9) ->
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block:trees(BP),
+    Trees = block_trees(BP),
     {NewPub,NewPriv} = testnet_sign:new_key(),
 
     Fee = 20,
@@ -500,7 +503,7 @@ test(11) ->
     timer:sleep(100),
     {_,Height6,Txs} = tx_pool:data(),
     BP = block:get_by_height(Height6),
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block:trees(BP), constants:master_pub()), 10),
+    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
     {true, _} = block:check(Block),
@@ -584,7 +587,7 @@ test(16) ->
     timer:sleep(100),
     {_,Height6,Txs} = tx_pool:data(),
     BP = block:get_by_height(Height6),
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block:trees(BP), constants:master_pub()), 10),
+    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
     {true, _} = block:check(Block),
@@ -638,7 +641,7 @@ test(12) ->
     BP = block:get_by_height(Height4),
     PH = block:hash(BP),
     {_,_,Txs} = tx_pool:data(),
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block:trees(BP), constants:master_pub()), 10),
+    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
     {true, _} = block:check(Block),
@@ -707,7 +710,7 @@ test(13) ->
     true = BR2 < BR3,
     {_,H,Txs} = tx_pool:data(),
     BP = block:get_by_height(H),
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block:trees(BP), constants:master_pub()), 10),
+    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
     {true, _} = block:check(Block),
@@ -721,7 +724,7 @@ test(14) ->
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block:trees(BP),
+    Trees = block_trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
 
@@ -795,7 +798,7 @@ test(15) ->
     tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block:trees(BP),
+    Trees = block_trees(BP),
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
 
@@ -858,7 +861,7 @@ mine_blocks(Many) ->
     PB = block:get_by_height(Height),
     Hash = block:hash(PB),
     {ok, Top} = headers:read(Hash),
-    Block = block:make(Top, Txs, block:trees(PB), keys:pubkey()),
+    Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10),
     timer:sleep(1000),
     mine_blocks(Many-1).
