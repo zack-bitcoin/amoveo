@@ -1,6 +1,6 @@
 Amoveo
 ==========
-[Español](docs/es/README.md)
+[Español](../../docs/es/README.md)
 
 [english](../../README.md)
 
@@ -10,7 +10,7 @@ Amoveo
 已实现内置预言机,用于整合现实世界的数据.
 使用 Erlang 编写.
 
-[Amoveo 白皮书](docs/white_paper.md).
+[Amoveo 白皮书](../../docs/white_paper.md).
 
 ## 社区
 [Amoveo reddit 论坛](https://www.reddit.com/r/Amoveo/)
@@ -32,7 +32,7 @@ This light node downloads headers and verifies the proof of work.
 
 
 ## 全量节点
-[启动全量节点程序,并链接到网络](docs/getting-started/turn_it_on.md)
+[启动全量节点程序,并链接到网络](../../docs/getting-started/turn_it_on.md)
 
 
 ## 挖矿
@@ -41,7 +41,7 @@ This light node downloads headers and verifies the proof of work.
 
 ## 开发人员相关
 
-如果你想在Amoveo上构建程序 [开发指南](docs/getting-started/quick_start_developer_guide.md)
+如果你想在Amoveo上构建程序 [开发指南](../../docs/getting-started/quick_start_developer_guide.md)
 
 
 ## 捐赠
