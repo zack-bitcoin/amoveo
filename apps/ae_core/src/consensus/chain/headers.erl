@@ -3,7 +3,6 @@
 
 %% API
 -export([
-         txs_proof_hash/1, nonce/1, difficulty/1, accumulative_difficulty/1,
          check/0, 
          absorb/1, read/1, top/0, dump/0, 
          make_header/9,
@@ -31,11 +30,6 @@
 -type serialized_header() :: binary().
 
 %% API functions
-
-txs_proof_hash(H) -> H#header.txs_proof_hash.
-nonce(H) -> H#header.nonce.
-difficulty(H) -> H#header.difficulty.
-accumulative_difficulty(H) -> H#header.accumulative_difficulty.
 
 absorb(X) -> absorb(X, block:hash(block:get_by_height(0))).
 absorb([], CommonHash) ->

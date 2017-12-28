@@ -1,5 +1,6 @@
 -module(block_absorber).
 -behaviour(gen_server).
+-include("../../spk.hrl").
 
 %% API
 -export([enqueue/1, %% async request
@@ -59,7 +60,7 @@ absorb_internal(Block) ->
 	    BH = block:hash(Block2),
             {ok, PrunePeriod} = application:get_env(ae_core, prune_period),
             HeaderHeight = api:height(),
-            recent_blocks:add(BH, headers:accumulative_difficulty(Header), Height),
+            recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
             if
                 (((Height rem PrunePeriod) == 0) and (HeaderHeight > PrunePeriod)) -> trees:prune();
                 true -> ok

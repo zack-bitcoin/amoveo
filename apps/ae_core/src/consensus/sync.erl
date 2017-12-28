@@ -20,8 +20,8 @@ handle_cast({main, Peer}, go) ->
         not(MyTop == TheirTop) ->
             CommonHash = get_headers(Peer),
             {ok, TBH} = headers:read(block:hash(block:top())),
-            MD = headers:accumulative_difficulty(TBH),
-            TD = headers:accumulative_difficulty(TheirTop),
+            MD = TBH#header.accumulative_difficulty,
+            TD = TheirTop#header.accumulative_difficulty,
             if
                 TD < MD -> give_blocks(Peer, CommonHash);
                 true ->
