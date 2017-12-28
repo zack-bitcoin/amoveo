@@ -9,7 +9,7 @@
 	 cid/1,them/1,script_sig_them/1,me/1,
 	 script_sig_me/1,
 	 update_to_me/2, new_cd/6,
-	 make_locked_payment/3, live/1, they_simplify/3,
+	 make_locked_payment/3, they_simplify/3,
 	 bets_unlock/1, trade/5, trade/7,
          cancel_trade/4, cancel_trade_server/3,
          combine_cancel_assets/3,
@@ -17,8 +17,7 @@
          expiration/1
 	 ]).
 -include("../spk.hrl").
-live(X) ->
-    X#cd.live.
+%live(X) -> X#cd.live.
 new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
     #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, cid = CID, expiration = Expiration}.
 me(X) -> X#cd.me.
@@ -259,13 +258,13 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     %send your partner a signed copy of the spk so that they can update to the current state.
     io:fwrite("the simplify 01 \n"),
     {ok, CD0} = channel_manager:read(From),
-    true = live(CD0),
+    true = CD0#cd.live,
     SPKME = me(CD0),
     SSME = script_sig_me(CD0),
     true = testnet_sign:verify(keys:sign(ThemSPK)),
-    true = live(CD),
+    true = CD#cd.live,
     NewSPK = testnet_sign:data(ThemSPK),
-    NewSPK = me(CD),
+    NewSPK = CD#cd.me,
     io:fwrite("the simplify 02 \n"),
     SS = script_sig_me(CD),
     SS4 = script_sig_them(CD),
@@ -573,8 +572,8 @@ bets_unlock(X) ->
 bets_unlock2([], Out) -> Out;
 bets_unlock2([ID|T], OutT) ->
     {ok, CD0} = channel_manager:read(ID),
-    true = live(CD0),
-    SPKME = me(CD0),
+    true = CD0#cd.live,
+    SPKME = CD0#cd.me,
     SSOld = script_sig_me(CD0),
     {NewSS, SPK, Secrets, SSThem} = spk:bet_unlock(SPKME, SSOld),
     

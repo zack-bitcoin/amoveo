@@ -153,8 +153,8 @@ pull_channel_state(IP, Port) ->
                                          channel_feeder:expiration(CD)),
             channel_manager:write(ServerID, NewCD);
         {ok, CD0} ->
-            true = channel_feeder:live(CD0),
-            SPKME = channel_feeder:me(CD0),
+            true = CD0#cd.live,
+            SPKME = CD0#cd.me,
             Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),
             talker:talk({channel_sync, keys:pubkey(), Return}, IP, Port),
             decrypt_msgs(CD#cd.emsg),
