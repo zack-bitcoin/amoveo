@@ -59,11 +59,9 @@ absorb_internal(Block) ->
 	    BH = block:hash(Block2),
             {ok, PrunePeriod} = application:get_env(ae_core, prune_period),
             HeaderHeight = api:height(),
-            recent_blocks:add(BH, Height),
+            recent_blocks:add(BH, headers:accumulative_difficulty(Header), Height),
             if
-                (((Height rem PrunePeriod) == 0) and (HeaderHeight > PrunePeriod)) ->
-                    io:fwrite("prune trees\n"),
-                    trees:prune();
+                (((Height rem PrunePeriod) == 0) and (HeaderHeight > PrunePeriod)) -> trees:prune();
                 true -> ok
             end,
             spawn(fun () ->

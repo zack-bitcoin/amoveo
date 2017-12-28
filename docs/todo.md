@@ -1,6 +1,6 @@
 ### things to do for the next hard fork
 
-* reduce constants initial developer reward and block reward.
+* reduce constants initial developer reward and block reward. to a fraction of a coin.
 * increase constants initial difficulty.
 * reduce constants initial_balance
 * raise the initial governance tx fees, it would decrease the severity of many kinds of attacks. We can always lower them later. Set it up so the block reward isn't enough money to completely fill a block with transactions.
@@ -14,9 +14,7 @@
 
 * change vocabulary for channels. spk is a "contract". ss is "evidence".
 
-* There is an attack where someone mines a bunch of low-difficulty blocks. This would cause our recent_blocks module to delete the blocks we care about.
-recent_blocks should probably care about accumulative difficulty, not height.
-This attack only works against nodes where fork_tolerance is bigger than the retargetting frequency.
+* translate the word "Amoveo" for Chinese and Toki Pona. 易币 and "mani kon Amoveo"
 
 * key "expiration" should be added to the channel manager. Contracts made in the channel should all finish at or earlier than this expiration.
 
