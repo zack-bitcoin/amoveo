@@ -1,39 +1,16 @@
 -module(headers).
 -behaviour(gen_server).
-
-%% API
--export([
-         check/0, 
-         absorb/1, read/1, top/0, dump/0, 
-         make_header/9,
-         serialize/1, deserialize/1,
-         difficulty_should_be/1]).
-
--export([start_link/0]).
--export([init/1,
-         handle_call/3,
-         handle_cast/2,
-         handle_info/2,
-         terminate/2,
-         code_change/3]).
--export([test/0]).
+-export([absorb/1, read/1, top/0, dump/0, 
+         make_header/9, serialize/1, deserialize/1,
+         difficulty_should_be/1, test/0]).
+-export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../../spk.hrl").
-
--export_type([header/0, height/0, block_header_hash/0, serialized_header/0]).
-
 -define(LOC, constants:headers_file()).
--record(s, {headers = dict:new() :: dict:dict(block_header_hash(), header()),
+-record(s, {headers = dict:new(),
             top = #header{}}).
-
--type block_header_hash() :: binary().
--opaque header() :: #header{}.
--type serialized_header() :: binary().
-
-%% API functions
-
+check() -> gen_server:call(?MODULE, {check}).
 absorb(X) -> absorb(X, block:hash(block:get_by_height(0))).
-absorb([], CommonHash) ->
-    CommonHash;
+absorb([], CommonHash) -> CommonHash;
 absorb([First|T], R) when is_binary(First) ->
     A = deserialize(First),
     absorb([A|T], R);
@@ -44,7 +21,6 @@ absorb([Header | T], CommonHash) ->
         {ok, _} -> absorb(T, Hash); %don't store the same header more than once.
         error ->
             true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
-            %Header#header.height > 1,
             {true, _} = check_difficulty(Header),%check that the difficulty written on the block is correctly calculated
             ok = gen_server:call(?MODULE, {add, Hash, Header}),
             absorb(T, CommonHash)
@@ -64,20 +40,9 @@ check_difficulty(A) ->
                 difficulty_should_be(PHeader)
         end,
     {B == A#header.difficulty, B}.
-
--spec read(block_header_hash()) -> {ok, header()}.
 read(Hash) -> gen_server:call(?MODULE, {read, Hash}).
-check() -> gen_server:call(?MODULE, {check}).
-
-%recent_tops() -> gen_server:call(?MODULE, {recent_tops}).
--spec top() -> header().
-top() -> 
-    X = gen_server:call(?MODULE, {top}),
-    false = element(2, X) == undefined,
-    X.
-
+top() -> gen_server:call(?MODULE, {top}).
 dump() -> gen_server:call(?MODULE, {dump}).
-
 make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty, Period) ->
     #header{prev_hash = PH,
 	    height = 0, 
@@ -106,8 +71,6 @@ make_header(PH, Height, Time, Version, Trees, TxsProodHash, Nonce, Difficulty, P
             difficulty = Difficulty,
             accumulative_difficulty = AC,
             period = Period}.
-    
--spec serialize(header()) -> serialized_header().
 serialize(H) ->
     false = H#header.prev_hash == undefined,
     HtB = constants:height_bits(),
@@ -130,8 +93,6 @@ serialize(H) ->
      (H#header.nonce)/binary,
      (H#header.period):PB
     >>.
-
--spec deserialize(serialized_header()) -> header().
 deserialize(H) ->
     HB = constants:hash_size()*8,
     HtB = constants:height_bits(),
@@ -139,8 +100,7 @@ deserialize(H) ->
     VB = constants:version_bits(),
     PB = constants:period_bits(),
     DB = 16,
-    <<
-     PrevHash:HB/bitstring,
+    <<PrevHash:HB/bitstring,
      Height:HtB,
      Time:TB,
      Version:VB,
@@ -159,7 +119,6 @@ deserialize(H) ->
             difficulty = Difficulty,
             period = Period,
             nonce = Nonce}.
-
 difficulty_should_be(A) ->
     D1 = A#header.difficulty,
     RF = constants:retarget_frequency(),
@@ -171,7 +130,6 @@ difficulty_should_be(A) ->
         true ->
             D1
     end.
-
 check_difficulty2(Header) ->
     F = constants:retarget_frequency() div 2,
     {Times1, Hash2000} = retarget(Header, F, []),
@@ -181,42 +139,26 @@ check_difficulty2(Header) ->
     Tbig = M1 - M2,
     T = Tbig div F,%T is the estimated block time over last 2000 blocks.
     NT = pow:recalculate(Hash2000#header.difficulty,
-                         %constants:block_time(),
                          Header#header.period,
                          max(1, T)),
     max(NT, constants:initial_difficulty()).
-
 retarget(Header, 1, L) -> {L, Header};
 retarget(Header, N, L) ->
     {ok, PH} = read(Header#header.prev_hash),
     T = PH#header.time,
     retarget(PH, N-1, [T|L]).
-
 median(L) ->
     S = length(L),
     F = fun(A, B) -> A > B end,
     Sorted = lists:sort(F, L),
     lists:nth(S div 2, Sorted).
-
-
 empty_data() ->
-    %GB = block:get_by_height(0),
     GB = block:genesis_maker(),
     Header0 = block:block_to_header(GB),
     HH = block:hash(Header0),
     block_hashes:add(HH),
-    #s{top = Header0, headers = dict:store(HH,Header0,dict:new())}.
-    
-%% gen_server callbacks
-init([]) ->
-    process_flag(trap_exit, true),
-    X = db:read(?LOC),
-    K = if
-	    X == "" -> 
-                empty_data();
-	    true -> X
-	end,
-    {ok, K}.
+    #s{top = Header0, 
+       headers = dict:store(HH,Header0,dict:new())}.
 header_size() ->
     HB = constants:hash_size()*8,
     HtB = constants:height_bits(),
@@ -234,6 +176,15 @@ add_to_top(H, T) ->
             [H|T2]
     end.
 
+init([]) ->
+    process_flag(trap_exit, true),
+    X = db:read(?LOC),
+    K = if
+	    X == "" -> 
+                empty_data();
+	    true -> X
+	end,
+    {ok, K}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 handle_call({read, Hash}, _From, State) ->
