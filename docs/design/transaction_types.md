@@ -8,9 +8,8 @@ These are the 15 types of transaction that can be in blocks.
 * account_spend
 * account_delete
 
-6 transactions for channels:
+5 transactions for channels:
 * channel_new
-* channel_grow
 * channel_team_close
 * channel_solo_close
 * channel_slash
@@ -47,14 +46,6 @@ It takes money from both participant's accounts to put into the channel.
 Channels can only hold AE tokens.
 There is a record of recently closed channels. You can't reuse an id from a recently closed channel.
 The channel loses a little money every block. This is to stop attackers from making lots of channels to spam the network.
-
-# channel_grow
-
-This adds more money to an existing channel.
-Both parties need to sign.
-It can take AE tokens from both accounts.
-This transaction has a hashlock, so it can be connected to a channel payment or a spend transaction.
-This transaction can update the minimum nonce accepted when a channel is closed. (important if you ever increase the delay period for closing the channel)
 
 # channel_team_close
 

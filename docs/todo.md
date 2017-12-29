@@ -8,8 +8,6 @@
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * chalang signatures are double-base64 encoded. they should only be single-encoded.
 * in channels tree timeout_height is unused.
-* maybe grow_channel should be able to adjust the channel_delay.
-* we should get rid of grow_channel.
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
@@ -47,6 +45,7 @@
 
 * the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
 
+* running sync:start() when we are already synced is causing some error messages.
 
 
 
