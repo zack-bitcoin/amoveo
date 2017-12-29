@@ -4,7 +4,7 @@
 	 contradictory_prices/3, market_smart_contract_key/5,
 	 unmatched/1,
 	 test/0, test3/0]).
--include("../spk.hrl").
+-include("../records.hrl").
 
 market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts that can be arbitraged against each other have the same result.
     {market, 1, MarketID, Expires, Pubkey, Period, OID}.

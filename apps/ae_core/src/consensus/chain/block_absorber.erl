@@ -1,6 +1,6 @@
 -module(block_absorber).
 -behaviour(gen_server).
--include("../../spk.hrl").
+-include("../../records.hrl").
 -export([enqueue/1, %% async request
 	 save/1,    %% returns after saving
 	 do_save/1]). %% run without gen_server

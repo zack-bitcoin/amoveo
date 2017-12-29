@@ -1,7 +1,7 @@
 -module(test_txs).
 -export([test/0, test/1, mine_blocks/1, absorb/1]).
  
--include("../../spk.hrl").
+-include("../../records.hrl").
 test() ->
     unlocked = keys:status(),
     Pub = constants:master_pub(),

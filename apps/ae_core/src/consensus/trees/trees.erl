@@ -9,7 +9,7 @@
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
          restore/3]).
--include("../../spk.hrl").
+-include("../../records.hrl").
 -record(trees, {accounts, channels, existence,
 		oracles, governance}).
 name(<<"accounts">>) -> accounts;

@@ -4,7 +4,7 @@
          make_header/9, serialize/1, deserialize/1,
          difficulty_should_be/1, test/0]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
--include("../../spk.hrl").
+-include("../../records.hrl").
 -define(LOC, constants:headers_file()).
 -record(s, {headers = dict:new(),
             top = #header{}}).

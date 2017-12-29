@@ -10,7 +10,7 @@
 %Each contract should output an amount between 0 and constants:channel_granularity(), which is the portion of the money that goes to one of the participants. Which participant it signifies depends on what value is stored in a flag.
 %each contract needs a value saying how much of the money is locked into that contract.
 
--include("../../spk.hrl").
+-include("../../records.hrl").
 %SPK is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, neither signs the SS.
 

@@ -6,7 +6,7 @@
          top/0, genesis_maker/0, height/0,
          dict_update_trie/2, test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
--include("../../spk.hrl").
+-include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).
 
 tx_hash(T) -> hash:doit(T).

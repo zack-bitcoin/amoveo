@@ -3,7 +3,7 @@
 -define(Fee, element(2, application:get_env(ae_core, tx_fee))).
 -define(IP, constants:server_ip()).
 -define(Port, constants:server_port()).
--include("../../ae_core/src/spk.hrl").
+-include("../../ae_core/src/records.hrl").
 dump_channels() ->
     channel_manager:dump().
 keys_status() -> keys:status().

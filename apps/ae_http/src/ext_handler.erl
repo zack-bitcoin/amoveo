@@ -1,6 +1,6 @@
 
 -module(ext_handler).
--include("../../ae_core/src/spk.hrl").
+-include("../../ae_core/src/records.hrl").
 
 -export([init/3, handle/2, terminate/3, doit/1]).
 %example of talking to this handler:

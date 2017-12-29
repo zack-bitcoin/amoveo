@@ -2,7 +2,7 @@
 -export([go/3, make/5, is_tx/1, from/1, id/1]).
 -record(cs, {from, nonce, fee = 0, 
 	     scriptpubkey, scriptsig}).
--include("../../spk.hrl").
+-include("../../records.hrl").
 from(X) -> X#cs.from.
 id(X) -> 
     SPK = X#cs.scriptpubkey,

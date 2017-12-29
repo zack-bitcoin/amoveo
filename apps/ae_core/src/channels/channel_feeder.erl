@@ -11,7 +11,7 @@
          cancel_trade/4, cancel_trade_server/3,
          combine_cancel_assets_server/2
 	 ]).
--include("../spk.hrl").
+-include("../records.hrl").
 new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
     #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, cid = CID, expiration = Expiration}.
 init(ok) -> {ok, []}.

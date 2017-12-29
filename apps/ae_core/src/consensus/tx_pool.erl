@@ -4,7 +4,7 @@
 -export([data/0, data_new/0, dump/0, absorb_tx/3, absorb/2,
          txs/1, trees/1, new_trees/1, dict/1, facts/1, height/1]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
--include("../spk.hrl").
+-include("../records.hrl").
 -record(f, {txs = [],
             trees,%this changes once per tx
             new_trees,%this changes once per block
