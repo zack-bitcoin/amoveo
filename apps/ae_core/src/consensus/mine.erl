@@ -19,15 +19,12 @@ handle_cast(mine, go) ->
 	    spawn(fun() ->
 			  block:mine(1000000),
                           timer:sleep(50),%slow down mining so I don't break my computer.
-                          %block:mine(5),
 			  mine()
 		  end)
     end,
     {noreply, go};
-handle_cast(start, stop) ->
-    {noreply, go};
-handle_cast(stop, _) ->
-    {noreply, stop};
+handle_cast(start, stop) -> {noreply, go};
+handle_cast(stop, _) -> {noreply, stop};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(status, _From, X) -> {reply, X, X};
 handle_call(_, _From, X) -> {reply, X, X}.

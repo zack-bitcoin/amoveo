@@ -1,6 +1,4 @@
 -module(ae_utils).
-
-%% API
 -export([tuples2lists/1,
          binary_to_file_path/2]).
 
@@ -11,13 +9,9 @@ tuples2lists([]) -> [];
 tuples2lists([H|T]) ->
     [tuples2lists(H)|tuples2lists(T)];
 tuples2lists(X) -> X.
-
 binary_to_file_path(Code, Binary) ->
     Encoded = base58:binary_to_base58(Binary),
     Dir = file_dir(Code),
     Dir ++ Encoded ++ ".db".
-
-file_dir(blocks) ->
-    "blocks/";
-file_dir(oracle_questions) ->
-    "oracle_questions/".
+file_dir(blocks) -> "blocks/";
+file_dir(oracle_questions) -> "oracle_questions/".

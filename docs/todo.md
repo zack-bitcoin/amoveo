@@ -12,7 +12,7 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-use .hrl files to simplify the records.
+* secrets needs to be garbage collected.
 
 * headers:test() is broken and unused.
 * keys:test() is broken and unused.

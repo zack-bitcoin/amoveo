@@ -49,8 +49,6 @@ retarget_frequency() -> 2000. %how many blocks till we recalculate the difficult
 time_units() -> 100. % 0.1 seconds
 start_time() -> 14825749780.
 time_bits() -> 32.
-%channel_entropy() -> 16. %Channel contracts only work for a channel with the same 2 account addresses, and with the same channel_entropy that has this many bits.
-%this is like another channel nonce, but we only increment it if the channel gets closed and re-created.
 version_bits() -> 16.%so we can update it more than 60000 times.
 period_bits() -> 16. %so the maximum block time is about 109 minutes
 server_ip() -> {146,185,142,103}.
