@@ -19,7 +19,7 @@ digest_from_dict2(Tx, Dict, H) ->
         spend -> spend_tx:go(Tx, Dict, H);
         delete_acc_tx -> delete_account_tx:go(Tx, Dict, H);
         nc -> new_channel_tx:go(Tx, Dict, H);
-        gc -> grow_channel_tx:go(Tx, Dict, H);
+        %gc -> grow_channel_tx:go(Tx, Dict, H);
         ctc -> channel_team_close_tx:go(Tx, Dict, H);
         csc -> channel_solo_close:go(Tx, Dict, H);
         timeout -> channel_timeout_tx:go(Tx, Dict, H);

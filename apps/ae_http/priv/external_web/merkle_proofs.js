@@ -108,13 +108,11 @@ function serialize_key(v, trie_key) {
         return integer_to_array(trie_key, 1);
     } else if ( t == "acc" ) {
         var pubkey = string_to_array(atob(v[4]));
-        //return integer_to_array(0, 32*7).concat(hash(pubkey));
         return hash(pubkey);
     } else if ( t == "channel" ) {
-        //return integer_to_array(trie_key, 32);
         return hash(integer_to_array(v[1], 32));
     } else if (t == "oracle") {
-        return integer_to_array(v[1], 32);
+        return hash(integer_to_array(v[1], 32));
     } else {
         console.log("type is ");
         console.log(t);
@@ -140,9 +138,6 @@ function serialize_tree_element(v, trie_key) {
         var height = integer_to_array(v[3], 4);
         var pubkey = string_to_array(atob(v[4]));
         var bets = string_to_array(atob(v[6]));
-        //The key is the hash of the pubkey.
-        //var serialized = integer_to_array(0, 32*7).concat(
-        //    hash(pubkey)).concat(
         var serialized = ([]).concat(
             balance).concat(
                 nonce).concat(
@@ -163,7 +158,6 @@ function serialize_tree_element(v, trie_key) {
         var last_modified = integer_to_array(v[9], 4);
         var delay = integer_to_array(v[10], 4);
         var closed = integer_to_array(v[12], 1);
-        //var serialized = integer_to_array(v[1], 256).concat(
         var serialized = ([]).concat(
             cid).concat(
                 bal1).concat(

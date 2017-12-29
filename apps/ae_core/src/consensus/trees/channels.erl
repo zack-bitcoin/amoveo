@@ -41,7 +41,13 @@ slasher(C) -> C#channel.slasher.
 closed(C) -> C#channel.closed.
 %shares(C) -> C#channel.shares.
 
-dict_update(Slasher, ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close) ->
+dict_update(Slasher, ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
+    Close = case Close0 of 
+                1 -> 1;
+                0 -> 0;
+                true -> 1;
+                false -> 0
+            end,
     true = (Close == 1) or (Close == 0),
     true = Inc1 + Inc2 >= 0,
     Channel = dict_get(ID, Dict),

@@ -9,7 +9,7 @@ test() ->
 
     S = success,
     S = test(1),%create account, spend, delete %S = test(2),%repo tx
-    S = test(3),%channel team close, channel grow
+    S = test(3),%channel team close
     S = test(4),%channel timeout
     S = test(5),%account delete, channel timeout
     S = test(6),%channel slash
@@ -99,12 +99,12 @@ test(3) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    {Trees3, _, _} = tx_pool:data(),
+    %{Trees3, _, _} = tx_pool:data(),
 
-    {Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, Fee),
-    Stx3 = keys:sign(Ctx3),
-    SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv),
-    absorb(SStx3),
+    %{Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, Fee),
+    %Stx3 = keys:sign(Ctx3),
+    %SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv),
+    %absorb(SStx3),
     {Trees4, _, _} = tx_pool:data(),
 
     {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
@@ -765,13 +765,12 @@ test(14) ->
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv),
     %Stx4 = keys:sign(Ctx4, Accounts4),
     absorb(Stx4),
-    {Trees5, _, _} = tx_pool:data(),
-    Accounts5 = trees:accounts(Trees5),
+    %{Trees5, _, _} = tx_pool:data(),
 
-    {Ctx5, _} = grow_channel_tx:make(CID, Trees5, 22, 33, Fee),
-    Stx5 = keys:sign(Ctx5),
-    SStx5 = testnet_sign:sign_tx(Stx5, NewPub, NewPriv),
-    absorb(SStx5),
+    %{Ctx5, _} = grow_channel_tx:make(CID, Trees5, 22, 33, Fee),
+    %Stx5 = keys:sign(Ctx5),
+    %SStx5 = testnet_sign:sign_tx(Stx5, NewPub, NewPriv),
+    %absorb(SStx5),
 
     {Trees6, _, _Txs2} = tx_pool:data(),
     Accounts6 = trees:accounts(Trees6),

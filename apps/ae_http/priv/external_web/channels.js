@@ -404,8 +404,8 @@ function channels1() {
             var amount = spk[7];
             var betAmount = sum_bets(spk[3]);
 
-            var mybalance = ((val[4] + amount)/ 100000000).toString();
-            var serverbalance = ((val[5] - amount - betAmount) / 100000000).toString();
+            var mybalance = ((val[4] - amount - betAmount)/ 100000000).toString();
+            var serverbalance = ((val[5] + amount) / 100000000).toString();
             balance_div.innerHTML = (get_words("your_balance").concat(": ")).concat(
                 mybalance).concat(get_words("server_balance").concat(": ")).concat(
                     serverbalance);
