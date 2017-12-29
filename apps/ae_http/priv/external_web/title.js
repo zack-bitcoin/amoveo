@@ -1,7 +1,7 @@
 title_maker();
 function title_maker() {
     var title = document.createElement("h1");
-    title.innerHTML = get_words("light_title");
+    title.innerHTML = "".concat(get_words("light_title")).concat(get_words("amoveo"));
     document.body.appendChild(title);
 
     var github = document.createElement("p");
