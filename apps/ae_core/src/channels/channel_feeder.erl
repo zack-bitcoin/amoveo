@@ -3,13 +3,12 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 	 new_channel/3, spend/2, close/2, lock_spend/7,
-	 agree_bet/4, garbage/0,
+	 agree_bet/4, garbage/0, combine_cancel_assets/3,
 	 new_channel_check/1, other/1,
 	 update_to_me/2, new_cd/6,
 	 make_locked_payment/3, they_simplify/3,
 	 bets_unlock/1, trade/5, trade/7,
          cancel_trade/4, cancel_trade_server/3,
-         combine_cancel_assets/3,
          combine_cancel_assets_server/2
 	 ]).
 -include("../spk.hrl").
@@ -465,7 +464,6 @@ combine_cancel_common4(Bet, SSM, [BH|BT], [MH|MT], BO, MO) ->
                      lists:reverse([MH|MT]) ++ MO}
             end
     end.
-    
 bets_unlock(X) -> 
     bets_unlock2(X, []).
 bets_unlock2([], Out) -> Out;
@@ -475,7 +473,6 @@ bets_unlock2([ID|T], OutT) ->
     SPKME = CD0#cd.me,
     SSOld = CD0#cd.ssme,
     {NewSS, SPK, Secrets, SSThem} = spk:bet_unlock(SPKME, SSOld),
-    
     NewCD = CD0#cd{me = SPK, ssme = NewSS, ssthem = SSThem},
     channel_manager:write(ID, NewCD),
     Out = {Secrets, SPK},
