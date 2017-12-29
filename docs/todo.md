@@ -17,8 +17,6 @@
 
 * spk.hrl should be renamed to records.hrl
 
-* top of the light node should have links to change the language
-
 * make sure that channels are working from the light wallet.
 
 * in sync.erl we should start by checking each peer's version, and then ignore peers who use the wrong version.
