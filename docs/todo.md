@@ -1,5 +1,6 @@
 ### things to do for the next hard fork
 
+* we aren't serializing slash into the channel. So we should get rid of it.
 * reduce constants initial developer reward and block reward. to a fraction of a coin.
 * increase constants initial difficulty.
 * reduce constants initial_balance
@@ -8,6 +9,7 @@
 * chalang signatures are double-base64 encoded. they should only be single-encoded.
 * in channels tree timeout_height is unused.
 * maybe grow_channel should be able to adjust the channel_delay.
+* we should get rid of grow_channel.
 
 
 ### Things to do before the launch of the official Amoveo blockchain.

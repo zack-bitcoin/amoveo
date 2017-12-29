@@ -29,7 +29,7 @@ make(ID,Trees,Amount,Fee) ->
 go(Tx, Dict, NewHeight) ->
     ID = Tx#ctc.id,
     OldChannel = channels:dict_get(ID, Dict),
-    false = channels:closed(OldChannel),
+    0 = channels:closed(OldChannel),
     Aid1 = channels:acc1(OldChannel),
     Aid2 = channels:acc2(OldChannel),
     Aid1 = Tx#ctc.aid1,

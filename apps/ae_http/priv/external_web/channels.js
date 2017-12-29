@@ -394,9 +394,10 @@ function channels1() {
     function refresh_balance(pubkey) {
         //console.log(channel_manager[pubkey]);
         var cd = channel_manager_read(pubkey);
-        var trie_key = cd.me[7];//channel id, cid
+        var trie_key = cd.me[6];//channel id, cid
         var top_hash = hash(serialize_header(top_header));
-
+        console.log("refresh balance tree key is ");
+        console.log(trie_key);
         verify_callback("channels", trie_key, function(val) {
             var balance_div = document.getElementById("balance_div");
             var spk = cd.them[1];

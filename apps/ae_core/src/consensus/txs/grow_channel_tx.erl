@@ -49,7 +49,7 @@ go(Tx, Dict, NewHeight) ->
     ID = Tx#gc.id,
     OldChannel = channels:dict_get(ID, Dict),
     0 = channels:slasher(OldChannel),
-    false = channels:closed(OldChannel),
+    0 = channels:closed(OldChannel),
     Aid1 = channels:acc1(OldChannel),
     Aid2 = channels:acc2(OldChannel),
     ID = channels:id(OldChannel),

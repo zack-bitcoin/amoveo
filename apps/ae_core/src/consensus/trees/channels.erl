@@ -20,10 +20,11 @@
 		  timeout_height = 0,%when one partner disappears, the other partner needs to wait so many blocks until they can access their money. This records the time they started waiting. 
 		  last_modified = 0,%this is used to know if a channel_timeout_tx can be called yet. 
 % we can set timeout_height to 0 to signify that we aren't in timeout mode. So we don't need the timeout flag.
+                  %entropy
 		  delay = 0,%this is the minimum of how long you have to wait since "last_modified" to do a channel_timeout_tx. 
                   %every time a channel_slash_tx happens, this delay is updated. This is how long you need to wait before you can do a channel_timeout tx.
 		  slasher = 0, %If the channel was slashed, then we shouldn't allow grow_channel txs any more.
-		  closed = false %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
+		  closed = 0 %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
 		  }%
        ).
 acc1(C) -> C#channel.acc1.
@@ -41,7 +42,7 @@ closed(C) -> C#channel.closed.
 %shares(C) -> C#channel.shares.
 
 dict_update(Slasher, ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close) ->
-    true = (Close == true) or (Close == false),
+    true = (Close == 1) or (Close == 0),
     true = Inc1 + Inc2 >= 0,
     Channel = dict_get(ID, Dict),
     CNonce = Channel#channel.nonce,
@@ -87,10 +88,6 @@ serialize(C) ->
     HB = constants:half_bal(),
     true = Amount < HB,
     true = Amount > -HB,
-    CR = case (C#channel.closed) of
-	     true -> 1;
-	     false -> 0
-	 end,
     HS = constants:hash_size(),
     %Shares = shares:root_hash(C#channel.shares),
     %HS = size(Shares),
@@ -104,7 +101,7 @@ serialize(C) ->
        (C#channel.timeout_height):HEI,
        (C#channel.last_modified):HEI,
        (C#channel.delay):Delay,
-       CR:8,
+       (C#channel.closed):8,
        (C#channel.acc1)/binary,
        (C#channel.acc2)/binary
     >>.
@@ -130,16 +127,11 @@ deserialize(B) ->
        B2:PS
        %_:HS
     >> = B,
-    CR = case Closed of
-	     0 -> false;
-	     1 -> true
-	 end,
     #channel{id = ID, acc1 = <<B1:PS>>, acc2 = <<B2:PS>>, 
 	     bal1 = B3, bal2 = B4, amount = B8-constants:half_bal(),
 	     nonce = B5, timeout_height = B6, 
 	     last_modified = B7,
-	     delay = B12,
-	     closed = CR}.
+	     delay = B12, closed = Closed}.
 dict_write(Channel, Dict) ->
     ID = Channel#channel.id,
     dict:store({channels, ID},

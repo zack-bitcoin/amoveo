@@ -25,3 +25,4 @@ class ShareBlocksTest(ApiUser):
         self.sync(DEV_3_INT, [[127, 0, 0, 1], 3010], sleep =0.1)
         self.mine_block(DEV_3_INT, [10, 100000], sleep=0.02)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep =0.1)
+        #Puts money into 1 and 3 because this is a useful situation for testing channels.

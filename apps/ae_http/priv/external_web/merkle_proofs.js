@@ -111,7 +111,8 @@ function serialize_key(v, trie_key) {
         //return integer_to_array(0, 32*7).concat(hash(pubkey));
         return hash(pubkey);
     } else if ( t == "channel" ) {
-        return integer_to_array(v[1], 32);
+        //return integer_to_array(trie_key, 32);
+        return hash(integer_to_array(v[1], 32));
     } else if (t == "oracle") {
         return integer_to_array(v[1], 32);
     } else {
@@ -123,8 +124,6 @@ function serialize_key(v, trie_key) {
 }
 function serialize_tree_element(v, trie_key) {
     var t = v[0];
-    console.log("leaf_hash");
-    console.log(t);
     if ( t == "gov" ) {
         var id = integer_to_array(v[1], 1);
         var value = integer_to_array(v[2], 2);
@@ -162,8 +161,8 @@ function serialize_tree_element(v, trie_key) {
         var nonce = integer_to_array(v[7], 4);
         var timeout_height = integer_to_array(v[8], 4);
         var last_modified = integer_to_array(v[9], 4);
-        var delay = integer_to_array(v[11], 4);
-        var closed = integer_to_array(v[13], 1);
+        var delay = integer_to_array(v[10], 4);
+        var closed = integer_to_array(v[12], 1);
         //var serialized = integer_to_array(v[1], 256).concat(
         var serialized = ([]).concat(
             cid).concat(
