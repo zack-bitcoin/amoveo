@@ -4,22 +4,18 @@ Amoveo
 
 [english](../../README.md)
 
-
 一个致力于金融衍生品的区块链.
 通过状态通道内的智能合约来优化扩容能力.
 已实现内置预言机,用于整合现实世界的数据.
 使用 Erlang 编写.
 
+## 抽象概念
 
-## abstract from the white paper
-
-Blockchain is a form of cryptographic database technology. Each blockchain hosts a cryptocurrency. Cryptocurrencies are a form of wealth that is made secure by blockchain technology.
-Amoveo is a blockchain which secures a cryptocurrency called Veo.
-Using Amoveo you can host a market on a server where you make money every time anyone trades.
-Using Veo in the markets, you can buy and sell risk in anything.
-With Amoveo it is impossible for customers to steal from a market, and it is impossible for the market to steal from its customers.
-
-
+区块链是加密数据技术一种体现. 每个区块链都会存在一个加密货币. 加密货币体现着被区块链保护的财富.
+Amoveo 也是一个区块链. 上边的代币叫做 Veo.
+使用 Amoveo 你可以在上边建立市场,以便在任何时间与任何人交易.
+在 Amoveo 市场中,你可以做任何风险贸易.
+在 Amoveo 上,客户与市场之间互相安全,不可能发生盗窃.
 
 ## 轻节点
 访问 [这个页面](http://146.185.142.103:8080/wallet.html?cn) 来参与到 Amoveo, 不需要安装任何东西.
