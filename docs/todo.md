@@ -12,6 +12,8 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* in sync.erl we should start by checking each peer's version, and then ignore peers who use the wrong version.
+
 * secrets needs to be garbage collected.
 
 * headers:test() is broken and unused.

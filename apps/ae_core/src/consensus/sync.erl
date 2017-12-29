@@ -38,18 +38,15 @@ handle_cast({main, Peer}, go) ->
 handle_cast(_, X) -> {noreply, X}.
 handle_call(status, _From, X) -> {reply, X, X};
 handle_call(_, _From, X) -> {reply, X, X}.
+
 status() -> gen_server:call(?MODULE, status).
 stop() -> gen_server:cast(?MODULE, stop).
-start() ->
-    P = peers:all(),
-    start(P).
+start() -> start(peers:all()).
 start(P) ->
     gen_server:cast(?MODULE, start),
     doit2(P).
-doit2([]) ->
-    ok;
+doit2([]) -> ok;
 doit2([Peer|T]) ->
-    %check if our version is the same.
     gen_server:cast(?MODULE, {main, Peer}),
     doit2(T).
 blocks(CommonHash, Block) ->
@@ -58,12 +55,7 @@ blocks(CommonHash, Block) ->
         BH == CommonHash -> [];
         true ->
             PrevBlock = block:get_by_hash(Block#block.prev_hash),
-            if
-                Block == empty -> 
-                    blocks(CommonHash, PrevBlock);
-                true ->
-                    [Block|blocks(CommonHash, PrevBlock)]
-            end
+            [Block|blocks(CommonHash, PrevBlock)]
     end.
 give_blocks(Peer, CommonHash) -> 
     {ok, DBB} = application:get_env(ae_core, push_blocks_batch),
