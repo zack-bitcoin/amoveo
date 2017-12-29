@@ -56,8 +56,8 @@ dict_check_slash(From, Dict, NewHeight, TheirNonce) ->
 	error -> 
 	    ok;
 	{ok, CD} ->
-	    SPK = channel_feeder:them(CD),
-	    SS = channel_feeder:script_sig_them(CD), 
+	    SPK = CD#cd.them,
+	    SS = CD#cd.ssthem, 
 	    {_, CDNonce, _} = 
 		spk:dict_run(fast, 
 			SS,

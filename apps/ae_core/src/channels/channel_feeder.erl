@@ -5,23 +5,16 @@
 	 new_channel/3, spend/2, close/2, lock_spend/7,
 	 agree_bet/4, garbage/0,
 	 new_channel_check/1, other/1,
-	 them/1,script_sig_them/1,
-	 script_sig_me/1,
 	 update_to_me/2, new_cd/6,
 	 make_locked_payment/3, they_simplify/3,
 	 bets_unlock/1, trade/5, trade/7,
          cancel_trade/4, cancel_trade_server/3,
          combine_cancel_assets/3,
-         combine_cancel_assets_server/2,
-         expiration/1
+         combine_cancel_assets_server/2
 	 ]).
 -include("../spk.hrl").
 new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
     #cd{me = Me, them = Them, ssthem = SSThem, ssme = SSMe, live = true, cid = CID, expiration = Expiration}.
-expiration(X) -> X#cd.expiration.
-them(X) -> X#cd.them.
-script_sig_them(X) -> X#cd.ssthem.
-script_sig_me(X) -> X#cd.ssme.
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -161,28 +154,16 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
     SSPK2 = trade(Amount, Price, SC, ID, OID),
     SPK = testnet_sign:data(SSPK),
-    SPK2 = testnet_sign:data(SSPK2),
-    io:fwrite("comparing spks for trade "),
-    io:fwrite(packer:pack([SPK, SPK2])),
-    io:fwrite("\n"),
-    SPK = SPK2,
-    io:fwrite("channel feeder 0\n"),
+    SPK = testnet_sign:data(SSPK2),
     {ok, OldCD} = channel_manager:read(ID),
-    io:fwrite("channel feeder 1\n"),
     DefaultSS = market:unmatched(OID),
-    io:fwrite("channel feeder 2\n"),
     SSME = [DefaultSS|OldCD#cd.ssme],
     SSThem = [DefaultSS|OldCD#cd.ssthem],
-    io:fwrite("channel feeder 3\n"),
     spk:run(fast, SSME, SPK, Height, 0, Trees),%sanity test
-    io:fwrite("channel feeder 4\n"),
     spk:run(fast, SSThem, SPK, Height, 0, Trees),%sanity test
-    io:fwrite("channel feeder 5\n"),
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = SSME, ssthem = SSThem},
-    %arbitrage:write(CodeKey, [ID]),
     channel_manager:write(ID, NewCD),
-    io:fwrite("channel feeder 6\n"),
     {reply, SSPK2, X};
 handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
@@ -564,7 +545,7 @@ bets_unlock2([ID|T], OutT) ->
     {ok, CD0} = channel_manager:read(ID),
     true = CD0#cd.live,
     SPKME = CD0#cd.me,
-    SSOld = script_sig_me(CD0),
+    SSOld = CD0#cd.ssme,
     {NewSS, SPK, Secrets, SSThem} = spk:bet_unlock(SPKME, SSOld),
     
     NewCD = CD0#cd{me = SPK, ssme = NewSS, ssthem = SSThem},
