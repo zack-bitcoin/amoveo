@@ -6,7 +6,7 @@
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 -define(keys, [keys, recent_blocks,
 	       block_hashes, 
-               headers, %top,
+               headers,
 	       block_absorber,
 	       tx_pool, 
 	       peers, tx_pool_feeder, 

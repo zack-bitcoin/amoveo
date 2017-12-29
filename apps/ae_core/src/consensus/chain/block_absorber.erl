@@ -1,11 +1,9 @@
 -module(block_absorber).
 -behaviour(gen_server).
 -include("../../spk.hrl").
-
 -export([enqueue/1, %% async request
 	 save/1,    %% returns after saving
-	 do_save/1 %% run without gen_server
-]).
+	 do_save/1]). %% run without gen_server
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
