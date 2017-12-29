@@ -173,15 +173,25 @@ Code elegance is estimated by the number of lines of code. Everyone starts with 
 Score = 10 - log2((your size) / (smallest size))
 
 Amoveo - 8k
+
 Aeternity - 20k
+
 Bitshares - 126k
+
 Bitcoin Hivemind - 329k
+
 Bodhi, uses QTUM - 518k
+
 Gnosis, uses Ethereum. Geth - 780k
+
 Fun Fair, uses Ethereum. Geth - 780k
+
 Stox, uses Ethereum. Geth - 780k
+
 Augur, uses Ethereum. Geth - 780k
+
 Spectre.ai, uses Ethereum. Geth - 780k
+
 Zen Protocol. - code is too unorganized for lines to be counted. Uncompiled, it is about 7 times longer than QTUM is. So I am estimating 3.5M
 
 ### How to make changes to this document
