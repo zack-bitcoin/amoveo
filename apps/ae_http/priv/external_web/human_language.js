@@ -359,7 +359,26 @@ function human_language() {
                              tp: "pini la alasa e mute nanpa ",
                              sp: "bloques encontrados",
                              hi: "ब्लॉक मिला",
-                             ar: "كتل وجدت"}
+                             ar: "كتل وجدت"},
+            "refresh_channels_interfaces_button":
+            {cn: "??",
+             en: "refresh channels interfaces. Useful if you switch channel servers",
+             tp: "??",
+             sp: "??",
+             hi: "??",
+             ar: "??"},
+            "channel_lifespan": {cn: "??",
+                                 en: "how long should the channel last? In blocks. Longer costs more.",
+                                 tp: "??",
+                                 sp: "??",
+                                 hi: "??",
+                                 ar: "??"},
+            "time_value": {cn: "??",
+                           en: "It costs this much to keep a channel open. per block per coin",
+                           tp: "??",
+                           sp: "??",
+                           hi: "??",
+                           ar: "??"}
            };
 }
 var language_object = human_language();

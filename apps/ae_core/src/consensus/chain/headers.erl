@@ -8,6 +8,50 @@
 -define(LOC, constants:headers_file()).
 -record(s, {headers = dict:new(),
             top = #header{}}).
+init([]) ->
+    process_flag(trap_exit, true),
+    X = db:read(?LOC),
+    K = if
+	    X == "" -> 
+                empty_data();
+	    true -> X
+	end,
+    {ok, K}.
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+handle_call({read, Hash}, _From, State) ->
+    {reply, dict:find(Hash, State#s.headers), State};
+handle_call({check}, _From, State) ->
+    {reply, State, State};
+handle_call({dump}, _From, _State) ->
+    {reply, ok, empty_data()};
+handle_call({top}, _From, State) ->
+    {reply, State#s.top, State};
+handle_call({add, Hash, Header}, _From, State) ->
+    AD = Header#header.accumulative_difficulty,
+    Top = State#s.top,
+    AF = Top#header.accumulative_difficulty,
+    NewTop = case AD > AF of
+                 true -> Header;
+                 false -> Top
+        end,
+    Headers = dict:store(Hash, Header, State#s.headers),
+    {reply, ok, State#s{headers = Headers, top = NewTop}}.
+handle_cast(_, State) ->
+    {noreply, State}.
+handle_info(_Info, State) ->
+    {noreply, State}.
+terminate(_Reason, X) ->
+    db:save(?LOC, X),
+    io:fwrite("headers died!\n"),
+    ok.
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
+
+
+
+
+
 check() -> gen_server:call(?MODULE, {check}).
 absorb(X) -> absorb(X, block:hash(block:get_by_height(0))).
 absorb([], CommonHash) -> CommonHash;
@@ -175,47 +219,6 @@ add_to_top(H, T) ->
             {T2, _} = lists:split(FT-1, T),%remove last element so we only remember ?FT at a time.
             [H|T2]
     end.
-
-init([]) ->
-    process_flag(trap_exit, true),
-    X = db:read(?LOC),
-    K = if
-	    X == "" -> 
-                empty_data();
-	    true -> X
-	end,
-    {ok, K}.
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-handle_call({read, Hash}, _From, State) ->
-    {reply, dict:find(Hash, State#s.headers), State};
-handle_call({check}, _From, State) ->
-    {reply, State, State};
-handle_call({dump}, _From, _State) ->
-    {reply, ok, empty_data()};
-handle_call({top}, _From, State) ->
-    {reply, State#s.top, State};
-handle_call({add, Hash, Header}, _From, State) ->
-    AD = Header#header.accumulative_difficulty,
-    Top = State#s.top,
-    AF = Top#header.accumulative_difficulty,
-    NewTop = case AD > AF of
-                 true -> Header;
-                 false -> Top
-        end,
-    Headers = dict:store(Hash, Header, State#s.headers),
-    {reply, ok, State#s{headers = Headers, top = NewTop}}.
-handle_cast(_, State) ->
-    {noreply, State}.
-handle_info(_Info, State) ->
-    {noreply, State}.
-terminate(_Reason, X) ->
-    db:save(?LOC, X),
-    io:fwrite("headers died!\n"),
-    ok.
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
-
 
 test() ->
     H = hash:doit(<<>>),

@@ -1,4 +1,5 @@
 
+var ec = new elliptic.ec('secp256k1');
 function new_keys() {
     return ec.genKeyPair();
 }
@@ -8,9 +9,9 @@ function pubkey_64() {
     return btoa(fromHex(pubPoint));
 }
 function sign_tx(tx) {
-    console.log("absout to sign tx");
+    console.log("about to sign tx");
     console.log(JSON.stringify(tx));
-    sig = btoa(btoa(array_to_string(sign(tx, keys))));
+    sig = btoa(array_to_string(sign(tx, keys)));
     return ["signed", tx, sig, [-6]];
 }
 function download(data, filename, type) {

@@ -90,13 +90,13 @@ doit({new_channel, STx, SSPK, Expires}) ->
     error = channel_manager:read(TheirPub),
     %undefined = channel_feeder:cid(Tx),
     %true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
-    CFee = SPK#spk.amount,
     Bal1 = new_channel_tx:bal1(Tx),
     Bal2 = new_channel_tx:bal2(Tx),
     Delay = new_channel_tx:delay(Tx),
     LifeSpan = Expires - api:height(),
     {ok, TV} = application:get_env(ae_core, time_value),
     CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
+    CFee = SPK#spk.amount,
     true = CFee < Bal1,%make sure they can afford the fee.
     true = channel_feeder:new_channel_check(Tx), %make sure we are not already storing a channel with this same partner.
     SSTx = keys:sign(STx),

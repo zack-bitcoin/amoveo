@@ -1,48 +1,13 @@
 
 //https://github.com/indutny/elliptic/blob/master/test/ecdsa-test.js
 
-var ec = new elliptic.ec('secp256k1');
 //var key = ec.genKeyPair();
+//var ec = new elliptic.ec('secp256k1');
 
 //var msg = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
 //var signature = key.sign(msg);
 
-function toHex(str) {
-    var hex = '';
-    for(var i=0;i<str.length;i++) {
-        l = str.charCodeAt(i).toString(16);
-        var z = "";
-        if (l.length < 2) { z = "0"; }
-        hex += z;
-	hex += ''+str.charCodeAt(i).toString(16);
-    }
-    return hex;
-}
-function fromHex(h) {
-    var s = '';
-    for(var i = 0; (2*i) < h.length;i++) {
-        var m = h.slice((2*i), (2*(i+1)));
-        var n = parseInt(m, 16);
-        var l = String.fromCharCode(n);
-        s = s.concat(l);
-    }
-    return s;
-}
-function string_to_array(x) {
-    var a = new Uint8Array(x.length);
-    for (var i=0; i<x.length; i++) {
-        a[i] = x.charCodeAt(i);
-    }
-    return Array.from(a);
-}
-function integer_to_array(i, size) {
-    var a = [];
-    for ( var b = 0; b < size ; b++ ) {
-        a.push(((i % 256) + 256) % 256);
-        i = Math.floor(i/256);
-    }
-    return a.reverse();
-}
+
 function serialize(data) {
     if (Number.isInteger(data)) {
         //console.log("serialize integer");
@@ -155,11 +120,14 @@ function signing_test() {
     console.log(foo);
 }
 
-//signing_test2();
+setTimeout(signing_test2(), 1000);
 function signing_test2() {
     //var d = ["record", [-6, 4], [-7, 8000], -50];
-    var d = ["record", [-6, ["a", -2000]]];
+    var d = ["record", "BAr8BCYGo1WwDoB1KXU7xvdqRetLJbyEyRgT7NyBggkYUVW5oalfek1imezEb00Ww+61aiXNrkkBC8EEKsGjumw=", [-6, ["a", -2000]]];
     console.log("signing test");
     console.log(JSON.stringify(serialize(d)));
-    console.log(integer_to_array(-1, 2));
+    var stx = sign_tx(d);
+    var key0 = ec.keyFromPublic(toHex(atob(pubkey_64())), "hex");
+    var b = verify(stx[1], stx[2], key0);
+    console.log(b);
 }
