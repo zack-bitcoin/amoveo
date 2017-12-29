@@ -20,14 +20,12 @@ handle_cast({doit, BP}, X) ->
 handle_call({doit, BP}, _From, X) -> 
     absorb_internal(BP),
     {reply, ok, X}.
-enqueue(InputBlocks) when is_list(InputBlocks) ->
-    [enqueue(InputBlock) || InputBlock <- InputBlocks];
-enqueue(InputBlock) ->
-    gen_server:cast(?MODULE, {doit, InputBlock}).
-save(InputBlocks) when is_list(InputBlocks) ->
-    [save(InputBlock) || InputBlock <- InputBlocks];
-save(InputBlock) ->
-    gen_server:call(?MODULE, {doit, InputBlock}).
+enqueue([]) -> ok;
+enqueue([B|T]) -> enqueue(B), enqueue(T);
+enqueue(B) -> gen_server:cast(?MODULE, {doit, B}).
+save([]) -> ok;
+save([B|T]) -> save(B), save(T);
+save(B) -> gen_server:call(?MODULE, {doit, B}).
 absorb_internal(Block) ->
     BH = block:hash(Block),
     NextBlock = Block#block.prev_hash,
