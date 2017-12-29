@@ -12,6 +12,11 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+
+* spk.hrl should be renamed to records.hrl
+
+* top of the light node should have links to change the language
+
 * make sure that channels are working from the light wallet.
 
 * in sync.erl we should start by checking each peer's version, and then ignore peers who use the wrong version.
@@ -22,12 +27,7 @@
 * keys:test() is broken and unused.
 * tester:oracle_test is unused.
 
-* in api we shouldn't get time_value from the server at the last minute. The user needs to be aware of the size of the fee before they run this function.
-
 * change vocabulary for channels. spk is a "contract". ss is "evidence".
-
-* translate the word "Amoveo" for Chinese and Toki Pona. 易币 and "mani kon Amoveo"
-
 
 * there should be a refund if you close a channel early.
 
@@ -37,14 +37,23 @@
 
 * channels need a minimum fee for opening them.
 
+* get rid of unused min_channel_ratio
+
+* charge the correct fee for growing a channel
+
+* spk should have one more value. nonce_limit.
+
+* api channel grow should send a signed spk to the server as well.
+
+* the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
+
+
 
 
 
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
 
 * lightning payments from the light node.
-
-* the market node shouldn't let you make a bet that it doesn't expect to settle within the lifetime of the channel.
 
 * review the rules about increasing the balance of channels. We should require a payment that make sense.
 grow_channel_tx:good and new_channel_tx:good should move into the /channels directory, since they aren't related to consensus.

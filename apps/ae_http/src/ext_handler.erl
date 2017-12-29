@@ -104,9 +104,10 @@ doit({new_channel, STx, SSPK, Expires}) ->
     S2SPK = keys:sign(SPK),
     channel_feeder:new_channel(Tx, SSPK, Expires),
     {ok, [SSTx, S2SPK]};
-doit({grow_channel, Stx}) ->
+doit({grow_channel, Stx}) -> %they should send a signed spk too.
+
     Tx = testnet_sign:data(Stx),
-    true = grow_channel_tx:good(Tx),%checks the min_channel_ratio
+    true = grow_channel_tx:good(Tx),%checks the min_channel_ratio, and other things.
     SStx = keys:sign(Stx),
     tx_pool_feeder:absorb(SStx),
     {ok, ok};

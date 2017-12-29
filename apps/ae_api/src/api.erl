@@ -261,6 +261,8 @@ grow_channel(IP, Port, Bal1, Bal2) ->
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
     CID = CD#cd.cid,
     Stx = grow_channel_tx(CID, Bal1, Bal2),
+    %make an spk where we pay them the fee.
+    %make sure the spk isn't valid unless the grow_channel tx happens.
     talker:talk({grow_channel, Stx}, IP, Port).
 grow_channel_tx(CID, Bal1, Bal2) ->
     {Trees, _, _} = tx_pool:data(),

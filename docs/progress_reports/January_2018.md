@@ -45,7 +45,7 @@ Bodhi            0  0  3  0  0  10 3  -5  4   15
 Aeternity        0  0  0  0  0  8  3  -5  9   15
 Bitcoin Hivemind 1  0  0  0  0  8  3  -5  5   12
 Spectre.ai       0  0  5  0  0  10 3  -10 3   11
-Zen Protocol     0  0  0  0  0  9  2  -2  1   10
+Zen Protocol     0  0  0  0  0  9  3  -2  1   11
 ```
 
 ### Channels
@@ -144,6 +144,8 @@ Augur is about $824 million. up 90%
 Aeternity is about $325 million. up 20%
 
 Fun Fair is about $247 million. up 40%
+
+Zen protocol is about $80 million. Their token sale finished a few days ago.
 
 Spectre.ai is worth about $59 million. up 370%
 

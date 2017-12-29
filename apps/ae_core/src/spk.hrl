@@ -2,6 +2,8 @@
 	      bets, space_gas, time_gas, 
 	      cid, amount = 0, nonce = 0,
 	      delay = 0
+              %spk needs one more value.
+              %The spk can only be used if the channel nonce is >= this number.
 	     }).
 -record(bet, {code, amount, 
               key,%key is instructions on how to re-create the code of the contract so that we can do pattern matching to update channels.
