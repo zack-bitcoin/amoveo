@@ -127,7 +127,9 @@ get_blocks(Peer, N) ->
     {ok, BB} = application:get_env(ae_core, download_blocks_batch),
     Blocks = remote_peer({blocks, BB, N}, Peer),
     case Blocks of
-        {error, _} -> get_blocks(Peer, N);
+        {error, _} -> 
+            io:fwrite("sync:get_blocks/2 error\n"),
+            get_blocks(Peer, N);
         _ ->
             block_absorber:save(Blocks),
             if

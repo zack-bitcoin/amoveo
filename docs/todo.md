@@ -12,6 +12,11 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
+
+* in the javascript light node, we should seperate the view-code from the controller-code from the model-code.
+
+* in the javascript light node, we should wrap up code inside functions to protect the global name space.
 
 * make sure that markets are working from the light wallet.
 
@@ -27,7 +32,7 @@
 
 * there should be a refund if you close a channel early. The refund should be enforced by a smart contract. It is important that this smart contract's nonce does not increase with time, otherwise the contract can be slashed forever.
 
-* there needs to be an interface to pushing the channel expiration further into the future by paying a fee.
+* there needs to be an interface to pushing the channel expiration further into the future by paying a fee. We already have an api for sending a payment to the server, we just modify this slightly.
 
 * get rid of unused min_channel_ratio
 
@@ -60,8 +65,6 @@ Market contracts need some sort of default, so they can be closed within the lim
 
 * make the pubkeys more convenient for copy/pasting. It would be nice if we used compressed pubkeys instead of full pubkeys. Maybe we should use the base58 library, or the pubkey checksum library.
 Maybe encoding the pubkeys should happen at the wallet level, not the node level.
-
-* there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 
 * when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
 
