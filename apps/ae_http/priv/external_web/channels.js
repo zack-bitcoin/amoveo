@@ -23,8 +23,11 @@ function channels_main() {
         }
         return {"code": code, "prove": prove, "meta": meta};
     }
+
+
     //View
-    //function initial_view() {
+
+    
     console.log("channels1");
     var channel_title = document.createElement("h3");
     channel_title.innerHTML = get_words("channel");
@@ -40,7 +43,7 @@ function channels_main() {
     
     var load_button = document.createElement("input");
     load_button.type = "file";
-    load_button.onchange = load_channels;
+    //load_button.onchange = load_channels;
     channels_div.appendChild(load_button);
     console.log("channels1 1");
     
@@ -129,8 +132,6 @@ function channels_main() {
     list_bets_button.type = "button";
     list_bets_button.value = get_words("refresh_bets");
     list_bets_button.onclick = outstanding_bets2;
-
-
     variable_public_get(["pubkey"], refresh_channels_interfaces);
     function channel_warning() {
         channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
@@ -138,30 +139,26 @@ function channels_main() {
     function save_channel_data() {
         var save_name = document.getElementById("channel_name");
         download(JSON.stringify(channel_manager), save_name.value, "text/plain");
-        //channel_warning_div.innerHTML = "channel state is saved.";
         channel_warning_div.innerHTML = get_words("save_confirm");
     }
-    function load_channels() {
+    function load_channels(pubkey) {
         var file = (load_button.files)[0];
         var reader = new FileReader();
         reader.onload = function(e) {
             channel_manager = JSON.parse(reader.result);
-            //console.log("loaded channel manager");
-            //console.log(JSON.stringify(channel_manager));
-            variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
+            refresh_channels_interfaces(pubkey);
         }
         reader.readAsText(file);
     }
     function refresh_channels_interfaces(pubkey) {
         console.log("refresh channels interfaces");
-        //console.log("server pubkey is ");
-        //console.log(pubkey);
         variable_public_get(["time_value"], function(x) {
             tv = x;
             refresh_channels_interfaces2(pubkey);
         });
     }
     function refresh_channels_interfaces2(pubkey) {
+        load_button.onchange = function() {return load_channels(pubkey) };
         var div = channel_interface_div;
         div.innerHTML = "";
         var tv_display = document.createElement("div");
@@ -169,7 +166,6 @@ function channels_main() {
         div.appendChild(tv_display);
         if (read(pubkey) == undefined) {
             console.log("give interface for making channels.");
-            //console.log("give interface for making channels.");
             height_button.onclick = function() { return make_channel_func(pubkey) };
             div.appendChild(height_button);
             div.appendChild(amount_info);
@@ -198,10 +194,8 @@ function channels_main() {
             div.appendChild(oid_info);
             div.appendChild(oid);
             div.appendChild(button);
-
             div.appendChild(document.createElement("br"));
             bet_update_button.onclick = function() {
-                //var chalang_object = chalang();
                 chalang_object.pull_channel_state();
                 variable_public_get(["pubkey"], refresh_channels_interfaces);
             };
@@ -246,20 +240,13 @@ function channels_main() {
         var amount_final = Math.floor(parseFloat(amount.value, 10) * 100000000);
         var oid_final = parseInt(oid.value, 10);
         var fee = 20
-        console.log("expires, pubkey, period");
-        console.log(JSON.stringify(l));
-        //pubkey is server id.
         var expires = l[1];
         var server_pubkey = l[2];
         var period = l[3];
         var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, top_header[1]);
-
-                
         var cd = read(pubkey);
         var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
         var sspk = sign_tx(spk);
-        console.log("signed spk");
-        console.log(JSON.stringify(sspk));
         var msg = ["trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee];
         return variable_public_get(msg, function(x) {
             make_bet3(x, sspk, server_pubkey, oid_final);
@@ -293,7 +280,12 @@ function channels_main() {
             console.log(JSON.stringify(sspk2[1]));
         }
     }
+
+
     //Controller
+
+
+
     function make_channel_func(pubkey) {
         var spend_amount = document.getElementById("spend_amount");
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
