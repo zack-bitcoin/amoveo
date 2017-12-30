@@ -46,9 +46,9 @@ function channels_main() {
     //load_button.onchange = load_channels;
     channels_div.appendChild(load_button);
     console.log("channels1 1");
-    
-    channels_div.appendChild(document.createElement("br"));
-    channels_div.appendChild(document.createElement("br"));
+    var br = function() { return document.createElement("br"); };
+    channels_div.appendChild(br());
+    channels_div.appendChild(br());
     var save_name = document.createElement("INPUT");
     save_name.type = "text";
     save_name.id = "channel_name";
@@ -66,10 +66,10 @@ function channels_main() {
         return variable_public_get(["pubkey"], refresh_channels_interfaces); };
     channels_div.appendChild(save_name);
     channels_div.appendChild(save_button);
-    channels_div.appendChild(document.createElement("br"));
+    channels_div.appendChild(br());
     channels_div.appendChild(refresh_channels_button);
-    channels_div.appendChild(document.createElement("br"));
-    channels_div.appendChild(document.createElement("br"));
+    channels_div.appendChild(br());
+    channels_div.appendChild(br());
     channels_div.appendChild(channel_interface_div);
 
     var oid = document.createElement("INPUT");
@@ -170,10 +170,10 @@ function channels_main() {
             div.appendChild(height_button);
             div.appendChild(amount_info);
             div.appendChild(spend_amount);
-            div.appendChild(document.createElement("br"));
+            div.appendChild(br());
             div.appendChild(delay_info);
             div.appendChild(spend_delay);
-            div.appendChild(document.createElement("br"));
+            div.appendChild(br());
             div.appendChild(lifespan_info);
             div.appendChild(lifespan);
         } else {
@@ -181,10 +181,10 @@ function channels_main() {
             div.appendChild(balance_div);
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             div.appendChild(channel_balance_button);
-            div.appendChild(document.createElement("br"));
+            div.appendChild(br());
             div.appendChild(market_title);
             div.appendChild(market_link);
-            div.appendChild(document.createElement("br"));
+            div.appendChild(br());
             div.appendChild(price_info);
             div.appendChild(price);
             div.appendChild(trade_type_info);
@@ -194,22 +194,22 @@ function channels_main() {
             div.appendChild(oid_info);
             div.appendChild(oid);
             div.appendChild(button);
-            div.appendChild(document.createElement("br"));
+            div.appendChild(br());
             bet_update_button.onclick = function() {
                 chalang_object.pull_channel_state();
-                variable_public_get(["pubkey"], refresh_channels_interfaces);
+                refresh_channels_interfaces(pubkey);
             };
             div.appendChild(bet_update_button);
-            div.appendChild(document.createElement("br"));
-            div.appendChild(document.createElement("br"));
+            div.appendChild(br());
+            div.appendChild(br());
             combine_cancel_button.onclick = function() {
-                variable_public_get(["pubkey"], combine_cancel_object.main);
+                combine_cancel_object.main(pubkey);
             }
             div.appendChild(combine_cancel_button);
-            div.appendChild(document.createElement("br"));
-            div.appendChild(document.createElement("br"));
+            div.appendChild(br());
+            div.appendChild(br());
             div.appendChild(list_bets_button);
-            div.appendChild(document.createElement("br"));
+            div.appendChild(br());
         }
     }
     function make_bet() {
@@ -299,9 +299,9 @@ function channels_main() {
         var acc1 = pubkey_64();
         var acc2 = pubkey;
         //let the server choose an unused cid for us.
-        variable_public_get(["new_channel_tx", acc1, pubkey, amount, bal2,delay, fee], function(x) { make_channel_func2(x, amount, bal2, fee, acc1, acc2, delay, expiration); } );
+        variable_public_get(["new_channel_tx", acc1, pubkey, amount, bal2,delay, fee], function(x) { make_channel_func2(x, amount, bal2, fee, acc1, acc2, delay, expiration, pubkey); } );
     }
-    function make_channel_func2(tx, amount, bal2, fee, acc1, acc2, delay, expiration) {
+    function make_channel_func2(tx, amount, bal2, fee, acc1, acc2, delay, expiration, pubkey) {
         //ask a server to make the tx for us, then check that all our data matches.
         console.log("make channel tx is ");
         console.log(tx);
@@ -340,13 +340,13 @@ function channels_main() {
             console.log(JSON.stringify(sspk));
             console.log("signed tx");
             console.log(JSON.stringify(stx));
-            variable_public_get(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration) });
+            variable_public_get(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration, pubkey) });
         }
     }
     function empty_ss() {
         return [];
     }
-    function channels3(x, expiration) {
+    function channels3(x, expiration, pubkey) {
         console.log("channels3 ");
         console.log(x);
         var sstx = x[1];
@@ -361,19 +361,15 @@ function channels_main() {
         //variable_public_get(["txs", [-6, sstx]], function(x) {});
         var spk = s2spk[1];
         var cd = new_cd(spk, s2spk, empty_ss(), empty_ss(), expiration, cid);
-        //console.log("cd is ");
-        //console.log(cd);
         write(acc2, cd);
         channel_warning();
-        variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
+        refresh_channels_interfaces(pubkey);
     }
     function refresh_balance(pubkey) {
         //console.log(channel_manager[pubkey]);
         var cd = read(pubkey);
         var trie_key = cd.me[6];//channel id, cid
         var top_hash = hash(serialize_header(top_header));
-        console.log("refresh balance tree key is ");
-        console.log(trie_key);
         verify_callback("channels", trie_key, function(val) {
             //var balance_div = document.getElementById("balance_div");
             var spk = cd.them[1];

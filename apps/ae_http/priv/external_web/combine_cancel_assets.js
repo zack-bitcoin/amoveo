@@ -154,7 +154,7 @@ function combine_cancel_assets_maker() {
                 oldCD.me = sspk[1];
                 oldCD.ssme = ss;
                 oldCD.ssthem = ss;
-                channel_manager[server_pubkey] = oldCD;
+                channels_object.write(server_pubkey, oldCD);
             } else {
                 console.log(JSON.stringify(sspk[1]));
                 console.log(JSON.stringify(sspk2[1]));
