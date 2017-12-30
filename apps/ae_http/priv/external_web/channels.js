@@ -24,7 +24,6 @@ function channels_main() {
         return {"code": code, "prove": prove, "meta": meta};
     }
 
-
     //View
 
     
@@ -34,7 +33,6 @@ function channels_main() {
     document.body.appendChild(channel_title);
     //check if we have a chnnel with the server yet.
     //if we don't, then give an interface for making one.
-    var cd;
     var channels_div = document.createElement("div");
     document.body.append(channels_div);
     var channel_warning_div = document.createElement("div");
@@ -64,13 +62,7 @@ function channels_main() {
     refresh_channels_button.value = get_words("refresh_channels_interfaces_button");
     refresh_channels_button.onclick = function() { 
         return variable_public_get(["pubkey"], refresh_channels_interfaces); };
-    channels_div.appendChild(save_name);
-    channels_div.appendChild(save_button);
-    channels_div.appendChild(br());
-    channels_div.appendChild(refresh_channels_button);
-    channels_div.appendChild(br());
-    channels_div.appendChild(br());
-    channels_div.appendChild(channel_interface_div);
+    append_children(channels_div, [save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
 
     var oid = document.createElement("INPUT");
     oid.setAttribute("type", "text");
@@ -167,49 +159,18 @@ function channels_main() {
         if (read(pubkey) == undefined) {
             console.log("give interface for making channels.");
             height_button.onclick = function() { return make_channel_func(pubkey) };
-            div.appendChild(height_button);
-            div.appendChild(amount_info);
-            div.appendChild(spend_amount);
-            div.appendChild(br());
-            div.appendChild(delay_info);
-            div.appendChild(spend_delay);
-            div.appendChild(br());
-            div.appendChild(lifespan_info);
-            div.appendChild(lifespan);
+            append_children(div, [height_button, amount_info, spend_amount, br(), delay_info, spend_delay, br(), lifespan_info, lifespan]);
         } else {
             console.log("give interface for making bets in channels.");
-            div.appendChild(balance_div);
+            append_children(div, [balance_div, channel_balance_button, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br()]);
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
-            div.appendChild(channel_balance_button);
-            div.appendChild(br());
-            div.appendChild(market_title);
-            div.appendChild(market_link);
-            div.appendChild(br());
-            div.appendChild(price_info);
-            div.appendChild(price);
-            div.appendChild(trade_type_info);
-            div.appendChild(trade_type);
-            div.appendChild(amount_info);
-            div.appendChild(amount);
-            div.appendChild(oid_info);
-            div.appendChild(oid);
-            div.appendChild(button);
-            div.appendChild(br());
             bet_update_button.onclick = function() {
                 chalang_object.pull_channel_state();
                 refresh_channels_interfaces(pubkey);
             };
-            div.appendChild(bet_update_button);
-            div.appendChild(br());
-            div.appendChild(br());
             combine_cancel_button.onclick = function() {
                 combine_cancel_object.main(pubkey);
             }
-            div.appendChild(combine_cancel_button);
-            div.appendChild(br());
-            div.appendChild(br());
-            div.appendChild(list_bets_button);
-            div.appendChild(br());
         }
     }
     function make_bet() {
@@ -278,6 +239,11 @@ function channels_main() {
             console.log(JSON.stringify(sspk[1]));
             console.log("the server calculated this: ");
             console.log(JSON.stringify(sspk2[1]));
+        }
+    }
+    function append_children(d, l) {
+        for (var i = 0; i < l.length; i++) {
+            d.appendChild(l[i]);
         }
     }
 
@@ -392,8 +358,6 @@ function channels_main() {
         }
         return x;
     }
-
-
     return {new_cd: new_cd,
             read: read,
             new_ss: new_ss,
