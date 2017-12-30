@@ -26,24 +26,17 @@ function channels_main() {
 
     //View
 
-    
-    console.log("channels1");
     var channel_title = document.createElement("h3");
     channel_title.innerHTML = get_words("channel");
     document.body.appendChild(channel_title);
-    //check if we have a chnnel with the server yet.
-    //if we don't, then give an interface for making one.
     var channels_div = document.createElement("div");
     document.body.append(channels_div);
     var channel_warning_div = document.createElement("div");
     channels_div.appendChild(channel_warning_div);
     var channel_interface_div = document.createElement("div");
-    
     var load_button = document.createElement("input");
     load_button.type = "file";
-    //load_button.onchange = load_channels;
     channels_div.appendChild(load_button);
-    console.log("channels1 1");
     var br = function() { return document.createElement("br"); };
     channels_div.appendChild(br());
     channels_div.appendChild(br());
@@ -51,19 +44,21 @@ function channels_main() {
     save_name.type = "text";
     save_name.id = "channel_name";
     save_name.value = get_words("channel_state");
-    //save_name.value = "amoveo_channel_state";
     var save_button = document.createElement("input");
     save_button.type = "button";
-    //save_button.value = "save channel data to file";
     save_button.value = get_words("save_channel");
     save_button.onclick = save_channel_data;
     var refresh_channels_button = document.createElement("input");
     refresh_channels_button.type = "button";
     refresh_channels_button.value = get_words("refresh_channels_interfaces_button");
-    refresh_channels_button.onclick = function() { 
-        return variable_public_get(["pubkey"], refresh_channels_interfaces); };
+    refresh_channels_button.onclick = function() {
+        variable_public_get(["pubkey"], function(pubkey) {
+            return refresh_channels_interfaces(pubkey);
+        });
+    };
     append_children(channels_div, [save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
 
+    
     var oid = document.createElement("INPUT");
     oid.setAttribute("type", "text");
     var oid_info = document.createElement("h8");
@@ -99,7 +94,6 @@ function channels_main() {
     var lifespan_info = document.createElement("h8");
     lifespan_info.innerHTML = get_words("channel_lifespan");
     var balance_div = document.createElement("div");
-    //balance_div.id = "balance_div";
     balance_div.innerHTML = get_words("your_balance").concat(get_words("unknown"));
     var channel_balance_button = document.createElement("input");
     channel_balance_button.type = "button";
@@ -124,7 +118,9 @@ function channels_main() {
     list_bets_button.type = "button";
     list_bets_button.value = get_words("refresh_bets");
     list_bets_button.onclick = outstanding_bets2;
-    variable_public_get(["pubkey"], refresh_channels_interfaces);
+    variable_public_get(["pubkey"], function(pubkey) {
+        return refresh_channels_interfaces(pubkey);
+    });
     function channel_warning() {
         channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
     }
@@ -151,11 +147,14 @@ function channels_main() {
     }
     function refresh_channels_interfaces2(pubkey) {
         load_button.onchange = function() {return load_channels(pubkey) };
+        //refresh_channels_button.onclick = function() {return refresh_channels_interfaces2(pubkey)};
         var div = channel_interface_div;
         div.innerHTML = "";
         var tv_display = document.createElement("div");
         tv_display.innerHTML = get_words("time_value").concat(": ").concat((tv).toString());
         div.appendChild(tv_display);
+        //check if we have a chnnel with the server yet.
+        //if we don't, then give an interface for making one.
         if (read(pubkey) == undefined) {
             console.log("give interface for making channels.");
             height_button.onclick = function() { return make_channel_func(pubkey) };
@@ -247,10 +246,7 @@ function channels_main() {
         }
     }
 
-
     //Controller
-
-
 
     function make_channel_func(pubkey) {
         var spend_amount = document.getElementById("spend_amount");
@@ -281,40 +277,19 @@ function channels_main() {
         if ((!(delay == delay0)) || (!(amount == amount0)) ||
             (!(bal2 == bal20)) || (!(fee == fee0)) ||
             (!(acc1 == acc10)) || (!(acc2 == acc20))) {
-            console.log(JSON.stringify([[delay, delay0],
-                                        [amount, amount0],
-                                        [bal2, bal20],
-                                        [fee, fee0],
-                                        [acc1, acc10],
-                                        [acc2, acc20]]));
+            console.log(JSON.stringify([[delay, delay0], [amount, amount0], [bal2, bal20], [fee, fee0], [acc1, acc10], [acc2, acc20]]));
             console.log("server edited the tx. aborting");
         } else {
-            console.log("tx is valid");
             var current_height = top_header[1];
             var lifespan = expiration - current_height;
             var spk_amount = Math.floor((tv * (delay + lifespan) * (amount + bal2) ) / 100000000);
             var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, spk_amount, 0, delay];
-            /*-record(spk, {acc1,acc2, 
-	      bets, space_gas, time_gas, 
-	      cid, amount = 0, nonce = 0,
-	      delay = 0
-	      }).
-            */
             var stx = sign_tx(tx);
             var sspk = sign_tx(spk);
-            console.log("signed spk");
-            console.log(JSON.stringify(sspk));
-            console.log("signed tx");
-            console.log(JSON.stringify(stx));
             variable_public_get(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration, pubkey) });
         }
     }
-    function empty_ss() {
-        return [];
-    }
     function channels3(x, expiration, pubkey) {
-        console.log("channels3 ");
-        console.log(x);
         var sstx = x[1];
         var s2spk = x[2];
         // verify that both are signed twice.
@@ -326,7 +301,7 @@ function channels_main() {
         console.log(JSON.stringify(sstx));
         //variable_public_get(["txs", [-6, sstx]], function(x) {});
         var spk = s2spk[1];
-        var cd = new_cd(spk, s2spk, empty_ss(), empty_ss(), expiration, cid);
+        var cd = new_cd(spk, s2spk, [], [], expiration, cid);
         write(acc2, cd);
         channel_warning();
         refresh_channels_interfaces(pubkey);
