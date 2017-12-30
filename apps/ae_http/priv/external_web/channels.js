@@ -1,24 +1,30 @@
-tv = -1;
-var channel_manager = {};
-channels1();
-function channel_manager_read(x) {
-    var y = channel_manager[x];
-    if (y == undefined) {
-        return undefined;
-    } else {
-        return JSON.parse(JSON.stringify(y));
+
+function channels_main() {
+    //Model
+    var channel_manager = {};
+    var tv = -1;
+    function read(x) {
+        var y = channel_manager[x];
+        if (y == undefined) {
+            return undefined;
+        } else {
+            return JSON.parse(JSON.stringify(y));
+        }
     }
-}
-function new_cd(me, them, ssme, ssthem, expiration, cid) {
-    return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "cid":cid, "expiration": expiration};
-}
-function new_ss(code, prove, meta) {
-    if (meta == undefined) {
-        meta = 0;
+    function write(key, value) {
+        channel_manager[key] = value;
     }
-    return {"code": code, "prove": prove, "meta": meta};
-}
-function channels1() {
+    function new_cd(me, them, ssme, ssthem, expiration, cid) {
+        return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "cid":cid, "expiration": expiration};
+    }
+    function new_ss(code, prove, meta) {
+        if (meta == undefined) {
+            meta = 0;
+        }
+        return {"code": code, "prove": prove, "meta": meta};
+    }
+    //View
+    //function initial_view() {
     console.log("channels1");
     var channel_title = document.createElement("h3");
     channel_title.innerHTML = get_words("channel");
@@ -37,7 +43,7 @@ function channels1() {
     load_button.onchange = load_channels;
     channels_div.appendChild(load_button);
     console.log("channels1 1");
-
+    
     channels_div.appendChild(document.createElement("br"));
     channels_div.appendChild(document.createElement("br"));
     var save_name = document.createElement("INPUT");
@@ -55,7 +61,6 @@ function channels1() {
     refresh_channels_button.value = get_words("refresh_channels_interfaces_button");
     refresh_channels_button.onclick = function() { 
         return variable_public_get(["pubkey"], refresh_channels_interfaces); };
-
     channels_div.appendChild(save_name);
     channels_div.appendChild(save_button);
     channels_div.appendChild(document.createElement("br"));
@@ -63,10 +68,232 @@ function channels1() {
     channels_div.appendChild(document.createElement("br"));
     channels_div.appendChild(document.createElement("br"));
     channels_div.appendChild(channel_interface_div);
-    console.log("channels1 2");
 
-    
+    var oid = document.createElement("INPUT");
+    oid.setAttribute("type", "text");
+    var oid_info = document.createElement("h8");
+    oid_info.innerHTML = get_words("market").concat(": ");
+    var price = document.createElement("INPUT");
+    price.setAttribute("type", "text");
+    var price_info = document.createElement("h8");
+    price_info.innerHTML = get_words("price").concat(" (between 0 and 100) : ");
+    var trade_type = document.createElement("INPUT");
+    trade_type.setAttribute("type", "text");
+    var trade_type_info = document.createElement("h8");
+    trade_type_info.innerHTML = get_words("trade_type").concat(get_words("true")).concat(get_words("false"));
+    var amount = document.createElement("INPUT");
+    amount.setAttribute("type", "text");
+    var amount_info = document.createElement("h8");
+    amount_info.innerHTML = get_words("amount").concat(": ");
+    var height_button = document.createElement("BUTTON");
+    var button_text_node = document.createTextNode(get_words("make_channel"));
+    height_button.appendChild(button_text_node);
+    var spend_amount = document.createElement("INPUT");
+    spend_amount.setAttribute("type", "text");
+    spend_amount.id = "spend_amount";
+    var amount_info = document.createElement("h8");
+    amount_info.innerHTML = get_words("amount_channel");
+    var spend_delay = document.createElement("INPUT");
+    spend_delay.setAttribute("type", "text");
+    spend_delay.id = "spend_delay";
+    var delay_info = document.createElement("h8");
+    delay_info.innerHTML = get_words("channel_delay");
+    var lifespan = document.createElement("input");
+    lifespan.type = "text";
+    lifespan.id = "channel_lifespan";
+    var lifespan_info = document.createElement("h8");
+    lifespan_info.innerHTML = get_words("channel_lifespan");
+    var balance_div = document.createElement("div");
+    //balance_div.id = "balance_div";
+    balance_div.innerHTML = get_words("your_balance").concat(get_words("unknown"));
+    var channel_balance_button = document.createElement("input");
+    channel_balance_button.type = "button";
+    channel_balance_button.value = get_words("check_channel");
+    var market_title = document.createElement("h3");
+    market_title.innerHTML = get_words("markets");
+    var market_link = document.createElement("a");
+    market_link.innerHTML = get_words("markets_link");
+    market_link.href = "http://146.185.142.103:8080/explorer.html";
+    var button = document.createElement("BUTTON");
+    button.id = "button";
+    var buttonText = document.createTextNode(get_words("make_bet"));
+    button.appendChild(buttonText);
+    button.onclick = make_bet;
+    var bet_update_button = document.createElement("input");
+    bet_update_button.type = "button";
+    bet_update_button.value = get_words("finalize_bets");
+    var combine_cancel_button = document.createElement("input");
+    combine_cancel_button.type = "button";
+    combine_cancel_button.value = get_words("gather_bets");
+    var list_bets_button = document.createElement("input");
+    list_bets_button.type = "button";
+    list_bets_button.value = get_words("refresh_bets");
+    list_bets_button.onclick = outstanding_bets2;
+
+
     variable_public_get(["pubkey"], refresh_channels_interfaces);
+    function channel_warning() {
+        channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
+    }
+    function save_channel_data() {
+        var save_name = document.getElementById("channel_name");
+        download(JSON.stringify(channel_manager), save_name.value, "text/plain");
+        //channel_warning_div.innerHTML = "channel state is saved.";
+        channel_warning_div.innerHTML = get_words("save_confirm");
+    }
+    function load_channels() {
+        var file = (load_button.files)[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            channel_manager = JSON.parse(reader.result);
+            //console.log("loaded channel manager");
+            //console.log(JSON.stringify(channel_manager));
+            variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
+        }
+        reader.readAsText(file);
+    }
+    function refresh_channels_interfaces(pubkey) {
+        console.log("refresh channels interfaces");
+        //console.log("server pubkey is ");
+        //console.log(pubkey);
+        variable_public_get(["time_value"], function(x) {
+            tv = x;
+            refresh_channels_interfaces2(pubkey);
+        });
+    }
+    function refresh_channels_interfaces2(pubkey) {
+        var div = channel_interface_div;
+        div.innerHTML = "";
+        var tv_display = document.createElement("div");
+        tv_display.innerHTML = get_words("time_value").concat(": ").concat((tv).toString());
+        div.appendChild(tv_display);
+        if (read(pubkey) == undefined) {
+            console.log("give interface for making channels.");
+            //console.log("give interface for making channels.");
+            height_button.onclick = function() { return make_channel_func(pubkey) };
+            div.appendChild(height_button);
+            div.appendChild(amount_info);
+            div.appendChild(spend_amount);
+            div.appendChild(document.createElement("br"));
+            div.appendChild(delay_info);
+            div.appendChild(spend_delay);
+            div.appendChild(document.createElement("br"));
+            div.appendChild(lifespan_info);
+            div.appendChild(lifespan);
+        } else {
+            console.log("give interface for making bets in channels.");
+            div.appendChild(balance_div);
+            channel_balance_button.onclick = function() {refresh_balance(pubkey);};
+            div.appendChild(channel_balance_button);
+            div.appendChild(document.createElement("br"));
+            div.appendChild(market_title);
+            div.appendChild(market_link);
+            div.appendChild(document.createElement("br"));
+            div.appendChild(price_info);
+            div.appendChild(price);
+            div.appendChild(trade_type_info);
+            div.appendChild(trade_type);
+            div.appendChild(amount_info);
+            div.appendChild(amount);
+            div.appendChild(oid_info);
+            div.appendChild(oid);
+            div.appendChild(button);
+
+            div.appendChild(document.createElement("br"));
+            bet_update_button.onclick = function() {
+                //var chalang_object = chalang();
+                chalang_object.pull_channel_state();
+                variable_public_get(["pubkey"], refresh_channels_interfaces);
+            };
+            div.appendChild(bet_update_button);
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createElement("br"));
+            combine_cancel_button.onclick = function() {
+                variable_public_get(["pubkey"], combine_cancel_object.main);
+            }
+            div.appendChild(combine_cancel_button);
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createElement("br"));
+            div.appendChild(list_bets_button);
+            div.appendChild(document.createElement("br"));
+        }
+    }
+    function make_bet() {
+        //server's pubkey is pubkey.
+        var oid_final = parseInt(oid.value, 10);
+        variable_public_get(["market_data", oid_final], make_bet2);
+    }
+    function make_bet2(l) {
+        var price_final = Math.floor(100 * parseFloat(price.value, 10));
+        var type_final;
+        var ttv = trade_type.value;
+        if ((ttv == "true") ||
+            (ttv == 1) ||
+            (ttv == "cierto") ||
+            (ttv == "lon") ||
+            (ttv == "真正") ||
+            (ttv == "既不是")) {
+            type_final = 1;
+        } else if ((ttv == "false") ||
+                   (ttv == 0) ||
+                   (ttv == 2) ||
+                   (ttv == "falso") ||
+                   (ttv == "lon ala") ||
+                   (ttv == "也不是") ||
+                   (ttv == "假")) {
+            type_final = 2;
+        }
+        var amount_final = Math.floor(parseFloat(amount.value, 10) * 100000000);
+        var oid_final = parseInt(oid.value, 10);
+        var fee = 20
+        console.log("expires, pubkey, period");
+        console.log(JSON.stringify(l));
+        //pubkey is server id.
+        var expires = l[1];
+        var server_pubkey = l[2];
+        var period = l[3];
+        var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, top_header[1]);
+
+                
+        var cd = read(pubkey);
+        var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
+        var sspk = sign_tx(spk);
+        console.log("signed spk");
+        console.log(JSON.stringify(sspk));
+        var msg = ["trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee];
+        return variable_public_get(msg, function(x) {
+            make_bet3(x, sspk, server_pubkey, oid_final);
+        });
+    }
+    function make_bet3(sspk2, sspk, server_pubkey, oid_final) {
+        //check that the signature is valid.
+        var hspk2 = JSON.stringify(sspk2[1]);
+        var hspk = JSON.stringify(sspk[1]);
+        if (hspk2 == hspk) { //make sure that both spks match
+            var cd = read(server_pubkey);
+            cd.me = sspk[1];
+            cd.them = sspk2;
+            //var newss = {"code": [0,0,0,0,4], "prove":[]};
+            var newss = new_ss([0,0,0,0,4], [-6, ["oracles", oid_final]]);
+            //var newss = [0,0,0,0,4];
+            console.log("about to update channel manager after having made a bet");
+            console.log("cd.ssme currently is");
+            console.log(JSON.stringify(cd.ssme));
+            console.log(JSON.stringify(sspk[1]));
+            console.log(JSON.stringify(newss));
+            cd.ssme = ([newss]).concat(cd.ssme);
+            cd.ssthem = ([newss]).concat(cd.ssthem);
+            write(server_pubkey, cd);
+            amount.value = "";
+            channel_warning();
+        } else {
+            console.log("error, we calculated the spk differently from the server. you calculated this: ");
+            console.log(JSON.stringify(sspk[1]));
+            console.log("the server calculated this: ");
+            console.log(JSON.stringify(sspk2[1]));
+        }
+    }
+    //Controller
     function make_channel_func(pubkey) {
         var spend_amount = document.getElementById("spend_amount");
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
@@ -144,262 +371,19 @@ function channels1() {
         var cd = new_cd(spk, s2spk, empty_ss(), empty_ss(), expiration, cid);
         //console.log("cd is ");
         //console.log(cd);
-        channel_manager[acc2] = cd;
+        write(acc2, cd);
         channel_warning();
         variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
     }
-    function channel_warning() {
-        channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
-    }
-    function save_channel_data() {
-        var save_name = document.getElementById("channel_name");
-        download(JSON.stringify(channel_manager), save_name.value, "text/plain");
-        //channel_warning_div.innerHTML = "channel state is saved.";
-        channel_warning_div.innerHTML = get_words("save_confirm");
-    }
-    function load_channels() {
-        var file = (load_button.files)[0];
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            channel_manager = JSON.parse(reader.result);
-            //console.log("loaded channel manager");
-            //console.log(JSON.stringify(channel_manager));
-            variable_public_get(["pubkey"], refresh_channels_interfaces);//we already asked for the pubkey, it would be faster to reuse it instead of redownloading.
-        }
-        reader.readAsText(file);
-    }
-    function refresh_channels_interfaces(pubkey) {
-        console.log("refresh channels interfaces");
-        //console.log("server pubkey is ");
-        //console.log(pubkey);
-        variable_public_get(["time_value"], function(x) {
-            tv = x;
-            refresh_channels_interfaces2(pubkey);
-        });
-    }
-    function refresh_channels_interfaces2(pubkey) {
-        var div = channel_interface_div;
-        div.innerHTML = "";
-        var tv_display = document.createElement("div");
-        tv_display.innerHTML = get_words("time_value").concat(": ").concat((tv).toString());
-        div.appendChild(tv_display);
-        var v = channel_manager_read(pubkey);
-        console.log("v is ");
-        console.log(JSON.stringify(v));
-        if (v == undefined) {
-            console.log("give interface for making channels.");
-            var make_channel = document.createElement("div");
-            //console.log("give interface for making channels.");
-            div.appendChild(make_channel);
-            var height_button = document.createElement("BUTTON");
-            var button_text_node = document.createTextNode(get_words("make_channel"));
-            height_button.appendChild(button_text_node);
-            height_button.onclick = function() { return make_channel_func(pubkey) };
-            make_channel.appendChild(height_button);
-            
-            var spend_amount = document.createElement("INPUT");
-            spend_amount.setAttribute("type", "text");
-            spend_amount.id = "spend_amount";
-            var amount_info = document.createElement("h8");
-            amount_info.innerHTML = get_words("amount_channel");
-            make_channel.appendChild(amount_info);
-            make_channel.appendChild(spend_amount);
-            make_channel.appendChild(document.createElement("br"));
-
-            var spend_delay = document.createElement("INPUT");
-            spend_delay.setAttribute("type", "text");
-            spend_delay.id = "spend_delay";
-            var delay_info = document.createElement("h8");
-            delay_info.innerHTML = get_words("channel_delay");
-            make_channel.appendChild(delay_info);
-            make_channel.appendChild(spend_delay);
-            make_channel.appendChild(document.createElement("br"));
-
-            var lifespan = document.createElement("input");
-            lifespan.type = "text";
-            lifespan.id = "channel_lifespan";
-            var lifespan_info = document.createElement("h8");
-            lifespan_info.innerHTML = get_words("channel_lifespan");
-            make_channel.appendChild(lifespan_info);
-            make_channel.appendChild(lifespan);
-            
-        } else {
-
-            console.log("give interface for making bets in channels.");
-            var balance_div = document.createElement("div");
-            balance_div.id = "balance_div";
-
-            balance_div.innerHTML = get_words("your_balance").concat(get_words("unknown"));
-            div.appendChild(balance_div);
-
-            var channel_balance_button = document.createElement("input");
-            channel_balance_button.type = "button";
-            channel_balance_button.value = get_words("check_channel");
-            channel_balance_button.onclick = function() {refresh_balance(pubkey);};
-            div.appendChild(channel_balance_button);
-            div.appendChild(document.createElement("br"));
-            var market_title = document.createElement("h3");
-            market_title.innerHTML = get_words("markets");
-            div.appendChild(market_title);
-
-            var market_link = document.createElement("a");
-            market_link.innerHTML = get_words("markets_link");
-            market_link.href = "http://146.185.142.103:8080/explorer.html";
-            div.appendChild(market_link);
-            div.appendChild(document.createElement("br"));
-
-            var price = document.createElement("INPUT");
-            price.setAttribute("type", "text");
-            var price_info = document.createElement("h8");
-            price_info.innerHTML = get_words("price").concat(" (between 0 and 100) : ");
-            div.appendChild(price_info);
-            div.appendChild(price);
-
-            var trade_type = document.createElement("INPUT");
-            trade_type.setAttribute("type", "text");
-            var trade_type_info = document.createElement("h8");
-            trade_type_info.innerHTML = get_words("trade_type").concat(get_words("true")).concat(get_words("false"));
-            div.appendChild(trade_type_info);
-            div.appendChild(trade_type);
-
-            var amount = document.createElement("INPUT");
-            amount.setAttribute("type", "text");
-            var amount_info = document.createElement("h8");
-            amount_info.innerHTML = get_words("amount").concat(": ");
-            div.appendChild(amount_info);
-            div.appendChild(amount);
-
-            var oid = document.createElement("INPUT");
-            oid.setAttribute("type", "text");
-            var oid_info = document.createElement("h8");
-            oid_info.innerHTML = get_words("market").concat(": ");
-            div.appendChild(oid_info);
-            div.appendChild(oid);
-
-            var button = document.createElement("BUTTON");
-            button.id = "button";
-            var buttonText = document.createTextNode(get_words("make_bet"));
-            button.appendChild(buttonText);
-            button.onclick = make_bet;
-            div.appendChild(button);
-
-            div.appendChild(document.createElement("br"));
-            var bet_update_button = document.createElement("input");
-            bet_update_button.type = "button";
-            bet_update_button.value = get_words("finalize_bets");
-            bet_update_button.onclick = function() {
-                //var chalang_object = chalang();
-                chalang_object.pull_channel_state();
-                variable_public_get(["pubkey"], refresh_channels_interfaces);
-            };
-            div.appendChild(bet_update_button);
-            div.appendChild(document.createElement("br"));
-            div.appendChild(document.createElement("br"));
-            var combine_cancel_button = document.createElement("input");
-            combine_cancel_button.type = "button";
-            combine_cancel_button.value = get_words("gather_bets");
-            combine_cancel_button.onclick = function() {
-                variable_public_get(["pubkey"], combine_cancel_object.main);
-            }
-            div.appendChild(combine_cancel_button);
-            div.appendChild(document.createElement("br"));
-            div.appendChild(document.createElement("br"));
-
-            var list_bets_button = document.createElement("input");
-            list_bets_button.type = "button";
-            list_bets_button.value = get_words("refresh_bets");
-            list_bets_button.onclick = outstanding_bets2;
-            
-            div.appendChild(list_bets_button);
-            div.appendChild(document.createElement("br"));
-            
-
-            function make_bet() {
-                //server's pubkey is pubkey.
-                var oid_final = parseInt(oid.value, 10);
-                variable_public_get(["market_data", oid_final], make_bet2);
-            }
-            function make_bet2(l) {
-                var price_final = Math.floor(100 * parseFloat(price.value, 10));
-                var type_final;
-                var ttv = trade_type.value;
-                if ((ttv == "true") ||
-                    (ttv == 1) ||
-                    (ttv == "cierto") ||
-                    (ttv == "lon") ||
-                    (ttv == "真正") ||
-                    (ttv == "既不是")) {
-                    type_final = 1;
-                } else if ((ttv == "false") ||
-                           (ttv == 0) ||
-                           (ttv == 2) ||
-                           (ttv == "falso") ||
-                           (ttv == "lon ala") ||
-                           (ttv == "也不是") ||
-                           (ttv == "假")) {
-                    type_final = 2;
-                }
-                var amount_final = Math.floor(parseFloat(amount.value, 10) * 100000000);
-                var oid_final = parseInt(oid.value, 10);
-                var fee = 20
-                console.log("expires, pubkey, period");
-                console.log(JSON.stringify(l));
-                //pubkey is server id.
-                var expires = l[1];
-                var server_pubkey = l[2];
-                var period = l[3];
-                var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, top_header[1]);
-
-                
-                var cd = channel_manager_read(pubkey);
-                var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
-                var sspk = sign_tx(spk);
-                console.log("signed spk");
-                console.log(JSON.stringify(sspk));
-                var msg = ["trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee];
-                return variable_public_get(msg, function(x) {
-                    make_bet3(x, sspk, server_pubkey, oid_final);
-                });
-            }
-            function make_bet3(sspk2, sspk, server_pubkey, oid_final) {
-                //check that the signature is valid.
-                var hspk2 = JSON.stringify(sspk2[1]);
-                var hspk = JSON.stringify(sspk[1]);
-                if (hspk2 == hspk) { //make sure that both spks match
-                    var cd = channel_manager_read(server_pubkey);
-                    cd.me = sspk[1];
-                    cd.them = sspk2;
-                    //var newss = {"code": [0,0,0,0,4], "prove":[]};
-                    var newss = new_ss([0,0,0,0,4], [-6, ["oracles", oid_final]]);
-                    //var newss = [0,0,0,0,4];
-                    console.log("about to update channel manager after having made a bet");
-                    console.log("cd.ssme currently is");
-                    console.log(JSON.stringify(cd.ssme));
-                    console.log(JSON.stringify(sspk[1]));
-                    console.log(JSON.stringify(newss));
-                    cd.ssme = ([newss]).concat(cd.ssme);
-                    cd.ssthem = ([newss]).concat(cd.ssthem);
-                    channel_manager[server_pubkey] = cd;
-                    amount.value = "";
-                    channel_warning();
-                } else {
-                    console.log("error, we calculated the spk differently from the server. you calculated this: ");
-                    console.log(JSON.stringify(sspk[1]));
-                    console.log("the server calculated this: ");
-                    console.log(JSON.stringify(sspk2[1]));
-                }
-            }
-        }
-    }
     function refresh_balance(pubkey) {
         //console.log(channel_manager[pubkey]);
-        var cd = channel_manager_read(pubkey);
+        var cd = read(pubkey);
         var trie_key = cd.me[6];//channel id, cid
         var top_hash = hash(serialize_header(top_header));
         console.log("refresh balance tree key is ");
         console.log(trie_key);
         verify_callback("channels", trie_key, function(val) {
-            var balance_div = document.getElementById("balance_div");
+            //var balance_div = document.getElementById("balance_div");
             var spk = cd.them[1];
             var amount = spk[7];
             var betAmount = sum_bets(spk[3]);
@@ -420,4 +404,11 @@ function channels1() {
         }
         return x;
     }
-}         
+
+
+    return {new_cd: new_cd,
+            read: read,
+            new_ss: new_ss,
+            write: write}
+}
+var channels_object = channels_main();

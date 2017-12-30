@@ -31,7 +31,7 @@ function outstanding_bets2() {
     var oadiv = document.getElementById("offchain_assets_div");
     variable_public_get(["pubkey"], outstanding_bets3);
     function outstanding_bets3(server_pubkey) {
-        var x = channel_manager_read(server_pubkey);
+        var x = channels_object.read(server_pubkey);
         var bets = x.me[4];
         var ssme = x.ssme;
         div.innerHTML = "";
@@ -41,7 +41,7 @@ function outstanding_bets2() {
 }
 function cancel_trade(n, server_pubkey) {
         //the nth bet in the channel (starting at 1) is a unmatched trade that we want to cancel.
-    var oldCD = channel_manager_read(server_pubkey);
+    var oldCD = channels_object.read(server_pubkey);
     var spk = oldCD.me;
     var ss = oldCD.ssme[n-2];
     //var sscode = ss[1];
@@ -81,7 +81,7 @@ function remove_bet(n, spk0) {
     return spk;
 }
 function cancel_trade2(sspk2, sspk, server_pubkey, n) {
-    var cd = channel_manager_read(server_pubkey);
+    var cd = channels_object.read(server_pubkey);
     //verify that sspk2 is signed by our partner.
     var spk = sspk[1];
     var spk2 = sspk2[1];
@@ -91,7 +91,7 @@ function cancel_trade2(sspk2, sspk, server_pubkey, n) {
         cd.me = spk;
         cd.ssme = remove_nth(n, cd.ssme);
         cd.ssthem = remove_nth(n, cd.ssthem);
-        channel_manager[server_pubkey] = cd;
+        channel_object.write(server_pubkey, cd);
         outstanding_bets2();
     } else {
         console.log("the server didn't calculate the same update as us");

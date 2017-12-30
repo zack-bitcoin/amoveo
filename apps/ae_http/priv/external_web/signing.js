@@ -120,7 +120,7 @@ function signing_test() {
     console.log(foo);
 }
 
-setTimeout(signing_test2(), 1000);
+//setTimeout(signing_test2(), 1000);
 function signing_test2() {
     //var d = ["record", [-6, 4], [-7, 8000], -50];
     var d = ["record", "BAr8BCYGo1WwDoB1KXU7xvdqRetLJbyEyRgT7NyBggkYUVW5oalfek1imezEb00Ww+61aiXNrkkBC8EEKsGjumw=", [-6, ["a", -2000]]];

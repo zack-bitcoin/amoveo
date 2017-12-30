@@ -18,9 +18,12 @@
 
 * in the javascript light node, we should wrap up code inside functions to protect the global name space.
 
+* javascript light node should tell you how much time is left in your channel, and give an option for extending the time limit.
+
 * make sure that markets are working from the light wallet.
 
 * in sync.erl we should start by checking each peer's version, and then ignore peers who use the wrong version.
+* there needs to be an interface to pushing the channel expiration further into the future by paying a fee. We already have an api for sending a payment to the server, we just modify this slightly.
 
 * secrets needs to be garbage collected.
 
@@ -32,7 +35,6 @@
 
 * there should be a refund if you close a channel early. The refund should be enforced by a smart contract. It is important that this smart contract's nonce does not increase with time, otherwise the contract can be slashed forever.
 
-* there needs to be an interface to pushing the channel expiration further into the future by paying a fee. We already have an api for sending a payment to the server, we just modify this slightly.
 
 * get rid of unused min_channel_ratio
 

@@ -143,7 +143,7 @@ function combine_cancel_assets_maker() {
         return {"sspk": sign_tx(spk), "ss": combine2.ss};
     }
     function main(server_pubkey) {
-        var oldCD = channel_manager_read(server_pubkey);
+        var oldCD = channels_object.read(server_pubkey);
         var canceled = combine_cancel_common(oldCD);
         var sspk = canceled.sspk;
         var ss = canceled.ss;

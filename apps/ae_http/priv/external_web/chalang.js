@@ -1175,12 +1175,12 @@ function chalang(command) {
     function ss_to_internal(ess) {
         var ss = [];
         for (var i = 1; i < ess.length; i++) {
-            ss = ss.concat([new_ss(string_to_array(atob(ess[i][1])), ess[i][2], ess[i][3])])
+            ss = ss.concat([channels_object.new_ss(string_to_array(atob(ess[i][1])), ess[i][2], ess[i][3])])
         }
         return ss;
     }
     function channel_feeder_they_simplify(from, themspk, cd, callback) {
-        cd0 = channel_manager_read(from);
+        cd0 = channels_object.read(from);
         //true = cd0.live; //verify this is true
         //true = cd.live; //verify this is true
         var spkme = cd0.me;
@@ -1208,15 +1208,15 @@ function chalang(command) {
                     console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
                     if ( JSON.stringify(b2) == JSON.stringify({"spk": newspk, "ss": ss})) {
                         var ret = sign_tx(newspk);
-                        var newcd = new_cd(newspk, themspk, ss, ss, cid);
-                        channel_manager[from] = newcd;
+                        var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
+                        channels_object.write(from, newcd);
                         return callback(ret);
                     } else {
                         is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {
                             if ( b3 ) {
                                 ret = sign_tx(newspk);
-                                var newcd = new_cd(newspk, themspk, ss, ss, cid);
-                                channel_manager[from] = newcd;
+                                var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
+                                channels_object.write(from, newcd);
                                 return callback(ret);
                             } else {
                                 console.log("channel feeder they simplify had nothing to do");
@@ -1231,8 +1231,8 @@ function chalang(command) {
                                   if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
                                   console.log("spks do not match");
                                   } else {
-                                  var data = new_cd(spk, themspk, ss5, ss5, cid);
-                                  channel_manager[from] = data;
+                                  var data = channels_object.new_cd(spk, themspk, ss5, ss5, cid);
+                                  channels_object.write(from, data);
                                   return ret;
                                   }
                                 */
@@ -1371,7 +1371,7 @@ function chalang(command) {
                 var cd = spk_return[1];
                 var them_spk = spk_return[2];
                 //returns cd and them_spk
-                var cd0 = channel_manager_read(server_pubkey);
+                var cd0 = channels_object.read(server_pubkey);
                 if (cd0 == undefined) {
                     console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
                     throw("pull channel state error");
