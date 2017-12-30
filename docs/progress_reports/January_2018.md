@@ -22,7 +22,7 @@ This purpose of this monthly progress report is to review the teams that are dev
 
 
 ## What teams are working on this technology?
-Amoveo, Augur, Group Gnosis, Aeternity, Zen Protocol, Bitshares, STOX, Bodhi, spectre.ai, Fun Fair, and Bitcoin Hivemind.
+Amoveo, Augur, Group Gnosis, Aeternity, Zen Protocol, Bitshares, STOX, Bodhi, spectre.ai, Fun Fair, ZeroSum Markets, and Bitcoin Hivemind.
 
 
 Each team will be ranked in each of the categories from 0 to 10.
@@ -46,6 +46,7 @@ Aeternity        0  0  0  0  0  8  3  -5  9   15
 Bitcoin Hivemind 1  0  0  0  0  8  3  -5  5   12
 Spectre.ai       0  0  5  0  0  10 3  -10 3   11
 Zen Protocol     0  0  0  0  0  9  3  -2  1   11
+Zero Sum Markets 0  0  5  0  0  10 2  -10 3   10
 ```
 
 ### Channels
@@ -64,11 +65,13 @@ I can find no mention of channels in the stox white paper.
 
 Fun Fair's documentation shows that they have a deep understanding of how turing complete state channels will work.
 
+I can find no plan for channels in zerosum markets
+
 ### Shards
 
 [Here is a document explaining sharding in Amoveo](/docs/design/sharding.md). Since Amoveo doesn't store any contract state on-chain, sharding is simple.
 
-Gnosis, Stox, Fun Fair, and Augur use Ethereum, which lacks sharding.
+Gnosis, Stox, Fun Fair, Zero Sum Markets, and Augur use Ethereum, which lacks sharding.
 
 Bodhi uses QTUM, which lacks sharding.
 
@@ -82,7 +85,7 @@ Zen Protocol, Aeternity, and Bitshares have no plans for sharding that I can fin
 Amoveo miners can use light nodes, they don't need full nodes.
 The Amoveo network has no requirement for full nodes, it could be 100% light nodes.
 
-Gnosis, Stox, Fun Fair, and Augur use Ethereum, which has a light node, but the Ethereum light node has a very expensive worst case scenario because the blocks do not include the proofs needed for all the consensus state that the block uses. In the worst case, an Ethereum light node has to do everything that a full node does.
+ZeroSum Markets, Gnosis, Stox, Fun Fair, and Augur use Ethereum, which has a light node, but the Ethereum light node has a very expensive worst case scenario because the blocks do not include the proofs needed for all the consensus state that the block uses. In the worst case, an Ethereum light node has to do everything that a full node does.
 
 Bodhi uses QTUM which has light nodes, but since QTUM uses UTXO instead of accounts, it seems like QTUM would have the same light client limitations as bitcoin. If a light node tries to ask a full node for their balance, the full node would have to scan the entire UTXO set in order to make the proof for the light node. Paying >$1 just to look up your balance is excessively expensive.
 
@@ -93,7 +96,7 @@ None of the other projects have light nodes, or a plan on how to make light node
 Fun Fair has no short-term plan for markets.
 
 Some teams got a score of 0 for market because they are putting their markets on-chain. On-chain markets cannot scale with channels.
-Bitshares, Zen Protocol, Stox, Bodhi, and Aeternity.
+Bitshares, Zen Protocol, ZeroSum Markets, Stox, Bodhi, and Aeternity.
 
 A few teams plan to put markets off-chain, but they are markets of brokers, which is much less efficient than an order book. This design also gets a 0.
 Bitcoin Hivemind, Group Gnosis, and Augur.
@@ -103,6 +106,8 @@ Amoveo has off-chain markets with order books and single-price batches in the te
 ### oracles
 
 Fun Fair has no short-term plan for oracles.
+
+Zero Sum Markets doesn't have an oracle, maybe it will use Augur.
 
 Most teams got a score of 0 for their oracle because their oracle mechanism cannot escalate, or because they used an insecure mechanism like voting or a trusted feed.
 
@@ -122,7 +127,7 @@ The Amoveo oracle is live on the Amoveo testnet.
 
 ### blockchain
 
-Gnosis, Stox, Spectre.ai, Fun Fair and Augur use Ethereum, which is a very popular blockchain.
+Gnosis, Stox, Spectre.ai, Fun Fair, Zero Sum Markets, and Augur use Ethereum, which is a very popular blockchain.
 
 Bodhi uses QTUM, which is a very successful blockchain.
 
@@ -160,6 +165,7 @@ This section works different. Each project starts out with 10 points, and there 
 
 * Any project with on-chain markets will lose 5 points, because of blockchain transaction fees to participate in the market.  (Zen only loses 2 points here because they allow for parallel transaction processing in the same block).
 * Any project with an oracle-subcurrency will lose 5 points, because of the trading fee that pays the oracle. Bitcoin Hivemind, Augur.
+* Any project which forces you to use a subcurrency besides eth for trading will lose 5 points because of the cost of entering and exiting th emarket.
 * Any project with trusted feeds will lose 5 points, because of the losses from theft. Aeternity, Bitshares.
 * Any project where the oracle cannot escalate will lose 5 points, because this either means the oracle will either be too expensive for the security required, or else it will have insufficient security.
 * Spectre.ai plans to charge trading fees between 4% and 11%, charging winners more than losers. This is far more expensive than anyone else's plan, so Spectre.ai loses an additional 5 points.
@@ -193,6 +199,8 @@ Stox, uses Ethereum. Geth - 780k
 Augur, uses Ethereum. Geth - 780k
 
 Spectre.ai, uses Ethereum. Geth - 780k
+
+Zero Sum Markets, uses Ethereum. Geth - 780k
 
 Zen Protocol. - code is too unorganized for lines to be counted. Uncompiled, it is about 7 times longer than QTUM is. So I am estimating 3.5M
 

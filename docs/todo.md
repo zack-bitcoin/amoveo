@@ -13,8 +13,6 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
 
-* spk.hrl should be renamed to records.hrl
-
 * make sure that markets are working from the light wallet.
 
 * in sync.erl we should start by checking each peer's version, and then ignore peers who use the wrong version.
