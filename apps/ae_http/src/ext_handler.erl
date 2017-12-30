@@ -82,6 +82,10 @@ doit({time_value}) ->
     application:get_env(ae_core, time_value);
 doit({new_channel, STx, SSPK, Expires}) ->
     unlocked = keys:status(),
+    LifeSpan = Expires - api:height(),
+    {ok, MinimumChannelLifespan} = 
+        application:get_env(ae_core, min_channel_lifespan),
+    true = LifeSpan > MinimumChannelLifespan,
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
     {Trees,_,_} = tx_pool:data(),
@@ -93,7 +97,6 @@ doit({new_channel, STx, SSPK, Expires}) ->
     Bal1 = new_channel_tx:bal1(Tx),
     Bal2 = new_channel_tx:bal2(Tx),
     Delay = new_channel_tx:delay(Tx),
-    LifeSpan = Expires - api:height(),
     {ok, TV} = application:get_env(ae_core, time_value),
     CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
     CFee = SPK#spk.amount,

@@ -25,13 +25,9 @@
 
 * change vocabulary for channels. spk is a "contract". ss is "evidence".
 
-* there should be a refund if you close a channel early.
+* there should be a refund if you close a channel early. The refund should be enforced by a smart contract. It is important that this smart contract's nonce does not increase with time, otherwise the contract can be slashed forever.
 
 * there needs to be an interface to pushing the channel expiration further into the future by paying a fee.
-
-* channel_grow tx type needs to change the expiration date, or charge a fee.
-
-* channels need a minimum fee for opening them.
 
 * get rid of unused min_channel_ratio
 
