@@ -23,7 +23,10 @@ handle_cast({main, Peer}, go) ->
             MD = TBH#header.accumulative_difficulty,
             TD = TheirTop#header.accumulative_difficulty,
             if
-                TD < MD -> give_blocks(Peer, CommonHash);
+                TD < MD -> 
+                    {ok, _, TheirBlockHeight} = remote_peer({top}, Peer),
+                    CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
+                    give_blocks(Peer, CommonBlocksHash);
                 true ->
                     CommonBlockHeight = common_block_height(CommonHash),
                     get_blocks(Peer, CommonBlockHeight)
