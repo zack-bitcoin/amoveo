@@ -524,6 +524,7 @@ mining_data() ->
     {_, Height, Txs} = tx_pool:data(),
     PB = block:get_by_height(Height),
     {ok, Top} = headers:read(block:hash(PB)),
+    trees:prune(),
     Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
     spawn(fun() ->
                  db:save(?mining, Block)
