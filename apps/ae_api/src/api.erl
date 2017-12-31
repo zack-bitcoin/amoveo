@@ -528,6 +528,10 @@ mining_data() ->
     spawn(fun() ->
                  db:save(?mining, Block)
                  end),
-    [hash:doit(block:hash(Block)), crypto:strong_rand_bytes(32), PB#block.difficulty].
+    NextDiff = headers:difficulty_should_be(Top),
+    %[hash:doit(block:hash(Block)), crypto:strong_rand_bytes(32), PB#block.difficulty].
+    [hash:doit(block:hash(Block)), 
+     crypto:strong_rand_bytes(32), 
+     headers:difficulty_should_be(Top)].
     
     

@@ -6,10 +6,10 @@
 -record(gov, {id, value, lock}).
 -define(name, governance).
 genesis_state() ->
-    {MinimumOracleTime, MaximumOracleTime} =
+    {MinimumOracleTime, MaximumOracleTime, BlockPeriod} =
         case application:get_env(ae_core, test_mode, false) of
-            true -> {1, 1};
-            false -> {352, 505}
+            true -> {1, 1, 20};
+            false -> {352, 505, 550}
         end,
     G = [[block_reward, 1800],
          %[developer_reward, 1520], 
@@ -17,7 +17,7 @@ genesis_state() ->
          [time_gas, 1113],
          [space_gas, 1113],
          [max_block_size, 940],
-         [block_period, 550],
+         [block_period, BlockPeriod],
          [fun_limit, 350],
          [var_limit, 600],
          [oracle_initial_liquidity, 1728],

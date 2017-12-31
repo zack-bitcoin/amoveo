@@ -48,10 +48,6 @@ terminate(_Reason, X) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-
-
-
-
 check() -> gen_server:call(?MODULE, {check}).
 absorb(X) -> absorb(X, block:hash(block:get_by_height(0))).
 absorb([], CommonHash) -> CommonHash;
@@ -170,11 +166,11 @@ difficulty_should_be(A) ->
     X = Height rem RF,
     if
         (X == 0) and (not(Height < 10)) ->
-            check_difficulty2(A);
+            difficulty_should_be2(A);
         true ->
             D1
     end.
-check_difficulty2(Header) ->
+difficulty_should_be2(Header) ->
     F = constants:retarget_frequency() div 2,
     {Times1, Hash2000} = retarget(Header, F, []),
     {Times2, _} = retarget(Hash2000, F, []),

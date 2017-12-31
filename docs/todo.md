@@ -16,6 +16,8 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
 
+* Fix the memory leak in the mining pool work maker.
+
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 
 * in the javascript light node, we should seperate the view-code from the controller-code from the model-code in each module.
