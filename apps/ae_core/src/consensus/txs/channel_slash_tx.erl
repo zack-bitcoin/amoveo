@@ -26,7 +26,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
 	       Acc2 -> Acc1
 	   end,
     {_, _, Proof2} = accounts:get(Accb, Accounts),
-    Tx = #cs{from = From, nonce = accounts:nonce(Acc)+1, 
+    Tx = #cs{from = From, nonce = Acc#acc.nonce + 1, 
 	      fee = Fee, 
 	      scriptpubkey = ScriptPubkey, 
 	      scriptsig = ScriptSig},

@@ -19,7 +19,7 @@ new(Pub, Amount, Fee, From, Trees) -> %To is a new ID. set it to any unused ID.
     Accounts = trees:accounts(Trees),
     {_, Account, Proof} = accounts:get(From, Accounts),
     Tx = #create_acc_tx{from = From,
-                        nonce = accounts:nonce(Account) + 1,
+                        nonce = Account#acc.nonce + 1,
                         pubkey = Pub,
                         amount = Amount,
                         fee = Fee},

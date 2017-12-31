@@ -11,7 +11,7 @@ oracle_id(X) -> X#oracle_winnings.oracle_id.
 make(From, Fee, OID, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),
-    Tx = #oracle_winnings{from = From, nonce = accounts:nonce(Acc) + 1, fee = Fee, oracle_id = OID},
+    Tx = #oracle_winnings{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, oracle_id = OID},
     {Tx, [Proof]}.
 go(Tx, Dict, NewHeight) ->
     OID = Tx#oracle_winnings.oracle_id,

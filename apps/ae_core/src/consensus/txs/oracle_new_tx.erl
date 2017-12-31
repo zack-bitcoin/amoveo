@@ -24,7 +24,7 @@ governance(X) -> X#oracle_new.governance.
 make(From, Fee, Question, Start, ID, Governance, GovAmount, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),
-    Tx = #oracle_new{from = From, nonce = accounts:nonce(Acc) + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount},
+    Tx = #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount},
     {Tx, []}.
 go(Tx, Dict, NewHeight) ->
     Gov = Tx#oracle_new.governance,

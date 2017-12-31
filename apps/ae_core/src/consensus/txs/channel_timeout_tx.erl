@@ -24,7 +24,7 @@ make(ID,Trees,CID,_Shares,Fee) ->
 	       Acc2 -> Acc1
 	   end,
     {_, _, Proof2} = accounts:get(Accb, Accounts),
-    Nonce = accounts:nonce(Acc),
+    Nonce = Acc#acc.nonce,
     Tx = #timeout{aid = ID, nonce = Nonce + 1,
 		  fee = Fee, cid = CID, %shares = Shares,
                   spk_aid1 = Acc1, spk_aid2 = Acc2},

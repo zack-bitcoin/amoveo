@@ -10,7 +10,7 @@ oracle_id(X) -> X#unmatched.oracle_id.
 make(From, Fee, OracleID, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),
-    Tx = #unmatched{from = From, nonce = accounts:nonce(Acc) + 1, fee = Fee, oracle_id = OracleID},
+    Tx = #unmatched{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, oracle_id = OracleID},
     {Tx, [Proof]}.
 
 go(Tx, Dict, NewHeight) ->

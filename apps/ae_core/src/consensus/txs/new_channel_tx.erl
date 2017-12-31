@@ -18,7 +18,7 @@ spk(Tx, Delay) ->
 make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
     Accounts = trees:accounts(Trees),
     {_, A, Proof} = accounts:get(Acc1, Accounts),
-    Nonce = accounts:nonce(A),
+    Nonce = A#acc.nonce,
     {_, _, Proof2} = accounts:get(Acc2, Accounts),
     %true = (Rent == 0) or (Rent == 1),
     Tx = #nc{id = ID, acc1 = Acc1, acc2 = Acc2, 

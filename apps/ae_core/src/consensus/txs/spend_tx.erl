@@ -8,7 +8,7 @@ make(To, Amount, Fee, From, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),
     {_, _Acc2, Proof2} = accounts:get(To, Accounts),
-    Tx = #spend{from = From, nonce = accounts:nonce(Acc) + 1, to = To, amount = Amount, fee = Fee},
+    Tx = #spend{from = From, nonce = Acc#acc.nonce + 1, to = To, amount = Amount, fee = Fee},
     {Tx, [Proof, Proof2]}.
 go(Tx, Dict, NewHeight) ->
     case Tx#spend.version of

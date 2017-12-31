@@ -14,7 +14,7 @@ new(To, ID, Fee, Trees) ->
     {_, ToAccount, ToProof} = accounts:get(To, Accounts),
     false = ToAccount == empty,
     Tx = #delete_acc_tx{from = ID,
-                        nonce = accounts:nonce(FromAccount) + 1,
+                        nonce = FromAccount#acc.nonce + 1,
                         to = To,
                         fee = Fee},
     {Tx, [FromProof, ToProof]}.

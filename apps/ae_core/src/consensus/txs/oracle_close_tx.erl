@@ -10,7 +10,7 @@ oracle_id(X) -> X#oracle_close.oracle_id.
 make(From, Fee, OID, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, _} = accounts:get(From, Accounts),
-    Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = accounts:nonce(Acc) + 1},
+    Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = Acc#acc.nonce + 1},
     {Tx, []}.
         
 go(Tx, Dict, NewHeight) ->

@@ -31,7 +31,7 @@ make(From, Fee, OID, Type, Amount, Trees) ->
     {_, Acc, _Proof} = accounts:get(From, Accounts),
     Tx = #oracle_bet{
        from = From, 
-       nonce = accounts:nonce(Acc) + 1,
+       nonce = Acc#acc.nonce + 1,
        fee = Fee,
        id = OID,
        type = Type,

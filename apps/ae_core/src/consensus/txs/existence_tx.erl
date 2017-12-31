@@ -10,7 +10,7 @@ make(From, Fee, Data, Trees) ->
     32 = size(Data),
     Accounts = trees:accounts(Trees),
     {_, Acc, Proof} = accounts:get(From, Accounts),
-    Nonce = accounts:nonce(Acc) + 1,
+    Nonce = Acc#acc.nonce + 1,
     Tx = #ex{from = From,fee=Fee,nonce=Nonce,commit=Data},
     {Tx, [Proof]}.
 go(Tx, Dict, NewHeight) ->

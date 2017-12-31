@@ -1,7 +1,7 @@
 -module(accounts).
--export([new/3,nonce/1,write/2,get/2,%update/5,%update/6,
+-export([new/3,write/2,get/2,
          dict_update/5, dict_update/6, dict_get/2,
-	 new_balance/4,delete/2,
+	 delete/2,
 	 bets/1, bets_hash/1, update_bets/2,
 	 verify_proof/4,
          dict_write/2, dict_write/3, dict_delete/2,
@@ -10,7 +10,6 @@
 -define(id, accounts).
 -include("../../records.hrl").
 
-nonce(Account) -> Account#acc.nonce.
 pubkey(Account) -> Account#acc.pubkey.
 bets(Account) -> Account#acc.bets.
 bets_hash(Account) -> Account#acc.bets_hash.
@@ -34,7 +33,7 @@ dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Bets) ->
                  end,
     OldHeight = Account#acc.height,
     true = NewHeight >= OldHeight,
-    NewBalance = new_balance_dict(Account, Amount, NewHeight, Dict),
+    NewBalance = Amount + Account#acc.balance,
     true = NewBalance > 0,
     BH = case Bets of
              0 -> Account#acc.bets_hash;
@@ -85,19 +84,6 @@ delete(Pub0, Accounts) ->
     trie:delete(PubId, Accounts, ?id).
 dict_delete(Pub, Dict) ->
     dict:store({accounts, Pub}, 0, Dict).
-new_balance_dict(Account, Amount, NewHeight, Dict) ->
-    OldHeight = Account#acc.height,
-    Pub = Account#acc.pubkey,
-    HeightDiff = NewHeight - OldHeight,
-    Rent = 0,
-    Amount + Account#acc.balance - (Rent * HeightDiff).
-new_balance(Account, Amount, NewHeight, Trees) ->
-    OldHeight = Account#acc.height,
-    Governance = trees:governance(Trees),
-    Pub = Account#acc.pubkey,
-    HeightDiff = NewHeight - OldHeight,
-    Rent = 0,
-    Amount + Account#acc.balance - (Rent * HeightDiff).
 
 serialize(Account) ->
     true = size(Account#acc.pubkey) == constants:pubkey_size(),

@@ -15,7 +15,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     {_, Acc, Proof1} = accounts:get(From, Accounts),
     {_, _Channel, Proofc} = channels:get(CID, Channels),
     
-    Tx = #csc{from = From, nonce = accounts:nonce(Acc)+1, 
+    Tx = #csc{from = From, nonce = Acc#acc.nonce+1, 
 	      fee = Fee,
 	      scriptpubkey = ScriptPubkey, 
 	      scriptsig = ScriptSig},

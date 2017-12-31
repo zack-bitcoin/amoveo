@@ -21,7 +21,7 @@ make(ID,Trees,Amount,Fee) ->
     A2 = channels:acc2(C),
     {_, Acc1, Proof1} = accounts:get(A1, Accounts),
     {_, _, Proof2} = accounts:get(A2, Accounts),
-    Nonce = accounts:nonce(Acc1),
+    Nonce = Acc1#acc.nonce,
     Tx = #ctc{id = ID, aid1 = A1, aid2 = A2, 
 	     fee = Fee, nonce = Nonce+1, 
 	     amount = Amount},
