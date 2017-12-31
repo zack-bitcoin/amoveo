@@ -23,7 +23,7 @@ go(Tx, Dict, NewHeight) ->
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
     VolumeCheck = orders:dict_significant_volume(Dict2, OID, OIL),
     Result = if
-		 VolumeCheck -> oracles:type(Oracle);
+		 VolumeCheck -> Oracle#oracle.type;
 		 true -> 3
 	     end,
     Oracle2 = oracles:set_result(Oracle, Result),
@@ -58,7 +58,7 @@ go(Tx, Dict, NewHeight) ->
                 end
         end,
     Oracle4 = oracles:dict_get(OID, Dict5),
-    OracleType = oracles:type(Oracle4),
+    OracleType = Oracle4#oracle.type,
     LoserType = 
 	case OracleType of
 	    1 -> 2;

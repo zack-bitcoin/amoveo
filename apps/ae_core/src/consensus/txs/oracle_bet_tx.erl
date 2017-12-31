@@ -107,7 +107,7 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 	     end,
     true = NewHeight > Oracle#oracle.starts,
     %take some money from them. 
-    OracleType = oracles:type(Oracle),
+    OracleType = Oracle#oracle.type,
     TxType = case Tx#oracle_bet.type of
 		 1 -> 1;
 		 2 -> 2;
