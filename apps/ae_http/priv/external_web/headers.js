@@ -1,15 +1,13 @@
 
 function headers_main() {
     var top_header = 0;//stores the valid header with the most accumulated work.
-    var retarget_frequency = 2000;
+    const retarget_frequency = 2000;
     var headers_db = {};//store valid headers by hash
     var top_diff = 0;//accumulative difficulty of top
     var button = document.createElement("input");
     button.type = "button";
     button.value = get_words("more_headers");
-    button.id = "wallet_button_test";
     button.onclick = more_headers;
-    //button.onclick = test;
     document.body.appendChild(button);
     wallet_text = document.createElement("p");
     var height_string = get_words("height");
@@ -37,8 +35,6 @@ function headers_main() {
     function pair2sci(x, b) {
         return (256 * x) + b;
     }
-
-
         //calculate X. ad 1 for every zero bit starting from the beginning of the h. Stop as soon as you reach a non-zero bit.
         // calculate B. take the next 8 bits from h after calculating x, and interpret it as an integer.
         //return pair2sci(X, B);
@@ -60,9 +56,6 @@ function headers_main() {
                 return difficulty_should_be2(header);
             } else { return Diff; }
         }
-    }
-    function retarget(header, n) {
-        return retarget2(header, n, []);
     }
     function retarget2(header, n, ts) {
         var t = header[5];
@@ -94,13 +87,12 @@ function headers_main() {
         var m2 = median(times2);
         var tbig = m1 - m2;
         var t = Math.floor(tbig / f);
-        var nt = pow_recalculate(header2000[6],//old difficulty
-                                 //6000,//goal block time()
-                                 period,
-                                 Math.max(1, t));//current estimated block time
+        var nt = pow_recalculate(
+            header2000[6],//old difficulty
+            period,
+            Math.max(1, t));//current estimated block time
         var done = Math.max(nt, 6452);
         return done;//initial difficulty
-        
     }
     function pow_recalculate(oldDiff, t, bottom) {
         var old = sci2int(oldDiff);
@@ -171,7 +163,6 @@ function headers_main() {
                 console.log(diff);
                 console.log(diff0);
                 return false;
-                
             }
         }
     }
@@ -201,9 +192,7 @@ function headers_main() {
                 console.log("bad header");
                 console.log(h[i]); }
         }
-        if (get_more) {
-            more_headers();
-        }
+        if (get_more) { more_headers(); }
     }
     function more_headers() {
         var n;
@@ -212,11 +201,9 @@ function headers_main() {
         } else {
             n = top_header[1];
         }
-        //variable_public_get(["headers", 101, n], absorb_headers);
         variable_public_get(["headers", 101, n], absorb_headers);
     }
     function serialize_header(x) {
-        //Array [ "header", 0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…", "vvbP//eI8ByxXmJKP7/0hN32AUaOPjY/xnC…", "oZlvyvtE4uKNxKmQYuIZqQTRib+b5qh0u8Q…", 0, 1, 6, 0, 0 ]
         var height = x[1]; //4 bytes
         var prev_hash = atob(x[2]); //bin
         var trees_hash = atob(x[3]); //bin
@@ -226,7 +213,6 @@ function headers_main() {
         var version = x[7]; // 2 bytes
         var nonce = atob(x[8]); // 32 bytes
         var period = x[10];
-        //var accumulative_difficulty = x[9]; //don't include
         var y = string_to_array(prev_hash);
         return y.concat(
             integer_to_array(height, 4)).concat(
@@ -243,7 +229,6 @@ function headers_main() {
         var z = integer_to_array(1000, 4);
         var s = array_to_string(z);
         var a = atob("AAAD6A==");
-
         var g = string_to_array(a);
         var f = string_to_array(s);
         console.log(JSON.stringify(a));
@@ -265,7 +250,6 @@ function headers_main() {
         console.log(sci2int(2000));//should be 232
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
-
     }
     return {serialize: serialize_header, top: top_header};
 }
