@@ -18,10 +18,7 @@
 to_prove(OID, Trees) ->
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
-    %io:fwrite("oracle bet tx oid oracles oracle "),
-    %io:fwrite(packer:pack([OID, Oracles, Oracle])),%1, 7, 6th is 9
-    %io:fwrite("\n"),
-    Orders = oracles:orders(Oracle),
+    Orders = Oracle#oracle.orders,
     orders:all(Orders).
     
 from(X) -> X#oracle_bet.from.

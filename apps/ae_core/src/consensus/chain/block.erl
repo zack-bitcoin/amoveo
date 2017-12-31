@@ -416,8 +416,8 @@ dict_update_trie_orders(Trees, [H|T], Dict) ->
     end,
     {_, Oracle, _} = oracles:get(OID, trees:oracles(Trees)),
     DictOracle = oracles:dict_get(OID, Dict),
-    Orders = case oracles:orders(DictOracle) of
-                 0 -> oracles:orders(Oracle);
+    Orders = case DictOracle#oracle.orders of
+                 0 -> Oracle#oracle.orders;
                  Z -> Z
              end,
     Orders3 = 
@@ -488,7 +488,7 @@ ftt2(Fact, Trees) ->
                 empty -> 
                     Trees;
                 _ -> 
-                    Orders = oracles:orders(Oracle),
+                    Orders = Oracle#oracle.orders,
                     Orders2 = setup_tree(0, Orders, Path, Type),
                     Orders3 = trees:restore(Orders2, Fact, 0),
                     Oracle2 = oracles:set_orders(Oracle, Orders3),

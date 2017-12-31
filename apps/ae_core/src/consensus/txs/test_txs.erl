@@ -485,7 +485,7 @@ test(11) ->
     %get your spare money out with oracle_unmatched
     Oracles = trees:oracles(Trees4),
     {_, Oracle, _} = oracles:get(OID, Oracles),
-    Orders = oracles:orders(Oracle),
+    Orders = Oracle#oracle.orders,
     {OrderID, _} = orders:head_get(Orders),%This only works because there is exactly 1 order in the order book.
     {Tx4, _} = oracle_unmatched_tx:make(constants:master_pub(), Fee, OID, Trees4),
     Stx4 = keys:sign(Tx4),
