@@ -1,10 +1,9 @@
 -module(accounts).
--export([new/3,write/2,get/2,
+-export([new/3,write/2,get/2,delete/2,
          dict_update/5, dict_update/6, dict_get/2,
-	 delete/2,
+         dict_write/2, dict_write/3, dict_delete/2,
 	 bets/1, update_bets/2,
 	 verify_proof/4,
-         dict_write/2, dict_write/3, dict_delete/2,
          make_leaf/3, key_to_int/1,
 	 serialize/1, deserialize/1, test/0]).
 -define(id, accounts).
@@ -48,6 +47,15 @@ update_bets(Account, Bets) ->
                 bets_hash = oracle_bets:root_hash(Bets)}.
 key_to_int(X) ->
     trees:hash2int(ensure_decoded_hashed(X)).
+dict_get(Key, Dict) ->
+    X = dict:fetch({accounts, Key}, Dict),
+    case X of
+        0 -> empty;
+        {0, _} -> empty;
+        {Y, Meta} -> 
+            Y2 = deserialize(Y),
+            Y2#acc{bets = Meta}
+    end.
 get(Pub, Accounts) ->
     PubId = key_to_int(Pub),
     {RH, Leaf, Proof} = trie:get(PubId, Accounts, ?id),
@@ -77,11 +85,11 @@ write(Account, Root) ->
     <<Meta:KeyLength>> = <<(Account#acc.bets):KeyLength>>,
     PubId = key_to_int(Pub),
     trie:put(PubId, SerializedAccount, Meta, Root, ?id). % returns a pointer to the new root
+dict_delete(Pub, Dict) ->
+    dict:store({accounts, Pub}, 0, Dict).
 delete(Pub0, Accounts) ->
     PubId = key_to_int(Pub0),
     trie:delete(PubId, Accounts, ?id).
-dict_delete(Pub, Dict) ->
-    dict:store({accounts, Pub}, 0, Dict).
 
 serialize(Account) ->
     true = size(Account#acc.pubkey) == constants:pubkey_size(),
@@ -140,15 +148,6 @@ make_leaf(Key, V, CFG)  ->
              V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
-dict_get(Key, Dict) ->
-    X = dict:fetch({accounts, Key}, Dict),
-    case X of
-        0 -> empty;
-        {0, _} -> empty;
-        {Y, Meta} -> 
-            Y2 = deserialize(Y),
-            Y2#acc{bets = Meta}
-    end.
 test() ->
     {Pub, _Priv} = testnet_sign:new_key(),
     Acc = new(Pub, 0, 0),

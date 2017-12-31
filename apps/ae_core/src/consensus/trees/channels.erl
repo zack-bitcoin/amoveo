@@ -152,6 +152,13 @@ id_size() -> constants:key_length().
 key_to_int(X) when is_integer(X) -> 
     <<Y:256>> = hash:doit(<<X:256>>),
     Y.
+dict_get(Key, Dict) ->
+    X = dict:fetch({channels, Key}, Dict),
+    case X of
+        0 -> empty;
+        empty -> empty;
+        _ -> deserialize(X)
+    end.
 get(ID, Channels) ->
     true = (ID - 1) < math:pow(2, 256),
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Channels, channels),
@@ -160,13 +167,6 @@ get(ID, Channels) ->
 	    L -> deserialize(leaf:value(L))
 	end,
     {RH, V, Proof}.
-dict_get(Key, Dict) ->
-    X = dict:fetch({channels, Key}, Dict),
-    case X of
-        0 -> empty;
-        empty -> empty;
-        _ -> deserialize(X)
-    end.
 dict_delete(Key, Dict) ->      
     dict:store({channels, Key}, 0, Dict).
 delete(ID,Channels) ->
