@@ -48,7 +48,7 @@ channel_size() ->
 retarget_frequency() -> %2000. %how many blocks till we recalculate the difficulty
     case application:get_env(ae_core, kind) of
         {ok, "local"} -> 12;%unit tests
-        {ok, "integration"} -> 12;%2500;%integration tests.
+        {ok, "integration"} -> 100;%integration tests
         {ok, "production"} -> 2000
     end.
 time_units() -> 100. % 0.1 seconds

@@ -117,7 +117,7 @@ function channels_main() {
     var list_bets_button = document.createElement("input");
     list_bets_button.type = "button";
     list_bets_button.value = get_words("refresh_bets");
-    list_bets_button.onclick = outstanding_bets2;
+    list_bets_button.onclick = bets_object.main;
     variable_public_get(["pubkey"], function(pubkey) {
         return refresh_channels_interfaces(pubkey);
     });
