@@ -2,7 +2,7 @@
 -export([new/3,write/2,get/2,
          dict_update/5, dict_update/6, dict_get/2,
 	 delete/2,
-	 bets/1, bets_hash/1, update_bets/2,
+	 bets/1, update_bets/2,
 	 verify_proof/4,
          dict_write/2, dict_write/3, dict_delete/2,
          make_leaf/3, key_to_int/1,
@@ -11,7 +11,6 @@
 -include("../../records.hrl").
 
 bets(Account) -> Account#acc.bets.
-bets_hash(Account) -> Account#acc.bets_hash.
 
 new(Pub, Balance, Height) ->
     Root0 = constants:root0(),
