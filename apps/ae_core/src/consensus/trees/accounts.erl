@@ -1,7 +1,7 @@
 -module(accounts).
 -export([new/3,nonce/1,write/2,get/2,%update/5,%update/6,
          dict_update/5, dict_update/6, dict_get/2,
-	 balance/1,new_balance/4,delete/2,
+	 new_balance/4,delete/2,
 	 bets/1, bets_hash/1, update_bets/2,
 	 verify_proof/4,
          dict_write/2, dict_write/3, dict_delete/2,
@@ -10,7 +10,6 @@
 -define(id, accounts).
 -include("../../records.hrl").
 
-balance(Account) -> Account#acc.balance.
 nonce(Account) -> Account#acc.nonce.
 pubkey(Account) -> Account#acc.pubkey.
 bets(Account) -> Account#acc.bets.
