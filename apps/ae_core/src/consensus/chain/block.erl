@@ -210,17 +210,13 @@ make(Header, Txs0, Trees, Pub) ->
     Block = packer:unpack(packer:pack(Block)),
     %_Dict = proofs:facts_to_dict(Proofs, dict:new()),
     Block.
+-define(keys, [accounts, channels, exsitence, oracles, governance]).
 make_roots(Trees) ->
     #roots{accounts = accounts:root_hash(trees:accounts(Trees)),
            channels = channels:root_hash(trees:channels(Trees)),
            existence =existence:root_hash(trees:existence(Trees)),
            oracles = oracles:root_hash(trees:oracles(Trees)),
            governance = governance:root_hash(trees:governance(Trees))}.
-accounts_root(X) -> X#roots.accounts.
-channels_root(X) -> X#roots.channels.
-existence_root(X) -> X#roots.existence.
-oracles_root(X) -> X#roots.oracles.
-governance_root(X) -> X#roots.governance.
 roots_hash(X) when is_record(X, roots) ->
     A = X#roots.accounts,
     C = X#roots.channels,
