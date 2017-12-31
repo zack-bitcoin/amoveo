@@ -27,7 +27,7 @@ go(Tx, Dict, NewHeight) ->
 		 true -> 3
 	     end,
     Oracle2 = oracles:set_result(Oracle, Result),
-    Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
+    Oracle3 = Oracle2#oracle{done_timer = NewHeight},
     Dict4 = oracles:dict_write(Oracle3, Dict2),
     Gov = Oracle3#oracle.governance,
     MOT = governance:dict_get_value(maximum_oracle_time, Dict4),

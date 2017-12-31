@@ -1,6 +1,6 @@
 -module(oracles).
 -export([new/7,
-	 set_orders/2, set_done_timer/2,
+	 set_orders/2,
 	 set_result/2, set_type/2, 
          orders/1,
          write/2, get/2,%update tree stuff
@@ -11,8 +11,6 @@
 orders(X) -> X#oracle.orders.
 set_orders(X, Orders) ->
     X#oracle{orders = Orders, orders_hash = orders:root_hash(Orders)}.
-set_done_timer(X, H) ->
-    X#oracle{done_timer = H}.
 set_result(X, R) ->
     X#oracle{result = R}.
 set_type(X, T) ->
