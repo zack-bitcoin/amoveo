@@ -1,6 +1,6 @@
 -module(orders).
 -export([root_hash/1, amount/1,
-         pointer/1, new/2, 
+         new/2, 
          get/2, empty_book/0,
          update_amount/2, set_amount/2,
          many/1, head_get/1, 
@@ -37,7 +37,6 @@ many(Root) ->
     Many.
 aid(X) -> X#orders.aid.
 amount(X) -> X#orders.amount.
-pointer(X) -> X#orders.pointer.
 update_pointer(X, P) ->
     X#orders{pointer = P}.
 set_amount(X, A) ->

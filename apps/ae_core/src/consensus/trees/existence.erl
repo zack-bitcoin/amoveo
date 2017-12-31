@@ -1,5 +1,6 @@
 -module(existence).
--export([get/2,write/2,new/2,hash/1, 
+-export([new/2,hash/1, %custom stuff
+         get/2,write/2,%update tree stuff
          dict_get/2, dict_write/2,%update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
 %for accessing the proof of existence tree
