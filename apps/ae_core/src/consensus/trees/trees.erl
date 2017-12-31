@@ -63,19 +63,19 @@ root_hash2(Trees, Roots) ->
 rh2(Type, Trees, Roots) ->
     X = trees:Type(Trees),
     Out = case X of
-        empty -> 
-            Fun = list_to_atom(atom_to_list(Type) ++ "_root"),
-            block:Fun(Roots);
-        Y -> 
-            Type:root_hash(Y)
-    end,
+              empty -> 
+                  Fun = list_to_atom(atom_to_list(Type) ++ "_root"),
+                  block:Fun(Roots);
+              Y -> 
+                  trie:root_hash(Type, Y)
+          end,
     Out.
 serialized_roots(Trees) -> 
-    A = accounts:root_hash(trees:accounts(Trees)),
-    C = channels:root_hash(trees:channels(Trees)),
-    E = existence:root_hash(trees:existence(Trees)),
-    O = oracles:root_hash(trees:oracles(Trees)),
-    G = governance:root_hash(trees:governance(Trees)),
+    A = trie:root_hash(accounts, trees:accounts(Trees)),
+    C = trie:root_hash(channels, trees:channels(Trees)),
+    E = trie:root_hash(existence, trees:existence(Trees)),
+    O = trie:root_hash(oracles, trees:oracles(Trees)),
+    G = trie:root_hash(governance, trees:governance(Trees)),
     <<
      A/binary,
      C/binary,

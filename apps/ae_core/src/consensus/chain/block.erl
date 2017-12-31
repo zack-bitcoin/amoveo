@@ -119,8 +119,7 @@ get_by_height_in_chain(N, BH) when N > -1 ->
             end
     end.
 prev_hash(0, BP) -> BP#block.prev_hash;
-prev_hash(N, BP) -> 
-    element(N+1, BP#block.prev_hashes).
+prev_hash(N, BP) -> element(N+1, BP#block.prev_hashes).
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
@@ -132,7 +131,6 @@ genesis_maker() ->
     Trees0 = trees:new(Accounts0, Root0, Root0, Root0, Root0, GovInit),
     Accounts = accounts:write(First, Root0),
     Trees = trees:new(Accounts, Root0, Root0, Root0, Root0, GovInit),
-
     TreesRoot = trees:root_hash(Trees),
     BlockPeriod = governance:get_value(block_period, GovInit),
     #block{height = 0,
@@ -210,13 +208,12 @@ make(Header, Txs0, Trees, Pub) ->
     Block = packer:unpack(packer:pack(Block)),
     %_Dict = proofs:facts_to_dict(Proofs, dict:new()),
     Block.
--define(keys, [accounts, channels, exsitence, oracles, governance]).
 make_roots(Trees) ->
-    #roots{accounts = accounts:root_hash(trees:accounts(Trees)),
-           channels = channels:root_hash(trees:channels(Trees)),
-           existence =existence:root_hash(trees:existence(Trees)),
-           oracles = oracles:root_hash(trees:oracles(Trees)),
-           governance = governance:root_hash(trees:governance(Trees))}.
+    #roots{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
+           channels = trie:root_hash(channels, trees:channels(Trees)),
+           existence = trie:root_hash(existence, trees:existence(Trees)),
+           oracles = trie:root_hash(oracles, trees:oracles(Trees)),
+           governance = trie:root_hash(governance, trees:governance(Trees))}.
 roots_hash(X) when is_record(X, roots) ->
     A = X#roots.accounts,
     C = X#roots.channels,
@@ -227,9 +224,9 @@ roots_hash(X) when is_record(X, roots) ->
                          O/binary, G/binary>>).
     
 guess_number_of_cpu_cores() ->
-    case application:get_env(ae_core, test_mode, false) of
-        true -> 1;
-        false ->
+    case application:get_env(ae_core, test_mode) of
+        {ok, true} -> 1;
+        {ok, false} ->
             X = erlang:system_info(logical_processors_available),
             Y = if
                     X == unknown ->
@@ -365,11 +362,7 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     Tree = trees:Type(Trees),
     Tree2 = case New of
                 empty -> Type:delete(Key, Tree);
-                _ -> 
-                    %io:fwrite("about to write into tree "),
-                    %io:fwrite(packer:pack([Type, New, Tree])),
-                    %io:fwrite("\n"),
-                    Type:write(New, Tree)
+                _ -> Type:write(New, Tree)
             end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),

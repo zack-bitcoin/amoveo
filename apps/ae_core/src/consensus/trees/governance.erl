@@ -1,9 +1,9 @@
 -module(governance).
 -export([det_power/3,tree_number_to_value/1, max/0,
 	 is_locked/1, dict_change/3, genesis_state/0,
-	 get/2, write/2, %lock/2, unlock/2,
+	 get/2, write/2,
 	 get_value/2, serialize/1, name2number/1,
-	 verify_proof/4, root_hash/1, dict_get/2,
+	 verify_proof/4, dict_get/2,
          dict_get_value/2, dict_lock/2, dict_unlock/2,
          make_leaf/3, key_to_int/1, deserialize/1,
          dict_write/2,
@@ -23,7 +23,6 @@ genesis_state() ->
          [space_gas, 1113],
          [max_block_size, 940],
          [block_period, 550],
-         %[block_period, 50],
          [fun_limit, 350],
          [var_limit, 600],
          [oracle_initial_liquidity, 1728],
@@ -73,10 +72,8 @@ dict_unlock(Name, Dict) ->
     
 is_locked(Gov) ->
     case Gov#gov.lock of
-        0 ->
-            false;
-        1 ->
-            true
+        0 -> false;
+        1 -> true
     end.
 
 tree_number_to_value(T) when T < 101 ->
@@ -168,8 +165,6 @@ name2number(X) ->
     io:fwrite(X),
     throw(invalid_governance_atom).
 max() -> 29.
-root_hash(Root) ->
-    trie:root_hash(?name, Root).
 make_leaf(Key, V, CFG) ->
     Key2 = if
                is_integer(Key) -> Key;

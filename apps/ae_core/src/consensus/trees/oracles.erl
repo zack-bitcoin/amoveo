@@ -1,8 +1,7 @@
 -module(oracles).
 -export([dict_new/7,write/2,get/2,id/1,result/1,
-	 question/1,starts/1,root_hash/1, 
+	 question/1,starts/1,
 	 type/1, 
-         %difficulty/1, 
          orders/1, orders_hash/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
 	 set_result/2, set_type/2, governance/1,
@@ -66,8 +65,6 @@ dict_new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
 	    governance = GovernanceVar,
 	    governance_amount = GovAmount
 	   }.
-root_hash(Root) ->
-    trie:root_hash(?name, Root).
 serialize(X) ->
     KL = constants:key_length(),
     HS = constants:hash_size(),

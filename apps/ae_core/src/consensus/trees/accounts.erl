@@ -1,8 +1,7 @@
 -module(accounts).
 -export([new/3,nonce/1,write/2,get/2,%update/5,%update/6,
          dict_update/5, dict_update/6, dict_get/2,
-	 %addr/1, id/1,
-	 balance/1,root_hash/1,new_balance/4,delete/2,
+	 balance/1,new_balance/4,delete/2,
 	 bets/1, bets_hash/1, update_bets/2,
 	 height/1, verify_proof/4,
          dict_write/2, dict_write/3, dict_delete/2,
@@ -22,10 +21,6 @@ height(Account) -> Account#acc.height.
 pubkey(Account) -> Account#acc.pubkey.
 bets(Account) -> Account#acc.bets.
 bets_hash(Account) -> Account#acc.bets_hash.
-%shares(Account) -> Account#acc.shares.
-
-root_hash(Accounts) when is_integer(Accounts) ->
-    trie:root_hash(?id, Accounts).
 
 new(Pub, Balance, Height) ->
     Root0 = constants:root0(),

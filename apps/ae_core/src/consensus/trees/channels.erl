@@ -1,6 +1,6 @@
 -module(channels).
 -export([new/7,serialize/1,deserialize/1,%update/10,
-	 write/2,get/2,delete/2,root_hash/1,
+	 write/2,get/2,delete/2,
 	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
 	 last_modified/1, 
 	 nonce/1,delay/1, amount/1, slasher/1,
@@ -171,8 +171,6 @@ dict_delete(Key, Dict) ->
     dict:store({channels, Key}, 0, Dict).
 delete(ID,Channels) ->
     trie:delete(ID, Channels, channels).
-root_hash(Channels) ->
-    trie:root_hash(channels, Channels).
 make_leaf(Key, V, CFG) ->
     leaf:new(key_to_int(Key), V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
