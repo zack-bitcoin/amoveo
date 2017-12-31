@@ -75,7 +75,7 @@ give_bets([], _Type, Accounts, _OID) -> Accounts;
 give_bets([Order|T], Type, Accounts, OID) ->
     ID = orders:aid(Order),
     {_, Acc, _} = accounts:get(ID, Accounts),
-    OldBets = accounts:bets(Acc),
+    OldBets = Acc#acc.bets,
     NewBets = oracle_bets:add_bet(OID, Type, 2*orders:amount(Order), OldBets),
     Acc2 = accounts:update_bets(Acc, NewBets),
     Accounts2 = accounts:write(Acc2, Accounts),

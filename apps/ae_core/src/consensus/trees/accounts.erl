@@ -6,11 +6,10 @@
 	 verify_proof/4,
          dict_write/2, dict_write/3, dict_delete/2,
          make_leaf/3, key_to_int/1,
-	 serialize/1, deserialize/1, pubkey/1, test/0]).
+	 serialize/1, deserialize/1, test/0]).
 -define(id, accounts).
 -include("../../records.hrl").
 
-pubkey(Account) -> Account#acc.pubkey.
 bets(Account) -> Account#acc.bets.
 bets_hash(Account) -> Account#acc.bets_hash.
 

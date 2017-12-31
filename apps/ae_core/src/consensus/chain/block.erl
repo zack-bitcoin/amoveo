@@ -446,8 +446,8 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
     DictAccount = accounts:dict_get(Pub, Dict),
     {_, Account, _} = accounts:get(Pub, trees:accounts(Trees)),
     OracleBets = 
-        case accounts:bets(DictAccount) of
-            0 -> accounts:bets(Account);
+        case DictAccount#acc.bets of
+            0 -> Account#acc.bets;
             Z -> Z
         end,
     OracleBets2 = 
@@ -500,7 +500,7 @@ ftt2(Fact, Trees) ->
             Path = proofs:path(Fact),
             Accounts = trees:accounts(Trees),
             {_, Account, _} = accounts:get(Pubkey, Accounts),
-            Bets = accounts:bets(Account),
+            Bets = Account#acc.bets,
             Bets2 = setup_tree(0, Bets, Path, Type),
             Bets3 = trees:restore(Bets2, Fact, 0),
             Account2 = accounts:update_bets(Account, Bets3),
