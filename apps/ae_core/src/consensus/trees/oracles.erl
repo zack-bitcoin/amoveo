@@ -5,7 +5,7 @@
          orders/1, orders_hash/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
 	 set_result/2, set_type/2, governance/1,
-	 governance_amount/1, creator/1, serialize/1, deserialize/1,
+	 governance_amount/1, creator/1, serialize/1,
 	 verify_proof/4, dict_get/2, dict_write/2, dict_write/3, 
          make_leaf/3, key_to_int/1,
 	 test/0]).

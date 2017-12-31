@@ -1,11 +1,8 @@
 -module(accounts).
--export([new/3,write/2,get/2,delete/2,
-         dict_update/5, dict_update/6, dict_get/2,
-         dict_write/2, dict_write/3, dict_delete/2,
-	 bets/1, update_bets/2,
-	 verify_proof/4,
-         make_leaf/3, key_to_int/1,
-	 serialize/1, deserialize/1, test/0]).
+-export([bets/1, update_bets/2, new/3,%custom for this tree
+         write/2, get/2, delete/2,%update tree stuff
+         dict_update/5, dict_update/6, dict_get/2, dict_write/2, dict_write/3, dict_delete/2,%update dict stuff
+	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
 -define(id, accounts).
 -include("../../records.hrl").
 

@@ -1,13 +1,8 @@
 -module(channels).
--export([new/7,serialize/1,deserialize/1,%update/10,
-	 write/2,get/2,delete/2,
-	 acc1/1,acc2/1,id/1,bal1/1,bal2/1,
-	 last_modified/1, 
-	 nonce/1,delay/1, amount/1, slasher/1,
-	 closed/1, verify_proof/4,
-         dict_update/10, dict_delete/2, dict_write/2, dict_get/2,
-         make_leaf/3, key_to_int/1,
-	 test/0]).
+-export([new/7, acc1/1, acc2/1, id/1, bal1/1, bal2/1, last_modified/1, nonce/1, delay/1, amount/1, slasher/1, closed/1, %custom for this tree
+	 write/2, get/2, delete/2,%update tree stuff
+         dict_update/10, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         verify_proof/4, make_leaf/3, key_to_int/1, serialize/1, test/0]).%common tree stuff
 %This is the part of the channel that is written onto the hard drive.
 
 -record(channel, {id = 0, %the unique id number that identifies this channel

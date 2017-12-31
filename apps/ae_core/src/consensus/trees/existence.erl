@@ -1,8 +1,8 @@
 -module(existence).
 -export([get/2,write/2,new/2,hash2int/1,hash/1, 
-	 serialize/1, verify_proof/4, dict_get/2, dict_write/2,
-         make_leaf/3, key_to_int/1,
-	 test/0]).
+         dict_get/2, dict_write/2,
+         verify_proof/4, 
+         make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
 %for accessing the proof of existence tree
 -record(exist, {hash, height}).
 -define(name, existence).
