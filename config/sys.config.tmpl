@@ -18,6 +18,7 @@
 
     {smart_contract_runtime_limit, 5000}, %% in miliseconds.
 
+    {recent_blocks_period, 10}, %% this is how frequently we calculate which blocks should no longer be tracked for pruning.
     {prune_period, 10}, %% this is how frequently we prune all the data from the trees from before revert_depth.
     %% if prune period is low, then you will use less ram, but you will waste more cpu on pruning.
     {revert_depth, 20}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state. For light nodes this should be set to 0.
@@ -52,7 +53,7 @@
     {max_channel_delay, 2000},
     {min_channel_lifespan, 30}, %%Minimum amount of time you can get a channel with this node for. measured in blocks.
 
-    {download_blocks_batch, 20},
+    {download_blocks_batch, 10},
     {push_blocks_batch, 10}
   ]},
 

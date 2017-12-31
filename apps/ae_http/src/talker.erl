@@ -25,21 +25,23 @@ talk_helper(Msg, Peer, N) ->
     %io:fwrite(PM),
     %io:fwrite("\n"),
     Msg = packer:unpack(PM),
-    case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 3000}], []) of
+    case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 20000}], []) of
         {ok, {Status, _Headers, []}} ->
+            io:fwrite("talk_helper weird response \n"),
             talk_helper(Msg, Peer, N - 1);
         {ok, {_, _, R}} ->
-	    %io:fwrite("response was \n"),
-	    %io:fwrite(R),
-	    %io:fwrite("\n"),
             packer:unpack(R);
         {error, socket_closed_remotely} ->
+            io:fwrite("talk_helper socket closed remotely \n"),
             talk_helper(Msg, Peer, N - 1);
         {error, timeout} ->
+            io:fwrite("talk_helper timeout \n"),
             talk_helper(Msg, Peer, N - 1);
         {error, failed_connect} ->
+            io:fwrite("talk_helper failed_connect 0 \n"),
             talk_helper(Msg, Peer, N - 1);
         {error, {failed_connect, _}} ->
+            io:fwrite("talk_helper failed_connect 1 \n"),
             talk_helper(Msg, Peer, N - 1);
         X -> io:fwrite("talk helper unexpected"),
             io:fwrite(X),

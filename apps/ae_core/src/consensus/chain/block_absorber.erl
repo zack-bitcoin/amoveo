@@ -25,6 +25,9 @@ save([]) -> ok;
 save([B|T]) -> save(B), save(T);
 save(B) -> gen_server:call(?MODULE, {doit, B}).
 absorb_internal(Block) ->
+    io:fwrite("absorb internal 0 "),
+    io:fwrite(packer:pack(now())),
+    io:fwrite("\n"),
     BH = block:hash(Block),
     NextBlock = Block#block.prev_hash,
     Height = Block#block.height,
@@ -36,8 +39,14 @@ absorb_internal(Block) ->
 	    true = block_hashes:check(NextBlock), %check that the previous block is known.
 	    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
-	    Header = block:block_to_header(Block),
-	    headers:absorb([Header]),
+            TH = headers:read(BH),
+            Header = case TH of
+                         {ok, H} -> H;
+                         error -> 
+                             H = block:block_to_header(Block),
+                             headers:absorb([H]),
+                             H
+                     end,
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),

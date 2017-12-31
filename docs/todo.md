@@ -12,6 +12,8 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* if a node is already running, then `make prod-restart` should not run. We don't want to break a running node.
+
 * update the miners so that if the pool disappears, they wait for it to come back without crashing.
 * update the mining pool, so that restarting the full node doesn't turn off the mining pool.
 
