@@ -19,7 +19,7 @@ go(Tx, Dict, NewHeight) ->
     Dict2 = accounts:dict_write(Acc, Dict),
     OID = Tx#oracle_close.oracle_id,
     Oracle = oracles:dict_get(OID, Dict2),
-    true = oracles:starts(Oracle) =< NewHeight,
+    true = Oracle#oracle.starts =< NewHeight,
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
     VolumeCheck = orders:dict_significant_volume(Dict2, OID, OIL),
     Result = if
@@ -36,7 +36,7 @@ go(Tx, Dict, NewHeight) ->
             0 ->
 		%is not a governance oracle.
 		B1 = oracles:done_timer(Oracle) < NewHeight,
-		B2 = oracles:starts(Oracle3) + MOT < NewHeight,
+		B2 = Oracle3#oracle.starts + MOT < NewHeight,
 		true = (B1 or B2),
 		Dict4;
 	    G ->
@@ -53,7 +53,7 @@ go(Tx, Dict, NewHeight) ->
 			governance:dict_change(Gov, -GA, Dict4);
 		    3 -> 
                         %io:fwrite("gov 3\n"),
-			true = oracles:starts(Oracle3) + MOT < NewHeight,
+			true = Oracle3#oracle.starts + MOT < NewHeight,
 			governance:dict_unlock(G, Dict4)
                 end
         end,

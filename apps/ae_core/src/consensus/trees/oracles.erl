@@ -1,6 +1,5 @@
 -module(oracles).
 -export([new/7,
-	 starts/1,
 	 type/1, 
          orders/1, orders_hash/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
@@ -11,7 +10,6 @@
 -define(name, oracles).
 -include("../../records.hrl").
 
-starts(X) -> X#oracle.starts.
 type(X) -> X#oracle.type.
 orders(X) -> X#oracle.orders.
 orders_hash(X) -> X#oracle.orders_hash.
