@@ -41,13 +41,13 @@ function bets_main() {
                 div.appendChild(order);
                 var cancel_button = document.createElement("input");
                 cancel_button.type = 'button';
-                cancel_button.value = get_words("cancel").concat(get_words("contract"));
+                cancel_button.value = translate.words("cancel").concat(translate.words("contract"));
                 div.appendChild(cancel_button);
                 div.appendChild(document.createElement("br"));
                 cancel_buttons.push(cancel_button);
             } else {
                 //console.log("matched");
-                order.innerHTML = get_words("market").concat(parseInt(oid)).concat(get_words("win_if")).concat(outcome).concat(get_words("amount")).concat(s2c(amount));
+                order.innerHTML = translate.words("market").concat(parseInt(oid)).concat(translate.words("win_if")).concat(outcome).concat(transalte.words("amount")).concat(s2c(amount));
                 oadiv.appendChild(order);
                 oadiv.appendChild(document.createElement("br"));
             }

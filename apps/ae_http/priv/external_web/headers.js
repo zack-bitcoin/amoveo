@@ -1,4 +1,3 @@
-
 function headers_main() {
     var top_header = 0;//stores the valid header with the most accumulated work.
     const retarget_frequency = 2000;
@@ -6,12 +5,12 @@ function headers_main() {
     var top_diff = 0;//accumulative difficulty of top
     var button = document.createElement("input");
     button.type = "button";
-    button.value = get_words("more_headers");
+    button.value = translate.words("more_headers");
     button.onclick = more_headers;
     document.body.appendChild(button);
     wallet_text = document.createElement("p");
-    var height_string = get_words("height");
-    var total_work = get_words("total_work");
+    var height_string = translate.words("height");
+    var total_work = translate.words("total_work");
     wallet_text.innerHTML = JSON.stringify([[height_string, 0], [total_work, 0]]);
     document.body.appendChild(wallet_text);
     more_headers();
@@ -50,8 +49,6 @@ function headers_main() {
             var RF = retarget_frequency; //constants:retarget_frequency();
             var height = header[1];
             var x = height % RF;
-            //console.log("x height");
-            //console.log(JSON.stringify([x, height]));
             if ( ( x == 0 ) && (! (height < 10) )) {
                 return difficulty_should_be2(header);
             } else { return Diff; }

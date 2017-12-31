@@ -27,7 +27,7 @@ function channels_main() {
     //View
 
     var channel_title = document.createElement("h3");
-    channel_title.innerHTML = get_words("channel");
+    channel_title.innerHTML = translate.words("channel");
     document.body.appendChild(channel_title);
     var channels_div = document.createElement("div");
     document.body.append(channels_div);
@@ -43,14 +43,14 @@ function channels_main() {
     var save_name = document.createElement("INPUT");
     save_name.type = "text";
     save_name.id = "channel_name";
-    save_name.value = get_words("channel_state");
+    save_name.value = translate.words("channel_state");
     var save_button = document.createElement("input");
     save_button.type = "button";
-    save_button.value = get_words("save_channel");
+    save_button.value = translate.words("save_channel");
     save_button.onclick = save_channel_data;
     var refresh_channels_button = document.createElement("input");
     refresh_channels_button.type = "button";
-    refresh_channels_button.value = get_words("refresh_channels_interfaces_button");
+    refresh_channels_button.value = translate.words("refresh_channels_interfaces_button");
     refresh_channels_button.onclick = function() {
         variable_public_get(["pubkey"], function(pubkey) {
             return refresh_channels_interfaces(pubkey);
@@ -62,61 +62,61 @@ function channels_main() {
     var oid = document.createElement("INPUT");
     oid.setAttribute("type", "text");
     var oid_info = document.createElement("h8");
-    oid_info.innerHTML = get_words("market").concat(": ");
+    oid_info.innerHTML = translate.words("market").concat(": ");
     var price = document.createElement("INPUT");
     price.setAttribute("type", "text");
     var price_info = document.createElement("h8");
-    price_info.innerHTML = get_words("price").concat(" (between 0 and 100) : ");
+    price_info.innerHTML = translate.words("price").concat(" (between 0 and 100) : ");
     var trade_type = document.createElement("INPUT");
     trade_type.setAttribute("type", "text");
     var trade_type_info = document.createElement("h8");
-    trade_type_info.innerHTML = get_words("trade_type").concat(get_words("true")).concat(get_words("false"));
+    trade_type_info.innerHTML = translate.words("trade_type").concat(translate.words("true")).concat(translate.words("false"));
     var amount = document.createElement("INPUT");
     amount.setAttribute("type", "text");
     var amount_info = document.createElement("h8");
-    amount_info.innerHTML = get_words("amount").concat(": ");
+    amount_info.innerHTML = translate.words("amount").concat(": ");
     var height_button = document.createElement("BUTTON");
-    var button_text_node = document.createTextNode(get_words("make_channel"));
+    var button_text_node = document.createTextNode(translate.words("make_channel"));
     height_button.appendChild(button_text_node);
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text");
     spend_amount.id = "spend_amount";
     var amount_info = document.createElement("h8");
-    amount_info.innerHTML = get_words("amount_channel");
+    amount_info.innerHTML = translate.words("amount_channel");
     var spend_delay = document.createElement("INPUT");
     spend_delay.setAttribute("type", "text");
     spend_delay.id = "spend_delay";
     var delay_info = document.createElement("h8");
-    delay_info.innerHTML = get_words("channel_delay");
+    delay_info.innerHTML = translate.words("channel_delay");
     var lifespan = document.createElement("input");
     lifespan.type = "text";
     lifespan.id = "channel_lifespan";
     var lifespan_info = document.createElement("h8");
-    lifespan_info.innerHTML = get_words("channel_lifespan");
+    lifespan_info.innerHTML = translate.words("channel_lifespan");
     var balance_div = document.createElement("div");
-    balance_div.innerHTML = get_words("your_balance").concat(get_words("unknown"));
+    balance_div.innerHTML = translate.words("your_balance").concat(translate.words("unknown"));
     var channel_balance_button = document.createElement("input");
     channel_balance_button.type = "button";
-    channel_balance_button.value = get_words("check_channel");
+    channel_balance_button.value = translate.words("check_channel");
     var market_title = document.createElement("h3");
-    market_title.innerHTML = get_words("markets");
+    market_title.innerHTML = translate.words("markets");
     var market_link = document.createElement("a");
-    market_link.innerHTML = get_words("markets_link");
+    market_link.innerHTML = translate.words("markets_link");
     market_link.href = "http://146.185.142.103:8080/explorer.html";
     var button = document.createElement("BUTTON");
     button.id = "button";
-    var buttonText = document.createTextNode(get_words("make_bet"));
+    var buttonText = document.createTextNode(translate.words("make_bet"));
     button.appendChild(buttonText);
     button.onclick = make_bet;
     var bet_update_button = document.createElement("input");
     bet_update_button.type = "button";
-    bet_update_button.value = get_words("finalize_bets");
+    bet_update_button.value = translate.words("finalize_bets");
     var combine_cancel_button = document.createElement("input");
     combine_cancel_button.type = "button";
-    combine_cancel_button.value = get_words("gather_bets");
+    combine_cancel_button.value = translate.words("gather_bets");
     var list_bets_button = document.createElement("input");
     list_bets_button.type = "button";
-    list_bets_button.value = get_words("refresh_bets");
+    list_bets_button.value = translate.words("refresh_bets");
     list_bets_button.onclick = bets_object.main;
     variable_public_get(["pubkey"], function(pubkey) {
         return refresh_channels_interfaces(pubkey);
@@ -127,7 +127,7 @@ function channels_main() {
     function save_channel_data() {
         var save_name = document.getElementById("channel_name");
         download(JSON.stringify(channel_manager), save_name.value, "text/plain");
-        channel_warning_div.innerHTML = get_words("save_confirm");
+        channel_warning_div.innerHTML = translate.words("save_confirm");
     }
     function load_channels(pubkey) {
         var file = (load_button.files)[0];
@@ -151,7 +151,7 @@ function channels_main() {
         var div = channel_interface_div;
         div.innerHTML = "";
         var tv_display = document.createElement("div");
-        tv_display.innerHTML = get_words("time_value").concat(": ").concat((tv).toString());
+        tv_display.innerHTML = translate.words("time_value").concat(": ").concat((tv).toString());
         div.appendChild(tv_display);
         //check if we have a chnnel with the server yet.
         //if we don't, then give an interface for making one.
@@ -319,8 +319,8 @@ function channels_main() {
 
             var mybalance = ((val[4] - amount - betAmount)/ 100000000).toString();
             var serverbalance = ((val[5] + amount) / 100000000).toString();
-            balance_div.innerHTML = (get_words("your_balance").concat(": ")).concat(
-                mybalance).concat(get_words("server_balance").concat(": ")).concat(
+            balance_div.innerHTML = (translate.words("your_balance").concat(": ")).concat(
+                mybalance).concat(translate.words("server_balance").concat(": ")).concat(
                     serverbalance);
         });
     }
