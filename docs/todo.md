@@ -16,7 +16,7 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
 
-* Fix the memory leak in the mining pool work maker.
+* pushing blocks is way too slow.
 
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 
