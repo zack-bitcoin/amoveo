@@ -11,8 +11,8 @@ from base import ApiUser, DEV_1_INT, DEV_2_INT, DEV_3_INT
 
 class LightningTest(ApiUser):
     def test_payments(self):
-        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.1)
-        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.05)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
 
         pub1 = 'BEdcBeV8yXcki/s2Lk2aJoCG59/82yacIKdYSW+5p6ZahDZoIUnOiA790dj3KsNSwgdqq1L6IPU5bcq4+ukGCgI='
         priv1 = 'NQNPEkn+ERzNCH0T4FPYzv3PEXl36S5cGGP0NNMS/Fo='
@@ -24,37 +24,37 @@ class LightningTest(ApiUser):
         #sleep=0.1)
         self.request("dump_channels", DEV_1_INT, [], sleep=0)
         self.request("dump_channels", DEV_2_INT, [], sleep=0)
-        self.request("dump_channels", DEV_3_INT, [], sleep=0.1)
+        self.request("dump_channels", DEV_3_INT, [], sleep=0.05)
         self.load_key(DEV_2_INT, [pub1, priv1, brainwallet], sleep=0)
-        self.load_key(DEV_3_INT, [pub2, priv2, brainwallet], sleep=0.1)
-        self.create_account(DEV_1_INT, [pub1, 10000000000], sleep=0.1)
-        self.create_account(DEV_1_INT, [pub2, 10000000000], sleep=0.5)
+        self.load_key(DEV_3_INT, [pub2, priv2, brainwallet], sleep=0.05)
+        self.create_account(DEV_1_INT, [pub1, 10000000000], sleep=0.05)
+        self.create_account(DEV_1_INT, [pub2, 10000000000], sleep=0.05)
 
-        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
-        #self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
-        self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
+        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
+        #self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
+        self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
 
         # 2 step handshake to make channel
-        self.new_channel_with_server(DEV_1_INT, [[127, 0, 0, 1], 3030, 1, 10000, 9999, 50, 4, 1000], sleep=0.1)
-        self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
-        self.new_channel_with_server(DEV_2_INT, [[127, 0, 0, 1], 3030, 2, 10000, 9999, 50, 4, 1000], sleep=0.1)
-        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
+        self.new_channel_with_server(DEV_1_INT, [[127, 0, 0, 1], 3030, 1, 10000, 9999, 50, 4, 1000], sleep=0.05)
+        self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
+        self.new_channel_with_server(DEV_2_INT, [[127, 0, 0, 1], 3030, 2, 10000, 9999, 50, 4, 1000], sleep=0.05)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
 
-        self.channel_spend(DEV_1_INT, [[127, 0, 0, 1], 3030, 777], sleep=0.1)
+        self.channel_spend(DEV_1_INT, [[127, 0, 0, 1], 3030, 777], sleep=0.05)
 
-        self.lightning_spend(DEV_1_INT, [[127, 0, 0, 1], 3030, pub1, 4, 10], sleep=0.1)
-        self.pull_channel_state(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
-        self.pull_channel_state(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
+        self.lightning_spend(DEV_1_INT, [[127, 0, 0, 1], 3030, pub1, 4, 10], sleep=0.05)
+        self.pull_channel_state(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
+        self.pull_channel_state(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
 
         pub3 = 'BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo='
-        self.lightning_spend(DEV_2_INT, [[127, 0, 0, 1], 3030, pub3, 4, 10], sleep=0.1)
-        self.pull_channel_state(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
-        self.pull_channel_state(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
-        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.1)
-        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=2)
-        height1 = self.request('height', DEV_1_INT, [], sleep=0.1)
-        height2 = self.request('height', DEV_2_INT, [], sleep=0.1)
-        height3 = self.request('height', DEV_3_INT, [], sleep=0.1)
+        self.lightning_spend(DEV_2_INT, [[127, 0, 0, 1], 3030, pub3, 4, 10], sleep=0.05)
+        self.pull_channel_state(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
+        self.pull_channel_state(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
+        self.sync(DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.3)
+        height1 = self.request('height', DEV_1_INT, [], sleep=0.05)
+        height2 = self.request('height', DEV_2_INT, [], sleep=0.05)
+        height3 = self.request('height', DEV_3_INT, [], sleep=0.05)
         self.assertEqual(height1, height2)
         self.assertEqual(height1, height3)
 
