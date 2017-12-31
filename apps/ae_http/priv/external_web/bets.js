@@ -10,13 +10,53 @@ function bets_main() {
     document.body.appendChild(oadiv);
     function main() {
         variable_public_get(["pubkey"], outstanding_bets3);
-        function outstanding_bets3(server_pubkey) {
-            var x = channels_object.read(server_pubkey);
-            var bets = x.me[4];
-            var ssme = x.ssme;
-            div.innerHTML = "";
-            oadiv.innerHTML = "";
-        outstanding_bets_print_bets(bets, ssme, server_pubkey);
+    }
+    function outstanding_bets3(server_pubkey) {
+        var x = channels_object.read(server_pubkey);
+        var bets = x.me[4];
+        var ssme = x.ssme;
+        div.innerHTML = "";
+        oadiv.innerHTML = "";
+        var cancel_buttons = [];
+        for (var i = 1; i < bets.length; i++) {
+            var bet = bets[i];
+            console.log("bet is ");
+            console.log(bet);
+            var oid = bet[3][6];
+            var amount = bet[2];
+            var order = document.createElement("h8");
+            var outcome = "";
+            var meta = bet[4];
+            if (bet[4][1] == 1) {
+                outcome = "true";
+            } else if (bet[4][1] == 2) {
+                outcome = "false";
+            }
+            console.log("making cancel orders button, ssme is");
+            console.log(JSON.stringify(ssme));
+            if ( JSON.stringify(ssme[i-1].code) == JSON.stringify([0,0,0,0,4]) ) {
+                //console.log("unmatched");
+                //console.log(JSON.stringify([i, oid, amount, "unmatched", bet[4]]));
+                order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you have an open order to trade this many tokens ").concat(s2c(amount)).concat(", you are trading at this price: ").concat(parseFloat(((bet[4][2])/100), 10)).concat(", you are betting on outcome: ").concat(outcome);
+                div.appendChild(order);
+                var cancel_button = document.createElement("input");
+                cancel_button.type = 'button';
+                cancel_button.value = get_words("cancel").concat(get_words("contract"));
+                div.appendChild(cancel_button);
+                div.appendChild(document.createElement("br"));
+                cancel_buttons.push(cancel_button);
+            } else {
+                //console.log("matched");
+                order.innerHTML = get_words("market").concat(parseInt(oid)).concat(get_words("win_if")).concat(outcome).concat(get_words("amount")).concat(s2c(amount));
+                oadiv.appendChild(order);
+                oadiv.appendChild(document.createElement("br"));
+            }
+        }
+        for (var i = 0; i < cancel_buttons.length; i++) {
+            (function(k){
+                cancel_buttons[i].onclick = function() { cancel_trade(k+2, server_pubkey); };
+                
+            })(i);
         }
     }
     function cancel_trade(n, server_pubkey) {
@@ -83,51 +123,6 @@ function bets_main() {
         var b = a.slice(0, n);
         var c = a.slice(n+1, a.length);
         return b.concat(c);
-    }
-    function outstanding_bets_print_bets(bets, ssme, server_pubkey) {
-        var cancel_buttons = [];
-        for (var i = 1; i < bets.length; i++) {
-            var bet = bets[i];
-            console.log("bet is ");
-            console.log(bet);
-            var oid = bet[3][6];
-            var amount = bet[2];
-            var order = document.createElement("h8");
-            var outcome = "";
-            var meta = bet[4];
-            if (bet[4][1] == 1) {
-                outcome = "true";
-            } else if (bet[4][1] == 2) {
-                outcome = "false";
-            }
-            console.log("making cancel orders button, ssme is");
-            console.log(JSON.stringify(ssme));
-            if ( JSON.stringify(ssme[i-1].code) == JSON.stringify([0,0,0,0,4]) ) {
-                //console.log("unmatched");
-                //console.log(JSON.stringify([i, oid, amount, "unmatched", bet[4]]));
-                order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you have an open order to trade this many tokens ").concat(s2c(amount)).concat(", you are trading at this price: ").concat(parseFloat(((bet[4][2])/100), 10)).concat(", you are betting on outcome: ").concat(outcome);
-                div.appendChild(order);
-                var cancel_button = document.createElement("input");
-                cancel_button.type = 'button';
-                //cancel_button.value = 'cancel trade';
-                cancel_button.value = get_words("cancel").concat(get_words("contract"));
-                div.appendChild(cancel_button);
-                div.appendChild(document.createElement("br"));
-                cancel_buttons.push(cancel_button);
-            } else {
-                //console.log("matched");
-                //console.log(JSON.stringify([i, oid, amount, "matched", bet[4]]));
-                order.innerHTML = get_words("market").concat(parseInt(oid)).concat(get_words("win_if")).concat(outcome).concat(get_words("amount")).concat(s2c(amount));
-                oadiv.appendChild(order);
-                oadiv.appendChild(document.createElement("br"));
-            }
-        }
-        for (var i = 0; i < cancel_buttons.length; i++) {
-            (function(k){
-                cancel_buttons[i].onclick = function() { cancel_trade(k+2, server_pubkey); };
-                
-            })(i);
-        }
     }
     return {main: main};
 }
