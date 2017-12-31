@@ -1,77 +1,6 @@
-var top_header = 0;//stores the valid header with the most accumulated work.
 
-function array_to_string(x) {
-    var a = "";
-    for (var i=0; i<x.length ; i++) {
-        a += String.fromCharCode(x[i]);
-    }
-    return a;
-}
-function serialize_header(x) {
-    //Array [ "header", 0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…", "vvbP//eI8ByxXmJKP7/0hN32AUaOPjY/xnC…", "oZlvyvtE4uKNxKmQYuIZqQTRib+b5qh0u8Q…", 0, 1, 6, 0, 0 ]
-    var height = x[1]; //4 bytes
-    var prev_hash = atob(x[2]); //bin
-    var trees_hash = atob(x[3]); //bin
-    var txs_proof_hash = atob(x[4]); //bin
-    var time = x[5]; //4 bytes
-    var difficulty = x[6]; // 3 bytes
-    var version = x[7]; // 2 bytes
-    var nonce = atob(x[8]); // 32 bytes
-    var period = x[10];
-    //var accumulative_difficulty = x[9]; //don't include
-    var y = string_to_array(prev_hash);
-    return y.concat(
-        integer_to_array(height, 4)).concat(
-            integer_to_array(time, 4)).concat(
-                integer_to_array(version, 2)).concat(
-                    string_to_array(trees_hash)).concat(
-                        string_to_array(txs_proof_hash)).concat(
-                            integer_to_array(difficulty, 2)).concat(
-                                string_to_array(nonce)).concat(
-                                    integer_to_array(period, 2));
-}
-
-function hash2integer(h) {
-    return hash2integer2(h.concat([255]), 0, 0);
-}
-function hash2integer2(h, i, n) {
-    var x = h[i];
-    if  ( x == 0 ) {
-        return hash2integer2(h, i+1, n+(256*8));
-    } else {
-        return n + hash2integer3(x, h[i+1]);
-    }
-}
-function dec2bin(dec){
-    n = (dec).toString(2);
-    n="00000000".substr(n.length)+n;
-    return n;
-}
-function hash2integer3(byte1, byte2) {
-    var x = dec2bin(byte1).concat(dec2bin(byte2));
-    return hash2integer4(x, 0, 0);
-}
-function hash2integer4(binary, i, n) {
-    var x = binary[i];
-    if ( x == "0" ) { return hash2integer4(binary, i+1, n+256) }
-    else {
-        var b2 = binary.slice(i, i+8);
-        var y = hash2integer5(b2) + n;
-        return y;
-    }
-}
-function hash2integer5(bin) {
-    var x = 0;
-    for (var i=0; i < bin.length; i++) {
-        var y = bin[i];
-        if ( y == "0" ) { x = x * 2; }
-        else { x = 1 + (x * 2) }
-    }
-    return x;
-}
-
-wallet_doit1();
-function wallet_doit1() {
+function headers_main() {
+    var top_header = 0;//stores the valid header with the most accumulated work.
     var retarget_frequency = 2000;
     var headers_db = {};//store valid headers by hash
     var top_diff = 0;//accumulative difficulty of top
@@ -286,6 +215,29 @@ function wallet_doit1() {
         //variable_public_get(["headers", 101, n], absorb_headers);
         variable_public_get(["headers", 101, n], absorb_headers);
     }
+    function serialize_header(x) {
+        //Array [ "header", 0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…", "vvbP//eI8ByxXmJKP7/0hN32AUaOPjY/xnC…", "oZlvyvtE4uKNxKmQYuIZqQTRib+b5qh0u8Q…", 0, 1, 6, 0, 0 ]
+        var height = x[1]; //4 bytes
+        var prev_hash = atob(x[2]); //bin
+        var trees_hash = atob(x[3]); //bin
+        var txs_proof_hash = atob(x[4]); //bin
+        var time = x[5]; //4 bytes
+        var difficulty = x[6]; // 3 bytes
+        var version = x[7]; // 2 bytes
+        var nonce = atob(x[8]); // 32 bytes
+        var period = x[10];
+        //var accumulative_difficulty = x[9]; //don't include
+        var y = string_to_array(prev_hash);
+        return y.concat(
+            integer_to_array(height, 4)).concat(
+                integer_to_array(time, 4)).concat(
+                    integer_to_array(version, 2)).concat(
+                        string_to_array(trees_hash)).concat(
+                            string_to_array(txs_proof_hash)).concat(
+                                integer_to_array(difficulty, 2)).concat(
+                                    string_to_array(nonce)).concat(
+                                        integer_to_array(period, 2));
+    }
     function hash_test() {
         console.log(hash([1,4,6,1,2,3,4,4]));
         var z = integer_to_array(1000, 4);
@@ -315,5 +267,6 @@ function wallet_doit1() {
         console.log(sci2int(int2sci(2000)));// should be 2000
 
     }
+    return {serialize: serialize_header, top: top_header};
 }
-
+headers_object = headers_main();

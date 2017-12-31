@@ -312,9 +312,6 @@ function chalang(command) {
                 op_print(d, i, "if op");
                 
             } else if (code[i] == caseelse) {
-                //console.log(JSON.stringify(i));
-                //console.log(JSON.stringify(code));
-                //throw("else error");
                 var skipped_size = count_till(code, i + 1, casethen);
                 i += (skipped_size + 0);
                 op_print(d, i, "else op");
@@ -354,8 +351,6 @@ function chalang(command) {
                 var hash_array = small_hash(definition);
                 var b = btoa(array_to_string(hash_array));
                 var definition2 = replace(recurse, ([binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array), definition);
-                //console.log("definition 2 of new function");
-                //console.log(definition2);
                 d.funs[b] = definition2;
                 var s = definition2.length + 4;
                 var mf = d.many_funs + 1;
@@ -1060,7 +1055,7 @@ function chalang(command) {
         console.log("force update");
         //console.log("force update ss's are ");
         //console.log(JSON.stringify([ssold, ssnew]));
-        var height = top_header[1];
+        var height = headers_object.top[1];
         var ret;
         spk_run("fast", ssold, spk, height, 0, fun_limit, var_limit, function(ran1) {
             //console.log("spk run returned ");
