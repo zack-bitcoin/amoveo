@@ -26,8 +26,7 @@ go(Tx, Dict, NewHeight) ->
 		 VolumeCheck -> Oracle#oracle.type;
 		 true -> 3
 	     end,
-    Oracle2 = oracles:set_result(Oracle, Result),
-    Oracle3 = Oracle2#oracle{done_timer = NewHeight},
+    Oracle3 = Oracle#oracle{done_timer = NewHeight, result = Result},
     Dict4 = oracles:dict_write(Oracle3, Dict2),
     Gov = Oracle3#oracle.governance,
     MOT = governance:dict_get_value(maximum_oracle_time, Dict4),
