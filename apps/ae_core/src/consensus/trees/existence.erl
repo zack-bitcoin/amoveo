@@ -1,8 +1,7 @@
 -module(existence).
--export([get/2,write/2,new/2,hash2int/1,hash/1, 
-         dict_get/2, dict_write/2,
-         verify_proof/4, 
-         make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
+-export([get/2,write/2,new/2,hash/1, 
+         dict_get/2, dict_write/2,%update dict stuff
+         verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
 %for accessing the proof of existence tree
 -record(exist, {hash, height}).
 -define(name, existence).
@@ -12,12 +11,10 @@ new(Hash, Height) ->
     HS = size(Hash),
     #exist{hash = Hash, height = Height}.
 serialize(E) ->
-    HS = constants:hash_size(),
     HB = constants:height_bits(),
     Hash = E#exist.hash,
     HS = size(Hash),
-    io:fwrite(packer:pack(E#exist.height)),
-    io:fwrite("\n"),
+    HS = constants:hash_size(),
     <<(E#exist.height):HB,
      Hash/binary>>.
 deserialize(B) ->
@@ -57,14 +54,6 @@ write(E, Tree) ->
     Key = key_to_int(Hash),
     X = serialize(E),
     trie:put(Key, X, 0, Tree, ?name).
-hash2int(X) -> 
-    S = size(X),
-    S = constants:hash_size(),
-    hash2int(X, 0).
-hash2int(<<>>, N) -> N;
-hash2int(<<X, Y/binary>>, N) ->
-    M = (N*256) + X,
-    hash2int(Y, M).
 make_leaf(Key, V, CFG) ->
     leaf:new(key_to_int(Key), 
              V, 0, CFG).
