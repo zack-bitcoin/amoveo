@@ -5,16 +5,14 @@
 	 type/1, 
          orders/1, orders_hash/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
-	 set_result/2, set_type/2, %governance/1,
-	 governance_amount/1, creator/1, %custom for this tree
+	 set_result/2, set_type/2, 
+	 governance_amount/1, %custom for this tree
          write/2, get/2,%update tree stuff
          dict_get/2, dict_write/2, dict_write/3, %update dict stuff
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]). %common tree stuff
 -define(name, oracles).
 -include("../../records.hrl").
 
-governance(X) -> X#oracle.governance.
-creator(X) -> X#oracle.creator.
 governance_amount(X) -> X#oracle.governance_amount.
 id(X) -> X#oracle.id.
 result(X) -> X#oracle.result.

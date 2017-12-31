@@ -65,7 +65,7 @@ go(Tx, Dict, NewHeight) ->
 	    2 -> 1;
 	    3 -> 1
 	end,
-    OBTx = {oracle_bet, oracles:creator(Oracle4), 
+    OBTx = {oracle_bet, Oracle4#oracle.creator, 
 	  none, 0, OID, LoserType, 
 	  OIL div 2},
     Dict6 = oracle_bet_tx:go2(OBTx, Dict5, NewHeight),%maybe this is bad. maybe we only want to update the one account.

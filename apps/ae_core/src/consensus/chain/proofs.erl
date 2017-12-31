@@ -312,7 +312,7 @@ txs_to_querys2([STx|T], Trees) ->
                  {governance, ?n2i(oracle_initial_liquidity)},
                  {governance, ?n2i(oracle_bet)},
                  {orders, #key{pub = <<?Header:PS>>, id = OID}},
-                 {oracle_bets, #key{pub = oracles:creator(Oracle), id = OID}},
+                 {oracle_bets, #key{pub = Oracle#oracle.creator, id = OID}},
                  {oracles, OID}
                 ] ++ Prove ++ G;
 	    unmatched -> 
