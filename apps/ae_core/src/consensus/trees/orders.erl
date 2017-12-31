@@ -2,7 +2,7 @@
 -export([root_hash/1, amount/1,
          new/2, 
          get/2, empty_book/0,
-         update_amount/2, set_amount/2,
+         set_amount/2,
          many/1, head_get/1, 
          aid/1,
          verify_proof/4,
@@ -37,8 +37,6 @@ many(Root) ->
     Many.
 aid(X) -> X#orders.aid.
 amount(X) -> X#orders.amount.
-update_pointer(X, P) ->
-    X#orders{pointer = P}.
 set_amount(X, A) ->
     X#orders{amount = A}.
 update_amount(X, A) ->
@@ -273,7 +271,7 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
                             {same_exact, dict_head_update(P, OID, Dict), [Order|Matches1], [L|Matches2]};
                         NewA < OldA ->
                             Order2 = update_amount(L, -NewA),
-                            L3 = set_amount(L, NewA),
+                            L3 = L#orders{amount = NewA},
                             {same, dict_write(Order2, OID, Dict), 
                              [Order2|Matches1], [L3|Matches2]}
                     end
