@@ -29,10 +29,10 @@ class MarketTest(ApiUser):
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
         self.request('new_question_oracle', DEV_1_INT, [0, 'aXMgMisyPTQ/'], sleep=0.04)
         self.request('mine_block', DEV_1_INT, [10, 100000], sleep=0.1)
-        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
+        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0)
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
         oid = 1
-        self.request('new_market', DEV_3_INT, [oid, 20, 5], sleep=1.8)#??????????
+        self.request('new_market', DEV_3_INT, [oid, 20, 5], sleep=0.5)#??????????
         height = self.request('height', DEV_3_INT, [], sleep=0.1)
         height = height[1]
         self.request('trade', DEV_1_INT, [6000, 1, 1000, oid, height, 20, [127,0,0,1], 3030], sleep=0.04)
@@ -76,6 +76,6 @@ class MarketTest(ApiUser):
         #self.request('pull_channel_state', DEV_1_INT, [[127,0,0,1], 3030], sleep=0.04)
         self.request('pull_channel_state', DEV_2_INT, [[127,0,0,1], 3030], sleep=0.04)
         self.request('mine_block', DEV_1_INT, [1, 10000], sleep=0.2)
-        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.04)
-        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=1)
+        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0)
+        self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3020], sleep=0.04)
         
