@@ -1,16 +1,14 @@
 -module(oracles).
 -export([new/7,
-         orders_hash/1,
-	 set_orders/2, done_timer/1, set_done_timer/2,
+	 set_orders/2, set_done_timer/2,
 	 set_result/2, set_type/2, 
+         orders/1,
          write/2, get/2,%update tree stuff
          dict_get/2, dict_write/2, dict_write/3, %update dict stuff
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]). %common tree stuff
 -define(name, oracles).
 -include("../../records.hrl").
-
-orders_hash(X) -> X#oracle.orders_hash.
-done_timer(X) -> X#oracle.done_timer.
+orders(X) -> X#oracle.orders.
 set_orders(X, Orders) ->
     X#oracle{orders = Orders, orders_hash = orders:root_hash(Orders)}.
 set_done_timer(X, H) ->

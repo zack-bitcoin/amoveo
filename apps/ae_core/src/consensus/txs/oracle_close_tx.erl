@@ -35,7 +35,7 @@ go(Tx, Dict, NewHeight) ->
         case Gov of
             0 ->
 		%is not a governance oracle.
-		B1 = oracles:done_timer(Oracle) < NewHeight,
+		B1 = Oracle#oracle.done_timer < NewHeight,
 		B2 = Oracle3#oracle.starts + MOT < NewHeight,
 		true = (B1 or B2),
 		Dict4;
@@ -45,11 +45,11 @@ go(Tx, Dict, NewHeight) ->
 		case Result of
 		    1 -> 
                         %io:fwrite("gov 1\n"),
-			true = oracles:done_timer(Oracle) < NewHeight,
+			true = Oracle#oracle.done_timer < NewHeight,
 			governance:dict_change(Gov, GA, Dict4);
 		    2 ->
                         %io:fwrite("gov 2\n"),
-			true = oracles:done_timer(Oracle) < NewHeight,
+			true = Oracle#oracle.done_timer < NewHeight,
 			governance:dict_change(Gov, -GA, Dict4);
 		    3 -> 
                         %io:fwrite("gov 3\n"),
