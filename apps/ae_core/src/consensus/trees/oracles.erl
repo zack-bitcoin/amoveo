@@ -1,7 +1,7 @@
 -module(oracles).
 -export([new/7,
 	 set_orders/2,
-	 set_result/2, set_type/2, 
+	 set_result/2, 
          orders/1,
          write/2, get/2,%update tree stuff
          dict_get/2, dict_write/2, dict_write/3, %update dict stuff
@@ -13,11 +13,6 @@ set_orders(X, Orders) ->
     X#oracle{orders = Orders, orders_hash = orders:root_hash(Orders)}.
 set_result(X, R) ->
     X#oracle{result = R}.
-set_type(X, T) ->
-    true = is_integer(T),
-    true = T > -1,
-    true = T < 5,
-    X#oracle{type = T}.
 new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
     true = size(Creator) == constants:pubkey_size(),
     true = (GovernanceVar > -1) and (GovernanceVar < governance:max()),

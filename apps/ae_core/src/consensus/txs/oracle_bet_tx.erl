@@ -100,7 +100,7 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
 		 true -> 
-                     Oracle0#oracle{done_timer = NewHeight + MOT}
+                     Oracle0#oracle{done_timer = NewHeight + MOT, type = 0}
 	     end,
     true = NewHeight > Oracle#oracle.starts,
     %take some money from them. 
