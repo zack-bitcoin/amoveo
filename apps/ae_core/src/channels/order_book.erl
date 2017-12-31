@@ -14,6 +14,7 @@
 -record(ob, {exposure = 0, price = 5000, buys = [], sells = [], ratio = 5000, expires, period, height = 0}).%this is the price of buys, sells is 1-this.
 %Exposure to buys is positive.
 -record(order, {acc = 0, price, type=buy, amount}). %type is buy/sell
+-include("../records.hrl").
 -define(LOC, constants:order_book()).
 expires(OB) ->
     OB#ob.expires.
@@ -223,7 +224,7 @@ match(OID) ->
     {Trees, _, _} = tx_pool:data(),
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
-    Result = oracles:result(Oracle),
+    Result = Oracle#oracle.result,
     case Result of
         0 -> gen_server:call(?MODULE, {match, OID});
         _ -> ok

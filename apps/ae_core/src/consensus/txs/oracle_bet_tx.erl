@@ -90,7 +90,7 @@ go(Tx, Dict, NewHeight) ->
     Facc = accounts:dict_update(From, Dict, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce, NewHeight),
     Dict2 = accounts:dict_write(Facc, Dict),
     Oracle = oracles:dict_get(Tx#oracle_bet.id, Dict2),
-    0 = oracles:result(Oracle),%check that the oracle isn't already closed.
+    0 = Oracle#oracle.result,%check that the oracle isn't already closed.
     go2(Tx, Dict2, NewHeight).
 go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close the oracle we want to insert one last bet.
     From = Tx#oracle_bet.from,
@@ -128,8 +128,8 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                     orders:dict_match(NewOrder, OID, Dict),
     %Match1 is orders that are still open.
     %Match2 is orders that are already closed. We need to pay them their winnings.
-                Dict3 = dict_give_bets_main(From, Matches1, TxType, Dict2, oracles:id(Oracle)),%gives a single oracle bet to this person
-                Dict4 = dict_give_bets(Matches2, OracleType, Dict3, oracles:id(Oracle)),%gives oracle_bets to each account that got matched
+                Dict3 = dict_give_bets_main(From, Matches1, TxType, Dict2, Oracle#oracle.id),%gives a single oracle bet to this person
+                Dict4 = dict_give_bets(Matches2, OracleType, Dict3, Oracle#oracle.id),%gives oracle_bets to each account that got matched
                 Oracle3 = case Next of
                               same -> 
                                   Oracle;

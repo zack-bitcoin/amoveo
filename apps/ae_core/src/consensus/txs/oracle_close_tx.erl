@@ -41,7 +41,7 @@ go(Tx, Dict, NewHeight) ->
 		Dict4;
 	    G ->
                 %io:fwrite("governance branch\n"),
-		GA = oracles:governance_amount(Oracle3),
+		GA = Oracle3#oracle.governance_amount,
 		case Result of
 		    1 -> 
                         %io:fwrite("gov 1\n"),

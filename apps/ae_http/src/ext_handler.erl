@@ -174,7 +174,7 @@ doit({oracle, X}) ->
     {Trees, _, _} = tx_pool:data(),
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(X, Oracles),
-    {ok, Question} = oracle_questions:get(oracles:question(Oracle)),
+    {ok, Question} = oracle_questions:get(Oracle#oracle.question),
     {ok, OB} = order_book:data(X),
     {ok, {OB, Question}};
 doit({market_data, OID}) ->

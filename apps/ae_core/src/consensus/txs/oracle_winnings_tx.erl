@@ -16,7 +16,7 @@ make(From, Fee, OID, Trees) ->
 go(Tx, Dict, NewHeight) ->
     OID = Tx#oracle_winnings.oracle_id,
     Oracle = oracles:dict_get(OID, Dict),
-    Result = oracles:result(Oracle),
+    Result = Oracle#oracle.result,
     false = Result == 0,
     AID = Tx#oracle_winnings.from,
     Bet = oracle_bets:dict_get({key, AID, OID}, Dict),
