@@ -26,7 +26,7 @@ talk_helper(Msg, Peer, N) ->
     %io:fwrite("\n"),
     Msg = packer:unpack(PM),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 3000}], []) of
-        {ok, {_Status, _Headers, []}} ->
+        {ok, {Status, _Headers, []}} ->
             talk_helper(Msg, Peer, N - 1);
         {ok, {_, _, R}} ->
 	    %io:fwrite("response was \n"),

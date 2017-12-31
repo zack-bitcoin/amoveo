@@ -34,7 +34,7 @@ function refresh_helper(x, cmd, innercallback, callback, n) {
     else {
         //console.log(x.readyState);
         //console.log(x.status);
-        setTimeout(function() {return refresh_helper(x, cmd, innercallback, callback, n - 1);}, 10);}
+        setTimeout(function() {return refresh_helper(x, cmd, innercallback, callback, n);}, 10);}
 }
 
 my_status = "nil";

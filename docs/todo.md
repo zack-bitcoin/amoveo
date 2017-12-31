@@ -12,9 +12,12 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* update the miners so that if the pool disappears, they wait for it to come back without crashing.
+* update the mining pool, so that restarting the full node doesn't turn off the mining pool.
+
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 
-* in the javascript light node, we should seperate the view-code from the controller-code from the model-code.
+* in the javascript light node, we should seperate the view-code from the controller-code from the model-code in each module.
 
 * in the javascript light node, we should wrap up code inside functions to protect the global name space.
 
