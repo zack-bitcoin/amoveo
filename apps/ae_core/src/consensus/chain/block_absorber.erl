@@ -25,9 +25,6 @@ save([]) -> ok;
 save([B|T]) -> save(B), save(T);
 save(B) -> gen_server:call(?MODULE, {doit, B}).
 absorb_internal(Block) ->
-    io:fwrite("absorb internal 0 "),
-    io:fwrite(packer:pack(now())),
-    io:fwrite("\n"),
     BH = block:hash(Block),
     NextBlock = Block#block.prev_hash,
     Height = Block#block.height,

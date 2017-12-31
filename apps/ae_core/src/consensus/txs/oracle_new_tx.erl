@@ -66,7 +66,7 @@ go(Tx, Dict, NewHeight) ->
     QH = hash:doit(Question),
     oracle_questions:store(QH, Question),
     Diff = Tx#oracle_new.difficulty,
-    ON = oracles:dict_new(ID, QH, Starts, From, Gov, GovAmount, Dict),
+    ON = oracles:new(ID, QH, Starts, From, Gov, GovAmount, Dict),
     empty = oracles:dict_get(ID, Dict),
     Dict4 = oracles:dict_write(ON, Dict3).
     

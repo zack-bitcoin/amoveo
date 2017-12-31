@@ -292,7 +292,7 @@ txs_to_querys2([STx|T], Trees) ->
                 OID = oracle_close_tx:oracle_id(Tx),
                 Oracles = trees:oracles(Trees),
                 {_, Oracle, _} = oracles:get(OID, Oracles),
-                Gov = oracles:governance(Oracle),
+                Gov = Oracle#oracle.governance,
                 G = case Gov of
                         0 -> [];
                         _ -> [{governance, Gov}]

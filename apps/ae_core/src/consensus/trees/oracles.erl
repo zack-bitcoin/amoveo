@@ -1,28 +1,17 @@
 -module(oracles).
--export([dict_new/7,write/2,get/2,id/1,result/1,
+-export([new/7,
+         id/1,result/1,
 	 question/1,starts/1,
 	 type/1, 
          orders/1, orders_hash/1,
 	 set_orders/2, done_timer/1, set_done_timer/2,
-	 set_result/2, set_type/2, governance/1,
-	 governance_amount/1, creator/1, serialize/1,
-	 verify_proof/4, dict_get/2, dict_write/2, dict_write/3, 
-         make_leaf/3, key_to_int/1,
-	 test/0]).
+	 set_result/2, set_type/2, %governance/1,
+	 governance_amount/1, creator/1, %custom for this tree
+         write/2, get/2,%update tree stuff
+         dict_get/2, dict_write/2, dict_write/3, %update dict stuff
+	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]). %common tree stuff
 -define(name, oracles).
--record(oracle, {id, 
-		 result, 
-		 question, 
-		 starts, 
-		 type, %0 means order book is empty, 1 means the order book is holding shares of true, 2 means it holds false, 3 means that it holds shares of "bad question". % 3 1
-		 orders = 1,
-		 orders_hash,
-		 creator,
-		 %difficulty = 0,
-		 done_timer, % 3 4
-		 governance = 0,%if it is non-zero, then this is a governance oracle which can update the value of the variables that define the protocol.
-		 governance_amount = 0}).
-%we need to store a pointer to the orders tree in the meta data.
+-include("../../records.hrl").
 
 governance(X) -> X#oracle.governance.
 creator(X) -> X#oracle.creator.
@@ -47,7 +36,7 @@ set_type(X, T) ->
     true = T > -1,
     true = T < 5,
     X#oracle{type = T}.
-dict_new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
+new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
     true = size(Creator) == constants:pubkey_size(),
     true = (GovernanceVar > -1) and (GovernanceVar < governance:max()),
     Orders = orders:empty_book(),

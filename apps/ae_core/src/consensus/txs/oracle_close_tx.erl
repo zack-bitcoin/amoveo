@@ -29,7 +29,7 @@ go(Tx, Dict, NewHeight) ->
     Oracle2 = oracles:set_result(Oracle, Result),
     Oracle3 = oracles:set_done_timer(Oracle2, NewHeight),
     Dict4 = oracles:dict_write(Oracle3, Dict2),
-    Gov = oracles:governance(Oracle3),
+    Gov = Oracle3#oracle.governance,
     MOT = governance:dict_get_value(maximum_oracle_time, Dict4),
     Dict5 = 
         case Gov of

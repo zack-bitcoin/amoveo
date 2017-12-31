@@ -51,3 +51,15 @@
 	      pubkey = <<>>,
 	      bets = 1,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
               bets_hash = <<>>}).
+-record(oracle, {id, 
+		 result, 
+		 question, 
+		 starts, 
+		 type, %0 means order book is empty, 1 means the order book is holding shares of true, 2 means it holds false, 3 means that it holds shares of "bad question". % 3 1
+		 orders = 1,
+		 orders_hash,
+		 creator,
+		 %difficulty = 0,
+		 done_timer, % 3 4
+		 governance = 0,%if it is non-zero, then this is a governance oracle which can update the value of the variables that define the protocol.
+		 governance_amount = 0}).
