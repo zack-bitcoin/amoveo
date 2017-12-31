@@ -12,6 +12,9 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* calculating block_to_header is too very slow. Which means calculating the hash of a block is slow too.
+We should store the hash of the block along with the block, that way we don't have to re-calculate it to frequently.
+
 * if a node is already running, then `make prod-restart` should not run. We don't want to break a running node.
 
 * update the miners so that if the pool disappears, they wait for it to come back without crashing.

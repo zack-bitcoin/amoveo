@@ -118,7 +118,7 @@ get_headers3(Peer, N) ->
 common_block_height(CommonHash) ->
     case block:get_by_hash(CommonHash) of
         empty -> 
-            Header = headers:read(CommonHash),
+            {ok, Header} = headers:read(CommonHash),
             PrevCommonHash = Header#header.prev_hash,
             common_block_height(PrevCommonHash);
         B -> B#block.height
