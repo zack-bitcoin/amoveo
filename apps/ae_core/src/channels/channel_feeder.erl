@@ -28,7 +28,7 @@ handle_cast(garbage, X) ->
 handle_cast({new_channel, Tx, SSPK, Expires}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
     SPK = testnet_sign:data(SSPK),
-    CD = #cd{me = SPK, them = SSPK, cid = new_channel_tx:id(Tx), expiration = Expires},
+    CD = #cd{me = SPK, them = SSPK, cid = new_channel_tx:cid(Tx), expiration = Expires},
     channel_manager:write(other(Tx), CD),
     {noreply, X};
 handle_cast({close, SS, STx}, X) ->

@@ -381,7 +381,7 @@ integer_balance() ->
     A = account(),
     case A of
         empty -> 0;
-        A -> accounts:balance(A)
+        A -> A#acc.balance
     end.
 balance() -> integer_balance().
 mempool() ->

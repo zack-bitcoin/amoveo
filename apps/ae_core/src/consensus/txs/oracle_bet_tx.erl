@@ -1,5 +1,6 @@
 -module(oracle_bet_tx).
 -export([go/3, go2/3, make/6, id/1, from/1, to_prove/2]).
+-include("../../records.hrl").
 -record(oracle_bet, {from, %your account id.
 		     nonce, 
 		     fee, 

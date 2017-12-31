@@ -5,6 +5,7 @@
                         fee = 0,
                         pubkey = <<>>,
                         amount = 0}).
+-include("../../records.hrl").
 
 from(X) ->
     X#create_acc_tx.from.

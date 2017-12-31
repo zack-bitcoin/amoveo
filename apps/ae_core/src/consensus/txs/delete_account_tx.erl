@@ -4,6 +4,7 @@
                         nonce = 0,
                         fee = 0,
                         to = 0}).
+-include("../../records.hrl").
 
 from(X) -> X#delete_acc_tx.from.
 to(X) -> X#delete_acc_tx.to.
@@ -25,7 +26,7 @@ go(Tx, Dict, NewHeight) ->
     AccountFee = Tx#delete_acc_tx.fee,
     false = From == To,
     FromAccount = accounts:dict_get(From, Dict),
-    Balance = accounts:balance(FromAccount),
+    Balance = FromAccount#acc.balance,
     Amount = Balance - AccountFee,
     true = Amount > 0,
     ToAccount = accounts:dict_update(To, Dict, Amount, none, NewHeight),

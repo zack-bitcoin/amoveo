@@ -3,21 +3,15 @@
          dict_update/5, dict_update/6, dict_get/2,
 	 balance/1,new_balance/4,delete/2,
 	 bets/1, bets_hash/1, update_bets/2,
-	 height/1, verify_proof/4,
+	 verify_proof/4,
          dict_write/2, dict_write/3, dict_delete/2,
          make_leaf/3, key_to_int/1,
 	 serialize/1, deserialize/1, pubkey/1, test/0]).
--record(acc, {balance = 0, %amount of money you have
-	      nonce = 0, %increments with every tx you put on the chain. 
-	      height = 0,  %The last height at which you paid the tax
-	      pubkey = <<>>,
-	      bets = 1,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
-              bets_hash = <<>>}).
 -define(id, accounts).
+-include("../../records.hrl").
 
 balance(Account) -> Account#acc.balance.
 nonce(Account) -> Account#acc.nonce.
-height(Account) -> Account#acc.height.
 pubkey(Account) -> Account#acc.pubkey.
 bets(Account) -> Account#acc.bets.
 bets_hash(Account) -> Account#acc.bets_hash.

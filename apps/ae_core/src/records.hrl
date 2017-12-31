@@ -44,3 +44,10 @@
 	     live = true,
              expiration = 0,
 	     cid}). %live is a flag. As soon as it is possible that the channel could be closed, we switch the flag to false. We keep trying to close the channel, until it is closed. We don't update the channel state at all.
+
+-record(acc, {balance = 0, %amount of money you have
+	      nonce = 0, %increments with every tx you put on the chain. 
+	      height = 0, %depreciated. should be removed.
+	      pubkey = <<>>,
+	      bets = 1,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
+              bets_hash = <<>>}).

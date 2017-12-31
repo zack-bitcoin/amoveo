@@ -10,6 +10,7 @@
 * in channels tree timeout_height is unused.
 * calculating block_to_header is too very slow. Which means calculating the hash of a block is slow too.
 * We should store the hash of the block along with the block, that way we don't have to re-calculate it more than once. When sharing blocks we can use this hash to quickly ignore blocks we have already seen, but for a block to be considered valid, we need to check at least once that the hash was calculated correctly.
+* "height" needs to be removed from accounts.
 
 
 ### Things to do before the launch of the official Amoveo blockchain.

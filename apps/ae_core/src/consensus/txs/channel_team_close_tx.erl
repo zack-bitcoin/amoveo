@@ -5,6 +5,7 @@
          aid1/1, aid2/1, id/1]).
 -record(ctc, {aid1 = 0, aid2 = 0, fee = 0,
 	      nonce = 0, id = 0, amount = 0}).
+-include("../../records.hrl").
 aid1(X) -> X#ctc.aid1.
 aid2(X) -> X#ctc.aid2.
 id(X) -> X#ctc.id.

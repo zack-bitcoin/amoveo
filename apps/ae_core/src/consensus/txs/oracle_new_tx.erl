@@ -1,5 +1,6 @@
 -module(oracle_new_tx).
 -export([go/3, make/8, from/1, id/1, governance/1]).
+-include("../../records.hrl").
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
 		     fee = 0, 

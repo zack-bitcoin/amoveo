@@ -93,7 +93,6 @@ doit({new_channel, STx, SSPK, Expires}) ->
     TheirPub = channel_feeder:other(Tx),
     error = channel_manager:read(TheirPub),
     %undefined = channel_feeder:cid(Tx),
-    %true = new_channel_tx:good(Tx),%checks the min_channel_ratio.
     Bal1 = new_channel_tx:bal1(Tx),
     Bal2 = new_channel_tx:bal2(Tx),
     Delay = new_channel_tx:delay(Tx),

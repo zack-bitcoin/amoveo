@@ -1,5 +1,6 @@
 -module(oracle_winnings_tx).
 -export([go/3, make/4, from/1, oracle_id/1]).
+-include("../../records.hrl").
 
 %If you bet in an oracle, and the oracle has closed, this is how you get your winnings out.
 %If you bet on the winning outcome, then you get positive winnings. If you bet on one of the losing outcomes, then you get negative winnings.
