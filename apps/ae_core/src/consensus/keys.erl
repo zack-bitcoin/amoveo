@@ -26,8 +26,7 @@ init(ok) ->
 		 {Pub, Priv} = 
 		     testnet_sign:new_key(),
 		 store(Pub, Priv, ""),
-		 K = #f{pub = Pub, priv=Priv},
-		 K;
+		 #f{pub = Pub, priv=Priv};
 	     true -> #f{pub=X#f.pub}
 	 end,
     erlang:send_after(1000, self(), set_initial_keys),
@@ -63,16 +62,9 @@ handle_call(keypair, _From, R) ->
            end,
     {reply, Keys, R};
 handle_call({encrypt, Message, Pubkey}, _From, R) ->
-    %io:fwrite(packer:pack({encryption, base64:encode(Pubkey), base64:encode(R#f.pub)})),
     EM=encryption:send_msg(Message, base64:encode(Pubkey), base64:encode(R#f.pub), base64:encode(R#f.priv)),
-    io:fwrite("sending encrypted message "),
-    io:fwrite(packer:pack(EM)),
-    io:fwrite("\n"),
     {reply, EM, R};
 handle_call({decrypt, EMsg}, _From, R) ->
-    io:fwrite("getting encrypted message "),
-    io:fwrite(packer:pack(EMsg)),
-    io:fwrite("\n"),
     Message = encryption:get_msg(EMsg, base64:encode(R#f.priv)),
     {reply, Message, R}.
 handle_cast({load, Pub, Priv, Brainwallet}, _R) ->
@@ -99,7 +91,6 @@ handle_info(set_initial_keys, State) ->
     KeysEnvs = {application:get_env(ae_core, keys_pub),
                 application:get_env(ae_core, keys_priv),
                 application:get_env(ae_core, keys_pass)},
-
     case KeysEnvs of
         {{ok, Pub}, {ok, Priv}, {ok, Pass}} ->
 	    Pub2 = base64:decode(Pub),

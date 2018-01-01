@@ -388,10 +388,10 @@ function translate_human() {
             if (language_mode in language_object[x]) {
                 return language_object[x][language_mode];
             } else {
-                return "??"
+                return "??";//if the words haven't been translated, use 2 question marks as a default.
             }
         } else {
-            return "??"
+            return "??";
         }
     }
     return {words: get_words};

@@ -235,7 +235,7 @@ dict_match(Order, OID, Dict) ->
             same_exact -> {Many - length(Matches2), same};
             switch -> {1, switch};
             same -> {Many - length(Matches2) + 1, same}
-                                                 end,
+        end,
     Root2 = dict_many_update(Many2, OID, Dict2),
     {Matches1, Matches2, Switch2, Root2}.
 dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
