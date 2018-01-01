@@ -248,6 +248,6 @@ function headers_main() {
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
     }
-    return {serialize: serialize_header, top: top_header};
+    return {serialize: serialize_header, top: (function() { return top_header; })};
 }
 headers_object = headers_main();

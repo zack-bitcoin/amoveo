@@ -114,10 +114,12 @@ function channels_main() {
     var combine_cancel_button = document.createElement("input");
     combine_cancel_button.type = "button";
     combine_cancel_button.value = translate.words("gather_bets");
-    var list_bets_button = document.createElement("input");
-    list_bets_button.type = "button";
-    list_bets_button.value = translate.words("refresh_bets");
-    list_bets_button.onclick = bets_object.main;
+    var list_bets_button = button_maker(translate.words("refresh_bets"), bets_object.main);
+    //var list_bets_button = document.createElement("input");
+    //list_bets_button.type = "button";
+    //list_bets_button.value = translate.words("refresh_bets");
+    //list_bets_button.onclick = bets_object.main;
+    var close_channel_button = button_maker("close_channel", function(){ return; });
     variable_public_get(["pubkey"], function(pubkey) {
         return refresh_channels_interfaces(pubkey);
     });
@@ -203,7 +205,7 @@ function channels_main() {
         var expires = l[1];
         var server_pubkey = l[2];
         var period = l[3];
-        var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top[1]);
+        var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1]);
         var cd = read(pubkey);
         var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
         var sspk = sign_tx(spk);
@@ -254,7 +256,7 @@ function channels_main() {
         var spend_delay = document.getElementById("spend_delay");
         var delay = parseInt(spend_delay.value, 10);
         var lifespan = document.getElementById("channel_lifespan");
-        var expiration = parseInt(lifespan.value, 10) + headers_object.top[1];
+        var expiration = parseInt(lifespan.value, 10) + headers_object.top()[1];
         var bal2 = amount - 1;
         spend_amount.value = "";
         var fee = 20;
@@ -280,7 +282,7 @@ function channels_main() {
             console.log(JSON.stringify([[delay, delay0], [amount, amount0], [bal2, bal20], [fee, fee0], [acc1, acc10], [acc2, acc20]]));
             console.log("server edited the tx. aborting");
         } else {
-            var current_height = headers_object.top[1];
+            var current_height = headers_object.top()[1];
             var lifespan = expiration - current_height;
             var spk_amount = Math.floor((tv * (delay + lifespan) * (amount + bal2) ) / 100000000);
             var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, spk_amount, 0, delay];
@@ -310,7 +312,7 @@ function channels_main() {
         //console.log(channel_manager[pubkey]);
         var cd = read(pubkey);
         var trie_key = cd.me[6];//channel id, cid
-        var top_hash = hash(headers_object.serialize(headers_object.top));
+        var top_hash = hash(headers_object.serialize(headers_object.top()));
         verify_callback("channels", trie_key, function(val) {
             //var balance_div = document.getElementById("balance_div");
             var spk = cd.them[1];

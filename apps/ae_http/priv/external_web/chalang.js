@@ -1055,7 +1055,7 @@ function chalang(command) {
         console.log("force update");
         //console.log("force update ss's are ");
         //console.log(JSON.stringify([ssold, ssnew]));
-        var height = headers_object.top[1];
+        var height = headers_object.top()[1];
         var ret;
         spk_run("fast", ssold, spk, height, 0, fun_limit, var_limit, function(ran1) {
             //console.log("spk run returned ");

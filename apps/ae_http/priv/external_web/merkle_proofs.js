@@ -1,6 +1,6 @@
 
 function verify_callback(tree, key, callback) {
-    var top_hash = hash(headers_object.serialize(headers_object.top));
+    var top_hash = hash(headers_object.serialize(headers_object.top()));
     variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
         var val = verify_merkle(key, proof);
         return callback(val);
@@ -66,7 +66,7 @@ function verify_merkle(trie_key, x) {
     
     //x is {return tree_roots, tree_root, value, proof_chain}
     var tree_roots = string_to_array(atob(x[1]));
-    var header_trees_hash = string_to_array(atob(top_header[3]));
+    var header_trees_hash = string_to_array(atob(headers_object.top()[3]));
     var hash_tree_roots = hash(tree_roots);
     var check = check_equal(header_trees_hash, hash_tree_roots);
     if (!(check)) {

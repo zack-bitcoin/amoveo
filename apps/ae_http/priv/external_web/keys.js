@@ -75,10 +75,11 @@ function keys_function1() {
     div.appendChild(new_pubkey_div);
     
     div.appendChild(document.createElement("br"));
-    var balance_button = document.createElement("input");
-    balance_button.type = "button";
-    balance_button.value = translate.words("check_balance");
-    balance_button.onclick = update_balance;
+    var balance_button = button_maker(translate.words("check_balance"), update_balance);
+    //var balance_button = document.createElement("input");
+    //balance_button.type = "button";
+    //balance_button.value = translate.words("check_balance");
+    //balance_button.onclick = update_balance;
     var bal_div = document.createElement("div");
     div.appendChild(bal_div);
     div.appendChild(balance_button);
@@ -119,7 +120,13 @@ function keys_function1() {
     }
     function update_balance() {
         var trie_key = pubkey_64();
-        var top_hash = hash(headers_object.serialize(headers_object.top));
+        console.log("top header is "),
+        console.log(headers_object.top()),
+        console.log("serialized "),
+        console.log(headers_object.serialize(headers_object.top()));
+        var top_hash = hash(headers_object.serialize(headers_object.top()));
+        console.log("top hash is "),
+        console.log(top_hash),
         verify_callback("accounts", trie_key, function(x) {
             set_balance(x[1] / 100000000);
         });
