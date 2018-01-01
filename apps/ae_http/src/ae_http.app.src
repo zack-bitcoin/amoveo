@@ -8,8 +8,7 @@
                   stdlib,
                   ssl,
                   cowboy,
-                  lager,
-                  ae_api
+                  lager
                  ]},
   {modules, []},
   {mod, { ae_http_app, []}},
