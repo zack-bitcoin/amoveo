@@ -80,8 +80,6 @@ give_bets([Order|T], Type, Accounts, OID) ->
 dict_give_bets([], _Type, Dict, _OID) -> Dict;
 dict_give_bets([Order|T], Type, Dict, OID) ->
     ID = orders:aid(Order),
-    io:fwrite("oracle_bet_tx:dict_give_bets "),
-    io:fwrite(packer:pack([ID, OID, Type])),
     Dict2 = oracle_bets:dict_add_bet(ID, OID, Type, 2*orders:amount(Order), Dict),
     dict_give_bets(T, Type, Dict2, OID).
 go(Tx, Dict, NewHeight) ->
@@ -102,15 +100,11 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;
 		 true -> 
-                     io:fwrite("oracle_bet_tx:go2 volume too low\n"),
                      Oracle0#oracle{done_timer = NewHeight + MOT}
 	     end,
     true = NewHeight > Oracle#oracle.starts,
     %take some money from them. 
     OracleType = Oracle#oracle.type,%This shouldn't be 0 for the test we are doing.
-    io:fwrite("oracle_bet_tx OracleType "),
-    io:fwrite(packer:pack(OracleType)),
-    io:fwrite("\n"),
     TxType = case Tx#oracle_bet.type of
 		 1 -> 1;
 		 2 -> 2;
@@ -132,9 +126,6 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     %Match1 is orders that are still open.
     %Match2 is orders that are already closed. We need to pay them their winnings.
                 Dict3 = dict_give_bets_main(From, Matches1, TxType, Dict2, Oracle#oracle.id),%gives a single oracle bet to this person
-                io:fwrite("oracle_bet_tx, Oracle Type is "),
-                io:fwrite(packer:pack(OracleType)),
-                io:fwrite("\n"),
                 Dict4 = dict_give_bets(Matches2, OracleType, Dict3, Oracle#oracle.id),%gives oracle_bets to each account that got matched
                 Oracle3 = case Next of
                               same -> 
@@ -142,9 +133,6 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                                   Oracle;
                               switch ->
                                   io:fwrite("oracle_bet_tx switch types\n"),
-                                  io:fwrite("new type is "),
-                                  io:fwrite(packer:pack(TxType)),
-                                  io:fwrite("\n"),
                                   Oracle#oracle{done_timer = NewHeight + MOT, type = TxType}
                           end,
                 oracles:dict_write(Oracle3, Dict4)

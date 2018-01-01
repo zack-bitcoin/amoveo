@@ -29,9 +29,6 @@ false(X) ->
 bad(X) ->
     X#bet.bad.
 increase(X, Type, A) ->
-    io:fwrite("oracle_bets:increase "),
-    io:fwrite(packer:pack(Type)),
-    io:fwrite("\n"),
     case Type of
 	1 -> X#bet{true = X#bet.true + A};
 	2 -> X#bet{false = X#bet.false + A};
@@ -93,9 +90,6 @@ delete(ID, Tree) ->
     trie:delete(ID, Tree, ?name).
 dict_add_bet(Pub, OID, Type, Amount, Dict) ->
     X = dict_get({key, Pub, OID}, Dict),
-    io:fwrite("oracle_bets:dict_add_bet "),
-    io:fwrite(packer:pack([OID, Type, Amount])),
-    io:fwrite("\n"),
     Y = case X of
             empty -> new(OID, Type, Amount);
             Bet -> increase(Bet, Type, Amount)
