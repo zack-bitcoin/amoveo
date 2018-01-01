@@ -75,10 +75,10 @@ function headers_main() {
     function difficulty_should_be2(header) {
         var period = header[10];
         var f = Math.floor(retarget_frequency / 2); //constants:retarget frequencey is 2000
-        var a1 = retarget(header, f, []);
+        var a1 = retarget2(header, f, []);
         var times1 = a1.times;
         var header2000 = a1.header;
-        var a2 = retarget(header2000, f, []);
+        var a2 = retarget2(header2000, f, []);
         var times2 = a2.times;
         var m1 = median(times1);
         var m2 = median(times2);

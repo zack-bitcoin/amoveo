@@ -5,6 +5,25 @@ function miner_main() {
     var work_loop = 30000;//how many times to mine before checking if the user clicked a button.
     var mining_state = false; //set to false to stop mining.
     var blocks_found = 0;
+    var button = document.createElement("input");
+    button.type = "button";
+    stop_mining();
+    function start_mining() {
+        button.value = "stop mining";
+        mining_state = true;
+        mine();
+        button.onclick = stop_mining;
+    }
+    function stop_mining() {
+        button.value = translate.words("start_mining");
+        mining_state = false;
+        button.onclick = start_mining;
+    }
+    var div = document.createElement("div");
+    div.id = "miner_div";
+    document.body.appendChild(div);
+    div.innerHTML = "0 ".concat(translate.words("blocks_found"));
+    document.body.appendChild(button);
     function miner_get(cmd, callback) {
         var u = url(get_port() + 5, get_ip());
         //var u = url(get_port() + 5, "localhost");
@@ -72,32 +91,9 @@ function miner_main() {
             mine_helper(d_hash, d_nonce, d_diff, 1000000);//after 1 million tries, it checks to see if the thing we are working on changed.
         });
     }
-    function gui() {
-        var button = document.createElement("input");
-        button.type = "button";
-        stop_mining();
-        function start_mining() {
-            button.value = "stop mining";
-            mining_state = true;
-            mine();
-            button.onclick = stop_mining;
-        }
-        function stop_mining() {
-            button.value = translate.words("start_mining");
-            mining_state = false;
-            button.onclick = start_mining;
-        }
-        var div = document.createElement("div");
-        div.id = "miner_div";
-        document.body.appendChild(div);
-        div.innerHTML = "0 ".concat(translate.words("blocks_found"));
-        document.body.appendChild(button);
-    }
-    return({"mine": mine, "mining_state": mining_state, "make_interface": gui});
+    return({"mine": mine, "mining_state": mining_state});
 };
 
 var miner_object = miner_main();
-//miner_object.test();
-miner_object.make_interface();
 
     
