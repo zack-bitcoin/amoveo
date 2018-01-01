@@ -120,7 +120,7 @@ doit({spk, TheirPub})->
 doit({channel_payment, SSPK, Amount}) ->
     R = channel_feeder:spend(SSPK, Amount),
     {ok, R};
-doit({close_channel, CID, PeerId, SS, STx}) ->
+doit({channel_close, CID, PeerId, SS, STx}) ->
     channel_feeder:close(SS, STx),
     Tx = testnet_sign:data(STx),
     Fee = channel_team_close_tx:fee(Tx),
@@ -128,7 +128,7 @@ doit({close_channel, CID, PeerId, SS, STx}) ->
     SPK = CD#cd.me,
     Height = (headers:top())#header.height,
     {Trees,_,_} = tx_pool:data(),
-    {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
+    {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
     SSTx = keys:sign(STx),
     tx_pool_feeder:absorb(SSTx),

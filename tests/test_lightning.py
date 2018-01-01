@@ -57,4 +57,6 @@ class LightningTest(ApiUser):
         height3 = self.request('height', DEV_3_INT, [], sleep=0.05)
         self.assertEqual(height1, height2)
         self.assertEqual(height1, height3)
-
+        self.request('channel_close', DEV_1_INT, [[127,0,0,1], 3030], sleep=0)
+        self.request('channel_close', DEV_2_INT, [[127,0,0,1], 3030], sleep=0)
+        

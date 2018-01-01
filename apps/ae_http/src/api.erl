@@ -254,8 +254,6 @@ pretty_display(I) ->
     F = I / TokenDecimals,
     [Formatted] = io_lib:format("~.8f", [F]),
     Formatted.
-close_channel_with_server() ->
-    internal_handler:doit({close_channel, constants:server_ip(), constants:server_port()}).
 grow_channel(IP, Port, Bal1, Bal2) ->
     %This only works if we only have 1 channel partner. If there are multiple channel partners, then we need to look up their pubkey some other way than the head of the channel_manager:keys().
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
@@ -391,7 +389,6 @@ halt() -> off().
 off() ->
     testnet_sup:stop(),
     ok = application:stop(ae_core),
-    ok = application:stop(ae_api),
     ok = application:stop(ae_http).
 mine_block() ->
     block:mine(1, 100000).
@@ -418,11 +415,12 @@ channel_close(IP, Port, Fee) ->
     {Trees,_,_} = tx_pool:data(),
     Height = (block:get_by_hash(headers:top()))#block.height,
     SS = CD#cd.ssthem,
-    {Amount, _, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
+    SS = [],
+    {Amount, _Nonce, _Delay} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = SPK#spk.cid,
     {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
     STx = keys:sign(Tx),
-    {ok, SSTx} = talker:talk({close_channel, CID, keys:pubkey(), SS, STx}, IP, Port),
+    {ok, SSTx} = talker:talk({channel_close, CID, keys:pubkey(), SS, STx}, IP, Port),
     tx_pool_feeder:absorb(SSTx),
     0.
 channel_solo_close() -> channel_solo_close({127,0,0,1}, 3010).

@@ -20,7 +20,7 @@
 
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 
-* in the javascript light node, we should seperate the view-code from the controller-code from the model-code in each module.
+* in the javascript light node, we should seperate the view-code from the controller-code from the model-code in each page.
 
 * in the javascript light node, we should wrap up code inside functions to protect the global name space.
 
