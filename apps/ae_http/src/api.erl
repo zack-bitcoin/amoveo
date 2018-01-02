@@ -76,15 +76,6 @@ delete_account(ID, Fee) ->
       fun(Trees) ->
               delete_account_tx:new(ID, keys:pubkey(), Fee, Trees)
       end).
-repo_account(ID) ->   
-    {Trees, _, _} = tx_pool:data(),
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(repo, Governance),
-    repo_account(ID, ?Fee+Cost).
-repo_account(ID, Fee) ->   
-    F = fun(Trees) ->
-		repo_tx:make(ID, Fee, keys:pubkey(), Trees) end,
-    tx_maker(F).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
@@ -254,23 +245,6 @@ pretty_display(I) ->
     F = I / TokenDecimals,
     [Formatted] = io_lib:format("~.8f", [F]),
     Formatted.
-grow_channel(IP, Port, Bal1, Bal2) ->
-    %This only works if we only have 1 channel partner. If there are multiple channel partners, then we need to look up their pubkey some other way than the head of the channel_manager:keys().
-    {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
-    CID = CD#cd.cid,
-    Stx = grow_channel_tx(CID, Bal1, Bal2),
-    %make an spk where we pay them the fee.
-    %make sure the spk isn't valid unless the grow_channel tx happens.
-    talker:talk({grow_channel, Stx}, IP, Port).
-grow_channel_tx(CID, Bal1, Bal2) ->
-    {Trees, _, _} = tx_pool:data(),
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(gc, Governance),
-    grow_channel_tx(CID, Bal1, Bal2, ?Fee+Cost).
-grow_channel_tx(CID, Bal1, Bal2, Fee) ->
-    {Trees, _, _} = tx_pool:data(),
-    {Tx, _} = grow_channel_tx:make(CID, Trees, Bal1, Bal2, Fee),
-    keys:sign(Tx).
 channel_team_close(CID, Amount) ->
     {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
@@ -279,10 +253,6 @@ channel_team_close(CID, Amount) ->
 channel_team_close(CID, Amount, Fee) ->
     {Trees, _, _} = tx_pool:data(),
     keys:sign(channel_team_close_tx:make(CID, Trees, Amount, Fee)).
-channel_repo(CID, Fee) ->
-    F = fun(Trees) ->
-		channel_repo_tx:make(keys:pubkey(), CID, Fee, Trees) end,
-    tx_maker(F).
 channel_timeout() ->
     channel_timeout(constants:server_ip(), constants:server_port()).
 channel_timeout(Ip, Port) ->

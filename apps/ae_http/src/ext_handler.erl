@@ -62,8 +62,6 @@ doit({test}) ->
 doit({test, N}) ->
     M = 8 * N,
     {test_response, <<0:M>>};
-doit({min_channel_ratio}) ->
-    application:get_env(ae_core, min_channel_ratio);
 doit({spend_tx, Amount, Fee, From, To}) ->
     {Trees, _, _} = tx_pool:data(),
     {Tx, _} = spend_tx:make(To, Amount, Fee, From, Trees),
@@ -106,13 +104,6 @@ doit({new_channel, STx, SSPK, Expires}) ->
     S2SPK = keys:sign(SPK),
     channel_feeder:new_channel(Tx, SSPK, Expires),
     {ok, [SSTx, S2SPK]};
-doit({grow_channel, Stx}) -> %they should send a signed spk too.
-
-    Tx = testnet_sign:data(Stx),
-    true = grow_channel_tx:good(Tx),%checks the min_channel_ratio, and other things.
-    SStx = keys:sign(Stx),
-    tx_pool_feeder:absorb(SStx),
-    {ok, ok};
 doit({spk, TheirPub})->
     {ok, CD} = channel_manager:read(TheirPub),
     ME = keys:sign(CD#cd.me),
