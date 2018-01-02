@@ -1,6 +1,6 @@
 We can raise funds for public goods using this technology.
-Unlike taxation, we don't use violence to raise funds. Aeternity doesn't cause anyone to over-pay.
-Unlike donation, we don't suffer from tragedy of the commons. With Aeternity people who under-pay lose money, on average.
+Unlike taxation, we don't use violence to raise funds. Amoveo doesn't cause anyone to over-pay.
+Unlike donation, we don't suffer from tragedy of the commons. With Amoveo people who under-pay lose money, on average.
 The most profitable strategy is to give almost as much money to the fundraiser as the public good will create for you.
 
 So if we are using the dominant assurance contract to build a bridge over a river, and the bridge will make your restaurant worth $10,000 more, then the Nash equilibrium strategy for you is to give $10,000 to the contract.
