@@ -492,13 +492,10 @@ mining_data() ->
     {_, Height, Txs} = tx_pool:data(),
     PB = block:get_by_height(Height),
     {ok, Top} = headers:read(block:hash(PB)),
-    trees:prune(),
+    block_absorber:prune(),
     Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
-    spawn(fun() ->
-                 db:save(?mining, Block)
-                 end),
+    spawn(fun() -> db:save(?mining, Block) end),
     NextDiff = headers:difficulty_should_be(Top),
-    %[hash:doit(block:hash(Block)), crypto:strong_rand_bytes(32), PB#block.difficulty].
     [hash:doit(block:hash(Block)), 
      crypto:strong_rand_bytes(32), 
      headers:difficulty_should_be(Top)].

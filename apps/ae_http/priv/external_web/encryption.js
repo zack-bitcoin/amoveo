@@ -10,7 +10,7 @@ function encryption_main() {
     function hex2array(x) {
         return string_to_array(fromHex(x));
     }
-    function send_msg(m, to_pub, fromkey) {
+    function send(m, to_pub, fromkey) {
         var from_pub = btoa(fromHex(fromkey.getPublic("hex")));
         var newkey = new_keys();
         var eph_pub = hex2array(newkey.getPublic("hex"));
@@ -20,7 +20,7 @@ function encryption_main() {
         var emsg = bin_enc(ss, string_to_array(JSON.stringify(msg)));
         return ["emsg", btoa(array_to_string(eph_pub)), btoa(array_to_string(emsg))];
     };
-    function get_msg(emsg, my_key) {
+    function get(emsg, my_key) {
         var eph_pub = string_to_array(atob(emsg[1]));
         eph_key = ec.keyFromPublic(toHex(array_to_string(eph_pub)), 'hex').getPublic();
         var ss = shared(my_key, eph_key);
@@ -31,7 +31,7 @@ function encryption_main() {
         if (b) {
             return msg[2];
         } else {
-            throw("encryption get_msg error");
+            throw("encryption get error");
         }
     }
     function test() {
@@ -40,13 +40,14 @@ function encryption_main() {
         var textBytes = [1,2,3];
         var eb = bin_enc(key, textBytes);
         console.log(eb); // good. [100, 131, 24]
+        console.log(bin_dec(key, eb)); // good. [1, 2, 3]
         var fromKey = new_keys();
         var toKey = new_keys();
-        var sm = send_msg([1,2,3], toKey.getPublic(), fromKey);
+        var sm = send([1,2,3], toKey.getPublic(), fromKey);
         console.log(JSON.stringify(sm));
-        return get_msg(sm, toKey);
+        return get(sm, toKey);
     }
     test();
-    return {bin_enc: bin_enc, bin_dec: bin_dec};
+    return {get: get, send: send};
 }
-//var encryption_object = encryption_main();
+var encryption_object = encryption_main();

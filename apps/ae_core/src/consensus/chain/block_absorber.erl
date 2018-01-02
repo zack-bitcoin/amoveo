@@ -1,7 +1,8 @@
 -module(block_absorber).
 -behaviour(gen_server).
 -include("../../records.hrl").
--export([enqueue/1, %% async request
+-export([prune/0, %% delete unneeded things from trees
+         enqueue/1, %% async request
 	 save/1,    %% returns after saving
 	 do_save/1]). %% run without gen_server
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
@@ -12,12 +13,16 @@ terminate(_, _) ->
     io:fwrite("block absorber died! \n"),
     ok.
 handle_info(_, X) -> {noreply, X}.
+handle_cast(prune, X) ->
+    trees:prune(),
+    {noreply, X};
 handle_cast({doit, BP}, X) ->
     absorb_internal(BP),
     {noreply, X}.
 handle_call({doit, BP}, _From, X) -> 
     absorb_internal(BP),
     {reply, ok, X}.
+prune() -> gen_server:cast(?MODULE, prune).
 enqueue([]) -> ok;
 enqueue([B|T]) -> enqueue(B), enqueue(T);
 enqueue(B) -> gen_server:cast(?MODULE, {doit, B}).
@@ -31,7 +36,7 @@ absorb_internal(Block) ->
     BHC = block_hashes:check(BH),
     if
         Height == 0 -> ok;
-        BHC -> ok; %we already have this block.
+        BHC -> ok; %we already have this block
 	true ->
 	    true = block_hashes:check(NextBlock), %check that the previous block is known.
 	    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
