@@ -10,7 +10,6 @@ start the node
 ```
   make prod-go
 ```
-[You can access the running node from a browser](http://localhost:8081/main.html)
 
 You can communicate with the running node from a terminal like this:
 ```

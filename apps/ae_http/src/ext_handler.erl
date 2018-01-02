@@ -26,7 +26,7 @@ doit({account, Pubkey}) ->
     {ok, api:account(Pubkey)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
-doit({give_block, Block}) -> 
+doit({give_block, Block}) -> %block can also be a list of blocks.
     block_absorber:save(Block),
     {ok, 0};
 doit({block, N}) when (is_integer(N) and (N > -1))->

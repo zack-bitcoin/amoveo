@@ -70,19 +70,13 @@ give_blocks(Peer, CommonHash) ->
              end,
     if 
         length(Blocks) > 0 ->
-            %spawn(fun() -> do_send_blocks(Peer, Blocks) end);
-            do_send_blocks(Peer, Blocks),
+            remote_peer({give_block, Blocks}, Peer),
             NewCommonHash = block:hash(hd(lists:reverse(Blocks))),
             give_blocks(Peer, NewCommonHash);
         true -> 
             io:fwrite("finished sending blocks"),
             false
     end.
-do_send_blocks(_, []) -> ok;
-do_send_blocks(Peer, [Block|T]) ->
-    remote_peer({give_block, Block}, Peer),
-    timer:sleep(20),
-    do_send_blocks(Peer, T).
 remote_peer(Transaction, Peer) ->
     case talker:talk(Transaction, Peer) of
         {ok, Return0} -> Return0;
