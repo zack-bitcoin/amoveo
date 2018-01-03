@@ -51,7 +51,7 @@ go(Tx, Dict, NewHeight) ->
     true = NewCNonce > channels:nonce(OldChannel),
     true = (-1 < (channels:bal1(OldChannel)-Amount)),%channels can only delete money that was inside the channel.
     true = (-1 < (channels:bal2(OldChannel)+Amount)),
-    NewChannel = channels:dict_update(From, CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
+    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
     Dict2 = channels:dict_write(NewChannel, Dict),
     ID = Tx#cs.from,
     Account = accounts:dict_update(ID, Dict, -Fee, Nonce, NewHeight),

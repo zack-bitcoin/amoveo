@@ -65,7 +65,11 @@ handle_call({encrypt, Message, Pubkey}, _From, R) ->
     EM=encryption:send_msg(Message, base64:encode(Pubkey), base64:encode(R#f.pub), base64:encode(R#f.priv)),
     {reply, EM, R};
 handle_call({decrypt, EMsg}, _From, R) ->
+    io:fwrite("keys decrypt "),
+    io:fwrite(packer:pack(EMsg)),
+    io:fwrite("\n"),
     Message = encryption:get_msg(EMsg, base64:encode(R#f.priv)),
+    %Message = encryption:get_msg(EMsg, R#f.priv),
     {reply, Message, R}.
 handle_cast({load, Pub, Priv, Brainwallet}, _R) ->
     store(Pub, Priv, Brainwallet),
@@ -124,9 +128,9 @@ change_password(Current, New) -> gen_server:cast(?MODULE, {change_password, Curr
 new(Brainwallet) -> gen_server:cast(?MODULE, {new, Brainwallet}).
 shared_secret(Pub) -> gen_server:call(?MODULE, {ss, Pub}).
 decrypt(EMessage) ->
-    binary_to_term(element(3, gen_server:call(?MODULE, {decrypt, EMessage}))).
+    packer:unpack(element(3, gen_server:call(?MODULE, {decrypt, EMessage}))).
 encrypt(Message, Pubkey) ->
-    gen_server:call(?MODULE, {encrypt, term_to_binary(Message), Pubkey}).
+    gen_server:call(?MODULE, {encrypt, packer:pack(Message), Pubkey}).
 test() ->
     unlocked = keys:status(),
     Tx = {spend, 1, 1, 2, 1, 1},

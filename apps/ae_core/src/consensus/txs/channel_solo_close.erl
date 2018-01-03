@@ -41,7 +41,7 @@ go(Tx, Dict, NewHeight) ->
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict),
     %false = Amount == 0,
     true = NewCNonce > channels:nonce(OldChannel),
-    NewChannel = channels:dict_update(From, CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false),
+    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false),
 
     true = (-1 < (channels:bal1(NewChannel)-Amount)),
     true = (-1 < (channels:bal2(NewChannel)+Amount)),

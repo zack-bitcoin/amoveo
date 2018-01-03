@@ -1,7 +1,7 @@
 -module(channels).
--export([new/7, acc1/1, acc2/1, id/1, bal1/1, bal2/1, last_modified/1, nonce/1, delay/1, amount/1, slasher/1, closed/1, %custom for this tree
+-export([new/7, acc1/1, acc2/1, id/1, bal1/1, bal2/1, last_modified/1, nonce/1, delay/1, amount/1, closed/1, %custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
-         dict_update/10, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_update/9, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, serialize/1, test/0]).%common tree stuff
 %This is the part of the channel that is written onto the hard drive.
 
@@ -18,7 +18,7 @@
                   %entropy
 		  delay = 0,%this is the minimum of how long you have to wait since "last_modified" to do a channel_timeout_tx. 
                   %every time a channel_slash_tx happens, this delay is updated. This is how long you need to wait before you can do a channel_timeout tx.
-		  slasher = 0, %If the channel was slashed, then we shouldn't allow grow_channel txs any more.
+		  %slasher = 0, %If the channel was slashed, then we shouldn't allow grow_channel txs any more.
 		  closed = 0 %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
 		  }%
        ).
@@ -32,11 +32,10 @@ last_modified(C) -> C#channel.last_modified.
 %mode(C) -> C#channel.mode.
 nonce(C) -> C#channel.nonce.
 delay(C) -> C#channel.delay.
-slasher(C) -> C#channel.slasher.
 closed(C) -> C#channel.closed.
 %shares(C) -> C#channel.shares.
 
-dict_update(Slasher, ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
+dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
     Close = case Close0 of 
                 1 -> 1;
                 0 -> 0;
@@ -66,7 +65,6 @@ dict_update(Slasher, ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0)
                         nonce = NewNonce,
                         last_modified = Height,
                         delay = Delay,
-                        slasher = Slasher,
                         closed = Close
 		       },
     C.

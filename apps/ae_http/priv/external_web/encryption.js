@@ -2,8 +2,12 @@ function encryption_main() {
     function aes_ctr(key) {
         return(new aesjs.ModeOfOperation.ctr(key, [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]));
     };
-    function bin_enc(key,bin){return aes_ctr(key).encrypt(bin);};
-    function bin_dec(key, bin){return aes_ctr(key).decrypt(bin);};
+    function bin_enc(key,bin){
+        return Array.from(aes_ctr(key).encrypt(bin));
+    };
+    function bin_dec(key, bin){
+        return Array.from(aes_ctr(key).decrypt(bin));
+    };
     function shared(key, pub) {
         return hex2array(key.derive(pub).toString(16));
     }
@@ -28,26 +32,35 @@ function encryption_main() {
         fromkey = keys.ec().keyFromPublic(toHex(atob(msg[3])), 'hex'); 
         var b = verify(eph_pub, btoa(msg[1]), fromkey);
         //eph_pub is the data that is signed.
-        if (b) {
-            return msg[2];
-        } else {
-            throw("encryption get error");
+        if (b) { return msg[2];
+        } else { throw("encryption get error");
         }
+    }
+    function assert_eq(x, y) {
+        if (!(JSON.stringify(x) == JSON.stringify(y))) {
+            console.log("failed assert_eq");
+            console.log(JSON.stringify(x));
+            console.log(JSON.stringify(y));
+            throw("failed assert_eq");
+        };
     }
     function test() {
         var key = hash([1]);
-        console.log(key);//good. same as hash:doit(<<1>>).
+        console.log(key);//same as hash:doit(<<1>>) from erlang.
         var textBytes = [1,2,3];
         var eb = bin_enc(key, textBytes);
-        console.log(eb); // good. [100, 131, 24]
-        console.log(bin_dec(key, eb)); // good. [1, 2, 3]
+        assert_eq(eb, [100, 131, 24]);
+        assert_eq(bin_dec(key, eb), [1, 2, 3]);
         var fromKey = keys.make();
         var toKey = keys.make();
         var sm = send([1,2,3], toKey.getPublic(), fromKey);
-        console.log(JSON.stringify(sm));
-        return get(sm, toKey);
+        assert_eq(get(sm, toKey), [1, 2, 3]);
+        var masterPub64 = "BLDdkEzI6L8qmIFcSdnH5pfNAjEU11S9pHXFzY4U0JMgfvIMnwMxDOA85t6DKArhzbPJ1QaNBFHO7nRguf3El3I=";
+        var master = keys.ec().keyFromPublic(toHex(atob(masterPub64)), 'hex');
+        console.log(JSON.stringify(send([1,2,3], master.getPublic(), fromKey)));
+        console.log("encryption test passed.");
     }
-    //test();
+    test();
     return {get: get, send: send};
 }
 var encryption_object = encryption_main();
