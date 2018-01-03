@@ -3,7 +3,7 @@ function headers_main() {
     const retarget_frequency = 2000;
     var headers_db = {};//store valid headers by hash
     var top_diff = 0;//accumulative difficulty of top
-    var button = button_maker(translate.words("more_headers"), more_headers);
+    var button = button_maker("more_headers", more_headers);
     document.body.appendChild(button);
     wallet_text = document.createElement("p");
     var height_string = translate.words("height");

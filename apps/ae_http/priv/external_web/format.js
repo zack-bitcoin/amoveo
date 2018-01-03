@@ -93,7 +93,7 @@ function hash2integer(h) {
 function button_maker(val, fun) {
     var button = document.createElement("input");
     button.type = "button";
-    button.value = val;
+    button.value = translate.words(val);
     button.onclick = fun;
     return button;
 }

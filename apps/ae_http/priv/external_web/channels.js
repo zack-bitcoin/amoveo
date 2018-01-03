@@ -43,18 +43,12 @@ function channels_main() {
     save_name.type = "text";
     save_name.id = "channel_name";
     save_name.value = translate.words("channel_state");
-    var save_button = document.createElement("input");
-    save_button.type = "button";
-    save_button.value = translate.words("save_channel");
-    save_button.onclick = save_channel_data;
-    var refresh_channels_button = document.createElement("input");
-    refresh_channels_button.type = "button";
-    refresh_channels_button.value = translate.words("refresh_channels_interfaces_button");
-    refresh_channels_button.onclick = function() {
+    var save_button = button_maker("save_channel", save_channel_data);
+    var refresh_channels_button = button_maker("refresh_channels_interfaces_button", function() {
         variable_public_get(["pubkey"], function(pubkey) {
             return refresh_channels_interfaces(pubkey);
         });
-    };
+    });
     append_children(channels_div, [save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
 
     
@@ -74,9 +68,7 @@ function channels_main() {
     amount.setAttribute("type", "text");
     var amount_info = document.createElement("h8");
     amount_info.innerHTML = translate.words("amount").concat(": ");
-    var height_button = document.createElement("BUTTON");
-    var button_text_node = document.createTextNode(translate.words("make_channel"));
-    height_button.appendChild(button_text_node);
+    var height_button = button_maker("make_channel", function() { })
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text");
     spend_amount.id = "spend_amount";
@@ -94,26 +86,18 @@ function channels_main() {
     lifespan_info.innerHTML = translate.words("channel_lifespan");
     var balance_div = document.createElement("div");
     balance_div.innerHTML = translate.words("your_balance").concat(translate.words("unknown"));
-    var channel_balance_button = document.createElement("input");
-    channel_balance_button.type = "button";
-    channel_balance_button.value = translate.words("check_channel");
+    var channel_balance_button = button_maker("check_channel", function() { });
     var market_title = document.createElement("h3");
     market_title.innerHTML = translate.words("markets");
     var market_link = document.createElement("a");
     market_link.innerHTML = translate.words("markets_link");
     market_link.href = "http://146.185.142.103:8080/explorer.html";
-    var button = document.createElement("BUTTON");
-    button.id = "button";
-    var buttonText = document.createTextNode(translate.words("make_bet"));
-    button.appendChild(buttonText);
-    button.onclick = make_bet;
-    var bet_update_button = document.createElement("input");
-    bet_update_button.type = "button";
-    bet_update_button.value = translate.words("finalize_bets");
+    var button = button_maker("make_bet", make_bet);
+    var bet_update_button = button_maker("finalize_bets", function() {});
     var combine_cancel_button = document.createElement("input");
     combine_cancel_button.type = "button";
     combine_cancel_button.value = translate.words("gather_bets");
-    var list_bets_button = button_maker(translate.words("refresh_bets"), bets_object.main);
+    var list_bets_button = button_maker("refresh_bets", bets_object.main);
     //var list_bets_button = document.createElement("input");
     //list_bets_button.type = "button";
     //list_bets_button.value = translate.words("refresh_bets");

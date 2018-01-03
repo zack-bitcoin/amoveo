@@ -16,7 +16,7 @@ function create_account1() {
     create_info.innerHTML = translate.words("to_pubkey").concat(": ");
     div.appendChild(create_info);
     div.appendChild(create_address);
-    var create_button = button_maker(translate.words("create_account"), create_account);
+    var create_button = button_maker("create_account", create_account);
     div.appendChild(create_button);
     div.appendChild(document.createElement("br"));
 

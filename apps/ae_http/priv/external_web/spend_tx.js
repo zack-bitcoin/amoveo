@@ -18,7 +18,7 @@ function spend_1() {
     input_info.innerHTML = translate.words("to_pubkey").concat(": ");
     div.appendChild(input_info);
     div.appendChild(spend_address);
-    spend_button = button_maker(translate.words("spend"), spend_tokens);
+    spend_button = button_maker("spend", spend_tokens);
     div.appendChild(spend_button);
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");

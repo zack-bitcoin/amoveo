@@ -5,16 +5,18 @@ function keys_function1() {
     var account_title = document.createElement("h3");
     account_title.innerHTML = translate.words("account");
     var div = document.createElement("div");
-    var save_name = input_maker("Amoveo ".concat(translate.words("private_key")));
-    var save_button = button_maker(translate.words("save_key"), save_keys);
+    var save_name = document.createElement("input");
+    save_name.type = "text";
+    save_name.value = "Amoveo ".concat(translate.words("private_key"));
+    var save_button = button_maker("save_key", save_keys);
     var file_selector = document.createElement("input");
     file_selector.type = "file";
     file_selector.onchange = load_keys;
     var load_text = document.createTextNode(translate.words("get_key"));
     var pub_div = document.createElement("div");
-    var new_pubkey_button = button_maker(translate.words("make_key"), new_keys_check);
+    var new_pubkey_button = button_maker("make_key", new_keys_check);
     var new_pubkey_div = document.createElement("div");
-    var balance_button = button_maker(translate.words("check_balance"), update_balance);
+    var balance_button = button_maker("check_balance", update_balance);
     var bal_div = document.createElement("div");
     document.body.appendChild(account_title);
     document.body.appendChild(div);
@@ -46,8 +48,8 @@ function keys_function1() {
         //alert("this will delete your old keys. If you have money secured by this key, and you haven't saved your key, then this money will be destroyed.");
         var warning = document.createElement("h3");
         warning.innerHTML = translate.words("key_warning");
-        var button = button_maker(translate.words("cancel"), cancel);
-        var button2 = button_maker(translate.words("continue"), doit);
+        var button = button_maker("cancel", cancel);
+        var button2 = button_maker("continue", doit);
         append_children(new_pubkey_div, [warning, button, button2]);
         function cancel() {
             new_pubkey_div.innerHTML = "";
@@ -61,13 +63,7 @@ function keys_function1() {
     }
     function update_balance() {
         var trie_key = pubkey_64();
-        console.log("top header is "),
-        console.log(headers_object.top()),
-        console.log("serialized "),
-        console.log(headers_object.serialize(headers_object.top()));
         var top_hash = hash(headers_object.serialize(headers_object.top()));
-        console.log("top hash is "),
-        console.log(top_hash),
         verify_callback("accounts", trie_key, function(x) {
             set_balance(x[1] / 100000000);
         });
