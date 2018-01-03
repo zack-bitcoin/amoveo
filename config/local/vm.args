@@ -1,6 +1,6 @@
--sname ae_core
+-sname ae_core_local
 
--setcookie ae_core_cookie
+-setcookie ae_core_cookie_local
 
 +K true
 +A30
