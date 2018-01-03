@@ -52,3 +52,9 @@ You can set the password for encryption like this:
 keys:change_password("old_password", "new_password").
 ```
 The default password on a new node is "", the empty string.
+
+
+You find your keys in this file:
+
+_build/prod/rel/ae_core/keys/keys.db 
+
