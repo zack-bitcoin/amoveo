@@ -27,8 +27,8 @@ class LightningTest(ApiUser):
         self.request("dump_channels", DEV_3_INT, [], sleep=0.05)
         self.load_key(DEV_2_INT, [pub1, priv1, brainwallet], sleep=0)
         self.load_key(DEV_3_INT, [pub2, priv2, brainwallet], sleep=0.05)
-        self.create_account(DEV_1_INT, [pub1, 10000000000], sleep=0.05)
-        self.create_account(DEV_1_INT, [pub2, 10000000000], sleep=0.05)
+        self.create_account(DEV_1_INT, [pub1, 1000000000], sleep=0.05)
+        self.create_account(DEV_1_INT, [pub2, 1000000000], sleep=0.05)
 
         self.request('sync', DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
         #self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
