@@ -18,19 +18,14 @@ function spend_1() {
     input_info.innerHTML = translate.words("to_pubkey").concat(": ");
     div.appendChild(input_info);
     div.appendChild(spend_address);
-
-    var spend_button = document.createElement("BUTTON");
-    //spend_button.id = "spend_button";
-    var spend_button_text = document.createTextNode(translate.words("spend"));
-    spend_button.appendChild(spend_button_text);
-    spend_button.onclick = spend_tokens;
+    spend_button = button_maker(translate.words("spend"), spend_tokens);
     div.appendChild(spend_button);
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");
         var to = spend_address.value;
         //spend_amount = document.getElementById("spend_amount");
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
-        var from = pubkey_64();
+        var from = keys.pub();
         var fee = 20;
         variable_public_get(["spend_tx", amount, fee, from, to],
                             spend_tokens2);
@@ -54,11 +49,11 @@ function spend_1() {
             console.log("abort: server changed the fee.");
         } else {
             console.log(JSON.stringify(tx));
-            var stx = sign_tx(tx);
+            var stx = keys.sign(tx);
             console.log(JSON.stringify(stx));
             console.log("pubkey is ");
             console.log(to);
-            console.log(pubkey_64());
+            console.log(keys.pub());
             variable_public_get(["txs", [-6, stx]], function(x) {});
         }
         spend_amount.value = "";

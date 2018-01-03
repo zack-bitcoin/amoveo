@@ -140,14 +140,14 @@ function combine_cancel_assets_maker() {
         console.log("combine cancel common bets are ");
         var combine2 = combine_cancel_common2(bets, oldCD.ssme);
         spk[3] = ([-6]).concat(combine2.bets.reverse());
-        return {"sspk": sign_tx(spk), "ss": combine2.ss};
+        return {"sspk": keys.sign(spk), "ss": combine2.ss};
     }
     function main(server_pubkey) {
         var oldCD = channels_object.read(server_pubkey);
         var canceled = combine_cancel_common(oldCD);
         var sspk = canceled.sspk;
         var ss = canceled.ss;
-        variable_public_get(["combine_cancel_assets", pubkey_64(), canceled.sspk], function(sspk2) {
+        variable_public_get(["combine_cancel_assets", keys.pub(), canceled.sspk], function(sspk2) {
             //verify that sspk2 is signed by them.
             if (JSON.stringify(sspk2[1]) == JSON.stringify(sspk[1])) {
                 oldCD.them = sspk2;

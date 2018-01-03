@@ -12,7 +12,7 @@ function encryption_main() {
     }
     function send(m, to_pub, fromkey) {
         var from_pub = btoa(fromHex(fromkey.getPublic("hex")));
-        var newkey = new_keys();
+        var newkey = keys.make();
         var eph_pub = hex2array(newkey.getPublic("hex"));
         var eph_priv = hex2array(newkey.getPrivate("hex"));
         var msg = ["msg", btoa(array_to_string(sign(eph_pub, fromkey))), m, from_pub];
@@ -22,10 +22,10 @@ function encryption_main() {
     };
     function get(emsg, my_key) {
         var eph_pub = string_to_array(atob(emsg[1]));
-        eph_key = ec.keyFromPublic(toHex(array_to_string(eph_pub)), 'hex').getPublic();
+        eph_key = keys.ec().keyFromPublic(toHex(array_to_string(eph_pub)), 'hex').getPublic();
         var ss = shared(my_key, eph_key);
         var msg = JSON.parse(array_to_string(bin_dec(ss, string_to_array(atob(emsg[2])))));
-        fromkey = ec.keyFromPublic(toHex(atob(msg[3])), 'hex'); 
+        fromkey = keys.ec().keyFromPublic(toHex(atob(msg[3])), 'hex'); 
         var b = verify(eph_pub, btoa(msg[1]), fromkey);
         //eph_pub is the data that is signed.
         if (b) {
@@ -41,13 +41,13 @@ function encryption_main() {
         var eb = bin_enc(key, textBytes);
         console.log(eb); // good. [100, 131, 24]
         console.log(bin_dec(key, eb)); // good. [1, 2, 3]
-        var fromKey = new_keys();
-        var toKey = new_keys();
+        var fromKey = keys.make();
+        var toKey = keys.make();
         var sm = send([1,2,3], toKey.getPublic(), fromKey);
         console.log(JSON.stringify(sm));
         return get(sm, toKey);
     }
-    test();
+    //test();
     return {get: get, send: send};
 }
 var encryption_object = encryption_main();

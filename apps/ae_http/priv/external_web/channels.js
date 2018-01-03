@@ -208,8 +208,8 @@ function channels_main() {
         var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1]);
         var cd = read(pubkey);
         var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
-        var sspk = sign_tx(spk);
-        var msg = ["trade", pubkey_64(), price_final, type_final, amount_final, oid_final, sspk, fee];
+        var sspk = keys.sign(spk);
+        var msg = ["trade", keys.pub(), price_final, type_final, amount_final, oid_final, sspk, fee];
         return variable_public_get(msg, function(x) {
             make_bet3(x, sspk, server_pubkey, oid_final);
         });
@@ -260,7 +260,7 @@ function channels_main() {
         var bal2 = amount - 1;
         spend_amount.value = "";
         var fee = 20;
-        var acc1 = pubkey_64();
+        var acc1 = keys.pub();
         var acc2 = pubkey;
         //let the server choose an unused cid for us.
         variable_public_get(["new_channel_tx", acc1, pubkey, amount, bal2,delay, fee], function(x) { make_channel_func2(x, amount, bal2, fee, acc1, acc2, delay, expiration, pubkey); } );
@@ -286,8 +286,8 @@ function channels_main() {
             var lifespan = expiration - current_height;
             var spk_amount = Math.floor((tv * (delay + lifespan) * (amount + bal2) ) / 100000000);
             var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, spk_amount, 0, delay];
-            var stx = sign_tx(tx);
-            var sspk = sign_tx(spk);
+            var stx = keys.sign(tx);
+            var sspk = keys.sign(spk);
             variable_public_get(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration, pubkey) });
         }
     }

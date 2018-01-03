@@ -19,6 +19,7 @@ handle(Req, _) ->
                <<"/miner.js">> -> true;
                <<"/chalang.js">> -> true;
                <<"/format.js">> -> true;
+               <<"/files.js">> -> true;
                <<"/rpc.js">> -> true;
                <<"/channels.js">> -> true;
                <<"/headers.js">> -> true;

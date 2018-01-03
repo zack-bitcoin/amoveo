@@ -1202,14 +1202,14 @@ function chalang(command) {
                     console.log("are we able to force update?");
                     console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
                     if ( JSON.stringify(b2) == JSON.stringify({"spk": newspk, "ss": ss})) {
-                        var ret = sign_tx(newspk);
+                        var ret = keys.sign(newspk);
                         var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
                         channels_object.write(from, newcd);
                         return callback(ret);
                     } else {
                         is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {
                             if ( b3 ) {
-                                ret = sign_tx(newspk);
+                                ret = keys.sign(newspk);
                                 var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
                                 channels_object.write(from, newcd);
                                 return callback(ret);
@@ -1281,7 +1281,7 @@ function chalang(command) {
                     var acc1 = channel[2]
                     var acc2 = channel[3]
                     var profit;
-                    if (pubkey_64() == acc1) {
+                    if (keys.pub() == acc1) {
                         profit = new_spk[8] - old_amount;
                     } else {
                         profit = old_amount - new_spk[8];
@@ -1304,9 +1304,9 @@ function chalang(command) {
                         }
                         var betAmount = new_bet.amount;
                         var potentialGain;
-                        if (pubkey_64() == acc1) {
+                        if (keys.pub() == acc1) {
                             potentialGain = -betAmount;
-                        } else if (pubkey_64() == acc2) {
+                        } else if (keys.pub() == acc2) {
                             potentialGain = betAmount;
                         } else {
                             console.log("error, this spk isn't for your pubkey")
@@ -1362,7 +1362,7 @@ function chalang(command) {
     function pull_channel_state() {
         //get their pubkey
         variable_public_get(["pubkey"], function(server_pubkey) {
-            variable_public_get(["spk", pubkey_64()], function(spk_return) {
+            variable_public_get(["spk", keys.pub()], function(spk_return) {
                 var cd = spk_return[1];
                 var them_spk = spk_return[2];
                 //returns cd and them_spk
@@ -1380,7 +1380,7 @@ function chalang(command) {
                 */
                 channel_feeder_they_simplify(server_pubkey, them_spk, cd, function(ret) {
                     if (!(ret == false)) {
-                        var msg2 = ["channel_sync", pubkey_64(), ret];
+                        var msg2 = ["channel_sync", keys.pub(), ret];
                         variable_public_get(msg2, function(foo) {});
                     }
                 });
@@ -1390,7 +1390,7 @@ function chalang(command) {
         });
     }
         return {"run5": run5, "test": chalang_test, "pull_channel_state": pull_channel_state};
-    }
+}
 /*
 //this is an example of calling run5, the chalang library.
 var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));

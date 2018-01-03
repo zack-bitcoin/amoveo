@@ -29,7 +29,7 @@
 * in sync.erl we should start by checking each peer's version, and then ignore peers who use the wrong version.
 * there needs to be an interface to pushing the channel expiration further into the future by paying a fee. We already have an api for sending a payment to the server, we just modify this slightly.
 
-* secrets needs to be garbage collected.
+* secrets is leaking data.
 
 * headers:test() is broken and unused.
 * keys:test() is broken and unused.
@@ -39,14 +39,6 @@
 
 * there should be a refund if you close a channel early. The refund should be enforced by a smart contract. It is important that this smart contract's nonce does not increase with time, otherwise the contract can be slashed forever.
 
-
-* get rid of unused min_channel_ratio
-
-* charge the correct fee for growing a channel
-
-* spk should have one more value. nonce_limit.
-
-* api channel grow should send a signed spk to the server as well.
 
 * the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
 

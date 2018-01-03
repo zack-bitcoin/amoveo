@@ -106,7 +106,7 @@ function bin2rs(x) {
 function signing_test() {
 
     //priv1 = atob("2kYbRu2TECMJzZy55fxdILBvM5wJM482lKLTRu2e42U=");
-    //var key1 = ec.genKeyPair({entropy: priv1});
+    //var key1 = keys.ec().genKeyPair({entropy: priv1});
     //var sig1 = sign([-6, 1], key1);
     //console.log(verify([-6, 1], sig1, key1));
 
@@ -114,7 +114,7 @@ function signing_test() {
 
     var data0 = stx[1];
     var sig0 = stx[2];
-    var key0 = ec.keyFromPublic(toHex(atob(stx[1][1])), "hex");
+    var key0 = keys.ec().keyFromPublic(toHex(atob(stx[1][1])), "hex");
 
     var foo = verify(data0, sig0, key0);
     console.log(foo);
@@ -126,8 +126,8 @@ function signing_test2() {
     var d = ["record", "BAr8BCYGo1WwDoB1KXU7xvdqRetLJbyEyRgT7NyBggkYUVW5oalfek1imezEb00Ww+61aiXNrkkBC8EEKsGjumw=", [-6, ["a", -2000]]];
     console.log("signing test");
     console.log(JSON.stringify(serialize(d)));
-    var stx = sign_tx(d);
-    var key0 = ec.keyFromPublic(toHex(atob(pubkey_64())), "hex");
+    var stx = keys.sign(d);
+    var key0 = keys.ec().keyFromPublic(toHex(atob(keys.pub())), "hex");
     var b = verify(stx[1], stx[2], key0);
     console.log(b);
 }

@@ -16,18 +16,14 @@ function create_account1() {
     create_info.innerHTML = translate.words("to_pubkey").concat(": ");
     div.appendChild(create_info);
     div.appendChild(create_address);
-
-    var create_button = document.createElement("BUTTON");
-    var create_button_text = document.createTextNode(translate.words("create_account"));
-    create_button.appendChild(create_button_text);
-    create_button.onclick = create_account;
+    var create_button = button_maker(translate.words("create_account"), create_account);
     div.appendChild(create_button);
     div.appendChild(document.createElement("br"));
 
     function create_account() {
         var to = create_address.value;
         var amount = Math.floor(parseFloat(create_amount.value, 10) * 100000000);
-        var from = pubkey_64();
+        var from = keys.pub();
         var fee = 20;
         console.log([amount, fee, from, to]);
         variable_public_get(["create_account_tx", amount, fee, from, to],
@@ -38,7 +34,7 @@ function create_account1() {
         console.log(tx);
         var to = create_address.value;
         var amount = parseFloat(create_amount.value, 10) * 100000000;
-        var from = pubkey_64();
+        var from = keys.pub();
         var fee = 20;
         var from0 = tx[1];
         var fee0 = tx[3];
@@ -53,7 +49,7 @@ function create_account1() {
         } else if (!(fee == fee0)) {
             console.log("abort: server changed the fee.");
         } else {
-            var stx = sign_tx(tx);
+            var stx = keys.sign(tx);
             variable_public_get(["txs", [-6, stx]], function(x) {});
         }
         create_amount.value = "";

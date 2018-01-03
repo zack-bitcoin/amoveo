@@ -53,7 +53,7 @@ function miner_main() {
                     console.log("=====================================================================");
                     blocks_found += 1;
                     div.innerHTML = (blocks_found).toString().concat(" blocks found.");
-                    miner_get(["work", btoa(array_to_string(nonce)), pubkey_64()],
+                    miner_get(["work", btoa(array_to_string(nonce)), keys.pub()],
                               function() {});
                     return(mine());
                 }

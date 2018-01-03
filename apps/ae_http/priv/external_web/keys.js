@@ -1,38 +1,20 @@
 
-var ec = new elliptic.ec('secp256k1');
-function new_keys() {
-    return ec.genKeyPair();
-}
-var keys = new_keys();
-function pubkey_64() {
-    var pubPoint = keys.getPublic("hex");
-    return btoa(fromHex(pubPoint));
-}
-function sign_tx(tx) {
-    console.log("about to sign tx");
-    console.log(JSON.stringify(tx));
-    sig = btoa(array_to_string(sign(tx, keys)));
-    return ["signed", tx, sig, [-6]];
-}
-function download(data, filename, type) {
-    var file = new Blob([data], {type: type});
-    if (window.navigator.msSaveOrOpenBlob) // IE10+
-        window.navigator.msSaveOrOpenBlob(file, filename);
-    else { // Others
-        var a = document.createElement("a"),
-            url = URL.createObjectURL(file);
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function() {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }, 0);
-    }
-}
-keys_function1();
 function keys_function1() {
+    var ec = new elliptic.ec('secp256k1');
+    function new_keys() {
+        return ec.genKeyPair();
+    }
+    var keys = new_keys();
+    function pubkey_64() {
+        var pubPoint = keys.getPublic("hex");
+        return btoa(fromHex(pubPoint));
+    }
+    function sign_tx(tx) {
+        console.log("about to sign tx");
+        console.log(JSON.stringify(tx));
+        sig = btoa(array_to_string(sign(tx, keys)));
+        return ["signed", tx, sig, [-6]];
+    }
     var account_title = document.createElement("h3");
     account_title.innerHTML = translate.words("account");
     document.body.appendChild(account_title);
@@ -44,10 +26,7 @@ function keys_function1() {
     save_name.type = "text";
     save_name.id = "save_name";
     save_name.value = "Amoveo ".concat(translate.words("private_key"));
-    var save_button = document.createElement("input");
-    save_button.type = "button";
-    save_button.value = translate.words("save_key");
-    save_button.onclick = save_keys;
+    var save_button = button_maker(translate.words("save_key"), save_keys);
     var file_selector = document.createElement("input");
     file_selector.type = "file";
     file_selector.onchange = load_keys;
@@ -65,10 +44,7 @@ function keys_function1() {
 
 
     div.appendChild(document.createElement("br"));
-    var new_pubkey_button = document.createElement("input");
-    new_pubkey_button.type = "button";
-    new_pubkey_button.value = translate.words("make_key");
-    new_pubkey_button.onclick = new_keys_check;
+    var new_pubkey_button = button_maker(translate.words("make_key"), new_keys_check);
     div.appendChild(new_pubkey_button);
 
     var new_pubkey_div = document.createElement("div");
@@ -76,10 +52,6 @@ function keys_function1() {
     
     div.appendChild(document.createElement("br"));
     var balance_button = button_maker(translate.words("check_balance"), update_balance);
-    //var balance_button = document.createElement("input");
-    //balance_button.type = "button";
-    //balance_button.value = translate.words("check_balance");
-    //balance_button.onclick = update_balance;
     var bal_div = document.createElement("div");
     div.appendChild(bal_div);
     div.appendChild(balance_button);
@@ -95,17 +67,11 @@ function keys_function1() {
         var warning = document.createElement("h3");
         warning.innerHTML = translate.words("key_warning");
         new_pubkey_div.append(warning);
-        
-        var button = document.createElement("input");
-        button.type = "button";
-        button.value = translate.words("cancel");
-        button.onclick = cancel;
+
+        var button = button_maker(translate.words("cancel"), cancel);
         new_pubkey_div.appendChild(button);
 
-        var button2 = document.createElement("input");
-        button2.type = "button";
-        button2.value = translate.words("continue");
-        button2.onclick = doit;
+        var button2 = button_maker(translate.words("continue"), doit);
         new_pubkey_div.appendChild(button2);
 
         function cancel() {
@@ -148,4 +114,6 @@ function keys_function1() {
         }
         reader.readAsText(file);
     }
+    return {make: new_keys, pub: pubkey_64, sign: sign_tx, ec: (function() { return ec; }) };
 }
+var keys = keys_function1();
