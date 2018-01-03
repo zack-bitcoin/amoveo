@@ -25,15 +25,12 @@ dict_update(Pub, Dict, Amount, NewNonce, Bets) ->
                          true = NewNonce > OldNonce,
                          NewNonce
                  end,
-    %OldHeight = Account#acc.height,
-    %true = NewHeight >= OldHeight,
     NewBalance = Amount + Account#acc.balance,
     true = NewBalance > 0,
     BH = case Bets of
              0 -> Account#acc.bets_hash;
              X -> oracle_bets:root_hash(X)
          end,
-    %BH = oracle_bets:root_hash(Bets),
     Account#acc{balance = NewBalance,
                 nonce = FinalNonce,
                 bets = Bets,

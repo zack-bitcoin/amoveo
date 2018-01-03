@@ -33,7 +33,8 @@
                 txs,
                 prev_hashes = {prev_hashes},
                 proofs = [],
-                roots}).
+                roots,
+                hash = <<>>}).
 
 %cd is the channel data for one channel.
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.
