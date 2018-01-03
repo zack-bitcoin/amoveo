@@ -3,13 +3,13 @@
 * increase constants initial difficulty.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * chalang signatures are double-base64 encoded. they should only be single-encoded.
-* in channels tree timeout_height is unused.
 * calculating block_to_header is too very slow. Which means calculating the hash of a block is slow too.
 * We should store the hash of the block along with the block, that way we don't have to re-calculate it more than once. When sharing blocks we can use this hash to quickly ignore blocks we have already seen, but for a block to be considered valid, we need to check at least once that the hash was calculated correctly.
 * "height" needs to be removed from accounts.
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
+
 
 
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.

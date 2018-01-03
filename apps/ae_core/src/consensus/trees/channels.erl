@@ -12,13 +12,9 @@
 		  bal2 = 0, %part of the money initially controlled by acc2.
 		  amount = 0, %this is how we remember the outcome of the last contract we tested, that way we can undo it.
 		  nonce = 1,%How many times has this channel-state been updated. If your partner has a state that was updated more times, then they can use it to replace your final state.
-		  timeout_height = 0,%when one partner disappears, the other partner needs to wait so many blocks until they can access their money. This records the time they started waiting. 
 		  last_modified = 0,%this is used to know if a channel_timeout_tx can be called yet. 
-% we can set timeout_height to 0 to signify that we aren't in timeout mode. So we don't need the timeout flag.
-                  %entropy
 		  delay = 0,%this is the minimum of how long you have to wait since "last_modified" to do a channel_timeout_tx. 
                   %every time a channel_slash_tx happens, this delay is updated. This is how long you need to wait before you can do a channel_timeout tx.
-		  %slasher = 0, %If the channel was slashed, then we shouldn't allow grow_channel txs any more.
 		  closed = 0 %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
 		  }%
        ).
@@ -97,7 +93,6 @@ serialize(C) ->
        (C#channel.bal2):BAL,
        (Amount+HB):BAL,
        (C#channel.nonce):NON,
-       (C#channel.timeout_height):HEI,
        (C#channel.last_modified):HEI,
        (C#channel.delay):Delay,
        (C#channel.closed):8,
@@ -118,7 +113,6 @@ deserialize(B) ->
        B4:BAL,
        B8:BAL,
        B5:NON,
-       B6:HEI,
        B7:HEI,
        B12:Delay,
        Closed:8,
@@ -128,7 +122,7 @@ deserialize(B) ->
     >> = B,
     #channel{id = ID, acc1 = <<B1:PS>>, acc2 = <<B2:PS>>, 
 	     bal1 = B3, bal2 = B4, amount = B8-constants:half_bal(),
-	     nonce = B5, timeout_height = B6, 
+	     nonce = B5, 
 	     last_modified = B7,
 	     delay = B12, closed = Closed}.
 dict_write(Channel, Dict) ->
