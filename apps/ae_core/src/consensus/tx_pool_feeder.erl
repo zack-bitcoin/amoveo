@@ -114,6 +114,8 @@ absorb_internal(SignedTx) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
+    io:fwrite(packer:pack({tx_pool_feeder, Fee, MinimumTxFee + Cost})),
+    io:fwrite("\n"),
     true = Fee > (MinimumTxFee + Cost),
     true = testnet_sign:verify(SignedTx),
     Out = case is_in(SignedTx, Txs) of

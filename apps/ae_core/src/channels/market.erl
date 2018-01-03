@@ -78,7 +78,7 @@ price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
 test() ->
     Question = <<>>,
     OID = 3,
-    Fee = 20,
+    Fee = 20 + constants:initial_fee(),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -87,7 +87,6 @@ test() ->
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees),
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
-    Fee = 20,
     timer:sleep(200),
     test_txs:mine_blocks(1),
     timer:sleep(1000),
@@ -122,6 +121,7 @@ test() ->
 
 test2(NewPub) ->
     OID = 3,
+    Fee = 20 + constants:initial_fee(),
     {Trees5, _, _} = tx_pool:data(),
     %Accounts5 = trees:accounts(Trees5),
     MarketID = 405,
@@ -164,7 +164,6 @@ test2(NewPub) ->
 	%Amount is 0 because none of the money goes to the market maker.
        spk:run(fast, [SS4], SPK, 1, 0, Trees6),
 
-    Fee = 20,
 
     test_txs:mine_blocks(1),
     timer:sleep(1000),

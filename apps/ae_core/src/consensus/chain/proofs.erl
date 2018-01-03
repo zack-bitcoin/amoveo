@@ -365,7 +365,7 @@ test() ->
     {Trees0, _, _} = tx_pool:data(),
     Question = <<>>,
     OID = 2,
-    Fee = 20,
+    Fee = 20 + constants:initial_fee(),
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees0),
     tx_pool_feeder:absorb(keys:sign(Tx)),
     test_txs:mine_blocks(1),

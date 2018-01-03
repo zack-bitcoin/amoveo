@@ -5,6 +5,7 @@
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
 -record(gov, {id, value, lock}).
 -define(name, governance).
+-define(fee, constants:encoded_fee()).
 genesis_state() ->
     {MinimumOracleTime, MaximumOracleTime, BlockPeriod} =
         case application:get_env(ae_core, test_mode, false) of
@@ -24,21 +25,20 @@ genesis_state() ->
          [maximum_oracle_time, MaximumOracleTime],
          [maximum_question_size, 352],
          [governance_change_limit, 51],
-         [create_acc_tx, 10],
-         [spend, 10],
-         [delete_acc_tx, 5],
-         [nc, 10],
-         [gc, 10],
-         [ctc, 10],
-         [csc, 10],
-         [timeout, 10],
-         [cs, 10],
-         [ex, 10],
-         [oracle_new, 10],
-         [oracle_bet, 10],
-         [oracle_close, 10],
-         [unmatched, 10],
-         [oracle_winnings, 10]],
+         [create_acc_tx, ?fee],
+         [spend, ?fee],
+         [delete_acc_tx, 0],
+         [nc, ?fee],
+         [ctc, ?fee],
+         [csc, ?fee],
+         [timeout, ?fee],
+         [cs, ?fee],
+         [ex, ?fee],
+         [oracle_new, ?fee],
+         [oracle_bet, ?fee],
+         [oracle_close, ?fee],
+         [unmatched, ?fee],
+         [oracle_winnings, ?fee]],
     {ok, GenesisTree} = genesis_state(G, 1),
     GenesisTree.
 
@@ -144,21 +144,20 @@ name2number(create_acc_tx) -> 14;%these store the minimum fee for each transacti
 name2number(spend) -> 15;
 name2number(delete_acc_tx) -> 16;
 name2number(nc) -> 17;
-name2number(gc) -> 18;
-name2number(ctc) -> 19;
-name2number(csc) -> 20;
-name2number(timeout) -> 21;
-name2number(cs) -> 22;
-name2number(ex) -> 23;
-name2number(oracle_new) -> 24;
-name2number(oracle_bet) -> 25;
-name2number(oracle_close) -> 26;
-name2number(unmatched) -> 27;
-name2number(oracle_winnings) -> 28;
+name2number(ctc) -> 18;
+name2number(csc) -> 19;
+name2number(timeout) -> 20;
+name2number(cs) -> 21;
+name2number(ex) -> 22;
+name2number(oracle_new) -> 23;
+name2number(oracle_bet) -> 24;
+name2number(oracle_close) -> 25;
+name2number(unmatched) -> 26;
+name2number(oracle_winnings) -> 27;
 name2number(X) -> 
     io:fwrite(X),
     throw(invalid_governance_atom).
-max() -> 29.
+max() -> 28.
 make_leaf(Key, V, CFG) ->
     Key2 = if
                is_integer(Key) -> Key;

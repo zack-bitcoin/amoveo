@@ -35,9 +35,10 @@ class LightningTest(ApiUser):
         self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
 
         # 2 step handshake to make channel
-        self.new_channel_with_server(DEV_1_INT, [[127, 0, 0, 1], 3030, 1, 10000, 9999, 50, 4, 1000], sleep=0.05)
+        fee = 51000
+        self.new_channel_with_server(DEV_1_INT, [[127, 0, 0, 1], 3030, 1, 10000, 9999, fee, 4, 1000], sleep=0.05)
         self.sync(DEV_2_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
-        self.new_channel_with_server(DEV_2_INT, [[127, 0, 0, 1], 3030, 2, 10000, 9999, 50, 4, 1000], sleep=0.05)
+        self.new_channel_with_server(DEV_2_INT, [[127, 0, 0, 1], 3030, 2, 10000, 9999, fee, 4, 1000], sleep=0.05)
         self.sync(DEV_1_INT, [[127, 0, 0, 1], 3030], sleep=0.05)
 
         self.channel_spend(DEV_1_INT, [[127, 0, 0, 1], 3030, 777], sleep=0.05)

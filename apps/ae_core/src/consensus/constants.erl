@@ -6,6 +6,10 @@ address_bits() -> hash_size()*8.
 pubkey_size()-> 65. %bytes
 initial_coins() -> 10000000000.
 %27017593349040. %about 1 year.
+initial_fee() -> 
+    governance:tree_number_to_value(encoded_fee()).
+encoded_fee() -> 783.
+    
 initial_difficulty() -> 
     case application:get_env(ae_core, kind) of
         {ok, "local"} -> 0;%unit tests
