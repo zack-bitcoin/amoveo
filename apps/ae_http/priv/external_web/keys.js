@@ -16,15 +16,12 @@ function keys_function1() {
     var new_pubkey_div = document.createElement("div");
     var balance_button = button_maker(translate.words("check_balance"), update_balance);
     var bal_div = document.createElement("div");
-
-
     document.body.appendChild(account_title);
     document.body.appendChild(div);
 
     append_children(div, [load_text, file_selector, br(), pub_div, br(), save_name, save_button, br(), new_pubkey_button, new_pubkey_div, br(), bal_div, balance_button]);
 
     update_pubkey();
-
     function input_maker(val) {
         var x = document.createElement("input");
         x.type = "text";
@@ -49,14 +46,9 @@ function keys_function1() {
         //alert("this will delete your old keys. If you have money secured by this key, and you haven't saved your key, then this money will be destroyed.");
         var warning = document.createElement("h3");
         warning.innerHTML = translate.words("key_warning");
-        new_pubkey_div.append(warning);
-
         var button = button_maker(translate.words("cancel"), cancel);
-        new_pubkey_div.appendChild(button);
-
         var button2 = button_maker(translate.words("continue"), doit);
-        new_pubkey_div.appendChild(button2);
-
+        append_children(new_pubkey_div, [warning, button, button2]);
         function cancel() {
             new_pubkey_div.innerHTML = "";
         }
