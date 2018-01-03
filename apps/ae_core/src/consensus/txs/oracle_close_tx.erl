@@ -15,7 +15,7 @@ make(From, Fee, OID, Trees) ->
         
 go(Tx, Dict, NewHeight) ->
     From = Tx#oracle_close.from,
-    Acc = accounts:dict_update(From, Dict, -Tx#oracle_close.fee, Tx#oracle_close.nonce, NewHeight),
+    Acc = accounts:dict_update(From, Dict, -Tx#oracle_close.fee, Tx#oracle_close.nonce),
     Dict2 = accounts:dict_write(Acc, Dict),
     OID = Tx#oracle_close.oracle_id,
     Oracle = oracles:dict_get(OID, Dict2),

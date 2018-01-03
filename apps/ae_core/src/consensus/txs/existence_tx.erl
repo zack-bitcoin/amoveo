@@ -19,7 +19,7 @@ go(Tx, Dict, NewHeight) ->
     D = existence:new(C, NewHeight),
     empty = existence:dict_get(C,Dict),
     Dict2 = existence:dict_write(D, Dict),
-    Acc = accounts:dict_update(From, Dict, -Tx#ex.fee, Tx#ex.nonce, NewHeight),
+    Acc=accounts:dict_update(From, Dict, -Tx#ex.fee,Tx#ex.nonce),
     accounts:dict_write(Acc, Dict2).
 
     

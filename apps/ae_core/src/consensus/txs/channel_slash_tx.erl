@@ -54,5 +54,5 @@ go(Tx, Dict, NewHeight) ->
     NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
     Dict2 = channels:dict_write(NewChannel, Dict),
     ID = Tx#cs.from,
-    Account = accounts:dict_update(ID, Dict, -Fee, Nonce, NewHeight),
+    Account = accounts:dict_update(ID, Dict, -Fee, Nonce),
     accounts:dict_write(Account, Dict2).

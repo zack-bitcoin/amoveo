@@ -47,7 +47,6 @@
 
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
-	      height = 0, %depreciated. should be removed.
 	      pubkey = <<>>,
 	      bets = 1,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
               bets_hash = <<>>}).

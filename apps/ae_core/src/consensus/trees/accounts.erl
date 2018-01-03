@@ -1,21 +1,21 @@
 -module(accounts).
--export([bets/1, update_bets/2, new/3,%custom for this tree
+-export([bets/1, update_bets/2, new/2,%custom for this tree
          write/2, get/2, delete/2,%update tree stuff
-         dict_update/5, dict_update/6, dict_get/2, dict_write/2, dict_write/3, dict_delete/2,%update dict stuff
+         dict_update/4, dict_update/5, dict_get/2, dict_write/2, dict_write/3, dict_delete/2,%update dict stuff
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
 -define(id, accounts).
 -include("../../records.hrl").
 
 bets(Account) -> Account#acc.bets.
 
-new(Pub, Balance, Height) ->
+new(Pub, Balance) ->
     Root0 = constants:root0(),
-    #acc{pubkey = Pub, balance = Balance, nonce = 0, height = Height, bets = Root0, bets_hash = oracle_bets:root_hash(Root0)}.
+    #acc{pubkey = Pub, balance = Balance, nonce = 0, bets = Root0, bets_hash = oracle_bets:root_hash(Root0)}.
 
-dict_update(Pub, Dict, Amount, NewNonce, NewHeight) ->
+dict_update(Pub, Dict, Amount, NewNonce) ->
     Account = dict_get(Pub, Dict),
-    dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Account#acc.bets).
-dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Bets) ->
+    dict_update(Pub, Dict, Amount, NewNonce, Account#acc.bets).
+dict_update(Pub, Dict, Amount, NewNonce, Bets) ->
     Account = dict_get(Pub, Dict),
     OldNonce = Account#acc.nonce,
     FinalNonce = case NewNonce of
@@ -25,8 +25,8 @@ dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Bets) ->
                          true = NewNonce > OldNonce,
                          NewNonce
                  end,
-    OldHeight = Account#acc.height,
-    true = NewHeight >= OldHeight,
+    %OldHeight = Account#acc.height,
+    %true = NewHeight >= OldHeight,
     NewBalance = Amount + Account#acc.balance,
     true = NewBalance > 0,
     BH = case Bets of
@@ -36,7 +36,6 @@ dict_update(Pub, Dict, Amount, NewNonce, NewHeight, Bets) ->
     %BH = oracle_bets:root_hash(Bets),
     Account#acc{balance = NewBalance,
                 nonce = FinalNonce,
-                height = NewHeight,
                 bets = Bets,
                 bets_hash = BH}.
 update_bets(Account, Bets) ->
@@ -91,7 +90,6 @@ delete(Pub0, Accounts) ->
 serialize(Account) ->
     true = size(Account#acc.pubkey) == constants:pubkey_size(),
     BalanceSize = constants:balance_bits(),
-    HeightSize = constants:height_bits(),
     NonceSize = constants:account_nonce_bits(),
     HS = constants:hash_size()*8,
     BetsRoot = case Account#acc.bets of
@@ -103,7 +101,6 @@ serialize(Account) ->
     SerializedAccount =
         <<(Account#acc.balance):BalanceSize,
           (Account#acc.nonce):NonceSize,
-          (Account#acc.height):HeightSize,
           (Account#acc.pubkey)/binary,
          BetsRoot/binary>>,
     true = size(SerializedAccount) == constants:account_size(),
@@ -112,19 +109,16 @@ serialize(Account) ->
 deserialize(SerializedAccount) ->
     BalanceSize = constants:balance_bits(),
     NonceSize = constants:account_nonce_bits(),
-    HeightSize = constants:height_bits(),
     SizePubkey = constants:pubkey_size(),
     PubkeyBits = SizePubkey * 8,
     HashSize = constants:hash_size(),
     HashSizeBits = HashSize * 8,
     <<Balance:BalanceSize,
       Nonce:NonceSize,
-      Height:HeightSize,
       Pubkey:PubkeyBits,
       BetsRoot:HashSizeBits>> = SerializedAccount,
     #acc{balance = Balance,
          nonce = Nonce,
-         height = Height,
          pubkey = <<Pubkey:PubkeyBits>>,
          bets_hash = <<BetsRoot:HashSizeBits>>}.
 
@@ -147,7 +141,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 test() ->
     {Pub, _Priv} = testnet_sign:new_key(),
-    Acc = new(Pub, 0, 0),
+    Acc = new(Pub, 0),
     S = serialize(Acc),
     Acc1 = deserialize(S),
     Acc = Acc1#acc{bets = Acc#acc.bets},

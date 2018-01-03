@@ -46,7 +46,7 @@ go(Tx, Dict, NewHeight) ->
     true = (-1 < (channels:bal1(NewChannel)-Amount)),
     true = (-1 < (channels:bal2(NewChannel)+Amount)),
     Dict2 = channels:dict_write(NewChannel, Dict),
-    Facc = accounts:dict_update(From, Dict, -Tx#csc.fee, Tx#csc.nonce, NewHeight),
+    Facc = accounts:dict_update(From, Dict, -Tx#csc.fee, Tx#csc.nonce),
     Dict3 = accounts:dict_write(Facc, Dict2),
     spawn(fun() -> dict_check_slash(From, Dict3, NewHeight, NewCNonce) end), 
    %If our channel is closing somewhere we don't like, then we should try to use a channel_slash transaction to save our money.

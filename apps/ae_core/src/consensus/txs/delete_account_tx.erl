@@ -29,7 +29,7 @@ go(Tx, Dict, NewHeight) ->
     Balance = FromAccount#acc.balance,
     Amount = Balance - AccountFee,
     true = Amount > 0,
-    ToAccount = accounts:dict_update(To, Dict, Amount, none, NewHeight),
-    _UpdatedAccount = accounts:dict_update(From, Dict, 0, Nonce, NewHeight),
+    ToAccount = accounts:dict_update(To, Dict, Amount, none),
+    _UpdatedAccount = accounts:dict_update(From, Dict, 0, Nonce),
     Dict2 = accounts:dict_write(ToAccount, Dict),
     accounts:dict_delete(From, Dict2).

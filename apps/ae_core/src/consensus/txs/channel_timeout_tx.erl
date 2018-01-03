@@ -50,16 +50,16 @@ go(Tx, Dict, NewHeight) ->
     Dict2 = case accounts:dict_get(Aid1, Dict) of
                 empty -> Dict;
                 _ ->
-                    Acc1 = accounts:dict_update(Aid1, Dict, Bal1-Amount, none, NewHeight),
+                    Acc1 = accounts:dict_update(Aid1, Dict, Bal1-Amount, none),
                     accounts:dict_write(Acc1, Dict)
             end,
     Dict3 = case accounts:dict_get(Aid2, Dict2) of
                 empty -> Dict2;
                 _ ->
-                    Acc2 = accounts:dict_update(Aid2, Dict2, Bal2+Amount, none, NewHeight),
+                    Acc2 = accounts:dict_update(Aid2, Dict2, Bal2+Amount, none),
                     accounts:dict_write(Acc2, Dict2)
             end,
     %Slasher = channels:slasher(Channel),
-    Acc4 = accounts:dict_update(From, Dict3, -Fee, none, NewHeight),
+    Acc4 = accounts:dict_update(From, Dict3, -Fee, none),
     Dict4 = accounts:dict_write(Acc4, Dict3),
     channels:dict_delete(CID, Dict4).

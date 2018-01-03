@@ -19,5 +19,5 @@ go(Tx, Dict, NewHeight) ->
     Order = orders:dict_get({key, AID, OracleID}, Dict),
     Amount = orders:amount(Order),
     Dict2 = orders:dict_remove(AID, OracleID, Dict),
-    Facc = accounts:dict_update(AID, Dict2, Amount - Tx#unmatched.fee, Tx#unmatched.nonce, NewHeight),
+    Facc = accounts:dict_update(AID, Dict2, Amount - Tx#unmatched.fee, Tx#unmatched.nonce),
     accounts:dict_write(Facc, Dict2).

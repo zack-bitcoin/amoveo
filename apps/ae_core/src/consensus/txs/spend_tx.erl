@@ -19,7 +19,7 @@ go(Tx, Dict, NewHeight) ->
     To = Tx#spend.to,
     false = From == To,
     A = Tx#spend.amount,
-    Facc = accounts:dict_update(From, Dict, -A-Tx#spend.fee, Tx#spend.nonce, NewHeight),
-    Tacc = accounts:dict_update(To, Dict, A, none, NewHeight),
+    Facc = accounts:dict_update(From, Dict, -A-Tx#spend.fee, Tx#spend.nonce),
+    Tacc = accounts:dict_update(To, Dict, A, none),
     Dict2 = accounts:dict_write(Facc, Dict),
     accounts:dict_write(Tacc, Dict2).

@@ -125,7 +125,7 @@ time_now() ->
 genesis_maker() ->
     Root0 = constants:root0(),
     Pub = constants:master_pub(),
-    First = accounts:new(Pub, constants:initial_coins(), 0),
+    First = accounts:new(Pub, constants:initial_coins()),
     Accounts0 = accounts:write(First, Root0),
     GovInit = governance:genesis_state(),
     Trees0 = trees:new(Accounts0, Root0, Root0, Root0, Root0, GovInit),
@@ -157,8 +157,8 @@ block_reward_dict(Dict, Height, ID, PH) ->
                                      Dict),
             Amount = BlockReward + TransactionFees - TransactionCosts,
             NM = case accounts:dict_get(ID, Dict) of
-                     empty ->  accounts:new(ID, Amount, Height);
-                     _ -> accounts:dict_update(ID, Dict, Amount, none, Height)
+                     empty ->  accounts:new(ID, Amount);
+                     _ -> accounts:dict_update(ID, Dict, Amount, none)
                  end,
             accounts:dict_write(NM, Dict);
         false -> Dict

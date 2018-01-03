@@ -21,7 +21,7 @@ go(Tx, Dict, NewHeight) ->
     AID = Tx#oracle_winnings.from,
     Bet = oracle_bets:dict_get({key, AID, OID}, Dict),
     Reward = oracle_bets:reward(Bet, Result, NewHeight),
-    Acc2 = accounts:dict_update(AID, Dict, -Tx#oracle_winnings.fee + Reward, Tx#oracle_winnings.nonce, NewHeight),
+    Acc2 = accounts:dict_update(AID, Dict, -Tx#oracle_winnings.fee + Reward, Tx#oracle_winnings.nonce),
     Dict2 = accounts:dict_write(Acc2, Dict),
     oracle_bets:dict_delete({key, AID, OID}, Dict2).
     

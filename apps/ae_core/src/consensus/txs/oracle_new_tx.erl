@@ -55,7 +55,7 @@ go(Tx, Dict, NewHeight) ->
          end,
     From = Tx#oracle_new.from,
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
-    Facc = accounts:dict_update(From, Dict2, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce, NewHeight),
+    Facc = accounts:dict_update(From, Dict2, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce),
     Dict3 = accounts:dict_write(Facc, Dict2),
     Starts = Tx#oracle_new.start,
     %OFL = governance:dict_get_value(oracle_future_limit, Dict3),
