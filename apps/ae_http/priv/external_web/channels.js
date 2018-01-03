@@ -37,7 +37,6 @@ function channels_main() {
     var load_button = document.createElement("input");
     load_button.type = "file";
     channels_div.appendChild(load_button);
-    var br = function() { return document.createElement("br"); };
     channels_div.appendChild(br());
     channels_div.appendChild(br());
     var save_name = document.createElement("INPUT");
@@ -240,11 +239,6 @@ function channels_main() {
             console.log(JSON.stringify(sspk[1]));
             console.log("the server calculated this: ");
             console.log(JSON.stringify(sspk2[1]));
-        }
-    }
-    function append_children(d, l) {
-        for (var i = 0; i < l.length; i++) {
-            d.appendChild(l[i]);
         }
     }
 

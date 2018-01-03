@@ -97,5 +97,13 @@ function button_maker(val, fun) {
     button.onclick = fun;
     return button;
 }
+function br() {
+    return document.createElement("br");
+};
+function append_children(d, l) {
+    for (var i = 0; i < l.length; i++) {
+        d.appendChild(l[i]);
+    }
+}
 
 

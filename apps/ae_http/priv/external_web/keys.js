@@ -1,64 +1,47 @@
 
 function keys_function1() {
     var ec = new elliptic.ec('secp256k1');
+    var keys = new_keys();
+    var account_title = document.createElement("h3");
+    account_title.innerHTML = translate.words("account");
+    var div = document.createElement("div");
+    var save_name = input_maker("Amoveo ".concat(translate.words("private_key")));
+    var save_button = button_maker(translate.words("save_key"), save_keys);
+    var file_selector = document.createElement("input");
+    file_selector.type = "file";
+    file_selector.onchange = load_keys;
+    var load_text = document.createTextNode(translate.words("get_key"));
+    var pub_div = document.createElement("div");
+    var new_pubkey_button = button_maker(translate.words("make_key"), new_keys_check);
+    var new_pubkey_div = document.createElement("div");
+    var balance_button = button_maker(translate.words("check_balance"), update_balance);
+    var bal_div = document.createElement("div");
+
+
+    document.body.appendChild(account_title);
+    document.body.appendChild(div);
+
+    append_children(div, [load_text, file_selector, br(), pub_div, br(), save_name, save_button, br(), new_pubkey_button, new_pubkey_div, br(), bal_div, balance_button]);
+
+    update_pubkey();
+
+    function input_maker(val) {
+        var x = document.createElement("input");
+        x.type = "text";
+        x.value = val;
+        return x;
+    }
     function new_keys() {
         return ec.genKeyPair();
     }
-    var keys = new_keys();
     function pubkey_64() {
         var pubPoint = keys.getPublic("hex");
         return btoa(fromHex(pubPoint));
     }
     function sign_tx(tx) {
-        console.log("about to sign tx");
-        console.log(JSON.stringify(tx));
         sig = btoa(array_to_string(sign(tx, keys)));
         return ["signed", tx, sig, [-6]];
     }
-    var account_title = document.createElement("h3");
-    account_title.innerHTML = translate.words("account");
-    document.body.appendChild(account_title);
-
-    var div = document.createElement("div");
-    document.body.appendChild(div);
-    
-    var save_name = document.createElement("INPUT");
-    save_name.type = "text";
-    save_name.id = "save_name";
-    save_name.value = "Amoveo ".concat(translate.words("private_key"));
-    var save_button = button_maker(translate.words("save_key"), save_keys);
-    var file_selector = document.createElement("input");
-    file_selector.type = "file";
-    file_selector.onchange = load_keys;
-
-    var load_text = document.createTextNode(translate.words("get_key"));
-    div.appendChild(load_text);
-    div.appendChild(file_selector);
-    div.appendChild(document.createElement("br"));
-    var pub_div = document.createElement("div");
-    div.appendChild(pub_div);
-
-    div.appendChild(document.createElement("br"));
-    div.appendChild(save_name);
-    div.appendChild(save_button);
-
-
-    div.appendChild(document.createElement("br"));
-    var new_pubkey_button = button_maker(translate.words("make_key"), new_keys_check);
-    div.appendChild(new_pubkey_button);
-
-    var new_pubkey_div = document.createElement("div");
-    div.appendChild(new_pubkey_div);
-    
-    div.appendChild(document.createElement("br"));
-    var balance_button = button_maker(translate.words("check_balance"), update_balance);
-    var bal_div = document.createElement("div");
-    div.appendChild(bal_div);
-    div.appendChild(balance_button);
-    
-    update_pubkey();
-
-    //console.log(fromHex(toHex("abc")));
     function update_pubkey() {
         pub_div.innerHTML = translate.words("your_pubkey").concat(" ").concat(pubkey_64());
     }
@@ -101,7 +84,6 @@ function keys_function1() {
         bal_div.innerHTML = translate.words("your_balance").concat((n).toString());
     }
     function save_keys() {
-        var save_name = document.getElementById("save_name");
         download(keys.getPrivate("hex"), save_name.value, "text/plain");
     }
     function load_keys() {
