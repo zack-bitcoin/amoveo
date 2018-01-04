@@ -19,23 +19,21 @@ function create_account1() {
     var create_button = button_maker("create_account", create_account);
     div.appendChild(create_button);
     div.appendChild(document.createElement("br"));
-
+    var ca_fee = 50050;
     function create_account() {
         var to = create_address.value;
         var amount = Math.floor(parseFloat(create_amount.value, 10) * 100000000);
         var from = keys.pub();
-        var fee = 20;
-        console.log([amount, fee, from, to]);
-        variable_public_get(["create_account_tx", amount, fee, from, to],
+        console.log([amount, ca_fee, from, to]);
+        variable_public_get(["create_account_tx", amount, ca_fee, from, to],
                             create_tokens2);
     }
     function create_tokens2(tx) {
         console.log("create account tx is ");
         console.log(tx);
         var to = create_address.value;
-        var amount = parseFloat(create_amount.value, 10) * 100000000;
+        var amount = Math.floor(parseFloat(create_amount.value, 10) * 100000000);
         var from = keys.pub();
-        var fee = 20;
         var from0 = tx[1];
         var fee0 = tx[3];
         var to0 = tx[4];
@@ -46,7 +44,7 @@ function create_account1() {
             console.log("abort: server changed the amount.");
         } else if (!(to == to0)) {
             console.log("abort: server changed who we are sending money to.");
-        } else if (!(fee == fee0)) {
+        } else if (!(ca_fee == fee0)) {
             console.log("abort: server changed the fee.");
         } else {
             var stx = keys.sign(tx);
