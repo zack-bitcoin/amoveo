@@ -107,7 +107,9 @@ function serialize_key(v, trie_key) {
     if ( t == "gov" ) {
         return integer_to_array(trie_key, 1);
     } else if ( t == "acc" ) {
-        var pubkey = string_to_array(atob(v[4]));
+        console.log("v is ");
+        console.log(v);
+        var pubkey = string_to_array(atob(v[3]));
         return hash(pubkey);
     } else if ( t == "channel" ) {
         return hash(integer_to_array(v[1], 32));
@@ -135,15 +137,13 @@ function serialize_tree_element(v, trie_key) {
     } else if ( t == "acc" ) {
         var balance = integer_to_array(v[1], 6);
         var nonce = integer_to_array(v[2], 3);
-        var height = integer_to_array(v[3], 4);
-        var pubkey = string_to_array(atob(v[4]));
-        var bets = string_to_array(atob(v[6]));
+        var pubkey = string_to_array(atob(v[3]));
+        var bets = string_to_array(atob(v[5]));
         var serialized = ([]).concat(
             balance).concat(
                 nonce).concat(
-                    height).concat(
-                        pubkey).concat(
-                            bets);
+                    pubkey).concat(
+                        bets);
         return serialized;
     } else if ( t == "channel" ) {
         var cid = integer_to_array(v[1], 32);
@@ -154,22 +154,20 @@ function serialize_tree_element(v, trie_key) {
         var amount = integer_to_array(128, 1).concat(
             integer_to_array(v[6], 5));
         var nonce = integer_to_array(v[7], 4);
-        var timeout_height = integer_to_array(v[8], 4);
-        var last_modified = integer_to_array(v[9], 4);
-        var delay = integer_to_array(v[10], 4);
-        var closed = integer_to_array(v[12], 1);
+        var last_modified = integer_to_array(v[8], 4);
+        var delay = integer_to_array(v[9], 4);
+        var closed = integer_to_array(v[11], 1);
         var serialized = ([]).concat(
             cid).concat(
                 bal1).concat(
                     bal2).concat(
                         amount).concat(
                             nonce).concat(
-                                timeout_height).concat(
-                                    last_modified).concat(
-                                        delay).concat(
-                                            closed).concat(
-                                                acc1).concat(
-                                                    acc2);
+                                last_modified).concat(
+                                    delay).concat(
+                                        closed).concat(
+                                            acc1).concat(
+                                                acc2);
         return serialized;
     } else if (t == "oracle") {
         var id = integer_to_array(v[1], 32);

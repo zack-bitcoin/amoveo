@@ -49,7 +49,6 @@ serialize(X) ->
       (X#oracle.result):8,
       (X#oracle.type):8,
       (X#oracle.starts):HB,
-      %(X#oracle.difficulty):DB,
       (X#oracle.done_timer):HB,
       (X#oracle.governance):8,
       (X#oracle.governance_amount):8,
