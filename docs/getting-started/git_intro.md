@@ -1,4 +1,4 @@
-you don't need to know very much about git to program for Aeternity.
+you don't need to know very much about git to program for Amoveo.
 
 you will need a github account.  https://github.com/
 
