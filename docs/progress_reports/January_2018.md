@@ -96,10 +96,10 @@ None of the other projects have light nodes, or a plan on how to make light node
 Fun Fair has no short-term plan for markets.
 
 Some teams got a score of 0 for market because they are putting their markets on-chain. On-chain markets cannot scale with channels.
-Bitshares, Zen Protocol, ZeroSum Markets, Stox, Bodhi, and Aeternity.
+Bitshares, Zen Protocol, ZeroSum Markets, Stox, Bodhi, Gnosis, and Aeternity.
 
-A few teams plan to put markets off-chain, but they are markets of brokers, which is much less efficient than an order book. This design also gets a 0.
-Bitcoin Hivemind, Group Gnosis, and Augur.
+A few teams plan to put markets off-chain, but they are markets of brokers, which is much less efficient than an order book with single-price batches. This design also gets a 0.
+Bitcoin Hivemind, Gnosis, and Augur.
 
 Amoveo has off-chain markets with order books and single-price batches in the testnet. [You can see graphs of the market state here](http://146.185.142.103:8080/explorer.html)
 

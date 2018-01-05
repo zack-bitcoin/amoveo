@@ -88,3 +88,6 @@ Markets can only be secure if batches of single price are used.
 Casey Detrio explains it well.
 https://www.youtube.com/watch?v=mAtD0ba-hXU
 
+Gnosis also attempts at explaining:
+https://blog.gnosis.pm/introducing-the-gnosis-dutch-exchange-53bd3d51f9b2
+[Here is a copy of the text of the gnosis dutch exchange post](../other_blockchains/gnosis_dutch_exchange.md)

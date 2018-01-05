@@ -7,4 +7,4 @@ These markets need to be scalable so that many people can participate. That is w
 
 [these markets need to be secure against censorship](/docs/design/off_chain_censored_orders.md)
 
-[These markets need to do trading in batches, to avoid front running.](/docs/design/off_line_limit_order_channel.md)
+[These markets need to do trading in batches, to avoid front running.](/docs/design/limit_order_in_channel.md)
