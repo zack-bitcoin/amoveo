@@ -13,7 +13,7 @@ test_helper([A|B]) ->
 test1() ->
     timer:sleep(2000),
     S = success,
-    Tests = [db, testnet_sign, packer, encryption, tree_test, block_hashes, block, spk, test_txs, existence, order_book, proofs, market], %headers, keys],
+    Tests = [secrets, db, testnet_sign, packer, encryption, tree_test, block_hashes, block, spk, test_txs, existence, order_book, proofs, market], %headers, keys],
     S = test_helper(Tests).
 
     

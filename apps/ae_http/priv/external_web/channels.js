@@ -52,6 +52,7 @@ function channels_main() {
     append_children(channels_div, [save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
 
     
+    var fee = 50050;
     var oid = document.createElement("INPUT");
     oid.setAttribute("type", "text");
     var oid_info = document.createElement("h8");
@@ -175,7 +176,6 @@ function channels_main() {
         }
         var amount_final = Math.floor(parseFloat(amount.value, 10) * 100000000);
         var oid_final = parseInt(oid.value, 10);
-        var fee = 20
         var expires = l[1];
         var server_pubkey = l[2];
         var period = l[3];
@@ -225,13 +225,12 @@ function channels_main() {
         var expiration = parseInt(lifespan.value, 10) + headers_object.top()[1];
         var bal2 = amount - 1;
         spend_amount.value = "";
-        var fee = 20;
         var acc1 = keys.pub();
         var acc2 = pubkey;
         //let the server choose an unused cid for us.
-        variable_public_get(["new_channel_tx", acc1, pubkey, amount, bal2,delay, fee], function(x) { make_channel_func2(x, amount, bal2, fee, acc1, acc2, delay, expiration, pubkey); } );
+        variable_public_get(["new_channel_tx", acc1, pubkey, amount, bal2,delay, fee], function(x) { make_channel_func2(x, amount, bal2, acc1, acc2, delay, expiration, pubkey); } );
     }
-    function make_channel_func2(tx, amount, bal2, fee, acc1, acc2, delay, expiration, pubkey) {
+    function make_channel_func2(tx, amount, bal2, acc1, acc2, delay, expiration, pubkey) {
         //ask a server to make the tx for us, then check that all our data matches.
         console.log("make channel tx is ");
         console.log(tx);

@@ -3,7 +3,7 @@
 %% This module holds a bunch of secrets make by this node, stored in a dict by hash.
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3,
-         add/2, read/1, delete/1, new_lightning/0, check/0]).
+         add/2, read/1, delete/1, new_lightning/0, check/0, test/0]).
 -define(LOC, constants:secrets()).
 -define(none, <<"none">>).
 init(ok) ->
@@ -49,11 +49,16 @@ new_lightning() ->
     ESS = "binary " ++ integer_to_list(constants:hash_size()) ++ " " ++ base64:encode(S),
     Code = compiler_chalang:doit(list_to_binary(ESH)),
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(ESS)), []),
+    add(Code, SS),
+    {Code, SS}.
+check() -> gen_server:call(?MODULE, check).
+
+test() ->
+    {Code, SS} = new_lightning(),
     {Trees, Height, _} = tx_pool:data(),%for sanity check
     Amount = 200,
     Bet = spk:new_bet(Code, Code, Amount),
     SPK = spk:new(1, 2, 3, [Bet], 9000, 9000, 1, 1),
     {Amount, _, _} = spk:run(fast, [SS], SPK, Height, 0, Trees),%for sanity check
-    add(Code, SS),
-    {Code, SS}.
-check() -> gen_server:call(?MODULE, check).
+    success.
+    
