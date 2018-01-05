@@ -20,13 +20,13 @@ function spend_1() {
     div.appendChild(spend_address);
     spend_button = button_maker("spend", spend_tokens);
     div.appendChild(spend_button);
+    var fee = 50050;
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");
         var to = spend_address.value;
         //spend_amount = document.getElementById("spend_amount");
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
         var from = keys.pub();
-        var fee = 20;
         variable_public_get(["spend_tx", amount, fee, from, to],
                             spend_tokens2);
     }
@@ -35,7 +35,6 @@ function spend_1() {
         var amount0 = tx[5];
         var to = spend_address.value;
         var to0 = tx[4];
-        var fee = 20;
         var fee0 = tx[3];
         if (!(amount == amount0)) {
             console.log("amounts");

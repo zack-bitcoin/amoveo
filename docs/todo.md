@@ -3,8 +3,6 @@
 * increase constants initial difficulty.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * chalang signatures are double-base64 encoded. they should only be single-encoded.
-* calculating block_to_header is too very slow. Which means calculating the hash of a block is slow too.
-* We should store the hash of the block along with the block, that way we don't have to re-calculate it more than once. When sharing blocks we can use this hash to quickly ignore blocks we have already seen, but for a block to be considered valid, we need to check at least once that the hash was calculated correctly.
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
@@ -12,6 +10,9 @@
 
 
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
+I took notes. Search for "verify" in channels.js
+
+* go through every case in the light node where we do a variable_public_get. Make sure we verify the response as much as possible. Do not blindly sign or store anything from them for example.
 
 * in the javascript light node, we should seperate the view-code from the controller-code from the model-code in each page.
 
@@ -41,10 +42,11 @@
 
 
 
-
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
 
 * lightning payments from the light node.
+
+* when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
 
 * review the rules about increasing the balance of channels. We should require a payment that make sense.
 grow_channel_tx:good and new_channel_tx:good should move into the /channels directory, since they aren't related to consensus.
@@ -54,12 +56,8 @@ grow_channel_tx:good and new_channel_tx:good should move into the /channels dire
 Market contracts need some sort of default, so they can be closed within the limit. The default should probably be that the server wins, this way the customer can have the freedom to set up the bet with whatever time constraints they want, at their own risk. It is a sort of "I cut, you choose" protocol.
 - we should have a constant in the config file be "time_value", and we use this to calculate how much it costs to have the server's money locked up for a period of time.
 
-* raise the fees so it isn't affordable to spam the blocks.
-
 * make the pubkeys more convenient for copy/pasting. It would be nice if we used compressed pubkeys instead of full pubkeys. Maybe we should use the base58 library, or the pubkey checksum library.
 Maybe encoding the pubkeys should happen at the wallet level, not the node level.
-
-* when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
 
 * pull channel state shouldn't cause a crash when the state is already synced.
 
@@ -111,6 +109,9 @@ So it is important that a channel_grow transaction ignores the nonces of the two
 
 
 ### Things we can do after launch of mainnet
+
+* calculating block_to_header is too very slow. Which means calculating the hash of a block is slow too.
+* We should store the hash of the block along with the block, that way we don't have to re-calculate it more than once. When sharing blocks we can use this hash to quickly ignore blocks we have already seen, but for a block to be considered valid, we need to check at least once that the hash was calculated correctly.
 
 * merkle.js should be able to verify proofs of the trie being empty in some places.
 

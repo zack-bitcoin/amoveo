@@ -189,7 +189,7 @@ function channels_main() {
         });
     }
     function make_bet3(sspk2, sspk, server_pubkey, oid_final) {
-        //check that the signature is valid.
+        //verify signature on sspk2
         var hspk2 = JSON.stringify(sspk2[1]);
         var hspk = JSON.stringify(sspk[1]);
         if (hspk2 == hspk) { //make sure that both spks match
@@ -257,7 +257,7 @@ function channels_main() {
             variable_public_get(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration, pubkey) });
         }
     }
-    function channels3(x, expiration, pubkey) {
+    function channels3(x, expiration, pubkey) {//we should also pass tx and spk, to verify that the server didn't manipulate them.
         var sstx = x[1];
         var s2spk = x[2];
         // verify that both are signed twice.
