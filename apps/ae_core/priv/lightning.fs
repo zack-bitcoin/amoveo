@@ -1,8 +1,15 @@
 
- drop stack_size int 0 == if
-int 100 int 1 int 0 return else then  drop drop
-hash SecretHash @
-== swap drop swap drop if
-int 0 int 2 int 10000
+drop stack_size int 0 ==
+if
+ int 100 int 1 int 0 return ( delay nonce amount )
 else
-int 100 int 1 int 0 then return
+then ( S 1 0 )
+drop drop ( S )
+hash SecretHash @ ( hashS SecretHash )
+== swap drop swap drop ( B )
+if
+ int 0 int 2 int 10000 ( delay nonce amount )
+else
+ int 100 int 1 int 0 ( delay nonce amount )
+then
+return
