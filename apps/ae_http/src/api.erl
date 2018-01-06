@@ -16,11 +16,11 @@ top() ->
     Height = TopHeader#header.height,
     {top, TopHeader, Height}.
 sign(Tx) ->
-    {Trees,_,_} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Accounts = trees:accounts(Trees),
     keys:sign(Tx).
 tx_maker(F) -> 
-    {Trees,_,_} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     {Tx, _} = F(Trees),
     case keys:sign(Tx) of
 	{error, locked} -> 
@@ -29,7 +29,7 @@ tx_maker(F) ->
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
 create_account(NewAddr, Amount) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(create_acc_tx, Governance),
     create_account(NewAddr, Amount, ?Fee + Cost).
@@ -40,7 +40,7 @@ create_account(NewAddr, Amount, Fee) ->
       end).
 coinbase(ID) ->
     K = keys:pubkey(),
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     F = fun(Trees) ->
 		coinbase_tx:make(K, Trees) end,
     tx_maker(F).
@@ -50,7 +50,7 @@ spend(ID, Amount) ->
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
 	true -> 
 	    A = Amount,
-	    {Trees, _, _} = tx_pool:data(),
+            Trees = (tx_pool:get())#tx_pool.trees,
 	    Governance = trees:governance(Trees),
             Accounts = trees:accounts(Trees),
             {_, B, _} = accounts:get(ID, Accounts),
@@ -67,7 +67,7 @@ spend(ID, Amount, Fee) ->
 		spend_tx:make(ID, Amount, Fee, keys:pubkey(), Trees) end,
     tx_maker(F).
 delete_account(ID) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(delete_acc_tx, Governance),
     delete_account(ID, ?Fee + Cost).
@@ -77,23 +77,22 @@ delete_account(ID, Fee) ->
               delete_account_tx:new(ID, keys:pubkey(), Fee, Trees)
       end).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(nc, Governance),
     new_channel_tx(CID, Acc2, Bal1, Bal2, ?Fee+Cost, Delay).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Fee, Delay) ->
     %the delay is how many blocks you have to wait to close the channel if your partner disappears.
     %delay is also how long you have to stop your partner from closing at the wrong state.
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     {Tx, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Acc2, Bal1, Bal2, Delay, Fee),
     keys:sign(Tx).
 new_channel_with_server(Bal1, Bal2, Delay, Expires) ->
     new_channel_with_server(Bal1, Bal2, Delay, Expires, ?IP, ?Port).
 new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Channels = trees:channels(Trees),
     CID = find_id(channels, Channels),
-    {Trees, _, _} = tx_pool:data(),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(nc, Governance),
     new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires).
@@ -182,7 +181,7 @@ channel_spend(IP, Port, Amount) ->
     {ok, CD} = channel_manager:read(PeerId),
     OldSPK = testnet_sign:data(CD#cd.them),
     ID = keys:pubkey(),
-    {Trees,_,_} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
     Payment = keys:sign(SPK),
     M = {channel_payment, Payment, Amount},
@@ -230,7 +229,9 @@ integer_channel_balance(Ip, Port) ->
     SSPK = CD#cd.them,
     SPK = testnet_sign:data(SSPK),
     SS = CD#cd.ssthem,
-    {Trees, NewHeight, _Txs} = tx_pool:data(),
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.trees,
+    NewHeight = TP#tx_pool.height,
     Channels = trees:channels(Trees),
     Amount = SPK#spk.amount,
     BetAmounts = sum_bets(SPK#spk.bets),
