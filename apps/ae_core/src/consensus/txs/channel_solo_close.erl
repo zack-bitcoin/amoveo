@@ -78,7 +78,7 @@ wait_block(X, SPK, SS) ->
             wait_block(X, SPK, SS)
     end.
 slash_it(SPK, SS) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     GovCost = governance:get_value(cs, Governance),
     {ok, TxFee} = application:get_env(ae_core, tx_fee),

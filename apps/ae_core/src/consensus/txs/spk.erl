@@ -120,7 +120,9 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	SS2 -> 
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
             %io:fwrite("we have a secret\n"),
-	    {Trees, Height, _} = tx_pool:data(),
+            TP = tx_pool:get(),
+            Trees = TP#tx_pool.trees,
+            Height = TP#tx_pool.height,
 	    State = chalang_state(Height, 0, Trees),
 	    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
 	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
@@ -261,7 +263,7 @@ run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, De
 run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     ScriptSig = SS#ss.code,
     true = chalang:none_of(ScriptSig),
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     %F = prove_facts(Bet#bet.prove, Trees),
     F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
@@ -278,8 +280,7 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
      chalang:time_gas(Data2)
     }.
 force_update(SPK, SSOld, SSNew) ->
-    %{_Trees, Height, _} = tx_pool:data(),
-    F = tx_pool:data_new(),
+    F = tx_pool:get(),
     Dict = F#tx_pool.dict,
     Trees = F#tx_pool.trees,
     Height = F#tx_pool.height,
@@ -298,7 +299,9 @@ force_update(SPK, SSOld, SSNew) ->
 force_update2([], [], NewBets, NewSS, A, Nonce) ->
     {NewBets, NewSS, A, Nonce};
 force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
-    {Trees, Height, _} = tx_pool:data(),
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.trees,
+    Height = TP#tx_pool.height,
     State = chalang_state(Height, 0, Trees),
     {ok, FunLimit} = application:get_env(ae_core, fun_limit),
     {ok, VarLimit} = application:get_env(ae_core, var_limit),
@@ -321,7 +324,9 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     end.
     
 is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
-    {Trees, Height, _} = tx_pool:data(),
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.trees,
+    Height = TP#tx_pool.height,
     {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
     {ok, TimeLimit} = application:get_env(ae_core, time_limit),
     SG = NewSPK#spk.space_gas,
@@ -443,11 +448,13 @@ test2() ->
     {ok, CD} = channel_manager:read(hd(channel_manager:keys())),
     SSME = CD#cd.ssme,
     SPK = CD#cd.me,
-    {Trees, Height, _} = tx_pool:data(),
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.trees,
+    Height = TP#tx_pool.height,
     run(fast, SSME, SPK, Height, 0, Trees).
 test() ->
     %test prove_facts.
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Pub = constants:master_pub(),
     GovID = 2,
     Code = prove_facts([{governance, GovID},{accounts, Pub}], Trees),

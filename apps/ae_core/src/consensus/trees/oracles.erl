@@ -21,7 +21,6 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
 	    orders = Orders,
             orders_hash = orders:root_hash(Orders),
 	    creator = Creator,
-	    %difficulty = Difficulty,
 	    done_timer = Starts + MOT,
 	    governance = GovernanceVar,
 	    governance_amount = GovAmount
@@ -31,17 +30,13 @@ serialize(X) ->
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),
     Question = X#oracle.question,
-    %Orders = orders:root_hash(X#oracle.orders),
-    %Orders = X#oracle.orders_hash,
     Orders = case X#oracle.orders of
                  0 -> X#oracle.orders_hash;
-                     %Account#acc.bets_hash;
                  Z -> orders:root_hash(Z)
              end,
     HS = size(Question),
     HS = size(Orders),
     HB = constants:height_bits(),
-    %DB = constants:difficulty_bits(),
     true = size(X#oracle.creator) == PS,
     true = size(Question) == HS,
     true = size(Orders) == HS,
@@ -60,12 +55,10 @@ deserialize(X) ->
     PS = constants:pubkey_size()*8,
     HS = constants:hash_size()*8,
     HEI = constants:height_bits(),
-    %DB = constants:difficulty_bits(),
     <<ID:HS,
      Result:8,
      Type:8,
      Starts:HEI,
-     %Diff:DB,
      DT:HEI,
      Gov:8,
      GovAmount:8,
@@ -80,7 +73,6 @@ deserialize(X) ->
            starts = Starts,
            question = <<Question:HS>>,
            creator = <<Creator:PS>>,
-           %difficulty = Diff,
            done_timer = DT,
            governance = Gov,
            governance_amount = GovAmount,
@@ -107,7 +99,6 @@ dict_get(ID, Dict) ->
         {Y, Meta} ->
             Y2 = deserialize(Y),
             Y2#oracle{orders = Meta}
-        %_ -> deserialize(X)
     end.
 key_to_int(X) -> 
     <<Y:256>> = hash:doit(<<X:256>>),
@@ -134,7 +125,7 @@ test() ->
     %headers:dump(),
     %block:initialize_chain(),
     %tx_pool:dump(),
-    %{Trees, _, _} = tx_pool:data(),
+    %Trees = (tx_pool:get())#tx_pool.trees,
     %Root0 = constants:root0(),
     %X0 = new(1, hash:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
     %X = set_result(X0, 3),
@@ -148,7 +139,7 @@ test() ->
     %true = verify_proof(Root2, X#oracle.id, 0, Path2),
     test2().
 test2() ->
-    %{Trees, _, _} = tx_pool:data(),
+    %Trees = (tx_pool:get())#tx_pool.trees,
     %OID = 2,
     %Root0 = constants:root0(),
     %X0 = new(OID, hash:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),

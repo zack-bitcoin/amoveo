@@ -6,6 +6,7 @@
          add/2, read/1, delete/1, new_lightning/0, check/0, test/0]).
 -define(LOC, constants:secrets()).
 -define(none, <<"none">>).
+-include("../records.hrl").
 init(ok) ->
     io:fwrite("starting secrets\n"),
     process_flag(trap_exit, true),
@@ -55,7 +56,9 @@ check() -> gen_server:call(?MODULE, check).
 
 test() ->
     {Code, SS} = new_lightning(),
-    {Trees, Height, _} = tx_pool:data(),%for sanity check
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.trees,
+    Height = TP#tx_pool.height,
     Amount = 200,
     Bet = spk:new_bet(Code, Code, Amount),
     SPK = spk:new(1, 2, 3, [Bet], 9000, 9000, 1, 1),
