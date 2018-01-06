@@ -18,7 +18,7 @@ is_in(Tx, [STx2 | T]) ->
     Tx2 = testnet_sign:data(STx2),
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
-    F = tx_pool:data_new(),
+    F = tx_pool:get(),
     Trees = F#tx_pool.trees,
     Height = F#tx_pool.height,
     Txs = F#tx_pool.txs,
@@ -49,7 +49,7 @@ absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->
     gen_server:call(?MODULE, {absorb, SignedTx}).
 absorb_unsafe(SignedTx) ->
-    F = tx_pool:data_new(),
+    F = tx_pool:get(),
     Trees = F#tx_pool.trees,
     Height = F#tx_pool.height,
     Dict = F#tx_pool.dict,

@@ -107,7 +107,7 @@ find_id(Name, N, Tree) ->
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     Acc1 = keys:pubkey(),
     {ok, Acc2} = talker:talk({pubkey}, IP, Port),
-    {Trees,_,_} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
     {ok, ChannelDelay} = application:get_env(ae_core, channel_delay),
     {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
@@ -202,7 +202,7 @@ lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
     ESS = keys:encrypt([SS, Code], Pubkey),
     SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code),
     {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:pubkey(), Pubkey, ESS}, IP, Port),
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK2)),
     SPK = testnet_sign:data(SSPK),

@@ -138,6 +138,5 @@ get_blocks(Peer, N) ->
 trade_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),
     tx_pool_feeder:absorb(Txs),
-    {_,_,Mine} = tx_pool:data(),
-    remote_peer({txs, Mine}, Peer).
-            
+    Mine = (tx_pool:get())#tx_pool.txs,
+    remote_peer({txs, lists:reverse(Mine)}, Peer).

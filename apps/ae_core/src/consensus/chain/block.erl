@@ -247,7 +247,9 @@ spawn_many(N, F) ->
 mine(Rounds) -> 
     %PB = top(),
     %Top = block_to_header(PB),
-    {_, T, Txs} = tx_pool:data(),
+    TP = tx_pool:get(),
+    Txs = TP#tx_pool.txs,
+    T = TP#tx_pool.height,
     PB = get_by_height(T),
     Top = block_to_header(PB),
     Block = make(Top, Txs, PB#block.trees, keys:pubkey()),

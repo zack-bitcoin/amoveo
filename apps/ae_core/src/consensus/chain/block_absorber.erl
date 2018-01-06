@@ -60,7 +60,7 @@ absorb_internal(Block) ->
                 true -> ok
             end,
             spawn(fun () ->
-                          {_, _, Txs} = tx_pool:data(),
+                          Txs = (tx_pool:get())#tx_pool.txs,
                           tx_pool:dump(),
                           tx_pool_feeder:absorb(Txs)
                   end),
