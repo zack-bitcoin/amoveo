@@ -5,13 +5,10 @@
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
 -define(id, accounts).
 -include("../../records.hrl").
-
 bets(Account) -> Account#acc.bets.
-
 new(Pub, Balance) ->
     Root0 = constants:root0(),
     #acc{pubkey = Pub, balance = Balance, nonce = 0, bets = Root0, bets_hash = oracle_bets:root_hash(Root0)}.
-
 dict_update(Pub, Dict, Amount, NewNonce) ->
     Account = dict_get(Pub, Dict),
     dict_update(Pub, Dict, Amount, NewNonce, Account#acc.bets).

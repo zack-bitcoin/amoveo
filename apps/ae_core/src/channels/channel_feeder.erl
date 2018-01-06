@@ -51,7 +51,9 @@ handle_cast({close, SS, STx}, X) ->
 		    true -> K = A1
 		end,
     DemandedAmount = channel_team_close_tx:amount(Tx),
-    {Trees, Height, _} = tx_pool:data(),
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.trees,
+    Height = TP#tx_pool.height,
     Accounts = trees:accounts(Trees),
     {CalculatedAmount, NewNonce, _} = spk:run(safe, SS, SPK, Height, 0, Trees),
     {OldAmount, OldNonce, _} = spk:run(safe, CD#cd.ssthem, SPK, Height, 0, Trees),
@@ -129,7 +131,9 @@ handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
     channel_manager:write(TheirPub, NewCD),
     {reply, ok, X};
 handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
-    {Trees,Height,_} = tx_pool:data(),
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.trees,
+    Height = TP#tx_pool.height,
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
     {ok, LF} = application:get_env(ae_core, lightning_fee),
@@ -155,7 +159,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     {reply, SSPK2, X};
 handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
-    {Trees,_,_} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
@@ -361,7 +365,7 @@ make_locked_payment(To, Amount, Code) ->
     SPK = CD#cd.me,
     Bet = spk:new_bet(Code, Code, Amount),
     NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     keys:sign(NewSPK).
 trade(Amount, Price, Bet, Other, OID) ->
     {ok, CD} = channel_manager:read(Other),

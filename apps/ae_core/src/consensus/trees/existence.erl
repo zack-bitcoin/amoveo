@@ -6,6 +6,7 @@
 %for accessing the proof of existence tree
 -record(exist, {hash, height}).
 -define(name, existence).
+-include("../../records.hrl").
 hash(X) -> X#exist.hash.
 new(Hash, Height) ->
     HS = constants:hash_size(),
@@ -61,7 +62,7 @@ make_leaf(Key, V, CFG) ->
 verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 test() ->
-    {_, Height, _} = tx_pool:data(),
+    Height = (tx_pool:get())#tx_pool.height,
     Hash = hash:doit(2),
     C = new(Hash, Height),
     Root0 = constants:root0(),

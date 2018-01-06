@@ -97,7 +97,7 @@ handle_call({match, OID}, _From, X) ->
     %update a bunch of channels with this new price declaration.
     io:fwrite("match internal\n"),
     {ok, OB} = dict:find(OID, X),
-    {_, Height, _} = tx_pool:data(),
+    Height = (tx_pool:get())#tx_pool.height,
     B = (Height - OB#ob.height) >= (OB#ob.period * 3 div 4),
     %B = true,
     {Out, X2}  = 
@@ -221,7 +221,7 @@ keys() ->
 add(Order, OID) ->
     gen_server:call(?MODULE, {add, Order, OID}).
 match(OID) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
     Result = Oracle#oracle.result,

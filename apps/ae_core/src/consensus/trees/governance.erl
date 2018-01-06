@@ -6,6 +6,7 @@
 -record(gov, {id, value, lock}).
 -define(name, governance).
 -define(fee, constants:encoded_fee()).
+-include("../../records.hrl").
 genesis_state() ->
     {MinimumOracleTime, MaximumOracleTime, BlockPeriod} =
         case application:get_env(ae_core, test_mode, false) of
@@ -207,7 +208,7 @@ dict_get(Key, Dict) ->
 test() ->
     Num = name2number(fun_limit),
     C = new(Num, 1, 0),
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Leaf = {gov, Num, 350, 0},
     Leaf = deserialize(serialize(Leaf)),
