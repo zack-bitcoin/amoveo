@@ -247,19 +247,19 @@ pretty_display(I) ->
     [Formatted] = io_lib:format("~.8f", [F]),
     Formatted.
 channel_team_close(CID, Amount) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(ctc, Governance),
     channel_team_close(CID, Amount, ?Fee+Cost).
 channel_team_close(CID, Amount, Fee) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     keys:sign(channel_team_close_tx:make(CID, Trees, Amount, Fee)).
 channel_timeout() ->
     channel_timeout(constants:server_ip(), constants:server_port()).
 channel_timeout(Ip, Port) ->
     {ok, Other} = talker:talk({pubkey}, Ip, Port),
     {ok, Fee} = application:get_env(ae_core, tx_fee),
-    {Trees,_,_} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     {ok, CD} = channel_manager:read(Other),
     CID = CD#cd.cid,
     {Tx, _} = channel_timeout_tx:make(keys:pubkey(), Trees, CID, [], Fee),
@@ -274,12 +274,12 @@ channel_slash(_CID, Fee, SPK, SS) ->
 		channel_slash_tx:make(keys:pubkey(), Fee, SPK, SS, Trees) end,
     tx_maker(F).
 new_question_oracle(Start, Question)->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Oracles = trees:oracles(Trees),
     ID = find_id(oracles, Oracles),
     new_question_oracle(Start, Question, ID).
 new_question_oracle(Start, Question, ID)->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Oracles = trees:oracles(Trees),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(oracle_new, Governance),
@@ -297,7 +297,7 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		oracle_new_tx:make(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, DiffOracleID, GovNumber, GovAmount, Trs) end,
     tx_maker(F).
 oracle_bet(OID, Type, Amount) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(oracle_bet, Governance),
     oracle_bet(?Fee+Cost, OID, Type, Amount).
@@ -307,7 +307,7 @@ oracle_bet(Fee, OID, Type, Amount) ->
 	end,
     tx_maker(F).
 oracle_close(OID) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(oracle_close, Governance),
     oracle_close(?Fee+Cost, OID).
@@ -317,7 +317,7 @@ oracle_close(Fee, OID) ->
 	end,
     tx_maker(F).
 oracle_winnings(OID) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(oracle_winnings, Governance),
     oracle_winnings(?Fee+Cost, OID).
@@ -327,7 +327,7 @@ oracle_winnings(Fee, OID) ->
 	end,
     tx_maker(F).
 oracle_unmatched(OracleID) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(unmatched, Governance),
     oracle_unmatched(?Fee+Cost, OracleID).
@@ -337,7 +337,7 @@ oracle_unmatched(Fee, OracleID) ->
 	end,
     tx_maker(F).
 account(Pubkey) when size(Pubkey) == 65 ->
-    {Trees,_,_} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Accounts = trees:accounts(Trees),
     case accounts:get(Pubkey, Accounts) of
         {_,empty,_} -> empty;
@@ -373,7 +373,7 @@ mine_block(Periods, Times) ->
 channel_close() ->
     channel_close(?IP, ?Port).
 channel_close(IP, Port) ->
-    {Trees, _, _} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Governance = trees:governance(Trees),
     Cost = governance:get_value(ctc, Governance),
     channel_close(IP, Port, ?Fee+Cost).
@@ -381,7 +381,7 @@ channel_close(IP, Port, Fee) ->
     {ok, PeerId} = talker:talk({pubkey}, IP, Port),
     {ok, CD} = channel_manager:read(PeerId),
     SPK = testnet_sign:data(CD#cd.them),
-    {Trees,_,_} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Height = (block:get_by_hash(headers:top()))#block.height,
     SS = CD#cd.ssthem,
     SS = [],
@@ -398,7 +398,7 @@ channel_solo_close(IP, Port) ->
     channel_solo_close(Other).
 channel_solo_close(Other) ->
     Fee = free_constants:tx_fee(),
-    {Trees,_,_} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     {ok, CD} = channel_manager:read(Other),
     SSPK = CD#cd.them,
     SS = CD#cd.ssthem,
