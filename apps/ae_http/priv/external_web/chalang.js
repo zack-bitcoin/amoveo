@@ -220,11 +220,11 @@ function chalang(command) {
         }
         for (var i = 0; i<code.length; i++) {
             //console.log("run cycle");
-            //console.logi);
-            //console.log"opcode: ");
-            //console.logcode[i]);
-            //console.logJSON.stringify(code));
-            //console.logJSON.stringify(d.stack));
+            //console.log(i);
+            //console.log("opcode: ");
+            //console.log(code[i]);
+            //console.log(JSON.stringify(code));
+            //console.log(JSON.stringify(d.stack));
             if (d.ram_current > d.ram_most) {
                 d.ram_most = d.ram_current;
             }
@@ -915,7 +915,7 @@ function chalang(command) {
     }
     function prove_facts(facts, callback) {
         if (JSON.stringify(facts) == JSON.stringify([])) {
-            return [empty_list];
+            return callback([empty_list]);
         }
         return prove_facts2(facts, 1, [empty_list], callback); // [
     }
@@ -981,12 +981,13 @@ function chalang(command) {
         var state = chalang_new_state(height, slash);
         var key1 = "fun_limit";
         var ret;
-        if (!(ss.length == (spk[4].length - 1))) {//spk[4] == bets is formated with a -6 in front for packer.erl
+        if (!(ss.length == (spk[3].length - 1))) {//spk[4] == bets is formated with a -6 in front for packer.erl
             console.log(JSON.stringify(ss));
+            console.log(JSON.stringify(spk));
             console.log(JSON.stringify(spk[4]));
             throw("ss and bets need to be the same length");
         }
-        spk_run2(ss, spk[4], spk[6], spk[5], fun_limit, var_limit, state, spk.delay, 0, 0, 1, function(ret) {
+        spk_run2(ss, spk[3], spk[5], spk[4], fun_limit, var_limit, state, spk.delay, 0, 0, 1, function(ret) {
             return callback(ret);
         });
     }
@@ -1016,6 +1017,8 @@ function chalang(command) {
         //console.log("spk_run3 ss is ");
         //console.log(JSON.stringify(ss));
         var script_sig = ss.code;
+        console.log("script sig");
+        console.log(ss);
         if (!(chalang_none_of(script_sig))) {
             throw("error: return op in the script sig");
         }
@@ -1064,10 +1067,10 @@ function chalang(command) {
             spk_run("fast", ssnew, spk, height, 0, fun_limit, var_limit, function(ran2) {
                 var nonceNew = ran2.nonce;
                 if (nonceNew > nonceOld) {
-                    spk_force_update2(spk[4], ssnew, height, function(updated) {
-                        spk[4] = updated.new_bets;
-                        spk[8] += updated.amount;
-                        spk[9] += updated.nonce;
+                    spk_force_update2(spk[3], ssnew, height, function(updated) {
+                        spk[3] = updated.new_bets;
+                        spk[7] += updated.amount;
+                        spk[8] += updated.nonce;
                         console.log("force udpate final ss is ");
                         console.log(JSON.stringify(updated.newss));
                         return callback({"spk":spk, "ss":updated.newss});
@@ -1241,16 +1244,14 @@ function chalang(command) {
     function is_improvement(old_spk, old_ss, new_spk, new_ss, fun_limit, var_limit, callback) {
         //get height
         //check that space gas and time limit are below or equal to what is in the config file.
-        if (new_spk[5] > 100000) {//space gas
+        if (new_spk[4] > 100000) {//space gas
             console.log("this contract uses too much space.");
             return callback(false);
         }
-        if (new_spk[6] > 100000) {//time gas
+        if (new_spk[5] > 100000) {//time gas
             console.log("this contract uses too much time");
             return callback(false);
         }
-        new_spk[5];
-        new_spk[6];
         spk_run("fast", new_ss, new_spk, height, 0, fun_limit, var_limit, function(run2) {
             var nonce2 = run2.nonce;
             var delay2 = run2.delay;
@@ -1262,18 +1263,18 @@ function chalang(command) {
                     console.log("the new spk can't produce a lower nonce than the old.");
                     return callback(false);
                 }
-                var old_bets = old_spk[4];
-                var old_amount = old_spk[8];
-                old_spk[4] = new_spk[4];
-                old_spk[6] = tg;
-                old_spk[5] = sg;
+                var old_bets = old_spk[3];
+                var old_amount = old_spk[7];
+                old_spk[3] = new_spk[3];
+                old_spk[5] = tg;
+                old_spk[4] = sg;
+                old_spk[7] = new_spk[7];
                 old_spk[8] = new_spk[8];
-                old_spk[9] = new_spk[9];
                 if (!(JSON.stringify(old_spk) == JSON.stringify(new_spk))) {
                     console.log("spk was changed in unexpected ways");
                     return callback(false);
                 }
-                var cid = new_spk[7];
+                var cid = new_spk[6];
                 var ret = false;
                 verify_callback("channels", cid, function(channel) {
                     //variable_public_get(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
@@ -1282,18 +1283,18 @@ function chalang(command) {
                     var acc2 = channel[3]
                     var profit;
                     if (keys.pub() == acc1) {
-                        profit = new_spk[8] - old_amount;
+                        profit = new_spk[7] - old_amount;
                     } else {
-                        profit = old_amount - new_spk[8];
+                        profit = old_amount - new_spk[7];
                     }
-                    var bets2 = new_spk[4];
+                    var bets2 = new_spk[3];
                     if ((JSON.stringify(old_bets) == JSON.stringify(bets2)) && (profit > 0)) {
                         //if they give us money for no reason, then accept.
                         ret = true;
                         return 0;
                     }
                     if ((!(profit < 0)) && //costs nothing
-                        ((new_spk[4].length - old_bets.length) > 0)) { //increases number of bets
+                        ((new_spk[3].length - old_bets.length) > 0)) { //increases number of bets
 	                //if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
                         var new_bet = bets2[0];
                         var t = bets2.slice(1, bets2.length);
@@ -1389,7 +1390,7 @@ function chalang(command) {
             });
         });
     }
-        return {"run5": run5, "test": chalang_test, "pull_channel_state": pull_channel_state};
+    return {run5: run5, test: chalang_test, pull_channel_state: pull_channel_state, spk_run: spk_run};
 }
 /*
 //this is an example of calling run5, the chalang library.

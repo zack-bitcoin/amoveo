@@ -1,8 +1,5 @@
 //use market:teset3() to generate this compiled binary.
 
-function market_key(market_id, expires, server_pubkey, period, oid){
-    return ["market", 1, market_id, expires, server_pubkey, period, oid];
-}
 function market_contract(direction, expires, maxprice, server_pubkey, period, amount, oid, bet_height) {
   //var a = string_to_array(atob("AAAAJxAAAAAAAXgA"));
     var a;
@@ -39,16 +36,11 @@ function market_contract(direction, expires, maxprice, server_pubkey, period, am
     console.log("compiled contract");
     console.log(JSON.stringify(g));
     var contract =  btoa(array_to_string(g));
-    var codekey = market_key(oid, expires, server_pubkey, period, oid);
-    return new_bet(contract, codekey, amount, [-7, direction, maxprice]);
-}
-function new_bet(code, key, amount, meta) {
-    //key is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
-    return ["bet", code, amount, key, meta];
+    var codekey = ["market", 1, oid, expires, server_pubkey, period, oid]
+    return ["bet", contract, amount, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
 }
 
 function market_trade(cd, amount, price, bet, oid) {
-                //var code_key = market_key(oid_final, expires, my_pubkey, period, oid_final);
     var market_spk = cd.me;
     console.log("market trade spk before ");
     console.log(JSON.stringify(market_spk));
