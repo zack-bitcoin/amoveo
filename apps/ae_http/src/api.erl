@@ -352,9 +352,7 @@ integer_balance() ->
         A -> A#acc.balance
     end.
 balance() -> integer_balance().
-mempool() ->
-    {_, _, Txs} = tx_pool:data(),
-    Txs.
+mempool() -> lists:reverse((tx_pool:get())#tx_pool.txs).
 halt() -> off().
 off() ->
     testnet_sup:stop(),
