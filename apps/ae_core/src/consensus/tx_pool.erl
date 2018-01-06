@@ -1,14 +1,9 @@
 -module(tx_pool).
 -behaviour(gen_server).
 %% This module holds the txs ready for the next block, and it remembers the current consensus state, so it is ready to add a new tx at any time.
--export([data/0, data_new/0, dump/0, absorb_tx/3, absorb/2,
-         dict/1, facts/1, height/1]).
+-export([data/0, data_new/0, dump/0, absorb_tx/3, absorb/2]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../records.hrl").
-dict(F) -> F#tx_pool.dict.
-facts(F) -> F#tx_pool.facts.
-height(F) -> F#tx_pool.height.
-
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) ->
