@@ -65,7 +65,7 @@
 		 governance_amount = 0}).
 -record(tx_pool, {txs = [],
                   trees,%this changes once per tx
-                  new_trees,%this changes once per block
+                  block_trees,%this changes once per block
                   dict = dict:new(), 
                   facts = [], 
                   height = 0}).

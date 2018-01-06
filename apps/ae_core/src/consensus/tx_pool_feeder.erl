@@ -20,9 +20,9 @@ is_in(Tx, [STx2 | T]) ->
 absorb_internal(SignedTx) ->
     F = tx_pool:data_new(),
     Trees = F#tx_pool.trees,
-    Height = tx_pool:height(F),
+    Height = F#tx_pool.height,
     Txs = F#tx_pool.txs,
-    Dict = tx_pool:dict(F),
+    Dict = F#tx_pool.dict,
     Governance = trees:governance(Trees),
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
@@ -50,7 +50,7 @@ absorb(SignedTx) ->
     gen_server:call(?MODULE, {absorb, SignedTx}).
 absorb_unsafe(SignedTx) ->
     F = tx_pool:data_new(),
-    Trees = tx_pool:trees(F),
-    Height = tx_pool:height(F),
-    Dict = tx_pool:dict(F),
+    Trees = F#tx_pool.trees,
+    Height = F#tx_pool.height,
+    Dict = F#tx_pool.dict,
     absorb_unsafe(SignedTx, Trees, Height, Dict).

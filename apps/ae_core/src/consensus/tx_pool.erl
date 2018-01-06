@@ -2,11 +2,9 @@
 -behaviour(gen_server).
 %% This module holds the txs ready for the next block, and it remembers the current consensus state, so it is ready to add a new tx at any time.
 -export([data/0, data_new/0, dump/0, absorb_tx/3, absorb/2,
-         trees/1, new_trees/1, dict/1, facts/1, height/1]).
+         dict/1, facts/1, height/1]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../records.hrl").
-trees(F) -> F#tx_pool.trees.
-new_trees(F) -> F#tx_pool.new_trees.
 dict(F) -> F#tx_pool.dict.
 facts(F) -> F#tx_pool.facts.
 height(F) -> F#tx_pool.height.
@@ -36,7 +34,7 @@ handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
          end,
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
-    {reply, 0, #tx_pool{txs = [], trees = NewTrees, new_trees = NewTrees, height = Height}};
+    {reply, 0, #tx_pool{txs = [], trees = NewTrees, block_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) ->
     {reply, F, F};
 handle_call(data, _From, F) ->
@@ -73,6 +71,6 @@ state2(Block) ->
 	_ ->
             Trees = Block#block.trees,
 	    #tx_pool{trees = Trees,
-                     new_trees = Trees, 
+                     block_trees = Trees, 
                      height = Block#block.height}
     end.

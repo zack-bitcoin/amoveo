@@ -280,9 +280,9 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
 force_update(SPK, SSOld, SSNew) ->
     %{_Trees, Height, _} = tx_pool:data(),
     F = tx_pool:data_new(),
-    Dict = tx_pool:dict(F),
-    Trees = tx_pool:trees(F),
-    Height = tx_pool:height(F),
+    Dict = F#tx_pool.dict,
+    Trees = F#tx_pool.trees,
+    Height = F#tx_pool.height,
     {_, NonceOld,  _} =  run(fast, SSOld, SPK, Height, 0, Trees),
     %we can't use dict here, because not all the information we need is stored in the dict.
     %{_, NonceOld,  _} =  dict_run(fast, SSOld, SPK, Height, 0, Dict),
