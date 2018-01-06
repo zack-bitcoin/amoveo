@@ -2,27 +2,26 @@
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -export([absorb/1, absorb_unsafe/1]).
-
+-include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) -> {ok, []}.
 handle_call({absorb, SignedTx}, _From, State) ->
     absorb_internal(SignedTx),
     {reply, ok, State};
 handle_call(_, _, S) -> {reply, S, S}.
-handle_cast(_Msg, S) -> {noreply, S}.
+handle_cast(_, S) -> {noreply, S}.
 handle_info(_, S) -> {noreply, S}.
 terminate(_, _) -> io:fwrite("tx_pool_feeder died\n").
 code_change(_, S, _) -> {ok, S}.
-
 is_in(_, []) -> false;
 is_in(Tx, [STx2 | T]) ->
     Tx2 = testnet_sign:data(STx2),
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
     F = tx_pool:data_new(),
-    Trees = tx_pool:trees(F),
+    Trees = F#tx_pool.trees,
     Height = tx_pool:height(F),
-    Txs = tx_pool:txs(F),
+    Txs = F#tx_pool.txs,
     Dict = tx_pool:dict(F),
     Governance = trees:governance(Trees),
     Tx = testnet_sign:data(SignedTx),
@@ -46,9 +45,7 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     NewTrees = block:dict_update_trie(Trees, NewDict), 
     tx_pool:absorb_tx(NewTrees, NewDict, SignedTx).
 absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
-absorb([H|T]) ->
-    absorb(H),
-    absorb(T);
+absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->
     gen_server:call(?MODULE, {absorb, SignedTx}).
 absorb_unsafe(SignedTx) ->

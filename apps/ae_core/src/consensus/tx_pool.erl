@@ -2,19 +2,14 @@
 -behaviour(gen_server).
 %% This module holds the txs ready for the next block, and it remembers the current consensus state, so it is ready to add a new tx at any time.
 -export([data/0, data_new/0, dump/0, absorb_tx/3, absorb/2,
-         txs/1, trees/1, new_trees/1, dict/1, facts/1, height/1]).
+         trees/1, new_trees/1, dict/1, facts/1, height/1]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../records.hrl").
--record(f, {txs = [],
-            trees,%this changes once per tx
-            new_trees,%this changes once per block
-            dict = dict:new(), facts = [], height = 0}).
-txs(F) -> F#f.txs.
-trees(F) -> F#f.trees.
-new_trees(F) -> F#f.new_trees.
-dict(F) -> F#f.dict.
-facts(F) -> F#f.facts.
-height(F) -> F#f.height.
+trees(F) -> F#tx_pool.trees.
+new_trees(F) -> F#tx_pool.new_trees.
+dict(F) -> F#tx_pool.dict.
+facts(F) -> F#tx_pool.facts.
+height(F) -> F#tx_pool.height.
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -26,7 +21,7 @@ handle_call(dump, _From, _OldState) ->
     State = current_state(),
     {reply, 0, State};
 handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
-    NewTxs = [Tx | F#f.txs],
+    NewTxs = [Tx | F#tx_pool.txs],
     BlockSize = size(term_to_binary(NewTxs)),
     Governance = trees:governance(NewTrees),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
@@ -35,18 +30,18 @@ handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
                  io:fwrite("Cannot absorb tx - block is already full"),
                  F;
              false ->
-                 F#f{txs = NewTxs, 
+                 F#tx_pool{txs = NewTxs, 
                      trees = NewTrees, 
                      dict = NewDict}
          end,
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
-    {reply, 0, #f{txs = [], trees = NewTrees, new_trees = NewTrees, height = Height}};
+    {reply, 0, #tx_pool{txs = [], trees = NewTrees, new_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) ->
     {reply, F, F};
 handle_call(data, _From, F) ->
-    H = F#f.height,
-    {reply, {F#f.trees, H, lists:reverse(F#f.txs)}, F}.
+    H = F#tx_pool.height,
+    {reply, {F#tx_pool.trees, H, lists:reverse(F#tx_pool.txs)}, F}.
 handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(_Info, State) -> {noreply, State}.
 terminate(_Reason, _State) ->
@@ -77,7 +72,7 @@ state2(Block) ->
 	    state2(PrevHeader);
 	_ ->
             Trees = Block#block.trees,
-	    #f{trees = Trees,
-               new_trees = Trees, 
-	       height = Block#block.height}
+	    #tx_pool{trees = Trees,
+                     new_trees = Trees, 
+                     height = Block#block.height}
     end.

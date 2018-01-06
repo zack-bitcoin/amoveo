@@ -63,3 +63,9 @@
 		 done_timer, % 3 4
 		 governance = 0,%if it is non-zero, then this is a governance oracle which can update the value of the variables that define the protocol.
 		 governance_amount = 0}).
+-record(tx_pool, {txs = [],
+                  trees,%this changes once per tx
+                  new_trees,%this changes once per block
+                  dict = dict:new(), 
+                  facts = [], 
+                  height = 0}).
