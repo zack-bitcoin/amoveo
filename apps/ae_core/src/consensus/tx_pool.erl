@@ -7,7 +7,8 @@
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) ->
-    State = initial_state(),
+    block:initialize_chain(),
+    State = current_state(),
     io:fwrite("tx_pool- blockchain ready\n"),
     {ok, State}.
 handle_call(dump, _From, _OldState) ->
@@ -30,8 +31,7 @@ handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
     {reply, 0, #tx_pool{txs = [], trees = NewTrees, block_trees = NewTrees, height = Height}};
-handle_call(data_new, _From, F) ->
-    {reply, F, F};
+handle_call(data_new, _From, F) -> {reply, F, F};
 handle_call(data, _From, F) ->
     H = F#tx_pool.height,
     {reply, {F#tx_pool.trees, H, lists:reverse(F#tx_pool.txs)}, F}.
@@ -49,11 +49,6 @@ absorb_tx(Trees, NewDict, Tx) ->
     gen_server:call(?MODULE, {absorb_tx, Trees, NewDict, Tx}).
 absorb(Trees, Height) ->
     gen_server:call(?MODULE, {absorb, Trees, Height}).
-
-initial_state() ->
-    _Header = block:initialize_chain(),
-    Block = block:top(),
-    state2(Block).
 current_state() ->
     Block = block:top(),
     state2(Block).
