@@ -46,24 +46,25 @@ test(1) ->
     {Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    {Trees2,  _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     {Ctx2, _} = spend_tx:make(NewPub, 10, Fee, constants:master_pub(), Trees2),
     Stx2 = keys:sign(Ctx2),
     absorb(Stx2),
-    {Trees21, _, _} = tx_pool:data(),
+    Trees21 = (tx_pool:get())#tx_pool.trees,
     {Ctx21, _} = spend_tx:make(NewPub, 10, Fee, constants:master_pub(), Trees21),
     Stx21 = keys:sign(Ctx21),
     absorb(Stx21),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     {Ctx3, _} = delete_account_tx:new(constants:master_pub(), NewPub, Fee, Trees3),
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
-    {Trees4, _, _} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
     {Ctx4, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees4),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
 
-    {Trees5, _, Txs} = tx_pool:data(),
+    Trees5 = (tx_pool:get())#tx_pool.trees,
+    Txs = lists:reverse((tx_pool:get())#tx_pool.txs),
     BP2 = block:get_by_height(0),
     PH = block:hash(BP2),
 
@@ -90,8 +91,7 @@ test(3) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
-    {Trees2, _, _} = tx_pool:data(),
-
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     CID = 5,
 
     Delay = 30,
@@ -105,13 +105,13 @@ test(3) ->
     %Stx3 = keys:sign(Ctx3),
     %SStx3 = testnet_sign:sign_tx(Stx3, NewPub, NewPriv),
     %absorb(SStx3),
-    {Trees4, _, _} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
 
     {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
-    {_,_,Txs} = tx_pool:data(),
+    Txs = lists:reverse((tx_pool:get())#tx_pool.txs),
 
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
     Header = block:block_to_header(Block),
@@ -135,7 +135,7 @@ test(4) ->
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     Accounts2 = trees:accounts(Trees2),
     
     CID = 5,
@@ -145,7 +145,7 @@ test(4) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     Accounts3 = trees:accounts(Trees3),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
@@ -160,7 +160,7 @@ test(4) ->
     absorb(Stx3),
     %mine_blocks(1),
     timer:sleep(500),
-    {Trees4, _, _Txs} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
     Accounts4 = trees:accounts(Trees4),
     {Ctx4, _} = channel_timeout_tx:make(constants:master_pub(),Trees4,CID,[],Fee),
     Stx4 = keys:sign(Ctx4),
@@ -190,7 +190,7 @@ test(5) ->
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     Accounts2 = trees:accounts(Trees2),
     
     CID = 5,
@@ -200,11 +200,11 @@ test(5) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    {Trees25, _, _} = tx_pool:data(),
+    Trees25 = (tx_pool:get())#tx_pool.trees,
     {Ctx25, _} = delete_account_tx:new(keys:pubkey(), NewPub, Fee, Trees25),
     Stx25 = testnet_sign:sign_tx(Ctx25, NewPub, NewPriv),
     absorb(Stx25),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     Accounts3 = trees:accounts(Trees3),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
@@ -219,12 +219,12 @@ test(5) ->
     absorb(Stx3),
     %mine_blocks(1),
     timer:sleep(500),
-    {Trees4, _, _Txs} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
     Accounts4 = trees:accounts(Trees4),
     {Ctx4, _} = channel_timeout_tx:make(constants:master_pub(),Trees4,CID,[],Fee),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
-    {_, _, Txs} = tx_pool:data(),
+    Txs = lists:reverse((tx_pool:get())#tx_pool.txs),
 
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
     Header = block:block_to_header(Block),
@@ -248,7 +248,7 @@ test(6) ->
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     Accounts2 = trees:accounts(Trees2),
 
     CID = 5,
@@ -257,7 +257,7 @@ test(6) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     Accounts3 = trees:accounts(Trees3),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
@@ -274,7 +274,7 @@ test(6) ->
 %test([600, Fee, NewPub, NewPriv, CID, SignedScriptPubKey]) ->
     mine_blocks(1),
     timer:sleep(50),
-    {Trees4, _, _} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
     Accounts4 = trees:accounts(Trees4),
 
     ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
@@ -284,7 +284,7 @@ test(6) ->
     absorb(Stx4),
     mine_blocks(1),
     timer:sleep(50),
-    {Trees5, _, _} = tx_pool:data(),
+    Trees5 = (tx_pool:get())#tx_pool.trees,
     Accounts5 = trees:accounts(Trees5),
 
     ScriptSig3 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 3 ">>), []),
@@ -292,13 +292,13 @@ test(6) ->
     Stx5 = keys:sign(Ctx5),
     %Stx4 = keys:sign(Ctx4, Accounts4),
     absorb(Stx5),
-    {Trees6, _, _Txs2} = tx_pool:data(),
+    Trees6 = (tx_pool:get())#tx_pool.trees,
     Accounts6 = trees:accounts(Trees6),
 
     {Ctx6, _} = channel_timeout_tx:make(constants:master_pub(),Trees6,CID,[],Fee),
     Stx6 = keys:sign(Ctx6),
     absorb(Stx6),
-    {Trees7, _, Txs} = tx_pool:data(),
+    Trees7 = (tx_pool:get())#tx_pool.trees,
     Channels7 = trees:channels(Trees7),
     {_, empty, _} = channels:get(1, Channels7),
 
@@ -324,7 +324,7 @@ test(8) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
 
     CID = 5,
 
@@ -333,7 +333,7 @@ test(8) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Bet = spk:new_bet(Code, Code, 50),
@@ -346,7 +346,7 @@ test(8) ->
     Stx3 = keys:sign(Ctx3),
     %SStx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
-    {Trees4, _, _} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
 
     {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
     Stx4 = keys:sign(Ctx4),
@@ -375,7 +375,7 @@ test(9) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
 
     CID = 5,
 
@@ -384,7 +384,7 @@ test(9) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Bet = spk:new_bet(Code, Code, 50),
@@ -399,13 +399,13 @@ test(9) ->
     absorb(Stx3),
     mine_blocks(1),
     timer:sleep(50),
-    {Trees35, _, _} = tx_pool:data(),
+    Trees35 = (tx_pool:get())#tx_pool.trees,
     ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
     {Ctx35, _} = channel_slash_tx:make(keys:pubkey(), Fee, SignedScriptPubKey, [ScriptSig2], Trees35),
     Stx35 = keys:sign(Ctx35),
     absorb(Stx35),
 
-    {Trees4, _, _} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
 
     {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
     Stx4 = keys:sign(Ctx4),
@@ -426,20 +426,20 @@ test(7) ->
     io:fwrite("existence test \n"),
     S = <<"test data">>,
     tx_pool:dump(),
-    {Trees,_,Height00} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Accounts = trees:accounts(Trees),
     Data = hash:doit(S),
     Fee = constants:initial_fee() + 20,
     {Tx, _} = existence_tx:make(constants:master_pub(), Fee, Data, Trees),
     Stx = keys:sign(Tx),
     absorb(Stx),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     ETree = trees:existence(Trees2),
     {_, C, _} = existence:get(Data, ETree),
     Data = existence:hash(C),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    {_, _, Txs} = tx_pool:data(),
+    Txs = lists:reverse((tx_pool:get())#tx_pool.txs),
     Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
     Header = block:block_to_header(Block),
     headers:absorb([Header]),
@@ -455,7 +455,7 @@ test(11) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    {Trees,_,_Txs} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Accounts = trees:accounts(Trees),
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees),
     Stx = keys:sign(Tx),
@@ -463,7 +463,7 @@ test(11) ->
     timer:sleep(150),
     mine_blocks(5),
     timer:sleep(150),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     %make some bets in the oracle with oracle_bet
     Governance2 = trees:governance(Trees2),
     OIL = governance:get_value(oracle_initial_liquidity, Governance2),
@@ -474,7 +474,7 @@ test(11) ->
 
     %mine_blocks(1),
     timer:sleep(150),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     %close the oracle with oracle_close
     {Tx3, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees3),
     Stx3 = keys:sign(Tx3),
@@ -482,7 +482,7 @@ test(11) ->
     %mine_blocks(1),
     timer:sleep(100),
 
-    {Trees4, _, _} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
     %get your spare money out with oracle_unmatched
     Oracles = trees:oracles(Trees4),
     {_, Oracle, _} = oracles:get(OID, Oracles),
@@ -494,7 +494,7 @@ test(11) ->
     %mine_blocks(1),
     timer:sleep(100),
 
-    {Trees5, _, _} = tx_pool:data(),
+    Trees5 = (tx_pool:get())#tx_pool.trees,
     Accounts5 = trees:accounts(Trees5),
     %get your winnings with oracle_shares
     {Tx5, _} = oracle_winnings_tx:make(constants:master_pub(), Fee, OID, Trees5),
@@ -521,25 +521,25 @@ test(16) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    {Trees_1, _, _} = tx_pool:data(),
+    Trees_1 = (tx_pool:get())#tx_pool.trees,
     Amount = 1000000000,
     {Ctx_1, _} = create_account_tx:new(Pub1, Amount, Fee, constants:master_pub(), Trees_1),
     Stx_1 = keys:sign(Ctx_1),
     absorb(Stx_1),
     
-    {Trees_2, _, _} = tx_pool:data(),
+    Trees_2 = (tx_pool:get())#tx_pool.trees,
     {Ctx_2, _} = create_account_tx:new(Pub2, Amount, Fee, constants:master_pub(), Trees_2),
     Stx_2 = keys:sign(Ctx_2),
     absorb(Stx_2),
 
-    {Trees,_,_Txs} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees),
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
     mine_blocks(5),
     timer:sleep(150),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     %make some bets in the oracle with oracle_bet
     Governance2 = trees:governance(Trees2),
     OIL = governance:get_value(oracle_initial_liquidity, Governance2),
@@ -547,40 +547,40 @@ test(16) ->
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
 
-    {Trees21, _, _} = tx_pool:data(),
+    Trees21 = (tx_pool:get())#tx_pool.trees,
     {Tx21, _} = oracle_bet_tx:make(Pub1, Fee, OID, 1, OIL*2, Trees21), 
     Stx21 = testnet_sign:sign_tx(Tx21, Pub1, Priv1),
     absorb(Stx21),
 
-    {Trees22, _, _} = tx_pool:data(),
+    Trees22 = (tx_pool:get())#tx_pool.trees,
     {Tx22, _} = oracle_bet_tx:make(Pub2, Fee, OID, 2, OIL, Trees22), 
     Stx22 = testnet_sign:sign_tx(Tx22, Pub2, Priv2),
     absorb(Stx22),
 
     %mine_blocks(1),
     timer:sleep(150),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     %close the oracle with oracle_close
     {Tx3, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
 
-    {Trees41, _, _} = tx_pool:data(),
+    Trees41 = (tx_pool:get())#tx_pool.trees,
     {Tx41, _} = oracle_unmatched_tx:make(Pub1, Fee, OID, Trees41),
     Stx41 = testnet_sign:sign_tx(Tx41, Pub1, Priv1),
     absorb(Stx41),
 
-    {Trees5, _, _} = tx_pool:data(),
+    Trees5 = (tx_pool:get())#tx_pool.trees,
     {Tx5, _} = oracle_winnings_tx:make(constants:master_pub(), Fee, OID, Trees5),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
 
-    {Trees51, _, _} = tx_pool:data(),
+    Trees51 = (tx_pool:get())#tx_pool.trees,
     {Tx51, _} = oracle_winnings_tx:make(Pub1, Fee, OID, Trees51),
     Stx51 = testnet_sign:sign_tx(Tx51, Pub1, Priv1),
     absorb(Stx51),
 
-    {Trees52, _, _} = tx_pool:data(),
+    Trees52 = (tx_pool:get())#tx_pool.trees,
     {Tx52, _} = oracle_winnings_tx:make(Pub2, Fee, OID, Trees52),
     Stx52 = testnet_sign:sign_tx(Tx52, Pub2, Priv2),
     absorb(Stx52),
@@ -598,7 +598,7 @@ test(12) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    {Trees, _, _Txs} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     
@@ -607,7 +607,7 @@ test(12) ->
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     Accounts2 = trees:accounts(Trees2),
     
     CID = 5,
@@ -617,7 +617,7 @@ test(12) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     Accounts3 = trees:accounts(Trees3),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
@@ -634,7 +634,8 @@ test(12) ->
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
     timer:sleep(500),
-    {Trees4, Height4, _} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
+    Height4 = (tx_pool:get())#tx_pool.height,
     Accounts4 = trees:accounts(Trees4),
     {Ctx4, _} = channel_timeout_tx:make(constants:master_pub(),Trees4,CID,[],Fee),
     Stx4 = keys:sign(Ctx4),
@@ -657,17 +658,17 @@ test(13) ->
     block:initialize_chain(),
     tx_pool:dump(),
     OID2 = 1,
-    {Trees3,_,_} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     {Tx3, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID2, 1, 5, Trees3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
 
-    {Trees1, _, _} = tx_pool:data(),
+    Trees1 = (tx_pool:get())#tx_pool.trees,
     Governance2 = trees:governance(Trees1),
     MOT = governance:get_value(minimum_oracle_time, Governance2),
     mine_blocks(1+MOT),
     timer:sleep(100),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     OIL = governance:get_value(oracle_initial_liquidity, Governance2),
     {Tx2, _} = oracle_bet_tx:make(constants:master_pub(), Fee, OID2, 1, OIL * 2, Trees2), 
     Stx2 = keys:sign(Tx2),
@@ -675,7 +676,7 @@ test(13) ->
     mine_blocks(1+MOT),
     timer:sleep(100),
 
-    {Trees5, _, _} = tx_pool:data(),
+    Trees5 = (tx_pool:get())#tx_pool.trees,
     {Tx5, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID2, Trees5),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
@@ -683,7 +684,7 @@ test(13) ->
     mine_blocks(1),
 
     OID3 = 2,
-    {Trees7,_,_} = tx_pool:data(),
+    Trees7 = (tx_pool:get())#tx_pool.trees,
     BR2 = governance:get_value(block_reward, trees:governance(Trees7)),
     {Tx7, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID3, 1, 5, Trees7),
     Stx7 = keys:sign(Tx7),
@@ -691,20 +692,20 @@ test(13) ->
     mine_blocks(1),
     timer:sleep(50),
 
-    {Trees8, _, _} = tx_pool:data(),
+    Trees8 = (tx_pool:get())#tx_pool.trees,
     {Tx8, _} = oracle_bet_tx:make(constants:master_pub(), Fee, OID3, 1, OIL * 2, Trees8), 
     Stx8 = keys:sign(Tx8),
     absorb(Stx8),
     mine_blocks(1+MOT),
     timer:sleep(100),
 
-    {Trees9, _, _} = tx_pool:data(),
+    Trees9 = (tx_pool:get())#tx_pool.trees,
     {Tx9, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID3, Trees9),
     Stx9 = keys:sign(Tx9),
     absorb(Stx9),
     timer:sleep(50),
 
-    {Trees6, _, _} = tx_pool:data(),
+    Trees6 = (tx_pool:get())#tx_pool.trees,
     BR1 = governance:get_value(block_reward, trees:governance(Trees2)),
     BR3 = governance:get_value(block_reward, trees:governance(Trees6)),
     true = BR1 < BR2,
@@ -734,7 +735,7 @@ test(14) ->
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     Accounts2 = trees:accounts(Trees2),
 
     CID = 5,
@@ -743,7 +744,7 @@ test(14) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     Accounts3 = trees:accounts(Trees3),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
@@ -758,7 +759,7 @@ test(14) ->
     absorb(Stx3),
     mine_blocks(1),
     timer:sleep(50),
-    {Trees4, _, _} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
     Accounts4 = trees:accounts(Trees4),
 
     ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
@@ -773,7 +774,7 @@ test(14) ->
     %SStx5 = testnet_sign:sign_tx(Stx5, NewPub, NewPriv),
     %absorb(SStx5),
 
-    {Trees6, _, _Txs2} = tx_pool:data(),
+    Trees6 = (tx_pool:get())#tx_pool.trees,
     Accounts6 = trees:accounts(Trees6),
 
     {Ctx6, _} = channel_timeout_tx:make(constants:master_pub(),Trees6,CID,[],Fee),
@@ -807,7 +808,7 @@ test(15) ->
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     Accounts2 = trees:accounts(Trees2),
 
     CID = 5,
@@ -820,7 +821,7 @@ test(15) ->
     Secret = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
     %secrets:add(Code, Secret),
     %timer:sleep(100),
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     Accounts3 = trees:accounts(Trees3),
     
     Delay = 0,
