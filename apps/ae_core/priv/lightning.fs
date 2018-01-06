@@ -5,7 +5,8 @@ if
 else
 then ( S 1 0 )
 drop drop ( S )
-hash SecretHash @ ( hashS SecretHash )
+% hash SecretHash @ ( hashS SecretHash )
+hash r> ( hashS SecretHash )
 == swap drop swap drop ( B )
 if
  int 0 int 2 int 10000 ( delay nonce amount )
