@@ -365,7 +365,7 @@ mine_block(0, Times) -> ok;
 mine_block(Periods, Times) ->
     PB = block:top(),
     Top = block:block_to_header(PB),
-    {_, _, Txs} = tx_pool:data(),
+    Txs = lists:reverse((tx_pool:get())#tx_pool.txs),
     Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
     block:mine(Block, Times),
     timer:sleep(100),
@@ -488,7 +488,9 @@ work(Nonce, _) ->
     spawn(fun() -> sync:start() end),
     0.
 mining_data() ->
-    {_, Height, Txs} = tx_pool:data(),
+    TP = tx_pool:get(),
+    Height = TP#tx_pool.height,
+    Txs = TP#tx_pool.txs,
     PB = block:get_by_height(Height),
     {ok, Top} = headers:read(block:hash(PB)),
     block_absorber:prune(),

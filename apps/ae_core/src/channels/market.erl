@@ -79,7 +79,7 @@ test() ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    {Trees,_,_Txs} = tx_pool:data(),
+    Trees = (tx_pool:get())#tx_pool.trees,
     Accounts = trees:accounts(Trees),
     {Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees),
     Stx = keys:sign(Tx),
@@ -87,7 +87,7 @@ test() ->
     timer:sleep(200),
     test_txs:mine_blocks(1),
     timer:sleep(1000),
-    {Trees2, _, _} = tx_pool:data(),
+    Trees2 = (tx_pool:get())#tx_pool.trees,
     Accounts2 = trees:accounts(Trees2),
     %make some bets in the oracle with oracle_bet
     Governance2 = trees:governance(Trees2),
@@ -96,14 +96,14 @@ test() ->
     Stx2 = keys:sign(Tx2),
     test_txs:absorb(Stx2),
 
-    {Trees3, _, _} = tx_pool:data(),
+    Trees3 = (tx_pool:get())#tx_pool.trees,
     Accounts3 = trees:accounts(Trees3),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Amount = 1000000,
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees3),
     Stx3 = keys:sign(Ctx),
     test_txs:absorb(Stx3),
-    {Trees4, _, _} = tx_pool:data(),
+    Trees4 = (tx_pool:get())#tx_pool.trees,
     Accounts4 = trees:accounts(Trees4),
     
     CID = 5,
@@ -119,7 +119,7 @@ test() ->
 test2(NewPub) ->
     OID = 3,
     Fee = 20 + constants:initial_fee(),
-    {Trees5, _, _} = tx_pool:data(),
+    Trees5 = (tx_pool:get())#tx_pool.trees,
     %Accounts5 = trees:accounts(Trees5),
     MarketID = 405,
     PrivDir = code:priv_dir(ae_core),
@@ -145,7 +145,7 @@ test2(NewPub) ->
 	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
     
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
-    {Trees6, _, _} = tx_pool:data(),
+    Trees6 = (tx_pool:get())#tx_pool.trees,
     SS3 = evidence(SPD, OID),
     %amount, newnonce, shares, delay
     {60, 2, 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
@@ -164,7 +164,7 @@ test2(NewPub) ->
 
     test_txs:mine_blocks(1),
     timer:sleep(1000),
-    {Trees60, _, _} = tx_pool:data(),
+    Trees60 = (tx_pool:get())#tx_pool.trees,
     Accounts6 = trees:accounts(Trees60),
     %close the oracle with oracle_close
     {Tx6, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees60),
