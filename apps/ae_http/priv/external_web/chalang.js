@@ -202,8 +202,7 @@ function chalang_main() {
         var int_array = code.slice(i+1, i+5);
         var new_int = array_to_int(int_array);
         d.stack = ([new_int]).concat(d.stack);
-        i = i + 4;
-        return {i: i, d: d, g: 1, s: "int op", r: 1};
+        return {i: i+4, d: d, g: 1, s: "int op", r: 1};
     };
     op_code[ops.binary_op] = function(i, code, d) {
         var int_array = code.slice(i+1, i+5);
@@ -212,8 +211,7 @@ function chalang_main() {
         var bin1 = (["binary"]).concat(bin_array);
         d.stack = ([bin1]).concat(
             d.stack);
-        i = i + 4 + new_int;
-        return {i: i, d: d, g: new_int, s: "bin op", r: 1};
+        return {i: i+4+new_int, d: d, g: new_int, s: "bin op", r: 1};
     }
     op_code[ops.caseif] = function(i, code, d) {
         var b = d.stack[0];
@@ -644,163 +642,163 @@ function chalang_main() {
             throw("misformed function. : ; ");
         }
     }
-    function chalang_test() {
         //these are some compiled contracts from chalang/src/forth/. the chalang repository.
+        //each of these test contracts should return a stack like this: [1]
+    var hashlock_contract =
+        [2,0,0,0,32,169,243,219,139,234,91,46,239,146,55,229,72,9,221,164,63,12,33,143,128,208,211,40,163,63,91,76,255,255,51,72,230,40,10,
+         2,0,0,0,32,67,235,55,16,65,154,38,188,176,22,150,20,54,17,182,74,255,87,231,241,254,236,126,177,29,146,149,153,232,73,80,204,
+         ops.print,ops.eq,ops.swap,ops.drop,ops.swap,ops.drop];
+    
+    var verify_signature_contract =
+        [2,0,0,0,71,48,69,2,32,112,134,203,180,124,166,163,247,
+         94,210,211,101,253,157,198,109,165,100,230,213,193,22,
+         236,82,240,187,161,163,143,174,252,77,2,33,0,252,160,42,
+         76,157,218,69,96,18,53,9,86,91,223,194,87,4,167,121,112,
+         117,103,139,226,37,133,252,41,247,43,137,118, //this is the signature.
+         2,0,0,0,3,1,2,3, //this is the data
+         2,0,0,0,65,4,133,89,134,205,122,130,218,16,254,
+         229,12,186,57,121,105,43,173,164,137,130,226,246,188,49,
+         236,32,10,247,161,232,193,46,14,58,3,190,212,42,97,158,
+         69,121,135,20,133,143,208,46,58,66,6,181,227,170,244,
+         237,22,35,120,150,45,13,134,58, //this is the pubkey
+         ops.print,ops.verify_sig];
+    var function_contract =
+        [ops.define,ops.dup,ops.mul,ops.fun_end, //square
+         ops.define, //quad
+         2,0,0,0,12,239,24,7,129,222,179,141,148,74,245,17,98, 
+         ops.call, //square
+         2,0,0,0,12,239,24,7,129,222,179,141,148,74,245,17,98,
+         ops.call, //square
+         ops.fun_end,
+         0,0,0,0,2,
+         2,0,0,0,12,248,21,87,89,106,92,199,6,67,69,197,184,
+         ops.call, //quad
+         0,0,0,0,16,
+         ops.eq,ops.swap,ops.drop,ops.swap,ops.drop];
+    var variable_contract =
+        [0,0,0,0,12,
+         0,0,0,0,1,
+         ops.set,
+         0,0,0,0,11,
+         0,0,0,0,2,
+         ops.set,
+         0,0,0,0,1,
+         ops.fetch,
+         ops.print,
+         0,0,0,0,1,
+         ops.fetch,
+         0,0,0,0,10,
+         0,0,0,0,1,
+         ops.set,
+         0,0,0,0,1,
+         ops.fetch,
+         0,0,0,0,2,
+         ops.fetch,
+         0,0,0,0,11,
+         ops.eq,ops.to_r,ops.drop,ops.drop,
+         0,0,0,0,10,
+         ops.eq,ops.to_r,ops.drop,ops.drop,
+         0,0,0,0,12,
+         ops.eq,ops.to_r,ops.drop,ops.drop,
+         0,0,0,0,12,
+         ops.eq,ops.to_r,ops.drop,ops.drop,
+         ops.from_r,ops.from_r,ops.from_r,ops.from_r,
+         ops.bool_and,ops.bool_and,ops.bool_and
+        ];
+    var map_contract =
+        [ops.define,ops.dup,ops.mul,ops.fun_end, //square
+         ops.define,//map2
+         ops.car,ops.swap,
+         0,0,0,0,1,
+         ops.fetch,ops.call,ops.rot,ops.cons,ops.swap,
+         ops.empty_list,ops.eq,ops.caseif,
+         ops.drop,ops.drop,ops.reverse,
+         ops.caseelse,
+         ops.drop,ops.recurse,ops.call,
+         ops.casethen,
+         ops.fun_end,
+         ops.define, //map
+         0,0,0,0,1,
+         ops.set,ops.empty_list,ops.swap,
+         ops.binary_op,0,0,0,12,
+         71,192,142,101,22,36,27,88,17,55,152,169,
+         ops.call,
+         ops.fun_end,
+         ops.empty_list,
+         0,0,0,0,5,
+         ops.swap,ops.cons,
+         0,0,0,0,6,ops.swap,ops.cons,
+         0,0,0,0,7,
+         ops.swap,ops.cons,ops.reverse,
+         2,0,0,0,12,239,24,7,129,222,179,141,148,74,245,17,98,
+         2,0,0,0,12,53,181,176,16,58,242,45,201,243,134,253,139,
+         ops.call,
+         ops.empty_list,
+         0,0,0,0,25,
+         ops.swap,ops.cons,
+         0,0,0,0,36,
+         ops.swap,ops.cons,
+         0,0,0,0,49,
+         ops.swap,ops.cons,ops.reverse, ops.print,
+         ops.eq,ops.to_r,ops.drop,ops.drop,ops.from_r];
+    var recursion_contract =
+        [ops.define,
+         0,0,0,0,0,ops.eq,ops.bool_flip,
+         ops.caseif,
+         ops.drop,
+         0,0,0,0,1,
+         ops.subtract,
+         0,0,0,0,0,
+         ops.swap,ops.recurse,
+         ops.call,
+         ops.caseelse,
+         20,20,
+         ops.casethen,
+         ops.fun_end,
+         0,0,0,0,5,
+         2,0,0,0,12,95,171,14,87,107,52,162,208,56,196,48,154,
+         ops.call,
+         0,0,0,0,0,
+         ops.eq,ops.to_r,ops.drop,ops.drop,
+         0,0,0,0,0,
+         ops.eq,ops.to_r,ops.drop,ops.drop,
+         0,0,0,0,0,
+         ops.eq,ops.to_r,ops.drop,ops.drop,
+         0,0,0,0,0,
+         ops.eq,ops.to_r,ops.drop,ops.drop,
+         0,0,0,0,0,
+         ops.eq,ops.to_r,ops.drop,ops.drop,
+         ops.from_r,ops.from_r,ops.from_r,ops.from_r,ops.from_r,
+         ops.bool_and,ops.bool_and,ops.bool_and,ops.bool_and
+        ];
+    var case_contract = [
+        0,0,0,0,0,
+        ops.caseif,
+        0,0,0,0,3,
+        ops.caseif, 0,0,0,0,7,
+        ops.caseelse, 0,0,0,0,8, ops.casethen,
+        ops.caseif, ops.caseelse, 0,0,0,0,0,
+        ops.caseif, ops.caseelse, ops.casethen,
+        ops.casethen,
+        ops.caseelse,
+        0,0,0,0,0,
+        ops.caseif,
+        0,0,0,0,3,
+        ops.caseelse,
+        0,0,0,0,4,
+        ops.casethen,
+        0,0,0,0,27,
+        ops.casethen
+    ];
+    var split_append_contract = [
+        //should return <<2,3,1>>
+        ops.binary_op, 0,0,0,3, 1,2,3,
+        ops.int_op, 0,0,0,1,
+        ops.split, ops.append
+    ];
+    function chalang_test() {
         var d = data_maker(1000, 1000, 50, 1000, [], [], new_state(0, 0));
         console.log("chalang test");
-        //each of these test contracts should return a stack like this: [1]
-        var hashlock_contract =
-            [2,0,0,0,32,169,243,219,139,234,91,46,239,146,55,229,72,9,221,164,63,12,33,143,128,208,211,40,163,63,91,76,255,255,51,72,230,40,10,
-             2,0,0,0,32,67,235,55,16,65,154,38,188,176,22,150,20,54,17,182,74,255,87,231,241,254,236,126,177,29,146,149,153,232,73,80,204,
-             ops.print,ops.eq,ops.swap,ops.drop,ops.swap,ops.drop];
-            
-        var verify_signature_contract =
-            [2,0,0,0,71,48,69,2,32,112,134,203,180,124,166,163,247,
-             94,210,211,101,253,157,198,109,165,100,230,213,193,22,
-             236,82,240,187,161,163,143,174,252,77,2,33,0,252,160,42,
-             76,157,218,69,96,18,53,9,86,91,223,194,87,4,167,121,112,
-             117,103,139,226,37,133,252,41,247,43,137,118, //this is the signature.
-             2,0,0,0,3,1,2,3, //this is the data
-             2,0,0,0,65,4,133,89,134,205,122,130,218,16,254,
-             229,12,186,57,121,105,43,173,164,137,130,226,246,188,49,
-             236,32,10,247,161,232,193,46,14,58,3,190,212,42,97,158,
-             69,121,135,20,133,143,208,46,58,66,6,181,227,170,244,
-             237,22,35,120,150,45,13,134,58, //this is the pubkey
-             ops.print,ops.verify_sig];
-        var function_contract =
-            [ops.define,ops.dup,ops.mul,ops.fun_end, //square
-             ops.define, //quad
-               2,0,0,0,12,239,24,7,129,222,179,141,148,74,245,17,98, 
-               ops.call, //square
-               2,0,0,0,12,239,24,7,129,222,179,141,148,74,245,17,98,
-               ops.call, //square
-             ops.fun_end,
-             0,0,0,0,2,
-             2,0,0,0,12,248,21,87,89,106,92,199,6,67,69,197,184,
-             ops.call, //quad
-             0,0,0,0,16,
-             ops.eq,ops.swap,ops.drop,ops.swap,ops.drop];
-        var variable_contract =
-            [0,0,0,0,12,
-             0,0,0,0,1,
-             ops.set,
-             0,0,0,0,11,
-             0,0,0,0,2,
-             ops.set,
-             0,0,0,0,1,
-             ops.fetch,
-             ops.print,
-             0,0,0,0,1,
-             ops.fetch,
-             0,0,0,0,10,
-             0,0,0,0,1,
-             ops.set,
-             0,0,0,0,1,
-             ops.fetch,
-             0,0,0,0,2,
-             ops.fetch,
-             0,0,0,0,11,
-             ops.eq,ops.to_r,ops.drop,ops.drop,
-             0,0,0,0,10,
-             ops.eq,ops.to_r,ops.drop,ops.drop,
-             0,0,0,0,12,
-             ops.eq,ops.to_r,ops.drop,ops.drop,
-             0,0,0,0,12,
-             ops.eq,ops.to_r,ops.drop,ops.drop,
-             ops.from_r,ops.from_r,ops.from_r,ops.from_r,
-             ops.bool_and,ops.bool_and,ops.bool_and
-            ];
-        var map_contract =
-            [ops.define,ops.dup,ops.mul,ops.fun_end, //square
-             ops.define,//map2
-               ops.car,ops.swap,
-               0,0,0,0,1,
-               ops.fetch,ops.call,ops.rot,ops.cons,ops.swap,
-               ops.empty_list,ops.eq,ops.caseif,
-                 ops.drop,ops.drop,ops.reverse,
-               ops.caseelse,
-                 ops.drop,ops.recurse,ops.call,
-               ops.casethen,
-             ops.fun_end,
-             ops.define, //map
-               0,0,0,0,1,
-               ops.set,ops.empty_list,ops.swap,
-               ops.binary_op,0,0,0,12,
-               71,192,142,101,22,36,27,88,17,55,152,169,
-               ops.call,
-             ops.fun_end,
-             ops.empty_list,
-             0,0,0,0,5,
-             ops.swap,ops.cons,
-             0,0,0,0,6,ops.swap,ops.cons,
-             0,0,0,0,7,
-             ops.swap,ops.cons,ops.reverse,
-             2,0,0,0,12,239,24,7,129,222,179,141,148,74,245,17,98,
-             2,0,0,0,12,53,181,176,16,58,242,45,201,243,134,253,139,
-             ops.call,
-             ops.empty_list,
-             0,0,0,0,25,
-             ops.swap,ops.cons,
-             0,0,0,0,36,
-             ops.swap,ops.cons,
-             0,0,0,0,49,
-             ops.swap,ops.cons,ops.reverse, ops.print,
-             ops.eq,ops.to_r,ops.drop,ops.drop,ops.from_r];
-        var recursion_contract =
-            [ops.define,
-             0,0,0,0,0,ops.eq,ops.bool_flip,
-             ops.caseif,
-             ops.drop,
-             0,0,0,0,1,
-             ops.subtract,
-             0,0,0,0,0,
-             ops.swap,ops.recurse,
-             ops.call,
-             ops.caseelse,
-             20,20,
-             ops.casethen,
-             ops.fun_end,
-             0,0,0,0,5,
-             2,0,0,0,12,95,171,14,87,107,52,162,208,56,196,48,154,
-             ops.call,
-             0,0,0,0,0,
-             ops.eq,ops.to_r,ops.drop,ops.drop,
-             0,0,0,0,0,
-             ops.eq,ops.to_r,ops.drop,ops.drop,
-             0,0,0,0,0,
-             ops.eq,ops.to_r,ops.drop,ops.drop,
-             0,0,0,0,0,
-             ops.eq,ops.to_r,ops.drop,ops.drop,
-             0,0,0,0,0,
-             ops.eq,ops.to_r,ops.drop,ops.drop,
-             ops.from_r,ops.from_r,ops.from_r,ops.from_r,ops.from_r,
-             ops.bool_and,ops.bool_and,ops.bool_and,ops.bool_and
-            ];
-        var case_contract = [
-            0,0,0,0,0,
-            ops.caseif,
-            0,0,0,0,3,
-            ops.caseif, 0,0,0,0,7,
-            ops.caseelse, 0,0,0,0,8, ops.casethen,
-            ops.caseif, ops.caseelse, 0,0,0,0,0,
-            ops.caseif, ops.caseelse, ops.casethen,
-            ops.casethen,
-            ops.caseelse,
-             0,0,0,0,0,
-             ops.caseif,
-              0,0,0,0,3,
-             ops.caseelse,
-              0,0,0,0,4,
-             ops.casethen,
-            0,0,0,0,27,
-            ops.casethen
-        ];
-        var split_append_contract = [
-            //should return <<2,3,1>>
-            ops.binary_op, 0,0,0,3, 1,2,3,
-            ops.int_op, 0,0,0,1,
-            ops.split, ops.append
-        ];
         //var x = run5(verify_signature_contract, d);
         //var x = run5(case_contract, d);
         var x = run5(hashlock_contract, d);
