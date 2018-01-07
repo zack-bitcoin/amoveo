@@ -1,11 +1,3 @@
-function chalang_new_state(height, slash) {
-    return {"name": "state", "height": height, "slash": slash};
-}
-function chalang_data_maker(op_gas, ram_gas, many_vs, many_funs, script_sig, code, state) {
-    var arr = [];
-    arr.length = many_vs;
-    return {"name": "d", "op_gas":op_gas, "stack": [], "alt": [], "ram_most": 0, "ram_limit":ram_gas, "vars": arr, "funs":{}, "many_funs": 0, "fun_limit":many_funs, "ram_current":(script_sig.length + code.length), "state":state};
-}
 function spk_main() {
     const ops = chalang_object.ops();
     function prove_facts(facts, callback) {
@@ -55,7 +47,7 @@ function spk_main() {
     function spk_run(mode, ss0, spk0, height, slash, fun_limit, var_limit, callback) {
         var spk = JSON.parse(JSON.stringify(spk0));
         var ss = JSON.parse(JSON.stringify(ss0));
-        var state = chalang_new_state(height, slash);
+        var state = chalang_object.new_state(height, slash);
         var key1 = "fun_limit";
         var ret;
         if (!(ss.length == (spk[3].length - 1))) {//spk[4] == bets is formated with a -6 in front for packer.erl
@@ -93,7 +85,7 @@ function spk_main() {
             var c = string_to_array(atob(bet[1]));
             //var c = bet.code;
             var code = f.concat(c);
-            var data = chalang_data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
+            var data = chalang_object.data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
             var data2 = chalang_object.run5(script_sig, data);
             var data3 = chalang_object.run5(code, data2);
             console.log("just ran contract, stack returned as ");
@@ -174,11 +166,11 @@ function spk_main() {
         if (!(b)) {
             throw("you can't put return op into the ss");
         }
-        var state = chalang_new_state(height, 0);
+        var state = chalang_object.new_state(height, 0);
         prove_facts(ss[i-1].prove, function(f) { //PROBLEM HERE
             //var code = f.concat(bets[i].code);
             var code = f.concat(string_to_array(atob(bets[i][1])));
-            var data = chalang_data_maker(bet_gas_limit, bet_gas_limit, var_limit, fun_limit, ss[i-1].code, code, state);
+            var data = chalang_object.data_maker(bet_gas_limit, bet_gas_limit, var_limit, fun_limit, ss[i-1].code, code, state);
             var data2 = chalang_object.run5(ss[i-1].code, data);
             var data3 = chalang_object.run5(code, data2);
             var s = data3.stack;

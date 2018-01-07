@@ -1,9 +1,6 @@
-
 function chalang_main() {
-    
     const word_size = 4294967296,
           hash_size = 12;
-
     const ops =
           {int_op: 0,
            binary_op: 2,
@@ -216,10 +213,6 @@ function chalang_main() {
         for (var i = 0; i<code.length; i++) {
             //console.log("run cycle");
             //console.log(i);
-            //console.log("opcode: ");
-            //console.log(code[i]);
-            //console.log(JSON.stringify(code));
-            //console.log(JSON.stringify(d.stack));
             if (d.ram_current > d.ram_most) {
                 d.ram_most = d.ram_current;
             }
@@ -243,12 +236,7 @@ function chalang_main() {
                 var int_array = code.slice(i+1, i+5);
                 var new_int = array_to_int(int_array);
                 var bin_array = code.slice(i+5, i+5+new_int);
-                var bin1;
-                //if (new_int == 4) {
-                //    bin1 = array_to_int(bin_array);
-                //} else {
-                    bin1 = (["binary"]).concat(bin_array);
-                //}
+                var bin1 = (["binary"]).concat(bin_array);
                 d.stack = ([bin1]).concat(
                         d.stack);
                 d.ram_current += 1;
@@ -730,7 +718,7 @@ function chalang_main() {
     }
     function chalang_test() {
         //these are some compiled contracts from chalang/src/forth/. the chalang repository.
-        var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));
+        var d = data_maker(1000, 1000, 50, 1000, [], [], new_state(0, 0));
         console.log("chalang test");
         //each of these test contracts should return a stack like this: [1]
         var hashlock_contract =
@@ -917,7 +905,19 @@ function chalang_main() {
         console.log(JSON.stringify(x.stack));
         return x.stack;
     }
-    return {run5: run5, test: chalang_test, ops: function() {return(ops);} };
+    function new_state(height, slash) {
+        return{"name": "state", "height": height, "slash": slash};
+    }
+    function data_maker(op_gas, ram_gas, many_vs, many_funs, script_sig, code, state) {
+        var arr = [];
+        arr.length = many_vs;
+        return {"name": "d", "op_gas":op_gas, "stack": [], "alt": [], "ram_most": 0, "ram_limit":ram_gas, "vars": arr, "funs":{}, "many_funs": 0, "fun_limit":many_funs, "ram_current":(script_sig.length + code.length), "state":state};
+    }
+    return {run5: run5,
+            test: chalang_test,
+            ops: function() {return(ops);},
+            new_state: new_state,
+            data_maker: data_maker};
 }
 
 var chalang_object = chalang_main();
