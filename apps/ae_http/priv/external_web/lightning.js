@@ -2,12 +2,13 @@ function lightning_main() {
     function make(amount) {
         var s = Array.prototype.slice.call(elliptic.rand(32));//this entropy library doesn't seem especially trustworthy. We are using it for generating addresses too.
         var sh = hash(s);
-        var ss_code = ([2, 0,0,0,32]).concat(s);//binary size 32
+        var ss_code = ([2, 0,0,0,32]).concat(s);
         var ss = channels_object.new_ss(ss_code, [], []);
-        var code = "FFoAAAAAADpGAAAAAGQAAAAAAQAAAAAAC0dIFBQoAAAAAAF5OhYUFhRGAAAAAAAAAAAAAgAAACcQRwAAAABkAAAAAAEAAAAAAEgL";
+        //var code = [20,90,0,0,0,0,0,58,70,0,0,0,0,100,0,0,0,0,1,0,0,0,0,0,11,71,72,20,20,40,31,58,22,20,22,20,70,0,0,0,0,0,0,0,0,0,2,0,0,0,39,16,71,0,0,0,0,100,0,0,0,0,1,0,0,0,0,0,72,11];
+        var code = [20,90,0,0,0,0,0,58,70,0,0,0,0,100,0,0,0,0,1,0,0,0,0,0,11,71,72,20,20,40,31,10,58,22,20,22,20,70,0,0,0,0,0,0,0,0,0,2,0,0,0,39,16,71,0,0,0,0,100,0,0,0,0,1,0,0,0,0,0,72,11];
         var a = ([2, 0,0,0,32]).concat(
-            sh).concat(
-                string_to_array(atob(code)));
+            sh).concat([30]).concat(
+                code);
         var contract = btoa(array_to_string(a));
         var codekey = "";
         var meta = [-6];

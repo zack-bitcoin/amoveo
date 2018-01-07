@@ -1,4 +1,20 @@
-* Why isn't Amoveo an app on Ethereum?
+> Channel server host is essentially a market maker?
+
+ a channel server can be market maker. It is also possible to have a channel server that only processes lightning payments, and has no markets. There could be a channel server that is just for playing black jack the gambling card game.
+
+> Ease/difficulty of programming such a server?
+
+the software to run a channel server is included with the amoveo source code. Running a server is this simple: 1 rent a server 2 install amoveo 3 send money to the server's wallet.
+
+> Amoveo markets are mostly binary options?
+
+Amoveo channels are programmable. So any type of market could exist. So far I have only programmed a market for binary options. Eventually I will make more markets.
+
+> The block times are the batch periods in Amoveo for on chain markets?
+
+the batch period for a market is something you choose when making a market on your channel server. It is measured in blocks. So the shortest possible batch is 1 block of time.
+
+> Why isn't Amoveo an app on Ethereum?
 
 On-chain markets can't scale with off-chain assets. Building off-chain markets for ethereum channels seemed pretty hackish. Raiden needed a big team, and it is far simpler.
 
@@ -7,37 +23,12 @@ Since the smart contracts are all off chain, amoveo can be designed differently 
 Amoveo is a lot smaller and simpler than ethereum. I cut out complexity that isn't necessary for off-chain smart contracts.
 
 
-* how would one go about getting the transactions of an address
+> how would one go about getting the transactions of an address
 
 To get the transactions created by an address you would have to look at every block, and check if that address made an payment. This is not easy to do by default.
 `PBlock = block:get_by_height(4).` would look up the 4th block_plus and store it in a variable.
 `block:txs(block:block(PBlock)).` returns the transactions spent in that block.
 Each transaction type has a different command for checking who spent that transaction. you can look up commands to deal with transactions in /src/consensus/txs/
-
-* if you are running a node and you query the balance of another address?
-
-To query the balance of another address is difficult. You would need to look up every account until you found the account that stored the matching address.
-
-Querying the balance of an id is easy. do this: `accounts:balance(api:account(Pubkey)).`
-
-
-u have
-ids
-accounts
-addresses
-
-[9:52]
-and i cant figure out the functionality of each.
-
-zack
-[9:52 PM]
-ids are the integers for looking up accounts. when you send money to someone, you need to know their id.
-
-[9:52]
-an account is the part of the on-chain state that records the address and balance of one of the users.
-
-[9:53]
-an address is the hash of a pubkey.
 
 
 > How will you get people to work on Amoveo?
@@ -47,10 +38,11 @@ Amoveo is a new way for people to work together. Amoveo can bootstrap itself. Am
 > How large is your potential user base?
 
 The potential user base is huge. Just online gambling for example is a massive market. Amoveo will be trustless and have lower fees. This is just one of the markets that amoveo can distrupt.
+The market for financial derivatives is the biggest market in the world.
 
 > What’s your plan to market what you create?
 
-Amoveo can hire people to advertise for Amoveo. We don't need a plan.
+We can use Amoveo smart contracts to incentivize people to advertize for Amoveo.
 
 
 

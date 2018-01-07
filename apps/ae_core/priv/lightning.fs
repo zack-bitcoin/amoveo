@@ -1,11 +1,10 @@
 
-drop stack_size int 0 ==
+drop
+stack_size int 0 ==
 if
  int 100 int 1 int 0 return ( delay nonce amount )
-else
-then ( S 1 0 )
+else then ( S 1 0 )
 drop drop ( S )
-% hash SecretHash @ ( hashS SecretHash )
 hash r> ( hashS SecretHash )
 == swap drop swap drop ( B )
 if

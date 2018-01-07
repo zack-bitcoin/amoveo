@@ -25,7 +25,7 @@ function chalang(command) {
           to_r = 30,
           from_r = 31,
           r_fetch = 32,
-          hash_op = 20,
+          hash_op = 40,
           verify_sig = 41,
           add = 50,
           subtract = 51,
@@ -46,7 +46,7 @@ function chalang(command) {
           bin_and = 84,
           bin_or = 85,
           bin_xor = 86,
-          stack_size = 80,
+          stack_size = 90,
           height = 94,
           gas = 96,
           ram = 97,
@@ -459,8 +459,10 @@ function chalang(command) {
             } else if (code[i] == hash_op) {
                 underflow_check(d, 1, "hash");
                 d.op_gas = d.op_gas - 20;
-                d.stack = ([hash(d.stack[0])]).concat(
-                    d.stack.slice(1, d.stack.length));
+                console.log("hash op data is ");
+                console.log(JSON.stringify(d.stack[0]));
+                d.stack = ([["binary"].concat(hash(d.stack[0].slice(1)))]).concat(
+                    d.stack.slice(1));
                 op_print(d, i, "hash op");
             } else if (code[i] == verify_sig) {
                 underflow_check(d, 3, "verify_sig");
@@ -736,6 +738,11 @@ function chalang(command) {
         var d = chalang_data_maker(1000, 1000, 50, 1000, [], [], chalang_new_state(0, 0));
         console.log("chalang test");
         //each of these test contracts should return a stack like this: [1]
+        var hashlock_contract =
+            [2,0,0,0,32,169,243,219,139,234,91,46,239,146,55,229,72,9,221,164,63,12,33,143,128,208,211,40,163,63,91,76,255,255,51,72,230,40,10,
+             2,0,0,0,32,67,235,55,16,65,154,38,188,176,22,150,20,54,17,182,74,255,87,231,241,254,236,126,177,29,146,149,153,232,73,80,204,
+             print,eq,swap,drop,swap,drop];
+            
         var verify_signature_contract =
             [2,0,0,0,71,48,69,2,32,112,134,203,180,124,166,163,247,
              94,210,211,101,253,157,198,109,165,100,230,213,193,22,
@@ -905,7 +912,8 @@ function chalang(command) {
             split, append
         ];
         //var x = run5(verify_signature_contract, d);
-        var x = run5(case_contract, d);
+        //var x = run5(case_contract, d);
+        var x = run5(hashlock_contract, d);
         //var x = run5(split_append_contract, d);
         //var x = run5(recursion_contract, d);
         //var x = run5(variable_contract, d);

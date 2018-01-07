@@ -7,7 +7,7 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-
+* the random number generator for the light node is not good enough.
 
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 I took notes. Search for "verify" in channels.js

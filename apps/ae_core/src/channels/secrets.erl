@@ -47,7 +47,7 @@ new_lightning() ->
     PrivDir = code:priv_dir(ae_core),
     {ok, Contract} = file:read_file(PrivDir ++ "/lightning.fs"), 
     ESH = " binary 32 " ++ binary_to_list(base64:encode(SH)) ++ " >r " ++ Contract,
-    ESS = "binary " ++ integer_to_list(constants:hash_size()) ++ " " ++ base64:encode(S),
+    ESS = " binary 32 " ++ binary_to_list(base64:encode(S)),
     Code = compiler_chalang:doit(list_to_binary(ESH)),
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(ESS)), []),
     add(Code, SS),
