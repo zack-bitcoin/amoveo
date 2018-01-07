@@ -6,24 +6,14 @@
                         pubkey = <<>>,
                         amount = 0}).
 -include("../../records.hrl").
-
-from(X) ->
-    X#create_acc_tx.from.
-pubkey(X) ->
-    X#create_acc_tx.pubkey.
-
+from(X) -> X#create_acc_tx.from.
+pubkey(X) -> X#create_acc_tx.pubkey.
 new(Pub, Amount, Fee, From, Trees) -> %To is a new ID. set it to any unused ID.
     PS = size(Pub),
     PS = size(From),
     PS = constants:pubkey_size(),
     Accounts = trees:accounts(Trees),
-    io:fwrite("from is "),
-    io:fwrite(packer:pack(From)),
-    io:fwrite("\n"),
     {_, Account, Proof} = accounts:get(From, Accounts),
-    io:fwrite("account is "),
-    io:fwrite(packer:pack(Account)),
-    io:fwrite("\n"),
     Tx = #create_acc_tx{from = From,
                         nonce = Account#acc.nonce + 1,
                         pubkey = Pub,

@@ -1,4 +1,17 @@
 function translate_human() {
+    var div = document.getElementById("translations");
+    function translate(d, c) {
+        var x = document.createElement("a");
+        x.href = ("/wallet.html?").concat(d);
+        x.innerHTML = (c).concat(" ");
+        div.appendChild(x);
+    }
+    translate("cn", "中文");
+    translate("en", "English");
+    translate("es", "Español");
+    translate("hi", "हिंदी ");
+    translate("tp", "toki pona");
+    translate("ar", "عربى");
     var language_mode;
     (function () {
         var x = window.location.href;
