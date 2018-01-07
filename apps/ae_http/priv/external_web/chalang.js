@@ -60,19 +60,15 @@ function chalang_main() {
            reverse: 136,
            is_list: 137};
     function memory(x) {
-        //console.log("in memory function");
-        //console.log(JSON.stringify(x));
-        if (JSON.stringify(x) == JSON.stringify([])) {
+        if (JSON.stringify(x) == "[]") {
             return 1;
         } else if (Number.isInteger(x)) {
             return 4;
         } else if (x[0] == "binary") {
             return x.length - 1;
         } else {
-            var a = memory(x[0]);
-            var y = x.slice(1, x.length);
-            var b = memory(y);
-            return a+b;
+            var y = x.slice(1);
+            return memory(x[0]) + memory(y);
         }
     }
     function underflow_check(d, min_size, op_name) {
@@ -81,11 +77,8 @@ function chalang_main() {
         }
     }
     function exponential(b, a) {
-        if (b == 0) {
-            return 0;
-        } else if (a == 0) {
-            return 1;
-        }
+        if (b == 0) { return 0; }
+        else if (a == 0) { return 1; }
         var n = 1;
         while (a > 1) {
             if ((a % 2) == 0) {
@@ -154,7 +147,7 @@ function chalang_main() {
                 var k = count_till(code, i+1, ops.casethen);
                 i += (k);
             } else if (opcode == code[i]) {
-                return {"rest": code.slice(i, code.length),
+                return {"rest": code.slice(i),
                         "code": code.slice(0, i),
                         "n": i};
             }
@@ -171,10 +164,7 @@ function chalang_main() {
                 var h = array_to_int(code.slice(i+j+1, i+j+5));
                 j += (4 + h);
             } else if ((code[i+j] == ops.caseif)){
-                //console.log("count till caseif recursion");
                 var k = count_till(code, i+j+1, ops.casethen);
-                //console.log("k is ");
-                //console.log(k);
                 j += (k + 1);
             }
         }
@@ -184,7 +174,7 @@ function chalang_main() {
     function replace(old_character, new_code, binary) {
         for (var i = 0; i < binary.length; i++) {
             if (binary[i] == old_character) {
-                var r2 = replace(old_character, new_code, binary.slice(i+1, binary.length));
+                var r2 = replace(old_character, new_code, binary.slice(i+1));
                 return binary.slice(0,i).concat(new_code).concat(r2);
             } else if (binary[i] == ops.int_op) {
                 i += 4;
@@ -231,7 +221,7 @@ function chalang_main() {
         if (b == 0) {
             i += (size_case1 + 1);
         }
-        d.stack = d.stack.slice(1, d.stack.length);
+        d.stack = d.stack.slice(1);
         return {i: i, d: d, g: 0, s: "if op"};
     }
     op_code[ops.caseelse] = function(i, code, d) {
@@ -245,10 +235,10 @@ function chalang_main() {
     }
     op_code[ops.call] = function(i, code, d) {
         //non-optimized function call.
-        var code_hash = btoa(array_to_string(d.stack[0].slice(1, d.stack[0].length)));
+        var code_hash=btoa(array_to_string(d.stack[0].slice(1)));
         definition = d.funs[code_hash];
         var s = definition.length;
-        d.stack = d.stack.slice(1, d.stack.length);
+        d.stack = d.stack.slice(1);
         d = run2(definition, d);
         return {i: i, d: d, g: (s + 10), s: "slow call op", r: (s - 1)};
     }
@@ -275,7 +265,7 @@ function chalang_main() {
     };
     op_code[ops.drop] = function(i, code, d) {
         underflow_check(d, 1, "drop");
-        d.stack = d.stack.slice(1, d.stack.length);
+        d.stack = d.stack.slice(1);
         return {i: i, d: d, g: 1, s: "drop op", r: (-2 - memory(d.stack[0]))};
     };
     op_code[ops.dup] = function(i, code, d) {
@@ -287,7 +277,7 @@ function chalang_main() {
         underflow_check(d, 2, "swap");
         d.stack = ([d.stack[1]]).concat(
             [d.stack[0]]).concat(
-                d.stack.slice(2, d.stack.length));
+                d.stack.slice(2));
         return {i: i, d: d, g: 1, s: "swap op"};
     };
     op_code[ops.tuck] = function(i, code, d) {
@@ -295,7 +285,7 @@ function chalang_main() {
         d.stack = ([d.stack[1]]).concat(
             [d.stack[2]]).concat(
                 [d.stack[0]]).concat(
-                    d.stack.slice(3, d.stack.length));
+                    d.stack.slice(3));
         return {i: i, d: d, g: 1, s: "tuck op"};
     }
     op_code[ops.rot] = function(i, code, d) {
@@ -303,7 +293,7 @@ function chalang_main() {
         d.stack = ([d.stack[2]]).concat(
             [d.stack[0]]).concat(
                 [d.stack[1]]).concat(
-                    d.stack.slice(3, d.stack.length));
+                    d.stack.slice(3));
         return {i: i, d: d, g: 1, s: "rot op"};
     }
     op_code[ops.ddup] = function(i, code, d) {
@@ -319,7 +309,7 @@ function chalang_main() {
             underflow_check(d, 2+n,"tuckn");
             d.stack = d.stack.slice(2, 2+n).concat(
                 [d.stack[1]]).concat(
-                    d.stack.slice(3+n, d.stack.length));
+                    d.stack.slice(3+n));
         }
         return {i: i, d: d, g: 1, s: "tuckn op"};
     }
@@ -330,14 +320,14 @@ function chalang_main() {
         } else {
             d.stack = ([d.stack[n]]).concat(
                 d.stack.slice(1, 1+n)).concat(
-                    d.stack.slice(2+n, d.stack.length));
+                    d.stack.slice(2+n));
         }
         return {i: i, d: d, g: 1, s: "pickn op"};
     }
     op_code[ops.to_r] = function(i, code, d) {
         underflow_check(d, 1, "to_r");
         d.alt = ([d.stack[0]]).concat(d.alt);
-        d.stack = d.stack.slice(1, d.stack.length);
+        d.stack = d.stack.slice(1);
         return {i: i, d: d, g: 1, s: ">r op"};
     }
     op_code[ops.from_r] = function(i, code, d) {
@@ -345,7 +335,7 @@ function chalang_main() {
             throw(">r alt stack underflow");
         } else {
             d.stack = ([d.alt[0]]).concat(d.stack);
-            d.atl = d.alt.slice(1, d.alt.length);
+            d.alt = d.alt.slice(1);
         }
         return {i: i, d: d, g: 1, s: "r> op"};
     }
@@ -368,9 +358,9 @@ function chalang_main() {
     op_code[ops.verify_sig] = function(i, code, d) {
         underflow_check(d, 3, "verify_sig");
         //data, sig, key
-        var pub1 = d.stack[0].slice(1, d.stack[0].length);//internal format puts "binary" at the front of each binary.
-        var data1 = d.stack[1].slice(1, d.stack[1].length);
-        var sig1 = d.stack[2].slice(1, d.stack[2].length);
+        var pub1 = d.stack[0].slice(1);//internal format puts "binary" at the front of each binary.
+        var data1 = d.stack[1].slice(1);
+        var sig1 = d.stack[2].slice(1);
         temp_key = ec.keyFromPublic(toHex(array_to_string(pub1)), "hex");
         var sig2 = bin2rs(array_to_string(sig1));
         var b = temp_key.verify(hash(serialize(data1)), sig2, "hex")
@@ -378,7 +368,7 @@ function chalang_main() {
         if (b) { c = 1; }
         else { c = 0; }
         d.stack = ([c]).concat(
-            d.stack.slice(3, d.stack.length));
+            d.stack.slice(3));
         return {i: i, d: d, g: 20, s: "verify_sig op"};
     }
     op_code[ops.eq] = function(i, code, d) {
@@ -454,7 +444,7 @@ function chalang_main() {
     op_code[ops.set] = function(i, code, d) {
         underflow_check(d, 2, "set");
         d.vars[d.stack[0]] = d.stack[1];
-        d.stack = d.stack.slice(2, d.stack.length);
+        d.stack = d.stack.slice(2);
         return {i: i, d: d, g: 1, s: "set op"};
     }
     op_code[ops.set] = function(i, code, d) {
@@ -466,7 +456,7 @@ function chalang_main() {
         } else {
             val = foo;
         }
-        d.stack = ([val]).concat(d.stack.slice(1, d.stack.length));
+        d.stack = ([val]).concat(d.stack.slice(1));
         return {i: i, d: d, g: 1, s: "fetch op", r: (1+memory(val))};
     }
     op_code[ops.cons] = function(i, code, d) {
@@ -474,7 +464,7 @@ function chalang_main() {
         var l = ([d.stack[1]]).concat(
             d.stack[0]);
         d.stack = ([l]).concat(
-            d.stack.slice(2, d.stack.length));
+            d.stack.slice(2));
         return {i: i, d: d, g: 1, s: "cons op", r: 1};
     }
     op_code[ops.car] = function(i, code, d) {
@@ -600,8 +590,8 @@ function chalang_main() {
                 var s = definition.length;
                 d.op_gas = d.op_gas - s - 10;
                 d.ram_current = d.ram_current + s - 1;
-                d.stack = d.stack.slice(1, d.stack.length);
-                code = definition.concat(code.slice(i+1, code.length));
+                d.stack = d.stack.slice(1);
+                code = definition.concat(code.slice(i+1));
                 i = 0;
                 op_print(d, i, "optimized call op");
                 //return run2(definition.concat(rest), d);
@@ -614,7 +604,7 @@ function chalang_main() {
                 d.op_gas = d.op_gas - 1;
                 d.ram_current = d.ram_current - 2;
                 var a = arithmetic_chalang(code[i], d.stack[0], d.stack[1]);
-                d.stack = a.concat(d.stack.slice(2, d.stack.length));
+                d.stack = a.concat(d.stack.slice(2));
                 op_print(d, i, ("math ").concat((code[i]).toString()));
             } else {
                 var y = op_code[code[i]](i, code, d);
@@ -757,66 +747,46 @@ function chalang_main() {
              ops.swap,ops.cons,ops.reverse, ops.print,
              ops.eq,ops.to_r,ops.drop,ops.drop,ops.from_r];
         var recursion_contract =
-            [
-                ops.define,
-                  0,0,0,0,0,ops.eq,ops.bool_flip,
-                  ops.caseif,
-                    ops.drop,
-                    0,0,0,0,1,
-                    ops.subtract,
-                    0,0,0,0,0,
-                    ops.swap,ops.recurse,
-                    ops.call,
-                  ops.caseelse,
-                    20,20,
-                  ops.casethen,
-                ops.fun_end,
-                0,0,0,0,5,
-                2,0,0,0,12,95,171,14,87,107,52,162,208,56,196,48,154,
-                ops.call,
-                0,0,0,0,0,
-                ops.eq,ops.to_r,ops.drop,ops.drop,
-                0,0,0,0,0,
-                ops.eq,ops.to_r,ops.drop,ops.drop,
-                0,0,0,0,0,
-                ops.eq,ops.to_r,ops.drop,ops.drop,
-                0,0,0,0,0,
-                ops.eq,ops.to_r,ops.drop,ops.drop,
-                0,0,0,0,0,
-                ops.eq,ops.to_r,ops.drop,ops.drop,
-                ops.from_r,ops.from_r,ops.from_r,ops.from_r,ops.from_r,
-                ops.bool_and,ops.bool_and,ops.bool_and,ops.bool_and
+            [ops.define,
+             0,0,0,0,0,ops.eq,ops.bool_flip,
+             ops.caseif,
+             ops.drop,
+             0,0,0,0,1,
+             ops.subtract,
+             0,0,0,0,0,
+             ops.swap,ops.recurse,
+             ops.call,
+             ops.caseelse,
+             20,20,
+             ops.casethen,
+             ops.fun_end,
+             0,0,0,0,5,
+             2,0,0,0,12,95,171,14,87,107,52,162,208,56,196,48,154,
+             ops.call,
+             0,0,0,0,0,
+             ops.eq,ops.to_r,ops.drop,ops.drop,
+             0,0,0,0,0,
+             ops.eq,ops.to_r,ops.drop,ops.drop,
+             0,0,0,0,0,
+             ops.eq,ops.to_r,ops.drop,ops.drop,
+             0,0,0,0,0,
+             ops.eq,ops.to_r,ops.drop,ops.drop,
+             0,0,0,0,0,
+             ops.eq,ops.to_r,ops.drop,ops.drop,
+             ops.from_r,ops.from_r,ops.from_r,ops.from_r,ops.from_r,
+             ops.bool_and,ops.bool_and,ops.bool_and,ops.bool_and
             ];
         var case_contract = [
-            /*
-            0,0,0,0,0,
-            0,0,0,0,1,
-            eq, swap, ops.drop, swap, ops.drop,
-            bool_flip,
-            */
-
             0,0,0,0,0,
             ops.caseif,
-            //0,0,0,0,0,
             0,0,0,0,3,
-            //0,0,0,0,2,
             ops.caseif, 0,0,0,0,7,
             ops.caseelse, 0,0,0,0,8, ops.casethen,
-            //ops.print, //when I comment this print, the error disappears.
             ops.caseif, ops.caseelse, 0,0,0,0,0,
             ops.caseif, ops.caseelse, ops.casethen,
             ops.casethen,
-            /*
-            //ops.print,
-             caseif,
-              //0,0,0,0,5,
-             caseelse,
-              //0,0,0,0,6,
-             casethen,
-            */
             ops.caseelse,
              0,0,0,0,0,
-             //0,0,0,0,1,
              ops.caseif,
               0,0,0,0,3,
              ops.caseelse,
@@ -826,7 +796,6 @@ function chalang_main() {
             ops.casethen
         ];
         var split_append_contract = [
-            //chalang:vm(<<2,0,0,0,3,1,2,3,0,0,0,0,1,135,134>>, 10000, 10000, 10000, 1000, chalang:new_state(0, 0)).
             //should return <<2,3,1>>
             ops.binary_op, 0,0,0,3, 1,2,3,
             ops.int_op, 0,0,0,1,
