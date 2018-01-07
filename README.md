@@ -5,11 +5,17 @@ Amoveo
 (work in progress) [中文](docs/cn/README.md)
 
 
-A blockchain for financial derivatives.
-Optimized for scalability via smart contracts inside state-channels.
-Has a build-in oracle for integration with real-world data
-A governance system is used to set system parameters. The block size, block reward, and many other variables can be adjusted by the community.
-Written in Erlang.
+A blockchain for enforcing contracts for investing and insurance. 
+
+Amoveo contracts use state-channel technology. This means fees are low, making an Amoveo contract is nearly instant, and we can support a global audience.
+
+Amoveo has oracle technology.
+Amoveo can learn facts about our world and enforce contracts who's outcome is determined by those facts.
+This way you can invest in the price of Amazon shares, for example.
+
+The variables that define how to participate in Amoveo can be modified by the Amoveo community using a built-in process.
+This way Amoveo will always stay optimally tuned to produce the best results.
+
 
 [Amoveo whitepaper](docs/white_paper.md).
 

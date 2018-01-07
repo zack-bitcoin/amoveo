@@ -19,6 +19,7 @@
 
 
 ## abstract
+
 Blockchain is a form of cryptographic database technology. Each blockchain hosts a cryptocurrency. Cryptocurrencies are a form of wealth that is made secure by blockchain technology.
 Amoveo is a blockchain which secures a cryptocurrency called Veo.
 Using Amoveo you can host a market on a server where you make money every time anyone trades.
@@ -36,14 +37,14 @@ Combining finance with a monopoly on violence means that we can't truly trust th
 
 
 ## blockchain consensus protocol
-Amoveo uses Nakamoto consensus, just like Bitcoin. It this system, some people act as miners. They receive a reward for producing blocks. Producing a block involves doing an expensive calculation called proof of work. The difficulty of this work is reset every 2000 blocks so that the rate of block production stays about 10 minutes per block.
+Amoveo uses Nakamoto consensus, just like Bitcoin. In this system, some people act as miners. They receive a reward for producing blocks. Producing a block involves doing an expensive calculation called proof-of-work. The difficulty of this proof-of-work resets every 2000 blocks so that the rate of block production stays about 10 minutes per block.
 
 
 ## accounts
-Accounts are data structures recorded in the blockchain consensus state. Each account has a positive balance of Veo that it can spend to other accounts. Anyone with sufficient Veo to pay the fee can create new accounts. Spending from an account requires a signature from the private key that the owner of the account knows. To give someone Veo, you need to know their public key.
+Accounts are data structures recorded in the blockchain consensus state. Each account has a positive balance of Veo that it can spend to other accounts. Anyone with sufficient Veo to pay the fee, can create new accounts. Spending from an account requires a signature from the private key that the owner of the account knows. To give someone Veo, you need to know their public key.
 
-You use accounts by making transactions. [Read more about the Amoveo transaction types here](design/transaction_types.md)
-Accounts are stored in one of the consensus state merkle trees. [Read more about the trees used in Amoveo here](design/trees.md)
+You use accounts by making transactions. [Read more about the Amoveo transaction types here](design/transaction_types.md).
+Accounts are stored in one of the consensus state merkle trees. [Read more about the trees used in Amoveo here](design/trees.md).
 
 
 ## oracles
