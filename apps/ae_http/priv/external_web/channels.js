@@ -44,13 +44,8 @@ function channels_main() {
         });
     });
     document.body.appendChild(channel_title);
-    document.body.append(channels_div);
-    channels_div.appendChild(channel_warning_div);
-    channels_div.appendChild(load_button);
-    channels_div.appendChild(br());
-    channels_div.appendChild(br());
-    append_children(channels_div, [save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
-
+    document.body.appendChild(channels_div);
+    append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
     
     var fee = 50050;
     var oid = document.createElement("INPUT");
@@ -150,7 +145,6 @@ function channels_main() {
         }
     }
     function make_bet() {
-        //server's pubkey is pubkey.
         var oid_final = parseInt(oid.value, 10);
         variable_public_get(["market_data", oid_final], make_bet2);
     }
@@ -160,6 +154,8 @@ function channels_main() {
         var ttv = trade_type.value;
         if ((ttv == "true") ||
             (ttv == 1) ||
+            (ttv == "yes") ||
+            (ttv == "si") ||
             (ttv == "cierto") ||
             (ttv == "lon") ||
             (ttv == "真正") ||
@@ -169,6 +165,7 @@ function channels_main() {
                    (ttv == 0) ||
                    (ttv == 2) ||
                    (ttv == "falso") ||
+                   (ttv == "no") ||
                    (ttv == "lon ala") ||
                    (ttv == "也不是") ||
                    (ttv == "假")) {
@@ -196,14 +193,7 @@ function channels_main() {
             var cd = read(server_pubkey);
             cd.me = sspk[1];
             cd.them = sspk2;
-            //var newss = {"code": [0,0,0,0,4], "prove":[]};
             var newss = new_ss([0,0,0,0,4], [-6, ["oracles", oid_final]]);
-            //var newss = [0,0,0,0,4];
-            console.log("about to update channel manager after having made a bet");
-            console.log("cd.ssme currently is");
-            console.log(JSON.stringify(cd.ssme));
-            console.log(JSON.stringify(sspk[1]));
-            console.log(JSON.stringify(newss));
             cd.ssme = ([newss]).concat(cd.ssme);
             cd.ssthem = ([newss]).concat(cd.ssthem);
             write(server_pubkey, cd);

@@ -20,6 +20,7 @@ handle(Req, _) ->
                <<"/bets.js">> -> true;
                <<"/miner.js">> -> true;
                <<"/chalang.js">> -> true;
+               <<"/spk.js">> -> true;
                <<"/format.js">> -> true;
                <<"/files.js">> -> true;
                <<"/rpc.js">> -> true;

@@ -9,6 +9,8 @@
 
 * the random number generator for the light node is not good enough.
 
+* we need to test out the different formats for "true" and "false" in the javascript light node.
+
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 I took notes. Search for "verify" in channels.js
 
