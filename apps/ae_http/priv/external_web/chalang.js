@@ -995,7 +995,7 @@ function chalang(command) {
             console.log(JSON.stringify(spk[4]));
             throw("ss and bets need to be the same length");
         }
-        spk_run2(ss, spk[3], spk[5], spk[4], fun_limit, var_limit, state, spk.delay, 0, 0, 1, function(ret) {
+        spk_run2(ss, spk[3], spk[5], spk[4], fun_limit, var_limit, state, spk[9], 0, 0, 1, function(ret) {
             return callback(ret);
         });
     }
@@ -1029,6 +1029,8 @@ function chalang(command) {
             var data3 = run5(code, data2);
             console.log("just ran contract, stack returned as ");
             console.log(JSON.stringify(data3.stack));
+            console.log("bet was ");
+            console.log(JSON.stringify(bet));
             var amount = data3.stack[0];
             var nonce = data3.stack[1];
             var delay = data3.stack[2];
@@ -1036,7 +1038,8 @@ function chalang(command) {
             if ((amount > cgran) || (amount < -cgran)) {
                 throw("you can't spend money you don't have in the channel.");
             }
-            var a3 = Math.floor(amount * bet.amount / cgran);
+            //var a3 = Math.floor(amount * bet.amount / cgran);
+            var a3 = Math.floor(amount * bet[2] / cgran);
             return callback({"amount": a3, "nonce": nonce, "delay": delay, "opgas": data3.opgas});
         });
     }
