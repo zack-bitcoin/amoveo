@@ -59,157 +59,156 @@ function chalang_main() {
            split: 135,
            reverse: 136,
            is_list: 137};
+    function memory(x) {
+        //console.log("in memory function");
+        //console.log(JSON.stringify(x));
+        if (JSON.stringify(x) == JSON.stringify([])) {
+            return 1;
+        } else if (Number.isInteger(x)) {
+            return 4;
+        } else if (x[0] == "binary") {
+            return x.length - 1;
+        } else {
+            var a = memory(x[0]);
+            var y = x.slice(1, x.length);
+            var b = memory(y);
+            return a+b;
+        }
+    }
+    function underflow_check(d, min_size, op_name) {
+        if (d.stack.length < min_size) {
+            throw(JSON.stringify(["error", "stack underflow", op_name]));
+        }
+    }
+    function arithmetic_chalang(op, a, b) { //returns a list to concat with stack.
+        function exponential(b, a) {
+            if (b == 0) {
+                return 0;
+            } else if (a == 0) {
+                return 1;
+            }
+            var n = 1;
+            while (!(a == 1)) {
+                if ((a % 2) == 0) {
+                    b = b*b;
+                    a = Math.floor(a / 2);
+                } else {
+                    a = a - 1;
+                    n = n * b;
+                }
+            }
+            return b * n;
+        }
+        var x;
+        var d = {"stack":[]};
+        var i = 0;
+        if (op == ops.add) {
+            op_print(d, i, "add op");
+            x = a + b;
+        } else if (op == ops.subtract) {
+            op_print(d, i, "subtract op");
+            x = b - a;
+        } else if (op == ops.mul) {
+            op_print(d, i, "mul op");
+            x = b * a;
+        } else if (op == ops.div) {
+            op_print(d, i, "div op");
+            x = Math.floor(b / a);
+        } else if (op == ops.pow) {
+            op_print(d, i, "pow op");
+            x = exponential(b, a);
+        } else if (op == ops.rem) {
+            op_print(d, i, "rem op");
+            x = b % a;
+        } else if (op == ops.gt) {
+            op_print(d, i, "gt op");
+            if (b > a) {
+                x = 1;
+            } else {
+                x = 0;
+            }
+        } else if (op == ops.lt) {
+            op_print(d, i, "lt op");
+            if (b < a) {
+                x = 1;
+            } else {
+                x = 0;
+            }
+        }
+        x = ((x % word_size) + word_size) % word_size;
+        return [x];
+    }
+    function small_hash(l) {
+        var h = hash(l);
+        return h.slice(0, 12);
+    }
+    function split_if(opcode, code) {
+        var a = 0;
+        for (var i = 0; i < code.length; i++) {
+            if ((code[i]) == ops.int_op) {
+                i += 4;
+            } else if (code[i] == ops.binary_op) {
+                var h = array_to_int(code.slice(i+1, i+5));
+                i += (4 + h);
+            } else if ((code[i] == ops.caseif)){
+                var k = count_till(code, i+1, ops.casethen);
+                i += (k);
+            } else if (opcode == code[i]) {
+                return {"rest": code.slice(i, code.length),
+                        "code": code.slice(0, i),
+                        "n": i};
+            }
+        }
+        throw("split if error");
+    }
+    function count_till(code, i, opcode) {
+        for (var j = 0; (j + i) < code.length; j++) {
+            if ((code[i+j]) == ops.int_op) {
+                j += 4;
+            } else if (opcode == code[i+j]) {
+                return j;
+            } else if (code[i+j] == ops.binary_op) {
+                var h = array_to_int(code.slice(i+j+1, i+j+5));
+                j += (4 + h);
+            } else if ((code[i+j] == ops.caseif)){
+                //console.log("count till caseif recursion");
+                var k = count_till(code, i+j+1, ops.casethen);
+                //console.log("k is ");
+                //console.log(k);
+                j += (k + 1);
+            }
+        }
+        console.log(opcode);
+        throw("count till reached end without finding goal");
+    }
+    function replace(old_character, new_code, binary) {
+        for (var i = 0; i < binary.length; i++) {
+            if (binary[i] == old_character) {
+                var r2 = replace(old_character, new_code, binary.slice(i+1, binary.length));
+                return binary.slice(0,i).concat(new_code).concat(r2);
+            } else if (binary[i] == ops.int_op) {
+                i += 4;
+            } else if (binary[i] == ops.binary_op) {
+                var h = array_to_int(binary.slice(i+1, i+5));
+                i += (4 + h);
+            }
+        }
+        return binary;
+    }
+    var verbose = false;
+    var stack_verbose = false;
+    function op_print(d, i, x) {
+        if (verbose) {
+            console.log(("# ").concat(
+                (i).toString()).concat(
+                    " ").concat(x));
+        }
+        if (stack_verbose) {
+            console.log(JSON.stringify(d.stack));
+        }
+    }
     function run2(code, d) {
         console.log("run 2");
-        //the stuff inside this function is from the chalang repository.
-        function memory(x) {
-            //console.log("in memory function");
-            //console.log(JSON.stringify(x));
-            if (JSON.stringify(x) == JSON.stringify([])) {
-                return 1;
-            } else if (Number.isInteger(x)) {
-                return 4;
-            } else if (x[0] == "binary") {
-                return x.length - 1;
-            } else {
-                var a = memory(x[0]);
-                var y = x.slice(1, x.length);
-                var b = memory(y);
-                return a+b;
-            }
-        }
-        function underflow_check(d, min_size, op_name) {
-            if (d.stack.length < min_size) {
-                throw(JSON.stringify(["error", "stack underflow", op_name]));
-            }
-        }
-        function arithmetic_chalang(op, a, b) { //returns a list to concat with stack.
-            function exponential(b, a) {
-                if (b == 0) {
-                    return 0;
-                } else if (a == 0) {
-                    return 1;
-                }
-                var n = 1;
-                while (!(a == 1)) {
-                    if ((a % 2) == 0) {
-                        b = b*b;
-                        a = Math.floor(a / 2);
-                    } else {
-                        a = a - 1;
-                        n = n * b;
-                    }
-                }
-                return b * n;
-            }
-            var x;
-            var d = {"stack":[]};
-            var i = 0;
-            if (op == ops.add) {
-                op_print(d, i, "add op");
-                x = a + b;
-            } else if (op == ops.subtract) {
-                op_print(d, i, "subtract op");
-                x = b - a;
-            } else if (op == ops.mul) {
-                op_print(d, i, "mul op");
-                x = b * a;
-            } else if (op == ops.div) {
-                op_print(d, i, "div op");
-                x = Math.floor(b / a);
-            } else if (op == ops.pow) {
-                op_print(d, i, "pow op");
-                x = exponential(b, a);
-            } else if (op == ops.rem) {
-                op_print(d, i, "rem op");
-                x = b % a;
-            } else if (op == ops.gt) {
-                op_print(d, i, "gt op");
-                if (b > a) {
-                    x = 1;
-                } else {
-                    x = 0;
-                }
-            } else if (op == ops.lt) {
-                op_print(d, i, "lt op");
-                if (b < a) {
-                    x = 1;
-                } else {
-                    x = 0;
-                }
-            }
-            x = ((x % word_size) + word_size) % word_size;
-            return [x];
-        }
-        function small_hash(l) {
-            var h = hash(l);
-            return h.slice(0, 12);
-        }
-        function split_if(opcode, code) {
-            var a = 0;
-            for (var i = 0; i < code.length; i++) {
-                if ((code[i]) == ops.int_op) {
-                    i += 4;
-                } else if (code[i] == ops.binary_op) {
-                    var h = array_to_int(code.slice(i+1, i+5));
-                    i += (4 + h);
-                } else if ((code[i] == ops.caseif)){
-                    var k = count_till(code, i+1, ops.casethen);
-                    i += (k);
-                } else if (opcode == code[i]) {
-                    return {"rest": code.slice(i, code.length),
-                            "code": code.slice(0, i),
-                            "n": i};
-                }
-            }
-            throw("split if error");
-        }
-        function count_till(code, i, opcode) {
-            for (var j = 0; (j + i) < code.length; j++) {
-                if ((code[i+j]) == ops.int_op) {
-                    j += 4;
-                } else if (opcode == code[i+j]) {
-                    return j;
-                } else if (code[i+j] == ops.binary_op) {
-                    var h = array_to_int(code.slice(i+j+1, i+j+5));
-                    j += (4 + h);
-                } else if ((code[i+j] == ops.caseif)){
-                    //console.log("count till caseif recursion");
-                    var k = count_till(code, i+j+1, ops.casethen);
-                    //console.log("k is ");
-                    //console.log(k);
-                    j += (k + 1);
-                }
-            }
-            console.log(opcode);
-            throw("count till reached end without finding goal");
-        }
-        function replace(old_character, new_code, binary) {
-            for (var i = 0; i < binary.length; i++) {
-                if (binary[i] == old_character) {
-                    var r2 = replace(old_character, new_code, binary.slice(i+1, binary.length));
-                    return binary.slice(0,i).concat(new_code).concat(r2);
-                } else if (binary[i] == ops.int_op) {
-                    i += 4;
-                } else if (binary[i] == ops.binary_op) {
-                    var h = array_to_int(binary.slice(i+1, i+5));
-                    i += (4 + h);
-                }
-            }
-            return binary;
-        }
-        var verbose = false;
-        var stack_verbose = false;
-        function op_print(d, i, x) {
-            if (verbose) {
-                console.log(("# ").concat(
-                    (i).toString()).concat(
-                        " ").concat(x));
-            }
-            if (stack_verbose) {
-                console.log(JSON.stringify(d.stack));
-            }
-        }
         for (var i = 0; i<code.length; i++) {
             //console.log("run cycle");
             //console.log(i);
@@ -691,25 +690,25 @@ function chalang_main() {
         }
         return d;
     }
-    function run5(code, d) {
-        function is_balanced_f(code) {
-            var x = 0;
-            for (var i = 0; i<code.length; i++) {
-                if (code[i] == ops.int_op) {
-                    i += 4;
-                } else if (code[i] == ops.binary_op) {
-                    n = array_to_int(code.slice(i+1, i+5));
-                    i += (4 + n);
-                } else if ((code[i] == ops.define) && (x == 0)){
-                    x = 1;
-                } else if ((code[i] == ops.fun_end) && (x == 1)) {
-                    x = 0;
-                } else if ((code[i] == ops.define) || (code[i] == ops.fun_end)) {
-                    return false;
-                }
+    function is_balanced_f(code) {
+        var x = 0;
+        for (var i = 0; i<code.length; i++) {
+            if (code[i] == ops.int_op) {
+                i += 4;
+            } else if (code[i] == ops.binary_op) {
+                n = array_to_int(code.slice(i+1, i+5));
+                i += (4 + n);
+            } else if ((code[i] == ops.define) && (x == 0)){
+                x = 1;
+            } else if ((code[i] == ops.fun_end) && (x == 1)) {
+                x = 0;
+            } else if ((code[i] == ops.define) || (code[i] == ops.fun_end)) {
+                return false;
             }
-            return true;
         }
+        return true;
+    }
+    function run5(code, d) {
         if (is_balanced_f(code)) {
             return run2(code, d);
         } else {
