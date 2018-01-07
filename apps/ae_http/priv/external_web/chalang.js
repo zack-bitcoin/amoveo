@@ -229,6 +229,7 @@ function chalang(command) {
                 d.ram_most = d.ram_current;
             }
             if (d.op_gas < 0) {
+                console.log(JSON.stringify(d));
                 console.log("out of time");
                 return ["error", "out of time"];
             } else if (d.ram_current > d.ram_limit) {
@@ -977,7 +978,6 @@ function chalang(command) {
     function spk_run(mode, ss0, spk0, height, slash, fun_limit, var_limit, callback) {
         var spk = JSON.parse(JSON.stringify(spk0));
         var ss = JSON.parse(JSON.stringify(ss0));
-        console.log("spk run");
         var state = chalang_new_state(height, slash);
         var key1 = "fun_limit";
         var ret;
@@ -992,15 +992,10 @@ function chalang(command) {
         });
     }
     function spk_run2(ss, bets, opgas, ramgas, funs, vars, state, delay, nonce, amount, i, callback) {
-        console.log("spk run 2");
-        //console.log("ss is ");
-        //console.log(JSON.stringify(ss));
         if (i > (ss.length)) {
             return callback({"amount": amount, "nonce": nonce, "delay": delay});//, "opgas": opgas});
         }
         spk_run3(ss[i-1], bets[i], opgas, ramgas, funs, vars, state, function(run_object) {
-            console.log("spk run 2 nonce are");
-            console.log(JSON.stringify([nonce, run_object.nonce]));
             if (!(Number.isInteger(run_object.nonce))) {
                 console.log(JSON.stringify(run_object.nonce));
                 throw("nonce should be an integer");
@@ -1013,31 +1008,17 @@ function chalang(command) {
         });
     }
     function spk_run3(ss, bet, opgas, ramgas, funs, vars, state, callback) {
-        console.log("spk run 3");
-        //console.log("spk_run3 ss is ");
-        //console.log(JSON.stringify(ss));
         var script_sig = ss.code;
-        console.log("script sig");
-        console.log(ss);
         if (!(chalang_none_of(script_sig))) {
             throw("error: return op in the script sig");
         }
         prove_facts(ss.prove, function(f) {
-            console.log("spk run 3 bet is ");
-            console.log(JSON.stringify(bet));
             var c = string_to_array(atob(bet[1]));
             //var c = bet.code;
             var code = f.concat(c);
             var data = chalang_data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
-            console.log("about to run ss part");
-            console.log(JSON.stringify(script_sig));
             var data2 = run5(script_sig, data);
-            console.log("about to run code part");
-            console.log(JSON.stringify(bet));
-            console.log(JSON.stringify([f, c]));
-            console.log(JSON.stringify(code));
             var data3 = run5(code, data2);
-            //console.log("finished contract");
             console.log("just ran contract, stack returned as ");
             console.log(JSON.stringify(data3.stack));
             var amount = data3.stack[0];
@@ -1056,13 +1037,9 @@ function chalang(command) {
         var ssold = JSON.parse(JSON.stringify(ssold0));
         var ssnew = JSON.parse(JSON.stringify(ssnew0));
         console.log("force update");
-        //console.log("force update ss's are ");
-        //console.log(JSON.stringify([ssold, ssnew]));
         var height = headers_object.top()[1];
         var ret;
         spk_run("fast", ssold, spk, height, 0, fun_limit, var_limit, function(ran1) {
-            //console.log("spk run returned ");
-            //console.log(JSON.stringify(ran1));
             var nonceOld = ran1.nonce;
             spk_run("fast", ssnew, spk, height, 0, fun_limit, var_limit, function(ran2) {
                 var nonceNew = ran2.nonce;
