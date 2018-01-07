@@ -80,25 +80,25 @@ function chalang_main() {
             throw(JSON.stringify(["error", "stack underflow", op_name]));
         }
     }
-    function arithmetic_chalang(op, a, b) { //returns a list to concat with stack.
-        function exponential(b, a) {
-            if (b == 0) {
-                return 0;
-            } else if (a == 0) {
-                return 1;
-            }
-            var n = 1;
-            while (!(a == 1)) {
-                if ((a % 2) == 0) {
-                    b = b*b;
-                    a = Math.floor(a / 2);
-                } else {
-                    a = a - 1;
-                    n = n * b;
-                }
-            }
-            return b * n;
+    function exponential(b, a) {
+        if (b == 0) {
+            return 0;
+        } else if (a == 0) {
+            return 1;
         }
+        var n = 1;
+        while (a > 1) {
+            if ((a % 2) == 0) {
+                b = b*b;
+                a = Math.floor(a / 2);
+            } else {
+                a = a - 1;
+                n = n * b;
+            }
+        }
+        return b * n;
+    }
+    function arithmetic_chalang(op, a, b) { //returns a list to concat with stack.
         var x;
         var d = {"stack":[]};
         var i = 0;
@@ -207,6 +207,84 @@ function chalang_main() {
             console.log(JSON.stringify(d.stack));
         }
     }
+    var op_code = {};
+    op_code[ops.int_op] = function(i, code, d) {
+        var int_array = code.slice(i+1, i+5);
+        var new_int = array_to_int(int_array);
+        d.stack = ([new_int]).concat(d.stack);
+        d.ram_current = d.ram_current + 1;
+        d.op_gas = d.op_gas - 1;
+        i = i + 4;
+        op_print(d, i, "int op");
+        return {i: i, d: d};
+    };
+    op_code[ops.binary_op] = function(i, code, d) {
+        var int_array = code.slice(i+1, i+5);
+        var new_int = array_to_int(int_array);
+        var bin_array = code.slice(i+5, i+5+new_int);
+        var bin1 = (["binary"]).concat(bin_array);
+        d.stack = ([bin1]).concat(
+            d.stack);
+        d.ram_current += 1;
+        d.op_gas -= new_int;
+        i = i + 4 + new_int;
+        op_print(d, i, "bin op");
+        return {i: i, d: d};
+    }
+    op_code[ops.caseif] = function(i, code, d) {
+        var b = d.stack[0];
+        var size_case1 = count_till(code, i + 1, ops.caseelse);
+        if (b == 0) {
+            i += (size_case1 + 1);
+        }
+        d.stack = d.stack.slice(1, d.stack.length);
+        op_print(d, i, "if op");
+        return {i: i, d: d};
+    }
+    op_code[ops.caseelse] = function(i, code, d) {
+        var skipped_size = count_till(code, i + 1, ops.casethen);
+        i += (skipped_size + 0);
+        op_print(d, i, "else op");
+        return {i: i, d: d};
+    }
+    op_code[ops.casethen] = function(i, code, d) {
+        op_print(d, i, "then op");
+        // do nothing.
+        return {i: i, d: d};
+    }
+    op_code[ops.call] = function(i, code, d) {
+        //non-optimized function call.
+        var code_hash = btoa(array_to_string(d.stack[0].slice(1, d.stack[0].length)));
+        definition = d.funs[code_hash];
+        var s = definition.length;
+        d.op_gas = d.op_gas - s - 10;
+        d.ram_current = d.ram_current + s - 1;
+        d.stack = d.stack.slice(1, d.stack.length);
+        d = run2(definition, d);
+        op_print(d, i, "slow call op");
+        return {i: i, d: d};
+    }
+    op_code[ops.define] = function(i, code, d) {
+        var skipped_size = count_till(code, i, ops.fun_end);
+        var definition = code.slice(i+1, i+skipped_size);
+        i += skipped_size;
+        var hash_array = small_hash(definition);
+        var b = btoa(array_to_string(hash_array));
+        var definition2 = replace(ops.recurse, ([ops.binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array), definition);
+        d.funs[b] = definition2;
+        var s = definition2.length + 4;
+        var mf = d.many_funs + 1;
+        if (mf > d.fun_limit) {
+            throw("too many functions error");
+        } else {
+            d.op_gas = d.op_gas - s - 30;
+            d.ram_current = d.ram_current + (2 * s);
+            d.many_funs = mf;
+        }
+        op_print(d, i, "define op");
+        return {i: i, d: d};
+    }
+
     function run2(code, d) {
         console.log("run 2");
         for (var i = 0; i<code.length; i++) {
@@ -223,84 +301,6 @@ function chalang_main() {
                 console.log("out of space. limit was: ");
                 console.log(d.ram_limit);
                 return ["error", "out of space"];
-            } else if (code[i] == ops.int_op) {
-                var int_array = code.slice(i+1, i+5);
-                var new_int = array_to_int(int_array);
-                d.stack = ([new_int]).concat(d.stack);
-                d.ram_current = d.ram_current + 1;
-                d.op_gas = d.op_gas - 1;
-                i = i + 4;
-                op_print(d, i, "int op");
-            } else if (code[i] == ops.binary_op) {
-                var int_array = code.slice(i+1, i+5);
-                var new_int = array_to_int(int_array);
-                var bin_array = code.slice(i+5, i+5+new_int);
-                var bin1 = (["binary"]).concat(bin_array);
-                d.stack = ([bin1]).concat(
-                        d.stack);
-                d.ram_current += 1;
-                d.op_gas -= new_int;
-                i = i + 4 + new_int;
-                op_print(d, i, "bin op");
-            } else if (false && (code[i] == ops.caseif)) {
-                var b = d.stack[0];
-                var split1 = split_if(caseelse, code.slice(1+i, code.length));
-                var split2 = split_if(casethen, split1.rest);
-                var steps = split1.code.length + split2.code.length;
-                if (b == 0) {
-                    var foo = split2.code;
-                    var cost = split1.code.length;
-                } else {
-                    var foo = split1.code.slice(0, split1.code.length - 1);
-                    var cost = split2.code.length;
-                }
-                d.stack = d.stack.slice(1, d.stack.length);
-                d.ram_current -= (cost + 1);
-                d.op_gas -= steps;
-                code = code.slice(0, i).concat(
-                    foo.concat(
-                        split2.rest));
-            } else if (false && (code[i] == ops.caseif)) {
-                var b = d.stack[0];
-                var skipped_size;
-                var size_case1 = count_till(code, i + 1, ops.caseelse);
-                var size_case2 = count_till(code, i + 1 + size_case1, ops.casethen);
-                console.log(JSON.stringify(code));
-                if (b == 0) {
-                    console.log("false");
-                    i += (size_case1 + 1);
-                    //maybe we should remove the case_then from code, that way we can do tail optimized recursion after a conditional.
-                } else {
-                    console.log("true");
-                    //console.log("code part 1 ");
-                    console.log(JSON.stringify(code.slice(i, size_case1 + i + 1)));
-                    console.log(JSON.stringify(code.slice(size_case1 + i + 3 + size_case2, code.length)));
-                    //code = code.slice(i + 1, size_case1 + i + 1).concat(
-                    code = code.slice(i, size_case1 + i + 1).concat(
-                        code.slice(size_case1 + i + 3 + size_case2, code.length));
-                    i = 0;
-                }
-                console.log(JSON.stringify(code));
-                d.stack = d.stack.slice(1, d.stack.length);
-                d.ram_current -= (skipped_size + 1);
-                d.op_gas -= (size_case1 + size_case2);
-                op_print(d, i, "if op");
-            } else if (code[i] == ops.caseif) {
-                var b = d.stack[0];
-                var size_case1 = count_till(code, i + 1, ops.caseelse);
-                if (b == 0) {
-                    i += (size_case1 + 1);
-                }
-                d.stack = d.stack.slice(1, d.stack.length);
-                op_print(d, i, "if op");
-                
-            } else if (code[i] == ops.caseelse) {
-                var skipped_size = count_till(code, i + 1, ops.casethen);
-                i += (skipped_size + 0);
-                op_print(d, i, "else op");
-            } else if (code[i] == ops.casethen) {
-                op_print(d, i, "then op");
-                // do nothing.
             } else if ((code[i] == ops.call) && (code[i+1] == ops.fun_end)){
                 //tail call optimized function call
                 //console.log("tail call optimized function call op");
@@ -314,37 +314,18 @@ function chalang_main() {
                 i = 0;
                 op_print(d, i, "optimized call op");
                 //return run2(definition.concat(rest), d);
-            } else if (code[i] == ops.call) {
-                //non-optimized function call.
-                //console.log(d.stack[0]);
-                //console.log(d.funs);
-                var code_hash = btoa(array_to_string(d.stack[0].slice(1, d.stack[0].length)));
-                //console.log(code_hash);
-                definition = d.funs[code_hash];
-                var s = definition.length;
-                d.op_gas = d.op_gas - s - 10;
-                d.ram_current = d.ram_current + s - 1;
-                d.stack = d.stack.slice(1, d.stack.length);
-                d = run2(definition, d);
-                op_print(d, i, "slow call op");
-            } else if (code[i] == ops.define) {
-                var skipped_size = count_till(code, i, ops.fun_end);
-                var definition = code.slice(i+1, i+skipped_size);
-                i += skipped_size;
-                var hash_array = small_hash(definition);
-                var b = btoa(array_to_string(hash_array));
-                var definition2 = replace(ops.recurse, ([ops.binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array), definition);
-                d.funs[b] = definition2;
-                var s = definition2.length + 4;
-                var mf = d.many_funs + 1;
-                if (mf > d.fun_limit) {
-                    throw("too many functions error");
-                } else {
-                    d.op_gas = d.op_gas - s - 30;
-                    d.ram_current = d.ram_current + (2 * s);
-                    d.many_funs = mf;
-                }
-                op_print(d, i, "define op");
+            } else if ((code[i] == ops.int_op) ||
+                       (code[i] == ops.binary_op) ||
+                       (code[i] == ops.caseif) ||
+                       (code[i] == ops.caseelse) ||
+                       (code[i] == ops.casethen) ||
+                       (code[i] == ops.call) ||
+                       (code[i] == ops.define) //||
+                      )
+            {
+                var y = op_code[code[i]](i, code, d);
+                i = y.i;
+                d = y.d
             } else if (code[i] == ops.finish) {
                 op_print(d, i, "return op");
                 return d;
