@@ -213,10 +213,9 @@ function chalang_main() {
         var new_int = array_to_int(int_array);
         d.stack = ([new_int]).concat(d.stack);
         d.ram_current = d.ram_current + 1;
-        d.op_gas = d.op_gas - 1;
         i = i + 4;
         op_print(d, i, "int op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     };
     op_code[ops.binary_op] = function(i, code, d) {
         var int_array = code.slice(i+1, i+5);
@@ -226,10 +225,9 @@ function chalang_main() {
         d.stack = ([bin1]).concat(
             d.stack);
         d.ram_current += 1;
-        d.op_gas -= new_int;
         i = i + 4 + new_int;
         op_print(d, i, "bin op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: new_int};
     }
     op_code[ops.caseif] = function(i, code, d) {
         var b = d.stack[0];
@@ -239,30 +237,29 @@ function chalang_main() {
         }
         d.stack = d.stack.slice(1, d.stack.length);
         op_print(d, i, "if op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 0};
     }
     op_code[ops.caseelse] = function(i, code, d) {
         var skipped_size = count_till(code, i + 1, ops.casethen);
         i += (skipped_size + 0);
         op_print(d, i, "else op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 0};
     }
     op_code[ops.casethen] = function(i, code, d) {
         op_print(d, i, "then op");
         // do nothing.
-        return {i: i, d: d};
+        return {i: i, d: d, g: 0};
     }
     op_code[ops.call] = function(i, code, d) {
         //non-optimized function call.
         var code_hash = btoa(array_to_string(d.stack[0].slice(1, d.stack[0].length)));
         definition = d.funs[code_hash];
         var s = definition.length;
-        d.op_gas = d.op_gas - s - 10;
         d.ram_current = d.ram_current + s - 1;
         d.stack = d.stack.slice(1, d.stack.length);
         d = run2(definition, d);
         op_print(d, i, "slow call op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: (s + 10)};
     }
     op_code[ops.define] = function(i, code, d) {
         var skipped_size = count_till(code, i, ops.fun_end);
@@ -277,12 +274,11 @@ function chalang_main() {
         if (mf > d.fun_limit) {
             throw("too many functions error");
         } else {
-            d.op_gas = d.op_gas - s - 30;
             d.ram_current = d.ram_current + (2 * s);
             d.many_funs = mf;
         }
         op_print(d, i, "define op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: (s + 30)};
     }
     op_code[ops.print] = function(i, code, d) {
         console.log(JSON.stringify(d.stack));
@@ -293,54 +289,48 @@ function chalang_main() {
         underflow_check(d, 1, "drop");
         d.ram_current = d.ram_current - memory(d.stack[0]) - 2;
         d.stack = d.stack.slice(1, d.stack.length);
-        d.op_gas = d.op_gas - 1;
         op_print(d, i, "drop op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.dup] = function(i, code, d) {
         underflow_check(d, 1, "dup");
         d.stack = ([d.stack[0]]).concat(d.stack);
         d.ram_current = d.ram_current + memory(d.stack[0]);
-        d.op_gas = d.op_gs - 1;
         op_print(d, i, "dup op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.swap] = function(i, code, d) {
         underflow_check(d, 2, "swap");
-        d.op_gas = d.op_gas - 1;
         d.stack = ([d.stack[1]]).concat(
             [d.stack[0]]).concat(
                 d.stack.slice(2, d.stack.length));
         op_print(d, i, "swap op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.tuck] = function(i, code, d) {
         underflow_check(d, 3, "tuck");
-        d.op_gas = d.op_gas - 1;
         d.stack = ([d.stack[1]]).concat(
             [d.stack[2]]).concat(
                 [d.stack[0]]).concat(
                     d.stack.slice(3, d.stack.length));
         op_print(d, i, "tuck op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.rot] = function(i, code, d) {
         underflow_check(d, 3, "rot");
-        d.op_gas = d.op_gas - 1;
         d.stack = ([d.stack[2]]).concat(
             [d.stack[0]]).concat(
                 [d.stack[1]]).concat(
                     d.stack.slice(3, d.stack.length));
         op_print(d, i, "rot op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.ddup] = function(i, code, d) {
         underflow_check(d, 2, "ddup");
-        d.op_gas = d.op_gas - 1;
         d.ram_current = d.ram_current + memory(d.stack[0]) + memory(d.stack[1]);
         d.stack = d.stack.slice(0, 2).concat(d.stack);
         op_print(d, i, "ddup op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.tuckn] = function(i, code, d) {
         if (d.stack.length < 2) {
@@ -348,65 +338,59 @@ function chalang_main() {
         } else {
             var n = d.stack[0];
             underflow_check(d, 2+n,"tuckn");
-            d.op_gas = d.op_gas - 1;
             d.stack = d.stack.slice(2, 2+n).concat(
                 [d.stack[1]]).concat(
                     d.stack.slice(3+n, d.stack.length));
         }
         op_print(d, i, "tuckn op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.pickn] = function(i, code, d) {
         var n = d.stack[0];
         if (d.stack.length < (n + 1)) {
             throw("pickn stack underflow");
         } else {
-            d.op_gas = d.op_gas - 1;
             d.stack = ([d.stack[n]]).concat(
                 d.stack.slice(1, 1+n)).concat(
                     d.stack.slice(2+n, d.stack.length));
         }
         op_print(d, i, "pickn op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.to_r] = function(i, code, d) {
         underflow_check(d, 1, "to_r");
-        d.op_gas = d.op_gas - 1;
         d.alt = ([d.stack[0]]).concat(d.alt);
         d.stack = d.stack.slice(1, d.stack.length);
         op_print(d, i, ">r op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.from_r] = function(i, code, d) {
         if (d.alt.length < 1) {
             throw(">r alt stack underflow");
         } else {
-            d.op_gas = d.op_gas - 1;
             d.stack = ([d.alt[0]]).concat(d.stack);
             d.atl = d.alt.slice(1, d.alt.length);
         }
         op_print(d, i, "r> op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.r_fetch] = function(i, code, d) {
         if (d.alt.length < 1) {
             throw("alt stack underflow");
         } else {
-            op_gas = d.op_gas - 1;
             d.stack = ([d.alt[0]]).concat(d.stack);
         }
         op_print(d, i, "r@ op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.hash_op] = function(i, code, d) {
         underflow_check(d, 1, "hash");
-        d.op_gas = d.op_gas - 20;
         console.log("hash op data is ");
         console.log(JSON.stringify(d.stack[0]));
         d.stack = ([["binary"].concat(hash(d.stack[0].slice(1)))]).concat(
             d.stack.slice(1));
         op_print(d, i, "hash op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 20};
     }
     op_code[ops.verify_sig] = function(i, code, d) {
         underflow_check(d, 3, "verify_sig");
@@ -420,15 +404,13 @@ function chalang_main() {
         var c;
         if (b) { c = 1; }
         else { c = 0; }
-        d.op_gas = d.op_gas - 20;
         d.stack = ([c]).concat(
             d.stack.slice(3, d.stack.length));
         op_print(d, i, "verify_sig op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 20};
     }
     op_code[ops.eq] = function(i, code, d) {
         underflow_check(d, 2, "eq"),
-        d.op_gas = d.op_gas - 1;
         d.ram_current = d.ram_current + 1;
         if (JSON.stringify(d.stack[0]) == JSON.stringify(d.stack[1])) {
             d.stack = ([1]).concat(d.stack);
@@ -436,7 +418,7 @@ function chalang_main() {
             d.stack = ([0]).concat(d.stack);
         }
         op_print(d, i, "eq op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.bool_flip] = function(i, code, d) {
         underflow_check(d, 1, "bool_flip");
@@ -445,9 +427,8 @@ function chalang_main() {
         } else {
             d.stack = ([0]).concat(d.stack.slice(1));
         }
-        d.op_gas = d.op_gas - 1;
         op_print(d, i, "bool flip op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.bool_and] = function(i, code, d) {
         underflow_check(d, 2, "bool_and");
@@ -456,10 +437,9 @@ function chalang_main() {
         } else {
             d.stack = ([1]).concat(d.stack.slice(2));
         }
-        d.op_gas = d.op_gas - 1;
         d.ram_current = d.ram_current - 2;
         op_print(d, i, "bool and op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
     op_code[ops.bool_or] = function(i, code, d) {
         underflow_check(d, 2, "bool_or");
@@ -468,11 +448,199 @@ function chalang_main() {
         } else {
             d.stack = ([1]).concat(d.stack.slice(2));
         }
-        d.op_gas = d.op_gas - 1;
         d.ram_current = d.ram_current - 2;
         op_print(d, i, "bool or op");
-        return {i: i, d: d};
+        return {i: i, d: d, g: 1};
     }
+    op_code[ops.bool_xor] = function(i, code, d) {
+        underflow_check(d, 2, "bool_xor");
+        var j = 0;
+        if ((d.stack[0] == 0) && (d.stack[1] == 0)) {
+            j = 0;
+        } else if ((d.stack[0] == 0) || (d.stack[1] == 0)) {
+            j=1;
+        }
+        d.stack = ([j]).concat(d.stack.slice(2));
+        d.ram_current = d.ram_current - 2;
+        op_print(d, i, "bool xor op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.stack_size] = function(i, code, d) {
+        d.ram_current = d.ram_current + 2;
+        d.stack = ([d.stack.length]).concat(d.stack);
+        op_print(d, i, "stack_size op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.height] = function(i, code, d) {
+        d.ram_current = d.ram_current + 2;
+        d.stack = ([d.state.height]).concat(d.stack);
+        op_print(d, i, "height op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.gas] = function(i, code, d) {
+        d.stack = ([d.op_gas]).concat(d.stack);
+        d.ram_current += 2;
+        op_print(d, i, "gas op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.many_vars] = function(i, code, d) {
+        d.stack = ([d.vars.length]).concat(d.stack);
+        d.ram_current += 2;
+        op_print(d, i, "many vars op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.many_funs] = function(i, code, d) {
+        d.ram_current += 2;
+        d.stack = (d.many_funs).concat(d.stack);
+        op_print(d, i, "many funs op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.fun_end] = function(i, code, d) {
+        op_print(d, i, "fun end op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.set] = function(i, code, d) {
+        underflow_check(d, 2, "set");
+        d.vars[d.stack[0]] = d.stack[1];
+        d.stack = d.stack.slice(2, d.stack.length);
+        op_print(d, i, "set op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.set] = function(i, code, d) {
+        underflow_check(d, 1, "fetch");
+        var val;
+        var foo = d.vars[d.stack[0]];
+        if (foo == undefined) {
+            val = [];
+        } else {
+            val = foo;
+        }
+        d.ram_current += (1 + memory(val));
+        d.stack = ([val]).concat(d.stack.slice(1, d.stack.length));
+        op_print(d, i, "fetch op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.cons] = function(i, code, d) {
+        underflow_check(d, 2, "cons");
+        d.ram_current += 1;
+        var l = ([d.stack[1]]).concat(
+            d.stack[0]);
+        d.stack = ([l]).concat(
+            d.stack.slice(2, d.stack.length));
+        op_print(d, i, "cons op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.car] = function(i, code, d) {
+        underflow_check(d, 1, "car");
+        if (!(Array.isArray(d.stack[0]))) {
+            console.log(JSON.stringify(d.stack));
+            throw("car op error");
+        } else {
+            d.ram_current -= 1;
+            d.stack = ([d.stack[0].slice(1)]).concat(
+                ([d.stack[0][0]])).concat(
+                    d.stack.slice(1));
+        }
+        op_print(d, i, "car op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.empty_list] = function(i, code, d) {
+        d.ram_current += 1;
+        d.stack = ([[]]).concat(d.stack);
+        op_print(d, i, "empty list op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.append] = function(i, code, d) {
+        underflow_check(d, 2, "append");
+        var a;
+        if (("binary" == d.stack[0][0]) &&
+            ("binary" == d.stack[1][0])) {
+            a = (d.stack[1]).concat(d.stack[0].slice(1));
+            if (a.length == 5) {
+                a = array_to_int(a.slice(1));
+            }
+        } else if (!("binary" == d.stack[0][0]) &&
+                   !("binary" == d.stack[1][0])) {
+            a = (d.stack[1]).concat(d.stack[0]);
+        } else {
+            return ["error", "cannot append binary and list together", "append"];
+        }
+        d.ram_current +- 1;
+        d.stack = ([a]).concat(
+            d.stack.slice(2));
+        op_print(d, i, "append op");
+        return {i: i, d: d, g: 1};
+    }
+    op_code[ops.split] = function(i, code, d) {
+        underflow_check(d, 2, "split");
+        if (!(Array.isArray(d.stack[1]))) {
+            //treat the integer like a 4 byte binary
+            var n = d.stack[0];
+            var bin0 = integer_to_array(d.stack[1], 4);
+            var bin1 = bin0.slice(0, n);
+            var bin2 = bin0.slice(n, 4);
+            d.stack = ([(["binary"]).concat(bin1)]).concat(
+                ([(["binary"]).concat(bin2)]).concat(d.stack.slice(2)));
+            
+        } else if (!(d.stack[1][0] == "binary")) {
+            throw("cannot split a list");
+        } else {
+            d.ram_current -= 1;
+            var n = d.stack[0];
+            var bin1;
+            if (n == 4) {
+                bin1 = array_to_int(d.stack[1].slice(1, n+1));
+            } else {
+                bin1 = d.stack[1].slice(0, n+1);
+            }
+            var bin2;
+            if ((d.stack[1].length - n - 1) == 4) {
+                bin2 = array_to_int(d.stack[1].slice(n+1));
+            } else {
+                bin2 = (["binary"]).concat(d.stack[1].slice(n+1));
+            }
+            d.stack = ([bin1]).concat(
+                [bin2]).concat(
+                    d.stack.slice(2));
+        }
+        op_print(d, i, "split op");
+        return {i: i, d: d, g: 1};
+    };
+    op_code[ops.reverse] = function(i, code, d) {
+        underflow_check(d, 1, "reverse");
+        if (d.stack[0][0] == "binary") {
+            return ["error", "cannot reverse a binary", "reverse"];
+        } else {
+            d.stack = ([d.stack[0].reverse()]).concat(
+                d.stack.slice(1));
+        }
+        op_print(d, i, "reverse op");
+        return {i: i, d: d, g: d.stack[0].length};
+    };
+    op_code[ops.is_list] = function(i, code, d) {
+        var j;
+        underflow_check(d, 1, "is_list");
+        if (!(d.stack[0].is_array())) {
+            j = 0;
+        } else if (d.stack[0][0] == "binary") {
+            j = 0;
+        } else {
+            j = 1;
+        }
+        d.ram_current -= 1;
+        d.stack = ([j]).concat(d.stack);
+        op_print(d, i, "is_list op");
+        return {i: i, d: d, g: 1};
+    };
+    op_code[ops.nop] = function(i, code, d) {
+        op_print(d, i, "nop op");
+        return {i: i, d: d, g: 0};
+    };
+    op_code[ops.fail] = function(i, code, d) {
+        op_print(d, i, "fail op");
+        op_print(d, i, JSON.stringify(d.stack));
+        throw("fail error");
+    };
     function run2(code, d) {
         console.log("run 2");
         for (var i = 0; i<code.length; i++) {
@@ -513,209 +681,11 @@ function chalang_main() {
                 var a = arithmetic_chalang(code[i], d.stack[0], d.stack[1]);
                 d.stack = a.concat(d.stack.slice(2, d.stack.length));
                 op_print(d, i, ("math ").concat((code[i]).toString()));
-            } else if ((code[i] == ops.int_op) ||
-                       (code[i] == ops.binary_op) ||
-                       (code[i] == ops.caseif) ||
-                       (code[i] == ops.caseelse) ||
-                       (code[i] == ops.casethen) ||
-                       (code[i] == ops.call) ||
-                       (code[i] == ops.define) ||
-                       (code[i] == ops.print) ||
-                       (code[i] == ops.drop) ||
-                       (code[i] == ops.dup) ||
-                       (code[i] == ops.swap) ||
-                       (code[i] == ops.tuck) ||
-                       (code[i] == ops.rot) ||
-                       (code[i] == ops.ddup) ||
-                       (code[i] == ops.tuckn) ||
-                       (code[i] == ops.pickn) ||
-                       (code[i] == ops.to_r) ||
-                       (code[i] == ops.from_r) ||
-                       (code[i] == ops.r_fetch) ||
-                       (code[i] == ops.hash_op) ||
-                       (code[i] == ops.verify_sig) ||
-                       (code[i] == ops.eq) ||
-                       (code[i] == ops.bool_flip) ||
-                       (code[i] == ops.bool_and) ||
-                       (code[i] == ops.bool_or) //||
-                      )
-            {
+            } else {
                 var y = op_code[code[i]](i, code, d);
                 i = y.i;
-                d = y.d
-            } else if (code[i] == ops.bool_xor) {
-                underflow_check(d, 2, "bool_xor");
-                var j = 0;
-                if ((d.stack[0] == 0) && (d.stack[0] == 0)) {
-                    j = 0;
-                } else if ((d.stack[0] == 0) || (d.stack[0] == 0)) {
-                    j=1;
-                }
-                d.stack = ([j]).concat(d.stack.slice(2, d.stack.length));
-                d.op_gas = d.op_gas - 1;
-                d.ram_current = d.ram_current - 2;
-                op_print(d, i, "bool xor op");
-            } else if (code[i] == ops.stack_size) {
-                d.op_gas = d.op_gas - 1;
-                d.ram_current = d.ram_current + 2;
-                d.stack = ([d.stack.length]).concat(d.stack);
-                op_print(d, i, "stack_size op");
-            } else if (code[i] == ops.height) {
-                d.op_gas = d.op_gas - 1;
-                d.ram_current = d.ram_current + 2;
-                d.stack = ([d.state.height]).concat(d.stack);
-                op_print(d, i, "height op");
-            } else if (code[i] == ops.gas) {
-                d.op_gas = d.op_gas - 1;
-                d.stack = ([d.op_gas]).concat(d.stack);
-                d.ram_current += 2;
-                op_print(d, i, "gas op");
-            } else if (code[i] == ops.many_vars) {
-                d.op_gas -= 1;
-                d.stack = ([d.vars.length]).concat(d.stack);
-                d.ram_current += 2;
-                op_print(d, i, "many vars op");
-            } else if (code[i] == ops.many_funs) {
-                d.op_gas -= 1;
-                d.ram_current += 2;
-                d.stack = (d.many_funs).concat(d.stack);
-                op_print(d, i, "many funs op");
-            } else if (code[i] == ops.fun_end) {
-                d.op_gas -= 1;
-                op_print(d, i, "fun end op");
-            } else if (code[i] == ops.set) {
-                underflow_check(d, 2, "set");
-                //console.log("no underflow error");
-                d.vars[d.stack[0]] = d.stack[1];
-                d.op_gas -= 1;
-                d.stack = d.stack.slice(2, d.stack.length);
-                op_print(d, i, "set op");
-            } else if (code[i] == ops.fetch) {
-                underflow_check(d, 1, "fetch");
-                var val;
-                var foo = d.vars[d.stack[0]];
-                if (foo == undefined) {
-                    val = [];
-                } else {
-                    val = foo;
-                }
-                d.op_gas -= 1;
-                d.ram_current += (1 + memory(val));
-                d.stack = ([val]).concat(d.stack.slice(1, d.stack.length));
-                op_print(d, i, "fetch op");
-            } else if (code[i] == ops.cons) {
-                underflow_check(d, 2, "cons");
-                d.op_gas -= 1;
-                d.ram_current += 1;
-                var l = ([d.stack[1]]).concat(
-                    d.stack[0]);
-                d.stack = ([l]).concat(
-                    d.stack.slice(2, d.stack.length));
-                op_print(d, i, "cons op");
-            } else if (code[i] == ops.car) {
-                underflow_check(d, 1, "car");
-                if (!(Array.isArray(d.stack[0]))) {
-                    console.log(JSON.stringify(d.stack));
-                    throw("car op error");
-                } else {
-                    d.op_gas -= 1;
-                    d.ram_current -= 1;
-                    d.stack = ([d.stack[0].slice(1, d.stack[0].length)]).concat(
-                        ([d.stack[0][0]])).concat(
-                            d.stack.slice(1, d.stack.length));
-                }
-                op_print(d, i, "car op");
-            } else if (code[i] == ops.empty_list) {
-                d.op_gas -= 1;
-                d.ram_current += 1;
-                d.stack = ([[]]).concat(d.stack);
-                op_print(d, i, "empty list op");
-            } else if (code[i] == ops.append) {
-                underflow_check(d, 2, "append");
-                var a;
-                if (("binary" == d.stack[0][0]) &&
-                    ("binary" == d.stack[1][0])) {
-                    a = (d.stack[1]).concat(d.stack[0].slice(1, d.stack[0].length));
-                    //a = (d.stack[0]).concat(d.stack[1].slice(1, d.stack[1].length));
-                    if (a.length == 5) {
-                        a = array_to_int(a.slice(1, a.length));
-                    }
-                } else if (!("binary" == d.stack[0][0]) &&
-                           !("binary" == d.stack[1][0])) {
-                    a = (d.stack[1]).concat(d.stack[0]);
-                } else {
-                    return ["error", "cannot append binary and list together", "append"];
-                }
-                d.op_gas -= 1;
-                d.ram_current +- 1;
-                d.stack = ([a]).concat(
-                    d.stack.slice(2, d.stack.length));
-                op_print(d, i, "append op");
-            } else if (code[i] == ops.split) {
-                underflow_check(d, 2, "split");
-                if (!(Array.isArray(d.stack[1]))) {
-                    //treat the integer like a 4 byte binary
-                    var n = d.stack[0];
-                    var bin0 = integer_to_array(d.stack[1], 4);
-                    var bin1 = bin0.slice(0, n);
-                    var bin2 = bin0.slice(n, 4);
-                    d.stack = ([(["binary"]).concat(bin1)]).concat(
-                        ([(["binary"]).concat(bin2)]).concat(d.stack.slice(2, d.stack.length)));
-                    
-                } else if (!(d.stack[1][0] == "binary")) {
-                    throw("cannot split a list");
-                } else {
-                    d.op_gas -= 1;
-                    d.ram_current -= 1;
-                    var n = d.stack[0];
-                    var bin1;
-                    if (n == 4) {
-                        bin1 = array_to_int(d.stack[1].slice(1, n+1));
-                    } else {
-                        bin1 = d.stack[1].slice(0, n+1);
-                    }
-                    var bin2;
-                    if ((d.stack[1].length - n - 1) == 4) {
-                        bin2 = array_to_int(d.stack[1].slice(n+1, d.stack[1].length));
-                    } else {
-                        bin2 = (["binary"]).concat(d.stack[1].slice(n+1, d.stack[1].length));
-                        }
-                    d.stack = ([bin1]).concat(
-                        [bin2]).concat(
-                            d.stack.slice(2, d.stack.length));
-                    //throw("split check");
-                }
-                op_print(d, i, "split op");
-            } else if (code[i] == ops.reverse) {
-                underflow_check(d, 1, "reverse");
-                if (d.stack[0][0] == "binary") {
-                    return ["error", "cannot reverse a binary", "reverse"];
-                } else {
-                    d.op_gas -= d.stack[0].length;
-                    d.stack = ([d.stack[0].reverse()]).concat(
-                        d.stack.slice(1, d.stack.length));
-                }
-                op_print(d, i, "reverse op");
-            } else if (code[i] == ops.is_list) {
-                var j;
-                underflow_check(d, 1, "is_list");
-                if (!(d.stack[0].is_array())) {
-                    j = 0;
-                } else if (d.stack[0][0] == "binary") {
-                    j = 0;
-                } else {
-                    j = 1;
-                }
-                d.op_gas -= 1;
-                d.ram_current -= 1;
-                d.stack = ([j]).concat(d.stack);
-                op_print(d, i, "is_list op");
-            } else if (code[i] == ops.nop) {
-                op_print(d, i, "nop op");
-            } else if (code[i] == ops.fail) {
-                op_print(d, i, "fail op");
-                op_print(d, i, JSON.stringify(d.stack));
-                throw("fail error");
+                d = y.d;
+                d.op_gas -= y.g;
             }
         }
         return d;
