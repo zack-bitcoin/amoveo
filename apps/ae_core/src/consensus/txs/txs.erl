@@ -28,26 +28,7 @@ key2module(oracle_close) -> oracle_close_tx;
 key2module(unmatched) -> oracle_unmatched_tx;
 key2module(oracle_winnings) -> oracle_winnings_tx;
 key2module(coinbase_old) -> coinbase_tx.
-digest_from_dict10(Tx, Dict, H) ->
+digest_from_dict2(Tx, Dict, H) ->
     Key = element(1, Tx),
     M = key2module(Key),
     M:go(Tx, Dict, H).
-digest_from_dict2(Tx, Dict, H) ->
-    case element(1, Tx) of
-        create_acc_tx -> create_account_tx:go(Tx, Dict, H);
-        spend -> spend_tx:go(Tx, Dict, H);
-        delete_acc_tx -> delete_account_tx:go(Tx, Dict, H);
-        nc -> new_channel_tx:go(Tx, Dict, H);
-        ctc -> channel_team_close_tx:go(Tx, Dict, H);
-        csc -> channel_solo_close:go(Tx, Dict, H);
-        timeout -> channel_timeout_tx:go(Tx, Dict, H);
-        cs -> channel_slash_tx:go(Tx, Dict, H);
-        ex -> existence_tx:go(Tx, Dict, H);
-        oracle_new -> oracle_new_tx:go(Tx, Dict, H);
-        oracle_bet -> oracle_bet_tx:go(Tx, Dict, H);
-        oracle_close -> oracle_close_tx:go(Tx, Dict, H);
-        unmatched -> oracle_unmatched_tx:go(Tx, Dict,H);
-        oracle_winnings -> oracle_winnings_tx:go(Tx,Dict,H);
-	coinbase_old -> coinbase_tx:go(Tx, Dict, H);
-        X -> X = 2
-    end.
