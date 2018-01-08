@@ -8,7 +8,9 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
 
-* the random number generator for the light node is not good enough.
+* the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
+
+* the random number generator for the light node is probably not good enough, especially if you are on a phone.
 
 * we need to test out the different formats for "true" and "false" in the javascript light node.
 

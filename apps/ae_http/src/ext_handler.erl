@@ -84,7 +84,6 @@ doit({new_channel, STx, SSPK, Expires}) ->
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
     Trees = (tx_pool:get())#tx_pool.trees,
-    Accounts = trees:accounts(Trees),
     TheirPub = channel_feeder:other(Tx),
     error = channel_manager:read(TheirPub),
     %undefined = channel_feeder:cid(Tx),

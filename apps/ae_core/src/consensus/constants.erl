@@ -4,7 +4,7 @@ root0() -> 1.
 key_length() -> 24. 
 address_bits() -> hash_size()*8.
 pubkey_size()-> 65. %bytes
-initial_coins() -> 10000000000.
+initial_coins() -> 10000000000. %100 coins
 %27017593349040. %about 1 year.
 initial_fee() -> 
     governance:tree_number_to_value(encoded_fee()).

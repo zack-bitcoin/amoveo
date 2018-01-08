@@ -15,12 +15,13 @@ function encryption_main() {
         return string_to_array(fromHex(x));
     }
     function send(m, to_pub, fromkey) {
+        var to = keys.ec().keyFromPublic(toHex(atob(to_pub)), "hex");
         var from_pub = btoa(fromHex(fromkey.getPublic("hex")));
         var newkey = keys.make();
         var eph_pub = hex2array(newkey.getPublic("hex"));
         var eph_priv = hex2array(newkey.getPrivate("hex"));
         var msg = ["msg", btoa(array_to_string(sign(btoa(btoa(array_to_string(eph_pub))), fromkey))), m, btoa(from_pub)];
-        var ss = shared(newkey, to_pub);
+        var ss = shared(newkey, to.getPublic());
         var emsg = bin_enc(ss, string_to_array(JSON.stringify(msg)));
         return ["emsg", btoa(btoa(array_to_string(eph_pub))), btoa(btoa(array_to_string(emsg)))];
     };
@@ -50,7 +51,7 @@ function encryption_main() {
         var priv2_64 = "4a6E2IK3hhhP2dK8xGYaUqg23Fk/n/Ms2VuORKC5Xvo=";
         var key1 = keys.ec().keyFromPrivate(toHex(atob(priv1_64)), "hex");
         var key2 = keys.ec().keyFromPrivate(toHex(atob(priv2_64)), "hex");
-        var sm = send([-6, 1, 2, 3], key2.getPublic(), key1);
+        var sm = send([-6, 1, 2, 3], btoa(fromHex(key2.getPublic("hex"))), key1);
         console.log("sms 2 are ");
         console.log(JSON.stringify(sm));
         var sm2 = ["emsg","QlBKTURaYTZHTEdBc2FuM2Y5c3pjR0tja29KblVoLyt3NE92c21kT0hDa3pEcjlESlRDVmhHTFlqNWdINnhSYmszSlFkbzdRZ2ttZHByQVlVbDBiZkpBPQ==","ejFEWmM0TDEyY1g3Q3F0Q0ZZK3NETHptTld4UFhTeFpKSVAwUk9BZkZqWFVLRGUwQkdDMGl2ZFQ2Rk9IT0ZtTHJPSGRwbit0bWpKYzNjYzlKdEFLQW5aY3kxRVBmekNTSTRONWN4RDhFbzg3dEdWSUwzKytSbDdaZ1JWZE5STUp5MEhrUDJIZmVmSWZaQjV2VW9YTWhuYytKSVB3M0hmVFBlbjFUM29qdmxsanNBM3l6OC8vNGU5eWpKeDIwV0pHMnBFV3BmWEJYZDVJZklmeG53QWJTUGNhMTRGNE8rN1hYRjA0bks2U0ZQckZkYzgrUGxFZUZqbmxKRG9YOTMwenE3MHcrMDZjeElMV096RDE2bCtlSldZbzg5OGhSWUxHUlJvRTFGSE5XcjV3WDBCeWNjL3creWhCbDl3dkpsckM="];
@@ -69,14 +70,14 @@ function encryption_main() {
         assert_eq(bin_dec(key, eb), [1, 2, 3]);
         var fromKey = keys.make();
         var toKey = keys.make();
-        var sm = send([-6,1,2,3], toKey.getPublic(), fromKey);
+        var sm = send([-6,1,2,3], btoa(fromHex(toKey.getPublic("hex"))), fromKey);
         assert_eq(get(sm, toKey), [-6, 1, 2, 3]);
         var masterPub64 = "BLDdkEzI6L8qmIFcSdnH5pfNAjEU11S9pHXFzY4U0JMgfvIMnwMxDOA85t6DKArhzbPJ1QaNBFHO7nRguf3El3I=";
         var master = keys.ec().keyFromPublic(toHex(atob(masterPub64)), 'hex');
-        console.log(JSON.stringify(send([-6,1,2,3], master.getPublic(), fromKey)));
+        console.log(JSON.stringify(send([-6,1,2,3], btoa(fromHex(master.getPublic("hex"))), fromKey)));
         console.log("encryption test passed.");
     }
-    //test();
+    test();
     return {get: get, send: send};
 }
 var encryption_object = encryption_main();

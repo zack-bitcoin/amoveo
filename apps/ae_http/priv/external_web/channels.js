@@ -90,7 +90,7 @@ function channels_main() {
     var combine_cancel_button = button_maker("gather_bets", function() {});
     var list_bets_button = button_maker("refresh_bets", bets_object.main);
     var close_channel_button = button_maker("close_channel", function(){ return; });
-    var lightning_button = button_maker("lightning_spend", lightning_object.spend);
+    var lightning_button = button_maker("lightning_spend", function(){ return; });
     var lightning_amount = document.createElement("INPUT");
     lightning_amount.setAttribute("type", "text");
     var lightning_amount_info = document.createElement("h8");
@@ -145,6 +145,7 @@ function channels_main() {
         } else {
             console.log("give interface for making bets in channels.");
             append_children(div, [balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br()]);
+            lightning_button.onclick = function() { lightning_spend(pubkey); };
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
                 spk_object.pull_channel_state();
@@ -290,6 +291,38 @@ function channels_main() {
             balance_div.innerHTML = (translate.words("your_balance").concat(": ")).concat(
                 mybalance).concat(translate.words("server_balance").concat(": ")).concat(
                     serverbalance);
+        });
+    }
+    function channel_feeder_make_locked_payment(serverid, amount, code) {
+        var cd = read(serverid);
+        var spk = cd.me;
+        var bet = ["bet", code, code, amount, 0];
+        spk.bets = [bet].concat(spk.bets);
+        spk.nonce += 1;
+        spk.time_gas += 1000;
+        spk.space_gas = max(spk.space_gas, 1000);
+        spk.amount += amount;
+        return keys.sign(spk);
+    }
+    function lightning_spend(serverid) {
+        var fee = 20;
+        var a = Math.floor(parseFloat(lightning_amount.value, 10) * 100000000);
+        var to = lightning_to.value;
+        var payment_contract = lightning_object.make(a);
+        var code = payment_contract.code;
+        var ss = payment_contract.ss;
+        var encrypted = keys.encrypt([-6, ss, code, a], to);
+        var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
+        variable_public_get(["locked_payment", sspk, a, fee, code, pubkey_64(), to, encrypted], function(sspk2) {
+            //verify the signatures on sspk2
+            //verify that old spk matches the new
+            //update channel_manager stored in serverid.
+            //spk = signed:data(sspk2)
+            //me = spk
+            // them = sspk2
+            //defaultss = spk:new_ss([],[])
+            //ssme = [defaultss|ssme]
+            //ssthem = [defaultss|ssthem]
         });
     }
     function sum_bets(bets) {

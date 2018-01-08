@@ -365,7 +365,6 @@ make_locked_payment(To, Amount, Code) ->
     SPK = CD#cd.me,
     Bet = spk:new_bet(Code, Code, Amount),
     NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
-    Trees = (tx_pool:get())#tx_pool.trees,
     keys:sign(NewSPK).
 trade(Amount, Price, Bet, Other, OID) ->
     {ok, CD} = channel_manager:read(Other),
