@@ -297,11 +297,11 @@ function channels_main() {
         var cd = read(serverid);
         var spk = cd.me;
         var bet = ["bet", code, code, amount, 0];
-        spk.bets = [bet].concat(spk.bets);
-        spk.nonce += 1;
-        spk.time_gas += 1000;
-        spk.space_gas = max(spk.space_gas, 1000);
-        spk.amount += amount;
+        spk[3] = [bet].concat(spk[3]);
+        spk[8] += 1;
+        spk[5] += 1000;
+        spk[4] = Math.max(spk[4], 1000);
+        spk[7] += amount;
         return keys.sign(spk);
     }
     function lightning_spend(serverid) {
@@ -309,11 +309,14 @@ function channels_main() {
         var a = Math.floor(parseFloat(lightning_amount.value, 10) * 100000000);
         var to = lightning_to.value;
         var payment_contract = lightning_object.make(a);
-        var code = payment_contract.code;
+        var code = payment_contract.bet;
         var ss = payment_contract.ss;
         var encrypted = keys.encrypt([-6, ss, code, a], to);
         var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
-        variable_public_get(["locked_payment", sspk, a, fee, code, pubkey_64(), to, encrypted], function(sspk2) {
+        var msg = ["locked_payment", sspk, a, fee, code, keys.pub(), to, encrypted];
+        console.log("lightning spend msg is ");
+        console.log(JSON.stringify(msg));
+        variable_public_get(msg, function(sspk2) {
             //verify the signatures on sspk2
             //verify that old spk matches the new
             //update channel_manager stored in serverid.

@@ -77,7 +77,7 @@ function encryption_main() {
         console.log(JSON.stringify(send([-6,1,2,3], btoa(fromHex(master.getPublic("hex"))), fromKey)));
         console.log("encryption test passed.");
     }
-    test();
+    //test();
     return {get: get, send: send};
 }
 var encryption_object = encryption_main();

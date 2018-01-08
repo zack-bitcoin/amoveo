@@ -168,6 +168,8 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     Return = make_locked_payment(Sender, Amount+Fee, Code),
     SPK = testnet_sign:data(SSPK),
     SPK22 = testnet_sign:data(Return),
+    io:fwrite("lock spend compare spks "),
+    io:fwrite(packer:pack([SPK, SPK22])),
     SPK = SPK22,
     {ok, OldCD} = channel_manager:read(Sender),
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
