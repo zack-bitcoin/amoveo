@@ -261,6 +261,7 @@ function spk_main() {
                     } else {
                         is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {
                             if ( b3 ) {
+                                //If they give free stuff, then accept.
                                 ret = keys.sign(newspk);
                                 var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
                                 channels_object.write(from, newcd);
@@ -409,6 +410,28 @@ function spk_main() {
         }
         return x;
     }
+    function api_decrypt_msgs(l) {
+        for (var i = 0; i < l.length; i++) {
+            var d = encryption_object.get(l[i]);
+            console.log(JSON.stringify(d));
+            throw("api decrypt msgs");
+            api_learn_secret(d.secret, d.code);
+        }
+    }
+    function api_bet_unlock(pubkey) {
+        var bu = channel_feeder_bets_unlock(pubkey);
+        var msg = ["learn_secret", pubkey_64(), secret, code];
+        variable_public_get(msg, function () {} );
+        variable_public_get([spk, pubkey_64()], function (x) {
+            console.log("api bet unlock x is ");
+            console.log(JSON.stringify(x));
+            throw("api bet unlock");
+            var cd = x[1];
+            var spk = x[2];
+            channel_feeder:update_to_me(spk, pubkey);
+        } );
+        
+    }
     function pull_channel_state() {
         //get their pubkey
         variable_public_get(["pubkey"], function(server_pubkey) {
@@ -421,21 +444,22 @@ function spk_main() {
                     console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
                     throw("pull channel state error");
                 }
-                /*
                   if (!(cd0.live == true)) {
                     var s = "this channel has been closed";
                     console.log(s);
                     throw(s);
                 }
-                */
                 channel_feeder_they_simplify(server_pubkey, them_spk, cd, function(ret) {
                     if (!(ret == false)) {
                         var msg2 = ["channel_sync", keys.pub(), ret];
                         variable_public_get(msg2, function(foo) {});
-                    }
-                });
+                        api_decrypt_msgs(cd.emsg);
+                        api_bet_unlock();
+                        throw("working here");
                 // eventually decrypt msgs here, for lightning payments.
                 // eventually needed for lightning: api_bet_unlock(ip, port);
+                    }
+                });
             });
         });
     }

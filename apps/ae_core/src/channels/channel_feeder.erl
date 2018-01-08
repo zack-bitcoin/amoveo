@@ -244,7 +244,7 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 			channel_manager:write(From, NewCD),
 			Return;
 		    true ->
-			{SS5, Return} = simplify_helper(From, SS4),%this should get rid of one of the bets.
+			{SS5, Return} = simplify_helper(From, SS4),%this should get rid of one of the bets. %using spk:bet_unlock/2
 			SPK = testnet_sign:data(ThemSPK),
 			SPK = testnet_sign:data(Return),
 			Data = new_cd(SPK, ThemSPK, SS5, SS5, CID, CD#cd.expiration),

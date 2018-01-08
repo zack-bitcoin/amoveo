@@ -136,7 +136,7 @@ function channels_main() {
             append_children(div, [balance_div, channel_balance_button, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br()]);
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
-                chalang_object.pull_channel_state();
+                spk_object.pull_channel_state();
                 refresh_channels_interfaces(pubkey);
             };
             combine_cancel_button.onclick = function() {

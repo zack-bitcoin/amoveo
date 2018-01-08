@@ -4,7 +4,7 @@
         var spk = cd.me;
         var unlocked = spk_bet_unlock(spk, ss);
         var ret = sign_tx(unlocked.spk);
-        return {"ss": unlocked.ssremaining, "spk":ret};
+        return {ss: unlocked.ssremaining, spk: ret};
     }
     function api_bet_unlock(ip, port) {
         //get server id int server_id;
@@ -32,23 +32,23 @@
                 "spk":unlock_object.spk};
     }
     function spk_bet_unlock(spk, ss) {
-        var ssremaining = JSON.parse(JSON.stringify(ss));
-        var secrets = [];
-        var bets = spk[4];
         var remaining = JSON.parse(JSON.stringify(bets));
         var amount_change = 0;
+        var ssremaining = JSON.parse(JSON.stringify(ss));
+        var secrets = [];
         var dnonce = 0;
+        var bets = spk[4];
         var key;
-        var ss2;
+        var ssthem;
         var f;
         for (var i = ss.length - 1, i > -1, i--) {
             key = bet[i].key;
-            ss2 = ss[i];
-            console.log("ss2 is ");
-            console.log(JSON.stringify(ss2));
+            ssthem = ss[i];
+            console.log("ssthem is ");
+            console.log(JSON.stringify(ssthem));
             throw("working here");
             //look up fun limit and var limit and gas limit from config file.
-            //verify none of in ss2
+            //verify none of in ssthem
             f = spk_prove_facts(
         }
         spk.bets = remaining;
