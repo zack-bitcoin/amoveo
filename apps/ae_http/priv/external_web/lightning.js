@@ -3,9 +3,11 @@ function lightning_main() {
     function read(code) {
         return secrets[code];
     }
-    function add(code, ss) {
-        secrets[code] = ss;
+    function add(code, ss, amount) {
+        //code should be base64 encoded?
+        secrets[code] = [ss, amount];
     }
+
     function make(amount) {
         var s = Array.prototype.slice.call(elliptic.rand(32));//this entropy library doesn't seem especially trustworthy. We are using it for generating addresses too.
         var sh = hash(s);
@@ -43,4 +45,6 @@ function lightning_main() {
     return {test: test, make: make, read: read, add: add};
 }
 var lightning_object = lightning_main();
-JSON.stringify(lightning_object.test());
+setTimeout(function() {
+    JSON.stringify(lightning_object.test());
+}, 200);

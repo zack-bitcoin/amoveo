@@ -415,7 +415,7 @@ function spk_main() {
             var d = encryption_object.get(l[i]);
             console.log(JSON.stringify(d));
             throw("api decrypt msgs");
-            api_learn_secret(d.secret, d.code);
+            lightning_object.add(d.code, d.secret, d.amount);
         }
     }
     function api_bet_unlock(pubkey) {

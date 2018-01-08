@@ -392,7 +392,12 @@ function translate_human() {
                                tp: "??",
                                sp: "Cuesta esto mantener el canal abierto. por bloque por moneda",
                                hi: "??",
-                               ar: "??"}
+                               ar: "??"},
+                "lightning_spend": {
+                    en: "lightning spend",
+                    sp: "micropago",
+                    tp: "pana mani insa ilo tu mani"
+                }
                };
     }
     var language_object = human_language();

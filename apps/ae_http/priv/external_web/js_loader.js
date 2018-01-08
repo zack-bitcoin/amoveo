@@ -4,9 +4,9 @@
             var script = document.createElement("script");
             script.onload = function(){return load_many(l.slice(1))};
             script.type = "text/javascript";
-            script.src = l[0];
+            script.src = "/".concat(l[0]).concat(".js");
             document.body.appendChild(script);
         }
     };
-    load_many(["/format.js", "/files.js", "/sjcl.js", "/codecBytes.js", "/sha256.js", "/crypto.js", "elliptic.min.js", "merkle_proofs.js", "/encryption_library.js", "/title.js", "/server.js", "/rpc.js", "/headers.js", "/miner.js", "/keys.js", "/signing.js", "/spend_tx.js", "/create_account_tx.js", "/combine_cancel_assets.js", "/market.js", "/chalang.js", "/spk.js", "/bets.js", "/channels.js", "/encryption.js", "/lightning.js"]);
+    load_many(["format", "files", "sjcl", "codecBytes", "sha256", "crypto", "elliptic.min", "merkle_proofs", "encryption_library", "title", "server", "rpc", "headers", "miner", "keys", "signing", "spend_tx", "create_account_tx", "combine_cancel_assets", "market", "chalang", "spk", "bets", "lightning", "channels", "encryption"]);
 })();

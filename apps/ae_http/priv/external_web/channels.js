@@ -90,6 +90,17 @@ function channels_main() {
     var combine_cancel_button = button_maker("gather_bets", function() {});
     var list_bets_button = button_maker("refresh_bets", bets_object.main);
     var close_channel_button = button_maker("close_channel", function(){ return; });
+    var lightning_button = button_maker("lightning_spend", lightning_object.spend);
+    var lightning_amount = document.createElement("INPUT");
+    lightning_amount.setAttribute("type", "text");
+    var lightning_amount_info = document.createElement("h8");
+    lightning_amount_info.innerHTML = translate.words("amount").concat(": ");
+    var lightning_to = document.createElement("INPUT");
+    lightning_to.setAttribute("type", "text");
+    var lightning_to_info = document.createElement("h8");
+    lightning_to_info.innerHTML = translate.words("to_pubkey").concat(": ");
+
+    
     variable_public_get(["pubkey"], function(pubkey) {
         return refresh_channels_interfaces(pubkey);
     });
@@ -133,7 +144,7 @@ function channels_main() {
             append_children(div, [height_button, amount_info, spend_amount, br(), delay_info, spend_delay, br(), lifespan_info, lifespan]);
         } else {
             console.log("give interface for making bets in channels.");
-            append_children(div, [balance_div, channel_balance_button, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br()]);
+            append_children(div, [balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br()]);
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
                 spk_object.pull_channel_state();
