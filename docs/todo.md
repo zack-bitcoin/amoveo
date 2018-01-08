@@ -7,6 +7,7 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+
 * the random number generator for the light node is not good enough.
 
 * we need to test out the different formats for "true" and "false" in the javascript light node.

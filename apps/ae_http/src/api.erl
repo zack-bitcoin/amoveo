@@ -154,15 +154,15 @@ decrypt_msgs([]) ->
 decrypt_msgs([{msg, _, Msg, _}|T]) ->
     [Msg|decrypt_msgs(T)];
 decrypt_msgs([Emsg|T]) ->
-    [Secret, Code] = keys:decrypt(Emsg),
-    learn_secret(Secret, Code),
+    [Secret, Code, Amount] = keys:decrypt(Emsg),
+    learn_secret(Secret, Code, Amount),
     decrypt_msgs(T).
-learn_secret(Secret, Code) ->
-    secrets:add(Code, Secret).
-add_secret(Code, Secret) ->
-    ok = pull_channel_state(?IP, ?Port),
-    secrets:add(Code, Secret),
-    ok = bet_unlock(?IP, ?Port).
+learn_secret(Secret, Code, Amount) ->
+    secrets:add(Code, Secret, Amount).
+%add_secret(Code, Secret) ->
+%    ok = pull_channel_state(?IP, ?Port),
+%    secrets:add(Code, Secret),
+%    ok = bet_unlock(?IP, ?Port).
 bet_unlock(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     [{Secrets, _SPK}] = channel_feeder:bets_unlock([ServerID]),
@@ -194,11 +194,11 @@ lightning_spend(Pubkey, Amount) ->
 lightning_spend(IP, Port, Pubkey, Amount) ->
     lightning_spend(IP, Port, Pubkey, Amount, ?Fee).
 lightning_spend(IP, Port, Pubkey, Amount, Fee) ->
-    {Code, SS} = secrets:new_lightning(),
+    {Code, SS} = secrets:new_lightning(Amount),
     lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS).
 lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
-    ESS = keys:encrypt([SS, Code], Pubkey),
+    ESS = keys:encrypt([SS, Code, Amount], Pubkey),
     SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code),
     {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:pubkey(), Pubkey, ESS}, IP, Port),
     Trees = (tx_pool:get())#tx_pool.trees,

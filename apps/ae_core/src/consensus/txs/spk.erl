@@ -117,7 +117,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	<<"none">> -> 
             io:fwrite("no secret known\n"),
 	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
-	SS2 -> 
+	{SS2, Amount} -> 
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
             %io:fwrite("we have a secret\n"),
             TP = tx_pool:get(),
@@ -147,7 +147,13 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 			Z -> 
 			    bet_unlock3(Z, T, B, A, Bet, SSIn, SSOut, SS, Secrets, Nonce, SSThem)
 		    end;
-		X -> bet_unlock3(X, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem)
+		X -> 
+                    if
+                        is_integer(Amount) ->
+                            true = (abs(Amount) == abs(Bet#bet.amount));
+                        true -> ok
+                    end,
+                    bet_unlock3(X, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem)
 	    end
     end.
 bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->

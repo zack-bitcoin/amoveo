@@ -3,7 +3,7 @@
 %% This module holds a bunch of secrets make by this node, stored in a dict by hash.
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3,
-         add/2, read/1, delete/1, new_lightning/0, check/0, test/0]).
+         add/2, add/3, read/1, delete/1, new_lightning/1, check/0, test/0]).
 -define(LOC, constants:secrets()).
 -define(none, <<"none">>).
 -include("../records.hrl").
@@ -33,14 +33,16 @@ handle_call({read, Code}, _, X) ->
 	end,
     {reply, Z, X}.
 handle_cast({add, Code, SS}, X) ->
-    Packed = packer:pack({secret_add, Code, SS}),
-    {noreply, dict:store(Code, SS, X)};
+    {noreply, dict:store(Code, {SS, none}, X)};
+handle_cast({add, Code, SS, Amount}, X) ->
+    {noreply, dict:store(Code, {SS, Amount}, X)};
 handle_cast({delete, Code}, X) ->
     {noreply, dict:erase(Code, X)}.
 add(Code, SS) -> gen_server:cast(?MODULE, {add, Code, SS}).
+add(Code, SS, Amount) -> gen_server:cast(?MODULE, {add, Code, SS, Amount}).
 read(Code) -> gen_server:call(?MODULE, {read, Code}).
 delete(SH) -> gen_server:cast(?MODULE, {del, SH}).
-new_lightning() ->
+new_lightning(Amount) ->
     %delay for canceling is 100
     S = crypto:strong_rand_bytes(constants:hash_size()),
     SH = hash:doit(S),
@@ -50,12 +52,12 @@ new_lightning() ->
     ESS = " binary 32 " ++ binary_to_list(base64:encode(S)),
     Code = compiler_chalang:doit(list_to_binary(ESH)),
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(ESS)), []),
-    add(Code, SS),
+    add(Code, SS, Amount),
     {Code, SS}.
 check() -> gen_server:call(?MODULE, check).
 
 test() ->
-    {Code, SS} = new_lightning(),
+    {Code, SS} = new_lightning(0),
     TP = tx_pool:get(),
     Trees = TP#tx_pool.trees,
     Height = TP#tx_pool.height,
