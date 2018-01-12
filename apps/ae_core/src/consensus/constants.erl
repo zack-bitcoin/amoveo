@@ -61,6 +61,6 @@ start_time() -> 14825749780.
 time_bits() -> 32.
 version_bits() -> 16.%so we can update it more than 60000 times.
 period_bits() -> 16. %so the maximum block time is about 109 minutes
-server_ip() -> {146,185,142,103}.
+server_ip() -> {159,89,106,253}.
 server_port() -> 8080.
 channel_granularity() -> 10000.

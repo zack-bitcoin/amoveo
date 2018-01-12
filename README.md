@@ -26,14 +26,14 @@ This way Amoveo will always stay optimally tuned to produce the best results.
 
 
 ## Light node
-Simply visit [this webpage](http://146.185.142.103:8080/wallet.html) to participate in Amoveo, no installation necessary.
+Simply visit [this webpage](http://159.89.106.235:8080/wallet.html) to participate in Amoveo, no installation necessary.
 This light node downloads headers and verifies the proof of work.
 It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
 You can mine slowly mine blocks from the light node.
 
 
 ## Block Explorer
-The block explorer for the network is [here](http://146.185.142.103:8080/explorer.html)
+The block explorer for the network is [here](http://159.89.106.235:8080/explorer.html)
 Go to the block explorer to see all the markets that are being run on that node.
 
 

@@ -11,10 +11,19 @@ talk(Msg, Peer) ->
 
 talk(Msg, IP, Port) ->
     talk(Msg, build_string_peer(IP, Port)).
-
+ip2string2(X) ->
+    (integer_to_list(X)) ++ (".").
+ip2string([A,B,C,D]) ->
+    ip2string({A,B,C,D});
+ip2string({A,B,C,D}) ->
+    ip2string2(A) ++ 
+	ip2string2(B) ++ 
+	ip2string2(C) ++ 
+	integer_to_list(D).
 build_string_peer(IP, Port) ->
-    T = inet_parse:ntoa(IP),
-    "http://" ++ T ++ ":" ++ integer_to_list(Port) ++ "/".
+    T = ip2string(IP),
+    P = integer_to_list(Port),
+    "http://" ++ T ++ ":" ++ P ++ "/".
 
 talk_helper(_, _, 0) ->
     io:fwrite("talk helper fail\n"),

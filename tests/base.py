@@ -1,7 +1,7 @@
 import unittest
 from time import sleep
 
-import requests
+#import requests
 
 OK_RESPONSE = "ok"
 
@@ -35,7 +35,7 @@ class ApiUser(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(ApiUser, self).__init__(*args, **kwargs)
-        self.session = requests.Session()
+        #self.session = requests.Session()
 
         self.urls = {DEV_1: self.URL_DEV_1,
                      DEV_1_INT: self.URL_DEV_1_INT,
@@ -92,6 +92,10 @@ class ApiUser(unittest.TestCase):
     def _request(self, node, action, args, seconds_to_sleep=0):
         url = self.urls[node]
         data = [action] + args
+        print("url is ")
+        print(url)
+        print("data is ")
+        print(data)
         response = self.session.post(url, json=byteify(data))
         self.assertEqual(response.status_code, 200)
         sleep(seconds_to_sleep)

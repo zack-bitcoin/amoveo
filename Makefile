@@ -197,7 +197,7 @@ config/prod/sys.config: config/sys.config.tmpl
     {internal_port, 8081},\
     {swagger_port_internal, 8042},\
     {swagger_port_external, 8043},\
-    {peers, [[{146,185,142,103}, 8080]]},\
+    {peers, [[{159,89,106,253}, 8080]]},\
     {master_pub, <<\"BOJVNy6JOtAc/sdEpxqydsX7YCiF+048wfz+hw5y0ZHdOzzn0bSbUcUPVEtr/gJENfNFPDGQKRX4zbUIhHR7xUs=\">>},\
     {test_mode,false},\
     :\
