@@ -1,6 +1,7 @@
 from get_request import request
 
 def test_mine_and_sync():
+    print("fork test: mine and sync test")
     request(2, 'sync', [[127,0,0,1], 3010], 0.1)
     request(1, 'mine_block', [1, 1], 0.3)
     request(2, 'sync', [[127,0,0,1], 3010], 0.3)
@@ -11,6 +12,7 @@ def test_mine_and_sync():
     request(2, 'sync', [[127,0,0,1], 3010], 0.1)
     
 def test_three():
+    print("fork test: sync three nodes test")
     request(1, 'mine_block', [1, 1], 0.3)
     request(2, 'sync', [[127,0,0,1], 3010], 0.3)
     request(3, 'sync', [[127,0,0,1], 3010], 0.5)
@@ -18,3 +20,8 @@ def test_three():
     request(1, 'mine_block', [2, 1], 0.3)
     request(1, 'sync', [[127,0,0,1], 3030], 0.3)
     request(2, 'sync', [[127,0,0,1], 3030], 0.1)
+
+
+if __name__ == "__main__":
+    test_mine_and_sync()
+    test_three()

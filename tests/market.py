@@ -2,6 +2,7 @@ from get_request import request
 import json
 
 def market_test():
+    print("market test")
     request(1, 'mine_block', [1, 10000000], 0.01)
     request(1, 'sync', [[127,0,0,1], 3020])
     request(1, 'sync', [[127,0,0,1], 3030], 0.01)
@@ -65,3 +66,6 @@ def market_test():
     request(1, 'mine_block', [1, 10000], 0.2)
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 0.04)
+
+if __name__ == "__main__":
+    market_test()
