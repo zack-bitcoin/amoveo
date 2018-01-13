@@ -84,7 +84,7 @@ function channels_main() {
     market_title.innerHTML = translate.words("markets");
     var market_link = document.createElement("a");
     market_link.innerHTML = translate.words("markets_link");
-    market_link.href = "http://159.89.106.235:8080/explorer.html";
+    market_link.href = "http://159.89.106.253:8080/explorer.html";
     var button = button_maker("make_bet", make_bet);
     var bet_update_button = button_maker("finalize_bets", function() {});
     var combine_cancel_button = button_maker("gather_bets", function() {});
