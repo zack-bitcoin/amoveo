@@ -149,14 +149,14 @@ clean: $$(KIND)
 $(LOCAL)/ae_core/keys:
 	@mkdir -p $@
 
-venv-present:
-	@virtualenv -q .
+#venv-present:
+#	@virtualenv -q .
 
-nose-env: venv-present
-	@. bin/activate && $(PIP) -q install -r requirements.txt
+#nose-env: venv-present
+#	@. bin/activate && $(PIP) -q install -r requirements.txt
 
-python-tests:
-	@$(NOSE) --nocapture -c tests/nose.cfg
+#python-tests:
+#	@$(NOSE) --nocapture -c tests/nose.cfg
 
 unit-tests:
 	@./rebar3 do eunit,ct
@@ -250,7 +250,7 @@ tests: killall
 	make multi-clean
 	make multi-go
 	@sleep 3
-	make python-tests
+	@python tests/test_all.py
 	make multi-stop
 
 multi-quick: kill multi-clean multi-build multi-go
