@@ -18,7 +18,7 @@ def share_blocks_test2():
     request(1, "mine_block", [3, 100000], 0.02)
     request(2, "sync", [[127,0,0,1], 3010], 0.1)
     request(3, "sync", [[127,0,0,1], 3010], 0.02)
-    request(1, "spend", ["BHpLwieFVdD5F/z1mdScC9noIZ39HgnwvK8jHqRSBxjzWBssIR1X9LGr8QxTi8fUQws1Q5CGnmTk5dZwzdrGBi4=", 1000000000], 0.05)
+    request(1, "spend", ["BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=", 1000000000], 0.05)
     request(1, "spend", ["BOzTnfxKrkDkVl88BsLMl1E7gAbKK+83pHCt0ZzNEvyZQPKlL/n8lYLCXgrL4Mmi/6m2bzj+fejX8D52w4U9LkI=", 1000000000], 0.05)
     request(1, "spend", ["BLgYECLeI0Iq7SZqPqhoZocy3zF3ht+fPdYkjJh3OnPU1tr7+BpDbtXGNyzDF8w4gUzV7UvM4KelK6IIvQNZZ6w=", 1000000000], 0.05)
     request(1, "mine_block", [1, 100000], 0.02)
