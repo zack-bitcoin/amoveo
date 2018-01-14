@@ -47,4 +47,4 @@ function lightning_main() {
 var lightning_object = lightning_main();
 setTimeout(function() {
     JSON.stringify(lightning_object.test());
-}, 200);
+}, 500);
