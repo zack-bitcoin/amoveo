@@ -45,6 +45,6 @@ function lightning_main() {
     return {test: test, make: make, read: read, add: add};
 }
 var lightning_object = lightning_main();
-setTimeout(function() {
-    JSON.stringify(lightning_object.test());
-}, 500);
+//setTimeout(function() {
+//    JSON.stringify(lightning_object.test());
+//}, 500);

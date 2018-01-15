@@ -26,6 +26,7 @@
     //crypto - signing, miner, merkleproofs, headers, encryption, channels, chalang, bets
     //bets - channels
     //elliptic - keys, lightning, signing
+    //merkle_proofs - channels, keys, spk
     load_consecutive(["sjcl", "sha256", "elliptic.min", "format", "keys", "rpc"], function() {
 	load_many([//"format",
 	    "files", "codecBytes", "sha256", "crypto", "merkle_proofs", "encryption_library", "title", "server", //"rpc",
