@@ -1,13 +1,13 @@
 
-function verify_callback(tree, key, callback) {
-    var top_hash = hash(headers_object.serialize(headers_object.top()));
-    variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
-        var val = verify_merkle(key, proof);
-        return callback(val);
-    });
-}
+function merkle_proofs_main() {
+    function verify_callback(tree, key, callback) {
+	var top_hash = hash(headers_object.serialize(headers_object.top()));
+	variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
+            var val = verify_merkle(key, proof);
+            return callback(val);
+	});
+    }
 
-function verify_merkle(trie_key, x) {
     function hash_member(hash, members) {
         for (var i = 0; i < 6; i++) {
             var h2 = members.slice(32*i, 32*(i+1));
@@ -63,139 +63,142 @@ function verify_merkle(trie_key, x) {
                 serialize_tree_element(v, trie_key));
         return hash(serialized);
     }
-    
+    function verify_merkle(trie_key, x) {
     //x is {return tree_roots, tree_root, value, proof_chain}
-    var tree_roots = string_to_array(atob(x[1]));
-    var header_trees_hash = string_to_array(atob(headers_object.top()[3]));
-    var hash_tree_roots = hash(tree_roots);
-    var check = check_equal(header_trees_hash, hash_tree_roots);
-    if (!(check)) {
-        console.log("the hash of tree roots doesn't match the hash in the header.");
-    } else {
-        var tree_root = string_to_array(atob(x[2]));
-        var check2 = hash_member(tree_root, tree_roots);
-        if (!(check2)) {
-            console.log("that tree root is not one of the valid tree roots.");
-        } else {
-            var chain = x[4].slice(1);
-            chain.reverse();
-            var h = link_hash(chain[0]);
-            var check3 = check_equal(h, tree_root);
-            var check4 = chain_links(chain);
-            if (!(check3)) {
-                console.log("the proof chain doesn't link to the tree root");
-            } else if (!(check4)){
-                console.log("the proof chain has a broken link");
+	var tree_roots = string_to_array(atob(x[1]));
+	var header_trees_hash = string_to_array(atob(headers_object.top()[3]));
+	var hash_tree_roots = hash(tree_roots);
+	var check = check_equal(header_trees_hash, hash_tree_roots);
+	if (!(check)) {
+            console.log("the hash of tree roots doesn't match the hash in the header.");
+	} else {
+            var tree_root = string_to_array(atob(x[2]));
+            var check2 = hash_member(tree_root, tree_roots);
+            if (!(check2)) {
+		console.log("that tree root is not one of the valid tree roots.");
             } else {
-                var last = chain[chain.length - 1];
-                var value = x[3];
-                var lh = leaf_hash(value, trie_key);
-                var check5 = chain_links_array_member(last, lh);
-                if (check5) {
-                    return value;
-                    //we should learn to deal with proofs of empty data.
-                } else {
-                    console.log("the value doesn't match the proof");
-                    return 0
-                }
+		var chain = x[4].slice(1);
+		chain.reverse();
+		var h = link_hash(chain[0]);
+		var check3 = check_equal(h, tree_root);
+		var check4 = chain_links(chain);
+		if (!(check3)) {
+                    console.log("the proof chain doesn't link to the tree root");
+		} else if (!(check4)){
+                    console.log("the proof chain has a broken link");
+		} else {
+                    var last = chain[chain.length - 1];
+                    var value = x[3];
+                    var lh = leaf_hash(value, trie_key);
+                    var check5 = chain_links_array_member(last, lh);
+                    if (check5) {
+			return value;
+			//we should learn to deal with proofs of empty data.
+                    } else {
+			console.log("the value doesn't match the proof");
+			return 0
+                    }
+		}
             }
-        }
+	}
     }
-}
-function serialize_key(v, trie_key) {
-    var t = v[0];
-    if ( t == "gov" ) {
-        return integer_to_array(trie_key, 1);
-    } else if ( t == "acc" ) {
-        console.log("v is ");
-        console.log(v);
-        var pubkey = string_to_array(atob(v[3]));
-        return hash(pubkey);
-    } else if ( t == "channel" ) {
-        return hash(integer_to_array(v[1], 32));
-    } else if (t == "oracle") {
-        return hash(integer_to_array(v[1], 32));
-    } else {
-        console.log("type is ");
-        console.log(t);
-        console.log(v);
-        throw("serialize trie bad trie type");
+    function serialize_key(v, trie_key) {
+	var t = v[0];
+	if ( t == "gov" ) {
+            return integer_to_array(trie_key, 1);
+	} else if ( t == "acc" ) {
+            console.log("v is ");
+            console.log(v);
+            var pubkey = string_to_array(atob(v[3]));
+            return hash(pubkey);
+	} else if ( t == "channel" ) {
+            return hash(integer_to_array(v[1], 32));
+	} else if (t == "oracle") {
+            return hash(integer_to_array(v[1], 32));
+	} else {
+            console.log("type is ");
+            console.log(t);
+            console.log(v);
+            throw("serialize trie bad trie type");
+	}
     }
-}
-function serialize_tree_element(v, trie_key) {
-    var t = v[0];
-    if ( t == "gov" ) {
-        var id = integer_to_array(v[1], 1);
-        var value = integer_to_array(v[2], 2);
-        var lock = integer_to_array(v[3], 1);
-        //var serialized = integer_to_array(trie_key, 8).concat(
-        var serialized = ([]).concat(
-            id).concat(
-                value).concat(
-                    lock);
-        return serialized;
-    } else if ( t == "acc" ) {
-        var balance = integer_to_array(v[1], 6);
-        var nonce = integer_to_array(v[2], 3);
-        var pubkey = string_to_array(atob(v[3]));
-        var bets = string_to_array(atob(v[5]));
-        var serialized = ([]).concat(
-            balance).concat(
-                nonce).concat(
-                    pubkey).concat(
-                        bets);
-        return serialized;
-    } else if ( t == "channel" ) {
-        var cid = integer_to_array(v[1], 32);
-        var acc1 = string_to_array(atob(v[2]));
-        var acc2 = string_to_array(atob(v[3]));
-        var bal1 = integer_to_array(v[4], 6);
-        var bal2 = integer_to_array(v[5], 6);
-        var amount = integer_to_array(128, 1).concat(
-            integer_to_array(v[6], 5));
-        var nonce = integer_to_array(v[7], 4);
-        var last_modified = integer_to_array(v[8], 4);
-        var delay = integer_to_array(v[9], 4);
-        var closed = integer_to_array(v[11], 1);
-        var serialized = ([]).concat(
-            cid).concat(
-                bal1).concat(
-                    bal2).concat(
-                        amount).concat(
-                            nonce).concat(
-                                last_modified).concat(
-                                    delay).concat(
-                                        closed).concat(
-                                            acc1).concat(
-                                                acc2);
-        return serialized;
-    } else if (t == "oracle") {
-        var id = integer_to_array(v[1], 32);
-        var result = integer_to_array(v[2], 1);
-        var t = integer_to_array(v[5], 1);
-        var starts = integer_to_array(v[4], 4); 
-        var done_timer = integer_to_array(v[9], 4); //height_bits/8 bytes
-        var governance = integer_to_array(v[10], 1); //one byte
-        var governance_amount = integer_to_array(v[11], 1); //one byte
-        var creator = string_to_array(atob(v[8])); //pubkey size
-        var question = string_to_array(atob(v[3])); //32 bytes size
-        var orders = string_to_array(atob(v[7])); //32 bytes
-        //var serialized = integer_to_array(v[1], 256).concat(
-        var serialized = ([]).concat(
-            id).concat(
-                result).concat(
-                    t).concat(
-                        starts).concat(
-                            done_timer).concat(
-                                governance).concat(
-                                    governance_amount).concat(
-                                        creator).concat(
-                                            question).concat(
-                                                orders);
-        return serialized;
-    } else {
-        console.log("cannot decode type ");
-        console.log(t);
+    function serialize_tree_element(v, trie_key) {
+	var t = v[0];
+	if ( t == "gov" ) {
+            var id = integer_to_array(v[1], 1);
+            var value = integer_to_array(v[2], 2);
+            var lock = integer_to_array(v[3], 1);
+            var serialized = ([]).concat(
+		id).concat(
+                    value).concat(
+			lock);
+            return serialized;
+	} else if ( t == "acc" ) {
+            var balance = integer_to_array(v[1], 6);
+            var nonce = integer_to_array(v[2], 3);
+            var pubkey = string_to_array(atob(v[3]));
+            var bets = string_to_array(atob(v[5]));
+            var serialized = ([]).concat(
+		balance).concat(
+                    nonce).concat(
+			pubkey).concat(
+                            bets);
+            return serialized;
+	} else if ( t == "channel" ) {
+            var cid = integer_to_array(v[1], 32);
+            var acc1 = string_to_array(atob(v[2]));
+            var acc2 = string_to_array(atob(v[3]));
+            var bal1 = integer_to_array(v[4], 6);
+            var bal2 = integer_to_array(v[5], 6);
+            var amount = integer_to_array(128, 1).concat(
+		integer_to_array(v[6], 5));
+            var nonce = integer_to_array(v[7], 4);
+            var last_modified = integer_to_array(v[8], 4);
+            var delay = integer_to_array(v[9], 4);
+            var closed = integer_to_array(v[11], 1);
+            var serialized = ([]).concat(
+		cid).concat(
+                    bal1).concat(
+			bal2).concat(
+                            amount).concat(
+				nonce).concat(
+                                    last_modified).concat(
+					delay).concat(
+                                            closed).concat(
+						acc1).concat(
+                                                    acc2);
+            return serialized;
+	} else if (t == "oracle") {
+            var id = integer_to_array(v[1], 32);
+            var result = integer_to_array(v[2], 1);
+            var t = integer_to_array(v[5], 1);
+            var starts = integer_to_array(v[4], 4); 
+            var done_timer = integer_to_array(v[9], 4); //height_bits/8 bytes
+            var governance = integer_to_array(v[10], 1); //one byte
+            var governance_amount = integer_to_array(v[11], 1); //one byte
+            var creator = string_to_array(atob(v[8])); //pubkey size
+            var question = string_to_array(atob(v[3])); //32 bytes size
+            var orders = string_to_array(atob(v[7])); //32 bytes
+            //var serialized = integer_to_array(v[1], 256).concat(
+            var serialized = ([]).concat(
+		id).concat(
+                    result).concat(
+			t).concat(
+                            starts).concat(
+				done_timer).concat(
+                                    governance).concat(
+					governance_amount).concat(
+                                            creator).concat(
+						question).concat(
+                                                    orders);
+            return serialized;
+	} else {
+            console.log("cannot decode type ");
+            console.log(t);
+	}
     }
+    return {request_proof: verify_callback,
+	    verify: verify_merkle,
+	    serialize: serialize_tree_element};
 }
-
+var merkle = merkle_proofs_main();

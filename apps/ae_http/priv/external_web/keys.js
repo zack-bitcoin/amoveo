@@ -64,7 +64,7 @@ function keys_function1() {
     function update_balance() {
         var trie_key = pubkey_64();
         var top_hash = hash(headers_object.serialize(headers_object.top()));
-        verify_callback("accounts", trie_key, function(x) {
+        merkle.request_proof("accounts", trie_key, function(x) {
             set_balance(x[1] / 100000000);
         });
     }

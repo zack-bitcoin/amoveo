@@ -16,8 +16,8 @@ function spk_main() {
         console.log(JSON.stringify(facts));
         var tree = facts[i][0];
         var key = facts[i][1];
-        verify_callback(tree, key, function(value) {
-            //var value = verify_merkle(key, proof);
+        merkle.request_proof(tree, key, function(value) {
+            //var value = merkle.verify(key, proof);
             //we are making chalang like this:
             //[ int id, key, binary size serialized_data ]
             // '[', ']', and ',' are macros for making a list.
@@ -34,7 +34,7 @@ function spk_main() {
                 r = r.concat(key);
             }
             r = r.concat([swap, cons]); // ,
-            var serialized_data = serialize_tree_element(value, key);//this is the serialized version of the thing who's existence we are proving. make it from value.
+            var serialized_data = merkle.serialize(value, key);//this is the serialized version of the thing who's existence we are proving. make it from value.
             var s = serialized_data.length;
             r = r.concat([2]).concat(integer_to_array(s, 4));
             r = r.concat(serialized_data);
@@ -245,9 +245,9 @@ function spk_main() {
         }
         var ss = ss_to_internal(cd[3]);
         var ss4 = ss_to_internal(cd[4]);
-        verify_callback("governance", 14, function(tree_fun_limit) {
+        merkle.request_proof("governance", 14, function(tree_fun_limit) {
             var fun_limit = tree_number_to_value(tree_fun_limit[2]);
-            verify_callback("governance", 15, function(tree_var_limit) {
+            merkle.request_proof("governance", 15, function(tree_var_limit) {
                 var var_limit = tree_number_to_value(tree_var_limit[2]);
                 spk_force_update(spkme, ssme, ss4, fun_limit, var_limit, function(b2) {
                     var cid = cd[7];
@@ -326,9 +326,9 @@ function spk_main() {
                 }
                 var cid = new_spk[6];
                 var ret = false;
-                verify_callback("channels", cid, function(channel) {
+                merkle.request_proof("channels", cid, function(channel) {
                     //variable_public_get(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
-                    var channel = verify_merkle(cid, proof);
+                    var channel = merkle.verify(cid, proof);
                     var acc1 = channel[2]
                     var acc2 = channel[3]
                     var profit;
