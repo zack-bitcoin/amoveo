@@ -9,6 +9,7 @@ handle(Req, _) ->
     PrivDir = list_to_binary(code:priv_dir(ae_http)),
     true = case F of
                <<"/js_loader.js">> -> true;
+               <<"/explorer_title.js">> -> true;
                <<"/lightning.js">> -> true;
                <<"/encryption.js">> -> true;
                <<"/encryption_library.js">> -> true;

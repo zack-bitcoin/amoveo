@@ -2,7 +2,7 @@ function translate_human() {
     var div = document.getElementById("translations");
     function translate(d, c) {
         var x = document.createElement("a");
-        x.href = ("/wallet.html?").concat(d);
+        x.href = (window.location.pathname).concat("?").concat(d);
         x.innerHTML = (c).concat(" ");
         div.appendChild(x);
     }
@@ -50,6 +50,10 @@ function translate_human() {
                                 sp: "Billetera Ligera ",
                                 hi: "प्रकाश बटुआ",
                                 ar: "ضوء المحفظة"},
+		"explorer_title": {
+		    en: "Blockchain explorer ",
+		    sp: "Explorador de la cadena de bloques "
+		},
                 "home_page": {cn: "主页",
                               en: "home page ",
                               tp: "lipu insa",

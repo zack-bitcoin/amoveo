@@ -21,7 +21,12 @@
 	    callback();
 	}
     };
-    load_consecutive(["sjcl", "elliptic.min", "format", "keys", "rpc"], function() {
+    //things - things that need it
+    //sjcl - codecBytes, crypto, sha256,
+    //crypto - signing, miner, merkleproofs, headers, encryption, channels, chalang, bets
+    //bets - channels
+    //elliptic - keys, lightning, signing
+    load_consecutive(["sjcl", "sha256", "elliptic.min", "format", "keys", "rpc"], function() {
 	load_many([//"format",
 	    "files", "codecBytes", "sha256", "crypto", "merkle_proofs", "encryption_library", "title", "server", //"rpc",
 	    "headers", "miner", "signing", "spend_tx", "create_account_tx", "combine_cancel_assets", "market", "chalang", "spk", "bets", "lightning", "channels", "encryption"]);
