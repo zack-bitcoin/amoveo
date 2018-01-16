@@ -318,14 +318,21 @@ function channels_main() {
         console.log(JSON.stringify(msg));
         variable_public_get(msg, function(sspk2) {
             //verify the signatures on sspk2
-            //verify that old spk matches the new
-            //update channel_manager stored in serverid.
-            //spk = signed:data(sspk2)
-            //me = spk
-            // them = sspk2
-            //defaultss = spk:new_ss([],[])
-            //ssme = [defaultss|ssme]
-            //ssthem = [defaultss|ssthem]
+	    spk1 = sspk[1];
+	    spk2 = sspk2[1];
+	    if (!(JSON.stringify(spk1) ==
+		  JSON.stringify(spk2))) {
+		console.log("error, the spks calculated by you and the server are not identical.");
+		throw("lightning_spend error")
+	    }
+	    var cd = read(serverid);
+            var me = spk1;
+            var them = sspk2;
+	    var defaultss = new_ss([], [], 0);
+	    cd.ssme = ([-6, defaultss]).concat(cd.ssme.split(1));
+	    cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.split(1));
+	    channel_manager_update(serverid, cd);
+	    write(serverid, cd);
         });
     }
     function sum_bets(bets) {

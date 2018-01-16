@@ -3,32 +3,61 @@
 * increase constants initial difficulty.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * chalang signatures are double-base64 encoded. they should only be single-encoded.
+* developer reward should be calculated as a portion of the block reward instead of a completely seperate value. (This way I have the easier task of constantly lowering my salary, rather than asking for raises all the time.)
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
 
-* the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
-
-* the random number generator for the light node is probably not good enough, especially if you are on a phone.
-
-* we need to test out the different formats for "true" and "false" in the javascript light node.
-
 * there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
 I took notes. Search for "verify" in channels.js
-
-* go through every case in the light node where we do a variable_public_get. Make sure we verify the response as much as possible. Do not blindly sign or store anything from them for example.
-
-* in the javascript light node, we should seperate the view-code from the controller-code from the model-code in each page.
-
-* in the javascript light node, we should wrap up code inside functions to protect the global name space.
 
 * javascript light node should tell you how much time is left in your channel, and give an option for extending the time limit.
 
 * make sure that markets are working from the light wallet.
 
-* in sync.erl we should start by checking each peer's version, and then ignore peers who use the wrong version.
 * there needs to be an interface to pushing the channel expiration further into the future by paying a fee. We already have an api for sending a payment to the server, we just modify this slightly.
+
+* the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
+
+- Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
+
+* when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
+
+* channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
+
+* close channels from the light node.
+
+* lightning payments from the light node.
+
+* the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
+
+* We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
+
+* outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
+
+* the gui needs to make it convenient to collect winnings after a market is closed.
+
+* the random number generator for the light node is probably not good enough, especially if you are on a phone.
+
+
+
+
+
+
+
+
+
+
+
+### Things we can do after launch of mainnet
+
+
+* we need to test out the different formats for "true" and "false" in the javascript light node.
+
+* go through every case in the light node where we do a variable_public_get. Make sure we verify the response as much as possible. Do not blindly sign or store anything from them for example.
+
+* in sync.erl we should start by checking each peer's version, and then ignore peers who use the wrong version.
 
 * secrets is leaking data.
 
@@ -40,52 +69,22 @@ I took notes. Search for "verify" in channels.js
 
 * there should be a refund if you close a channel early. The refund should be enforced by a smart contract. It is important that this smart contract's nonce does not increase with time, otherwise the contract can be slashed forever.
 
-
-* the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
-
 * running sync:start() when we are already synced is causing some error messages.
 
-
-
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
-
-* lightning payments from the light node.
-
-* when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
-
-* review the rules about increasing the balance of channels. We should require a payment that make sense.
-grow_channel_tx:good and new_channel_tx:good should move into the /channels directory, since they aren't related to consensus.
-- there is an attack where someone makes lots of channels, then moves all their money to a small number of channels, and closes all the channels where they had lots of money. The result of this attack is that the server's money is all locked up in channels.
-- ideally, we should charge based on the amount of time that the server's money is locked up. We should have the customer pay for X number of days as a minimum, and eventually we request that they pay for more days. If the customer doesn't pay in time, then we close the channel to recover the funds.
-- Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
-Market contracts need some sort of default, so they can be closed within the limit. The default should probably be that the server wins, this way the customer can have the freedom to set up the bet with whatever time constraints they want, at their own risk. It is a sort of "I cut, you choose" protocol.
-- we should have a constant in the config file be "time_value", and we use this to calculate how much it costs to have the server's money locked up for a period of time.
 
 * make the pubkeys more convenient for copy/pasting. It would be nice if we used compressed pubkeys instead of full pubkeys. Maybe we should use the base58 library, or the pubkey checksum library.
 Maybe encoding the pubkeys should happen at the wallet level, not the node level.
 
 * pull channel state shouldn't cause a crash when the state is already synced.
 
-* we need to look at the test for options again. What if our channel partner refuses to let us add more money to the channel? Then we couldn't buy the option. There needs to be a way for just one of the participants to put their own money into the channel if they choose to.
-Oh, we should have our partner sign a transaction that allows us to put money into the channel, and we can choose whether or not to sign it in the future.
-So it is important that a channel_grow transaction ignores the nonces of the two accounts that sign it.
+* there needs to be an off switch on each market, so the market maker can gracefully stop his losses before too much information leaks. or does there? this should be thought out more.
 
-* there needs to be an off switch on each market, so the market maker can gracefully stop his losses before too much information leaks.
 - the market contract delays need to be long enough so that the contract is still live, even if the oracle takes a while to publish.
-
-* if a customer tries closing the market early and we are at risk of losing money, then the market maker needs to keep periodically publishing evidence to the contrary, until the channel can be settled, or until someone else can be found to take on the risk of the missing channel. It works similar to combine-cancel.
-
-* we need to be able to grow channels, and close channels from the light node.
 
 * analyze contracts to make sure they aren't unclosable, as explained in the attacks analyzed doc.
 
-* test lightning from the gui.
-
-* the gui needs to make it convenient to collect winnings after a market is closed.
-
 * maybe the gui should allow for betting in the oracle?
-
-* outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
 
 * the wallet should have some error messages:
 - insufficient funds
@@ -93,10 +92,6 @@ So it is important that a channel_grow transaction ignores the nonces of the two
 - lightning partner doesn't have a channel
 
 * the readme should explain about public keys better
-
-* channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
-
-* We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
 
 * the password is being recorded in the log. This is bad.
 
@@ -107,13 +102,6 @@ So it is important that a channel_grow transaction ignores the nonces of the two
 * Maybe we should make a way to run internal handler commands externally. Add a new command to the external api. To call this command, you need to sign the info with your private key, and it has a nonce inside that needs to have incremented from last time.
 
 
-
-
-
-
-
-
-### Things we can do after launch of mainnet
 
 * calculating block_to_header is too very slow. Which means calculating the hash of a block is slow too.
 * We should store the hash of the block along with the block, that way we don't have to re-calculate it more than once. When sharing blocks we can use this hash to quickly ignore blocks we have already seen, but for a block to be considered valid, we need to check at least once that the hash was calculated correctly.
