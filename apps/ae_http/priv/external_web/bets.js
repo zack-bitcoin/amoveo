@@ -102,22 +102,25 @@ function bets_main() {
     }
     function cancel_trade2(sspk2, sspk, server_pubkey, n) {
         var cd = channels_object.read(server_pubkey);
-        //verify that sspk2 is signed by our partner.
+	var bool = verify_both(sspk2);
+	if (!(bool)) {
+	    throw("cancel trade badly signed");
+	}
         var spk = sspk[1];
         var spk2 = sspk2[1];
-        if (JSON.stringify(hash(serialize(spk))) ==
-            JSON.stringify(hash(serialize(spk2)))) {
-            cd.them = sspk2;
-            cd.me = spk;
-            cd.ssme = remove_nth(n, cd.ssme);
-            cd.ssthem = remove_nth(n, cd.ssthem);
-            channel_object.write(server_pubkey, cd);
-            main();
-        } else {
+        if (!(JSON.stringify(spk) ==
+              JSON.stringify(spk2))) {
             console.log("the server didn't calculate the same update as us");
             console.log(spk);
             console.log(spk2);
-        }
+	    throw("cancel trade spk does not match");
+	}
+        cd.them = sspk2;
+        cd.me = spk;
+        cd.ssme = remove_nth(n, cd.ssme);
+        cd.ssthem = remove_nth(n, cd.ssthem);
+        channel_object.write(server_pubkey, cd);
+        main();
     }
     function remove_nth(n, a) {
         var b = a.slice(0, n);

@@ -198,25 +198,27 @@ function channels_main() {
         });
     }
     function make_bet3(sspk2, sspk, server_pubkey, oid_final) {
-        //verify signature on sspk2
+	var bool = verify_both(sspk2);
+	if (!(bool)) {
+	    throw("make bet3, badly signed sspk2");
+	}
         var hspk2 = JSON.stringify(sspk2[1]);
         var hspk = JSON.stringify(sspk[1]);
-        if (hspk2 == hspk) { //make sure that both spks match
-            var cd = read(server_pubkey);
-            cd.me = sspk[1];
-            cd.them = sspk2;
-            var newss = new_ss([0,0,0,0,4], [-6, ["oracles", oid_final]]);
-            cd.ssme = ([newss]).concat(cd.ssme);
-            cd.ssthem = ([newss]).concat(cd.ssthem);
-            write(server_pubkey, cd);
-            amount.value = "";
-            channel_warning();
-        } else {
+	if (!(hspk == hspk2)) {
             console.log("error, we calculated the spk differently from the server. you calculated this: ");
             console.log(JSON.stringify(sspk[1]));
             console.log("the server calculated this: ");
             console.log(JSON.stringify(sspk2[1]));
-        }
+	}
+        var cd = read(server_pubkey);
+        cd.me = sspk[1];
+        cd.them = sspk2;
+        var newss = new_ss([0,0,0,0,4], [-6, ["oracles", oid_final]]);
+        cd.ssme = ([newss]).concat(cd.ssme);
+        cd.ssthem = ([newss]).concat(cd.ssthem);
+        write(server_pubkey, cd);
+        amount.value = "";
+        channel_warning();
     }
 
     //Controller
@@ -255,15 +257,31 @@ function channels_main() {
             var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, spk_amount, 0, delay];
             var stx = keys.sign(tx);
             var sspk = keys.sign(spk);
-            variable_public_get(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration, pubkey) });
+            variable_public_get(["new_channel", stx, sspk, expiration], function(x) { return channels3(x, expiration, pubkey, spk, tx) });
         }
     }
-    function channels3(x, expiration, pubkey) {//we should also pass tx and spk, to verify that the server didn't manipulate them.
+    function channels3(x, expiration, pubkey, spk, tx_original) {
         var sstx = x[1];
         var s2spk = x[2];
-        // verify that both are signed twice.
-        // verify that this is the same spk that we requested they sign.
         var tx = sstx[1];
+	if (!(JSON.stringify(tx) ==
+	      JSON.stringify(tx_original))) {
+	    console.log(JSON.stringify(tx));
+	    console.log(JSON.stringify(tx_original));
+	    throw("the server illegally manipulated the tx");
+	}
+	var a = verify_both(sstx);
+	if (!(a)) {
+	    throw("bad signature on tx in channels 3");
+	}
+	a = verify2(s2spk);
+	if (!(a)) {
+	    throw("bad signature on spk in channels 3");
+	}
+	if (!(JSON.stringify(spk) ==
+	      JSON.stringify(s2spk[1]))) {
+	    throw("the server illegally manipulated the spk");
+	}
         var cid = tx[9];
         var acc2 = tx[2];
         console.log("double signed tx ");
@@ -279,10 +297,13 @@ function channels_main() {
         //console.log(channel_manager[pubkey]);
         var cd = read(pubkey);
         var trie_key = cd.me[6];//channel id, cid
-        var top_hash = hash(headers_object.serialize(headers_object.top()));
+	var top_header = headers_object.top();
+        var top_hash = hash(headers_object.serialize(top_header));
         merkle.request_proof("channels", trie_key, function(val) {
             //var balance_div = document.getElementById("balance_div");
             var spk = cd.them[1];
+	    var expiration = cd[7];
+	    var height = top_header[1];
             var amount = spk[7];
             var betAmount = sum_bets(spk[3]);
 
@@ -290,7 +311,9 @@ function channels_main() {
             var serverbalance = ((val[5] + amount) / 100000000).toString();
             balance_div.innerHTML = (translate.words("your_balance").concat(": ")).concat(
                 mybalance).concat(translate.words("server_balance").concat(": ")).concat(
-                    serverbalance);
+                    serverbalance).concat(translate.words("time_left").concat(": ")).concat(
+			(expiration - height));
+			    
         });
     }
     function channel_feeder_make_locked_payment(serverid, amount, code) {
@@ -317,9 +340,12 @@ function channels_main() {
         console.log("lightning spend msg is ");
         console.log(JSON.stringify(msg));
         variable_public_get(msg, function(sspk2) {
-            //verify the signatures on sspk2
 	    spk1 = sspk[1];
 	    spk2 = sspk2[1];
+	    var bool = verify_both(sspk2);
+	    if (!(bool)) {
+		throw("lightning spend, bad signature on spk");
+	    }
 	    if (!(JSON.stringify(spk1) ==
 		  JSON.stringify(spk2))) {
 		console.log("error, the spks calculated by you and the server are not identical.");

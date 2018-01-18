@@ -35,7 +35,7 @@ Each team will be ranked in each of the categories from 0 to 10.
 ```
 channels, shards, light nodes, channel markets, oracles, blockchain, community, trading fees, elegance
                  C  S  L  M  O  B  C  F   E   total
-Amoveo           9  8  9  9  8  8  2  10  10  73
+Amoveo           9  8  9  9  8  9  2  10  10  74
 Group Gnosis     1  0  5  0  8  10 10 5   3   42
 Fun Fair         2  0  5  0  0  10 3  10  3   33
 Stox             0  0  5  0  0  10 2  0   3   20
@@ -133,9 +133,7 @@ Bodhi uses QTUM, which is a very successful blockchain.
 
 Bitshares is a popular blockchain.
 
-Amoveo, Bitcoin Hivemind, and Zen Protocol have live testnets where you can try out the services being built.
-
-Aeternity does not yet have a testnet.
+Amoveo, Bitcoin Hivemind, Aeternity, and Zen Protocol have live testnets where you can try out the services being built.
 
 
 ### Community

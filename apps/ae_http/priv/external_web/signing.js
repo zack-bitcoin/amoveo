@@ -78,10 +78,19 @@ function sign(data, key) {
     return sig.toDER();
 }
 function verify(data, sig0, key) {
-    var sig = bin2rs(atob(atob(sig0)));
+    var sig = bin2rs(atob(sig0));
     var d2 = serialize(data);
     var h = hash(d2);
     return key.verify(h, sig, "hex");
+}
+function verify1(tx) {
+    return verify(tx[1], tx[2], keys.ec().keyFromPublic(toHex(atob(tx[1][1])), "hex"));
+}
+function verify2(tx) {
+    return verify(tx[1], tx[3], keys.ec().keyFromPublic(toHex(atob(tx[1][2])), "hex"));
+}
+function verify_both(tx) {
+    return (verify1(tx) && verify2(tx));
 }
 function bin2rs(x) {
     /*
@@ -102,7 +111,7 @@ function bin2rs(x) {
 }
 
 
-//signing_test();
+signing_test();
 function signing_test() {
 
     //priv1 = atob("2kYbRu2TECMJzZy55fxdILBvM5wJM482lKLTRu2e42U=");
@@ -110,7 +119,8 @@ function signing_test() {
     //var sig1 = sign([-6, 1], key1);
     //console.log(verify([-6, 1], sig1, key1));
 
-    var stx = ["signed",["create_acc_tx","BHuqX6EKohvveqkcbyGgE247jQ5O0i2YKO27Yx50cXd+8J/dCVTnMz8QWUUS9L5oGWUx5CPtseeHddZcygmGVaM=",1,20,"BJh+CRhyKiDRSJfjUFMwUVdC/3+Ahj644HWxbLzlddhggWg+2c+h1/i9u8ono9v3l7Vb4E5WSEZouDUUH2XDI58=",150000000000],"TUVVQ0lRRDRVUjVwV1M4bWM2U1dvK2EzWDY3WlBrRnk4Mlg3cW9qNkxXTTFaUzJ1MGdJZ2JGTmlkWFdYNDJ0V2dEcUZ5aUo4NnhqWnVTMlZKNGwxTGJvcjdWeFVXckU9",[-6]];
+    var stx = ["signed",["nc","BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","BCPuHeZ7sRjKAlnJjEqz3JOgc+OX/M0hRhA6IcQp+/KYSHrbP6wT+ei5VPzPaabU6eS3AE+4DbcgQj/eMaGRglQ=",50050,2,29999,29998,100,1],"MEUCIHc0anEc4ujgGkN5h8dUgoyCPFZ7dW5kh2MjCFn2O6NeAiEAtIg83JJLtk13i3jqgPdio8EE1lcQPBhy/9HWNKy3x7w=","MEQCIAXKdfeRxhtUHTx602gEqFA7xic+48La3Ju1pR43ZxWXAiAiaLPpTK5JoJ6sj3BltNm4pofrWN3r2XOGksA17XVKyg=="];
+    //var stx = ["signed",["create_acc_tx","BHuqX6EKohvveqkcbyGgE247jQ5O0i2YKO27Yx50cXd+8J/dCVTnMz8QWUUS9L5oGWUx5CPtseeHddZcygmGVaM=",1,20,"BJh+CRhyKiDRSJfjUFMwUVdC/3+Ahj644HWxbLzlddhggWg+2c+h1/i9u8ono9v3l7Vb4E5WSEZouDUUH2XDI58=",150000000000],"TUVVQ0lRRDRVUjVwV1M4bWM2U1dvK2EzWDY3WlBrRnk4Mlg3cW9qNkxXTTFaUzJ1MGdJZ2JGTmlkWFdYNDJ0V2dEcUZ5aUo4NnhqWnVTMlZKNGwxTGJvcjdWeFVXckU9",[-6]];
 
     var data0 = stx[1];
     var sig0 = stx[2];
@@ -118,6 +128,7 @@ function signing_test() {
 
     var foo = verify(data0, sig0, key0);
     console.log(foo);
+    console.log(verify1(stx));
 }
 
 //setTimeout(signing_test2(), 1000);
