@@ -19,7 +19,7 @@ def market_test():
     request(1, 'create_account', [pub1, 1000000000], 0.04)
     request(1, 'create_account', [pub2, 1000000000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
-    request(2, 'sync', [[127,0,0,1], 3030], 0.2)
+    request(2, 'sync', [[127,0,0,1], 3030], 0.5)
     fee = 51000
     request(1, 'new_channel_with_server', [[127,0,0,1], 3030, 17, 10000, 9999, fee, 4, 1000], 0.04)
     request(2, 'sync', [[127,0,0,1], 3030], 0.05)
