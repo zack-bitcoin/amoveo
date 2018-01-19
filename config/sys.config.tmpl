@@ -25,7 +25,7 @@
     %% if a fork is bigger than revert_depth, your full node will have to reprocess all the blocks, or it will have to download a bunch of proofs.
 
     {light_node, false},
-    {trie_size, 20000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. Max block size starts around 207560.
+    {trie_size, 2000000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. Max block size starts around 207560.
     %% There are several trees, they are all stored in ram. It is important that trie_size*sum(size of an element in each trie) < (amount of ram you have).
 
     {tx_fee, 1000},

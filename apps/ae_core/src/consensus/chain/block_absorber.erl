@@ -1,7 +1,8 @@
 -module(block_absorber).
 -behaviour(gen_server).
 -include("../../records.hrl").
--export([prune/0, %% delete unneeded things from trees
+-export([prune/0, %% delete unneeded things from trees asynchronously
+	 synch_prune/1,
          enqueue/1, %% async request
 	 save/1,    %% returns after saving
 	 do_save/1]). %% run without gen_server
@@ -19,10 +20,15 @@ handle_cast(prune, X) ->
 handle_cast({doit, BP}, X) ->
     absorb_internal(BP),
     {noreply, X}.
+handle_call({prune, Blocks}, _, X) ->
+    B = Blocks ++ trees:hash2blocks(recent_blocks:read()),
+    trees:prune(B),
+    {reply, ok, X};
 handle_call({doit, BP}, _From, X) -> 
     absorb_internal(BP),
     {reply, ok, X}.
 prune() -> gen_server:cast(?MODULE, prune).
+synch_prune(Blocks) -> gen_server:call(?MODULE, {prune, Blocks}).
 enqueue([]) -> ok;
 enqueue([B|T]) -> enqueue(B), enqueue(T);
 enqueue(B) -> gen_server:cast(?MODULE, {doit, B}).

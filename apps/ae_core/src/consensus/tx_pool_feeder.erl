@@ -29,24 +29,32 @@ absorb_internal(SignedTx) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
-    %io:fwrite(packer:pack({tx_pool_feeder, Fee, MinimumTxFee + Cost})),
-    %io:fwrite("\n"),
     true = Fee > (MinimumTxFee + Cost),
     true = testnet_sign:verify(SignedTx),
     case is_in(testnet_sign:data(SignedTx), Txs) of
         true -> ok;
         false -> absorb_unsafe(SignedTx, Trees, Height, Dict)
     end.
-absorb_unsafe(SignedTx, Trees, Height, Dict) ->
+absorb_unsafe(SignedTx, Trees, Height, _Dict) ->
     Querys = proofs:txs_to_querys([SignedTx], Trees),
     Facts = proofs:prove(Querys, Trees),
-    Dict2 = proofs:facts_to_dict(Facts, Dict),
+    Dict2 = proofs:facts_to_dict(Facts, dict:new()),
     NewDict = txs:digest_from_dict([SignedTx], Dict2, Height + 1),
     NewTrees = block:dict_update_trie(Trees, NewDict), 
     tx_pool:absorb_tx(NewTrees, NewDict, SignedTx).
 absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.trees,
+    Txs = TP#tx_pool.txs,
+    TN = length(Txs) rem 10,
+    if 
+	TN == 0 ->
+	    B = #block{trees = Trees},
+	    block_absorber:synch_prune([B]);
+	true -> ok
+    end,
     gen_server:call(?MODULE, {absorb, SignedTx}).
 absorb_unsafe(SignedTx) ->
     F = tx_pool:get(),

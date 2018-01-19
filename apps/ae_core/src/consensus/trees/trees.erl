@@ -8,6 +8,7 @@
          prune/0, prune/1,
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
+	 hash2blocks/1,
          restore/3]).
 -include("../../records.hrl").
 -record(trees, {accounts, channels, existence,

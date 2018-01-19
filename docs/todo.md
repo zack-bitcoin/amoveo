@@ -3,12 +3,17 @@
 * increase constants initial difficulty.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * developer reward should be calculated as a portion of the block reward instead of a completely seperate value. (This way I have the easier task of constantly lowering my salary, rather than asking for raises all the time.)
-* the master account should be unable to spend tokens for the first 6 months.
+* the master account should be unable to spend tokens for the first 6 months. multiply number of blocks in history by the current block time to estimate.
+txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_bet, oracle_close
 
 
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
+
+* we should do tests where the blocks are full.
+
+* right now the only max_block_size check is in the tx_pool. We also need this check in block_absorber.
 
 * Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
 

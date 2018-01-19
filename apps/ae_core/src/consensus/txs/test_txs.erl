@@ -23,6 +23,7 @@ test() ->
     S = test(13),%testing governance
     S = test(11),%try out the oracle
     S = test(16),%try out the oracle further
+    S = test(17),%blocks filled with create account txs
     timer:sleep(300),
     S.
 absorb(Tx) -> 
@@ -847,7 +848,24 @@ test(15) ->
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),
+    success;
+test(17) ->
+    %fill blocks completely with create_account txs.
+    create_accounts(650),%fits 636 at the start.
+    mine_blocks(1),
     success.
+create_accounts(0) -> ok;
+create_accounts(N) ->
+    io:fwrite("create account "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite("\n"),
+    {NewPub,_NewPriv} = testnet_sign:new_key(),
+    Fee = constants:initial_fee() + 20,
+    Trees = (tx_pool:get())#tx_pool.trees,
+    {Ctx, _} = create_account_tx:new(NewPub, 1, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    create_accounts(N-1).
 slash_exists([]) -> false;
 slash_exists([Tx|T]) ->
     is_slash(Tx) or slash_exists(T).
