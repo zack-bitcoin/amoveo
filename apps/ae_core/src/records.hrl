@@ -68,4 +68,5 @@
                   block_trees,%this changes once per block
                   dict = dict:new(), 
                   facts = [], 
-                  height = 0}).
+                  height = 0,
+		  bytes = 2}).

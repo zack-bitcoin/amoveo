@@ -16,17 +16,22 @@ handle_call(dump, _From, _OldState) ->
     {reply, 0, State};
 handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
     NewTxs = [Tx | F#tx_pool.txs],
-    BlockSize = size(packer:pack(NewTxs)),
+    %io:fwrite(packer:pack([22, now()])),
+    %io:fwrite("\n"),
+    BlockSize = F#tx_pool.bytes + size(packer:pack(Tx)) + 1,
+    %io:fwrite(packer:pack([23, now()])),
+    %io:fwrite("\n"),
     Governance = trees:governance(NewTrees),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
-    F2 = case BlockSize > MaxBlockSize of
+    F2 = case BlockSize > (MaxBlockSize - 150) of
              true ->
                  io:fwrite("Cannot absorb tx - block is already full"),
                  F;
              false ->
                  F#tx_pool{txs = NewTxs, 
                            trees = NewTrees, 
-                           dict = NewDict}
+                           dict = NewDict,
+			   bytes = BlockSize}
          end,
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->

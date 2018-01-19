@@ -663,16 +663,17 @@ test(13) ->
     {Tx3, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID2, 1, 5, Trees3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
+    timer:sleep(100),
 
     Trees1 = (tx_pool:get())#tx_pool.trees,
     Governance2 = trees:governance(Trees1),
     MOT = governance:get_value(minimum_oracle_time, Governance2),
+    OIL = governance:get_value(oracle_initial_liquidity, Governance2),
     mine_blocks(1+MOT),
     timer:sleep(200),
     io:fwrite("test txs governance 2 is "),
     io:fwrite(integer_to_list(Governance2)),
     io:fwrite("\n"),
-    OIL = governance:get_value(oracle_initial_liquidity, Governance2),
     Trees2 = (tx_pool:get())#tx_pool.trees,
     {Tx2, _} = oracle_bet_tx:make(constants:master_pub(), Fee, OID2, 1, OIL * 2, Trees2), 
     Stx2 = keys:sign(Tx2),
@@ -862,24 +863,37 @@ test(17) ->
     mine_blocks(1),
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
-    create_accounts(650),%fits 636 at the start.
-    io:fwrite(packer:pack(now())),
-    io:fwrite("\n"),
-    mine_blocks(1),
-    io:fwrite(packer:pack(now())),
-    io:fwrite("\n"),
-    success.
+    timer:sleep(300),
+    success;
+test(18) ->
+    test18(100).
+test18(0) -> success;
+test18(N) ->
+    test(17),
+    test18(N-1).
 create_accounts(0) -> ok;
 create_accounts(N) ->
     io:fwrite("create account "),
     io:fwrite(integer_to_list(N)),
-    io:fwrite("\n"),
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack([1, now()])),%200
+    %io:fwrite("\n"),
     {NewPub,_NewPriv} = testnet_sign:new_key(),
     Fee = constants:initial_fee() + 20,
+    %io:fwrite(packer:pack([2, now()])),%2000 or 20 000
+    %io:fwrite("\n"),
     Trees = (tx_pool:get())#tx_pool.trees,
+    %io:fwrite(packer:pack([3, now()])),%1300
+    %io:fwrite("\n"),
     {Ctx, _} = create_account_tx:new(NewPub, 1, Fee, constants:master_pub(), Trees),
+    %io:fwrite(packer:pack([4, now()])),%750
+    %io:fwrite("\n"),
     Stx = keys:sign(Ctx),
+    %io:fwrite(packer:pack([5, now()])),%18000
+    %io:fwrite("\n"),
     absorb(Stx),
+    %io:fwrite(packer:pack([6, now()])),%45 000 or 1 000 000
+    %io:fwrite("\n"),
     create_accounts(N-1).
 slash_exists([]) -> false;
 slash_exists([Tx|T]) ->

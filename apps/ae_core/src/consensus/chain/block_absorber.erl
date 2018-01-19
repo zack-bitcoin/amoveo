@@ -28,13 +28,13 @@ handle_call({doit, BP}, _From, X) ->
     absorb_internal(BP),
     {reply, ok, X}.
 prune() -> gen_server:cast(?MODULE, prune).
-synch_prune(Blocks) -> gen_server:call(?MODULE, {prune, Blocks}).
+synch_prune(Blocks) -> gen_server:call(?MODULE, {prune, Blocks}, 10000).
 enqueue([]) -> ok;
 enqueue([B|T]) -> enqueue(B), enqueue(T);
 enqueue(B) -> gen_server:cast(?MODULE, {doit, B}).
 save([]) -> ok;
 save([B|T]) -> save(B), save(T);
-save(B) -> gen_server:call(?MODULE, {doit, B}).
+save(B) -> gen_server:call(?MODULE, {doit, B}, 10000).
 absorb_internal(Block) ->
     BH = block:hash(Block),
     NextBlock = Block#block.prev_hash,
