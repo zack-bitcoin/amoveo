@@ -46,6 +46,11 @@ We can use Amoveo smart contracts to incentivize people to advertize for Amoveo.
 
 
 
+
+
+
+
+
 > If I understand correctly, everything is valued in Veo and you are not tokenizing real world securities. I do not think this is in direct competition to the financial derivatives market. Most derivatives are used for hedging, if everything becomes priced in Veo it adds an extra dimension because now the volatility of Veo has to be factored in. It also means some option sellers will have extra capital costs because now they have to own Veo and their shares, instead of just their shares. If I got that right, Amoveo will be competing for markets like sports betting and perhaps other types of speculation/prediction.
 
 

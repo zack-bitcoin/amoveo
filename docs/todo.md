@@ -3,6 +3,7 @@
 * increase constants initial difficulty.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * developer reward should be calculated as a portion of the block reward instead of a completely seperate value. (This way I have the easier task of constantly lowering my salary, rather than asking for raises all the time.)
+* the master account should be unable to spend tokens for the first 6 months.
 
 
 
@@ -18,8 +19,6 @@
 * close channels from the light node.
 
 * lightning payments from the light node.
-
-* the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
 - fails to publish a price.
@@ -43,6 +42,8 @@
 
 ### Things we can do after launch of mainnet
 
+
+* the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
 
 * the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
 
