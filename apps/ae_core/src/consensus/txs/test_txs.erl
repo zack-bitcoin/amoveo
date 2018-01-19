@@ -23,7 +23,7 @@ test() ->
     S = test(13),%testing governance
     S = test(11),%try out the oracle
     S = test(16),%try out the oracle further
-    S = test(17),%blocks filled with create account txs
+    %S = test(17),%blocks filled with create account txs
     timer:sleep(300),
     S.
 absorb(Tx) -> 
@@ -850,9 +850,21 @@ test(15) ->
     %block:check2(Block),
     success;
 test(17) ->
+    io:fwrite(packer:pack(now())),
+    io:fwrite("\n"),
     %fill blocks completely with create_account txs.
     create_accounts(650),%fits 636 at the start.
+    io:fwrite(packer:pack(now())),
+    io:fwrite("\n"),
     mine_blocks(1),
+    io:fwrite(packer:pack(now())),
+    io:fwrite("\n"),
+    create_accounts(650),%fits 636 at the start.
+    io:fwrite(packer:pack(now())),
+    io:fwrite("\n"),
+    mine_blocks(1),
+    io:fwrite(packer:pack(now())),
+    io:fwrite("\n"),
     success.
 create_accounts(0) -> ok;
 create_accounts(N) ->

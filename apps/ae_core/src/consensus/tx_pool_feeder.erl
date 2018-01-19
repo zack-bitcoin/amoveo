@@ -48,7 +48,8 @@ absorb(SignedTx) ->
     TP = tx_pool:get(),
     Trees = TP#tx_pool.trees,
     Txs = TP#tx_pool.txs,
-    TN = length(Txs) rem 10,
+    {ok, PP} = application:get_env(ae_core, prune_txs),
+    TN = length(Txs) rem PP,
     if 
 	TN == 0 ->
 	    B = #block{trees = Trees},

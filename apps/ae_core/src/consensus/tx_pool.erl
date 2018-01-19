@@ -15,12 +15,10 @@ handle_call(dump, _From, _OldState) ->
     State = current_state(),
     {reply, 0, State};
 handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
-    io:fwrite("tx_pool absorb tx \n"),
     NewTxs = [Tx | F#tx_pool.txs],
     BlockSize = size(packer:pack(NewTxs)),
     Governance = trees:governance(NewTrees),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
-    io:fwrite(packer:pack([BlockSize, MaxBlockSize])),
     F2 = case BlockSize > MaxBlockSize of
              true ->
                  io:fwrite("Cannot absorb tx - block is already full"),
