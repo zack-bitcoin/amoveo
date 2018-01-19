@@ -302,17 +302,21 @@ function channels_main() {
         merkle.request_proof("channels", trie_key, function(val) {
             //var balance_div = document.getElementById("balance_div");
             var spk = cd.them[1];
-	    var expiration = cd[7];
+	    var expiration = cd.expiration;
 	    var height = top_header[1];
             var amount = spk[7];
             var betAmount = sum_bets(spk[3]);
 
             var mybalance = ((val[4] - amount - betAmount)/ 100000000).toString();
             var serverbalance = ((val[5] + amount) / 100000000).toString();
+	    console.log("refresh balance");
+	    console.log(JSON.stringify(cd));
+	    console.log(expiration);
+	    console.log(height);
             balance_div.innerHTML = (translate.words("your_balance").concat(": ")).concat(
                 mybalance).concat(translate.words("server_balance").concat(": ")).concat(
                     serverbalance).concat(translate.words("time_left").concat(": ")).concat(
-			(expiration - height));
+			(cd.expiration - height).toString());
 			    
         });
     }

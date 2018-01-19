@@ -401,7 +401,12 @@ function translate_human() {
                     en: "lightning spend",
                     sp: "micropago",
                     tp: "pana mani insa ilo tu mani"
-                }
+                },
+		"time_left": {
+		    en: "time left in blocks",
+		    sp: "tiempo hasta termino en bloques",
+		    tp: "tenpo la pini"
+		}
                };
     }
     var language_object = human_language();

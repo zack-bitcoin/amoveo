@@ -3,7 +3,7 @@ import json
 
 def market_test():
     print("market test")
-    request(1, 'mine_block', [1, 10000000], 0.01)
+    request(1, 'mine_block', [1, 10000000], 0.02)
     request(1, 'sync', [[127,0,0,1], 3020])
     request(1, 'sync', [[127,0,0,1], 3030], 0.01)
     pub1 = "BOLh/UTJK6g4bgC4hSh941OEVdNfTBvqAU5OvgWWL3Dnv8M/dy6oioTIH9fHXdWaXXPop1BxQ/x3MfoEd3lnV7g="
@@ -17,7 +17,7 @@ def market_test():
     request(2, 'load_key', [pub1, priv1, brainwallet])
     request(3, 'load_key', [pub2, priv2, brainwallet])
     request(1, 'create_account', [pub1, 1000000000], 0.04)
-    request(1, 'create_account', [pub2, 1000000000], 0.05)
+    request(1, 'create_account', [pub2, 1000000000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
     request(2, 'sync', [[127,0,0,1], 3030], 0.2)
     fee = 51000

@@ -2,25 +2,14 @@
 
 * increase constants initial difficulty.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
-* chalang signatures are double-base64 encoded. they should only be single-encoded.
 * developer reward should be calculated as a portion of the block reward instead of a completely seperate value. (This way I have the easier task of constantly lowering my salary, rather than asking for raises all the time.)
+
+
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-
-* there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
-I took notes. Search for "verify" in channels.js
-
-* javascript light node should tell you how much time is left in your channel, and give an option for extending the time limit.
-
-* make sure that markets are working from the light wallet.
-
-* there needs to be an interface to pushing the channel expiration further into the future by paying a fee. We already have an api for sending a payment to the server, we just modify this slightly.
-
-* the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
-
-- Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
+* Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
 
 * when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
 
@@ -32,13 +21,15 @@ I took notes. Search for "verify" in channels.js
 
 * the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
 
-* We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
-
-* outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
+* We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
+- fails to publish a price.
+- double-publishes prices.
 
 * the gui needs to make it convenient to collect winnings after a market is closed.
 
 * the random number generator for the light node is probably not good enough, especially if you are on a phone.
+
+* make sure that markets are working from the light wallet.
 
 
 
@@ -52,6 +43,12 @@ I took notes. Search for "verify" in channels.js
 
 ### Things we can do after launch of mainnet
 
+
+* the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
+
+* javascript light node should give an option for extending the time limit in channels. there is an api for paying the server already. modify this slightly.
+
+* outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
 
 * we need to test out the different formats for "true" and "false" in the javascript light node.
 
