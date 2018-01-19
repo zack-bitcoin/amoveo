@@ -71,6 +71,7 @@ function bets_main() {
         console.log(JSON.stringify(ss));
         if (JSON.stringify(ss.code) == JSON.stringify([0,0,0,0,4])) {//this is what an unmatched trade looks like.
             var spk2 = remove_bet(n-1, spk);
+	    spk2[8] += 1000000;
             var sspk2 = keys.sign(spk2);
             var msg = ["cancel_trade", keys.pub(), n, sspk2];
             variable_public_get(msg, function(x) {

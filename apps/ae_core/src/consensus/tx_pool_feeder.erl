@@ -51,7 +51,7 @@ absorb(SignedTx) ->
     {ok, PP} = application:get_env(ae_core, prune_txs),
     TN = length(Txs) rem PP,
     if 
-	TN == 0 ->
+	(TN == 0) andalso (length(Txs) > 0) ->
 	    B = #block{trees = Trees},
 	    block_absorber:synch_prune([B]);
 	true -> ok

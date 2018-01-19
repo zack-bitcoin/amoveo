@@ -383,7 +383,8 @@ cancel_trade_common(N, OldCD) ->
     SS = element(N-1, list_to_tuple(OldCD#cd.ssme)),
     true = ((SS#ss.code) == <<0,0,0,0,4>>),%this is what it looks like when a bet is unmatched
     SPK2 = spk:remove_bet(N-1, SPK),
-    keys:sign(SPK2).
+    SPK3 = SPK2#spk{nonce = SPK2#spk.nonce + 1000000},
+    keys:sign(SPK3).
 matchable(Bet, SS) ->
     SSC = SS#ss.code,
     BK = Bet#bet.key,

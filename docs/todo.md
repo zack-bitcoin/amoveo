@@ -11,10 +11,6 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
-
-* when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
-
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
 * close channels from the light node.
@@ -28,6 +24,8 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 * the gui needs to make it convenient to collect winnings after a market is closed.
 
 * the random number generator for the light node is probably not good enough, especially if you are on a phone.
+
+* it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely.
 
 * make sure that markets are working from the light wallet.
 
