@@ -1,6 +1,6 @@
 ### things to do for the next hard fork
 
-* increase constants initial difficulty.
+* increase constants initial difficulty and block reward.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * developer reward should be calculated as a portion of the block reward instead of a completely seperate value. (This way I have the easier task of constantly lowering my salary, rather than asking for raises all the time.)
 * the master account should be unable to spend tokens for the first 6 months. multiply number of blocks in history by the current block time to estimate.
@@ -12,6 +12,8 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 ### Things to do before the launch of the official Amoveo blockchain.
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
+
+* the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
 
 * close channels from the light node.
 
@@ -43,8 +45,6 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 
 * the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
-
-* the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
 
 * javascript light node should give an option for extending the time limit in channels. there is an api for paying the server already. modify this slightly.
 
