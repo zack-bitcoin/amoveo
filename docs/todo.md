@@ -11,10 +11,6 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* we should do tests where the blocks are full.
-
-* right now the only max_block_size check is in the tx_pool. We also need this check in block_absorber.
-
 * Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
 
 * when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.

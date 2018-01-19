@@ -8,3 +8,5 @@ This means that the initial rate of txs will be slightly faster than 1 tx per se
 
 A full block is currently limited to about 0.8 megabytes of space.
 This includes about 0.23 megabytes of txs, and 0.63 megabytes of merkle proofs so that light nodes can verify the block.
+
+So each create-account tx takes up about 1.3 kilobytes of space, which is about 2x bigger than the average bitcoin tx.

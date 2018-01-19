@@ -310,6 +310,16 @@ check(Block) ->
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
     PrevStateHash = trees:root_hash2(OldTrees, Roots),
+    Txs = Block#block.txs,
+    BlockSize = size(packer:pack(Txs)),
+    Governance = trees:governance(OldTrees),
+    MaxBlockSize = governance:get_value(max_block_size, Governance),
+    ok = case BlockSize > MaxBlockSize of
+	     true -> 
+		 io:fwrite("error, this block is too big\n"),
+		 bad;
+	     false -> ok
+    end,
     case LN of
         true -> 
             %OldSparseTrees = 
