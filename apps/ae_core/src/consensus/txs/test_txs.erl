@@ -325,20 +325,18 @@ test(9) ->
 
     Fee = constants:initial_fee() + 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
-    Trees2 = (tx_pool:get())#tx_pool.trees,
 
     CID = 5,
 
     Delay = 10,
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    Trees3 = (tx_pool:get())#tx_pool.trees,
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Bet = spk:new_bet(Code, Code, 50),
@@ -346,22 +344,17 @@ test(9) ->
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
-    {Ctx3, _} = channel_solo_close:make(constants:master_pub(),Fee, SignedScriptPubKey, [ScriptSig], Trees3),
-    %{Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, Fee),
+    Ctx3 = channel_solo_close:make_dict(constants:master_pub(),Fee, SignedScriptPubKey, [ScriptSig]),
     Stx3 = keys:sign(Ctx3),
-    %SStx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
     mine_blocks(1),
     timer:sleep(50),
-    Trees35 = (tx_pool:get())#tx_pool.trees,
     ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
-    {Ctx35, _} = channel_slash_tx:make(keys:pubkey(), Fee, SignedScriptPubKey, [ScriptSig2], Trees35),
+    Ctx35 = channel_slash_tx:make_dict(keys:pubkey(), Fee, SignedScriptPubKey, [ScriptSig2]),
     Stx35 = keys:sign(Ctx35),
     absorb(Stx35),
 
-    Trees4 = (tx_pool:get())#tx_pool.trees,
-
-    {Ctx4, _} = channel_team_close_tx:make(CID, Trees4, 0, Fee),
+    Ctx4 = channel_team_close_tx:make_dict(CID, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
