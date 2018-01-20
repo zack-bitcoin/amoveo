@@ -92,11 +92,12 @@ write(Oracle, Root) ->
     Meta = Oracle#oracle.orders,
     trie:put(key_to_int(Key), V, Meta, Root, ?name).
 dict_get(ID, Dict) ->
-    X = dict:fetch({oracles, ID}, Dict),
+    X = dict:find({oracles, ID}, Dict),
     case X of
-        0 -> empty;
-        {0, _} -> empty;
-        {Y, Meta} ->
+	error -> empty;
+        {ok, 0} -> empty;
+        {ok, {0, _}} -> empty;
+        {ok, {Y, Meta}} ->
             Y2 = deserialize(Y),
             Y2#oracle{orders = Meta}
     end.

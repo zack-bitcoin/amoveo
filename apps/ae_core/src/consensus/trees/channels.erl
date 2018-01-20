@@ -142,6 +142,7 @@ key_to_int(X) when is_integer(X) ->
 dict_get(Key, Dict) ->
     X = dict:fetch({channels, Key}, Dict),
     case X of
+	error -> error;
         0 -> empty;
         empty -> empty;
         _ -> deserialize(X)

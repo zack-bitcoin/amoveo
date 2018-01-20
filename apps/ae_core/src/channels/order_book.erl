@@ -221,9 +221,7 @@ keys() ->
 add(Order, OID) ->
     gen_server:call(?MODULE, {add, Order, OID}).
 match(OID) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Oracles = trees:oracles(Trees),
-    {_, Oracle, _} = oracles:get(OID, Oracles),
+    Oracle = trees:dict_tree_get(oracles, OID),
     Result = Oracle#oracle.result,
     case Result of
         0 -> gen_server:call(?MODULE, {match, OID});
