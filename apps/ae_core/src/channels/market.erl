@@ -96,7 +96,6 @@ test() ->
     Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
     Stx3 = keys:sign(Ctx),
     test_txs:absorb(Stx3),
-    Trees4 = (tx_pool:get())#tx_pool.trees,
     
     CID = 5,
     Delay = 0,
