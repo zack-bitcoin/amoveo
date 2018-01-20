@@ -81,8 +81,9 @@ new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
 new_channel_tx(CID, Acc2, Bal1, Bal2, Fee, Delay) ->
     %the delay is how many blocks you have to wait to close the channel if your partner disappears.
     %delay is also how long you have to stop your partner from closing at the wrong state.
-    Trees = (tx_pool:get())#tx_pool.trees,
-    {Tx, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Acc2, Bal1, Bal2, Delay, Fee),
+    %Trees = (tx_pool:get())#tx_pool.trees,
+    %{Tx, _} = new_channel_tx:make(CID, Trees, keys:pubkey(), Acc2, Bal1, Bal2, Delay, Fee),
+    Tx = new_channel_tx:make_dict(CID, keys:pubkey(), Acc2, Bal1, Bal2, Delay, Fee),
     keys:sign(Tx).
 new_channel_with_server(Bal1, Bal2, Delay, Expires) ->
     new_channel_with_server(Bal1, Bal2, Delay, Expires, ?IP, ?Port).
