@@ -41,7 +41,7 @@ create_account(NewAddr, Amount) ->
     create_account(NewAddr, Amount, ?Fee + Cost).
 create_account(NewAddr, Amount, Fee) ->
     tx_maker0(
-      fun(Dict, Trees) ->
+      fun(_, _) ->
               create_account_tx:make_dict(NewAddr, Amount, Fee, keys:pubkey())
       end).
 coinbase(ID) ->
@@ -64,8 +64,8 @@ spend(ID, Amount) ->
             end
     end.
 spend(ID, Amount, Fee) ->
-    F = fun(Dict, Trees) ->
-		spend_tx:make_dict(ID, Amount, Fee, keys:pubkey(), Trees, Dict) end,
+    F = fun(_, _) ->
+		spend_tx:make_dict(ID, Amount, Fee, keys:pubkey()) end,
     tx_maker0(F).
 delete_account(ID) ->
     Cost = trees:dict_tree_get(governance, delete_acc_tx),
