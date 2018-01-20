@@ -8,7 +8,7 @@
          prune/0, prune/1,
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
-	 hash2blocks/1,
+	 hash2blocks/1, dict_tree_get/4,
          restore/3]).
 -include("../../records.hrl").
 -record(trees, {accounts, channels, existence,
@@ -186,4 +186,13 @@ restore(Root, Fact, Meta) ->
         _ -> Leaf = Leaf2
     end,
     Out.
+dict_tree_get(TreeID, Key, Dict, Trees) ->
+    Tree = trees:TreeID(Trees),
+    case TreeID:dict_get(Key, Dict) of
+	empty -> {_, A, _} = TreeID:get(Key, Tree),
+		 A;
+	X -> X
+    end.
+
+	    
     

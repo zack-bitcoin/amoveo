@@ -5,12 +5,7 @@
 from(X) -> X#spend.from.
 to(X) -> X#spend.to. 
 make_dict(To, Amount, Fee, From, Trees, Dict) ->
-    Accounts = trees:accounts(Trees),
-    Acc = case accounts:dict_get(From, Dict) of
-		       empty ->  {_, A, P} = accounts:get(From, Accounts),
-				 A;
-		       X -> X
-		   end,
+    Acc = trees:dict_tree_get(accounts, From, Dict, Trees),
     #spend{from = From, nonce = Acc#acc.nonce + 1, to = To, amount = Amount, fee = Fee}.
 	    
 make(To, Amount, Fee, From, Trees) ->
