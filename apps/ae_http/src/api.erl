@@ -103,10 +103,13 @@ new_channel_with_server(Bal1, Bal2, Delay, Expires) ->
 new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
     Trees = (tx_pool:get())#tx_pool.trees,
     Channels = trees:channels(Trees),
-    CID = find_id(channels, Channels),
+    CID = find_id2(channels, Channels),
     Governance = trees:governance(Trees),
     Cost = governance:get_value(nc, Governance),
     new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires).
+find_id2(_, _) ->
+    <<X:256>> = crypto:strong_rand_bytes(32),
+    X.
 find_id(Name, Tree) ->
     find_id(Name, 1, Tree).
 find_id(Name, N, Tree) ->
