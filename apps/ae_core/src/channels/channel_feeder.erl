@@ -52,11 +52,10 @@ handle_cast({close, SS, STx}, X) ->
 		end,
     DemandedAmount = channel_team_close_tx:amount(Tx),
     TP = tx_pool:get(),
-    Trees = TP#tx_pool.trees,
+    TD = TP#tx_pool.dict,
     Height = TP#tx_pool.height,
-    Accounts = trees:accounts(Trees),
-    {CalculatedAmount, NewNonce, _} = spk:run(safe, SS, SPK, Height, 0, Trees),
-    {OldAmount, OldNonce, _} = spk:run(safe, CD#cd.ssthem, SPK, Height, 0, Trees),
+    {CalculatedAmount, NewNonce, _} = spk:dict_run(safe, SS, SPK, Height, 0, TD),
+    {OldAmount, OldNonce, _} = spk:dict_run(safe, CD#cd.ssthem, SPK, Height, 0, TD),
     if
 	NewNonce > OldNonce -> ok; 
 	NewNonce == OldNonce ->
@@ -132,7 +131,6 @@ handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
     {reply, ok, X};
 handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     TP = tx_pool:get(),
-    Trees = TP#tx_pool.trees,
     Height = TP#tx_pool.height,
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
@@ -151,16 +149,15 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     DefaultSS = market:unmatched(OID),
     SSME = [DefaultSS|OldCD#cd.ssme],
     SSThem = [DefaultSS|OldCD#cd.ssthem],
-    spk:run(fast, SSME, SPK, Height, 0, Trees),%sanity test
-    spk:run(fast, SSThem, SPK, Height, 0, Trees),%sanity test
+    %Trees = TP#tx_pool.trees,
+    %spk:run(fast, SSME, SPK, Height, 0, Trees),%sanity test
+    %spk:run(fast, SSThem, SPK, Height, 0, Trees),%sanity test
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = SSME, ssthem = SSThem},
     channel_manager:write(ID, NewCD),
     {reply, SSPK2, X};
 handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
     {ok, LightningFee} = application:get_env(ae_core, lightning_fee),

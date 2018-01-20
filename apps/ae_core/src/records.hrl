@@ -66,7 +66,7 @@
 -record(tx_pool, {txs = [],
                   trees,%this changes once per tx
                   block_trees,%this changes once per block
-                  dict = dict:new(), 
+                  dict = dict:new(), %mirrors trees.
                   facts = [], 
                   height = 0,
 		  bytes = 2}).
