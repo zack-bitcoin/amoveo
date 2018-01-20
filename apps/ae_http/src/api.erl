@@ -327,24 +327,13 @@ oracle_bet(Fee, OID, Type, Amount) ->
 	end,
     tx_maker0(F).
 oracle_close(OID) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(oracle_close, Governance),
+    Trees = (tx_pool:get())#tx_pool.block_trees,
+    Dict = (tx_pool:get())#tx_pool.dict,
+    Cost = trees:dict_tree_get(governance, oracle_close, Dict, Trees),
     oracle_close(?Fee+Cost, OID).
 oracle_close(Fee, OID) ->
-    F = fun(Trees) ->
-		oracle_close_tx:make(keys:pubkey(), Fee, OID, Trees)
-	end,
-    tx_maker(F).
-
-new_oracle_close(OID) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(oracle_close, Governance),
-    oracle_close(?Fee+Cost, OID).
-new_oracle_close(Fee, OID) ->
     F = fun(Dict, Trees) ->
-		oracle_close_tx:make(keys:pubkey(), Fee, OID, Trees, Dict)
+		oracle_close_tx:make_dict(keys:pubkey(), Fee, OID, Trees, Dict)
 	end,
     tx_maker0(F).
 oracle_winnings(OID) ->
