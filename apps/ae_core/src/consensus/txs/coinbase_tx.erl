@@ -14,6 +14,7 @@ make(From, Trees) ->
 go(Tx, Dict, NewHeight) ->
     From = Tx#coinbase.from,
     X = accounts:dict_get(From, Dict),
+    %io:fwrite(Dict),%contains the key {governance, 1}, 
     BlockReward = governance:dict_get_value(block_reward, Dict),
     Nacc = case X of
                empty -> accounts:new(From, BlockReward);

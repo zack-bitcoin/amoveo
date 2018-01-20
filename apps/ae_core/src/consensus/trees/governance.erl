@@ -194,13 +194,19 @@ dict_get_value(Key, Dict) when ((Key == timeout) or (Key == delete_acc_tx)) ->
     V = Gov#gov.value,
     -tree_number_to_value(V);
 dict_get_value(Key, Dict) ->
-    Gov = dict_get(Key, Dict),
-    V = Gov#gov.value,
-    tree_number_to_value(V).
+    case dict_get(Key, Dict) of
+	empty -> empty;
+	Gov ->
+	    V = Gov#gov.value,
+	    tree_number_to_value(V)
+    end.
 dict_get(Key, Dict) when is_integer(Key) ->
-    deserialize(dict:fetch({governance, Key}, Dict));
+    case dict:find({governance, Key}, Dict) of
+	error -> empty;
+	{ok, X} -> deserialize(X)
+    end;
 dict_get(Key, Dict) ->
-    deserialize(dict:fetch({governance, name2number(Key)}, Dict)).
+    dict_get(name2number(Key), Dict).
 
 
 %% Tests

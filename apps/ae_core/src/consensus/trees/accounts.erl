@@ -38,11 +38,13 @@ update_bets(Account, Bets) ->
 key_to_int(X) ->
     trees:hash2int(ensure_decoded_hashed(X)).
 dict_get(Key, Dict) ->
-    X = dict:fetch({accounts, Key}, Dict),
+    %X = dict:fetch({accounts, Key}, Dict),
+    X = dict:find({accounts, Key}, Dict),
     case X of
-        0 -> empty;
-        {0, _} -> empty;
-        {Y, Meta} -> 
+        error -> empty;
+        {ok, 0} -> empty;
+        {ok, {0, _}} -> empty;
+        {ok, {Y, Meta}} -> 
             Y2 = deserialize(Y),
             Y2#acc{bets = Meta}
     end.
