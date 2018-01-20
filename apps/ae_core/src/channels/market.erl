@@ -101,7 +101,7 @@ test() ->
     CID = 5,
     Delay = 0,
     
-    {Ctx4, _} = new_channel_tx:make(CID, Trees4, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    Ctx4 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv), 
     test_txs:absorb(SStx4),
