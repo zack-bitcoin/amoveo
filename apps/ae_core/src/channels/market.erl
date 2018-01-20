@@ -110,7 +110,8 @@ test() ->
 test2(NewPub) ->
     OID = 3,
     Fee = 20 + constants:initial_fee(),
-    Trees5 = (tx_pool:get())#tx_pool.trees,
+    Trees5 = (tx_pool:get())#tx_pool.block_trees,
+    Dict = (tx_pool:get())#tx_pool.dict,
     MarketID = 405,
     PrivDir = code:priv_dir(ae_core),
     Location = constants:oracle_bet(),
@@ -133,14 +134,15 @@ test2(NewPub) ->
     %amount, newnonce, shares, delay
     {0, 1, 101} = 
 	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
+	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict),
     
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
-    Trees6 = (tx_pool:get())#tx_pool.trees,
     SS3 = evidence(SPD, OID),
     %amount, newnonce, shares, delay
     {60, 2, 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
-	spk:run(fast, [SS3], SPK, 1, 0, Trees6),
+	spk:run(fast, [SS3], SPK, 1, 0, Trees5),
+
 
     %Next we try closing the bet as if the market maker cheated by publishing 2 different prices too near to each other in time.
     SPD2 = price_declaration_maker(Height+1, Price-1, 5000, MarketID),
@@ -149,14 +151,14 @@ test2(NewPub) ->
     {0,2000001,0} = 
 	%The nonce is super high, and the delay is zero, because if the market maker is publishing contradictory prices, he should be punished immediately.
 	%Amount is 0 because none of the money goes to the market maker.
-       spk:run(fast, [SS4], SPK, 1, 0, Trees6),
+       spk:run(fast, [SS4], SPK, 1, 0, Trees5),
 
 
     test_txs:mine_blocks(1),
     timer:sleep(1000),
-    Trees60 = (tx_pool:get())#tx_pool.trees,
+    Trees60 = (tx_pool:get())#tx_pool.block_trees,
     %close the oracle with oracle_close
-    {Tx6, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees60),
+    Tx6 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
     Stx6 = keys:sign(Tx6),
     test_txs:absorb(Stx6),
     timer:sleep(1000),
