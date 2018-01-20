@@ -295,8 +295,8 @@ oracle_bet(OID, Type, Amount) ->
     Cost = trees:dict_tree_get(governance, oracle_bet),
     oracle_bet(?Fee+Cost, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->
-    F = fun(Dict, Trees) ->
-		oracle_bet_tx:make_dict(keys:pubkey(), Fee, OID, Type, Amount, Trees, Dict)
+    F = fun(_, _) ->
+		oracle_bet_tx:make_dict(keys:pubkey(), Fee, OID, Type, Amount)
 	end,
     tx_maker0(F).
 oracle_close(OID) ->
