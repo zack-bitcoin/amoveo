@@ -60,8 +60,12 @@ doit({test, N}) ->
     M = 8 * N,
     {test_response, <<0:M>>};
 doit({spend_tx, Amount, Fee, From, To}) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    {Tx, _} = spend_tx:make(To, Amount, Fee, From, Trees),
+    %Trees = (tx_pool:get())#tx_pool.trees,
+    %{Tx, _} = spend_tx:make(To, Amount, Fee, From, Trees),
+    TP = tx_pool:get(),
+    BT = TP#tx_pool.block_trees,
+    D = TP#tx_pool.dict,
+    Tx = spend_tx:make_dict(To, Amount, Fee, From, BT, D),
     {ok, Tx};
 doit({create_account_tx, Amount, Fee, From, To}) ->
     Trees = (tx_pool:get())#tx_pool.trees,
