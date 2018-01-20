@@ -108,7 +108,8 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     Acc1 = keys:pubkey(),
     {ok, Acc2} = talker:talk({pubkey}, IP, Port),
     Trees = (tx_pool:get())#tx_pool.trees,
-    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
+    %{Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
+    Tx = new_channel_tx:make_dict(CID, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
     {ok, ChannelDelay} = application:get_env(ae_core, channel_delay),
     {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
     %make sure the customer is aware of the time_value before they click this button. Don't request time_value now, it should have been requested earlier.
