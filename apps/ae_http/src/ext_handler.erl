@@ -60,22 +60,14 @@ doit({test, N}) ->
     M = 8 * N,
     {test_response, <<0:M>>};
 doit({spend_tx, Amount, Fee, From, To}) ->
-    %Trees = (tx_pool:get())#tx_pool.trees,
-    %{Tx, _} = spend_tx:make(To, Amount, Fee, From, Trees),
-    TP = tx_pool:get(),
-    BT = TP#tx_pool.block_trees,
-    D = TP#tx_pool.dict,
-    Tx = spend_tx:make_dict(To, Amount, Fee, From, BT, D),
+    Tx = spend_tx:make_dict(To, Amount, Fee, From),
     {ok, Tx};
 doit({create_account_tx, Amount, Fee, From, To}) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    {Tx, _} = create_account_tx:new(To, Amount, Fee, From, Trees),
+    Tx = create_account_tx:make_dict(To, Amount, Fee, From),
     {ok, Tx};
 doit({new_channel_tx, Acc1, Acc2, B1, B2, Delay, Fee}) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Channels = trees:channels(Trees),
-    CID = api:find_id(channels, Channels),
-    {Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, B1, B2, Delay, Fee),
+    CID = api:find_id2(),
+    Tx = new_channel_tx:make_dict(CID, Acc1, Acc2, B1, B2, Delay, Fee),
     {ok, Tx};
 doit({time_value}) ->
     application:get_env(ae_core, time_value);
@@ -87,7 +79,6 @@ doit({new_channel, STx, SSPK, Expires}) ->
     true = LifeSpan > MinimumChannelLifespan,
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
-    Trees = (tx_pool:get())#tx_pool.trees,
     TheirPub = channel_feeder:other(Tx),
     error = channel_manager:read(TheirPub),
     %undefined = channel_feeder:cid(Tx),
@@ -118,9 +109,9 @@ doit({channel_close, CID, PeerId, SS, STx}) ->
     {ok, CD} = channel_manager:read(PeerId),
     SPK = CD#cd.me,
     Height = (headers:top())#header.height,
-    Trees = (tx_pool:get())#tx_pool.trees,
-    {Amount, _, _} = spk:run(fast, SS, SPK, Height, 0, Trees),
-    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
+    Dict = (tx_pool:get())#tx_pool.dict,
+    {Amount, _, _} = spk:dict_run(fast, SS, SPK, Height, 0, Dict),
+    Tx = channel_team_close_tx:make_dict(CID, Amount, Fee),
     SSTx = keys:sign(STx),
     tx_pool_feeder:absorb(SSTx),
     {ok, SSTx};
@@ -162,9 +153,7 @@ doit({proof, TreeName, ID, Hash}) ->
 doit({list_oracles}) ->
     {ok, order_book:keys()};
 doit({oracle, X}) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Oracles = trees:oracles(Trees),
-    {_, Oracle, _} = oracles:get(X, Oracles),
+    Oracle = trees:dict_tree_get(oracles, X),
     {ok, Question} = oracle_questions:get(Oracle#oracle.question),
     {ok, OB} = order_book:data(X),
     {ok, {OB, Question}};
