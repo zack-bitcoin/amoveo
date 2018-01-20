@@ -101,12 +101,10 @@ new_channel_tx(CID, Acc2, Bal1, Bal2, Fee, Delay) ->
 new_channel_with_server(Bal1, Bal2, Delay, Expires) ->
     new_channel_with_server(Bal1, Bal2, Delay, Expires, ?IP, ?Port).
 new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Channels = trees:channels(Trees),
-    CID = find_id2(channels, Channels),
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(nc, Governance),
+    CID = find_id2(),
+    Cost = trees:dict_tree_get(governance, nc),
     new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires).
+find_id2() -> find_id2(1, 1).
 find_id2(_, _) ->
     <<X:256>> = crypto:strong_rand_bytes(32),
     X.
@@ -261,9 +259,8 @@ pretty_display(I) ->
     [Formatted] = io_lib:format("~.8f", [F]),
     Formatted.
 channel_team_close(CID, Amount) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(ctc, Governance),
+    %Cost = governance:get_value(ctc, Governance),
+    Cost = trees:dict_tree_get(governance, ctc),
     channel_team_close(CID, Amount, ?Fee+Cost).
 channel_team_close(CID, Amount, Fee) ->
     Trees = (tx_pool:get())#tx_pool.trees,
@@ -294,19 +291,13 @@ new_question_oracle(Start, Question)->
     ID = find_id(oracles, Oracles),
     new_question_oracle(Start, Question, ID).
 new_question_oracle(Start, Question, ID)->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Oracles = trees:oracles(Trees),
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(oracle_new, Governance),
+    Cost = trees:dict_tree_get(governance, oracle_new),
     F = fun(Trs) ->
 		oracle_new_tx:make(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0, Trs) end,
     tx_maker(F).
 
 new_new_question_oracle(Start, Question, ID)->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Oracles = trees:oracles(Trees),
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(oracle_new, Governance),
+    Cost = trees:dict_tree_get(governance, oracle_new),
     F = fun(Dict, Trs) ->
 		oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0, Trs, Dict) end,
     tx_maker0(F).
@@ -320,9 +311,7 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, DiffOracleID, GovNumber, GovAmount, Trs, Dict) end,
     tx_maker0(F).
 oracle_bet(OID, Type, Amount) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(oracle_bet, Governance),
+    Cost = trees:dict_tree_get(governance, oracle_bet),
     oracle_bet(?Fee+Cost, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->
     F = fun(Dict, Trees) ->
@@ -340,9 +329,7 @@ oracle_close(Fee, OID) ->
 	end,
     tx_maker0(F).
 oracle_winnings(OID) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(oracle_winnings, Governance),
+    Cost = trees:dict_tree_get(governance, oracle_winnings),
     oracle_winnings(?Fee+Cost, OID).
 oracle_winnings(Fee, OID) ->
     F = fun(Dict, Trees) ->
@@ -350,9 +337,7 @@ oracle_winnings(Fee, OID) ->
 	end,
     tx_maker0(F).
 oracle_unmatched(OracleID) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(unmatched, Governance),
+    Cost = trees:dict_tree_get(governance, unmatched),
     oracle_unmatched(?Fee+Cost, OracleID).
 oracle_unmatched(Fee, OracleID) ->
     F = fun(Dict, Trees) ->
@@ -396,9 +381,7 @@ mine_block(Periods, Times) ->
 channel_close() ->
     channel_close(?IP, ?Port).
 channel_close(IP, Port) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(ctc, Governance),
+    Cost = trees:dict_tree_get(governance, ctc),
     channel_close(IP, Port, ?Fee+Cost).
 channel_close(IP, Port, Fee) ->
     {ok, PeerId} = talker:talk({pubkey}, IP, Port),

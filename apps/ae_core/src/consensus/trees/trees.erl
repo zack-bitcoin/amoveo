@@ -9,6 +9,7 @@
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
 	 hash2blocks/1, dict_tree_get/4,
+	 dict_tree_get/2,
          restore/3]).
 -include("../../records.hrl").
 -record(trees, {accounts, channels, existence,
@@ -186,6 +187,11 @@ restore(Root, Fact, Meta) ->
         _ -> Leaf = Leaf2
     end,
     Out.
+dict_tree_get(TreeID, Key) ->
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.block_trees,
+    Dict = TP#tx_pool.dict,
+    dict_tree_get(TreeID, Key, Dict, Trees).
 dict_tree_get(governance, Key, Dict, Trees) ->
     %first check if the thing we want is stored in the RAM Dict for quick access. If not, load it from the hard drive.
     case governance:dict_get_value(Key, Dict) of
