@@ -1,5 +1,5 @@
 -module(oracle_winnings_tx).
--export([go/3, make/4, make_dict/5, from/1, oracle_id/1]).
+-export([go/3, make/4, make_dict/3, from/1, oracle_id/1]).
 -include("../../records.hrl").
 
 %If you bet in an oracle, and the oracle has closed, this is how you get your winnings out.
@@ -8,8 +8,8 @@
 -record(oracle_winnings, {from, nonce, fee, oracle_id}).
 from(X) -> X#oracle_winnings.from.
 oracle_id(X) -> X#oracle_winnings.oracle_id.
-make_dict(From, Fee, OID, Trees, Dict) ->
-    Acc = trees:dict_tree_get(accounts, From, Dict, Trees),
+make_dict(From, Fee, OID) ->
+    Acc = trees:dict_tree_get(accounts, From),
     #oracle_winnings{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, oracle_id = OID}.
     
 make(From, Fee, OID, Trees) ->

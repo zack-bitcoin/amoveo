@@ -26,16 +26,6 @@ tx_maker0(F) ->
 	    ok;
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
-    
-tx_maker(F) -> 
-    Trees = (tx_pool:get())#tx_pool.trees,
-    {Tx, _} = F(Trees),
-    case keys:sign(Tx) of
-	{error, locked} -> 
-	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
-	    ok;
-	Stx -> tx_pool_feeder:absorb(Stx)
-    end.
 create_account(NewAddr, Amount) ->
     Cost = trees:dict_tree_get(governance, create_acc_tx),
     create_account(NewAddr, Amount, ?Fee + Cost).
@@ -305,7 +295,7 @@ oracle_close(OID) ->
     Cost = trees:dict_tree_get(governance, oracle_close, Dict, Trees),
     oracle_close(?Fee+Cost, OID).
 oracle_close(Fee, OID) ->
-    F = fun(Dict, Trees) ->
+    F = fun(_, _) ->
 		oracle_close_tx:make_dict(keys:pubkey(), Fee, OID)
 	end,
     tx_maker0(F).
@@ -313,8 +303,8 @@ oracle_winnings(OID) ->
     Cost = trees:dict_tree_get(governance, oracle_winnings),
     oracle_winnings(?Fee+Cost, OID).
 oracle_winnings(Fee, OID) ->
-    F = fun(Dict, Trees) ->
-		oracle_winnings_tx:make_dict(keys:pubkey(), Fee, OID, Trees, Dict)
+    F = fun(_, _) ->
+		oracle_winnings_tx:make_dict(keys:pubkey(), Fee, OID)
 	end,
     tx_maker0(F).
 oracle_unmatched(OracleID) ->
