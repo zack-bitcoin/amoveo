@@ -38,7 +38,7 @@ absorb_internal(SignedTx) ->
 	    %io:fwrite("\n"),
 	    absorb_unsafe(SignedTx)
     end.
-absorb_unsafe(SignedTx, Trees, Height, _Dict) ->
+absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %This is the most expensive part of absorbing transactions.
     Querys = proofs:txs_to_querys([SignedTx], Trees),
     %io:fwrite(packer:pack([17, now()])),
@@ -46,7 +46,8 @@ absorb_unsafe(SignedTx, Trees, Height, _Dict) ->
     Facts = proofs:prove(Querys, Trees),
     %io:fwrite(packer:pack([18, now()])),
     %io:fwrite("\n"),
-    Dict2 = proofs:facts_to_dict(Facts, dict:new()),
+    %Dict2 = proofs:facts_to_dict(Facts, dict:new()),
+    Dict2 = proofs:facts_to_dict(Facts, Dict),
     %io:fwrite(packer:pack([19, now()])),
     %io:fwrite("\n"),
     NewDict = txs:digest_from_dict([SignedTx], Dict2, Height + 1),

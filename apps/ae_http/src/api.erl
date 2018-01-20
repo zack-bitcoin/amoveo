@@ -37,9 +37,6 @@ tx_maker(F) ->
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
 create_account(NewAddr, Amount) ->
-    %Trees = (tx_pool:get())#tx_pool.block_trees,
-    %Dict = (tx_pool:get())#tx_pool.dict,
-    %Cost = trees:dict_tree_get(governance, create_acc_tx, Dict, Trees),
     Cost = trees:dict_tree_get(governance, create_acc_tx),
     create_account(NewAddr, Amount, ?Fee + Cost).
 create_account(NewAddr, Amount, Fee) ->
@@ -313,7 +310,7 @@ oracle_close(OID) ->
     oracle_close(?Fee+Cost, OID).
 oracle_close(Fee, OID) ->
     F = fun(Dict, Trees) ->
-		oracle_close_tx:make_dict(keys:pubkey(), Fee, OID, Trees, Dict)
+		oracle_close_tx:make_dict(keys:pubkey(), Fee, OID)
 	end,
     tx_maker0(F).
 oracle_winnings(OID) ->
@@ -381,7 +378,8 @@ channel_close(IP, Port, Fee) ->
     SS = [],
     {Amount, _Nonce, _Delay} = spk:run(fast, SS, SPK, Height, 0, Trees),
     CID = SPK#spk.cid,
-    {Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
+    Tx = channel_team_close_tx:make_dict(CID, Amount, Fee),
+    %{Tx, _} = channel_team_close_tx:make(CID, Trees, Amount, Fee),
     STx = keys:sign(Tx),
     {ok, SSTx} = talker:talk({channel_close, CID, keys:pubkey(), SS, STx}, IP, Port),
     tx_pool_feeder:absorb(SSTx),
