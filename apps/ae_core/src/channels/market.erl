@@ -111,7 +111,7 @@ test2(NewPub) ->
     OID = 3,
     Fee = 20 + constants:initial_fee(),
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
-    Dict = (tx_pool:get())#tx_pool.dict,
+    %Dict5 = (tx_pool:get())#tx_pool.dict,
     MarketID = 405,
     PrivDir = code:priv_dir(ae_core),
     Location = constants:oracle_bet(),
@@ -134,7 +134,7 @@ test2(NewPub) ->
     %amount, newnonce, shares, delay
     {0, 1, 101} = 
 	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
-	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict),
+	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict5),
     
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
     SS3 = evidence(SPD, OID),
@@ -156,7 +156,7 @@ test2(NewPub) ->
 
     test_txs:mine_blocks(1),
     timer:sleep(1000),
-    Trees60 = (tx_pool:get())#tx_pool.trees,
+    Trees60 = (tx_pool:get())#tx_pool.block_trees,
     %Dict60 = (tx_pool:get())#tx_pool.dict,
     %close the oracle with oracle_close
     Tx6 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
@@ -169,7 +169,7 @@ test2(NewPub) ->
     %Now that the bet is settled the delay is only zero so that we can get our money out as fast as possible.
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
-    Trees61 = (tx_pool:get())#tx_pool.trees,
+    Trees61 = (tx_pool:get())#tx_pool.block_trees,
     {95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),
     %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
