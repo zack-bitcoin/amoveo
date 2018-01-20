@@ -93,7 +93,8 @@ new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
 find_id2() -> find_id2(1, 1).
 find_id2(_, _) ->
     %<<X:256>> = crypto:strong_rand_bytes(32),
-    <<X:8>> = crypto:strong_rand_bytes(1),
+    %<<X:48>> = crypto:strong_rand_bytes(6),
+    <<X:80>> = crypto:strong_rand_bytes(10),
     X.
 find_id(Name, Tree) ->
     find_id(Name, 1, Tree).

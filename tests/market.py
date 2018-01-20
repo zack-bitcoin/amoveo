@@ -51,6 +51,7 @@ def market_test():
     request(1, 'sync', [[127,0,0,1], 3020], 0.04)
     request(1, 'combine_cancel_assets', [[127,0,0,1], 3030], 0.1)
     request(1, 'oracle_bet', [oid, 1, 2600000000], 0.05)
+def dont_doit():
     request(1, 'mine_block', [11, 10000], 1)
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)

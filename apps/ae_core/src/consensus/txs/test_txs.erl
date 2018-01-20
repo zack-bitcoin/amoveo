@@ -453,7 +453,10 @@ test(11) ->
     %testing the oracle
     %launch an oracle with oracle_new
     Question = <<>>,
-    OID = 1,
+    <<OID:80>> = crypto:strong_rand_bytes(10),
+    io:fwrite("test 11 oid is "),
+    io:fwrite(packer:pack([OID])),
+    io:fwrite("\n"),
     Fee = constants:initial_fee() + 20,
     headers:dump(),
     block:initialize_chain(),

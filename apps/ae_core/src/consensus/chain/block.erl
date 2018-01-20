@@ -314,12 +314,6 @@ check(Block) ->
     BlockSize = size(packer:pack(Txs)),
     Governance = trees:governance(OldTrees),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
-    io:fwrite("block size is "),
-    io:fwrite(integer_to_list(BlockSize)),
-    io:fwrite("\n"),
-    io:fwrite("max block size is "),
-    io:fwrite(integer_to_list(MaxBlockSize)),
-    io:fwrite("\n"),
     ok = case BlockSize > MaxBlockSize of
 	     true -> 
 		 io:fwrite("error, this block is too big\n"),
