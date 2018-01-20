@@ -641,20 +641,16 @@ test(14) ->
 
     Fee = constants:initial_fee() + 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    Trees2 = (tx_pool:get())#tx_pool.trees,
-    Accounts2 = trees:accounts(Trees2),
 
     CID = 5,
 
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, 10, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    Trees3 = (tx_pool:get())#tx_pool.trees,
-    Accounts3 = trees:accounts(Trees3),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
@@ -663,30 +659,18 @@ test(14) ->
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
-    {Ctx3, _} = channel_solo_close:make(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
+    Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
     mine_blocks(1),
     timer:sleep(50),
-    Trees4 = (tx_pool:get())#tx_pool.trees,
-    Accounts4 = trees:accounts(Trees4),
 
     ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
-    {Ctx4, _} = channel_slash_tx:make(NewPub,Fee,SignedScriptPubKey,[ScriptSig2],Trees4),
+    Ctx4 = channel_slash_tx:make_dict(NewPub,Fee,SignedScriptPubKey,[ScriptSig2]),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv),
-    %Stx4 = keys:sign(Ctx4, Accounts4),
     absorb(Stx4),
-    %{Trees5, _, _} = tx_pool:data(),
 
-    %{Ctx5, _} = grow_channel_tx:make(CID, Trees5, 22, 33, Fee),
-    %Stx5 = keys:sign(Ctx5),
-    %SStx5 = testnet_sign:sign_tx(Stx5, NewPub, NewPriv),
-    %absorb(SStx5),
-
-    Trees6 = (tx_pool:get())#tx_pool.trees,
-    Accounts6 = trees:accounts(Trees6),
-
-    {Ctx6, _} = channel_timeout_tx:make(constants:master_pub(),Trees6,CID,[],Fee),
+    Ctx6 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx6 = keys:sign(Ctx6),
     absorb(Stx6),
     BP2 = block:get_by_height(0),
