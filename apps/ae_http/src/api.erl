@@ -86,8 +86,6 @@ find_id(Name, N, Tree) ->
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     Acc1 = keys:pubkey(),
     {ok, Acc2} = talker:talk({pubkey}, IP, Port),
-    Trees = (tx_pool:get())#tx_pool.trees,
-    %{Tx, _} = new_channel_tx:make(CID, Trees, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
     Tx = new_channel_tx:make_dict(CID, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
     {ok, ChannelDelay} = application:get_env(ae_core, channel_delay),
     {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
@@ -96,7 +94,6 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
     SPK0 = new_channel_tx:spk(Tx, ChannelDelay),
     SPK = SPK0#spk{amount = CFee},
-    Accounts = trees:accounts(Trees),
     STx = keys:sign(Tx),
     SSPK = keys:sign(SPK),
     Msg = {new_channel, STx, SSPK, Expires},
@@ -162,7 +159,6 @@ channel_spend(IP, Port, Amount) ->
     {ok, CD} = channel_manager:read(PeerId),
     OldSPK = testnet_sign:data(CD#cd.them),
     ID = keys:pubkey(),
-    Trees = (tx_pool:get())#tx_pool.trees,
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
     Payment = keys:sign(SPK),
     M = {channel_payment, Payment, Amount},
@@ -182,8 +178,6 @@ lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
     ESS = keys:encrypt([SS, Code, Amount], Pubkey),
     SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code),
     {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:pubkey(), Pubkey, ESS}, IP, Port),
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Accounts = trees:accounts(Trees),
     true = testnet_sign:verify(keys:sign(SSPK2)),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
