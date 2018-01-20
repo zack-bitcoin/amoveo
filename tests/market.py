@@ -26,10 +26,13 @@ def market_test():
     request(2, 'new_channel_with_server', [[127,0,0,1], 3030, 27, 10000, 9999, fee, 4, 1000], 0.04)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
     request(1, 'sync', [[127,0,0,1], 3020], 0.04)
-    request(1, 'new_question_oracle', [0, 'aXMgMisyPTQ/'], 0.04)
+    oid = request(1, 'new_question_oracle', [0, 'aXMgMisyPTQ/'], 0.04)
+    oid = json.loads(oid)[1]
+    print("python oid is ")
+    print(oid)
     request(1, 'sync', [[127,0,0,1], 3020])
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
-    oid = 1
+    #oid = 1
     request(3, 'new_market', [oid, 20, 5], 0.05)
     height = request(3, 'height', [], 0.01)
     height = json.loads(height)[1]

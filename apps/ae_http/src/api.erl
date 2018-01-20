@@ -92,7 +92,8 @@ new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
     new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires).
 find_id2() -> find_id2(1, 1).
 find_id2(_, _) ->
-    <<X:256>> = crypto:strong_rand_bytes(32),
+    %<<X:256>> = crypto:strong_rand_bytes(32),
+    <<X:8>> = crypto:strong_rand_bytes(1),
     X.
 find_id(Name, Tree) ->
     find_id(Name, 1, Tree).
@@ -273,13 +274,15 @@ channel_slash(_CID, Fee, SPK, SS) ->
 new_question_oracle(Start, Question)->
     Trees = (tx_pool:get())#tx_pool.trees,
     Oracles = trees:oracles(Trees),
-    ID = find_id(oracles, Oracles),
+    %ID = find_id(oracles, Oracles),
+    ID = find_id2(),
     new_question_oracle(Start, Question, ID).
 new_question_oracle(Start, Question, ID)->
     Cost = trees:dict_tree_get(governance, oracle_new),
     F = fun(Trs) ->
 		oracle_new_tx:make(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0, Trs) end,
-    tx_maker(F).
+    tx_maker(F),
+    ID.
 
 new_new_question_oracle(Start, Question, ID)->
     Cost = trees:dict_tree_get(governance, oracle_new),
