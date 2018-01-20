@@ -261,7 +261,7 @@ channel_timeout(Ip, Port) ->
     Dict = (tx_pool:get())#tx_pool.dict,
     {ok, CD} = channel_manager:read(Other),
     CID = CD#cd.cid,
-    {Tx, _} = channel_timeout_tx:dict_make(keys:pubkey(), Trees, CID, [], Fee, Dict),
+    {Tx, _} = channel_timeout_tx:make_dict(keys:pubkey(), Trees, CID, [], Fee, Dict),
     case keys:sign(Tx) of
         {error, locked} ->
             io:fwrite("your password is locked");
@@ -270,7 +270,7 @@ channel_timeout(Ip, Port) ->
     end.
 channel_slash(_CID, Fee, SPK, SS) ->
     F = fun(Dict, Trees) ->
-		channel_slash_tx:dict_make(keys:pubkey(), Fee, SPK, SS, Trees, Dict) end,
+		channel_slash_tx:make_dict(keys:pubkey(), Fee, SPK, SS, Trees, Dict) end,
     tx_maker0(F).
 new_question_oracle(Start, Question)->
     Trees = (tx_pool:get())#tx_pool.trees,
@@ -401,7 +401,7 @@ channel_solo_close(Other) ->
     ok.
 channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
     F = fun(Dict, Trees) ->
-		channel_solo_close:dict_make(keys:pubkey(), Fee, SPK, ScriptSig, Trees, Dict) end,
+		channel_solo_close:make_dict(keys:pubkey(), Fee, SPK, ScriptSig, Trees, Dict) end,
     tx_maker0(F).
 add_peer(IP, Port) ->
     peers:add({IP, Port}),
