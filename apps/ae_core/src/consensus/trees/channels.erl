@@ -140,12 +140,12 @@ key_to_int(X) when is_integer(X) ->
     <<Y:256>> = hash:doit(<<X:256>>),
     Y.
 dict_get(Key, Dict) ->
-    X = dict:fetch({channels, Key}, Dict),
+    X = dict:find({channels, Key}, Dict),
     case X of
-	error -> error;
-        0 -> empty;
-        empty -> empty;
-        _ -> deserialize(X)
+	error -> empty;
+        {ok, 0} -> empty;
+        {ok, empty} -> empty;
+        {ok, Y} -> deserialize(Y)
     end.
 get(ID, Channels) ->
     true = (ID - 1) < math:pow(2, 256),
