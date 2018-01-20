@@ -311,8 +311,8 @@ oracle_unmatched(OracleID) ->
     Cost = trees:dict_tree_get(governance, unmatched),
     oracle_unmatched(?Fee+Cost, OracleID).
 oracle_unmatched(Fee, OracleID) ->
-    F = fun(Dict, Trees) ->
-		oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID, Trees, Dict)
+    F = fun(_, _) ->
+		oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)
 	end,
     tx_maker0(F).
 account(Pubkey) when size(Pubkey) == 65 ->
