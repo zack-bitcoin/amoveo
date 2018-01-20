@@ -156,17 +156,22 @@ test2(NewPub) ->
 
     test_txs:mine_blocks(1),
     timer:sleep(1000),
-    Trees60 = (tx_pool:get())#tx_pool.block_trees,
+    Trees60 = (tx_pool:get())#tx_pool.trees,
+    %Dict60 = (tx_pool:get())#tx_pool.dict,
     %close the oracle with oracle_close
     Tx6 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
+    %{Tx6, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees60),
     Stx6 = keys:sign(Tx6),
     test_txs:absorb(Stx6),
+    test_txs:mine_blocks(1),
     timer:sleep(1000),
     %amount, newnonce, shares, delay
     %Now that the bet is settled the delay is only zero so that we can get our money out as fast as possible.
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
-    {95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees60),
+    Trees61 = (tx_pool:get())#tx_pool.trees,
+    {95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),
+    %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),

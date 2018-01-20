@@ -121,7 +121,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
             %io:fwrite("we have a secret\n"),
             TP = tx_pool:get(),
-            Trees = TP#tx_pool.trees,
+            Trees = TP#tx_pool.block_trees,
             Height = TP#tx_pool.height,
 	    State = chalang_state(Height, 0, Trees),
 	    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
@@ -269,7 +269,7 @@ run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, De
 run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     ScriptSig = SS#ss.code,
     true = chalang:none_of(ScriptSig),
-    Trees = (tx_pool:get())#tx_pool.trees,
+    Trees = (tx_pool:get())#tx_pool.block_trees,
     %F = prove_facts(Bet#bet.prove, Trees),
     F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,

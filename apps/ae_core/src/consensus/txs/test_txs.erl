@@ -416,7 +416,6 @@ test(11) ->
 
     %mine_blocks(1),
     timer:sleep(150),
-    %Trees3 = (tx_pool:get())#tx_pool.trees,
     %close the oracle with oracle_close
     Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
     Stx3 = keys:sign(Tx3),
@@ -766,7 +765,6 @@ create_accounts(N) ->
     Fee = constants:initial_fee() + 20,
     io:fwrite(packer:pack([2, now()])),%2000 or 20 000
     io:fwrite("\n"),
-    %Trees = (tx_pool:get())#tx_pool.trees,
     io:fwrite(packer:pack([3, now()])),%1300
     io:fwrite("\n"),
     Ctx = create_account_tx:make_dict(NewPub, 1, Fee, constants:master_pub()),
