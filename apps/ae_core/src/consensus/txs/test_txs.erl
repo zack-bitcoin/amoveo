@@ -698,15 +698,13 @@ test(15) ->
 
     Fee = constants:initial_fee() + 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    Trees2 = (tx_pool:get())#tx_pool.trees,
-    Accounts2 = trees:accounts(Trees2),
 
     CID = 5,
 
-    {Ctx2, _} = new_channel_tx:make(CID, Trees2, constants:master_pub(), NewPub, 100, 200, 10, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -714,8 +712,6 @@ test(15) ->
     Secret = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
     %secrets:add(Code, Secret),
     %timer:sleep(100),
-    Trees3 = (tx_pool:get())#tx_pool.trees,
-    Accounts3 = trees:accounts(Trees3),
     
     Delay = 0,
     ChannelNonce = 0,
@@ -728,13 +724,13 @@ test(15) ->
     ScriptPubKey = keys:sign(SPK),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 5 int 1 ">>), []),
-    {Ctx3, _} = channel_solo_close:make(NewPub, Fee, SignedScriptPubKey, [ScriptSig], Trees3), 
+    Ctx3 = channel_solo_close:make_dict(NewPub, Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
     timer:sleep(100),
     mine_blocks(1),
     timer:sleep(50),
-    {_, _, Txs2} = tx_pool:data(),
+    Txs2 = (tx_pool:get())#tx_pool.txs,
     %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     %timer:sleep(2000),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
