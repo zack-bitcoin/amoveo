@@ -186,11 +186,20 @@ restore(Root, Fact, Meta) ->
         _ -> Leaf = Leaf2
     end,
     Out.
+dict_tree_get(governance, Key, Dict, Trees) ->
+    %first check if the thing we want is stored in the RAM Dict for quick access. If not, load it from the hard drive.
+    case governance:dict_get_value(Key, Dict) of
+	empty -> 
+	    Governance = trees:governance(Trees),
+	    governance:get_value(Key, Governance);
+	Y -> Y
+    end;
 dict_tree_get(TreeID, Key, Dict, Trees) ->
-    Tree = trees:TreeID(Trees),
     case TreeID:dict_get(Key, Dict) of
-	empty -> {_, A, _} = TreeID:get(Key, Tree),
-		 A;
+	empty -> 
+	    Tree = trees:TreeID(Trees),
+	    {_, A, _} = TreeID:get(Key, Tree),
+	    A;
 	X -> X
     end.
 

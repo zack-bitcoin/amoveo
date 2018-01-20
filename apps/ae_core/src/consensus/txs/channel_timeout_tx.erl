@@ -1,5 +1,5 @@
 -module(channel_timeout_tx).
--export([go/3, make/5, cid/1, aid/1, spk_aid1/1, spk_aid2/1]).
+-export([go/3, make/5, make_dict/5, cid/1, aid/1, spk_aid1/1, spk_aid2/1]).
 -record(timeout, {aid = 0, nonce = 0, fee = 0, cid = 0, spk_aid1, spk_aid2}).
 -include("../../records.hrl").
 %If your partner is not helping you, this is how you start the process of closing the channel. 
@@ -9,6 +9,16 @@ aid(X) -> X#timeout.aid.
 spk_aid1(X) -> X#timeout.spk_aid1.
 spk_aid2(X) -> X#timeout.spk_aid2.
     
+   
+make_dict(ID, Trees, CID, Fee, Dict) -> 
+    Acc = trees:dict_tree_get(accounts, ID, Dict, Trees),
+    Channel = trees:dict_tree_get(channels, CID, Dict, Trees),
+    Acc1 = channels:acc1(Channel),
+    Acc2 = channels:acc2(Channel),
+    Nonce = Acc#acc.nonce,
+    #timeout{aid = ID, nonce = Nonce + 1,
+	     fee = Fee, cid = CID,
+	     spk_aid1 = Acc1, spk_aid2 = Acc2}.
     
 make(ID,Trees,CID,_Shares,Fee) ->
     %shares is a list of shares.

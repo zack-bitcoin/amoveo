@@ -1,5 +1,5 @@
 -module(new_channel_tx).
--export([go/3, make/8, spk/2, cid/1,
+-export([go/3, make/8, make_dict/9, spk/2, cid/1,
 	 acc1/1, acc2/1, bal1/1, bal2/1, delay/1]).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, 
@@ -15,6 +15,13 @@ cid(Tx) -> Tx#nc.id.
 spk(Tx, Delay) -> 
     spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
             [], 0,0, 0, Delay).
+make_dict(ID,Trees,Acc1,Acc2,Inc1,Inc2,Delay, Fee, Dict) ->
+    A = trees:dict_tree_get(accounts, Acc1, Dict, Trees),
+    Nonce = A#acc.nonce,
+    #nc{id = ID, acc1 = Acc1, acc2 = Acc2, 
+	fee = Fee, nonce = Nonce+1, bal1 = Inc1,
+	bal2 = Inc2, 
+	delay = Delay}.
 make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
     Accounts = trees:accounts(Trees),
     {_, A, Proof} = accounts:get(Acc1, Accounts),

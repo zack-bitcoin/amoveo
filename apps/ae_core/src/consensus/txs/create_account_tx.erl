@@ -1,5 +1,5 @@
 -module(create_account_tx).
--export([go/3, new/5, from/1, pubkey/1]).
+-export([go/3, new/5, make_dict/6, from/1, pubkey/1]).
 -record(create_acc_tx, {from = 0,
                         nonce = 0,
                         fee = 0,
@@ -8,6 +8,17 @@
 -include("../../records.hrl").
 from(X) -> X#create_acc_tx.from.
 pubkey(X) -> X#create_acc_tx.pubkey.
+make_dict(Pub, Amount, Fee, From, Trees, Dict) ->
+    PS = size(Pub),
+    PS = size(From),
+    PS = constants:pubkey_size(),
+    Account = trees:dict_tree_get(accounts, From, Dict, Trees),
+    #create_acc_tx{from = From,
+		   nonce = Account#acc.nonce + 1,
+		   pubkey = Pub,
+		   amount = Amount,
+		   fee = Fee}.
+    
 new(Pub, Amount, Fee, From, Trees) -> %To is a new ID. set it to any unused ID.
     PS = size(Pub),
     PS = size(From),

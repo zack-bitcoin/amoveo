@@ -1,5 +1,5 @@
 -module(channel_solo_close).
--export([go/3, make/5, from/1, id/1]).
+-export([go/3, make/5, make_dict/6, from/1, id/1]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
 -include("../../records.hrl").
@@ -7,6 +7,15 @@ from(X) -> X#csc.from.
 id(X) -> 
     SPK = X#csc.scriptpubkey,
     (testnet_sign:data(SPK))#spk.cid.
+make_dict(From, Fee, ScriptPubkey, ScriptSig, Trees, Dict) ->
+    true = is_list(ScriptSig),
+    CID = (testnet_sign:data(ScriptPubkey))#spk.cid,
+    Acc = trees:dict_tree_get(accounts, From, Dict, Trees),
+    #csc{from = From, nonce = Acc#acc.nonce+1, 
+	 fee = Fee,
+	 scriptpubkey = ScriptPubkey, 
+	 scriptsig = ScriptSig}.
+    
 make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     Accounts = trees:accounts(Trees),
     Channels = trees:channels(Trees),

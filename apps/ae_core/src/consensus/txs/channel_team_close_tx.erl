@@ -1,7 +1,7 @@
 %If you did not get slashed, and you waited delay since channel_timeout, then this is how you close the channel and get the money out.
 
 -module(channel_team_close_tx).
--export([go/3, make/4, acc1/1, acc2/1, fee/1, amount/1,
+-export([go/3, make/4, make_dict/5, acc1/1, acc2/1, fee/1, amount/1,
          aid1/1, aid2/1, id/1]).
 -record(ctc, {aid1 = 0, aid2 = 0, fee = 0,
 	      nonce = 0, id = 0, amount = 0}).
@@ -13,6 +13,16 @@ amount(Tx) -> Tx#ctc.amount.
 fee(Tx) -> Tx#ctc.fee.
 acc1(Tx) -> Tx#ctc.aid1.
 acc2(Tx) -> Tx#ctc.aid2.
+make_dict(ID,Trees,Amount,Fee,Dict) ->
+    C = trees:dict_tree_get(channels, ID, Dict, Trees),
+    A1 = channels:acc1(C),
+    A2 = channels:acc2(C),
+    Acc1 = trees:dict_tree_get(accounts, A1, Dict, Trees),
+    Nonce = Acc1#acc.nonce,
+    #ctc{id = ID, aid1 = A1, aid2 = A2, 
+	 fee = Fee, nonce = Nonce+1, 
+	 amount = Amount}.
+    
 make(ID,Trees,Amount,Fee) ->
     Accounts = trees:accounts(Trees),
     Channels = trees:channels(Trees),

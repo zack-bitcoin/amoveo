@@ -1,5 +1,5 @@
 -module(oracle_bet_tx).
--export([go/3, go2/3, make/6, id/1, from/1, to_prove/2]).
+-export([go/3, go2/3, make/6, make_dict/7, id/1, from/1, to_prove/2]).
 -include("../../records.hrl").
 -record(oracle_bet, {from, %your account id.
 		     nonce, 
@@ -23,6 +23,15 @@ to_prove(OID, Trees) ->
     
 from(X) -> X#oracle_bet.from.
 id(X) -> X#oracle_bet.id.
+make_dict(From, Fee, OID, Type, Amount, Trees, Dict) ->
+    Acc = trees:dict_tree_get(accounts, From, Dict, Trees),
+    Tx = #oracle_bet{
+       from = From, 
+       nonce = Acc#acc.nonce + 1,
+       fee = Fee,
+       id = OID,
+       type = Type,
+       amount = Amount}.
 make(From, Fee, OID, Type, Amount, Trees) ->
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),

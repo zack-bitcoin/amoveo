@@ -10,28 +10,21 @@ id(X) ->
 is_tx(Tx) ->
     is_record(Tx, cs).
 make_dict(From, Fee, ScriptPubkey, ScriptSig, Trees, Dict) ->
-    Governance = trees:governance(Trees),
-    Accounts = trees:accounts(Trees),
-    Channels = trees:channels(Trees),
     SPK = testnet_sign:data(ScriptPubkey),
     CID = SPK#spk.cid,
-    GTG = case governance:dict_get_value(time_gas, Dict) of
-	      empty -> governance:get_value(time_gas, Governance);
-	      X -> X
-	  end,
+    T = governance,
+    GTG = trees:dict_tree_get(T, time_gas, Dict, Trees),
+    GSG = trees:dict_tree_get(T, space_gas, Dict, Trees),
     true = SPK#spk.time_gas < GTG,
-    GSG = case governance:dict_get_value(space_gas, Dict) of
-	      empty -> governance:get_value(space_gas, Governance);
-	      Y -> Y
-	  end,
     true = SPK#spk.time_gas < GSG,
-    Acc = case accounts:dict_get(From, Dict) of
-	      empty ->  {_, C, _} = accounts:get(From, Accounts),
-			C;
-	      Z -> Z
-	  end,
-    ok.
-
+    Acc = trees:dict_tree_get(accounts, From, Dict, Trees),
+    Channel = trees:dict_tree_get(channels, CID, Dict, Trees),
+    Acc1 = channels:acc1(Channel),
+    Acc2 = channels:acc2(Channel),
+    #cs{from = From, nonce = Acc#acc.nonce + 1, 
+	fee = Fee, 
+	scriptpubkey = ScriptPubkey, 
+	scriptsig = ScriptSig}.
 		  
 make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     Governance = trees:governance(Trees),
