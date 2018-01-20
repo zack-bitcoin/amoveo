@@ -72,8 +72,8 @@ delete_account(ID) ->
     delete_account(ID, ?Fee + Cost).
 delete_account(ID, Fee) ->
     tx_maker0(
-      fun(Dict, Trees) ->
-              delete_account_tx:make_dict(ID, keys:pubkey(), Fee, Trees, Dict)
+      fun(_, _) ->
+              delete_account_tx:make_dict(ID, keys:pubkey(), Fee)
       end).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
     Cost = trees:dict_tree_get(governance, nc),

@@ -30,6 +30,8 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 * the gui needs to make it convenient to collect winnings after a market is closed.
 
+* the gui needs an interface for deleting your account and sending all the value to a different account.
+
 * the random number generator for the light node is probably not good enough, especially if you are on a phone.
 
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely.
