@@ -2,7 +2,7 @@
 -export([test/0,test2/1,sign_tx/3,sign/2,verify_sig/3,shared_secret/2,verify/1,data/1,
 	 empty/1,empty/0,
 	 verify_1/2,verify_2/2,
-	 new_key/0
+	 new_key/0, new_key/1
 ]).
 -record(signed, {data="", sig="", sig2=""}).
 empty() -> #signed{}.
@@ -14,8 +14,10 @@ params() -> crypto:ec_curve(secp256k1).
 shared_secret(Pub, Priv) -> en(crypto:compute_key(ecdh, de(Pub), de(Priv), params())).
 generate() -> crypto:generate_key(ecdh, params()).
 new_key() -> %We keep this around for the encryption library. it is used to generate 1-time encryption keys.
-    {Pub, Priv} = generate(),
-    {Pub, Priv}.
+    generate(). %returns {Pub, Priv}
+new_key(X) when ((size(X) == 32) and is_binary(X)) ->
+    crypto:generate_key(ecdh, params(), X).
+    
 sign(S, Priv) -> sign:sign(S, Priv).
 verify_sig(S, Sig, Pub) -> sign:verify_sig(S, Sig, Pub).
 verify_1(Tx, Pub) -> 
