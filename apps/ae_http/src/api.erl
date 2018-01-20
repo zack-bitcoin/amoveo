@@ -277,21 +277,15 @@ channel_slash(_CID, Fee, SPK, SS) ->
 new_question_oracle(Start, Question)->
     Trees = (tx_pool:get())#tx_pool.trees,
     Oracles = trees:oracles(Trees),
-    %ID = find_id(oracles, Oracles),
     ID = find_id2(),
     new_question_oracle(Start, Question, ID).
+
 new_question_oracle(Start, Question, ID)->
     Cost = trees:dict_tree_get(governance, oracle_new),
-    F = fun(Trs) ->
-		oracle_new_tx:make(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0, Trs) end,
-    tx_maker(F),
-    ID.
-
-new_new_question_oracle(Start, Question, ID)->
-    Cost = trees:dict_tree_get(governance, oracle_new),
     F = fun(Dict, Trs) ->
-		oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0, Trs, Dict) end,
-    tx_maker0(F).
+		oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0) end,
+    tx_maker0(F),
+    ID.
 new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
     GovNumber = governance:name2number(GovName),
     F = fun(Dict, Trs) ->
@@ -299,7 +293,7 @@ new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
 		ID = find_id(oracles, Oracles),
 		Recent = trees:dict_tree_get(oracles, DiffOracleID, Dict, Trs),
 		Cost = trees:dict_tree_get(governance, oracle_new, Dict, Trs),
-		oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, DiffOracleID, GovNumber, GovAmount, Trs, Dict) end,
+		oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, GovNumber, GovAmount) end,
     tx_maker0(F).
 oracle_bet(OID, Type, Amount) ->
     Cost = trees:dict_tree_get(governance, oracle_bet),

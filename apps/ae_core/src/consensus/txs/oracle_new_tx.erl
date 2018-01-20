@@ -1,5 +1,5 @@
 -module(oracle_new_tx).
--export([go/3, make/8, make_dict/9, from/1, id/1, governance/1]).
+-export([go/3, make/8, make_dict/7, from/1, id/1, governance/1]).
 -include("../../records.hrl").
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
@@ -21,8 +21,8 @@
 from(X) -> X#oracle_new.from.
 id(X) -> X#oracle_new.id.
 governance(X) -> X#oracle_new.governance.
-make_dict(From, Fee, Question, Start, ID, Governance, GovAmount, Trees, Dict) ->
-    Acc = trees:dict_tree_get(accounts, From, Dict, Trees),
+make_dict(From, Fee, Question, Start, ID, Governance, GovAmount) ->
+    Acc = trees:dict_tree_get(accounts, From),
     #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount}.
     
 make(From, Fee, Question, Start, ID, Governance, GovAmount, Trees) ->
