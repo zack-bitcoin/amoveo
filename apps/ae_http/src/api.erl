@@ -205,13 +205,11 @@ integer_channel_balance(Ip, Port) ->
     SPK = testnet_sign:data(SSPK),
     SS = CD#cd.ssthem,
     TP = tx_pool:get(),
-    Trees = TP#tx_pool.trees,
     NewHeight = TP#tx_pool.height,
-    Channels = trees:channels(Trees),
     Amount = SPK#spk.amount,
     BetAmounts = sum_bets(SPK#spk.bets),
     CID = SPK#spk.cid,
-    {_, Channel, _} = channels:get(CID, Channels),
+    Channel = trees:dict_tree_get(channels, CID),
     {channels:bal1(Channel)+Amount, channels:bal2(Channel)-Amount-BetAmounts}.
 sum_bets([]) -> 0;
 sum_bets([B|T]) ->
