@@ -37,9 +37,10 @@ tx_maker(F) ->
 	Stx -> tx_pool_feeder:absorb(Stx)
     end.
 create_account(NewAddr, Amount) ->
-    Trees = (tx_pool:get())#tx_pool.block_trees,
-    Dict = (tx_pool:get())#tx_pool.dict,
-    Cost = trees:dict_tree_get(governance, create_acc_tx, Dict, Trees),
+    %Trees = (tx_pool:get())#tx_pool.block_trees,
+    %Dict = (tx_pool:get())#tx_pool.dict,
+    %Cost = trees:dict_tree_get(governance, create_acc_tx, Dict, Trees),
+    Cost = trees:dict_tree_get(governance, create_acc_tx),
     create_account(NewAddr, Amount, ?Fee + Cost).
 create_account(NewAddr, Amount, Fee) ->
     tx_maker0(
