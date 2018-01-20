@@ -27,10 +27,11 @@ deserialize(B) ->
     #exist{hash = <<Hash:HS>>, height = Height}.
 dict_get(Hash, Dict) ->
     true = is_binary(Hash),
-    X = dict:fetch({existence, Hash}, Dict),
+    X = dict:find({existence, Hash}, Dict),
     case X of
-        0 -> empty;
-        _ -> deserialize(X)
+	error -> empty;
+        {ok, 0} -> empty;
+        {ok, Y} -> deserialize(Y)
     end.
 key_to_int(X) ->
     <<Y:256>> = hash:doit(X),
