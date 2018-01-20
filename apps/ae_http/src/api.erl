@@ -394,13 +394,14 @@ channel_solo_close(Other) ->
     {ok, CD} = channel_manager:read(Other),
     SSPK = CD#cd.them,
     SS = CD#cd.ssthem,
-    {Tx, _} = channel_solo_close:make(keys:pubkey(), Fee, keys:sign(SSPK), SS, Trees),
+    %{Tx, _} = channel_solo_close:make(keys:pubkey(), Fee, keys:sign(SSPK), SS, Trees),
+    Tx = channel_solo_close:make_dict(keys:pubkey(), Fee, keys:sign(SSPK), SS),
     STx = keys:sign(Tx),
     tx_pool_feeder:absorb(STx),
     ok.
 channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
-    F = fun(Dict, Trees) ->
-		channel_solo_close:make_dict(keys:pubkey(), Fee, SPK, ScriptSig, Trees, Dict) end,
+    F = fun(_Dict, _Trees) ->
+		channel_solo_close:make_dict(keys:pubkey(), Fee, SPK, ScriptSig) end,
     tx_maker0(F).
 add_peer(IP, Port) ->
     peers:add({IP, Port}),
