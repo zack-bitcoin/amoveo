@@ -16,10 +16,7 @@ top() ->
     Height = TopHeader#header.height,
     {top, TopHeader, Height}.
 sign(Tx) -> keys:sign(Tx).
-tx_maker0(F) -> 
-    Trees = (tx_pool:get())#tx_pool.block_trees,
-    Dict = (tx_pool:get())#tx_pool.dict,
-    Tx = F(Dict, Trees),
+tx_maker0(Tx) -> 
     case keys:sign(Tx) of
 	{error, locked} -> 
 	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
@@ -30,15 +27,11 @@ create_account(NewAddr, Amount) ->
     Cost = trees:dict_tree_get(governance, create_acc_tx),
     create_account(NewAddr, Amount, ?Fee + Cost).
 create_account(NewAddr, Amount, Fee) ->
-    tx_maker0(
-      fun(_, _) ->
-              create_account_tx:make_dict(NewAddr, Amount, Fee, keys:pubkey())
-      end).
+    Tx = create_account_tx:make_dict(NewAddr, Amount, Fee, keys:pubkey()),
+    tx_maker0(Tx).
 coinbase(ID) ->
     K = keys:pubkey(),
-    F = fun(_, _) ->
-		coinbase_tx:make_dict(K) end,
-    tx_maker0(F).
+    tx_maker0(coinbase_tx:make_dict(K)).
 spend(ID, Amount) ->
     K = keys:pubkey(),
     if 
@@ -54,17 +47,12 @@ spend(ID, Amount) ->
             end
     end.
 spend(ID, Amount, Fee) ->
-    F = fun(_, _) ->
-		spend_tx:make_dict(ID, Amount, Fee, keys:pubkey()) end,
-    tx_maker0(F).
+    tx_maker0(spend_tx:make_dict(ID, Amount, Fee, keys:pubkey())).
 delete_account(ID) ->
     Cost = trees:dict_tree_get(governance, delete_acc_tx),
     delete_account(ID, ?Fee + Cost).
 delete_account(ID, Fee) ->
-    tx_maker0(
-      fun(_, _) ->
-              delete_account_tx:make_dict(ID, keys:pubkey(), Fee)
-      end).
+    tx_maker0(delete_account_tx:make_dict(ID, keys:pubkey(), Fee)).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
     Cost = trees:dict_tree_get(governance, nc),
     new_channel_tx(CID, Acc2, Bal1, Bal2, ?Fee+Cost, Delay).
@@ -80,7 +68,8 @@ new_channel_with_server(Bal1, Bal2, Delay, Expires) ->
 new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
     CID = find_id2(),
     Cost = trees:dict_tree_get(governance, nc),
-    new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires).
+    new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires),
+    CID.
 find_id2() -> find_id2(1, 1).
 find_id2(_, _) ->
     %<<X:256>> = crypto:strong_rand_bytes(32),
@@ -261,60 +250,45 @@ channel_timeout(Ip, Port) ->
             tx_pool_feeder:absorb(Stx)
     end.
 channel_slash(_CID, Fee, SPK, SS) ->
-    F = fun(_, _) ->
-		channel_slash_tx:make_dict(keys:pubkey(), Fee, SPK, SS) end,
-    tx_maker0(F).
+    tx_maker0(channel_slash_tx:make_dict(keys:pubkey(), Fee, SPK, SS)).
 new_question_oracle(Start, Question)->
-    new_question_oracle(Start, Question, find_id2()).
+    ID = find_id2(),
+    new_question_oracle(Start, Question, ID),
+    ID.
 
 new_question_oracle(Start, Question, ID)->
     Cost = trees:dict_tree_get(governance, oracle_new),
-    F = fun(_, _) ->
-		oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0) end,
-    tx_maker0(F),
-    ID.
+    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0)).
 new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
     GovNumber = governance:name2number(GovName),
-    F = fun(_, _) ->
-		ID = find_id2(),
-		Recent = trees:dict_tree_get(oracles, DiffOracleID),
-		Cost = trees:dict_tree_get(governance, oracle_new),
-		oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, GovNumber, GovAmount) end,
-    tx_maker0(F).
+    ID = find_id2(),
+    Recent = trees:dict_tree_get(oracles, DiffOracleID),
+    Cost = trees:dict_tree_get(governance, oracle_new),
+    Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, GovNumber, GovAmount),
+    tx_maker0(Tx),
+    ID.
 oracle_bet(OID, Type, Amount) ->
     Cost = trees:dict_tree_get(governance, oracle_bet),
     oracle_bet(?Fee+Cost, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->
-    F = fun(_, _) ->
-		oracle_bet_tx:make_dict(keys:pubkey(), Fee, OID, Type, Amount)
-	end,
-    tx_maker0(F).
+    tx_maker0(oracle_bet_tx:make_dict(keys:pubkey(), Fee, OID, Type, Amount)).
 oracle_close(OID) ->
     Trees = (tx_pool:get())#tx_pool.block_trees,
     Dict = (tx_pool:get())#tx_pool.dict,
     Cost = trees:dict_tree_get(governance, oracle_close, Dict, Trees),
     oracle_close(?Fee+Cost, OID).
 oracle_close(Fee, OID) ->
-    F = fun(_, _) ->
-		oracle_close_tx:make_dict(keys:pubkey(), Fee, OID)
-	end,
-    tx_maker0(F).
+    tx_maker0(oracle_close_tx:make_dict(keys:pubkey(), Fee, OID)).
 oracle_winnings(OID) ->
     Cost = trees:dict_tree_get(governance, oracle_winnings),
     oracle_winnings(?Fee+Cost, OID).
 oracle_winnings(Fee, OID) ->
-    F = fun(_, _) ->
-		oracle_winnings_tx:make_dict(keys:pubkey(), Fee, OID)
-	end,
-    tx_maker0(F).
+    tx_maker0(oracle_winnings_tx:make_dict(keys:pubkey(), Fee, OID)).
 oracle_unmatched(OracleID) ->
     Cost = trees:dict_tree_get(governance, unmatched),
     oracle_unmatched(?Fee+Cost, OracleID).
 oracle_unmatched(Fee, OracleID) ->
-    F = fun(_, _) ->
-		oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)
-	end,
-    tx_maker0(F).
+    tx_maker0(oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)).
 account(Pubkey) when size(Pubkey) == 65 ->
     Trees = (tx_pool:get())#tx_pool.trees,
     Accounts = trees:accounts(Trees),
@@ -385,9 +359,7 @@ channel_solo_close(Other) ->
     tx_pool_feeder:absorb(STx),
     ok.
 channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
-    F = fun(_Dict, _Trees) ->
-		channel_solo_close:make_dict(keys:pubkey(), Fee, SPK, ScriptSig) end,
-    tx_maker0(F).
+    tx_maker0(channel_solo_close:make_dict(keys:pubkey(), Fee, SPK, ScriptSig)).
 add_peer(IP, Port) ->
     peers:add({IP, Port}),
     0.
