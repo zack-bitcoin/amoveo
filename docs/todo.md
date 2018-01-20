@@ -11,6 +11,11 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* Garbage step 1: the tx_pool should use dict instead of trie.
+* Garbage step 2: the trie should batch writes to avoid writing unnecessary data.
+* Garbage step 3: New pruning algorithm- When a block is old enough to be pruned, we can compare the state tries between that block and it's ancestor. Only delete stuff that is in the older block, but not in the newer block.
+
+
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
 * the server should probably refuse to let a channel participate in any markets until it has enough confirmations.

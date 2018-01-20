@@ -20,9 +20,7 @@ is_in(Tx, [STx2 | T]) ->
 absorb_internal(SignedTx) ->
     F = tx_pool:get(),
     Trees = F#tx_pool.trees,
-    Height = F#tx_pool.height,
     Txs = F#tx_pool.txs,
-    Dict = F#tx_pool.dict,
     Governance = trees:governance(Trees),
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
@@ -38,7 +36,7 @@ absorb_internal(SignedTx) ->
         false -> 
 	    %io:fwrite(packer:pack([8, now()])),%1000
 	    %io:fwrite("\n"),
-	    absorb_unsafe(SignedTx, Trees, Height, Dict)
+	    absorb_unsafe(SignedTx)
     end.
 absorb_unsafe(SignedTx, Trees, Height, _Dict) ->
     %This is the most expensive part of absorbing transactions.
