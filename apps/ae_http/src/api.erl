@@ -282,12 +282,7 @@ oracle_unmatched(OracleID) ->
 oracle_unmatched(Fee, OracleID) ->
     tx_maker0(oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)).
 account(Pubkey) when size(Pubkey) == 65 ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Accounts = trees:accounts(Trees),
-    case accounts:get(Pubkey, Accounts) of
-        {_,empty,_} -> empty;
-        {_, A, _} -> A
-    end;
+    trees:dict_tree_get(accounts, Pubkey);
 account(Pubkey) when ((size(Pubkey) > 85) and (size(Pubkey) < 90)) ->
     account(base64:decode(Pubkey)).
 account() -> account(keys:pubkey()).
