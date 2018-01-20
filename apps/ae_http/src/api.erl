@@ -42,7 +42,7 @@ create_account(NewAddr, Amount) ->
 create_account(NewAddr, Amount, Fee) ->
     tx_maker0(
       fun(Dict, Trees) ->
-              create_account_tx:make_dict(NewAddr, Amount, Fee, keys:pubkey(), Trees, Dict)
+              create_account_tx:make_dict(NewAddr, Amount, Fee, keys:pubkey())
       end).
 coinbase(ID) ->
     K = keys:pubkey(),
@@ -394,7 +394,6 @@ channel_solo_close(Other) ->
     {ok, CD} = channel_manager:read(Other),
     SSPK = CD#cd.them,
     SS = CD#cd.ssthem,
-    %{Tx, _} = channel_solo_close:make(keys:pubkey(), Fee, keys:sign(SSPK), SS, Trees),
     Tx = channel_solo_close:make_dict(keys:pubkey(), Fee, keys:sign(SSPK), SS),
     STx = keys:sign(Tx),
     tx_pool_feeder:absorb(STx),
