@@ -59,7 +59,7 @@ check() -> gen_server:call(?MODULE, check).
 test() ->
     {Code, SS} = new_lightning(0),
     TP = tx_pool:get(),
-    Trees = TP#tx_pool.trees,
+    Trees = TP#tx_pool.block_trees,
     Height = TP#tx_pool.height,
     Amount = 200,
     Bet = spk:new_bet(Code, Code, Amount),
