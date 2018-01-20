@@ -271,14 +271,11 @@ channel_timeout(Ip, Port) ->
             tx_pool_feeder:absorb(Stx)
     end.
 channel_slash(_CID, Fee, SPK, SS) ->
-    F = fun(Dict, Trees) ->
-		channel_slash_tx:make_dict(keys:pubkey(), Fee, SPK, SS, Trees, Dict) end,
+    F = fun(_, _) ->
+		channel_slash_tx:make_dict(keys:pubkey(), Fee, SPK, SS) end,
     tx_maker0(F).
 new_question_oracle(Start, Question)->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Oracles = trees:oracles(Trees),
-    ID = find_id2(),
-    new_question_oracle(Start, Question, ID).
+    new_question_oracle(Start, Question, find_id2()).
 
 new_question_oracle(Start, Question, ID)->
     Cost = trees:dict_tree_get(governance, oracle_new),

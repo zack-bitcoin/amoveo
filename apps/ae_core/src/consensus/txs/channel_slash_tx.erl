@@ -1,5 +1,5 @@
 -module(channel_slash_tx).
--export([go/3, make/5, make_dict/6, is_tx/1, from/1, id/1]).
+-export([go/3, make/5, make_dict/4, is_tx/1, from/1, id/1]).
 -record(cs, {from, nonce, fee = 0, 
 	     scriptpubkey, scriptsig}).
 -include("../../records.hrl").
@@ -9,16 +9,16 @@ id(X) ->
     (testnet_sign:data(SPK))#spk.cid.
 is_tx(Tx) ->
     is_record(Tx, cs).
-make_dict(From, Fee, ScriptPubkey, ScriptSig, Trees, Dict) ->
+make_dict(From, Fee, ScriptPubkey, ScriptSig) ->
     SPK = testnet_sign:data(ScriptPubkey),
     CID = SPK#spk.cid,
     T = governance,
-    GTG = trees:dict_tree_get(T, time_gas, Dict, Trees),
-    GSG = trees:dict_tree_get(T, space_gas, Dict, Trees),
+    GTG = trees:dict_tree_get(T, time_gas),
+    GSG = trees:dict_tree_get(T, space_gas),
     true = SPK#spk.time_gas < GTG,
     true = SPK#spk.time_gas < GSG,
-    Acc = trees:dict_tree_get(accounts, From, Dict, Trees),
-    Channel = trees:dict_tree_get(channels, CID, Dict, Trees),
+    Acc = trees:dict_tree_get(accounts, From),
+    Channel = trees:dict_tree_get(channels, CID),
     Acc1 = channels:acc1(Channel),
     Acc2 = channels:acc2(Channel),
     #cs{from = From, nonce = Acc#acc.nonce + 1, 
