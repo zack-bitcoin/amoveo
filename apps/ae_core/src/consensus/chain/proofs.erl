@@ -362,7 +362,6 @@ test() ->
     headers:dump(),
     %block:initialize_chain(),
     tx_pool:dump(),
-    %Trees0 = (tx_pool:get())#tx_pool.trees,
     Question = <<>>,
     OID = 2,
     Fee = 20 + constants:initial_fee(),

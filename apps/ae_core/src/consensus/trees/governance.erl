@@ -214,7 +214,7 @@ dict_get(Key, Dict) ->
 test() ->
     Num = name2number(fun_limit),
     C = new(Num, 1, 0),
-    Trees = (tx_pool:get())#tx_pool.trees,
+    Trees = (tx_pool:get())#tx_pool.block_trees,
     Governance = trees:governance(Trees),
     Leaf = {gov, Num, 350, 0},
     Leaf = deserialize(serialize(Leaf)),
