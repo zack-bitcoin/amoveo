@@ -46,8 +46,8 @@ create_account(NewAddr, Amount, Fee) ->
       end).
 coinbase(ID) ->
     K = keys:pubkey(),
-    F = fun(Dict, Trees) ->
-		coinbase_tx:make(K, Trees, Dict) end,
+    F = fun(_, _) ->
+		coinbase_tx:make_dict(K) end,
     tx_maker0(F).
 spend(ID, Amount) ->
     K = keys:pubkey(),
