@@ -149,9 +149,9 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     DefaultSS = market:unmatched(OID),
     SSME = [DefaultSS|OldCD#cd.ssme],
     SSThem = [DefaultSS|OldCD#cd.ssthem],
-    %Trees = TP#tx_pool.trees,
-    %spk:run(fast, SSME, SPK, Height, 0, Trees),%sanity test
-    %spk:run(fast, SSThem, SPK, Height, 0, Trees),%sanity test
+    %Dict = TP#tx_pool.dict,
+    %spk:dict_run(fast, SSME, SPK, Height, 0, Dict),%sanity test
+    %spk:dict_run(fast, SSThem, SPK, Height, 0, Dict),%sanity test
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = SSME, ssthem = SSThem},
     channel_manager:write(ID, NewCD),
