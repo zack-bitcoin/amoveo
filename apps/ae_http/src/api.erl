@@ -56,31 +56,21 @@ spend(ID, Amount) ->
     if 
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
 	true -> 
-	    A = Amount,
-            Trees = (tx_pool:get())#tx_pool.trees,
-	    Governance = trees:governance(Trees),
-            Accounts = trees:accounts(Trees),
-            {_, B, _} = accounts:get(ID, Accounts),
+	    B = trees:dict_tree_get(accounts, ID),
             if 
                 (B == empty) ->
                     create_account(ID, Amount);
                 true ->
-                    Cost =governance:get_value(spend, Governance),
-                    spend(ID, A, ?Fee+Cost)
+		    Cost = trees:dict_tree_get(governance, spend),
+                    spend(ID, Amount, ?Fee+Cost)
             end
     end.
-%spend(ID, Amount, Fee) ->
-    %F = fun(Trees) ->
-	%	spend_tx:make(ID, Amount, Fee, keys:pubkey(), Trees) end,
-    %tx_maker(F).
 spend(ID, Amount, Fee) ->
     F = fun(Dict, Trees) ->
 		spend_tx:make_dict(ID, Amount, Fee, keys:pubkey(), Trees, Dict) end,
     tx_maker0(F).
 delete_account(ID) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(delete_acc_tx, Governance),
+    Cost = trees:dict_tree_get(governance, delete_acc_tx),
     delete_account(ID, ?Fee + Cost).
 delete_account(ID, Fee) ->
     tx_maker0(
@@ -88,9 +78,7 @@ delete_account(ID, Fee) ->
               delete_account_tx:make_dict(ID, keys:pubkey(), Fee, Trees, Dict)
       end).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    Cost = governance:get_value(nc, Governance),
+    Cost = trees:dict_tree_get(governance, nc),
     new_channel_tx(CID, Acc2, Bal1, Bal2, ?Fee+Cost, Delay).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Fee, Delay) ->
     %the delay is how many blocks you have to wait to close the channel if your partner disappears.
@@ -259,12 +247,11 @@ pretty_display(I) ->
     [Formatted] = io_lib:format("~.8f", [F]),
     Formatted.
 channel_team_close(CID, Amount) ->
-    %Cost = governance:get_value(ctc, Governance),
     Cost = trees:dict_tree_get(governance, ctc),
     channel_team_close(CID, Amount, ?Fee+Cost).
 channel_team_close(CID, Amount, Fee) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    keys:sign(channel_team_close_tx:make(CID, Trees, Amount, Fee)).
+    Tx = channel_team_close_tx:make_dict(CID, Amount, Fee),
+    keys:sign(Tx).
 channel_timeout() ->
     channel_timeout(constants:server_ip(), constants:server_port()).
 channel_timeout(Ip, Port) ->
