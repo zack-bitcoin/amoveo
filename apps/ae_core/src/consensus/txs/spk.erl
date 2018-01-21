@@ -306,7 +306,7 @@ force_update2([], [], NewBets, NewSS, A, Nonce) ->
     {NewBets, NewSS, A, Nonce};
 force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     TP = tx_pool:get(),
-    Trees = TP#tx_pool.trees,
+    Trees = TP#tx_pool.block_trees,
     Height = TP#tx_pool.height,
     State = chalang_state(Height, 0, Trees),
     {ok, FunLimit} = application:get_env(ae_core, fun_limit),
