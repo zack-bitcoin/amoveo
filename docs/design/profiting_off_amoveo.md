@@ -1,6 +1,6 @@
 "what is the minimum amount of Aeons to operate a node that makes profit?
 
-Aeternity nodes can make a profit by facilitating off-chain payments or markets.
+Amoveo nodes can make a profit by facilitating off-chain payments or markets.
 
 The maximum volume of trades in the market is limited by how much money you have. So for a big market like a presidential election, you would need to be a whale. For smaller specialized prediction markets, like making decisions for a company like Aeternity, you probably only need $2000 to run a market like that.
 
@@ -12,7 +12,7 @@ The market will determine the minimum amount of money to have a profitable node.
 There will also be off-line networks, for people who want to make payments in places that don't have internet. Like burning man. These networks will have more limited coverage, and you could probably make a profit off of a networking node even if it only had $100.
 
 
-Aeternity nodes can make a profit by participating in the oracle mechanism.
+Amoveo nodes can make a profit by participating in the oracle mechanism.
 
 Using a node to profit from the oracle mechanism has no lower limit.
 Even $1 is enough. But your profit will be in proportion to your investment. Someone who participated with $1000 would earn profit 1000 times as quickly.
