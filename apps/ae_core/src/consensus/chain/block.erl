@@ -340,7 +340,7 @@ check(Block) ->
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
-    NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),%this is coming out broken. the root_hash of oracle_bets stored in accounts is not updating correctly for the oracle_close tx type.
+    NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
     %NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
     NewTrees3 = dict_update_trie(OldTrees, NewDict),
     Block2 = Block#block{trees = NewTrees3},

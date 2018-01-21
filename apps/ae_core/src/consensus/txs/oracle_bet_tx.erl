@@ -77,15 +77,6 @@ sum_order_amounts([], N) -> N;
 sum_order_amounts([H|T], N) -> 
     A = orders:amount(H),
     sum_order_amounts(T, A+N).
-give_bets([], _Type, Accounts, _OID) -> Accounts;
-give_bets([Order|T], Type, Accounts, OID) ->
-    ID = orders:aid(Order),
-    {_, Acc, _} = accounts:get(ID, Accounts),
-    OldBets = Acc#acc.bets,
-    NewBets = oracle_bets:add_bet(OID, Type, 2*orders:amount(Order), OldBets),
-    Acc2 = accounts:update_bets(Acc, NewBets),
-    Accounts2 = accounts:write(Acc2, Accounts),
-    give_bets(T, Type, Accounts2, OID).
 dict_give_bets([], _Type, Dict, _OID) -> Dict;
 dict_give_bets([Order|T], Type, Dict, OID) ->
     ID = orders:aid(Order),
