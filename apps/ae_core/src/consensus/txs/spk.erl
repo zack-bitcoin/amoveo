@@ -287,8 +287,8 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     }.
 force_update(SPK, SSOld, SSNew) ->
     F = tx_pool:get(),
+    Trees = F#tx_pool.block_trees,
     Dict = F#tx_pool.dict,
-    Trees = F#tx_pool.trees,
     Height = F#tx_pool.height,
     {_, NonceOld,  _} =  run(fast, SSOld, SPK, Height, 0, Trees),
     %we can't use dict here, because not all the information we need is stored in the dict.
