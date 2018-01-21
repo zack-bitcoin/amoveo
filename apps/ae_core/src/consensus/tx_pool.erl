@@ -37,7 +37,7 @@ handle_call({absorb_tx, NewDict, Tx}, _From, F) ->
          end,
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
-    {reply, 0, #tx_pool{txs = [], trees = NewTrees, block_trees = NewTrees, height = Height}};
+    {reply, 0, #tx_pool{txs = [], block_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) -> {reply, F, F}.
 handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(_Info, State) -> {noreply, State}.
@@ -66,7 +66,6 @@ state2(Block) ->
 	    state2(PrevHeader);
 	_ ->
             Trees = Block#block.trees,
-	    #tx_pool{trees = Trees,
-                     block_trees = Trees, 
+	    #tx_pool{block_trees = Trees, 
                      height = Block#block.height}
     end.
