@@ -33,5 +33,5 @@ Miners can completely ignore the blockchain. They just do the work provided by t
 
 The consensus cost to run an light node will be practically free. You can turn one on by visiting a webpage.
 
-Im guessing we would have about 1000 full nodes to maintain the network's security. So the cost of operating Amoveo at a capacity of 10 billion people will be about $35 000 per day.
-Bitcoin is giving out 12.5*144*12000= $21 million a day in block rewards, so $35k shouldn't matter.
+I'm guessing we would have about 1000 full nodes to maintain the network's security. So the cost of operating Amoveo at a capacity of 10 billion people will be about $35 000 per day.
+Bitcoin is giving out 12.5 * 144 * 12000= $21 million a day in block rewards, so $35k shouldn't matter.
