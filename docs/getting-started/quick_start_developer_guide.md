@@ -1,4 +1,4 @@
-Thank you for your interest in Aeternity.
+Thank you for your interest in Amoveo.
 This doc is an introduction to the technology.
 It is made to help you be able to start contributing to the software as quickly as possible.
 
