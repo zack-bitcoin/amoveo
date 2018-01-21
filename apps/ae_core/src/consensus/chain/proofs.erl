@@ -4,7 +4,6 @@
          key/1]).
 -define(Header, 1).
 -record(proof, {tree, value, root, key, path}).
--record(key, {pub, id}). %used for shared, oracle_bets, and orders
 -include("../../records.hrl").
 
 root(X) -> X#proof.root.

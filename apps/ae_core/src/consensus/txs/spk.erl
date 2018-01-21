@@ -462,7 +462,6 @@ test2() ->
     run(fast, SSME, SPK, Height, 0, Trees).
 test() ->
     %test prove_facts.
-    Trees = (tx_pool:get())#tx_pool.trees,
     BlockTrees = (tx_pool:get())#tx_pool.block_trees,
     Pub = constants:master_pub(),
     GovID = 2,
@@ -471,15 +470,10 @@ test() ->
     [[[<<6:32>>, <<GovID:32>>, Gov5], %6th tree is governance. 5th thing is "delete channel reward"
       [<<1:32>>, BPub, Acc1]]] = %1st tree is accounts. 1 is for account id 1.
 	chalang:vm(Code, 100000, 100000, 1000, 1000, State),
-    %Governance = trees:governance(Trees),
-    %{_, Govern5, _} = governance:get(GovID, Governance),
     Govern5 = trees:dict_tree_get(governance, GovID),
-    %Accounts = trees:accounts(Trees),
-    %{_, Account1, _} = accounts:get(constants:master_pub(), Accounts),
     Account1 = trees:dict_tree_get(accounts, constants:master_pub()),
     %io:fwrite(packer:pack([governance:deserialize(Gov5), Govern5])),
-%[-6,["gov",2,1100,0],889981]
-    %io:fwrite("\n"),
+    %[-6,["gov",2,1100,0],889981]
     Acc1 = accounts:serialize(Account1),
     %Govern5 = governance:element(3, governance:deserialize(Gov5)),
     %Gov5 = governance:serialize(Govern5),
