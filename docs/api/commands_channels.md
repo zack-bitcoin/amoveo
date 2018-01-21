@@ -1,7 +1,7 @@
 Terminal commands to control channels
 ===============
 
-####Join the Aeternity channel network
+####Join the Amoveo channel network
 Your balance divided by the receiving limit needs to be bigger than 1/2. Delay is how long at most you would have to wait to get your money out.
 ```
 api:new_channel_with_server(YourBalance, ReceivingLimit, Delay).
