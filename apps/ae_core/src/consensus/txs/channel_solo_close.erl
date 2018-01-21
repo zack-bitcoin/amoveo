@@ -87,10 +87,8 @@ wait_block(X, SPK, SS) ->
             wait_block(X, SPK, SS)
     end.
 slash_it(SPK, SS) ->
-    Trees = (tx_pool:get())#tx_pool.trees,
-    Governance = trees:governance(Trees),
-    GovCost = governance:get_value(cs, Governance),
+    GovCost = trees:dict_tree_get(governance, cs),
     {ok, TxFee} = application:get_env(ae_core, tx_fee),
-    {Tx, _} = channel_slash_tx:make(keys:pubkey(), TxFee + GovCost, keys:sign(SPK), SS, Trees),
+    Tx = channel_slash_tx:make_dict(keys:pubkey(), TxFee + GovCost, keys:sign(SPK), SS),
     Stx = keys:sign(Tx),
     tx_pool_feeder:absorb(Stx).
