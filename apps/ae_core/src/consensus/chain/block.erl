@@ -360,40 +360,24 @@ dict_update_trie(Trees, Dict) ->
     Keys = dict:fetch_keys(Dict),
     {Orders, Keys2} = get_things(orders, Keys),
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
-    %io:fwrite(packer:pack([9, now()])),
-    %io:fwrite("\n"),
     {Accounts, Keys4} = get_things(accounts, Keys3),
-    %io:fwrite(packer:pack([10, now()])),
-    %io:fwrite("\n"),
     {Oracles, Keys5} = get_things(oracles, Keys4),
     Dict2 = dict_update_trie_orders(Trees, Orders, Dict),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2),
-    %io:fwrite(packer:pack([11, now()])),
-    %io:fwrite("\n"),
     Trees2 = dict_update_trie_account(Trees, Accounts, Dict3),
-    %io:fwrite(packer:pack([12, now()])),
-    %io:fwrite("\n"),
     Trees3 = dict_update_trie_oracles(Trees2, Oracles, Dict3),
     dict_update_trie2(Trees3, Keys5, Dict3).
 dict_update_trie2(T, [], _) -> T;
 dict_update_trie2(Trees, [H|T], Dict) ->
-    %io:fwrite(packer:pack([13, now()])),
-    %io:fwrite("\n"),
     {Type, Key} = H,
     New = Type:dict_get(Key, Dict),
-    %io:fwrite(packer:pack([14, now()])),
-    %io:fwrite("\n"),
     Tree = trees:Type(Trees),
     Tree2 = case New of
                 empty -> Type:delete(Key, Tree);
                 _ -> Type:write(New, Tree)
             end,
-    %io:fwrite(packer:pack([15, now()])),%12000
-    %io:fwrite("\n"),
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
-    %io:fwrite(packer:pack([16, now()])),%200
-    %io:fwrite("\n"),
     dict_update_trie2(Trees2, T, Dict).
 dict_update_trie_oracles(T, [], _) -> T;
 dict_update_trie_oracles(Trees, [H|T], Dict) ->

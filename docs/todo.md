@@ -11,8 +11,7 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* Garbage step 1: the tx_pool should use dict instead of trie.
-- tx_pool_feeder:absorb_unsafe should not calculate NewTrees.
+*remove trees from tx_pool record.
 * Garbage step 2: the trie should batch writes to avoid writing unnecessary data.
 * Garbage step 3: New pruning algorithm- When a block is old enough to be pruned, we can compare the state tries between that block and it's ancestor. Only delete stuff that is in the older block, but not in the newer block.
 

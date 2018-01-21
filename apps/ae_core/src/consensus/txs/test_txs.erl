@@ -741,7 +741,7 @@ test(17) ->
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
     %fill blocks completely with create_account txs.
-    create_accounts(650),%fits 636 at the start.
+    create_accounts(650, block:height()),%fits 636 at the start.
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
     mine_blocks(1),
@@ -755,29 +755,18 @@ test18(0) -> success;
 test18(N) ->
     test(17),
     test18(N-1).
-create_accounts(0) -> ok;
-create_accounts(N) ->
+create_accounts(0, Salt) -> ok;
+create_accounts(N, Salt) ->
     io:fwrite("create account "),
     io:fwrite(integer_to_list(N)),
     io:fwrite("\n"),
-    io:fwrite(packer:pack([1, now()])),%200
-    io:fwrite("\n"),
-    {NewPub,_NewPriv} = testnet_sign:new_key(<<N:256>>),
+    M = N + (1000*Salt),
+    {NewPub,_NewPriv} = testnet_sign:new_key(<<M:256>>),
     Fee = constants:initial_fee() + 20,
-    io:fwrite(packer:pack([2, now()])),%2000 or 20 000
-    io:fwrite("\n"),
-    io:fwrite(packer:pack([3, now()])),%1300
-    io:fwrite("\n"),
     Ctx = create_account_tx:make_dict(NewPub, 1, Fee, constants:master_pub()),
-    io:fwrite(packer:pack([4, now()])),%750
-    io:fwrite("\n"),
     Stx = keys:sign(Ctx),
-    io:fwrite(packer:pack([5, now()])),%18000
-    io:fwrite("\n"),
     absorb(Stx),
-    io:fwrite(packer:pack([6, now()])),%45 000 or 1 000 000
-    io:fwrite("\n"),
-    create_accounts(N-1).
+    create_accounts(N-1, Salt).
 slash_exists([]) -> false;
 slash_exists([Tx|T]) ->
     is_slash(Tx) or slash_exists(T).
