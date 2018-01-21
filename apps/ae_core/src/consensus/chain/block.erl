@@ -126,9 +126,7 @@ genesis_maker() ->
     Root0 = constants:root0(),
     Pub = constants:master_pub(),
     First = accounts:new(Pub, constants:initial_coins()),
-    Accounts0 = accounts:write(First, Root0),
     GovInit = governance:genesis_state(),
-    Trees0 = trees:new(Accounts0, Root0, Root0, Root0, Root0, GovInit),
     Accounts = accounts:write(First, Root0),
     Trees = trees:new(Accounts, Root0, Root0, Root0, Root0, GovInit),
     TreesRoot = trees:root_hash(Trees),
@@ -476,10 +474,10 @@ get_things(Key, [{Key, X}|L], A, B) ->
     get_things(Key, L, [{Key, X}|A], B);
 get_things(Key, [{Key2, X}|L], A, B) ->
     get_things(Key, L, A, [{Key2, X}|B]).
-facts_to_trie([], Tree) -> Tree;
-facts_to_trie([Fact|T], Tree) ->
-    Tree2 = ftt2(Fact, Tree),
-    facts_to_trie(T, Tree2).
+%facts_to_trie([], Tree) -> Tree;
+%facts_to_trie([Fact|T], Tree) ->
+%    Tree2 = ftt2(Fact, Tree),
+%    facts_to_trie(T, Tree2).
 setup_tree(Empty, Start, Path, Type) ->
     case Start of
         Empty ->
@@ -488,43 +486,43 @@ setup_tree(Empty, Start, Path, Type) ->
             trie:new_trie(Type, Stem);
         X -> X
     end.
-ftt2(Fact, Trees) ->
-    Type = proofs:tree(Fact),
-    case Type of
-        orders ->
-            {key, _Pubkey, OID} = proofs:key(Fact),
-            Oracles = trees:oracles(Trees),
-            Path = proofs:path(Fact),
-            {_, Oracle, _} = oracles:get(OID, Oracles),
-            case Oracle of 
-                empty -> 
-                    Trees;
-                _ -> 
-                    Orders = Oracle#oracle.orders,
-                    Orders2 = setup_tree(0, Orders, Path, Type),
-                    Orders3 = trees:restore(Orders2, Fact, 0),
-                    Oracle2 = oracles:set_orders(Oracle, Orders3),
-                    Oracles2 = oracles:write(Oracle2, Oracles),
-                    trees:update_oracles(Trees, Oracles2)
-            end;
-        oracle_bets -> 
-            {key, Pubkey, _OID} = proofs:key(Fact),
-            Path = proofs:path(Fact),
-            Accounts = trees:accounts(Trees),
-            {_, Account, _} = accounts:get(Pubkey, Accounts),
-            Bets = Account#acc.bets,
-            Bets2 = setup_tree(0, Bets, Path, Type),
-            Bets3 = trees:restore(Bets2, Fact, 0),
-            Account2 = accounts:update_bets(Account, Bets3),
-            Accounts2 = accounts:write(Account2, Accounts),
-            trees:update_accounts(Trees, Accounts2);
-        _ ->
-            Path = proofs:path(Fact),
-            Tree = setup_tree(empty, trees:Type(Trees), Path, Type),
-            Tree2 = trees:restore(Tree, Fact, 0),
-            Update = list_to_atom("update_" ++ atom_to_list(Type)),
-            trees:Update(Trees, Tree2)
-    end.
+%ftt2(Fact, Trees) ->
+%    Type = proofs:tree(Fact),
+%    case Type of
+%        orders ->
+%            {key, _Pubkey, OID} = proofs:key(Fact),
+%            Oracles = trees:oracles(Trees),
+%            Path = proofs:path(Fact),
+%            {_, Oracle, _} = oracles:get(OID, Oracles),
+%            case Oracle of 
+%                empty -> 
+%                    Trees;
+%                _ -> 
+%                    Orders = Oracle#oracle.orders,
+%                    Orders2 = setup_tree(0, Orders, Path, Type),
+%                    Orders3 = trees:restore(Orders2, Fact, 0),
+%                    Oracle2 = oracles:set_orders(Oracle, Orders3),
+%                    Oracles2 = oracles:write(Oracle2, Oracles),
+%                    trees:update_oracles(Trees, Oracles2)
+%            end;
+%        oracle_bets -> 
+%            {key, Pubkey, _OID} = proofs:key(Fact),
+%            Path = proofs:path(Fact),
+%            Accounts = trees:accounts(Trees),
+%            {_, Account, _} = accounts:get(Pubkey, Accounts),
+%            Bets = Account#acc.bets,
+%            Bets2 = setup_tree(0, Bets, Path, Type),
+%            Bets3 = trees:restore(Bets2, Fact, 0),
+%            Account2 = accounts:update_bets(Account, Bets3),
+%            Accounts2 = accounts:write(Account2, Accounts),
+%            trees:update_accounts(Trees, Accounts2);
+%        _ ->
+%            Path = proofs:path(Fact),
+%            Tree = setup_tree(empty, trees:Type(Trees), Path, Type),
+%            Tree2 = trees:restore(Tree, Fact, 0),
+%            Update = list_to_atom("update_" ++ atom_to_list(Type)),
+%            trees:Update(Trees, Tree2)
+%    end.
 no_coinbase([]) -> true;
 no_coinbase([STx|T]) ->
     Tx = testnet_sign:data(STx),
