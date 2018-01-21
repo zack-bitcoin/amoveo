@@ -183,7 +183,7 @@ new_dict(Txs, Dict, Height, _Pub, _PrevHash) ->
     
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
-    Txs = [CB|Txs0],
+    Txs = [CB|lists:reverse(Txs0)],
     Querys = proofs:txs_to_querys(Txs, Trees),
     Height = Header#header.height,
     Facts = proofs:prove(Querys, Trees),

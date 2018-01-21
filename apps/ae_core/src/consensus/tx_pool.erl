@@ -1,7 +1,7 @@
 -module(tx_pool).
 -behaviour(gen_server).
 %% This module holds the txs ready for the next block, and it remembers the current consensus state, so it is ready to add a new tx at any time.
--export([data/0, data_new/0, get/0, dump/0, absorb_tx/3, absorb/2]).
+-export([data_new/0, get/0, dump/0, absorb_tx/3, absorb/2]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../records.hrl").
 start_link() ->
@@ -36,10 +36,10 @@ handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
     {reply, 0, #tx_pool{txs = [], trees = NewTrees, block_trees = NewTrees, height = Height}};
-handle_call(data_new, _From, F) -> {reply, F, F};
-handle_call(data, _From, F) ->
-    H = F#tx_pool.height,
-    {reply, {F#tx_pool.trees, H, lists:reverse(F#tx_pool.txs)}, F}.
+handle_call(data_new, _From, F) -> {reply, F, F}.
+%handle_call(data, _From, F) ->
+%    H = F#tx_pool.height,
+%    {reply, {F#tx_pool.trees, H, lists:reverse(F#tx_pool.txs)}, F}.
 handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(_Info, State) -> {noreply, State}.
 terminate(_Reason, _State) ->
@@ -47,9 +47,8 @@ terminate(_Reason, _State) ->
     ok.
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
-data_new() -> gen_server:call(?MODULE, data_new).
+data_new() -> tx_pool:get().
 get() -> gen_server:call(?MODULE, data_new).
-data() -> gen_server:call(?MODULE, data).
 dump() -> gen_server:call(?MODULE, dump).
 absorb_tx(Trees, NewDict, Tx) ->
     gen_server:call(?MODULE, {absorb_tx, Trees, NewDict, Tx}).

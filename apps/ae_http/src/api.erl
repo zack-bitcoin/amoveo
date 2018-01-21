@@ -301,7 +301,7 @@ mine_block(0, Times) -> ok;
 mine_block(Periods, Times) ->
     PB = block:top(),
     Top = block:block_to_header(PB),
-    Txs = lists:reverse((tx_pool:get())#tx_pool.txs),
+    Txs = (tx_pool:get())#tx_pool.txs,
     Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
     block:mine(Block, Times),
     timer:sleep(100),

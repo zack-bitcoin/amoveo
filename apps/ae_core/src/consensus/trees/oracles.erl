@@ -129,7 +129,7 @@ test() ->
     %headers:dump(),
     %block:initialize_chain(),
     %tx_pool:dump(),
-    %Trees = (tx_pool:get())#tx_pool.trees,
+    %Trees = (tx_pool:get())#tx_pool.trees, %depreciated
     %Root0 = constants:root0(),
     %X0 = new(1, hash:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
     %X = set_result(X0, 3),
@@ -143,7 +143,7 @@ test() ->
     %true = verify_proof(Root2, X#oracle.id, 0, Path2),
     test2().
 test2() ->
-    %Trees = (tx_pool:get())#tx_pool.trees,
+    %Trees = (tx_pool:get())#tx_pool.trees, %depreciated
     %OID = 2,
     %Root0 = constants:root0(),
     %X0 = new(OID, hash:doit(1), 2, constants:master_pub(), constants:initial_difficulty(), 0, 0, Trees),
