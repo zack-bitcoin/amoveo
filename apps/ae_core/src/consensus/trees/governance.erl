@@ -190,9 +190,12 @@ deserialize(SerializedGov) ->
     #gov{id = Id, value = Value, lock = Lock}.
 
 dict_get_value(Key, Dict) when ((Key == timeout) or (Key == delete_acc_tx)) ->
-    Gov = dict_get(Key, Dict),
-    V = Gov#gov.value,
-    -tree_number_to_value(V);
+    case dict_get(Key, Dict) of
+	empty -> empty;
+	Gov ->
+	    V = Gov#gov.value,
+	    -tree_number_to_value(V)
+    end;
 dict_get_value(Key, Dict) ->
     case dict_get(Key, Dict) of
 	empty -> empty;

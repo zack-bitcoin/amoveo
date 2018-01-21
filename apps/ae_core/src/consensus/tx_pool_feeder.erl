@@ -19,13 +19,11 @@ is_in(Tx, [STx2 | T]) ->
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
     F = tx_pool:get(),
-    Trees = F#tx_pool.trees,
     Txs = F#tx_pool.txs,
-    Governance = trees:governance(Trees),
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
     Type = element(1, Tx),
-    Cost = governance:get_value(Type, Governance),
+    Cost = trees:dict_tree_get(governance, Type),
     {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
     true = Fee > (MinimumTxFee + Cost),
     true = testnet_sign:verify(SignedTx),
@@ -60,18 +58,6 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
 absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->
-    TP = tx_pool:get(),
-    Trees = TP#tx_pool.trees,
-    Txs = TP#tx_pool.txs,
-    %{ok, PP} = application:get_env(ae_core, prune_txs),
-    PP = 100,
-    TN = length(Txs) rem PP,
-    if 
-	(TN == 0) ->
-	    B = #block{trees = Trees},
-	    block_absorber:synch_prune([B]);
-	true -> ok
-    end,
     gen_server:call(?MODULE, {absorb, SignedTx}).
 absorb_unsafe(SignedTx) ->
     F = tx_pool:get(),

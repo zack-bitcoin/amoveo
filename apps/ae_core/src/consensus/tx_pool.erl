@@ -37,9 +37,6 @@ handle_call({absorb_tx, NewTrees, NewDict, Tx}, _From, F) ->
 handle_call({absorb, NewTrees, Height}, _From, _) ->
     {reply, 0, #tx_pool{txs = [], trees = NewTrees, block_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) -> {reply, F, F}.
-%handle_call(data, _From, F) ->
-%    H = F#tx_pool.height,
-%    {reply, {F#tx_pool.trees, H, lists:reverse(F#tx_pool.txs)}, F}.
 handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(_Info, State) -> {noreply, State}.
 terminate(_Reason, _State) ->
