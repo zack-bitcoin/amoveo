@@ -2,7 +2,9 @@
 -export([tree_number_to_value/1, max/0, is_locked/1, genesis_state/0, name2number/1, %custom for this tree
 	 get_value/2, get/2, write/2,%update tree stuff
          dict_get/2,dict_write/2, dict_get_value/2, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
-         verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
+         verify_proof/4,make_leaf/3,key_to_int/1,
+	 serialize/1,deserialize/1,
+	 test/0]).%common tree stuff
 -record(gov, {id, value, lock}).
 -define(name, governance).
 -define(fee, constants:encoded_fee()).
