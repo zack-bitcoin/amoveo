@@ -1,5 +1,5 @@
 
-Requirements for Aeternity installation cover ```Erlang/OTP (18+)``` and its dependencies, and [these dependencies](/docs/getting-started/dependencies.md)
+Requirements for Amoveo installation cover ```Erlang/OTP (18+)``` and its dependencies, and [these dependencies](/docs/getting-started/dependencies.md)
 
 Reporsitory operates using ```rebar3``` and we ship it in the top dir
 
