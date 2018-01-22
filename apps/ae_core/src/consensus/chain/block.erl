@@ -401,7 +401,7 @@ dict_update_trie(Trees, Dict) ->
     OrdersLeaves = dict_update_trie_orders(Trees, Orders, Dict, []),
     %{leaf, key, val, meta}
     Dict2 = orders_batch_update(OrdersLeaves, Dict, trees:oracles(Trees)),%Dict20 should be the same as Dict2, but we don't use orders:head_put or orders:write to calculate it.
-    Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2),
+    {Dict3, OBLeaves} = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2, []),
     AccountLeaves = dict_update_trie_account(Trees, Accounts, Dict3, []),
     AT = trees:accounts(Trees),
     AT2 = trie:put_batch(AccountLeaves, AT, accounts),
@@ -510,8 +510,8 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 		leaf:new(ID, New2, 0, trie:cfg(orders))
         end,
     dict_update_trie_orders(Trees, T, Dict, [{OID, Leaf}|L]).
-dict_update_trie_oracle_bets(_, [], D) -> D;
-dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
+dict_update_trie_oracle_bets(_, [], D, L) -> {D, L};
+dict_update_trie_oracle_bets(Trees, [H|T], Dict, L) ->
     {oracle_bets, Key} = H,
     {key, Pub, OID} = Key,
     New = oracle_bets:dict_get(Key, Dict),
@@ -522,13 +522,18 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
             0 -> Account#acc.bets;
             Z -> Z
         end,
-    OracleBets2 = 
+    ID = oracle_bets:key_to_int(OID),
+    {OracleBets2, Leaf} = 
         case New of
-            empty -> oracle_bets:delete(OID, OracleBets);
-            _ -> oracle_bets:write(New, OracleBets)
+            empty -> 
+		{oracle_bets:delete(OID, OracleBets),
+		 leaf:new(ID, empty, 0, trie:cfg(oracle_bets))};
+            _ -> 
+		{oracle_bets:write(New, OracleBets),
+		 leaf:new(ID, oracle_bets:serialize(New), 0, trie:cfg(oracle_bets))}
         end,
     Dict2 = accounts:dict_write(DictAccount, OracleBets2, Dict),
-    dict_update_trie_oracle_bets(Trees, T, Dict2).
+    dict_update_trie_oracle_bets(Trees, T, Dict2, [Leaf|L]).
 get_things(Key, L) ->
     get_things(Key, L, [], []).
 get_things(Key, [], A, B) -> {A, B};

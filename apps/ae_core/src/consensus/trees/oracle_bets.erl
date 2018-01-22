@@ -4,7 +4,7 @@
 	 write/2, get/2, root_hash/1, %add_bet/4,
 	 reward/3, delete/2, verify_proof/4,
          dict_add_bet/5, dict_get/2, dict_delete/2,
-         serialize/1, make_leaf/3, %key_to_int/1,
+         serialize/1, make_leaf/3, key_to_int/1,
          deserialize/1]).
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
 -record(bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle
