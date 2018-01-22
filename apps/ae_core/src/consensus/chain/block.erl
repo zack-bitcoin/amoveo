@@ -371,17 +371,18 @@ dict_update_trie(Trees, Dict) ->
     OT2 = trie:put_batch(OracleLeaves, OT, oracles),
     Trees5 = trees:update_oracles(Trees4, OT2),
     %We need to sort the keys to update each trie one at a time.
-    io:fwrite("dict update keys are "),
-    io:fwrite(packer:pack(Keys5)),
-    io:fwrite("\n"),
     {Channels, Keys6} = get_things(channels, Keys5),
     CT = trees:channels(Trees5),
     ChannelsLeaves = keys2leaves(Channels, channels, Dict3),
     CT2 = trie:put_batch(ChannelsLeaves, CT, channels),
     Trees6 = trees:update_channels(Trees5, CT2),
     {Ex, Keys7} = get_things(existence, Keys6),
+    ET = trees:existence(Trees6),
+    ExistenceLeaves = keys2leaves(Ex, existence, Dict3),
+    ET2 = trie:put_batch(ExistenceLeaves, ET, existence),
+    Trees7 = trees:update_existence(Trees6, ET2),
     {Gov, []} = get_things(governance, Keys7),
-    dict_update_trie2(Trees6, Keys6, Dict3).
+    dict_update_trie2(Trees7, Keys7, Dict3).
 keys2leaves([], _, _) -> [];
 keys2leaves([H|T], Type, Dict) ->
     {Type, Key} = H,
