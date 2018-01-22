@@ -360,14 +360,14 @@ dict_update_trie(Trees, Dict) ->
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
     {Accounts, Keys4} = get_things(accounts, Keys3),
     {Oracles, Keys5} = get_things(oracles, Keys4),
-    Dict2 = dict_update_trie_orders(Trees, Orders, Dict),
+    {Dict2, OrdersLeaves} = dict_update_trie_orders(Trees, Orders, Dict, []),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2),
     AccountLeaves = dict_update_trie_account(Trees, Accounts, Dict3, []),
     AT = trees:accounts(Trees),
     AT2 = trie:put_batch(AccountLeaves, AT, accounts),
     Trees4 = trees:update_accounts(Trees, AT2),
 
-    OracleLeaves = dict_update_trie_oracles(Trees4, Oracles, Dict3, []),
+    OracleLeaves = dict_update_trie_oracles(Trees, Oracles, Dict3, []),
     OT = trees:oracles(Trees4),
     OT2 = trie:put_batch(OracleLeaves, OT, oracles),
     Trees5 = trees:update_oracles(Trees4, OT2),
@@ -396,7 +396,7 @@ keys2leaves([H|T], Type, Dict) ->
     New = Type:dict_get(Key, Dict),
     I = Type:key_to_int(Key),
     L = case New of
-	    empty ->  leaf:new(I, empty, 0, trie:cfg(Type));
+	    empty -> leaf:new(I, empty, 0, trie:cfg(Type));
 	    _ ->
 		Value = Type:serialize(New),
 		leaf:new(I, Value, 0, trie:cfg(Type))
@@ -443,8 +443,8 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
     end,
     %Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Leaves2.
-dict_update_trie_orders(_, [], D) -> D;
-dict_update_trie_orders(Trees, [H|T], Dict) ->
+dict_update_trie_orders(_, [], D, L) -> {D, L};
+dict_update_trie_orders(Trees, [H|T], Dict, L) ->
     {orders, Key} = H,
     {key, Pub, OID} = Key,
     PS = constants:pubkey_size()*8,
@@ -458,24 +458,35 @@ dict_update_trie_orders(Trees, [H|T], Dict) ->
                  0 -> Oracle#oracle.orders;
                  Z -> Z
              end,
-    Orders3 = 
+    {Leaf, Orders3} = 
         case Pub of
             <<1:PS>> ->
                 %update the header.
                 S = dict:fetch(H, Dict),
                 {Pointer, Many} = orders:deserialize_head(S),
-                orders:head_put(Pointer, Many, Orders);
+		PS = constants:pubkey_size() * 8,
+		ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl
+		Y = orders:serialize_head(Pointer, Many),
+		Leaf = leaf:new(ID, Y, 0, trie:cfg(orders)),
+                {Leaf, orders:head_put(Pointer, Many, Orders)};
             _ ->
                 New = orders:dict_get(Key, Dict),
-                Orders2 = 
+		New2 = case New of
+			   empty -> empty;
+			   _ -> orders:serialize(New)
+		       end,
+		ID = orders:key_to_int(Key#key.pub),
+                {New2, Orders2} = 
                     case New of
-                        empty -> orders:delete(Pub, Orders);
-                        _ -> orders:write(New, Orders)
+                        empty -> {empty, orders:delete(Pub, Orders)};
+                        _ -> {orders:serialize(New),
+			      orders:write(New, Orders)}
                     end,
-                Orders2
+		Leaf = leaf:new(ID, New2, 0, trie:cfg(orders)),
+                {Leaf, Orders2}
         end,
     Dict2 = oracles:dict_write(DictOracle, Orders3, Dict),
-    dict_update_trie_orders(Trees, T, Dict2).
+    dict_update_trie_orders(Trees, T, Dict2, [Leaf|L]).
 dict_update_trie_oracle_bets(_, [], D) -> D;
 dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
     {oracle_bets, Key} = H,

@@ -12,6 +12,7 @@
          dict_add/3, dict_remove/3, make_leaf/3,
          key_to_int/1, write/2, delete/2,
          deserialize_head/1, head_put/3,
+	 serialize_head/2,
          test/0]).
 -define(name, orders).
 -define(Null, 0).
