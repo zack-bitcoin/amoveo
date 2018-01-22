@@ -366,15 +366,11 @@ dict_update_trie(Trees, Dict) ->
     AT = trees:accounts(Trees),
     AT2 = trie:put_batch(AccountLeaves, AT, accounts),
     Trees4 = trees:update_accounts(Trees, AT2),
-    {_Trees3, OracleLeaves} = dict_update_trie_oracles(Trees4, Oracles, Dict3, []),
+    {_, OracleLeaves} = dict_update_trie_oracles(Trees4, Oracles, Dict3, []),
     OT = trees:oracles(Trees4),
     OT2 = trie:put_batch(OracleLeaves, OT, oracles),
     Trees5 = trees:update_oracles(Trees4, OT2),
-    io:fwrite("compare after oracle batch update \n"),
-    %io:fwrite(packer:pack(trees:root_hash(Trees3))),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(trees:root_hash(Trees5))),
-    io:fwrite("\n"),
+    %We need to sort the keys to update each trie one at a time.
     dict_update_trie2(Trees5, Keys5, Dict3).
 dict_update_trie2(T, [], _) -> T;
 dict_update_trie2(Trees, [H|T], Dict) ->
@@ -390,22 +386,22 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     dict_update_trie2(Trees2, T, Dict).
 dict_update_trie_oracles(T, [], _, X) -> {T, X};
 dict_update_trie_oracles(Trees, [H|T], Dict, X) ->
-    {Trees2, X2} = dict_update_account_oracle_helper(oracles, H, orders, Trees, orders:empty_book(), set_orders, Dict, X),
-    dict_update_trie_oracles(Trees2, T, Dict, X2).
+    X2 = dict_update_account_oracle_helper(oracles, H, orders, Trees, orders:empty_book(), set_orders, Dict, X),
+    dict_update_trie_oracles(Trees, T, Dict, X2).
 dict_update_trie_account(T, [], _, X) -> {T, X};
 dict_update_trie_account(Trees, [H|T], Dict, X) ->
-    {Trees2, X2} = dict_update_account_oracle_helper(accounts, H, bets, Trees, constants:root0(), update_bets, Dict, X),
-    dict_update_trie_account(Trees2, T, Dict, X2).
+    X2 = dict_update_account_oracle_helper(accounts, H, bets, Trees, constants:root0(), update_bets, Dict, X),
+    dict_update_trie_account(Trees, T, Dict, X2).
 
 dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2, Dict, Leaves) ->
     {_, Key} = H,
     New0 = Type:dict_get(Key, Dict),
     Tree = trees:Type(Trees),
-    {Tree2, Leaves2} = 
+    Leaves2 = 
         case New0 of
             empty -> 
 		L = leaf:new(Type:key_to_int(Key), empty, 0, trie:cfg(Type)),
-                {Type:delete(Key, Tree), [L|Leaves]};
+                [L|Leaves];
             _ -> 
                 ABN = Type:Type2(New0),
                 {_, Old, _} = Type:get(Key, trees:Type(Trees)),
@@ -425,10 +421,10 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
                       end,
 		Meta = Type:meta_get(New),
 		L = leaf:new(Type:key_to_int(Key), Type:serialize(New), Meta, trie:cfg(Type)),
-                {Type:write(New, Tree), [L|Leaves]}
+                [L|Leaves]
     end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
-    {trees:Update(Trees, Tree2), Leaves2}.
+    Leaves2.
 dict_update_trie_orders(_, [], D) -> D;
 dict_update_trie_orders(Trees, [H|T], Dict) ->
     {orders, Key} = H,
