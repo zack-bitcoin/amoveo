@@ -366,23 +366,30 @@ dict_update_trie(Trees, Dict) ->
     AT = trees:accounts(Trees),
     AT2 = trie:put_batch(AccountLeaves, AT, accounts),
     Trees4 = trees:update_accounts(Trees, AT2),
+
     OracleLeaves = dict_update_trie_oracles(Trees4, Oracles, Dict3, []),
     OT = trees:oracles(Trees4),
     OT2 = trie:put_batch(OracleLeaves, OT, oracles),
     Trees5 = trees:update_oracles(Trees4, OT2),
     %We need to sort the keys to update each trie one at a time.
+
     {Channels, Keys6} = get_things(channels, Keys5),
     CT = trees:channels(Trees5),
     ChannelsLeaves = keys2leaves(Channels, channels, Dict3),
     CT2 = trie:put_batch(ChannelsLeaves, CT, channels),
     Trees6 = trees:update_channels(Trees5, CT2),
+
     {Ex, Keys7} = get_things(existence, Keys6),
     ET = trees:existence(Trees6),
     ExistenceLeaves = keys2leaves(Ex, existence, Dict3),
     ET2 = trie:put_batch(ExistenceLeaves, ET, existence),
     Trees7 = trees:update_existence(Trees6, ET2),
+
     {Gov, []} = get_things(governance, Keys7),
-    dict_update_trie2(Trees7, Keys7, Dict3).
+    GT = trees:governance(Trees7),
+    GovernanceLeaves = keys2leaves(Gov, governance, Dict3),
+    GT2 = trie:put_batch(GovernanceLeaves, GT, governance),
+    trees:update_governance(Trees7, GT2).
 keys2leaves([], _, _) -> [];
 keys2leaves([H|T], Type, Dict) ->
     {Type, Key} = H,
@@ -395,18 +402,6 @@ keys2leaves([H|T], Type, Dict) ->
 		leaf:new(I, Value, 0, trie:cfg(Type))
 	end,
     [L|keys2leaves(T, Type, Dict)].
-dict_update_trie2(T, [], _) -> T;
-dict_update_trie2(Trees, [H|T], Dict) ->
-    {Type, Key} = H,
-    New = Type:dict_get(Key, Dict),
-    Tree = trees:Type(Trees),
-    Tree2 = case New of
-                empty -> Type:delete(Key, Tree);
-                _ -> Type:write(New, Tree)
-            end,
-    Update = list_to_atom("update_" ++ atom_to_list(Type)),
-    Trees2 = trees:Update(Trees, Tree2),
-    dict_update_trie2(Trees2, T, Dict).
 dict_update_trie_oracles(_, [], _, X) -> X;
 dict_update_trie_oracles(Trees, [H|T], Dict, X) ->
     X2 = dict_update_account_oracle_helper(oracles, H, orders, Trees, orders:empty_book(), set_orders, Dict, X),
