@@ -352,6 +352,31 @@ check(Block) ->
 
     %Initially some things in trees is the atom 'empty'.
     %Once we insert the root stem into the trie, then we instead store a pointer to the root stem. 
+orders_batch_update([], Dict, _) -> Dict;
+orders_batch_update([X|T], Dict, Oracles) ->
+    {OID, L} = X,
+    Val = orders:deserialize(leaf:value(L)),
+    Pub = orders:aid(Val),
+    {B, R} = lists:partition(
+	       fun({OID2, L2}) -> OID2 == OID end, 
+	       [X|T]),
+    Dict2 = orders_batch_update2(OID, B, Dict, Oracles),
+    orders_batch_update(R, Dict2, Oracles).
+orders_batch_update2(OID, L, Dict, Oracles) ->
+    %all these orders have the same pubkey
+    DO = oracles:dict_get(OID, Dict),
+    Orders = case DO#oracle.orders of
+		 0 -> 
+		     {_, Oracle, _}=oracles:get(OID, Oracles),
+		     Oracle#oracle.orders;
+		 G -> G
+	     end,
+    %Orders = DO#oracle.orders,
+    false = Orders == 0,
+    L2 = lists:map(fun({_, X}) -> X end, L),
+    Orders2 = trie:put_batch(L2, Orders, orders),
+    oracles:dict_write(DO, Orders2, Dict).
+    
 dict_update_trie(Trees, Dict) ->
     %do the orders and oracle_bets last, then insert their state roots into the accounts and oracles.
     %pointers are integers, root hashes are binary.
@@ -360,7 +385,11 @@ dict_update_trie(Trees, Dict) ->
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
     {Accounts, Keys4} = get_things(accounts, Keys3),
     {Oracles, Keys5} = get_things(oracles, Keys4),
-    {Dict2, OrdersLeaves} = dict_update_trie_orders(Trees, Orders, Dict, []),
+    {_Dict20, OrdersLeaves} = dict_update_trie_orders(Trees, Orders, Dict, []),
+    %{leaf, key, val, meta}
+    Dict2 = orders_batch_update(OrdersLeaves, Dict, trees:oracles(Trees)),%Dict20 should be the same as Dict2, but we don't use orders:head_put or orders:write to calculate it.
+    io:fwrite(packer:pack(OrdersLeaves)),
+    io:fwrite("\n"),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2),
     AccountLeaves = dict_update_trie_account(Trees, Accounts, Dict3, []),
     AT = trees:accounts(Trees),
@@ -475,7 +504,7 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 			   empty -> empty;
 			   _ -> orders:serialize(New)
 		       end,
-		ID = orders:key_to_int(Key#key.pub),
+		ID = orders:key_to_int(Pub),
                 {New2, Orders2} = 
                     case New of
                         empty -> {empty, orders:delete(Pub, Orders)};
@@ -486,7 +515,7 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
                 {Leaf, Orders2}
         end,
     Dict2 = oracles:dict_write(DictOracle, Orders3, Dict),
-    dict_update_trie_orders(Trees, T, Dict2, [Leaf|L]).
+    dict_update_trie_orders(Trees, T, Dict2, [{OID, Leaf}|L]).
 dict_update_trie_oracle_bets(_, [], D) -> D;
 dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
     {oracle_bets, Key} = H,
