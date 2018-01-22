@@ -492,20 +492,15 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
         <<0:PS>> -> throw(dict_update_trie_orders_error);
         _ -> ok
     end,
-    %{_, Oracle, _} = oracles:get(OID, trees:oracles(Trees)),
-    %DictOracle = oracles:dict_get(OID, Dict),
     Leaf = 
         case Pub of
             <<1:PS>> ->
                 %update the header.
                 S = dict:fetch(H, Dict),
-                {Pointer, Many} = orders:deserialize_head(S),
 		PS = constants:pubkey_size() * 8,
 		ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl
-		Y = orders:serialize_head(Pointer, Many),
-		leaf:new(ID, Y, 0, trie:cfg(orders));
+		leaf:new(ID, S, 0, trie:cfg(orders));
             _ ->
-                %New = orders:dict_get(Key, Dict),
                 New2 = 
                     case orders:dict_get(Key, Dict) of
                         empty -> empty;
