@@ -494,9 +494,7 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 		PS = constants:pubkey_size() * 8,
 		ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl
 		Y = orders:serialize_head(Pointer, Many),
-		Leaf = leaf:new(ID, Y, 0, trie:cfg(orders)),
-                Leaf;
-		 %orders:head_put(Pointer, Many, Orders)};
+		leaf:new(ID, Y, 0, trie:cfg(orders));
             _ ->
                 New = orders:dict_get(Key, Dict),
 		New2 = case New of
@@ -504,17 +502,12 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 			   _ -> orders:serialize(New)
 		       end,
 		ID = orders:key_to_int(Pub),
-                {New2, Orders2} = 
+                New2 = 
                     case New of
-                        empty -> {empty, 
-				  %orders:delete(Pub, Orders)};
-				  ok};
-                        _ -> {orders:serialize(New),
-			      %orders:write(New, Orders)}
-			      ok}
+                        empty -> empty;
+                        _ -> orders:serialize(New)
                     end,
-		Leaf = leaf:new(ID, New2, 0, trie:cfg(orders)),
-                Leaf
+		leaf:new(ID, New2, 0, trie:cfg(orders))
         end,
     dict_update_trie_orders(Trees, T, Dict, [{OID, Leaf}|L]).
 dict_update_trie_oracle_bets(_, [], D) -> D;
