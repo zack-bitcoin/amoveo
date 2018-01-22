@@ -388,8 +388,6 @@ dict_update_trie(Trees, Dict) ->
     {_Dict20, OrdersLeaves} = dict_update_trie_orders(Trees, Orders, Dict, []),
     %{leaf, key, val, meta}
     Dict2 = orders_batch_update(OrdersLeaves, Dict, trees:oracles(Trees)),%Dict20 should be the same as Dict2, but we don't use orders:head_put or orders:write to calculate it.
-    io:fwrite(packer:pack(OrdersLeaves)),
-    io:fwrite("\n"),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2),
     AccountLeaves = dict_update_trie_account(Trees, Accounts, Dict3, []),
     AT = trees:accounts(Trees),
@@ -497,7 +495,9 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 		ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl
 		Y = orders:serialize_head(Pointer, Many),
 		Leaf = leaf:new(ID, Y, 0, trie:cfg(orders)),
-                {Leaf, orders:head_put(Pointer, Many, Orders)};
+                {Leaf, 
+		 %orders:head_put(Pointer, Many, Orders)};
+		 ok};
             _ ->
                 New = orders:dict_get(Key, Dict),
 		New2 = case New of
@@ -507,14 +507,16 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 		ID = orders:key_to_int(Pub),
                 {New2, Orders2} = 
                     case New of
-                        empty -> {empty, orders:delete(Pub, Orders)};
+                        empty -> {empty, 
+				  %orders:delete(Pub, Orders)};
+				  ok};
                         _ -> {orders:serialize(New),
-			      orders:write(New, Orders)}
+			      %orders:write(New, Orders)}
+			      ok}
                     end,
 		Leaf = leaf:new(ID, New2, 0, trie:cfg(orders)),
                 {Leaf, Orders2}
         end,
-    %Dict2 = oracles:dict_write(DictOracle, Orders3, Dict),
     dict_update_trie_orders(Trees, T, Dict, [{OID, Leaf}|L]).
 dict_update_trie_oracle_bets(_, [], D) -> D;
 dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
