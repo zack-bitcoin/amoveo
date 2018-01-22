@@ -514,7 +514,7 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 		Leaf = leaf:new(ID, New2, 0, trie:cfg(orders)),
                 {Leaf, Orders2}
         end,
-    Dict2 = oracles:dict_write(DictOracle, Orders3, Dict),
+    %Dict2 = oracles:dict_write(DictOracle, Orders3, Dict),
     dict_update_trie_orders(Trees, T, Dict, [{OID, Leaf}|L]).
 dict_update_trie_oracle_bets(_, [], D) -> D;
 dict_update_trie_oracle_bets(Trees, [H|T], Dict) ->
