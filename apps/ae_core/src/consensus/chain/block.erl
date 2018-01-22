@@ -496,17 +496,12 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 		Y = orders:serialize_head(Pointer, Many),
 		leaf:new(ID, Y, 0, trie:cfg(orders));
             _ ->
-                New = orders:dict_get(Key, Dict),
-		New2 = case New of
-			   empty -> empty;
-			   _ -> orders:serialize(New)
-		       end,
-		ID = orders:key_to_int(Pub),
                 New2 = 
-                    case New of
+                    case orders:dict_get(Key, Dict) of
                         empty -> empty;
-                        _ -> orders:serialize(New)
+                        New -> orders:serialize(New)
                     end,
+		ID = orders:key_to_int(Pub),
 		leaf:new(ID, New2, 0, trie:cfg(orders))
         end,
     dict_update_trie_orders(Trees, T, Dict, [{OID, Leaf}|L]).
