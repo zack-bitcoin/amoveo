@@ -366,9 +366,16 @@ dict_update_trie(Trees, Dict) ->
     AT = trees:accounts(Trees),
     AT2 = trie:put_batch(AccountLeaves, AT, accounts),
     Trees4 = trees:update_accounts(Trees, AT2),
-    {Trees3, OracleLeaves} = dict_update_trie_oracles(Trees4, Oracles, Dict3, []),
-    
-    dict_update_trie2(Trees3, Keys5, Dict3).
+    {_Trees3, OracleLeaves} = dict_update_trie_oracles(Trees4, Oracles, Dict3, []),
+    OT = trees:oracles(Trees4),
+    OT2 = trie:put_batch(OracleLeaves, OT, oracles),
+    Trees5 = trees:update_oracles(Trees4, OT2),
+    io:fwrite("compare after oracle batch update \n"),
+    %io:fwrite(packer:pack(trees:root_hash(Trees3))),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(trees:root_hash(Trees5))),
+    io:fwrite("\n"),
+    dict_update_trie2(Trees5, Keys5, Dict3).
 dict_update_trie2(T, [], _) -> T;
 dict_update_trie2(Trees, [H|T], Dict) ->
     {Type, Key} = H,
@@ -409,7 +416,7 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
                               ABO = Type:Type2(Old),%pointer to bets/orders
                               if
                                   ABO == 0 -> 
-                                      throw("dict update trie account oracle"),
+                                      throw("dict update trie account oracle. Meta should not be 0 now."),
                                       New0;
                                   0 == ABN -> 
                                       Type:UpdateType2(New0, Type:Type2(Old));
