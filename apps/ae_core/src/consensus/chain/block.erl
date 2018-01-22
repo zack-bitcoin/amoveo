@@ -485,7 +485,7 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
                  0 -> Oracle#oracle.orders;
                  Z -> Z
              end,
-    {Leaf, Orders3} = 
+    Leaf = 
         case Pub of
             <<1:PS>> ->
                 %update the header.
@@ -495,9 +495,8 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 		ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl
 		Y = orders:serialize_head(Pointer, Many),
 		Leaf = leaf:new(ID, Y, 0, trie:cfg(orders)),
-                {Leaf, 
+                Leaf;
 		 %orders:head_put(Pointer, Many, Orders)};
-		 ok};
             _ ->
                 New = orders:dict_get(Key, Dict),
 		New2 = case New of
@@ -515,7 +514,7 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 			      ok}
                     end,
 		Leaf = leaf:new(ID, New2, 0, trie:cfg(orders)),
-                {Leaf, Orders2}
+                Leaf
         end,
     dict_update_trie_orders(Trees, T, Dict, [{OID, Leaf}|L]).
 dict_update_trie_oracle_bets(_, [], D) -> D;
