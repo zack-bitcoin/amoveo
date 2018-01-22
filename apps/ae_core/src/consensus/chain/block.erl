@@ -353,9 +353,6 @@ check(Block) ->
 oracle_bets_batch_update([], Dict, _) -> Dict;
 oracle_bets_batch_update([X|T], Dict, Accounts) ->
     {ID, L} = X,
-    io:fwrite("oracle bets batch update\n"),
-    io:fwrite(packer:pack(L)),
-    io:fwrite("\n"),
     {B, R} = lists:partition(
 	       fun({ID2, L2}) -> ID2 == ID end,
 	       [X|T]),
@@ -409,17 +406,12 @@ dict_update_trie(Trees, Dict) ->
 				B < A
 			end, Orders0),
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
-    io:fwrite(packer:pack(OracleBets)),
-    io:fwrite("\n"),
     {Accounts, Keys4} = get_things(accounts, Keys3),
     {Oracles, Keys5} = get_things(oracles, Keys4),
     OrdersLeaves = dict_update_trie_orders(Trees, Orders, Dict, []),
     %{leaf, key, val, meta}
     Dict2 = orders_batch_update(OrdersLeaves, Dict, trees:oracles(Trees)),%Dict20 should be the same as Dict2, but we don't use orders:head_put or orders:write to calculate it.
     OBLeaves = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2, []),
-    io:fwrite("OBleaves are "),
-    io:fwrite(packer:pack(OBLeaves)),
-    io:fwrite("\n"),
     Dict3 = oracle_bets_batch_update(OBLeaves, Dict2, trees:accounts(Trees)),
     AccountLeaves = dict_update_trie_account(Trees, Accounts, Dict3, []),
     AT = trees:accounts(Trees),
