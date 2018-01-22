@@ -350,20 +350,33 @@ check(Block) ->
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
 
-    %Initially some things in trees is the atom 'empty'.
-    %Once we insert the root stem into the trie, then we instead store a pointer to the root stem. 
+oracle_bets_batch_update([], Dict, _) -> Dict;
+oracle_bets_batch_update([X|T], Dict, Accounts) ->
+    {ID, L} = X,
+    io:fwrite("oracle bets batch update\n"),
+    io:fwrite(packer:pack(L)),
+    io:fwrite("\n"),
+    {B, R} = lists:partition(
+	       fun({ID2, L2}) -> ID2 == ID end,
+	       [X|T]),
+    Dict2 = oracle_bets_batch_update2(ID, B, Dict, Accounts),
+    oracle_bets_batch_update(R, Dict2, Accounts).
+oracle_bets_batch_update2(ID, B, Dict, Accounts) ->
+    Acc = accounts:dict_get(ID, Dict),
+    Bets = case Acc#acc.bets of
+	       0 ->
+		   {_, Acc2, _} = accounts:get(ID, Accounts),
+		   Acc2#acc.bets;
+	       G -> G
+	   end,
+    false = Bets == 0,
+    B2 = lists:map(fun({_, X}) -> X end, B),
+    OracleBets2 = trie:put_batch(B2, Bets, oracle_bets),
+    accounts:dict_write(Acc, OracleBets2, Dict).
 orders_batch_update([], Dict, _) -> Dict;
 orders_batch_update([X|T], Dict, Oracles) ->
     {OID, L} = X,
-    io:fwrite(packer:pack([X|T])),
-    io:fwrite("\n"),
-    case leaf:value(L) of
-	empty ->
-	    1=2;
-	_ -> ok
-    end,
-    Val = orders:deserialize(leaf:value(L)),
-    Pub = orders:aid(Val),
+    %Val = orders:deserialize(leaf:value(L)),
     {B, R} = lists:partition(
 	       fun({OID2, L2}) -> OID2 == OID end, 
 	       [X|T]),
@@ -396,12 +409,18 @@ dict_update_trie(Trees, Dict) ->
 				B < A
 			end, Orders0),
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
+    io:fwrite(packer:pack(OracleBets)),
+    io:fwrite("\n"),
     {Accounts, Keys4} = get_things(accounts, Keys3),
     {Oracles, Keys5} = get_things(oracles, Keys4),
     OrdersLeaves = dict_update_trie_orders(Trees, Orders, Dict, []),
     %{leaf, key, val, meta}
     Dict2 = orders_batch_update(OrdersLeaves, Dict, trees:oracles(Trees)),%Dict20 should be the same as Dict2, but we don't use orders:head_put or orders:write to calculate it.
-    {Dict3, OBLeaves} = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2, []),
+    {_, OBLeaves} = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2, []),
+    io:fwrite("OBleaves are "),
+    io:fwrite(packer:pack(OBLeaves)),
+    io:fwrite("\n"),
+    Dict3 = oracle_bets_batch_update(OBLeaves, Dict2, trees:accounts(Trees)),
     AccountLeaves = dict_update_trie_account(Trees, Accounts, Dict3, []),
     AT = trees:accounts(Trees),
     AT2 = trie:put_batch(AccountLeaves, AT, accounts),
@@ -533,7 +552,7 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict, L) ->
 		 leaf:new(ID, oracle_bets:serialize(New), 0, trie:cfg(oracle_bets))}
         end,
     Dict2 = accounts:dict_write(DictAccount, OracleBets2, Dict),
-    dict_update_trie_oracle_bets(Trees, T, Dict2, [Leaf|L]).
+    dict_update_trie_oracle_bets(Trees, T, Dict2, [{Pub, Leaf}|L]).
 get_things(Key, L) ->
     get_things(Key, L, [], []).
 get_things(Key, [], A, B) -> {A, B};
