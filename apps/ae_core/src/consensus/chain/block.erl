@@ -416,7 +416,7 @@ dict_update_trie(Trees, Dict) ->
     OrdersLeaves = dict_update_trie_orders(Trees, Orders, Dict, []),
     %{leaf, key, val, meta}
     Dict2 = orders_batch_update(OrdersLeaves, Dict, trees:oracles(Trees)),%Dict20 should be the same as Dict2, but we don't use orders:head_put or orders:write to calculate it.
-    {_, OBLeaves} = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2, []),
+    OBLeaves = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2, []),
     io:fwrite("OBleaves are "),
     io:fwrite(packer:pack(OBLeaves)),
     io:fwrite("\n"),
@@ -529,30 +529,18 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 		leaf:new(ID, New2, 0, trie:cfg(orders))
         end,
     dict_update_trie_orders(Trees, T, Dict, [{OID, Leaf}|L]).
-dict_update_trie_oracle_bets(_, [], D, L) -> {D, L};
+dict_update_trie_oracle_bets(_, [], _, L) -> L;
 dict_update_trie_oracle_bets(Trees, [H|T], Dict, L) ->
     {oracle_bets, Key} = H,
     {key, Pub, OID} = Key,
     New = oracle_bets:dict_get(Key, Dict),
-    DictAccount = accounts:dict_get(Pub, Dict),
-    {_, Account, _} = accounts:get(Pub, trees:accounts(Trees)),
-    OracleBets = 
-        case DictAccount#acc.bets of
-            0 -> Account#acc.bets;
-            Z -> Z
-        end,
     ID = oracle_bets:key_to_int(OID),
-    {OracleBets2, Leaf} = 
-        case New of
-            empty -> 
-		{oracle_bets:delete(OID, OracleBets),
-		 leaf:new(ID, empty, 0, trie:cfg(oracle_bets))};
-            _ -> 
-		{oracle_bets:write(New, OracleBets),
-		 leaf:new(ID, oracle_bets:serialize(New), 0, trie:cfg(oracle_bets))}
-        end,
-    Dict2 = accounts:dict_write(DictAccount, OracleBets2, Dict),
-    dict_update_trie_oracle_bets(Trees, T, Dict2, [{Pub, Leaf}|L]).
+    New2 = case New of
+	       empty -> empty;
+	       _ -> oracle_bets:serialize(New)
+	   end,
+    Leaf = leaf:new(ID, New2, 0, trie:cfg(oracle_bets)),
+    dict_update_trie_oracle_bets(Trees, T, Dict, [{Pub, Leaf}|L]).
 get_things(Key, L) ->
     get_things(Key, L, [], []).
 get_things(Key, [], A, B) -> {A, B};
@@ -560,10 +548,6 @@ get_things(Key, [{Key, X}|L], A, B) ->
     get_things(Key, L, [{Key, X}|A], B);
 get_things(Key, [{Key2, X}|L], A, B) ->
     get_things(Key, L, A, [{Key2, X}|B]).
-%facts_to_trie([], Tree) -> Tree;
-%facts_to_trie([Fact|T], Tree) ->
-%    Tree2 = ftt2(Fact, Tree),
-%    facts_to_trie(T, Tree2).
 setup_tree(Empty, Start, Path, Type) ->
     case Start of
         Empty ->
