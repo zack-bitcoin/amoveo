@@ -127,7 +127,7 @@ genesis_maker() ->
     Pub = constants:master_pub(),
     First = accounts:new(Pub, constants:initial_coins()),
     GovInit = governance:genesis_state(),
-    Accounts = accounts:write(First, Root0),
+    Accounts = accounts:write(First, Root0),%This is leaking a small amount of memory, but it is probably too small to care about, since this function gets executed so rarely.
     Trees = trees:new(Accounts, Root0, Root0, Root0, Root0, GovInit),
     TreesRoot = trees:root_hash(Trees),
     BlockPeriod = governance:get_value(block_period, GovInit),
@@ -362,8 +362,12 @@ dict_update_trie(Trees, Dict) ->
     {Oracles, Keys5} = get_things(oracles, Keys4),
     Dict2 = dict_update_trie_orders(Trees, Orders, Dict),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2),
-    Trees2 = dict_update_trie_account(Trees, Accounts, Dict3),
-    Trees3 = dict_update_trie_oracles(Trees2, Oracles, Dict3),
+    {_, AccountLeaves} = dict_update_trie_account(Trees, Accounts, Dict3, []),
+    AT = trees:accounts(Trees),
+    AT2 = trie:put_batch(AccountLeaves, AT, accounts),
+    Trees4 = trees:update_accounts(Trees, AT2),
+    {Trees3, OracleLeaves} = dict_update_trie_oracles(Trees4, Oracles, Dict3, []),
+    
     dict_update_trie2(Trees3, Keys5, Dict3).
 dict_update_trie2(T, [], _) -> T;
 dict_update_trie2(Trees, [H|T], Dict) ->
@@ -377,23 +381,24 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
     dict_update_trie2(Trees2, T, Dict).
-dict_update_trie_oracles(T, [], _) -> T;
-dict_update_trie_oracles(Trees, [H|T], Dict) ->
-    Trees2 = dict_update_account_oracle_helper(oracles, H, orders, Trees, orders:empty_book(), set_orders, Dict),
-    dict_update_trie_oracles(Trees2, T, Dict).
-dict_update_trie_account(T, [], _) -> T;
-dict_update_trie_account(Trees, [H|T], Dict) ->
-    Trees2 = dict_update_account_oracle_helper(accounts, H, bets, Trees, constants:root0(), update_bets, Dict),
-    dict_update_trie_account(Trees2, T, Dict).
+dict_update_trie_oracles(T, [], _, X) -> {T, X};
+dict_update_trie_oracles(Trees, [H|T], Dict, X) ->
+    {Trees2, X2} = dict_update_account_oracle_helper(oracles, H, orders, Trees, orders:empty_book(), set_orders, Dict, X),
+    dict_update_trie_oracles(Trees2, T, Dict, X2).
+dict_update_trie_account(T, [], _, X) -> {T, X};
+dict_update_trie_account(Trees, [H|T], Dict, X) ->
+    {Trees2, X2} = dict_update_account_oracle_helper(accounts, H, bets, Trees, constants:root0(), update_bets, Dict, X),
+    dict_update_trie_account(Trees2, T, Dict, X2).
 
-dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2, Dict) ->
+dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2, Dict, Leaves) ->
     {_, Key} = H,
     New0 = Type:dict_get(Key, Dict),
     Tree = trees:Type(Trees),
-    Tree2 = 
+    {Tree2, Leaves2} = 
         case New0 of
             empty -> 
-                Type:delete(Key, Tree);
+		L = leaf:new(Type:key_to_int(Key), empty, 0, trie:cfg(Type)),
+                {Type:delete(Key, Tree), [L|Leaves]};
             _ -> 
                 ABN = Type:Type2(New0),
                 {_, Old, _} = Type:get(Key, trees:Type(Trees)),
@@ -401,7 +406,7 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
                           Old == empty -> 
                               Type:UpdateType2(New0, EmptyType2);
                           true ->
-                              ABO = Type:Type2(Old),
+                              ABO = Type:Type2(Old),%pointer to bets/orders
                               if
                                   ABO == 0 -> 
                                       throw("dict update trie account oracle"),
@@ -411,10 +416,12 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
                                   true -> New0
                               end
                       end,
-                Type:write(New, Tree)
+		Meta = Type:meta_get(New),
+		L = leaf:new(Type:key_to_int(Key), Type:serialize(New), Meta, trie:cfg(Type)),
+                {Type:write(New, Tree), [L|Leaves]}
     end,
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
-    trees:Update(Trees, Tree2).
+    {trees:Update(Trees, Tree2), Leaves2}.
 dict_update_trie_orders(_, [], D) -> D;
 dict_update_trie_orders(Trees, [H|T], Dict) ->
     {orders, Key} = H,
