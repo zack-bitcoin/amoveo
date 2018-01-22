@@ -398,7 +398,7 @@ dict_update_trie(Trees, Dict) ->
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
     {Accounts, Keys4} = get_things(accounts, Keys3),
     {Oracles, Keys5} = get_things(oracles, Keys4),
-    {_Dict20, OrdersLeaves} = dict_update_trie_orders(Trees, Orders, Dict, []),
+    OrdersLeaves = dict_update_trie_orders(Trees, Orders, Dict, []),
     %{leaf, key, val, meta}
     Dict2 = orders_batch_update(OrdersLeaves, Dict, trees:oracles(Trees)),%Dict20 should be the same as Dict2, but we don't use orders:head_put or orders:write to calculate it.
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2),
@@ -483,7 +483,7 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
     end,
     %Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Leaves2.
-dict_update_trie_orders(_, [], D, L) -> {D, L};
+dict_update_trie_orders(_, [], D, L) -> L;
 dict_update_trie_orders(Trees, [H|T], Dict, L) ->
     {orders, Key} = H,
     {key, Pub, OID} = Key,
