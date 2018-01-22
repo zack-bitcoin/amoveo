@@ -96,9 +96,6 @@ write(Oracle, Root) ->
     trie:put(key_to_int(Key), V, Meta, Root, ?name).
 dict_get(ID, Dict) ->
     X = dict:find({oracles, ID}, Dict),
-    io:fwrite("oracles dict_get "),
-    io:fwrite(packer:pack(X)),
-    io:fwrite("\n"),
     case X of
 	error -> empty;
         {ok, 0} -> empty;

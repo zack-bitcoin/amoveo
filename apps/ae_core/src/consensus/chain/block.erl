@@ -355,6 +355,13 @@ check(Block) ->
 orders_batch_update([], Dict, _) -> Dict;
 orders_batch_update([X|T], Dict, Oracles) ->
     {OID, L} = X,
+    io:fwrite(packer:pack([X|T])),
+    io:fwrite("\n"),
+    case leaf:value(L) of
+	empty ->
+	    1=2;
+	_ -> ok
+    end,
     Val = orders:deserialize(leaf:value(L)),
     Pub = orders:aid(Val),
     {B, R} = lists:partition(
@@ -381,7 +388,13 @@ dict_update_trie(Trees, Dict) ->
     %do the orders and oracle_bets last, then insert their state roots into the accounts and oracles.
     %pointers are integers, root hashes are binary.
     Keys = dict:fetch_keys(Dict),
-    {Orders, Keys2} = get_things(orders, Keys),
+    {Orders0, Keys2} = get_things(orders, Keys),
+    PS = constants:pubkey_size()*8,
+    Orders = lists:sort(fun({orders, Keya}, {orders, Keyb}) -> 
+				<<A:PS>> = Keya#key.pub,
+				<<B:PS>> = Keyb#key.pub,
+				B < A
+			end, Orders0),
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
     {Accounts, Keys4} = get_things(accounts, Keys3),
     {Oracles, Keys5} = get_things(oracles, Keys4),
@@ -479,12 +492,8 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
         <<0:PS>> -> throw(dict_update_trie_orders_error);
         _ -> ok
     end,
-    {_, Oracle, _} = oracles:get(OID, trees:oracles(Trees)),
-    DictOracle = oracles:dict_get(OID, Dict),
-    Orders = case DictOracle#oracle.orders of
-                 0 -> Oracle#oracle.orders;
-                 Z -> Z
-             end,
+    %{_, Oracle, _} = oracles:get(OID, trees:oracles(Trees)),
+    %DictOracle = oracles:dict_get(OID, Dict),
     Leaf = 
         case Pub of
             <<1:PS>> ->
@@ -496,6 +505,7 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->
 		Y = orders:serialize_head(Pointer, Many),
 		leaf:new(ID, Y, 0, trie:cfg(orders));
             _ ->
+                %New = orders:dict_get(Key, Dict),
                 New2 = 
                     case orders:dict_get(Key, Dict) of
                         empty -> empty;
