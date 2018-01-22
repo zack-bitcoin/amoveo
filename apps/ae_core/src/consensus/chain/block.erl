@@ -371,7 +371,29 @@ dict_update_trie(Trees, Dict) ->
     OT2 = trie:put_batch(OracleLeaves, OT, oracles),
     Trees5 = trees:update_oracles(Trees4, OT2),
     %We need to sort the keys to update each trie one at a time.
-    dict_update_trie2(Trees5, Keys5, Dict3).
+    io:fwrite("dict update keys are "),
+    io:fwrite(packer:pack(Keys5)),
+    io:fwrite("\n"),
+    {Channels, Keys6} = get_things(channels, Keys5),
+    CT = trees:channels(Trees5),
+    ChannelsLeaves = keys2leaves(Channels, channels, Dict3),
+    CT2 = trie:put_batch(ChannelsLeaves, CT, channels),
+    Trees6 = trees:update_channels(Trees5, CT2),
+    {Ex, Keys7} = get_things(existence, Keys6),
+    {Gov, []} = get_things(governance, Keys7),
+    dict_update_trie2(Trees6, Keys6, Dict3).
+keys2leaves([], _, _) -> [];
+keys2leaves([H|T], Type, Dict) ->
+    {Type, Key} = H,
+    New = Type:dict_get(Key, Dict),
+    I = Type:key_to_int(Key),
+    L = case New of
+	    empty ->  leaf:new(I, empty, 0, trie:cfg(Type));
+	    _ ->
+		Value = Type:serialize(New),
+		leaf:new(I, Value, 0, trie:cfg(Type))
+	end,
+    [L|keys2leaves(T, Type, Dict)].
 dict_update_trie2(T, [], _) -> T;
 dict_update_trie2(Trees, [H|T], Dict) ->
     {Type, Key} = H,
@@ -423,7 +445,7 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
 		L = leaf:new(Type:key_to_int(Key), Type:serialize(New), Meta, trie:cfg(Type)),
                 [L|Leaves]
     end,
-    Update = list_to_atom("update_" ++ atom_to_list(Type)),
+    %Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Leaves2.
 dict_update_trie_orders(_, [], D) -> D;
 dict_update_trie_orders(Trees, [H|T], Dict) ->
