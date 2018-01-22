@@ -362,11 +362,11 @@ dict_update_trie(Trees, Dict) ->
     {Oracles, Keys5} = get_things(oracles, Keys4),
     Dict2 = dict_update_trie_orders(Trees, Orders, Dict),
     Dict3 = dict_update_trie_oracle_bets(Trees, OracleBets,Dict2),
-    {_, AccountLeaves} = dict_update_trie_account(Trees, Accounts, Dict3, []),
+    AccountLeaves = dict_update_trie_account(Trees, Accounts, Dict3, []),
     AT = trees:accounts(Trees),
     AT2 = trie:put_batch(AccountLeaves, AT, accounts),
     Trees4 = trees:update_accounts(Trees, AT2),
-    {_, OracleLeaves} = dict_update_trie_oracles(Trees4, Oracles, Dict3, []),
+    OracleLeaves = dict_update_trie_oracles(Trees4, Oracles, Dict3, []),
     OT = trees:oracles(Trees4),
     OT2 = trie:put_batch(OracleLeaves, OT, oracles),
     Trees5 = trees:update_oracles(Trees4, OT2),
@@ -384,11 +384,11 @@ dict_update_trie2(Trees, [H|T], Dict) ->
     Update = list_to_atom("update_" ++ atom_to_list(Type)),
     Trees2 = trees:Update(Trees, Tree2),
     dict_update_trie2(Trees2, T, Dict).
-dict_update_trie_oracles(T, [], _, X) -> {T, X};
+dict_update_trie_oracles(_, [], _, X) -> X;
 dict_update_trie_oracles(Trees, [H|T], Dict, X) ->
     X2 = dict_update_account_oracle_helper(oracles, H, orders, Trees, orders:empty_book(), set_orders, Dict, X),
     dict_update_trie_oracles(Trees, T, Dict, X2).
-dict_update_trie_account(T, [], _, X) -> {T, X};
+dict_update_trie_account(_, [], _, X) -> X;
 dict_update_trie_account(Trees, [H|T], Dict, X) ->
     X2 = dict_update_account_oracle_helper(accounts, H, bets, Trees, constants:root0(), update_bets, Dict, X),
     dict_update_trie_account(Trees, T, Dict, X2).
