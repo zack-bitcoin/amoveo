@@ -33,6 +33,7 @@ scripts_root() -> "lib/ae_core-0.1.0/priv/".
 oracle_bet() -> scripts_root() ++ "oracle_bet.fs".
 headers_file() -> root() ++ "headers.db".
 oracle_questions_file() -> root() ++ "oracle_questions.db".
+recent_blocks() -> root() ++ "recent_blocks.db".
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
 half_bal() -> round(math:pow(2, balance_bits()-1)).

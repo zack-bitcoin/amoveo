@@ -3,13 +3,24 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
          read/0, add/3]).
 -include("../../records.hrl").
+-define(LOC, constants:recent_blocks()).
 -record(r, {blocks = [], work = 0, save_limit = 0}).
-%We keep a record of the blocks with the heighest accumulative difficulty so that we know what we should not prune.
+%We keep a record of the blocks with the heighest accumulative difficulty so that we know what we will need to prune.
 %If a fork starts from before fork_tolerance, then it would be growing from a block that is not recorded in this module. Since the data is pruned, you would be unable to maintain the database. So the node would freeze, and you would have to either restart syncing from the genesis block, or download and verify all the consensus data you don't have from the fork.
-init(ok) -> {ok, #r{}}.
+init(ok) -> 
+    process_flag(trap_exit, true),
+    X = db:read(?LOC),
+    Ka = if 
+	     X == "" -> #r{};
+	     true -> X
+	 end,
+    {ok, #r{}}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("recent blocks died!\n"), ok.
+terminate(_, K) -> 
+    db:save(?LOC, K),
+    io:fwrite("recent blocks died!\n"), 
+    ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call({add, Hash, TotalWork, Height}, _, X) ->

@@ -6,6 +6,7 @@
 	 update_governance/2, governance/1,
 	 root_hash/1, name/1, 
          prune/0, prune/1,
+	 prune/2,
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
 	 hash2blocks/1, dict_tree_get/4,
@@ -94,6 +95,32 @@ hash2blocks([H|T]) ->
         empty -> hash2blocks(T);
         _ -> [B|hash2blocks(T)]
     end.
+prune(PruneBlock, KeepBlock) ->
+    Trees = [accounts, oracles, channels, existence, governance],
+    [A, O, _, _, _] = 
+	lists:map(fun(T) ->
+			  T1 = PruneBlock#block.trees,
+			  T2 = KeepBlock#block.trees,
+			  A1 = trees:T(T1),
+			  A2 = trees:T(T2),
+			  trie:prune(A1, A2, T)
+		  end, Trees),
+    lists:map(fun({L1, L2}) ->
+		      Leaf1 = leaf:get(L1),
+		      Bets1 = leaf:meta(Leaf1),
+		      Leaf2 = leaf:get(L2),
+		      Bets2 = leaf:meta(Leaf2),
+		      trie:prune(Bets1, Bets2, oracle_bets)
+	      end, A),
+    lists:map(fun({L1, L2}) ->
+		      Leaf1 = leaf:get(L1),
+		      Orders1 = leaf:meta(Leaf1),
+		      Leaf2 = leaf:get(L2),
+		      Orders2 = leaf:meta(Leaf2),
+		      trie:prune(Orders1, Orders2, oracle_bets)
+	      end, O),
+    ok.
+    
 prune() -> 
     Blocks = hash2blocks(recent_blocks:read()),
     prune(Blocks).
@@ -151,6 +178,9 @@ prune3([B|Blocks], TID) ->
     H = B#block.height,
     Root = trees:TID(B#block.trees),
     [Root|prune3(Blocks, TID)].
+
+
+
 hash2int(X) ->
     U = size(X),
     U = constants:hash_size(),
