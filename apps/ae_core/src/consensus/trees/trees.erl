@@ -5,7 +5,7 @@
 	 update_oracles/2,
 	 update_governance/2, governance/1,
 	 root_hash/1, name/1, 
-         prune/0, prune/1,
+         %prune/0, prune/1,
 	 prune/2,
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
@@ -105,19 +105,30 @@ prune(PruneBlock, KeepBlock) ->
 			  A2 = trees:T(T2),
 			  trie:prune(A1, A2, T)
 		  end, Trees),
+    ok.
+dont_prune(A, O) ->
     lists:map(fun({L1, L2}) ->
-		      Leaf1 = leaf:get(L1),
+		      %io:fwrite("prune L1 L2 are "),
+		      %io:fwrite(packer:pack([L1, L2])),
+		      %io:fwrite("\n"),
+		      CFG = trie:cfg(accounts),
+		      Leaf1 = leaf:get(L1, CFG),
 		      Bets1 = leaf:meta(Leaf1),
-		      Leaf2 = leaf:get(L2),
+		      Leaf2 = leaf:get(max(1, L2), CFG),
 		      Bets2 = leaf:meta(Leaf2),
 		      trie:prune(Bets1, Bets2, oracle_bets)
 	      end, A),
     lists:map(fun({L1, L2}) ->
-		      Leaf1 = leaf:get(L1),
+		      %L3 = case L2 of
+			%       0 -> orders:empty_book();
+			%       X -> X
+			%   end,
+		      CFG = trie:cfg(oracles),
+		      Leaf1 = leaf:get(L1, CFG),
 		      Orders1 = leaf:meta(Leaf1),
-		      Leaf2 = leaf:get(L2),
+		      Leaf2 = leaf:get(L2, CFG),
 		      Orders2 = leaf:meta(Leaf2),
-		      trie:prune(Orders1, Orders2, oracle_bets)
+		      trie:prune(Orders1, Orders2, orders)
 	      end, O),
     ok.
     

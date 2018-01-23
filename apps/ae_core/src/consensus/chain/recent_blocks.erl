@@ -31,12 +31,20 @@ handle_call({add, Hash, TotalWork, Height}, _, X) ->
               AB = block:get_by_height(max(0, Height - FT)),
               {ok, H} = headers:read(block:hash(AB)),
               AncestorsWork = H#header.accumulative_difficulty,
-              Blocks = remove_before(X#r.blocks, AncestorsWork),
+              %Blocks = remove_before(lists:reverse(X#r.blocks), AncestorsWork),
+	      BS = lists:sort(fun(A, B) -> 
+				      {_, A1} = A,
+				      {_, B1} = B,
+				      A1 < B1
+			      end,
+			      X#r.blocks),
+              Blocks = remove_before(BS, AncestorsWork),
               #r{blocks = [{Hash, TotalWork}|Blocks], work = TotalWork, save_limit = AncestorsWork};
           TotalWork > X#r.save_limit ->
               X#r{blocks = [{Hash, TotalWork}|X#r.blocks]};
           true -> X 
       end,
+    db:save(?LOC, R),
     {reply, ok, R};
 handle_call(read, _From, X) -> 
     Y = get_hashes(X#r.blocks),
@@ -48,7 +56,16 @@ get_hashes([]) -> [];
 get_hashes([{Hash, _}|T]) -> 
     [Hash|get_hashes(T)].
 remove_before([], _) -> [];
-remove_before([{Hash, Height}|T], X) when Height < X ->
+remove_before([{Hash, TotalWork}|T], X) when TotalWork < X ->
+    OldBlock = block:get_by_hash(Hash),
+    H = OldBlock#block.height,
+    KeepBlock = block:get_by_height(H+1),
+    %io:fwrite("remove before "),
+    %io:fwrite(packer:pack(OldBlock)),
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack(KeepBlock)),
+    %io:fwrite("\n"),
+    trees:prune(OldBlock, KeepBlock),
     remove_before(T, X);
 remove_before([H|T], X) -> [H|remove_before(T, X)].
 

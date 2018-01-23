@@ -416,15 +416,21 @@ work(Nonce, _) ->
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
     block_absorber:save(Block2),
+    %db:save(?mining, ""),
     spawn(fun() -> sync:start() end),
     0.
 mining_data() ->
+    OldBlock = db:read(?mining),
+    case OldBlock of
+	"" -> ok;
+	_ -> trees:prune(OldBlock, block:top())
+	    %ok
+    end,
     TP = tx_pool:get(),
     Height = TP#tx_pool.height,
     Txs = TP#tx_pool.txs,
     PB = block:get_by_height(Height),
     {ok, Top} = headers:read(block:hash(PB)),
-    block_absorber:prune(),
     Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
     spawn(fun() -> db:save(?mining, Block) end),
     NextDiff = headers:difficulty_should_be(Top),

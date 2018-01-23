@@ -1,8 +1,8 @@
 -module(block_absorber).
 -behaviour(gen_server).
 -include("../../records.hrl").
--export([prune/0, %% delete unneeded things from trees asynchronously
-	 synch_prune/1,
+-export([%prune/0, %% delete unneeded things from trees asynchronously
+	 %synch_prune/1,
          enqueue/1, %% async request
 	 save/1,    %% returns after saving
 	 do_save/1]). %% run without gen_server
@@ -14,21 +14,21 @@ terminate(_, _) ->
     io:fwrite("block absorber died! \n"),
     ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast(prune, X) ->
-    trees:prune(),
-    {noreply, X};
+%handle_cast(prune, X) ->
+%    trees:prune(),
+%    {noreply, X};
 handle_cast({doit, BP}, X) ->
     absorb_internal(BP),
     {noreply, X}.
-handle_call({prune, Blocks}, _, X) ->
-    B = Blocks ++ trees:hash2blocks(recent_blocks:read()),
-    trees:prune(B),
-    {reply, ok, X};
+%handle_call({prune, Blocks}, _, X) ->
+%    B = Blocks ++ trees:hash2blocks(recent_blocks:read()),
+%    trees:prune(B),
+%    {reply, ok, X};
 handle_call({doit, BP}, _From, X) -> 
     absorb_internal(BP),
     {reply, ok, X}.
-prune() -> gen_server:cast(?MODULE, prune).
-synch_prune(Blocks) -> gen_server:call(?MODULE, {prune, Blocks}, 10000).
+%prune() -> gen_server:cast(?MODULE, prune).
+%synch_prune(Blocks) -> gen_server:call(?MODULE, {prune, Blocks}, 10000).
 enqueue([]) -> ok;
 enqueue([B|T]) -> enqueue(B), enqueue(T);
 enqueue(B) -> gen_server:cast(?MODULE, {doit, B}).
@@ -58,13 +58,13 @@ absorb_internal(Block) ->
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),
-            {ok, PrunePeriod} = application:get_env(ae_core, prune_period),
+            %{ok, PrunePeriod} = application:get_env(ae_core, prune_period),
             HeaderHeight = api:height(),
             recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
-            if
-                (((Height rem PrunePeriod) == 0) and (HeaderHeight > PrunePeriod)) -> trees:prune();
-                true -> ok
-            end,
+            %if
+            %    (((Height rem PrunePeriod) == 0) and (HeaderHeight > PrunePeriod)) -> trees:prune();
+            %    true -> ok
+            %end,
             spawn(fun () ->
                           Txs = (tx_pool:get())#tx_pool.txs,
                           tx_pool:dump(),
