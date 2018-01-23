@@ -15,7 +15,7 @@ handle_cast(save, _) ->
     {noreply, Block};
 handle_cast(new, Old) -> 
     Block = new_internal(Old),
-    {reply, Block};
+    {noreply, Block};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(read, _From, X) -> 
     Y = case X of
@@ -25,15 +25,18 @@ handle_call(read, _From, X) ->
     {reply, Y, Y};
 handle_call(_, _From, X) -> {reply, X, X}.
 new() -> gen_server:cast(?MODULE, new).
-save() -> gen_server:call(?MODULE, save).
+save() -> gen_server:cast(?MODULE, save).
 read() -> gen_server:call(?MODULE, read).
 new_internal(Old) ->
+    
     TP = tx_pool:get(),
     Txs = TP#tx_pool.txs,
     T = TP#tx_pool.height,
     PB = block:get_by_height(T),
-    Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
-   case Old of
+    Hash = block:hash(PB),
+    {ok, Top} = headers:read(Hash),
+    %Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
+    case Old of
 	"" -> ok;
 	_ -> trees:prune(Old, block:top())
     end,

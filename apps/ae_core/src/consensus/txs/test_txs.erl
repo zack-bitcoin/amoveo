@@ -745,10 +745,11 @@ test({17, N}) ->
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
     %fill blocks completely with create_account txs.
-    create_accounts(1, N),%fits 636 at the start.
+    create_accounts(636, N),%fits 636 at the start.
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
-    mine_blocks(1),
+    %mine_blocks(1),
+    block:mine(100000),
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
     timer:sleep(300),
@@ -779,6 +780,10 @@ is_slash(STx) ->
     channel_slash_tx:is_tx(Tx).
 	     
 mine_blocks(Many) when Many < 1 -> ok;
+%mine_blocks(Many) -> 
+%    block:mine(100000),
+%    timer:sleep(1000),
+%    mine_blocks(Many-1).
 mine_blocks(Many) ->
     %only works if you set the difficulty very low.
     TP = tx_pool:get(),
