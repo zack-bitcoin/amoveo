@@ -420,10 +420,9 @@ work(Nonce, _) ->
     spawn(fun() -> sync:start() end),
     0.
 mining_data() ->
-    OldBlock = db:read(?mining),
-    case OldBlock of
+    case db:read(?mining) of
 	"" -> ok;
-	_ -> trees:prune(OldBlock, block:top())
+	OldBlock -> trees:prune(OldBlock, block:top())
 	    %ok
     end,
     TP = tx_pool:get(),

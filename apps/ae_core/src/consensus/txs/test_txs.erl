@@ -740,10 +740,12 @@ test(15) ->
     %block:check2(Block),
     success;
 test(17) ->
+    test({17, 1});
+test({17, N}) ->
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
     %fill blocks completely with create_account txs.
-    create_accounts(650, block:height()),%fits 636 at the start.
+    create_accounts(1, N),%fits 636 at the start.
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
     mine_blocks(1),
@@ -755,7 +757,7 @@ test(18) ->
     test18(100).
 test18(0) -> success;
 test18(N) ->
-    test(17),
+    test({17, N}),
     test18(N-1).
 create_accounts(0, Salt) -> ok;
 create_accounts(N, Salt) ->

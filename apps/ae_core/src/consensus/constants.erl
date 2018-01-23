@@ -53,6 +53,7 @@ channel_size() ->
 	+ 1 + (hash_size()) + (2 * pubkey_size()).
 retarget_frequency() -> %2000. %how many blocks till we recalculate the difficulty
     case application:get_env(ae_core, kind) of
+        %{ok, "local"} -> 12;%unit tests
         {ok, "local"} -> 12;%unit tests
         {ok, "integration"} -> 100;%integration tests
         {ok, "production"} -> 2000
