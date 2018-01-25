@@ -18,18 +18,33 @@ is_in(Tx, [STx2 | T]) ->
     Tx2 = testnet_sign:data(STx2),
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
+    %io:fwrite("now 2 "),%200
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
     Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
     Type = element(1, Tx),
-    Cost = trees:dict_tree_get(governance, Type),
+    %io:fwrite("now 3 "),%1500
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
+    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
     {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
+    %io:fwrite("now 4 "),%500
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     true = Fee > (MinimumTxFee + Cost),
     true = testnet_sign:verify(SignedTx),
+    %io:fwrite("now 5 "),%2000
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     case is_in(testnet_sign:data(SignedTx), Txs) of
         true -> ok;
         false -> 
+	    %io:fwrite("now 6 "),%200 or 2000
+	    %io:fwrite(packer:pack(now())),
+	    %io:fwrite("\n"),
 	    absorb_unsafe(SignedTx)
     end.
 grow_dict(Dict, [], _) -> Dict;
@@ -93,20 +108,32 @@ grow_dict(Dict, [{TreeID, Key}|T], Trees) ->
 	    
 absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %This is the most expensive part of absorbing transactions.
+    %io:fwrite("now 7 "),%800
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     Querys = proofs:txs_to_querys([SignedTx], Trees),
     %Querys is a list like [[TreeID, Key]...]
     %for every query, check if it is in the dict already.
     %If it is already in the dict, then we are done.
     %Otherwise, get a copy from the tree, and store it in the dict.
+    %io:fwrite("now 8 "),%200
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     Dict2 = grow_dict(Dict, Querys, Trees),
 
 %    Facts = proofs:prove(Querys, Trees),
     %Dict2 = proofs:facts_to_dict(Facts, dict:new()),
 %    Dict2 = proofs:facts_to_dict(Facts, Dict),
+    %io:fwrite("now 9 "),%300
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     NewDict = txs:digest_from_dict([SignedTx], Dict2, Height + 1),%This processes the tx.
     %NewTrees = block:dict_update_trie(Trees, NewDict), 
     %tx_pool:absorb_tx(NewTrees, NewDict, SignedTx).
-    tx_pool:absorb_tx(NewDict, SignedTx).
+    %io:fwrite("now 10 "),%3000
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
+    tx_pool:absorb_tx(NewDict, SignedTx).%1500
 absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->

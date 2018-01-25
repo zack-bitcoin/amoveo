@@ -4,26 +4,20 @@
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 %-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, infinity, Type, [I]}).
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
--define(keys, [keys, recent_blocks,
-	       block_hashes, 
-               headers,
-	       block_absorber,
-	       tx_pool, 
+-define(keys, [keys, recent_blocks, block_hashes, 
+               headers, block_absorber, tx_pool, 
 	       peers, tx_pool_feeder, 
 	       mine, channel_manager, channel_feeder,
 	       request_frequency, sync, secrets,
-	       arbitrage, order_book, oracle_questions, potential_block]).
-child_killer([]) ->
-    [];
+	       arbitrage, order_book, oracle_questions, 
+	       potential_block, tree_data]).
+child_killer([]) -> [];
 child_killer([H|T]) -> 
     supervisor:terminate_child(testnet_sup, H),
     child_killer(T).
-stop() -> 
-    child_killer(?keys).
-
+stop() -> child_killer(?keys).
 child_maker([]) -> [];
 child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].
-
 tree_child(Id, KeySize, Size) ->
     tree_child(Id, KeySize, Size, 0).
 tree_child(Id, KeySize, Size, Meta) ->

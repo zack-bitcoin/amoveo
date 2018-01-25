@@ -755,7 +755,7 @@ test({17, N}) ->
     timer:sleep(300),
     success;
 test(18) ->
-    test18(100).
+    test18(10000).
 test18(0) -> success;
 test18(N) ->
     test({17, N}),
@@ -765,11 +765,23 @@ create_accounts(N, Salt) ->
     io:fwrite("create account "),
     io:fwrite(integer_to_list(N)),
     io:fwrite("\n"),
+    %io:fwrite("now 0 "),%1500
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     M = N + (1000*Salt),
     {NewPub,_NewPriv} = testnet_sign:new_key(<<M:256>>),
     Fee = constants:initial_fee() + 20,
+    %io:fwrite("now 01 "),%400
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     Ctx = create_account_tx:make_dict(NewPub, 1, Fee, constants:master_pub()),
+    %io:fwrite("now 02 "),%1200
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     Stx = keys:sign(Ctx),
+    %io:fwrite("now 1 "),%6000
+    %io:fwrite(packer:pack(now())),
+    %io:fwrite("\n"),
     absorb(Stx),
     create_accounts(N-1, Salt).
 slash_exists([]) -> false;

@@ -14,7 +14,7 @@ init(ok) ->
 	     X == "" -> #r{};
 	     true -> X
 	 end,
-    {ok, #r{}}.
+    {ok, Ka}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, K) -> 
@@ -67,7 +67,7 @@ remove_before([{Hash, TotalWork}|T], X) when TotalWork < X ->
     %io:fwrite("\n"),
     %io:fwrite(packer:pack(KeepBlock)),
     %io:fwrite("\n"),
-    trees:prune(OldBlock, KeepBlock),
+    tree_data:prune(OldBlock, KeepBlock),
     remove_before(T, X);
 remove_before([H|T], X) -> [H|remove_before(T, X)].
 

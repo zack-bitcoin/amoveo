@@ -6,7 +6,7 @@
 	 update_governance/2, governance/1,
 	 root_hash/1, name/1, 
          %prune/0, prune/1,
-	 prune/2,
+	 %prune/2,
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
 	 hash2blocks/1, dict_tree_get/4,
@@ -95,102 +95,6 @@ hash2blocks([H|T]) ->
         empty -> hash2blocks(T);
         _ -> [B|hash2blocks(T)]
     end.
-prune(PruneBlock, KeepBlock) ->
-    Trees = [accounts, oracles, channels, existence, governance],
-    [A, O, _, _, _] = 
-	lists:map(fun(T) ->
-			  T1 = PruneBlock#block.trees,
-			  T2 = KeepBlock#block.trees,
-			  A1 = trees:T(T1),
-			  A2 = trees:T(T2),
-			  trie:prune(A1, A2, T)
-		  end, Trees),
-    ok.
-dont_prune(A, O) ->
-    lists:map(fun({L1, L2}) ->
-		      %io:fwrite("prune L1 L2 are "),
-		      %io:fwrite(packer:pack([L1, L2])),
-		      %io:fwrite("\n"),
-		      CFG = trie:cfg(accounts),
-		      Leaf1 = leaf:get(L1, CFG),
-		      Bets1 = leaf:meta(Leaf1),
-		      Leaf2 = leaf:get(max(1, L2), CFG),
-		      Bets2 = leaf:meta(Leaf2),
-		      trie:prune(Bets1, Bets2, oracle_bets)
-	      end, A),
-    lists:map(fun({L1, L2}) ->
-		      %L3 = case L2 of
-			%       0 -> orders:empty_book();
-			%       X -> X
-			%   end,
-		      CFG = trie:cfg(oracles),
-		      Leaf1 = leaf:get(L1, CFG),
-		      Orders1 = leaf:meta(Leaf1),
-		      Leaf2 = leaf:get(L2, CFG),
-		      Orders2 = leaf:meta(Leaf2),
-		      trie:prune(Orders1, Orders2, orders)
-	      end, O),
-    ok.
-    
-prune() -> 
-    Blocks = hash2blocks(recent_blocks:read()),
-    prune(Blocks).
-prune(Blocks) ->
-    Trees = [accounts, channels, oracles, existence, governance],
-    prune2(Blocks, Trees),
-    ALeaves = get_all_leaves0(Blocks, accounts, fun(X) -> trees:accounts(X#block.trees) end),
-    OLeaves = get_all_leaves0(Blocks, oracles, fun(X) -> trees:oracles(X#block.trees) end),
-    OBK = oracle_bets_keepers(ALeaves),
-    trie:garbage(OBK, oracle_bets),
-    OK = orders_keepers(OLeaves),
-    %trie:garbage(OK, orders),
-    ok.
-get_all_leaves0(B, K, F) ->
-    remove_repeats(get_all_leaves(B, K, F)).
-remove_repeats([]) -> [];
-remove_repeats([H|T]) ->
-    T2 = remove_element(H, T),
-    [H|remove_repeats(T)].
-remove_element(_, []) -> [];
-remove_element(E, [E|T]) ->
-    remove_element(E, T);
-remove_element(E, [A|T]) ->
-    [A|remove_element(E, T)].
-get_all_leaves([], _, _) -> [];
-get_all_leaves([empty|T], Key, Fun) ->
-    get_all_leaves(T, Key, Fun);
-get_all_leaves([Block|T], Key, Fun) ->
-    trie:get_all(Fun(Block), Key) ++
-        get_all_leaves(T, Key, Fun).
-oracle_bets_keepers([]) -> [1];
-oracle_bets_keepers([L|T]) ->
-    M = leaf:meta(L),
-    [M|oracle_bets_keepers(T)].
-orders_keepers([]) -> [1];
-orders_keepers([L|T]) ->
-    [leaf:meta(L)|
-     orders_keepers(T)].
-prune2(_, []) -> ok;
-prune2(Blocks, [governance|Trees]) ->
-    P3 = prune3(Blocks, governance),
-    Pointers = remove_repeats(P3),
-    %io:fwrite("trees prune governance pointers are "),
-    %io:fwrite(packer:pack(Pointers)),
-    %io:fwrite("\n"),
-    trie:garbage(Pointers, governance),
-    prune2(Blocks, Trees);
-prune2(Blocks, [TID|Trees]) ->
-    P3 = prune3(Blocks, TID),
-    Pointers = remove_repeats(P3),
-    trie:garbage(Pointers, TID),
-    prune2(Blocks, Trees).
-prune3([], _) -> [1];
-prune3([B|Blocks], TID) ->
-    H = B#block.height,
-    Root = trees:TID(B#block.trees),
-    [Root|prune3(Blocks, TID)].
-
-
 
 hash2int(X) ->
     U = size(X),
@@ -208,6 +112,7 @@ verify_proof(TreeID, RootHash, Key, Value, Proof) ->
                  TreeID:make_leaf(Key, V, CFG),
                  Proof, CFG).
 restore(Root, Fact, Meta) ->
+    1=2,
     Key = proofs:key(Fact),
     Value = case proofs:value(Fact) of
                 0 -> empty;

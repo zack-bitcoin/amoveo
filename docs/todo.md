@@ -1,3 +1,11 @@
+There is a race condition with trees. we need a trees gen_server. maybe just upgrade the current trees module to gen server status.
+block:dict_update_trie should be a call to trees.
+trees:prune/2 should be a cast to trees.
+
+
+
+
+
 ### things to do for the next hard fork
 
 * increase constants initial difficulty and block reward.
@@ -11,9 +19,7 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-*remove trees from tx_pool record.
-* Garbage step 2: the trie should batch writes to avoid writing unnecessary data.
-* Garbage step 3: New pruning algorithm- When a block is old enough to be pruned, we can compare the state tries between that block and it's ancestor. Only delete stuff that is in the older block, but not in the newer block.
+*if you make a block, you also verify it. So a block like this gets read into the trie twice, and we need to garbage collect both copies.
 
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.

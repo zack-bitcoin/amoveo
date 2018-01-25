@@ -172,7 +172,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
 
 %% Internals
 
-%% Try to fit everything into 32-bit values
+%% Everything fits into 32-bit values
 new(Id, Value) ->
     new(Id, Value, 0).
 new(Id, Value, Lock) ->

@@ -409,21 +409,45 @@ combine_cancel_assets(IP, Port) ->
     channel_feeder:combine_cancel_assets(ServerID, IP, Port),
     0.
 -define(mining, "data/mining_block.db").
-work(Nonce, _) ->
+work_old(Nonce, _) ->
     <<N:256>> = Nonce,
     Block = db:read(?mining),
     Block2 = Block#block{nonce = N},
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
     block_absorber:save(Block2),
-    %db:save(?mining, ""),
     spawn(fun() -> sync:start() end),
     0.
+work(Nonce, _) ->
+    <<N:256>> = Nonce,
+    Block = potential_block:read(),
+    Block2 = Block#block{nonce = N},
+    io:fwrite("work block hash is "),
+    io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
+    io:fwrite(packer:pack(hash:doit(block:hash(Block2)))),
+    io:fwrite("\n"),
+    Header = block:block_to_header(Block2),
+    headers:absorb([Header]),
+    block_absorber:save(Block2),
+    potential_block:save(),
+    spawn(fun() -> sync:start() end),
+    0.
+    
 mining_data() ->
+    Block = potential_block:read(),
+    io:fwrite("mining data block hash is "),
+    io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
+    io:fwrite("\n"),
+    [hash:doit(block:hash(Block)),
+     crypto:strong_rand_bytes(32), 
+     %headers:difficulty_should_be(Top)].
+     Block#block.difficulty].
+%headers:difficulty_should_be(Top)].
+mining_data_old() ->
     case db:read(?mining) of
 	"" -> ok;
-	OldBlock -> trees:prune(OldBlock, block:top())
-	    %ok
+	OldBlock -> %trees:prune(OldBlock, block:top())
+	    ok
     end,
     TP = tx_pool:get(),
     Height = TP#tx_pool.height,
@@ -437,4 +461,4 @@ mining_data() ->
      crypto:strong_rand_bytes(32), 
      headers:difficulty_should_be(Top)].
     
-    
+   
