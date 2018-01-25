@@ -292,7 +292,7 @@ balance() -> integer_balance().
 mempool() -> lists:reverse((tx_pool:get())#tx_pool.txs).
 halt() -> off().
 off() ->
-    testnet_sup:stop(),
+    %testnet_sup:stop(),
     ok = application:stop(ae_core),
     ok = application:stop(ae_http).
 mine_block() ->
@@ -420,7 +420,7 @@ work_old(Nonce, _) ->
     0.
 work(Nonce, _) ->
     <<N:256>> = Nonce,
-    Block = potential_block:read(),
+    Block = potential_block:check(),
     Block2 = Block#block{nonce = N},
     io:fwrite("work block hash is "),
     io:fwrite(packer:pack(hash:doit(block:hash(Block)))),

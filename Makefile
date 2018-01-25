@@ -257,7 +257,7 @@ multi-quick: kill multi-clean multi-build multi-go
 
 local-quick: kill local-build local-clean
 	./_build/local/rel/ae_core/bin/ae_core console
-prod-restart: prod-stop prod-build prod-go
+prod-restart: prod-stop prod-clean prod-build prod-go
 	@sleep 1
 	@make prod-attach
 

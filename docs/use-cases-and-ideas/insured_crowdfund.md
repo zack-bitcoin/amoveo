@@ -24,10 +24,12 @@ There are 2 possible results of the crowdfund:
 
 Here is a graph showing how much cost and reward each participant can get in each situation.
 
+```
 Participants    Entrepenuer    Investor      Builders
 Cost to play    10             110           0
 success         20             0             100
 failure         0              120           0
+```
 
 The entrepenuer's job is to do the research to realize that the benefit of the public good outweighs the cost. If the entrepenuer is wrong, then they lose their money.
 
