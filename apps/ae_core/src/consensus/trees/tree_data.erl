@@ -37,9 +37,6 @@ internal(PruneBlock, KeepBlock, F) ->
 			  F(A1, A2, T)
 		  end, Trees),
     lists:map(fun({L1, L2}) ->
-		      io:fwrite("prune L1 L2 are "),
-		      io:fwrite(packer:pack([L1, L2])),
-		      io:fwrite("\n"),
 		      CFG = trie:cfg(accounts),
 		      Leaf1 = leaf:get(L1, CFG),
 		      Bets1 = leaf:meta(Leaf1),
@@ -47,13 +44,7 @@ internal(PruneBlock, KeepBlock, F) ->
 		      Bets2 = leaf:meta(Leaf2),
 		      F(Bets1, Bets2, oracle_bets)
 	      end, A),
-    ok.
-dont_prune(A, O, F) ->
     lists:map(fun({L1, L2}) ->
-		      %L3 = case L2 of
-			%       0 -> orders:empty_book();
-			%       X -> X
-			%   end,
 		      CFG = trie:cfg(oracles),
 		      Leaf1 = leaf:get(L1, CFG),
 		      Orders1 = leaf:meta(Leaf1),
