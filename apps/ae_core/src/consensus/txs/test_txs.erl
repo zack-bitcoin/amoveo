@@ -60,7 +60,7 @@ test(1) ->
     Ctx4 = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
-    potential_block:save(),
+    potential_block:new(),
 
     Txs = (tx_pool:get())#tx_pool.txs,
     BP2 = block:get_by_height(0),
@@ -213,7 +213,7 @@ test(6) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    %potential_block:new(),
+    %potential_block:save(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -226,7 +226,7 @@ test(6) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     mine_blocks(1),
 
@@ -237,7 +237,7 @@ test(6) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
@@ -250,7 +250,7 @@ test(6) ->
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     timer:sleep(50),
 
@@ -258,7 +258,7 @@ test(6) ->
     Ctx4 = channel_slash_tx:make_dict(NewPub,Fee,SignedScriptPubKey,[ScriptSig2]),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv),
     absorb(Stx4),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     timer:sleep(50),
 
@@ -271,7 +271,7 @@ test(6) ->
     Stx6 = keys:sign(Ctx6),
     absorb(Stx6),
     empty = trees:dict_tree_get(channels, 1),
-    potential_block:save(),
+    potential_block:new(),
 
     mine_blocks(1),
     %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
@@ -359,7 +359,7 @@ test(9) ->
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(),Fee, SignedScriptPubKey, [ScriptSig]),
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     timer:sleep(50),
     ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
@@ -371,7 +371,7 @@ test(9) ->
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     %Txs = (tx_pool:get())#tx_pool.txs,
     %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
@@ -387,7 +387,7 @@ test(7) ->
     io:fwrite("existence test \n"),
     S = <<"test data">>,
     tx_pool:dump(),
-    %potential_block:save(),
+    %potential_block:new(),
     Trees = (tx_pool:get())#tx_pool.block_trees,
     %Accounts = trees:accounts(Trees),
     Data = hash:doit(S),
@@ -398,7 +398,7 @@ test(7) ->
     C = trees:dict_tree_get(existence, Data),
     Data = existence:hash(C),
     timer:sleep(200),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     success;
 test(11) ->
@@ -416,7 +416,7 @@ test(11) ->
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(5),
     timer:sleep(150),
     %make some bets in the oracle with oracle_bet
@@ -491,7 +491,7 @@ test(16) ->
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(5),
     timer:sleep(150),
     %make some bets in the oracle with oracle_bet
@@ -598,7 +598,7 @@ test(13) ->
 
     MOT = trees:dict_tree_get(governance, minimum_oracle_time),
     OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1+MOT),
     timer:sleep(200),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID2, 1, OIL * 2), 
@@ -606,7 +606,7 @@ test(13) ->
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
     timer:sleep(100),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1+MOT),
     timer:sleep(100),
 
@@ -614,7 +614,7 @@ test(13) ->
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     timer:sleep(50),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
 
     OID3 = 2,
@@ -622,14 +622,14 @@ test(13) ->
     Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID3, 1, 5),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     timer:sleep(50),
 
     Tx8 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID3, 1, OIL * 2), 
     Stx8 = keys:sign(Tx8),
     absorb(Stx8),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1+MOT),
     timer:sleep(100),
 
@@ -685,7 +685,7 @@ test(14) ->
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     timer:sleep(50),
 
@@ -699,7 +699,7 @@ test(14) ->
     absorb(Stx6),
     BP2 = block:get_by_height(0),
     PH = block:hash(BP2),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
 
     %Txs = (tx_pool:get())#tx_pool.txs,
@@ -753,7 +753,7 @@ test(15) ->
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
     timer:sleep(100),
-    potential_block:save(),
+    potential_block:new(),
     mine_blocks(1),
     timer:sleep(50),
     Txs2 = (tx_pool:get())#tx_pool.txs,
@@ -773,7 +773,7 @@ test({17, N}) ->
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
     %mine_blocks(1),
-    potential_block:save(),
+    potential_block:new(),
     block:mine(100000),
     io:fwrite(packer:pack(now())),
     io:fwrite("\n"),
@@ -788,7 +788,7 @@ test(19) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(2000),
-    potential_block:save(),
+    potential_block:new(),
     block:mine(100000),
     block:mine(100000),
     %PerBlock = 650,
@@ -802,7 +802,7 @@ test18(N) ->
 spend_lots(0, _, _, _) -> ok;
 spend_lots(N, 0, M, P) -> 
     timer:sleep(300),
-    potential_block:save(),
+    potential_block:new(),
     block:mine(100000),
     spend_lots(N-1, M, M, P);
 spend_lots(N, M, L, P) ->

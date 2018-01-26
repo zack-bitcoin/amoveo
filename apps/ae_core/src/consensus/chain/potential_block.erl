@@ -54,9 +54,7 @@ new_internal("") ->
     T = TP#tx_pool.height,
     PB = block:get_by_height(T),
     Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
-    Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
-    %db:save(?potential_block, Block),
-    Block;
+    block:make(Top, Txs, PB#block.trees, keys:pubkey());
 new_internal(Old) ->
     PH = Old#block.prev_hash,
     PB = block:get_by_hash(PH),
