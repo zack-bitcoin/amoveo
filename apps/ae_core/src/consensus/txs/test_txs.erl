@@ -791,9 +791,12 @@ test(19) ->
     potential_block:new(),
     block:mine(100000),
     block:mine(100000),
-    %PerBlock = 650,
-    PerBlock = 1,
-    spend_lots(20, PerBlock, PerBlock, NewPub).
+    timer:sleep(300),
+    PerBlock = 650,
+    %PerBlock = 10,
+    %PerBlock = 1,
+    Rounds = 20,
+    spend_lots(Rounds, PerBlock, PerBlock, NewPub).
     
 test18(0) -> success;
 test18(N) ->
@@ -801,9 +804,9 @@ test18(N) ->
     test18(N-1).
 spend_lots(0, _, _, _) -> ok;
 spend_lots(N, 0, M, P) -> 
-    timer:sleep(300),
     potential_block:new(),
     block:mine(100000),
+    timer:sleep(300),
     spend_lots(N-1, M, M, P);
 spend_lots(N, M, L, P) ->
     io:fwrite("spend "),
@@ -813,7 +816,7 @@ spend_lots(N, M, L, P) ->
     Ctx = spend_tx:make_dict(P, 1, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     absorb(Stx),
-    timer:sleep(100),
+    %timer:sleep(30),
     spend_lots(N, M-1, L, P).
     
 create_accounts(0, Salt) -> ok;
