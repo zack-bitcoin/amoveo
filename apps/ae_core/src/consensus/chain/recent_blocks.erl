@@ -60,18 +60,12 @@ remove_before([{Hash, TotalWork}|T], X) when TotalWork < X ->
     OldBlock = block:get_by_hash(Hash),
     H = OldBlock#block.height,
     KeepBlock = block:get_by_height(H+1),
-    io:fwrite("remove before "),
-    io:fwrite(integer_to_list(TotalWork)),
+    io:fwrite("prune block "),
+    io:fwrite(integer_to_list(H)),
     io:fwrite("\n"),
-    %io:fwrite(packer:pack(OldBlock)),
-    %io:fwrite("\n"),
-    %io:fwrite(packer:pack(KeepBlock)),
-    %io:fwrite("\n"),
     tree_data:prune(OldBlock, KeepBlock),
     remove_before(T, X);
 remove_before([H|T], X) -> [H|remove_before(T, X)].
-
-
 add(Hash, Work, Height) ->
     gen_server:call(?MODULE, {add, Hash, Work, Height}).
 read() -> gen_server:call(?MODULE, read).

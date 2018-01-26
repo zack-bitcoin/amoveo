@@ -58,13 +58,8 @@ absorb_internal(Block) ->
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),
-            %{ok, PrunePeriod} = application:get_env(ae_core, prune_period),
             HeaderHeight = api:height(),
             recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
-            %if
-            %    (((Height rem PrunePeriod) == 0) and (HeaderHeight > PrunePeriod)) -> trees:prune();
-            %    true -> ok
-            %end,
             spawn(fun () ->
                           Txs = (tx_pool:get())#tx_pool.txs,
                           tx_pool:dump(),

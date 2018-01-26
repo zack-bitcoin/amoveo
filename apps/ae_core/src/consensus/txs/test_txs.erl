@@ -797,7 +797,6 @@ test(19) ->
     %PerBlock = 1,
     Rounds = 20,
     spend_lots(Rounds, PerBlock, PerBlock, NewPub).
-    
 test18(0) -> success;
 test18(N) ->
     test({17, N}),
@@ -818,29 +817,16 @@ spend_lots(N, M, L, P) ->
     absorb(Stx),
     %timer:sleep(30),
     spend_lots(N, M-1, L, P).
-    
 create_accounts(0, Salt) -> ok;
 create_accounts(N, Salt) ->
     io:fwrite("create account "),
     io:fwrite(integer_to_list(N)),
     io:fwrite("\n"),
-    %io:fwrite("now 0 "),%1500
-    %io:fwrite(packer:pack(now())),
-    %io:fwrite("\n"),
     M = N + (1000*Salt),
     {NewPub,_NewPriv} = testnet_sign:new_key(<<M:256>>),
     Fee = constants:initial_fee() + 20,
-    %io:fwrite("now 01 "),%400
-    %io:fwrite(packer:pack(now())),
-    %io:fwrite("\n"),
     Ctx = create_account_tx:make_dict(NewPub, 1, Fee, constants:master_pub()),
-    %io:fwrite("now 02 "),%1200
-    %io:fwrite(packer:pack(now())),
-    %io:fwrite("\n"),
     Stx = keys:sign(Ctx),
-    %io:fwrite("now 1 "),%6000
-    %io:fwrite(packer:pack(now())),
-    %io:fwrite("\n"),
     absorb(Stx),
     create_accounts(N-1, Salt).
 slash_exists([]) -> false;
@@ -851,10 +837,6 @@ is_slash(STx) ->
     channel_slash_tx:is_tx(Tx).
 	     
 mine_blocks(Many) when Many < 1 -> ok;
-%mine_blocks(Many) -> 
-%    block:mine(100000),
-%    timer:sleep(1000),
-%    mine_blocks(Many-1).
 mine_blocks(Many) ->
     %only works if you set the difficulty very low.
     TP = tx_pool:get(),
