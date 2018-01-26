@@ -9,8 +9,11 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
+handle_call({garbage, Trash, Keep}, _, _) -> 
+    internal(Trash, Keep, fun(A, B, C) -> trie:garbage(A, B, C) end),
+    {reply, ok, []};
 handle_call({prune, Trash, Keep}, _, _) -> 
-    prune_internal(Trash, Keep),
+    internal(Trash, Keep, fun(A, B, C) -> trie:prune(A, B, C) end),
     {reply, ok, []};
 handle_call({update, Trees, Dict}, _From, _) -> 
     Y = internal_dict_update_trie(Trees, Dict),
@@ -19,9 +22,11 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 dict_update_trie(Trees, Dict) ->
     gen_server:call(?MODULE, {update, Trees, Dict}).
+garbage(Trash, Keep) ->
+    gen_server:call(?MODULE, {garbage, Trash, Keep}).
 prune(Trash, Keep) ->
     gen_server:call(?MODULE, {prune, Trash, Keep}).
-prune_internal(PruneBlock, KeepBlock) ->
+internal(PruneBlock, KeepBlock, F) ->
     Trees = [accounts, oracles, channels, existence, governance],
     [A, O, _, _, _] = 
 	lists:map(fun(T) ->
@@ -29,7 +34,7 @@ prune_internal(PruneBlock, KeepBlock) ->
 			  T2 = KeepBlock#block.trees,
 			  A1 = trees:T(T1),
 			  A2 = trees:T(T2),
-			  trie:prune(A1, A2, T)
+			  F(A1, A2, T)
 		  end, Trees),
     ok.
 dont_prune(A, O) ->
@@ -105,6 +110,7 @@ internal_dict_update_trie(Trees, Dict) ->
     GovernanceLeaves = keys2leaves(Gov, governance, Dict3),
     GT2 = trie:put_batch(GovernanceLeaves, GT, governance),
     trees:update_governance(Trees7, GT2).
+
 keys2leaves([], _, _) -> [];
 keys2leaves([H|T], Type, Dict) ->
     {Type, Key} = H,
