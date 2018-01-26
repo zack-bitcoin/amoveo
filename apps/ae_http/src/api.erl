@@ -292,13 +292,15 @@ balance() -> integer_balance().
 mempool() -> lists:reverse((tx_pool:get())#tx_pool.txs).
 halt() -> off().
 off() ->
-    %testnet_sup:stop(),
+    testnet_sup:stop(),
     ok = application:stop(ae_core),
     ok = application:stop(ae_http).
 mine_block() ->
+    potential_block:save(),
     block:mine(1, 100000).
 mine_block(0, Times) -> ok;
 mine_block(Periods, Times) ->
+    potential_block:save(),
     PB = block:top(),
     Top = block:block_to_header(PB),
     Txs = (tx_pool:get())#tx_pool.txs,

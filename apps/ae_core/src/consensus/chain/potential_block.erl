@@ -60,7 +60,7 @@ new_internal("") ->
 new_internal(Old) ->
     PH = Old#block.prev_hash,
     PB = block:get_by_hash(PH),
-    tree_data:prune(Old, PB),
+    %tree_data:reverse_prune(Old, PB),
     new_internal("").
     
     

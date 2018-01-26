@@ -1,26 +1,19 @@
-There is a race condition with trees. we need a trees gen_server. maybe just upgrade the current trees module to gen server status.
-block:dict_update_trie should be a call to trees.
-trees:prune/2 should be a cast to trees.
-
-
-
-
-
 ### things to do for the next hard fork
 
 * increase constants initial difficulty and block reward.
+* the initial difficulty should be a low number. Embed a constant 2^24 somewhere.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * developer reward should be calculated as a portion of the block reward instead of a completely seperate value. (This way I have the easier task of constantly lowering my salary, rather than asking for raises all the time.)
 * the master account should be unable to spend tokens for the first 6 months. multiply number of blocks in history by the current block time to estimate.
 txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_bet, oracle_close
-
+*significantly increase the cost of making bets in the oracle, unless we can get pruning to work for oracle_bets and orders.
+*be aware that at the current fee sizes/block reward, we can only afford 35 tx fees per block reward.
 
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
 *if you make a block, you also verify it. So a block like this gets read into the trie twice, and we need to garbage collect both copies.
-
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
