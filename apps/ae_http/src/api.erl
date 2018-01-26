@@ -346,7 +346,8 @@ channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
 add_peer(IP, Port) ->
     peers:add({IP, Port}),
     0.
-sync() -> sync(?IP, ?Port).
+%sync() -> sync(?IP, ?Port).
+sync() -> sync:start().
 sync(IP, Port) -> sync:start([{IP, Port}]).
 keypair() -> keys:keypair().
 pubkey() -> base64:encode(keys:pubkey()).

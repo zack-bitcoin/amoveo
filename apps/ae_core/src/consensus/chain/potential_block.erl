@@ -33,6 +33,7 @@ handle_call(check, _From, X) ->
 handle_call(read, _From, X) -> 
     D = delta(X#pb.time, now()),
     B = X#pb.block,
+    sync:start(),
     Y = if
 	    D > ?refresh_period ->
 		#pb{block = new_internal(B), time = now()};
