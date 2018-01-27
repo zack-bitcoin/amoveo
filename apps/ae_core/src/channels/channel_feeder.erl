@@ -142,10 +142,12 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     BetLocation = constants:oracle_bet(),
     SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
     CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+    {ok, OldCD} = channel_manager:read(ID),
+    ChannelExpires = OldCD#cd.expiration,
+    true = Expires < ChannelExpires,%The channel has to be open long enough for the market to close.
     SSPK2 = trade(Amount, Price, SC, ID, OID),
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
-    {ok, OldCD} = channel_manager:read(ID),
     DefaultSS = market:unmatched(OID),
     SSME = [DefaultSS|OldCD#cd.ssme],
     SSThem = [DefaultSS|OldCD#cd.ssthem],

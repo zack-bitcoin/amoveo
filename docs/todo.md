@@ -13,15 +13,13 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-*if you make a block, you also verify it. So a block like this gets read into the trie twice, and we need to garbage collect both copies.
-
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
 * the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
 
 * close channels from the light node.
 
-* lightning payments from the light node.
+* lightning payments from the light node. should be tested.
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
 - fails to publish a price.
@@ -33,7 +31,7 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 * the random number generator for the light node is probably not good enough, especially if you are on a phone.
 
-* it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely.
+* it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
 * make sure that markets are working from the light wallet.
 

@@ -61,7 +61,7 @@ swap r> diff Period @ int 2 / < or_die %check if heights are within half a perio
 macro no_publish ( -- delay nonce amount )
       Period @
       dup dup + ( period 2period )
-      height swap / ( period * height / 2period  )
+      height swap / ( period, height / 2period  )
       %removed some insignificant bits from the value.
       % mil height + Period @ -
       int 0
