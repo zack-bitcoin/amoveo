@@ -13,6 +13,10 @@ function keys_function1() {
     file_selector.type = "file";
     file_selector.onchange = load_keys;
     var load_text = document.createTextNode(translate.words("get_key"));
+    var watch_only_instructions = document.createTextNode(translate.words("watch_only_instructions"));
+    var watch_only_pubkey = document.createElement("input");
+    watch_only_pubkey.type = "text";
+    var watch_only_button = button_maker("watch_only_button", watch_only_func); 
     var pub_div = document.createElement("div");
     var new_pubkey_button = button_maker("make_key", new_keys_check);
     var new_pubkey_div = document.createElement("div");
@@ -21,7 +25,7 @@ function keys_function1() {
     document.body.appendChild(account_title);
     document.body.appendChild(div);
 
-    append_children(div, [load_text, file_selector, br(), pub_div, br(), save_name, save_button, br(), new_pubkey_button, new_pubkey_div, br(), bal_div, balance_button]);
+    append_children(div, [load_text, file_selector, br(), pub_div, br(), save_name, save_button, br(), watch_only_instructions, watch_only_pubkey, watch_only_button, br(), new_pubkey_button, new_pubkey_div, br(), bal_div, balance_button]);
 
     update_pubkey();
     function input_maker(val) {
@@ -29,6 +33,9 @@ function keys_function1() {
         x.type = "text";
         x.value = val;
         return x;
+    }
+    function new_keys_watch(x) {
+	return ec.keyFromPublic(x);
     }
     function new_keys_entropy(x) {
         return ec.genKeyPair({entropy: hash(x)});
@@ -46,6 +53,11 @@ function keys_function1() {
     }
     function update_pubkey() {
         pub_div.innerHTML = translate.words("your_pubkey").concat(" ").concat(pubkey_64());
+    }
+    function watch_only_func() {
+	var v = watch_only_pubkey.value;
+	keys = new_keys_watch(string_to_array(atob(v)));
+	update_pubkey();
     }
     function new_keys_check() {
         //alert("this will delete your old keys. If you have money secured by this key, and you haven't saved your key, then this money will be destroyed.");
@@ -67,11 +79,11 @@ function keys_function1() {
 	    var x = entropy.value;
 	    if (x == '') {//If you don't provide entropy, then it uses a built in random number generator.
 		keys = new_keys();
+		set_balance(0);
 	    } else {
-		keys = new_keys_entropy();
+		keys = new_keys_entropy(x);
 	    }
             update_pubkey();
-            set_balance(0);
         }
     }
     function update_balance() {

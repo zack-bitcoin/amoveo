@@ -410,6 +410,12 @@ function translate_human() {
 		"entropy_explained": {
 		    en: "put random text here to make keys with"
 		},
+		"watch_only_instructions": {
+		    en: "put your pubkey here to make a watch-only wallet that is unable to spend money."
+		},
+		"watch_only_button": {
+		    en: "load pubkey"
+		}
                };
     }
     var language_object = human_language();
