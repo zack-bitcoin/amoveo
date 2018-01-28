@@ -30,6 +30,9 @@ function keys_function1() {
         x.value = val;
         return x;
     }
+    function new_keys_entropy(x) {
+        return ec.genKeyPair({entropy: hash(x)});
+    }
     function new_keys() {
         return ec.genKeyPair();
     }
@@ -50,13 +53,23 @@ function keys_function1() {
         warning.innerHTML = translate.words("key_warning");
         var button = button_maker("cancel", cancel);
         var button2 = button_maker("continue", doit);
-        append_children(new_pubkey_div, [warning, button, button2]);
+	var entropy_txt = document.createElement("h3");
+	entropy_txt.innerHTML = translate.words("entropy_explained");
+	var entropy = document.createElement("input");
+	entropy.type = "text";
+        append_children(new_pubkey_div, [warning, button, br(), button2, entropy_txt, entropy]);
+	// add interface for optional entropy 
         function cancel() {
             new_pubkey_div.innerHTML = "";
         }
         function doit() {
             new_pubkey_div.innerHTML = "";
-            keys = new_keys();
+	    var x = entropy.value;
+	    if (x == '') {//If you don't provide entropy, then it uses a built in random number generator.
+		keys = new_keys();
+	    } else {
+		keys = new_keys_entropy();
+	    }
             update_pubkey();
             set_balance(0);
         }

@@ -406,7 +406,10 @@ function translate_human() {
 		    en: "time left in blocks",
 		    sp: "tiempo hasta termino en bloques",
 		    tp: "tenpo la pini"
-		}
+		},
+		"entropy_explained": {
+		    en: "put random text here to make keys with"
+		},
                };
     }
     var language_object = human_language();

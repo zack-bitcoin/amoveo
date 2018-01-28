@@ -70,8 +70,7 @@ prove(Querys, Trees) ->
     F2 = det_order(Querys),
     prove2(F2, Trees).
 prove2([], _) ->
-    io:fwrite("finished prove2\n"),
-   [];
+    [];
 prove2([{orders, Key}|T], Trees) ->
     Oracles = trees:oracles(Trees),
     {_, Data0, _} = oracles:get(Key#key.id, Oracles),

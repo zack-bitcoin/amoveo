@@ -5,17 +5,20 @@
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 * developer reward should be calculated as a portion of the block reward instead of a completely seperate value. (This way I have the easier task of constantly lowering my salary, rather than asking for raises all the time.)
 * the master account should be unable to spend tokens for the first 6 months. multiply number of blocks in history by the current block time to estimate.
-txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_bet, oracle_close
+txs: account_new, account_spend, account_delete, channel_new, oracle_bet, oracle_close
 * be aware that at the current fee sizes/block reward, we can only afford 35 tx fees per block reward.
 
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
-* The new market-id is too big to fit in market.fs. Maybe we should convert to binary.
+* lightning payments from the light node should be tested.
 
+* watch-only light wallet.
 
+* it should be more obvious that miners need to insert their pubkey.
 
+* the c-miner should have an easier way to decide which node you will connect to.
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
@@ -32,13 +35,9 @@ There are examples on how to make these kinds of transactions in market.erl
 
 * the gui needs an interface for deleting your account and sending all the value to a different account.
 
-* the random number generator for the light node is probably not good enough, especially if you are on a phone.
-
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
 * make sure that markets are working from the light wallet.
-
-* lightning payments from the light node should be tested.
 
 
 
