@@ -171,6 +171,8 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     io:fwrite(packer:pack([SPK, SPK22])),
     SPK = SPK22,
     {ok, OldCD} = channel_manager:read(Sender),
+    OldSPK = testnet_sign:data(OldCD#cd.them),
+    %Use OldSPK to see if they have enough money to make this payment.
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = [spk:new_ss(<<>>, [])|OldCD#cd.ssme],
 		     ssthem = [spk:new_ss(<<>>, [])|OldCD#cd.ssme]},
@@ -229,6 +231,11 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     B2 = spk:force_update(SPKME, SSME, SS4),
     CID = CD#cd.cid,
     NewCD = CD#cd{me = NewSPK, them = ThemSPK, ssthem = SS, ssme = SS},
+    io:fwrite("channel feeder B2, {newspk, ss} comparison\n"),
+    io:fwrite(packer:pack(B2)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack({NewSPK, SS})),
+    io:fwrite("\n"),
     Return2 = 
 	if
 	    (B2 == {NewSPK, SS}) ->
@@ -247,7 +254,8 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 		    true ->
 			{SS5, Return} = simplify_helper(From, SS4),%this should get rid of one of the bets. %using spk:bet_unlock/2
 			SPK = testnet_sign:data(ThemSPK),
-			SPK = testnet_sign:data(Return),
+			SPK2 = testnet_sign:data(Return),
+			SPK = SPK2,
 			Data = new_cd(SPK, ThemSPK, SS5, SS5, CID, CD#cd.expiration),
 			channel_manager:write(From, Data),
 			Return

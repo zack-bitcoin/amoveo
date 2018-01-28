@@ -96,6 +96,7 @@ hash2blocks([H|T]) ->
         _ -> [B|hash2blocks(T)]
     end.
 
+
 hash2int(X) ->
     U = size(X),
     U = constants:hash_size(),
@@ -108,9 +109,8 @@ verify_proof(TreeID, RootHash, Key, Value, Proof) ->
             0 -> empty;
             X -> X
         end,
-    verify:proof(RootHash, 
-                 TreeID:make_leaf(Key, V, CFG),
-                 Proof, CFG).
+    Leaf = TreeID:make_leaf(Key, V, CFG),
+    verify:proof(RootHash, Leaf, Proof, CFG).
 restore(Root, Fact, Meta) ->
     1=2,
     Key = proofs:key(Fact),

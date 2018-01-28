@@ -22,7 +22,7 @@ market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubke
 int " ++ integer_to_list(Height) ++ " Height ! \
 int " ++ integer_to_list(Expires) ++ " Expires ! \
 int " ++ integer_to_list(MaxPrice) ++ " MaxPrice ! \
-int " ++ integer_to_list(MarketID) ++ " MarketID ! \
+binary 32 " ++ binary_to_list(base64:encode(<<MarketID:256>>)) ++ " MarketID ! \
 int " ++ integer_to_list(Period) ++ " Period ! \
 binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode(Pubkey)) ++ " Pubkey ! \
 ",
@@ -65,7 +65,7 @@ contradictory_prices(SPD, SPD2, OID) ->
 	" int 2 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS4a)), [{oracles, OID}]).
 price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
-    PD = <<Height:32, Price:16, PortionMatched:16, MarketID:16>>,
+    PD = <<Height:32, Price:16, PortionMatched:16, MarketID:256>>,
     Signature = keys:raw_sign(PD),
     %Sig1 = base64:decode(Signature),
     %<<PD/binary, Sig1/binary>>.

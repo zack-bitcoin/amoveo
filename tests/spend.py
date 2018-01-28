@@ -11,7 +11,7 @@ def spend_test():
     request(1, "spend", [pub, 2])
     request(1, "spend", [pub, 3])
     request(1, "sync", [[127,0,0,1], 3020], 0.1)
-    request(1, "mine_block", [1,1], 0.3)
+    request(1, "mine_block", [1,100000], 0.3)
     request(1, "sync", [[127,0,0,1], 3020])
 
 if __name__ == "__main__":

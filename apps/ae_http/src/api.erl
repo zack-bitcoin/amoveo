@@ -199,7 +199,7 @@ integer_channel_balance(Ip, Port) ->
     {ok, CD} = channel_manager:read(Other),
     SSPK = CD#cd.them,
     SPK = testnet_sign:data(SSPK),
-    SS = CD#cd.ssthem,
+    %SS = CD#cd.ssthem,
     TP = tx_pool:get(),
     NewHeight = TP#tx_pool.height,
     Amount = SPK#spk.amount,

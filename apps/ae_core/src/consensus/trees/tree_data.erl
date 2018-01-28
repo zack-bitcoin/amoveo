@@ -37,14 +37,6 @@ internal(PruneBlock, KeepBlock, F) ->
 			  F(A1, A2, T)
 		  end, Trees),
     lists:map(fun({L1, L2}) ->
-		      CFG = trie:cfg(accounts),
-		      Leaf1 = leaf:get(L1, CFG),
-		      Bets1 = leaf:meta(Leaf1),
-		      Leaf2 = leaf:get(max(1, L2), CFG),
-		      Bets2 = leaf:meta(Leaf2),
-		      F(Bets1, Bets2, oracle_bets)
-	      end, A),
-    lists:map(fun({L1, L2}) ->
 		      CFG = trie:cfg(oracles),
 		      Leaf1 = leaf:get(L1, CFG),
 		      Orders1 = leaf:meta(Leaf1),
@@ -52,6 +44,16 @@ internal(PruneBlock, KeepBlock, F) ->
 		      Orders2 = leaf:meta(Leaf2),
 		      F(Orders1, Orders2, orders)
 	      end, O),
+    ok.
+dont_toit(A, F) ->
+    lists:map(fun({L1, L2}) ->
+		      CFG = trie:cfg(accounts),
+		      Leaf1 = leaf:get(L1, CFG),
+		      Bets1 = leaf:meta(Leaf1),
+		      Leaf2 = leaf:get(max(1, L2), CFG),
+		      Bets2 = leaf:meta(Leaf2),
+		      F(Bets1, Bets2, oracle_bets)
+	      end, A),
     ok.
 
 internal_dict_update_trie(Trees, Dict) ->

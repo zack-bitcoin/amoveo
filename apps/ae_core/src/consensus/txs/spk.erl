@@ -119,7 +119,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 	{SS2, Amount} -> 
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
-            %io:fwrite("we have a secret\n"),
+            io:fwrite("we have a secret\n"),
             TP = tx_pool:get(),
             Trees = TP#tx_pool.block_trees,
             Height = TP#tx_pool.height,
@@ -136,6 +136,9 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    Data3 = chalang:run5(Code, Data2),
 	    case Data3 of
 		{error, _E} -> 
+		    io:fwrite("spk bet unlock, ss doesn't work\n"),
+		    io:fwrite(packer:pack(SS2)),
+		    io:fwrite("\n"),
                     %io:fwrite("spk bet_unlock2 chalang run third\n"),
 		    Data4 = chalang:run5(SS#ss.code, Data),
                     %io:fwrite("spk bet_unlock2 chalang run fourth\n"),
@@ -157,11 +160,16 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    end
     end.
 bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
+    io:fwrite("spk bet_unlock3\n"),
     [<<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
    if
         Delay > 0 ->
+	   io:fwrite("delay is "),
+	   io:fwrite(integer_to_list(Delay)),
+	   io:fwrite("delay >0, keep the bet.\n"),
 	   bet_unlock2(T, [Bet|B], A, SSIn, [SS2|SSOut], Secrets, Nonce, [SS2|SSThem]);
        true -> 
+	   io:fwrite("delay <1, remove it.\n"),
 	   CGran = constants:channel_granularity(),
 	   true = ContractAmount =< CGran,
 	   A3 = ContractAmount * Bet#bet.amount div CGran,
@@ -291,9 +299,10 @@ force_update(SPK, SSOld, SSNew) ->
     Dict = F#tx_pool.dict,
     Height = F#tx_pool.height,
     {_, NonceOld,  _} =  run(fast, SSOld, SPK, Height, 0, Trees),
-    %we can't use dict here, because not all the information we need is stored in the dict.
     %{_, NonceOld,  _} =  dict_run(fast, SSOld, SPK, Height, 0, Dict),
+    %we can't use dict here, because not all the information we need is stored in the dict.
     {_, NonceNew,  _} =  run(fast, SSNew, SPK, Height, 0, Trees),
+    %{_, NonceNew,  _} =  dict_run(fast, SSNew, SPK, Height, 0, Dict),
     if
 	NonceNew >= NonceOld ->
 	    {NewBets, FinalSS, Amount, Nonce} = force_update2(SPK#spk.bets, SSNew, [], [], 0, 0),
@@ -326,6 +335,9 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
 	    CGran = constants:channel_granularity(),
 	    true = ContractAmount =< CGran,
 	    A = ContractAmount * Bet#bet.amount div CGran,
+	    io:fwrite("force update 2 amounts \n"),
+	    io:fwrite(packer:pack([ContractAmount, Bet#bet.amount, A])),
+	    io:fwrite("\n"),
 	    force_update2(BetsIn, SSIn, BetsOut, SSOut, Amount + A, Nonce + N)
     end.
     

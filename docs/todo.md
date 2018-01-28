@@ -6,12 +6,16 @@
 * developer reward should be calculated as a portion of the block reward instead of a completely seperate value. (This way I have the easier task of constantly lowering my salary, rather than asking for raises all the time.)
 * the master account should be unable to spend tokens for the first 6 months. multiply number of blocks in history by the current block time to estimate.
 txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_bet, oracle_close
-*significantly increase the cost of making bets in the oracle, unless we can get pruning to work for oracle_bets and orders.
-*be aware that at the current fee sizes/block reward, we can only afford 35 tx fees per block reward.
+* be aware that at the current fee sizes/block reward, we can only afford 35 tx fees per block reward.
 
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
+
+* The new market-id is too big to fit in market.fs. Maybe we should convert to binary.
+
+
+
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
@@ -19,11 +23,10 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 
 * close channels from the light node.
 
-* lightning payments from the light node. should be tested.
-
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
 - fails to publish a price.
 - double-publishes prices.
+There are examples on how to make these kinds of transactions in market.erl 
 
 * the gui needs to make it convenient to collect winnings after a market is closed.
 
@@ -34,6 +37,8 @@ txs: account_new, account_spend, channel_new, channel_slash, oracle_new, oracle_
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
 * make sure that markets are working from the light wallet.
+
+* lightning payments from the light node should be tested.
 
 
 
