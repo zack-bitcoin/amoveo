@@ -36,6 +36,8 @@ internal(PruneBlock, KeepBlock, F) ->
 			  A2 = trees:T(T2),
 			  F(A1, A2, T)
 		  end, Trees),
+    ok.
+dont_doit(O, A, F) ->
     lists:map(fun({L1, L2}) ->
 		      CFG = trie:cfg(oracles),
 		      Leaf1 = leaf:get(L1, CFG),
@@ -44,8 +46,6 @@ internal(PruneBlock, KeepBlock, F) ->
 		      Orders2 = leaf:meta(Leaf2),
 		      F(Orders1, Orders2, orders)
 	      end, O),
-    ok.
-dont_toit(A, F) ->
     lists:map(fun({L1, L2}) ->
 		      CFG = trie:cfg(accounts),
 		      Leaf1 = leaf:get(L1, CFG),
