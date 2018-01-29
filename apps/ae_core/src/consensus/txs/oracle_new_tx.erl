@@ -31,6 +31,8 @@ make(From, Fee, Question, Start, ID, Governance, GovAmount, Trees) ->
     Tx = #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount},
     {Tx, []}.
 go(Tx, Dict, NewHeight) ->
+    ID = Tx#oracle_new.id,
+    empty = oracles:dict_get(ID, Dict),
     Gov = Tx#oracle_new.governance,
     GovAmount = Tx#oracle_new.governance_amount,
     GCL = governance:dict_get_value(governance_change_limit, Dict),
@@ -64,14 +66,12 @@ go(Tx, Dict, NewHeight) ->
     Starts = Tx#oracle_new.start,
     %OFL = governance:dict_get_value(oracle_future_limit, Dict3),
     %true = (Starts - NewHeight) < OFL,
-    ID = Tx#oracle_new.id,
     Question = Tx#oracle_new.question,
     true = is_binary(Question),
     QH = hash:doit(Question),
     oracle_questions:store(QH, Question),
     Diff = Tx#oracle_new.difficulty,
     ON = oracles:new(ID, QH, Starts, From, Gov, GovAmount, Dict),
-    empty = oracles:dict_get(ID, Dict),
     Dict4 = oracles:dict_write(ON, Dict3).
     
     

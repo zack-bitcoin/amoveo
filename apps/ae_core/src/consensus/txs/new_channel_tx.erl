@@ -37,11 +37,7 @@ make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
 				 
 go(Tx, Dict, NewHeight) ->
     ID = Tx#nc.id,
-    OldChannel = channels:dict_get(ID, Dict),
-    true = case OldChannel of
-	       empty -> true;
-	       _ -> false
-	   end,
+    empty = channels:dict_get(ID, Dict),
     Aid1 = Tx#nc.acc1,
     Aid2 = Tx#nc.acc2,
     false = Aid1 == Aid2,

@@ -18,7 +18,7 @@ terminate(_, X) ->
     B = X#pb.block,
     PH = B#block.prev_hash,
     PB = block:get_by_hash(PH),
-    tree_data:prune(B, PB),
+    %tree_data:garbage(B, PB),
     io:format("potential block died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
