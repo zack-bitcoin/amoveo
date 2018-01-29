@@ -22,7 +22,7 @@ market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubke
 int " ++ integer_to_list(Height) ++ " Height ! \
 int " ++ integer_to_list(Expires) ++ " Expires ! \
 int " ++ integer_to_list(MaxPrice) ++ " MaxPrice ! \
-binary 32 " ++ binary_to_list(base64:encode(<<MarketID:256>>)) ++ " MarketID ! \
+binary 32 " ++ binary_to_list(base64:encode(MarketID)) ++ " MarketID ! \
 int " ++ integer_to_list(Period) ++ " Period ! \
 binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode(Pubkey)) ++ " Pubkey ! \
 ",
@@ -65,7 +65,7 @@ contradictory_prices(SPD, SPD2, OID) ->
 	" int 2 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS4a)), [{oracles, OID}]).
 price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
-    PD = <<Height:32, Price:16, PortionMatched:16, MarketID:256>>,
+    PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
     Signature = keys:raw_sign(PD),
     %Sig1 = base64:decode(Signature),
     %<<PD/binary, Sig1/binary>>.
@@ -74,7 +74,7 @@ price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
 
 test() ->
     Question = <<>>,
-    OID = 3,
+    OID = <<3:256>>,
     Fee = 20 + constants:initial_fee(),
     headers:dump(),
     block:initialize_chain(),
@@ -108,11 +108,11 @@ test() ->
     test2(NewPub). 
 
 test2(NewPub) ->
-    OID = 3,
+    OID = <<3:256>>,
     Fee = 20 + constants:initial_fee(),
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
     %Dict5 = (tx_pool:get())#tx_pool.dict,
-    MarketID = 405,
+    MarketID = <<405:256>>,
     PrivDir = code:priv_dir(ae_core),
     Location = constants:oracle_bet(),
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
@@ -198,7 +198,7 @@ test2(NewPub) ->
     success.
 test3() ->    
     %This makes the compiled smart contract in market.js
-    OID = 123,
+    OID = <<123:256>>,
     BetLocation = constants:oracle_bet(),
     Pubkey = keys:pubkey(),
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->

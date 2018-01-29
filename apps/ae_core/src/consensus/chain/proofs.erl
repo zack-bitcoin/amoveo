@@ -361,7 +361,7 @@ test() ->
     %block:initialize_chain(),
     tx_pool:dump(),
     Question = <<>>,
-    OID = 2,
+    OID = <<2:256>>,
     Fee = 20 + constants:initial_fee(),
     Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0),
     %{Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees0),
@@ -385,7 +385,7 @@ test() ->
 	      {channels, 1},
 	      {existence, hash:doit(1)},
 	      {oracles, OID},
-	      {oracles, 1},
+	      {oracles, <<1:256>>},
 	      {orders, #key{pub = keys:pubkey(), id = OID}},
               {oracle_bets, #key{pub = keys:pubkey(), id = OID}}
 	     ],% ++

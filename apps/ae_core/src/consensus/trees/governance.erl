@@ -15,15 +15,15 @@ genesis_state() ->
             true -> {1, 1, 20};
             false -> {352, 505, 550}
         end,
-    G = [[block_reward, 1100],
-         [developer_reward, 1100], 
+    G = [[block_reward, 1620],
+         [developer_reward, 429], 
          [time_gas, 1113],
          [space_gas, 1113],
          [max_block_size, 940],
          [block_period, BlockPeriod],
          [fun_limit, 350],
          [var_limit, 600],
-         [oracle_initial_liquidity, 1400],
+         [oracle_initial_liquidity, 1500],
          [minimum_oracle_time, MinimumOracleTime],
          [maximum_oracle_time, MaximumOracleTime],
          [maximum_question_size, 352],

@@ -35,6 +35,7 @@ increase(X, Type, A) ->
 	3 -> X#bet{bad = X#bet.bad + A}
     end.
 new(ID, Type, Amount) ->
+    <<_:256>> = ID,
     {A, B, C} = 
 	case Type of
 	    1 -> {Amount, 0, 0};
@@ -52,7 +53,8 @@ serialize(X) ->
     %KL = constants:key_length()*8,
     HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
-    <<(X#bet.id):HS,
+    <<_:HS>> = X#bet.id,
+    <<(X#bet.id)/binary,
       (X#bet.true):BAL,
       (X#bet.false):BAL,
       (X#bet.bad):BAL>>.
@@ -61,7 +63,7 @@ deserialize(B) ->
     HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
     <<ID:HS, True:BAL, False:BAL, Bad:BAL>> = B,
-    #bet{true = True, false = False, bad = Bad, id = ID}.
+    #bet{true = True, false = False, bad = Bad, id = <<ID:HS>>}.
 dict_write(X, Pub, Dict) ->
     dict:store({oracle_bets, {key, Pub, X#bet.id}},
                serialize(X),
@@ -77,7 +79,7 @@ dict_get(Key, Dict) ->
         _ -> deserialize(X)
     end.
 key_to_int(X) -> 
-    <<Y:256>> = hash:doit(<<X:256>>),
+    <<Y:256>> = hash:doit(X),
     Y.
 get(ID, Tree) ->
     {X, Leaf, Proof} = trie:get(key_to_int(ID), Tree, ?name),
@@ -106,7 +108,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 
 test() ->
-    C = new(1, 3, 100),
+    C = new(<<1:256>>, 3, 100),
     ID = C#bet.id,
     Root0 = constants:root0(),
     {_, empty, _} = get(ID, Root0),
@@ -118,7 +120,7 @@ test() ->
     true = verify_proof(Root2, ID, 0, Path2),
     test2().
 test2() ->
-    OID = 1,
+    OID = <<1:256>>,
     C = new(OID, 3, 100),
     ID = C#bet.id,
     CFG = trie:cfg(oracle_bets),

@@ -10,6 +10,7 @@ orders(X) -> X#oracle.orders.
 set_orders(X, Orders) ->
     X#oracle{orders = Orders, orders_hash = orders:root_hash(Orders)}.
 new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
+    <<_:256>> = ID,
     true = size(Creator) == constants:pubkey_size(),
     true = (GovernanceVar > -1) and (GovernanceVar < governance:max()),
     Orders = orders:empty_book(),
@@ -40,7 +41,8 @@ serialize(X) ->
     true = size(X#oracle.creator) == PS,
     true = size(Question) == HS,
     true = size(Orders) == HS,
-    <<(X#oracle.id):(HS*8),
+    <<_:256>> = X#oracle.id,
+    <<(X#oracle.id)/binary,
       (X#oracle.result):8,
       (X#oracle.type):8,
       (X#oracle.starts):HB,
@@ -66,7 +68,7 @@ deserialize(X) ->
      Orders:HS
      >> = X,
     #oracle{
-           id = ID,
+           id = <<ID:256>>,
            type = Type,
            result = Result,
            starts = Starts,
@@ -103,10 +105,11 @@ dict_get(ID, Dict) ->
             Y2#oracle{orders = Meta}
     end.
 key_to_int(X) -> 
-    <<Y:256>> = hash:doit(<<X:256>>),
+    %<<Y:256>> = hash:doit(<<X:256>>),
+    <<Y:256>> = hash:doit(X),
     Y.
 get(ID, Root) ->
-    true = is_integer(ID),
+    <<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Root, ?name),
     V = case Leaf of 
 	    empty -> empty;

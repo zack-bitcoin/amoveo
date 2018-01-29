@@ -69,17 +69,14 @@ new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
     new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires),
     CID.
 find_id2() -> find_id2(1, 1).
-find_id2(_, _) ->
-    %<<X:256>> = crypto:strong_rand_bytes(32),
-    <<X:32>> = crypto:strong_rand_bytes(4),
-    X.
-find_id(Name, Tree) ->
-    find_id(Name, 1, Tree).
-find_id(Name, N, Tree) ->
-    case Name:get(N, Tree) of
-	{_, empty, _} -> N;
-	_ -> find_id(Name, N+1, Tree)
-    end.
+find_id2(_, _) -> crypto:strong_rand_bytes(32).
+%find_id(Name, Tree) ->
+%    find_id(Name, 1, Tree).
+%find_id(Name, N, Tree) ->
+%    case Name:get(N, Tree) of
+%	{_, empty, _} -> N;
+%	_ -> find_id(Name, N+1, Tree)
+%    end.
 new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     Acc1 = keys:pubkey(),
     {ok, Acc2} = talker:talk({pubkey}, IP, Port),
@@ -97,7 +94,7 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     {ok, [SSTx, S2SPK]} = talker:talk(Msg, IP, Port),
     tx_pool_feeder:absorb(SSTx),
     channel_feeder:new_channel(Tx, S2SPK, Expires),
-    ok.
+    0.
 pull_channel_state() ->
     pull_channel_state(?IP, ?Port).
 pull_channel_state(IP, Port) ->
@@ -402,7 +399,7 @@ trade(Price, Type, A, OID, Height, Fee, IP, Port) ->
     SPK = testnet_sign:data(SSPK),
     SPK = testnet_sign:data(SSPK2),
     channel_manager_update(ServerID, SSPK2, market:unmatched(OID)),
-    ok.
+    0.
 cancel_trade(N) ->
     cancel_trade(N, ?IP, ?Port).
 cancel_trade(N, IP, Port) ->

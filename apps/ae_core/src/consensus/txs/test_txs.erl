@@ -406,12 +406,12 @@ test(11) ->
     %testing the oracle
     %launch an oracle with oracle_new
     Question = <<>>,
-    <<OID:80>> = crypto:strong_rand_bytes(10),
+    %<<OID:80>> = crypto:strong_rand_bytes(10),
+    OID = crypto:strong_rand_bytes(32),
     Fee = constants:initial_fee() + 20,
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    Trees = (tx_pool:get())#tx_pool.block_trees,
     Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0),
     Stx = keys:sign(Tx),
     absorb(Stx),
@@ -473,7 +473,7 @@ test(16) ->
     {Pub1,Priv1} = testnet_sign:new_key(),
     {Pub2,Priv2} = testnet_sign:new_key(),
     Question = <<>>,
-    OID = 1,
+    OID = <<1:256>>,
     Fee = constants:initial_fee() + 20,
     headers:dump(),
     block:initialize_chain(),
@@ -590,7 +590,7 @@ test(13) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    OID2 = 1,
+    OID2 = <<1:256>>,
     Tx3 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID2, 1, 5),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
@@ -617,7 +617,7 @@ test(13) ->
     potential_block:new(),
     mine_blocks(1),
 
-    OID3 = 2,
+    OID3 = <<2:256>>,
     BR2 = trees:dict_tree_get(governance, block_reward),
     Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID3, 1, 5),
     Stx7 = keys:sign(Tx7),
@@ -796,7 +796,25 @@ test(19) ->
     %PerBlock = 10,
     %PerBlock = 1,
     Rounds = 20,
-    spend_lots(Rounds, PerBlock, PerBlock, NewPub).
+    spend_lots(Rounds, PerBlock, PerBlock, NewPub);
+test(20) ->
+    {NewPub,NewPriv} = testnet_sign:new_key(<<10000:256>>),
+    Fee = constants:initial_fee() + 20,
+    Ctx = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    timer:sleep(2000),
+    Question = <<>>,
+    OID = <<1000:256>>,
+    Tx2 = oracle_new_tx:make_dict(NewPub, Fee, Question, 1, OID, 0, 0),
+    Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
+    absorb(Stx2),
+    potential_block:new(),
+    block:mine(100000),
+    success.
+    
+    
+    
 test18(0) -> success;
 test18(N) ->
     test({17, N}),

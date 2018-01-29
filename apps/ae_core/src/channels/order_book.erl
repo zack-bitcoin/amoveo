@@ -258,7 +258,7 @@ test() ->
     %add(#order{price = 4000, amount = 1000, type = buy}),
     %add(#order{price = 5999, amount = 100, type = sell}),
     %add(#order{price = 6001, amount = 100, type = sell}),
-    OID = 1,
+    OID = <<1:256>>,
     new_market(OID, 0, 0),
     dump(OID),
     new_market(OID, 0, 0),

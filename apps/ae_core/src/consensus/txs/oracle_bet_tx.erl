@@ -24,6 +24,7 @@ to_prove(OID, Trees) ->
 from(X) -> X#oracle_bet.from.
 id(X) -> X#oracle_bet.id.
 make_dict(From, Fee, OID, Type, Amount) ->
+    <<_:256>> = OID,
     Acc = trees:dict_tree_get(accounts, From),
     Tx = #oracle_bet{
        from = From, 
@@ -33,6 +34,7 @@ make_dict(From, Fee, OID, Type, Amount) ->
        type = Type,
        amount = Amount}.
 make(From, Fee, OID, Type, Amount, Trees) ->
+    <<_:256>> = OID,
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),
     Tx = #oracle_bet{
@@ -86,6 +88,7 @@ go(Tx, Dict, NewHeight) ->
     From = Tx#oracle_bet.from,
     Facc = accounts:dict_update(From, Dict, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
+    <<_:256>> = Tx#oracle_bet.id,
     Oracle = oracles:dict_get(Tx#oracle_bet.id, Dict2),
     0 = Oracle#oracle.result,%check that the oracle isn't already closed.
     go2(Tx, Dict2, NewHeight).
