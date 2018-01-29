@@ -49,8 +49,10 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 check() -> gen_server:call(?MODULE, {check}).
-absorb(X) -> absorb(X, block:hash(block:get_by_height(0))).
-absorb([], CommonHash) -> CommonHash;
+absorb(X) -> 
+    absorb(X, block:hash(block:get_by_height(0))).
+absorb([], CommonHash) -> 
+    CommonHash;
 absorb([First|T], R) when is_binary(First) ->
     A = deserialize(First),
     absorb([A|T], R);
@@ -58,7 +60,8 @@ absorb([Header | T], CommonHash) ->
     true = Header#header.difficulty >= constants:initial_difficulty(),
     Hash = block:hash(Header),
     case read(Hash) of
-        {ok, _} -> absorb(T, Hash); %don't store the same header more than once.
+        {ok, _} -> 
+	    absorb(T, Hash); %don't store the same header more than once.
         error ->
             true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
             {true, _} = check_difficulty(Header),%check that the difficulty written on the block is correctly calculated

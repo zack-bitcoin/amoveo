@@ -37,6 +37,7 @@ blocks(CommonHash, Block) ->
             [Block|blocks(CommonHash, PrevBlock)]
     end.
 give_blocks(Peer, CommonHash) -> 
+    io:fwrite("give blocks\n"),
     {ok, DBB} = application:get_env(ae_core, push_blocks_batch),
     Blocks0 = lists:reverse(blocks(CommonHash, block:top())),
     Blocks = if
@@ -66,14 +67,20 @@ trade_peers(Peer) ->
     peers:add(TheirsPeers).
 -define(HeadersBatch, application:get_env(ae_core, headers_batch)).
 get_headers(Peer) -> 
+    io:fwrite("get headers 0\n"),
     N = (headers:top())#header.height,
     {ok, FT} = application:get_env(ae_core, fork_tolerance),
     Start = max(0, N - FT), 
+    io:fwrite("get headers 1\n"),
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
+    io:fwrite("get headers 2\n"),
     {ok, HB} = ?HeadersBatch,
+    io:fwrite("get headers 2 0\n"),
     Headers = remote_peer({headers, HB, N}, Peer),
+    io:fwrite("get headers 2 1\n"),
     CommonHash = headers:absorb(Headers),
+    io:fwrite("get headers 2 2\n"),
     case CommonHash of
         <<>> -> get_headers2(Peer, N+HB-1);
         _ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
@@ -81,6 +88,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
              CommonHash
     end.
 get_headers3(Peer, N) ->
+    io:fwrite("get headers 3\n"),
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
     headers:absorb(Headers),
@@ -98,6 +106,7 @@ common_block_height(CommonHash) ->
         B -> B#block.height
     end.
 get_blocks(Peer, N) ->
+    io:fwrite("get blocks\n"),
     {ok, BB} = application:get_env(ae_core, download_blocks_batch),
     Blocks = remote_peer({blocks, BB, N}, Peer),
     case Blocks of
@@ -119,30 +128,39 @@ trade_txs(Peer) ->
     remote_peer({txs, lists:reverse(Mine)}, Peer).
 
 sync_peer(Peer) ->
+    io:fwrite("trade peers \n"),
     trade_peers(Peer),
     MyTop = headers:top(),
     TheirTop = remote_peer({header}, Peer), 
+    io:fwrite("their top \n"),
     MyBlockHeight = block:height(),
     TheirTopHeight = TheirTop#header.height,
     if
         not(MyTop == TheirTop) ->
+	    io:fwrite("get headers from them\n"),
             CommonHash = get_headers(Peer),
+	    io:fwrite("gpt headers from them\n"),
             {ok, TBH} = headers:read(block:hash(block:top())),
             MD = TBH#header.accumulative_difficulty,
             TD = TheirTop#header.accumulative_difficulty,
             if
                 TD < MD -> 
+		    io:fwrite("get their top again\n"),
                     {ok, _, TheirBlockHeight} = remote_peer({top}, Peer),
                     CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
                     give_blocks(Peer, CommonBlocksHash);
                 true ->
+		    io:fwrite("common block height\n"),
                     CommonBlockHeight = common_block_height(CommonHash),
                     get_blocks(Peer, CommonBlockHeight)
             end;
         MyBlockHeight < TheirTopHeight ->
+	    io:fwrite("my height is less\n"),
             {ok, FT} = application:get_env(ae_core, fork_tolerance),
             get_blocks(Peer, max(0, MyBlockHeight - FT));
-        true -> ok
+        true -> 
+	    io:fwrite("bad sync peer case \n"),
+	    ok
     end,
     trade_txs(Peer).
 
