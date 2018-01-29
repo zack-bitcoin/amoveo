@@ -49,16 +49,18 @@ new(OracleID, True, False, Bad) ->
     #bet{id = OracleID, true = True, false = False,
 	 bad = Bad}.
 serialize(X) ->
-    KL = constants:key_length()*8,
+    %KL = constants:key_length()*8,
+    HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
-    <<(X#bet.id):KL,
+    <<(X#bet.id):HS,
       (X#bet.true):BAL,
       (X#bet.false):BAL,
       (X#bet.bad):BAL>>.
 deserialize(B) ->
-    KL = constants:key_length()*8,
+    %KL = constants:key_length()*8,
+    HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
-    <<ID:KL, True:BAL, False:BAL, Bad:BAL>> = B,
+    <<ID:HS, True:BAL, False:BAL, Bad:BAL>> = B,
     #bet{true = True, false = False, bad = Bad, id = ID}.
 dict_write(X, Pub, Dict) ->
     dict:store({oracle_bets, {key, Pub, X#bet.id}},

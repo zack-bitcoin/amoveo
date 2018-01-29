@@ -27,7 +27,6 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
 	    governance_amount = GovAmount
 	   }.
 serialize(X) ->
-    KL = constants:key_length(),
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),
     Question = X#oracle.question,
@@ -52,7 +51,6 @@ serialize(X) ->
       Question/binary,
       Orders/binary>>.
 deserialize(X) ->
-    KL = constants:key_length(),
     PS = constants:pubkey_size()*8,
     HS = constants:hash_size()*8,
     HEI = constants:height_bits(),

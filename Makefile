@@ -74,8 +74,8 @@ multi-go:
 	@make go3
 
 multi-stop:
-	@make stop1
-	@make stop2
+	@make stop1 &
+	@make stop2 &
 	@make stop3
 
 multi-clean:

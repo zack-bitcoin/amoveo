@@ -75,8 +75,9 @@ write(Account, Root) ->
     SizePubkey = size(Pub),
     SerializedAccount = serialize(Account),
     true = size(SerializedAccount) == constants:account_size(),
-    KeyLength = constants:key_length(),
-    <<Meta:KeyLength>> = <<(Account#acc.bets):KeyLength>>,
+    %KeyLength = constants:key_length(),
+    %<<Meta:KeyLength>> = <<(Account#acc.bets):KeyLength>>,
+    Meta = Account#acc.bets,
     PubId = key_to_int(Pub),
     trie:put(PubId, SerializedAccount, Meta, Root, ?id). % returns a pointer to the new root
 dict_delete(Pub, Dict) ->

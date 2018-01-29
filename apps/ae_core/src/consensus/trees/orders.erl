@@ -48,7 +48,6 @@ new(AID, Amount) ->
     PS = constants:pubkey_size() * 8,
     #orders{aid = AID, amount = Amount, pointer = <<?Null:PS>>}.
 serialize_head(Head, Many) ->
-    %KL = constants:key_length(),
     %HS = constants:hash_size()*8,
     PS = constants:pubkey_size() * 8,
     BAL = constants:balance_bits(),
@@ -56,7 +55,6 @@ serialize_head(Head, Many) ->
     <<Head2:PS>> = Head,
     <<Head2:PS, Many:AB>>.
 deserialize_head(X) ->
-    %KL = constants:key_length(),
     PS = constants:pubkey_size() * 8,
     %HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),

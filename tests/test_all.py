@@ -19,4 +19,4 @@ market_test()
 
 share_blocks_test1()
 share_blocks_test2()
-
+print("finished tests\n")

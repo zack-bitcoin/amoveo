@@ -75,10 +75,10 @@ serialize(C) ->
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
     NON = constants:channel_nonce_bits(),
-    KL = id_size(),
     CID = C#channel.id,
     Delay = constants:channel_delay_bits(),
-    true = (CID - 1) < math:pow(2, KL),
+    <<CID2:256>> = <<CID:256>>, 
+    CID2 = CID,
     Amount = C#channel.amount,
     HB = constants:half_bal(),
     true = Amount < HB,
@@ -105,7 +105,6 @@ deserialize(B) ->
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
     NON = constants:channel_nonce_bits(),
-    KL = constants:key_length(),
     Delay = constants:channel_delay_bits(),
     HS = constants:hash_size()*8,
     << ID:HS,
@@ -135,7 +134,6 @@ write(Channel, Root) ->
     M = serialize(Channel),
     %Shares = Channel#channel.shares,
     trie:put(key_to_int(ID), M, 0, Root, channels). %returns a pointer to the new root
-id_size() -> constants:key_length().
 key_to_int(X) when is_integer(X) -> 
     <<Y:256>> = hash:doit(<<X:256>>),
     Y.

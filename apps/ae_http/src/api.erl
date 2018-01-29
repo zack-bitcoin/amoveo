@@ -348,8 +348,12 @@ add_peer(IP, Port) ->
     peers:add({IP, Port}),
     0.
 %sync() -> sync(?IP, ?Port).
-sync() -> sync:start().
-sync(IP, Port) -> sync:start([{IP, Port}]).
+sync() -> 
+    spawn(fun() -> sync:start() end),
+    0.
+sync(IP, Port) -> 
+    spawn(fun() -> sync:start([{IP, Port}]) end),
+    0.
 keypair() -> keys:keypair().
 pubkey() -> base64:encode(keys:pubkey()).
 new_pubkey(Password) -> keys:new(Password).

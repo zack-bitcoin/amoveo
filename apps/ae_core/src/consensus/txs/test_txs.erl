@@ -226,7 +226,7 @@ test(6) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
-    potential_block:new(),
+    potential_block:save(),
     mine_blocks(1),
     mine_blocks(1),
 
