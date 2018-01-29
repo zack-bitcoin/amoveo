@@ -7,11 +7,15 @@
 * the master account should be unable to spend tokens for the first 6 months. multiply number of blocks in history by the current block time to estimate.
 txs: account_new, account_spend, account_delete, channel_new, oracle_bet, oracle_close
 * be aware that at the current fee sizes/block reward, we can only afford 35 tx fees per block reward.
-* initial_oracle liquidity is way to high in comparison to the initial block reward.
+* initial_oracle liquidity is way too high in comparison to the initial block reward. It should be <1 block reward.
+* because of the birthday problem we can only use 128 bits of the address space in any merkle tree. So it seems like a mistake to use 256 bits for channel, existence, and oracle ids. we should only use 128 bits. We should store all these values as binary, because javascript can't understand such big integers.
+- make sure to increase the range for api:next_id2 
 
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
+
+* if the peer isn't accepting blocks, then do not blindly give it more blocks.
 
 * test the attack where someone generates tons of fake peers and adds them all to the list.
 
@@ -20,6 +24,8 @@ txs: account_new, account_spend, account_delete, channel_new, oracle_bet, oracle
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
 * the server should refuse to let a channel participate in any markets until it has enough confirmations.
+
+* the server should refuse to make an order book until the oracle has enough confirmations.
 
 * close channels from the light node.
 

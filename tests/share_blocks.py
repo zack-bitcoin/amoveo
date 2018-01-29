@@ -3,15 +3,22 @@ from get_request import request
 def share_blocks_test1():
     print("share blocks test 1")
     request(2, "add_peer", [[127,0,0,1], 3010])
+    add_peers(20, [1,2,3,4], 2000)
     request(1, "add_peer", [[127,0,0,1], 3020], 0.01)
     request(1, "mine_block", [1, 100000], 0.02)
     request(1, "sync", [[127,0,0,1], 3020], 0.05)
     request(2, "mine_block", [1, 100000], 0.02)
     request(1, "sync", [[127,0,0,1], 3020], 0.05)
     #we should check that the heights are the same.
+def add_peers(n, ip, port):
+    if (n == 0):
+        return 0
+    request(1, "add_peer", [[127,0,0,1], port])
+    add_peers(n-1, ip, port+1)
+    
 def share_blocks_test2():
     print("share blocks test 2")
-    request(1, "mine_block", [50, 100000], 0.1)
+    request(1, "mine_block", [15, 100000], 0.1)
     request(1, "sync", [[127,0,0,1], 3020], 0.1)
     request(1, "mine_block", [3, 100000], 0.02)
     request(1, "sync", [[127,0,0,1], 3020], 0.1)
