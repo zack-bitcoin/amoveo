@@ -7,22 +7,19 @@
 * the master account should be unable to spend tokens for the first 6 months. multiply number of blocks in history by the current block time to estimate.
 txs: account_new, account_spend, account_delete, channel_new, oracle_bet, oracle_close
 * be aware that at the current fee sizes/block reward, we can only afford 35 tx fees per block reward.
+* initial_oracle liquidity is way to high in comparison to the initial block reward.
 
 
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* test the attack where someone generates tons of fake peers and adds them all to the list.
+
 * lightning payments from the light node should be tested.
-
-* watch-only light wallet.
-
-* it should be more obvious that miners need to insert their pubkey.
-
-* the c-miner should have an easier way to decide which node you will connect to.
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
-* the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
+* the server should refuse to let a channel participate in any markets until it has enough confirmations.
 
 * close channels from the light node.
 
@@ -31,7 +28,7 @@ txs: account_new, account_spend, account_delete, channel_new, oracle_bet, oracle
 - double-publishes prices.
 There are examples on how to make these kinds of transactions in market.erl 
 
-* the gui needs to make it convenient to collect winnings after a market is closed.
+* the gui needs to make it convenient to collect winnings after a market is closed. (maybe it should happen automatically?)
 
 * the gui needs an interface for deleting your account and sending all the value to a different account.
 
@@ -51,6 +48,12 @@ There are examples on how to make these kinds of transactions in market.erl
 
 ### Things we can do after launch of mainnet
 
+
+* it should be more obvious that miners need to insert their pubkey into c_miner and javascript_miner.
+
+* the c-miner should have an easier way to decide which node you will connect to.
+
+* We need to prune bets and orders.
 
 * the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
 

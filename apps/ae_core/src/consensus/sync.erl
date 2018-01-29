@@ -11,32 +11,7 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(start, _) -> {noreply, go};
 handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, go) -> 
-    trade_peers(Peer),
-    MyTop = headers:top(),
-    TheirTop = remote_peer({header}, Peer), 
-    MyBlockHeight = block:height(),
-    TheirTopHeight = TheirTop#header.height,
-    if
-        not(MyTop == TheirTop) ->
-            CommonHash = get_headers(Peer),
-            {ok, TBH} = headers:read(block:hash(block:top())),
-            MD = TBH#header.accumulative_difficulty,
-            TD = TheirTop#header.accumulative_difficulty,
-            if
-                TD < MD -> 
-                    {ok, _, TheirBlockHeight} = remote_peer({top}, Peer),
-                    CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
-                    give_blocks(Peer, CommonBlocksHash);
-                true ->
-                    CommonBlockHeight = common_block_height(CommonHash),
-                    get_blocks(Peer, CommonBlockHeight)
-            end;
-        MyBlockHeight < TheirTopHeight ->
-            {ok, FT} = application:get_env(ae_core, fork_tolerance),
-            get_blocks(Peer, max(0, MyBlockHeight - FT));
-        true -> ok
-    end,
-    trade_txs(Peer),
+    sync_peer(Peer),
     {noreply, go};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(status, _From, X) -> {reply, X, X};
@@ -49,7 +24,9 @@ start(P) ->
     doit2(P).
 doit2([]) -> ok;
 doit2([Peer|T]) ->
-    gen_server:cast(?MODULE, {main, Peer}),
+    %gen_server:cast(?MODULE, {main, Peer}),
+    spawn(fun() -> sync_peer(Peer) end),
+    timer:sleep(500),
     doit2(T).
 blocks(CommonHash, Block) ->
     BH = block:hash(Block),
@@ -140,3 +117,33 @@ trade_txs(Peer) ->
     tx_pool_feeder:absorb(Txs),
     Mine = (tx_pool:get())#tx_pool.txs,
     remote_peer({txs, lists:reverse(Mine)}, Peer).
+
+sync_peer(Peer) ->
+    trade_peers(Peer),
+    MyTop = headers:top(),
+    TheirTop = remote_peer({header}, Peer), 
+    MyBlockHeight = block:height(),
+    TheirTopHeight = TheirTop#header.height,
+    if
+        not(MyTop == TheirTop) ->
+            CommonHash = get_headers(Peer),
+            {ok, TBH} = headers:read(block:hash(block:top())),
+            MD = TBH#header.accumulative_difficulty,
+            TD = TheirTop#header.accumulative_difficulty,
+            if
+                TD < MD -> 
+                    {ok, _, TheirBlockHeight} = remote_peer({top}, Peer),
+                    CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
+                    give_blocks(Peer, CommonBlocksHash);
+                true ->
+                    CommonBlockHeight = common_block_height(CommonHash),
+                    get_blocks(Peer, CommonBlockHeight)
+            end;
+        MyBlockHeight < TheirTopHeight ->
+            {ok, FT} = application:get_env(ae_core, fork_tolerance),
+            get_blocks(Peer, max(0, MyBlockHeight - FT));
+        true -> ok
+    end,
+    trade_txs(Peer).
+
+
