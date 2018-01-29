@@ -50,7 +50,8 @@ go(Tx, Dict, NewHeight) ->
     Bal1 = channels:bal1(OldChannel),
     Bal2 = channels:bal2(OldChannel),
     Amount = Tx#ctc.amount,
-    Acc1 = accounts:dict_update(Aid1, Dict, Bal1 + Amount, Tx#ctc.nonce),
-    Acc2 = accounts:dict_update(Aid2, Dict, Bal2 - Amount, none),
+    HF = Tx#ctc.fee div 2,
+    Acc1 = accounts:dict_update(Aid1, Dict, Bal1 + Amount - HF, Tx#ctc.nonce),
+    Acc2 = accounts:dict_update(Aid2, Dict, Bal2 - Amount - HF, none),
     Dict3 = accounts:dict_write(Acc1, Dict2),
     accounts:dict_write(Acc2, Dict3).

@@ -1,5 +1,5 @@
 -module(txs).
--export([digest_from_dict/3]).
+-export([digest_from_dict/3, developer_lock/3]).
 digest_from_dict([C|T], Dict, H) ->
     case element(1, C) of
         coinbase ->
@@ -32,3 +32,17 @@ digest_from_dict2(Tx, Dict, H) ->
     Key = element(1, Tx),
     M = key2module(Key),
     M:go(Tx, Dict, H).
+developer_lock(From, NewHeight, Dict) ->
+    case application:get_env(ae_core, kind) of
+	{ok, "production"} ->
+	    MP = constants:master_pub(),
+	    if
+		From == MP ->
+		    BP = governance:dict_get_value(block_period, Dict),
+		    HeightSwitch = constants:developer_lock_period() div BP,
+		    true = NewHeight > HeightSwitch;
+		true -> ok
+	    end;
+	_ -> ok
+    end.
+    

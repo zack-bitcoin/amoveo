@@ -86,6 +86,7 @@ dict_give_bets([Order|T], Type, Dict, OID) ->
     dict_give_bets(T, Type, Dict2, OID).
 go(Tx, Dict, NewHeight) ->
     From = Tx#oracle_bet.from,
+    txs:developer_lock(From, NewHeight, Dict),
     Facc = accounts:dict_update(From, Dict, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     <<_:256>> = Tx#oracle_bet.id,

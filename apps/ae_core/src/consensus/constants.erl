@@ -66,3 +66,7 @@ period_bits() -> 16. %so the maximum block time is about 109 minutes
 server_ip() -> {159,89,106,253}.
 server_port() -> 8080.
 channel_granularity() -> 10000.
+
+developer_lock_period() ->%in seconds
+    60*60*24*365.
+    

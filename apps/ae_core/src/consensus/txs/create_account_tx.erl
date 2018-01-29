@@ -32,9 +32,10 @@ new(Pub, Amount, Fee, From, Trees) -> %To is a new ID. set it to any unused ID.
                         fee = Fee},
     {Tx, [Proof]}.
 go(Tx, Dict, NewHeight) ->
+    From = Tx#create_acc_tx.from,
+    txs:developer_lock(From, NewHeight, Dict),
     Pub = Tx#create_acc_tx.pubkey,
     Amount = Tx#create_acc_tx.amount,
-    From = Tx#create_acc_tx.from,
     Nonce = Tx#create_acc_tx.nonce,
     AccountFee = Tx#create_acc_tx.fee,
     empty = accounts:dict_get(Pub, Dict),

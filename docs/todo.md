@@ -1,10 +1,7 @@
 ### things to do for the next hard fork
 
 * increase constants initial difficulty.
-* the initial difficulty should be a low number. Embed a constant 2^24 somewhere.
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
-* the master account should be unable to spend tokens for the first 6 months. multiply number of blocks in history by the current block time to estimate.
-txs: account_new, account_spend, account_delete, channel_new, oracle_bet, oracle_close
 
 
 
