@@ -151,8 +151,11 @@ doit({proof, TreeName, ID, Hash}) ->
     Proof2 = proof_packer(Proof),
     {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}};
 doit({list_oracles}) ->
-    {ok, order_book:keys()};
-doit({oracle, X}) ->
+    K = lists:map(fun(I) -> base64:encode(<<I:256>>) end,
+		  order_book:keys()),
+    {ok, K};
+doit({oracle, Y}) ->
+    <<X:256>> = base64:decode(Y),
     Oracle = trees:dict_tree_get(oracles, X),
     {ok, Question} = oracle_questions:get(Oracle#oracle.question),
     {ok, OB} = order_book:data(X),
