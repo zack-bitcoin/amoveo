@@ -37,14 +37,14 @@ channels, shards, light nodes, channel markets, oracles, blockchain, community, 
                  C  S  L  M  O  B  C  F   E   total
 Amoveo           9  8  9  9  8  9  2  10  10  74
 Group Gnosis     1  0  5  0  8  10 10 5   3   42
-Fun Fair         2  0  5  0  0  10 3  10  3   33
+Fun Fair         2  0  5  0  0  10 4  10  3   34
 Variabl          1  0  5  0  0  10 2  5   3   26 
 Stox             0  0  5  0  0  10 2  0   3   20
 Augur            1  0  5  0  0  10 4  -5  3   18
 Bitshares        0  0  0  0  0  10 5  -5  6   16
+Aeternity        0  0  0  0  0  8  3  -5  9   16
 Bodhi            0  0  3  0  0  10 3  -5  4   15
-Aeternity        0  0  0  0  0  8  3  -5  9   15
-Bitcoin Hivemind 1  0  0  0  0  8  3  -5  5   12
+Bitcoin Hivemind 1  0  0  0  0  8  4  -5  5   12
 Spectre.ai       0  0  5  0  0  10 3  -10 3   11
 Zen Protocol     0  0  0  0  0  9  3  -2  1   11
 Zero Sum Markets 0  0  5  0  0  10 2  -10 3   10

@@ -4,8 +4,8 @@ local_ip = [127,0,0,1];
 local_port = 8081;
 var server_ip = document.createElement("INPUT");
 server_ip.setAttribute("type", "text");
-server_ip.value = "159.89.106.253";// server
-//server_ip.value = JSON.stringify(document.URL.split("/")[2].split(":")[0]);
+//server_ip.value = "159.89.106.253";// server
+server_ip.value = document.URL.split("/")[2].split(":")[0];
 var server_ip_info = document.createElement("h8");
 server_ip_info.innerHTML = translate.words("channel_node").concat(translate.words("ip")).concat(": ");
 var server_port = document.createElement("INPUT");

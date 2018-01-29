@@ -246,19 +246,6 @@ spawn_many(N, F) ->
     spawn(F),
     spawn_many(N-1, F).
 mine(Rounds) -> 
-    %PB = top(),
-    %Top = block_to_header(PB),
-   % TP = tx_pool:get(),
-   % Txs = TP#tx_pool.txs,
-   % T = TP#tx_pool.height,
-   % PB = get_by_height(T),
-   % Top = block_to_header(PB),
-   %case db:read(?recent_block) of
-	%"" -> ok;
-	%%OldBlock -> trees:prune(OldBlock, block:top())
-    %end,
-    %Block = make(Top, Txs, PB#block.trees, keys:pubkey()),
-    %db:save(?recent_block, Block),
     Block = potential_block:read(),
     mine(Block, Rounds).
 mine(Block, Rounds) ->
@@ -271,7 +258,6 @@ mine(Block, Rounds, Cores) ->
                     false -> false;
                     PBlock ->
                         io:fwrite("found a block"),
-			%db:save(?recent_block, ""),
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
                         block_absorber:save(PBlock),
