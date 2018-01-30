@@ -312,7 +312,9 @@ function channels_main() {
 	    var height = top_header[1];
             var amount = spk[7];
             var betAmount = sum_bets(spk[3]);
-
+	    console.log("calculating channel balance ");
+	    console.log(amount);
+	    console.log(betAmount);
             var mybalance = ((val[4] - amount - betAmount)/ 100000000).toString();
             var serverbalance = ((val[5] + amount) / 100000000).toString();
 	    console.log("refresh balance");
