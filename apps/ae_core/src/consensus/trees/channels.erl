@@ -146,7 +146,7 @@ dict_get(Key, Dict) ->
         {ok, Y} -> deserialize(Y)
     end.
 get(ID, Channels) ->
-    true = (ID - 1) < math:pow(2, 256),
+    <<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Channels, channels),
     V = case Leaf of
 	    empty -> empty;
