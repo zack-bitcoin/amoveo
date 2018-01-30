@@ -141,6 +141,9 @@ doit({channel_sync, From, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
+doit({proof, "oracles", ID, Hash}) when is_binary(ID) ->
+    <<ID2:256>> = base64:decode(ID),
+    doit({proof, "oracles", ID2, Hash});
 doit({proof, "channels", ID, Hash}) when is_binary(ID) ->
     <<ID2:256>> = base64:decode(ID),
     doit({proof, "channels", ID2, Hash});

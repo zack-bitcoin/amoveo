@@ -193,7 +193,7 @@ function channels_main() {
         var server_pubkey = l[2];
         var period = l[3];
         var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1]);
-        var cd = read(pubkey);
+        var cd = read(server_pubkey);
         var spk = market_trade(cd, amount_final, price_final, sc, pubkey, oid_final);
         var sspk = keys.sign(spk);
         var msg = ["trade", keys.pub(), price_final, type_final, amount_final, oid_final, sspk, fee];
