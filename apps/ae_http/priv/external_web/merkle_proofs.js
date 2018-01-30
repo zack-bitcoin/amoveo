@@ -145,7 +145,8 @@ function merkle_proofs_main() {
                             bets);
             return serialized;
 	} else if ( t == "channel" ) {
-            var cid = integer_to_array(v[1], 32);
+            //var cid = integer_to_array(v[1], 32);
+            var cid = string_to_array(atob(v[1]));
             var acc1 = string_to_array(atob(v[2]));
             var acc2 = string_to_array(atob(v[3]));
             var bal1 = integer_to_array(v[4], 6);

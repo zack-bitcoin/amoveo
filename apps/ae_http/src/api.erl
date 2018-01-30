@@ -194,6 +194,7 @@ channel_balance2(Ip, Port) ->
     Bal.
 integer_channel_balance(Ip, Port) ->
     {ok, Other} = talker:talk({pubkey}, Ip, Port),
+    
     {ok, CD} = channel_manager:read(Other),
     SSPK = CD#cd.them,
     SPK = testnet_sign:data(SSPK),
