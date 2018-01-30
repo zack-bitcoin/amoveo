@@ -161,7 +161,7 @@ function channels_main() {
         }
     }
     function make_bet() {
-        var oid_final = parseInt(oid.value, 10);
+        var oid_final = oid.value;
         variable_public_get(["market_data", oid_final], make_bet2);
     }
     function make_bet2(l) {

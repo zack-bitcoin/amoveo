@@ -10,6 +10,8 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+* the light-node is memorizing the server's pubkey too early. If you change the ip you are connecting to, it should change the server's pubkey we store in ram as well.
+
 * we need to recompile the market smart contract in javascript to include the changes in market.erl.
 
 * if the peer isn't accepting blocks, then do not blindly give it more blocks.
