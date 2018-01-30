@@ -165,8 +165,9 @@ doit({market_data, OID}) ->
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     {ok, {Expires, keys:pubkey(), Period}};
-doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
+doit({trade, Account, Price, Type, Amount, OIDE, SSPK, Fee}) ->
     %make sure they pay a fee in channel for having their trade listed. 
+    OID = base64:decode(OIDE),
     BetLocation = constants:oracle_bet(),
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
