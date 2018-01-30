@@ -112,9 +112,11 @@ function merkle_proofs_main() {
             var pubkey = string_to_array(atob(v[3]));
             return hash(pubkey);
 	} else if ( t == "channel" ) {
-            return hash(integer_to_array(v[1], 32));
+            //return hash(integer_to_array(v[1], 32));
+            return hash(string_to_array(btoa(v[1])));
 	} else if (t == "oracle") {
-            return hash(integer_to_array(v[1], 32));
+            //return hash(integer_to_array(v[1], 32));
+            return hash(string_to_array(btoa(v[1])));
 	} else {
             console.log("type is ");
             console.log(t);
@@ -170,8 +172,9 @@ function merkle_proofs_main() {
                                                     acc2);
             return serialized;
 	} else if (t == "oracle") {
-            var id = integer_to_array(v[1], 32);
-            var result = integer_to_array(v[2], 1);
+            //var id = integer_to_array(v[1], 32);
+            var id = string_to_array(v[1], 32);
+            var result = integer_to_array(atob(v[2]));
             var t = integer_to_array(v[5], 1);
             var starts = integer_to_array(v[4], 4); 
             var done_timer = integer_to_array(v[9], 4); //height_bits/8 bytes
