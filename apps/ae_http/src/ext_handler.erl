@@ -155,7 +155,7 @@ doit({list_oracles}) ->
 		  order_book:keys()),
     {ok, K};
 doit({oracle, Y}) ->
-    <<X:256>> = base64:decode(Y),
+    X = base64:decode(Y),
     Oracle = trees:dict_tree_get(oracles, X),
     {ok, Question} = oracle_questions:get(Oracle#oracle.question),
     {ok, OB} = order_book:data(X),
