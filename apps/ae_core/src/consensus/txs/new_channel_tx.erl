@@ -18,11 +18,13 @@ spk(Tx, Delay) ->
 make_dict(ID,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
     A = trees:dict_tree_get(accounts, Acc1),
     Nonce = A#acc.nonce,
+    <<_:256>> = ID,
     #nc{id = ID, acc1 = Acc1, acc2 = Acc2, 
 	fee = Fee, nonce = Nonce+1, bal1 = Inc1,
 	bal2 = Inc2, 
 	delay = Delay}.
 make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
+    <<_:256>> = ID,
     Accounts = trees:accounts(Trees),
     {_, A, Proof} = accounts:get(Acc1, Accounts),
     Nonce = A#acc.nonce,

@@ -10,6 +10,7 @@ id(X) ->
 make_dict(From, Fee, ScriptPubkey, ScriptSig) ->
     true = is_list(ScriptSig),
     CID = (testnet_sign:data(ScriptPubkey))#spk.cid,
+    <<_:256>> = CID,
     Acc = trees:dict_tree_get(accounts, From),
     #csc{from = From, nonce = Acc#acc.nonce+1, 
 	 fee = Fee,
@@ -21,6 +22,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     Channels = trees:channels(Trees),
     true = is_list(ScriptSig),
     CID = (testnet_sign:data(ScriptPubkey))#spk.cid,
+    <<_:256>> = CID,
     {_, Acc, Proof1} = accounts:get(From, Accounts),
     {_, _Channel, Proofc} = channels:get(CID, Channels),
     

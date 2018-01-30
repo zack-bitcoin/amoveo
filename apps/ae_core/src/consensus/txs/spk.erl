@@ -95,6 +95,7 @@ new_bet(Code, Key, Amount) ->
 new_bet(Code, Key, Amount, Meta) ->
     #bet{code = Code, key = Key, amount = Amount, meta = Meta}.
 new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay) ->
+    <<_:256>> = CID,
     #spk{acc1 = Acc1, acc2 = Acc2,
 	 bets = Bets, space_gas = SG, time_gas = TG,
 	 cid = CID, nonce = Nonce, delay = Delay}.
@@ -372,6 +373,7 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
 			amount = Amount2,
 			nonce = NewSPK#spk.nonce},
     CID = NewSPK#spk.cid,
+    <<_:256>> = CID,
     Channel = trees:dict_tree_get(channels, CID),
     KID = keys:pubkey(),
     Acc1 = channels:acc1(Channel),

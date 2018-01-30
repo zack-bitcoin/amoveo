@@ -97,7 +97,7 @@ test() ->
     Stx3 = keys:sign(Ctx),
     test_txs:absorb(Stx3),
     
-    CID = 5,
+    CID = <<5:256>>,
     Delay = 0,
     
     Ctx4 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
@@ -117,7 +117,7 @@ test2(NewPub) ->
     Location = constants:oracle_bet(),
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),101,100,OID, 0),
-    SPK = spk:new(constants:master_pub(), NewPub, 1, [Bet], 10000, 10000, 1, 0),
+    SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], 10000, 10000, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
@@ -176,7 +176,7 @@ test2(NewPub) ->
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),
     Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),101,100,OID, 0),
-    SPK2 = spk:new(constants:master_pub(), NewPub, 1, [Bet2], 10000, 10000, 1, 0),
+    SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], 10000, 10000, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay

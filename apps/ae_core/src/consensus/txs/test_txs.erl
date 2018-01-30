@@ -89,7 +89,7 @@ test(3) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
-    CID = 5,
+    CID = <<5:256>>,
 
     Delay = 30,
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
@@ -126,7 +126,7 @@ test(4) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     
-    CID = 5,
+    CID = <<5:256>>,
     Delay = 0,
     
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
@@ -175,7 +175,7 @@ test(5) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     
-    CID = 5,
+    CID = <<5:256>>,
     Delay = 0,
     
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
@@ -230,7 +230,7 @@ test(6) ->
     mine_blocks(1),
     mine_blocks(1),
 
-    CID = 5,
+    CID = <<5:256>>,
 
     %Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 30, Fee),
@@ -270,7 +270,7 @@ test(6) ->
     Ctx6 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx6 = keys:sign(Ctx6),
     absorb(Stx6),
-    empty = trees:dict_tree_get(channels, 1),
+    empty = trees:dict_tree_get(channels, <<1:256>>),
     potential_block:new(),
 
     mine_blocks(1),
@@ -296,7 +296,7 @@ test(8) ->
     absorb(Stx),
     timer:sleep(100),
 
-    CID = 5,
+    CID = <<5:256>>,
 
     Delay = 10,
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
@@ -342,7 +342,7 @@ test(9) ->
     absorb(Stx),
     timer:sleep(100),
 
-    CID = 5,
+    CID = <<5:256>>,
 
     Delay = 10,
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
@@ -548,7 +548,7 @@ test(12) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     
-    CID = 5,
+    CID = <<5:256>>,
     Delay = 0,
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
     Stx2 = keys:sign(Ctx2),
@@ -668,7 +668,7 @@ test(14) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
 
-    CID = 5,
+    CID = <<5:256>>,
 
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Stx2 = keys:sign(Ctx2),
@@ -727,7 +727,7 @@ test(15) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
 
-    CID = 5,
+    CID = <<5:256>>,
 
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Stx2 = keys:sign(Ctx2),
