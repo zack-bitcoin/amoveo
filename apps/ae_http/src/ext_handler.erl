@@ -141,18 +141,10 @@ doit({channel_sync, From, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
-doit({proof, <<"oracles">>, ID, Hash}) when is_binary(ID) and (size(ID) > 32)->
-    ID2 = base64:decode(ID),
-    doit({proof, "oracles", ID2, Hash});
-doit({proof, <<"channels">>, ID, Hash}) when is_binary(ID) and (size(ID) > 32) ->
-    io:fwrite("ext_handler proof channels id is "),
-    io:fwrite(packer:pack(ID)),
-    io:fwrite("\n"),
-    ID2 = base64:decode(ID),
-    doit({proof, "channels", ID2, Hash});
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
 %curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5]' http://localhost:8040
+    io:fwrite(packer:pack([ext_handler_proof, TreeName, ID])),
     Trees = (block:get_by_hash(Hash))#block.trees,
     TN = trees:name(TreeName),
     Root = trees:TN(Trees),
