@@ -303,6 +303,8 @@ function channels_main() {
         var trie_key = cd.me[6];//channel id, cid
 	var top_header = headers_object.top();
         var top_hash = hash(headers_object.serialize(top_header));
+	console.log("refresh balance trie key is ");
+	console.log(trie_key);
         merkle.request_proof("channels", trie_key, function(val) {
             //var balance_div = document.getElementById("balance_div");
             var spk = cd.them[1];
