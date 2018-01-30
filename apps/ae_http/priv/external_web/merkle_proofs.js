@@ -96,7 +96,7 @@ function merkle_proofs_main() {
 			//we should learn to deal with proofs of empty data.
                     } else {
 			console.log("the value doesn't match the proof");
-			return 0
+			throw("bad");
                     }
 		}
             }
@@ -113,10 +113,10 @@ function merkle_proofs_main() {
             return hash(pubkey);
 	} else if ( t == "channel" ) {
             //return hash(integer_to_array(v[1], 32));
-            return hash(string_to_array(btoa(v[1])));
+            return hash(string_to_array(atob(v[1])));
 	} else if (t == "oracle") {
             //return hash(integer_to_array(v[1], 32));
-            return hash(string_to_array(btoa(v[1])));
+            return hash(string_to_array(atob(v[1])));
 	} else {
             console.log("type is ");
             console.log(t);
