@@ -141,10 +141,10 @@ doit({channel_sync, From, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
-doit({proof, <<"oracles">>, ID, Hash}) when is_binary(ID) ->
+doit({proof, <<"oracles">>, ID, Hash}) when is_binary(ID) and (size(ID) > 32)->
     ID2 = base64:decode(ID),
     doit({proof, "oracles", ID2, Hash});
-doit({proof, <<"channels">>, ID, Hash}) when is_binary(ID) ->
+doit({proof, <<"channels">>, ID, Hash}) when is_binary(ID) and (size(ID) > 32) ->
     io:fwrite("ext_handler proof channels id is "),
     io:fwrite(packer:pack(ID)),
     io:fwrite("\n"),
