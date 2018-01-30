@@ -141,6 +141,9 @@ doit({channel_sync, From, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
+doit({proof, "channels", ID, Hash}) when is_binary(ID) ->
+    <<ID2:256>> = base64:decode(ID),
+    doit({proof, "channels", ID2, Hash});
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
 %curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5]' http://localhost:8040
