@@ -1,6 +1,6 @@
 ## Amoveo White Paper
 
-## table of contents
+## Table of Contents
 * Abstract
 * Motivation
 * Blockchain Consensus Protocol
@@ -59,7 +59,7 @@ It is this ability to escalate that allows Amoveo to keep the collateral for eac
 
 ## Governance
 Using the oracle, the parameters that define the system can be modified. The mechanism is built with the goal that the oracle will choose parameters that make the value of Veo increase.
-[read more about governance here](design/governance.md)
+[Read more about governance here](design/governance.md)
 
 
 ## Channels
@@ -68,7 +68,7 @@ Publishing a transaction to a blockchain is time consuming. You need to wait for
 Channels are two party relationships recorded on the blockchain. Each channel has a finite amount of money it controls, just like an account.
 Once two people have a channel together, they can instantly move the money inside the channel back and forth. This is much faster than publishing a transaction to the blockchain and waiting for confirmations.
 When the channel is closed, the money goes back to the accounts that created it according to the final distribution of money in the channel.
-[read more about channels here](design/channels.md)
+[Read more about channels here](design/channels.md)
 
 
 ## Smart Contracts Inside Channels
@@ -89,7 +89,7 @@ You could participate in a market that is priced in synthetic-Euros.
 
 
 ## Chalang Smart Contract VM
-* [official chalang github repository](https://github.com/zack-bitcoin/chalang)
+* [Official chalang github repository](https://github.com/zack-bitcoin/chalang)
 * Used for the smart contracts in the channels.
 * Chalang has two stacks for storing values during computation, so you can write highly optimized forth-style code.
 * Chalang has variables for storing values, so you can write easier to read javascript-style code.
@@ -132,7 +132,7 @@ Here is an [explanation of how the market smart contract works.](design/limit_or
 * In Bitcoin the bandwidth requirement for trust-free access to the blockchain is O((number of blocks) * (transactions per block ~= 2000) * (size of a average tx ~= 1 kb)). This is so expensive that most people cannot afford to run a secure Bitcoin node. Alternatively, you can pay a server to scan the entire UTXO set every time you want to check your balance, but this is too expensive as well. No one has yet made a server like this.
 * In Amoveo, the computational requirement for trust-free access to the blockchain is O((number of blocks) * (size of average header ~= 200 bytes)). Per block, Amoveo will be able to sync about 10 000 times faster than Bitcoin.
 * Scalability- parallel block computation. Since miners don't have to store any of the consensus state, the blockchain would still be functional under these conditions: it takes more than 10 minutes for a miner to verify a block. The block time is 10 minutes. Compare with Bitcoin or Ethereum, where security depends on the fact that the time to verify a block is significantly less than the block time. Ethereum tried to solve this problem with GHOST, which is only a small improvement. GHOST comes at the large cost of inflating ETH to pay for uncle blocks. Amoveo can do much more computation per block.
-* [analyze some attacks on light nodes](light_nodes.md)
+* [Analyze some attacks on light nodes](light_nodes.md)
 
 
 ## Example Use Cases
@@ -159,4 +159,4 @@ The Nash equilibrium will be for honest individuals to participate in the defens
 Yes there is a cost for the miners to keep an eye on the oracle this way, but every time an attack happens, the miners can participate in the defense, and double all their money. This should more than make up for the cost of watching the oracle for attacks.
 The Nash equilibrium will be for miners to put some effort into watching the oracle for potential cheaters.
 Therefore, the Nash equilibrium will be an honest oracle.
-[read more about oracles here](design/oracle.md)
+[Read more about oracles here](design/oracle.md)
