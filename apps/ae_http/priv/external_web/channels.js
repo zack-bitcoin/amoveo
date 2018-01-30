@@ -113,10 +113,12 @@ function channels_main() {
         channel_warning_div.innerHTML = translate.words("save_confirm");
     }
     function load_channels(pubkey) {
+	console.log("load channels");
         var file = (load_button.files)[0];
         var reader = new FileReader();
         reader.onload = function(e) {
             channel_manager = JSON.parse(reader.result);
+	    console.log(JSON.stringify(channel_manager));
             refresh_channels_interfaces(pubkey);
         }
         reader.readAsText(file);

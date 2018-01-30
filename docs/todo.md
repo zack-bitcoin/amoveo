@@ -5,7 +5,12 @@
 
 
 
+
+
+
 ### Things to do before the launch of the official Amoveo blockchain.
+
+* we need to recompile the market smart contract in javascript to include the changes in market.erl.
 
 * if the peer isn't accepting blocks, then do not blindly give it more blocks.
 
@@ -39,13 +44,10 @@ There are examples on how to make these kinds of transactions in market.erl
 
 
 
-
-
-
-
-
 ### Things we can do after launch of mainnet
 
+
+* The password is being recorded in the log. This is bad.
 
 * it should be more obvious that miners need to insert their pubkey into c_miner and javascript_miner.
 
@@ -99,8 +101,6 @@ Maybe encoding the pubkeys should happen at the wallet level, not the node level
 
 * the readme should explain about public keys better
 
-* the password is being recorded in the log. This is bad.
-
 * If you use an incorrect password, there should be a useful error message.
 
 * parts of the api need to be encrypted, to keep channel state private.
@@ -113,10 +113,6 @@ Maybe encoding the pubkeys should happen at the wallet level, not the node level
 * We should store the hash of the block along with the block, that way we don't have to re-calculate it more than once. When sharing blocks we can use this hash to quickly ignore blocks we have already seen, but for a block to be considered valid, we need to check at least once that the hash was calculated correctly.
 
 * merkle.js should be able to verify proofs of the trie being empty in some places.
-
-* we should use trie:garbage_leaves on erlang light nodes to prune even more things from the trie that we don't care about.
-
-* We should optionally garbage collect old blocks, only keep the headers. 
 
 * light nodes should only download headers and a few recent blocks. They should verify blocks in parallel.
 
@@ -146,11 +142,7 @@ Making A1 rem B == 0 limits the possible output values of the contract, which sl
 
 Blocks should be serialized to be fully compressed.
 
-* spk.erl is currently using trees when processing channel contracts. This is no good, trees are too slow. We should upgrade it to use dictionaries whenever possible.
-
 * We need some way of garbage collecting old channels from the channels manager once the channel has been closed long enough.
-
-* It would be cool if we could trustlessly combine a grow_channel_tx with a channel payment. This might involve a hard fork.
 
 * reading from the hard drive can be slow. order_book can be updated to recover from errors without having to re-read everything from the hard drive.
 

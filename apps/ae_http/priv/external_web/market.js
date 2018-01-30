@@ -5,7 +5,8 @@ function market_contract(direction, expires, maxprice, server_pubkey, period, am
     var a;
     var a2 = string_to_array(atob("AAAAAAJ4AA=="));
     var b = string_to_array(atob("AAAAAAN4AA=="));
-    var c = string_to_array(atob("AAAAAAR4AA=="));
+    //var c = string_to_array(atob("AAAAAAR4AA=="));
+    var c = string_to_array(atob("AAAAAAR4AgAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
     var d = string_to_array(atob("AAAAAAV4AA=="));
     var e = string_to_array(atob("AAAAAAZ4AgAAAEE="));
     var f;
@@ -27,7 +28,7 @@ function market_contract(direction, expires, maxprice, server_pubkey, period, am
                     b).concat(
                         integer_to_array(maxprice, 4)).concat(
                             c).concat(
-                                integer_to_array(oid, 4)).concat(
+                                string_to_array(atob(oid))).concat(
                                     d).concat(
                                         integer_to_array(period, 4)).concat(
                                             e).concat(
