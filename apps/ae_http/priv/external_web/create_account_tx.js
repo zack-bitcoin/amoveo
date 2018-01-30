@@ -19,7 +19,7 @@ function create_account1() {
     var create_button = button_maker("create_account", create_account);
     div.appendChild(create_button);
     div.appendChild(document.createElement("br"));
-    var ca_fee = 50050;
+    var ca_fee = 152050;
     function create_account() {
         var to = create_address.value;
         var amount = Math.floor(parseFloat(create_amount.value, 10) * 100000000);

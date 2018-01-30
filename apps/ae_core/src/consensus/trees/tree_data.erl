@@ -13,6 +13,7 @@ handle_call({garbage, Trash, Keep}, _, _) ->
     internal(Trash, Keep, fun(A, B, C) -> trie:garbage(A, B, C) end),
     {reply, ok, []};
 handle_call({prune, Trash, Keep}, _, _) -> 
+    1=2,
     internal(Trash, Keep, fun(A, B, C) -> trie:prune(A, B, C) end),
     {reply, ok, []};
 handle_call({update, Trees, Dict}, _From, _) -> 
@@ -69,6 +70,7 @@ internal_dict_update_trie(Trees, Dict) ->
 			end, Orders0),
     {OracleBets, Keys3} = get_things(oracle_bets, Keys2),
     {Accounts, Keys4} = get_things(accounts, Keys3),
+    
     {Oracles, Keys5} = get_things(oracles, Keys4),
     OrdersLeaves = dict_update_trie_orders(Trees, Orders, Dict, []),
     %{leaf, key, val, meta}

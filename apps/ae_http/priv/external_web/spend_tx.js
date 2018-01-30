@@ -20,7 +20,7 @@ function spend_1() {
     div.appendChild(spend_address);
     spend_button = button_maker("spend", spend_tokens);
     div.appendChild(spend_button);
-    var fee = 50050;
+    var fee = 152050;
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");
         var to = spend_address.value;

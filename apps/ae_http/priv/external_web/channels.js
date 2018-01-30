@@ -47,7 +47,7 @@ function channels_main() {
     document.body.appendChild(channels_div);
     append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
     
-    var fee = 50050;
+    var fee = 152050;
     var oid = document.createElement("INPUT");
     oid.setAttribute("type", "text");
     var oid_info = document.createElement("h8");
@@ -129,6 +129,8 @@ function channels_main() {
         });
     }
     function refresh_channels_interfaces2(pubkey) {
+	console.log("server pubkey is ");
+	console.log(pubkey);
         load_button.onchange = function() {return load_channels(pubkey) };
         //refresh_channels_button.onclick = function() {return refresh_channels_interfaces2(pubkey)};
         var div = channel_interface_div;
