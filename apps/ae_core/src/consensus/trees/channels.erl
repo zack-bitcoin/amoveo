@@ -77,8 +77,8 @@ serialize(C) ->
     NON = constants:channel_nonce_bits(),
     CID = C#channel.id,
     Delay = constants:channel_delay_bits(),
-    <<CID2:256>> = <<CID:256>>, 
-    CID2 = CID,
+    %<<CID2:256>> = <<CID:256>>, 
+    %CID2 = CID,
     Amount = C#channel.amount,
     HB = constants:half_bal(),
     true = Amount < HB,
@@ -88,7 +88,8 @@ serialize(C) ->
     %HS = size(Shares),
     true = size(C#channel.acc1) == constants:pubkey_size(),
     true = size(C#channel.acc2) == constants:pubkey_size(),
-    << CID:(HS*8),
+    <<_:256>> = CID,
+    << CID/binary,
        (C#channel.bal1):BAL,
        (C#channel.bal2):BAL,
        (Amount+HB):BAL,
@@ -119,7 +120,7 @@ deserialize(B) ->
        B2:PS
        %_:HS
     >> = B,
-    #channel{id = ID, acc1 = <<B1:PS>>, acc2 = <<B2:PS>>, 
+    #channel{id = <<ID:HS>>, acc1 = <<B1:PS>>, acc2 = <<B2:PS>>, 
 	     bal1 = B3, bal2 = B4, amount = B8-constants:half_bal(),
 	     nonce = B5, 
 	     last_modified = B7,
@@ -164,7 +165,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
     
 test() ->
-    ID = 1,
+    ID = <<1:256>>,
     Acc1 = constants:master_pub(),
     Acc2 = constants:master_pub(),
     Bal1 = 200,
