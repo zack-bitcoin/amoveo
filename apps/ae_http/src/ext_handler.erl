@@ -142,13 +142,13 @@ doit({channel_sync, From, SSPK}) ->
 doit({bets}) ->
     free_variables:bets();
 doit({proof, <<"oracles">>, ID, Hash}) when is_binary(ID) ->
-    <<ID2:256>> = base64:decode(ID),
+    ID2 = base64:decode(ID),
     doit({proof, "oracles", ID2, Hash});
 doit({proof, <<"channels">>, ID, Hash}) when is_binary(ID) ->
     io:fwrite("ext_handler proof channels id is "),
     io:fwrite(packer:pack(ID)),
     io:fwrite("\n"),
-    <<ID2:256>> = base64:decode(ID),
+    ID2 = base64:decode(ID),
     doit({proof, "channels", ID2, Hash});
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
