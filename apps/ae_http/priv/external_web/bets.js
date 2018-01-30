@@ -4,16 +4,24 @@
 //["market",1,1,3000,"BJjOADT/mMg0BsqQkCDcEb/ylv6W85wipEKrY3qV5z3XvVrNygvVoEXsA6tncAoMuyvMB5Prepzqql3zZ1sDjjo=",40,1]
 //{market, 1, MarketID, Expires, Pubkey, Period, OID}.
 function bets_main() {
-    var div = document.createElement("div");
-    document.body.appendChild(div);
-    var oadiv = document.createElement("div");
-    document.body.appendChild(oadiv);
+    var div;
+    var oadiv;
+    function draw() {
+	var bets_div = document.getElementById("bets_div");
+	div = document.createElement("div");
+	bets_div.appendChild(div);
+	oadiv = document.createElement("div");
+	bets_div.appendChild(oadiv);
+    }
     function main() {
         variable_public_get(["pubkey"], outstanding_bets3);
     }
     function outstanding_bets3(server_pubkey) {
         var x = channels_object.read(server_pubkey);
-        var bets = x.me[4];
+	console.log("outstanding bets channel object bets are ");
+	console.log(JSON.stringify(x.me[3].length));
+	console.log(JSON.stringify(x.me[3]));
+        var bets = x.me[3];
         var ssme = x.ssme;
         div.innerHTML = "";
         oadiv.innerHTML = "";
@@ -35,9 +43,9 @@ function bets_main() {
             console.log("making cancel orders button, ssme is");
             console.log(JSON.stringify(ssme));
             if ( JSON.stringify(ssme[i-1].code) == JSON.stringify([0,0,0,0,4]) ) {
-                //console.log("unmatched");
+                console.log("unmatched");
                 //console.log(JSON.stringify([i, oid, amount, "unmatched", bet[4]]));
-                order.innerHTML = "in market ".concat(parseInt(oid)).concat(" you have an open order to trade this many tokens ").concat(s2c(amount)).concat(", you are trading at this price: ").concat(parseFloat(((bet[4][2])/100), 10)).concat(", you are betting on outcome: ").concat(outcome);
+                order.innerHTML = "in market ".concat(oid).concat(" you have an open order to trade this many tokens ").concat(s2c(amount)).concat(", you are trading at this price: ").concat(parseFloat(((bet[4][2])/100), 10)).concat(", you are betting on outcome: ").concat(outcome);
                 div.appendChild(order);
                 var cancel_button = document.createElement("input");
                 cancel_button.type = 'button';
@@ -46,7 +54,7 @@ function bets_main() {
                 div.appendChild(document.createElement("br"));
                 cancel_buttons.push(cancel_button);
             } else {
-                //console.log("matched");
+                console.log("matched");
                 order.innerHTML = translate.words("market").concat(parseInt(oid)).concat(translate.words("win_if")).concat(outcome).concat(transalte.words("amount")).concat(s2c(amount));
                 oadiv.appendChild(order);
                 oadiv.appendChild(document.createElement("br"));
@@ -128,6 +136,6 @@ function bets_main() {
         var c = a.slice(n+1, a.length);
         return b.concat(c);
     }
-    return {main: main};
+    return {main: main, draw: draw};
 }
 bets_object = bets_main(); 

@@ -440,6 +440,8 @@ function spk_main() {
                 var them_spk = spk_return[2];
                 //returns cd and them_spk
                 var cd0 = channels_object.read(server_pubkey);
+		console.log("javascript channels object is ");
+		console.log(JSON.stringify(cd0));
                 if (cd0 == undefined) {
                     console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
                     throw("pull channel state error");

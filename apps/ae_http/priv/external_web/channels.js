@@ -4,6 +4,8 @@ function channels_main() {
     var channel_manager = {};
     var tv = -1;
     function read(x) {
+	console.log("read channel ");
+	console.log(JSON.stringify(x));
         var y = channel_manager[x];
         if (y == undefined) {
             return undefined;
@@ -140,6 +142,8 @@ function channels_main() {
         var tv_display = document.createElement("div");
         tv_display.innerHTML = translate.words("time_value").concat(": ").concat((tv).toString());
         div.appendChild(tv_display);
+        var bets_div = document.createElement("div");
+	bets_div.id = "bets_div";
         //check if we have a chnnel with the server yet.
         //if we don't, then give an interface for making one.
         if (read(pubkey) == undefined) {
@@ -148,7 +152,7 @@ function channels_main() {
             append_children(div, [height_button, amount_info, spend_amount, br(), delay_info, spend_delay, br(), lifespan_info, lifespan]);
         } else {
             console.log("give interface for making bets in channels.");
-            append_children(div, [balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br()]);
+            append_children(div, [balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
             lightning_button.onclick = function() { lightning_spend(pubkey); };
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
@@ -158,6 +162,7 @@ function channels_main() {
             combine_cancel_button.onclick = function() {
                 combine_cancel_object.main(pubkey);
             }
+	    bets_object.draw();
         }
     }
     function make_bet() {

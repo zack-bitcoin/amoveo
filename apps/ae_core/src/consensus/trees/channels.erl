@@ -140,6 +140,7 @@ key_to_int(X) ->
     <<Y:256>> = hash:doit(X),
     Y.
 dict_get(Key, Dict) ->
+    <<_:256>> = Key,
     X = dict:find({channels, Key}, Dict),
     case X of
 	error -> empty;

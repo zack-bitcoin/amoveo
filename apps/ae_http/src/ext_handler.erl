@@ -152,23 +152,24 @@ doit({proof, TreeName, ID, Hash}) ->
     Proof2 = proof_packer(Proof),
     {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}};
 doit({list_oracles}) ->
-    K = lists:map(fun(I) -> base64:encode(I) end,
-		  order_book:keys()),
-    {ok, K};
+    {ok, order_book:keys()};
 doit({oracle, Y}) ->
-    X = base64:decode(Y),
+    %X = base64:decode(Y),
+    X = Y,
     Oracle = trees:dict_tree_get(oracles, X),
     {ok, Question} = oracle_questions:get(Oracle#oracle.question),
     {ok, OB} = order_book:data(X),
     {ok, {OB, Question}};
 doit({market_data, OID}) ->
-    {ok, OB} = order_book:data(base64:decode(OID)),
+    %{ok, OB} = order_book:data(base64:decode(OID)),
+    {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     {ok, {Expires, keys:pubkey(), Period}};
 doit({trade, Account, Price, Type, Amount, OIDE, SSPK, Fee}) ->
     %make sure they pay a fee in channel for having their trade listed. 
-    OID = base64:decode(OIDE),
+    %OID = base64:decode(OIDE),
+    OID = OIDE,
     BetLocation = constants:oracle_bet(),
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),

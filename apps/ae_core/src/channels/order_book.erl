@@ -219,8 +219,10 @@ keys() ->
     gen_server:call(?MODULE, keys).
     
 add(Order, OID) ->
+    <<_:256>> = OID,
     gen_server:call(?MODULE, {add, Order, OID}).
 match(OID) ->
+    <<_:256>> = OID,
     Oracle = trees:dict_tree_get(oracles, OID),
     Result = Oracle#oracle.result,
     case Result of

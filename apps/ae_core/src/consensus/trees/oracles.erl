@@ -95,6 +95,7 @@ write(Oracle, Root) ->
     Meta = Oracle#oracle.orders,
     trie:put(key_to_int(Key), V, Meta, Root, ?name).
 dict_get(ID, Dict) ->
+    <<_:256>> = ID,
     X = dict:find({oracles, ID}, Dict),
     case X of
 	error -> empty;

@@ -129,25 +129,32 @@ handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
                      ssthem = spk:remove_nth(N-1, OldCD#cd.ssthem)},
     channel_manager:write(TheirPub, NewCD),
     {reply, ok, X};
-handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
+handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is an account pubkey
     TP = tx_pool:get(),
     Height = TP#tx_pool.height,
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
     {ok, LF} = application:get_env(ae_core, lightning_fee),
     true = Fee > LF,
+    <<_:256>> = OID,
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     BetLocation = constants:oracle_bet(),
     SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
-    CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+    %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
     {ok, OldCD} = channel_manager:read(ID),
     ChannelExpires = OldCD#cd.expiration,
     true = Expires < ChannelExpires,%The channel has to be open long enough for the market to close.
     SSPK2 = trade(Amount, Price, SC, ID, OID),
     SPK = testnet_sign:data(SSPK),
-    SPK = testnet_sign:data(SSPK2),
+    SPK2 = testnet_sign:data(SSPK2),
+    io:fwrite("channel feeder spks \n"),
+    io:fwrite(packer:pack(SPK)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(SPK2)),
+    io:fwrite("\n"),
+    SPK = SPK2,
     DefaultSS = market:unmatched(OID),
     SSME = [DefaultSS|OldCD#cd.ssme],
     SSThem = [DefaultSS|OldCD#cd.ssthem],
@@ -157,7 +164,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = SSME, ssthem = SSThem},
     channel_manager:write(ID, NewCD),
-    {reply, SSPK2, X};
+    {reply, keys:sign(SSPK), X};
 handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
     true = testnet_sign:verify(keys:sign(SSPK)),
@@ -375,7 +382,7 @@ make_locked_payment(To, Amount, Code) ->
     Bet = spk:new_bet(Code, Code, Amount),
     NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
     keys:sign(NewSPK).
-trade(Amount, Price, Bet, Other, OID) ->
+trade(Amount, Price, Bet, Other, _OID) ->
     {ok, CD} = channel_manager:read(Other),
     SPK = CD#cd.me,
     CID = SPK#spk.cid,

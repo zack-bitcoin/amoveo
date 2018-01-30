@@ -200,13 +200,13 @@ test2(NewPub) ->
 test3() ->    
     %This makes the compiled smart contract in market.js
     OID = <<123:256>>,
-    OID2 = <<122:256>>,
+    OID2 = <<-1:256>>,
     BetLocation = constants:oracle_bet(),
     Pubkey = keys:pubkey(),
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    A = market_smart_contract(BetLocation, OID, 2, 124, 125, Pubkey, 126, 0, OID, 0),
+    A = market_smart_contract(BetLocation, OID, 1, 124, 125, Pubkey, 126, 0, OID, 0),
     Max = 4294967295,
-    B = market_smart_contract(BetLocation, OID2, 2, Max, Max, <<0:520>>, Max, Max, Max, Max),
+    B = market_smart_contract(BetLocation, OID2, 1, Max, Max, <<0:520>>, Max, Max, Max, Max),
     A2 = element(2, A),
     B2 = element(2, B),
     compare_test(A2, B2, 0, <<>>),
