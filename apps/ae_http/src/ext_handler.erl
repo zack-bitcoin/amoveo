@@ -161,7 +161,7 @@ doit({oracle, Y}) ->
     {ok, OB} = order_book:data(X),
     {ok, {OB, Question}};
 doit({market_data, OID}) ->
-    {ok, OB} = order_book:data(OID),
+    {ok, OB} = order_book:data(base64:decode(OID)),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     {ok, {Expires, keys:pubkey(), Period}};
