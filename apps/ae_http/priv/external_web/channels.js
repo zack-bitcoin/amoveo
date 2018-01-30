@@ -188,7 +188,7 @@ function channels_main() {
             type_final = 2;
         }
         var amount_final = Math.floor(parseFloat(amount.value, 10) * 100000000);
-        var oid_final = parseInt(oid.value, 10);
+        var oid_final = oid.value;
         var expires = l[1];
         var server_pubkey = l[2];
         var period = l[3];
