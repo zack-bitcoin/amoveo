@@ -151,7 +151,7 @@ doit({proof, TreeName, ID, Hash}) ->
     Proof2 = proof_packer(Proof),
     {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}};
 doit({list_oracles}) ->
-    K = lists:map(fun(I) -> base64:encode(<<I:256>>) end,
+    K = lists:map(fun(I) -> base64:encode(I) end,
 		  order_book:keys()),
     {ok, K};
 doit({oracle, Y}) ->
