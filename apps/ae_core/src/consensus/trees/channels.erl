@@ -134,8 +134,9 @@ write(Channel, Root) ->
     M = serialize(Channel),
     %Shares = Channel#channel.shares,
     trie:put(key_to_int(ID), M, 0, Root, channels). %returns a pointer to the new root
-key_to_int(X) when is_integer(X) -> 
-    <<Y:256>> = hash:doit(<<X:256>>),
+key_to_int(X) -> 
+    <<_:256>> = X,
+    <<Y:256>> = hash:doit(X),
     Y.
 dict_get(Key, Dict) ->
     X = dict:find({channels, Key}, Dict),
