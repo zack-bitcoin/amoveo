@@ -16,6 +16,9 @@ function channels_main() {
     function write(key, value) {
         channel_manager[key] = value;
     }
+    function remove(key) {
+	delete channel_manager[key];
+    }
     function new_cd(me, them, ssme, ssthem, expiration, cid) {
         return {"me": me, "them": them, "ssme": ssme, "ssthem": ssthem, "cid":cid, "expiration": expiration};
     }
@@ -152,7 +155,7 @@ function channels_main() {
             append_children(div, [height_button, amount_info, spend_amount, br(), delay_info, spend_delay, br(), lifespan_info, lifespan]);
         } else {
             console.log("give interface for making bets in channels.");
-            append_children(div, [balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
+            append_children(div, [close_channel_button, br(), balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
             lightning_button.onclick = function() { lightning_spend(pubkey); };
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
@@ -161,9 +164,51 @@ function channels_main() {
             };
             combine_cancel_button.onclick = function() {
                 combine_cancel_object.main(pubkey);
-            }
+            };
+	    close_channel_button.onclick = function() { close_channel_func(pubkey); };
 	    bets_object.draw();
         }
+    }
+    function close_channel_func(server_pubkey) {
+	var cd = read(server_pubkey);
+	var spk = cd.them[1];
+	var height = headers_object.top()[1];
+	var ss = cd.ssthem;
+	if (!(JSON.stringify(ss) == JSON.stringify([]))) {
+	    console.log("you need to close all smart contracts before you can close the channel");
+	    return 0;
+	};
+	var fun_limit = 400;
+	var var_limit = 10000;
+	spk_object.spk_run(0, ss, spk, height, 0, fun_limit, var_limit, function(x) { close_channel_func2(x, spk, cd, height, ss, server_pubkey); });
+    }
+    function close_channel_func2(spk_result, spk, cd, height, ss, server_pubkey) {
+	var amount = spk_result.amount + cd.them[1][7];
+	var cid = spk[6];
+	merkle.request_proof("channels", cid, function(x) {
+	    close_channel_func3(x, height, cd, amount, ss, cid, server_pubkey); });
+    }
+    function close_channel_func3(channel, height, cd, amount, ss, cid, server_pubkey) {
+	var mypub = keys.pub();
+	merkle.request_proof("accounts", mypub, function(acc) {close_channel_func4(acc, channel, height, cd, amount, mypub, ss, cid, server_pubkey);});
+    }
+    function close_channel_func4(acc, channel, height, cd, amount, mypub, ss, cid, server_pubkey) {
+	var expires = cd.expiration;
+	var lifespan = Math.max(0, expires - height);
+	var bal1 = channel[4];
+	var bal2 = channel[5];
+	var cfee = Math.floor(tv * lifespan * (bal1 + bal2) / 100000000);
+	var nonce = acc[2];
+	var fee = 152050;
+	var acc1 = channel[2];
+	var acc2 = channel[3];
+	var tx = ["ctc", acc1, acc2, fee, nonce+1, cid, amount - cfee];
+	var stx = keys.sign(tx);
+	console.log(JSON.stringify([bal1, bal2, tv, expires, height, amount]));
+	variable_public_get(["channel_close", cid, mypub, [-6].concat(ss), stx], function(tx) {
+	    remove(server_pubkey);
+	    refresh_channels_interfaces2(server_pubkey);
+	});
     }
     function make_bet() {
         var oid_final = oid.value;

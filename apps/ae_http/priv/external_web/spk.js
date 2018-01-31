@@ -44,11 +44,11 @@ function spk_main() {
         });
         //return r.concat([reverse]); // converts a , to a ]
     }
-    function spk_run(mode, ss0, spk0, height, slash, fun_limit, var_limit, callback) {
+    function spk_run(mode, ss0, spk0, height, slash, fun_limit, var_limit, callback) {//mode unused
         var spk = JSON.parse(JSON.stringify(spk0));
         var ss = JSON.parse(JSON.stringify(ss0));
         var state = chalang_object.new_state(height, slash);
-        var key1 = "fun_limit";
+        //var key1 = "fun_limit";
         var ret;
         if (!(ss.length == (spk[3].length - 1))) {//spk[4] == bets is formated with a -6 in front for packer.erl
             console.log(JSON.stringify(ss));

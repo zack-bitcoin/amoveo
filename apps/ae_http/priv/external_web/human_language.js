@@ -418,6 +418,9 @@ function translate_human() {
 		},
 		"send_all": {
 		    en: "send all your money to this account"
+		},
+		"close_channel":{
+		    en: "close channel"
 		}
                };
     }
