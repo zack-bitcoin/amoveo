@@ -113,7 +113,7 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
             end,
     ok = order_book:remove(TheirPub, Type2, Price, OID),
     channel_manager:write(TheirPub, NewCD),
-    {reply, SSPK, X};
+    {reply, keys:sign(SSPK2), X};
 handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
     {ok, OldCD} = channel_manager:read(TheirPub),
     SSPK = cancel_trade_common(N, OldCD),

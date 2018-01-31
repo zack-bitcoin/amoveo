@@ -55,7 +55,7 @@ function bets_main() {
                 cancel_buttons.push(cancel_button);
             } else {
                 console.log("matched");
-                order.innerHTML = translate.words("market").concat(parseInt(oid)).concat(translate.words("win_if")).concat(outcome).concat(transalte.words("amount")).concat(s2c(amount));
+                order.innerHTML = translate.words("market").concat(oid).concat(translate.words("win_if")).concat(outcome).concat(transalte.words("amount")).concat(s2c(amount));
                 oadiv.appendChild(order);
                 oadiv.appendChild(document.createElement("br"));
             }
@@ -111,6 +111,8 @@ function bets_main() {
     }
     function cancel_trade2(sspk2, sspk, server_pubkey, n) {
         var cd = channels_object.read(server_pubkey);
+	console.log("cancel trade2, fail to verify this: ");
+	console.log(JSON.stringify(sspk2));
 	var bool = verify_both(sspk2);
 	if (!(bool)) {
 	    throw("cancel trade badly signed");
@@ -128,7 +130,7 @@ function bets_main() {
         cd.me = spk;
         cd.ssme = remove_nth(n, cd.ssme);
         cd.ssthem = remove_nth(n, cd.ssthem);
-        channel_object.write(server_pubkey, cd);
+        channels_object.write(server_pubkey, cd);
         main();
     }
     function remove_nth(n, a) {
