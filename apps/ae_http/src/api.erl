@@ -88,6 +88,7 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
     %make sure the customer is aware of the time_value before they click this button. Don't request time_value now, it should have been requested earlier.
     LifeSpan = Expires - api:height(),
+    true = LifeSpan > 0,
     CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
     SPK0 = new_channel_tx:spk(Tx, ChannelDelay),
     SPK = SPK0#spk{amount = CFee},
@@ -325,7 +326,14 @@ channel_close(IP, Port, Fee) ->
     SS = [],
     {Amount, _Nonce, _Delay} = spk:dict_run(fast, SS, SPK, Height, 0, Dict),
     CID = SPK#spk.cid,
-    Tx = channel_team_close_tx:make_dict(CID, Amount, Fee),
+    Channel = trees:dict_tree_get(channels, CID),
+    Bal1 = channels:bal1(Channel),
+    Bal2 = channels:bal2(Channel),
+    {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
+    Expires = CD#cd.expiration,
+    LifeSpan= max(0, Expires - Height),
+    CFee = TV * LifeSpan * (Bal1 + Bal2) div 100000000,
+    Tx = channel_team_close_tx:make_dict(CID, Amount-CFee,Fee),
     STx = keys:sign(Tx),
     {ok, SSTx} = talker:talk({channel_close, CID, keys:pubkey(), SS, STx}, IP, Port),
     tx_pool_feeder:absorb(SSTx),

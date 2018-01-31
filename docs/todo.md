@@ -23,8 +23,6 @@ There are examples on how to make these kinds of transactions in market.erl
 
 * the gui needs to make it convenient to collect winnings after a market is closed. (maybe it should happen automatically?)
 
-* the gui needs an interface for deleting your account and sending all the value to a different account.
-
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
 * if you lost your channel state, there should be a way to semi-trustfully download it from the server.
@@ -36,6 +34,8 @@ There are examples on how to make these kinds of transactions in market.erl
 * test combining shares to recover Veo in the light wallet.
 
 * lightning payments from the light node should be tested.
+
+* We should try updating a governance variable in the testnet.
 
 
 
