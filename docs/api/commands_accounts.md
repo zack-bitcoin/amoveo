@@ -16,7 +16,9 @@ api:balance().
 #### Spend to account pubkey `To`
 ```
 api:spend(To, Amount).
+api:spend(<<"BBH26TpQgvscsPWyfIz3zjSA4wopZrVKf3mYktTd2xnjOYi/MW5AXODhK4ZZnud2DeRFkyVlq9q5zESFqbWJCE8=">>, 123).%this send 123 satoshis = 0.00000123 coins
 ```
+
 
 ####Create Account
 [WARNING!!! Before creating an account, make sure your wallet is secure!](keys.md)
