@@ -6,7 +6,7 @@
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 -define(keys, [keys, recent_blocks, block_hashes, 
                headers, block_absorber, tx_pool, 
-	       peers, tx_pool_feeder, 
+	       peers, blacklist_peer, tx_pool_feeder, 
 	       mine, channel_manager, channel_feeder,
 	       request_frequency, sync, secrets,
 	       arbitrage, order_book, oracle_questions, 

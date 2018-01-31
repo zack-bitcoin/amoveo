@@ -70,6 +70,7 @@ add({IP, Port}) ->
               is_tuple(IP) -> IP;
               is_list(IP) -> list_to_tuple(IP)
           end,
+    false = blacklist_peer:check({NIP, Port}),
     gen_server:cast(?MODULE, {add, {NIP, Port}}).
 
 update(Peer, Properties) ->

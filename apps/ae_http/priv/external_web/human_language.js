@@ -415,6 +415,9 @@ function translate_human() {
 		},
 		"watch_only_button": {
 		    en: "load pubkey"
+		},
+		"send_all": {
+		    en: "send all your money to this account"
 		}
                };
     }

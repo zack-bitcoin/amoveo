@@ -1,9 +1,8 @@
 ### things to do for the next hard fork
 
 * increase constants initial difficulty.
+
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
-
-
 
 
 
@@ -12,8 +11,6 @@
 
 
 * test the attack where someone generates tons of fake peers and adds them all to the list.
-
-* lightning payments from the light node should be tested.
 
 * channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
 
@@ -35,6 +32,8 @@ There are examples on how to make these kinds of transactions in market.erl
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
 * make sure that markets are working from the light wallet.
+
+* lightning payments from the light node should be tested.
 
 
 

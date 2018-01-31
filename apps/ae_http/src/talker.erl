@@ -51,7 +51,8 @@ talk_helper(Msg, Peer, N) ->
             talk_helper(Msg, Peer, N - 1);
         {error, {failed_connect, _}} ->
             io:fwrite("talk_helper failed_connect 1 \n"),
-            talk_helper(Msg, Peer, N - 1);
+            %talk_helper(Msg, Peer, N - 1);
+	    bad_peer;
         X -> io:fwrite("talk helper unexpected"),
             io:fwrite(X),
             error

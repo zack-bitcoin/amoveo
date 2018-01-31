@@ -58,6 +58,11 @@ give_blocks(Peer, CommonHash) ->
 remote_peer(Transaction, Peer) ->
     case talker:talk(Transaction, Peer) of
         {ok, Return0} -> Return0;
+	bad_peer -> %remove from peers, add to a black list for next N minutes.
+	    {{_,_,_,_},_} = Peer,
+	    peers:remove(Peer),
+	    blacklist_peer:add(Peer),
+	    error;
         Return1 -> Return1
     end.
 trade_peers(Peer) ->

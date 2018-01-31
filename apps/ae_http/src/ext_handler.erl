@@ -65,6 +65,9 @@ doit({spend_tx, Amount, Fee, From, To}) ->
 doit({create_account_tx, Amount, Fee, From, To}) ->
     Tx = create_account_tx:make_dict(To, Amount, Fee, From),
     {ok, Tx};
+doit({delete_account_tx, To, From, Fee}) ->
+    Tx = delete_account_tx:make_dict(To, From, Fee),
+    {ok, Tx};
 doit({new_channel_tx, Acc1, Acc2, B1, B2, Delay, Fee}) ->
     CID = api:find_id2(),
     Tx = new_channel_tx:make_dict(CID, Acc1, Acc2, B1, B2, Delay, Fee),

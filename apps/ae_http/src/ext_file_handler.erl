@@ -35,11 +35,13 @@ handle(Req, _) ->
                <<"/hexbase64.js">> -> true;
                <<"/signing.js">> -> true;
                <<"/create_account.js">> -> true;
+               <<"/delete_account.js">> -> true;
                <<"/keys.js">> -> true;
                <<"/sjcl.js">> -> true;
                <<"/crypto.js">> -> true;
                <<"/lookup_account.js">> -> true;
                <<"/create_account_tx.js">> -> true;
+               <<"/delete_account_tx.js">> -> true;
                <<"/spend_tx.js">> -> true;
                <<"/elliptic.min.js">> -> true;
                <<"/lookup_block.js">> -> true;
