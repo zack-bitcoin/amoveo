@@ -26,13 +26,16 @@ tx_maker0(Tx) ->
 create_account(NewAddr, Amount) ->
     Cost = trees:dict_tree_get(governance, create_acc_tx),
     create_account(NewAddr, Amount, ?Fee + Cost).
-create_account(NewAddr, Amount, Fee) ->
+create_account(NewAddr, Amount, Fee) when size(NewAddr) == 65 ->
     Tx = create_account_tx:make_dict(NewAddr, Amount, Fee, keys:pubkey()),
-    tx_maker0(Tx).
-coinbase(ID) ->
+    tx_maker0(Tx);
+create_account(N, A, F) ->
+    M = base64:decode(N),
+    create_account(M, A, F).
+coinbase(_) ->
     K = keys:pubkey(),
     tx_maker0(coinbase_tx:make_dict(K)).
-spend(ID, Amount) ->
+spend(ID, Amount) when size(ID) == 65 ->
     K = keys:pubkey(),
     if 
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
@@ -48,7 +51,7 @@ spend(ID, Amount) ->
     end.
 spend(ID, Amount, Fee) ->
     tx_maker0(spend_tx:make_dict(ID, Amount, Fee, keys:pubkey())).
-delete_account(ID) ->
+delete_account(ID) when size(ID) == 65 ->
     Cost = trees:dict_tree_get(governance, delete_acc_tx),
     delete_account(ID, ?Fee + Cost).
 delete_account(ID, Fee) ->

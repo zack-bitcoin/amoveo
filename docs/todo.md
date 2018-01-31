@@ -27,7 +27,9 @@ There are examples on how to make these kinds of transactions in market.erl
 
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
-* test deleting channels from the light wallet.
+* if you lost your channel state, there should be a way to semi-trustfully download it from the server.
+
+* test deleting accounts from the light wallet.
 
 * make sure that markets are working from the light wallet.
 
