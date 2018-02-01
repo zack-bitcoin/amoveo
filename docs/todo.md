@@ -20,8 +20,6 @@ The users can discuss with each other what they see, and they can copy-paste the
 
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
-* verify that whenever a smart contract is settled or removed, we increase the nonce sufficiently so dead contracts wont come back to life.
-
 * in the market.py test there is some lines that should be optional, but it is crashing when we remove them.
 This needs to be fixed.
 
