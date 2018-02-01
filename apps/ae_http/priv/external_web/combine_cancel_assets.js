@@ -139,7 +139,10 @@ function combine_cancel_assets_maker() {
         var bets = spk[3].slice(1, spk[3].length);
         console.log("combine cancel common bets are ");
         var combine2 = combine_cancel_common2(bets, oldCD.ssme);
+	var n = bets.length - combine2.bets.length - 1;
+	var m = n * 1000000;
         spk[3] = ([-6]).concat(combine2.bets.reverse());
+	spk[8] = spk[8] + m;
         return {"sspk": keys.sign(spk), "ss": combine2.ss};
     }
     function main(server_pubkey) {

@@ -423,8 +423,8 @@ combine_cancel_common(OldCD) ->
     Bets = SPK#spk.bets,
     {NewBets, NewSSMe} = combine_cancel_common2(Bets, OldCD#cd.ssme, [], []),
     N = length(Bets) - length(NewBets),
-    %M = N * 1000000,
-    M = 0,
+    M = N * 1000000,
+    %M = 0,
     SPK2 = SPK#spk{bets = NewBets, nonce = SPK#spk.nonce + M},
     %identify matched trades in the same market that go in opposite directions. remove the same amount from opposite directions to unlock liquidity.
 
