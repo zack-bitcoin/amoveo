@@ -31,6 +31,10 @@ This light node downloads headers and verifies the proof of work.
 It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
 You can mine slowly mine blocks from the light node.
 
+[Video Tutorial: Amoveo Light Wallet](https://www.youtube.com/watch?v=Hhfxsxh40Pw)
+
+[Video Tutorial: Making a Market Bet with Amoveo](https://www.youtube.com/watch?v=SPlNjGF3wCk)
+
 
 ## Block Explorer
 The block explorer for the network is [here](http://159.89.106.253:8080/explorer.html)
