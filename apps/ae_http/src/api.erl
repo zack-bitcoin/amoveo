@@ -382,10 +382,17 @@ settle_bets() ->
     channel_feeder:bets_unlock(channel_manager:keys()),
     {ok, ok}.
 new_market(OID, Expires, Period) -> 
+    %sets up an order book.
+    %turns on the api for betting.
     %for now lets use the oracle id as the market id. this wont work for combinatorial markets.
+    TPG = tx_pool:get(),
+    Height = TPG#tx_pool.height,
+    {ok, Confirmations} = application:get_env(ae_core, confirmations_needed),
+    OldBlock = block:get_by_height(Height - Confirmations),
+    OldTrees = OldBlock#block.trees,
+    false = empty == trees:dict_tree_get(oracles, OID, dict:new(), OldTrees),%oracle existed confirmation blocks ago.
+    
     order_book:new_market(OID, Expires, Period).
-    %set up an order book.
-    %turn on the api for betting.
 trade(Price, Type, Amount, OID, Height) ->
     trade(Price, Type, Amount, OID, Height, ?IP, ?Port).
 trade(Price, Type, Amount, OID, Height, IP, Port) ->
