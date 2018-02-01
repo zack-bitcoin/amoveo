@@ -11,13 +11,6 @@
 
 ## changes to code before official launch
 
-* We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
-- fails to publish a price.
-- double-publishes prices.
-There are examples on how to make these kinds of transactions in market.erl
-- A short term solution is to display the Price Declaration from the SS as base64-encoded binary, as well as displaying some info extracted from it.
-The users can discuss with each other what they see, and they can copy-paste the Price Declaration to an email, and send it to someone who can use the erlang command line tool.
-
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
 * in the market.py test there is some lines that should be optional, but it is crashing when we remove them.
@@ -33,6 +26,7 @@ This needs to be fixed.
 - canceling a bet
 - combining shares
 - collecting winnings
+- when bets get matched, the ss should be displayed in the browser.
 
 * lightning payments from the light node should be tested.
 
@@ -42,8 +36,9 @@ This needs to be fixed.
 
 
 
-
 ### Things we can do after launch of mainnet
+
+* when your bets get matched, the ss gets displayed in the browser. We should probably display more information along with the ss, so users can more easily tell if they need to use the smart contract enforcement mechanism.
 
 * more tests of the attack where someone generates tons of fake peers and adds them all to the list.
 - maybe we should limit how many peers we are willing to download from any one peer.

@@ -257,9 +257,13 @@ function spk_main() {
                         var ret = keys.sign(newspk);
                         var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
                         channels_object.write(from, newcd);
+			ss4_text = document.createElement("h8");
+			ss4_text.innerHTML = JSON.stringify(ss4);
+			document.body.append(ss4_text);
+			//append ss4 to the document somewhere.
                         return callback(ret);
                     } else {
-                        is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {
+                        is_improvement(spkme, ssme, newspk, ss, fun_limit, var_limit, function(b3) {//maybe ss should be ss4?
                             if ( b3 ) {
                                 //If they give free stuff, then accept.
                                 ret = keys.sign(newspk);
@@ -464,9 +468,7 @@ function spk_main() {
                         variable_public_get(msg2, function(foo) {});
                         api_decrypt_msgs(cd.emsg);
                         api_bet_unlock();
-                        throw("working here");
-                // eventually decrypt msgs here, for lightning payments.
-                // eventually needed for lightning: api_bet_unlock(ip, port);
+                        //throw("working here");
                     }
                 });
             });
