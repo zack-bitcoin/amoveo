@@ -9,6 +9,7 @@
 
 ### Things to do before the launch of the official Amoveo blockchain.
 
+## changes to code before official launch
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
 - fails to publish a price.
@@ -21,12 +22,19 @@ The users can discuss with each other what they see, and they can copy-paste the
 
 * verify that whenever a smart contract is settled or removed, we increase the nonce sufficiently so dead contracts wont come back to life.
 
+* in the market.py test there is some lines that should be optional, but it is crashing when we remove them.
+This needs to be fixed.
+
+
+## tests before official launch of mainnet
+
 * in test/market.py there are a couple lines that should be optional, but it crashes when we comment them out.
 
-
 * make sure that markets are working from the light wallet.
-
-* test combining shares to recover Veo in the light wallet.
+- betting
+- canceling a bet
+- combining shares
+- collecting winnings
 
 * lightning payments from the light node should be tested.
 
