@@ -432,7 +432,7 @@ function spk_main() {
         } );
         
     }
-    function pull_channel_state() {
+    function pull_channel_state(callback) {
         //get their pubkey
         variable_public_get(["pubkey"], function(server_pubkey) {
             variable_public_get(["spk", keys.pub()], function(spk_return) {
@@ -444,7 +444,14 @@ function spk_main() {
 		console.log(JSON.stringify(cd0));
                 if (cd0 == undefined) {
                     console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
-                    throw("pull channel state error");
+		    console.log("attempting to trustfully download a copy of the channel state from the server. Warning, this can be a security vulnerability!");
+		    var spk = them_spk[1];
+		    var ss = cd[4];
+		    var expiration = cd[7];
+		    var cid = spk[6];
+		    var NewCD = channels_object.new_cd(spk, them_spk, ss, ss, expiration, cid);
+		    channels_object.write(server_pubkey, NewCD);
+		    return callback();
                 }
                   if (!(cd0.live == true)) {
                     var s = "this channel has been closed";

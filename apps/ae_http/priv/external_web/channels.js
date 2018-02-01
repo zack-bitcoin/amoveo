@@ -104,7 +104,15 @@ function channels_main() {
     lightning_to.setAttribute("type", "text");
     var lightning_to_info = document.createElement("h8");
     lightning_to_info.innerHTML = translate.words("to_pubkey").concat(": ");
-
+    var channel_sync_button = button_maker("trustful_channel_sync", function(){
+        variable_public_get(["pubkey"], function(pubkey) {
+            spk_object.pull_channel_state(function() {
+		refresh_channels_interfaces(pubkey, function() {
+		    refresh_balance(pubkey);
+		});
+	    });
+	});
+    });
     
     variable_public_get(["pubkey"], function(pubkey) {
         return refresh_channels_interfaces(pubkey);
@@ -128,14 +136,14 @@ function channels_main() {
         }
         reader.readAsText(file);
     }
-    function refresh_channels_interfaces(pubkey) {
+    function refresh_channels_interfaces(pubkey, callback) {
         console.log("refresh channels interfaces");
         variable_public_get(["time_value"], function(x) {
             tv = x;
-            refresh_channels_interfaces2(pubkey);
+            refresh_channels_interfaces2(pubkey, callback);
         });
     }
-    function refresh_channels_interfaces2(pubkey) {
+    function refresh_channels_interfaces2(pubkey, callback) {
 	console.log("server pubkey is ");
 	console.log(pubkey);
         load_button.onchange = function() {return load_channels(pubkey) };
@@ -145,6 +153,8 @@ function channels_main() {
         var tv_display = document.createElement("div");
         tv_display.innerHTML = translate.words("time_value").concat(": ").concat((tv).toString());
         div.appendChild(tv_display);
+        div.appendChild(channel_sync_button);
+        div.appendChild(br());
         var bets_div = document.createElement("div");
 	bets_div.id = "bets_div";
         //check if we have a chnnel with the server yet.
@@ -168,6 +178,9 @@ function channels_main() {
 	    close_channel_button.onclick = function() { close_channel_func(pubkey); };
 	    bets_object.draw();
         }
+	if (!(callback == undefined)) {
+	    callback();
+	}
     }
     function close_channel_func(server_pubkey) {
 	var cd = read(server_pubkey);

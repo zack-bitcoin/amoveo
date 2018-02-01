@@ -14,8 +14,6 @@
 
 * the server should refuse to make an order book until the oracle has enough confirmations.
 
-* close channels from the light node.
-
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
 - fails to publish a price.
 - double-publishes prices.

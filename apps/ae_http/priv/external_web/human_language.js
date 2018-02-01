@@ -421,6 +421,9 @@ function translate_human() {
 		},
 		"close_channel":{
 		    en: "close channel"
+		},
+		"trustful_channel_sync": {
+		    en: "trusted channel sync"
 		}
                };
     }
