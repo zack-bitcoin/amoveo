@@ -1,4 +1,4 @@
-> Is a Channel server host is essentially a market maker?
+> A Channel server host is essentially a market maker?
 
  A channel server can be market maker. It is also possible to have a channel server that only processes lightning payments, and has no markets. There could be a channel server that is just for playing black jack the gambling card game.
 
@@ -6,7 +6,7 @@
 
 The software to run a channel server is included with the amoveo source code. Running a server is this simple: rent a server, install amoveo, and send money to the server's wallet.
 
-> Are Amoveo markets are mostly binary options?
+> Amoveo markets are mostly binary options?
 
 Amoveo channels are programmable, so any type of market could exist. Currently, I have only programmed a market for binary options. Eventually, I will make more markets.
 
@@ -33,7 +33,7 @@ Each transaction type has a different command for checking who spent that transa
 
 > How will you get people to work on Amoveo?
 
-Amoveo is a new way for people to work together. Amoveo can bootstrap itself. Amoveo will build its own team and hire its own employees without anyone's input.
+Amoveo is a new way for people to work together. Amoveo can bootstrap itself. Amoveo will build its own team and hire its own employees without anyone's input. We will use [insured crowdfunding](use-cases-and-ideas/insured_crowdfund.md)
 
 > How large is your potential user base?
 
@@ -43,10 +43,6 @@ The market for financial derivatives is the biggest market in the world.
 > What’s your plan to market what you create?
 
 We can use Amoveo smart contracts to incentivize people to advertize for Amoveo.
-
-
-
-
 
 
 
