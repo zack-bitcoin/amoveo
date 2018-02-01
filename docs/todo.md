@@ -10,14 +10,10 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
 
-* the server should refuse to make an order book until the oracle has enough confirmations.
-
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
 - fails to publish a price.
 - double-publishes prices.
 There are examples on how to make these kinds of transactions in market.erl 
-
-* the gui needs to make it convenient to collect winnings after a market is closed. (maybe it should happen automatically?)
 
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
