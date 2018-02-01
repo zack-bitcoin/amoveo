@@ -10,8 +10,6 @@
 ### Things to do before the launch of the official Amoveo blockchain.
 
 
-* the server should refuse to let a channel participate in any markets until it has enough confirmations.
-
 * the server should refuse to make an order book until the oracle has enough confirmations.
 
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
@@ -23,9 +21,7 @@ There are examples on how to make these kinds of transactions in market.erl
 
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
-* if you lost your channel state, there should be a way to semi-trustfully download it from the server.
-
-* test deleting accounts from the light wallet.
+* verify that whenever a smart contract is settled or removed, we increase the nonce sufficiently so dead contracts wont come back to life.
 
 * make sure that markets are working from the light wallet.
 
@@ -45,6 +41,8 @@ There are examples on how to make these kinds of transactions in market.erl
 * more tests of the attack where someone generates tons of fake peers and adds them all to the list.
 - maybe we should limit how many peers we are willing to download from any one peer.
 - There are some peers hard-coded into the core software. If these peers are not in our peer list, we should occasionally check to see if we can link with them again
+
+* verify that the light node will not make a market smart contract where the server might not have enough funds to pay.
 
 * if the peer isn't accepting blocks, then do not blindly give it more blocks.
 

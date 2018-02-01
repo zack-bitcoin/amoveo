@@ -176,15 +176,20 @@ doit({market_data, OID}) ->
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     {ok, {Expires, keys:pubkey(), Period}};
-doit({trade, Account, Price, Type, Amount, OIDE, SSPK, Fee}) ->
+doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     %make sure they pay a fee in channel for having their trade listed. 
-    %OID = base64:decode(OIDE),
-    OID = OIDE,
     BetLocation = constants:oracle_bet(),
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     {ok, CD} = channel_manager:read(Account),
+    TPG = tx_pool:get(),
+    Height = TPG#tx_pool.height,
+    {ok, Confirmations} = application:get_env(ae_core, confirmations_needed),
+    OldBlock = block:get_by_height(Height - Confirmations),
+    OldTrees = OldBlock#block.trees,
+    false = empty == trees:dict_tree_get(channels, CD#cd.cid, dict:new(), OldTrees),%channel existed confirmation blocks ago.
+
     true = Expires < CD#cd.expiration,
     %SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, api:height()),
     SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
