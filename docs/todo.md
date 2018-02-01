@@ -19,8 +19,6 @@ This needs to be fixed.
 
 ## tests before official launch of mainnet
 
-* in test/market.py there are a couple lines that should be optional, but it crashes when we comment them out.
-
 * make sure that markets are working from the light wallet.
 - betting
 - canceling a bet

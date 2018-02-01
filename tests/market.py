@@ -40,7 +40,7 @@ def market_test():
     request(1, 'sync', [[127,0,0,1], 3030], 2)
     #oid = 1
     request(3, 'new_market', [oid, 20, 5], 0.2)
-def dont_doit(): #useful for testing market from light node.
+#def dont_doit(): #useful for testing market from light node.
     height = request(1, 'height', [], 0.01)
     height = json.loads(height)[1]
     request(1, 'trade', [6000, 1, 1000, oid, height, 20, [127,0,0,1], 3030], 0.2)

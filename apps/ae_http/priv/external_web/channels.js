@@ -65,10 +65,10 @@ function channels_main() {
     trade_type.setAttribute("type", "text");
     var trade_type_info = document.createElement("h8");
     trade_type_info.innerHTML = translate.words("trade_type").concat(translate.words("true")).concat(translate.words("false"));
-    var amount = document.createElement("INPUT");
-    amount.setAttribute("type", "text");
-    var amount_info = document.createElement("h8");
-    amount_info.innerHTML = translate.words("amount").concat(": ");
+    var trade_amount = document.createElement("INPUT");
+    trade_amount.setAttribute("type", "text");
+    var trade_amount_info = document.createElement("h8");
+    trade_amount_info.innerHTML = translate.words("amount").concat(": ");
     var height_button = button_maker("make_channel", function() { })
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text");
@@ -165,7 +165,7 @@ function channels_main() {
             append_children(div, [height_button, amount_info, spend_amount, br(), delay_info, spend_delay, br(), lifespan_info, lifespan]);
         } else {
             console.log("give interface for making bets in channels.");
-            append_children(div, [close_channel_button, br(), balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, amount_info, amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
+            append_children(div, [close_channel_button, br(), balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, trade_amount_info, trade_amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
             lightning_button.onclick = function() { lightning_spend(pubkey); };
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
@@ -250,7 +250,7 @@ function channels_main() {
                    (ttv == "假")) {
             type_final = 2;
         }
-        var amount_final = Math.floor(parseFloat(amount.value, 10) * 100000000);
+        var amount_final = Math.floor(parseFloat(trade_amount.value, 10) * 100000000);
         var oid_final = oid.value;
         var expires = l[1];
         var server_pubkey = l[2];
@@ -284,7 +284,7 @@ function channels_main() {
         cd.ssme = ([newss]).concat(cd.ssme);
         cd.ssthem = ([newss]).concat(cd.ssthem);
         write(server_pubkey, cd);
-        amount.value = "";
+        trade_amount.value = "";
         channel_warning();
     }
 
