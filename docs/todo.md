@@ -13,11 +13,16 @@
 * We need code so that if the market ever makes a mistake, the customers can withdraw all their money. case where server:
 - fails to publish a price.
 - double-publishes prices.
-There are examples on how to make these kinds of transactions in market.erl 
+There are examples on how to make these kinds of transactions in market.erl
+- A short term solution is to display the Price Declaration from the SS as base64-encoded binary, as well as displaying some info extracted from it.
+The users can discuss with each other what they see, and they can copy-paste the Price Declaration to an email, and send it to someone who can use the erlang command line tool.
 
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
 * verify that whenever a smart contract is settled or removed, we increase the nonce sufficiently so dead contracts wont come back to life.
+
+* in test/market.py there are a couple lines that should be optional, but it crashes when we comment them out.
+
 
 * make sure that markets are working from the light wallet.
 

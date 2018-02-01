@@ -390,6 +390,9 @@ new_market(OID, Expires, Period) ->
     {ok, Confirmations} = application:get_env(ae_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
     OldTrees = OldBlock#block.trees,
+    io:fwrite("api oid is "),
+    io:fwrite(packer:pack([OID, OldTrees, Height-Confirmations])),
+    io:fwrite("\n"),
     false = empty == trees:dict_tree_get(oracles, OID, dict:new(), OldTrees),%oracle existed confirmation blocks ago.
     
     order_book:new_market(OID, Expires, Period).

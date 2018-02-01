@@ -25,22 +25,23 @@ def market_test():
     fee = 152000
     cid1 = 'vVhSBIjO7fU0V4v08WH2O2crgjtl9wTODuIk+jeB2NM='
     cid2 = '7zCJZIMatujoQjVXrPiTMMPkXOBiT/oOhY24q+mYAZo='
-    request(1, 'new_channel_with_server', [[127,0,0,1], 3030, cid1, 10000, 9999, fee, 4, 1000], 0.04)
+    request(1, 'new_channel_with_server', [[127,0,0,1], 3030, cid1, 10000, 9999, fee, 4, 1000], 0.1)
     request(2, 'sync', [[127,0,0,1], 3030], 0.2)
-    request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 4, 1000], 0.04)
+    request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 4, 1000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
-    oid = request(1, 'new_question_oracle', [0, 'aXMgMisyPTQ/'], 0.04)
+    oid = request(1, 'new_question_oracle', [0, 'aXMgMisyPTQ/'], 0.1)
     oid = json.loads(oid)[1]
     print("python oid is ")
     print(oid)
-    request(1, 'mine_block', [2, 1000000], 0.1)
+    request(1, 'mine_block', [3, 1000000], 0.2)
+    #request(1, 'mine_block', [1, 1000000], 0.2)
     request(1, 'sync', [[127,0,0,1], 3020])
     request(1, 'sync', [[127,0,0,1], 3030], 0.2)
     #oid = 1
     request(3, 'new_market', [oid, 20, 5], 0.2)
 #def dont_doit(): #useful for testing market from light node.
-    height = request(3, 'height', [], 0.01)
+    height = request(1, 'height', [], 0.01)
     height = json.loads(height)[1]
     request(1, 'trade', [6000, 1, 1000, oid, height, 20, [127,0,0,1], 3030], 0.2)
     request(1, 'trade', [6001, 1, 1000, oid, height, 20, [127,0,0,1], 3030], 0.04)
@@ -60,8 +61,8 @@ def market_test():
     request(1, 'mine_block', [11, 10000], 1)
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
-    request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)
-    request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)
+    request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be optional
+    request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be optional
     request(1, 'oracle_close', [oid], 0.4)
     request(1, 'mine_block', [1, 10000], 0.4)
     request(1, 'sync', [[127,0,0,1], 3030])
