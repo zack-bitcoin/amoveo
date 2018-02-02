@@ -6,10 +6,7 @@
 
 
 
-
-### Things to do before the launch of the official Amoveo blockchain.
-
-## changes to code before official launch
+### changes to code before official launch of Amoveo mainnet blockchain
 
 * it looks like market.fs unmatched has a nonce that increases with the height. This is bad because your partner can stop you from closing the channel by generating an spk with a higher nonce indefinitely. no_publish is also using height when calculating the nonce. This does not work.
 
@@ -17,7 +14,7 @@
 This needs to be fixed.
 
 
-## tests before official launch of mainnet
+### tests before official launch of mainnet
 
 * make sure that markets are working from the light wallet.
 - betting

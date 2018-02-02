@@ -78,7 +78,7 @@ macro evidence ( signed_price_declaration -- delay nonce amount )
       
 
 %The bet gets matched at the earliest price_declaration possible.
-%So earlier price_declarations return lower nonces.
+%So earlier price_declarations should return higher nonces.
 % runs bet and raises the nonce.
 
 macro match_order ( signed_price_declaration -- delay nonce amount )

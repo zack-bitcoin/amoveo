@@ -84,7 +84,7 @@ test() ->
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     timer:sleep(200),
-    test_txs:mine_blocks(1),
+    test_txs:mine_blocks(2),%was 1
     timer:sleep(1000),
     %make some bets in the oracle with oracle_bet
     OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
@@ -116,8 +116,9 @@ test2(NewPub) ->
     MarketID = <<405:256>>,
     PrivDir = code:priv_dir(ae_core),
     Location = constants:oracle_bet(),
+    Period = 1,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),101,100,OID, 0),
+    Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], 10000, 10000, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
@@ -132,7 +133,7 @@ test2(NewPub) ->
 
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
     SS2 = no_publish(OID),
-    %amount, newnonce, shares, delay
+    %amount, newnonce, delay
     {0, 1, 101} = 
 	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
 	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict5),
@@ -171,12 +172,12 @@ test2(NewPub) ->
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
-    {95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),
+    {95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(ae_core),
-    Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),101,100,OID, 0),
+    Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0),
     SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], 10000, 10000, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.

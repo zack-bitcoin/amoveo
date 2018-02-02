@@ -9,6 +9,9 @@ function miner_main() {
     div.id = "miner_div";
     document.body.appendChild(div);
     div.innerHTML = "0 ".concat(translate.words("blocks_found"));
+    speed = document.createElement("div");
+    speed.innerHTML = "";
+    document.body.appendChild(speed);
     document.body.appendChild(button);
     function start_mining() {
         button.value = "stop mining";
@@ -36,8 +39,12 @@ function miner_main() {
             }
         }
     };
-    function mine_helper(d_hash, nonce, diff, times) {
-        if (times < 1) { return(mine()); }
+    function mine_helper(d_hash, nonce, diff, started, times) {
+        if (times < 1) {
+	    var d = Date.now() - started;
+	    var mhps = 10000 / d;
+	    speed.innerHTML = "mining speed: ".concat((mhps).toString()).concat(" in mega hashes per second (mh/s).");
+	    return(mine()); }
         if (mining_state == false) {
             console.log("stopped mining");
             return(0);
@@ -59,7 +66,7 @@ function miner_main() {
                 }
                 nonce = increment_nonce(nonce);
             }
-            return mine_helper(d_hash, nonce, diff, times - work_loop);
+            return mine_helper(d_hash, nonce, diff, started, times - work_loop);
         }, 0);
     }
     function random_bytes(N) {
@@ -76,7 +83,7 @@ function miner_main() {
             var d_hash = string_to_array(atob(x[1]));
             var d_diff = x[3];
             var d_nonce = random_bytes(32);
-            mine_helper(d_hash, d_nonce, d_diff, 1000000);//after 1 million tries, it checks to see if the thing we are working on changed.
+            mine_helper(d_hash, d_nonce, d_diff, Date.now(), 1000000);//after 1 million tries, it checks to see if the thing we are working on changed.
         });
     }
     return({"mine": mine, "mining_state": mining_state});
