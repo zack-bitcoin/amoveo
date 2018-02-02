@@ -62,7 +62,7 @@ def market_test():
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
     request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be optional
-    request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be optional
+    #request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be optional
     request(1, 'oracle_close', [oid], 0.4)
     request(1, 'mine_block', [1, 10000], 0.4)
     request(1, 'sync', [[127,0,0,1], 3030])
