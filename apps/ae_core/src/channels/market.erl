@@ -135,7 +135,7 @@ test2(NewPub) ->
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
     SS2 = no_publish(OID),
     %amount, newnonce, delay
-    {0, 1, Period} = 
+    {0, 2, Period} = 
 	spk:run(fast, [SS2], SPK, 5, 0, Trees5),
 	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict5),
     

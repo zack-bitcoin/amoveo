@@ -59,7 +59,7 @@ swap r> diff Period @ int 2 / < or_die %check if heights are within half a perio
 %delay = medium-low, nonce = ( lower than if the market maker had published )
 macro no_publish ( -- delay nonce amount )
       Period @
-      dup dup + ( period 2period )
+      dup % dup + ( period 2period )
       height swap / ( period, height / 2period  )
       %removed some insignificant bits from the value.
       % mil height + Period @ -
@@ -68,8 +68,7 @@ macro no_publish ( -- delay nonce amount )
 
 %If you try doing a no_publish while the server is publishing, this is how the server stops you from stealing money.
 macro evidence ( signed_price_declaration -- delay nonce amount )
-      extract height Period @ - > or_die
-      print
+      extract height Period @ - > or_die %require that the SPD was made in the most recent Period
       % drop
       drop ( declaration_height )
       Period @ / int 1 + ( nonce )
@@ -89,7 +88,7 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	PM ! dup PRICE ! ( SPD height price )
 	dup MaxPrice @ check_size or_die %make sure it is better than the agreed upon price.
 	    %The biggest price means the most money goes to the server. So a trade that can get matched has a price that  is lower than the price we asked for.
-	%>r print print print drop
+	%>r drop
 	>r HEIGHT !
 	bet ( delay nonce amount )
         % delay is either 0 or 1. if it is a 0, then the final output delay will be 0.
