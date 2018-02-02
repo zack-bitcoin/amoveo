@@ -84,7 +84,7 @@ test() ->
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     timer:sleep(200),
-    test_txs:mine_blocks(2),%was 1
+    test_txs:mine_blocks(1),%was 1
     timer:sleep(1000),
     %make some bets in the oracle with oracle_bet
     OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
@@ -116,7 +116,7 @@ test2(NewPub) ->
     MarketID = <<405:256>>,
     PrivDir = code:priv_dir(ae_core),
     Location = constants:oracle_bet(),
-    Period = 1,
+    Period = 10,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], 10000, 10000, 1, 0),
@@ -134,7 +134,7 @@ test2(NewPub) ->
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
     SS2 = no_publish(OID),
     %amount, newnonce, delay
-    {0, 1, 101} = 
+    {0, 1, Period} = 
 	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
 	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict5),
     
@@ -172,7 +172,8 @@ test2(NewPub) ->
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
-    {95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
+    {95,998,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
+    %{95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
     %Now we will try betting in the opposite direction.
@@ -182,13 +183,13 @@ test2(NewPub) ->
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay
-    {15,1000001,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees60),
+    {15,998,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees60),
 
     %test a trade that gets only partly matched.
     SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3, OID, 3000),
     %amount, newnonce, shares, delay
-    {90, 1000001, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
+    {90, 998, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
@@ -196,7 +197,7 @@ test2(NewPub) ->
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
     SS6 = unmatched(OID), 
     %amount, newnonce, delay
-    {60, 3, 101} = spk:run(fast, [SS6], SPK, 1, 0, Trees5),
+    {60, 3, Period} = spk:run(fast, [SS6], SPK, 1, 0, Trees5),
     success.
 test3() ->    
     %This makes the compiled smart contract in market.js
