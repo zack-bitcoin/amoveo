@@ -16,8 +16,7 @@
     function create_account() {
         var to = create_address.value;
         var from = keys.pub();
-        console.log([amount, ca_fee, from, to]);
-        variable_public_get(["create_account_tx", to, from, ca_fee, from],
+        variable_public_get(["delete_acc_tx", to, from, ca_fee],
                             function(x) { create_tokens2(x, to, from, ca_fee);}
 			   );
     }
@@ -35,6 +34,5 @@
             var stx = keys.sign(tx);
             variable_public_get(["txs", [-6, stx]], function(x) {});
         }
-        create_amount.value = "";
     }
 })();

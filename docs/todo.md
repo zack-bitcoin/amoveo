@@ -6,16 +6,19 @@
 
 * line 26 in coinbase. We should multiply first before we divide by 10000. This will solve rounding issues for small block rewards.
 
+* make a new master pubkey using cold storage.
+
+* modify the version.erl value
+
+
+
 
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
+none
 
 ### tests before official launch of mainnet
-
-* spending in the light node
-
-* creating accounts in the light node
 
 * make sure that markets are working from the light wallet.
 - betting
@@ -23,6 +26,7 @@
 - combining shares
 - collecting winnings
 - when bets get matched, the ss should be displayed in the browser.
+
 * closing markets in the light node.
 - open orders should be settled.
 - winning shares should be paid the prize.
