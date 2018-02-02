@@ -13,6 +13,11 @@
 * in the market.py test there is some lines that should be optional, but it is crashing when we remove them.
 This needs to be fixed.
 
+* closing markets in the light node.
+- open orders should be settled.
+- winning shares should be paid the prize.
+- losing shares should be deleted.
+
 
 ### tests before official launch of mainnet
 
@@ -26,6 +31,7 @@ This needs to be fixed.
 * lightning payments from the light node should be tested.
 
 * We should try updating a governance variable in the testnet.
+
 
 
 
