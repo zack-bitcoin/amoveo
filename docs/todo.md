@@ -4,6 +4,8 @@
 
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 
+* line 26 in coinbase. We should multiply first before we divide by 10000. This will solve rounding issues for small block rewards.
+
 
 
 ### changes to code before official launch of Amoveo mainnet blockchain
@@ -32,6 +34,8 @@ This needs to be fixed.
 
 
 ### Things we can do after launch of mainnet
+
+* The light node should allow for betting in the oracle. 
 
 * when your bets get matched, the ss gets displayed in the browser. We should probably display more information along with the ss, so users can more easily tell if they need to use the smart contract enforcement mechanism.
 
@@ -91,8 +95,6 @@ Maybe encoding the pubkeys should happen at the wallet level, not the node level
 - the market contract delays need to be long enough so that the contract is still live, even if the oracle takes a while to publish.
 
 * analyze contracts to make sure they aren't unclosable, as explained in the attacks analyzed doc.
-
-* maybe the gui should allow for betting in the oracle?
 
 * the wallet should have some error messages:
 - insufficient funds

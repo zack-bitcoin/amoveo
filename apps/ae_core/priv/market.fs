@@ -68,7 +68,10 @@ macro no_publish ( -- delay nonce amount )
 
 %If you try doing a no_publish while the server is publishing, this is how the server stops you from stealing money.
 macro evidence ( signed_price_declaration -- delay nonce amount )
-      extract drop drop ( declaration_height )
+      extract height Period @ - > or_die
+      print
+      % drop
+      drop ( declaration_height )
       Period @ / int 1 + ( nonce )
       >r Expires @ height -  ( delay )
       % mil height + Period @ int 2 / - 
@@ -90,7 +93,7 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	>r HEIGHT !
 	bet ( delay nonce amount )
         % delay is either 0 or 1. if it is a 0, then the final output delay will be 0.
-        rot Expires @ height minus_zero * tuck ( delay2 nonce amount )
+        rot Expires @ height minus_zero Expires @ + * tuck ( delay2 nonce amount )
 	% swap drop mil height @ - swap ( delay new_nonce amount )
 	swap Expires @ HEIGHT @ minus_zero + swap ( delay new_nonce amount )
 	PRICE @ flip MaxPrice @ ==
@@ -119,8 +122,8 @@ macro unmatched ( OracleProof -- delay nonce amount )
       	else
                 %give the market at least a period to prove that it was published.
 		Period @
-                height Period @ / int 2 +
-                % int 1
+                % height Period @ / int 2 +
+                int 1
                 int 10000 MaxPrice @ -
       	then
 ;

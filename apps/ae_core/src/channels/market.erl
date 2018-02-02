@@ -116,7 +116,7 @@ test2(NewPub) ->
     MarketID = <<405:256>>,
     PrivDir = code:priv_dir(ae_core),
     Location = constants:oracle_bet(),
-    Period = 10,
+    Period = 3,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], 10000, 10000, 1, 0),
@@ -124,7 +124,8 @@ test2(NewPub) ->
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
     Height = 1,
-    SPD = price_declaration_maker(Height+5, Price, 5000, MarketID),
+    %SPD = price_declaration_maker(Height+5, Price, 5000, MarketID),
+    SPD = price_declaration_maker(5, Price, 5000, MarketID),
     SS1 = settle(SPD, OID, Price),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, delay
@@ -135,25 +136,26 @@ test2(NewPub) ->
     SS2 = no_publish(OID),
     %amount, newnonce, delay
     {0, 1, Period} = 
-	spk:run(fast, [SS2], SPK, 1, 0, Trees5),
+	spk:run(fast, [SS2], SPK, 5, 0, Trees5),
 	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict5),
     
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
     SS3 = evidence(SPD, OID),
-    %amount, newnonce, shares, delay
-    {60, 2, 999} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
+    %amount, newnonce, delay
+    {60, 3, 995} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
-	spk:run(fast, [SS3], SPK, 1, 0, Trees5),
+	spk:run(fast, [SS3], SPK, 5, 0, Trees5),
 
 
     %Next we try closing the bet as if the market maker cheated by publishing 2 different prices too near to each other in time.
-    SPD2 = price_declaration_maker(Height+1, Price-1, 5000, MarketID),
+    %SPD2 = price_declaration_maker(Height+1, Price-1, 5000, MarketID),
+    SPD2 = price_declaration_maker(5, Price-1, 5000, MarketID),
     SS4 = contradictory_prices(SPD, SPD2, OID),
     %amount, newnonce, shares, delay
     {0,2000001,0} = 
 	%The nonce is super high, and the delay is zero, because if the market maker is publishing contradictory prices, he should be punished immediately.
 	%Amount is 0 because none of the money goes to the market maker.
-       spk:run(fast, [SS4], SPK, 1, 0, Trees5),
+       spk:run(fast, [SS4], SPK, 5, 0, Trees5),
 
 
     test_txs:mine_blocks(1),
@@ -172,7 +174,7 @@ test2(NewPub) ->
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
-    {95,998,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
+    {95,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
@@ -183,13 +185,14 @@ test2(NewPub) ->
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay
-    {15,998,0} = spk:run(fast, [SS1], SPK2, 1, 0, Trees60),
+    {15,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
 
     %test a trade that gets only partly matched.
-    SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
+    %SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
+    SPD3 = price_declaration_maker(5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3, OID, 3000),
     %amount, newnonce, shares, delay
-    {90, 998, 0} = spk:run(fast, [SS5], SPK, 1, 0, Trees5),
+    {90, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
@@ -197,7 +200,7 @@ test2(NewPub) ->
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
     SS6 = unmatched(OID), 
     %amount, newnonce, delay
-    {60, 3, Period} = spk:run(fast, [SS6], SPK, 1, 0, Trees5),
+    {60, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees5),
     success.
 test3() ->    
     %This makes the compiled smart contract in market.js

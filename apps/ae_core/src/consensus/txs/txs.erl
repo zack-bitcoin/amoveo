@@ -39,7 +39,7 @@ developer_lock(From, NewHeight, Dict) ->
 	    if
 		From == MP ->
 		    BP = governance:dict_get_value(block_period, Dict),
-		    HeightSwitch = constants:developer_lock_period() div BP,
+		    HeightSwitch = (10 * constants:developer_lock_period()) div BP,
 		    true = NewHeight > HeightSwitch;
 		true -> ok
 	    end;
