@@ -244,12 +244,11 @@ channel_slash(_CID, Fee, SPK, SS) ->
     tx_maker0(channel_slash_tx:make_dict(keys:pubkey(), Fee, SPK, SS)).
 new_question_oracle(Start, Question)->
     ID = find_id2(),
-    new_question_oracle(Start, Question, ID),
-    ID.
-
+    new_question_oracle(Start, Question, ID).
 new_question_oracle(Start, Question, ID)->
     Cost = trees:dict_tree_get(governance, oracle_new),
-    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0)).
+    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0)),
+    ID.
 new_governance_oracle(Start, GovName, GovAmount, DiffOracleID) ->
     GovNumber = governance:name2number(GovName),
     ID = find_id2(),

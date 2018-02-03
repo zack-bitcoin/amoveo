@@ -17,6 +17,7 @@ function spk_main() {
         console.log(JSON.stringify(facts));
         var tree = facts[i][0];
         var key = facts[i][1];
+	//var key = hash(string_to_array(atob(facts[i][1])));
         merkle.request_proof(tree, key, function(value) {
             //var value = merkle.verify(key, proof);
             //we are making chalang like this:
@@ -30,6 +31,7 @@ function spk_main() {
                 r = r.concat([0]);
                 r = r.concat(integer_to_array(key, 4));
             } else {
+		key = string_to_array(atob(key));
                 r = r.concat([2]);
                 r = r.concat(integer_to_array(key.length, 4));
                 r = r.concat(key);
@@ -82,9 +84,15 @@ function spk_main() {
         if (!(chalang_none_of(script_sig))) {
             throw("error: return op in the script sig");
         }
+	console.log("spk run3");
+	console.log(JSON.stringify(ss.prove));
         prove_facts(ss.prove, function(f) {
             var c = string_to_array(atob(bet[1]));
             //var c = bet.code;
+	    console.log("spk run3 f is ");
+	    console.log(f);
+	    console.log("and c is ");
+	    console.log(c);
             var code = f.concat(c);
             var data = chalang_object.data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
             var data2 = chalang_object.run5(script_sig, data);
@@ -301,6 +309,7 @@ console.log(JSON.stringify([
     function is_improvement(old_spk, old_ss, new_spk, new_ss, fun_limit, var_limit, callback) {
         //get height
         //check that space gas and time limit are below or equal to what is in the config file.
+	var height = headers_object.top()[1];
         if (new_spk[4] > 100000) {//space gas
             console.log("this contract uses too much space.");
             return callback(false);
@@ -323,8 +332,8 @@ console.log(JSON.stringify([
                 var old_bets = old_spk[3];
                 var old_amount = old_spk[7];
                 old_spk[3] = new_spk[3];
-                old_spk[5] = tg;
-                old_spk[4] = sg;
+                old_spk[5] = 100000;//time gas tg;
+                old_spk[4] = 100000;//space gassg;
                 old_spk[7] = new_spk[7];
                 old_spk[8] = new_spk[8];
                 if (!(JSON.stringify(old_spk) == JSON.stringify(new_spk))) {

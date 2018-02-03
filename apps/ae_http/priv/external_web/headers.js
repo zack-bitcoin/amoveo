@@ -1,3 +1,4 @@
+
 function headers_main() {
     var top_header = 0;//stores the valid header with the most accumulated work.
     const retarget_frequency = 2000;

@@ -30,7 +30,7 @@ def market_test():
     request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 4, 1000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
-    oid = request(1, 'new_question_oracle', [0, 'aXMgMisyPTQ/'], 0.1)
+    oid = request(1, 'new_question_oracle', [0, 'aXMgMisyPTQ/', "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="], 0.1)
     oid = json.loads(oid)[1]
     print("python oid is ")
     print(oid)

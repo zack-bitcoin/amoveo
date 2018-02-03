@@ -129,6 +129,9 @@ function merkle_proofs_main() {
 	}
     }
     function serialize_tree_element(v, trie_key) {
+	console.log("serialize tree element");
+	console.log(JSON.stringify(v));
+	console.log(trie_key);
 	var t = v[0];
 	if ( t == "gov" ) {
             var id = integer_to_array(v[1], 1);
@@ -184,7 +187,7 @@ function merkle_proofs_main() {
 	    console.log(JSON.stringify(v));
             var id = string_to_array(atob(v[1]));
             var result = integer_to_array(v[2], 1);
-            var t = integer_to_array(v[5], 1);
+            var type = integer_to_array(v[5], 1);
             var starts = integer_to_array(v[4], 4); 
             var done_timer = integer_to_array(v[9], 4); //height_bits/8 bytes
             var governance = integer_to_array(v[10], 1); //one byte
@@ -196,7 +199,7 @@ function merkle_proofs_main() {
             var serialized = ([]).concat(
 		id).concat(
                     result).concat(
-			t).concat(
+			type).concat(
                             starts).concat(
 				done_timer).concat(
                                     governance).concat(
@@ -204,6 +207,8 @@ function merkle_proofs_main() {
                                             creator).concat(
 						question).concat(
                                                     orders);
+	    console.log("serialized oracle");
+	    console.log(JSON.stringify(serialized));
             return serialized;
 	} else {
             console.log("cannot decode type ");
@@ -214,11 +219,16 @@ function merkle_proofs_main() {
 	verify_callback("governance", 14, function(fun_limit) {
 	    console.log("merkle proof test result is: ");
 	    console.log(fun_limit);
-	})
+	});
+	verify_callback("oracles", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", function(fun_limit) {
+	    console.log("merkle proof test result is: ");
+	    console.log(fun_limit);
+	});
     }
     return {request_proof: verify_callback,
 	    verify: verify_merkle,
 	    serialize: serialize_tree_element,
+	    serialize_key: serialize_key,
 	    test: test};
 }
 var merkle = merkle_proofs_main();

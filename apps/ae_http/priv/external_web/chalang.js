@@ -185,8 +185,8 @@ function chalang_main() {
         }
         return binary;
     }
-    var verbose = false;
-    var stack_verbose = false;
+    var verbose = true;
+    var stack_verbose = true;
     function op_print(d, i, x) {
         if (verbose) {
             console.log(("# ").concat(
@@ -263,8 +263,9 @@ function chalang_main() {
     };
     op_code[ops.drop] = function(i, code, d) {
         underflow_check(d, 1, "drop");
+	var m = memory(d.stack[0]);
         d.stack = d.stack.slice(1);
-        return {i: i, d: d, g: 1, s: "drop op", r: (-2 - memory(d.stack[0]))};
+        return {i: i, d: d, g: 1, s: "drop op", r: (-2 - m)};
     };
     op_code[ops.dup] = function(i, code, d) {
         underflow_check(d, 1, "dup");
@@ -359,6 +360,7 @@ function chalang_main() {
         var pub1 = d.stack[0].slice(1);//internal format puts "binary" at the front of each binary.
         var data1 = d.stack[1].slice(1);
         var sig1 = d.stack[2].slice(1);
+	var ec = keys.ec(),
         temp_key = ec.keyFromPublic(toHex(array_to_string(pub1)), "hex");
         var sig2 = bin2rs(array_to_string(sig1));
         var b = temp_key.verify(hash(serialize(data1)), sig2, "hex")
@@ -445,7 +447,7 @@ function chalang_main() {
         d.stack = d.stack.slice(2);
         return {i: i, d: d, g: 1, s: "set op"};
     }
-    op_code[ops.set] = function(i, code, d) {
+    op_code[ops.fetch] = function(i, code, d) {
         underflow_check(d, 1, "fetch");
         var val;
         var foo = d.vars[d.stack[0]];
@@ -636,6 +638,8 @@ function chalang_main() {
         return true;
     }
     function run5(code, d) {
+	//console.log("run5 ");
+	//console.log(JSON.stringify(code));
         if (is_balanced_f(code)) {
             return run2(code, d);
         } else {
@@ -801,10 +805,10 @@ function chalang_main() {
         console.log("chalang test");
         //var x = run5(verify_signature_contract, d);
         //var x = run5(case_contract, d);
-        var x = run5(hashlock_contract, d);
+        //var x = run5(hashlock_contract, d);
         //var x = run5(split_append_contract, d);
         //var x = run5(recursion_contract, d);
-        //var x = run5(variable_contract, d);
+        var x = run5(variable_contract, d);
         //var x = run5(function_contract, d);
         //var x = run5(map_contract, d);
         console.log(JSON.stringify(x.stack));
