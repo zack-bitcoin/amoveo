@@ -55,7 +55,7 @@ function bets_main() {
                 cancel_buttons.push(cancel_button);
             } else {
                 console.log("matched");
-                order.innerHTML = translate.words("market").concat(oid).concat(translate.words("win_if")).concat(outcome).concat(transalte.words("amount")).concat(s2c(amount));
+                order.innerHTML = translate.words("market").concat(oid).concat(translate.words("win_if")).concat(outcome).concat(translate.words("amount")).concat(s2c(amount));
                 oadiv.appendChild(order);
                 oadiv.appendChild(document.createElement("br"));
             }

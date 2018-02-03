@@ -51,9 +51,9 @@ function spk_main() {
         //var key1 = "fun_limit";
         var ret;
         if (!(ss.length == (spk[3].length - 1))) {//spk[4] == bets is formated with a -6 in front for packer.erl
-            console.log(JSON.stringify(ss));
-            console.log(JSON.stringify(spk));
-            console.log(JSON.stringify(spk[4]));
+            //console.log(JSON.stringify(ss));
+            //console.log(JSON.stringify(spk));
+            //console.log(JSON.stringify(spk[4]));
             throw("ss and bets need to be the same length");
         }
         spk_run2(ss, spk[3], spk[5], spk[4], fun_limit, var_limit, state, spk[9], 0, 0, 1, function(ret) {
@@ -88,10 +88,10 @@ function spk_main() {
             var data = chalang_object.data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
             var data2 = chalang_object.run5(script_sig, data);
             var data3 = chalang_object.run5(code, data2);
-            console.log("just ran contract, stack returned as ");
-            console.log(JSON.stringify(data3.stack));
-            console.log("bet was ");
-            console.log(JSON.stringify(bet));
+            //console.log("just ran contract, stack returned as ");
+            //console.log(JSON.stringify(data3.stack));
+            //console.log("bet was ");
+            //console.log(JSON.stringify(bet));
             var amount = data3.stack[0];
             var nonce = data3.stack[1];
             var delay = data3.stack[2];
@@ -120,8 +120,8 @@ function spk_main() {
                         spk[3] = updated.new_bets;
                         spk[7] += updated.amount;
                         spk[8] += updated.nonce;
-                        console.log("force udpate final ss is ");
-                        console.log(JSON.stringify(updated.newss));
+                        //console.log("force udpate final ss is ");
+                        //console.log(JSON.stringify(updated.newss));
                         return callback({"spk":spk, "ss":updated.newss});
                     });
                 } else {
@@ -158,7 +158,7 @@ function spk_main() {
         spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, bets.length-1, callback);
     }
     function spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i, callback) {
-        console.log("spke force update 22");
+        //console.log("spke force update 22");
         if (i < 1) {
             return callback({"new_bets": new_bets, "newss": newss, "amount": amount, "nonce": nonce});
         }
@@ -175,7 +175,8 @@ function spk_main() {
             var data3 = chalang_object.run5(code, data2);
             var s = data3.stack;
             var cgran = 10000; //constants.erl
-            console.log(JSON.stringify([
+            /*
+console.log(JSON.stringify([
                 //"code", code,
                 "ss", ss[i-1],
                 "data2", data2.stack,
@@ -183,6 +184,7 @@ function spk_main() {
                 "delay", s[2],
                 "amount", s[0],
                 "nonce", s[1]]));
+*/
             if (!(s[2] > 50)) { //if the delay is long, then don't close the trade.
                 if (s[0] > cgran) {
                     throw("you can't spend money that you don't have");
@@ -444,8 +446,8 @@ function spk_main() {
                 var them_spk = spk_return[2];
                 //returns cd and them_spk
                 var cd0 = channels_object.read(server_pubkey);
-		console.log("javascript channels object is ");
-		console.log(JSON.stringify(cd0));
+		//console.log("javascript channels object is ");
+		//console.log(JSON.stringify(cd0));
                 if (cd0 == undefined) {
                     console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
 		    console.log("attempting to trustfully download a copy of the channel state from the server. Warning, this can be a security vulnerability!");
@@ -457,11 +459,13 @@ function spk_main() {
 		    channels_object.write(server_pubkey, NewCD);
 		    return callback();
                 }
+		/*
                   if (!(cd0.live == true)) {
                     var s = "this channel has been closed";
                     console.log(s);
                     throw(s);
                 }
+		*/
                 channel_feeder_they_simplify(server_pubkey, them_spk, cd, function(ret) {
                     if (!(ret == false)) {
                         var msg2 = ["channel_sync", keys.pub(), ret];

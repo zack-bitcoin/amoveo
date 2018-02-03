@@ -131,7 +131,7 @@ function channels_main() {
         var reader = new FileReader();
         reader.onload = function(e) {
             channel_manager = JSON.parse(reader.result);
-	    console.log(JSON.stringify(channel_manager));
+	    //console.log(JSON.stringify(channel_manager));
             refresh_channels_interfaces(pubkey);
         }
         reader.readAsText(file);

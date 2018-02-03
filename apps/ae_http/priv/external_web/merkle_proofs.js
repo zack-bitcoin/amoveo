@@ -96,6 +96,8 @@ function merkle_proofs_main() {
 			//we should learn to deal with proofs of empty data.
                     } else {
 			console.log("the value doesn't match the proof");
+			console.log(x);
+			console.log(trie_key);
 			throw("bad");
                     }
 		}
@@ -105,7 +107,7 @@ function merkle_proofs_main() {
     function serialize_key(v, trie_key) {
 	var t = v[0];
 	if ( t == "gov" ) {
-            return integer_to_array(trie_key, 1);
+            return integer_to_array(trie_key, 32);
 	} else if ( t == "acc" ) {
             console.log("v is ");
             console.log(v);
@@ -173,8 +175,11 @@ function merkle_proofs_main() {
             return serialized;
 	} else if (t == "oracle") {
             //var id = integer_to_array(v[1], 32);
-            var id = string_to_array(v[1], 32);
-            var result = integer_to_array(atob(v[2]));
+            //var id = string_to_array(v[1], 32);
+	    console.log("serialize oracle ");
+	    console.log(JSON.stringify(v));
+            var id = string_to_array(atob(v[1]));
+            var result = integer_to_array(v[2], 1);
             var t = integer_to_array(v[5], 1);
             var starts = integer_to_array(v[4], 4); 
             var done_timer = integer_to_array(v[9], 4); //height_bits/8 bytes
@@ -201,8 +206,15 @@ function merkle_proofs_main() {
             console.log(t);
 	}
     }
+    function test() {
+	verify_callback("governance", 14, function(fun_limit) {
+	    console.log("merkle proof test result is: ");
+	    console.log(fun_limit);
+	})
+    }
     return {request_proof: verify_callback,
 	    verify: verify_merkle,
-	    serialize: serialize_tree_element};
+	    serialize: serialize_tree_element,
+	    test: test};
 }
 var merkle = merkle_proofs_main();

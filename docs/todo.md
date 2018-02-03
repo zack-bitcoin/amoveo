@@ -16,15 +16,12 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-none
+merkle_proof.js test is crashing.
 
 ### tests before official launch of mainnet
 
 * make sure that markets are working from the light wallet.
-- betting
-- canceling a bet
 - combining shares
-- collecting winnings
 - when bets get matched, the ss should be displayed in the browser.
 
 * closing markets in the light node.

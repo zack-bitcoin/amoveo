@@ -107,6 +107,7 @@ dict_get(ID, Dict) ->
     end.
 key_to_int(X) -> 
     %<<Y:256>> = hash:doit(<<X:256>>),
+    <<_:256>> = X,
     <<Y:256>> = hash:doit(X),
     Y.
 get(ID, Root) ->
