@@ -8,8 +8,9 @@ function spk_main() {
     }
     var tree2id = {accounts: 1, channels: 2, existence: 3, burn: 4, oracles: 5, governance: 6};
     function prove_facts2(facts, i, r, callback) {
+	var ops = chalang_object.ops();
         if (i == facts.length) {
-            r.concat([reverse]); // converts a , to a ]
+            r.concat([ops.reverse]); // converts a , to a ]
             return callback(r);
         }
         console.log("prove facts 2");
@@ -22,9 +23,9 @@ function spk_main() {
             //[ int id, key, binary size serialized_data ]
             // '[', ']', and ',' are macros for making a list.
             var id = tree2id[tree];
-            r = r.concat([empty_list]); // [
+            r = r.concat([ops.empty_list]); // [
             r = r.concat([0]).concat(integer_to_array(id, 4));
-            r = r.concat([swap, cons]); // ,
+            r = r.concat([ops.swap, ops.cons]); // ,
             if (Number.isInteger(key)) {
                 r = r.concat([0]);
                 r = r.concat(integer_to_array(key, 4));
@@ -33,16 +34,16 @@ function spk_main() {
                 r = r.concat(integer_to_array(key.length, 4));
                 r = r.concat(key);
             }
-            r = r.concat([swap, cons]); // ,
+            r = r.concat([ops.swap, ops.cons]); // ,
             var serialized_data = merkle.serialize(value, key);//this is the serialized version of the thing who's existence we are proving. make it from value.
             var s = serialized_data.length;
             r = r.concat([2]).concat(integer_to_array(s, 4));
             r = r.concat(serialized_data);
-            r = r.concat([swap, cons, reverse]); // ]
-            r = r.concat([swap, cons]); // ,
+            r = r.concat([ops.swap, ops.cons, ops.reverse]); // ]
+            r = r.concat([ops.swap, ops.cons]); // ,
             return prove_facts2(facts, i+1, r, callback);
         });
-        //return r.concat([reverse]); // converts a , to a ]
+        //return r.concat([ops.reverse]); // converts a , to a ]
     }
     function spk_run(mode, ss0, spk0, height, slash, fun_limit, var_limit, callback) {//mode unused
         var spk = JSON.parse(JSON.stringify(spk0));

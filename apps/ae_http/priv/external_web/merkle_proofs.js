@@ -61,6 +61,8 @@ function merkle_proofs_main() {
         var serialized =
             serialize_key(v, trie_key).concat(
                 serialize_tree_element(v, trie_key));
+	console.log("hashed leaf");
+	console.log(JSON.stringify(serialized));
         return hash(serialized);
     }
     function verify_merkle(trie_key, x) {
@@ -107,7 +109,7 @@ function merkle_proofs_main() {
     function serialize_key(v, trie_key) {
 	var t = v[0];
 	if ( t == "gov" ) {
-            return integer_to_array(trie_key, 32);
+            return integer_to_array(trie_key, 8);
 	} else if ( t == "acc" ) {
             console.log("v is ");
             console.log(v);
@@ -136,6 +138,8 @@ function merkle_proofs_main() {
 		id).concat(
                     value).concat(
 			lock);
+	    console.log("serialized gov is ");
+	    console.log(JSON.stringify(serialized));
             return serialized;
 	} else if ( t == "acc" ) {
             var balance = integer_to_array(v[1], 6);
