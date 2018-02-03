@@ -185,8 +185,8 @@ function chalang_main() {
         }
         return binary;
     }
-    var verbose = true;
-    var stack_verbose = true;
+    var verbose = false;
+    var stack_verbose = false;
     function op_print(d, i, x) {
         if (verbose) {
             console.log(("# ").concat(

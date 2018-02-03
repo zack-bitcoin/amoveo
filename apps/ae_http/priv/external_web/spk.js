@@ -332,19 +332,21 @@ console.log(JSON.stringify([
                 var old_bets = old_spk[3];
                 var old_amount = old_spk[7];
                 old_spk[3] = new_spk[3];
-                old_spk[5] = 100000;//time gas tg;
-                old_spk[4] = 100000;//space gassg;
+                old_spk[5] = new_spk[5];//time gas tg;
+                old_spk[4] = new_spk[4];//space gassg;
                 old_spk[7] = new_spk[7];
                 old_spk[8] = new_spk[8];
                 if (!(JSON.stringify(old_spk) == JSON.stringify(new_spk))) {
                     console.log("spk was changed in unexpected ways");
+		    console.log(JSON.stringify(old_spk));
+		    console.log(JSON.stringify(new_spk));
                     return callback(false);
                 }
                 var cid = new_spk[6];
                 var ret = false;
                 merkle.request_proof("channels", cid, function(channel) {
                     //variable_public_get(["proof", btoa("channels"), cid, btoa(array_to_string(top_hash))], function(proof) {
-                    var channel = merkle.verify(cid, proof);
+                    //var channel = merkle.verify(cid, proof);
                     var acc1 = channel[2]
                     var acc2 = channel[3]
                     var profit;
@@ -483,7 +485,9 @@ console.log(JSON.stringify([
                         api_decrypt_msgs(cd.emsg);
                         api_bet_unlock();
                         //throw("working here");
-                    }
+                    } else {
+			console.log("channel feeder they simplify failed.");
+		    }
                 });
             });
         });
