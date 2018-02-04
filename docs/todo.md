@@ -16,13 +16,12 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-* matching orders.
+none
 
 ### tests before official launch of mainnet
 
 * make sure that markets are working from the light wallet.
 - combining shares
-- when bets get matched, the ss should be displayed in the browser.
 
 * closing markets in the light node.
 - open orders should be settled.
