@@ -116,7 +116,7 @@ pull_channel_state(IP, Port) ->
             channel_manager:write(ServerID, NewCD);
         {ok, CD0} ->
             true = CD0#cd.live,
-            SPKME = CD0#cd.me,
+            %SPKME = CD0#cd.me,
             Return = channel_feeder:they_simplify(ServerID, ThemSPK, CD),
             talker:talk({channel_sync, keys:pubkey(), Return}, IP, Port),
             decrypt_msgs(CD#cd.emsg),
@@ -245,6 +245,7 @@ channel_slash(_CID, Fee, SPK, SS) ->
 new_question_oracle(Start, Question)->
     ID = find_id2(),
     new_question_oracle(Start, Question, ID).
+
 new_question_oracle(Start, Question, ID)->
     Cost = trees:dict_tree_get(governance, oracle_new),
     tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0)),

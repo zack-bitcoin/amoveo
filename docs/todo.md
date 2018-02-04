@@ -10,6 +10,8 @@
 
 * modify the version.erl value
 
+* consider updating the mining algorithm so we don't include the difficulty in the thing being hashed.
+
 
 
 
