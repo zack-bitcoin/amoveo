@@ -62,6 +62,7 @@ def test2(): #useful for testing market from light node.
     request(1, 'sync', [[127,0,0,1], 3020], 0.04)
     #request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be removed
 def test3(): #useful for testing market from light node.
+    oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     request(1, 'combine_cancel_assets', [[127,0,0,1], 3030], 0.1)
     request(1, 'oracle_bet', [oid, 1, 2600000000], 0.05)
     request(1, 'mine_block', [11, 10000], 1)

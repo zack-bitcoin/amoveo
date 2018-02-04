@@ -55,16 +55,16 @@ absorb_internal(Block) ->
                              headers:absorb([H]),
                              H
                      end,
+	    Txs = (tx_pool:get())#tx_pool.txs,
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
 	    BH = block:hash(Block2),
             HeaderHeight = api:height(),
             recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
-            spawn(fun () ->
-                          Txs = (tx_pool:get())#tx_pool.txs,
-                          tx_pool:dump(),
-                          tx_pool_feeder:absorb(Txs)
-                  end),
+            %spawn(fun () ->
+	    tx_pool:dump(),
+	    tx_pool_feeder:absorb_async(Txs),
+            %      end),
             order_book:match(),
             io:fwrite("absorb block "),
             io:fwrite(integer_to_list(Block2#block.height)),

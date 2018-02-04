@@ -447,6 +447,7 @@ work(Nonce, _) ->
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
     block_absorber:save(Block2),
+    timer:sleep(1000),
     potential_block:save(),
     spawn(fun() -> sync:start() end),
     0.

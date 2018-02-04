@@ -22,9 +22,6 @@ none
 
 ### tests before official launch of mainnet
 
-* make sure that markets are working from the light wallet.
-- combining shares
-
 * closing markets in the light node.
 - open orders should be settled.
 - winning shares should be paid the prize.

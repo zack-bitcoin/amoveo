@@ -348,8 +348,6 @@ function chalang_main() {
     }
     op_code[ops.hash_op] = function(i, code, d) {
         underflow_check(d, 1, "hash");
-        console.log("hash op data is ");
-        console.log(JSON.stringify(d.stack[0]));
         d.stack = ([["binary"].concat(hash(d.stack[0].slice(1)))]).concat(
             d.stack.slice(1));
         return {i: i, d: d, g: 20, s: "hash op"};

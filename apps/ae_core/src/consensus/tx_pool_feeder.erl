@@ -1,7 +1,7 @@
 -module(tx_pool_feeder).
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
--export([absorb/1, absorb_unsafe/1]).
+-export([absorb/1, absorb_async/1, absorb_unsafe/1]).
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) -> {ok, []}.
@@ -9,6 +9,9 @@ handle_call({absorb, SignedTx}, _From, State) ->
     absorb_internal(SignedTx),
     {reply, ok, State};
 handle_call(_, _, S) -> {reply, S, S}.
+handle_cast({absorb, SignedTx}, S) -> 
+    absorb_internal(SignedTx),
+    {noreply, S};
 handle_cast(_, S) -> {noreply, S}.
 handle_info(_, S) -> {noreply, S}.
 terminate(_, _) -> io:fwrite("tx_pool_feeder died\n").
@@ -138,6 +141,11 @@ absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest
 absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->
     gen_server:call(?MODULE, {absorb, SignedTx}).
+absorb_async([H|T]) ->
+    absorb_async(H),
+    absorb_async(T);
+absorb_async(X) ->
+    gen_server:cast(?MODULE, {absorb, X}).
 absorb_unsafe(SignedTx) ->
     F = tx_pool:get(),
     Trees = F#tx_pool.block_trees,

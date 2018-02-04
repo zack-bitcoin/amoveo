@@ -136,14 +136,14 @@ function combine_cancel_assets_maker() {
     }
     function combine_cancel_common(oldCD) {
         var spk = JSON.parse(JSON.stringify(oldCD.me));
-        var bets = spk[3].slice(1, spk[3].length);
+        var bets = spk[3].slice(1);
         console.log("combine cancel common bets are ");
         var combine2 = combine_cancel_common2(bets, oldCD.ssme);
 	var n = bets.length - combine2.bets.length;
 	var m = n * 1000000;
         spk[3] = ([-6]).concat(combine2.bets.reverse());
 	spk[8] = spk[8] + m;
-        return {"sspk": keys.sign(spk), "ss": combine2.ss};
+        return {"sspk": keys.sign(spk), "ss": combine2.ss.reverse()};
     }
     function main(server_pubkey) {
         var oldCD = channels_object.read(server_pubkey);

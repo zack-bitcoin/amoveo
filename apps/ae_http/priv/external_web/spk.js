@@ -59,7 +59,7 @@ function spk_main() {
             //console.log(JSON.stringify(spk[4]));
             throw("ss and bets need to be the same length");
         }
-        spk_run2(ss, spk[3], spk[5], spk[4], fun_limit, var_limit, state, spk[9], 0, 0, 1, function(ret) {
+        spk_run2(ss, spk[3], spk[5], spk[4], fun_limit, var_limit, state, spk[9], spk[8], 0, 1, function(ret) {
             return callback(ret);
         });
     }
@@ -138,6 +138,7 @@ function spk_main() {
                         return callback({"spk":spk, "ss":updated.newss});
                     });
                 } else {
+		    console.log(JSON.stringify([nonceNew, nonceOld]));
                     console.log("spk force update had nothing to do.");
                     return callback(false);
                 }

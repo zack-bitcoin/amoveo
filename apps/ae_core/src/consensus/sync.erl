@@ -125,13 +125,16 @@ trade_txs(Peer) ->
     remote_peer({txs, lists:reverse(Mine)}, Peer).
 
 sync_peer(Peer) ->
+    io:fwrite("trade peers\n"),
     trade_peers(Peer),
     MyTop = headers:top(),
+    io:fwrite("get their top header\n"),
     TheirTop = remote_peer({header}, Peer), 
     MyBlockHeight = block:height(),
     TheirTopHeight = TheirTop#header.height,
     if
         not(MyTop == TheirTop) ->
+	    io:fwrite("get headers\n"),
             CommonHash = get_headers(Peer),
             {ok, TBH} = headers:read(block:hash(block:top())),
             MD = TBH#header.accumulative_difficulty,
