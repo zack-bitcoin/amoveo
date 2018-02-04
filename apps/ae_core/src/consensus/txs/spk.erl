@@ -330,7 +330,7 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     {ContractAmount, N, Delay, _} = chalang_error_handling(SS#ss.code, Code, Data),
     if
 	%Delay > 50 ->
-	Delay > 50 ->
+	Delay > 0 ->
 	    force_update2(BetsIn, SSIn, [Bet|BetsOut], [SS|SSOut], Amount, Nonce);
 	true ->
 	    CGran = constants:channel_granularity(),

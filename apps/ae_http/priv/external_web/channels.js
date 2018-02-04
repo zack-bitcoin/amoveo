@@ -303,8 +303,8 @@ function channels_main() {
     }
     function make_channel_func2(tx, amount, bal2, acc1, acc2, delay, expiration, pubkey) {
         //ask a server to make the tx for us, then check that all our data matches.
-        console.log("make channel tx is ");
-        console.log(tx);
+        //console.log("make channel tx is ");
+        //console.log(tx);
         var amount0 = tx[5];
         var bal20 = tx[6];
         var fee0 = tx[3];
@@ -351,8 +351,8 @@ function channels_main() {
 	}
         var cid = tx[9];
         var acc2 = tx[2];
-        console.log("double signed tx ");
-        console.log(JSON.stringify(sstx));
+        //console.log("double signed tx ");
+        //console.log(JSON.stringify(sstx));
         //variable_public_get(["txs", [-6, sstx]], function(x) {});
         var spk = s2spk[1];
         var cd = new_cd(spk, s2spk, [], [], expiration, cid);
@@ -366,8 +366,8 @@ function channels_main() {
         var trie_key = cd.me[6];//channel id, cid
 	var top_header = headers_object.top();
         var top_hash = hash(headers_object.serialize(top_header));
-	console.log("refresh balance trie key is ");
-	console.log(trie_key);
+	//console.log("refresh balance trie key is ");
+	//console.log(trie_key);
         merkle.request_proof("channels", trie_key, function(val) {
             //var balance_div = document.getElementById("balance_div");
             var spk = cd.them[1];
@@ -375,18 +375,8 @@ function channels_main() {
 	    var height = top_header[1];
             var amount = spk[7];
             var betAmount = sum_bets(spk[3]);
-	    console.log("calculating channel balance ");
-	    console.log(val);
-	    console.log(amount);
-	    console.log(betAmount);
-	    console.log(val[4]);
-	    console.log(val[5]);
             var mybalance = ((val[4] - amount - betAmount)/ 100000000).toString();
             var serverbalance = ((val[5] + amount) / 100000000).toString();
-	    console.log("refresh balance");
-	    console.log(JSON.stringify(cd));
-	    console.log(expiration);
-	    console.log(height);
             balance_div.innerHTML = (translate.words("your_balance").concat(": ")).concat(
                 mybalance).concat(translate.words("server_balance").concat(": ")).concat(
                     serverbalance).concat(translate.words("time_left").concat(": ")).concat(
@@ -415,8 +405,8 @@ function channels_main() {
         var encrypted = keys.encrypt([-6, ss, code, a], to);
         var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
         var msg = ["locked_payment", sspk, a, fee, code, keys.pub(), to, encrypted];
-        console.log("lightning spend msg is ");
-        console.log(JSON.stringify(msg));
+        //console.log("lightning spend msg is ");
+        //console.log(JSON.stringify(msg));
         variable_public_get(msg, function(sspk2) {
 	    spk1 = sspk[1];
 	    spk2 = sspk2[1];
@@ -442,8 +432,8 @@ function channels_main() {
     function sum_bets(bets) {
         var x = 0;
         for (var i = 1; i < bets.length; i++) {
-            console.log("sum bets bet is ");
-            console.log(JSON.stringify(bets[i][2]));
+            //console.log("sum bets bet is ");
+            //console.log(JSON.stringify(bets[i][2]));
             x += bets[i][2];
         }
         return x;

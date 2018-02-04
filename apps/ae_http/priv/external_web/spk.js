@@ -13,8 +13,8 @@ function spk_main() {
             r.concat([ops.reverse]); // converts a , to a ]
             return callback(r);
         }
-        console.log("prove facts 2");
-        console.log(JSON.stringify(facts));
+        //console.log("prove facts 2");
+        //console.log(JSON.stringify(facts));
         var tree = facts[i][0];
         var key = facts[i][1];
 	//var key = hash(string_to_array(atob(facts[i][1])));
@@ -84,15 +84,15 @@ function spk_main() {
         if (!(chalang_none_of(script_sig))) {
             throw("error: return op in the script sig");
         }
-	console.log("spk run3");
-	console.log(JSON.stringify(ss.prove));
+	//console.log("spk run3");
+	//console.log(JSON.stringify(ss.prove));
         prove_facts(ss.prove, function(f) {
             var c = string_to_array(atob(bet[1]));
             //var c = bet.code;
-	    console.log("spk run3 f is ");
-	    console.log(f);
-	    console.log("and c is ");
-	    console.log(c);
+	    //console.log("spk run3 f is ");
+	    //console.log(f);
+	    //console.log("and c is ");
+	    //console.log(c);
             var code = f.concat(c);
             var data = chalang_object.data_maker(opgas, ramgas, vars, funs, script_sig, code, state);
             var data2 = chalang_object.run5(script_sig, data);
@@ -129,8 +129,12 @@ function spk_main() {
                         spk[3] = updated.new_bets;
                         spk[7] += updated.amount;
                         spk[8] += updated.nonce;
-                        //console.log("force udpate final ss is ");
-                        //console.log(JSON.stringify(updated.newss));
+                        console.log("force udpate final ss is ");
+                        console.log(JSON.stringify(updated.newss));
+                        console.log("force udpate final spk is ");
+                        console.log(JSON.stringify(spk));
+			console.log("updated is ");
+			console.log(JSON.stringify(updated));
                         return callback({"spk":spk, "ss":updated.newss});
                     });
                 } else {
@@ -179,11 +183,15 @@ function spk_main() {
         prove_facts(ss[i-1].prove, function(f) { //PROBLEM HERE
             //var code = f.concat(bets[i].code);
             var code = f.concat(string_to_array(atob(bets[i][1])));
+	    console.log("spk force update 22. code is ");
+	    console.log(JSON.stringify(code));
             var data = chalang_object.data_maker(bet_gas_limit, bet_gas_limit, var_limit, fun_limit, ss[i-1].code, code, state);
             var data2 = chalang_object.run5(ss[i-1].code, data);
             var data3 = chalang_object.run5(code, data2);
             var s = data3.stack;
             var cgran = 10000; //constants.erl
+	    console.log("ran code stack is ");
+	    console.log(JSON.stringify(s));
             /*
 console.log(JSON.stringify([
                 //"code", code,
@@ -194,15 +202,19 @@ console.log(JSON.stringify([
                 "amount", s[0],
                 "nonce", s[1]]));
 */
-            if (!(s[2] > 50)) { //if the delay is long, then don't close the trade.
+            if (!(s[2] > 0)) { //if the delay is long, then don't close the trade.
+		console.log("short delay, close the trade.");
                 if (s[0] > cgran) {
                     throw("you can't spend money that you don't have");
                 }
-                amount += Math.floor(s[0] * bets[i] / cgran);
+		console.log("update amount");
+		console.log(JSON.stringify([s[0], bets[i][2], cgran]));
+                amount += Math.floor(s[0] * bets[i][2] / cgran);
                 nonce += s[1];
                 new_bets = new_bets.slice(0, i).concat(new_bets.slice(i+1, new_bets.length));
                 newss = newss.slice(0, i).concat(newss.slice(i+1, newss.length));
             }
+	    console.log("long delay, do not close the trade.");
             return spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i-1, callback); 
         });
     }
@@ -262,8 +274,8 @@ console.log(JSON.stringify([
                 var var_limit = tree_number_to_value(tree_var_limit[2]);
                 spk_force_update(spkme, ssme, ss4, fun_limit, var_limit, function(b2) {
                     var cid = cd[7];
-                    console.log("are we able to force update?");
-                    console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
+                    //console.log("are we able to force update?");
+                    //console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
                     if ( JSON.stringify(b2) == JSON.stringify({"spk": newspk, "ss": ss})) {
                         var ret = keys.sign(newspk);
                         var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
@@ -429,12 +441,19 @@ console.log(JSON.stringify([
         return x;
     }
     function api_decrypt_msgs(l) {
+	var r = false;
         for (var i = 0; i < l.length; i++) {
-            var d = encryption_object.get(l[i]);
-            console.log(JSON.stringify(d));
-            throw("api decrypt msgs");
-            lightning_object.add(d.code, d.secret, d.amount);
+	    if (!(l[i] == -6)) {
+		r = true;
+		console.log("api decrypt msgs ");
+		console.log(JSON.stringify(l[i]));
+		var d = encryption_object.get(l[i]);
+		console.log(JSON.stringify(d));
+		throw("api decrypt msgs");
+		lightning_object.add(d.code, d.secret, d.amount);
+	    }
         }
+	return r;
     }
     function api_bet_unlock(pubkey) {
         var bu = channel_feeder_bets_unlock(pubkey);
@@ -456,6 +475,7 @@ console.log(JSON.stringify([
             variable_public_get(["spk", keys.pub()], function(spk_return) {
                 var cd = spk_return[1];
                 var them_spk = spk_return[2];
+		//we need to verify that they signed them_spk.
                 //returns cd and them_spk
                 var cd0 = channels_object.read(server_pubkey);
 		//console.log("javascript channels object is ");
@@ -482,9 +502,11 @@ console.log(JSON.stringify([
                     if (!(ret == false)) {
                         var msg2 = ["channel_sync", keys.pub(), ret];
                         variable_public_get(msg2, function(foo) {});
-                        api_decrypt_msgs(cd.emsg);
-                        api_bet_unlock();
-                        //throw("working here");
+                        var got_mail = api_decrypt_msgs(cd[5]);
+			if (got_mail) {
+                            api_bet_unlock();
+                            //throw("working here");
+			}
                     } else {
 			console.log("channel feeder they simplify failed.");
 		    }

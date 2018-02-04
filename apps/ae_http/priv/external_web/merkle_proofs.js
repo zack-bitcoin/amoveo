@@ -11,7 +11,7 @@ function merkle_proofs_main() {
     function hash_member(hash, members) {
         for (var i = 0; i < 6; i++) {
             var h2 = members.slice(32*i, 32*(i+1));
-            console.log("check that hash is a member");
+            //console.log("check that hash is a member");
             var b = check_equal(hash, h2);
             if (b) { return true; }
         }
@@ -61,8 +61,8 @@ function merkle_proofs_main() {
         var serialized =
             serialize_key(v, trie_key).concat(
                 serialize_tree_element(v, trie_key));
-	console.log("hashed leaf");
-	console.log(JSON.stringify(serialized));
+	//console.log("hashed leaf");
+	//console.log(JSON.stringify(serialized));
         return hash(serialized);
     }
     function verify_merkle(trie_key, x) {
@@ -111,8 +111,8 @@ function merkle_proofs_main() {
 	if ( t == "gov" ) {
             return integer_to_array(trie_key, 8);
 	} else if ( t == "acc" ) {
-            console.log("v is ");
-            console.log(v);
+            //console.log("v is ");
+            //console.log(v);
             var pubkey = string_to_array(atob(v[3]));
             return hash(pubkey);
 	} else if ( t == "channel" ) {
@@ -122,16 +122,16 @@ function merkle_proofs_main() {
             //return hash(integer_to_array(v[1], 32));
             return hash(string_to_array(atob(v[1])));
 	} else {
-            console.log("type is ");
-            console.log(t);
-            console.log(v);
+            //console.log("type is ");
+            //console.log(t);
+            //console.log(v);
             throw("serialize trie bad trie type");
 	}
     }
     function serialize_tree_element(v, trie_key) {
-	console.log("serialize tree element");
-	console.log(JSON.stringify(v));
-	console.log(trie_key);
+	//console.log("serialize tree element");
+	//console.log(JSON.stringify(v));
+	//console.log(trie_key);
 	var t = v[0];
 	if ( t == "gov" ) {
             var id = integer_to_array(v[1], 1);
@@ -141,8 +141,6 @@ function merkle_proofs_main() {
 		id).concat(
                     value).concat(
 			lock);
-	    console.log("serialized gov is ");
-	    console.log(JSON.stringify(serialized));
             return serialized;
 	} else if ( t == "acc" ) {
             var balance = integer_to_array(v[1], 6);
@@ -183,8 +181,8 @@ function merkle_proofs_main() {
 	} else if (t == "oracle") {
             //var id = integer_to_array(v[1], 32);
             //var id = string_to_array(v[1], 32);
-	    console.log("serialize oracle ");
-	    console.log(JSON.stringify(v));
+	    //console.log("serialize oracle ");
+	    //console.log(JSON.stringify(v));
             var id = string_to_array(atob(v[1]));
             var result = integer_to_array(v[2], 1);
             var type = integer_to_array(v[5], 1);
@@ -207,8 +205,8 @@ function merkle_proofs_main() {
                                             creator).concat(
 						question).concat(
                                                     orders);
-	    console.log("serialized oracle");
-	    console.log(JSON.stringify(serialized));
+	    //console.log("serialized oracle");
+	    //console.log(JSON.stringify(serialized));
             return serialized;
 	} else {
             console.log("cannot decode type ");

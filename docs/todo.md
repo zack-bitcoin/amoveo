@@ -16,7 +16,7 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-merkle_proof.js test is crashing.
+* matching orders.
 
 ### tests before official launch of mainnet
 

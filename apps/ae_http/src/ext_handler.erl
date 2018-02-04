@@ -157,7 +157,7 @@ doit({proof, TreeName, ID, Hash}) ->
     Trees = (block:get_by_hash(Hash))#block.trees,
     TN = trees:name(TreeName),
     Root = trees:TN(Trees),
-    io:fwrite(packer:pack([ext_handler_proof2, TreeName, ID, Root])),
+    %io:fwrite(packer:pack([ext_handler_proof2, TreeName, ID, Root])),
     {RootHash, Value, Proof} = TN:get(ID, Root),
     Proof2 = proof_packer(Proof),
     {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}};
