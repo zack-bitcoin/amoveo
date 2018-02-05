@@ -5,8 +5,8 @@ from market import *
 from share_blocks import *
 from spend import *
 
-test_single()
-test_many()
+test_header_single()
+test_header_many()
 
 test_mine_and_sync()
 test_three()

@@ -55,8 +55,9 @@ function headers_main() {
     function retarget2(header, n, ts) {
         var t = header[5];
         ts.push(t);
-        var height = header[1];
-        if ((height == 0) || (n == 0)) {
+        //var height = header[1];
+        //if ((height == 0) || (n == 0)) {
+        if (n == 0) {
             return {"header":header, "times":ts};
         }
         else {
@@ -73,15 +74,14 @@ function headers_main() {
     function difficulty_should_be2(header) {
         var period = header[10];
         var f = Math.floor(retarget_frequency / 2); //constants:retarget frequencey is 2000
-        var a1 = retarget2(header, f, []);
+        var a1 = retarget2(header, f - 1, []);
         var times1 = a1.times;
         var header2000 = a1.header;
-        var a2 = retarget2(header2000, f, []);
+        var a2 = retarget2(header2000, f - 1, []);
         var times2 = a2.times;
-        var m1 = median(times1);
-        var m2 = median(times2);
-	console.log("medians ");
-	console.log(JSON.stringify([m1, m2]));
+        var m1 = median((times1).reverse().slice(1));
+        var m10 = median((times1).reverse().slice(0));
+        var m2 = median((times2).reverse());//628500
         var tbig = m1 - m2;
         var t = Math.floor(tbig / f);
         var nt = pow_recalculate(

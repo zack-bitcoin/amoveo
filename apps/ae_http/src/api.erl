@@ -299,19 +299,20 @@ off() ->
     ok = application:stop(ae_core),
     ok = application:stop(ae_http).
 mine_block() ->
+    potential_block:save(),
     block:mine(10000000).
     %potential_block:save(),
     %block:mine(1, 100000).
 mine_block(0, Times) -> ok;
 mine_block(Periods, Times) ->
-    %potential_block:save(),
+    potential_block:save(),
     %PB = block:top(),
     %Top = block:block_to_header(PB),
     %Txs = (tx_pool:get())#tx_pool.txs,
     %Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
     %block:mine(Block, Times),
     block:mine(Times),
-    timer:sleep(1000),
+    %timer:sleep(2000),
     mine_block(Periods-1, Times).
 channel_close() ->
     channel_close(?IP, ?Port).

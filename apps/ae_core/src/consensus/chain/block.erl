@@ -261,7 +261,6 @@ mine(Block, Rounds, Cores) ->
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
                         block_absorber:save(PBlock),
-			potential_block:save(),
                         sync:start()
                 end
         end,
@@ -410,6 +409,7 @@ initialize_chain() ->
         true -> get_by_height(0)
          end,
     Header0 = block_to_header(GB),
+    gen_server:call(headers, {add, block:hash(Header0), Header0}),
     Header0.
 
 test() ->

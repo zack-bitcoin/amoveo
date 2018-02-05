@@ -226,9 +226,33 @@ many_blocks(Many, N) ->
                     [B|many_blocks(Many-1, N+1)]
             end
     end.
-many_headers(M, N) ->
-    B = many_blocks(M, N),
-    blocks2headers(B).
+get_header_by_height(N, H) ->
+    case H#header.height of
+	N -> H;
+	_ -> 
+	    {ok, Child} = headers:read(H#header.prev_hash),
+	    get_header_by_height(N, Child)
+    end.
+	    
+many_headers(Many, X) ->
+    Z = max(0, X + Many),
+    H = headers:top(),
+    N = min(H#header.height, Z),
+    Nth = get_header_by_height(N, H),
+    many_headers2(Many, Nth, []).
+many_headers2(0, _, Out) -> Out;
+many_headers2(Many, H, Out) ->
+    %{ok, H} = headers:read(Hash),
+    case H#header.height of
+	0 -> [H|Out];
+	_ ->
+	    {ok, H2} = headers:read(H#header.prev_hash),
+	    many_headers2(Many-1, H2, [H|Out])
+    end.
+
+%many_headers(M, N) ->
+%    B = many_blocks(M, N),
+%    blocks2headers(B).
 blocks2headers([]) -> [];
 blocks2headers([B|T]) ->
     [block:block_to_header(B)|

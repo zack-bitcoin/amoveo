@@ -38,6 +38,8 @@ none
 
 ### Things we can do after launch of mainnet
 
+* documentation for sync_mode.
+
 * in block_absorber.erl we are spawning a process that has to filter some txs. We can make this faster n**2 -> n*log(n).
 - additionally, we should only do this calculation when in normal mode. If we are trying to sync blocks quickly, we can skip this calculation.
 
