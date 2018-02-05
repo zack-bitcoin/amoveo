@@ -22,7 +22,7 @@ none
 
 ### tests before official launch of mainnet
 
-* closing markets in the light node.
+* closing markets in the light node. (first test these things with full nodes.)
 - open orders should be settled.
 - winning shares should be paid the prize.
 - losing shares should be deleted.
@@ -37,6 +37,10 @@ none
 
 
 ### Things we can do after launch of mainnet
+
+* spk get_paid and spk apply_bet should probably incrase the nonce by more than 1.
+
+* When syncing we are building a potential block at every height. This is very innefficient. Instead we should download the entire history before building potential blocks.
 
 * the mining pool should never spam the full node. They are on the same machine.
 

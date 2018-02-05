@@ -56,13 +56,14 @@ absorb_internal(Block) ->
                              H
                      end,
 	    {true, Block2} = block:check(Block),
+	    do_save(Block2),
             spawn(fun () ->
+			  %only do this if we are in normal node. not in quick mode.
 			  Txs = (tx_pool:get())#tx_pool.txs,
 			  tx_pool:dump(),
 			  tx_pool_feeder:absorb_async(Txs),
 			  order_book:match()
                   end),
-	    do_save(Block2),
 	    BH = block:hash(Block2),
             HeaderHeight = api:height(),
             recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
