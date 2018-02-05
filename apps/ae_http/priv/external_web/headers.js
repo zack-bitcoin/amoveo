@@ -80,6 +80,8 @@ function headers_main() {
         var times2 = a2.times;
         var m1 = median(times1);
         var m2 = median(times2);
+	console.log("medians ");
+	console.log(JSON.stringify([m1, m2]));
         var tbig = m1 - m2;
         var t = Math.floor(tbig / f);
         var nt = pow_recalculate(
@@ -92,6 +94,7 @@ function headers_main() {
     function pow_recalculate(oldDiff, t, bottom) {
         var old = sci2int(oldDiff);
         var n = Math.max(1, Math.floor(( old * t ) / bottom));
+        //var n = Math.max(1, Math.floor(( old / bottom) * t));
         var d = int2sci(n);
         return Math.max(1, d);
     }

@@ -57,17 +57,16 @@ absorb_internal(Block) ->
                      end,
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
+	    Txs = (tx_pool:get())#tx_pool.txs,
+	    tx_pool:dump(),
             spawn(fun () ->
-			  %only do this if we are in normal node. not in quick mode.
-			  Txs = (tx_pool:get())#tx_pool.txs,
+	 %only do this if we are in normal node. not in quick mode.
 			  OldTxs = tl(Block#block.txs),
 			  Keep = lists:filter(fun(T) -> not(tx_pool_feeder:is_in(testnet_sign:data(T), OldTxs)) end, Txs),%This n**2 algorithm is slow. We can make it n*log(n) by sorting both lists first, and then comparing them.
-			  tx_pool:dump(),
 			  tx_pool_feeder:absorb_async(Keep),
 			  order_book:match()
-	    end),
+		  end),
 	    BH = block:hash(Block2),
-            %HeaderHeight = api:height(),
             recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
 	    potential_block:save(),
             io:fwrite("absorb block "),

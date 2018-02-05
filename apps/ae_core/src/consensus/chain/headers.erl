@@ -179,6 +179,10 @@ difficulty_should_be2(Header) ->
     {Times2, _} = retarget(Hash2000, F, []),
     M1 = median(Times1),
     M2 = median(Times2),
+    io:fwrite("retarget median 1 \n"),
+    io:fwrite(integer_to_list(M1)),
+    io:fwrite("retarget median 2 \n"),
+    io:fwrite(integer_to_list(M2)),
     Tbig = M1 - M2,
     T = Tbig div F,%T is the estimated block time over last 2000 blocks.
     NT = pow:recalculate(Hash2000#header.difficulty,
