@@ -63,8 +63,9 @@ remove_before([{Hash, TotalWork}|T], X) when TotalWork < X ->
     io:fwrite("prune block "),
     io:fwrite(integer_to_list(H)),
     io:fwrite("\n"),
-    %tree_data:prune(OldBlock, KeepBlock),
-    tree_data:garbage(OldBlock, KeepBlock),
+    spawn(fun() ->
+		  tree_data:garbage(OldBlock, KeepBlock)
+	  end),
     remove_before(T, X);
 remove_before([H|T], X) -> [H|remove_before(T, X)].
 add(Hash, Work, Height) ->
