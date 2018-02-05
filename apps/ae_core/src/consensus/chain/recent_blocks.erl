@@ -57,15 +57,20 @@ get_hashes([{Hash, _}|T]) ->
     [Hash|get_hashes(T)].
 remove_before([], _) -> [];
 remove_before([{Hash, TotalWork}|T], X) when TotalWork < X ->
-    OldBlock = block:get_by_hash(Hash),
-    H = OldBlock#block.height,
-    KeepBlock = block:get_by_height(H+1),
-    io:fwrite("prune block "),
-    io:fwrite(integer_to_list(H)),
-    io:fwrite("\n"),
-    spawn(fun() ->
-		  tree_data:garbage(OldBlock, KeepBlock)
-	  end),
+    KeepBlock = block:get_by_hash(Hash),
+    Height = KeepBlock#block.height,
+    if
+	Height < 2 -> ok;
+	true ->
+	    H = KeepBlock#block.prev_hash,
+	    OldBlock = block:get_by_hash(H),
+	    io:fwrite("prune block "),
+	    io:fwrite(integer_to_list(Height)),
+	    io:fwrite("\n"),
+						%spawn(fun() ->
+	    tree_data:garbage(OldBlock, KeepBlock)
+						%  end),
+    end,
     remove_before(T, X);
 remove_before([H|T], X) -> [H|remove_before(T, X)].
 add(Hash, Work, Height) ->

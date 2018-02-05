@@ -35,6 +35,7 @@ def market_test():
     #oid = json.loads(x)[1]
     print("python oid is ")
     print(oid)
+    request(1, 'mine_block', [1, 10000000], 0.2)
     request(1, 'mine_block', [3, 10000000], 0.2)
     #request(1, 'mine_block', [1, 1000000], 0.2)
     request(1, 'sync', [[127,0,0,1], 3020])
