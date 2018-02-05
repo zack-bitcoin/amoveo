@@ -38,7 +38,7 @@ def market_test():
     request(1, 'mine_block', [3, 10000000], 0.2)
     #request(1, 'mine_block', [1, 1000000], 0.2)
     request(1, 'sync', [[127,0,0,1], 3020])
-    request(1, 'sync', [[127,0,0,1], 3030], 2)
+    request(1, 'sync', [[127,0,0,1], 3030], 1)
     #oid = 1
     request(3, 'new_market', [oid, 20, 5], 0.2)
 def test2(): #useful for testing market from light node.
