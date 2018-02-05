@@ -24,9 +24,9 @@ absorb_internal(SignedTx) ->
     %io:fwrite("now 2 "),%200
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
+    Tx = testnet_sign:data(SignedTx),
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
-    Tx = testnet_sign:data(SignedTx),
     Fee = element(4, Tx),
     Type = element(1, Tx),
     %io:fwrite("now 3 "),%1500
@@ -141,6 +141,7 @@ absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest
 absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->
     gen_server:call(?MODULE, {absorb, SignedTx}).
+absorb_async([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb_async([H|T]) ->
     absorb_async(H),
     absorb_async(T);
