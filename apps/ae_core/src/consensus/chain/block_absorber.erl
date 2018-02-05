@@ -60,8 +60,10 @@ absorb_internal(Block) ->
             spawn(fun () ->
 			  %only do this if we are in normal node. not in quick mode.
 			  Txs = (tx_pool:get())#tx_pool.txs,
+			  OldTxs = Block#block.txs,
+			  Keep = lists:filter(Txs, fun(T) -> not(tx_pool_feeder:is_in(T, Txs)) end),
 			  tx_pool:dump(),
-			  tx_pool_feeder:absorb_async(Txs),
+			  tx_pool_feeder:absorb_async(Keep),
 			  order_book:match()
                   end),
 	    BH = block:hash(Block2),

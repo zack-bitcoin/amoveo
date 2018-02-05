@@ -1,7 +1,7 @@
 -module(tx_pool_feeder).
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
--export([absorb/1, absorb_async/1, absorb_unsafe/1]).
+-export([absorb/1, absorb_async/1, absorb_unsafe/1, is_in/2]).
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) -> {ok, []}.
