@@ -59,20 +59,18 @@ absorb_internal(Block) ->
 	    do_save(Block2),
 	    case sync_mode:check() of
 		normal -> 
-		    %spawn(fun () ->
-				  Txs = (tx_pool:get())#tx_pool.txs,
-				  tx_pool:dump(),
-				  OldTxs = tl(Block#block.txs),
-				  Keep = lists:filter(fun(T) -> not(tx_pool_feeder:is_in(testnet_sign:data(T), OldTxs)) end, Txs),%This n**2 algorithm is slow. We can make it n*log(n) by sorting both lists first, and then comparing them.
-				  tx_pool_feeder:absorb_async(Keep),
-				  order_book:match(),
-			  %end),
-		    
+		    Txs = (tx_pool:get())#tx_pool.txs,
+		    tx_pool:dump(),
+		    OldTxs = tl(Block#block.txs),
+		    Keep = lists:filter(fun(T) -> not(tx_pool_feeder:is_in(testnet_sign:data(T), OldTxs)) end, Txs),%This n**2 algorithm is slow. We can make it n*log(n) by sorting both lists first, and then comparing them.
+		    tx_pool_feeder:absorb_async(Keep),
+		    order_book:match(),
 		    potential_block:save();
 		quick -> 
 		    HH = (headers:top())#header.height,
+		    {ok, RD} = application:get_env(ae_core, revert_depth),
 		    if
-			HH - 30 < Height -> sync_mode:normal();
+			HH - RD < Height -> sync_mode:normal();
 			true -> ok
 		    end
 	    end,

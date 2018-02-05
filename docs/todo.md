@@ -38,6 +38,8 @@ none
 
 ### Things we can do after launch of mainnet
 
+* config fork toleranace and config revert depth should be the same thing.
+
 * documentation for sync_mode.
 
 * in block_absorber.erl we are spawning a process that has to filter some txs. We can make this faster n**2 -> n*log(n).
