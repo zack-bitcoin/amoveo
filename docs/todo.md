@@ -38,6 +38,10 @@ none
 
 ### Things we can do after launch of mainnet
 
+* the mining pool should never spam the full node. They are on the same machine.
+
+* rethink syncing. If you have more headers than the server, it fails to download blocks.
+
 * The light node should allow for betting in the oracle. 
 
 * when your bets get matched, the ss gets displayed in the browser. We should probably display more information along with the ss, so users can more easily tell if they need to use the smart contract enforcement mechanism.
