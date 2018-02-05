@@ -38,6 +38,11 @@ none
 
 ### Things we can do after launch of mainnet
 
+* in block_absorber.erl we are spawning a process that has to filter some txs. We can make this faster n**2 -> n*log(n).
+- additionally, we should only do this calculation when in normal mode. If we are trying to sync blocks quickly, we can skip this calculation.
+
+* in spk.js there is a spot where we should be verifying signatures, but we are not.
+
 * spk get_paid and spk apply_bet should probably incrase the nonce by more than 1.
 
 * When syncing we are building a potential block at every height. This is very innefficient. Instead we should download the entire history before building potential blocks.
