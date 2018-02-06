@@ -402,11 +402,14 @@ function channels_main() {
         var payment_contract = lightning_object.make(a);
         var code = payment_contract.bet;
         var ss = payment_contract.ss;
-        var encrypted = keys.encrypt([-6, ss, code, a], to);
+	var emsg = [-6, ss, code, a];
+        var encrypted = keys.encrypt(emsg, to);
         var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
         var msg = ["locked_payment", sspk, a, fee, code, keys.pub(), to, encrypted];
-        //console.log("lightning spend msg is ");
-        //console.log(JSON.stringify(msg));
+        console.log("lightning spend msg is ");
+        console.log(JSON.stringify(msg));
+	console.log("lightning encrypted is ");
+        console.log(JSON.stringify(emsg));
         variable_public_get(msg, function(sspk2) {
 	    spk1 = sspk[1];
 	    spk2 = sspk2[1];

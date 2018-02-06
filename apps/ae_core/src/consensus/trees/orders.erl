@@ -256,7 +256,7 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
                     P = L#orders.pointer,
                     if
                         NewA > OldA ->
-                            throw(check),
+                            %throw(check),
                             Dict2 = dict_head_update(P, OID, Dict),
                             Order2 = update_amount(Order, -OldA),
                             Dict3 = dict_delete(aid(L), OID, Dict2),

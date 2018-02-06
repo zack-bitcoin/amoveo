@@ -12,18 +12,20 @@
 
 * consider updating the mining algorithm so we don't include the difficulty in the thing being hashed.
 
+* oracle new tx probably needs the oracle_future_limit, otherwise an attacker could freeze the governance mechanism from operating.
+
 
 
 
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-none
+encryption.js test is failing.
 
 ### tests before official launch of mainnet
 
-* closing markets in the light node. (first test these things with full nodes.)
-- open orders should be settled.
+* closing markets in the light node.
+- open orders should be deleted. (test with full node first)
 - winning shares should be paid the prize.
 - losing shares should be deleted.
 

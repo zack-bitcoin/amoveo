@@ -412,7 +412,7 @@ test(11) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0), %Fee, question, start, id gov, govamount
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),

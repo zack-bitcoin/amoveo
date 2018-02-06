@@ -65,6 +65,7 @@ def test2(): #useful for testing market from light node.
 def test3(): #useful for testing market from light node.
     oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     request(1, 'combine_cancel_assets', [[127,0,0,1], 3030], 0.1)
+    request(2, 'oracle_bet', [oid, 1, 50000000], 0.2)
     request(1, 'oracle_bet', [oid, 2, 2600000000], 0.2)
     request(1, 'mine_block', [11, 10000], 1)
     request(1, 'sync', [[127,0,0,1], 3030])
