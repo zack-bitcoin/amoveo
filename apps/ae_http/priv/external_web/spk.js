@@ -101,7 +101,7 @@ function spk_main() {
             //console.log(JSON.stringify(data3.stack));
             //console.log("bet was ");
             //console.log(JSON.stringify(bet));
-            var amount = data3.stack[0];
+            var amount = data3.stack[0] | 0;//This should be a signed integer, but for some reason the integer is being stuck into a 32 byte unsigned value, so -2000 becomes 4294965296
             var nonce = data3.stack[1];
             var delay = data3.stack[2];
             var cgran = 10000; //constants.erl
@@ -170,6 +170,9 @@ function spk_main() {
         var var_limit = 10000;
         var bet_gas_limit = 100000;
         var cgran = 10000; //constants.erl
+	console.log("spk force update 2 compare bets and ss");
+	console.log(JSON.stringify(ss));
+	console.log(JSON.stringify(bets));
         spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, bets.length-1, callback);
     }
     function spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i, callback) {
@@ -215,8 +218,9 @@ console.log(JSON.stringify([
                 nonce += s[1];
                 new_bets = new_bets.slice(0, i).concat(new_bets.slice(i+1, new_bets.length));
                 newss = newss.slice(0, i).concat(newss.slice(i+1, newss.length));
-            }
-	    console.log("long delay, do not close the trade.");
+            } else {
+		console.log("long delay, do not close the trade.");
+	    }
             return spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i-1, callback); 
         });
     }
