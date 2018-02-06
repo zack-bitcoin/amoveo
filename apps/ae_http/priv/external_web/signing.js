@@ -111,7 +111,7 @@ function bin2rs(x) {
 }
 
 
-signing_test();
+//signing_test();
 function signing_test() {
 
     //priv1 = atob("2kYbRu2TECMJzZy55fxdILBvM5wJM482lKLTRu2e42U=");
@@ -132,6 +132,7 @@ function signing_test() {
 }
 
 //setTimeout(signing_test2(), 1000);
+//signing_test2();
 function signing_test2() {
     //var d = ["record", [-6, 4], [-7, 8000], -50];
     var d = ["record", "BAr8BCYGo1WwDoB1KXU7xvdqRetLJbyEyRgT7NyBggkYUVW5oalfek1imezEb00Ww+61aiXNrkkBC8EEKsGjumw=", [-6, ["a", -2000]]];
@@ -141,4 +142,24 @@ function signing_test2() {
     var key0 = keys.ec().keyFromPublic(toHex(atob(keys.pub())), "hex");
     var b = verify(stx[1], stx[2], key0);
     console.log(b);
+}
+//signing_test3();
+function signing_test3() {
+    //ingredients
+    var k = keys.make();
+    var data = [];
+    //signing 
+    var d = hash(serialize(data));
+    var sig2 = btoa(array_to_string(k.sign(d).toDER()));
+    //verifying
+    var sig3 = bin2rs(atob(sig2));
+    var b = k.verify(d, sig3, "hex");
+    console.log(b);
+}
+//signing_test4();
+function signing_test4() {
+    var k = keys.make();
+    var data = [];
+    var sig = btoa(array_to_string(sign(data, k)));
+    console.log(verify(data, sig, k));
 }

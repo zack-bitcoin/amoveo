@@ -40,6 +40,8 @@ encryption.js test is failing.
 
 ### Things we can do after launch of mainnet
 
+* if the node is already running, then `make prod-restart` should do the same thing as `make prod-attach`
+
 * `sync:stop().` should be called before `api:off().` when shutting down. put this in the documentation somewhere useful.
 
 * config fork toleranace and config revert depth should be the same thing.
