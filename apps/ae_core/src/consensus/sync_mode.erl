@@ -2,7 +2,12 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 	quick/0, normal/0, check/0]).
-init(ok) -> {ok, quick}.
+init(ok) -> 
+    X = case application:get_env(ae_core, kind) of
+	    {ok, "production"} -> quick;
+	    _ -> normal
+	end,
+    {ok, X}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.

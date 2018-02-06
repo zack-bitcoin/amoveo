@@ -38,6 +38,8 @@ none
 
 ### Things we can do after launch of mainnet
 
+* `sync:stop().` should be called before `api:off().` when shutting down. put this in the documentation somewhere useful.
+
 * config fork toleranace and config revert depth should be the same thing.
 
 * documentation for sync_mode.

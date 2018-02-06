@@ -23,11 +23,17 @@ start(P) ->
     gen_server:cast(?MODULE, start),
     doit2(P).
 doit2([]) -> ok;
-doit2([Peer|T]) ->
+%doit2([Peer|T]) ->
+doit2(L) ->
+    T = list_to_tuple(L),
+    <<X:24>> = crypto:strong_rand_bytes(3),
+    M = X rem size(T),
+    Peer = element(M+1, T),
     %gen_server:cast(?MODULE, {main, Peer}),
     spawn(fun() -> sync_peer(Peer) end),
-    timer:sleep(500),
-    doit2(T).
+    ok.
+    %timer:sleep(500),
+    %doit2(T).
 blocks(CommonHash, Block) ->
     BH = block:hash(Block),
     if 
@@ -104,19 +110,24 @@ common_block_height(CommonHash) ->
         B -> B#block.height
     end.
 get_blocks(Peer, N) ->
-    {ok, BB} = application:get_env(ae_core, download_blocks_batch),
-    Blocks = remote_peer({blocks, BB, N}, Peer),
-    case Blocks of
-        {error, _} -> 
-            io:fwrite("sync:get_blocks/2 error\n"),
-            get_blocks(Peer, N);
-        _ ->
-            block_absorber:save(Blocks),
-            if
-                length(Blocks) > (BB div 2) ->
+    Status = status(),
+    case status() of
+	go ->
+	    {ok, BB} = application:get_env(ae_core, download_blocks_batch),
+	    Blocks = remote_peer({blocks, BB, N}, Peer),
+	    case Blocks of
+		{error, _} -> 
+		    io:fwrite("sync:get_blocks/2 error\n"),
+		    get_blocks(Peer, N);
+		_ ->
+		    block_absorber:save(Blocks),
+		    if
+			length(Blocks) > (BB div 2) ->
                     get_blocks(Peer, N+BB);
-                true -> ok
-            end
+			true -> ok
+		    end
+	    end;
+	_ -> ok
     end.
 trade_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),

@@ -105,6 +105,7 @@ function spk_main() {
             var nonce = data3.stack[1];
             var delay = data3.stack[2];
             var cgran = 10000; //constants.erl
+	    console.log(amount);
             if ((amount > cgran) || (amount < -cgran)) {
                 throw("you can't spend money you don't have in the channel.");
             }
