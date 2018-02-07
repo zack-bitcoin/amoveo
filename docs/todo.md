@@ -20,7 +20,7 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-encryption.js test is failing.
+block:top() is way too slow.
 
 ### tests before official launch of mainnet
 
@@ -39,6 +39,8 @@ encryption.js test is failing.
 
 
 ### Things we can do after launch of mainnet
+
+* lightning payment api is not verifying data before using it. We should fail fast instead. Review the rest of the external api for the same problem.
 
 * if the node is already running, then `make prod-restart` should do the same thing as `make prod-attach`
 

@@ -183,7 +183,7 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     {ok, LightningFee} = application:get_env(ae_core, lightning_fee),
     true = Fee > LightningFee,
     Return = make_locked_payment(Sender, Amount+Fee, Code),
-    SPK = testnet_sign:data(SSPK),
+    SPK = testnet_sign:data(SSPK),%first is from them
     SPK22 = testnet_sign:data(Return),
     io:fwrite("lock spend compare spks "),
     io:fwrite(packer:pack([SPK, SPK22])),
@@ -390,7 +390,7 @@ simplify_helper(From, SS) ->
 make_locked_payment(To, Amount, Code) -> 
     {ok, CD} = channel_manager:read(To),
     SPK = CD#cd.me,
-    Bet = spk:new_bet(Code, Code, Amount),
+    Bet = spk:new_bet(Code, Code, Amount),%code is the key for looking it up.
     NewSPK = spk:apply_bet(Bet, 0, SPK, 1000, 1000),
     keys:sign(NewSPK).
 trade(Amount, Price, Bet, Other, _OID) ->

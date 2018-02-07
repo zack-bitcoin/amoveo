@@ -1,7 +1,7 @@
 -module(tx_pool).
 -behaviour(gen_server).
 %% This module holds the txs ready for the next block, and it remembers the current consensus state, so it is ready to add a new tx at any time.
--export([data_new/0, get/0, dump/0, absorb_tx/2, absorb/2]).
+-export([data_new/0, get/0, dump/0, dump/1, absorb_tx/2, absorb/2]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../records.hrl").
 start_link() ->
@@ -11,6 +11,9 @@ init(ok) ->
     State = current_state(),
     io:fwrite("tx_pool- blockchain ready\n"),
     {ok, State}.
+handle_call({dump, TopBlock}, _From, _OldState) ->
+    State = state2(TopBlock),
+    {reply, 0, State};
 handle_call(dump, _From, _OldState) ->
     State = current_state(),
     {reply, 0, State};
@@ -60,13 +63,13 @@ current_state() ->
     Block = block:top(),
     state2(Block).
 state2(Block) ->
-    Header = block:block_to_header(Block),
-    case Block of
-	empty -> 
-	    {ok, PrevHeader} = headers:read(Header#header.prev_hash),
-	    state2(PrevHeader);
-	_ ->
+    %Header = block:block_to_header(Block),
+    %case Block of
+	%empty -> 
+	%    {ok, PrevHeader} = headers:read(Header#header.prev_hash),
+	%    state2(PrevHeader);
+	%_ ->
             Trees = Block#block.trees,
 	    #tx_pool{block_trees = Trees, 
-                     height = Block#block.height}
-    end.
+                     height = Block#block.height}.
+    %end.

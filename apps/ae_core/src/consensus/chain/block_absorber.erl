@@ -60,13 +60,14 @@ absorb_internal(Block) ->
 	    case sync_mode:check() of
 		normal -> 
 		    Txs = (tx_pool:get())#tx_pool.txs,
-		    tx_pool:dump(),
+		    tx_pool:dump(Block2),
 		    OldTxs = tl(Block#block.txs),
 		    Keep = lists:filter(fun(T) -> not(tx_pool_feeder:is_in(testnet_sign:data(T), OldTxs)) end, Txs),%This n**2 algorithm is slow. We can make it n*log(n) by sorting both lists first, and then comparing them.
 		    tx_pool_feeder:absorb_async(Keep),
 		    order_book:match(),
 		    potential_block:save();
 		quick -> 
+		    tx_pool:dump(Block2),
 		    HH = (headers:top())#header.height,
 		    {ok, RD} = application:get_env(ae_core, revert_depth),
 		    if

@@ -13,6 +13,13 @@ handle(Req, State) ->
     {{IP, _}, Req3} = cowboy_req:peer(Req2),
     request_frequency:doit(IP),
     true = is_binary(Data),
+    case application:get_env(ae_core, kind) of
+	{ok, "production"} ->
+	    io:fwrite("ext_handler got this data\n"),
+	    io:fwrite(Data),
+	    io:fwrite("\n");
+	_ -> ok
+    end,
     A = packer:unpack(Data),
     B = doit(A),
     D = packer:pack(B),
@@ -127,8 +134,8 @@ doit({channel_close, CID, PeerId, SS, STx}) ->
     {ok, SSTx};
 doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}) ->
     true = size(ESS) < 200,
-    R = channel_feeder:lock_spend(SSPK, Amount, Fee, Code, Sender, Recipient, ESS),
-    {ok, R};
+    _R = channel_feeder:lock_spend(SSPK, Amount, Fee, Code, Sender, Recipient, ESS),
+    {ok, keys:sign(SSPK)};
 doit({learn_secret, From, Secret, Code}) ->
     {ok, OldCD} = channel_manager:read(From),
     secrets:add(Code, Secret),

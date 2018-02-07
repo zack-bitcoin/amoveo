@@ -387,12 +387,12 @@ function channels_main() {
     function channel_feeder_make_locked_payment(serverid, amount, code) {
         var cd = read(serverid);
         var spk = cd.me;
-        var bet = ["bet", code, code, amount, 0];
-        spk[3] = [bet].concat(spk[3]);
+        var bet = ["bet", code, amount, code, 0];
+        spk[3] = [-6, bet].concat((spk[3]).slice(1));
         spk[8] += 1;
         spk[5] += 1000;
         spk[4] = Math.max(spk[4], 1000);
-        spk[7] += amount;
+        //spk[7] += amount;
         return keys.sign(spk);
     }
     function lightning_spend(serverid) {
@@ -400,7 +400,7 @@ function channels_main() {
         var a = Math.floor(parseFloat(lightning_amount.value, 10) * 100000000);
         var to = lightning_to.value;
         var payment_contract = lightning_object.make(a);
-        var code = payment_contract.bet;
+        var code = payment_contract.bet[1];
         var ss = payment_contract.ss;
 	var emsg = [-6, ss, code, a];
         var encrypted = keys.encrypt(emsg, to);
@@ -408,7 +408,7 @@ function channels_main() {
         var msg = ["locked_payment", sspk, a, fee, code, keys.pub(), to, encrypted];
         console.log("lightning spend msg is ");
         console.log(JSON.stringify(msg));
-	console.log("lightning encrypted is ");
+	console.log("lightning encrypted msg is ");
         console.log(JSON.stringify(emsg));
         variable_public_get(msg, function(sspk2) {
 	    spk1 = sspk[1];
@@ -426,9 +426,8 @@ function channels_main() {
             var me = spk1;
             var them = sspk2;
 	    var defaultss = new_ss([], [], 0);
-	    cd.ssme = ([-6, defaultss]).concat(cd.ssme.split(1));
-	    cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.split(1));
-	    channel_manager_update(serverid, cd);
+	    cd.ssme = ([-6, defaultss]).concat(cd.ssme.slice(1));
+	    cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.slice(1));
 	    write(serverid, cd);
         });
     }

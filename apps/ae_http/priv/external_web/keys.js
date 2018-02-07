@@ -60,7 +60,7 @@ function keys_function1() {
 	update_pubkey();
     }
     function new_keys_check() {
-        //alert("this will delete your old keys. If you have money secured by this key, and you haven't saved your key, then this money will be destroyed.");
+        //alert("this will delete your old keys. If you havemoney secured by this key, and you haven't saved your key, then this money will be destroyed.");
         var warning = document.createElement("h3");
         warning.innerHTML = translate.words("key_warning");
         var button = button_maker("cancel", cancel);

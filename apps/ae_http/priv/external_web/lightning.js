@@ -9,7 +9,7 @@ function lightning_main() {
     }
 
     function make(amount) {
-        var s = Array.prototype.slice.call(elliptic.rand(32));//this entropy library doesn't seem especially trustworthy. We are using it for generating addresses too.
+        var s = Array.prototype.slice.call(elliptic.rand(32));
         var sh = hash(s);
         var ss_code = ([2, 0,0,0,32]).concat(s);
         var ss = channels_object.new_ss(ss_code, [], []);
