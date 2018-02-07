@@ -15,9 +15,10 @@ handle(Req, State) ->
     true = is_binary(Data),
     case application:get_env(ae_core, kind) of
 	{ok, "production"} ->
-	    io:fwrite("ext_handler got this data\n"),
-	    io:fwrite(Data),
-	    io:fwrite("\n");
+	    %io:fwrite("ext_handler got this data\n"),
+	    %io:fwrite(Data),
+	    %io:fwrite("\n");
+	    ok;
 	_ -> ok
     end,
     A = packer:unpack(Data),
