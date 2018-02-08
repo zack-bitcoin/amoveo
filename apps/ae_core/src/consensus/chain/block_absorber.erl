@@ -56,6 +56,7 @@ absorb_internal(Block) ->
                              H
                      end,
 	    {true, Block2} = block:check(Block),
+	    BH = block:hash(Block2),
 	    do_save(Block2),
 	    if 
 		(Height == 1) ->
@@ -76,12 +77,11 @@ absorb_internal(Block) ->
 		    tx_pool_feeder:absorb_async(Keep),
 		    order_book:match(),
 		    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
-		    potential_block:save();
+		    potential_block:new();
 		quick -> 
 		    tx_pool:dump(Block2),
 		    potential_block:dump()
 	    end,
-	    BH = block:hash(Block2),
             io:fwrite("absorb block "),
             io:fwrite(integer_to_list(Block2#block.height)),
             io:fwrite("\n")
