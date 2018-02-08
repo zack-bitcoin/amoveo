@@ -57,6 +57,16 @@ absorb_internal(Block) ->
                      end,
 	    {true, Block2} = block:check(Block),
 	    do_save(Block2),
+	    if 
+		(Height == 1) ->
+		    {ok, RD} = application:get_env(ae_core, revert_depth),
+		    HH = (headers:top())#header.height,
+		    if
+			HH - RD < Height -> sync_mode:normal();
+			true -> ok
+		    end;
+		true -> ok
+	    end,
 	    case sync_mode:check() of
 		normal -> 
 		    Txs = (tx_pool:get())#tx_pool.txs,
@@ -69,12 +79,6 @@ absorb_internal(Block) ->
 		    potential_block:save();
 		quick -> 
 		    tx_pool:dump(Block2),
-		    HH = (headers:top())#header.height,
-		    {ok, RD} = application:get_env(ae_core, revert_depth),
-		    if
-			HH - RD < Height -> sync_mode:normal();
-			true -> ok
-		    end,
 		    potential_block:dump()
 	    end,
 	    BH = block:hash(Block2),
