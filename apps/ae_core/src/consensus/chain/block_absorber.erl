@@ -65,6 +65,7 @@ absorb_internal(Block) ->
 		    Keep = lists:filter(fun(T) -> not(tx_pool_feeder:is_in(testnet_sign:data(T), OldTxs)) end, Txs),%This n**2 algorithm is slow. We can make it n*log(n) by sorting both lists first, and then comparing them.
 		    tx_pool_feeder:absorb_async(Keep),
 		    order_book:match(),
+		    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
 		    potential_block:save();
 		quick -> 
 		    tx_pool:dump(Block2),
@@ -73,10 +74,10 @@ absorb_internal(Block) ->
 		    if
 			HH - RD < Height -> sync_mode:normal();
 			true -> ok
-		    end
+		    end,
+		    potential_block:dump()
 	    end,
 	    BH = block:hash(Block2),
-            recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
             io:fwrite("absorb block "),
             io:fwrite(integer_to_list(Block2#block.height)),
             io:fwrite("\n")
