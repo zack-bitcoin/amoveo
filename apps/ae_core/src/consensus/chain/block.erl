@@ -330,6 +330,7 @@ check(Block) ->
     true = proofs_roots_match(Facts, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     Height = Block#block.height,
+    %true = Height < 2000,
     PrevHash = Block#block.prev_hash,
     Txs = Block#block.txs,
     Pub = coinbase_tx:from(hd(Block#block.txs)),

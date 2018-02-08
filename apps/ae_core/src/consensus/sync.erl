@@ -164,7 +164,7 @@ sync_peer(Peer) ->
             {ok, FT} = application:get_env(ae_core, fork_tolerance),
             get_blocks(Peer, max(0, MyBlockHeight - FT));
         true -> 
-	    io:fwrite("bad sync peer case \n"),
+	    io:fwrite("already synced with this peer \n"),
 	    ok
     end,
     trade_txs(Peer).

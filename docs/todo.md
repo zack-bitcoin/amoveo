@@ -20,7 +20,7 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-block:top() is way too slow.
+
 
 ### tests before official launch of mainnet
 
