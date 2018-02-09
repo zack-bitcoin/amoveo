@@ -115,6 +115,6 @@ function keys_function1() {
     function decrypt(val) {
 	return encryption_object.get(val, keys);
     }
-    return {make: new_keys, pub: pubkey_64, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt};
+    return {make: new_keys, pub: pubkey_64, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt};
 }
 var keys = keys_function1();

@@ -387,6 +387,8 @@ function channels_main() {
     function channel_feeder_make_locked_payment(serverid, amount, code) {
         var cd = read(serverid);
         var spk = cd.me;
+	console.log("channel feeder make locked payment");
+	console.log(JSON.stringify(spk));
         var bet = ["bet", code, amount, code, 0];
         spk[3] = [-6, bet].concat((spk[3]).slice(1));
         spk[8] += 1;
@@ -404,6 +406,9 @@ function channels_main() {
         var ss = payment_contract.ss;
 	var emsg = [-6, ss, code, a];
         var encrypted = keys.encrypt(emsg, to);
+	console.log("lightning spend a, fee");
+	console.log(a);
+	console.log(fee);
         var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
         var msg = ["locked_payment", sspk, a, fee, code, keys.pub(), to, encrypted];
         console.log("lightning spend msg is ");

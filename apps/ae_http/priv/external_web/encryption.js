@@ -106,3 +106,22 @@ function encryption_main() {
     return {get: get, send: send, test: test, test2: test2, test_shared: test_shared};
 }
 var encryption_object = encryption_main();
+
+
+
+
+
+
+var secrets_object = (function () {
+    var db = {};
+    function add(code, ss, amount){
+	db[code] = [ss, amount];
+    }
+    function dump() {
+	db = {};
+    }
+    function read(code) {
+	return db[code];
+    }
+    return {add: add, dump: dump, read: read};
+})();

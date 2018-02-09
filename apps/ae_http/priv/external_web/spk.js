@@ -53,10 +53,9 @@ function spk_main() {
         var state = chalang_object.new_state(height, slash);
         //var key1 = "fun_limit";
         var ret;
-        if (!(ss.length == (spk[3].length - 1))) {//spk[4] == bets is formated with a -6 in front for packer.erl
-            //console.log(JSON.stringify(ss));
-            //console.log(JSON.stringify(spk));
-            //console.log(JSON.stringify(spk[4]));
+        if (!(ss.length == (spk[3].length - 1))) {//spk[3] == bets is formated with a -6 in front for packer.erl
+            console.log(JSON.stringify(ss));
+            console.log(JSON.stringify(spk));
             throw("ss and bets need to be the same length");
         }
         spk_run2(ss, spk[3], spk[5], spk[4], fun_limit, var_limit, state, spk[9], spk[8], 0, 1, function(ret) {
@@ -80,6 +79,8 @@ function spk_main() {
         });
     }
     function spk_run3(ss, bet, opgas, ramgas, funs, vars, state, callback) {
+	console.log("spk run 3 ss is ");
+	console.log(ss);
         var script_sig = ss.code;
         if (!(chalang_none_of(script_sig))) {
             throw("error: return op in the script sig");
@@ -117,6 +118,9 @@ function spk_main() {
     function spk_force_update(spk0, ssold0, ssnew0, fun_limit, var_limit, callback) {
         var spk = JSON.parse(JSON.stringify(spk0));
         var ssold = JSON.parse(JSON.stringify(ssold0));
+	if (ssold[0] == -6) {
+	    ssold = ssold.slice(1);
+	}
         var ssnew = JSON.parse(JSON.stringify(ssnew0));
         console.log("force update");
         var height = headers_object.top()[1];
@@ -304,9 +308,9 @@ console.log(JSON.stringify([
                                 //console.log("channel feeder they simplify had nothing to do");
                                 //return callback(false);
                                 //this part is only used for lightning.
-                                var sh=channel_feeder_simplify_helper(From, ss4);
+                                var sh=channel_feeder_simplify_helper(from, ss4);
                                 var ss5 = sh.ss;
-                                var ret = sh.ret;
+                                var ret = sh.spk;
                                 var spk = themspk[1];
                                 var spk2 = ret[1];
                                 if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
@@ -324,6 +328,13 @@ console.log(JSON.stringify([
                 });
             });
         });
+    }
+    function channel_feeder_simplify_helper(from, ss) {
+	var cd = channels_object.read(from);
+	var spk = cd.me;//fix
+	var bet_unlock_object = spk_bet_unlock(spk, ss);
+	var ret = keys.sign(bet_unlock_object.spk);
+	return {ss: bet_unlock_object.ss, spk: ret};
     }
     function is_improvement(old_spk, old_ss, new_spk, new_ss, fun_limit, var_limit, callback) {
         //get height
@@ -380,39 +391,42 @@ console.log(JSON.stringify([
 			console.log("the server sent us money.");
 			return callback(true);
                     }
+		    var many_new_bets = new_spk[3].length - old_bets.length;
                     if ((!(profit < 0)) && //costs nothing
-                        ((new_spk[3].length - old_bets.length) > 0)) { //increases number of bets
+                        (many_new_bets > 0)) { //increases number of bets
 	                //if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
                         //var t = bets2.slice(1);
-                        var t = [-6].concat(bets2.slice(2));
+                        var t = [-6].concat(bets2.slice(1+many_new_bets));
                         if (!(JSON.stringify(t) ==
 			      JSON.stringify(old_bets))) {
 			    console.log("t is ");
 			    console.log(JSON.stringify(t));
 			    console.log("old bets");
 			    console.log(JSON.stringify(old_bets));
-                            console.log("we can only absorb one bet at a time this way.");
+                            console.log("update improperly formatted");
 			    return callback(false);
                         }
-                        var new_bet = bets2[1];
-                        var betAmount = new_bet[2];
-                        var potentialGain;
-                        if (keys.pub() == acc1) {
-                            potentialGain = -betAmount;
-                        } else if (keys.pub() == acc2) {
-                            potentialGain = betAmount;
-                        } else {
-                            console.log("error, this spk isn't for your pubkey");
-			    return callback(false);
-                        }
-                        if (!(potentialGain > 0)) {
-			    console.log(potentialGain);
-			    console.log(betAmount);
-			    console.log(JSON.stringify(new_bet));
-			    console.log(JSON.stringify(bets2));
-			    console.log("error, this could make us lose money.");
-			    return callback(false);
-                        }
+			for (var i = 1; i < many_new_bets + 1; i++) {
+                            var new_bet = bets2[i];
+                            var betAmount = new_bet[2];
+                            var potentialGain;
+                            if (keys.pub() == acc1) {
+				potentialGain = -betAmount;
+                            } else if (keys.pub() == acc2) {
+				potentialGain = betAmount;
+                            } else {
+				console.log("error, this spk isn't for your pubkey");
+				return callback(false);
+                            }
+                            if (!(potentialGain > 0)) {
+				console.log(potentialGain);
+				console.log(betAmount);
+				console.log(JSON.stringify(new_bet));
+				console.log(JSON.stringify(bets2));
+				console.log("error, this could make us lose money.");
+				return callback(false);
+                            }
+			}
                         var obligations1 = spk_obligations(1, bets2);
                         var obligations2 = spk_obligations(2, bets2);
                         var channelbal1 = channel[4];
@@ -457,20 +471,20 @@ console.log(JSON.stringify([
 	}
 	return c;
     }
-    function api_decrypt_msgs(ms) {
-	var secrets = {};
-	console.log("should start with -6");
+    function api_decrypt_msgs(ms) {//list ms starts with -6
+	console.log("msgs to decrypt");
 	console.log(JSON.stringify(ms));
 	for (var i = 1; i < ms.length; i++){
-	    var emsg = ms[i][3];
+	    var emsg = ms[i];
+	    console.log("about to decrypt this ");
+	    console.log(JSON.stringify(emsg));
 	    var dec = keys.decrypt(emsg);
 	    var secret = dec[1];
 	    var code = dec[2];
 	    var amount = dec[3];
-	    secrets[code] = [secret, amount];
-	    //secrets.add(code, secret, amount);
+	    secrets_object.add(code, secret, amount);
 	}
-	return secrets;
+	return true;
     }
     function pull_channel_state(callback) {
         //get their pubkey
@@ -487,7 +501,7 @@ console.log(JSON.stringify([
                     console.log("you don't have a record of a channel with this server. Did you load your channel data file?");
 		    console.log("attempting to trustfully download a copy of the channel state from the server. Warning, this can be a security vulnerability!");
 		    var spk = them_spk[1];
-		    var ss = cd[4];
+		    var ss = ss_to_internal(cd[4]);
 		    var expiration = cd[7];
 		    var cid = spk[6];
 		    var NewCD = channels_object.new_cd(spk, them_spk, ss, ss, expiration, cid);
@@ -507,8 +521,8 @@ console.log(JSON.stringify([
                     if (!(ret == false)) {
                         var msg2 = ["channel_sync", keys.pub(), ret];
                         variable_public_get(msg2, function(foo) {});
-                        var secret = api_decrypt_msgs(cd[5]);
-                        api_bet_unlock(server_pubkey, secret);
+                        api_decrypt_msgs(cd[5]);
+                        api_bet_unlock(server_pubkey);
 			callback();
                     } else {
 			console.log("channel feeder they simplify failed.");
@@ -520,7 +534,7 @@ console.log(JSON.stringify([
     function api_bet_unlock(server_pubkey, secret) {
 	//The javascript version can be much simpler than the erlang version, because each secret is only for one smart contract for us. We don't have to search for other contracts that use it.
 
-	var secrets = channel_feeder_bets_unlock(ServerID, secret);
+	var secrets = channel_feeder_bets_unlock(server_pubkey, secret);
 	teach_secrets(secrets);
 	variable_public_get(["spk", keys.pub()], function(spk_data) {
 	    console.log("should start with -6");
@@ -530,17 +544,22 @@ console.log(JSON.stringify([
 	});
     }
     function channel_feeder_bets_unlock(server_id, secret) {
-        var cd = channel_manager[server_id];
-        if (!(true == cd.live)) {
+        var cd = channels_object.read(server_id);
+        /*
+	  if (!(true == cd.live)) {
 	    console.log(JSON.stringify(cd));
             console.log("this channel has been closed");
             throw("this channel was closed");
         }
+	*/
+	console.log("channel feeder bets unlock ");
+	console.log(JSON.stringify(cd));
+	    
         var unlock_object = spk_bet_unlock(cd.me, cd.ssme);
         cd.me = unlock_object.spk;
         cd.ssme = unlock_object.newss;
         cd.ssthem = unlock_object.ssthem;
-        channel_manager[server_id] = cd;
+	channels_object.write(server_id, cd);
         return {"secrets":unlock_object.secrets,
                 "spk":unlock_object.spk};
 	/*
@@ -593,27 +612,25 @@ console.log(JSON.stringify([
 	cd.ssthem = cd.ssme
 	channels_object.write(from, cd);
     }
-    function spk_bet_unlock(spk, ssold, secret) {
-	console.log("spk bet unlock secret is ");
-	console.log(JSON.stringify(secret));
-	console.log("should be -6");
-	console.log(hd(ssold));
+    function spk_bet_unlock(spk, ssold) {
+	console.log("spk bet unlock spk is ");
+	console.log(JSON.stringify(spk));
+	console.log("spk bet unlock ssold is ");
+	console.log(JSON.stringify(ssold));
+	var bets = spk[3];//starts with -6
         var remaining = JSON.parse(JSON.stringify(bets));
         var amount_change = 0;
-        var ssremaining = JSON.parse(JSON.stringify(ss));
+        var ssremaining = JSON.parse(JSON.stringify(ssold));
         var secrets = [];
         var dnonce = 0;
-        var bets = spk[4];
         var key;
         var ssthem = [];
         var f;
-	console.log("should be -6");
-	console.log(hd(bets));
-        for (var i = ssold.length - 1; i > 0; i--) {
-	    var ss = ss[i];
-            key = bet[i].key;
-	    var key_junk = secrets.read(key);
-	    if (key_junk == false) {
+        for (var i = ssold.length - 1; i > -1; i--) {
+	    var ss = ssold[i];
+            key = bets[i+1].key;
+	    var key_junk = secrets_object.read(key);
+	    if (key_junk == undefined) {
 		ssremaining = ([ss]).concat(ssremaining);
 		ssthem = ([ss]).concat(ssremaining);
 		var ss2 = key_junk[0];
