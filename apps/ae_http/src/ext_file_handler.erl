@@ -6,7 +6,14 @@
 %curl -i -d '[-6,"test"]' http://localhost:3011
 handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
-    PrivDir = list_to_binary(code:priv_dir(ae_http)),
+    PrivDir0 = 
+	case application:get_env(ae_core, kind) of
+	    {ok, "production"} ->
+		code:priv_dir(ae_http);
+	    _ -> "../../../../apps/ae_http/priv"
+	end,
+    PrivDir = list_to_binary(PrivDir0),
+    %PrivDir = list_to_binary(code:priv_dir(ae_http)),
     true = case F of
                <<"/js_loader.js">> -> true;
                <<"/explorer_title.js">> -> true;

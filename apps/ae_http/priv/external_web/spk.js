@@ -280,11 +280,12 @@ console.log(JSON.stringify([
                 var var_limit = tree_number_to_value(tree_var_limit[2]);
                 spk_force_update(spkme, ssme, ss4, fun_limit, var_limit, function(b2) {
                     var cid = cd[7];
+		    var expiration = cd[7];
                     //console.log("are we able to force update?");
                     //console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
                     if ( JSON.stringify(b2) == JSON.stringify({"spk": newspk, "ss": ss})) {
                         var ret = keys.sign(newspk);
-                        var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
+                        var newcd = channels_object.new_cd(newspk, themspk, ss, ss, expiration, cid);
                         channels_object.write(from, newcd);
 			ss4_text = document.createElement("h8");
 			ss4_text.innerHTML = JSON.stringify(ss4);
@@ -296,27 +297,27 @@ console.log(JSON.stringify([
                             if ( b3 ) {
                                 //If they give free stuff, then accept.
                                 ret = keys.sign(newspk);
-                                var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
+                                //var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
                                 channels_object.write(from, newcd);
                                 return callback(ret);
                             } else {
-                                console.log("channel feeder they simplify had nothing to do");
-                                return callback(false);
+                                //console.log("channel feeder they simplify had nothing to do");
+                                //return callback(false);
                                 //this part is only used for lightning.
-                                /*
-                                  var sh=channel_feeder_simplify_helper(From, ss4);
-                                  var ss5 = sh.ss;
-                                  var ret = sh.ret;
-                                  var spk = themspk[1];
-                                  var spk2 = ret[1];
-                                  if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
-                                  console.log("spks do not match");
-                                  } else {
-                                  var data = channels_object.new_cd(spk, themspk, ss5, ss5, cid);
-                                  channels_object.write(from, data);
-                                  return ret;
-                                  }
-                                */
+                                var sh=channel_feeder_simplify_helper(From, ss4);
+                                var ss5 = sh.ss;
+                                var ret = sh.ret;
+                                var spk = themspk[1];
+                                var spk2 = ret[1];
+                                if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
+				    console.log(JSON.stringify(spk));
+				    console.log(JSON.stringify(spk2));
+                                    console.log("spks do not match");
+                                } else {
+                                    var data = channels_object.new_cd(spk, themspk, ss5, ss5, expiration, cid);
+                                    channels_object.write(from, data);
+                                    return callback(ret);
+                                }
                             }
                         });
                     }
@@ -457,14 +458,19 @@ console.log(JSON.stringify([
 	return c;
     }
     function api_decrypt_msgs(ms) {
-	for (var i = 0; i < ms.length; i++){
+	var secrets = {};
+	console.log("should start with -6");
+	console.log(JSON.stringify(ms));
+	for (var i = 1; i < ms.length; i++){
 	    var emsg = ms[i][3];
 	    var dec = keys.decrypt(emsg);
 	    var secret = dec[1];
 	    var code = dec[2];
 	    var amount = dec[3];
-	    secrets.add(code, secret, amount);
+	    secrets[code] = [secret, amount];
+	    //secrets.add(code, secret, amount);
 	}
+	return secrets;
     }
     function pull_channel_state(callback) {
         //get their pubkey
@@ -488,6 +494,8 @@ console.log(JSON.stringify([
 		    channels_object.write(server_pubkey, NewCD);
 		    return callback();
                 }
+		console.log("cd0 is ");
+		console.log(JSON.stringify(cd0));
 		/*
                   if (!(cd0.live == true)) {
                     var s = "this channel has been closed";
@@ -501,6 +509,7 @@ console.log(JSON.stringify([
                         variable_public_get(msg2, function(foo) {});
                         var secret = api_decrypt_msgs(cd[5]);
                         api_bet_unlock(server_pubkey, secret);
+			callback();
                     } else {
 			console.log("channel feeder they simplify failed.");
 		    }
@@ -511,13 +520,29 @@ console.log(JSON.stringify([
     function api_bet_unlock(server_pubkey, secret) {
 	//The javascript version can be much simpler than the erlang version, because each secret is only for one smart contract for us. We don't have to search for other contracts that use it.
 
-	//{Secrets, _SPK} = channel_feeder:bets_unlock(ServerID),
-	//teach_secrets(keys:pubkey(), Secrets, IP, Port),
-	//{ok, [_CD, ThemSPK]} = talker:talk({spk, keys:pubkey()}, IP, Port),
-	//channel_feeder:update_to_me(ThemSPK, ServerID),
-        throw("working here");
+	var secrets = channel_feeder_bets_unlock(ServerID, secret);
+	teach_secrets(secrets);
+	variable_public_get(["spk", keys.pub()], function(spk_data) {
+	    console.log("should start with -6");
+	    console.log(JSON.stringify(spk_data));
+	    var them_spk = spk_data[2];
+	    return channel_feeder_update_to_me(them_spk, server_pubkey);
+	});
     }
-    function channel_feeder_bets_unlock(server_pubkey, secret) {
+    function channel_feeder_bets_unlock(server_id, secret) {
+        var cd = channel_manager[server_id];
+        if (!(true == cd.live)) {
+	    console.log(JSON.stringify(cd));
+            console.log("this channel has been closed");
+            throw("this channel was closed");
+        }
+        var unlock_object = spk_bet_unlock(cd.me, cd.ssme);
+        cd.me = unlock_object.spk;
+        cd.ssme = unlock_object.newss;
+        cd.ssthem = unlock_object.ssthem;
+        channel_manager[server_id] = cd;
+        return {"secrets":unlock_object.secrets,
+                "spk":unlock_object.spk};
 	/*
     {ok, CD0} = channel_manager:read(ID),
     true = CD0#cd.live,
@@ -531,27 +556,84 @@ console.log(JSON.stringify([
 
     }
     function teach_secrets(Secrets) {
-    //talker:talk({learn_secret, ID, Secret, Code}, IP, Port),
+	//secrets is a dictionary code -> [secret, amount]
+	// send ["secret", Secret, Key]
+	//talker:talk({learn_secret, ID, Secret, Code}, IP, Port),
     }
     function channel_feeder_update_to_me(sspk, from) {
-	/*
-    SPK = testnet_sign:data(SSPK),
-    Acc1 = SPK#spk.acc1,
-    Acc2 = SPK#spk.acc2,
-    From = case MyID of
-	Acc1 -> Acc2;
-	Acc2 -> Acc1;
-	X -> X = Acc1
-    end,	
-    true = testnet_sign:verify(keys:sign(SSPK)),
-    {ok, OldCD} = channel_manager:read(From),
-    SPK = OldCD#cd.me,
-    NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
-    channel_manager:write(From, NewCD),
-    */
+	var myid = keys.pub();
+	var spk = sspk[1];
+	var acc1 = spk[1];
+	var acc2 = spk[2];
+	if (!(((myid == acc1) && (from == acc2))
+	      || ((myid == acc2) && (from == acc1))) ){
+	    console.log(JSON.stringify(spk));
+	    console.log(JSON.stringify(acc1));
+	    console.log(JSON.stringify(acc2));
+	    console.log(JSON.stringify(myid));
+	    console.log(JSON.stringify(from));
+	    console.log("channel_feeder_update_to_me has incorrect accounts in the spk.");
+	    return false;
+	}
+	sspk2 = keys.sign(sspk);
+	var b = verify_both(sspk2);
+	if (!(b)) {
+	    console.log("they didn't sign the spk");
+	    return false;
+	}
+	cd = channels_object.read(from);
+	if (!(JSON.stringify(cd.me) ==
+	      JSON.stringify(sspk[1]))) {
+	    console.log(JSON.stringify(cd.me));
+	    console.log(JSON.stringify(sspk[1]));
+	    console.log("can't update to me if they aren't the same.");
+	    return false;
+	}
+	cd.them = sspk
+	cd.ssthem = cd.ssme
+	channels_object.write(from, cd);
     }
     function spk_bet_unlock(spk, ssold, secret) {
-	return 0;
+	console.log("spk bet unlock secret is ");
+	console.log(JSON.stringify(secret));
+	console.log("should be -6");
+	console.log(hd(ssold));
+        var remaining = JSON.parse(JSON.stringify(bets));
+        var amount_change = 0;
+        var ssremaining = JSON.parse(JSON.stringify(ss));
+        var secrets = [];
+        var dnonce = 0;
+        var bets = spk[4];
+        var key;
+        var ssthem = [];
+        var f;
+	console.log("should be -6");
+	console.log(hd(bets));
+        for (var i = ssold.length - 1; i > 0; i--) {
+	    var ss = ss[i];
+            key = bet[i].key;
+	    var key_junk = secrets.read(key);
+	    if (key_junk == false) {
+		ssremaining = ([ss]).concat(ssremaining);
+		ssthem = ([ss]).concat(ssremaining);
+		var ss2 = key_junk[0];
+		var amount = key_junk[1];
+		//ssthem = ss[i];
+		console.log("ssthem is ");
+		console.log(JSON.stringify(ssthem));
+		throw("working here");
+		//look up fun limit and var limit and gas limit from config file.
+		//verify none of in ssthem
+		//f = spk_prove_facts(
+            }
+	}
+        spk.bets = remaining;
+        spk.amount += amount_change;
+        spk.nonce += dnonce;
+        return {"ssremaining": ssremaining,
+                "spk": spk, //make sure to change spk in a few ways;
+                "secrets": secrets,
+                "ssthem": ssthem};
     }
     /*
 Bets = SPK#spk.bets,
@@ -629,8 +711,8 @@ bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
 	   bet_unlock2(T, B, A+A3, SSIn, SSOut, [{secret, SS2, Key}|Secrets], Nonce + Nonce2, [SS2|SSThem])
    end.
     */
-	return {pull_channel_state: pull_channel_state, spk_run: spk_run};
-    }
+    return {pull_channel_state: pull_channel_state, spk_run: spk_run};
+}
 
 
 var spk_object = spk_main();

@@ -6,7 +6,16 @@
 %curl -i -d '[-6,"test"]' http://localhost:3011
 handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
-    PrivDir = list_to_binary(code:priv_dir(ae_http)),
+    PrivDir0 = 
+	case application:get_env(ae_core, kind) of
+	    {ok, "production"} ->
+		code:priv_dir(ae_http);
+	    _ -> "../../../../apps/ae_http/priv"
+	end,
+    PrivDir = list_to_binary(PrivDir0),
+    io:fwrite(PrivDir),
+%/Users/zack/Hacking/amoveo/_build/prod/rel/ae_core/lib/ae_http-0.1.0/priv
+    io:fwrite("\n"),
     File = << PrivDir/binary, <<"/web">>/binary, F/binary>>,
     {ok, _Data, _} = cowboy_req:body(Req),
     Headers = [{<<"content-type">>, <<"text/html">>},
