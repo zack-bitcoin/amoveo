@@ -6,5 +6,8 @@ var secrets = (function () {
     function dump() {
 	db = {};
     }
-    return {add: add, dump: dump};
+    function read() {
+	return db[code];
+    }
+    return {add: add, dump: dump, read: read};
 })();

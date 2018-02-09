@@ -20,7 +20,6 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-Make sure that we include all the txs when using mining pool. potential block should be remade with every tx found.
 
 ### tests before official launch of mainnet
 
@@ -39,6 +38,8 @@ Make sure that we include all the txs when using mining pool. potential block sh
 
 
 ### Things we can do after launch of mainnet
+
+* rethink the process of creating blocks and mining. It seems like race conditions might happen here.
 
 * looking up blocks to push is too slow. we should look them up in reverse order to be faster.
 

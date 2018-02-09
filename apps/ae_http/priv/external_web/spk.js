@@ -456,28 +456,8 @@ console.log(JSON.stringify([
 	}
 	return c;
     }
-    /*
-    function spk_obligations(n, bets) {
-            var x = 0;
-            for (var i = 0; i < n; i++) {
-            var b = bets[i][2];
-            if (b > 0) {
-                if (b > 0) {
-                    x += b;
-                }
-            } else if (n == 2) {
-                if (b < 0) {
-                    x -= b;
-                }
-            } else {
-                throw("spk_obligations error");
-            }
-        }
-        return x;
-    }
-    */
     function api_decrypt_msgs(ms) {
-	for (var i = 0; i < ms.length, i++){
+	for (var i = 0; i < ms.length; i++){
 	    var emsg = ms[i][3];
 	    var dec = keys.decrypt(emsg);
 	    var secret = dec[1];
@@ -519,11 +499,8 @@ console.log(JSON.stringify([
                     if (!(ret == false)) {
                         var msg2 = ["channel_sync", keys.pub(), ret];
                         variable_public_get(msg2, function(foo) {});
-                        var got_mail = api_decrypt_msgs(cd[5]);
-			if (got_mail) {
-                            api_bet_unlock();
-                            //throw("working here");
-			}
+                        var secret = api_decrypt_msgs(cd[5]);
+                        api_bet_unlock(server_pubkey, secret);
                     } else {
 			console.log("channel feeder they simplify failed.");
 		    }
@@ -531,8 +508,129 @@ console.log(JSON.stringify([
             });
         });
     }
-    return {pull_channel_state: pull_channel_state, spk_run: spk_run};
-}
+    function api_bet_unlock(server_pubkey, secret) {
+	//The javascript version can be much simpler than the erlang version, because each secret is only for one smart contract for us. We don't have to search for other contracts that use it.
+
+	//{Secrets, _SPK} = channel_feeder:bets_unlock(ServerID),
+	//teach_secrets(keys:pubkey(), Secrets, IP, Port),
+	//{ok, [_CD, ThemSPK]} = talker:talk({spk, keys:pubkey()}, IP, Port),
+	//channel_feeder:update_to_me(ThemSPK, ServerID),
+        throw("working here");
+    }
+    function channel_feeder_bets_unlock(server_pubkey, secret) {
+	/*
+    {ok, CD0} = channel_manager:read(ID),
+    true = CD0#cd.live,
+    SPKME = CD0#cd.me,
+    SSOld = CD0#cd.ssme,
+    {NewSS, SPK, Secrets, SSThem} = spk:bet_unlock(SPKME, SSOld),
+    NewCD = CD0#cd{me = SPK, ssme = NewSS, ssthem = SSThem},
+    channel_manager:write(ID, NewCD),
+    Out = {Secrets, SPK},
+	*/
+
+    }
+    function teach_secrets(Secrets) {
+    //talker:talk({learn_secret, ID, Secret, Code}, IP, Port),
+    }
+    function channel_feeder_update_to_me(sspk, from) {
+	/*
+    SPK = testnet_sign:data(SSPK),
+    Acc1 = SPK#spk.acc1,
+    Acc2 = SPK#spk.acc2,
+    From = case MyID of
+	Acc1 -> Acc2;
+	Acc2 -> Acc1;
+	X -> X = Acc1
+    end,	
+    true = testnet_sign:verify(keys:sign(SSPK)),
+    {ok, OldCD} = channel_manager:read(From),
+    SPK = OldCD#cd.me,
+    NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
+    channel_manager:write(From, NewCD),
+    */
+    }
+    function spk_bet_unlock(spk, ssold, secret) {
+	return 0;
+    }
+    /*
+Bets = SPK#spk.bets,
+    {Remaining, AmountChange, SSRemaining, Secrets, Dnonce, SSThem} = bet_unlock2(Bets, [], 0, SS, [], [], 0, []),
+    {lists:reverse(SSRemaining),
+     SPK#spk{bets = lists:reverse(Remaining),
+	     amount = SPK#spk.amount + (AmountChange),
+	     nonce = SPK#spk.nonce + Dnonce},
+     Secrets, SSThem}.
+bet_unlock2([], B, A, [], SS, Secrets, Nonce, SSThem) ->
+    {B, A, SS, Secrets, Nonce, lists:reverse(SSThem)};
+bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
+    Key = Bet#bet.key, 
+    case secrets:read(Key) of
+	<<"none">> -> 
+            io:fwrite("no secret known\n"),
+	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
+	{SS2, Amount} -> 
+	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
+            io:fwrite("we have a secret\n"),
+            TP = tx_pool:get(),
+            Trees = TP#tx_pool.block_trees,
+            Height = TP#tx_pool.height,
+	    State = chalang_state(Height, 0, Trees),
+	    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
+	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
+	    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
+	    true = chalang:none_of(SS2#ss.code),
+	    F = prove_facts(SS#ss.prove, Trees),
+	    C = Bet#bet.code,
+	    Code = <<F/binary, C/binary>>,
+	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2#ss.code, Code, State, constants:hash_size()),
+	    Data2 = chalang:run5(SS2#ss.code, Data),
+	    Data3 = chalang:run5(Code, Data2),
+	    case Data3 of
+		{error, _E} -> 
+		    io:fwrite("spk bet unlock, ss doesn't work\n"),
+		    io:fwrite(packer:pack(SS2)),
+		    io:fwrite("\n"),
+                    %io:fwrite("spk bet_unlock2 chalang run third\n"),
+		    Data4 = chalang:run5(SS#ss.code, Data),
+                    %io:fwrite("spk bet_unlock2 chalang run fourth\n"),
+		    Y = chalang:run5(Code, Data4),
+		    case Y of
+			{error, E2} ->
+			    io:fwrite("bet unlock2 ERROR"),
+			    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
+			Z -> 
+			    bet_unlock3(Z, T, B, A, Bet, SSIn, SSOut, SS, Secrets, Nonce, SSThem)
+		    end;
+		X -> 
+                    if
+                        is_integer(Amount) ->
+                            true = (abs(Amount) == abs(Bet#bet.amount));
+                        true -> ok
+                    end,
+                    bet_unlock3(X, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem)
+	    end
+    end.
+bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
+    io:fwrite("spk bet_unlock3\n"),
+    [<<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
+   if
+        Delay > 0 ->
+	   io:fwrite("delay is "),
+	   io:fwrite(integer_to_list(Delay)),
+	   io:fwrite("delay >0, keep the bet.\n"),
+	   bet_unlock2(T, [Bet|B], A, SSIn, [SS2|SSOut], Secrets, Nonce, [SS2|SSThem]);
+       true -> 
+	   io:fwrite("delay <1, remove it.\n"),
+	   CGran = constants:channel_granularity(),
+	   true = ContractAmount =< CGran,
+	   A3 = ContractAmount * Bet#bet.amount div CGran,
+	   Key = Bet#bet.key, 
+	   bet_unlock2(T, B, A+A3, SSIn, SSOut, [{secret, SS2, Key}|Secrets], Nonce + Nonce2, [SS2|SSThem])
+   end.
+    */
+	return {pull_channel_state: pull_channel_state, spk_run: spk_run};
+    }
 
 
 var spk_object = spk_main();
