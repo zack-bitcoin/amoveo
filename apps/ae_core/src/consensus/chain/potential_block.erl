@@ -8,15 +8,15 @@
 -record(pb, {block, time}).
 init(ok) -> 
     process_flag(trap_exit, true),
-    X = new_internal(""),
-    Z = #pb{block = X, time = now()},
+    %X = new_internal(""),
+    Z = #pb{block = "", time = now()},
     {ok, Z}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, X) -> 
-    B = X#pb.block,
-    PH = B#block.prev_hash,
-    PB = block:get_by_hash(PH),
+    %B = X#pb.block,
+    %PH = B#block.prev_hash,
+    %PB = block:get_by_hash(PH),
     %tree_data:garbage(B, PB),
     io:format("potential block died!"), ok.
 handle_info(_, X) -> {noreply, X}.
@@ -34,11 +34,16 @@ handle_call(check, _From, X) ->
 handle_call(read, _From, X) -> 
     D = delta(X#pb.time, now()),
     B = X#pb.block,
-    BH = B#block.height,
+    BH = case B of
+	     "" -> 0;
+	     _ -> B#block.height
+	 end,
     TP = tx_pool:get(),
     NH = TP#tx_pool.height,
     sync:start(),
     Y = if
+	    B == "" ->
+		#pb{block = new_internal2(TP), time = now()};
 	    ((D > ?refresh_period) and (BH == NH)) ->
 		#pb{block = new_internal(B, TP), time = now()};
 	    (D > ?refresh_period) ->

@@ -246,6 +246,7 @@ spawn_many(N, F) ->
     spawn(F),
     spawn_many(N-1, F).
 mine(Rounds) -> 
+    potential_block:save(),
     Block = potential_block:read(),
     mine(Block, Rounds).
 mine(Block, Rounds) ->

@@ -423,11 +423,15 @@ function channels_main() {
 		throw("lightning_spend error")
 	    }
 	    var cd = read(serverid);
-            var me = spk1;
-            var them = sspk2;
 	    var defaultss = new_ss([], [], 0);
 	    cd.ssme = ([-6, defaultss]).concat(cd.ssme.slice(1));
 	    cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.slice(1));
+	    cd.me = spk1;
+	    cd.them = sspk2;
+	    /*
+spk currently looks like this.
+{"me":["spk","BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",[-6],0,0,"uEHL7hd8f6hzyalwrYPOMKfL1DV4bshFb3qlc3mR3w0=",6374999,0,100],"them":["signed",["spk","BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",[-6],0,0,"uEHL7hd8f6hzyalwrYPOMKfL1DV4bshFb3qlc3mR3w0=",6374999,0,100],[-6],"MEYCIQCtc7a8h5AksJDzyJascAWo4OPq7eh1wtWSmcQ7ia+dzgIhANqTE+NFQaiMeY952P64MfY2b15SlhNpvoBKCij5/7le"],"ssme":[-6,{"code":[],"prove":[],"meta":0}],"ssthem":[-6,{"code":[],"prove":[],"meta":0}],"expiration":5020}"
+	     */
 	    write(serverid, cd);
         });
     }

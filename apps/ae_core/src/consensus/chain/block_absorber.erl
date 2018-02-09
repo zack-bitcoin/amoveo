@@ -77,8 +77,11 @@ absorb_internal(Block) ->
 		    tx_pool_feeder:absorb_async(Keep),
 		    order_book:match(),
 		    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
-		    potential_block:new();
+		    io:fwrite("about to pb new\n"),
+		    %potential_block:new();
+		    potential_block:save();
 		quick -> 
+		    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
 		    tx_pool:dump(Block2),
 		    potential_block:dump()
 	    end,

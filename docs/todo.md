@@ -20,7 +20,7 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-
+Make sure that we include all the txs when using mining pool. potential block should be remade with every tx found.
 
 ### tests before official launch of mainnet
 
@@ -39,6 +39,8 @@
 
 
 ### Things we can do after launch of mainnet
+
+* looking up blocks to push is too slow. we should look them up in reverse order to be faster.
 
 * lightning payment api is not verifying data before using it. We should fail fast instead. Review the rest of the external api for the same problem.
 

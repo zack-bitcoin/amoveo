@@ -6,6 +6,7 @@ def assertEqual(x, y):
 
 def lightning_test():
     print("lightning test")
+    request(1, 'mine_block', [1, 10000000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3020], 0.05)
     request(1, 'sync', [[127,0,0,1], 3030], 0.05)
     pub1 = 'BEdcBeV8yXcki/s2Lk2aJoCG59/82yacIKdYSW+5p6ZahDZoIUnOiA790dj3KsNSwgdqq1L6IPU5bcq4+ukGCgI='
@@ -46,6 +47,7 @@ def lightning_test():
     assertEqual(height1, height3)
     request(1, 'channel_close', [[127,0,0,1], 3030])
     request(2, 'channel_close', [[127,0,0,1], 3030])
+    #request(1, 'mine_block', [1, 10000000], 0.02)
 
 if __name__ == "__main__":
     lightning_test()

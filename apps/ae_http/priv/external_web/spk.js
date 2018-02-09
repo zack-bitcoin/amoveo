@@ -376,33 +376,41 @@ console.log(JSON.stringify([
                     var bets2 = new_spk[3];
                     if ((JSON.stringify(old_bets) == JSON.stringify(bets2)) && (profit > 0)) {
                         //if they give us money for no reason, then accept.
-                        ret = true;
-                        return 0;
+			console.log("the server sent us money.");
+			return callback(true);
                     }
                     if ((!(profit < 0)) && //costs nothing
                         ((new_spk[3].length - old_bets.length) > 0)) { //increases number of bets
 	                //if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
-                        var new_bet = bets2[0];
-                        var t = bets2.slice(1, bets2.length);
-                        if (!(JSON.stringify(t) == old_bets)) {
+                        //var t = bets2.slice(1);
+                        var t = [-6].concat(bets2.slice(2));
+                        if (!(JSON.stringify(t) ==
+			      JSON.stringify(old_bets))) {
+			    console.log("t is ");
+			    console.log(JSON.stringify(t));
+			    console.log("old bets");
+			    console.log(JSON.stringify(old_bets));
                             console.log("we can only absorb one bet at a time this way.");
-                            ret = false;
-                            return 0;
+			    return callback(false);
                         }
-                        var betAmount = new_bet.amount;
+                        var new_bet = bets2[1];
+                        var betAmount = new_bet[2];
                         var potentialGain;
                         if (keys.pub() == acc1) {
                             potentialGain = -betAmount;
                         } else if (keys.pub() == acc2) {
                             potentialGain = betAmount;
                         } else {
-                            console.log("error, this spk isn't for your pubkey")
-                            ret = false;
-                            return 0;
+                            console.log("error, this spk isn't for your pubkey");
+			    return callback(false);
                         }
                         if (!(potentialGain > 0)) {
-                            ret = false;
-                            return 0;
+			    console.log(potentialGain);
+			    console.log(betAmount);
+			    console.log(JSON.stringify(new_bet));
+			    console.log(JSON.stringify(bets2));
+			    console.log("error, this could make us lose money.");
+			    return callback(false);
                         }
                         var obligations1 = spk_obligations(1, bets2);
                         var obligations2 = spk_obligations(2, bets2);
@@ -410,28 +418,49 @@ console.log(JSON.stringify([
                         var channelbal2 = channel[5];
                         if (obligations1 > channelbal1) {
                             console.log("acc1 doesn't have enough money in the channel to make that bet");
-                            ret = false;
-                            return 0;
+			    return callback(false);
                         }
                         if (obligations2 > channelbal2) {
                             console.log("acc2 doesn't have enough money in the channel to make that bet");
-                            ret = false;
-                            return 0;
+			    return callback(false);
                         }
-                        ret = true;
-                        return 0;
+			console.log("successfully updated channel. They made a contract which costs nothing, and might give us money.");
+			return callback(true);
                     }
-                    ret = false;
-                    return 0;
+		    console.log("this contract that the server offers might cost us something, so we refuse.");
+		    return callback(false);
                 });
-                return callback(ret);
             });
         });
     }
     function spk_obligations(n, bets) {
+	if (n == 1) {
+	    return spk_obligations1(bets);
+	} else if (n == 2) {
+	    return spk_obligations2(bets);
+	}
+    }
+    function spk_obligations1(bets) {
+	var c = 0;
+	for (i = 1; i < bets.length; i++) {
+	    var b = bets[i][2];
+	    if (b > 0) { c += b; }
+	}
+	return c;
+    }
+    function spk_obligations2(bets) {
+	var c = 0;
+	for (i = 1; i < bets.length; i++) {
+	    var b = bets[i][2];
+	    if (b < 0) { c -= b; }
+	}
+	return c;
+    }
+    /*
+    function spk_obligations(n, bets) {
             var x = 0;
             for (var i = 0; i < n; i++) {
-            var b = bets[i].amount;
+            var b = bets[i][2];
             if (b > 0) {
                 if (b > 0) {
                     x += b;
@@ -446,34 +475,16 @@ console.log(JSON.stringify([
         }
         return x;
     }
-    function api_decrypt_msgs(l) {
-	var r = false;
-        for (var i = 0; i < l.length; i++) {
-	    if (!(l[i] == -6)) {
-		r = true;
-		console.log("api decrypt msgs ");
-		console.log(JSON.stringify(l[i]));
-		var d = encryption_object.get(l[i]);
-		console.log(JSON.stringify(d));
-		throw("api decrypt msgs");
-		lightning_object.add(d.code, d.secret, d.amount);
-	    }
-        }
-	return r;
-    }
-    function api_bet_unlock(pubkey) {
-        var bu = channel_feeder_bets_unlock(pubkey);
-        var msg = ["learn_secret", pubkey_64(), secret, code];
-        variable_public_get(msg, function () {} );
-        variable_public_get([spk, pubkey_64()], function (x) {
-            console.log("api bet unlock x is ");
-            console.log(JSON.stringify(x));
-            throw("api bet unlock");
-            var cd = x[1];
-            var spk = x[2];
-            channel_feeder:update_to_me(spk, pubkey);
-        } );
-        
+    */
+    function api_decrypt_msgs(ms) {
+	for (var i = 0; i < ms.length, i++){
+	    var emsg = ms[i][3];
+	    var dec = keys.decrypt(emsg);
+	    var secret = dec[1];
+	    var code = dec[2];
+	    var amount = dec[3];
+	    secrets.add(code, secret, amount);
+	}
     }
     function pull_channel_state(callback) {
         //get their pubkey
@@ -522,5 +533,6 @@ console.log(JSON.stringify([
     }
     return {pull_channel_state: pull_channel_state, spk_run: spk_run};
 }
+
 
 var spk_object = spk_main();
