@@ -14,6 +14,9 @@ function channels_main() {
         }
     }
     function write(key, value) {
+	if (value == undefined) {
+	    throw("error, deleting channel data");
+	}
         channel_manager[key] = value;
     }
     function remove(key) {

@@ -301,27 +301,29 @@ console.log(JSON.stringify([
                             if ( b3 ) {
                                 //If they give free stuff, then accept.
                                 ret = keys.sign(newspk);
-                                //var newcd = channels_object.new_cd(newspk, themspk, ss, ss, cid);
+                                var newcd = channels_object.new_cd(newspk, themspk, ss, ss, expiration, cid);
                                 channels_object.write(from, newcd);
                                 return callback(ret);
                             } else {
                                 //console.log("channel feeder they simplify had nothing to do");
                                 //return callback(false);
                                 //this part is only used for lightning.
-                                var sh=channel_feeder_simplify_helper(from, ss4);
-                                var ss5 = sh.ss;
-                                var ret = sh.spk;
-                                var spk = themspk[1];
-                                var spk2 = ret[1];
-                                if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
-				    console.log(JSON.stringify(spk));
-				    console.log(JSON.stringify(spk2));
-                                    console.log("spks do not match");
-                                } else {
-                                    var data = channels_object.new_cd(spk, themspk, ss5, ss5, expiration, cid);
-                                    channels_object.write(from, data);
-                                    return callback(ret);
-                                }
+                                channel_feeder_simplify_helper(from, ss4, function(sh) {
+
+                                    var ss5 = sh.ss;
+                                    var ret = sh.spk;
+                                    var spk = themspk[1];
+                                    var spk2 = ret[1];
+                                    if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
+					console.log(JSON.stringify(spk));
+					console.log(JSON.stringify(spk2));
+					console.log("spks do not match");
+                                    } else {
+					var data = channels_object.new_cd(spk, themspk, ss5, ss5, expiration, cid);
+					channels_object.write(from, data);
+					return callback(ret);
+                                    }
+				});
                             }
                         });
                     }
@@ -329,12 +331,14 @@ console.log(JSON.stringify([
             });
         });
     }
-    function channel_feeder_simplify_helper(from, ss) {
+    function channel_feeder_simplify_helper(from, ss, callback) {
 	var cd = channels_object.read(from);
 	var spk = cd.me;//fix
-	var bet_unlock_object = spk_bet_unlock(spk, ss);
-	var ret = keys.sign(bet_unlock_object.spk);
-	return {ss: bet_unlock_object.ss, spk: ret};
+	var bet_unlock_object = spk_bet_unlock(spk, ss, function(bet_unlock_object) {
+
+	    var ret = keys.sign(bet_unlock_object.spk);
+	    return callback({ss: bet_unlock_object.ss, spk: ret});
+	});
     }
     function is_improvement(old_spk, old_ss, new_spk, new_ss, fun_limit, var_limit, callback) {
         //get height
@@ -522,8 +526,9 @@ console.log(JSON.stringify([
                         var msg2 = ["channel_sync", keys.pub(), ret];
                         variable_public_get(msg2, function(foo) {});
                         api_decrypt_msgs(cd[5]);
-                        api_bet_unlock(server_pubkey);
-			callback();
+                        api_bet_unlock(server_pubkey, function(x) {
+			    return callback();
+			});
                     } else {
 			console.log("channel feeder they simplify failed.");
 		    }
@@ -531,19 +536,21 @@ console.log(JSON.stringify([
             });
         });
     }
-    function api_bet_unlock(server_pubkey, secret) {
+    function api_bet_unlock(server_pubkey, callback) {
 	//The javascript version can be much simpler than the erlang version, because each secret is only for one smart contract for us. We don't have to search for other contracts that use it.
 
-	var secrets = channel_feeder_bets_unlock(server_pubkey, secret);
-	teach_secrets(secrets);
-	variable_public_get(["spk", keys.pub()], function(spk_data) {
-	    console.log("should start with -6");
-	    console.log(JSON.stringify(spk_data));
-	    var them_spk = spk_data[2];
-	    return channel_feeder_update_to_me(them_spk, server_pubkey);
+	channel_feeder_bets_unlock(server_pubkey, function(secrets){
+	    teach_secrets(secrets);
+	    variable_public_get(["spk", keys.pub()], function(spk_data) {
+		console.log("should start with -6");
+		console.log(JSON.stringify(spk_data));
+		var them_spk = spk_data[2];
+		var x = channel_feeder_update_to_me(them_spk, server_pubkey);
+		callback(x);
+	    });
 	});
     }
-    function channel_feeder_bets_unlock(server_id, secret) {
+    function channel_feeder_bets_unlock(server_id, callback) {
         var cd = channels_object.read(server_id);
         /*
 	  if (!(true == cd.live)) {
@@ -555,13 +562,14 @@ console.log(JSON.stringify([
 	console.log("channel feeder bets unlock ");
 	console.log(JSON.stringify(cd));
 	    
-        var unlock_object = spk_bet_unlock(cd.me, cd.ssme);
-        cd.me = unlock_object.spk;
-        cd.ssme = unlock_object.newss;
-        cd.ssthem = unlock_object.ssthem;
-	channels_object.write(server_id, cd);
-        return {"secrets":unlock_object.secrets,
-                "spk":unlock_object.spk};
+        spk_bet_unlock(cd.me, cd.ssme, function(unlock_object) {
+            cd.me = unlock_object.spk;
+            cd.ssme = unlock_object.newss;
+            cd.ssthem = unlock_object.ssthem;
+	    channels_object.write(server_id, cd);
+            return callback({"secrets":unlock_object.secrets,
+			     "spk":unlock_object.spk});
+	});
 	/*
     {ok, CD0} = channel_manager:read(ID),
     true = CD0#cd.live,
@@ -578,6 +586,10 @@ console.log(JSON.stringify([
 	//secrets is a dictionary code -> [secret, amount]
 	// send ["secret", Secret, Key]
 	//talker:talk({learn_secret, ID, Secret, Code}, IP, Port),
+        for (var i = 0; i < secrets.length; i++) {
+            var msg = ["learn_secret", my_pubkey, secrets[i][1], secrets[i][2]];
+        }
+        return "ok";
     }
     function channel_feeder_update_to_me(sspk, from) {
 	var myid = keys.pub();
@@ -612,7 +624,7 @@ console.log(JSON.stringify([
 	cd.ssthem = cd.ssme
 	channels_object.write(from, cd);
     }
-    function spk_bet_unlock(spk, ssold) {
+    function spk_bet_unlock(spk, ssold, callback) {
 	console.log("spk bet unlock spk is ");
 	console.log(JSON.stringify(spk));
 	console.log("spk bet unlock ssold is ");
@@ -623,32 +635,89 @@ console.log(JSON.stringify([
         var ssremaining = JSON.parse(JSON.stringify(ssold));
         var secrets = [];
         var dnonce = 0;
-        var key;
         var ssthem = [];
-        var f;
-        for (var i = ssold.length - 1; i > -1; i--) {
-	    var ss = ssold[i];
-            key = bets[i+1].key;
-	    var key_junk = secrets_object.read(key);
+        var key, bet, f, ss, key_junk, i;
+	function bet_unlock3(data) {
+	    console.log("bet_unlock3");
+	    var s = data.stack;
+	    var nonce2 = s[1];
+	    var delay = s[2];
+	    if (delay > 0) {
+		console.log("delay > 0. keep the bet");
+		console.log(delay);
+	    } else {
+		var cgran = 10000; //constants.erl
+		var contract_amount = s[0] | 0; // changes contract_amount format so negative number work.
+		if ((contract_amount > cgran) ||
+		    (contract_amount < -cgran)) {
+                    throw("you can't spend money you don't have in the channel.");
+		}
+		var a3 = Math.floor(contract_amount * bet[2] / cgran);
+		var key = bet[3];
+		remaining = remaining.splice(i+1, 1);
+		ssremaining = ssremaining.splice(i+1, 1);
+		amount_change += a3;
+		secrets = ([["secret", ss2, key]]).concat(secrets);
+		dnonce += nonce2;
+		ssthem = ([ss2]).concat(ssthem);
+	    }
+	}
+        for (i = ssold.length - 1; i > -1; i--) {
+	    ss = ssold[i];
+	    bet = bets[i+1];
+            key = bet[3];
+	    key_junk = secrets_object.read(key);
 	    if (key_junk == undefined) {
+		console.log("secrets object");
+		console.log(JSON.stringify(secrets_object));
+		console.log("key");
+		console.log(key);
 		console.log("we don't have a secret to unlock this contract");
-		throw("working here");
-            } else {
-		throw("working here");
-		ssremaining = ([ss]).concat(ssremaining);
+		//ssremaining = ([ss]).concat(ssremaining);//doing nothing preservse the info.
 		ssthem = ([ss]).concat(ssremaining);
-		//ssthem = ss[i];
-		console.log("ssthem is ");
-		console.log(JSON.stringify(ssthem));
+		//remaining = // doing nothing means preserving the info.
+		//throw("working here");
+            } else {
 		var ss2 = key_junk[0];
 		var amount = key_junk[1];
-		console.log("ssthem is ");
-		console.log(JSON.stringify(ssthem));
-		//look up fun limit and var limit and gas limit from config file.
-		//verify none of in ssthem
-		//f = spk_prove_facts(
-		throw("working here");
-	    }
+		var height = headers_object.top()[1];
+		var state = chalang_object.new_state(height, 0);
+		var fun_limit = 400;
+		var var_limit = 10000;
+		console.log("ss2");
+		console.log(ss2);
+		var script_sig = ss2.code;
+		if (!(chalang_none_of(script_sig))) {
+		    throw("error: return op in the script sig");
+		}
+		prove_facts(ss.prove, function(f) {
+		    var c = string_to_array(atob(bet[1]));
+		    var code = f.concat(c);
+		    var opgas = ;
+		    var ramgas = ;
+		    var data = chalang:data_maker(opgas, ramgas, var_limit, fun_limit, ss2.code, code, state),
+		    var data2 = chalang_object.run5(script_sig, data);
+		    var data3 = chalang_object.run5(code, data2);
+		    console.log("data3");
+		    console.log(JSON.stringify(data3));
+		//if (is_error(data3)) {
+		//try using SS#ss.code instead of SS2#ss.code.
+		// throw("working here")
+		/*
+		    Data4 = chalang:run5(SS#ss.code, Data),
+                    %io:fwrite("spk bet_unlock2 chalang run fourth\n"),
+		    Y = chalang:run5(Code, Data4),
+		    case Y of
+			{error, E2} ->
+			    io:fwrite("bet unlock2 ERROR"),
+			    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
+			Z -> 
+			    bet_unlock3(Z, T, B, A, Bet, SSIn, SSOut, SS, Secrets, Nonce, SSThem)
+		    end;
+		*/
+		// } else {
+		//   bet_unlock3(Data3)
+		//}
 	}
         spk.bets = remaining;
         spk.amount += amount_change;

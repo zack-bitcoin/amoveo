@@ -123,5 +123,8 @@ var secrets_object = (function () {
     function read(code) {
 	return db[code];
     }
-    return {add: add, dump: dump, read: read};
+    function check() {
+	return db;
+    }
+    return {add: add, dump: dump, read: read, check: check};
 })();

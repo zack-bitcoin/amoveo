@@ -152,7 +152,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 			    bet_unlock3(Z, T, B, A, Bet, SSIn, SSOut, SS, Secrets, Nonce, SSThem)
 		    end;
 		X -> 
-                    if
+                    if%this if clause seems unnecessary.
                         is_integer(Amount) ->
                             true = (abs(Amount) == abs(Bet#bet.amount));
                         true -> ok
@@ -162,7 +162,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
     end.
 bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
     io:fwrite("spk bet_unlock3\n"),
-    [<<ContractAmount:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
+    [<<ContractAmount0:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
    if
         Delay > 0 ->
 	   io:fwrite("delay is "),
@@ -170,9 +170,15 @@ bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
 	   io:fwrite("delay >0, keep the bet.\n"),
 	   bet_unlock2(T, [Bet|B], A, SSIn, [SS2|SSOut], Secrets, Nonce, [SS2|SSThem]);
        true -> 
-	   io:fwrite("delay <1, remove it.\n"),
 	   CGran = constants:channel_granularity(),
+	   ContractAmount = if
+				ContractAmount0 > CGran ->
+				    ContractAmount0 - round(math:pow(2, 32));
+				true -> ContractAmount0
+			    end,
+	   io:fwrite("delay <1, remove it.\n"),
 	   true = ContractAmount =< CGran,
+	   true = ContractAmount >= -CGran,
 	   A3 = ContractAmount * Bet#bet.amount div CGran,
 	   Key = Bet#bet.key, 
 	   bet_unlock2(T, B, A+A3, SSIn, SSOut, [{secret, SS2, Key}|Secrets], Nonce + Nonce2, [SS2|SSThem])
