@@ -284,10 +284,15 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
-    {Amount, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
+    {Amount0, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
+    CGran = constants:channel_granularity(),
+    Amount = if 
+		 Amount0 > CGran -> 
+		     Amount0 - round(math:pow(2, 32));
+		 true -> Amount0
+	     end,
     %io:fwrite(packer:pack({stack, Amount, Nonce, Delay})),
     %io:fwrite("\n"),
-    CGran = constants:channel_granularity(),
     true = Amount =< CGran,
     true = Amount >= -CGran,
     A3 = Amount * Bet#bet.amount div CGran,

@@ -23,6 +23,10 @@
 
 ### tests before official launch of mainnet
 
+* betting in the market with the light node.
+- matching bets to recover liquidity
+- canceling bets
+
 * closing markets in the light node.
 - open orders should be deleted. (test with full node first)
 - winning shares should be paid the prize.

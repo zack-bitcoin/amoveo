@@ -631,18 +631,24 @@ console.log(JSON.stringify([
             key = bets[i+1].key;
 	    var key_junk = secrets_object.read(key);
 	    if (key_junk == undefined) {
+		console.log("we don't have a secret to unlock this contract");
+		throw("working here");
+            } else {
+		throw("working here");
 		ssremaining = ([ss]).concat(ssremaining);
 		ssthem = ([ss]).concat(ssremaining);
-		var ss2 = key_junk[0];
-		var amount = key_junk[1];
 		//ssthem = ss[i];
 		console.log("ssthem is ");
 		console.log(JSON.stringify(ssthem));
-		throw("working here");
+		var ss2 = key_junk[0];
+		var amount = key_junk[1];
+		console.log("ssthem is ");
+		console.log(JSON.stringify(ssthem));
 		//look up fun limit and var limit and gas limit from config file.
 		//verify none of in ssthem
 		//f = spk_prove_facts(
-            }
+		throw("working here");
+	    }
 	}
         spk.bets = remaining;
         spk.amount += amount_change;
