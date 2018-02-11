@@ -17,6 +17,9 @@ function channels_main() {
 	if (value == undefined) {
 	    throw("error, deleting channel data");
 	}
+	if (value.ssme == undefined) {
+	    throw("error, ssme needs to be defined");
+	}
         channel_manager[key] = value;
     }
     function remove(key) {
@@ -172,8 +175,9 @@ function channels_main() {
             lightning_button.onclick = function() { lightning_spend(pubkey); };
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
-                spk_object.pull_channel_state();
-                refresh_channels_interfaces(pubkey);
+                spk_object.pull_channel_state(function() {
+                    refresh_channels_interfaces(pubkey);
+		});
             };
             combine_cancel_button.onclick = function() {
                 combine_cancel_object.main(pubkey);

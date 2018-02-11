@@ -172,7 +172,7 @@ function spk_main() {
         var newss = JSON.parse(JSON.stringify(ss));
         var fun_limit = 1000;//config
         var var_limit = 10000;
-        var bet_gas_limit = 100000;
+        var bet_gas_limit = 100000;//same as bet_unlock2
         var cgran = 10000; //constants.erl
 	console.log("spk force update 2 compare bets and ss");
 	console.log(JSON.stringify(ss));
@@ -309,7 +309,9 @@ console.log(JSON.stringify([
                                 //return callback(false);
                                 //this part is only used for lightning.
                                 channel_feeder_simplify_helper(from, ss4, function(sh) {
-
+				    if (sh.ss == undefined) {
+					throw "error, should be defined.";
+				    }
                                     var ss5 = sh.ss;
                                     var ret = sh.spk;
                                     var spk = themspk[1];
@@ -337,7 +339,7 @@ console.log(JSON.stringify([
 	var bet_unlock_object = spk_bet_unlock(spk, ss, function(bet_unlock_object) {
 
 	    var ret = keys.sign(bet_unlock_object.spk);
-	    return callback({ss: bet_unlock_object.ss, spk: ret});
+	    return callback({ss: bet_unlock_object.newss, spk: ret});
 	});
     }
     function is_improvement(old_spk, old_ss, new_spk, new_ss, fun_limit, var_limit, callback) {
@@ -582,7 +584,7 @@ console.log(JSON.stringify([
 	*/
 
     }
-    function teach_secrets(Secrets) {
+    function teach_secrets(secrets) {
 	//secrets is a dictionary code -> [secret, amount]
 	// send ["secret", Secret, Key]
 	//talker:talk({learn_secret, ID, Secret, Code}, IP, Port),
@@ -606,7 +608,11 @@ console.log(JSON.stringify([
 	    console.log("channel_feeder_update_to_me has incorrect accounts in the spk.");
 	    return false;
 	}
+	console.log("about to sign");
+	console.log(JSON.stringify(sspk));
 	sspk2 = keys.sign(sspk);
+	console.log("signed");
+	console.log(JSON.stringify(sspk2));
 	var b = verify_both(sspk2);
 	if (!(b)) {
 	    console.log("they didn't sign the spk");
@@ -636,8 +642,13 @@ console.log(JSON.stringify([
         var secrets = [];
         var dnonce = 0;
         var ssthem = [];
-        var key, bet, f, ss, key_junk, i;
-	function bet_unlock3(data) {
+	var i = ssold.length;
+        var key, bet, f, ss, key_junk;
+	
+	return bet_unlock2(callback);
+
+
+	function bet_unlock3(data, ss2, callback) {
 	    console.log("bet_unlock3");
 	    var s = data.stack;
 	    var nonce2 = s[1];
@@ -645,6 +656,7 @@ console.log(JSON.stringify([
 	    if (delay > 0) {
 		console.log("delay > 0. keep the bet");
 		console.log(delay);
+		return bet_unlock2(callback);
 	    } else {
 		var cgran = 10000; //constants.erl
 		var contract_amount = s[0] | 0; // changes contract_amount format so negative number work.
@@ -660,9 +672,23 @@ console.log(JSON.stringify([
 		secrets = ([["secret", ss2, key]]).concat(secrets);
 		dnonce += nonce2;
 		ssthem = ([ss2]).concat(ssthem);
+		return bet_unlock2(callback);
 	    }
 	}
-        for (i = ssold.length - 1; i > -1; i--) {
+	//throw("can't use a for loop with asynch recursion inside.");
+	function bet_unlock2(callback) {
+	    i--;
+	    if (i < 0) {
+		spk.bets = remaining;
+		spk.amount += amount_change;
+		spk.nonce += dnonce;
+		var x =  {"newss": ssremaining,
+			  "spk": spk,
+			  "secrets": secrets,
+			  "ssthem": ssthem};
+		return callback(x);
+	    }
+        //for (i = ssold.length - 1; i > -1; i--) {
 	    ss = ssold[i];
 	    bet = bets[i+1];
             key = bet[3];
@@ -676,7 +702,7 @@ console.log(JSON.stringify([
 		//ssremaining = ([ss]).concat(ssremaining);//doing nothing preservse the info.
 		ssthem = ([ss]).concat(ssremaining);
 		//remaining = // doing nothing means preserving the info.
-		//throw("working here");
+		return bet_unlock2(callback);
             } else {
 		var ss2 = key_junk[0];
 		var amount = key_junk[1];
@@ -693,16 +719,15 @@ console.log(JSON.stringify([
 		prove_facts(ss.prove, function(f) {
 		    var c = string_to_array(atob(bet[1]));
 		    var code = f.concat(c);
-		    var opgas = ;
-		    var ramgas = ;
-		    var data = chalang:data_maker(opgas, ramgas, var_limit, fun_limit, ss2.code, code, state),
+		    var opgas = 100000;//should be 100 000. made it smaller to stop polluting the console.
+		    var data = chalang_object.data_maker(opgas, opgas, var_limit, fun_limit, ss2.code, code, state);
 		    var data2 = chalang_object.run5(script_sig, data);
 		    var data3 = chalang_object.run5(code, data2);
 		    console.log("data3");
 		    console.log(JSON.stringify(data3));
-		//if (is_error(data3)) {
+		    if (data3.stack == undefined) {
 		//try using SS#ss.code instead of SS2#ss.code.
-		// throw("working here")
+			throw("working here");
 		/*
 		    Data4 = chalang:run5(SS#ss.code, Data),
                     %io:fwrite("spk bet_unlock2 chalang run fourth\n"),
@@ -715,17 +740,12 @@ console.log(JSON.stringify([
 			    bet_unlock3(Z, T, B, A, Bet, SSIn, SSOut, SS, Secrets, Nonce, SSThem)
 		    end;
 		*/
-		// } else {
-		//   bet_unlock3(Data3)
-		//}
+		    } else {
+			bet_unlock3(data3, ss2, callback)
+		    }
+		});
+	    }
 	}
-        spk.bets = remaining;
-        spk.amount += amount_change;
-        spk.nonce += dnonce;
-        return {"ssremaining": ssremaining,
-                "spk": spk, //make sure to change spk in a few ways;
-                "secrets": secrets,
-                "ssthem": ssthem};
     }
     /*
 Bets = SPK#spk.bets,

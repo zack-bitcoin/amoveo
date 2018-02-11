@@ -48,8 +48,23 @@ function keys_function1() {
         return btoa(fromHex(pubPoint));
     }
     function sign_tx(tx) {
-        sig = btoa(array_to_string(sign(tx, keys)));
-        return ["signed", tx, sig, [-6]];
+	if (tx[0] == "signed") {
+	    console.log(JSON.stringify(tx));
+	    var sig = btoa(array_to_string(sign(tx[1], keys)));
+	    var pub = pubkey_64();
+	    if (pub == tx[1][1]) {
+		tx[2] = sig;
+	    } else if (pub == tx[1][2]) {
+		tx[3] = sig;
+	    } else {
+		console.log(JSON.stringify(tx));
+		throw("sign error");
+	    }
+	    return tx;
+	} else {
+            var sig = btoa(array_to_string(sign(tx, keys)));
+            return ["signed", tx, sig, [-6]];
+	}
     }
     function update_pubkey() {
         pub_div.innerHTML = translate.words("your_pubkey").concat(" ").concat(pubkey_64());
