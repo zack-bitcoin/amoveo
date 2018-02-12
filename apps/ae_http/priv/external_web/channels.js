@@ -20,6 +20,27 @@ function channels_main() {
 	if (value.ssme == undefined) {
 	    throw("error, ssme needs to be defined");
 	}
+	if (!(value.me[3][0] == -6)) {
+	    throw("bets badly formated");
+	}
+	if (!(value.them[1][3][0] == -6)) {
+	    throw("them bets badly formated");
+	}
+	var l1 = value.ssme.length;
+	var l2 = value.me[3].length - 1;
+	if (!(l1 == l2)) {
+	    console.log(JSON.stringify(value.ssme));
+	    console.log(JSON.stringify(value.me[3]));
+	    throw("error, we need the same number of ss and bets in me.");
+	}
+	var l3 = value.ssthem.length;
+	var l4 = value.them[1][3].length - 1;
+	if (!(l3 == l4)) {
+	    console.log(JSON.stringify([l3, l4]));
+	    console.log(JSON.stringify(value.ssthem));//there is an extra.
+	    console.log(JSON.stringify(value.them[1][3]));
+	    throw("error, we need the same number of ss and bets in them.");
+	}
         channel_manager[key] = value;
     }
     function remove(key) {
@@ -436,8 +457,10 @@ function channels_main() {
 	    }
 	    var cd = read(serverid);
 	    var defaultss = new_ss([], [], 0);
-	    cd.ssme = ([-6, defaultss]).concat(cd.ssme.slice(1));
-	    cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.slice(1));
+	    //cd.ssme = ([-6, defaultss]).concat(cd.ssme.slice(1));
+	    //cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.slice(1));
+	    cd.ssme = ([defaultss]).concat(cd.ssme);
+	    cd.ssthem = ([defaultss]).concat(cd.ssthem);
 	    cd.me = spk1;
 	    cd.them = sspk2;
 	    /*

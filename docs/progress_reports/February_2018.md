@@ -19,6 +19,7 @@ This purpose of this monthly progress report is to review the teams that are dev
 * a community of users
 * low trading fees
 * software that can be maintained and modified, elegance.
+* the ability to acknowledge and overcome limitations in their work.
 
 
 ## What teams are working on this technology?
@@ -33,21 +34,21 @@ Each team will be ranked in each of the categories from 0 to 10.
 * 10 there is an active community of people using this tool
 
 ```
-channels, shards, light nodes, channel markets, oracles, blockchain, community, trading fees, elegance
-                 C  S  L  M  O  B  C  F   E   total
-Amoveo           9  8  9  9  8  9  2  10  10  74
-Group Gnosis     1  0  5  0  8  10 10 5   3   42
-Fun Fair         2  0  5  0  0  10 4  10  3   34
-Variabl          1  0  5  0  0  10 2  5   3   26 
-Stox             0  0  5  0  0  10 2  0   3   20
-Augur            1  0  5  0  0  10 4  -5  3   18
-Bitshares        0  0  0  0  0  10 5  -5  6   16
-Aeternity        0  0  0  0  0  8  3  -5  9   16
-Bodhi            0  0  3  0  0  10 3  -5  4   15
-Bitcoin Hivemind 1  0  0  0  0  8  4  -5  5   12
-Spectre.ai       0  0  5  0  0  10 3  -10 3   11
-Zen Protocol     0  0  0  0  0  9  3  -2  1   11
-Zero Sum Markets 0  0  5  0  0  10 2  -10 3   10
+channels, shards, light nodes, channel markets, oracles, blockchain, community, trading fees, elegance, acknowledge limitations
+                 C  S  L  M  O  B  C  F   E  AL  total
+Amoveo           9  8  9  9  8  9  2  10  10 5   79
+Group Gnosis     1  0  5  0  8  10 10 5   3  10  52
+Fun Fair         2  0  5  0  0  10 4  10  3  5   39
+Variabl          1  0  5  0  0  10 2  5   3  5   31
+Stox             0  0  5  0  0  10 2  0   3  5   25
+Augur            1  0  5  0  0  10 4  -5  3  7   25
+Bitshares        0  0  0  0  0  10 5  -5  6  5   21
+Bitcoin Hivemind 1  0  0  0  0  8  4  -5  5  10  22
+Bodhi            0  0  3  0  0  10 3  -5  4  5   20
+Aeternity        0  0  0  0  0  8  3  -5  9  0   16
+Spectre.ai       0  0  5  0  0  10 3  -10 3  5   16
+Zero Sum Markets 0  0  5  0  0  10 2  -10 3  5   15
+Zen Protocol     0  0  0  0  0  9  3  -2  1  2   13
 ```
 
 ### Channels
@@ -204,6 +205,30 @@ Spectre.ai, uses Ethereum. Geth - 780k
 Zero Sum Markets, uses Ethereum. Geth - 780k
 
 Zen Protocol. - code is too unorganized for lines to be counted. Uncompiled, it is about 7 times longer than QTUM is. So I am estimating 3.5M
+
+### Acknowledge Limitations
+
+This is a little harder to test, so I gave 2 points to each project that I have not tested. If they contact me and start an open-source discussion we can publish about the limitation of their product, then I will immediately raise them to 5 points.
+
+Other teams already have more points because I have already had discussions with them.
+
+Group Gnosis. I met with Stefan George in Berlin. Since I already agree with almost everything Gnosis is doing, I had little criticism to offer.
+I suggested that they stop working on a delayed decryption scheme, because I could prove that it would necessarily have limitations that make it unusable for oracles. 
+They stopped working on the delayed decryption thing.
+This shows that they are capable of acknowledging and overcoming mistakes. 10
+
+Augur. The team acknowledges to me the limitations in their design, but their design is now constricted by political limitations. If the Rep was worthless, the investors would be unhappy, it might even be illegal. So the Augur team doesn't waste much time imagining what they are not allowed to do. 7
+
+Aeternity. This team is using designs that will not work. They completely ignore their limitations, censoring anyone who mentions them on their channels. 0
+
+Bitcoin Hivemind. Paul Sztorc is open to criticism. He has even changed the design based on a suggestion I put on his forum. I showed how to use hash-locking for privacy, and he studied hash functions to confirm that my advice was good.
+We disagree about a lot of things, but Paul always has good reasons to support his design decisions. He considers everyone's opinions. 10
+
+Zen Protocol. I met with Adam Perlow in Tel Aviv. He is a great guy. Very friendly, and very smart. But he isn't able to rationally look at the short-cominings of his design. He is more interested in the technology than the product. 2
+
+Amoveo. I think it is impossible for me to test this. So i will jut give Amoveo 5.
+
+
 
 ### How to make changes to this document
 

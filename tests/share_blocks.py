@@ -18,7 +18,7 @@ def test2():
     request(1, "sync", [[127,0,0,1], 3020], 0.1)#push blocks
     request(1, "spend", ["BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=", 100000000], 0.05)#light node 1
     request(1, "spend", ["BOnadmMfDIoCmio3ReSinirULreS3TbCEdr0R6FDDvoVB5xoAJnvwlL3yMgNhBzEb5l36z7bgizw2EKGn0W9rY8=", 200000000], 0.05)#dev3
-    request(1, "spend", ["BHBqY79/9Ax6MdUoYcOPqD0v0sDKeAq5wUbH5XSRwyK5gdpBaMLK7AOR/x4i8OBuu4bznhRNoO+zJ1udVOAaVVc=", 100000000], 0.05)#light node 2
+    request(1, "spend", ["BB84LgUHDPkbXkC9p+oN+hiHN1vpsa5FjGBJTrCTxaPX0Jh/y6IXTl892GetuRAnf9VNyXc9F1hZvmr2+cJjtrA=", 100000000], 0.05)#light node 2
     request(1, "spend", ["BLgYECLeI0Iq7SZqPqhoZocy3zF3ht+fPdYkjJh3OnPU1tr7+BpDbtXGNyzDF8w4gUzV7UvM4KelK6IIvQNZZ6w=", 100000000], 0.05)
     request(1, "mine_block", [1, 100000], 0.2)
     request(2, "sync", [[127,0,0,1], 3010], 0.2)#pull

@@ -565,7 +565,9 @@ console.log(JSON.stringify([
 	console.log(JSON.stringify(cd));
 	    
         spk_bet_unlock(cd.me, cd.ssme, function(unlock_object) {
-            cd.me = unlock_object.spk;
+	    console.log("spk object bets are ");
+	    console.log(JSON.stringify(unlock_object.spk[3]));
+            cd.me = unlock_object.spk;//should be empty like newss
             cd.ssme = unlock_object.newss;
             cd.ssthem = unlock_object.ssthem;
 	    channels_object.write(server_id, cd);
@@ -621,7 +623,7 @@ console.log(JSON.stringify([
 	cd = channels_object.read(from);
 	if (!(JSON.stringify(cd.me) ==
 	      JSON.stringify(sspk[1]))) {
-	    console.log(JSON.stringify(cd.me));
+	    console.log(JSON.stringify(cd.me));//bet should start with -6.//bet should be removed.
 	    console.log(JSON.stringify(sspk[1]));
 	    console.log("can't update to me if they aren't the same.");
 	    return false;
@@ -634,7 +636,8 @@ console.log(JSON.stringify([
 	console.log("spk bet unlock spk is ");
 	console.log(JSON.stringify(spk));
 	console.log("spk bet unlock ssold is ");
-	console.log(JSON.stringify(ssold));
+	console.log(JSON.stringify(ssold));//[{code:, prove:, meta:}]
+
 	var bets = spk[3];//starts with -6
         var remaining = JSON.parse(JSON.stringify(bets));
         var amount_change = 0;
@@ -666,8 +669,8 @@ console.log(JSON.stringify([
 		}
 		var a3 = Math.floor(contract_amount * bet[2] / cgran);
 		var key = bet[3];
-		remaining = remaining.splice(i+1, 1);
-		ssremaining = ssremaining.splice(i+1, 1);
+		remaining.splice(i+1, 1);
+		ssremaining.splice(i, 1);
 		amount_change += a3;
 		secrets = ([["secret", ss2, key]]).concat(secrets);
 		dnonce += nonce2;
@@ -679,9 +682,18 @@ console.log(JSON.stringify([
 	function bet_unlock2(callback) {
 	    i--;
 	    if (i < 0) {
-		spk.bets = remaining;
-		spk.amount += amount_change;
-		spk.nonce += dnonce;
+		//spk.bets = remaining;
+		spk[3] = remaining;
+		//spk.amount += amount_change;
+		spk[7] += amount_change;
+		spk[8] += dnonce;
+		console.log("bet unlock 2");
+		    console.log(JSON.stringify(remaining));
+		    console.log(JSON.stringify(ssremaining));
+		if (!(remaining.length ==
+		      ssremaining.length + 1)) {
+		    throw("bet unlock 2 lengths don't match");
+		}
 		var x =  {"newss": ssremaining,
 			  "spk": spk,
 			  "secrets": secrets,
@@ -700,7 +712,7 @@ console.log(JSON.stringify([
 		console.log(key);
 		console.log("we don't have a secret to unlock this contract");
 		//ssremaining = ([ss]).concat(ssremaining);//doing nothing preservse the info.
-		ssthem = ([ss]).concat(ssremaining);
+		ssthem = ([ss]).concat(ssthem);
 		//remaining = // doing nothing means preserving the info.
 		return bet_unlock2(callback);
             } else {

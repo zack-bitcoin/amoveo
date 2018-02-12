@@ -20,11 +20,10 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-in spk.js line 693 we are using prove_facts, which is a callback type function. We are using it inside of a for-loop iterating over i. This is no good.
-Instead we should replace the for-loop with more callbacks. to make an asynchronous for-loop.
-We should probably copy the erlang more precisely, since it uses recursion instead of for loops too. And this way less variables would be mutated.
+lightning.py is failing. after running it, look in the channel manager in node3. spk.them still has a bet floating around.
 
-spk.js bet_unlock2. we should increase the opgas constant to 100 000
+in spk.js line 693 we are using prove_facts, which is a callback type function. We are using it inside of a for-loop iterating over i. This is no good.
+We should probably copy the erlang more precisely, since it uses recursion instead of for loops too. And this way less variables would be mutated.
 
 ### tests before official launch of mainnet
 
