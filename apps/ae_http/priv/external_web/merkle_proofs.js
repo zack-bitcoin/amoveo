@@ -1,5 +1,12 @@
-
-
+function merkle_proofs_main() {
+    function verify_callback(tree, key, callback) {
+	var top_hash = hash(headers_object.serialize(headers_object.top()));
+	variable_public_get(["proof", btoa(tree), key, btoa(array_to_string(top_hash))], function(proof){
+	    var val = verify_merkle(key, proof);
+	    return callback(val);
+	    
+	});
+    }
     function hash_member(hash, members) {
         for (var i = 0; i < 6; i++) {
             var h2 = members.slice(32*i, 32*(i+1));
