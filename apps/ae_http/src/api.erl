@@ -318,6 +318,12 @@ mine_block(Periods, Times) ->
     timer:sleep(100),
     block:mine(Times),
     mine_block(Periods-1, Times).
+mine_block(_, _, _) -> %only creates a headers, no blocks.
+%This is only used for testing purposes.
+    PB = potential_block:read(),
+    WB = block:mine2(PB, 1000000),
+    Header = block:block_to_header(WB),
+    headers:absorb([Header]).
 channel_close() ->
     channel_close(?IP, ?Port).
 channel_close(IP, Port) ->
@@ -453,6 +459,7 @@ work(Nonce, _) ->
     io:fwrite("\n"),
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
+    headers:absorb_with_block([Header]),
     block_absorber:save(Block2),
     %spawn(fun() -> 
     timer:sleep(1000),

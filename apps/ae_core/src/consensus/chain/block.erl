@@ -85,7 +85,7 @@ get_by_hash(H) ->
         [] -> empty;
         Block -> binary_to_term(zlib:uncompress(Block))
     end.
-top() -> top(headers:top()).
+top() -> top(headers:top()).%what we actually want is the highest header for which we have a stored block.
 top(Header) ->
     false = element(2, Header) == undefined,
     case get_by_hash(hash(Header)) of
@@ -101,7 +101,7 @@ lg(X) when (is_integer(X) and (X > 0)) ->
 lgh(1, X) -> X;
 lgh(N, X) -> lgh(N div 2, X+1).
 get_by_height(N) ->
-    get_by_height_in_chain(N, headers:top()).
+    get_by_height_in_chain(N, headers:top_with_block()).
 get_by_height_in_chain(N, BH) when N > -1 ->
     Block = get_by_hash(hash(BH)),
     case Block of
@@ -261,6 +261,7 @@ mine(Block, Rounds, Cores) ->
                         io:fwrite("found a block"),
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
+			headers:absorb_with_block([Header]),
                         block_absorber:save(PBlock),
                         sync:start()
                 end
@@ -412,6 +413,7 @@ initialize_chain() ->
          end,
     Header0 = block_to_header(GB),
     gen_server:call(headers, {add, block:hash(Header0), Header0}),
+    gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
 
 test() ->
@@ -426,6 +428,7 @@ test(1) ->
     WBlock10 = mine2(Block1, 10),
     Header1 = block_to_header(WBlock10),
     headers:absorb([Header1]),
+    headers:absorb_with_block([Header1]),
     H1 = hash(Header1),
     H1 = hash(WBlock10),
     {ok, _} = headers:read(H1),

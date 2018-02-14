@@ -41,7 +41,9 @@ handle_call({absorb_tx, NewDict, Tx}, _From, F) ->
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
     {reply, 0, #tx_pool{txs = [], block_trees = NewTrees, height = Height}};
-handle_call(data_new, _From, F) -> {reply, F, F}.
+handle_call(data_new, _From, F) -> 
+    F2 = F#tx_pool{height = block:height()},
+    {reply, F2, F}.
 handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(_Info, State) -> {noreply, State}.
 terminate(_Reason, _State) ->

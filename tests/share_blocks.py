@@ -7,7 +7,7 @@ def test1():
     request(1, "add_peer", [[127,0,0,1], 3020], 0.1)
     request(1, "mine_block", [1, 100000], 0.1)
     request(1, "sync", [[127,0,0,1], 3020], 0.1)
-    request(2, "mine_block", [1, 100000], 0.2)
+    request(2, "mine_block", [2, 100000], 0.2)
     request(1, "sync", [[127,0,0,1], 3020], 0.2)
     #we should check that the heights are the same.
 def test2():
@@ -40,6 +40,18 @@ def test3(): #test the attack where someone generates tons of fake peers and sha
     request(1, "sync", [], 0.1)
     b = time()
     print(b-a)
+
+def test4():
+    #someone shares a valid-looking header that has no block.
+    request(1, "mine_block", [2, 0, 0], 0.1)
+    request(2, "sync", [[127,0,0,1], 3010], 0.2)#pull
+    request(2, "mine_block", [2, 100000], 0.1)
+    request(2, "sync", [[127,0,0,1], 3010], 0.2)#push
+
+def test5():
+    request(1, "mine_block", [200, 100000], 3)
+    request(2, "sync", [[127,0,0,1], 3010], 0.2)#pull
+    
 
 def share_blocks():
     test1()

@@ -1,13 +1,15 @@
 -module(headers).
 -behaviour(gen_server).
--export([absorb/1, read/1, top/0, dump/0, 
+-export([absorb/1, absorb_with_block/1, read/1, top/0, dump/0, top_with_block/0,
          make_header/9, serialize/1, deserialize/1,
          difficulty_should_be/1, test/0]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../../records.hrl").
 -define(LOC, constants:headers_file()).
 -record(s, {headers = dict:new(),
-            top = #header{}}).
+            top = #header{},
+	    top_with_block = #header{}
+	   }).
 init([]) ->
     process_flag(trap_exit, true),
     X = db:read(?LOC),
@@ -25,13 +27,25 @@ handle_call({check}, _From, State) ->
     {reply, State, State};
 handle_call({dump}, _From, _State) ->
     {reply, ok, empty_data()};
+handle_call({top_with_block}, _From, State) ->
+    {reply, State#s.top_with_block, State};
 handle_call({top}, _From, State) ->
     {reply, State#s.top, State};
+handle_call({add_with_block, Hash, Header}, _From, State) ->
+    AD = Header#header.accumulative_difficulty,
+    Top = State#s.top_with_block,
+    AF = Top#header.accumulative_difficulty,
+    NewTop = case AD >= AF of
+                 true -> Header;
+                 false -> Top
+        end,
+    %Headers = dict:store(Hash, Header, State#s.headers),
+    {reply, ok, State#s{top_with_block = NewTop}};
 handle_call({add, Hash, Header}, _From, State) ->
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top,
     AF = Top#header.accumulative_difficulty,
-    NewTop = case AD > AF of
+    NewTop = case AD >= AF of
                  true -> Header;
                  false -> Top
         end,
@@ -49,6 +63,15 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 check() -> gen_server:call(?MODULE, {check}).
+
+absorb_with_block([]) -> 0;
+absorb_with_block([F|T]) when is_binary(F) ->
+    absorb([deserialize(F)|T]);
+absorb_with_block([F|T]) ->
+    Hash = block:hash(F),
+    %false = empty == block:get_by_hash(Hash),
+    ok = gen_server:call(?MODULE, {add_with_block, Hash, F}),
+    absorb_with_block(T).
 absorb(X) -> 
     absorb(X, block:hash(block:get_by_height(0))).
 absorb([], CommonHash) -> 
@@ -85,6 +108,7 @@ check_difficulty(A) ->
     {B == A#header.difficulty, B}.
 read(Hash) -> gen_server:call(?MODULE, {read, Hash}).
 top() -> gen_server:call(?MODULE, {top}).
+top_with_block() -> gen_server:call(?MODULE, {top_with_block}).
 dump() -> gen_server:call(?MODULE, {dump}).
 make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty, Period) ->
     #header{prev_hash = PH,
@@ -201,6 +225,7 @@ empty_data() ->
     HH = block:hash(Header0),
     block_hashes:add(HH),
     #s{top = Header0, 
+       top_with_block = Header0,
        headers = dict:store(HH,Header0,dict:new())}.
 header_size() ->
     HB = constants:hash_size()*8,

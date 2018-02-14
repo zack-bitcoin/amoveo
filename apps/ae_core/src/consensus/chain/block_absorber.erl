@@ -25,8 +25,8 @@ handle_cast({doit, BP}, X) ->
 %    trees:prune(B),
 %    {reply, ok, X};
 handle_call({doit, BP}, _From, X) -> 
-    absorb_internal(BP),
-    {reply, ok, X}.
+    Y = absorb_internal(BP),
+    {reply, Y, X}.
 %prune() -> gen_server:cast(?MODULE, prune).
 %synch_prune(Blocks) -> gen_server:call(?MODULE, {prune, Blocks}, 10000).
 enqueue([]) -> ok;
@@ -34,14 +34,17 @@ enqueue([B|T]) -> enqueue(B), enqueue(T);
 enqueue(B) -> gen_server:cast(?MODULE, {doit, B}).
 save([]) -> ok;
 save([B|T]) -> save(B), save(T);
-save(B) -> gen_server:call(?MODULE, {doit, B}, 10000).
+save(B) -> 
+    gen_server:call(?MODULE, {doit, B}, 10000).
 absorb_internal(Block) ->
     BH = block:hash(Block),
     NextBlock = Block#block.prev_hash,
     Height = Block#block.height,
     BHC = block_hashes:check(BH),
     if
-        Height == 0 -> ok;
+        Height == 0 -> 
+	    {ok, Header00} = headers:read(BH),
+	    Header00;
         BHC -> ok; %we already have this block
 	true ->
 	    true = block_hashes:check(NextBlock), %check that the previous block is known.
@@ -49,10 +52,13 @@ absorb_internal(Block) ->
 	    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
             TH = headers:read(BH),
             Header = case TH of
-                         {ok, H} -> H;
+                         {ok, H} -> 
+			     headers:absorb_with_block([H]),
+			     H;
                          error -> 
                              H = block:block_to_header(Block),
                              headers:absorb([H]),
+			     headers:absorb_with_block([H]),
                              H
                      end,
 	    {true, Block2} = block:check(Block),
@@ -77,7 +83,6 @@ absorb_internal(Block) ->
 		    tx_pool_feeder:absorb_async(Keep),
 		    order_book:match(),
 		    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
-		    io:fwrite("about to pb new\n"),
 		    %potential_block:new();
 		    potential_block:save();
 		quick -> 
@@ -87,7 +92,8 @@ absorb_internal(Block) ->
 	    end,
             io:fwrite("absorb block "),
             io:fwrite(integer_to_list(Block2#block.height)),
-            io:fwrite("\n")
+            io:fwrite("\n"),
+	    Header
     end.
 do_save(BlockPlus) ->
     CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),

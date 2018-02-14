@@ -3,7 +3,7 @@ from get_request import request
 def test_mine_and_sync():
     print("fork test: mine and sync test")
     request(2, 'sync', [[127,0,0,1], 3010], 0.1)
-    request(1, 'mine_block', [1, 100000], 0.3)
+    request(1, 'mine_block', [2, 100000], 0.3)
     request(2, 'sync', [[127,0,0,1], 3010], 0.3)
     request(1, 'mine_block', [1, 100000], 0.3)
     request(2, 'mine_block', [2, 100000], 0.3)
