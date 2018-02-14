@@ -20,10 +20,15 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-lightning.py is failing. after running it, look in the channel manager in node3. spk.them still has a bet floating around.
+uncomment test lightning.py
 
-in spk.js line 693 we are using prove_facts, which is a callback type function. We are using it inside of a for-loop iterating over i. This is no good.
+lightning.py is failing. after running it, look in the channel manager in node3.
+* the encrypted msg isn't getting deleted from the channel data
+
+in spk.js line 693 we are using prove_facts, which is a callback type function.
 We should probably copy the erlang more precisely, since it uses recursion instead of for loops too. And this way less variables would be mutated.
+
+the testnet might be frozen at block 2712 header 2714.
 
 ### tests before official launch of mainnet
 

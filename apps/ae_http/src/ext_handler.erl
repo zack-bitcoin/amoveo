@@ -15,9 +15,10 @@ handle(Req, State) ->
     true = is_binary(Data),
     case application:get_env(ae_core, kind) of
 	{ok, "production"} ->
-	    %io:fwrite("ext_handler got this data\n"),
-	    %io:fwrite(Data),
-	    %io:fwrite("\n");
+	    io:fwrite("\n"),
+	    io:fwrite("ext_handler got this data\n"),
+	    io:fwrite(Data),
+	    io:fwrite("\n"),
 	    ok;
 	_ -> ok
     end,
@@ -140,6 +141,8 @@ doit({locked_payment, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}) ->
 doit({learn_secret, From, Secret, Code}) ->
     {ok, OldCD} = channel_manager:read(From),
     secrets:add(Code, Secret),
+    io:fwrite("learn secret oldcd issue"),
+    io:fwrite(packer:pack([0, OldCD, OldCD#cd.ssme])),
     SS = OldCD#cd.ssme,
     CFME = OldCD#cd.me,
     {NewSS, SPK, _Secrets, SSThem} = 
@@ -155,7 +158,13 @@ doit({learn_secret, From, Secret, Code}) ->
     end,
     {ok, 0};
 doit({channel_sync, From, SSPK}) ->
+    io:fwrite("ext_handler channel sync"),
+    io:fwrite(packer:pack(SSPK)),
+    io:fwrite("\n"),
     Return = channel_feeder:update_to_me(SSPK, From),
+    io:fwrite("channel sync succeeded.\n"),
+    io:fwrite(packer:pack(From)),
+    io:fwrite("\n"),
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();

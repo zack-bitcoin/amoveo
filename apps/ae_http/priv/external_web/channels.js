@@ -432,6 +432,7 @@ function channels_main() {
         var payment_contract = lightning_object.make(a);
         var code = payment_contract.bet[1];
         var ss = payment_contract.ss;
+	throw("working here");//chance ss to external format.
 	var emsg = [-6, ss, code, a];
         var encrypted = keys.encrypt(emsg, to);
 	console.log("lightning spend a, fee");

@@ -80,7 +80,7 @@ function spk_main() {
     }
     function spk_run3(ss, bet, opgas, ramgas, funs, vars, state, callback) {
 	console.log("spk run 3 ss is ");
-	console.log(ss);
+	console.log(JSON.stringify(ss));
         var script_sig = ss.code;
         if (!(chalang_none_of(script_sig))) {
             throw("error: return op in the script sig");
@@ -335,7 +335,7 @@ console.log(JSON.stringify([
     }
     function channel_feeder_simplify_helper(from, ss, callback) {
 	var cd = channels_object.read(from);
-	var spk = cd.me;//fix
+	var spk = cd.me;
 	var bet_unlock_object = spk_bet_unlock(spk, ss, function(bet_unlock_object) {
 
 	    var ret = keys.sign(bet_unlock_object.spk);
@@ -529,6 +529,11 @@ console.log(JSON.stringify([
                         variable_public_get(msg2, function(foo) {});
                         api_decrypt_msgs(cd[5]);
                         api_bet_unlock(server_pubkey, function(x) {
+			    var cd2 = channels_object.read(server_pubkey);
+			    var ret2 = keys.sign(cd2.me);
+                            var msg3 = ["channel_sync", keys.pub(), ret2];
+                            variable_public_get(msg2, function(foo) {});
+
 			    return callback();
 			});
                     } else {
@@ -541,10 +546,12 @@ console.log(JSON.stringify([
     function api_bet_unlock(server_pubkey, callback) {
 	//The javascript version can be much simpler than the erlang version, because each secret is only for one smart contract for us. We don't have to search for other contracts that use it.
 
-	channel_feeder_bets_unlock(server_pubkey, function(secrets){
+	channel_feeder_bets_unlock(server_pubkey, function(secrets_junk){
+	    secrets = secrets_junk.secrets;
+	    // spk = secrets_junk.spk;
 	    teach_secrets(secrets);
 	    variable_public_get(["spk", keys.pub()], function(spk_data) {
-		console.log("should start with -6");
+		console.log("should sart with -6");
 		console.log(JSON.stringify(spk_data));
 		var them_spk = spk_data[2];
 		var x = channel_feeder_update_to_me(them_spk, server_pubkey);
@@ -590,8 +597,12 @@ console.log(JSON.stringify([
 	//secrets is a dictionary code -> [secret, amount]
 	// send ["secret", Secret, Key]
 	//talker:talk({learn_secret, ID, Secret, Code}, IP, Port),
+	console.log("teaching a secret");
         for (var i = 0; i < secrets.length; i++) {
-            var msg = ["learn_secret", my_pubkey, secrets[i][1], secrets[i][2]];
+	    console.log(JSON.stringify(secrets[i]));
+            var msg = ["learn_secret", keys.pub(), secrets[i][1], secrets[i][2]];
+	    console.log(JSON.stringify(msg));
+	    variable_public_get(msg, function() { return; });
         }
         return "ok";
     }

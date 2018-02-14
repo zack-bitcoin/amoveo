@@ -245,7 +245,7 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     NewSPK = testnet_sign:data(ThemSPK),
     NewSPK = CD#cd.me,
     SS = CD#cd.ssme,
-    SS4 = CD#cd.ssthem,
+    SS4 = CD#cd.ssthem,%is this wrong?
     B2 = spk:force_update(SPKME, SSME, SS4),
     CID = CD#cd.cid,
     NewCD = CD#cd{me = NewSPK, them = ThemSPK, ssthem = SS, ssme = SS},

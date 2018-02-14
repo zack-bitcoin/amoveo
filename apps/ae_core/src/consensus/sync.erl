@@ -29,6 +29,9 @@ doit2(L) ->
     <<X:24>> = crypto:strong_rand_bytes(3),
     M = X rem size(T),
     Peer = element(M+1, T),
+    io:fwrite("syncing with peer "),
+    io:fwrite(packer:pack(Peer)),
+    io:fwrite("\n"),
     %gen_server:cast(?MODULE, {main, Peer}),
     spawn(fun() -> sync_peer(Peer) end),
     ok.

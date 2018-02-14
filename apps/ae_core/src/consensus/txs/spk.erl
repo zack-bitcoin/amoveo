@@ -121,6 +121,8 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	{SS2, Amount} -> 
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
             io:fwrite("we have a secret\n"),
+	    io:fwrite(packer:pack(SS2)),% the browswer is making it look like this: {[{<<"code">>,[2,0,0,0,32,98,87,250,109,44,40,33,174,78,71,84,176,34,104,226,87,251,254,27,121,249,5,18,185,76,16,255,4,134,1,189,94]},{<<"prove">>,[]},{<<"meta">>,[]}]}
+%in erlang it makes: {ss, <<binary>>, [], 0}
             TP = tx_pool:get(),
             Trees = TP#tx_pool.block_trees,
             Height = TP#tx_pool.height,
@@ -310,18 +312,24 @@ force_update(SPK, SSOld, SSNew) ->
     Trees = F#tx_pool.block_trees,
     Dict = F#tx_pool.dict,
     Height = F#tx_pool.height,
-    {_, NonceOld,  _} =  run(fast, SSOld, SPK, Height, 0, Trees),
-    %{_, NonceOld,  _} =  dict_run(fast, SSOld, SPK, Height, 0, Dict),
-    %we can't use dict here, because not all the information we need is stored in the dict.
-    {_, NonceNew,  _} =  run(fast, SSNew, SPK, Height, 0, Trees),
-    %{_, NonceNew,  _} =  dict_run(fast, SSNew, SPK, Height, 0, Dict),
-    if
-	NonceNew >= NonceOld ->
-	    {NewBets, FinalSS, Amount, Nonce} = force_update2(SPK#spk.bets, SSNew, [], [], 0, 0),
-	    %NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + (Amount div 2)), nonce = (SPK#spk.nonce + Nonce)},
-	    NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + (Amount)), nonce = (SPK#spk.nonce + Nonce)},
-	    {NewSPK, FinalSS};
-	true -> false
+    L = length(SSOld),
+    L2 = length(SSNew),
+    if 
+	not(L == L2) -> false;
+	true ->
+	    {_, NonceOld,  _} =  run(fast, SSOld, SPK, Height, 0, Trees),
+						%{_, NonceOld,  _} =  dict_run(fast, SSOld, SPK, Height, 0, Dict),
+						%we can't use dict here, because not all the information we need is stored in the dict.
+	    {_, NonceNew,  _} =  run(fast, SSNew, SPK, Height, 0, Trees),
+						%{_, NonceNew,  _} =  dict_run(fast, SSNew, SPK, Height, 0, Dict),
+	    if
+		NonceNew >= NonceOld ->
+		    {NewBets, FinalSS, Amount, Nonce} = force_update2(SPK#spk.bets, SSNew, [], [], 0, 0),
+						%NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + (Amount div 2)), nonce = (SPK#spk.nonce + Nonce)},
+		    NewSPK = SPK#spk{bets = NewBets, amount = (SPK#spk.amount + (Amount)), nonce = (SPK#spk.nonce + Nonce)},
+		    {NewSPK, FinalSS};
+		true -> false
+	    end
     end.
 force_update2([], [], NewBets, NewSS, A, Nonce) ->
     {NewBets, NewSS, A, Nonce};
@@ -368,40 +376,41 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     io:fwrite("spk is improvement "),
     io:fwrite(packer:pack([Nonce1, Nonce2, NewSS, OldSS])),
     io:fwrite("\n"),
-    true = Nonce2 > Nonce1,
-    Bets2 = NewSPK#spk.bets,
-    Bets1 = OldSPK#spk.bets,
+    if
+	Nonce2 > Nonce1 ->
+	    Bets2 = NewSPK#spk.bets,
+	    Bets1 = OldSPK#spk.bets,
     %{ok, MaxChannelDelay} = application:get_env(ae_core, max_channel_delay),
     %io:fwrite("delay2 is "),
     %io:fwrite(packer:pack(Delay2)),
     %io:fwrite("\n"),
     %true = Delay2 =< MaxChannelDelay,
-    Amount2 = NewSPK#spk.amount,
-    Amount1 = OldSPK#spk.amount,
-    NewSPK = OldSPK#spk{bets = Bets2,
-			space_gas = SG,
-			time_gas = TG,
-			amount = Amount2,
-			nonce = NewSPK#spk.nonce},
-    CID = NewSPK#spk.cid,
-    <<_:256>> = CID,
-    Channel = trees:dict_tree_get(channels, CID),
-    KID = keys:pubkey(),
-    Acc1 = channels:acc1(Channel),
-    Acc2 = channels:acc2(Channel),
-    Profit = 
-	if
-	    KID == Acc1 ->
-		Amount2 - Amount1;
-	    KID == Acc2 ->
-		Amount1 - Amount2
-	end,
-    LT = length(Bets2) - length(Bets1),
-    if
-	(Bets1 == Bets2) and 
-	Profit > 0 -> 
+	    Amount2 = NewSPK#spk.amount,
+	    Amount1 = OldSPK#spk.amount,
+	    NewSPK = OldSPK#spk{bets = Bets2,
+				space_gas = SG,
+				time_gas = TG,
+				amount = Amount2,
+				nonce = NewSPK#spk.nonce},
+	    CID = NewSPK#spk.cid,
+	    <<_:256>> = CID,
+	    Channel = trees:dict_tree_get(channels, CID),
+	    KID = keys:pubkey(),
+	    Acc1 = channels:acc1(Channel),
+	    Acc2 = channels:acc2(Channel),
+	    Profit = 
+		if
+		    KID == Acc1 ->
+			Amount2 - Amount1;
+		    KID == Acc2 ->
+			Amount1 - Amount2
+		end,
+	    LT = length(Bets2) - length(Bets1),
+	    if
+		(Bets1 == Bets2) and 
+		Profit > 0 -> 
 	%if they give us money for no reason, then accept
-	    true; 
+		    true; 
 	%BL2 == BL1 ->
 	%if they give us all the money from a bet, then accept
 	    %find the missing bet.
@@ -409,28 +418,30 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
 	    %Good verifies that bets were only removed, not added.
 	    %amount is the total volume of money controlled by those bets that were removed.
 	    %(Profit == Amount) and Good;
-	(Profit >= 0) and %costs nothing
-        (LT > 0)->
+		(Profit >= 0) and %costs nothing
+		(LT > 0)->
 	    %if we have the same or greater amount of money, and they make a bet that possibly gives us more money, then accept it.
-	    [NewBet|T] = Bets2,
-	    BetAmount = NewBet#bet.amount,
-	    PotentialGain = 
-		case KID of
-		    Acc1 -> -BetAmount;
-		    Acc2 -> BetAmount
-		end,
+		    [NewBet|T] = Bets2,
+		    BetAmount = NewBet#bet.amount,
+		    PotentialGain = 
+			case KID of
+			    Acc1 -> -BetAmount;
+			    Acc2 -> BetAmount
+			end,
 	    %We should look up the fee to leave a channel open, and check that the extra money beyond obligations is enough to keep the channel open long enough to close it without their help.
 	    %The problem is that we can't know how long the delay is in all the contracts.
-	    Obligations1 = obligations(1, Bets2),
-	    Obligations2 = obligations(2, Bets2),
-	    ChannelBal1 = channels:bal1(Channel),
-	    ChannelBal2 = channels:bal2(Channel),
-	    if
-		(T == Bets1) and %only add one more bet
-		(PotentialGain > 0) and %potentially gives us money
-		(Obligations2 =< ChannelBal2) and
-		(Obligations1 =< ChannelBal1)
-		-> true; 
+		    Obligations1 = obligations(1, Bets2),
+		    Obligations2 = obligations(2, Bets2),
+		    ChannelBal1 = channels:bal1(Channel),
+		    ChannelBal2 = channels:bal2(Channel),
+		    if
+			(T == Bets1) and %only add one more bet
+			(PotentialGain > 0) and %potentially gives us money
+			(Obligations2 =< ChannelBal2) and
+			(Obligations1 =< ChannelBal1)
+			-> true; 
+			true -> false
+		    end;
 		true -> false
 	    end;
 	true -> false

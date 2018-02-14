@@ -47,7 +47,7 @@ def lightning_test():
     assertEqual(height1, height3)
     request(1, 'channel_close', [[127,0,0,1], 3030])
     request(2, 'channel_close', [[127,0,0,1], 3030])
-    #request(1, 'mine_block', [1, 10000000], 0.02)
+    request(1, 'mine_block', [1, 10000000], 0.02)
 
 if __name__ == "__main__":
     lightning_test()
