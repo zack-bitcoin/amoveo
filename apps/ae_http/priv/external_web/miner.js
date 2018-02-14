@@ -39,10 +39,13 @@ function miner_main() {
             }
         }
     };
+    const TIMES = 1000000;
     function mine_helper(d_hash, nonce, diff, started, times) {
         if (times < 1) {
 	    var d = Date.now() - started;
-	    var mhps = 10000 / d;
+	    var time_elapsed_seconds = d / 1000;
+	    var mhs = TIMES / 1000000;
+	    var mhps = mhs / time_elapsed_seconds;
 	    speed.innerHTML = "mining speed: ".concat((mhps).toString()).concat(" in mega hashes per second (mh/s).");
 	    return(mine()); }
         if (mining_state == false) {
@@ -83,7 +86,8 @@ function miner_main() {
             var d_hash = string_to_array(atob(x[1]));
             var d_diff = x[3];
             var d_nonce = random_bytes(32);
-            mine_helper(d_hash, d_nonce, d_diff, Date.now(), 1000000);//after 1 million tries, it checks to see if the thing we are working on changed.
+	    var times = TIMES;
+            mine_helper(d_hash, d_nonce, d_diff, Date.now(), times);//after 1 million tries, it checks to see if the thing we are working on changed.
         });
     }
     return({"mine": mine, "mining_state": mining_state});

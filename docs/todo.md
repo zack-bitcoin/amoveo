@@ -22,13 +22,8 @@
 
 uncomment test lightning.py
 
-The blockchain freezes if the number of headers exceeds the numbe of blocks.
-* we are in the process of fixing this. We are giving tx_pool a second top, called top_with_block. This is the highest header for which we have a known block. The trouble is that with integration tests, it still isn't being updated correctly on the 3 different nodes.
-
 in spk.js line 693 we are using prove_facts, which is a callback type function.
 We should probably copy the erlang more precisely, since it uses recursion instead of for loops too. And this way less variables would be mutated.
-
-the testnet might be frozen at block 2712 header 2714.
 
 ### tests before official launch of mainnet
 
