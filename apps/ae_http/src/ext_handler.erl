@@ -150,7 +150,7 @@ doit({learn_secret, From, Secret, Code}) ->
     if
 	NewSS == SS -> ok;
 	true -> 
-            NewCD = OldCD#cd{me = SPK, ssme = NewSS, ssthem = SSThem},
+            NewCD = OldCD#cd{me = SPK, ssme = NewSS, ssthem = SSThem, emsg = []},
 	    channel_manager:write(From, NewCD),
 	    {ok, Current} = arbitrage:check(Code),
 	    IDS = minus(Current, From),

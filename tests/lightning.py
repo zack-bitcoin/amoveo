@@ -31,11 +31,11 @@ def lightning_test():
     request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 4, 1000], 0.05)
     request(1, 'sync', [[127,0,0,1], 3030], 0.05)
     request(1, 'channel_spend', [[127,0,0,1], 3030, 777], 0.05)
-    request(1, 'lightning_spend', [[127,0,0,1], 3030, pub2, 4, 10], 0.05)
+    request(1, 'lightning_spend', [[127,0,0,1], 3030, pub2, 4, 10], 0.05)#only a problem for 2 and 3.
     request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.05)
     request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.05)
     pub1 = 'BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo='
-    request(2, 'lightning_spend', [[127,0,0,1], 3030, pub1, 4000, 10], 0.05)
+    request(2, 'lightning_spend', [[127,0,0,1], 3030, pub1, 4000, 10], 0.05)#only a problem for node 1 and 3.
     request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.05)
     request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.05)
     request(1, 'sync', [[127,0,0,1], 3030], 0.05)

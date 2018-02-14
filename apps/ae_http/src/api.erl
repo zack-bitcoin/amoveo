@@ -121,6 +121,8 @@ pull_channel_state(IP, Port) ->
             decrypt_msgs(CD#cd.emsg),
             bet_unlock(IP, Port),
 	    {ok, CD2} = channel_manager:read(ServerID),
+	    CD3 = CD2#cd{emsg = []},
+	    channel_manager:write(ServerID, CD3),
 	    Return2 = keys:sign(CD2#cd.me),
             talker:talk({channel_sync, keys:pubkey(), Return2}, IP, Port),
             ok

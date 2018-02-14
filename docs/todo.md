@@ -22,8 +22,7 @@
 
 uncomment test lightning.py
 
-lightning.py is failing. after running it, look in the channel manager in node3.
-* the encrypted msg isn't getting deleted from the channel data
+The blockchain freezes if the number of headers exceeds the numbe of blocks by 2.
 
 in spk.js line 693 we are using prove_facts, which is a callback type function.
 We should probably copy the erlang more precisely, since it uses recursion instead of for loops too. And this way less variables would be mutated.
