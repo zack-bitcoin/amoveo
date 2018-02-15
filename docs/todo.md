@@ -22,6 +22,7 @@
 
 the light node should refuse to make lightning payments if you have not synced all the headers.
 
+
 ### tests before official launch of mainnet
 
 * betting in the market with the light node.

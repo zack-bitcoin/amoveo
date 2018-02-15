@@ -432,59 +432,66 @@ function channels_main() {
 		([-6]).concat(ss.meta)];//prove and meta should start with -6.
     }
     function lightning_spend(serverid) {
-        var fee = 20;
-        var a = Math.floor(parseFloat(lightning_amount.value, 10) * 100000000);
-        var to = lightning_to.value;
-        var payment_contract = lightning_object.make(a);
-        var code = payment_contract.bet[1];
-        var ss = payment_contract.ss;
-	var emsg = [-6, ss_to_external(ss), code, a];
-        var encrypted = keys.encrypt(emsg, to);
-	console.log("lightning spend emsg, a, fee");
-	console.log(JSON.stringify(ss));
-	console.log(JSON.stringify(emsg));
-	console.log(a);
-	console.log(fee);
-        var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
-        var msg = ["locked_payment", sspk, a, fee, code, keys.pub(), to, encrypted];
-        console.log("lightning spend msg is ");
-        console.log(JSON.stringify(msg));
-	console.log("lightning encrypted msg is ");
-        console.log(JSON.stringify(emsg));
-        variable_public_get(msg, function(sspk2) {
-	    spk1 = sspk[1];
-	    spk2 = sspk2[1];
-	    var bool = verify_both(sspk2);
-	    if (!(bool)) {
-		throw("lightning spend, bad signature on spk");
+	var header_height = headers_object.top()[1];
+	variable_public_get(["height"], function(server_height) {
+	    if (!(header_height == server_height)) {
+		console.log("need to sync headers before you can make channel payments");
+		throw("lightning spend error");
 	    }
-	    if (!(JSON.stringify(spk1) ==
-		  JSON.stringify(spk2))) {
-		console.log("error, the spks calculated by you and the server are not identical.");
-		throw("lightning_spend error")
-	    }
-	    var cd = read(serverid);
-	    var defaultss = new_ss([], [], 0);
-	    //cd.ssme = ([-6, defaultss]).concat(cd.ssme.slice(1));
-	    //cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.slice(1));
-	    cd.ssme = ([defaultss]).concat(cd.ssme);
-	    cd.ssthem = ([defaultss]).concat(cd.ssthem);
-	    cd.me = spk1;
-	    cd.them = sspk2;
-	    /*
+            var fee = 20;
+            var a = Math.floor(parseFloat(lightning_amount.value, 10) * 100000000);
+            var to = lightning_to.value;
+            var payment_contract = lightning_object.make(a);
+            var code = payment_contract.bet[1];
+            var ss = payment_contract.ss;
+	    var emsg = [-6, ss_to_external(ss), code, a];
+            var encrypted = keys.encrypt(emsg, to);
+	    console.log("lightning spend emsg, a, fee");
+	    console.log(JSON.stringify(ss));
+	    console.log(JSON.stringify(emsg));
+	    console.log(a);
+	    console.log(fee);
+            var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
+            var msg = ["locked_payment", sspk, a, fee, code, keys.pub(), to, encrypted];
+            console.log("lightning spend msg is ");
+            console.log(JSON.stringify(msg));
+	    console.log("lightning encrypted msg is ");
+            console.log(JSON.stringify(emsg));
+            variable_public_get(msg, function(sspk2) {
+		spk1 = sspk[1];
+		spk2 = sspk2[1];
+		var bool = verify_both(sspk2);
+		if (!(bool)) {
+		    throw("lightning spend, bad signature on spk");
+		}
+		if (!(JSON.stringify(spk1) ==
+		      JSON.stringify(spk2))) {
+		    console.log("error, the spks calculated by you and the server are not identical.");
+		    throw("lightning_spend error")
+		}
+		var cd = read(serverid);
+		var defaultss = new_ss([], [], 0);
+		//cd.ssme = ([-6, defaultss]).concat(cd.ssme.slice(1));
+		//cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.slice(1));
+		cd.ssme = ([defaultss]).concat(cd.ssme);
+		cd.ssthem = ([defaultss]).concat(cd.ssthem);
+		cd.me = spk1;
+		cd.them = sspk2;
+		/*
 spk currently looks like this.
 {"me":["spk","BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",[-6],0,0,"uEHL7hd8f6hzyalwrYPOMKfL1DV4bshFb3qlc3mR3w0=",6374999,0,100],"them":["signed",["spk","BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",[-6],0,0,"uEHL7hd8f6hzyalwrYPOMKfL1DV4bshFb3qlc3mR3w0=",6374999,0,100],[-6],"MEYCIQCtc7a8h5AksJDzyJascAWo4OPq7eh1wtWSmcQ7ia+dzgIhANqTE+NFQaiMeY952P64MfY2b15SlhNpvoBKCij5/7le"],"ssme":[-6,{"code":[],"prove":[],"meta":0}],"ssthem":[-6,{"code":[],"prove":[],"meta":0}],"expiration":5020}"
 	     */
-	    write(serverid, cd);
-        });
+		write(serverid, cd);
+            });
+	});
     }
     function sum_bets(bets) {
-        var x = 0;
-        for (var i = 1; i < bets.length; i++) {
-            //console.log("sum bets bet is ");
-            //console.log(JSON.stringify(bets[i][2]));
-            x += bets[i][2];
-        }
+	var x = 0;
+	for (var i = 1; i < bets.length; i++) {
+	    //console.log("sum bets bet is ");
+	    //console.log(JSON.stringify(bets[i][2]));
+	    x += bets[i][2];
+	}
         return x;
     }
     return {new_cd: new_cd,
