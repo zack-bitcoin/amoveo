@@ -20,10 +20,7 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-uncomment test lightning.py
-
-in spk.js line 693 we are using prove_facts, which is a callback type function.
-We should probably copy the erlang more precisely, since it uses recursion instead of for loops too. And this way less variables would be mutated.
+the light node should refuse to make lightning payments if you have not synced all the headers.
 
 ### tests before official launch of mainnet
 

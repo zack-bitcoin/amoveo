@@ -81,12 +81,13 @@ function spk_main() {
     function spk_run3(ss, bet, opgas, ramgas, funs, vars, state, callback) {
 	console.log("spk run 3 ss is ");
 	console.log(JSON.stringify(ss));
+	//{"code":[2,0,0,0,32,175,20,235,211,57,38,228,113,95,134,170,11,54,51,95,61,134,20,89,119,227,76,113,166,247,85,51,203,81,88,170,5],"prove":[-6,-6],"meta":[-6,-6]} //prove should only have one -6
         var script_sig = ss.code;
         if (!(chalang_none_of(script_sig))) {
             throw("error: return op in the script sig");
         }
-	//console.log("spk run3");
-	//console.log(JSON.stringify(ss.prove));
+	console.log("spk run3");
+	console.log(JSON.stringify(ss.prove));
         prove_facts(ss.prove, function(f) {
             var c = string_to_array(atob(bet[1]));
             //var c = bet.code;
@@ -123,6 +124,8 @@ function spk_main() {
 	}
         var ssnew = JSON.parse(JSON.stringify(ssnew0));
         console.log("force update");
+	console.log(JSON.stringify(ssold));
+	console.log(JSON.stringify(ssnew));//double -6
         var height = headers_object.top()[1];
         var ret;
         spk_run("fast", ssold, spk, height, 0, fun_limit, var_limit, function(ran1) {
@@ -135,9 +138,9 @@ function spk_main() {
                         spk[7] += updated.amount;
                         spk[8] += updated.nonce;
                         console.log("force udpate final ss is ");
-                        console.log(JSON.stringify(updated.newss));
+                        console.log(JSON.stringify(updated.newss));//failing to remove the ss.
                         console.log("force udpate final spk is ");
-                        console.log(JSON.stringify(spk));
+                        console.log(JSON.stringify(spk));//succeeds to remove the bet.
 			console.log("updated is ");
 			console.log(JSON.stringify(updated));
                         return callback({"spk":spk, "ss":updated.newss});
@@ -175,8 +178,8 @@ function spk_main() {
         var bet_gas_limit = 100000;//same as bet_unlock2
         var cgran = 10000; //constants.erl
 	console.log("spk force update 2 compare bets and ss");
-	console.log(JSON.stringify(ss));
-	console.log(JSON.stringify(bets));
+	console.log(JSON.stringify(ss));//no -6 to start
+	console.log(JSON.stringify(bets));//starts with -6
         spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, bets.length-1, callback);
     }
     function spk_force_update22(bets, ss, height, amount, nonce, new_bets, newss, fun_limit, var_limit, bet_gas_limit, i, callback) {
@@ -204,7 +207,7 @@ function spk_main() {
             /*
 console.log(JSON.stringify([
                 //"code", code,
-                "ss", ss[i-1],
+                "ss", ss[i],
                 "data2", data2.stack,
                 "data3", data3.stack,
                 "delay", s[2],
@@ -221,7 +224,7 @@ console.log(JSON.stringify([
                 amount += Math.floor(s[0] * bets[i][2] / cgran);
                 nonce += s[1];
                 new_bets = new_bets.slice(0, i).concat(new_bets.slice(i+1, new_bets.length));
-                newss = newss.slice(0, i).concat(newss.slice(i+1, newss.length));
+                newss = newss.slice(0, i-1).concat(newss.slice(i, newss.length));
             } else {
 		console.log("long delay, do not close the trade.");
 	    }
@@ -255,8 +258,16 @@ console.log(JSON.stringify([
     function ss_to_internal(ess) {
         var ss = [];
         for (var i = 1; i < ess.length; i++) {
-            ss = ss.concat([channels_object.new_ss(string_to_array(atob(ess[i][1])), ess[i][2], ess[i][3])])
-        }
+	    if (JSON.stringify(ess[i][2]) ==
+		JSON.stringify([-6, -6])) {
+		ess[i][2] = [-6];
+		ess[i][3] = [-6];
+		//throw("ss to internal broken");
+	    }
+            ss = ss.concat([channels_object.new_ss(string_to_array(atob(ess[i][1])), ess[i][2], ess[i][3])]);
+	}
+	console.log("ss to internal ss is ");
+	console.log(JSON.stringify(ss));
         return ss;
     }
     function channel_feeder_they_simplify(from, themspk, cd, callback) {
@@ -277,7 +288,7 @@ console.log(JSON.stringify([
             throw("spks they gave us do not match");
         }
         var ss = ss_to_internal(cd[3]);
-        var ss4 = ss_to_internal(cd[4]);
+        var ss4 = ss_to_internal(cd[4]);//this one looks weird
         merkle.request_proof("governance", 14, function(tree_fun_limit) {
             var fun_limit = tree_number_to_value(tree_fun_limit[2]);
             merkle.request_proof("governance", 15, function(tree_var_limit) {
@@ -318,7 +329,7 @@ console.log(JSON.stringify([
                                     var spk2 = ret[1];
                                     if (!( JSON.stringify(spk) == JSON.stringify(spk2))) {
 					console.log(JSON.stringify(spk));
-					console.log(JSON.stringify(spk2));
+					console.log(JSON.stringify(spk2));//still has the bet
 					console.log("spks do not match");
                                     } else {
 					var data = channels_object.new_cd(spk, themspk, ss5, ss5, expiration, cid);
@@ -485,6 +496,8 @@ console.log(JSON.stringify([
 	    console.log("about to decrypt this ");
 	    console.log(JSON.stringify(emsg));
 	    var dec = keys.decrypt(emsg);
+	    console.log("decrypted this ");
+	    console.log(JSON.stringify(dec));
 	    var secret = dec[1];
 	    var code = dec[2];
 	    var amount = dec[3];
@@ -526,16 +539,20 @@ console.log(JSON.stringify([
                 channel_feeder_they_simplify(server_pubkey, them_spk, cd, function(ret) {
                     if (!(ret == false)) {
                         var msg2 = ["channel_sync", keys.pub(), ret];
-                        variable_public_get(msg2, function(foo) {});
-                        api_decrypt_msgs(cd[5]);
-                        api_bet_unlock(server_pubkey, function(x) {
-			    var cd2 = channels_object.read(server_pubkey);
-			    var ret2 = keys.sign(cd2.me);
-                            var msg3 = ["channel_sync", keys.pub(), ret2];
-                            variable_public_get(msg2, function(foo) {});
-
-			    return callback();
-			});
+			setTimeout(function(){ variable_public_get(msg2, function(foo) {}); },
+				   0);
+			setTimeout(function(){
+                            api_decrypt_msgs(cd[5]);
+                            api_bet_unlock(server_pubkey, function(x) {
+				var cd2 = channels_object.read(server_pubkey);
+				var ret2 = keys.sign(cd2.me);
+				var msg3 = ["channel_sync", keys.pub(), ret2];
+				setTimeout(function(){ variable_public_get(msg3, function(foo) {}); }, 2000);
+				//variable_public_get(msg3, function(foo) {});
+				
+				return callback();
+			    });
+			}, 2000);
                     } else {
 			console.log("channel feeder they simplify failed.");
 		    }
@@ -549,13 +566,14 @@ console.log(JSON.stringify([
 	channel_feeder_bets_unlock(server_pubkey, function(secrets_junk){
 	    secrets = secrets_junk.secrets;
 	    // spk = secrets_junk.spk;
-	    teach_secrets(secrets);
-	    variable_public_get(["spk", keys.pub()], function(spk_data) {
-		console.log("should sart with -6");
-		console.log(JSON.stringify(spk_data));
-		var them_spk = spk_data[2];
-		var x = channel_feeder_update_to_me(them_spk, server_pubkey);
-		callback(x);
+	    teach_secrets(secrets, 0, function(){
+		variable_public_get(["spk", keys.pub()], function(spk_data) {
+		    console.log("should sart with -6");
+		    console.log(JSON.stringify(spk_data));
+		    var them_spk = spk_data[2];
+		    var x = channel_feeder_update_to_me(them_spk, server_pubkey);
+		    callback(x);
+		});
 	    });
 	});
     }
@@ -578,7 +596,7 @@ console.log(JSON.stringify([
             cd.ssme = unlock_object.newss;
             cd.ssthem = unlock_object.ssthem;
 	    channels_object.write(server_id, cd);
-            return callback({"secrets":unlock_object.secrets,
+            return callback({"secrets":unlock_object.secrets,//incorrectly storing -6 in prove
 			     "spk":unlock_object.spk});
 	});
 	/*
@@ -593,10 +611,21 @@ console.log(JSON.stringify([
 	*/
 
     }
-    function teach_secrets(secrets) {
+    function teach_secrets(secrets, i, callback) {
 	//secrets is a dictionary code -> [secret, amount]
 	// send ["secret", Secret, Key]
 	//talker:talk({learn_secret, ID, Secret, Code}, IP, Port),
+	if (!(i < secrets.length)) {
+	    return callback();
+	}
+	console.log(JSON.stringify(secrets[i]));//incorrectly storing -6 in prove.
+        var msg = ["learn_secret", keys.pub(), channels_object.ss_to_external(secrets[i][1]), secrets[i][2]];
+	console.log(JSON.stringify(msg));
+	variable_public_get(msg, function() {
+	    return teach_secrets(secrets, i+1, callback);
+	});
+    }
+/*
 	console.log("teaching a secret");
         for (var i = 0; i < secrets.length; i++) {
 	    console.log(JSON.stringify(secrets[i]));
@@ -606,6 +635,7 @@ console.log(JSON.stringify([
         }
         return "ok";
     }
+*/
     function channel_feeder_update_to_me(sspk, from) {
 	var myid = keys.pub();
 	var spk = sspk[1];
