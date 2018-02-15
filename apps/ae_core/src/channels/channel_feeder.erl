@@ -229,6 +229,14 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
     end,	
     true = testnet_sign:verify(keys:sign(SSPK)),
     {ok, OldCD} = channel_manager:read(From),
+    if
+	SPK == OldCD#cd.me -> ok;
+	true -> 
+	    io:fwrite("update to me does not match\n"),
+	    io:fwrite(packer:pack(SPK)),
+	    io:fwrite(packer:pack(OldCD#cd.me)),
+	    1=2
+    end,
     SPK = OldCD#cd.me,
     NewCD = OldCD#cd{them = SSPK, ssthem = OldCD#cd.ssme},
     channel_manager:write(From, NewCD),

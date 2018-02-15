@@ -600,7 +600,7 @@ console.log(JSON.stringify([
 	console.log("teaching a secret");
         for (var i = 0; i < secrets.length; i++) {
 	    console.log(JSON.stringify(secrets[i]));
-            var msg = ["learn_secret", keys.pub(), secrets[i][1], secrets[i][2]];
+            var msg = ["learn_secret", keys.pub(), channels_object.ss_to_external(secrets[i][1]), secrets[i][2]];
 	    console.log(JSON.stringify(msg));
 	    variable_public_get(msg, function() { return; });
         }
@@ -727,14 +727,16 @@ console.log(JSON.stringify([
 		//remaining = // doing nothing means preserving the info.
 		return bet_unlock2(callback);
             } else {
-		var ss2 = key_junk[0];
+		var ss2 = ss_to_internal([-6, key_junk[0]])[0];
 		var amount = key_junk[1];
 		var height = headers_object.top()[1];
 		var state = chalang_object.new_state(height, 0);
 		var fun_limit = 400;
 		var var_limit = 10000;
 		console.log("ss2");
-		console.log(ss2);
+		console.log(JSON.stringify(key_junk));
+		console.log(key_junk[0]);
+		console.log(JSON.stringify(ss2));
 		var script_sig = ss2.code;
 		if (!(chalang_none_of(script_sig))) {
 		    throw("error: return op in the script sig");

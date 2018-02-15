@@ -425,6 +425,12 @@ function channels_main() {
         //spk[7] += amount;
         return keys.sign(spk);
     }
+    function ss_to_external(ss) {
+	return ["ss",
+		btoa(array_to_string(ss.code)),
+		([-6]).concat(ss.prove),
+		([-6]).concat(ss.meta)];//prove and meta should start with -6.
+    }
     function lightning_spend(serverid) {
         var fee = 20;
         var a = Math.floor(parseFloat(lightning_amount.value, 10) * 100000000);
@@ -432,10 +438,11 @@ function channels_main() {
         var payment_contract = lightning_object.make(a);
         var code = payment_contract.bet[1];
         var ss = payment_contract.ss;
-	throw("working here");//chance ss to external format.
-	var emsg = [-6, ss, code, a];
+	var emsg = [-6, ss_to_external(ss), code, a];
         var encrypted = keys.encrypt(emsg, to);
-	console.log("lightning spend a, fee");
+	console.log("lightning spend emsg, a, fee");
+	console.log(JSON.stringify(ss));
+	console.log(JSON.stringify(emsg));
 	console.log(a);
 	console.log(fee);
         var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
@@ -483,6 +490,7 @@ spk currently looks like this.
     return {new_cd: new_cd,
             read: read,
             new_ss: new_ss,
-            write: write}
+            write: write,
+	    ss_to_external: ss_to_external}
 }
 var channels_object = channels_main();
