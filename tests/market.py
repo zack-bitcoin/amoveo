@@ -47,7 +47,8 @@ def test2(): #useful for testing market from light node.
     oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     height = request(3, 'height', [], 0.01)
     height = json.loads(height)[1]
-    request(1, 'trade', [9000, 1, 10, oid, height, 20, [127,0,0,1], 3030], 0.2)
+    #request(1, 'trade', [9000, 1, 10, oid, height, 20, [127,0,0,1], 3030], 0.2)
+    request(1, 'trade', [1000, 1, 250, oid, height, 20, [127,0,0,1], 3030], 0.2)
     request(1, 'trade', [6000, 1, 1000, oid, height, 20, [127,0,0,1], 3030], 0.2)
     request(1, 'trade', [6001, 1, 1000, oid, height, 20, [127,0,0,1], 3030], 0.04)#remove this when testing betting in light node.
     request(2, 'trade', [6000, 2, 1000, oid, height, 20, [127,0,0,1], 3030], 0.04)

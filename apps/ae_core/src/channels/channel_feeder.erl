@@ -233,8 +233,8 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
 	SPK == OldCD#cd.me -> ok;
 	true -> 
 	    io:fwrite("update to me does not match\n"),
-	    io:fwrite(packer:pack(SPK)),
-	    io:fwrite(packer:pack(OldCD#cd.me)),
+	    io:fwrite(packer:pack(SPK)),%still has a bet in it.
+	    io:fwrite(packer:pack(OldCD#cd.me)),%still has a bet in it.
 	    1=2
     end,
     SPK = OldCD#cd.me,

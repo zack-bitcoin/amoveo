@@ -132,7 +132,7 @@ function spk_main() {
             var nonceOld = ran1.nonce;
             spk_run("fast", ssnew, spk, height, 0, fun_limit, var_limit, function(ran2) {
                 var nonceNew = ran2.nonce;
-                if (nonceNew > nonceOld) {
+                if (!(nonceNew < nonceOld)) {
                     spk_force_update2(spk[3], ssnew, height, function(updated) {
                         spk[3] = updated.new_bets;
                         spk[7] += updated.amount;
@@ -147,6 +147,7 @@ function spk_main() {
                     });
                 } else {
 		    console.log(JSON.stringify([nonceNew, nonceOld]));
+		    console.log(JSON.stringify([ssnew, ssold]));
                     console.log("spk force update had nothing to do.");
                     return callback(false);
                 }
@@ -296,8 +297,8 @@ console.log(JSON.stringify([
                 spk_force_update(spkme, ssme, ss4, fun_limit, var_limit, function(b2) {
                     var cid = cd[7];
 		    var expiration = cd[7];
-                    //console.log("are we able to force update?");
-                    //console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
+                    console.log("are we able to force update?");
+                    console.log(JSON.stringify([b2, {"spk": newspk, "ss": ss}]));
                     if ( JSON.stringify(b2) == JSON.stringify({"spk": newspk, "ss": ss})) {
                         var ret = keys.sign(newspk);
                         var newcd = channels_object.new_cd(newspk, themspk, ss, ss, expiration, cid);
@@ -370,11 +371,14 @@ console.log(JSON.stringify([
             var delay2 = run2.delay;
             spk_run("fast", old_ss, old_spk, height, 0, fun_limit, var_limit, function(run1) {
                 var nonce1 = run1.nonce;
-                if (!(nonce2 > nonce1)) {
-                    console.log(JSON.stringify([new_ss, old_ss]));
-                    console.log(JSON.stringify([nonce2, nonce1]));
-                    console.log("the new spk can't produce a lower nonce than the old.");
-                    return callback(false);
+                var delay1 = run1.delay;
+		if (((nonce1 == nonce2) && (delay1 == 0)) && (delay2 == 0)) {
+		} else if (!(nonce2 > nonce1)) {
+		    console.log(JSON.stringify([new_ss, old_ss]));
+		    console.log(JSON.stringify([nonce2, nonce1]));
+		    console.log(JSON.stringify([delay2, delay1]));
+		    console.log("the new spk can't produce a lower nonce than the old.");
+		    return callback(false);
                 }
                 var old_bets = old_spk[3];
                 var old_amount = old_spk[7];

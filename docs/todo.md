@@ -20,21 +20,8 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-the light node should refuse to make lightning payments if you have not synced all the headers.
-
 
 ### tests before official launch of mainnet
-
-* betting in the market with the light node.
-- matching bets to recover liquidity
-- canceling bets
-
-* closing markets in the light node.
-- open orders should be deleted. (test with full node first)
-- winning shares should be paid the prize.
-- losing shares should be deleted.
-
-* lightning payments from the light node should be tested.
 
 * We should try updating a governance variable in the testnet.
 
