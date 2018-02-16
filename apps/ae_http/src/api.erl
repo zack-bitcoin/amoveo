@@ -394,7 +394,7 @@ market_match(OID) ->
 settle_bets() ->
     channel_feeder:bets_unlock(channel_manager:keys()),
     {ok, ok}.
-new_market(OID, Expires, Period) -> 
+new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     %sets up an order book.
     %turns on the api for betting.
     %for now lets use the oracle id as the market id. this wont work for combinatorial markets.

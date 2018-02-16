@@ -12,7 +12,8 @@
 
 * consider updating the mining algorithm so we don't include the difficulty in the thing being hashed.
 
-* oracle new tx probably needs the oracle_future_limit, otherwise an attacker could freeze the governance mechanism from operating.
+* governance oracles should have no delay. This way attackers cannot freeze the governanace mechanism.
+
 
 
 
@@ -25,12 +26,35 @@
 
 * We should try updating a governance variable in the testnet.
 
+* test mining from the light node using a mining pool.
+
 
 
 
 
 
 ### Things we can do after launch of mainnet
+
+
+* there is a failure mode where the nodes start pushing excess unnecessary data to each other. I think it happens if you try turning a node on when it is already on.
+
+* decrease data volume requirements.
+
+* if you try turning the node on while it is already on, it should at least give you error warnings. At best it should also refuse to corrupt it's database.
+
+* the documentation needs to be clearer that you are not supposed to run the software as root. you are supposed to make an account.
+
+* the explorer should say how many headers, and how many blocks the node it is connected to has.
+
+* maybe we should use pkill instead of killall in c-miner clean.sh
+
+* the light node should automatically know whether you need a spend_tx or a create_account_tx.
+
+* start out with more default peers.
+
+* do txs get dropped from the mining pool tx_pool if someone else mines a block?
+
+* the light node should have tabs, so it doesn't display so much at the same time.
 
 * rethink the process of creating blocks and mining. It seems like race conditions might happen here.
 

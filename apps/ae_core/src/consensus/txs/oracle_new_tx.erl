@@ -47,6 +47,7 @@ go(Tx, Dict, NewHeight) ->
                 GovAmount = 0,
                 Dict;
             G ->
+		%make sure the oracle starts now, and has no delay.
                 true = GovAmount > 0,
 		Question = <<"">>,
                 GVar = governance:dict_get(G, Dict),

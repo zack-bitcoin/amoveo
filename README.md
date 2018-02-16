@@ -19,6 +19,8 @@ This way Amoveo will always stay optimally tuned to produce the best results.
 
 [Amoveo whitepaper](docs/white_paper.md).
 
+Amoveo main net will launch at 11:00 AM GMT on March 2, 2018.
+
 ## Community
 [Amoveo forum on reddit](https://www.reddit.com/r/Amoveo/)
 
