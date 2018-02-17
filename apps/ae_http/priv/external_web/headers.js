@@ -199,7 +199,7 @@ function headers_main() {
         } else {
             n = top_header[1];
         }
-        variable_public_get(["headers", 101, n], absorb_headers);
+        variable_public_get(["headers", 5001, n], absorb_headers);
     }
     function serialize_header(x) {
         var height = x[1]; //4 bytes
