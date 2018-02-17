@@ -63,7 +63,7 @@ read() -> gen_server:call(?MODULE, read).
 check() -> gen_server:call(?MODULE, check).
 new_internal2(TP) ->
     Txs = TP#tx_pool.txs,
-    T = TP#tx_pool.height,%this is giving header height, not block height.
+    T = TP#tx_pool.height,
     PB = block:get_by_height(T),
     Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
     block:make(Top, Txs, PB#block.trees, keys:pubkey()).

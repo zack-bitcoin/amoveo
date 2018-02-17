@@ -1,7 +1,7 @@
 -module(sync).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	start/1, start/0, stop/0, status/0, give_blocks/2]).
+	start/1, start/0, stop/0, status/0, give_blocks/3]).
 -include("../records.hrl").
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -45,25 +45,31 @@ blocks(CommonHash, Block) ->
             PrevBlock = block:get_by_hash(Block#block.prev_hash),
             [Block|blocks(CommonHash, PrevBlock)]
     end.
-give_blocks(Peer, CommonHash) -> 
+give_blocks(Peer, CommonHash, TheirBlockHeight) -> 
     io:fwrite("give blocks\n"),
     {ok, DBB} = application:get_env(ae_core, push_blocks_batch),
-    Blocks0 = lists:reverse(blocks(CommonHash, block:top())),
-    Blocks = if
-                 length(Blocks0) < DBB -> Blocks0;
-                 true ->
-                     {X, _} = lists:split(DBB, Blocks0),
-                     X
-             end,
+    H = min(block:height(), max(0, TheirBlockHeight + DBB - 1)),
+    Blocks = lists:reverse(blocks(CommonHash, block:get_by_height(H))),
     if 
         length(Blocks) > 0 ->
             remote_peer({give_block, Blocks}, Peer),
-            NewCommonHash = block:hash(hd(lists:reverse(Blocks))),
-            give_blocks(Peer, NewCommonHash);
+	    timer:sleep(1000),
+	    {ok, _, TheirBlockHeight2} = remote_peer({top}, Peer),
+	    if
+		TheirBlockHeight2 > TheirBlockHeight ->
+	    
+		    NewCommonHash = block:hash(hd(lists:reverse(Blocks))),
+		    give_blocks(Peer, NewCommonHash, TheirBlockHeight2);
+		true -> 
+		    %we should remove them from the list of peers.
+		    io:fwrite("they are not accepting our blocks."),
+		    ok
+	    end;
         true -> 
             io:fwrite("finished sending blocks"),
             false
     end.
+
 remote_peer(Transaction, Peer) ->
     case talker:talk(Transaction, Peer) of
         {ok, Return0} -> Return0;
@@ -157,7 +163,7 @@ sync_peer(Peer) ->
                 TD < MD -> 
                     {ok, _, TheirBlockHeight} = remote_peer({top}, Peer),
                     CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
-                    give_blocks(Peer, CommonBlocksHash);
+                    give_blocks(Peer, CommonBlocksHash, TheirBlockHeight);
                 true ->
                     CommonBlockHeight = common_block_height(CommonHash),
                     get_blocks(Peer, CommonBlockHeight)

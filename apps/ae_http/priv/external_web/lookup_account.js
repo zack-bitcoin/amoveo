@@ -18,6 +18,7 @@ function lookup_account1() {
     document.body.appendChild(lookup_account_button);
     function lookup_account_helper() {
         var x = lookup_account_address.value;
+	console.log("lookup account");
         variable_public_get(["account", x], lookup_account_helper2);
     }
     function lookup_account_helper2(x) {

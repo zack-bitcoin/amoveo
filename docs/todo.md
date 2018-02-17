@@ -26,8 +26,6 @@
 
 * We should try updating a governance variable in the testnet.
 
-* test mining from the light node using a mining pool.
-
 
 
 
@@ -36,7 +34,7 @@
 ### Things we can do after launch of mainnet
 
 
-* there is a failure mode where the nodes start pushing excess unnecessary data to each other. I think it happens if you try turning a node on when it is already on.
+* limit how frequently we respond to any individual IP address, and limit how much bandwidth any individual IP can consume.
 
 * decrease data volume requirements.
 

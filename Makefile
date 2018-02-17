@@ -141,10 +141,13 @@ attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
 clean: $$(KIND)
-	@rm -rf ./_build/$(KIND)/rel/ae_core/data/*
-	@rm -rf ./_build/$(KIND)/rel/ae_core/blocks/*
+	@rm -rf ./_build/$(KIND)/rel/ae_core/data/
+	@mkdir ./_build/$(KIND)/rel/ae_core/data
+	@rm -rf ./_build/$(KIND)/rel/ae_core/blocks/
+	@mkdir ./_build/$(KIND)/rel/ae_core/blocks/
 	@rm -rf ./config/$(KIND)/sys.config
-	@rm -rf ./_build/$(KIND)/rel/*/log/*
+	@rm -rf ./_build/$(KIND)/rel/log/
+	@mkdir ./_build/$(KIND)/rel/log
 
 $(LOCAL)/ae_core/keys:
 	@mkdir -p $@
