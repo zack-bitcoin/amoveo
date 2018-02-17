@@ -12,6 +12,8 @@ handle(Req, State) ->
     {ok, Data, Req2} = cowboy_req:body(Req),
     {{IP, _}, Req3} = cowboy_req:peer(Req2),
     ok = request_frequency:doit(IP),
+    {ok, TimesPerSecond} = application:get_env(ae_core, request_frequency),
+    timer:sleep(round(1000/TimesPerSecond)),
     true = is_binary(Data),
     case application:get_env(ae_core, kind) of
 	{ok, "production"} ->
