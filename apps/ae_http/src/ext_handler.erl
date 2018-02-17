@@ -254,6 +254,7 @@ get_header_by_height(N, H) ->
 many_headers(Many, X) ->
     Z = max(0, X + Many - 1),
     H = headers:top(),
+    true = ((H#header.height)+200) > (X + Many),
     N = min(H#header.height, Z),
     Nth = get_header_by_height(N, H),
     many_headers2(Many, Nth, []).

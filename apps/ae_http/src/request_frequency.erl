@@ -25,15 +25,14 @@ handle_call(IP, _From, X) ->
 	    S = T / 1000000,%seconds
 	    Many0 = Val#freq.many * math:pow(0.5, S), %every second, divide how many have been used up by 1/2.
 	    Many = Many0 + 1,
-	    if
-		Many > Limit ->
-		    {reply, bad, X};
-		true ->
-		    V2 = #freq{time = TimeNow,
-			       many = Many},
-		    X2 = dict:store(IP, V2, X),
-		    {reply, ok, X2}
-	    end
+	    V2 = #freq{time = TimeNow,
+		       many = Many},
+	    X2 = dict:store(IP, V2, X),
+	    R = if
+		Many > Limit -> bad;
+		true -> ok
+	    end,
+	    {reply, R, X2}
     end.
 doit(IP) ->
     gen_server:call(?MODULE, IP).

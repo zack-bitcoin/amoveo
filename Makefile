@@ -204,7 +204,7 @@ config/prod/sys.config: config/sys.config.tmpl
     {peers, [[{159,89,106,253}, 8080]]},\
     {master_pub, <<\"BERTnwBT8hQ/slMjlQDRTltG6z9Ga2JdXOIEOyEEdoHgQU1ieG6xpayKxYjE6VhW4hiJa/5AquOwtWqm0KnXjhE=\">>},\
     {test_mode,false},\
-    {request_frequency, 10},\
+    {request_frequency, 2},\
     :\
     " $< > $@
 
