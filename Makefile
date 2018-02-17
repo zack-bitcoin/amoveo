@@ -189,6 +189,7 @@ config/local/sys.config: config/sys.config.tmpl
 	{keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\
 	{keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
 	{keys_pass, \"\"},\
+        {request_frequency, 100},\
 	:\
 	" $< > $@
 
@@ -203,6 +204,7 @@ config/prod/sys.config: config/sys.config.tmpl
     {peers, [[{159,89,106,253}, 8080]]},\
     {master_pub, <<\"BERTnwBT8hQ/slMjlQDRTltG6z9Ga2JdXOIEOyEEdoHgQU1ieG6xpayKxYjE6VhW4hiJa/5AquOwtWqm0KnXjhE=\">>},\
     {test_mode,false},\
+    {request_frequency, 10},\
     :\
     " $< > $@
 
@@ -217,6 +219,7 @@ config/dev1/sys.config: config/sys.config.tmpl
     {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\
     {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
     {keys_pass, \"\"},\
+    {request_frequency, 100},\
     :\
     " $< > $@
 
@@ -231,6 +234,7 @@ config/dev2/sys.config: config/sys.config.tmpl
     {keys_pub, <<\"BAiwm5uz5bLkT+Lr++uNI02jU3Xshwyzkywk0x0ARwY5j4lwtxbKpU+oDK/pTQ1PLz7wyaEeDZCyjcwt9Foi2Ng=\">>},\
     {keys_priv, <<\"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=\">>},\
     {keys_pass, \"\"},\
+    {request_frequency, 100},\
     :\
     " $< > $@
 
@@ -245,6 +249,7 @@ config/dev3/sys.config: config/sys.config.tmpl
     {keys_pub, <<\"BOnadmMfDIoCmio3ReSinirULreS3TbCEdr0R6FDDvoVB5xoAJnvwlL3yMgNhBzEb5l36z7bgizw2EKGn0W9rY8=\">>},\
     {keys_priv, <<\"M/1xsM1DBO82qQcVJVoWVJd4p9YjpwygQJmmYkVLFd8=\">>},\
     {keys_pass, \"\"},\
+    {request_frequency, 100},\
     :\
     " $< > $@
 
