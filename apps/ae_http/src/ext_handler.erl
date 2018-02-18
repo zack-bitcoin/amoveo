@@ -262,6 +262,7 @@ many_headers(Many, X) ->
     %true = ((H#header.height)+200) > (X),
     N = min(H#header.height, Z),
     Nth = get_header_by_height(N, H),
+    Many2 = max(0, N - X),
     many_headers2(Many, Nth, []).
 many_headers2(0, _, Out) -> Out;
 many_headers2(Many, H, Out) ->

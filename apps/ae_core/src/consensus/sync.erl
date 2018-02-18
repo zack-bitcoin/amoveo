@@ -95,8 +95,13 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
     CommonHash = headers:absorb(Headers),
+    L = length(Headers),
     case CommonHash of
-        <<>> -> get_headers2(Peer, N+HB-1);
+        <<>> -> 
+	    if 
+		(L+5) > HB -> get_headers2(Peer, N+HB-1);
+		true -> ok
+	    end;
         _ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
              %Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
              CommonHash
