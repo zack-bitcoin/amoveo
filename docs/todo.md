@@ -21,9 +21,6 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-* Blocks are not propagating quickly enough. When you find out about a new block, you should tell lots of your neighbors about it.
-currently working on sync:push_new_block_helper
-
 
 ### tests before official launch of mainnet
 
@@ -37,11 +34,13 @@ currently working on sync:push_new_block_helper
 ### Things we can do after launch of mainnet
 
 
+* fix compiler warnings. unused variables and such.
+
+* delete unnecessary messages
+
 * we should probably delete and rebuild the configuration files every time we build the project. That way you don't have to ever manually delete them.
 
-* when you find a block, instead of syncing normally, you should quickly push the block to lots of your peers.
-
-* limit how frequently we respond to any individual IP address, and limit how much bandwidth any individual IP can consume.
+* limit how much bandwidth any individual IP can consume.
 
 * decrease data volume requirements.
 
