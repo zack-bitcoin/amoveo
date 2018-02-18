@@ -254,9 +254,12 @@ get_header_by_height(N, H) ->
     end.
 	    
 many_headers(Many, X) ->
+    io:fwrite("many headers "), 
+    io:fwrite(packer:pack([Many, X])), 
+    io:fwrite("\n"),
     Z = max(0, X + Many - 1),
     H = headers:top(),
-    true = ((H#header.height)+200) > (X),
+    %true = ((H#header.height)+200) > (X),
     N = min(H#header.height, Z),
     Nth = get_header_by_height(N, H),
     many_headers2(Many, Nth, []).

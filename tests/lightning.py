@@ -21,7 +21,7 @@ def lightning_test():
     request(3, 'load_key', [pub3, priv3, brainwallet])
     request(1, 'create_account', [pub2, 1000000000], 0.04)
     request(1, 'create_account', [pub3, 1000000000], 0.1)
-    request(1, 'sync', [[127,0,0,1], 3030], 0.1)
+    request(1, 'sync', [[127,0,0,1], 3030], 0.5)
     request(2, 'sync', [[127,0,0,1], 3030], 0.5)
     fee = 152000
     cid1 = 'vVhSBIjO7fU0V4v08WH2O2crgjtl9wTODuIk+jeB2NM='

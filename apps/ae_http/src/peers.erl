@@ -26,6 +26,10 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(set_initial_peers, State) ->
     {ok, Peers} = application:get_env(ae_core, peers),
     add(Peers),
+    {ok, X} = inet:getif(),
+    Y = hd(X),
+    IP = element(1, Y),
+    add({IP, 8080}),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.

@@ -29,7 +29,13 @@ handle_call(IP, _From, X) ->
 		       many = Many},
 	    X2 = dict:store(IP, V2, X),
 	    R = if
-		Many > Limit -> bad;
+		Many > Limit -> 
+			io:fwrite("requesting too often: "),
+			io:fwrite(packer:pack(IP)),
+			io:fwrite(" "),
+			io:fwrite(integer_to_list(Many)),
+			io:fwrite("\n"),
+			bad;
 		true -> ok
 	    end,
 	    {reply, R, X2}

@@ -42,9 +42,9 @@ talk_helper(Msg, Peer, N) ->
             packer:unpack(R);
         {error, socket_closed_remotely} ->
             io:fwrite("talk_helper socket closed remotely \n"),
-            talk_helper(Msg, Peer, N - 1);
+            talk_helper(Msg, Peer, 0);
         {error, timeout} ->
-            io:fwrite("talk_helper timeout \n"),
+            io:fwrite("talk_helper tmimeout \n"),
             talk_helper(Msg, Peer, N - 1);
         {error, failed_connect} ->
             io:fwrite("talk_helper failed_connect 0 \n"),
