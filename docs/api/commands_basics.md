@@ -8,8 +8,12 @@ To sync with the network and download the blockchain:
 sync:start().
 ```
 
-#### Current block height
-To see the current block height downloaded to this node:
+To see the current block height on this node:
+```
+block:height().
+```
+
+To see the current header height on this node:
 ```
 api:height().
 ```
