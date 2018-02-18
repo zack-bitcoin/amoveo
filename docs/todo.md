@@ -38,8 +38,6 @@
 
 * we should probably delete and rebuild the configuration files every time we build the project. That way you don't have to ever manually delete them.
 
-* we aren't exiting sync_mode correctly.
-
 * when you find a block, instead of syncing normally, you should quickly push the block to lots of your peers.
 
 * limit how frequently we respond to any individual IP address, and limit how much bandwidth any individual IP can consume.

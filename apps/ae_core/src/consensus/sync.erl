@@ -1,7 +1,7 @@
 -module(sync).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	start/1, start/0, stop/0, status/0, give_blocks/3, push_block/1]).
+	start/1, start/0, stop/0, status/0, give_blocks/3, push_new_block/1]).
 -include("../records.hrl").
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -24,27 +24,21 @@ start(P) ->
     doit2(P).
 doit2([]) -> ok;
 %doit2([Peer|T]) ->
-doit2(L) ->
+doit2(L0) ->
+    L = remove_self(L0),
     T = list_to_tuple(L),
     <<X:24>> = crypto:strong_rand_bytes(3),
     M = X rem size(T),
-    MyIP = peers:my_ip(),
-    {ok, MyPort} = application:get_env(ae_core, port),
     Peer = element(M+1, T),
     if
-	{MyIP, MyPort} == Peer -> %don't sync with yourself.
-	    if
-		length(L) == 1 ->
-		    io:fwrite("no one to sync with\n"),
-		    ok;
-		true ->
-		    doit2(L)
-	    end;
+	length(L) == 0 ->
+	    io:fwrite("no one to sync with\n"),
+	    ok;
 	true ->
 	    io:fwrite("syncing with peer "),
 	    io:fwrite(packer:pack(Peer)),
 	    io:fwrite("\n"),
-						%gen_server:cast(?MODULE, {main, Peer}),
+	    %gen_server:cast(?MODULE, {main, Peer}),
 	    spawn(fun() -> sync_peer(Peer) end),
 	    ok
     end.
@@ -156,8 +150,31 @@ get_blocks(Peer, N) ->
 	    end;
 	_ -> ok
     end.
-push_block(Block) ->
-    ok.%keep giving this block to random peers until 1/2 the people you have contacted already know about it. Don't talk to the same peer multiple times.
+remove_self(L) ->%assumes that you only appear once or zero times in the list.
+    MyIP = peers:my_ip(),
+    {ok, MyPort} = application:get_env(ae_core, port),
+    Me = {MyIP, MyPort},
+    remove_self2(L, Me).
+remove_self2([], _) -> [];
+remove_self2([H|T], Me) ->
+    if
+	H == Me -> T;
+	true -> [H|remove_self2(T, Me)]
+    end.
+	    
+push_new_block(Block) ->
+    Peers0 = peers:all(),
+    Peers = remove_self(Peers0),
+    push_new_block_helper(0, 0, Peers, Block).
+push_new_block_helper(_, _, [], _) ->
+    %no one else to give the block to.
+    ok;
+push_new_block_helper(N, M, _, _) when ((N*2) >= M) ->
+    %the majority of peers already know.
+    ok;
+push_new_block_helper(N, M, [P|T], Block) ->
+    ok.
+    %keep giving this block to random peers until 1/2 the people you have contacted already know about it. Don't talk to the same peer multiple times.
 trade_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),
     tx_pool_feeder:absorb(Txs),
