@@ -33,6 +33,7 @@
 
 ### Things we can do after launch of mainnet
 
+* we should probably delete and rebuild the configuration files every time we build the project. That way you don't have to ever manually delete them.
 
 * we aren't exiting sync_mode correctly.
 

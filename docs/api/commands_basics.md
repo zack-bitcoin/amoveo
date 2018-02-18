@@ -8,6 +8,16 @@ To sync with the network and download the blockchain:
 sync:start().
 ```
 
+WARNING syncing will go very slowly unless you use this:
+```
+sync_mode:quick().
+```
+This still gives the same security as a normal sync. It just turns off the tx pool, since you wont be processing txs while syncing.
+It should automatically change back to normal mode once it finishes syncing. You can check which mode you are in like this:
+```
+sync_mode:check().
+```
+
 To see the current block height on this node:
 ```
 block:height().
