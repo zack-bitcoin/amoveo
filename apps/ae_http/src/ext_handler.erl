@@ -259,7 +259,7 @@ many_headers(Many, X) ->
     io:fwrite("\n"),
     Z = max(0, X + Many - 1),
     H = headers:top(),
-    %true = ((H#header.height)+200) > (X),
+    true = ((H#header.height)+Many+1) > (X),
     N = min(H#header.height, Z),
     Nth = get_header_by_height(N, H),
     Many2 = max(0, N - X),
