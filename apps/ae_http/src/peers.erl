@@ -70,7 +70,7 @@ add([MalformedPeer|T]) ->
     io:fwrite("tried to add malformed peer, skipping."),
     io:fwrite(packer:pack(MalformedPeer)),
     add(T);
-add({{10, _, _, _}, Port}) -> ok;
+add({{10, _, _, _}, Port}) -> ok;%these formats are only for private networks, not the public internet.
 add({{192, 168, _, _}, Port}) -> ok;
 add({{172, X, _, _}, Port}) when ((X < 32) and (X > 15))-> ok;
 add({IP, Port}) -> 

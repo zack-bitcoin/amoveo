@@ -17,6 +17,10 @@ It should automatically change back to normal mode once it finishes syncing. You
 ```
 sync_mode:check().
 ```
+Once you have finished syncing blocks and you are ready to process txs again, change back to normal mode like this:
+```
+sync_mode:normal().
+```
 
 To see the current block height on this node:
 ```
