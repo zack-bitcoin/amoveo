@@ -33,5 +33,3 @@ For convenience, there is a way to wrap this all into one command. To kill any r
 
 
 [Once the node is turned on, and you are attached to it, then you will want to sync the blocks](../api/commands_basics.md)
-
-[Here is the documentation for commands you can give to an amoveo full node you are attached to.](../api/commands.md)
