@@ -1,7 +1,7 @@
 -module(sync).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	start/1, start/0, stop/0, status/0, give_blocks/3]).
+	start/1, start/0, stop/0, status/0, give_blocks/3, push_block/1]).
 -include("../records.hrl").
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -28,13 +28,26 @@ doit2(L) ->
     T = list_to_tuple(L),
     <<X:24>> = crypto:strong_rand_bytes(3),
     M = X rem size(T),
+    MyIP = peers:my_ip(),
+    {ok, MyPort} = application:get_env(ae_core, port),
     Peer = element(M+1, T),
-    io:fwrite("syncing with peer "),
-    io:fwrite(packer:pack(Peer)),
-    io:fwrite("\n"),
-    %gen_server:cast(?MODULE, {main, Peer}),
-    spawn(fun() -> sync_peer(Peer) end),
-    ok.
+    if
+	{MyIP, MyPort} == Peer -> %don't sync with yourself.
+	    if
+		length(L) == 1 ->
+		    io:fwrite("no one to sync with\n"),
+		    ok;
+		true ->
+		    doit2(L)
+	    end;
+	true ->
+	    io:fwrite("syncing with peer "),
+	    io:fwrite(packer:pack(Peer)),
+	    io:fwrite("\n"),
+						%gen_server:cast(?MODULE, {main, Peer}),
+	    spawn(fun() -> sync_peer(Peer) end),
+	    ok
+    end.
     %timer:sleep(500),
     %doit2(T).
 blocks(CommonHash, Block) ->
@@ -137,12 +150,14 @@ get_blocks(Peer, N) ->
 		    block_absorber:save(Blocks),
 		    if
 			length(Blocks) > (BB div 2) ->
-                    get_blocks(Peer, N+BB);
+			    get_blocks(Peer, N+BB);
 			true -> ok
 		    end
 	    end;
 	_ -> ok
     end.
+push_block(Block) ->
+    ok.%keep giving this block to random peers until 1/2 the people you have contacted already know about it. Don't talk to the same peer multiple times.
 trade_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),
     tx_pool_feeder:absorb(Txs),

@@ -6,6 +6,7 @@
 
 %% API
 -export([
+	 my_ip/0,%gives you ip address
          add/1, %Add a Peer 
          remove/1, %Remove a Peer
          all/0, %Get list of all Peers
@@ -26,9 +27,10 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(set_initial_peers, State) ->
     {ok, Peers} = application:get_env(ae_core, peers),
     add(Peers),
-    {ok, X} = inet:getif(),
-    Y = hd(X),
-    IP = element(1, Y),
+    %{ok, X} = inet:getif(),
+    %Y = hd(X),
+    %IP = element(1, Y),
+    IP = my_ip(),
     add({IP, 8080}),
     {noreply, State};
 handle_info(_Info, State) ->
@@ -93,3 +95,8 @@ load_peers([{_,_}=Peer|T], Dict) ->
              _ -> Dict
          end,
     load_peers(T, NewDict).
+my_ip() ->
+    {ok, X} = inet:getif(),
+    Y = hd(X),
+    element(1, Y).
+    

@@ -84,7 +84,8 @@ absorb_internal(Block) ->
 		    order_book:match(),
 		    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
 		    %potential_block:new();
-		    potential_block:save();
+		    potential_block:save(),
+		    sync:push_block(Block2);
 		quick -> 
 		    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
 		    tx_pool:dump(Block2),

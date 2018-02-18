@@ -21,6 +21,8 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
+* Blocks are not propagating quickly enough. When you find out about a new block, you should tell lots of your neighbors about it.
+
 
 ### tests before official launch of mainnet
 
@@ -32,6 +34,7 @@
 
 
 ### Things we can do after launch of mainnet
+
 
 * we should probably delete and rebuild the configuration files every time we build the project. That way you don't have to ever manually delete them.
 
