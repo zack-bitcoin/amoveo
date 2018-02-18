@@ -163,18 +163,20 @@ remove_self2([H|T], Me) ->
     end.
 	    
 push_new_block(Block) ->
+    %keep giving this block to random peers until 1/2 the people you have contacted already know about it. Don't talk to the same peer multiple times.
     Peers0 = peers:all(),
     Peers = remove_self(Peers0),
-    push_new_block_helper(0, 0, Peers, Block).
-push_new_block_helper(_, _, [], _) ->
-    %no one else to give the block to.
-    ok;
-push_new_block_helper(N, M, _, _) when ((N*2) >= M) ->
-    %the majority of peers already know.
-    ok;
+    spawn(fun() -> push_new_block_helper(0, 0, Peers, Block) end).
+push_new_block_helper(_, _, [], _) -> ok;%no one else to give the block to.
+push_new_block_helper(N, M, _, _) when ((M > 0) and ((N*2) >= M)) -> ok;%the majority of peers probably already know.
 push_new_block_helper(N, M, [P|T], Block) ->
-    ok.
-    %keep giving this block to random peers until 1/2 the people you have contacted already know about it. Don't talk to the same peer multiple times.
+    X = talker:talk({give_block, Block}, P),
+    %io:fwrite(packer:pack(X)),
+    Z = case X of
+	    3 -> 1;
+	    _ -> 0
+	end,
+    push_new_block_helper(N+Z, M+1, T, Block).
 trade_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),
     tx_pool_feeder:absorb(Txs),

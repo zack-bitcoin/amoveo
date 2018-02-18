@@ -37,8 +37,8 @@ doit({account, Pubkey}) ->
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({give_block, Block}) -> %block can also be a list of blocks.
-    block_absorber:save(Block),
-    {ok, 0};
+    Response = block_absorber:save(Block),
+    {ok, Response};
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
 doit({blocks, Many, N}) -> 

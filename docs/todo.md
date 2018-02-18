@@ -22,6 +22,7 @@
 ### changes to code before official launch of Amoveo mainnet blockchain
 
 * Blocks are not propagating quickly enough. When you find out about a new block, you should tell lots of your neighbors about it.
+currently working on sync:push_new_block_helper
 
 
 ### tests before official launch of mainnet

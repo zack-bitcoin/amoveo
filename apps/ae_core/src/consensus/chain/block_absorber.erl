@@ -32,10 +32,10 @@ handle_call({doit, BP}, _From, X) ->
 enqueue([]) -> ok;
 enqueue([B|T]) -> enqueue(B), enqueue(T);
 enqueue(B) -> gen_server:cast(?MODULE, {doit, B}).
-save([]) -> ok;
+%save([]) -> ok;
+save([T]) -> save(T);
 save([B|T]) -> save(B), save(T);
-save(B) -> 
-    gen_server:call(?MODULE, {doit, B}, 10000).
+save(B) -> gen_server:call(?MODULE, {doit, B}, 10000).
 absorb_internal(Block) ->
     BH = block:hash(Block),
     NextBlock = Block#block.prev_hash,
@@ -45,7 +45,7 @@ absorb_internal(Block) ->
         Height == 0 -> 
 	    {ok, Header00} = headers:read(BH),
 	    Header00;
-        BHC -> ok; %we already have this block
+        BHC -> 3; %we already have this block
 	true ->
 	    true = block_hashes:check(NextBlock), %check that the previous block is known.
 	    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
