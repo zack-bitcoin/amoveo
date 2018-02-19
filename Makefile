@@ -266,7 +266,7 @@ multi-quick: kill multi-clean multi-build multi-go
 local-quick: kill local-build local-clean
 	./_build/local/rel/ae_core/bin/ae_core console
 prod-restart: prod-stop prod-build prod-go
-	@sleep 1
+	@sleep 3
 	@make prod-attach
 
 .PHONY: \

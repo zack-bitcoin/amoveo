@@ -109,7 +109,7 @@ my_ip([]) ->
 my_ip([[A, B]|T]) ->
     my_ip([{A, B}|T]);
 my_ip([P|T]) ->
-    MyIP = talker:talk({f}, P),
+    {ok, MyIP} = talker:talk({f}, P),
     case MyIP of 
 	{10, _, _, _} -> my_ip(T);
 	{192, 168, _, _} -> my_ip(T);
