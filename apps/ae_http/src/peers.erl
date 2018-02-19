@@ -109,19 +109,28 @@ my_ip([]) ->
 my_ip([[A, B]|T]) ->
     my_ip([{A, B}|T]);
 my_ip([P|T]) ->
-    {ok, MyIP} = talker:talk({f}, P),
-    case MyIP of 
-	{10, _, _, _} -> my_ip(T);
-	{192, 168, _, _} -> my_ip(T);
-	{172, X, _, _} -> 
-	    if
-		((X < 32) and (X > 15)) -> my_ip(T);
-		true -> MyIP
+    io:fwrite(packer:pack(P)),
+    io:fwrite("\n"),
+    case talker:talk_timeout({f}, P, 500) of
+	{ok, MyIP} ->
+	    case MyIP of 
+		{10, _, _, _} -> my_ip(T);
+		{192, 168, _, _} -> my_ip(T);
+		{172, X, _, _} -> 
+		    if
+			((X < 32) and (X > 15)) -> my_ip(T);
+			true -> MyIP
+		    end;
+		{_, _, _, _} -> MyIP;
+		_ -> my_ip(T)
 	    end;
-	{_, _, _, _} -> MyIP;
-	_ -> my_ip(T)
+	X ->  my_ip(T)
+	    %io:fwrite("my_ip issue \n"),
+	    %io:fwrite(packer:pack(X)),
+	    %io:fwrite("\n")
     end.
-	    
+	     
+
 
 
     
