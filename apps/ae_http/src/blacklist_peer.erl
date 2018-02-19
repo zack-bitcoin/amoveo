@@ -14,11 +14,12 @@ handle_cast({add, Peer, Now}, X) ->
 handle_cast(_, X) -> {noreply, X}.
 handle_call({check, Peer}, _From, X) -> 
     A = case dict:find(Peer, X) of
-	    error -> false;
+	    error -> 
+		false;
 	    {ok, N} -> 
 		N2 = now(),
 		D = time_diff(N2, N),
-		B = D > ?Limit,
+		B = D < ?Limit,
 		B
 	end,
     {reply, A, X};
