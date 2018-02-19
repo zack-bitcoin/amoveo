@@ -24,7 +24,10 @@ handle(Req, State) ->
 	_ -> ok
     end,
     A = packer:unpack(Data),
-    B = doit(A),
+    B = case A of
+	    {f} -> {ok, IP};
+	    _ -> doit(A)
+	end,
     D = packer:pack(B),
     Headers = [{<<"content-type">>, <<"application/octet-stream">>},
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],

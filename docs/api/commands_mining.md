@@ -19,3 +19,13 @@ to check if you are currently mining:
 ```
 mine:status().
 ```
+
+to see your list of peers
+```
+peers:all().
+```
+
+to add yourself to the list of peers, if you have ip address 1.2.3.4
+```
+peers:add({{1,2,3,4}, 8080}).
+```

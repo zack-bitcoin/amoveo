@@ -34,7 +34,7 @@ def add_peers(node, n, ip, port):
 def test3(): #test the attack where someone generates tons of fake peers and shares them like valid peers.
     print("share blocks test 3")
     request(1, "add_peer", [[127,0,0,1], 3020], 0.1)
-    add_peers(1, 20, [1,2,3,4], 2000)
+    #add_peers(1, 20, [1,2,3,4], 2000)
     request(1, "mine_block", [1, 100000], 0.1)
     a = time()
     request(1, "sync", [], 0.1)

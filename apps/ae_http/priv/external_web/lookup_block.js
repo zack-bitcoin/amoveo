@@ -71,6 +71,8 @@ function tx2html(tx) {
 }
 function lookup_block2(block) {
     block2 = block[1];
+    console.log("lookup_block2");
+    console.log(JSON.stringify(block));
     var current_block = document.getElementById("block div");
     //acc, number, hash, txs, power, nonce, total_coins, db_root
     current_block.innerHTML = "block is ".concat(block2);

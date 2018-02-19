@@ -151,7 +151,7 @@ get_blocks(Peer, N) ->
 	_ -> ok
     end.
 remove_self(L) ->%assumes that you only appear once or zero times in the list.
-    MyIP = peers:my_ip(),
+    MyIP = peers:my_ip(L),
     {ok, MyPort} = application:get_env(ae_core, port),
     Me = {MyIP, MyPort},
     remove_self2(L, Me).

@@ -6,7 +6,8 @@
 
 %% API
 -export([
-	 my_ip/0,%gives you ip address
+	 my_ip/0,%my_ip(all())
+	 my_ip/1,%tells your ip address
          add/1, %Add a Peer 
          remove/1, %Remove a Peer
          all/0, %Get list of all Peers
@@ -30,7 +31,8 @@ handle_info(set_initial_peers, State) ->
     %{ok, X} = inet:getif(),
     %Y = hd(X),
     %IP = element(1, Y),
-    IP = my_ip(),
+
+    IP = my_ip(Peers),
     add({IP, 8080}),
     {noreply, State};
 handle_info(_Info, State) ->
@@ -99,8 +101,27 @@ load_peers([{_,_}=Peer|T], Dict) ->
              _ -> Dict
          end,
     load_peers(T, NewDict).
-my_ip() ->
+my_ip() -> my_ip(peers:all()).
+my_ip([]) ->
     {ok, X} = inet:getif(),
     Y = hd(X),
-    element(1, Y).
+    element(1, Y);
+my_ip([[A, B]|T]) ->
+    my_ip([{A, B}|T]);
+my_ip([P|T]) ->
+    MyIP = talker:talk({f}, P),
+    case MyIP of 
+	{10, _, _, _} -> my_ip(T);
+	{192, 168, _, _} -> my_ip(T);
+	{172, X, _, _} -> 
+	    if
+		((X < 32) and (X > 15)) -> my_ip(T);
+		true -> MyIP
+	    end;
+	{_, _, _, _} -> MyIP;
+	_ -> my_ip(T)
+    end.
+	    
+
+
     
