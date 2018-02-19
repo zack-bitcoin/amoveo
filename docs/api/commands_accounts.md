@@ -6,7 +6,10 @@ Commands related to accounts
 keys:pubkey().
 ```
 It returns pub key that identifies an account
-
+```
+base64:encode(keys:pubkey()).
+```
+Will return the base64 encoded address
 
 #### Check your balance
 ```
