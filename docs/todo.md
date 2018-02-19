@@ -201,3 +201,5 @@ Blocks should be serialized to be fully compressed.
 * reading from the hard drive can be slow. order_book can be updated to recover from errors without having to re-read everything from the hard drive.
 
 * it is weird how spk_force_update22 in chalang.js calls run5. Since it's parent function is already calling the VM, it seems like we are running it multiple times unnecessarily.
+
+* in tx_pool_feeder absorb_async we sleep for a little time. This is a hackish solution. There is probably a way to use an additional gen_server to make it efficient. 

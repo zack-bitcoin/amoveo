@@ -35,8 +35,12 @@ talk_helper(Msg, Peer, N) ->
     %io:fwrite("\n"),
     Msg = packer:unpack(PM),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 20000}], []) of
+        {ok, {{_, 500, _}, _Headers, []}} ->
+	    io:fwrite("server crashed.\n"),
+            talk_helper(Msg, Peer, 0);
         {ok, {Status, _Headers, []}} ->
             io:fwrite("talk_helper weird response \n"),
+	    io:fwrite(packer:pack(Status)),
             talk_helper(Msg, Peer, N - 1);
         {ok, {_, _, R}} ->
             packer:unpack(R);
