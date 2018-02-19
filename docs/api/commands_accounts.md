@@ -1,15 +1,11 @@
 Commands related to accounts
 =========
 
-#### Find out your account pubkey
+#### Find out your account pubkey in binary format
 ```
-keys:pubkey().
+api:pubkey().
 ```
 It returns pub key that identifies an account
-```
-base64:encode(keys:pubkey()).
-```
-Will return the base64 encoded address
 
 #### Check your balance
 ```
