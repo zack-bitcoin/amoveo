@@ -72,13 +72,17 @@ function tx2html(tx) {
 function lookup_block2(block) {
     block2 = block[1];
     console.log("lookup_block2");
+    var current_block = document.getElementById("block div");
     //console.log(JSON.stringify(block));
     //console.log(JSON.stringify(block[10]));
     //console.log(JSON.stringify(block[10][1][1]));
-    var miner = block[10][1][1];
-    var current_block = document.getElementById("block div");
-    //acc, number, hash, txs, power, nonce, total_coins, db_root
-    current_block.innerHTML = "block was mined by ".concat(miner);
-    //current_block.innerHTML = "<br/>created by account number ".concat(block2[1]).concat("<br/>at height: ").concat(block2[2]).concat("<br/>containing transactions: ").concat(txs2html(block2[4], 1, "<br/>"));
-    //console.log(block[1]);
+    if (block == "empty") {
+	current_block.innerHTML = "this block doesn't exist.";
+    } else {
+	var miner = block[10][1][1];
+	//acc, number, hash, txs, power, nonce, total_coins, db_root
+	current_block.innerHTML = "block ".concat(block[1]).concat(" was mined by ").concat(miner);
+	//current_block.innerHTML = "<br/>created by account number ".concat(block2[1]).concat("<br/>at height: ").concat(block2[2]).concat("<br/>containing transactions: ").concat(txs2html(block2[4], 1, "<br/>"));
+	//console.log(block[1]);
+    }
 }
