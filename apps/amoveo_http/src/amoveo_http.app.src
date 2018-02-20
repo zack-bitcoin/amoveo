@@ -1,0 +1,18 @@
+{application, amoveo_http,
+ [
+  {description, "API"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  ssl,
+                  cowboy,
+                  lager
+                 ]},
+  {modules, []},
+  {mod, { amoveo_http_app, []}},
+  {env, [
+	  {error_logger, {file, "log.db"}}
+	]}
+ ]}.
