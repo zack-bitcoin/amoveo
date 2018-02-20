@@ -52,7 +52,7 @@ talk_helper(Msg, Peer, N, TimeOut) ->
             io:fwrite("talk_helper socket closed remotely \n"),
             talk_helper(Msg, Peer, 0, TimeOut);
         {error, timeout} ->
-            io:fwrite("talk_helper tmimeout \n"),
+            io:fwrite("talk_helper timeout \n"),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, failed_connect} ->
             io:fwrite("talk_helper failed_connect 0 \n"),

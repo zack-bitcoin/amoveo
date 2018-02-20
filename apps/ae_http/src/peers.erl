@@ -111,7 +111,7 @@ my_ip([[A, B]|T]) ->
 my_ip([P|T]) ->
     io:fwrite(packer:pack(P)),
     io:fwrite("\n"),
-    case talker:talk_timeout({f}, P, 500) of
+    case talker:talk_timeout({f}, P, 4000) of
 	{ok, MyIP} ->
 	    case MyIP of 
 		{10, _, _, _} -> my_ip(T);

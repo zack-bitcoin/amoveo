@@ -14,6 +14,14 @@
 
 * governance oracles should have no delay. This way attackers cannot freeze the governanace mechanism.
 
+* consider adding some more data to the block. It can be made into a merkle tree with the txs.
+- total veo in existence.
+- total veo locked in channels.
+- total number of channels.
+- total number of accounts.
+- total number of oracles.
+- txs and proofs and more valus can all be stuffed into block:merkelize. They don't need seperate merkle trees. the order is deterministic.
+
 
 
 
@@ -202,4 +210,9 @@ Blocks should be serialized to be fully compressed.
 
 * it is weird how spk_force_update22 in chalang.js calls run5. Since it's parent function is already calling the VM, it seems like we are running it multiple times unnecessarily.
 
-* in tx_pool_feeder absorb_async we sleep for a little time. This is a hackish solution. There is probably a way to use an additional gen_server to make it efficient. 
+* in tx_pool_feeder absorb_async we sleep for a little time. This is a hackish solution. There is probably a way to use an additional gen_server to make it efficient.
+
+* maybe governance history should be stored by default.
+
+* we need configuration options to decide which parts of the historical data you want to keep.
+* it should be possible to store a shart of a tree.
