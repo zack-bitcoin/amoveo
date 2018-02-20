@@ -1,4 +1,4 @@
-{application, ae_http,
+{application, amoveo_http,
  [
   {description, "API"},
   {vsn, "0.1.0"},
@@ -11,7 +11,7 @@
                   lager
                  ]},
   {modules, []},
-  {mod, { ae_http_app, []}},
+  {mod, { amoveo_http_app, []}},
   {env, [
 	  {error_logger, {file, "log.db"}}
 	]}

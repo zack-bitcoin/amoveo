@@ -235,7 +235,7 @@ header_size() ->
     DB = 16,
     ((HB*4) + HtB + TB + VB + DB).
 add_to_top(H, T) ->
-    {ok, FT} = application:get_env(ae_core, fork_tolerance),
+    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     B = length(T) < FT,
     if
         B -> [H|T];

@@ -10,7 +10,7 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call(IP, _From, X) -> 
-    {ok, Limit0} = application:get_env(ae_core, request_frequency),
+    {ok, Limit0} = application:get_env(amoveo_core, request_frequency),
     Limit = Limit0 * 2,%requests per 2 seconds
     case dict:find(IP, X) of
 	error -> 

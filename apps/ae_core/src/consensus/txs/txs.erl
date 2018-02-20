@@ -33,7 +33,7 @@ digest_from_dict2(Tx, Dict, H) ->
     M = key2module(Key),
     M:go(Tx, Dict, H).
 developer_lock(From, NewHeight, Dict) ->
-    case application:get_env(ae_core, kind) of
+    case application:get_env(amoveo_core, kind) of
 	{ok, "production"} ->
 	    MP = constants:master_pub(),
 	    if

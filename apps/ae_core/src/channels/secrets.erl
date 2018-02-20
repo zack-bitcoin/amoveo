@@ -46,7 +46,7 @@ new_lightning(Amount) ->
     %delay for canceling is 100
     S = crypto:strong_rand_bytes(constants:hash_size()),
     SH = hash:doit(S),
-    PrivDir = code:priv_dir(ae_core),
+    PrivDir = code:priv_dir(amoveo_core),
     {ok, Contract} = file:read_file(PrivDir ++ "/lightning.fs"), 
     ESH = " binary 32 " ++ binary_to_list(base64:encode(SH)) ++ " >r " ++ Contract,
     ESS = " binary 32 " ++ binary_to_list(base64:encode(S)),

@@ -54,7 +54,7 @@ blocks(CommonHash, Block) ->
     end.
 give_blocks(Peer, CommonHash, TheirBlockHeight) -> 
     io:fwrite("give blocks\n"),
-    {ok, DBB} = application:get_env(ae_core, push_blocks_batch),
+    {ok, DBB} = application:get_env(amoveo_core, push_blocks_batch),
     H = min(block:height(), max(0, TheirBlockHeight + DBB - 1)),
     Blocks = lists:reverse(blocks(CommonHash, block:get_by_height(H))),
     if 
@@ -89,13 +89,13 @@ remote_peer(Transaction, Peer) ->
     end.
 trade_peers(Peer) ->
     TheirsPeers = remote_peer({peers}, Peer),
-    MyPeers = ae_utils:tuples2lists(peers:all()),
+    MyPeers = amoveo_utils:tuples2lists(peers:all()),
     remote_peer({peers, MyPeers}, Peer),
     peers:add(TheirsPeers).
--define(HeadersBatch, application:get_env(ae_core, headers_batch)).
+-define(HeadersBatch, application:get_env(amoveo_core, headers_batch)).
 get_headers(Peer) -> 
     N = (headers:top())#header.height,
-    {ok, FT} = application:get_env(ae_core, fork_tolerance),
+    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     Start = max(0, N - FT), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
@@ -134,7 +134,7 @@ get_blocks(Peer, N) ->
     Status = status(),
     case status() of
 	go ->
-	    {ok, BB} = application:get_env(ae_core, download_blocks_batch),
+	    {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
 	    Blocks = remote_peer({blocks, BB, N}, Peer),
 	    case Blocks of
 		{error, _} -> 
@@ -152,7 +152,7 @@ get_blocks(Peer, N) ->
     end.
 remove_self(L) ->%assumes that you only appear once or zero times in the list.
     MyIP = peers:my_ip(L),
-    {ok, MyPort} = application:get_env(ae_core, port),
+    {ok, MyPort} = application:get_env(amoveo_core, port),
     Me = {MyIP, MyPort},
     remove_self2(L, Me).
 remove_self2([], _) -> [];
@@ -209,7 +209,7 @@ sync_peer(Peer) ->
             end;
         MyBlockHeight < TheirTopHeight ->
 	    io:fwrite("my height is less\n"),
-            {ok, FT} = application:get_env(ae_core, fork_tolerance),
+            {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
             get_blocks(Peer, max(0, MyBlockHeight - FT));
         true -> 
 	    io:fwrite("already synced with this peer \n"),

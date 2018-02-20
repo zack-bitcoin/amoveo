@@ -140,7 +140,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     Height = TP#tx_pool.height,
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
-    {ok, LF} = application:get_env(ae_core, lightning_fee),
+    {ok, LF} = application:get_env(amoveo_core, lightning_fee),
     true = Fee > LF,
     <<_:256>> = OID,
     {ok, OB} = order_book:data(OID),
@@ -180,7 +180,7 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
-    {ok, LightningFee} = application:get_env(ae_core, lightning_fee),
+    {ok, LightningFee} = application:get_env(amoveo_core, lightning_fee),
     true = Fee > LightningFee,
     Return = make_locked_payment(Sender, Amount+Fee, Code),
     SPK = testnet_sign:data(SSPK),%first is from them
@@ -333,7 +333,7 @@ garbage_helper([H|T], C, OldC) ->
 c_oldc() ->
     Top = block:get_by_hash(headers:top()),
     Height = Top#block.height,
-    {ok, ForkTolerance} = application:get_env(ae_core, fork_tolerance),
+    {ok, ForkTolerance} = application:get_env(amoveo_core, fork_tolerance),
     OldHeight = Height - ForkTolerance,
     true = OldHeight > 0,
     Old = block:get_by_height(OldHeight),
@@ -405,8 +405,8 @@ trade(Amount, Price, Bet, Other, _OID) ->
     {ok, CD} = channel_manager:read(Other),
     SPK = CD#cd.me,
     CID = SPK#spk.cid,
-    {ok, TimeLimit} = application:get_env(ae_core, time_limit),
-    {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
+    {ok, TimeLimit} = application:get_env(amoveo_core, time_limit),
+    {ok, SpaceLimit} = application:get_env(amoveo_core, space_limit),
     CGran = constants:channel_granularity(),
     A = (Amount * Price) div CGran,
     SPK2 = spk:apply_bet(Bet, -A, SPK, TimeLimit div 10 , SpaceLimit),

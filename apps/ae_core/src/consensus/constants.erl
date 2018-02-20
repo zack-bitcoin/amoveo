@@ -11,7 +11,7 @@ initial_fee() ->
 encoded_fee() -> 905.
     
 initial_difficulty() -> 
-    case application:get_env(ae_core, kind) of
+    case application:get_env(amoveo_core, kind) of
         {ok, "local"} -> 0;%unit tests
         {ok, "integration"} -> 1000;%2500;%integration tests.
         {ok, "production"} -> 6452
@@ -20,7 +20,7 @@ difficulty_bits() -> 24.
 hash_size() -> 32.
 address_entropy() -> hash_size()*8.
 master_pub() ->
-    {ok, X} = application:get_env(ae_core, master_pub),
+    {ok, X} = application:get_env(amoveo_core, master_pub),
     base64:decode(X).
 root() -> "data/".
 block_hashes() -> root() ++ "block_hashes.db".
@@ -29,7 +29,7 @@ top() -> root() ++ "top.db".
 channel_manager() -> root() ++ "channel_manager.db".
 secrets() -> root() ++ "secrets.db".
 order_book() -> root() ++ "order_book.db".
-scripts_root() -> "lib/ae_core-0.1.0/priv/".
+scripts_root() -> "lib/amoveo_core-0.1.0/priv/".
 oracle_bet() -> scripts_root() ++ "oracle_bet.fs".
 headers_file() -> root() ++ "headers.db".
 oracle_questions_file() -> root() ++ "oracle_questions.db".
@@ -52,7 +52,7 @@ channel_size() ->
       channel_delay_bits()) div 8) 
 	+ 1 + (hash_size()) + (2 * pubkey_size()).
 retarget_frequency() -> %2000. %how many blocks till we recalculate the difficulty
-    case application:get_env(ae_core, kind) of
+    case application:get_env(amoveo_core, kind) of
         %{ok, "local"} -> 12;%unit tests
         {ok, "local"} -> 12;%unit tests
         {ok, "integration"} -> 100;%integration tests

@@ -56,7 +56,7 @@ handle_call(status, _From, R) ->
     {reply, Out, R};
 handle_call(pubkey, _From, R) -> {reply, R#f.pub, R};
 handle_call(keypair, _From, R) -> 
-    Keys = case application:get_env(ae_core, test_mode, false) of
+    Keys = case application:get_env(amoveo_core, test_mode, false) of
                true -> {R#f.pub, R#f.priv};
                _ -> none
            end,
@@ -92,9 +92,9 @@ handle_cast({change_password, Current, New}, R) ->
     {noreply, R};
 handle_cast(_, X) -> {noreply, X}.
 handle_info(set_initial_keys, State) ->
-    KeysEnvs = {application:get_env(ae_core, keys_pub),
-                application:get_env(ae_core, keys_priv),
-                application:get_env(ae_core, keys_pass)},
+    KeysEnvs = {application:get_env(amoveo_core, keys_pub),
+                application:get_env(amoveo_core, keys_priv),
+                application:get_env(amoveo_core, keys_pass)},
     case KeysEnvs of
         {{ok, Pub}, {ok, Priv}, {ok, Pass}} ->
 	    Pub2 = base64:decode(Pub),

@@ -11,7 +11,7 @@
 -include("../../records.hrl").
 genesis_state() ->
     {MinimumOracleTime, MaximumOracleTime, BlockPeriod} =
-        case application:get_env(ae_core, test_mode, false) of
+        case application:get_env(amoveo_core, test_mode, false) of
             true -> {1, 1, 20};
             false -> {352, 505, 550}
         end,

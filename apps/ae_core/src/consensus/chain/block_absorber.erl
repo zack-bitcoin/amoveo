@@ -66,7 +66,7 @@ absorb_internal(Block) ->
 	    do_save(Block2),
 	    if 
 		(Height == 1) ->
-		    {ok, RD} = application:get_env(ae_core, revert_depth),
+		    {ok, RD} = application:get_env(amoveo_core, revert_depth),
 		    HH = (headers:top())#header.height,
 		    if
 			HH - RD < Height -> sync_mode:normal();
@@ -99,5 +99,5 @@ absorb_internal(Block) ->
 do_save(BlockPlus) ->
     CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
     Hash = block:hash(BlockPlus),
-    BlockFile = ae_utils:binary_to_file_path(blocks, Hash),
+    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
     ok = db:save(BlockFile, CompressedBlockPlus).

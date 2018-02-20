@@ -1,9 +1,9 @@
 -module(api).
 -compile(export_all).
--define(Fee, element(2, application:get_env(ae_core, tx_fee))).
+-define(Fee, element(2, application:get_env(amoveo_core, tx_fee))).
 -define(IP, constants:server_ip()).
 -define(Port, constants:server_port()).
--include("../../ae_core/src/records.hrl").
+-include("../../amoveo_core/src/records.hrl").
 dump_channels() ->
     channel_manager:dump().
 keys_status() -> keys:status().
@@ -84,7 +84,7 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     Acc1 = keys:pubkey(),
     {ok, Acc2} = talker:talk({pubkey}, IP, Port),
     Tx = new_channel_tx:make_dict(CID, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
-    {ok, ChannelDelay} = application:get_env(ae_core, channel_delay),
+    {ok, ChannelDelay} = application:get_env(amoveo_core, channel_delay),
     {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
     %make sure the customer is aware of the time_value before they click this button. Don't request time_value now, it should have been requested earlier.
     LifeSpan = Expires - api:height(),
@@ -168,7 +168,7 @@ channel_spend(IP, Port, Amount) ->
     channel_feeder:spend(Response, -Amount),
     ok.
 lightning_spend(Pubkey, Amount) ->
-    {ok, LFee} = application:get_env(ae_core, lightning_fee),
+    {ok, LFee} = application:get_env(amoveo_core, lightning_fee),
     lightning_spend(?IP, ?Port, Pubkey, Amount, LFee).
 lightning_spend(IP, Port, Pubkey, Amount) ->
     lightning_spend(IP, Port, Pubkey, Amount, ?Fee).
@@ -218,7 +218,7 @@ sum_bets([]) -> 0;
 sum_bets([B|T]) ->
     B#bet.amount + sum_bets(T).
 pretty_display(I) ->
-    {ok, TokenDecimals} = application:get_env(ae_core, token_decimals),
+    {ok, TokenDecimals} = application:get_env(amoveo_core, token_decimals),
     F = I / TokenDecimals,
     [Formatted] = io_lib:format("~.8f", [F]),
     Formatted.
@@ -232,7 +232,7 @@ channel_timeout() ->
     channel_timeout(constants:server_ip(), constants:server_port()).
 channel_timeout(Ip, Port) ->
     {ok, Other} = talker:talk({pubkey}, Ip, Port),
-    {ok, Fee} = application:get_env(ae_core, tx_fee),
+    {ok, Fee} = application:get_env(amoveo_core, tx_fee),
     Trees = (tx_pool:get())#tx_pool.block_trees,
     Dict = (tx_pool:get())#tx_pool.dict,
     {ok, CD} = channel_manager:read(Other),
@@ -300,8 +300,8 @@ mempool() -> lists:reverse((tx_pool:get())#tx_pool.txs).
 halt() -> off().
 off() ->
     testnet_sup:stop(),
-    ok = application:stop(ae_core),
-    ok = application:stop(ae_http).
+    ok = application:stop(amoveo_core),
+    ok = application:stop(amoveo_http).
 mine_block() ->
     block:mine(10000000).
     %potential_block:save(),
@@ -400,7 +400,7 @@ new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     %for now lets use the oracle id as the market id. this wont work for combinatorial markets.
     TPG = tx_pool:get(),
     Height = TPG#tx_pool.height,
-    {ok, Confirmations} = application:get_env(ae_core, confirmations_needed),
+    {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
     OldTrees = OldBlock#block.trees,
     io:fwrite("api oid is "),

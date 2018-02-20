@@ -7,13 +7,13 @@
 handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
     PrivDir0 = 
-	case application:get_env(ae_core, kind) of
+	case application:get_env(amoveo_core, kind) of
 	    {ok, "production"} ->
-		code:priv_dir(ae_http);
-	    _ -> "../../../../apps/ae_http/priv"
+		code:priv_dir(amoveo_http);
+	    _ -> "../../../../apps/amoveo_http/priv"
 	end,
     PrivDir = list_to_binary(PrivDir0),
-    %PrivDir = list_to_binary(code:priv_dir(ae_http)),
+    %PrivDir = list_to_binary(code:priv_dir(amoveo_http)),
     true = case F of
                <<"/secrets.js">> -> true;
                <<"/js_loader.js">> -> true;

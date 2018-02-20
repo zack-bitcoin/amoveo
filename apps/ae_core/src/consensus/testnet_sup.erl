@@ -21,7 +21,7 @@ child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].
 tree_child(Id, KeySize, Size) ->
     tree_child(Id, KeySize, Size, 0).
 tree_child(Id, KeySize, Size, Meta) ->
-    {ok, Amount} = application:get_env(ae_core, trie_size),
+    {ok, Amount} = application:get_env(amoveo_core, trie_size),
     Sup = list_to_atom(atom_to_list(Id) ++ "_sup"),
     {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd]}, permanent, 5000, supervisor, [trie_sup]}.
 init([]) ->

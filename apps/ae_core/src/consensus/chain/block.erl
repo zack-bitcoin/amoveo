@@ -80,7 +80,7 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
     end.
 get_by_hash(H) ->
     Hash = hash(H),
-    BlockFile = ae_utils:binary_to_file_path(blocks, Hash),
+    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
     case db:read(BlockFile) of
         [] -> empty;
         Block -> binary_to_term(zlib:uncompress(Block))
@@ -225,7 +225,7 @@ roots_hash(X) when is_record(X, roots) ->
                          O/binary, G/binary>>).
     
 guess_number_of_cpu_cores() ->
-    case application:get_env(ae_core, test_mode) of
+    case application:get_env(amoveo_core, test_mode) of
         {ok, true} -> 1;
         {ok, false} ->
             X = erlang:system_info(logical_processors_available),
@@ -238,7 +238,7 @@ guess_number_of_cpu_cores() ->
                         X;
                     true -> io:fwrite("number of CPU unknown, only using 1"), 1
                 end,
-            {ok, CoresToMine} = application:get_env(ae_core, cores_to_mine),
+            {ok, CoresToMine} = application:get_env(amoveo_core, cores_to_mine),
             min(Y, CoresToMine)
     end.
 spawn_many(0, _) -> ok;
@@ -294,7 +294,7 @@ proofs_roots_match([P|T], R) ->
     proofs_roots_match(T, R).
             
 check(Block) ->
-    {ok, LN} = application:get_env(ae_core, light_node),
+    {ok, LN} = application:get_env(amoveo_core, light_node),
     Facts = Block#block.proofs,
     Header = block_to_header(Block),
     BlockHash = hash(Block),

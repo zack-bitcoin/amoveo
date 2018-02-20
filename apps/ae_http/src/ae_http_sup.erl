@@ -1,4 +1,4 @@
--module(ae_http_sup).
+-module(amoveo_http_sup).
 
 -behaviour(supervisor).
 

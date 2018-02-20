@@ -7,14 +7,14 @@
 handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
     PrivDir0 = 
-	case application:get_env(ae_core, kind) of
+	case application:get_env(amoveo_core, kind) of
 	    {ok, "production"} ->
-		code:priv_dir(ae_http);
-	    _ -> "../../../../apps/ae_http/priv"
+		code:priv_dir(amoveo_http);
+	    _ -> "../../../../apps/amoveo_http/priv"
 	end,
     PrivDir = list_to_binary(PrivDir0),
     io:fwrite(PrivDir),
-%/Users/zack/Hacking/amoveo/_build/prod/rel/ae_core/lib/ae_http-0.1.0/priv
+%/Users/zack/Hacking/amoveo/_build/prod/rel/amoveo_core/lib/amoveo_http-0.1.0/priv
     io:fwrite("\n"),
     File = << PrivDir/binary, <<"/web">>/binary, F/binary>>,
     {ok, _Data, _} = cowboy_req:body(Req),

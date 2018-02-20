@@ -33,7 +33,7 @@ absorb_internal(SignedTx) ->
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
     Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
-    {ok, MinimumTxFee} = application:get_env(ae_core, minimum_tx_fee),
+    {ok, MinimumTxFee} = application:get_env(amoveo_core, minimum_tx_fee),
     %io:fwrite("now 4 "),%500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),

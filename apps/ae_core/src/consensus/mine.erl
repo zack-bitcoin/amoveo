@@ -9,7 +9,7 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(mine, go) ->
-    case application:get_env(ae_core, test_mode, false) of
+    case application:get_env(amoveo_core, test_mode, false) of
 	true ->
 	    spawn(fun() ->
 			  block:mine(5),

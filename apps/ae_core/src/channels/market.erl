@@ -27,7 +27,7 @@ binary 32 " ++ binary_to_list(base64:encode(MarketID)) ++ " MarketID ! \
 int " ++ integer_to_list(Period) ++ " Period ! \
 binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode(Pubkey)) ++ " Pubkey ! \
 ",
-    PrivDir = code:priv_dir(ae_core),
+    PrivDir = code:priv_dir(amoveo_core),
     {ok, Code3} = file:read_file(PrivDir ++ "/market.fs"),
     FullCode = <<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>,
     %io:fwrite(FullCode),
@@ -114,7 +114,7 @@ test2(NewPub) ->
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
     %Dict5 = (tx_pool:get())#tx_pool.dict,
     MarketID = <<405:256>>,
-    PrivDir = code:priv_dir(ae_core),
+    PrivDir = code:priv_dir(amoveo_core),
     Location = constants:oracle_bet(),
     Period = 3,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
@@ -179,7 +179,7 @@ test2(NewPub) ->
     %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
     %Now we will try betting in the opposite direction.
-    PrivDir = code:priv_dir(ae_core),
+    PrivDir = code:priv_dir(amoveo_core),
     Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0),
     SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], 10000, 10000, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.

@@ -1,5 +1,5 @@
 -module(ext_handler).
--include("../../ae_core/src/records.hrl").
+-include("../../amoveo_core/src/records.hrl").
 
 -export([init/3, handle/2, terminate/3, doit/1]).
 %example of talking to this handler:
@@ -11,10 +11,10 @@ handle(Req, State) ->
     {ok, Data, Req2} = cowboy_req:body(Req),
     {{IP, _}, Req3} = cowboy_req:peer(Req2),
     ok = request_frequency:doit(IP),
-    {ok, TimesPerSecond} = application:get_env(ae_core, request_frequency),
+    {ok, TimesPerSecond} = application:get_env(amoveo_core, request_frequency),
     timer:sleep(round(1000/TimesPerSecond)),
     true = is_binary(Data),
-    case application:get_env(ae_core, kind) of
+    case application:get_env(amoveo_core, kind) of
 	{ok, "production"} ->
 	    %io:fwrite("\n"),
 	    %io:fwrite("ext_handler got this data\n"),
@@ -55,7 +55,7 @@ doit({headers, Many, N}) ->
 doit({header}) -> {ok, headers:top()};
 doit({peers}) ->
     P = peers:all(),
-    P2 = ae_utils:tuples2lists(P),
+    P2 = amoveo_utils:tuples2lists(P),
     {ok, P2};
 doit({peers, Peers}) ->
     peers:add(Peers),
@@ -86,12 +86,12 @@ doit({new_channel_tx, Acc1, Acc2, B1, B2, Delay, Fee}) ->
     Tx = new_channel_tx:make_dict(CID, Acc1, Acc2, B1, B2, Delay, Fee),
     {ok, Tx};
 doit({time_value}) ->
-    application:get_env(ae_core, time_value);
+    application:get_env(amoveo_core, time_value);
 doit({new_channel, STx, SSPK, Expires}) ->
     unlocked = keys:status(),
     LifeSpan = Expires - api:height(),
     {ok, MinimumChannelLifespan} = 
-        application:get_env(ae_core, min_channel_lifespan),
+        application:get_env(amoveo_core, min_channel_lifespan),
     true = LifeSpan > MinimumChannelLifespan,
     Tx = testnet_sign:data(STx),
     SPK = testnet_sign:data(SSPK),
@@ -101,7 +101,7 @@ doit({new_channel, STx, SSPK, Expires}) ->
     Bal1 = new_channel_tx:bal1(Tx),
     Bal2 = new_channel_tx:bal2(Tx),
     Delay = new_channel_tx:delay(Tx),
-    {ok, TV} = application:get_env(ae_core, time_value),
+    {ok, TV} = application:get_env(amoveo_core, time_value),
     CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
     CFee = SPK#spk.amount,
     true = CFee < Bal1,%make sure they can afford the fee.
@@ -130,7 +130,7 @@ doit({channel_close, CID, PeerId, SS, STx}) ->
     Channel = trees:dict_tree_get(channels, CID),
     Bal1 = channels:bal1(Channel),
     Bal2 = channels:bal2(Channel),
-    {ok, TV} = application:get_env(ae_core, time_value),
+    {ok, TV} = application:get_env(amoveo_core, time_value),
     Expires = CD#cd.expiration,
     LifeSpan= max(0, Expires - Height),
     CFee = TV * LifeSpan * (Bal1 + Bal2) div 100000000,
@@ -206,7 +206,7 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     {ok, CD} = channel_manager:read(Account),
     TPG = tx_pool:get(),
     Height = TPG#tx_pool.height,
-    {ok, Confirmations} = application:get_env(ae_core, confirmations_needed),
+    {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
     OldTrees = OldBlock#block.trees,
     false = empty == trees:dict_tree_get(channels, CD#cd.cid, dict:new(), OldTrees),%channel existed confirmation blocks ago.

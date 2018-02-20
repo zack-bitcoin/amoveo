@@ -57,6 +57,6 @@ function callback(x) {
 variable_public_get(["header", 0], callback);
 ```
 
-[The external API is defined here](../../apps/ae_http/src/ext_handler.erl)
+[The external API is defined here](../../apps/amoveo_http/src/ext_handler.erl)
 
-[The internal API is defined here](../../apps/ae_http/src/api.erl)
+[The internal API is defined here](../../apps/amoveo_http/src/api.erl)

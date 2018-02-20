@@ -1,4 +1,4 @@
--module(ae_utils).
+-module(amoveo_utils).
 -export([tuples2lists/1,
          binary_to_file_path/2]).
 

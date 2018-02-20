@@ -26,7 +26,7 @@ code_change(_OldVsn, S, _Extra) -> {ok, S}.
 terminate(_, _) -> io:format("died!"), ok.
 
 handle_info(set_initial_peers, State) ->
-    {ok, Peers} = application:get_env(ae_core, peers),
+    {ok, Peers} = application:get_env(amoveo_core, peers),
     add(Peers),
     %{ok, X} = inet:getif(),
     %Y = hd(X),

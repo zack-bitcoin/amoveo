@@ -127,9 +127,9 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
             Trees = TP#tx_pool.block_trees,
             Height = TP#tx_pool.height,
 	    State = chalang_state(Height, 0, Trees),
-	    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
-	    {ok, VarLimit} = application:get_env(ae_core, var_limit),
-	    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
+	    {ok, FunLimit} = application:get_env(amoveo_core, fun_limit),
+	    {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
+	    {ok, BetGasLimit} = application:get_env(amoveo_core, bet_gas_limit),
 	    true = chalang:none_of(SS2#ss.code),
 	    F = prove_facts(SS#ss.prove, Trees),
 	    C = Bet#bet.code,
@@ -231,7 +231,7 @@ dict_run2(safe, SS, SPK, State, Dict) ->
 		  S ! X
 	  end),
     spawn(fun() ->
-                  {ok, A} = application:get_env(ae_core, smart_contract_runtime_limit),
+                  {ok, A} = application:get_env(amoveo_core, smart_contract_runtime_limit),
 		  timer:sleep(A),%wait enough time for the chalang contracts to finish
 		  S ! error
 	  end),
@@ -338,9 +338,9 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     Trees = TP#tx_pool.block_trees,
     Height = TP#tx_pool.height,
     State = chalang_state(Height, 0, Trees),
-    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
-    {ok, VarLimit} = application:get_env(ae_core, var_limit),
-    {ok, BetGasLimit} = application:get_env(ae_core, bet_gas_limit),
+    {ok, FunLimit} = application:get_env(amoveo_core, fun_limit),
+    {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
+    {ok, BetGasLimit} = application:get_env(amoveo_core, bet_gas_limit),
     true = chalang:none_of(SS#ss.code),
     F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
@@ -365,8 +365,8 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     TP = tx_pool:get(),
     BlockTrees = TP#tx_pool.block_trees,
     Height = TP#tx_pool.height,
-    {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
-    {ok, TimeLimit} = application:get_env(ae_core, time_limit),
+    {ok, SpaceLimit} = application:get_env(amoveo_core, space_limit),
+    {ok, TimeLimit} = application:get_env(amoveo_core, time_limit),
     SG = NewSPK#spk.space_gas,
     TG = NewSPK#spk.time_gas,
     true = SG =< SpaceLimit,
@@ -380,7 +380,7 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
 	Nonce2 > Nonce1 ->
 	    Bets2 = NewSPK#spk.bets,
 	    Bets1 = OldSPK#spk.bets,
-    %{ok, MaxChannelDelay} = application:get_env(ae_core, max_channel_delay),
+    %{ok, MaxChannelDelay} = application:get_env(amoveo_core, max_channel_delay),
     %io:fwrite("delay2 is "),
     %io:fwrite(packer:pack(Delay2)),
     %io:fwrite("\n"),
@@ -462,10 +462,10 @@ obligations(2, [A|T]) ->
 	end,
     C + obligations(2, T).
 vm(SS, State) ->
-    {ok, TimeLimit} = application:get_env(ae_core, time_limit),
-    {ok, SpaceLimit} = application:get_env(ae_core, space_limit),
-    {ok, FunLimit} = application:get_env(ae_core, fun_limit),
-    {ok, VarLimit} = application:get_env(ae_core, var_limit),
+    {ok, TimeLimit} = application:get_env(amoveo_core, time_limit),
+    {ok, SpaceLimit} = application:get_env(amoveo_core, space_limit),
+    {ok, FunLimit} = application:get_env(amoveo_core, fun_limit),
+    {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
     chalang:vm(SS, TimeLimit, SpaceLimit, FunLimit, VarLimit, State).
 chalang_error_handling(SS, Code, Data) ->
     case chalang:run5(SS, Data) of
