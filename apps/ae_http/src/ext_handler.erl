@@ -261,18 +261,21 @@ many_headers(Many, X) ->
     io:fwrite("\n"),
     Z = max(0, X + Many - 1),
     H = headers:top(),
-    true = ((H#header.height)+Many+1) > (X),
-    {N, Many2} = 
-	if 
-	    Z < H#header.height ->
-		{Z, Many};
-	    true ->
-		{H#header.height, Many - (Z - H#header.height)}
-	end,
-    %N = min(H#header.height, X + Many - 1),
-    Nth = get_header_by_height(N, H),
-    %Many2 = max(0, N - X),
-    many_headers2(Many2, Nth, []).
+    case (H#header.height) > (X) of
+	false -> [];
+	true ->
+	    {N, Many2} = 
+		if 
+		    Z < H#header.height ->
+			{Z, Many};
+		    true ->
+			{H#header.height, Many - (Z - H#header.height)}
+		end,
+						%N = min(H#header.height, X + Many - 1),
+	    Nth = get_header_by_height(N, H),
+						%Many2 = max(0, N - X),
+	    many_headers2(Many2, Nth, [])
+    end.
 many_headers2(0, _, Out) -> Out;
 many_headers2(Many, H, Out) ->
     %{ok, H} = headers:read(Hash),
