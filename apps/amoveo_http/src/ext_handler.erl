@@ -68,10 +68,10 @@ doit({top}) ->
     Top = block:top(),
     {ok, Top, Top#block.height};
 doit({test}) -> 
-    {test_response};
+    {test};
 doit({test, N}) ->
     M = 8 * N,
-    {test_response, <<0:M>>};
+    {test, <<0:M>>};
 doit({spend_tx, Amount, Fee, From, To}) ->
     Tx = spend_tx:make_dict(To, Amount, Fee, From),
     {ok, Tx};

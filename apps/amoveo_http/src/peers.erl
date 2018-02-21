@@ -29,7 +29,7 @@ init(ok) ->
 		  if
 		      IP == empty -> ok;
 		      true ->
-			  case talker:talk({test}, {IP, Port}) of
+			  case talker:talk({top}, {IP, Port}) of
 			      bad_peer -> ok;
 			      _ -> add({IP, Port})
 			  end
