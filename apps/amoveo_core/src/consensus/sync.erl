@@ -135,10 +135,14 @@ common_block_height(CommonHash) ->
     end.
 get_blocks(Peer, N) ->
     io:fwrite("sync get_blocks\n"),
-    Status = status(),
-    case status() of
-	go ->
-	    {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
+    {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
+    go = status(),
+    Height = block:height(),
+    if
+	N > Height + (2 * BB) ->%don't request more than 2 batches ahead of where we are.
+	    timer:sleep(1000),
+	    get_blocks(Peer, N);
+	true ->
 	    Blocks = remote_peer({blocks, BB, N}, Peer),
 	    case Blocks of
 		{error, _} -> 
@@ -151,8 +155,7 @@ get_blocks(Peer, N) ->
 			    get_blocks(Peer, N+BB);
 			true -> ok
 		    end
-	    end;
-	_ -> ok
+	    end
     end.
 remove_self(L) ->%assumes that you only appear once or zero times in the list.
     MyIP = my_ip:get(),
