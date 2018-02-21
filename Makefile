@@ -6,8 +6,8 @@ PYTHON = $(BIN)/python
 PIP = $(BIN)/pip
 
 VER = 0.1.0
-CORE = rel/ae_core/bin/ae_core
-SWAGGER = apps/ae_http/src/swagger
+CORE = rel/amoveo_core/bin/amoveo_core
+SWAGGER = apps/amoveo_http/src/swagger
 SWTEMP := $(shell mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
 LOCAL = ./_build/local/rel
 
@@ -63,9 +63,9 @@ multi-build: config/dev1/sys.config config/dev2/sys.config config/dev3/sys.confi
 	@rm -rf _build/dev2 _build/dev3
 	@for x in dev2 dev3; do \
 		cp -R _build/dev1 _build/$$x; \
-		cp config/$$x/sys.config _build/$$x/rel/ae_core/releases/$(VER)/sys.config; \
-		cp config/$$x/vm.args _build/$$x/rel/ae_core/releases/$(VER)/vm.args; \
-		mkdir -p _build/$$x/rel/ae_core/keys; \
+		cp config/$$x/sys.config _build/$$x/rel/amoveo_core/releases/$(VER)/sys.config; \
+		cp config/$$x/vm.args _build/$$x/rel/amoveo_core/releases/$(VER)/vm.args; \
+		mkdir -p _build/$$x/rel/amoveo_core/keys; \
 	done
 
 multi-go:
@@ -141,15 +141,15 @@ attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
 clean: $$(KIND)
-	@rm -rf ./_build/$(KIND)/rel/ae_core/data/
-	@mkdir ./_build/$(KIND)/rel/ae_core/data
-	@rm -rf ./_build/$(KIND)/rel/ae_core/blocks/
-	@mkdir ./_build/$(KIND)/rel/ae_core/blocks/
+	@rm -rf ./_build/$(KIND)/rel/amoveo_core/data/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/data
+	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
 	@rm -rf ./config/$(KIND)/sys.config
 	@rm -rf ./_build/$(KIND)/rel/log/
 	@mkdir ./_build/$(KIND)/rel/log
 
-$(LOCAL)/ae_core/keys:
+$(LOCAL)/amoveo_core/keys:
 	@mkdir -p $@
 
 #venv-present:
@@ -167,7 +167,7 @@ unit-tests:
 swagger: config/swagger.yaml
 	@swagger-codegen generate -i $< -l erlang-server -o $(SWTEMP)
 	@echo "Swagger tempdir: $(SWTEMP)"
-	@cp $(SWTEMP)/priv/swagger.json apps/ae_http/priv/
+	@cp $(SWTEMP)/priv/swagger.json apps/amoveo_http/priv/
 	@cp $(SWTEMP)/src/*.erl $(SWAGGER)/
 	@rm -fr $(SWTEMP)
 
@@ -264,7 +264,7 @@ tests: killall
 multi-quick: kill multi-clean multi-build multi-go
 
 local-quick: kill local-build local-clean
-	./_build/local/rel/ae_core/bin/ae_core console
+	./_build/local/rel/amoveo_core/bin/amoveo_core console
 prod-restart: prod-stop prod-build prod-go
 	@sleep 3
 	@make prod-attach

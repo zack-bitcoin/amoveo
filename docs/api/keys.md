@@ -56,5 +56,5 @@ The default password on a new node is "", the empty string.
 
 You find your keys in this file:
 
-_build/prod/rel/ae_core/keys/keys.db 
+_build/prod/rel/amoveo_core/keys/keys.db 
 
