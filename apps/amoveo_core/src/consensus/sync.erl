@@ -136,26 +136,35 @@ common_block_height(CommonHash) ->
 get_blocks(Peer, N) ->
     io:fwrite("sync get_blocks\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
+    {ok, BM} = application:get_env(amoveo_core, download_blocks_batch),
+
+    timer:sleep(100),
     go = status(),
     Height = block:height(),
+    AHeight = api:height(),
     if
-	N > Height + (2 * BB) ->%don't request more than 2 batches ahead of where we are.
+	Height == AHeight -> ok;%done syncing
+	N > Height + (BM * BB) ->%This uses up 10 * BB * block_size amount of ram.
 	    timer:sleep(1000),
 	    get_blocks(Peer, N);
 	true ->
-	    Blocks = remote_peer({blocks, BB, N}, Peer),
-	    case Blocks of
-		{error, _} -> 
-		    io:fwrite("sync:get_blocks/2 error\n"),
-		    get_blocks(Peer, N);
-		_ ->
-		    block_absorber:enqueue(Blocks),
-		    if
-			length(Blocks) > (BB div 2) ->
-			    get_blocks(Peer, N+BB);
-			true -> ok
-		    end
-	    end
+	    spawn(fun() ->
+			  get_blocks(Peer, N+BB)
+		  end),
+	    get_blocks2(BB, N, Peer)
+    end.
+get_blocks2(BB, N, Peer) ->
+    go = status(),
+    Blocks = talker:talk({blocks, BB, N}, Peer),
+    case Blocks of
+	{error, _} -> 
+	    timer:sleep(500),
+	    get_blocks2(BB, N, Peer);
+	bad_peer -> 
+	    timer:sleep(500),
+	    get_blocks2(BB, N, Peer);
+	{ok, Bs} -> block_absorber:enqueue(Bs);
+	_ -> block_absorber:enqueue(Blocks)
     end.
 remove_self(L) ->%assumes that you only appear once or zero times in the list.
     MyIP = my_ip:get(),

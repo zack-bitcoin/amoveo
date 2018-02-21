@@ -64,12 +64,7 @@ remove_before([{Hash, TotalWork}|T], X) when TotalWork < X ->
 	true ->
 	    H = KeepBlock#block.prev_hash,
 	    OldBlock = block:get_by_hash(H),
-	    io:fwrite("prune block "),
-	    io:fwrite(integer_to_list(Height)),
-	    io:fwrite("\n"),
-						%spawn(fun() ->
 	    tree_data:garbage(OldBlock, KeepBlock)
-						%  end),
     end,
     remove_before(T, X);
 remove_before([H|T], X) -> [H|remove_before(T, X)].

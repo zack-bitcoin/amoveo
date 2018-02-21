@@ -52,6 +52,8 @@
 ### Things we can do after launch of mainnet
 
 
+* instead of downloading a certain number of blocks at a time, we should have a certain number of byts we download at a time.
+
 * if you make several txs in a row, they don't all get included in a block.
 
 * fix compiler warnings. unused variables and such.

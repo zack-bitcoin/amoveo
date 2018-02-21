@@ -42,7 +42,10 @@ absorb_internal(Block) ->
     NextBlock = Block#block.prev_hash,
     Height = Block#block.height,
     BHC = block_hashes:check(BH),
+    MyHeight = block:height(), 
     if
+	Height > (MyHeight + 1) ->
+	    enqueue(Block);
         Height == 0 -> 
 	    {ok, Header00} = headers:read(BH),
 	    Header00;
@@ -70,7 +73,7 @@ absorb_internal(Block) ->
 		%    {ok, RD} = application:get_env(amoveo_core, revert_depth),
 	    HH = (headers:top())#header.height,
 	    if
-		HH < Height + 10 -> sync_mode:normal();
+		HH == Height -> sync_mode:normal();
 		true -> ok
 	    end,
 	    %if
