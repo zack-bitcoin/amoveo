@@ -22,7 +22,11 @@
 - total number of oracles.
 - txs and proofs and more valus can all be stuffed into block:merkelize. They don't need seperate merkle trees. the order is deterministic.
 
+* embed recent news message into genesis block.
 
+* update constants start_time.
+
+* headers are currently storing the time in 32 bits. This is not enough space, we will run out of time in 13.6 years.
 
 
 
@@ -41,6 +45,8 @@
 
 ### Things we can do after launch of mainnet
 
+
+* if you make several txs in a row, they don't all get included in a block.
 
 * fix compiler warnings. unused variables and such.
 

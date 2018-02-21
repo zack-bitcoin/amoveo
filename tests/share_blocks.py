@@ -13,7 +13,7 @@ def test1():
 def test2():
     print("share blocks test 2")
     request(1, "mine_block", [15, 100000], 0.1)
-    request(2, "sync", [[127,0,0,1], 3010], 0.1)#pull blocks
+    request(2, "sync", [[127,0,0,1], 3010], 0.5)#pull blocks
     request(1, "mine_block", [3, 100000], 0.02)
     request(1, "sync", [[127,0,0,1], 3020], 0.1)#push blocks
     request(1, "spend", ["BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=", 100000000], 0.05)#light node 1

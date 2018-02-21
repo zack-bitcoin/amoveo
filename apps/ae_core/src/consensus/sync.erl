@@ -26,15 +26,15 @@ doit2([]) -> ok;
 %doit2([Peer|T]) ->
 doit2(L0) ->
     L = remove_self(L0),
-    T = list_to_tuple(L),
-    <<X:24>> = crypto:strong_rand_bytes(3),
-    M = X rem size(T),
-    Peer = element(M+1, T),
     if
 	length(L) == 0 ->
 	    io:fwrite("no one to sync with\n"),
 	    ok;
 	true ->
+	    T = list_to_tuple(L),
+	    <<X:24>> = crypto:strong_rand_bytes(3),
+	    M = X rem size(T),
+	    Peer = element(M+1, T),
 	    io:fwrite("syncing with peer "),
 	    io:fwrite(packer:pack(Peer)),
 	    io:fwrite("\n"),
@@ -82,6 +82,9 @@ remote_peer(Transaction, Peer) ->
         {ok, Return0} -> Return0;
 	bad_peer -> %remove from peers, add to a black list for next N minutes.
 	    {{_,_,_,_},_} = Peer,
+	    io:fwrite("removing peer "),
+	    io:fwrite(packer:pack(Peer)),
+	    io:fwrite("\n"),
 	    peers:remove(Peer),
 	    blacklist_peer:add(Peer),
 	    error;
@@ -151,7 +154,8 @@ get_blocks(Peer, N) ->
 	_ -> ok
     end.
 remove_self(L) ->%assumes that you only appear once or zero times in the list.
-    MyIP = peers:my_ip(L),
+    %MyIP = peers:my_ip(L),
+    MyIP = my_ip:get(),
     {ok, MyPort} = application:get_env(ae_core, port),
     Me = {MyIP, MyPort},
     remove_self2(L, Me).

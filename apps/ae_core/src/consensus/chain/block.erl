@@ -85,7 +85,7 @@ get_by_hash(H) ->
         [] -> empty;
         Block -> binary_to_term(zlib:uncompress(Block))
     end.
-top() -> top(headers:top()).%what we actually want is the highest header for which we have a stored block.
+top() -> top(headers:top_with_block()).%what we actually want is the highest header for which we have a stored block.
 top(Header) ->
     false = element(2, Header) == undefined,
     case get_by_hash(hash(Header)) of

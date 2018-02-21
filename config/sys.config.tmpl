@@ -27,7 +27,7 @@
     {confirmations_needed, 0}, %% if you want to make a bet with this server, your channel needs at least this many confirmations.
 
     {light_node, false},
-    {trie_size, 2000000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. Max block size starts around 207560.
+    {trie_size, 2000000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. 
     %% There are several trees, they are all stored in ram. It is important that trie_size*sum(size of an element in each trie) < (amount of ram you have).
 
     {tx_fee, 1000},

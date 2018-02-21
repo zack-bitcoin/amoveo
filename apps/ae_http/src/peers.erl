@@ -19,7 +19,19 @@
 -record(state, {peers}). %state record
 
 init(ok) ->
-    erlang:send_after(1000, self(), set_initial_peers),
+    %erlang:send_after(1000, self(), set_initial_peers),
+    spawn(fun() ->
+		  timer:sleep(1000),
+		  {ok, Peers} = application:get_env(ae_core, peers),
+		  add(Peers),
+		  IP = my_ip:get(),
+		  if
+		      IP == empty -> ok;
+		      true ->
+			  add({IP, 8080})
+		  end
+		  
+	  end),
     {ok, #state{peers = dict:new()}}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, S, _Extra) -> {ok, S}.
@@ -32,8 +44,13 @@ handle_info(set_initial_peers, State) ->
     %Y = hd(X),
     %IP = element(1, Y),
 
-    IP = my_ip(Peers),
-    add({IP, 8080}),
+    %IP = my_ip(Peers),
+    IP = my_ip:get(),
+    if
+	IP == empty -> ok;
+	true ->
+	    add({IP, 8080})
+    end,
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
@@ -83,8 +100,12 @@ add({IP, Port}) ->
               is_tuple(IP) -> IP;
               is_list(IP) -> list_to_tuple(IP)
           end,
-    false = blacklist_peer:check({NIP, Port}),
-    gen_server:cast(?MODULE, {add, {NIP, Port}}).
+    B = blacklist_peer:check({NIP, Port}),
+    if
+	B -> ok;
+	true ->
+	    gen_server:cast(?MODULE, {add, {NIP, Port}})
+    end.
 
 update(Peer, Properties) ->
     gen_server:cast(?MODULE, {update, Peer, Properties}).

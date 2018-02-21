@@ -36,6 +36,7 @@ enqueue(B) -> gen_server:cast(?MODULE, {doit, B}).
 save([T]) -> save(T);
 save([B|T]) -> save(B), save(T);
 save(B) -> gen_server:call(?MODULE, {doit, B}, 10000).
+absorb_internal(error) -> error;
 absorb_internal(Block) ->
     BH = block:hash(Block),
     NextBlock = Block#block.prev_hash,

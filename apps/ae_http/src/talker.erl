@@ -31,7 +31,8 @@ build_string_peer(IP, Port) ->
 
 talk_helper(_, _, 0, _) ->
     io:fwrite("talk helper fail\n"),
-    {error, failed_connect};
+    bad_peer;
+    %{error, failed_connect};
 talk_helper(Msg, Peer, N, TimeOut) ->
     PM = packer:pack(Msg),
     %io:fwrite("sending message "),
@@ -41,7 +42,8 @@ talk_helper(Msg, Peer, N, TimeOut) ->
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, TimeOut}], []) of
         {ok, {{_, 500, _}, _Headers, []}} ->
 	    io:fwrite("server crashed.\n"),
-            talk_helper(Msg, Peer, 0, TimeOut);
+	    bad_peer;
+            %talk_helper(Msg, Peer, 0, TimeOut);
         {ok, {Status, _Headers, []}} ->
             io:fwrite("talk_helper weird response \n"),
 	    io:fwrite(packer:pack(Status)),
@@ -56,12 +58,13 @@ talk_helper(Msg, Peer, N, TimeOut) ->
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, failed_connect} ->
             io:fwrite("talk_helper failed_connect 0 \n"),
-            talk_helper(Msg, Peer, N - 1, TimeOut);
+	    bad_peer;
+            %talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, {failed_connect, _}} ->
             io:fwrite("talk_helper failed_connect 1 \n"),
-            %talk_helper(Msg, Peer, N - 1);
 	    bad_peer;
-        X -> io:fwrite("talk helper unexpected"),
+            %talk_helper(Msg, Peer, N - 1, TimeOut);
+        X -> io:fwrite("talk helper unexpected error"),
             io:fwrite(X),
             error
     end.
