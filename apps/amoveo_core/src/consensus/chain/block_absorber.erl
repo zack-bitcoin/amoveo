@@ -65,16 +65,20 @@ absorb_internal(Block) ->
 	    {true, Block2} = block:check(Block),
 	    BH = block:hash(Block2),
 	    do_save(Block2),
-	    if 
-		(Height == 1) ->
-		    {ok, RD} = application:get_env(amoveo_core, revert_depth),
-		    HH = (headers:top())#header.height,
-		    if
-			HH - RD < Height -> sync_mode:normal();
-			true -> ok
-		    end;
+	    %if 
+		%(Height == 1) ->
+		%    {ok, RD} = application:get_env(amoveo_core, revert_depth),
+	    HH = (headers:top())#header.height,
+	    if
+		HH < Height + 10 -> sync_mode:normal();
 		true -> ok
 	    end,
+	    %if
+		%	HH - RD < Height -> sync_mode:normal();
+		%	true -> ok
+		%    end;
+		%true -> ok
+	    %end,
 	    case sync_mode:check() of
 		normal -> 
 		    Txs = (tx_pool:get())#tx_pool.txs,

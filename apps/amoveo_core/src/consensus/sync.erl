@@ -145,7 +145,7 @@ get_blocks(Peer, N) ->
 		    io:fwrite("sync:get_blocks/2 error\n"),
 		    get_blocks(Peer, N);
 		_ ->
-		    block_absorber:save(Blocks),
+		    block_absorber:enqueue(Blocks),
 		    if
 			length(Blocks) > (BB div 2) ->
 			    get_blocks(Peer, N+BB);

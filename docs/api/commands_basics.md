@@ -8,6 +8,12 @@ To sync with the network and download the blockchain:
 sync:start().
 ```
 
+To pause syncing with the network
+```
+sync:stop().
+```
+Pausing can be helpful if you ran `sync:start().` more than once, and the multiple processes are interfering with each other.
+
 WARNING syncing will go very slowly unless you use this:
 ```
 sync_mode:quick().
