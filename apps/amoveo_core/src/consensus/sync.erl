@@ -1,7 +1,7 @@
 -module(sync).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	start/1, start/0, stop/0, status/0, give_blocks/3, push_new_block/1]).
+	start/1, start/0, stop/0, status/0, give_blocks/3, push_new_block/1, remote_peer/2]).
 -include("../records.hrl").
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -174,7 +174,8 @@ push_new_block(Block) ->
 push_new_block_helper(_, _, [], _) -> ok;%no one else to give the block to.
 push_new_block_helper(N, M, _, _) when ((M > 0) and ((N*2) >= M)) -> ok;%the majority of peers probably already know.
 push_new_block_helper(N, M, [P|T], Block) ->
-    X = talker:talk({give_block, Block}, P),
+    %X = talker:talk({give_block, Block}, P),
+    X = remote_peer({give_block, Block}, P),
     %io:fwrite(packer:pack(X)),
     Z = case X of
 	    3 -> 1;

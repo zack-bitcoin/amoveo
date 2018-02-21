@@ -33,6 +33,12 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
+* make sure sync:start doesn't run multiple times in parallel.
+
+* review the code for pushing a block to the network in normal mode.
+
+* after a peer is removed from the list, don't try contacting them again.
+
 
 ### tests before official launch of mainnet
 
