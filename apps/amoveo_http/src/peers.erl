@@ -28,11 +28,7 @@ init(ok) ->
 		  IP = my_ip:get(),
 		  if
 		      IP == empty -> ok;
-		      true ->
-			  case talker:talk({top}, {IP, Port}) of
-			      bad_peer -> ok;
-			      _ -> add({IP, Port})
-			  end
+		      true -> add({IP, Port})
 		  end
 		  
 	  end),
@@ -92,7 +88,11 @@ add({IP, Port}) ->
     if
 	B -> ok;
 	true ->
-	    gen_server:cast(?MODULE, {add, {NIP, Port}})
+	    case talker:talk({top}, {NIP, Port}) of
+		bad_peer -> ok;
+		_ ->
+		    gen_server:cast(?MODULE, {add, {NIP, Port}})
+	    end
     end.
 
 update(Peer, Properties) ->

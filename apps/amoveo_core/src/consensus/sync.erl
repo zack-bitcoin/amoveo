@@ -190,7 +190,9 @@ trade_txs(Peer) ->
 
 sync_peer(Peer) ->
     io:fwrite("trade peers\n"),
-    trade_peers(Peer),
+    spawn(fun() ->
+		  trade_peers(Peer)
+	  end),
     MyTop = headers:top(),
     io:fwrite("get their top header\n"),
     TheirTop = remote_peer({header}, Peer), 
