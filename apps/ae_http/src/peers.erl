@@ -23,12 +23,13 @@ init(ok) ->
     spawn(fun() ->
 		  timer:sleep(1000),
 		  {ok, Peers} = application:get_env(ae_core, peers),
+		  {ok, Port} = application:get_env(ae_core, port),
 		  add(Peers),
 		  IP = my_ip:get(),
 		  if
 		      IP == empty -> ok;
 		      true ->
-			  add({IP, 8080})
+			  add({IP, Port})
 		  end
 		  
 	  end),
@@ -36,22 +37,6 @@ init(ok) ->
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, S, _Extra) -> {ok, S}.
 terminate(_, _) -> io:format("died!"), ok.
-
-handle_info(set_initial_peers, State) ->
-    {ok, Peers} = application:get_env(ae_core, peers),
-    add(Peers),
-    %{ok, X} = inet:getif(),
-    %Y = hd(X),
-    %IP = element(1, Y),
-
-    %IP = my_ip(Peers),
-    IP = my_ip:get(),
-    if
-	IP == empty -> ok;
-	true ->
-	    add({IP, 8080})
-    end,
-    {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 
