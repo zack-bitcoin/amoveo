@@ -63,11 +63,13 @@ all() -> gen_server:call(?MODULE, all).
 add([]) -> ok;
 add([[IP, Port]|T]) when (is_list(IP)) ->
     add([[list_to_tuple(IP), Port]|T]);
-add([[IP, Port]|T]) when ((size(IP) == 4) or (size(IP) == 16)) ->
-    add({IP, Port}),
-    add(T);
-add([{IP, Port}|T]) -> 
-    add({IP, Port}),
+add([[IP, Port]|T]) ->
+    %add({IP, Port}),
+    add([{IP, Port}|T]);
+add([{IP, Port}|T]) when ((size(IP) == 4) or (size(IP) == 16)) ->
+    spawn(fun() ->
+		  add({IP, Port})
+	  end),
     add(T);
 add([MalformedPeer|T]) ->
     io:fwrite("tried to add malformed peer, skipping."),
