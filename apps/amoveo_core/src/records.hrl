@@ -39,7 +39,6 @@
                 hash = <<>>,
 		market_cap = 0,
 		channels_veo = 0,
-		many_channels = 0,
 		live_channels = 0,
 		many_accounts = 1,
 		many_oracles = 0,

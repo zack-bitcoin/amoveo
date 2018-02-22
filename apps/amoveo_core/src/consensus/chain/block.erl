@@ -191,11 +191,12 @@ make(Header, Txs0, Trees, Pub) ->
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     NewDict = new_dict(Txs, Dict, Height+1, keys:pubkey(), hash(Header)),
     NewTrees = tree_data:dict_update_trie(Trees, NewDict),
-    Governance = trees:governance(NewTrees),
+    %Governance = trees:governance(NewTrees),
+    Governance = trees:governance(Trees),
     BlockPeriod = governance:get_value(block_period, Governance),
     PrevHash = hash(Header),
     OldBlock = get_by_hash(PrevHash),
-    BlockReward = governance:dict_get_value(block_reward, Dict),
+    BlockReward = governance:get_value(block_reward, Governance),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -209,9 +210,8 @@ make(Header, Txs0, Trees, Pub) ->
 		   prev_hashes = calculate_prev_hashes(Header),
 		   proofs = Facts,
                    roots = make_roots(Trees),
-		   market_cap = OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Dict),
+		   market_cap = OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
 		   channels_veo = OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
-		   many_channels = OldBlock#block.many_channels + many_new_channels(Txs0),
 		   live_channels = OldBlock#block.live_channels + many_live_channels(Txs0),
 		   many_accounts = OldBlock#block.many_accounts + many_new_accounts(Txs0),
 		   many_oracles = OldBlock#block.many_oracles + many_new_oracles(Txs0),
@@ -318,8 +318,8 @@ check(Block) ->
     PrevStateHash = PrevHeader#header.trees_hash,
     PrevStateHash = trees:root_hash2(OldTrees, Roots),
     Txs = Block#block.txs,
-    BlockSize = size(packer:pack(Txs)),
     Governance = trees:governance(OldTrees),
+    BlockSize = size(packer:pack(Txs)),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
     ok = case BlockSize > MaxBlockSize of
 	     true -> 
@@ -343,9 +343,18 @@ check(Block) ->
     end,
     true = proofs_roots_match(Facts, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
+
+    Txs0 = tl(Txs),
+    BlockReward = governance:get_value(block_reward, Governance),
+    true = Block#block.market_cap == OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
+    true = Block#block.channels_veo == OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
+    true = Block#block.live_channels == OldBlock#block.live_channels + many_live_channels(Txs0),
+    true = Block#block.many_accounts == OldBlock#block.many_accounts + many_new_accounts(Txs0),
+    true = Block#block.many_oracles == OldBlock#block.many_oracles + many_new_oracles(Txs0),
+    true = Block#block.live_oracles == OldBlock#block.live_oracles + many_live_oracles(Txs0),
+
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
-    Txs = Block#block.txs,
     Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
@@ -429,10 +438,10 @@ initialize_chain() ->
     Header0.
 
 gov_fees([], _) -> 0;
-gov_fees([Tx|T], Dict) ->
+gov_fees([Tx|T], Governance) ->
     C = testnet_sign:data(Tx),
-    A = governance:dict_get_value(element(1, C), Dict),
-    A + gov_fees(T, Dict).
+    A = governance:get_value(element(1, C), Governance),
+    A + gov_fees(T, Governance).
 deltaCV([], _) -> 0;%calculate change in total amount of VEO stored in channels.
 deltaCV([Tx|T], Dict) ->
     C = testnet_sign:data(Tx),
@@ -454,25 +463,41 @@ deltaCV([Tx|T], Dict) ->
 	    _ -> 0
 	end,
     A + deltaCV(T, Dict).
-many_new_channels([]) -> 0;
-many_new_channels([Tx|T]) ->
-    A = 0,
-    A + many_new_channels(T).
 many_live_channels([]) -> 0;
 many_live_channels([Tx|T]) ->
-    A = 0,
+    C = testnet_sign:data(Tx),
+    A = case element(1, C) of
+	    nc -> 1;
+	    ctc -> -1;
+	    timeout -> -1;
+	    _ -> 0
+	end,
     A + many_live_channels(T).
 many_new_accounts([]) -> 0;
 many_new_accounts([Tx|T]) ->
-    A = 0,
+    C = testnet_sign:data(Tx),
+    A = case element(1, C) of
+	    create_acc_tx -> 1;
+	    delete_acc_tx -> -1;
+	    _ -> 0
+	end,
     A + many_new_accounts(T).
 many_new_oracles([]) -> 0;
 many_new_oracles([Tx|T]) ->
-    A = 0,
+    C = testnet_sign:data(Tx),
+    A = case element(1, C) of
+	    oracle_new -> 1;
+	    _ -> 0
+	end,
     A + many_new_oracles(T).
 many_live_oracles([]) -> 0;
 many_live_oracles([Tx|T]) ->
-    A = 0,
+    C = testnet_sign:data(Tx),
+    A = case element(1, C) of
+	    oracle_new -> 1;
+	    oracle_close -> -1;
+	    _ -> 0
+	end,
     A + many_live_oracles(T).
 
 
