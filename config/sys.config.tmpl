@@ -57,7 +57,7 @@
 
     {download_blocks_batch, 20},%% How many blocks we get per request.
     {download_blocks_many, 10}, %% we are storing blocks in the block_absorber mail box, which is RAM. many*batch*blocksize is how much ram we are using, at most.
-    {push_blocks_batch, 5}
+    {push_blocks_batch, 50}
   ]},
 
    {lager, [
