@@ -137,7 +137,7 @@ common_block_height(CommonHash) ->
 get_blocks(Peer, N) ->
     io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
-    {ok, BM} = application:get_env(amoveo_core, download_blocks_batch),
+    {ok, BM} = application:get_env(amoveo_core, download_blocks_many),
 
     timer:sleep(100),
     go = status(),
