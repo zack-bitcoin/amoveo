@@ -54,6 +54,7 @@ blocks(CommonHash, Block) ->
     end.
 give_blocks(Peer, CommonHash, TheirBlockHeight) -> 
     io:fwrite("give blocks\n"),
+    go = status(),
     {ok, DBB} = application:get_env(amoveo_core, push_blocks_batch),
     H = min(block:height(), max(0, TheirBlockHeight + DBB - 1)),
     Blocks = lists:reverse(blocks(CommonHash, block:get_by_height(H))),
@@ -134,7 +135,7 @@ common_block_height(CommonHash) ->
         B -> B#block.height
     end.
 get_blocks(Peer, N) ->
-    io:fwrite("sync get_blocks\n"),
+    io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
     {ok, BM} = application:get_env(amoveo_core, download_blocks_batch),
 

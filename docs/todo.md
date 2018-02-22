@@ -52,6 +52,11 @@
 ### Things we can do after launch of mainnet
 
 
+* if a peer refuses the blocks we send them, then blacklist them.
+
+* it is confusing how we have sync:start/sync:stop and we also have sync_mode:quick/sync_mode:normal.
+Can't 1 flag do both things?
+
 * instead of downloading a certain number of blocks at a time, we should have a certain number of byts we download at a time.
 
 * if you make several txs in a row, they don't all get included in a block.
@@ -230,3 +235,5 @@ Blocks should be serialized to be fully compressed.
 
 * we need configuration options to decide which parts of the historical data you want to keep.
 * it should be possible to store a shart of a tree.
+
+* an api for downloading blocks in a compressed format.

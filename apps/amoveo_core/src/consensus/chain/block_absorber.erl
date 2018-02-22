@@ -71,11 +71,11 @@ absorb_internal(Block) ->
 	    %if 
 		%(Height == 1) ->
 		%    {ok, RD} = application:get_env(amoveo_core, revert_depth),
-	    HH = (headers:top())#header.height,
-	    if
-		HH == Height -> sync_mode:normal();
-		true -> ok
-	    end,
+	    %HH = (headers:top())#header.height,
+	    %if
+		%HH == Height -> sync_mode:normal();
+		%true -> ok
+	    %end,
 	    %if
 		%	HH - RD < Height -> sync_mode:normal();
 		%	true -> ok

@@ -14,6 +14,12 @@ sync:stop().
 ```
 Pausing can be helpful if you ran `sync:start().` more than once, and the multiple processes are interfering with each other.
 
+Once you are fully synced, you can turn on tx processing like this:
+```
+sync_mode:normal().
+```
+This allows you to mine and share txs with the network.
+
 To see the current block height on this node:
 ```
 block:height().
