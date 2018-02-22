@@ -44,7 +44,9 @@ Go to the block explorer to see all the markets that are being run on that node.
 
 
 ## Mining
-[Here is the best mining software that works with Amoveo](https://github.com/zack-bitcoin/amoveo-c-miner)
+Here is the fastest miner
+[Linux and Mac OSX](https://github.com/zack-bitcoin/amoveo-c-miner)
+[Windows](https://github.com/Mandelhoff/AmoveoMinerCpu/releases)
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
 
 
