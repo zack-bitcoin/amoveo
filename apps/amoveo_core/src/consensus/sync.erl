@@ -12,6 +12,9 @@ handle_info(_, X) -> {noreply, X}.
 %handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
+    io:fwrite("syncing with this peer now "),
+    io:fwrite(packer:pack(Peer)),
+    io:fwrite("\n"),
     sync_peer(Peer),
     {noreply, []};
 handle_cast(_, X) -> {noreply, X}.
@@ -37,7 +40,7 @@ doit2(L0) ->
 	    <<X:24>> = crypto:strong_rand_bytes(3),
 	    M = X rem size(T),
 	    Peer = element(M+1, T),
-	    io:fwrite("syncing with peer "),
+	    io:fwrite("eventually will sync with peer "),
 	    io:fwrite(packer:pack(Peer)),
 	    io:fwrite("\n"),
 	    gen_server:cast(?MODULE, {main, Peer}),
@@ -137,7 +140,7 @@ common_block_height(CommonHash) ->
         B -> B#block.height
     end.
 get_blocks(Peer, N) ->
-    io:fwrite("syncing. use `sync_kill:stop().` if you want to stop syncing.\n"),
+    io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
     {ok, BM} = application:get_env(amoveo_core, download_blocks_many),
 
@@ -152,9 +155,9 @@ get_blocks(Peer, N) ->
 	    get_blocks(Peer, N);
 	true ->
 	    spawn(fun() ->
-			  get_blocks(Peer, N+BB)
+			  get_blocks2(BB, N, Peer)
 		  end),
-	    get_blocks2(BB, N, Peer)
+	    get_blocks(Peer, N+BB)
     end.
 get_blocks2(BB, N, Peer) ->
     go = sync_kill:status(),
