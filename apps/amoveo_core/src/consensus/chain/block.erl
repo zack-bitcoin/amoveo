@@ -3,7 +3,7 @@
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
-         top/0, genesis_maker/0, height/0,
+         top/0, genesis_maker/0, height/0, time_now/0,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").

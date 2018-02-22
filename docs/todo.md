@@ -1,15 +1,15 @@
 ### things to do for the next hard fork
 
-* increase constants initial difficulty.
+* increase constants initial difficulty. 7820 takes me 90 minutes. someone did it in 40 seconds. so 8844 is a good starting difficulty if they were mining the whole time.
+8332 would take me 24 hours to mine 1 block. maybe it is a good compromise.
+
 
 * make a new master pubkey using cold storage.
 
 * consider updating the mining algorithm so we don't include the difficulty in the thing being hashed.
+- or maybe leave it. bitcoin nonce is the final 4 bytes. If we don't put our nonce in those bytes, then it is harder to use a bitcoin miner on Amoveo.
 
 
-* update constants start_time.
-
-* headers are currently storing the time in 32 bits. This is not enough space, we will run out of time in 13.6 years.
 
 * maybe embed recent news message into genesis block.
 
