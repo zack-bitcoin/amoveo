@@ -1,26 +1,28 @@
 -module(sync).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	start/1, start/0, stop/0, status/0, give_blocks/3, push_new_block/1, remote_peer/2]).
+	 start/1, start/0, stop/0, status/0, 
+	 give_blocks/3, push_new_block/1, remote_peer/2]).
 -include("../records.hrl").
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("sync died!\n"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast(start, _) -> {noreply, go};
-handle_cast(stop, _) -> {noreply, stop};
-handle_cast({main, Peer}, go) -> 
+%handle_cast(start, _) -> {noreply, go};
+%handle_cast(stop, _) -> {noreply, stop};
+handle_cast({main, Peer}, _) -> 
     sync_peer(Peer),
-    {noreply, go};
+    {noreply, []};
 handle_cast(_, X) -> {noreply, X}.
-handle_call(status, _From, X) -> {reply, X, X};
+%handle_call(status, _From, X) -> {reply, X, X};
 handle_call(_, _From, X) -> {reply, X, X}.
-status() -> gen_server:call(?MODULE, status).
-stop() -> gen_server:cast(?MODULE, stop).
+status() -> sync_kill:status().
+stop() -> sync_kill:stop().
 start() -> start(peers:all()).
 start(P) ->
-    gen_server:cast(?MODULE, start),
+    sync_kill:start(),
+    %gen_server:cast(?MODULE, start),
     doit2(P).
 doit2([]) -> ok;
 %doit2([Peer|T]) ->
@@ -38,8 +40,8 @@ doit2(L0) ->
 	    io:fwrite("syncing with peer "),
 	    io:fwrite(packer:pack(Peer)),
 	    io:fwrite("\n"),
-	    %gen_server:cast(?MODULE, {main, Peer}),
-	    spawn(fun() -> sync_peer(Peer) end),
+	    gen_server:cast(?MODULE, {main, Peer}),
+	    %spawn(fun() -> sync_peer(Peer) end),
 	    ok
     end.
     %timer:sleep(500),
@@ -54,7 +56,7 @@ blocks(CommonHash, Block) ->
     end.
 give_blocks(Peer, CommonHash, TheirBlockHeight) -> 
     io:fwrite("give blocks\n"),
-    go = status(),
+    go = sync_kill:status(),
     {ok, DBB} = application:get_env(amoveo_core, push_blocks_batch),
     H = min(block:height(), max(0, TheirBlockHeight + DBB - 1)),
     Blocks = lists:reverse(blocks(CommonHash, block:get_by_height(H))),
@@ -135,12 +137,12 @@ common_block_height(CommonHash) ->
         B -> B#block.height
     end.
 get_blocks(Peer, N) ->
-    io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
+    io:fwrite("syncing. use `sync_kill:stop().` if you want to stop syncing.\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
     {ok, BM} = application:get_env(amoveo_core, download_blocks_many),
 
     timer:sleep(100),
-    go = status(),
+    go = sync_kill:status(),
     Height = block:height(),
     AHeight = api:height(),
     if
@@ -155,7 +157,7 @@ get_blocks(Peer, N) ->
 	    get_blocks2(BB, N, Peer)
     end.
 get_blocks2(BB, N, Peer) ->
-    go = status(),
+    go = sync_kill:status(),
     Blocks = talker:talk({blocks, BB, N}, Peer),
     case Blocks of
 	{error, _} -> 

@@ -91,7 +91,7 @@ add({IP, Port}) ->
 	B -> ok;
 	true ->
 	    case talker:talk({top}, {NIP, Port}) of
-		bad_peer -> blacklist_peer:add(NIP, Port);
+		bad_peer -> blacklist_peer:add({NIP, Port});
 		_ -> gen_server:cast(?MODULE, {add, {NIP, Port}})
 	    end
     end.
