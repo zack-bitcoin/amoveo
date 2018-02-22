@@ -37,9 +37,11 @@ doit2(L0) ->
 	    ok;
 	true ->
 	    T = list_to_tuple(L),
-	    <<X:24>> = crypto:strong_rand_bytes(3),
-	    M = X rem size(T),
-	    Peer = element(M+1, T),
+	    M = random:uniform(size(T)),
+	    %<<X:24>> = crypto:strong_rand_bytes(3),
+	    %M = X rem size(T),
+	    %Peer = element(M+1, T),
+	    Peer = element(M, T),
 	    io:fwrite("eventually will sync with peer "),
 	    io:fwrite(packer:pack(Peer)),
 	    io:fwrite("\n"),
@@ -183,12 +185,20 @@ remove_self2([H|T], Me) ->
 	H == Me -> T;
 	true -> [H|remove_self2(T, Me)]
     end.
-	    
+shuffle([]) -> [];
+shuffle([X]) -> [X];
+shuffle(L) -> shuffle(L, length(L), []).
+shuffle([], 0, Result) -> Result;
+shuffle(List, Len, Result) ->
+    {Elem, Rest} = nth_rest(random:uniform(Len), List, []),
+    shuffle(Rest, Len - 1, [Elem|Result]).
+nth_rest(1, [E|List], Prefix) -> {E, Prefix ++ List};
+nth_rest(N, [E|List], Prefix) -> nth_rest(N - 1, List, [E|Prefix]).
 push_new_block(Block) ->
     %keep giving this block to random peers until 1/2 the people you have contacted already know about it. Don't talk to the same peer multiple times.
     Peers0 = peers:all(),
     Peers = remove_self(Peers0),
-    spawn(fun() -> push_new_block_helper(0, 0, Peers, Block) end).
+    spawn(fun() -> push_new_block_helper(0, 0, shuffle(Peers), Block) end).
 push_new_block_helper(_, _, [], _) -> ok;%no one else to give the block to.
 push_new_block_helper(N, M, _, _) when ((M > 0) and ((N*2) >= M)) -> ok;%the majority of peers probably already know.
 push_new_block_helper(N, M, [P|T], Block) ->
