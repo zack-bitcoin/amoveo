@@ -23,7 +23,7 @@ go(Tx, Dict, NewHeight) ->
            end,
     Dict2 = accounts:dict_write(Nacc, Dict),
     DeveloperRewardVar = governance:dict_get_value(developer_reward, Dict),
-    DeveloperReward = (BlockReward div 10000) * DeveloperRewardVar,
+    DeveloperReward = (BlockReward * DeveloperRewardVar) div 10000,
     M = accounts:dict_update(constants:master_pub(), Dict2, DeveloperReward, none),
     accounts:dict_write(M, Dict2).
 

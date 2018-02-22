@@ -30,7 +30,8 @@ def market_test():
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
     oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
-    x = request(1, 'new_question_oracle', [0, 'aXMgMisyPTQ/', oid], 1)
+    height = json.loads(request(1, 'height', [], 0))[1]
+    x = request(1, 'new_question_oracle', [height+1, 'aXMgMisyPTQ/', oid], 1)
     #oid = json.loads(x)[1]
     print("python oid is ")
     print(oid)

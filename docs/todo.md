@@ -2,17 +2,15 @@
 
 * increase constants initial difficulty.
 
-* we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
-
-* line 26 in coinbase. We should multiply first before we divide by 10000. This will solve rounding issues for small block rewards.
+done * line 26 in coinbase. We should multiply first before we divide by 10000. This will solve rounding issues for small block rewards.
 
 * make a new master pubkey using cold storage.
 
-* modify the version.erl value
+done * modify the version.erl value
 
 * consider updating the mining algorithm so we don't include the difficulty in the thing being hashed.
 
-* governance oracles should have no delay. This way attackers cannot freeze the governanace mechanism.
+done * governance oracles should have no delay. This way attackers cannot freeze the governanace mechanism.
 
 * consider adding some more data to the block. It can be made into a merkle tree with the txs.
 - total veo in existence.
@@ -27,6 +25,8 @@
 * update constants start_time.
 
 * headers are currently storing the time in 32 bits. This is not enough space, we will run out of time in 13.6 years.
+
+* we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 
 
 
