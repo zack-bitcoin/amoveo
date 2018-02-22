@@ -2,15 +2,9 @@
 
 * increase constants initial difficulty.
 
-done * line 26 in coinbase. We should multiply first before we divide by 10000. This will solve rounding issues for small block rewards.
-
 * make a new master pubkey using cold storage.
 
-done * modify the version.erl value
-
 * consider updating the mining algorithm so we don't include the difficulty in the thing being hashed.
-
-done * governance oracles should have no delay. This way attackers cannot freeze the governanace mechanism.
 
 * consider adding some more data to the block. It can be made into a merkle tree with the txs.
 - total veo in existence.

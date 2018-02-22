@@ -53,7 +53,7 @@ go(Tx, Dict, NewHeight) ->
 		Question = <<"">>,
                 GVar = governance:dict_get(G, Dict),
                 false = governance:is_locked(GVar),
-                {governance:dict_lock(G, Dict), max(NewHeight, Tx#oracle.start)}
+                {governance:dict_lock(G, Dict), max(NewHeight, Tx#oracle_new.start)}
         end,
     false = Starts < NewHeight,
     ok = case Question of

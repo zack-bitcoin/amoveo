@@ -96,17 +96,19 @@ test(3) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
+    mine_blocks(1),
 
     Ctx4 = channel_team_close_tx:make_dict(CID, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
-    Txs = (tx_pool:get())#tx_pool.txs,
+    mine_blocks(1),
+    %Txs = (tx_pool:get())#tx_pool.txs,
 
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    %Header = block:block_to_header(Block),
+    %headers:absorb([Header]),
+    %{true, _} = block:check(Block),
     success;
     
 test(4) -> 
@@ -133,6 +135,7 @@ test(4) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
+    mine_blocks(1),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
@@ -149,13 +152,14 @@ test(4) ->
     Ctx4 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
-    Txs = (tx_pool:get())#tx_pool.txs,
-    Header0 = block:block_to_header(BP),
-    Block0 = block:make(Header0, Txs, Trees, constants:master_pub()),
-    Block = block:mine2(Block0, 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    mine_blocks(1),
+    %Txs = (tx_pool:get())#tx_pool.txs,
+    %Header0 = block:block_to_header(BP),
+    %Block0 = block:make(Header0, Txs, Trees, constants:master_pub()),
+    %Block = block:mine2(Block0, 10),
+    %Header = block:block_to_header(Block),
+    %headers:absorb([Header]),
+    %{true, _} = block:check(Block),
     success;
 test(5) -> 
     %channel solo close, channel timeout
@@ -185,6 +189,7 @@ test(5) ->
     Ctx25 = delete_account_tx:make_dict(keys:pubkey(), NewPub, Fee),
     Stx25 = testnet_sign:sign_tx(Ctx25, NewPub, NewPriv),
     absorb(Stx25),
+    mine_blocks(1),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
@@ -201,12 +206,13 @@ test(5) ->
     Ctx4 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
-    Txs = (tx_pool:get())#tx_pool.txs,
+    mine_blocks(1),
+    %Txs = (tx_pool:get())#tx_pool.txs,
 
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    %Header = block:block_to_header(Block),
+    %headers:absorb([Header]),
+    %{true, _} = block:check(Block),
     success;
 test(6) -> 
     io:fwrite("channel slash tx test \n"),
@@ -303,6 +309,7 @@ test(8) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
+    mine_blocks(1),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Bet = spk:new_bet(Code, Code, 50),
@@ -319,11 +326,13 @@ test(8) ->
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
-    Txs = (tx_pool:get())#tx_pool.txs,
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    mine_blocks(1),
+
+    %Txs = (tx_pool:get())#tx_pool.txs,
+    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
+    %Header = block:block_to_header(Block),
+    %headers:absorb([Header]),
+    %{true, _} = block:check(Block),
     success;
 test(9) ->
     io:fwrite(" channel slash tx, and channel team close tx test \n"),
@@ -554,6 +563,7 @@ test(12) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
+    mine_blocks(1),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
     Code2 = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
@@ -573,13 +583,15 @@ test(12) ->
     Ctx4 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
-    BP = block:get_by_height(Height4),
-    PH = block:hash(BP),
-    Txs = (tx_pool:get())#tx_pool.txs,
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    mine_blocks(1),
+
+    %BP = block:get_by_height(Height4),
+    %PH = block:hash(BP),
+    %Txs = (tx_pool:get())#tx_pool.txs,
+    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
+    %Header = block:block_to_header(Block),
+    %headers:absorb([Header]),
+    %{true, _} = block:check(Block),
     success;
 test(13) ->
     %testing the governance
