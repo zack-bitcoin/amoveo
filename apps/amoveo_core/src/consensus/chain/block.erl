@@ -12,12 +12,14 @@
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
 merkelize_thing(X) when is_binary(X) -> X;
-merkelize_thing(X) ->
+merkelize_thing(X) when is_tuple(X) and (size(X) > 0)->
     T = element(1, X),
     case T of
         proof -> proof_hash(X);
         _ -> tx_hash(X)
-    end.
+    end;
+merkelize_thing(X) -> hash:doit(X).
+    
 merkelize_pair(A, B) ->
     C = [merkelize_thing(A), merkelize_thing(B)],
     hash:doit(C).
@@ -40,13 +42,20 @@ block_to_header(B) ->
     %io:fwrite("block to header "),
     %io:fwrite(integer_to_list(B#block.height)),
     %io:fwrite("\n"),
+    BV = [{1, B#block.market_cap},
+	  {2, B#block.channels_veo},
+	  {3, B#block.live_channels},
+	  {4, B#block.many_accounts},
+	  {5, B#block.many_oracles},
+	  {6, B#block.live_oracles}],
+    StateRoot = merkelize(BV ++ B#block.txs ++ B#block.proofs),
     headers:make_header(
       B#block.prev_hash,
       B#block.height,
       B#block.time,
       B#block.version,
       B#block.trees_hash,
-      txs_proofs_hash(B#block.txs, B#block.proofs),
+      StateRoot,
       B#block.nonce,
       B#block.difficulty,
       B#block.period).

@@ -6,15 +6,12 @@
 
 * consider updating the mining algorithm so we don't include the difficulty in the thing being hashed.
 
-* consider adding some more data to the block. It can be made into a merkle tree with the txs.
-- txs and proofs and more valus can all be stuffed into block:merkelize. They don't need seperate merkle trees. the order is deterministic.
-- we should probably pad the tree to the nearest power of 2 size. This way all the proofs in the same tree are the same length.
-
-* embed recent news message into genesis block.
 
 * update constants start_time.
 
 * headers are currently storing the time in 32 bits. This is not enough space, we will run out of time in 13.6 years.
+
+* maybe embed recent news message into genesis block.
 
 * we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 
