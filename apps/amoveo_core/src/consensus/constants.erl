@@ -60,7 +60,7 @@ retarget_frequency() -> %2000. %how many blocks till we recalculate the difficul
     end.
 time_units() -> 100. % 0.1 seconds
 start_time() -> 14825749780.
-time_bits() -> 32.
+time_bits() -> 42.
 version_bits() -> 16.%so we can update it more than 60000 times.
 period_bits() -> 16. %so the maximum block time is about 109 minutes
 server_ip() -> {159,89,106,253}.
