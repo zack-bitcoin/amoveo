@@ -141,9 +141,9 @@ stop: $$(KIND)
 attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
+	#@touch ./config/prod/sys.config
+	#@rm ./config/prod/sys.config
 clean: $$(KIND)
-	@touch ./config/prod/sys.config
-	@rm ./config/prod/sys.config
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/data/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/data
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/

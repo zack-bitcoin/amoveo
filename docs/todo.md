@@ -33,9 +33,6 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-* make sure sync:start doesn't run multiple times in parallel.
-
-* review the code for pushing a block to the network in normal mode.
 
 * after a peer is removed from the list, don't try contacting them again.
 
@@ -51,6 +48,8 @@
 
 ### Things we can do after launch of mainnet
 
+
+* in the mining pool, we need to make the cron task into a gen_server so that it wont crash.
 
 * if a peer refuses the blocks we send them, then blacklist them.
 
