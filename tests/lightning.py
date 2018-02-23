@@ -22,7 +22,7 @@ def lightning_test():
     request(1, 'create_account', [pub2, 1000000000], 0.04)
     request(1, 'create_account', [pub3, 1000000000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.5)
-    request(2, 'sync', [[127,0,0,1], 3030], 0.5)
+    request(2, 'sync', [[127,0,0,1], 3030], 1.5)
     fee = 152000
     cid1 = 'vVhSBIjO7fU0V4v08WH2O2crgjtl9wTODuIk+jeB2NM='
     cid2 = '7zCJZIMatujoQjVXrPiTMMPkXOBiT/oOhY24q+mYAZo='
@@ -45,9 +45,11 @@ def lightning_test():
     height3 = request(3, 'height', [], 0.05)
     assertEqual(height1, height2)
     assertEqual(height1, height3)
-    request(1, 'channel_close', [[127,0,0,1], 3030])
-    request(2, 'channel_close', [[127,0,0,1], 3030])
-    request(1, 'mine_block', [1, 10000000], 0.02)
+    request(1, 'channel_close', [[127,0,0,1], 3030], 0.1)
+    request(2, 'channel_close', [[127,0,0,1], 3030], 0.1)
+    request(1, 'sync', [[127,0,0,1], 3030], 0.05)
+    request(1, 'sync', [[127,0,0,1], 3020], 0.3)
+    request(1, 'mine_block', [1, 10000000], 0.05)
 
 if __name__ == "__main__":
     lightning_test()

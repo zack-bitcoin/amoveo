@@ -206,7 +206,13 @@ push_new_block_helper(N, M, [P|T], Block) ->
     %io:fwrite(packer:pack(X)),
     Z = case X of
 	    3 -> 1;
-	    _ -> 0
+	    _ -> 
+		spawn(fun() ->
+			      {ok, _, TheirBlockHeight} = remote_peer({top}, P),
+			      CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
+			      give_blocks(P, CommonBlocksHash, TheirBlockHeight)
+		      end),
+		0
 	end,
     push_new_block_helper(N+Z, M+1, T, Block).
 trade_txs(Peer) ->
