@@ -29,6 +29,28 @@ start(P) ->
     sync_kill:start(),
     %gen_server:cast(?MODULE, start),
     doit2(P).
+randoms(N0, Input) ->
+    S = length(Input),
+    N = min(N0, S),
+    IDS = randoms(N, S, []),
+    T = list_to_tuple(Input),
+    randoms2(IDS, T).
+randoms2([], _) -> [];
+randoms2([H|T], Tup) ->
+    [element(H, Tup)|randoms2(T, Tup)].
+randoms(0, InputSize, Output) -> Output;
+randoms(N, InputSize, Output) ->
+    %true = N < InputSize,
+    M = random:uniform(InputSize),
+    B = lists:member(M, Output),
+    if 
+	B -> randoms(N, InputSize, Output);
+	true -> randoms(N-1, InputSize, [M|Output])
+    end.
+doit3([]) -> ok;
+doit3([H|T]) ->
+    gen_server:cast(?MODULE, {main, H}),
+    doit3(T).
 doit2([]) -> ok;
 %doit2([Peer|T]) ->
 doit2(L0) ->
@@ -38,18 +60,12 @@ doit2(L0) ->
 	    io:fwrite("no one to sync with\n"),
 	    ok;
 	true ->
-	    T = list_to_tuple(L),
-	    M = random:uniform(size(T)),
-	    %<<X:24>> = crypto:strong_rand_bytes(3),
-	    %M = X rem size(T),
-	    %Peer = element(M+1, T),
-	    Peer = element(M, T),
-	    io:fwrite("eventually will sync with peer "),
-	    io:fwrite(packer:pack(Peer)),
+	    N = min(length(L), 1),
+	    Peers = randoms(N, L),
+	    io:fwrite("eventually will sync with these peers "),
+	    io:fwrite(packer:pack(Peers)),
 	    io:fwrite("\n"),
-	    gen_server:cast(?MODULE, {main, Peer}),
-	    %spawn(fun() -> sync_peer(Peer) end),
-	    ok
+	    doit3(Peers)
     end.
     %timer:sleep(500),
     %doit2(T).
@@ -94,6 +110,9 @@ remote_peer(Transaction, Peer) ->
 	    {{_,_,_,_},_} = Peer,
 	    io:fwrite("removing peer "),
 	    io:fwrite(packer:pack(Peer)),
+	    io:fwrite("\n"),
+	    io:fwrite("command was "),
+	    io:fwrite(element(1, Transaction)),
 	    io:fwrite("\n"),
 	    peers:remove(Peer),
 	    blacklist_peer:add(Peer),

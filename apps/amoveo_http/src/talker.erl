@@ -42,6 +42,8 @@ talk_helper(Msg, Peer, N, TimeOut) ->
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, TimeOut}], []) of
         {ok, {{_, 500, _}, _Headers, []}} ->
 	    io:fwrite("server crashed.\n"),
+	    io:fwrite(element(1, Msg)),
+	    io:fwrite(" \n"),
 	    bad_peer;
             %talk_helper(Msg, Peer, 0, TimeOut);
         {ok, {Status, _Headers, []}} ->

@@ -21,6 +21,7 @@ def market_test():
     request(1, 'create_account', [pub_light, 1000000000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
     request(2, 'sync', [[127,0,0,1], 3030], 2)
+#def dont_doit():
     fee = 152000
     cid1 = 'vVhSBIjO7fU0V4v08WH2O2crgjtl9wTODuIk+jeB2NM='
     cid2 = '7zCJZIMatujoQjVXrPiTMMPkXOBiT/oOhY24q+mYAZo='

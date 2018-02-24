@@ -2,12 +2,13 @@
 -behaviour(gen_server).
 -include("../../records.hrl").
 -export([%prune/0, %% delete unneeded things from trees asynchronously
+	 check/0,
 	 %synch_prune/1,
          %enqueue/1, %% async request
 	 save/1,    %% returns after saving
 	 do_save/1]). %% run without gen_server
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
-init(ok) -> {ok, []}.
+init(ok) -> {ok, now()}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> 
@@ -19,20 +20,23 @@ handle_info(_, X) -> {noreply, X}.
 %    {noreply, X};
 handle_cast({doit, BP}, X) ->
     absorb_internal(BP),
-    {noreply, X}.
+    {noreply, now()}.
 %handle_call({prune, Blocks}, _, X) ->
 %    B = Blocks ++ trees:hash2blocks(recent_blocks:read()),
 %    trees:prune(B),
 %    {reply, ok, X};
+handle_call(check, _From, X) -> 
+    {reply, X, X};
 handle_call({doit, BP}, _From, X) -> 
     Y = absorb_internal(BP),
-    {reply, Y, X}.
+    {reply, Y, now()}.
 %prune() -> gen_server:cast(?MODULE, prune).
 %synch_prune(Blocks) -> gen_server:call(?MODULE, {prune, Blocks}, 10000).
 %enqueue([]) -> ok;
 %enqueue([B|T]) -> enqueue(B, now()), enqueue(T);
 %enqueue(X) -> enqueue(X, now()).
 %enqueue(B, Time) -> gen_server:cast(?MODULE, {doit, B, Time}).
+check() -> gen_server:call(?MODULE, check).
 save([]) -> ok;
 save([T]) -> save(T);
 save([B|T]) -> save(B), save(T);

@@ -48,6 +48,7 @@
 
 ### Things we can do after launch of mainnet
 
+* measure the rate at which blocks have been found in the recent 10 minutes. if the rate is < 1 block per 30 seconds, then switch to sync_mode normal.
 
 * in the mining pool, we need to make the cron task into a gen_server so that it wont crash.
 
