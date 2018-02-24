@@ -205,7 +205,7 @@ push_new_block(Block) ->
     Peers = remove_self(Peers0),
     spawn(fun() -> push_new_block_helper(0, 0, shuffle(Peers), Block) end).
 push_new_block_helper(_, _, [], _) -> ok;%no one else to give the block to.
-push_new_block_helper(N, M, _, _) when ((M > 0) and ((N*2) >= M)) -> ok;%the majority of peers probably already know.
+push_new_block_helper(N, M, _, _) when ((M > 0) and ((N*3) >= (M*2))) -> ok;%the majority of peers probably already know.
 push_new_block_helper(N, M, [P|T], Block) ->
     %X = talker:talk({give_block, Block}, P),
     X = remote_peer({give_block, Block}, P),
