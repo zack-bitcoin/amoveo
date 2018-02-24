@@ -21,14 +21,16 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 view() ->
     gen_server:call(?MODULE, view).
-merge(New, []) -> New;
+merge(New, []) -> [New];
 merge([], Old) -> Old;
 merge([N|NT], [O|OT]) ->
+    %HN = hd(N),
+    HO = hd(O),
     H1 = N#block.height,
-    H2 = O#block.height,
+    H2 = HO#block.height,
     if
 	H2 < H1 -> [O|merge([N|NT], OT)];
-	true -> [N|merge(NT, [O|OT])]
+	true -> [[N|NT]|[O|OT]]
     end.
 
 old_merge(Block, []) -> 
@@ -55,9 +57,12 @@ old_merge(Block, BS) ->
     end.
 helper([]) -> [];
 helper([H|T]) ->
+    %we should run this in the background, and if H has an error, don't drop the rest of the list.
+
     %io:fwrite("organizer helper\n"),
     MyHeight = block:height(),
-    H2 = H#block.height,
+    HH = hd(H),
+    H2 = HH#block.height,
     if
 	H2 =< MyHeight + 1 ->
 	    block_absorber:save(H),
@@ -69,14 +74,18 @@ check() -> gen_server:cast(?MODULE, check).
 sorted([], _) -> true;
 sorted([H|T], Height) ->
     Height2 = H#block.height,
+    io:fwrite("sorted compare \n"),
+    io:fwrite(packer:pack({Height2, Height})),
     if
-	Height2 > Height -> sorted(T, Height2);
+	Height2 + 1 == Height -> sorted(T, Height2);
 	true -> false
     end.
 	    
 add(Blocks) ->
     true = is_list(Blocks),
-    true = sorted(Blocks, -1),
+    %SB = hd(Blocks),
+    %SH = SB#block.height - 1,
+    %true = sorted(Blocks, SH),
     {Blocks2, AddReturn} = add1(Blocks, []),
     gen_server:cast(?MODULE, {add, lists:reverse(Blocks2)}),
     AddReturn.

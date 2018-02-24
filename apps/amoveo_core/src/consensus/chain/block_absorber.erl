@@ -33,9 +33,9 @@ handle_call({doit, BP}, _From, X) ->
 %enqueue([B|T]) -> enqueue(B, now()), enqueue(T);
 %enqueue(X) -> enqueue(X, now()).
 %enqueue(B, Time) -> gen_server:cast(?MODULE, {doit, B, Time}).
-%save([]) -> ok;
-%save([T]) -> save(T, now());
-%save([B|T]) -> save(B, now()), save(T);
+save([]) -> ok;
+save([T]) -> save(T);
+save([B|T]) -> save(B), save(T);
 save(X) -> 
     %io:fwrite("block absorber \n"),
     gen_server:call(?MODULE, {doit, X}, 10000).

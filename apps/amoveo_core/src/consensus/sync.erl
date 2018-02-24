@@ -146,7 +146,7 @@ get_blocks(Peer, N) ->
     %io:fwrite("get blocks\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
     {ok, BM} = application:get_env(amoveo_core, download_blocks_many),
-    timer:sleep(100),
+    timer:sleep(10),
     go = sync_kill:status(),
     Height = block:height(),
     AHeight = api:height(),
@@ -155,7 +155,7 @@ get_blocks(Peer, N) ->
 	N > Height + (BM * BB) ->%This uses up 10 * BB * block_size amount of ram.
 	    %trapped here because blocks aren't syncing.
 	    %This is bad, we shouldn't let our partner trap us this way.
-	    timer:sleep(1000),
+	    %timer:sleep(1000),
 	    get_blocks(Peer, N);
 	true ->
 	    io:fwrite("another get_blocks thread\n"),
