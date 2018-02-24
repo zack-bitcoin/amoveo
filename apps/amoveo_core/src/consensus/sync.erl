@@ -205,7 +205,7 @@ get_blocks2(BB, N, Peer, Tries) ->
 	    timer:sleep(Sleep),
 	    get_blocks2(BB, N, Peer, Tries - 1);
 	bad_peer -> 
-	    i:fwrite("get blocks 2 failed connect\n"),
+	    io:fwrite("get blocks 2 failed connect\n"),
 	    timer:sleep(Sleep),
 	    get_blocks2(BB, N, Peer, Tries - 1);
 	{ok, Bs} -> %block_absorber:enqueue(Bs);
