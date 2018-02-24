@@ -36,11 +36,12 @@ check() ->
     gen_server:call(?MODULE, check).
 
 check_switch_to_normal() ->
+    go = sync_kill:status(),
     T1 = block_absorber:check(),
     T = timer:now_diff(now(), T1),
     S = T / 1000000,%seconds
     if
-	S > 60 -> sync_mode:normal();
+	S > 180 -> sync_mode:normal();
 	true -> 
 	    sync:start(),
 	    timer:sleep(15000),

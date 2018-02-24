@@ -42,7 +42,11 @@ save([T]) -> save(T);
 save([B|T]) -> save(B), save(T);
 save(X) -> 
     %io:fwrite("block absorber \n"),
-    gen_server:call(?MODULE, {doit, X}, 10000).
+    case sync:status() of
+	go ->
+	    gen_server:call(?MODULE, {doit, X}, 10000);
+	_ -> ok
+    end.
 absorb_internal(error) -> error;
 absorb_internal(Block) ->
     Height = Block#block.height,
@@ -54,13 +58,14 @@ absorb_internal(Block) ->
 	    BH = block:hash(Block),
 	    BHC = block_hashes:check(BH),
 	    NextBlock = Block#block.prev_hash,
+	    Bool = block_hashes:check(NextBlock),
 	    if
-		Height == 0 -> ok;
+		Height == 0 -> 0;
 		%{ok, Header00} = headers:read(BH),
 	%	    Header00;
 		BHC -> 3; %we already have this block
+		not(Bool) -> 0;%we dont' know the previous block
 		true ->
-		    true = block_hashes:check(NextBlock), %check that the previous block is known.
 		    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
 		    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
 		    TH = headers:read(BH),

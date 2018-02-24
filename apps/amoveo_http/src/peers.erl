@@ -61,6 +61,7 @@ handle_call({read, {_,_}=Peer}, _From, State) ->
 all() -> gen_server:call(?MODULE, all).
 
 add([]) -> ok;
+add([error]) -> ok;
 add([[IP, Port]|T]) when (is_list(IP)) ->
     add([[list_to_tuple(IP), Port]|T]);
 add([[IP, Port]|T]) ->

@@ -14,13 +14,21 @@ handle_info(_, X) -> {noreply, X}.
 %handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
-    io:fwrite("syncing with this peer now "),
-    io:fwrite(packer:pack(Peer)),
-    io:fwrite("\n"),
     case Peer of 
 	error -> ok;
 	_ ->
-	    sync_peer(Peer)
+	    case status() of
+		go ->
+		    io:fwrite("syncing with this peer now "),
+		    io:fwrite(packer:pack(Peer)),
+		    io:fwrite("\n"),
+		    sync_peer(Peer);
+		_ -> 
+		    io:fwrite("not syncing with this peer now "),
+		    io:fwrite(packer:pack(Peer)),
+		    io:fwrite("\n"),
+		    ok
+	    end
     end,
     {noreply, []};
 handle_cast(_, X) -> {noreply, X}.
@@ -195,8 +203,9 @@ get_blocks(Peer, N, Tries) ->
 	    get_blocks(Peer, N, Tries-1);
 	true ->
 	    %io:fwrite("another get_blocks thread\n"),
+	    timer:sleep(500),
 	    spawn(fun() ->
-			  get_blocks2(BB, N, Peer, 2)
+			  get_blocks2(BB, N, Peer, 5)
 		  end),
 	    get_blocks(Peer, N+BB, ?tries)
     end.
@@ -206,15 +215,21 @@ get_blocks2(_BB, _N, _Peer, 0) ->
 get_blocks2(BB, N, Peer, Tries) ->
     %io:fwrite("get blocks 2\n"),
     go = sync_kill:status(),
+    %timer:sleep(500),
     Blocks = talker:talk({blocks, BB, N}, Peer),
+    go = sync_kill:status(),
     Sleep = 300,
     case Blocks of
 	{error, _} -> 
-	    io:fwrite("get blocks 2 failed connect\n"),
+	    io:fwrite("get blocks 2 failed connect error\n"),
+	    io:fwrite(packer:pack([BB, N, Peer, Tries])),
+	    io:fwrite("\n"),
 	    timer:sleep(Sleep),
 	    get_blocks2(BB, N, Peer, Tries - 1);
 	bad_peer -> 
-	    io:fwrite("get blocks 2 failed connect\n"),
+	    io:fwrite("get blocks 2 failed connect bad peer\n"),
+	    io:fwrite(packer:pack([BB, N, Peer, Tries])),
+	    io:fwrite("\n"),
 	    timer:sleep(Sleep),
 	    get_blocks2(BB, N, Peer, Tries - 1);
 	{ok, Bs} -> %block_absorber:enqueue(Bs);
@@ -258,8 +273,13 @@ push_new_block_helper(N, M, [P|T], Block) ->
 	    _ -> 
 		spawn(fun() ->
 			      {ok, _, TheirBlockHeight} = remote_peer({top}, P),
-			      CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
-			      give_blocks(P, CommonBlocksHash, TheirBlockHeight)
+			      MyHeight = block:height(),
+			      if 
+				  TheirBlockHeight < MyHeight ->
+				      CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
+				      give_blocks(P, CommonBlocksHash, TheirBlockHeight);
+				  true -> ok
+			      end
 		      end),
 		0
 	end,
@@ -295,6 +315,8 @@ sync_peer(Peer) ->
 			  end);
                 true ->
                     CommonBlockHeight = common_block_height(CommonHash),
+		    {ok, ForkTolerance} = application:get_env(amoveo_core, fork_tolerance),
+		    CBH = max(CommonBlockHeight, MyBlockHeight - ForkTolerance),
                     get_blocks(Peer, CommonBlockHeight, ?tries)
             end;
         MyBlockHeight < TheirTopHeight ->
