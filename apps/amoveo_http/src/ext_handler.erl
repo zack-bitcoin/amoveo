@@ -41,7 +41,11 @@ doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({give_block, Block}) -> %block can also be a list of blocks.
     %Response = block_absorber:save(Block),
-    Response = block_organizer:add(Block),
+    A = if
+	    is_list(Block) -> Block;
+	    true -> [Block]
+	end,
+    Response = block_organizer:add(A),
     {ok, Response};
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};

@@ -11,8 +11,8 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(check, BS) -> 
     BS2 = helper(BS),
     {noreply, BS2};
-handle_cast({add, Block}, BS) -> 
-    BS2 = merge(Block, BS),
+handle_cast({add, Blocks}, BS) -> 
+    BS2 = merge(Blocks, BS),
     BS3 = helper(BS2),
     {noreply, BS3}.
 handle_call(view, _, BS) -> 
@@ -21,16 +21,26 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 view() ->
     gen_server:call(?MODULE, view).
-merge(Block, []) -> 
+merge(New, []) -> New;
+merge([], Old) -> Old;
+merge([N|NT], [O|OT]) ->
+    H1 = N#block.height,
+    H2 = O#block.height,
+    if
+	H2 < H1 -> [O|merge([N|NT], OT)];
+	true -> [N|merge(NT, [O|OT])]
+    end.
+
+old_merge(Block, []) -> 
     [Block];
-merge(Block, [B2]) -> 
+old_merge(Block, [B2]) -> 
     H1 = Block#block.height,
     H2 = B2#block.height,
     if
 	H1 =< H2 -> [Block, B2];
 	H1 > H2 -> [B2, Block]
     end;
-merge(Block, BS) ->
+old_merge(Block, BS) ->
     %io:fwrite("organizer merge\n"),
     S = length(BS),
     {L1, L2} = lists:split(S div 2, BS),
@@ -56,9 +66,43 @@ helper([H|T]) ->
     end.
 	    
 check() -> gen_server:cast(?MODULE, check).
-add([Block]) -> add(Block);
-add([H|T]) -> add(H), add(T);
-add(Block) ->
+sorted([], _) -> true;
+sorted([H|T], Height) ->
+    Height2 = H#block.height,
+    if
+	Height2 > Height -> sorted(T, Height2);
+	true -> false
+    end.
+	    
+add(Blocks) ->
+    true = is_list(Blocks),
+    true = sorted(Blocks, -1),
+    {Blocks2, AddReturn} = add1(Blocks, []),
+    gen_server:cast(?MODULE, {add, lists:reverse(Blocks2)}),
+    AddReturn.
+%add1([], L) -> 
+%    throw("add1 error"),
+%    {L, 0};
+add1([X], L) -> 
+    {L2, A} = add2(X, L),
+    {L++L2, A};
+add1([H|T], L) ->
+    {L2, _} = add2(H, L),
+    add1(T, L2).
+add2(Block, Out) ->
+    Height = Block#block.height,
+    BH = block:hash(Block),
+    BHC = block_hashes:check(BH),
+    if
+	not(is_record(Block, block)) -> {Out, 0};
+	Height == 0 -> {Out, 0};
+	BHC -> {Out, 3}; %we have seen this block already
+	true -> {[Block|Out], 0}
+    end.
+	    
+add_old([Block]) -> add(Block);
+add_old([H|T]) -> add(H), add(T);
+add_old(Block) ->
     true = is_record(Block, block),
     BH = block:hash(Block),
     BHC = block_hashes:check(BH),

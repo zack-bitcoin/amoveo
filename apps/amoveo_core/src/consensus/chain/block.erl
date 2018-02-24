@@ -263,7 +263,7 @@ mine(Block, Rounds, Cores) ->
                         headers:absorb([Header]),
 			headers:absorb_with_block([Header]),
                         %block_absorber:save(PBlock),
-                        block_organizer:add(PBlock),
+                        block_organizer:add([PBlock]),
                         sync:start()
                 end
         end,
@@ -433,7 +433,7 @@ test(1) ->
     H1 = hash(Header1),
     H1 = hash(WBlock10),
     {ok, _} = headers:read(H1),
-    block_organizer:add(WBlock10),
+    block_organizer:add([WBlock10]),
     timer:sleep(100),
     WBlock11 = get_by_hash(H1),
     WBlock11 = get_by_height_in_chain(1, H1),

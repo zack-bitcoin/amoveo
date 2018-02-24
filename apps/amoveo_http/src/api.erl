@@ -461,7 +461,7 @@ work(Nonce, _) ->
     headers:absorb([Header]),
     headers:absorb_with_block([Header]),
     %block_absorber:save(Block2),
-    block_organizer:add(Block2),
+    block_organizer:add([Block2]),
     %spawn(fun() -> 
     timer:sleep(1000),
     potential_block:save(),

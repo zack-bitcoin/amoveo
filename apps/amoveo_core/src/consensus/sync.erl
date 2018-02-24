@@ -143,6 +143,7 @@ common_block_height(CommonHash) ->
     end.
 get_blocks(Peer, N) ->
     %io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
+    %io:fwrite("get blocks\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
     {ok, BM} = application:get_env(amoveo_core, download_blocks_many),
     timer:sleep(100),
@@ -152,9 +153,12 @@ get_blocks(Peer, N) ->
     if
 	Height == AHeight -> ok;%done syncing
 	N > Height + (BM * BB) ->%This uses up 10 * BB * block_size amount of ram.
+	    %trapped here because blocks aren't syncing.
+	    %This is bad, we shouldn't let our partner trap us this way.
 	    timer:sleep(1000),
 	    get_blocks(Peer, N);
 	true ->
+	    io:fwrite("another get_blocks thread\n"),
 	    spawn(fun() ->
 			  get_blocks2(BB, N, Peer)
 		  end),

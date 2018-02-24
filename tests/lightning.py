@@ -6,9 +6,10 @@ def assertEqual(x, y):
 
 def lightning_test():
     print("lightning test")
-    request(1, 'mine_block', [1, 10000000], 0.1)
+    request(1, 'mine_block', [1, 10000000], 1)
     request(1, 'sync', [[127,0,0,1], 3020], 0.05)
     request(1, 'sync', [[127,0,0,1], 3030], 0.05)
+def dont_doit():
     pub2 = 'BEdcBeV8yXcki/s2Lk2aJoCG59/82yacIKdYSW+5p6ZahDZoIUnOiA790dj3KsNSwgdqq1L6IPU5bcq4+ukGCgI='
     priv2 = 'NQNPEkn+ERzNCH0T4FPYzv3PEXl36S5cGGP0NNMS/Fo='
     pub3 = 'BFRjuCgudSTRU79SVoCBvWi55+N1QethvQI6LKUCoEPHvIfedkQLxnuD2VJHqoLrULmXyexRWs2sOTwyLsdyL+E='
