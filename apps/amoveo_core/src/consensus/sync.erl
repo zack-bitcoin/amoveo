@@ -60,7 +60,7 @@ doit2(L0) ->
 	    io:fwrite("no one to sync with\n"),
 	    ok;
 	true ->
-	    N = min(length(L), 1),
+	    N = min(length(L), 3),
 	    Peers = randoms(N, L),
 	    io:fwrite("eventually will sync with these peers "),
 	    io:fwrite(packer:pack(Peers)),
