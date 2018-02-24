@@ -56,6 +56,7 @@ old_merge(Block, BS) ->
 	H1 > H2 -> L1 ++ merge(Block, L2)
     end.
 helper([]) -> [];
+helper([[]]) -> [];
 helper([H|T]) ->
     %we should run this in the background, and if H has an error, don't drop the rest of the list.
 
@@ -81,17 +82,24 @@ sorted([H|T], Height) ->
 	true -> false
     end.
 	    
+add([]) -> 0;
+add(Blocks) when not is_list(Blocks) -> 0;
 add(Blocks) ->
     true = is_list(Blocks),
     %SB = hd(Blocks),
     %SH = SB#block.height - 1,
     %true = sorted(Blocks, SH),
     {Blocks2, AddReturn} = add1(Blocks, []),
-    gen_server:cast(?MODULE, {add, lists:reverse(Blocks2)}),
+    case Blocks2 of
+	[] -> ok;
+	_ ->
+	    gen_server:cast(?MODULE, {add, lists:reverse(Blocks2)})
+    end,
     AddReturn.
 %add1([], L) -> 
 %    throw("add1 error"),
 %    {L, 0};
+add1([], []) -> {[], 0};
 add1([X], L) -> 
     {L2, A} = add2(X, L),
     {L++L2, A};

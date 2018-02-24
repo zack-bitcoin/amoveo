@@ -4,7 +4,7 @@
 	 start/1, start/0, stop/0, status/0, 
 	 give_blocks/3, push_new_block/1, remote_peer/2]).
 -include("../records.hrl").
--define(tries, 1200).%20 tries per second. 
+-define(tries, 200).%20 tries per second. 
 %so if this is 400, that means we have 20 seconds to download download_block_batch * download_block_many blocks
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -187,7 +187,7 @@ get_blocks(Peer, N, Tries) ->
 	true ->
 	    %io:fwrite("another get_blocks thread\n"),
 	    spawn(fun() ->
-			  get_blocks2(BB, N, Peer, 5)
+			  get_blocks2(BB, N, Peer, 2)
 		  end),
 	    get_blocks(Peer, N+BB, ?tries)
     end.
@@ -205,7 +205,7 @@ get_blocks2(BB, N, Peer, Tries) ->
 	    timer:sleep(Sleep),
 	    get_blocks2(BB, N, Peer, Tries - 1);
 	bad_peer -> 
-	    io:fwrite("get blocks 2 failed connect\n"),
+	    i:fwrite("get blocks 2 failed connect\n"),
 	    timer:sleep(Sleep),
 	    get_blocks2(BB, N, Peer, Tries - 1);
 	{ok, Bs} -> %block_absorber:enqueue(Bs);
@@ -295,6 +295,8 @@ sync_peer(Peer) ->
 	    io:fwrite("already synced with this peer \n"),
 	    ok
     end,
-    trade_txs(Peer).
+    spawn(fun() ->
+		  trade_txs(Peer)
+	  end).
 
 
