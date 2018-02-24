@@ -104,9 +104,14 @@ absorb_internal(Block) ->
 			    tx_pool:dump(Block2),
 			    potential_block:dump()
 		    end,
-		    io:fwrite("absorb block "),
-		    io:fwrite(integer_to_list(Block2#block.height)),
-		    io:fwrite("\n"),
+		    if
+			(Block2#block.height rem 10) == 0 ->
+			%1 == 1 ->
+			    io:fwrite("absorb block "),
+			    io:fwrite(integer_to_list(Block2#block.height)),
+			    io:fwrite("\n");
+			true -> ok
+		    end,
 		    Header
 	    end
     end.

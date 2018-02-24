@@ -160,27 +160,35 @@ get_blocks(Peer, N, Tries) ->
     if
 	Height == AHeight -> ok;%done syncing
 	N > Height + (BM * BB) ->%This uses up 10 * BB * block_size amount of ram.
+	    
 	    %trapped here because blocks aren't syncing.
 	    %This is bad, we shouldn't let our partner trap us this way.
-	    %timer:sleep(1000),
+	    %timer:sleep(500),
 	    get_blocks(Peer, N, Tries-1);
 	true ->
 	    io:fwrite("another get_blocks thread\n"),
 	    spawn(fun() ->
-			  get_blocks2(BB, N, Peer)
+			  get_blocks2(BB, N, Peer, 5)
 		  end),
 	    get_blocks(Peer, N+BB, ?tries)
     end.
-get_blocks2(BB, N, Peer) ->
+get_blocks2(_BB, _N, _Peer, 0) ->
+    io:fwrite("get_blocks2 failed\n"),
+    ok;
+get_blocks2(BB, N, Peer, Tries) ->
+    %io:fwrite("get blocks 2\n"),
     go = sync_kill:status(),
     Blocks = talker:talk({blocks, BB, N}, Peer),
+    Sleep = 300,
     case Blocks of
 	{error, _} -> 
-	    timer:sleep(500),
-	    get_blocks2(BB, N, Peer);
+	    io:fwrite("get blocks 2 failed connect\n"),
+	    timer:sleep(Sleep),
+	    get_blocks2(BB, N, Peer, Tries - 1);
 	bad_peer -> 
-	    timer:sleep(500),
-	    get_blocks2(BB, N, Peer);
+	    io:fwrite("get blocks 2 failed connect\n"),
+	    timer:sleep(Sleep),
+	    get_blocks2(BB, N, Peer, Tries - 1);
 	{ok, Bs} -> %block_absorber:enqueue(Bs);
 	    block_organizer:add(Bs);
 	_ -> %block_absorber:enqueue(Blocks)
