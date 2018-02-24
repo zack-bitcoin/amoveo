@@ -4,6 +4,8 @@
 	 start/1, start/0, stop/0, status/0, 
 	 give_blocks/3, push_new_block/1, remote_peer/2]).
 -include("../records.hrl").
+-define(tries, 1200).%20 tries per second. 
+%so if this is 400, that means we have 20 seconds to download download_block_batch * download_block_many blocks
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -141,12 +143,17 @@ common_block_height(CommonHash) ->
             common_block_height(PrevCommonHash);
         B -> B#block.height
     end.
-get_blocks(Peer, N) ->
+get_blocks(Peer, N, 0) ->
+    io:fwrite("could not get block "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite(" from peer "),
+    io:fwrite(packer:pack(Peer));
+get_blocks(Peer, N, Tries) ->
     %io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
     %io:fwrite("get blocks\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
     {ok, BM} = application:get_env(amoveo_core, download_blocks_many),
-    timer:sleep(10),
+    timer:sleep(50),
     go = sync_kill:status(),
     Height = block:height(),
     AHeight = api:height(),
@@ -156,13 +163,13 @@ get_blocks(Peer, N) ->
 	    %trapped here because blocks aren't syncing.
 	    %This is bad, we shouldn't let our partner trap us this way.
 	    %timer:sleep(1000),
-	    get_blocks(Peer, N);
+	    get_blocks(Peer, N, Tries-1);
 	true ->
 	    io:fwrite("another get_blocks thread\n"),
 	    spawn(fun() ->
 			  get_blocks2(BB, N, Peer)
 		  end),
-	    get_blocks(Peer, N+BB)
+	    get_blocks(Peer, N+BB, ?tries)
     end.
 get_blocks2(BB, N, Peer) ->
     go = sync_kill:status(),
@@ -251,12 +258,12 @@ sync_peer(Peer) ->
 			  end);
                 true ->
                     CommonBlockHeight = common_block_height(CommonHash),
-                    get_blocks(Peer, CommonBlockHeight)
+                    get_blocks(Peer, CommonBlockHeight, ?tries)
             end;
         MyBlockHeight < TheirTopHeight ->
 	    io:fwrite("my height is less\n"),
             {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-            get_blocks(Peer, max(0, MyBlockHeight - FT));
+            get_blocks(Peer, max(0, MyBlockHeight - FT), 80);
         true -> 
 	    io:fwrite("already synced with this peer \n"),
 	    ok
