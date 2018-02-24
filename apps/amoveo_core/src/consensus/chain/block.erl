@@ -262,7 +262,8 @@ mine(Block, Rounds, Cores) ->
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
 			headers:absorb_with_block([Header]),
-                        block_absorber:save(PBlock),
+                        %block_absorber:save(PBlock),
+                        block_organizer:add(PBlock),
                         sync:start()
                 end
         end,
@@ -432,9 +433,14 @@ test(1) ->
     H1 = hash(Header1),
     H1 = hash(WBlock10),
     {ok, _} = headers:read(H1),
-    block_absorber:save(WBlock10),
+    block_organizer:add(WBlock10),
+    timer:sleep(100),
     WBlock11 = get_by_hash(H1),
     WBlock11 = get_by_height_in_chain(1, H1),
+    io:fwrite(packer:pack(WBlock11)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(WBlock10)),
+    io:fwrite("\n"),
     WBlock10 = WBlock11#block{trees = WBlock10#block.trees},
     success;
 test(2) ->

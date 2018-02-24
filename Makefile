@@ -45,7 +45,6 @@ local-clean: clean
 prod-build: KIND=prod
 prod-build: config/prod/sys.config build
 
-
 prod-go: KIND=prod
 prod-go: go
 
@@ -141,8 +140,6 @@ stop: $$(KIND)
 attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
-	#@touch ./config/prod/sys.config
-	#@rm ./config/prod/sys.config
 clean: $$(KIND)
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/data/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/data

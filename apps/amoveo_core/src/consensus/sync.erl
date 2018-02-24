@@ -170,8 +170,10 @@ get_blocks2(BB, N, Peer) ->
 	bad_peer -> 
 	    timer:sleep(500),
 	    get_blocks2(BB, N, Peer);
-	{ok, Bs} -> block_absorber:enqueue(Bs);
-	_ -> block_absorber:enqueue(Blocks)
+	{ok, Bs} -> %block_absorber:enqueue(Bs);
+	    block_organizer:add(Bs);
+	_ -> %block_absorber:enqueue(Blocks)
+	    block_organizer:add(Blocks)
     end.
 remove_self(L) ->%assumes that you only appear once or zero times in the list.
     MyIP = my_ip:get(),
