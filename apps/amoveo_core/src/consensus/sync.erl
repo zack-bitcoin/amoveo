@@ -60,7 +60,7 @@ blocks(CommonHash, Block) ->
             [Block|blocks(CommonHash, PrevBlock)]
     end.
 give_blocks(Peer, CommonHash, TheirBlockHeight) -> 
-    io:fwrite("give blocks\n"),
+    %io:fwrite("give blocks\n"),
     go = sync_kill:status(),
     {ok, DBB} = application:get_env(amoveo_core, push_blocks_batch),
     H = min(block:height(), max(0, TheirBlockHeight + DBB - 1)),
@@ -246,7 +246,9 @@ sync_peer(Peer) ->
                 TD < MD -> 
                     {ok, _, TheirBlockHeight} = remote_peer({top}, Peer),
                     CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
-                    give_blocks(Peer, CommonBlocksHash, TheirBlockHeight);
+		    spawn(fun() ->
+				  give_blocks(Peer, CommonBlocksHash, TheirBlockHeight)
+			  end);
                 true ->
                     CommonBlockHeight = common_block_height(CommonHash),
                     get_blocks(Peer, CommonBlockHeight)
