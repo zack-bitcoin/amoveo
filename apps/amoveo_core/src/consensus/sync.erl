@@ -166,7 +166,7 @@ get_blocks(Peer, N, Tries) ->
 	    %timer:sleep(500),
 	    get_blocks(Peer, N, Tries-1);
 	true ->
-	    io:fwrite("another get_blocks thread\n"),
+	    %io:fwrite("another get_blocks thread\n"),
 	    spawn(fun() ->
 			  get_blocks2(BB, N, Peer, 5)
 		  end),
