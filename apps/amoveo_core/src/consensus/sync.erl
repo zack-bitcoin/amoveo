@@ -17,7 +17,11 @@ handle_cast({main, Peer}, _) ->
     io:fwrite("syncing with this peer now "),
     io:fwrite(packer:pack(Peer)),
     io:fwrite("\n"),
-    sync_peer(Peer),
+    case Peer of 
+	error -> ok;
+	_ ->
+	    sync_peer(Peer)
+    end,
     {noreply, []};
 handle_cast(_, X) -> {noreply, X}.
 %handle_call(status, _From, X) -> {reply, X, X};
@@ -133,17 +137,22 @@ get_headers(Peer) ->
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
-    CommonHash = headers:absorb(Headers),
-    L = length(Headers),
-    case CommonHash of
-        <<>> -> 
-	    if 
-		(L+5) > HB -> get_headers2(Peer, N+HB-1);
-		true -> ok
-	    end;
-        _ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
-             %Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
-             CommonHash
+    case Headers of
+	error -> error;
+	bad_peer -> error;
+	_ ->
+	    CommonHash = headers:absorb(Headers),
+	    L = length(Headers),
+	    case CommonHash of
+		<<>> -> 
+		    if 
+			(L+5) > HB -> get_headers2(Peer, N+HB-1);
+			true -> ok
+		    end;
+		_ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
+						%Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
+		     CommonHash
+	    end
     end.
 get_headers3(Peer, N) ->
     {ok, HB} = ?HeadersBatch,
@@ -277,6 +286,7 @@ sync_peer(Peer) ->
             MD = TBH#header.accumulative_difficulty,
             TD = TheirTop#header.accumulative_difficulty,
             if
+		CommonHash == error -> error;
                 TD < MD -> 
                     {ok, _, TheirBlockHeight} = remote_peer({top}, Peer),
                     CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
