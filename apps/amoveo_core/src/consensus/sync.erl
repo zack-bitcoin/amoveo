@@ -203,7 +203,7 @@ get_blocks(Peer, N, Tries) ->
 	    get_blocks(Peer, N, Tries-1);
 	true ->
 	    %io:fwrite("another get_blocks thread\n"),
-	    timer:sleep(500),
+	    timer:sleep(100),
 	    spawn(fun() ->
 			  get_blocks2(BB, N, Peer, 5)
 		  end),
@@ -218,7 +218,7 @@ get_blocks2(BB, N, Peer, Tries) ->
     %timer:sleep(500),
     Blocks = talker:talk({blocks, BB, N}, Peer),
     go = sync_kill:status(),
-    Sleep = 300,
+    Sleep = 600,
     case Blocks of
 	{error, _} -> 
 	    io:fwrite("get blocks 2 failed connect error\n"),
