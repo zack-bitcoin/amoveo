@@ -126,8 +126,8 @@ remote_peer(Transaction, Peer) ->
 	    io:fwrite("command was "),
 	    io:fwrite(element(1, Transaction)),
 	    io:fwrite("\n"),
-	    peers:remove(Peer),
 	    blacklist_peer:add(Peer),
+	    peers:remove(Peer),
 	    error;
         Return1 -> Return1
     end.

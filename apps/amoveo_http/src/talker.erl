@@ -57,6 +57,8 @@ talk_helper(Msg, Peer, N, TimeOut) ->
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, timeout} ->
             io:fwrite("talk_helper timeout \n"),
+	    io:fwrite(element(1, Msg)),
+	    io:fwrite("\n"),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, failed_connect} ->
             io:fwrite("talk_helper failed_connect 0 \n"),
