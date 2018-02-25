@@ -27,24 +27,24 @@ absorb_internal(SignedTx) ->
     Tx = testnet_sign:data(SignedTx),
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
-    Fee = element(4, Tx),
-    Type = element(1, Tx),
+    case is_in(Tx, Txs) of
+        true -> ok;
+        false -> 
+	    true = testnet_sign:verify(SignedTx),
+	    Fee = element(4, Tx),
+	    Type = element(1, Tx),
     %io:fwrite("now 3 "),%1500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
-    {ok, MinimumTxFee} = application:get_env(amoveo_core, minimum_tx_fee),
+	    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
+	    {ok, MinimumTxFee} = application:get_env(amoveo_core, minimum_tx_fee),
     %io:fwrite("now 4 "),%500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    true = Fee > (MinimumTxFee + Cost),
-    true = testnet_sign:verify(SignedTx),
+	    true = Fee > (MinimumTxFee + Cost),
     %io:fwrite("now 5 "),%2000
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    case is_in(testnet_sign:data(SignedTx), Txs) of
-        true -> ok;
-        false -> 
 	    %io:fwrite("now 6 "),%200 or 2000
 	    %io:fwrite(packer:pack(now())),
 	    %io:fwrite("\n"),
