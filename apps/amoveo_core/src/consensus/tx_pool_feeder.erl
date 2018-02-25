@@ -149,7 +149,7 @@ absorb(SignedTx) ->
 absorb_async([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb_async([H|T]) ->
     absorb_async(H),
-    timer:sleep(200),
+    timer:sleep(200),%if the gen server dies, it would empty the mail box. so we don't want to stick the txs in the mailbox too quickly.
     absorb_async(T);
 absorb_async(X) ->
     N = sync_mode:check(),
