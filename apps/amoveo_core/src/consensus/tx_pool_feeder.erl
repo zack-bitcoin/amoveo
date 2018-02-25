@@ -140,6 +140,11 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
 absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->
+    N = sync_mode:check(),
+    case N of
+	normal -> ok;
+	_ -> io:fwrite("warning, transactions don't work well if you aren't in sync_mode normal")
+    end,
     gen_server:call(?MODULE, {absorb, SignedTx}).
 absorb_async([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb_async([H|T]) ->
@@ -147,6 +152,11 @@ absorb_async([H|T]) ->
     timer:sleep(20),
     absorb_async(T);
 absorb_async(X) ->
+    N = sync_mode:check(),
+    case N of
+	normal -> ok;
+	_ -> io:fwrite("warning, transactions don't work well if you aren't in sync_mode normal")
+    end,
     gen_server:cast(?MODULE, {absorb, X}).
 absorb_unsafe(SignedTx) ->
     F = tx_pool:get(),
