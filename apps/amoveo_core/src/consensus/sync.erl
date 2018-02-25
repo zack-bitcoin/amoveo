@@ -286,7 +286,7 @@ push_new_block_helper(N, M, [P|T], Block) ->
     push_new_block_helper(N+Z, M+1, T, Block).
 trade_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),
-    tx_pool_feeder:absorb(Txs),
+    tx_pool_feeder:absorb_async(Txs),
     Mine = (tx_pool:get())#tx_pool.txs,
     remote_peer({txs, lists:reverse(Mine)}, Peer).
 

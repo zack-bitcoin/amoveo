@@ -2,6 +2,8 @@ This is how to launch a node and connect to the network.
 
 To run a full node, you need at least 200 mb of ram available.
 
+It is helpful to have port 8080 exposed to the internet, this will let you find out about blocks more quickly, so you would mine faster.
+
 
 [first, if you haven't installed the dependencies, do that](/docs/getting-started/dependencies.md)
 
