@@ -4,7 +4,7 @@
          initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          top/0, genesis_maker/0, height/0,
-	 time_now/0,
+	 time_now/0, all_mined_by/1,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -417,6 +417,25 @@ initialize_chain() ->
     gen_server:call(headers, {add, block:hash(Header0), Header0}),
     gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
+
+all_mined_by(Address) ->
+    B = top(),
+    Height = B#block.height,
+    bmb_helper(Address, [], hash(B), Height - 1).
+bmb_helper(Address, Out, Hash, 0) -> Out;
+bmb_helper(Address, Out, Hash, Height) ->
+    B = block:get_by_hash(Hash),
+    Txs = B#block.txs,
+    CB = hd(Txs),
+    A2 = element(2, CB),
+    Out2 = if
+	       Address == A2 -> [Height|Out];
+	       true -> Out
+	   end,
+    PH = B#block.prev_hash,
+    bmb_helper(Address, Out2, PH, Height - 1).
+
+	    
 
 test() ->
     test(1).
