@@ -465,7 +465,7 @@ work(Nonce, _) ->
     %spawn(fun() -> 
     timer:sleep(1000),
     potential_block:save(),
-    sync:start() ,
+    %sync:start() ,
 	%  end),
     0.
 mining_data() ->
