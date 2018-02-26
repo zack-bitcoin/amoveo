@@ -26,8 +26,6 @@ handle_cast({doit, BP}, X) ->
 %    B = Blocks ++ trees:hash2blocks(recent_blocks:read()),
 %    trees:prune(B),
 %    {reply, ok, X};
-handle_call(pid, _From, X) -> 
-    {reply, self(), X};
 handle_call(check, _From, X) -> 
     {reply, X, X};
 handle_call({doit, BP}, _From, X) -> 

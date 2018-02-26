@@ -39,14 +39,20 @@
 
 ### tests before official launch of mainnet
 
-* We should try updating a governance variable in the testnet.
-
 
 
 
 
 
 ### Things we can do after launch of mainnet
+
+* We should try updating a governance variable in the testnet.
+
+* optimize the protocol for trading peers and txs. Only send txs and peers that they don't know about. Trade these lists less frequently, right now it is too much bandwidth.
+
+* decrease how often miners try to sync.
+
+* we are wasting some time syncing with ourselves.
 
 * it isn't switching to normal mode well
 maybe we should switch back to the original idea. If it finds less than 1 block per 5 seconds in the last 2 minutes, then switch to normal mode.
