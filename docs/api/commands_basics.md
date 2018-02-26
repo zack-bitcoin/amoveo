@@ -26,9 +26,7 @@ make prod-clean
 ```
 
 #### use the blocks you already downloaded to resync the blockchain. this re-generates the data files that were deleted by 'make prod-clean'
-```
-block_absorber:recover().
-```
+Recovery should happen automatically.
 
 #### sign a transaction
 ```
