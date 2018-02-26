@@ -40,7 +40,7 @@ handle_call(read, _From, X) ->
 	 end,
     TP = tx_pool:get(),
     NH = TP#tx_pool.height,
-    api:sync(),
+    %api:sync(),
     %sync:start(),
     Y = if
 	    B == "" ->
