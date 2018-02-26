@@ -26,6 +26,8 @@ handle_cast({doit, BP}, X) ->
 %    B = Blocks ++ trees:hash2blocks(recent_blocks:read()),
 %    trees:prune(B),
 %    {reply, ok, X};
+handle_call(pid, _From, X) -> 
+    {reply, self(), X};
 handle_call(check, _From, X) -> 
     {reply, X, X};
 handle_call({doit, BP}, _From, X) -> 
@@ -150,7 +152,7 @@ recover() ->
     %timer:sleep(20000),
     sync_kill:start(),
     sync_mode:quick(),
-    timer:sleep(100),
+    %timer:sleep(100),
     {ok, BlockFiles} = file:list_dir("blocks/"),
     TBFs = first(10, BlockFiles),
     Blocks = lists:map(fun(BF) -> 
@@ -169,7 +171,8 @@ recover() ->
     io:fwrite(" is many hashes\n"),
     io:fwrite(packer:pack(hd(lists:reverse(Hashes)))),
     io:fwrite("\n"),
-    read_absorb(lists:reverse(Hashes)).
+    Pid = block_organizer:pid(),
+    read_absorb(lists:reverse(Hashes), Pid, []).
 hashes_to_root(Block) ->
     H = Block#block.height,
     if
@@ -179,11 +182,19 @@ hashes_to_root(Block) ->
 	    PB = block:get_by_hash(PH),
 	    [PH|hashes_to_root(PB)]
     end.
-read_absorb([]) -> ok;
-read_absorb([H|T]) ->
-    B = block:get_by_hash(H),
-    BH = block:block_to_header(B),
-    %headers:absorb_with_block([BH]),
-    %headers:absorb([BH]),
-    save(B),
-    read_absorb(T).
+read_absorb([], _, X) -> block_organizer:add(lists:reverse(X));
+read_absorb(A, Pid, B) when length(B) > 50 ->
+    block_organizer:add(lists:reverse(B)),
+    read_absorb(A, Pid, []);
+read_absorb([H|T], Pid, L) ->
+    {message_queue_len, Size} = erlang:process_info(Pid, message_queue_len),
+    if
+	Size < 4 ->
+	    B = block:get_by_hash(H),
+	    read_absorb(T, Pid, [B|L]);
+	true ->
+	    timer:sleep(50),
+	    read_absorb([H|T], Pid, L)
+    end.
+
+	    

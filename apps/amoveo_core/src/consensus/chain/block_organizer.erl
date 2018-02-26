@@ -1,7 +1,7 @@
 -module(block_organizer).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	add/1, check/0, view/0]).
+	add/1, check/0, view/0, pid/0]).
 -include("../../records.hrl").
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -15,10 +15,13 @@ handle_cast({add, Blocks}, BS) ->
     BS2 = merge(Blocks, BS),
     BS3 = helper(BS2),
     {noreply, BS3}.
+handle_call(pid, _From, X) -> 
+    {reply, self(), X};
 handle_call(view, _, BS) -> 
     {reply, BS, BS};
 handle_call(_, _From, X) -> {reply, X, X}.
 
+pid() -> gen_server:call(?MODULE, pid).
 view() ->
     gen_server:call(?MODULE, view).
 merge(New, []) -> [New];
