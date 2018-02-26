@@ -98,7 +98,7 @@ give_blocks(Peer, CommonHash, TheirBlockHeight) ->
     if 
         length(Blocks) > 0 ->
             remote_peer({give_block, Blocks}, Peer),
-	    timer:sleep(1000),
+	    timer:sleep(8000),
 	    {ok, _, TheirBlockHeight2} = remote_peer({top}, Peer),
 	    if
 		TheirBlockHeight2 > TheirBlockHeight ->
@@ -264,9 +264,8 @@ push_new_block(Block) ->
     Peers = remove_self(Peers0),
     spawn(fun() -> push_new_block_helper(0, 0, shuffle(Peers), Block) end).
 push_new_block_helper(_, _, [], _) -> ok;%no one else to give the block to.
-push_new_block_helper(N, M, _, _) when ((M > 0) and ((N*3) >= (M*2))) -> ok;%the majority of peers probably already know.
+push_new_block_helper(N, M, _, _) when ((M > 0) and ((N*2) >= (M*1))) -> ok;%the majority of peers probably already know.
 push_new_block_helper(N, M, [P|T], Block) ->
-    %X = talker:talk({give_block, Block}, P),
     X = remote_peer({give_block, Block}, P),
     %io:fwrite(packer:pack(X)),
     Z = case X of
@@ -275,14 +274,16 @@ push_new_block_helper(N, M, [P|T], Block) ->
 		1;
 	    _ -> 
 		spawn(fun() ->
-			      {ok, _, TheirBlockHeight} = remote_peer({top}, P),
-			      MyHeight = block:height(),
-			      if 
-				  TheirBlockHeight < MyHeight ->
-				      CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
-				      give_blocks(P, CommonBlocksHash, TheirBlockHeight);
-				  true -> ok
-			      end
+			      sync_peer(P)
+			      %{ok, _, TheirBlockHeight} = remote_peer({top}, P),
+			      %MyHeight = block:height(),
+			      %if 
+				%  TheirBlockHeight < MyHeight ->
+				%      {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+				%      CommonBlocksHash = block:hash(block:get_by_height(max(TheirBlockHeight - FT, 0))),
+				%      give_blocks(P, CommonBlocksHash, TheirBlockHeight);
+				%  true -> ok
+			      %end
 		      end),
 		0
 	end,
@@ -301,6 +302,7 @@ sync_peer(Peer) ->
     TheirTop = remote_peer({header}, Peer), 
     MyBlockHeight = block:height(),
     TheirTopHeight = TheirTop#header.height,
+    {ok, _, TheirBlockHeight} = remote_peer({top}, Peer),
     if
         not(MyTop == TheirTop) ->
 	    io:fwrite("get headers\n"),
@@ -311,7 +313,6 @@ sync_peer(Peer) ->
             if
 		CommonHash == error -> error;
                 TD < MD -> 
-                    {ok, _, TheirBlockHeight} = remote_peer({top}, Peer),
                     CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
 		    spawn(fun() ->
 				  give_blocks(Peer, CommonBlocksHash, TheirBlockHeight)
@@ -322,10 +323,18 @@ sync_peer(Peer) ->
 		    CBH = max(CommonBlockHeight, MyBlockHeight - ForkTolerance),
                     get_blocks(Peer, CommonBlockHeight, ?tries)
             end;
-        MyBlockHeight < TheirTopHeight ->
-	    io:fwrite("my height is less\n"),
+        %MyBlockHeight < TheirTopHeight ->
+	MyBlockHeight < TheirBlockHeight ->
+	    io:fwrite("my height is less than their top header\n"),
             {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
             get_blocks(Peer, max(0, MyBlockHeight - FT), 80);
+	MyBlockHeight > TheirBlockHeight ->
+            {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+	    CommonBlockHash2 = block:hash(block:get_by_height(TheirBlockHeight - FT)),
+	    spawn(fun() ->
+			  give_blocks(Peer, CommonBlockHash2, TheirBlockHeight)
+		  end);
+	    
         true -> 
 	    io:fwrite("already synced with this peer \n"),
 	    ok

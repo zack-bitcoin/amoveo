@@ -106,7 +106,6 @@ absorb_internal(Block) ->
 			    tx_pool_feeder:absorb_async(Keep),
 			    order_book:match(),
 			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
-						%potential_block:new();
 			    potential_block:save(),
 			    sync:push_new_block(Block2);
 			quick -> 

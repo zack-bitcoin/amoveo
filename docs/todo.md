@@ -54,7 +54,7 @@
 
 * we are wasting some time syncing with ourselves.
 
-* it isn't switching to normal mode well
+* it isn't switching to normal mode well !!!!!!!!!!!!!!!!!!!!!!!!!
 maybe we should switch back to the original idea. If it finds less than 1 block per 5 seconds in the last 2 minutes, then switch to normal mode.
 
 * measure the rate at which blocks have been found in the recent 10 minutes. if the rate is < 1 block per 30 seconds, then switch to sync_mode normal.
