@@ -2,6 +2,7 @@
 -behaviour(gen_server).
 -include("../../records.hrl").
 -export([%prune/0, %% delete unneeded things from trees asynchronously
+	 recover/0,
 	 check/0,
 	 %synch_prune/1,
          %enqueue/1, %% async request
@@ -128,4 +129,61 @@ do_save(BlockPlus) ->
     CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
     Hash = block:hash(BlockPlus),
     BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
+    %io:fwrite("deleting blockfile "),
+    %io:fwrite(BlockFile),
+    %io:fwrite("\n"),
+    %file:delete(BlockFile),
+    %timer:sleep(100),
     ok = db:save(BlockFile, CompressedBlockPlus).
+highest_block(B, []) -> B;
+highest_block(A, [B|C]) ->
+    D = if
+	    A#block.height > B#block.height -> A;
+	    true -> B
+	end,
+    highest_block(D, C).
+first(0, _) -> [];
+first(_, []) -> [];
+first(N, [H|T]) -> [H|first(N-1, T)].
+recover() ->
+    %sync:stop(),
+    %timer:sleep(20000),
+    sync_kill:start(),
+    sync_mode:quick(),
+    timer:sleep(100),
+    {ok, BlockFiles} = file:list_dir("blocks/"),
+    TBFs = first(10, BlockFiles),
+    Blocks = lists:map(fun(BF) -> 
+			       binary_to_term(zlib:uncompress(db:read("blocks/"++BF)))
+		       end,
+		       TBFs),
+    io:fwrite("recover 1\n"),
+    Block = highest_block(hd(Blocks), tl(Blocks)),
+    io:fwrite("heighest block \n"),
+    io:fwrite("recover 2\n"),
+    io:fwrite(integer_to_list(Block#block.height)),
+    io:fwrite("is block height \n"),
+    Hashes = [block:hash(Block)|hashes_to_root(Block)],
+    io:fwrite("recover 3\n"),
+    io:fwrite(integer_to_list(length(Hashes))),
+    io:fwrite(" is many hashes\n"),
+    io:fwrite(packer:pack(hd(lists:reverse(Hashes)))),
+    io:fwrite("\n"),
+    read_absorb(lists:reverse(Hashes)).
+hashes_to_root(Block) ->
+    H = Block#block.height,
+    if
+	H == 1 -> [];
+	true ->
+	    PH = Block#block.prev_hash,
+	    PB = block:get_by_hash(PH),
+	    [PH|hashes_to_root(PB)]
+    end.
+read_absorb([]) -> ok;
+read_absorb([H|T]) ->
+    B = block:get_by_hash(H),
+    BH = block:block_to_header(B),
+    %headers:absorb_with_block([BH]),
+    %headers:absorb([BH]),
+    save(B),
+    read_absorb(T).

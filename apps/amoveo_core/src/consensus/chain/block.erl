@@ -307,7 +307,7 @@ check(Block) ->
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
-    PrevStateHash = trees:root_hash2(OldTrees, Roots),
+    %PrevStateHash = trees:root_hash2(OldTrees, Roots),
     Txs = Block#block.txs,
     BlockSize = size(packer:pack(Txs)),
     Governance = trees:governance(OldTrees),
@@ -406,7 +406,8 @@ no_coinbase([STx|T]) ->
 initialize_chain() -> 
     %only run genesis maker once, or else it corrupts the database.
     {ok, L} = file:list_dir("blocks"),
-    B = length(L) < 1,
+    %B = length(L) < 1,
+    B = true,
     GB = if
         B -> G = genesis_maker(),
              block_absorber:do_save(G),

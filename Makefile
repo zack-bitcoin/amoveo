@@ -143,9 +143,9 @@ attach: $$(KIND)
 clean: $$(KIND)
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/data/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/data
-	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
-	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
-	@rm -rf ./config/$(KIND)/sys.config
+	#@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
+	#@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
+	@rm  ./config/$(KIND)/sys.config
 	@rm -rf ./_build/$(KIND)/rel/log/
 	@mkdir ./_build/$(KIND)/rel/log
 
@@ -207,6 +207,7 @@ config/prod/sys.config: config/sys.config.tmpl
     {request_frequency, 10},\
     :\
     " $< > $@
+    #{peers, []},\
 
 config/dev1/sys.config: config/sys.config.tmpl
 	sed -e "\
