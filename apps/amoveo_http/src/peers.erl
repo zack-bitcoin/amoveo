@@ -100,7 +100,12 @@ add({IP, Port}) ->
 update(Peer, Properties) ->
     gen_server:cast(?MODULE, {update, Peer, Properties}).
 
-remove(Peer) -> gen_server:cast(?MODULE, {remove, Peer}).
+remove(Peer) -> 
+    io:fwrite("removing peer "),
+    io:fwrite(packer:pack(Peer)),
+    io:fwrite("\n"),
+    blacklist_peer:add(Peer),
+    gen_server:cast(?MODULE, {remove, Peer}).
 
 read(Peer) -> gen_server:call(?MODULE, {read, Peer}).
 
