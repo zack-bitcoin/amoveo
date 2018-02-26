@@ -107,6 +107,7 @@ give_blocks(Peer, CommonHash, TheirBlockHeight) ->
 		    give_blocks(Peer, NewCommonHash, TheirBlockHeight2);
 		true -> 
 		    %we should remove them from the list of peers.
+		    peers:remove(Peer),
 		    io:fwrite("they are not accepting our blocks."),
 		    ok
 	    end;
