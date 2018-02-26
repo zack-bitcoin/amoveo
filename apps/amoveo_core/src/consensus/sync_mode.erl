@@ -1,19 +1,14 @@
 -module(sync_mode).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	quick/0, normal/0, check/0]).
+	quick/0, normal/0, check/0, check_switch_to_normal/0]).
 init(ok) -> 
     {ok, Kind} = application:get_env(amoveo_core, kind),
     case Kind of
 	"production" ->
 	    spawn(fun() ->
 			  timer:sleep(2000),
-			  sync:start(),
 			  block_absorber:recover()
-		  end),
-	    spawn(fun() ->
-			  timer:sleep(20000),
-			  check_switch_to_normal()
 		  end);
 	_ -> ok
     end,

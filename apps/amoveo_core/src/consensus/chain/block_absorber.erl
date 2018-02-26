@@ -163,7 +163,13 @@ recover() ->
     io:fwrite("recover 2\n"),
     io:fwrite(integer_to_list(Block#block.height)),
     io:fwrite("is block height \n"),
-    Hashes = [block:hash(Block)|hashes_to_root(Block)],
+    BH = Block#block.height,
+    B2 = block:height(),
+    Hashes = if
+		 BH > B2 ->
+		     [block:hash(Block)|hashes_to_root(Block)];
+		 true -> []
+	     end,
     io:fwrite("recover 3\n"),
     io:fwrite(integer_to_list(length(Hashes))),
     io:fwrite(" is many hashes\n"),
@@ -180,7 +186,11 @@ hashes_to_root(Block) ->
 	    PB = block:get_by_hash(PH),
 	    [PH|hashes_to_root(PB)]
     end.
-read_absorb([], _, X) -> block_organizer:add(lists:reverse(X));
+read_absorb([], _, X) -> 
+    block_organizer:add(lists:reverse(X)),
+    sync:start(),
+    timer:sleep(30000),
+    sync_mode:check_switch_to_normal();
 read_absorb(A, Pid, B) when length(B) > 50 ->
     block_organizer:add(lists:reverse(B)),
     read_absorb(A, Pid, []);
