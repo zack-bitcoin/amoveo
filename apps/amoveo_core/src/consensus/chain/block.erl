@@ -4,7 +4,7 @@
          initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          top/0, genesis_maker/0, height/0,
-	 time_now/0, all_mined_by/1,
+	 time_now/0, all_mined_by/1, time_mining/1,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -434,6 +434,13 @@ bmb_helper(Address, Out, Hash, Height) ->
 	   end,
     PH = B#block.prev_hash,
     bmb_helper(Address, Out2, PH, Height - 1).
+time_mining(X) -> time_mining(0, X, []).
+time_mining(S, [], X) -> tl(lists:reverse(X));
+time_mining(S, Heights, Outs) ->
+    B = block:get_by_height(hd(Heights)),
+    T = B#block.time,
+    T2 = T - S,
+    time_mining(T, tl(Heights), [(T-S)|Outs]).
 
 	    
 
