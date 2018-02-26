@@ -14,3 +14,13 @@ Once you have finished syncing blocks and you are ready to process txs again, ch
 ```
 sync_mode:normal().
 ```
+
+This turns syncing on, so you will download blocks from your peers
+```
+sync:start().
+``
+
+This turns syncing off.
+```
+sync:stop().
+```
