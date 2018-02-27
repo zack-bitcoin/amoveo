@@ -34,7 +34,7 @@
     {lightning_fee, 9},
     {minimum_tx_fee, 9}, %% Only txs with this fee or higher get accepted into your mempool. If you are a miner, you are censoring all txs with lower fees.
 
-    {fork_tolerance, 40}, %% This is used by the channel manager. If the channel has been closed this many blocks, then the channel managers garbage collection would delete it.
+    {fork_tolerance, 20}, %% This is used by the channel manager. If the channel has been closed this many blocks, then the channel managers garbage collection would delete it.
                      %% it is also used when syncing. You download this many extra headers to check if you are on a fork.
     {headers_batch, 1001}, %% You download up to this many headers per request.
 

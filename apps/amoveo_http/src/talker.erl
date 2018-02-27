@@ -51,8 +51,11 @@ talk_helper(Msg, Peer, N, TimeOut) ->
 	    io:fwrite(packer:pack(Status)),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {ok, {_, _, R}} ->
+	    %io:fwrite("talker peer is "),
+	    %io:fwrite(Peer),
+	    %io:fwrite("\n"),
 	    %io:fwrite("talker msg is "),
-	    %io:fwrite(element(1, Msg)),
+	    %io:fwrite(packer:pack(Msg)),
 	    %io:fwrite("\n"),
 	    %io:fwrite("talker response is "),
 	    %io:fwrite(R),

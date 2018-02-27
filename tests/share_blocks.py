@@ -1,6 +1,11 @@
 from get_request import request
 from time import time
 
+
+def assertEqual(x, y):
+    if (x != y):
+        print("fail\n")
+
 def test1():
     print("share blocks test 1")
     request(2, "add_peer", [[127,0,0,1], 3010])
@@ -9,6 +14,9 @@ def test1():
     request(1, "sync", [[127,0,0,1], 3020], 0.1)
     request(2, "mine_block", [2, 100000], 0.2)
     request(1, "sync", [[127,0,0,1], 3020], 0.2)
+    height1 = request(1, 'height', [], 0.05)
+    height2 = request(2, 'height', [], 0.05)
+    assertEqual(height1, height2)
     #we should check that the heights are the same.
 def test2():
     print("share blocks test 2")
@@ -22,8 +30,16 @@ def test2():
     request(1, "spend", ["BLgYECLeI0Iq7SZqPqhoZocy3zF3ht+fPdYkjJh3OnPU1tr7+BpDbtXGNyzDF8w4gUzV7UvM4KelK6IIvQNZZ6w=", 100000000], 0.05)
     request(1, "mine_block", [1, 100000], 0.2)
     request(2, "sync", [[127,0,0,1], 3010], 0.2)#pull
+    height1 = request(1, 'height', [], 0.05)
+    height2 = request(2, 'height', [], 0.05)
+    print("test2 1")
+    assertEqual(height1, height2)
     request(2, "mine_block", [1, 100000], 0.2)
     request(2, "sync", [[127,0,0,1], 3010], 0.1)#push
+    height1 = request(1, 'height', [], 0.05)
+    height2 = request(2, 'height', [], 0.05)
+    print("test2 2")
+    assertEqual(height1, height2)
 
 def add_peers(node, n, ip, port):
     if (n == 0):
@@ -47,10 +63,16 @@ def test4():
     request(2, "sync", [[127,0,0,1], 3010], 0.2)#pull
     request(2, "mine_block", [2, 100000], 0.1)
     request(2, "sync", [[127,0,0,1], 3010], 0.2)#push
+    height1 = request(1, 'height', [], 0.05)
+    height2 = request(2, 'height', [], 0.05)
+    assertEqual(height1, height2)
 
 def test5():
     request(1, "mine_block", [200, 100000], 3)
     request(2, "sync", [[127,0,0,1], 3010], 0.2)#pull
+    height1 = request(1, 'height', [], 0.05)
+    height2 = request(2, 'height', [], 0.05)
+    assertEqual(height1, height2)
     
 
 def share_blocks():
