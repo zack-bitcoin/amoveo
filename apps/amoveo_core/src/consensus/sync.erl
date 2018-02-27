@@ -104,16 +104,18 @@ give_blocks(Peer, CommonHash, TheirBlockHeight) ->
     go = sync_kill:status(),
     {ok, DBB} = application:get_env(amoveo_core, push_blocks_batch),
     H = min(block:height(), max(0, TheirBlockHeight + DBB - 1)),
-    Blocks = lists:reverse(blocks(CommonHash, block:get_by_height(H))),
+    Blocks0 = blocks(CommonHash, block:get_by_height(H)),
+    Blocks = lists:reverse(Blocks0),
+    SendHeight = (hd(Blocks0))#block.height,
     if 
         length(Blocks) > 0 ->
             remote_peer({give_block, Blocks}, Peer),
 	    timer:sleep(2000),
 	    TheirBlockHeight2 = remote_peer({height}, Peer),
 	    if
-		TheirBlockHeight2 > TheirBlockHeight ->
+		(TheirBlockHeight2 > TheirBlockHeight) or (TheirBlockHeight > SendHeight) ->
 	    
-		    NewCommonHash = block:hash(hd(lists:reverse(Blocks))),
+		    NewCommonHash = block:hash(hd(Blocks0)),
 		    give_blocks(Peer, NewCommonHash, TheirBlockHeight2);
 		true -> 
 		    %we should remove them from the list of peers.
