@@ -51,7 +51,18 @@ talk_helper(Msg, Peer, N, TimeOut) ->
 	    io:fwrite(packer:pack(Status)),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {ok, {_, _, R}} ->
-            packer:unpack(R);
+	    %io:fwrite("talker msg is "),
+	    %io:fwrite(element(1, Msg)),
+	    %io:fwrite("\n"),
+	    %io:fwrite("talker response is "),
+	    %io:fwrite(R),
+	    %io:fwrite("\n"),
+	    DoubleOK = packer:pack([ok, ok]),
+	    if
+		R == DoubleOK -> 0;
+		true ->
+		    packer:unpack(R)
+	    end;
         {error, socket_closed_remotely} ->
             io:fwrite("talk_helper socket closed remotely \n"),
             talk_helper(Msg, Peer, N - 1, TimeOut);

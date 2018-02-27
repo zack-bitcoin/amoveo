@@ -46,12 +46,15 @@
 
 ### Things we can do after launch of mainnet
 
+* if the response from {give_block, Block} is not base64 encoded, then it freezes us from pushing the new block to peers. We should probably decode it manually so that we can handle errors better.
+
+* potential block:new_internal2 can use headers:top_with_block instead of the slow block_to_header.
+
+* test the case where we know about more headers than blocks, and we want to recover the network by mining a new version of history.
 
 * it seems like if we are aware of txs from future blocks, it can prevent us from verifying those future blocks.
 
 * sync gen server is getting a too-full mailbox, and it is filled with unnecessary repeat data.
-
-* We should try updating a governance variable in the testnet.
 
 * optimize the protocol for trading peers and txs. Only send txs and peers that they don't know about. Trade these lists less frequently, right now it is too much bandwidth.
 
@@ -63,7 +66,7 @@
 maybe we should switch back to the original idea. If it finds less than 1 block per 5 seconds in the last 2 minutes, then switch to normal mode.
 - update docs getting-started/turn_it_on.md
 
-* measure the rate at which blocks have been found in the recent 10 minutes. if the rate is < 1 block per 30 seconds, then switch to sync_mode normal.
+* measure the rate at which blocks have been found in the recent 2 minutes. if the rate is < 1 block per 30 seconds, then switch to sync_mode normal.
 
 * in the mining pool, we need to make the cron task into a gen_server so that it wont crash.
 

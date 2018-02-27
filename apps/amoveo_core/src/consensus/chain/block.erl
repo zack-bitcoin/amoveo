@@ -264,8 +264,8 @@ mine(Block, Rounds, Cores) ->
                         headers:absorb([Header]),
 			headers:absorb_with_block([Header]),
                         %block_absorber:save(PBlock),
-                        block_organizer:add([PBlock]),
-                        sync:start()
+                        block_organizer:add([PBlock])
+                        %sync:start()
                 end
         end,
     spawn_many(Cores-1, F),

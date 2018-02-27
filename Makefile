@@ -57,6 +57,9 @@ prod-attach: attach
 prod-clean: KIND=prod
 prod-clean: clean
 
+prod-rm-blocks: KIND=prod
+prod-rm-blocks: rm-blocks
+
 # Test
 
 multi-build: config/dev1/sys.config config/dev2/sys.config config/dev3/sys.config build1
@@ -139,6 +142,10 @@ stop: $$(KIND)
 
 attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
+
+rm-blocks: $$(KIND)
+	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
 
 clean: $$(KIND)
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/data/

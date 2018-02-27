@@ -46,6 +46,10 @@ doit({give_block, Block}) -> %block can also be a list of blocks.
 	    true -> [Block]
 	end,
     Response = block_organizer:add(A),
+    R2 = if
+	     is_atom(Response) -> 0;
+	     true -> Response
+	 end,
     {ok, Response};
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
