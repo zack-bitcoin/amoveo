@@ -191,7 +191,7 @@ read_absorb([], _, X) ->
     timer:sleep(30000),
     io:fwrite("read_absorb done"),
     sync_mode:check_switch_to_normal();
-read_absorb(A, Pid, B) when length(B) > 50 ->
+read_absorb(A, Pid, B) when length(B) > 20 ->
     block_organizer:add(lists:reverse(B)),
     read_absorb(A, Pid, []);
 read_absorb([H|T], Pid, L) ->
