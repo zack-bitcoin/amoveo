@@ -333,8 +333,8 @@ sync_peer(Peer) ->
                 true ->
                     CommonBlockHeight = common_block_height(CommonHash),
 		    {ok, ForkTolerance} = application:get_env(amoveo_core, fork_tolerance),
-		    CBH = max(CommonBlockHeight, MyBlockHeight - ForkTolerance),
-                    get_blocks(Peer, CommonBlockHeight, ?tries)
+		    CBH = max(CommonBlockHeight, (MyBlockHeight - ForkTolerance)),
+                    get_blocks(Peer, CBH, ?tries)
             end;
         %MyBlockHeight < TheirTopHeight ->
 	MyBlockHeight < TheirBlockHeight ->

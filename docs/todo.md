@@ -46,6 +46,9 @@
 
 ### Things we can do after launch of mainnet
 
+
+* sync gen server is getting a too-full mailbox, and it is filled with unnecessary repeat data.
+
 * We should try updating a governance variable in the testnet.
 
 * optimize the protocol for trading peers and txs. Only send txs and peers that they don't know about. Trade these lists less frequently, right now it is too much bandwidth.
@@ -56,6 +59,7 @@
 
 * it isn't switching to normal mode well !!!!!!!!!!!!!!!!!!!!!!!!!
 maybe we should switch back to the original idea. If it finds less than 1 block per 5 seconds in the last 2 minutes, then switch to normal mode.
+- update docs getting-started/turn_it_on.md
 
 * measure the rate at which blocks have been found in the recent 10 minutes. if the rate is < 1 block per 30 seconds, then switch to sync_mode normal.
 
