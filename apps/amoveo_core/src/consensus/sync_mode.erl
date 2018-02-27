@@ -8,7 +8,7 @@ init(ok) ->
 	"production" ->
 	    spawn(fun() ->
 			  timer:sleep(2000),
-			  block_absorber:recover()
+			  block_absorber:recover(full)
 		  end);
 	_ -> ok
     end,

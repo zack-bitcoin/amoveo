@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 -include("../../records.hrl").
 -export([%prune/0, %% delete unneeded things from trees asynchronously
-	 recover/0,
+	 recover/1,
 	 check/0,
 	 %synch_prune/1,
          %enqueue/1, %% async request
@@ -134,34 +134,58 @@ do_save(BlockPlus) ->
     %file:delete(BlockFile),
     %timer:sleep(100),
     ok = db:save(BlockFile, CompressedBlockPlus).
+highest_block([H|T]) ->
+    B = binary_to_term(zlib:uncompress(db:read("blocks/"++H))),
+    highest_block(B, T).
 highest_block(B, []) -> B;
-highest_block(A, [B|C]) ->
-    D = if
-	    A#block.height > B#block.height -> A;
-	    true -> B
-	end,
-    highest_block(D, C).
+highest_block(B, [H|T]) ->
+    B2 = binary_to_term(zlib:uncompress(db:read("blocks/"++H))),
+    H1 = B#block.height,
+    H2 = B2#block.height,
+    if
+	H2 > H1 -> highest_block(B2, T);
+	true -> highest_block(B, T)
+    end.
+	    
+%highest_block(B, []) -> B;
+%highest_block(A, [B|C]) ->
+%    D = if
+%	    A#block.height > B#block.height -> A;
+%	    true -> B
+%	end,
+%    highest_block(D, C).
 first(0, _) -> [];
 first(_, []) -> [];
 first(N, [H|T]) -> [H|first(N-1, T)].
-recover() ->
+recover(Mode) ->
     %sync:stop(),
     %timer:sleep(20000),
     sync_kill:start(),
     sync_mode:quick(),
     %timer:sleep(100),
-    {ok, BlockFiles} = file:list_dir("blocks/"),
-    TBFs = first(10, BlockFiles),
-    Blocks = lists:map(fun(BF) -> 
-			       binary_to_term(zlib:uncompress(db:read("blocks/"++BF)))
-		       end,
-		       TBFs),
     io:fwrite("recover 1\n"),
-    Block = highest_block(hd(Blocks), tl(Blocks)),
+    {ok, BlockFiles} = file:list_dir("blocks/"),
+    Block = case Mode of
+		full ->
+		    highest_block(BlockFiles);
+		quick ->
+		    Block1 = binary_to_term(zlib:uncompress(db:read("blocks/"++hd(BlockFiles)))),
+		    {FirstTen, _} = lists:split(10, BlockFiles),
+		    highest_block(Block1, tl(FirstTen))
+	    end,
+		    
+    %TBFs = first(10, BlockFiles),
+    %Blocks = lists:map(fun(BF) -> 
+	%		       binary_to_term(zlib:uncompress(db:read("blocks/"++BF)))
+    %end,
+						%TBFs),
+%Block = highest_block(hd(Blocks), tl(Blocks)),
     io:fwrite("heighest block \n"),
     io:fwrite("recover 2\n"),
     io:fwrite(integer_to_list(Block#block.height)),
     io:fwrite("is block height \n"),
+
+
     BH = Block#block.height,
     B2 = block:height(),
     Hashes = if
