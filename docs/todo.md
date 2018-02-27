@@ -47,6 +47,8 @@
 ### Things we can do after launch of mainnet
 
 
+* It is not clear how to use github to update values in the config file. 
+
 * when we adjust fork_tolerance in the config file, we are no longer able to push blocks to peers. This is because the batch of blocks we send is smaller than the fork tolerance. And we do a check to see if they are taking our blocks before sending more blocks. The check shows that they didn't accept any new blocks in the first batch.
 
 * if the response from {give_block, Block} is not base64 encoded, then it freezes us from pushing the new block to peers. We should probably decode it manually so that we can handle errors better.

@@ -9,9 +9,9 @@
 handle(Req, State) ->
     {ok, Data, _} = cowboy_req:body(Req),
     true = is_binary(Data),
-    io:fwrite("\ngot this data \n"),
-    io:fwrite(Data),
-    io:fwrite("\n"),
+    %io:fwrite("\ngot this data \n"),
+    %io:fwrite(Data),
+    %io:fwrite("\n"),
     A = packer:unpack(Data),
     B = doit(A),
     D = packer:pack(B),
