@@ -20,9 +20,14 @@ api:off().
 halt().
 ```
 
-#### delete data files to restart at block 0
+#### delete data files to restart at block 0, but preserve the blocks on your hard drive.
 ```
 make prod-clean
+```
+
+#### delete blocks from your hard drive
+```
+make prod-blocks
 ```
 
 #### use the blocks you already downloaded to resync the blockchain. this re-generates the data files that were deleted by 'make prod-clean'

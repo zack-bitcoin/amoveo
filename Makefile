@@ -57,8 +57,8 @@ prod-attach: attach
 prod-clean: KIND=prod
 prod-clean: clean
 
-prod-rm-blocks: KIND=prod
-prod-rm-blocks: rm-blocks
+prod-blocks: KIND=prod
+prod-blocks: blocks
 
 # Test
 
@@ -143,7 +143,7 @@ stop: $$(KIND)
 attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
-rm-blocks: $$(KIND)
+blocks: $$(KIND)
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
 
