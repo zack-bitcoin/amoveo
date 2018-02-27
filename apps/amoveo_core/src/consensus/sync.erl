@@ -23,7 +23,11 @@ handle_cast({main, Peer}, _) ->
 		    io:fwrite(packer:pack(Peer)),
 		    io:fwrite("\n"),
 		    sync_peer(Peer),
-		    timer:sleep(10000);
+		    case application:get_env(amoveo_core, kind) of
+			{ok, "production"} ->
+			    timer:sleep(10000);
+			_ -> ok
+		    end;
 		_ -> 
 		    io:fwrite("not syncing with this peer now "),
 		    io:fwrite(packer:pack(Peer)),
