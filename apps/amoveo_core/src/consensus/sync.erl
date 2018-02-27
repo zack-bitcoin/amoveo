@@ -14,25 +14,30 @@ handle_info(_, X) -> {noreply, X}.
 %handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
-    case Peer of 
-	error -> ok;
-	_ ->
-	    case status() of
-		go ->
-		    io:fwrite("syncing with this peer now "),
-		    io:fwrite(packer:pack(Peer)),
-		    io:fwrite("\n"),
-		    sync_peer(Peer),
-		    case application:get_env(amoveo_core, kind) of
-			{ok, "production"} ->
-			    timer:sleep(10000);
-			_ -> ok
-		    end;
-		_ -> 
-		    io:fwrite("not syncing with this peer now "),
-		    io:fwrite(packer:pack(Peer)),
-		    io:fwrite("\n"),
-		    ok
+    S = status(),
+    BL = case application:get_env(amoveo_core, kind) of
+	     {ok, "production"} ->%don't blacklist peers in test mode.
+		 blacklist_peer:check(Peer);
+	     _ -> false
+	 end,
+    if 
+	Peer == error -> ok;
+	not(S == go) -> 
+	    io:fwrite("not syncing with this peer now "),
+	    io:fwrite(packer:pack(Peer)),
+	    io:fwrite("\n"),
+	    ok;
+	BL -> ok;
+	true ->
+	    
+	    io:fwrite("syncing with this peer now "),
+	    io:fwrite(packer:pack(Peer)),
+	    io:fwrite("\n"),
+	    sync_peer(Peer),
+	    case application:get_env(amoveo_core, kind) of
+		{ok, "production"} ->
+		    timer:sleep(10000);
+		_ -> ok
 	    end
     end,
     {noreply, []};
