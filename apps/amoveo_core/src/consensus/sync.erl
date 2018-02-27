@@ -190,12 +190,12 @@ common_block_height(CommonHash) ->
             common_block_height(PrevCommonHash);
         B -> B#block.height
     end.
-get_blocks(Peer, N, 0) ->
+get_blocks(Peer, N, 0, _) ->
     io:fwrite("could not get block "),
     io:fwrite(integer_to_list(N)),
     io:fwrite(" from peer "),
     io:fwrite(packer:pack(Peer));
-get_blocks(Peer, N, Tries) ->
+get_blocks(Peer, N, Tries, Time) ->
     %io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
     %io:fwrite("get blocks\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
@@ -206,19 +206,19 @@ get_blocks(Peer, N, Tries) ->
     AHeight = api:height(),
     if
 	Height == AHeight -> ok;%done syncing
-	N > Height + (BM * BB) ->%This uses up 10 * BB * block_size amount of ram.
+	((Time == second) and (N > Height + (BM * BB))) ->%This uses up 10 * BB * block_size amount of ram.
 	    
 	    %trapped here because blocks aren't syncing.
 	    %This is bad, we shouldn't let our partner trap us this way.
 	    %timer:sleep(500),
-	    get_blocks(Peer, N, Tries-1);
+	    get_blocks(Peer, N, Tries-1, second);
 	true ->
 	    %io:fwrite("another get_blocks thread\n"),
 	    timer:sleep(100),
 	    spawn(fun() ->
 			  get_blocks2(BB, N, Peer, 5)
 		  end),
-	    get_blocks(Peer, N+BB, ?tries)
+	    get_blocks(Peer, N+BB, ?tries, second)
     end.
 get_blocks2(_BB, _N, _Peer, 0) ->
     io:fwrite("get_blocks2 failed\n"),
@@ -334,13 +334,13 @@ sync_peer(Peer) ->
                     CommonBlockHeight = common_block_height(CommonHash),
 		    {ok, ForkTolerance} = application:get_env(amoveo_core, fork_tolerance),
 		    CBH = max(CommonBlockHeight, (MyBlockHeight - ForkTolerance)),
-                    get_blocks(Peer, CBH, ?tries)
+                    get_blocks(Peer, CBH, ?tries, first)
             end;
         %MyBlockHeight < TheirTopHeight ->
 	MyBlockHeight < TheirBlockHeight ->
 	    io:fwrite("my height is less than their top header\n"),
             {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-            get_blocks(Peer, max(0, MyBlockHeight - FT), 80);
+            get_blocks(Peer, max(0, MyBlockHeight - FT), 80, first);
 	MyBlockHeight > TheirBlockHeight ->
             {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
 	    CommonBlockHash2 = block:hash(block:get_by_height(TheirBlockHeight - FT)),

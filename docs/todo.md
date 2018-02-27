@@ -47,6 +47,8 @@
 ### Things we can do after launch of mainnet
 
 
+* it seems like if we are aware of txs from future blocks, it can prevent us from verifying those future blocks.
+
 * sync gen server is getting a too-full mailbox, and it is filled with unnecessary repeat data.
 
 * We should try updating a governance variable in the testnet.

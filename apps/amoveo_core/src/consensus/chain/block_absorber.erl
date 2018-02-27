@@ -219,14 +219,19 @@ read_absorb(A, Pid, B) when length(B) > 20 ->
     block_organizer:add(lists:reverse(B)),
     read_absorb(A, Pid, []);
 read_absorb([H|T], Pid, L) ->
-    {message_queue_len, Size} = erlang:process_info(Pid, message_queue_len),
-    if
-	Size < 4 ->
-	    B = block:get_by_hash(H),
-	    read_absorb(T, Pid, [B|L]);
-	true ->
+    case erlang:process_info(Pid, message_queue_len) of
+	undefined ->
 	    timer:sleep(50),
-	    read_absorb([H|T], Pid, L)
+	    read_absorb([H|T], Pid, L);
+	{message_queue_len, Size} ->
+	    if
+		Size < 4 ->
+		    B = block:get_by_hash(H),
+		    read_absorb(T, Pid, [B|L]);
+		true ->
+		    timer:sleep(50),
+		    read_absorb([H|T], Pid, L)
+	    end
     end.
 
 	    
