@@ -57,7 +57,7 @@ talk_helper(Msg, Peer, N, TimeOut) ->
 	    %io:fwrite("talker response is "),
 	    %io:fwrite(R),
 	    %io:fwrite("\n"),
-	    DoubleOK = packer:pack([ok, ok]),
+	    DoubleOK = packer:pack({ok, ok}),
 	    if
 		R == DoubleOK -> 0;
 		true ->
