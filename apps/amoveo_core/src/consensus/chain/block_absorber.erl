@@ -172,7 +172,7 @@ recover() ->
     io:fwrite("recover 3\n"),
     io:fwrite(integer_to_list(length(Hashes))),
     io:fwrite(" is many hashes\n"),
-    io:fwrite(packer:pack(hd(lists:reverse(Hashes)))),
+    %io:fwrite(packer:pack(hd(lists:reverse(Hashes)))),
     io:fwrite("\n"),
     Pid = block_organizer:pid(),
     read_absorb(lists:reverse(Hashes), Pid, []).
@@ -189,6 +189,7 @@ read_absorb([], _, X) ->
     block_organizer:add(lists:reverse(X)),
     sync:start(),
     timer:sleep(30000),
+    io:fwrite("read_absorb done"),
     sync_mode:check_switch_to_normal();
 read_absorb(A, Pid, B) when length(B) > 50 ->
     block_organizer:add(lists:reverse(B)),

@@ -22,7 +22,8 @@ handle_cast({main, Peer}, _) ->
 		    io:fwrite("syncing with this peer now "),
 		    io:fwrite(packer:pack(Peer)),
 		    io:fwrite("\n"),
-		    sync_peer(Peer);
+		    sync_peer(Peer),
+		    timer:sleep(10000);
 		_ -> 
 		    io:fwrite("not syncing with this peer now "),
 		    io:fwrite(packer:pack(Peer)),
@@ -98,7 +99,7 @@ give_blocks(Peer, CommonHash, TheirBlockHeight) ->
     if 
         length(Blocks) > 0 ->
             remote_peer({give_block, Blocks}, Peer),
-	    timer:sleep(8000),
+	    timer:sleep(2000),
 	    {ok, _, TheirBlockHeight2} = remote_peer({top}, Peer),
 	    if
 		TheirBlockHeight2 > TheirBlockHeight ->
@@ -232,6 +233,7 @@ get_blocks2(BB, N, Peer, Tries) ->
 	    io:fwrite(packer:pack([BB, N, Peer, Tries])),
 	    io:fwrite("\n"),
 	    timer:sleep(Sleep),
+	    1=2,
 	    get_blocks2(BB, N, Peer, Tries - 1);
 	{ok, Bs} -> %block_absorber:enqueue(Bs);
 	    block_organizer:add(Bs);
@@ -264,17 +266,19 @@ push_new_block(Block) ->
     Peers = remove_self(Peers0),
     spawn(fun() -> push_new_block_helper(0, 0, shuffle(Peers), Block) end).
 push_new_block_helper(_, _, [], _) -> ok;%no one else to give the block to.
-push_new_block_helper(N, M, _, _) when ((M > 0) and ((N*2) >= (M*1))) -> ok;%the majority of peers probably already know.
+push_new_block_helper(N, M, _, _) when ((M > 1) and ((N*2) > (M*1))) -> ok;%the majority of peers probably already know.
 push_new_block_helper(N, M, [P|T], Block) ->
     X = remote_peer({give_block, Block}, P),
     %io:fwrite(packer:pack(X)),
-    Z = case X of
+    {Top, Bottom} = case X of
 	    3 -> 
 		spawn(fun() -> trade_txs(P) end),
-		1;
+		{1, 1};
+	    error -> {0, 0};
 	    _ -> 
 		spawn(fun() ->
-			      sync_peer(P)
+			      sync:start([P])
+			      %sync_peer(P)
 			      %{ok, _, TheirBlockHeight} = remote_peer({top}, P),
 			      %MyHeight = block:height(),
 			      %if 
@@ -285,9 +289,9 @@ push_new_block_helper(N, M, [P|T], Block) ->
 				%  true -> ok
 			      %end
 		      end),
-		0
+		{0, 1}
 	end,
-    push_new_block_helper(N+Z, M+1, T, Block).
+    push_new_block_helper(N+Top, M+Bottom, T, Block).
 trade_txs(Peer) ->
     Txs = remote_peer({txs}, Peer),
     tx_pool_feeder:absorb_async(Txs),
