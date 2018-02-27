@@ -4,15 +4,16 @@
 	quick/0, normal/0, check/0, check_switch_to_normal/0]).
 init(ok) -> 
     {ok, Kind} = application:get_env(amoveo_core, kind),
-    case Kind of
-	"production" ->
-	    spawn(fun() ->
-			  timer:sleep(2000),
-			  block_absorber:recover(full)
-		  end);
-	_ -> ok
-    end,
-    {ok, quick}.
+    X = case Kind of
+	    "production" ->
+		spawn(fun() ->
+			      timer:sleep(2000),
+			      block_absorber:recover(full)
+		      end),
+		quick;
+	    _ -> normal
+	end,
+    {ok, X}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
