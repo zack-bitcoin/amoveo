@@ -8,7 +8,8 @@ init(ok) ->
 	    "production" ->
 		spawn(fun() ->
 			      timer:sleep(2000),
-			      block_absorber:recover(quick)
+			      %block_absorber:recover(quick)
+			      ok
 		      end),
 		quick;
 	    _ -> normal
@@ -39,23 +40,30 @@ check_switch_to_normal(N, BlockTime, Counter) ->
     T1 = found_block_timer:get(),
     T3 = timer:now_diff(now(), BlockTime),
     S2 = T3 / 1000,
-    N3 = (N * 0.8) + (S2 * 0.2),
+    Portion = 0.9,
+    IPortion = 0.1,
+    %1 = Portion + IPortion,
+    N3 = (N * Portion) + (S2 * IPortion),
     %io:fwrite("check switch to normal "),
-    %io:fwrite(integer_to_list(round(N3))),
-    %io:fwrite("\n"),
+    
+%%io:fwrite(integer_to_list(round(N3))),
+    io:fwrite("\n"),
     if
-	N3 > 3000 ->
+	N3 > 6000 ->
 	    sync:stop(),
 	    sync_mode:normal();
 	not(T1 == BlockTime) ->
 	    T = timer:now_diff(T1, BlockTime),
 	    S = T / 1000, %miliseconds
-	    N2 = (N * 0.8) + (S * 0.2),
+	    N2 = (N * Portion) + (S * IPortion),
 	    check_switch_to_normal(N2, T1, Counter + 1);
 	true ->
+	    io:fwrite("syncing...\n"),
 	    if
-		((Counter rem 15) == 0) ->
-		    sync:start();
+		S2 > 5000 ->
+		%((Counter rem 15) == 0) ->
+		    sync:start(),
+		    timer:sleep(3000);
 		true -> ok
 	    end,
 	    timer:sleep(1000),

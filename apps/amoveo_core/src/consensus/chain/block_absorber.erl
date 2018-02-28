@@ -172,7 +172,13 @@ recover(Mode) ->
 		    highest_block(BlockFiles);
 		quick ->
 		    Block1 = binary_to_term(zlib:uncompress(db:read("blocks/"++hd(BlockFiles)))),
-		    {FirstTen, _} = lists:split(10, BlockFiles),
+		    L = length(BlockFiles),
+		    FirstTen = if
+				   L > 50 ->
+				       {F, _} = lists:split(50, BlockFiles),
+				       F;
+				   true -> BlockFiles
+			       end,
 		    highest_block(Block1, tl(FirstTen))
 	    end,
 		    
@@ -205,6 +211,13 @@ recover(Mode) ->
 hashes_to_root(Block) ->
     H = Block#block.height,
     if
+	((H rem 100) == 0) -> 
+	    io:fwrite("reverifying block "),
+	    io:fwrite(integer_to_list(H)),
+	    io:fwrite("\n");
+	true -> ok
+    end,
+    if
 	H == 1 -> [];
 	true ->
 	    PH = Block#block.prev_hash,
@@ -215,8 +228,8 @@ read_absorb([], _, X) ->
     block_organizer:add(lists:reverse(X)),
     sync:start(),
     %timer:sleep(30000),
-    io:fwrite("read_absorb done"),
-    sync_mode:check_switch_to_normal();
+    io:fwrite("read_absorb done");
+%sync_mode:check_switch_to_normal();
 read_absorb(A, Pid, B) when length(B) > 20 ->
     block_organizer:add(lists:reverse(B)),
     read_absorb(A, Pid, []);

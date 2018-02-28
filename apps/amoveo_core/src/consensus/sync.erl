@@ -5,6 +5,7 @@
 	 give_blocks/3, push_new_block/1, remote_peer/2]).
 -include("../records.hrl").
 -define(tries, 200).%20 tries per second. 
+-define(Many, 1).%how many to sync with per calling `sync:start()`
 %so if this is 400, that means we have 20 seconds to download download_block_batch * download_block_many blocks
 init(ok) -> {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -36,7 +37,12 @@ handle_cast({main, Peer}, _) ->
 	    sync_peer(Peer),
 	    case application:get_env(amoveo_core, kind) of
 		{ok, "production"} ->
-		    timer:sleep(10000);
+		    case sync_mode:check() of
+			quick ->
+			    timer:sleep(5000);
+			normal -> ok
+		    end;
+		    %timer:sleep(1000);
 		_ -> ok
 	    end
     end,
@@ -82,7 +88,7 @@ doit2(L0) ->
 	    io:fwrite("no one to sync with\n"),
 	    ok;
 	true ->
-	    N = min(length(L), 3),
+	    N = min(length(L), ?Many),
 	    Peers = randoms(N, L),
 	    io:fwrite("eventually will sync with these peers "),
 	    io:fwrite(packer:pack(Peers)),
