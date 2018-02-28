@@ -36,7 +36,9 @@ handle_call({add_with_block, Hash, Header}, _From, State) ->
     Top = State#s.top_with_block,
     AF = Top#header.accumulative_difficulty,
     NewTop = case AD >= AF of
-                 true -> Header;
+                 true -> 
+		     found_block_timer:add(),
+		     Header;
                  false -> Top
         end,
     %Headers = dict:store(Hash, Header, State#s.headers),

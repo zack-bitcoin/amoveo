@@ -106,9 +106,9 @@ give_blocks(Peer, CommonHash, TheirBlockHeight) ->
     H = min(block:height(), max(0, TheirBlockHeight + DBB - 1)),
     Blocks0 = blocks(CommonHash, block:get_by_height(H)),
     Blocks = lists:reverse(Blocks0),
-    SendHeight = (hd(Blocks0))#block.height,
     if 
         length(Blocks) > 0 ->
+	    SendHeight = (hd(Blocks0))#block.height,
             remote_peer({give_block, Blocks}, Peer),
 	    timer:sleep(2000),
 	    TheirBlockHeight2 = remote_peer({height}, Peer),

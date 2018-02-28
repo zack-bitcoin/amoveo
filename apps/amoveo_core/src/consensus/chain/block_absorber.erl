@@ -126,6 +126,7 @@ absorb_internal(Block) ->
 	    end
     end.
 do_save(BlockPlus) ->
+    %found_block_timer:add(),%put it into headers instead.
     CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
     Hash = block:hash(BlockPlus),
     BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
@@ -213,7 +214,7 @@ hashes_to_root(Block) ->
 read_absorb([], _, X) -> 
     block_organizer:add(lists:reverse(X)),
     sync:start(),
-    timer:sleep(30000),
+    %timer:sleep(30000),
     io:fwrite("read_absorb done"),
     sync_mode:check_switch_to_normal();
 read_absorb(A, Pid, B) when length(B) > 20 ->
