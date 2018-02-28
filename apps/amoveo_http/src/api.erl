@@ -469,6 +469,7 @@ work(Nonce, _) ->
 	%  end),
     0.
 mining_data() ->
+    normal = sync_mode:check(),
     Block = potential_block:read(),
     io:fwrite("mining data block hash is "),
     io:fwrite(packer:pack(hash:doit(block:hash(Block)))),

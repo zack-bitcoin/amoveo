@@ -47,6 +47,9 @@
 ### Things we can do after launch of mainnet
 
 
+* update docs. sync_mode is manual again.
+
+
 * It is not clear how to use github to update values in the config file. 
 
 * when we adjust fork_tolerance in the config file, we are no longer able to push blocks to peers. This is because the batch of blocks we send is smaller than the fork tolerance. And we do a check to see if they are taking our blocks before sending more blocks. The check shows that they didn't accept any new blocks in the first batch.
