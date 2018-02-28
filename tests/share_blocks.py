@@ -4,16 +4,24 @@ from time import time
 
 def assertEqual(x, y):
     if (x != y):
-        print("fail\n")
+        print(x)
+        print(y)
+        throw("fail")
 
 def test1():
     print("share blocks test 1")
+    request(2, "add_peer", [[209,250,250,137],8080])
+    request(2, "add_peer", [[51,15,69,135],8080])
+    request(2, "add_peer", [[51,15,212,91],8080])
+    request(2, "add_peer", [[159,89,106,253],8080])
+    request(2, "add_peer", [[52,234,133,196],8080])
+
     request(2, "add_peer", [[127,0,0,1], 3010])
     request(1, "add_peer", [[127,0,0,1], 3020], 0.1)
-    request(1, "mine_block", [1, 100000], 0.1)
+    request(1, "mine_block", [1, 100000], 0.2)
     request(1, "sync", [[127,0,0,1], 3020], 0.1)
-    request(2, "mine_block", [2, 100000], 0.2)
-    request(1, "sync", [[127,0,0,1], 3020], 0.2)
+    request(2, "mine_block", [2, 100000], 30)
+    #request(1, "sync", [[127,0,0,1], 3020], 0.2) # removed for propagation test.
     height1 = request(1, 'height', [], 0.05)
     height2 = request(2, 'height', [], 0.05)
     assertEqual(height1, height2)
@@ -35,7 +43,7 @@ def test2():
     print("test2 1")
     assertEqual(height1, height2)
     request(2, "mine_block", [1, 100000], 0.2)
-    request(2, "sync", [[127,0,0,1], 3010], 0.1)#push
+    request(2, "sync", [[127,0,0,1], 3010], 1)#push
     height1 = request(1, 'height', [], 0.05)
     height2 = request(2, 'height', [], 0.05)
     print("test2 2")
@@ -77,8 +85,8 @@ def test5():
 
 def share_blocks():
     test1()
-    test2()
-    test3()
+    #test2()
+    #test3()
     
 
 if __name__ == "__main__":

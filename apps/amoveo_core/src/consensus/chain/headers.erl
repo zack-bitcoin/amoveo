@@ -88,10 +88,22 @@ absorb([Header | T], CommonHash) ->
         {ok, _} -> 
 	    absorb(T, Hash); %don't store the same header more than once.
         error ->
-            true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
-            {true, _} = check_difficulty(Header),%check that the difficulty written on the block is correctly calculated
-            ok = gen_server:call(?MODULE, {add, Hash, Header}),
-            absorb(T, CommonHash)
+	    case check_pow(Header) of
+		false -> io:fwrite("invalid header without enough work"),
+			 ok;
+		true ->
+            %true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
+		    case read(Header#header.prev_hash) of
+			error -> io:fwrite("don't have a parent for this header\n");
+			{ok, _} ->
+			    case check_difficulty(Header) of%check that the difficulty written on the block is correctly calculated
+				{true, _} ->
+				    gen_server:call(?MODULE, {add, Hash, Header}),
+				    absorb(T, CommonHash);
+				_ -> io:fwrite("incorrectly calculated difficulty\n")
+			    end
+		    end
+	    end
     end.
 check_pow(Header) ->
     MineDiff = Header#header.difficulty,

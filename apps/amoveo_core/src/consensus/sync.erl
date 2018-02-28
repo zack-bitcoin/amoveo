@@ -1,7 +1,7 @@
 -module(sync).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	 start/1, start/0, stop/0, status/0, 
+	 start/1, start/0, stop/0, status/0, cron/0,
 	 give_blocks/3, push_new_block/1, remote_peer/2]).
 -include("../records.hrl").
 -define(tries, 200).%20 tries per second. 
@@ -174,7 +174,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 		<<>> -> 
 		    if 
 			(L+5) > HB -> get_headers2(Peer, N+HB-1);
-			true -> ok
+			true -> error%fork is bigger than fork_tolerance
 		    end;
 		_ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
 						%Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
@@ -333,6 +333,7 @@ sync_peer(Peer) ->
             TD = TheirTop#header.accumulative_difficulty,
             if
 		CommonHash == error -> error;
+		CommonHash == ok -> error;
                 TD < MD -> 
                     CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),
 		    spawn(fun() ->
@@ -363,5 +364,16 @@ sync_peer(Peer) ->
     spawn(fun() ->
 		  trade_txs(Peer)
 	  end).
-
+cron() ->
+    spawn(fun() ->
+		  cron2()
+	  end).
+cron2() ->
+    io:fwrite("sync cron\n"),
+    go = sync:status(),
+    normal = sync_mode:check(),
+    sync:start(),
+    timer:sleep(20000),
+    cron2().
+    
 
