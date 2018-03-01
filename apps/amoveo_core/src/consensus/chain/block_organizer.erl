@@ -110,14 +110,17 @@ add1([H|T], L) ->
     {L2, _} = add2(H, L),
     add1(T, L2).
 add2(Block, Out) ->
-    Height = Block#block.height,
-    BH = block:hash(Block),
-    BHC = block_hashes:check(BH),
     if
 	not(is_record(Block, block)) -> {Out, 0};
-	Height == 0 -> {Out, 0};
-	BHC -> {Out, 3}; %we have seen this block already
-	true -> {[Block|Out], 0}
+	true ->
+	    Height = Block#block.height,
+	    BH = block:hash(Block),
+	    BHC = block_hashes:check(BH),
+	    if
+		Height == 0 -> {Out, 0};
+		BHC -> {Out, 3}; %we have seen this block already
+		true -> {[Block|Out], 0}
+	    end
     end.
 	    
 add_old([Block]) -> add(Block);
