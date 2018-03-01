@@ -82,26 +82,30 @@ absorb([First|T], R) when is_binary(First) ->
     A = deserialize(First),
     absorb([A|T], R);
 absorb([Header | T], CommonHash) ->
-    true = Header#header.difficulty >= constants:initial_difficulty(),
-    Hash = block:hash(Header),
-    case read(Hash) of
-        {ok, _} -> 
-	    absorb(T, Hash); %don't store the same header more than once.
-        error ->
-	    case check_pow(Header) of
-		false -> io:fwrite("invalid header without enough work"),
-			 ok;
-		true ->
-            %true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
-		    case read(Header#header.prev_hash) of
-			error -> io:fwrite("don't have a parent for this header\n"),
-				 error;
-			{ok, _} ->
-			    case check_difficulty(Header) of%check that the difficulty written on the block is correctly calculated
-				{true, _} ->
-				    gen_server:call(?MODULE, {add, Hash, Header}),
-				    absorb(T, CommonHash);
-				_ -> io:fwrite("incorrectly calculated difficulty\n")
+    Bool = Header#header.difficulty >= constants:initial_difficulty(),
+    if
+	not(Bool) -> ok;
+	true ->
+	    Hash = block:hash(Header),
+	    case read(Hash) of
+		{ok, _} -> 
+		    absorb(T, Hash); %don't store the same header more than once.
+		error ->
+		    case check_pow(Header) of
+			false -> io:fwrite("invalid header without enough work"),
+				 ok;
+			true ->
+						%true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
+			    case read(Header#header.prev_hash) of
+				error -> io:fwrite("don't have a parent for this header\n"),
+					 error;
+				{ok, _} ->
+				    case check_difficulty(Header) of%check that the difficulty written on the block is correctly calculated
+					{true, _} ->
+					    gen_server:call(?MODULE, {add, Hash, Header}),
+					    absorb(T, CommonHash);
+					_ -> io:fwrite("incorrectly calculated difficulty\n")
+				    end
 			    end
 		    end
 	    end

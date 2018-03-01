@@ -1,5 +1,6 @@
 
 function headers_main() {
+    const INITIAL_DIFFICULTY = 8332;
     var top_header = 0;//stores the valid header with the most accumulated work.
     const retarget_frequency = 2000;
     var headers_db = {};//store valid headers by hash
@@ -88,7 +89,7 @@ function headers_main() {
             header2000[6],//old difficulty
             period,
             Math.max(1, t));//current estimated block time
-        var done = Math.max(nt, 6452);
+        var done = Math.max(nt, INITIAL_DIFFICULTY);
         return done;//initial difficulty
     }
     function pow_recalculate(oldDiff, t, bottom) {
