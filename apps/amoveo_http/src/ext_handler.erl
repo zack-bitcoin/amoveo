@@ -56,8 +56,24 @@ doit({block, N}) when (is_integer(N) and (N > -1))->
 doit({blocks, Many, N}) -> 
     X = many_blocks(Many, N),
     {ok, X};
-doit({header, N}) -> 
+doit({header, N}) when is_integer(N) -> 
     {ok, block:block_to_header(block:get_by_height(N))};
+doit({header, H}) ->
+    case headers:read(H) of
+	error -> {ok, 0};
+	_ -> {ok, 3}
+    end;
+doit({headers, H}) ->
+    headers:absorb(H),
+    spawn(fun() ->
+		  HH = api:height(),
+		  BH = block:height(),
+		  if 
+		      HH > BH -> sync:start();
+		      true -> ok
+		  end
+	  end),
+    {ok, 0};
 doit({headers, Many, N}) -> 
     X = many_headers(Many, N),
     {ok, X};

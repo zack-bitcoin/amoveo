@@ -15,13 +15,18 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast({add, Block}, X) -> 
     {noreply, {now(), Block}};
 handle_cast(cron, X) -> 
+    {ok, Kind} = application:get_env(amoveo_core, kind),
+    SLimit = case Kind of
+		 "production" -> 10;
+		 _ -> 1
+	     end,
     X2 = case X of
 	     [] -> [];
 	     {N, B} -> 
 		 T = timer:now_diff(now(), N),
 		 S = T / 1000000,%to seconds
 		 if
-		     S < 3 -> X;
+		     S < SLimit -> X;
 		     true ->
 			 sync:push_new_block(B),%only do this once every 3 seconds at most.
 			 []

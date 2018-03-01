@@ -22,11 +22,8 @@ You can communicate with the running node from a terminal like this:
 ```
 now that you are attached to a node, you can tell it [commands](/docs/api/commands.md)
 
-Once the node has synced all the blocks, it needs to be changed from quick-mode to normal-mode like this:
-```
-sync_mode:normal().
-```
-This will allow you to process txs, mine blocks, and send new blocks to your peers.
+[You can read about how to download the blocks and sync with the network here](/docs/getting-started/sync.md)
+
 
 You can turn off a running node
 ```

@@ -94,7 +94,8 @@ absorb([Header | T], CommonHash) ->
 		true ->
             %true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
 		    case read(Header#header.prev_hash) of
-			error -> io:fwrite("don't have a parent for this header\n");
+			error -> io:fwrite("don't have a parent for this header\n"),
+				 error;
 			{ok, _} ->
 			    case check_difficulty(Header) of%check that the difficulty written on the block is correctly calculated
 				{true, _} ->
