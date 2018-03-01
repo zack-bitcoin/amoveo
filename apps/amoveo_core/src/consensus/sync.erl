@@ -4,13 +4,12 @@
 	 start/1, start/0, stop/0, status/0, cron/0,
 	 give_blocks/3, push_new_block/1, remote_peer/2,
 	 get_headers/1, trade_txs/1, force_push_blocks/1,
-	 trade_peers/1]).
+	 trade_peers/1, cron/0, shuffle/1]).
 -include("../records.hrl").
 -define(tries, 200).%20 tries per second. 
 -define(Many, 1).%how many to sync with per calling `sync:start()`
 %so if this is 400, that means we have 20 seconds to download download_block_batch * download_block_many blocks
 init(ok) -> 
-    cron(),
     {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -297,7 +296,7 @@ shuffle([X]) -> [X];
 shuffle(L) -> shuffle(L, length(L), []).
 shuffle([], 0, Result) -> Result;
 shuffle(List, Len, Result) ->
-    {Elem, Rest} = nth_rest(random:uniform(Len), List, []),
+    {Elem, Rest} = nth_rest(rand:uniform(Len), List, []),
     shuffle(Rest, Len - 1, [Elem|Result]).
 nth_rest(1, [E|List], Prefix) -> {E, Prefix ++ List};
 nth_rest(N, [E|List], Prefix) -> nth_rest(N - 1, List, [E|Prefix]).

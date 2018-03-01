@@ -84,7 +84,7 @@ absorb([First|T], R) when is_binary(First) ->
 absorb([Header | T], CommonHash) ->
     Bool = Header#header.difficulty >= constants:initial_difficulty(),
     if
-	not(Bool) -> ok;
+	not(Bool) -> ok;%we should delete the peer that sent us this header.
 	true ->
 	    Hash = block:hash(Header),
 	    case read(Hash) of
