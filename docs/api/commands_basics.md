@@ -14,24 +14,22 @@ To see the current header height on this node:
 api:height().
 ```
 
+To see the transactions in the tx pool on this node:
+```
+tx_pool:get().
+```
+These are txs that could be included in the next block.
+
 #### Stop a node
 ```
 api:off().
 halt().
 ```
 
-#### delete data files to restart at block 0, but preserve the blocks on your hard drive.
+#### delete data files to restart at block 0
 ```
 make prod-clean
 ```
-
-#### delete blocks from your hard drive
-```
-make prod-blocks
-```
-
-#### use the blocks you already downloaded to resync the blockchain. this re-generates the data files that were deleted by 'make prod-clean'
-Recovery should happen automatically.
 
 #### sign a transaction
 ```

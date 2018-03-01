@@ -44,10 +44,10 @@ def market_test():
     #oid = json.loads(x)[1]
     print("python oid is ")
     print(oid)
-    request(1, 'mine_block', [4, 10000000])
+    request(1, 'mine_block', [4, 10000000], 2)
     #request(1, 'mine_block', [1, 1000000], 0.2)
-    request(1, 'sync', [[127,0,0,1], 3020], 0.5)
-    request(1, 'sync', [[127,0,0,1], 3030], 2)
+    request(2, 'sync', [[127,0,0,1], 3010], 1)
+    request(3, 'sync', [[127,0,0,1], 3010], 1)
     #oid = 1
     request(3, 'new_market', [oid, 20, 5], 2)
 def test2(): #useful for testing market from light node.

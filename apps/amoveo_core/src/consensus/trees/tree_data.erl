@@ -1,7 +1,7 @@
 -module(tree_data).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	dict_update_trie/2, prune/2, garbage/2]).
+	dict_update_trie/2, garbage/2]).
 -include("../../records.hrl").
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -12,10 +12,9 @@ handle_cast(_, X) -> {noreply, X}.
 handle_call({garbage, Trash, Keep}, _, _) -> 
     internal(Trash, Keep, fun(A, B, C) -> trie:garbage(A, B, C) end),
     {reply, ok, []};
-handle_call({prune, Trash, Keep}, _, _) -> 
-    1=2,
-    internal(Trash, Keep, fun(A, B, C) -> trie:prune(A, B, C) end),
-    {reply, ok, []};
+%handle_call({prune, Trash, Keep}, _, _) -> 
+%    internal(Trash, Keep, fun(A, B, C) -> trie:prune(A, B, C) end),
+%    {reply, ok, []};
 handle_call({update, Trees, Dict}, _From, _) -> 
     Y = internal_dict_update_trie(Trees, Dict),
     {reply, Y, []};
@@ -25,8 +24,6 @@ dict_update_trie(Trees, Dict) ->
     gen_server:call(?MODULE, {update, Trees, Dict}).
 garbage(Trash, Keep) ->
     gen_server:call(?MODULE, {garbage, Trash, Keep}).
-prune(Trash, Keep) ->
-    gen_server:call(?MODULE, {prune, Trash, Keep}).
 internal(PruneBlock, KeepBlock, F) ->
     Trees = [accounts, oracles, channels, existence, governance],
     [A, O, _, _, _] = 
