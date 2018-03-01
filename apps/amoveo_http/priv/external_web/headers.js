@@ -215,7 +215,7 @@ function headers_main() {
         var y = string_to_array(prev_hash);
         return y.concat(
             integer_to_array(height, 4)).concat(
-                integer_to_array(time, 4)).concat(
+                integer_to_array(time, 5)).concat(
                     integer_to_array(version, 2)).concat(
                         string_to_array(trees_hash)).concat(
                             string_to_array(txs_proof_hash)).concat(
