@@ -448,6 +448,8 @@ combine_cancel_assets(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     channel_feeder:combine_cancel_assets(ServerID, IP, Port),
     0.
+txs(IP, Port) ->
+    sync:trade_txs({IP, Port}).
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
     <<N:256>> = Nonce,
