@@ -3,8 +3,15 @@ import json
 
 def market_test():
     print("market test")
-    request(1, 'sync', [[127,0,0,1], 3020])
-    request(1, 'sync', [[127,0,0,1], 3030], 0.01)
+    request(2, "add_peer", [[127,0,0,1], 3010], 5)
+    request(2, "add_peer", [[127,0,0,1], 3030])
+    request(1, "add_peer", [[127,0,0,1], 3020])
+    request(1, "add_peer", [[127,0,0,1], 3030])
+    request(1, "add_peer", [[127,0,0,1], 3020])
+    request(1, "add_peer", [[127,0,0,1], 3010])
+    request(1, 'mine_block', [1, 10000000], 1)
+    request(2, 'sync', [[127,0,0,1], 3010], 0.05)
+    request(3, 'sync', [[127,0,0,1], 3010], 0.05)
     pub1 = "BOLh/UTJK6g4bgC4hSh941OEVdNfTBvqAU5OvgWWL3Dnv8M/dy6oioTIH9fHXdWaXXPop1BxQ/x3MfoEd3lnV7g="
     priv1 = "JCltJID7JJxG8c6PJ2XBe4a+nIF9RIcWSxA0ws+XWZ4="
     pub2 = "BJDmrdYxlZiG3hTyzcqzBVHJIhX2fUYHH2K+Q2usFVIdPWnaOLdlTAUtAqQLQ6h/XR7qiAjGnLxfyCPIbXF+2hg="
@@ -12,20 +19,22 @@ def market_test():
     brainwallet = ""
     request(1, 'dump_channels', [])
     request(2, 'dump_channels', [])
-    request(3, 'dump_channels', [], 0.04)
+    request(3, 'dump_channels', [], 0.05)
     request(2, 'load_key', [pub1, priv1, brainwallet])
     request(3, 'load_key', [pub2, priv2, brainwallet])
     request(1, 'create_account', [pub1, 1000000000], 0.04)
-    request(1, 'create_account', [pub2, 1000000000], 0.1)
+    request(1, 'create_account', [pub2, 1000000000], 0.4)
     pub_light = "BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4="
-    request(1, 'create_account', [pub_light, 1000000000], 0.1)
-    request(1, 'sync', [[127,0,0,1], 3030], 0.04)
-    request(2, 'sync', [[127,0,0,1], 3030], 0.9)
+    request(1, 'create_account', [pub_light, 1000000000], 2)
+    request(1, 'txs', [[127,0,0,1], 3030], 0)
+    #request(2, 'sync', [[127,0,0,1], 3030], 10)
+    request(1, 'txs', [[127,0,0,1], 3020], 1)
+#def dont_doit():
     fee = 152000
     cid1 = 'vVhSBIjO7fU0V4v08WH2O2crgjtl9wTODuIk+jeB2NM='
     cid2 = '7zCJZIMatujoQjVXrPiTMMPkXOBiT/oOhY24q+mYAZo='
     request(1, 'new_channel_with_server', [[127,0,0,1], 3030, cid1, 10000, 9999, fee, 4, 1000], 0.1)
-    request(2, 'sync', [[127,0,0,1], 3030], 0.2)
+    request(2, 'sync', [[127,0,0,1], 3030], 2)
     request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 4, 1000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
@@ -35,16 +44,16 @@ def market_test():
     #oid = json.loads(x)[1]
     print("python oid is ")
     print(oid)
-    request(1, 'mine_block', [1, 10000000], 0.2)
-    request(1, 'mine_block', [3, 10000000], 0.2)
+    request(1, 'mine_block', [4, 10000000])
     #request(1, 'mine_block', [1, 1000000], 0.2)
-    request(1, 'sync', [[127,0,0,1], 3020])
-    request(1, 'sync', [[127,0,0,1], 3030], 1)
+    request(1, 'sync', [[127,0,0,1], 3020], 0.5)
+    request(1, 'sync', [[127,0,0,1], 3030], 2)
     #oid = 1
-    request(3, 'new_market', [oid, 20, 5], 0.2)
+    request(3, 'new_market', [oid, 20, 5], 2)
 def test2(): #useful for testing market from light node.
-    request(3, 'sync', [[127,0,0,1], 3020])
-    request(3, 'sync', [[127,0,0,1], 3010], 1)
+    request(3, 'txs', [[127,0,0,1], 3020], 1)
+    request(3, 'txs', [[127,0,0,1], 3010], 9)
+    request(3, 'txs', [[127,0,0,1], 3020])
     oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     height = request(3, 'height', [], 0.01)
     height = json.loads(height)[1]

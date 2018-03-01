@@ -2,7 +2,7 @@
 -export([new/7, set_orders/2, orders/1, %custom stuff
          write/2, get/2,%update tree stuff
          dict_get/2, dict_write/2, dict_write/3, %update dict stuff
-	 meta_get/1, deserialize/1,
+	 meta_get/1, deserialize/1, all/0, 
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]). %common tree stuff
 -define(name, oracles).
 -include("../../records.hrl").
@@ -27,6 +27,22 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
 	    governance = GovernanceVar,
 	    governance_amount = GovAmount
 	   }.
+all() ->
+    Trees = (tx_pool:get())#tx_pool.block_trees,
+    Oracles = trees:oracles(Trees),
+    All = trie:get_all(Oracles, oracles),
+    lists:map(
+      fun(Leaf) ->
+	      X = oracles:deserialize(leaf:value(Leaf)),
+	      QH = X#oracle.question,
+	      Text = case oracle_questions:get(QH) of
+			 error -> <<"unknown">>;
+			 {ok, T} -> T
+		     end,
+	      {Text, X#oracle.governance, X}
+      end, All).
+    
+		      
 serialize(X) ->
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),

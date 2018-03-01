@@ -448,6 +448,8 @@ combine_cancel_assets(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     channel_feeder:combine_cancel_assets(ServerID, IP, Port),
     0.
+txs(IP, Port) ->
+    sync:trade_txs({IP, Port}).
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
     <<N:256>> = Nonce,
@@ -460,14 +462,16 @@ work(Nonce, _) ->
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
     headers:absorb_with_block([Header]),
-    block_absorber:save(Block2),
+    %block_absorber:save(Block2),
+    block_organizer:add([Block2]),
     %spawn(fun() -> 
     timer:sleep(1000),
     potential_block:save(),
-    sync:start() ,
+    %sync:start() ,
 	%  end),
     0.
 mining_data() ->
+    normal = sync_mode:check(),
     Block = potential_block:read(),
     io:fwrite("mining data block hash is "),
     io:fwrite(packer:pack(hash:doit(block:hash(Block)))),

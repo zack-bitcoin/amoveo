@@ -48,7 +48,6 @@ go(Tx, Dict, NewHeight) ->
 		GA = Oracle3#oracle.governance_amount,
 		case Result of
 		    1 -> 
-                        %io:fwrite("gov 1\n"),
 			true = Oracle#oracle.done_timer < NewHeight,
 			governance:dict_change(Gov, GA, Dict4);
 		    2 ->

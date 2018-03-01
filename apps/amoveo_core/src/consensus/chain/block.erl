@@ -3,7 +3,8 @@
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
-         top/0, genesis_maker/0, height/0, time_now/0,
+         top/0, genesis_maker/0, height/0,
+	 time_now/0, all_mined_by/1, time_mining/1,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -282,8 +283,9 @@ mine(Block, Rounds, Cores) ->
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
 			headers:absorb_with_block([Header]),
-                        block_absorber:save(PBlock),
-                        sync:start()
+                        %block_absorber:save(PBlock),
+                        block_organizer:add([PBlock])
+                        %sync:start()
                 end
         end,
     spawn_many(Cores-1, F),
@@ -325,7 +327,7 @@ check(Block) ->
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
-    PrevStateHash = trees:root_hash2(OldTrees, Roots),
+    %PrevStateHash = trees:root_hash2(OldTrees, Roots),
     Txs = Block#block.txs,
     Governance = trees:governance(OldTrees),
     BlockSize = size(packer:pack(Txs)),
@@ -434,7 +436,8 @@ no_coinbase([STx|T]) ->
 initialize_chain() -> 
     %only run genesis maker once, or else it corrupts the database.
     {ok, L} = file:list_dir("blocks"),
-    B = length(L) < 1,
+    %B = length(L) < 1,
+    B = true,
     GB = if
         B -> G = genesis_maker(),
              block_absorber:do_save(G),
@@ -509,7 +512,31 @@ many_live_oracles([Tx|T]) ->
 	end,
     A + many_live_oracles(T).
 
+all_mined_by(Address) ->
+    B = top(),
+    Height = B#block.height,
+    bmb_helper(Address, [], hash(B), Height - 1).
+bmb_helper(Address, Out, Hash, 0) -> Out;
+bmb_helper(Address, Out, Hash, Height) ->
+    B = block:get_by_hash(Hash),
+    Txs = B#block.txs,
+    CB = hd(Txs),
+    A2 = element(2, CB),
+    Out2 = if
+	       Address == A2 -> [Height|Out];
+	       true -> Out
+	   end,
+    PH = B#block.prev_hash,
+    bmb_helper(Address, Out2, PH, Height - 1).
+time_mining(X) -> time_mining(0, X, []).
+time_mining(S, [], X) -> tl(lists:reverse(X));
+time_mining(S, Heights, Outs) ->
+    B = block:get_by_height(hd(Heights)),
+    T = B#block.time,
+    T2 = T - S,
+    time_mining(T, tl(Heights), [(T-S)|Outs]).
 
+	    
 test() ->
     test(1).
 test(1) ->
@@ -526,9 +553,14 @@ test(1) ->
     H1 = hash(Header1),
     H1 = hash(WBlock10),
     {ok, _} = headers:read(H1),
-    block_absorber:save(WBlock10),
+    block_organizer:add([WBlock10]),
+    timer:sleep(100),
     WBlock11 = get_by_hash(H1),
     WBlock11 = get_by_height_in_chain(1, H1),
+    io:fwrite(packer:pack(WBlock11)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(WBlock10)),
+    io:fwrite("\n"),
     WBlock10 = WBlock11#block{trees = WBlock10#block.trees},
     success;
 test(2) ->

@@ -27,24 +27,24 @@ absorb_internal(SignedTx) ->
     Tx = testnet_sign:data(SignedTx),
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
-    Fee = element(4, Tx),
-    Type = element(1, Tx),
+    case is_in(Tx, Txs) of
+        true -> ok;
+        false -> 
+	    true = testnet_sign:verify(SignedTx),
+	    Fee = element(4, Tx),
+	    Type = element(1, Tx),
     %io:fwrite("now 3 "),%1500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
-    {ok, MinimumTxFee} = application:get_env(amoveo_core, minimum_tx_fee),
+	    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
+	    {ok, MinimumTxFee} = application:get_env(amoveo_core, minimum_tx_fee),
     %io:fwrite("now 4 "),%500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    true = Fee > (MinimumTxFee + Cost),
-    true = testnet_sign:verify(SignedTx),
+	    true = Fee > (MinimumTxFee + Cost),
     %io:fwrite("now 5 "),%2000
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    case is_in(testnet_sign:data(SignedTx), Txs) of
-        true -> ok;
-        false -> 
 	    %io:fwrite("now 6 "),%200 or 2000
 	    %io:fwrite(packer:pack(now())),
 	    %io:fwrite("\n"),
@@ -140,14 +140,26 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
 absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->
-    gen_server:call(?MODULE, {absorb, SignedTx}).
+    N = sync_mode:check(),
+    case N of
+	normal -> 
+	    gen_server:call(?MODULE, {absorb, SignedTx});
+	_ -> %io:fwrite("warning, transactions don't work well if you aren't in sync_mode normal")
+	    ok
+    end.
 absorb_async([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb_async([H|T]) ->
     absorb_async(H),
-    timer:sleep(200),
+    timer:sleep(200),%if the gen server dies, it would empty the mail box. so we don't want to stick the txs in the mailbox too quickly.
     absorb_async(T);
-absorb_async(X) ->
-    gen_server:cast(?MODULE, {absorb, X}).
+absorb_async(SignedTx) ->
+    N = sync_mode:check(),
+    case N of
+	normal -> 
+	    gen_server:cast(?MODULE, {absorb, SignedTx});
+	_ -> %io:fwrite("warning, transactions don't work well if you aren't in sync_mode normal")
+	    ok
+    end.
 absorb_unsafe(SignedTx) ->
     F = tx_pool:get(),
     Trees = F#tx_pool.block_trees,

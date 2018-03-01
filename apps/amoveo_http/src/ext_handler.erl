@@ -40,15 +40,40 @@ doit({account, Pubkey}) ->
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({give_block, Block}) -> %block can also be a list of blocks.
-    Response = block_absorber:save(Block),
+    %Response = block_absorber:save(Block),
+    A = if
+	    is_list(Block) -> Block;
+	    true -> [Block]
+	end,
+    Response = block_organizer:add(A),
+    R2 = if
+	     is_atom(Response) -> 0;
+	     true -> Response
+	 end,
     {ok, Response};
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
 doit({blocks, Many, N}) -> 
     X = many_blocks(Many, N),
     {ok, X};
-doit({header, N}) -> 
+doit({header, N}) when is_integer(N) -> 
     {ok, block:block_to_header(block:get_by_height(N))};
+doit({header, H}) ->
+    case headers:read(H) of
+	error -> {ok, 0};
+	_ -> {ok, 3}
+    end;
+doit({headers, H}) ->
+    headers:absorb(H),
+    spawn(fun() ->
+		  HH = api:height(),
+		  BH = block:height(),
+		  if 
+		      HH > BH -> sync:start();
+		      true -> ok
+		  end
+	  end),
+    {ok, 0};
 doit({headers, Many, N}) -> 
     X = many_headers(Many, N),
     {ok, X};

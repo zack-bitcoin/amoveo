@@ -45,7 +45,6 @@ local-clean: clean
 prod-build: KIND=prod
 prod-build: config/prod/sys.config build
 
-
 prod-go: KIND=prod
 prod-go: go
 
@@ -57,6 +56,9 @@ prod-attach: attach
 
 prod-clean: KIND=prod
 prod-clean: clean
+
+prod-blocks: KIND=prod
+prod-blocks: blocks
 
 # Test
 
@@ -141,14 +143,17 @@ stop: $$(KIND)
 attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
+blocks: $$(KIND)
+	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
+
 clean: $$(KIND)
-	@touch ./config/prod/sys.config
-	@rm ./config/prod/sys.config
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/data/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/data
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
-	@rm -rf ./config/$(KIND)/sys.config
+	@touch ./config/$(KIND)/sys.config
+	@rm  ./config/$(KIND)/sys.config
 	@rm -rf ./_build/$(KIND)/rel/log/
 	@mkdir ./_build/$(KIND)/rel/log
 
@@ -204,12 +209,13 @@ config/prod/sys.config: config/sys.config.tmpl
     {internal_port, 8081},\
     {swagger_port_internal, 8042},\
     {swagger_port_external, 8043},\
-    {peers, [[{159,89,106,253}, 8080]]},\
+    {peers, [{{209,250,250,137},8080}, {{51,15,69,135},8080}, {{51,15,212,91},8080}, {{159,89,106,253},8080}, {{52,234,133,196},8080}]},\
     {master_pub, <<\"BERTnwBT8hQ/slMjlQDRTltG6z9Ga2JdXOIEOyEEdoHgQU1ieG6xpayKxYjE6VhW4hiJa/5AquOwtWqm0KnXjhE=\">>},\
     {test_mode,false},\
-    {request_frequency, 2},\
+    {request_frequency, 10},\
     :\
     " $< > $@
+    #{peers, []},\
 
 config/dev1/sys.config: config/sys.config.tmpl
 	sed -e "\

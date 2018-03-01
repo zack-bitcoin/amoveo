@@ -61,6 +61,7 @@ handle_call({read, {_,_}=Peer}, _From, State) ->
 all() -> gen_server:call(?MODULE, all).
 
 add([]) -> ok;
+add([error]) -> ok;
 add([[IP, Port]|T]) when (is_list(IP)) ->
     add([[list_to_tuple(IP), Port]|T]);
 add([[IP, Port]|T]) ->
@@ -90,8 +91,8 @@ add({IP, Port}) ->
     if
 	B -> ok;
 	true ->
-	    case talker:talk({top}, {NIP, Port}) of
-		bad_peer -> blacklist_peer:add(NIP, Port);
+	    case talker:talk({height}, {NIP, Port}) of
+		bad_peer -> blacklist_peer:add({NIP, Port});
 		_ -> gen_server:cast(?MODULE, {add, {NIP, Port}})
 	    end
     end.
@@ -99,7 +100,12 @@ add({IP, Port}) ->
 update(Peer, Properties) ->
     gen_server:cast(?MODULE, {update, Peer, Properties}).
 
-remove(Peer) -> gen_server:cast(?MODULE, {remove, Peer}).
+remove(Peer) -> 
+    io:fwrite("removing peer "),
+    io:fwrite(packer:pack(Peer)),
+    io:fwrite("\n"),
+    blacklist_peer:add(Peer),
+    gen_server:cast(?MODULE, {remove, Peer}).
 
 read(Peer) -> gen_server:call(?MODULE, {read, Peer}).
 

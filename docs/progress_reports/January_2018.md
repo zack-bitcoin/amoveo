@@ -56,7 +56,7 @@ Zero Sum Markets 0  0  5  0  0  10 2  -10 3   10
 I can't find any work on channels from gnosis or augur, but they have both announced that they will use channels. Augur said they will use Ox for this.
 I may be misinformed, as there are many Ethereum channels now. It seems likely that Augur and Gnosis can use them.
 
-Amoveo channels are tested. Lightning payments are tested [here](/tests/test_lightning.py), many edge-cases for channels are tested [here](/apps/ae_core/src/consensus/txs/test_txs.erl).
+Amoveo channels are tested. Lightning payments are tested [here](/tests/lightning.py), many edge-cases for channels are tested [here](/apps/amoveo_core/src/consensus/txs/test_txs.erl).
 You can try out Amoveo channels by installing the erlang full node and using the web browser interface.
 
 Aeternity has no software for channels on their github, and they have not announced any plan for how their channels will work. They have hinted that Aeternity will have turing complete state channels capable of running off-chain smart contracts.
@@ -122,7 +122,7 @@ Augur has collateral in the form of rep, a subcurrency. The amount of collateral
 
 Gnosis gives an explanation of their oracle with escalation [here](https://blog.gnosis.pm/a-visit-to-the-oracle-fefc9dec5462). the "Ultimate Oracle" is the part with escalation. It is implemented in solidity [here](https://github.com/gnosis/gnosis-contracts/tree/master/contracts/Oracles)
 
-The Amoveo oracle has escalation. It is tested [here](/tests/test_market.py), edge cases of the oracle are tested [here](/apps/ae_core/src/consensus/txs/test_txs.erl)
+The Amoveo oracle has escalation. It is tested [here](/tests/market.py), edge cases of the oracle are tested [here](/apps/amoveo_core/src/consensus/txs/test_txs.erl)
 The Amoveo oracle is live on the Amoveo testnet.
 
 ### blockchain

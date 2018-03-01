@@ -1,7 +1,7 @@
 -module(oracle_questions).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-        store/2, get/1, dump/0]).
+        store/2, get/1, dump/0, all/0]).
 -define(LOC, constants:oracle_questions_file()).
 init(ok) -> 
     process_flag(trap_exit, true),
@@ -22,6 +22,8 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(dump, _) -> 
     {noreply, dict:new()};
 handle_cast(_, X) -> {noreply, X}.
+handle_call(all, _From, X) -> 
+    {reply, dict:fetch_keys(X), X};
 handle_call({get, Key}, _From, X) -> 
     {reply, dict:find(Key, X), X};
 handle_call({store, Key, Value}, _From, X) -> 
@@ -29,6 +31,7 @@ handle_call({store, Key, Value}, _From, X) ->
     {reply, ok, NewX};
 handle_call(_, _From, X) -> {reply, X, X}.
 
+all() -> gen_server:call(?MODULE, all).
 store(Key, Value) ->
     gen_server:call(?MODULE, {store, Key, Value}).
 get(Key) ->

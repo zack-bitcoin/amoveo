@@ -20,16 +20,13 @@
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
-* make sure sync:start doesn't run multiple times in parallel.
 
-* review the code for pushing a block to the network in normal mode.
+* test_txs(15). channel slash isn't being automatically created.
 
 * after a peer is removed from the list, don't try contacting them again.
 
 
 ### tests before official launch of mainnet
-
-* We should try updating a governance variable in the testnet.
 
 
 
@@ -38,6 +35,42 @@
 
 ### Things we can do after launch of mainnet
 
+
+* update docs. sync_mode is manual again.
+
+
+* It is not clear how to use github to update values in the config file. 
+
+* when we adjust fork_tolerance in the config file, we are no longer able to push blocks to peers. This is because the batch of blocks we send is smaller than the fork tolerance. And we do a check to see if they are taking our blocks before sending more blocks. The check shows that they didn't accept any new blocks in the first batch.
+
+* if the response from {give_block, Block} is not base64 encoded, then it freezes us from pushing the new block to peers. We should probably decode it manually so that we can handle errors better.
+
+* potential block:new_internal2 can use headers:top_with_block instead of the slow block_to_header.
+
+* test the case where we know about more headers than blocks, and we want to recover the network by mining a new version of history.
+
+* it seems like if we are aware of txs from future blocks, it can prevent us from verifying those future blocks.
+
+* sync gen server is getting a too-full mailbox, and it is filled with unnecessary repeat data.
+
+* optimize the protocol for trading peers and txs. Only send txs and peers that they don't know about. Trade these lists less frequently, right now it is too much bandwidth.
+
+* decrease how often miners try to sync.
+
+* we are wasting some time syncing with ourselves.
+
+* it isn't switching to normal mode well !!!!!!!!!!!!!!!!!!!!!!!!!
+maybe we should switch back to the original idea. If it finds less than 1 block per 5 seconds in the last 2 minutes, then switch to normal mode.
+- update docs getting-started/turn_it_on.md
+
+* measure the rate at which blocks have been found in the recent 2 minutes. if the rate is < 1 block per 30 seconds, then switch to sync_mode normal.
+
+* in the mining pool, we need to make the cron task into a gen_server so that it wont crash.
+
+* if a peer refuses the blocks we send them, then blacklist them.
+
+* it is confusing how we have sync:start/sync:stop and we also have sync_mode:quick/sync_mode:normal.
+Can't 1 flag do both things?
 
 * instead of downloading a certain number of blocks at a time, we should have a certain number of byts we download at a time.
 
@@ -217,3 +250,5 @@ Blocks should be serialized to be fully compressed.
 
 * we need configuration options to decide which parts of the historical data you want to keep.
 * it should be possible to store a shart of a tree.
+
+* an api for downloading blocks in a compressed format.

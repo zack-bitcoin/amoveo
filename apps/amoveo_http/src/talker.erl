@@ -42,6 +42,8 @@ talk_helper(Msg, Peer, N, TimeOut) ->
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, TimeOut}], []) of
         {ok, {{_, 500, _}, _Headers, []}} ->
 	    io:fwrite("server crashed.\n"),
+	    io:fwrite(element(1, Msg)),
+	    io:fwrite(" \n"),
 	    bad_peer;
             %talk_helper(Msg, Peer, 0, TimeOut);
         {ok, {Status, _Headers, []}} ->
@@ -49,12 +51,28 @@ talk_helper(Msg, Peer, N, TimeOut) ->
 	    io:fwrite(packer:pack(Status)),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {ok, {_, _, R}} ->
-            packer:unpack(R);
+	    %io:fwrite("talker peer is "),
+	    %io:fwrite(Peer),
+	    %io:fwrite("\n"),
+	    %io:fwrite("talker msg is "),
+	    %io:fwrite(packer:pack(Msg)),
+	    %io:fwrite("\n"),
+	    %io:fwrite("talker response is "),
+	    %io:fwrite(R),
+	    %io:fwrite("\n"),
+	    DoubleOK = packer:pack({ok, ok}),
+	    if
+		R == DoubleOK -> 0;
+		true ->
+		    packer:unpack(R)
+	    end;
         {error, socket_closed_remotely} ->
             io:fwrite("talk_helper socket closed remotely \n"),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, timeout} ->
             io:fwrite("talk_helper timeout \n"),
+	    io:fwrite(element(1, Msg)),
+	    io:fwrite("\n"),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, failed_connect} ->
             io:fwrite("talk_helper failed_connect 0 \n"),
