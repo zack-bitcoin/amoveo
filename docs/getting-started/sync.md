@@ -5,7 +5,7 @@ When you first turn on, it should automatically start downloading headers.
 
 If more headers become available, and you want to download them:
 ```
-sync:get_headers({{1,2,3,4}, 8080).
+sync:get_headers({{1,2,3,4}, 8080}).
 ```
 
 You can only download a block if you already have the header for that block.

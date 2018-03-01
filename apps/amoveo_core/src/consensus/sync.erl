@@ -3,7 +3,8 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 	 start/1, start/0, stop/0, status/0, cron/0,
 	 give_blocks/3, push_new_block/1, remote_peer/2,
-	 get_headers/1, trade_txs/1]).
+	 get_headers/1, trade_txs/1, force_push_blocks/1,
+	 trade_peers/1]).
 -include("../records.hrl").
 -define(tries, 200).%20 tries per second. 
 -define(Many, 1).%how many to sync with per calling `sync:start()`
@@ -75,7 +76,8 @@ randoms2([H|T], Tup) ->
 randoms(0, InputSize, Output) -> Output;
 randoms(N, InputSize, Output) ->
     %true = N < InputSize,
-    M = random:uniform(InputSize),
+    %M = random:uniform(InputSize),
+    M = rand:uniform(InputSize),
     B = lists:member(M, Output),
     if 
 	B -> randoms(N, InputSize, Output);
@@ -120,6 +122,11 @@ give_blocks(Peer, _, _) ->
     Headers = list_headers([H], M),
     push_new_block_helper(0,0,[Peer],HH,Headers).
     %remote_peer({give_block, [block:top()]}, Peer).
+   
+force_push_blocks(Peer) -> 
+    TheirBlockHeight = remote_peer({height}, Peer),
+    CH = block:hash(block:get_by_height(TheirBlockHeight)),
+    give_blocks_old(Peer, CH, TheirBlockHeight).
     
 give_blocks_old(Peer, CommonHash, TheirBlockHeight) -> 
     %Common hash defaults to genesis, which makes blocks/2 super slow. This all needs to be redone.
