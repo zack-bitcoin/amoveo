@@ -13,12 +13,14 @@
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
 merkelize_thing(X) when is_binary(X) -> X;
-merkelize_thing(X) ->
+merkelize_thing(X) when is_tuple(X) and (size(X) > 0)->
     T = element(1, X),
     case T of
         proof -> proof_hash(X);
         _ -> tx_hash(X)
-    end.
+    end;
+merkelize_thing(X) -> hash:doit(X).
+    
 merkelize_pair(A, B) ->
     C = [merkelize_thing(A), merkelize_thing(B)],
     hash:doit(C).
@@ -41,13 +43,20 @@ block_to_header(B) ->
     %io:fwrite("block to header "),
     %io:fwrite(integer_to_list(B#block.height)),
     %io:fwrite("\n"),
+    BV = [{1, B#block.market_cap},
+	  {2, B#block.channels_veo},
+	  {3, B#block.live_channels},
+	  {4, B#block.many_accounts},
+	  {5, B#block.many_oracles},
+	  {6, B#block.live_oracles}],
+    StateRoot = merkelize(BV ++ B#block.txs ++ B#block.proofs),
     headers:make_header(
       B#block.prev_hash,
       B#block.height,
       B#block.time,
       B#block.version,
       B#block.trees_hash,
-      txs_proofs_hash(B#block.txs, B#block.proofs),
+      StateRoot,
       B#block.nonce,
       B#block.difficulty,
       B#block.period).
@@ -192,8 +201,12 @@ make(Header, Txs0, Trees, Pub) ->
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     NewDict = new_dict(Txs, Dict, Height+1, keys:pubkey(), hash(Header)),
     NewTrees = tree_data:dict_update_trie(Trees, NewDict),
-    Governance = trees:governance(NewTrees),
+    %Governance = trees:governance(NewTrees),
+    Governance = trees:governance(Trees),
     BlockPeriod = governance:get_value(block_period, Governance),
+    PrevHash = hash(Header),
+    OldBlock = get_by_hash(PrevHash),
+    BlockReward = governance:get_value(block_reward, Governance),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -201,11 +214,18 @@ make(Header, Txs0, Trees, Pub) ->
 		   time = time_now(),
 		   difficulty = headers:difficulty_should_be(Header),
                    period = BlockPeriod,
+
 		   version = version:doit(Height+1),%constants:version(),
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header),
 		   proofs = Facts,
-                   roots = make_roots(Trees)
+                   roots = make_roots(Trees),
+		   market_cap = OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
+		   channels_veo = OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
+		   live_channels = OldBlock#block.live_channels + many_live_channels(Txs0),
+		   many_accounts = OldBlock#block.many_accounts + many_new_accounts(Txs0),
+		   many_oracles = OldBlock#block.many_oracles + many_new_oracles(Txs0),
+		   live_oracles = OldBlock#block.live_oracles + many_live_oracles(Txs0)
 		  },
     Block = packer:unpack(packer:pack(Block)),
     %_Dict = proofs:facts_to_dict(Proofs, dict:new()),
@@ -309,8 +329,8 @@ check(Block) ->
     PrevStateHash = PrevHeader#header.trees_hash,
     %PrevStateHash = trees:root_hash2(OldTrees, Roots),
     Txs = Block#block.txs,
-    BlockSize = size(packer:pack(Txs)),
     Governance = trees:governance(OldTrees),
+    BlockSize = size(packer:pack(Txs)),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
     ok = case BlockSize > MaxBlockSize of
 	     true -> 
@@ -320,6 +340,7 @@ check(Block) ->
     end,
     case LN of
         true -> 
+	    %light node stuff.
             %OldSparseTrees = 
             %    facts_to_trie(
             %      Facts, trees:new(empty, empty, empty,
@@ -333,10 +354,18 @@ check(Block) ->
     end,
     true = proofs_roots_match(Facts, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
+
+    Txs0 = tl(Txs),
+    BlockReward = governance:get_value(block_reward, Governance),
+    true = Block#block.market_cap == OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
+    true = Block#block.channels_veo == OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
+    true = Block#block.live_channels == OldBlock#block.live_channels + many_live_channels(Txs0),
+    true = Block#block.many_accounts == OldBlock#block.many_accounts + many_new_accounts(Txs0),
+    true = Block#block.many_oracles == OldBlock#block.many_oracles + many_new_oracles(Txs0),
+    true = Block#block.live_oracles == OldBlock#block.live_oracles + many_live_oracles(Txs0),
+
     Height = Block#block.height,
-    %true = Height < 2000,
     PrevHash = Block#block.prev_hash,
-    Txs = Block#block.txs,
     Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
@@ -351,6 +380,7 @@ check(Block) ->
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
 
+%this stuff might be useful for making it into a light node.
 %setup_tree(Empty, Start, Path, Type) ->
 %    case Start of
 %        Empty ->
@@ -419,6 +449,69 @@ initialize_chain() ->
     gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
 
+gov_fees([], _) -> 0;
+gov_fees([Tx|T], Governance) ->
+    C = testnet_sign:data(Tx),
+    A = governance:get_value(element(1, C), Governance),
+    A + gov_fees(T, Governance).
+deltaCV([], _) -> 0;%calculate change in total amount of VEO stored in channels.
+deltaCV([Tx|T], Dict) ->
+    C = testnet_sign:data(Tx),
+    A = case element(1, C) of
+	    nc -> new_channel_tx:bal1(C) + new_channel_tx:bal2(C);
+	    ctc -> 
+		ID = channel_team_close_tx:id(C),
+		OldChannel = channels:dict_get(ID, Dict),
+		io:fwrite(packer:pack(OldChannel)),
+		Bal1 = channels:bal1(OldChannel),
+		Bal2 = channels:bal2(OldChannel),
+		-(Bal1 + Bal2);
+	    timeout -> 
+		ID = channel_timeout_tx:cid(C),
+		OldChannel = channels:dict_get(ID, Dict),
+		Bal1 = channels:bal1(OldChannel),
+		Bal2 = channels:bal2(OldChannel),
+		-(Bal1 + Bal2);
+	    _ -> 0
+	end,
+    A + deltaCV(T, Dict).
+many_live_channels([]) -> 0;
+many_live_channels([Tx|T]) ->
+    C = testnet_sign:data(Tx),
+    A = case element(1, C) of
+	    nc -> 1;
+	    ctc -> -1;
+	    timeout -> -1;
+	    _ -> 0
+	end,
+    A + many_live_channels(T).
+many_new_accounts([]) -> 0;
+many_new_accounts([Tx|T]) ->
+    C = testnet_sign:data(Tx),
+    A = case element(1, C) of
+	    create_acc_tx -> 1;
+	    delete_acc_tx -> -1;
+	    _ -> 0
+	end,
+    A + many_new_accounts(T).
+many_new_oracles([]) -> 0;
+many_new_oracles([Tx|T]) ->
+    C = testnet_sign:data(Tx),
+    A = case element(1, C) of
+	    oracle_new -> 1;
+	    _ -> 0
+	end,
+    A + many_new_oracles(T).
+many_live_oracles([]) -> 0;
+many_live_oracles([Tx|T]) ->
+    C = testnet_sign:data(Tx),
+    A = case element(1, C) of
+	    oracle_new -> 1;
+	    oracle_close -> -1;
+	    _ -> 0
+	end,
+    A + many_live_oracles(T).
+
 all_mined_by(Address) ->
     B = top(),
     Height = B#block.height,
@@ -444,7 +537,6 @@ time_mining(S, Heights, Outs) ->
     time_mining(T, tl(Heights), [(T-S)|Outs]).
 
 	    
-
 test() ->
     test(1).
 test(1) ->

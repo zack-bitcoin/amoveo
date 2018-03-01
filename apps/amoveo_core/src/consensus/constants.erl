@@ -14,7 +14,7 @@ initial_difficulty() ->
     case application:get_env(amoveo_core, kind) of
         {ok, "local"} -> 0;%unit tests
         {ok, "integration"} -> 1000;%2500;%integration tests.
-        {ok, "production"} -> 6452
+        {ok, "production"} -> 8332
     end.
 difficulty_bits() -> 24.
 hash_size() -> 32.
@@ -59,8 +59,9 @@ retarget_frequency() -> %2000. %how many blocks till we recalculate the difficul
         {ok, "production"} -> 2000
     end.
 time_units() -> 100. % 0.1 seconds
-start_time() -> 14825749780.
-time_bits() -> 32.
+start_time() -> 15192951759.
+%14825749780. % (os:system_time() div (1000000 * constants:time_units())).
+time_bits() -> 40.
 version_bits() -> 16.%so we can update it more than 60000 times.
 period_bits() -> 16. %so the maximum block time is about 109 minutes
 server_ip() -> {159,89,106,253}.

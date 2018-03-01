@@ -303,8 +303,11 @@ nth_rest(1, [E|List], Prefix) -> {E, Prefix ++ List};
 nth_rest(N, [E|List], Prefix) -> nth_rest(N - 1, List, [E|Prefix]).
 list_headers(X, 0) -> X;
 list_headers([H|T], N) ->
-    {ok, H2} = headers:read(H#header.prev_hash),
-    list_headers([H2|[H|T]], N-1).
+    case headers:read(H#header.prev_hash) of
+	error -> [H|T];
+	{ok, H2}  -> %headers:read(H#header.prev_hash),
+	    list_headers([H2|[H|T]], N-1)
+    end.
 push_new_block(Block) ->
     %keep giving this block to random peers until 1/2 the people you have contacted already know about it. Don't talk to the same peer multiple times.
     Peers0 = peers:all(),

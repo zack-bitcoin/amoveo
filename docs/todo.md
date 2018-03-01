@@ -1,38 +1,27 @@
 ### things to do for the next hard fork
 
-* increase constants initial difficulty.
+* increase constants initial difficulty. 7820 takes me 90 minutes. someone did it in 40 seconds. so 8844 is a good starting difficulty if they were mining the whole time.
+8332 would take me 24 hours to mine 1 block. maybe it is a good compromise.
 
-* we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
-
-* line 26 in coinbase. We should multiply first before we divide by 10000. This will solve rounding issues for small block rewards.
 
 * make a new master pubkey using cold storage.
 
-* modify the version.erl value
-
 * consider updating the mining algorithm so we don't include the difficulty in the thing being hashed.
+- or maybe leave it. bitcoin nonce is the final 4 bytes. If we don't put our nonce in those bytes, then it is harder to use a bitcoin miner on Amoveo.
 
-* governance oracles should have no delay. This way attackers cannot freeze the governanace mechanism.
 
-* consider adding some more data to the block. It can be made into a merkle tree with the txs.
-- total veo in existence.
-- total veo locked in channels.
-- total number of channels.
-- total number of accounts.
-- total number of oracles.
-- txs and proofs and more valus can all be stuffed into block:merkelize. They don't need seperate merkle trees. the order is deterministic.
 
-* embed recent news message into genesis block.
+* maybe embed recent news message into genesis block.
 
-* update constants start_time.
-
-* headers are currently storing the time in 32 bits. This is not enough space, we will run out of time in 13.6 years.
+* we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
 
 
 
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
+
+* test_txs(15). channel slash isn't being automatically created.
 
 * after a peer is removed from the list, don't try contacting them again.
 

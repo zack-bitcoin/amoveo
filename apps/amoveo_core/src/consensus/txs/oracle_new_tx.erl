@@ -41,19 +41,21 @@ go(Tx, Dict, NewHeight) ->
     true = GovAmount > -1,
     true = GovAmount < GCL,
     Question = Tx#oracle_new.question,
-    Dict2 = 
+    %Starts = Tx#oracle_new.start,
+    {Dict2, Starts} = 
         case Gov of
             0 ->
                 GovAmount = 0,
-                Dict;
+                {Dict, Tx#oracle_new.start};
             G ->
 		%make sure the oracle starts now, and has no delay.
                 true = GovAmount > 0,
 		Question = <<"">>,
                 GVar = governance:dict_get(G, Dict),
                 false = governance:is_locked(GVar),
-                governance:dict_lock(G, Dict)
+                {governance:dict_lock(G, Dict), max(NewHeight, Tx#oracle_new.start)}
         end,
+    false = Starts < NewHeight,
     ok = case Question of
              <<"">> -> ok;
              Q ->
@@ -66,7 +68,6 @@ go(Tx, Dict, NewHeight) ->
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
     Facc = accounts:dict_update(From, Dict2, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce),
     Dict3 = accounts:dict_write(Facc, Dict2),
-    Starts = Tx#oracle_new.start,
     %OFL = governance:dict_get_value(oracle_future_limit, Dict3),
     %true = (Starts - NewHeight) < OFL,
     Question = Tx#oracle_new.question,

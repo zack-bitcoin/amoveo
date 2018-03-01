@@ -36,7 +36,13 @@
                 prev_hashes = {prev_hashes},
                 proofs = [],
                 roots,
-                hash = <<>>}).
+                hash = <<>>,
+		market_cap = 0,
+		channels_veo = 0,
+		live_channels = 0,
+		many_accounts = 1,
+		many_oracles = 0,
+		live_oracles = 0}).
 
 %cd is the channel data for one channel.
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.

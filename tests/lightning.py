@@ -37,9 +37,11 @@ def lightning_test():
     cid1 = 'vVhSBIjO7fU0V4v08WH2O2crgjtl9wTODuIk+jeB2NM='
     cid2 = '7zCJZIMatujoQjVXrPiTMMPkXOBiT/oOhY24q+mYAZo='
     request(1, 'new_channel_with_server', [[127,0,0,1], 3030, cid1, 10000, 9999, fee, 4, 1000], 0.05)
-    request(2, 'sync', [[127,0,0,1], 3030], 0.2)
-    request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 4, 1000], 0.05)
+    request(2, 'sync', [[127,0,0,1], 3030], 0.4)
+    request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 4, 1000], 0.4)
     request(1, 'sync', [[127,0,0,1], 3030], 0.2)
+    request(1, 'txs', [[127,0,0,1], 3030], 0.5)
+    request(1, 'txs', [[127,0,0,1], 3020], 2)
     request(1, 'channel_spend', [[127,0,0,1], 3030, 777], 0.05)
     request(1, 'lightning_spend', [[127,0,0,1], 3030, pub2, 4, 10], 0.05)
     request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.05)
@@ -55,13 +57,26 @@ def lightning_test():
     height3 = request(3, 'height', [], 0.05)
     assertEqual(height1, height2)
     assertEqual(height1, height3)
-    request(1, 'channel_close', [[127,0,0,1], 3030], 0.1)
-    request(2, 'channel_close', [[127,0,0,1], 3030], 0.1)
-    request(1, 'txs', [[127,0,0,1], 3030], 0.05)
-    request(1, 'txs', [[127,0,0,1], 3020], 0.3)
-    request(1, 'mine_block', [1, 10000000], 0.05)
+#<<<<<<< HEAD
+    request(1, 'mine_block', [1, 10000000], 0.1)
+    request(1, 'sync', [[127,0,0,1], 3020], 0.05)
     request(1, 'sync', [[127,0,0,1], 3030], 0.05)
-    request(1, 'sync', [[127,0,0,1], 3020], 0.3)
+    request(1, 'channel_close', [[127,0,0,1], 3030])
+    request(2, 'channel_close', [[127,0,0,1], 3030])
+    request(1, 'txs', [[127,0,0,1], 3020], 0.05)
+    request(1, 'txs', [[127,0,0,1], 3030], 0.3)
+    request(1, 'mine_block', [1, 10000000], 0.02)
+    request(2, 'sync', [[127,0,0,1], 3010], 0.05)
+    request(3, 'sync', [[127,0,0,1], 3010], 0.05)
+#=======
+    #request(1, 'channel_close', [[127,0,0,1], 3030], 0.1)
+    #request(2, 'channel_close', [[127,0,0,1], 3030], 0.1)
+    #request(1, 'txs', [[127,0,0,1], 3030], 0.05)
+    #request(1, 'txs', [[127,0,0,1], 3020], 0.3)
+    #request(1, 'mine_block', [1, 10000000], 0.05)
+    #request(1, 'sync', [[127,0,0,1], 3030], 0.05)
+    #request(1, 'sync', [[127,0,0,1], 3020], 0.3)
+#>>>>>>> master
 
 if __name__ == "__main__":
     lightning_test()
