@@ -216,6 +216,7 @@ config/prod/sys.config: config/sys.config.tmpl
     :\
     " $< > $@
     #{peers, []},\
+###   BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=
 
 config/dev1/sys.config: config/sys.config.tmpl
 	sed -e "\

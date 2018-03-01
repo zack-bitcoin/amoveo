@@ -408,7 +408,7 @@ cron() ->
 		  cron2()
 	  end).
 cron2() ->
-    io:fwrite("sync cron\n"),
+    %io:fwrite("sync cron\n"),
     SS = sync:status(),
     SC = sync_mode:check(),
     B = api:height() > block:height(),
