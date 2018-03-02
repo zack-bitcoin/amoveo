@@ -27,9 +27,9 @@ handle(Req, State) ->
     B = case A of
 	    {f} -> {ok, IP};
 	    {headers, H} ->
-		io;fwrite("got headers from "),
-		io;fwrite(packer:pack(IP)),
-		io;fwrite("\n"),
+		io:fwrite("got headers from "),
+		io:fwrite(packer:pack(IP)),
+		io:fwrite("\n"),
 		doit({headers, H});
 	    _ -> 
 		doit(A)
@@ -70,7 +70,6 @@ doit({header, H}) ->
 	_ -> {ok, 3}
     end;
 doit({headers, H}) ->
-    io:fwrite(packer:pack(
     headers:absorb(H),
     spawn(fun() ->
 		  HH = api:height(),
