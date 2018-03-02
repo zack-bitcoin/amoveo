@@ -3,7 +3,7 @@
          write/2, get/2, delete/2,%update tree stuff
          dict_update/4, dict_update/5, dict_get/2, dict_write/2, dict_write/3, dict_delete/2,%update dict stuff
 	 meta_get/1,
-	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
+	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0, deserialize/1, all_accounts/0]).%common tree stuff
 -define(id, accounts).
 -include("../../records.hrl").
 bets(Account) -> Account#acc.bets.
@@ -138,6 +138,18 @@ make_leaf(Key, V, CFG)  ->
              V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
+all_accounts() ->
+    %print out a list of all the accounts and their balances.
+    Accounts = trees:accounts((tx_pool:get())#tx_pool.block_trees),
+    Leafs = trie:get_all(Accounts, accounts),
+    A2 = lists:map(fun(A) -> deserialize(leaf:value(A)) end, Leafs),
+    A3 = lists:reverse(lists:keysort(2, A2)),
+    lists:map(fun(A) -> io:fwrite(integer_to_list(A#acc.balance)),
+			io:fwrite(" "),
+			io:fwrite(base64:encode(A#acc.pubkey)),
+			io:fwrite("\n") end, A3),
+    A2.
+
 test() ->
     {Pub, _Priv} = testnet_sign:new_key(),
     Acc = new(Pub, 0),

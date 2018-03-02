@@ -22,6 +22,10 @@
 
 ### Things we can do after launch of mainnet
 
+* the market_cap on each block isn't including the developer reward.
+
+* explain where the keys are stored in the docs.
+
 * "potential block died!" error. in block absorber we are rescanning txs before doing potential_block:save(). if we don't do potential_block:save(), then the merkle tree can be left in a corrupt state.
 
 * test_txs(15). channel slash isn't being automatically created.

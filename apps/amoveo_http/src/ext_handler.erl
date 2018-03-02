@@ -289,9 +289,9 @@ get_header_by_height(N, H) ->
     end.
 	    
 many_headers(Many, X) ->
-    io:fwrite("many headers "), 
-    io:fwrite(packer:pack([Many, X])), 
-    io:fwrite("\n"),
+    %io:fwrite("many headers "), 
+    %io:fwrite(packer:pack([Many, X])), 
+    %io:fwrite("\n"),
     Z = max(0, X + Many - 1),
     H = headers:top(),
     case (H#header.height) > (X) of

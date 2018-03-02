@@ -182,7 +182,7 @@ trade_peers(Peer) ->
 get_headers(Peer) -> 
     N = (headers:top())#header.height,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-    Start = max(0, N - (5 * FT)), 
+    Start = max(0, N - FT), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
     {ok, HB} = ?HeadersBatch,
@@ -379,7 +379,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
 	    io:fwrite("send them headers.\n"),
 	    H = headers:top(),
 	    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-	    GiveHeaders = list_headers([H], FT*5),
+	    GiveHeaders = list_headers([H], FT),
 	    spawn(fun() -> remote_peer({headers, GiveHeaders}, Peer) end),
 	    ok;
 	true -> ok
