@@ -50,6 +50,10 @@ Here is the fastest miner
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
 
 
+## Mining Pool
+If your full node is on a different machine from your miner, you will need a mining pool. [Mining pool software can be found here.](https://github.com/zack-bitcoin/amoveo-mining-pool)
+
+
 ## Developers
 
 If you want to build on top of Amoveo [read the develper's guide](docs/getting-started/quick_start_developer_guide.md)
