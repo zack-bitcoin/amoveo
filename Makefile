@@ -210,13 +210,12 @@ config/prod/sys.config: config/sys.config.tmpl
     {swagger_port_internal, 8042},\
     {swagger_port_external, 8043},\
     {peers, [{{209,250,250,137},8080}, {{51,15,69,135},8080}, {{51,15,212,91},8080}, {{159,89,106,253},8080}, {{52,234,133,196},8080}]},\
-    {master_pub, <<\"BERTnwBT8hQ/slMjlQDRTltG6z9Ga2JdXOIEOyEEdoHgQU1ieG6xpayKxYjE6VhW4hiJa/5AquOwtWqm0KnXjhE=\">>},\
+    {master_pub, <<\"BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=\">>},\
     {test_mode,false},\
     {request_frequency, 10},\
     :\
     " $< > $@
     #{peers, []},\
-###   BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=
 
 config/dev1/sys.config: config/sys.config.tmpl
 	sed -e "\
