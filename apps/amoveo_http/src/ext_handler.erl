@@ -26,7 +26,13 @@ handle(Req, State) ->
     A = packer:unpack(Data),
     B = case A of
 	    {f} -> {ok, IP};
-	    _ -> doit(A)
+	    {headers, H} ->
+		io;fwrite("got headers from "),
+		io;fwrite(packer:pack(IP)),
+		io;fwrite("\n"),
+		doit({headers, H});
+	    _ -> 
+		doit(A)
 	end,
     D = packer:pack(B),
     Headers = [{<<"content-type">>, <<"application/octet-stream">>},
@@ -64,6 +70,7 @@ doit({header, H}) ->
 	_ -> {ok, 3}
     end;
 doit({headers, H}) ->
+    io:fwrite(packer:pack(
     headers:absorb(H),
     spawn(fun() ->
 		  HH = api:height(),

@@ -18,12 +18,12 @@ handle_info(_, X) -> {noreply, X}.
 %handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
-    S = status(),
     BL = case application:get_env(amoveo_core, kind) of
 	     {ok, "production"} ->%don't blacklist peers in test mode.
 		 blacklist_peer:check(Peer);
 	     _ -> false
 	 end,
+    S = status(),
     if 
 	BL -> ok;
 	Peer == error -> ok;
