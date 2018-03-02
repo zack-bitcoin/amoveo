@@ -26,11 +26,11 @@ handle(Req, State) ->
     A = packer:unpack(Data),
     B = case A of
 	    {f} -> {ok, IP};
-	    {headers, H} ->
-		io:fwrite("got headers from "),
-		io:fwrite(packer:pack(IP)),
-		io:fwrite("\n"),
-		doit({headers, H});
+	    %{headers, H} ->
+		%io:fwrite("got headers from "),
+		%io:fwrite(packer:pack(IP)),
+		%io:fwrite("\n"),
+		%doit({headers, H});
 	    _ -> 
 		doit(A)
 	end,
