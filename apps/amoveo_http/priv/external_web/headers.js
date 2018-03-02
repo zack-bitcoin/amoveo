@@ -1,6 +1,6 @@
 
 function headers_main() {
-    const INITIAL_DIFFICULTY = 8332;
+    const INITIAL_DIFFICULTY = 8844;
     var top_header = 0;//stores the valid header with the most accumulated work.
     const retarget_frequency = 2000;
     var headers_db = {};//store valid headers by hash

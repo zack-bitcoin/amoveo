@@ -14,7 +14,7 @@ initial_difficulty() ->
     case application:get_env(amoveo_core, kind) of
         {ok, "local"} -> 0;%unit tests
         {ok, "integration"} -> 1000;%2500;%integration tests.
-        {ok, "production"} -> 8332
+        {ok, "production"} -> 8844
     end.
 difficulty_bits() -> 24.
 hash_size() -> 32.

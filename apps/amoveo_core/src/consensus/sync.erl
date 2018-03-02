@@ -335,10 +335,15 @@ push_new_block_helper(N, M, [P|T], Hash, Headers) ->
 	end,
     push_new_block_helper(N+Top, M+Bottom, T, Hash, Headers).
 trade_txs(Peer) ->
-    Txs = remote_peer({txs}, Peer),
-    tx_pool_feeder:absorb_async(Txs),
-    Mine = (tx_pool:get())#tx_pool.txs,
-    remote_peer({txs, lists:reverse(Mine)}, Peer).
+    spawn(fun() ->
+		  Txs = remote_peer({txs}, Peer),
+		  tx_pool_feeder:absorb_async(Txs)
+	  end),
+    spawn(fun() ->
+		  Mine = (tx_pool:get())#tx_pool.txs,
+		  remote_peer({txs, lists:reverse(Mine)}, Peer)
+	  end),
+    0.
     
 sync_peer(Peer) ->
     io:fwrite("trade peers\n"),
