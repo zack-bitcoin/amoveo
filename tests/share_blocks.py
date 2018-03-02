@@ -37,7 +37,7 @@ def test2():
     request(1, "spend", ["BB84LgUHDPkbXkC9p+oN+hiHN1vpsa5FjGBJTrCTxaPX0Jh/y6IXTl892GetuRAnf9VNyXc9F1hZvmr2+cJjtrA=", 100000000], 0.05)#light node 2
     request(1, "spend", ["BLgYECLeI0Iq7SZqPqhoZocy3zF3ht+fPdYkjJh3OnPU1tr7+BpDbtXGNyzDF8w4gUzV7UvM4KelK6IIvQNZZ6w=", 100000000], 0.05)
     request(1, "mine_block", [1, 100000], 0.2)
-    request(2, "sync", [[127,0,0,1], 3010], 1)#pull
+    request(2, "sync", [[127,0,0,1], 3010], 3)#pull
     height1 = request(1, 'height', [], 0.05)
     height2 = request(2, 'height', [], 0.05)
     print("test2 1")

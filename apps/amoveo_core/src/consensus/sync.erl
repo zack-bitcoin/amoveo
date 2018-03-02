@@ -182,7 +182,7 @@ trade_peers(Peer) ->
 get_headers(Peer) -> 
     N = (headers:top())#header.height,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-    Start = max(0, N - FT), 
+    Start = max(0, N - (5 * FT)), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
     {ok, HB} = ?HeadersBatch,
@@ -326,6 +326,7 @@ push_new_block_helper(N, M, [P|T], Hash, Headers) ->
 	    3 -> 
 		{1, 1};
 	    error -> {0, 0};
+	    bad_peer -> {0, 0};
 	    _ -> 
 		spawn(fun() ->
 			      remote_peer({headers, Headers}, P)
@@ -341,58 +342,65 @@ trade_txs(Peer) ->
     
 sync_peer(Peer) ->
     io:fwrite("trade peers\n"),
-    trade_peers(Peer),
+    spawn(fun() -> trade_peers(Peer) end),
     MyTop = headers:top(),
     io:fwrite("get their top header\n"),
-    TheirTop = remote_peer({header}, Peer), 
+    spawn(fun() -> get_headers(Peer) end),
+    {ok, HB} = ?HeadersBatch,
+    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     MyBlockHeight = block:height(),
-    TheirTopHeight = TheirTop#header.height,
+    TheirHeaders = remote_peer({headers, HB, max(0, MyBlockHeight - (FT*5))}, Peer),
+    TheirTop = remote_peer({header}, Peer), 
     TheirBlockHeight = remote_peer({height}, Peer),
     if
-        not(MyTop == TheirTop) ->
-	    io:fwrite("get headers\n"),
-            CommonHash = get_headers(Peer),
-            {ok, TBH} = headers:read(block:hash(block:top())),
-            MD = TBH#header.accumulative_difficulty,
-            TD = TheirTop#header.accumulative_difficulty,
-            if
-		CommonHash == error -> error;
-		CommonHash == ok -> error;
-		true ->
-		    if
-			TD < MD -> 
-                    %CommonBlocksHash = block:hash(block:get_by_height(TheirBlockHeight)),%This is not calculatin our common block hash correctly.
-			    spawn(fun() ->
-						%give_blocks(Peer, CommonBlocksHash, TheirBlockHeight)
-					  give_blocks(Peer, CommonHash, TheirBlockHeight)
-				  end);
-			true ->
-			    CommonBlockHeight = common_block_height(CommonHash),
-			    {ok, ForkTolerance} = application:get_env(amoveo_core, fork_tolerance),
-			    CBH = max(CommonBlockHeight, (MyBlockHeight - ForkTolerance)),
-			    get_blocks(Peer, CBH, ?tries, first)
-		    end
-            end;
-        %MyBlockHeight < TheirTopHeight ->
-	MyBlockHeight < TheirBlockHeight ->
-	    io:fwrite("my block height is less than theirs\n"),
-            {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-            get_blocks(Peer, max(0, MyBlockHeight - FT), 80, first);
-	MyBlockHeight > TheirBlockHeight ->
-            {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-            CommonHash2 = get_headers(Peer),
-	    %CommonBlockHash2 = block:hash(block:get_by_height(TheirBlockHeight - FT)),
+	TheirTop == error -> error;
+	TheirTop == bad_peer -> error;
+	TheirBlockHeight == error -> error;
+	TheirBlockHeight == bad_peer -> error;
+	TheirHeaders == error -> error;
+	TheirHeaders == bad_peer -> error;
+	true ->
+	    TopCommonHeader = top_common_header(TheirHeaders),
+	    if
+		TopCommonHeader == error -> error;
+		true -> sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
+	    end
+    end.
+sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
+    TTHH = TheirTopHeader#header.height,
+    MTHH = (headers:top())#header.height,
+    if
+	TTHH < MTHH ->
+	    io:fwrite("send them headers.\n"),
+	    H = headers:top(),
+	    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+	    GiveHeaders = list_headers([H], FT*5),
+	    spawn(fun() -> remote_peer({headers, GiveHeaders}, Peer) end),
+	    ok;
+	true -> ok
+    end,
+    if
+        TheirBlockHeight > MyBlockHeight ->
+	    io:fwrite("get blocks from them.\n"),
+	    CommonHeight = TopCommonHeader#header.height,
+	    get_blocks(Peer, CommonHeight, ?tries, first);
+	true ->
 	    spawn(fun() ->
-			  give_blocks(Peer, CommonHash2, TheirBlockHeight)
-		  end);
-	    
-        true -> 
+			  trade_txs(Peer)
+		  end),
 	    io:fwrite("already synced with this peer \n"),
 	    ok
-    end,
-    spawn(fun() ->
-		  trade_txs(Peer)
-	  end).
+    end.
+top_common_header(L) when is_list(L) ->
+    tch(lists:reverse(L));
+top_common_header(_) -> error.
+tch([]) -> error;
+tch([H|T]) ->
+    case block:get_by_hash(block:hash(H)) of
+	empty -> tch(T);
+	_ -> H
+    end.
+	    
 cron() ->
     spawn(fun() ->
 		  timer:sleep(2000),

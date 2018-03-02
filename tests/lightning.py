@@ -58,9 +58,11 @@ def lightning_test():
     assertEqual(height1, height2)
     assertEqual(height1, height3)
 #<<<<<<< HEAD
-    request(1, 'mine_block', [1, 10000000], 0.1)
+    request(1, 'mine_block', [1, 10000000], 1)
     request(1, 'sync', [[127,0,0,1], 3020], 0.05)
-    request(1, 'sync', [[127,0,0,1], 3030], 0.05)
+    request(1, 'sync', [[127,0,0,1], 3030], 1)
+    request(2, 'sync', [[127,0,0,1], 3010], 0.05)
+    request(3, 'sync', [[127,0,0,1], 3010], 1)
     request(1, 'channel_close', [[127,0,0,1], 3030])
     request(2, 'channel_close', [[127,0,0,1], 3030])
     request(1, 'txs', [[127,0,0,1], 3020], 0.05)
