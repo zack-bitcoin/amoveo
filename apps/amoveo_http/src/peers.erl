@@ -91,9 +91,14 @@ add({IP, Port}) ->
     if
 	B -> ok;
 	true ->
+	    V = version:doit(block:height()),
+	    %case talker:talk({test, -1}, {NIP, Port}) of
 	    case talker:talk({height}, {NIP, Port}) of
 		bad_peer -> blacklist_peer:add({NIP, Port});
+		error -> blacklist_peer:add({NIP, Port});
+						%{ok, V} ->
 		_ -> gen_server:cast(?MODULE, {add, {NIP, Port}})
+		%_ -> blacklist_peer:add({NIP, Port})
 	    end
     end.
 

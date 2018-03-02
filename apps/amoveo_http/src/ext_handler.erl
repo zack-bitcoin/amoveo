@@ -92,6 +92,8 @@ doit({txs, Txs}) ->
 doit({top}) -> 
     Top = block:top(),
     {ok, Top, Top#block.height};
+doit({test, -1}) -> 
+    {ok, version:doit(block:height())};
 doit({test}) -> 
     {test};
 doit({test, N}) ->
