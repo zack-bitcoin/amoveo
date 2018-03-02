@@ -46,6 +46,7 @@ def test2():
     assertEqual(height1, height2)
     request(2, "mine_block", [1, 100000], 0.2)
     request(2, "sync", [[127,0,0,1], 3010], 1)#push
+    request(1, "sync", [[127,0,0,1], 3020], 10)#pull
     height1 = request(1, 'height', [], 0.05)
     height2 = request(2, 'height', [], 0.05)
     print("test2 2")
