@@ -40,4 +40,4 @@ For convenience, there is a way to wrap this all into one command. To kill any r
 ```
 
 
-[Once the node is turned on, and you are attached to it, then you will want to sync the blocks](../api/commands_basics.md)
+[Once the node is turned on, and you are attached to it, then you can issue commands.](../api/commands.md)
