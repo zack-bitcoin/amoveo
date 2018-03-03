@@ -143,10 +143,6 @@ stop: $$(KIND)
 attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
-blocks: $$(KIND)
-	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
-	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
-
 clean: $$(KIND)
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/data/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/data

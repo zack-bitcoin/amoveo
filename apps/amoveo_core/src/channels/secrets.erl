@@ -12,14 +12,14 @@ init(ok) ->
     process_flag(trap_exit, true),
     K = case db:read(?LOC) of
             "" -> dict:new();
-            X -> binary_to_term(X)
+            X -> X
         end,
     {ok, K}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 handle_info(_Info, State) ->
     {noreply, State}.
 terminate(_Reason, State) ->
-    db:save(?LOC, term_to_binary(State)),
+    db:save(?LOC, State),
     io:fwrite("secrets died"),
     ok.
 code_change(_, State, _) -> {ok, State}.
@@ -33,11 +33,17 @@ handle_call({read, Code}, _, X) ->
 	end,
     {reply, Z, X}.
 handle_cast({add, Code, SS}, X) ->
-    {noreply, dict:store(Code, {SS, none}, X)};
+    State = dict:store(Code, {SS, none}, X),
+    db:save(?LOC, State),
+    {noreply, State};
 handle_cast({add, Code, SS, Amount}, X) ->
-    {noreply, dict:store(Code, {SS, Amount}, X)};
+    State = dict:store(Code, {SS, Amount}, X),
+    db:save(?LOC, State),
+    {noreply, State};
 handle_cast({delete, Code}, X) ->
-    {noreply, dict:erase(Code, X)}.
+    State = dict:erase(Code, X),
+    db:save(?LOC, State),
+    {noreply, State}.
 add(Code, SS) -> gen_server:cast(?MODULE, {add, Code, SS}).
 add(Code, SS, Amount) -> gen_server:cast(?MODULE, {add, Code, SS, Amount}).
 read(Code) -> gen_server:call(?MODULE, {read, Code}).

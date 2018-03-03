@@ -22,18 +22,25 @@ address_entropy() -> hash_size()*8.
 master_pub() ->
     {ok, X} = application:get_env(amoveo_core, master_pub),
     base64:decode(X).
-root() -> "data/".
-block_hashes() -> root() ++ "block_hashes.db".
+
 keys() -> "keys/keys.db".
+
+root() -> "data/".
+headers_file() -> root() ++ "headers.db".
+block_hashes() -> root() ++ "block_hashes.db".
 top() -> root() ++ "top.db".
-channel_manager() -> root() ++ "channel_manager.db".
-secrets() -> root() ++ "secrets.db".
-order_book() -> root() ++ "order_book.db".
+recent_blocks() -> root() ++ "recent_blocks.db".
+
 scripts_root() -> "lib/amoveo_core-0.1.0/priv/".
 oracle_bet() -> scripts_root() ++ "oracle_bet.fs".
-headers_file() -> root() ++ "headers.db".
-oracle_questions_file() -> root() ++ "oracle_questions.db".
-recent_blocks() -> root() ++ "recent_blocks.db".
+
+channels_root() -> "channels/".
+oracle_questions_file() -> channels_root() ++ "oracle_questions.db".
+secrets() -> channels_root() ++ "secrets.db".
+order_book() -> channels_root() ++ "order_book.db".
+channel_manager() -> channels_root() ++ "channel_manager.db".
+arbitrage() -> channels_root() ++ "arbitrage.db".
+
 word_size() -> 100000.
 balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
 half_bal() -> round(math:pow(2, balance_bits()-1)).

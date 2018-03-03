@@ -35,7 +35,7 @@ Your peers will automatically send new headers to you. Once you get the headers,
 
 To sync transactions with a peer that has ip 1.2.3.4 and port 8080:
 ```
-api:txs({1,2,3,4}, 8080).
+api:txs({{1,2,3,4}, 8080}).
 ```
 
 If you want it to stop syncing, you can use:

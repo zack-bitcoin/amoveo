@@ -127,6 +127,7 @@ handle_call({match, OID}, _From, X) ->
         end,
             
     %Accounts are the account ids of the channels that needs to be updated.
+    db:save(?LOC, X2),
     {reply, Out, X2};
 handle_call({data, OID}, _From, Y) ->
     X = dict:find(OID, Y),

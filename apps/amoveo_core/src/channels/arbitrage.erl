@@ -2,10 +2,20 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 	write/2, check/1, remove/2, remove_row/1]).
-init(ok) -> {ok, dict:new()}.
+-define(LOC, constants:arbitrage()).
+init(ok) -> 
+    process_flag(trap_exit, true),
+    X = db:read(?LOC),
+    Ka = if
+	     X == "" -> dict:new();
+	     true -> X
+	 end,
+    {ok, Ka}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, K) -> 
+    db:save(?LOC, K),
+    io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({write, SecretHash, L}, X) -> 
     Y = case dict:find(SecretHash, X) of
@@ -14,6 +24,7 @@ handle_cast({write, SecretHash, L}, X) ->
 		Z = L++Val,%plus(Val, L),
 		dict:store(SecretHash, Z, X)
 	end,
+    db:save(?LOC, Y),
     {noreply, Y};
 handle_cast({remove, SecretHash, L}, X) -> 
     Y = case dict:find(SecretHash, X) of
@@ -22,6 +33,7 @@ handle_cast({remove, SecretHash, L}, X) ->
 		Z = minus(Val, L),
 		dict:store(SecretHash, Z, X)
 	end,
+    db:save(?LOC, Y),
     {noreply, Y};
 handle_cast({remove_row, SecretHash}, X) -> 
     {noreply, dict:erase(SecretHash, X)};
