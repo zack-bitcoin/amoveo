@@ -11,7 +11,7 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       request_frequency, sync, secrets,
 	       arbitrage, order_book, oracle_questions, 
 	       tree_data, potential_block, my_ip, push_block,
-	       found_block_timer]).
+	       found_block_timer, vanity]).
 child_killer([]) -> [];
 child_killer([H|T]) -> 
     supervisor:terminate_child(testnet_sup, H),
