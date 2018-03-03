@@ -8,6 +8,16 @@ You can manually download headers from a peer:
 sync:get_headers({{1,2,3,4}, 8080}).
 ```
 
+You can see a list of all your peers like this:
+```
+peers:all().
+```
+You can name a peer, and use it to get headers:
+```
+P1 = lists:nth(3, peers:all()).
+sync:get_headers(P1).
+```
+
 You can only download a block if you already have the header for that block.
 
 Once you have more than 0 headers, you can start downloading blocks:

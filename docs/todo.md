@@ -22,6 +22,9 @@
 
 ### Things we can do after launch of mainnet
 
+
+* we are trying to download blocks WAY to many times. it is because fork tolerance is bigger now. We need to only download after common-hash, and stop at their height.
+
 * the market_cap on each block isn't including the developer reward.
 
 * explain where the keys are stored in the docs.
