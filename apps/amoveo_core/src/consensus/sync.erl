@@ -221,12 +221,14 @@ common_block_height(CommonHash) ->
             common_block_height(PrevCommonHash);
         B -> B#block.height
     end.
-get_blocks(Peer, N, 0, _) ->
+get_blocks(Peer, N, 0, _, _) ->
     io:fwrite("could not get block "),
     io:fwrite(integer_to_list(N)),
     io:fwrite(" from peer "),
     io:fwrite(packer:pack(Peer));
-get_blocks(Peer, N, Tries, Time) ->
+get_blocks(Peer, N, Tries, Time, TheirBlockHeight) when N > TheirBlockHeight -> 
+    io:fwrite("done syncing\n");
+get_blocks(Peer, N, Tries, Time, TheirBlockHeight) ->
     %io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
     %io:fwrite("get blocks\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
@@ -242,14 +244,19 @@ get_blocks(Peer, N, Tries, Time) ->
 	    %trapped here because blocks aren't syncing.
 	    %This is bad, we shouldn't let our partner trap us this way.
 	    %timer:sleep(500),
-	    get_blocks(Peer, N, Tries-1, second);
+	    get_blocks(Peer, N, Tries-1, second, TheirBlockHeight);
 	true ->
 	    io:fwrite("another get_blocks thread\n"),
+	    Many = min(BB, TheirBlockHeight - N + 1),
 	    spawn(fun() ->
-			  get_blocks2(BB, N, Peer, 5)
+			  get_blocks2(Many, N, Peer, 5)
 		  end),
 	    timer:sleep(100),
-	    get_blocks(Peer, N+BB, ?tries, second)
+	    if
+		Many == BB ->
+		    get_blocks(Peer, N+BB, ?tries, second, TheirBlockHeight);
+		true -> ok
+	    end
     end.
 get_blocks2(_BB, _N, _Peer, 0) ->
     io:fwrite("get_blocks2 failed\n"),
@@ -354,7 +361,7 @@ sync_peer(Peer) ->
     {ok, HB} = ?HeadersBatch,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     MyBlockHeight = block:height(),
-    TheirHeaders = remote_peer({headers, HB, max(0, MyBlockHeight - (FT*5))}, Peer),
+    TheirHeaders = remote_peer({headers, HB, max(0, MyBlockHeight - FT)}, Peer),
     TheirTop = remote_peer({header}, Peer), 
     TheirBlockHeight = remote_peer({height}, Peer),
     if
@@ -388,7 +395,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
         TheirBlockHeight > MyBlockHeight ->
 	    io:fwrite("get blocks from them.\n"),
 	    CommonHeight = TopCommonHeader#header.height,
-	    get_blocks(Peer, CommonHeight, ?tries, first);
+	    get_blocks(Peer, CommonHeight, ?tries, first, TheirBlockHeight);
 	true ->
 	    spawn(fun() ->
 			  trade_txs(Peer)
