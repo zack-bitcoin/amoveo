@@ -25,8 +25,6 @@
 
 * miners need instructions on making pubkeys.
 
-* explain where the keys are stored in the docs.
-
 * "potential block died!" error. in block absorber we are rescanning txs before doing potential_block:save(). if we don't do potential_block:save(), then the merkle tree can be left in a corrupt state.
 
 * test_txs(15). channel slash isn't being automatically created.

@@ -48,6 +48,7 @@ Here is the fastest miner
 [Linux and Mac OSX](https://github.com/zack-bitcoin/amoveo-c-miner)
 [Windows](https://github.com/Mandelhoff/AmoveoMinerCpu/releases)
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
+Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 
 
 ## Mining Pool

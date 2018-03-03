@@ -1,4 +1,7 @@
 The node keeps an encrypted copy of your private key.
+You find your keys in this file:
+`_build/prod/rel/amoveo_core/keys/keys.db`
+
 The decrypted copy is only stored in RAM.
 
 You can generate a new private key this way: (warning! this deletes your old private key!!!)
@@ -52,9 +55,4 @@ You can set the password for encryption like this:
 keys:change_password("old_password", "new_password").
 ```
 The default password on a new node is "", the empty string.
-
-
-You find your keys in this file:
-
-_build/prod/rel/amoveo_core/keys/keys.db 
 
