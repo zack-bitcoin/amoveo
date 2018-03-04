@@ -39,7 +39,7 @@ all() ->
 			 error -> <<"unknown">>;
 			 {ok, T} -> T
 		     end,
-	      {Text, X#oracle.governance, X}
+	      {Text, X}
       end, All).
     
 		      

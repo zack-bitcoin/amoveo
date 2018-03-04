@@ -14,6 +14,19 @@ This oracle updates the variables that define the blockchain protocol. It must r
 api:new_governance_oracle(Start, GovName, GovAmount).
 ```
 
+####See existing oracles
+```
+oracles:all().
+```
+returns a list like [{Question1, Oracle1}, {Question2, Oracle2}...].
+
+#### look up an oracle by id
+```
+trees:dict_tree_get(oracles, ID).
+```
+
+The order of things stored in the oracle datastructure is defined in [the records.hrl file](https://github.com/zack-bitcoin/amoveo/blob/master/apps/amoveo_core/src/records.hrl#L62)
+
 ####Bet in an oracle
 type is one of the atoms in this list: [true, false, bad]
 You can either bet that the answer to the question is true or false, or you can bet that it is a bad question.
