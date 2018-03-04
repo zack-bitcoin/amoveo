@@ -30,11 +30,11 @@ handle_call(IP, _From, X) ->
 	    X2 = dict:store(IP, V2, X),
 	    R = if
 		Many > Limit -> 
-			io:fwrite("requesting too often: "),
-			io:fwrite(packer:pack(IP)),
-			io:fwrite(" "),
-			io:fwrite(integer_to_list(round(Many))),
-			io:fwrite("\n"),
+			%io:fwrite("requesting too often: "),
+			%io:fwrite(packer:pack(IP)),
+			%io:fwrite(" "),
+			%io:fwrite(integer_to_list(round(Many))),
+			%io:fwrite("\n"),
 			bad;
 		true -> ok
 	    end,
