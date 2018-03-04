@@ -6,6 +6,7 @@
 	 get_headers/1, trade_txs/1, force_push_blocks/1,
 	 trade_peers/1, cron/0, shuffle/1]).
 -include("../records.hrl").
+-define(HeadersBatch, application:get_env(amoveo_core, headers_batch)).
 -define(tries, 200).%20 tries per second. 
 -define(Many, 1).%how many to sync with per calling `sync:start()`
 %so if this is 400, that means we have 20 seconds to download download_block_batch * download_block_many blocks
@@ -63,25 +64,6 @@ start(P) ->
     spawn(fun() ->
 		  doit2(P)
 	  end).
-randoms(N0, Input) ->
-    S = length(Input),
-    N = min(N0, S),
-    IDS = randoms(N, S, []),
-    T = list_to_tuple(Input),
-    randoms2(IDS, T).
-randoms2([], _) -> [];
-randoms2([H|T], Tup) ->
-    [element(H, Tup)|randoms2(T, Tup)].
-randoms(0, InputSize, Output) -> Output;
-randoms(N, InputSize, Output) ->
-    %true = N < InputSize,
-    %M = random:uniform(InputSize),
-    M = rand:uniform(InputSize),
-    B = lists:member(M, Output),
-    if 
-	B -> randoms(N, InputSize, Output);
-	true -> randoms(N-1, InputSize, [M|Output])
-    end.
 doit3([]) -> ok;
 doit3([H|T]) ->
     gen_server:cast(?MODULE, {main, H}),
@@ -178,7 +160,6 @@ trade_peers(Peer) ->
     MyPeers = amoveo_utils:tuples2lists(peers:all()),
     remote_peer({peers, MyPeers}, Peer),
     peers:add(TheirsPeers).
--define(HeadersBatch, application:get_env(amoveo_core, headers_batch)).
 get_headers(Peer) -> 
     N = (headers:top())#header.height,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
@@ -240,10 +221,6 @@ get_blocks(Peer, N, Tries, Time, TheirBlockHeight) ->
     if
 	Height == AHeight -> ok;%done syncing
 	((Time == second) and (N > Height + (BM * BB))) ->%This uses up 10 * BB * block_size amount of ram.
-	    
-	    %trapped here because blocks aren't syncing.
-	    %This is bad, we shouldn't let our partner trap us this way.
-	    %timer:sleep(500),
 	    get_blocks(Peer, N, Tries-1, second, TheirBlockHeight);
 	true ->
 	    io:fwrite("another get_blocks thread\n"),
@@ -264,7 +241,6 @@ get_blocks2(_BB, _N, _Peer, 0) ->
 get_blocks2(BB, N, Peer, Tries) ->
     %io:fwrite("get blocks 2\n"),
     go = sync_kill:status(),
-    %timer:sleep(500),
     Blocks = talker:talk({blocks, BB, N}, Peer),
     go = sync_kill:status(),
     Sleep = 600,
@@ -279,13 +255,11 @@ get_blocks2(BB, N, Peer, Tries) ->
 	    io:fwrite("get blocks 2 failed connect bad peer\n"),
 	    io:fwrite(packer:pack([BB, N, Peer, Tries])),
 	    io:fwrite("\n"),
-	    1=2,
-	    timer:sleep(Sleep),
-	    get_blocks2(BB, N, Peer, Tries - 1);
-	{ok, Bs} -> %block_absorber:enqueue(Bs);
-	    block_organizer:add(Bs);
-	_ -> %block_absorber:enqueue(Blocks)
-	    block_organizer:add(Blocks)
+	    1=2;
+	    %timer:sleep(Sleep),
+	    %get_blocks2(BB, N, Peer, Tries - 1);
+	{ok, Bs} -> block_organizer:add(Bs);
+	_ -> block_organizer:add(Blocks)
     end.
 remove_self(L) ->%assumes that you only appear once or zero times in the list.
     MyIP = my_ip:get(),
