@@ -56,8 +56,10 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
 data_new() -> tx_pool:get().
 get() -> gen_server:call(?MODULE, data_new).
-dump() -> gen_server:call(?MODULE, dump).
-dump(NewTop) -> gen_server:call(?MODULE, {dump, NewTop}).
+dump() -> 
+    gen_server:call(?MODULE, dump).
+dump(NewTop) -> 
+    gen_server:call(?MODULE, {dump, NewTop}).
 absorb_tx(NewDict, Tx) ->
     gen_server:call(?MODULE, {absorb_tx, NewDict, Tx}).
 %absorb_tx(Trees, NewDict, Tx) ->

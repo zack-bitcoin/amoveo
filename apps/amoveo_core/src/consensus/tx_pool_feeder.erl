@@ -1,13 +1,16 @@
 -module(tx_pool_feeder).
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
--export([absorb/1, absorb_async/1, absorb_unsafe/1, is_in/2]).
+-export([absorb/1, absorb_async/1, absorb_unsafe/1, is_in/2,
+	 empty_mailbox/0]).
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) -> {ok, []}.
 handle_call({absorb, SignedTx}, _From, State) ->
     absorb_internal(SignedTx),
     {reply, ok, State};
+handle_call(empty_mailbox, _, S) -> 
+    {reply, ok, S};
 handle_call(_, _, S) -> {reply, S, S}.
 handle_cast({absorb, SignedTx}, S) -> 
     absorb_internal(SignedTx),
@@ -137,6 +140,7 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
     tx_pool:absorb_tx(NewDict, SignedTx).%1500
+empty_mailbox() -> gen_server:call(?MODULE, empty_mailbox).
 absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->

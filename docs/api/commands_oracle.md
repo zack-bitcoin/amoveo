@@ -33,6 +33,10 @@ You can either bet that the answer to the question is true or false, or you can 
 ```
 api:oracle_bet(OracleID, Type, Amount).
 ```
+Type is either 1, 2, or 3.
+1 = true
+2 = false
+3 = bad question
 
 ####Close an oracle
 If the oracle has had the same output state for a long enough period of time, then this is how anyone can close the channel and end the betting period.

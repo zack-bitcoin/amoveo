@@ -1,7 +1,7 @@
 -module(potential_block).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
--export([new/0, read/0, save/0, dump/0, check/0]).
+-export([new/0, read/0, save/0, dump/0, check/0, save/2]).
 %-define(potential_block, "data/potential_blocks.db").
 -define(refresh_period, 40).%in seconds
 -include("../../records.hrl").
@@ -23,6 +23,11 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call(dump, _, _) -> 
     {reply, ok, #pb{block = "", time = now()}};
+handle_call({save, Txs, Height}, _, _) -> 
+    PB = block:get_by_height(Height),
+    Top = block:block_to_header(PB),
+    Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
+    {reply, ok, #pb{block = Block, time = now()}};
 handle_call(save, _, _) -> 
     Block = new_internal(""),
     {reply, ok, #pb{block = Block, time = now()}};
@@ -59,6 +64,7 @@ delta({A, B, _}, {D, E, _}) ->%start, end
     F - C.
 new() -> gen_server:call(?MODULE, new).
 save() -> gen_server:call(?MODULE, save).
+save(Txs, Height) -> gen_server:call(?MODULE, {save, Txs, Height}).
 dump() -> gen_server:call(?MODULE, dump).
 read() -> gen_server:call(?MODULE, read).
 check() -> gen_server:call(?MODULE, check).
