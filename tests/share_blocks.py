@@ -20,7 +20,7 @@ def test1():
     request(1, "add_peer", [[127,0,0,1], 3020], 0.1)
     request(1, "mine_block", [1, 100000], 0.2)
     request(1, "sync", [[127,0,0,1], 3020], 0.1)
-    request(2, "mine_block", [2, 100000], 30)
+    request(2, "mine_block", [2, 100000], 10)
     #request(1, "sync", [[127,0,0,1], 3020], 0.2) # removed for propagation test.
     height1 = request(1, 'height', [], 0.05)
     height2 = request(2, 'height', [], 0.05)
@@ -39,14 +39,16 @@ def test2():
     request(1, "spend", ["BLgYECLeI0Iq7SZqPqhoZocy3zF3ht+fPdYkjJh3OnPU1tr7+BpDbtXGNyzDF8w4gUzV7UvM4KelK6IIvQNZZ6w=", 100000000], 0.05)
     request(1, "mine_block", [1, 100000], 0.2)
     request(1, "sync", [[127,0,0,1], 3020], 1)
-    request(2, "sync", [[127,0,0,1], 3010], 10)#pull
+    request(2, "sync", [[127,0,0,1], 3010], 1)#pull
+    request(2, "sync", [[127,0,0,1], 3010], 1)#pull
     height1 = request(1, 'height', [], 0.05)
     height2 = request(2, 'height', [], 0.05)
     print("test2 1")
     assertEqual(height1, height2)
     request(2, "mine_block", [1, 100000], 0.2)
     request(2, "sync", [[127,0,0,1], 3010], 1)#push
-    request(1, "sync", [[127,0,0,1], 3020], 10)#pull
+    request(1, "sync", [[127,0,0,1], 3020], 1)#pull
+    request(1, "sync", [[127,0,0,1], 3020], 1)#pull
     height1 = request(1, 'height', [], 0.05)
     height2 = request(2, 'height', [], 0.05)
     print("test2 2")
