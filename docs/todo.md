@@ -20,8 +20,10 @@
 
 
 
-### Things we can do after launch of mainnet
+### Things to do
 
+
+* sometimes we are pruning data that we should not be pruning. I only happened on one node, not all of them. restarting from 0 fixed it.
 
 * miners need instructions on making pubkeys.
 

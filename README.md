@@ -44,9 +44,15 @@ Go to the block explorer to see all the markets that are being run on that node.
 
 
 ## Mining
-Here is the fastest miner
-[Linux and Mac OSX](https://github.com/zack-bitcoin/amoveo-c-miner)
-[Windows](https://github.com/Mandelhoff/AmoveoMinerCpu/releases)
+[Here is the fastest miner](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
+You should be able to connect to Zack's mining pool with a bat file like:
+```
+AmoveoMinerGpuCuda.exe
+BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=
+http://159.89.106.253:8085/
+```
+[Linux and Mac OSX CPU miner](https://github.com/zack-bitcoin/amoveo-c-miner)
+[Windows CPU miner](https://github.com/Mandelhoff/AmoveoMinerCpu/releases)
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
 Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 
