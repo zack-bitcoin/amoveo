@@ -4,7 +4,7 @@
          initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, 
          top/0, genesis_maker/0, height/0,
-	 time_now/0, all_mined_by/1, time_mining/1,
+	 time_now/0, all_mined_by/1, time_mining/1, mine_hash_rate_period/1,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -538,6 +538,34 @@ time_mining(S, Heights, Outs) ->
     T2 = T - S,
     time_mining(T, tl(Heights), [(T-S)|Outs]).
 
+
+mine_block_period(Block, PrevBlock, seconds) ->
+    mine_block_period(Block, PrevBlock)/1000 .
+mine_block_period(Block, PrevBlock) ->
+    (Block#block.time - PrevBlock#block.time) .
+
+do_mine_hash_rate_period(empty, _PrevBlock, _Diff) ->
+    {empty, 0, 0} ;
+do_mine_hash_rate_period(Block, PrevBlock, Diff) ->
+    BlockPeriod = mine_block_period(Block, PrevBlock, seconds),
+    {ok, Diff/BlockPeriod, BlockPeriod} .
+
+mine_hash_rate_period(0, _, {HashRate, BlockPeriod}) ->
+    {ok, HashRate, BlockPeriod};
+mine_hash_rate_period(_, 0, {HashRate, BlockPeriod}) ->
+    {ok, HashRate, BlockPeriod};
+mine_hash_rate_period(Height, Depth, {HashRate, BlockPeriod}) ->
+    Block = get_by_height(Height),
+    Diff = Block#block.difficulty,
+    PrevBlock = get_by_height(Depth-1),
+    case do_mine_hash_rate_period(Block, PrevBlock, Diff) of
+        {ok, HR, BP} -> mine_hash_rate_period(Height-1, Depth-1, {(HR+HashRate), (BP+BlockPeriod)});
+        _ -> {ok, HashRate, BlockPeriod}
+    end .
+
+mine_hash_rate_period(Depth)->
+    {ok, HRT, BPT} = mine_hash_rate_period(height(),Depth, {0,0} ),
+    {{hashrate, HRT/Depth}, {block_period, BPT/Depth}}.
 	    
 test() ->
     test(1).
