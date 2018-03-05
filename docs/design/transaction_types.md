@@ -25,7 +25,7 @@ These are the 15 types of transaction that can be in blocks.
 1 bonus transactions:
 * existence
 
-# crete_account
+# create_account
 
 This creates a new account on the blockchain and gives it some tokens.
 
