@@ -23,6 +23,8 @@
 ### Things to do
 
 
+* single page of html for making amoveo keys off-line in cold storage. 
+
 we have been estimating the hashrate wrong.
 in the `pow.erl` page, none of the functions can be used to transform a hash output into an estimate of how many hash-functions had to be executed to produce it.
 So I guess we need a function that transforms a difficulty value written on the block into an estimate of how many hashes we would have to do to calculate that a solution.
