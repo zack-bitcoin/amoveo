@@ -37,3 +37,14 @@ api:delete_account(Pub).
 ```
 api:account(Pub).
 ```
+
+#### check mempool to see if tx was created correctly
+```
+tx_pool:get().
+```
+
+#### share your txs with peer P
+```
+P = lists:nth(2, peers:all()).
+api:txs(P).
+```
