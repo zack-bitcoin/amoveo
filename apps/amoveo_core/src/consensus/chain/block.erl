@@ -5,6 +5,7 @@
          mine/1, mine/2, mine2/2, check/1, 
          top/0, genesis_maker/0, height/0,
 	 time_now/0, all_mined_by/1, time_mining/1,
+	 period_estimate/0, hashrate_estimate/0,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -538,6 +539,32 @@ time_mining(S, Heights, Outs) ->
     T2 = T - S,
     time_mining(T, tl(Heights), [(T-S)|Outs]).
 
+period_estimate() ->
+    %estimates seconds per block
+    T = top(),
+    H = T#block.height,
+    true = H > 21,
+    X = get_by_height(H-20),
+    Time1 = X#block.time,
+    Time2 = T#block.time,
+    (Time2 - Time1) div 200.
+hashrate_estimate() ->
+    %estimates hashes per second
+    T = top(),
+    D = T#block.difficulty,
+    Hashes = diff2hashes(D),
+    io:fwrite("in gigahashes per second \n"),
+    Hashes / period_estimate() / 1000000000.
+diff2hashes(D) ->
+    A = D div 256,
+    B = D rem 256,
+    exponent(2, A) * 256 div (max(1, B)).
+exponent(_, 0) -> 1;
+exponent(A, 1) -> A;
+exponent(A, N) when N rem 2 == 0 -> 
+    exponent(A*A, N div 2);
+exponent(A, N) -> 
+    A*exponent(A, N-1).
 	    
 test() ->
     test(1).
