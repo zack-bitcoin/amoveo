@@ -355,7 +355,7 @@ function translate_human() {
                               hi: "इस सार्वजनिक कुंजी के लिए",
                               ar: "إلى هذا المفتاح العمومي"},
                 "key_warning": {cn: "这将会删除旧的密钥对. 其中的余额也将被删除",
-                                en: "This will delete your old keys. If money is sent to them, it will be deleted.",
+                                en: "This will delete your old keys from the browser. Save your keys before doing this.",
                                 tp: "kama la ni li pakala e poki",
                                 sp: "Esto borrará tus antiguas claves. Si en el futuro recibe dinero en ellas, lo perderá.",
                                 hi: "यह ब्राउज़र से आपकी कुंजी को हटा देगा। पहले सहेजें",
