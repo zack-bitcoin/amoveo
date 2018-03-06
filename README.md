@@ -47,7 +47,8 @@ Go to the block explorer to see all the markets that are being run on that node.
 
 
 ## Mining
-[Here is the fastest miner, it is for Nvidia GPU](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
+[Miner for Nvidia GPU](https://github.com/decryptoed/amoveo-cuda-miner)
+[Here is another miner for Nvidia GPU](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
 [Linux and Mac OSX CPU miner](https://github.com/zack-bitcoin/amoveo-c-miner)
 [Windows CPU miner](https://github.com/Mandelhoff/AmoveoMinerCpu/releases)
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
