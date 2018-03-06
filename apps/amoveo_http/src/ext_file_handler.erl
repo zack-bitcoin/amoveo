@@ -15,6 +15,7 @@ handle(Req, _) ->
     PrivDir = list_to_binary(PrivDir0),
     %PrivDir = list_to_binary(code:priv_dir(amoveo_http)),
     true = case F of
+	       <<"/sign_tx.js">> -> true;
                <<"/secrets.js">> -> true;
                <<"/js_loader.js">> -> true;
                <<"/explorer_title.js">> -> true;
