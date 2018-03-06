@@ -19,6 +19,9 @@ make(From, Fee, OracleID, Trees) ->
 
 go(Tx, Dict, NewHeight) ->
     OracleID = Tx#unmatched.oracle_id,
+    Oracle = oracles:dict_get(OracleID, Dict),
+    Result = Oracle#oracle.result,
+    false = Result == 0,
     AID = Tx#unmatched.from,
     Order = orders:dict_get({key, AID, OracleID}, Dict),
     Amount = orders:amount(Order),

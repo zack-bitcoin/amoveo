@@ -78,3 +78,9 @@
                   facts = [], 
                   height = 0,
 		  bytes = 2}).
+-record(spend, {from = 0,
+	       nonce = 0,
+	       fee = 0,
+	       to = 0,
+	       amount = 0,
+	       version = 0}).

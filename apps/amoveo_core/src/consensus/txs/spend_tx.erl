@@ -1,6 +1,5 @@
 -module(spend_tx).
 -export([go/3, make/5, make_dict/4, from/1, to/1]).
--record(spend, {from = 0, nonce = 0, fee = 0, to = 0, amount = 0, version = 0}).
 -include("../../records.hrl").
 from(X) -> X#spend.from.
 to(X) -> X#spend.to. 
