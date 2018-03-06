@@ -23,6 +23,8 @@
 ### Things to do
 
 
+* it seems like there is a memory leak. normal uses 60 mb for Amoveo, but it slowly rose to 150 mb.
+
 * single page of html for making amoveo keys off-line in cold storage. 
 
 we have been estimating the hashrate wrong.
