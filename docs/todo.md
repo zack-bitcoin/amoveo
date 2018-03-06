@@ -22,6 +22,10 @@
 
 ### Things to do
 
+* create_account vs spend in the light wallet.
+
+* we want to be able to sign a tx in the light wallet
+- we need documentation for creating unsigned txs.
 
 * it seems like there is a memory leak. normal uses 60 mb for Amoveo, but it slowly rose to 150 mb.
 

@@ -10,33 +10,24 @@
 handle(Req, State) ->
     {ok, Data, Req2} = cowboy_req:body(Req),
     {{IP, _}, Req3} = cowboy_req:peer(Req2),
-    ok = request_frequency:doit(IP),
-    {ok, TimesPerSecond} = application:get_env(amoveo_core, request_frequency),
-    timer:sleep(round(1000/TimesPerSecond)),
-    true = is_binary(Data),
-    case application:get_env(amoveo_core, kind) of
-	{ok, "production"} ->
-	    %io:fwrite("\n"),
-	    %io:fwrite("ext_handler got this data\n"),
-	    %io:fwrite(Data),
-	    %io:fwrite("\n"),
-	    ok;
-	_ -> ok
-    end,
-    A = packer:unpack(Data),
-    B = case A of
-	    {f} -> {ok, IP};
-	    %{headers, H} ->
-		%io:fwrite("got headers from "),
-		%io:fwrite(packer:pack(IP)),
-		%io:fwrite("\n"),
-		%doit({headers, H});
+    D = case request_frequency:doit(IP) of
+	    ok ->
+						%ok = request_frequency:doit(IP),
+		%{ok, TimesPerSecond} = application:get_env(amoveo_core, request_frequency),
+		%timer:sleep(round(1000/TimesPerSecond)),
+		true = is_binary(Data),
+		A = packer:unpack(Data),
+		B = case A of
+			{f} -> {ok, IP};
+			_ -> doit(A)
+		    end,
+		packer:pack(B);
 	    _ -> 
-		doit(A)
-	end,
-    D = packer:pack(B),
+		packer:pack({ok, "stop spamming the server"})
+	end,	    
+
     Headers = [{<<"content-type">>, <<"application/octet-stream">>},
-    {<<"Access-Control-Allow-Origin">>, <<"*">>}],
+	       {<<"Access-Control-Allow-Origin">>, <<"*">>}],
     {ok, Req4} = cowboy_req:reply(200, Headers, D, Req3),
     {ok, Req4, State}.
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
