@@ -254,12 +254,12 @@ new_question_oracle(Start, Question, ID)->
     Cost = trees:dict_tree_get(governance, oracle_new),
     tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0)),
     ID.
-new_governance_oracle(Start, GovName, GovAmount) ->
+new_governance_oracle(GovName, GovAmount) ->
     GovNumber = governance:name2number(GovName),
     ID = find_id2(),
     %Recent = trees:dict_tree_get(oracles, DiffOracleID),
     Cost = trees:dict_tree_get(governance, oracle_new),
-    Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, Start, ID, GovNumber, GovAmount),
+    Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, 0, ID, GovNumber, GovAmount),
     tx_maker0(Tx),
     ID.
 oracle_bet(OID, Type, Amount) ->

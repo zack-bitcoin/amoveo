@@ -11,7 +11,7 @@ api:new_question_oracle(Start, Question).
 ####New governance oracle
 This oracle updates the variables that define the blockchain protocol. It must reference a difficulty oracle that closed recently at the correct price.
 ```
-api:new_governance_oracle(Start, GovName, GovAmount).
+api:new_governance_oracle(GovName, GovAmount).
 ```
 
 ####See existing oracles
