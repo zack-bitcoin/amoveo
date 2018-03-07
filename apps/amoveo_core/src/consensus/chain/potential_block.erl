@@ -1,6 +1,7 @@
 -module(potential_block).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
+%This module keeps track of what might become the next block of the blockchain, if you are mining or running a mining pool.
 -export([new/0, read/0, save/0, dump/0, check/0, save/2]).
 %-define(potential_block, "data/potential_blocks.db").
 -define(refresh_period, 40).%in seconds
