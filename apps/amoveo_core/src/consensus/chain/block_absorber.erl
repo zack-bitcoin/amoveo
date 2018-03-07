@@ -103,7 +103,6 @@ absorb_internal(Block) ->
 			    %potential_block:dump(),
 			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
 			    potential_block:save([], Height),
-			    
 			    Txs = (tx_pool:get())#tx_pool.txs,
 			    tx_pool:dump(Block2),
 			    OldTxs = tl(Block#block.txs),
