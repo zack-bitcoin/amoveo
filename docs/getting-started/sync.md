@@ -1,7 +1,7 @@
 
 You can see how many headers you node has:
 `api:height()`
-When you first turn on, it should automatically start downloading headers. After that point, you will only receive headers when your peers send them to you.
+When you first turn on, it should automatically start downloading headers. After that point, you will only automatically receive headers if you have port 8080 open so that peers can send them to you.
 
 You can manually download headers from a peer:
 ```
@@ -29,7 +29,7 @@ Once the node has synced all the blocks, it needs to be changed from quick-mode 
 ```
 sync_mode:normal().
 ```
-This will allow you to automatically download blocks, to process txs, to mine blocks, and automatically tell your peers when new blocks become available.
+This will allow you to automatically download blocks for any headers you already have, to process txs, to mine blocks, and automatically tell your peers when new blocks become available.
 
 Your peers will automatically send new headers to you. Once you get the headers, then you will automatically try and download blocks for them.
 
