@@ -25,8 +25,8 @@ handle_cast(_, X) -> {noreply, X}.
 handle_call(dump, _, _) -> 
     {reply, ok, #pb{block = "", time = now()}};
 handle_call({save, Txs, Height}, _, _) -> 
-    PB = block:get_by_height(Height),
-    Top = block:block_to_header(PB),
+    Top = headers:top_with_block(),
+    PB = block:get_by_hash(block:hash(Top)),
     Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
     {reply, ok, #pb{block = Block, time = now()}};
 handle_call(save, _, _) -> 
