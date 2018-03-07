@@ -29,7 +29,7 @@ handle(Req, State) ->
 					      true -> ok
 					  end
 				  end),
-			    ok;
+			    {ok, 0};
 			_ -> doit(A)
 		    end,
 		packer:pack(B);

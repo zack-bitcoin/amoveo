@@ -560,8 +560,11 @@ hashrate_estimate(T) ->
     %estimates hashes per second
     D = T#block.difficulty,
     Hashes = diff2hashes(D),
-    io:fwrite("in gigahashes per second \n"),
-    Hashes / period_estimate(T) / 1000000000.
+    X = Hashes / period_estimate(T) / 100000000,
+    %io:fwrite("in 100s of megahashes per second "),
+    %io:fwrite(integer_to_list(round(10*X))),
+    %io:fwrite("\n"),
+    round(X).
 diff2hashes(D) ->
     A = D div 256,
     B = D rem 256,
