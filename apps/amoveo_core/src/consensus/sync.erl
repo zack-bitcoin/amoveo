@@ -325,7 +325,7 @@ trade_txs(Peer) ->
 		  remote_peer({txs, lists:reverse(Mine)}, Peer)
 	  end),
     0.
-    
+   
 sync_peer(Peer) ->
     io:fwrite("trade peers\n"),
     spawn(fun() -> trade_peers(Peer) end),
@@ -392,10 +392,13 @@ cron() ->
 		  timer:sleep(2000),
 		  Peers = shuffle(peers:all()),
 		  get_headers(hd(Peers)),
+		  trade_peers(hd(tl(tl(Peers)))),
 		  timer:sleep(3000),
 		  get_headers(hd(tl(Peers))),
+		  trade_peers(hd(tl(Peers))),
 		  timer:sleep(3000),
 		  get_headers(hd(tl(tl(Peers))))
+		  trade_peers(hd(Peers)),
 		  end),
     spawn(fun() ->
 		  timer:sleep(2000),

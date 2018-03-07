@@ -163,6 +163,22 @@ highest_block(B, [H|T]) ->
 first(0, _) -> [];
 first(_, []) -> [];
 first(N, [H|T]) -> [H|first(N-1, T)].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 recover(Mode) ->
     %sync:stop(),
     %timer:sleep(20000),

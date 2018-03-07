@@ -38,6 +38,7 @@ talk_helper(Msg, Peer, N, TimeOut) ->
     %io:fwrite("sending message "),
     %io:fwrite(PM),
     %io:fwrite("\n"),
+    timer:sleep(500),
     Msg = packer:unpack(PM),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, TimeOut}], []) of
         {ok, {{_, 500, _}, _Headers, []}} ->

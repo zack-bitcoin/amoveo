@@ -88,6 +88,7 @@ sorted([H|T], Height) ->
 add([]) -> 0;
 add(Blocks) when not is_list(Blocks) -> 0;
 add(Blocks) ->
+    io:fwrite("block organizer add\n"),
     true = is_list(Blocks),
     %SB = hd(Blocks),
     %SH = SB#block.height - 1,
