@@ -19,6 +19,17 @@ handle(Req, State) ->
 		A = packer:unpack(Data),
 		B = case A of
 			{f} -> {ok, IP};
+			{headers, H} ->
+			    headers:absorb(H),
+			    spawn(fun() ->
+					  HH = api:height(),
+					  BH = block:height(),
+					  if 
+					      HH > BH -> sync:start([{IP, 8080}]);
+					      true -> ok
+					  end
+				  end),
+			    ok;
 			_ -> doit(A)
 		    end,
 		packer:pack(B);
@@ -62,15 +73,15 @@ doit({header, H}) ->
 	_ -> {ok, 3}
     end;
 doit({headers, H}) ->
-    headers:absorb(H),
-    spawn(fun() ->
-		  HH = api:height(),
-		  BH = block:height(),
-		  if 
-		      HH > BH -> sync:start();
-		      true -> ok
-		  end
-	  end),
+    %headers:absorb(H),
+    %spawn(fun() ->
+	%	  HH = api:height(),
+	%	  BH = block:height(),
+%		  if 
+%		      HH > BH -> sync:start();
+%		      true -> ok
+%		  end
+%	  end),
     {ok, 0};
 doit({headers, Many, N}) -> 
     X = many_headers(Many, N),
