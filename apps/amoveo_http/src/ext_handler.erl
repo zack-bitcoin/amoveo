@@ -13,8 +13,8 @@ handle(Req, State) ->
     D = case request_frequency:doit(IP) of
 	    ok ->
 						%ok = request_frequency:doit(IP),
-		%{ok, TimesPerSecond} = application:get_env(amoveo_core, request_frequency),
-		%timer:sleep(round(1000/TimesPerSecond)),
+		{ok, TimesPerSecond} = application:get_env(amoveo_core, request_frequency),
+		timer:sleep(round(1000/TimesPerSecond)),
 		true = is_binary(Data),
 		A = packer:unpack(Data),
 		B = case A of
@@ -23,7 +23,7 @@ handle(Req, State) ->
 		    end,
 		packer:pack(B);
 	    _ -> 
-		packer:pack({ok, "stop spamming the server"})
+		packer:pack({ok, <<"stop spamming the server">>})
 	end,	    
 
     Headers = [{<<"content-type">>, <<"application/octet-stream">>},

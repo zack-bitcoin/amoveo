@@ -21,6 +21,7 @@ def test_mine_and_sync():
     request(2, 'mine_block', [2, 100000], 0)
     request(1, 'mine_block', [1, 100000], 2)
     request(2, 'sync', [[127,0,0,1], 3010], 0.5)
+    request(1, 'sync', [[127,0,0,1], 3030], 0.3)
     request(3, 'sync', [[127,0,0,1], 3010], 0.3)
     height1 = request(1, 'height', [], 0.05)
     height2 = request(2, 'height', [], 0.05)
