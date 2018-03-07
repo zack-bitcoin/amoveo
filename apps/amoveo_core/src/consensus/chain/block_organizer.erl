@@ -9,9 +9,23 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(check, BS) -> 
+    S = erlang:process_info(self(), heap_size),
+    M = erlang:process_info(self(), memory),
+    io:fwrite("block organizer "),
+    io:fwrite(integer_to_list(element(2, S))),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(element(2, M))),
+    io:fwrite("\n"),
     BS2 = helper(BS),
     {noreply, BS2};
 handle_cast({add, Blocks}, BS) -> 
+    S = erlang:process_info(self(), heap_size),
+    M = erlang:process_info(self(), memory),
+    io:fwrite("block organizer "),
+    io:fwrite(integer_to_list(element(2, S))),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(element(2, M))),
+    io:fwrite("\n"),
     BS2 = merge(Blocks, BS),
     BS3 = helper(BS2),
     {noreply, BS3}.

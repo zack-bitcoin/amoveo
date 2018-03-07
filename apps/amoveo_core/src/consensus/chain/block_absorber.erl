@@ -20,6 +20,13 @@ handle_info(_, X) -> {noreply, X}.
 %    trees:prune(),
 %    {noreply, X};
 handle_cast({doit, BP}, X) ->
+    S = erlang:process_info(self(), heap_size),
+    M = erlang:process_info(self(), memory),
+    io:fwrite("block absorber "),
+    io:fwrite(integer_to_list(S)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(M)),
+    io:fwrite("\n"),
     absorb_internal(BP),
     {noreply, now()}.
 %handle_call({prune, Blocks}, _, X) ->
@@ -29,6 +36,13 @@ handle_cast({doit, BP}, X) ->
 handle_call(check, _From, X) -> 
     {reply, X, X};
 handle_call({doit, BP}, _From, X) -> 
+    S = erlang:process_info(self(), heap_size),
+    M = erlang:process_info(self(), memory),
+    io:fwrite("block absorber "),
+    io:fwrite(integer_to_list(element(2, S))),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(element(2, M))),
+    io:fwrite("\n"),
     Y = absorb_internal(BP),
     {reply, Y, now()}.
 %prune() -> gen_server:cast(?MODULE, prune).
