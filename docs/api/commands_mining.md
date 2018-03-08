@@ -14,17 +14,17 @@ to add yourself to the list of peers, if you have ip address 1.2.3.4
 peers:add({{1,2,3,4}, 8080}).
 ```
 
-#### see how fast blocks are being produced.
+#### see how fast blocks are being produced (in seconds).
 ```
 block:period_estimate().
 ```
 
-#### to see the total network hashrate.
+#### to see the total network hashrate (in GH/s).
 ```
 block:hashrate_estimate().
 ```
 
-#### to see the number of hashes on average to find a block
+#### to see the number of hashes on average to find a block.
 ```
 block:hashes_per_block().
 ```
