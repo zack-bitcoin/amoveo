@@ -8,6 +8,8 @@ Different types of commands:
 
 [accounts](commands_accounts.md)
 
+[unsigned txs for cold storage](commands_unsigned.md)
+
 [channels](commands_channels.md)
 
 [oracle](commands_oracle.md)
@@ -15,6 +17,7 @@ Different types of commands:
 [other](commands_other.md)
 
 [erlang mining](commands_mining.md)
+
 
 
 

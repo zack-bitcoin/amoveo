@@ -16,6 +16,9 @@
     div.appendChild(signed_tx);
     div.appendChild(document.createElement("br"));
     function sign_tx() {
-	signed_tx.value = keys.sign(tx.value);
+	var t = JSON.parse(tx.value);
+	console.log(tx.value);
+	console.log(t);
+	signed_tx.value = keys.sign(JSON.parse(tx.value));
     }
 })();

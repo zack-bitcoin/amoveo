@@ -17,6 +17,10 @@
 
 * the market_cap on each block isn't including the developer reward.
 
+* possibly adjust mining algorithm.
+
+* are we using the version value in spend txs?
+
 
 
 
@@ -24,10 +28,12 @@
 
 * create_account vs spend in the light wallet.
 
-* we want to be able to sign a tx in the light wallet
-- we need documentation for creating unsigned txs.
+* sign tx from light wallet isn't working.
 
-* it seems like there is a memory leak. normal uses 60 mb for Amoveo, but it slowly rose to 150 mb.
+* making unsigned txs from the light wallet.
+
+
+* it seems like there is a memory leak. normally uses 60 mb for Amoveo, but it slowly rose to 150 mb.
 
 * single page of html for making amoveo keys off-line in cold storage. 
 
