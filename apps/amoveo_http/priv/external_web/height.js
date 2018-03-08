@@ -11,6 +11,7 @@
 	variable_public_get(["height"], height_f);
     }
     function height_f(x) {
+	height.innerHTML = "";
 	//var h = document.getElementById("height");
 	b = (x).toString();
 	//height.innerHTML = "current height: ".concat(b);
