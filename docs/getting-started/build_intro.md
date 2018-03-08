@@ -143,7 +143,7 @@ You can also clean all 3 at once
 
 ### Blockchain Commands
 
-[Read about the commands in depth in the docs](commands.md)
+[Read about the commands in depth in the docs](docs/api/commands.md)
 
 
 #### Sync with the network
