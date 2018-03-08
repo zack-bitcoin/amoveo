@@ -7,6 +7,7 @@
 	 time_now/0, all_mined_by/1, time_mining/1,
 	 period_estimate/0, hashrate_estimate/0,
 	 period_estimate/1, hashrate_estimate/1,
+	 hashes_per_block/0, hashes_per_block/1,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -552,6 +553,11 @@ period_estimate(T) ->
     Time1 = X#block.time,
     Time2 = T#block.time,
     (Time2 - Time1) div 200.
+hashes_per_block() ->
+    hashes_per_block(top()).
+hashes_per_block(B) ->
+    D = B#block.difficulty,
+    diff2hashes(D) div 1000000000.
 hashrate_estimate() ->
     hashrate_estimate(top()).
 hashrate_estimate(T) when is_integer(T) ->
@@ -561,7 +567,7 @@ hashrate_estimate(T) ->
     D = T#block.difficulty,
     Hashes = diff2hashes(D),
     X = Hashes / period_estimate(T) / 1000000000,
-    %io:fwrite("in 100s of megahashes per second "),
+    %io:fwrite("in gigahashes per second "),
     %io:fwrite(integer_to_list(round(10*X))),
     %io:fwrite("\n"),
     round(X).

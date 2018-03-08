@@ -9,7 +9,7 @@
     info.innerHTML = "sign transaction";
     div.appendChild(info);
     div.appendChild(tx);
-    var button = button_maker("sign", sign_tx);
+    var button = button_maker("sign_tx", sign_tx);
     div.appendChild(button);
     div.appendChild(document.createElement("br"));
     var signed_tx = document.createElement("h8");

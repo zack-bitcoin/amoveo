@@ -24,8 +24,10 @@ block:period_estimate().
 block:hashrate_estimate().
 ```
 
-
-
+#### to see the number of hashes on average to find a block
+```
+block:hashes_per_block().
+```
 
 
 

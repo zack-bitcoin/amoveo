@@ -424,6 +424,9 @@ function translate_human() {
 		},
 		"trustful_channel_sync": {
 		    en: "trusted channel sync"
+		},
+		"sign_tx": {
+		    en: "sign transaction"
 		}
                };
     }
