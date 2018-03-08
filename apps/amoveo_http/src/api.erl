@@ -482,5 +482,5 @@ mining_data() ->
      crypto:strong_rand_bytes(32), 
      %headers:difficulty_should_be(Top)].
      Block#block.difficulty].
-    
+
    

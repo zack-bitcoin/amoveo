@@ -43,6 +43,10 @@ handle(Req, State) ->
     {ok, Req4, State}.
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
+doit({f, 1}) ->
+    {ok, {block:hashes_per_block(),
+	  block:hashrate_estimate(),
+	  block:period_estimate()}};
 doit({account, Pubkey}) -> 
     {ok, api:account(Pubkey)};
 doit({pubkey}) -> {ok, keys:pubkey()};

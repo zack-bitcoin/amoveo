@@ -26,6 +26,8 @@
 
 ### Things to do
 
+* don't delete the blocks so easily. they are useful for recovery.
+
 * create_account vs spend in the light wallet.
 
 * sign tx from light wallet isn't working.

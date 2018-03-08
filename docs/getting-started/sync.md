@@ -34,7 +34,7 @@ This will allow you to automatically download blocks for any headers you already
 Your peers will automatically send new headers to you. Once you get the headers, then you will automatically try and download blocks for them.
 
 In order to get headers from peers, they need to know your IP address and port. You need to be added to the list of peers on their nodes.
-You can see the list of peers like this:
+You can see the list of peers stored on your machine like this:
 ```
 peers:all().
 ```
