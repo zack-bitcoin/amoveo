@@ -26,6 +26,10 @@
 
 ### Things to do
 
+* fix the race condition where it says `potential block died!`.
+
+* check the case where someone sends a good headers with a bad block. Don't ignore the good block after this happens.
+
 * don't delete the blocks so easily. they are useful for recovery.
 
 * create_account vs spend in the light wallet.

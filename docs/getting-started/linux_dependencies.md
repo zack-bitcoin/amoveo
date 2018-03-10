@@ -43,6 +43,7 @@ Finally proceed to [instructions after dependencies](#after-dependencies)
     ```
     pacman -S --needed community/erlang extra/git extra/unixodbc core/gcc core/ncurses extra/wget
     ```
+    you also need `awk` and `make`
 
 ## For OpenSuSE
 

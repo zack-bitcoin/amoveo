@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -export([absorb/1, absorb_async/1, absorb_unsafe/1, is_in/2,
-	 empty_mailbox/0]).
+	 empty_mailbox/0, dump/1]).
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) -> {ok, []}.
@@ -12,6 +12,9 @@ handle_call({absorb, SignedTx}, _From, State) ->
 handle_call(empty_mailbox, _, S) -> 
     {reply, ok, S};
 handle_call(_, _, S) -> {reply, S, S}.
+handle_cast({dump, Block}, S) -> 
+    tx_pool:dump(Block),
+    {noreply, S};
 handle_cast({absorb, SignedTx}, S) -> 
     absorb_internal(SignedTx),
     {noreply, S};
@@ -170,3 +173,5 @@ absorb_unsafe(SignedTx) ->
     Height = F#tx_pool.height,
     Dict = F#tx_pool.dict,
     absorb_unsafe(SignedTx, Trees, Height, Dict).
+dump(Block) ->
+    gen_server:cast(?MODULE, {dump, Block}).
