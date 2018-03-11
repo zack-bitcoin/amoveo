@@ -1,17 +1,17 @@
 ### things to do for the next hard fork
 
 
-
 * maybe embed recent news message into genesis block.
-
-* we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
-
+  -maybe we can reuse #block.trees for this.
 
 
 
 ### changes to code before official launch of Amoveo mainnet blockchain
 
 
+### Other hard fork ideas
+
+Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
 ### For next hard fork
 

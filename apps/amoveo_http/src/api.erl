@@ -486,3 +486,6 @@ mining_data() ->
      Block#block.difficulty].
 
    
+mining_data(X) ->
+    L = lists:map(fun(N) ->
+			  round(block:hashrate_estimate(N)) end, lists:seq(30, block:height(), X)).
