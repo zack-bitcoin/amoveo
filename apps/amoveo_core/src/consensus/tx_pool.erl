@@ -22,6 +22,7 @@ handle_call(dump, _From, _OldState) ->
     {reply, 0, State};
 handle_call({absorb_tx, NewDict, Tx}, _From, F) ->
     NewTxs = [Tx | F#tx_pool.txs],
+    NewChecksums = [checksum(Tx) | F#tx_pool.checksums],
     %io:fwrite(packer:pack([22, now()])),
     %io:fwrite("\n"),
     BlockSize = F#tx_pool.bytes + size(packer:pack(Tx)) + 1,
@@ -37,13 +38,14 @@ handle_call({absorb_tx, NewDict, Tx}, _From, F) ->
                  F;
              false ->
                  F#tx_pool{txs = NewTxs, 
+			   checksums = NewChecksums,
                            %trees = NewTrees, 
                            dict = NewDict,
 			   bytes = BlockSize}
          end,
     {reply, 0, F2};
 handle_call({absorb, NewTrees, Height}, _From, _) ->
-    {reply, 0, #tx_pool{txs = [], block_trees = NewTrees, height = Height}};
+    {reply, 0, #tx_pool{txs = [], checksums = [], block_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) -> 
     F2 = F#tx_pool{height = block:height()},
     {reply, F2, F}.
@@ -80,3 +82,7 @@ state2(Block) ->
 	    #tx_pool{block_trees = Trees, 
                      height = Block#block.height}.
     %end.
+checksum(Tx) ->
+    <<X:32, _/binary>> = hash:doit(Tx),
+    <<X:32>>.
+    

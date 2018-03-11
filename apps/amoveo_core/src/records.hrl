@@ -77,7 +77,8 @@
                   dict = dict:new(), %mirrors trees.
                   facts = [], 
                   height = 0,
-		  bytes = 2}).
+		  bytes = 2,
+		  checksums = []}).
 -record(spend, {from = 0,
 	       nonce = 0,
 	       fee = 0,

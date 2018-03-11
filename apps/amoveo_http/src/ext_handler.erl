@@ -1,7 +1,8 @@
 -module(ext_handler).
 -include("../../amoveo_core/src/records.hrl").
 
--export([init/3, handle/2, terminate/3, doit/1]).
+-export([init/3, handle/2, terminate/3, doit/1,
+	send_txs/4]).
 %example of talking to this handler:
 %httpc:request(post, {"http://127.0.0.1:3010/", [], "application/octet-stream", "echo"}, [], []).
 %curl -i -d '["test"]' http://localhost:3011
@@ -99,6 +100,16 @@ doit({peers, Peers}) ->
     peers:add(Peers),
     {ok, 0};
 doit({txs}) -> {ok, lists:reverse((tx_pool:get())#tx_pool.txs)};
+doit({txs, 2}) ->%request a list of your checksums
+    TP = tx_pool:get(),
+    X = TP#tx_pool.checksums,
+    {ok, X};
+doit({txs, 2, Checksums}) ->%request the txs for these checksums
+    TP = tx_pool:get(),
+    CS = TP#tx_pool.checksums,
+    Txs = TP#tx_pool.txs,
+    ST = send_txs(Txs, CS, Checksums, []),
+    {ok, ST};
 doit({txs, Txs}) ->
     tx_pool_feeder:absorb(Txs),
     {ok, 0};
@@ -344,3 +355,12 @@ blocks2headers([B|T]) ->
 %    end.
 minus([T|X], T) -> X;
 minus([A|T], X) -> [A|minus(T, X)].
+send_txs(_, _, [], X) -> X;
+send_txs(Txs, MyCS, [R|T], X) ->
+    X2 = send_txs2(R, MyCS, Txs),
+    send_txs(Txs, MyCS, T, X2 ++ X).
+send_txs2(_, [], []) -> [];
+send_txs2(Checksum, [Checksum|_], [T|_]) -> [T];
+send_txs2(Checksum, [_|CT], [_|T]) ->
+    send_txs2(Checksum, CT, T).
+    

@@ -14,6 +14,11 @@ This oracle updates the variables that define the blockchain protocol. It must r
 api:new_governance_oracle(GovName, GovAmount).
 ```
 
+You can look up current governance values like this:
+```
+trees:dict_tree_get(governance, GovName).
+```
+
 ####See existing oracles
 ```
 oracles:all().

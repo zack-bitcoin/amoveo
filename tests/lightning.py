@@ -27,7 +27,7 @@ def lightning_test():
     request(2, 'load_key', [pub2, priv2, brainwallet])
     request(3, 'load_key', [pub3, priv3, brainwallet])
     request(1, 'create_account', [pub2, 1000000000], 0.04)
-    request(1, 'create_account', [pub3, 1000000000], 6)
+    request(1, 'create_account', [pub3, 1000000000], 10)
     request(1, 'txs', [[127,0,0,1], 3030], 0.5)
     request(1, 'txs', [[127,0,0,1], 3020], 0.5)
     #request(3, 'sync', [[127,0,0,1], 3010], 0.5)

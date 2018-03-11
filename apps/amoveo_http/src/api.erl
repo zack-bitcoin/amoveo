@@ -451,7 +451,8 @@ combine_cancel_assets(IP, Port) ->
 txs({IP, Port}) ->
     txs(IP, Port).
 txs(IP, Port) ->
-    sync:trade_txs({IP, Port}).
+    sync:trade_txs({IP, Port}),
+    0.
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
     <<N:256>> = Nonce,

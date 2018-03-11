@@ -316,15 +316,34 @@ push_new_block_helper(N, M, [P|T], Hash, Headers) ->
 	end,
     push_new_block_helper(N+Top, M+Bottom, T, Hash, Headers).
 trade_txs(Peer) ->
-    spawn(fun() ->
-		  Txs = remote_peer({txs}, Peer),
-		  tx_pool_feeder:absorb_async(Txs)
-	  end),
-    spawn(fun() ->
-		  Mine = (tx_pool:get())#tx_pool.txs,
-		  remote_peer({txs, lists:reverse(Mine)}, Peer)
-	  end),
-    0.
+    case remote_peer({txs, 2, []}, Peer) of
+	    {error} ->%once everyone upgrades to the new code, we can get rid of this branch.
+	    %ok;
+	    %1=2,%only for a test. remove this line.
+	    spawn(fun() ->
+			  Txs = remote_peer({txs}, Peer),
+			  tx_pool_feeder:absorb_async(Txs)
+		  end),
+	    spawn(fun() ->
+			  Mine = (tx_pool:get())#tx_pool.txs,
+			  remote_peer({txs, lists:reverse(Mine)}, Peer)
+		  end),
+	    0;
+	[] ->
+	    spawn(fun() ->
+			  TP = tx_pool:get(),
+			  Checksums = remote_peer({txs, 2}, Peer),
+			  MyChecksums = TP#tx_pool.checksums,
+			  MyTxs = TP#tx_pool.txs,
+			  Requests = checksum_minus(Checksums, MyChecksums),
+			  Txs2 = remote_peer({txs, 2, Requests}, Peer),
+			  tx_pool_feeder:absorb_async(Txs2),
+			  SendChecksums = checksum_minus(MyChecksums, Checksums),
+			  Give = ext_handler:send_txs(MyTxs, MyChecksums, SendChecksums, []),
+			  remote_peer({txs, Give}, Peer)
+			  
+		  end)
+    end.
    
 sync_peer(Peer) ->
     io:fwrite("trade peers\n"),
@@ -392,13 +411,13 @@ cron() ->
 		  timer:sleep(2000),
 		  Peers = shuffle(peers:all()),
 		  get_headers(hd(Peers)),
-		  trade_peers(hd(tl(tl(Peers)))),
+		  trade_peers(hd(Peers)),
 		  timer:sleep(3000),
 		  get_headers(hd(tl(Peers))),
 		  trade_peers(hd(tl(Peers))),
 		  timer:sleep(3000),
 		  get_headers(hd(tl(tl(Peers)))),
-		  trade_peers(hd(Peers))
+		  trade_peers(hd(tl(tl(Peers))))
 		  end),
     spawn(fun() ->
 		  timer:sleep(2000),
@@ -410,12 +429,26 @@ cron2() ->
     SC = sync_mode:check(),
     B = api:height() > block:height(),
     if 
-	((SS == go) and 
-	 (SC == normal) and
-	 B) -> spawn(fun() -> sync:start() end);
+	((SS == go) and (SC == normal)) ->
+	    spawn(fun() ->
+			  if 
+			      B -> sync:start();
+			      true -> 
+				  P2 = shuffle(remove_self(peers:all())),
+				  trade_txs(hd(P2))
+				      %trade_txs(hd(tl(P2)))
+			  end
+		  end);
 	true -> ok
     end,
     timer:sleep(5000),
     cron2().
-    
-
+checksum_minus([], _) -> [];
+checksum_minus(A, []) -> A;
+checksum_minus([A|AT], B) ->
+    Bool = lists:member(A, B),
+    if
+	Bool -> checksum_minus(AT, B);
+	true -> [A|checksum_minus(AT, B)]
+    end.
+	    

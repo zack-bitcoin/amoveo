@@ -1,4 +1,11 @@
 
+If you have cleaned your database with `make prod-clean`, your databse still has the blocks. You can save bandwidth by re-syncing with the blocks from your database.
+```
+block_absorber:restore(full).%reads all the blocks.
+block_absorber:restore(quick).%only reads 90% of blocks, but is faster.
+```
+
+
 You can see how many headers you node has:
 `api:height()`
 When you first turn on, it should automatically start downloading headers. After that point, you will only automatically receive headers if you have port 8080 open so that peers can send them to you.
