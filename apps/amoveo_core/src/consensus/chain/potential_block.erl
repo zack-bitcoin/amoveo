@@ -19,6 +19,7 @@ terminate(_, X) ->
     %PH = B#block.prev_hash,
     %PB = block:get_by_hash(PH),
     %tree_data:garbage(B, PB),
+    tx_pool:dump(),
     io:format("potential block died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
