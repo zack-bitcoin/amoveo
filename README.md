@@ -28,7 +28,7 @@ Amoveo main net will launch at 11:00 AM GMT on March 2, 2018.
 
 
 ## Light node
-Simply visit [this webpage](http://159.89.106.253:8080/wallet.html) to participate in Amoveo, no installation necessary.
+Simply visit [this webpage](http://159.65.120.84:8080/wallet.html) to participate in Amoveo, no installation necessary.
 
 You can also download the javascript light node to ensure you have the secure version, and to be able to run in cold storage. open this file with your browser: `apps/amoveo_http/priv/external_web/wallet.html`
 
