@@ -38,7 +38,7 @@ You can mine slowly mine blocks from the light node.
 
 
 ## Block Explorer
-The block explorer for the network is [here](http://159.89.106.253:8080/explorer.html)
+The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
 Go to the block explorer to see all the markets that are being run on that node.
 
 
