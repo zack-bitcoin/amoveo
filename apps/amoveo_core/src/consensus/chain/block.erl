@@ -580,7 +580,7 @@ hashrate_estimate(T) ->
 diff2hashes(D) ->
     A = D div 256,
     B = D rem 256,
-    exponent(2, A) * 256 div (max(1, B)).
+    exponent(2, A) * 256 div (256 - B).
 exponent(_, 0) -> 1;
 exponent(A, 1) -> A;
 exponent(A, N) when N rem 2 == 0 -> 
