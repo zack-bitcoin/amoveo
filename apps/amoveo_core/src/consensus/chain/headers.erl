@@ -114,7 +114,13 @@ check_pow(Header) ->
     MineDiff = Header#header.difficulty,
     Data = block:hash(Header#header{nonce = <<0:256>>}),
     <<Nonce:256>> = Header#header.nonce,
-    pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size()).
+    F2 = forks:get(2),
+    Height = Header#header.height,
+    Fork = if
+	       F2 > Height -> 0;
+	       true -> 1
+	   end,
+    pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size(), Fork).
 
 check_difficulty(A) ->
     B = case A#header.height < 2 of

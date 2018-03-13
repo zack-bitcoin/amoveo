@@ -455,8 +455,17 @@ txs(IP, Port) ->
     0.
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
-    <<N:256>> = Nonce,
     Block = potential_block:check(),
+    Height = Block#block.height,
+    F2 = forks:get(2),
+    N = if
+	       F2 > Height -> 
+		<<X:256>> = Nonce,
+		X;
+	       true -> 
+		<<X:184>> = Nonce,
+		X
+	end,
     Block2 = Block#block{nonce = N},
     %io:fwrite("work block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
@@ -480,8 +489,14 @@ mining_data() ->
     %io:fwrite("mining data block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
     %io:fwrite("\n"),
+    F2 = forks:get(2),
+    Height = Block#block.height,
+    Entropy = if
+	       F2 > Height -> 32;
+	       true -> 23
+	   end,
     [hash:doit(block:hash(Block)),
-     crypto:strong_rand_bytes(32), 
+     crypto:strong_rand_bytes(Entropy), 
      %headers:difficulty_should_be(Top)].
      Block#block.difficulty].
 

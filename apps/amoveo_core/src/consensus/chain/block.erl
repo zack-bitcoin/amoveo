@@ -300,7 +300,13 @@ mine2(Block, Times) ->
     ParentPlus = get_by_hash(PH),
     Trees = ParentPlus#block.trees,
     MineDiff = Block#block.difficulty,
-    case pow:pow(hash(Block), MineDiff, Times, constants:hash_size()) of
+    F2 = forks:get(2),
+    Height = Block#block.height,
+    Fork = if
+	       F2 > Height -> 0;
+	       true -> 1
+	   end,
+    case pow:pow(hash(Block), MineDiff, Times, Fork) of
         false -> false;
         Pow -> Block#block{nonce = pow:nonce(Pow)}
     end.
