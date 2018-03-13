@@ -12,6 +12,10 @@ It returns pub key that identifies an account
 api:balance().
 ```
 
+Your encrypted private key is stored in
+`_build/prod/rel/amoveo_core/keys/keys.db`
+Save a copy.
+
 #### Spend to account pubkey `To`
 ```
 api:spend(To, Amount).

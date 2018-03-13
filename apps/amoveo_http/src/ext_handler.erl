@@ -226,7 +226,7 @@ doit({bets}) ->
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
 %curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5]' http://localhost:8040
-    Trees = (block:get_by_hash(Hash))#block.trees,
+    Trees = (block:get_by_hash(Hash))#block.trees,%this line failed.b
     TN = trees:name(TreeName),
     Root = trees:TN(Trees),
     %io:fwrite(packer:pack([ext_handler_proof2, TreeName, ID, Root])),

@@ -68,7 +68,7 @@ If you want to build on top of Amoveo [read the develper's guide](docs/getting-s
 
 ```
 Bitcoin Donations: 1GbpRPE83Vjg73KFvTVZ4EnS2qNkiLY5TT
-Veo donations: BMjV7rAAssU+DGd8w+6XsyDSdgoichddlSipZT3U+jehHSD68UwPdF9TO3HQ0g4hCh2rgUQyqPnP7vP0i/l8Ijw=
+Veo donations: BGH+3P768A9cSNR3GLSRXgsokSL/Jdbm+rOJogbgiPxq8M+J2R4nVxZ+Hj6WdI4rMsq6nPzkMh77WGBCMx89HUM=
 Gifts must be less than $10 000 per person per year.
 ```
 
