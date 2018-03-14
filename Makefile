@@ -266,7 +266,7 @@ tests: killall
 	@python tests/test_all.py
 	make multi-stop
 
-multi-quick: kill multi-clean multi-build multi-go
+multi-quick: kill multi-build multi-clean multi-go
 
 local-quick: kill local-build local-clean
 	./_build/local/rel/amoveo_core/bin/amoveo_core console
