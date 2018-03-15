@@ -13,30 +13,31 @@
 -include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).
 
+no_hash(X) -> X.
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
-merkelize_thing(X) when is_binary(X) -> X;
-merkelize_thing(X) when is_tuple(X) and (size(X) > 0)->
-    T = element(1, X),
-    case T of
-        proof -> proof_hash(X);
-        _ -> tx_hash(X)
-    end;
-merkelize_thing(X) -> hash:doit(X).
-    
+just_hash(X) -> hash:doit(X).
+
+merkelize_thing(X) when is_binary(X) -> no_hash(X);
+merkelize_thing({proof, _, _, _, _} = X) -> proof_hash(X);
+merkelize_thing(X) when is_tuple(X) and (size(X) > 0) -> tx_hash(X);
+merkelize_thing(X) -> just_hash(X).
+
 merkelize_pair(A, B) ->
     C = [merkelize_thing(A), merkelize_thing(B)],
     hash:doit(C).
+
+merkelize_branch([]) -> [];
+merkelize_branch([A]) -> [merkelize_thing(A)];
+merkelize_branch([A | [B | T]]) ->
+    [merkelize_pair(A, B) |
+        merkelize_branch(T)].
+
 merkelize([A]) -> merkelize_thing(A);
-merkelize([A|[B|T]]) ->
-    merkelize(merkelize2([A|[B|T]]));
+merkelize([A | [B | T]]) ->
+    merkelize(merkelize_branch([A | [B | T]]));
 merkelize([]) -> <<0:256>>.
-merkelize2([]) -> [];
-merkelize2([A]) -> [merkelize_thing(A)];
-merkelize2([A|[B|T]]) ->
-    [merkelize_pair(A, B)|
-     merkelize2(T)].
-    
+
 txs_proofs_hash(Txs, Proofs) ->
     TB = merkelize(Txs),
     PB = merkelize(Proofs),
