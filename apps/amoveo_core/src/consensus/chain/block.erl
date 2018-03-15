@@ -19,7 +19,7 @@ proof_hash(P) -> hash:doit(P).
 just_hash(X) -> hash:doit(X).
 
 merkelize_thing(X) when is_binary(X) -> no_hash(X);
-merkelize_thing({proof, _, _, _, _} = X) -> proof_hash(X);
+merkelize_thing({proof, _, _, _, _, _} = X) -> proof_hash(X);
 merkelize_thing(X) when is_tuple(X) and (size(X) > 0) -> tx_hash(X);
 merkelize_thing(X) -> just_hash(X).
 
