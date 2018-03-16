@@ -19,6 +19,7 @@
 	var t = JSON.parse(tx.value);
 	console.log(tx.value);
 	console.log(t);
-	signed_tx.value = keys.sign(JSON.parse(tx.value));
+	var t2 = keys.sign(JSON.parse(tx.value));
+	signed_tx.value = t2;
     }
 })();

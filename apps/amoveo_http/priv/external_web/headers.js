@@ -151,11 +151,21 @@ function headers_main() {
                 data[8] = btoa(array_to_string(integer_to_array(0, 32)));
                 var s1 = serialize_header(data);
                 var h1 = hash(hash(s1));
-                var foo = h1.concat(
-                    integer_to_array(diff, 2)).concat(
-                        string_to_array(nonce));
-                var h2 = hash(foo);
-                var I = hash2integer(h2);
+		var foo, h2, I;
+		if (height > 9000) {
+		    var nonce2 = nonce.slice(-23),
+		    foo = h1.concat(string_to_array(nonce2));
+		    console.log(foo);
+		    console.log(nonce2);
+                    h2 = hash(foo);
+                    I = newhash2integer(h2);
+		} else {
+                    foo = h1.concat(
+			integer_to_array(diff, 2)).concat(
+                            string_to_array(nonce));
+                    h2 = hash(foo);
+                    I = hash2integer(h2);
+		}
                 return I > diff;
             } else {
                 console.log("bad diff");
