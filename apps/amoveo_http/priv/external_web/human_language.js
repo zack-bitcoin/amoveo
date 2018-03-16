@@ -426,6 +426,9 @@ function translate_human() {
 		"trustful_channel_sync": {
 		    en: "trusted channel sync"
 		},
+		"push_tx": {
+		    en: "publish transaction"
+		},
 		"sign_tx": {
 		    en: "sign transaction"
 		}
