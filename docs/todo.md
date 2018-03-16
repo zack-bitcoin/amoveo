@@ -17,52 +17,25 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 * the market_cap on each block isn't including the developer reward.
 
-* possibly adjust mining algorithm.
-
-* are we using the version value in spend txs?
-
 
 
 
 ### Things to do
 
 * fix the race condition where it says `potential block died!`.
+- maybe it is already fixed?
+- it seems like there is a memory leak. normally uses 60 mb for Amoveo, but it slowly rose to 150 mb.
+- sometimes we are pruning data that we should not be pruning. I only happened on one node, not all of them. restarting from 0 fixed it.
 
 * check the case where someone sends a good headers with a bad block. Don't ignore the good block after this happens.
 
 * don't delete the blocks so easily. they are useful for recovery.
 
-* create_account vs spend in the light wallet.
-
-* sign tx from light wallet isn't working.
-
-* making unsigned txs from the light wallet.
-
-
-* it seems like there is a memory leak. normally uses 60 mb for Amoveo, but it slowly rose to 150 mb.
-
-* single page of html for making amoveo keys off-line in cold storage. 
-
-we have been estimating the hashrate wrong.
-in the `pow.erl` page, none of the functions can be used to transform a hash output into an estimate of how many hash-functions had to be executed to produce it.
-So I guess we need a function that transforms a difficulty value written on the block into an estimate of how many hashes we would have to do to calculate that a solution.
-
-
-* sometimes we are pruning data that we should not be pruning. I only happened on one node, not all of them. restarting from 0 fixed it.
-
 * miners need instructions on making pubkeys.
-
-* "potential block died!" error. in block absorber we are rescanning txs before doing potential_block:save(). if we don't do potential_block:save(), then the merkle tree can be left in a corrupt state.
 
 * test_txs(15). channel slash isn't being automatically created.
 
-* after a peer is removed from the list, don't try contacting them again.
-
-* single page of html for generating keys off-line.
-
 * It is not clear how to use github to update values in the config file. 
-
-* when we adjust fork_tolerance in the config file, we are no longer able to push blocks to peers. This is because the batch of blocks we send is smaller than the fork tolerance. And we do a check to see if they are taking our blocks before sending more blocks. The check shows that they didn't accept any new blocks in the first batch.
 
 * if the response from {give_block, Block} is not base64 encoded, then it freezes us from pushing the new block to peers. We should probably decode it manually so that we can handle errors better.
 
