@@ -16,10 +16,22 @@ function spend_1() {
     //spend_address.id = "spend_address";
     var input_info = document.createElement("h8");
     input_info.innerHTML = translate.words("to_pubkey").concat(": ");
+    var raw_tx = document.createElement("h8");
     div.appendChild(input_info);
     div.appendChild(spend_address);
-    spend_button = button_maker("spend", spend_tokens);
+    var mode;
+    spend_button = button_maker("spend", function(){
+	mode = "sign";
+	spend_tokens();
+    });
+    raw_button = button_maker("raw_spend", function(){
+	mode = "raw";
+	spend_tokens();
+    });
     div.appendChild(spend_button);
+    div.appendChild(raw_button);
+    div.appendChild(document.createElement("br"));
+    div.appendChild(raw_tx);
     var fee;
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");
@@ -60,12 +72,16 @@ function spend_1() {
             console.log("abort: server changed the fee.");
         } else {
             console.log(JSON.stringify(tx));
-            var stx = keys.sign(tx);
-            console.log(JSON.stringify(stx));
-            console.log("pubkey is ");
-            console.log(to);
-            console.log(keys.pub());
-            variable_public_get(["txs", [-6, stx]], function(x) {});
+	    if (mode == "sign") {
+		var stx = keys.sign(tx);
+		console.log(JSON.stringify(stx));
+		console.log("pubkey is ");
+		console.log(to);
+		console.log(keys.pub());
+		variable_public_get(["txs", [-6, stx]], function(x) {});
+	    } else if (mode == "raw") {
+		raw_tx.innerHTML = JSON.stringify(tx);
+	    }
         }
         spend_amount.value = "";
     }

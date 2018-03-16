@@ -138,6 +138,7 @@ function translate_human() {
                           sp: "enviar",
                           hi: "बिताना",
                           ar: "أنفق"},
+		"raw_spend": {en: "raw spend"},
                 "true": {cn: "真正",//既不是
                          en: "true ",
                          tp: "lon",
