@@ -85,3 +85,8 @@
 	       to = 0,
 	       amount = 0,
 	       version = 0}).
+-record(create_acc_tx, {from = 0,
+                        nonce = 0,
+                        fee = 0,
+                        pubkey = <<>>,
+                        amount = 0}).

@@ -1,11 +1,77 @@
 -module(amoveo_utils).
 -export([tuples2lists/1,
          binary_to_file_path/2,
-	 block_rewards/0,
 	 block_rewards/1,
 	 block_rewards/2,
-	 tx_history/1, tx_history/2, tx_history/3]).
+	 tx_history/1, tx_history/2, tx_history/3,
+	 address_history/1,address_history/2,address_history/3
+	]).
 -include("records.hrl").
+
+address_history(X) ->
+    TB = block:top(),
+    address_history(X, 200).
+address_history(X, Many) ->
+    TB = block:top(),
+    End = TB#block.height,
+    address_history(X, Many, End).
+address_history(X, Many, End) when (is_list(X) orelse (size(X) > 65))->
+    address_history(base64:decode(X), Many, End);
+address_history(X, Many, End) when size(X) > 65 ->
+    address_history(base64:decode(X), Many, End);
+address_history(X, Many, End) ->
+    TB = block:get_by_height(End),
+    Finish = max(TB#block.height - Many, 0),
+    address_history2(X, TB, Finish, []).
+address_history2(X, Block, Finish, Out) 
+  when Finish == Block#block.height -> Out;
+address_history2(X, Block, Finish, Out) ->
+    Txs = tl(Block#block.txs),
+    H = Block#block.height,
+    K = address_txs(X, Txs, [], H),
+    PB = block:get_by_hash(Block#block.prev_hash),
+    address_history2(X, PB, Finish, Out ++ K).
+address_txs(_, [], Out, _) -> Out;
+address_txs(Key, [X|T], Out, Height) ->
+    Tx = element(2, X),
+    New = case element(1, Tx) of
+	      spend -> 
+		  From = Tx#spend.from,
+		  To = Tx#spend.to,
+		  Amount = Tx#spend.amount,
+		  spend_common(Tx, Key, From, To, Amount, Height);
+	      create_acc_tx ->
+		  From = Tx#create_acc_tx.from,
+		  To = Tx#create_acc_tx.pubkey,
+		  Amount = Tx#create_acc_tx.amount,
+		  spend_common(Tx, Key, From, To, Amount, Height);
+	      _ -> ok
+	  end,
+    address_txs(Key, T, New ++ Out, Height).
+spend_common(Tx, Key, From, To, Amount, Height) ->
+    case Key of
+	From -> 
+	    io:fwrite("gave "),
+	    io:fwrite(integer_to_list(Amount)),
+	    io:fwrite(" to "),
+	    io:fwrite(base64:encode(To)),
+	    io:fwrite(" at "),
+	    io:fwrite(integer_to_list(Height)),
+	    io:fwrite("\n"),
+	    [{Height, Tx}];
+	To ->
+	    io:fwrite("received "),
+	    io:fwrite(integer_to_list(Amount)),
+	    io:fwrite(" from "),
+	    io:fwrite(base64:encode(From)),
+	    io:fwrite(" at "),
+	    io:fwrite(integer_to_list(Height)),
+	    io:fwrite("\n"),
+	    [{Height, Tx}];
+	_ -> []
+    end.
+
+
 
 %% convert tuples to lists so they can pretend json
 tuples2lists(X) when is_tuple(X) ->
@@ -22,9 +88,6 @@ file_dir(blocks) -> "blocks/";
 file_dir(oracle_questions) -> "oracle_questions/".
 
 
-block_rewards() ->
-    Addr = <<"BGDXGmovuTEr3CFfzY0xr0zXS3purkIPPZsljZv4gvQe87K6W8be1IpwDwmqhgcSIlhTvb9Q7pgrl+h2dmXGEXM=">>,
-    block_rewards(Addr).
 block_rewards(A) ->
     T = block:top(),
     block_rewards(base64:decode(A), T).

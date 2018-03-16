@@ -1,10 +1,5 @@
 -module(create_account_tx).
 -export([go/3, new/5, make_dict/4, from/1, pubkey/1]).
--record(create_acc_tx, {from = 0,
-                        nonce = 0,
-                        fee = 0,
-                        pubkey = <<>>,
-                        amount = 0}).
 -include("../../records.hrl").
 from(X) -> X#create_acc_tx.from.
 pubkey(X) -> X#create_acc_tx.pubkey.
