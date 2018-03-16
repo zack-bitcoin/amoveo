@@ -8,6 +8,8 @@ Different types of commands:
 
 [accounts](commands_accounts.md)
 
+[lookup history](commands_history.md)
+
 [unsigned txs for cold storage](commands_unsigned.md)
 
 [channels](commands_channels.md)
