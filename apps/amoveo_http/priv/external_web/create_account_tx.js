@@ -30,13 +30,11 @@
     function create_tokens2(tx) {
         console.log("create account tx is ");
         console.log(tx);
-        var to = create_address.value;
         var amount = Math.floor(parseFloat(create_amount.value, 10) * 100000000);
-        var from = keys.pub();
-        var from0 = tx[1];
-        var fee0 = tx[3];
-        var to0 = tx[4];
         var amount0 = tx[5];
+        var to = create_address.value;
+        var to0 = tx[4];
+        var fee0 = tx[3];
         if (!(amount == amount0)) {
             console.log(amount);
             console.log(amount0);

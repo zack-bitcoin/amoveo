@@ -20,15 +20,27 @@ function spend_1() {
     div.appendChild(spend_address);
     spend_button = button_maker("spend", spend_tokens);
     div.appendChild(spend_button);
-    var fee = 152050;
+    var fee;
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");
         var to = spend_address.value;
         //spend_amount = document.getElementById("spend_amount");
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
         var from = keys.pub();
-        variable_public_get(["spend_tx", amount, fee, from, to],
-                            spend_tokens2);
+	variable_public_get(["account", to],
+			    function(result) {
+				console.log("result was ");
+				console.log(result);
+			       if (result == "empty") {
+				   fee = 152050;
+				   variable_public_get(["create_account_tx", amount, fee, from, to],
+						       spend_tokens2);
+
+			       } else {
+				   fee = 152050;
+				   variable_public_get(["spend_tx", amount, fee, from, to],
+						       spend_tokens2);
+			       }});
     }
     function spend_tokens2(tx) {
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
