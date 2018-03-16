@@ -1,8 +1,8 @@
 
 If you have cleaned your database with `make prod-clean`, your databse still has the blocks. You can save bandwidth by re-syncing with the blocks from your database.
 ```
-block_absorber:restore(full).%reads all the blocks.
-block_absorber:restore(quick).%only reads 90% of blocks, but is faster.
+block_absorber:recover(full).%reads all the blocks.
+block_absorber:recover(quick).%only reads 90% of blocks, but is faster.
 ```
 
 
