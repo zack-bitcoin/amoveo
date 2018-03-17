@@ -9,6 +9,6 @@ get(1) ->
 get(2) ->
     case application:get_env(amoveo_core, kind) of
 	{ok, "production"} -> 9000;
-	_ -> 50
+	_ -> 0
     end.
     
