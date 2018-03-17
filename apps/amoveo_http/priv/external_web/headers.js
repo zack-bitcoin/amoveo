@@ -155,8 +155,8 @@ function headers_main() {
 		if (height > 8999) {
 		    var nonce2 = nonce.slice(-23),
 		    foo = h1.concat(string_to_array(nonce2));
-		    console.log(foo);
-		    console.log(nonce2);
+		    //console.log(foo);
+		    //console.log(nonce2);
                     h2 = hash(foo);
                     I = newhash2integer(h2);
 		} else {
