@@ -196,6 +196,31 @@ tx_costs([STx|T], Governance, Out) ->
 new_dict(Txs, Dict, Height, _Pub, _PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
     Dict2.
+market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height) ->
+    FH = forks:get(3),
+    if
+	FH > Height ->
+	    OldBlock#block.market_cap + 
+		BlockReward - 
+		gov_fees(Txs0, Governance);
+	Height == FH -> 
+	    MC1 = OldBlock#block.market_cap + 
+		BlockReward - 
+		gov_fees(Txs0, Governance),
+	    (MC1 * 6) div 5;
+	FH < Height ->
+	    DeveloperRewardVar = 
+		governance:dict_get_value(developer_reward, Dict),
+	    DeveloperReward = 
+		(BlockReward * 
+		 DeveloperRewardVar) div 
+		10000,
+	    OldBlock#block.market_cap + 
+		BlockReward - 
+		gov_fees(Txs0, Governance) + 
+		DeveloperReward
+    end.
+    
     
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
@@ -212,6 +237,7 @@ make(Header, Txs0, Trees, Pub) ->
     PrevHash = hash(Header),
     OldBlock = get_by_hash(PrevHash),
     BlockReward = governance:get_value(block_reward, Governance),
+    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -225,7 +251,8 @@ make(Header, Txs0, Trees, Pub) ->
 		   prev_hashes = calculate_prev_hashes(Header),
 		   proofs = Facts,
                    roots = make_roots(Trees),
-		   market_cap = OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
+		   %market_cap = OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
+		   market_cap = MarketCap,
 		   channels_veo = OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
 		   live_channels = OldBlock#block.live_channels + many_live_channels(Txs0),
 		   many_accounts = OldBlock#block.many_accounts + many_new_accounts(Txs0),
@@ -368,14 +395,15 @@ check(Block) ->
 
     Txs0 = tl(Txs),
     BlockReward = governance:get_value(block_reward, Governance),
-    true = Block#block.market_cap == OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
+    Height = Block#block.height,
+    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height-1),
+    true = Block#block.market_cap == MarketCap,
     true = Block#block.channels_veo == OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
     true = Block#block.live_channels == OldBlock#block.live_channels + many_live_channels(Txs0),
     true = Block#block.many_accounts == OldBlock#block.many_accounts + many_new_accounts(Txs0),
     true = Block#block.many_oracles == OldBlock#block.many_oracles + many_new_oracles(Txs0),
     true = Block#block.live_oracles == OldBlock#block.live_oracles + many_live_oracles(Txs0),
 
-    Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
