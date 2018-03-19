@@ -15,12 +15,18 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### For next hard fork
 
-* the market_cap on each block isn't including the developer reward.
-
 
 
 
 ### Things to do
+
+* deleting accounts from the light node might have problems.
+
+* atomic swap protocol
+
+* main.html from the mining pool should say the total number of miners, and the total outstanding shares.
+
+* write docs for making channels in the light node.
 
 * fix the race condition where it says `potential block died!`.
 - maybe it is already fixed?
@@ -35,7 +41,7 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 * test_txs(15). channel slash isn't being automatically created.
 
-* It is not clear how to use github to update values in the config file. 
+* It is not clear in the docs on github how to update values in the config file. 
 
 * if the response from {give_block, Block} is not base64 encoded, then it freezes us from pushing the new block to peers. We should probably decode it manually so that we can handle errors better.
 

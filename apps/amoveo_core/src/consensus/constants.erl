@@ -13,7 +13,7 @@ encoded_fee() -> 905.
 initial_difficulty() -> 
     case application:get_env(amoveo_core, kind) of
         {ok, "local"} -> 0;%unit tests
-        {ok, "integration"} -> 1000;%2500;%integration tests.
+        {ok, "integration"} -> 2500;%2500;%integration tests.
         {ok, "production"} -> 8844
     end.
 difficulty_bits() -> 24.
