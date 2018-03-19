@@ -19,7 +19,13 @@ terminate(_, X) ->
     %PH = B#block.prev_hash,
     %PB = block:get_by_hash(PH),
     %tree_data:garbage(B, PB),
+    TP = tx_pool:get(),
+    Txs = TP#tx_pool.txs,
     tx_pool:dump(),
+    spawn(fun() ->
+		  timer:sleep(1000),
+		  tx_pool_feeder:absorb_async(Txs)
+	  end),
     io:format("potential block died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
