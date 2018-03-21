@@ -26,6 +26,8 @@ Amoveo main net will launch at 11:00 AM GMT on March 2, 2018.
 
 [Amoveo announcements on twitter](https://twitter.com/zack_bitcoin)
 
+[Statistics page to see historic difficulty, and more](https://jimhsu.github.io/amoveo-stats/)
+
 
 ## Light node
 Simply visit [this webpage](http://159.65.120.84:8080/wallet.html) to participate in Amoveo, no installation necessary.
@@ -39,7 +41,8 @@ You can mine slowly mine blocks from the light node.
 
 ## Block Explorer
 The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
-Go to the block explorer to see all the markets that are being run on that node.
+
+Another explorer is [here](http://159.89.106.253:8080/explorer.html) This one has some markets where you can gamble.
 
 
 ## Full node
@@ -47,16 +50,18 @@ Go to the block explorer to see all the markets that are being run on that node.
 
 
 ## Mining
-[Miner for Nvidia GPU](https://github.com/decryptoed/amoveo-cuda-miner)
-[Here is another miner for Nvidia GPU](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
-[Linux and Mac OSX CPU miner](https://github.com/zack-bitcoin/amoveo-c-miner)
-[Windows CPU miner](https://github.com/Mandelhoff/AmoveoMinerCpu/releases)
+[Here is a miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
+
+[Linux and Mac OSX CPU miner, only for educational purposes](https://github.com/zack-bitcoin/amoveo-c-miner)
+
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
 Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 
 
 ## Mining Pool
 If your full node is on a different machine from your miner, you will need a mining pool. [Mining pool software can be found here.](https://github.com/zack-bitcoin/amoveo-mining-pool)
+The "shares" branch is for paying out small amounts to each miner with each block.
+The "master" version only pays a miner when they find a block.
 
 
 ## Developers

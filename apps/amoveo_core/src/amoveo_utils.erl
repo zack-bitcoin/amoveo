@@ -26,6 +26,12 @@ address_history(X, Many, End) ->
 address_history2(X, Block, Finish, Out) 
   when Finish == Block#block.height -> Out;
 address_history2(X, Block, Finish, Out) ->
+    CB = hd(Block#block.txs),
+    io:fwrite("cb "),
+    io:fwrite(packer:pack(element(2, CB))),
+    io:fwrite(" height "),
+    io:fwrite(integer_to_list(Block#block.height)),
+    io:fwrite("\n"),
     Txs = tl(Block#block.txs),
     H = Block#block.height,
     K = address_txs(X, Txs, [], H),
