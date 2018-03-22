@@ -185,7 +185,11 @@ doit({channel_close, CID, PeerId, SS, STx}) ->
     Expires = CD#cd.expiration,
     LifeSpan= max(0, Expires - Height),
     CFee = TV * LifeSpan * (Bal1 + Bal2) div 100000000,
-    Tx = channel_team_close_tx:make_dict(CID, Amount-CFee, Fee),
+    Tx2 = channel_team_close_tx:make_dict(CID, Amount-CFee, Fee),
+    io:fwrite("channel close compare txs \n"),
+    io:fwrite(packer:pack(Tx)),
+    io:fwrite(packer:pack(Tx2)),
+    Tx = Tx2,
     SSTx = keys:sign(STx),
     tx_pool_feeder:absorb(SSTx),
     {ok, SSTx};
