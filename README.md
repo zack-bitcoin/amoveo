@@ -28,6 +28,8 @@ Amoveo main net will launch at 11:00 AM GMT on March 2, 2018.
 
 [Statistics page to see historic difficulty, and more](https://jimhsu.github.io/amoveo-stats/)
 
+[Network page to see the nodes that power the network](http://185.117.73.74/amoveo-network-status)
+
 
 ## Light node
 Simply visit [this webpage](http://159.65.120.84:8080/wallet.html) to participate in Amoveo, no installation necessary.
