@@ -20,6 +20,8 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### Things to do
 
+* set up the market again.
+
 * deleting accounts from the light node might have problems.
 
 * atomic swap protocol
