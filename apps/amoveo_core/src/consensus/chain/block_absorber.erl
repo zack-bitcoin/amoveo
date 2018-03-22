@@ -69,34 +69,14 @@ absorb_internal(Block) ->
 		true ->
 		    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
 		    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
-		    TH = headers:read(BH),
-		    Header = case TH of
-				 {ok, H} -> 
-				     headers:absorb_with_block([H]),
-				     H;
-				 error -> 
-				     H = block:block_to_header(Block),
-				     headers:absorb([H]),
-				     headers:absorb_with_block([H]),
-				     H
-			     end,
+		    H = block:block_to_header(Block),
+		    headers:absorb([H]),
 		    {true, Block2} = block:check(Block),
 		    BH = block:hash(Block2),
 		    do_save(Block2),
-	    %if 
-		%(Height == 1) ->
-		%    {ok, RD} = application:get_env(amoveo_core, revert_depth),
-	    %HH = (headers:top())#header.height,
-	    %if
-		%HH == Height -> sync_mode:normal();
-		%true -> ok
-	    %end,
-	    %if
-		%	HH - RD < Height -> sync_mode:normal();
-		%	true -> ok
-		%    end;
-		%true -> ok
-	    %end,
+		    headers:absorb_with_block([H]),
+		    Header = H,
+
 		    case sync_mode:check() of
 			normal -> 
 			    push_block:add(Block2),
