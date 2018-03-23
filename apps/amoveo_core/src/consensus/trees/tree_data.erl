@@ -1,7 +1,7 @@
 -module(tree_data).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	dict_update_trie/2, garbage/2]).
+	dict_update_trie/2, garbage/2, remove_before/2]).
 -include("../../records.hrl").
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -9,6 +9,9 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
+handle_call({remove_before, Blocks, Work}, _, _) -> 
+    B2 = remove_before_internal(Blocks, Work),
+    {reply, B2, []};
 handle_call({garbage, Trash, Keep}, _, _) -> 
     internal(Trash, Keep, fun(A, B, C) -> trie:garbage(A, B, C) end),
     {reply, ok, []};
@@ -20,6 +23,8 @@ handle_call({update, Trees, Dict}, _From, _) ->
     {reply, Y, []};
 handle_call(_, _From, X) -> {reply, X, X}.
 
+remove_before(Blocks, Work) ->
+    gen_server:call(?MODULE, {remove_before, Blocks, Work}).
 dict_update_trie(Trees, Dict) ->
     gen_server:call(?MODULE, {update, Trees, Dict}).
 garbage(Trash, Keep) ->
@@ -246,6 +251,20 @@ orders_batch_update2(OID, L, Dict, Oracles) ->
     Orders2 = trie:put_batch(L2, Orders, orders),
     oracles:dict_write(DO, Orders2, Dict).
    
+remove_before_internal([], _) -> [];
+remove_before_internal([{Hash, TotalWork}|T], X) when TotalWork < X ->
+    KeepBlock = block:get_by_hash(Hash),
+    Height = KeepBlock#block.height,
+    if
+	Height < 2 -> ok;
+	true ->
+	    H = KeepBlock#block.prev_hash,
+	    OldBlock = block:get_by_hash(H),
+	    internal(OldBlock, KeepBlock, fun(A, B, C) -> trie:garbage(A, B, C) end)
+	    %tree_data:garbage(OldBlock, KeepBlock)
+    end,
+    remove_before_internal(T, X);
+remove_before_internal([H|T], X) -> [H|remove_before_internal(T, X)].
 
 
 

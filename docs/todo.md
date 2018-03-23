@@ -20,6 +20,8 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### Things to do
 
+* move recent_blocks:remove_before into the tree_data gen_server.
+
 * there is a problem with closing channels from the light node.
 
 * deleting accounts from the light node might have problems.
