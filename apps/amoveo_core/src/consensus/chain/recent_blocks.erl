@@ -38,7 +38,7 @@ handle_call({add, Hash, TotalWork, Height}, _, X) ->
 				      A1 < B1
 			      end,
 			      X#r.blocks),
-              Blocks = remove_before(BS, AncestorsWork),
+              Blocks = tree_data:remove_before(BS, AncestorsWork),
               #r{blocks = [{Hash, TotalWork}|Blocks], work = TotalWork, save_limit = AncestorsWork};
           TotalWork > X#r.save_limit ->
               X#r{blocks = [{Hash, TotalWork}|X#r.blocks]};
@@ -55,19 +55,6 @@ handle_call(_, _From, X) -> {reply, X, X}.
 get_hashes([]) -> [];
 get_hashes([{Hash, _}|T]) -> 
     [Hash|get_hashes(T)].
-remove_before([], _) -> [];
-remove_before([{Hash, TotalWork}|T], X) when TotalWork < X ->
-    KeepBlock = block:get_by_hash(Hash),
-    Height = KeepBlock#block.height,
-    if
-	Height < 2 -> ok;
-	true ->
-	    H = KeepBlock#block.prev_hash,
-	    OldBlock = block:get_by_hash(H),
-	    tree_data:garbage(OldBlock, KeepBlock)
-    end,
-    remove_before(T, X);
-remove_before([H|T], X) -> [H|remove_before(T, X)].
 add(Hash, Work, Height) ->
     gen_server:call(?MODULE, {add, Hash, Work, Height}).
 read() -> gen_server:call(?MODULE, read).
