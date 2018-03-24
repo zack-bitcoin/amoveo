@@ -59,8 +59,16 @@ Another explorer is [here](http://159.89.106.253:8080/explorer.html) This one ha
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
 Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 
+Here is a list of mining pools you can connect your miner to:
 
-## Mining Pool
+http://159.65.120.84:8085/main.html
+
+http://amoveopool2.com/pool
+
+http://amoveo.noncense.tech/
+
+
+## Software to launch a new mining pool
 If your full node is on a different machine from your miner, you will need a mining pool. [Mining pool software can be found here.](https://github.com/zack-bitcoin/amoveo-mining-pool)
 The "shares" branch is for paying out small amounts to each miner with each block.
 The "master" version only pays a miner when they find a block.
