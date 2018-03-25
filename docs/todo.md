@@ -21,6 +21,8 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 ### Things to do
 
 
+* mining pool should say the fee size, the number of active miners, last block made today, blocks made in last 24 hours, total veo distributed, current block height?
+
 * add a timestamp for when you look up blocks in the explorer.
 
 * add the hash of the github commit in the explorer.

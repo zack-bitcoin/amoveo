@@ -51,7 +51,7 @@ address_txs(Key, [X|T], Out, Height) ->
 		  To = Tx#create_acc_tx.pubkey,
 		  Amount = Tx#create_acc_tx.amount,
 		  spend_common(Tx, Key, From, To, Amount, Height);
-	      _ -> ok
+	      _ -> ""
 	  end,
     address_txs(Key, T, New ++ Out, Height).
 spend_common(Tx, Key, From, To, Amount, Height) ->
