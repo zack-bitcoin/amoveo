@@ -31,3 +31,37 @@ C/(2p) / (C / p) = 2.
 ```
 so the block perdio would double.
 So if hash_power(p) is of the form C, then our current retargetting formula is ideal.
+
+
+
+
+Now we consider if hash_power(price) = max(0, C - price), for some constant C. This case is more similar to reality in that there is an upper limit above which practically no one mines.
+
+block_period(p) = hash_power(p) / 0 = max(0, (C - p) / p)
+
+so if the price starts at C/10 and doubles, what happens?
+```
+new_period / old_period =
+(9C/10) / (8C/10) = 9/8.
+```
+therefore, the period would increase by about 12.5%
+
+
+what if the price starts at 2C/3 and doubles?
+```
+(1C/3) / (0) = infinity.
+```
+
+In this case the ideal retargetting formula would need to account for how far away C is, since we should never go bigger than C.
+
+
+
+Now we consider if hash_power(price) = {price < L -> C * 5; price > L -> C}. Lets consider the case where price = L-epsilon as epsilon tends to zero, and it doubles.
+
+```
+new_period / old_period =
+(C*5) / C = 5.
+```
+so the period would increase by a factor of 5.
+It would oscilate the same amount up and down.
+It seems like the miners who are able to participate on the more difficult side of things are incentivized to do enough extra work to keep the difficulty high, and stop the oscilation. 
