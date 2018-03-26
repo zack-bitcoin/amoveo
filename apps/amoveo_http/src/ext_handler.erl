@@ -21,6 +21,7 @@ handle(Req, State) ->
 		B = case A of
 			{f} -> {ok, IP};
 			{headers, H} ->
+			    peers:add({IP, 8080}),
 			    headers:absorb(H),
 			    spawn(fun() ->
 					  HH = api:height(),
