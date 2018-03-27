@@ -1,7 +1,7 @@
 Commands related to accounts
 =========
 
-#### Find out your account pubkey in binary format
+#### Find out your account pubkey in external base64 format
 ```
 api:pubkey().
 ```

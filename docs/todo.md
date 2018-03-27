@@ -21,6 +21,10 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 ### Things to do
 
 
+* crash notes:
+1) potential_block terminated because tx_pool:get didn't respond.
+2) headers:top_with_block didn't respond.
+
 * mining pool should say the fee size, the number of active miners, last block made today, blocks made in last 24 hours, total veo distributed, current block height?
 
 * add a timestamp for when you look up blocks in the explorer.

@@ -317,7 +317,7 @@ push_new_block_helper(N, M, [P|T], Hash, Headers) ->
     push_new_block_helper(N+Top, M+Bottom, T, Hash, Headers).
 trade_txs(Peer) ->
     case remote_peer({txs, 2, []}, Peer) of
-	    {error} ->%once everyone upgrades to the new code, we can get rid of this branch.
+	    error ->%once everyone upgrades to the new code, we can get rid of this branch.
 	    %ok;
 	    %1=2,%only for a test. remove this line.
 	    spawn(fun() ->

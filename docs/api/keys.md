@@ -34,9 +34,14 @@ To manually sign raw binary data:
 keys:raw_sign(<<"binary data">>).
 ```
 
-To find out your pubkey
+To find out your pubkey in the internal binary format:
 ```
 keys:pubkey().
+```
+
+To find your pubkey in the external base64 encoded format:
+```
+api:pubkey().
 ```
 
 To calculate a shared_secret with a partner, you need a copy of their pubkey:

@@ -502,5 +502,6 @@ mining_data() ->
 
    
 mining_data(X) ->
-    L = lists:map(fun(N) ->
-			  round(block:hashrate_estimate(N)) end, lists:seq(30, block:height(), X)).
+    mining_data(X, 30).
+mining_data(X, Start) ->
+    L = lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, lists:seq(Start, block:height(), X)).
