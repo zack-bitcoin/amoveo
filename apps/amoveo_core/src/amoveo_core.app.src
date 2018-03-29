@@ -1,0 +1,25 @@
+{application, amoveo_core,
+ [
+  {description, "blockchain"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  ssl,
+                  inets,
+                  jiffy,
+                  dump,
+                  trie,
+                  pink_hash,
+                  chalang,
+                  amoveo_http,
+                  lager,
+                  encrypter
+                 ]},
+  {modules, []},
+  {mod, { testnet_app, []}},
+  {env, [
+	  {error_logger, {file, "log.db"}}
+	]}
+ ]}.

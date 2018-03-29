@@ -1,34 +1,179 @@
 ### things to do for the next hard fork
 
-* increase constants initial difficulty.
-* we are putting a bunch of unnecessary zero bits before we hash a leaf in leaf.erl
-* chalang signatures are double-base64 encoded. they should only be single-encoded.
 
 
-### Things to do before the launch of the official Amoveo blockchain.
 
+### Other hard fork ideas
+
+Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
+
+
+
+
+### Things to do
+
+* in explorer.html the graph should have labeled axis, and we should write the blue = betting on "yes", and orange = betting on "no".
+
+* explorer.html When you list the available markets, each thing should be a button so that you don't have to copy/paste the text. Also, we should probably list each thing on it's own line.
+
+* crash notes:
+1) potential_block terminated because tx_pool:get didn't respond.
+2) headers:top_with_block didn't respond.
+
+* mining pool should say the fee size, the number of active miners, last block made today, blocks made in last 24 hours, total veo distributed, current block height?
+
+* add a timestamp for when you look up blocks in the explorer.
+
+* add the hash of the github commit in the explorer.
+
+* move recent_blocks:remove_before into the tree_data gen_server.
+
+* there is a problem with closing channels from the light node.
+
+* deleting accounts from the light node might have problems.
+
+* atomic swap protocol
+
+* main.html from the mining pool should say the total number of miners, and the total outstanding shares.
+
+* write docs for making channels in the light node.
+
+* fix the race condition where it says `potential block died!`.
+- maybe it is already fixed?
+- it seems like there is a memory leak. normally uses 60 mb for Amoveo, but it slowly rose to 150 mb.
+- sometimes we are pruning data that we should not be pruning. I only happened on one node, not all of them. restarting from 0 fixed it.
+
+* check the case where someone sends a good headers with a bad block. Don't ignore the good block after this happens.
+
+* don't delete the blocks so easily. they are useful for recovery.
+
+* miners need instructions on making pubkeys.
+
+* test_txs(15). channel slash isn't being automatically created.
+
+* It is not clear in the docs on github how to update values in the config file. 
+
+* if the response from {give_block, Block} is not base64 encoded, then it freezes us from pushing the new block to peers. We should probably decode it manually so that we can handle errors better.
+
+* potential block:new_internal2 can use headers:top_with_block instead of the slow block_to_header.
+
+* test the case where we know about more headers than blocks, and we want to recover the network by mining a new version of history.
+
+* it seems like if we are aware of txs from future blocks, it can prevent us from verifying those future blocks.
+
+* sync gen server is getting a too-full mailbox, and it is filled with unnecessary repeat data.
+
+* optimize the protocol for trading peers and txs. Only send txs and peers that they don't know about. Trade these lists less frequently, right now it is too much bandwidth.
+
+* decrease how often miners try to sync.
+
+* we are wasting some time syncing with ourselves.
+
+* it isn't switching to normal mode well !!!!!!!!!!!!!!!!!!!!!!!!!
+maybe we should switch back to the original idea. If it finds less than 1 block per 5 seconds in the last 2 minutes, then switch to normal mode.
+- update docs getting-started/turn_it_on.md
+
+* measure the rate at which blocks have been found in the recent 2 minutes. if the rate is < 1 block per 30 seconds, then switch to sync_mode normal.
+
+* in the mining pool, we need to make the cron task into a gen_server so that it wont crash.
+
+* if a peer refuses the blocks we send them, then blacklist them.
+
+* it is confusing how we have sync:start/sync:stop and we also have sync_mode:quick/sync_mode:normal.
+Can't 1 flag do both things?
+
+* instead of downloading a certain number of blocks at a time, we should have a certain number of byts we download at a time.
+
+* if you make several txs in a row, they don't all get included in a block.
+
+* fix compiler warnings. unused variables and such.
+
+* delete unnecessary messages
+
+* we should probably delete and rebuild the configuration files every time we build the project. That way you don't have to ever manually delete them.
+
+* limit how much bandwidth any individual IP can consume.
+
+* decrease data volume requirements.
+
+* if you try turning the node on while it is already on, it should at least give you error warnings. At best it should also refuse to corrupt it's database.
+
+* the documentation needs to be clearer that you are not supposed to run the software as root. you are supposed to make an account.
+
+* the explorer should say how many headers, and how many blocks the node it is connected to has.
+
+* maybe we should use pkill instead of killall in c-miner clean.sh
+
+* the light node should automatically know whether you need a spend_tx or a create_account_tx.
+
+* start out with more default peers.
+
+* do txs get dropped from the mining pool tx_pool if someone else mines a block?
+
+* the light node should have tabs, so it doesn't display so much at the same time.
+
+* rethink the process of creating blocks and mining. It seems like race conditions might happen here.
+
+* looking up blocks to push is too slow. we should look them up in reverse order to be faster.
+
+* lightning payment api is not verifying data before using it. We should fail fast instead. Review the rest of the external api for the same problem.
+
+* if the node is already running, then `make prod-restart` should do the same thing as `make prod-attach`
+
+* `sync:stop().` should be called before `api:off().` when shutting down. put this in the documentation somewhere useful.
+
+* config fork toleranace and config revert depth should be the same thing.
+
+* documentation for sync_mode.
+
+* in block_absorber.erl we are spawning a process that has to filter some txs. We can make this faster n**2 -> n*log(n).
+- additionally, we should only do this calculation when in normal mode. If we are trying to sync blocks quickly, we can skip this calculation.
+
+* in spk.js there is a spot where we should be verifying signatures, but we are not.
+
+* spk get_paid and spk apply_bet should probably incrase the nonce by more than 1.
+
+* When syncing we are building a potential block at every height. This is very innefficient. Instead we should download the entire history before building potential blocks.
+
+* the mining pool should never spam the full node. They are on the same machine.
+
+* rethink syncing. If you have more headers than the server, it fails to download blocks.
+
+* The light node should allow for betting in the oracle. 
+
+* when your bets get matched, the ss gets displayed in the browser. We should probably display more information along with the ss, so users can more easily tell if they need to use the smart contract enforcement mechanism.
+
+* more tests of the attack where someone generates tons of fake peers and adds them all to the list.
+- maybe we should limit how many peers we are willing to download from any one peer.
+- There are some peers hard-coded into the core software. If these peers are not in our peer list, we should occasionally check to see if we can link with them again
+
+* verify that the light node will not make a market smart contract where the server might not have enough funds to pay.
+
+* if the peer isn't accepting blocks, then do not blindly give it more blocks.
+
+* the light-node is memorizing the server's pubkey too early. If you change the ip you are connecting to, it should change the server's pubkey we store in ram as well.
+
+* the light node fails badly. It should give useful error messages.
+
+* The password is being recorded in the log. This is bad.
+
+* it should be more obvious that miners need to insert their pubkey into c_miner and javascript_miner.
+
+* the c-miner should have an easier way to decide which node you will connect to.
+
+* We need to prune bets and orders.
 
 * the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
 
-* the random number generator for the light node is probably not good enough, especially if you are on a phone.
+* javascript light node should give an option for extending the time limit in channels. there is an api for paying the server already. modify this slightly.
+
+* outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
 
 * we need to test out the different formats for "true" and "false" in the javascript light node.
 
-* there are some places in the javascript light node where we aren't verifying signatures that we should be verifying.
-I took notes. Search for "verify" in channels.js
-
 * go through every case in the light node where we do a variable_public_get. Make sure we verify the response as much as possible. Do not blindly sign or store anything from them for example.
 
-* in the javascript light node, we should seperate the view-code from the controller-code from the model-code in each page.
-
-* in the javascript light node, we should wrap up code inside functions to protect the global name space.
-
-* javascript light node should tell you how much time is left in your channel, and give an option for extending the time limit.
-
-* make sure that markets are working from the light wallet.
-
 * in sync.erl we should start by checking each peer's version, and then ignore peers who use the wrong version.
-* there needs to be an interface to pushing the channel expiration further into the future by paying a fee. We already have an api for sending a payment to the server, we just modify this slightly.
 
 * secrets is leaking data.
 
@@ -40,52 +185,20 @@ I took notes. Search for "verify" in channels.js
 
 * there should be a refund if you close a channel early. The refund should be enforced by a smart contract. It is important that this smart contract's nonce does not increase with time, otherwise the contract can be slashed forever.
 
-
-* the server should probably refuse to let a channel participate in any markets until it has enough confirmations.
-
 * running sync:start() when we are already synced is causing some error messages.
 
-
-
 * Use request_frequency.erl to limit how quickly we respond to requests from each ip address.
-
-* lightning payments from the light node.
-
-* when you cancel a bet, it should increase the spk's nonce. otherwise the dead bet could come back to life.
-
-* review the rules about increasing the balance of channels. We should require a payment that make sense.
-grow_channel_tx:good and new_channel_tx:good should move into the /channels directory, since they aren't related to consensus.
-- there is an attack where someone makes lots of channels, then moves all their money to a small number of channels, and closes all the channels where they had lots of money. The result of this attack is that the server's money is all locked up in channels.
-- ideally, we should charge based on the amount of time that the server's money is locked up. We should have the customer pay for X number of days as a minimum, and eventually we request that they pay for more days. If the customer doesn't pay in time, then we close the channel to recover the funds.
-- Customers should be unable to participate in any contract that doesn't settle in the time alloted for them.
-Market contracts need some sort of default, so they can be closed within the limit. The default should probably be that the server wins, this way the customer can have the freedom to set up the bet with whatever time constraints they want, at their own risk. It is a sort of "I cut, you choose" protocol.
-- we should have a constant in the config file be "time_value", and we use this to calculate how much it costs to have the server's money locked up for a period of time.
 
 * make the pubkeys more convenient for copy/pasting. It would be nice if we used compressed pubkeys instead of full pubkeys. Maybe we should use the base58 library, or the pubkey checksum library.
 Maybe encoding the pubkeys should happen at the wallet level, not the node level.
 
 * pull channel state shouldn't cause a crash when the state is already synced.
 
-* we need to look at the test for options again. What if our channel partner refuses to let us add more money to the channel? Then we couldn't buy the option. There needs to be a way for just one of the participants to put their own money into the channel if they choose to.
-Oh, we should have our partner sign a transaction that allows us to put money into the channel, and we can choose whether or not to sign it in the future.
-So it is important that a channel_grow transaction ignores the nonces of the two accounts that sign it.
+* there needs to be an off switch on each market, so the market maker can gracefully stop his losses before too much information leaks. or does there? this should be thought out more.
 
-* there needs to be an off switch on each market, so the market maker can gracefully stop his losses before too much information leaks.
 - the market contract delays need to be long enough so that the contract is still live, even if the oracle takes a while to publish.
 
-* if a customer tries closing the market early and we are at risk of losing money, then the market maker needs to keep periodically publishing evidence to the contrary, until the channel can be settled, or until someone else can be found to take on the risk of the missing channel. It works similar to combine-cancel.
-
-* we need to be able to grow channels, and close channels from the light node.
-
 * analyze contracts to make sure they aren't unclosable, as explained in the attacks analyzed doc.
-
-* test lightning from the gui.
-
-* the gui needs to make it convenient to collect winnings after a market is closed.
-
-* maybe the gui should allow for betting in the oracle?
-
-* outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
 
 * the wallet should have some error messages:
 - insufficient funds
@@ -93,12 +206,6 @@ So it is important that a channel_grow transaction ignores the nonces of the two
 - lightning partner doesn't have a channel
 
 * the readme should explain about public keys better
-
-* channel manager needs a check so that we can't make bets that can't be settled do to insufficient funds.
-
-* We need code so that if the market ever makes a mistake, the customers can withdraw all their money.
-
-* the password is being recorded in the log. This is bad.
 
 * If you use an incorrect password, there should be a useful error message.
 
@@ -108,21 +215,10 @@ So it is important that a channel_grow transaction ignores the nonces of the two
 
 
 
-
-
-
-
-
-### Things we can do after launch of mainnet
-
 * calculating block_to_header is too very slow. Which means calculating the hash of a block is slow too.
 * We should store the hash of the block along with the block, that way we don't have to re-calculate it more than once. When sharing blocks we can use this hash to quickly ignore blocks we have already seen, but for a block to be considered valid, we need to check at least once that the hash was calculated correctly.
 
 * merkle.js should be able to verify proofs of the trie being empty in some places.
-
-* we should use trie:garbage_leaves on erlang light nodes to prune even more things from the trie that we don't care about.
-
-* We should optionally garbage collect old blocks, only keep the headers. 
 
 * light nodes should only download headers and a few recent blocks. They should verify blocks in parallel.
 
@@ -152,12 +248,17 @@ Making A1 rem B == 0 limits the possible output values of the contract, which sl
 
 Blocks should be serialized to be fully compressed.
 
-* spk.erl is currently using trees when processing channel contracts. This is no good, trees are too slow. We should upgrade it to use dictionaries whenever possible.
-
 * We need some way of garbage collecting old channels from the channels manager once the channel has been closed long enough.
-
-* It would be cool if we could trustlessly combine a grow_channel_tx with a channel payment. This might involve a hard fork.
 
 * reading from the hard drive can be slow. order_book can be updated to recover from errors without having to re-read everything from the hard drive.
 
 * it is weird how spk_force_update22 in chalang.js calls run5. Since it's parent function is already calling the VM, it seems like we are running it multiple times unnecessarily.
+
+* in tx_pool_feeder absorb_async we sleep for a little time. This is a hackish solution. There is probably a way to use an additional gen_server to make it efficient.
+
+* maybe governance history should be stored by default.
+
+* we need configuration options to decide which parts of the historical data you want to keep.
+* it should be possible to store a shart of a tree.
+
+* an api for downloading blocks in a compressed format.

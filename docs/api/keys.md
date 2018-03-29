@@ -1,4 +1,7 @@
 The node keeps an encrypted copy of your private key.
+You find your keys in this file:
+`_build/prod/rel/amoveo_core/keys/keys.db`
+
 The decrypted copy is only stored in RAM.
 
 You can generate a new private key this way: (warning! this deletes your old private key!!!)
@@ -31,9 +34,14 @@ To manually sign raw binary data:
 keys:raw_sign(<<"binary data">>).
 ```
 
-To find out your pubkey
+To find out your pubkey in the internal binary format:
 ```
 keys:pubkey().
+```
+
+To find your pubkey in the external base64 encoded format:
+```
+api:pubkey().
 ```
 
 To calculate a shared_secret with a partner, you need a copy of their pubkey:
@@ -52,9 +60,4 @@ You can set the password for encryption like this:
 keys:change_password("old_password", "new_password").
 ```
 The default password on a new node is "", the empty string.
-
-
-You find your keys in this file:
-
-_build/prod/rel/ae_core/keys/keys.db 
 

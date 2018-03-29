@@ -19,7 +19,7 @@ Before using your node, make sure your wallet is unlocked. When a wallet is unlo
 keys:unlock("DONT_USE_THIS_PASSWORD").
 ```
 
-One way to get AE is to share your pubkey with someone who has already AE, so that they send some to you.
+One way to get VEO is to share your pubkey with someone who has already VEO, so that they send some to you.
 
 
 To spend money to someone who doesn't yet have an account, you use the create_account transaction:

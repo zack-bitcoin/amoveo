@@ -6,7 +6,7 @@ The consensus state of a blockchain is the current blockchain protocol after syn
 
 Amoveo stores it's consensus state in merkle trees.
 
-There are 8 [merkel trees](/docs/basics/merkle.md).
+There are 8 [Merkle trees](/docs/basics/merkle.md).
 
 * oracles+
 * orders

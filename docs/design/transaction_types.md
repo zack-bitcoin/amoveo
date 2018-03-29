@@ -4,7 +4,7 @@ The miner profits by including transactions that pay above the minimum fee for t
 These are the 15 types of transaction that can be in blocks.
 
 3 transactions for accounts:
-* account_new
+* create_account
 * account_spend
 * account_delete
 
@@ -25,10 +25,9 @@ These are the 15 types of transaction that can be in blocks.
 1 bonus transactions:
 * existence
 
-# account_new
+# create_account
 
 This creates a new account on the blockchain and gives it some tokens.
-The account loses a little money every block. This stops attackers from making tons of accounts to spam the network.
 
 # account_spend
 
@@ -45,7 +44,6 @@ It needs to be signed by both participants in the channel.
 It takes money from both participant's accounts to put into the channel.
 Channels can only hold AE tokens.
 There is a record of recently closed channels. You can't reuse an id from a recently closed channel.
-The channel loses a little money every block. This is to stop attackers from making lots of channels to spam the network.
 
 # channel_team_close
 

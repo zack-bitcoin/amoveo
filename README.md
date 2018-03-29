@@ -19,22 +19,32 @@ This way Amoveo will always stay optimally tuned to produce the best results.
 
 [Amoveo whitepaper](docs/white_paper.md).
 
+Amoveo main net will launch at 11:00 AM GMT on March 2, 2018.
+
 ## Community
 [Amoveo forum on reddit](https://www.reddit.com/r/Amoveo/)
 
 [Amoveo announcements on twitter](https://twitter.com/zack_bitcoin)
 
+[Statistics page to see historic difficulty, and more](https://jimhsu.github.io/amoveo-stats/)
+
+[Network page to see the nodes that power the network](http://185.117.73.74/amoveo-network-status)
+
 
 ## Light node
-Simply visit [this webpage](http://146.185.142.103:8080/wallet.html) to participate in Amoveo, no installation necessary.
+Simply visit [this webpage](http://159.65.120.84:8080/wallet.html) to participate in Amoveo, no installation necessary.
+
+You can also download the javascript light node to ensure you have the secure version, and to be able to run in cold storage. open this file with your browser: `apps/amoveo_http/priv/external_web/wallet.html`
+
 This light node downloads headers and verifies the proof of work.
 It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
 You can mine slowly mine blocks from the light node.
 
 
 ## Block Explorer
-The block explorer for the network is [here](http://146.185.142.103:8080/explorer.html)
-Go to the block explorer to see all the markets that are being run on that node.
+The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
+
+Another explorer is [here](http://159.89.106.253:8080/explorer.html) This one has some markets where you can gamble.
 
 
 ## Full node
@@ -42,8 +52,26 @@ Go to the block explorer to see all the markets that are being run on that node.
 
 
 ## Mining
-[Here is the best mining software that works with Amoveo](https://github.com/zack-bitcoin/amoveo-c-miner)
+[Here is a miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
+
+[Linux and Mac OSX CPU miner, only for educational purposes](https://github.com/zack-bitcoin/amoveo-c-miner)
+
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
+Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
+
+Here is a list of mining pools you can connect your miner to:
+
+http://159.65.120.84:8085/main.html
+
+http://amoveopool2.com/pool
+
+http://amoveo.noncense.tech/
+
+
+## Software to launch a new mining pool
+If your full node is on a different machine from your miner, you will need a mining pool. [Mining pool software can be found here.](https://github.com/zack-bitcoin/amoveo-mining-pool)
+The "master" branch is for paying out small amounts to each miner with each block.
+The "classic" version only pays a miner when they find a block.
 
 
 ## Developers
@@ -55,6 +83,7 @@ If you want to build on top of Amoveo [read the develper's guide](docs/getting-s
 
 ```
 Bitcoin Donations: 1GbpRPE83Vjg73KFvTVZ4EnS2qNkiLY5TT
+Veo donations: BGH+3P768A9cSNR3GLSRXgsokSL/Jdbm+rOJogbgiPxq8M+J2R4nVxZ+Hj6WdI4rMsq6nPzkMh77WGBCMx89HUM=
 Gifts must be less than $10 000 per person per year.
 ```
 

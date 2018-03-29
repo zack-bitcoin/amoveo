@@ -53,7 +53,7 @@ Aeternity        0  0  0  0  0  8  3  -5   7
 I can't find any work on channels from gnosis or augur, but they have both announced that they will use channels. Augur said they will use Ox for this.
 I may be misinformed, as there are many Ethereum channels now. It seems likely that Augur and Gnosis can use them.
 
-Amoveo channels are tested. Lightning payments are tested [here](/tests/test_lightning.py), many edge-cases for channels are tested [here](/apps/ae_core/src/consensus/txs/test_txs.erl).
+Amoveo channels are tested. Lightning payments are tested [here](/tests/lightning.py), many edge-cases for channels are tested [here](/apps/amoveo_core/src/consensus/txs/test_txs.erl).
 You can try out Amoveo channels by installing the erlang full node and using the web browser interface.
 
 Aeternity has no software for channels on their github, and they have not announced any plan for how their channels will work. They have hinted that Aeternity will have turing complete state channels capable of running off-chain smart contracts.
@@ -74,7 +74,7 @@ Zen Protocol, Aeternity, and Bitshares have no plans for sharding that I can fin
 
 ### Light Nodes
 
-[Amoveo has a working light node in the browser](http://146.185.142.103:8080/wallet.html).
+[Amoveo has a working light node in the browser](http://159.89.106.253:8080/wallet.html).
 Amoveo miners can use light nodes, they don't need full nodes.
 The Amoveo network has no requirement for full nodes, it could be 100% light nodes.
 
@@ -92,7 +92,7 @@ Bitshares, Zen Protocol, Stox, Bodhi, and Aeternity.
 A few teams plan to put markets off-chain, but they are markets of brokers, which is much less efficient than an order book. This design also gets a 0.
 Bitcoin Hivemind, Group Gnosis, and Augur.
 
-Amoveo has off-chain markets with order books and single-price batches in the testnet. [You can see graphs of the market state here](http://146.185.142.103:8080/explorer.html)
+Amoveo has off-chain markets with order books and single-price batches in the testnet. [You can see graphs of the market state here](http://159.89.106.253:8080/explorer.html)
 
 ### oracles
 
@@ -109,7 +109,7 @@ Augur has collateral in the form of rep, a subcurrency. The amount of collateral
 
 Gnosis gives an explanation of their oracle with escalation [here](https://blog.gnosis.pm/a-visit-to-the-oracle-fefc9dec5462). the "Ultimate Oracle" is the part with escalation. It is implemented in solidity [here](https://github.com/gnosis/gnosis-contracts/tree/master/contracts/Oracles)
 
-The Amoveo oracle has escalation. It is tested [here](/tests/test_market.py), edge cases of the oracle are tested [here](/apps/ae_core/src/consensus/txs/test_txs.erl)
+The Amoveo oracle has escalation. It is tested [here](/tests/market.py), edge cases of the oracle are tested [here](/apps/amoveo_core/src/consensus/txs/test_txs.erl)
 The Amoveo oracle is live on the Amoveo testnet.
 
 ### blockchain

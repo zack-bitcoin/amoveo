@@ -1,6 +1,6 @@
--sname ae_core_local
+-sname amoveo_core_local
 
--setcookie ae_core_cookie_local
+-setcookie amoveo_core_cookie_local
 
 +K true
 +A30

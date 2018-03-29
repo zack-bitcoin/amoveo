@@ -1,5 +1,5 @@
 [
-  { ae_core, [
+  { amoveo_core, [
 
     %% comment
 
@@ -18,23 +18,25 @@
 
     {smart_contract_runtime_limit, 5000}, %% in miliseconds.
 
-    {recent_blocks_period, 10}, %% this is how frequently we calculate which blocks should no longer be tracked for pruning.
-    {prune_period, 10}, %% this is how frequently we prune all the data from the trees from before revert_depth.
+    {recent_blocks_period, 3}, %% this is how frequently we calculate which blocks should no longer be tracked for pruning.
+    {prune_period, 3}, %% this is how frequently in blocks we prune all the data from the trees from before revert_depth.
+    {prune_txs, 30}, %% this is how frequently in txs we prune all the data from the trees before revert_depth
     %% if prune period is low, then you will use less ram, but you will waste more cpu on pruning.
     {revert_depth, 20}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state. For light nodes this should be set to 0.
     %% if a fork is bigger than revert_depth, your full node will have to reprocess all the blocks, or it will have to download a bunch of proofs.
+    {confirmations_needed, 0}, %% if you want to make a bet with this server, your channel needs at least this many confirmations.
 
     {light_node, false},
-    {trie_size, 20000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. Max block size starts around 207560.
+    {trie_size, 2000000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. 
     %% There are several trees, they are all stored in ram. It is important that trie_size*sum(size of an element in each trie) < (amount of ram you have).
 
     {tx_fee, 1000},
     {lightning_fee, 9},
     {minimum_tx_fee, 9}, %% Only txs with this fee or higher get accepted into your mempool. If you are a miner, you are censoring all txs with lower fees.
 
-    {fork_tolerance, 20}, %% This is used by the channel manager. If the channel has been closed this many blocks, then the channel managers garbage collection would delete it.
+    {fork_tolerance, 50}, %% This is used by the channel manager. If the channel has been closed this many blocks, then the channel managers garbage collection would delete it.
                      %% it is also used when syncing. You download this many extra headers to check if you are on a fork.
-    {headers_batch, 101}, %% You download up to this many headers per request.
+    {headers_batch, 1001}, %% You download up to this many headers per request.
 
     {time_value, 1250}, %% This is / (10 expt 8)
     %% there are around 8000 blocks a month. This node is designed to double its balance at least every 10 months, if it is working at full capacity. It is expected to double its money every 5 months.
@@ -49,12 +51,13 @@
     {fun_limit, 1000}, %%it is recommended to keep the fun and var limits below what is allowed in governance. So if the governance value was to change, your channel will still be valid.
     {var_limit, 10000},
 
-    {min_channel_delay, 0}, %% Needs to be long enough for you to stop your partner from closing at the wrong state.
+    {min_channel_delay, 99}, %% Needs to be long enough for you to stop your partner from closing at the wrong state.
     {max_channel_delay, 2000},
     {min_channel_lifespan, 30}, %%Minimum amount of time you can get a channel with this node for. measured in blocks.
 
-    {download_blocks_batch, 50},
-    {push_blocks_batch, 10}
+    {download_blocks_batch, 50},%% How many blocks we get per request.
+    {download_blocks_many, 4}, %% we are storing blocks in the block_absorber mail box, which is RAM. many*batch*blocksize is how much ram we are using, at most.
+    {push_blocks_batch, 50}
   ]},
 
    {lager, [

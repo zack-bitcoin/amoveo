@@ -14,22 +14,23 @@ Since violence is involved, some people will end up paying more for the good tha
 With insured crowdfunding each person ends up paying slightly less for the public good than how much it benefits them, this is the ideal we want.
 
 There are 3 participants in insured crowdfunding:
-1) entrepenuers
-2) investors
-3) builders
+1) Entreprenuers
+2) Investors
+3) Builders
 
 There are 2 possible results of the crowdfund:
 1) either the public good is successfully created,
 2) or it is not
 
-Here is a graph showing how much cost and reward each participant can get in each situation.
+Here is a chart showing how much cost and reward each participant can get in each situation.
 
-Participants    Entrepenuer    Investor      Builders
-Cost to play    10             110           0
-success         20             0             100
-failure         0              120           0
+| Participants  | Entrepreneurs | Investors  | Builders |
+| ------------- | ------------- | ------------- | ------------- |
+| Cost to play  | 10  | 110  | 0  |
+| Success  | 20  | 0  | 100  |
+| Failure  | 0  | 120  | 0  |
 
-The entrepenuer's job is to do the research to realize that the benefit of the public good outweighs the cost. If the entrepenuer is wrong, then they lose their money.
+The entrepreneur's job is to do the research to realize that the benefit of the public good outweighs the cost. If the entrepreneur is wrong, then they lose their money.
 
 The investor is someone who personally benefits from the creation of the public good. For example, maybe the public good is a new road, and the investor owns a store next to the road. The new road makes the store more valuable.
 The investor participates because it is a way to hedge his risks. The investor is buying insurance against the possibility that the road does not get built. Whether the road is built or not, the investor still profits.

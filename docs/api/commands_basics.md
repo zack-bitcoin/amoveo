@@ -2,22 +2,33 @@ Basic commands to use the blockchain
 ===========
 
 
-#### Sync with the network
-To sync with the network and download the blockchain: 
+#### check progress in syncing blocks
+
+To see the current block height on this node:
 ```
-sync:start().
+block:height().
 ```
 
-#### Current block height
-To see the current block height downloaded to this node:
+To see the current header height on this node:
 ```
 api:height().
 ```
+
+To see the transactions in the tx pool on this node:
+```
+tx_pool:get().
+```
+These are txs that could be included in the next block.
 
 #### Stop a node
 ```
 api:off().
 halt().
+```
+
+#### delete data files to restart at block 0
+```
+make prod-clean
 ```
 
 #### sign a transaction
@@ -29,3 +40,4 @@ keys:sign(Tx).
 ```
 keys:raw_sign(Tx).
 ```
+

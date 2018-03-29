@@ -16,3 +16,5 @@ If the customer is willing to spend N fold more time generating their public key
 
 When you want to publish a tx, the server has the necessary proofs to give the miner so that the tx can be included in a block soon. Miners don't have to maintain any of the state tree, because full nodes share transactions and the merkle proofs needed to verify them at the same time.
 
+Amoveo shards have a cool advantage: Each node can decide for itself exactly which part of the state it wants to keep track of. You aren't restricted to tracking any particular subset.
+So Amoveo could have some shards keeping track of only a single account, and other shards that keep track of more than half of the consensus state.

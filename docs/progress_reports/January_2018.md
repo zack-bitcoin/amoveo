@@ -35,7 +35,7 @@ Each team will be ranked in each of the categories from 0 to 10.
 ```
 channels, shards, light nodes, channel markets, oracles, blockchain, community, trading fees, elegance
                  C  S  L  M  O  B  C  F   E   total
-Amoveo           9  8  9  9  8  8  2  10  10  73
+Amoveo           9  8  9  9  8  9  2  10  10  74
 Group Gnosis     1  0  5  0  8  10 10 5   3   42
 Fun Fair         2  0  5  0  0  10 3  10  3   33
 Stox             0  0  5  0  0  10 2  0   3   20
@@ -56,7 +56,7 @@ Zero Sum Markets 0  0  5  0  0  10 2  -10 3   10
 I can't find any work on channels from gnosis or augur, but they have both announced that they will use channels. Augur said they will use Ox for this.
 I may be misinformed, as there are many Ethereum channels now. It seems likely that Augur and Gnosis can use them.
 
-Amoveo channels are tested. Lightning payments are tested [here](/tests/test_lightning.py), many edge-cases for channels are tested [here](/apps/ae_core/src/consensus/txs/test_txs.erl).
+Amoveo channels are tested. Lightning payments are tested [here](/tests/lightning.py), many edge-cases for channels are tested [here](/apps/amoveo_core/src/consensus/txs/test_txs.erl).
 You can try out Amoveo channels by installing the erlang full node and using the web browser interface.
 
 Aeternity has no software for channels on their github, and they have not announced any plan for how their channels will work. They have hinted that Aeternity will have turing complete state channels capable of running off-chain smart contracts.
@@ -81,7 +81,7 @@ Zen Protocol, Aeternity, and Bitshares have no plans for sharding that I can fin
 
 ### Light Nodes
 
-[Amoveo has a working light node in the browser](http://146.185.142.103:8080/wallet.html).
+[Amoveo has a working light node in the browser](http://159.89.106.253:8080/wallet.html).
 Amoveo miners can use light nodes, they don't need full nodes.
 The Amoveo network has no requirement for full nodes, it could be 100% light nodes.
 
@@ -101,7 +101,7 @@ Bitshares, Zen Protocol, ZeroSum Markets, Stox, Bodhi, Gnosis, and Aeternity.
 A few teams plan to put markets off-chain, but they are markets of brokers, which is much less efficient than an order book with single-price batches. This design also gets a 0.
 Bitcoin Hivemind, Gnosis, and Augur.
 
-Amoveo has off-chain markets with order books and single-price batches in the testnet. [You can see graphs of the market state here](http://146.185.142.103:8080/explorer.html)
+Amoveo has off-chain markets with order books and single-price batches in the testnet. [You can see graphs of the market state here](http://159.89.106.253:8080/explorer.html)
 
 ### oracles
 
@@ -122,7 +122,7 @@ Augur has collateral in the form of rep, a subcurrency. The amount of collateral
 
 Gnosis gives an explanation of their oracle with escalation [here](https://blog.gnosis.pm/a-visit-to-the-oracle-fefc9dec5462). the "Ultimate Oracle" is the part with escalation. It is implemented in solidity [here](https://github.com/gnosis/gnosis-contracts/tree/master/contracts/Oracles)
 
-The Amoveo oracle has escalation. It is tested [here](/tests/test_market.py), edge cases of the oracle are tested [here](/apps/ae_core/src/consensus/txs/test_txs.erl)
+The Amoveo oracle has escalation. It is tested [here](/tests/market.py), edge cases of the oracle are tested [here](/apps/amoveo_core/src/consensus/txs/test_txs.erl)
 The Amoveo oracle is live on the Amoveo testnet.
 
 ### blockchain
@@ -133,9 +133,7 @@ Bodhi uses QTUM, which is a very successful blockchain.
 
 Bitshares is a popular blockchain.
 
-Amoveo, Bitcoin Hivemind, and Zen Protocol have live testnets where you can try out the services being built.
-
-Aeternity does not yet have a testnet.
+Amoveo, Bitcoin Hivemind, Aeternity, and Zen Protocol have live testnets where you can try out the services being built.
 
 
 ### Community

@@ -1,4 +1,4 @@
-I wrote [this game](http://146.185.142.103:8080/finance_game.html) to help make it more obvious how finance improves the world.
+I wrote [this game](http://159.89.106.253:8080/finance_game.html) to help make it more obvious how finance improves the world.
 
 The financial system produces a lot of wealth.
 
@@ -9,4 +9,4 @@ We dont need a big financial sector to have a great economy; Its a brain drain. 
 
 This couldn't be further from the truth. For many smart people, the financial sector is the most effective way to improve the world.
 I have tried using math to explain these concepts, and few people can understand.
-So this time I wrote [A game](http://146.185.142.103:8080/finance_game.html) to make the concepts more concrete.
+So this time I wrote [A game](http://159.89.106.253:8080/finance_game.html) to make the concepts more concrete.
