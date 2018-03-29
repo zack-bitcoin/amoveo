@@ -62,6 +62,7 @@ function channels_main() {
     channel_title.innerHTML = translate.words("channel");
     var channels_div = document.createElement("div");
     var channel_warning_div = document.createElement("div");
+    var make_bet_success_div = document.createElement("div");
     var channel_interface_div = document.createElement("div");
     var load_button = document.createElement("input");
     load_button.type = "file";
@@ -148,6 +149,9 @@ function channels_main() {
     function channel_warning() {
         channel_warning_div.innerHTML = "channel state needs to be saved!~~~~~~~";
     }
+    function make_bet_success() {
+	bet_success_div.innerHTML = "Bet placed. Save your channel state again.";
+    }
     function save_channel_data() {
         var save_name = document.getElementById("channel_name");
         download(JSON.stringify(channel_manager), save_name.value, "text/plain");
@@ -193,7 +197,7 @@ function channels_main() {
             append_children(div, [height_button, amount_info, spend_amount, br(), delay_info, spend_delay, br(), lifespan_info, lifespan]);
         } else {
             console.log("give interface for making bets in channels.");
-            append_children(div, [close_channel_button, br(), balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, trade_amount_info, trade_amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
+            append_children(div, [close_channel_button, br(), balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), price_info, price, trade_type_info, trade_type, trade_amount_info, trade_amount, oid_info, oid, button, br(), make_bet_success_div, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
             lightning_button.onclick = function() { lightning_spend(pubkey); };
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
@@ -314,7 +318,7 @@ function channels_main() {
         cd.ssthem = ([newss]).concat(cd.ssthem);
         write(server_pubkey, cd);
         trade_amount.value = "";
-        channel_warning();
+        make_bet_success();
     }
 
     //Controller
