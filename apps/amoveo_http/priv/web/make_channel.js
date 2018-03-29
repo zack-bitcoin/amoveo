@@ -39,6 +39,7 @@ function make_channel1() {
 
     var spend_delay = document.createElement("INPUT");
     spend_delay.setAttribute("type", "text"); 
+    spend_delay.value = "100";
     var delay_info = document.createElement("h8");
     delay_info.innerHTML = "channel delay (in blocks): ";
     height.appendChild(delay_info);
