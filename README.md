@@ -39,6 +39,8 @@ You can also download the javascript light node to ensure you have the secure ve
 This light node downloads headers and verifies the proof of work.
 It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
 You can use the light node to participate in [markets](docs/light_node/market.md)
+A light node that currently has markets is [here](http://159.65.120.84:8080/wallet.html).
+and the interface to look at the markets is [here](http://159.65.120.84:8080/explorer.html).
 
 
 ## Block Explorer
