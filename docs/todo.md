@@ -12,6 +12,8 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### Things to do
 
+* in explorer.html the graph should have labeled axis, and we should write the blue = betting on "yes", and orange = betting on "no".
+
 * explorer.html When you list the available markets, each thing should be a button so that you don't have to copy/paste the text. Also, we should probably list each thing on it's own line.
 
 * crash notes:
