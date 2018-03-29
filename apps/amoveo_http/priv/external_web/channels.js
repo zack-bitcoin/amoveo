@@ -107,6 +107,7 @@ function channels_main() {
     delay_info.innerHTML = translate.words("channel_delay");
     var lifespan = document.createElement("input");
     lifespan.type = "text";
+    lifespan.value = "4000";
     var lifespan_info = document.createElement("h8");
     lifespan_info.innerHTML = translate.words("channel_lifespan");
     var balance_div = document.createElement("div");
