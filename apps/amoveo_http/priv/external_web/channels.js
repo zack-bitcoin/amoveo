@@ -91,7 +91,7 @@ function channels_main() {
     var trade_type = document.createElement("INPUT");
     trade_type.setAttribute("type", "text");
     var trade_type_info = document.createElement("h8");
-    trade_type_info.innerHTML = translate.words("trade_type").concat(translate.words("true")).concat(translate.words("false"));
+    trade_type_info.innerHTML = translate.words("trade_type").concat("(").concat(translate.words("true")).concat("/ ").concat(translate.words("false")).concat("): ");
     var trade_amount = document.createElement("INPUT");
     trade_amount.setAttribute("type", "text");
     var trade_amount_info = document.createElement("h8");
