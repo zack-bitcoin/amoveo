@@ -35,10 +35,10 @@ def market_test():
     fee = 152000
     cid1 = 'vVhSBIjO7fU0V4v08WH2O2crgjtl9wTODuIk+jeB2NM='
     cid2 = '7zCJZIMatujoQjVXrPiTMMPkXOBiT/oOhY24q+mYAZo='
-    request(1, 'new_channel_with_server', [[127,0,0,1], 3030, cid1, 10000, 9999, fee, 4, 1000], 0.1)
+    request(1, 'new_channel_with_server', [[127,0,0,1], 3030, cid1, 10000, 9999, fee, 100, 1000], 0.1)
     request(2, 'sync', [[127,0,0,1], 3030], 0)
     request(2, 'sync', [[127,0,0,1], 3010], 2)
-    request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 4, 1000], 0.1)
+    request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 99, 1000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
     oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
@@ -80,7 +80,7 @@ def test3(): #useful for testing market from light node.
     oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     #request(1, 'combine_cancel_assets', [[127,0,0,1], 3030], 0.1)
     request(2, 'oracle_bet', [oid, 1, 50000000], 0.2)
-    request(1, 'oracle_bet', [oid, 2, 2600000000], 0.2)
+    request(1, 'oracle_bet', [oid, 2, 2600000000], 0.4)
     request(1, 'mine_block', [11, 10000], 1)
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)

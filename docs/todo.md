@@ -1,25 +1,18 @@
 ### things to do for the next hard fork
 
 
-* maybe embed recent news message into genesis block.
-  -maybe we can reuse #block.trees for this.
-
-
-
-### changes to code before official launch of Amoveo mainnet blockchain
 
 
 ### Other hard fork ideas
 
 Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
-### For next hard fork
-
 
 
 
 ### Things to do
 
+* explorer.html When you list the available markets, each thing should be a button so that you don't have to copy/paste the text. Also, we should probably list each thing on it's own line.
 
 * crash notes:
 1) potential_block terminated because tx_pool:get didn't respond.

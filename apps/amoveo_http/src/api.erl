@@ -42,7 +42,7 @@ spend(ID, Amount) when size(ID) == 65 ->
 	true -> 
 	    B = trees:dict_tree_get(accounts, ID),
             if 
-                (B == empty) ->
+               (B == empty) ->
                     create_account(ID, Amount);
                 true ->
 		    Cost = trees:dict_tree_get(governance, spend),

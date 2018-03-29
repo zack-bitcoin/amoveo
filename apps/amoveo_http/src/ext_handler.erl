@@ -153,6 +153,9 @@ doit({new_channel, STx, SSPK, Expires}) ->
     Bal1 = new_channel_tx:bal1(Tx),
     Bal2 = new_channel_tx:bal2(Tx),
     Delay = new_channel_tx:delay(Tx),
+    {ok, MinimumChannelDelay} =
+	application:get_env(amoveo_core, min_channel_delay),
+    true = Delay >= MinimumChannelDelay,
     {ok, TV} = application:get_env(amoveo_core, time_value),
     CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
     true = CFee =< SPK#spk.amount,
