@@ -5,7 +5,7 @@ Amoveo Progress in March 2018
 * the nodes crash significantly less often. Instead of 4x per day, now it is only once every 3 or 4 days.
 This is because we fixed problems with pruning to recover disk space.
 
-* the community expanded substantially. There are 16 live nodes all the time now, compared to 3 or 4 last month.
+* the community expanded substantially. There are 16 live nodes all the time now.
 
 * we now have a web page where you can see all the live full nodes in the network: http://veoscan.io/
 
