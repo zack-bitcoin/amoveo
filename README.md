@@ -70,8 +70,8 @@ http://amoveo.noncense.tech/
 
 ## Software to launch a new mining pool
 If your full node is on a different machine from your miner, you will need a mining pool. [Mining pool software can be found here.](https://github.com/zack-bitcoin/amoveo-mining-pool)
-The "shares" branch is for paying out small amounts to each miner with each block.
-The "master" version only pays a miner when they find a block.
+The "master" branch is for paying out small amounts to each miner with each block.
+The "classic" version only pays a miner when they find a block.
 
 
 ## Developers
