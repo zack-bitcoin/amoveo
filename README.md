@@ -38,8 +38,8 @@ You can also download the javascript light node to ensure you have the secure ve
 
 This light node downloads headers and verifies the proof of work.
 It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
-You can mine slowly mine blocks from the light node.
 
+You can use the light node to participate in [markets](https://github.com/zack-bitcoin/amoveo/blob/master/docs/light_node/market.md).
 
 ## Block Explorer
 The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
