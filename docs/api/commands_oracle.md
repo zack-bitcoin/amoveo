@@ -7,12 +7,14 @@ This oracle asks a true/false question about the future. Eventually, the answer 
 ```
 api:new_question_oracle(Start, Question).
 ```
+This returns the OID, which is necessary for making markets.
 
 ####New governance oracle
 This oracle updates the variables that define the blockchain protocol. It must reference a difficulty oracle that closed recently at the correct price.
 ```
 api:new_governance_oracle(GovName, GovAmount).
 ```
+This returns the OID for this oracle.
 
 You can look up current governance values like this:
 ```
@@ -24,6 +26,7 @@ trees:dict_tree_get(governance, GovName).
 oracles:all().
 ```
 returns a list like [{Question1, Oracle1}, {Question2, Oracle2}...].
+You can use this to find out the OID for an oracle.
 
 #### look up an oracle by id
 ```
