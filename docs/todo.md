@@ -16,19 +16,7 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 * explorer.html When you list the available markets, each thing should be a button so that you don't have to copy/paste the text. Also, we should probably list each thing on it's own line.
 
-* crash notes:
-1) potential_block terminated because tx_pool:get didn't respond.
-2) headers:top_with_block didn't respond.
-
-* mining pool should say the fee size, the number of active miners, last block made today, blocks made in last 24 hours, total veo distributed, current block height?
-
-* add a timestamp for when you look up blocks in the explorer.
-
 * add the hash of the github commit in the explorer.
-
-* move recent_blocks:remove_before into the tree_data gen_server.
-
-* there is a problem with closing channels from the light node.
 
 * deleting accounts from the light node might have problems.
 

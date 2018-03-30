@@ -23,13 +23,13 @@ function lookup_block1() {
     current_block.id = "block div";
     document.body.appendChild(current_block);
 }
-function txs2html(txs, N, out) {
+function txs2html(txs, N, out) {//currently unused
     if (txs.length == N) { return out; }
     else { 
 	return txs2html(txs, N+1, out.concat("- ").concat(tx2html(txs[N])));
     }
 }
-function tx2html(tx) {
+function tx2html(tx) { //currently unused
     var t = tx[1];
     if (t[0] == "sign_tx") {
 	return "block was signed by account number ".concat(t[1]).concat(", using nonce number: ").concat(t[2]).concat("<br/>");
@@ -69,6 +69,15 @@ function tx2html(tx) {
 	return t.concat("<br/>");
     }
 }
+function to_now(t) {
+    var start_time = 15192951759;
+    var n = (t + start_time);//10 * seconds since jan 1 1970
+    var curdate = new Date(null);
+    curdate.setTime(n*100);
+    var final_now = curdate.toLocaleString();
+    console.log(final_now);
+    return final_now;
+}
 function lookup_block2(block) {
     block2 = block[1];
     console.log("lookup_block2");
@@ -80,8 +89,10 @@ function lookup_block2(block) {
 	current_block.innerHTML = "this block doesn't exist.";
     } else {
 	var miner = block[10][1][1];
+	var time0 = block[4];
+	var time = to_now(time0);
 	//acc, number, hash, txs, power, nonce, total_coins, db_root
-	current_block.innerHTML = "block ".concat(block[1]).concat(" was mined by ").concat(miner);
+	current_block.innerHTML = "block: ".concat(block[1]).concat(", was mined by: ").concat(miner).concat(" , has timestamp: ").concat(time);
 	//current_block.innerHTML = "<br/>created by account number ".concat(block2[1]).concat("<br/>at height: ").concat(block2[2]).concat("<br/>containing transactions: ").concat(txs2html(block2[4], 1, "<br/>"));
 	//console.log(block[1]);
     }
