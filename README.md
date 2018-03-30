@@ -51,7 +51,12 @@ Another explorer is [here](http://159.89.106.253:8080/explorer.html) This one ha
 
 ## Full node
 [Launch an erlang full node and connect to the network](docs/getting-started/turn_it_on.md)
-
+[Issue commands to your full node](docs/api/commands.md)
+commands such as:
+* turning the node off without corrupting the database.
+* looking up information from the blockchain or it's history.
+* making a server that collects fees by routing payments or making markets
+* participating in the oracle mechanism or governance mechanism.
 
 ## Mining
 [Here is a miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)

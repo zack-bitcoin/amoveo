@@ -10,18 +10,11 @@ Different types of commands:
 
 [lookup history](commands_history.md)
 
-[unsigned txs for cold storage](commands_unsigned.md)
-
 [channels](commands_channels.md)
 
 [oracle](commands_oracle.md)
 
+[markets](commands_market.md)
+
 [other](commands_other.md)
-
-[erlang mining](commands_mining.md)
-
-
-
-
-
 

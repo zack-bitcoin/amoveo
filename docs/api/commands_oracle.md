@@ -60,3 +60,7 @@ If you had unmatched trades sitting in the order book when the oracle closed, th
 ```
 api:oracle_unmatched(OracleID).
 ```
+
+#### Markets
+read about how to launch a market on a single full node here:
+[market](commands_market.md)
