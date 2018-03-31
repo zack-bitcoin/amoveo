@@ -16,6 +16,7 @@
 
     %% Everything above this line is needed for blockchain consensus. Everything below this line can be modified for your node.
 
+    {channels, true},
     {smart_contract_runtime_limit, 5000}, %% in miliseconds.
 
     {recent_blocks_period, 3}, %% this is how frequently we calculate which blocks should no longer be tracked for pruning.

@@ -140,6 +140,7 @@ doit({new_channel_tx, Acc1, Acc2, B1, B2, Delay, Fee}) ->
 doit({time_value}) ->
     application:get_env(amoveo_core, time_value);
 doit({new_channel, STx, SSPK, Expires}) ->
+    {ok, true} = application:get_env(amoveo_core, channels),
     unlocked = keys:status(),
     LifeSpan = Expires - api:height(),
     {ok, MinimumChannelLifespan} = 

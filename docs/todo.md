@@ -12,7 +12,7 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### Things to do
 
-* explorer.html When you list the available markets, each thing should be a button so that you don't have to copy/paste the text. Also, we should probably list each thing on it's own line.
+* we need an off-switch for the channels, it is non-compatible with a mining pool.
 
 * add the hash of the github commit in the explorer.
 
@@ -22,16 +22,7 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 * main.html from the mining pool should say the total number of miners, and the total outstanding shares.
 
-* write docs for making channels in the light node.
-
-* fix the race condition where it says `potential block died!`.
-- maybe it is already fixed?
-- it seems like there is a memory leak. normally uses 60 mb for Amoveo, but it slowly rose to 150 mb.
-- sometimes we are pruning data that we should not be pruning. I only happened on one node, not all of them. restarting from 0 fixed it.
-
 * check the case where someone sends a good headers with a bad block. Don't ignore the good block after this happens.
-
-* don't delete the blocks so easily. they are useful for recovery.
 
 * miners need instructions on making pubkeys.
 
