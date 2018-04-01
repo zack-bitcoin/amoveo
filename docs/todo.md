@@ -1,3 +1,4 @@
+
 ### things to do for the next hard fork
 
 
@@ -11,6 +12,11 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 
 ### Things to do
+
+
+* the list_markets button in the explorer isn't deleting the old list before displaying a new one.
+
+* prevent the creation of markets with batch periods that are too short to be secure.
 
 * we need an off-switch for the channels, it is non-compatible with a mining pool.
 

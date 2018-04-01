@@ -284,11 +284,25 @@ oracle_unmatched(OracleID) ->
     oracle_unmatched(?Fee+Cost, OracleID).
 oracle_unmatched(Fee, OracleID) ->
     tx_maker0(oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)).
-account(Pubkey) when size(Pubkey) == 65 ->
-    trees:dict_tree_get(accounts, Pubkey);
-account(Pubkey) when ((size(Pubkey) > 85) and (size(Pubkey) < 90)) ->
-    account(base64:decode(Pubkey)).
+account(P) ->
+    Pubkey = decode_pubkey(P),
+    trees:dict_tree_get(accounts, Pubkey).
 account() -> account(keys:pubkey()).
+confirmed_balance(P) ->
+    Pubkey = decode_pubkey(P),
+    Root = confirmed_root:read(),
+    Block = block:get_by_hash(Root),
+    Trees = Block#block.trees,
+    Accounts = trees:accounts(Trees),
+    {_, V, _} = accounts:get(Pubkey, Accounts),
+    B1 = V#acc.balance,
+    V2 = account(Pubkey),
+    B2 = V2#acc.balance,
+    min(B1, B2).
+decode_pubkey(P) when size(P) == 65 -> P;
+decode_pubkey(P) when ((size(P) > 85) and (size(P) < 90)) -> 
+    decode_pubkey(base64:decode(P)).
+    
 integer_balance() -> 
     A = account(),
     case A of
