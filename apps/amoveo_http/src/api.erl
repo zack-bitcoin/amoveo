@@ -11,6 +11,8 @@ load_key(Pub, Priv, Brainwallet) ->
     keys:load(Pub, Priv, Brainwallet).
 height() ->    
     (headers:top())#header.height.
+height(1) ->
+    block:height().
 top() ->
     TopHeader = headers:top(),
     Height = TopHeader#header.height,
@@ -520,5 +522,5 @@ mining_data(X) ->
 mining_data(X, Start) ->
     L = lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, lists:seq(Start, block:height(), X)).
 
-address_history(Pubkey, Many, TopHeight) ->
+pubkey(Pubkey, Many, TopHeight) ->
     amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).

@@ -74,9 +74,9 @@
     }
     function lookup_oracle_helper() {
 	var x = lookup_oracle_address;
-	variable_public_get(["oracle", x], lookup_oracle_helper2);
+	variable_public_get(["oracle", x], function(y) { return lookup_oracle_helper2(y, x)});
     }
-    function lookup_oracle_helper2(l) {
+    function lookup_oracle_helper2(l, oid) {
 	price.innerHTML = "";
 	var question = l.pop();
 	var x = l.pop();
@@ -93,6 +93,9 @@
 	var height_info = document.createElement("p");
 	height_info.innerHTML = "last height matched: ".concat((x[8]).toString());
 	price.appendChild(height_info);
+	var oid_info = document.createElement("p");
+	oid_info.innerHTML = "oracle id: ".concat(oid);
+	price.appendChild(oid_info);
 	var buys = price_amount(x[3]);
 	var sells = price_amount(x[4]);
 	var graph_height = Math.max(sum_amounts(buys), sum_amounts(sells));

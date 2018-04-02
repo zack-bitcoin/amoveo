@@ -16,9 +16,7 @@ address_history(Mode, X) ->
     TB = block:top(),
     address_history(Mode, X, 200).
 address_history(Mode, X, Many) ->
-    TB = block:top(),
-    End = TB#block.height,
-    address_history(Mode, X, Many, End).
+    address_history(Mode, X, Many, block:height()).
 address_history(Mode, X, Many, End) when (is_list(X) orelse (size(X) > 65))->
     address_history(Mode, base64:decode(X), Many, End);
 address_history(Mode, X, Many, End) when size(X) > 65 ->
