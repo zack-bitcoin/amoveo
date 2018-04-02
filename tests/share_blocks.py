@@ -28,7 +28,7 @@ def test1():
     #we should check that the heights are the same.
 def test2():
     print("share blocks test 2")
-    request(1, "mine_block", [15, 100000], 1)
+    request(1, "mine_block", [15, 100000], 3)
     request(1, "sync", [[127,0,0,1], 3020], 1)
     request(2, "sync", [[127,0,0,1], 3010], 2)#pull blocks
     request(1, "mine_block", [3, 100000], 0.02)

@@ -47,6 +47,11 @@ api:account(Pub).
 tx_pool:get().
 ```
 
+### look up transaction history of an account in the last 100 blocks.
+```
+api:address_history(Pubkey, 100, api:height()).
+```
+
 #### share your txs with peer P
 ```
 P = lists:nth(2, peers:all()).

@@ -14,6 +14,8 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 ### Things to do
 
 
+* the market user interface should say how many blocks until the next batch.
+
 * the list_markets button in the explorer isn't deleting the old list before displaying a new one.
 
 * prevent the creation of markets with batch periods that are too short to be secure.

@@ -519,3 +519,6 @@ mining_data(X) ->
     mining_data(X, 30).
 mining_data(X, Start) ->
     L = lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, lists:seq(Start, block:height(), X)).
+
+address_history(Pubkey, Many, TopHeight) ->
+    amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).

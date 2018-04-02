@@ -26,7 +26,8 @@ def lightning_test():
     request(3, 'dump_channels', [], 0.05)
     request(2, 'load_key', [pub2, priv2, brainwallet])
     request(3, 'load_key', [pub3, priv3, brainwallet])
-    request(1, 'create_account', [pub2, 1000000000], 0.04)
+    request(1, 'create_account', [pub2, 1000000000], 0.5)
+#def dont_doit():
     request(1, 'create_account', [pub3, 1000000000], 10)
     request(1, 'txs', [[127,0,0,1], 3030], 0.5)
     request(1, 'txs', [[127,0,0,1], 3020], 0.5)
@@ -37,7 +38,7 @@ def lightning_test():
     cid1 = 'vVhSBIjO7fU0V4v08WH2O2crgjtl9wTODuIk+jeB2NM='
     cid2 = '7zCJZIMatujoQjVXrPiTMMPkXOBiT/oOhY24q+mYAZo='
     request(1, 'new_channel_with_server', [[127,0,0,1], 3030, cid1, 10000, 9999, fee, 100, 1000], 0.05)
-    request(2, 'sync', [[127,0,0,1], 3030], 0.4)
+    request(2, 'sync', [[127,0,0,1], 3030], 0.8)
     request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 100, 1000], 0.4)
     request(1, 'sync', [[127,0,0,1], 3030], 0.2)
     request(1, 'txs', [[127,0,0,1], 3030], 0.5)
