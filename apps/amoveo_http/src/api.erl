@@ -306,6 +306,8 @@ confirmed_balance(P) ->
     B2 = V2#acc.balance,
     min(B1, B2).
 decode_pubkey(P) when size(P) == 65 -> P;
+decode_pubkey(P) when is_list(P) -> 
+    decode_pubkey(base64:decode(P));
 decode_pubkey(P) when ((size(P) > 85) and (size(P) < 90)) -> 
     decode_pubkey(base64:decode(P)).
     
