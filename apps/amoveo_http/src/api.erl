@@ -37,7 +37,8 @@ create_account(N, A, F) ->
 coinbase(_) ->
     K = keys:pubkey(),
     tx_maker0(coinbase_tx:make_dict(K)).
-spend(ID, Amount) when size(ID) == 65 ->
+spend(ID0, Amount) ->
+    ID = decode_pubkey(ID0),
     K = keys:pubkey(),
     if 
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
@@ -51,12 +52,15 @@ spend(ID, Amount) when size(ID) == 65 ->
                     spend(ID, Amount, ?Fee+Cost)
             end
     end.
-spend(ID, Amount, Fee) ->
+spend(ID0, Amount, Fee) ->
+    ID = decode_pubkey(ID0),
     tx_maker0(spend_tx:make_dict(ID, Amount, Fee, keys:pubkey())).
-delete_account(ID) when size(ID) == 65 ->
+delete_account(ID0) ->
+    ID = decode_pubkey(ID0),
     Cost = trees:dict_tree_get(governance, delete_acc_tx),
     delete_account(ID, ?Fee + Cost).
-delete_account(ID, Fee) ->
+delete_account(ID0, Fee) ->
+    ID = decode_pubkey(ID0),
     tx_maker0(delete_account_tx:make_dict(ID, keys:pubkey(), Fee)).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
     Cost = trees:dict_tree_get(governance, nc),

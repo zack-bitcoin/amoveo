@@ -13,6 +13,7 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### Things to do
 
+* the mining pool should not give out rewards for orphaned blocks. Wait for more confirmations.
 
 * the market user interface should say how many blocks until the next batch.
 
