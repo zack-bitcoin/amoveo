@@ -10,8 +10,8 @@ A blockchain for enforcing contracts for investing and insurance.
 Amoveo contracts use state-channel technology. This means fees are low, contracts are nearly instant and can support a global audience.
 
 Amoveo has oracle technology.
-Amoveo can learn facts about our world and enforce contracts who's outcome is determined by those facts.
-This way you can invest in the price of Amazon shares, for example.
+Amoveo can learn facts about our world and enforce the outcome of contracts governed by these facts.
+This, for example, enables you to bet on the price of Amazon shares.
 
 The variables that define how to participate in Amoveo can be modified by the Amoveo community using a built-in process.
 This way Amoveo will always stay optimally tuned to produce the best results.
