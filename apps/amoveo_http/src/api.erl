@@ -11,6 +11,8 @@ load_key(Pub, Priv, Brainwallet) ->
     keys:load(Pub, Priv, Brainwallet).
 height() ->    
     (headers:top())#header.height.
+height(1) ->
+    block:height().
 top() ->
     TopHeader = headers:top(),
     Height = TopHeader#header.height,
@@ -35,7 +37,8 @@ create_account(N, A, F) ->
 coinbase(_) ->
     K = keys:pubkey(),
     tx_maker0(coinbase_tx:make_dict(K)).
-spend(ID, Amount) when size(ID) == 65 ->
+spend(ID0, Amount) ->
+    ID = decode_pubkey(ID0),
     K = keys:pubkey(),
     if 
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
@@ -49,12 +52,15 @@ spend(ID, Amount) when size(ID) == 65 ->
                     spend(ID, Amount, ?Fee+Cost)
             end
     end.
-spend(ID, Amount, Fee) ->
+spend(ID0, Amount, Fee) ->
+    ID = decode_pubkey(ID0),
     tx_maker0(spend_tx:make_dict(ID, Amount, Fee, keys:pubkey())).
-delete_account(ID) when size(ID) == 65 ->
+delete_account(ID0) ->
+    ID = decode_pubkey(ID0),
     Cost = trees:dict_tree_get(governance, delete_acc_tx),
     delete_account(ID, ?Fee + Cost).
-delete_account(ID, Fee) ->
+delete_account(ID0, Fee) ->
+    ID = decode_pubkey(ID0),
     tx_maker0(delete_account_tx:make_dict(ID, keys:pubkey(), Fee)).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
     Cost = trees:dict_tree_get(governance, nc),
@@ -284,11 +290,27 @@ oracle_unmatched(OracleID) ->
     oracle_unmatched(?Fee+Cost, OracleID).
 oracle_unmatched(Fee, OracleID) ->
     tx_maker0(oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)).
-account(Pubkey) when size(Pubkey) == 65 ->
-    trees:dict_tree_get(accounts, Pubkey);
-account(Pubkey) when ((size(Pubkey) > 85) and (size(Pubkey) < 90)) ->
-    account(base64:decode(Pubkey)).
+account(P) ->
+    Pubkey = decode_pubkey(P),
+    trees:dict_tree_get(accounts, Pubkey).
 account() -> account(keys:pubkey()).
+confirmed_balance(P) ->
+    Pubkey = decode_pubkey(P),
+    Root = confirmed_root:read(),
+    Block = block:get_by_hash(Root),
+    Trees = Block#block.trees,
+    Accounts = trees:accounts(Trees),
+    {_, V, _} = accounts:get(Pubkey, Accounts),
+    B1 = V#acc.balance,
+    V2 = account(Pubkey),
+    B2 = V2#acc.balance,
+    min(B1, B2).
+decode_pubkey(P) when size(P) == 65 -> P;
+decode_pubkey(P) when is_list(P) -> 
+    decode_pubkey(base64:decode(P));
+decode_pubkey(P) when ((size(P) > 85) and (size(P) < 90)) -> 
+    decode_pubkey(base64:decode(P)).
+    
 integer_balance() -> 
     A = account(),
     case A of
@@ -505,3 +527,6 @@ mining_data(X) ->
     mining_data(X, 30).
 mining_data(X, Start) ->
     L = lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, lists:seq(Start, block:height(), X)).
+
+pubkey(Pubkey, Many, TopHeight) ->
+    amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).

@@ -1,3 +1,4 @@
+
 ### things to do for the next hard fork
 
 
@@ -12,23 +13,17 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### Things to do
 
-* in explorer.html the graph should have labeled axis, and we should write the blue = betting on "yes", and orange = betting on "no".
+* the mining pool should not give out rewards for orphaned blocks. Wait for more confirmations.
 
-* explorer.html When you list the available markets, each thing should be a button so that you don't have to copy/paste the text. Also, we should probably list each thing on it's own line.
+* the market user interface should say how many blocks until the next batch.
 
-* crash notes:
-1) potential_block terminated because tx_pool:get didn't respond.
-2) headers:top_with_block didn't respond.
+* the list_markets button in the explorer isn't deleting the old list before displaying a new one.
 
-* mining pool should say the fee size, the number of active miners, last block made today, blocks made in last 24 hours, total veo distributed, current block height?
+* prevent the creation of markets with batch periods that are too short to be secure.
 
-* add a timestamp for when you look up blocks in the explorer.
+* we need an off-switch for the channels, it is non-compatible with a mining pool.
 
 * add the hash of the github commit in the explorer.
-
-* move recent_blocks:remove_before into the tree_data gen_server.
-
-* there is a problem with closing channels from the light node.
 
 * deleting accounts from the light node might have problems.
 
@@ -36,16 +31,7 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 * main.html from the mining pool should say the total number of miners, and the total outstanding shares.
 
-* write docs for making channels in the light node.
-
-* fix the race condition where it says `potential block died!`.
-- maybe it is already fixed?
-- it seems like there is a memory leak. normally uses 60 mb for Amoveo, but it slowly rose to 150 mb.
-- sometimes we are pruning data that we should not be pruning. I only happened on one node, not all of them. restarting from 0 fixed it.
-
 * check the case where someone sends a good headers with a bad block. Don't ignore the good block after this happens.
-
-* don't delete the blocks so easily. they are useful for recovery.
 
 * miners need instructions on making pubkeys.
 

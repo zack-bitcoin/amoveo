@@ -7,11 +7,11 @@ Amoveo
 
 A blockchain for enforcing contracts for investing and insurance. 
 
-Amoveo contracts use state-channel technology. This means fees are low, making an Amoveo contract is nearly instant, and we can support a global audience.
+Amoveo contracts use state-channel technology. This means fees are low, contracts are nearly instant and can support a global audience.
 
 Amoveo has oracle technology.
-Amoveo can learn facts about our world and enforce contracts who's outcome is determined by those facts.
-This way you can invest in the price of Amazon shares, for example.
+Amoveo can learn facts about our world and enforce the outcome of contracts that are governed by these facts.
+This, for example, enables you to bet on the price of Amazon shares.
 
 The variables that define how to participate in Amoveo can be modified by the Amoveo community using a built-in process.
 This way Amoveo will always stay optimally tuned to produce the best results.
@@ -38,18 +38,25 @@ You can also download the javascript light node to ensure you have the secure ve
 
 This light node downloads headers and verifies the proof of work.
 It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
-You can mine slowly mine blocks from the light node.
+You can use the light node to participate in [markets](docs/light_node/market.md).
+A light node that currently has markets is [here](http://159.89.106.253:8080/wallet.html).
+and the interface to look at the markets is [here](http://159.89.106.253:8080/explorer.html).
 
 
 ## Block Explorer
 The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
 
-Another explorer is [here](http://159.89.106.253:8080/explorer.html) This one has some markets where you can gamble.
+Another explorer is [here](http://159.89.106.253:8080/explorer.html). This one has some markets where you can gamble.
 
 
 ## Full node
 [Launch an erlang full node and connect to the network](docs/getting-started/turn_it_on.md)
-
+[Issue commands to your full node](docs/api/commands.md)
+commands such as:
+* turning the node off without corrupting the database.
+* looking up information from the blockchain or it's history.
+* making a server that collects fees by routing payments or making markets
+* participating in the oracle mechanism or governance mechanism.
 
 ## Mining
 [Here is a miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
@@ -82,7 +89,7 @@ If you want to build on top of Amoveo [read the develper's guide](docs/getting-s
 ## Donations
 
 ```
-Bitcoin Donations: 1GbpRPE83Vjg73KFvTVZ4EnS2qNkiLY5TT
+Bitcoin Donations: 1C5Qq5i4uUyEm84GAZ3iAUFgbVAhbCirwj
 Veo donations: BGH+3P768A9cSNR3GLSRXgsokSL/Jdbm+rOJogbgiPxq8M+J2R4nVxZ+Hj6WdI4rMsq6nPzkMh77WGBCMx89HUM=
 Gifts must be less than $10 000 per person per year.
 ```

@@ -35,7 +35,10 @@ Spends tokens to a different account.
 
 # account_delete
 
-This deletes an account on the blockchain and sends all of it's AE tokens to a different account.
+This deletes an account on the blockchain and sends all of it's Veo to a different account.
+
+WARNING! do not reuse a pubkey after it has been deleted.
+
 
 # channel_new
 

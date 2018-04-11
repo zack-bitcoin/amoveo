@@ -36,6 +36,7 @@ To delete an account and send all it's money to account ID:
 ```
 api:delete_account(Pub).
 ```
+WARNING! do not reuse a pubkey after it has been deleted.
 
 ####Look up an account
 ```
@@ -45,6 +46,11 @@ api:account(Pub).
 #### check mempool to see if tx was created correctly
 ```
 tx_pool:get().
+```
+
+### look up transaction history of an account in the last 100 blocks.
+```
+api:address_history(Pubkey, 100, api:height()).
 ```
 
 #### share your txs with peer P

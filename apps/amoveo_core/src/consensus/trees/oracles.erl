@@ -1,3 +1,4 @@
+
 -module(oracles).
 -export([new/7, set_orders/2, orders/1, %custom stuff
          write/2, get/2,%update tree stuff
