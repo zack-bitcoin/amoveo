@@ -36,6 +36,7 @@ To delete an account and send all it's money to account ID:
 ```
 api:delete_account(Pub).
 ```
+WARNING! do not reuse a pubkey after it has been deleted.
 
 ####Look up an account
 ```
