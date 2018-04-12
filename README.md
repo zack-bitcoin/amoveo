@@ -26,6 +26,8 @@ Amoveo main net will launch at 11:00 AM GMT on March 2, 2018.
 
 [Amoveo announcements on twitter](https://twitter.com/zack_bitcoin)
 
+[Amoveo on Telegram](https://t.me/joinchat/HU21BlMNjNN3OJuaUFGn8w)
+
 [Statistics page to see historic difficulty, and more](https://jimhsu.github.io/amoveo-stats/)
 
 [Network page to see the nodes that power the network](http://185.117.73.74/amoveo-network-status)

@@ -21,7 +21,7 @@ Save a copy.
 api:spend(To, Amount).
 api:spend(base64:decode(<<"BBH26TpQgvscsPWyfIz3zjSA4wopZrVKf3mYktTd2xnjOYi/MW5AXODhK4ZZnud2DeRFkyVlq9q5zESFqbWJCE8=">>), 123).
 ```
-this send 123 satoshis = 0.00000123 coins
+this send 123 satoshis = 0.00000123 Veo
 
 
 ####Create Account
