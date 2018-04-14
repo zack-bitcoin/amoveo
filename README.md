@@ -5,9 +5,10 @@ Amoveo
 (work in progress) [中文](docs/cn/README.md)
 
 
-A blockchain for enforcing contracts for investing and insurance. 
+Amoveo is a blockchain meant for enforcement of investment and insurance contracts.
 
-Amoveo contracts use state-channel technology. This means fees are low, contracts are nearly instant and can support a global audience.
+
+Amoveo contracts are enforced using state-channels. This means fees are low, contracts are nearly instant and can support a global audience.
 
 Amoveo has oracle technology.
 Amoveo can learn facts about our world and enforce the outcome of contracts that are governed by these facts.
@@ -19,7 +20,7 @@ This way Amoveo will always stay optimally tuned to produce the best results.
 
 [Amoveo whitepaper](docs/white_paper.md).
 
-Amoveo main net will launch at 11:00 AM GMT on March 2, 2018.
+Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 ## Community
 [Amoveo forum on reddit](https://www.reddit.com/r/Amoveo/)
@@ -36,13 +37,13 @@ Amoveo main net will launch at 11:00 AM GMT on March 2, 2018.
 ## Light node
 Simply visit [this webpage](http://159.65.120.84:8080/wallet.html) to participate in Amoveo, no installation necessary.
 
-You can also download the javascript light node to ensure you have the secure version, and to be able to run in cold storage. open this file with your browser: `apps/amoveo_http/priv/external_web/wallet.html`
+You can also download the javascript light node to ensure you have the secure version, and to be able to run in cold storage. To use the javascript light node open this file with your browser: `apps/amoveo_http/priv/external_web/wallet.html`
 
 This light node downloads headers and verifies the proof of work.
-It verifies merkle proof of all blockchain state you download to give as much security as a full node, if you wait enough confirmations.
+It verifies the merkle proofs for all blockchain state you download to ensure security equivalent to a full node, provided you wait for enough confirmations.
 You can use the light node to participate in [markets](docs/light_node/market.md).
 A light node that currently has markets is [here](http://159.89.106.253:8080/wallet.html).
-and the interface to look at the markets is [here](http://159.89.106.253:8080/explorer.html).
+And the interface to look at the markets is [here](http://159.89.106.253:8080/explorer.html).
 
 
 ## Block Explorer
@@ -54,7 +55,7 @@ Another explorer is [here](http://159.89.106.253:8080/explorer.html). This one h
 ## Full node
 [Launch an erlang full node and connect to the network](docs/getting-started/turn_it_on.md)
 [Issue commands to your full node](docs/api/commands.md)
-commands such as:
+Commands such as:
 * turning the node off without corrupting the database.
 * looking up information from the blockchain or it's history.
 * making a server that collects fees by routing payments or making markets
