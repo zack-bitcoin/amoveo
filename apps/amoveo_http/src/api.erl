@@ -398,6 +398,9 @@ sync() ->
 sync(IP, Port) -> 
     spawn(fun() -> sync:start([{IP, Port}]) end),
     0.
+sync(2, IP, Port) ->
+    spawn(fun() -> sync:get_headers({IP, Port}) end),
+    0.
 keypair() -> keys:keypair().
 pubkey() -> base64:encode(keys:pubkey()).
 new_pubkey(Password) -> keys:new(Password).

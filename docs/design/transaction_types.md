@@ -45,7 +45,7 @@ WARNING! do not reuse a pubkey after it has been deleted.
 This creates a new channel on the blockchain.
 It needs to be signed by both participants in the channel.
 It takes money from both participant's accounts to put into the channel.
-Channels can only hold AE tokens.
+Channels can only hold Veo tokens.
 There is a record of recently closed channels. You can't reuse an id from a recently closed channel.
 
 # channel_team_close
