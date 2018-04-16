@@ -13,6 +13,9 @@ height() ->
     (headers:top())#header.height.
 height(1) ->
     block:height().
+block(1, N) ->
+    B = block:get_by_height(N),
+    B#block.txs.
 top() ->
     TopHeader = headers:top(),
     Height = TopHeader#header.height,
