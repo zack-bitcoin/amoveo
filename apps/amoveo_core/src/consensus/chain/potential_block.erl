@@ -4,7 +4,7 @@
 %This module keeps track of what might become the next block of the blockchain, if you are mining or running a mining pool.
 -export([new/0, read/0, save/0, dump/0, check/0, save/2]).
 %-define(potential_block, "data/potential_blocks.db").
--define(refresh_period, 40).%in seconds
+-define(refresh_period, 60).%how often we check if there are new txs that can be included in the block. in 1/10th of seconds
 -include("../../records.hrl").
 -record(pb, {block, time}).
 init(ok) -> 
@@ -58,11 +58,18 @@ handle_call(read, _From, X) ->
     Y = if
 	    B == "" ->
 		#pb{block = new_internal2(TP), time = now()};
-	    ((D > ?refresh_period) and (BH == NH)) ->
-		#pb{block = new_internal(B, TP), time = now()};
-	    (D > ?refresh_period) ->
+	    (not (BH == (NH + 1))) ->%block height changed
 		#pb{block = new_internal2(TP), time = now()};
-	    true -> X
+	    (D < ?refresh_period) -> X;%only update txs once every refresh period.
+	    true ->
+		NewTxs = TP#tx_pool.txs,
+		CurrentTxs = B#block.txs,
+		TxChanged = tx_changed(NewTxs, CurrentTxs),
+		if
+		    TxChanged ->%if txs have changed
+			#pb{block = new_internal(B, TP), time = now()};
+		    true -> X#pb{time = now()}
+		end
 	end,
     {reply, Y#pb.block, Y};
 handle_call(_, _From, X) -> {reply, X, X}.
@@ -93,5 +100,9 @@ new_internal2(TP) ->
     PB = block:get_by_height(T),
     Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
     block:make(Top, Txs, PB#block.trees, keys:pubkey()).
-    
+tx_changed(New, Old) ->    
+    N2 = tx_det_order(New),
+    O2 = tx_det_order(Old),
+    not(N2 == O2).
+tx_det_order(L) -> lists:sort(L).
     
