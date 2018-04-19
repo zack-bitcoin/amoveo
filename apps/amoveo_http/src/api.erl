@@ -501,12 +501,12 @@ work(Nonce, _) ->
     io:fwrite("pool found a block"),
     io:fwrite("\n"),
     Header = block:block_to_header(Block2),
-    headers:absorb([Header]),
-    headers:absorb_with_block([Header]),
+    headers:absorb([Header]),%uses call
+    headers:absorb_with_block([Header]),%uses call
     %block_absorber:save(Block2),
     block_organizer:add([Block2]),
     %spawn(fun() -> 
-    timer:sleep(1000),
+    %timer:sleep(1000),
     potential_block:save(),
     %sync:start() ,
 	%  end),

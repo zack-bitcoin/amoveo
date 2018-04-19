@@ -10,11 +10,11 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(check, BS) -> 
     BS2 = helper(BS),
-    {noreply, BS2};
-handle_cast({add, Blocks}, BS) -> 
+    {noreply, BS2}.
+handle_call({add, Blocks}, _From, BS) -> 
     BS2 = merge(Blocks, BS),
     BS3 = helper(BS2),
-    {noreply, BS3}.
+    {reply, ok, BS3};
 handle_call(pid, _From, X) -> 
     {reply, self(), X};
 handle_call(view, _, BS) -> 
@@ -35,29 +35,6 @@ merge([N|NT], [O|OT]) ->
 	H2 < H1 -> [O|merge([N|NT], OT)];
 	true -> [[N|NT]|[O|OT]]
     end.
-
-old_merge(Block, []) -> 
-    [Block];
-old_merge(Block, [B2]) -> 
-    H1 = Block#block.height,
-    H2 = B2#block.height,
-    if
-	H1 =< H2 -> [Block, B2];
-	H1 > H2 -> [B2, Block]
-    end;
-old_merge(Block, BS) ->
-    %io:fwrite("organizer merge\n"),
-    S = length(BS),
-    {L1, L2} = lists:split(S div 2, BS),
-    B2 = hd(L2),
-    H1 = Block#block.height,
-    H2 = B2#block.height,
-    if
-	H1 == (H2 - 1) -> L1 ++ [Block] ++ L2;
-	H1 == H2 -> L1 ++ [Block] ++ L2;
-	H1 < H2 -> merge(Block, L1) ++ L2;
-	H1 > H2 -> L1 ++ merge(Block, L2)
-    end.
 helper([]) -> [];
 helper([[]]) -> [];
 helper([H|T]) ->
@@ -75,34 +52,18 @@ helper([H|T]) ->
     end.
 	    
 check() -> gen_server:cast(?MODULE, check).
-sorted([], _) -> true;
-sorted([H|T], Height) ->
-    Height2 = H#block.height,
-    io:fwrite("sorted compare \n"),
-    io:fwrite(packer:pack({Height2, Height})),
-    if
-	Height2 + 1 == Height -> sorted(T, Height2);
-	true -> false
-    end.
-	    
 add([]) -> 0;
 add(Blocks) when not is_list(Blocks) -> 0;
 add(Blocks) ->
     io:fwrite("block organizer add\n"),
     true = is_list(Blocks),
-    %SB = hd(Blocks),
-    %SH = SB#block.height - 1,
-    %true = sorted(Blocks, SH),
     {Blocks2, AddReturn} = add1(Blocks, []),
     case Blocks2 of
 	[] -> ok;
 	_ ->
-	    gen_server:cast(?MODULE, {add, lists:reverse(Blocks2)})
+	    gen_server:call(?MODULE, {add, lists:reverse(Blocks2)})
     end,
     AddReturn.
-%add1([], L) -> 
-%    throw("add1 error"),
-%    {L, 0};
 add1([], []) -> {[], 0};
 add1([X], L) -> 
     {L2, A} = add2(X, L),
@@ -122,24 +83,4 @@ add2(Block, Out) ->
 		BHC -> {Out, 3}; %we have seen this block already
 		true -> {[Block|Out], 0}
 	    end
-    end.
-	    
-add_old([Block]) -> add(Block);
-add_old([H|T]) -> add(H), add(T);
-add_old(Block) ->
-    true = is_record(Block, block),
-    BH = block:hash(Block),
-    BHC = block_hashes:check(BH),
-    Height = Block#block.height,
-    %MyHeight = block:height(), 
-    %NextBlock = Block#block.prev_hash,
-    if 
-	Height == 0 -> 
-	    %{ok, Header00} = headers:read(BH),
-	    %Header00;
-	    0;
-	BHC -> 3;%we have already seen this block
-	true ->
-	    gen_server:cast(?MODULE, {add, Block}),
-	    0
     end.

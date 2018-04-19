@@ -13,6 +13,11 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### Things to do
 
+I think he means put an entry in /etc/hosts for amoveopool2.com such that it points to your pool... but that would only work if your pool accepted /work on the end of the URI
+* update pool to accept /work
+* make a script to take advantage of the /etc/hosts trick.
+
+
 * the market user interface should say how many blocks until the next batch.
 
 * the list_markets button in the explorer isn't deleting the old list before displaying a new one.
