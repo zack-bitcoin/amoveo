@@ -4,21 +4,16 @@
 %This module keeps track of what might become the next block of the blockchain, if you are mining or running a mining pool.
 -export([new/0, read/0, save/0, dump/0, check/0, save/2]).
 %-define(potential_block, "data/potential_blocks.db").
--define(refresh_period, 60).%how often we check if there are new txs that can be included in the block. in 1/10th of seconds
+-define(refresh_period, 60).%how often we check if there are new txs that can be included in the block. in seconds
 -include("../../records.hrl").
 -record(pb, {block, time}).
 init(ok) -> 
     process_flag(trap_exit, true),
-    %X = new_internal(""),
     Z = #pb{block = "", time = now()},
     {ok, Z}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, X) -> 
-    %B = X#pb.block,
-    %PH = B#block.prev_hash,
-    %PB = block:get_by_hash(PH),
-    %tree_data:garbage(B, PB),
     TP = tx_pool:get(),
     Txs = TP#tx_pool.txs,
     tx_pool:dump(),

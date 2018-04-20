@@ -18,6 +18,9 @@ I think he means put an entry in /etc/hosts for amoveopool2.com such that it poi
 * make a script to take advantage of the /etc/hosts trick.
 
 
+
+* maybe potential_block.erl should save the 2 most recent blocks, so if a nonce doesn't work on one, we can try the other.
+
 * the market user interface should say how many blocks until the next batch.
 
 * the list_markets button in the explorer isn't deleting the old list before displaying a new one.
