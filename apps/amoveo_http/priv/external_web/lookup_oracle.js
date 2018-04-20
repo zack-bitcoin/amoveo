@@ -40,6 +40,7 @@
 	}
     }
     function lookup_helper2(x) {
+	lookup_oracle_div.innerHTML = "";
 	var button = Array(x.length);
 	for (var i = 1; i < x.length; i++) {
 	    button[i] = document.createElement("input");

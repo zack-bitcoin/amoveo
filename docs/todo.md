@@ -23,8 +23,6 @@ I think he means put an entry in /etc/hosts for amoveopool2.com such that it poi
 
 * the market user interface should say how many blocks until the next batch.
 
-* the list_markets button in the explorer isn't deleting the old list before displaying a new one.
-
 * prevent the creation of markets with batch periods that are too short to be secure.
 
 * we need an off-switch for the channels, it is non-compatible with a mining pool.
