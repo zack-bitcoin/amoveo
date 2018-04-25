@@ -34,6 +34,6 @@ Naively implemented off-chain trading is vulnerable to front-running.
 Amoveo is the only blockchain project working on [off-chain markets with single-price batches](/docs/design/limit_order_in_channel.md), to protect our traders from front running and offer the best price.
 If whistle-blowers aren't protected from front running, then their profit would be smaller.
 They would have less incentive to release the information.
-[You can compare Amove to it's competitors here](/docs/progress_reports)
+[You can compare Amoveo to it's competitors here](/docs/progress_reports)
 
 Blockchains can solve a lot of other problems besides nuclear disasters. [Read the amoveo mission statement here](/docs/mission_statement.md).
