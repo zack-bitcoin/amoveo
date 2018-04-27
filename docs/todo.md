@@ -13,6 +13,14 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### Things to do
 
+* URGENT: if an account participates in an oracle, and then the account is deleted, the oracle becomes impossible to close.
+- if an account is deleted, then don't pay anything to it. Leftover Veo can be deleted.
+- possibly a hard fork
+
+* if I try closing 2 oracles on the same blockheight, then it becomes impossible to make a block.
+
+* in proofs:txs_to_querys2, in the oracle_close branch, we are using Accounts and we should be using Accounts2.
+
 I think he means put an entry in /etc/hosts for amoveopool2.com such that it points to your pool... but that would only work if your pool accepted /work on the end of the URI
 * update pool to accept /work
 * make a script to take advantage of the /etc/hosts trick.
@@ -25,11 +33,8 @@ I think he means put an entry in /etc/hosts for amoveopool2.com such that it poi
 
 * prevent the creation of markets with batch periods that are too short to be secure.
 
-* we need an off-switch for the channels, it is non-compatible with a mining pool.
-
 * add the hash of the github commit in the explorer.
-
-* deleting accounts from the light node might have problems.
+% git ls-remote | grep HEAD
 
 * atomic swap protocol
 
