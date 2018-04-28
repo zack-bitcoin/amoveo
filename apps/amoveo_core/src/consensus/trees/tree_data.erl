@@ -217,16 +217,24 @@ oracle_bets_batch_update([X|T], Dict, Accounts) ->
     oracle_bets_batch_update(R, Dict2, Accounts).
 oracle_bets_batch_update2(ID, B, Dict, Accounts) ->
     Acc = accounts:dict_get(ID, Dict),
-    Bets = case Acc#acc.bets of
-	       0 ->
-		   {_, Acc2, _} = accounts:get(ID, Accounts),
-		   Acc2#acc.bets;
-	       G -> G
-	   end,
-    false = Bets == 0,
-    B2 = lists:map(fun({_, X}) -> X end, B),
-    OracleBets2 = trie:put_batch(B2, Bets, oracle_bets),
-    accounts:dict_write(Acc, OracleBets2, Dict).
+    case Acc of
+	empty -> 
+	    io:fwrite("tree data oracle bets batch update, account does not exist\n"),
+	    io:fwrite(base64:encode(ID)),
+	    io:fwrite("\n"),
+	    Dict;
+	_ ->
+	    Bets = case Acc#acc.bets of
+		       0 ->
+			   {_, Acc2, _} = accounts:get(ID, Accounts),
+			   Acc2#acc.bets;
+		       G -> G
+		   end,
+	    false = Bets == 0,
+	    B2 = lists:map(fun({_, X}) -> X end, B),
+	    OracleBets2 = trie:put_batch(B2, Bets, oracle_bets),
+	    accounts:dict_write(Acc, OracleBets2, Dict)
+    end.
 orders_batch_update([], Dict, _) -> Dict;
 orders_batch_update([X|T], Dict, Oracles) ->
     {OID, L} = X,

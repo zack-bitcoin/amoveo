@@ -26,21 +26,27 @@ def test1():
     oid2 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY="
     request(1, 'txs', [[127,0,0,1], 3020], 2)
     request(2, 'txs', [[127,0,0,1], 3010], 2)
-    request(1, 'new_question_oracle', [height+1, 'aXMgMisyPTQ/', oid], 1)
+    #request(1, 'new_question_oracle', [height+1, 'aXMgMisyPTQ/', oid], 1)
     request(2, 'new_question_oracle', [height+1,'b3JhY2xlMg==', oid2], 1)
     request(1, 'txs', [[127,0,0,1], 3020], 2)
     request(2, 'txs', [[127,0,0,1], 3010], 2)
-    request(1, 'mine_block', [11, 10000000], 1)
-    request(1, 'oracle_bet', [oid, 2, 2650000000], 0.4)
-    request(1, 'oracle_bet', [oid2, 2, 2650000000], 0.4)
+    request(1, 'mine_block', [27, 10000000], 1)
+    request(1, 'sync', [[127,0,0,1], 3020], 1)
+    request(2, 'sync', [[127,0,0,1], 3010], 2)
+    #request(1, 'oracle_bet', [oid 2, 2650000000], 0.4)
+    request(2, 'oracle_bet', [oid2, 2, 150000000], 0.4)#here
+    request(1, 'sync', [[127,0,0,1], 3020], 1)
+    request(2, 'sync', [[127,0,0,1], 3010], 2)
     request(1, 'mine_block', [11, 10000000], 2)
     request(1, 'sync', [[127,0,0,1], 3020], 1)
     request(2, 'sync', [[127,0,0,1], 3010], 2)
     #request(2, 'oracle_close', [oid], 0.4)
     request(2, 'delete_account', [pub2], 0.5)
-    request(1, 'oracle_close', [oid2], 0.4)
-    request(1, 'txs', [[127,0,0,1], 3020], 2)
-    request(2, 'txs', [[127,0,0,1], 3010], 2)
+    request(1, 'txs', [[127,0,0,1], 3020], 1)
+    request(2, 'txs', [[127,0,0,1], 3010], 1)
+    request(1, 'oracle_close', [oid2], 0.4)#here
+    request(1, 'txs', [[127,0,0,1], 3020], 1)
+    request(2, 'txs', [[127,0,0,1], 3010], 1)
     #request(1, 'oracle_winnings', [oid], 0.04)
     #request(1, 'oracle_unmatched', [oid], 0.04)
     #request(1, 'oracle_winnings', [oid2], 0.04)
@@ -48,6 +54,8 @@ def test1():
     #request(1, 'txs', [[127,0,0,1], 3020], 2)
     #request(2, 'txs', [[127,0,0,1], 3010], 2)
     request(2, 'mine_block', [1, 10000], 0.2)
+    request(1, 'sync', [[127,0,0,1], 3020], 0)
+    request(2, 'sync', [[127,0,0,1], 3010], 0)
     
     return 0
     
