@@ -82,6 +82,13 @@ http://amoveopool2.com/pool
 http://amoveo.noncense.tech/
 
 
+## Trading
+
+There are people trading now on discord https://discord.gg/xJQcVaT
+
+An exchange is being written here https://github.com/zack-bitcoin/amoveo-exchange
+
+
 ## Software to launch a new mining pool
 If your full node is on a different machine from your miner, you will need a mining pool. [Mining pool software can be found here.](https://github.com/zack-bitcoin/amoveo-mining-pool)
 The "master" branch is for paying out small amounts to each miner with each block.
