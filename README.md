@@ -29,9 +29,11 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Amoveo on Telegram](https://t.me/joinchat/HU21BlMNjNN3OJuaUFGn8w)
 
-[Statistics page to see historic difficulty, and more](https://jimhsu.github.io/amoveo-stats/)
+[Amoveo on Discord](https://discord.gg/a52szJw)
 
-[Network page to see the nodes that power the network](http://185.117.73.74/amoveo-network-status)
+[Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
+
+[Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
 
 
 ## Light node
@@ -62,9 +64,11 @@ Commands such as:
 * participating in the oracle mechanism or governance mechanism.
 
 ## Mining
-[Here is a miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
 
-[Linux and Mac OSX CPU miner, only for educational purposes](https://github.com/zack-bitcoin/amoveo-c-miner)
+[Here is a closed-source miner that works with AMD or Nvidia](https://github.com/PhamHuong92/VeoMiner)
+People tell me that this is currently the fastest miner.
+
+[Here is a miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
 
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
 Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
