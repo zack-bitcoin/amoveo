@@ -13,9 +13,14 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 ### Things to do
 
-* URGENT: if an account participates in an oracle, and then the account is deleted, the oracle becomes impossible to close.
-- if an account is deleted, then don't pay anything to it. Leftover Veo can be deleted.
-- possibly a hard fork
+* order_book:match() should have a timer so we only run it every 3 minutes. Otherwise it is wasting cycles while we are syncing blocks.
+
+* block:check/1 should be split into 2 functions.
+- first we want to verify that a block could be valid by looking at that block alone.
+- second we want to compare the block to the previous block's state, to make sure the block is valid in context.
+- the first step is computationally expensive, and it doesn't touch the hard drive. So we can parallelize step 1 with itself. We can verify multiple blocks simultanious to use more CPU on our machine and sync faster.
+- block_absorber should only do the 2nd step of block check.
+- block_organizer:add should do the 1st step in parallel.
 
 * if I try closing 2 oracles on the same blockheight, then it becomes impossible to make a block.
 
