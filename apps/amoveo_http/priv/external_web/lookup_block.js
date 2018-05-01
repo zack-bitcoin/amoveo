@@ -10,7 +10,7 @@ function lookup_block1() {
     
     var lookup_block_button = document.createElement("BUTTON");
     lookup_block_button.id = "lookup block number";
-    var lookup_block_button_text = document.createTextNode("lookup_block");
+    var lookup_block_button_text = document.createTextNode("lookup block");
     lookup_block_button.appendChild(lookup_block_button_text);
     lookup_block_button.onclick = function() {
 	var num = parseInt(lookup_block_height.value, 10);
