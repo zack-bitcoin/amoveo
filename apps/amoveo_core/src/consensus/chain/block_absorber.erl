@@ -69,10 +69,13 @@ absorb_internal(Block) ->
 		true ->
 		    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
 		    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
-		    H = block:block_to_header(Block),
+
+		    %start adding next block.
+
+		    H = block:block_to_header(Block),%we should calculate the block hash from the header, so we don't calculate the header twice.
 		    headers:absorb([H]),
 		    {true, Block2} = block:check(Block),
-		    BH = block:hash(Block2),
+		    BH = block:hash(Block2),%remove this sanity check.
 		    do_save(Block2),
 		    headers:absorb_with_block([H]),
 		    Header = H,

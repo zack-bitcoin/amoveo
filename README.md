@@ -65,9 +65,6 @@ Commands such as:
 
 ## Mining
 
-[Here is a closed-source miner that works with AMD or Nvidia](https://github.com/PhamHuong92/VeoMiner)
-People tell me that this is currently the fastest miner.
-
 [Here is a miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
 
 It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
