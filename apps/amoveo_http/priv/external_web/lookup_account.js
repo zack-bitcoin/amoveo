@@ -13,9 +13,12 @@ function lookup_account1() {
 
     var lookup_account_button = document.createElement("BUTTON");
     var lookup_account_text_node = document.createTextNode("lookup account");
+    document.body.appendChild(document.createElement("br"));
+    var lookup_account_warning_text_node = document.createTextNode("This explorer includes unconfirmed transactions from the tx pool. Wallet.html balance lookup does not.");
     lookup_account_button.appendChild(lookup_account_text_node);
     lookup_account_button.onclick = lookup_account_helper;
     document.body.appendChild(lookup_account_button);
+	
     function lookup_account_helper() {
         var x = lookup_account_address.value;
 	console.log("lookup account");
