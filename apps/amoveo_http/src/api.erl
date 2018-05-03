@@ -536,3 +536,4 @@ mining_data(X, Start) ->
 
 pubkey(Pubkey, Many, TopHeight) ->
     amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).
+%curl -i -d '["pubkey", "BEwcawKx5oZFOmp1533TqDzUl76fOeLosDl+hwv6rZ50tLSQmMyW/87saj3D5qBtJI4lLsILllpRlT8/ppuNaPM=", 100, 18000]' http://localhost:8081

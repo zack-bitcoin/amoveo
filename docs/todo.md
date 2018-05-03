@@ -8,6 +8,8 @@
 
 Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
+Maybe question oracles don't need so much initial liquidity like governance oracles do.
+
 
 
 

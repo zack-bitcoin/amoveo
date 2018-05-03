@@ -65,14 +65,20 @@ Commands such as:
 
 ## Mining
 
-[Here is a miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
+[This is currently the fastest miner. it is for Nvidia or AMD GPUs. It is closed-source.](https://github.com/PhamHuong92/VeoMiner)
+How to turn it on: `veominer.exe BGH+3P768A9cSNR3GLSRXgsokSL/Jdbm+rOJogbgiPxq8M+J2R4nVxZ+Hj6WdI4rMsq6nPzkMh77WGBCMx89HUM= all 64 100 SEED 65336 0 false http://159.65.120.84:8085/`
 
-It uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
+
+[Here is an open-source miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
+
+Amoveo's mining algorithm uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
+
 Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 
-Here is a list of mining pools you can connect your miner to:
 
-http://159.65.120.84:8085/main.html
+## Mining Pools
+
+http://159.65.120.84:8085/main.html (maintained by Zack, who wrote the Amoveo full node.)
 
 http://amoveopool2.com/pool
 
