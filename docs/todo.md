@@ -24,8 +24,6 @@ Maybe question oracles don't need so much initial liquidity like governance orac
 - block_absorber should only do the 2nd step of block check.
 - block_organizer:add should do the 1st step in parallel.
 
-* if I try closing 2 oracles on the same blockheight, then it becomes impossible to make a block.
-
 * in proofs:txs_to_querys2, in the oracle_close branch, we are using Accounts and we should be using Accounts2.
 
 I think he means put an entry in /etc/hosts for amoveopool2.com such that it points to your pool... but that would only work if your pool accepted /work on the end of the URI

@@ -1,52 +1,13 @@
-This is a roadmap that is less precise than my todo list, and more exciting for the community to look at.
-
-* what is completed.
-  - what Amoveo is working on now.
-
-### Core protocol
-
-* merkel trees
-* Virtual Machine for smart contracts
-* accounts
-* channels
-* account key holder
-* database for channel data
-* lightning payments
-* API
-* oracles
-* governance
-  - encrypted api
-
-### javascript SPV Wallet
-
-* library to communicate with node API
-* compatible hash function
-* merkel proofs
-* account key holder
-* database for channel data
-* gui
-
-### block explorer
-
-* api to communicate with nodes
-* website
-  - blocks
-  - transactions
-* accounts
-  - channels
-  - oracles
-
-### Trustless Markets
-
-* example smart contracts
-* smart contract for markets with batches at single price.
-* upgrade api to support market contracts.
-* website to display markets, integrated with javascript SPV wallets.
+that is less precise than my todo list, and more exciting for the community to look at.
 
 
-### Security Audit
+* VEO-BTC exchange
+ - This will allow people to more easily buy and sell Veo. This will make it easy for people who aren't currently invested in Veo to participate in Amoveo markets.
 
-* none
-  - Core
-  - SPV javascript wallet
-  - trustless markets
+* combinatorial markets
+  - you can read about it on page 4 of this PDF from BitcoinHivemind: http://bitcoinhivemind.com/papers/2_PM_Types.pdf
+  - This type of market uses 2 oracles instead of 1, and it has 9 possible outcomes instead of 3.
+
+* acquire first users of the markets
+
+* study our users, and keep improving Amoveo based on how they use it and what they want.
