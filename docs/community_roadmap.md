@@ -6,8 +6,9 @@ that is less precise than my todo list, and more exciting for the community to l
   - This will make it easy for people who aren't currently invested in Veo to participate in Amoveo markets.
 
 2 combinatorial markets
-  - you can read about it on page 4 of this PDF from BitcoinHivemind: http://bitcoinhivemind.com/papers/2_PM_Types.pdf
+  - we already have binary market smart contracts. This smart contract is for a different type of market.
   - This type of market uses 2 oracles instead of 1, and it has 9 possible outcomes instead of 3.
+  - you can read about it on page 4 of this PDF from BitcoinHivemind: http://bitcoinhivemind.com/papers/2_PM_Types.pdf
 
 3 acquire first users of the markets. Try these things to search for potential users:
   - use a smart contract to pay a reward to someone for uploading a torrent for an expensive textbook.
