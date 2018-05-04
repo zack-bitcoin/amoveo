@@ -2,7 +2,8 @@ that is less precise than my todo list, and more exciting for the community to l
 
 
 * VEO-BTC exchange
- - This will allow people to more easily buy and sell Veo. This will make it easy for people who aren't currently invested in Veo to participate in Amoveo markets.
+  - This will allow people to more easily buy and sell Veo.
+  - This will make it easy for people who aren't currently invested in Veo to participate in Amoveo markets.
 
 * combinatorial markets
   - you can read about it on page 4 of this PDF from BitcoinHivemind: http://bitcoinhivemind.com/papers/2_PM_Types.pdf
