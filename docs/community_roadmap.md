@@ -11,7 +11,6 @@ that is less precise than my todo list, and more exciting for the community to l
 
 * acquire first users of the markets. Try these things to search for potential users:
   - use a smart contract to pay a reward to someone for uploading a torrent for an expensive textbook.
-  - use a combinatorial market to get a CEO replaced.
   - use a market to fund the creation of something for Amoveo.
   - use a combinatorial market to decide how we will do something for Amoveo.
   - use a markets to do things from this list: http://bitcoinhivemind.com/papers/3_PM_Applications.pdf 
