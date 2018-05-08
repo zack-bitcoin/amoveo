@@ -23,7 +23,8 @@ top() ->
     Height = TopHeader#header.height,
     {top, TopHeader, Height}.
 top(1) ->
-    headers:top_with_block().
+    H = headers:top_with_block(),
+    [H, block:hash(H)].
 sign(Tx) -> keys:sign(Tx).
 tx_maker0(Tx) -> 
     case keys:sign(Tx) of
