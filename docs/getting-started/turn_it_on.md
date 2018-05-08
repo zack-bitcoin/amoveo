@@ -25,10 +25,19 @@ now that you are attached to a node, you can tell it [commands](/docs/api/comman
 [You can read about how to download the blocks and sync with the network here](/docs/getting-started/sync.md)
 
 
-You can turn off a running node
+You can turn off a running node.
+First make sure you are attached to it, then do:
 ```
-  make prod-stop
+api:off().
 ```
+to turn off Amoveo.
+Then do:
+```
+halt().
+```
+to turn off erlang.
+
+
 You can delete the database to restart from the genesis block. This preserves your keys.
 ```
   make prod-clean
