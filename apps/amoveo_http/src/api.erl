@@ -15,11 +15,15 @@ height(1) ->
     block:height().
 block(1, N) ->
     B = block:get_by_height(N),
-    B#block.txs.
+    B#block.txs;
+block(2, H) ->
+    block:get_by_hash(H).
 top() ->
     TopHeader = headers:top(),
     Height = TopHeader#header.height,
     {top, TopHeader, Height}.
+top(1) ->
+    headers:top_with_block().
 sign(Tx) -> keys:sign(Tx).
 tx_maker0(Tx) -> 
     case keys:sign(Tx) of
