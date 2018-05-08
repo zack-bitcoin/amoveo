@@ -56,6 +56,7 @@ Another explorer is [here](http://159.89.106.253:8080/explorer.html). This one h
 
 ## Full node
 [Launch an erlang full node and connect to the network](docs/getting-started/turn_it_on.md)
+
 [Issue commands to your full node](docs/api/commands.md)
 Commands such as:
 * turning the node off without corrupting the database.
