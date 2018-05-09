@@ -111,6 +111,3 @@ Bitcoin Donations: 1C5Qq5i4uUyEm84GAZ3iAUFgbVAhbCirwj
 Veo donations: BGH+3P768A9cSNR3GLSRXgsokSL/Jdbm+rOJogbgiPxq8M+J2R4nVxZ+Hj6WdI4rMsq6nPzkMh77WGBCMx89HUM=
 Gifts must be less than $10 000 per person per year.
 ```
-
-
-B
