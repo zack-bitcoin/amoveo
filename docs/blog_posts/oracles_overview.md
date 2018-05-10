@@ -17,3 +17,9 @@ We will describe how the oracle answers this question in two ways. The next para
 For example, an Oracle starts. This means betting has started. The question is “did Amoveo mainnet survive for a month since the Amoveo mainnet genesis block’s timestamp?” We know that the answer to this question is true. Say I bet 10 VEO on true and you bet 5 VEO on false. Now, 5 has matched for both of us at 1:1 odds, and there is 5 unmatched remaining of the type true. The 5 unmatched of type true determines that the oracle now has output type true. If the output type doesn’t change for a certain number of blocks, the oracle is finalized in this state. Next, because the final state was true and I bet on true, I win my matched bet worth 10 and get the 5 that was unmatched back for a total of 15. You lose your matched bet. Any financial derivatives attached to this outcome pay out accordingly.
 
 As you can see, the proper functioning of question oracles in Amoveo relies on VEO holders’ willingness to bet against incorrect bets. This willingness relies on the assumption that miners will follow the chain where the final oracle types are true representations of what happened. This is the same kind of consensus Bitcoin uses. As long as holders can rely on this fact, they will be comfortable to take the other side of any incorrect oracle bets. Also, if this assumption holds, nobody would even want to bet on the incorrect outcome because they would definitely lose money
+
+If the oracle is about to be closed the wrong way, then you can double your money by making a bet for it to close the right way
+
+If the attacker keeps trying to bet the wrong way, his bets become a reward attracting more people to bet the right way.
+
+Once enough money is at stake, then it becomes worth it for miners to manually check the outcome. Since the miners can double all their money.

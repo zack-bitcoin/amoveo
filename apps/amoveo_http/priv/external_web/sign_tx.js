@@ -38,9 +38,9 @@
     }
     function push_tx() {
 	var t = JSON.parse(tx_push.value);
-	console.log(t);
-	var t2 = keys.sign(t);
-	variable_public_get(["txs", [-6, t2]], function(x) {});
+	//console.log(t);
+	//var t2 = keys.sign(t);
+	variable_public_get(["txs", [-6, t]], function(x) {});
 	tx_push.value = "";
     }
 })();

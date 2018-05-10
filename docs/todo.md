@@ -15,6 +15,12 @@ Maybe question oracles don't need so much initial liquidity like governance orac
 
 ### Things to do
 
+* if you have the wrong private key loaded into a light node and try signing a tx, it should give a useful error message.
+
+* port "8080" defined in more than one place.
+
+* ubuntu 18.04 compatibility.
+
 * order_book:match() should have a timer so we only run it every 3 minutes. Otherwise it is wasting cycles while we are syncing blocks.
 
 * block:check/1 should be split into 2 functions.
