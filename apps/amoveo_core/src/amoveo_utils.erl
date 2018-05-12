@@ -5,7 +5,7 @@
 	 block_rewards/2,
 	 tx_history/1, tx_history/2, tx_history/3,
 	 address_history/2,address_history/3,address_history/4,
-	 push_tx/0
+	 push_txs/0
 	]).
 -include("records.hrl").
 
