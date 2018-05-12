@@ -4,7 +4,8 @@
 	 block_rewards/1,
 	 block_rewards/2,
 	 tx_history/1, tx_history/2, tx_history/3,
-	 address_history/2,address_history/3,address_history/4
+	 address_history/2,address_history/3,address_history/4,
+	 push_tx/0
 	]).
 -include("records.hrl").
 
@@ -198,4 +199,11 @@ get_types(Types, [H|T]) ->
 is_in(_, []) -> false;
 is_in(A, [A|_]) -> true;
 is_in(A, [_|T]) -> is_in(A, T).
-	    
+push_tx() ->	    
+    lists:map(fun(P) -> 
+		      spawn(fun() -> 
+				    sync:trade_txs(P) 
+			    end)
+	      end,
+	      peers:all()).
+		      
