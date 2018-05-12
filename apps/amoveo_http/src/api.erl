@@ -265,8 +265,12 @@ new_question_oracle(Start, Question)->
     new_question_oracle(Start, Question, ID).
 
 new_question_oracle(Start, Question, ID)->
+    Q2 = if
+	     is_list(Question) -> list_to_binary(Question);
+	     true -> Question
+	 end,
     Cost = trees:dict_tree_get(governance, oracle_new),
-    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0)),
+    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, ID, 0, 0)),
     ID.
 new_governance_oracle(GovName, GovAmount) ->
     GovNumber = governance:name2number(GovName),

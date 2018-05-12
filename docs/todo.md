@@ -8,12 +8,14 @@
 
 Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
-Maybe question oracles don't need so much initial liquidity like governance oracles do.
+Maybe question oracles don't need so much (any?) initial liquidity like governance oracles do.
 
 
 
 
 ### Things to do
+
+* test downloading the light wallet. There are reports that it is not connecting to a full node easily.
 
 * if you have the wrong private key loaded into a light node and try signing a tx, it should give a useful error message.
 
