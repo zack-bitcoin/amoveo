@@ -41,3 +41,7 @@ keys:sign(Tx).
 keys:raw_sign(Tx).
 ```
 
+#### share new txs with the network
+```
+amoveo_utils:push_txs().
+```

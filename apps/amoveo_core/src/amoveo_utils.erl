@@ -199,7 +199,7 @@ get_types(Types, [H|T]) ->
 is_in(_, []) -> false;
 is_in(A, [A|_]) -> true;
 is_in(A, [_|T]) -> is_in(A, T).
-push_tx() ->	    
+push_txs() ->	    
     lists:map(fun(P) -> 
 		      spawn(fun() -> 
 				    sync:trade_txs(P) 
