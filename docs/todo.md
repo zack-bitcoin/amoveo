@@ -21,6 +21,17 @@ Maybe question oracles don't need so much (any?) initial liquidity like governan
 
 * port "8080" defined in more than one place.
 
+* documentation for governance oracles
+You have to set it between 1 and 50 inclusive.
+if the governance variable is above 100, then it is a percentage.
+If the governance variable is below 100, then it is an integer value.
+
+So if governance is currently 40, and you change by 30, you can go to 10 or 70.
+If the governance is currently 1000, and you change by 30, you can go to 1300 or 700.
+
+- true means higher and false is lower, right?
+
+
 * ubuntu 18.04 compatibility.
 
 * order_book:match() should have a timer so we only run it every 3 minutes. Otherwise it is wasting cycles while we are syncing blocks.
