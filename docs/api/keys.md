@@ -49,11 +49,6 @@ To calculate a shared_secret with a partner, you need a copy of their pubkey:
 keys:shared_secret(Pubkey).
 ```
 
-To load a private key into an existing node:
-```
-keys:load(Pubkey, Privkey, "password").
-```
-
 
 You can set the password for encryption like this:
 ```

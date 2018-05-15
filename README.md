@@ -66,8 +66,10 @@ Commands such as:
 
 ## Mining
 
-[This is currently the fastest miner. it is for Nvidia or AMD GPUs. It is closed-source.](https://github.com/PhamHuong92/VeoMiner)
+[This is a miner. it is for Nvidia or AMD GPUs. It is closed-source.](https://github.com/PhamHuong92/VeoMiner)
 How to turn it on: `veominer.exe BGH+3P768A9cSNR3GLSRXgsokSL/Jdbm+rOJogbgiPxq8M+J2R4nVxZ+Hj6WdI4rMsq6nPzkMh77WGBCMx89HUM= all 64 100 SEED 65336 0 false http://159.65.120.84:8085/`
+
+[here is another miner](https://github.com/krypdkat/AmoveoMinerMan)
 
 
 [Here is an open-source miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)

@@ -21,6 +21,7 @@ handle(Req, _) ->
                <<"/explorer_title.js">> -> true;
                <<"/lightning.js">> -> true;
                <<"/encryption.js">> -> true;
+               <<"/encryption_interface.js">> -> true;
                <<"/encryption_library.js">> -> true;
                <<"/encryption.html">> -> true;
                <<"/finance_game.html">> -> true;

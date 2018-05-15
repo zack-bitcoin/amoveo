@@ -15,6 +15,19 @@ Maybe question oracles don't need so much (any?) initial liquidity like governan
 
 ### Things to do
 
+
+* the light node should have an interface for encrypting and decrypting messages.
+* display oracle data verified by merkle proofs.
+
+* harden mining pools against attack.
+- Consider hiding some of the API behind a fire wall.
+- put a limit on how many blocks you can download with a single request.
+- when syncing you should simultaniously download blocks from multiple peers to spread the load.
+- limit how many bytes we serve to any one IP per 10 seconds.
+- as well as downloading X number of blocks at a time, we should enable downloads of M megabytes of blocks at a time.
+
+* if you haven't done `sync_mode:normal().` and you try to publish a tx, then there should be some sort of error message. Maybe connect it to the tx signing function.
+
 * test downloading the light wallet. There are reports that it is not connecting to a full node easily.
 
 * if you have the wrong private key loaded into a light node and try signing a tx, it should give a useful error message.
@@ -181,10 +194,6 @@ Can't 1 flag do both things?
 * the c-miner should have an easier way to decide which node you will connect to.
 
 * We need to prune bets and orders.
-
-* the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
-
-* javascript light node should give an option for extending the time limit in channels. there is an api for paying the server already. modify this slightly.
 
 * outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
 

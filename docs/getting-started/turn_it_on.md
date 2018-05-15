@@ -39,6 +39,7 @@ to turn off erlang.
 
 
 You can delete the database to restart from the genesis block. This preserves your keys.
+Make sure to turn your node off first before doing this.
 ```
   make prod-clean
 ```
