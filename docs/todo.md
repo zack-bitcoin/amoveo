@@ -15,6 +15,11 @@ Maybe question oracles don't need so much (any?) initial liquidity like governan
 
 ### Things to do
 
+* the market.fs contract has a problem. Is the expiration date output of the contract relative, or absolute? I am not consistent.
+
+* we should test the case when there are multiple partially-matched trades in the order book simultaniously.
+
+* when you make a channel in the light node, there should be a way to look up how much the server charges before
 
 * the light node should have an interface for encrypting and decrypting messages.
 * display oracle data verified by merkle proofs.

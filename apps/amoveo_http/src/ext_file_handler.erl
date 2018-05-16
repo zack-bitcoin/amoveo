@@ -35,6 +35,7 @@ handle(Req, _) ->
                <<"/format.js">> -> true;
                <<"/files.js">> -> true;
                <<"/rpc.js">> -> true;
+               <<"/oracles.js">> -> true;
                <<"/channels.js">> -> true;
                <<"/headers.js">> -> true;
                <<"/server.js">> -> true;

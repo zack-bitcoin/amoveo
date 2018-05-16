@@ -151,5 +151,9 @@ function append_children(d, l) {
         d.appendChild(l[i]);
     }
 }
-
+function text(a) {
+    var x2 = document.createElement("h8");
+    x2.innerHTML = a;
+    return x2;
+};
 
