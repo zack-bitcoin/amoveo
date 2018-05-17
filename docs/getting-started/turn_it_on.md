@@ -2,7 +2,7 @@ This is how to launch a node and connect to the network.
 
 To run a full node, you need at least 200 mb of ram available.
 
-Do not run Amoveo as root user. 
+Do not run Amoveo as root user.   
 
 It is helpful to have port 8080 exposed to the internet, this will let you find out about blocks more quickly, so you would mine faster.
 

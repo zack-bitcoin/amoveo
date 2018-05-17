@@ -5,12 +5,12 @@
     title.innerHTML = "encryption";
     div.appendChild(title);
     var b = button_maker2("encrypt", encrypt);
+    div.appendChild(b);
     var msg_to_send = document.createElement("INPUT");
     msg_to_send.type = "text";
     var msg_to = document.createElement("INPUT");
     msg_to.type = "text";
     var encrypted_to_send = document.createElement("div");
-    div.appendChild(b);
     var to_instructions = document.createElement("h8");
     to_instructions.innerHTML = "to pubkey";
     div.appendChild(to_instructions);

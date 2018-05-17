@@ -1,17 +1,22 @@
 # Why Amoveo
 
+
 # Money
 
 Without money it would be very difficult to buy things, because you probably don't have anything that the other person wants, so you can't pay.
 Without money it would be hard to plan a retirement. Nothing you could buy will last as long as you will live.
 Without money it is hard to have a job, because you have to keep renegotiating wages depending on what you are being paid in.
-A world without money is very chaotic.
+Money allows us to give prices to everything else. Once there are prices, then we can more accurately communicate our needs. If the price of oranges is higher in one region, then we know that they have a greater need for oranges, and we should ship the oranges to them.
+A world without money would be very chaotic.
 
-It is too dangerous to depend on a centralized institution to provide such a critical part of our survival.
-The counterfeiters can't resist the allure of the money press.
-When they print, they are robbing everyone, they are pushing us towards the chaotic money-free world.
+It is too dangerous to depend on a centralized institution to provide such a critical tool that we depend on for our survival.
+The counterfeiters can't resist the allure of the printing press.
+When they print money, they are robbing everyone, they are pushing us towards the chaotic money-free world.
 
-When money flows from a centralized source like this, the resulting economy is filled with hierarchies and pyramids. Everyone is begging for handouts from the counterfeiters, the best strategy is to team together into centralized institutions, that way you can afford to lobby the counterfeiters.
+When money flows from a centralized source, the resulting economy is filled with hierarchies and pyramids. Everyone is begging for handouts from the counterfeiters. In order to survive in this environment, you need a way to lobby the counterfeiters, and you need to be compliant with the rules that the counterfeiter's enforce. The most effective way to lobby and to meet compliance is by teaming up together into large centralized institutions.
+
+When preditors are around, fish form schools for safety.
+When counterfeiters are aroun, humans form centralized institutions like corporations for safety.
 
 
 # Derivatives are for insurance
@@ -28,27 +33,31 @@ With derivatives, the farmer can grow more profitable cash crops, and his childr
 The more valuable cash crops gives the farmer and his family the opportunity to escape poverty.
 
 This is a tool we need to thrive, and no one should have the power to take it away.
-The governments can't resist the allure of restricting access to derivatives and insurance. They do this to give themselves and their friends an economic advantage.
-The people with access can easily outcompete everyone else economically. Almost any business can be significantly improved with access to these financial tools.
-Restricting access to these financial tools is part of how the elite maintain their control.
+
 
 # Derivatives are for communicating future needs
 
 Markets for goods is how people communicate their need for the goods right now.
-Markets for derivatives is how people communicate their needs for goods across time. If the price of wheat futures is high in 6 months, then farmers can know to plan their farming to provide more wheat in 6 months for when the people will need it. 
+Markets for derivatives is how people communicate their needs for goods across time. If the price of wheat futures is high in 6 months, then farmers can know to plan their farming to provide more wheat in 6 months for when the people will need it.
 
-Sometimes governments outlaw some derivatives markets.
-Derivatives markets are for communicating needs. When they are gone, people can no longer communicate their needs.
+Using derivatives we can even communicate very precise needs, such as: "If politician X is elected, then 6 months later the price of food will be 10-times higher."
+Keeping needs like this secret is unethical.
+If a disaster is coming, then we need to know ahead so we can prepare, that way less people will suffer or die.
+
+The current legal system outlaws almost all of these life-saving derivatives globally. 
+Without derivatives, people can not accurately communicate their future needs.
 Without derivatives the farmer doesn't know how many vegetables to plant of each variety, because he doesn't know how many vegetables people will need.
+Without derivatives, we don't know if a politician will make decisions that result in millions of deaths.
 
-Bribing governments to outlaw derivatives can be an effective strategy for traders. It makes the price of vegetables more volatile, so there are more money making opportunities for speculators.
 
-# Amoveo protects basic human rights
+# Restricting access to derivatives is how the elite maintain control.
 
-Amoveo is being built to create a world where everyone has equal access to these life-sustaining tools: money and derivatives.
-These tools are important in much the same way access to electricity, sanitation, or clean drinking water is important.
-Without one of these basic necessities, survival becomes difficult and people start dying at younger ages.
+The governments can't resist the allure of restricting access to derivatives and insurance. They do this to give themselves and their friends an economic advantage.
+The people with access to derivatives can easily outcompete everyone else economically. Almost any business can be significantly improved with access to these financial tools.
+Restricting access to these financial tools is part of how the elite maintain their control.
 
-That is why Amoveo considers access to good currency, and access to secure financial derivatives to be unalienable human rights. 
 
-Amoveo is technology to permanently protect these basic financial human rights for everyone. 
+# Amoveo protects humanity
+
+Amoveo is being built to create a world where everyone has access to these life-sustaining tools: money and derivatives.
+
