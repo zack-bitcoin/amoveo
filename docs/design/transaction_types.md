@@ -1,7 +1,7 @@
 Governance decides a different minimum fee size for each transaction type.
 The miner profits by including transactions that pay above the minimum fee for that transaction type.
 
-These are the 15 types of transaction that can be in blocks.
+These are the 14 types of transaction that can be in blocks.
 
 3 transactions for accounts:
 * create_account_tx
@@ -22,7 +22,7 @@ These are the 15 types of transaction that can be in blocks.
 * oracle_unmatched_tx
 * oracle_winnings_tx
 
-2 bonus transactions:
+1 bonus transactions:
 * coinbase_tx
 
 # create_account
