@@ -49,7 +49,7 @@ function spend_1() {
 						       spend_tokens2);
 
 			       } else {
-				   fee = 76025;
+				   fee = 96025;
 				   variable_public_get(["spend_tx", amount, fee, from, to],
 						       spend_tokens2);
 			       }});
