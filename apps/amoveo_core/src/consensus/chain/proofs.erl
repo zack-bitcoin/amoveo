@@ -274,9 +274,9 @@ txs_to_querys2([STx|T], Trees) ->
                 OID = oracle_bet_tx:id(Tx),
                 Pubkeys = [oracle_bet_tx:from(Tx)|
                            oracle_bet_tx:to_prove(OID, Trees)],
-		io:fwrite("proof oracle_bet pubkeys: "),
-		io:fwrite(packer:pack(Pubkeys)),
-		io:fwrite("\n"),
+		%io:fwrite("proof oracle_bet pubkeys: "),
+		%io:fwrite(packer:pack(Pubkeys)),
+		%io:fwrite("\n"),
                 Pubkeys2 = remove(<<?Header:PS>>, Pubkeys),
                 Prove = tagify(accounts, Pubkeys) ++ 
                     make_oracle_bets(Pubkeys2, OID) ++

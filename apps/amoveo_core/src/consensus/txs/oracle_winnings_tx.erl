@@ -19,9 +19,9 @@ make(From, Fee, OID, Trees) ->
     {Tx, [Proof]}.
 go(Tx, Dict, NewHeight) ->
     OID = Tx#oracle_winnings.oracle_id,
-    io:fwrite("oracle winnings oid is "),
-    io:fwrite(packer:pack([OID])),
-    io:fwrite("\n"),
+    %io:fwrite("oracle winnings oid is "),
+    %io:fwrite(packer:pack([OID])),
+    %io:fwrite("\n"),
     Oracle = oracles:dict_get(OID, Dict),
     Result = Oracle#oracle.result,
     false = Result == 0,
