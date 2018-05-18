@@ -41,17 +41,18 @@ function spend_1() {
         var from = keys.pub();
 	variable_public_get(["account", to],
 			    function(result) {
-				console.log("result was ");
-				console.log(result);
 			       if (result == "empty") {
 				   fee = 152050;
-				   variable_public_get(["create_account_tx", amount, fee, from, to],
-						       spend_tokens2);
-
+				   merkle.request_proof("governance", 14, function(gov_fee) {
+				       fee = tree_number_to_value(gov_fee[2]) + 50;
+				       variable_public_get(["create_account_tx", amount, fee, from, to], spend_tokens2);
+				   
+				   });
 			       } else {
-				   fee = 96025;
-				   variable_public_get(["spend_tx", amount, fee, from, to],
-						       spend_tokens2);
+				   merkle.request_proof("governance", 15, function(gov_fee) {
+				       var fee = tree_number_to_value(gov_fee[2]) + 50;
+				       variable_public_get(["spend_tx", amount, fee, from, to], spend_tokens2);
+				   });
 			       }});
     }
     function spend_tokens2(tx) {
@@ -69,6 +70,10 @@ function spend_1() {
         } else if (!(to == to0)) {
             console.log("abort: server changed who we are sending money to.");
         } else if (!(fee == fee0)) {
+	    console.log("fees");
+	    console.log(fee);
+	    console.log(fee0);
+	    console.log(JSON.stringify(tx));
             console.log("abort: server changed the fee.");
         } else {
             console.log(JSON.stringify(tx));
