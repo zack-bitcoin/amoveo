@@ -42,7 +42,6 @@ function spend_1() {
 	variable_public_get(["account", to],
 			    function(result) {
 			       if (result == "empty") {
-				   fee = 152050;
 				   merkle.request_proof("governance", 14, function(gov_fee) {
 				       fee = tree_number_to_value(gov_fee[2]) + 50;
 				       variable_public_get(["create_account_tx", amount, fee, from, to], spend_tokens2);
@@ -50,7 +49,7 @@ function spend_1() {
 				   });
 			       } else {
 				   merkle.request_proof("governance", 15, function(gov_fee) {
-				       var fee = tree_number_to_value(gov_fee[2]) + 50;
+				       fee = tree_number_to_value(gov_fee[2]) + 50;
 				       variable_public_get(["spend_tx", amount, fee, from, to], spend_tokens2);
 				   });
 			       }});
