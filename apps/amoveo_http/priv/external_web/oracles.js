@@ -55,7 +55,7 @@
 	    oracleOutput.appendChild(text(starts_txt));
 	    oracleOutput.appendChild(br());
 	    var type2;
-	    if (type == 0) {
+	    if (type == 3) {
 		type2 = "bad-question";
 	    } else if (type == 1) {
 		type2 = "true";

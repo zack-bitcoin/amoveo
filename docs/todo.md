@@ -15,6 +15,8 @@ Maybe question oracles don't need so much (any?) initial liquidity like governan
 
 ### Things to do
 
+* check that txs don't get dropped when a block is orphaned.
+
 * is merkle spk.js looking up the merkle proofs for the wrong information??
 
 * the market.fs contract has a problem. Is the expiration date output of the contract relative, or absolute? I am not consistent.
