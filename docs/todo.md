@@ -15,6 +15,8 @@ Maybe question oracles don't need so much (any?) initial liquidity like governan
 
 ### Things to do
 
+* similar to the oracle lookup tool, we should have a governance value lookup tool in the light node.
+
 * built in translation to the light node is a bad idea. Google chrome has translation built in anyway.
 
 * check that txs don't get dropped when a block is orphaned.

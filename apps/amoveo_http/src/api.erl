@@ -31,7 +31,16 @@ tx_maker0(Tx) ->
 	{error, locked} -> 
 	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
 	    ok;
-	Stx -> tx_pool_feeder:absorb(Stx)
+	Stx -> 
+	    tx_pool_feeder:absorb(Stx),
+	    Peers = peers:all(),
+	    spawn(fun() ->
+			  lists:map(fun(P) -> 
+					    timer:sleep(200),
+					    spawn(fun() -> talker:talk({txs, [Stx]}, P) end) end, Peers)
+			  end),
+	    ok
+			      
     end.
 create_account(NewAddr, Amount) ->
     Cost = trees:dict_tree_get(governance, create_acc_tx),
