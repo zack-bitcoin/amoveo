@@ -428,6 +428,12 @@ new_pubkey(Password) -> keys:new(Password).
 new_keypair() -> testnet_sign:new_key().
 test() -> {test_response}.
 channel_keys() -> channel_manager:keys().
+keys_lock() ->
+    keys:lock(),
+    0.
+keys_unlock() ->
+    keys:lock(),
+    0.
 keys_unlock(Password) ->
     keys:unlock(Password),
     0.
