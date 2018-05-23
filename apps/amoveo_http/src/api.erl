@@ -34,11 +34,11 @@ tx_maker0(Tx) ->
 	Stx -> 
 	    tx_pool_feeder:absorb(Stx),
 	    Peers = peers:all(),
-	    spawn(fun() ->
-			  lists:map(fun(P) -> 
-					    timer:sleep(200),
-					    spawn(fun() -> talker:talk({txs, [Stx]}, P) end) end, Peers)
-			  end),
+	    %spawn(fun() ->
+		%	  lists:map(fun(P) -> 
+		%			    timer:sleep(200),
+		%			    spawn(fun() -> talker:talk({txs, [Stx]}, P) end) end, Peers)
+		%	  end),
 	    ok
 			      
     end.

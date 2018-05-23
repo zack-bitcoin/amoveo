@@ -86,7 +86,14 @@ absorb_internal(Block) ->
 			    %potential_block:dump(),
 			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
 			    potential_block:save([], Height),
-			    Txs = (tx_pool:get())#tx_pool.txs,
+			    Txs0 = (tx_pool:get())#tx_pool.txs,
+			    TB = block:top(),
+			    TopHash = block:hash(TB),
+			    Txs = if
+				      NextBlock == TopHash ->
+					  Txs0;
+				      true -> Txs0 ++ lists:reverse(tl(TB#block.txs))
+				  end,
 			    %tx_pool:dump(Block2),
 			    OldTxs = tl(Block#block.txs),
 			    Keep = lists:filter(fun(T) -> not(tx_pool_feeder:is_in(testnet_sign:data(T), OldTxs)) end, Txs),%This n**2 algorithm is slow. We can make it n*log(n) by sorting both lists first, and then comparing them.
