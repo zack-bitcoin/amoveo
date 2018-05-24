@@ -4,6 +4,8 @@ Amoveo
 
 (work in progress) [中文](docs/cn/README.md)
 
+[Amoveo on Discord. Русский чат. 中文聊天.](https://discord.gg/a52szJw)
+
 
 Amoveo is a blockchain meant for enforcement of investment and insurance contracts.
 
@@ -29,7 +31,7 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Amoveo on Telegram](https://t.me/amoveo)
 
-[Amoveo on Discord](https://discord.gg/a52szJw)
+[Amoveo on Discord. Русский чат. 中文聊天.](https://discord.gg/a52szJw)
 
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
 
