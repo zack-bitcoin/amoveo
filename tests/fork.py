@@ -44,7 +44,21 @@ def test_three():
     height2 = request(2, 'height', [], 0.05)
     assertEqual(height1, height2)
 
+def test_orphan_txs():
+    request(2, "add_peer", [[127,0,0,1], 3010])
+    request(1, "add_peer", [[127,0,0,1], 3020])
+    pub2 = "BGRv3asifl1g/nACvsJoJiB1UiKU7Ll8O1jN/VD2l/rV95aRPrMm1cfV1917dxXVERzaaBGYtsGB5ET+4aYz7ws="
+    request(1, "spend", [pub2, 1], 1)
+    request(1, "spend", [pub2, 1], 1)
+    request(1, 'mine_block', [1, 1000000], 0)
+    request(2, 'mine_block', [2, 1000000], 2)
+    request(2, 'sync', [[127,0,0,1], 3010], 0.3)
+    request(1, 'sync', [[127,0,0,1], 3020], 0.5)
+
+    
+
 
 if __name__ == "__main__":
-    test_mine_and_sync()
-    test_three()
+    #test_mine_and_sync()
+    #test_three()
+    test_orphan_txs()
