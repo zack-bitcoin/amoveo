@@ -40,8 +40,8 @@ handle_call(new, _, Old) ->
 handle_call(check, _From, X) -> 
     {reply, X#pb.block, X};
 handle_call(read, _From, X) -> 
-    %D = delta(X#pb.time, now()),
-    D = timer:now_diff(now(), X#pb.time) div 1000000,
+    D = delta(X#pb.time, now()),
+    %D = timer:now_diff(now(), X#pb.time) div 1000000,
     B = X#pb.block,
     BH = case B of
 	     "" -> 0;
@@ -53,14 +53,11 @@ handle_call(read, _From, X) ->
     %sync:start(),
     Y = if
 	    B == "" ->
-		io:fwrite("no potential block, need one\n"),
 		#pb{block = new_internal2(TP), time = now()};
 	    (not (BH == (NH + 1))) ->%block height changed
-		io:fwrite("block height changed\n"),
 		#pb{block = new_internal2(TP), time = now()};
 	    (D < ?refresh_period) -> X;%only update txs once every refresh period.
 	    true ->
-		io:fwrite("refresh period over\n"),
 		NewTxs = TP#tx_pool.txs,
 		CurrentTxs = B#block.txs,
 		TxChanged = tx_changed(NewTxs, CurrentTxs),
