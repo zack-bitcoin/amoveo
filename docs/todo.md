@@ -15,6 +15,8 @@ Maybe question oracles don't need so much (any?) initial liquidity like governan
 
 ### Things to do
 
+* during DDOS, sometimes nodes end up dropping all their peers, and are then unable to sync. We should refuse to black list the hard coded peers.
+
 * similar to the oracle lookup tool, we should have a governance value lookup tool in the light node.
 
 * built in translation to the light node is a bad idea. Google chrome has translation built in anyway.
