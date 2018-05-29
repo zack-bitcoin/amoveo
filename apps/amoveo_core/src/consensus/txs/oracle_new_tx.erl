@@ -1,5 +1,5 @@
 -module(oracle_new_tx).
--export([go/3, make/8, make_dict/7, from/1, id/1, governance/1]).
+-export([go/4, make/8, make_dict/7, from/1, id/1, governance/1]).
 -include("../../records.hrl").
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
@@ -32,7 +32,7 @@ make(From, Fee, Question, Start, ID, Governance, GovAmount, Trees) ->
     {_, Acc, _Proof} = accounts:get(From, Accounts),
     Tx = #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount},
     {Tx, []}.
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     ID = Tx#oracle_new.id,
     empty = oracles:dict_get(ID, Dict),
     Gov = Tx#oracle_new.governance,
@@ -72,7 +72,11 @@ go(Tx, Dict, NewHeight) ->
          end,
     From = Tx#oracle_new.from,
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
-    Facc = accounts:dict_update(From, Dict2, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce),
+    Nonce = if
+		NonceCheck -> Tx#oracle_new.nonce;
+		true -> none
+	    end,
+    Facc = accounts:dict_update(From, Dict2, -Tx#oracle_new.fee-OIL, Nonce),
     Dict3 = accounts:dict_write(Facc, Dict2),
     %OFL = governance:dict_get_value(oracle_future_limit, Dict3),
     %true = (Starts - NewHeight) < OFL,

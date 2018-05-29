@@ -1,5 +1,5 @@
 -module(channel_solo_close).
--export([go/3, make/5, make_dict/4, from/1, id/1]).
+-export([go/4, make/5, make_dict/4, from/1, id/1]).
 -record(csc, {from, nonce, fee = 0, 
 	      scriptpubkey, scriptsig}).
 -include("../../records.hrl").
@@ -32,7 +32,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
 	      scriptsig = ScriptSig},
     {Tx, [Proof1, Proofc]}.
 
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#csc.from, 
     SPK = Tx#csc.scriptpubkey,
     ScriptPubkey = testnet_sign:data(SPK),
@@ -57,7 +57,11 @@ go(Tx, Dict, NewHeight) ->
     true = (-1 < (channels:bal1(NewChannel)-Amount)),
     true = (-1 < (channels:bal2(NewChannel)+Amount)),
     Dict2 = channels:dict_write(NewChannel, Dict),
-    Facc = accounts:dict_update(From, Dict, -Tx#csc.fee, Tx#csc.nonce),
+    Nonce = if
+		NonceCheck -> Tx#csc.nonce;
+		true -> none
+	    end,
+    Facc = accounts:dict_update(From, Dict, -Tx#csc.fee, Nonce),
     Dict3 = accounts:dict_write(Facc, Dict2),
     spawn(fun() -> dict_check_slash(From, Dict3, NewHeight, NewCNonce) end), 
    %If our channel is closing somewhere we don't like, then we should try to use a channel_slash transaction to save our money.

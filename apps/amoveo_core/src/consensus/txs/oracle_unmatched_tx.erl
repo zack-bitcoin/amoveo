@@ -1,5 +1,5 @@
 -module(oracle_unmatched_tx).
--export([make/4, make_dict/3, go/3, from/1, oracle_id/1]).
+-export([make/4, make_dict/3, go/4, from/1, oracle_id/1]).
 %If you had money in orders in the oracle order book when the oracle_close transaction happened, this is how you get the money out.
 -record(unmatched, {from, nonce, fee, oracle_id}).
 -include("../../records.hrl").
@@ -17,7 +17,7 @@ make(From, Fee, OracleID, Trees) ->
     Tx = #unmatched{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, oracle_id = OracleID},
     {Tx, [Proof]}.
 
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     OracleID = Tx#unmatched.oracle_id,
     Oracle = oracles:dict_get(OracleID, Dict),
     Result = Oracle#oracle.result,
@@ -26,5 +26,9 @@ go(Tx, Dict, NewHeight) ->
     Order = orders:dict_get({key, AID, OracleID}, Dict),
     Amount = orders:amount(Order),
     Dict2 = orders:dict_remove(AID, OracleID, Dict),
-    Facc = accounts:dict_update(AID, Dict2, Amount - Tx#unmatched.fee, Tx#unmatched.nonce),
+    Nonce = if
+		NonceCheck -> Tx#unmatched.nonce;
+		true -> none
+	    end,
+    Facc = accounts:dict_update(AID, Dict2, Amount - Tx#unmatched.fee, Nonce),
     accounts:dict_write(Facc, Dict2).

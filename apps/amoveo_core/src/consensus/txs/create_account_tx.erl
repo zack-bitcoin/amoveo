@@ -1,5 +1,5 @@
 -module(create_account_tx).
--export([go/3, new/5, make_dict/4, from/1, pubkey/1]).
+-export([go/4, new/5, make_dict/4, from/1, pubkey/1]).
 -include("../../records.hrl").
 from(X) -> X#create_acc_tx.from.
 pubkey(X) -> X#create_acc_tx.pubkey.
@@ -26,12 +26,15 @@ new(Pub, Amount, Fee, From, Trees) -> %To is a new ID. set it to any unused ID.
                         amount = Amount,
                         fee = Fee},
     {Tx, [Proof]}.
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#create_acc_tx.from,
     txs:developer_lock(From, NewHeight, Dict),
     Pub = Tx#create_acc_tx.pubkey,
     Amount = Tx#create_acc_tx.amount,
-    Nonce = Tx#create_acc_tx.nonce,
+    Nonce = if
+		NonceCheck -> Tx#create_acc_tx.nonce;
+		true -> none
+	    end,
     AccountFee = Tx#create_acc_tx.fee,
     empty = accounts:dict_get(Pub, Dict),
     Account = accounts:dict_update(From, Dict, -Amount - AccountFee, Nonce),

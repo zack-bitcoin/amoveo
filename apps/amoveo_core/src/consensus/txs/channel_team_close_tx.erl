@@ -1,7 +1,7 @@
 %If you did not get slashed, and you waited delay since channel_timeout, then this is how you close the channel and get the money out.
 
 -module(channel_team_close_tx).
--export([go/3, make/4, make_dict/3, acc1/1, acc2/1, fee/1, amount/1,
+-export([go/4, make/4, make_dict/3, acc1/1, acc2/1, fee/1, amount/1,
          aid1/1, aid2/1, id/1]).
 -record(ctc, {aid1 = 0, aid2 = 0, fee = 0,
 	      nonce = 0, id = 0, amount = 0}).
@@ -37,7 +37,7 @@ make(ID,Trees,Amount,Fee) ->
 	     amount = Amount},
     {Tx, [CProof, Proof1, Proof2]}.
     
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, _) ->
     ID = Tx#ctc.id,
     OldChannel = channels:dict_get(ID, Dict),
     0 = channels:closed(OldChannel),

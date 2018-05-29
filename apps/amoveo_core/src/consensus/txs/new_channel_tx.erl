@@ -1,5 +1,5 @@
 -module(new_channel_tx).
--export([go/3, make/8, make_dict/7, spk/2, cid/1,
+-export([go/4, make/8, make_dict/7, spk/2, cid/1,
 	 acc1/1, acc2/1, bal1/1, bal2/1, delay/1]).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, 
@@ -37,7 +37,7 @@ make(ID,Trees,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
 	     },
     {Tx, [Proof, Proof2]}.
 				 
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, _) ->
     ID = Tx#nc.id,
     empty = channels:dict_get(ID, Dict),
     Aid1 = Tx#nc.acc1,
