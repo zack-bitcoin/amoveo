@@ -1,5 +1,5 @@
 -module(txs).
--export([digest_from_dict/3, developer_lock/3]).
+-export([digest_from_dict/3, developer_lock/3, key2module/1]).
 digest_from_dict([C|T], Dict, H) ->
     case element(1, C) of
         coinbase ->

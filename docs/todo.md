@@ -11,9 +11,21 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 Maybe question oracles don't need so much (any?) initial liquidity like governance oracles do.
 
 
+#### currently working on
+
+* update block processing to correctly handle fees for multi_tx.
+- make sure to update the market cap correctly for the fees for multi_tx.
+- make sure to look up each sub-tx in the governance mechanism for governance fees.
+
+* make sure every pubkey spot in the multi tx is a zero, to save space.
+
+* have the version number change.
+- teach the light node about the new version.
+
 
 
 ### Things to do
+
 
 * during DDOS, sometimes nodes end up dropping all their peers, and are then unable to sync. We should refuse to black list the hard coded peers.
 

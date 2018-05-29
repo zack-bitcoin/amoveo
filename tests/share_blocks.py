@@ -29,7 +29,7 @@ def test1():
 def test2():
     print("share blocks test 2")
     request(1, "mine_block", [15, 100000], 3)
-    request(1, "sync", [[127,0,0,1], 3020], 1)
+    request(1, "sync", [[127,0,0,1], 3020], 3)
     request(2, "sync", [[127,0,0,1], 3010], 2)#pull blocks
     request(1, "mine_block", [3, 100000], 0.02)
     #request(1, "sync", [[127,0,0,1], 3020], 0.1)#push blocks
@@ -38,7 +38,7 @@ def test2():
     request(1, "spend", ["BB84LgUHDPkbXkC9p+oN+hiHN1vpsa5FjGBJTrCTxaPX0Jh/y6IXTl892GetuRAnf9VNyXc9F1hZvmr2+cJjtrA=", 100000000], 0.1)#light node 2
     request(1, "spend", ["BLgYECLeI0Iq7SZqPqhoZocy3zF3ht+fPdYkjJh3OnPU1tr7+BpDbtXGNyzDF8w4gUzV7UvM4KelK6IIvQNZZ6w=", 100000000], 0.1)
     request(1, "mine_block", [1, 100000], 0.2)
-    request(1, "sync", [[127,0,0,1], 3020], 1)
+    request(1, "sync", [[127,0,0,1], 3020], 3)
     request(2, "sync", [[127,0,0,1], 3010], 1)#pull
     request(2, "sync", [[127,0,0,1], 3010], 1)#pull
     height1 = request(1, 'height', [], 0.05)
@@ -46,7 +46,7 @@ def test2():
     print("test2 1")
     assertEqual(height1, height2)
     request(2, "mine_block", [1, 100000], 0.2)
-    request(2, "sync", [[127,0,0,1], 3010], 1)#push
+    request(2, "sync", [[127,0,0,1], 3010], 3)#push
     request(1, "sync", [[127,0,0,1], 3020], 1)#pull
     request(1, "sync", [[127,0,0,1], 3020], 1)#pull
     height1 = request(1, 'height', [], 0.05)
