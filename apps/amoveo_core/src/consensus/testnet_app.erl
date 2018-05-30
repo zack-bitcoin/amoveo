@@ -15,10 +15,11 @@ start(_StartType, _StartArgs) ->
     application:start(inets),
     inets:start(),
 
-    io:fwrite("starting testnet node"),
+    io:fwrite("starting node\n"),
 
     testnet_sup:start_link().
 
 
 stop(_State) ->
-    ok.
+    io:fwrite("stopping node\n"),
+    api:off().
