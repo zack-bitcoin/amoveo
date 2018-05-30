@@ -551,7 +551,12 @@ mining_data() ->
      crypto:strong_rand_bytes(Entropy), 
      %headers:difficulty_should_be(Top)].
      Block#block.difficulty].
-
+sync_normal() ->
+    sync_mode:normal(),
+    0.
+sync_quick() ->
+    sync_mode:quick(),
+    0.
    
 mining_data(X) ->
     mining_data(X, 30).
