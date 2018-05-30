@@ -12,7 +12,14 @@ init(ok) ->
     spawn(fun() ->
 		  timer:sleep(2000),
 		  sync:cron() end),
-    io:fwrite("tx_pool- blockchain ready\n"),
+    io:fwrite("tx_pool: blockchain ready\n"),
+    SyncBlockchain = application:get_env(amoveo_core, sync_blocks_boot, false),
+    if
+        SyncBlockchain ->
+            io:fwrite("tx_pool: setting sync_mode normal\n"),
+            sync_mode:normal();
+        true -> ok
+    end,
     {ok, State}.
 handle_call({dump, TopBlock}, _From, _OldState) ->
     State = state2(TopBlock),
