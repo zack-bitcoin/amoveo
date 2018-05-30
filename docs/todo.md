@@ -15,6 +15,16 @@ Maybe question oracles don't need so much (any?) initial liquidity like governan
 
 ### Things to do
 
+* sync_mode:normal and sync_mode:quick should be available from the api.
+
+* share new block headers to all the mining pools.
+
+* return the hash of the tx when you publish a new tx.
+
+* we should have more rules for ignoring bad peers. If they send the same request too often, or if they send invalid data more than 10 times per minute. 
+
+* tx are still being dropped.
+
 * during DDOS, sometimes nodes end up dropping all their peers, and are then unable to sync. We should refuse to black list the hard coded peers.
 
 * similar to the oracle lookup tool, we should have a governance value lookup tool in the light node.

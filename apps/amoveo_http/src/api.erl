@@ -39,8 +39,8 @@ tx_maker0(Tx) ->
 		%			    timer:sleep(200),
 		%			    spawn(fun() -> talker:talk({txs, [Stx]}, P) end) end, Peers)
 		%	  end),
-	    ok
-			      
+	    %ok
+	    hash:doit(Tx)
     end.
 create_account(NewAddr, Amount) ->
     Cost = trees:dict_tree_get(governance, create_acc_tx),

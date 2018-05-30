@@ -144,12 +144,12 @@ remote_peer(Transaction, Peer) ->
         {ok, Return0} -> Return0;
 	bad_peer -> %remove from peers, add to a black list for next N minutes.
 	    {{_,_,_,_},_} = Peer,
-	    io:fwrite("removing peer "),
-	    io:fwrite(packer:pack(Peer)),
-	    io:fwrite("\n"),
-	    io:fwrite("command was "),
-	    io:fwrite(element(1, Transaction)),
-	    io:fwrite("\n"),
+	    %io:fwrite("removing peer "),
+	    %io:fwrite(packer:pack(Peer)),
+	    %io:fwrite("\n"),
+	    %io:fwrite("command was "),
+	    %io:fwrite(element(1, Transaction)),
+	    %io:fwrite("\n"),
 	    blacklist_peer:add(Peer),
 	    peers:remove(Peer),
 	    error;

@@ -49,8 +49,6 @@ handle_call(read, _From, X) ->
 	 end,
     TP = tx_pool:get(),
     NH = TP#tx_pool.height,
-    %api:sync(),
-    %sync:start(),
     Y = if
 	    B == "" ->
 		#pb{block = new_internal2(TP), time = now()};
