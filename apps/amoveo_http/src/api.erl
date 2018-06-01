@@ -16,6 +16,12 @@ height(1) ->
 block(1, N) ->
     B = block:get_by_height(N),
     B#block.txs;
+block(3, N) ->
+    Txs = tl(block(1, N)),
+    Txids = lists:map(
+	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      Txs),
+    [Txs, Txids];
 block(2, H) ->
     block:get_by_hash(H).
 top() ->
