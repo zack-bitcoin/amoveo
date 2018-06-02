@@ -511,12 +511,6 @@ txs({IP, Port}) ->
 txs(IP, Port) ->
     sync:trade_txs({IP, Port}),
     0.
-oracle_bets(OID) ->
-    B = block:top(),
-    Trees = B#block.trees,
-    Oracles = trees:oracles(Trees),
-    {_, Oracle, _} = oracles:get(OID, Oracles),
-    orders:get_all(Oracle#oracle.orders).
     
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
