@@ -84,9 +84,11 @@ function headers_main() {
         var m10 = median((times1).reverse().slice(0));
         var m2 = median((times2).reverse());//628500
         var tbig = m1 - m2;
-        var t = Math.floor(tbig / f);
+        var t0 = Math.floor(tbig / f);//limit to 700 seconds
+	var t = Math.min(t0, Math.floor(period * 7 / 6));//upper limit of 16.66% decrease in difficulty.
+	var old_diff = header2000[6];
         var nt = pow_recalculate(
-            header2000[6],//old difficulty
+            old_diff,
             period,
             Math.max(1, t));//current estimated block time
         var done = Math.max(nt, INITIAL_DIFFICULTY);

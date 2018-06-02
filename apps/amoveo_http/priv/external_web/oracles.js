@@ -70,7 +70,7 @@
 	    oracleOutput.appendChild(text(done_txt));
 
 	    console.log("new");
-	    variable_public_get(["oracle_bets", oid], oracle_bets);
+	    variable_public_get(["oracle_bets", v], oracle_bets);
 
 	    //now display the whole thing.
 	    oracleOutput.appendChild(br());

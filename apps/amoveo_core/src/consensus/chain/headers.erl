@@ -229,10 +229,12 @@ difficulty_should_be2(Header) ->
     M1 = median(Times1),
     M2 = median(Times2),
     Tbig = M1 - M2,
-    T = Tbig div F,%T is the estimated block time over last 2000 blocks.
+    T0 = Tbig div F,%T is the estimated block time over last 2000 blocks.
+    T1 = max(1, T0),
+    T = min(T1, Header#header.period * 7 div 6),
     NT = pow:recalculate(Hash2000#header.difficulty,
                          Header#header.period,
-                         max(1, T)),
+                         T),
     max(NT, constants:initial_difficulty()).
 retarget(Header, 1, L) -> {L, Header};
 retarget(Header, N, L) ->
