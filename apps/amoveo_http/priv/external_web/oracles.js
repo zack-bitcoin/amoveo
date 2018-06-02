@@ -24,6 +24,7 @@
 	    var done_timer = x[9];
 	    var governance = x[10];
 	    var governance_amount = x[11];
+	    var orders_hash = x[7];
 	    var a;
 	    if (result == 0) {
 		a = text("this oracle is still open");
@@ -67,12 +68,18 @@
 	    oracleOutput.appendChild(br());
 	    var done_txt = "done timer: ".concat(JSON.stringify(done_timer));
 	    oracleOutput.appendChild(text(done_txt));
-	    
+
+	    console.log("new");
+	    variable_public_get(["oracle_bets", oid], oracle_bets);
 
 	    //now display the whole thing.
 	    oracleOutput.appendChild(br());
 	    var x2 = text(JSON.stringify(x));
 	    oracleOutput.appendChild(x2);
 	});
+    };
+    function oracle_bets(x) {
+	console.log("inside oracle bets");
+	console.log(JSON.stringify(x));
     }
 })();

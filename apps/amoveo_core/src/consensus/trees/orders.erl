@@ -146,7 +146,7 @@ head_put(Head, Many, Root) ->
     Y = serialize_head(Head, Many),
     ID = key_to_int(<<?Header:PS>>),
     trie:put(ID, Y, 0, Root, ?name).
-all(Root) ->
+all(Root) ->%pubkeys of everyone who made bets.
     {Head, _Many} = head_get(Root),
     all2(Head, Root).
 all2(X, Root) ->
