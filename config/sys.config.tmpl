@@ -59,7 +59,11 @@
 
     {download_blocks_batch, 50},%% How many blocks we get per request.
     {download_blocks_many, 4}, %% we are storing blocks in the block_absorber mail box, which is RAM. many*batch*blocksize is how much ram we are using, at most.
-    {push_blocks_batch, 50}
+    {push_blocks_batch, 50},
+
+    %% This automatically starts syncing the full blockchain when the node
+    %% starts. By default we only sync headers
+    {sync_blocks_boot, true}
   ]},
 
    {lager, [

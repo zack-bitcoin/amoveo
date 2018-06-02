@@ -31,6 +31,8 @@ sync_mode:normal().
 ```
 This will allow you to automatically download blocks for any headers you already have, to process txs, to mine blocks, and automatically tell your peers when new blocks become available.
 
+To automatically run `sync_mode:noraml().` on node bootup, change the `sync_blocks_boot` configuration parameter to true in `sys.config`.
+
 Your peers will automatically send new headers to you. Once you get the headers, then you will automatically try and download blocks for them.
 
 In order to get headers from peers, they need to know your IP address and port. You need to be added to the list of peers on their nodes.
