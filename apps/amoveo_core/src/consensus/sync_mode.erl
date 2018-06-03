@@ -5,13 +5,7 @@
 init(ok) -> 
     {ok, Kind} = application:get_env(amoveo_core, kind),
     X = case Kind of
-	    "production" ->
-		spawn(fun() ->
-			      timer:sleep(2000),
-			      %block_absorber:recover(quick)
-			      ok
-		      end),
-		quick;
+	    "production" -> quick;
 	    _ -> normal
 	end,
     {ok, X}.

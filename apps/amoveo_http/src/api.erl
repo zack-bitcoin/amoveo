@@ -39,7 +39,7 @@ tx_maker0(Tx) ->
 	    ok;
 	Stx -> 
 	    tx_pool_feeder:absorb(Stx),
-	    Peers = peers:all(),
+	    %Peers = peers:all(),
 	    %spawn(fun() ->
 		%	  lists:map(fun(P) -> 
 		%			    timer:sleep(200),

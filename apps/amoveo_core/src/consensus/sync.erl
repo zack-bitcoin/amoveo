@@ -318,6 +318,9 @@ push_new_block_helper(N, M, [P|T], Hash, Headers) ->
 	end,
     push_new_block_helper(N+Top, M+Bottom, T, Hash, Headers).
 trade_txs(Peer) ->
+    %io:fwrite("trade txs "),
+    %io:fwrite(packer:pack(Peer)),
+    %io:fwrite("\n"),
     case remote_peer({txs, 2, []}, Peer) of
 	    error ->%once everyone upgrades to the new code, we can get rid of this branch.
 	    %ok;
@@ -410,7 +413,7 @@ tch([H|T]) ->
 	    
 cron() ->
     spawn(fun() ->
-		  timer:sleep(2000),
+		  timer:sleep(4000),
 		  Peers = shuffle(peers:all()),
 		  get_headers(hd(Peers)),
 		  trade_peers(hd(Peers)),
@@ -422,7 +425,7 @@ cron() ->
 		  trade_peers(hd(tl(tl(Peers))))
 		  end),
     spawn(fun() ->
-		  timer:sleep(2000),
+		  timer:sleep(4000),
 		  cron2()
 	  end).
 cron2() ->

@@ -9,9 +9,6 @@ start_link() ->
 init(ok) ->
     block:initialize_chain(),
     State = current_state(),
-    spawn(fun() ->
-		  timer:sleep(2000),
-		  sync:cron() end),
     io:fwrite("tx_pool- blockchain ready\n"),
     {ok, State}.
 handle_call({dump, TopBlock}, _From, _OldState) ->
