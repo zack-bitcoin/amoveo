@@ -11,9 +11,11 @@
 
 start(_StartType, _StartArgs) ->
 
-    %% TODO: move to config
     application:start(inets),
     inets:start(),
+
+    sync:cron(),
+    push_block:cron(),
 
     io:fwrite("starting testnet node"),
 

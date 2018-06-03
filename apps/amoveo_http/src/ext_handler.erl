@@ -251,6 +251,12 @@ doit({oracle, Y}) ->
     {ok, Question} = oracle_questions:get(Oracle#oracle.question),
     {ok, OB} = order_book:data(X),
     {ok, {OB, Question}};
+doit({oracle_bets, OID}) ->
+    B = block:top(),
+    Trees = B#block.trees,
+    Oracles = trees:oracles(Trees),
+    {_, Oracle, _} = oracles:get(OID, Oracles),
+    orders:get_all(Oracle#oracle.orders);%This does multiple hard drive reads. It could be a security vulnerability. Maybe we should keep copies of this data in ram, for recent blocks.
 doit({market_data, OID}) ->
     %{ok, OB} = order_book:data(base64:decode(OID)),
     {ok, OB} = order_book:data(OID),

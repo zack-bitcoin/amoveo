@@ -16,6 +16,12 @@ height(1) ->
 block(1, N) ->
     B = block:get_by_height(N),
     B#block.txs;
+block(3, N) ->
+    Txs = tl(block(1, N)),
+    Txids = lists:map(
+	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      Txs),
+    [Txs, Txids];
 block(2, H) ->
     block:get_by_hash(H).
 top() ->
@@ -33,14 +39,14 @@ tx_maker0(Tx) ->
 	    ok;
 	Stx -> 
 	    tx_pool_feeder:absorb(Stx),
-	    Peers = peers:all(),
+	    %Peers = peers:all(),
 	    %spawn(fun() ->
 		%	  lists:map(fun(P) -> 
 		%			    timer:sleep(200),
 		%			    spawn(fun() -> talker:talk({txs, [Stx]}, P) end) end, Peers)
 		%	  end),
-	    ok
-			      
+	    %ok
+	    hash:doit(Tx)
     end.
 create_account(NewAddr, Amount) ->
     Cost = trees:dict_tree_get(governance, create_acc_tx),
@@ -505,6 +511,7 @@ txs({IP, Port}) ->
 txs(IP, Port) ->
     sync:trade_txs({IP, Port}),
     0.
+    
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
     Block = potential_block:check(),
@@ -551,7 +558,12 @@ mining_data() ->
      crypto:strong_rand_bytes(Entropy), 
      %headers:difficulty_should_be(Top)].
      Block#block.difficulty].
-
+sync_normal() ->
+    sync_mode:normal(),
+    0.
+sync_quick() ->
+    sync_mode:quick(),
+    0.
    
 mining_data(X) ->
     mining_data(X, 30).

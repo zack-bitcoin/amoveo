@@ -3,10 +3,6 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 	cron/0, add/1]).
 init(ok) -> 
-    spawn(fun() ->
-		  timer:sleep(1000),
-		  cron()
-	  end),
     {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -39,6 +35,11 @@ handle_call(_, _From, X) -> {reply, X, X}.
 add(Block) ->
     gen_server:cast(?MODULE, {add, Block}).
 cron() ->
+    spawn(fun() ->
+		  timer:sleep(1000),
+		  cron2()
+	  end).
+cron2() ->
     gen_server:cast(?MODULE, cron),
     timer:sleep(200),
-    cron().
+    cron2().
