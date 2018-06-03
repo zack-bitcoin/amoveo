@@ -1,5 +1,5 @@
 -module(oracle_bet_tx).
--export([go/3, go2/3, make/6, make_dict/5, id/1, from/1, to_prove/2]).
+-export([go/4, go2/3, make/6, make_dict/5, id/1, from/1, to_prove/2]).
 -include("../../records.hrl").
 -record(oracle_bet, {from, %your account id.
 		     nonce, 
@@ -84,10 +84,14 @@ dict_give_bets([Order|T], Type, Dict, OID) ->
     ID = orders:aid(Order),
     Dict2 = oracle_bets:dict_add_bet(ID, OID, Type, 2*orders:amount(Order), Dict),
     dict_give_bets(T, Type, Dict2, OID).
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#oracle_bet.from,
     txs:developer_lock(From, NewHeight, Dict),
-    Facc = accounts:dict_update(From, Dict, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Tx#oracle_bet.nonce),
+    Nonce = if
+		NonceCheck -> Tx#oracle_bet.nonce;
+		true -> none
+	    end,
+    Facc = accounts:dict_update(From, Dict, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     <<_:256>> = Tx#oracle_bet.id,
     Oracle = oracles:dict_get(Tx#oracle_bet.id, Dict2),

@@ -11,15 +11,22 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 Maybe question oracles don't need so much (any?) initial liquidity like governance oracles do.
 
 
+#### currently working on
+
+* update block processing to correctly handle fees for multi_tx.
+- make sure to update the market cap correctly for the fees for multi_tx.
+- make sure to look up each sub-tx in the governance mechanism for governance fees.
+
+* make sure every pubkey spot in the multi tx is a zero, to save space.
+
+* have the version number change.
+- teach the light node about the new version.
+
 
 
 ### Things to do
 
 * sync_mode:normal and sync_mode:quick should be available from the api.
-
-* share new block headers to all the mining pools.
-
-* return the hash of the tx when you publish a new tx.
 
 * we should have more rules for ignoring bad peers. If they send the same request too often, or if they send invalid data more than 10 times per minute. 
 
