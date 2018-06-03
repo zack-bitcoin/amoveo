@@ -215,7 +215,12 @@ difficulty_should_be(A) ->
     D1 = A#header.difficulty,
     RF = constants:retarget_frequency(),
     Height = A#header.height,
-    X = Height rem RF,
+    %X = Height rem RF,%fork
+    B = Height > forks:get(4),
+    X = if
+	    B -> Height rem (RF div 2);
+	    true -> Height rem RF
+	end,
     if
         (X == 0) and (not(Height < 10)) ->
             difficulty_should_be2(A);

@@ -47,7 +47,12 @@ function headers_main() {
             var Diff = header[6];
             var RF = retarget_frequency; //constants:retarget_frequency();
             var height = header[1];
-            var x = height % RF;
+            //var x = height % RF;//fork
+	    if (height > 26900) {
+		x = height % Math.floor(RF / 2);
+	    } else {
+		x = height % RF;
+	    }
             if ( ( x == 0 ) && (! (height < 10) )) {
                 return difficulty_should_be2(header);
             } else { return Diff; }

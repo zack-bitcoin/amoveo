@@ -6,9 +6,11 @@ common(A, B) ->
 	{ok, "production"} -> A;
 	_ -> B
     end.
-test_height() -> 0.
-    %50.
+test_height() -> %0.
+    50.
 get(1) -> common(4200, test_height());
 get(2) -> common(9000, test_height());
-get(3) -> common(9900, test_height()).
+get(3) -> common(9900, test_height());
+get(4) -> common(26900, test_height()).
+    
     
