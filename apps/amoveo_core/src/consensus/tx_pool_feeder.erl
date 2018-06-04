@@ -43,12 +43,21 @@ absorb_internal(SignedTx) ->
     %io:fwrite("now 3 "),%1500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-	    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
 	    {ok, MinimumTxFee} = application:get_env(amoveo_core, minimum_tx_fee),
+	    case Type of
+		multi_tx ->
+		    MTxs = Tx#multi_tx.txs,
+		    Cost = sum_cost(MTxs, F#tx_pool.dict, F#tx_pool.block_trees),
+		    MF = MinimumTxFee * length(MTxs),
+		    true = Fee > (MF + Cost),
+		    ok;
+		_ ->
+		    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
     %io:fwrite("now 4 "),%500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-	    true = Fee > (MinimumTxFee + Cost),
+		    true = Fee > (MinimumTxFee + Cost)
+	    end,
     %io:fwrite("now 5 "),%2000
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
@@ -57,6 +66,12 @@ absorb_internal(SignedTx) ->
 	    %io:fwrite("\n"),
 	    absorb_unsafe(SignedTx)
     end.
+sum_cost([], _, _) -> 0;
+sum_cost([H|T], Dict, Trees) ->
+    Type = element(1, H),
+    Cost = trees:dict_tree_get(governance, Type, Dict, Trees),
+    Cost + sum_cost(T, Dict, Trees).
+    
 grow_dict(Dict, [], _) -> Dict;
 grow_dict(Dict, [{orders, Key}|T], Trees) ->
     Dict2 = 

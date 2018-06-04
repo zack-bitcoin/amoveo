@@ -829,8 +829,20 @@ test(20) ->
     absorb(Stx2),
     potential_block:new(),
     block:mine(100000),
+    success;
+test(21) ->
+    Pub = keys:pubkey(),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = 10*(constants:initial_fee() + 20),
+    Tx1 = create_account_tx:make_dict(NewPub, 2, 0, Pub),
+    Tx2 = spend_tx:make_dict(NewPub, 1, 0, Pub),
+    Txs = [Tx1, Tx2],
+    Tx = multi_tx:make_dict(Pub, Txs, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    timer:sleep(1000),
+    mine_blocks(1),
     success.
-    
     
     
 test18(0) -> success;

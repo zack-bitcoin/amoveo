@@ -415,14 +415,27 @@ cron() ->
     spawn(fun() ->
 		  timer:sleep(4000),
 		  Peers = shuffle(peers:all()),
-		  get_headers(hd(Peers)),
-		  trade_peers(hd(Peers)),
-		  timer:sleep(3000),
-		  get_headers(hd(tl(Peers))),
-		  trade_peers(hd(tl(Peers))),
-		  timer:sleep(3000),
-		  get_headers(hd(tl(tl(Peers)))),
-		  trade_peers(hd(tl(tl(Peers))))
+		  LP = length(Peers),
+		  if
+		      LP > 0 ->
+			  get_headers(hd(Peers)),
+			  trade_peers(hd(Peers)),
+			  timer:sleep(3000);
+		      true -> ok
+		  end,
+		  if
+		      LP > 1 ->
+			  get_headers(hd(tl(Peers))),
+			  trade_peers(hd(tl(Peers))),
+			  timer:sleep(3000);
+		      true -> ok
+		  end,
+		  if
+		      LP > 2 ->
+			  get_headers(hd(tl(tl(Peers)))),
+			  trade_peers(hd(tl(tl(Peers))));
+		      true -> ok
+		  end
 		  end),
     spawn(fun() ->
 		  timer:sleep(4000),
@@ -440,8 +453,13 @@ cron2() ->
 			      B -> sync:start();
 			      true -> 
 				  P2 = shuffle(remove_self(peers:all())),
-				  trade_txs(hd(P2))
+				  LP = length(P2),
+				  if
+				      LP > 0 ->
+					  trade_txs(hd(P2));
 				      %trade_txs(hd(tl(P2)))
+				      true -> ok
+				  end
 			  end
 		  end);
 	true -> ok

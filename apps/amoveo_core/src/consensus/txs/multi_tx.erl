@@ -1,16 +1,28 @@
 -module(multi_tx).
 -export([go/4, 
 	 %make/2, 
-	 make_dict/2, from/1]).
+	 make_dict/3, from/1, txs/1]).
 -include("../../records.hrl").
 from(X) -> X#multi_tx.from.
-make_dict(From, Txs) ->
+txs(X) -> X#multi_tx.txs.
+
+make_dict(From, Txs, Fee) ->
+    %replace from and nonce in each sub-tx with a 0.
     Acc = trees:dict_tree_get(accounts, From),
-    #multi_tx{from = From, nonce = Acc#acc.nonce + 1, txs = Txs}.
+    Txs2 = zero_accounts_nonces(Txs),
+    #multi_tx{from = From, nonce = Acc#acc.nonce + 1, txs = Txs2, fee = Fee}.
+zero_accounts_nonces([]) -> [];
+zero_accounts_nonces([H|T]) ->
+    H2 = setelement(2, H, 0),
+    H3 = setelement(3, H2, 0),
+    H4 = setelement(4, H3, 0),
+    [H4|zero_accounts_nonces(T)].
 go(Tx, Dict, NewHeight, _) ->
-    true = false,
+    F = forks:get(4),
+    true = NewHeight >= F,
     From = Tx#multi_tx.from,
     Txs = Tx#multi_tx.txs,
+    true = length(Txs) > 0,
     Dict1 = sub_txs(Txs, From, Dict, NewHeight),
     Fee = Tx#multi_tx.fee,
     Facc = accounts:dict_update(From, Dict1, -Fee, Tx#multi_tx.nonce),
@@ -18,8 +30,13 @@ go(Tx, Dict, NewHeight, _) ->
 sub_txs([], From, Dict, _) -> Dict;
 sub_txs([H|T], From, Dict, NewHeight) ->
     Type = element(1, H),
-    false = testnet_sign:type_check(Type), %filter to make sure they aren't using a tx that needs 2 signatures.
-    false = (Type == multi_tx),%don't embed multi_tx inside multi_tx
+    ok = case Type of
+	     spend -> ok;
+	     create_acc_tx -> ok
+	 end,
+    0 = element(2, H),
+    0 = element(3, H),
+    0 = element(4, H),
     M = txs:key2module(Type),
     H2 = setelement(2, H, From),
     Dict2 = M:go(H2, Dict , NewHeight, none),

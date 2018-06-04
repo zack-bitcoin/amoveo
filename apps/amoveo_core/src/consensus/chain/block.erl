@@ -491,8 +491,18 @@ initialize_chain() ->
 gov_fees([], _) -> 0;
 gov_fees([Tx|T], Governance) ->
     C = testnet_sign:data(Tx),
-    A = governance:get_value(element(1, C), Governance),
+    Type = element(1, C),
+    A = case Type of
+	    multi_tx -> gov_fees2(C#multi_tx.txs, Governance);
+	    _ -> governance:get_value(Type, Governance)
+	end,
     A + gov_fees(T, Governance).
+gov_fees2([], _) -> 0;
+gov_fees2([H|T], Governance) ->
+    Type = element(1, H),
+    A = governance:get_value(Type, Governance),
+    A + gov_fees2(T, Governance).
+    
 deltaCV([], _) -> 0;%calculate change in total amount of VEO stored in channels.
 deltaCV([Tx|T], Dict) ->
     C = testnet_sign:data(Tx),

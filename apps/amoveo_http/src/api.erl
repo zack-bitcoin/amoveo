@@ -60,6 +60,35 @@ create_account(N, A, F) ->
 coinbase(_) ->
     K = keys:pubkey(),
     tx_maker0(coinbase_tx:make_dict(K)).
+spend(L) when is_list(L) ->
+    Txs = multi_spend(L),
+    Fee = multi_fee(Txs),
+    MTx = multi_tx:make_dict(keys:pubkey(), Txs, Fee),
+    tx_maker0(MTx).
+multi_spend([]) -> [];
+multi_spend([{Amount, Pubkey}|T]) ->
+    ID = decode_pubkey(Pubkey),
+    K = keys:pubkey(),
+    Tx = if
+	     ID == K -> io:fwrite("don't spend to yourself\n"),
+			1 = 2;
+	     true ->
+		 B = trees:dict_tree_get(accounts, ID),
+		 if
+		     (B == empty) -> 
+			 create_account_tx:make_dict(ID, Amount, 0, K);
+		     true -> 
+			 spend_tx:make_dict(ID, Amount, 0, K)
+		 end
+	 end,
+    [Tx|multi_spend(T)].
+multi_fee([]) -> 0;
+multi_fee([H|T]) ->
+    Type = element(1, H),
+    Cost = trees:dict_tree_get(governance, Type),
+    Cost + multi_fee(T) + ?Fee.
+
+
 spend(ID0, Amount) ->
     ID = decode_pubkey(ID0),
     K = keys:pubkey(),
