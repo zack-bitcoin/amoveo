@@ -114,6 +114,14 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
 doit({txs, Txs}) ->
     tx_pool_feeder:absorb(Txs),
     {ok, 0};
+doit({txs, 3, N}) ->
+    B = block:get_by_height(N),
+    Txs = tl(B#block.txs),
+    Txids = lists:map(
+	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      Txs),
+    X = [Txs, Txids],
+    {ok, X};
 doit({top}) -> 
     Top = block:top(),
     {ok, Top, Top#block.height};
