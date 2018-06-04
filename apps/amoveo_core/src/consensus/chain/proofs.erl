@@ -19,7 +19,8 @@ tree_to_int(existence) -> 3;
 tree_to_int(oracles) -> 5;
 tree_to_int(governance) -> 6;
 tree_to_int(oracle_bets) -> 7;
-tree_to_int(orders) -> 8.
+tree_to_int(orders) -> 8;
+tree_to_int(multi_tx) -> 9.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -27,7 +28,8 @@ int_to_tree(3) -> existence;
 int_to_tree(5) -> oracles;
 int_to_tree(6) -> governance;
 int_to_tree(7) -> oracle_bets;
-int_to_tree(8) -> orders.
+int_to_tree(8) -> orders;
+int_to_tree(9) -> multi_tx.
     
 
 %deterministic merge-sort    
@@ -109,7 +111,6 @@ prove2([{oracle_bets, Key}|T], Trees) ->
 		   tree = tree_to_int(oracle_bets)},
     true = oracle_bets:verify_proof(Root, Key#key.id, Data2, Path),
     [Proof|prove2(T, Trees)];
-    
 prove2([{Tree, Key}|T], Trees) ->
     Branch = trees:Tree(Trees),
     {Root, Data, Path} = Tree:get(Key, Branch),
@@ -182,6 +183,11 @@ txs_to_querys2([STx|T], Trees) ->
     Tx = testnet_sign:data(STx),
     PS = constants:pubkey_size() * 8,
     L = case element(1, Tx) of
+	    multi_tx ->
+		txs_to_querys_multi(multi_tx:txs(Tx)) ++
+		    [ 
+		      {accounts, multi_tx:from(Tx)}
+		     ];
 	    create_acc_tx -> 
                 [
                  {governance, ?n2i(create_acc_tx)},
@@ -347,6 +353,25 @@ txs_to_querys2([STx|T], Trees) ->
                 ]
 	end,
     L ++ txs_to_querys2(T, Trees).
+txs_to_querys_multi([]) -> [];
+txs_to_querys_multi([Tx|T]) ->
+    PS = constants:pubkey_size() * 8,
+    L = case element(1, Tx) of
+	    create_acc_tx -> 
+                [
+                 {governance, ?n2i(create_acc_tx)},
+                 {accounts, create_account_tx:pubkey(Tx)}
+                ];
+	    spend -> 
+                [
+                 {governance, ?n2i(spend)},
+                 {accounts, spend_tx:to(Tx)}
+                ]
+	end,
+    L ++ txs_to_querys_multi(T).
+
+	    
+    
 remove(_, []) -> [];
 remove(X, [X|A]) -> remove(X, A);
 remove(X, [Y|A]) -> [Y|remove(X, A)].
