@@ -38,7 +38,10 @@ def multi_spend():
     pub3 = "BJEQ6xCEdsGVUte/eECZ5FkmjNkhVuThIirSIrfMhUpN68PcjKM39uKalFEs2Curl2PVqv+WBDIDmYKjHl/NW8I="
     pub1 = "BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo="
     request(1, "spend", [[-6, [700, pub2], [650, pub3]]])
-    request(1, "mine_block", [1,100000], 0.1)
+    request(1, "mine_block", [1,100000], 0.5)
+    request(1, "spend", [[-6, [550, pub3]]])
+    request(1, "mine_block", [1,100000], 0.5)
+
 
 if __name__ == "__main__":
     spend_test()

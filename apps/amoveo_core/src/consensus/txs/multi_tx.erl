@@ -22,6 +22,7 @@ go(Tx, Dict, NewHeight, _) ->
     true = NewHeight >= F,
     From = Tx#multi_tx.from,
     Txs = Tx#multi_tx.txs,
+    true = length(Txs) > 0,
     Dict1 = sub_txs(Txs, From, Dict, NewHeight),
     Fee = Tx#multi_tx.fee,
     Facc = accounts:dict_update(From, Dict1, -Fee, Tx#multi_tx.nonce),
