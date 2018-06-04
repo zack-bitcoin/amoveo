@@ -8,6 +8,7 @@ make_dict(From, Txs) ->
     Acc = trees:dict_tree_get(accounts, From),
     #multi_tx{from = From, nonce = Acc#acc.nonce + 1, txs = Txs}.
 go(Tx, Dict, NewHeight, _) ->
+    true = false,
     From = Tx#multi_tx.from,
     Txs = Tx#multi_tx.txs,
     Dict1 = sub_txs(Txs, From, Dict, NewHeight),
