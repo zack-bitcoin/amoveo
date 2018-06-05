@@ -10,13 +10,14 @@ What steps have been taken in light of these events?
 
 1) The community came together to do a hard update to prevent the difficulty from falling by more than 16.667% at any one retargetting period. This will prevent us from debasing the money supply by handing out VEO at too low of a cost.
 
-2) A second hard update was done to more accurately calculate the difficulty retargetting events. Now all block-times are included in retargettings, before we only used half. This comes into effect at height 26900
+2) A second hard update was done to more accurately calculate the difficulty retargetting events. Now all block-times are included in retargettings, before we only used half. So now difficulty retargets every 1000 blocks. This comes into effect at height 26900
 
 3) Dropped txs are even worse with slow blocks, so we made a third hard update. Now a single transaction can have multiple outputs, so you can spend to multiple recipients. This comes into effect at height 26900.
 
 4) In light of all the upcoming hard forks, the slow rate of blockchain syncing has become more of an issue.
 Faster block syncing would allow us to react more quickly to any problems caused by a hard fork, and to fix them more quickly.
 Faster syncing also allows us to test hard forks more easily, which speeds up the rate of software development.
+Now Amoveo can verify blocks in parallel. It seems Amoveo is the first blockchain with this capability.
 
 
 This is the first time we have experienced such slow blocks in the 3 month 3 days that Amoveo has existed, so it makes sense that some people are showing concern.
