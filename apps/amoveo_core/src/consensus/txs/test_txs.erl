@@ -63,14 +63,8 @@ test(1) ->
     potential_block:new(),
 
     Txs = (tx_pool:get())#tx_pool.txs,
-    BP2 = block:get_by_height(0),
-    PH = block:hash(BP2),
+    mine_blocks(1),
 
-    Block = block:make(block:block_to_header(BP2), Txs, Trees, constants:master_pub()),%1 is the master pub
-    MBlock = block:mine2(Block, 1),
-    Header = block:block_to_header(MBlock),
-    headers:absorb([Header]),
-    {true, _} = block:check(MBlock),
     success;
     
 test(3) ->
@@ -103,12 +97,6 @@ test(3) ->
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
     mine_blocks(1),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
     
 test(4) -> 
@@ -153,13 +141,6 @@ test(4) ->
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
     mine_blocks(1),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Header0 = block:block_to_header(BP),
-    %Block0 = block:make(Header0, Txs, Trees, constants:master_pub()),
-    %Block = block:mine2(Block0, 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 test(5) -> 
     %channel solo close, channel timeout
@@ -201,18 +182,11 @@ test(5) ->
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
-    %mine_blocks(1),
     timer:sleep(500),
     Ctx4 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
     mine_blocks(1),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 test(6) -> 
     io:fwrite("channel slash tx test \n"),
@@ -228,7 +202,6 @@ test(6) ->
     Fee = constants:initial_fee() + 20,
     Amount = 1000000,
     Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
-    %{Ctx, _} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
@@ -238,7 +211,6 @@ test(6) ->
 
     CID = <<5:256>>,
 
-    %Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 30, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
@@ -280,10 +252,6 @@ test(6) ->
     potential_block:new(),
 
     mine_blocks(1),
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 test(8) ->
     io:fwrite(" channel solo close, and channel team close tx test \n"),
@@ -327,12 +295,6 @@ test(8) ->
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
     mine_blocks(1),
-
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 test(9) ->
     io:fwrite(" channel slash tx, and channel team close tx test \n"),
@@ -382,11 +344,6 @@ test(9) ->
     absorb(SStx4),
     potential_block:new(),
     mine_blocks(1),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 
 test(7) ->
@@ -466,14 +423,7 @@ test(11) ->
     %mine_blocks(1),
     timer:sleep(100),
     Txs = (tx_pool:get())#tx_pool.txs,
-    Height6 = (tx_pool:get())#tx_pool.height,
-    BP = block:get_by_height(Height6),
-    GHeader = block:block_to_header(BP),
-    RB = block:make(GHeader, Txs, block_trees(BP), constants:master_pub()),
-    Block = block:mine2(RB, 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    mine_blocks(1),
     success;
 test(16) ->
     io:fwrite("testing an oracle with more bets\n"),
@@ -535,13 +485,7 @@ test(16) ->
     absorb(Stx52),
 
     timer:sleep(100),
-    Txs = (tx_pool:get())#tx_pool.txs,
-    Height6 = (tx_pool:get())#tx_pool.height,
-    BP = block:get_by_height(Height6),
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    mine_blocks(1),
     success;
 test(12) ->
     io:fwrite("multiple bets in a single channel test \n"),
@@ -584,14 +528,6 @@ test(12) ->
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
     mine_blocks(1),
-
-    %BP = block:get_by_height(Height4),
-    %PH = block:hash(BP),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 test(13) ->
     %testing the governance
@@ -659,14 +595,7 @@ test(13) ->
     BR3 = trees:dict_tree_get(governance, block_reward),
     true = BR1 < BR2,
     true = BR2 < BR3,
-    Txs = (tx_pool:get())#tx_pool.txs,
-    H = (tx_pool:get())#tx_pool.height,
-    BP = block:get_by_height(H),
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
-
+    mine_blocks(1),
     success;
 test(14) -> 
     %options
@@ -719,12 +648,6 @@ test(14) ->
     PH = block:hash(BP2),
     potential_block:new(),
     mine_blocks(1),
-
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 
 test(15) ->

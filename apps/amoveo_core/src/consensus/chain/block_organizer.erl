@@ -57,18 +57,25 @@ add(Blocks) when not is_list(Blocks) -> 0;
 add(Blocks) ->
     io:fwrite("block organizer add\n"),
     true = is_list(Blocks),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
     {Blocks2, AddReturn} = add1(Blocks, []),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
-    %Blocks2 is Blocks without the repeats.
-    case Blocks2 of
-	[] -> ok;
-	_ ->
-	    gen_server:call(?MODULE, {add, lists:reverse(Blocks2)})
-    end,
+    add3(Blocks2),
     AddReturn.
+add3([]) -> ok;
+add3(Blocks) when length(Blocks) > 10 ->
+    {A, B} = lists:split(10, Blocks),
+    add4(A),
+    add3(B);
+add3(Blocks) -> add4(Blocks).
+add4(Blocks) ->
+    spawn(fun() ->
+		  Blocks2 = add5(Blocks),
+		  gen_server:call(?MODULE, {add, lists:reverse(Blocks2)})
+	  end).
+add5([]) -> [];
+add5([Block|T]) ->
+    {Dict, NewDict} = block:check0(Block),
+    Block2 = Block#block{trees = {Dict, NewDict}},
+    [Block2|add5(T)].
 add1([], []) -> {[], 0};
 add1([X], L) -> 
     {L2, A} = add2(X, L),

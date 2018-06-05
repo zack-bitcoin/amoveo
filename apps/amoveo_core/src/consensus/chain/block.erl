@@ -2,7 +2,7 @@
 -export([block_to_header/1, get_by_height_in_chain/2,
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
-         mine/1, mine/2, mine2/2, check/1, 
+         mine/1, mine/2, mine2/2, check/1, check0/1,
          top/0, genesis_maker/0, height/0,
 	 time_now/0, all_mined_by/1, time_mining/1,
 	 period_estimate/0, hashrate_estimate/0,
@@ -365,9 +365,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     Txs = Block#block.txs,
     true = proofs_roots_match(Facts, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
-
     Height = Block#block.height,
-
     PrevHash = Block#block.prev_hash,
     Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
@@ -377,7 +375,8 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
 
 check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
     Roots = Block#block.roots,
-    {Dict, NewDict} = check0(Block),
+    {Dict, NewDict} = Block#block.trees,
+    %{Dict, NewDict} = check0(Block),
     BlockHash = hash(Block),
     {ok, Header} = headers:read(BlockHash),
     Height = Block#block.height,
@@ -403,7 +402,7 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height-1),
     true = Block#block.market_cap == MarketCap,
 
-    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict),%2
+    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict),
     Block2 = Block#block{trees = NewTrees3},
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
