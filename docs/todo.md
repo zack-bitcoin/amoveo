@@ -19,6 +19,12 @@ version in spend txs is not being used.
 
 ### Things to do
 
+* add function to api for checking signatures.
+* add tool to mining page for early payout.
+
+
+
+
 * sync blocks faster
 - maybe block_absorber:save should be cast instead of call.
 - maybe checks in block_absorber:block_internal should be moved somewhere else where they can be run in parallel. block_absorber should write the new data to the consensus state, and nothing more.
