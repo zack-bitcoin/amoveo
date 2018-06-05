@@ -10,12 +10,19 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 Maybe question oracles don't need so much (any?) initial liquidity like governance oracles do.
 
+version in spend txs is not being used.
+
 
 
 
 
 
 ### Things to do
+
+* sync blocks faster
+- maybe block_absorber:save should be cast instead of call.
+- maybe checks in block_absorber:block_internal should be moved somewhere else where they can be run in parallel. block_absorber should write the new data to the consensus state, and nothing more.
+
 
 * sync_mode:normal and sync_mode:quick should be available from the api.
 

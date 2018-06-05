@@ -13,7 +13,7 @@ handle_cast(check, BS) ->
     {noreply, BS2}.
 handle_call({add, Blocks}, _From, BS) -> 
     BS2 = merge(Blocks, BS),
-    BS3 = helper(BS2),
+    BS3 = helper(BS2), %helper takes  ~5 seconds for 100 blocks.
     {reply, ok, BS3};
 handle_call(pid, _From, X) -> 
     {reply, self(), X};
@@ -57,7 +57,12 @@ add(Blocks) when not is_list(Blocks) -> 0;
 add(Blocks) ->
     io:fwrite("block organizer add\n"),
     true = is_list(Blocks),
+    io:fwrite(packer:pack(erlang:timestamp())),
+    io:fwrite("\n"),
     {Blocks2, AddReturn} = add1(Blocks, []),
+    io:fwrite(packer:pack(erlang:timestamp())),
+    io:fwrite("\n"),
+    %Blocks2 is Blocks without the repeats.
     case Blocks2 of
 	[] -> ok;
 	_ ->

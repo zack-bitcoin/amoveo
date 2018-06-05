@@ -353,20 +353,43 @@ proofs_roots_match([P|T], R) ->
            end,
     proofs_roots_match(T, R).
             
-check(Block) ->
-    {ok, LN} = application:get_env(amoveo_core, light_node),
+check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,
     Header = block_to_header(Block),
     BlockHash = hash(Block),
     {ok, Header} = headers:read(BlockHash),
-    OldBlock = get_by_hash(Block#block.prev_hash),
-    OldTrees = OldBlock#block.trees,
     Roots = Block#block.roots,
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
-    %PrevStateHash = trees:root_hash2(OldTrees, Roots),
     Txs = Block#block.txs,
+    true = proofs_roots_match(Facts, Roots),
+    Dict = proofs:facts_to_dict(Facts, dict:new()),
+
+    Height = Block#block.height,
+
+    PrevHash = Block#block.prev_hash,
+    Pub = coinbase_tx:from(hd(Block#block.txs)),
+    true = no_coinbase(tl(Block#block.txs)),
+    NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
+    {Dict, NewDict}.
+
+
+check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
+    Roots = Block#block.roots,
+    {Dict, NewDict} = check0(Block),
+    BlockHash = hash(Block),
+    {ok, Header} = headers:read(BlockHash),
+    Height = Block#block.height,
+    OldBlock = get_by_hash(Block#block.prev_hash),
+    OldTrees = OldBlock#block.trees,
+    Txs = Block#block.txs,
+    Txs0 = tl(Txs),
+    true = Block#block.channels_veo == OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
+    true = Block#block.live_channels == OldBlock#block.live_channels + many_live_channels(Txs0),
+    true = Block#block.many_accounts == OldBlock#block.many_accounts + many_new_accounts(Txs0),
+    true = Block#block.many_oracles == OldBlock#block.many_oracles + many_new_oracles(Txs0),
+    true = Block#block.live_oracles == OldBlock#block.live_oracles + many_live_oracles(Txs0),
     Governance = trees:governance(OldTrees),
     BlockSize = size(packer:pack(Txs)),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
@@ -376,44 +399,15 @@ check(Block) ->
 		 bad;
 	     false -> ok
     end,
-    case LN of
-        true -> 
-	    %light node stuff.
-            %OldSparseTrees = 
-            %    facts_to_trie(
-            %      Facts, trees:new(empty, empty, empty,
-            %                       empty, empty, empty)),
-            %PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
-            %NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
-            %TreesHash = trees:root_hash2(NewTrees2, Roots),
-            ok;
-        false ->
-            ok
-    end,
-    true = proofs_roots_match(Facts, Roots),
-    Dict = proofs:facts_to_dict(Facts, dict:new()),
-
-    Txs0 = tl(Txs),
     BlockReward = governance:get_value(block_reward, Governance),
-    Height = Block#block.height,
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height-1),
     true = Block#block.market_cap == MarketCap,
-    true = Block#block.channels_veo == OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
-    true = Block#block.live_channels == OldBlock#block.live_channels + many_live_channels(Txs0),
-    true = Block#block.many_accounts == OldBlock#block.many_accounts + many_new_accounts(Txs0),
-    true = Block#block.many_oracles == OldBlock#block.many_oracles + many_new_oracles(Txs0),
-    true = Block#block.live_oracles == OldBlock#block.live_oracles + many_live_oracles(Txs0),
 
-    PrevHash = Block#block.prev_hash,
-    Pub = coinbase_tx:from(hd(Block#block.txs)),
-    true = no_coinbase(tl(Block#block.txs)),
-    NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
-    %NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
-    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict),
+    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict),%2
     Block2 = Block#block{trees = NewTrees3},
-    TreesHash = trees:root_hash(Block2#block.trees),
-    TreesHash = trees:root_hash2(Block2#block.trees, Roots),
-    TreesHash = Header#header.trees_hash,
+    %TreesHash = trees:root_hash(Block2#block.trees),
+    %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
+    %TreesHash = Header#header.trees_hash,
     TreesHash = Block2#block.trees_hash,
     true = hash(Block) == hash(Block2),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
