@@ -157,6 +157,10 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     tx_pool_feeder:absorb(SSTx),
     channel_feeder:new_channel(Tx, S2SPK, Expires),
     0.
+signed(Signed, Pub) ->
+    X = element(2, Signed),
+    S = element(3, Signed),
+    sign:verify_sig(X, S, Pub).
 pull_channel_state() ->
     pull_channel_state(?IP, ?Port).
 pull_channel_state(IP, Port) ->

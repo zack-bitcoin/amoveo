@@ -37,6 +37,8 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
 
+[Veopool explorer](http://explorer.veopool.pw/)
+
 
 ## Light node
 Simply visit [this webpage](http://159.65.120.84:8080/wallet.html) to participate in Amoveo, no installation necessary.

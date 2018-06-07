@@ -22,7 +22,7 @@ version in spend txs is not being used.
 * add function to api for checking signatures.
 * add tool to mining page for early payout.
 
-
+* block_hashes is getting too big in ram. We should delete old information out of it.
 
 
 * sync blocks faster

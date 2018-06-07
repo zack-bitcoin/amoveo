@@ -50,15 +50,33 @@ save(X) ->
     end.
 absorb_internal(error) -> error;
 absorb_internal(Block) ->
+    %io:fwrite("block absorber 0\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     Height = Block#block.height,
     MyHeight = block:height(), 
+    %io:fwrite("block absorber 0.01\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     if
 	Height > (MyHeight + 1) ->
 	    throw("too high");
+	Height < (MyHeight - 300) ->
+	    throw("too low");
 	true ->
-	    BH = block:hash(Block),
-	    BHC = block_hashes:check(BH),
+	    %BH = block:hash(Block),%0.014
+	    {_, _, BH} = Block#block.trees,
+	    %io:fwrite("block absorber 1\n"),
+	    %io:fwrite(packer:pack(erlang:timestamp())),
+	    %io:fwrite("\n"),
+	    BHC = block_hashes:check(BH),%0.01
+	    %io:fwrite("block absorber 1.0\n"),
+	    %io:fwrite(packer:pack(erlang:timestamp())),
+	    %io:fwrite("\n"),
 	    NextBlock = Block#block.prev_hash,
+	    %io:fwrite("block absorber 1.1\n"),
+	    %io:fwrite(packer:pack(erlang:timestamp())),
+	    %io:fwrite("\n"),
 	    Bool = block_hashes:check(NextBlock),
 	    if
 		Height == 0 -> 0;
@@ -67,19 +85,44 @@ absorb_internal(Block) ->
 		BHC -> 3; %we already have this block
 		not(Bool) -> 0;%we dont' know the previous block
 		true ->
+		    %io:fwrite("block absorber 1.2\n"),
+		    %io:fwrite(packer:pack(erlang:timestamp())),
+		    %io:fwrite("\n"),
 		    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
+		    %io:fwrite("block absorber 1.3\n"),
+		    %io:fwrite(packer:pack(erlang:timestamp())),
+		    %io:fwrite("\n"),
 		    block_hashes:add(BH),%Don't waste time checking invalid blocks more than once.
+		    %0.03
 
 		    %start adding next block.
+		    %io:fwrite("block absorber 1.4\n"),
+		    %io:fwrite(packer:pack(erlang:timestamp())),
+		    %io:fwrite("\n"),
 
 		    H = block:block_to_header(Block),%we should calculate the block hash from the header, so we don't calculate the header twice.
+		    %io:fwrite("block absorber 1.4\n"),
+		    %io:fwrite(packer:pack(erlang:timestamp())),
+		    %io:fwrite("\n"),
+		    %0.07
 		    headers:absorb([H]),
+		    %io:fwrite("block absorber 2\n"),
+		    %io:fwrite(packer:pack(erlang:timestamp())),
+		    %io:fwrite("\n"),
 		    {true, Block2} = block:check(Block),
-		    BH = block:hash(Block2),%remove this sanity check.
+		    %io:fwrite("block absorber 3\n"),
+		    %io:fwrite(packer:pack(erlang:timestamp())),
+		    %io:fwrite("\n"),
+		    %BH = block:hash(Block2),%remove this sanity check.
 		    do_save(Block2),
-		    TWBH0 = block:hash(headers:top_with_block()),
+		    %io:fwrite("block absorber 4\n"),
+		    %io:fwrite(packer:pack(erlang:timestamp())),
+		    %io:fwrite("\n"),
 		    headers:absorb_with_block([H]),
 		    Header = H,
+		    %io:fwrite("block absorber 5\n"),
+		    %io:fwrite(packer:pack(erlang:timestamp())),
+		    %io:fwrite("\n"),
 
 		    case sync_mode:check() of
 			normal -> 
@@ -89,6 +132,7 @@ absorb_internal(Block) ->
 			    potential_block:save([], Height),
 			    Txs0 = (tx_pool:get())#tx_pool.txs,
 			    %TB = block:top(),
+			    TWBH0 = block:hash(headers:top_with_block()),
 			    TB = block:get_by_hash(TWBH0),
 			    TopHash = block:hash(TB),
 			    Txs = if
@@ -105,9 +149,18 @@ absorb_internal(Block) ->
 			    %sync:push_new_block(Block2);
 			quick -> 
 			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
+			    %io:fwrite("block absorber 6\n"),
+			    %io:fwrite(packer:pack(erlang:timestamp())),
+			    %io:fwrite("\n"),
 			    tx_pool_feeder:dump(Block2),
+			    %io:fwrite("block absorber 7\n"),
+			    %io:fwrite(packer:pack(erlang:timestamp())),
+			    %io:fwrite("\n"),
 			    potential_block:dump()
 		    end,
+		    %io:fwrite("block absorber 9\n"),
+		    %io:fwrite(packer:pack(erlang:timestamp())),
+		    %io:fwrite("\n"),
 		    if
 			(Block2#block.height rem 10) == 0 ->
 			%1 == 1 ->

@@ -12,7 +12,7 @@ What steps have been taken in light of these events?
 
 2) A second hard update was done to more accurately calculate the difficulty retargetting events. Now all block-times are included in retargettings, before we only used half. So now difficulty retargets every 1000 blocks. This comes into effect at height 26900
 
-3) Dropped txs are even worse with slow blocks, so we made a third hard update. Now a single transaction can have multiple outputs, so you can spend to multiple recipients. This comes into effect at height 26900.
+3) Dropped txs are even worse with slow blocks, so we made a third hard update. Now a single transaction can have multiple outputs, so you can spend to multiple recipients. This will make it much easier to operate mining pools and exchanges. This comes into effect at height 26900.
 
 4) In light of all the upcoming hard forks, the slow rate of blockchain syncing has become more of an issue.
 Faster block syncing would allow us to react more quickly to any problems caused by a hard fork, and to fix them more quickly.

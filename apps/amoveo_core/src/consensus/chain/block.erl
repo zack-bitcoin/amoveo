@@ -301,6 +301,7 @@ spawn_many(N, F) ->
 mine(Rounds) -> 
     potential_block:save(),
     Block = potential_block:read(),
+    %Block = potential_block:check(),
     mine(Block, Rounds).
 mine(Block, Rounds) ->
     %Cores = guess_number_of_cpu_cores(),
@@ -370,17 +371,26 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
-    {Dict, NewDict}.
+    {Dict, NewDict, BlockHash}.
 
 
 check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
+    %io:fwrite("block check 0\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     Roots = Block#block.roots,
-    {Dict, NewDict} = Block#block.trees,
+    {Dict, NewDict, BlockHash} = Block#block.trees,
     %{Dict, NewDict} = check0(Block),
     BlockHash = hash(Block),
+    %io:fwrite("block check 1\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     {ok, Header} = headers:read(BlockHash),
     Height = Block#block.height,
     OldBlock = get_by_hash(Block#block.prev_hash),
+    %io:fwrite("block check 2\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     OldTrees = OldBlock#block.trees,
     Txs = Block#block.txs,
     Txs0 = tl(Txs),
@@ -392,6 +402,9 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     Governance = trees:governance(OldTrees),
     BlockSize = size(packer:pack(Txs)),
     MaxBlockSize = governance:get_value(max_block_size, Governance),
+    %io:fwrite("block check 3\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     ok = case BlockSize > MaxBlockSize of
 	     true -> 
 		 io:fwrite("error, this block is too big\n"),
@@ -399,8 +412,14 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 	     false -> ok
     end,
     BlockReward = governance:get_value(block_reward, Governance),
+    %io:fwrite("block check 4\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height-1),
     true = Block#block.market_cap == MarketCap,
+    %io:fwrite("block check 5\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
 
     NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict),
     Block2 = Block#block{trees = NewTrees3},
@@ -408,7 +427,10 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     %TreesHash = Header#header.trees_hash,
     TreesHash = Block2#block.trees_hash,
-    true = hash(Block) == hash(Block2),
+    %io:fwrite("block check 6\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
+    true = BlockHash == hash(Block2),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
 

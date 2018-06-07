@@ -13,7 +13,7 @@ handle_cast(check, BS) ->
     {noreply, BS2}.
 handle_call({add, Blocks}, _From, BS) -> 
     BS2 = merge(Blocks, BS),
-    BS3 = helper(BS2), %helper takes  ~5 seconds for 100 blocks.
+    BS3 = helper(BS2), 
     {reply, ok, BS3};
 handle_call(pid, _From, X) -> 
     {reply, self(), X};
@@ -46,7 +46,7 @@ helper([H|T]) ->
     H2 = HH#block.height,
     if
 	H2 =< MyHeight + 1 ->
-	    block_absorber:save(H),
+	    block_absorber:save(H),%maybe this should be a cast.
 	    helper(T);
 	true -> [H|T]
     end.
@@ -73,8 +73,8 @@ add4(Blocks) ->
 	  end).
 add5([]) -> [];
 add5([Block|T]) ->
-    {Dict, NewDict} = block:check0(Block),
-    Block2 = Block#block{trees = {Dict, NewDict}},
+    {Dict, NewDict, BlockHash} = block:check0(Block),
+    Block2 = Block#block{trees = {Dict, NewDict, BlockHash}},
     [Block2|add5(T)].
 add1([], []) -> {[], 0};
 add1([X], L) -> 
