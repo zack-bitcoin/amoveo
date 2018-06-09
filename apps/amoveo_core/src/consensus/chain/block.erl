@@ -108,7 +108,10 @@ top(Header) ->
             top(PrevHeader);
         Block -> Block
     end.
-height() -> (top())#block.height.
+%height() -> (top())#block.height.
+height() ->
+    TH = headers:top_with_block(),
+    TH#header.height.
 lg(X) when (is_integer(X) and (X > 0)) ->
     lgh(X, 0).
 lgh(1, X) -> X;
@@ -196,17 +199,17 @@ tx_costs([STx|T], Governance, Out) ->
 new_dict(Txs, Dict, Height, _Pub, _PrevHash) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
     Dict2.
-market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height) ->
+market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
     FH = forks:get(3),
     if
 	FH > Height ->
 	    OldBlock#block.market_cap + 
 		BlockReward - 
-		gov_fees(Txs0, Governance);
+		gov_fees(Txs0, Dict);
 	Height == FH -> 
 	    MC1 = OldBlock#block.market_cap + 
 		BlockReward - 
-		gov_fees(Txs0, Governance),
+		gov_fees(Txs0, Dict),
 	    (MC1 * 6) div 5;
 	FH < Height ->
 	    DeveloperRewardVar = 
@@ -217,7 +220,7 @@ market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height) ->
 		10000,
 	    OldBlock#block.market_cap + 
 		BlockReward - 
-		gov_fees(Txs0, Governance) + 
+		gov_fees(Txs0, Dict) + 
 		DeveloperReward
     end.
     
@@ -237,7 +240,7 @@ make(Header, Txs0, Trees, Pub) ->
     PrevHash = hash(Header),
     OldBlock = get_by_hash(PrevHash),
     BlockReward = governance:get_value(block_reward, Governance),
-    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height),
+    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -381,7 +384,7 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     Roots = Block#block.roots,
     {Dict, NewDict, BlockHash} = Block#block.trees,
     %{Dict, NewDict} = check0(Block),
-    BlockHash = hash(Block),
+    %BlockHash = hash(Block),
     %io:fwrite("block check 1\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -399,9 +402,10 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     true = Block#block.many_accounts == OldBlock#block.many_accounts + many_new_accounts(Txs0),
     true = Block#block.many_oracles == OldBlock#block.many_oracles + many_new_oracles(Txs0),
     true = Block#block.live_oracles == OldBlock#block.live_oracles + many_live_oracles(Txs0),
-    Governance = trees:governance(OldTrees),
+    %Governance = trees:governance(OldTrees),
     BlockSize = size(packer:pack(Txs)),
-    MaxBlockSize = governance:get_value(max_block_size, Governance),
+    MaxBlockSize = governance:dict_get_value(max_block_size, Dict),
+    %MaxBlockSize = governance:get_value(max_block_size, Governance),
     %io:fwrite("block check 3\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -411,11 +415,12 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 		 bad;
 	     false -> ok
     end,
-    BlockReward = governance:get_value(block_reward, Governance),
+    BlockReward = governance:dict_get_value(block_reward, Dict),
+    %BlockReward = governance:get_value(block_reward, Governance),
     %io:fwrite("block check 4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
-    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height-1),
+    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height-1),
     true = Block#block.market_cap == MarketCap,
     %io:fwrite("block check 5\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
@@ -430,7 +435,7 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %io:fwrite("block check 6\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
-    true = BlockHash == hash(Block2),
+    %true = BlockHash == hash(Block2),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
 
@@ -504,19 +509,19 @@ initialize_chain() ->
     Header0.
 
 gov_fees([], _) -> 0;
-gov_fees([Tx|T], Governance) ->
+gov_fees([Tx|T], Dict) ->
     C = testnet_sign:data(Tx),
     Type = element(1, C),
     A = case Type of
-	    multi_tx -> gov_fees2(C#multi_tx.txs, Governance);
-	    _ -> governance:get_value(Type, Governance)
+	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict);
+	    _ -> governance:dict_get_value(Type, Dict)
 	end,
-    A + gov_fees(T, Governance).
+    A + gov_fees(T, Dict).
 gov_fees2([], _) -> 0;
-gov_fees2([H|T], Governance) ->
+gov_fees2([H|T], Dict) ->
     Type = element(1, H),
-    A = governance:get_value(Type, Governance),
-    A + gov_fees2(T, Governance).
+    A = governance:dict_get_value(Type, Dict),
+    A + gov_fees2(T, Dict).
     
 deltaCV([], _) -> 0;%calculate change in total amount of VEO stored in channels.
 deltaCV([Tx|T], Dict) ->

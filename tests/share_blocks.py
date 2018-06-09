@@ -17,7 +17,7 @@ def test1():
     request(2, "add_peer", [[52,234,133,196],8080])
 
     request(2, "add_peer", [[127,0,0,1], 3010])
-    request(1, "add_peer", [[127,0,0,1], 3020], 0.1)
+    request(1, "add_peer", [[127,0,0,1], 3020], 2)
     request(1, "mine_block", [1, 100000], 0.2)
     request(1, "sync", [[127,0,0,1], 3020], 0.1)
     request(2, "mine_block", [2, 100000], 10)
@@ -48,7 +48,7 @@ def test2():
     request(2, "mine_block", [1, 100000], 0.2)
     request(2, "sync", [[127,0,0,1], 3010], 3)#push
     request(1, "sync", [[127,0,0,1], 3020], 1)#pull
-    request(1, "sync", [[127,0,0,1], 3020], 1)#pull
+    request(1, "sync", [[127,0,0,1], 3020], 3)#pull
     height1 = request(1, 'height', [], 0.05)
     height2 = request(2, 'height', [], 0.05)
     print("test2 2")

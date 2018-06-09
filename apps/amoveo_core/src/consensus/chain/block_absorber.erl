@@ -54,17 +54,16 @@ absorb_internal(Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     Height = Block#block.height,
-    MyHeight = block:height(), 
+    MyHeight = block:height(), %using headers gen_server
     %io:fwrite("block absorber 0.01\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
-    %io:fwrite("\n"),
+    %io:fwrite("\n"), 
     if
 	Height > (MyHeight + 1) ->
 	    throw("too high");
 	Height < (MyHeight - 300) ->
 	    throw("too low");
 	true ->
-	    %BH = block:hash(Block),%0.014
 	    {_, _, BH} = Block#block.trees,
 	    %io:fwrite("block absorber 1\n"),
 	    %io:fwrite(packer:pack(erlang:timestamp())),
@@ -80,8 +79,6 @@ absorb_internal(Block) ->
 	    Bool = block_hashes:check(NextBlock),
 	    if
 		Height == 0 -> 0;
-		%{ok, Header00} = headers:read(BH),
-	%	    Header00;
 		BHC -> 3; %we already have this block
 		not(Bool) -> 0;%we dont' know the previous block
 		true ->
@@ -99,26 +96,27 @@ absorb_internal(Block) ->
 		    %io:fwrite("block absorber 1.4\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
-
-		    H = block:block_to_header(Block),%we should calculate the block hash from the header, so we don't calculate the header twice.
-		    %io:fwrite("block absorber 1.4\n"),
+		    {ok, H} = headers:read(BH),
+		    %H = block:block_to_header(Block),%we should calculate the block hash from the header, so we don't calculate the header twice.
+		    
+		    %io:fwrite("block absorber 1.5\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
-		    %0.07
-		    headers:absorb([H]),
+		    %0.3 0.09 0.1 0.08
+		    %headers:absorb([H]),
 		    %io:fwrite("block absorber 2\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
-		    {true, Block2} = block:check(Block),
+		    {true, Block2} = block:check(Block),%writing new block's data into the consensus state merkle trees.
+		    %0.2
 		    %io:fwrite("block absorber 3\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
-		    %BH = block:hash(Block2),%remove this sanity check.
-		    do_save(Block2),
+		    do_save(Block2),%0.02
 		    %io:fwrite("block absorber 4\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
-		    headers:absorb_with_block([H]),
+		    headers:absorb_with_block([H]),%0.01
 		    Header = H,
 		    %io:fwrite("block absorber 5\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
@@ -134,9 +132,8 @@ absorb_internal(Block) ->
 			    %TB = block:top(),
 			    TWBH0 = block:hash(headers:top_with_block()),
 			    TB = block:get_by_hash(TWBH0),
-			    TopHash = block:hash(TB),
 			    Txs = if
-				      NextBlock == TopHash ->
+				      NextBlock == TWBH0 ->
 					  Txs0;
 				      true -> Txs0 ++ lists:reverse(tl(TB#block.txs))
 				  end,
@@ -148,11 +145,12 @@ absorb_internal(Block) ->
 			    order_book:match();
 			    %sync:push_new_block(Block2);
 			quick -> 
-			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
+			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),%garbage collection
+			    %0.45 0.4 0.3
 			    %io:fwrite("block absorber 6\n"),
 			    %io:fwrite(packer:pack(erlang:timestamp())),
 			    %io:fwrite("\n"),
-			    tx_pool_feeder:dump(Block2),
+			    tx_pool_feeder:dump(Block2),%0.08
 			    %io:fwrite("block absorber 7\n"),
 			    %io:fwrite(packer:pack(erlang:timestamp())),
 			    %io:fwrite("\n"),
