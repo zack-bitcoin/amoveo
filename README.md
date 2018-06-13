@@ -107,7 +107,7 @@ The "classic" version only pays a miner when they find a block.
 
 ## Developers
 
-If you want to build on top of Amoveo [read the develper's guide](docs/getting-started/quick_start_developer_guide.md)
+If you want to build on top of Amoveo [read the developer's guide](docs/getting-started/quick_start_developer_guide.md)
 
 
 ## Donations
