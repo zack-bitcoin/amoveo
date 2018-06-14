@@ -19,6 +19,8 @@ version in spend txs is not being used.
 
 ### Things to do
 
+* mining pools are regularly creating multiple blocks at the same height. Even when there are more than 3 minutes between finding the blocks.
+
 * add function to api for checking signatures.
 * add tool to mining page for early payout.
 

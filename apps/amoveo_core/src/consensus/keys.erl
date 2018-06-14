@@ -81,13 +81,13 @@ handle_cast({new, Brainwallet}, _R) ->
 handle_cast({unlock, Brainwallet}, _) ->
     X = db:read(?LOC),
     ?SANE() = encryption:decrypt(X#f.sanity, Brainwallet),
-    Priv = encryption:decrypt(X#f.priv, Brainwallet),%err
+    Priv = encryption:decrypt(X#f.priv, Brainwallet),
     {noreply, #f{pub=X#f.pub, priv=Priv}};
 handle_cast(lock, R) -> {noreply, #f{pub=R#f.pub}};
 handle_cast({change_password, Current, New}, R) ->
     X = db:read(?LOC),
     ?SANE() = encryption:decrypt(X#f.sanity, Current),
-    Priv = encryption:decrypt(base64:encode(X#f.priv), Current),
+    Priv = encryption:decrypt(X#f.priv, Current),
     store(R#f.pub, Priv, New),
     {noreply, R};
 handle_cast(_, X) -> {noreply, X}.
