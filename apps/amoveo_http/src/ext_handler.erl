@@ -69,6 +69,7 @@ doit({give_block, Block}) -> %block can also be a list of blocks.
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
 doit({blocks, Many, N}) -> 
+    Many < 60,
     X = many_blocks(Many, N),
     {ok, X};
 doit({header, N}) when is_integer(N) -> 
@@ -363,10 +364,10 @@ many_headers2(Many, H, Out) ->
 %many_headers(M, N) ->
 %    B = many_blocks(M, N),
 %    blocks2headers(B).
-blocks2headers([]) -> [];
-blocks2headers([B|T]) ->
-    [block:block_to_header(B)|
-    blocks2headers(T)].
+%blocks2headers([]) -> [];
+%blocks2headers([B|T]) ->
+%    [block:block_to_header(B)|
+%    blocks2headers(T)].
 %many_headers(M, _) when M < 1 -> [];
 %many_headers(Many, N) ->    
 %    H = api:height(),

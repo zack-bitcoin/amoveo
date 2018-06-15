@@ -12,7 +12,7 @@ Maybe question oracles don't need so much (any?) initial liquidity like governan
 
 version in spend txs is not being used.
 
-
+* consider reducing governance variable "maximum oracle time". it takes too long to close bad-question oracles.
 
 
 
