@@ -228,11 +228,11 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [CB|lists:reverse(Txs0)],
-    Querys = proofs:txs_to_querys(Txs, Trees),
     Height = Header#header.height,
+    Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
     Facts = proofs:prove(Querys, Trees),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
-    NewDict = new_dict(Txs, Dict, Height+1, keys:pubkey(), hash(Header)),
+    NewDict = new_dict(Txs, Dict, Height + 1, keys:pubkey(), hash(Header)),
     NewTrees = tree_data:dict_update_trie(Trees, NewDict),
     %Governance = trees:governance(NewTrees),
     Governance = trees:governance(Trees),

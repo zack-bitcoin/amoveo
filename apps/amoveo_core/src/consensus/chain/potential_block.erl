@@ -90,9 +90,11 @@ new_internal(Old) ->
     new_internal(Old, TP).
 new_internal2(TP) ->
     Txs = TP#tx_pool.txs,
-    T = TP#tx_pool.height,
-    PB = block:get_by_height(T),
-    Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
+    %T = TP#tx_pool.height,
+    %PB = block:get_by_height(T),
+    %Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
+    Top = headers:top_with_block(),
+    PB = block:get_by_hash(block:hash(Top)),
     block:make(Top, Txs, PB#block.trees, keys:pubkey()).
 tx_changed(New, Old) ->    
     N2 = tx_det_order(New),

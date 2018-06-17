@@ -136,7 +136,7 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %io:fwrite("now 7 "),%800
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    Querys = proofs:txs_to_querys([SignedTx], Trees),
+    Querys = proofs:txs_to_querys([SignedTx], Trees, Height + 1),
     %Querys is a list like [[TreeID, Key]...]
     %for every query, check if it is in the dict already.
     %If it is already in the dict, then we are done.

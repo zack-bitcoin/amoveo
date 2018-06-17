@@ -263,7 +263,7 @@ tests: killall
 	make multi-build
 	make multi-clean
 	make multi-go
-	@sleep 3
+	@sleep 6
 	@python tests/test_all.py
 	make multi-stop
 
