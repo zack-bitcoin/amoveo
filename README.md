@@ -35,10 +35,6 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
 
-[Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
-
-[Veopool explorer](http://explorer.veopool.pw/)
-
 
 ## Light node
 Simply visit [this webpage](http://159.65.120.84:8080/wallet.html) to participate in Amoveo, no installation necessary.
@@ -51,11 +47,21 @@ You can use the light node to participate in [markets](docs/light_node/market.md
 A light node that currently has markets is [here](http://159.89.106.253:8080/wallet.html).
 And the interface to look at the markets is [here](http://159.89.106.253:8080/explorer.html).
 
+## Exchanges
+
+this is an escrow tool from Zack who wrote Amoveo: http://159.89.106.253:8087/main.html
+Be very careful using exchanges. They are centralized, the operator can take all the veo if they wanted.
+
 
 ## Block Explorer
+
 The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
 
 Another explorer is [here](http://159.89.106.253:8080/explorer.html). This one has some markets where you can gamble.
+
+[Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
+
+[Veopool explorer](http://explorer.veopool.pw/)
 
 
 ## Full node
