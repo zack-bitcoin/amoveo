@@ -65,12 +65,13 @@ doit({give_block, Block}) -> %block can also be a list of blocks.
 	     is_atom(Response) -> 0;
 	     true -> Response
 	 end,
-    {ok, Response};
+    {ok, R2};
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
 doit({blocks, Many, N}) -> 
     Many < 60,
-    X = many_blocks(Many, N),
+    X = block_reader:doit(Many, N),
+    %X = many_blocks(Many, N),
     {ok, X};
 doit({header, N}) when is_integer(N) -> 
     {ok, block:block_to_header(block:get_by_height(N))};
