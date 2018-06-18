@@ -169,6 +169,12 @@ leaves_to_querys([L|T]) ->
 txs_to_querys([C|T], Trees, Height) -> 
     case element(1, C) of
         coinbase ->
+	    FH5 = forks:get(5),
+	    B = Height == FH5,
+	    L = if
+		    B -> [{governance, ?n2i(oracle_question_liquidity)}];
+		    true -> []
+		end,
             [
              {governance, ?n2i(block_reward)},
              {governance, ?n2i(developer_reward)},
@@ -268,6 +274,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                         0 -> 
 			    FH5 = forks:get(5),
 			    B = FH5 < Height,
+			    %B = false,
 			    OILK = if
 				       B -> ?n2i(oracle_question_liquidity);
 				       true -> N2IOIL

@@ -42,11 +42,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = GovAmount < GCL,
     Question = Tx#oracle_new.question,
     %Starts = Tx#oracle_new.start,
+    false = (NewHeight == forks:get(5)),
     {Dict2, Starts, OIL} = 
         case Gov of
             0 ->
                 GovAmount = 0,
-		FG5 = NewHeight > forks:get(5),
+		FG5 = NewHeight > (forks:get(5)),
+		%FG5 = false,
 		L1 = if
 			 FG5 ->
 			     governance:dict_get_value(oracle_question_liquidity, Dict);

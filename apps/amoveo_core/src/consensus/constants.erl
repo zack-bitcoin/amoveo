@@ -78,3 +78,5 @@ channel_granularity() -> 10000.
 developer_lock_period() ->%in seconds
     60*60*24*365.
     
+oracle_question_liquidity() ->
+    1200.

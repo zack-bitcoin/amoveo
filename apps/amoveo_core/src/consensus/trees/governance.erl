@@ -4,6 +4,7 @@
          dict_get/2,dict_write/2, dict_get_value/2, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,
 	 serialize/1,deserialize/1,
+	 new/2, dict_write/2,
 	 test/0]).%common tree stuff
 -record(gov, {id, value, lock}).
 -define(name, governance).
