@@ -42,23 +42,31 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = GovAmount < GCL,
     Question = Tx#oracle_new.question,
     %Starts = Tx#oracle_new.start,
-    {Dict2, Starts} = 
+    {Dict2, Starts, OIL} = 
         case Gov of
             0 ->
                 GovAmount = 0,
-                {Dict, Tx#oracle_new.start};
-            G ->
+		FG5 = NewHeight > forks:get(5),
+		L1 = if
+			 FG5 ->
+			     governance:dict_get_value(oracle_question_liquidity, Dict);
+			 true ->
+			     governance:dict_get_value(oracle_initial_liquidity, Dict)
+		     end,
+		{Dict, Tx#oracle_new.start, L1};
+	    _ ->
 		%make sure the oracle starts now, and has no delay.
                 true = GovAmount > 0,
 		Question = <<"">>,
-                GVar = governance:dict_get(G, Dict),
+                GVar = governance:dict_get(Gov, Dict),
                 false = governance:is_locked(GVar),
 		FG1 = forks:get(1),
+		L2 = governance:dict_get_value(oracle_initial_liquidity, Dict),
 		if
 		    FG1 < NewHeight -> 
-			{governance:dict_lock(G, Dict), NewHeight};
+			{governance:dict_lock(Gov, Dict), NewHeight, L2};
 		    true ->
-			{governance:dict_lock(G, Dict), max(NewHeight, Tx#oracle_new.start)}
+			{governance:dict_lock(Gov, Dict), max(NewHeight, Tx#oracle_new.start), L2}
 		end
         end,
     false = Starts < NewHeight,
@@ -68,10 +76,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                  MQS = governance:dict_get_value(maximum_question_size, Dict2),
                  true = size(Q) < MQS,
                  0 = GovAmount,
-                 ok
-         end,
+		 ok
+	 end,
     From = Tx#oracle_new.from,
-    OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
     Nonce = if
 		NonceCheck -> Tx#oracle_new.nonce;
 		true -> none

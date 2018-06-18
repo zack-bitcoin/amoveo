@@ -1,5 +1,5 @@
 -module(governance).
--export([tree_number_to_value/1, max/0, is_locked/1, genesis_state/0, name2number/1, %custom for this tree
+-export([tree_number_to_value/1, max/1, is_locked/1, genesis_state/0, name2number/1, %custom for this tree
 	 get_value/2, get/2, write/2,%update tree stuff
          dict_get/2,dict_write/2, dict_get_value/2, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,
@@ -157,11 +157,17 @@ name2number(oracle_bet) -> 24;
 name2number(oracle_close) -> 25;
 name2number(unmatched) -> 26;
 name2number(oracle_winnings) -> 27;
+name2number(oracle_question_liquidity) -> 28;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
     throw(invalid_governance_atom).
-max() -> 28.
+max(Height) -> 
+    B = Height > forks:get(5),
+    if 
+	B -> 29;
+	true -> 28
+    end.
 make_leaf(Key, V, CFG) ->
     Key2 = if
                is_integer(Key) -> Key;
