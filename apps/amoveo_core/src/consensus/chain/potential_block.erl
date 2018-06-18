@@ -90,8 +90,10 @@ new_internal(Old) ->
     new_internal(Old, TP).
 new_internal2(TP) ->
     Txs = TP#tx_pool.txs,
-    T = TP#tx_pool.height,
+    T = min(api:height(), TP#tx_pool.height),
+    timer:sleep(200),
     PB = block:get_by_height(T),
+    false = PB == empty,
     Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
     %Top = headers:top_with_block(),
     %PB = block:get_by_hash(block:hash(Top)),

@@ -47,26 +47,26 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             0 ->
                 GovAmount = 0,
                 {Dict, Tx#oracle_new.start};
-            G ->
+            _ ->
 		%make sure the oracle starts now, and has no delay.
                 true = GovAmount > 0,
 		Question = <<"">>,
-                GVar = governance:dict_get(G, Dict),
+                GVar = governance:dict_get(Gov, Dict),
                 false = governance:is_locked(GVar),
 		FG1 = forks:get(1),
 		if
 		    FG1 < NewHeight -> 
-			{governance:dict_lock(G, Dict), NewHeight};
+			{governance:dict_lock(Gov, Dict), NewHeight};
 		    true ->
-			{governance:dict_lock(G, Dict), max(NewHeight, Tx#oracle_new.start)}
+			{governance:dict_lock(Gov, Dict), max(NewHeight, Tx#oracle_new.start)}
 		end
         end,
     false = Starts < NewHeight,
     ok = case Question of
              <<"">> -> ok;
-             Q ->
+             _ ->
                  MQS = governance:dict_get_value(maximum_question_size, Dict2),
-                 true = size(Q) < MQS,
+                 true = size(Question) < MQS,
                  0 = GovAmount,
                  ok
          end,
