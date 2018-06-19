@@ -304,8 +304,14 @@ spawn_many(N, F) ->
 mine(Rounds) -> 
     potential_block:save(),
     Block = potential_block:read(),
+    case Block of
+	"" ->
+	    timer:sleep(100),
+	    mine(Rounds);
+	_ ->
+	    mine(Block, Rounds)
+    end.
     %Block = potential_block:check(),
-    mine(Block, Rounds).
 mine(Block, Rounds) ->
     %Cores = guess_number_of_cpu_cores(),
     Cores = 1, %slow down mining so I don't break the computer.

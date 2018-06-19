@@ -19,6 +19,10 @@ version in spend txs is not being used.
 
 ### Things to do
 
+* improve signal|noise ratio in logging.
+
+* maybe verifying blocks should only be parallelized in sync_mode:quick. that way we can have more useful error messages in sync_mode:normal.
+
 record tx_pool should keep track of the block hash that it is building on.
 
 potential block should probably be completely rewritten.

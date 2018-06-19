@@ -583,16 +583,22 @@ mining_data() ->
     %io:fwrite("mining data block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
     %io:fwrite("\n"),
-	    F2 = forks:get(2),
-	    Height = Block#block.height,
-	    Entropy = if
-			  F2 > Height -> 32;
-			  true -> 23
-		      end,
-	    [hash:doit(block:hash(Block)),
-	     crypto:strong_rand_bytes(Entropy), 
+	    case Block of
+		"" ->
+		    timer:sleep(100),
+		    mining_data();
+		_ ->
+		    F2 = forks:get(2),
+		    Height = Block#block.height,
+		    Entropy = if
+				  F2 > Height -> 32;
+				  true -> 23
+			      end,
+		    [hash:doit(block:hash(Block)),
+		     crypto:strong_rand_bytes(Entropy), 
      %headers:difficulty_should_be(Top)].
-	     Block#block.difficulty]
+		     Block#block.difficulty]
+	    end
     end.
 sync_normal() ->
     sync_mode:normal(),
