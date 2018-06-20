@@ -91,7 +91,8 @@ new_internal(Old) ->
 new_internal2(TP) ->
     Txs = TP#tx_pool.txs,
     T = TP#tx_pool.height,
-    B = api:height() == T,
+    %B = api:height() == T,
+    B = true,
     if
 	B ->
     %timer:sleep(200),

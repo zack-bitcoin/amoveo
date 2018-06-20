@@ -45,4 +45,4 @@ def multi_spend():
 
 if __name__ == "__main__":
     spend_test()
-    multi_spend()
+    #multi_spend()

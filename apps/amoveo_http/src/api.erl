@@ -562,8 +562,8 @@ work(Nonce, _) ->
     %io:fwrite("work block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block2)))),
-    io:fwrite("pool found a block"),
-    io:fwrite("\n"),
+    %io:fwrite("pool found a block"),
+    %io:fwrite("\n"),
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),%uses call
     %headers:absorb_with_block([Header]),%uses call
@@ -585,8 +585,9 @@ mining_data() ->
     %io:fwrite("\n"),
 	    case Block of
 		"" ->
-		    timer:sleep(100),
-		    mining_data();
+		    ok;
+		    %timer:sleep(100),
+		    %mining_data();
 		_ ->
 		    F2 = forks:get(2),
 		    Height = Block#block.height,

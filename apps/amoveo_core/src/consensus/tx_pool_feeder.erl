@@ -5,7 +5,9 @@
 	 empty_mailbox/0, dump/1]).
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
-init(ok) -> {ok, []}.
+init(ok) -> 
+    %process_flag(trap_exit, true),
+    {ok, []}.
 handle_call({absorb, SignedTx}, _From, State) ->
     absorb_internal(SignedTx),
     {reply, ok, State};
@@ -20,8 +22,8 @@ handle_cast({absorb, SignedTx}, S) ->
     {noreply, S};
 handle_cast(_, S) -> {noreply, S}.
 handle_info(_, S) -> {noreply, S}.
-terminate(_, _) -> ok.
-    %io:fwrite("tx_pool_feeder died\n").
+terminate(_, _) ->  
+    io:fwrite("tx_pool_feeder died\n").
 code_change(_, S, _) -> {ok, S}.
 is_in(_, []) -> false;
 is_in(Tx, [STx2 | T]) ->
@@ -173,7 +175,7 @@ absorb(SignedTx) ->
 absorb_async([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb_async([H|T]) ->
     absorb_async(H),
-    timer:sleep(200),%if the gen server dies, it would empty the mail box. so we don't want to stick the txs in the mailbox too quickly.
+    timer:sleep(30),%if the gen server dies, it would empty the mail box. so we don't want to stick the txs in the mailbox too quickly.
     absorb_async(T);
 absorb_async(SignedTx) ->
     N = sync_mode:check(),

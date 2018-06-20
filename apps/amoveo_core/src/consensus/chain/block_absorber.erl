@@ -134,7 +134,7 @@ absorb_internal(Block) ->
 			    Txs = if
 				      NextBlock == TWBH0 ->
 					  Txs0;
-				      true -> Txs0 ++ lists:reverse(tl(TB#block.txs))
+				      true -> Txs0 ++ lists:reverse(tl(TB#block.txs))%if there is a small fork, re-broadcast the orphaned txs.
 				  end,
 			    %tx_pool:dump(Block2),
 			    OldTxs = tl(Block#block.txs),
