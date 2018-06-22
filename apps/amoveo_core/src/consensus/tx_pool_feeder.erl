@@ -23,7 +23,8 @@ handle_cast({absorb, SignedTx}, S) ->
 handle_cast(_, S) -> {noreply, S}.
 handle_info(_, S) -> {noreply, S}.
 terminate(_, _) ->  
-    io:fwrite("tx_pool_feeder died\n").
+    %io:fwrite("tx_pool_feeder died\n").
+    ok.
 code_change(_, S, _) -> {ok, S}.
 is_in(_, []) -> false;
 is_in(Tx, [STx2 | T]) ->
