@@ -80,9 +80,9 @@ check() -> gen_server:call(?MODULE, check).
 new_internal(Old, TP) ->
     PH = Old#block.prev_hash,
     PB = block:get_by_hash(PH),
-    spawn(fun() ->
-		  tree_data:garbage(Old, PB)
-	  end),
+    %spawn(fun() ->
+	%	  tree_data:garbage(Old, PB)
+	%  end),
     new_internal2(TP).
 new_internal("") ->
     TP = tx_pool:get(),
