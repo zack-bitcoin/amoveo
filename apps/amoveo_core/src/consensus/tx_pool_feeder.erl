@@ -12,6 +12,7 @@ handle_call({absorb, SignedTx}, _From, State) ->
     case absorb_internal(SignedTx) of
 	error -> ok;
 	NewDict ->
+	    dict:find(sample, NewDict),
 	    tx_pool:absorb_tx(NewDict, SignedTx)
     end,
     {reply, ok, State};
@@ -25,6 +26,7 @@ handle_cast({absorb, SignedTx}, S) ->
     case absorb_internal(SignedTx) of
 	error -> ok;
 	NewDict ->
+	    dict:find(sample, NewDict),
 	    tx_pool:absorb_tx(NewDict, SignedTx)
     end,
     {noreply, S};
