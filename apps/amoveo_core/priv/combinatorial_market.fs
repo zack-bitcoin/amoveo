@@ -15,6 +15,18 @@ then drop drop ;
 %	      portionMatched01:32, portionMatched11:32,
 %	      market_id:256, signature/binary>>
 
+macro extract4
+int 4 split r> cons >r
+;
+macro extractlist
+nil >r
+extract4
+extract4
+extract4
+extract4
+r>
+;
+
 macro extract
 int 66 split dup tuck Pubkey @ verify_sig or_die
 
@@ -22,21 +34,15 @@ int 66 split dup tuck Pubkey @ verify_sig or_die
 int 4 split >r
 
 % price array
-nil >r
-int 4 split r> cons >r
-int 4 split r> cons >r
-int 4 split r> cons >r
-int 4 split r> cons >r
+extractlist >r
 
 % portion matched array
-nil >r 
-int 4 split r> cons >r
-int 4 split r> cons >r
-int 4 split r> cons >r
-int 4 split r> cons >r
+extractlist >r
 
-MarketID @ == or_die drop drop r> r> r> ( portionMatched Price height )
-dup Height @ < not or_die % `Height @` is when the smart contract was written.
+MarketID @ == or_die drop drop
+r> r> r> ( portionMatched Price height )
+dup Height @ < not or_die
+% `Height @` is when the smart contract was written.
 tuck swap
 ;
 
