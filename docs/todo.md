@@ -19,7 +19,7 @@ version in spend txs is not being used.
 
 ### Things to do
 
-* check that the oracle_new test is actually working. it seems like tx_pool_feeder might not be giving enough time to do these txs.
+* make sure that in the markets, evidence outcome always has a bigger nonce than no_publish.
 
 * maybe tx_pool_feeder should make a new thread for each tx being added, and listen for a response. If it doesn't respond in time, then drop the tx.
 - Maybe txs should return error codes instead of crashing
