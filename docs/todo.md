@@ -19,6 +19,15 @@ version in spend txs is not being used.
 
 ### Things to do
 
+* make sure that in the markets, evidence outcome always has a bigger nonce than no_publish.
+
+* maybe tx_pool_feeder should make a new thread for each tx being added, and listen for a response. If it doesn't respond in time, then drop the tx.
+- Maybe txs should return error codes instead of crashing
+
+* improve signal|noise ratio in logging.
+
+* maybe verifying blocks should only be parallelized in sync_mode:quick. that way we can have more useful error messages in sync_mode:normal.
+
 record tx_pool should keep track of the block hash that it is building on.
 
 potential block should probably be completely rewritten.

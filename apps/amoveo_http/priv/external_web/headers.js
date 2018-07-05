@@ -177,6 +177,7 @@ function headers_main() {
             } else {
                 console.log("bad diff");
                 console.log(diff);
+		console.log(I);
                 console.log(diff0);
                 return false;
             }

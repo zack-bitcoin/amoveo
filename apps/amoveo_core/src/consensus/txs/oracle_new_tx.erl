@@ -74,9 +74,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     false = Starts < NewHeight,
     ok = case Question of
              <<"">> -> ok;
-             Q ->
+             _ ->
                  MQS = governance:dict_get_value(maximum_question_size, Dict2),
-                 true = size(Q) < MQS,
+                 true = size(Question) < MQS,
                  0 = GovAmount,
 		 ok
 	 end,
