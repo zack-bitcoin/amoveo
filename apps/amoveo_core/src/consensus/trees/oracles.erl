@@ -13,7 +13,8 @@ set_orders(X, Orders) ->
 new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
     <<_:256>> = ID,
     true = size(Creator) == constants:pubkey_size(),
-    true = (GovernanceVar > -1) and (GovernanceVar < governance:max()),
+    Height = api:height(),
+    true = (GovernanceVar > -1) and (GovernanceVar < governance:max(Height)),
     Orders = orders:empty_book(),
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
     #oracle{id = ID,

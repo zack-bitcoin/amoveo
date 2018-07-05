@@ -169,6 +169,12 @@ leaves_to_querys([L|T]) ->
 txs_to_querys([C|T], Trees, Height) -> 
     case element(1, C) of
         coinbase ->
+	    FH5 = forks:get(5),
+	    B = Height == FH5,
+	    L = if
+		    B -> [{governance, ?n2i(oracle_question_liquidity)}];
+		    true -> []
+		end,
             [
              {governance, ?n2i(block_reward)},
              {governance, ?n2i(developer_reward)},
@@ -263,15 +269,25 @@ txs_to_querys2([STx|T], Trees, Height) ->
 	    oracle_new -> 
                 OID = oracle_new_tx:id(Tx),
                 AID = oracle_new_tx:from(Tx),
+		N2IOIL = ?n2i(oracle_initial_liquidity),
                 G = case oracle_new_tx:governance(Tx) of
-                        0 -> [];
-                        N -> [{governance, N}]
+                        0 -> 
+			    FH5 = forks:get(5),
+			    B = FH5 < Height,
+			    %B = false,
+			    OILK = if
+				       B -> ?n2i(oracle_question_liquidity);
+				       true -> N2IOIL
+				   end,
+			    [{governance, OILK}];
+                        N -> [{governance, N2IOIL},
+			      {governance, N}]
                     end,
                 [
                  {governance, ?n2i(oracle_new)},
                  {governance, ?n2i(governance_change_limit)},
                  {governance, ?n2i(maximum_question_size)},
-                 {governance, ?n2i(oracle_initial_liquidity)},
+                 %{governance, ?n2i(oracle_initial_liquidity)},
                  {governance, ?n2i(minimum_oracle_time)},
                  {accounts, AID},
                  {oracles, OID}
@@ -390,10 +406,12 @@ test() ->
     headers:dump(),
     %block:initialize_chain(),
     tx_pool:dump(),
+    test_txs:mine_blocks(2),
+    timer:sleep(150),
     Question = <<>>,
     OID = <<2:256>>,
     Fee = 20 + constants:initial_fee(),
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID, 0, 0),
     %{Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees0),
     tx_pool_feeder:absorb(keys:sign(Tx)),
     test_txs:mine_blocks(1),

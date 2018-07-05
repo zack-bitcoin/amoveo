@@ -379,8 +379,12 @@ test(11) ->
     Fee = constants:initial_fee() + 20,
     headers:dump(),
     block:initialize_chain(),
+    timer:sleep(150),
     tx_pool:dump(),
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0), %Fee, question, start, id gov, govamount
+    timer:sleep(150),
+    mine_blocks(4),
+    timer:sleep(150),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0), %Fee, question, start, id gov, govamount
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
@@ -439,6 +443,9 @@ test(16) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    timer:sleep(100),
+    mine_blocks(2),
+    timer:sleep(150),
     Amount = 1000000000,
     Ctx_1 = create_account_tx:make_dict(Pub1, Amount, Fee, constants:master_pub()),
     Stx_1 = keys:sign(Ctx_1),
@@ -448,7 +455,7 @@ test(16) ->
     Stx_2 = keys:sign(Ctx_2),
     absorb(Stx_2),
 
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0),
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
@@ -541,8 +548,11 @@ test(13) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    timer:sleep(200),
+    mine_blocks(2),
+    timer:sleep(150),
     OID2 = <<1:256>>,
-    Tx3 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID2, 1, 5),
+    Tx3 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID2, 1, 5),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     timer:sleep(100),
@@ -576,7 +586,7 @@ test(13) ->
 
     OID3 = <<2:256>>,
     BR2 = trees:dict_tree_get(governance, block_reward),
-    Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID3, 1, 5),
+    Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID3, 1, 5),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
     potential_block:new(),
@@ -606,6 +616,8 @@ test(14) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    mine_blocks(2),
+    timer:sleep(150),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -707,6 +719,7 @@ test(15) ->
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),
+    timer:sleep(500),
     success;
 test(17) ->
     test({17, 1});
@@ -751,7 +764,7 @@ test(20) ->
     timer:sleep(2000),
     Question = <<>>,
     OID = <<1000:256>>,
-    Tx2 = oracle_new_tx:make_dict(NewPub, Fee, Question, 1, OID, 0, 0),
+    Tx2 = oracle_new_tx:make_dict(NewPub, Fee, Question, 1 + block:height(), OID, 0, 0),
     Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
     absorb(Stx2),
     potential_block:new(),

@@ -232,7 +232,16 @@ make(Header, Txs0, Trees, Pub) ->
     Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
     Facts = proofs:prove(Querys, Trees),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
-    NewDict = new_dict(Txs, Dict, Height + 1, keys:pubkey(), hash(Header)),
+    NewDict0 = new_dict(Txs, Dict, Height + 1, keys:pubkey(), hash(Header)),
+    B = ((Height+1) == forks:get(5)),
+    NewDict = if
+		B -> 
+		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
+		      io:fwrite("block governance adjust "),
+		      io:fwrite(packer:pack(OQL)),
+		      governance:dict_write(OQL, NewDict0);
+		true -> NewDict0
+	    end,
     NewTrees = tree_data:dict_update_trie(Trees, NewDict),
     %Governance = trees:governance(NewTrees),
     Governance = trees:governance(Trees),
@@ -431,8 +440,15 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %io:fwrite("block check 5\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
+    B = (Height == forks:get(5)),
+    NewDict2 = if
+		B -> 
+		    OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
+		    governance:dict_write(OQL, NewDict);
+		true -> NewDict
+	    end,
 
-    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict),
+    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict2),
     Block2 = Block#block{trees = NewTrees3},
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
