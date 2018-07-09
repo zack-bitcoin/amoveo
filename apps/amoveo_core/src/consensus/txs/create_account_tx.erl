@@ -31,6 +31,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     txs:developer_lock(From, NewHeight, Dict),
     Pub = Tx#create_acc_tx.pubkey,
     Amount = Tx#create_acc_tx.amount,
+    true = (Amount > (-1)),
     Nonce = if
 		NonceCheck -> Tx#create_acc_tx.nonce;
 		true -> none

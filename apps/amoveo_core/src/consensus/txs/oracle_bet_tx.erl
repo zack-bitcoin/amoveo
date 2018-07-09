@@ -119,6 +119,7 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 		 3 -> 3
 	     end,
     Amount = Tx#oracle_bet.amount,
+    true = Amount > 0,
     NewOrder = orders:new(Tx#oracle_bet.from, Amount),
     Out = 
         if

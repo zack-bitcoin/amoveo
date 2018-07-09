@@ -23,6 +23,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     To = Tx#spend.to,
     false = From == To,
     A = Tx#spend.amount,
+    true = ((A > (-1)) or (NewHeight == 24434)),
     Nonce = if
 		NonceCheck -> Tx#spend.nonce;
 		true -> none

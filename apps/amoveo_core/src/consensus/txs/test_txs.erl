@@ -9,6 +9,7 @@ test() ->
 
     S = success,
     S = test(1),%create account, spend, delete %S = test(2),%repo tx
+    S = test(2),
     S = test(3),%channel team close
     S = test(4),%channel timeout
     S = test(5),%account delete, channel timeout
@@ -67,7 +68,23 @@ test(1) ->
     mine_blocks(1),
 
     success;
-    
+test(2) ->
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Trees = block_trees(BP),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = 1000000,
+    {Ctx, _} = create_account_tx:new(NewPub, 10 - Fee, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    mine_blocks(1),
+    timer:sleep(200),
+    io:fwrite(packer:pack(api:account(NewPub))),
+    success;
+ 
 test(3) ->
     io:fwrite(" new channel tx, grow channel tx, and channel team close tx test \n"),
     headers:dump(),
