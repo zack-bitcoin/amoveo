@@ -30,6 +30,8 @@ key2module(unmatched) -> oracle_unmatched_tx;
 key2module(oracle_winnings) -> oracle_winnings_tx;
 key2module(coinbase_old) -> coinbase_tx.
 digest_from_dict2(Tx, Dict, H) ->
+    Fee = element(4, Tx),
+    true = Fee > 0,
     Key = element(1, Tx),
     M = key2module(Key),
     M:go(Tx, Dict, H, true).
