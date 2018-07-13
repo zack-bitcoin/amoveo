@@ -209,7 +209,8 @@ dict_run(Mode, SS, SPK, Height, Slash, Dict) ->
     State = chalang_state(Height, Slash, 0),
     {Amount, NewNonce, Delay, _} = dict_run2(Mode, SS, SPK, State, Dict),
     {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce, Delay}.
-dict_run2(fast, SS, SPK, State, Dict) ->
+%dict_run2(fast, SS, SPK, State, Dict) ->
+dict_run2(_, SS, SPK, State, Dict) ->
     FunLimit = governance:dict_get_value(fun_limit, Dict),
     VarLimit = governance:dict_get_value(var_limit, Dict),
     true = is_list(SS),
@@ -473,19 +474,25 @@ chalang_error_handling(SS, Code, Data) ->
             io:fwrite("script sig has an error when executed: "),
             io:fwrite(S),
             io:fwrite("\n"),
-            1 = 2;
+	    {5000, 0, 10000000, Data};
+	%1 = 2;
         Data2 ->
             case chalang:run5(Code, Data2) of
                 {error, S2} ->
                     io:fwrite("code has an error when executed with that script sig: "),
                     io:fwrite(S2),
                     io:fwrite("\n"),
-                    1 = 2;
+		    {5000, 0, 10000000, Data};
+                    %1 = 2;
                 Data3 ->
+		    Stack = chalang:stack(Data3),
+		    case Stack of
                     [<<Amount:32>>|
                      [<<Nonce:32>>|
-                      [<<Delay:32>>|_]]] = chalang:stack(Data3),%#d.stack,
-                    {Amount, Nonce, Delay, Data3}
+                      [<<Delay:32>>|_]]] ->
+			    {Amount, Nonce, Delay, Data3};
+			_ -> {5000, 0, 10000000, Data}
+		    end
             end
     end.
 test2() ->

@@ -6,9 +6,16 @@
 
 ### Other hard fork ideas
 
-Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
+spk:dict_run is currently waiting a certain amount of time for the contract to be processed.
+This is what gas is for. As long as there is a gas limit, we don't need to keep a different timer.
 
-Maybe question oracles don't need so much (any?) initial liquidity like governance oracles do.
+chalang also needs to be changed. instead of failing fast we need to return the failure, so that we can continue processing the block.
+
+if a smart contract runs out of gas, or has an invalid outcome, we should include it in the block anyway and still charge the fee.
+
+Fees are currently not being paid to the block creator.
+
+Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
 version in spend txs is not being used.
 
@@ -18,6 +25,8 @@ version in spend txs is not being used.
 
 
 ### Things to do
+
+* move chalang back to it's old directory.
 
 * make sure that in the markets, evidence outcome always has a bigger nonce than no_publish.
 

@@ -68,11 +68,17 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 		true -> none
 	    end,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Dict),
-    true = NewCNonce > channels:nonce(OldChannel),
-    true = (-1 < (channels:bal1(OldChannel)-Amount)),%channels can only delete money that was inside the channel.
-    true = (-1 < (channels:bal2(OldChannel)+Amount)),
-    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
-    Dict2 = channels:dict_write(NewChannel, Dict),
+    CNOC = channels:nonce(OldChannel),
+    CB1OC = channels:bal1(OldChannel),
+    CB2OC = channels:bal2(OldChannel),
+    Dict2 = if
+		(((NewCNonce > CNOC) and
+		  (-1 < (CB1OC-Amount))) and
+		 (-1 < (CB2OC+Amount))) ->
+		    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
+		    channels:dict_write(NewChannel, Dict);
+		true -> Dict
+	    end,
     ID = Tx#cs.from,
     Account = accounts:dict_update(ID, Dict, -Fee, Nonce),
     accounts:dict_write(Account, Dict2).

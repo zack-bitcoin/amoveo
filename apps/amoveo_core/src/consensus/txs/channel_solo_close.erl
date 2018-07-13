@@ -51,12 +51,21 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     SS = Tx#csc.scriptsig,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict),
     %false = Amount == 0,
-    true = NewCNonce > channels:nonce(OldChannel),
-    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false),
+    CNOC = channels:nonce(OldChannel),
+    Dict2 = if
+		NewCNonce > CNOC ->
+		    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false),
+		    CB1NC = channels:bal1(NewChannel),
+		    CB2NC = channels:bal2(NewChannel),
+		    if 
+			((-1 < (CB1NC-Amount)) and 
+			 (-1 < (CB2NC+Amount))) ->
+			    channels:dict_write(NewChannel, Dict);
+			true -> Dict
+		    end;
+		true -> Dict
+	    end,
 
-    true = (-1 < (channels:bal1(NewChannel)-Amount)),
-    true = (-1 < (channels:bal2(NewChannel)+Amount)),
-    Dict2 = channels:dict_write(NewChannel, Dict),
     Nonce = if
 		NonceCheck -> Tx#csc.nonce;
 		true -> none
