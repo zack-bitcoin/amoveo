@@ -26,6 +26,8 @@ version in spend txs is not being used.
 
 ### Things to do
 
+* test out how long the longest contract can take, given default allowed gas.
+
 * move chalang back to it's old directory.
 
 * make sure that in the markets, evidence outcome always has a bigger nonce than no_publish.

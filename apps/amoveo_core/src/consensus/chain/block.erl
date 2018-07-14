@@ -163,6 +163,9 @@ genesis_maker() ->
            trees = Trees,
            roots = make_roots(Trees)
           }.
+miner_fees([]) -> 0;
+miner_fees([H|T]) ->
+    element(4, testnet_sign:data(H)) + miner_fees(T).
 %block_reward_dict(Dict, Height, ID, PH) ->
 %    BCM = 100,
 %    BlocksAgo = Height - BCM,
@@ -196,7 +199,7 @@ tx_costs([STx|T], Governance, Out) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
-new_dict(Txs, Dict, Height, _Pub, _PrevHash) ->
+new_dict(Txs, Dict, Height) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
     Dict2.
 market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
@@ -232,7 +235,7 @@ make(Header, Txs0, Trees, Pub) ->
     Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
     Facts = proofs:prove(Querys, Trees),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
-    NewDict0 = new_dict(Txs, Dict, Height + 1, keys:pubkey(), hash(Header)),
+    NewDict0 = new_dict(Txs, Dict, Height + 1),
     B = ((Height+1) == forks:get(5)),
     NewDict = if
 		B -> 
@@ -242,7 +245,17 @@ make(Header, Txs0, Trees, Pub) ->
 		      governance:dict_write(OQL, NewDict0);
 		true -> NewDict0
 	    end,
-    NewTrees = tree_data:dict_update_trie(Trees, NewDict),
+    MinerAddress = Pub,
+    FG6 = forks:get(6),
+    NewDict2 = if
+		   Height < FG6 -> NewDict;
+		   true ->
+		       MinerReward = miner_fees(Txs0),
+%    MinerAccount = accounts:dict_get(MinerAddress, Dict),
+		       MinerAccount = accounts:dict_update(MinerAddress, NewDict, MinerReward, none),
+		       accounts:dict_write(MinerAccount, NewDict)
+	       end,
+    NewTrees = tree_data:dict_update_trie(Trees, NewDict2),
     %Governance = trees:governance(NewTrees),
     Governance = trees:governance(Trees),
     BlockPeriod = governance:get_value(block_period, Governance),
@@ -388,7 +401,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     PrevHash = Block#block.prev_hash,
     Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
-    NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
+    NewDict = new_dict(Txs, Dict, Height),
     {Dict, NewDict, BlockHash}.
 
 
@@ -447,8 +460,18 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 		    governance:dict_write(OQL, NewDict);
 		true -> NewDict
 	    end,
+    MinerAddress = element(2, hd(Txs)),
+    FG6 = forks:get(6),
+    NewDict3 = if
+		   Height < FG6 -> NewDict2;
+		   true ->
+		       MinerReward = miner_fees(Txs0),
+%    MinerAccount = accounts:dict_get(MinerAddress, Dict),
+		       MinerAccount = accounts:dict_update(MinerAddress, NewDict2, MinerReward, none),
+		       accounts:dict_write(MinerAccount, NewDict2)
+	       end,
 
-    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict2),
+    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict3),
     Block2 = Block#block{trees = NewTrees3},
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),

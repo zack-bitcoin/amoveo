@@ -26,7 +26,7 @@ go(Tx, Dict, NewHeight, _) ->
     Dict1 = sub_txs(Txs, From, Dict, NewHeight),
     Fee = Tx#multi_tx.fee,
     Facc = accounts:dict_update(From, Dict1, -Fee, Tx#multi_tx.nonce),
-    Dict2 = accounts:dict_write(Facc, Dict1).
+    accounts:dict_write(Facc, Dict1).
 sub_txs([], From, Dict, _) -> Dict;
 sub_txs([H|T], From, Dict, NewHeight) ->
     Type = element(1, H),

@@ -95,6 +95,6 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     oracle_questions:store(QH, Question),
     Diff = Tx#oracle_new.difficulty,
     ON = oracles:new(ID, QH, Starts, From, Gov, GovAmount, Dict),
-    Dict4 = oracles:dict_write(ON, Dict3).
+    oracles:dict_write(ON, Dict3).
     
     
