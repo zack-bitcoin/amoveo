@@ -49,6 +49,7 @@ absorb_internal(SignedTx) ->
 	X -> X
     after 
 	200 -> 
+	%10000 ->
 	    %io:fwrite("dropped a tx\n"),
 	    error
     end.

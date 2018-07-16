@@ -206,6 +206,48 @@ test(5) ->
     absorb(Stx4),
     mine_blocks(1),
     success;
+test(61) -> 
+    %a smart contract that runs out of gas.
+% look at the result of `trees:dict_tree_get(channels, <<5:256>>).` to see how this changes the channel.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    
+    Fee = constants:initial_fee() + 20,
+    Amount = 1000000,
+    Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    timer:sleep(100),
+    potential_block:save(),
+    mine_blocks(1),
+    
+    CID = <<5:256>>,
+
+    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 30, Fee),
+    Stx2 = keys:sign(Ctx2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
+    absorb(SStx2),
+    potential_block:new(),
+    mine_blocks(1),
+
+    Code = compiler_chalang:doit(<<" : doit recurse call ; doit call ">>),%channel nonce is 1, sends 50.
+    %Code = compiler_chalang:doit(<<" drop int 2  int 2 int 2 ">>), % this version does not run out of gas, for comparison.
+    Delay = 0,
+    ChannelNonce = 0,
+    Bet = spk:new_bet(Code, Code, 50),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" ">>), []),
+    Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
+    Stx3 = keys:sign(Ctx3),
+    absorb(Stx3),
+    potential_block:new(),
+    mine_blocks(1),
+    timer:sleep(50),
+    success;
+
 test(6) -> 
     io:fwrite("channel slash tx test \n"),
     headers:dump(),

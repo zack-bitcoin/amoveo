@@ -6,29 +6,24 @@
 
 ### Other hard fork ideas
 
-spk:dict_run is currently waiting a certain amount of time for the contract to be processed.
-This is what gas is for. As long as there is a gas limit, we don't need to keep a different timer.
-
-chalang also needs to be changed. instead of failing fast we need to return the failure, so that we can continue processing the block.
-
-if a smart contract runs out of gas, or has an invalid outcome, we should include it in the block anyway and still charge the fee.
-
-Fees are currently not being paid to the block creator.
-
 Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
 version in spend txs is not being used.
 
+
+### governance ideas
+
 * consider reducing governance variable "maximum oracle time". it takes too long to close bad-question oracles.
 
-
+* raise the miner reward.
 
 
 ### Things to do
 
 * test out how long the longest contract can take, given default allowed gas.
+governance space_gas, time_gas
 
-* move chalang back to it's old directory.
+* examine chalang more closely to see if it is possible to make a contract crash.
 
 * make sure that in the markets, evidence outcome always has a bigger nonce than no_publish.
 

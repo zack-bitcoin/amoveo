@@ -52,14 +52,21 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict),
     %false = Amount == 0,
     CNOC = channels:nonce(OldChannel),
+    %io:fwrite("closing channel 0\n"),
+    %io:fwrite(integer_to_list(NewCNonce)),
+    %io:fwrite(" : new nonce \n"),
+    %io:fwrite(integer_to_list(CNOC)),
+    %io:fwrite(" : old nonce\n"),
     Dict2 = if
 		NewCNonce > CNOC ->
+		    %io:fwrite("closing channel 1\n"),
 		    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false),
 		    CB1NC = channels:bal1(NewChannel),
 		    CB2NC = channels:bal2(NewChannel),
 		    if 
 			((-1 < (CB1NC-Amount)) and 
 			 (-1 < (CB2NC+Amount))) ->
+			    %io:fwrite("closing channel 2\n"),
 			    channels:dict_write(NewChannel, Dict);
 			true -> Dict
 		    end;
