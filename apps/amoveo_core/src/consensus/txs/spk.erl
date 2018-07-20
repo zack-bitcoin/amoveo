@@ -224,7 +224,7 @@ dict_run2(_, SS, SPK, State, Dict) ->
 	VarLimit,
 	State, 
 	Delay);
-dict_run2(safe, SS, SPK, State, Dict) -> 
+dict_run2(safe, SS, SPK, State, Dict) -> %unused.
     %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
     S = self(),
     spawn(fun() ->

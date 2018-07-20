@@ -20,10 +20,18 @@ version in spend txs is not being used.
 
 ### Things to do
 
-* test out how long the longest contract can take, given default allowed gas.
-governance space_gas, time_gas
+
+* maybe we should have a game to see who can keep testnet mining pools active most, during the game we encourage spamming each other and making unusual transactions to cause problems.
+
+* look at the pull request for the escrow tool.
+
+* get rock-paper-scissors working in chalang.
+
+* combinatorial markets.
 
 * examine chalang more closely to see if it is possible to make a contract crash.
+
+* teach the light node to generate messages about oracles. to make it easier to know when to vote.
 
 * make sure that in the markets, evidence outcome always has a bigger nonce than no_publish.
 

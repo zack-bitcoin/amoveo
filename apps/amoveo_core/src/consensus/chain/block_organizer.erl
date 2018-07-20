@@ -24,7 +24,7 @@ handle_call(_, _From, X) -> {reply, X, X}.
 pid() -> gen_server:call(?MODULE, pid).
 view() ->
     gen_server:call(?MODULE, view).
-merge(New, []) -> [New];
+merge(New, []) -> [New];%merge sort
 merge([], Old) -> Old;
 merge([N|NT], [O|OT]) ->
     %HN = hd(N),

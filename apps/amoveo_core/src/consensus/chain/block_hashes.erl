@@ -1,5 +1,6 @@
 -module(block_hashes).
-%each blockhash is about 12 bytes. We need to prepare for about 10000000 blocks. So that would be 12 megabytes of data. We can keep this all in ram.
+% keep the hash of every block we attempt to verify, that way we don't waste time trying to verify the same block twice.
+%each blockhash is about 32 bytes. We need to prepare for about 10000000 blocks. So that would be 32 megabytes of data. We can keep this all in ram.
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 	 add/1,check/1,test/0]).
