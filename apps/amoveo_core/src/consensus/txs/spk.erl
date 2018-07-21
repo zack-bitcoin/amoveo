@@ -295,16 +295,10 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
     {Amount0, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
     CGran = constants:channel_granularity(),
-    Amount = if 
-		 Amount0 > CGran -> 
-		     Amount0 - round(math:pow(2, 32));
-		 true -> Amount0
-	     end,
+    
     %io:fwrite(packer:pack({stack, Amount, Nonce, Delay})),
     %io:fwrite("\n"),
-    true = Amount =< CGran,
-    true = Amount >= -CGran,
-    A3 = Amount * Bet#bet.amount div CGran,
+    A3 = Amount0 * Bet#bet.amount div CGran,
     {A3, Nonce, Delay,
      chalang:time_gas(Data2)
     }.
@@ -468,30 +462,42 @@ vm(SS, State) ->
     {ok, FunLimit} = application:get_env(amoveo_core, fun_limit),
     {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
     chalang:vm(SS, TimeLimit, SpaceLimit, FunLimit, VarLimit, State).
+-define(error_amount, 0).
+-define(error_nonce, 10000000).
 chalang_error_handling(SS, Code, Data) ->
+    Default = {?error_amount, 0, ?error_nonce, Data},
     case chalang:run5(SS, Data) of
         {error, S} ->
             io:fwrite("script sig has an error when executed: "),
             io:fwrite(S),
             io:fwrite("\n"),
-	    {5000, 0, 10000000, Data};
-	%1 = 2;
+	    Default;
         Data2 ->
             case chalang:run5(Code, Data2) of
                 {error, S2} ->
                     io:fwrite("code has an error when executed with that script sig: "),
                     io:fwrite(S2),
                     io:fwrite("\n"),
-		    {5000, 0, 10000000, Data};
-                    %1 = 2;
+		    Default;
                 Data3 ->
 		    Stack = chalang:stack(Data3),
+		    Max = round(math:pow(2, 32)),
 		    case Stack of
                     [<<Amount:32>>|
                      [<<Nonce:32>>|
                       [<<Delay:32>>|_]]] ->
-			    {Amount, Nonce, Delay, Data3};
-			_ -> {5000, 0, 10000000, Data}
+			    CGran = constants:channel_granularity(),
+    %negative numbers are stored in the highest 10000 values that can be stored in the 4-byte value.
+			    if
+				((Amount > CGran) and (Amount < (Max - CGran))) -> Default;
+				(Amount < 0) -> Default;
+				(Amount > Max) -> Default;
+				(Amount > CGran) ->
+				    {Amount - Max, Nonce, Delay, Data3};
+				true ->
+				    {Amount, Nonce, Delay, Data3}
+			    end;
+			_ -> Default
 		    end
             end
     end.

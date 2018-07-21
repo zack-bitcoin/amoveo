@@ -69,13 +69,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 	    end,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Dict),
     CNOC = channels:nonce(OldChannel),
-    CB1OC = channels:bal1(OldChannel),
-    CB2OC = channels:bal2(OldChannel),
+    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
+    CB1OC = channels:bal1(NewChannel),
+    CB2OC = channels:bal2(NewChannel),
     Dict2 = if
 		(((NewCNonce > CNOC) and
 		  (-1 < (CB1OC-Amount))) and
 		 (-1 < (CB2OC+Amount))) ->
-		    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
 		    channels:dict_write(NewChannel, Dict);
 		true -> Dict
 	    end,

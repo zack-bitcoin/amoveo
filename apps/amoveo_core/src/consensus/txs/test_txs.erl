@@ -771,7 +771,7 @@ test(15) ->
     timer:sleep(100),
     potential_block:new(),
     mine_blocks(1),
-    timer:sleep(50),
+    timer:sleep(150),
     Txs2 = (tx_pool:get())#tx_pool.txs,
     %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     %timer:sleep(2000),
