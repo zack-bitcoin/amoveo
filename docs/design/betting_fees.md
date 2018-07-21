@@ -7,10 +7,10 @@ For example, if you are betting $100 in a market with 50-50 odds, and it takes 1
 1.1 is interest rate per month.
 X**720 = 1.1
 log(X) = log(1.1)/720
-X = 1.00001323 is interest rate per hour
+X = 1.00001324 is interest rate per hour
 
 It would cost less than 2 cents for a bet like this.
-$0.013238401
+$0.01324
 
 After the bet is matched, then the bet is moved from the indirect path through a hub to a direct path between the 2 parties who are betting. This unlocks liquidity on the hub, which makes the betting process hundreds of times more affordable.
 
@@ -25,3 +25,6 @@ We will plug in the same numbers as used in the Amoveo example, to compare the c
 X = (0.1) * ($100) * 7.5 * 2 = $150
 
 So with Augur, it would cost $150 to make the same bet under the same conditions.
+
+If Augur uses smaller fees than this, then they will not be able to pay the Rep holders enough, which will cause the market cap of Rep to decline.
+The total volume of unsettled bets needs to be (market cap of Rep)/7.5, so when the market cap decreases it also decreases the utility of Augur.
