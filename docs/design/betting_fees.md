@@ -20,6 +20,8 @@ After the bet is matched, then the bet is moved from the indirect path through a
 
 The cost in Augur happens because the market cap of Rep needs to stay high. The total volume of unsettled bets needs to be less than 1/7.5 the market cap. The fees being paid to the holders of Rep need to be enough to convince people to hold Rep.
 
+(7.5x is from page 9 of the Augur white paper. II.A.4 - Incentives and security - integrity of the forking protocol - integrity.)
+
 Next looking at the cost of using Augur. The cost per bet is (the interest rate of Rep) * (the value you gamble with) * (The market cap of Rep) / (Current total volume in rep of unsettled bets) * (How long until the bet can be settled)
 
 We will plug in the same numbers as used in the Amoveo example, to compare the cost.
