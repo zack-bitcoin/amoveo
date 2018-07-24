@@ -34,18 +34,16 @@ function spend_1() {
 	    } else {
 		error_msg.innerHTML = "";
 	    }
+	    var CB = function(gov_fee) {
+		var Fee = tree_number_to_value(gov_fee[2]) + 50;
+		var A2 = Amount - Fee;
+		spend_amount.value = (A2 / 100000000).toString();};
 	    variable_public_get(["account", to],
 				function(result) {
 				    if (result == "empty") {
-					merkle.request_proof("governance", 14, function(gov_fee) {
-					    var Fee = tree_number_to_value(gov_fee[2]) + 50;
-					    var A2 = Amount - Fee;
-					    spend_amount.value = (A2 / 100000000).toString();});
+					merkle.request_proof("governance", 14, CB);
 				    } else {
-					merkle.request_proof("governance", 15, function(gov_fee) {
-					    var Fee = tree_number_to_value(gov_fee[2]) + 50;
-					    var A2 = Amount - Fee;
-					    spend_amount.value = (A2 / 100000000).toString();});
+					merkle.request_proof("governance", 15, CB);
 				    }
 				});
 					    
