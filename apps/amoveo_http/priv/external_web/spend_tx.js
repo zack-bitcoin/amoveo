@@ -57,21 +57,22 @@ function spend_1() {
         //spend_address = document.getElementById("spend_address");
         var to0 = spend_address.value;
 	var to = parse_address(to0);
+        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
+	
 	if (to == 0) {
 	    error_msg.innerHTML = "Badly formatted address";
 	} else {
 	    error_msg.innerHTML = "";
-	}
         //spend_amount = document.getElementById("spend_amount");
-        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
-        var from = keys.pub();
-	fee_checker(to, function (Fee) {
-	    fee = Fee;
-	    variable_public_get(["create_account_tx", amount, fee, from, to], spend_tokens2);
-	}, function (Fee) {
-	    fee = Fee;
-	    variable_public_get(["spend_tx", amount, fee, from, to], spend_tokens2);
-	});
+            var from = keys.pub();
+	    fee_checker(to, function (Fee) {
+		fee = Fee;
+		variable_public_get(["create_account_tx", amount, Fee, from, to], spend_tokens2);
+	    }, function (Fee) {
+		fee = Fee;
+		variable_public_get(["spend_tx", amount, Fee, from, to], spend_tokens2);
+	    });
+	}
     }
     function fee_checker(address, Callback1, Callback2) {
 	variable_public_get(["account", address],
