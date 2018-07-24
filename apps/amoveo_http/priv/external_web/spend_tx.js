@@ -80,14 +80,11 @@ function spend_1() {
 				   merkle.request_proof("governance", 14, function(gov_fee) {
 				       var fee = tree_number_to_value(gov_fee[2]) + 50;
 				       Callback1(fee);
-				       //variable_public_get(["create_account_tx", amount, fee, from, to], spend_tokens2);
-				   
 				   });
 			       } else {
 				   merkle.request_proof("governance", 15, function(gov_fee) {
 				       var fee = tree_number_to_value(gov_fee[2]) + 50;
 				       Callback2(fee);
-				       //variable_public_get(["spend_tx", amount, fee, from, to], spend_tokens2);
 				   });
 			       }});
     }
