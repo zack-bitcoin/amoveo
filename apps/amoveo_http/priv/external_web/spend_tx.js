@@ -8,8 +8,6 @@ function spend_1() {
     //spend_amount.id = "spend_amount";
     var spend_amount_info = document.createElement("h8");
     spend_amount_info.innerHTML = translate.words("amount_send").concat(": ");
-    div.appendChild(spend_amount_info);
-    div.appendChild(spend_amount);
 
     var spend_address = document.createElement("INPUT");
     spend_address.setAttribute("type", "text");
@@ -17,8 +15,6 @@ function spend_1() {
     var input_info = document.createElement("h8");
     input_info.innerHTML = "to pubkey: ";
     var raw_tx = document.createElement("h8");
-    div.appendChild(input_info);
-    div.appendChild(spend_address);
     var mode;
     spend_button = button_maker2("send", function(){
 	mode = "sign";
@@ -29,6 +25,45 @@ function spend_1() {
 	spend_tokens();
     });
     var error_msg = document.createElement("div");
+    var calculate_max_send_button = button_maker2("calculate max send amount", function() {
+	keys.check_balance(function(Amount) {
+            var to0 = spend_address.value;
+	    var to = parse_address(to0);
+	    if (to == 0) {
+		error_msg.innerHTML = "please input the recipient's address";
+	    } else {
+		error_msg.innerHTML = "";
+	    }
+	    variable_public_get(["account", to],
+				function(result) {
+				    if (result == "empty") {
+					merkle.request_proof("governance", 14, function(gov_fee) {
+					    var Fee = tree_number_to_value(gov_fee[2]) + 50;
+					    var A2 = Amount - Fee;
+					    spend_amount.value = (A2 / 100000000).toString();});
+				    } else {
+					merkle.request_proof("governance", 15, function(gov_fee) {
+					    var Fee = tree_number_to_value(gov_fee[2]) + 50;
+					    var A2 = Amount - Fee;
+					    spend_amount.value = (A2 / 100000000).toString();});
+				    }
+				});
+					    
+					
+        //spend_amount = document.getElementById("spend_amount");
+	    //merkle.request_proof("account", spend_address.value, function(x) {
+	    //Fee depends on the address we are sending to.
+
+	    //var A2 = Amount - Fee;
+	    //spend_amount.value = (A2 / 100000000).toString();
+	});
+    });
+    div.appendChild(calculate_max_send_button);
+    div.appendChild(document.createElement("br"));
+    div.appendChild(spend_amount_info);
+    div.appendChild(spend_amount);
+    div.appendChild(input_info);
+    div.appendChild(spend_address);
     div.appendChild(spend_button);
     div.appendChild(raw_button);
     div.appendChild(error_msg);

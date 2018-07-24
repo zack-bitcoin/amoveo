@@ -101,6 +101,13 @@ function keys_function1() {
             update_pubkey();
         }
     }
+    function check_balance(Callback) {
+        var trie_key = pubkey_64();
+        var top_hash = hash(headers_object.serialize(headers_object.top()));
+        merkle.request_proof("accounts", trie_key, function(x) {
+	    Callback(x[1]);
+        });
+    }
     function update_balance() {
         var trie_key = pubkey_64();
         var top_hash = hash(headers_object.serialize(headers_object.top()));
@@ -130,6 +137,6 @@ function keys_function1() {
     function decrypt(val) {
 	return encryption_object.get(val, keys);
     }
-    return {make: new_keys, pub: pubkey_64, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt};
+    return {make: new_keys, pub: pubkey_64, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt, check_balance: check_balance};
 }
 var keys = keys_function1();
