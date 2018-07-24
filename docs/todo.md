@@ -26,6 +26,8 @@ version in spend txs is not being used.
 
 * combinatorial markets.
 
+* spend_tx is using global state "mode". This should instead be passed to the function.
+
 * maybe we should have a game to see who can keep testnet mining pools active most, during the game we encourage spamming each other and making unusual transactions to cause problems.
 
 * look at the pull request for the escrow tool.

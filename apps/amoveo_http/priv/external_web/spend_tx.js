@@ -20,11 +20,11 @@ function spend_1() {
     div.appendChild(input_info);
     div.appendChild(spend_address);
     var mode;
-    spend_button = button_maker("spend", function(){
+    spend_button = button_maker2("send", function(){
 	mode = "sign";
 	spend_tokens();
     });
-    raw_button = button_maker("raw_spend", function(){
+    raw_button = button_maker2("print unsigned transaction to screen", function(){
 	mode = "raw";
 	spend_tokens();
     });
