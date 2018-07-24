@@ -30,13 +30,14 @@ def request_ext(node, action, args, seconds_to_sleep=0):
 def request_helper(url, action, args, seconds_to_sleep):
     d2 = json.dumps(byteify([action] + args))
     req = urllib2.Request(url=url, data = d2)
-    f = urlopen_with_retry(req)
+    #f = urlopen_with_retry(req)
+    f = urllib2.urlopen(req)
     sleep(seconds_to_sleep)
     return f.read()
-def urlopen_with_retry(req, max_retry=2):
-    for _ in range(max_retry):
-        try:
-            return urllib2.urlopen(req)
-        except Exception:
-            sleep(5)
-    raise RuntimeError('Request failed {} times.'.format(max_retry))
+#def urlopen_with_retry(req, max_retry=5):
+#    for _ in range(max_retry):
+#        try:
+#            return urllib2.urlopen(req)
+#        except Exception:
+#            sleep(5)
+#    raise RuntimeError('Request failed {} times.'.format(max_retry))
