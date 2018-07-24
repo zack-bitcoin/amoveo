@@ -15,7 +15,7 @@ function spend_1() {
     spend_address.setAttribute("type", "text");
     //spend_address.id = "spend_address";
     var input_info = document.createElement("h8");
-    input_info.innerHTML = translate.words("to_pubkey").concat(": ");
+    input_info.innerHTML = "to pubkey: ";
     var raw_tx = document.createElement("h8");
     div.appendChild(input_info);
     div.appendChild(spend_address);
@@ -28,14 +28,22 @@ function spend_1() {
 	mode = "raw";
 	spend_tokens();
     });
+    var error_msg = document.createElement("div");
     div.appendChild(spend_button);
     div.appendChild(raw_button);
+    div.appendChild(error_msg);
     div.appendChild(document.createElement("br"));
     div.appendChild(raw_tx);
     var fee;
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");
-        var to = spend_address.value;
+        var to0 = spend_address.value;
+	var to = parse_address(to0);
+	if (to == 0) {
+	    error_msg.innerHTML = "Badly formatted address";
+	} else {
+	    error_msg.innerHTML = "";
+	}
         //spend_amount = document.getElementById("spend_amount");
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
         var from = keys.pub();

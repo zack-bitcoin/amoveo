@@ -183,3 +183,13 @@ function tree_number_det_power(base, top, bottom, t) {
                                      Math.floor(t / 2));
     }
 }
+function parse_address(A) {
+    //remove spaces or periods. " " "."
+    A2 = A.replace(/\ /g,'');
+    A3 = A2.replace(/\./g,'');
+    A4 = A3.replace(/\n/g,'');
+    //if it is the wrong length, make an error.
+    //88
+    B = ((A4).length == 88);
+    if (B) { return A4; } else { return 0; };
+}
