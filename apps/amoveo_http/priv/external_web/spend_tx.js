@@ -34,26 +34,11 @@ function spend_1() {
 	    } else {
 		error_msg.innerHTML = "";
 	    }
-	    var CB = function(gov_fee) {
-		var Fee = tree_number_to_value(gov_fee[2]) + 50;
-		var A2 = Amount - Fee;
-		spend_amount.value = (A2 / 100000000).toString();};
-	    variable_public_get(["account", to],
-				function(result) {
-				    if (result == "empty") {
-					merkle.request_proof("governance", 14, CB);
-				    } else {
-					merkle.request_proof("governance", 15, CB);
-				    }
-				});
-					    
-					
-        //spend_amount = document.getElementById("spend_amount");
-	    //merkle.request_proof("account", spend_address.value, function(x) {
-	    //Fee depends on the address we are sending to.
-
-	    //var A2 = Amount - Fee;
-	    //spend_amount.value = (A2 / 100000000).toString();
+	    var CB2 = function(fee) {
+		var A2 = Amount - fee;
+		spend_amount.value = (A2 / 100000000).toString();
+	    };
+	    fee_checker(to, CB2, CB2);
 	});
     });
     div.appendChild(calculate_max_send_button);
@@ -80,20 +65,36 @@ function spend_1() {
         //spend_amount = document.getElementById("spend_amount");
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
         var from = keys.pub();
-	variable_public_get(["account", to],
+	fee_checker(to, function (Fee) {
+	    fee = Fee;
+	    variable_public_get(["create_account_tx", amount, fee, from, to], spend_tokens2);
+	}, function (Fee) {
+	    fee = Fee;
+	    variable_public_get(["spend_tx", amount, fee, from, to], spend_tokens2);
+	});
+    }
+    function fee_checker(address, Callback1, Callback2) {
+	variable_public_get(["account", address],
 			    function(result) {
 			       if (result == "empty") {
 				   merkle.request_proof("governance", 14, function(gov_fee) {
-				       fee = tree_number_to_value(gov_fee[2]) + 50;
-				       variable_public_get(["create_account_tx", amount, fee, from, to], spend_tokens2);
+				       var fee = tree_number_to_value(gov_fee[2]) + 50;
+				       Callback1(fee);
+				       //variable_public_get(["create_account_tx", amount, fee, from, to], spend_tokens2);
 				   
 				   });
 			       } else {
 				   merkle.request_proof("governance", 15, function(gov_fee) {
-				       fee = tree_number_to_value(gov_fee[2]) + 50;
-				       variable_public_get(["spend_tx", amount, fee, from, to], spend_tokens2);
+				       var fee = tree_number_to_value(gov_fee[2]) + 50;
+				       Callback2(fee);
+				       //variable_public_get(["spend_tx", amount, fee, from, to], spend_tokens2);
 				   });
 			       }});
+    }
+    function spend_tokens2(tx) {
+        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
+        var amount0 = tx[5];
+	
     }
     function spend_tokens2(tx) {
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
