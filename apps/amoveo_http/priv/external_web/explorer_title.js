@@ -11,6 +11,10 @@
     reddit.innerHTML = ("<a href=\"https://www.reddit.com/r/Amoveo/\">").concat(translate.words("discuss_on_reddit")).concat("</a>");
     document.body.appendChild(reddit);
 
+    var wallet = document.createElement("p");
+    wallet.innerHTML = ("<a href=\"/wallet.html\">").concat("Wallet on same server").concat("</a>");
+    document.body.appendChild(wallet);
+
     var blockchain_title = document.createElement("h3");
     blockchain_title.innerHTML = translate.words("blockchain");
     document.body.appendChild(blockchain_title);

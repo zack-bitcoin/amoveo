@@ -12,6 +12,10 @@ function title_maker() {
     reddit.innerHTML = ("<a href=\"https://www.reddit.com/r/Amoveo/\">").concat(translate.words("discuss_on_reddit")).concat("</a>");
     document.body.appendChild(reddit);
 
+    var explorer = document.createElement("p");
+    explorer.innerHTML = ("<a href=\"/explorer.html\">").concat("Explorer on same server").concat("</a>");
+    document.body.appendChild(explorer);
+
     var blockchain_title = document.createElement("h3");
     blockchain_title.innerHTML = translate.words("blockchain");
     document.body.appendChild(blockchain_title);

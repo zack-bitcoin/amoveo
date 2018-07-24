@@ -20,16 +20,17 @@ version in spend txs is not being used.
 
 ### Things to do
 
+* light wallet improvements suggested by OK.
+
+* maybe remove the translation tool from the light node. It is expensive, and google translate can already provide this service in chrome.
+
+* combinatorial markets.
 
 * maybe we should have a game to see who can keep testnet mining pools active most, during the game we encourage spamming each other and making unusual transactions to cause problems.
 
 * look at the pull request for the escrow tool.
 
 * get rock-paper-scissors working in chalang.
-
-* combinatorial markets.
-
-* examine chalang more closely to see if it is possible to make a contract crash.
 
 * teach the light node to generate messages about oracles. to make it easier to know when to vote.
 
