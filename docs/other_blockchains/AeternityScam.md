@@ -1,4 +1,5 @@
 Aeternity is a Scam
+25 July 2018
 
 Originally AE was going to launch in April 2018.
 Currently they say they will launch in July or August.
@@ -15,14 +16,14 @@ After searching their codebase, the only VM they have written is EVM.
 3) FTWVM does not exist.
 4) Channel smart contracts do not exist in AE.
 
-Consensus - Aeternity uses a voting based system from BitShares. Unlike bitshares, Aeternity does not use voting for blockchain consensus. Instead it is used to update certain system parameters. This is despite the fact that voting is proven to be cryptoeconomically insecure for making decisions.
+Consensus - Aeternity uses a voting based system from BitShares. Unlike bitshares, Aeternity does not use voting for blockchain consensus. Instead it is used to update certain system parameters. 
 Lots of lies from AE:
 5) delegated voting isn't innovative, since bitshares did it already.
 6) block consensus in AE is POW, not POS. 
 7) Voting is proven to be cryptoeconomically insecure for making decisions.
 
-State channels - Aeternity has written a lot of code that is labeled "state channels", but in actuality they have only created payment channels. Payment channels already exist in Ethereum and Bitcoin, it is not innovative.
-Aeternity channels are not capable of participating in off-chain markets, which is a critical security feature of any state channel system. Without off-chain markets, state channels cannot be used to trustlessly participate in smart contracts.
+State channels - Aeternity has written a lot of code that is labeled "state channels", but in actuality they have only created payment channels. 
+Aeternity channels are not capable of participating in off-chain markets, which is a critical security feature of any state channel system. Without off-chain markets, state channels cannot be used to trustlessly participate in smart contracts. https://twitter.com/zack_bitcoin/status/1021204268215427073
 Without smart contracts, state channels are identical to payment channels.
 Therefore, ae is only creating payment channels, not state channels.
 * state channels aren't innovative, Amoveo already has them.
@@ -59,7 +60,7 @@ AE software is a non-compatible rewrite of Ethereum into Erlang.
 This wouldn't a problem, if they honestly advertised it as such.
 What makes Aeternity a scam is the fact that they advertise themselves as something different than what they are.
 
-This is a problem for Amoveo, because Aeternity is advertising itself as an improved version of Amoveo. When in reality, AE is a worsened version of Ethereum.
+This is a problem for Amoveo, because Aeternity is advertising itself as an improved version of Amoveo. 
 
 Maybe this happens because Aeternity raised money by promising to build what Amoveo is now, and they are worried about the legal consequences of admitting that they will not fulfill those promises.
 
