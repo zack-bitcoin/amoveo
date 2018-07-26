@@ -248,7 +248,7 @@ make(Header, Txs0, Trees, Pub) ->
     MinerAddress = Pub,
     FG6 = forks:get(6),
     NewDict2 = if
-		   Height < FG6 -> NewDict;
+		   (Height + 1) < FG6 -> NewDict;
 		   true ->
 		       MinerReward = miner_fees(Txs0),
 %    MinerAccount = accounts:dict_get(MinerAddress, Dict),
