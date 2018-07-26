@@ -102,6 +102,12 @@ http://amoveo.noncense.tech/
 
 There are people trading now on discord https://discord.gg/xJQcVaT
 
+An escrow tool hosted by Zack: http://159.89.106.253:8087/main.html
+
+Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
+
+Amoveo-Exchange for ETH-VEO trading: https://amoveo.exchange/
+
 An exchange is being written here https://github.com/zack-bitcoin/amoveo-exchange
 
 
