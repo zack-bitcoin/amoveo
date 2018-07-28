@@ -268,7 +268,7 @@ make(Header, Txs0, Trees, Pub) ->
 		   txs = Txs,
 		   trees_hash = trees:root_hash(NewTrees),
 		   time = time_now(),
-		   difficulty = headers:difficulty_should_be(Header),
+		   difficulty = element(1, headers:difficulty_should_be(Header)),
                    period = BlockPeriod,
 
 		   version = version:doit(Height+1),%constants:version(),
@@ -549,7 +549,7 @@ initialize_chain() ->
         true -> get_by_height(0)
          end,
     Header0 = block_to_header(GB),
-    gen_server:call(headers, {add, block:hash(Header0), Header0}),
+    gen_server:call(headers, {add, block:hash(Header0), Header0, 1}),
     gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
 

@@ -1,6 +1,6 @@
 -module(headers).
 -behaviour(gen_server).
--export([absorb/1, absorb_with_block/1, read/1, top/0, dump/0, top_with_block/0,
+-export([absorb/1, absorb_with_block/1, read/1, read_ewah/1, top/0, dump/0, top_with_block/0,
          make_header/9, serialize/1, deserialize/1,
          difficulty_should_be/1, test/0]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
@@ -21,8 +21,16 @@ init([]) ->
     {ok, K}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+handle_call({read_ewah, Hash}, _From, State) ->
+    Header = dict:find(Hash, State#s.headers),
+    {reply, Header, State};
 handle_call({read, Hash}, _From, State) ->
-    {reply, dict:find(Hash, State#s.headers), State};
+    A = case dict:find(Hash, State#s.headers) of
+	    error -> error;
+	    {ok, {Header, _}} -> {ok, Header};
+	    {ok, Header} -> {ok, Header}
+	end,
+    {reply, A, State};
 handle_call({check}, _From, State) ->
     {reply, State, State};
 handle_call({dump}, _From, _State) ->
@@ -43,7 +51,7 @@ handle_call({add_with_block, Hash, Header}, _From, State) ->
         end,
     %Headers = dict:store(Hash, Header, State#s.headers),
     {reply, ok, State#s{top_with_block = NewTop}};
-handle_call({add, Hash, Header}, _From, State) ->
+handle_call({add, Hash, Header, EWAH}, _From, State) ->
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top,
     AF = Top#header.accumulative_difficulty,
@@ -51,7 +59,7 @@ handle_call({add, Hash, Header}, _From, State) ->
                  true -> Header;
                  false -> Top
         end,
-    Headers = dict:store(Hash, Header, State#s.headers),
+    Headers = dict:store(Hash, {Header, EWAH}, State#s.headers),
     {reply, ok, State#s{headers = Headers, top = NewTop}}.
 handle_cast(_, State) ->
     {noreply, State}.
@@ -98,15 +106,15 @@ absorb([Header | T], CommonHash) ->
 				 1=2,
 				 ok;
 			true ->
-						%true = check_pow(Header),%check that there is enough pow for the difficulty written on the block
+		      %check that there is enough pow for the difficulty written on the block
 			    case read(Header#header.prev_hash) of
 				error -> io:fwrite("don't have a parent for this header\n"),
 					 1=2,
 					 error;
 				{ok, _} ->
 				    case check_difficulty(Header) of%check that the difficulty written on the block is correctly calculated
-					{true, _} ->
-					    gen_server:call(?MODULE, {add, Hash, Header}),
+					{true, _, EWAH} ->
+					    gen_server:call(?MODULE, {add, Hash, Header, EWAH}),
 					    absorb(T, CommonHash);
 					_ -> 
 					    1=2,
@@ -129,15 +137,16 @@ check_pow(Header) ->
     pow:check_pow({pow, Data, MineDiff, Nonce}, constants:hash_size(), Fork).
 
 check_difficulty(A) ->
-    B = case A#header.height < 2 of
+    {B, EWAH} = case A#header.height < 2 of
             true ->
-                constants:initial_difficulty();
+                {constants:initial_difficulty(), A#header.period};
             false ->
                 {ok, PHeader} = read(A#header.prev_hash),
                 difficulty_should_be(PHeader)
         end,
-    {B == A#header.difficulty, B}.
+    {B == A#header.difficulty, B, EWAH}.
 read(Hash) -> gen_server:call(?MODULE, {read, Hash}).
+read_ewah(Hash) -> gen_server:call(?MODULE, {read_ewah, Hash}).
 top() -> gen_server:call(?MODULE, {top}).
 top_with_block() -> gen_server:call(?MODULE, {top_with_block}).
 dump() -> gen_server:call(?MODULE, {dump}).
@@ -227,12 +236,34 @@ difficulty_should_be(A) ->
 	    B -> Height rem (RF div 2);
 	    true -> Height rem RF
 	end,
+    B2 = Height > forks:get(7),
     if
+	B2 -> 
+	    {ok, {PrevHeader, PrevEWAH}} = read_ewah(A#header.prev_hash),
+	    EWAH = calc_ewah(A, PrevHeader, PrevEWAH),
+	    {new_retarget(A, EWAH), EWAH};
         (X == 0) and (not(Height < 10)) ->
-            difficulty_should_be2(A);
+            {difficulty_should_be2(A), A#header.period};
         true ->
-            D1
+            {D1, A#header.period}
     end.
+new_retarget(Header, EWAH0) ->
+    P = Header#header.period,
+    EWAH = max(EWAH0, 1),
+    Diff = Header#header.difficulty,
+    Hashes = pow:sci2int(Diff),
+    Estimate = max(Hashes div EWAH, 1),%in seconds/10
+    UL = (P * 6 div 4),
+    LL = (P * 3 div 4),
+    ND = if
+	     Estimate > UL -> pow:recalculate(Diff, UL, Estimate);
+	     Estimate < LL -> pow:recalculate(Diff, LL, Estimate);
+	     true -> Diff
+	 end,
+    %Estimate = Use EWAH and Diff to estimate the current period
+    %if estimate is inside our target range, then leave the difficulty unchanged.
+    %if estimate is outside of our target range, then adjust difficulty so that we are barely within the target range.
+    max(ND, constants:initial_difficulty()).
 difficulty_should_be2(Header) ->
     F = constants:retarget_frequency() div 2,
     {Times1, Hash2000} = retarget(Header, F, []),
@@ -264,7 +295,7 @@ empty_data() ->
     block_hashes:add(HH),
     #s{top = Header0, 
        top_with_block = Header0,
-       headers = dict:store(HH,Header0,dict:new())}.
+       headers = dict:store(HH,{Header0, Header0#header.period},dict:new())}.
 header_size() ->
     HB = constants:hash_size()*8,
     HtB = constants:height_bits(),
@@ -281,6 +312,12 @@ add_to_top(H, T) ->
             {T2, _} = lists:split(FT-1, T),%remove last element so we only remember ?FT at a time.
             [H|T2]
     end.
+calc_ewah(Header, PrevHeader, PrevEWAH) ->
+    DT = Header#header.time - PrevHeader#header.time,
+    true = DT > 0,
+    Hashrate = pow:sci2int(Header#header.difficulty) div DT,
+    N = 20,
+    EWAH = (Hashrate + ((N - 1) * PrevEWAH)) div N.
 
 test() ->
     H = hash:doit(<<>>),

@@ -20,6 +20,7 @@ version in spend txs is not being used.
 
 ### Things to do
 
+
 * light wallet improvements suggested by OK.
 
 * maybe remove the translation tool from the light node. It is expensive, and google translate can already provide this service in chrome.
@@ -29,6 +30,16 @@ version in spend txs is not being used.
 * spend_tx is using global state "mode". This should instead be passed to the function.
 
 * maybe we should have a game to see who can keep testnet mining pools active most, during the game we encourage spamming each other and making unusual transactions to cause problems.
+
+* consider adding a debugger. add this line to amoveo_core.app.src: `debugger, wx, reltool, erts, observer, tools, sasl, compiler, et, runtime_tools`
+u simply activate them whenever you want via the shell:
+```
+debugger:start().
+ observer:start().
+ ```
+
+* maybe `error_logger_hwm, 50` should be raised to 10 000.
+
 
 * look at the pull request for the escrow tool.
 
