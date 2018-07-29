@@ -3,7 +3,7 @@ function headers_main() {
     const INITIAL_DIFFICULTY = 8844;
     
     //var top_header = 0;//stores the valid header with the most accumulated work.
-    var top_header = ["header", 27776, "LysdYpDoBLrME55j+BTUTIyfdIGd3UhF7uNw/GzhVt4=", "AFmxRLpseeEOola7n8KSXGVPx8jSbI+NDT+ILD9vjUI=", "zOAJCJ9FK43dSycc4DuU7hFb6iNTF8Wm/5+epMWSzco=", 135195572, 14107, 3, "AAAAAAAAAAAAF7vC5AAAAABC9NFRAAAAAAAReAAAN9E=", 184391039105760230000, 5982];//stores the valid header with the most accumulated work.
+    var top_header = ["header", 27776, "LysdYpDoBLrME55j+BTUTIyfdIGd3UhF7uNw/GzhVt4=", "AFmxRLpseeEOola7n8KSXGVPx8jSbI+NDT+ILD9vjUI=", "zOAJCJ9FK43dSycc4DuU7hFb6iNTF8Wm/5+epMWSzco=", 135195572, 14107, 3, "AAAAAAAAAAAAF7vC5AAAAABC9NFRAAAAAAAReAAAN9E=", 0, 5982];//stores the valid header with the most accumulated work.
     var top_hash = hash(serialize_header(top_header));
     var headers_db = {};//store valid headers by hash
     headers_db[top_hash] = top_header;
@@ -202,7 +202,7 @@ function headers_main() {
                     var prev_header = headers_db[prev_hash];
                     prev_ac = prev_header[9];
                     diff = header[6];
-                    var ac = sci2int(diff);
+                    var ac = sci2int(diff) / 100000000;
                     header[9] = prev_ac + ac - 1;
                 }
                 var header_hash = hash(serialize_header(header));
