@@ -263,6 +263,7 @@ difficulty_should_be(NextHeader, A) ->
             %{D1, A#header.period}
             {D1, 1000000}
     end.
+-define(hashrate_converter, 100).
 new_retarget(Header, EWAH0) ->
     P = Header#header.period,
     EWAH = max(EWAH0, 1),
@@ -270,7 +271,7 @@ new_retarget(Header, EWAH0) ->
     Hashes = pow:sci2int(Diff),
     TT = 10000,
     Estimate = max(1, 
-		   (10000 * (TT * Hashes)) div EWAH),%in seconds/10
+		   (?hashrate_converter * (TT * Hashes)) div EWAH),%in seconds/10
     %io:fwrite("period is "),
     %io:fwrite(integer_to_list(P)),
     %io:fwrite("\n"),
@@ -351,7 +352,7 @@ calc_ewah(Header, PrevHeader, PrevEWAH0) ->
     PrevEWAH = max(1, PrevEWAH0),
     DT = Header#header.time - PrevHeader#header.time,
     true = DT > 0,
-    Hashrate = 10000 * pow:sci2int(PrevHeader#header.difficulty) div DT,
+    Hashrate = ?hashrate_converter * pow:sci2int(PrevHeader#header.difficulty) div DT,
     N = 20,
     %EWAH = (Hashrate + ((N - 1) * PrevEWAH)) div N.
     Converter = PrevEWAH * 10000000,

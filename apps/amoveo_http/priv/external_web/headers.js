@@ -1,9 +1,14 @@
 
 function headers_main() {
     const INITIAL_DIFFICULTY = 8844;
-    var top_header = 0;//stores the valid header with the most accumulated work.
-    const retarget_frequency = 2000;
+    
+    //var top_header = 0;//stores the valid header with the most accumulated work.
+    var top_header = ["header", 27776, "LysdYpDoBLrME55j+BTUTIyfdIGd3UhF7uNw/GzhVt4=", "AFmxRLpseeEOola7n8KSXGVPx8jSbI+NDT+ILD9vjUI=", "zOAJCJ9FK43dSycc4DuU7hFb6iNTF8Wm/5+epMWSzco=", 135195572, 14107, 3, "AAAAAAAAAAAAF7vC5AAAAABC9NFRAAAAAAAReAAAN9E=", 184391039105760230000, 5982];//stores the valid header with the most accumulated work.
+    var top_hash = hash(serialize_header(top_header));
     var headers_db = {};//store valid headers by hash
+    headers_db[top_hash] = top_header;
+    
+    const retarget_frequency = 2000;
     var top_diff = 0;//accumulative difficulty of top
     var button = button_maker("more_headers", more_headers);
     document.body.appendChild(button);
@@ -268,6 +273,6 @@ function headers_main() {
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
     }
-    return {serialize: serialize_header, top: (function() { return top_header; })};
+    return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; })};
 }
 headers_object = headers_main();
