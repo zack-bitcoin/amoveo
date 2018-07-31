@@ -112,21 +112,24 @@ function headers_main() {
         return Math.max(1, d);
     }
     function log2(x) {
-        if (x == 1) { return 1; }
-        else { return 1 + log2(Math.floor(x / 2))}
+	if (x.eq(1)) { return 1; }
+        //if (x == 1) { return 1; }
+        else { return 1 + log2(Math.floor(x.divide(2)))}
+        //else { return 1 + log2(Math.floor(x / 2))}
     }
-    function exponent(a, b) {
-        if (b == 0) { return 1; }
+    function exponent(a, b) {//a is type bigint. b is an int.
+        if (b == 0) { return bigInt(1); }
         else if (b == 1) { return a; }
-        else if ((b % 2) == 0) {return exponent(a*a, Math.floor(b / 2)); }
-        else {return a*exponent(a, b-1); }
+        else if ((b % 2) == 0) {return exponent(a.times(a), Math.floor(b / 2)); }
+        else {return a.times(exponent(a, b-1)); }
     }
     function sci2int(x) {
         function pair2int(l) {
             var b = l.pop();
             var a = l.pop();
-            var c = exponent(2, a);
-            return Math.floor((c * (256 + b)) / 256);
+            var c = exponent(bigInt(2), a);//c is a bigint
+	    return c.times((256 + b)).divide(256);
+            //return Math.floor((c * (256 + b)) / 256);
         }
         function sci2pair(i) {
             var a = Math.floor(i / 256);
@@ -143,8 +146,9 @@ function headers_main() {
         }
         function int2pair(x) {
             var a = log2(x) - 1;
-            var c = exponent(2, a);
-            var b = Math.floor((x * 256) / c) - 256;
+            var c = exponent(bigInt(2), a);
+	    var b = x.times(256).divide(c).minus(256).toJSNumber();
+            //var b = Math.floor((x * 256) / c) - 256;
             return [a, b];
         }
         return pair2sci(int2pair(x));
@@ -202,7 +206,7 @@ function headers_main() {
                     var prev_header = headers_db[prev_hash];
                     prev_ac = prev_header[9];
                     diff = header[6];
-                    var ac = sci2int(diff) / 100000000;
+                    var ac = sci2int(diff) / 10000000000;
                     header[9] = prev_ac + ac - 1;
                 }
                 var header_hash = hash(serialize_header(header));
