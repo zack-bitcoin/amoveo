@@ -1,5 +1,6 @@
 
 function headers_main() {
+    var forks = {two: 8999, four: 26900, seven:30000};
     const INITIAL_DIFFICULTY = 8844;
     
     //var top_header = 0;//stores the valid header with the most accumulated work.
@@ -53,7 +54,7 @@ function headers_main() {
             var RF = retarget_frequency; //constants:retarget_frequency();
             var height = header[1];
             //var x = height % RF;//fork
-	    if (height > 26900) {
+	    if (height > forks.four) {
 		x = height % Math.floor(RF / 2);
 	    } else {
 		x = height % RF;
@@ -168,7 +169,7 @@ function headers_main() {
                 var s1 = serialize_header(data);
                 var h1 = hash(hash(s1));
 		var foo, h2, I;
-		if (height > 8999) {
+		if (height > forks.two) {
 		    var nonce2 = nonce.slice(-23),
 		    foo = h1.concat(string_to_array(nonce2));
 		    //console.log(foo);
