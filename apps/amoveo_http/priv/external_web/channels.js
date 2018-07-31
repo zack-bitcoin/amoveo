@@ -59,7 +59,7 @@ function channels_main() {
     //View
 
     var channel_title = document.createElement("h3");
-    channel_title.innerHTML = translate.words("channel");
+    channel_title.innerHTML = "channel ";
     var channels_div = document.createElement("div");
     var channel_warning_div = document.createElement("div");
     var channel_interface_div = document.createElement("div");
@@ -68,9 +68,9 @@ function channels_main() {
     var save_name = document.createElement("INPUT");
     save_name.type = "text";
     save_name.id = "channel_name";
-    save_name.value = translate.words("channel_state");
-    var save_button = button_maker("save_channel", save_channel_data);
-    var refresh_channels_button = button_maker("refresh_channels_interfaces_button", function() {
+    save_name.value = "channel state ";
+    var save_button = button_maker2("save channel data to file", save_channel_data);
+    var refresh_channels_button = button_maker2("refresh channels interfaces. Useful if you swich channel servers", function() {
         variable_public_get(["pubkey"], function(pubkey) {
             return refresh_channels_interfaces(pubkey);
         });
@@ -83,56 +83,56 @@ function channels_main() {
     var oid = document.createElement("INPUT");
     oid.setAttribute("type", "text");
     var oid_info = document.createElement("h8");
-    oid_info.innerHTML = translate.words("market").concat(": ");
+    oid_info.innerHTML = "market: ";
     var price = document.createElement("INPUT");
     price.setAttribute("type", "text");
     var price_info = document.createElement("h8");
-    price_info.innerHTML = translate.words("price").concat(" (between 0 and 100) : ");
+    price_info.innerHTML = "price (between 0 and 100) : ";
     var trade_type = document.createElement("INPUT");
     trade_type.setAttribute("type", "text");
     var trade_type_info = document.createElement("h8");
-    trade_type_info.innerHTML = translate.words("trade_type").concat("(").concat(translate.words("true")).concat("/ ").concat(translate.words("false")).concat("): ");
+    trade_type_info.innerHTML = "trade type (true/false): ";
     var trade_amount = document.createElement("INPUT");
     trade_amount.setAttribute("type", "text");
     var trade_amount_info = document.createElement("h8");
-    trade_amount_info.innerHTML = translate.words("amount").concat(": ");
-    var height_button = button_maker("make_channel", function() { })
+    trade_amount_info.innerHTML = "amount: ";
+    var height_button = button_maker2("make channel ", function() { })
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text");
     var amount_info = document.createElement("h8");
-    amount_info.innerHTML = translate.words("amount_channel");
+    amount_info.innerHTML = "amount to lock in channel ";
     var spend_delay = document.createElement("INPUT");
     spend_delay.setAttribute("type", "text");
     var delay_info = document.createElement("h8");
-    delay_info.innerHTML = translate.words("channel_delay");
+    delay_info.innerHTML = "channel delay (in blocks)";
     var lifespan = document.createElement("input");
     lifespan.type = "text";
     lifespan.value = "4000";
     var lifespan_info = document.createElement("h8");
-    lifespan_info.innerHTML = translate.words("channel_lifespan");
+    lifespan_info.innerHTML = "how long should the channel last? In blocks. Longer costs more.";
     var balance_div = document.createElement("div");
-    balance_div.innerHTML = translate.words("your_balance").concat(translate.words("unknown"));
-    var channel_balance_button = button_maker("check_channel", function() { });
+    balance_div.innerHTML = "your balance unknown";
+    var channel_balance_button = button_maker2("check channel balance", function() { });
     var market_title = document.createElement("h3");
-    market_title.innerHTML = translate.words("markets");
+    market_title.innerHTML = "markets";
     var market_link = document.createElement("a");
-    market_link.innerHTML = translate.words("markets_link");
+    market_link.innerHTML = "see the available markets here ";
     market_link.href = "http://159.89.106.253:8080/explorer.html";
-    var button = button_maker("make_bet", make_bet);
-    var bet_update_button = button_maker("finalize_bets", function() {});
-    var combine_cancel_button = button_maker("gather_bets", function() {});
-    var list_bets_button = button_maker("refresh_bets", bets_object.main);
-    var close_channel_button = button_maker("close_channel", function(){ return; });
-    var lightning_button = button_maker("lightning_spend", function(){ return; });
+    var button = button_maker2("make bet ", make_bet);
+    var bet_update_button = button_maker2("check if any bets have been settled", function() {});
+    var combine_cancel_button = button_maker2("combine bets in opposite directions to recover the money from the market ", function() {});
+    var list_bets_button = button_maker2("update balance of off-chain assets ", bets_object.main);
+    var close_channel_button = button_maker2("close channel", function(){ return; });
+    var lightning_button = button_maker2("lightning spend", function(){ return; });
     var lightning_amount = document.createElement("INPUT");
     lightning_amount.setAttribute("type", "text");
     var lightning_amount_info = document.createElement("h8");
-    lightning_amount_info.innerHTML = translate.words("amount").concat(": ");
+    lightning_amount_info.innerHTML = "amount: ";
     var lightning_to = document.createElement("INPUT");
     lightning_to.setAttribute("type", "text");
     var lightning_to_info = document.createElement("h8");
-    lightning_to_info.innerHTML = translate.words("to_pubkey").concat(": ");
-    var channel_sync_button = button_maker("trustful_channel_sync", function(){
+    lightning_to_info.innerHTML = "to pubkey: ";
+    var channel_sync_button = button_maker2("trusted channel sync", function(){
         variable_public_get(["pubkey"], function(pubkey) {
             spk_object.pull_channel_state(function() {
 		refresh_channels_interfaces(pubkey, function() {
@@ -151,7 +151,7 @@ function channels_main() {
     function save_channel_data() {
         var save_name = document.getElementById("channel_name");
         download(JSON.stringify(channel_manager), save_name.value, "text/plain");
-        channel_warning_div.innerHTML = translate.words("save_confirm");
+        channel_warning_div.innerHTML = "channel state is saved";
     }
     function load_channels(pubkey) {
 	console.log("load channels");
@@ -179,7 +179,7 @@ function channels_main() {
         var div = channel_interface_div;
         div.innerHTML = "";
         var tv_display = document.createElement("div");
-        tv_display.innerHTML = translate.words("time_value").concat(": ").concat((tv).toString());
+        tv_display.innerHTML = ("it costs this much to keep a channel open. per block per coin: ").concat((tv).toString());
         div.appendChild(tv_display);
         div.appendChild(channel_sync_button);
         div.appendChild(br());
@@ -406,9 +406,9 @@ function channels_main() {
             var betAmount = sum_bets(spk[3]);
             var mybalance = ((val[4] - amount - betAmount)/ 100000000).toString();
             var serverbalance = ((val[5] + amount) / 100000000).toString();
-            balance_div.innerHTML = (translate.words("your_balance").concat(": ")).concat(
-                mybalance).concat(translate.words("server_balance").concat(": ")).concat(
-                    serverbalance).concat(translate.words("time_left").concat(": ")).concat(
+            balance_div.innerHTML = ("your balance: ").concat(
+                mybalance).concat("server balance: ").concat(
+                    serverbalance).concat("time left in blocks: ").concat(
 			(cd.expiration - height).toString());
 			    
         });

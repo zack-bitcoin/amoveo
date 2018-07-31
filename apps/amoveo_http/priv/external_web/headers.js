@@ -5,11 +5,11 @@ function headers_main() {
     const retarget_frequency = 2000;
     var headers_db = {};//store valid headers by hash
     var top_diff = 0;//accumulative difficulty of top
-    var button = button_maker("more_headers", more_headers);
+    var button = button_maker2("more headers ", more_headers);
     document.body.appendChild(button);
     wallet_text = document.createElement("p");
-    var height_string = translate.words("height");
-    var total_work = translate.words("total_work");
+    var height_string = "height ";
+    var total_work = "total work";
     wallet_text.innerHTML = JSON.stringify([[height_string, 0], [total_work, 0]]);
     document.body.appendChild(wallet_text);
     more_headers();

@@ -20,11 +20,15 @@ version in spend txs is not being used.
 
 ### Things to do
 
+* hard update for new retargetting strategy.
+
+* switch the light node to use mVEO.
+
 * light wallet improvements suggested by OK.
 
-* maybe remove the translation tool from the light node. It is expensive, and google translate can already provide this service in chrome.
-
 * combinatorial markets.
+
+* maybe remove the translation tool from the light node. It is expensive, and google translate can already provide this service in chrome.
 
 * spend_tx is using global state "mode". This should instead be passed to the function.
 

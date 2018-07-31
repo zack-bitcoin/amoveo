@@ -5,17 +5,17 @@
     var create_amount = document.createElement("INPUT");
     create_amount.setAttribute("type", "text"); 
     var create_amount_info = document.createElement("h8");
-    create_amount_info.innerHTML = translate.words("create_account").concat("- ").concat(translate.words("initial_balance")).concat(": ");
+    create_amount_info.innerHTML = "create account - initial balance: ";
     div.appendChild(create_amount_info);
     div.appendChild(create_amount);
 
     var create_address = document.createElement("INPUT");
     create_address.setAttribute("type", "text"); 
     var create_info = document.createElement("h8");
-    create_info.innerHTML = translate.words("to_pubkey").concat(": ");
+    create_info.innerHTML = "to pubkey: ";
     div.appendChild(create_info);
     div.appendChild(create_address);
-    var create_button = button_maker("create_account", create_account);
+    var create_button = button_maker2("create account", create_account);
     div.appendChild(create_button);
     div.appendChild(document.createElement("br"));
     var ca_fee = 152050;
