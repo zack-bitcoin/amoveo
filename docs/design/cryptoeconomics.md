@@ -21,7 +21,7 @@ Matrix 1.
 11  20  1   1   1
 ```
 This matrix shows that the default strategy of 01 is not a nash equilibrium. 
-If the network chooses 01, then it is in your interest to choose 11 so you can earn 5 more.
+If the network chooses 01, then it is in your interest to choose 11 so you can earn 3 more.
 So it is in every mining pool's interest to change the rules to earn a profit.
 
 Now lets modify the payout matrix into one where 01 is a nash equilibrium
