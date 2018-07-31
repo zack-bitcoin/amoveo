@@ -23,6 +23,7 @@ Matrix 1.
 This matrix shows that the default strategy of 01 is not a nash equilibrium. 
 If the network chooses 01, then it is in your interest to choose 11 so you can earn 3 more.
 So it is in every mining pool's interest to change the rules to earn a profit.
+Since the default strategy of 01 is not a nash equilibrium, this might not be a cryptoeconomically secure protocol.
 
 Now lets modify the payout matrix into one where 01 is a nash equilibrium
 ```
@@ -49,7 +50,6 @@ Looking at Matrix 2, since the default strategy is 01, we only have to consider 
 ```
 4 12 5 1
 ```
-if the 01 decision is the biggest value in the row.
 the 01 decision is worth 12, which is the biggest in the row.
 So strategy 01 is a nash equilibrium.
 So this is a cryptoeconomically secure mechanism.
@@ -89,7 +89,7 @@ Since there are no nash equilibriums, voting is not a cryptoeconomically secure 
 G    50   51 
 B    0    1
 ```
-This matrix has a nash equilibrium on B.
+This matrix has a nash equilibrium on B, and no nash equilibrium on G.
 So even if the default behavior was to vote for G, instead the community will switch to voting for B.
 The adversary can use 100 tokens to destroy 5000 tokens.
 
