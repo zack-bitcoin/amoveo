@@ -103,4 +103,7 @@ L     100   0
 ```
 
 There is only one nash equilibrium. It is on H.
-Assuming H is the better decision, we would have a cryptoeconomic guarantee that the network will choose H.
+
+Therefore, we have a cryptoeconomic guarantee that the network will make the better decision.
+
+Which means that futarchy is a cryptoeconomically secure mechanism for making good decisions as a group.
