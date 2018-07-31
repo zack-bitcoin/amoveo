@@ -263,13 +263,14 @@ difficulty_should_be(NextHeader, A) ->
             %{D1, A#header.period}
             {D1, 1000000}
     end.
--define(hashrate_converter, 100).
+-define(hashrate_converter, 256).
 new_retarget(Header, EWAH0) ->
     P = Header#header.period,
     EWAH = max(EWAH0, 1),
     Diff = Header#header.difficulty,
     Hashes = pow:sci2int(Diff),
-    TT = 10000,
+    %TT = 10000,
+    TT = 2,
     Estimate = max(1, 
 		   (?hashrate_converter * (TT * Hashes)) div EWAH),%in seconds/10
     %io:fwrite("period is "),
@@ -284,12 +285,18 @@ new_retarget(Header, EWAH0) ->
     %io:fwrite("ewah is "),
     %io:fwrite(integer_to_list(EWAH)),
     %io:fwrite("\n"),
-    %io:fwrite("estimate is "),
-    %io:fwrite(integer_to_list(Estimate)),
-    %io:fwrite("\n"),
-    %io:fwrite("\n"),
     UL = (P * 6 div 4) * TT,
     LL = (P * 3 div 4) * TT,
+    io:fwrite("estimate is "),
+    io:fwrite(integer_to_list(LL)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(Estimate)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(UL)),
+    io:fwrite("\n"),
+    %io:fwrite("\n"),
+    %UL = (P * 2) * TT,
+    %LL = P * TT,
     ND = if
 	     Estimate > UL -> pow:recalculate(Diff, UL, Estimate);
 	     Estimate < LL -> pow:recalculate(Diff, LL, Estimate);
@@ -348,19 +355,23 @@ add_to_top(H, T) ->
             {T2, _} = lists:split(FT-1, T),%remove last element so we only remember ?FT at a time.
             [H|T2]
     end.
+
+% HR = HC * sci2int(diff) div DT
+% EWAH = (Converter * N / EWAH0)
 calc_ewah(Header, PrevHeader, PrevEWAH0) ->
     PrevEWAH = max(1, PrevEWAH0),
     DT = Header#header.time - PrevHeader#header.time,
     true = DT > 0,
-    Hashrate = ?hashrate_converter * pow:sci2int(PrevHeader#header.difficulty) div DT,
+    Hashrate = max(1, ?hashrate_converter * pow:sci2int(PrevHeader#header.difficulty) div DT),
     N = 20,
     %EWAH = (Hashrate + ((N - 1) * PrevEWAH)) div N.
-    Converter = PrevEWAH * 10000000,
+    %Converter = PrevEWAH * 10000000,
+    Converter = PrevEWAH * 256,
     EWAH0 = ((Converter div Hashrate) + (((N - 1) * (Converter div PrevEWAH)))),
     EWAH = (Converter * N div EWAH0),
     %io:fwrite(packer:pack([PrevEWAH0, DT, EWAH])),
     %io:fwrite("ewah "),
-    %io:fwrite(integer_to_list(EWAH)),
+    %io:fwrite(integer_to_list(Hashrate)),
     %io:fwrite(integer_to_list(EWAH)),
     %io:fwrite("\n"),
     %io:fwrite("\n"),
