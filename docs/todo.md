@@ -20,6 +20,9 @@ version in spend txs is not being used.
 
 ### Things to do
 
+headers:new_retarget/2 variable TT.
+- if we set it to 2, then difficulty changes upwards much faster. Is this better or worse?
+
 
 * light wallet improvements suggested by OK.
 
