@@ -268,10 +268,7 @@ new_retarget(Header, EWAH0) ->
     EWAH = max(EWAH0, 1),
     Diff = Header#header.difficulty,
     Hashes = pow:sci2int(Diff),
-    %TT = 10000,
-    TT = 16,
-    Estimate = max(1, 
-		   (?hashrate_converter * (TT * Hashes)) div EWAH),%in seconds/10
+    Estimate = max(1, (?hashrate_converter * Hashes) div EWAH),%in seconds/10
     %io:fwrite("period is "),
     %io:fwrite(integer_to_list(P)),
     %io:fwrite("\n"),
@@ -285,8 +282,8 @@ new_retarget(Header, EWAH0) ->
     %io:fwrite(integer_to_list(EWAH)),
     %io:fwrite("\n"),
     P = Header#header.period,
-    UL = (TT * P * 6 div 4),
-    LL = (TT * P * 3 div 4),
+    UL = (P * 6 div 4),
+    LL = (P * 3 div 4),
     io:fwrite("estimate is "),
     io:fwrite(integer_to_list(LL)),
     io:fwrite(" "),
@@ -361,16 +358,21 @@ add_to_top(H, T) ->
 calc_ewah(Header, PrevHeader, PrevEWAH0) ->
     PrevEWAH = max(1, PrevEWAH0),
     DT = Header#header.time - PrevHeader#header.time,
+    io:fwrite("DT is "),
+    io:fwrite(integer_to_list(DT)),
+    io:fwrite("\n"),
     true = DT > 0,
+    true = Header#header.time < (block:time_now() + 20),%give 2 seconds gap in case system time is a little off.
     Hashrate0 = max(1, ?hashrate_converter * pow:sci2int(PrevHeader#header.difficulty) div DT),
-    Hashrate = max(Hashrate0, PrevEWAH div 2),
-    %Hashrate = min(Hashrate1, PrevEWAH * 4),
+
+    %Hashrate1 = max(Hashrate0, PrevEWAH div 4),
+    Hashrate = min(Hashrate0, PrevEWAH * 4),
     N = 20,
     EWAH = (Hashrate + ((N - 1) * PrevEWAH)) div N,
 
     %N = 20,
     %Converter = PrevEWAH * 256,
-    %EWAH0 = (Converter div Hashrate) + ((((N - 1) * Converter) div PrevEWAH)),
+    %EWAH0 = (Converter div Hashrate0) + ((((N - 1) * Converter) div PrevEWAH)),
     %EWAH = (Converter * N div EWAH0),
 
 
