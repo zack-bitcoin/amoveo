@@ -48,6 +48,8 @@
 	    button[i].type = "button";
 	    button[i].value = x[i];
 	    temp[i] = x[i];
+	    console.log("lookup helper 2 temp is ");
+	    console.log(temp);
 	    button[i].onclick = function () {
 		return lookup_oracle_helper(temp[i]);
 	    };
