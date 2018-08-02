@@ -74,6 +74,8 @@
 	div.appendChild(canvas);
     }
     function lookup_oracle_helper(x) {
+	console.log("lookup oracle x is ");
+	console.log(x);
 	variable_public_get(["oracle", x], function(y) { return lookup_oracle_helper2(y, x)});
     }
     function lookup_oracle_helper2(l, oid) {
