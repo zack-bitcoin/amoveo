@@ -10,7 +10,7 @@
     document.body.appendChild(div);
     
     var lookup_oracle_div = document.createElement("div");
-    var lookup_oracle_address = "";
+//    var lookup_oracle_address = "";
     var price = document.createElement("div");
     var canvas = document.createElement("canvas");
     show_markets2();
@@ -46,10 +46,9 @@
 	    button[i] = document.createElement("input");
 	    button[i].type = "button";
 	    button[i].value = x[i];
-	    var temp = x[i];
+	    //var temp = x[i];
 	    button[i].onclick = function () {
-		lookup_oracle_address = temp;
-		return lookup_oracle_helper();
+		return lookup_oracle_helper(x[i]);
 	    };
 	    lookup_oracle_div.appendChild(button[i]);
 	}
@@ -73,8 +72,7 @@
 	canvas.height = 500;
 	div.appendChild(canvas);
     }
-    function lookup_oracle_helper() {
-	var x = lookup_oracle_address;
+    function lookup_oracle_helper(x) {
 	variable_public_get(["oracle", x], function(y) { return lookup_oracle_helper2(y, x)});
     }
     function lookup_oracle_helper2(l, oid) {
