@@ -39,6 +39,7 @@
             variable_public_get(["list_oracles"], lookup_helper2);
 	}
     }
+    var temp = [];
     function lookup_helper2(x) {
 	lookup_oracle_div.innerHTML = "";
 	var button = Array(x.length);
@@ -46,9 +47,9 @@
 	    button[i] = document.createElement("input");
 	    button[i].type = "button";
 	    button[i].value = x[i];
-	    //var temp = x[i];
+	    var temp[i] = x[i];
 	    button[i].onclick = function () {
-		return lookup_oracle_helper(x[i]);
+		return lookup_oracle_helper(temp[i]);
 	    };
 	    lookup_oracle_div.appendChild(button[i]);
 	}
