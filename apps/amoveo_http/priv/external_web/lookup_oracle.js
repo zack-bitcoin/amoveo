@@ -39,10 +39,10 @@
             variable_public_get(["list_oracles"], lookup_helper2);
 	}
     }
-    var temp = [];
     function lookup_helper2(x) {
 	lookup_oracle_div.innerHTML = "";
 	var button = Array(x.length);
+	var temp = [];
 	for (var i = 1; i < x.length; i++) {
 	    button[i] = document.createElement("input");
 	    button[i].type = "button";
