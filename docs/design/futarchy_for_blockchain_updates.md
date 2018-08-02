@@ -1,5 +1,5 @@
-
-== Futarchy for Blockchain Updates
+Futarchy for Blockchain Updates
+=========
 
 I have noticed some inefficiencies in how the network agrees upon updates.
 
@@ -25,3 +25,6 @@ And it doesn't matter which developers are popular, everyone has equal opportuni
 And the best updates have a way to stand out and get accepted.
 
 The idea of using futarchy for blockchain updates comes from Paul Sztorc http://www.truthcoin.info/blog/win-win-blocksize/
+
+More details about Amoveo's oracle:  https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/oracle.md
+Even more details: https://github.com/zack-bitcoin/amoveo/tree/master/docs/blog_posts
