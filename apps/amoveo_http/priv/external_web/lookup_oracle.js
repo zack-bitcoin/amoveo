@@ -8,6 +8,7 @@
     document.body.appendChild(document.createElement("br"));
     var div = document.createElement("div");
     document.body.appendChild(div);
+    var temp = [];
     
     var lookup_oracle_div = document.createElement("div");
 //    var lookup_oracle_address = "";
@@ -42,7 +43,6 @@
     function lookup_helper2(x) {
 	lookup_oracle_div.innerHTML = "";
 	var button = Array(x.length);
-	var temp = [];
 	for (var i = 1; i < x.length; i++) {
 	    button[i] = document.createElement("input");
 	    button[i].type = "button";
