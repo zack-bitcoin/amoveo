@@ -24,3 +24,4 @@ This way you can't use lobbying to give an advantage to the update you prefer.
 And it doesn't matter which developers are popular, everyone has equal opportunity to make updates.
 And the best updates have a way to stand out and get accepted.
 
+The idea of using futarchy for blockchain updates comes from Paul Sztorc http://www.truthcoin.info/blog/win-win-blocksize/
