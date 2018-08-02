@@ -263,7 +263,7 @@ difficulty_should_be(NextHeader, A) ->
             %{D1, A#header.period}
             {D1, 1000000}
     end.
--define(hashrate_converter, 256).
+-define(hashrate_converter, 1024).
 new_retarget(Header, EWAH0) ->
     EWAH = max(EWAH0, 1),
     Diff = Header#header.difficulty,
