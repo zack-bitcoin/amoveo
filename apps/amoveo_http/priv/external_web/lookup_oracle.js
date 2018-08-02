@@ -48,7 +48,7 @@
 	    button[i].value = x[i];
 	    //var temp = x[i];
 	    button[i].onclick = function () {
-		lookup_oracle_address = x[i];
+		lookup_oracle_address = button[i].value;
 		return lookup_oracle_helper();
 	    };
 	    lookup_oracle_div.appendChild(button[i]);
