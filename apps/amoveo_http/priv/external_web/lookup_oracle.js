@@ -47,6 +47,13 @@
 	    button[i] = document.createElement("input");
 	    button[i].type = "button";
 	    button[i].value = x[i];
+
+	    button[i].onclick = (function(val) {
+		return function() {
+		    return lookup_oracle_helper(val);
+		}
+	    } )(x[i]);
+	    /*
 	    temp[i] = x[i];
 	    console.log("lookup helper 2 temp is ");
 	    console.log(temp[i]);
@@ -56,6 +63,7 @@
 		console.log(temp[j]);
 		return lookup_oracle_helper(temp[j]);
 	    };
+	    */
 	    lookup_oracle_div.appendChild(button[i]);
 	}
     }
