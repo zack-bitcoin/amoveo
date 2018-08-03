@@ -84,7 +84,7 @@
 	var x = l.pop();
 	var P = ((x[2])/100);
 	var question_info = document.createElement("p");
-	question_info.innerHTML = "betting on this: ".concat(atob(question)).concat("\n. . . . . . This is a volume depth chart. yellow on the left are bets on 'true', white on the right are bets on 'false'. The y-axis that goes up-and-down is the amount of Veo being bet. The x-axis is the odds of each bet, it is also the price. ");
+	question_info.innerHTML = "betting on this: ".concat(atob(question)).concat("\n. . . . . . This is a volume depth chart. yellow on the left are bets on 'true', grey on the right are bets on 'false'. The y-axis that goes up-and-down is the amount of Veo being bet. The x-axis is the odds of each bet, it is also the price. ");
 	price.appendChild(question_info);
 	var expires_info = document.createElement("p");
 	expires_info.innerHTML = "expires at height: ".concat((x[6]).toString());

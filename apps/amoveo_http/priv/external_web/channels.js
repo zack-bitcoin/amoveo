@@ -408,8 +408,8 @@ function channels_main() {
             var betAmount = sum_bets(spk[3]);
             var mybalance = ((val[4] - amount - betAmount)/ 100000000).toString();
             var serverbalance = ((val[5] + amount) / 100000000).toString();
-            balance_div.innerHTML = ("your balance: ").concat(
-                mybalance).concat("server balance: ").concat(
+            balance_div.innerHTML = ("server balance: ").concat(
+                mybalance).concat("your balance: ").concat(
                     serverbalance).concat("time left in blocks: ").concat(
 			(cd.expiration - height).toString());
 			    
