@@ -197,7 +197,7 @@ function channels_main() {
             append_children(div, [height_button, amount_info, spend_amount, br(), delay_info, spend_delay, br(), lifespan_info, lifespan]);
         } else {
             console.log("give interface for making bets in channels.");
-            append_children(div, [close_channel_button, br(), balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), bet_example br(), price_info, price, trade_type_info, trade_type, trade_amount_info, trade_amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
+            append_children(div, [close_channel_button, br(), balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), bet_example, br(), price_info, price, trade_type_info, trade_type, trade_amount_info, trade_amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
             lightning_button.onclick = function() { lightning_spend(pubkey); };
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
