@@ -8,7 +8,6 @@
     document.body.appendChild(document.createElement("br"));
     var div = document.createElement("div");
     document.body.appendChild(div);
-    var temp = [];
     
     var lookup_oracle_div = document.createElement("div");
 //    var lookup_oracle_address = "";
@@ -53,17 +52,6 @@
 		    return lookup_oracle_helper(val);
 		}
 	    } )(x[i]);
-	    /*
-	    temp[i] = x[i];
-	    console.log("lookup helper 2 temp is ");
-	    console.log(temp[i]);
-	    var j = i;
-	    button[i].onclick = function () {
-		console.log(temp);
-		console.log(temp[j]);
-		return lookup_oracle_helper(temp[j]);
-	    };
-	    */
 	    lookup_oracle_div.appendChild(button[i]);
 	}
     }

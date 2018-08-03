@@ -103,6 +103,7 @@ function channels_main() {
     amount_info.innerHTML = "amount to lock in channel ";
     var spend_delay = document.createElement("INPUT");
     spend_delay.setAttribute("type", "text");
+    spend_delay.value = "100";
     var delay_info = document.createElement("h8");
     delay_info.innerHTML = "channel delay (in blocks)";
     var lifespan = document.createElement("input");
