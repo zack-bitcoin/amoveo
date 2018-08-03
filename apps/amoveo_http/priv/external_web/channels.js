@@ -117,8 +117,9 @@ function channels_main() {
     var market_title = document.createElement("h3");
     market_title.innerHTML = "markets";
     var market_link = document.createElement("a");
-    market_link.innerHTML = "see the available markets here ";
-    market_link.href = "http://159.89.106.253:8080/explorer.html";
+    market_link.innerHTML = "<a href=\"/explorer.html\">see the available markets here</a>";
+    //    market_link.innerHTML = "see the available markets here ";
+//    market_link.href = "http://159.89.106.253:8080/explorer.html";
     var button = button_maker2("make bet ", make_bet);
     var bet_update_button = button_maker2("check if any bets have been settled", function() {});
     var combine_cancel_button = button_maker2("combine bets in opposite directions to recover the money from the market ", function() {});
