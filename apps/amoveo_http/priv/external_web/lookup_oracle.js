@@ -108,7 +108,7 @@
 	var buy_color = "yellow";
 	ctx.fillStyle = buy_color;
 	ctx.fill();
-	draw_sells("white", graph_height, sells, ctx);
+	draw_sells("grey", graph_height, sells, ctx);
 	draw_buys(graph_height, buys, ctx);
 	ctx.lineWidth="2";
 	ctx.strokeStyle = buy_color;
