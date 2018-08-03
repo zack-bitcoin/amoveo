@@ -46,7 +46,6 @@
 	    button[i] = document.createElement("input");
 	    button[i].type = "button";
 	    button[i].value = x[i];
-
 	    button[i].onclick = (function(val) {
 		return function() {
 		    return lookup_oracle_helper(val);
@@ -106,10 +105,10 @@
 	empty_canvas(ctx);
 	background_color("black", ctx);
 	draw_buys(graph_height, buys, ctx);
-	var buy_color = "blue";
+	var buy_color = "yellow";
 	ctx.fillStyle = buy_color;
 	ctx.fill();
-	draw_sells("orange", graph_height, sells, ctx);
+	draw_sells("white", graph_height, sells, ctx);
 	draw_buys(graph_height, buys, ctx);
 	ctx.lineWidth="2";
 	ctx.strokeStyle = buy_color;
