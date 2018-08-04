@@ -721,6 +721,7 @@ test(14) ->
     absorb(Stx6),
     BP2 = block:get_by_height(0),
     PH = block:hash(BP2),
+    timer:sleep(100),
     potential_block:new(),
     mine_blocks(1),
     success;

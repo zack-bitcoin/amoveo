@@ -234,7 +234,7 @@ deserialize(H) ->
             difficulty = Difficulty,
             period = Period,
             nonce = Nonce}.
-difficulty_should_be(NextHeader, A) ->
+difficulty_should_be(NextHeader, A) ->%Next is built on A
     D1 = A#header.difficulty,
     RF = constants:retarget_frequency(),
     Height = A#header.height,
@@ -284,13 +284,14 @@ new_retarget(Header, EWAH0) ->
     P = Header#header.period,
     UL = (P * 6 div 4),
     LL = (P * 3 div 4),
-    io:fwrite("estimate is "),
-    io:fwrite(integer_to_list(LL)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(Estimate)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(UL)),
-    io:fwrite("\n"),
+    %io:fwrite("estimate is "),
+    %io:fwrite(integer_to_list(LL)),
+    %io:fwrite(" "),
+    %io:fwrite(integer_to_list(Estimate)),
+    %io:fwrite(" "),
+    %io:fwrite(integer_to_list(UL)),
+    %io:fwrite("\n"),
+
     %io:fwrite("\n"),
     %UL = (P * 2) * TT,
     %LL = P * TT,
@@ -358,9 +359,9 @@ add_to_top(H, T) ->
 calc_ewah(Header, PrevHeader, PrevEWAH0) ->
     PrevEWAH = max(1, PrevEWAH0),
     DT = Header#header.time - PrevHeader#header.time,
-    io:fwrite("DT is "),
-    io:fwrite(integer_to_list(DT)),
-    io:fwrite("\n"),
+    %io:fwrite("DT is "),
+    %io:fwrite(integer_to_list(DT)),
+    %io:fwrite("\n"),
     true = DT > 0,
     true = Header#header.time < (block:time_now() + 20),%give 2 seconds gap in case system time is a little off.
     Hashrate0 = max(1, ?hashrate_converter * pow:sci2int(PrevHeader#header.difficulty) div DT),

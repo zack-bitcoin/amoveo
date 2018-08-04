@@ -1,7 +1,7 @@
 
 function headers_main() {
     var mode = "production";
-    //var mode = "test";
+    //var mode = "test"; //Use this to connect to a testnet.
     var forks;
     var retarget_frequency;
     var top_header;
@@ -15,7 +15,7 @@ function headers_main() {
     } else {
 	INITIAL_DIFFICULTY = 8844;
 	retarget_frequency = 2000;
-	forks = {two: 9000, four: 26900, seven:30000};
+	forks = {two: 9000, four: 26900, seven:28100};
 	//top_header = 0;
 	top_header = ["header", 27776, "LysdYpDoBLrME55j+BTUTIyfdIGd3UhF7uNw/GzhVt4=", "AFmxRLpseeEOola7n8KSXGVPx8jSbI+NDT+ILD9vjUI=", "zOAJCJ9FK43dSycc4DuU7hFb6iNTF8Wm/5+epMWSzco=", 135195572, 14107, 3, "AAAAAAAAAAAAF7vC5AAAAABC9NFRAAAAAAAReAAAN9E=", 0, 5982];
 	write_header(top_header, 1000000);

@@ -11,8 +11,8 @@ test_height() -> 0.
 get(1) -> common(4200, test_height());
 get(2) -> common(9000, test_height());
 get(3) -> common(9900, test_height());
-get(4) -> common(26900, constants:retarget_frequency());
-get(5) -> common(27500, 1);
+get(4) -> common(26900, max(test_height(), constants:retarget_frequency()));
+get(5) -> common(27500, max(test_height(), 1));
 get(6) -> common(27700, test_height());
-get(7) -> common(30000, test_height()).
+get(7) -> common(28100, test_height()).
     
