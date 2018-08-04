@@ -14,7 +14,7 @@ genesis_state() ->
     {MinimumOracleTime, MaximumOracleTime, BlockPeriod} =
         case application:get_env(amoveo_core, test_mode, false) of
             %true -> {1, 1, 250};
-            true -> {1, 1, 1};
+            true -> {1, 1, 50};
             false -> {352, 505, 550}
         end,
     G = [[block_reward, 1620],

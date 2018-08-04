@@ -1,7 +1,6 @@
-
 function headers_main() {
-    var mode = "production";
-    //var mode = "test"; //Use this to connect to a testnet.
+    //var mode = "production";
+    var mode = "test"; //Use this to connect to a testnet.
     var forks;
     var retarget_frequency;
     var top_header;
@@ -10,7 +9,7 @@ function headers_main() {
     if (mode == "test") {
 	INITIAL_DIFFICULTY = 10;
 	retarget_frequency = 12;
-	forks = {two: 0, four: retarget_frequency, seven:0};
+	forks = {two: 0, four: retarget_frequency, seven:40};
 	top_header = 0;
     } else {
 	INITIAL_DIFFICULTY = 8844;
@@ -83,15 +82,15 @@ function headers_main() {
 	    } else {
 		x = height % RF;
 	    }
+	    var PrevEWAH = read_ewah(hash);
+	    var EWAH = calc_ewah(NextHeader, header, PrevEWAH);
 	    if (height > forks.seven) {
-		var PrevEWAH = read_ewah(hash);
-		var EWAH = calc_ewah(NextHeader, header, PrevEWAH);
 		return [new_target(header, EWAH), EWAH];
 		//console.log("working here");
 		//return 0;
 	    } else if ( ( x == 0 ) && (! (height < 10) )) {
-                return [difficulty_should_be2(header), 1000000];
-            } else { return [Diff, 1000000]; }
+                return [difficulty_should_be2(header), EWAH];
+            } else { return [Diff, EWAH]; }
         }
     }
     function new_target(header, EWAH0) {
@@ -265,7 +264,7 @@ function headers_main() {
                 var header = h[i];
                 var height = header[1];
                 var header_hash = hash(serialize_header(header));
-		var ewah = 1000000;
+		//var ewah = 1000000;
                 if ( height == 0 ) {
                     header[9] = 0;//accumulative difficulty
                 } else {

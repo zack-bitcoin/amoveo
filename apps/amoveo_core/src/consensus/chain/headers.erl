@@ -244,24 +244,24 @@ difficulty_should_be(NextHeader, A) ->%Next is built on A
 	    B -> Height rem (RF div 2);
 	    true -> Height rem RF
 	end,
+    {ok, {A, PrevEWAH}} = read_ewah(hash:doit(serialize(A))),
+    EWAH = calc_ewah(NextHeader, A, PrevEWAH),
     B2 = Height > forks:get(7),
     if
 	B2 -> 
-	    {ok, {A, PrevEWAH}} = read_ewah(hash:doit(serialize(A))),
 	    %io:fwrite("prevewah is "),
 	    %io:fwrite(integer_to_list(PrevEWAH)),
 	    %io:fwrite("\n"),
-	    EWAH = calc_ewah(NextHeader, A, PrevEWAH),
 	    %io:fwrite("ewah is "),
 	    %io:fwrite(integer_to_list(EWAH)),
 	    %io:fwrite("\n"),
 	    {new_retarget(A, EWAH), EWAH};
         (X == 0) and (not(Height < 10)) ->
             %{difficulty_should_be2(A), A#header.period};
-            {difficulty_should_be2(A), 1000000};
+            {difficulty_should_be2(A), EWAH};
         true ->
             %{D1, A#header.period}
-            {D1, 1000000}
+            {D1, EWAH}
     end.
 -define(hashrate_converter, 1024).
 new_retarget(Header, EWAH0) ->
@@ -366,13 +366,12 @@ calc_ewah(Header, PrevHeader, PrevEWAH0) ->
     true = Header#header.time < (block:time_now() + 20),%give 2 seconds gap in case system time is a little off.
     Hashrate0 = max(1, ?hashrate_converter * pow:sci2int(PrevHeader#header.difficulty) div DT),
 
-    %Hashrate1 = max(Hashrate0, PrevEWAH div 4),
     Hashrate = min(Hashrate0, PrevEWAH * 4),
     N = 20,
     EWAH = (Hashrate + ((N - 1) * PrevEWAH)) div N,
 
     %N = 20,
-    %Converter = PrevEWAH * 256,
+    %Converter = PrevEWAH * 1024000,
     %EWAH0 = (Converter div Hashrate0) + ((((N - 1) * Converter) div PrevEWAH)),
     %EWAH = (Converter * N div EWAH0),
 
