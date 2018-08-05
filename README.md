@@ -108,8 +108,6 @@ Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
 Amoveo-Exchange for ETH-VEO trading: https://amoveo.exchange/
 
-An exchange is being written here https://github.com/zack-bitcoin/amoveo-exchange
-
 
 ## Software to launch a new mining pool
 If your full node is on a different machine from your miner, you will need a mining pool. [Mining pool software can be found here.](https://github.com/zack-bitcoin/amoveo-mining-pool)

@@ -12,8 +12,8 @@ encoded_fee() -> 905.
     
 initial_difficulty() -> 
     case application:get_env(amoveo_core, kind) of
-        {ok, "local"} -> 0;%unit tests
-        {ok, "integration"} -> 1500;%2500;%integration tests.
+        {ok, "local"} -> 10;%unit tests
+        {ok, "integration"} -> 10;%2500;%integration tests.
         {ok, "production"} -> 8844
     end.
 difficulty_bits() -> 24.
@@ -62,7 +62,7 @@ retarget_frequency() -> %2000. %how many blocks till we recalculate the difficul
     case application:get_env(amoveo_core, kind) of
         %{ok, "local"} -> 12;%unit tests
         {ok, "local"} -> 12;%unit tests
-        {ok, "integration"} -> 10;%integration tests
+        {ok, "integration"} -> 12;%integration tests
         {ok, "production"} -> 2000
     end.
 time_units() -> 100. % 0.1 seconds

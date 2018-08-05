@@ -263,12 +263,14 @@ make(Header, Txs0, Trees, Pub) ->
     OldBlock = get_by_hash(PrevHash),
     BlockReward = governance:get_value(block_reward, Governance),
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height),
+    TimeStamp = time_now(),
+    NextHeader = #header{height = Height + 1, prev_hash = PrevHash, time = TimeStamp, period = BlockPeriod},
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
 		   trees_hash = trees:root_hash(NewTrees),
-		   time = time_now(),
-		   difficulty = headers:difficulty_should_be(Header),
+		   time = TimeStamp,
+		   difficulty = element(1, headers:difficulty_should_be(NextHeader, Header)),
                    period = BlockPeriod,
 
 		   version = version:doit(Height+1),%constants:version(),
@@ -549,7 +551,7 @@ initialize_chain() ->
         true -> get_by_height(0)
          end,
     Header0 = block_to_header(GB),
-    gen_server:call(headers, {add, block:hash(Header0), Header0}),
+    gen_server:call(headers, {add, block:hash(Header0), Header0, 1}),
     gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
 

@@ -1,27 +1,56 @@
-
 function headers_main() {
-    const INITIAL_DIFFICULTY = 8844;
-    var top_header = 0;//stores the valid header with the most accumulated work.
-    const retarget_frequency = 2000;
+    //var mode = "production";
+    var mode = "test"; //Use this to connect to a testnet.
+    var forks;
+    var retarget_frequency;
+    var top_header;
     var headers_db = {};//store valid headers by hash
+    var INITIAL_DIFFICULTY;
+    if (mode == "test") {
+	INITIAL_DIFFICULTY = 10;
+	retarget_frequency = 12;
+	forks = {two: 0, four: retarget_frequency, seven:40};
+	top_header = 0;
+    } else {
+	INITIAL_DIFFICULTY = 8844;
+	retarget_frequency = 2000;
+	forks = {two: 9000, four: 26900, seven:28100};
+	//top_header = 0;
+	top_header = ["header", 27776, "LysdYpDoBLrME55j+BTUTIyfdIGd3UhF7uNw/GzhVt4=", "AFmxRLpseeEOola7n8KSXGVPx8jSbI+NDT+ILD9vjUI=", "zOAJCJ9FK43dSycc4DuU7hFb6iNTF8Wm/5+epMWSzco=", 135195572, 14107, 3, "AAAAAAAAAAAAF7vC5AAAAABC9NFRAAAAAAAReAAAN9E=", 0, 5982];
+	write_header(top_header, 1000000);
+    }
+    
+    //var top_header = 0;//stores the valid header with the most accumulated work.
+    //var top_hash = hash(serialize_header(top_header));
+    //headers_db[top_hash] = top_header;
+    
     var top_diff = 0;//accumulative difficulty of top
     var button = button_maker2("more headers ", more_headers);
     document.body.appendChild(button);
     wallet_text = document.createElement("p");
-    var height_string = "height ";
-    var total_work = "total work";
-    wallet_text.innerHTML = JSON.stringify([[height_string, 0], [total_work, 0]]);
+    wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);
     document.body.appendChild(wallet_text);
     more_headers();
-    function write_header(header) {
+    function write_header(header, ewah) {
         var acc_difficulty = header[9];
         if (acc_difficulty > top_diff) {
             top_diff = acc_difficulty;
             top_header = header;
-            wallet_text.innerHTML = JSON.stringify([[height_string, header[1]], [total_work, (Math.floor(header[9]/100000000))]]);
+	    console.log("wallet text update");
+            wallet_text.innerHTML = JSON.stringify([["height", header[1]], ["total work", (Math.floor(header[9]/100000000))]]);
         }
         h = hash(serialize_header(header));
-        headers_db[h] = header;
+        headers_db[h] = [header, ewah];
+    }
+    function read_ewah(hash) {
+	if (headers_db[hash]) {
+	    return headers_db[hash][1];
+	} else { return  undefined; }
+    }
+    function read_header(hash) {
+	if (headers_db[hash]) {
+	    return headers_db[hash][0];
+	} else { return  undefined; }
     }
     function list_to_uint8(l) {
         var array = new Uint8Array(l.length);
@@ -36,8 +65,8 @@ function headers_main() {
         //calculate X. ad 1 for every zero bit starting from the beginning of the h. Stop as soon as you reach a non-zero bit.
         // calculate B. take the next 8 bits from h after calculating x, and interpret it as an integer.
         //return pair2sci(X, B);
-    function difficulty_should_be(hash) {
-        var header = headers_db[hash];
+    function difficulty_should_be(NextHeader, hash) {
+        var header = read_header(hash);//headers_db[hash];
         if ( header == undefined ) {
             console.log(headers_db);
             console.log(hash);
@@ -48,15 +77,37 @@ function headers_main() {
             var RF = retarget_frequency; //constants:retarget_frequency();
             var height = header[1];
             //var x = height % RF;//fork
-	    if (height > 26900) {
+	    if (height > forks.four) {
 		x = height % Math.floor(RF / 2);
 	    } else {
 		x = height % RF;
 	    }
-            if ( ( x == 0 ) && (! (height < 10) )) {
-                return difficulty_should_be2(header);
-            } else { return Diff; }
+	    var PrevEWAH = read_ewah(hash);
+	    var EWAH = calc_ewah(NextHeader, header, PrevEWAH);
+	    if (height > forks.seven) {
+		return [new_target(header, EWAH), EWAH];
+		//console.log("working here");
+		//return 0;
+	    } else if ( ( x == 0 ) && (! (height < 10) )) {
+                return [difficulty_should_be2(header), EWAH];
+            } else { return [Diff, EWAH]; }
         }
+    }
+    function new_target(header, EWAH0) {
+	var EWAH = Math.max(EWAH0, 1);
+	var diff = header[6];
+	var hashes = sci2int(diff);
+	var estimate = Math.max(1, hashes.times(hashrate_converter()).divide(EWAH));
+	var P = header[10];
+	var UL = Math.floor(P * 6 / 4);
+	var LL = Math.floor(P * 3 / 4);
+	var ND = diff;
+	if (estimate > UL) {
+	    ND = pow_recalculate(diff, UL, estimate);
+	} else if (estimate < LL) {
+	    ND = pow_recalculate(diff, LL, estimate);
+	}
+	return Math.max(ND, INITIAL_DIFFICULTY);
     }
     function retarget2(header, n, ts) {
         var t = header[5];
@@ -68,7 +119,7 @@ function headers_main() {
         }
         else {
             var prev_hash = string_to_array(atob(header[2]));
-            var prev_header = headers_db[prev_hash];
+            var prev_header = read_header(prev_hash);//headers_db[prev_hash];
             return retarget2(prev_header, n-1, ts);
         }
     }
@@ -101,27 +152,33 @@ function headers_main() {
     }
     function pow_recalculate(oldDiff, t, bottom) {
         var old = sci2int(oldDiff);
-        var n = Math.max(1, Math.floor(( old * t ) / bottom));
+	var n = old.times(t).divide(bottom);
+        //var n = Math.max(1, Math.floor(( old * t ) / bottom));
         //var n = Math.max(1, Math.floor(( old / bottom) * t));
+	
         var d = int2sci(n);
         return Math.max(1, d);
     }
     function log2(x) {
-        if (x == 1) { return 1; }
-        else { return 1 + log2(Math.floor(x / 2))}
+	if (x.eq(0)) { return 1; }
+	else if (x.eq(1)) { return 1; }
+        //if (x == 1) { return 1; }
+        else { return 1 + log2(x.divide(2))}
+        //else { return 1 + log2(Math.floor(x / 2))}
     }
-    function exponent(a, b) {
-        if (b == 0) { return 1; }
+    function exponent(a, b) {//a is type bigint. b is an int.
+        if (b == 0) { return bigInt(1); }
         else if (b == 1) { return a; }
-        else if ((b % 2) == 0) {return exponent(a*a, Math.floor(b / 2)); }
-        else {return a*exponent(a, b-1); }
+        else if ((b % 2) == 0) {return exponent(a.times(a), Math.floor(b / 2)); }
+        else {return a.times(exponent(a, b-1)); }
     }
     function sci2int(x) {
         function pair2int(l) {
             var b = l.pop();
             var a = l.pop();
-            var c = exponent(2, a);
-            return Math.floor((c * (256 + b)) / 256);
+            var c = exponent(bigInt(2), a);//c is a bigint
+	    return c.times((256 + b)).divide(256);
+            //return Math.floor((c * (256 + b)) / 256);
         }
         function sci2pair(i) {
             var a = Math.floor(i / 256);
@@ -138,8 +195,9 @@ function headers_main() {
         }
         function int2pair(x) {
             var a = log2(x) - 1;
-            var c = exponent(2, a);
-            var b = Math.floor((x * 256) / c) - 256;
+            var c = exponent(bigInt(2), a);
+	    var b = x.times(256).divide(c).minus(256).toJSNumber();
+            //var b = Math.floor((x * 256) / c) - 256;
             return [a, b];
         }
         return pair2sci(int2pair(x));
@@ -147,10 +205,12 @@ function headers_main() {
     function check_pow(header) {
         //calculate Data, a serialized version of this header where the nonce is 0.
         var height = header[1];
-        if (height < 1) { return true; }
+        if (height < 1) { return [true, 1000000]; }
         else {
             var prev_hash = string_to_array(atob(header[2]));
-            var diff0 = difficulty_should_be(prev_hash);
+            var diff0L = difficulty_should_be(header, prev_hash);
+	    var diff0 = diff0L[0];
+	    var EWAH = diff0L[1];
             var diff = header[6];
             if (diff == diff0) {
                 var nonce = atob(header[8]);
@@ -159,7 +219,7 @@ function headers_main() {
                 var s1 = serialize_header(data);
                 var h1 = hash(hash(s1));
 		var foo, h2, I;
-		if (height > 8999) {
+		if (height > (forks.two - 1)) {
 		    var nonce2 = nonce.slice(-23),
 		    foo = h1.concat(string_to_array(nonce2));
 		    //console.log(foo);
@@ -173,41 +233,56 @@ function headers_main() {
                     h2 = hash(foo);
                     I = hash2integer(h2);
 		}
-                return I > diff;
+                return [I > diff, EWAH];
             } else {
                 console.log("bad diff");
                 console.log(diff);
-		console.log(I);
                 console.log(diff0);
-                return false;
+                return [false, 0];
             }
         }
     }
+    function hashrate_converter() { return 1024; }
+    function calc_ewah(header, prev_header, prev_ewah0) {
+	var prev_ewah = Math.max(1, prev_ewah0);
+	var DT = header[5] - prev_header[5];
+	//maybe check that the header's time is in the past.
+	var Hashrate0 = Math.floor(Math.max(1, hashrate_converter() * sci2int(prev_header[6]) / DT));
+	var Hashrate = Math.min(Hashrate0, prev_ewah * 4);
+	var N = 20;
+	var ewah = Math.floor((Hashrate + ((N - 1) * prev_ewah)) / N);
+	return ewah;
+    }
     function absorb_headers(h) {
+	//console.log(JSON.stringify(h[1]));
         var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
-            var b =check_pow(h[i]);
+            var bl = check_pow(h[i]);
+	    var b = bl[0];
+	    var ewah = bl[1];
             if ( b ) {
                 var header = h[i];
                 var height = header[1];
+                var header_hash = hash(serialize_header(header));
+		//var ewah = 1000000;
                 if ( height == 0 ) {
                     header[9] = 0;//accumulative difficulty
                 } else {
                     var prev_hash = string_to_array(atob(header[2]));
-                    var prev_header = headers_db[prev_hash];
+                    var prev_header = read_header(prev_hash);//headers_db[prev_hash];
                     prev_ac = prev_header[9];
                     diff = header[6];
+                    //var ac = sci2int(diff) / 10000000000;
                     var ac = sci2int(diff);
                     header[9] = prev_ac + ac - 1;
                 }
-                var header_hash = hash(serialize_header(header));
                 if (!(header_hash in headers_db)) {
                     get_more = true;
                 }
-                write_header(header);}
+                write_header(header, ewah);}
             else {
                 console.log("bad header");
-                console.log(h[i]); }
+                console.log(JSON.stringify(h[i])); }
         }
         if (get_more) { more_headers(); }
     }
@@ -268,6 +343,6 @@ function headers_main() {
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
     }
-    return {serialize: serialize_header, top: (function() { return top_header; })};
+    return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; })};
 }
 headers_object = headers_main();
