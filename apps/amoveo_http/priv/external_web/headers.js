@@ -1,6 +1,6 @@
 function headers_main() {
-    //var mode = "production";
-    var mode = "test"; //Use this to connect to a testnet.
+    var mode = "production";
+    //var mode = "test"; //Use this to connect to a testnet.
     var forks;
     var retarget_frequency;
     var top_header;

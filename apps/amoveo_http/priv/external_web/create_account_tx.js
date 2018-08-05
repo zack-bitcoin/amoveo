@@ -21,7 +21,7 @@
     var ca_fee = 152050;
     function create_account() {
         var to = create_address.value;
-        var amount = Math.floor(parseFloat(create_amount.value, 10) * 100000000);
+        var amount = Math.floor(parseFloat(create_amount.value, 10) * token_units());
         var from = keys.pub();
         console.log([amount, ca_fee, from, to]);
         variable_public_get(["create_account_tx", amount, ca_fee, from, to],
@@ -30,7 +30,7 @@
     function create_tokens2(tx) {
         console.log("create account tx is ");
         console.log(tx);
-        var amount = Math.floor(parseFloat(create_amount.value, 10) * 100000000);
+        var amount = Math.floor(parseFloat(create_amount.value, 10) * token_units());
         var amount0 = tx[5];
         var to = create_address.value;
         var to0 = tx[4];

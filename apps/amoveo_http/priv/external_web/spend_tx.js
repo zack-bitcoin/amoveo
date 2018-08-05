@@ -36,7 +36,7 @@ function spend_1() {
 	    }
 	    var CB2 = function(fee) {
 		var A2 = Amount - fee;
-		spend_amount.value = (A2 / 100000000).toString();
+		spend_amount.value = (A2 / token_units()).toString();
 	    };
 	    fee_checker(to, CB2, CB2);
 	});
@@ -57,7 +57,7 @@ function spend_1() {
         //spend_address = document.getElementById("spend_address");
         var to0 = spend_address.value;
 	var to = parse_address(to0);
-        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
+        var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
 	
 	if (to == 0) {
 	    error_msg.innerHTML = "Badly formatted address";
@@ -90,12 +90,12 @@ function spend_1() {
 			       }});
     }
     function spend_tokens2(tx) {
-        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
+        var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
         var amount0 = tx[5];
 	
     }
     function spend_tokens2(tx) {
-        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
+        var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
         var amount0 = tx[5];
         var to = spend_address.value;
         var to0 = tx[4];
