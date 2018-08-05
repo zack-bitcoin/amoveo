@@ -186,7 +186,7 @@
 	ctx.font="20px Georgia";
 	for (var i = 1; i < 10; i++) {
             //ctx.fillText((M*(10-i)/10).toString(), 0, 6 + (40 * i));
-            ctx.fillText((M*(10-i)/1000000000).toString(), 0, 6 + (40 * i));
+            ctx.fillText((M*(10-i)/10/token_units()).toString(), 0, 6 + (40 * i));
 	}
     }
     function make_lines_horizontal(l, ctx) {
