@@ -116,7 +116,7 @@ function keys_function1() {
         });
     }
     function set_balance(n) {
-        bal_div.innerHTML = ("your balance ").concat((n).toString());
+        bal_div.innerHTML = ("your balance ").concat((n).toString()) + " mVEO";
     }
     function save_keys() {
         download(keys.getPrivate("hex"), save_name.value, "text/plain");
