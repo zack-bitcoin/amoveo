@@ -7,7 +7,7 @@ function spend_1() {
     spend_amount.setAttribute("type", "text");
     //spend_amount.id = "spend_amount";
     var spend_amount_info = document.createElement("h8");
-    spend_amount_info.innerHTML = translate.words("amount_send").concat(": ");
+    spend_amount_info.innerHTML = "amount to send: ";
 
     var spend_address = document.createElement("INPUT");
     spend_address.setAttribute("type", "text");

@@ -10,7 +10,7 @@
     document.body.appendChild(div);
     
     var lookup_oracle_div = document.createElement("div");
-    var lookup_oracle_address = "";
+//    var lookup_oracle_address = "";
     var price = document.createElement("div");
     var canvas = document.createElement("canvas");
     show_markets2();
@@ -46,11 +46,11 @@
 	    button[i] = document.createElement("input");
 	    button[i].type = "button";
 	    button[i].value = x[i];
-	    var temp = x[i];
-	    button[i].onclick = function () {
-		lookup_oracle_address = temp;
-		return lookup_oracle_helper();
-	    };
+	    button[i].onclick = (function(val) {
+		return function() {
+		    return lookup_oracle_helper(val);
+		}
+	    } )(x[i]);
 	    lookup_oracle_div.appendChild(button[i]);
 	}
     }
@@ -73,8 +73,9 @@
 	canvas.height = 500;
 	div.appendChild(canvas);
     }
-    function lookup_oracle_helper() {
-	var x = lookup_oracle_address;
+    function lookup_oracle_helper(x) {
+	console.log("lookup oracle x is ");
+	console.log(x);
 	variable_public_get(["oracle", x], function(y) { return lookup_oracle_helper2(y, x)});
     }
     function lookup_oracle_helper2(l, oid) {
@@ -83,7 +84,7 @@
 	var x = l.pop();
 	var P = ((x[2])/100);
 	var question_info = document.createElement("p");
-	question_info.innerHTML = "betting on this: ".concat(atob(question)).concat("\n. . . . . . This is a volume depth chart. blue on the left are bets on 'true', orange on the right are bets on 'false'. The y-axis that goes up-and-down is the amount of Veo being bet. The x-axis is the odds of each bet, it is also the price. ");
+	question_info.innerHTML = "betting on this: ".concat(atob(question)).concat("\n. . . . . . This is a volume depth chart. yellow on the left are bets on 'true', grey on the right are bets on 'false'. The y-axis that goes up-and-down is the amount of Veo being bet. The x-axis is the odds of each bet, it is also the price. ");
 	price.appendChild(question_info);
 	var expires_info = document.createElement("p");
 	expires_info.innerHTML = "expires at height: ".concat((x[6]).toString());
@@ -104,10 +105,10 @@
 	empty_canvas(ctx);
 	background_color("black", ctx);
 	draw_buys(graph_height, buys, ctx);
-	var buy_color = "blue";
+	var buy_color = "yellow";
 	ctx.fillStyle = buy_color;
 	ctx.fill();
-	draw_sells("orange", graph_height, sells, ctx);
+	draw_sells("grey", graph_height, sells, ctx);
 	draw_buys(graph_height, buys, ctx);
 	ctx.lineWidth="2";
 	ctx.strokeStyle = buy_color;

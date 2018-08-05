@@ -27,3 +27,15 @@ Without markets, any smart contract inside of a state-channel will either be vul
 Any time you want to change the amount of any currency in a channel, you need to do an on-chain transaction. Having to do so much on-chain reduces the utility of channels.
 
 [Discuss this on Reddit](https://www.reddit.com/r/Amoveo/comments/73hdf7/programmable_state_channels_explained/)
+
+This is the VM for state channel smart contracts in Amoveo https://github.com/zack-bitcoin/chalang
+
+It has a couple compilers.
+
+You can see a market for derivatives being run completely off-chain in state channels here: http://139.59.144.76:8080/explorer.html
+It is being used as futarchy to decide how to upgrade Amoveo.
+It matches trades in single-price batches.
+
+Almost all state channel smart contracts will need to be integrated into markets like these.
+The only exceptions are perfectly symmetrical contracts.
+If a contract isn’t symmetric, then you need a market to determine the price of participating in the contract.

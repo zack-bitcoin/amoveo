@@ -20,15 +20,16 @@ version in spend txs is not being used.
 
 ### Things to do
 
-headers:new_retarget/2 variable TT.
-- if we set it to 2, then difficulty changes upwards much faster. Is this better or worse?
-
 
 * light wallet improvements suggested by OK.
 
-* maybe remove the translation tool from the light node. It is expensive, and google translate can already provide this service in chrome.
+* switch the light node to use mVEO.
+
+* light wallet improvements suggested by OK.
 
 * combinatorial markets.
+
+* maybe remove the translation tool from the light node. It is expensive, and google translate can already provide this service in chrome.
 
 * spend_tx is using global state "mode". This should instead be passed to the function.
 

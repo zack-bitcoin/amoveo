@@ -136,13 +136,6 @@ function button_maker2(val, fun) {
     button.onclick = fun;
     return button;
 }
-function button_maker(val, fun) {
-    var button = document.createElement("input");
-    button.type = "button";
-    button.value = translate.words(val);
-    button.onclick = fun;
-    return button;
-}
 function br() {
     return document.createElement("br");
 };

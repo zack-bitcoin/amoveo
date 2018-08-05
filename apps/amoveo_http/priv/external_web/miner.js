@@ -8,7 +8,7 @@ function miner_main() {
     var div = document.createElement("div");
     div.id = "miner_div";
     document.body.appendChild(div);
-    div.innerHTML = "0 ".concat(translate.words("blocks_found"));
+    div.innerHTML = "0 ".concat("blocks found");
     speed = document.createElement("div");
     speed.innerHTML = "";
     document.body.appendChild(speed);
@@ -20,7 +20,7 @@ function miner_main() {
         button.onclick = stop_mining;
     }
     function stop_mining() {
-        button.value = translate.words("start_mining");
+        button.value = "start mining (warning: use a laptop or computer, not a phone.)(warning: you may need to leave the tab open to continue mining.)";
         mining_state = false;
         button.onclick = start_mining;
     }
