@@ -243,7 +243,7 @@ function channels_main() {
 	var lifespan = Math.max(0, expires - height);
 	var bal1 = channel[4];
 	var bal2 = channel[5];
-	var cfee = Math.floor(tv * lifespan * (bal1 + bal2) / 100000000);
+	var cfee = Math.floor(tv * lifespan * (bal1 + bal2) / token_units());
 	var nonce = acc[2];
 	var fee = 152050;
 	var acc1 = channel[2];
@@ -283,7 +283,7 @@ function channels_main() {
                    (ttv == "假")) {
             type_final = 2;
         }
-        var amount_final = Math.floor(parseFloat(trade_amount.value, 10) * 100000000);
+        var amount_final = Math.floor(parseFloat(trade_amount.value, 10) * token_units());
         var oid_final = oid.value;
         var expires = l[1];
         var server_pubkey = l[2];
@@ -324,7 +324,7 @@ function channels_main() {
     //Controller
 
     function make_channel_func(pubkey) {
-        var amount = Math.floor(parseFloat(spend_amount.value, 10) * 100000000);
+        var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
         var delay = parseInt(spend_delay.value, 10);
         var expiration = parseInt(lifespan.value, 10) + headers_object.top()[1];
         var bal2 = amount - 1;
@@ -353,7 +353,7 @@ function channels_main() {
         } else {
             var current_height = headers_object.top()[1];
             var lifespan = expiration - current_height;
-            var spk_amount = Math.floor((tv * (delay + lifespan) * (amount + bal2) ) / 100000000);
+            var spk_amount = Math.floor((tv * (delay + lifespan) * (amount + bal2) ) / token_units());
             var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, spk_amount, 0, delay];
             var stx = keys.sign(tx);
             var sspk = keys.sign(spk);
@@ -408,8 +408,8 @@ function channels_main() {
 	    var height = top_header[1];
             var amount = spk[7];
             var betAmount = sum_bets(spk[3]);
-            var mybalance = ((val[4] - amount - betAmount)/ 100000000).toString();
-            var serverbalance = ((val[5] + amount) / 100000000).toString();
+            var mybalance = ((val[4] - amount - betAmount)/ token_units()).toString();
+            var serverbalance = ((val[5] + amount) / token_units()).toString();
             balance_div.innerHTML = ("server balance: ").concat(
                 mybalance).concat("your balance: ").concat(
                     serverbalance).concat("time left in blocks: ").concat(
@@ -444,7 +444,7 @@ function channels_main() {
 		throw("lightning spend error");
 	    }
             var fee = 20;
-            var a = Math.floor(parseFloat(lightning_amount.value, 10) * 100000000);
+            var a = Math.floor(parseFloat(lightning_amount.value, 10) * token_units());
             var to = lightning_to.value;
             var payment_contract = lightning_object.make(a);
             var code = payment_contract.bet[1];

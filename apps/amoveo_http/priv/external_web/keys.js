@@ -112,7 +112,7 @@ function keys_function1() {
         var trie_key = pubkey_64();
         var top_hash = hash(headers_object.serialize(headers_object.top()));
         merkle.request_proof("accounts", trie_key, function(x) {
-            set_balance(x[1] / 100000000);
+            set_balance(x[1] / token_units());
         });
     }
     function set_balance(n) {

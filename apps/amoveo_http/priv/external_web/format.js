@@ -1,6 +1,7 @@
-function s2c(x) { return x / 100000000; }
+function token_units() { return 10000 }; // mVEO
+function s2c(x) { return x / token_units(); }
 function c2s(x) {
-    return Math.floor(parseFloat(x.value, 10) * 100000000);
+    return Math.floor(parseFloat(x.value, 10) * token_units());
 }
 function array_to_int(l) {
     var x = 0;
