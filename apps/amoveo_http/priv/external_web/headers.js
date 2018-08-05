@@ -15,9 +15,13 @@ function headers_main() {
 	INITIAL_DIFFICULTY = 8844;
 	retarget_frequency = 2000;
 	forks = {two: 9000, four: 26900, seven:28100};
-	//top_header = 0;
-	top_header = ["header", 27776, "LysdYpDoBLrME55j+BTUTIyfdIGd3UhF7uNw/GzhVt4=", "AFmxRLpseeEOola7n8KSXGVPx8jSbI+NDT+ILD9vjUI=", "zOAJCJ9FK43dSycc4DuU7hFb6iNTF8Wm/5+epMWSzco=", 135195572, 14107, 3, "AAAAAAAAAAAAF7vC5AAAAABC9NFRAAAAAAAReAAAN9E=", 0, 5982];
-	write_header(top_header, 1000000);
+	top_header = 0;
+	//top_header = ["header",26001,"+YOYQfvAQ14c6WuaxtnTHdlDmjwH/wa5Igk423RX6vk=","8os9cNdphwRzg2XrjkqIT0q+6e84QIhrzi0Vd+mix5I=","l6IEudKvXX7gwERaLprLuE8TsBLHH9ECX0H4MozJxAs=",85023066,14155,2,"AAAAAAAAAAAAozI6hdnjt3eA+yEGI1JjIhb7gAoAWI8=",106946436226055400000,5982];
+	//write_header(top_header, 14173581290077846);
+	//top_header = ["header",26000,"DhmqKp2aJZwWD2lck1MyWih3Ra9dL+iwWeBj2MxJw5Y=","3P1nVFT6IclOUf5nWNGlOKQNr3Fnw9BQSmcQJadIhAY=","jzCrlfhaOO0r3GhJiXWaWelUVEG+asrPUGT/wJSKuD4=",85015594,13841,2,"AAAAAAAAAAAADIJ7GW/ONk2hxycsUc30jsRbBSEAS4A=",106899852117409800000,5982];
+	//write_header(top_header, 14780994765136362);
+	//top_header = ["header", 27776, "LysdYpDoBLrME55j+BTUTIyfdIGd3UhF7uNw/GzhVt4=", "AFmxRLpseeEOola7n8KSXGVPx8jSbI+NDT+ILD9vjUI=", "zOAJCJ9FK43dSycc4DuU7hFb6iNTF8Wm/5+epMWSzco=", 135195572, 14107, 3, "AAAAAAAAAAAAF7vC5AAAAABC9NFRAAAAAAAReAAAN9E=", 0, 5982];
+	//write_header(top_header, 1000000);
     }
     
     //var top_header = 0;//stores the valid header with the most accumulated work.
@@ -36,7 +40,7 @@ function headers_main() {
         if (acc_difficulty > top_diff) {
             top_diff = acc_difficulty;
             top_header = header;
-	    console.log("wallet text update");
+	    //console.log("wallet text update");
             wallet_text.innerHTML = JSON.stringify([["height", header[1]], ["total work", (Math.floor(header[9]/100000000))]]);
         }
         h = hash(serialize_header(header));
@@ -110,6 +114,7 @@ function headers_main() {
 	return Math.max(ND, INITIAL_DIFFICULTY);
     }
     function retarget2(header, n, ts) {
+	//console.log(JSON.stringify(header));
         var t = header[5];
         ts.push(t);
         //var height = header[1];
@@ -343,6 +348,6 @@ function headers_main() {
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
     }
-    return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; })};
+    return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db};
 }
 headers_object = headers_main();
