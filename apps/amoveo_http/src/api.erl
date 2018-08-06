@@ -480,6 +480,7 @@ keys_new(Password) ->
     keys:new(Password),
     0.
 market_match(OID) ->
+    %maybe this should be removed? does it break the order book?
     order_book:match_all([OID]),
     {ok, ok}.
 settle_bets() ->
