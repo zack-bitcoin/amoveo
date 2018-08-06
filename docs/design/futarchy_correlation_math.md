@@ -48,6 +48,7 @@ P(A|B) - P(A|!B) %this measures how doing the upgrade increases the odds of achi
 
 P(!A|B) - P(!A|!B) % this measures how doing the upgrade increases the odds of failing our goal
 
+```
 Add in the X factor:
 =P((P(A|B) - P(A|!B)) | X)
 Simplify by setting Z = P(A|B) - P(A|!B)
@@ -60,6 +61,7 @@ tautology (1)
 = P(Z)
 Simplify by setting Z = P(A|B) - P(A|!B)
 = P(A|B) - P(A|!B)
+```
 
 As you can see, the X completely cancels out. No matter what value we set for X, the same result is calcualted.
 So the rate of adoption does not make any difference to the result of the futarchy market.
