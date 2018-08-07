@@ -15,9 +15,11 @@ function headers_main() {
 	INITIAL_DIFFICULTY = 8844;
 	retarget_frequency = 2000;
 	forks = {two: 9000, four: 26900, seven:281000};
-	top_header = 0;
+	//top_header = 0;
+	top_header = ["header",28001,"f3PfnlxML/UPF9T5ixy1+Q539NyOVfFG07x4pf3zw6Q=","4A7MYFe5u7OG22QGUvIFguzZWYWndkZARGdImbhbEjM=","huIlyyrALPoafVluEL/ZYtZ8BXHUJEPxcXCLid5CSnU=",141617794,14053,3,"AAAAAAAAAAAA6ZeG6UQ+dPE+8iEbHoY92if6pIMAAlI=",193346798808507350000,5982];
+	write_header(top_header, 1865656952131054);
 	//top_header = ["header", 28102, "YS6YwsbqGmb52ffetsWjaAdXo05t+T2rTp4/Qd6uJF0=", "1F8OTHvstQpO3v0JakaNwJybtU9pFevgY17SztWJ5wc=", "DRv0mJlCSqxmSxDqfBtzeq4IOo2jwJ78sWOE08BuGOE=", 143143967, 14053, 3, "AAAAAAAAAAAA1bxHxDdxjuBesyoPTJgxh23ZAQAAurg=", 196793811742050220000, 5982];
-	//write_header(top_header, 1000000);
+	//write_header(top_header, 1871550184471850);
     }
     
     //var top_header = 0;//stores the valid header with the most accumulated work.
@@ -85,6 +87,7 @@ function headers_main() {
 	    var PrevEWAH = read_ewah(hash);
 	    var EWAH = calc_ewah(NextHeader, header, PrevEWAH);
 	    if (height > forks.seven) {
+		//console.log("seventh update");
 		return [new_target(header, EWAH), EWAH];
 		//console.log("working here");
 		//return 0;
@@ -94,10 +97,17 @@ function headers_main() {
         }
     }
     function new_target(header, EWAH0) {
-	var EWAH = Math.max(EWAH0, 1);
+	//console.log(EWAH0);
+	var EWAH = bigInt.max(EWAH0, 1);
 	var diff = header[6];
 	var hashes = sci2int(diff);
-	var estimate = Math.max(1, hashes.times(hashrate_converter()).divide(EWAH));
+	var estimate = bigInt.max(1, hashes.times(hashrate_converter()).divide(EWAH)).toJSNumber();
+	//console.log("estimate is ");
+	//console.log(estimate);//1670
+	//console.log("EWAH is ");
+	//console.log(EWAH);//1670
+	//console.log("diff is ");
+	//console.log(diff);//1670
 	var P = header[10];
 	var UL = Math.floor(P * 6 / 4);
 	var LL = Math.floor(P * 3 / 4);
@@ -107,6 +117,7 @@ function headers_main() {
 	} else if (estimate < LL) {
 	    ND = pow_recalculate(diff, LL, estimate);
 	}
+	//console.log(ND);//1
 	return Math.max(ND, INITIAL_DIFFICULTY);
     }
     function retarget2(header, n, ts) {
@@ -206,7 +217,8 @@ function headers_main() {
     function check_pow(header) {
         //calculate Data, a serialized version of this header where the nonce is 0.
         var height = header[1];
-        if (height < 1) { return [true, 1000000]; }
+        //if (height < 1) { return [true, 1000000]; }
+        if (height < 1) { return [true, 1]; }
         else {
             var prev_hash = string_to_array(atob(header[2]));
             var diff0L = difficulty_should_be(header, prev_hash);
@@ -246,13 +258,38 @@ function headers_main() {
     //function hashrate_converter() { return 1048576; }
     function hashrate_converter() { return 1024; }
     function calc_ewah(header, prev_header, prev_ewah0) {
-	var prev_ewah = Math.max(1, prev_ewah0);
+	var prev_ewah = bigInt.max(1, prev_ewah0);
+	//console.log("prev_ewah: ");
+	//console.log((prev_ewah).toJSNumber());
 	var DT = header[5] - prev_header[5];
 	//maybe check that the header's time is in the past.
-	var Hashrate0 = Math.floor(Math.max(1, hashrate_converter() * sci2int(prev_header[6]) / DT));
-	var Hashrate = Math.min(Hashrate0, prev_ewah * 4);
+	var Hashrate0 = bigInt.max(bigInt(1),
+				   bigInt(hashrate_converter()).times(sci2int(prev_header[6])).divide(DT));
 	var N = 20;
-	var ewah = Math.floor((Hashrate + ((N - 1) * prev_ewah)) / N);
+	var Converter = prev_ewah.times(1024000);
+	var EWAH2 = Converter.times((N - 1)).divide(prev_ewah);
+	var EWAH0 = (Converter.divide(Hashrate0)).add(EWAH2);
+	var ewah = Converter.times(N).divide(EWAH0).toJSNumber();
+	/*
+	console.log("header number");
+	console.log(JSON.stringify(header[1]));
+	console.log("prev_ewah: ");
+	console.log(prev_ewah0);// should be 1, is 1000000
+	console.log(prev_ewah.toJSNumber());// should be 1, is 1000000
+	console.log("dt: ");
+	console.log(DT);
+	console.log("hashrate0: ");
+	console.log(Hashrate0.toJSNumber());
+	console.log("ewah0: ");
+	console.log(EWAH0.toJSNumber());//should be 20480000, is 1024019456000
+	console.log("ewah: ");
+	console.log(ewah);//should be 1, is 19
+	*/
+	
+	//var Hashrate0 = Math.floor(Math.max(1, hashrate_converter() * sci2int(prev_header[6]) / DT));
+	//var Hashrate = Math.min(Hashrate0, prev_ewah * 4);
+	//var N = 20;
+	//var ewah = Math.floor((Hashrate + ((N - 1) * prev_ewah)) / N);
 	return ewah;
     }
     function absorb_headers(h) {
@@ -345,6 +382,6 @@ function headers_main() {
         console.log(int2sci(2000));//should be 2804
         console.log(sci2int(int2sci(2000)));// should be 2000
     }
-    return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db};
+    return {sci2int: sci2int, serialize: serialize_header, top: (function() { return top_header; }), db: headers_db, read_ewah: read_ewah};
 }
 headers_object = headers_main();

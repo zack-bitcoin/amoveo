@@ -20,6 +20,10 @@ version in spend txs is not being used.
 
 ### Things to do
 
+* when sharing blocks, compress them first. we probably need a new http handler for this, since the existing handlers are assuming JSON format.
+
+* enable running multiple instances of amoveo on the same machine using different ports.
+
 * dominant assurance markets.
 
 * light wallet improvements suggested by OK.
