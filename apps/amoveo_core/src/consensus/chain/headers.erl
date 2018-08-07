@@ -367,30 +367,35 @@ calc_ewah(Header, PrevHeader, PrevEWAH0) ->
     true = Header#header.time < (block:time_now() + 20),%give 2 seconds gap in case system time is a little off.
     Hashrate0 = max(1, ?hashrate_converter * pow:sci2int(PrevHeader#header.difficulty) div DT),
 
-    Hashrate1 = min(Hashrate0, PrevEWAH * 2),
-    Hashrate = max(Hashrate1, PrevEWAH div 2),
+    %Hashrate = min(Hashrate0, PrevEWAH * 4),
+    %Hashrate = max(Hashrate1, PrevEWAH div 2),
+
+    %N = 20,
+    %EWAH = (Hashrate + ((N - 1) * PrevEWAH)) div N,
+    
     N = 20,
-    EWAH = (Hashrate + ((N - 1) * PrevEWAH)) div N,
+    Converter = PrevEWAH * 1024000,
+    EWAH0 = (Converter div Hashrate0) + ((((N - 1) * Converter) div PrevEWAH)),
+    EWAH = (Converter * N div EWAH0),
+
+
 
     %Height = Header#header.height,
+    Diff = Header#header.difficulty,
     if
+	Diff == undefined -> ok;
 	false -> 
-	    Diff = Header#header.difficulty,
 	    Hashes = pow:sci2int(Diff),
 	    Estimate = max(1, (?hashrate_converter * Hashes) div EWAH),%in seconds/10
-	    %io:fwrite(integer_to_list(Header#header.height)),
-	    %io:fwrite("estimate is "),
-	    %io:fwrite(integer_to_list(Estimate)),
-	    %io:fwrite("\n"),
+	    io:fwrite(integer_to_list(Header#header.height)),
+	    io:fwrite(" EWAH estimate: "),
+	    io:fwrite(integer_to_list(Estimate)),
+	    io:fwrite(" time: "),
+	    io:fwrite(integer_to_list(DT)),
+	    io:fwrite(" \n"),
 	    ok;
 	true -> ok
     end,
-
-    %N = 20,
-    %Converter = PrevEWAH * 1024000,
-    %EWAH0 = (Converter div Hashrate0) + ((((N - 1) * Converter) div PrevEWAH)),
-    %EWAH = (Converter * N div EWAH0),
-
 
     %io:fwrite(packer:pack([PrevEWAH0, DT, EWAH])),
     %io:fwrite("ewah "),
