@@ -16,11 +16,7 @@ function headers_main() {
 	retarget_frequency = 2000;
 	forks = {two: 9000, four: 26900, seven:28100};
 	top_header = 0;
-	//top_header = ["header",26000,"DhmqKp2aJZwWD2lck1MyWih3Ra9dL+iwWeBj2MxJw5Y=","3P1nVFT6IclOUf5nWNGlOKQNr3Fnw9BQSmcQJadIhAY=","jzCrlfhaOO0r3GhJiXWaWelUVEG+asrPUGT/wJSKuD4=",85015594,13841,2,"AAAAAAAAAAAADIJ7GW/ONk2hxycsUc30jsRbBSEAS4A=",106899852117409800000,5982];
-	//write_header(top_header, 14780994765136362);
-	//top_header = ["header",26001,"+YOYQfvAQ14c6WuaxtnTHdlDmjwH/wa5Igk423RX6vk=","8os9cNdphwRzg2XrjkqIT0q+6e84QIhrzi0Vd+mix5I=","l6IEudKvXX7gwERaLprLuE8TsBLHH9ECX0H4MozJxAs=",85023066,14155,2,"AAAAAAAAAAAAozI6hdnjt3eA+yEGI1JjIhb7gAoAWI8=",106946436226055400000,5982];
-	//write_header(top_header, 14173581290077846);
-	//top_header = ["header", 27776, "LysdYpDoBLrME55j+BTUTIyfdIGd3UhF7uNw/GzhVt4=", "AFmxRLpseeEOola7n8KSXGVPx8jSbI+NDT+ILD9vjUI=", "zOAJCJ9FK43dSycc4DuU7hFb6iNTF8Wm/5+epMWSzco=", 135195572, 14107, 3, "AAAAAAAAAAAAF7vC5AAAAABC9NFRAAAAAAAReAAAN9E=", 0, 5982];
+	//top_header = ["header", 28102, "YS6YwsbqGmb52ffetsWjaAdXo05t+T2rTp4/Qd6uJF0=", "1F8OTHvstQpO3v0JakaNwJybtU9pFevgY17SztWJ5wc=", "DRv0mJlCSqxmSxDqfBtzeq4IOo2jwJ78sWOE08BuGOE=", 143143967, 14053, 3, "AAAAAAAAAAAA1bxHxDdxjuBesyoPTJgxh23ZAQAAurg=", 196793811742050220000, 5982];
 	//write_header(top_header, 1000000);
     }
     

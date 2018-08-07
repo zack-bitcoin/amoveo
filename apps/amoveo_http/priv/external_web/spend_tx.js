@@ -92,11 +92,6 @@ function spend_1() {
     function spend_tokens2(tx) {
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
         var amount0 = tx[5];
-	
-    }
-    function spend_tokens2(tx) {
-        var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
-        var amount0 = tx[5];
         var to = spend_address.value;
         var to0 = tx[4];
         var fee0 = tx[3];
@@ -122,7 +117,11 @@ function spend_1() {
 		console.log("pubkey is ");
 		console.log(to);
 		console.log(keys.pub());
-		variable_public_get(["txs", [-6, stx]], function(x) {});
+		variable_public_get(["txs", [-6, stx]], function(x) {
+		    console.log(x);
+		    var msg = ((amount/token_units()).toString()).concat(" mveo successfully sent. txid =  ").concat(x);
+		    error_msg.innerHTML = msg;
+		});
 	    } else if (mode == "raw") {
 		raw_tx.innerHTML = JSON.stringify(tx);
 	    }
