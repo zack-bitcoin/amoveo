@@ -14,7 +14,7 @@ function headers_main() {
     } else {
 	INITIAL_DIFFICULTY = 8844;
 	retarget_frequency = 2000;
-	forks = {two: 9000, four: 26900, seven:281000};
+	forks = {two: 9000, four: 26900, seven:28135};
 	//top_header = 0;
 	top_header = ["header",28001,"f3PfnlxML/UPF9T5ixy1+Q539NyOVfFG07x4pf3zw6Q=","4A7MYFe5u7OG22QGUvIFguzZWYWndkZARGdImbhbEjM=","huIlyyrALPoafVluEL/ZYtZ8BXHUJEPxcXCLid5CSnU=",141617794,14053,3,"AAAAAAAAAAAA6ZeG6UQ+dPE+8iEbHoY92if6pIMAAlI=",193346798808507350000,5982];
 	write_header(top_header, 1865656952131054);
@@ -86,14 +86,14 @@ function headers_main() {
 	    }
 	    var PrevEWAH = read_ewah(hash);
 	    var EWAH = calc_ewah(NextHeader, header, PrevEWAH);
-	    if (height > forks.seven) {
-		//console.log("seventh update");
+	    if (height > forks.seven)  {
 		return [new_target(header, EWAH), EWAH];
 		//console.log("working here");
 		//return 0;
 	    } else if ( ( x == 0 ) && (! (height < 10) )) {
                 return [difficulty_should_be2(header), EWAH];
-            } else { return [Diff, EWAH]; }
+            } else {
+		return [Diff, EWAH]; }
         }
     }
     function new_target(header, EWAH0) {
