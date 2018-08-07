@@ -3,14 +3,14 @@ The terminal interface to the oracle
 
 
 ####New question oracle
-This oracle asks a true/false question about the future. Eventually, the answer to this question will get recorded on the oracle, and will be accessible to the smart contracts. It must reference a difficulty oracle that closed recently at the correct price.
+This oracle asks a true/false question about the future. Eventually, the answer to this question will get recorded on the oracle, and will be accessible to the smart contracts.
 ```
 api:new_question_oracle(Start, Question).
 ```
 This returns the OID, which is necessary for making markets.
 
 ####New governance oracle
-This oracle updates the variables that define the blockchain protocol. It must reference a difficulty oracle that closed recently at the correct price.
+This oracle updates the variables that define the blockchain protocol. 
 ```
 api:new_governance_oracle(GovName, GovAmount).
 ```

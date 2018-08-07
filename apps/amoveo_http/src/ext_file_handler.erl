@@ -21,6 +21,7 @@ handle(Req, _) ->
                <<"/explorer_title.js">> -> true;
                <<"/lightning.js">> -> true;
                <<"/encryption.js">> -> true;
+               <<"/encryption_interface.js">> -> true;
                <<"/encryption_library.js">> -> true;
                <<"/encryption.html">> -> true;
                <<"/finance_game.html">> -> true;
@@ -34,6 +35,7 @@ handle(Req, _) ->
                <<"/format.js">> -> true;
                <<"/files.js">> -> true;
                <<"/rpc.js">> -> true;
+               <<"/oracles.js">> -> true;
                <<"/channels.js">> -> true;
                <<"/headers.js">> -> true;
                <<"/server.js">> -> true;
@@ -64,6 +66,8 @@ handle(Req, _) ->
                <<"/finance_game.js">> -> true;
                <<"/merkle_proofs.js">> -> true;
                <<"/wallet.html">> -> true;
+               <<"/BigInteger.js">> -> true;
+               <<"/big_int_test.js">> -> true;
                X -> 
                    io:fwrite("ext file handler block access to: "),
                    io:fwrite(X),

@@ -1,6 +1,6 @@
 %use `market:test().` to run this code
 
-macro helper
+macro helper ( ProofStructure -- Int )
 %first unwrap the oracle data from the proof structure.
 car drop
 car swap drop

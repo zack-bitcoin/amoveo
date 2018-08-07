@@ -6,7 +6,13 @@ common(A, B) ->
 	{ok, "production"} -> A;
 	_ -> B
     end.
-get(1) -> common(4200, 0);
-get(2) -> common(9000, 0);
-get(3) -> common(9900, 0).
+test_height() -> 0.
+    %50.
+get(1) -> common(4200, test_height());
+get(2) -> common(9000, test_height());
+get(3) -> common(9900, test_height());
+get(4) -> common(26900, max(test_height(), constants:retarget_frequency()));
+get(5) -> common(27500, max(test_height(), 1));
+get(6) -> common(27700, test_height());
+get(7) -> common(281000, 40).%test_height()).
     

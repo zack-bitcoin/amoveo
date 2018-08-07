@@ -1,6 +1,10 @@
 This is how to launch a node and connect to the network.
 
 To run a full node, you need at least 200 mb of ram available.
+You need at least 2 gb of disk space,
+and you need at least 100 kilobytes per seconds of bandwidth
+
+Do not run Amoveo as root user.   
 
 It is helpful to have port 8080 exposed to the internet, this will let you find out about blocks more quickly, so you would mine faster.
 
@@ -25,11 +29,21 @@ now that you are attached to a node, you can tell it [commands](/docs/api/comman
 [You can read about how to download the blocks and sync with the network here](/docs/getting-started/sync.md)
 
 
-You can turn off a running node
+You can turn off a running node.
+First make sure you are attached to it, then do:
 ```
-  make prod-stop
+api:off().
 ```
+to turn off Amoveo.
+Then do:
+```
+halt().
+```
+to turn off erlang.
+
+
 You can delete the database to restart from the genesis block. This preserves your keys.
+Make sure to turn your node off first before doing this.
 ```
   make prod-clean
 ```

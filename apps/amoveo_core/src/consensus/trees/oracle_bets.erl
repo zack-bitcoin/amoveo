@@ -6,33 +6,34 @@
          dict_add_bet/5, dict_get/2, dict_delete/2,
          serialize/1, make_leaf/3, key_to_int/1,
          deserialize/1]).
+-include("../../records.hrl").
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
--record(bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle
+-record(oracle_bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle
 -define(name, oracle_bets).
 reward(Bet, Correct, NewHeight) ->
     %returns {Shares, Tokens}
-    ID = Bet#bet.id,
+    ID = Bet#oracle_bet.id,
     {Positive, _Negative} = 
 	case Correct of
-	    1->{Bet#bet.true,Bet#bet.false+Bet#bet.bad};
-	    2->{Bet#bet.false,Bet#bet.true+Bet#bet.bad};
-	    3->{Bet#bet.bad,Bet#bet.true+Bet#bet.false}
+	    1->{Bet#oracle_bet.true,Bet#oracle_bet.false+Bet#oracle_bet.bad};
+	    2->{Bet#oracle_bet.false,Bet#oracle_bet.true+Bet#oracle_bet.bad};
+	    3->{Bet#oracle_bet.bad,Bet#oracle_bet.true+Bet#oracle_bet.false}
 	end,
     %[shares:new(ID, Positive, NewHeight), shares:new(ID, -Negative, NewHeight)],
     Positive.
 id(X) ->
-    X#bet.id.
+    X#oracle_bet.id.
 true(X) ->
-    X#bet.true.
+    X#oracle_bet.true.
 false(X) ->
-    X#bet.false.
+    X#oracle_bet.false.
 bad(X) ->
-    X#bet.bad.
+    X#oracle_bet.bad.
 increase(X, Type, A) ->
     case Type of
-	1 -> X#bet{true = X#bet.true + A};
-	2 -> X#bet{false = X#bet.false + A};
-	3 -> X#bet{bad = X#bet.bad + A}
+	1 -> X#oracle_bet{true = X#oracle_bet.true + A};
+	2 -> X#oracle_bet{false = X#oracle_bet.false + A};
+	3 -> X#oracle_bet{bad = X#oracle_bet.bad + A}
     end.
 new(ID, Type, Amount) ->
     <<_:256>> = ID,
@@ -47,29 +48,29 @@ new(ID, Type, Amount) ->
 new(OracleID, True, False, Bad) ->
     %{_, X, _} = active_oracles:read(OracleID, AORoot),
     %false = X == empty,
-    #bet{id = OracleID, true = True, false = False,
+    #oracle_bet{id = OracleID, true = True, false = False,
 	 bad = Bad}.
 serialize(X) ->
     %KL = constants:key_length()*8,
     HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
-    <<_:HS>> = X#bet.id,
-    <<(X#bet.id)/binary,
-      (X#bet.true):BAL,
-      (X#bet.false):BAL,
-      (X#bet.bad):BAL>>.
+    <<_:HS>> = X#oracle_bet.id,
+    <<(X#oracle_bet.id)/binary,
+      (X#oracle_bet.true):BAL,
+      (X#oracle_bet.false):BAL,
+      (X#oracle_bet.bad):BAL>>.
 deserialize(B) ->
     %KL = constants:key_length()*8,
     HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
     <<ID:HS, True:BAL, False:BAL, Bad:BAL>> = B,
-    #bet{true = True, false = False, bad = Bad, id = <<ID:HS>>}.
+    #oracle_bet{true = True, false = False, bad = Bad, id = <<ID:HS>>}.
 dict_write(X, Pub, Dict) ->
-    dict:store({oracle_bets, {key, Pub, X#bet.id}},
+    dict:store({oracle_bets, {key, Pub, X#oracle_bet.id}},
                serialize(X),
                Dict).
 write(X, Tree) ->
-    Key = X#bet.id,
+    Key = X#oracle_bet.id,
     Z = serialize(X),
     trie:put(key_to_int(Key), Z, 0, Tree, ?name).
 dict_get(Key, Dict) ->
@@ -92,13 +93,22 @@ dict_delete(Key, Dict) ->
     dict:store({oracle_bets, Key}, 0, Dict).
 delete(ID, Tree) ->
     trie:delete(ID, Tree, ?name).
-dict_add_bet(Pub, OID, Type, Amount, Dict) ->
-    X = dict_get({key, Pub, OID}, Dict),
-    Y = case X of
-            empty -> new(OID, Type, Amount);
-            Bet -> increase(Bet, Type, Amount)
-        end, 
-    dict_write(Y, Pub, Dict).
+dict_add_bet(Pub, OID, Type, Amount, Dict) ->%changed
+    A = accounts:dict_get(Pub, Dict),
+    case A of
+	empty -> 
+	    io:fwrite("account does not exist\n"),
+	    io:fwrite(base64:encode(Pub)),
+	    io:fwrite("\n"),
+	    Dict;
+	_ ->
+	    X = dict_get({key, Pub, OID}, Dict),
+	    Y = case X of
+		    empty -> new(OID, Type, Amount);
+		    Bet -> increase(Bet, Type, Amount)
+		end, 
+	    dict_write(Y, Pub, Dict)
+    end.
     
 root_hash(A) ->
     trie:root_hash(?name, A).
@@ -109,7 +119,7 @@ verify_proof(RootHash, Key, Value, Proof) ->
 
 test() ->
     C = new(<<1:256>>, 3, 100),
-    ID = C#bet.id,
+    ID = C#oracle_bet.id,
     Root0 = constants:root0(),
     {_, empty, _} = get(ID, Root0),
     Root = write(C, Root0),
@@ -122,16 +132,21 @@ test() ->
 test2() ->
     OID = <<1:256>>,
     C = new(OID, 3, 100),
-    ID = C#bet.id,
+    ID = C#oracle_bet.id,
     CFG = trie:cfg(oracle_bets),
     Dict0 = dict:new(),
     Pub = keys:pubkey(),
     Key = {key, Pub, ID},
     Dict1 = dict_write(C, Pub, Dict0),
-    C = dict_get(Key, Dict1),
-    Dict2 = dict_add_bet(Pub, OID, 1, 100, Dict1),
-    Bet2 = dict_get(Key, Dict2),
-    Bet2 = increase(C, 1, 100),
+    Account = #acc{balance = 100000, nonce = 0, pubkey = Pub},
+    Dict2 = accounts:dict_write(Account, Dict1),
+    C = dict_get(Key, Dict2),
+    Dict3 = dict_add_bet(Pub, OID, 1, 100, Dict2),
+    Bet2 = dict_get(Key, Dict3),
+    Bet3 = increase(C, 1, 100),
+    io:fwrite(packer:pack([Bet2, Bet3])),
+    io:fwrite("\n"),
+    Bet2 = Bet3,
     success.
     
     

@@ -5,9 +5,16 @@
 	 empty_mailbox/0, dump/1]).
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
-init(ok) -> {ok, []}.
+init(ok) -> 
+    %process_flag(trap_exit, true),
+    {ok, []}.
 handle_call({absorb, SignedTx}, _From, State) ->
-    absorb_internal(SignedTx),
+    case absorb_internal(SignedTx) of
+	error -> ok;
+	NewDict ->
+	    dict:find(sample, NewDict),
+	    tx_pool:absorb_tx(NewDict, SignedTx)
+    end,
     {reply, ok, State};
 handle_call(empty_mailbox, _, S) -> 
     {reply, ok, S};
@@ -16,11 +23,17 @@ handle_cast({dump, Block}, S) ->
     tx_pool:dump(Block),
     {noreply, S};
 handle_cast({absorb, SignedTx}, S) -> 
-    absorb_internal(SignedTx),
+    case absorb_internal(SignedTx) of
+	error -> ok;
+	NewDict ->
+	    dict:find(sample, NewDict),
+	    tx_pool:absorb_tx(NewDict, SignedTx)
+    end,
     {noreply, S};
 handle_cast(_, S) -> {noreply, S}.
 handle_info(_, S) -> {noreply, S}.
-terminate(_, _) -> ok.
+terminate(_, _) -> 
+    ok.
     %io:fwrite("tx_pool_feeder died\n").
 code_change(_, S, _) -> {ok, S}.
 is_in(_, []) -> false;
@@ -28,6 +41,21 @@ is_in(Tx, [STx2 | T]) ->
     Tx2 = testnet_sign:data(STx2),
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
+    S = self(),
+    spawn(fun() ->
+		  absorb_internal2(SignedTx, S)
+	  end),
+    receive
+	X -> X
+    after 
+	200 -> 
+	%10000 ->
+	    %io:fwrite("dropped a tx\n"),
+	    error
+    end.
+	    
+	    
+absorb_internal2(SignedTx, PID) ->
     %io:fwrite("now 2 "),%200
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
@@ -35,7 +63,7 @@ absorb_internal(SignedTx) ->
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
     case is_in(Tx, Txs) of
-        true -> ok;
+        true -> PID ! error;
         false -> 
 	    true = testnet_sign:verify(SignedTx),
 	    Fee = element(4, Tx),
@@ -43,20 +71,37 @@ absorb_internal(SignedTx) ->
     %io:fwrite("now 3 "),%1500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-	    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
 	    {ok, MinimumTxFee} = application:get_env(amoveo_core, minimum_tx_fee),
+	    case Type of
+		multi_tx ->
+		    MTxs = Tx#multi_tx.txs,
+		    Cost = sum_cost(MTxs, F#tx_pool.dict, F#tx_pool.block_trees),
+		    MF = MinimumTxFee * length(MTxs),
+		    true = Fee > (MF + Cost),
+		    ok;
+		_ ->
+		    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
     %io:fwrite("now 4 "),%500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-	    true = Fee > (MinimumTxFee + Cost),
+		    %true = Fee > (MinimumTxFee + Cost)
+		    true
+	    end,
     %io:fwrite("now 5 "),%2000
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
 	    %io:fwrite("now 6 "),%200 or 2000
 	    %io:fwrite(packer:pack(now())),
 	    %io:fwrite("\n"),
-	    absorb_unsafe(SignedTx)
+	    X = absorb_unsafe(SignedTx),
+	    PID ! X
     end.
+sum_cost([], _, _) -> 0;
+sum_cost([H|T], Dict, Trees) ->
+    Type = element(1, H),
+    Cost = trees:dict_tree_get(governance, Type, Dict, Trees),
+    Cost + sum_cost(T, Dict, Trees).
+    
 grow_dict(Dict, [], _) -> Dict;
 grow_dict(Dict, [{orders, Key}|T], Trees) ->
     Dict2 = 
@@ -121,7 +166,7 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %io:fwrite("now 7 "),%800
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    Querys = proofs:txs_to_querys([SignedTx], Trees),
+    Querys = proofs:txs_to_querys([SignedTx], Trees, Height + 1),
     %Querys is a list like [[TreeID, Key]...]
     %for every query, check if it is in the dict already.
     %If it is already in the dict, then we are done.
@@ -143,7 +188,8 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %io:fwrite("now 10 "),%3000
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    tx_pool:absorb_tx(NewDict, SignedTx).%1500
+    NewDict.
+    %tx_pool:absorb_tx(NewDict, SignedTx).%1500
 empty_mailbox() -> gen_server:call(?MODULE, empty_mailbox).
 absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb([H|T]) -> absorb(H), absorb(T);
@@ -158,7 +204,7 @@ absorb(SignedTx) ->
 absorb_async([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb_async([H|T]) ->
     absorb_async(H),
-    timer:sleep(200),%if the gen server dies, it would empty the mail box. so we don't want to stick the txs in the mailbox too quickly.
+    %timer:sleep(30),%if the gen server dies, it would empty the mail box. so we don't want to stick the txs in the mailbox too quickly.
     absorb_async(T);
 absorb_async(SignedTx) ->
     N = sync_mode:check(),

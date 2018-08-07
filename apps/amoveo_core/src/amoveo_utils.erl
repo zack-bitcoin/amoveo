@@ -4,14 +4,27 @@
 	 block_rewards/1,
 	 block_rewards/2,
 	 tx_history/1, tx_history/2, tx_history/3,
-	 address_history/2,address_history/3,address_history/4
+	 address_history/2,address_history/3,address_history/4,
+	 push_txs/0
 	]).
 -include("records.hrl").
 
 binary_to_file_path(Code, Binary) ->
+    Code = blocks,
+    <<Byte, _/binary>> = Binary,
+    H = to_hex(<<Byte>>),
     Encoded = base58:binary_to_base58(Binary),
     Dir = file_dir(Code),
-    Dir ++ Encoded ++ ".db".
+    Dir ++ H ++ "/" ++ Encoded ++ ".db".
+    %Dir ++ Encoded ++ ".db".
+to_hex(<<>>) ->  [];
+to_hex(<<A:4, B/bitstring>>) ->
+    if
+	A < 10 -> [(A+48)|to_hex(B)];
+	true -> [(A+87)|to_hex(B)]
+    end.
+    
+	    
 address_history(Mode, X) ->
     TB = block:top(),
     address_history(Mode, X, 200).
@@ -198,4 +211,11 @@ get_types(Types, [H|T]) ->
 is_in(_, []) -> false;
 is_in(A, [A|_]) -> true;
 is_in(A, [_|T]) -> is_in(A, T).
-	    
+push_txs() ->	    
+    lists:map(fun(P) -> 
+		      spawn(fun() -> 
+				    sync:trade_txs(P) 
+			    end)
+	      end,
+	      peers:all()).
+		      

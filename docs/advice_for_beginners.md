@@ -1,0 +1,1 @@
+I would like you to ask questions if anything is confusing, and don't be afraid of wasting anyone's time. Answering questions for beginners is one of the most valuable things we can be doing at this point in time. It helps us to build better documentation, and to increase the coefficient of our exponential growth rate.

@@ -9,7 +9,7 @@
     info.innerHTML = "sign transaction";
     div.appendChild(info);
     div.appendChild(tx);
-    var button = button_maker("sign_tx", sign_tx);
+    var button = button_maker2("sign tx ", sign_tx);
     div.appendChild(button);
     div.appendChild(document.createElement("br"));
 
@@ -19,7 +19,7 @@
     push_info.innerHTML = "publish transaction";
     div.appendChild(push_info);
     div.appendChild(tx_push);
-    var push_button = button_maker("push_tx", push_tx);
+    var push_button = button_maker2("push tx ", push_tx);
     div.appendChild(push_button);
     div.appendChild(document.createElement("br"));
 
@@ -38,9 +38,9 @@
     }
     function push_tx() {
 	var t = JSON.parse(tx_push.value);
-	console.log(t);
-	var t2 = keys.sign(t);
-	variable_public_get(["txs", [-6, t2]], function(x) {});
+	//console.log(t);
+	//var t2 = keys.sign(t);
+	variable_public_get(["txs", [-6, t]], function(x) {});
 	tx_push.value = "";
     }
 })();

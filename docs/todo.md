@@ -8,24 +8,148 @@
 
 Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
+version in spend txs is not being used.
 
+
+### governance ideas
+
+* consider reducing governance variable "maximum oracle time". it takes too long to close bad-question oracles.
+
+* raise the miner reward.
 
 
 ### Things to do
 
-* the mining pool should not give out rewards for orphaned blocks. Wait for more confirmations.
+* dominant assurance markets.
+
+* light wallet improvements suggested by OK.
+
+* combinatorial markets.
+
+* spend_tx is using global state "mode". This should instead be passed to the function.
+
+* maybe we should have a game to see who can keep testnet mining pools active most, during the game we encourage spamming each other and making unusual transactions to cause problems.
+
+* consider adding a debugger. add this line to amoveo_core.app.src: `debugger, wx, reltool, erts, observer, tools, sasl, compiler, et, runtime_tools`
+u simply activate them whenever you want via the shell:
+```
+debugger:start().
+ observer:start().
+ ```
+
+* maybe `error_logger_hwm, 50` should be raised to 10 000.
+
+
+* look at the pull request for the escrow tool.
+
+* get rock-paper-scissors working in chalang.
+
+* teach the light node to generate messages about oracles. to make it easier to know when to vote.
+
+* make sure that in the markets, evidence outcome always has a bigger nonce than no_publish.
+
+* maybe tx_pool_feeder should make a new thread for each tx being added, and listen for a response. If it doesn't respond in time, then drop the tx.
+- Maybe txs should return error codes instead of crashing
+
+* improve signal|noise ratio in logging.
+
+* maybe verifying blocks should only be parallelized in sync_mode:quick. that way we can have more useful error messages in sync_mode:normal.
+
+record tx_pool should keep track of the block hash that it is building on.
+
+potential block should probably be completely rewritten.
+
+* mining pools are regularly creating multiple blocks at the same height. Even when there are more than 3 minutes between finding the blocks.
+
+* add function to api for checking signatures.
+* add tool to mining page for early payout.
+
+* block_hashes is getting too big in ram. We should delete old information out of it.
+
+
+* sync blocks faster
+- maybe block_absorber:save should be cast instead of call.
+- maybe checks in block_absorber:block_internal should be moved somewhere else where they can be run in parallel. block_absorber should write the new data to the consensus state, and nothing more.
+
+
+* sync_mode:normal and sync_mode:quick should be available from the api.
+
+* we should have more rules for ignoring bad peers. If they send the same request too often, or if they send invalid data more than 10 times per minute. 
+
+* tx are still being dropped.
+
+* during DDOS, sometimes nodes end up dropping all their peers, and are then unable to sync. We should refuse to black list the hard coded peers.
+
+* similar to the oracle lookup tool, we should have a governance value lookup tool in the light node.
+
+* built in translation to the light node is a bad idea. Google chrome has translation built in anyway.
+
+* check that txs don't get dropped when a block is orphaned.
+
+* is merkle spk.js looking up the merkle proofs for the wrong information??
+
+* the market.fs contract has a problem. Is the expiration date output of the contract relative, or absolute? I am not consistent.
+
+* we should test the case when there are multiple partially-matched trades in the order book simultaniously.
+
+* when you make a channel in the light node, there should be a way to look up how much the server charges before
+
+* the light node should have an interface for encrypting and decrypting messages.
+* display oracle data verified by merkle proofs.
+
+* harden mining pools against attack.
+- Consider hiding some of the API behind a fire wall.
+- put a limit on how many blocks you can download with a single request.
+- when syncing you should simultaniously download blocks from multiple peers to spread the load.
+- limit how many bytes we serve to any one IP per 10 seconds.
+- as well as downloading X number of blocks at a time, we should enable downloads of M megabytes of blocks at a time.
+
+* if you haven't done `sync_mode:normal().` and you try to publish a tx, then there should be some sort of error message. Maybe connect it to the tx signing function.
+
+* test downloading the light wallet. There are reports that it is not connecting to a full node easily.
+
+* if you have the wrong private key loaded into a light node and try signing a tx, it should give a useful error message.
+
+* port "8080" defined in more than one place.
+
+* documentation for governance oracles
+You have to set it between 1 and 50 inclusive.
+if the governance variable is above 100, then it is a percentage.
+If the governance variable is below 100, then it is an integer value.
+
+So if governance is currently 40, and you change by 30, you can go to 10 or 70.
+If the governance is currently 1000, and you change by 30, you can go to 1300 or 700.
+
+- true means higher and false is lower, right?
+
+
+* ubuntu 18.04 compatibility.
+
+* order_book:match() should have a timer so we only run it every 3 minutes. Otherwise it is wasting cycles while we are syncing blocks.
+
+* block:check/1 should be split into 2 functions.
+- first we want to verify that a block could be valid by looking at that block alone.
+- second we want to compare the block to the previous block's state, to make sure the block is valid in context.
+- the first step is computationally expensive, and it doesn't touch the hard drive. So we can parallelize step 1 with itself. We can verify multiple blocks simultanious to use more CPU on our machine and sync faster.
+- block_absorber should only do the 2nd step of block check.
+- block_organizer:add should do the 1st step in parallel.
+
+* in proofs:txs_to_querys2, in the oracle_close branch, we are using Accounts and we should be using Accounts2.
+
+I think he means put an entry in /etc/hosts for amoveopool2.com such that it points to your pool... but that would only work if your pool accepted /work on the end of the URI
+* update pool to accept /work
+* make a script to take advantage of the /etc/hosts trick.
+
+
+
+* maybe potential_block.erl should save the 2 most recent blocks, so if a nonce doesn't work on one, we can try the other.
 
 * the market user interface should say how many blocks until the next batch.
 
-* the list_markets button in the explorer isn't deleting the old list before displaying a new one.
-
 * prevent the creation of markets with batch periods that are too short to be secure.
 
-* we need an off-switch for the channels, it is non-compatible with a mining pool.
-
 * add the hash of the github commit in the explorer.
-
-* deleting accounts from the light node might have problems.
+% git ls-remote | grep HEAD
 
 * atomic swap protocol
 
@@ -148,10 +272,6 @@ Can't 1 flag do both things?
 * the c-miner should have an easier way to decide which node you will connect to.
 
 * We need to prune bets and orders.
-
-* the light node should have an interface for encrypting and decrypting messages. It should have an interface for signing messages, and checking signatures.
-
-* javascript light node should give an option for extending the time limit in channels. there is an api for paying the server already. modify this slightly.
 
 * outstanding_orders.js needs to be a chart, that way we don't repeat the same words over and over.
 

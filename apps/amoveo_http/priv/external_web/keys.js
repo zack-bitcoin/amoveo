@@ -3,24 +3,24 @@ function keys_function1() {
     var ec = new elliptic.ec('secp256k1');
     var keys = new_keys();
     var account_title = document.createElement("h3");
-    account_title.innerHTML = translate.words("account");
+    account_title.innerHTML = "account ";
     var div = document.createElement("div");
     var save_name = document.createElement("input");
     save_name.type = "text";
-    save_name.value = "Amoveo ".concat(translate.words("private_key"));
-    var save_button = button_maker("save_key", save_keys);
+    save_name.value = "Amoveo private key";
+    var save_button = button_maker2("save private key to file", save_keys);
     var file_selector = document.createElement("input");
     file_selector.type = "file";
     file_selector.onchange = load_keys;
-    var load_text = document.createTextNode(translate.words("get_key"));
-    var watch_only_instructions = document.createTextNode(translate.words("watch_only_instructions"));
+    var load_text = document.createTextNode("get key from file");
+    var watch_only_instructions = document.createTextNode("put your pubkey here to make a watch-only wallet that is unable to spend money.");
     var watch_only_pubkey = document.createElement("input");
     watch_only_pubkey.type = "text";
-    var watch_only_button = button_maker("watch_only_button", watch_only_func); 
+    var watch_only_button = button_maker2("load pubkey", watch_only_func); 
     var pub_div = document.createElement("div");
-    var new_pubkey_button = button_maker("make_key", new_keys_check);
+    var new_pubkey_button = button_maker2("generate new keys", new_keys_check);
     var new_pubkey_div = document.createElement("div");
-    var balance_button = button_maker("check_balance", update_balance);
+    var balance_button = button_maker2("check balance ", update_balance);
     var bal_div = document.createElement("div");
     document.body.appendChild(account_title);
     document.body.appendChild(div);
@@ -67,7 +67,7 @@ function keys_function1() {
 	}
     }
     function update_pubkey() {
-        pub_div.innerHTML = translate.words("your_pubkey").concat(" ").concat(pubkey_64());
+        pub_div.innerHTML = ("your pubkey ").concat(pubkey_64());
     }
     function watch_only_func() {
 	var v = watch_only_pubkey.value;
@@ -77,11 +77,11 @@ function keys_function1() {
     function new_keys_check() {
         //alert("this will delete your old keys. If you havemoney secured by this key, and you haven't saved your key, then this money will be destroyed.");
         var warning = document.createElement("h3");
-        warning.innerHTML = translate.words("key_warning");
-        var button = button_maker("cancel", cancel);
-        var button2 = button_maker("continue", doit);
+        warning.innerHTML = "This will delete your old keys from the browser. Save your keys before doing this.";
+        var button = button_maker2("cancel ", cancel);
+        var button2 = button_maker2("continue", doit);
 	var entropy_txt = document.createElement("h3");
-	entropy_txt.innerHTML = translate.words("entropy_explained");
+	entropy_txt.innerHTML = "put random text here to make keys from";
 	var entropy = document.createElement("input");
 	entropy.type = "text";
         append_children(new_pubkey_div, [warning, button, br(), button2, entropy_txt, entropy]);
@@ -101,15 +101,22 @@ function keys_function1() {
             update_pubkey();
         }
     }
+    function check_balance(Callback) {
+        var trie_key = pubkey_64();
+        var top_hash = hash(headers_object.serialize(headers_object.top()));
+        merkle.request_proof("accounts", trie_key, function(x) {
+	    Callback(x[1]);
+        });
+    }
     function update_balance() {
         var trie_key = pubkey_64();
         var top_hash = hash(headers_object.serialize(headers_object.top()));
         merkle.request_proof("accounts", trie_key, function(x) {
-            set_balance(x[1] / 100000000);
+            set_balance(x[1] / token_units());
         });
     }
     function set_balance(n) {
-        bal_div.innerHTML = translate.words("your_balance").concat((n).toString());
+        bal_div.innerHTML = ("your balance ").concat((n).toString()) + " mVEO";
     }
     function save_keys() {
         download(keys.getPrivate("hex"), save_name.value, "text/plain");
@@ -130,6 +137,6 @@ function keys_function1() {
     function decrypt(val) {
 	return encryption_object.get(val, keys);
     }
-    return {make: new_keys, pub: pubkey_64, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt};
+    return {make: new_keys, pub: pubkey_64, sign: sign_tx, ec: (function() { return ec; }), encrypt: encrypt, decrypt: decrypt, check_balance: check_balance};
 }
 var keys = keys_function1();

@@ -144,12 +144,12 @@ remote_peer(Transaction, Peer) ->
         {ok, Return0} -> Return0;
 	bad_peer -> %remove from peers, add to a black list for next N minutes.
 	    {{_,_,_,_},_} = Peer,
-	    io:fwrite("removing peer "),
-	    io:fwrite(packer:pack(Peer)),
-	    io:fwrite("\n"),
-	    io:fwrite("command was "),
-	    io:fwrite(element(1, Transaction)),
-	    io:fwrite("\n"),
+	    %io:fwrite("removing peer "),
+	    %io:fwrite(packer:pack(Peer)),
+	    %io:fwrite("\n"),
+	    %io:fwrite("command was "),
+	    %io:fwrite(element(1, Transaction)),
+	    %io:fwrite("\n"),
 	    blacklist_peer:add(Peer),
 	    peers:remove(Peer),
 	    error;
@@ -298,6 +298,8 @@ push_new_block(Block) ->
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     M = min(Header#header.height, FT),
     Headers = list_headers([Header], M),
+    {ok, Pools} = application:get_env(amoveo_core, pools),
+    spawn(fun() -> push_new_block_helper(0, 0, shuffle(Pools), Hash, Headers) end),
     spawn(fun() -> push_new_block_helper(0, 0, shuffle(Peers), Hash, Headers) end).
 push_new_block_helper(_, _, [], _, _) -> ok;%no one else to give the block to.
 push_new_block_helper(N, M, _, _, _) when ((M > 1) and ((N*2) > (M*1))) -> ok;%the majority of peers probably already know.
@@ -316,6 +318,9 @@ push_new_block_helper(N, M, [P|T], Hash, Headers) ->
 	end,
     push_new_block_helper(N+Top, M+Bottom, T, Hash, Headers).
 trade_txs(Peer) ->
+    %io:fwrite("trade txs "),
+    %io:fwrite(packer:pack(Peer)),
+    %io:fwrite("\n"),
     case remote_peer({txs, 2, []}, Peer) of
 	    error ->%once everyone upgrades to the new code, we can get rid of this branch.
 	    %ok;
@@ -408,19 +413,32 @@ tch([H|T]) ->
 	    
 cron() ->
     spawn(fun() ->
-		  timer:sleep(2000),
+		  timer:sleep(4000),
 		  Peers = shuffle(peers:all()),
-		  get_headers(hd(Peers)),
-		  trade_peers(hd(Peers)),
-		  timer:sleep(3000),
-		  get_headers(hd(tl(Peers))),
-		  trade_peers(hd(tl(Peers))),
-		  timer:sleep(3000),
-		  get_headers(hd(tl(tl(Peers)))),
-		  trade_peers(hd(tl(tl(Peers))))
+		  LP = length(Peers),
+		  if
+		      LP > 0 ->
+			  get_headers(hd(Peers)),
+			  trade_peers(hd(Peers)),
+			  timer:sleep(3000);
+		      true -> ok
+		  end,
+		  if
+		      LP > 1 ->
+			  get_headers(hd(tl(Peers))),
+			  trade_peers(hd(tl(Peers))),
+			  timer:sleep(3000);
+		      true -> ok
+		  end,
+		  if
+		      LP > 2 ->
+			  get_headers(hd(tl(tl(Peers)))),
+			  trade_peers(hd(tl(tl(Peers))));
+		      true -> ok
+		  end
 		  end),
     spawn(fun() ->
-		  timer:sleep(2000),
+		  timer:sleep(4000),
 		  cron2()
 	  end).
 cron2() ->
@@ -435,8 +453,13 @@ cron2() ->
 			      B -> sync:start();
 			      true -> 
 				  P2 = shuffle(remove_self(peers:all())),
-				  trade_txs(hd(P2))
+				  LP = length(P2),
+				  if
+				      LP > 0 ->
+					  trade_txs(hd(P2));
 				      %trade_txs(hd(tl(P2)))
+				      true -> ok
+				  end
 			  end
 		  end);
 	true -> ok

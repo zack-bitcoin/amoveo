@@ -9,6 +9,7 @@ test() ->
 
     S = success,
     S = test(1),%create account, spend, delete %S = test(2),%repo tx
+    S = test(2),
     S = test(3),%channel team close
     S = test(4),%channel timeout
     S = test(5),%account delete, channel timeout
@@ -54,6 +55,7 @@ test(1) ->
     Ctx21 = spend_tx:make_dict(NewPub, 10, Fee, constants:master_pub()),
     Stx21 = keys:sign(Ctx21),
     absorb(Stx21),
+    timer:sleep(20),
     Ctx3 = delete_account_tx:make_dict(constants:master_pub(), NewPub, Fee),
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
@@ -63,16 +65,26 @@ test(1) ->
     potential_block:new(),
 
     Txs = (tx_pool:get())#tx_pool.txs,
-    BP2 = block:get_by_height(0),
-    PH = block:hash(BP2),
+    mine_blocks(1),
 
-    Block = block:make(block:block_to_header(BP2), Txs, Trees, constants:master_pub()),%1 is the master pub
-    MBlock = block:mine2(Block, 1),
-    Header = block:block_to_header(MBlock),
-    headers:absorb([Header]),
-    {true, _} = block:check(MBlock),
     success;
-    
+test(2) ->
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Trees = block_trees(BP),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = -9000000000,
+    {Ctx, _} = create_account_tx:new(NewPub, 1, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    mine_blocks(1),
+    timer:sleep(200),
+    io:fwrite(packer:pack(api:account(NewPub))),
+    success;
+ 
 test(3) ->
     io:fwrite(" new channel tx, grow channel tx, and channel team close tx test \n"),
     headers:dump(),
@@ -103,12 +115,6 @@ test(3) ->
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
     mine_blocks(1),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
     
 test(4) -> 
@@ -153,13 +159,6 @@ test(4) ->
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
     mine_blocks(1),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Header0 = block:block_to_header(BP),
-    %Block0 = block:make(Header0, Txs, Trees, constants:master_pub()),
-    %Block = block:mine2(Block0, 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 test(5) -> 
     %channel solo close, channel timeout
@@ -201,19 +200,54 @@ test(5) ->
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
-    %mine_blocks(1),
     timer:sleep(500),
     Ctx4 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
     mine_blocks(1),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
+test(61) -> 
+    %a smart contract that runs out of gas.
+% look at the result of `trees:dict_tree_get(channels, <<5:256>>).` to see how this changes the channel.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    
+    Fee = constants:initial_fee() + 20,
+    Amount = 1000000,
+    Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    timer:sleep(100),
+    potential_block:save(),
+    mine_blocks(1),
+    
+    CID = <<5:256>>,
+
+    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 30, Fee),
+    Stx2 = keys:sign(Ctx2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
+    absorb(SStx2),
+    potential_block:new(),
+    mine_blocks(1),
+
+    Code = compiler_chalang:doit(<<" : doit recurse call ; doit call ">>),%channel nonce is 1, sends 50.
+    %Code = compiler_chalang:doit(<<" drop int 2  int 2 int 2 ">>), % this version does not run out of gas, for comparison.
+    Delay = 0,
+    ChannelNonce = 0,
+    Bet = spk:new_bet(Code, Code, 50),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" ">>), []),
+    Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
+    Stx3 = keys:sign(Ctx3),
+    absorb(Stx3),
+    potential_block:new(),
+    mine_blocks(1),
+    timer:sleep(50),
+    success;
+
 test(6) -> 
     io:fwrite("channel slash tx test \n"),
     headers:dump(),
@@ -228,7 +262,6 @@ test(6) ->
     Fee = constants:initial_fee() + 20,
     Amount = 1000000,
     Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
-    %{Ctx, _} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
@@ -238,7 +271,6 @@ test(6) ->
 
     CID = <<5:256>>,
 
-    %Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 10, Fee),
     Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 30, Fee),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
@@ -280,10 +312,6 @@ test(6) ->
     potential_block:new(),
 
     mine_blocks(1),
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 test(8) ->
     io:fwrite(" channel solo close, and channel team close tx test \n"),
@@ -321,18 +349,13 @@ test(8) ->
     %{Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, Fee),
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
+    timer:sleep(40),
 
     Ctx4 = channel_team_close_tx:make_dict(CID, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(SStx4),
     mine_blocks(1),
-
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 test(9) ->
     io:fwrite(" channel slash tx, and channel team close tx test \n"),
@@ -382,11 +405,6 @@ test(9) ->
     absorb(SStx4),
     potential_block:new(),
     mine_blocks(1),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 
 test(7) ->
@@ -420,8 +438,12 @@ test(11) ->
     Fee = constants:initial_fee() + 20,
     headers:dump(),
     block:initialize_chain(),
+    timer:sleep(150),
     tx_pool:dump(),
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0), %Fee, question, start, id gov, govamount
+    timer:sleep(150),
+    mine_blocks(4),
+    timer:sleep(150),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0), %Fee, question, start, id gov, govamount
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
@@ -466,14 +488,7 @@ test(11) ->
     %mine_blocks(1),
     timer:sleep(100),
     Txs = (tx_pool:get())#tx_pool.txs,
-    Height6 = (tx_pool:get())#tx_pool.height,
-    BP = block:get_by_height(Height6),
-    GHeader = block:block_to_header(BP),
-    RB = block:make(GHeader, Txs, block_trees(BP), constants:master_pub()),
-    Block = block:mine2(RB, 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    mine_blocks(1),
     success;
 test(16) ->
     io:fwrite("testing an oracle with more bets\n"),
@@ -487,6 +502,9 @@ test(16) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    timer:sleep(100),
+    mine_blocks(2),
+    timer:sleep(150),
     Amount = 1000000000,
     Ctx_1 = create_account_tx:make_dict(Pub1, Amount, Fee, constants:master_pub()),
     Stx_1 = keys:sign(Ctx_1),
@@ -496,7 +514,7 @@ test(16) ->
     Stx_2 = keys:sign(Ctx_2),
     absorb(Stx_2),
 
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0),
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
@@ -512,6 +530,7 @@ test(16) ->
     Tx21 = oracle_bet_tx:make_dict(Pub1, Fee, OID, 1, OIL*2), 
     Stx21 = testnet_sign:sign_tx(Tx21, Pub1, Priv1),
     absorb(Stx21),
+    timer:sleep(40),
     Tx22 = oracle_bet_tx:make_dict(Pub2, Fee, OID, 2, OIL), 
     Stx22 = testnet_sign:sign_tx(Tx22, Pub2, Priv2),
     absorb(Stx22),
@@ -535,13 +554,7 @@ test(16) ->
     absorb(Stx52),
 
     timer:sleep(100),
-    Txs = (tx_pool:get())#tx_pool.txs,
-    Height6 = (tx_pool:get())#tx_pool.height,
-    BP = block:get_by_height(Height6),
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
+    mine_blocks(1),
     success;
 test(12) ->
     io:fwrite("multiple bets in a single channel test \n"),
@@ -584,14 +597,6 @@ test(12) ->
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
     mine_blocks(1),
-
-    %BP = block:get_by_height(Height4),
-    %PH = block:hash(BP),
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 test(13) ->
     %testing the governance
@@ -602,8 +607,11 @@ test(13) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    timer:sleep(200),
+    mine_blocks(2),
+    timer:sleep(150),
     OID2 = <<1:256>>,
-    Tx3 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID2, 1, 5),
+    Tx3 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID2, 1, 5),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     timer:sleep(100),
@@ -637,7 +645,7 @@ test(13) ->
 
     OID3 = <<2:256>>,
     BR2 = trees:dict_tree_get(governance, block_reward),
-    Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID3, 1, 5),
+    Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID3, 1, 5),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
     potential_block:new(),
@@ -659,14 +667,7 @@ test(13) ->
     BR3 = trees:dict_tree_get(governance, block_reward),
     true = BR1 < BR2,
     true = BR2 < BR3,
-    Txs = (tx_pool:get())#tx_pool.txs,
-    H = (tx_pool:get())#tx_pool.height,
-    BP = block:get_by_height(H),
-    Block = block:mine2(block:make(block:block_to_header(BP), Txs, block_trees(BP), constants:master_pub()), 10),
-    Header = block:block_to_header(Block),
-    headers:absorb([Header]),
-    {true, _} = block:check(Block),
-
+    mine_blocks(1),
     success;
 test(14) -> 
     %options
@@ -674,6 +675,8 @@ test(14) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    mine_blocks(2),
+    timer:sleep(150),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -703,9 +706,10 @@ test(14) ->
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
+    timer:sleep(100),
     potential_block:new(),
     mine_blocks(1),
-    timer:sleep(50),
+    timer:sleep(150),
 
     ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
     Ctx4 = channel_slash_tx:make_dict(NewPub,Fee,SignedScriptPubKey,[ScriptSig2]),
@@ -717,14 +721,9 @@ test(14) ->
     absorb(Stx6),
     BP2 = block:get_by_height(0),
     PH = block:hash(BP2),
+    timer:sleep(100),
     potential_block:new(),
     mine_blocks(1),
-
-    %Txs = (tx_pool:get())#tx_pool.txs,
-    %Block = block:mine2(block:make(block:block_to_header(BP), Txs, Trees, constants:master_pub()), 10),
-    %Header = block:block_to_header(Block),
-    %headers:absorb([Header]),
-    %{true, _} = block:check(Block),
     success;
 
 test(15) ->
@@ -773,13 +772,14 @@ test(15) ->
     timer:sleep(100),
     potential_block:new(),
     mine_blocks(1),
-    timer:sleep(50),
+    timer:sleep(150),
     Txs2 = (tx_pool:get())#tx_pool.txs,
     %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     %timer:sleep(2000),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),
+    timer:sleep(500),
     success;
 test(17) ->
     test({17, 1});
@@ -824,13 +824,25 @@ test(20) ->
     timer:sleep(2000),
     Question = <<>>,
     OID = <<1000:256>>,
-    Tx2 = oracle_new_tx:make_dict(NewPub, Fee, Question, 1, OID, 0, 0),
+    Tx2 = oracle_new_tx:make_dict(NewPub, Fee, Question, 1 + block:height(), OID, 0, 0),
     Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
     absorb(Stx2),
     potential_block:new(),
     block:mine(100000),
+    success;
+test(21) ->
+    Pub = keys:pubkey(),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = 10*(constants:initial_fee() + 20),
+    Tx1 = create_account_tx:make_dict(NewPub, 2, 0, Pub),
+    Tx2 = spend_tx:make_dict(NewPub, 1, 0, Pub),
+    Txs = [Tx1, Tx2],
+    Tx = multi_tx:make_dict(Pub, Txs, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    timer:sleep(1000),
+    mine_blocks(1),
     success.
-    
     
     
 test18(0) -> success;

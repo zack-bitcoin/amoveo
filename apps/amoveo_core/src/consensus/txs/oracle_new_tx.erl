@@ -1,5 +1,5 @@
 -module(oracle_new_tx).
--export([go/3, make/8, make_dict/7, from/1, id/1, governance/1]).
+-export([go/4, make/8, make_dict/7, from/1, id/1, governance/1]).
 -include("../../records.hrl").
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
@@ -32,7 +32,7 @@ make(From, Fee, Question, Start, ID, Governance, GovAmount, Trees) ->
     {_, Acc, _Proof} = accounts:get(From, Accounts),
     Tx = #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount},
     {Tx, []}.
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     ID = Tx#oracle_new.id,
     empty = oracles:dict_get(ID, Dict),
     Gov = Tx#oracle_new.governance,
@@ -42,37 +42,50 @@ go(Tx, Dict, NewHeight) ->
     true = GovAmount < GCL,
     Question = Tx#oracle_new.question,
     %Starts = Tx#oracle_new.start,
-    {Dict2, Starts} = 
+    false = (NewHeight == forks:get(5)),
+    {Dict2, Starts, OIL} = 
         case Gov of
             0 ->
                 GovAmount = 0,
-                {Dict, Tx#oracle_new.start};
-            G ->
+		FG5 = NewHeight > (forks:get(5)),
+		%FG5 = false,
+		L1 = if
+			 FG5 ->
+			     governance:dict_get_value(oracle_question_liquidity, Dict);
+			 true ->
+			     governance:dict_get_value(oracle_initial_liquidity, Dict)
+		     end,
+		{Dict, Tx#oracle_new.start, L1};
+	    _ ->
 		%make sure the oracle starts now, and has no delay.
                 true = GovAmount > 0,
 		Question = <<"">>,
-                GVar = governance:dict_get(G, Dict),
+                GVar = governance:dict_get(Gov, Dict),
                 false = governance:is_locked(GVar),
 		FG1 = forks:get(1),
+		L2 = governance:dict_get_value(oracle_initial_liquidity, Dict),
 		if
 		    FG1 < NewHeight -> 
-			{governance:dict_lock(G, Dict), NewHeight};
+			{governance:dict_lock(Gov, Dict), NewHeight, L2};
 		    true ->
-			{governance:dict_lock(G, Dict), max(NewHeight, Tx#oracle_new.start)}
+			{governance:dict_lock(Gov, Dict), max(NewHeight, Tx#oracle_new.start), L2}
 		end
         end,
     false = Starts < NewHeight,
     ok = case Question of
              <<"">> -> ok;
-             Q ->
+             _ ->
                  MQS = governance:dict_get_value(maximum_question_size, Dict2),
-                 true = size(Q) < MQS,
+                 true = size(Question) < MQS,
                  0 = GovAmount,
-                 ok
-         end,
+		 ok
+	 end,
     From = Tx#oracle_new.from,
-    OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
-    Facc = accounts:dict_update(From, Dict2, -Tx#oracle_new.fee-OIL, Tx#oracle_new.nonce),
+    Nonce = if
+		NonceCheck -> Tx#oracle_new.nonce;
+		true -> none
+	    end,
+    Facc = accounts:dict_update(From, Dict2, -Tx#oracle_new.fee-OIL, Nonce),
     Dict3 = accounts:dict_write(Facc, Dict2),
     %OFL = governance:dict_get_value(oracle_future_limit, Dict3),
     %true = (Starts - NewHeight) < OFL,
@@ -82,6 +95,6 @@ go(Tx, Dict, NewHeight) ->
     oracle_questions:store(QH, Question),
     Diff = Tx#oracle_new.difficulty,
     ON = oracles:new(ID, QH, Starts, From, Gov, GovAmount, Dict),
-    Dict4 = oracles:dict_write(ON, Dict3).
+    oracles:dict_write(ON, Dict3).
     
     

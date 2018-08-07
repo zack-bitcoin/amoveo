@@ -1,29 +1,29 @@
 Governance decides a different minimum fee size for each transaction type.
 The miner profits by including transactions that pay above the minimum fee for that transaction type.
 
-These are the 15 types of transaction that can be in blocks.
+These are the 14 types of transaction that can be in blocks.
 
 3 transactions for accounts:
-* create_account
-* account_spend
-* account_delete
+* create_account_tx
+* spend_tx
+* delete_account_tx
 
 5 transactions for channels:
-* channel_new
-* channel_team_close
+* new_channel_tx
+* channel_team_close_tx
 * channel_solo_close
-* channel_slash
-* channel_timeout
+* channel_slash_tx
+* channel_timeout_tx
 
 5 transactions for the oracle:
-* oracle_new
-* oracle_bet
-* oracle_close
-* oracle_unmatched
-* oracle_winnings
+* oracle_new_tx
+* oracle_bet_tx
+* oracle_close_tx
+* oracle_unmatched_tx
+* oracle_winnings_tx
 
 1 bonus transactions:
-* existence
+* coinbase_tx
 
 # create_account
 
@@ -45,7 +45,7 @@ WARNING! do not reuse a pubkey after it has been deleted.
 This creates a new channel on the blockchain.
 It needs to be signed by both participants in the channel.
 It takes money from both participant's accounts to put into the channel.
-Channels can only hold AE tokens.
+Channels can only hold Veo tokens.
 There is a record of recently closed channels. You can't reuse an id from a recently closed channel.
 
 # channel_team_close

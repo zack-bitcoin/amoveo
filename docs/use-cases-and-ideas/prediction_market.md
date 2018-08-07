@@ -1,6 +1,6 @@
 Prediction markets
 
-[Here are lots of use cases for prediction markets](http://bitcoinhivemind.com/papers/3_PM_Applications.pdf)
+[Here are lots of use cases for prediction markets \[External PDF\]](http://bitcoinhivemind.com/papers/3_PM_Applications.pdf)
 
 Prediction markets are used to:
 

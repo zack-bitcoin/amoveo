@@ -13,17 +13,40 @@ height() ->
     (headers:top())#header.height.
 height(1) ->
     block:height().
+block(1, N) ->
+    B = block:get_by_height(N),
+    B#block.txs;
+block(3, N) ->
+    Txs = tl(block(1, N)),
+    Txids = lists:map(
+	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      Txs),
+    [Txs, Txids];
+block(2, H) ->
+    block:get_by_hash(H).
 top() ->
     TopHeader = headers:top(),
     Height = TopHeader#header.height,
     {top, TopHeader, Height}.
+top(1) ->
+    H = headers:top_with_block(),
+    [H, block:hash(H)].
 sign(Tx) -> keys:sign(Tx).
 tx_maker0(Tx) -> 
     case keys:sign(Tx) of
 	{error, locked} -> 
 	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
 	    ok;
-	Stx -> tx_pool_feeder:absorb(Stx)
+	Stx -> 
+	    tx_pool_feeder:absorb(Stx),
+	    %Peers = peers:all(),
+	    %spawn(fun() ->
+		%	  lists:map(fun(P) -> 
+		%			    timer:sleep(200),
+		%			    spawn(fun() -> talker:talk({txs, [Stx]}, P) end) end, Peers)
+		%	  end),
+	    %ok
+	    hash:doit(Tx)
     end.
 create_account(NewAddr, Amount) ->
     Cost = trees:dict_tree_get(governance, create_acc_tx),
@@ -37,6 +60,35 @@ create_account(N, A, F) ->
 coinbase(_) ->
     K = keys:pubkey(),
     tx_maker0(coinbase_tx:make_dict(K)).
+spend(L) when is_list(L) ->
+    Txs = multi_spend(L),
+    Fee = multi_fee(Txs),
+    MTx = multi_tx:make_dict(keys:pubkey(), Txs, Fee),
+    tx_maker0(MTx).
+multi_spend([]) -> [];
+multi_spend([{Amount, Pubkey}|T]) ->
+    ID = decode_pubkey(Pubkey),
+    K = keys:pubkey(),
+    Tx = if
+	     ID == K -> io:fwrite("don't spend to yourself\n"),
+			1 = 2;
+	     true ->
+		 B = trees:dict_tree_get(accounts, ID),
+		 if
+		     (B == empty) -> 
+			 create_account_tx:make_dict(ID, Amount, 0, K);
+		     true -> 
+			 spend_tx:make_dict(ID, Amount, 0, K)
+		 end
+	 end,
+    [Tx|multi_spend(T)].
+multi_fee([]) -> 0;
+multi_fee([H|T]) ->
+    Type = element(1, H),
+    Cost = trees:dict_tree_get(governance, Type),
+    Cost + multi_fee(T) + ?Fee.
+
+
 spend(ID0, Amount) ->
     ID = decode_pubkey(ID0),
     K = keys:pubkey(),
@@ -105,6 +157,10 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     tx_pool_feeder:absorb(SSTx),
     channel_feeder:new_channel(Tx, S2SPK, Expires),
     0.
+signed(Signed, Pub) ->
+    X = element(2, Signed),
+    S = element(3, Signed),
+    sign:verify_sig(X, S, Pub).
 pull_channel_state() ->
     pull_channel_state(?IP, ?Port).
 pull_channel_state(IP, Port) ->
@@ -257,8 +313,12 @@ new_question_oracle(Start, Question)->
     new_question_oracle(Start, Question, ID).
 
 new_question_oracle(Start, Question, ID)->
+    Q2 = if
+	     is_list(Question) -> list_to_binary(Question);
+	     true -> Question
+	 end,
     Cost = trees:dict_tree_get(governance, oracle_new),
-    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Question, Start, ID, 0, 0)),
+    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, ID, 0, 0)),
     ID.
 new_governance_oracle(GovName, GovAmount) ->
     GovNumber = governance:name2number(GovName),
@@ -398,12 +458,21 @@ sync() ->
 sync(IP, Port) -> 
     spawn(fun() -> sync:start([{IP, Port}]) end),
     0.
+sync(2, IP, Port) ->
+    spawn(fun() -> sync:get_headers({IP, Port}) end),
+    0.
 keypair() -> keys:keypair().
 pubkey() -> base64:encode(keys:pubkey()).
 new_pubkey(Password) -> keys:new(Password).
 new_keypair() -> testnet_sign:new_key().
 test() -> {test_response}.
 channel_keys() -> channel_manager:keys().
+keys_lock() ->
+    keys:lock(),
+    0.
+keys_unlock() ->
+    keys:lock(),
+    0.
 keys_unlock(Password) ->
     keys:unlock(Password),
     0.
@@ -411,6 +480,7 @@ keys_new(Password) ->
     keys:new(Password),
     0.
 market_match(OID) ->
+    %maybe this should be removed? does it break the order book?
     order_book:match_all([OID]),
     {ok, ok}.
 settle_bets() ->
@@ -475,6 +545,7 @@ txs({IP, Port}) ->
 txs(IP, Port) ->
     sync:trade_txs({IP, Port}),
     0.
+    
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
     Block = potential_block:check(),
@@ -492,36 +563,51 @@ work(Nonce, _) ->
     %io:fwrite("work block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block2)))),
-    io:fwrite("pool found a block"),
-    io:fwrite("\n"),
+    %io:fwrite("pool found a block"),
+    %io:fwrite("\n"),
     Header = block:block_to_header(Block2),
-    headers:absorb([Header]),
-    headers:absorb_with_block([Header]),
+    headers:absorb([Header]),%uses call
+    %headers:absorb_with_block([Header]),%uses call
     %block_absorber:save(Block2),
     block_organizer:add([Block2]),
     %spawn(fun() -> 
-    timer:sleep(1000),
+    %timer:sleep(1000),
     potential_block:save(),
     %sync:start() ,
 	%  end),
     0.
 mining_data() ->
-    normal = sync_mode:check(),
-    Block = potential_block:read(),
+    case sync_mode:check() of
+	quick -> 0;
+	normal ->
+	    Block = potential_block:read(),
     %io:fwrite("mining data block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
     %io:fwrite("\n"),
-    F2 = forks:get(2),
-    Height = Block#block.height,
-    Entropy = if
-	       F2 > Height -> 32;
-	       true -> 23
-	   end,
-    [hash:doit(block:hash(Block)),
-     crypto:strong_rand_bytes(Entropy), 
+	    case Block of
+		"" ->
+		    ok;
+		    %timer:sleep(100),
+		    %mining_data();
+		_ ->
+		    F2 = forks:get(2),
+		    Height = Block#block.height,
+		    Entropy = if
+				  F2 > Height -> 32;
+				  true -> 23
+			      end,
+		    [hash:doit(block:hash(Block)),
+		     crypto:strong_rand_bytes(Entropy), 
      %headers:difficulty_should_be(Top)].
-     Block#block.difficulty].
-
+		     Block#block.difficulty]
+	    end
+    end.
+sync_normal() ->
+    sync_mode:normal(),
+    0.
+sync_quick() ->
+    sync_mode:quick(),
+    0.
    
 mining_data(X) ->
     mining_data(X, 30).
@@ -530,3 +616,4 @@ mining_data(X, Start) ->
 
 pubkey(Pubkey, Many, TopHeight) ->
     amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).
+%curl -i -d '["pubkey", "BEwcawKx5oZFOmp1533TqDzUl76fOeLosDl+hwv6rZ50tLSQmMyW/87saj3D5qBtJI4lLsILllpRlT8/ppuNaPM=", 100, 18000]' http://localhost:8081

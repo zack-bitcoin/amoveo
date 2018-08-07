@@ -1,5 +1,5 @@
 -module(proofs).
--export([prove/2, test/0, hash/1, facts_to_dict/2, txs_to_querys/2, 
+-export([prove/2, test/0, hash/1, facts_to_dict/2, txs_to_querys/3, 
          root/1, tree/1, path/1, value/1, governance_to_querys/1,
          key/1]).
 -define(Header, 1).
@@ -19,7 +19,8 @@ tree_to_int(existence) -> 3;
 tree_to_int(oracles) -> 5;
 tree_to_int(governance) -> 6;
 tree_to_int(oracle_bets) -> 7;
-tree_to_int(orders) -> 8.
+tree_to_int(orders) -> 8;
+tree_to_int(multi_tx) -> 9.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -27,7 +28,8 @@ int_to_tree(3) -> existence;
 int_to_tree(5) -> oracles;
 int_to_tree(6) -> governance;
 int_to_tree(7) -> oracle_bets;
-int_to_tree(8) -> orders.
+int_to_tree(8) -> orders;
+int_to_tree(9) -> multi_tx.
     
 
 %deterministic merge-sort    
@@ -109,7 +111,6 @@ prove2([{oracle_bets, Key}|T], Trees) ->
 		   tree = tree_to_int(oracle_bets)},
     true = oracle_bets:verify_proof(Root, Key#key.id, Data2, Path),
     [Proof|prove2(T, Trees)];
-    
 prove2([{Tree, Key}|T], Trees) ->
     Branch = trees:Tree(Trees),
     {Root, Data, Path} = Tree:get(Key, Branch),
@@ -165,23 +166,34 @@ leaves_to_querys([L|T]) ->
     Q = {governance, leaf:key(L)},
     [Q|leaves_to_querys(T)].
 -define(n2i(X), governance:name2number(X)).
-txs_to_querys([C|T], Trees) -> 
+txs_to_querys([C|T], Trees, Height) -> 
     case element(1, C) of
         coinbase ->
+	    FH5 = forks:get(5),
+	    B = Height == FH5,
+	    L = if
+		    B -> [{governance, ?n2i(oracle_question_liquidity)}];
+		    true -> []
+		end,
             [
              {governance, ?n2i(block_reward)},
              {governance, ?n2i(developer_reward)},
              {accounts, constants:master_pub()},
              {accounts, coinbase_tx:from(C)}
             ] ++
-                txs_to_querys2(T, Trees);
-        signed -> txs_to_querys2([C|T], Trees)
+                txs_to_querys2(T, Trees, Height);
+        signed -> txs_to_querys2([C|T], Trees, Height)
     end.
-txs_to_querys2([], _) -> [];
-txs_to_querys2([STx|T], Trees) ->
+txs_to_querys2([], _, _) -> [];
+txs_to_querys2([STx|T], Trees, Height) ->
     Tx = testnet_sign:data(STx),
     PS = constants:pubkey_size() * 8,
     L = case element(1, Tx) of
+	    multi_tx ->
+		txs_to_querys_multi(multi_tx:txs(Tx)) ++
+		    [ 
+		      {accounts, multi_tx:from(Tx)}
+		     ];
 	    create_acc_tx -> 
                 [
                  {governance, ?n2i(create_acc_tx)},
@@ -257,15 +269,25 @@ txs_to_querys2([STx|T], Trees) ->
 	    oracle_new -> 
                 OID = oracle_new_tx:id(Tx),
                 AID = oracle_new_tx:from(Tx),
+		N2IOIL = ?n2i(oracle_initial_liquidity),
                 G = case oracle_new_tx:governance(Tx) of
-                        0 -> [];
-                        N -> [{governance, N}]
+                        0 -> 
+			    FH5 = forks:get(5),
+			    B = FH5 < Height,
+			    %B = false,
+			    OILK = if
+				       B -> ?n2i(oracle_question_liquidity);
+				       true -> N2IOIL
+				   end,
+			    [{governance, OILK}];
+                        N -> [{governance, N2IOIL},
+			      {governance, N}]
                     end,
                 [
                  {governance, ?n2i(oracle_new)},
                  {governance, ?n2i(governance_change_limit)},
                  {governance, ?n2i(maximum_question_size)},
-                 {governance, ?n2i(oracle_initial_liquidity)},
+                 %{governance, ?n2i(oracle_initial_liquidity)},
                  {governance, ?n2i(minimum_oracle_time)},
                  {accounts, AID},
                  {oracles, OID}
@@ -274,6 +296,9 @@ txs_to_querys2([STx|T], Trees) ->
                 OID = oracle_bet_tx:id(Tx),
                 Pubkeys = [oracle_bet_tx:from(Tx)|
                            oracle_bet_tx:to_prove(OID, Trees)],
+		%io:fwrite("proof oracle_bet pubkeys: "),
+		%io:fwrite(packer:pack(Pubkeys)),
+		%io:fwrite("\n"),
                 Pubkeys2 = remove(<<?Header:PS>>, Pubkeys),
                 Prove = tagify(accounts, Pubkeys) ++ 
                     make_oracle_bets(Pubkeys2, OID) ++
@@ -299,11 +324,13 @@ txs_to_querys2([STx|T], Trees) ->
                 Pubkeys = [From|
                            oracle_bet_tx:to_prove(OID, Trees)],
                 Pubkeys2 = remove(<<?Header:PS>>, Pubkeys),
-                Prove = tagify(accounts, Pubkeys) ++ 
+		%io:fwrite("proofs oracle_close pubkeys are: "),
+		%io:fwrite(packer:pack(Pubkeys)),
+		%io:fwrite("\n"),
+                Prove = tagify(accounts, Pubkeys) ++ %this should probably be Pubkeys2
                     make_oracle_bets(Pubkeys2, OID) ++
                     make_orders(Pubkeys, OID),
                 [
-                             %whichever governance variable is being updated.
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
                  {governance, ?n2i(oracle_close)},
@@ -341,7 +368,26 @@ txs_to_querys2([STx|T], Trees) ->
                  {accounts, coinbase_tx:from(Tx)}
                 ]
 	end,
-    L ++ txs_to_querys2(T, Trees).
+    L ++ txs_to_querys2(T, Trees, Height).
+txs_to_querys_multi([]) -> [];
+txs_to_querys_multi([Tx|T]) ->
+    PS = constants:pubkey_size() * 8,
+    L = case element(1, Tx) of
+	    create_acc_tx -> 
+                [
+                 {governance, ?n2i(create_acc_tx)},
+                 {accounts, create_account_tx:pubkey(Tx)}
+                ];
+	    spend -> 
+                [
+                 {governance, ?n2i(spend)},
+                 {accounts, spend_tx:to(Tx)}
+                ]
+	end,
+    L ++ txs_to_querys_multi(T).
+
+	    
+    
 remove(_, []) -> [];
 remove(X, [X|A]) -> remove(X, A);
 remove(X, [Y|A]) -> [Y|remove(X, A)].
@@ -360,10 +406,12 @@ test() ->
     headers:dump(),
     %block:initialize_chain(),
     tx_pool:dump(),
+    test_txs:mine_blocks(2),
+    timer:sleep(150),
     Question = <<>>,
     OID = <<2:256>>,
     Fee = 20 + constants:initial_fee(),
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1, OID, 0, 0),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID, 0, 0),
     %{Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees0),
     tx_pool_feeder:absorb(keys:sign(Tx)),
     test_txs:mine_blocks(1),
@@ -408,7 +456,7 @@ test() ->
     Txs = [keys:sign(NewTx),
            keys:sign(NewTx2),
            testnet_sign:sign_tx(NewTx3, Pub3, Priv30)],
-    Q2 = txs_to_querys2(Txs, Trees),
+    Q2 = txs_to_querys2(Txs, Trees, 1),
     prove(Q2, Trees),
     success.
     

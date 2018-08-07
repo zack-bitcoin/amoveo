@@ -95,6 +95,7 @@ def test3(): #useful for testing market from light node.
     request(1, 'mine_block', [1, 10000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.3)
     request(1, 'sync', [[127,0,0,1], 3020], 0.8)
+    #request(2, 'oracle_winnings', [oid], 0.04)#this causes a crash, as it should.
     request(1, 'oracle_winnings', [oid], 0.04)
     request(1, 'oracle_unmatched', [oid], 0.04)
     request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.04)

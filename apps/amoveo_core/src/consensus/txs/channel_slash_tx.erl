@@ -1,5 +1,5 @@
 -module(channel_slash_tx).
--export([go/3, make/5, make_dict/4, is_tx/1, from/1, id/1]).
+-export([go/4, make/5, make_dict/4, is_tx/1, from/1, id/1]).
 -record(cs, {from, nonce, fee = 0, 
 	     scriptpubkey, scriptsig}).
 -include("../../records.hrl").
@@ -49,7 +49,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
 	      scriptsig = ScriptSig},
     {Tx, [Proof1, Proof2, Proofc]}.
 
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#cs.from,
     SignedSPK = Tx#cs.scriptpubkey,
     SPK = testnet_sign:data(SignedSPK),
@@ -63,13 +63,22 @@ go(Tx, Dict, NewHeight) ->
     Acc1 = SPK#spk.acc1,
     Acc2 = SPK#spk.acc2,
     Fee = Tx#cs.fee,
-    Nonce = Tx#cs.nonce,
+    Nonce = if
+		NonceCheck -> Tx#cs.nonce;
+		true -> none
+	    end,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, Tx#cs.scriptsig, SPK, NewHeight, 1, Dict),
-    true = NewCNonce > channels:nonce(OldChannel),
-    true = (-1 < (channels:bal1(OldChannel)-Amount)),%channels can only delete money that was inside the channel.
-    true = (-1 < (channels:bal2(OldChannel)+Amount)),
+    CNOC = channels:nonce(OldChannel),
     NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
-    Dict2 = channels:dict_write(NewChannel, Dict),
+    CB1OC = channels:bal1(NewChannel),
+    CB2OC = channels:bal2(NewChannel),
+    Dict2 = if
+		(((NewCNonce > CNOC) and
+		  (-1 < (CB1OC-Amount))) and
+		 (-1 < (CB2OC+Amount))) ->
+		    channels:dict_write(NewChannel, Dict);
+		true -> Dict
+	    end,
     ID = Tx#cs.from,
     Account = accounts:dict_update(ID, Dict, -Fee, Nonce),
     accounts:dict_write(Account, Dict2).

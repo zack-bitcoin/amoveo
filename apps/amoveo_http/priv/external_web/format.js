@@ -1,6 +1,7 @@
-function s2c(x) { return x / 100000000; }
+function token_units() { return 100000 }; // mVEO
+function s2c(x) { return x / token_units(); }
 function c2s(x) {
-    return Math.floor(parseFloat(x.value, 10) * 100000000);
+    return Math.floor(parseFloat(x.value, 10) * token_units());
 }
 function array_to_int(l) {
     var x = 0;
@@ -129,10 +130,10 @@ function newhash2integer(h) {
     
     return hash2integer2(h.concat([255]), 0, 0);
 }
-function button_maker(val, fun) {
+function button_maker2(val, fun) {
     var button = document.createElement("input");
     button.type = "button";
-    button.value = translate.words(val);
+    button.value = val;
     button.onclick = fun;
     return button;
 }
@@ -144,5 +145,45 @@ function append_children(d, l) {
         d.appendChild(l[i]);
     }
 }
+function text(a) {
+    var x2 = document.createElement("h8");
+    x2.innerHTML = a;
+    return x2;
+};
 
 
+function tree_number_to_value(t) {
+    if (t < 101) {
+        return t;
+    } else {
+        var top = 101;
+        var bottom = 100;
+	var t2 = t - 100;
+        var x = tree_number_det_power(10000, top, bottom, t2);
+        return Math.floor(x / 100);
+    }
+}
+function tree_number_det_power(base, top, bottom, t) {
+    if (t == 1) {
+        return Math.floor((base * top) / bottom);
+    }
+    var r = Math.floor(t % 2);
+    if (r == 1) {
+        var base2 = Math.floor((base * top) / bottom);
+        return tree_number_det_power(base2, top, bottom, t-1);
+    } else if (r == 0) {
+        var top2 = Math.floor((top * top)  / bottom);
+        return tree_number_det_power(base, top2, bottom,
+                                     Math.floor(t / 2));
+    }
+}
+function parse_address(A) {
+    //remove spaces or periods. " " "."
+    A2 = A.replace(/\ /g,'');
+    A3 = A2.replace(/\./g,'');
+    A4 = A3.replace(/\n/g,'');
+    //if it is the wrong length, make an error.
+    //88
+    B = ((A4).length == 88);
+    if (B) { return A4; } else { return 0; };
+}

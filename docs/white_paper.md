@@ -132,7 +132,7 @@ Here is an [explanation of how the market smart contract works.](design/limit_or
 * In Bitcoin the bandwidth requirement for trust-free access to the blockchain is O((number of blocks) * (transactions per block ~= 2000) * (size of a average tx ~= 1 kb)). This is so expensive that most people cannot afford to run a secure Bitcoin node. Alternatively, you can pay a server to scan the entire UTXO set every time you want to check your balance, but this is too expensive as well. No one has yet made a server like this.
 * In Amoveo, the computational requirement for trust-free access to the blockchain is O((number of blocks) * (size of average header ~= 200 bytes)). Per block, Amoveo will be able to sync about 10 000 times faster than Bitcoin.
 * Scalability- parallel block computation. Since miners don't have to store any of the consensus state, the blockchain would still be functional under these conditions: it takes more than 10 minutes for a miner to verify a block. The block time is 10 minutes. Compare with Bitcoin or Ethereum, where security depends on the fact that the time to verify a block is significantly less than the block time. Ethereum tried to solve this problem with GHOST, which is only a small improvement. GHOST comes at the large cost of inflating ETH to pay for uncle blocks. Amoveo can do much more computation per block.
-* [Analyze some attacks on light nodes](light_nodes.md)
+* [Analyze some attacks on light nodes](design/light_nodes.md)
 
 
 ## Example Use Cases
