@@ -263,6 +263,7 @@ difficulty_should_be(NextHeader, A) ->%Next is built on A
             %{D1, A#header.period}
             {D1, EWAH}
     end.
+%-define(hashrate_converter, 1024).
 -define(hashrate_converter, 1024).
 new_retarget(Header, EWAH0) ->
     EWAH = max(EWAH0, 1),
@@ -366,9 +367,24 @@ calc_ewah(Header, PrevHeader, PrevEWAH0) ->
     true = Header#header.time < (block:time_now() + 20),%give 2 seconds gap in case system time is a little off.
     Hashrate0 = max(1, ?hashrate_converter * pow:sci2int(PrevHeader#header.difficulty) div DT),
 
-    Hashrate = min(Hashrate0, PrevEWAH * 4),
+    Hashrate1 = min(Hashrate0, PrevEWAH * 2),
+    Hashrate = max(Hashrate1, PrevEWAH div 2),
     N = 20,
     EWAH = (Hashrate + ((N - 1) * PrevEWAH)) div N,
+
+    %Height = Header#header.height,
+    if
+	false -> 
+	    Diff = Header#header.difficulty,
+	    Hashes = pow:sci2int(Diff),
+	    Estimate = max(1, (?hashrate_converter * Hashes) div EWAH),%in seconds/10
+	    %io:fwrite(integer_to_list(Header#header.height)),
+	    %io:fwrite("estimate is "),
+	    %io:fwrite(integer_to_list(Estimate)),
+	    %io:fwrite("\n"),
+	    ok;
+	true -> ok
+    end,
 
     %N = 20,
     %Converter = PrevEWAH * 1024000,

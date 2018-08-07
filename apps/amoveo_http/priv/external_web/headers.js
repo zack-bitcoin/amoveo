@@ -14,7 +14,7 @@ function headers_main() {
     } else {
 	INITIAL_DIFFICULTY = 8844;
 	retarget_frequency = 2000;
-	forks = {two: 9000, four: 26900, seven:28100};
+	forks = {two: 9000, four: 26900, seven:281000};
 	top_header = 0;
 	//top_header = ["header", 28102, "YS6YwsbqGmb52ffetsWjaAdXo05t+T2rTp4/Qd6uJF0=", "1F8OTHvstQpO3v0JakaNwJybtU9pFevgY17SztWJ5wc=", "DRv0mJlCSqxmSxDqfBtzeq4IOo2jwJ78sWOE08BuGOE=", 143143967, 14053, 3, "AAAAAAAAAAAA1bxHxDdxjuBesyoPTJgxh23ZAQAAurg=", 196793811742050220000, 5982];
 	//write_header(top_header, 1000000);
@@ -243,6 +243,7 @@ function headers_main() {
             }
         }
     }
+    //function hashrate_converter() { return 1048576; }
     function hashrate_converter() { return 1024; }
     function calc_ewah(header, prev_header, prev_ewah0) {
 	var prev_ewah = Math.max(1, prev_ewah0);
