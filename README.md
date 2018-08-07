@@ -93,7 +93,7 @@ Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 
 http://159.65.120.84:8085/main.html (maintained by Zack, who wrote the Amoveo full node.)
 
-http://amoveopool2.com/pool
+https://amoveopool.com/#getting-started
 
 http://amoveo.noncense.tech/
 
