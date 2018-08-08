@@ -31,15 +31,14 @@ handle_call({add, Hash, TotalWork, Height}, _, X) ->
               AB = block:get_by_height(max(0, Height - FT)),
               {ok, H} = headers:read(block:hash(AB)),
               AncestorsWork = H#header.accumulative_difficulty,
-              %Blocks = remove_before(lists:reverse(X#r.blocks), AncestorsWork),
 	      BS = lists:sort(fun(A, B) -> 
 				      {_, A1} = A,
 				      {_, B1} = B,
 				      A1 < B1
 			      end,
 			      X#r.blocks),
-              %Blocks = tree_data:remove_before(BS, AncestorsWork),
               Blocks = remove_before(BS, AncestorsWork),
+              %Blocks = remove_before(X#r.blocks, AncestorsWork),
               #r{blocks = [{Hash, TotalWork}|Blocks], work = TotalWork, save_limit = AncestorsWork};
           TotalWork > X#r.save_limit ->
               X#r{blocks = [{Hash, TotalWork}|X#r.blocks]};

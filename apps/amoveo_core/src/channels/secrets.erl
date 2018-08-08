@@ -1,5 +1,4 @@
 -module(secrets).
-%% When we sign a block, we record the hash of a secret. Later on, we need to reveal this secret.
 %% This module holds a bunch of secrets make by this node, stored in a dict by hash.
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3,

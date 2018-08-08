@@ -3,12 +3,12 @@
 %It acts as an order book.
 %the market maker has to publish the price periodically, every trade is matched at the earliest price possible.
 int 200 die_number !
-macro mil int 1000000 ;
 macro or_die int 0 == if
   die_number @ fail
 else
   die_number @ int 1 + die_number !
 then drop drop ;
+macro mil int 1000000 ;
 
 %<<height:32, price:16, portionMatched:16, market_id:256, signature/binary>>
 %sig data pub
@@ -25,7 +25,7 @@ rot
         % Height is when the bet happened is 2
         % top of stack is when the price declaration happened is 12
         % Height < height
-    dup Height < not or_die %check that the price declaration was made after the bet, or at the same time.
+    dup Height @ < not or_die %check that the price declaration was made after the bet, or at the same time.
 tuck ( height price portion_matched )
 ;
 

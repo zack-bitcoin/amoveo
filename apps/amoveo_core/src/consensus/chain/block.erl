@@ -2,7 +2,7 @@
 -export([block_to_header/1, get_by_height_in_chain/2,
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
-         mine/1, mine/2, mine2/2, check/1, 
+         mine/1, mine/2, mine2/2, check/1, check0/1,
          top/0, genesis_maker/0, height/0,
 	 time_now/0, all_mined_by/1, time_mining/1,
 	 period_estimate/0, hashrate_estimate/0,
@@ -108,7 +108,10 @@ top(Header) ->
             top(PrevHeader);
         Block -> Block
     end.
-height() -> (top())#block.height.
+%height() -> (top())#block.height.
+height() ->
+    TH = headers:top_with_block(),
+    TH#header.height.
 lg(X) when (is_integer(X) and (X > 0)) ->
     lgh(X, 0).
 lgh(1, X) -> X;
@@ -160,25 +163,9 @@ genesis_maker() ->
            trees = Trees,
            roots = make_roots(Trees)
           }.
-%block_reward_dict(Dict, Height, ID, PH) ->
-%    BCM = 100,
-%    BlocksAgo = Height - BCM,
-%    case BlocksAgo > 0 of
-%        true ->
-%            Txs = (get_by_height_in_chain(BlocksAgo, PH))#block.txs,
-%            TransactionFees = txs:fees(Txs),
-%            TransactionCosts = tx_costs_dict(Txs, Dict, 0),
-%            BlockReward = dict:fetch({governance, 
-%                                      governance:name2number(block_reward)},
-%                                     Dict),
-%            Amount = BlockReward + TransactionFees - TransactionCosts,
-%            NM = case accounts:dict_get(ID, Dict) of
-%                     empty ->  accounts:new(ID, Amount);
-%                     _ -> accounts:dict_update(ID, Dict, Amount, none)
-%                 end,
-%            accounts:dict_write(NM, Dict);
-%        false -> Dict
-%    end.
+miner_fees([]) -> 0;
+miner_fees([H|T]) ->
+    element(4, testnet_sign:data(H)) + miner_fees(T).
    
 tx_costs_dict([], _, Out) -> Out;
 tx_costs_dict([STx|T], Dict, Out) ->
@@ -193,20 +180,20 @@ tx_costs([STx|T], Governance, Out) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
-new_dict(Txs, Dict, Height, _Pub, _PrevHash) ->
+new_dict(Txs, Dict, Height) ->
     Dict2 = txs:digest_from_dict(Txs, Dict, Height),
     Dict2.
-market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height) ->
+market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
     FH = forks:get(3),
     if
 	FH > Height ->
 	    OldBlock#block.market_cap + 
 		BlockReward - 
-		gov_fees(Txs0, Governance);
+		gov_fees(Txs0, Dict);
 	Height == FH -> 
 	    MC1 = OldBlock#block.market_cap + 
 		BlockReward - 
-		gov_fees(Txs0, Governance),
+		gov_fees(Txs0, Dict),
 	    (MC1 * 6) div 5;
 	FH < Height ->
 	    DeveloperRewardVar = 
@@ -217,7 +204,7 @@ market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height) ->
 		10000,
 	    OldBlock#block.market_cap + 
 		BlockReward - 
-		gov_fees(Txs0, Governance) + 
+		gov_fees(Txs0, Dict) + 
 		DeveloperReward
     end.
     
@@ -225,25 +212,46 @@ market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height) ->
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [CB|lists:reverse(Txs0)],
-    Querys = proofs:txs_to_querys(Txs, Trees),
     Height = Header#header.height,
+    Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
     Facts = proofs:prove(Querys, Trees),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
-    NewDict = new_dict(Txs, Dict, Height+1, keys:pubkey(), hash(Header)),
-    NewTrees = tree_data:dict_update_trie(Trees, NewDict),
+    NewDict0 = new_dict(Txs, Dict, Height + 1),
+    B = ((Height+1) == forks:get(5)),
+    NewDict = if
+		B -> 
+		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
+		      io:fwrite("block governance adjust "),
+		      io:fwrite(packer:pack(OQL)),
+		      governance:dict_write(OQL, NewDict0);
+		true -> NewDict0
+	    end,
+    MinerAddress = Pub,
+    FG6 = forks:get(6),
+    NewDict2 = if
+		   (Height + 1) < FG6 -> NewDict;
+		   true ->
+		       MinerReward = miner_fees(Txs0),
+%    MinerAccount = accounts:dict_get(MinerAddress, Dict),
+		       MinerAccount = accounts:dict_update(MinerAddress, NewDict, MinerReward, none),
+		       accounts:dict_write(MinerAccount, NewDict)
+	       end,
+    NewTrees = tree_data:dict_update_trie(Trees, NewDict2),
     %Governance = trees:governance(NewTrees),
     Governance = trees:governance(Trees),
     BlockPeriod = governance:get_value(block_period, Governance),
     PrevHash = hash(Header),
     OldBlock = get_by_hash(PrevHash),
     BlockReward = governance:get_value(block_reward, Governance),
-    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height),
+    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height),
+    TimeStamp = time_now(),
+    NextHeader = #header{height = Height + 1, prev_hash = PrevHash, time = TimeStamp, period = BlockPeriod},
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
 		   trees_hash = trees:root_hash(NewTrees),
-		   time = time_now(),
-		   difficulty = headers:difficulty_should_be(Header),
+		   time = TimeStamp,
+		   difficulty = element(1, headers:difficulty_should_be(NextHeader, Header)),
                    period = BlockPeriod,
 
 		   version = version:doit(Height+1),%constants:version(),
@@ -301,7 +309,14 @@ spawn_many(N, F) ->
 mine(Rounds) -> 
     potential_block:save(),
     Block = potential_block:read(),
-    mine(Block, Rounds).
+    case Block of
+	"" ->
+	    timer:sleep(100),
+	    mine(Rounds);
+	_ ->
+	    mine(Block, Rounds)
+    end.
+    %Block = potential_block:check(),
 mine(Block, Rounds) ->
     %Cores = guess_number_of_cpu_cores(),
     Cores = 1, %slow down mining so I don't break the computer.
@@ -353,69 +368,102 @@ proofs_roots_match([P|T], R) ->
            end,
     proofs_roots_match(T, R).
             
-check(Block) ->
-    {ok, LN} = application:get_env(amoveo_core, light_node),
+check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,
     Header = block_to_header(Block),
     BlockHash = hash(Block),
     {ok, Header} = headers:read(BlockHash),
-    OldBlock = get_by_hash(Block#block.prev_hash),
-    OldTrees = OldBlock#block.trees,
     Roots = Block#block.roots,
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
-    %PrevStateHash = trees:root_hash2(OldTrees, Roots),
     Txs = Block#block.txs,
-    Governance = trees:governance(OldTrees),
+    true = proofs_roots_match(Facts, Roots),
+    Dict = proofs:facts_to_dict(Facts, dict:new()),
+    Height = Block#block.height,
+    PrevHash = Block#block.prev_hash,
+    Pub = coinbase_tx:from(hd(Block#block.txs)),
+    true = no_coinbase(tl(Block#block.txs)),
+    NewDict = new_dict(Txs, Dict, Height),
+    {Dict, NewDict, BlockHash}.
+
+
+check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
+    %io:fwrite("block check 0\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
+    Roots = Block#block.roots,
+    {Dict, NewDict, BlockHash} = Block#block.trees,
+    %{Dict, NewDict} = check0(Block),
+    %BlockHash = hash(Block),
+    %io:fwrite("block check 1\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
+    {ok, Header} = headers:read(BlockHash),
+    Height = Block#block.height,
+    OldBlock = get_by_hash(Block#block.prev_hash),
+    %io:fwrite("block check 2\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
+    OldTrees = OldBlock#block.trees,
+    Txs = Block#block.txs,
+    Txs0 = tl(Txs),
+    true = Block#block.channels_veo == OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
+    true = Block#block.live_channels == OldBlock#block.live_channels + many_live_channels(Txs0),
+    true = Block#block.many_accounts == OldBlock#block.many_accounts + many_new_accounts(Txs0),
+    true = Block#block.many_oracles == OldBlock#block.many_oracles + many_new_oracles(Txs0),
+    true = Block#block.live_oracles == OldBlock#block.live_oracles + many_live_oracles(Txs0),
+    %Governance = trees:governance(OldTrees),
     BlockSize = size(packer:pack(Txs)),
-    MaxBlockSize = governance:get_value(max_block_size, Governance),
+    MaxBlockSize = governance:dict_get_value(max_block_size, Dict),
+    %MaxBlockSize = governance:get_value(max_block_size, Governance),
+    %io:fwrite("block check 3\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     ok = case BlockSize > MaxBlockSize of
 	     true -> 
 		 io:fwrite("error, this block is too big\n"),
 		 bad;
 	     false -> ok
     end,
-    case LN of
-        true -> 
-	    %light node stuff.
-            %OldSparseTrees = 
-            %    facts_to_trie(
-            %      Facts, trees:new(empty, empty, empty,
-            %                       empty, empty, empty)),
-            %PrevTreesHash = trees:root_hash2(OldSparseTrees, Roots),
-            %NewTrees2 = dict_update_trie(OldSparseTrees, NewDict),
-            %TreesHash = trees:root_hash2(NewTrees2, Roots),
-            ok;
-        false ->
-            ok
-    end,
-    true = proofs_roots_match(Facts, Roots),
-    Dict = proofs:facts_to_dict(Facts, dict:new()),
-
-    Txs0 = tl(Txs),
-    BlockReward = governance:get_value(block_reward, Governance),
-    Height = Block#block.height,
-    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Governance, Dict, Height-1),
+    BlockReward = governance:dict_get_value(block_reward, Dict),
+    %BlockReward = governance:get_value(block_reward, Governance),
+    %io:fwrite("block check 4\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
+    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height-1),
     true = Block#block.market_cap == MarketCap,
-    true = Block#block.channels_veo == OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
-    true = Block#block.live_channels == OldBlock#block.live_channels + many_live_channels(Txs0),
-    true = Block#block.many_accounts == OldBlock#block.many_accounts + many_new_accounts(Txs0),
-    true = Block#block.many_oracles == OldBlock#block.many_oracles + many_new_oracles(Txs0),
-    true = Block#block.live_oracles == OldBlock#block.live_oracles + many_live_oracles(Txs0),
+    %io:fwrite("block check 5\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
+    B = (Height == forks:get(5)),
+    NewDict2 = if
+		B -> 
+		    OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
+		    governance:dict_write(OQL, NewDict);
+		true -> NewDict
+	    end,
+    MinerAddress = element(2, hd(Txs)),
+    FG6 = forks:get(6),
+    NewDict3 = if
+		   Height < FG6 -> NewDict2;
+		   true ->
+		       MinerReward = miner_fees(Txs0),
+%    MinerAccount = accounts:dict_get(MinerAddress, Dict),
+		       MinerAccount = accounts:dict_update(MinerAddress, NewDict2, MinerReward, none),
+		       accounts:dict_write(MinerAccount, NewDict2)
+	       end,
 
-    PrevHash = Block#block.prev_hash,
-    Pub = coinbase_tx:from(hd(Block#block.txs)),
-    true = no_coinbase(tl(Block#block.txs)),
-    NewDict = new_dict(Txs, Dict, Height, Pub, PrevHash),
-    %NewTrees = new_trees(Txs, OldTrees, Height, Pub, PrevHash),
-    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict),
+    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict3),
     Block2 = Block#block{trees = NewTrees3},
-    TreesHash = trees:root_hash(Block2#block.trees),
-    TreesHash = trees:root_hash2(Block2#block.trees, Roots),
-    TreesHash = Header#header.trees_hash,
+    %TreesHash = trees:root_hash(Block2#block.trees),
+    %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
+    %TreesHash = Header#header.trees_hash,
     TreesHash = Block2#block.trees_hash,
-    true = hash(Block) == hash(Block2),
+    %io:fwrite("block check 6\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
+    %true = BlockHash == hash(Block2),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
 
@@ -484,15 +532,25 @@ initialize_chain() ->
         true -> get_by_height(0)
          end,
     Header0 = block_to_header(GB),
-    gen_server:call(headers, {add, block:hash(Header0), Header0}),
+    gen_server:call(headers, {add, block:hash(Header0), Header0, 1}),
     gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
 
 gov_fees([], _) -> 0;
-gov_fees([Tx|T], Governance) ->
+gov_fees([Tx|T], Dict) ->
     C = testnet_sign:data(Tx),
-    A = governance:get_value(element(1, C), Governance),
-    A + gov_fees(T, Governance).
+    Type = element(1, C),
+    A = case Type of
+	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict);
+	    _ -> governance:dict_get_value(Type, Dict)
+	end,
+    A + gov_fees(T, Dict).
+gov_fees2([], _) -> 0;
+gov_fees2([H|T], Dict) ->
+    Type = element(1, H),
+    A = governance:dict_get_value(Type, Dict),
+    A + gov_fees2(T, Dict).
+    
 deltaCV([], _) -> 0;%calculate change in total amount of VEO stored in channels.
 deltaCV([Tx|T], Dict) ->
     C = testnet_sign:data(Tx),

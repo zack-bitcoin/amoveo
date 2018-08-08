@@ -1,5 +1,5 @@
 -module(oracle_close_tx).
--export([make/4, make_dict/3, go/3, from/1, oracle_id/1]).
+-export([make/4, make_dict/3, go/4, from/1, oracle_id/1]).
 -record(oracle_close, {from, nonce, fee, oracle_id}).
 -include("../../records.hrl").
 %If there is a lot of open orders for one type of share in an oracle for a long enough period of time, then this transaction can be done.
@@ -17,10 +17,14 @@ make(From, Fee, OID, Trees) ->
     Tx = #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = Acc#acc.nonce + 1},
     {Tx, []}.
         
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#oracle_close.from,
     txs:developer_lock(From, NewHeight, Dict),
-    Acc = accounts:dict_update(From, Dict, -Tx#oracle_close.fee, Tx#oracle_close.nonce),
+    Nonce = if
+		NonceCheck -> Tx#oracle_close.nonce;
+		true -> none
+	    end,
+    Acc = accounts:dict_update(From, Dict, -Tx#oracle_close.fee, Nonce),
     Dict2 = accounts:dict_write(Acc, Dict),
     OID = Tx#oracle_close.oracle_id,
     Oracle = oracles:dict_get(OID, Dict2),

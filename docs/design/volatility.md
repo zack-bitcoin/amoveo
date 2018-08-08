@@ -10,7 +10,7 @@ For financial markets, volatility is an especially bad thing. Higher volatility 
 Why does volatility happen?
 =============
 
-There are different kinds of traders. Some traders types of traders tend to ignore market trends, and focus on the technology.
+There are different kinds of traders. Some types tend to ignore market trends, and focus on the technology.
 If some new technology is created in a competitor, or a security vulnerability is discovered, then the technology focused investors may all leave at once.
 
 Other traders see it as a thrilling way to gamble. These types of investors are probably the worst. They contribute to volatility because they tend to get involved only when the price is rising, and then they suddenly all leave when the price is falling.

@@ -16,6 +16,12 @@ height(1) ->
 block(1, N) ->
     B = block:get_by_height(N),
     B#block.txs;
+block(3, N) ->
+    Txs = tl(block(1, N)),
+    Txids = lists:map(
+	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      Txs),
+    [Txs, Txids];
 block(2, H) ->
     block:get_by_hash(H).
 top() ->
@@ -33,7 +39,7 @@ tx_maker0(Tx) ->
 	    ok;
 	Stx -> 
 	    tx_pool_feeder:absorb(Stx),
-	    Peers = peers:all(),
+	    %Peers = peers:all(),
 	    %spawn(fun() ->
 		%	  lists:map(fun(P) -> 
 		%			    timer:sleep(200),
@@ -54,6 +60,35 @@ create_account(N, A, F) ->
 coinbase(_) ->
     K = keys:pubkey(),
     tx_maker0(coinbase_tx:make_dict(K)).
+spend(L) when is_list(L) ->
+    Txs = multi_spend(L),
+    Fee = multi_fee(Txs),
+    MTx = multi_tx:make_dict(keys:pubkey(), Txs, Fee),
+    tx_maker0(MTx).
+multi_spend([]) -> [];
+multi_spend([{Amount, Pubkey}|T]) ->
+    ID = decode_pubkey(Pubkey),
+    K = keys:pubkey(),
+    Tx = if
+	     ID == K -> io:fwrite("don't spend to yourself\n"),
+			1 = 2;
+	     true ->
+		 B = trees:dict_tree_get(accounts, ID),
+		 if
+		     (B == empty) -> 
+			 create_account_tx:make_dict(ID, Amount, 0, K);
+		     true -> 
+			 spend_tx:make_dict(ID, Amount, 0, K)
+		 end
+	 end,
+    [Tx|multi_spend(T)].
+multi_fee([]) -> 0;
+multi_fee([H|T]) ->
+    Type = element(1, H),
+    Cost = trees:dict_tree_get(governance, Type),
+    Cost + multi_fee(T) + ?Fee.
+
+
 spend(ID0, Amount) ->
     ID = decode_pubkey(ID0),
     K = keys:pubkey(),
@@ -122,6 +157,10 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     tx_pool_feeder:absorb(SSTx),
     channel_feeder:new_channel(Tx, S2SPK, Expires),
     0.
+signed(Signed, Pub) ->
+    X = element(2, Signed),
+    S = element(3, Signed),
+    sign:verify_sig(X, S, Pub).
 pull_channel_state() ->
     pull_channel_state(?IP, ?Port).
 pull_channel_state(IP, Port) ->
@@ -441,6 +480,7 @@ keys_new(Password) ->
     keys:new(Password),
     0.
 market_match(OID) ->
+    %maybe this should be removed? does it break the order book?
     order_book:match_all([OID]),
     {ok, ok}.
 settle_bets() ->
@@ -505,6 +545,7 @@ txs({IP, Port}) ->
 txs(IP, Port) ->
     sync:trade_txs({IP, Port}),
     0.
+    
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
     Block = potential_block:check(),
@@ -522,11 +563,11 @@ work(Nonce, _) ->
     %io:fwrite("work block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block2)))),
-    io:fwrite("pool found a block"),
-    io:fwrite("\n"),
+    %io:fwrite("pool found a block"),
+    %io:fwrite("\n"),
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),%uses call
-    headers:absorb_with_block([Header]),%uses call
+    %headers:absorb_with_block([Header]),%uses call
     %block_absorber:save(Block2),
     block_organizer:add([Block2]),
     %spawn(fun() -> 
@@ -536,22 +577,37 @@ work(Nonce, _) ->
 	%  end),
     0.
 mining_data() ->
-    normal = sync_mode:check(),
-    Block = potential_block:read(),
+    case sync_mode:check() of
+	quick -> 0;
+	normal ->
+	    Block = potential_block:read(),
     %io:fwrite("mining data block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
     %io:fwrite("\n"),
-    F2 = forks:get(2),
-    Height = Block#block.height,
-    Entropy = if
-	       F2 > Height -> 32;
-	       true -> 23
-	   end,
-    [hash:doit(block:hash(Block)),
-     crypto:strong_rand_bytes(Entropy), 
+	    case Block of
+		"" ->
+		    ok;
+		    %timer:sleep(100),
+		    %mining_data();
+		_ ->
+		    F2 = forks:get(2),
+		    Height = Block#block.height,
+		    Entropy = if
+				  F2 > Height -> 32;
+				  true -> 23
+			      end,
+		    [hash:doit(block:hash(Block)),
+		     crypto:strong_rand_bytes(Entropy), 
      %headers:difficulty_should_be(Top)].
-     Block#block.difficulty].
-
+		     Block#block.difficulty]
+	    end
+    end.
+sync_normal() ->
+    sync_mode:normal(),
+    0.
+sync_quick() ->
+    sync_mode:quick(),
+    0.
    
 mining_data(X) ->
     mining_data(X, 30).

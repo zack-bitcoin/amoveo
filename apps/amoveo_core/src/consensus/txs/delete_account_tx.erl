@@ -1,5 +1,5 @@
 -module(delete_account_tx).
--export([go/3, new/4, make_dict/3, from/1, to/1]).
+-export([go/4, new/4, make_dict/3, from/1, to/1]).
 -record(delete_acc_tx, {from = 0,
                         nonce = 0,
                         fee = 0,
@@ -28,7 +28,7 @@ new(To, ID, Fee, Trees) ->
                         fee = Fee},
     {Tx, [FromProof, ToProof]}.
 
-go(Tx, Dict, NewHeight) ->
+go(Tx, Dict, NewHeight, _) ->
     From = Tx#delete_acc_tx.from,
     txs:developer_lock(From, NewHeight, Dict),
     To = Tx#delete_acc_tx.to,

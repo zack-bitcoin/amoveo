@@ -10,9 +10,21 @@
 -include("records.hrl").
 
 binary_to_file_path(Code, Binary) ->
+    Code = blocks,
+    <<Byte, _/binary>> = Binary,
+    H = to_hex(<<Byte>>),
     Encoded = base58:binary_to_base58(Binary),
     Dir = file_dir(Code),
-    Dir ++ Encoded ++ ".db".
+    Dir ++ H ++ "/" ++ Encoded ++ ".db".
+    %Dir ++ Encoded ++ ".db".
+to_hex(<<>>) ->  [];
+to_hex(<<A:4, B/bitstring>>) ->
+    if
+	A < 10 -> [(A+48)|to_hex(B)];
+	true -> [(A+87)|to_hex(B)]
+    end.
+    
+	    
 address_history(Mode, X) ->
     TB = block:top(),
     address_history(Mode, X, 200).

@@ -66,6 +66,8 @@ handle(Req, _) ->
                <<"/finance_game.js">> -> true;
                <<"/merkle_proofs.js">> -> true;
                <<"/wallet.html">> -> true;
+               <<"/BigInteger.js">> -> true;
+               <<"/big_int_test.js">> -> true;
                X -> 
                    io:fwrite("ext file handler block access to: "),
                    io:fwrite(X),

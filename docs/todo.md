@@ -8,18 +8,75 @@
 
 Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
-Maybe question oracles don't need so much (any?) initial liquidity like governance oracles do.
+version in spend txs is not being used.
 
 
+### governance ideas
+
+* consider reducing governance variable "maximum oracle time". it takes too long to close bad-question oracles.
+
+* raise the miner reward.
 
 
 ### Things to do
 
+* when sharing blocks, compress them first. we probably need a new http handler for this, since the existing handlers are assuming JSON format.
+
+* enable running multiple instances of amoveo on the same machine using different ports.
+
+* dominant assurance markets.
+
+* light wallet improvements suggested by OK.
+
+* combinatorial markets.
+
+* spend_tx is using global state "mode". This should instead be passed to the function.
+
+* maybe we should have a game to see who can keep testnet mining pools active most, during the game we encourage spamming each other and making unusual transactions to cause problems.
+
+* consider adding a debugger. add this line to amoveo_core.app.src: `debugger, wx, reltool, erts, observer, tools, sasl, compiler, et, runtime_tools`
+u simply activate them whenever you want via the shell:
+```
+debugger:start().
+ observer:start().
+ ```
+
+* maybe `error_logger_hwm, 50` should be raised to 10 000.
+
+
+* look at the pull request for the escrow tool.
+
+* get rock-paper-scissors working in chalang.
+
+* teach the light node to generate messages about oracles. to make it easier to know when to vote.
+
+* make sure that in the markets, evidence outcome always has a bigger nonce than no_publish.
+
+* maybe tx_pool_feeder should make a new thread for each tx being added, and listen for a response. If it doesn't respond in time, then drop the tx.
+- Maybe txs should return error codes instead of crashing
+
+* improve signal|noise ratio in logging.
+
+* maybe verifying blocks should only be parallelized in sync_mode:quick. that way we can have more useful error messages in sync_mode:normal.
+
+record tx_pool should keep track of the block hash that it is building on.
+
+potential block should probably be completely rewritten.
+
+* mining pools are regularly creating multiple blocks at the same height. Even when there are more than 3 minutes between finding the blocks.
+
+* add function to api for checking signatures.
+* add tool to mining page for early payout.
+
+* block_hashes is getting too big in ram. We should delete old information out of it.
+
+
+* sync blocks faster
+- maybe block_absorber:save should be cast instead of call.
+- maybe checks in block_absorber:block_internal should be moved somewhere else where they can be run in parallel. block_absorber should write the new data to the consensus state, and nothing more.
+
+
 * sync_mode:normal and sync_mode:quick should be available from the api.
-
-* share new block headers to all the mining pools.
-
-* return the hash of the tx when you publish a new tx.
 
 * we should have more rules for ignoring bad peers. If they send the same request too often, or if they send invalid data more than 10 times per minute. 
 

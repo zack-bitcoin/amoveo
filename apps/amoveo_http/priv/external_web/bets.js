@@ -49,13 +49,13 @@ function bets_main() {
                 div.appendChild(order);
                 var cancel_button = document.createElement("input");
                 cancel_button.type = 'button';
-                cancel_button.value = translate.words("cancel").concat(translate.words("contract"));
+                cancel_button.value = "cancel trade";
                 div.appendChild(cancel_button);
                 div.appendChild(document.createElement("br"));
                 cancel_buttons.push(cancel_button);
             } else {
                 console.log("matched");
-                order.innerHTML = translate.words("market").concat(oid).concat(translate.words("win_if")).concat(outcome).concat(translate.words("amount")).concat(s2c(amount));
+                order.innerHTML = ("market ").concat(oid).concat("you win if the outcome is ").concat(outcome).concat("amount ").concat(s2c(amount));
                 oadiv.appendChild(order);
                 oadiv.appendChild(document.createElement("br"));
             }

@@ -1,6 +1,7 @@
-function s2c(x) { return x / 100000000; }
+function token_units() { return 100000 }; // mVEO
+function s2c(x) { return x / token_units(); }
 function c2s(x) {
-    return Math.floor(parseFloat(x.value, 10) * 100000000);
+    return Math.floor(parseFloat(x.value, 10) * token_units());
 }
 function array_to_int(l) {
     var x = 0;
@@ -136,13 +137,6 @@ function button_maker2(val, fun) {
     button.onclick = fun;
     return button;
 }
-function button_maker(val, fun) {
-    var button = document.createElement("input");
-    button.type = "button";
-    button.value = translate.words(val);
-    button.onclick = fun;
-    return button;
-}
 function br() {
     return document.createElement("br");
 };
@@ -182,4 +176,14 @@ function tree_number_det_power(base, top, bottom, t) {
         return tree_number_det_power(base, top2, bottom,
                                      Math.floor(t / 2));
     }
+}
+function parse_address(A) {
+    //remove spaces or periods. " " "."
+    A2 = A.replace(/\ /g,'');
+    A3 = A2.replace(/\./g,'');
+    A4 = A3.replace(/\n/g,'');
+    //if it is the wrong length, make an error.
+    //88
+    B = ((A4).length == 88);
+    if (B) { return A4; } else { return 0; };
 }

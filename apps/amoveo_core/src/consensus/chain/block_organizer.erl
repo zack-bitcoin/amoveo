@@ -13,7 +13,7 @@ handle_cast(check, BS) ->
     {noreply, BS2}.
 handle_call({add, Blocks}, _From, BS) -> 
     BS2 = merge(Blocks, BS),
-    BS3 = helper(BS2),
+    BS3 = helper(BS2), 
     {reply, ok, BS3};
 handle_call(pid, _From, X) -> 
     {reply, self(), X};
@@ -24,7 +24,7 @@ handle_call(_, _From, X) -> {reply, X, X}.
 pid() -> gen_server:call(?MODULE, pid).
 view() ->
     gen_server:call(?MODULE, view).
-merge(New, []) -> [New];
+merge(New, []) -> [New];%merge sort
 merge([], Old) -> Old;
 merge([N|NT], [O|OT]) ->
     %HN = hd(N),
@@ -46,7 +46,7 @@ helper([H|T]) ->
     H2 = HH#block.height,
     if
 	H2 =< MyHeight + 1 ->
-	    block_absorber:save(H),
+	    block_absorber:save(H),%maybe this should be a cast.
 	    helper(T);
 	true -> [H|T]
     end.
@@ -58,12 +58,24 @@ add(Blocks) ->
     io:fwrite("block organizer add\n"),
     true = is_list(Blocks),
     {Blocks2, AddReturn} = add1(Blocks, []),
-    case Blocks2 of
-	[] -> ok;
-	_ ->
-	    gen_server:call(?MODULE, {add, lists:reverse(Blocks2)})
-    end,
+    add3(Blocks2),
     AddReturn.
+add3([]) -> ok;
+add3(Blocks) when length(Blocks) > 10 ->
+    {A, B} = lists:split(10, Blocks),
+    add4(A),
+    add3(B);
+add3(Blocks) -> add4(Blocks).
+add4(Blocks) ->
+    spawn(fun() ->
+		  Blocks2 = add5(Blocks),
+		  gen_server:call(?MODULE, {add, lists:reverse(Blocks2)})
+	  end).
+add5([]) -> [];
+add5([Block|T]) ->
+    {Dict, NewDict, BlockHash} = block:check0(Block),
+    Block2 = Block#block{trees = {Dict, NewDict, BlockHash}},
+    [Block2|add5(T)].
 add1([], []) -> {[], 0};
 add1([X], L) -> 
     {L2, A} = add2(X, L),

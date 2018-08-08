@@ -65,11 +65,13 @@ doit({give_block, Block}) -> %block can also be a list of blocks.
 	     is_atom(Response) -> 0;
 	     true -> Response
 	 end,
-    {ok, Response};
+    {ok, R2};
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
 doit({blocks, Many, N}) -> 
-    X = many_blocks(Many, N),
+    Many < 60,
+    X = block_reader:doit(Many, N),
+    %X = many_blocks(Many, N),
     {ok, X};
 doit({header, N}) when is_integer(N) -> 
     {ok, block:block_to_header(block:get_by_height(N))};
@@ -111,9 +113,20 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     Txs = TP#tx_pool.txs,
     ST = send_txs(Txs, CS, Checksums, []),
     {ok, ST};
+doit({txs, [Tx]}) ->
+    tx_pool_feeder:absorb([Tx]),
+    {ok, hash:doit(Tx)};
 doit({txs, Txs}) ->
     tx_pool_feeder:absorb(Txs),
     {ok, 0};
+doit({txs, 3, N}) ->
+    B = block:get_by_height(N),
+    Txs = tl(B#block.txs),
+    Txids = lists:map(
+	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      Txs),
+    X = [Txs, Txids],
+    {ok, X};
 doit({top}) -> 
     Top = block:top(),
     {ok, Top, Top#block.height};
@@ -234,7 +247,7 @@ doit({bets}) ->
     free_variables:bets();
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
-%curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5]' http://localhost:8040
+%curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5, Hash]' http://localhost:8080 
     Trees = (block:get_by_hash(Hash))#block.trees,%this line failed.b
     TN = trees:name(TreeName),
     Root = trees:TN(Trees),
@@ -251,6 +264,12 @@ doit({oracle, Y}) ->
     {ok, Question} = oracle_questions:get(Oracle#oracle.question),
     {ok, OB} = order_book:data(X),
     {ok, {OB, Question}};
+doit({oracle_bets, OID}) ->
+    B = block:top(),
+    Trees = B#block.trees,
+    Oracles = trees:oracles(Trees),
+    {_, Oracle, _} = oracles:get(OID, Oracles),
+    orders:get_all(Oracle#oracle.orders);%This does multiple hard drive reads. It could be a security vulnerability. Maybe we should keep copies of this data in ram, for recent blocks.
 doit({market_data, OID}) ->
     %{ok, OB} = order_book:data(base64:decode(OID)),
     {ok, OB} = order_book:data(OID),
@@ -349,10 +368,10 @@ many_headers2(Many, H, Out) ->
 %many_headers(M, N) ->
 %    B = many_blocks(M, N),
 %    blocks2headers(B).
-blocks2headers([]) -> [];
-blocks2headers([B|T]) ->
-    [block:block_to_header(B)|
-    blocks2headers(T)].
+%blocks2headers([]) -> [];
+%blocks2headers([B|T]) ->
+%    [block:block_to_header(B)|
+%    blocks2headers(T)].
 %many_headers(M, _) when M < 1 -> [];
 %many_headers(Many, N) ->    
 %    H = api:height(),

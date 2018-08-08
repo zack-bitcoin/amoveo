@@ -1,7 +1,7 @@
 -module(tx_pool).
 -behaviour(gen_server).
 %% This module holds the txs ready for the next block, and it remembers the current consensus state, so it is ready to add a new tx at any time.
--export([data_new/0, get/0, dump/0, dump/1, absorb_tx/2, absorb/2]).
+-export([data_new/0, get/0, dump/0, dump/1, absorb_tx/2]).%, absorb/2]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../records.hrl").
 start_link() ->
@@ -9,9 +9,6 @@ start_link() ->
 init(ok) ->
     block:initialize_chain(),
     State = current_state(),
-    spawn(fun() ->
-		  timer:sleep(2000),
-		  sync:cron() end),
     io:fwrite("tx_pool- blockchain ready\n"),
     {ok, State}.
 handle_call({dump, TopBlock}, _From, _OldState) ->
@@ -44,8 +41,8 @@ handle_call({absorb_tx, NewDict, Tx}, _From, F) ->
 			   bytes = BlockSize}
          end,
     {reply, 0, F2};
-handle_call({absorb, NewTrees, Height}, _From, _) ->
-    {reply, 0, #tx_pool{txs = [], checksums = [], block_trees = NewTrees, height = Height}};
+%handle_call({absorb, NewTrees, Height}, _From, _) ->
+%    {reply, 0, #tx_pool{txs = [], checksums = [], block_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) -> 
     F2 = F#tx_pool{height = block:height()},
     {reply, F2, F}.
@@ -66,8 +63,8 @@ absorb_tx(NewDict, Tx) ->
     gen_server:call(?MODULE, {absorb_tx, NewDict, Tx}).
 %absorb_tx(Trees, NewDict, Tx) ->
 %    gen_server:call(?MODULE, {absorb_tx, Trees, NewDict, Tx}).
-absorb(Trees, Height) ->
-    gen_server:call(?MODULE, {absorb, Trees, Height}).
+%absorb(Trees, Height) ->
+%    gen_server:call(?MODULE, {absorb, Trees, Height}).
 current_state() ->
     Block = block:top(),
     state2(Block).

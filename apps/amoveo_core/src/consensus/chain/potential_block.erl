@@ -26,7 +26,7 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call(dump, _, _) -> 
     {reply, ok, #pb{block = "", time = now()}};
-handle_call({save, Txs, Height}, _, _) -> 
+handle_call({save, Txs, _Height}, _, _) -> 
     Top = headers:top_with_block(),
     PB = block:get_by_hash(block:hash(Top)),
     Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
@@ -80,7 +80,9 @@ check() -> gen_server:call(?MODULE, check).
 new_internal(Old, TP) ->
     PH = Old#block.prev_hash,
     PB = block:get_by_hash(PH),
-    tree_data:garbage(Old, PB),
+    %spawn(fun() ->
+	%	  tree_data:garbage(Old, PB)
+	%  end),
     new_internal2(TP).
 new_internal("") ->
     TP = tx_pool:get(),
@@ -91,9 +93,22 @@ new_internal(Old) ->
 new_internal2(TP) ->
     Txs = TP#tx_pool.txs,
     T = TP#tx_pool.height,
-    PB = block:get_by_height(T),
-    Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
-    block:make(Top, Txs, PB#block.trees, keys:pubkey()).
+    %B = api:height() == T,
+    B = true,
+    if
+	B ->
+    %timer:sleep(200),
+	    PB = block:get_by_height(T),
+	    if
+		PB == empty -> "";
+		true ->
+		    Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
+    %Top = headers:top_with_block(),
+    %PB = block:get_by_hash(block:hash(Top)),
+		    block:make(Top, Txs, PB#block.trees, keys:pubkey())
+	    end;
+	true -> ""
+    end.
 tx_changed(New, Old) ->    
     N2 = tx_det_order(New),
     O2 = tx_det_order(Old),
