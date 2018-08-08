@@ -142,8 +142,7 @@ You can also clean all 3 at once
 
 
 ### Blockchain Commands
-
-[Read about the commands in depth in the docs](docs/api/commands.md)
+[Read the blockchain terminal interface commands docs](../api/commands.md) for a deeper dive into using the blockchain terminal commands to interface with the blockchain basics, accounts, lookup history, accounts, lookup history, channels, oracles, markets and other interesting functionality.
 
 
 #### Sync with the network
