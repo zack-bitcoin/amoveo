@@ -128,6 +128,12 @@ If the governance is currently 1000, and you change by 30, you can go to 1300 or
 
 
 * ubuntu 18.04 compatibility.
+* In consensus/chain/block.erl   ,      line 169,         TransactionFees = txs:fees(Txs),
+txs:fees function  is not defined yet    
+block:block_reward_dict(Dict, Height, ID, PH) ->
+is not used anywhere, 
+
+
 
 * order_book:match() should have a timer so we only run it every 3 minutes. Otherwise it is wasting cycles while we are syncing blocks.
 
