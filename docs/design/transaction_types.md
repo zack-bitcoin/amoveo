@@ -1,12 +1,13 @@
 Governance decides a different minimum fee size for each transaction type.
 The miner profits by including transactions that pay above the minimum fee for that transaction type.
 
-These are the 14 types of transaction that can be in blocks.
+These are the 15 types of transaction that can be in blocks.
 
 3 transactions for accounts:
 * create_account_tx
 * spend_tx
 * delete_account_tx
+* multi_tx
 
 5 transactions for channels:
 * new_channel_tx
@@ -29,7 +30,7 @@ These are the 14 types of transaction that can be in blocks.
 
 This creates a new account on the blockchain and gives it some tokens.
 
-# account_spend
+# spend_tx
 
 Spends tokens to a different account.
 
@@ -39,6 +40,9 @@ This deletes an account on the blockchain and sends all of it's Veo to a differe
 
 WARNING! do not reuse a pubkey after it has been deleted.
 
+# multi_tx
+
+A multi-tx contains multiple create_account and spend_txs inside of it. A multi-tx only updates your account nonce once, this makes it ideal for cold storage.
 
 # channel_new
 
