@@ -127,7 +127,7 @@ function keys_function1() {
         reader.onload = function(e) {
             keys = ec.keyFromPrivate(reader.result, "hex");
             update_pubkey();
-            //update_balance();
+            update_balance();
         }
         reader.readAsText(file);
     }
