@@ -166,25 +166,6 @@ genesis_maker() ->
 miner_fees([]) -> 0;
 miner_fees([H|T]) ->
     element(4, testnet_sign:data(H)) + miner_fees(T).
-%block_reward_dict(Dict, Height, ID, PH) ->
-%    BCM = 100,
-%    BlocksAgo = Height - BCM,
-%    case BlocksAgo > 0 of
-%        true ->
-%            Txs = (get_by_height_in_chain(BlocksAgo, PH))#block.txs,
-%            TransactionFees = txs:fees(Txs),
-%            TransactionCosts = tx_costs_dict(Txs, Dict, 0),
-%            BlockReward = dict:fetch({governance, 
-%                                      governance:name2number(block_reward)},
-%                                     Dict),
-%            Amount = BlockReward + TransactionFees - TransactionCosts,
-%            NM = case accounts:dict_get(ID, Dict) of
-%                     empty ->  accounts:new(ID, Amount);
-%                     _ -> accounts:dict_update(ID, Dict, Amount, none)
-%                 end,
-%            accounts:dict_write(NM, Dict);
-%        false -> Dict
-%    end.
    
 tx_costs_dict([], _, Out) -> Out;
 tx_costs_dict([STx|T], Dict, Out) ->
