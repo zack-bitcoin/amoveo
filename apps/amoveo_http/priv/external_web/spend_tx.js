@@ -35,7 +35,7 @@ function spend_1() {
 		error_msg.innerHTML = "";
 	    }
 	    var CB2 = function(fee) {
-		var A2 = Amount - fee;
+		var A2 = Amount - fee - 1;
 		spend_amount.value = (A2 / token_units()).toString();
 	    };
 	    fee_checker(to, CB2, CB2);
