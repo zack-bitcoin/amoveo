@@ -1,14 +1,7 @@
 Amoveo
 ==========
-[Español](docs/es/README.md)
-
-(work in progress) [中文](docs/cn/README.md)
-
-[Amoveo on Discord. Русский чат. 中文聊天.](https://discord.gg/a52szJw)
-
 
 Amoveo is a blockchain meant for enforcement of investment and insurance contracts.
-
 
 Amoveo contracts are enforced using state-channels. This means fees are low, contracts are nearly instant and can support a global audience.
 
@@ -47,11 +40,6 @@ You can use the light node to participate in [markets](docs/light_node/market.md
 A light node that currently has markets is [here](http://159.89.106.253:8080/wallet.html).
 And the interface to look at the markets is [here](http://159.89.106.253:8080/explorer.html).
 
-## Exchanges
-
-this is an escrow tool from Zack who wrote Amoveo: http://159.89.106.253:8087/main.html
-Be very careful using exchanges. They are centralized, the operator can take all the veo if they wanted.
-
 
 ## Block Explorer
 
@@ -78,8 +66,6 @@ Commands such as:
 
 [This is an open-source miner for AMD and Nvidia GPU. Currently only works with Linux](https://github.com/zack-bitcoin/VeoCL)
 
-[Here is an open-source miner for Nvidia GPU, it works for linux and windows](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
-
 [This is a miner. it is for Nvidia or AMD GPUs. It is closed-source.](https://github.com/PhamHuong92/VeoMiner)
 
 [here is another closed source miner](https://github.com/krypdkat/AmoveoMinerMan)
@@ -100,6 +86,8 @@ http://amoveo.noncense.tech/
 
 ## Trading
 
+Be very careful using exchanges. They are centralized, the operator can take all the veo if they wanted.
+
 There are people trading now on discord https://discord.gg/xJQcVaT
 
 An escrow tool hosted by Zack: http://159.89.106.253:8087/main.html
@@ -118,6 +106,8 @@ The "classic" version only pays a miner when they find a block.
 ## Developers
 
 If you want to build on top of Amoveo [read the developer's guide](docs/getting-started/quick_start_developer_guide.md)
+
+[Here is an old open-source miner for Nvidia GPU, it works for linux and windows. This software is too slow to be competitive, but it might be useful for educational purposes.](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
 
 
 ## Donations
