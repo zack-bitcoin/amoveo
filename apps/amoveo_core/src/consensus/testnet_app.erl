@@ -17,13 +17,14 @@ start(_StartType, _StartArgs) ->
     sync:cron(),
     push_block:cron(),
 
-    io:fwrite("starting testnet node"),
+    io:fwrite("starting node\n"),
 
     testnet_sup:start_link().
 
 
 stop(_State) ->
-    ok.
+    io:fwrite("stopping node\n"),
+    api:off().
 
 make_block_folders() ->
     mbf(0).
@@ -42,4 +43,3 @@ to_hex(<<A:4, B/bitstring>>) ->
 	A < 10 -> [(A+48)|to_hex(B)];
 	true -> [(A+87)|to_hex(B)]
     end.
-    
