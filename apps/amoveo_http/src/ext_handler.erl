@@ -94,6 +94,9 @@ doit({headers, _H}) ->
 doit({headers, Many, N}) -> 
     X = many_headers(Many, N),
     {ok, X};
+doit({ewah, Start, End}) ->
+    X = api:ewah(Start, End),
+    {ok, X};
 doit({header}) -> {ok, headers:top()};
 doit({peers}) ->
     P = peers:all(),
