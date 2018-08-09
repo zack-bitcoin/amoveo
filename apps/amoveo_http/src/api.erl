@@ -24,6 +24,8 @@ block(3, N) ->
     [Txs, Txids];
 block(2, H) ->
     block:get_by_hash(H).
+ewah(Start, End) ->
+    headers:ewah_range(Start, End).
 top() ->
     TopHeader = headers:top(),
     Height = TopHeader#header.height,

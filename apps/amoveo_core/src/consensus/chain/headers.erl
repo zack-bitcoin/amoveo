@@ -2,7 +2,9 @@
 -behaviour(gen_server).
 -export([absorb/1, absorb_with_block/1, read/1, read_ewah/1, top/0, dump/0, top_with_block/0,
          make_header/9, serialize/1, deserialize/1,
-         difficulty_should_be/2, test/0]).
+         difficulty_should_be/2, 
+	 ewah_range/2,
+	 test/0]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../../records.hrl").
 -define(LOC, constants:headers_file()).
@@ -423,6 +425,21 @@ calc_ewah(Header, PrevHeader, PrevEWAH0) ->
     %EWAH0 = (Hashrate + ((N - 1) * PrevEWAH)) div N.
 %average 1 6 9 -> 16/3
 %average 1/1 1/6 1/9 -> 23/18/3 ~ -> 4/9
+ewah_range(Start, End) ->
+    EH = block:hash(block:get_by_height(End)),
+    ewah_range2(EH, Start, []).
+ewah_range2(EH, Start, X) ->
+    {ok, {Header, EWAH}} = read_ewah(EH),
+    Height = Header#header.height,
+    if
+	Height < Start -> X;
+	true -> 
+	    ewah_range2(Header#header.prev_hash,
+			Start,
+			[EWAH|X])
+    end.
+	    
+    
 
 test() ->
     H = hash:doit(<<>>),
