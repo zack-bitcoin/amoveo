@@ -408,6 +408,7 @@ function channels_main() {
 	    var height = top_header[1];
             var amount = spk[7];
             var betAmount = sum_bets(spk[3]);
+	    console.log(JSON.stringify([val[4], amount, betAmount, val[5], token_units()]));
             var mybalance = ((val[4] - amount - betAmount)/ token_units()).toString();
             var serverbalance = ((val[5] + amount) / token_units()).toString();
             balance_div.innerHTML = ("server balance: ").concat(

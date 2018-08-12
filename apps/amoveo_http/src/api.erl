@@ -440,11 +440,10 @@ channel_solo_close(IP, Port) ->
     {ok, Other} = talker:talk({pubkey}, IP, Port),
     channel_solo_close(Other).
 channel_solo_close(Other) ->
-    Fee = free_constants:tx_fee(),
     {ok, CD} = channel_manager:read(Other),
     SSPK = CD#cd.them,
     SS = CD#cd.ssthem,
-    Tx = channel_solo_close:make_dict(keys:pubkey(), Fee, keys:sign(SSPK), SS),
+    Tx = channel_solo_close:make_dict(keys:pubkey(), ?Fee, keys:sign(SSPK), SS),
     STx = keys:sign(Tx),
     tx_pool_feeder:absorb(STx),
     ok.
