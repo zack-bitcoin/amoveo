@@ -353,7 +353,7 @@ function channels_main() {
         } else {
             var current_height = headers_object.top()[1];
             var lifespan = expiration - current_height;
-            var spk_amount = Math.floor((tv * (delay + lifespan) * (amount + bal2) ) / token_units());
+            var spk_amount = Math.floor((tv * (delay + lifespan) * (amount + bal2) ) / 100000000);
             var spk = ["spk", acc1, acc2, [-6], 0, 0, cid, spk_amount, 0, delay];
             var stx = keys.sign(tx);
             var sspk = keys.sign(spk);
