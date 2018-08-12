@@ -20,6 +20,9 @@ version in spend txs is not being used.
 
 ### Things to do
 
+
+* I was able to generate a channel where spk[7] = amount was 100000 (5 zeros) bigger than it should have been. channel manager needs checks to prevent this. There is probably some problem with JS letting this happen.
+
 * when sharing blocks, compress them first. we probably need a new http handler for this, since the existing handlers are assuming JSON format.
 
 * enable running multiple instances of amoveo on the same machine using different ports.

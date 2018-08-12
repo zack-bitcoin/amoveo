@@ -164,8 +164,11 @@ doit({new_channel, STx, SSPK, Expires}) ->
     TheirPub = channel_feeder:other(Tx),
     error = channel_manager:read(TheirPub),
     %undefined = channel_feeder:cid(Tx),
+    Amount = SPK#spk.amount,
     Bal1 = new_channel_tx:bal1(Tx),
     Bal2 = new_channel_tx:bal2(Tx),
+    true = Amount < Bal1,
+    true = (- Amount) < Bal2,
     Delay = new_channel_tx:delay(Tx),
     {ok, MinimumChannelDelay} =
 	application:get_env(amoveo_core, min_channel_delay),
