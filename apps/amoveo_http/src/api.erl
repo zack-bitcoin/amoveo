@@ -272,7 +272,7 @@ integer_channel_balance(Ip, Port) ->
     SPK = testnet_sign:data(SSPK),
     %SS = CD#cd.ssthem,
     TP = tx_pool:get(),
-    NewHeight = TP#tx_pool.height,
+    _NewHeight = TP#tx_pool.height,
     Amount = SPK#spk.amount,
     BetAmounts = sum_bets(SPK#spk.bets),
     CID = SPK#spk.cid,
@@ -390,7 +390,7 @@ mine_block() ->
     block:mine(10000000).
     %potential_block:save(),
     %block:mine(1, 100000).
-mine_block(0, Times) -> ok;
+mine_block(0, _Times) -> ok;
 mine_block(Periods, Times) ->
     %potential_block:save(),
     %PB = block:top(),
@@ -613,7 +613,7 @@ sync_quick() ->
 mining_data(X) ->
     mining_data(X, 30).
 mining_data(X, Start) ->
-    L = lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, lists:seq(Start, block:height(), X)).
+    lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, lists:seq(Start, block:height(), X)).
 
 pubkey(Pubkey, Many, TopHeight) ->
     amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).

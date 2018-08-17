@@ -250,7 +250,7 @@ function channels_main() {
 	var acc2 = channel[3];
 	var tx = ["ctc", acc1, acc2, fee, nonce+1, cid, amount - cfee];
 	var stx = keys.sign(tx);
-	console.log(JSON.stringify([bal1, bal2, tv, expires, height, amount]));
+	//console.log(JSON.stringify([bal1, bal2, tv, expires, height, amount]));
 	variable_public_get(["channel_close", cid, mypub, [-6].concat(ss), stx], function(tx) {
 	    remove(server_pubkey);
 	    refresh_channels_interfaces2(server_pubkey);
@@ -412,8 +412,8 @@ function channels_main() {
             var mybalance = ((val[4] - amount - betAmount)/ token_units()).toString();
             var serverbalance = ((val[5] + amount) / token_units()).toString();
             balance_div.innerHTML = ("server balance: ").concat(
-                mybalance).concat("your balance: ").concat(
-                    serverbalance).concat("time left in blocks: ").concat(
+                serverbalance).concat("your balance: ").concat(
+                    mybalance).concat("time left in blocks: ").concat(
 			(cd.expiration - height).toString());
 			    
         });

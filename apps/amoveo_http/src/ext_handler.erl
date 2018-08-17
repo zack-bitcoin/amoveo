@@ -69,7 +69,7 @@ doit({give_block, Block}) -> %block can also be a list of blocks.
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
 doit({blocks, Many, N}) -> 
-    Many < 60,
+    true = Many < 60,
     X = block_reader:doit(Many, N),
     %X = many_blocks(Many, N),
     {ok, X};
@@ -80,7 +80,7 @@ doit({header, H}) ->
 	error -> {ok, 0};
 	_ -> {ok, 3}
     end;
-doit({headers, H}) ->
+doit({headers, _H}) ->
     %headers:absorb(H),
     %spawn(fun() ->
 	%	  HH = api:height(),
@@ -281,10 +281,10 @@ doit({market_data, OID}) ->
     {ok, {Expires, keys:pubkey(), Period}};
 doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     %make sure they pay a fee in channel for having their trade listed. 
-    BetLocation = constants:oracle_bet(),
+    _BetLocation = constants:oracle_bet(),
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
-    Period = order_book:period(OB),
+    _Period = order_book:period(OB),
     {ok, CD} = channel_manager:read(Account),
     TPG = tx_pool:get(),
     Height = TPG#tx_pool.height,
@@ -317,18 +317,18 @@ proof_packer([]) -> [];
 proof_packer([H|T]) ->
     [proof_packer(H)|proof_packer(T)];
 proof_packer(X) -> X.
-many_blocks(M, _) when M < 1 -> [];
-many_blocks(Many, N) ->
-    H = block:height(),
-    if N > H -> [];
-       true ->
-            B = block:get_by_height(N),
-            case B of
-                empty -> many_blocks(Many-1, N+1);
-                _ ->
-                    [B|many_blocks(Many-1, N+1)]
-            end
-    end.
+%many_blocks(M, _) when M < 1 -> [];
+%many_blocks(Many, N) ->
+%    H = block:height(),
+%    if N > H -> [];
+%       true ->
+%            B = block:get_by_height(N),
+%            case B of
+%                empty -> many_blocks(Many-1, N+1);
+%                _ ->
+%                    [B|many_blocks(Many-1, N+1)]
+%            end
+%    end.
 get_header_by_height(N, H) ->
     case H#header.height of
 	N -> H;

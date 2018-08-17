@@ -1,9 +1,9 @@
-
 -module(oracles).
 -export([new/7, set_orders/2, orders/1, %custom stuff
          write/2, get/2,%update tree stuff
          dict_get/2, dict_write/2, dict_write/3, %update dict stuff
 	 meta_get/1, deserialize/1, all/0, 
+	 ready_for_bets/0,
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]). %common tree stuff
 -define(name, oracles).
 -include("../../records.hrl").
@@ -43,6 +43,19 @@ all() ->
 		     end,
 	      {Text, X}
       end, All).
+ready_for_bets() ->
+    A = all(),
+    rfb2(A).
+rfb2([]) -> [];
+rfb2([{Text, Oracle}|T]) ->
+    R = Oracle#oracle.result,
+    S = Oracle#oracle.starts,
+    H = block:height(),
+    if
+	(H < S) -> rfb2(T);
+	(not (T == 0)) -> rfb2(T);
+	true -> [{Text, Oracle}|rfb2(T)]
+    end.
     
 		      
 serialize(X) ->

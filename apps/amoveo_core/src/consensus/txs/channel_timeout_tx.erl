@@ -45,7 +45,6 @@ go(Tx, Dict, NewHeight, _) ->
     CID = Tx#timeout.cid,
     Channel = channels:dict_get(CID, Dict),
     0 = channels:closed(Channel),
-    CA = channels:amount(Channel),
     LM = channels:last_modified(Channel),
     TD = NewHeight - LM,
     true = TD >= channels:delay(Channel),
