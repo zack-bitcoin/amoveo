@@ -21,7 +21,15 @@ You can look up current governance values like this:
 trees:dict_tree_get(governance, GovName).
 ```
 
-####See existing oracles
+####See all oracles where betting has started, and betting has not yet finished.
+```
+oracles:ready_for_bets().
+```
+returns a list like [{Question1, Oracle1}, {Question2, Oracle2}...].
+
+
+####See all existing oracles
+
 ```
 oracles:all().
 ```
