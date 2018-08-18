@@ -1,3 +1,5 @@
+## Radar Relay Review
+
 Radar Relay is a company that is trying to use 0x technology to build markets for trading ERC20 tokens on Ethereum.
 
 Their stated goals are similar to what Amoveo does. So I wanted to find out if they are actually achieving these goals. Maybe we could re-use some of their techniques to make Amoveo better.
@@ -13,7 +15,7 @@ Once I started explaining how allowing customers to get robbed is a serious prob
 
 Here is a video about the dangers of front running:  https://www.youtube.com/watch?v=mAtD0ba-hXU
 
-Below is our discussion.
+### Below is our discussion.
 
 
 Zack-
