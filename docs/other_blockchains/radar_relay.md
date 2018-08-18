@@ -74,7 +74,7 @@ but earlier you said that the order book is off-chain.
 can I see the on-chain smart contract you are using for the order book?
 
 Whitneyadmin-
-With an open order book you can have front running. It is technically possible. Will Warren had a great article about this. If you would like.
+**With an open order book you can have front running.** It is technically possible. Will Warren had a great article about this. If you would like.
 
 The order book is hosted off chain. All orders are settled on chain and there is no central matching engine.
 If you would like to see the design:
@@ -142,7 +142,7 @@ Augur and Gnosis gives (1) and (2).
 
 At first glance, Radar Relay advertises itself as if it can achieve all 3, but upon closer inspection you will realize that it cannot.
 
-As Whitney said, high-gas orders can front-run low-gas orders. Since they are using gas, the orders are being processed on-chain, so Radar Relay does not have (3).
+As Whitney said, high-gas orders can front-run low-gas orders.
 Since it is possible to front-run, they don't have (1).
 
-So Radar Relay cannot scale, and it cannot prevent theft from traders.
+So Radar Relay cannot prevent theft from traders.
