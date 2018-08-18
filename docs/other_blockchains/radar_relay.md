@@ -11,6 +11,8 @@ So I tried to contact them to find out how much of their market is off-chain vs 
 During my discussion, it became apparent that Radar Relay has no security to prevent theft by front running.
 Once I started explaining how allowing customers to get robbed is a serious problem, I was blocked from their group.
 
+Here is a video about the dangers of front running:  https://www.youtube.com/watch?v=mAtD0ba-hXU
+
 Below is our discussion.
 
 
@@ -125,14 +127,14 @@ So is the order book off chain or not?
 
 At this point I was banned from their forum.
 
-#### conclusions
+### conclusions
 
 There are 3 important properties for blockchain markets:
 1) trustless (without this, there is someone who can steal form traders.)
 2) trades at the market price (without this, there is someone who can steal from the traders.)
 3) off-chain (without this, it cannot scale)
 
-Ethereum can have any 2 of these, but only Amoveo has all 3 at once.
+Ethereum can have any 2 of these at a time, but only Amoveo has all 3 at once.
 
 Shapeshift gives (2) and (3).
 0x gives (1) and (3).
@@ -143,5 +145,4 @@ At first glance, Radar Relay advertises itself as if it can achieve all 3, but u
 As Whitney said, high-gas orders can front-run low-gas orders. Since they are using gas, the orders are being processed on-chain, so Radar Relay does not have (3).
 Since it is possible to front-run, they don't have (1).
 
-Radar Relay only achieves goal (2).
 So Radar Relay cannot scale, and it cannot prevent theft from traders.
