@@ -3,6 +3,9 @@ Radar Relay is a company that is trying to use 0x technology to build markets fo
 Their stated goals are similar to what Amoveo does. So I wanted to find out if they are actually achieving these goals. Maybe we could re-use some of their techniques to make Amoveo better.
 
 
+
+
+
 So I tried to contact them to find out how much of their market is off-chain vs on-chain, and how they prevent front running.
 
 During my discussion, it became apparent that Radar Relay has no security to prevent theft by front running.
@@ -11,71 +14,71 @@ Once I started explaining how allowing customers to get robbed is a serious prob
 Below is our discussion.
 
 
-Zack
+Zack-
 I wrote a trustless off-chain order book. I used programmable channels to enforce the rules to make it trustless.
 
 Relayer.network also has an off-chain order book.
 I am wondering if your order book is trustless, and if so, how you enforce the rules?
 
-Whitneyadmin
+Whitneyadmin-
 We host the order book off chain. All the orders are settled on chain and through the app or through the API  users can look at the hash of any order. It's a little technical but you can verify the contract behind the proposed transactions (open orders).
 We standardize the orders that are allowed on the order book. If it doesn't fit the format it's not part of the order book.
 
-Zack
+Zack-
 How do you make the order book trustless?
 Or is it a trustful centralized order book?
 How do I know that you will match my trade honestly, without any front running?
 
-Whitneyadmin
+Whitneyadmin-
 We don't match your orders. We don't have a central matching engine.
 
-Zack
+Zack-
 so there is a centralized server for matching orders?
 How can I know that this server won't let anyone front-run my trades?
 In the off-chain market that I wrote, I used a smart contract inside the state channels to enforce the correct matching of trades to prevent front running.
 It uses single price batches.
 
-Whitneyadmin
+Whitneyadmin-
 There is not a central server for matching orders. We use an open order book.
 If you place an order on Radar that crosses the spread then it will show a negative spread.
 
-Zack
+Zack-
 ok, so how do your enforce the correct matching of trades to prevent front running?
 do you use single price batches? or a commit-reveal system?
 
-Whitneyadmin
+Whitneyadmin-
 There is no central matching engine. We do not match orders.
 
-Zack
+Zack-
 the purpose of Radar Relay is for people to trade ERC20 tokens, correct?
 So there must be some market with an order book connecting the traders together.
 
-Whitneyadmin
+Whitneyadmin-
 Right now you can use individual fills by specifically selecting an order or a 'fill up to' function. The second being a market order.
 
-Zack
+Zack-
 so you do match orders between people.
 Do you have cryptoeconomic guarantees that the orders are being matched fairly without front running?
 It is bad to use a dapp if there is no cryptoeconomic guarantees to prevent theft.
 If it is not secure against theft, and the other participants in the dapp are anonymous, then it is almost guaranteed that theft would happen.
 I can wait if you need to ask someone else how this works. I understand that not everyone on a team knows all the security details.
 
-Whitneyadmin
+Whitneyadmin-
 When you sign an order and send it to the chain you are signing a specific hash. This is mined on chain. The order hash you signed is sent with lower gas and someone else fills that same hash the order will not go through. That's an order collision, which sometimes gets mistaken for frontrunning.
 
-Zack
+Zack-
 so orders are matched on-chain?
 but earlier you said that the order book is off-chain.
 can I see the on-chain smart contract you are using for the order book?
 
-Whitneyadmin
+Whitneyadmin-
 With an open order book you can have front running. It is technically possible. Will Warren had a great article about this. If you would like.
 
 The order book is hosted off chain. All orders are settled on chain and there is no central matching engine.
 If you would like to see the design:
 https://developers.radarrelay.com/learn-more#sra
 
-Zack
+Zack-
 So you have no front running security at all?
 
 Why not?
@@ -83,7 +86,7 @@ The off-chain order book that I programmed has front-running security.
 
 I can't understand why a person would use your market if they can get robbed.
 
-Whitneyadmin
+Whitneyadmin-
 This sounds like you might be expecting a central contract, like a smart contract custody exchange. We use 0x smart contracts. To learn more about that start here: https://0xproject.com/
 
 0Xproject
@@ -97,11 +100,11 @@ https://blog.0xproject.com/front-running-griefing-and-the-perils-of-virtual-sett
 0x Protocol
 Front-running, Griefing and the Perils of Virtual Settlement (Part 2)
 This post is a continuation of part 1, which provided an introduction to blockchain race conditions, front-running, the 0x protocol…
-More than anything right now there is a chance that if you place orders with low gas someone can fill that order first. This can be disappointing.
+More than anything right now there is a chance that **if you place orders with low gas someone can fill that order first. This can be disappointing.**
 
 In the right context there is a very small chance of getting frontrun. Not only are we working to eliminate that chance with future design changes we are also watching all the orders that go through Radar and we can see that it isn't happening. Order collisions are rare, that's the closest thing to it and people often confuse the two.
 
-Zack
+Zack-
 I am thinking of writing a review about Radar Relay.
 Is there anyone else who can explain the security in regards to front running?
 Because right now the review is going to be bad.
@@ -121,6 +124,8 @@ So is the order book off chain or not?
 
 
 At this point I was banned from their forum.
+
+#### conclusions
 
 There are 3 important properties for blockchain markets:
 1) trustless (without this, there is someone who can steal form traders.)
