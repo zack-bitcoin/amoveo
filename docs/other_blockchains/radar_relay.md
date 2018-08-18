@@ -132,8 +132,8 @@ At this point I was banned from their forum.
 ### conclusions
 
 There are 3 important properties for blockchain markets:
-1) trustless (without this, there is someone who can steal form traders.)
-2) trades at the market price (without this, there is someone who can steal from the traders.)
+1) trustless (without this, the person running the market can steal from customers.)
+2) trades at the market price (without this, traders can steal from each other by front-running and arbitrage.)
 3) off-chain (without this, it cannot scale)
 
 Ethereum can have any 2 of these at a time, but only Amoveo has all 3 at once.
