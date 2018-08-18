@@ -20,6 +20,20 @@ version in spend txs is not being used.
 
 ### Things to do
 
+* transactions are being dropped
+
+* partial refund for closing a channel early.
+
+* make it more clear what the cost of forming channels is.
+
+* if you try making a channel with all of your veo, then the tx gets dropped, but the server still stores channel state. So you are unable to make a new channel. We need to prevent this failure mode.
+- maybe we should have a button for putting all your veo into a channel.
+
+* the light node should probably have more feedback when you do stuff.
+- when you make a channel, it should say something about if the tx succeeded.
+
+* make sure there is no epmd vulnerability letting people connect to our full nodes remotely.
+ - Maybe setting the environment variable export ERL_EPMD_ADDRESS=127.0.0.1 will disable access from outside. I could test this at a later time
 
 * test out the full contract resolution in light nodes to make sure we are displaying amounts correctly.x
 
