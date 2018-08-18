@@ -145,6 +145,6 @@ Augur and Gnosis gives (1) and (2).
 At first glance, Radar Relay advertises itself as if it can achieve all 3, but upon closer inspection you will realize that it cannot.
 
 As Whitney said, high-gas orders can front-run low-gas orders.
-Since it is possible to front-run, they don't have (1).
+Since it is possible to front-run, they don't have (2).
 
-So Radar Relay cannot prevent theft from traders.
+So Radar Relay cannot prevent theft from traders by front running and arbitrage.
