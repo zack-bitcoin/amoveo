@@ -2,9 +2,18 @@
 
 macro helper ( ProofStructure -- Int )
 %first unwrap the oracle data from the proof structure.
+print % [ [5, short, long] ]
 car drop
-car swap drop
-car swap drop
+car swap int 5 == if %should equal 5 because of oracle type
+  drop drop
+else
+  fail
+then
+car swap MarketID @ == print if
+  drop drop
+else
+  fail
+then %should equal expected key.
 car drop
 
 int 32 split drop
