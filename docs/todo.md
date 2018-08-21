@@ -20,6 +20,15 @@ version in spend txs is not being used.
 
 ### Things to do
 
+
+* scalar markets
+-continue writing new_oracle.scm (currently in chalang repository) to act as the oracle interface for the smart contract.
+-rewrite market.fs into scalar_market.scm, nearly identical rewrite, but more oraganized.
+-scalar_market.erl needs to be written. it is similar to market.erl. the erlang tools to go along with the new scalar market.
+ * tool for making 8 oracles at once. use it in the test.
+ * bet in all 8 oracles in the test.
+ * tool for closing all 8 oracles at once.
+
 * transactions are being dropped
 
 * partial refund for closing a channel early.

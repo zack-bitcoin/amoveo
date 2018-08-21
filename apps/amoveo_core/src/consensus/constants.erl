@@ -32,6 +32,7 @@ top() -> root() ++ "top.db".
 recent_blocks() -> root() ++ "recent_blocks.db".
 
 scripts_root() -> "lib/amoveo_core-0.1.0/priv/".
+scalar_oracle_bet() -> scripts_root() ++ "scalar_oracle_bet.fs".
 oracle_bet() -> scripts_root() ++ "oracle_bet.fs".
 
 channels_root() -> "channels/".
