@@ -22,6 +22,14 @@ version in spend txs is not being used.
 
 
 * scalar markets
+- we should handle leverage at the contract level, not the oracle level.
+- leverage = ((upper limit) / ((upper limit) - (lower limit)))
+- so I guess inputs should be (leverage, upper_price_limit).
+
+issue in the market smart contract. We need to verify the ID from the oracle data consensus state. We need to embed the oracleid into the smart contract.
+- oracle.fs helper function and market.erl market_smart_contract function.
+- fix the code in javascript as well.
+
 -continue writing new_oracle.scm (currently in chalang repository) to act as the oracle interface for the smart contract.
 -rewrite market.fs into scalar_market.scm, nearly identical rewrite, but more oraganized.
 -scalar_market.erl needs to be written. it is similar to market.erl. the erlang tools to go along with the new scalar market.

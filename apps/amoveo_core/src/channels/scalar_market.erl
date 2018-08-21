@@ -3,7 +3,7 @@
 	 settle/3,no_publish/1,evidence/2,
 	 contradictory_prices/3, market_smart_contract_key/5,
 	 unmatched/1,
-	 test/0, test3/0]).
+	 test/0, test_contract/0, test3/0]).
 -include("../records.hrl").
 
 market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts that can be arbitraged against each other have the same result.
@@ -41,6 +41,17 @@ binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode
 unmatched(OID) ->
     SS = " int 4 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
+settle_scalar_oracles(_, 0) -> [];
+settle_scalar_oracles(OID, Many) ->
+    H = {oracles, <<OID:256>>},
+    [H|settle_scalar_oracles(OID+1, Many - 1)].
+settle_scalar(SPD, OID, Price, Many) ->
+    PriceDeclare = binary_to_list(base64:encode(SPD)),
+    SS1a = "binary "++ integer_to_list(size(SPD))++ 
+" " ++ PriceDeclare ++ " int 1",
+    OIDS = settle_scalar_oracles(OID, Many),
+    SS = spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), OIDS),
+    SS#ss{meta = Price}.
 settle(SPD, OID, Price) ->
     %If the oracle comes to a decision, this is how you get your money out.
     PriceDeclare = binary_to_list(base64:encode(SPD)),
@@ -72,7 +83,7 @@ price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
     %<<PD/binary, Sig1/binary>>.
     <<PD/binary, Signature/binary>>.
 
-test() ->
+test_contract() ->
     %PrivDir = code:priv_dir(amoveo_core),
     %Location = PrivDir ++ "/scalar_oracle_bet.fs",
     %Location = constants:scalar_oracle_bet(),
@@ -87,27 +98,60 @@ test \
     Compiled = compiler_chalang:doit(FullCode),
     Gas = 10000,
     chalang:test(Compiled, Gas, Gas, Gas, Gas, []).
+scalar_oracle_make(_, _Fee, _Question, _OID0, 0) -> ok;
+scalar_oracle_make(Pubkey, Fee, Question, OID, Many) ->
+    Q1 = <<Question/binary, (list_to_binary("  most significant bit is 0. bit number: "))/binary, 
+	  (list_to_binary (integer_to_list(Many)))/binary>>, 
+    Tx = oracle_new_tx:make_dict(Pubkey, Fee, Q1, 1 + block:height(), <<OID:256>>, 0, 0),
+    Stx = keys:sign(Tx),
+    test_txs:absorb(Stx),
+    scalar_oracle_make(Pubkey, Fee, Question, OID + 1, Many - 1).
+scalar_bet_make(Pubkey, Fee, OID, Output, Many, BetSize) -> 
+    sbm(Pubkey, Fee, OID + Many, Output, Many, BetSize).
+sbm(_, _, _, _, 0, _) -> ok;
+sbm(Pubkey, Fee, OID, Output, Many, BetSize) -> 
+    %OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
+    Bit = case Output rem 2 of
+	      0 -> 2;
+	      1 -> 1
+	      end,
+    Tx2 = oracle_bet_tx:make_dict(Pubkey, Fee, <<OID:256>>, Bit, BetSize), 
+    Stx2 = keys:sign(Tx2),
+    test_txs:absorb(Stx2),
+    scalar_bet_make(Pubkey, Fee, OID - 1, Output div 2, Many - 1, BetSize).
+oracle_close_many(_Pubkey, _Fee, 0, _) ->
+    ok;
+oracle_close_many(Pubkey, Fee, Many, OID) ->
+    Tx6 = oracle_close_tx:make_dict(Pubkey,Fee, <<OID:256>>),
+    Stx6 = keys:sign(Tx6),
+    test_txs:absorb(Stx6),
+    oracle_close_many(Pubkey, Fee, Many - 1, OID + 1).
 
-old_test() ->
+test() ->
     Question = <<>>,
-    OID = <<3:256>>,
+    %OID = <<3:256>>,
+    OID0 = 3,
     Fee = 20 + constants:initial_fee(),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
     test_txs:mine_blocks(2),
     timer:sleep(150),
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID, 0, 0),
-    Stx = keys:sign(Tx),
-    test_txs:absorb(Stx),
+    Many = 10,
+    scalar_oracle_make(constants:master_pub(), Fee, Question, OID0, Many),
+    %Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID, 0, 0),
+    %Stx = keys:sign(Tx),
+    %test_txs:absorb(Stx),
     timer:sleep(200),
     test_txs:mine_blocks(1),%was 1
     timer:sleep(1000),
     %make some bets in the oracle with oracle_bet
     OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
-    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL*2), 
-    Stx2 = keys:sign(Tx2),
-    test_txs:absorb(Stx2),
+    scalar_bet_make(constants:master_pub(), Fee, OID0, 512, Many, OIL * 2),
+
+    %Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL*2), 
+    %Stx2 = keys:sign(Tx2),
+    %test_txs:absorb(Stx2),
 
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Amount = 1000000,
@@ -123,16 +167,18 @@ old_test() ->
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv), 
     test_txs:absorb(SStx4),
     timer:sleep(400),
-    test2(NewPub). 
+    test2(NewPub, Many). 
 
-test2(NewPub) ->
+test2(NewPub, Many) ->
     OID = <<3:256>>,
+    <<OIDN:256>> = OID,
     Fee = 20 + constants:initial_fee(),
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
     %Dict5 = (tx_pool:get())#tx_pool.dict,
     MarketID = <<405:256>>,
     PrivDir = code:priv_dir(amoveo_core),
-    Location = constants:oracle_bet(),
+    %Location = constants:oracle_bet(),
+    Location = "../../../../apps/amoveo_core/priv/scalar_oracle_bet.fs",
     Period = 3,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
@@ -140,10 +186,11 @@ test2(NewPub) ->
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
-    Height = 1,
+    _Height = 1,
     %SPD = price_declaration_maker(Height+5, Price, 5000, MarketID),
     SPD = price_declaration_maker(5, Price, 5000, MarketID),
-    SS1 = settle(SPD, OID, Price),
+    %SS1 = settle(SPD, OID, Price),
+    SS1 = settle_scalar(SPD, OIDN, Price, Many),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, delay
     %{55,1000001,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
@@ -180,10 +227,12 @@ test2(NewPub) ->
     Trees60 = (tx_pool:get())#tx_pool.block_trees,
     %Dict60 = (tx_pool:get())#tx_pool.dict,
     %close the oracle with oracle_close
-    Tx6 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
+    oracle_close_many(constants:master_pub(), Fee, Many, OIDN),
+
+    %Tx6 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
     %{Tx6, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees60),
-    Stx6 = keys:sign(Tx6),
-    test_txs:absorb(Stx6),
+    %Stx6 = keys:sign(Tx6),
+    %test_txs:absorb(Stx6),
     test_txs:mine_blocks(1),
     timer:sleep(1000),
     %amount, newnonce, shares, delay
@@ -192,6 +241,7 @@ test2(NewPub) ->
     %amount, newnonce, shares, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
     {95,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
+    % 5 is height.
     %{95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
