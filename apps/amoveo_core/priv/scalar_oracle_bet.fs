@@ -1,3 +1,8 @@
+int 1024 oracle_max !
+int 1024 UL ! %needs to be <= oracle_max
+int 0 LL !
+
+
 %use `scalar_market:test().` to run this code
 
 macro helper ( ProofStructure -- Int )
@@ -88,7 +93,15 @@ macro bet ( ProofStructure p2 p3 p4 p5 p6 p7 p8 p9 p10 -- delay nonce amount)
         else drop
 	     twotozero %-for each one convert to a binary bit. 2->0
 	     binary_convert %convert to decimal
-	     int 10000 * int 255 / (Amount)
+	     LL @ int 1024 * oracle_max @ /
+	     -
+	     oracle_max @ *
+	     UL @ LL @ - /
+	     %(output of oracle range 1024) - ((LL * 1024) / OM) * OM / (UL - LL)
+	     %imagine we have lower limit 200 and upper limit 400, and oracle_max of 900.
+%((output of oracle range 1024) - ((200 * 1024) / 900)) * 900 / (400-200)
+	     int 10000 * int 1023 / (Amount)
+	     
 	     int 0 swap int 3 swap (delay nonce amount)
         then
       then
