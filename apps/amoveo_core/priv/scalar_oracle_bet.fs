@@ -76,6 +76,12 @@ macro twotozero ( L -- L2 )
 macro binary_convert ( L -- N )
   int 0 binary_convert2 call
 ;
+macro max ( A B -- M )
+      2dup > if drop else swap drop then
+;
+macro min ( A B -- M )
+      2dup > if swap drop else drop then
+;
 
 macro bet ( ProofStructure p2 p3 p4 p5 p6 p7 p8 p9 p10 -- delay nonce amount)
       %unpack the 10 things into a list. Use helper on each.
@@ -101,6 +107,8 @@ macro bet ( ProofStructure p2 p3 p4 p5 p6 p7 p8 p9 p10 -- delay nonce amount)
 	     %imagine we have lower limit 200 and upper limit 400, and oracle_max of 900.
 %((output of oracle range 1024) - ((200 * 1024) / 900)) * 900 / (400-200)
 	     int 10000 * int 1023 / (Amount)
+	     int 10000 min
+	     int 0 max
 	     
 	     int 0 swap int 3 swap (delay nonce amount)
         then
