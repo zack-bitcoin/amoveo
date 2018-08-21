@@ -1,6 +1,6 @@
 int 1024 oracle_max !
-int 1024 UL ! %needs to be <= oracle_max
-int 0 LL !
+int 1024 UL ! %needs to be <= oracle_max.
+int 0 LL ! % needs to be <= oracle_max, and >= 0.
 
 
 %use `scalar_market:test().` to run this code
@@ -76,9 +76,6 @@ macro twotozero ( L -- L2 )
 macro binary_convert ( L -- N )
   int 0 binary_convert2 call
 ;
-macro max ( A B -- M )
-      2dup > if drop else swap drop then
-;
 macro min ( A B -- M )
       2dup > if swap drop else drop then
 ;
@@ -100,7 +97,11 @@ macro bet ( ProofStructure p2 p3 p4 p5 p6 p7 p8 p9 p10 -- delay nonce amount)
 	     twotozero %-for each one convert to a binary bit. 2->0
 	     binary_convert %convert to decimal
 	     LL @ int 1024 * oracle_max @ /
-	     -
+	     > if % no negative amounts.
+	       -
+	     else
+	       drop drop int 0
+	     then
 	     oracle_max @ *
 	     UL @ LL @ - /
 	     %(output of oracle range 1024) - ((LL * 1024) / OM) * OM / (UL - LL)
@@ -108,7 +109,6 @@ macro bet ( ProofStructure p2 p3 p4 p5 p6 p7 p8 p9 p10 -- delay nonce amount)
 %((output of oracle range 1024) - ((200 * 1024) / 900)) * 900 / (400-200)
 	     int 10000 * int 1023 / (Amount)
 	     int 10000 min
-	     int 0 max
 	     
 	     int 0 swap int 3 swap (delay nonce amount)
         then
