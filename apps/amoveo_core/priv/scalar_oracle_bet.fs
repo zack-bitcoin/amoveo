@@ -21,7 +21,6 @@ then
 car swap MarketID @ r> plus_32 == if
   drop drop % check that it is the same as MarketID + N
 else
-  print
   fail
 then
 car drop
@@ -104,6 +103,32 @@ macro min2 ( A B -- M )
       2dup > if swap drop else drop then
 ;
 
+macro bet2 ()
+      print
+     LL @ int 1024 * oracle_max @ /
+     print
+     2dup
+     > if % no negative amounts.
+       -
+     else
+       drop drop int 0
+     then (oracle_amount)
+     print
+     oracle_max @ *
+     print
+     UL @ LL @ - /
+     print
+     %((output of oracle range 1024) - ((LL * 1024) / OM)) * OM / (UL - LL)
+     %imagine we have lower limit 200 and upper limit 400, and oracle_max of 900.
+%((output of oracle range 1024) - ((200 * 1024) / 900)) * 900 / (400-200)
+     int 10000 * int 1023 / (Amount)
+     print
+     int 10000 min2
+     print
+     int 10000 swap - bet_amount @ swap -
+     print
+     int 0 swap int 3 swap (delay nonce amount)
+;
 macro bet ( [ProofStructure p2 p3 p4 p5 p6 p7 p8 p9 p10] -- delay nonce amount)
       multi_helper
       dup
@@ -117,24 +142,8 @@ macro bet ( [ProofStructure p2 p3 p4 p5 p6 p7 p8 p9 p10] -- delay nonce amount)
         else
 	     twotozero %-for each one convert to a binary bit. 2->0
 	     binary_convert %convert to decimal
-	     LL @ int 1024 * oracle_max @ /
-	     2dup
-	     > if % no negative amounts.
-	       -
-	     else
-	       drop drop int 0
-	     then (oracle_amount)
-	     print
-	     oracle_max @ * 
-	     UL @ LL @ - / 
-	     %((output of oracle range 1024) - ((LL * 1024) / OM)) * OM / (UL - LL)
-	     %imagine we have lower limit 200 and upper limit 400, and oracle_max of 900.
-%((output of oracle range 1024) - ((200 * 1024) / 900)) * 900 / (400-200)
-	     int 10000 * int 1023 / (Amount)
-	     int 10000 min2
-	     int 10000 swap - bet_amount @ swap - 
-	     int 0 swap int 3 swap (delay nonce amount)
-        then
+	     bet2
+	then
       then
 ;
 
@@ -147,11 +156,12 @@ macro , swap cons ;
 macro ] swap cons reverse ;
 
 macro test
-      binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= int 3 plus_32
+      %binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= int 3 plus_32
       %[ int 1 , int 2, int 1, int 2] bad_oracle call %0
       %[ int 1 , int 3, int 1, int 2] bad_oracle call %1
       %[ int 1 , int 3, int 1, int 2] unresolved_oracle call %0
       %[ int 0 , int 3, int 0, int 2] unresolved_oracle call %1
       %[ int 0, int 0, int 1, int 1, int 1] binary_convert %7
       %[ int 2, int 2, int 2, int 1] twotozero %[0,0,0,1]
+      int 512 bet2
 ;

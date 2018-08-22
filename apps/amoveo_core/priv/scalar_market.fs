@@ -97,11 +97,12 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	swap Expires @ HEIGHT @ minus_zero + swap ( delay new_nonce amount )
 	PRICE @ flip MaxPrice @ ==
 	if
-	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book 
+	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book
 	  int 10000 MaxPrice @ - int 10000 PM @ -
 	  * int 10000 / +
 %we add on some more money for how much refund we get from the unmatched portion.
 	else % since the prices don't match, we get a partial refund. If we were willing to pay a higher price than was actually matched.
+	print
           swap - >r
           int 0 == % if it is 0, that means we won the bet.
           if
@@ -109,7 +110,8 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
           else
             drop r> -
           then
-	then	
+	then
+	print
 ;
 macro unmatched ( OracleProof -- delay nonce amount )
         % helper

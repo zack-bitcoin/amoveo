@@ -13,6 +13,7 @@ market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, Up
     {market, 2, MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit}.
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height, LowerLimit, UpperLimit) ->
     <<_:256>> = MarketID,
+    OID = MarketID,
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		1 -> <<" int 10000 bet_amount ! macro flip int 0 swap + ; macro check_size flip > not ; ">>; %this is for when the customer bets on true.
 		2 -> <<" int 0 bet_amount ! macro flip int 10000 swap - ; macro check_size flip < not ; ">> % maybe should be 10000 - MaxPrice0
@@ -43,10 +44,6 @@ binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit),
     %ToProve = [{oracles, OID}],
     spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
-unmatched_scalar(OID, Many) ->
-    SS = " int 4 ",
-    OIDS = settle_scalar_oracles(OID, Many),
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), OIDS).
 unmatched(OID) ->
     SS = " int 4 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
@@ -101,7 +98,13 @@ test_contract() ->
     Code2 = " \
 test \
 ",
-    FullCode = <<Code/binary, (list_to_binary(Code2))/binary>>,
+    %can test out leverage by changing  UL and LL here.
+    Code0 = " \
+int 1023 UL ! \
+int 0 LL ! \
+int 10000 bet_amount ! \ % set to zero for bet on false.
+",
+    FullCode = <<(list_to_binary(Code0))/binary, Code/binary, (list_to_binary(Code2))/binary>>,
     io:fwrite(FullCode),
     io:fwrite("\n"),
     Compiled = compiler_chalang:doit(FullCode),
@@ -267,12 +270,12 @@ test2(NewPub, Many) ->
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(amoveo_core),
     Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0, LL, UL),
+    %willing to pay 8000, but it only cost 6500. so there should be a refund of 1500
     SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], Gas, Gas, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once the oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay
     % if oracle amount is 0 {15,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
-    %{35,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
     {15,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
 
     %test a trade that gets only partly matched.
