@@ -28,7 +28,7 @@ int " ++ integer_to_list(Period) ++ " Period ! \
 binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode(Pubkey)) ++ " Pubkey ! \
 ",
     PrivDir = code:priv_dir(amoveo_core),
-    {ok, Code3} = file:read_file(PrivDir ++ "/market.fs"),
+    {ok, Code3} = file:read_file(PrivDir ++ "/scalar_market.fs"),
     FullCode = <<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>,
     %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
@@ -280,7 +280,8 @@ test2(NewPub, Many) ->
     %test a trade that goes unmatched.
     %since it is unmatched, they each get their money back.
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
-    SS6 = unmatched_scalar(OIDN, Many), 
+    %SS6 = unmatched_scalar(OIDN, Many), 
+    SS6 = unmatched(OID), 
     %amount, newnonce, delay
     {60, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees5),
     success.
