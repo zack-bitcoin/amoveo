@@ -38,6 +38,10 @@ binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
     %ToProve = [{oracles, OID}],
     spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
+unmatched_scalar(OID, Many) ->
+    SS = " int 4 ",
+    OIDS = settle_scalar_oracles(OID, Many),
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), OIDS).
 unmatched(OID) ->
     SS = " int 4 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
@@ -107,18 +111,19 @@ scalar_oracle_make(Pubkey, Fee, Question, OID, Many) ->
     test_txs:absorb(Stx),
     scalar_oracle_make(Pubkey, Fee, Question, OID + 1, Many - 1).
 scalar_bet_make(Pubkey, Fee, OID, Output, Many, BetSize) -> 
-    sbm(Pubkey, Fee, OID + Many, Output, Many, BetSize).
+    sbm(Pubkey, Fee, OID + Many - 1, Output, Many, BetSize).
 sbm(_, _, _, _, 0, _) -> ok;
 sbm(Pubkey, Fee, OID, Output, Many, BetSize) -> 
     %OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
-    Bit = case Output rem 2 of
+    Bit = case (Output rem 2) of
 	      0 -> 2;
 	      1 -> 1
 	      end,
     Tx2 = oracle_bet_tx:make_dict(Pubkey, Fee, <<OID:256>>, Bit, BetSize), 
     Stx2 = keys:sign(Tx2),
     test_txs:absorb(Stx2),
-    scalar_bet_make(Pubkey, Fee, OID - 1, Output div 2, Many - 1, BetSize).
+    timer:sleep(100),
+    sbm(Pubkey, Fee, OID - 1, Output div 2, Many - 1, BetSize).
 oracle_close_many(_Pubkey, _Fee, 0, _) ->
     ok;
 oracle_close_many(Pubkey, Fee, Many, OID) ->
@@ -147,7 +152,9 @@ test() ->
     timer:sleep(1000),
     %make some bets in the oracle with oracle_bet
     OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
-    scalar_bet_make(constants:master_pub(), Fee, OID0, 512, Many, OIL * 2),
+    scalar_bet_make(constants:master_pub(), Fee, OID0, 1023, Many, OIL * 2), %512 is half way between all and nothing.
+    %scalar_bet_make(constants:master_pub(), Fee, OID0, 0, Many, OIL * 2), %512 is half way between all and nothing.
+    %1=2,
 
     %Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL*2), 
     %Stx2 = keys:sign(Tx2),
@@ -175,14 +182,16 @@ test2(NewPub, Many) ->
     Fee = 20 + constants:initial_fee(),
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
     %Dict5 = (tx_pool:get())#tx_pool.dict,
-    MarketID = <<405:256>>,
+    %MarketID = <<405:256>>,
+    MarketID = OID,
     PrivDir = code:priv_dir(amoveo_core),
     %Location = constants:oracle_bet(),
     Location = "../../../../apps/amoveo_core/priv/scalar_oracle_bet.fs",
     Period = 3,
+    Gas = 1000000,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
-    SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], 10000, 10000, 1, 0),
+    SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], Gas, Gas, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
@@ -240,6 +249,9 @@ test2(NewPub, Many) ->
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
+    %{amount, nonce, delay}
+    % if oracle amount is 0 {5,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
+    %{45,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
     {95,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
     % 5 is height.
     %{95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
@@ -248,16 +260,19 @@ test2(NewPub, Many) ->
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(amoveo_core),
     Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0),
-    SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], 10000, 10000, 1, 0),
-    %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
+    SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], Gas, Gas, 1, 0),
+    %Again, the delay is zero, so we can get our money out as fast as possible once the oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay
+    % if oracle amount is 0 {15,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
+    %{35,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
     {15,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
 
     %test a trade that gets only partly matched.
     %SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SPD3 = price_declaration_maker(5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
-    SS5 = settle(SPD3, OID, 3000),
+    %SS5 = settle(SPD3, OID, 3000),
+    SS5 = settle_scalar(SPD3, OIDN, 3000, Many),
     %amount, newnonce, shares, delay
     {90, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
@@ -265,7 +280,7 @@ test2(NewPub, Many) ->
     %test a trade that goes unmatched.
     %since it is unmatched, they each get their money back.
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
-    SS6 = unmatched(OID), 
+    SS6 = unmatched_scalar(OIDN, Many), 
     %amount, newnonce, delay
     {60, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees5),
     success.

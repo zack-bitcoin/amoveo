@@ -31,6 +31,9 @@ int 1 == if drop drop
      %delay has to be 1 or 0. it is multiplied by a bigger number to possibly set the delay to 0.
      int 0 int 3 bet_amount @ else
 
+%if bet on false, bet_amount is 0.
+%if bet_amount is 0, we ned to flip amount
+
 %2 is false
 drop int 2 == if drop drop 
      int 0 int 3 int 10000 bet_amount @ - else
