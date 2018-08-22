@@ -1,14 +1,17 @@
 -module(scalar_market).
--export([price_declaration_maker/4, market_smart_contract/10,
+-export([price_declaration_maker/4, market_smart_contract/12,
 	 settle/3,no_publish/1,evidence/2,
-	 contradictory_prices/3, market_smart_contract_key/5,
+	 contradictory_prices/3, market_smart_contract_key/7,
 	 unmatched/1,
 	 test/0, test_contract/0, test3/0]).
 -include("../records.hrl").
 
-market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts that can be arbitraged against each other have the same result.
-    {market, 1, MarketID, Expires, Pubkey, Period, OID}.
-market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height) ->
+market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit) -> %contracts that can be arbitraged against each other have the same result.
+    true = LowerLimit < UpperLimit,
+    true = LowerLimit > -1,
+    true = UpperLimit < 1024,
+    {market, 2, MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit}.
+market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height, LowerLimit, UpperLimit) ->
     <<_:256>> = MarketID,
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		1 -> <<" int 10000 bet_amount ! macro flip int 0 swap + ; macro check_size flip > not ; ">>; %this is for when the customer bets on true.
@@ -20,6 +23,8 @@ market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubke
     % Pubkey is the pubkey of the market manager.
     true = size(Pubkey) == constants:pubkey_size(),
     Code2 = " \
+int " ++ integer_to_list(UpperLimit) ++ " UL ! \
+int " ++ integer_to_list(LowerLimit) ++ " LL ! \
 int " ++ integer_to_list(Height) ++ " Height ! \
 int " ++ integer_to_list(Expires) ++ " Expires ! \
 int " ++ integer_to_list(MaxPrice) ++ " MaxPrice ! \
@@ -35,7 +40,7 @@ binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode
     io:fwrite("compiled code is \n"),
     io:fwrite(base64:encode(Compiled)),
     io:fwrite("\n"),
-    CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
+    CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit),
     %ToProve = [{oracles, OID}],
     spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
 unmatched_scalar(OID, Many) ->
@@ -184,13 +189,15 @@ test2(NewPub, Many) ->
     %Dict5 = (tx_pool:get())#tx_pool.dict,
     %MarketID = <<405:256>>,
     MarketID = OID,
+    LL = 0,
+    UL = 1023,
     PrivDir = code:priv_dir(amoveo_core),
     %Location = constants:oracle_bet(),
     Location = "../../../../apps/amoveo_core/priv/scalar_oracle_bet.fs",
     Period = 3,
     Gas = 1000000,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
+    Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0, LL, UL),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], Gas, Gas, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
@@ -259,7 +266,7 @@ test2(NewPub, Many) ->
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(amoveo_core),
-    Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0),
+    Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0, LL, UL),
     SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], Gas, Gas, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once the oracle is settled.
     %This time we won the bet.
@@ -291,11 +298,13 @@ test3() ->
     OID2 = <<-1:256>>,
     BetLocation = constants:oracle_bet(),
     Pubkey = keys:pubkey(),
+    LL = 0,
+    UL = 1023,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Direction = 1,
-    A = market_smart_contract(BetLocation, OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0),
+    A = market_smart_contract(BetLocation, OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0, LL, UL),
     Max = 4294967295,
-    B = market_smart_contract(BetLocation, OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max),
+    B = market_smart_contract(BetLocation, OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max, LL, UL),
     A2 = element(2, A),
     B2 = element(2, B),
     compare_test(A2, B2, 0, <<>>),

@@ -1,6 +1,6 @@
 int 1024 oracle_max !
-int 1024 UL ! %needs to be <= oracle_max.
-int 0 LL ! % needs to be <= oracle_max, and >= 0.
+% int 1024 UL ! %needs to be <= oracle_max.
+% int 0 LL ! % needs to be <= oracle_max, and >= 0.
 
 
 %use `scalar_market:test().` to run this code
