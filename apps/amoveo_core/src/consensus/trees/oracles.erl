@@ -53,7 +53,7 @@ rfb2([{Text, Oracle}|T]) ->
     H = block:height(),
     if
 	(H < S) -> rfb2(T);
-	(not (T == 0)) -> rfb2(T);
+	(not (R == 0)) -> rfb2(T);
 	true -> [{Text, Oracle}|rfb2(T)]
     end.
     
