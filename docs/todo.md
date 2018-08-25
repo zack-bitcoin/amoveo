@@ -28,7 +28,7 @@ version in spend txs is not being used.
 
 
 
-* test scalar markets from python.
+* test scalar markets from javascript, including resolution. make sure the correct amount of money moves.
 
 * update javascript smarket smart contract.
 * add scalar market smart contract.

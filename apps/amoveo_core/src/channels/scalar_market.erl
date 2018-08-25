@@ -7,13 +7,13 @@
 -include("../records.hrl").
 
 market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit) -> %contracts that can be arbitraged against each other have the same result.
-    true = LowerLimit < UpperLimit,
-    true = LowerLimit > -1,
-    true = UpperLimit < 1024,
+    %true = LowerLimit < UpperLimit,
+    %true = LowerLimit > -1,
+    %true = UpperLimit < 1024,
     {market, 2, MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit}.
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height, LowerLimit, UpperLimit) ->
     <<_:256>> = MarketID,
-    OID = MarketID,
+    %OID = MarketID,
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		1 -> <<" int 10000 bet_amount ! macro flip int 0 swap + ; macro check_size flip > not ; ">>; %this is for when the customer bets on true.
 		2 -> <<" int 0 bet_amount ! macro flip int 10000 swap - ; macro check_size flip < not ; ">> % maybe should be 10000 - MaxPrice0
@@ -299,15 +299,15 @@ test3() ->
     %This makes the compiled smart contract in market.js
     OID = <<123:256>>,
     OID2 = <<-1:256>>,
-    BetLocation = constants:oracle_bet(),
+    BetLocation = constants:scalar_oracle_bet(),
     Pubkey = keys:pubkey(),
     LL = 0,
     UL = 1023,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    Direction = 1,
+    Direction = 2,
     A = market_smart_contract(BetLocation, OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0, LL, UL),
     Max = 4294967295,
-    B = market_smart_contract(BetLocation, OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max, LL, UL),
+    B = market_smart_contract(BetLocation, OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max, Max, Max),
     A2 = element(2, A),
     B2 = element(2, B),
     compare_test(A2, B2, 0, <<>>),
