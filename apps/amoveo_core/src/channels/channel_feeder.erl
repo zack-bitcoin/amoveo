@@ -9,7 +9,8 @@
 	 make_locked_payment/3, they_simplify/3,
 	 bets_unlock/1, trade/5, trade/7,
          cancel_trade/4, cancel_trade_server/3,
-         combine_cancel_assets_server/2
+         combine_cancel_assets_server/2,
+	 contract_market/10
 	 ]).
 -include("../records.hrl").
 new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
@@ -146,9 +147,9 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
-    BetLocation = constants:oracle_bet(),
-    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
-    %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+    SC = contract_market(order_book:ob_type(OB), OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
+    %BetLocation = constants:oracle_bet(),
+    %SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
     {ok, OldCD} = channel_manager:read(ID),
     ChannelExpires = OldCD#cd.expiration,
     true = Expires < ChannelExpires,%The channel has to be open long enough for the market to close.
@@ -519,3 +520,15 @@ bets_unlock2([ID|T], OutT) ->
     channel_manager:write(ID, NewCD),
     Out = {Secrets, SPK},
     bets_unlock2(T, [Out|OutT]).
+
+contract_market(OBData, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height) ->
+    case OBData of
+	{scalar, LL, UL, 10} -> 
+	    BetLocation = constants:oracle_bet(),
+	    scalar_market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height);
+	{binary} ->
+	    BetLocation = constants:scalar_oracle_bet(),
+	    market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height)
+    end.
+
+    

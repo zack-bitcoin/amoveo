@@ -95,6 +95,7 @@
 	var height_info = document.createElement("p");
 	height_info.innerHTML = "last height matched: ".concat((x[8]).toString());
 	price.appendChild(height_info);
+	console.log(x[9]);//scalar market data is in here.
 	var oid_info = document.createElement("p");
 	oid_info.innerHTML = "oracle id: ".concat(oid);
 	price.appendChild(oid_info);

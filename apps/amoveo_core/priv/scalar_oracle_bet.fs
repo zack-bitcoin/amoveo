@@ -104,29 +104,21 @@ macro min2 ( A B -- M )
 ;
 
 macro bet2 ()
-      print
      LL @ int 1024 * oracle_max @ /
-     print
      2dup
      > if % no negative amounts.
        -
      else
        drop drop int 0
      then (oracle_amount)
-     print
      oracle_max @ *
-     print
      UL @ LL @ - /
-     print
      %((output of oracle range 1024) - ((LL * 1024) / OM)) * OM / (UL - LL)
      %imagine we have lower limit 200 and upper limit 400, and oracle_max of 900.
 %((output of oracle range 1024) - ((200 * 1024) / 900)) * 900 / (400-200)
      int 10000 * int 1023 / (Amount)
-     print
      int 10000 min2
-     print
      int 10000 swap - bet_amount @ swap -
-     print
      int 0 swap int 3 swap (delay nonce amount)
 ;
 macro bet ( [ProofStructure p2 p3 p4 p5 p6 p7 p8 p9 p10] -- delay nonce amount)

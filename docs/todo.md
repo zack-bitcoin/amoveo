@@ -22,15 +22,13 @@ version in spend txs is not being used.
 
 * the market smart contract gives a partial refund if the price the  batch was matched at is better than the price you were willing to pay. We need to examine this more carefully to make sure it works in the edge cases. A smart contract should only control the funds put into it.
 
-* external api updates.
-- api to check whether a market is scalar or binary. if it is scalar, it also sends the leverage.
+* add a note to this hard fork that full nodes running markets will need to close all of those markets first before doing this update. Channels do not have to be closed, they can contain old and new contracts at the same time.
 
-* internal api updates.
-- launching 10 oracles together.
-- trade/8 needs to know when to make scalar contracts instead.
+* in channels.js we need to give the user a chance to confirm that the period, server_pubkey, and expiration are all the expected amounts. Along with anything else from ext_handler:market_data
 
-* channel feeder updates.
-- trade needs to know when to make scalar contracts instead.
+
+
+* test scalar markets from python.
 
 * update javascript smarket smart contract.
 * add scalar market smart contract.
