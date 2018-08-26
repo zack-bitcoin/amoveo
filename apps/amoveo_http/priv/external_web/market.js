@@ -24,7 +24,30 @@ function scalar_market_contract(direction, expires, maxprice, server_pubkey, per
 	console.log("many must be 10");
 	return "error";
     }
-    
+    console.log("market oid is ");
+    console.log(oid);
+    var contract = a.concat(
+        integer_to_array(upper_limit, 4)).concat(
+            b).concat(
+		integer_to_array(lower_limit, 4)).concat(
+		    c).concat(
+			integer_to_array(bet_height, 4)).concat(
+			    d).concat(
+				integer_to_array(expires, 4)).concat(
+				    e).concat(
+					integer_to_array(maxprice, 4)).concat(
+					    f).concat(
+						string_to_array(atob(oid))).concat(
+						    g).concat(
+							integer_to_array(period, 4)).concat(
+							    h).concat(
+								string_to_array(atob(server_pubkey))).concat(i);
+    console.log("compiled contract");
+    console.log(JSON.stringify(contract));
+    var contract2 =  btoa(array_to_string(contract));
+    var codekey = ["market", 2, oid, expires, server_pubkey, period, oid, lower_limit, upper_limit];
+    return ["bet", contract, amount, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
+
 
 )
 function market_contract(direction, expires, maxprice, server_pubkey, period, amount, oid, bet_height) {
@@ -65,7 +88,7 @@ function market_contract(direction, expires, maxprice, server_pubkey, period, am
     console.log("compiled contract");
     console.log(JSON.stringify(g));
     var contract =  btoa(array_to_string(g));
-    var codekey = ["market", 1, oid, expires, server_pubkey, period, oid]
+    var codekey = ["market", 1, oid, expires, server_pubkey, period, oid];
     return ["bet", contract, amount, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
 }
 

@@ -27,11 +27,8 @@ version in spend txs is not being used.
 * in channels.js we need to give the user a chance to confirm that the period, server_pubkey, and expiration are all the expected amounts. Along with anything else from ext_handler:market_data
 
 
-
 * test scalar markets from javascript, including resolution. make sure the correct amount of money moves.
 
-* update javascript smarket smart contract.
-* add scalar market smart contract.
 * javascript needs to know when to make a scalar contract instead of binary.
 
 
