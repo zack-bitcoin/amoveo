@@ -10,6 +10,12 @@ Maybe we should add a governance variables for each opcode in the VM. To be a ga
 
 version in spend txs is not being used.
 
+add n-lock-time to spend txs, that way we can make dead man's switches for inheritance.
+
+maybe channel_team_close_tx should have a negative fee. As a reward for deleting the channel.
+We could raise the fee for opening channels, and the reward for closing them.
+This would prevent attacks where the attacker opens too many channels, and tries to close them all in too short of a time period.
+
 
 ### governance ideas
 

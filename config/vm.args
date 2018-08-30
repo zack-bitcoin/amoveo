@@ -1,6 +1,8 @@
 -sname amoveo_core
 
 -setcookie amoveo_core_cookie
+-kernel inet_dist_use_interface {127,0,0,1}
+
 
 +K true
 +A30
