@@ -102,16 +102,15 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	  * int 10000 / +
 %we add on some more money for how much refund we get from the unmatched portion.
 	else % since the prices don't match, we get a partial refund. If we were willing to pay a higher price than was actually matched.
-	print
-          swap - >r
-          int 0 == % if it is 0, that means we won the bet.
-          if
-            drop r> +
-          else
-            drop r> -
-          then
+	swap - +
+%          swap - >r
+%          int 0 == % if it is 0, that means we won the bet.
+%          if
+%            drop r> +
+%          else
+%            drop r> -
+%          then
 	then
-	print
 ;
 macro unmatched ( OracleProof -- delay nonce amount )
         % helper
@@ -137,6 +136,9 @@ swap
       int 3 == if drop drop drop evidence else drop
       int 4 == if drop drop unmatched else drop
       then then then then then
+      % in the original design of this contract, amount was set up so that amount from 0<->10000 represented how much a1 was betting + how much a2 was betting. if the limit price is not equal to the batch price, then we need to give a refund in excess of the old limit. So the old parts of the contract are now calculating an amount in range 0<->(10000 + MaxPrice). the following line is used to resize this to 0<->10000.
+      int 10000 * MaxPrice @ int 10000 + /
+      %int 10000 * MaxPrice @ dup int 10000 swap - int 2 * + /
       return
 ;
 main

@@ -20,16 +20,23 @@ version in spend txs is not being used.
 
 ### Things to do
 
-* the market smart contract gives a partial refund if the price the  batch was matched at is better than the price you were willing to pay. We need to examine this more carefully to make sure it works in the edge cases. A smart contract should only control the funds put into it.
+* update the javascript version of the contracts.
+
+* javascript needs to know when to make a scalar contract instead of binary.
+
+* test scalar markets from javascript, including resolution. make sure the correct amount of money moves.
+
+* Once a share is matched, then we know exactly how much veo it needs. So we should simplify the contract and extract the excess veo to be used in other smart contracts in this channel.
+
+* in ext_handler:new_channel/3, we accept channels made in either direction, is this really secure? Make sure we don't assume the direction in any other step.
 
 * add a note to this hard fork that full nodes running markets will need to close all of those markets first before doing this update. Channels do not have to be closed, they can contain old and new contracts at the same time.
 
 * in channels.js we need to give the user a chance to confirm that the period, server_pubkey, and expiration are all the expected amounts. Along with anything else from ext_handler:market_data
 
 
-* test scalar markets from javascript, including resolution. make sure the correct amount of money moves.
 
-* javascript needs to know when to make a scalar contract instead of binary.
+
 
 
 
