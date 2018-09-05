@@ -52,9 +52,9 @@ rtc2([{Text, Oracle}|T]) ->
     D = Oracle#oracle.done_timer,
     H = block:height(),
     if
-	(H < D) -> rfb2(T);
-	(not (R == 0)) -> rfb2(T);
-	true -> [{Text, Oracle}|rfb2(T)]
+	(H < D) -> rtc2(T);
+	(not (R == 0)) -> rtc2(T);
+	true -> [{Text, Oracle}|rtc2(T)]
     end.
     
 ready_for_bets() ->
