@@ -6,6 +6,8 @@
 
 ### Other hard fork ideas
 
+maybe governance oracles should have a minimum amount they need to be changed by. otherwise an attacker can block an oracle from being made by keep making the same oracle to only change 1%.
+
 Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
 version in spend txs is not being used.
