@@ -15,10 +15,12 @@ version in spend txs is not being used.
 
 * consider reducing governance variable "maximum oracle time". it takes too long to close bad-question oracles.
 
-* raise the miner reward.
-
 
 ### Things to do
+
+* when I try to close channels in the integration test, it says that the smart contract is trying to call an undefined function.
+
+* Mr Flinstone channel team close.
 
 * update the javascript version of the contracts.
 
@@ -27,6 +29,8 @@ version in spend txs is not being used.
 * test scalar markets from javascript, including resolution. make sure the correct amount of money moves.
 
 * Once a share is matched, then we know exactly how much veo it needs. So we should simplify the contract and extract the excess veo to be used in other smart contracts in this channel.
+
+* We need a way for pairs of people to write a custom CFD contract for a single channel between them using only the light node.
 
 * in ext_handler:new_channel/3, we accept channels made in either direction, is this really secure? Make sure we don't assume the direction in any other step.
 

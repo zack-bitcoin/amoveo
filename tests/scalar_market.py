@@ -1,6 +1,7 @@
 
 from get_request import request
 import json
+import base64
 
 def market_test():
     print("market test")
@@ -10,6 +11,7 @@ def market_test():
     request(1, "add_peer", [[127,0,0,1], 3030])
     request(1, "add_peer", [[127,0,0,1], 3020])
     request(1, "add_peer", [[127,0,0,1], 3010])
+    request(1, 'mine_block', [1, 10000000], 1)
     request(1, 'mine_block', [1, 10000000], 1)
     request(1, 'sync', [[127,0,0,1], 3020], 0.05)
     request(1, 'sync', [[127,0,0,1], 3030], 2)
@@ -46,7 +48,7 @@ def market_test():
     #x = request(1, 'new_question_oracle', [height+1, 'aXMgMisyPTQ/', oid], 1)
     #request(1, 'mine_block', [1, 10000000], 2)
     height = json.loads(request(1, 'height', [], 0))[1]
-    x = request(1, 'new_scalar_oracle', [height+1, 'aXMgMisyPTQ/', oid, 10], 1)
+    x = request(1, 'new_scalar_oracle', [height+1, 'aXMgMisyPTQ/', oid, 10], 2)
     #oid = json.loads(x)[1]
     print("python oid is ")
     print(oid)
@@ -55,8 +57,9 @@ def market_test():
     request(1, 'sync', [[127,0,0,1], 3030], 2)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
-    request(3, 'new_market', [oid, 20, 5], 2)
+    request(3, 'new_market', [oid, 20, 5, 0, 1023, 10], 2)
 def test2(): #useful for testing market from light node.
+    print("test 2")
     request(3, 'txs', [[127,0,0,1], 3020], 1)
     request(3, 'txs', [[127,0,0,1], 3010], 9)
     request(3, 'txs', [[127,0,0,1], 3020])
@@ -77,19 +80,42 @@ def test2(): #useful for testing market from light node.
     request(1, 'sync', [[127,0,0,1], 3020], 0.04)
     request(1, 'mine_block', [1, 10000], 0.04)
     request(1, 'sync', [[127,0,0,1], 3030])
-    request(1, 'sync', [[127,0,0,1], 3020], 0.04)
+    request(1, 'sync', [[127,0,0,1], 3020], 10)
     #request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be removed
+def combine_addr(start, byte):
+    return base64.b64encode(start + byte)
 def test3(): #useful for testing market from light node.
+    print("test3")
     oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     #request(1, 'combine_cancel_assets', [[127,0,0,1], 3030], 0.1)
-    request(2, 'oracle_bet', [oid, 1, 50000000], 0.2)
-    request(1, 'oracle_bet', [oid, 2, 2600000000], 0.4)
+    start = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    oid = base64.b64encode(start + '\x02')
+    request(2, 'oracle_bet', [oid, 1, 50000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x03'), 1, 20000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x04'), 1, 20000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x05'), 1, 20000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x06'), 1, 20000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x07'), 1, 20000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x08'), 1, 20000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x09'), 1, 20000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x0a'), 1, 20000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x0b'), 1, 20000000], 1)
+    #request(1, 'oracle_bet', [oid, 2, 2600000000], 0.4)
     request(1, 'mine_block', [11, 10000], 1)
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
     request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be optional
     #request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be optional
     request(1, 'oracle_close', [oid], 0.4)
+    request(1, 'oracle_close', [combine_addr(start, '\x03')], 0.4)
+    request(1, 'oracle_close', [combine_addr(start, '\x04')], 0.4)
+    request(1, 'oracle_close', [combine_addr(start, '\x05')], 0.4)
+    request(1, 'oracle_close', [combine_addr(start, '\x06')], 0.4)
+    request(1, 'oracle_close', [combine_addr(start, '\x07')], 0.4)
+    request(1, 'oracle_close', [combine_addr(start, '\x08')], 0.4)
+    request(1, 'oracle_close', [combine_addr(start, '\x09')], 0.4)
+    request(1, 'oracle_close', [combine_addr(start, '\x0a')], 0.4)
+    request(1, 'oracle_close', [combine_addr(start, '\x0b')], 0.4)
     request(1, 'mine_block', [1, 10000], 0.4)
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 1)
@@ -98,9 +124,8 @@ def test3(): #useful for testing market from light node.
     request(1, 'mine_block', [1, 10000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.3)
     request(1, 'sync', [[127,0,0,1], 3020], 0.8)
-    #request(2, 'oracle_winnings', [oid], 0.04)#this causes a crash, as it should.
-    request(1, 'oracle_winnings', [oid], 0.04)
-    request(1, 'oracle_unmatched', [oid], 0.04)
+    request(2, 'oracle_winnings', [oid], 0.04)
+    request(2, 'oracle_unmatched', [oid], 0.04)
     request(2, 'pull_channel_state', [[127,0,0,1], 3030], 0.04)
     request(1, 'mine_block', [1, 10000], 0.2)
     request(1, 'sync', [[127,0,0,1], 3030])

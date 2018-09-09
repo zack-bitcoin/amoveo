@@ -2,7 +2,7 @@
 -export([price_declaration_maker/4, market_smart_contract/12,
 	 settle/3,no_publish/1,evidence/2,
 	 contradictory_prices/3, market_smart_contract_key/7,
-	 unmatched/1,
+	 unmatched/1, scalar_oracle_make/5,
 	 test/0, test_contract/0, test3/0]).
 -include("../records.hrl").
 
@@ -115,9 +115,12 @@ int 10000 bet_amount ! \ % set to zero for bet on false.
     chalang:test(Compiled, Gas, Gas, Gas, Gas, []).
 scalar_oracle_make(_, _Fee, _Question, _OID0, 0) -> ok;
 scalar_oracle_make(Pubkey, Fee, Question, OID, Many) ->
+    io:fwrite("SCALAR ORACLE MAKE\n"),
     Q1 = <<Question/binary, (list_to_binary("  most significant bit is 0. bit number: "))/binary, 
 	  (list_to_binary (integer_to_list(Many)))/binary>>, 
     Tx = oracle_new_tx:make_dict(Pubkey, Fee, Q1, 1 + block:height(), <<OID:256>>, 0, 0),
+    io:fwrite(packer:pack(Tx)),
+    io:fwrite("\n"),
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     scalar_oracle_make(Pubkey, Fee, Question, OID + 1, Many - 1).

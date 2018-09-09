@@ -525,7 +525,7 @@ contract_market(OBData, MarketID, Type, Expires, Price, Pubkey, Period, Amount, 
     case OBData of
 	{scalar, LL, UL, 10} -> 
 	    BetLocation = constants:oracle_bet(),
-	    scalar_market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height);
+	    scalar_market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height, LL, UL);
 	{binary} ->
 	    BetLocation = constants:scalar_oracle_bet(),
 	    market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height)

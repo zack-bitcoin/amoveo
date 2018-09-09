@@ -48,6 +48,7 @@ type is one of the atoms in this list: [true, false, bad]
 You can either bet that the answer to the question is true or false, or you can bet that it is a bad question.
 ```
 api:oracle_bet(OracleID, Type, Amount).
+
 ```
 Type is either 1, 2, or 3.
 1 = true

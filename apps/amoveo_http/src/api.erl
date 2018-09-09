@@ -291,7 +291,8 @@ channel_team_close(CID, Amount) ->
     channel_team_close(CID, Amount, ?Fee+Cost).
 channel_team_close(CID, Amount, Fee) ->
     Tx = channel_team_close_tx:make_dict(CID, Amount, Fee),
-    keys:sign(Tx).
+    %keys:sign(Tx).
+    Tx.
 channel_timeout() ->
     channel_timeout(constants:server_ip(), constants:server_port()).
 channel_timeout(Ip, Port) ->
@@ -323,13 +324,16 @@ new_scalar_oracle(Start, Question, ID, Many) ->
 	     true -> Question
 	 end,
     Cost = trees:dict_tree_get(governance, oracle_new),
-    nso2(keys:pubkey(), ?Fee+Cost, Q2, Start, ID, 0, Many).
+    nso2(keys:pubkey(), ?Fee+Cost+20, Q2, Start, ID, 0, Many).
 -define(GAP, 0).%how long to wait between the limits when the different oracles of a scalar market can be closed.
 nso2(_Pub, _C, _Q, _S, _ID, Many, Many) -> 0;
 nso2(Pub, C, Q, S, ID, Many, Limit) -> 
     io:fwrite("nso2\n"),
     Q2 = <<Q/binary, (list_to_binary("  most significant is bit 0. this is bit number: "))/binary, (list_to_binary(integer_to_list(Many)))/binary>>,
-    tx_maker0(oracle_new_tx:make_dict(Pub, C, Q2, S, <<ID:256>>, 0, 0)),
+    Tx = oracle_new_tx:make_dict(Pub, C, Q2, S, <<ID:256>>, 0, 0),
+    io:fwrite(packer:pack(Tx)),
+    %tx_pool_feeder:absorb(keys:sign(Tx)),
+    tx_maker0(Tx),
     nso2(Pub, C, Q, S+?GAP, ID+1, Many+1, Limit).
     
 new_question_oracle(Start, Question)->
@@ -523,7 +527,7 @@ new_market(OID, Expires, Period, LL, UL, Many) -> %<<5:256>>, 4000, 5
     order_book:new_scalar_market(OID, Expires, Period, LL, UL, Many).
 not_empty_oracle(_, 0, _) -> true;
 not_empty_oracle(OID, Many, OldTrees) ->
-    X = trees:dict_tree_git(oracles, <<OID:256>>, dict:new(), OldTrees),
+    X = trees:dict_tree_get(oracles, <<OID:256>>, dict:new(), OldTrees),
     (not (empty == X)) and not_empty_oracle(OID+1, Many-1, OldTrees).
 new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     %sets up an order book.
