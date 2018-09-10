@@ -6,6 +6,8 @@
 
 ### Other hard fork ideas
 
+* the oracle should say the sum of open bets, otherwise it is so complicated for light nodes to request a proof of this information.
+
 maybe governance oracles should have a minimum amount they need to be changed by. otherwise an attacker can block an oracle from being made by keep making the same oracle to only change 1%.
 
 Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
@@ -28,6 +30,7 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+* light node needs to be able to look up the volume of off-chain bets.
 
 * scalar markets
 - we should handle leverage at the contract level, not the oracle level.

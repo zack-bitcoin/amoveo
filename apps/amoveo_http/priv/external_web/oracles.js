@@ -70,12 +70,17 @@
 	    oracleOutput.appendChild(text(done_txt));
 
 	    console.log("new");
-	    variable_public_get(["oracle_bets", v], oracle_bets);
+	    console.log(v);
+	    merkle.request_proof("orders", orders_hash, function(x) {
+		console.log(x);
+	    });
+	    //variable_public_get(["oracle_bets", v], oracle_bets);
 
 	    //now display the whole thing.
 	    oracleOutput.appendChild(br());
 	    var x2 = text(JSON.stringify(x));
 	    oracleOutput.appendChild(x2);
+
 	});
     };
     function oracle_bets(x) {
