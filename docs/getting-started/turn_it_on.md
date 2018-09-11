@@ -11,6 +11,7 @@ It is helpful to have port 8080 exposed to the internet, this will let you find 
 
 [first, if you haven't installed the dependencies, do that](/docs/getting-started/dependencies.md)
 
+<!---
 compile it
 ```
   make prod-build
@@ -24,9 +25,17 @@ You can communicate with the running node from a terminal like this:
 ```
   make prod-attach
 ```
+-->
+
+```
+./_build/prod/rel/amoveo_core/bin/amoveo_core console
+```
+
 now that you are attached to a node, you can tell it [commands](/docs/api/commands.md)
 
 [You can read about how to download the blocks and sync with the network here](/docs/getting-started/sync.md)
+
+To run this software in the background, use some software like screen.
 
 
 You can turn off a running node.
@@ -48,10 +57,12 @@ Make sure to turn your node off first before doing this.
   make prod-clean
 ```
 
+<!---
 For convenience, there is a way to wrap this all into one command. To kill any running processes, rebuild the code, and start a node that can connect to the network, do this:
 ```
   make prod-restart
 ```
+-->
 
 
 [Once the node is turned on, and you are attached to it, then you can issue commands.](../api/commands.md)

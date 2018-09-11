@@ -64,7 +64,7 @@ Type is either 1, 2, or 3.
 #### Look up bets in the oracle
 ```
 X = oracles:orders(Oracle).
-IDs = orders:get_all(X).
+IDs = orders:all(X).
 orders:get(hd(IDs), X).%first bet in list
 orders:get(hd(tl(IDs)), X).%second bet in list
 ```
