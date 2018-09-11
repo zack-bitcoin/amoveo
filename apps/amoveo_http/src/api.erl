@@ -603,6 +603,13 @@ mining_data() ->
 		     Block#block.difficulty]
 	    end
     end.
+orders(OID) ->
+    Oracle = trees:dict_tree_get(oracles, OID),
+    X = oracles:orders(Oracle),
+    IDs = orders:all(X),
+    lists:map(fun(Y) -> orders:get(Y, X) end, IDs).
+		      
+
 sync_normal() ->
     sync_mode:normal(),
     0.
@@ -618,3 +625,5 @@ mining_data(X, Start) ->
 pubkey(Pubkey, Many, TopHeight) ->
     amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).
 %curl -i -d '["pubkey", "BEwcawKx5oZFOmp1533TqDzUl76fOeLosDl+hwv6rZ50tLSQmMyW/87saj3D5qBtJI4lLsILllpRlT8/ppuNaPM=", 100, 18000]' http://localhost:8081
+
+
