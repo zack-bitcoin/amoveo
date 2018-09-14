@@ -6,6 +6,11 @@
 
 ### Other hard fork ideas
 
+* update the fork choice rule. instead of prefering the version with the most hashes, prefer the version that maximizes this accumulated value: ((hashes) * (target block period) / (block reward)).
+- no good, if the block reward is set too low, then you can make a fork which always wins.
+
+* a new merkel tree to hold txids for every tx that has happened. This way you can more easily prove to a customer that a tx has occured.
+
 * the oracle should say the sum of open bets, otherwise it is so complicated for light nodes to request a proof of this information.
 
 maybe governance oracles should have a minimum amount they need to be changed by. otherwise an attacker can block an oracle from being made by keep making the same oracle to only change 1%.
@@ -30,12 +35,13 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
-* light node needs to be able to look up the volume of off-chain bets.
+* merge the scalar market fork. This is critical to fix a bug in market smart contracts.
 
-* scalar markets
-- we should handle leverage at the contract level, not the oracle level.
-- leverage = ((upper limit) / ((upper limit) - (lower limit)))
-- so I guess inputs should be (leverage, upper_price_limit).
+* take records of all the channels that need to be closed the slow way.
+
+* make a combinatorial question oracle to find out if we should lower the block reward, and a market.
+
+* light node needs to be able to look up the volume of off-chain bets. (or at least put it on the explorer for now.)
 
 issue in the market smart contract. We need to verify the ID from the oracle data consensus state. We need to embed the oracleid into the smart contract.
 - oracle.fs helper function and market.erl market_smart_contract function.
