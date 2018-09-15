@@ -41,11 +41,10 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 * make a combinatorial question oracle to find out if we should lower the block reward, and a market.
 
-* light node needs to be able to look up the volume of off-chain bets. (or at least put it on the explorer for now.)
+*light node needs to be able to look up the volume of off-chain bets. (or at least put it on the explorer for now.)
 
-issue in the market smart contract. We need to verify the ID from the oracle data consensus state. We need to embed the oracleid into the smart contract.
-- oracle.fs helper function and market.erl market_smart_contract function.
-- fix the code in javascript as well.
+* update the make file to more easily start the node after the changes to new linux installs.
+
 
 -continue writing new_oracle.scm (currently in chalang repository) to act as the oracle interface for the smart contract.
 -rewrite market.fs into scalar_market.scm, nearly identical rewrite, but more oraganized.
