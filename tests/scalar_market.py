@@ -1,4 +1,3 @@
-
 from get_request import request
 import json
 import base64
@@ -48,12 +47,13 @@ def market_test():
     #x = request(1, 'new_question_oracle', [height+1, 'aXMgMisyPTQ/', oid], 1)
     #request(1, 'mine_block', [1, 10000000], 2)
     height = json.loads(request(1, 'height', [], 0))[1]
-    x = request(1, 'new_scalar_oracle', [height+1, 'aXMgMisyPTQ/', oid, 10], 2)
+    x = request(1, 'new_scalar_oracle', [height+1, 'aXMgMisyPTQ/', oid, 10], 6)
     #oid = json.loads(x)[1]
     print("python oid is ")
     print(oid)
     request(1, 'txs', [[127,0,0,1], 3020], 2)
-    request(1, 'mine_block', [4, 10000000], 3)
+    request(1, 'mine_block', [1, 10000000], 1)
+    request(1, 'mine_block', [3, 10000000], 1)
     request(1, 'sync', [[127,0,0,1], 3030], 2)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
@@ -89,8 +89,10 @@ def test3(): #useful for testing market from light node.
     oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     #request(1, 'combine_cancel_assets', [[127,0,0,1], 3030], 0.1)
     start = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    print(oid)
     oid = base64.b64encode(start + '\x02')
-    request(2, 'oracle_bet', [oid, 1, 50000000], 1)
+    print(oid)
+    request(2, 'oracle_bet', [oid, 1, 20000000], 1)
     request(2, 'oracle_bet', [combine_addr(start, '\x03'), 1, 20000000], 1)
     request(2, 'oracle_bet', [combine_addr(start, '\x04'), 1, 20000000], 1)
     request(2, 'oracle_bet', [combine_addr(start, '\x05'), 1, 20000000], 1)
@@ -99,7 +101,7 @@ def test3(): #useful for testing market from light node.
     request(2, 'oracle_bet', [combine_addr(start, '\x08'), 1, 20000000], 1)
     request(2, 'oracle_bet', [combine_addr(start, '\x09'), 1, 20000000], 1)
     request(2, 'oracle_bet', [combine_addr(start, '\x0a'), 1, 20000000], 1)
-    request(2, 'oracle_bet', [combine_addr(start, '\x0b'), 1, 20000000], 1)
+    request(2, 'oracle_bet', [combine_addr(start, '\x0b'), 1, 20000000], 3)
     #request(1, 'oracle_bet', [oid, 2, 2600000000], 0.4)
     request(1, 'mine_block', [11, 10000], 1)
     request(1, 'sync', [[127,0,0,1], 3030])
