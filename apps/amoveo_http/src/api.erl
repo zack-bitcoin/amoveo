@@ -1,5 +1,6 @@
 -module(api).
 -compile(export_all).
+-export([new_market/6]).
 -define(Fee, element(2, application:get_env(amoveo_core, tx_fee))).
 -define(IP, constants:server_ip()).
 -define(Port, constants:server_port()).
@@ -513,6 +514,13 @@ market_match(OID) ->
 settle_bets() ->
     channel_feeder:bets_unlock(channel_manager:keys()),
     {ok, ok}.
+not_empty_oracle(_, 0, _) -> true;
+not_empty_oracle(OID, Many, OldTrees) ->
+    io:fwrite("not empty oracle "),
+    io:fwrite(integer_to_list(Many)),
+    io:fwrite("\n"),
+    X = trees:dict_tree_get(oracles, <<OID:256>>, dict:new(), OldTrees),
+    (not (empty == X)) and not_empty_oracle(OID+1, Many-1, OldTrees).
 new_market(OID, Expires, Period, LL, UL, Many) -> %<<5:256>>, 4000, 5
     true = LL > -1,
     true = LL < UL,
@@ -525,10 +533,6 @@ new_market(OID, Expires, Period, LL, UL, Many) -> %<<5:256>>, 4000, 5
     <<OIDN:256>> = OID,
     true = not_empty_oracle(OIDN, Many, OldTrees),
     order_book:new_scalar_market(OID, Expires, Period, LL, UL, Many).
-not_empty_oracle(_, 0, _) -> true;
-not_empty_oracle(OID, Many, OldTrees) ->
-    X = trees:dict_tree_get(oracles, <<OID:256>>, dict:new(), OldTrees),
-    (not (empty == X)) and not_empty_oracle(OID+1, Many-1, OldTrees).
 new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     %sets up an order book.
     %turns on the api for betting.

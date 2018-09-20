@@ -30,15 +30,15 @@ def market_test():
     request(1, 'create_account', [pub2, 1000000000], 0.4)
     pub_light = "BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4="
     request(1, 'create_account', [pub_light, 1000000000], 2)
-    request(1, 'txs', [[127,0,0,1], 3030], 0)
+    request(1, 'txs', [[127,0,0,1], 3030], 1)
     #request(2, 'sync', [[127,0,0,1], 3030], 10)
-    request(1, 'txs', [[127,0,0,1], 3020], 1)
+    request(1, 'txs', [[127,0,0,1], 3020], 2)
 #def dont_doit():
     fee = 152000
     cid1 = 'vVhSBIjO7fU0V4v08WH2O2crgjtl9wTODuIk+jeB2NM='
     cid2 = '7zCJZIMatujoQjVXrPiTMMPkXOBiT/oOhY24q+mYAZo='
-    request(1, 'new_channel_with_server', [[127,0,0,1], 3030, cid1, 10000, 9999, fee, 100, 1000], 0.1)
-    request(2, 'sync', [[127,0,0,1], 3030], 0)
+    request(1, 'new_channel_with_server', [[127,0,0,1], 3030, cid1, 10000, 9999, fee, 100, 1000], 0.5)
+    request(2, 'sync', [[127,0,0,1], 3030], 1)
     request(2, 'sync', [[127,0,0,1], 3010], 2)
     request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 99, 1000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
@@ -135,6 +135,6 @@ def test3(): #useful for testing market from light node.
 
 if __name__ == "__main__":
     market_test()
-    test2()
-    test3()
+    #test2()
+    #test3()
     

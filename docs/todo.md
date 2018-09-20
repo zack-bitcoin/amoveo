@@ -18,9 +18,13 @@ version in spend txs is not being used.
 
 ### Things to do
 
-* update the javascript version of the contracts.
+* there is a bug. channel data gets stored into the channel manager, even if the tx didn't get produced.
 
+* update the javascript version of the contracts.
+- make bet button
+- change headers.js back to production mode.
 * javascript needs to know when to make a scalar contract instead of binary.
+- channels.js scalar_market_contract
 
 * test scalar markets from javascript, including resolution. make sure the correct amount of money moves.
 
