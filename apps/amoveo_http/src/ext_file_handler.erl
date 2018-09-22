@@ -67,9 +67,9 @@ handle(Req, _) ->
                <<"/BigInteger.js">> -> true;
                <<"/big_int_test.js">> -> true;
                X -> 
-                   io:fwrite("ext file handler block access to: "),
-                   io:fwrite(X),
-                   io:fwrite("\n"),
+                   %io:fwrite("ext file handler block access to: "),
+                   %io:fwrite(X),
+                   %io:fwrite("\n"),
                    false
            end,
     File = << PrivDir/binary, <<"/external_web">>/binary, F/binary>>,
