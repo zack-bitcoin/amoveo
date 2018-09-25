@@ -55,7 +55,7 @@ check() -> gen_server:cast(?MODULE, check).
 add([]) -> 0;
 add(Blocks) when not is_list(Blocks) -> 0;
 add(Blocks) ->
-    io:fwrite("block organizer add\n"),
+    %io:fwrite("block organizer add\n"),
     true = is_list(Blocks),
     {Blocks2, AddReturn} = add1(Blocks, []),
     add3(Blocks2),

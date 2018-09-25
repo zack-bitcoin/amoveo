@@ -29,15 +29,14 @@ handle_cast({main, Peer}, _) ->
 	BL -> ok;
 	Peer == error -> ok;
 	not(S == go) -> 
-	    io:fwrite("not syncing with this peer now "),
-	    io:fwrite(packer:pack(Peer)),
-	    io:fwrite("\n"),
+	    %io:fwrite("not syncing with this peer now "),
+	    %io:fwrite(packer:pack(Peer)),
+	    %io:fwrite("\n"),
 	    ok;
 	true ->
-	    
-	    io:fwrite("syncing with this peer now "),
-	    io:fwrite(packer:pack(Peer)),
-	    io:fwrite("\n"),
+	    %io:fwrite("syncing with this peer now "),
+	    %io:fwrite(packer:pack(Peer)),
+	    %io:fwrite("\n"),
 	    sync_peer(Peer),
 	    case application:get_env(amoveo_core, kind) of
 		{ok, "production"} ->
@@ -76,12 +75,12 @@ doit2(L0) ->
     HH = api:height(),
     if
 	length(L) == 0 ->
-	    io:fwrite("no one to sync with\n"),
+	    %io:fwrite("no one to sync with\n"),
 	    ok;
 	BH < HH ->
 	    gen_server:cast(?MODULE, {main, hd(shuffle(L))});
 	true -> 
-	    io:fwrite("nothing to sync\n"),
+	    %io:fwrite("nothing to sync\n"),
 	    %timer:sleep(500),
 	    %trade_txs(hd(shuffle(L)))
 	    %sync:start()
@@ -131,11 +130,11 @@ give_blocks_old(Peer, CommonHash, TheirBlockHeight) ->
 		true -> 
 		    %we should remove them from the list of peers.
 		    peers:remove(Peer),
-		    io:fwrite("they are not accepting our blocks."),
+		    %io:fwrite("they are not accepting our blocks."),
 		    ok
 	    end;
         true -> 
-            io:fwrite("finished sending blocks"),
+            %io:fwrite("finished sending blocks"),
             false
     end.
 
@@ -223,7 +222,7 @@ get_blocks(Peer, N, Tries, Time, TheirBlockHeight) ->
 	((Time == second) and (N > Height + (BM * BB))) ->%This uses up 10 * BB * block_size amount of ram.
 	    get_blocks(Peer, N, Tries-1, second, TheirBlockHeight);
 	true ->
-	    io:fwrite("another get_blocks thread\n"),
+	    %io:fwrite("another get_blocks thread\n"),
 	    Many = min(BB, TheirBlockHeight - N + 1),
 	    spawn(fun() ->
 			  get_blocks2(Many, N, Peer, 5)
@@ -236,7 +235,7 @@ get_blocks(Peer, N, Tries, Time, TheirBlockHeight) ->
 	    end
     end.
 get_blocks2(_BB, _N, _Peer, 0) ->
-    io:fwrite("get_blocks2 failed\n"),
+    %io:fwrite("get_blocks2 failed\n"),
     ok;
 get_blocks2(BB, N, Peer, Tries) ->
     %io:fwrite("get blocks 2\n"),
@@ -246,15 +245,15 @@ get_blocks2(BB, N, Peer, Tries) ->
     Sleep = 600,
     case Blocks of
 	{error, _} -> 
-	    io:fwrite("get blocks 2 failed connect error\n"),
-	    io:fwrite(packer:pack([BB, N, Peer, Tries])),
-	    io:fwrite("\n"),
+	    %io:fwrite("get blocks 2 failed connect error\n"),
+	    %io:fwrite(packer:pack([BB, N, Peer, Tries])),
+	    %io:fwrite("\n"),
 	    timer:sleep(Sleep),
 	    get_blocks2(BB, N, Peer, Tries - 1);
 	bad_peer -> 
-	    io:fwrite("get blocks 2 failed connect bad peer\n"),
-	    io:fwrite(packer:pack([BB, N, Peer, Tries])),
-	    io:fwrite("\n"),
+	    %io:fwrite("get blocks 2 failed connect bad peer\n"),
+	    %io:fwrite(packer:pack([BB, N, Peer, Tries])),
+	    %io:fwrite("\n"),
 	    1=2;
 	    %timer:sleep(Sleep),
 	    %get_blocks2(BB, N, Peer, Tries - 1);
@@ -351,10 +350,10 @@ trade_txs(Peer) ->
     end.
    
 sync_peer(Peer) ->
-    io:fwrite("trade peers\n"),
+    %io:fwrite("trade peers\n"),
     spawn(fun() -> trade_peers(Peer) end),
     MyTop = headers:top(),
-    io:fwrite("get their top header\n"),
+    %io:fwrite("get their top header\n"),
     spawn(fun() -> get_headers(Peer) end),
     {ok, HB} = ?HeadersBatch,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
@@ -381,7 +380,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
     MTHH = (headers:top())#header.height,
     if
 	TTHH < MTHH ->
-	    io:fwrite("send them headers.\n"),
+	    %io:fwrite("send them headers.\n"),
 	    H = headers:top(),
 	    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
 	    GiveHeaders = list_headers([H], FT),
@@ -391,14 +390,14 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
     end,
     if
         TheirBlockHeight > MyBlockHeight ->
-	    io:fwrite("get blocks from them.\n"),
+	    %io:fwrite("get blocks from them.\n"),
 	    CommonHeight = TopCommonHeader#header.height,
 	    get_blocks(Peer, CommonHeight, ?tries, first, TheirBlockHeight);
 	true ->
 	    spawn(fun() ->
 			  trade_txs(Peer)
 		  end),
-	    io:fwrite("already synced with this peer \n"),
+	    %io:fwrite("already synced with this peer \n"),
 	    ok
     end.
 top_common_header(L) when is_list(L) ->
