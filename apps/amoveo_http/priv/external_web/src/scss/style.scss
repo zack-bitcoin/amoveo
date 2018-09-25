@@ -1,0 +1,24 @@
+// ITCSS project structure https://speakerdeck.com/dafed/managing-css-projects-with-itcss
+//
+// Add o remove layers if you need, but only in right place.
+// Specificity should slowly increase layer-by-layer.
+// Styles affects smaller and smaller bits of the DOM at a time.
+// Order layers from far-reaching to very localised, from low specifity to high.
+// Progressively add styles, never undo.
+//
+//
+// Settings: Global variables.
+// Tools: Public mixins and functions.
+// Generic: Ground-zero styles  (normalize.css, resets, box-sizing).
+// Base: Unclassed HTML elements (type selectors), basic links, headings, lists (A, UL, H1-H6).
+// Objects: Cosmetic-free design patterns, abstract as much as possible, reusable, project independent.
+// Components: Designed components, parts of project UI.
+// Trumps: Helpers and overrides, cosmetic styles.
+
+@import 'settings/_vars';
+@import 'tools/**/*';
+
+@import 'generic/**/*';
+@import 'base/**/*';
+@import 'objects/**/*';
+@import 'components/**/*';

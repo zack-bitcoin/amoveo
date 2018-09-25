@@ -21,17 +21,19 @@ function headers_main() {
 	//top_header = ["header", 28102, "YS6YwsbqGmb52ffetsWjaAdXo05t+T2rTp4/Qd6uJF0=", "1F8OTHvstQpO3v0JakaNwJybtU9pFevgY17SztWJ5wc=", "DRv0mJlCSqxmSxDqfBtzeq4IOo2jwJ78sWOE08BuGOE=", 143143967, 14053, 3, "AAAAAAAAAAAA1bxHxDdxjuBesyoPTJgxh23ZAQAAurg=", 196793811742050220000, 5982];
 	//write_header(top_header, 1871550184471850);
     }
-    
+
     //var top_header = 0;//stores the valid header with the most accumulated work.
     //var top_hash = hash(serialize_header(top_header));
     //headers_db[top_hash] = top_header;
-    
+
     var top_diff = 0;//accumulative difficulty of top
-    var button = button_maker2("more headers ", more_headers);
-    document.body.appendChild(button);
+    var button = button_maker2("More headers ", more_headers);
+    button.className = "btn";
+    var blockchain = document.getElementById('blockchain-wrap');
+    blockchain.appendChild(button);
     wallet_text = document.createElement("p");
-    wallet_text.innerHTML = JSON.stringify([["height", 0], ["total work", 0]]);
-    document.body.appendChild(wallet_text);
+    wallet_text.innerHTML = "<code>"+ JSON.stringify([["height", 0], ["total work", 0]])+"</code>";
+    blockchain.appendChild(wallet_text);
     more_headers();
     function write_header(header, ewah) {
         var acc_difficulty = header[9];
@@ -39,7 +41,7 @@ function headers_main() {
             top_diff = acc_difficulty;
             top_header = header;
 	    //console.log("wallet text update");
-            wallet_text.innerHTML = JSON.stringify([["height", header[1]], ["total work", (Math.floor(header[9]/100000000))]]);
+            wallet_text.innerHTML = "<code>"+JSON.stringify([["height", header[1]], ["total work", (Math.floor(header[9]/100000000))]])+"</code>";
         }
         h = hash(serialize_header(header));
         headers_db[h] = [header, ewah];
@@ -167,7 +169,7 @@ function headers_main() {
 	var n = old.times(t).divide(bottom);
         //var n = Math.max(1, Math.floor(( old * t ) / bottom));
         //var n = Math.max(1, Math.floor(( old / bottom) * t));
-	
+
         var d = int2sci(n);
         return Math.max(1, d);
     }
@@ -285,7 +287,7 @@ function headers_main() {
 	console.log("ewah: ");
 	console.log(ewah);//should be 1, is 19
 	*/
-	
+
 	//var Hashrate0 = Math.floor(Math.max(1, hashrate_converter() * sci2int(prev_header[6]) / DT));
 	//var Hashrate = Math.min(Hashrate0, prev_ewah * 4);
 	//var N = 20;

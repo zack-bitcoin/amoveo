@@ -1,31 +1,36 @@
 (function() {
     var div = document.createElement("div");
-    document.body.appendChild(div);
-    div.appendChild(document.createElement("br"));
+    content_block.appendChild(div);
+    //div.appendChild(document.createElement("br"));
 
-    var tx = document.createElement("INPUT");
-    tx.setAttribute("type", "text");
-    var info = document.createElement("h8");
-    info.innerHTML = "sign transaction";
-    div.appendChild(info);
-    div.appendChild(tx);
+    var tx = document.createElement("TEXTAREA");
+    //tx.setAttribute("type", "text");
+    tx.id = "tx"
+    var info = document.createElement("label");
+    info.innerHTML = "Sign transaction:";
+
+    var account = document.getElementById('account_pubkey');
+
     var button = button_maker2("sign tx ", sign_tx);
-    div.appendChild(button);
-    div.appendChild(document.createElement("br"));
 
-    var tx_push = document.createElement("INPUT");
-    tx.setAttribute("type", "text");
-    var push_info = document.createElement("h8");
-    push_info.innerHTML = "publish transaction";
-    div.appendChild(push_info);
-    div.appendChild(tx_push);
+    var fieldset1 = document.createElement("div");
+    fieldset1.className = "fieldset";
+    append_children(fieldset1, [info, tx, button]);
+
+    var tx_push = document.createElement("TEXTAREA");
+    //tx.setAttribute("type", "text");
+    var push_info = document.createElement("label");
+    push_info.innerHTML = "Publish transaction:";
     var push_button = button_maker2("push tx ", push_tx);
-    div.appendChild(push_button);
-    div.appendChild(document.createElement("br"));
 
-    var signed_tx = document.createElement("h8");
-    div.appendChild(signed_tx);
-    div.appendChild(document.createElement("br"));
+    var fieldset2 = document.createElement("div");
+    fieldset2.className = "fieldset";
+    append_children(fieldset2, [push_info, tx_push, push_button]);
+
+    var signed_tx = document.createElement("label");
+
+    append_children(account, [fieldset1, fieldset2, signed_tx]);
+
     function sign_tx() {
 	var t = JSON.parse(tx.value);
 	console.log(tx.value);

@@ -1,4 +1,3 @@
-
 function channels_main() {
     //Model
     var channel_manager = {};
@@ -57,10 +56,16 @@ function channels_main() {
     }
 
     //View
+    var tab_id = "channel"
 
     var channel_title = document.createElement("h3");
-    channel_title.innerHTML = "channel ";
+    channel_title.className = "tabs__nav-item";
+    channel_title.innerHTML = tab_id;
+    channel_title.dataset.tab = tab_id;
     var channels_div = document.createElement("div");
+    channels_div.className = "tabs__content-item "+tab_id;
+    channels_div.id = tab_id;
+
     var channel_warning_div = document.createElement("div");
     var channel_interface_div = document.createElement("div");
     var load_button = document.createElement("input");
@@ -75,10 +80,20 @@ function channels_main() {
             return refresh_channels_interfaces(pubkey);
         });
     });
-    document.body.appendChild(channel_title);
-    document.body.appendChild(channels_div);
+    //document.body.appendChild(channel_title);
+    //document.body.appendChild(channels_div);
+
+    if (!nav.hasChildNodes()) {
+        channel_title.className += " active";
+        channels_div.className += " active";
+    }
+
+    tabs.appendChild(channels_div);
+    nav.appendChild(channel_title);
+
+
     append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
-    
+
     var fee = 152050;
     var oid = document.createElement("INPUT");
     oid.setAttribute("type", "text");
@@ -145,7 +160,7 @@ function channels_main() {
 	    });
 	});
     });
-    
+
     variable_public_get(["pubkey"], function(pubkey) {
         return refresh_channels_interfaces(pubkey);
     });
@@ -415,7 +430,7 @@ function channels_main() {
                 serverbalance).concat("your balance: ").concat(
                     mybalance).concat("time left in blocks: ").concat(
 			(cd.expiration - height).toString());
-			    
+
         });
     }
     function channel_feeder_make_locked_payment(serverid, amount, code) {

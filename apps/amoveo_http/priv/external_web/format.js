@@ -127,7 +127,7 @@ function newhash2integer(h) {
         }
         return x;
     }
-    
+
     return hash2integer2(h.concat([255]), 0, 0);
 }
 function button_maker2(val, fun) {
@@ -140,6 +140,9 @@ function button_maker2(val, fun) {
 function br() {
     return document.createElement("br");
 };
+function hr() {
+    return document.createElement("hr");
+};
 function append_children(d, l) {
     for (var i = 0; i < l.length; i++) {
         d.appendChild(l[i]);
@@ -150,7 +153,16 @@ function text(a) {
     x2.innerHTML = a;
     return x2;
 };
-
+function htitle(a) {
+    var ttl = document.createElement("h3");
+    ttl.innerHTML = a;
+    return ttl;
+};
+function pre(a) {
+    var txt = document.createElement("pre");
+    txt.innerHTML = a;
+    return txt;
+};
 
 function tree_number_to_value(t) {
     if (t < 101) {

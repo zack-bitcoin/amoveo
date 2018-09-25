@@ -1,31 +1,69 @@
 
 function keys_function1() {
+    var tab_id = "account";
     var ec = new elliptic.ec('secp256k1');
     var keys = new_keys();
     var account_title = document.createElement("h3");
-    account_title.innerHTML = "account ";
+    account_title.className = "tabs__nav-item";
+    account_title.innerHTML = "account";
+    account_title.dataset.tab = tab_id;
     var div = document.createElement("div");
+    div.className = "tabs__content-item "+tab_id;
+    div.id = tab_id;
     var save_name = document.createElement("input");
     save_name.type = "text";
     save_name.value = "Amoveo private key";
+    save_name.className = "wide";
     var save_button = button_maker2("save private key to file", save_keys);
     var file_selector = document.createElement("input");
     file_selector.type = "file";
+    file_selector.id = "file-key";
     file_selector.onchange = load_keys;
-    var load_text = document.createTextNode("get key from file");
-    var watch_only_instructions = document.createTextNode("put your pubkey here to make a watch-only wallet that is unable to spend money.");
+    var file_selector_btn = document.createElement("label");
+    file_selector_btn.className = "btn";
+    file_selector_btn.htmlFor = "file-key";
+    file_selector_btn.innerHTML = "Get key from file";
+    var load_text = document.createTextNode("Your pubkey");
+    var watch_only_instructions = document.createElement("p");
+    watch_only_instructions.innerHTML = "Put your pubkey here to make a watch-only wallet that is unable to spend money.";
     var watch_only_pubkey = document.createElement("input");
     watch_only_pubkey.type = "text";
-    var watch_only_button = button_maker2("load pubkey", watch_only_func); 
+    var watch_only_button = button_maker2("load pubkey", watch_only_func);
     var pub_div = document.createElement("div");
     var new_pubkey_button = button_maker2("generate new keys", new_keys_check);
     var new_pubkey_div = document.createElement("div");
-    var balance_button = button_maker2("check balance ", update_balance);
+    var balance_button = button_maker2("Check balance", update_balance);
     var bal_div = document.createElement("div");
-    document.body.appendChild(account_title);
-    document.body.appendChild(div);
 
-    append_children(div, [load_text, file_selector, br(), pub_div, br(), save_name, save_button, br(), watch_only_instructions, watch_only_pubkey, watch_only_button, br(), new_pubkey_button, new_pubkey_div, br(), bal_div, balance_button]);
+    var put = document.createElement("div");
+    put.className = "tabs__box";
+    append_children(put, [watch_only_instructions, watch_only_pubkey, watch_only_button]);
+
+    var newkey = document.createElement("div");
+    newkey.className = "tabs__box";
+    append_children(newkey, [new_pubkey_button, new_pubkey_div]);
+
+    //document.body.appendChild(account_title);
+    //document.body.appendChild(div);
+
+    var wrap = document.createElement("div");
+    wrap.className = "tabs__col";
+    wrap.id = "account_pubkey";
+    var wrap_right = document.createElement("div");
+    wrap_right.className = "tabs__col";
+    wrap_right.innerHTML = "<div class='tabs__box'>"+veo_text+"</div>"
+
+    if (!nav.hasChildNodes()) {
+        account_title.className += " active";
+        div.className += " active"
+    }
+
+    tabs.appendChild(div);
+    nav.appendChild(account_title);
+
+    append_children(wrap, [pub_div, file_selector, file_selector_btn, hr(), save_name, save_button, hr(), bal_div, balance_button, hr()]);
+    append_children(wrap_right, [put, newkey]);
+    append_children(div, [wrap, wrap_right]);
 
     update_pubkey();
     function input_maker(val) {
@@ -67,7 +105,7 @@ function keys_function1() {
 	}
     }
     function update_pubkey() {
-        pub_div.innerHTML = ("your pubkey ").concat(pubkey_64());
+        pub_div.innerHTML = ("<p>Your pubkey</p>").concat("<code>"+pubkey_64()+"</code>");
     }
     function watch_only_func() {
 	var v = watch_only_pubkey.value;
@@ -81,11 +119,11 @@ function keys_function1() {
         var button = button_maker2("cancel ", cancel);
         var button2 = button_maker2("continue", doit);
 	var entropy_txt = document.createElement("h3");
-	entropy_txt.innerHTML = "put random text here to make keys from";
+	entropy_txt.innerHTML = "Put random text here to make keys from";
 	var entropy = document.createElement("input");
 	entropy.type = "text";
         append_children(new_pubkey_div, [warning, button, br(), button2, entropy_txt, entropy]);
-	// add interface for optional entropy 
+	// add interface for optional entropy
         function cancel() {
             new_pubkey_div.innerHTML = "";
         }
@@ -116,7 +154,7 @@ function keys_function1() {
         });
     }
     function set_balance(n) {
-        bal_div.innerHTML = ("your balance ").concat((n).toString()) + " mVEO";
+        bal_div.innerHTML = ("Your balance ").concat((n).toString()) + " mVEO";
     }
     function save_keys() {
         download(keys.getPrivate("hex"), save_name.value, "text/plain");

@@ -1,0 +1,21 @@
+@import "retina";
+
+@mixin background-retina($normal, $retina, $set-dimensions: false, $bg-size: false) {
+    @if $set-dimensions {
+        width: width($images-dir + $normal);
+        height: height($images-dir + $normal);
+    }
+
+    @if $bg-size {
+        background-size: $bg-size;
+    }
+
+    background-image: url($images-dir + $normal);
+
+    @include retina() {
+        background-image: url($images-dir + $retina);
+        @if not $bg-size {
+            //background-size: width($images-dir + $normal) height($images-dir + $normal);
+        }
+    }
+}

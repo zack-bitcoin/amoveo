@@ -1,0 +1,47 @@
+// Global values
+// --------------------------------------------------
+$images-dir:                    '/dest/img/';      // Used by background-retina mixin
+
+$breakpoints: (
+  'small' : 320px,
+  'med' : 375px,
+  'large' : 768px,
+  'wide' : 1025px,
+  'mega' : 1200px,
+  'ultra' : 1400px,
+  'max' : 1920px
+);
+
+$container-max: 1200px;
+
+// Colors
+// --------------------------------------------------
+
+$color_bg: #fff;
+$color_txt: #222;
+$color_main: #cdc755;
+
+:root {
+    --color-main: #ead912;
+    --color-bg: #fff;
+    --color-text: #15191a;
+
+    --color-logo-1: var(--color-text);
+    --color-logo-2: var(--color-main);
+}
+
+
+// Typography
+// -------------------------
+
+$font-size-base:            16px;
+$font-family-base:          'Ubuntu', sans-serif;
+$line-height-computed:      1.5rem;
+
+
+
+// Animation
+// -------------------------
+$elements-transition:       .2s;
+$buttons-scale-factor:      1.03;
+$animation-function: cubic-bezier(.68,-.55,.265,1.55);

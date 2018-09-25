@@ -1,0 +1,12 @@
+@function rem($pxs) {
+  $rem: ();
+  @if type_of($pxs) == list {
+    @each $px in $pxs {
+      $rem: append($rem, $px / 16 * 1rem);
+    }
+  } @else {
+    $rem: $pxs / 16 * 1rem;
+  }
+
+  @return $rem;
+}

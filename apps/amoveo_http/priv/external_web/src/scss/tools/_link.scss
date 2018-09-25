@@ -1,0 +1,10 @@
+@mixin link($color: color(link)) {
+    cursor: pointer;
+    transition: color .3s;
+
+    color: $color;
+
+    &:hover {
+        color: darken($color, 10%);
+    }
+}

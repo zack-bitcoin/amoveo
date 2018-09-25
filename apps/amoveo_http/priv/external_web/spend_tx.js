@@ -2,24 +2,36 @@ spend_1();
 function spend_1() {
     var div = document.createElement("div");
     document.body.appendChild(div);
-    div.appendChild(document.createElement("br"));
+    //div.appendChild(document.createElement("br"));
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text");
+    spend_amount.id = "spend_amount";
     //spend_amount.id = "spend_amount";
-    var spend_amount_info = document.createElement("h8");
-    spend_amount_info.innerHTML = "amount to send: ";
+    var spend_amount_info = document.createElement("label");
+    spend_amount_info.innerHTML = "Amount to send:";
+    spend_amount_info.htmlFor = "Spend_amount";
+
+    var amount = document.createElement("div");
+    amount.className = "fieldset";
 
     var spend_address = document.createElement("INPUT");
     spend_address.setAttribute("type", "text");
+    spend_address.id = "to-pubkey";
     //spend_address.id = "spend_address";
-    var input_info = document.createElement("h8");
-    input_info.innerHTML = "to pubkey: ";
-    var raw_tx = document.createElement("h8");
+    var input_info = document.createElement("label");
+    input_info.innerHTML = "to pubkey:";
+    input_info.htmlFor = "to-pubkey";
+
+    var pubkey = document.createElement("div");
+    pubkey.className = "fieldset";
+
+    var raw_tx = document.createElement("label");
     var mode;
-    spend_button = button_maker2("send", function(){
-	mode = "sign";
-	spend_tokens();
+    spend_button = button_maker2("Send", function(){
+    	mode = "sign";
+    	spend_tokens();
     });
+    spend_button.className = "btn btn_bt";
     raw_button = button_maker2("print unsigned transaction to screen", function(){
 	mode = "raw";
 	spend_tokens();
@@ -41,26 +53,34 @@ function spend_1() {
 	    fee_checker(to, CB2, CB2);
 	});
     });
-    div.appendChild(calculate_max_send_button);
-    div.appendChild(document.createElement("br"));
-    div.appendChild(spend_amount_info);
-    div.appendChild(spend_amount);
-    div.appendChild(input_info);
-    div.appendChild(spend_address);
-    div.appendChild(spend_button);
-    div.appendChild(raw_button);
-    div.appendChild(error_msg);
-    div.appendChild(document.createElement("br"));
-    div.appendChild(raw_tx);
+
+    //div.appendChild(calculate_max_send_button);
+    //div.appendChild(document.createElement("br"));
+    //div.appendChild(spend_amount_info);
+    //div.appendChild(spend_amount);
+    //div.appendChild(input_info);
+    //div.appendChild(spend_address);
+    //div.appendChild(spend_button);
+    //div.appendChild(raw_button);
+    //div.appendChild(error_msg);
+    //div.appendChild(document.createElement("br"));
+    //div.appendChild(raw_tx);
+
+
+    var account_pubkey = document.getElementById('account_pubkey');
+    append_children(amount, [spend_amount_info, spend_amount]);
+    append_children(pubkey, [input_info, spend_address, spend_button]);
+    append_children(account_pubkey, [amount, pubkey, calculate_max_send_button, error_msg, raw_tx, hr()]);
+
     var fee;
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");
         var to0 = spend_address.value;
 	var to = parse_address(to0);
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
-	
+
 	if (to == 0) {
-	    error_msg.innerHTML = "Badly formatted address";
+	    error_msg.innerHTML = "<p class='msg'>Badly formatted address</p>";
 	} else {
 	    error_msg.innerHTML = "";
         //spend_amount = document.getElementById("spend_amount");
