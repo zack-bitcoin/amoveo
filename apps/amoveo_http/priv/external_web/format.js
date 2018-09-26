@@ -148,6 +148,14 @@ function append_children(d, l) {
         d.appendChild(l[i]);
     }
 }
+function wrapper(wd, wl) {
+    var wr = document.createElement("div");
+    wr.className = wd;
+    for (var i = 0; i < wl.length; i++) {
+        wr.appendChild(wl[i]);
+    }
+    return wr;
+}
 function text(a) {
     var x2 = document.createElement("h8");
     x2.innerHTML = a;
@@ -157,6 +165,12 @@ function htitle(a) {
     var ttl = document.createElement("h3");
     ttl.innerHTML = a;
     return ttl;
+};
+function msg(a) {
+    var m = document.createElement("p");
+    m.className = "msg";
+    m.innerHTML = a;
+    return m;
 };
 function pre(a) {
     var txt = document.createElement("pre");

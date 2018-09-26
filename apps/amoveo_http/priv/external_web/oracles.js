@@ -25,17 +25,15 @@
         var oracleOutput = document.createElement("div");
         oracleOutput.className = "output"
 
-        var fieldset1 = document.createElement("div");
-        fieldset1.className = "fieldset";
 
         var wrap = document.createElement("div");
         wrap.className = "tabs__col";
 
         var wrap2 = document.createElement("div");
         wrap2.className = "tabs__col";
-        wrap2.innerHTML = "<div class='tabs__box'>"+veo_text+"</div>"
+        wrap2.innerHTML = "<div class='tabs__box'>"+veo_text+"</div>";
 
-        append_children(fieldset1, [oid, b]);
+        var fieldset1 = wrapper("fieldset", [oid, b]);
         append_children(wrap, [fieldset1]);
         append_children(div, [wrap, wrap2, oracleOutput]);
 

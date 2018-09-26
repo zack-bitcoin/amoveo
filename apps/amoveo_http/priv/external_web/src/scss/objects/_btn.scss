@@ -12,6 +12,7 @@
 	cursor: pointer;
 	user-select: none;
 	text-align: center;
+	max-width: 100%;
 
 	transition: all .4s;
 
@@ -23,6 +24,23 @@
 
 	&:active {
 
+	}
+
+	& + P {
+		margin-top: 20px;
+	}
+}
+input {
+	&[type="button"] {
+
+	}
+	&[value="cancel"]{
+		background: #fff;
+		color: #222;
+		box-shadow: 0 0 1px 0 rgba(0,0,0, .5);
+	}
+	&[value="continue"]{
+		background: #696969;
 	}
 }
 .btn {

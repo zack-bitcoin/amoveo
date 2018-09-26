@@ -1,6 +1,6 @@
 //make ip and port as input things.
 
-local_ip = [127,0,0,1];
+local_ip = [127, 0, 0, 1];
 local_port = 8081;
 var server_ip = document.createElement("INPUT");
 server_ip.setAttribute("type", "text");
@@ -21,50 +21,45 @@ server_port_info.innerHTML = "Port: ";
 
 var blockchain = document.getElementById('blockchain');
 
-var fieldset_port = document.createElement("div");
-fieldset_port.className = "fieldset"
-fieldset_port.appendChild(server_ip_info);
-fieldset_port.appendChild(server_ip);
-var fieldset_ip = document.createElement("div");
-fieldset_ip.className = "fieldset"
-fieldset_ip.appendChild(server_port_info);
-fieldset_ip.appendChild(server_port);
+var fieldset_port = wrapper("fieldset", [server_ip_info, server_ip]);
+var fieldset_ip = wrapper("fieldset", [server_port_info, server_port]);
 
 function get_port() {
-    return parseInt(server_port.value, 10);
+	return parseInt(server_port.value, 10);
 }
+
 function get_ip() {
-    //return JSON.parse(server_ip.value);
-    return server_ip.value;
+	//return JSON.parse(server_ip.value);
+	return server_ip.value;
 }
 
-(function(){
+(function() {
 
-    if(nav && nav){
-        var tab_id = "blockchain"
-        var div = document.createElement("div");
-        div.className = "tabs__content-item "+tab_id;
-        div.id = tab_id;
+	if (nav && nav) {
+		var tab_id = "blockchain"
+		var div = document.createElement("div");
+		div.className = "tabs__content-item " + tab_id;
+		div.id = tab_id;
 
-        var blockchain_title = document.createElement("h3");
-        blockchain_title.className = "tabs__nav-item";
-        blockchain_title.innerHTML = tab_id;
-        blockchain_title.dataset.tab = tab_id;
+		var blockchain_title = document.createElement("h3");
+		blockchain_title.className = "tabs__nav-item";
+		blockchain_title.innerHTML = tab_id;
+		blockchain_title.dataset.tab = tab_id;
 
-        if (!nav.hasChildNodes()) {
-            blockchain_title.className += " active";
-            div.className += " active"
-        }
+		if (!nav.hasChildNodes()) {
+			blockchain_title.className += " active";
+			div.className += " active"
+		}
 
-        var wrap = document.createElement("div");
-        wrap.className = "tabs__col";
-        wrap.id = "blockchain-wrap";
+		var wrap = document.createElement("div");
+		wrap.className = "tabs__col";
+		wrap.id = "blockchain-wrap";
 
-        wrap.appendChild(fieldset_port);
-        wrap.appendChild(fieldset_ip);
-        div.appendChild(wrap);
-        tabs.appendChild(div);
-        nav.appendChild(blockchain_title);
-    }
+		wrap.appendChild(fieldset_port);
+		wrap.appendChild(fieldset_ip);
+		div.appendChild(wrap);
+		tabs.appendChild(div);
+		nav.appendChild(blockchain_title);
+	}
 
 })();

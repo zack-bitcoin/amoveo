@@ -48,6 +48,7 @@
 			position: relative;
 			margin: 0 20px;
 			text-decoration: underline;
+			transition: all .4s;
 
 			@include bp(large){
 				font-size: 24px;
@@ -64,7 +65,7 @@
 				top: -30px;
 				right: -30px;
 				color: var(--color-main);
-				transition: all .4s;
+				transition: all .2s;
 				transform: translateY(0);
 			}
 
@@ -76,6 +77,8 @@
 
 			}
 			&:hover {
+				text-decoration-color: #fff;
+
 				.ico {
 					transform: translateY(-5px);
 				}
