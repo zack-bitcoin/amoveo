@@ -37,13 +37,16 @@ function headers_main() {
 	var top_diff = 0; //accumulative difficulty of top
 	var button = button_maker2("More headers ", more_headers);
 	button.className = "btn";
+
 	var blockchain = document.getElementById('blockchain-wrap');
+	var blockchain_right = document.getElementById('blockchain-right');
 
 	wallet_text = document.createElement("div");
 	wallet_text.innerHTML = "<div class='fieldset'><label>Height:</label><p>0</p></div>";
 	wallet_text.innerHTML += "<div class='fieldset'><label>Total work:</label><p>0</p></div>";
 
-	append_children(blockchain, [button, hr(), wallet_text]);
+	append_children(blockchain, [button]);
+	append_children(blockchain_right, [wallet_text]);
 
 	more_headers();
 

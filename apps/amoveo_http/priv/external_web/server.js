@@ -55,9 +55,13 @@ function get_ip() {
 		wrap.className = "tabs__col";
 		wrap.id = "blockchain-wrap";
 
-		wrap.appendChild(fieldset_port);
-		wrap.appendChild(fieldset_ip);
-		div.appendChild(wrap);
+		var wrap2 = document.createElement("div");
+		wrap2.className = "tabs__col";
+		wrap2.id = "blockchain-right";
+
+		append_children(wrap, [fieldset_port, fieldset_ip]);
+		append_children(div, [wrap, wrap2]);
+
 		tabs.appendChild(div);
 		nav.appendChild(blockchain_title);
 	}
