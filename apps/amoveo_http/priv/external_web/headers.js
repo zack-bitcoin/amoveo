@@ -40,8 +40,8 @@ function headers_main() {
 	var blockchain = document.getElementById('blockchain-wrap');
 
 	wallet_text = document.createElement("div");
-	wallet_text.innerHTML = "<div class='fieldset'><label>Height:</label>0</div>";
-	wallet_text.innerHTML += "<div class='fieldset'><label>Total work:</label>0</div>";
+	wallet_text.innerHTML = "<div class='fieldset'><label>Height:</label><p>0</p></div>";
+	wallet_text.innerHTML += "<div class='fieldset'><label>Total work:</label><p>0</p></div>";
 
 	append_children(blockchain, [button, hr(), wallet_text]);
 
@@ -53,8 +53,8 @@ function headers_main() {
 			top_diff = acc_difficulty;
 			top_header = header;
 
-			wallet_text.innerHTML = "<div class='fieldset'><label>Height:</label>" + header[1] + "</div>";
-			wallet_text.innerHTML += "<div class='fieldset'><label>Total work:</label>" + (Math.floor(header[9] / 100000000)) + "</div>";
+			wallet_text.innerHTML = "<div class='fieldset'><label>Height:</label><p>" + header[1] + "</p></div>";
+			wallet_text.innerHTML += "<div class='fieldset'><label>Total work:</label><p>" + (Math.floor(header[9] / 100000000)) + "</p></div>";
 
 		}
 		h = hash(serialize_header(header));

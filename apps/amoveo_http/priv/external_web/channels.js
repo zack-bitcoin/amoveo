@@ -247,16 +247,17 @@ function channels_main() {
 		//refresh_channels_button.onclick = function() {return refresh_channels_interfaces2(pubkey)};
 		//var div = channel_interface_div;
 		var tv_display = document.createElement("p");
+		tv_display.className = "msg";
 		tv_display.innerHTML = ("It costs this much to keep a channel open. per block per coin: ").concat((tv).toString());
 
-		var fieldset_channel_1 = wrapper("fieldset", [tv_display, channel_sync_button]);
-		var fieldset_channel_amount = wrapper("fieldset", [amount_info, spend_amount]);
+		var fieldset_channel_1 = wrapper("fieldset", [channel_sync_button]);
+		var fieldset_channel_amount = wrapper("fieldset fieldset_nowr", [amount_info, spend_amount]);
 		var fieldset_channel_delay = wrapper("fieldset", [delay_info, spend_delay]);
 		var fieldset_channel_life = wrapper("fieldset", [lifespan_info, lifespan]);
 
         height_button = wrapper("fieldset", [height_button]);
 
-		append_children(wrap, [hr(), fieldset_channel_1]);
+		append_children(wrap, [tv_display, fieldset_channel_1]);
 
 		var bets_div = document.createElement("div");
 		bets_div.id = "bets_div";

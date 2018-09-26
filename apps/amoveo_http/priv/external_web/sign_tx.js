@@ -9,23 +9,23 @@
     var info = document.createElement("label");
     info.innerHTML = "Sign transaction:";
 
-    var account = document.getElementById('account_pubkey');
+    var account = document.getElementById('transaction_wrap'); // keys.js
 
-    var button = button_maker2("sign tx ", sign_tx);
+    var button = button_maker2("Sign transaction", sign_tx);
 
     var tx_push = document.createElement("TEXTAREA");
     //tx.setAttribute("type", "text");
     var push_info = document.createElement("label");
     push_info.innerHTML = "Publish transaction:";
-    var push_button = button_maker2("push tx ", push_tx);
+    var push_button = button_maker2("Push transaction", push_tx);
 
-    var fieldset1 = wrapper("fieldset", [info, tx, button]);
+    var signed_tx = document.createElement("div");
+    signed_tx.innerHTML = ""
+
+    var fieldset1 = wrapper("fieldset", [info, tx, signed_tx, button]);
     var fieldset2 = wrapper("fieldset", [push_info, tx_push, push_button]);
 
-    var signed_tx = document.createElement("pre");
-    signed_tx.innerHTML = "[...]"
-
-    append_children(account, [fieldset1, fieldset2, signed_tx]);
+    append_children(account, [fieldset1, fieldset2]);
 
     function sign_tx() {
 	var t = JSON.parse(tx.value);
@@ -34,7 +34,7 @@
 	var t2 = keys.sign(t);
 	console.log(t2);
 	var s = JSON.stringify(t2);
-	signed_tx.innerHTML = s;
+	signed_tx.innerHTML = "<pre>"+s+"</div>";
 	tx.value = "";
     }
     function push_tx() {

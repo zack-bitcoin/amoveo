@@ -12,12 +12,12 @@ function spend_1() {
 	spend_amount_info.innerHTML = "Amount to send:";
 	spend_amount_info.htmlFor = "Spend_amount";
 
-	var spend_address = document.createElement("INPUT");
-	spend_address.setAttribute("type", "text");
+	var spend_address = document.createElement("TEXTAREA");
+	//spend_address.setAttribute("type", "text");
 	spend_address.id = "to-pubkey";
 	//spend_address.id = "spend_address";
 	var input_info = document.createElement("label");
-	input_info.innerHTML = "to pubkey:";
+	input_info.innerHTML = "To pubkey:";
 	input_info.htmlFor = "to-pubkey";
 
 	var raw_tx = document.createElement("label");
@@ -26,13 +26,13 @@ function spend_1() {
 		mode = "sign";
 		spend_tokens();
 	});
-	spend_button.className = "btn btn_bt";
+	spend_button.className = "btn";
 	raw_button = button_maker2("print unsigned transaction to screen", function() {
 		mode = "raw";
 		spend_tokens();
 	});
 	var error_msg = document.createElement("div");
-	var calculate_max_send_button = button_maker2("calculate max send amount", function() {
+	var calculate_max_send_button = button_maker2("Max amount", function() {
 		keys.check_balance(function(Amount) {
 			var to0 = spend_address.value;
 			var to = parse_address(to0);
@@ -51,10 +51,13 @@ function spend_1() {
 
 	var account_pubkey = document.getElementById('account_pubkey');
 
-	var amount = wrapper("fieldset", [spend_amount_info, spend_amount]);
-	var pubkey = wrapper("fieldset", [input_info, spend_address, spend_button]);
+	var amount = wrapper("fieldset fieldset_nowr", [spend_amount_info, spend_amount, calculate_max_send_button]);
+	var pubkey = wrapper("fieldset", [input_info, spend_address]);
+	var amount_div = wrapper("tabs__box2", [amount, pubkey, spend_button, error_msg, raw_tx]);
 
-	append_children(account_pubkey, [amount, pubkey, calculate_max_send_button, error_msg, raw_tx, hr()]);
+	//append_children(account_pubkey, [amount, pubkey, error_msg, raw_tx, hr()]);
+
+	account_pubkey.insertBefore(amount_div , account_pubkey.firstChild);
 
 	var fee;
 

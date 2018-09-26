@@ -27,20 +27,21 @@ function keys_function1() {
 	watch_only_instructions.innerHTML = "Put your pubkey here to make a watch-only wallet that is unable to spend money.";
 	var watch_only_pubkey = document.createElement("input");
 	watch_only_pubkey.type = "text";
-	var watch_only_button = button_maker2("load pubkey", watch_only_func);
+	var watch_only_button = button_maker2("Load pubkey", watch_only_func);
 	var pub_div = document.createElement("div");
-	var new_pubkey_button = button_maker2("generate new keys", new_keys_check);
+	var new_pubkey_button = button_maker2("Generate new keys", new_keys_check);
 	var new_pubkey_div = document.createElement("div");
 	var balance_button = button_maker2("Check balance", update_balance);
 	var bal_div = document.createElement("div");
 
 	var put = wrapper("tabs__box", [watch_only_instructions, watch_only_pubkey, watch_only_button]);
-	var newkey = wrapper("tabs__box", [new_pubkey_button, new_pubkey_div]);
+	var newkey = wrapper("fieldset", [new_pubkey_button, new_pubkey_div]);
+	var balance_wr = wrapper("fieldset", [bal_div, balance_button]);
 
 	var wrap = document.createElement("div");
 	wrap.className = "tabs__col";
 	wrap.id = "account_pubkey";
-    
+
 	var wrap_right = document.createElement("div");
 	wrap_right.className = "tabs__col";
 	wrap_right.innerHTML = "<div class='tabs__box'>" + veo_text + "</div>"
@@ -53,8 +54,14 @@ function keys_function1() {
 	tabs.appendChild(div);
 	nav.appendChild(account_title);
 
-	append_children(wrap, [pub_div, file_selector, file_selector_btn, hr(), save_name, save_button, hr(), bal_div, balance_button, hr()]);
-	append_children(wrap_right, [put, newkey]);
+	var get_wr = wrapper("fieldset", [file_selector, file_selector_btn]);
+	var save_wr = wrapper("fieldset fieldset_nowr", [save_name, save_button]);
+
+	var transaction_wrap = document.createElement("div");
+	transaction_wrap.id = "transaction_wrap";
+
+	append_children(wrap, [pub_div, balance_wr, hr(), get_wr, save_wr, newkey]);
+	append_children(wrap_right, [put, transaction_wrap]);
 	append_children(div, [wrap, wrap_right]);
 
 	update_pubkey();

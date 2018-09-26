@@ -5,7 +5,7 @@
 	.fieldset {
 		border: 0;
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 
 		padding: 20px 0;
 		margin: 0;
@@ -13,6 +13,18 @@
 		width: 100%;
 
 		flex-wrap: wrap;
+
+		DIV {
+			max-width: 100%;
+		}
+
+		&_nowr {
+			flex-wrap: nowrap;
+
+			input[type="text"] {
+				//max-width: 100px;
+			}
+		}
 
 		&:first-child {
 			padding-top: 0;
@@ -77,10 +89,14 @@
 		line-height: 20px;
 		padding: 9px 20px;
 		width: 100%;
+		max-width: 100%;
+		min-width: 100%;
 		margin: 10px 0 20px;
+		min-height: 140px;
 	}
 	CODE, PRE {
 		max-width: 100%;
+		width: 100%;
 		background: #fff;
 		border: 1px solid #f0f0f0;
 		padding: 9px 20px;
@@ -103,7 +119,10 @@
 		border-radius: 4px;
 		font-size: 18px;
 		margin: 10px 0;
-		color: #bdb867;
+		color: #989452;
 		background: #fbf9e1;
+		word-break: break-all;
+		max-height: 400px;
+		overflow: auto;
 	}
 }
