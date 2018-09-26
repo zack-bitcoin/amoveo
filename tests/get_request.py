@@ -34,6 +34,12 @@ def request_helper(url, action, args, seconds_to_sleep):
     f = urllib2.urlopen(req)
     sleep(seconds_to_sleep)
     return f.read()
+def request_ext_file(node, path):
+    url = node2url_ext[node]
+    req = urllib2.Request(url=url + path)
+    f = urllib2.urlopen(req)
+    return f
+
 #def urlopen_with_retry(req, max_retry=5):
 #    for _ in range(max_retry):
 #        try:
