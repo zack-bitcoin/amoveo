@@ -1,14 +1,14 @@
 .btn, button, input[type="button"] {
 
 	background: var(--color-main);
-	line-height: 40px;
+	line-height: 30px;
 	color: #fff;
 	font-weight: 700;
-	font-size: 18px;
+	font-size: 14px;
 	border-radius: 20px;
 	border: none;
-	padding: 0 20px;
-	margin: 0 25px 0 0;
+	padding: 0 10px;
+	margin: 0 15px 0 0;
 	cursor: pointer;
 	user-select: none;
 	text-align: center;
@@ -24,6 +24,13 @@
 
 	&:active {
 
+	}
+
+	@include bp(large){
+		padding: 0 20px;
+		margin: 0 25px 0 0;
+		font-size: 18px;
+		line-height: 40px;
 	}
 
 	& + P {

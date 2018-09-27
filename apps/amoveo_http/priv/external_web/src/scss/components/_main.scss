@@ -1,18 +1,26 @@
 .main {
-	padding: 40px 0;
+	padding: 20px 0;
 	color: #15191a;
+
+	@include bp(large){
+		padding: 40px 0;
+	}
 
 	.fieldset {
 		border: 0;
 		display: flex;
 		align-items: flex-start;
 
-		padding: 20px 0;
+		padding: 10px 0;
 		margin: 0;
 
 		width: 100%;
 
 		flex-wrap: wrap;
+
+		@include bp(large){
+			padding: 20px 0;
+		}
 
 		DIV {
 			max-width: 100%;
@@ -47,18 +55,30 @@
 		display: inline-block;
 		width: 200px;
 		min-width: 200px;
-		font-size: 18px;
+		font-size: 14px;
 		font-weight: 700;
 		line-height: 20px;
-		padding: 10px 10px 10px 0;
+		padding: 5px 10px 5px 0;
 
 		float: left;
 		flex: 0 0 auto;
 
+		@include bp(large){
+			padding: 10px 10px 10px 0;
+			font-size: 18px;
+		}
+
 		&.btn {
-			padding: 0 20px;
+			padding: 0 10px;
 			width: auto;
-			line-height: 40px;
+			line-height: 30px;
+			font-size: 14px;
+
+			@include bp(large){
+				line-height: 40px;
+				padding: 0 20px;
+				font-size: 18px;
+			}
 		}
 	}
 	INPUT {
@@ -66,14 +86,19 @@
 			border: 1px solid #f0f0f0;
 			border-radius: 4px;
 			line-height: 20px;
-			padding: 9px 20px;
+			padding: 4px 10px;
 			overflow: hidden;
 			text-overflow: ellipsis;
 			//float: left;
-			margin: 0 20px 0 0;
+			margin: 0 10px 0 0;
 
 			width: auto;
 			flex: 1 1 auto;
+
+			@include bp(large){
+				padding: 9px 20px;
+				margin: 0 20px 0 0;
+			}
 		}
 		&.wide {
 			width: 100%;
@@ -91,8 +116,12 @@
 		width: 100%;
 		max-width: 100%;
 		min-width: 100%;
-		margin: 10px 0 20px;
+		margin: 5px 0 20px;
 		min-height: 140px;
+
+		@include bp(large){
+			margin: 10px 0 20px;
+		}
 	}
 	CODE, PRE {
 		max-width: 100%;
@@ -108,8 +137,13 @@
 	HR {
 		display: inline-block;
 		width: 100%;
-		border: solid 1px rgba(112, 112, 112, .25);
-		margin: 20px 0;
+		border: none;
+		border-top: solid 1px rgba(112, 112, 112, .25);
+		margin: 10px 0;
+
+		@include bp(large){
+			margin: 20px 0;
+		}
 	}
 	.msg {
 		display: inline-block;

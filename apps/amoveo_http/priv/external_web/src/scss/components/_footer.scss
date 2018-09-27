@@ -15,6 +15,13 @@
 		justify-content: space-between;
 		align-items: center;
 	}
+	.container__column {
+		text-align: center;
+
+		@include bp(large){
+			text-align: left;
+		}
+	}
 
 	&__logo {
 		width: 200px;
