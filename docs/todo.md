@@ -23,7 +23,6 @@ version in spend txs is not being used.
 * update the javascript version of the contracts.
 - make bet button
 - change headers.js back to production mode.
-* javascript needs to know when to make a scalar contract instead of binary.
 - channels.js scalar_market_contract
 
 * test scalar markets from javascript, including resolution. make sure the correct amount of money moves.

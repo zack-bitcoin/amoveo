@@ -139,6 +139,9 @@ handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
 handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is an account pubkey
     TP = tx_pool:get(),
     Height = TP#tx_pool.height,
+    io:fwrite("channel feeder trade\n"),
+    io:fwrite(packer:pack(SSPK)),
+    io:fwrite(packer:pack(keys:sign(SSPK))),
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
     {ok, LF} = application:get_env(amoveo_core, lightning_fee),

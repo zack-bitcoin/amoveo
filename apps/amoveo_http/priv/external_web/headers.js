@@ -1,13 +1,13 @@
 function headers_main() {
     //var mode = "production";
-    var mode = "test"; //Use this to connect to a testnet.
+    var mode = "test";
     var forks;
     var retarget_frequency;
     var top_header;
     var headers_db = {};//store valid headers by hash
     var INITIAL_DIFFICULTY;
     if (mode == "test") {
-	INITIAL_DIFFICULTY = 10;
+	INITIAL_DIFFICULTY = 2500;
 	retarget_frequency = 12;
 	forks = {two: 0, four: retarget_frequency, seven:40};
 	top_header = 0;

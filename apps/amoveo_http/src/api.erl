@@ -559,7 +559,7 @@ trade(Price, Type, A, OID, Height, Fee, IP, Port) ->
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
     Pubkey = ServerID,
-    OBData = order_book:ob_type(OB),
+    OBData = order_book:ob_type(OB),%include this
     MyHeight = api:height(),
     true = Height =< MyHeight,
     MarketID = OID,
