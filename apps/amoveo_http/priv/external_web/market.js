@@ -46,7 +46,8 @@ function scalar_market_contract(direction, expires, maxprice, server_pubkey, per
     console.log(JSON.stringify(contract));
     var contract2 =  btoa(array_to_string(contract));
     var codekey = ["market", 2, oid, expires, server_pubkey, period, oid, lower_limit, upper_limit];
-    return ["bet", contract, amount, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
+    var amount2 = Math.floor(amount * ((10000 + maxprice) / 10000));
+    return ["bet", contract, amount2, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
 }
 function market_contract(direction, expires, maxprice, server_pubkey, period, amount, oid, bet_height) {
   //var a = string_to_array(atob("AAAAJxAAAAAAAXgA"));
@@ -87,7 +88,8 @@ function market_contract(direction, expires, maxprice, server_pubkey, period, am
     console.log(JSON.stringify(g));
     var contract =  btoa(array_to_string(g));
     var codekey = ["market", 1, oid, expires, server_pubkey, period, oid];
-    return ["bet", contract, amount, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
+    var amount2 = Math.floor(amount * ((10000 + maxprice) / 10000));
+    return ["bet", contract, amount2, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
 }
 
 function market_trade(cd, amount, price, bet, oid) { //oid unused

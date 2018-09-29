@@ -156,13 +156,13 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     {ok, OldCD} = channel_manager:read(ID),
     ChannelExpires = OldCD#cd.expiration,
     true = Expires < ChannelExpires,%The channel has to be open long enough for the market to close.
-    SSPK2 = trade(Amount, Price, SC, ID, OID),
+    SSPK2 = trade(Amount, Price, SC, ID, OID),%bad
     SPK = testnet_sign:data(SSPK),
-    SPK2 = testnet_sign:data(SSPK2),
+    SPK2 = testnet_sign:data(SSPK2),%bad
     io:fwrite("channel feeder spks \n"),
-    io:fwrite(packer:pack(SPK)),
+    io:fwrite(packer:pack(SPK)), %bet amount 500
     io:fwrite("\n"),
-    io:fwrite(packer:pack(SPK2)),
+    io:fwrite(packer:pack(SPK2)), %bet amount 750
     io:fwrite("\n"),
     SPK = SPK2,
     DefaultSS = market:unmatched(OID),
@@ -527,10 +527,10 @@ bets_unlock2([ID|T], OutT) ->
 contract_market(OBData, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height) ->
     case OBData of
 	{scalar, LL, UL, 10} -> 
-	    BetLocation = constants:oracle_bet(),
+	    BetLocation = constants:scalar_oracle_bet(),
 	    scalar_market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height, LL, UL);
 	{binary} ->
-	    BetLocation = constants:scalar_oracle_bet(),
+	    BetLocation = constants:oracle_bet(),
 	    market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height)
     end.
 
