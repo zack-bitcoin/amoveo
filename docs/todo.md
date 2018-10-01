@@ -20,13 +20,6 @@ version in spend txs is not being used.
 
 * there is a bug. channel data gets stored into the channel manager, even if the tx didn't get produced.
 
-* update the javascript version of the contracts.
-- make bet button
-- change headers.js back to production mode.
-- channels.js scalar_market_contract
-
-* test scalar markets from javascript, including resolution. make sure the correct amount of money moves.
-
 * Once a share is matched, then we know exactly how much veo it needs. So we should simplify the contract and extract the excess veo to be used in other smart contracts in this channel.
 
 * We need a way for pairs of people to write a custom CFD contract for a single channel between them using only the light node.
