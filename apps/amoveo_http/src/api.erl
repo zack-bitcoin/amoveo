@@ -1,5 +1,6 @@
 -module(api).
 -compile(export_all).
+-export([new_market/6]).
 -define(Fee, element(2, application:get_env(amoveo_core, tx_fee))).
 -define(IP, constants:server_ip()).
 -define(Port, constants:server_port()).
@@ -291,7 +292,8 @@ channel_team_close(CID, Amount) ->
     channel_team_close(CID, Amount, ?Fee+Cost).
 channel_team_close(CID, Amount, Fee) ->
     Tx = channel_team_close_tx:make_dict(CID, Amount, Fee),
-    keys:sign(Tx).
+    %keys:sign(Tx).
+    Tx.
 channel_timeout() ->
     channel_timeout(constants:server_ip(), constants:server_port()).
 channel_timeout(Ip, Port) ->
@@ -310,6 +312,31 @@ channel_timeout(Ip, Port) ->
     end.
 channel_slash(_CID, Fee, SPK, SS) ->
     tx_maker0(channel_slash_tx:make_dict(keys:pubkey(), Fee, SPK, SS)).
+new_scalar_oracle(Start, Question, Many) ->
+    <<ID:256>> = find_id2(),
+    new_scalar_oracle(Start, Question, ID, Many).
+new_scalar_oracle(Start, Question, ID, Many) when is_binary(ID) ->
+    <<IDN:256>> = ID,
+    new_scalar_oracle(Start, Question, IDN, Many);
+new_scalar_oracle(Start, Question, ID, Many) ->
+    Many = 10,
+    Q2 = if
+	     is_list(Question) -> list_to_binary(Question);
+	     true -> Question
+	 end,
+    Cost = trees:dict_tree_get(governance, oracle_new),
+    nso2(keys:pubkey(), ?Fee+Cost+20, Q2, Start, ID, 0, Many).
+-define(GAP, 0).%how long to wait between the limits when the different oracles of a scalar market can be closed.
+nso2(_Pub, _C, _Q, _S, _ID, Many, Many) -> 0;
+nso2(Pub, C, Q, S, ID, Many, Limit) -> 
+    io:fwrite("nso2\n"),
+    Q2 = <<Q/binary, (list_to_binary("  most significant is bit 0. this is bit number: "))/binary, (list_to_binary(integer_to_list(Many)))/binary>>,
+    Tx = oracle_new_tx:make_dict(Pub, C, Q2, S, <<ID:256>>, 0, 0),
+    io:fwrite(packer:pack(Tx)),
+    %tx_pool_feeder:absorb(keys:sign(Tx)),
+    tx_maker0(Tx),
+    nso2(Pub, C, Q, S+?GAP, ID+1, Many+1, Limit).
+    
 new_question_oracle(Start, Question)->
     ID = find_id2(),
     new_question_oracle(Start, Question, ID).
@@ -487,6 +514,25 @@ market_match(OID) ->
 settle_bets() ->
     channel_feeder:bets_unlock(channel_manager:keys()),
     {ok, ok}.
+not_empty_oracle(_, 0, _) -> true;
+not_empty_oracle(OID, Many, OldTrees) ->
+    io:fwrite("not empty oracle "),
+    io:fwrite(integer_to_list(Many)),
+    io:fwrite("\n"),
+    X = trees:dict_tree_get(oracles, <<OID:256>>, dict:new(), OldTrees),
+    (not (empty == X)) and not_empty_oracle(OID+1, Many-1, OldTrees).
+new_market(OID, Expires, Period, LL, UL, Many) -> %<<5:256>>, 4000, 5
+    true = LL > -1,
+    true = LL < UL,
+    true = UL < (round(math:pow(2, Many))),
+    TPG = tx_pool:get(),
+    Height = TPG#tx_pool.height,
+    {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
+    OldBlock = block:get_by_height(Height - Confirmations),
+    OldTrees = OldBlock#block.trees,
+    <<OIDN:256>> = OID,
+    true = not_empty_oracle(OIDN, Many, OldTrees),
+    order_book:new_scalar_market(OID, Expires, Period, LL, UL, Many).
 new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     %sets up an order book.
     %turns on the api for betting.
@@ -509,16 +555,19 @@ trade(Price, Type, Amount, OID, Height, IP, Port) ->
 trade(Price, Type, A, OID, Height, Fee, IP, Port) ->
     Amount = A,
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
-    {ok, {Expires, 
-	  Pubkey, %pubkey of market maker
-	  Period}} = 
-	talker:talk({market_data, OID}, IP, Port),
-    BetLocation = constants:oracle_bet(),
-    MarketID = OID,
-    %type is true or false or one other thing...
+    {ok, {OB, Question}} = talker:talk({oracle, OID}, IP, Port),
+    Expires = order_book:expires(OB),
+    Period = order_book:period(OB),
+    Pubkey = ServerID,
+    OBData = order_book:ob_type(OB),%include this
     MyHeight = api:height(),
     true = Height =< MyHeight,
-    SC = market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height),
+    MarketID = OID,
+%    {ok, {Expires, 
+%	  Pubkey, %pubkey of market maker
+%	  Period}} = 
+%	talker:talk({market_data, OID}, IP, Port),
+    SC = channel_feeder:contract_market(OBData, OID, Type, Expires, Price, ServerID, Period, Amount, OID, Height),
     SSPK = channel_feeder:trade(Amount, Price, SC, ServerID, OID),
     Msg = {trade, keys:pubkey(), Price, Type, Amount, OID, SSPK, Fee},
     Msg = packer:unpack(packer:pack(Msg)),%sanity check

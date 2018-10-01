@@ -30,12 +30,9 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 * consider reducing governance variable "maximum oracle time". it takes too long to close bad-question oracles.
 
-* raise the miner reward.
-
 
 ### Things to do
 
-* merge the scalar market fork. This is critical to fix a bug in market smart contracts.
 
 * take records of all the channels that need to be closed the slow way.
 
@@ -45,13 +42,21 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 * update the make file to more easily start the node after the changes to new linux installs.
 
+* there is a bug. channel data gets stored into the channel manager, even if the tx didn't get produced.
 
--continue writing new_oracle.scm (currently in chalang repository) to act as the oracle interface for the smart contract.
--rewrite market.fs into scalar_market.scm, nearly identical rewrite, but more oraganized.
--scalar_market.erl needs to be written. it is similar to market.erl. the erlang tools to go along with the new scalar market.
- * tool for making 8 oracles at once. use it in the test.
- * bet in all 8 oracles in the test.
- * tool for closing all 8 oracles at once.
+* Once a share is matched, then we know exactly how much veo it needs. So we should simplify the contract and extract the excess veo to be used in other smart contracts in this channel.
+
+* We need a way for pairs of people to write a custom CFD contract for a single channel between them using only the light node.
+
+* the integration test should include removing old bets from the channel state. javascript can do it, so erlang should be able to as well.
+
+* in ext_handler:new_channel/3, we accept channels made in either direction, is this really secure? Make sure we don't assume the direction in any other step.
+
+* add a note to this hard fork that full nodes running markets will need to close all of those markets first before doing this update. Channels do not have to be closed, they can contain old and new contracts at the same time.
+
+* in channels.js we need to give the user a chance to confirm that the period, server_pubkey, and expiration are all the expected amounts. Along with anything else from ext_handler:market_data
+
+
 
 * transactions are being dropped
 

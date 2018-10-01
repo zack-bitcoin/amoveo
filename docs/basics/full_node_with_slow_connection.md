@@ -1,0 +1,2 @@
+If you have slow internet connection, and you want to run a full node, you may find that it is difficult to sync. it often crashes.
+In the config/sys.config.tmpl file, set download_blocks_many to 1, so you do fewer connections simultaniously. This should stop it from crashing so much.

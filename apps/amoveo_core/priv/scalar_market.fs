@@ -97,7 +97,7 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 	swap Expires @ HEIGHT @ minus_zero + swap ( delay new_nonce amount )
 	PRICE @ flip MaxPrice @ ==
 	if
-	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book 
+	  drop drop PM @ * int 10000 / %first include the money that got matched in the order book
 	  int 10000 MaxPrice @ - int 10000 PM @ -
 	  * int 10000 / +
 %we add on some more money for how much refund we get from the unmatched portion.
@@ -110,11 +110,12 @@ macro match_order ( signed_price_declaration -- delay nonce amount )
 %          else
 %            drop r> -
 %          then
-	then	
+	then
 ;
 macro unmatched ( OracleProof -- delay nonce amount )
-        helper
-	int 0 == if % the 0 means that the oracle is unresolved still.
+        % helper
+	multi_helper unresolved_oracle call
+	if % the 0 means that the oracle is unresolved still.
             %fail
                 Expires @ Period @ + int 2000 +
         	int 0
@@ -135,12 +136,9 @@ swap
       int 3 == if drop drop drop evidence else drop
       int 4 == if drop drop unmatched else drop
       then then then then then
-% the "amount" was originally set up so that 10000= amount I bet + amount you bet.
-% we also need a small refund, if the price a bet gets matched is different from the price they were willing to pay.
-%we process most of the contract so that the max amount can be > 10000, and the following line is used to re-scale to the correct 0-10000 range.
+      % in the original design of this contract, amount was set up so that amount from 0<->10000 represented how much a1 was betting + how much a2 was betting. if the limit price is not equal to the batch price, then we need to give a refund in excess of the old limit. So the old parts of the contract are now calculating an amount in range 0<->(10000 + MaxPrice). the following line is used to resize this to 0<->10000.
       int 10000 * MaxPrice @ int 10000 + /
-%      int 10000 * MaxPrice @ dup int 10000 swap - int 2 * + /
+      %int 10000 * MaxPrice @ dup int 10000 swap - int 2 * + /
       return
 ;
 main
-

@@ -1,13 +1,13 @@
 function headers_main() {
     var mode = "production";
-    //var mode = "test"; //Use this to connect to a testnet.
+    //var mode = "test";
     var forks;
     var retarget_frequency;
     var top_header;
     var headers_db = {};//store valid headers by hash
     var INITIAL_DIFFICULTY;
     if (mode == "test") {
-	INITIAL_DIFFICULTY = 10;
+	INITIAL_DIFFICULTY = 2500;
 	retarget_frequency = 12;
 	forks = {two: 0, four: retarget_frequency, seven:40};
 	top_header = 0;
@@ -34,6 +34,7 @@ function headers_main() {
     document.body.appendChild(wallet_text);
     more_headers();
     function write_header(header, ewah) {
+	console.log("write header");
         var acc_difficulty = header[9];
         if (acc_difficulty > top_diff) {
             top_diff = acc_difficulty;
@@ -293,7 +294,7 @@ function headers_main() {
 	return ewah;
     }
     function absorb_headers(h) {
-	//console.log(JSON.stringify(h[1]));
+	console.log(JSON.stringify(h[1]));
         var get_more = false;
         for (var i = 1; i < h.length; i++ ) {
             var bl = check_pow(h[i]);
