@@ -11,6 +11,9 @@ SWAGGER = apps/amoveo_http/src/swagger
 SWTEMP := $(shell mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
 LOCAL = ./_build/local/rel
 
+export ERL_EPMD_ADDRESS=127.0.0.1
+
+
 kill:
 	@echo "Kill all beam processes only from this directory tree"
 	$(shell pkill -9 -f ".*/beam.*-boot `pwd`" || true)

@@ -6,9 +6,24 @@
 
 ### Other hard fork ideas
 
+* update the fork choice rule. instead of prefering the version with the most hashes, prefer the version that maximizes this accumulated value: ((hashes) * (target block period) / (block reward)).
+- no good, if the block reward is set too low, then you can make a fork which always wins.
+
+* a new merkel tree to hold txids for every tx that has happened. This way you can more easily prove to a customer that a tx has occured.
+
+* the oracle should say the sum of open bets, otherwise it is so complicated for light nodes to request a proof of this information.
+
+maybe governance oracles should have a minimum amount they need to be changed by. otherwise an attacker can block an oracle from being made by keep making the same oracle to only change 1%.
+
 Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
 
 version in spend txs is not being used.
+
+add n-lock-time to spend txs, that way we can make dead man's switches for inheritance.
+
+maybe channel_team_close_tx should have a negative fee. As a reward for deleting the channel.
+We could raise the fee for opening channels, and the reward for closing them.
+This would prevent attacks where the attacker opens too many channels, and tries to close them all in too short of a time period.
 
 
 ### governance ideas
@@ -17,6 +32,15 @@ version in spend txs is not being used.
 
 
 ### Things to do
+
+
+* take records of all the channels that need to be closed the slow way.
+
+* make a combinatorial question oracle to find out if we should lower the block reward, and a market.
+
+*light node needs to be able to look up the volume of off-chain bets. (or at least put it on the explorer for now.)
+
+* update the make file to more easily start the node after the changes to new linux installs.
 
 * there is a bug. channel data gets stored into the channel manager, even if the tx didn't get produced.
 
@@ -31,10 +55,6 @@ version in spend txs is not being used.
 * add a note to this hard fork that full nodes running markets will need to close all of those markets first before doing this update. Channels do not have to be closed, they can contain old and new contracts at the same time.
 
 * in channels.js we need to give the user a chance to confirm that the period, server_pubkey, and expiration are all the expected amounts. Along with anything else from ext_handler:market_data
-
-
-
-
 
 
 

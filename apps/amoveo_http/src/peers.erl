@@ -78,6 +78,7 @@ add([MalformedPeer|T]) ->
     io:fwrite(packer:pack(MalformedPeer)),
     add(T);
 add({{10, _, _, _}, Port}) -> ok;%these formats are only for private networks, not the public internet.
+add({{0, 0, 0, 0}, Port}) -> ok;
 add({{192, 168, _, _}, Port}) -> ok;
 add({{172, X, _, _}, Port}) when ((X < 32) and (X > 15))-> ok;
 add({IP, Port}) -> 
@@ -107,9 +108,9 @@ update(Peer, Properties) ->
     gen_server:cast(?MODULE, {update, Peer, Properties}).
 
 remove(Peer) -> 
-    io:fwrite("removing peer "),
-    io:fwrite(packer:pack(Peer)),
-    io:fwrite("\n"),
+    %io:fwrite("removing peer "),
+    %io:fwrite(packer:pack(Peer)),
+    %io:fwrite("\n"),
     blacklist_peer:add(Peer),
     gen_server:cast(?MODULE, {remove, Peer}).
 
@@ -131,8 +132,8 @@ my_ip([]) ->
 my_ip([[A, B]|T]) ->
     my_ip([{A, B}|T]);
 my_ip([P|T]) ->
-    io:fwrite(packer:pack(P)),
-    io:fwrite("\n"),
+    %io:fwrite(packer:pack(P)),
+    %io:fwrite("\n"),
     case talker:talk_timeout({f}, P, 4000) of
 	{ok, MyIP} ->
 	    case MyIP of 

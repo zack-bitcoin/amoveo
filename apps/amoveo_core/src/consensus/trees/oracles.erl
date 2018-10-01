@@ -3,7 +3,7 @@
          write/2, get/2,%update tree stuff
          dict_get/2, dict_write/2, dict_write/3, %update dict stuff
 	 meta_get/1, deserialize/1, all/0, 
-	 ready_for_bets/0,
+	 ready_for_bets/0, ready_to_close/0,
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]). %common tree stuff
 -define(name, oracles).
 -include("../../records.hrl").
@@ -43,6 +43,20 @@ all() ->
 		     end,
 	      {Text, X}
       end, All).
+ready_to_close() ->
+    A = all(),
+    rtc2(A).
+rtc2([]) -> [];
+rtc2([{Text, Oracle}|T]) ->
+    R = Oracle#oracle.result,
+    D = Oracle#oracle.done_timer,
+    H = block:height(),
+    if
+	(H < D) -> rtc2(T);
+	(not (R == 0)) -> rtc2(T);
+	true -> [{Text, Oracle}|rtc2(T)]
+    end.
+    
 ready_for_bets() ->
     A = all(),
     rfb2(A).
@@ -53,7 +67,7 @@ rfb2([{Text, Oracle}|T]) ->
     H = block:height(),
     if
 	(H < S) -> rfb2(T);
-	(not (T == 0)) -> rfb2(T);
+	(not (R == 0)) -> rfb2(T);
 	true -> [{Text, Oracle}|rfb2(T)]
     end.
     

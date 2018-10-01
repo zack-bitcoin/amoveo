@@ -139,8 +139,10 @@ absorb_internal(Block) ->
 			    %tx_pool:dump(Block2),
 			    OldTxs = tl(Block#block.txs),
 			    Keep = lists:filter(fun(T) -> not(tx_pool_feeder:is_in(testnet_sign:data(T), OldTxs)) end, Txs),%This n**2 algorithm is slow. We can make it n*log(n) by sorting both lists first, and then comparing them.
-			    tx_pool_feeder:dump(Block2),
-			    tx_pool_feeder:absorb_async(lists:reverse(Keep)),
+			    tx_pool_feeder:absorb_dump(Block2, lists:reverse(Keep)),
+			    %tx_pool_feeder:dump(Block2),
+			    %tx_pool_feeder:empty_mailbox(),
+			    %tx_pool_feeder:absorb_async(lists:reverse(Keep)),
 			    potential_block:dump(),
 			    %spawn(fun() ->
 				%	  timer:sleep(2000),

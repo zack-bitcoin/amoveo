@@ -28,6 +28,13 @@ oracles:ready_for_bets().
 returns a list like [{Question1, Oracle1}, {Question2, Oracle2}...].
 
 
+#### See all oracles where it is possible to close the oracle.
+```
+oracles:ready_to_close().
+```
+returns a list like [{Question1, Oracle1}, {Question2, Oracle2}...].
+
+
 #### See all existing oracles
 
 ```
@@ -54,6 +61,11 @@ Type is either 1, 2, or 3.
 1 = true
 2 = false
 3 = bad question
+
+#### Look up bets in the oracle
+```
+api:orders(OracleID).
+```
 
 #### Close an oracle
 If the oracle has had the same output state for a long enough period of time, then this is how anyone can close the channel and end the betting period.
