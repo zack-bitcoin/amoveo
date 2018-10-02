@@ -18,7 +18,7 @@ const gulp = require('gulp'),
 	svgstore = require('gulp-svgstore'),
 	svgmin = require('gulp-svgmin'),
 	concat = require('gulp-concat'),
-	uglify = require('gulp-uglify'),
+	uglify = require('gulp-uglify-es').default,
 	rename = require('gulp-rename');
 //concat       = require('gulp-concat');
 

@@ -25,6 +25,7 @@
         "gulp-svgmin": "^1.2.4",
         "gulp-svgstore": "^7.0.0",
         "gulp-uglify": "^3.0.1",
+        "gulp-uglify-es": "^1.0.4",
         "imagemin-pngquant": "^6.0.0",
         "minimatch": "^3.0.4",
         "postcss": "^5.2.17",
