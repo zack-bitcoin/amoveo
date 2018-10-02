@@ -153,6 +153,7 @@ all2(X, Root) ->
     PS = constants:pubkey_size() * 8,
     case X of
         <<?Null:PS>> -> [<<?Header:PS>>];
+	
         Pub -> 
             {_, Order, _} = get(Pub, Root),
             [Pub|all2(Order#orders.pointer, Root)]

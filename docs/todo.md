@@ -35,6 +35,13 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+
+* magnet torrent link for the light node.
+
+* if you try making a tx with an encrypted private key, or in sync_mode:quick, there should be a useful error message for why the tx failed.
+
+* light node should know how many bets are outstanding for it's account in oracles.
+
 * merge the scalar market fork. This is critical to fix a bug in market smart contracts.
 
 * take records of all the channels that need to be closed the slow way.
@@ -53,7 +60,13 @@ This would prevent attacks where the attacker opens too many channels, and tries
  * bet in all 8 oracles in the test.
  * tool for closing all 8 oracles at once.
 
-* transactions are being dropped
+* transactions are being dropped ??
+
+* voting in the oracle from a light node.
+
+* we need to display more oracle data:
+- total matched bets of each type.
+- total unmatched bets.
 
 * partial refund for closing a channel early.
 
