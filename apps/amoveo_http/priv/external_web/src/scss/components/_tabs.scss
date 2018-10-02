@@ -119,11 +119,15 @@
 			@include bp(large){
 				width: 140px;
 				min-width: 140px;
+				font-size: 14px;
 			}
 		}
 
 		INPUT[type="text"] {
 			max-width: 140px;
+		}
+		.btn {
+			padding: 0 10px;
 		}
 	}
 	&__box {

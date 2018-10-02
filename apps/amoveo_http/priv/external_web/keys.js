@@ -13,7 +13,7 @@ function keys_function1() {
 	save_name.type = "text";
 	save_name.value = "Amoveo private key";
 	save_name.className = "wide";
-	var save_button = button_maker2("save private key to file", save_keys);
+	var save_button = button_maker2("Save private key to file", save_keys);
 	var file_selector = document.createElement("input");
 	file_selector.type = "file";
 	file_selector.id = "file-key";
@@ -34,7 +34,8 @@ function keys_function1() {
 	var balance_button = button_maker2("Check balance", update_balance);
 	var bal_div = document.createElement("div");
 
-	var put = wrapper("tabs__box", [watch_only_instructions, watch_only_pubkey, watch_only_button]);
+	var pub_div = wrapper("tabs__box", [pub_div]);
+	var put = wrapper("tabs__box", [watch_only_instructions, watch_only_pubkey, br(), br(), watch_only_button]);
 	var newkey = wrapper("fieldset", [new_pubkey_button, new_pubkey_div]);
 	var balance_wr = wrapper("fieldset", [bal_div, balance_button]);
 
@@ -55,14 +56,31 @@ function keys_function1() {
 	nav.appendChild(account_title);
 
 	var get_wr = wrapper("fieldset", [file_selector, file_selector_btn]);
-	var save_wr = wrapper("fieldset fieldset_nowr", [save_name, save_button]);
+	var save_wr = wrapper("fieldset fieldset_2col", [save_name, save_button]);
 
 	var transaction_wrap = document.createElement("div");
 	transaction_wrap.id = "transaction_wrap";
 
-	append_children(wrap, [pub_div, balance_wr, hr(), get_wr, save_wr, newkey]);
-	append_children(wrap_right, [put, transaction_wrap]);
-	append_children(div, [wrap, wrap_right]);
+	var spoiler = document.createElement("div");
+	spoiler.id = "account_spoiler";
+	spoiler.className = "spoiler";
+
+	var sp_title = document.createElement("button");
+	sp_title.innerHTML = "Advanced features";
+	sp_title.className = "spoiler__button";
+	var sp_left = wrapper("tabs__col", [transaction_wrap]);
+	var sp_right = wrapper("tabs__col", [pub_div, put]);
+	sp_left.id = "account_spoiler_left";
+	sp_right.id = "account_spoiler_right";
+
+	var sp_wr = document.createElement("div");
+	sp_wr.className = "spoiler__content";
+
+	append_children(sp_wr, [sp_left, sp_right]);
+	append_children(spoiler, [sp_title, sp_wr]);
+	append_children(wrap, []);
+	append_children(wrap_right, [balance_wr, get_wr, save_wr, newkey]);
+	append_children(div, [wrap, wrap_right, spoiler]);
 
 	update_pubkey();
 
@@ -127,8 +145,8 @@ function keys_function1() {
 		var warning = document.createElement("p");
 		warning.innerHTML = "This will delete your old keys from the browser. Save your keys before doing this.";
 		warning.className = "msg";
-		var button = button_maker2("cancel", cancel);
-		var button2 = button_maker2("continue", doit);
+		var button = input_maker2("cancel", cancel);
+		var button2 = input_maker2("continue", doit);
 		var entropy_txt = document.createElement("p");
 		entropy_txt.className = "msg";
 		entropy_txt.innerHTML = "Put random text here to make keys from";

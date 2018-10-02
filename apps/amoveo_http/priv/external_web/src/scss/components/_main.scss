@@ -27,10 +27,29 @@
 		}
 
 		&_nowr {
-			flex-wrap: nowrap;
+			flex-wrap: wrap;
+
+			@include bp(large){
+				flex-wrap: nowrap;
+			}
 
 			input[type="text"] {
 				//max-width: 100px;
+			}
+		}
+		&_2col {
+			justify-content: space-between;
+			flex-wrap: wrap;
+
+			@include bp(large){
+				flex-wrap: nowrap;
+			}
+
+			LABEL, INPUT, .btn {
+
+				@include bp(large){
+					max-width: 49%;
+				}
 			}
 		}
 
@@ -83,7 +102,7 @@
 	}
 	INPUT {
 		&[type=text]{
-			border: 1px solid #f0f0f0;
+			border: 1px solid #e4e4e4;
 			border-radius: 4px;
 			line-height: 20px;
 			padding: 4px 10px;
@@ -102,14 +121,14 @@
 		}
 		&.wide {
 			width: 100%;
-			margin: 0 0 20px 0;
+			margin: 0 0 20px 0 !important;
 		}
 		&:last-child {
 			margin-right: 0;
 		}
 	}
 	TEXTAREA {
-		border: 1px solid #f0f0f0;
+		border: 1px solid #e4e4e4;
 		border-radius: 4px;
 		line-height: 20px;
 		padding: 9px 20px;
@@ -127,7 +146,7 @@
 		max-width: 100%;
 		width: 100%;
 		background: #fff;
-		border: 1px solid #f0f0f0;
+		border: 1px solid #e4e4e4;
 		padding: 9px 20px;
 		word-break: break-all;
 		margin: 20px 0;

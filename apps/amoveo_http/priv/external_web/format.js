@@ -130,10 +130,21 @@ function newhash2integer(h) {
 
     return hash2integer2(h.concat([255]), 0, 0);
 }
+
+function input_maker2(vl, fn) {
+    var inp = document.createElement("input");
+    inp.type = "button";
+    inp.value = vl;
+    inp.className = "btn";
+    inp.onclick = fn;
+
+    return inp;
+}
 function button_maker2(val, fun) {
-    var button = document.createElement("input");
-    button.type = "button";
-    button.value = val;
+    var button = document.createElement("button");
+    //button.type = "button";
+    button.innerHTML = val;
+    button.className = "btn";
     button.onclick = fun;
     return button;
 }
