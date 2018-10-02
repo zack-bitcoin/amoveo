@@ -9,7 +9,8 @@
 	 make_locked_payment/3, they_simplify/3,
 	 bets_unlock/1, trade/5, trade/7,
          cancel_trade/4, cancel_trade_server/3,
-         combine_cancel_assets_server/2
+         combine_cancel_assets_server/2,
+	 contract_market/10
 	 ]).
 -include("../records.hrl").
 new_cd(Me, Them, SSMe, SSThem, CID, Expiration) ->
@@ -138,6 +139,9 @@ handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
 handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is an account pubkey
     TP = tx_pool:get(),
     Height = TP#tx_pool.height,
+    io:fwrite("channel feeder trade\n"),
+    io:fwrite(packer:pack(SSPK)),
+    io:fwrite(packer:pack(keys:sign(SSPK))),
     true = testnet_sign:verify(keys:sign(SSPK)),
     true = Amount > 0,
     {ok, LF} = application:get_env(amoveo_core, lightning_fee),
@@ -146,19 +150,19 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
-    BetLocation = constants:oracle_bet(),
-    SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
-    %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+    SC = contract_market(order_book:ob_type(OB), OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
+    %BetLocation = constants:oracle_bet(),
+    %SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
     {ok, OldCD} = channel_manager:read(ID),
     ChannelExpires = OldCD#cd.expiration,
     true = Expires < ChannelExpires,%The channel has to be open long enough for the market to close.
-    SSPK2 = trade(Amount, Price, SC, ID, OID),
+    SSPK2 = trade(Amount, Price, SC, ID, OID),%bad
     SPK = testnet_sign:data(SSPK),
-    SPK2 = testnet_sign:data(SSPK2),
+    SPK2 = testnet_sign:data(SSPK2),%bad
     io:fwrite("channel feeder spks \n"),
-    io:fwrite(packer:pack(SPK)),
+    io:fwrite(packer:pack(SPK)), %bet amount 500
     io:fwrite("\n"),
-    io:fwrite(packer:pack(SPK2)),
+    io:fwrite(packer:pack(SPK2)), %bet amount 750
     io:fwrite("\n"),
     SPK = SPK2,
     DefaultSS = market:unmatched(OID),
@@ -519,3 +523,15 @@ bets_unlock2([ID|T], OutT) ->
     channel_manager:write(ID, NewCD),
     Out = {Secrets, SPK},
     bets_unlock2(T, [Out|OutT]).
+
+contract_market(OBData, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height) ->
+    case OBData of
+	{scalar, LL, UL, 10} -> 
+	    BetLocation = constants:scalar_oracle_bet(),
+	    scalar_market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height, LL, UL);
+	{binary} ->
+	    BetLocation = constants:oracle_bet(),
+	    market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height)
+    end.
+
+    

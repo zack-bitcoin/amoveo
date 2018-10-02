@@ -37,7 +37,9 @@ binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode
     io:fwrite("\n"),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
     %ToProve = [{oracles, OID}],
-    spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
+    A2 = Amount * (10000 + MaxPrice) div 10000,
+    spk:new_bet(Compiled, CodeKey, A2, {Direction, MaxPrice}).
+%    spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
 unmatched(OID) ->
     SS = " int 4 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
@@ -115,7 +117,8 @@ test2(NewPub) ->
     Fee = 20 + constants:initial_fee(),
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
     %Dict5 = (tx_pool:get())#tx_pool.dict,
-    MarketID = <<405:256>>,
+    %MarketID = <<405:256>>,
+    MarketID = OID,
     PrivDir = code:priv_dir(amoveo_core),
     Location = constants:oracle_bet(),
     Period = 3,
@@ -144,7 +147,7 @@ test2(NewPub) ->
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
     SS3 = evidence(SPD, OID),
     %amount, newnonce, delay
-    {60, 3, 995} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
+    {59, 3, 995} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
 	spk:run(fast, [SS3], SPK, 5, 0, Trees5),
 
@@ -176,7 +179,7 @@ test2(NewPub) ->
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
-    {95,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
+    {105,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
@@ -187,14 +190,14 @@ test2(NewPub) ->
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay
-    {15,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
+    {14,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
 
     %test a trade that gets only partly matched.
     %SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SPD3 = price_declaration_maker(5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3, OID, 3000),
     %amount, newnonce, shares, delay
-    {90, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees5),
+    {109, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
@@ -202,7 +205,7 @@ test2(NewPub) ->
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
     SS6 = unmatched(OID), 
     %amount, newnonce, delay
-    {60, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees5),
+    {59, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees5),
     success.
 test3() ->    
     %This makes the compiled smart contract in market.js
@@ -211,7 +214,7 @@ test3() ->
     BetLocation = constants:oracle_bet(),
     Pubkey = keys:pubkey(),
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    Direction = 1,
+    Direction = 2,
     A = market_smart_contract(BetLocation, OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0),
     Max = 4294967295,
     B = market_smart_contract(BetLocation, OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max),

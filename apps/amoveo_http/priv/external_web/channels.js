@@ -266,6 +266,7 @@ function channels_main() {
         var ttv = trade_type.value;
         if ((ttv == "true") ||
             (ttv == 1) ||
+            (ttv == "1") ||
             (ttv == "yes") ||
             (ttv == "si") ||
             (ttv == "cierto") ||
@@ -275,7 +276,9 @@ function channels_main() {
             type_final = 1;
         } else if ((ttv == "false") ||
                    (ttv == 0) ||
+                   (ttv == "0") ||
                    (ttv == 2) ||
+                   (ttv == "2") ||
                    (ttv == "falso") ||
                    (ttv == "no") ||
                    (ttv == "lon ala") ||
@@ -288,7 +291,20 @@ function channels_main() {
         var expires = l[1];
         var server_pubkey = l[2];
         var period = l[3];
-        var sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1]);
+	var sc;
+	console.log("SCALAR ");
+	console.log(JSON.stringify(l));
+	console.log(JSON.stringify(l[4]));
+	// if l[4] is ["binary"] then do this:
+	if (l[4][0] == "binary") {
+            sc = market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1]);
+	} else {
+	    var lower_limit = l[4][1];
+	    var upper_limit = l[4][2];
+	    // sanity-check, verify 10 == l[4][3];
+	//all scalar markets currently use 10 binary oracles to measure values.
+            sc = scalar_market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1], lower_limit, upper_limit, 10);
+	}
         var cd = read(server_pubkey);
         var spk = market_trade(cd, amount_final, price_final, sc, server_pubkey, oid_final);
         var sspk = keys.sign(spk);

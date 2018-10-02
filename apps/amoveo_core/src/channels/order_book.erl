@@ -4,14 +4,15 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 	 add/2,match/1,match/0,match_all/1,
-         price/1,remove/4,exposure/1,
-	 new_market/3, make_order/4, data/1,
+         price/1,remove/4,exposure/1, ob_type/1,
+	 new_market/3, new_scalar_market/6, make_order/4, 
+	 data/1, info/1,
 	 expires/1, period/1, keys/0, dump/1, dump_all/0,
 	 test/0]).
 %The market maker needs to refuse to remove some trades from the order book, if those trades are needed to cover his risk against trades that have already been matched.
 %To keep track of how much exposure has been matched, the market maker needs to remember a number.
 %We need to keep track of how much depth we have matched on one side, that way we can refuse to remove trades that are locked against money we need to cover commitments we already made in channels.
--record(ob, {exposure = 0, price = 5000, buys = [], sells = [], ratio = 5000, expires, period, height = 0}).%this is the price of buys, sells is 1-this.
+-record(ob, {exposure = 0, price = 5000, buys = [], sells = [], ratio = 5000, expires, period, height = 0, data}).%this is the price of buys, sells is 1-this.
 %Exposure to buys is positive.
 -record(order, {acc = 0, price, type=buy, amount}). %type is buy/sell
 -include("../records.hrl").
@@ -20,10 +21,10 @@ expires(OB) ->
     OB#ob.expires.
 period(OB) ->
     OB#ob.period.
+ob_type(OB) ->
+    OB#ob.data.
 make_order(Acc, Price, Type, Amount) ->
     #order{acc = Acc, price = Price, type = Type, amount = Amount}.
-data(OID) -> 
-    gen_server:call(?MODULE, {data, OID}).
 %lets make a dictionary to store order books. add, match, price, remove, and exposure all need one more input to specify which order book in the dictionary we are dealing with.
 %init(ok) -> {ok, #ob{}}.
 init(ok) -> 
@@ -45,10 +46,11 @@ terminate(_, X) ->
     io:fwrite("order book died!\n"), 
     ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({new_market, OID, Expires, Period}, X) ->
+handle_cast({new_market, OID, Expires, Period, Data}, X) ->
     error = dict:find(OID, X),
     OB = #ob{expires = Expires, 
-	     period = Period},
+	     period = Period,
+	     data = Data},
     NewX = dict:store(OID, OB, X),
     db:save(?LOC, NewX),
     {noreply, NewX};
@@ -132,6 +134,11 @@ handle_call({match, OID}, _From, X) ->
 handle_call({data, OID}, _From, Y) ->
     X = dict:find(OID, Y),
     {reply, X, Y};
+handle_call({info, OID}, _From, X) ->
+    {ok, OB} = dict:find(OID, X),
+    Y = [OB#ob.price, OB#ob.exposure, OB#ob.ratio, OB#ob.data],
+    {reply, Y, X};
+%price exposure ratio should be depreciated.
 handle_call({price, OID}, _From, X) -> 
     {ok, OB} = dict:find(OID, X),
     {reply, OB#ob.price, X};
@@ -218,6 +225,10 @@ add_trade(Order, [H|Trades]) ->
     end.
 keys() ->
     gen_server:call(?MODULE, keys).
+data(OID) -> 
+    gen_server:call(?MODULE, {data, OID}).
+info(OID) -> 
+    gen_server:call(?MODULE, {info, OID}).
     
 add(Order, OID) ->
     <<_:256>> = OID,
@@ -253,7 +264,11 @@ dump_all() ->
 dump(OID) ->
     gen_server:cast(?MODULE, {dump, OID}).
 new_market(OID, Expires, Period) ->
-    gen_server:cast(?MODULE, {new_market, OID, Expires, Period}).
+    new_market(OID, Expires, Period, {binary}).
+new_scalar_market(OID, Expires, Period, LL, UL, Many) ->
+    new_market(OID, Expires, Period, {scalar, UL, LL, Many}).
+new_market(OID, Expires, Period, Data) ->
+    gen_server:cast(?MODULE, {new_market, OID, Expires, Period, Data}).
 
 
 
