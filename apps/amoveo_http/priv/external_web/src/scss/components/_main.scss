@@ -92,11 +92,12 @@
 			width: auto;
 			line-height: 30px;
 			font-size: 14px;
+			min-width: auto;
 
 			@include bp(large){
 				line-height: 40px;
 				padding: 0 20px;
-				font-size: 18px;
+				font-size: 16px;
 			}
 		}
 	}

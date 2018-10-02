@@ -14,8 +14,9 @@
 		width: 100%;
 		margin: 0;
 		padding: 0 30px;
-
-		background: #8bc34a;
+		color: #222;
+		background: #fbfbfb;
+		border: 2px dashed #ddd;
 
 		@include bp(large){
 			margin: 0 20px;
@@ -23,7 +24,7 @@
 
 		&.active {
 			background: #fbfbfb;
-			color: #222;
+			border-color: #fbfbfb;
 		}
 	}
 
