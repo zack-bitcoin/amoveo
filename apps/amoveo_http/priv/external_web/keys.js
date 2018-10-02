@@ -33,11 +33,10 @@ function keys_function1() {
 	var new_pubkey_div = document.createElement("div");
 	var balance_button = button_maker2("Check balance", update_balance);
 	var bal_div = document.createElement("div");
-
-	var pub_div = wrapper("tabs__box", [pub_div]);
+	//var balance_wr = wrapper("fieldset", [bal_div, balance_button]);
+	var pub_div_wr = wrapper("tabs__box", [pub_div, bal_div, balance_button]);
 	var put = wrapper("tabs__box", [watch_only_instructions, watch_only_pubkey, br(), br(), watch_only_button]);
 	var newkey = wrapper("fieldset", [new_pubkey_button, new_pubkey_div]);
-	var balance_wr = wrapper("fieldset", [bal_div, balance_button]);
 
 	var wrap = document.createElement("div");
 	wrap.className = "tabs__col";
@@ -69,7 +68,7 @@ function keys_function1() {
 	sp_title.innerHTML = "Advanced features";
 	sp_title.className = "spoiler__button";
 	var sp_left = wrapper("tabs__col", [transaction_wrap]);
-	var sp_right = wrapper("tabs__col", [pub_div, put]);
+	var sp_right = wrapper("tabs__col", [put]);
 	sp_left.id = "account_spoiler_left";
 	sp_right.id = "account_spoiler_right";
 
@@ -79,7 +78,7 @@ function keys_function1() {
 	append_children(sp_wr, [sp_left, sp_right]);
 	append_children(spoiler, [sp_title, sp_wr]);
 	append_children(wrap, []);
-	append_children(wrap_right, [balance_wr, get_wr, save_wr, newkey]);
+	append_children(wrap_right, [pub_div_wr, get_wr, save_wr, newkey]);
 	append_children(div, [wrap, wrap_right, spoiler]);
 
 	update_pubkey();
