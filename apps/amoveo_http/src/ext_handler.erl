@@ -281,7 +281,9 @@ doit({market_data, OID}) ->
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
-    {ok, {Expires, keys:pubkey(), Period}};
+    OBData = order_book:ob_type(OB),
+    %OBdata is either {binary} or {scalar, LL, UL, ??}
+    {ok, {Expires, keys:pubkey(), Period, OBData}};
 doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     %make sure they pay a fee in channel for having their trade listed. 
     _BetLocation = constants:oracle_bet(),

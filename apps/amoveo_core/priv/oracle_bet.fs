@@ -2,9 +2,18 @@
 
 macro helper ( ProofStructure -- Int )
 %first unwrap the oracle data from the proof structure.
+% [ [5, short, long] ]
 car drop
-car swap drop
-car swap drop
+car swap int 5 == if %should equal 5 because of oracle type
+  drop drop
+else
+  fail
+then
+car swap MarketID @ == if
+  drop drop
+else
+  fail
+then %should equal expected key.
 car drop
 
 int 32 split drop
@@ -21,6 +30,9 @@ int 1 == if drop drop
      %delay, nonce, amount
      %delay has to be 1 or 0. it is multiplied by a bigger number to possibly set the delay to 0.
      int 0 int 3 bet_amount @ else
+
+%if bet on false, bet_amount is 0.
+%if bet_amount is 0, we ned to flip amount
 
 %2 is false
 drop int 2 == if drop drop 

@@ -41,15 +41,18 @@ is_in(Tx, [STx2 | T]) ->
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
     S = self(),
+    Wait = case application:get_env(amoveo_core, kind) of
+	       {ok, "production"} -> 200;
+	       _ -> 1000
+	   end,
     spawn(fun() ->
 		  absorb_internal2(SignedTx, S)
 	  end),
     receive
 	X -> X
     after 
-	200 -> 
-	%10000 ->
-	    %io:fwrite("dropped a tx\n"),
+	Wait -> 
+	    io:fwrite("dropped a tx\n"),
 	    error
     end.
 	    
