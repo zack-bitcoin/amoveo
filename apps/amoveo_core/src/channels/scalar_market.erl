@@ -1,15 +1,19 @@
 -module(scalar_market).
--export([price_declaration_maker/4, market_smart_contract/10,
+-export([price_declaration_maker/4, market_smart_contract/12,
 	 settle/3,no_publish/1,evidence/2,
-	 contradictory_prices/3, market_smart_contract_key/5,
-	 unmatched/1,
+	 contradictory_prices/3, market_smart_contract_key/7,
+	 unmatched/1, scalar_oracle_make/5,
 	 test/0, test_contract/0, test3/0]).
 -include("../records.hrl").
 
-market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts that can be arbitraged against each other have the same result.
-    {market, 1, MarketID, Expires, Pubkey, Period, OID}.
-market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height) ->
+market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit) -> %contracts that can be arbitraged against each other have the same result.
+    %true = LowerLimit < UpperLimit,
+    %true = LowerLimit > -1,
+    %true = UpperLimit < 1024,
+    {market, 2, MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit}.
+market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height, LowerLimit, UpperLimit) ->
     <<_:256>> = MarketID,
+    %OID = MarketID,
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		1 -> <<" int 10000 bet_amount ! macro flip int 0 swap + ; macro check_size flip > not ; ">>; %this is for when the customer bets on true.
 		2 -> <<" int 0 bet_amount ! macro flip int 10000 swap - ; macro check_size flip < not ; ">> % maybe should be 10000 - MaxPrice0
@@ -20,6 +24,8 @@ market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubke
     % Pubkey is the pubkey of the market manager.
     true = size(Pubkey) == constants:pubkey_size(),
     Code2 = " \
+int " ++ integer_to_list(UpperLimit) ++ " UL ! \
+int " ++ integer_to_list(LowerLimit) ++ " LL ! \
 int " ++ integer_to_list(Height) ++ " Height ! \
 int " ++ integer_to_list(Expires) ++ " Expires ! \
 int " ++ integer_to_list(MaxPrice) ++ " MaxPrice ! \
@@ -28,16 +34,19 @@ int " ++ integer_to_list(Period) ++ " Period ! \
 binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode(Pubkey)) ++ " Pubkey ! \
 ",
     PrivDir = code:priv_dir(amoveo_core),
-    {ok, Code3} = file:read_file(PrivDir ++ "/market.fs"),
+    {ok, Code3} = file:read_file(PrivDir ++ "/scalar_market.fs"),
     FullCode = <<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>,
     %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
     io:fwrite("compiled code is \n"),
     io:fwrite(base64:encode(Compiled)),
     io:fwrite("\n"),
-    CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
+    CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit),
     %ToProve = [{oracles, OID}],
-    spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
+    %A2 = Amount * (20000 - MaxPrice) div 10000,
+    A2 = Amount * (10000 + MaxPrice) div 10000,
+    spk:new_bet(Compiled, CodeKey, A2, {Direction, MaxPrice}).
+%    spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
 unmatched(OID) ->
     SS = " int 4 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
@@ -92,7 +101,13 @@ test_contract() ->
     Code2 = " \
 test \
 ",
-    FullCode = <<Code/binary, (list_to_binary(Code2))/binary>>,
+    %can test out leverage by changing  UL and LL here.
+    Code0 = " \
+int 1023 UL ! \
+int 0 LL ! \
+int 10000 bet_amount ! \ % set to zero for bet on false.
+",
+    FullCode = <<(list_to_binary(Code0))/binary, Code/binary, (list_to_binary(Code2))/binary>>,
     io:fwrite(FullCode),
     io:fwrite("\n"),
     Compiled = compiler_chalang:doit(FullCode),
@@ -100,25 +115,29 @@ test \
     chalang:test(Compiled, Gas, Gas, Gas, Gas, []).
 scalar_oracle_make(_, _Fee, _Question, _OID0, 0) -> ok;
 scalar_oracle_make(Pubkey, Fee, Question, OID, Many) ->
+    io:fwrite("SCALAR ORACLE MAKE\n"),
     Q1 = <<Question/binary, (list_to_binary("  most significant bit is 0. bit number: "))/binary, 
 	  (list_to_binary (integer_to_list(Many)))/binary>>, 
     Tx = oracle_new_tx:make_dict(Pubkey, Fee, Q1, 1 + block:height(), <<OID:256>>, 0, 0),
+    io:fwrite(packer:pack(Tx)),
+    io:fwrite("\n"),
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     scalar_oracle_make(Pubkey, Fee, Question, OID + 1, Many - 1).
 scalar_bet_make(Pubkey, Fee, OID, Output, Many, BetSize) -> 
-    sbm(Pubkey, Fee, OID + Many, Output, Many, BetSize).
+    sbm(Pubkey, Fee, OID + Many - 1, Output, Many, BetSize).
 sbm(_, _, _, _, 0, _) -> ok;
 sbm(Pubkey, Fee, OID, Output, Many, BetSize) -> 
     %OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
-    Bit = case Output rem 2 of
+    Bit = case (Output rem 2) of
 	      0 -> 2;
 	      1 -> 1
 	      end,
     Tx2 = oracle_bet_tx:make_dict(Pubkey, Fee, <<OID:256>>, Bit, BetSize), 
     Stx2 = keys:sign(Tx2),
     test_txs:absorb(Stx2),
-    scalar_bet_make(Pubkey, Fee, OID - 1, Output div 2, Many - 1, BetSize).
+    timer:sleep(100),
+    sbm(Pubkey, Fee, OID - 1, Output div 2, Many - 1, BetSize).
 oracle_close_many(_Pubkey, _Fee, 0, _) ->
     ok;
 oracle_close_many(Pubkey, Fee, Many, OID) ->
@@ -147,7 +166,9 @@ test() ->
     timer:sleep(1000),
     %make some bets in the oracle with oracle_bet
     OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
-    scalar_bet_make(constants:master_pub(), Fee, OID0, 512, Many, OIL * 2),
+    scalar_bet_make(constants:master_pub(), Fee, OID0, 1023, Many, OIL * 2), %512 is half way between all and nothing.
+    %scalar_bet_make(constants:master_pub(), Fee, OID0, 0, Many, OIL * 2), %512 is half way between all and nothing.
+    %1=2,
 
     %Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL*2), 
     %Stx2 = keys:sign(Tx2),
@@ -175,14 +196,18 @@ test2(NewPub, Many) ->
     Fee = 20 + constants:initial_fee(),
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
     %Dict5 = (tx_pool:get())#tx_pool.dict,
-    MarketID = <<405:256>>,
+    %MarketID = <<405:256>>,
+    MarketID = OID,
+    LL = 0,
+    UL = 1023,
     PrivDir = code:priv_dir(amoveo_core),
     %Location = constants:oracle_bet(),
     Location = "../../../../apps/amoveo_core/priv/scalar_oracle_bet.fs",
     Period = 3,
+    Gas = 1000000,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
-    SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], 10000, 10000, 1, 0),
+    Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0, LL, UL),
+    SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], Gas, Gas, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
@@ -206,7 +231,7 @@ test2(NewPub, Many) ->
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
     SS3 = evidence(SPD, OID),
     %amount, newnonce, delay
-    {60, 3, 995} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
+    {59, 3, 995} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
 	spk:run(fast, [SS3], SPK, 5, 0, Trees5),
 
@@ -240,46 +265,55 @@ test2(NewPub, Many) ->
     %The server won the bet, and gets all 100.
     %amount, newnonce, shares, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
-    {95,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
+    %{amount, nonce, delay}
+    % if oracle amount is 0 {5,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
+    %{45,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
+    {105,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
     % 5 is height.
     %{95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(amoveo_core),
-    Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0),
-    SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], 10000, 10000, 1, 0),
-    %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
+    Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0, LL, UL),
+    %willing to pay 8000, but it only cost 6500. so there should be a refund of 1500
+    SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], Gas, Gas, 1, 0),
+    %Again, the delay is zero, so we can get our money out as fast as possible once the oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay
-    {15,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
+    % if oracle amount is 0 {15,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
+    {14,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
 
     %test a trade that gets only partly matched.
     %SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SPD3 = price_declaration_maker(5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
-    SS5 = settle(SPD3, OID, 3000),
+    %SS5 = settle(SPD3, OID, 3000),
+    SS5 = settle_scalar(SPD3, OIDN, 3000, Many),
     %amount, newnonce, shares, delay
-    {90, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees5),
+    {109, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees5),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
     %since it is unmatched, they each get their money back.
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
+    %SS6 = unmatched_scalar(OIDN, Many), 
     SS6 = unmatched(OID), 
     %amount, newnonce, delay
-    {60, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees5),
+    {59, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees5),
     success.
 test3() ->    
     %This makes the compiled smart contract in market.js
     OID = <<123:256>>,
     OID2 = <<-1:256>>,
-    BetLocation = constants:oracle_bet(),
+    BetLocation = constants:scalar_oracle_bet(),
     Pubkey = keys:pubkey(),
+    LL = 0,
+    UL = 1023,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    Direction = 1,
-    A = market_smart_contract(BetLocation, OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0),
+    Direction = 2,
+    A = market_smart_contract(BetLocation, OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0, LL, UL),
     Max = 4294967295,
-    B = market_smart_contract(BetLocation, OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max),
+    B = market_smart_contract(BetLocation, OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max, Max, Max),
     A2 = element(2, A),
     B2 = element(2, B),
     compare_test(A2, B2, 0, <<>>),
