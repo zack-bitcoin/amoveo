@@ -6596,7 +6596,7 @@ function channels_main() {
 	save_name.id = "channel_name";
     save_name.value = "Channel state";
 	var save_button = button_maker2("Save channel data to file", save_channel_data);
-    var refresh_channels_button = button_maker2("refresh channels interfaces. Useful if you swich channel servers", function() {
+    var refresh_channels_button = button_maker2("Refresh channels interfaces.", function() {
         variable_public_get(["pubkey"], function(pubkey) {
             return refresh_channels_interfaces(pubkey);
         });
@@ -6696,7 +6696,7 @@ function channels_main() {
 	    });
 	});
     });
-    
+
     variable_public_get(["pubkey"], function(pubkey) {
         return refresh_channels_interfaces(pubkey);
     });
@@ -6990,7 +6990,7 @@ function channels_main() {
                 serverbalance).concat("your balance: ").concat(
                     mybalance).concat("time left in blocks: ").concat(
 			(cd.expiration - height).toString());
-			    
+
         });
     }
     function channel_feeder_make_locked_payment(serverid, amount, code) {
