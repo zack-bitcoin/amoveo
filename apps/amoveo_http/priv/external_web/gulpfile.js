@@ -55,10 +55,10 @@ function styles(done) {
 function script(done) {
 	return gulp.src(config.paths.js.src)
 		.pipe(concat('common.js'))
-		.pipe(uglify({
+		//.pipe(uglify({
 			//outSourceMap: true
-		}))
-		.pipe(rename({suffix: '.min'}))
+		//}))
+		//.pipe(rename({suffix: '.min'}))
 		.pipe(gulp.dest(config.paths.js.dest))
 	done();
 }

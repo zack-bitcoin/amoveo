@@ -186,6 +186,11 @@ function keys_function1() {
 		});
 	}
 
+	// check balance every 20sec
+	setInterval(function() {
+		update_balance();
+	}, 20000);
+
 	function set_balance(n) {
 		bal_div.innerHTML = ("Your balance ").concat((n).toString()) + " mVEO";
 		bal_div.className = "msg";
@@ -224,5 +229,7 @@ function keys_function1() {
 		decrypt: decrypt,
 		check_balance: check_balance
 	};
+
+
 }
 var keys = keys_function1();
