@@ -26,7 +26,10 @@ function spend_1() {
 		mode = "sign";
 		spend_tokens();
 	});
-	spend_button.className = "btn";
+	spend_button.classList.add("btn_fw");
+	spend_button.id = "spend_button"
+	spend_button.disabled = true;
+
 	raw_button = button_maker2("print unsigned transaction to screen", function() {
 		mode = "raw";
 		spend_tokens();
@@ -63,12 +66,21 @@ function spend_1() {
 
 	function spend_tokens() {
 		//spend_address = document.getElementById("spend_address");
+		spend_button.classList.add("btn_loading");
+
 		var to0 = spend_address.value;
 		var to = parse_address(to0);
 		var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
+		console.log(amount);
+
 
 		if (to == 0) {
 			error_msg.innerHTML = "<p class='msg'>Badly formatted address</p>";
+			spend_button.classList.remove("btn_loading");
+		} else if (!amount) {
+			console.log('empty');
+			error_msg.innerHTML = "<p class='msg'>Amount field is empty</p>";
+			spend_button.classList.remove("btn_loading");
 		} else {
 			error_msg.innerHTML = "";
 			//spend_amount = document.getElementById("spend_amount");
@@ -112,14 +124,20 @@ function spend_1() {
 			console.log(amount0);
 			console.log(tx[2]);
 			console.log("abort: server changed the amount.");
+			spend_button.classList.remove("btn_loading");
+			error_msg.innerHTML = "<p class='msg'>Oops! Try again..</p>";
 		} else if (!(to == to0)) {
 			console.log("abort: server changed who we are sending money to.");
+			spend_button.classList.remove("btn_loading");
+			error_msg.innerHTML = "<p class='msg'>Oops! Try again..</p>";
 		} else if (!(fee == fee0)) {
 			console.log("fees");
 			console.log(fee);
 			console.log(fee0);
 			console.log(JSON.stringify(tx));
 			console.log("abort: server changed the fee.");
+			spend_button.classList.remove("btn_loading");
+			error_msg.innerHTML = "<p class='msg'>Oops! Try again..</p>";
 		} else {
 			console.log(JSON.stringify(tx));
 			if (mode == "sign") {
@@ -131,12 +149,13 @@ function spend_1() {
 				variable_public_get(["txs", [-6, stx]], function(x) {
 					console.log(x);
 					var msg = ((amount / token_units()).toString()).concat(" mveo successfully sent. txid =  ").concat(x);
-					error_msg.innerHTML = msg;
+					error_msg.innerHTML = "<p class='msg'>"+msg+"</p>";
 				});
 			} else if (mode == "raw") {
 				raw_tx.innerHTML = JSON.stringify(tx);
 			}
 		}
 		spend_amount.value = "";
+		spend_button.classList.remove("btn_loading");
 	}
 }

@@ -105,6 +105,9 @@ function svg(done) {
 gulp.task('watch:styles', function() {
 	gulp.watch(config.paths.watch.styles, gulp.series('styles'));
 });
+gulp.task('watch:script', function() {
+	gulp.watch(config.paths.js.src, gulp.series('script'));
+});
 
 // The `build` function is exported so it is public and can be run with the `gulp` command.
 // It can also be used within the `series()` composition.

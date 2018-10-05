@@ -20,7 +20,7 @@ function keys_function1() {
 	file_selector.onchange = load_keys;
 	var file_selector_btn = document.createElement("label");
 	file_selector_btn.className = "btn";
-	file_selector_btn.htmlFor = "file-key";
+	//file_selector_btn.htmlFor = "file-key";
 	file_selector_btn.innerHTML = "Get key from file";
 	var load_text = document.createTextNode("Your pubkey");
 	var watch_only_instructions = document.createElement("p");
@@ -31,12 +31,12 @@ function keys_function1() {
 	var pub_div = document.createElement("div");
 	var new_pubkey_button = button_maker2("Generate new keys", new_keys_check);
 	var new_pubkey_div = document.createElement("div");
+	new_pubkey_div.className = "wrng hidden";
 	var balance_button = button_maker2("Check balance", update_balance);
 	var bal_div = document.createElement("div");
 	//var balance_wr = wrapper("fieldset", [bal_div, balance_button]);
-	var pub_div_wr = wrapper("tabs__box", [pub_div, bal_div, balance_button]);
+	var pub_div_wr = wrapper("tabs__box hidden", [pub_div, bal_div, balance_button]);
 	var put = wrapper("tabs__box", [watch_only_instructions, watch_only_pubkey, br(), br(), watch_only_button]);
-	var newkey = wrapper("fieldset", [new_pubkey_button, new_pubkey_div]);
 
 	var wrap = document.createElement("div");
 	wrap.className = "tabs__col";
@@ -44,7 +44,7 @@ function keys_function1() {
 
 	var wrap_right = document.createElement("div");
 	wrap_right.className = "tabs__col";
-	wrap_right.innerHTML = "<div class='tabs__box'>" + veo_text + "</div>"
+	wrap_right.innerHTML = "<div class='tabs__box'>" + veo_text + "</div>";
 
 	if (!nav.hasChildNodes()) {
 		account_title.className += " active";
@@ -54,8 +54,8 @@ function keys_function1() {
 	tabs.appendChild(div);
 	nav.appendChild(account_title);
 
-	var get_wr = wrapper("fieldset", [file_selector, file_selector_btn]);
-	var save_wr = wrapper("fieldset fieldset_2col", [save_name, save_button]);
+	var get_wr = wrapper("fieldset fieldset_sb", [file_selector, file_selector_btn, new_pubkey_button, new_pubkey_div]);
+	var save_wr = wrapper("fieldset fieldset_2col hidden", [save_name, save_button]);
 
 	var transaction_wrap = document.createElement("div");
 	transaction_wrap.id = "transaction_wrap";
@@ -78,7 +78,7 @@ function keys_function1() {
 	append_children(sp_wr, [sp_left, sp_right]);
 	append_children(spoiler, [sp_title, sp_wr]);
 	append_children(wrap, []);
-	append_children(wrap_right, [pub_div_wr, get_wr, save_wr, newkey]);
+	append_children(wrap_right, [pub_div_wr, get_wr, save_wr]);
 	append_children(div, [wrap, wrap_right, spoiler]);
 
 	update_pubkey();
@@ -129,6 +129,14 @@ function keys_function1() {
 		}
 	}
 
+	function unblock_btn(){
+		pub_div_wr.classList.remove("hidden");
+		save_wr.classList.remove("hidden");
+		spend_button.disabled = false;
+		sign_button.disabled = false;
+		push_button.disabled = false;
+	}
+
 	function update_pubkey() {
 		pub_div.innerHTML = ("<p>Your pubkey</p>").concat("<code>" + pubkey_64() + "</code>");
 	}
@@ -141,6 +149,8 @@ function keys_function1() {
 
 	function new_keys_check() {
 		//alert("this will delete your old keys. If you havemoney secured by this key, and you haven't saved your key, then this money will be destroyed.");
+		new_pubkey_button.classList.add("btn_loading");
+		new_pubkey_div.classList.remove("hidden");
 		var warning = document.createElement("p");
 		warning.innerHTML = "This will delete your old keys from the browser. Save your keys before doing this.";
 		warning.className = "msg";
@@ -155,10 +165,15 @@ function keys_function1() {
 		// add interface for optional entropy
 		function cancel() {
 			new_pubkey_div.innerHTML = "";
+			new_pubkey_div.classList.add("hidden");
+			new_pubkey_button.classList.remove("btn_loading");
 		}
 
 		function doit() {
 			new_pubkey_div.innerHTML = "";
+			new_pubkey_div.classList.add("hidden");
+			new_pubkey_button.classList.remove("btn_loading");
+
 			var x = entropy.value;
 			if (x == '') { //If you don't provide entropy, then it uses a built in random number generator.
 				keys = new_keys();
@@ -167,6 +182,7 @@ function keys_function1() {
 				keys = new_keys_entropy(x);
 			}
 			update_pubkey();
+			unblock_btn();
 		}
 	}
 
@@ -200,13 +216,22 @@ function keys_function1() {
 		download(keys.getPrivate("hex"), save_name.value, "text/plain");
 	}
 
+	file_selector_btn.addEventListener("click", function(e) {
+		this.classList.add("btn_loading");
+		file_selector.click();
+	});
+
+	file_dialog = false;
 	function load_keys() {
+		file_selector_btn.classList.add("btn_loading");
 		var file = (file_selector.files)[0];
 		var reader = new FileReader();
 		reader.onload = function(e) {
 			keys = ec.keyFromPrivate(reader.result, "hex");
 			update_pubkey();
 			update_balance();
+			unblock_btn();
+			file_selector_btn.classList.remove("btn_loading");
 		}
 		reader.readAsText(file);
 	}

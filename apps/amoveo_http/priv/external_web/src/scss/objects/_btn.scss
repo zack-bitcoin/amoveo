@@ -81,6 +81,12 @@ input {
 		margin-top: -10px;
 	}
 
+	&_fw {
+		width: 100%;
+		margin-left: 0;
+		margin-right: 0;
+	}
+
 	&_bt {
 		margin: 20px 0 0 0 !important;
 	}
@@ -97,6 +103,10 @@ input {
 			top: 50%;
 			animation: ld-flip 2s infinite;
 		}
+	}
+
+	&[disabled]{
+		background: #eee;
 	}
 }
 @keyframes ld-flip {
