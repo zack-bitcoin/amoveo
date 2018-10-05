@@ -119,7 +119,7 @@ function spend_1() {
 		console.log(keys.pub());
 		variable_public_get(["txs", [-6, stx]], function(x) {
 		    console.log(x);
-		    var msg = ((amount/token_units()).toString()).concat(" mveo successfully sent. txid =  ").concat(x);
+		    var msg = ((amount/token_units()).toString()).concat(" VEO successfully sent. txid =  ").concat(x);
 		    error_msg.innerHTML = msg;
 		});
 	    } else if (mode == "raw") {
