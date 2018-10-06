@@ -6,6 +6,10 @@
 
 ### Other hard fork ideas
 
+* light wallet tool for looking up governance values.
+
+* rename oracle_bets and orders.
+
 * update the fork choice rule. instead of prefering the version with the most hashes, prefer the version that maximizes this accumulated value: ((hashes) * (target block period) / (block reward)).
 - no good, if the block reward is set too low, then you can make a fork which always wins.
 
@@ -32,6 +36,17 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 
 ### Things to do
+
+
+* integration tests of the scalar oracles.
+
+* split the light node and full node into different repositories.
+
+* consider making a light node in python.
+
+* teach the light node to scan multiple servers to identify the version of history with the most work.
+
+* teach the light node to keep a backup of the headers, so we don't waste time re-downloading them.
 
 * magnet torrent link for the light node.
 
