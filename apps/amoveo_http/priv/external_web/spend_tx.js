@@ -20,7 +20,7 @@ function spend_1() {
     input_info.htmlFor = "to-pubkey";
     var raw_tx = document.createElement("label");
     var mode;
-    spend_button = button_maker2("send", function(){
+    spend_button = button_maker2("Send VEO", function(){
 	mode = "sign";
 	spend_tokens();
     });

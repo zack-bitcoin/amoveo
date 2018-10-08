@@ -44,7 +44,6 @@ function keys_function1() {
 
     var wrap_right = document.createElement("div");
     wrap_right.className = "tabs__col";
-    wrap_right.innerHTML = "<div class='tabs__box'>" + veo_text + "</div>";
 
     if (!nav.hasChildNodes()) {
         account_title.className += " active";

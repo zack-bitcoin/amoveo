@@ -31,7 +31,6 @@
 
         var wrap2 = document.createElement("div");
         wrap2.className = "tabs__col";
-        wrap2.innerHTML = "<div class='tabs__box'>"+veo_text+"</div>";
 
         var fieldset1 = wrapper("fieldset", [oid, b]);
         append_children(wrap, [fieldset1]);

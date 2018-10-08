@@ -98,7 +98,6 @@ function channels_main() {
 	wrap.className = "tabs__col";
 	var wrap2 = document.createElement("div");
 	wrap2.className = "tabs__col";
-	wrap2.innerHTML = "<div class='tabs__box'>" + veo_text + "</div>";
 
 	var fieldset_load = wrapper("fieldset", [load_button, load_button_btn]);
 	var fieldset_save = wrapper("fieldset", [channel_warning_div, save_name, save_button]);
