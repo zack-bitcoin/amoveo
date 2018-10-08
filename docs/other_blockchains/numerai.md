@@ -38,8 +38,7 @@ Problems with Numerai, table of contents--
 9) Info feeds don't aggregate data the way that markets do.
 10) People who want to buy information don't know how big the griefing security deposit should be.
 
-table bottom
-======
+.
 
 1) Numerai ignores thousands of years of study about the optimal way to sell information
 
