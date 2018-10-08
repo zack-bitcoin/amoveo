@@ -8,15 +8,15 @@ This means we should study each other's work.
 
 Numerai is different from other blockchain finance projects in that it doesn't depend on an oracle. 
 
-Usually when a person wants to sell information, they do this by making a trade in some market.
+Usually if Bob wants to sell information, he do this by making a trade in some market.
 For example, by buying leveraged options.
 
 Numerai proposes a new mechanism for selling information.
-First the seller needs to build up a reputation by giving away information for free.
-Then they take the info feed private, and sell access to it.
+First Bob needs to build up a reputation by giving away information for free.
+Then Bob takes the info feed private, and sells access to it.
 There is a "griefing factor" for each private feed.
-The person selling info chooses their own griefing it to attract customers.
-If the griefing factor is 1:5, that means that anyone who burns $1 can cause $5 of the information seller's money to be burned.
+Bob chooses his own griefing factor to balance attract customers and taking profit.
+If the griefing factor is 1:5, that means that anyone who burns $1 can cause $5 of Bob's money to be burned.
 
 
 Summary:
@@ -24,8 +24,9 @@ The information you can buy from Numerai is less accurate than what you could fi
 If you have information to sell, you could get a better price by selling it using leveraged derivatives instead of Numerai.
 
 
-
 Problems with Numerai, table of contents--
+#####
+
 1) Numerai ignores thousands of years of study about the optimal way to sell information
 2) sybil attacks
 3) retirement attacks
@@ -37,7 +38,8 @@ Problems with Numerai, table of contents--
 9) Info feeds don't aggregate data the way that markets do.
 10) People who want to buy information don't know how big the griefing security deposit should be.
 
-
+table bottom
+#####
 
 1) Numerai ignores thousands of years of study about the optimal way to sell information
 
