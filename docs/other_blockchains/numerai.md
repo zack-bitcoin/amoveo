@@ -25,7 +25,7 @@ If you have information to sell, you could get a better price by selling it usin
 
 
 Problems with Numerai, table of contents--
-#####
+======
 
 1) Numerai ignores thousands of years of study about the optimal way to sell information
 2) sybil attacks
@@ -39,7 +39,7 @@ Problems with Numerai, table of contents--
 10) People who want to buy information don't know how big the griefing security deposit should be.
 
 table bottom
-#####
+======
 
 1) Numerai ignores thousands of years of study about the optimal way to sell information
 
