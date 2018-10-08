@@ -134,7 +134,12 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                     orders:dict_match(NewOrder, OID, Dict),
     %Match1 is orders that are still open.
     %Match2 is orders that are already closed. We need to pay them their winnings.
-                Dict3 = dict_give_bets_main(From, Matches1, TxType, Dict2, Oracle#oracle.id),%gives a single oracle bet to this person
+		F8 = (NewHeight > forks:get(8)),
+		M3 = case F8 of
+			 true -> Matches2;
+			 false -> Matches1
+		     end,
+		Dict3 = dict_give_bets_main(From, M3, TxType, Dict2, Oracle#oracle.id),
                 Dict4 = dict_give_bets(Matches2, OracleType, Dict3, Oracle#oracle.id),%gives oracle_bets to each account that got matched
                 Oracle3 = case Next of
                               same -> 
