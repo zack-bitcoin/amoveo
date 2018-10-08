@@ -1,6 +1,7 @@
 Numerai
 ========
 
+
 Numerai is a blockchain for selling information.
 Amoveo is a blockchain for financial derivatives, which are the optimal kind of financial contract for selling information.
 So Numerai is try to accomplish a subset of Amoveo's goals.
@@ -18,6 +19,7 @@ There is a "griefing factor" for each private feed.
 Bob chooses his own griefing factor to balance attract customers and taking profit.
 If the griefing factor is 1:5, that means that anyone who burns $1 can cause $5 of Bob's money to be burned.
 
+(long blog post where I learned about numerai)[https://medium.com/numerai/numerai-reveals-erasure-unstoppable-peer-to-peer-data-feeds-4fbb8d92820a]
 
 Summary:
 The information you can buy from Numerai is less accurate than what you could find out for free by looking at the price of a market for derivatives.
