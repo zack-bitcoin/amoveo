@@ -30,7 +30,9 @@ Amoveo is the best blockchain platform for financial derivatives
   - improves scalability
   - improves privacy
   - lowers trading cost
-  - makes participation in contracts almost instant.
+  - makes participation in smart contracts as fast as pinging a server.
+  - writing secure contracts is easier when there is no on-chain state to worry about. smart contracts in the lightning network are practically pure functions.
+  - Writing new smart contracts and updating old contracts is cheaper, because you don't have to pay to publish them on-chain.
 - oracle
   - mechanism to teach the blockchain true facts, that way it can judge the results of contracts.
   - combines Nakamoto consensus with a betting market for escalation.
