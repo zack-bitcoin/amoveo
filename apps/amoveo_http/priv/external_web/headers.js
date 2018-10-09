@@ -1,6 +1,6 @@
 function headers_main() {
-    var mode = "production";
-    //var mode = "test";
+    //var mode = "production";
+    var mode = "test";
     var forks;
     var retarget_frequency;
     var top_header;

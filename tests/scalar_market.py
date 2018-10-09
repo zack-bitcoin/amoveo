@@ -135,6 +135,6 @@ def test3(): #useful for testing market from light node.
 
 if __name__ == "__main__":
     market_test()
-    #test2()
+    test2()
     #test3()
     
