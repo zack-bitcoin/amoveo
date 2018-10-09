@@ -1,14 +1,8 @@
 
-### things to do for the next hard fork
-
-
-
 
 ### Other hard fork ideas
 
-* light wallet tool for looking up governance values.
-
-* rename oracle_bets and orders.
+* make the burn address unspendable
 
 * update the fork choice rule. instead of prefering the version with the most hashes, prefer the version that maximizes this accumulated value: ((hashes) * (target block period) / (block reward)).
 - no good, if the block reward is set too low, then you can make a fork which always wins.
@@ -37,6 +31,14 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+
+* switch light node back to production mode.
+
+* light wallet tool for looking up governance values.
+
+* rename oracle_bets and orders. (is this a hard fork??)
+
+* plan out the podcast interview. message CK on telegram.
 
 * integration tests of the scalar oracles.
 

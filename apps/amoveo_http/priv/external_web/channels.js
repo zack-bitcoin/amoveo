@@ -349,8 +349,12 @@ function channels_main() {
             sc = scalar_market_contract(type_final, expires, price_final, server_pubkey, period, amount_final, oid_final, headers_object.top()[1], lower_limit, upper_limit, 10);
 	}
         var cd = read(server_pubkey);
+	console.log("channels scalar market contract");
+	console.log(JSON.stringify(sc));
         var spk = market_trade(cd, amount_final, price_final, sc, server_pubkey, oid_final);
         var sspk = keys.sign(spk);
+	console.log("serialized spk ");
+	console.log(JSON.stringify(serialize(spk)));
         var msg = ["trade", keys.pub(), price_final, type_final, amount_final, oid_final, sspk, fee];
         return variable_public_get(msg, function(x) {
             make_bet3(x, sspk, server_pubkey, oid_final);
