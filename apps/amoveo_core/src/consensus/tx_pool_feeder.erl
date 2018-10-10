@@ -53,6 +53,8 @@ absorb_internal(SignedTx) ->
     after 
 	Wait -> 
 	    io:fwrite("dropped a tx\n"),
+	    io:fwrite(packer:pack(SignedTx)),
+	    io:fwrite("\n"),
 	    error
     end.
 	    
