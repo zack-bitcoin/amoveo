@@ -185,7 +185,7 @@ function keys_function1() {
         });
     }
     function set_balance(n) {
-        bal_div.innerHTML = ("Your balance ").concat((n).toString()) + " mVEO";
+        bal_div.innerHTML = ("Your balance ").concat((n).toString()) + " VEO";
         bal_div.className = "msg";
     }
     function save_keys() {
