@@ -24,11 +24,11 @@ handle_cast({dump, Block}, S) ->
     {noreply, S};
 handle_cast({absorb, SignedTxs}, S) -> 
     ai2(SignedTxs),
-    {norply, S};
+    {noreply, S};
 handle_cast({absorb_dump, Block, SignedTxs}, S) -> 
     tx_pool:dump(Block),
     ai2(SignedTxs),
-    {norply, S};
+    {noreply, S};
 handle_cast(_, S) -> {noreply, S}.
 handle_info(_, S) -> {noreply, S}.
 terminate(_, _) -> 
