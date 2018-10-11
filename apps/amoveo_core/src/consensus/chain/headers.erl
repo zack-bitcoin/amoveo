@@ -104,7 +104,7 @@ absorb([Header | T], CommonHash) ->
 		    absorb(T, Hash); %don't store the same header more than once.
 		error ->
 		    case check_pow(Header) of
-			false -> io:fwrite("invalid header without enough work"),
+			false -> io:fwrite("invalid header without enough work\n"),
 				 1=2,
 				 ok;
 			true ->
