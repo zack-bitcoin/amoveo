@@ -10,5 +10,5 @@ A good bug report often includes these parts:
 1) tell a story of your intended interaction with the software.
 * what is the intended goal of using the software?
 * a timeline of commands you type, or buttons you press.
-2) explain how the output of the program differed from your explanation.
+2) explain how the output of the program differed from your expectations.
 3) include all outputs from the program that differ from your expectations, and a little more for context.
