@@ -2,6 +2,9 @@
 
 ### Other hard fork ideas
 
+* Currently we store pointers to bet data with each account. This is in tree_data:dict_update_account_oracle_helper. The problem is that we have to read the account from the tree in order to write a batch of updates to the.
+- we should store matched bets and open orders at the top level, not embedded inside accounts and oracles.
+
 * make the burn address unspendable
 
 * update the fork choice rule. instead of prefering the version with the most hashes, prefer the version that maximizes this accumulated value: ((hashes) * (target block period) / (block reward)).
@@ -31,6 +34,12 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+
+* verify that the governance fee is being paid by the miner.
+
+* tx_pool_feeder has a problem. this line is commented:
+`%true = Fee > (MinimumTxFee + Cost)`
+in absorb_internal2
 
 * switch light node back to production mode.
 

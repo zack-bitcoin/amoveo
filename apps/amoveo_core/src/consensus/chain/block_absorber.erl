@@ -1,11 +1,8 @@
 -module(block_absorber).
 -behaviour(gen_server).
 -include("../../records.hrl").
--export([%prune/0, %% delete unneeded things from trees asynchronously
-	 recover/1,
+-export([recover/1,
 	 check/0,
-	 %synch_prune/1,
-         %enqueue/1, %% async request
 	 save/1,    %% returns after saving
 	 do_save/1]). %% run without gen_server
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
@@ -16,27 +13,14 @@ terminate(_, _) ->
     io:fwrite("block absorber died! \n"),
     ok.
 handle_info(_, X) -> {noreply, X}.
-%handle_cast(prune, X) ->
-%    trees:prune(),
-%    {noreply, X};
 handle_cast({doit, BP}, X) ->
     absorb_internal(BP),
     {noreply, now()}.
-%handle_call({prune, Blocks}, _, X) ->
-%    B = Blocks ++ trees:hash2blocks(recent_blocks:read()),
-%    trees:prune(B),
-%    {reply, ok, X};
 handle_call(check, _From, X) -> 
     {reply, X, X};
 handle_call({doit, BP}, _From, X) -> 
     Y = absorb_internal(BP),
     {reply, Y, now()}.
-%prune() -> gen_server:cast(?MODULE, prune).
-%synch_prune(Blocks) -> gen_server:call(?MODULE, {prune, Blocks}, 10000).
-%enqueue([]) -> ok;
-%enqueue([B|T]) -> enqueue(B, now()), enqueue(T);
-%enqueue(X) -> enqueue(X, now()).
-%enqueue(B, Time) -> gen_server:cast(?MODULE, {doit, B, Time}).
 check() -> gen_server:call(?MODULE, check).
 save([]) -> ok;
 save([T]) -> save(T);
@@ -200,38 +184,13 @@ highest_block(B, [H|T]) ->
 	true -> highest_block(B, T)
     end.
 	    
-%highest_block(B, []) -> B;
-%highest_block(A, [B|C]) ->
-%    D = if
-%	    A#block.height > B#block.height -> A;
-%	    true -> B
-%	end,
-%    highest_block(D, C).
 first(0, _) -> [];
 first(_, []) -> [];
 first(N, [H|T]) -> [H|first(N-1, T)].
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 recover(Mode) ->
-    %sync:stop(),
-    %timer:sleep(20000),
     sync_kill:start(),
     sync_mode:quick(),
-    %timer:sleep(100),
     io:fwrite("recover 1\n"),
     {ok, BlockFiles} = file:list_dir("blocks/"),
     Block = case Mode of
@@ -248,13 +207,6 @@ recover(Mode) ->
 			       end,
 		    highest_block(Block1, tl(FirstTen))
 	    end,
-		    
-    %TBFs = first(10, BlockFiles),
-    %Blocks = lists:map(fun(BF) -> 
-	%		       binary_to_term(zlib:uncompress(db:read("blocks/"++BF)))
-    %end,
-						%TBFs),
-%Block = highest_block(hd(Blocks), tl(Blocks)),
     io:fwrite("heighest block \n"),
     io:fwrite("recover 2\n"),
     io:fwrite(integer_to_list(Block#block.height)),
