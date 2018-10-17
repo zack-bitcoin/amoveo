@@ -42,13 +42,6 @@ tx_maker0(Tx) ->
 	    ok;
 	Stx -> 
 	    tx_pool_feeder:absorb(Stx),
-	    %Peers = peers:all(),
-	    %spawn(fun() ->
-		%	  lists:map(fun(P) -> 
-		%			    timer:sleep(200),
-		%			    spawn(fun() -> talker:talk({txs, [Stx]}, P) end) end, Peers)
-		%	  end),
-	    %ok
 	    hash:doit(Tx)
     end.
 create_account(NewAddr, Amount) ->
@@ -499,12 +492,15 @@ keys_lock() ->
     keys:lock(),
     0.
 keys_unlock() ->
-    keys:lock(),
+    keys:unlock(""),
     0.
 keys_unlock(Password) ->
     keys:unlock(Password),
     0.
 keys_new(Password) ->
+    %WARNING!!! THIS DELETES YOUR PRIVATE KEY!!! 
+    %there is a different command for saving your 
+    %private key and deleting your password.
     keys:new(Password),
     0.
 market_match(OID) ->

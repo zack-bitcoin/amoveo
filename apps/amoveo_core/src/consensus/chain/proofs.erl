@@ -145,10 +145,6 @@ facts_to_dict([F|T], D) ->
           F#proof.path),
     Key = F#proof.key,
     Value0 = F#proof.value,
-    Value2 = case Value0 of
-	0 -> empty;
-	_ -> Value0
-    end,
     Value3 = case Tree of
                  accounts -> {Value0, 0};
                  oracles -> {Value0, 0};
@@ -169,12 +165,12 @@ leaves_to_querys([L|T]) ->
 txs_to_querys([C|T], Trees, Height) -> 
     case element(1, C) of
         coinbase ->
-	    FH5 = forks:get(5),
-	    B = Height == FH5,
-	    L = if
-		    B -> [{governance, ?n2i(oracle_question_liquidity)}];
-		    true -> []
-		end,
+	    %FH5 = forks:get(5),
+	    %B = Height == FH5,
+	    %L = if
+		%    B -> [{governance, ?n2i(oracle_question_liquidity)}];
+		%    true -> []
+		%end,
             [
              {governance, ?n2i(block_reward)},
              {governance, ?n2i(developer_reward)},
