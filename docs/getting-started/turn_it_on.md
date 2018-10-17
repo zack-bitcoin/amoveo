@@ -11,11 +11,11 @@ It is helpful to have port 8080 exposed to the internet, this will let you find 
 
 [first, if you haven't installed the dependencies, do that](/docs/getting-started/dependencies.md)
 
-<!---
 compile it
 ```
   make prod-build
 ```
+<!---
 start the node
 ```
   make prod-go
