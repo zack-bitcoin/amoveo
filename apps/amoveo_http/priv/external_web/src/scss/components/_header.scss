@@ -1,0 +1,111 @@
+.header {
+	padding: 30px 0;
+	width: 100%;
+	text-align: center;
+	background: #fff;
+
+	@include bp(large){
+		padding: 40px 0 20px;
+	}
+
+	.container {
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.container__column {
+		text-align: center;
+		@include bp(large){
+			text-align: left;
+		}
+	}
+
+	@include bp(large){
+		padding: 76px 0 40px;
+	}
+
+	&__logo {
+		display: inline-block;
+
+		width: 200px;
+		height: 33px;
+		margin: 0 auto;
+
+		@include bp(large){
+			width: 520px;
+			height: 85px;
+			margin: 0;
+			float: left;
+		}
+	}
+	&__menu {
+		display: inline-block;
+		margin-top: 30px;
+
+		@include bp(large){
+			float: left;
+			margin-top: 0;
+		}
+
+		&-item {
+			font-size: 16px;
+			color: var(--color-text);
+			text-decoration: none;
+			position: relative;
+			margin: 0 20px;
+			text-decoration: underline;
+			transition: all .4s;
+
+			@include bp(large){
+				font-size: 24px;
+				margin: 0 60px 0 0;
+			}
+			@include bp(mega){
+				font-size: 24px;
+			}
+
+			.ico {
+				position: absolute;
+				width: 20px;
+				height: 20px;
+				top: -20px;
+				right: -20px;
+				color: var(--color-main);
+				transition: all .2s;
+				transform: translateY(0);
+
+				@include bp(large){
+					width: 30px;
+					height: 30px;
+					top: -30px;
+					right: -30px;
+				}
+			}
+
+			&:last-child {
+				@include bp(large){
+					margin-right: 0;
+				}
+			}
+
+			&.active {
+
+			}
+			&:hover {
+				text-decoration-color: #fff;
+
+				.ico {
+					transform: translateY(-5px);
+				}
+			}
+		}
+	}
+}
+
+
+.svg-logo-0 {
+	fill: var(--color-logo-1, #15191a);
+}
+.svg-logo-1 {
+	fill: var(--color-logo-2, #ead912);
+}

@@ -1,31 +1,36 @@
 (function() {
     var div = document.createElement("div");
-    document.body.appendChild(div);
-    div.appendChild(document.createElement("br"));
+    content_block.appendChild(div);
+    //div.appendChild(document.createElement("br"));
 
-    var tx = document.createElement("INPUT");
-    tx.setAttribute("type", "text");
-    var info = document.createElement("h8");
-    info.innerHTML = "sign transaction";
-    div.appendChild(info);
-    div.appendChild(tx);
-    var button = button_maker2("sign tx ", sign_tx);
-    div.appendChild(button);
-    div.appendChild(document.createElement("br"));
+    var tx = document.createElement("TEXTAREA");
+    //tx.setAttribute("type", "text");
+    tx.id = "tx"
+    var info = document.createElement("label");
+    info.innerHTML = "Sign transaction:";
 
-    var tx_push = document.createElement("INPUT");
-    tx.setAttribute("type", "text");
-    var push_info = document.createElement("h8");
-    push_info.innerHTML = "publish transaction";
-    div.appendChild(push_info);
-    div.appendChild(tx_push);
-    var push_button = button_maker2("push tx ", push_tx);
-    div.appendChild(push_button);
-    div.appendChild(document.createElement("br"));
+    var account = document.getElementById('transaction_wrap'); // keys.js
 
-    var signed_tx = document.createElement("h8");
-    div.appendChild(signed_tx);
-    div.appendChild(document.createElement("br"));
+    var sign_button = button_maker2("Sign transaction", sign_tx);
+    sign_button.id = "sign_button";
+    sign_button.disabled = true;
+
+    var tx_push = document.createElement("TEXTAREA");
+    //tx.setAttribute("type", "text");
+    var push_info = document.createElement("label");
+    push_info.innerHTML = "Publish transaction:";
+    var push_button = button_maker2("Push transaction", push_tx);
+    push_button.id = "push_button";
+    push_button.disabled = true;
+
+    var signed_tx = document.createElement("div");
+    signed_tx.innerHTML = ""
+
+    var fieldset1 = wrapper("fieldset", [info, tx, signed_tx, sign_button]);
+    var fieldset2 = wrapper("fieldset", [push_info, tx_push, push_button]);
+
+    append_children(account, [fieldset1, fieldset2]);
+
     function sign_tx() {
 	var t = JSON.parse(tx.value);
 	console.log(tx.value);
@@ -33,7 +38,7 @@
 	var t2 = keys.sign(t);
 	console.log(t2);
 	var s = JSON.stringify(t2);
-	signed_tx.innerHTML = s;
+	signed_tx.innerHTML = "<pre>"+s+"</div>";
 	tx.value = "";
     }
     function push_tx() {

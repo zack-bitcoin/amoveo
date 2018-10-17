@@ -2,30 +2,37 @@ spend_1();
 function spend_1() {
     var div = document.createElement("div");
     document.body.appendChild(div);
-    div.appendChild(document.createElement("br"));
+    //div.appendChild(document.createElement("br"));
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text");
+    spend_amount.id = "spend_amount";
     //spend_amount.id = "spend_amount";
-    var spend_amount_info = document.createElement("h8");
-    spend_amount_info.innerHTML = "amount to send: ";
+    var spend_amount_info = document.createElement("label");
+    spend_amount_info.innerHTML = "Amount to send:";
+    spend_amount_info.htmlFor = "Spend_amount";
 
-    var spend_address = document.createElement("INPUT");
-    spend_address.setAttribute("type", "text");
+	var spend_address = document.createElement("TEXTAREA");
+    //spend_address.setAttribute("type", "text");
+    spend_address.id = "to-pubkey";
     //spend_address.id = "spend_address";
-    var input_info = document.createElement("h8");
-    input_info.innerHTML = "to pubkey: ";
-    var raw_tx = document.createElement("h8");
+    var input_info = document.createElement("label");
+    input_info.innerHTML = "To pubkey:";
+    input_info.htmlFor = "to-pubkey";
+    var raw_tx = document.createElement("label");
     var mode;
-    spend_button = button_maker2("send", function(){
+    spend_button = button_maker2("Send VEO", function(){
 	mode = "sign";
 	spend_tokens();
     });
+    spend_button.classList.add("btn_fw");
+    spend_button.id = "spend_button"
+    spend_button.disabled = true;
     raw_button = button_maker2("print unsigned transaction to screen", function(){
 	mode = "raw";
 	spend_tokens();
     });
     var error_msg = document.createElement("div");
-    var calculate_max_send_button = button_maker2("calculate max send amount", function() {
+    var calculate_max_send_button = button_maker2("Max amount", function() {
 	keys.check_balance(function(Amount) {
             var to0 = spend_address.value;
 	    var to = parse_address(to0);
@@ -41,27 +48,32 @@ function spend_1() {
 	    fee_checker(to, CB2, CB2);
 	});
     });
-    div.appendChild(calculate_max_send_button);
-    div.appendChild(document.createElement("br"));
-    div.appendChild(spend_amount_info);
-    div.appendChild(spend_amount);
-    div.appendChild(input_info);
-    div.appendChild(spend_address);
-    div.appendChild(spend_button);
-    div.appendChild(raw_button);
-    div.appendChild(error_msg);
-    div.appendChild(document.createElement("br"));
-    div.appendChild(raw_tx);
+
+	var account_pubkey = document.getElementById('account_pubkey');
+
+	var amount = wrapper("fieldset fieldset_nowr", [spend_amount_info, spend_amount, calculate_max_send_button]);
+	var pubkey = wrapper("fieldset", [input_info, spend_address]);
+	var amount_div = wrapper("tabs__box2", [amount, pubkey, spend_button, error_msg, raw_tx]);
+
+	//append_children(account_pubkey, [amount, pubkey, error_msg, raw_tx, hr()]);
+
+	account_pubkey.insertBefore(amount_div , account_pubkey.firstChild);
+
     var fee;
     function spend_tokens() {
         //spend_address = document.getElementById("spend_address");
         var to0 = spend_address.value;
 	var to = parse_address(to0);
         var amount = Math.floor(parseFloat(spend_amount.value, 10) * token_units());
-	
+
 	if (to == 0) {
 	    error_msg.innerHTML = "Badly formatted address";
-	} else {
+        spend_button.classList.remove("btn_loading");
+    } else if (!amount) {
+        console.log('empty');
+        error_msg.innerHTML = "<p class='msg'>Amount field is empty</p>";
+        spend_button.classList.remove("btn_loading");
+    } else {
 	    error_msg.innerHTML = "";
         //spend_amount = document.getElementById("spend_amount");
             var from = keys.pub();
@@ -101,14 +113,20 @@ function spend_1() {
             console.log(amount0);
             console.log(tx[2]);
             console.log("abort: server changed the amount.");
+            spend_button.classList.remove("btn_loading");
+            error_msg.innerHTML = "<p class='msg'>Oops! Try again..</p>";
         } else if (!(to == to0)) {
             console.log("abort: server changed who we are sending money to.");
+            spend_button.classList.remove("btn_loading");
+            error_msg.innerHTML = "<p class='msg'>Oops! Try again..</p>";
         } else if (!(fee == fee0)) {
 	    console.log("fees");
 	    console.log(fee);
 	    console.log(fee0);
 	    console.log(JSON.stringify(tx));
             console.log("abort: server changed the fee.");
+            spend_button.classList.remove("btn_loading");
+            error_msg.innerHTML = "<p class='msg'>Oops! Try again..</p>";
         } else {
             console.log(JSON.stringify(tx));
 	    if (mode == "sign") {
@@ -120,12 +138,13 @@ function spend_1() {
 		variable_public_get(["txs", [-6, stx]], function(x) {
 		    console.log(x);
 		    var msg = ((amount/token_units()).toString()).concat(" VEO successfully sent. txid =  ").concat(x);
-		    error_msg.innerHTML = msg;
+		    error_msg.innerHTML = "<p class='msg'>"+msg+"</p>";
 		});
 	    } else if (mode == "raw") {
 		raw_tx.innerHTML = JSON.stringify(tx);
 	    }
         }
         spend_amount.value = "";
+        spend_button.classList.remove("btn_loading");
     }
 }

@@ -1,0 +1,46 @@
+.spoiler {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+
+	padding: 10px 0;
+
+	@include bp(large){
+		padding: 20px 0;
+	}
+
+	&__button {
+		width: 100%;
+		margin: 0;
+		padding: 0 30px;
+		color: #222;
+		background: #fbfbfb;
+		border: 2px dashed #ddd;
+
+		@include bp(large){
+			margin: 0 20px;
+		}
+
+		&.active {
+			background: #fbfbfb;
+			border-color: #fbfbfb;
+		}
+	}
+
+	&__content {
+		display: none;
+		width: 100%;
+		justify-content: space-between;
+		margin: 10px 0 0 0;
+		flex-wrap: wrap;
+
+		@include bp(large){
+			margin: 30px 0 0 0;
+		}
+
+		&_show {
+			display: flex;
+		}
+	}
+}

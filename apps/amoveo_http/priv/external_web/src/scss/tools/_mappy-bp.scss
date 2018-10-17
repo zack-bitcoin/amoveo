@@ -1,0 +1,172 @@
+// Mappy breakpoints
+// -----------------
+// Output media query with focus on min-width, max-width, min-height and max-height.
+// Other media rules are passed as the second argument in a map
+//
+// @author Zell Liew
+// =================
+$breakpoints: () !default;
+
+// Mappy BP [Mixin]
+// ----------------
+// - $queries         : <string> or <number> in the format:
+//                      <min-width> <max-width> h <min-height> <max-height> <key> <value>
+// - $type            : <media-type>
+// - $query-fallback  : <string> selector class
+// - $breakpoints     : <map>
+@mixin mappy-bp($queries, $type: all, $query-fallback: null, $breakpoints: $breakpoints) {
+  $media-string: ();
+  $media-map: parse-bp($queries, $breakpoints);
+
+  @each $key, $value in $media-map {
+    @if $value and $value != 0 {
+      @if $media-string == (()) {
+        $media-string: append($media-string, unquote("(#{$key}: #{$value})"));
+      } @else {
+        $media-string: append($media-string, unquote("and (#{$key}: #{$value})"));
+      }
+    }
+  }
+
+  @media #{$type} and #{$media-string} {
+    @content;
+  }
+
+  // If a query fallback is provided
+  @if $query-fallback {
+    #{$query-fallback} & {
+      @content;
+    }
+  }
+}
+
+// BP [Mixin]
+// ----------
+// Convenience mixin for Mappy Breakpoints
+@mixin bp($queries, $type: all, $query-fallback: null, $breakpoints: $breakpoints) {
+  @include mappy-bp($queries, $type, $query-fallback, $breakpoints) {
+    @content;
+  }
+}
+
+// Parse BP [function]
+// -------------------
+// Parses arguments and returns a map with 4 keys
+@function parse-bp($queries, $breakpoints) {
+  $_return: ();
+  $_i: 1;
+  $_minw: null;
+  $_maxw: null;
+  $_minh: null;
+  $_maxh: null;
+  $_length: length($queries);
+  // Checks for width queries
+  $_minw: nth($queries, 1);
+  $_minw: mappy-validate($_minw, $breakpoints);
+
+  // Check for width queries
+  @if $_minw {
+    //$_minw: mappy-convert-to-em($_minw);
+    $_return: map-merge($_return, (min-width: $_minw));
+    $queries: set-nth($queries, 1, null);
+  }
+
+  // Checks if there is a max width query
+  @if $_minw and $_length >= 2 {
+    $_maxw: nth($queries, 2);
+    $_maxw: mappy-validate($_maxw, $breakpoints);
+  }
+
+  @if $_maxw {
+    //$_maxw: mappy-convert-to-em($_maxw - 1px);
+    $_return: map-merge($_return, (max-width: $_maxw));
+    $queries: set-nth($queries, 2, null);
+  }
+  // Checks for height queries
+  $_h: index($queries, h) or index($queries, height);
+
+  @if $_h {
+    $_minh: nth($queries, $_h + 1);
+    $_minh: mappy-validate($_minh, $breakpoints);
+
+    @if $_minh {
+      //$_minh: mappy-convert-to-em($_minh);
+      $_return: map-merge($_return, (min-height: $_minh));
+      $queries: set-nth($queries, $_h + 1, null);
+    }
+
+    // Checks if there is a max height query
+    @if $_length - $_h >= 2 {
+      $_maxh: nth($queries, $_h + 2);
+      $_maxh: mappy-validate($_maxh, $breakpoints);
+    }
+
+    @if $_maxh {
+      //$_maxh: mappy-convert-to-em($_maxh - 1px);
+      $_return: map-merge($_return, (max-height: $_maxh));
+      $queries: set-nth($queries, $_h + 2, null);
+    }
+    // Reset h marker
+    $queries: set-nth($queries, $_h, null);
+  }
+
+  // Checks for other queries
+  @while $_i <= length($queries) {
+    $_key: nth($queries, $_i);
+
+    @if $_key and $_length - $_i >= 1 {
+      $_val: nth($queries, $_i + 1);
+      $_return: map-merge($_return, (#{$_key}: $_val));
+      $queries: set-nth($queries, $_i, null);
+      $queries: set-nth($queries, $_i + 1, null);
+    } @else if $_key {
+      @warn "Mappy Breakpoints is missing value for media feature "#{$_key}"";
+    }
+    $_i: $_i + 1;
+  }
+  @return $_return;
+}
+
+// Mappy Validate [Function]
+// -------------------------
+// Checks if $query given is one of the following:
+// 1) Is a $key in the $breakpoints map
+// 2) Is a number
+// 3) Is a "max", "max-width" or "max-height" string
+@function mappy-validate($query, $breakpoints) {
+  $_return: null;
+
+  @if map-has-key($breakpoints, $query) {
+    $_return: map-get($breakpoints, $query);
+  } @else if type-of($query) == number {
+    $_return: $query;
+  } @else if $query == "max" or $query == "max-height" or $query == "max-width" {
+    $_return: 0;
+  } @else {
+    $_return: null;
+  }
+  @return $_return;
+}
+
+// Mappy Convert To Em [Function]
+// -------------------------------
+// Checks and converts px values to em. Leave other units untouched.
+
+@function mappy-convert-to-em($val) {
+  @if unit($val) == "px" or $val == 0 {
+    @return mappy-em($val);
+  } @else {
+    @error "Breakpoint value must have a unit if it's a number";
+  }
+}
+
+// Mappy Em [Function]
+// --------------------
+// Converts pixels to em with $base-font-size
+// - https://gist.github.com/ijy/1441967
+@function mappy-em($target, $context: 16px) {
+  @if $target == 0 {
+    @return 0;
+  }
+  @return $target / $context + 0em;
+}

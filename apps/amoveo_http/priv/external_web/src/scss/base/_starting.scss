@@ -1,0 +1,133 @@
+* {
+	box-sizing: border-box;
+	vertical-align: top;
+
+	&:focus {
+		outline: none !important;
+	}
+}
+
+BODY,
+HTML {
+	background: $color_bg;
+	color: $color_txt;
+    padding: 0;
+    margin: 0;
+}
+
+BODY {
+	position: relative;
+	min-height: 100%;
+	padding-right: 0 !important; // remodal fix
+
+	&.ondown {}
+}
+
+HTML {
+	font-family: $font-family-base;
+	font-size: 14px;
+	direction: ltr;
+	height: 100%;
+	@include bp(mega) {
+		font-size: 16px;
+	}
+}
+
+H2 {
+	font-size: 28px;
+	font-weight: 500;
+	@include bp(wide) {
+		font-size: 32px;
+	}
+}
+
+H3 {
+	font-size: 18px;
+	font-weight: normal;
+	@include bp(wide) {
+		font-size: 24px;
+	}
+}
+
+A {
+	transition: color 0.3s;
+	text-decoration: none;
+	color: $color_txt;
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+P {
+	font-weight: normal;
+	line-height: normal;
+	margin: 0 0 10px 0;
+	font-size: 14px;
+	font-weight: 300;
+
+	& + P {
+		margin: 15px 0 0;
+	}
+	@include bp(large) {
+		font-size: 18px;
+	}
+}
+
+IMG {
+	display: inline-block;
+	max-width: 100%;
+	height: auto;
+	vertical-align: middle;
+}
+
+IMG[heigth],
+IMG[width] {
+	max-width: none;
+}
+// iOS fix
+INPUT,
+TEXTAREA {
+	border-radius: 0;
+}
+// Remove X, eye icons on IE10 inputs
+INPUT {
+	&::-ms-clear {
+		display: none;
+	}
+
+	&::-ms-reveal {
+		display: none;
+	}
+}
+
+BUTTON,
+INPUT,
+TEXTAREA {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+}
+
+SECTION {
+	display: inline-block;
+	width: 100%;
+}
+
+TABLE {
+
+}
+
+CODE {
+	display: inline-block;
+	padding: 5px;
+	font-size: 0.9em;
+	border-radius: 3px;
+	background: #f3f3f3;
+	font-family: Consolas, monaco, monospace;
+}
+
+.mobile-hidden {
+	@include bp(small large) {
+		display: none;
+	}
+}

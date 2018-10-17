@@ -1,8 +1,10 @@
 .idea
 .edts
 *.iml
+*.DS_Store
 _build
 /rel/
+node_modules/
 *.db
 *~
 .#*

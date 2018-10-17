@@ -1,0 +1,41 @@
+{
+    "name": "AF",
+    "version": "0.1.0",
+    "description": "AF",
+    "license": "UNLICENSED",
+    "scripts": {
+        "default": "gulp",
+        "svg": "gulp svg",
+        "images": "gulp images"
+    },
+    "devDependencies": {
+        "autoprefixer": "^6.7.7",
+        "css-mqpacker": "^5.0.1",
+        "del": "^2.2.2",
+        "extend": "^3.0.2",
+        "gulp": "^4.0.0",
+        "gulp-cache": "^1.0.2",
+        "gulp-concat": "^2.6.1",
+        "gulp-csso": "^3.0.1",
+        "gulp-imagemin": "^4.1.0",
+        "gulp-postcss": "^6.4.0",
+        "gulp-rename": "^1.4.0",
+        "gulp-sass": "^4.0.1",
+        "gulp-sass-bulk-import": "^1.0.1",
+        "gulp-svgmin": "^1.2.4",
+        "gulp-svgstore": "^7.0.0",
+        "gulp-uglify": "^3.0.1",
+        "gulp-uglify-es": "^1.0.4",
+        "imagemin-pngquant": "^6.0.0",
+        "minimatch": "^3.0.4",
+        "postcss": "^5.2.17",
+        "postcss-csso": "^3.0.0",
+        "svgo": "^1.0.5",
+        "svgstore": "^2.0.3"
+    },
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "dependencies": {}
+}

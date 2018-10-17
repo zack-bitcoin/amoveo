@@ -1,0 +1,64 @@
+// css triangle generator for :presudoelements (content: "" included)
+@mixin triangle($size, $color, $direction, $short-format: false) {
+  @if (not $short-format) {
+    display: inline-block;
+
+    width: 0;
+    height: 0;
+
+    content: '';
+
+    border-style: solid;
+  }
+
+  $width: 0;
+  $height: 0;
+
+  @if type_of($size) == list {
+    $width: nth($size, 1);
+    $height: nth($size, 2);
+  } @else {
+    $width: $size;
+    $height: $size;
+  }
+
+  @if $direction == up {
+    border-width: 0 $width/2 $height $width/2;
+    border-color: transparent transparent $color transparent;
+  }
+
+  @if $direction == down {
+    border-width: $height $width/2 0 $width/2;
+    border-color: $color transparent transparent transparent;
+  }
+
+  @if $direction == left {
+    border-width: $height/2 $width $height/2 0;
+    border-color: transparent $color transparent transparent;
+  }
+
+  @if $direction == right {
+    border-width: $height/2 0 $height/2 $width;
+    border-color: transparent transparent transparent $color;
+  }
+
+  @if $direction == up-right {
+    border-width: 0 $width $height 0;
+    border-color: transparent $color transparent transparent;
+  }
+
+  @if $direction == up-left {
+    border-width: $height $width 0 0;
+    border-color: $color transparent transparent transparent;
+  }
+
+  @if $direction == down-right {
+    border-width: 0 0 $height $width;
+    border-color: transparent transparent $color transparent;
+  }
+
+  @if $direction == down-left {
+    border-width: $height 0 0 $width;
+    border-color: transparent transparent transparent $color;
+  }
+}

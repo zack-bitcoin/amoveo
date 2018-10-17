@@ -1,0 +1,23 @@
+// Language specific styles
+// $locale is a language code or list of codes
+// For ex. "es" or "de es en".
+@mixin lang($locale) {
+    @if type_of($locale) == list {
+        @each $lang in $locale {
+            html[lang="#{$lang}"] & {
+                @content;
+            }
+        }
+    } @else {
+        html[lang="#{$locale}"] & {
+            @content;
+        }
+    }
+}
+
+// Add any property to generate sepatate css file fror each of locales
+.create-lang-file {
+    @include lang(de en es zh-cn ru ar it pl nl pt pt-br id bg th) {
+        //color: inherit;
+    }
+}

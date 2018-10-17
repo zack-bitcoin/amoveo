@@ -127,30 +127,67 @@ function newhash2integer(h) {
         }
         return x;
     }
-    
+
     return hash2integer2(h.concat([255]), 0, 0);
 }
+
+function input_maker2(vl, fn) {
+    var inp = document.createElement("input");
+    inp.type = "button";
+    inp.value = vl;
+    inp.className = "btn";
+    inp.onclick = fn;
+
+    return inp;
+}
 function button_maker2(val, fun) {
-    var button = document.createElement("input");
-    button.type = "button";
-    button.value = val;
+    var button = document.createElement("button");
+    //button.type = "button";
+    button.innerHTML = val;
+    button.className = "btn";
     button.onclick = fun;
     return button;
 }
 function br() {
     return document.createElement("br");
 };
+function hr() {
+    return document.createElement("hr");
+};
 function append_children(d, l) {
     for (var i = 0; i < l.length; i++) {
         d.appendChild(l[i]);
     }
+}
+function wrapper(wd, wl) {
+    var wr = document.createElement("div");
+    wr.className = wd;
+    for (var i = 0; i < wl.length; i++) {
+        wr.appendChild(wl[i]);
+    }
+    return wr;
 }
 function text(a) {
     var x2 = document.createElement("h8");
     x2.innerHTML = a;
     return x2;
 };
-
+function htitle(a) {
+    var ttl = document.createElement("h3");
+    ttl.innerHTML = a;
+    return ttl;
+};
+function msg(a) {
+    var m = document.createElement("p");
+    m.className = "msg";
+    m.innerHTML = a;
+    return m;
+};
+function pre(a) {
+    var txt = document.createElement("pre");
+    txt.innerHTML = a;
+    return txt;
+};
 
 function tree_number_to_value(t) {
     if (t < 101) {

@@ -1,0 +1,55 @@
+.footer {
+	padding: 30px 0;
+	background: #e3e4e5;
+	display: inline-block;
+	width: 100%;
+
+	--color-logo-1: #cdcecf;
+	--color-logo-2: #cdcecf;
+
+	@include bp(large){
+		padding: 50px 0 100px;
+	}
+
+	.container {
+		justify-content: space-between;
+		align-items: center;
+	}
+	.container__column {
+		text-align: center;
+
+		@include bp(large){
+			text-align: left;
+		}
+	}
+
+	&__logo {
+		width: 200px;
+		height: 45px;
+
+		@include bp(large){
+			width: 260px;
+			height: 45px;
+		}
+	}
+	&__copy {
+		font-size: 12px;
+		line-height: 140%;
+		text-align: center;
+		margin: 30px 0;
+		color: #717171;
+
+		@include bp(large){
+			font-size: 14px;
+			margin: 0;
+			text-align: left;
+		}
+	}
+	&__exantech {
+		color: var(--color-logo-1);
+		.ico {
+			width: 200px;
+			height: 60px;
+		}
+	}
+}

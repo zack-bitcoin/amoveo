@@ -66,6 +66,9 @@ handle(Req, _) ->
                <<"/wallet.html">> -> true;
                <<"/BigInteger.js">> -> true;
                <<"/big_int_test.js">> -> true;
+               <<"/tabs.js">> -> true;
+               <<"/spoiler.js">> -> true;
+               <<"/style.css">> -> true;
                X -> 
                    %io:fwrite("ext file handler block access to: "),
                    %io:fwrite(X),
@@ -74,7 +77,11 @@ handle(Req, _) ->
            end,
     File = << PrivDir/binary, <<"/external_web">>/binary, F/binary>>,
     {ok, _Data, _} = cowboy_req:body(Req),
-    Headers = [{<<"content-type">>, <<"text/html">>},
+    Headers = [
+        case F of
+            <<"/style.css">> -> {<<"content-type">>, <<"text/css">>};
+            _ -> {<<"content-type">>, <<"text/html">>}
+        end,
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],
     Text = read_file(File),
     {ok, Req2} = cowboy_req:reply(200, Headers, Text, Req),

@@ -1,0 +1,22 @@
+.container {
+	width: 100%;
+	max-width: $container-max;
+
+	margin: 0 auto;
+	padding: 0 15px;
+
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	flex-wrap: wrap;
+
+	&__column {
+		display: inline-block;
+		float: left;
+		width: 100%;
+
+		@include bp(large){
+			max-width: 520px;
+		}
+	}
+}

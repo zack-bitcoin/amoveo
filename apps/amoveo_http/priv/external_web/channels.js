@@ -57,28 +57,57 @@ function channels_main() {
     }
 
     //View
-
+	var tab_id = "channel";
     var channel_title = document.createElement("h3");
-    channel_title.innerHTML = "channel ";
+    channel_title.innerHTML = tab_id;
+    channel_title.className = "tabs__nav-item";
+
+    channel_title.dataset.tab = tab_id;
     var channels_div = document.createElement("div");
+    channels_div.className = "tabs__content-item " + tab_id;
+    channels_div.id = tab_id;
     var channel_warning_div = document.createElement("div");
-    var channel_interface_div = document.createElement("div");
+    //var channel_interface_div = document.createElement("div");
     var load_button = document.createElement("input");
+    var load_button_btn = document.createElement("label");
     load_button.type = "file";
+    load_button.id = "channel_file";
+    load_button_btn.className = "btn";
+    load_button_btn.htmlFor = "channel_file";
+    load_button_btn.innerHTML = "Load channel from file";
     var save_name = document.createElement("INPUT");
     save_name.type = "text";
-    save_name.id = "channel_name";
-    save_name.value = "channel state ";
-    var save_button = button_maker2("save channel data to file", save_channel_data);
-    var refresh_channels_button = button_maker2("refresh channels interfaces. Useful if you swich channel servers", function() {
+    save_name.className = "wide";
+	save_name.id = "channel_name";
+    save_name.value = "Channel state";
+	var save_button = button_maker2("Save channel data to file", save_channel_data);
+    var refresh_channels_button = button_maker2("Refresh channels interfaces.", function() {
         variable_public_get(["pubkey"], function(pubkey) {
             return refresh_channels_interfaces(pubkey);
         });
     });
-    document.body.appendChild(channel_title);
-    document.body.appendChild(channels_div);
-    append_children(channels_div, [channel_warning_div, load_button, br(), br(), save_name, save_button, br(), refresh_channels_button, br(), br(), channel_interface_div]);
-    
+	var refresh_text = document.createElement("p");
+	refresh_text.innerHTML = "Useful if you swich channel servers";
+
+	if (!nav.hasChildNodes()) {
+		channel_title.className += " active";
+		channels_div.className += " active";
+	}
+
+	var wrap = document.createElement("div");
+	wrap.className = "tabs__col";
+	var wrap2 = document.createElement("div");
+	wrap2.className = "tabs__col";
+
+	var fieldset_load = wrapper("fieldset", [load_button, load_button_btn]);
+	var fieldset_save = wrapper("fieldset", [channel_warning_div, save_name, save_button]);
+	var fieldset_refresh = wrapper("fieldset", [refresh_channels_button, refresh_text]);
+
+	append_children(wrap, [fieldset_load, hr(), fieldset_save, hr(), fieldset_refresh]);
+	append_children(channels_div, [wrap, wrap2]);
+	nav.appendChild(channel_title);
+	tabs.appendChild(channels_div);
+
     var fee = 152050;
     var oid = document.createElement("INPUT");
     oid.setAttribute("type", "text");
@@ -99,18 +128,24 @@ function channels_main() {
     var height_button = button_maker2("make channel ", function() { })
     var spend_amount = document.createElement("INPUT");
     spend_amount.setAttribute("type", "text");
-    var amount_info = document.createElement("h8");
+    spend_amount.id = "spend-amount";
+    var amount_info = document.createElement("label");
     amount_info.innerHTML = "amount to lock in channel ";
+    amount_info.htmlFor = "spend-amount";
     var spend_delay = document.createElement("INPUT");
     spend_delay.setAttribute("type", "text");
+    spend_delay.id = "channel-delay";
     spend_delay.value = "100";
-    var delay_info = document.createElement("h8");
+    var delay_info = document.createElement("label");
+    delay_info.htmlFor = "channel-delay";
     delay_info.innerHTML = "channel delay (in blocks)";
     var lifespan = document.createElement("input");
     lifespan.type = "text";
+    lifespan.id = "lifespan-info";
     lifespan.value = "4000";
-    var lifespan_info = document.createElement("h8");
+    var lifespan_info = document.createElement("label");
     lifespan_info.innerHTML = "how long should the channel last? In blocks. Longer costs more.";
+    lifespan_info.htmlFor = "lifespan-info";
     var balance_div = document.createElement("div");
     balance_div.innerHTML = "your balance unknown";
     var channel_balance_button = button_maker2("check channel balance", function() { });
@@ -145,7 +180,7 @@ function channels_main() {
 	    });
 	});
     });
-    
+
     variable_public_get(["pubkey"], function(pubkey) {
         return refresh_channels_interfaces(pubkey);
     });
@@ -180,13 +215,21 @@ function channels_main() {
 	console.log(pubkey);
         load_button.onchange = function() {return load_channels(pubkey) };
         //refresh_channels_button.onclick = function() {return refresh_channels_interfaces2(pubkey)};
-        var div = channel_interface_div;
-        div.innerHTML = "";
-        var tv_display = document.createElement("div");
-        tv_display.innerHTML = ("it costs this much to keep a channel open. per block per coin: ").concat((tv).toString());
-        div.appendChild(tv_display);
-        div.appendChild(channel_sync_button);
-        div.appendChild(br());
+        //var div = channel_interface_div;
+        //div.innerHTML = "";
+        var tv_display = document.createElement("p");
+        tv_display.className = "msg";
+        tv_display.innerHTML = ("It costs this much to keep a channel open. per block per coin: ").concat((tv).toString());
+
+        var fieldset_channel_1 = wrapper("fieldset", [channel_sync_button]);
+        var fieldset_channel_amount = wrapper("fieldset fieldset_nowr", [amount_info, spend_amount]);
+        var fieldset_channel_delay = wrapper("fieldset", [delay_info, spend_delay]);
+        var fieldset_channel_life = wrapper("fieldset", [lifespan_info, lifespan]);
+
+        height_button = wrapper("fieldset", [height_button]);
+
+        append_children(wrap, [tv_display, fieldset_channel_1]);
+
         var bets_div = document.createElement("div");
 	bets_div.id = "bets_div";
         //check if we have a chnnel with the server yet.
@@ -194,11 +237,11 @@ function channels_main() {
         if (read(pubkey) == undefined) {
             console.log("give interface for making channels.");
             height_button.onclick = function() { return make_channel_func(pubkey) };
-            append_children(div, [height_button, amount_info, spend_amount, br(), delay_info, spend_delay, br(), lifespan_info, lifespan]);
-        } else {
+            append_children(wrap, [hr(), height_button, hr(), fieldset_channel_amount, fieldset_channel_delay, fieldset_channel_life]);
+		} else {
             console.log("give interface for making bets in channels.");
-            append_children(div, [close_channel_button, br(), balance_div, channel_balance_button, br(), lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), bet_example, br(), price_info, price, trade_type_info, trade_type, trade_amount_info, trade_amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
-            lightning_button.onclick = function() { lightning_spend(pubkey); };
+            append_children(wrap, [close_channel_button, hr(), balance_div, channel_balance_button, lightning_button, lightning_amount_info, lightning_amount, lightning_to_info, lightning_to, br(), market_title, market_link, br(), bet_example, br(), price_info, price, trade_type_info, trade_type, trade_amount_info, trade_amount, oid_info, oid, button, br(), bet_update_button, br(), br(), combine_cancel_button, br(), br(), list_bets_button, br(), bets_div]);
+			lightning_button.onclick = function() { lightning_spend(pubkey); };
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
                 spk_object.pull_channel_state(function() {
@@ -435,7 +478,7 @@ function channels_main() {
                 serverbalance).concat("your balance: ").concat(
                     mybalance).concat("time left in blocks: ").concat(
 			(cd.expiration - height).toString());
-			    
+
         });
     }
     function channel_feeder_make_locked_payment(serverid, amount, code) {
@@ -463,67 +506,67 @@ function channels_main() {
 	    if (!(header_height == server_height)) {
 		console.log("need to sync headers before you can make channel payments");
 		throw("lightning spend error");
+		    }
+	            var fee = 20;
+	            var a = Math.floor(parseFloat(lightning_amount.value, 10) * token_units());
+	            var to = lightning_to.value;
+	            var payment_contract = lightning_object.make(a);
+	            var code = payment_contract.bet[1];
+	            var ss = payment_contract.ss;
+		    var emsg = [-6, ss_to_external(ss), code, a];
+	            var encrypted = keys.encrypt(emsg, to);
+		    console.log("lightning spend emsg, a, fee");
+		    console.log(JSON.stringify(ss));
+		    console.log(JSON.stringify(emsg));
+		    console.log(a);
+		    console.log(fee);
+	            var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
+	            var msg = ["locked_payment", sspk, a, fee, code, keys.pub(), to, encrypted];
+	            console.log("lightning spend msg is ");
+	            console.log(JSON.stringify(msg));
+		    console.log("lightning encrypted msg is ");
+	            console.log(JSON.stringify(emsg));
+	            variable_public_get(msg, function(sspk2) {
+			spk1 = sspk[1];
+			spk2 = sspk2[1];
+			var bool = verify_both(sspk2);
+			if (!(bool)) {
+			    throw("lightning spend, bad signature on spk");
+			}
+			if (!(JSON.stringify(spk1) ==
+			      JSON.stringify(spk2))) {
+			    console.log("error, the spks calculated by you and the server are not identical.");
+			    throw("lightning_spend error")
+			}
+			var cd = read(serverid);
+			var defaultss = new_ss([], [], 0);
+			//cd.ssme = ([-6, defaultss]).concat(cd.ssme.slice(1));
+			//cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.slice(1));
+			cd.ssme = ([defaultss]).concat(cd.ssme);
+			cd.ssthem = ([defaultss]).concat(cd.ssthem);
+			cd.me = spk1;
+			cd.them = sspk2;
+			/*
+	spk currently looks like this.
+	{"me":["spk","BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",[-6],0,0,"uEHL7hd8f6hzyalwrYPOMKfL1DV4bshFb3qlc3mR3w0=",6374999,0,100],"them":["signed",["spk","BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",[-6],0,0,"uEHL7hd8f6hzyalwrYPOMKfL1DV4bshFb3qlc3mR3w0=",6374999,0,100],[-6],"MEYCIQCtc7a8h5AksJDzyJascAWo4OPq7eh1wtWSmcQ7ia+dzgIhANqTE+NFQaiMeY952P64MfY2b15SlhNpvoBKCij5/7le"],"ssme":[-6,{"code":[],"prove":[],"meta":0}],"ssthem":[-6,{"code":[],"prove":[],"meta":0}],"expiration":5020}"
+		     */
+			write(serverid, cd);
+	            });
+		});
 	    }
-            var fee = 20;
-            var a = Math.floor(parseFloat(lightning_amount.value, 10) * token_units());
-            var to = lightning_to.value;
-            var payment_contract = lightning_object.make(a);
-            var code = payment_contract.bet[1];
-            var ss = payment_contract.ss;
-	    var emsg = [-6, ss_to_external(ss), code, a];
-            var encrypted = keys.encrypt(emsg, to);
-	    console.log("lightning spend emsg, a, fee");
-	    console.log(JSON.stringify(ss));
-	    console.log(JSON.stringify(emsg));
-	    console.log(a);
-	    console.log(fee);
-            var sspk = channel_feeder_make_locked_payment(serverid, a+fee, code);
-            var msg = ["locked_payment", sspk, a, fee, code, keys.pub(), to, encrypted];
-            console.log("lightning spend msg is ");
-            console.log(JSON.stringify(msg));
-	    console.log("lightning encrypted msg is ");
-            console.log(JSON.stringify(emsg));
-            variable_public_get(msg, function(sspk2) {
-		spk1 = sspk[1];
-		spk2 = sspk2[1];
-		var bool = verify_both(sspk2);
-		if (!(bool)) {
-		    throw("lightning spend, bad signature on spk");
+	    function sum_bets(bets) {
+		var x = 0;
+		for (var i = 1; i < bets.length; i++) {
+		    //console.log("sum bets bet is ");
+		    //console.log(JSON.stringify(bets[i][2]));
+		    x += bets[i][2];
 		}
-		if (!(JSON.stringify(spk1) ==
-		      JSON.stringify(spk2))) {
-		    console.log("error, the spks calculated by you and the server are not identical.");
-		    throw("lightning_spend error")
-		}
-		var cd = read(serverid);
-		var defaultss = new_ss([], [], 0);
-		//cd.ssme = ([-6, defaultss]).concat(cd.ssme.slice(1));
-		//cd.ssthem = ([-6, defaultss]).concat(cd.ssthem.slice(1));
-		cd.ssme = ([defaultss]).concat(cd.ssme);
-		cd.ssthem = ([defaultss]).concat(cd.ssthem);
-		cd.me = spk1;
-		cd.them = sspk2;
-		/*
-spk currently looks like this.
-{"me":["spk","BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",[-6],0,0,"uEHL7hd8f6hzyalwrYPOMKfL1DV4bshFb3qlc3mR3w0=",6374999,0,100],"them":["signed",["spk","BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",[-6],0,0,"uEHL7hd8f6hzyalwrYPOMKfL1DV4bshFb3qlc3mR3w0=",6374999,0,100],[-6],"MEYCIQCtc7a8h5AksJDzyJascAWo4OPq7eh1wtWSmcQ7ia+dzgIhANqTE+NFQaiMeY952P64MfY2b15SlhNpvoBKCij5/7le"],"ssme":[-6,{"code":[],"prove":[],"meta":0}],"ssthem":[-6,{"code":[],"prove":[],"meta":0}],"expiration":5020}"
-	     */
-		write(serverid, cd);
-            });
-	});
-    }
-    function sum_bets(bets) {
-	var x = 0;
-	for (var i = 1; i < bets.length; i++) {
-	    //console.log("sum bets bet is ");
-	    //console.log(JSON.stringify(bets[i][2]));
-	    x += bets[i][2];
+	        return x;
+	    }
+	    return {new_cd: new_cd,
+	            read: read,
+	            new_ss: new_ss,
+	            write: write,
+		    ss_to_external: ss_to_external}
 	}
-        return x;
-    }
-    return {new_cd: new_cd,
-            read: read,
-            new_ss: new_ss,
-            write: write,
-	    ss_to_external: ss_to_external}
-}
-var channels_object = channels_main();
+	var channels_object = channels_main();
