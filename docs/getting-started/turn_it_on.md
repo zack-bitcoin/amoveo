@@ -15,8 +15,8 @@ compile it
 ```
   make prod-build
 ```
-<!---
 start the node
+<!---
 ```
   make prod-go
 ```
