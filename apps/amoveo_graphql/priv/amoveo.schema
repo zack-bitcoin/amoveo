@@ -1,0 +1,33 @@
+# tag::blockObject[]
+type Block {
+  height : Int
+  id : ID!
+  market_cap : Int
+}
+# height,
+#                 prev_hash,
+#                 trees_hash,
+#                 time,
+#                 difficulty,
+#                 period,
+#                 version,
+#                 nonce = 0,
+#                 trees,
+#                 txs,
+#                 prev_hashes = {prev_hashes},
+#                 proofs = [],
+#                 roots,
+#                 hash = <<>>,
+# 		market_cap = 0,
+# 		channels_veo = 0,
+# 		live_channels = 0,
+# 		many_accounts = 1,
+# 		many_oracles = 0,
+# 		live_oracles = 0
+# end::blockObject[]
+
+# tag::queryObject[]
+type Query {
+  block(id : ID!) : Block
+}
+# end::queryObject[]

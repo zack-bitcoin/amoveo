@@ -1,0 +1,24 @@
+{application, amoveo_graphql,
+ [{description, "graphql"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, { amoveo_graphql_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    mnesia,
+
+    iso8601,
+    jsx,
+    lager,
+    graphql
+   ]},
+  {env,[
+       {schema_file, "amoveo.schema"}
+       ]},
+  {modules, []},
+
+  {maintainers, []},
+  {licenses, []},
+  {links, []}
+ ]}.
