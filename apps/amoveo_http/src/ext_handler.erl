@@ -94,9 +94,6 @@ doit({headers, _H}) ->
 doit({headers, Many, N}) -> 
     X = many_headers(Many, N),
     {ok, X};
-doit({ewah, Start, End}) ->
-    X = api:ewah(Start, End),
-    {ok, X};
 doit({header}) -> {ok, headers:top()};
 doit({peers}) ->
     P = peers:all(),
@@ -348,7 +345,7 @@ many_headers(Many, X) ->
     %io:fwrite("\n"),
     Z = max(0, X + Many - 1),
     H = headers:top(),
-    case (H#header.height) > (X) of
+    case (H#header.height) >= (X) of
 	false -> [];
 	true ->
 	    {N, Many2} = 
