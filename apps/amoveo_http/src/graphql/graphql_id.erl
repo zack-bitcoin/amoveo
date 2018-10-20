@@ -1,4 +1,4 @@
--module(amoveo_graphql_id).
+-module(graphql_id).
 
 -export([encode/1, decode/1]).
 

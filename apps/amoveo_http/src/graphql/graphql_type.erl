@@ -1,4 +1,4 @@
--module(amoveo_graphql_type).
+-module(graphql_type).
 -include("../../amoveo_core/src/records.hrl").
 
 -export([execute/1]).

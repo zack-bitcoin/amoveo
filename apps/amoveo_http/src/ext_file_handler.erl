@@ -6,7 +6,7 @@
 %curl -i -d '[-6,"test"]' http://localhost:3011
 handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
-    PrivDir0 = 
+    PrivDir0 =
 	case application:get_env(amoveo_core, kind) of
 	    {ok, "production"} ->
 		code:priv_dir(amoveo_http);
@@ -66,7 +66,8 @@ handle(Req, _) ->
                <<"/wallet.html">> -> true;
                <<"/BigInteger.js">> -> true;
                <<"/big_int_test.js">> -> true;
-               X -> 
+               <<"/graphiql.html">> -> true;
+               X ->
                    %io:fwrite("ext file handler block access to: "),
                    %io:fwrite(X),
                    %io:fwrite("\n"),
