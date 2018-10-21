@@ -16,7 +16,7 @@
   {modules, []},
   {mod, { amoveo_http_app, []}},
   {env, [
-	  {error_logger, {file, "log.db"}},
+    {error_logger, {file, "log.db"}},
     {schema_file, "graphql.schema"}
 	]}
  ]}.

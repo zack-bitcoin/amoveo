@@ -11,66 +11,51 @@ init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 handle(Req, State) ->
 		{Method, Req2} = cowboy_req:method(Req),
-		{ok, Req3} = handle_method(Method, Req2, State),
-   	{ok, Req3, State}.
+		{ok, Req3, State2} = handle_method(Method, Req2, State),
+   	{ok, Req3, State2}.
 
 handle_method(<<"POST">>, Req, State) -> handle_post(Req, State);
-handle_method(Method, Req, _) ->
+handle_method(Method, Req, State) ->
 		io:fwrite("I can't handle this \n"),
 		io:fwrite(packer:pack(Method)),
 		{ok, Req2} = cowboy_req:reply(404, [{<<"connection">>, <<"close">>}], Req),
-		{ok, Req2}.
+		{ok, Req2, State}.
 
 handle_post(Req, State) ->
 		case gather(Req) of
 			{error, Reason} ->
-					io:fwrite("Error!!!!!!!!! \n"),
 					err(400, Reason, Req, State);
 			{ok, Req2, Decoded} ->
-					run_request(Decoded, Req2, State)
+					run(Decoded, Req2, State)
 		end.
 
-run_request(#{ document := undefined }, Req, State) ->
-    err(400, no_query_supplied, Req, State);
-run_request(#{ document := Doc} = ReqCtx, Req, State) ->
-    case graphql:parse(Doc) of
-        {ok, AST} ->
-            run_preprocess(ReqCtx#{ document := AST }, Req, State);
-        {error, Reason} ->
-            err(400, Reason, Req, State)
-    end.
+run(#{ document := Doc,
+       vars := Vars,
+       operation_name := OpName }, Req, State) ->
+		case graphql:parse(Doc) of
+				{ok, AST} ->
+						try
+								{ok, #{fun_env := FunEnv,
+								      ast := AST2 }} = graphql:type_check(AST),
+								ok = graphql:validate(AST2),
+								Coerced = graphql:type_check_params(FunEnv, OpName, Vars),
+								Ctx = #{ params => Coerced, operation_name => OpName },
+								Response = graphql:execute(Ctx, AST2),
+								Headers = [{<<"content-type">>, <<"application/json">>},
+							       {<<"Access-Control-Allow-Origin">>, <<"*">>}],
+								{ok, Reply} = cowboy_req:reply(200, Headers, encode_json(Response), Req),
+								{ok, Reply, State}
+						catch
+								throw:Err ->
+										io:fwrite("POOP \n"),
+								    err(400, Err, Req, State)
+						end;
+				{error, Error} ->
+						io:fwrite("POOPPPPPYY \n"),
+				    err(400, {parser_error, Error}, Req, State)
+		end.
 
-run_preprocess(#{ document := AST } = ReqCtx, Req, State) ->
-		io:fwrite("HERE3!!!!!!!!!! \n"),
-		io:fwrite(AST),
-    try
-        Elaborated = graphql:elaborate(AST), % <1>
-				io:fwrite("HERE4!!!!!!!!!! \n"),
-        {ok, #{
-           fun_env := FunEnv,
-           ast := AST2 }} = graphql:type_check(Elaborated), % <2>
-        ok = graphql:validate(AST2), % <3>
-        run_execute(ReqCtx#{ document := AST2, fun_env => FunEnv }, Req, State)
-    catch
-        throw:Err ->
-            err(400, Err, Req, State)
-    end.
-
-run_execute(#{ document := AST,
-               fun_env := FunEnv,
-               vars := Vars,
-               operation_name := OpName }, Req, State) ->
-    Coerced = graphql:type_check_params(FunEnv, OpName, Vars), % <1>
-    Ctx = #{
-      params => Coerced,
-      operation_name => OpName },
-    Response = graphql:execute(Ctx, AST), % <2>
-    ResponseBody = term_to_json(Response), % <3>
-    Req2 = cowboy_req:set_resp_body(ResponseBody, Req), % <4>
-    Reply = cowboy_req:reply(200, Req2),
-    {stop, Reply, State}.
-
-term_to_json(Term) ->
+encode_json(Term) ->
     jsx:encode(fixup(Term)).
 
 %% Ground types
@@ -158,5 +143,5 @@ err(Code, Msg, Req, State) ->
              message => Formatted },
     Body = jsx:encode(#{ errors => [Err] }),
     Req2 = cowboy_req:set_resp_body(Body, Req),
-    Reply = cowboy_req:reply(Code, Req2),
+    {ok, Reply} = cowboy_req:reply(Code, Req2),
     {stop, Reply, State}.

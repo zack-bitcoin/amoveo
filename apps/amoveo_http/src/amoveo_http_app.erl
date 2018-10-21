@@ -75,7 +75,8 @@ mapping_rules() ->
        interfaces => #{ default => graphql_type },
        objects => #{
          'Block' => graphql_block,
-         default => graphql_object }
+         'Query' => graphql_query,
+         'default' => graphql_object }
      }.
 
 load_schema() ->

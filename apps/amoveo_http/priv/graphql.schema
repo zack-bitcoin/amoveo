@@ -1,7 +1,7 @@
 # tag::blockObject[]
 type Block {
-  height : Int
   id : ID!
+  height : Int
   market_cap : Int
 }
 # height,
@@ -28,6 +28,6 @@ type Block {
 
 # tag::queryObject[]
 type Query {
-  block(id : ID!) : Block
+  block(id: ID!): Block
 }
 # end::queryObject[]

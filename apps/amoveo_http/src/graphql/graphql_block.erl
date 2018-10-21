@@ -3,11 +3,8 @@
 
 -export([execute/4]).
 
-execute(_Ctx, #block { height = BlockHeight } = Block, Field, Args) ->
-    case Field of
-        <<"id">> -> {ok, graphql_id:encode({'Block', Block#block.height})}
-        % <<"name">> -> {ok, Block#block.name}
-    end.
+execute(Ctx, #block{ height = Id }, <<"id">>, _Args) ->
+    {ok, Id};
 
-integer(I) when is_integer(I) -> I;
-integer(nan) -> null.
+execute(Ctx, #block{ height = Height }, <<"height">>, _Args) ->
+    {ok, Height}.
