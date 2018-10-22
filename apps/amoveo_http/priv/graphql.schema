@@ -1,33 +1,28 @@
-# tag::blockObject[]
 type Block {
-  id : ID!
-  height : Int
-  market_cap : Int
+  +description(text: "Height of this block")
+  height: Int!
+  +description(text: "Hash of previous block header")
+  prev_hash: String
+  +description(text: "Hash summarizing all state Merkle trees (e.g. accounts, channels) as after application of transactions")
+  trees_hash: String
+  +description(text: "Approximate timestamp of blocks mining")
+  time: Int
+  +description(text: "Blocks mining difficulty")
+  difficulty: Int
+  period: Int
+  +description(text: "Protocol version")
+  version: Int
+  +description(text: "Proof of Work nonce")
+  nonce: Int
+  +description(text: "Number of VEO in circulation")
+  market_cap: Int
+  channels_veo: Int
+  live_channels: Int
+  many_accounts: Int
+  many_oracles: Int
+  live_oracles: Int
 }
-# height,
-#                 prev_hash,
-#                 trees_hash,
-#                 time,
-#                 difficulty,
-#                 period,
-#                 version,
-#                 nonce = 0,
-#                 trees,
-#                 txs,
-#                 prev_hashes = {prev_hashes},
-#                 proofs = [],
-#                 roots,
-#                 hash = <<>>,
-# 		market_cap = 0,
-# 		channels_veo = 0,
-# 		live_channels = 0,
-# 		many_accounts = 1,
-# 		many_oracles = 0,
-# 		live_oracles = 0
-# end::blockObject[]
 
-# tag::queryObject[]
 type Query {
-  block(id: ID!): Block
+  block(height: Int): Block
 }
-# end::queryObject[]

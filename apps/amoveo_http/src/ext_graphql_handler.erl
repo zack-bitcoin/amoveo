@@ -47,11 +47,9 @@ run(#{ document := Doc,
 								{ok, Reply, State}
 						catch
 								throw:Err ->
-										io:fwrite("POOP \n"),
 								    err(400, Err, Req, State)
 						end;
 				{error, Error} ->
-						io:fwrite("POOPPPPPYY \n"),
 				    err(400, {parser_error, Error}, Req, State)
 		end.
 

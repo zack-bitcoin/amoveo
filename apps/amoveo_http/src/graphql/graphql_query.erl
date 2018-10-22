@@ -3,5 +3,6 @@
 
 -export([execute/4]).
 
-execute(Context, Object, <<"block">>, Args) ->
-    {ok, #block{height = 0}}.
+execute(_, _, <<"block">>, #{ <<"height">> := Height }) ->
+    B = block:get_by_height(Height),
+    {ok, B}.
