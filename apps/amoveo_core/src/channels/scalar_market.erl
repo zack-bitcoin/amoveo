@@ -14,6 +14,9 @@ market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, Up
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height, LowerLimit, UpperLimit) ->
     <<_:256>> = MarketID,
     %OID = MarketID,
+    io:fwrite("scalar market \n"), 
+    io:fwrite(integer_to_list(Direction)),
+    io:fwrite("\n"),
     Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
 		1 -> <<" int 10000 bet_amount ! macro flip int 0 swap + ; macro check_size flip > not ; ">>; %this is for when the customer bets on true.
 		2 -> <<" int 0 bet_amount ! macro flip int 10000 swap - ; macro check_size flip < not ; ">> % maybe should be 10000 - MaxPrice0
@@ -308,7 +311,7 @@ test3() ->
     BetLocation = constants:scalar_oracle_bet(),
     Pubkey = keys:pubkey(),
     LL = 0,
-    UL = 1023,
+    UL = 0,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Direction = 2,
     A = market_smart_contract(BetLocation, OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0, LL, UL),

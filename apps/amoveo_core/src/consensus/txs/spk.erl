@@ -120,8 +120,8 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 	{SS2, Amount} -> 
 	    %Just because a bet is removed doesn't mean all the money was transfered. We should calculate how much of the money was transfered.
-            io:fwrite("we have a secret\n"),
-	    io:fwrite(packer:pack(SS2)),% the browswer is making it look like this: {[{<<"code">>,[2,0,0,0,32,98,87,250,109,44,40,33,174,78,71,84,176,34,104,226,87,251,254,27,121,249,5,18,185,76,16,255,4,134,1,189,94]},{<<"prove">>,[]},{<<"meta">>,[]}]}
+            %io:fwrite("we have a secret\n"),
+	    %io:fwrite(packer:pack(SS2)),% the browswer is making it look like this: {[{<<"code">>,[2,0,0,0,32,98,87,250,109,44,40,33,174,78,71,84,176,34,104,226,87,251,254,27,121,249,5,18,185,76,16,255,4,134,1,189,94]},{<<"prove">>,[]},{<<"meta">>,[]}]}
 %in erlang it makes: {ss, <<binary>>, [], 0}
             TP = tx_pool:get(),
             Trees = TP#tx_pool.block_trees,
@@ -163,13 +163,18 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    end
     end.
 bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
-    io:fwrite("spk bet_unlock3\n"),
+    %io:fwrite("spk bet_unlock3\n"),
     [<<ContractAmount0:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
    if
         Delay > 0 ->
 	   io:fwrite("delay is "),
 	   io:fwrite(integer_to_list(Delay)),
-	   io:fwrite("delay >0, keep the bet.\n"),
+	   io:fwrite(". Delay >0, keep the bet.\n"),
+	   io:fwrite("nonce .\n"),
+	   io:fwrite(integer_to_list(Nonce2)),
+	   io:fwrite("amount .\n"),
+	   io:fwrite(integer_to_list(ContractAmount0)),
+	   io:fwrite("\n"),
 	   bet_unlock2(T, [Bet|B], A, SSIn, [SS2|SSOut], Secrets, Nonce, [SS2|SSThem]);
        true -> 
 	   CGran = constants:channel_granularity(),
@@ -178,7 +183,7 @@ bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
 				    ContractAmount0 - round(math:pow(2, 32));
 				true -> ContractAmount0
 			    end,
-	   io:fwrite("delay <1, remove it.\n"),
+	   %io:fwrite("delay <1, remove it.\n"),
 	   true = ContractAmount =< CGran,
 	   true = ContractAmount >= -CGran,
 	   A3 = ContractAmount * Bet#bet.amount div CGran,
@@ -463,9 +468,10 @@ vm(SS, State) ->
     {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
     chalang:vm(SS, TimeLimit, SpaceLimit, FunLimit, VarLimit, State).
 -define(error_amount, 0).
--define(error_nonce, 10000000).
+-define(error_delay, 10000000).
+-define(error_nonce, 0).
 chalang_error_handling(SS, Code, Data) ->
-    Default = {?error_amount, 0, ?error_nonce, Data},
+    Default = {?error_amount, ?error_nonce, ?error_delay, Data},
     case chalang:run5(SS, Data) of
         {error, S} ->
             io:fwrite("script sig has an error when executed: "),

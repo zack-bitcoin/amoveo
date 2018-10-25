@@ -63,11 +63,6 @@ to agree to never talk about what happens on the job.
 The owner can offer bribes, to pay people to never
 mention his crimes.
 
-Putting good people in charge is not enough.
-The Stanford Prison experiment shows that almost
-anyone will violently abuse people, if they have 
-the opportunity. 
-
 Part of the problem is the hierarchy of the modern
 corporation. Money flows downward through a pyramid.
 The hierarchy happens because this is the easiest way

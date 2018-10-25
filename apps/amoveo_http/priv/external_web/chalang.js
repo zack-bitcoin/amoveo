@@ -1,6 +1,6 @@
 function chalang_main() {
     const word_size = 4294967296,
-          hash_size = 12;
+          hash_size = 32;
     const ops =
           {int_op: 0,
            binary_op: 2,
@@ -133,7 +133,7 @@ function chalang_main() {
     }
     function small_hash(l) {
         var h = hash(l);
-        return h.slice(0, 12);
+        return h.slice(0, hash_size);
     }
     function split_if(opcode, code) {
         var a = 0;
@@ -234,18 +234,33 @@ function chalang_main() {
     op_code[ops.call] = function(i, code, d) {
         //non-optimized function call.
         var code_hash=btoa(array_to_string(d.stack[0].slice(1)));
-        definition = d.funs[code_hash];
+        var definition = d.funs[code_hash];
+	if (definition == undefined) {
+	    console.log("undefined function");
+	    console.log(code_hash);
+	} else {
+	    console.log("function named ");
+	    console.log(code_hash);
+	}
         var s = definition.length;
         d.stack = d.stack.slice(1);
         d = run2(definition, d);
+	console.log("d after ops call ");
+	console.log(JSON.stringify(d));
         return {i: i, d: d, g: (s + 10), s: "slow call op", r: (s - 1)};
     }
     op_code[ops.define] = function(i, code, d) {
         var skipped_size = count_till(code, i, ops.fun_end);
         var definition = code.slice(i+1, i+skipped_size);
+	//console.log("chalang define definition is ");
+	//console.log(definition);
+	//console.log(JSON.stringify(definition));
         i += skipped_size;
-        var hash_array = small_hash(definition);
+        //var hash_array = small_hash(definition);
+        var hash_array = hash(definition);
         var b = btoa(array_to_string(hash_array));
+	console.log("new function hash is ");
+	console.log(b);
         var definition2 = replace(ops.recurse, ([ops.binary_op]).concat(integer_to_array(hash_size, 4)).concat(hash_array), definition);
         d.funs[b] = definition2;
         var s = definition2.length + 4;
@@ -482,8 +497,16 @@ function chalang_main() {
         return {i: i, d: d, g: 1, s: "empty list op", r: 1};
     }
     op_code[ops.append] = function(i, code, d) {
+	//console.log("append");
+	//console.log(JSON.stringify(d));
         underflow_check(d, 2, "append");
         var a;
+	if (Number.isInteger(d.stack[0])) {
+	    d.stack[0] = (["binary"]).concat(integer_to_array(d.stack[0], 4));
+	}
+	if (Number.isInteger(d.stack[1])) {
+	    d.stack[1] = (["binary"]).concat(integer_to_array(d.stack[1], 4));
+	}
         if (("binary" == d.stack[0][0]) &&
             ("binary" == d.stack[1][0])) {
             a = (d.stack[1]).concat(d.stack[0].slice(1));
@@ -606,6 +629,8 @@ function chalang_main() {
                 op_print(d, i, ("math ").concat((code[i]).toString()));
             } else {
                 var y = op_code[code[i]](i, code, d);
+		//console.log("return after calling function definition ");
+		//console.log(JSON.stringify(y));
                 i = y.i;
                 d = y.d;
                 d.op_gas -= y.g;
@@ -677,6 +702,26 @@ function chalang_main() {
          ops.call, //quad
          0,0,0,0,16,
          ops.eq,ops.swap,ops.drop,ops.swap,ops.drop];
+    var function_contract2 =
+	[
+	    ops.define,ops.dup,ops.fun_end,2,0,0,0,12,
+	    47,15,209,232,155,141,225,213,114,146,116,46,
+	    0,0,0,0,1,ops.swap,
+	    ops.call,
+
+	    ops.define, ops.empty_list, ops.eqs,
+	    ops.caseif,
+	    ops.drop, ops.drop, 0,0,0,0,0,
+	    ops.caseelse, ops.drop,
+	    ops.car, ops.swap, 0,0,0,0,0, ops.eqs,
+	    ops.caseif,
+	    ops.drop, ops.drop, 0,0,0,0,1,
+	    ops.caseelse,
+	    ops.drop, ops.drop, ops.recurse, ops.call,
+	    ops.casethen,
+	    ops.casethen,
+	    ops.fun_end //gItO8iDvFskzdl9c
+	];
     var variable_contract =
         [0,0,0,0,12,
          0,0,0,0,1,
@@ -806,8 +851,9 @@ function chalang_main() {
         //var x = run5(hashlock_contract, d);
         //var x = run5(split_append_contract, d);
         //var x = run5(recursion_contract, d);
-        var x = run5(variable_contract, d);
+        //var x = run5(variable_contract, d);
         //var x = run5(function_contract, d);
+        var x = run5(function_contract2, d);
         //var x = run5(map_contract, d);
         console.log(JSON.stringify(x.stack));
         return x.stack;
@@ -816,8 +862,10 @@ function chalang_main() {
         return{"name": "state", "height": height, "slash": slash};
     }
     function data_maker(op_gas, ram_gas, many_vs, many_funs, script_sig, code, state) {
+	console.log("data maker vars ");
+	console.log(many_vs);
         var arr = [];
-        arr.length = many_vs;
+        arr.length = Math.min(200, many_vs);
         return {"name": "d", "op_gas":op_gas, "stack": [], "alt": [], "ram_most": 0, "ram_limit":ram_gas, "vars": arr, "funs":{}, "many_funs": 0, "fun_limit":many_funs, "ram_current":(script_sig.length + code.length), "state":state};
     }
     return {run5: run5,

@@ -8,6 +8,8 @@ Unfortunately, atomic swaps have been worthless practically.
 It only solves half the problem. We don't _just_ want to swap tokens. We want to swap them at the current market price.
 So we also need a decentralized market for matching trades at a market price. The market and the atomic swap need to be trustlessly linked, otherwise the relationship can not be trust-free.
 
+The same problem exists for any smart contract in any state channel. If you need to trust your partner when deciding on the price of the contract, then it doesn't matter if the execution is trust-free. Even a single layer of trust makes the entire contract trustfull. State channels are only useful if each contract is formed in a market to determine the current market price.
+
 Some projects ignore this problem. They don't have off-chain markets, but they put contracts or subcurrencies into channels regardless: Raiden's "instant token swap". Bitcoin Hivemind's channels. Gnosis' channels. Aeternity's proposed state channels. Augur's use of Ox.
 
 [cryptoeconomic explanation of why we need markets](why_markets.md)

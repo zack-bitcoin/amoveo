@@ -57,7 +57,8 @@ def market_test():
     request(1, 'sync', [[127,0,0,1], 3030], 2)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
-    request(3, 'new_market', [oid, 20, 5, 0, 1023, 10], 2)
+    request(3, 'new_market', [oid, height+19, 5, 0, 1023, 10], 2)
+    #request(3, 'new_market', [oid, height+49, 5, 0, 1023, 10], 2)
 def test2(): #useful for testing market from light node.
     print("test 2")
     request(3, 'txs', [[127,0,0,1], 3020], 1)
@@ -81,6 +82,9 @@ def test2(): #useful for testing market from light node.
     request(1, 'mine_block', [1, 10000], 0.04)
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 10)
+    spend_id = "BP4GV5GWmIwxsn8bOcEtnnolqupyqAdqrefCxShPrLW/cwtA5V6h44Pk2okE4IZbBezkLGU8uWcaMsHz1dqsBz8="
+    request(1, 'spend', [spend_id, 100000000], 10)
+    request(1, 'mine_block', [1, 10000], 0.04)
     #request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be removed
 def combine_addr(start, byte):
     return base64.b64encode(start + byte)
@@ -103,7 +107,8 @@ def test3(): #useful for testing market from light node.
     request(2, 'oracle_bet', [combine_addr(start, '\x0a'), 1, 20000000], 1)
     request(2, 'oracle_bet', [combine_addr(start, '\x0b'), 1, 20000000], 3)
     #request(1, 'oracle_bet', [oid, 2, 2600000000], 0.4)
-    request(1, 'mine_block', [11, 10000], 1)
+    request(1, 'mine_block', [1, 10000], 3)
+    request(1, 'mine_block', [10, 10000], 1)
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
     request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be optional

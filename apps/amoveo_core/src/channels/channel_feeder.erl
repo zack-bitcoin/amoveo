@@ -110,7 +110,11 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     Bet = element(N-1, list_to_tuple(Bets)),
     {Type, Price} = Bet#bet.meta,
     CodeKey = Bet#bet.key,
-    {market, 1, _, _, _, _, OID} = CodeKey,
+    OID = case CodeKey of
+	      {market, 1, _, _, _, _, Z} -> Z;
+	      {market, 2, _, _, _, _, Y, _, _} -> Y
+	  end,
+    %{market, 1, _, _, _, _, OID} = CodeKey,
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
                      ssme = spk:remove_nth(N-1, OldCD#cd.ssme),
                      ssthem = spk:remove_nth(N-1, OldCD#cd.ssthem)},
@@ -145,7 +149,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     io:fwrite(packer:pack(keys:sign(SSPK))),
     io:fwrite("\n"),
     io:fwrite("channel feeder serialized\n"),
-    io:fwrite(sign:serialize(testnet_sign:data(SSPK))),
+    io:fwrite(base64:encode(sign:serialize(testnet_sign:data(SSPK)))),
     io:fwrite("\n"),
     true = testnet_sign:verify(keys:sign(SSPK)),%breaks here
     true = Amount > 0,
@@ -516,9 +520,11 @@ combine_cancel_common4(Bet, SSM, [BH|BT], [MH|MT], BO, MO) ->
             end
     end.
 bets_unlock(X) -> 
+    %io:fwrite("bets unlock\n"),
     bets_unlock2(X, []).
 bets_unlock2([], Out) -> Out;
 bets_unlock2([ID|T], OutT) ->
+    %io:fwrite("bets unlock2\n"),
     {ok, CD0} = channel_manager:read(ID),
     true = CD0#cd.live,
     SPKME = CD0#cd.me,

@@ -35,6 +35,13 @@ This would prevent attacks where the attacker opens too many channels, and tries
 ### Things to do
 
 
+* it seems like the market is not updating channels when scalar bets get matched. I confirmed that this is a problem that is happening.
+         {ss,<<0,0,0,0,4>>,
+         {ss,<<2,0,0,0,112,0,0,0,6,23,112,39,16,0,0,0,0,0,...>>,
+
+* in scalar_market.py the new_market should expire at 20 not 60.
+
+
 * verify that the governance fee is being paid by the miner.
 
 * tx_pool_feeder has a problem. this line is commented:

@@ -175,7 +175,7 @@ function spk_main() {
         var new_bets = JSON.parse(JSON.stringify(bets));
         var newss = JSON.parse(JSON.stringify(ss));
         var fun_limit = 1000;//config
-        var var_limit = 10000;
+        var var_limit = 200;
         var bet_gas_limit = 100000;//same as bet_unlock2
         var cgran = 10000; //constants.erl
 	console.log("spk force update 2 compare bets and ss");
@@ -742,7 +742,7 @@ console.log(JSON.stringify([
 		var height = headers_object.top()[1];
 		var state = chalang_object.new_state(height, 0);
 		var fun_limit = 400;
-		var var_limit = 10000;
+		var var_limit = 200;
 		console.log("ss2");
 		console.log(JSON.stringify(key_junk));
 		console.log(key_junk[0]);

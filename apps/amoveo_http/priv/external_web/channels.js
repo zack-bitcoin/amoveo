@@ -202,7 +202,7 @@ function channels_main() {
             channel_balance_button.onclick = function() {refresh_balance(pubkey);};
             bet_update_button.onclick = function() {
                 spk_object.pull_channel_state(function() {
-                    refresh_channels_interfaces(pubkey);
+                    refresh_channels_interfaces(pubkey);//it seems excessive to re-draw all this stuff every time the button is clicked. 
 		});
             };
             combine_cancel_button.onclick = function() {
@@ -225,7 +225,7 @@ function channels_main() {
 	    return 0;
 	};
 	var fun_limit = 400;
-	var var_limit = 10000;
+	var var_limit = 200;
 	spk_object.spk_run(0, ss, spk, height, 0, fun_limit, var_limit, function(x) { close_channel_func2(x, spk, cd, height, ss, server_pubkey); });
     }
     function close_channel_func2(spk_result, spk, cd, height, ss, server_pubkey) {
@@ -310,6 +310,8 @@ function channels_main() {
 	console.log(JSON.stringify(sc));
         var spk = market_trade(cd, amount_final, price_final, sc, server_pubkey, oid_final);
         var sspk = keys.sign(spk);
+	console.log("spk ");
+	console.log(JSON.stringify(spk));
 	console.log("serialized spk ");
 	console.log(JSON.stringify(serialize(spk)));
         var msg = ["trade", keys.pub(), price_final, type_final, amount_final, oid_final, sspk, fee];

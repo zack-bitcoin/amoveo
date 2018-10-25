@@ -7,7 +7,7 @@ function scalar_market_contract(direction, expires, maxprice, server_pubkey, per
     } else if (direction == 2) {
 	a = string_to_array(atob("AAAAAAAAAAAAAngA"));
     }
-    var b = string_to_array(atob("/wAAAAADeAA="));
+    var b = string_to_array(atob("AAAAAAN4AA=="));
     var c = string_to_array(atob("AAAAAAR4AA=="));
     var d = string_to_array(atob("AAAAAAV4AA=="));
     var e = string_to_array(atob("AAAAAAZ4AA=="));
@@ -47,7 +47,7 @@ function scalar_market_contract(direction, expires, maxprice, server_pubkey, per
     var contract2 =  btoa(array_to_string(contract));
     var codekey = ["market", 2, oid, expires, server_pubkey, period, oid, lower_limit, upper_limit];
     var amount2 = Math.floor(amount * ((10000 + maxprice) / 10000));
-    return ["bet", contract, amount2, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
+    return ["bet", contract2, amount2, codekey, [-7, direction, maxprice]]; //codekey is insttructions on how to re-create the contract, so we can do pattern matching when updating channels.
 }
 function market_contract(direction, expires, maxprice, server_pubkey, period, amount, oid, bet_height) {
   //var a = string_to_array(atob("AAAAJxAAAAAAAXgA"));

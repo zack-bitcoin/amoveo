@@ -1,5 +1,3 @@
-%we should probably keep a copy of this data on the hard drive. It would be bad to lose it.
-
 -module(order_book).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
@@ -117,8 +115,23 @@ handle_call({match, OID}, _From, X) ->
                         db:save(?LOC, X3),%maybe this should be line should be lower.
                         Expires = expires(OB3),
                         Period = period(OB3),
-                        CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
-                        SS = market:settle(PriceDeclaration, OID, MatchPrice),
+
+			io:fwrite("order book before codekey\n"),
+			io:fwrite(packer:pack(OB)),
+			io:fwrite("\n"),
+			{CodeKey, SS} = 
+			    case ob_type(OB) of
+				{binary} -> 
+				    CodeKey0 = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+				    SS0 = market:settle(PriceDeclaration, OID, MatchPrice),
+				    {CodeKey0, SS0};
+				{scalar, UpperLimit, LowerLimit, _} ->
+				    CodeKey1 = scalar_market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID, UpperLimit, LowerLimit),
+				    SS1 = scalar_market:settle(PriceDeclaration, OID, MatchPrice),
+				    {CodeKey1, SS1}
+			    end,
+                        %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+                        %SS = market:settle(PriceDeclaration, OID, MatchPrice),
                         secrets:add(CodeKey, SS),
                         channel_feeder:bets_unlock(channel_manager:keys()),
                         {{PriceDeclaration, Accounts}, X3}
