@@ -10,7 +10,7 @@ Voting does not work in blockchains
 The individual cost of being an informed voter is high. The individual benefit of being an informed voter is almost zero. So the rational voter does not waste time becoming an informed voter. The ration voter votes from the position of ignorance.
 
 2
-Under Nakamoto security it is not possible to prevent people from proving how they voted. If they can prove how they voted, then it is also possible for an attacker to use a smart contract to commit to paying a bribe if you vote the way the attacker wants.
+Under Nakamoto security it is not possible to prevent people from proving how they voted. If they can prove how they voted, then it is also possible for an attacker to use a smart contract to commit to paying a bribes to influence voters.
 Under Nakamoto consensus it needs to be possible for the miners to calculate the consensus state of the blockchain after including the next transactions.
 The miners need the ability to either include or not include any valid txs. Otherwise someone could prevent mining by refusing to share a tx.
 So, the miners can calculate the next block's state after censoring any of the txs from that block.
