@@ -16,11 +16,11 @@ function headers_main() {
 	retarget_frequency = 2000;
 	forks = {two: 9000, four: 26900, seven:28135};
 	//top_header = 0;
-	top_header = ["header",28001,"f3PfnlxML/UPF9T5ixy1+Q539NyOVfFG07x4pf3zw6Q=","4A7MYFe5u7OG22QGUvIFguzZWYWndkZARGdImbhbEjM=","huIlyyrALPoafVluEL/ZYtZ8BXHUJEPxcXCLid5CSnU=",141617794,14053,3,"AAAAAAAAAAAA6ZeG6UQ+dPE+8iEbHoY92if6pIMAAlI=",193346798808507350000,5982];
-	//top_header = ["header", 38671, "CoyxdfjlUzd/cujJRS1iTksmE5l7C3lsyn+2FY0kxmU=", "+CwT4ZGvYE10i5Tdocj1j+ojSNowEDp+Jq+uw3zdO20=", "MrN5jt9v0X91Kix3HInDP25dNrTXOt+ux3d2yY64QMk=", 212163079, 13698, 3, "AAAAAAAAAAAAhv86dgAAAAAV79tiAAAAAAAWxwAAZjc=", 402432639143042350000, 5982];
-	write_header(top_header, 1865656952131054);
-	//top_header = ["header", 28102, "YS6YwsbqGmb52ffetsWjaAdXo05t+T2rTp4/Qd6uJF0=", "1F8OTHvstQpO3v0JakaNwJybtU9pFevgY17SztWJ5wc=", "DRv0mJlCSqxmSxDqfBtzeq4IOo2jwJ78sWOE08BuGOE=", 143143967, 14053, 3, "AAAAAAAAAAAA1bxHxDdxjuBesyoPTJgxh23ZAQAAurg=", 196793811742050220000, 5982];
-	//write_header(top_header, 1871550184471850);
+	//top_header = ["header",28001,"f3PfnlxML/UPF9T5ixy1+Q539NyOVfFG07x4pf3zw6Q=","4A7MYFe5u7OG22QGUvIFguzZWYWndkZARGdImbhbEjM=","huIlyyrALPoafVluEL/ZYtZ8BXHUJEPxcXCLid5CSnU=",141617794,14053,3,"AAAAAAAAAAAA6ZeG6UQ+dPE+8iEbHoY92if6pIMAAlI=",193346798808507350000,5982];
+	//write_header(top_header, 1865656952131054);
+	top_header = ["header", 38671, "CoyxdfjlUzd/cujJRS1iTksmE5l7C3lsyn+2FY0kxmU=", "+CwT4ZGvYE10i5Tdocj1j+ojSNowEDp+Jq+uw3zdO20=", "MrN5jt9v0X91Kix3HInDP25dNrTXOt+ux3d2yY64QMk=", 212163079, 13698, 3, "AAAAAAAAAAAAhv86dgAAAAAV79tiAAAAAAAWxwAAZjc=", 402432639143042350000, 5982];
+	write_header(top_header, 2177732187806707);
+	//to find the ewah headers_object.read_ewah(hash(headers_object.serialize(headers_object.top())));
     }
     
     //var top_header = 0;//stores the valid header with the most accumulated work.
