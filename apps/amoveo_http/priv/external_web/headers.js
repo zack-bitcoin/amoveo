@@ -34,7 +34,7 @@ function headers_main() {
     document.body.appendChild(wallet_text);
     more_headers();
     function write_header(header, ewah) {
-	console.log("write header");
+	//console.log("write header");
         var acc_difficulty = header[9];
         if (acc_difficulty > top_diff) {
             top_diff = acc_difficulty;
