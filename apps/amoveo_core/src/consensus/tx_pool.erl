@@ -4,8 +4,7 @@
 -export([data_new/0, get/0, dump/0, dump/1, absorb_tx/2]).%, absorb/2]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../records.hrl").
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
+start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) ->
     block:initialize_chain(),
     State = current_state(),
@@ -35,14 +34,12 @@ handle_call({absorb_tx, NewDict, Tx}, _From, F) ->
                  F;
              false ->
                  F#tx_pool{txs = NewTxs, 
-			   checksums = NewChecksums,
+			     checksums = NewChecksums,
                            %trees = NewTrees, 
                            dict = NewDict,
-			   bytes = BlockSize}
+			     bytes = BlockSize}
          end,
     {reply, 0, F2};
-%handle_call({absorb, NewTrees, Height}, _From, _) ->
-%    {reply, 0, #tx_pool{txs = [], checksums = [], block_trees = NewTrees, height = Height}};
 handle_call(data_new, _From, F) -> 
     F2 = F#tx_pool{height = block:height()},
     {reply, F2, F}.

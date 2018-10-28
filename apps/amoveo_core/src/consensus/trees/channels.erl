@@ -2,7 +2,8 @@
 -export([new/7, acc1/1, acc2/1, id/1, bal1/1, bal2/1, last_modified/1, nonce/1, delay/1, amount/1, closed/1, %custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/9, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
-         verify_proof/4, make_leaf/3, key_to_int/1, serialize/1, test/0]).%common tree stuff
+         verify_proof/4, make_leaf/3, key_to_int/1, 
+	 deserialize/1, serialize/1, test/0]).%common tree stuff
 %This is the part of the channel that is written onto the hard drive.
 
 -record(channel, {id = 0, %the unique id number that identifies this channel
@@ -16,6 +17,7 @@
 		  delay = 0,%this is the minimum of how long you have to wait since "last_modified" to do a channel_timeout_tx. 
                   %every time a channel_slash_tx happens, this delay is updated. This is how long you need to wait before you can do a channel_timeout tx.
 		  closed = 0 %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
+		  %channels closed flag is unused because we delete closed channels.
 		  }%
        ).
 acc1(C) -> C#channel.acc1.
@@ -164,6 +166,8 @@ make_leaf(Key, V, CFG) ->
     leaf:new(key_to_int(Key), V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
+
+%function to look up all open channels.
     
 test() ->
     ID = <<1:256>>,

@@ -292,11 +292,9 @@ channel_timeout() ->
 channel_timeout(Ip, Port) ->
     {ok, Other} = talker:talk({pubkey}, Ip, Port),
     {ok, Fee} = application:get_env(amoveo_core, tx_fee),
-    Trees = (tx_pool:get())#tx_pool.block_trees,
-    Dict = (tx_pool:get())#tx_pool.dict,
     {ok, CD} = channel_manager:read(Other),
     CID = CD#cd.cid,
-    {Tx, _} = channel_timeout_tx:make_dict(keys:pubkey(), Trees, CID, [], Fee, Dict),
+    {Tx, _} = channel_timeout_tx:make_dict(keys:pubkey(), CID, Fee),
     case keys:sign(Tx) of
         {error, locked} ->
             io:fwrite("your password is locked");

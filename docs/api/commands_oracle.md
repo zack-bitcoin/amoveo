@@ -85,6 +85,18 @@ If you had unmatched trades sitting in the order book when the oracle closed, th
 api:oracle_unmatched(OracleID).
 ```
 
+
+#### Creating a scalar oracle
+A scalar oracle is actually multiple binary oracles. Each one is for 1 bit of the scalar value.
+Many is how many bits make up the scalar value. set it to 10 for now.
+set OID to be a random 32-byte value. This will be the ID of the 0th bit. the next oracles will occur at OID+1, OID+2...
+```
+api:new_scalar_oracle(Start, Question, OID, Many).
+```
+Use api:oracle_bet and api:oracle_close to close each of the 10 oracles. then use api:oracle_winnings and api:oracle_unmatched to get your money back out of them.
+
+
+
 #### Markets
 read about how to launch a market on a single full node here:
 [market](commands_market.md)

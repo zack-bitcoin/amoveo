@@ -57,8 +57,8 @@ def market_test():
     request(1, 'sync', [[127,0,0,1], 3030], 2)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
-    request(3, 'new_market', [oid, height+19, 5, 0, 1023, 10], 2)
     #request(3, 'new_market', [oid, height+49, 5, 0, 1023, 10], 2)
+    request(3, 'new_market', [oid, height+19, 5, 0, 1023, 10], 2)
 def test2(): #useful for testing market from light node.
     print("test 2")
     request(3, 'txs', [[127,0,0,1], 3020], 1)
@@ -141,5 +141,5 @@ def test3(): #useful for testing market from light node.
 if __name__ == "__main__":
     market_test()
     test2()
-    #test3()
+    test3()
     

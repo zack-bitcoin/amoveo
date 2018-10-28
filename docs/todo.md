@@ -5,11 +5,6 @@
 * Currently we store pointers to bet data with each account. This is in tree_data:dict_update_account_oracle_helper. The problem is that we have to read the account from the tree in order to write a batch of updates to the.
 - we should store matched bets and open orders at the top level, not embedded inside accounts and oracles.
 
-* make the burn address unspendable
-
-* update the fork choice rule. instead of prefering the version with the most hashes, prefer the version that maximizes this accumulated value: ((hashes) * (target block period) / (block reward)).
-- no good, if the block reward is set too low, then you can make a fork which always wins.
-
 * a new merkel tree to hold txids for every tx that has happened. This way you can more easily prove to a customer that a tx has occured.
 
 * the oracle should say the sum of open bets, otherwise it is so complicated for light nodes to request a proof of this information.
@@ -29,18 +24,18 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### governance ideas
 
-* consider reducing governance variable "maximum oracle time". it takes too long to close bad-question oracles.
+* we should probably lower the block size limit more.
 
 
 ### Things to do
 
+* make an external api for sharing compressed blocks. it will matter for blocks with smart contracts in them.
 
-* it seems like the market is not updating channels when scalar bets get matched. I confirmed that this is a problem that is happening.
-         {ss,<<0,0,0,0,4>>,
-         {ss,<<2,0,0,0,112,0,0,0,6,23,112,39,16,0,0,0,0,0,...>>,
+* make the burn address unspendable
 
-* in scalar_market.py the new_market should expire at 20 not 60.
+* add a function to channels module to look up all open channels, keep the ones that are opened with the server, keep the ones that are ready to be closed, then make channel_timeout txs for them all.
 
+* fix the entropy problem in js key generation.
 
 * verify that the governance fee is being paid by the miner.
 

@@ -12,7 +12,7 @@ function combine_cancel_assets_maker() {
             console.log(ssc);
             console.log("not cancelable because it is an open order");
             return false;
-        } else if (!(bk.length == 7)) {
+        } else if ((!(bk.length == 7)) && (!(bk.length == 9))) {
             console.log("bk is wrong length");
             console.log(JSON.stringify(bk));
             throw("match length error");
@@ -22,8 +22,8 @@ function combine_cancel_assets_maker() {
             console.log(bk[0]);
             throw("match market key");
             return false;
-        } else if (!(bk[1] == 1)) {
-            console.log("key is not of the first market type");
+        } else if ((!(bk[1] == 1)) && (!(bk[1] == 2))) {
+            console.log("key is not of an existing market type");
             throw("match market key 2");
             console.log(bk[1]);
             return false;
@@ -62,7 +62,7 @@ function combine_cancel_assets_maker() {
                 return {"ob": [], "om": [],
                         "bets": (bt.slice(j, bt.length)).reverse().concat(b4),
                         "ss": (mt.slice(j, mt.length)).reverse().concat(m4)}
-            } else if ((!(bm)) || (!(oid1 == oid2)) || (direction1 == direction2)) {
+            } else if ((!(bm)) || (!(oid1 == oid2)) || (direction1 == direction2) || (!(key1[1] == key2[1]))) {
                 console.log("not matchable or different oracle, or different direction");
                 console.log(JSON.stringify([bm, [oid1, oid2], [direction1, direction2]])),
                 b4 = [bt[j]].concat(b4);
