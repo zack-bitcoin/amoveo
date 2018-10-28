@@ -13,7 +13,7 @@ Expires is the height at which betting stops.
 A scalar market
 ==========
 ```
-api:new_market(OID, Start, Period, LowerLimit, UpperLimit, Many).
+api:new_market(OID, Expires, Period, LowerLimit, UpperLimit, Many).
 ```
 
 LowerLimit and UpperLimit are used for setting the margins and leverage for the smart contract. They are usually set to 0 and 1023.
