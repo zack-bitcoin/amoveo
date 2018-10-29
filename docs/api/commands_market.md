@@ -20,8 +20,9 @@ LowerLimit and UpperLimit are used for setting the margins and leverage for the 
 Many is how many oracles are being used to generate the value, it is usually set to 10.
 
 
+Closing a market
+========
 ```
 order_book:dump(OID).
 ```
-This is how you remove a market once it is closed.
 WARNING: make sure all the channels have closed their positions before closing the market.

@@ -228,13 +228,18 @@ make(Header, Txs0, Trees, Pub) ->
 	    end,
     MinerAddress = Pub,
     FG6 = forks:get(6),
+    FG9 = forks:get(9),
+    MinerReward = miner_fees(Txs0),
     NewDict2 = if
 		   (Height + 1) < FG6 -> NewDict;
-		   true ->
-		       MinerReward = miner_fees(Txs0),
+		   (Height + 1) < FG9 ->
 %    MinerAccount = accounts:dict_get(MinerAddress, Dict),
 		       MinerAccount = accounts:dict_update(MinerAddress, NewDict, MinerReward, none),
-		       accounts:dict_write(MinerAccount, NewDict)
+		       accounts:dict_write(MinerAccount, NewDict);
+		   true ->
+		       GovFees = gov_fees(Txs0, NewDict),
+		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict, MinerReward - GovFees, none),
+		       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
     NewTrees = tree_data:dict_update_trie(Trees, NewDict2),
     %Governance = trees:governance(NewTrees),
@@ -445,13 +450,18 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 	    end,
     MinerAddress = element(2, hd(Txs)),
     FG6 = forks:get(6),
+    FG9 = forks:get(9),
+    MinerReward = miner_fees(Txs0),
     NewDict3 = if
 		   Height < FG6 -> NewDict2;
-		   true ->
-		       MinerReward = miner_fees(Txs0),
+		   Height < FG9 ->
 %    MinerAccount = accounts:dict_get(MinerAddress, Dict),
 		       MinerAccount = accounts:dict_update(MinerAddress, NewDict2, MinerReward, none),
-		       accounts:dict_write(MinerAccount, NewDict2)
+		       accounts:dict_write(MinerAccount, NewDict2);
+		   true ->
+		       GovFees = gov_fees(Txs0, NewDict2),
+		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict2, MinerReward - GovFees, none),
+		       accounts:dict_write(MinerAccount2, NewDict2)
 	       end,
 
     NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict3),

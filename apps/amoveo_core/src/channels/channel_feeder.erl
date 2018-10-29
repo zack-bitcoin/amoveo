@@ -451,7 +451,7 @@ matchable(Bet, SS) ->%combine-cancelable.
 	    io:fwrite("not a standard market type.\n"),
 	    false; %not a standard market contract
         Price2 == Price -> 
-	    io:fwrite("bet is partially matched.\n"),
+	    io:fwrite("bet is partially matched"),
 	    false; %bet is only partially matched.
         true -> true
     end.
