@@ -29,6 +29,7 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+
 * make an external api for sharing compressed blocks. it will matter for blocks with smart contracts in them.
 
 * make the burn address unspendable

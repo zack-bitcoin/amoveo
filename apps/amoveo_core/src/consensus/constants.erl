@@ -23,8 +23,22 @@ difficulty_bits() -> 24.
 hash_size() -> 32.
 address_entropy() -> hash_size()*8.
 master_pub() ->
-    {ok, X} = application:get_env(amoveo_core, master_pub),
-    base64:decode(X).
+    case application:get_env(amoveo_core, kind) of
+        {ok, "production"} -> 
+	    <<4,189,18,206,25,5,24,85,181,145,52,221,156,239,44,26,
+	     124,15,19,53,47,199,101,54,159,33,2,193,105,148,36,244,
+	     97,47,22,207,60,175,158,167,199,152,51,25,83,197,83,191,
+	     194,116,18,229,105,172,24,130,156,172,243,251,252,92,53,
+	     89,87>>;
+	_ ->
+	    {ok, X} = application:get_env(amoveo_core, master_pub),
+	    base64:decode(X)
+    end.
+burn_address() ->
+<<0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,4,20,12,120,148,15,106,36,253,
+  255,199,136,115,212,73,13,33,0,0,0,0,0,0,0>>.
+    
 
 keys() -> "keys/keys.db".
 

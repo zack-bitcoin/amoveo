@@ -39,6 +39,9 @@ developer_lock(From, NewHeight, Dict) ->
     case application:get_env(amoveo_core, kind) of
 	{ok, "production"} ->
 	    MP = constants:master_pub(),
+	    %Burn = base64:decode("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEFAx4lA9qJP3/x4hz1EkNIQAAAAAAAAA="),
+	    Burn = constants:burn_address(),
+	    false = (From == Burn),
 	    if
 		From == MP ->
 		    BP = governance:dict_get_value(block_period, Dict),
