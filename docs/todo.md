@@ -35,10 +35,6 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 * add a function to channels module to look up all open channels, keep the ones that are opened with the server, keep the ones that are ready to be closed, then make channel_timeout txs for them all.
 
-* fix the entropy problem in js key generation.
-
-* verify that the governance fee is being paid by the miner.
-
 * tx_pool_feeder has a problem. this line is commented:
 `%true = Fee > (MinimumTxFee + Cost)`
 in absorb_internal2

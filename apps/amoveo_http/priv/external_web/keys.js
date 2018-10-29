@@ -38,7 +38,7 @@ function keys_function1() {
 	return ec.keyFromPublic(x);
     }
     function new_keys_entropy(x) {
-        return ec.genKeyPair({entropy: hash(x)});
+        return ec.genKeyPair({entropy: hash(serialize([x]))});
     }
     function new_keys() {
         return ec.genKeyPair();
