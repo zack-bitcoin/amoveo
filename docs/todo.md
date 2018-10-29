@@ -32,8 +32,6 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 * make an external api for sharing compressed blocks. it will matter for blocks with smart contracts in them.
 
-* make the burn address unspendable
-
 * add a function to channels module to look up all open channels, keep the ones that are opened with the server, keep the ones that are ready to be closed, then make channel_timeout txs for them all.
 
 * tx_pool_feeder has a problem. this line is commented:
