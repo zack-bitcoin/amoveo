@@ -345,7 +345,7 @@ many_headers(Many, X) ->
     %io:fwrite("\n"),
     Z = max(0, X + Many - 1),
     H = headers:top(),
-    case (H#header.height) > (X) of
+    case (H#header.height) >= (X) of
 	false -> [];
 	true ->
 	    {N, Many2} = 

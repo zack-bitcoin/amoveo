@@ -30,7 +30,7 @@ This would prevent attacks where the attacker opens too many channels, and tries
 ### Things to do
 
 
-* make an external api for sharing compressed blocks. it will matter for blocks with smart contracts in them.
+* we rarely change any governance value, so why does the pointer increase so much?
 
 * add a function to channels module to look up all open channels, keep the ones that are opened with the server, keep the ones that are ready to be closed, then make channel_timeout txs for them all.
 
@@ -221,13 +221,6 @@ If the governance is currently 1000, and you change by 30, you can go to 1300 or
 * ubuntu 18.04 compatibility.
 
 * order_book:match() should have a timer so we only run it every 3 minutes. Otherwise it is wasting cycles while we are syncing blocks.
-
-* block:check/1 should be split into 2 functions.
-- first we want to verify that a block could be valid by looking at that block alone.
-- second we want to compare the block to the previous block's state, to make sure the block is valid in context.
-- the first step is computationally expensive, and it doesn't touch the hard drive. So we can parallelize step 1 with itself. We can verify multiple blocks simultanious to use more CPU on our machine and sync faster.
-- block_absorber should only do the 2nd step of block check.
-- block_organizer:add should do the 1st step in parallel.
 
 * in proofs:txs_to_querys2, in the oracle_close branch, we are using Accounts and we should be using Accounts2.
 
@@ -462,4 +455,4 @@ Blocks should be serialized to be fully compressed.
 * we need configuration options to decide which parts of the historical data you want to keep.
 * it should be possible to store a shart of a tree.
 
-* an api for downloading blocks in a compressed format.
+* an api for downloading blocks in a compressed format. good for blocks with smart contracts.
