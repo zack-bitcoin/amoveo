@@ -2,22 +2,17 @@
 
 ### Other hard fork ideas
 
-* we should blacklist peers who send us invalid blocks.
+* merkel proof and verification code for txs in blocks. and rewrite it to javascript. That way we can prove if a tx has been included in a block.
 
 * Currently we store pointers to bet data with each account. This is in tree_data:dict_update_account_oracle_helper. The problem is that we have to read the account from the tree in order to write a batch of updates to the.
 - we should store matched bets and open orders at the top level, not embedded inside accounts and oracles.
-
-* a new merkel tree to hold txids for every tx that has happened. This way you can more easily prove to a customer that a tx has occured.
 
 * the oracle should say the sum of open bets, otherwise it is so complicated for light nodes to request a proof of this information.
 
 maybe governance oracles should have a minimum amount they need to be changed by. otherwise an attacker can block an oracle from being made by keep making the same oracle to only change 1%.
 
-Maybe we should add a governance variables for each opcode in the VM. To be a gas price per opcode.
+Maybe we should add a governance variable for each opcode in the VM. To be a gas price per opcode.
 
-version in spend txs is not being used.
-
-add n-lock-time to spend txs, that way we can make dead man's switches for inheritance.
 
 maybe channel_team_close_tx should have a negative fee. As a reward for deleting the channel.
 We could raise the fee for opening channels, and the reward for closing them.
@@ -31,6 +26,8 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+
+* we should blacklist peers who send us invalid blocks.
 
 * fix variable and function names for readability.
 

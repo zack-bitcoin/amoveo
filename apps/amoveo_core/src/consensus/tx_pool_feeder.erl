@@ -88,8 +88,9 @@ absorb_internal2(SignedTx, PID) ->
     %io:fwrite("now 4 "),%500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-		    %true = Fee > (MinimumTxFee + Cost)
-		    true
+		    true = Fee > (MinimumTxFee + Cost),
+		    ok
+		    %true
 	    end,
     %io:fwrite("now 5 "),%2000
     %io:fwrite(packer:pack(now())),
