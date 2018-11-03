@@ -2,9 +2,9 @@
 
 ### Other hard fork ideas
 
-* a command similar to external handler proof, except it is internal, and it doesn't provide a proof, and the data is decoded to the most readable format.
-
 * command to un-blacklist recent blocks, so it is easier to update when a fork happens.
+
+* block_hashes has a hard coded 500. this should depend on the retarget depth, which we are also using to decide how much history of merkel trees to keep.
 
 * we should blacklist peers who send us invalid blocks.
 

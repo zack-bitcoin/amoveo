@@ -3,7 +3,8 @@
 %each blockhash is about 32 bytes. We need to prepare for about 10000000 blocks. So that would be 32 megabytes of data. We can keep this all in ram.
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
-	 add/1,check/1,test/0]).
+	 add/1,check/1,second_chance/0,
+	 test/0]).
 -record(d, {set, list = []}).
 -define(LOC, constants:block_hashes()).
 init(ok) -> 
@@ -11,7 +12,6 @@ init(ok) ->
     X = db:read(?LOC),
     K = if
 	    X == "" -> #d{set = i_new()};
-	    %i_new();
 	    true -> X
 	end,
     {ok, K}.
@@ -22,6 +22,10 @@ terminate(_, X) ->
     io:format("block_hashes died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
+handle_call(second_chance, _, X) -> 
+    %for every hash stored in the set, check if we are storing a block. If we are not storing a block, then remove it from the set.
+    X2 = second_chance_internal(X),
+    {reply, ok, X2};
 handle_call({add, H}, _From, X) ->
     N = i_insert(H, X#d.set),
     L2 = [H|X#d.list],
@@ -54,7 +58,23 @@ add(X) ->
 check(X) ->
     true = size(X) == constants:hash_size(),
     gen_server:call(?MODULE, {check, X}).
-
+second_chance() ->
+    gen_server:call(?MODULE, second_chance).
+second_chance_internal(X) ->
+    L = X#d.list,
+    S = X#d.set,
+    {L2, S2} = sci2(L, [], S),
+    X#d{set = S2, list = L2}.
+sci2([], L2, S2) ->
+    {lists:reverse(L2), S2};
+sci2([H|LI], LO, S) ->
+    %check if we are storing block H. if not, then remove it from the list and the set.
+    case block:get_by_hash(H) of
+	empty -> sci2(LI, LO, i_remove(H, S));
+	_ -> sci2(LI, [H|LO], S)
+    end.
+	    
+    
 i_new() ->
     %gb_sets:new().
     sets:new().
