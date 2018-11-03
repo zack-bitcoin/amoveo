@@ -25,6 +25,10 @@ block(3, N) ->
     [Txs, Txids];
 block(2, H) ->
     block:get_by_hash(H).
+block_hash(N) ->    
+    %returns the hash of block N
+    B = block:get_by_height(N),
+    block:hash(B).
 ewah(Start, End) ->
     headers:ewah_range(Start, End).
 top() ->
@@ -370,9 +374,34 @@ oracle_unmatched(OracleID) ->
     oracle_unmatched(?Fee+Cost, OracleID).
 oracle_unmatched(Fee, OracleID) ->
     tx_maker0(oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)).
+tree_common(TreeName, ID, BlockHash) ->
+    B = block:get_by_hash(BlockHash),
+    %T = block:trees(B),
+    T = B#block.trees,
+    trees:dict_tree_get(TreeName, ID, dict:new(), T).
+    
+governance(ID) ->
+    trees:dict_tree_get(governance, ID).
+governance(ID, BlockHash) ->
+    tree_common(governance, ID, BlockHash).
+channel(ID) ->
+    trees:dict_tree_get(channels, ID).
+channel(ID, BlockHash) ->
+    tree_common(channel, ID, BlockHash).
+existence(ID) ->
+    trees:dict_tree_get(existence, ID).
+existence(ID, BlockHash) ->
+    tree_common(existence, ID, BlockHash).
+oracle(ID) ->
+    trees:dict_tree_get(oracles, ID).
+oracle(ID, BlockHash) ->
+    tree_common(oracle, ID, BlockHash).
 account(P) ->
     Pubkey = decode_pubkey(P),
     trees:dict_tree_get(accounts, Pubkey).
+account(P, BlockHash) ->
+    Pubkey = decode_pubkey(P),
+    tree_common(oracle, Pubkey, BlockHash).
 account() -> account(keys:pubkey()).
 confirmed_balance(P) ->
     Pubkey = decode_pubkey(P),

@@ -93,7 +93,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = is_binary(Question),
     QH = hash:doit(Question),
     oracle_questions:store(QH, Question),
-    Diff = Tx#oracle_new.difficulty,
+    %Diff = Tx#oracle_new.difficulty,
     ON = oracles:new(ID, QH, Starts, From, Gov, GovAmount, Dict),
     oracles:dict_write(ON, Dict3).
     

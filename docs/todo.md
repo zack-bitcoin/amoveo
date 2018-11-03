@@ -2,6 +2,12 @@
 
 ### Other hard fork ideas
 
+* a command similar to external handler proof, except it is internal, and it doesn't provide a proof, and the data is decoded to the most readable format.
+
+* command to un-blacklist recent blocks, so it is easier to update when a fork happens.
+
+* we should blacklist peers who send us invalid blocks.
+
 * Currently we store pointers to bet data with each account. This is in tree_data:dict_update_account_oracle_helper. The problem is that we have to read the account from the tree in order to write a batch of updates to the.
 - we should store matched bets and open orders at the top level, not embedded inside accounts and oracles.
 
@@ -29,6 +35,8 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+
+* fix variable and function names for readability.
 
 * we rarely change any governance value, so why does the pointer increase so much?
 
