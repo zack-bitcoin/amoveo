@@ -30,9 +30,12 @@ handle_call({add, H}, _From, X) ->
     N = i_insert(H, X#d.set),
     L2 = [H|X#d.list],
     Len = length(L2),
+    {ok, ForkTolerance} = application:get_env(amoveo_core, fork_tolerance),
+    FT = ForkTolerance * 8,
+    FTB = ForkTolerance * 10,
     X2 = if
-	     Len > 500 ->
-		 {NL, T} = lists:split(400, L2),
+	     Len > FTB ->
+		 {NL, T} = lists:split(FT, L2),
 		 NS = remove_many(T, N),
 		 X#d{list = NL, set = NS};
 	     true ->

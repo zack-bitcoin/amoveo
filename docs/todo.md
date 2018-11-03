@@ -2,10 +2,6 @@
 
 ### Other hard fork ideas
 
-* command to un-blacklist recent blocks, so it is easier to update when a fork happens.
-
-* block_hashes has a hard coded 500. this should depend on the retarget depth, which we are also using to decide how much history of merkel trees to keep.
-
 * we should blacklist peers who send us invalid blocks.
 
 * Currently we store pointers to bet data with each account. This is in tree_data:dict_update_account_oracle_helper. The problem is that we have to read the account from the tree in order to write a batch of updates to the.

@@ -38,6 +38,7 @@
 
     {fork_tolerance, 50}, %% This is used by the channel manager. If the channel has been closed this many blocks, then the channel managers garbage collection would delete it.
                      %% it is also used when syncing. You download this many extra headers to check if you are on a fork.
+		     %% also used in block_hashes.erl. this is involved in calculating how many recent block hashes to keep to know which blocks you have already verified.
     {headers_batch, 1001}, %% You download up to this many headers per request.
 
     {time_value, 1250}, %% This is / (10 expt 8)
