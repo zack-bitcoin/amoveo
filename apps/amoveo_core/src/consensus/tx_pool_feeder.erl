@@ -187,7 +187,7 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %io:fwrite("now 9 "),%300
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    NewDict = txs:digest_from_dict([SignedTx], Dict2, Height + 1),%This processes the tx.
+    NewDict = txs:digest([SignedTx], Dict2, Height + 1),%This processes the tx.
     %NewTrees = block:dict_update_trie(Trees, NewDict), 
     %tx_pool:absorb_tx(NewTrees, NewDict, SignedTx).
     %io:fwrite("now 10 "),%3000

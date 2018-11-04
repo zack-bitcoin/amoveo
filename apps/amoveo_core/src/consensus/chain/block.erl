@@ -181,7 +181,7 @@ tx_costs([STx|T], Governance, Out) ->
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
 new_dict(Txs, Dict, Height) ->
-    Dict2 = txs:digest_from_dict(Txs, Dict, Height),
+    Dict2 = txs:digest(Txs, Dict, Height),
     Dict2.
 market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
     FH = forks:get(3),

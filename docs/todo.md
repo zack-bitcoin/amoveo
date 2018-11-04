@@ -18,6 +18,9 @@ maybe channel_team_close_tx should have a negative fee. As a reward for deleting
 We could raise the fee for opening channels, and the reward for closing them.
 This would prevent attacks where the attacker opens too many channels, and tries to close them all in too short of a time period.
 
+* rename oracle_bets and orders. (is this a hard fork??)
+
+
 
 ### governance ideas
 
@@ -35,19 +38,7 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 * add a function to channels module to look up all open channels, keep the ones that are opened with the server, keep the ones that are ready to be closed, then make channel_timeout txs for them all.
 
-* tx_pool_feeder has a problem. this line is commented:
-`%true = Fee > (MinimumTxFee + Cost)`
-in absorb_internal2
-
-* switch light node back to production mode.
-
 * light wallet tool for looking up governance values.
-
-* rename oracle_bets and orders. (is this a hard fork??)
-
-* plan out the podcast interview. message CK on telegram.
-
-* integration tests of the scalar oracles.
 
 * split the light node and full node into different repositories.
 
