@@ -29,8 +29,6 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
-* is the requirements.txt document even being used?
-
 * we should blacklist peers who send us invalid blocks.
 
 * we rarely change any governance value, so why does the pointer increase so much?
@@ -127,30 +125,9 @@ debugger:start().
 
 * improve signal|noise ratio in logging.
 
-* maybe verifying blocks should only be parallelized in sync_mode:quick. that way we can have more useful error messages in sync_mode:normal.
-
 record tx_pool should keep track of the block hash that it is building on.
 
-potential block should probably be completely rewritten.
-
-* mining pools are regularly creating multiple blocks at the same height. Even when there are more than 3 minutes between finding the blocks.
-
-* add function to api for checking signatures.
-* add tool to mining page for early payout.
-
-* block_hashes is getting too big in ram. We should delete old information out of it.
-
-
-* sync blocks faster
-- maybe block_absorber:save should be cast instead of call.
-- maybe checks in block_absorber:block_internal should be moved somewhere else where they can be run in parallel. block_absorber should write the new data to the consensus state, and nothing more.
-
-
-* sync_mode:normal and sync_mode:quick should be available from the api.
-
 * we should have more rules for ignoring bad peers. If they send the same request too often, or if they send invalid data more than 10 times per minute. 
-
-* tx are still being dropped.
 
 * during DDOS, sometimes nodes end up dropping all their peers, and are then unable to sync. We should refuse to black list the hard coded peers.
 
