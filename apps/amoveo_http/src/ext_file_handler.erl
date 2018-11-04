@@ -8,12 +8,21 @@ handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
     PrivDir0 = 
 	case application:get_env(amoveo_core, kind) of
+	    %{ok, "production"} -> code:priv_dir(amoveo_http);
+	    %_ -> "../../../../apps/amoveo_http/priv"
 	    {ok, "production"} ->
-		code:priv_dir(amoveo_http);
-	    _ -> "../../../../apps/amoveo_http/priv"
+		"../../../../_build/prod/lib/light_node/src/js";
+	    {ok, "local"} ->
+		"../../../../_build/local/lib/light_node/src/js";
+	    {ok, "dev1"} ->
+		"../../../../_build/dev1/lib/light_node/src/js";
+	    {ok, "dev2"} ->
+		"../../../../_build/dev2/lib/light_node/src/js";
+	    {ok, "dev3"} ->
+		"../../../../_build/dev3/lib/light_node/src/js"
 	end,
+    %amoveo/_build/local/lib/light_node/src/js/
     PrivDir = list_to_binary(PrivDir0),
-    %PrivDir = list_to_binary(code:priv_dir(amoveo_http)),
     true = case F of
 	       <<"/sign_tx.js">> -> true;
                <<"/secrets.js">> -> true;
@@ -72,7 +81,8 @@ handle(Req, _) ->
                    %io:fwrite("\n"),
                    false
            end,
-    File = << PrivDir/binary, <<"/external_web">>/binary, F/binary>>,
+    %File = << PrivDir/binary, <<"/external_web">>/binary, F/binary>>,
+    File = << PrivDir/binary, F/binary>>,
     {ok, _Data, _} = cowboy_req:body(Req),
     Headers = [{<<"content-type">>, <<"text/html">>},
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],

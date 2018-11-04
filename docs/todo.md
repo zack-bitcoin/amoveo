@@ -29,18 +29,16 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+* is the requirements.txt document even being used?
 
 * we should blacklist peers who send us invalid blocks.
 
-* fix variable and function names for readability.
-
 * we rarely change any governance value, so why does the pointer increase so much?
-
-* add a function to channels module to look up all open channels, keep the ones that are opened with the server, keep the ones that are ready to be closed, then make channel_timeout txs for them all.
 
 * light wallet tool for looking up governance values.
 
 * split the light node and full node into different repositories.
+- the light node can be a dependency, so the full node will still serve the light node by default.
 
 * consider making a light node in python.
 
@@ -63,6 +61,8 @@ This would prevent attacks where the attacker opens too many channels, and tries
 *light node needs to be able to look up the volume of off-chain bets. (or at least put it on the explorer for now.)
 
 * update the make file to more easily start the node after the changes to new linux installs.
+
+* fix variable and function names for readability.
 
 * there is a bug. channel data gets stored into the channel manager, even if the tx didn't get produced.
 
