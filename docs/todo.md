@@ -29,13 +29,13 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+* confirmed_root has the constant "confirmations". it needs to be combined with something from the configurations.
+
 * we should blacklist peers who send us invalid blocks. Ignore any messages from them.
 
 * we rarely change any governance value, so why does the pointer increase so much?
 
 * teach the light node to scan multiple servers to identify the version of history with the most work.
-
-* if you try making a tx with an encrypted private key, or in sync_mode:quick, there should be a useful error message for why the tx failed.
 
 * light node should know how many bets are outstanding for it's account in oracles.
 *light node needs to be able to look up the volume of oracle bets. (or at least put it on the explorer for now.)
@@ -43,6 +43,7 @@ This would prevent attacks where the attacker opens too many channels, and tries
 * update the make file to more easily start the node after the changes to new linux installs.
 
 * fix variable and function names for readability.
+
 
 * there is a bug. channel data gets stored into the channel manager, even if the tx didn't get produced.
 

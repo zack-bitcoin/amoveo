@@ -415,8 +415,8 @@ account(P, BlockHash) ->
 account() -> account(keys:pubkey()).
 confirmed_balance(P) ->
     Pubkey = decode_pubkey(P),
-    Root = confirmed_root:read(),
-    Block = block:get_by_hash(Root),
+    M = max(api:height() - 10, 1),
+    Block = block:get_by_height(M),
     Trees = Block#block.trees,
     Accounts = trees:accounts(Trees),
     {_, V, _} = accounts:get(Pubkey, Accounts),
