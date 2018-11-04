@@ -29,6 +29,12 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+* new light node is not working
+
+* similar to the oracle lookup tool, we should have a governance value lookup tool in the light node.
+
+
+
 * we should blacklist peers who send us invalid blocks.
 
 * we rarely change any governance value, so why does the pointer increase so much?
@@ -130,10 +136,8 @@ record tx_pool should keep track of the block hash that it is building on.
 * we should have more rules for ignoring bad peers. If they send the same request too often, or if they send invalid data more than 10 times per minute. 
 
 * during DDOS, sometimes nodes end up dropping all their peers, and are then unable to sync. We should refuse to black list the hard coded peers.
+- dangerous, someone else might rent the same ip.
 
-* similar to the oracle lookup tool, we should have a governance value lookup tool in the light node.
-
-* built in translation to the light node is a bad idea. Google chrome has translation built in anyway.
 
 * check that txs don't get dropped when a block is orphaned.
 

@@ -12,12 +12,8 @@ handle(Req, _) ->
 		"../../../../_build/prod/lib/light_node/src/js";
 	    {ok, "local"} ->
 		"../../../../_build/local/lib/light_node/src/js";
-	    {ok, "dev1"} ->
-		"../../../../_build/dev1/lib/light_node/src/js";
-	    {ok, "dev2"} ->
-		"../../../../_build/dev2/lib/light_node/src/js";
-	    {ok, "dev3"} ->
-		"../../../../_build/dev3/lib/light_node/src/js"
+	    {ok, "integration"} ->
+		"../../../../_build/dev1/lib/light_node/src/js"
 	end,
     PrivDir = list_to_binary(PrivDir0),
     true = case F of
