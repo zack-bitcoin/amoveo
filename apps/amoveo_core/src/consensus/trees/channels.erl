@@ -3,9 +3,12 @@
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/9, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
-	 deserialize/1, serialize/1, test/0]).%common tree stuff
+	 deserialize/1, serialize/1, 
+	 all/0, close_many/0,
+	 test/0]).%common tree stuff
 %This is the part of the channel that is written onto the hard drive.
 
+-include("../../records.hrl").
 -record(channel, {id = 0, %the unique id number that identifies this channel
 		  acc1 = 0, % a pubkey
 		  acc2 = 0, % a different pubkey
@@ -168,6 +171,43 @@ verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 
 %function to look up all open channels.
+all() ->
+    Trees = (tx_pool:get())#tx_pool.block_trees,
+    Channels = trees:channels(Trees),
+    All = trie:get_all(Channels, channels),
+    lists:map(
+      fun(Leaf) ->
+	      channels:deserialize(leaf:value(Leaf))
+      end, All).
+close_many() ->
+    %if you have already solo-closed or slashed some channels, and you have waited long enough for those channels to be closed, this is how you can close them.
+    A = all(),
+    K = keys:pubkey(),
+    H = block:height(),
+    {ok, Fee} = application:get_env(amoveo_core, minimum_tx_fee),
+    close_many2(A, K, H, Fee+1).
+
+close_many2([], _, _, _) -> ok;
+close_many2([A|T], K, H, Fee) ->
+    A2 = A#channel.acc2,
+    H2 = A#channel.last_modified + A#channel.delay,
+    if
+	(not (A2 == K)) -> ok; %only close the ones that are opened with the server, 
+	H2 < H -> ok; %only close the ones that have waited long enough to be closed, 
+	true ->
+	    Tx = channel_timeout_tx:make_dict(A#channel.acc1, A#channel.id, Fee),
+	    Stx = keys:sign(Tx),
+	    tx_pool_feeder:absorb_async(Stx)
+    end,
+    close_many2(T, K, H, Fee).
+
+%keep the ones that are opened with the server, 
+    %B = lists:filter(fun(C) -> C#channel.acc2 == K end, A),
+%keep the ones that have waited long enough to be closed, 
+    %C = lists:filter(fun(C) -> (C#channel.last_modified + C#channel.delay) > H end, B),
+%then make a channel_timeout_tx for them all.
+    %lists:map(fun(C) -> tx_pool_feeder:absorb_async(keys:sign(channel_timeout_tx(C#channel.acc1, C#channel.id, Fee))) end, C).
+    
     
 test() ->
     ID = <<1:256>>,

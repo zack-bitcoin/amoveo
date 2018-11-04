@@ -291,6 +291,9 @@ channel_team_close(CID, Amount, Fee) ->
     Tx = channel_team_close_tx:make_dict(CID, Amount, Fee),
     %keys:sign(Tx).
     Tx.
+channel_timeout(1) -> %if you are running a channel node server.
+    channels:close_many().
+    
 channel_timeout() ->
     channel_timeout(constants:server_ip(), constants:server_port()).
 channel_timeout(Ip, Port) ->

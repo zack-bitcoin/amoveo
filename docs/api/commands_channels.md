@@ -30,3 +30,15 @@ api:pull_channel_state().
 ```
 api:channel_spend(Amount).
 ```
+
+#### start the process of closing a channel if your partner has disappeared, or is not cooperating.
+```
+channel_solo_close(TheirPubkey).
+```
+
+####Commands for if you are running a channel node server
+
+#### Close channels that are ready to be closed
+```
+api:close_many(1).
+```
