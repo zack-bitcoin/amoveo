@@ -37,9 +37,6 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 * light wallet tool for looking up governance values.
 
-* split the light node and full node into different repositories.
-- the light node can be a dependency, so the full node will still serve the light node by default.
-
 * consider making a light node in python.
 
 * teach the light node to scan multiple servers to identify the version of history with the most work.

@@ -8,8 +8,6 @@ handle(Req, _) ->
     {F, _} = cowboy_req:path(Req),
     PrivDir0 = 
 	case application:get_env(amoveo_core, kind) of
-	    %{ok, "production"} -> code:priv_dir(amoveo_http);
-	    %_ -> "../../../../apps/amoveo_http/priv"
 	    {ok, "production"} ->
 		"../../../../_build/prod/lib/light_node/src/js";
 	    {ok, "local"} ->
@@ -21,7 +19,6 @@ handle(Req, _) ->
 	    {ok, "dev3"} ->
 		"../../../../_build/dev3/lib/light_node/src/js"
 	end,
-    %amoveo/_build/local/lib/light_node/src/js/
     PrivDir = list_to_binary(PrivDir0),
     true = case F of
 	       <<"/sign_tx.js">> -> true;

@@ -32,9 +32,10 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 
 ## Light node
-Simply visit [this webpage](http://159.65.120.84:8080/wallet.html) to participate in Amoveo, no installation necessary.
 
-You can also download the javascript light node to ensure you have the secure version, and to be able to run in cold storage. To use the javascript light node open this file with your browser: `apps/amoveo_http/priv/external_web/wallet.html`
+The most secure wait to use the light node is to download it from github. https://github.com/zack-bitcoin/light-node-amoveo
+
+you can download the light node less securely by clicking [this link](http://159.65.120.84:8080/wallet.html). This is the easiest way to get started.
 
 This light node downloads headers and verifies the proof of work.
 It verifies the merkle proofs for all blockchain state you download to ensure security equivalent to a full node, provided you wait for enough confirmations.
