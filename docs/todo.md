@@ -29,21 +29,11 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
-* new light node is not working
-
-* similar to the oracle lookup tool, we should have a governance value lookup tool in the light node.
-
-
-
-* we should blacklist peers who send us invalid blocks.
+* we should blacklist peers who send us invalid blocks. Ignore any messages from them.
 
 * we rarely change any governance value, so why does the pointer increase so much?
 
-* light wallet tool for looking up governance values.
-
 * teach the light node to scan multiple servers to identify the version of history with the most work.
-
-* teach the light node to keep a backup of the headers, so we don't waste time re-downloading them.
 
 * if you try making a tx with an encrypted private key, or in sync_mode:quick, there should be a useful error message for why the tx failed.
 

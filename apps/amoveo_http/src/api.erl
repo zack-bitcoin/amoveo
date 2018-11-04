@@ -40,13 +40,20 @@ top(1) ->
     [H, block:hash(H)].
 sign(Tx) -> keys:sign(Tx).
 tx_maker0(Tx) -> 
-    case keys:sign(Tx) of
-	{error, locked} -> 
-	    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
+    case sync_mode:check() of
+	quick ->
+	    S = "error, you need to be in sync mode normal to make txs",
+	    io:fwrite(S),
 	    ok;
-	Stx -> 
-	    tx_pool_feeder:absorb(Stx),
-	    hash:doit(Tx)
+	normal ->
+	    case keys:sign(Tx) of
+		{error, locked} -> 
+		    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
+		    ok;
+		Stx -> 
+		    tx_pool_feeder:absorb(Stx),
+		    hash:doit(Tx)
+	    end
     end.
 create_account(NewAddr, Amount) ->
     Cost = trees:get(governance, create_acc_tx),
