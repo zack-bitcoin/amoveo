@@ -37,25 +37,14 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 * light wallet tool for looking up governance values.
 
-* consider making a light node in python.
-
 * teach the light node to scan multiple servers to identify the version of history with the most work.
 
 * teach the light node to keep a backup of the headers, so we don't waste time re-downloading them.
 
-* magnet torrent link for the light node.
-
 * if you try making a tx with an encrypted private key, or in sync_mode:quick, there should be a useful error message for why the tx failed.
 
 * light node should know how many bets are outstanding for it's account in oracles.
-
-* merge the scalar market fork. This is critical to fix a bug in market smart contracts.
-
-* take records of all the channels that need to be closed the slow way.
-
-* make a combinatorial question oracle to find out if we should lower the block reward, and a market.
-
-*light node needs to be able to look up the volume of off-chain bets. (or at least put it on the explorer for now.)
+*light node needs to be able to look up the volume of oracle bets. (or at least put it on the explorer for now.)
 
 * update the make file to more easily start the node after the changes to new linux installs.
 
@@ -123,6 +112,7 @@ debugger:start().
 
 * maybe `error_logger_hwm, 50` should be raised to 10 000.
 
+* consider making a light node in python.
 
 * look at the pull request for the escrow tool.
 
