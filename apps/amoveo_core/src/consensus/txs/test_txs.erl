@@ -208,7 +208,7 @@ test(5) ->
     success;
 test(61) -> 
     %a smart contract that runs out of gas.
-% look at the result of `trees:dict_tree_get(channels, <<5:256>>).` to see how this changes the channel.
+% look at the result of `trees:get(channels, <<5:256>>).` to see how this changes the channel.
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -308,7 +308,7 @@ test(6) ->
     Ctx6 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx6 = keys:sign(Ctx6),
     absorb(Stx6),
-    empty = trees:dict_tree_get(channels, <<1:256>>),
+    empty = trees:get(channels, <<1:256>>),
     potential_block:new(),
 
     mine_blocks(1),
@@ -422,7 +422,7 @@ test(7) ->
     Tx = existence_tx:make_dict(constants:master_pub(), Fee, Data),
     Stx = keys:sign(Tx),
     absorb(Stx),
-    C = trees:dict_tree_get(existence, Data),
+    C = trees:get(existence, Data),
     Data = existence:hash(C),
     timer:sleep(200),
     potential_block:new(),
@@ -452,7 +452,7 @@ test(11) ->
     timer:sleep(150),
     %make some bets in the oracle with oracle_bet
 
-    OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
+    OIL = trees:get(governance, oracle_initial_liquidity),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1), 
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
@@ -472,7 +472,7 @@ test(11) ->
     %get your spare money out with oracle_unmatched
     %Oracles = trees:oracles(Trees4),
     %{_, Oracle2, _} = oracles:get(OID, Oracles),
-    Oracle = trees:dict_tree_get(oracles, OID),
+    Oracle = trees:get(oracles, OID),
     %Orders = Oracle#oracle.orders,
     %{OrderID, _} = orders:head_get(Orders),%This only works because there is exactly 1 order in the order book.
     Tx4 = oracle_unmatched_tx:make_dict(constants:master_pub(), Fee, OID),
@@ -522,7 +522,7 @@ test(16) ->
     mine_blocks(5),
     timer:sleep(150),
     %make some bets in the oracle with oracle_bet
-    OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
+    OIL = trees:get(governance, oracle_initial_liquidity),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL), 
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
@@ -616,20 +616,20 @@ test(13) ->
     absorb(Stx3),
     timer:sleep(100),
 
-    MOT = trees:dict_tree_get(governance, minimum_oracle_time),
-    OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
+    MOT = trees:get(governance, minimum_oracle_time),
+    OIL = trees:get(governance, oracle_initial_liquidity),
     potential_block:new(),
     mine_blocks(1+MOT),
     timer:sleep(200),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID2, 1, OIL * 2), 
-    BR1 = trees:dict_tree_get(governance, block_reward),
+    BR1 = trees:get(governance, block_reward),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
     timer:sleep(200),
     potential_block:new(),
     mine_blocks(1+MOT),
     timer:sleep(100),
-    GovVal1 = trees:dict_tree_get(governance, 1),
+    GovVal1 = trees:get(governance, 1),
 
     Tx5 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID2),
     Stx5 = keys:sign(Tx5),
@@ -638,13 +638,13 @@ test(13) ->
     potential_block:new(),
     mine_blocks(1),
     timer:sleep(200),
-    GovVal2 = trees:dict_tree_get(governance, 1),
+    GovVal2 = trees:get(governance, 1),
     io:fwrite(packer:pack({GovVal2, GovVal1})),
     io:fwrite("\n"),
     true = GovVal2 > GovVal1,
 
     OID3 = <<2:256>>,
-    BR2 = trees:dict_tree_get(governance, block_reward),
+    BR2 = trees:get(governance, block_reward),
     Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID3, 1, 5),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
@@ -664,7 +664,7 @@ test(13) ->
     absorb(Stx9),
     timer:sleep(50),
 
-    BR3 = trees:dict_tree_get(governance, block_reward),
+    BR3 = trees:get(governance, block_reward),
     true = BR1 < BR2,
     true = BR2 < BR3,
     mine_blocks(1),

@@ -11,7 +11,7 @@ make_dict(From, Fee, ScriptPubkey, ScriptSig) ->
     true = is_list(ScriptSig),
     CID = (testnet_sign:data(ScriptPubkey))#spk.cid,
     <<_:256>> = CID,
-    Acc = trees:dict_tree_get(accounts, From),
+    Acc = trees:get(accounts, From),
     #csc{from = From, nonce = Acc#acc.nonce+1, 
 	 fee = Fee,
 	 scriptpubkey = ScriptPubkey, 
@@ -109,7 +109,7 @@ wait_block(X, SPK, SS) ->
             wait_block(X, SPK, SS)
     end.
 slash_it(SPK, SS) ->
-    GovCost = trees:dict_tree_get(governance, cs),
+    GovCost = trees:get(governance, cs),
     {ok, TxFee} = application:get_env(amoveo_core, tx_fee),
     Tx = channel_slash_tx:make_dict(keys:pubkey(), TxFee + GovCost, keys:sign(SPK), SS),
     Stx = keys:sign(Tx),

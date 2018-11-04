@@ -8,7 +8,7 @@
 from(X) -> X#oracle_close.from.
 oracle_id(X) -> X#oracle_close.oracle_id.
 make_dict(From, Fee, OID) ->
-    Acc = trees:dict_tree_get(accounts, From),
+    Acc = trees:get(accounts, From),
     #oracle_close{from = From, fee = Fee, oracle_id = OID, nonce = Acc#acc.nonce + 1}.
     
 make(From, Fee, OID, Trees) ->

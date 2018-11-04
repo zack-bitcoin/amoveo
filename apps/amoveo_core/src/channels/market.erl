@@ -91,7 +91,7 @@ test() ->
     test_txs:mine_blocks(1),%was 1
     timer:sleep(1000),
     %make some bets in the oracle with oracle_bet
-    OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
+    OIL = trees:get(governance, oracle_initial_liquidity),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL*2), 
     Stx2 = keys:sign(Tx2),
     test_txs:absorb(Stx2),

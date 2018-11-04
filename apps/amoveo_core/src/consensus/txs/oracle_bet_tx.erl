@@ -25,7 +25,7 @@ from(X) -> X#oracle_bet.from.
 id(X) -> X#oracle_bet.id.
 make_dict(From, Fee, OID, Type, Amount) ->
     <<_:256>> = OID,
-    Acc = trees:dict_tree_get(accounts, From),
+    Acc = trees:get(accounts, From),
     Tx = #oracle_bet{
        from = From, 
        nonce = Acc#acc.nonce + 1,

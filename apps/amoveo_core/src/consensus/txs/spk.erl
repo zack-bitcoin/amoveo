@@ -394,7 +394,7 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
 				nonce = NewSPK#spk.nonce},
 	    CID = NewSPK#spk.cid,
 	    <<_:256>> = CID,
-	    Channel = trees:dict_tree_get(channels, CID),
+	    Channel = trees:get(channels, CID),
 	    KID = keys:pubkey(),
 	    Acc1 = channels:acc1(Channel),
 	    Acc2 = channels:acc2(Channel),
@@ -525,8 +525,8 @@ test() ->
     [[[<<6:32>>, <<GovID:32>>, Gov5], %6th tree is governance. 5th thing is "delete channel reward"
       [<<1:32>>, BPub, Acc1]]] = %1st tree is accounts. 1 is for account id 1.
 	chalang:vm(Code, 100000, 100000, 1000, 1000, State),
-    Govern5 = trees:dict_tree_get(governance, GovID),
-    Account1 = trees:dict_tree_get(accounts, constants:master_pub()),
+    Govern5 = trees:get(governance, GovID),
+    Account1 = trees:get(accounts, constants:master_pub()),
     %io:fwrite(packer:pack([governance:deserialize(Gov5), Govern5])),
     %[-6,["gov",2,1100,0],889981]
     Acc1 = accounts:serialize(Account1),

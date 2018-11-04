@@ -4,7 +4,7 @@
 -include("../../records.hrl").
 from(X) -> X#coinbase.from.
 make_dict(From) ->
-    Acc = trees:dict_tree_get(accounts, From),
+    Acc = trees:get(accounts, From),
     #coinbase{from = From}.
 make(From, Trees) ->
     Accounts = trees:accounts(Trees),

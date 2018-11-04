@@ -14,10 +14,10 @@ fee(Tx) -> Tx#ctc.fee.
 acc1(Tx) -> Tx#ctc.aid1.
 acc2(Tx) -> Tx#ctc.aid2.
 make_dict(ID,Amount,Fee) ->
-    C = trees:dict_tree_get(channels, ID),
+    C = trees:get(channels, ID),
     A1 = channels:acc1(C),
     A2 = channels:acc2(C),
-    Acc1 = trees:dict_tree_get(accounts, A1),
+    Acc1 = trees:get(accounts, A1),
     Nonce = Acc1#acc.nonce,
     #ctc{id = ID, aid1 = A1, aid2 = A2, 
 	 fee = Fee, nonce = Nonce+1, 

@@ -11,8 +11,8 @@ spk_aid2(X) -> X#timeout.spk_aid2.
     
    
 make_dict(ID, CID, Fee) -> 
-    Acc = trees:dict_tree_get(accounts, ID),
-    Channel = trees:dict_tree_get(channels, CID),
+    Acc = trees:get(accounts, ID),
+    Channel = trees:get(channels, CID),
     Acc1 = channels:acc1(Channel),
     Acc2 = channels:acc2(Channel),
     Nonce = Acc#acc.nonce,

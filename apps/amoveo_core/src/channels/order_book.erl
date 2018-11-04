@@ -248,7 +248,7 @@ add(Order, OID) ->
     gen_server:call(?MODULE, {add, Order, OID}).
 match(OID) ->
     <<_:256>> = OID,
-    Oracle = trees:dict_tree_get(oracles, OID),
+    Oracle = trees:get(oracles, OID),
     Result = Oracle#oracle.result,
     case Result of
         0 -> gen_server:call(?MODULE, {match, OID});

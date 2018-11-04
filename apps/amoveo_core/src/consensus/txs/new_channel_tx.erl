@@ -16,7 +16,7 @@ spk(Tx, Delay) ->
     spk:new(Tx#nc.acc1, Tx#nc.acc2, Tx#nc.id,
             [], 0,0, 0, Delay).
 make_dict(ID,Acc1,Acc2,Inc1,Inc2,Delay, Fee) ->
-    A = trees:dict_tree_get(accounts, Acc1),
+    A = trees:get(accounts, Acc1),
     Nonce = A#acc.nonce,
     <<_:256>> = ID,
     #nc{id = ID, acc1 = Acc1, acc2 = Acc2, 

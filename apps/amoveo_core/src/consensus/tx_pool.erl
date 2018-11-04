@@ -25,8 +25,8 @@ handle_call({absorb_tx, NewDict, Tx}, _From, F) ->
     %io:fwrite(packer:pack([23, now()])),
     %io:fwrite("\n"),
     %Governance = trees:governance(NewTrees),
-    %MaxBlockSize = trees:dict_tree_get(governance, max_block_size),
-    MaxBlockSize = trees:dict_tree_get(governance, max_block_size, F#tx_pool.dict, F#tx_pool.block_trees),
+    %MaxBlockSize = trees:get(governance, max_block_size),
+    MaxBlockSize = trees:get(governance, max_block_size, F#tx_pool.dict, F#tx_pool.block_trees),
     %MaxBlockSize = governance:get_value(max_block_size, Governance),
     F2 = case BlockSize > (MaxBlockSize - 150) of
              true ->

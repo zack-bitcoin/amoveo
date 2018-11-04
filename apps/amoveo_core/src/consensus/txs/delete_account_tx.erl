@@ -9,8 +9,8 @@
 from(X) -> X#delete_acc_tx.from.
 to(X) -> X#delete_acc_tx.to.
 make_dict(To, ID, Fee) ->
-    From = trees:dict_tree_get(accounts, ID),
-    ToAcc = trees:dict_tree_get(accounts, To),
+    From = trees:get(accounts, ID),
+    ToAcc = trees:get(accounts, To),
     false = ToAcc == empty,
     #delete_acc_tx{from = ID,
 		   nonce = From#acc.nonce + 1,

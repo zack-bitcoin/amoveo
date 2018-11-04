@@ -84,7 +84,7 @@ absorb_internal2(SignedTx, PID) ->
 		    true = Fee > (MF + Cost),
 		    ok;
 		_ ->
-		    Cost = trees:dict_tree_get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
+		    Cost = trees:get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
     %io:fwrite("now 4 "),%500
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
@@ -95,20 +95,17 @@ absorb_internal2(SignedTx, PID) ->
     %io:fwrite("now 5 "),%2000
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-	    %io:fwrite("now 6 "),%200 or 2000
-	    %io:fwrite(packer:pack(now())),
-	    %io:fwrite("\n"),
 	    X = absorb_unsafe(SignedTx),
 	    PID ! X
     end.
 sum_cost([], _, _) -> 0;
 sum_cost([H|T], Dict, Trees) ->
     Type = element(1, H),
-    Cost = trees:dict_tree_get(governance, Type, Dict, Trees),
+    Cost = trees:get(governance, Type, Dict, Trees),
     Cost + sum_cost(T, Dict, Trees).
     
-grow_dict(Dict, [], _) -> Dict;
-grow_dict(Dict, [{orders, Key}|T], Trees) ->
+lookup_merkel_proofs(Dict, [], _) -> Dict;
+lookup_merkel_proofs(Dict, [{orders, Key}|T], Trees) ->
     Dict2 = 
 	case dict:find({orders, Key}, Dict) of
 	    error ->
@@ -128,8 +125,8 @@ grow_dict(Dict, [{orders, Key}|T], Trees) ->
 		dict:store({orders, Key}, Val2, Dict);
 	    {ok, _} -> Dict
 	end,
-    grow_dict(Dict2, T, Trees);
-grow_dict(Dict, [{oracle_bets, Key}|T], Trees) ->
+    lookup_merkel_proofs(Dict2, T, Trees);
+lookup_merkel_proofs(Dict, [{oracle_bets, Key}|T], Trees) ->
     Dict2 = 
 	case dict:find({oracle_bets, Key}, Dict) of
 	    error ->
@@ -144,8 +141,8 @@ grow_dict(Dict, [{oracle_bets, Key}|T], Trees) ->
 		dict:store({oracle_bets, Key}, Val2, Dict);
 	    {ok, _} -> Dict
 	end,
-    grow_dict(Dict2, T, Trees);
-grow_dict(Dict, [{TreeID, Key}|T], Trees) ->
+    lookup_merkel_proofs(Dict2, T, Trees);
+lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees) ->
     Dict2 = 
 	case dict:find({TreeID, Key}, Dict) of
 	    error ->
@@ -163,7 +160,7 @@ grow_dict(Dict, [{TreeID, Key}|T], Trees) ->
 		dict:store({TreeID, Key}, Foo, Dict);
 	    {ok, _} -> Dict
 	end,
-    grow_dict(Dict2, T, Trees).
+    lookup_merkel_proofs(Dict2, T, Trees).
 
 	    
 absorb_unsafe(SignedTx, Trees, Height, Dict) ->
@@ -179,22 +176,16 @@ absorb_unsafe(SignedTx, Trees, Height, Dict) ->
     %io:fwrite("now 8 "),%200
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    Dict2 = grow_dict(Dict, Querys, Trees),
+    Dict2 = lookup_merkel_proofs(Dict, Querys, Trees),
 
-%    Facts = proofs:prove(Querys, Trees),
-    %Dict2 = proofs:facts_to_dict(Facts, dict:new()),
-%    Dict2 = proofs:facts_to_dict(Facts, Dict),
     %io:fwrite("now 9 "),%300
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
     NewDict = txs:digest([SignedTx], Dict2, Height + 1),%This processes the tx.
-    %NewTrees = block:dict_update_trie(Trees, NewDict), 
-    %tx_pool:absorb_tx(NewTrees, NewDict, SignedTx).
     %io:fwrite("now 10 "),%3000
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
     NewDict.
-    %tx_pool:absorb_tx(NewDict, SignedTx).%1500
 ai2([]) -> ok;
 ai2([H|T]) ->
     case absorb_internal(H) of

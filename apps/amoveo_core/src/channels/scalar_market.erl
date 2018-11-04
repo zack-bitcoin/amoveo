@@ -131,7 +131,7 @@ scalar_bet_make(Pubkey, Fee, OID, Output, Many, BetSize) ->
     sbm(Pubkey, Fee, OID + Many - 1, Output, Many, BetSize).
 sbm(_, _, _, _, 0, _) -> ok;
 sbm(Pubkey, Fee, OID, Output, Many, BetSize) -> 
-    %OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
+    %OIL = trees:get(governance, oracle_initial_liquidity),
     Bit = case (Output rem 2) of
 	      0 -> 2;
 	      1 -> 1
@@ -168,7 +168,7 @@ test() ->
     test_txs:mine_blocks(1),%was 1
     timer:sleep(1000),
     %make some bets in the oracle with oracle_bet
-    OIL = trees:dict_tree_get(governance, oracle_initial_liquidity),
+    OIL = trees:get(governance, oracle_initial_liquidity),
     scalar_bet_make(constants:master_pub(), Fee, OID0, 1023, Many, OIL * 2), %512 is half way between all and nothing.
     %scalar_bet_make(constants:master_pub(), Fee, OID0, 0, Many, OIL * 2), %512 is half way between all and nothing.
     %1=2,

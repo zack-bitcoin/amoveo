@@ -23,7 +23,7 @@ id(X) -> X#oracle_new.id.
 governance(X) -> X#oracle_new.governance.
 make_dict(From, Fee, Question, Start, ID, Governance, GovAmount) ->
     <<_:256>> = ID,
-    Acc = trees:dict_tree_get(accounts, From),
+    Acc = trees:get(accounts, From),
     #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount}.
     
 make(From, Fee, Question, Start, ID, Governance, GovAmount, Trees) ->

@@ -182,7 +182,7 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     %spk:dict_run(fast, SSThem, SPK, Height, 0, Dict),%sanity test
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = SSME, ssthem = SSThem},
-    Channel = trees:dict_tree_get(channels, NewCD#cd.cid),
+    Channel = trees:get(channels, NewCD#cd.cid),
     SPKAmount = SPK#spk.amount,
     BetAmount = api:sum_bets(SPK#spk.bets),
     true = 0 < (channels:bal1(Channel) + SPKAmount),

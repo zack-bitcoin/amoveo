@@ -8,7 +8,7 @@ from(X) -> X#unmatched.from.
 oracle_id(X) -> X#unmatched.oracle_id.
            
 make_dict(From, Fee, OracleID) ->
-    Acc = trees:dict_tree_get(accounts, From),
+    Acc = trees:get(accounts, From),
     #unmatched{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, oracle_id = OracleID}.
     
 make(From, Fee, OracleID, Trees) ->

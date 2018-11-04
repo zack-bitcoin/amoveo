@@ -7,7 +7,7 @@ make_dict(Pub, Amount, Fee, From) ->
     PS = size(Pub),
     PS = size(From),
     PS = constants:pubkey_size(),
-    Account = trees:dict_tree_get(accounts, From),
+    Account = trees:get(accounts, From),
     #create_acc_tx{from = From,
 		   nonce = Account#acc.nonce + 1,
 		   pubkey = Pub,

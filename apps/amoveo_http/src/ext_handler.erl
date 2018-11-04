@@ -199,7 +199,7 @@ doit({channel_close, CID, PeerId, SS, STx}) ->
     Height = (headers:top())#header.height,
     Dict = (tx_pool:get())#tx_pool.dict,
     {Amount, _, _} = spk:dict_run(fast, SS, SPK, Height, 0, Dict),
-    Channel = trees:dict_tree_get(channels, CID),
+    Channel = trees:get(channels, CID),
     Bal1 = channels:bal1(Channel),
     Bal2 = channels:bal2(Channel),
     {ok, TV} = application:get_env(amoveo_core, time_value),
@@ -263,7 +263,7 @@ doit({list_oracles}) ->
 doit({oracle, Y}) ->
     %X = base64:decode(Y),
     X = Y,
-    Oracle = trees:dict_tree_get(oracles, X),
+    Oracle = trees:get(oracles, X),
     {ok, Question} = oracle_questions:get(Oracle#oracle.question),
     {ok, OB} = order_book:data(X),
     {ok, {OB, Question}};
@@ -293,7 +293,7 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
     OldTrees = OldBlock#block.trees,
-    false = empty == trees:dict_tree_get(channels, CD#cd.cid, dict:new(), OldTrees),%channel existed confirmation blocks ago.
+    false = empty == trees:get(channels, CD#cd.cid, dict:new(), OldTrees),%channel existed confirmation blocks ago.
 
     true = Expires < CD#cd.expiration,
     %SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, api:height()),

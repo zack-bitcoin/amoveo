@@ -49,7 +49,7 @@ tx_maker0(Tx) ->
 	    hash:doit(Tx)
     end.
 create_account(NewAddr, Amount) ->
-    Cost = trees:dict_tree_get(governance, create_acc_tx),
+    Cost = trees:get(governance, create_acc_tx),
     create_account(NewAddr, Amount, ?Fee + Cost).
 create_account(NewAddr, Amount, Fee) when size(NewAddr) == 65 ->
     Tx = create_account_tx:make_dict(NewAddr, Amount, Fee, keys:pubkey()),
@@ -73,7 +73,7 @@ multi_spend([{Amount, Pubkey}|T]) ->
 	     ID == K -> io:fwrite("don't spend to yourself\n"),
 			1 = 2;
 	     true ->
-		 B = trees:dict_tree_get(accounts, ID),
+		 B = trees:get(accounts, ID),
 		 if
 		     (B == empty) -> 
 			 create_account_tx:make_dict(ID, Amount, 0, K);
@@ -85,7 +85,7 @@ multi_spend([{Amount, Pubkey}|T]) ->
 multi_fee([]) -> 0;
 multi_fee([H|T]) ->
     Type = element(1, H),
-    Cost = trees:dict_tree_get(governance, Type),
+    Cost = trees:get(governance, Type),
     Cost + multi_fee(T) + ?Fee.
 
 
@@ -95,12 +95,12 @@ spend(ID0, Amount) ->
     if 
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
 	true -> 
-	    B = trees:dict_tree_get(accounts, ID),
+	    B = trees:get(accounts, ID),
             if 
                (B == empty) ->
                     create_account(ID, Amount);
                 true ->
-		    Cost = trees:dict_tree_get(governance, spend),
+		    Cost = trees:get(governance, spend),
                     spend(ID, Amount, ?Fee+Cost)
             end
     end.
@@ -109,13 +109,13 @@ spend(ID0, Amount, Fee) ->
     tx_maker0(spend_tx:make_dict(ID, Amount, Fee, keys:pubkey())).
 delete_account(ID0) ->
     ID = decode_pubkey(ID0),
-    Cost = trees:dict_tree_get(governance, delete_acc_tx),
+    Cost = trees:get(governance, delete_acc_tx),
     delete_account(ID, ?Fee + Cost).
 delete_account(ID0, Fee) ->
     ID = decode_pubkey(ID0),
     tx_maker0(delete_account_tx:make_dict(ID, keys:pubkey(), Fee)).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
-    Cost = trees:dict_tree_get(governance, nc),
+    Cost = trees:get(governance, nc),
     new_channel_tx(CID, Acc2, Bal1, Bal2, ?Fee+Cost, Delay).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Fee, Delay) ->
     %the delay is how many blocks you have to wait to close the channel if your partner disappears.
@@ -126,7 +126,7 @@ new_channel_with_server(Bal1, Bal2, Delay, Expires) ->
     new_channel_with_server(Bal1, Bal2, Delay, Expires, ?IP, ?Port).
 new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
     CID = find_id2(),
-    Cost = trees:dict_tree_get(governance, nc),
+    Cost = trees:get(governance, nc),
     new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires),
     CID.
 find_id2() -> find_id2(1, 1).
@@ -274,7 +274,7 @@ integer_channel_balance(Ip, Port) ->
     Amount = SPK#spk.amount,
     BetAmounts = sum_bets(SPK#spk.bets),
     CID = SPK#spk.cid,
-    Channel = trees:dict_tree_get(channels, CID),
+    Channel = trees:get(channels, CID),
     {channels:bal1(Channel)+Amount, channels:bal2(Channel)-Amount-BetAmounts}.
 sum_bets([]) -> 0;
 sum_bets([B|T]) ->
@@ -285,7 +285,7 @@ pretty_display(I) ->
     [Formatted] = io_lib:format("~.8f", [F]),
     Formatted.
 channel_team_close(CID, Amount) ->
-    Cost = trees:dict_tree_get(governance, ctc),
+    Cost = trees:get(governance, ctc),
     channel_team_close(CID, Amount, ?Fee+Cost).
 channel_team_close(CID, Amount, Fee) ->
     Tx = channel_team_close_tx:make_dict(CID, Amount, Fee),
@@ -319,7 +319,7 @@ new_scalar_oracle(Start, Question, ID, Many) ->
 	     is_list(Question) -> list_to_binary(Question);
 	     true -> Question
 	 end,
-    Cost = trees:dict_tree_get(governance, oracle_new),
+    Cost = trees:get(governance, oracle_new),
     nso2(keys:pubkey(), ?Fee+Cost+20, Q2, Start, ID, 0, Many).
 -define(GAP, 0).%how long to wait between the limits when the different oracles of a scalar market can be closed.
 nso2(_Pub, _C, _Q, _S, _ID, Many, Many) -> 0;
@@ -341,36 +341,36 @@ new_question_oracle(Start, Question, ID)->
 	     is_list(Question) -> list_to_binary(Question);
 	     true -> Question
 	 end,
-    Cost = trees:dict_tree_get(governance, oracle_new),
+    Cost = trees:get(governance, oracle_new),
     tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, ID, 0, 0)),
     ID.
 new_governance_oracle(GovName, GovAmount) ->
     GovNumber = governance:name2number(GovName),
     ID = find_id2(),
-    %Recent = trees:dict_tree_get(oracles, DiffOracleID),
-    Cost = trees:dict_tree_get(governance, oracle_new),
+    %Recent = trees:get(oracles, DiffOracleID),
+    Cost = trees:get(governance, oracle_new),
     Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, 0, ID, GovNumber, GovAmount),
     tx_maker0(Tx),
     ID.
 oracle_bet(OID, Type, Amount) ->
-    Cost = trees:dict_tree_get(governance, oracle_bet),
+    Cost = trees:get(governance, oracle_bet),
     oracle_bet(?Fee+Cost, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->
     tx_maker0(oracle_bet_tx:make_dict(keys:pubkey(), Fee, OID, Type, Amount)).
 oracle_close(OID) ->
     Trees = (tx_pool:get())#tx_pool.block_trees,
     Dict = (tx_pool:get())#tx_pool.dict,
-    Cost = trees:dict_tree_get(governance, oracle_close, Dict, Trees),
+    Cost = trees:get(governance, oracle_close, Dict, Trees),
     oracle_close(?Fee+Cost, OID).
 oracle_close(Fee, OID) ->
     tx_maker0(oracle_close_tx:make_dict(keys:pubkey(), Fee, OID)).
 oracle_winnings(OID) ->
-    Cost = trees:dict_tree_get(governance, oracle_winnings),
+    Cost = trees:get(governance, oracle_winnings),
     oracle_winnings(?Fee+Cost, OID).
 oracle_winnings(Fee, OID) ->
     tx_maker0(oracle_winnings_tx:make_dict(keys:pubkey(), Fee, OID)).
 oracle_unmatched(OracleID) ->
-    Cost = trees:dict_tree_get(governance, unmatched),
+    Cost = trees:get(governance, unmatched),
     oracle_unmatched(?Fee+Cost, OracleID).
 oracle_unmatched(Fee, OracleID) ->
     tx_maker0(oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)).
@@ -378,27 +378,27 @@ tree_common(TreeName, ID, BlockHash) ->
     B = block:get_by_hash(BlockHash),
     %T = block:trees(B),
     T = B#block.trees,
-    trees:dict_tree_get(TreeName, ID, dict:new(), T).
+    trees:get(TreeName, ID, dict:new(), T).
     
 governance(ID) ->
-    trees:dict_tree_get(governance, ID).
+    trees:get(governance, ID).
 governance(ID, BlockHash) ->
     tree_common(governance, ID, BlockHash).
 channel(ID) ->
-    trees:dict_tree_get(channels, ID).
+    trees:get(channels, ID).
 channel(ID, BlockHash) ->
     tree_common(channel, ID, BlockHash).
 existence(ID) ->
-    trees:dict_tree_get(existence, ID).
+    trees:get(existence, ID).
 existence(ID, BlockHash) ->
     tree_common(existence, ID, BlockHash).
 oracle(ID) ->
-    trees:dict_tree_get(oracles, ID).
+    trees:get(oracles, ID).
 oracle(ID, BlockHash) ->
     tree_common(oracle, ID, BlockHash).
 account(P) ->
     Pubkey = decode_pubkey(P),
-    trees:dict_tree_get(accounts, Pubkey).
+    trees:get(accounts, Pubkey).
 account(P, BlockHash) ->
     Pubkey = decode_pubkey(P),
     tree_common(oracle, Pubkey, BlockHash).
@@ -458,7 +458,7 @@ mine_block(_, _, _) -> %only creates a headers, no blocks.
 channel_close() ->
     channel_close(?IP, ?Port).
 channel_close(IP, Port) ->
-    Cost = trees:dict_tree_get(governance, ctc),
+    Cost = trees:get(governance, ctc),
     channel_close(IP, Port, ?Fee+Cost).
 channel_close(IP, Port, Fee) ->
     {ok, PeerId} = talker:talk({pubkey}, IP, Port),
@@ -470,7 +470,7 @@ channel_close(IP, Port, Fee) ->
     SS = [],
     {Amount, _Nonce, _Delay} = spk:dict_run(fast, SS, SPK, Height, 0, Dict),
     CID = SPK#spk.cid,
-    Channel = trees:dict_tree_get(channels, CID),
+    Channel = trees:get(channels, CID),
     Bal1 = channels:bal1(Channel),
     Bal2 = channels:bal2(Channel),
     {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
@@ -542,7 +542,7 @@ not_empty_oracle(OID, Many, OldTrees) ->
     io:fwrite("not empty oracle "),
     io:fwrite(integer_to_list(Many)),
     io:fwrite("\n"),
-    X = trees:dict_tree_get(oracles, <<OID:256>>, dict:new(), OldTrees),
+    X = trees:get(oracles, <<OID:256>>, dict:new(), OldTrees),
     (not (empty == X)) and not_empty_oracle(OID+1, Many-1, OldTrees).
 new_market(OID, Expires, Period, LL, UL, Many) -> %<<5:256>>, 4000, 5
     true = LL > -1,
@@ -568,7 +568,7 @@ new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     io:fwrite("api oid is "),
     io:fwrite(packer:pack([OID, OldTrees, Height-Confirmations])),
     io:fwrite("\n"),
-    false = empty == trees:dict_tree_get(oracles, OID, dict:new(), OldTrees),%oracle existed confirmation blocks ago.
+    false = empty == trees:get(oracles, OID, dict:new(), OldTrees),%oracle existed confirmation blocks ago.
     
     order_book:new_market(OID, Expires, Period).
 trade(Price, Type, Amount, OID, Height) ->
@@ -676,7 +676,7 @@ mining_data() ->
 	    end
     end.
 orders(OID) ->
-    Oracle = trees:dict_tree_get(oracles, OID),
+    Oracle = trees:get(oracles, OID),
     X = oracles:orders(Oracle),
     IDs = orders:all(X),
     lists:map(fun(Y) -> orders:get(Y, X) end, IDs).

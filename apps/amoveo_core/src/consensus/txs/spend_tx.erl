@@ -4,7 +4,7 @@
 from(X) -> X#spend.from.
 to(X) -> X#spend.to. 
 make_dict(To, Amount, Fee, From) ->
-    Acc = trees:dict_tree_get(accounts, From),
+    Acc = trees:get(accounts, From),
     #spend{from = From, nonce = Acc#acc.nonce + 1, to = To, amount = Amount, fee = Fee}.
 	    
 make(To, Amount, Fee, From, Trees) ->

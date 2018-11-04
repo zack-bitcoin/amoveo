@@ -8,7 +8,7 @@ commit(X) -> X#ex.commit.
 make_dict(From, Fee, Data) ->
     true = is_binary(Data),
     32 = size(Data),
-    Acc = trees:dict_tree_get(accounts, From),
+    Acc = trees:get(accounts, From),
     Nonce = Acc#acc.nonce + 1,
     #ex{from = From,fee=Fee,nonce=Nonce,commit=Data}.
 make(From, Fee, Data, Trees) ->

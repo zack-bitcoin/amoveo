@@ -8,7 +8,7 @@ txs(X) -> X#multi_tx.txs.
 
 make_dict(From, Txs, Fee) ->
     %replace from and nonce in each sub-tx with a 0.
-    Acc = trees:dict_tree_get(accounts, From),
+    Acc = trees:get(accounts, From),
     Txs2 = zero_accounts_nonces(Txs),
     #multi_tx{from = From, nonce = Acc#acc.nonce + 1, txs = Txs2, fee = Fee}.
 zero_accounts_nonces([]) -> [];
