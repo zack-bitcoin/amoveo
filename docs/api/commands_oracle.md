@@ -69,7 +69,7 @@ Type is either 1, 2, or 3.
 2 = false
 3 = bad question
 
-Look up bets in the oracle
+Look up unmatched bets in the oracle
 ====
 ```
 api:orders(OracleID).
