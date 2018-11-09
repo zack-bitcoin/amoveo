@@ -29,6 +29,8 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+* torrent of the light node.
+
 * confirmed_root has the constant "confirmations". it needs to be combined with something from the configurations.
 
 * we should blacklist peers who send us invalid blocks. Ignore any messages from them.

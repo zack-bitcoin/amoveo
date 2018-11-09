@@ -686,6 +686,7 @@ mining_data() ->
 	    end
     end.
 orders(OID) ->
+    %if the OID is encoded, we should decode it to binary form.
     Oracle = trees:get(oracles, OID),
     X = oracles:orders(Oracle),
     IDs = orders:all(X),
