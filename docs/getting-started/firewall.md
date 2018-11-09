@@ -7,7 +7,8 @@ In Ubuntu, using root, issue these commands:
 ufw default allow outgoing
 ufw allow 22
 ufw allow 8080
-ufw enable```
+ufw enable
+```
 
 This will block everything from connecting your node, except for full node api on 8080, and ssh on 22 for administration of the server.
 
