@@ -18,12 +18,16 @@ or
 
 
 
+A useful command to look at what your ports are currently doing:
+`netstat -atu | grep "LISTEN"`
+
+
 
 epmd should start automatically, and you can just leave it running. So you probably never have to use these commands:
 
 If epmd is stuck running on a loopback interface, you may want to restart it so that your programs will run properly in the background again.
 
-Now that the fire wall is working, you can turn on epmd:
+Now that the fire wall is working, you can turn on epmd (if you do it manually, it is recommended to start epmd as root.):
 `epmd -daemon`
 
 epmd will continue running even if Amoveo is turned off. To turn off epmd use
