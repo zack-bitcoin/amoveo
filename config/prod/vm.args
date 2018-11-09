@@ -1,6 +1,6 @@
 -sname amoveo_core_prod
 
--setcookie amoveo_core_cookie
+# -setcookie amoveo_core_cookie
 
 +K true
 +A30
