@@ -1,13 +1,13 @@
-EPMD gives a nice interface so you ucan run Amoveo programs in the background. This is important for running the integration tests.
+EPMD gives a nice interface so you can run Amoveo programs in the background. This is important for running the integration tests.
 
 Before enabling EPMD, make sure to block port 4369, and other ports used by erlang, otherwise strangers will be able to control your Amoveo node.
 
-In Ubuntu, using root:
-`ufw default deny incoming`
-`ufw default allow outgoing`
-`ufw allow 22`
-`ufw allow 8080`
-`ufw enable`
+In Ubuntu, using root, issue these commands:
+```ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22
+ufw allow 8080
+ufw enable```
 
 This will block everything from connecting your node, except for full node api on 8080, and ssh on 22 for administration of the server.
 
