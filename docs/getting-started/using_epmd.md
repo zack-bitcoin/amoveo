@@ -32,29 +32,4 @@ to see if epmd is already running:
 
 
 
-Once spmd is turned on, then it is possible to run Amoveo in the background, which enables these commands:
-
-This recompiles and turns on a full node.
-```
-make prod-restart
-```
-Then you can attach to the production node like this:
-```
-make prod-attach
-```
-
-This sets up 3 testnet nodes for an integration test:
-```
-make multi-quick
-```
-Then you can use these commands to attach to the nodes:
-```
-make attach1
-```
-```
-make attach2
-```
-```
-make attach3
-```
 
