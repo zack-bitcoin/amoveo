@@ -50,6 +50,12 @@ halt().
 ```
 to turn off erlang.
 
+You can upgrade the security of your node. First you need to run the node at least once. Then you need to run the node off. Then run this script:
+`sudo sh better_cookie.sh`
+
+If you mess up and create a cookie before running your node at least once, then your node will get stuck. you can fix it like this:
+`sudo rm -rf ~/.erlang.cookie`
+
 
 You can delete the database to restart from the genesis block. This preserves your keys.
 Make sure to turn your node off first before doing this.

@@ -133,9 +133,6 @@ clean3: clean
 
 .SECONDEXPANSION:
 
-#replace `amoveo_core_cookie` with randomness
-#openssl rand -base64 64
-
 
 build: $$(KIND)
 	@./rebar3 as $(KIND) release
