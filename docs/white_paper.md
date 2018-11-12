@@ -37,7 +37,7 @@ Combining finance with a monopoly on violence means that we can't truly trust th
 
 
 ## Blockchain Consensus Protocol
-Amoveo uses Nakamoto consensus, just like Bitcoin. In this system, some people act as miners. They receive a reward for producing blocks. Producing a block involves doing an expensive calculation called proof-of-work. The difficulty of this proof-of-work resets every 2000 blocks so that the rate of block production stays about 10 minutes per block.
+Amoveo uses Nakamoto consensus, just like Bitcoin. In this system, some people act as miners. They receive a reward for producing blocks. Producing a block involves doing an expensive calculation called proof-of-work. The difficulty of this proof-of-work changes so that the rate of block production stays about 10 minutes.
 
 
 ## Accounts

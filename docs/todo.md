@@ -29,8 +29,6 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
-* update white paper explanation of difficulty retargeting.
-
 * torrent of the light node.
 
 * confirmed_root has the constant "confirmations". it needs to be combined with something from the configurations.
