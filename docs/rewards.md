@@ -15,7 +15,7 @@ BJSlvB3yKSQNzGcm6N33HKnoVkQIgfEIyE1G7QYhH1772pbHW/OPQ1BbuFp1GSDYFs4ny7TrCkX/PvsO
 I sent him 30 veo at 40942
 
 
-Denis Voskvitsov
+Denis Voskvitsov of Exan.tech
 found out that the brainwallet tool in the light node was not using enough entropy when generating private keys.
 BK6OJdmldif8Z+MdHJZrnNSXT5CSH4lhfNQ8AcET1ZIxWroBxPxN3FOdbE1nDL/eQsI5smoon8m887bri8J/Mgc=
 I sent him 10 veo in 41063
