@@ -13,3 +13,9 @@ Michał Marek (ecneladis) of Patterns Dynamics
 found a way to use EPMD to access the private keys of any full node that doesn't have a firewall
 BJSlvB3yKSQNzGcm6N33HKnoVkQIgfEIyE1G7QYhH1772pbHW/OPQ1BbuFp1GSDYFs4ny7TrCkX/PvsOHN9hHT4=
 I sent him 30 veo at 40942
+
+
+Denis Voskvitsov
+found out that the brainwallet tool in the light node was not using enough entropy when generating private keys.
+BK6OJdmldif8Z+MdHJZrnNSXT5CSH4lhfNQ8AcET1ZIxWroBxPxN3FOdbE1nDL/eQsI5smoon8m887bri8J/Mgc=
+I sent him 10 veo in 41063
