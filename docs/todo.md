@@ -42,8 +42,6 @@ This would prevent attacks where the attacker opens too many channels, and tries
 * light node should know how many bets are outstanding for it's account in oracles.
 *light node needs to be able to look up the volume of oracle bets. (or at least put it on the explorer for now.)
 
-* update the make file to more easily start the node after the changes to new linux installs.
-
 * fix variable and function names for readability.
 
 

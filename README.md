@@ -101,9 +101,9 @@ Amoveo-Exchange for ETH-VEO trading: https://amoveo.exchange/
 
 
 ## Software to launch a new mining pool
-If your full node is on a different machine from your miner, you will need a mining pool. [Mining pool software can be found here.](https://github.com/zack-bitcoin/amoveo-mining-pool)
-The "master" branch is for paying out small amounts to each miner with each block.
-The "classic" version only pays a miner when they find a block.
+
+https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool.
+[Another open source mining pool](https://github.com/zack-bitcoin/amoveo-mining-pool)
 
 
 ## Developers
