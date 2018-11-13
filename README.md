@@ -28,7 +28,9 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Historic difficulty in depth.](https://amoveo.tools/)
 
+<!---
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
+--->
 
 
 ## Light node
