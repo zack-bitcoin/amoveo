@@ -91,8 +91,7 @@ http://159.65.120.84:8085/main.html (maintained by Zack, who wrote the Amoveo fu
 
 https://amoveopool.com/#getting-started
 
-http://amoveo.noncense.tech/
-
+http://stats.veopool.pw/
 
 ## Trading
 
