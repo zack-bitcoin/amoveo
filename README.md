@@ -93,6 +93,8 @@ https://amoveopool.com/#getting-started
 
 http://stats.veopool.pw/
 
+http://xdpool.xyz/
+
 ## Trading
 
 Be very careful using exchanges. They are centralized, the operator can take all the veo if they wanted.
