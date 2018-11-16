@@ -19,7 +19,7 @@ false(X) -> X#matched.false.
 bad(X) -> X#matched.bad.
 new(Account, Oracle, Type, Amount) ->
     HS = constants:hash_size(),
-    HS = size(oracle),
+    HS = size(Oracle),
     AS = constants:pubkey_size(),
     AS = size(Account),
     {T, F, B} = 
@@ -30,29 +30,41 @@ new(Account, Oracle, Type, Amount) ->
 	end, 
     #matched{account = Account, oracle = Oracle,
 	    true = T, false = F, bad = B}.
-
-
-
-
-
-
-
-serialize(E) -> ok.
-deserialize(B) -> ok.
-dict_get(Hash, Dict) ->
-    true = is_binary(Hash),
-    X = dict:find({matched, Hash}, Dict),
+serialize(X) -> 
+    HS = constants:hash_size()*8,
+    BAL = constants:balance_bits(),
+    PS = constants:pubkey_size(),
+    PS = size(X#matched.account),
+    <<_:HS>> = X#matched.oracle,
+    <<(X#matched.account)/binary,
+     (X#matched.oracle)/binary,
+     (X#matched.true):BAL,
+     (X#matched.false):BAL,
+     (X#matched.bad):BAL>>.
+deserialize(B) -> 
+    HS = constants:hash_size()*8,
+    BAL = constants:balance_bits(),
+    PS = constants:pubkey_size()*8,
+    <<Acc:PS, Oracle:HS, True:BAL, False:BAL, Bad:BAL>> = B,
+    #matched{true = True, false = False, bad = Bad, oracle = <<Oracle:HS>>, account = <<Acc:PS>>}.
+dict_get({key, Account, Oracle}, Dict) ->
+    true = is_binary(Account),
+    true = is_binary(Oracle),
+    HS = constants:hash_size(),
+    HS = size(Oracle),
+    PS = constants:pubkey_size(),
+    PS = size(Account),
+    X = dict:find({matched, {key, Account, Oracle}}, Dict),
     case X of
 	error -> empty;
         {ok, 0} -> empty;
         {ok, Y} -> deserialize(Y)
     end.
-key_to_int(X) ->
-    <<Y:256>> = hash:doit(X),
+key_to_int({key, Account, Oracle}) ->
+    <<Y:256>> = hash:doit(<<Account/binary, Oracle/binary>>),
     Y.
-get(Hash, Tree) ->
-    true = is_binary(Hash),
-    Key = key_to_int(Hash),
+get(K, Tree) ->
+    Key = key_to_int(K),
     {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
     V = case Leaf of
 	    empty -> empty;
@@ -62,13 +74,14 @@ get(Hash, Tree) ->
 	end,
     {X, V, Proof}.
 dict_write(C, Dict) ->
-    Hash = ok,
-    dict:store({matched, Hash},
+    Account = C#matched.account,
+    Oracle = C#matched.oracle,
+    dict:store({matched, {key, Account, Oracle}},
                serialize(C),
                Dict).
 write(E, Tree) ->
-    Hash = ok,
-    Key = key_to_int(Hash),
+    K = {key, E#matched.account, E#matched.oracle},
+    Key = key_to_int(K),
     X = serialize(E),
     trie:put(Key, X, 0, Tree, ?name).
 make_leaf(Key, V, CFG) ->
@@ -79,15 +92,17 @@ verify_proof(RootHash, Key, Value, Proof) ->
 test() ->
     Height = (tx_pool:get())#tx_pool.height,
     Hash = hash:doit(2),
-    C = new(Hash, Height, 0, 0),
+    C = new(keys:pubkey(), Hash, 1, 10000),
     Root0 = constants:root0(),
     %C = hash:doit(2),
-    {_, empty, _} = get(Hash, Root0),
+    K = {key, keys:pubkey(), Hash},
+    {_, empty, _} = get(K, Root0),
     NewLoc = write(C, Root0),
-    C2 = new(hash:doit(4), Height, 0, 0),
+    C2 = new(keys:pubkey(), hash:doit(4), 1, 10200),
+    K2 = {key, keys:pubkey(), hash:doit(4)},
     NewLoc2 = write(C2, NewLoc),
-    {Root1, C, Path1} = get(Hash, NewLoc2),
-    {Root2, empty, Path2} = get(Hash, Root0),
-    true = verify_proof(Root1, Hash, serialize(C), Path1),
-    true = verify_proof(Root2, Hash, 0, Path2),
+    {Root1, C2, Path1} = get(K2, NewLoc2),
+    {Root2, empty, Path2} = get(K, Root0),
+    true = verify_proof(Root1, K2, serialize(C2), Path1),
+    true = verify_proof(Root2, K, 0, Path2),
     success.
