@@ -1,3 +1,45 @@
+This hard fork
+We need to add a couple more pointers to the trees in each block. don't worry, this wont change headers, so the light nodes wont change.
+And ideally we would move all the orders and oracle bets to their new trees.
+
+The old oracle_bets and orders no longer contain enough information, and their keys are not enough to identify them.
+So we need new merkel trees to be made, and new rules for serializing a larger datastructure.
+Maybe this is good, since their old names were so terrible, we can give them good names now.
+
+We need to update the transactions to use the new tree locations instead of the old ones.
+
+we will need to change how proofs are processed, and how trees looks up data.
+
+
+
+
+
+A strategy to make sure we don't break anything.
+We should launch a fork with lower difficulty to act as a testnet, and try out the hard fork there first. Using the same history that the real hard fork will use.
+So we can all test out the changes before we do the real hard fork.
+
+It should have quicker oracle delays and faster block times to make oracle tests easier.
+
+It needs some mechanism to prevent the fork from surviving and having value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### Other hard fork ideas
