@@ -110,7 +110,8 @@ Amoveo-Exchange for ETH-VEO trading: https://amoveo.exchange/
 
 ## Software to launch a new mining pool
 
-https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool.
+https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool. WARNING!!! this pool has known security vulnerabilities that have not been patched.
+
 [Another open source mining pool](https://github.com/zack-bitcoin/amoveo-mining-pool)
 
 
