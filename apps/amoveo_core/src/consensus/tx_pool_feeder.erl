@@ -9,13 +9,14 @@ init(ok) ->
     %process_flag(trap_exit, true),
     {ok, []}.
 handle_call({absorb, SignedTx}, _From, State) ->
-    case absorb_internal(SignedTx) of
-	error -> ok;
-	NewDict ->
-	    dict:find(sample, NewDict),
-	    tx_pool:absorb_tx(NewDict, SignedTx)
-    end,
-    {reply, ok, State};
+    R = case absorb_internal(SignedTx) of
+	    error -> error;
+	    NewDict ->
+		dict:find(sample, NewDict),
+		tx_pool:absorb_tx(NewDict, SignedTx),
+		ok
+	end,
+    {reply, R, State};
 handle_call(empty_mailbox, _, S) -> 
     {reply, ok, S};
 handle_call(_, _, S) -> {reply, S, S}.

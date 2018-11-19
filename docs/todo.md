@@ -30,6 +30,8 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+* if channels mode is turned off, then don't share your pubkey from the api.
+
 * torrent of the light node.
 
 * confirmed_root has the constant "confirmations". it needs to be combined with something from the configurations.

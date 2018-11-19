@@ -114,10 +114,10 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     ST = send_txs(Txs, CS, Checksums, []),
     {ok, ST};
 doit({txs, [Tx]}) ->
-    tx_pool_feeder:absorb([Tx]),
+    ok = tx_pool_feeder:absorb([Tx]),
     {ok, hash:doit(Tx)};
 doit({txs, Txs}) ->
-    tx_pool_feeder:absorb(Txs),
+    ok = tx_pool_feeder:absorb(Txs),
     {ok, 0};
 doit({txs, 3, N}) ->
     B = block:get_by_height(N),
