@@ -115,7 +115,7 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     {ok, ST};
 doit({txs, [Tx]}) ->
     ok = tx_pool_feeder:absorb([Tx]),
-    {ok, hash:doit(Tx)};
+    {ok, hash:doit(testnet_sign:data(Tx))};
 doit({txs, Txs}) ->
     ok = tx_pool_feeder:absorb(Txs),
     {ok, 0};
