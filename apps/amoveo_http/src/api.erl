@@ -52,7 +52,7 @@ tx_maker0(Tx) ->
 		    ok;
 		Stx -> 
 		    tx_pool_feeder:absorb(Stx),
-		    hash:doit(Tx)
+		    hash:doit(testnet_sign:data(Tx))
 	    end
     end.
 create_account(NewAddr, Amount) ->
