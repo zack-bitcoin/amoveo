@@ -15,11 +15,23 @@
 %If you want your order to be held in the order book, it needs to be bigger than a minimum size.
 %There is a maximum number of orders that can be stored in the order book at a time.
 %If your order isn't big enough to be in the order book, you cannot buy shares of the type that are stored in the order book.
-to_prove(OID, Trees) ->
+to_prove(OID, Trees) when (element(1, Trees) == trees) ->
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
     Orders = Oracle#oracle.orders,
-    orders:all(Orders).
+    io:fwrite("oracle bet to prove orders is \n"),
+    io:fwrite(integer_to_list(Orders)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(Oracle)),
+    io:fwrite("\n"),
+    orders:all(Orders);
+to_prove(OID, Trees) when (element(1, Trees) == trees2) -> 
+    Root = trees:unmatched(Trees),
+    Head = unmatched:get({key, 1, OID}, Root),
+    io:fwrite("oracle bet tx to prove new \n"),
+    io:fwrite(packer:pack(Head)),
+    io:fwrite("\n"),
+    [].
     
 from(X) -> X#oracle_bet.from.
 id(X) -> X#oracle_bet.id.

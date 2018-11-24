@@ -1,6 +1,10 @@
 This hard fork
 
-Unable to make any oracle bets. test_txs:test(13).
+
+* update oracle_new_tx to create a new order book using unmatched.
+
+
+
 
 And ideally we would move all the orders and oracle bets to their new trees.
 

@@ -95,6 +95,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     oracle_questions:store(QH, Question),
     %Diff = Tx#oracle_new.difficulty,
     ON = oracles:new(ID, QH, Starts, From, Gov, GovAmount, Dict),
+    io:fwrite("oracle new tx new is \n"),
+    io:fwrite(packer:pack(ON)),
+    io:fwrite("\n"),
     oracles:dict_write(ON, Dict3).
     
     
