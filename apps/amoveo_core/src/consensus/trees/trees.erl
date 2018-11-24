@@ -1,8 +1,8 @@
 -module(trees).
 -export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,
-	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, 
+	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2,
 	 new/6,
-	 new2/8,
+	 new2/7,
 	 root_hash/1, name/1, 
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
@@ -41,12 +41,12 @@ governance(X = #trees{}) -> X#trees.governance;
 governance(X) -> X#trees2.governance.
 matched(X) -> X#trees2.matched.
 unmatched(X) -> X#trees2.unmatched.
-new2(A, C, E, B, O, G, M, U) ->
+new2(A, C, E, O, G, M, U) ->
     #trees2{accounts = A, channels = C,
 	   existence = E, oracles = O, 
 	   governance = G, matched = M,
 	   unmatched = U}.
-new(A, C, E, B, O, G) ->
+new(A, C, E, _B, O, G) ->
     #trees{accounts = A, channels = C,
 	   existence = E, 
 	   oracles = O, governance = G}.
@@ -104,8 +104,8 @@ root_hash2(Trees, Roots) ->
     hash:doit(Y).
 		
 rh2(Type, Trees, Roots) ->
-    M = element(1, Trees),
-    X = M:Type(Trees),%M is either trees or trees2
+    %M = element(1, Trees),
+    X = trees:Type(Trees),%M is either trees or trees2
     Out = case X of
               empty -> 
                   Fun = list_to_atom(atom_to_list(Type) ++ "_root"),
@@ -131,12 +131,12 @@ serialized_roots(Trees) ->
 	#trees2{} ->
 	    M = F(matched),
 	    U = F(unmatched),
-	    U = trie:root_hash(unmatched, trees:unmatched(Trees)),
 	    Z = <<X/binary, M/binary, U/binary>>,
 	    Z
     end.
 root_hash(Trees) ->
-    hash:doit(serialized_roots(Trees)).
+    Y = serialized_roots(Trees),
+    hash:doit(Y).
 hash2blocks([]) -> [];
 hash2blocks([H|T]) ->
     B = block:get_by_hash(H),

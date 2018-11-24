@@ -1,5 +1,7 @@
 This hard fork
-We need to add a couple more pointers to the trees in each block. don't worry, this wont change headers, so the light nodes wont change.
+
+Unable to make any oracle bets. test_txs:test(13).
+
 And ideally we would move all the orders and oracle bets to their new trees.
 
 The old oracle_bets and orders no longer contain enough information, and their keys are not enough to identify them.

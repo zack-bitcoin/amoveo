@@ -30,7 +30,7 @@ dict_update_trie(Trees, Dict) ->
 garbage(Trash, Keep) ->
     gen_server:call(?MODULE, {garbage, Trash, Keep}).
 internal(PruneBlock, KeepBlock, F) ->
-    Trees = [accounts, oracles, channels, existence, governance],
+    Trees = [accounts, oracles, channels, existence, governance, matched, unmatched],
     [A, O, _, _, _] = 
 	lists:map(fun(T) ->
 			  T1 = PruneBlock#block.trees,
@@ -59,7 +59,7 @@ dont_doit(O, A, F) ->
 	      end, A),
     ok.
 
-internal_dict_update_trie(Trees, Dict) ->
+internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees) ->
     %do the orders and oracle_bets last, then insert their state roots into the accounts and oracles.
     %pointers are integers, root hashes are binary.
     Keys = dict:fetch_keys(Dict),
@@ -102,11 +102,26 @@ internal_dict_update_trie(Trees, Dict) ->
     ET2 = trie:put_batch(ExistenceLeaves, ET, existence),
     Trees7 = trees:update_existence(Trees6, ET2),
 
-    {Gov, []} = get_things(governance, Keys7),
+    {Gov, _Keys8} = get_things(governance, Keys7),
     GT = trees:governance(Trees7),
     GovernanceLeaves = keys2leaves(Gov, governance, Dict3),
     GT2 = trie:put_batch(GovernanceLeaves, GT, governance),
-    trees:update_governance(Trees7, GT2).
+    trees:update_governance(Trees7, GT2);
+    
+internal_dict_update_trie(Trees, Dict) ->
+    Types = [accounts, oracles, channels, existence, governance, matched, unmatched],
+    Keys = dict:fetch_keys(Dict),
+    idut2(Types, Trees, Dict, Keys).
+idut2([], Trees, _, _) -> Trees;
+idut2([H|Types], Trees, Dict, Keys) ->
+    {A, Keys2} = get_things(H, Keys),
+    T = trees:H(Trees),
+    Leaves = keys2leaves(A, H, Dict),
+    T2 = trie:put_batch(Leaves, T, H),
+    U = list_to_atom("update_" ++ atom_to_list(H)),
+    Trees2 = trees:U(Trees, T2),
+    idut2(Types, Trees2, Dict, Keys2).
+					       
 
 keys2leaves([], _, _) -> [];
 keys2leaves([H|T], Type, Dict) ->

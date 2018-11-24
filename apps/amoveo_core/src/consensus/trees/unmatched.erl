@@ -9,10 +9,9 @@
 -include("../../records.hrl").
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
 -record(unmatched, {account, oracle, true, false, bad}).
-%-record(oracle_bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle
+%true, false, and bad are the 3 types of shares that can be purchased from an oracle
 -define(name, unmatched).
 reward(Bet, Correct, NewHeight) ->
-    %returns {Shares, Tokens}
     {Positive, _Negative} = 
 	case Correct of
 	    1->{Bet#unmatched.true,Bet#unmatched.false+Bet#unmatched.bad};
@@ -45,11 +44,8 @@ new(Account, Oracle, Type, Amount) ->
     new(Account, Oracle, A, B, C).
     
 new(Account, Oracle, True, False, Bad) ->
-    %{_, X, _} = active_oracles:read(OracleID, AORoot),
-    %false = X == empty,
     #unmatched{account = Account, oracle = Oracle, true = True, false = False, bad = Bad}.
 serialize(X) ->
-    %KL = constants:key_length()*8,
     HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
     PS = constants:pubkey_size(),
@@ -153,13 +149,11 @@ test2() ->
     Pub = keys:pubkey(),
     OID = <<1:256>>,
     C = new(Pub, OID, 3, 100),
-    %ID = C#unmatched.id,
     Pub = C#unmatched.account,
     OID = C#unmatched.oracle,
     Key = {key, Pub, OID},
     CFG = trie:cfg(oracle_bets),
     Dict0 = dict:new(),
-    %Key = {key, Pub, ID},
     Dict1 = dict_write(C, Dict0),
     Account = #acc{balance = 100000, nonce = 0, pubkey = Pub},
     Dict2 = accounts:dict_write(Account, Dict1),
@@ -167,8 +161,6 @@ test2() ->
     Dict3 = dict_add_bet(Pub, OID, 1, 100, Dict2),
     Bet2 = dict_get(Key, Dict3),
     Bet3 = increase(C, 1, 100),
-    %io:fwrite(packer:pack([Bet2, Bet3])),
-    %io:fwrite("\n"),
     Bet2 = Bet3,
     success.
     
