@@ -139,8 +139,8 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
 		L = leaf:new(Type:key_to_int(Key), empty, 0, trie:cfg(Type)),
                 [L|Leaves];
             _ -> 
-                ABN = Type:Type2(New0),
-                {_, Old, _} = Type:get(Key, trees:Type(Trees)),
+                ABN = Type:Type2(New0),%pointer to bets/orders
+                {_, Old, _} = Type:get(Key, trees:Type(Trees)),% this is the line that reads from the hard drive.
                 New = if
                           Old == empty -> 
                               Type:UpdateType2(New0, EmptyType2);
@@ -148,11 +148,15 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
                               ABO = Type:Type2(Old),%pointer to bets/orders
                               if
                                   ABO == 0 -> 
-                                      throw("dict update trie account oracle. Meta should not be 0 now."),
+				      1=2,
                                       New0;
                                   0 == ABN -> 
-                                      Type:UpdateType2(New0, Type:Type2(Old));
-                                  true -> New0
+				      %io:fwrite({ABO, EmptyType2}),
+                                      Type:UpdateType2(New0, ABO);%calculates the root hash from the pointer.
+                                      %Type:UpdateType2(New0, EmptyType2);%calculates the root hash from the pointer.
+                                  true -> 
+				      %1=2,
+				      New0
                               end
                       end,
 		Meta = Type:meta_get(New),

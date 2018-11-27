@@ -30,7 +30,16 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+
+
+
+* people should be able to use a light node to make channels with custom bets directly between each other.
+
+* untrusted third parties who hold channel data and publish it if a channel is closing wrong.
+
 * if channels mode is turned off, then don't share your pubkey from the api.
+
+* when we first sync a node, it should automatically try to pull headers from a bunch of different peers. This way we are more likely to find out about the highest header.
 
 * torrent of the light node.
 
