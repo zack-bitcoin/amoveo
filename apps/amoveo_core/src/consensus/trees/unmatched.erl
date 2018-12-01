@@ -1,51 +1,60 @@
 -module(unmatched).
--export([test/0, new/4, increase/3, account/1, oracle/1,
-	 true/1, false/1, bad/1,
-	 write/2, get/2, %root_hash/1, %add_bet/4,
-	 reward/3, delete/2, verify_proof/4,
-         dict_add_bet/5, dict_get/2, dict_delete/2,
-         serialize/1, make_leaf/3, key_to_int/1,
-         deserialize/1]).
--include("../../records.hrl").
-%Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
--record(unmatched, {account, oracle, true, false, bad}).
-%true, false, and bad are the 3 types of shares that can be purchased from an oracle
+-export([new/3,
+         get/2,write/2,%update tree stuff
+         dict_get/2, dict_write/2,%update dict stuff
+         verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,
+         dict_significant_volume/3, dict_match/3,
+         dict_head_get/2,
+         dict_add/2, dict_remove/3, make_leaf/3,
+	 delete/2, 
+         deserialize_head/1, head_put/4,
+	 serialize_head/2,
+	 test/0]).%common tree stuff
+%for accessing the proof of existence tree
+-record(unmatched, {account, %pubkey of the account
+		    oracle, %oracle id
+		    amount,
+		    pointer}).
+
 -define(name, unmatched).
-reward(Bet, Correct, NewHeight) ->
-    {Positive, _Negative} = 
-	case Correct of
-	    1->{Bet#unmatched.true,Bet#unmatched.false+Bet#unmatched.bad};
-	    2->{Bet#unmatched.false,Bet#unmatched.true+Bet#unmatched.bad};
-	    3->{Bet#unmatched.bad,Bet#unmatched.true+Bet#unmatched.false}
-	end,
-    Positive.
-oracle(X) -> X#unmatched.oracle.
+-define(Null, 0).
+-define(Header, 1).
+-include("../../records.hrl").
+dict_significant_volume(Dict, OID, OIL) ->
+    ManyOrders = dict_many(Dict, OID),
+        if 
+            ManyOrders == 0 ->
+                false;
+            ManyOrders > 2 -> true;
+            true ->
+                {Head, _} = dict_head_get(Dict, OID),
+                Order0 = dict_get({key, Head, OID}, Dict),
+                amount(Order0) > OIL
+        end.
+dict_many(Dict, OID) -> 
+    {_, Many} = dict_head_get(Dict, OID),
+    Many.
+%many(Root, OID) ->
+%    {_, Many} = head_get(Root, OID),
+%    Many.
+amount(#unmatched{amount = A}) -> A.
+set_amount(X, A) ->
+    X#unmatched{amount = A}.
+update_amount(X, A) ->
+    B = X#unmatched.amount + A,
+    true = B>0,
+    X#unmatched{amount = B}.
 account(X) -> X#unmatched.account.
-true(X) -> X#unmatched.true.
-false(X) -> X#unmatched.false.
-bad(X) -> X#unmatched.bad.
-increase(X, Type, A) ->
-    case Type of
-	1 -> X#unmatched{true = X#unmatched.true + A};
-	2 -> X#unmatched{false = X#unmatched.false + A};
-	3 -> X#unmatched{bad = X#unmatched.bad + A}
-    end.
-new(Account, Oracle, Type, Amount) ->
-    <<_:256>> = Oracle,
-    PS = constants:pubkey_size(),
-    PS = size(Account),
-    true = is_binary(Account),
-    {A, B, C} = 
-	case Type of
-	    1 -> {Amount, 0, 0};
-	    2 -> {0, Amount, 0};
-	    3 -> {0, 0, Amount}
-	end, 
-    new(Account, Oracle, A, B, C).
-    
-new(Account, Oracle, True, False, Bad) ->
-    #unmatched{account = Account, oracle = Oracle, true = True, false = False, bad = Bad}.
-serialize(X) ->
+oracle(X) -> X#unmatched.oracle.
+new(Account, Oracle, Amount) ->
+    HS = constants:hash_size(),
+    HS = size(Oracle),
+    AS = constants:pubkey_size(),
+    AS = size(Account),
+    PS = AS * 8,
+    #unmatched{account = Account, oracle = Oracle,
+	       amount = Amount, pointer = <<?Null:PS>>}.
+serialize(X) -> 
     HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
     PS = constants:pubkey_size(),
@@ -53,30 +62,33 @@ serialize(X) ->
     <<_:HS>> = X#unmatched.oracle,
     <<(X#unmatched.account)/binary,
      (X#unmatched.oracle)/binary,
-     (X#unmatched.true):BAL,
-     (X#unmatched.false):BAL,
-     (X#unmatched.bad):BAL>>.
-deserialize(B) ->
-    %KL = constants:key_length()*8,
-    PS = constants:pubkey_size()*8,
+     (X#unmatched.amount):BAL,
+     (X#unmatched.pointer)/binary>>.
+deserialize(B) -> 
     HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
-    <<Account:PS, Oracle:HS, True:BAL, False:BAL, Bad:BAL>> = B,
-    #unmatched{true = True, false = False, bad = Bad, oracle = <<Oracle:HS>>, account = <<Account:PS>>}.
-dict_write(X, Dict) ->
-    Account = X#unmatched.account,
-    Oracle = X#unmatched.oracle,
-    dict:store({unmatched, {key, Account, Oracle}},
-               serialize(X),
-               Dict).
-write(E, Tree) ->
-    K = {key, E#unmatched.account, E#unmatched.oracle},
-    Key = key_to_int(K),
-    X = serialize(E),
-    trie:put(Key, X, 0, Tree, ?name).
+    PS = constants:pubkey_size()*8,
+    <<Acc:PS, Oracle:HS, Amount:BAL, Pointer:PS>> = B,
+    #unmatched{amount = Amount, pointer = <<Pointer:PS>>, oracle = <<Oracle:HS>>, account = <<Acc:PS>>}.
+serialize_head(Head, Many) ->
+    %HS = constants:hash_size()*8,
+    PS = constants:pubkey_size() * 8,
+    BAL = constants:balance_bits(),
+    AB = PS+PS+BAL,
+    <<Head2:PS>> = Head,
+    <<Head2:PS, Many:AB>>.
+deserialize_head(X) ->
+    PS = constants:pubkey_size() * 8,
+    %HS = constants:hash_size()*8,
+    BAL = constants:balance_bits(),
+    Y = PS,
+    AB = PS+PS+BAL,
+    <<Head:Y, Many:AB>> = X,
+    {<<Head:Y>>, Many}.
+
+
 dict_get({key, Account, Oracle}, Dict) ->
     true = is_binary(Account),
-    io:fwrite(Oracle),
     true = is_binary(Oracle),
     HS = constants:hash_size(),
     HS = size(Oracle),
@@ -88,11 +100,11 @@ dict_get({key, Account, Oracle}, Dict) ->
         {ok, 0} -> empty;
         {ok, Y} -> deserialize(Y)
     end.
-key_to_int({key, Account, Oracle}) -> 
+key_to_int({key, Account, Oracle}) ->
     <<Y:256>> = hash:doit(<<Account/binary, Oracle/binary>>),
     Y.
-get(ID, Tree) ->%should probably be generalized to trees module.
-    Key = key_to_int(ID),
+get(K, Tree) ->
+    Key = key_to_int(K),
     {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
     V = case Leaf of
 	    empty -> empty;
@@ -101,67 +113,214 @@ get(ID, Tree) ->%should probably be generalized to trees module.
 		deserialize(Y)
 	end,
     {X, V, Proof}.
-dict_delete(Key, Dict) ->
-    dict:store({unmatched, Key}, 0, Dict).
-delete(Key, Tree) ->
-    Int = key_to_int(Key),
-    trie:delete(Int, Tree, ?name).
-dict_add_bet(Pub, OID, Type, Amount, Dict) ->%changed
-    A = accounts:dict_get(Pub, Dict),
-    case A of
-	empty -> 
-	    io:fwrite("account does not exist\n"),
-	    io:fwrite(base64:encode(Pub)),
-	    io:fwrite("\n"),
-	    Dict;
-	_ ->
-	    X = dict_get({key, Pub, OID}, Dict),
-	    Y = case X of
-		    empty -> new(Pub, OID, Type, Amount);
-		    Bet -> increase(Bet, Type, Amount)
-		end, 
-	    dict_write(Y, Dict)
-    end.
-    
-%root_hash(A) ->
-%    trie:root_hash(?name, A).
-make_leaf(Key, V, CFG) ->%should be generalized to trees module.
-    leaf:new(key_to_int(Key), V, 0, CFG).
-verify_proof(RootHash, Key, Value, Proof) ->%should be generalized to trees module.
+dict_write(C, Dict) ->
+    Account = C#unmatched.account,
+    Oracle = C#unmatched.oracle,
+    dict:store({unmatched, {key, Account, Oracle}},
+               serialize(C),
+               Dict).
+write(E, Tree) ->
+    K = {key, E#unmatched.account, E#unmatched.oracle},
+    Key = key_to_int(K),
+    X = serialize(E),
+    trie:put(Key, X, 0, Tree, ?name).
+make_leaf(Key, V, CFG) ->
+    leaf:new(key_to_int(Key), 
+             V, 0, CFG).
+verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
+dict_empty_book(OID, Dict) ->
+    PS = constants:pubkey_size() * 8,
+    X = serialize_head(<<?Null:PS>>, 0),
+    dict:store({unmatched, {key, <<?Null:PS>>, OID}},
+	       X, Dict).
+empty_book(OID, Tree) ->
+    PS = constants:pubkey_size() * 8,
+    X = serialize_head(<<?Null:PS>>, 0),
+    trie:put(OID, X, 0, Tree, ?name).
+dict_head_get(Dict, OID) ->
+    PS = constants:pubkey_size() * 8,
+    Key = {key, <<?Header:PS>>, OID},
+    X = dict:fetch({unmatched, Key}, Dict),
+    case X of
+        0 -> {<<?Null:PS>>, 0};
+        _ ->
+            deserialize_head(X)
+    end.
+head_get(Root, OID) ->
+    false = Root == 0,
+    PS = constants:pubkey_size() * 8,
+    ID = key_to_int({key, <<?Header:PS>>, OID}),
+    {_, L, _} = trie:get(ID, Root, ?name),
+    deserialize_head(leaf:value(L)).
+dict_head_update(Head, OID, Dict) ->
+    {_, Many} = dict_head_get(Dict, OID),
+    dict_head_put(Head, Many, OID, Dict).
+head_update(Head, OID, Root) ->
+    {_, Many} = head_get(Root, OID),
+    head_put(Head, OID, Many, Root).
+dict_many_update(Many, OID, Dict) ->
+    {Head, _} = dict_head_get(Dict, OID),
+    dict_head_put(Head, Many, OID, Dict).
+dict_head_put(Head, Many, OID, Dict) ->
+    Y = serialize_head(Head, Many),
+    PS = constants:pubkey_size() * 8,
+    Key = {key, <<?Header:PS>>, OID},
+    dict:store({unmatched, Key},
+               Y,
+               Dict).
+head_put(Head, Many, OID, Root) ->
+    PS = constants:pubkey_size() * 8,
+    Y = serialize_head(Head, Many),
+    ID = key_to_int({key, <<?Header:PS>>, OID}),
+    trie:put(ID, Y, 0, Root, ?name).
+all(Root, OID) ->%pubkeys of everyone who made bets.
+    {Head, _Many} = head_get(Root, OID),
+    all2(Head, Root, OID).
+all2(X, Root, OID) ->
+    PS = constants:pubkey_size() * 8,
+    case X of
+        <<?Null:PS>> -> [<<?Header:PS>>];
+	
+        Pub -> 
+            {_, Order, _} = get({key, Pub, OID}, Root),
+            [Pub|all2(Order#unmatched.pointer, Root, OID)]
+    end.
+dict_add(Order, Dict) ->
+    X = Order#unmatched.account,
+    OID = Order#unmatched.oracle,
+    OldOrder = dict_get({key, X, OID}, Dict),
+    PS = constants:pubkey_size() * 8,
+    case OldOrder of
+        empty ->
+            {Head, Many} = dict_head_get(Dict, OID),
+            case Head of
+                <<?Null:PS>> ->
+                    Dict2 = dict_head_put(X, Many+1, OID, Dict),
+                    dict_write(Order, Dict2);
+                Y ->
+                    Dict2 = dict_head_put(Head, Many+1, OID, Dict),
+                    dict_add2(Order, Dict2, Y, OID)
+            end;
+        Old ->
+            New = Old#unmatched{amount = Old#unmatched.amount + Order#unmatched.amount},
+            dict_write(New, Dict)
+    end.
+dict_add2(Order, Dict, P, OID) ->
+    L = dict_get({key, P, OID}, Dict),
+    N = L#unmatched.pointer,
+    PS = constants:pubkey_size() * 8,
+    case N of
+        <<?Null:PS>> ->
+            L2 = L#unmatched{pointer = Order#unmatched.account},
+            Dict2 = dict_write(L2, Dict),
+            <<?Null:PS>> = Order#unmatched.pointer,
+            dict_write(Order, Dict2);
+        M -> dict_add2(Order, Dict, M, OID)
+    end.
+dict_remove(ID, OID, Dict) ->
+    {Head, Many} = dict_head_get(Dict, OID),
+    %Order = dict_get({key, ID, OID}, Dict),
+    Order = dict_get({key, Head, OID}, Dict),
+    Q = Order#unmatched.account,
+    if
+        ID == Q ->
+            Dict2 = dict_head_put(Order#unmatched.pointer, Many-1, OID, Dict),
+            dict_delete(ID, OID, Dict2);
+        true ->
+            Dict2 = dict_head_put(Head, Many - 1, OID, Dict),
+            dict_remove2(ID, OID, Dict2, Head)
+    end.
+dict_remove2(ID, OID, Dict, P) ->
+    L = dict_get({key, P, OID}, Dict),
+    N = L#unmatched.pointer,
+    case N of
+        ID ->
+            L2 = dict_get({key, ID, OID}, Dict),
+            L3 = L#unmatched{pointer = L2#unmatched.account},
+            Dict2 = dict_delete(N, OID, Dict),
+            dict_write(L3, Dict2);
+        X ->
+            dict_remove2(ID, OID, Dict, X)
+    end.
+dict_delete(Pub, OID, Dict) ->
+    Key = {key, Pub, OID},
+    dict:store({unmatched, Key}, 0, Dict).
+delete(Pub, Root) ->
+    ID = key_to_int(Pub),
+    trie:delete(ID, Root, ?name).
+dict_match(Order, OID, Dict) ->
+    %Match1 is unmatched that are still open.
+    %Match2 is unmatched that are already closed. We need to pay them their winnings.
+    {Head, Many} = dict_head_get(Dict, OID),
+    {Switch, Dict2, Matches1, Matches2} = 
+        dict_match2(Order, OID, Dict, Head, [], []),
+    {Many2, Switch2} = 
+        case Switch of
+            same_exact -> {Many - length(Matches2), same};
+            switch -> {1, switch};
+            same -> {Many - length(Matches2) + 1, same}
+        end,
+    Root2 = dict_many_update(Many2, OID, Dict2),
+    {Matches1, Matches2, Switch2, Root2}.
+dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
+    PS = constants:pubkey_size() * 8,
+    case T of
+        <<?Null:PS>> ->
+            P = Order#unmatched.account,
+            Dict2 = dict_head_update(P, OID, Dict),
+            Dict3 = dict_write(Order, Dict2),
+            {switch, Dict3, [Order|Matches1], Matches2};
+        _ ->
+            La = dict_get({key, T, OID}, Dict),
+            case La of
+                empty ->
+                    %throw(unmatched_check_if_path_needed),
+                    P = Order#unmatched.account,
+                    Dict2 = dict_head_update(P, OID, Dict),
+                    Dict3 = dict_write(Order, Dict2),
+                    {switch, Dict3, [Order|Matches1], Matches2};
+                L ->
+                    OldA = L#unmatched.amount,
+                    NewA = Order#unmatched.amount,
+                    P = L#unmatched.pointer,
+                    if
+                        NewA > OldA ->
+                            %throw(check),
+                            Dict2 = dict_head_update(P, OID, Dict),
+                            Order2 = update_amount(Order, -OldA),
+                            Dict3 = dict_delete(L#unmatched.account, OID, Dict2),
+                            Order3 = update_amount(Order, OldA),
+                            dict_match2(Order2, OID, Dict3, P, [Order3|Matches1], [L|Matches2]);
+                        NewA == OldA ->
+                            {same_exact, dict_head_update(P, OID, Dict), [Order|Matches1], [L|Matches2]};
+                        NewA < OldA ->
+                            Order2 = update_amount(L, -NewA),
+                            L3 = L#unmatched{amount = NewA},
+                            {same, dict_write(Order2, Dict), 
+                             [Order2|Matches1], [L3|Matches2]}
+                    end
+            end
+    end.
+
+root_hash(Root) ->
+    trie:root_hash(?name, Root).
+
 
 test() ->
-    C = new(keys:pubkey(), <<1:256>>, 3, 100),
-    %ID = C#unmatched.id,
-    Account = C#unmatched.account,
-    OID = C#unmatched.oracle,
+    Height = (tx_pool:get())#tx_pool.height,
+    Hash = hash:doit(2),
+    C = new(keys:pubkey(), Hash, 10000),
     Root0 = constants:root0(),
-    ID = {key, Account, OID},
-    {_, empty, _} = get(ID, Root0),
-    Root = write(C, Root0),
-    {Root1, C, Path1} = get(ID, Root),
-    {Root2, empty, Path2} = get(ID, Root0),
-
-    true = verify_proof(Root1, ID, serialize(C), Path1),
-    true = verify_proof(Root2, ID, 0, Path2),
-    test2().
-test2() ->
-    Pub = keys:pubkey(),
-    OID = <<1:256>>,
-    C = new(Pub, OID, 3, 100),
-    Pub = C#unmatched.account,
-    OID = C#unmatched.oracle,
-    Key = {key, Pub, OID},
-    CFG = trie:cfg(oracle_bets),
-    Dict0 = dict:new(),
-    Dict1 = dict_write(C, Dict0),
-    Account = #acc{balance = 100000, nonce = 0, pubkey = Pub},
-    Dict2 = accounts:dict_write(Account, Dict1),
-    C = dict_get(Key, Dict2),
-    Dict3 = dict_add_bet(Pub, OID, 1, 100, Dict2),
-    Bet2 = dict_get(Key, Dict3),
-    Bet3 = increase(C, 1, 100),
-    Bet2 = Bet3,
+    %C = hash:doit(2),
+    K = {key, keys:pubkey(), Hash},
+    {_, empty, _} = get(K, Root0),
+    NewLoc = write(C, Root0),
+    C2 = new(keys:pubkey(), hash:doit(4), 10200),
+    K2 = {key, keys:pubkey(), hash:doit(4)},
+    NewLoc2 = write(C2, NewLoc),
+    {Root1, C2, Path1} = get(K2, NewLoc2),
+    {Root2, empty, Path2} = get(K, Root0),
+    true = verify_proof(Root1, K2, serialize(C2), Path1),
+    true = verify_proof(Root2, K, 0, Path2),
     success.
-    
-    

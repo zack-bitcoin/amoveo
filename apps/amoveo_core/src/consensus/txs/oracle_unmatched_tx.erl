@@ -23,9 +23,14 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Result = Oracle#oracle.result,
     false = Result == 0,
     AID = Tx#unmatched.from,
-    Order = orders:dict_get({key, AID, OracleID}, Dict),
-    Amount = orders:amount(Order),
-    Dict2 = orders:dict_remove(AID, OracleID, Dict),
+    F10 = NewHeight > forks:get(10),
+    UMT = if
+	      F10  -> unmatched;
+	      true -> orders
+	  end,
+    Order = UMT:dict_get({key, AID, OracleID}, Dict),
+    Amount = UMT:amount(Order),
+    Dict2 = UMT:dict_remove(AID, OracleID, Dict),
     Nonce = if
 		NonceCheck -> Tx#unmatched.nonce;
 		true -> none

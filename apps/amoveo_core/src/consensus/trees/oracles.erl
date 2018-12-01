@@ -15,7 +15,11 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
     true = size(Creator) == constants:pubkey_size(),
     Height = api:height(),
     true = (GovernanceVar > -1) and (GovernanceVar < governance:max(Height)),
-    Orders = orders:empty_book(),
+    F10 = forks:get(10),
+    Orders = if
+		 Height < F10 -> orders:empty_book();
+		 true -> 0
+	     end,
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
     #oracle{id = ID,
 	    result = 0,
@@ -23,7 +27,7 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
 	    starts = Starts,
 	    type = 3,%1 means we are storing orders of true, 2 is false, 3 is bad.
 	    orders = Orders,
-            orders_hash = orders:root_hash(Orders),
+            orders_hash = <<0:256>>,
 	    creator = Creator,
 	    done_timer = Starts + MOT,
 	    governance = GovernanceVar,

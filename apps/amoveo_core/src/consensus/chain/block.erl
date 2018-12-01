@@ -290,7 +290,7 @@ make(Header, Txs0, Trees, Pub) ->
 		   many_oracles = OldBlock#block.many_oracles + many_new_oracles(Txs0),
 		   live_oracles = OldBlock#block.live_oracles + many_live_oracles(Txs0)
 		  },
-    Block = packer:unpack(packer:pack(Block)),
+    Block = packer:unpack(packer:pack(Block)),%maybe this is unnecessary?
     %_Dict = proofs:facts_to_dict(Proofs, dict:new()),
     Block.
 make_roots(Trees) when (element(1, Trees) == trees) ->

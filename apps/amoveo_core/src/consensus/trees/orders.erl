@@ -1,6 +1,6 @@
 -module(orders).
 -export([root_hash/1, amount/1,
-         new/2, 
+         new/2, new/3,
          get/2, empty_book/0,
          set_amount/2,
          many/1, head_get/1, 
@@ -44,6 +44,8 @@ update_amount(X, A) ->
     B = X#orders.amount + A,
     true = B>0,
     X#orders{amount = B}.
+new(AID, _, Amount) ->
+    new(AID, Amount).
 new(AID, Amount) ->
     PS = constants:pubkey_size() * 8,
     #orders{aid = AID, amount = Amount, pointer = <<?Null:PS>>}.

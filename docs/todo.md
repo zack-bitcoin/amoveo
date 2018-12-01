@@ -1,22 +1,14 @@
 This hard fork
 
+test_txs:test(13) is failing to update a governance value.
 
-* update oracle_new_tx to create a new order book using unmatched.
-
-
+- we need a proof that it is possible to add the new element. in new_oracle tx.
 
 
 And ideally we would move all the orders and oracle bets to their new trees.
 
-The old oracle_bets and orders no longer contain enough information, and their keys are not enough to identify them.
-So we need new merkel trees to be made, and new rules for serializing a larger datastructure.
-Maybe this is good, since their old names were so terrible, we can give them good names now.
-
-We need to update the transactions to use the new tree locations instead of the old ones.
-
-we will need to change how proofs are processed, and how trees looks up data.
-
-
+add a function to api instead of api:orders/1. so we can look up the unmatched bets in one oracle.
+figure something to replace the oracle_bets endpoint in ext_handler, it should probably be removed.
 
 
 
