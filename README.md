@@ -105,7 +105,7 @@ An escrow tool hosted by Zack: http://159.89.106.253:8087/main.html
 
 Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
-Amoveo-Exchange for ETH-VEO trading: https://amoveo.exchange/
+Amoveo-Exchange for ETH-VEO and BTC-VEO trading: https://amoveo.exchange/
 
 
 ## Software to launch a new mining pool
