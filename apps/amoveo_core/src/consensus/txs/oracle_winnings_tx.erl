@@ -26,15 +26,20 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Result = Oracle#oracle.result,
     false = Result == 0,
     AID = Tx#oracle_winnings.from,
-    Bet = oracle_bets:dict_get({key, AID, OID}, Dict),
-    Reward = oracle_bets:reward(Bet, Result, NewHeight),
+    F10 = NewHeight > forks:get(10),
+    UMT = if
+	      F10  -> matched;
+	      true -> oracle_bets
+	  end,
+    Bet = UMT:dict_get({key, AID, OID}, Dict),
+    Reward = UMT:reward(Bet, Result, NewHeight),
     Nonce = if
 		NonceCheck -> Tx#oracle_winnings.nonce;
 		true -> none
 	    end,
     Acc2 = accounts:dict_update(AID, Dict, -Tx#oracle_winnings.fee + Reward, Nonce),
     Dict2 = accounts:dict_write(Acc2, Dict),
-    oracle_bets:dict_delete({key, AID, OID}, Dict2).
+    UMT:dict_delete({key, AID, OID}, Dict2).
     
     
     

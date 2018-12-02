@@ -457,8 +457,10 @@ test() ->
 	      {existence, hash:doit(1)},
 	      {oracles, OID},
 	      {oracles, <<1:256>>},
-	      {orders, #key{pub = keys:pubkey(), id = OID}},
-              {oracle_bets, #key{pub = keys:pubkey(), id = OID}}
+	      {unmatched, #key{pub = keys:pubkey(), id = OID}},
+              {matched, #key{pub = keys:pubkey(), id = OID}}
+	      %{orders, #key{pub = keys:pubkey(), id = OID}},
+              %{oracle_bets, #key{pub = keys:pubkey(), id = OID}}
 	     ],% ++
         %governance_to_querys(trees:governance(Trees)),
     Facts = prove(Querys, Trees),
