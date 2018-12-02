@@ -94,10 +94,16 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     QH = hash:doit(Question),
     oracle_questions:store(QH, Question),
     %Diff = Tx#oracle_new.difficulty,
-    ON = oracles:new(ID, QH, Starts, From, Gov, GovAmount, Dict),
+    F10 = NewHeight > forks:get(10),
+    ON = oracles:new(ID, QH, Starts, From, Gov, GovAmount, Dict, F10, NewHeight),
     io:fwrite("oracle new tx new is \n"),
     io:fwrite(packer:pack(ON)),
     io:fwrite("\n"),
-    oracles:dict_write(ON, Dict3).
+    Dict4 = if
+		F10 -> 
+		    unmatched:dict_empty_book(ID, Dict3);
+		true -> Dict3
+	    end,
+    oracles:dict_write(ON, Dict4).
     
     

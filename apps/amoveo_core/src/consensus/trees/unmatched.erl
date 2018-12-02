@@ -9,6 +9,11 @@
 	 delete/2, 
          deserialize_head/1, head_put/4,
 	 serialize_head/2,
+	 all/2,
+	 amount/1,
+	 account/1,
+	 aid/1,
+	 dict_empty_book/2,
 	 test/0]).%common tree stuff
 %for accessing the proof of existence tree
 -record(unmatched, {account, %pubkey of the account
@@ -45,6 +50,7 @@ update_amount(X, A) ->
     true = B>0,
     X#unmatched{amount = B}.
 account(X) -> X#unmatched.account.
+aid(X) -> account(X).
 oracle(X) -> X#unmatched.oracle.
 new(Account, Oracle, Amount) ->
     HS = constants:hash_size(),
@@ -55,11 +61,12 @@ new(Account, Oracle, Amount) ->
     #unmatched{account = Account, oracle = Oracle,
 	       amount = Amount, pointer = <<?Null:PS>>}.
 serialize(X) -> 
-    HS = constants:hash_size()*8,
-    BAL = constants:balance_bits(),
     PS = constants:pubkey_size(),
     PS = size(X#unmatched.account),
-    <<_:HS>> = X#unmatched.oracle,
+    PS = size(X#unmatched.pointer),
+    HS = constants:hash_size(),
+    HS = size(X#unmatched.oracle),
+    BAL = constants:balance_bits(),
     <<(X#unmatched.account)/binary,
      (X#unmatched.oracle)/binary,
      (X#unmatched.amount):BAL,
@@ -71,20 +78,19 @@ deserialize(B) ->
     <<Acc:PS, Oracle:HS, Amount:BAL, Pointer:PS>> = B,
     #unmatched{amount = Amount, pointer = <<Pointer:PS>>, oracle = <<Oracle:HS>>, account = <<Acc:PS>>}.
 serialize_head(Head, Many) ->
-    %HS = constants:hash_size()*8,
+    HS = constants:hash_size()*8,
     PS = constants:pubkey_size() * 8,
     BAL = constants:balance_bits(),
-    AB = PS+PS+BAL,
+    AB = PS+HS+BAL,
     <<Head2:PS>> = Head,
     <<Head2:PS, Many:AB>>.
 deserialize_head(X) ->
+    HS = constants:hash_size()*8,
     PS = constants:pubkey_size() * 8,
-    %HS = constants:hash_size()*8,
     BAL = constants:balance_bits(),
-    Y = PS,
-    AB = PS+PS+BAL,
-    <<Head:Y, Many:AB>> = X,
-    {<<Head:Y>>, Many}.
+    AB = PS+HS+BAL,
+    <<Head:PS, Many:AB>> = X,
+    {<<Head:PS>>, Many}.
 
 
 dict_get({key, Account, Oracle}, Dict) ->
@@ -131,9 +137,12 @@ verify_proof(RootHash, Key, Value, Proof) ->
     trees:verify_proof(?MODULE, RootHash, Key, Value, Proof).
 dict_empty_book(OID, Dict) ->
     PS = constants:pubkey_size() * 8,
-    X = serialize_head(<<?Null:PS>>, 0),
-    dict:store({unmatched, {key, <<?Null:PS>>, OID}},
-	       X, Dict).
+    Head = <<?Null:PS>>,
+    Many = 0,
+    dict_head_put(Head, Many, OID, Dict).
+%    X = serialize_head(<<?Null:PS>>, 0),
+%    dict:store({unmatched, {key, <<?Null:PS>>, OID}},
+%	       X, Dict).
 empty_book(OID, Tree) ->
     PS = constants:pubkey_size() * 8,
     X = serialize_head(<<?Null:PS>>, 0),
@@ -152,6 +161,7 @@ head_get(Root, OID) ->
     PS = constants:pubkey_size() * 8,
     ID = key_to_int({key, <<?Header:PS>>, OID}),
     {_, L, _} = trie:get(ID, Root, ?name),
+    false = empty == L,
     deserialize_head(leaf:value(L)).
 dict_head_update(Head, OID, Dict) ->
     {_, Many} = dict_head_get(Dict, OID),
@@ -323,4 +333,11 @@ test() ->
     {Root2, empty, Path2} = get(K, Root0),
     true = verify_proof(Root1, K2, serialize(C2), Path1),
     true = verify_proof(Root2, K, 0, Path2),
+
+    OID = <<1:256>>,
+    Head = <<0:520>>,
+    Many = 10,
+    RootA = head_put(Head, Many, OID, Root0),
+    {Head, Many} = head_get(RootA, OID),
+
     success.

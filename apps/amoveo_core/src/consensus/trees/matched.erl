@@ -76,7 +76,7 @@ write(E, Tree) ->
     trie:put(Key, X, 0, Tree, ?name).
 dict_get({key, Account, Oracle}, Dict) ->
     true = is_binary(Account),
-    io:fwrite(Oracle),
+    %io:fwrite(Oracle),
     true = is_binary(Oracle),
     HS = constants:hash_size(),
     HS = size(Oracle),

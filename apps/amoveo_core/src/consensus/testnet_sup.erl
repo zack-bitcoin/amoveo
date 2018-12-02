@@ -44,7 +44,7 @@ init([]) ->
 	     tree_child(oracle_bets, HS, (HS + (3 * BB div 8))),
 	     tree_child(governance, 8, 4),
 	     tree_child(matched, HS, (HS + PS + (3 * BB div 8))),
-	     tree_child(unmatched, HS, (HS + PS + (3 * BB div 8)))
+	     tree_child(unmatched, HS, (HS + PS + PS + (BB div 8)))
 	    ],
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 

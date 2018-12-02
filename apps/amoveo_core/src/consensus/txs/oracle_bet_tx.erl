@@ -29,7 +29,10 @@ to_prove(OID, Trees) when (element(1, Trees) == trees2) ->
     Root = trees:unmatched(Trees),
     X = 8 * 65,
     Head = unmatched:get({key, <<1:X>>, OID}, Root),
-    unmatched:all(Root, OID).
+    %io:fwrite("to_prove type 2 part 1\n"),
+    Out = unmatched:all(Root, OID),
+    %io:fwrite("to_prove type 2 part 2\n"),
+    Out.
     
 from(X) -> X#oracle_bet.from.
 id(X) -> X#oracle_bet.id.
@@ -100,14 +103,14 @@ sum_order_amounts([H|T], N, F10) ->
 dict_give_bets([], _Type, Dict, _, _) -> Dict;
 dict_give_bets([Order|T], Type, Dict, OID, Height) ->
     F10 = Height > forks:get(10),
-    {FID, F} = if 
+    {UF, F} = if 
 	    F10 ->
 		{unmatched, matched};
 	    true ->
 		{orders, oracle_bets}
 	end,
-    ID = FID:aid(Order),
-    Dict2 = F:dict_add_bet(ID, OID, Type, 2*(FID:amount(Order)), Dict),
+    ID = UF:aid(Order),
+    Dict2 = F:dict_add_bet(ID, OID, Type, 2*(UF:amount(Order)), Dict),
     dict_give_bets(T, Type, Dict2, OID, Height).
 go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#oracle_bet.from,

@@ -278,6 +278,12 @@ txs_to_querys2([STx|T], Trees, Height) ->
                         N -> [{governance, N2IOIL},
 			      {governance, N}]
                     end,
+		U = if
+			F10 -> 
+			    PS = constants:pubkey_size() * 8,
+			    [{unmatched, {key, <<1:PS>>, OID}}];
+			true -> []
+		    end,
                 [
                  {governance, ?n2i(oracle_new)},
                  {governance, ?n2i(governance_change_limit)},
@@ -299,16 +305,16 @@ txs_to_querys2([STx|T], Trees, Height) ->
                     make_oracle_bets(Pubkeys2, OID, F10) ++
                     make_orders(Pubkeys, OID, F10),
 		U = if
-		    Height < F10 ->
-			    {orders, #key{pub = <<?Header:PS>>, id = OID}};
-			true ->
-			    {unmatched, #key{pub = <<?Header:PS>>, id = OID}}
+			F10 ->
+			    {unmatched, #key{pub = <<?Header:PS>>, id = OID}};
+		    true ->
+			    {orders, #key{pub = <<?Header:PS>>, id = OID}}
 		    end,
 		[
 		 {governance, ?n2i(oracle_bet)},
 		 {governance, ?n2i(minimum_oracle_time)},
 		 {governance, ?n2i(oracle_initial_liquidity)},
-		 {oracles, OID}] ++ U ++ Prove;
+		 {oracles, OID}] ++ [U] ++ Prove;
 	    oracle_close -> 
                 AID = oracle_close_tx:from(Tx),
                 OID = oracle_close_tx:oracle_id(Tx),
