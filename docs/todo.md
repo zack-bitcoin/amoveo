@@ -1,16 +1,5 @@
 This hard fork
 
-oracle_new_tx needs to create the head element of the order book.
-The old strategy was to store a default order book containing only the head element, and reusing this base default for every new tree.
-This doesn't work any more, because we are using one giant tree for all the oracle reports.
-
-
-
-test_txs:test(13) is failing to update a governance value.
-
-- we need a proof that it is possible to add the new element. in new_oracle tx.
-
-
 And ideally we would move all the orders and oracle bets to their new trees.
 
 add a function to api instead of api:orders/1. so we can look up the unmatched bets in one oracle.

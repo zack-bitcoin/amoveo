@@ -13,6 +13,7 @@ def lightning_test():
     request(1, "add_peer", [[127,0,0,1], 3020])
     request(1, "add_peer", [[127,0,0,1], 3010])
     request(1, 'mine_block', [1, 10000000], 1)
+    request(1, 'mine_block', [1, 10000000], 1)
     request(2, 'sync', [[127,0,0,1], 3010], 0.4)
     request(3, 'sync', [[127,0,0,1], 3010], 0.4)
 #def dont_doit():
