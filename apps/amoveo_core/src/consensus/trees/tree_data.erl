@@ -30,8 +30,14 @@ dict_update_trie(Trees, Dict) ->
 garbage(Trash, Keep) ->
     gen_server:call(?MODULE, {garbage, Trash, Keep}).
 internal(PruneBlock, KeepBlock, F) ->
-    Trees = [accounts, oracles, channels, existence, governance, matched, unmatched],
-    [A, O, _, _, _] = 
+    TA = [accounts, oracles, channels, existence, governance],
+    T1 = PruneBlock#block.trees,
+    T2 = KeepBlock#block.trees,
+    Trees = case element(1, T1) of
+		trees -> TA;
+		trees2 -> TA ++ [matched, unmatched]
+	    end,
+    _ = 
 	lists:map(fun(T) ->
 			  T1 = PruneBlock#block.trees,
 			  T2 = KeepBlock#block.trees,
