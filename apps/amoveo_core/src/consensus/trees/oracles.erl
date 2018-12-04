@@ -17,7 +17,7 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict, F10, Height) 
     true = (GovernanceVar > -1) and (GovernanceVar < governance:max(Height)),
     Orders = if
 		 F10 -> 0;
-		 true -> orders:empty_book()
+		 true -> orders:empty_book()%
 	     end,
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
     #oracle{id = ID,

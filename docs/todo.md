@@ -1,11 +1,5 @@
 This hard fork
 
-tree_data:internal/3
-This needs to switch at fork 10.
-The problem is that we compare new blocks with old ones.
-The new blocks switch to tree2 format before the old ones.
-
-
 And ideally we would move all the orders and oracle bets to their new trees.
 
 add a function to api instead of api:orders/1. so we can look up the unmatched bets in one oracle.

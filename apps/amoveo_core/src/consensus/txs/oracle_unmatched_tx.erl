@@ -24,10 +24,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     false = Result == 0,
     AID = Tx#unmatched.from,
     F10 = NewHeight > forks:get(10),
-    UMT = if
+    UMT = if%
 	      F10  -> unmatched;
-	      true -> orders
-	  end,
+	      true -> orders%
+	  end,%
     Order = UMT:dict_get({key, AID, OracleID}, Dict),
     Amount = UMT:amount(Order),
     Dict2 = UMT:dict_remove(AID, OracleID, Dict),

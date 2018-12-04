@@ -19,18 +19,15 @@ make(From, Fee, OID, Trees) ->
     {Tx, [Proof]}.
 go(Tx, Dict, NewHeight, NonceCheck) ->
     OID = Tx#oracle_winnings.oracle_id,
-    %io:fwrite("oracle winnings oid is "),
-    %io:fwrite(packer:pack([OID])),
-    %io:fwrite("\n"),
     Oracle = oracles:dict_get(OID, Dict),
     Result = Oracle#oracle.result,
     false = Result == 0,
     AID = Tx#oracle_winnings.from,
     F10 = NewHeight > forks:get(10),
-    UMT = if
+    UMT = if%
 	      F10  -> matched;
-	      true -> oracle_bets
-	  end,
+	      true -> oracle_bets%
+	  end,%
     Bet = UMT:dict_get({key, AID, OID}, Dict),
     Reward = UMT:reward(Bet, Result, NewHeight),
     Nonce = if

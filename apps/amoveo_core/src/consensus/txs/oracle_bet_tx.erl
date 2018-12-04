@@ -15,24 +15,16 @@
 %If you want your order to be held in the order book, it needs to be bigger than a minimum size.
 %There is a maximum number of orders that can be stored in the order book at a time.
 %If your order isn't big enough to be in the order book, you cannot buy shares of the type that are stored in the order book.
-to_prove(OID, Trees) when (element(1, Trees) == trees) ->
-    Oracles = trees:oracles(Trees),
-    {_, Oracle, _} = oracles:get(OID, Oracles),
-    Orders = Oracle#oracle.orders,
-    io:fwrite("oracle bet to prove orders is \n"),
-    io:fwrite(integer_to_list(Orders)),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(Oracle)),
-    io:fwrite("\n"),
-    orders:all(Orders);
+to_prove(OID, Trees) when (element(1, Trees) == trees) ->%
+    Oracles = trees:oracles(Trees),%
+    {_, Oracle, _} = oracles:get(OID, Oracles),%
+    Orders = Oracle#oracle.orders,%
+    orders:all(Orders);%
 to_prove(OID, Trees) when (element(1, Trees) == trees2) -> 
     Root = trees:unmatched(Trees),
     X = 8 * 65,
     Head = unmatched:get({key, <<1:X>>, OID}, Root),
-    %io:fwrite("to_prove type 2 part 1\n"),
-    Out = unmatched:all(Root, OID),
-    %io:fwrite("to_prove type 2 part 2\n"),
-    Out.
+    unmatched:all(Root, OID).
     
 from(X) -> X#oracle_bet.from.
 id(X) -> X#oracle_bet.id.
@@ -85,30 +77,26 @@ dict_give_bets_main(Id, Orders, Type, Dict, OID, Height) ->
     %Id bought many orders of the same type. sum up all the amounts, and give him this many bets.
     F10 = Height > forks:get(10),
     Amount = sum_order_amounts(Orders, 0, F10),
-    F = if 
-	F10 ->
-	    matched;
-	true ->
-	    oracle_bets
-    end,
+    F = if %
+	F10 -> matched;
+	true -> oracle_bets%
+    end,%
     F:dict_add_bet(Id, OID, Type, 2*Amount, Dict).
 sum_order_amounts([], N, _) -> N;
 sum_order_amounts([H|T], N, F10) -> 
-    F = if
+    F = if%
 	    F10 -> unmatched;
-	    true -> orders
-	end,
+	    true -> orders%
+	end,%
     A = F:amount(H),
     sum_order_amounts(T, A+N, F10).
 dict_give_bets([], _Type, Dict, _, _) -> Dict;
 dict_give_bets([Order|T], Type, Dict, OID, Height) ->
     F10 = Height > forks:get(10),
-    {UF, F} = if 
-	    F10 ->
-		{unmatched, matched};
-	    true ->
-		{orders, oracle_bets}
-	end,
+    {UF, F} = if %
+	    F10 -> {unmatched, matched};
+	    true -> {orders, oracle_bets}%
+	end,%
     ID = UF:aid(Order),
     Dict2 = F:dict_add_bet(ID, OID, Type, 2*(UF:amount(Order)), Dict),
     dict_give_bets(T, Type, Dict2, OID, Height).
@@ -131,10 +119,10 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     Oracle0 = oracles:dict_get(OID, Dict),
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict),
     F10 = NewHeight > forks:get(10),
-    UMT = if
+    UMT = if%
 	      F10  -> unmatched;
-	      true -> orders
-	  end,
+	      true -> orders%
+	  end,%
     VolumeCheck = UMT:dict_significant_volume(Dict, OID, OIL),
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
     Oracle = if
@@ -168,10 +156,10 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     %Match1 is orders that are still open.
     %Match2 is orders that are already closed. We need to pay them their winnings.
 		F8 = (NewHeight > forks:get(8)),
-		M3 = case F8 of
+		M3 = case F8 of%
 			 true -> Matches2;
-			 false -> Matches1
-		     end,
+			 false -> Matches1%
+		     end,%
 		Dict3 = dict_give_bets_main(From, M3, TxType, Dict2, Oracle#oracle.id, NewHeight),
                 Dict4 = dict_give_bets(Matches2, OracleType, Dict3, Oracle#oracle.id, NewHeight),%gives oracle_bets to each account that got matched
                 Oracle3 = case Next of

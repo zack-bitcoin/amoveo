@@ -31,10 +31,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = Oracle#oracle.starts =< NewHeight,
     OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
     F10 = NewHeight > forks:get(10),
-    UMT = if
+    UMT = if%
 	      F10  -> unmatched;
-	      true -> orders
-	  end,
+	      true -> orders%
+	  end,%
     VolumeCheck = UMT:dict_significant_volume(Dict2, OID, OIL),
     Result = if
 		 VolumeCheck -> Oracle#oracle.type;

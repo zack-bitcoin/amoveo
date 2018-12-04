@@ -9,8 +9,8 @@
 	 hash2blocks/1, get/4, get/2,
          restore/3]).
 -include("../../records.hrl").
--record(trees, {accounts, channels, existence,
-		oracles, governance}).
+-record(trees, {accounts, channels, existence,%
+		oracles, governance}).%
 %we did a hard fork to move the matched and unmatched trees from inside of accounts and oracles to their own tries.
 -record(trees2, {accounts, channels, existence,
 		oracles, governance, matched,
@@ -29,15 +29,15 @@ name(<<"matched">>) -> matched;
 name("matched") -> matched;
 name(<<"unmatched">>) -> unmatched;
 name("unmatched") -> unmatched.
-accounts(X = #trees{}) -> X#trees.accounts;
+accounts(X = #trees{}) -> X#trees.accounts;%
 accounts(X) -> X#trees2.accounts.
-channels(X = #trees{}) -> X#trees.channels;
+channels(X = #trees{}) -> X#trees.channels;%
 channels(X) -> X#trees2.channels.
-existence(X = #trees{}) -> X#trees.existence;
+existence(X = #trees{}) -> X#trees.existence;%
 existence(X) -> X#trees2.existence.
-oracles(X = #trees{}) -> X#trees.oracles;
+oracles(X = #trees{}) -> X#trees.oracles;%
 oracles(X) -> X#trees2.oracles.
-governance(X = #trees{}) -> X#trees.governance;
+governance(X = #trees{}) -> X#trees.governance;%
 governance(X) -> X#trees2.governance.
 matched(X) -> X#trees2.matched.
 unmatched(X) -> X#trees2.unmatched.
@@ -46,28 +46,28 @@ new2(A, C, E, O, G, M, U) ->
 	   existence = E, oracles = O, 
 	   governance = G, matched = M,
 	   unmatched = U}.
-new(A, C, E, _B, O, G) ->
-    #trees{accounts = A, channels = C,
-	   existence = E, 
-	   oracles = O, governance = G}.
-update_governance(X = #trees{}, A) ->
-    X#trees{governance = A};
+new(A, C, E, _B, O, G) ->%
+    #trees{accounts = A, channels = C,%
+	   existence = E, %
+	   oracles = O, governance = G}.%
+update_governance(X = #trees{}, A) ->%
+    X#trees{governance = A};%
 update_governance(X = #trees2{}, A) ->
     X#trees2{governance = A}.
-update_accounts(X = #trees{}, A) ->
-    X#trees{accounts = A};
+update_accounts(X = #trees{}, A) ->%
+    X#trees{accounts = A};%
 update_accounts(X = #trees2{}, A) ->
     X#trees2{accounts = A}.
-update_channels(X = #trees{}, A) ->
-    X#trees{channels = A};
+update_channels(X = #trees{}, A) ->%
+    X#trees{channels = A};%
 update_channels(X = #trees2{}, A) ->
     X#trees2{channels = A}.
-update_existence(X = #trees{}, E) ->
-    X#trees{existence = E};
+update_existence(X = #trees{}, E) ->%
+    X#trees{existence = E};%
 update_existence(X = #trees2{}, E) ->
     X#trees2{existence = E}.
-update_oracles(X = #trees{}, A) ->
-    X#trees{oracles = A};
+update_oracles(X = #trees{}, A) ->%
+    X#trees{oracles = A};%
 update_oracles(X, A) ->
     X#trees2{oracles = A}.
 update_matched(X, M) ->
@@ -92,7 +92,7 @@ root_hash2(Trees, Roots) ->
 	 O/binary,
 	 G/binary>>,
     Y = case Trees of
-	    #trees{} -> X;
+	    #trees{} -> X;%
 	    #trees2{} ->
 		M = rh2(matched, Trees, Roots),
 		U = rh2(unmatched, Trees, Roots),
@@ -127,7 +127,7 @@ serialized_roots(Trees) ->
 	 O/binary,
 	 G/binary>>,
     case Trees of
-	#trees{} -> X;
+	#trees{} -> X;%
 	#trees2{} ->
 	    M = F(matched),
 	    U = F(unmatched),
@@ -162,6 +162,7 @@ verify_proof(TreeID, RootHash, Key, Value, Proof) ->
     verify:proof(RootHash, Leaf, Proof, CFG).
 restore(Root, Fact, Meta) ->
     1=2,
+    %This example could be useful if we implement syncing by checkpoint.
     Key = proofs:key(Fact),
     Value = case proofs:value(Fact) of
                 0 -> empty;

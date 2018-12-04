@@ -53,7 +53,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 			 FG5 ->
 			     governance:dict_get_value(oracle_question_liquidity, Dict);
 			 true ->
-			     governance:dict_get_value(oracle_initial_liquidity, Dict)
+			     governance:dict_get_value(oracle_initial_liquidity, Dict)%
 		     end,
 		{Dict, Tx#oracle_new.start, L1};
 	    _ ->
@@ -62,14 +62,14 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 		Question = <<"">>,
                 GVar = governance:dict_get(Gov, Dict),
                 false = governance:is_locked(GVar),
-		FG1 = forks:get(1),
+		FG1 = forks:get(1),%
 		L2 = governance:dict_get_value(oracle_initial_liquidity, Dict),
-		if
-		    FG1 < NewHeight -> 
-			{governance:dict_lock(Gov, Dict), NewHeight, L2};
-		    true ->
+		if%
+		    FG1 < NewHeight -> %
+			{governance:dict_lock(Gov, Dict), NewHeight, L2};%
+		    true ->%
 			{governance:dict_lock(Gov, Dict), max(NewHeight, Tx#oracle_new.start), L2}
-		end
+		end%
         end,
     false = Starts < NewHeight,
     ok = case Question of
@@ -93,16 +93,12 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = is_binary(Question),
     QH = hash:doit(Question),
     oracle_questions:store(QH, Question),
-    %Diff = Tx#oracle_new.difficulty,
     F10 = NewHeight > forks:get(10),
     ON = oracles:new(ID, QH, Starts, From, Gov, GovAmount, Dict, F10, NewHeight),
-    io:fwrite("oracle new tx new is \n"),
-    io:fwrite(packer:pack(ON)),
-    io:fwrite("\n"),
     Dict4 = if
 		F10 -> 
 		    unmatched:dict_empty_book(ID, Dict3);
-		true -> Dict3
+		true -> Dict3%
 	    end,
     oracles:dict_write(ON, Dict4).
     

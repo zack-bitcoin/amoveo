@@ -18,8 +18,8 @@ tree_to_int(channels) -> 2;
 tree_to_int(existence) -> 3;
 tree_to_int(oracles) -> 5;
 tree_to_int(governance) -> 6;
-tree_to_int(oracle_bets) -> 7;
-tree_to_int(orders) -> 8;
+tree_to_int(oracle_bets) -> 7;%
+tree_to_int(orders) -> 8;%
 tree_to_int(multi_tx) -> 9;
 tree_to_int(matched) -> 10;
 tree_to_int(unmatched) -> 11.
@@ -29,8 +29,8 @@ int_to_tree(2) -> channels;
 int_to_tree(3) -> existence;
 int_to_tree(5) -> oracles;
 int_to_tree(6) -> governance;
-int_to_tree(7) -> oracle_bets;
-int_to_tree(8) -> orders;
+int_to_tree(7) -> oracle_bets;%
+int_to_tree(8) -> orders;%
 int_to_tree(9) -> multi_tx;
 int_to_tree(10) -> matched;
 int_to_tree(11) -> unmatched.
@@ -77,44 +77,44 @@ prove(Querys, Trees) ->
     prove2(F2, Trees).
 prove2([], _) ->
     [];
-prove2([{orders, Key}|T], Trees) ->
-    Oracles = trees:oracles(Trees),
-    {_, Data0, _} = oracles:get(Key#key.id, Oracles),
-    OrdersTree = 
-        if
-            Data0 == empty ->
-                orders:empty_book();
-            true ->
-                oracles:orders(Data0)
-        end,
-    {Root, Data, Path} = orders:get(Key#key.pub, OrdersTree),
-    Data2 = case Data of
-		empty -> 0;
-		_ -> orders:serialize(Data)
-	    end,
-    Proof = #proof{root = Root,
-		   key = Key,
-		   path = Path,
-		   value = Data2,
-		   tree = tree_to_int(orders)},
-    true = orders:verify_proof(Root, Key#key.pub, Data2, Path),
-    [Proof|prove2(T, Trees)];
-prove2([{oracle_bets, Key}|T], Trees) ->
-    Accounts = trees:accounts(Trees),
-    {_, Data0, _} = accounts:get(Key#key.pub, Accounts),
-    OrdersTree = Data0#acc.bets,
-    {Root, Data, Path} = oracle_bets:get(Key#key.id, OrdersTree),
-    Data2 = case Data of
-		empty -> 0;
-		_ -> oracle_bets:serialize(Data)
-	    end,
-    Proof = #proof{root = Root,
-		   key = Key,
-		   path = Path,
-		   value = Data2,
-		   tree = tree_to_int(oracle_bets)},
-    true = oracle_bets:verify_proof(Root, Key#key.id, Data2, Path),
-    [Proof|prove2(T, Trees)];
+prove2([{orders, Key}|T], Trees) ->%
+    Oracles = trees:oracles(Trees),%
+    {_, Data0, _} = oracles:get(Key#key.id, Oracles),%
+    OrdersTree = %
+        if%
+            Data0 == empty ->%
+                orders:empty_book();%
+            true ->%
+                oracles:orders(Data0)%
+        end,%
+    {Root, Data, Path} = orders:get(Key#key.pub, OrdersTree),%
+    Data2 = case Data of%
+		empty -> 0;%
+		_ -> orders:serialize(Data)%
+	    end,%
+    Proof = #proof{root = Root,%
+		   key = Key,%
+		   path = Path,%
+		   value = Data2,%
+		   tree = tree_to_int(orders)},%
+    true = orders:verify_proof(Root, Key#key.pub, Data2, Path),%
+    [Proof|prove2(T, Trees)];%
+prove2([{oracle_bets, Key}|T], Trees) ->%
+    Accounts = trees:accounts(Trees),%
+    {_, Data0, _} = accounts:get(Key#key.pub, Accounts),%
+    OrdersTree = Data0#acc.bets,%
+    {Root, Data, Path} = oracle_bets:get(Key#key.id, OrdersTree),%
+    Data2 = case Data of%
+		empty -> 0;%
+		_ -> oracle_bets:serialize(Data)%
+	    end,%
+    Proof = #proof{root = Root,%
+		   key = Key,%
+		   path = Path,%
+		   value = Data2,%
+		   tree = tree_to_int(oracle_bets)},%
+    true = oracle_bets:verify_proof(Root, Key#key.id, Data2, Path),%
+    [Proof|prove2(T, Trees)];%
 prove2([{Tree, Key}|T], Trees) ->
     Branch = trees:Tree(Trees),
     {Root, Data, Path} = Tree:get(Key, Branch),
@@ -133,14 +133,11 @@ facts_to_dict([], D) -> D;
 facts_to_dict([F|T], D) ->
     Tree = int_to_tree(F#proof.tree),
     Key2 = 
-        case Tree of
-            orders -> 
-                F#proof.key#key.pub;
-            oracle_bets -> 
-                F#proof.key#key.id;
-	_ ->
-            F#proof.key
-    end,
+        case Tree of%
+            orders -> F#proof.key#key.pub;%
+            oracle_bets -> F#proof.key#key.id;%
+	    _ -> F#proof.key
+	end,
     true = 
         Tree:verify_proof(
           F#proof.root,
@@ -267,13 +264,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
 		N2IOIL = ?n2i(oracle_initial_liquidity),
                 G = case oracle_new_tx:governance(Tx) of
                         0 -> 
-			    FH5 = forks:get(5),
-			    B = FH5 < Height,
-			    %B = false,
-			    OILK = if
+			    FH5 = forks:get(5),%
+			    B = FH5 < Height,%
+			    %B = false,%
+			    OILK = if%
 				       B -> ?n2i(oracle_question_liquidity);
-				       true -> N2IOIL
-				   end,
+				       true -> N2IOIL%
+				   end,%
 			    [{governance, OILK}];
                         N -> [{governance, N2IOIL},
 			      {governance, N}]
@@ -288,7 +285,6 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(oracle_new)},
                  {governance, ?n2i(governance_change_limit)},
                  {governance, ?n2i(maximum_question_size)},
-                 %{governance, ?n2i(oracle_initial_liquidity)},
                  {governance, ?n2i(minimum_oracle_time)},
                  {accounts, AID},
                  {oracles, OID}
@@ -297,19 +293,14 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 OID = oracle_bet_tx:id(Tx),
                 Pubkeys = [oracle_bet_tx:from(Tx)|
                            oracle_bet_tx:to_prove(OID, Trees)],
-		%io:fwrite("proof oracle_bet pubkeys: "),
-		%io:fwrite(packer:pack(Pubkeys)),
-		%io:fwrite("\n"),
                 Pubkeys2 = remove(<<?Header:PS>>, Pubkeys),
                 Prove = tagify(accounts, Pubkeys) ++ 
                     make_oracle_bets(Pubkeys2, OID, F10) ++
                     make_orders(Pubkeys, OID, F10),
-		U = if
-			F10 ->
-			    {unmatched, #key{pub = <<?Header:PS>>, id = OID}};
-		    true ->
-			    {orders, #key{pub = <<?Header:PS>>, id = OID}}
-		    end,
+		U = if%
+			F10 -> {unmatched, #key{pub = <<?Header:PS>>, id = OID}};
+		    true -> {orders, #key{pub = <<?Header:PS>>, id = OID}}%
+		    end,%
 		[
 		 {governance, ?n2i(oracle_bet)},
 		 {governance, ?n2i(minimum_oracle_time)},
@@ -329,19 +320,16 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 Pubkeys = [From|
                            oracle_bet_tx:to_prove(OID, Trees)],
                 Pubkeys2 = remove(<<?Header:PS>>, Pubkeys),
-		%io:fwrite("proofs oracle_close pubkeys are: "),
-		%io:fwrite(packer:pack(Pubkeys)),
-		%io:fwrite("\n"),
                 Prove = tagify(accounts, Pubkeys) ++ %this should probably be Pubkeys2
                     make_oracle_bets(Pubkeys2, OID, F10) ++
                     make_orders(Pubkeys, OID, F10),
-		U = if
+		U = if%
 			F10 -> [{unmatched, #key{pub = <<?Header:PS>>, id = OID}},
 				{matched, #key{pub = Oracle#oracle.creator, id = OID}}];
-			true ->
-			    [{orders, #key{pub = <<?Header:PS>>, id = OID}},
-			     {oracle_bets, #key{pub = Oracle#oracle.creator, id = OID}}]
-		    end,
+			true ->%
+			    [{orders, #key{pub = <<?Header:PS>>, id = OID}},%
+			     {oracle_bets, #key{pub = Oracle#oracle.creator, id = OID}}]%
+		    end,%
 		[
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
@@ -353,12 +341,12 @@ txs_to_querys2([STx|T], Trees, Height) ->
 	    unmatched -> 
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
-		U = if 
+		U = if %
 			F10 -> [{unmatched, #key{pub = <<?Header:PS>>, id = OID}},
 				{unmatched, #key{pub = From, id = OID}}];
-			true -> [{orders, #key{pub = <<?Header:PS>>, id = OID}},
-				 {orders, #key{pub = From, id = OID}}]
-		    end,
+			true -> [{orders, #key{pub = <<?Header:PS>>, id = OID}},%
+				 {orders, #key{pub = From, id = OID}}]%
+		    end,%
 		[
                  {governance, ?n2i(unmatched)},
                  {accounts, From},
@@ -367,10 +355,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
 	    oracle_winnings -> 
                 OID = oracle_winnings_tx:oracle_id(Tx),
                 From = oracle_winnings_tx:from(Tx),
-		U = if
+		U = if%
 			F10 -> [{matched, #key{pub = From, id = OID}}];
-			true ->[{oracle_bets, #key{pub = From, id = OID}}]
-		    end,
+			true ->[{oracle_bets, #key{pub = From, id = OID}}]%
+		    end,%
 		[{governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(oracle_winnings)},
                  {accounts, From},
@@ -412,18 +400,17 @@ tagify(X, [H|T]) ->
     [{X, H}|tagify(X, T)].
 make_oracle_bets([], _, _) -> [];
 make_oracle_bets([H|T], OID, F10) ->
-    A = if
+    A = if%
 	    F10 -> {matched, #key{pub = H, id = OID}};
-	    true ->
-		{oracle_bets, #key{pub = H, id = OID}}
-	end,
+	    true -> {oracle_bets, #key{pub = H, id = OID}}%
+	end,%
     [A|make_oracle_bets(T, OID, F10)].
 make_orders([], _, _) -> [];
 make_orders([H|T], OID, F10) ->
-    A = if
+    A = if%
 	    F10 -> {unmatched, #key{pub = H, id = OID}};
-	    true -> {orders, #key{pub = H, id = OID}}
-	end,
+	    true -> {orders, #key{pub = H, id = OID}}%
+	end,%
      [A|make_orders(T, OID, F10)].
 test() ->
     headers:dump(),
