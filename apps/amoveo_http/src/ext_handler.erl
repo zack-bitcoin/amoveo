@@ -114,8 +114,12 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     ST = send_txs(Txs, CS, Checksums, []),
     {ok, ST};
 doit({txs, [Tx]}) ->
-    ok = tx_pool_feeder:absorb([Tx]),
-    {ok, hash:doit(testnet_sign:data(Tx))};
+    X = tx_pool_feeder:absorb(Tx),
+    Y = case X of
+	    ok -> hash:doit(testnet_sign:data(Tx));
+	    _ -> <<"error">>
+		     end,
+    {ok, Y};
 doit({txs, Txs}) ->
     ok = tx_pool_feeder:absorb(Txs),
     {ok, 0};

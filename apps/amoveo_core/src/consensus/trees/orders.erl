@@ -103,7 +103,7 @@ get(Pub, Root) ->
     V = case Leaf of
                 empty -> empty;
                 L -> deserialize(leaf:value(L))
-                         end,
+	end,
     {RH, V, Proof}.
 empty_book() ->
     PS = constants:pubkey_size() * 8,

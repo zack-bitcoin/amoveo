@@ -206,6 +206,7 @@ absorb(SignedTx) ->
 	normal -> 
 	    gen_server:call(?MODULE, {absorb, SignedTx});
 	_ -> %io:fwrite("warning, transactions don't work well if you aren't in sync_mode normal")
+	    1=2,
 	    ok
     end.
 %absorb_async([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.

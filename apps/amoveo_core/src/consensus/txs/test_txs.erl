@@ -842,6 +842,52 @@ test(21) ->
     absorb(Stx),
     timer:sleep(1000),
     mine_blocks(1),
+    success;
+test(22) ->
+    %api bad signature failure test
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    Trees = block_trees(BP),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = constants:initial_fee() + 20,
+    {Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
+    Stx0 = keys:sign(Ctx),
+    Ctx2 = setelement(6, Ctx, 1),
+    Stx = setelement(2, Stx0, Ctx2),
+    Out2 = tx_pool_feeder:absorb(Stx),
+    case Out2 of
+	ok -> 1=2;
+	_ -> ok
+    end,
+    Out = ext_handler:doit({txs, [Stx]}),
+    case Out of
+	{ok, <<_:256>>} -> 1=2;
+	_ -> ok
+    end,
+    test(23);
+test(23) ->
+    %api insufficient balance failure test
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    Trees = block_trees(BP),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = constants:initial_fee() + 20,
+    {Ctx, _} = create_account_tx:new(NewPub, 10000000000000, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    Out2 = tx_pool_feeder:absorb(Stx),
+    case Out2 of
+	ok -> 1=2;
+	_ -> ok
+    end,
+    Out = ext_handler:doit({txs, [Stx]}),
+    case Out of
+	{ok, <<_:256>>} -> 1=2;
+	_ -> ok
+    end,
     success.
     
     
