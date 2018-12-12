@@ -1,5 +1,5 @@
 -module(get_api_handler).
--export([init/3, handle/2, terminate/3]).
+-export([init/3, handle/2, terminate/3, doit/1]).
 %example of talking to this handler:
 %curl -i http://localhost:3011/ext/getmoneysupply
 
@@ -12,8 +12,18 @@ handle(Req, _) ->
     {ok, Req2, 0}.
 init(_Type, Req, _Opts) -> {ok, Req, []}.
 terminate(_Reason, _Req, _State) -> ok.
+binary_reverse(X) ->
+    list_to_binary(lists:reverse(binary_to_list(X))).
 doit(<<"/ext/getmoneysupply">>) ->
-    integer_to_binary(element(16, block:top()));
+    X = integer_to_binary(element(16, block:top())),
+    Y = binary_reverse(X),
+    case Y of
+	<<B:64, D/binary>>  ->
+	    RB = binary_reverse(<<B:64>>),
+	    RD = binary_reverse(D),
+	    <<RD/binary, <<".">>/binary, RB/binary>>;
+	_ -> <<"small">>
+		 end;
 doit(X) -> 
     io:fwrite(X),
     <<"error">>.
