@@ -35,7 +35,8 @@ start_internal() ->
 start_external() ->
     Dispatch =
         cowboy_router:compile(
-          [{'_', [{"/:file", ext_file_handler, []},
+          [{'_', [{"/ext/:file", get_api_handler, []},
+		  {"/:file", ext_file_handler, []},
                   {"/", ext_handler, []}
                  ]}]),
     {ok, Port} = application:get_env(amoveo_core, port),

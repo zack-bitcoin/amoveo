@@ -30,6 +30,16 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+Coinpaprika API for total supply of tokens.
+return decimal number of veo.
+like this: https://explorer.impleum.com/ext/getmoneysupply
+
+probably we only need to edit int_file_handler.erl
+
+chalang should be aware of the block time.
+use the block time in a new version of the market.
+
+
 
 
 

@@ -118,6 +118,8 @@ Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
 Amoveo-Exchange for ETH-VEO and BTC-VEO trading: https://amoveo.exchange/
 
+BTC-VEO exchange: https://graviex.net/markets/veobtc
+
 
 ## Software to launch a new mining pool
 
