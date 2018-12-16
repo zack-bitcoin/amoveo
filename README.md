@@ -30,6 +30,8 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Amoveo website from the Exantech, the same people who wrote an iphone and android app](https://amoveo.io/en/)
 
+[Website for exploring oracles and governance variables](https://veo.sh/oracles)
+
 <!---
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
 --->
