@@ -31,6 +31,8 @@ block_hash(N) ->
     %returns the hash of block N
     B = block:get_by_height(N),
     block:hash(B).
+header(N) ->
+    block:block_to_header(block:get_by_height(N)).
 ewah(Start, End) ->
     headers:ewah_range(Start, End).
 top() ->
