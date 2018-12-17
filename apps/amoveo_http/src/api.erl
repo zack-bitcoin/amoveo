@@ -10,7 +10,7 @@ dump_channels() ->
 keys_status() -> keys:status().
 load_key(Pub, Priv, Brainwallet) ->
     keys:load(Pub, Priv, Brainwallet).
-height() ->    
+height() ->
     (headers:top())#header.height.
 height(1) ->
     block:height().
@@ -20,12 +20,12 @@ block(1, N) ->
 block(3, N) ->
     Txs = tl(block(1, N)),
     Txids = lists:map(
-	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end,
 	      Txs),
     [Txs, Txids];
 block(2, H) ->
     block:get_by_hash(H).
-block_hash(N) ->    
+block_hash(N) ->
     %returns the hash of block N
     B = block:get_by_height(N),
     block:hash(B).
@@ -39,7 +39,7 @@ top(1) ->
     H = headers:top_with_block(),
     [H, block:hash(H)].
 sign(Tx) -> keys:sign(Tx).
-tx_maker0(Tx) -> 
+tx_maker0(Tx) ->
     case sync_mode:check() of
 	quick ->
 	    S = "error, you need to be in sync mode normal to make txs",
@@ -47,10 +47,10 @@ tx_maker0(Tx) ->
 	    ok;
 	normal ->
 	    case keys:sign(Tx) of
-		{error, locked} -> 
+		{error, locked} ->
 		    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
 		    ok;
-		Stx -> 
+		Stx ->
 		    ok = tx_pool_feeder:absorb(Stx),
 		    hash:doit(Tx)
 	    end
@@ -82,9 +82,9 @@ multi_spend([{Amount, Pubkey}|T]) ->
 	     true ->
 		 B = trees:get(accounts, ID),
 		 if
-		     (B == empty) -> 
+		     (B == empty) ->
 			 create_account_tx:make_dict(ID, Amount, 0, K);
-		     true -> 
+		     true ->
 			 spend_tx:make_dict(ID, Amount, 0, K)
 		 end
 	 end,
@@ -99,11 +99,11 @@ multi_fee([H|T]) ->
 spend(ID0, Amount) ->
     ID = decode_pubkey(ID0),
     K = keys:pubkey(),
-    if 
+    if
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
-	true -> 
+	true ->
 	    B = trees:get(accounts, ID),
-            if 
+            if
                (B == empty) ->
                     create_account(ID, Amount);
                 true ->
@@ -174,7 +174,7 @@ pull_channel_state(IP, Port) ->
     {ok, ServerID} = talker:talk({pubkey}, IP, Port),
     {ok, [CD, ThemSPK]} = talker:talk({spk, keys:pubkey()}, IP, Port),
     case channel_manager:read(ServerID) of
-        error  -> 
+        error  ->
             %This trusts the server and downloads a new version of the state from them. It is only suitable for testing and development. Do not use this in production.
             SPKME = CD#cd.them,
             true = testnet_sign:verify(keys:sign(ThemSPK)),
@@ -196,7 +196,7 @@ pull_channel_state(IP, Port) ->
             talker:talk({channel_sync, keys:pubkey(), Return2}, IP, Port),
             ok
     end.
-channel_state() -> 
+channel_state() ->
     channel_manager:read(hd(channel_manager:keys())).
 decrypt_msgs([]) ->
     [];
@@ -230,7 +230,7 @@ channel_spend(IP, Port, Amount) ->
     {ok, CD} = channel_manager:read(PeerId),
     OldSPK = testnet_sign:data(CD#cd.them),
     ID = keys:pubkey(),
-    SPK = spk:get_paid(OldSPK, ID, -Amount), 
+    SPK = spk:get_paid(OldSPK, ID, -Amount),
     Payment = keys:sign(SPK),
     M = {channel_payment, Payment, Amount},
     {ok, Response} = talker:talk(M, IP, Port),
@@ -271,7 +271,7 @@ channel_balance2(Ip, Port) ->
     Bal.
 integer_channel_balance(Ip, Port) ->
     {ok, Other} = talker:talk({pubkey}, Ip, Port),
-    
+
     {ok, CD} = channel_manager:read(Other),
     SSPK = CD#cd.them,
     SPK = testnet_sign:data(SSPK),
@@ -300,7 +300,7 @@ channel_team_close(CID, Amount, Fee) ->
     Tx.
 channel_timeout(1) -> %if you are running a channel node server.
     channels:close_many().
-    
+
 channel_timeout() ->
     channel_timeout(constants:server_ip(), constants:server_port()).
 channel_timeout(Ip, Port) ->
@@ -333,7 +333,7 @@ new_scalar_oracle(Start, Question, ID, Many) ->
     nso2(keys:pubkey(), ?Fee+Cost+20, Q2, Start, ID, 0, Many).
 -define(GAP, 0).%how long to wait between the limits when the different oracles of a scalar market can be closed.
 nso2(_Pub, _C, _Q, _S, _ID, Many, Many) -> 0;
-nso2(Pub, C, Q, S, ID, Many, Limit) -> 
+nso2(Pub, C, Q, S, ID, Many, Limit) ->
     io:fwrite("nso2\n"),
     Q2 = <<Q/binary, (list_to_binary("  most significant is bit 0. this is bit number: "))/binary, (list_to_binary(integer_to_list(Many)))/binary>>,
     Tx = oracle_new_tx:make_dict(Pub, C, Q2, S, <<ID:256>>, 0, 0),
@@ -341,7 +341,7 @@ nso2(Pub, C, Q, S, ID, Many, Limit) ->
     %tx_pool_feeder:absorb(keys:sign(Tx)),
     tx_maker0(Tx),
     nso2(Pub, C, Q, S+?GAP, ID+1, Many+1, Limit).
-    
+
 new_question_oracle(Start, Question)->
     ID = find_id2(),
     new_question_oracle(Start, Question, ID).
@@ -389,7 +389,7 @@ tree_common(TreeName, ID, BlockHash) ->
     %T = block:trees(B),
     T = B#block.trees,
     trees:get(TreeName, ID, dict:new(), T).
-    
+
 governance(ID) ->
     trees:get(governance, ID).
 governance(ID, BlockHash) ->
@@ -425,12 +425,12 @@ confirmed_balance(P) ->
     B2 = V2#acc.balance,
     min(B1, B2).
 decode_pubkey(P) when size(P) == 65 -> P;
-decode_pubkey(P) when is_list(P) -> 
+decode_pubkey(P) when is_list(P) ->
     decode_pubkey(base64:decode(P));
-decode_pubkey(P) when ((size(P) > 85) and (size(P) < 90)) -> 
+decode_pubkey(P) when ((size(P) > 85) and (size(P) < 90)) ->
     decode_pubkey(base64:decode(P)).
-    
-integer_balance() -> 
+
+integer_balance() ->
     A = account(),
     case A of
         empty -> 0;
@@ -510,10 +510,10 @@ add_peer(IP, Port) ->
     peers:add({IP, Port}),
     0.
 %sync() -> sync(?IP, ?Port).
-sync() -> 
+sync() ->
     spawn(fun() -> sync:start() end),
     0.
-sync(IP, Port) -> 
+sync(IP, Port) ->
     spawn(fun() -> sync:start([{IP, Port}]) end),
     0.
 sync(2, IP, Port) ->
@@ -535,8 +535,8 @@ keys_unlock(Password) ->
     keys:unlock(Password),
     0.
 keys_new(Password) ->
-    %WARNING!!! THIS DELETES YOUR PRIVATE KEY!!! 
-    %there is a different command for saving your 
+    %WARNING!!! THIS DELETES YOUR PRIVATE KEY!!!
+    %there is a different command for saving your
     %private key and deleting your password.
     keys:new(Password),
     0.
@@ -579,7 +579,7 @@ new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     io:fwrite(packer:pack([OID, OldTrees, Height-Confirmations])),
     io:fwrite("\n"),
     false = empty == trees:get(oracles, OID, dict:new(), OldTrees),%oracle existed confirmation blocks ago.
-    
+
     order_book:new_market(OID, Expires, Period).
 trade(Price, Type, Amount, OID, Height) ->
     trade(Price, Type, Amount, OID, Height, ?IP, ?Port).
@@ -596,9 +596,9 @@ trade(Price, Type, A, OID, Height, Fee, IP, Port) ->
     MyHeight = api:height(),
     true = Height =< MyHeight,
     MarketID = OID,
-%    {ok, {Expires, 
+%    {ok, {Expires,
 %	  Pubkey, %pubkey of market maker
-%	  Period}} = 
+%	  Period}} =
 %	talker:talk({market_data, OID}, IP, Port),
     SC = channel_feeder:contract_market(OBData, OID, Type, Expires, Price, ServerID, Period, Amount, OID, Height),
     SSPK = channel_feeder:trade(Amount, Price, SC, ServerID, OID),
@@ -628,17 +628,17 @@ txs({IP, Port}) ->
 txs(IP, Port) ->
     sync:trade_txs({IP, Port}),
     0.
-    
+
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
     Block = potential_block:check(),
     Height = Block#block.height,
     F2 = forks:get(2),
     N = if
-	       F2 > Height -> 
+	       F2 > Height ->
 		<<X:256>> = Nonce,
 		X;
-	       true -> 
+	       true ->
 		<<X:184>> = Nonce,
 		X
 	end,
@@ -653,7 +653,7 @@ work(Nonce, _) ->
     %headers:absorb_with_block([Header]),%uses call
     %block_absorber:save(Block2),
     block_organizer:add([Block2]),
-    %spawn(fun() -> 
+    %spawn(fun() ->
     %timer:sleep(1000),
     potential_block:save(),
     %sync:start() ,
@@ -680,7 +680,7 @@ mining_data() ->
 				  true -> 23
 			      end,
 		    [hash:doit(block:hash(Block)),
-		     crypto:strong_rand_bytes(Entropy), 
+		     crypto:strong_rand_bytes(Entropy),
      %headers:difficulty_should_be(Top)].
 		     Block#block.difficulty]
 	    end
@@ -693,7 +693,7 @@ orders(OID) ->
     lists:map(fun(Y) -> orders:get(Y, X) end, IDs).
 oracles() ->
     oracles:all().
-		      
+
 
 sync_normal() ->
     sync_mode:normal(),
@@ -701,7 +701,7 @@ sync_normal() ->
 sync_quick() ->
     sync_mode:quick(),
     0.
-   
+
 mining_data(X) ->
     mining_data(X, 30).
 mining_data(X, Start) ->
@@ -710,5 +710,3 @@ mining_data(X, Start) ->
 pubkey(Pubkey, Many, TopHeight) ->
     amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).
 %curl -i -d '["pubkey", "BEwcawKx5oZFOmp1533TqDzUl76fOeLosDl+hwv6rZ50tLSQmMyW/87saj3D5qBtJI4lLsILllpRlT8/ppuNaPM=", 100, 18000]' http://localhost:8081
-
-
