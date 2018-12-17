@@ -23,6 +23,8 @@ block(3, N) ->
 	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end,
 	      Txs),
     [Txs, Txids];
+block(4, N) ->
+    block:get_by_height(N);
 block(2, H) ->
     block:get_by_hash(H).
 block_hash(N) ->
