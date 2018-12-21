@@ -9,13 +9,14 @@ init(ok) ->
     %process_flag(trap_exit, true),
     {ok, []}.
 handle_call({absorb, SignedTx}, _From, State) ->
-    case absorb_internal(SignedTx) of
-	error -> ok;
-	NewDict ->
-	    dict:find(sample, NewDict),
-	    tx_pool:absorb_tx(NewDict, SignedTx)
-    end,
-    {reply, ok, State};
+    R = case absorb_internal(SignedTx) of
+	    error -> error;
+	    NewDict ->
+		dict:find(sample, NewDict),
+		tx_pool:absorb_tx(NewDict, SignedTx),
+		ok
+	end,
+    {reply, R, State};
 handle_call(empty_mailbox, _, S) -> 
     {reply, ok, S};
 handle_call(_, _, S) -> {reply, S, S}.
@@ -205,6 +206,7 @@ absorb(SignedTx) ->
 	normal -> 
 	    gen_server:call(?MODULE, {absorb, SignedTx});
 	_ -> %io:fwrite("warning, transactions don't work well if you aren't in sync_mode normal")
+	    1=2,
 	    ok
     end.
 %absorb_async([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.

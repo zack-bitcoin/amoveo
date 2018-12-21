@@ -200,6 +200,7 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict, L) ->%
 	   end,%
     Leaf = leaf:new(ID, New2, 0, trie:cfg(oracle_bets)),%
     dict_update_trie_oracle_bets(Trees, T, Dict, [{Pub, Leaf}|L]).%
+
 get_things(Key, L) ->
     get_things(Key, L, [], []).
 get_things(Key, [], A, B) -> {A, B};

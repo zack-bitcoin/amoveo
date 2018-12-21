@@ -1,2 +1,0 @@
-7917:~/amoveo/_build/prod/rel/amoveo_core$ '/usr/lib/erlang/lib/observer-2.6/priv/bin/cdv' '/home/steliox/amoveo/_build/prod/rel/amoveo_core/erl_crash.dump'
-(using erlang's crash dump viewer from erlang observer app)
