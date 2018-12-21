@@ -28,6 +28,10 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Historic difficulty in depth.](https://amoveo.tools/)
 
+[Amoveo website from the Exantech, the same people who wrote an iphone and android app](https://amoveo.io/en/)
+
+[Website for exploring oracles and governance variables](https://veo.sh/oracles)
+
 <!---
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
 --->
@@ -51,15 +55,25 @@ A light node that currently has markets is [here](http://159.89.106.253:8080/wal
 And the interface to look at the markets is [here](http://159.89.106.253:8080/explorer.html).
 
 
+## Places you can use Amoveo smart contracts
+
+[Amoveo Book has a web wallet integrated into the browser for usability](http://amoveobook.com/)
+
+
 ## Block Explorer
+
+[Veopool explorer](http://explorer.veopool.pw/)
+
+[Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
+
+[mveo explorer. historic difficulty analisys](https://mveo.net/)
+
+[Amoveo.tools](https://amoveo.tools/)
 
 The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
 
 Another explorer is [here](http://159.89.106.253:8080/explorer.html). This one has some markets where you can gamble.
 
-[Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
-
-[Veopool explorer](http://explorer.veopool.pw/)
 
 
 ## Full node
@@ -95,6 +109,7 @@ http://stats.veopool.pw/
 
 http://xdpool.xyz/
 
+
 ## Trading
 
 Be very careful using exchanges. They are centralized, the operator can take all the veo if they wanted.
@@ -105,12 +120,15 @@ An escrow tool hosted by Zack: http://159.89.106.253:8087/main.html
 
 Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
-Amoveo-Exchange for ETH-VEO trading: https://amoveo.exchange/
+A1 exchange for ETH-VEO and BTC-VEO trading (previously called amoveo.exchange): https://a1.exchange/
+
+BTC-VEO exchange: https://graviex.net/markets/veobtc
 
 
 ## Software to launch a new mining pool
 
-https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool.
+https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool. WARNING!!! this pool has known security vulnerabilities that have not been patched.
+
 [Another open source mining pool](https://github.com/zack-bitcoin/amoveo-mining-pool)
 
 
@@ -120,11 +138,3 @@ If you want to build on top of Amoveo [read the developer's guide](docs/getting-
 
 [Here is an old open-source miner for Nvidia GPU, it works for linux and windows. This software is too slow to be competitive, but it might be useful for educational purposes.](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
 
-
-## Donations
-
-```
-Bitcoin Donations: 1C5Qq5i4uUyEm84GAZ3iAUFgbVAhbCirwj
-Veo donations: BGH+3P768A9cSNR3GLSRXgsokSL/Jdbm+rOJogbgiPxq8M+J2R4nVxZ+Hj6WdI4rMsq6nPzkMh77WGBCMx89HUM=
-Gifts must be less than $10 000 per person per year.
-```

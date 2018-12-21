@@ -1,4 +1,6 @@
 -module(request_frequency).
+% This module is for preventing any ip address from trying to contact this node too frequently.
+
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 	doit/1]).

@@ -51,7 +51,7 @@ tx_maker0(Tx) ->
 		    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
 		    ok;
 		Stx -> 
-		    tx_pool_feeder:absorb(Stx),
+		    ok = tx_pool_feeder:absorb(Stx),
 		    hash:doit(Tx)
 	    end
     end.
@@ -691,6 +691,8 @@ orders(OID) ->
     X = oracles:orders(Oracle),
     IDs = orders:all(X),
     lists:map(fun(Y) -> orders:get(Y, X) end, IDs).
+oracles() ->
+    oracles:all().
 		      
 
 sync_normal() ->
