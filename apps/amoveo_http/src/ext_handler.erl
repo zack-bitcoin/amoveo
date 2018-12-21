@@ -272,6 +272,7 @@ doit({oracle, Y}) ->
     {ok, OB} = order_book:data(X),
     {ok, {OB, Question}};
 doit({oracle_bets, OID}) ->
+    %This is a very poor choice of name. "oracle_bets" for something that doesn't touch the oracle_bets merkel tree, and only touches the orders merkel tree.
     B = block:top(),
     Trees = B#block.trees,
     Oracles = trees:oracles(Trees),

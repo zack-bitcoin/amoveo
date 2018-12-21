@@ -11,7 +11,8 @@
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
--record(roots, {accounts, channels, existence, oracles, governance}).
+-record(roots, {accounts, channels, existence, oracles, governance}).%
+-record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -180,32 +181,30 @@ tx_costs([STx|T], Governance, Out) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
-new_dict(Txs, Dict, Height) ->
-    Dict2 = txs:digest(Txs, Dict, Height),
-    Dict2.
+new_dict(Txs, Dict, Height) -> txs:digest(Txs, Dict, Height).
 market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
-    FH = forks:get(3),
+    FH = forks:get(3),%
     if
 	FH > Height ->
 	    OldBlock#block.market_cap + 
 		BlockReward - 
 		gov_fees(Txs0, Dict);
-	Height == FH -> 
-	    MC1 = OldBlock#block.market_cap + 
-		BlockReward - 
-		gov_fees(Txs0, Dict),
-	    (MC1 * 6) div 5;
-	FH < Height ->
-	    DeveloperRewardVar = 
-		governance:dict_get_value(developer_reward, Dict),
-	    DeveloperReward = 
-		(BlockReward * 
-		 DeveloperRewardVar) div 
-		10000,
-	    OldBlock#block.market_cap + 
-		BlockReward - 
-		gov_fees(Txs0, Dict) + 
-		DeveloperReward
+	Height == FH -> %
+	    MC1 = OldBlock#block.market_cap + %
+		BlockReward - %
+		gov_fees(Txs0, Dict),%
+	    (MC1 * 6) div 5;%
+	FH < Height ->%
+	    DeveloperRewardVar = %
+		governance:dict_get_value(developer_reward, Dict),%
+	    DeveloperReward = %
+		(BlockReward * %
+		 DeveloperRewardVar) div %
+		10000,%
+	    OldBlock#block.market_cap + %
+		BlockReward - %
+		gov_fees(Txs0, Dict) + %
+		DeveloperReward%
     end.
     
     
@@ -219,11 +218,11 @@ make(Header, Txs0, Trees, Pub) ->
     NewDict0 = new_dict(Txs, Dict, Height + 1),
     B = ((Height+1) == forks:get(5)),
     NewDict = if
-		B -> 
-		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
-		      io:fwrite("block governance adjust "),
-		      io:fwrite(packer:pack(OQL)),
-		      governance:dict_write(OQL, NewDict0);
+		B -> %
+		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
+		      io:fwrite("block governance adjust "),%
+		      io:fwrite(packer:pack(OQL)),%
+		      governance:dict_write(OQL, NewDict0);%
 		true -> NewDict0
 	    end,
     MinerAddress = Pub,
@@ -231,17 +230,33 @@ make(Header, Txs0, Trees, Pub) ->
     FG9 = forks:get(9),
     MinerReward = miner_fees(Txs0),
     NewDict2 = if
-		   (Height + 1) < FG6 -> NewDict;
-		   (Height + 1) < FG9 ->
-%    MinerAccount = accounts:dict_get(MinerAddress, Dict),
-		       MinerAccount = accounts:dict_update(MinerAddress, NewDict, MinerReward, none),
-		       accounts:dict_write(MinerAccount, NewDict);
+		   (Height + 1) < FG6 -> NewDict;%
+		   (Height + 1) < FG9 ->%
+%    MinerAccount = accounts:dict_get(MinerAddress, Dict),%
+		       MinerAccount = accounts:dict_update(MinerAddress, NewDict, MinerReward, none),%
+		       accounts:dict_write(MinerAccount, NewDict);%
 		   true ->
 		       GovFees = gov_fees(Txs0, NewDict),
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
-    NewTrees = tree_data:dict_update_trie(Trees, NewDict2),
+    F10 = forks:get(10),
+    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict2),
+    NewTrees = if
+		   ((Height + 1) == F10)  ->%
+		       Root0 = constants:root0(),%
+		       NewTrees1 = %
+			   trees:new2(trees:accounts(NewTrees0),%
+				      trees:channels(NewTrees0),%
+				      trees:existence(NewTrees0),%
+				      trees:oracles(NewTrees0),%
+				      trees:governance(NewTrees0),%
+				      Root0,%
+				      Root0),%
+		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
+		       NewTrees1;%
+		   true -> NewTrees0
+	       end,
     %Governance = trees:governance(NewTrees),
     Governance = trees:governance(Trees),
     BlockPeriod = governance:get_value(block_period, Governance),
@@ -272,23 +287,42 @@ make(Header, Txs0, Trees, Pub) ->
 		   many_oracles = OldBlock#block.many_oracles + many_new_oracles(Txs0),
 		   live_oracles = OldBlock#block.live_oracles + many_live_oracles(Txs0)
 		  },
-    Block = packer:unpack(packer:pack(Block)),
+    Block = packer:unpack(packer:pack(Block)),%maybe this is unnecessary?
     %_Dict = proofs:facts_to_dict(Proofs, dict:new()),
     Block.
-make_roots(Trees) ->
-    #roots{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
+make_roots(Trees) when (element(1, Trees) == trees) ->%
+    #roots{accounts = trie:root_hash(accounts, trees:accounts(Trees)),%
+           channels = trie:root_hash(channels, trees:channels(Trees)),%
+           existence = trie:root_hash(existence, trees:existence(Trees)),%
+           oracles = trie:root_hash(oracles, trees:oracles(Trees)),%
+           governance = trie:root_hash(governance, trees:governance(Trees))};%
+make_roots(Trees) when (element(1, Trees) == trees2) ->
+    #roots2{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
            channels = trie:root_hash(channels, trees:channels(Trees)),
            existence = trie:root_hash(existence, trees:existence(Trees)),
            oracles = trie:root_hash(oracles, trees:oracles(Trees)),
-           governance = trie:root_hash(governance, trees:governance(Trees))}.
-roots_hash(X) when is_record(X, roots) ->
-    A = X#roots.accounts,
-    C = X#roots.channels,
-    E = X#roots.existence,
-    O = X#roots.oracles,
-    G = X#roots.governance,
-    hash:doit(<<A/binary, C/binary, E/binary, 
-                         O/binary, G/binary>>).
+           governance = trie:root_hash(governance, trees:governance(Trees)),
+	   matched = trie:root_hash(matched, trees:matched(Trees)),
+	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees))}.
+roots_hash(X) when is_record(X, roots) ->%
+    A = X#roots.accounts,%
+    C = X#roots.channels,%
+    E = X#roots.existence,%
+    O = X#roots.oracles,%
+    G = X#roots.governance,%
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary>>,%
+    hash:doit(Y);%
+roots_hash(X) when is_record(X, roots2) ->
+    A = X#roots2.accounts,
+    C = X#roots2.channels,
+    E = X#roots2.existence,
+    O = X#roots2.oracles,
+    G = X#roots2.governance,
+    M = X#roots2.matched,
+    U = X#roots2.unmatched,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary>>,
+    hash:doit(Y).
+    
     
 guess_number_of_cpu_cores() ->
     case application:get_env(amoveo_core, test_mode) of
@@ -358,21 +392,33 @@ mine2(Block, Times) ->
         Pow -> Block#block{nonce = pow:nonce(Pow)}
     end.
 proofs_roots_match([], _) -> true;
-proofs_roots_match([P|T], R) ->
+proofs_roots_match([P|T], R) when is_record(R, roots)->%
+    Tree = proofs:tree(P),%
+    Root = proofs:root(P),%
+    Root = %
+        case Tree of%
+            oracle_bets -> Root;%
+            orders -> Root;%
+            accounts -> R#roots.accounts;%
+            channels -> R#roots.channels;%
+            existence -> R#roots.existence;%
+            oracles -> R#roots.oracles;%
+            governance -> R#roots.governance%
+           end,%
+    proofs_roots_match(T, R);%
+proofs_roots_match([P|T], R) when is_record(R, roots2)->
     Tree = proofs:tree(P),
     Root = proofs:root(P),
-    Root = 
-        case Tree of
-            oracle_bets -> Root;
-            orders -> Root;
-            accounts -> R#roots.accounts;
-            channels -> R#roots.channels;
-            existence -> R#roots.existence;
-            oracles -> R#roots.oracles;
-            governance -> R#roots.governance
-           end,
+    Root = case Tree of
+	       accounts -> R#roots2.accounts;
+	       channels -> R#roots2.channels;
+	       existence -> R#roots2.existence;
+	       oracles -> R#roots2.oracles;
+	       governance -> R#roots2.governance;
+	       matched -> R#roots2.matched;
+	       unmatched -> R#roots2.unmatched
+	   end,
     proofs_roots_match(T, R).
-            
 check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,
     Header = block_to_header(Block),
@@ -464,7 +510,23 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 		       accounts:dict_write(MinerAccount2, NewDict2)
 	       end,
 
-    NewTrees3 = tree_data:dict_update_trie(OldTrees, NewDict3),
+    NewTrees3_0 = tree_data:dict_update_trie(OldTrees, NewDict3),
+    F10 = forks:get(10),
+    NewTrees3 = if
+		    (Height == F10) ->
+		       Root0 = constants:root0(),
+		       NewTrees1 = 
+			   trees:new2(trees:accounts(NewTrees3_0),
+				      trees:channels(NewTrees3_0),
+				      trees:existence(NewTrees3_0),
+				      trees:oracles(NewTrees3_0),
+				      trees:governance(NewTrees3_0),
+				      Root0,
+				      Root0),
+		       %at this point we should move all the oracle bets and orders into their new merkel trees.
+		       NewTrees1;
+		   true -> NewTrees3_0
+	       end,
     Block2 = Block#block{trees = NewTrees3},
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),

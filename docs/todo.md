@@ -1,3 +1,40 @@
+This hard fork
+
+And ideally we would move all the orders and oracle bets to their new trees.
+
+add a function to api instead of api:orders/1. so we can look up the unmatched bets in one oracle.
+figure something to replace the oracle_bets endpoint in ext_handler, it should probably be removed.
+
+
+
+A strategy to make sure we don't break anything.
+We should launch a fork with lower difficulty to act as a testnet, and try out the hard fork there first. Using the same history that the real hard fork will use.
+So we can all test out the changes before we do the real hard fork.
+
+Maybe have an upper limit on difficulty, to prevent these tokens from having value.
+
+It should have quicker oracle delays and faster block times to make oracle tests easier.
+
+It needs some mechanism to prevent the fork from surviving and having value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### Other hard fork ideas
