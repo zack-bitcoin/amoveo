@@ -51,8 +51,8 @@ Using this light node is the same as trusting them with your money.
 This light node downloads headers and verifies the proof of work.
 It verifies the merkle proofs for all blockchain state you download to ensure security equivalent to a full node, provided you wait for enough confirmations.
 You can use the light node to participate in [markets](docs/light_node/market.md).
-A light node that currently has markets is [here](http://159.89.106.253:8080/wallet.html).
-And the interface to look at the markets is [here](http://159.89.106.253:8080/explorer.html).
+A light node that currently has markets is [here](http://159.65.120.84:8080/wallet.html).
+And the interface to look at the markets is [here](http://159.65.120.84:8080/explorer.html).
 
 
 ## Places you can use Amoveo smart contracts
@@ -71,8 +71,8 @@ And the interface to look at the markets is [here](http://159.89.106.253:8080/ex
 [Amoveo.tools](https://amoveo.tools/)
 
 The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
+This explorer can host markets.
 
-Another explorer is [here](http://159.89.106.253:8080/explorer.html). This one has some markets where you can gamble.
 
 
 
@@ -115,8 +115,6 @@ http://xdpool.xyz/
 Be very careful using exchanges. They are centralized, the operator can take all the veo if they wanted.
 
 There are people trading now on discord https://discord.gg/xJQcVaT
-
-An escrow tool hosted by Zack: http://159.89.106.253:8087/main.html
 
 Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
