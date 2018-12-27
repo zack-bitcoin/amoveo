@@ -122,6 +122,8 @@ A1 exchange for ETH-VEO and BTC-VEO trading (previously called amoveo.exchange):
 
 BTC-VEO exchange: https://graviex.net/markets/veobtc
 
+BTC-VEO exchange: https://bitibu.com/markets/veobtc
+
 
 ## Software to launch a new mining pool
 

@@ -7,32 +7,6 @@ figure something to replace the oracle_bets endpoint in ext_handler, it should p
 
 
 
-A strategy to make sure we don't break anything.
-We should launch a fork with lower difficulty to act as a testnet, and try out the hard fork there first. Using the same history that the real hard fork will use.
-So we can all test out the changes before we do the real hard fork.
-
-Maybe have an upper limit on difficulty, to prevent these tokens from having value.
-
-It should have quicker oracle delays and faster block times to make oracle tests easier.
-
-It needs some mechanism to prevent the fork from surviving and having value.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -67,20 +41,14 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
-Coinpaprika API for total supply of tokens.
-return decimal number of veo.
-like this: https://explorer.impleum.com/ext/getmoneysupply
-
-probably we only need to edit int_file_handler.erl
-
 chalang should be aware of the block time.
 use the block time in a new version of the market.
 
 
-
-
-
 * people should be able to use a light node to make channels with custom bets directly between each other.
+https://github.com/zack-bitcoin/light-node-amoveo/issues/4
+
+* remove depreciated javascript code.
 
 * untrusted third parties who hold channel data and publish it if a channel is closing wrong.
 
