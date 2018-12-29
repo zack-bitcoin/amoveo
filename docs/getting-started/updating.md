@@ -2,23 +2,23 @@
 
 first turn the node off.
 Attach to it
-`make prod-attach`
+```make prod-attach```
 stop it from syncing to prevent corrupted state
-`sync:stop().`
+```sync:stop().```
 turn off the full node
-`api:off().`
+```api:off().```
 turn off the erlang terminal
-`halt().`
+```halt().```
 update the dependencies.
-`./rebar3 upgrade`
+```./rebar3 upgrade```
 update Amoveo
-`git pull`
+```git pull```
 turn the node back on
-`make prod-restart`
+```make prod-restart```
 Tell it to re-sync rejected blocks with the new rules (only important if your node is frozen at a historical height because you didn't update in time for a hard update.)
-`block_hashes:second_chance().`
+```block_hashes:second_chance().```
 the blocks are already synced, so switch to normal mode
-`sync_mode:normal().`
+```sync_mode:normal().```
 if you want to make transactions, you need to unlock the keys:
-`keys:unlock("").`
+```keys:unlock("").```
 Now you can detach from the running node, and allow it to continue running in the background by holdint the Control key, and pressing the D key.
