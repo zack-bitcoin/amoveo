@@ -3,6 +3,7 @@
 first turn the node off.
 Attach to it
 ```make prod-attach```
+
 stop it from syncing to prevent corrupted state
 ```sync:stop().```
 turn off the full node
