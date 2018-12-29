@@ -1,5 +1,4 @@
-The commands for updating.
-#######
+## The commands for updating.
 
 first turn the node off.
 Attach to it
@@ -16,7 +15,7 @@ update Amoveo
 `git pull`
 turn the node back on
 `make prod-restart`
-Tell it to re-sync rejected blocks with the new rules
+Tell it to re-sync rejected blocks with the new rules (only important if your node is frozen at a historical height because you didn't update in time for a hard update.)
 `block_hashes:second_chance().`
 the blocks are already synced, so switch to normal mode
 `sync_mode:normal().`
