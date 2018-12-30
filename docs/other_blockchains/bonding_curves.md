@@ -56,6 +56,7 @@ Now lets look at some specific examples of goals that bonding curves could suppo
 
 
 Now lets take this more abstract.
+
 Blockchain is a zero sum game. Your side of a contract can only gain value if the other person's side loses value.
 Blockchain can be used for these applications: buying/selling information, for hedging risks, for storing value, or for sending value.
 Hedging risks is similar to buying insurance. You don't buy insurance to get rich, you buy it to lower the probability that you will end up poor.
@@ -64,4 +65,4 @@ Incentivizing people to reveal private information can be useful when we want to
 If someone tries to advertise a blockchain tool, and they claim that it has an application other than hedging risk or trading information or sending/storing value, then it is a scam.
 
 
-
+Sub-currencies are always the wrong design choice. They increase exchange rate risk, increase volatility, and prevent channel-type scalability. It is always better to use contracts priced in the native currency.
