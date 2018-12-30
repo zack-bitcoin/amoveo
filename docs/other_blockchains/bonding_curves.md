@@ -11,8 +11,8 @@ Bonding curves are a great example for learning about cryptoeconomics. In this p
 
 
 glossary:
-subcurrency - any currency on a blockchain other than it's native currency. in particular, I call the new currency produced by a bonded curve a "subcurrency".
-native currency - in the case of Ethereum, the native currency is Eth. This is the currency that block rewards are paid in.
+* subcurrency - any currency on a blockchain other than it's native currency. in particular, I call the new currency produced by a bonded curve a "subcurrency".
+* native currency - in the case of Ethereum, the native currency is Eth. This is the currency that block rewards are paid in.
 
 
 Definition of a bonding curve:
@@ -62,4 +62,6 @@ Hedging risks is similar to buying insurance. You don't buy insurance to get ric
 Incentivizing people to reveal private information can be useful when we want to make big important decisions, and we can't risk making a bad decision.
 
 If someone tries to advertise a blockchain tool, and they claim that it has an application other than hedging risk or trading information or sending/storing value, then it is a scam.
+
+
 
