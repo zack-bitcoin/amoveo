@@ -32,25 +32,25 @@ Bonding curves have no advantages over smart contracts priced in the native curr
 
 Now lets look at some specific examples of goals that bonding curves could supposedly be used for, and I will show that there is always a better way to make a contract priced in the native currency.
 * A bonding curve can have a resolution that kills the contract and distributes the native currency in it to everyone holding the subcurrency.
-- this mechanism does not work. depending on the curve used, a person who sells their subcurrency to the bonded curve contract before it expires will get more than 2x as much native currency, compared with a person who waits for the contract to expire and distribute all the Eth. So everyone will rush to the exit before the bonding curve ever has a chance to distribute the native currency. Whoever leaves last will lose almost everything that they invested. 
+ - this mechanism does not work. depending on the curve used, a person who sells their subcurrency to the bonded curve contract before it expires will get more than 2x as much native currency, compared with a person who waits for the contract to expire and distribute all the Eth. So everyone will rush to the exit before the bonding curve ever has a chance to distribute the native currency. Whoever leaves last will lose almost everything that they invested. 
 
 * A bonding curve can be used to raise money for a goal like creating a public good.
-- A lot of people are making this claim, but no one has gone into specifics. It is not clear at all how the bonding curve could raise money for a public good. If we took all the native currency out of the bonded curve contract and used it to pay for the public good, then it would break the bonding curve. You would no longer be able to sell your subcurrency to the contract for native currency.
-- There are already great designs for contracts priced in the native currency to raise funds for public goods. They have even done math to show that it is incentive compatible. Check out page 14 of this pdf: http://bitcoinhivemind.com/papers/3_PM_Applications.pdf
+ - A lot of people are making this claim, but no one has gone into specifics. It is not clear at all how the bonding curve could raise money for a public good. If we took all the native currency out of the bonded curve contract and used it to pay for the public good, then it would break the bonding curve. You would no longer be able to sell your subcurrency to the contract for native currency.
+ - There are already great designs for contracts priced in the native currency to raise funds for public goods. They have even done math to show that it is incentive compatible. Check out page 14 of this pdf: http://bitcoinhivemind.com/papers/3_PM_Applications.pdf
 
 * A bonding curve can be used to create a subcurrency with some utility, like gambling or a prediction market or a quiz.
-- You can use native currency to do any of these same things. There is no benefit for creating a subcurrency for this, and there is significant cost for creating a subcurrency for this.
-- if someone makes a gambling contract that only accepts subcurrency, there is nothing stopping anyone else from cloning it to make a version that accepts native currency.
+ - You can use native currency to do any of these same things. There is no benefit for creating a subcurrency for this, and there is significant cost for creating a subcurrency for this.
+ - if someone makes a gambling contract that only accepts subcurrency, there is nothing stopping anyone else from cloning it to make a version that accepts native currency.
 
 * Bonded curve subcurrency could be used for voting.
-- Voting cannot be a secure protocol for making decisions. It is vulnerable to tragedy of the commons. It is vulnerable to bribery. https://blog.ethereum.org/2015/01/28/p-epsilon-attack/
-- We already have tools like futarchy which are ideal for making decisions. see page 8 of this pdf http://bitcoinhivemind.com/papers/3_PM_Applications.pdf
-- Restricting participation to only people who own a subcurrency makes the decision less accurate. Markets have more accurate prices if more people can participate, so it is better to use native currency for decision markets instead of using a subcurrency.
+ - Voting cannot be a secure protocol for making decisions. It is vulnerable to tragedy of the commons. It is vulnerable to bribery. https://blog.ethereum.org/2015/01/28/p-epsilon-attack/
+ - We already have tools like futarchy which are ideal for making decisions. see page 8 of this pdf http://bitcoinhivemind.com/papers/3_PM_Applications.pdf
+ - Restricting participation to only people who own a subcurrency makes the decision less accurate. Markets have more accurate prices if more people can participate, so it is better to use native currency for decision markets instead of using a subcurrency.
 
 * Steemit style multi-level-marketing schemes
-- With bonding curves, the total value of Eth being stored in the contract is significantly less than the notional value of all the subcurrency produced. So if the contract shut down and distributed it's Eth, each participant would receive Eth worth about 1/2 as much as the subcurrency they lost. So everyone is incentivized to sell all their subcurrency before the bonded curve contract shuts down. This causes a big rush to the exit, and whoever leaves last loses almost everything they invested.
-- With a bonding curve there isn't anything connecting the success of the subcurrency to the success of the product being marketed. If we used a normal smart contract instead, then an oracle could tell the smart contract about how successful the product is, and the smart contract could reward participants accordingly.
-- It would be much more effective to make a normal financial derivative and bet on how much product gets sold in the next month. Then the people producing the product could buy the opposite side of your contract to hedge their risks. Financial derivatives have been used this way for longer than written history has existed. 
+ - With bonding curves, the total value of Eth being stored in the contract is significantly less than the notional value of all the subcurrency produced. So if the contract shut down and distributed it's Eth, each participant would receive Eth worth about 1/2 as much as the subcurrency they lost. So everyone is incentivized to sell all their subcurrency before the bonded curve contract shuts down. This causes a big rush to the exit, and whoever leaves last loses almost everything they invested.
+ - With a bonding curve there isn't anything connecting the success of the subcurrency to the success of the product being marketed. If we used a normal smart contract instead, then an oracle could tell the smart contract about how successful the product is, and the smart contract could reward participants accordingly.
+ - It would be much more effective to make a normal financial derivative and bet on how much product gets sold in the next month. Then the people producing the product could buy the opposite side of your contract to hedge their risks. Financial derivatives have been used this way for longer than written history has existed. 
 
 
 
