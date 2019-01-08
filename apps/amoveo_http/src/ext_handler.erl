@@ -114,10 +114,14 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     ST = send_txs(Txs, CS, Checksums, []),
     {ok, ST};
 doit({txs, [Tx]}) ->
-    tx_pool_feeder:absorb([Tx]),
-    {ok, hash:doit(Tx)};
+    X = tx_pool_feeder:absorb(Tx),
+    Y = case X of
+	    ok -> hash:doit(testnet_sign:data(Tx));
+	    _ -> <<"error">>
+		     end,
+    {ok, Y};
 doit({txs, Txs}) ->
-    tx_pool_feeder:absorb(Txs),
+    ok = tx_pool_feeder:absorb(Txs),
     {ok, 0};
 doit({txs, 3, N}) ->
     B = block:get_by_height(N),
@@ -268,6 +272,7 @@ doit({oracle, Y}) ->
     {ok, OB} = order_book:data(X),
     {ok, {OB, Question}};
 doit({oracle_bets, OID}) ->
+    %This is a very poor choice of name. "oracle_bets" for something that doesn't touch the oracle_bets merkel tree, and only touches the orders merkel tree.
     B = block:top(),
     Trees = B#block.trees,
     Oracles = trees:oracles(Trees),

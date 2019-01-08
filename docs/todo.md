@@ -1,6 +1,18 @@
+This hard fork
+
+And ideally we would move all the orders and oracle bets to their new trees.
+
+add a function to api instead of api:orders/1. so we can look up the unmatched bets in one oracle.
+figure something to replace the oracle_bets endpoint in ext_handler, it should probably be removed.
+
+
+
+
+
 
 
 ### Other hard fork ideas
+
 
 * merkel proof and verification code for txs in blocks. and rewrite it to javascript. That way we can prove if a tx has been included in a block.
 
@@ -29,6 +41,23 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+chalang should be aware of the block time.
+use the block time in a new version of the market.
+
+
+* people should be able to use a light node to make channels with custom bets directly between each other.
+https://github.com/zack-bitcoin/light-node-amoveo/issues/4
+
+* remove depreciated javascript code.
+
+* untrusted third parties who hold channel data and publish it if a channel is closing wrong.
+
+* if channels mode is turned off, then don't share your pubkey from the api.
+
+* when we first sync a node, it should automatically try to pull headers from a bunch of different peers. This way we are more likely to find out about the highest header.
+
+* torrent of the light node.
+
 * confirmed_root has the constant "confirmations". it needs to be combined with something from the configurations.
 
 * we should blacklist peers who send us invalid blocks. Ignore any messages from them.
@@ -39,8 +68,6 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 * light node should know how many bets are outstanding for it's account in oracles.
 *light node needs to be able to look up the volume of oracle bets. (or at least put it on the explorer for now.)
-
-* update the make file to more easily start the node after the changes to new linux installs.
 
 * fix variable and function names for readability.
 

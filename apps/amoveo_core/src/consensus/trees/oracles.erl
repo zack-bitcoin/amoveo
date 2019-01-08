@@ -1,5 +1,5 @@
 -module(oracles).
--export([new/7, set_orders/2, orders/1, %custom stuff
+-export([new/9, set_orders/2, orders/1, %custom stuff
          write/2, get/2,%update tree stuff
          dict_get/2, dict_write/2, dict_write/3, %update dict stuff
 	 meta_get/1, deserialize/1, all/0, 
@@ -10,12 +10,15 @@
 orders(X) -> X#oracle.orders.
 set_orders(X, Orders) ->
     X#oracle{orders = Orders, orders_hash = orders:root_hash(Orders)}.
-new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
+new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict, F10, Height) ->
     <<_:256>> = ID,
     true = size(Creator) == constants:pubkey_size(),
-    Height = api:height(),
+    %Height = api:height(),
     true = (GovernanceVar > -1) and (GovernanceVar < governance:max(Height)),
-    Orders = orders:empty_book(),
+    Orders = if
+		 F10 -> 0;
+		 true -> orders:empty_book()%
+	     end,
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
     #oracle{id = ID,
 	    result = 0,
@@ -23,7 +26,7 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict) ->
 	    starts = Starts,
 	    type = 3,%1 means we are storing orders of true, 2 is false, 3 is bad.
 	    orders = Orders,
-            orders_hash = orders:root_hash(Orders),
+            orders_hash = <<0:256>>,
 	    creator = Creator,
 	    done_timer = Starts + MOT,
 	    governance = GovernanceVar,

@@ -28,31 +28,52 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Historic difficulty in depth.](https://amoveo.tools/)
 
+[Amoveo website from the Exantech, the same people who wrote an iphone and android app](https://amoveo.io/en/)
+
+[Website for exploring oracles and governance variables](https://veo.sh/oracles)
+
+<!---
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
+--->
 
 
 ## Light node
 
-The most secure wait to use the light node is to download it from github. https://github.com/zack-bitcoin/light-node-amoveo
+The most secure way to use the light node is to download it from github. https://github.com/zack-bitcoin/light-node-amoveo
+This is a cryptoeconomically secure way to use Amoveo.
 
 you can use the light node less securely by clicking [this link](http://159.65.120.84:8080/wallet.html). This is the easiest way to get started.
+Using this light node is the same as trusting this server with your money.
+
+An alternative exan.tech made a light node with a different user interface that they host here: Amoveo.exan.tech
+Using this light node is the same as trusting them with your money.
 
 This light node downloads headers and verifies the proof of work.
 It verifies the merkle proofs for all blockchain state you download to ensure security equivalent to a full node, provided you wait for enough confirmations.
 You can use the light node to participate in [markets](docs/light_node/market.md).
-A light node that currently has markets is [here](http://159.89.106.253:8080/wallet.html).
-And the interface to look at the markets is [here](http://159.89.106.253:8080/explorer.html).
+A light node that currently has markets is [here](http://159.65.120.84:8080/wallet.html).
+And the interface to look at the markets is [here](http://159.65.120.84:8080/explorer.html).
+
+
+## Places you can use Amoveo smart contracts
+
+[Amoveo Book has a web wallet integrated into the browser for usability](http://amoveobook.com/)
 
 
 ## Block Explorer
 
-The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
-
-Another explorer is [here](http://159.89.106.253:8080/explorer.html). This one has some markets where you can gamble.
+[Veopool explorer](http://explorer.veopool.pw/)
 
 [Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
 
-[Veopool explorer](http://explorer.veopool.pw/)
+[mveo explorer. historic difficulty analisys](https://mveo.net/)
+
+[Amoveo.tools](https://amoveo.tools/)
+
+The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
+This explorer can host markets.
+
+
 
 
 ## Full node
@@ -84,7 +105,9 @@ http://159.65.120.84:8085/main.html (maintained by Zack, who wrote the Amoveo fu
 
 https://amoveopool.com/#getting-started
 
-http://amoveo.noncense.tech/
+http://stats.veopool.pw/
+
+http://xdpool.xyz/
 
 
 ## Trading
@@ -93,17 +116,20 @@ Be very careful using exchanges. They are centralized, the operator can take all
 
 There are people trading now on discord https://discord.gg/xJQcVaT
 
-An escrow tool hosted by Zack: http://159.89.106.253:8087/main.html
-
 Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
-Amoveo-Exchange for ETH-VEO trading: https://amoveo.exchange/
+A1 exchange for ETH-VEO and BTC-VEO trading (previously called amoveo.exchange): https://a1.exchange/
+
+BTC-VEO exchange: https://graviex.net/markets/veobtc
+
+BTC-VEO exchange: https://bitibu.com/markets/veobtc
 
 
 ## Software to launch a new mining pool
-If your full node is on a different machine from your miner, you will need a mining pool. [Mining pool software can be found here.](https://github.com/zack-bitcoin/amoveo-mining-pool)
-The "master" branch is for paying out small amounts to each miner with each block.
-The "classic" version only pays a miner when they find a block.
+
+https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool. WARNING!!! this pool has known security vulnerabilities that have not been patched.
+
+[Another open source mining pool](https://github.com/zack-bitcoin/amoveo-mining-pool)
 
 
 ## Developers
@@ -112,11 +138,3 @@ If you want to build on top of Amoveo [read the developer's guide](docs/getting-
 
 [Here is an old open-source miner for Nvidia GPU, it works for linux and windows. This software is too slow to be competitive, but it might be useful for educational purposes.](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
 
-
-## Donations
-
-```
-Bitcoin Donations: 1C5Qq5i4uUyEm84GAZ3iAUFgbVAhbCirwj
-Veo donations: BGH+3P768A9cSNR3GLSRXgsokSL/Jdbm+rOJogbgiPxq8M+J2R4nVxZ+Hj6WdI4rMsq6nPzkMh77WGBCMx89HUM=
-Gifts must be less than $10 000 per person per year.
-```

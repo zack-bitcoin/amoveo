@@ -1,3 +1,4 @@
+
 OTP_PLT=.otp_plt
 
 BIN = ./bin
@@ -10,8 +11,6 @@ CORE = rel/amoveo_core/bin/amoveo_core
 SWAGGER = apps/amoveo_http/src/swagger
 SWTEMP := $(shell mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
 LOCAL = ./_build/local/rel
-
-export ERL_EPMD_ADDRESS=127.0.0.1
 
 
 kill:
@@ -133,6 +132,7 @@ clean3: clean
 #
 
 .SECONDEXPANSION:
+
 
 build: $$(KIND)
 	@./rebar3 as $(KIND) release

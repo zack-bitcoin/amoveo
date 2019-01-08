@@ -842,6 +842,63 @@ test(21) ->
     absorb(Stx),
     timer:sleep(1000),
     mine_blocks(1),
+    success;
+
+%set forks:get(10) to 6 for these tests.
+test(24) -> test24(0);
+%in test 24 the oracle closes before the fork, and that works correctly. but trying to collect oracle winnings or oracle unmatched fails.
+test(25) -> test24(1);
+%in test 25 the fork happens before the oracle closes.the oracle bet is before the fork, and it gets included, but the oracle cannot be closed.
+test(26) -> test24(2);
+%in test 26 the fork happens before the oracle bet, so the oracle bet and after does not happen, but the oracle_new does happen.
+test(27) -> test24(3);
+%in test 27 the fork happens before oracle new, so the oracle is entirely after the fork, so the entire oracle works.
+
+test(22) ->
+    %api bad signature failure test
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    Trees = block_trees(BP),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = constants:initial_fee() + 20,
+    {Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
+    Stx0 = keys:sign(Ctx),
+    Ctx2 = setelement(6, Ctx, 1),
+    Stx = setelement(2, Stx0, Ctx2),
+    Out2 = tx_pool_feeder:absorb(Stx),
+    case Out2 of
+	ok -> 1=2;
+	_ -> ok
+    end,
+    Out = ext_handler:doit({txs, [Stx]}),
+    case Out of
+	{ok, <<_:256>>} -> 1=2;
+	_ -> ok
+    end,
+    test(23);
+test(23) ->
+    %api insufficient balance failure test
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    Trees = block_trees(BP),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = constants:initial_fee() + 20,
+    {Ctx, _} = create_account_tx:new(NewPub, 10000000000000, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    Out2 = tx_pool_feeder:absorb(Stx),
+    case Out2 of
+	ok -> 1=2;
+	_ -> ok
+    end,
+    Out = ext_handler:doit({txs, [Stx]}),
+    case Out of
+	{ok, <<_:256>>} -> 1=2;
+	_ -> ok
+    end,
     success.
     
     
@@ -897,3 +954,55 @@ mine_blocks(Many) ->
     block:mine(Block, 10),
     timer:sleep(1000),
     mine_blocks(Many-1).
+
+test24(I) ->
+    %set forks:get(10) to 6 for this test.
+
+    %test how oracles fail if the oracle occurs during different stages of their evolution.
+    Question = <<>>,
+    OID = crypto:strong_rand_bytes(32),
+    Fee = constants:initial_fee() + 20,
+    headers:dump(),
+    block:initialize_chain(),
+    timer:sleep(150),
+    tx_pool:dump(),
+    timer:sleep(150),
+    mine_blocks(3),
+    timer:sleep(150),
+    if
+	I > 0 -> mine_blocks(I),
+		 timer:sleep(100);
+	true -> ok
+    end,
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0), %Fee, question, start, id gov, govamount
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    timer:sleep(150),
+    potential_block:new(),
+    timer:sleep(150),
+    mine_blocks(1),
+    
+    OIL = trees:get(governance, oracle_initial_liquidity),
+    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1), 
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    timer:sleep(150),
+    mine_blocks(1),
+
+    Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    timer:sleep(100),
+    mine_blocks(1),
+
+    Oracle = trees:get(oracles, OID),
+    Tx4 = oracle_unmatched_tx:make_dict(constants:master_pub(), Fee, OID),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    timer:sleep(100),
+    Tx5 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    timer:sleep(100),
+    mine_blocks(1),
+    success.

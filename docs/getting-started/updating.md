@@ -1,9 +1,34 @@
-Amoveo core is frequently updated.
-Occasionally there are hard updates that full nodes are required to participate in.
-If you forget to update, then your node can end up stuck at one block height, unable to sync.
-This happens because a full node of Amoveo is optimized to only verify each block one time. If a block is invalid, then it stores a hash of the block to remember not to check on it again.
-If there is an update, then a block that was invalid according to the old rules might become valid after you update.
+## The commands for updating.
 
+first turn the node off.
+Attach to it
+```make prod-attach```
 
-In that situation you can use this command to tell your full node to give the blocks a second chance, since you have updated:
-`block_hashes:second_chance().`
+stop it from syncing to prevent corrupted state
+```sync:stop().```
+
+turn off the full node
+```api:off().```
+
+turn off the erlang terminal
+```halt().```
+
+update the dependencies.
+```./rebar3 upgrade```
+
+update Amoveo
+```git pull```
+
+turn the node back on
+```make prod-restart```
+
+Tell it to re-sync rejected blocks with the new rules (only important if your node is frozen at a historical height because you didn't update in time for a hard update.)
+```block_hashes:second_chance().```
+
+the blocks are already synced, so switch to normal mode
+```sync_mode:normal().```
+
+if you want to make transactions, you need to unlock the keys:
+```keys:unlock("").```
+
+Now you can detach from the running node, and allow it to continue running in the background by holding the Control key, and pressing the D key.

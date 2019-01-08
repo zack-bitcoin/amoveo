@@ -20,7 +20,7 @@ This returns the OID for this oracle.
 
 You can look up current governance values like this:
 ```
-trees:dict_tree_get(governance, GovName).
+trees:get(governance, GovName).
 ```
 
 See all oracles where betting has started, and betting has not yet finished.
@@ -51,7 +51,7 @@ You can use this to find out the OID for an oracle.
 look up an oracle by id
 =====
 ```
-trees:dict_tree_get(oracles, ID).
+trees:get(oracles, ID).
 ```
 
 The order of things stored in the oracle datastructure is defined in [the records.hrl file](https://github.com/zack-bitcoin/amoveo/blob/master/apps/amoveo_core/src/records.hrl#L62)
@@ -69,7 +69,7 @@ Type is either 1, 2, or 3.
 2 = false
 3 = bad question
 
-Look up bets in the oracle
+Look up unmatched bets in the oracle
 ====
 ```
 api:orders(OracleID).
