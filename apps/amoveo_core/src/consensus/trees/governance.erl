@@ -15,7 +15,7 @@ genesis_state() ->
         case application:get_env(amoveo_core, test_mode, false) of
             %true -> {1, 1, 100};
 	    true -> {1, 1, 5};
-            false -> {352, 505, 550}
+            false -> {352, 505, 350}
         end,
     G = [[block_reward, 1620],
          [developer_reward, 429], 
