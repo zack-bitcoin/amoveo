@@ -17,7 +17,7 @@ initial_difficulty() ->
         {ok, "local"} -> 10;%unit tests
         {ok, "integration"} -> 2500;%integration tests.
 %10;
-        {ok, "production"} -> 8844
+        {ok, "production"} -> 2500
     end.
 difficulty_bits() -> 24.
 hash_size() -> 32.
