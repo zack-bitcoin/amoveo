@@ -205,11 +205,10 @@ config/prod/sys.config: config/sys.config.tmpl
     s:%% comment:\
     {port, 8070},\
     {kind, \"production\"},\
-    {internal_port, 8081},\
+    {internal_port, 8071},\
     {swagger_port_internal, 8042},\
     {swagger_port_external, 8043},\
     {peers, [{{116,203,36,161}, 8070}]},\
-    {{pools, [{{159,65,120,84}, 8080},{{173,230,157,155}, 8080},{{51,15,87,84}, 8080},{{159,65,173,9},8080}, {{47,75,188,95}, 8080},{{47,105,59,4}, 8080},{{47,105,43,173}, 8080},{{114,215,136,52}, 8080},{{176,9,76,201}, 8080},{{47,75,91,194}, 8080}]},\
     {master_pub, <<\"BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=\">>},\
     {test_mode,false},\
     {request_frequency, 10},\
