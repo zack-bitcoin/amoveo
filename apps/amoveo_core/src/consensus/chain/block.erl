@@ -220,8 +220,8 @@ make(Header, Txs0, Trees, Pub) ->
     NewDict = if
 		B -> %
 		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
-		      io:fwrite("block governance adjust "),%
-		      io:fwrite(packer:pack(OQL)),%
+		      %io:fwrite("block governance adjust "),%
+		      %io:fwrite(packer:pack(OQL)),%
 		      governance:dict_write(OQL, NewDict0);%
 		true -> NewDict0
 	    end,
