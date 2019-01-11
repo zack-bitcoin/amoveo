@@ -35,7 +35,7 @@ mbf(N) ->
     Dir = file_dir(Code),
     os:cmd("mkdir "++Dir++H),
     mbf(N+1).
-file_dir(blocks) -> "blocks/".
+file_dir(blocks) -> constants:blocks_file().
 
 to_hex(<<>>) ->  [];
 to_hex(<<A:4, B/bitstring>>) ->

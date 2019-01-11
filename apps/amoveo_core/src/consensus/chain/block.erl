@@ -594,7 +594,7 @@ no_coinbase([STx|T]) ->
 
 initialize_chain() -> 
     %only run genesis maker once, or else it corrupts the database.
-    {ok, L} = file:list_dir("blocks"),
+    %{ok, L} = file:list_dir("blocks"),
     %B = length(L) < 1,
     B = true,
     GB = if

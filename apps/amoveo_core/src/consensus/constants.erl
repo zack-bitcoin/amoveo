@@ -39,20 +39,42 @@ burn_address() ->
   0,0,0,0,0,0,0,0,0,0,0,0,0,4,20,12,120,148,15,106,36,253,
   255,199,136,115,212,73,13,33,0,0,0,0,0,0,0>>.
     
+custom_root_location() ->
+    %default.
+    %"temp/".
+    case application:get_env(amoveo_core, files) of
+        undefined -> default;
+        {ok, X} -> X
+    end.
+        
+custom_root() -> 
+    Y = custom_root_location(),
+    {ok, T} = application:get_env(amoveo_core, kind),
+    case T of
+        "production" ->
+            case Y of
+                "" -> "";
+                default -> "";
+                X ->  "../../../../" ++ X
+                %_ -> ""
+            end;
+        _ -> ""
+    end.
+            
+keys() -> custom_root() ++ "keys/keys.db".
 
-keys() -> "keys/keys.db".
-
-root() -> "data/".
+root() -> custom_root() ++ "data/".
 headers_file() -> root() ++ "headers.db".
 block_hashes() -> root() ++ "block_hashes.db".
 top() -> root() ++ "top.db".
 recent_blocks() -> root() ++ "recent_blocks.db".
+blocks_file() -> custom_root() ++ "blocks/".
 
 scripts_root() -> "lib/amoveo_core-0.1.0/priv/".
 scalar_oracle_bet() -> scripts_root() ++ "scalar_oracle_bet.fs".
 oracle_bet() -> scripts_root() ++ "oracle_bet.fs".
 
-channels_root() -> "channels/".
+channels_root() -> custom_root() ++ "channels/".
 oracle_questions_file() -> channels_root() ++ "oracle_questions.db".
 secrets() -> channels_root() ++ "secrets.db".
 order_book() -> channels_root() ++ "order_book.db".
