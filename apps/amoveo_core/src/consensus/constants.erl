@@ -81,7 +81,7 @@ retarget_frequency() -> %2000. %how many blocks till we recalculate the difficul
         %{ok, "local"} -> 12;%unit tests
         {ok, "local"} -> 12;%unit tests
         {ok, "integration"} -> 12;%integration tests
-        {ok, "production"} -> 2000
+        {ok, "production"} -> 12
     end.
 time_units() -> 100. % 0.1 seconds
 start_time() -> 15192951759.
