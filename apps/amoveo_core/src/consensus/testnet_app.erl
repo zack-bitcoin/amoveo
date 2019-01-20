@@ -13,6 +13,7 @@ start(_StartType, _StartArgs) ->
 
     application:start(inets),
     inets:start(),
+    make_basic_folders(),
     make_block_folders(),
     sync:cron(),
     push_block:cron(),
@@ -26,6 +27,20 @@ stop(_State) ->
     io:fwrite("stopping node\n"),
     api:off().
 
+make_basic_folders() ->
+    X = ["", "blocks", "channels", "data", "keys", "oracle_questions"],
+    CR = constants:custom_root(),
+    mba(X, CR).
+mba([], _) -> ok;
+mba([H|T], CR) ->
+    io:fwrite("\n\n"),
+    io:fwrite(CR ++ H),
+    io:fwrite("\n\n"),
+    spawn(fun() ->
+                  os:cmd("mkdir " ++ CR ++ H) 
+          end),
+    mba(T, CR).
+    %read files config value
 make_block_folders() ->
     mbf(0).
 mbf(256) -> ok;

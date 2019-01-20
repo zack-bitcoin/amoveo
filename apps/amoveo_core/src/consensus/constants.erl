@@ -40,24 +40,15 @@ burn_address() ->
   255,199,136,115,212,73,13,33,0,0,0,0,0,0,0>>.
     
 custom_root_location() ->
-    %default.
-    %"temp/".
     case application:get_env(amoveo_core, files) of
-        undefined -> default;
+        undefined -> "";
         {ok, X} -> X
     end.
         
 custom_root() -> 
-    Y = custom_root_location(),
     {ok, T} = application:get_env(amoveo_core, kind),
     case T of
-        "production" ->
-            case Y of
-                "" -> "";
-                default -> "";
-                X ->  "../../../../" ++ X
-                %_ -> ""
-            end;
+        "production" -> custom_root_location();
         _ -> ""
     end.
             

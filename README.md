@@ -94,6 +94,10 @@ Commands such as:
 
 [here is another closed source miner](https://github.com/krypdkat/AmoveoMinerMan)
 
+[here is a miner for fpga](https://github.com/dedmarozz/Amoveo-VCU1525-FPGA-Miner/releases)
+
+[Comino appears to be selling some fpga software to mine veo](https://comino.com/shop)
+
 Amoveo's mining algorithm uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
 
 Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
