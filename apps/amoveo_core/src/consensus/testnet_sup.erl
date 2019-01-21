@@ -23,9 +23,10 @@ child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].
 tree_child(Id, KeySize, Size) ->
     tree_child(Id, KeySize, Size, 0).
 tree_child(Id, KeySize, Size, Meta) ->
+    Location = constants:custom_root(),
     {ok, Amount} = application:get_env(amoveo_core, trie_size),
     Sup = list_to_atom(atom_to_list(Id) ++ "_sup"),
-    {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd]}, permanent, 5000, supervisor, [trie_sup]}.
+    {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd, Location]}, permanent, 5000, supervisor, [trie_sup]}.
 init([]) ->
     KL = constants:key_length(), 
     HS = constants:hash_size(),
@@ -42,7 +43,7 @@ init([]) ->
 	     tree_child(oracles, HS, (((HB*2) div 8) + 4 + (3*HS)) + PS, (KL div 8)),
 	     tree_child(orders, HS, ((BB div 8) + (PS * 2))),
 	     tree_child(oracle_bets, HS, (HS + (3 * BB div 8))),
-	     tree_child(governance, 8, 4),
+	     tree_child(governance, 8, 4, 0),
 	     tree_child(matched, HS, (HS + PS + (3 * BB div 8))),
 	     tree_child(unmatched, HS, (HS + PS + PS + (BB div 8)))
 	    ],
