@@ -111,8 +111,6 @@ https://amoveopool.com/#getting-started
 
 http://stats.veopool.pw/
 
-http://xdpool.xyz/
-
 
 ## Trading
 
