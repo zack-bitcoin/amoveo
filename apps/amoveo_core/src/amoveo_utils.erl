@@ -114,8 +114,8 @@ tuples2lists([H|T]) ->
     [tuples2lists(H)|tuples2lists(T)];
 tuples2lists(X) -> X.
 
-file_dir(blocks) -> "blocks/";
-file_dir(oracle_questions) -> "oracle_questions/".
+file_dir(blocks) -> constants:blocks_file();%"blocks/";
+file_dir(oracle_questions) -> constants:oracle_questions_file().%"oracle_questions/".
 
 
 block_rewards(A) ->

@@ -1,9 +1,3 @@
-This hard fork
-
-And ideally we would move all the orders and oracle bets to their new trees.
-
-add a function to api instead of api:orders/1. so we can look up the unmatched bets in one oracle.
-figure something to replace the oracle_bets endpoint in ext_handler, it should probably be removed.
 
 
 
@@ -40,6 +34,11 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 
 ### Things to do
+
+add a function to api instead of api:orders/1. so we can look up the unmatched bets in one oracle.
+figure something to replace the oracle_bets endpoint in ext_handler, it should probably be removed.
+
+remove mentions of "testnet"
 
 chalang should be aware of the block time.
 use the block time in a new version of the market.

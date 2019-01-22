@@ -172,11 +172,11 @@ do_save(BlockPlus) ->
     %timer:sleep(100),
     ok = db:save(BlockFile, CompressedBlockPlus).
 highest_block([H|T]) ->
-    B = binary_to_term(zlib:uncompress(db:read("blocks/"++H))),
+    B = binary_to_term(zlib:uncompress(db:read(constants:blocks_file()++H))),
     highest_block(B, T).
 highest_block(B, []) -> B;
 highest_block(B, [H|T]) ->
-    B2 = binary_to_term(zlib:uncompress(db:read("blocks/"++H))),
+    B2 = binary_to_term(zlib:uncompress(db:read(constants:blocks_file()++H))),
     H1 = B#block.height,
     H2 = B2#block.height,
     if
@@ -192,12 +192,12 @@ recover(Mode) ->
     sync_kill:start(),
     sync_mode:quick(),
     io:fwrite("recover 1\n"),
-    {ok, BlockFiles} = file:list_dir("blocks/"),
+    {ok, BlockFiles} = file:list_dir(constants:blocks_file()),
     Block = case Mode of
 		full ->
 		    highest_block(BlockFiles);
 		quick ->
-		    Block1 = binary_to_term(zlib:uncompress(db:read("blocks/"++hd(BlockFiles)))),
+		    Block1 = binary_to_term(zlib:uncompress(db:read(constants:blocks_file()++hd(BlockFiles)))),
 		    L = length(BlockFiles),
 		    FirstTen = if
 				   L > 50 ->

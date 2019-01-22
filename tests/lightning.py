@@ -65,6 +65,7 @@ def lightning_test():
     request(1, 'sync', [[127,0,0,1], 3030], 1)
     request(2, 'sync', [[127,0,0,1], 3010], 0.05)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
+def dont_do():
     request(1, 'channel_close', [[127,0,0,1], 3030])
     request(2, 'channel_close', [[127,0,0,1], 3030])
     request(1, 'txs', [[127,0,0,1], 3020], 0.05)
