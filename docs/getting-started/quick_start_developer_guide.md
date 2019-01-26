@@ -2,7 +2,7 @@ Thank you for your interest in Amoveo.
 This doc is an introduction to the technology.
 It is made to help you be able to start contributing to the software as quickly as possible.
 
-[Guide to erlang](http://learnyousomeerlang.com/)
+[Guide to erlang](https://learnyousomeerlang.com/)
 
 ## Testing
 
@@ -26,7 +26,7 @@ Now that the browser light node works so well, the browser wallet is only used f
 [After starting your node, use a web browser on the same computer to visit this website.](http://localhost:8081/login.html)
 It is being served by the node you are running.
 
-The block explorer for the network is [here](http://159.89.106.253:8080/explorer.html)
+The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html)
 Go to the block explorer to see all the markets that are being run on that node.
 
 

@@ -4,5 +4,5 @@ sudo apt-get install erlang
 ```
 
 Here is how to install erlang from source:
-download: http://www.erlang.org/download.html
-install instructions: http://www.erlang.org/doc/installation_guide/INSTALL.html
+download: https://www.erlang.org/download.html
+install instructions: https://www.erlang.org/doc/installation_guide/INSTALL.html
