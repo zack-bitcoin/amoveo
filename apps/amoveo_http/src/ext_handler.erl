@@ -53,6 +53,7 @@ doit({account, Pubkey}) ->
     {ok, api:account(Pubkey)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
+doit({version}) -> {ok, version:doit(block:height())};
 doit({give_block, Block}) -> %block can also be a list of blocks.
     io:fwrite("ext_handler receiving blocks\n"),
     %Response = block_absorber:save(Block),

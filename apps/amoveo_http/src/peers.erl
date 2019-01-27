@@ -77,9 +77,9 @@ add([MalformedPeer|T]) ->
     io:fwrite("tried to add malformed peer, skipping."),
     io:fwrite(packer:pack(MalformedPeer)),
     add(T);
-add({{10, _, _, _}, Port}) -> ok;%these formats are only for private networks, not the public internet.
-add({{0, 0, 0, 0}, Port}) -> ok;
-add({{192, 168, _, _}, Port}) -> ok;
+add({{10, _, _, _}, _Port}) -> ok;%these formats are only for private networks, not the public internet.
+add({{0, 0, 0, 0}, _Port}) -> ok;
+add({{192, 168, _, _}, _Port}) -> ok;
 add({{172, X, _, _}, Port}) when ((X < 32) and (X > 15))-> ok;
 add({IP, Port}) -> 
     %io:fwrite("adding a peer to the list of peers. "),
@@ -93,14 +93,22 @@ add({IP, Port}) ->
     if
 	B -> ok;
 	true ->
-	    V = version:doit(block:height()),
-	    %case talker:talk({test, -1}, {NIP, Port}) of
 	    case talker:talk({height}, {NIP, Port}) of
-		bad_peer -> blacklist_peer:add({NIP, Port});
-		error -> blacklist_peer:add({NIP, Port});
-		%{ok, V} -> gen_server:cast(?MODULE, {add, {NIP, Port}});
-		%_ -> blacklist_peer:add({NIP, Port})
-		_ -> gen_server:cast(?MODULE, {add, {NIP, Port}})
+		bad_peer -> 
+                    io:fwrite("bad peer\n"),
+                    blacklist_peer:add({NIP, Port});
+		error -> 
+                    io:fwrite("error peer\n"),
+                    blacklist_peer:add({NIP, Port});
+		{ok, H} -> 
+                    V = version:doit(H),
+                    case talker:talk({test, -1}, {NIP, Port}) of %eventually change to {version}, once most of the fullnodes update their apis.
+                        {ok, V} ->
+                            gen_server:cast(?MODULE, {add, {NIP, Port}});
+                        _ ->
+                            io:fwrite("peer on different blockchain\n"),
+                            blacklist_peer:add({NIP, Port})
+                    end
 	    end
     end.
 
