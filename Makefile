@@ -229,6 +229,7 @@ config/dev1/sys.config: config/sys.config.tmpl
     {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
     {keys_pass, \"\"},\
     {request_frequency, 100},\
+    {channels, true},\
     :\
     " $< > $@
 
@@ -244,6 +245,7 @@ config/dev2/sys.config: config/sys.config.tmpl
     {keys_priv, <<\"GMwRk1KJtgJEH2RJp/XVeaQwJ4bpIqAr4lvQcIy4CSQ=\">>},\
     {keys_pass, \"\"},\
     {request_frequency, 100},\
+    {channels, true},\
     :\
     " $< > $@
 
@@ -259,6 +261,7 @@ config/dev3/sys.config: config/sys.config.tmpl
     {keys_priv, <<\"M/1xsM1DBO82qQcVJVoWVJd4p9YjpwygQJmmYkVLFd8=\">>},\
     {keys_pass, \"\"},\
     {request_frequency, 100},\
+    {channels, true},\
     :\
     " $< > $@
 
