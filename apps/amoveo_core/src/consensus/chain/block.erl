@@ -8,6 +8,7 @@
 	 period_estimate/0, hashrate_estimate/0,
 	 period_estimate/1, hashrate_estimate/1,
 	 hashes_per_block/0, hashes_per_block/1,
+         header_by_height/1,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -117,6 +118,18 @@ lg(X) when (is_integer(X) and (X > 0)) ->
     lgh(X, 0).
 lgh(1, X) -> X;
 lgh(N, X) -> lgh(N div 2, X+1).
+header_by_height(N) ->
+    header_by_height_in_chain(N, block:hash(headers:top())).
+header_by_height_in_chain(N, Hash) when N > -1 ->
+    {ok, H} = headers:read(Hash),
+    M = H#header.height,
+    D = M - N,
+    if
+        D == 0 -> H;
+        true ->
+            header_by_height_in_chain(N, H#header.prev_hash)
+    end.
+    
 get_by_height(N) ->
     get_by_height_in_chain(N, headers:top_with_block()).
 get_by_height_in_chain(N, BH) when N > -1 ->
