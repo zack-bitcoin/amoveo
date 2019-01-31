@@ -152,6 +152,7 @@ my_ip([P|T]) ->
 			((X < 32) and (X > 15)) -> my_ip(T);
 			true -> MyIP
 		    end;
+		{127,0,0,1} -> my_ip(T);
 		{_, _, _, _} -> MyIP;
 		_ -> my_ip(T)
 	    end;
