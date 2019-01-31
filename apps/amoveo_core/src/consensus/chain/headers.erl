@@ -93,6 +93,16 @@ absorb([First|T], R) when is_binary(First) ->
     absorb([A|T], R);
 absorb([Header | T], CommonHash) ->
     Bool = Header#header.difficulty >= constants:initial_difficulty(),
+    HH = Header#header.height,
+    if
+        HH == 1496 ->
+            B = <<54,62,88,107,156,249,24,140,184,225,241,18,115,188,246,
+                 133,193,233,217,165,160,207,214,241,209,228,80,22,87,40,
+                 234,248>>, 
+            B = Header#header.trees_hash;
+        true -> ok
+    end,
+
     if
 	not(Bool) -> 
 	    1=2,
