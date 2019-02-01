@@ -35,6 +35,9 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+
+maybe we should do block_hashes:second_chance(). on restart, because it makes usability easiler without significantly impacting the cost of restarting.
+
 add a function to api instead of api:orders/1. so we can look up the unmatched bets in one oracle.
 figure something to replace the oracle_bets endpoint in ext_handler, it should probably be removed.
 
