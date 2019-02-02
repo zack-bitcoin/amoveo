@@ -12,15 +12,19 @@ terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call(IP, _From, X) -> 
-    {ok, Limit0} = application:get_env(amoveo_core, request_frequency),
-    Limit = Limit0 * 2,%requests per 2 seconds
-    case dict:find(IP, X) of
-	error -> 
+    B = white_list:check(IP),
+    DF = dict:find(IP, X),
+    if
+        B -> {reply, ok, X};
+        DF == error ->
 	    NF = #freq{time = erlang:timestamp(), 
 		       many = 0},
 	    X2 = dict:store(IP, NF, X),
 	    {reply, ok, X2};
-	{ok, Val} ->
+        true ->
+            {ok, Limit0} = application:get_env(amoveo_core, request_frequency),
+            Limit = Limit0 * 2,%requests per 2 seconds
+            {ok, Val} = DF,
 	    TimeNow = erlang:timestamp(),
 	    T = timer:now_diff(TimeNow, 
 			       Val#freq.time),

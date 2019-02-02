@@ -10,11 +10,11 @@ def assertEqual(x, y):
 
 def test1():
     print("share blocks test 1")
-    request(2, "add_peer", [[209,250,250,137],8080])
-    request(2, "add_peer", [[51,15,69,135],8080])
-    request(2, "add_peer", [[51,15,212,91],8080])
-    request(2, "add_peer", [[159,89,106,253],8080])
-    request(2, "add_peer", [[52,234,133,196],8080])
+    #request(2, "add_peer", [[209,250,250,137],8080])
+    #request(2, "add_peer", [[51,15,69,135],8080])
+    #request(2, "add_peer", [[51,15,212,91],8080])
+    #request(2, "add_peer", [[159,89,106,253],8080])
+    #request(2, "add_peer", [[52,234,133,196],8080])
 
     request(2, "add_peer", [[127,0,0,1], 3010])
     request(1, "add_peer", [[127,0,0,1], 3020], 2)
