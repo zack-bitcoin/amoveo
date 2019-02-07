@@ -127,6 +127,10 @@ BTC-VEO exchange: https://graviex.net/markets/veobtc
 BTC-VEO exchange: https://bitibu.com/markets/veobtc
 
 
+## browser extentions
+Firefox. It can be found here. https://addons.mozilla.org/en-US/firefox/addon/amoveo-wallet/ and the source code is here https://github.com/johnnycash77/amoveo3-wallet
+
+
 ## Software to launch a new mining pool
 
 https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool. WARNING!!! this pool has known security vulnerabilities that have not been patched.
