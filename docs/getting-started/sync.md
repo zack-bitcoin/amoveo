@@ -21,6 +21,16 @@ keys:unlock("").
 ```
 
 Your peers will automatically send new headers to you. Once you get the headers, then you will automatically try and download blocks for them.
+If your server doesn't accept connections from the internet, then you wont receive headers, and you wont try to download blocks. You node will seem frozen at one height.
+
+Amoveo shares headers by pushing them, this way we can find out about new blocks as quickly as possible.
+Amoveo shares blocks by pulling them, that way we can minimize the volume of data transfered, so we don't waste effort.
+
+If you can't accept messages from the internet, possibly because you are behind a firewall, you can still get your full node in sync by manually requesting headers from a peer, like this:
+```
+P1 = lists:nth(3, peers:all()).%grabs 3rd peer from you list of peers.
+sync:get_headers(P1).
+```
 
 
 

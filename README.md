@@ -28,7 +28,7 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Historic difficulty in depth.](https://amoveo.tools/)
 
-[Amoveo website from the Exantech, the same people who wrote an iphone and android app](https://amoveo.io/en/)
+[Amoveo website from the Exantech, the same people who wrote an iphone and android app](https://amoveo.io/)
 
 [Website for exploring oracles and governance variables](https://veo.sh/oracles)
 
@@ -125,6 +125,10 @@ A1 exchange for ETH-VEO and BTC-VEO trading (previously called amoveo.exchange):
 BTC-VEO exchange: https://graviex.net/markets/veobtc
 
 BTC-VEO exchange: https://bitibu.com/markets/veobtc
+
+
+## browser extentions
+Firefox. It can be found here. https://addons.mozilla.org/en-US/firefox/addon/amoveo-wallet/ and the source code is here https://github.com/johnnycash77/amoveo3-wallet
 
 
 ## Software to launch a new mining pool

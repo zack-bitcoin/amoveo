@@ -7,11 +7,11 @@
 
 ### Other hard fork ideas
 
+* we need to add more information to all the txs. when a channel is closed, it should say how much money is going to each participant, and there are many other cases.
+
+* we should give a reward for closing oracles.
 
 * merkel proof and verification code for txs in blocks. and rewrite it to javascript. That way we can prove if a tx has been included in a block.
-
-* Currently we store pointers to bet data with each account. This is in tree_data:dict_update_account_oracle_helper. The problem is that we have to read the account from the tree in order to write a batch of updates to the.
-- we should store matched bets and open orders at the top level, not embedded inside accounts and oracles.
 
 * the oracle should say the sum of open bets, otherwise it is so complicated for light nodes to request a proof of this information.
 
@@ -35,6 +35,10 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
+find out where fees are coming from if you keep forming and canceling bets.
+
+
+some oracles can never be closed. we should stop returning them from any queries of the oracles.
 
 maybe we should do block_hashes:second_chance(). on restart, because it makes usability easiler without significantly impacting the cost of restarting.
 

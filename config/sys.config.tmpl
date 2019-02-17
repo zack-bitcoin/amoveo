@@ -17,6 +17,7 @@
     %% Everything above this line is needed for blockchain consensus. Everything below this line can be modified for your node.
 
     %% {files, "/home/CHANGE-TO-YOUR-USERNAME/.amoveo/"}, %% uncomment this line to customize where the full node will store blocks, headers, etc. WARNING, if you change where these files are stored, then commands like `make prod-clean` will not be able to delete the old blocks and datafiles.
+    {white_list, [{127,0,0,1}]}, %% This maintains a list of node who we allow to get information from us as frequently as we can respond. 
     {channels, false},
     {smart_contract_runtime_limit, 5000}, %% in miliseconds.
 
