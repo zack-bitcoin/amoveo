@@ -1,12 +1,12 @@
 P2P derivatives beta
-############
+==============
 
-This is instructions on how to participate in testing the new feature on the testnet.
+This is instructions on how to participate in testing the new feature on the testnet. You can do binary derivatives and scalar. With scalar you can make stablecoins.
 
 Here you can spend veo
 http://139.59.144.76:8070/wallet.html?mode=testnet
 
-For initiating the contract:
+For initiating the derivatives contract:
 http://139.59.144.76:8070/otc_derivatives.html?mode=testnet
 
 For waiting for someone else to initiate a contract:
