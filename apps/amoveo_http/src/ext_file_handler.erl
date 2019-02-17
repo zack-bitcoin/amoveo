@@ -17,6 +17,12 @@ handle(Req, _) ->
 	end,
     PrivDir = list_to_binary(PrivDir0),
     true = case F of
+	       <<"/otc_finisher.html">> -> true;
+	       <<"/otc_finisher.js">> -> true;
+	       <<"/otc_listener.js">> -> true;
+	       <<"/otc_listener.html">> -> true;
+	       <<"/otc_derivatives.html">> -> true;
+	       <<"/otc_derivatives.js">> -> true;
 	       <<"/sign_tx.js">> -> true;
                <<"/secrets.js">> -> true;
                <<"/js_loader.js">> -> true;
