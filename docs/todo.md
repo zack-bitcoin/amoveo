@@ -35,8 +35,12 @@ This would prevent attacks where the attacker opens too many channels, and tries
 
 ### Things to do
 
-find out where fees are coming from if you keep forming and canceling bets.
+tree_data:idut2/4 needs to be updated to support light nodes.
 
+
+
+
+find out where fees are coming from if you keep forming and canceling bets.
 
 some oracles can never be closed. we should stop returning them from any queries of the oracles.
 

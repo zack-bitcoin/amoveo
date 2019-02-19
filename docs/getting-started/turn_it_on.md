@@ -67,6 +67,8 @@ For convenience, there is a way to wrap this all into one command. To kill any r
 ```
   make prod-restart
 ```
+prod-restart is used if you need to turn the node back on after updating.
+If you did not update, it is much faster to do `make prod-go` and then `make prod-restart`
 <!---
 -->
 
