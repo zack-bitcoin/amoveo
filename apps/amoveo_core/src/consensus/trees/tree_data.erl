@@ -100,13 +100,25 @@ internal_dict_update_trie(Trees, Dict) ->
     idut2(Types, Trees, Dict, Keys).
 idut2([], Trees, _, _) -> Trees;
 idut2([H|Types], Trees, Dict, Keys) ->
+    %{sharding, full_node},
     {A, Keys2} = get_things(H, Keys),
     T = trees:H(Trees),
     Leaves = keys2leaves(A, H, Dict),
-    T2 = trie:put_batch(Leaves, T, H),
-    U = list_to_atom("update_" ++ atom_to_list(H)),
-    Trees2 = trees:U(Trees, T2),
-    idut2(Types, Trees2, Dict, Keys2).
+    {ok, ShardMode} = application:get_env(amoveo_core, sharding),
+    case ShardMode of
+        full_node ->
+            T2 = trie:put_batch(Leaves, T, H),%returns a pointer to the root of the trie for the new block.
+            U = list_to_atom("update_" ++ atom_to_list(H)),
+            Trees2 = trees:U(Trees, T2),
+            idut2(Types, Trees2, Dict, Keys2);
+        light_node -> 
+            Trees;
+        _ -> 
+            io:fwrite("shard mode is: "),
+            io:fwrite(ShardMode),
+            io:fwrite("\n"),
+            1=2
+    end.
 					       
 
 keys2leaves([], _, _) -> [];
