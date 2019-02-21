@@ -1,3 +1,13 @@
-One of the most efficient ways of building a stable coin is to let the user hold whatever type of money they want for the duration of the contract. This only works for contracts that can be built as [options](options.md).
+Stablecoins
+#########
 
-Another way to build a stablecoin is to make lots of financial derivatives to build a portfolio that maintains the same value with an asset that is stable.
+We make synthetic assets using portfolios of financial derivatives.
+Everything is settled in Veo.
+So different customers can set different margins depending on how much they are willing to pay, and how much volatility they want to be shielded from.
+
+
+Basically, if you bet on the price of Veo measured in usd, you can bet in such a way that the asset you end up holding stays the same value as usd, as long as the price of Veo measured in usd stays inside the margins specified in the contract.
+
+One-size-fits-all designs are bad. Different users of stablecoin contracts have different needs.
+It is more affordable and usable for more people if the margins of each users contract can be customized.
+It is also more scalable to keep all these contracts off-chain. That way they can be modified instantly, without putting anything on-chain.
