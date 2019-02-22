@@ -40,7 +40,7 @@ local-attach: KIND=local
 local-attach: attach
 
 local-clean: KIND=local
-local-clean: clean
+local-clean: old-clean
 
 # Production
 
@@ -101,7 +101,7 @@ attach1: KIND=dev1
 attach1: attach
 
 clean1: KIND=dev1
-clean1: clean
+clean1: old-clean
 
 go2: KIND=dev2
 go2: go
@@ -113,7 +113,7 @@ attach2: KIND=dev2
 attach2: attach
 
 clean2: KIND=dev2
-clean2: clean
+clean2: old-clean
 
 go3: KIND=dev3
 go3: go
@@ -125,7 +125,7 @@ attach3: KIND=dev3
 attach3: attach
 
 clean3: KIND=dev3
-clean3: clean
+clean3: old-clean
 
 #
 # Build rules
@@ -147,14 +147,20 @@ attach: $$(KIND)
 	@./_build/$(KIND)/$(CORE) attach
 
 clean: $$(KIND)
-	#@rm -rf ./_build/$(KIND)/rel/amoveo_core/data/
-	#@mkdir ./_build/$(KIND)/rel/amoveo_core/data
-	#@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
-	#@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
 	rm -rf db/data/
 	mkdir db/data
 	rm -rf db/blocks
 	mkdir db/blocks
+	@touch ./config/$(KIND)/sys.config
+	@rm  ./config/$(KIND)/sys.config
+	@rm -rf ./_build/$(KIND)/rel/log/
+	@mkdir ./_build/$(KIND)/rel/log
+
+old-clean: $$(KIND)
+	@rm -rf ./_build/$(KIND)/rel/amoveo_core/data/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/data
+	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
 	@touch ./config/$(KIND)/sys.config
 	@rm  ./config/$(KIND)/sys.config
 	@rm -rf ./_build/$(KIND)/rel/log/
