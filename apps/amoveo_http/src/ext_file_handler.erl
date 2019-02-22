@@ -17,6 +17,11 @@ handle(Req, _) ->
 	end,
     PrivDir = list_to_binary(PrivDir0),
     true = case F of
+	       <<"/home.html">> -> true;
+	       <<"/txs.html">> -> true;
+	       <<"/encryption.html">> -> true;
+	       <<"/lookup.html">> -> true;
+	       <<"/channel_with_server.html">> -> true;
 	       <<"/new_oracle.html">> -> true;
 	       <<"/new_oracle.js">> -> true;
 	       <<"/messenger.js">> -> true;

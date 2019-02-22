@@ -107,12 +107,12 @@ dict_get({key, Account, Oracle}, Dict) ->
         {ok, Y} -> deserialize(Y)
     end.
 key_to_int({key, Account, Oracle}) ->
-    %true = is_binary(Account),
-    %true = is_binary(Oracle),
-    %HS = constants:hash_size(),
-    %HS = size(Oracle),
-    %PS = constants:pubkey_size(),
-    %PS = size(Account),
+    true = is_binary(Account),
+    true = is_binary(Oracle),
+    HS = constants:hash_size(),
+    HS = size(Oracle),
+    PS = constants:pubkey_size(),
+    PS = size(Account),
     <<Y:256>> = hash:doit(<<Account/binary, Oracle/binary>>),
     Y.
 get(K, Tree) ->
