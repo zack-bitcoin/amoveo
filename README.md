@@ -5,11 +5,11 @@ Amoveo is a blockchain meant for enforcement of investment and insurance contrac
 
 Amoveo contracts are enforced using state-channels. This means fees are low, contracts are nearly instant and can support a global audience.
 
-Amoveo has oracle technology.
+Amoveo has futarchy-based oracle technology.
 Amoveo can learn facts about our world and enforce the outcome of contracts that are governed by these facts.
 This, for example, enables you to bet on the price of Amazon shares.
 
-The variables that define how to participate in Amoveo can be modified by the Amoveo community using a built-in process.
+The variables that define how to participate in Amoveo can be modified by the Amoveo community using futarchy, a betting-type governance mechanism.
 This way Amoveo will always stay optimally tuned to produce the best results.
 
 
@@ -42,7 +42,7 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 The most secure way to use the light node is to download it from github. https://github.com/zack-bitcoin/light-node-amoveo
 This is a cryptoeconomically secure way to use Amoveo.
 
-you can use the light node less securely by clicking [this link](http://159.65.120.84:8080/wallet.html). This is the easiest way to get started.
+you can use the light node less securely by clicking [this link](http://139.59.144.76:8080/home.html). This is the easiest way to get started.
 Using this light node is the same as trusting this server with your money.
 
 An alternative exan.tech made a light node with a different user interface that they host here: Amoveo.exan.tech
