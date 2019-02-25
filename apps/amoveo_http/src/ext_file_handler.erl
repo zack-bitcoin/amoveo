@@ -17,6 +17,7 @@ handle(Req, _) ->
 	end,
     PrivDir = list_to_binary(PrivDir0),
     true = case F of
+	       <<"/glossary.js">> -> true;
 	       <<"/home.html">> -> true;
 	       <<"/txs.html">> -> true;
 	       <<"/encryption.html">> -> true;
