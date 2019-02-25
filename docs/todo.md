@@ -7,6 +7,12 @@
 
 ### Other hard fork ideas
 
+
+free option problem when closing a channel early with CTC.
+Right now we only use the nonce of acc1.
+So there is no free option if acc1 signs first, since acc1 can make another tx to make the ctc invalid if it isn't published soon enough.
+We should update CTC to accept the accounts in either order, that way acc2 could sign first by listing themself first.
+
 * we need to add more information to all the txs. when a channel is closed, it should say how much money is going to each participant, and there are many other cases.
 
 * we should give a reward for closing oracles.

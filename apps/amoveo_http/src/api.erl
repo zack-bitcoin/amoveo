@@ -317,6 +317,8 @@ channel_timeout(Ip, Port) ->
     end.
 channel_slash(_CID, Fee, SPK, SS) ->
     tx_maker0(channel_slash_tx:make_dict(keys:pubkey(), Fee, SPK, SS)).
+new_scalar_oracle(Start, Question) ->
+    new_scalar_oracle(Start, Question, 10).
 new_scalar_oracle(Start, Question, Many) ->
     <<ID:256>> = find_id2(),
     new_scalar_oracle(Start, Question, ID, Many).
@@ -330,7 +332,8 @@ new_scalar_oracle(Start, Question, ID, Many) ->
 	     true -> Question
 	 end,
     Cost = trees:get(governance, oracle_new),
-    nso2(keys:pubkey(), ?Fee+Cost+20, Q2, Start, ID, 0, Many).
+    nso2(keys:pubkey(), ?Fee+Cost+20, Q2, Start, ID, 0, Many),
+    <<ID:256>>.
 -define(GAP, 0).%how long to wait between the limits when the different oracles of a scalar market can be closed.
 nso2(_Pub, _C, _Q, _S, _ID, Many, Many) -> 0;
 nso2(Pub, C, Q, S, ID, Many, Limit) -> 
