@@ -31,8 +31,8 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 [Amoveo website from the Exantech, the same people who wrote an iphone and android app](https://amoveo.io/)
 
 [Website for exploring oracles and governance variables](https://veo.sh/oracles)
-
 <!---
+
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
 --->
 
@@ -42,7 +42,7 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 The most secure way to use the light node is to download it from github. https://github.com/zack-bitcoin/light-node-amoveo
 This is a cryptoeconomically secure way to use Amoveo.
 
-you can use the light node less securely by clicking [this link](http://139.59.144.76:8080/home.html). This is the easiest way to get started.
+you can use the light node less securely by clicking [this link](http://159.65.120.84:8080/wallet.html). This is the easiest way to get started.
 Using this light node is the same as trusting this server with your money.
 
 An alternative exan.tech made a light node with a different user interface that they host here: Amoveo.exan.tech
@@ -66,9 +66,11 @@ And the interface to look at the markets is [here](http://159.65.120.84:8080/exp
 
 [Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
 
+<!---
 [mveo explorer. historic difficulty analisys](https://mveo.net/)
 
-[Amoveo.tools](https://amoveo.tools/)
+[Amoveo.tools historical difficulty chart](https://amoveo.tools/)
+--->
 
 The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
 This explorer can host markets.
