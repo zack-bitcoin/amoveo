@@ -1,16 +1,18 @@
 -module(new_channel_tx2).
--export([go/4, make/8, make_dict/7, spk/2, cid/1,
+-export([go/4, %make/8, make_dict/7, 
+         spk/2, cid/1,
 	 acc1/1, acc2/1, bal1/1, bal2/1, delay/1]).
 -record(nc_offer, {acc1, nonce, nlocktime, bal1, bal2, miner_commission, %miner commission between 0 and 10 000.
               delay, id, contract_hash}).%this is the anyone can spend trade offer.
 -record(nc_accept, {acc2, fee, nc_offer, contract_sig}).%this is the tx.
 -include("../../records.hrl").
+-record(signed, {data="", sig="", sig2=""}).
 
 acc1(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.acc1.
 acc2(X) -> X#nc_accept.acc2.
 bal1(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.bal1.
 bal2(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.bal2.
-delay(X) -> X#nc_accept.nc_offer#sgned.data#nc_offer.delay.
+delay(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.delay.
 cid(Tx) -> Tx#nc_accept.nc_offer#signed.data#nc_offer.id.
 spk(Tx, Delay) -> 
     spk:new(acc1(Tx), acc2(Tx), cid(Tx),
@@ -20,7 +22,7 @@ make_dict(Pub, NCOffer, Fee) ->
     CS = ok,
     #nc_accept{acc2 = Pub, nc_offer = NCOffer, fee = Fee, contract_sig = CS}.
 make_offer(ID, Pub, TimeLimit, Bal1, Bal2, Delay, SPK) ->
-    A = trees:get(accounts, Acc1),
+    A = trees:get(accounts, Pub),
     Nonce = A#acc.nonce,
     <<_:256>> = ID,
     CH = <<0:256>>,
@@ -28,6 +30,7 @@ make_offer(ID, Pub, TimeLimit, Bal1, Bal2, Delay, SPK) ->
 				 
 go(Tx, Dict, NewHeight, _) -> 
     Fee = Tx#nc_accept.fee,
+    DefaultFee = ok,
     ToAcc1 = ((Fee) - (DefaultFee)) * (10000 / Tx#nc_accept.nc_offer#nc_offer.miner_commission), %this is how we can incentivize limit-order like behaviour.
     CS = Tx#nc_accept.contract_sig,
 %verify that CS is a valid signature of contract_hash
