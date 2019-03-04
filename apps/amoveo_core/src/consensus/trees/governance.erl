@@ -160,6 +160,7 @@ name2number(oracle_close) -> 25;
 name2number(unmatched) -> 26;
 name2number(oracle_winnings) -> 27;
 name2number(oracle_question_liquidity) -> 28;
+name2number(nc_accept) -> 17;
 name2number(X) -> 
     io:fwrite(X),
     1=2,

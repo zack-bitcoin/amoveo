@@ -204,7 +204,16 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {accounts, delete_account_tx:from(Tx)},
                  {accounts, delete_account_tx:to(Tx)}
                   ];
-            nc -> 
+            nc_accept ->
+                io:fwrite(packer:pack(Tx)),
+                io:fwrite("\n"),
+                [
+                 {governance, ?n2i(nc)},
+                 {accounts, new_channel_tx2:acc1(Tx)},
+                 {accounts, new_channel_tx2:acc2(Tx)},
+                 {channels, new_channel_tx2:cid(Tx)}
+                ];
+            nc ->
                 [
                  {governance, ?n2i(nc)},
                  {accounts, new_channel_tx:acc1(Tx)},

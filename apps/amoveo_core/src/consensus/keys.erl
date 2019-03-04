@@ -4,7 +4,8 @@
 
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
-	 pubkey/0, sign/1, raw_sign/1, load/3, unlock/1,
+	 pubkey/0, sign/1, raw_sign/1,
+         load/3, unlock/1,
 	 lock/0, status/0, change_password/2, new/1,
 	 shared_secret/1,
 	 encrypt/2, decrypt/1, keypair/0,

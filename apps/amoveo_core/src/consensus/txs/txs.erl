@@ -22,6 +22,7 @@ key2module(create_acc_tx) -> create_account_tx;
 key2module(spend) -> spend_tx;
 key2module(delete_acc_tx) -> delete_account_tx;
 key2module(nc) -> new_channel_tx;
+key2module(nc_accept) -> new_channel_tx2;
 key2module(ctc) -> channel_team_close_tx;
 key2module(csc) -> channel_solo_close;
 key2module(timeout) -> channel_timeout_tx;
