@@ -25,6 +25,7 @@ test() ->
     S = test(11),%try out the oracle
     S = test(16),%try out the oracle further
     %S = test(17),%blocks filled with create account txs
+    S = test(28),
     timer:sleep(300),
     S.
 absorb(Tx) -> 
@@ -902,8 +903,42 @@ test(23) ->
 	{ok, <<_:256>>} -> 1=2;
 	_ -> ok
     end,
+    success;
+test(28) ->    
+    io:fwrite(" new channel tx2\n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Trees = block_trees(BP),
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = constants:initial_fee() + 20,
+    Amount = 1000000,
+    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    timer:sleep(100),
+    CID = <<5:256>>,
+
+    Delay = 30,
+
+    LimitOrderTime = 10,
+    SPK = spk:new(constants:master_pub(), NewPub, CID, [], 0,0,0,Delay),
+    Offer = new_channel_tx2:make_offer(CID, constants:master_pub(), LimitOrderTime, 100, 200, Delay, SPK),
+    Ctx2 = new_channel_tx2:make_dict(NewPub, Offer, Fee),
+    %Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
+    Stx2 = keys:sign(Ctx2),
+    SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
+    absorb(SStx2),
+    mine_blocks(1),
+
+    Ctx4 = channel_team_close_tx:make_dict(CID, 0, Fee),
+    Stx4 = keys:sign(Ctx4),
+    SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
+    absorb(SStx4),
+    mine_blocks(1),
     success.
-    
     
 test18(0) -> success;
 test18(N) ->

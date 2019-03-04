@@ -25,19 +25,19 @@ make_offer(ID, Pub, TimeLimit, Bal1, Bal2, Delay, SPK) ->
     A = trees:get(accounts, Pub),
     Nonce = A#acc.nonce,
     <<_:256>> = ID,
+    %%calculate the hash of the spk that needs to be signed.
     CH = <<0:256>>,
     #nc_offer{id = ID, acc1 = Pub, nlocktime = 0, bal1 = Bal1, bal2 = Bal2, delay = Delay, contract_hash = CH}.
 				 
 go(Tx, Dict, NewHeight, _) -> 
     Fee = Tx#nc_accept.fee,
+    NCO = Tx#nc_accept.nc_offer#signed.data,
     DefaultFee = ok,
-    ToAcc1 = ((Fee) - (DefaultFee)) * (10000 / Tx#nc_accept.nc_offer#nc_offer.miner_commission), %this is how we can incentivize limit-order like behaviour.
+    ToAcc1 = ((Fee) - (DefaultFee)) * (10000 / NCO#nc_offer.miner_commission), %this is how we can incentivize limit-order like behaviour.
     CS = Tx#nc_accept.contract_sig,
 %verify that CS is a valid signature of contract_hash
-%verify that nc_offer is signed.
-    1=2,
+    true = testnet_sign:verify(Tx#nc_accept.nc_offer),
     ID = cid(Tx),
-
     empty = channels:dict_get(ID, Dict),
     Aid1 = acc1(Tx),
     Aid2 = acc2(Tx),
@@ -49,7 +49,7 @@ go(Tx, Dict, NewHeight, _) ->
     Delay = delay(Tx),
     NewChannel = channels:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Delay),
     Dict2 = channels:dict_write(NewChannel, Dict),
-    Acc1 = accounts:dict_update(Aid1, Dict, -Bal1+ToAcc1, Tx#nc_accept.nc_offer#signed.data#nc_offer.nonce),
+    Acc1 = accounts:dict_update(Aid1, Dict, -Bal1+ToAcc1, NCO#nc_offer.nonce),
     Acc2 = accounts:dict_update(Aid2, Dict, -Bal2-Fee-ToAcc1, none),
     Dict3 = accounts:dict_write(Acc1, Dict2),
     accounts:dict_write(Acc2, Dict3).

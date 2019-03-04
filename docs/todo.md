@@ -1,3 +1,8 @@
+new_channel_tx2:go
+* verify that CS is a valid signature.
+
+
+
 
 
 
