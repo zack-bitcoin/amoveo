@@ -3,7 +3,7 @@
          chalang_state/3, new_bet/3, new_bet/4, 
 	 is_improvement/4, bet_unlock/2, force_update/3,
          new_ss/2, remove_bet/2, remove_nth/2, 
-         unwrap_sig/1, sign/1,
+         verify_sig/1, sign/1,
 	 test/0, test2/0
 	]).
 
@@ -15,7 +15,7 @@
 %SPK is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, neither signs the SS.
 
-unwrap_sig(S) ->
+verify_sig(S) ->
     X = element(4, S),
     Z = case X of
             {2, Sig2} ->
@@ -29,8 +29,29 @@ unwrap_sig(S) ->
         end,
     testnet_sign:verify(Z).
 sign(S) ->
-    %If it already has a old type signature, then do that. Otherwise, make a new type signature.
-    S2 = keys:sign(S).
+    if
+        (element(1, S) == signed) ->
+ %If it already has a old type signature, then do that. Otherwise, make a new type signature.
+            case {element(3, S), element(4, S)} of
+                {<<_:568>>, _} -> keys:sign(S);
+                {_, <<_:568>>} -> keys:sign(S);
+                _ -> sign2(S)
+            end;
+        true -> sign2({signed, S, [], []})
+    end.
+sign2(S) -> 
+    Data = element(2, S),
+    NewData = hash:doit(sign:serialize(Data)),
+    NewS = setelement(2, S, NewData),
+    NewS1 = keys:sign(NewS),
+    NewS2 = setelement(2, NewS1, Data),
+    %change sig to {2, sig}
+    case {element(3, NewS2), element(4, NewS2)} of
+        {<<N:568>>, _} ->
+            setelement(3, NewS2, {2, <<N:568>>});
+        {_, <<N:568>>} ->
+            setelement(4, NewS2, {2, <<N:568>>})
+    end.
     
             
 remove_bet(N, SPK) ->

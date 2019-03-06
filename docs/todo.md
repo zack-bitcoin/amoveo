@@ -1,14 +1,10 @@
-Serve signatures
-WHY? with a open offer, one party only knows one of the signatures.
-* new merkel tree to store signature from attemps to close the channel. -- or maybe it is better to use the block-explorer principle. since we can verify the signature to know if it is valid.
-*we need a new service for following amoveo and keeping a copy of the most recent channel state signatures from each channel, and serves this data.
+Now we have tools for signing and verifying on spks.
+spk:sign/1
+spk:unwrap_sig/1 %this converts the new kind of signed spk into something that can be verified the old way, it leaves the old kind of spk unchanged.
 
-Sign on the hash
-WHY? because we don't want to publish the entire spk with new_channel tx. so we have to be able to verify a signature over the hash of the spk.
-* spk:sign2
-* replace every case where we check a spk's signature with testnet_sign:verify(spk:unwrap_sig(Stx)).
 * replace every case where we sign an spk with spk:sign.
-* upgrade the light node to understand the new format for spk signatures.
+* replace every case where we check a spk's signature with testnet_sign:verify(spk:unwrap_sig(Stx)).
+
 
 
 add endpoints to the amoveo api to access other amoveo services that could be running on the same machine. use white-lists, don't let them connect to internal api or run anything dangerous.

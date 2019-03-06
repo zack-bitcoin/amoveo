@@ -4,7 +4,9 @@
 	 acc1/1, acc2/1, bal1/1, bal2/1, delay/1]).
 -record(nc_offer, {acc1, nonce, nlocktime, bal1, bal2, miner_commission, %miner commission between 0 and 10 000.
               delay, id, contract_hash}).%this is the anyone can spend trade offer.
--record(nc_accept, {acc2, fee, nc_offer, contract_sig}).%this is the tx.
+-record(nc_accept, 
+        {acc2, fee, nc_offer, 
+         contract_sig}).%this is the tx.
 -include("../../records.hrl").
 -record(signed, {data="", sig="", sig2=""}).
 
@@ -64,4 +66,5 @@ go(Tx, Dict, NewHeight, _) ->
     Acc1 = accounts:dict_update(Aid1, Dict, -Bal1+ToAcc1, NCO#nc_offer.nonce),
     Acc2 = accounts:dict_update(Aid2, Dict, -Bal2-Fee-ToAcc1, none),
     Dict3 = accounts:dict_write(Acc1, Dict2),
+    nc_sigs:store(ID, Tx#nc_accept.contract_sig),
     accounts:dict_write(Acc2, Dict3).

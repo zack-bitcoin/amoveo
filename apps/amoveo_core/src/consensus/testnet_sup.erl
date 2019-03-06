@@ -12,7 +12,7 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       arbitrage, order_book, oracle_questions, 
 	       tree_data, potential_block, my_ip, push_block,
 	       found_block_timer, vanity,
-	       block_reader, white_list]).
+	       block_reader, white_list, nc_sigs]).
 child_killer([]) -> [];
 child_killer([H|T]) -> 
     supervisor:terminate_child(testnet_sup, H),

@@ -242,6 +242,9 @@ doit({learn_secret, From, Secret, Code}) ->
 	    channel_feeder:bets_unlock(IDS)
     end,
     {ok, 0};
+doit({channel_sig, CID}) ->
+    X = nc_sigs:get(CID),
+    {ok, X};
 doit({channel_sync, From, SSPK}) ->
     io:fwrite("ext_handler channel sync"),
     io:fwrite(packer:pack(SSPK)),

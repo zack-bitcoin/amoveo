@@ -25,7 +25,7 @@ test() ->
     S = test(11),%try out the oracle
     S = test(16),%try out the oracle further
     %S = test(17),%blocks filled with create account txs
-    S = test(28),
+    %S = test(28),
     timer:sleep(300),
     S.
 absorb(Tx) -> 
@@ -779,7 +779,7 @@ test(15) ->
     timer:sleep(150),
     Txs2 = (tx_pool:get())#tx_pool.txs,
     %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
-    %timer:sleep(2000),
+    timer:sleep(2000),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),

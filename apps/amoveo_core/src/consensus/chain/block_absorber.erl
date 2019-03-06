@@ -44,9 +44,11 @@ absorb_internal(Block) ->
     %io:fwrite("\n"), 
     if
 	Height > (MyHeight + 1) ->
-	    throw("too high");
+	    io:fwrite("too high"),
+            1=2;
 	Height < (MyHeight - 300) ->
-	    throw("too low");
+	    io:fwrite("too low"),
+            1=2;
 	true ->
 	    {_, _, BH} = Block#block.trees,
 	    %io:fwrite("block absorber 1\n"),
