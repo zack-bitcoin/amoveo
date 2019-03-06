@@ -3,7 +3,7 @@
          chalang_state/3, new_bet/3, new_bet/4, 
 	 is_improvement/4, bet_unlock/2, force_update/3,
          new_ss/2, remove_bet/2, remove_nth/2, 
-         verify_sig/1, sign/1,
+         verify_sig/1, sign/1, hash/1,
 	 test/0, test2/0
 	]).
 
@@ -20,8 +20,9 @@ verify_sig(S) ->
     Z = case X of
             {2, Sig2} ->
                 {2, Sig1} = element(3, S),
-                Serialized = sign:serialize(element(2, S)),
-                H = hash:doit(Serialized),
+                %Serialized = sign:serialize(element(2, S)),
+                %H = hash:doit(Serialized),
+                H = hash(element(2, S)),
                 S2 = setelement(2, S, H),
                 S3 = setelement(3, S2, Sig1),
                 setelement(4, S3, Sig2);
@@ -32,25 +33,33 @@ sign(S) ->
     if
         (element(1, S) == signed) ->
  %If it already has a old type signature, then do that. Otherwise, make a new type signature.
-            case {element(3, S), element(4, S)} of
-                {<<_:568>>, _} -> keys:sign(S);
-                {_, <<_:568>>} -> keys:sign(S);
-                _ -> sign2(S)
+            Bool = (is_binary(element(3, S)) or is_binary(element(4, S))),
+            if
+                Bool-> keys:sign(S);
+                true -> sign2(S)
             end;
         true -> sign2({signed, S, [], []})
     end.
+hash(X) -> {hash:doit(sign:serialize(X)), X#spk.acc1, X#spk.acc2}.
 sign2(S) -> 
     Data = element(2, S),
-    NewData = hash:doit(sign:serialize(Data)),
-    NewS = setelement(2, S, NewData),
-    NewS1 = keys:sign(NewS),
+    %NewData = hash:doit(sign:serialize(Data)),
+    NewData = hash(Data),
+    NewS1 = keys:sign(NewData),
+
+    %NewS = setelement(2, S, NewData),
+    %io:fwrite(packer:pack(NewS)),
+    %io:fwrite("\n"),
+    %NewS1 = keys:sign(NewS),
     NewS2 = setelement(2, NewS1, Data),
     %change sig to {2, sig}
-    case {element(3, NewS2), element(4, NewS2)} of
-        {<<N:568>>, _} ->
-            setelement(3, NewS2, {2, <<N:568>>});
-        {_, <<N:568>>} ->
-            setelement(4, NewS2, {2, <<N:568>>})
+    B3 = element(3, NewS2),
+    B4 = element(4, NewS2),
+    if
+        is_binary(B3) ->
+            setelement(3, NewS2, {2, B3});
+        is_binary(B4) ->
+            setelement(4, NewS2, {2, B4})
     end.
     
             

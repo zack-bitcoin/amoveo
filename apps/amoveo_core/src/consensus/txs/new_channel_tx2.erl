@@ -5,7 +5,7 @@
 -record(nc_offer, {acc1, nonce, nlocktime, bal1, bal2, miner_commission, %miner commission between 0 and 10 000.
               delay, id, contract_hash}).%this is the anyone can spend trade offer.
 -record(nc_accept, 
-        {acc2, fee, nc_offer, 
+        {acc2, nc_offer, fee,
          contract_sig}).%this is the tx.
 -include("../../records.hrl").
 -record(signed, {data="", sig="", sig2=""}).
@@ -22,19 +22,22 @@ spk(Tx, Delay) ->
 make_dict(Pub, NCOffer, Fee, SPK) ->
     NCO = testnet_sign:data(NCOffer),
     CH = NCO#nc_offer.contract_hash,
-    CH = hash:doit(sign:serialize(SPK)),
-    %CS = crypto:sign(ecdsa, none, CH, [Priv, crypto:ec_curve(secp256k1)]),
-    CS = keys:sign(SPK),
+    CH = spk:hash(SPK),
+    CS = spk:sign(SPK),
     Sig = if
-              (element(3, CS) == []) -> element(4, CS);
-              true -> element(3, CS)
+              (element(3, CS) == []) -> element(3, element(4, CS));
+              true -> 
+                  io:fwrite(packer:pack(CS)),
+                  element(2, element(3, CS))
           end,
+    CS2 = setelement(3, setelement(2, CS, CH), Sig),
+    true = testnet_sign:verify(CS2),
     #nc_accept{acc2 = Pub, nc_offer = NCOffer, fee = Fee, contract_sig = Sig}.
 make_offer(ID, Pub, TimeLimit, Bal1, Bal2, Delay, MC, SPK) ->
     A = trees:get(accounts, Pub),
-    Nonce = A#acc.nonce,
+    Nonce = A#acc.nonce + 1,
     <<_:256>> = ID,
-    CH = hash:doit(sign:serialize(SPK)),
+    CH = spk:hash(SPK),
     true = MC > 0,
     true = MC < 100000,
     #nc_offer{id = ID, nonce = Nonce, acc1 = Pub, nlocktime = 0, bal1 = Bal1, bal2 = Bal2, delay = Delay, contract_hash = CH, miner_commission = MC}.
@@ -44,13 +47,12 @@ go(Tx, Dict, NewHeight, _) ->
     Fee = Tx#nc_accept.fee,
     NCO = Tx#nc_accept.nc_offer#signed.data,
     DefaultFee = governance:dict_get_value(nc, Dict),
-    ToAcc1 = ((Fee) - (DefaultFee)) * (10000 / NCO#nc_offer.miner_commission), %this is how we can incentivize limit-order like behaviour.
+    ToAcc1 = ((Fee) - (DefaultFee)) * (10000 div NCO#nc_offer.miner_commission), %this is how we can incentivize limit-order like behaviour.
     CS = Tx#nc_accept.contract_sig,
     CH = NCO#nc_offer.contract_hash,
     Aid1 = acc1(Tx),
-    io:fwrite(packer:pack([CH, CS, Aid1])),
-    io:fwrite("\n"),
-    true = crypto:verify(ecdsa, sha256, CH, CS, [Aid1, crypto:ec_curve(secp256k1)]),
+    CS2 = {signed, CH, CS, []},
+    true = testnet_sign:verify(CS2),
     true = testnet_sign:verify(Tx#nc_accept.nc_offer),
     ID = cid(Tx),
     empty = channels:dict_get(ID, Dict),
