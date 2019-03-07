@@ -19,7 +19,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
         N -> N = version:doit(NewHeight)
     end,
     From = Tx#spend.from,
-    txs:developer_lock(From, NewHeight, Dict),
+    %txs:developer_lock(From, NewHeight, Dict),
     To = Tx#spend.to,
     false = From == To,
     A = Tx#spend.amount,

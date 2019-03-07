@@ -102,7 +102,7 @@ dict_give_bets([Order|T], Type, Dict, OID, Height) ->
     dict_give_bets(T, Type, Dict2, OID, Height).
 go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#oracle_bet.from,
-    txs:developer_lock(From, NewHeight, Dict),
+    %txs:developer_lock(From, NewHeight, Dict),
     Nonce = if
 		NonceCheck -> Tx#oracle_bet.nonce;
 		true -> none

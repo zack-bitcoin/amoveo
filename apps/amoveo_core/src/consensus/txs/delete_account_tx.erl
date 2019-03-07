@@ -30,7 +30,7 @@ new(To, ID, Fee, Trees) ->
 
 go(Tx, Dict, NewHeight, _) ->
     From = Tx#delete_acc_tx.from,
-    txs:developer_lock(From, NewHeight, Dict),
+    %txs:developer_lock(From, NewHeight, Dict),
     To = Tx#delete_acc_tx.to,
     Nonce = Tx#delete_acc_tx.nonce,
     AccountFee = Tx#delete_acc_tx.fee,

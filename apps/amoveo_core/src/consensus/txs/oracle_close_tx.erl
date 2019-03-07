@@ -19,7 +19,7 @@ make(From, Fee, OID, Trees) ->
         
 go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#oracle_close.from,
-    txs:developer_lock(From, NewHeight, Dict),
+    %txs:developer_lock(From, NewHeight, Dict),
     Nonce = if
 		NonceCheck -> Tx#oracle_close.nonce;
 		true -> none

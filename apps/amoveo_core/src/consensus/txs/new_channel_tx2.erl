@@ -44,6 +44,7 @@ make_offer(ID, Pub, TimeLimit, Bal1, Bal2, Delay, MC, SPK) ->
 				 
 go(Tx, Dict, NewHeight, _) -> 
     1=2,
+    true = NewHeight > forks:get(11),
     Fee = Tx#nc_accept.fee,
     NCO = Tx#nc_accept.nc_offer#signed.data,
     DefaultFee = governance:dict_get_value(nc, Dict),

@@ -28,7 +28,7 @@ new(Pub, Amount, Fee, From, Trees) -> %To is a new ID. set it to any unused ID.
     {Tx, [Proof]}.
 go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#create_acc_tx.from,
-    txs:developer_lock(From, NewHeight, Dict),
+    %txs:developer_lock(From, NewHeight, Dict),
     Pub = Tx#create_acc_tx.pubkey,
     Amount = Tx#create_acc_tx.amount,
     true = (Amount > (-1)),
