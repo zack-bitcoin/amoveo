@@ -914,7 +914,7 @@ test(28) ->
     Trees = block_trees(BP),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Fee = constants:initial_fee() + 20,
-    Amount = 1000000,
+    Amount = 5000000000,
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
@@ -923,7 +923,7 @@ test(28) ->
     timer:sleep(100),
     CID = <<5:256>>,
 
-    Delay = 30,
+    Delay = 0,
 
     LimitOrderTime = 10,
     SPK = spk:new(constants:master_pub(), NewPub, CID, [], 0,0,0,Delay),
@@ -937,12 +937,10 @@ test(28) ->
     SSPK2 = spk:sign(SSPK),
     %Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
     %Stx2 = keys:sign(Ctx2),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(Ctx2)),
-    io:fwrite("\n"),
     SStx2 = testnet_sign:sign_tx(Ctx2, NewPub, NewPriv), 
     absorb(SStx2),
     mine_blocks(1),
+    timer:sleep(100),
 
     Ctx4 = channel_solo_close:make_dict(constants:master_pub(), Fee, SSPK2, []),
 
@@ -951,6 +949,17 @@ test(28) ->
     %SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
     absorb(Stx4),
     mine_blocks(1),
+    timer:sleep(100),
+
+
+    Ctx5 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
+    Stx5 = keys:sign(Ctx5),
+    absorb(Stx5),
+    mine_blocks(1),
+    timer:sleep(100),
+    
+    empty = trees:get(channels, <<5:256>>),
+
     success.
     
 test18(0) -> success;
