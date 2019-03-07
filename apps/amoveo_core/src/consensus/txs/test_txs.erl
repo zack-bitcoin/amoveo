@@ -932,6 +932,9 @@ test(28) ->
     %io:fwrite(packer:pack(Offer)),
 %["nc_offer","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=","undefined",0,100,200,"undefined",30,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU=","2mgGO1gTdh6gkswwBT0wQWj+W5W/owYv6+ezEQ0bCC4="]
     Ctx2 = new_channel_tx2:make_dict(NewPub, Offer, Fee, SPK),
+    SPKSig2 = element(5, Ctx2),
+    SSPK = {signed, SPK, [], {2, SPKSig2}},
+    SSPK2 = spk:sign(SSPK),
     %Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
     %Stx2 = keys:sign(Ctx2),
     io:fwrite("\n"),
@@ -941,10 +944,12 @@ test(28) ->
     absorb(SStx2),
     mine_blocks(1),
 
-    Ctx4 = channel_team_close_tx:make_dict(CID, 0, Fee),
+    Ctx4 = channel_solo_close:make_dict(constants:master_pub(), Fee, SSPK2, []),
+
+    %Ctx4 = channel_team_close_tx:make_dict(CID, 0, Fee),
     Stx4 = keys:sign(Ctx4),
-    SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
-    absorb(SStx4),
+    %SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
+    absorb(Stx4),
     mine_blocks(1),
     success.
     

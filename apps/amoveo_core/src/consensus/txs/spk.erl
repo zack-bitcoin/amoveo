@@ -43,16 +43,10 @@ sign(S) ->
 hash(X) -> {hash:doit(sign:serialize(X)), X#spk.acc1, X#spk.acc2}.
 sign2(S) -> 
     Data = element(2, S),
-    %NewData = hash:doit(sign:serialize(Data)),
     NewData = hash(Data),
-    NewS1 = keys:sign(NewData),
-
-    %NewS = setelement(2, S, NewData),
-    %io:fwrite(packer:pack(NewS)),
-    %io:fwrite("\n"),
-    %NewS1 = keys:sign(NewS),
+    Sa1 = setelement(2, S, NewData),
+    NewS1 = keys:sign(Sa1),
     NewS2 = setelement(2, NewS1, Data),
-    %change sig to {2, sig}
     B3 = element(3, NewS2),
     B4 = element(4, NewS2),
     if
