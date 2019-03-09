@@ -10,6 +10,7 @@ spk:unwrap_sig/1 %this converts the new kind of signed spk into something that c
 add endpoints to the amoveo api to access other amoveo services that could be running on the same machine. use white-lists, don't let them connect to internal api or run anything dangerous.
 
 
+simpler way to customize port instead of 8080
 
 
 

@@ -38,7 +38,7 @@ make_offer(ID, Pub, TimeLimit, Bal1, Bal2, Delay, MC, SPK) ->
     Nonce = A#acc.nonce + 1,
     <<_:256>> = ID,
     CH = spk:hash(SPK),
-    true = MC > 499,
+    true = MC > 0,
     true = MC < 100001,
     #nc_offer{id = ID, nonce = Nonce, acc1 = Pub, nlocktime = 0, bal1 = Bal1, bal2 = Bal2, delay = Delay, contract_hash = CH, miner_commission = MC}.
 				 
@@ -46,6 +46,8 @@ go(Tx, Dict, NewHeight, _) ->
     true = NewHeight > forks:get(11),
     Fee = Tx#nc_accept.fee,
     NCO = Tx#nc_accept.nc_offer#signed.data,
+    NLock = NCO#nc_offer.nlocktime,
+    true = ((NLock == 0) or (NewHeight < NLock)),
     DefaultFee = governance:dict_get_value(nc, Dict),
     ToAcc1 = ((Fee) - (DefaultFee)) * (10000 div NCO#nc_offer.miner_commission), %this is how we can incentivize limit-order like behaviour.
     CS = Tx#nc_accept.contract_sig,

@@ -926,7 +926,7 @@ test(28) ->
     Delay = 0,
 
     LimitOrderTime = 10,
-    SPK = spk:new(constants:master_pub(), NewPub, CID, [], 0,0,0,Delay),
+    SPK = spk:new(constants:master_pub(), 1, CID, [], 0,0,0,Delay),
     Offer = keys:sign(new_channel_tx2:make_offer(CID, constants:master_pub(), LimitOrderTime, 100, 200, Delay, 5000, SPK)),
     %io:fwrite("\n"),
     %io:fwrite(packer:pack(Offer)),
