@@ -124,7 +124,6 @@ Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
 A1 exchange for ETH-VEO and BTC-VEO trading (previously called amoveo.exchange): https://a1.exchange/
 
-HitBTC exchange: https://hitbtc.com/VEO-to-BTC
 
 ## browser extentions
 Firefox. It can be found here. https://addons.mozilla.org/en-US/firefox/addon/amoveo-wallet/ and the source code is here https://github.com/johnnycash77/amoveo3-wallet
