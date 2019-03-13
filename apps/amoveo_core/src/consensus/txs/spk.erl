@@ -28,6 +28,9 @@ verify_sig(S) ->
                 setelement(4, S3, Sig2);
             _ -> S
         end,
+    io:fwrite("spk verify sig format "),
+    io:fwrite(packer:pack(Z)),
+    io:fwrite("\n"),
     testnet_sign:verify(Z).
 sign(S) ->
     if
