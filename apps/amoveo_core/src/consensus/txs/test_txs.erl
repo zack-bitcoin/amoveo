@@ -933,12 +933,15 @@ test(28) ->
 %["nc_offer","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=","undefined",0,100,200,"undefined",30,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU=","2mgGO1gTdh6gkswwBT0wQWj+W5W/owYv6+ezEQ0bCC4="]
     Ctx2 = new_channel_tx2:make_dict(NewPub, Offer, Fee, SPK),
     SPKSig2 = element(5, Ctx2),
-    SSPK = {signed, SPK, [], {2, SPKSig2}},
-    SSPK2 = spk:sign(SSPK),
-    true = spk:verify_sig(SSPK2),
+    NewData = spk:hash(SPK),
+    Sig = testnet_sign:sign(NewData, NewPriv),
+    SSPK2 = {signed, SPK, {2, SPKSig2}, {2, Sig}},
+    
+    %SSPK2 = spk:sign(SSPK, 1),
     io:fwrite("test txs 28 sspk2 "),
     io:fwrite(packer:pack(SSPK2)),
     io:fwrite("\n"),
+    true = spk:verify_sig(SSPK2, keys:pubkey(), NewPub),
     %Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
     %Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Ctx2, NewPub, NewPriv), 

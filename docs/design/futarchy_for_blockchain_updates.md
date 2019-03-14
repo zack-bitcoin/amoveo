@@ -12,13 +12,7 @@ I have noticed some inefficiencies in how the network agrees upon updates.
 Futarchy can solve these problem at once.
 Developers should program everything the community could be interested in, and futarchy should be used to decide which updates to merge into the mainnet.
 
-To test this out, I have made an oracle with this question:
-"X = retarget branch gets merged into mainnet before block height 29000; Y = price of veo around height 30000 is > $300; (X AND Y) OR (!X AND !Y)."
-Here is the oracle's ID: OaQb/xyYNbqrT4p/P8i7wfvo7zWo7GkCUBFfI8RuRNE=
-
-you can participate in this market here: http://139.59.144.76:8080/explorer.html
-
-If the price of True is higher than the price of False, then that means merging the retarget branch update would increase the odds of Amoveo being worth more than $300.
+[here I talk about making the oracle for futarchy](../basics/using_governance.md)
 
 This way you can't use lobbying to give an advantage to the update you prefer.
 And it doesn't matter which developers are popular, everyone has equal opportunity to make updates.

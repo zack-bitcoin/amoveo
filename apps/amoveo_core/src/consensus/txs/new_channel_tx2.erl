@@ -22,16 +22,21 @@ spk(Tx, Delay) ->
 make_dict(Pub, NCOffer, Fee, SPK) ->
     NCO = testnet_sign:data(NCOffer),
     CH = NCO#nc_offer.contract_hash,
+    CS = spk:sign(SPK, 2),
+    
     CH = spk:hash(SPK),
-    CS = spk:sign(SPK),
+
     Sig = if
-              (element(3, CS) == []) -> element(3, element(4, CS));
+              (element(3, CS) == []) -> 
+                  element(2, element(4, CS));
               true -> 
-                  io:fwrite(packer:pack(CS)),
+                  %io:fwrite(packer:pack(CS)),
                   element(2, element(3, CS))
           end,
-    CS2 = setelement(3, setelement(2, CS, CH), Sig),
-    true = testnet_sign:verify(CS2),
+    B1 = testnet_sign:verify_sig(CH, Sig, keys:pubkey()),
+
+    %CS2 = setelement(3, setelement(2, CS, CH), Sig),
+    %true = spk:verify_sig(CS),
     #nc_accept{acc2 = Pub, nc_offer = NCOffer, fee = Fee, contract_sig = Sig}.
 make_offer(ID, Pub, TimeLimit, Bal1, Bal2, Delay, MC, SPK) ->
     A = trees:get(accounts, Pub),
@@ -55,7 +60,8 @@ go(Tx, Dict, NewHeight, _) ->
     CH = NCO#nc_offer.contract_hash,
     Aid1 = acc1(Tx),
     CS2 = {signed, CH, CS, []},
-    true = testnet_sign:verify(CS2),
+    true = testnet_sign:verify_sig(CH, CS, Aid1),
+    %true = testnet_sign:verify(CS2),
     true = testnet_sign:verify(Tx#nc_accept.nc_offer),
     ID = cid(Tx),
     empty = channels:dict_get(ID, Dict),

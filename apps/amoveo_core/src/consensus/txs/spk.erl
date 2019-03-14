@@ -3,7 +3,7 @@
          chalang_state/3, new_bet/3, new_bet/4, 
 	 is_improvement/4, bet_unlock/2, force_update/3,
          new_ss/2, remove_bet/2, remove_nth/2, 
-         verify_sig/1, sign/1, hash/1,
+         verify_sig/3, sign/2, hash/1,
 	 test/0, test2/0
 	]).
 
@@ -15,53 +15,47 @@
 %SPK is where we hold the channel contracts. They are turing complete smart contracts.
 %Besides the SPK, there is the ScriptSig. Both participants of the channel sign the SPK, neither signs the SS.
 
-verify_sig(S) ->
+verify_sig(S, Pub1, Pub2) ->
     X = element(4, S),
     Z = case X of
             {2, Sig2} ->
+                io:fwrite("spk more \n"),
                 {2, Sig1} = element(3, S),
                 %Serialized = sign:serialize(element(2, S)),
                 %H = hash:doit(Serialized),
                 H = hash(element(2, S)),
-                S2 = setelement(2, S, H),
-                S3 = setelement(3, S2, Sig1),
-                setelement(4, S3, Sig2);
-            _ -> S
-        end,
-    io:fwrite("spk verify sig format "),
-    io:fwrite(packer:pack(Z)),
-    io:fwrite("\n"),
-    testnet_sign:verify(Z).
-sign(S) ->
+                B1 = testnet_sign:verify_sig(H, Sig1, Pub1),
+                B2 = testnet_sign:verify_sig(H, Sig2, Pub2),
+                B1 and B2;
+                %S2 = setelement(2, S, H),
+                %S3 = setelement(3, S2, Sig1),
+                %setelement(4, S3, Sig2);
+            _ -> testnet_sign:verify(S)
+        end.
+    %testnet_sign:verify(Z).
+sign(S, N) ->
     if
         (element(1, S) == signed) ->
  %If it already has a old type signature, then do that. Otherwise, make a new type signature.
             Bool = (is_binary(element(3, S)) or is_binary(element(4, S))),
             if
                 Bool-> keys:sign(S);
-                true -> sign2(S)
+                true -> sign2(S, N)
             end;
-        true -> sign2({signed, S, [], []})
+        true -> sign2({signed, S, [], []}, N)
     end.
-hash(X) -> {hash:doit(sign:serialize(X)), X#spk.acc1, X#spk.acc2}.
-sign2(S) -> 
-    Data = element(2, S),
+hash(X) -> hash:doit(sign:serialize(X)).
+sign2(S, N) -> 
+    {signed, Data, B3, B4} = S,
     NewData = hash(Data),
-    Sa1 = setelement(2, S, NewData),
     io:fwrite("spk sign2\n"),
-    io:fwrite(packer:pack(Sa1)),
+    %io:fwrite(packer:pack(Sa1)),
     io:fwrite("\n"),
-    NewS1 = keys:sign(Sa1),
-    NewS2 = setelement(2, NewS1, Data),
-    B3 = element(3, NewS2),
-    B4 = element(4, NewS2),
-    if
-        is_binary(B3) ->
-            setelement(3, NewS2, {2, B3});
-        is_binary(B4) ->
-            setelement(4, NewS2, {2, B4})
+    Sig = {2, keys:raw_sign(NewData)},
+    case N of
+        1 -> {signed, Data, Sig, B4};
+        2 -> {signed, Data, B3, Sig}
     end.
-    
             
 remove_bet(N, SPK) ->
     NewBets = remove_nth(N, SPK#spk.bets),

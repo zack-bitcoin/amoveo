@@ -57,10 +57,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     OldChannel = channels:dict_get(CID, Dict),
     LM = channels:last_modified(OldChannel),
     true = LM < NewHeight,
-    %true = spk:verify_sig(SignedSPK),%%
-    true = testnet_sign:verify(SignedSPK),%%
     Acc1 = channels:acc1(OldChannel),
     Acc2 = channels:acc2(OldChannel),
+    true = spk:verify_sig(SignedSPK, Acc1, Acc2),%%
+    %true = testnet_sign:verify(SignedSPK),%%
     Acc1 = SPK#spk.acc1,
     Acc2 = SPK#spk.acc2,
     Fee = Tx#cs.fee,
