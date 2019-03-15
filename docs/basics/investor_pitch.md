@@ -4,7 +4,7 @@ Investor Pitch
 ## What do you do?
 
 Amoveo is a tool for enforcing arbitrary bets. It uses blockchain technology to avoid depending on any trusted intermediary.
-Bettins is a basic tool of finance that can be used to hedge risks.
+Betting is a basic tool of finance that can be used to hedge risks.
 When people bet in markets, the prices of those markets can reveal important information. A carefully crafted bet can enable a market to reveal any information known to mankind, to the most accurate degree possible. Amoveo allows us to program arbitrary bets, so we can make markets to reveal any information.
 We can use the prices in these markets to make better decisions than are possible with existing decision mechanisms: like boards of directors, or voting, or putting someone in charge.
 
