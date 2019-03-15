@@ -41,7 +41,7 @@ Amoveo was designed from day one for financial derivatives, so all the different
 * Mr Flintstone - betting expert. He comes up with the ideas to make sure our product is as useful as can be.
 * Sy - Sy operates veopool, which is a mining pool. A mining pool is where people can use GPU and FPGA to create new VEO. Sy wrote and maintains http://explorer.veopool.pw/index.php . He often has ideas for how to make Amoveo easier for 3rd parties to build on top of.
 * Potato - Potato operates Amoveopool, which is another mining pool.
-* Exan.tech - Russian company of many talented people. They run amoveo.io , and they created and maintain the iphone and android apps of Amoveo. They write blog posts about Amoveo. 
+* Exan.tech - Company of many talented people. They run amoveo.io , and they created and maintain the iphone and android apps of Amoveo. They write blog posts about Amoveo. 
 * Eric Arsenault - UX designer with a background in betting technology. He is using Amoveo contracts to raise money to fund the development of a better UX experience.
 * Catweed - wrote and maintains https://veoscan.io/ a popular explorer for Amoveo.
 * Qtrade.io and a1.exchange - these are places where you can trade BTC for VEO. They work together with us to make sure software updates happen smoothly without impacting the trader's experience.
