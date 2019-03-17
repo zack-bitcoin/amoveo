@@ -22,7 +22,7 @@ spk(Tx, Delay) ->
 make_dict(Pub, NCOffer, Fee, SPK) ->
     NCO = testnet_sign:data(NCOffer),
     CH = NCO#nc_offer.contract_hash,
-    CS = spk:sign(SPK, 2),
+    CS = spk:sign(SPK, 2),%should be signed by acc2
     
     CH = spk:hash(SPK),
 
@@ -30,7 +30,6 @@ make_dict(Pub, NCOffer, Fee, SPK) ->
               (element(3, CS) == []) -> 
                   element(2, element(4, CS));
               true -> 
-                  %io:fwrite(packer:pack(CS)),
                   element(2, element(3, CS))
           end,
     B1 = testnet_sign:verify_sig(CH, Sig, keys:pubkey()),
@@ -59,13 +58,12 @@ go(Tx, Dict, NewHeight, _) ->
     CS = Tx#nc_accept.contract_sig,
     CH = NCO#nc_offer.contract_hash,
     Aid1 = acc1(Tx),
-    CS2 = {signed, CH, CS, []},
-    true = testnet_sign:verify_sig(CH, CS, Aid1),
+    Aid2 = acc2(Tx),
+    true = testnet_sign:verify_sig(CH, CS, Aid2),
     %true = testnet_sign:verify(CS2),
     true = testnet_sign:verify(Tx#nc_accept.nc_offer),
     ID = cid(Tx),
     empty = channels:dict_get(ID, Dict),
-    Aid2 = acc2(Tx),
     false = Aid1 == Aid2,
     Bal1 = bal2(Tx),
     true = Bal1 >= 0,

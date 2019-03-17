@@ -11,7 +11,7 @@ We can use the prices in these markets to make better decisions than are possibl
 ## How far along are you?
 
 Amoveo has been live for over a year, there has been a lot of experimentation, but we have not achieved product market fit yet.
-The blockchain itself is finished. We have written a fast version called a "light node" in javascript that only downloads a few megabytes of data, but is as secure as the full version. Many people are using the light node to store and spend their veo, but only a handful have used it to make bets.
+The blockchain itself is finished. We have written a fast version called a "light node" in javascript that only downloads a few megabytes of data, but is as secure as the full version. Approximately hundreds of people are using the light node to store and spend their veo, but only about a dozen have used it to make bets.
 
 ## How big is the market?
 
