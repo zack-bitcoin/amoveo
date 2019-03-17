@@ -17,7 +17,7 @@ initial_difficulty() ->
         {ok, "local"} -> 10;%unit tests
         {ok, "integration"} -> 2500;%integration tests.
 %10;
-        {ok, "production"} -> 8844
+        {ok, "production"} -> 2500
     end.
 difficulty_bits() -> 24.
 hash_size() -> 32.
@@ -95,7 +95,7 @@ retarget_frequency() -> %2000. %how many blocks till we recalculate the difficul
         %{ok, "local"} -> 12;%unit tests
         {ok, "local"} -> 12;%unit tests
         {ok, "integration"} -> 12;%integration tests
-        {ok, "production"} -> 2000
+        {ok, "production"} -> 12
     end.
 time_units() -> 100. % 0.1 seconds
 start_time() -> 15192951759.
