@@ -584,6 +584,17 @@ new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     false = empty == trees:get(oracles, OID, dict:new(), OldTrees),%oracle existed confirmation blocks ago.
     
     order_book:new_market(OID, Expires, Period).
+as_binary(Size, B) ->
+    if
+        is_binary(B) ->
+            S = size(B),
+            if
+                S == Size -> B;
+                true -> base64:decode(B)
+            end;
+        true -> base64:decode(B)
+    end.
+                    
 trade(Price, Type, Amount, OID, Height) ->
     trade(Price, Type, Amount, OID, Height, ?IP, ?Port).
 trade(Price, Type, Amount, OID, Height, IP, Port) ->
