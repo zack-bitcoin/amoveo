@@ -19,7 +19,7 @@ verify_sig(S, Pub1, Pub2) ->
     X = element(4, S),
     Z = case X of
             {2, Sig2} ->
-                io:fwrite("spk more \n"),
+                %io:fwrite("spk more \n"),
                 {2, Sig1} = element(3, S),
                 %Serialized = sign:serialize(element(2, S)),
                 %H = hash:doit(Serialized),
