@@ -19,4 +19,6 @@ get(7) -> common(28135, 40);%test_height()).
 get(8) -> common(36120, test_height());
 get(9) -> common(39500, test_height());
 get(10) -> common(47043, 1);
-get(11) -> common(57000, test_height()).
+get(11) -> common(57000, test_height());
+%get(12) -> common(58088, test_height()).
+get(12) -> common(39000, test_height()).

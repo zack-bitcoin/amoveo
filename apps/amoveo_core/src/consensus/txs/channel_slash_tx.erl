@@ -62,7 +62,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = spk:verify_sig(SignedSPK, Acc1, Acc2),%%
     %true = testnet_sign:verify(SignedSPK),%%
     Acc1 = SPK#spk.acc1,
-    Acc2 = SPK#spk.acc2,
+    %Acc2 = SPK#spk.acc2,
     Fee = Tx#cs.fee,
     Nonce = if
 		NonceCheck -> Tx#cs.nonce;

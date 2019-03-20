@@ -955,10 +955,16 @@ test(28) ->
     %Ctx4 = channel_team_close_tx:make_dict(CID, 0, Fee),
     Stx4 = keys:sign(Ctx4),
     %SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv),
-    absorb(Stx4),
+    %absorb(Stx4),
     mine_blocks(1),
     timer:sleep(100),
 
+    io:fwrite("\n"),
+    io:fwrite("\n"),
+    io:fwrite("test txs 28: "),
+    io:fwrite(packer:pack(trees:get(channels, <<5:256>>))),
+    io:fwrite("\n"),
+    io:fwrite("\n"),
 
     Ctx5 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx5 = keys:sign(Ctx5),

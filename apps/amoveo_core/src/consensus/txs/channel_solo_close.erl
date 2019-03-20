@@ -48,7 +48,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = spk:verify_sig(SPK, Acc1, Acc2),
     %true = testnet_sign:verify(SPK),
     Acc1 = ScriptPubkey#spk.acc1,
-    Acc2 = ScriptPubkey#spk.acc2,
+    %Acc2 = ScriptPubkey#spk.acc2,
     SS = Tx#csc.scriptsig,
     {Amount, NewCNonce, Delay} = spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict),
     %false = Amount == 0,

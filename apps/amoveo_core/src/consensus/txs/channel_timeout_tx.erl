@@ -44,6 +44,12 @@ go(Tx, Dict, NewHeight, _) ->
     From = Tx#timeout.aid,
     CID = Tx#timeout.cid,
     Channel = channels:dict_get(CID, Dict),
+    F12 = forks:get(12),
+    if
+        NewHeight > F12 ->
+            true = channels:nonce(Channel) > 1;
+        true -> ok
+    end,
     0 = channels:closed(Channel),
     LM = channels:last_modified(Channel),
     TD = NewHeight - LM,

@@ -26,6 +26,9 @@ verify_sig(S, Pub1, Pub2) ->
                 H = hash(element(2, S)),
                 B1 = testnet_sign:verify_sig(H, Sig1, Pub1),
                 B2 = testnet_sign:verify_sig(H, Sig2, Pub2),
+                %io:fwrite("verify sig: "),
+                %io:fwrite(packer:pack([B1, B2])),
+                %io:fwrite("\n"),
                 B1 and B2;
                 %S2 = setelement(2, S, H),
                 %S3 = setelement(3, S2, Sig1),
