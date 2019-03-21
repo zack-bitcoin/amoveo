@@ -69,7 +69,7 @@ To prove: if A, then B.
 
 If the market maker chooses the optimal price, he isn't changing his risk.
 He is earning a profit by taking a fee.
-This graph shows how if he selects the correct price the sells in red match the buys in black so he doesn't risk anything.
+This graph shows how if he selects the correct price the sells in blue match the buys in black so he doesn't risk anything.
 
 ![balanced trading](batch_channel.png "balanced")
 
