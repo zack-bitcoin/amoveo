@@ -7,7 +7,7 @@ The situations people worry about is like this:
 
 
 An attacker spends lots of money making bets in the oracle for an outcome that is false.
-####
+========
 
 If no one is betting in the oracle, then maybe no one will notice it closing incorrectly. But since no one has money at risk, it doesn't matter if it closes incorrectly.
 
@@ -23,7 +23,7 @@ So the attacker will end up winning lots of money on the worthless side of the f
 
 
 An attacker bribes the developers to update Amoveo so that one of the oracles can only resolve on a lying state.
-#####
+========
 
 Just because I want a hard update to happen doesn't mean I can get it to happen. Sometimes the mining pool operators make me set up a testnet first so they can try it out.
 I walk mining pool operators through what has changed for every update.
