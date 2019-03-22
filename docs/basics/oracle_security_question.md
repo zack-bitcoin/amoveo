@@ -6,7 +6,8 @@ The situations people worry about is like this:
 
 
 
-1) An attacker spends lots of money making bets in the oracle for an outcome that is false.
+An attacker spends lots of money making bets in the oracle for an outcome that is false.
+####
 
 If no one is betting in the oracle, then maybe no one will notice it closing incorrectly. But since no one has money at risk, it doesn't matter if it closes incorrectly.
 
@@ -21,8 +22,10 @@ A basic assumption of Amoveo is that the version of history which is more accura
 So the attacker will end up winning lots of money on the worthless side of the fork, and everyone else will earn lots of money on the valueable side of the fork.
 
 
+An attacker bribes the developers to update Amoveo so that one of the oracles can only resolve on a lying state.
+#####
 
-2) Just because I want a hard update to happen doesn't mean I can get it to happen. Sometimes the mining pool operators make me set up a testnet first so they can try it out.
+Just because I want a hard update to happen doesn't mean I can get it to happen. Sometimes the mining pool operators make me set up a testnet first so they can try it out.
 I walk mining pool operators through what has changed for every update.
 Additionally, I write a report for the community explaining what the update will change and why they should be willing to participate.
 
