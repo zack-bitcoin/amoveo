@@ -42,9 +42,9 @@ If you combine 2 mechanisms with different levels of trust together, you take th
 In the context of blockchains, people start using words like "cryptoeconomically secure" or "trust free", but which levels of trust does that really mean?
 In Amoveo, we try to keep every aspect of the blockchains and channels at level 1.1. We do not exceed trust level 1.1, to the best of my knowledge.
 
-I think if the second digit should be called the "unsealed trust level" or "sincere trust level", because the latin roots of "sincere" are "without" and "seal".
+I think if the second digit should be called the "unsealed trust level" or "sincere trust", because the latin roots of "sincere" are "without" and "seal".
 They are similar to an unsealed bottle, in that you can't know if someone has tampered with it.
-The first digit can be the "sealed trust"
+The first digit can be the "sealed trust", or "insincere trust".
 
 
 4.X are significantly worse than the rest in that the attacker can profit from attacking.
@@ -68,7 +68,23 @@ This is why we should create a general theory of trust, so that we can quickly c
 Not only is this useful for mechanism designers, it is useful for investors as well.
 If an investor can calculate that a mechanism is not using the lowest level of trust possible, then the investor can know that this project will be more expensive and less secure than the competition.
 
+open problems
+======
+
 
 in total, there are 10 levels of trust identified here. If you can make a general proof that mechanism with trust 3.2 can always be improved to be 2.2, that would be a great discovery.
 
 If you can prove that any mechanism can be written in a 1.1 form, or at least give a broad range of mechanisms that can be in 1.1 form, that would be great.
+
+
+
+
+Applying these tools to existing projects
+=======
+
+Bitcoin hivemind and Augur are 3.1
+The oracle participants can lie to cheat in a market, but they lose more money than they earn from the markets.
+
+
+
+
