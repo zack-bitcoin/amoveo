@@ -21,18 +21,22 @@ From strongest security to weakest, the spectrum of trust:
 4) same as (3), but A < 0.
 
 for the trust level of a protocol, we record 2 numbers. The first number is how bad attacks can be where we can know the attack occured, and the second is how bad the attacks can be where the attack is indistinguishible from unlucky randomness.
+
 So the first digit is always >= the second
 
+
 so 1.1 is perfect security.
+
 2.1 means there is a to spend X of your own money to destroy Y of someone else's, but you will get caught.
 
 4.1 means money can get stolen outright, but we will know who did it.
+
 4.4 is the worst case. for example: intrade. They could front run all your trade to rob you, and you wouldn't even know until you have done enough trades to get statistically significant data.
 
 If you combine 2 mechanisms with different levels of trust together, you take the bigger of the first digits, and the bigger of the second digits.
-1.1 + 4.1 = 4.1
-2.2 + 3.1 = 3.2
-1.1 + 1.1 = 1.1
+1.1 + 4.1 = 4.1;
+2.2 + 3.1 = 3.2;
+1.1 + 1.1 = 1.1;
 
 
 In the context of blockchains, people start using words like "cryptoeconomically secure" or "trust free", but which levels of trust does that really mean?
