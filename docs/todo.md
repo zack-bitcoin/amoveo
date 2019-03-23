@@ -1,3 +1,5 @@
+
+
 Now we have tools for signing and verifying on spks.
 spk:sign/1
 spk:unwrap_sig/1 %this converts the new kind of signed spk into something that can be verified the old way, it leaves the old kind of spk unchanged.
@@ -15,6 +17,11 @@ simpler way to customize port instead of 8080
 
 
 ### Other hard fork ideas
+
+
+Maybe block rewards should be locked for a week to prevent P+epsilon attacks against the consensus mechanism.
+Maybe locking for less than a week would be enough.
+Calculate how much time the coins would need to be locked up for.
 
 
 free option problem when closing a channel early with CTC.
