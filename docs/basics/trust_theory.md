@@ -27,7 +27,7 @@ So the first digit is always >= the second
 
 so 1.1 is perfect security.
 
-2.1 means there is a to spend X of your own money to destroy Y of someone else's, but you will get caught.
+2.1 means there is a way to spend X of your own money to destroy Y of someone else's, but you will get caught.
 
 4.1 means money can get stolen outright, but we will know who did it.
 

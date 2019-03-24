@@ -1,3 +1,7 @@
+consider paying the exchange digitalprice.io to list Amoveo.
+
+We need a theory of the flavors of trust.
+Between 0 trust and 100% trustlessness, are there discrete layers, or is it continuous?
 
 
 Now we have tools for signing and verifying on spks.
