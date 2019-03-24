@@ -2,7 +2,7 @@ Using the Oracle
 =========
 
 
-binary oracle: `Trump won the election.`
+binary oracle: `Trump won the 2020 election.`
 
 scalar oracle: `P = the price of USD in VEO from 0 to 0.05 on January 1, 2019, at 5:00 AM GMT; `
 
