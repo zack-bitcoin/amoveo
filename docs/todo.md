@@ -1,3 +1,5 @@
+in the light node, the contract offers should have time limits.
+
 consider paying the exchange digitalprice.io to list Amoveo.
 
 We need a theory of the flavors of trust.
