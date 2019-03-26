@@ -29,6 +29,7 @@ handle(Req, _) ->
 	       <<"/new_oracle.js">> -> true;
 	       <<"/messenger.js">> -> true;
 	       <<"/otc_finisher.html">> -> true;
+	       <<"/otc_finisher_old.html">> -> true;
 	       <<"/otc_finisher_old.js">> -> true;
 	       <<"/otc_finisher.js">> -> true;
 	       <<"/otc_listener.js">> -> true;
