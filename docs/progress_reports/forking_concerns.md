@@ -14,9 +14,9 @@ In bitcoin, every time 2 blocks are found at the same height, this is an ambiguo
 This shows that low value ambiguous forks of equal height can be healed easily by Nakamoto consensus.
 
 In bitcoin, any time someone spends a large enough value of bitcoins, this creates an incentive for them to rebuild bitcoin from before when they made the payment. They do not succeed in causing double-spends.
-This shows that high value ambigious forks can be prevented, as long as there are enough confirmations.
+This shows that high value ambigious forks can be prevented, as long as there are enough confirmations. 
 
-## 5 type of teams
+## 5 types of teams
 
 For a fork to survive, then all 5 of these groups need to have participants on both sides of the fork:
 * investors
@@ -77,3 +77,15 @@ Users are less secure if the tx fees get too high.
 Miners are less secure if there are many small miners instead of few big ones.
 
 As the network grows, Developers and Users become easier to fork, but miners become harder to fork.
+
+
+For an oracle to cause a fork, all these things need to happen at the same time:
+1) the result of the oracle question needs to be ambiguous between true/false/bad
+2) a lot of money needs to be at risk for this oracle result, that way someone is incentivized to cause the fork.
+3) Either we don't have ASICS, or the ASIC miners are choosing not to attack one of the options to prevent a fork attack.
+4) The community of developers needs to have already forked.
+5) The cost of using the blockchain due to fees must be greater than the cost of using the blockchain due to volatility. (which usually only happens if Amoveo is very very big.)
+
+It is hard to get (2) to happen if (1) is already happening. This makes causing a fork very difficult, and it gets more difficult over time as we learn the tricks for causing forks. If there is concern of fork, people will avoid risking money on the oracle, and we will have an easier time agreeing that it is a "bad question" oracle.
+
+Overall, it is so rare that all 5 of these things happen at the same time, so it is not possible that Amovoe will die in thousands of forks.
