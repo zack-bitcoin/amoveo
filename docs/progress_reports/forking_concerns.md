@@ -16,8 +16,7 @@ This shows that low value ambiguous forks of equal height can be healed easily b
 In bitcoin, any time someone spends a large enough value of bitcoins, this creates an incentive for them to rebuild bitcoin from before when they made the payment. They do not succeed in causing double-spends.
 This shows that high value ambigious forks can be prevented, as long as there are enough confirmations.
 
-
-
+## 5 type of teams
 
 For a fork to survive, then all 5 of these groups need to have participants on both sides of the fork:
 * investors
@@ -70,7 +69,7 @@ Since they are all competing, the cost due to fees would be pressed down to the 
 This sort of economic feedback means that each competing fork will be such a large part of the blockchain economy, that it is not an issue to fork. Each one will stay large and important enough that Amoveo wont die in thousands of rapid forks.
 
 
-
+## Summary
 
 Developers, Users, and Miners provide the most important limits for these fork attacks.
 Developer are less secure when the team of developers is socially splitting, or they have different visions for the future of Amoveo
