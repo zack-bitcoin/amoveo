@@ -23,7 +23,7 @@ For a fork to survive, then all 5 of these groups need to have participants on b
 * miners
 * mining pools
 * developers
-* users
+* users (<--- most powerful limits are from here.)
 
 That means that any one of these layers can prevent an attack-fork from succeeding.
 We can look at each of these groups to find boundaries for when these attacks cannot occur.
@@ -40,7 +40,7 @@ But, if the difficulty keeps falling on the other side, and if the price stays h
 The larger the portion of your mining power of the total, the less your incentive to join the attacker's side, because you have more hardware that can lose value.
 So we get more secure with ASICS, and more secure if there are fewer big mining pools instead of many small ones.
 
-Once we have ASICS we might be secure against these kinds of attack forks entirely. Whichever side has more ASICS, they can commit double-spends against the small side to destroy it.
+Once we have ASICS we might be secure against these kinds of attack forks entirely. Whichever side has more ASICS, they can commit double-spends and censorship against the small side to destroy it.
 
 ## Mining Pools
 
@@ -82,7 +82,7 @@ As the network grows, Developers and Users become easier to fork, but miners bec
 For an oracle to cause a fork, all these things need to happen at the same time:
 1) the result of the oracle question needs to be ambiguous between true/false/bad
 2) a lot of money needs to be at risk for this oracle result, that way someone is incentivized to cause the fork.
-3) Either we don't have ASICS, or the ASIC miners are choosing not to attack one of the options to prevent a fork attack.
+3) Either we don't have ASICS, or the ASIC miners are choosing not to attack the smaller side to prevent the fork.
 4) The community of developers needs to have already forked.
 5) The cost of using the blockchain due to fees must be greater than the cost of using the blockchain due to volatility. (which usually only happens if Amoveo is very very big.)
 
