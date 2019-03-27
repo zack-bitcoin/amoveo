@@ -1,4 +1,10 @@
-in the light node, the contract offers should have time limits.
+combinatorial chalang contract tested. combinatorial_market.erl written.
+
+in the light node, the contract offers should have time limits other than 100.
+
+in otc_finisher, it should display the details of whatever bet you have made.
+
+in otc_finisher, we never need to save the channel state, so get rid of that button.
 
 consider paying the exchange digitalprice.io to list Amoveo.
 
@@ -23,6 +29,8 @@ simpler way to customize port instead of 8080
 
 
 ### Other hard fork ideas
+
+we should have a time limit in channel team close txs to prevent the free option problem in some cases where they want to close the channel early.
 
 
 Maybe block rewards should be locked for a week to prevent P+epsilon attacks against the consensus mechanism.
