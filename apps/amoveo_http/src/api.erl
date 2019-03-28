@@ -513,6 +513,7 @@ add_peer(IP, Port) ->
     peers:add({IP, Port}),
     0.
 %sync() -> sync(?IP, ?Port).
+%curl -d '["sync", 2, [x,x,x,x], 8080]' localhost:8081
 sync() -> 
     spawn(fun() -> sync:start() end),
     0.
