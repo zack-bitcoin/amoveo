@@ -23,3 +23,5 @@ any financial application that people would be interested in using can be writte
 
 corollary:
 Since level 1.1 is both cheaper and more secure than any other level, any financial app that is not written to security level 1.1 will inevitably fail to competition that is at level 1.1.
+
+
