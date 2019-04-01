@@ -40,7 +40,7 @@ If you combine 2 mechanisms with different levels of trust together, you take th
 
 
 In the context of blockchains, people start using words like "cryptoeconomically secure" or "trust free", but which levels of trust does that really mean?
-In Amoveo, we try to keep every aspect of the blockchains and channels at level 1.1. We do not exceed trust level 1.1, to the best of my knowledge.
+In Amoveo, we try to keep every aspect of the blockchains and channels at level 2.1. We do not exceed trust level 2.1, to the best of my knowledge.
 
 I think if the second digit should be called the "unsealed trust level" or "sincere trust", because the latin roots of "sincere" are "without" and "seal".
 They are similar to an unsealed bottle, in that you can't know if someone has tampered with it.

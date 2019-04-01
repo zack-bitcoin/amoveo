@@ -8,6 +8,7 @@
          dict_add/2, dict_remove/3, make_leaf/3,
 	 delete/2, 
          deserialize_head/1, head_put/4,
+         deserialize/1,
 	 serialize_head/2,
 	 all/2,
 	 amount/1,

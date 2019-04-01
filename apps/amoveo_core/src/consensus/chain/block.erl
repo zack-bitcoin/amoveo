@@ -522,7 +522,12 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict2, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict2)
 	       end,
-
+    F8 = forks:get(8),
+    if
+        Height > F8 ->
+            no_counterfeit(Dict, NewDict3, Txs0, Height);
+        true -> ok
+    end,
     NewTrees3_0 = tree_data:dict_update_trie(OldTrees, NewDict3),
     F10 = forks:get(10),
     NewTrees3 = if
@@ -758,6 +763,138 @@ exponent(A, N) when N rem 2 == 0 ->
     exponent(A*A, N div 2);
 exponent(A, N) -> 
     A*exponent(A, N-1).
+
+count(_, [], N) -> N;
+count(Type, [H|T], N) ->
+    Type2 = element(1, element(2, H)),
+    if
+        Type == Type2 -> count(Type, T, N+1);
+        true -> count(Type, T, N)
+    end.
+            
+no_counterfeit(Old, New, Txs, Height) ->
+    %times it was outside expected range.
+   %height 2014; diff is - 34434339
+    %height 2017; diff is  49695764
+    %height 3044; diff is  15869694
+   %height 4133; diff is - 34130307
+    %height 4137; diff is  39695764
+    %height 5141; diff is   5869694
+   %height 15583; diff is  33847882
+   %height 21097; diff is  99847882
+   %height 22692; diff is  12210869
+   %height 22703; diff is  16847882
+   %height 22715; diff is  17847882
+   %height 23047; diff is  99847882
+   %height 24897; diff is  65924643
+  %height 30166; diff is 1 00000000
+   %height 30334; diff is  11051240
+  %height 32271; diff is 1 00000000
+  %height 32528; diff is 3 00000000
+%height 33178; diff is 258 00000000
+%height 34116; diff is 121 00000000
+ %height 34556; diff is 57 99999999
+ %height 34587; diff is 41 09394235
+ %height 34626; diff is -3 92481529
+ %height 34627; diff is 13 91619411
+ %height 34680; diff is 67 16797942
+%height 34681; diff is -17 11257793
+%height 34905; diff is 598 01505175
+
+    
+    OK = dict:fetch_keys(Old),
+    NK = dict:fetch_keys(New),
+    OA = sum_amounts(OK, Old, Old),
+    NA = sum_amounts(NK, New, Old),
+    BR = governance:dict_get_value(block_reward, Old),
+    %io:fwrite("block reward "),
+    %io:fwrite(integer_to_list(BR)),
+    %io:fwrite("\n"),
+    DR = governance:dict_get_value(developer_reward, Old),
+    %io:fwrite("block reward "),
+    %io:fwrite(integer_to_list(BR + (BR * DR div 10000))),
+    BlockReward = BR + (BR * DR div 10000),
+    %io:fwrite("; "),
+    CloseOracles = count(oracle_close, Txs, 0),
+    %io:fwrite("close oracles are "),
+    %io:fwrite(integer_to_list(CloseOracles)),
+    %io:fwrite("; "),
+    OCA = if
+              (CloseOracles > 0) ->
+                  governance:dict_get_value(oracle_initial_liquidity, Old) div 2;
+              true -> 0
+          end,
+    Diff = (NA - OA) - (OCA * CloseOracles) - BlockReward,
+    if
+        %((Diff > 0) or (Diff < -50000000))->
+        false ->
+            io:fwrite("height "),
+            io:fwrite(integer_to_list(Height)),
+            io:fwrite("; diff is "),
+            io:fwrite(integer_to_list(Diff)),
+            io:fwrite("\n");
+        true -> ok
+    end,
+    true = (Diff =< 0),
+    ok.
+sum_amounts([], _, _) -> 0;
+sum_amounts([{oracles, _}|T], Dict, OldDict) ->
+    sum_amounts(T, Dict, OldDict);
+sum_amounts([{existence, _}|T], Dict, Old) ->
+    sum_amounts(T, Dict, Old);
+sum_amounts([{governance, _}|T], Dict, Old) ->
+    sum_amounts(T, Dict, Old);
+sum_amounts([{Kind, A}|T], Dict, Old) ->
+    X = Kind:dict_get(A, Dict),
+    sum_amounts_helper(Kind, X, Dict, Old, A) +
+        sum_amounts(T, Dict, Old).
+sum_amounts_helper(_, empty, _, _, _) ->
+    0;
+sum_amounts_helper(accounts, Acc, Dict, _, _) ->
+    Acc#acc.balance;
+sum_amounts_helper(channels, Chan, Dict, _, _) ->
+    channels:bal1(Chan) + 
+        channels:bal2(Chan);
+sum_amounts_helper(oracle_bets, OB, Dict, OldDict, Key) ->%
+    {key, Pub, OID} = Key,%
+    Oracle = oracles:dict_get(OID, OldDict),%
+    R = Oracle#oracle.result,%
+    T = oracle_bets:true(OB),%
+    F = oracle_bets:false(OB),%
+    B = oracle_bets:bad(OB),%
+    N = case R of%
+            0 -> ((T + F + B) div 2);%
+            1 -> T;%
+            2 -> F;%
+            3 -> B%
+        end;%
+sum_amounts_helper(orders, Ord, Dict, _, Key) ->%
+    PS = constants:pubkey_size() * 8,%
+    case Key of%
+        {key, <<1:PS>>, _} -> 0;%
+        _ -> orders:amount(Ord)%
+    end;%
+sum_amounts_helper(unmatched, UM, Dict, _, Key) ->
+    PS = constants:pubkey_size() * 8,%
+    case Key of%
+        {key, <<1:PS>>, _} -> 0;%
+        _ -> unmatched:amount(UM)%
+    end;%
+sum_amounts_helper(matched, M, Dict, OldDict, Key) ->
+    {key, Pub, OID} = Key,
+    Oracle = oracles:dict_get(OID, OldDict),
+    R = Oracle#oracle.result,
+    T = matched:true(M),
+    F = matched:false(M),
+    B = matched:bad(M),
+    N = case R of
+            0 -> ((T+F+B) div 2);
+            1 -> T;
+            2 -> F;
+            3 -> B
+        end.
+
+
 	    
 test() ->
     test(1).

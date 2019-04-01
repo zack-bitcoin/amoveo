@@ -164,10 +164,10 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                 Dict4 = dict_give_bets(Matches2, OracleType, Dict3, Oracle#oracle.id, NewHeight),%gives oracle_bets to each account that got matched
                 Oracle3 = case Next of
                               same -> 
-                                  io:fwrite("oracle_bet_tx same type\n"),
+                                  %io:fwrite("oracle_bet_tx same type\n"),
                                   Oracle;
                               switch ->
-                                  io:fwrite("oracle_bet_tx switch types\n"),
+                                  %io:fwrite("oracle_bet_tx switch types\n"),
                                   Oracle#oracle{done_timer = NewHeight + MOT, type = TxType}
                           end,
                 oracles:dict_write(Oracle3, Dict4)

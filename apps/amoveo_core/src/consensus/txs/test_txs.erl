@@ -434,6 +434,7 @@ test(7) ->
     success;
 test(11) ->
     io:fwrite("testing an oracle \n"),
+    io:fwrite("test 11 0\n"),
     %testing the oracle
     %launch an oracle with oracle_new
     Question = <<>>,
@@ -446,28 +447,52 @@ test(11) ->
     tx_pool:dump(),
     timer:sleep(150),
     mine_blocks(4),
+    io:fwrite("test 11 1\n"),
     timer:sleep(150),
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0), %Fee, question, start, id gov, govamount
+    {Pub,Priv} = testnet_sign:new_key(),
+    Amount = 1000000000,
+    Ctx0 = create_account_tx:make_dict(Pub, Amount, Fee, constants:master_pub()),
+    Stx0 = keys:sign(Ctx0),
+    absorb(Stx0),
+    timer:sleep(100),
+    mine_blocks(1),
+    io:fwrite("test 11 2\n"),
+    timer:sleep(100),
+
+
+
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0), %Fee, question, start, id gov, govamount %here
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
     potential_block:new(),
     mine_blocks(5),
+    io:fwrite("test 11 3\n"),
     timer:sleep(150),
     %make some bets in the oracle with oracle_bet
+    Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 100000000), 
+    Stx20 = testnet_sign:sign_tx(Tx20, Pub, Priv),
+    absorb(Stx20),
+    mine_blocks(1),
+    io:fwrite("test 11 4\n"),
+    timer:sleep(100),
 
     OIL = trees:get(governance, oracle_initial_liquidity),
-    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1), 
+    Bal1 = api:balance(),
+    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), 
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
-
-    %mine_blocks(1),
+    mine_blocks(1),
+    io:fwrite("test 11 5\n"),
     timer:sleep(150),
+
     %close the oracle with oracle_close
-    Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
+    Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),%here
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
-    %mine_blocks(1),
+    mine_blocks(1),
+    %1=2,
+    io:fwrite("test 11 6\n"),
     timer:sleep(100),
 
     %If you look up an oracle from the dictionary, it will always point to 0 for the orders. You need to query seperately to get the orders out, or you can transform the dict into a trie. After the transformation, you can look up orders how it is commented out below.
@@ -482,17 +507,21 @@ test(11) ->
     Tx4 = oracle_unmatched_tx:make_dict(constants:master_pub(), Fee, OID),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
-    %mine_blocks(1),
+    mine_blocks(1),
+    io:fwrite("test 11 7\n"),
     timer:sleep(100),
 
     %get your winnings with oracle_shares
-    Tx5 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),
+    Tx5 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),%pays 0.36
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
-    %mine_blocks(1),
-    timer:sleep(100),
-    Txs = (tx_pool:get())#tx_pool.txs,
     mine_blocks(1),
+    io:fwrite("test 11 8\n"),
+    timer:sleep(100),
+    Bal2 = api:balance(),
+    io:fwrite("balance change"),
+    io:fwrite(packer:pack([Bal1, Bal2])),
+    io:fwrite("\n"),
     success;
 test(16) ->
     io:fwrite("testing an oracle with more bets\n"),

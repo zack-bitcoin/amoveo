@@ -95,7 +95,7 @@ add({IP, Port}) ->
 	true ->
 	    case talker:talk({height}, {NIP, Port}) of
 		bad_peer -> 
-                    io:fwrite("bad peer\n"),
+                    %io:fwrite("bad peer\n"),
                     blacklist_peer:add({NIP, Port});
 		error -> 
                     io:fwrite("error peer\n"),
@@ -106,7 +106,7 @@ add({IP, Port}) ->
                         {ok, V} ->
                             gen_server:cast(?MODULE, {add, {NIP, Port}});
                         _ ->
-                            io:fwrite("peer on different blockchain\n"),
+                            %io:fwrite("peer on different blockchain\n"),
                             blacklist_peer:add({NIP, Port})
                     end
 	    end

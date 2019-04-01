@@ -1,3 +1,17 @@
+anti-counterfeit tool.
+
+figure out what went wrong with the stablecoin contract to Evan Pan.
+
+when you make contracts in the p2p tool, we should check that you private key matches the address in the channel of the contract.
+
+in otc_finisher.js we need to make it clearer how to write the final price. people confuse veo/usd with usd/veo.
+We should have some confirmation saying what portion of the veo goes to each party.
+
+similarly, if you accept a proposal from someone, it should say something about how much of the money goes to each party.
+
+
+We should sum up input money and output money from each block to double-check that there is no counterfeiting.
+
 combinatorial chalang contract tested. combinatorial_market.erl written.
 
 in the light node, the contract offers should have time limits other than 100.

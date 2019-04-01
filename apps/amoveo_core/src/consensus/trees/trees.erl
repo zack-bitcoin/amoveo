@@ -7,6 +7,7 @@
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
 	 hash2blocks/1, get/4, get/2,
+         all_veo/0,
          restore/3]).
 -include("../../records.hrl").
 -record(trees, {accounts, channels, existence,%
@@ -205,5 +206,27 @@ get(TreeID, Key, Dict, Trees) ->
 	X -> X
     end.
 
+all_veo_h2(accounts, X) ->
+    X#acc.balance;
+all_veo_h2(channels, X) ->
+    channels:bal1(X) + channels:bal2(X);
+all_veo_h2(unmatched, X) ->
+    unmatched:amount(X);
+all_veo_h2(matched, X) ->
+    (matched:true(X) + matched:false(X) + matched:bad(X)) div 2.
+    
+all_veo_helper(Type) ->
+    Accounts = trees:Type((tx_pool:get())#tx_pool.block_trees),
+    Leafs = trie:get_all(Accounts, Type),
+    A2 = lists:map(fun(A) -> all_veo_h2(Type, Type:deserialize(leaf:value(A))) end, Leafs),
+    lists:foldl(fun(X, A) -> X+A end, 0, A2).
+    
+all_veo() ->
+    %matched is being over-estimated currently.
+    %we should look up the oracle for every matched trade to know what it is really worth. look at block.erl for an example.
+    Rest = [accounts, channels, unmatched, matched],
+    X = lists:map(fun(N) -> all_veo_helper(N) end, Rest),
+    X2 = lists:foldl(fun(A, B) -> A+B end, 0, X),
+    X2 - 180500000000.
 	    
     
