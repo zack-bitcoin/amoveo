@@ -15,7 +15,9 @@ From strongest security to weakest, the spectrum of trust:
 1) provably secure cryptographic protocols. An attacker willing to spend any amount of money can't meaningfully interupt the mechanism or take anyone's money.
 * hash algorithms
 * public private key cryptography
+[trust_theory_1.1.md](learn more about security level 1 here)
 2) mechanisms where any attacker willing to spend A of their own money can destroy B value of someone else's. where A > B.
+[trust_theory_2.2.md](learn more about security level 2 here)
 3) same as (2) but 0 =< A =< B.
 * if a blockchain mechanism has this kind of level of trust, it is usually considered a bug that needs to be patched. These are griefing attacks https://consensys.github.io/smart-contract-best-practices/known_attacks/#insufficient-gas-griefing
 4) same as (3), but A < 0.
