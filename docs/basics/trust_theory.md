@@ -50,14 +50,18 @@ The first digit can be the "sealed trust", or "insincere trust".
 4.X are significantly worse than the rest in that the attacker can profit from attacking.
 A mechanism of level 4 will inevitably be destroyed.
 
-Every level of trust besides 1.1 suffer from the credible commitment to attack problem. That is where someone very rich makes a believable commitment to destroying the mechanism. If the community believes that it will get destroyed, then they will abandon the mechanism, so the rich person doesn't actually have to pay for the attack.
-If you don't have any rich enemy, then that might not be an issue for your protocol, so level 2.2 might be a reasonable level of trust.
-There are many mechanisms out there of level 2.2 that are considered secure.
+Every level of trust less secure than 2.2 suffer from the credible commitment to attack problem. That is where someone very rich makes a believable commitment to destroying the mechanism. If the community believes that it will get destroyed, then they will abandon the mechanism, so the rich person doesn't actually have to pay for the attack.
+At level 1.1, it is not possible to make a credible commitment to destroy the mechanism, because the mechanism cannot be destroyed.
+At level 2.2, it is possible to credibly commit to destroying the mechanism, but the existing participants do not abandon the mechanism, because they can make enough profit during the attack that they would prefer for the attack to happen.
 
 
-The cost of using a mechanism often increases with the level of trust.
-at level 1.1, verifying a signature over a binary is a purely cryptographic algorithm. It costs nothing to do this, it is free.
-at level 4.4, you are deposting your money into a centrally controlled service, and hoping that the fees you pay are enough to convince them not to steal any of your money.
+The cost of using a mechanism increases with the level of trust.
+At level 1.1, verifying a signature over a binary is a purely cryptographic algorithm. It costs nothing to do this, it is free.
+At level 2.1/2.2 there are miners or some other parties who we need to pay fees to in order to use the protocol. The miners can't rob us, so the payment is just to give you a good spot in line. It isn't for security.
+At level 3.1/3.2 we are still paying for a spot in line, but we are also paying for some security. There could be some occational retirement attacks that happen because competitor blockchain is bribing people on our blockchain to make it happen. The higher of a fee you pay, the less frequently these attacks will occur.
+Level 3.3 is similar to 3.2, except without any reputation system. So paying a higher fee wont make you any safer.
+at level 4.1/4.2, you are deposting your money into a centrally controlled service, and hoping that the fees you pay are enough to convince them not to steal any of your money.
+At level 4.4 your money can get stolen, and you don't know who did it. You can't tell if the system is working correctly and you are unlucky, or if you got robbed. This is a 100% trustful system.
 
 
 More trust = less security. More trust = higher fees.
