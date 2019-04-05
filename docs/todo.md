@@ -1,8 +1,6 @@
 would be nice if in otc_finisher the same file upload spot could accept either channel states or trade offers, so that the interface can be simpler.
 
 
-api:minimum_scalar_oracle_bet needs to be tested.
-
 api:oracle_bet should have a useful error if you try and use a floating point value
 
 light node should tell you if you have insufficient balance to ask the oracle a question.

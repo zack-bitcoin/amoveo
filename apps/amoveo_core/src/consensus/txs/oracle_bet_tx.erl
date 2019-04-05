@@ -147,6 +147,13 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 	TxType == OracleType ->
                 ManyOrders = dict_orders_many(OID, Dict, UMT),
                 Minimum = OIL * det_pow(2, max(1, ManyOrders)), 
+                if
+                    (Amount < Minimum) ->
+                        io:fwrite("amount minimum\n"),
+                        io:fwrite(packer:pack([Amount, Minimum])),
+                        io:fwrite("\n");
+                    true -> ok
+                end,
                 true = Amount >= Minimum,
                 Dict2 = UMT:dict_add(NewOrder, OID, Dict),
                 oracles:dict_write(Oracle, Dict2);
