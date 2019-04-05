@@ -8,3 +8,5 @@ scalar oracle: `P = the price of USD in VEO from 0 to 0.05 on January 1, 2019, a
 
 Scalar oracle with free-option protections:
 `P1 = the price of USD in VEO on December 3, 2019, at 5:00 AM GMT?; P2 = the price of USD in VEO on January 1, 2019, at 5:00 AM GMT; return min(1023, 512 * (1 + ((P2 - P1) / P1)))`
+
+scalar oracle with BTC hedge: `P = the price of BTC in VEO from 0 to 200 on January 1, 2019, at 5:00 AM GMT; if Trump wins the 2020 election return 0, otherwise return P;`

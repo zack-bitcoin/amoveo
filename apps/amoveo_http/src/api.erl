@@ -370,6 +370,25 @@ oracle_bet(OID, Type, Amount) ->
     oracle_bet(?Fee+Cost, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->
     tx_maker0(oracle_bet_tx:make_dict(keys:pubkey(), Fee, OID, Type, Amount)).
+minimum_scalar_oracle_bet(OID, N) ->
+    true = is_integer(N),
+    true = (N > -1),
+    trie = (N < 1024),
+    Amount = trees:get(governance, oracle_question_liquidity) + 1,
+    Bits = to_bits(N, 10),
+    <<OIDN:256>> = OID,
+    msob2(OIDN, Amount, 0, Bits).
+msob2(_, _, _, []) -> [];
+msob2(OIDN, Amount, N, [H|T]) ->
+    [oracle_bet(<<(OIDN + N):256>>, H, Amount)|
+     msob2(OIDN, Amount, N+1, T)].
+to_bits(_, 0) -> [];
+to_bits(X, N) when (0 == (X rem 2)) ->
+    [0|to_bits(X div 2, N-1)];
+to_bits(X, N) ->
+    Y = (X - 1) div 2,
+    [1|to_bits(Y, N-1)].
+    
 oracle_close(OID) ->
     Trees = (tx_pool:get())#tx_pool.block_trees,
     Dict = (tx_pool:get())#tx_pool.dict,
