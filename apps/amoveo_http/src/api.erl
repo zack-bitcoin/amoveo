@@ -373,7 +373,7 @@ oracle_bet(Fee, OID, Type, Amount) ->
 minimum_scalar_oracle_bet(OID, N) ->
     true = is_integer(N),
     true = (N > -1),
-    trie = (N < 1024),
+    true = (N < 1024),
     Amount = trees:get(governance, oracle_question_liquidity) + 1,
     Bits = to_bits(N, 10),
     <<OIDN:256>> = OID,
