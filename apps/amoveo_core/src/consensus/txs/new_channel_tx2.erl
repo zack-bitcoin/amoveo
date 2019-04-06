@@ -64,7 +64,12 @@ go(Tx, Dict, NewHeight, _) ->
     ID = cid(Tx),
     empty = channels:dict_get(ID, Dict),
     false = Aid1 == Aid2,
-    Bal1 = bal2(Tx),
+    %Bal1 = bal2(Tx),%BAD
+    F13 = forks:get(13),
+    Bal1 = if
+               NewHeight > F13 -> bal1(Tx);
+               true -> bal2(Tx)
+           end,
     true = Bal1 >= 0,
     Bal2 = bal2(Tx),
     true = Bal2 >= 0,

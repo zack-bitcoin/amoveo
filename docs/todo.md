@@ -1,3 +1,6 @@
+Make sure extra payment is inclued when closing a channel.
+
+
 would be nice if in otc_finisher the same file upload spot could accept either channel states or trade offers, so that the interface can be simpler.
 
 
