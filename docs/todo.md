@@ -1,3 +1,4 @@
+figure out if sourcex channel failed, and pay him 0.5 veo if we owe it.
 Make sure extra payment is inclued when closing a channel.
 
 
