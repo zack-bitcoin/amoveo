@@ -1,9 +1,10 @@
 Science of Blockchain
 ================
 
+If you want to be a profitable investor in blockchain mechanisms, you should learn to tell the difference between a valid scientific experiment that can lead to more powerful mechanisms, and superstitious rituals that will waste many resources.
+
 Science is a popular technique for learning things that have never been known before. How can we use science to find out how to build better blockchain mechanisms?
 The answer is important for the people who design blockchains, scientific experimentation can give us the information we need to build better blockchain mechanisms.
-It is also important for people who invest in blockchains. This way they can tell which projects have valid scientific evidence backing up their design choices, and they can avoid projects that use superstitious pseudo-science to design their mechanisms.
 
 Science is a process where you come up with possible explanations for the phenomena we observe around us, called hypothesis, and then we do experiments to try and disprove our hypothesis. 
 
