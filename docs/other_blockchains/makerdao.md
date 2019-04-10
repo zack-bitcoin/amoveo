@@ -9,10 +9,10 @@ The goal of this document is to explain why MakerDAO will fail, and to try and p
 
 
 MakerDAO has 4 subcurrencies:
-dai - stable value
-cdp - long-eth
-peth
-mkr - governance tokens
+* dai - stable value
+* cdp - long-eth
+* peth
+* mkr - governance tokens
 
 eth can get spit into dai and cdp. dai and cdp can be combined to reclaim the eth.
 
