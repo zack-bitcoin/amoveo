@@ -1,5 +1,7 @@
 test solo-closing the channel from the p2p derivatives node. make sure the correct amount of money is moved.
 
+test the case where someone pays a higher fee.
+
 
 would be nice if in otc_finisher the same file upload spot could accept either channel states or trade offers, so that the interface can be simpler.
 

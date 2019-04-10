@@ -16,6 +16,9 @@ mkr - governance tokens
 
 eth can get spit into dai and cdp. dai and cdp can be combined to reclaim the eth.
 
+The net risk from combining dai and cdp must be the same as the eth they were made from. Since dai is stable, that means cdp must be long-eth.
+But it is an unusual way of formating long-eth. The amount of eth the contract pays out is constant, but the cost of the dai measured in eth, to unlock the eth from the cdp is a variable.
+
 The holders of mkr vote to decide on a team of trusted feeds, they call it an "oracle". The trusted feeds are used so the blockchain can know the current exchange rate between eth and USD. This exchange rate is used to determine the price at which people can exchange dai for cdp.
 
 It is enforced in a weird way.
