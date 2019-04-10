@@ -96,7 +96,7 @@ Commands such as:
 
 [here is another closed source miner](https://github.com/krypdkat/AmoveoMinerMan)
 
-[here is a miner for fpga](https://github.com/dedmarozz/Amoveo-VCU1525-FPGA-Miner/releases)
+[here is miners for 5 different kinds of fpga](https://github.com/dedmarozz)
 
 [Comino appears to be selling some fpga software to mine veo](https://comino.com/shop)
 
