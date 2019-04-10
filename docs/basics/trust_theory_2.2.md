@@ -1,6 +1,8 @@
 Trust Theory 2.2
 ==========
 
+[trust theory basics](trust_theory.md)
+
 Security level 2.2 is the level of security used in the Bitcoin blockchain. It is not as secure or cheap as 1.1, but it is much easier to use.
 
 Security level 2.2 is the highest level of security that can be targetted using cryptoeconomic mechanisms. It is also the least expensive level of security that can be used with cryptoeconomic mechanisms.
