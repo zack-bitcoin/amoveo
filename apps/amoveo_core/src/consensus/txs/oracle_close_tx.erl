@@ -29,7 +29,17 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     OID = Tx#oracle_close.oracle_id,
     Oracle = oracles:dict_get(OID, Dict2),
     true = Oracle#oracle.starts =< NewHeight,
-    OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
+    Gov = Oracle#oracle.governance,
+    F14 = forks:get(14),
+    OIL = if
+              NewHeight < F14 ->
+                  governance:dict_get_value(oracle_initial_liquidity, Dict);
+              Gov == 0 -> 
+                  governance:dict_get_value(oracle_question_liquidity, Dict);
+              true ->
+                  governance:dict_get_value(oracle_initial_liquidity, Dict)
+          end,
+    %OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
     F10 = NewHeight > forks:get(10),
     UMT = if%
 	      F10  -> unmatched;

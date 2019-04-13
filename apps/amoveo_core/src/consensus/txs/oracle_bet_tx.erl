@@ -117,7 +117,16 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     From = Tx#oracle_bet.from,
     OID = Tx#oracle_bet.id,
     Oracle0 = oracles:dict_get(OID, Dict),
-    OIL = governance:dict_get_value(oracle_initial_liquidity, Dict),
+    Gov = Oracle0#oracle.governance,
+    F14 = forks:get(14),
+    OIL = if
+              NewHeight < F14 ->
+                  governance:dict_get_value(oracle_initial_liquidity, Dict);
+              Gov == 0 -> 
+                  governance:dict_get_value(oracle_question_liquidity, Dict);
+              true ->
+                  governance:dict_get_value(oracle_initial_liquidity, Dict)
+          end,
     F10 = NewHeight > forks:get(10),
     UMT = if%
 	      F10  -> unmatched;
@@ -155,6 +164,10 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                     true -> ok
                 end,
                 true = Amount >= Minimum,
+                if
+                    ((UMT == unmatched) and (NewHeight < F14)) -> 1=2;%can be removed after fork 14 activates.
+                    true -> ok
+                end,
                 Dict2 = UMT:dict_add(NewOrder, OID, Dict),
                 oracles:dict_write(Oracle, Dict2);
 	true ->

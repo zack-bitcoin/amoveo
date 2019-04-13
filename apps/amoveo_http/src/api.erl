@@ -378,7 +378,14 @@ minimum_scalar_oracle_bet(OID, N) ->
     Bits = lists:reverse(to_bits(N, 10)),
     <<OIDN:256>> = OID,
     msob2(OIDN, Amount, 0, Bits).
-msob2(_, _, _, []) -> [];
+scalar_oracle_close(OID) ->
+    <<OIDN:256>> = OID,
+    scalar_oracle_close2(OIDN, 10).
+scalar_oracle_close2(_, 0) -> ok;
+scalar_oracle_close2(OIDN, N) ->
+    oracle_close(<<OIDN:256>>),
+    scalar_oracle_close2(OIDN+1, N-1).
+msob2(_, _, _, []) -> ok;
 msob2(OIDN, Amount, N, [H|T]) ->
     spawn(fun() ->
                   oracle_bet(<<(OIDN + N):256>>, H, Amount)

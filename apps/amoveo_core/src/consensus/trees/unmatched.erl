@@ -5,7 +5,7 @@
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,
          dict_significant_volume/3, dict_match/3,
          dict_head_get/2,
-         dict_add/2, dict_remove/3, make_leaf/3,
+         dict_add/3, dict_remove/3, make_leaf/3,
 	 delete/2, 
          deserialize_head/1, head_put/4,
          deserialize/1,
@@ -30,11 +30,16 @@ dict_significant_volume(Dict, OID, OIL) ->
     ManyOrders = dict_many(Dict, OID),
         if 
             ManyOrders == 0 ->
+                io:fwrite("unmatched dict_significant_volume, invalid oracle because of zero orders.\n"),
                 false;
             ManyOrders > 2 -> true;
             true ->
                 {Head, _} = dict_head_get(Dict, OID),
                 Order0 = dict_get({key, Head, OID}, Dict),
+                %io:fwrite("unmatched dict_significant_volume, "),
+                %io:fwrite(packer:pack([amount(Order0), OIL, Order0])),
+                %io:fwrite("\n"),
+                %true = is_integer(OIL),
                 amount(Order0) > OIL
         end.
 dict_many(Dict, OID) -> 
@@ -203,7 +208,7 @@ all2(X, Root, OID) ->
             {_, Order, _} = get({key, Pub, OID}, Root),
             [Pub|all2(Order#unmatched.pointer, Root, OID)]
     end.
-dict_add(Order, Dict) ->
+dict_add(Order, _, Dict) ->
     X = Order#unmatched.account,
     OID = Order#unmatched.oracle,
     OldOrder = dict_get({key, X, OID}, Dict),

@@ -113,6 +113,8 @@ test() ->
     test2(NewPub). 
 
 test2(NewPub) ->
+    test_txs:mine_blocks(1),
+    test_txs:mine_blocks(1),
     OID = <<3:256>>,
     Fee = 20 + constants:initial_fee(),
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
@@ -174,10 +176,10 @@ test2(NewPub) ->
     test_txs:absorb(Stx6),
     test_txs:mine_blocks(1),
     timer:sleep(1000),
-    %amount, newnonce, shares, delay
+    %amount, newnonce, delay
     %Now that the bet is settled the delay is only zero so that we can get our money out as fast as possible.
     %The server won the bet, and gets all 100.
-    %amount, newnonce, shares, delay
+    %amount, newnonce, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
     {105,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss

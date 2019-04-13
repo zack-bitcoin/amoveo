@@ -310,10 +310,11 @@ txs_to_querys2([STx|T], Trees, Height) ->
 			F10 -> {unmatched, #key{pub = <<?Header:PS>>, id = OID}};
 		    true -> {orders, #key{pub = <<?Header:PS>>, id = OID}}%
 		    end,%
+                OTG = oracle_type_get(Trees, OID, Height),
 		[
 		 {governance, ?n2i(oracle_bet)},
 		 {governance, ?n2i(minimum_oracle_time)},
-		 {governance, ?n2i(oracle_initial_liquidity)},
+		 {governance, OTG},
 		 {oracles, OID}] ++ [U] ++ Prove;
 	    oracle_close -> 
                 AID = oracle_close_tx:from(Tx),
@@ -339,11 +340,12 @@ txs_to_querys2([STx|T], Trees, Height) ->
 			    [{orders, #key{pub = <<?Header:PS>>, id = OID}},%
 			     {oracle_bets, #key{pub = Oracle#oracle.creator, id = OID}}]%
 		    end,%
+                OTG = oracle_type_get(Trees, OID, Height),
 		[
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
                  {governance, ?n2i(oracle_close)},
-                 {governance, ?n2i(oracle_initial_liquidity)},
+                 {governance, OTG},
                  {governance, ?n2i(oracle_bet)},
                  {oracles, OID}
                 ] ++ U ++ Prove ++ G;
@@ -480,6 +482,16 @@ test() ->
     Q2 = txs_to_querys2(Txs, Trees, 1),
     prove(Q2, Trees),
     success.
-    
+oracle_type_get(Trees, OID, Height) ->    
+    Oracles = trees:oracles(Trees),
+    {_, Oracle, _} = oracles:get(OID, Oracles),
+    Gov = Oracle#oracle.governance,
+    NF14 = Height < forks:get(14),
+    if 
+        NF14 -> ?n2i(oracle_initial_liquidity);
+        (Gov == 0) -> ?n2i(oracle_question_liquidity);
+        true -> ?n2i(oracle_initial_liquidity)
+    end.
+   
     
 

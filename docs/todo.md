@@ -1,7 +1,32 @@
+Maybe we don't need on-chain betting for the oracle. off-chain betting could do the same thing.
+* this could prevent bugs where miners are incentivized to re-mine blocks because they can get more money that way vs a new block reward.
+Try to prove that Amoveo's current oracle does not break if the oracle_bets are more valuable than the block reward.
+
+refactor the chalang market and oracle a lot.
+
+
+oracle bets should reference the previous block's hash, that way you can't reuse many in a reorg attempt.
+
+do a writeup of the new vulnerability for on-chain markets and on-chain dex.
+* explain why this vulnerability could cause miners to get 100% of the profits from Amoveo's oracle, but Amoveo's oracle is expected to return an honest result at least.
+* show how it breaks Amoveo consensus.
+
+We updated how SS is stored for p2p smart contracts. we need to run tests to make sure that the new format works.
+in format.js function record_channel_state.
+0,0,0,0,4 is no good. that is for unmatched.
+The bet has already been matched.
+in otc_finisher.solo_func where it says "HERE".
+we need to use a different SS if the oracle has been settled. We need to prove all 10 oracles for a scalar bet.
+
+option to customize the delay when making p2p oracles.
+
+api to check what a scalar oracle will output if no more bets are made.
+
 test solo-closing the channel from the p2p derivatives node. make sure the correct amount of money is moved.
 
 test the case where someone pays a higher fee.
 
+unmatched:dict_significant_volume, we should probably be checking if manyOrders is >1, not 2.
 
 would be nice if in otc_finisher the same file upload spot could accept either channel states or trade offers, so that the interface can be simpler.
 

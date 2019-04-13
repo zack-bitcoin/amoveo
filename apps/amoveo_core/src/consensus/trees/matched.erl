@@ -110,9 +110,9 @@ dict_add_bet(Pub, OID, Type, Amount, Dict) ->%changed
     A = accounts:dict_get(Pub, Dict),
     case A of
 	empty -> 
-	    io:fwrite("account does not exist\n"),
-	    io:fwrite(base64:encode(Pub)),
-	    io:fwrite("\n"),
+	    %io:fwrite("account does not exist\n"),
+	    %io:fwrite(base64:encode(Pub)),
+	    %io:fwrite("\n"),
 	    Dict;
 	_ ->
 	    X = dict_get({key, Pub, OID}, Dict),

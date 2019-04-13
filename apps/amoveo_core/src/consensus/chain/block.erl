@@ -819,9 +819,13 @@ no_counterfeit(Old, New, Txs, Height) ->
     %io:fwrite("close oracles are "),
     %io:fwrite(integer_to_list(CloseOracles)),
     %io:fwrite("; "),
+    OIL = governance:dict_get_value(oracle_initial_liquidity, Old),% div 2;
+    OQL = governance:dict_get_value(oracle_question_liquidity, Old),% div 2;
     OCA = if
+              ((CloseOracles > 0) and (is_integer(OIL)))->
+                  OIL div 2;
               (CloseOracles > 0) ->
-                  governance:dict_get_value(oracle_initial_liquidity, Old) div 2;
+                  OQL div 2;
               true -> 0
           end,
     Diff = (NA - OA) - (OCA * CloseOracles) - BlockReward,
