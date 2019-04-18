@@ -506,12 +506,12 @@ obligations(2, [A|T]) ->
 	    true -> 0
 	end,
     C + obligations(2, T).
-vm(SS, State) ->
-    {ok, TimeLimit} = application:get_env(amoveo_core, time_limit),
-    {ok, SpaceLimit} = application:get_env(amoveo_core, space_limit),
-    {ok, FunLimit} = application:get_env(amoveo_core, fun_limit),
-    {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
-    chalang:vm(SS, TimeLimit, SpaceLimit, FunLimit, VarLimit, State).
+%vm(SS, State) ->
+%    {ok, TimeLimit} = application:get_env(amoveo_core, time_limit),
+%    {ok, SpaceLimit} = application:get_env(amoveo_core, space_limit),
+%    {ok, FunLimit} = application:get_env(amoveo_core, fun_limit),
+%    {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
+%    chalang:vm(SS, TimeLimit, SpaceLimit, FunLimit, VarLimit, State).
 -define(error_amount, 0).
 -define(error_delay, 10000000).
 -define(error_nonce, 0).

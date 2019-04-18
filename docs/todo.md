@@ -1,5 +1,10 @@
-Maybe we don't need on-chain betting for the oracle. off-chain betting could do the same thing.
-* this could prevent bugs where miners are incentivized to re-mine blocks because they can get more money that way vs a new block reward.
+the price declaration is not being signed right in otc_derivatives.js
+
+extract the chalang stablecoin smart contract and script sig being produced from javascript. make it into a chalang test so we can figure out what is breaking.
+
+
+
+
 Try to prove that Amoveo's current oracle does not break if the oracle_bets are more valuable than the block reward.
 
 refactor the chalang market and oracle a lot.

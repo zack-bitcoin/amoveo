@@ -1,0 +1,98 @@
+Probabilistic payments
+===========
+
+a probabilistic payment (PP) is a kind of transaction that has a small probability of transfering funds. It only has to be written to the blockchain if the funds actually get transfered.
+
+This is a way to reduce the amount of information that gets written to the blockchain. Instead of receiving 1000 payments per day each worth 1 coin, you can receive 10 payments each worth 100. Which means only 10 tx fees need be paid, instead of 1000.
+
+PPs excel in exactly the kinds of situations where channels fail.
+Lottery type contracts are the hardest to program in channels, because every person who can win money needs to have their own pool of liquidity that they can win from.
+With PPs, everything has to be formatted in terms of lotterys, and there is almost no money locked up.
+
+Probabilistic Payment Transaction Types
+==========
+
+* moves some money into a new probabilistic-payment-account.
+* makes a probabilistic payment from your pp-account.
+* wait a delay after (2) before you can make this tx. This unlocks the money from the probabilistic payment. You can only make this tx if there has been exactly 1 (2) for this pp-account. 1/5th of the veo goes back to the person who created the pp-account, and 4/5ths goes to the person receiving the payment.
+
+if multiple (2) get published for the same pp-account, then 9/10ths of the money from that account is deleted, and 1/10th goes to the miners, and the tx fees for all the (2)'s after the first get deleted.
+The miner fee for (2) needs to be less than 1/10th of how much money is in the pp-account.
+
+PP account state
+=======
+
+* pubkey for spending from this account.
+* quantity of veo locked in this account.
+* how long the wait period is for submitting counter-evidence to prevent double-spends
+
+
+Kinds of Probabilistic payments
+=========
+
+There are 2 ways of using PPs.
+1) If the amount of money in your PP-account is low, or the amount you are sending is large, then the recipient will need to wait a some block confirmations to verify that the tx was valid.
+2) Otherwise, the recipient can have immediate confirmation that the money was sent.
+
+specifically
+```
+N = number of people who can accept PPs of this amount of veo for 0-confirmation payments
+P = portion of money from PP-account being sent in this PP
+N*P<1
+```
+If N*P<1, then you don't have to wait any confirmations, and you can maintain 2.2 level security.
+
+instead of N*P<1, it would be more accurate to say: "The amount of veo in your PP-account is greater than the sum of the value of things available for sale during a 2-block period in exchange for PP, where they allow 0th confirmation payments, and there is no possibility for recourse if the PP fails."
+
+
+The Lightning Network
+==========
+
+If N*P<1, then you can use this PP as one step in the path of a lightning payment.
+This enables an alternative form of the lightning network, more powerful than the hub-and-spoke model.
+
+If we use probabilistic payments, then every lightning payment has exactly 3 steps.
+
+1) consumer to their hub as a channel payment.
+2) hub to hub as probabilistic payment.
+3) and then hub to vendor as a channel payment.
+
+So there is a lower amount of liquidity that needs to be locked in channels for everyone to be connected, it only grows linearly with the number of users.
+
+Any 2 hubs can connect with probabilistic payments. so it is a big salability improvement.
+
+Lets compare this to the lightning network that lacks PP:
+If each channel hub has N channels with users, and is connected to M other channel hubs, and P is the number of customers, then I think the number of channels with a pure-channel lightning network is P*(1+(M/(2*N)))
+And the number of hops for a lightning payment is logM(P/N)
+The number of fees paid per lightning payment is logM(P/N) - 1.
+
+With the combo, the number of channels is just P, there are 3 hops per payment, and only 2 fees paid per payment.
+
+With pure probabilistic payments, the number of channels is 0, there is 1 hop per payment, and ~0 fees per payment, but each user is taking huge risk in an unacceptable way.
+
+With pure lightning, every channel operator is always watching the balances of their channels to try and stay useful so they can get fees. It is computationally expensive.
+They have to charge fees to cover the computation cost.
+Sometimes there is a scarcity of veo available for certain lightning paths. This scarcity can drive up the cost of making payments.
+
+With the combo, none of the operators every have to care about channel balances.
+They can instantly make payments to any other operator.
+There is never a scarcity of veo in certain places causing higher fees.
+Each customer has to think about their channel balance, and that's it.
+
+
+Programmable Probabilistic Payments
+========
+
+The ability to do hash-timelock PP hints at an even more powerful version of PP.
+We can embed a turing complete smart contract into the PP to determine the probability that the payment should happen.
+It can't be a very long-lived contract, because the requirement that N*P<1 can only protect us if we can execute the tx within the delay coded into the PP-account making the payment.
+
+This allows for more complicated contracts to unlock the PP besides hashlocking. Examples:
+* Bob could incentivize Alice to ask the Amoveo oracle a new question by creating a PP that can only pay Alice if she makes the oracle.
+* more generally: you could have a PP that can only execute if Alice publishes a signature she generated with her private key over some data that Bob wanted her to sign.
+* You could make a PP where the amount of money being sent is determined by the price of the next batch in an off-chain Amoveo market, so you could make a payment worth $5, regardless of the $ vs VEO exchange rate.
+* you could make a bunch of PP so that instead of on average only one is valid, it could be set up so precisely one will be valid. Which could be useful for lottery games.
+* gambling games like satoshi dice could be set up more optimally. When you pay to play, you should be using channels. But when you get paid for winning, it should come from a PP. This way you have the advantage of channels; you can play many times without paying any miner fees. and you have the advantages of on-chain txs; you don't have to pay the server to lock up the money that you can win.
+
+
+

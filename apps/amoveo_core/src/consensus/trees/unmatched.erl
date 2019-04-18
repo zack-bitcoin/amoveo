@@ -30,7 +30,7 @@ dict_significant_volume(Dict, OID, OIL) ->
     ManyOrders = dict_many(Dict, OID),
         if 
             ManyOrders == 0 ->
-                io:fwrite("unmatched dict_significant_volume, invalid oracle because of zero orders.\n"),
+                %io:fwrite("unmatched dict_significant_volume, invalid oracle because of zero orders.\n"),
                 false;
             ManyOrders > 2 -> true;
             true ->

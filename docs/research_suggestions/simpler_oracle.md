@@ -1,0 +1,2 @@
+Maybe we don't need on-chain betting for the oracle. off-chain betting could do the same thing.
+* this could prevent bugs where miners are incentivized to re-mine blocks because they can get more money that way vs a new block reward.

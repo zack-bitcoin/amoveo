@@ -1,6 +1,7 @@
 -module(scalar_market).
 -export([price_declaration_maker/4, market_smart_contract/12,
-	 settle/3,no_publish/1,evidence/2,
+	 %settle/3,
+         no_publish/1,evidence/2,
 	 contradictory_prices/3, market_smart_contract_key/7,
 	 unmatched/1, scalar_oracle_make/5,
 	 test/0, test_contract/0, test3/0]).
@@ -64,13 +65,13 @@ settle_scalar(SPD, OID, Price, Many) ->
     OIDS = settle_scalar_oracles(OID, Many),
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), OIDS),
     SS#ss{meta = Price}.
-settle(SPD, OID, Price) ->
+%settle(SPD, OID, Price) ->
     %If the oracle comes to a decision, this is how you get your money out.
-    PriceDeclare = binary_to_list(base64:encode(SPD)),
-    SS1a = "binary "++ integer_to_list(size(SPD))++ 
-" " ++ PriceDeclare ++ " int 1",
-    SS = spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), [{oracles, OID}]),
-    SS#ss{meta = Price}.
+%    PriceDeclare = binary_to_list(base64:encode(SPD)),
+%    SS1a = "binary "++ integer_to_list(size(SPD))++ 
+%" " ++ PriceDeclare ++ " int 1",
+%    SS = spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), [{oracles, OID}]),
+%    SS#ss{meta = Price}.
 no_publish(OID) ->
     %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
     SS2a = " int 0 ",
@@ -187,6 +188,7 @@ test() ->
     Delay = 0,
     
     Ctx4 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    io:fwrite(packer:pack(Ctx4)),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv), 
     test_txs:absorb(SStx4),
@@ -271,6 +273,31 @@ test2(NewPub, Many) ->
     %{amount, nonce, delay}
     % if oracle amount is 0 {5,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
     %{45,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
+    io:fwrite("scalar market ss 1: "),
+    io:fwrite(packer:pack(SS1)),
+%found a blockfound a blockscalar market ss 1: ["ss",
+%"AgAAAHAAAAAFDawTiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMEYCIQCe4bS0HaB+/NHizg3XQ7xAuq2L0Xm73edGtlhmXIlHHQIhAMtyJSG3mRFbzDFZavAf09PTCY8omw7T2Ppvj8+XXtTKAAAAAAE="
+%,[-6,["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQ="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAc="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAg="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAk="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAo="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAs="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAw="]],3500]
+%good ss1 generated in this test.
+%<<2,0,0,0,112,0,0,0,5,13,172,19,136,0,0,0,0,0,0,0,0,0,0,0,
+%  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,48,70,2,33,0,
+%  158,225,180,180,29,160,126,252,209,226,206,13,215,67,
+%  188,64,186,173,139,209,121,187,221,231,70,182,88,102,92,
+%  137,71,29,2,33,0,203,114,37,33,183,153,17,91,204,49,89,
+%  106,240,31,211,211,211,9,143,40,155,14,211,216,250,111,
+%  143,207,151,94,212,202,0,0,0,0,1>>
+%bad ss1 generated from the light node.
+%<<2,0,0,0,136,0,0,0,2,19,139,39,15,88,77,91,171,25,209,
+%  248,88,128,160,161,225,82,200,234,102,217,193,119,172,
+%  185,117,126,213,217,250,92,70,8,26,44,175,77,69,85,67,
+%  73,68,119,77,88,89,88,70,117,114,78,100,98,109,76,84,
+%  104,89,121,43,80,68,43,121,114,52,69,90,111,43,70,90,66,
+%  83,55,83,71,81,87,122,97,69,107,105,65,105,69,65,115,54,
+%  116,79,104,106,77,51,67,105,69,119,84,83,52,82,113,55,
+%  53,52,99,117,48,97,103,112,121,117,73,75,89,90,111,109,
+%  119,69,121,80,109,67,120,55,103,61,0,0,0,0,1>>
+
+    io:fwrite("\n"),
     {105,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
     % 5 is height.
     %{95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
