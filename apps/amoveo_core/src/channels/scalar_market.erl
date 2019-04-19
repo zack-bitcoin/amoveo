@@ -209,7 +209,7 @@ test2(NewPub, Many) ->
     %Location = constants:oracle_bet(),
     Location = "../../../../apps/amoveo_core/priv/scalar_oracle_bet.fs",
     Period = 3,
-    Gas = 1000000,
+    Gas = 100000,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0, LL, UL),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], Gas, Gas, 1, 0),

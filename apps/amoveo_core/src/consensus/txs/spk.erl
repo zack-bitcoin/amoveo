@@ -342,7 +342,7 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
     F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
-    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size()),
+    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size(), false),
     {Amount0, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
     CGran = constants:channel_granularity(),
     

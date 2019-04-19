@@ -3,7 +3,7 @@
          get/2,write/2,%update tree stuff
          dict_get/2, dict_write/2,%update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,
-         dict_significant_volume/3, dict_match/3,
+         dict_significant_volume/3, dict_match/4,
          dict_head_get/2,
          dict_add/3, dict_remove/3, make_leaf/3,
 	 delete/2, 
@@ -271,21 +271,21 @@ dict_delete(Pub, OID, Dict) ->
 delete(Pub, Root) ->
     ID = key_to_int(Pub),
     trie:delete(ID, Root, ?name).
-dict_match(Order, OID, Dict) ->
+dict_match(Order, OID, Dict, Height) ->
     %Match1 is unmatched that are still open.
     %Match2 is unmatched that are already closed. We need to pay them their winnings.
     {Head, Many} = dict_head_get(Dict, OID),
     {Switch, Dict2, Matches1, Matches2} = 
-        dict_match2(Order, OID, Dict, Head, [], []),
+        dict_match2(Order, OID, Dict, Head, [], [], Height),
     {Many2, Switch2} = 
         case Switch of
             same_exact -> {Many - length(Matches2), same};
             switch -> {1, switch};
             same -> {Many - length(Matches2) + 1, same}
         end,
-    Root2 = dict_many_update(Many2, OID, Dict2),
-    {Matches1, Matches2, Switch2, Root2}.
-dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
+    Dict3 = dict_many_update(Many2, OID, Dict2),
+    {Matches1, Matches2, Switch2, Dict3}.
+dict_match2(Order, OID, Dict, T, Matches1, Matches2, Height) ->
     PS = constants:pubkey_size() * 8,
     case T of
         <<?Null:PS>> ->
@@ -313,9 +313,15 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
                             Order2 = update_amount(Order, -OldA),
                             Dict3 = dict_delete(L#unmatched.account, OID, Dict2),
                             Order3 = update_amount(Order, OldA),
-                            dict_match2(Order2, OID, Dict3, P, [Order3|Matches1], [L|Matches2]);
+                            dict_match2(Order2, OID, Dict3, P, [Order3|Matches1], [L|Matches2], Height);
                         NewA == OldA ->
-                            {same_exact, dict_head_update(P, OID, Dict), [Order|Matches1], [L|Matches2]};
+                            F15 = forks:get(15),
+                            Dict4 = if
+                                        Height > F15 -> dict_delete(L#unmatched.account, OID, Dict);
+                                        Height > 62208 -> 1=2;%can be deleted once hard fork 15 activates.
+                                        true -> Dict
+                                    end,
+                            {same_exact, dict_head_update(P, OID, Dict4), [Order|Matches1], [L|Matches2]};
                         NewA < OldA ->
                             Order2 = update_amount(L, -NewA),
                             L3 = L#unmatched{amount = NewA},
@@ -328,6 +334,8 @@ dict_match2(Order, OID, Dict, T, Matches1, Matches2) ->
 root_hash(Root) ->
     trie:root_hash(?name, Root).
 
+test2() ->
+    success.
 
 test() ->
     Height = (tx_pool:get())#tx_pool.height,

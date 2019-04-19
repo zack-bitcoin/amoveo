@@ -830,18 +830,22 @@ no_counterfeit(Old, New, Txs, Height) ->
           end,
     Diff = (NA - OA) - (OCA * CloseOracles) - BlockReward,
     if
-        %((Diff > 0) or (Diff < -50000000))->
-        false ->
+        ((Diff > 0) or (Diff < -50000000))->
+        %false ->
             io:fwrite("height "),
             io:fwrite(integer_to_list(Height)),
             io:fwrite("; diff is "),
             io:fwrite(integer_to_list(Diff)),
+            io:fwrite("\n"),
+            %io:fwrite(packer:pack([0, NK, OK])),
             io:fwrite("\n");
         true -> ok
     end,
     true = (Diff =< 0),
     ok.
-sum_amounts([], _, _) -> 0;
+sum_amounts([], _, _) -> 
+    %io:fwrite("sum amount finish\n"),
+    0;
 sum_amounts([{oracles, _}|T], Dict, OldDict) ->
     sum_amounts(T, Dict, OldDict);
 sum_amounts([{existence, _}|T], Dict, Old) ->
@@ -850,8 +854,19 @@ sum_amounts([{governance, _}|T], Dict, Old) ->
     sum_amounts(T, Dict, Old);
 sum_amounts([{Kind, A}|T], Dict, Old) ->
     X = Kind:dict_get(A, Dict),
-    sum_amounts_helper(Kind, X, Dict, Old, A) +
-        sum_amounts(T, Dict, Old).
+    B = sum_amounts_helper(Kind, X, Dict, Old, A),
+    if
+        false ->
+            io:fwrite("sum amount, type: "),
+            io:fwrite(Kind),
+            io:fwrite(" key: "),
+            io:fwrite(packer:pack(A)),
+            io:fwrite(" "),
+            io:fwrite(integer_to_list(B)),
+            io:fwrite("\n");
+        true -> ok
+    end,
+    B + sum_amounts(T, Dict, Old).
 sum_amounts_helper(_, empty, _, _, _) ->
     0;
 sum_amounts_helper(accounts, Acc, Dict, _, _) ->
@@ -878,19 +893,20 @@ sum_amounts_helper(orders, Ord, Dict, _, Key) ->%
         {key, <<1:PS>>, _} -> 0;%
         _ -> orders:amount(Ord)%
     end;%
-sum_amounts_helper(unmatched, UM, Dict, _, Key) ->
-    PS = constants:pubkey_size() * 8,%
-    case Key of%
-        {key, <<1:PS>>, _} -> 0;%
-        _ -> unmatched:amount(UM)%
-    end;%
-sum_amounts_helper(matched, M, Dict, OldDict, Key) ->
+sum_amounts_helper(unmatched, UM, _Dict, _, Key) ->
+    PS = constants:pubkey_size() * 8,
+    case Key of
+        {key, <<1:PS>>, _} -> 0;
+        _ -> unmatched:amount(UM)
+    end;
+sum_amounts_helper(matched, M, _Dict, OldDict, Key) ->
     {key, Pub, OID} = Key,
     Oracle = oracles:dict_get(OID, OldDict),
     R = Oracle#oracle.result,
     T = matched:true(M),
     F = matched:false(M),
     B = matched:bad(M),
+    %((T+F+B) div 2).
     N = case R of
             0 -> ((T+F+B) div 2);
             1 -> T;

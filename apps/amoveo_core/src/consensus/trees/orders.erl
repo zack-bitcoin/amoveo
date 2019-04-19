@@ -7,7 +7,7 @@
          aid/1,%
          verify_proof/4,%
          serialize/1, deserialize/1, all/1,%
-         dict_significant_volume/3, dict_match/3,%
+         dict_significant_volume/3, dict_match/4,%
          dict_write/3, dict_get/2, dict_head_get/2,%
          dict_add/3, dict_remove/3, make_leaf/3,%
          key_to_int/1, write/2, delete/2,%
@@ -222,7 +222,7 @@ dict_delete(Pub, OID, Dict) ->%
 delete(Pub, Root) ->%
     ID = key_to_int(Pub),%
     trie:delete(ID, Root, ?name).%
-dict_match(Order, OID, Dict) ->%
+dict_match(Order, OID, Dict, _) ->%
     %Match1 is orders that are still open.%
     %Match2 is orders that are already closed. We need to pay them their winnings.%
     {Head, Many} = dict_head_get(Dict, OID),%

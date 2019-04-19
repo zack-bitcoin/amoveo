@@ -172,7 +172,7 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                 oracles:dict_write(Oracle, Dict2);
 	true ->
                 {Matches1, Matches2, Next, Dict2} =
-                    UMT:dict_match(NewOrder, OID, Dict),
+                    UMT:dict_match(NewOrder, OID, Dict, NewHeight),
     %Match1 is orders that are still open.
     %Match2 is orders that are already closed. We need to pay them their winnings.
 		F8 = (NewHeight > forks:get(8)),
@@ -180,8 +180,8 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 			 true -> Matches2;
 			 false -> Matches1%
 		     end,%
-		Dict3 = dict_give_bets_main(From, M3, TxType, Dict2, Oracle#oracle.id, NewHeight),
-                Dict4 = dict_give_bets(Matches2, OracleType, Dict3, Oracle#oracle.id, NewHeight),%gives oracle_bets to each account that got matched
+		Dict3 = dict_give_bets_main(From, M3, TxType, Dict2, Oracle#oracle.id, NewHeight),%gives matched to the person betting
+                Dict4 = dict_give_bets(Matches2, OracleType, Dict3, Oracle#oracle.id, NewHeight),%gives matched to each account that got matched
                 Oracle3 = case Next of
                               same -> 
                                   %io:fwrite("oracle_bet_tx same type\n"),

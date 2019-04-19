@@ -42,7 +42,7 @@ N*P<1
 ```
 If N*P<1, then you don't have to wait any confirmations, and you can maintain 2.2 level security.
 
-instead of N*P<1, it would be more accurate to say: "The amount of veo in your PP-account is greater than the sum of the value of things available for sale during a 2-block period in exchange for PP, where they allow 0th confirmation payments, and there is no possibility for recourse if the PP fails."
+instead of N*P<1, it would be more accurate to say: "The amount of veo in your PP-account is greater than the sum of the value of things available for sale during a 2-block period in exchange for PP, where they allow 0th confirmation payments."
 
 
 The Lightning Network
