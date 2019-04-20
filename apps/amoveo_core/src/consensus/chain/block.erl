@@ -201,11 +201,11 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 	FH > Height ->
 	    OldBlock#block.market_cap + 
 		BlockReward - 
-		gov_fees(Txs0, Dict);
+		gov_fees(Txs0, Dict, Height);
 	Height == FH -> %
 	    MC1 = OldBlock#block.market_cap + %
 		BlockReward - %
-		gov_fees(Txs0, Dict),%
+		gov_fees(Txs0, Dict, Height),%
 	    (MC1 * 6) div 5;%
 	FH < Height ->%
 	    DeveloperRewardVar = %
@@ -216,7 +216,7 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 		10000,%
 	    OldBlock#block.market_cap + %
 		BlockReward - %
-		gov_fees(Txs0, Dict) + %
+		gov_fees(Txs0, Dict, Height) + %
 		DeveloperReward%
     end.
     
@@ -249,7 +249,7 @@ make(Header, Txs0, Trees, Pub) ->
 		       MinerAccount = accounts:dict_update(MinerAddress, NewDict, MinerReward, none),%
 		       accounts:dict_write(MinerAccount, NewDict);%
 		   true ->
-		       GovFees = gov_fees(Txs0, NewDict),
+		       GovFees = gov_fees(Txs0, NewDict, Height),
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
@@ -518,7 +518,7 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 		       MinerAccount = accounts:dict_update(MinerAddress, NewDict2, MinerReward, none),
 		       accounts:dict_write(MinerAccount, NewDict2);
 		   true ->
-		       GovFees = gov_fees(Txs0, NewDict2),
+		       GovFees = gov_fees(Txs0, NewDict2, Height),
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict2, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict2)
 	       end,
@@ -626,15 +626,21 @@ initialize_chain() ->
     gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
 
-gov_fees([], _) -> 0;
-gov_fees([Tx|T], Dict) ->
+gov_fees([], _, _) -> 0;
+gov_fees([Tx|T], Dict, Height) ->
     C = testnet_sign:data(Tx),
     Type = element(1, C),
     A = case Type of
 	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict);
-	    _ -> governance:dict_get_value(Type, Dict)
+	    _ -> 
+                X = governance:dict_get_value(Type, Dict),
+                F16 = forks:get(16),
+                if
+                    ((Type == timeout) and (Height > F16)) -> -X;
+                    true -> X
+                end
 	end,
-    A + gov_fees(T, Dict).
+    A + gov_fees(T, Dict, Height).
 gov_fees2([], _) -> 0;
 gov_fees2([H|T], Dict) ->
     Type = element(1, H),

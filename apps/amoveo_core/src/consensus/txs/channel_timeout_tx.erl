@@ -45,7 +45,10 @@ go(Tx, Dict, NewHeight, _) ->
     CID = Tx#timeout.cid,
     Channel = channels:dict_get(CID, Dict),
     F12 = forks:get(12),
+    F16 = forks:get(16),
     if
+        ((NewHeight > 62233) and (NewHeight < F16)) ->
+            1=2;%this can be deleted once fork 16 activates.
         NewHeight > F12 ->
             true = channels:nonce(Channel) > 1;
         true -> ok
