@@ -1,15 +1,3 @@
-
-If you make two bets in the oracle that exactly cancel out down to the satoshi, it can cause the anti-counterfeit tool to reject your tx and cause the mining pools to crash.
-
-we should do a hard update so that if the output of a smart contract is outside of the channel's bounds, we push it to inside the bounds.
-
-we should test channel_solo_close from the light node.
-
-
-
-
-Try to prove that Amoveo's current oracle does not break if the oracle_bets are more valuable than the block reward.
-
 refactor the chalang market and oracle a lot.
 
 
