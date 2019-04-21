@@ -95,4 +95,16 @@ This allows for more complicated contracts to unlock the PP besides hashlocking.
 * gambling games like satoshi dice could be set up more optimally. When you pay to play, you should be using channels. But when you get paid for winning, it should come from a PP. This way you have the advantage of channels; you can play many times without paying any miner fees. and you have the advantages of on-chain txs; you don't have to pay the server to lock up the money that you can win.
 
 
+Probabilistic Payments that Anyone can Accept
+==========
 
+Sometimes you want to pay for something to get done, and you don't care who does it. For example, you might want to make a contribution to have a new oracle created, or you might want to pay a miner to include a tx without recording the tx fee in the tx.
+
+The tx types for this kind of probabilistic payment:
+1) the tx that initializes a payment from your pp-account, includes a commitment to some entropy.
+2) begin the process of unlocking the payment by providing evidence that you have created the oracle.
+3) the person who initialized the payment reveals the entropy they committed to.
+4) unlocks the payment depending on the random entropy from state (3), this tx might be valid.
+
+
+* this probably means that the limit order tool for making new channels is not secure. An attacker can make out of network payments to the miners to get their tx included.

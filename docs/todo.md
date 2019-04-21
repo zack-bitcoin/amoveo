@@ -1,6 +1,10 @@
 refactor the chalang market and oracle a lot.
 
 
+Maybe tx fees should be put into a pool, and the pool distributed to the miners over time.
+This way we can safely make the block reward lower than the tx fees.
+
+
 oracle bets should reference the previous block's hash, that way you can't reuse many in a reorg attempt.
 
 option to customize the delay when making p2p oracles.
