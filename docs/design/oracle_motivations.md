@@ -45,7 +45,7 @@ The only thing that the blockchain knows that is correlated with the accuracy of
 
 
 We can overcome these limitations.
-If the oracle lied, then the users could do a hard-fork to fix the oracle's answer. So the attackers would lose all the money in the attack, and that money would reward the users who participated in defense.
+If the oracle lied, then the users could do a soft-update to fix the oracle's answer. So the attackers would lose all the money in the attack, and that money would reward the users who participated in defense.
 If the miners prefer the honest chain, then the difficulty of finding blocks on the dishonest chain will go very low. So the attackers would lose their money on both forks, and defenders would be rewarded on both forks.
 
 
