@@ -1,3 +1,6 @@
+option to customize the delay when making p2p oracles.
+
+
 refactor the chalang market and oracle a lot.
 
 
@@ -7,13 +10,12 @@ This way we can safely make the block reward lower than the tx fees.
 
 oracle bets should reference the previous block's hash, that way you can't reuse many in a reorg attempt.
 
-option to customize the delay when making p2p oracles.
-
 api to check what a scalar oracle will output if no more bets are made.
 
 test solo-closing the channel from the p2p derivatives node. make sure the correct amount of money is moved.
 
 test the case where someone pays a higher fee.
+* the limit order trick for new channels probably does not work in the long run, because you can make off-chain tx fees.
 
 unmatched:dict_significant_volume, we should probably be checking if manyOrders is >1, not 2.
 
