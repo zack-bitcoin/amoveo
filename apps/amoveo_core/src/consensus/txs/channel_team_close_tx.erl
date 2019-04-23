@@ -57,6 +57,13 @@ go(Tx, Dict, NewHeight, _) ->
     Amount = Tx#ctc.amount,
     HF = Tx#ctc.fee div 2,
     %io:fwrite("team close 5\n"),
+    F16 = forks:get(16),
+    if
+        NewHeight > F16 ->
+            true = (Bal1 + Amount) > -1,
+            true = (Bal2 - Amount) > -1;
+        true -> true
+    end,
     Acc1 = accounts:dict_update(Aid1, Dict, Bal1 + Amount - HF, Tx#ctc.nonce),
     %io:fwrite("team close 6\n"),
     Acc2 = accounts:dict_update(Aid2, Dict, Bal2 - Amount - HF, none),

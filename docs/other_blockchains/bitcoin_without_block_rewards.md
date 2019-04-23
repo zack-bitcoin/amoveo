@@ -1,3 +1,19 @@
+Update April 23, 2019
+========
+The solution I described below is not so good. A better solution was described in September 2018 https://twitter.com/fnietom/status/1037235118136602625
+
+Anyone-can-spend txs are a great way to share the miner reward between multiple blocks.
+
+
+
+
+
+
+
+
+
+
+
 Bitcoin Without Block Rewards
 ========
 
@@ -6,6 +22,7 @@ The problem was that if bitcoin's block reward got lower than the tx fees, it co
 http://randomwalker.info/publications/mining_CCS.pdf
 
 The solution is that tx fees should all go to a reward-pool. And only 1/1024th of the pool should be paid out per block to the miner who found that block.
+
 
 
 A balance between instant fees, and delayed shared fees

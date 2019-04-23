@@ -40,7 +40,8 @@ solution
 If it is possible to find some nash equilibrium, it will have to involve splitting up the winnings from the oracle to everyone that is mining in proportion to hash power.
 Otherwise, it will be profitable for some cartel to work together to take the prizes and split it up among themselves.
 
-For example, with bitcoin instead of paying the tx fees out to the miner immediately, pay all the tx fees into a pool. On every block, pay out 1/1024th of the pool as the reward.
+The way to share the reward in proportion to hash power is by using something like anyone-can-spend txs in bitcoin. You create a slightly smaller prize for whoever mines the next block. This way the other miners will be incentivized to mine on top of your block instead of undercutting it.
 
-Unfortunately I can't see how to apply this solution to Amoveo.
-Luckily this issue isn't serious, Amoveo will function even if we do not solve it.
+Thank you to Fernando Nieto https://twitter.com/fnietom for explaining this solution to me.
+
+
