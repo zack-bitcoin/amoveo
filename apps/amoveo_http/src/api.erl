@@ -56,8 +56,12 @@ tx_maker0(Tx) ->
 	    end
     end.
 create_account(NewAddr, Amount) ->
-    Cost = trees:get(governance, create_acc_tx),
-    create_account(NewAddr, Amount, ?Fee + Cost).
+    case keys:status() of
+        locked -> {error, "need to decrypt private key"};
+        unlocked ->
+            Cost = trees:get(governance, create_acc_tx),
+            create_account(NewAddr, Amount, ?Fee + Cost)
+    end.
 create_account(NewAddr, Amount, Fee) when size(NewAddr) == 65 ->
     Tx = create_account_tx:make_dict(NewAddr, Amount, Fee, keys:pubkey()),
     tx_maker0(Tx);
@@ -113,7 +117,11 @@ spend(ID0, Amount) ->
     end.
 spend(ID0, Amount, Fee) ->
     ID = decode_pubkey(ID0),
-    tx_maker0(spend_tx:make_dict(ID, Amount, Fee, keys:pubkey())).
+    case keys:status() of
+        locked -> {error, "need to decrypt private key"};
+        unlocked ->
+            tx_maker0(spend_tx:make_dict(ID, Amount, Fee, keys:pubkey()))
+    end.
 delete_account(ID0) ->
     ID = decode_pubkey(ID0),
     Cost = trees:get(governance, delete_acc_tx),

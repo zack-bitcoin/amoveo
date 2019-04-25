@@ -6,6 +6,10 @@ binary oracle: `Trump won the 2020 election.`
 
 scalar oracle: `P = the price of USD in VEO from 0 to 0.05 on January 1, 2019, at 5:00 AM GMT; return P * 1024 / 0.05`
 
+scalar oracle to predict the weather: `P = the temperature in Vancouver at noon on April 23, 2019 from -10 to 50 Celsius according to this website https://www.timeanddate.com/weather/canada/vancouver/historic ; return (P+10) * 1024 / 60.`
+
+If I am willing to pay 0.5 to go long, that means I will profit as long as the temperature is above 20 celcius. If I am willing to pay 0.2 to go short, that means I will profit as long as the temperature is below 4 celcius.
+
 Scalar oracle with free-option protections:
 `P1 = the price of USD in VEO on December 3, 2019, at 5:00 AM GMT?; P2 = the price of USD in VEO on January 1, 2019, at 5:00 AM GMT; return min(1023, 512 * (1 + ((P2 - P1) / P1)))`
 

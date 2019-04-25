@@ -1,10 +1,11 @@
+maybe it was a mistake to set up int_handler.erl to always return 2-tuples that start with "ok".
+
+
+What if 2 people try to match to create the same channel? is the error message useful?
+
+
 in otc_finisher, if the oracle is already closed test making a ctc to close the channel.
 
-
-there is a bug in binary p2p oracles.
-The final amount is wrong.
-
-we need to do a soft update for channel_team_close so that the final value is not outside the possible range.
 
 we should use nlocktime on all the txs so that it isn't possible to profitably undercut and include future txs at an earlier height. It should be impossible to move any tx into a block height from earlier than the tx was made.
 * if we add maturity times to block rewards, then we can't use the block reward for anyone-can-pay txs.

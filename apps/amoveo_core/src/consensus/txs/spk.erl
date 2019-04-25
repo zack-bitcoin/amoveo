@@ -212,14 +212,14 @@ bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
     [<<ContractAmount0:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
    if
         Delay > 0 ->
-	   io:fwrite("delay is "),
-	   io:fwrite(integer_to_list(Delay)),
-	   io:fwrite(". Delay >0, keep the bet.\n"),
-	   io:fwrite("nonce .\n"),
-	   io:fwrite(integer_to_list(Nonce2)),
-	   io:fwrite("amount .\n"),
-	   io:fwrite(integer_to_list(ContractAmount0)),
-	   io:fwrite("\n"),
+	   %io:fwrite("delay is "),
+	   %io:fwrite(integer_to_list(Delay)),
+	   %io:fwrite(". Delay >0, keep the bet.\n"),
+	   %io:fwrite("nonce .\n"),
+	   %io:fwrite(integer_to_list(Nonce2)),
+	   %io:fwrite("amount .\n"),
+	   %io:fwrite(integer_to_list(ContractAmount0)),
+	   %io:fwrite("\n"),
 	   bet_unlock2(T, [Bet|B], A, SSIn, [SS2|SSOut], Secrets, Nonce, [SS2|SSThem]);
        true -> 
 	   CGran = constants:channel_granularity(),

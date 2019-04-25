@@ -31,6 +31,25 @@ This is a strategy already in practice by Mennonites for example. When they esta
 
 Potentially we could make the city a free trade zone, and give automatic national residency to everyone who owns above some minimum amount of square meters in the city.
 
+Database for storing land ownership
+=======
+The current merkel trie database is a trie where each node points to up to 16 other nodes.
+We want there to be a maximum depth for the merkel trie, and we don't want to have to re-balance the trie.
+
+tx types: divide a square, combine a square, and spend a square.
+
+one transaction type that divides a square into 16 smaller squares, in a 4x4 grid. Then any of the 16 squares can be transfered individually.
+It costs a fee to divide into 16 because it is using up more space.
+
+If one person buys up all 16 squares, they can make a different kind of tx to combine them into 1 bigger square, and they receive some sort of compensation for recovering space in the blockchain.
+
+Each square records:
+who owns it.
+
+
+
+
+
 
 Open questions
 =======
@@ -43,3 +62,4 @@ Should we release blocks of the city as the reward for finding new POW blocks?
 A block reward block would be great.
 
 Instead of "real estate", what is this called? "fake estate"? "digital estate"?
+

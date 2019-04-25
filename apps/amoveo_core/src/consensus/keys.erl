@@ -124,6 +124,7 @@ sign(M) ->
 	unlocked ->
 	    gen_server:call(?MODULE, {sign, M});
 	_ -> io:fwrite("you need to unlock your account before you can sign transactions. use keys:unlock(\"password\").\n"),
+             1=2,
 	     {error, locked}
     end.
 raw_sign(M) -> gen_server:call(?MODULE, {raw_sign, M}).
