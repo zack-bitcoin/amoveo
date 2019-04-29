@@ -286,10 +286,7 @@ tests: killall
 
 multi-quick: kill multi-build multi-clean multi-go
 
-local-quick:
-	@sh scripts/graceful_kill.sh
-	@sleep 2
-	kill local-build local-clean
+local-quick: kill local-build local-clean
 	./_build/local/rel/amoveo_core/bin/amoveo_core console
 prod-restart: prod-stop prod-build prod-go
 	@sleep 3
