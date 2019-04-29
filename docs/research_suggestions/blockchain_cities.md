@@ -19,6 +19,8 @@ We can use a blockchain to record ownership of land in the city before we have d
 
 We can use futarchy to make any decisions that need to be made, like where to put the city.
 
+We can use dominant assurance contracts to pay for big public goods, like a highway to the new city, and power cables, internet fiber, water, etc.
+
 
 Legal and Tax advantages
 ========
@@ -47,16 +49,19 @@ Each square records:
 who owns it.
 
 
+Options for Land Distribution
+===============
 
+1) we could reward city blocks one a time in an outward infinite spiral from the middle. as rewards for proof of work.
 
+2) it could start out 100% owned by someone or some group of people. In this case it would probably be merge-mined with Amoveo.
+
+3) some combination of the previous two.
 
 
 Open questions
 =======
 
-What is the best kind of database for the blockchain to store records of property ownership?
-Perhaps a merkel tree where locations that are near to each other spacially also share the same branch of the merkel tree.
-That way if you wanted to prove a bunch of information about one neighborhood, the merkel proofs would share a lot of data in common, so you would need less data.
 
 Should we release blocks of the city as the reward for finding new POW blocks?
 A block reward block would be great.

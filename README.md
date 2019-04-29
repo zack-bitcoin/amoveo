@@ -36,6 +36,10 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
 --->
 
+## Smart contracts
+
+[here is documentation](docs/light_node/p2p_derivatives.md) for how to make bets on any topic using Amoveo.
+
 
 ## Light node
 

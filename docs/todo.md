@@ -1,3 +1,24 @@
+channel team close should have a limit, so it needs to be posted in the next 10 blocks to be valid.
+To prevent people using it as a free option.
+
+
+in otc_listener, it says "true or long", that is confusing. For binary just say true. for scalar just say long.
+
+reduce orphan rate on small pools.
+
+a tool to review the state of your active contract.
+
+stablecoin interface in the light node should accept bets in either direction.
+
+instead of displaying the oracle upper limit, it should just have an error message and block you from continuing if it can't load the upper limit.
+
+maybe we need an extra confirmation so that with the scalar interface you don't accidentally make a bet where your partner puts nothing at stake. display the same text from otc_listener in otc_derivatives when making a contract.
+
+add salt to amoveo smart contracts for privacy
+
+a website for listing channel offers.
+
+
 maybe it was a mistake to set up int_handler.erl to always return 2-tuples that start with "ok".
 
 
