@@ -32,7 +32,7 @@ Smart contract timeline of all steps
 Once you have created the oracle, you will receive the oracle ID. You use this so the smart contract knows which oracle will determine who gets the money.
 
 2) Someone creates an offer for a new smart contract.
-[this page](http://139.59.144.76:8080/otc_derivatives.html) can be used for making new contract offers. Once you have a contract offer, you can publish it in (https://discord.gg/xJQcVaT)[Amoveo discord #trading channel] or anywhere you think someone who wants to bet against you will see it.
+[this page](http://139.59.144.76:8080/otc_derivatives.html) can be used for making new contract offers. Once you have a contract offer, you can publish it in [Amoveo discord #trading channel](https://discord.gg/xJQcVaT) or anywhere you think someone who wants to bet against you will see it.
 
 3) Someone accepts the offer of a smart contract.
 [this page](http://139.59.144.76:8080/otc_listener.html) can be used to accept a smart contract offer.
