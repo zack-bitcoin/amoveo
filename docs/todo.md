@@ -1,8 +1,7 @@
 channel team close should have a limit, so it needs to be posted in the next 10 blocks to be valid.
 To prevent people using it as a free option.
+* being written in channel team close tx 2.
 
-
-in otc_listener, it says "true or long", that is confusing. For binary just say true. for scalar just say long.
 
 reduce orphan rate on small pools.
 

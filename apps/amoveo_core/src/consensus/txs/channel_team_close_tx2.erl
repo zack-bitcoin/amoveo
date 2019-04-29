@@ -6,9 +6,9 @@
          amount1/1, amount2/1,
          aid1/1, aid2/1, id/1]).
 -record(ctc2, {aid1 = 0, aid2 = 0, fee = 0,
-               nonce = 0, id = 0,
+               id = 0,
                amount1 = 0, amount2 = 0,
-               height_limit}).
+               upper_limit, lower_limit}).
 -include("../../records.hrl").
 aid1(X) -> X#ctc2.aid1.
 aid2(X) -> X#ctc2.aid2.
@@ -25,13 +25,13 @@ make_dict(ID,Amount,Fee) ->
     B1 = channels:bal1(C),
     B2 = channels:bal2(C),
     Acc1 = trees:get(accounts, A1),
-    Nonce = Acc1#acc.nonce,
     Height = block:height(),
     #ctc2{id = ID, aid1 = A1, aid2 = A2, 
-          fee = Fee, nonce = Nonce+1, 
+          fee = Fee, 
           amount1 = B1 + Amount, 
           amount2 = B2 - Amount,
-          height_limit = Height + 6}.
+          height_limit = Height + 6,
+          lower_limit = Height}.
     
 %make(ID,Trees,Amount,Fee) ->
 %    Accounts = trees:accounts(Trees),
@@ -65,12 +65,13 @@ go(Tx, Dict, NewHeight, _) ->
     Bal2 = channels:bal2(OldChannel),
     Amount1 = Tx#ctc2.amount1,
     Amount2 = Tx#ctc2.amount2,
-    true = Tx#ctc2.height_limit >= NewHeight,
+    true = Tx#ctc2.upper_limit >= NewHeight,
+    true = Tx#ctc2.lower_limit =< NewHeight,
     true = Amount1 >= 0,
     true = Amount2 >= 0,
     true = ((Amount1 + Amount2) =< (Bal1 + Bal2)),
     HF = Tx#ctc2.fee div 2,
-    Acc1 = accounts:dict_update(Aid1, Dict, Amount1 - HF, Tx#ctc2.nonce),
+    Acc1 = accounts:dict_update(Aid1, Dict, Amount1 - HF, none),
     %io:fwrite("team close 6\n"),
     Acc2 = accounts:dict_update(Aid2, Dict, Amount2 - HF, none),
     %io:fwrite("team close 7\n"),
