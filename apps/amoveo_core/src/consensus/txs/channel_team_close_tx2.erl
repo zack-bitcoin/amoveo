@@ -30,7 +30,7 @@ make_dict(ID,Amount,Fee) ->
           fee = Fee, 
           amount1 = B1 + Amount, 
           amount2 = B2 - Amount,
-          height_limit = Height + 6,
+          upper_limit = Height + 6,
           lower_limit = Height}.
     
 %make(ID,Trees,Amount,Fee) ->

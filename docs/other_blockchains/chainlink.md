@@ -29,7 +29,7 @@ api data-source
 ===========
 
 The chainlink team is already aware that trusting a central api provider is not a secure oracle.
-From the chainlink white paper "There is, of course, noperfectly trustworthy data sourceSrc. Data may be benignly or maliciously corrupteddue to faulty web sites, cheating service providers, or honest mistakes."
+From the chainlink white paper "There is, of course, noperfectly trustworthy data source. Data may be benignly or maliciously corrupted due to faulty web sites, cheating service providers, or honest mistakes."
 
 In particular, the cental person running the API could choose to change the data provided over time, or to give different data to different parts of the oracle to cause oracle participants to lose their reputation. In this way, the person who controls the api can not only corrupt data from their own api, they can cause other parts of the oracle system to break down.
 
