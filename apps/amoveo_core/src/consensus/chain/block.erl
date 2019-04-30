@@ -528,7 +528,8 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
             no_counterfeit(Dict, NewDict3, Txs0, Height);
         true -> ok
     end,
-    NewTrees3_0 = tree_data:dict_update_trie(OldTrees, NewDict3),
+    NewDict4 = remove_repeats(NewDict3, Dict, Height),
+    NewTrees3_0 = tree_data:dict_update_trie(OldTrees, NewDict4),%here
     F10 = forks:get(10),
     NewTrees3 = if
 		    (Height == F10) ->
@@ -541,7 +542,6 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 				      trees:governance(NewTrees3_0),
 				      Root0,
 				      Root0),
-		       %at this point we should move all the oracle bets and orders into their new merkel trees.
 		       NewTrees1;
 		   true -> NewTrees3_0
 	       end,
@@ -919,8 +919,38 @@ sum_amounts_helper(matched, M, _Dict, OldDict, Key) ->
             2 -> F;
             3 -> B
         end.
-
-
+remove_repeats(New, Old, Height) ->
+    Keys = dict:fetch_keys(New),
+    F10 = forks:get(10),
+    Old2 = if
+               Height =< F10 -> oracle_bet_order_scanner(dict:fetch_keys(New), New, Old);%check for orders and oracle bets. if there are, then remove them from old
+               true -> Old
+           end,
+    remove_repeats2(New, Old2, Keys).
+oracle_bet_order_scanner([], _, Old) -> Old;
+oracle_bet_order_scanner([{orders, {key, _Pub, OID}}|T], New, Old) ->
+    Old2 = dict:erase({oracles, OID}, Old),
+    oracle_bet_order_scanner(T, New, Old2);
+oracle_bet_order_scanner([{oracle_bets, {key, Pub, _OID}}|T], New, Old) ->
+    Old2 = dict:erase({accounts, Pub}, Old),
+    oracle_bet_order_scanner(T, New, Old2);
+oracle_bet_order_scanner([_|T], New, Old) ->
+    oracle_bet_order_scanner(T, New, Old).
+    
+remove_repeats2(New, _, []) -> New;
+remove_repeats2(New, Old, [H|T]) ->
+    N = dict:fetch(H, New),
+    O = case dict:find(H, Old) of
+            error -> error;
+            {ok, X} -> X
+        end,
+    New2 = if
+               (N == O) -> 
+                   dict:erase(H, New);
+               true  -> New
+           end,
+    remove_repeats2(New2, Old, T).
+            
 	    
 test() ->
     test(1).

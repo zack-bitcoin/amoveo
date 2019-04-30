@@ -1,6 +1,7 @@
-a review of the chainlink oracle.
-
 don't re-write the same data to the merkel trees.
+
+Instead of storing merkel proofs with blocks, read them from the trees when needed.
+Turn off garbage collection on the trees.
 
 add an atomic swap feature to api. look at the decred atomic swap example.
 
