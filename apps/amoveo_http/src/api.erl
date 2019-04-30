@@ -763,4 +763,13 @@ pubkey(Pubkey, Many, TopHeight) ->
     amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).
 %curl -i -d '["pubkey", "BEwcawKx5oZFOmp1533TqDzUl76fOeLosDl+hwv6rZ50tLSQmMyW/87saj3D5qBtJI4lLsILllpRlT8/ppuNaPM=", 100, 18000]' http://localhost:8081
 
+atomic_payment(To, Commit, Amount) ->
+    %we can use this api call without syncing the blockchain.
 
+    ok.%returns new_channel offer
+    
+atomic_receive(NC, Secret, Amount) ->
+    %verify the new_channel offer has the correct commit in it, and that it is sending the correct amount.
+    %They put 21 in the contract, we put 1. If we fail to reveal the secret, it all goes to them after a delay of like 1 day.
+    %if we do reveal the secret, then we get a contract for stable bitcoin. revealing the secret also allows them to unlock the bitcoin we sent them.
+    ok.%if it succeeds, it publishes the new_channel tx, and once we have a confirmation, it uses the secret to update our channel state with our partner

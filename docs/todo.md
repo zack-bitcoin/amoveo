@@ -1,3 +1,9 @@
+a review of the chainlink oracle.
+
+don't re-write the same data to the merkel trees.
+
+add an atomic swap feature to api. look at the decred atomic swap example.
+
 channel team close should have a limit, so it needs to be posted in the next 10 blocks to be valid.
 To prevent people using it as a free option.
 * being written in channel team close tx 2.
@@ -14,6 +20,8 @@ instead of displaying the oracle upper limit, it should just have an error messa
 maybe we need an extra confirmation so that with the scalar interface you don't accidentally make a bet where your partner puts nothing at stake. display the same text from otc_listener in otc_derivatives when making a contract.
 
 add salt to amoveo smart contracts for privacy
+
+moving bets to a direct path.
 
 a website for listing channel offers.
 
@@ -108,6 +116,7 @@ simpler way to customize port instead of 8080
 
 
 ### Other hard fork ideas
+
 
 we should have a time limit in channel team close txs to prevent the free option problem in some cases where they want to close the channel early.
 
