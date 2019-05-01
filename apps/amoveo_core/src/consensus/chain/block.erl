@@ -947,7 +947,8 @@ remove_repeats2(New, Old, [H|T]) ->
     New2 = if
                (N == O) -> 
                    dict:erase(H, New);
-               true  -> New
+               true  -> 
+                   New
            end,
     remove_repeats2(New2, Old, T).
             

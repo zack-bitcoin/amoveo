@@ -24,17 +24,16 @@
     {smart_contract_runtime_limit, 5000}, %% in miliseconds.
 
     {recent_blocks_period, 3}, %% this is how frequently we calculate which blocks should no longer be tracked for pruning.
-    {prune_period, 3}, %% this is how frequently in blocks we prune all the data from the trees from before revert_depth.
-    {prune_txs, 30}, %% this is how frequently in txs we prune all the data from the trees before revert_depth
+    %% {prune_period, 3}, %% this is how frequently in blocks we prune all the data from the trees from before revert_depth.
+    %% {prune_txs, 30}, %% this is how frequently in txs we prune all the data from the trees before revert_depth
     %% if prune period is low, then you will use less ram, but you will waste more cpu on pruning.
-     {revert_depth, 20}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state. For light nodes this should be set to 0.
-    %%    {revert_depth, 100000000}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state. For light nodes this should be set to 0.
+     %% {revert_depth, 20}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state. For light nodes this should be set to 0.
+     %%    {revert_depth, 100000000}, %% save all data from the most recent block, and this far into history. That way if blocks are reverted, we still have all the state. For light nodes this should be set to 0.
     %% if a fork is bigger than revert_depth, your full node will have to reprocess all the blocks, or it will have to download a bunch of proofs.
     {confirmations_needed, 0}, %% if you want to make a bet with this server, your channel needs at least this many confirmations.
 
     {light_node, false},
-     {trie_size, 2000000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. 
-    %% {trie_size, 10000000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. 
+    {trie_size, 500000}, %%  we can adjust this many accounts and channels in all the blocks in revert_depth. So it is important that the number of proofs per block * revert_depth is smaller than this number. 
     %% There are several trees, they are all stored in ram. It is important that trie_size*sum(size of an element in each trie) < (amount of ram you have).
 
     {tx_fee, 1000},

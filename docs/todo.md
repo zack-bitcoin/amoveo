@@ -1,7 +1,24 @@
-don't re-write the same data to the merkel trees.
+compress the pubkeys
+https://bitcointalk.org/index.php?topic=162805
+https://bitcoin.stackexchange.com/questions/76181/bitcoin-public-keys-from-uncompressed-to-compressed-version-with-code-sample
 
-Instead of storing merkel proofs with blocks, read them from the trees when needed.
-Turn off garbage collection on the trees.
+update the merkel tree database to be and order 2 radix tree, and group elements into pages for speed and efficiency.
+* number of pages to read log(#accounts)/log(page_size/32)
+* page size of 1 000 000 will have 1/2 as many reads as 4000.
+* page size of 4000 is 5/8ths as many reads vs 512
+* page size of 4000 is about 1/7x as many reads vs 64
+
+* this will make merkel proofs 1/2 as big.
+We are currently using 2 * (108 + 32*16*log16 (number of users)) bytes of hard drive per spend tx, and more for other types.
+With this update we could get it down to 2 * (108 + 32 * 2 * log (number of users)/log (4000/32))
+but the size of proofs in the block will be 2 * (108 + 32 * 2 * log(number of users)/log(2))
+
+We are currently using 2 * (108 + 32*16*log16 (number of users)) bytes per spend tx on the hard drive, and more for other types.
+With this update we could get it down to 2 * (108 + 32 * 2 * log (number of users)/log (4000/32))
+the improvement in the limit as number of users goes to infinity is is 8/math:log(16) * math:log(4000/32), which works out to be about an improvement factor of 14x.
+At 1000000 users, it is around 10x improvement.
+
+
 
 add an atomic swap feature to api. look at the decred atomic swap example.
 
