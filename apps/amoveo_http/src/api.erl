@@ -483,6 +483,13 @@ off() ->
     testnet_sup:stop(),
     ok = application:stop(amoveo_core),
     ok = application:stop(amoveo_http).
+test_mine_blocks(S) ->
+    spawn(fun() -> test_mine_blocks2(S) end).
+test_mine_blocks2(S) ->
+    mine_block(),
+    timer:sleep(S*1000),
+    normal = sync_mode:check(),
+    test_mine_blocks(S).
 mine_block() ->
     block:mine(10000000).
     %potential_block:save(),
