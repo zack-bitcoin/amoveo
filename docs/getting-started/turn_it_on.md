@@ -35,7 +35,7 @@ now that you are attached to a node, you can tell it [commands](/docs/api/comman
 
 [You can read about how to download the blocks and sync with the network here](/docs/getting-started/sync.md)
 
-To run this software in the background, use some software like screen.
+To run this software in the background, hold the control key, and click the D key.
 
 
 You can turn off a running node.
