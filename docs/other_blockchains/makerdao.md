@@ -53,7 +53,7 @@ Merging the data from many trusted feeds is also a kind of voting protocol. So y
 
 mkr and dai together are worth over $800 million, so when this theft occurs, it could cause a lot of damage.
 
-The margins for dai are 150%, so you can make the oracle lie by up to 150% in each direction, and since cdp has double-volatility you can earn up to 600% for doing this attack once.
+The margins for dai are 150%, so you can make the oracle lie by up to 150% in each direction, and you can earn %150 of your investment for doing this attack once.
 But if you did this attack by bribing the oracle directly, the mkr holders would probably do a quick vote to kick all the bad price feeds out.
 So in this case there would be rare attacks that steal a lot of money.
 

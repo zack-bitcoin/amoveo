@@ -4,7 +4,10 @@ Using the Oracle
 
 binary oracle: `Trump won the 2020 election.`
 
-scalar oracle: `P = the price of USD in VEO from 0 to 0.05 on January 1, 2019, at 5:00 AM GMT; return P * 1024 / 0.05`
+scalar oracle to make an asset that moves the same as USD: `P = the price of USD in VEO from 0 to 0.05 on January 1, 2019, at 5:00 AM GMT; return P * 1024 / 0.05`
+
+scalar oracle to make an asset that moves inversely to Amazon shares:
+`P = the price of amazon in veo from 0 to 20 on January 1, 2019, at 4:00 AM GMT; return (20 - P) * 1024 / 20`
 
 scalar oracle to predict the weather: `P = the temperature in Vancouver at noon on April 23, 2019 from -10 to 50 Celsius according to this website https://www.timeanddate.com/weather/canada/vancouver/historic ; return (P+10) * 1024 / 60.`
 
@@ -27,3 +30,13 @@ or like 20% increase in VEO
 so your synthetic position exactly matched the return of the stock despite the price of VEO going down
 what this means is that the other side of the trade is both long veo and short the stock at the same time, so their payout looks like (1+V)*(1-Z)-1
 you can bundle all of this into one scalar oracle
+
+
+
+scalar oracle to make an asset that moves inversely to amazon shares with frontrunning protections.
+```P0 = the price of amazon in veo on January 1, 2019, at 7:00 AM GMT;
+P2 = P0 * 2;
+P = the price of amazon in veo on Febuary 1, 2019, at 1:00 AM GMT;
+Z = min(P2, max(0, P2 - P));
+round(Z*1024 / P2)```
+
