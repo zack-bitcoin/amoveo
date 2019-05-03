@@ -1,15 +1,27 @@
+in new_channel we should do a hard update so that the nonce is not used. That way a person can make multiple channel offers from a single address.
+instead it should have something like nlocktime to prevent the channel from being re-made.
+The new_channel tx can't get replayed because the channel ID is already consumed.
+This means the nlocktime feature should be mandatory, not optional.
+
+
+
+in the light node update from bigInt js library to the BigInt built in the browser.
+
+amoveo p2p derivatives explorer
+
+
 another button in otc_derivatives, this one for using oracles to make an inverse stablecoin.
 So if the price of amazon shares in USD increases 5%, then your inverse stable shares will have decreased 5%.
 The only difference is that whatever price the user types in as the initial price, replace that with (limit_max - the_price_they_entered). because everything is flipped vs a normal stablecoin.
 
 
-
+people want shorts in holo/rvn/abbc
 
 
 otc_listener should display the channel ID.
 
 new_oracle page simplification.
-We only ask for: 3-letter ticker, maturity data, and max price.
+We only ask for: 3-letter ticker, maturity data, and max price, short/long
 Then the oracle question will be more standardized, so we can parse it easier at other steps.
 
 Also standardize inverse stablecoin oracles, so the interface for making bets can be simpler.
@@ -25,6 +37,8 @@ add an atomic swap feature to api. look at the decred atomic swap example.
 channel team close should have a limit, so it needs to be posted in the next 10 blocks to be valid.
 To prevent people using it as a free option.
 * being written in channel team close tx 2.
+
+
 
 
 reduce orphan rate on small pools.

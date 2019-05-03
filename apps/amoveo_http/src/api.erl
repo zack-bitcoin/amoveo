@@ -488,8 +488,11 @@ test_mine_blocks(S) ->
 test_mine_blocks2(S) ->
     mine_block(),
     timer:sleep(S*1000),
-    normal = sync_mode:check(),
-    test_mine_blocks(S).
+    case sync_mode:check() of
+        normal ->
+            test_mine_blocks(S);
+        _ -> ok
+    end.
 mine_block() ->
     block:mine(10000000).
     %potential_block:save(),
