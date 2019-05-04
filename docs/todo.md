@@ -1,7 +1,11 @@
+
+
+*this is already done, we need to reflect on it a little more before activating it.
 in new_channel we should do a hard update so that the nonce is not used. That way a person can make multiple channel offers from a single address.
 instead it should have something like nlocktime to prevent the channel from being re-made.
 The new_channel tx can't get replayed because the channel ID is already consumed.
 This means the nlocktime feature should be mandatory, not optional.
+We need to update otc_finisher so that it will refuse to close a channel until the nlocktime from the tx that created it has passed.
 
 
 

@@ -76,7 +76,15 @@ go(Tx, Dict, NewHeight, _) ->
     Delay = delay(Tx),
     NewChannel = channels:new(ID, Aid1, Aid2, Bal1, Bal2, NewHeight, Delay),
     Dict2 = channels:dict_write(NewChannel, Dict),
-    Acc1 = accounts:dict_update(Aid1, Dict, -Bal1+ToAcc1, NCO#nc_offer.nonce),
+    %F17 = (NewHeight > forks:get(17)),
+    F17 = false,
+    Bool1 = ((NLock - NewHeight) < NCO#nc_offer.delay),
+    Bool2 = NLock > 0,
+    Nonce1 = if
+                 ((F17 and Bool1) and Bool2) -> none;
+                 true -> NCO#nc_offer.nonce
+             end,
+    Acc1 = accounts:dict_update(Aid1, Dict, -Bal1+ToAcc1, Nonce1),
     Acc2 = accounts:dict_update(Aid2, Dict, -Bal2-Fee-ToAcc1, none),
     Dict3 = accounts:dict_write(Acc1, Dict2),
     nc_sigs:store(ID, Tx#nc_accept.contract_sig),
