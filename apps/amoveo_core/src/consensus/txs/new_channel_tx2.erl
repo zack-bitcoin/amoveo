@@ -80,8 +80,10 @@ go(Tx, Dict, NewHeight, _) ->
     F17 = false,
     Bool1 = ((NLock - NewHeight) < NCO#nc_offer.delay),
     Bool2 = NLock > 0,
+    Bool3 = (NCO#nc_offer.nonce == 0),
     Nonce1 = if
-                 ((F17 and Bool1) and Bool2) -> none;
+                 ((F17 and Bool1) and 
+                  (Bool2 and Bool3)) -> none;
                  true -> NCO#nc_offer.nonce
              end,
     Acc1 = accounts:dict_update(Aid1, Dict, -Bal1+ToAcc1, Nonce1),
