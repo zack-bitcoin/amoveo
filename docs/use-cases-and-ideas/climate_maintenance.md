@@ -60,7 +60,7 @@ We make a market with 4 possible outcomes:
 3) we don't buy the plan, and CO2 concentration is high.
 4) we don't buy the plan, and CO2 concentration is low.
 
-If (price of 1) * (price of 4) is higher than (price of 2) * (price of 3), then that means the futarchy says it is a good plan.
+If (price of 1) * (price of 4) is lower than (price of 2) * (price of 3), then that means the futarchy says it is a good plan.
 
 [If someone makes bets to manipulate the prices in these markets, it actually makes the market more accurate](http://mason.gmu.edu/~rhanson/biashelp.pdf).
 Bad bets in a market are a prize for someone else to come and make good bets. They bring more attention to the market, and end up making it more accurate than it would have been otherwise.
