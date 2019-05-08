@@ -5,10 +5,10 @@ dxdy is a smart contract on Ethereum. https://github.com/dydxprotocol/solo
 
 Anyone can make an account inside the dxdy solo smart contract.
 Solo supports multiple subcurrencies. You can deposit any supported subcurrency into your account inside the solo smart contract.
-You can lock up any of the currencies in your account as collaterol in order to borrow any other kind of subcurrency.
-Eventually, either the margins of your contract are exceeded, which causes your collaterol to be confiscated by solo, or you re-deposit the coins you borrowed plus interest in order to get your collateral back.
+You can lock up any of the currencies in your account as collateral in order to borrow any other kind of subcurrency.
+Eventually, either the margins of your contract are exceeded, which causes your collateral to be confiscated by solo, or you re-deposit the coins you borrowed plus interest in order to get your collateral back.
 
-The interest you have to pay to unlock your collaterol can be positive or negative. It attempts to react to market forces by looking at how other people are using solo.
+The interest you have to pay to unlock your collateral can be positive or negative. It attempts to react to market forces by looking at how other people are using solo.
 
 problems with this design
 =========
