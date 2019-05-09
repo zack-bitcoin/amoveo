@@ -164,21 +164,17 @@ absorb_internal(Block) ->
     end.
 do_save(BlockPlus) ->
     %found_block_timer:add(),%put it into headers instead.
-    CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
-    Hash = block:hash(BlockPlus),
-    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
-    %io:fwrite("deleting blockfile "),
-    %io:fwrite(BlockFile),
-    %io:fwrite("\n"),
-    %file:delete(BlockFile),
-    %timer:sleep(100),
-    ok = db:save(BlockFile, CompressedBlockPlus).
+    block_db:put(BlockPlus).
+%CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
+%    Hash = block:hash(BlockPlus),
+%    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
+%    ok = db:save(BlockFile, CompressedBlockPlus).
 highest_block([H|T]) ->
-    B = binary_to_term(zlib:uncompress(db:read(constants:blocks_file()++H))),
+    B = block:get_by_hash(H),
     highest_block(B, T).
 highest_block(B, []) -> B;
 highest_block(B, [H|T]) ->
-    B2 = binary_to_term(zlib:uncompress(db:read(constants:blocks_file()++H))),
+    B2 = block:get_by_hash(H),
     H1 = B#block.height,
     H2 = B2#block.height,
     if
@@ -199,7 +195,9 @@ recover(Mode) ->
 		full ->
 		    highest_block(BlockFiles);
 		quick ->
-		    Block1 = binary_to_term(zlib:uncompress(db:read(constants:blocks_file()++hd(BlockFiles)))),
+		    %Block1 = binary_to_term(zlib:uncompress(db:read(constants:blocks_file()++hd(BlockFiles)))),
+                    Block1 = block:get_by_hash(hd(BlockFiles)),
+		    %Block1 = binary_to_term(zlib:uncompress(db:read(amoveo_utils:binary_to_file_path(blocks, hd(BlockFiles))))),
 		    L = length(BlockFiles),
 		    FirstTen = if
 				   L > 50 ->

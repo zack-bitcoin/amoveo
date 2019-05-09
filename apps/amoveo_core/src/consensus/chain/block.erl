@@ -93,13 +93,14 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
             B = get_by_height_in_chain(NHeight, PH),
             calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
     end.
-get_by_hash(H) ->
+get_by_hash(H) -> 
     Hash = hash(H),
-    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
-    case db:read(BlockFile) of
-        [] -> empty;
-        Block -> binary_to_term(zlib:uncompress(Block))
-    end.
+    block_db:get(Hash).
+%    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
+%    case db:read(BlockFile) of
+%        [] -> empty;
+%        Block -> binary_to_term(zlib:uncompress(Block))
+%    end.
 top() -> top(headers:top_with_block()).%what we actually want is the highest header for which we have a stored block.
 top(Header) ->
     false = element(2, Header) == undefined,

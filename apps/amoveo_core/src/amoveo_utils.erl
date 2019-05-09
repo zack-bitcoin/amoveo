@@ -1,6 +1,5 @@
 -module(amoveo_utils).
 -export([tuples2lists/1,
-         binary_to_file_path/2,
 	 block_rewards/1,
 	 block_rewards/2,
 	 tx_history/1, tx_history/2, tx_history/3,
@@ -9,22 +8,6 @@
 	]).
 -include("records.hrl").
 
-binary_to_file_path(Code, Binary) ->
-    Code = blocks,
-    <<Byte, _/binary>> = Binary,
-    H = to_hex(<<Byte>>),
-    Encoded = base58:binary_to_base58(Binary),
-    Dir = file_dir(Code),
-    Dir ++ H ++ "/" ++ Encoded ++ ".db".
-    %Dir ++ Encoded ++ ".db".
-to_hex(<<>>) ->  [];
-to_hex(<<A:4, B/bitstring>>) ->
-    if
-	A < 10 -> [(A+48)|to_hex(B)];
-	true -> [(A+87)|to_hex(B)]
-    end.
-    
-	    
 address_history(Mode, X) ->
     TB = block:top(),
     address_history(Mode, X, 200).
@@ -114,8 +97,6 @@ tuples2lists([H|T]) ->
     [tuples2lists(H)|tuples2lists(T)];
 tuples2lists(X) -> X.
 
-file_dir(blocks) -> constants:blocks_file();%"blocks/";
-file_dir(oracle_questions) -> constants:oracle_questions_file().%"oracle_questions/".
 
 
 block_rewards(A) ->

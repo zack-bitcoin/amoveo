@@ -4,6 +4,11 @@ working on a hard update
 
 
 
+update chain/block_db.erl to store multiple blocks per file so that we don't waste space by having each file be only a fraction of a page.
+* lets store all the blocks in one big file, and have a dictionary to match block hashes to locations and sizes in the file.
+* use dump:file_manager for example code.
+
+
 
 *this is already done, we need to reflect on it a little more before activating it.
 in new_channel we should do a hard update so that the nonce is not used. That way a person can make multiple channel offers from a single address.

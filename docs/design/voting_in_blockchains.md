@@ -1,4 +1,4 @@
-Voting does not work in blockchains
+Voting does not work
 ==========
 
 1) there is no stable equilibrium in voting mechanisms
