@@ -33,7 +33,7 @@ verify_both(Tx, Addr1, Addr2) ->
         true -> false
     end.
 type_check(Type) -> %these are the types that get signed twice
-    lists:any(fun(X) -> X==Type end, [gc, nc, ctc, spk]).
+    lists:any(fun(X) -> X==Type end, [gc, nc, ctc, ctc2, spk]).
 verify(SignedTx) ->
     Tx = SignedTx#signed.data,
     N1 = element(2, Tx),

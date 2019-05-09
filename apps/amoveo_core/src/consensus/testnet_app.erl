@@ -17,7 +17,6 @@ start(_StartType, _StartArgs) ->
     make_block_folders(),
     sync:cron(),
     push_block:cron(),
-
     io:fwrite("starting node\n"),
 
     testnet_sup:start_link().

@@ -1,3 +1,9 @@
+working on a hard update
+* test channel_team_close_tx2.
+* test resyncing all blocks.
+
+
+
 
 *this is already done, we need to reflect on it a little more before activating it.
 in new_channel we should do a hard update so that the nonce is not used. That way a person can make multiple channel offers from a single address.

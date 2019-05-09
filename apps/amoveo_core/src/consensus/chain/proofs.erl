@@ -227,6 +227,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {accounts, grow_channel_tx:acc2(Tx)},
                  {channels, grow_channel_tx:id(Tx)}
                 ];
+	    ctc2 -> 
+                [
+                 {governance, ?n2i(ctc)},
+                 {accounts, channel_team_close_tx:aid1(Tx)},
+                 {accounts, channel_team_close_tx:aid2(Tx)},
+                 {channels, channel_team_close_tx:id(Tx)}
+                ];
 	    ctc -> 
                 [
                  {governance, ?n2i(ctc)},

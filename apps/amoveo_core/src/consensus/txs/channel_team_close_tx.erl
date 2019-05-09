@@ -50,7 +50,15 @@ go(Tx, Dict, NewHeight, _) ->
     Aid2 = Tx#ctc.aid2,
     false = Aid1 == Aid2,
     %io:fwrite("team close 3\n"),
-    Dict2 = channels:dict_delete(ID, Dict),
+    %Dict2 = channels:dict_delete(ID, Dict),
+    F17 = forks:get(17),
+    Dict2 = if 
+                NewHeight > F17 -> 
+                    NewChannel = channels:dict_update(ID, Dict, none, 0, 0, 0, 0, NewHeight, true),
+                    channels:dict_write(NewChannel, Dict);
+                true ->
+                    channels:dict_delete(ID, Dict)
+            end,
     %io:fwrite("team close 4\n"),
     Bal1 = channels:bal1(OldChannel),
     Bal2 = channels:bal2(OldChannel),

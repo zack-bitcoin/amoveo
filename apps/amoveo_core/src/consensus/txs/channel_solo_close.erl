@@ -42,6 +42,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = ScriptPubkey#spk.space_gas < SpaceGas,
     CID = (testnet_sign:data(SPK))#spk.cid,
     OldChannel = channels:dict_get(CID, Dict),
+    0 = channels:closed(OldChannel),
     0 = channels:amount(OldChannel),
     Acc1 = channels:acc1(OldChannel),
     Acc2 = channels:acc2(OldChannel),

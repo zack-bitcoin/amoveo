@@ -652,6 +652,13 @@ deltaCV([Tx|T], Dict) ->
     C = testnet_sign:data(Tx),
     A = case element(1, C) of
 	    nc -> new_channel_tx:bal1(C) + new_channel_tx:bal2(C);
+	    ctc2 -> 
+		ID = channel_team_close_tx:id(C),
+		OldChannel = channels:dict_get(ID, Dict),
+		io:fwrite(packer:pack(OldChannel)),
+		Bal1 = channels:bal1(OldChannel),
+		Bal2 = channels:bal2(OldChannel),
+		-(Bal1 + Bal2);
 	    ctc -> 
 		ID = channel_team_close_tx:id(C),
 		OldChannel = channels:dict_get(ID, Dict),
@@ -674,6 +681,7 @@ many_live_channels([Tx|T]) ->
     A = case element(1, C) of
 	    nc -> 1;
 	    ctc -> -1;
+	    ctc2 -> -1;
 	    timeout -> -1;
 	    _ -> 0
 	end,

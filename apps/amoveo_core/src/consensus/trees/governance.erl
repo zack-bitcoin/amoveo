@@ -4,7 +4,7 @@
          dict_get/2,dict_write/2, dict_get_value/2, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,
 	 serialize/1,deserialize/1,
-	 new/2, dict_write/2,
+	 new/2,
 	 test/0]).%common tree stuff
 -record(gov, {id, value, lock}).
 -define(name, governance).
@@ -149,7 +149,9 @@ name2number(create_acc_tx) -> 14;%these store the minimum fee for each transacti
 name2number(spend) -> 15;
 name2number(delete_acc_tx) -> 16;
 name2number(nc) -> 17;
+name2number(nc_accept) -> 17;
 name2number(ctc) -> 18;
+name2number(ctc2) -> 18;
 name2number(csc) -> 19;
 name2number(timeout) -> 20;
 name2number(cs) -> 21;
@@ -160,7 +162,6 @@ name2number(oracle_close) -> 25;
 name2number(unmatched) -> 26;
 name2number(oracle_winnings) -> 27;
 name2number(oracle_question_liquidity) -> 28;
-name2number(nc_accept) -> 17;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
