@@ -111,11 +111,11 @@ Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 
 ## Mining Pools
 
-http://159.65.120.84:8085/main.html (maintained by Zack, who wrote the Amoveo full node.)
+http://stats.veopool.pw/
 
 https://amoveopool.com/#getting-started
 
-http://stats.veopool.pw/
+http://veo.lolopool.com/
 
 
 ## Trading
