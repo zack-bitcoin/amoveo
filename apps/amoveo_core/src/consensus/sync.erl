@@ -213,7 +213,6 @@ get_blocks(Peer, N, Tries, Time, TheirBlockHeight) ->
     %io:fwrite(packer:pack([N, TheirBlockHeight])),
     %io:fwrite("\n"),
     %io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
-    %io:fwrite("get blocks\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
     {ok, BM} = application:get_env(amoveo_core, download_blocks_many),
     timer:sleep(150),
@@ -223,9 +222,12 @@ get_blocks(Peer, N, Tries, Time, TheirBlockHeight) ->
     if
 	Height == AHeight -> ok;%done syncing
 	((Time == second) and (N > Height + (BM * BB))) ->%This uses up 10 * BB * block_size amount of ram.
+            %io:fwrite("sync get blocks weird \n"),
+            %io:fwrite(packer:pack([N, Height, BM, BB])),
+            %io:fwrite("\n"),
 	    get_blocks(Peer, N, Tries-1, second, TheirBlockHeight);
 	true ->
-	    %io:fwrite("another get_blocks thread\n"),
+	    io:fwrite("another get_blocks thread\n"),
 	    Many = min(BB, TheirBlockHeight - N + 1),
 	    spawn(fun() ->
 			  get_blocks2(Many, N, Peer, 5)
@@ -245,9 +247,9 @@ get_blocks2(BB, N, Peer, Tries) ->
     %io:fwrite("get blocks 2\n"),
     go = sync_kill:status(),
     Blocks = talker:talk({blocks, BB, N}, Peer),
-    %io:fwrite("got blocks \n"),
-    %io:fwrite(packer:pack([BB, N])),%1 16
-    %io:fwrite("\n"),
+    io:fwrite("got blocks \n"),
+    io:fwrite(packer:pack([BB, N])),%1 16
+    io:fwrite("\n"),
     %io:fwrite(packer:pack(Blocks)),%50 1000
     %io:fwrite("\n"),
     go = sync_kill:status(),
@@ -266,9 +268,50 @@ get_blocks2(BB, N, Peer, Tries) ->
 	    1=2;
 	    %timer:sleep(Sleep),
 	    %get_blocks2(BB, N, Peer, Tries - 1);
-	{ok, Bs} -> block_organizer:add(Bs);
+	{ok, Bs} -> 
+            if
+                is_list(Bs) ->
+                    block_organizer:add(Bs);
+                true ->
+                    {ok, Bs2} = Bs,
+                    %io:fwrite("blocks are "),
+                    Dict = binary_to_term(zlib:uncompress(Bs2)),
+                    io:fwrite(packer:pack(dict:fetch(hd(dict:fetch_keys(Dict)), Dict))),
+                    io:fwrite("\n"),
+                    block_organizer:add(low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)))
+                    %timer:sleep(10000)
+                    
+                        %io:fwrite("\n"),
+                    %block_organizer:add(binary_to_term(zlib:uncompress(Bs2)))
+            end;
 	_ -> block_organizer:add(Blocks)
     end.
+dict_to_blocks([], _) -> [];
+dict_to_blocks([H|T], D) ->
+    B = dict:fetch(H, D),
+    [B|dict_to_blocks(T, D)].
+low_to_high(L) ->
+    L2 = listify(L),
+    low2high2(L2).
+listify([]) -> [];
+listify([H|T]) -> [[H]|listify(T)].
+low2high2([X]) -> X;
+low2high2(T) ->
+    low2high2(l2himprove(T)).
+l2himprove([]) -> [];
+l2himprove([H]) -> [H];
+l2himprove([H1|[H2|T]]) ->
+    [merge(H1, H2)|l2himprove(T)].
+merge([], L) -> L;
+merge(L, []) -> L;
+merge([H1|T1], [H2|T2]) ->
+    BH1 = element(2, H1),
+    BH2 = element(2, H2),
+    if
+        BH1 > BH2 -> [H2|merge([H1|T1], T2)];
+        true -> [H1|merge(T1, [H2|T2])]
+    end.
+            
 remove_self(L) ->%assumes that you only appear once or zero times in the list.
     MyIP = my_ip:get(),
     {ok, MyPort} = application:get_env(amoveo_core, port),

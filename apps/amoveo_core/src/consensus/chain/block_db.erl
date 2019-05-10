@@ -209,13 +209,14 @@ read(Many, Height) ->
             BH = block:prev_hash(0, B),
             lists:reverse([B|read2(M, BH)]);
         new ->
-            io:fwrite("block db read/2 "),
-            io:fwrite(packer:pack([Many, Height])),
-            io:fwrite("\n"),
+            %io:fwrite("block db read/2 "),
+            %io:fwrite(packer:pack([Many, Height])),
+            %io:fwrite("\n"),
             H = block:height(),
             X = min(H, Height + Many),
             Block = block:get_by_height(X),
-            gen_server:call(?MODULE, {read, Many, Height, Block})
+            {ok, Z} = gen_server:call(?MODULE, {read, Many, Height, Block}),
+            Z
     end.
 read2(0, _) -> [];
 read2(N, BH) ->

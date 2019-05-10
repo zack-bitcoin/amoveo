@@ -62,7 +62,7 @@
     {max_channel_delay, 2000},
     {min_channel_lifespan, 30}, %%Minimum amount of time you can get a channel with this node for. measured in blocks.
 
-    {download_blocks_batch, 50},%% How many blocks we get per request.
+    {download_blocks_batch, 500},%% How many blocks we get per request.
     {download_blocks_many, 1}, %% we are storing blocks in the block_absorber mail box, which is RAM. many*batch*blocksize is how much ram we are using, at most.
     {push_blocks_batch, 50}
   ]},
