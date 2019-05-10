@@ -6,7 +6,10 @@ working on a hard update
 
 update chain/block_db.erl to store multiple blocks per file so that we don't waste space by having each file be only a fraction of a page.
 * lets store all the blocks in one big file, and have a dictionary to match block hashes to locations and sizes in the file.
+* continue storing recent blocks one per file, or just keep them in ram.
 * use dump:file_manager for example code.
+* in sync.erl we use `talker:talk({blocks, BB, N}, Peer)`. We need to be able to check if the response is compressed, and decompress it.
+* in block_db:read/2 we should compress the blocks before returning them.
 
 
 

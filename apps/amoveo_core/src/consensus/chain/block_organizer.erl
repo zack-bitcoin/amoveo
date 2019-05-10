@@ -40,7 +40,6 @@ helper([[]]) -> [];
 helper([H|T]) ->
     %we should run this in the background, and if H has an error, don't drop the rest of the list.
 
-    %io:fwrite("organizer helper\n"),
     MyHeight = block:height(),
     HH = hd(H),
     H2 = HH#block.height,

@@ -63,10 +63,10 @@ start(P) ->
     spawn(fun() ->
 		  doit2(P)
 	  end).
-doit3([]) -> ok;
-doit3([H|T]) ->
-    gen_server:cast(?MODULE, {main, H}),
-    doit3(T).
+%doit3([]) -> ok;
+%doit3([H|T]) ->
+%    gen_server:cast(?MODULE, {main, H}),
+%    doit3(T).
 doit2([]) -> ok;
 %doit2([Peer|T]) ->
 doit2(L0) ->
@@ -209,6 +209,9 @@ get_blocks(Peer, N, 0, _, _) ->
 get_blocks(Peer, N, Tries, Time, TheirBlockHeight) when N > TheirBlockHeight -> 
     io:fwrite("done syncing\n");
 get_blocks(Peer, N, Tries, Time, TheirBlockHeight) ->
+    %io:fwrite("get blocks\n"),
+    %io:fwrite(packer:pack([N, TheirBlockHeight])),
+    %io:fwrite("\n"),
     %io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
     %io:fwrite("get blocks\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
@@ -238,9 +241,15 @@ get_blocks2(_BB, _N, _Peer, 0) ->
     %io:fwrite("get_blocks2 failed\n"),
     ok;
 get_blocks2(BB, N, Peer, Tries) ->
+    %N should not be above our current height.
     %io:fwrite("get blocks 2\n"),
     go = sync_kill:status(),
     Blocks = talker:talk({blocks, BB, N}, Peer),
+    %io:fwrite("got blocks \n"),
+    %io:fwrite(packer:pack([BB, N])),%1 16
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack(Blocks)),%50 1000
+    %io:fwrite("\n"),
     go = sync_kill:status(),
     Sleep = 600,
     case Blocks of
@@ -392,6 +401,9 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
         TheirBlockHeight > MyBlockHeight ->
 	    %io:fwrite("get blocks from them.\n"),
 	    CommonHeight = TopCommonHeader#header.height,
+            %io:fwrite("common height is\n"),
+            %io:fwrite(packer:pack(CommonHeight)),
+            %io:fwrite("\n"),
 	    get_blocks(Peer, CommonHeight, ?tries, first, TheirBlockHeight);
 	true ->
 	    spawn(fun() ->
@@ -405,7 +417,14 @@ top_common_header(L) when is_list(L) ->
 top_common_header(_) -> error.
 tch([]) -> error;
 tch([H|T]) ->
+    Tch = block:get_by_hash(block:hash(H)),
+    %io:fwrite("tch is "),
+    %io:fwrite(packer:pack(Tch)),
+    %io:fwrite("\n"),
+    %io:fwrite(packer:pack(block:hash(H))),
+    %io:fwrite("\n"),
     case block:get_by_hash(block:hash(H)) of
+	error -> tch(T);
 	empty -> tch(T);
 	_ -> H
     end.

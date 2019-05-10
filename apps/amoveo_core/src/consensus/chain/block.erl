@@ -9,6 +9,7 @@
 	 period_estimate/1, hashrate_estimate/1,
 	 hashes_per_block/0, hashes_per_block/1,
          header_by_height/1,
+         prev_hash/2,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -95,7 +96,7 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
     end.
 get_by_hash(H) -> 
     Hash = hash(H),
-    block_db:get(Hash).
+    block_db:read(Hash).
 %    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
 %    case db:read(BlockFile) of
 %        [] -> empty;
@@ -135,6 +136,7 @@ get_by_height(N) ->
     get_by_height_in_chain(N, headers:top_with_block()).
 get_by_height_in_chain(N, BH) when N > -1 ->
     Block = get_by_hash(hash(BH)),
+    %io:fwrite(packer:pack(Block)),
     case Block of
         empty ->
             PrevHash = BH#header.prev_hash,
@@ -616,14 +618,19 @@ initialize_chain() ->
     %{ok, L} = file:list_dir("blocks"),
     %B = length(L) < 1,
     B = true,
-    GB = if
-        B -> G = genesis_maker(),
-             block_absorber:do_save(G),
-             G;
-        true -> get_by_height(0)
-         end,
+    {GB, Bool} = if
+                     B -> G = genesis_maker(),
+                          %block_absorber:do_save(G, GH),
+                          {G, true};
+                     true -> {get_by_height(0), false}
+                 end,
     Header0 = block_to_header(GB),
-    gen_server:call(headers, {add, block:hash(Header0), Header0, 1}),
+    GH = block:hash(Header0),
+    if
+        Bool -> block_absorber:do_save(GB, GH);
+        true -> ok
+    end,
+    gen_server:call(headers, {add, GH, Header0, 1}),
     gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
 

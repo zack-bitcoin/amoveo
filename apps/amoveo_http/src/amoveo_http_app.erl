@@ -29,7 +29,8 @@ start_internal() ->
     {ok, Port} = application:get_env(amoveo_core, internal_port),
     {ok, _} = cowboy:start_http(http_internal, 100,
                                 [{ip, {127, 0, 0, 1}}, {port, Port}],
-                                [{env, [{dispatch, Dispatch}]}]),
+                                [{env, [{dispatch, Dispatch}]}]),%,
+    %{compress, true}]),
     ok.
 
 start_external() ->

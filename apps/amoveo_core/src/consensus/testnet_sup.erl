@@ -5,6 +5,7 @@
 %-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, infinity, Type, [I]}).
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 -define(keys, [sync_kill, sync_mode, keys, recent_blocks, block_hashes, 
+               block_db,
                headers, block_absorber, block_organizer, tx_pool, 
 	       peers, blacklist_peer, tx_pool_feeder, 
 	       mine, channel_manager, channel_feeder,
@@ -12,7 +13,8 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       arbitrage, order_book, oracle_questions, 
 	       tree_data, potential_block, my_ip, push_block,
 	       found_block_timer, vanity,
-	       block_reader, white_list, nc_sigs]).
+	       %block_reader, 
+               white_list, nc_sigs]).
 child_killer([]) -> [];
 child_killer([H|T]) -> 
     supervisor:terminate_child(testnet_sup, H),

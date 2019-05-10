@@ -9,6 +9,7 @@
 -define(LOC, constants:block_hashes()).
 init(ok) -> 
     process_flag(trap_exit, true),
+    io:fwrite("start block_hashes\n"),
     X = db:read(?LOC),
     K = if
 	    X == "" -> #d{set = i_new()};

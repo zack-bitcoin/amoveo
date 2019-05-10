@@ -4,7 +4,7 @@
 -export([recover/1,
 	 check/0,
 	 save/1,    %% returns after saving
-	 do_save/1]). %% run without gen_server
+	 do_save/2]). %% run without gen_server
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 init(ok) -> {ok, now()}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -26,7 +26,7 @@ save([]) -> ok;
 save([T]) -> save(T);
 save([B|T]) -> save(B), save(T);
 save(X) -> 
-    %io:fwrite("block absorber \n"),
+    %io:fwrite("block_absorber:save \n"),
     case sync:status() of
 	go ->
 	    gen_server:call(?MODULE, {doit, X}, 10000);
@@ -90,7 +90,7 @@ absorb_internal(Block) ->
 		    %io:fwrite("\n"),
 		    %0.3 0.09 0.1 0.08
 		    %headers:absorb([H]),
-		    %io:fwrite("block absorber 2\n"),
+                    %io:fwrite("block absorber 2\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 		    {true, Block2} = block:check(Block),%writing new block's data into the consensus state merkle trees.
@@ -98,7 +98,7 @@ absorb_internal(Block) ->
 		    %io:fwrite("block absorber 3\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
-		    do_save(Block2),%0.02
+		    do_save(Block2, BH),%0.02
 		    %io:fwrite("block absorber 4\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
@@ -162,9 +162,9 @@ absorb_internal(Block) ->
 		    Header
 	    end
     end.
-do_save(BlockPlus) ->
+do_save(BlockPlus, BH) ->
     %found_block_timer:add(),%put it into headers instead.
-    block_db:put(BlockPlus).
+    block_db:write(BlockPlus, BH).
 %CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
 %    Hash = block:hash(BlockPlus),
 %    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),

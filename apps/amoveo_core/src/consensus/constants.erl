@@ -58,8 +58,10 @@ root() -> custom_root() ++ "data/".
 nc_sigs() -> root() ++ "nc_sigs.db".
 headers_file() -> root() ++ "headers.db".
 block_hashes() -> root() ++ "block_hashes.db".
+block_db_dict() -> root() ++ "block_db_dict.db".
 top() -> root() ++ "top.db".
 recent_blocks() -> root() ++ "recent_blocks.db".
+blocks_file2() -> root() ++ "blocks.db".
 blocks_file() -> custom_root() ++ "blocks/".
 
 scripts_root() -> "lib/amoveo_core-0.1.0/priv/".
