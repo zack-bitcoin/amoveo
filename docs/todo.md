@@ -1,3 +1,7 @@
+update dump:file_manager ram version to use ets and be faster.
+
+
+
 working on a hard update
 * test channel_team_close_tx2.
 * test resyncing all blocks.

@@ -44,10 +44,10 @@ absorb_internal(Block) ->
     %io:fwrite("\n"), 
     if
 	Height > (MyHeight + 1) ->
-	    io:fwrite("too high"),
+	    %io:fwrite("too high"),
             0;
 	Height < (MyHeight - 300) ->
-	    io:fwrite("too low"),
+	    %io:fwrite("too low"),
             0;
 	true ->
 	    {_, _, BH} = Block#block.trees,
@@ -152,7 +152,7 @@ absorb_internal(Block) ->
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 		    if
-			(Block2#block.height rem 10) == 0 ->
+			(Block2#block.height rem 100) == 0 ->
 			%1 == 1 ->
 			    io:fwrite("absorb block "),
 			    io:fwrite(integer_to_list(Block2#block.height)),

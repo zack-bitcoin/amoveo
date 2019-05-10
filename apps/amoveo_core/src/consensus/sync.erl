@@ -7,7 +7,7 @@
 	 trade_peers/1, cron/0, shuffle/1]).
 -include("../records.hrl").
 -define(HeadersBatch, application:get_env(amoveo_core, headers_batch)).
--define(tries, 200).%20 tries per second. 
+-define(tries, 300).%20 tries per second. 
 -define(Many, 1).%how many to sync with per calling `sync:start()`
 %so if this is 400, that means we have 20 seconds to download download_block_batch * download_block_many blocks
 init(ok) -> 
@@ -215,52 +215,71 @@ get_blocks(Peer, N, Tries, Time, TheirBlockHeight) ->
     %io:fwrite("syncing. use `sync:stop().` if you want to stop syncing.\n"),
     {ok, BB} = application:get_env(amoveo_core, download_blocks_batch),
     {ok, BM} = application:get_env(amoveo_core, download_blocks_many),
-    timer:sleep(150),
+    timer:sleep(300),
     go = sync_kill:status(),
     Height = block:height(),
     AHeight = api:height(),
     if
 	Height == AHeight -> ok;%done syncing
-	((Time == second) and (N > Height + (BM * BB))) ->%This uses up 10 * BB * block_size amount of ram.
+	((Time == second) and (N > (1 + Height + (BM * BB)))) ->%This uses up 10 * BB * block_size amount of ram.
             %io:fwrite("sync get blocks weird \n"),
             %io:fwrite(packer:pack([N, Height, BM, BB])),
             %io:fwrite("\n"),
 	    get_blocks(Peer, N, Tries-1, second, TheirBlockHeight);
 	true ->
-	    io:fwrite("another get_blocks thread\n"),
+	    %io:fwrite("another get_blocks thread "),
+            %io:fwrite(integer_to_list(N)),
+	    %io:fwrite("\n"),
 	    Many = min(BB, TheirBlockHeight - N + 1),
 	    spawn(fun() ->
-			  get_blocks2(Many, N, Peer, 5)
+                          %get_blocks2(TheirBlockHeight, Many, N, Peer, 5)
+                          get_blocks2(TheirBlockHeight, Many, N, Peer, 1)
 		  end),
-	    timer:sleep(100),
+	    %timer:sleep(100),
 	    if
 		Many == BB ->
 		    get_blocks(Peer, N+BB, ?tries, second, TheirBlockHeight);
 		true -> ok
 	    end
     end.
-get_blocks2(_BB, _N, _Peer, 0) ->
+get_blocks2(_, _BB, _N, _Peer, 0) ->
     %io:fwrite("get_blocks2 failed\n"),
     ok;
-get_blocks2(BB, N, Peer, Tries) ->
+get_blocks2(TheirBlockHeight, BB, N, Peer, Tries) ->
     %N should not be above our current height.
+    BH0 = block:height(),
+    true = BH0 < (N+1),
     %io:fwrite("get blocks 2\n"),
     go = sync_kill:status(),
+    BD = N+1 - BH0,
+    if
+        BD < 300 ->
+            timer:sleep(2000);
+        true ->
+            timer:sleep(200)
+    end,
+    BH = block:height(),
+    %io:fwrite(packer:pack([BH, N+1])),
+    %io:fwrite("\n"),
+    true = BH < (N+1),
+    %io:fwrite("get blocks 2, download blocks\n"),
+    %io:fwrite(integer_to_list(N)),
+    %io:fwrite("\n"),
     Blocks = talker:talk({blocks, BB, N}, Peer),
-    io:fwrite("got blocks \n"),
-    io:fwrite(packer:pack([BB, N])),%1 16
-    io:fwrite("\n"),
-    %io:fwrite(packer:pack(Blocks)),%50 1000
+    BH2 = block:height(),
+    true = BH2 < (N+1),
+    %io:fwrite("get blocks 2, sync blocks\n"),
+    %io:fwrite(integer_to_list(N)),
     %io:fwrite("\n"),
     go = sync_kill:status(),
     Sleep = 600,
     case Blocks of
 	{error, _} -> 
-	    %io:fwrite("get blocks 2 failed connect error\n"),
+	    io:fwrite("get blocks 2 failed connect error\n"),
 	    %io:fwrite(packer:pack([BB, N, Peer, Tries])),
-	    %io:fwrite("\n"),
+	    io:fwrite("\n"),
 	    timer:sleep(Sleep),
-	    get_blocks2(BB, N, Peer, Tries - 1);
+	    get_blocks2(TheirBlockHeight, BB, N, Peer, Tries - 1);
 	bad_peer -> 
 	    %io:fwrite("get blocks 2 failed connect bad peer\n"),
 	    %io:fwrite(packer:pack([BB, N, Peer, Tries])),
@@ -273,12 +292,41 @@ get_blocks2(BB, N, Peer, Tries) ->
                 is_list(Bs) ->
                     block_organizer:add(Bs);
                 true ->
-                    {ok, Bs2} = Bs,
+                    %{ok, Bs2} = Bs,
                     %io:fwrite("blocks are "),
-                    Dict = binary_to_term(zlib:uncompress(Bs2)),
-                    io:fwrite(packer:pack(dict:fetch(hd(dict:fetch_keys(Dict)), Dict))),
-                    io:fwrite("\n"),
-                    block_organizer:add(low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)))
+                    %sync_kill:stop(),
+                    Dict = binary_to_term(zlib:uncompress(Bs)),
+                    %io:fwrite(packer:pack(dict:fetch(hd(dict:fetch_keys(Dict)), Dict))),
+                    %io:fwrite("\n"),
+                    L = low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)),
+                    S = length(L),
+                    Cores = 1,
+                    S2 = S div Cores,
+                    CurrentHeight = block:height(),
+                    %io:fwrite("get blocks 2, sync blocks part 2\n"),
+                    %io:fwrite(integer_to_list(N)),
+                    %io:fwrite("\n"),
+                    split_add(S2, Cores, L),
+                    %timer:sleep(500),
+                    %sync_kill:start(),
+                    %CurrentHeight = block:height(),
+
+                    %wait_do(fun() ->
+                    %                CurrentHeight = block:height(),
+                    %                (N + length(L)) < (CurrentHeight + 2000)
+                    %        end,
+                    %        fun() ->
+                    %                get_blocks2(TheirBlockHeight, BB, N + length(L)+1, Peer, 1)
+                    %        end,
+                    %        50),
+                    if
+                    %    true -> ok;
+                        ((N + length(L)) < (CurrentHeight + 3000)) ->
+                            get_blocks2(TheirBlockHeight, BB, N + length(L)+1, Peer, 5);
+                        true -> ok
+                    end
+
+                        %block_organizer:add(L)
                     %timer:sleep(10000)
                     
                         %io:fwrite("\n"),
@@ -286,6 +334,21 @@ get_blocks2(BB, N, Peer, Tries) ->
             end;
 	_ -> block_organizer:add(Blocks)
     end.
+wait_do(FB, F, T) ->
+    B = FB(),
+    if
+        B -> F();
+        true ->
+            timer:sleep(T),
+            wait_do(FB, F, T)
+    end.
+             
+split_add(_, 1, L) -> block_organizer:add(L);
+split_add(S, N, L) ->
+    {L1, L2} = lists:split(S, L),
+    block_organizer:add(L1),
+    split_add(S, N-1, L2).
+    
 dict_to_blocks([], _) -> [];
 dict_to_blocks([H|T], D) ->
     B = dict:fetch(H, D),
@@ -340,7 +403,8 @@ list_headers([H|T], N) ->
 	    list_headers([H2|[H|T]], N-1)
     end.
 push_new_block(Block) ->
-    %keep giving this block to random peers until 1/2 the people you have contacted already know about it. Don't talk to the same peer multiple times.
+    %keep giving this block to random peers until 1/2 the people you have cont
+    %acted already know about it. Don't talk to the same peer multiple times.
     Peers0 = peers:all(),
     Peers = remove_self(Peers0),
     Hash = block:hash(Block),

@@ -22,13 +22,13 @@ child_killer([H|T]) ->
 stop() -> child_killer(?keys).
 child_maker([]) -> [];
 child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].
-tree_child(Id, KeySize, Size) ->
-    tree_child(Id, KeySize, Size, 0).
-tree_child(Id, KeySize, Size, Meta) ->
+%tree_child(Id, KeySize, Size) ->
+%    tree_child(Id, KeySize, Size, 0, hd, 1000000).
+tree_child(Id, KeySize, Size, Meta, Mode, TrieSize) ->
+    true = ((Mode == ram) or (Mode == hd)),
     Location = constants:custom_root(),
-    {ok, Amount} = application:get_env(amoveo_core, trie_size),
     Sup = list_to_atom(atom_to_list(Id) ++ "_sup"),
-    {Sup, {trie_sup, start_link, [KeySize, Size, Id, Amount, Meta, constants:hash_size(), hd, Location]}, permanent, 5000, supervisor, [trie_sup]}.
+    {Sup, {trie_sup, start_link, [KeySize, Size, Id, TrieSize, Meta, constants:hash_size(), Mode, Location]}, permanent, 5000, supervisor, [trie_sup]}.
 init([]) ->
     KL = constants:key_length(), 
     HS = constants:hash_size(),
@@ -38,16 +38,18 @@ init([]) ->
     Children = child_maker(?keys),
     HB = constants:height_bits(),
     %DB = constants:difficulty_bits(),
+    {ok, TrieSize} = application:get_env(amoveo_core, trie_size),
+    Mode = hd,
     Tries = [
-	     tree_child(accounts, HS, constants:account_size(), KL div 8),
-	     tree_child(channels, HS, constants:channel_size()),
-	     tree_child(existence, HS, HS + (HB div 8)),
-	     tree_child(oracles, HS, (((HB*2) div 8) + 4 + (3*HS)) + PS, (KL div 8)),
-	     tree_child(orders, HS, ((BB div 8) + (PS * 2))),
-	     tree_child(oracle_bets, HS, (HS + (3 * BB div 8))),
-	     tree_child(governance, 8, 4, 0),
-	     tree_child(matched, HS, (HS + PS + (3 * BB div 8))),
-	     tree_child(unmatched, HS, (HS + PS + PS + (BB div 8)))
+	     tree_child(accounts, HS, constants:account_size(), KL div 8, Mode, TrieSize),
+	     tree_child(channels, HS, constants:channel_size(), 0, Mode, TrieSize),
+	     tree_child(existence, HS, HS + (HB div 8), 0, Mode, 10000),
+	     tree_child(oracles, HS, (((HB*2) div 8) + 4 + (3*HS)) + PS, (KL div 8), Mode, 10000),
+	     tree_child(orders, HS, ((BB div 8) + (PS * 2)), 0, Mode, 10000),
+	     tree_child(oracle_bets, HS, (HS + (3 * BB div 8)), 0, Mode, 10000),
+	     tree_child(governance, 8, 4, 0, Mode, 5000),
+	     tree_child(matched, HS, (HS + PS + (3 * BB div 8)), 0, Mode, 10000),
+	     tree_child(unmatched, HS, (HS + PS + PS + (BB div 8)), 0, Mode, 10000)
 	    ],
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 
