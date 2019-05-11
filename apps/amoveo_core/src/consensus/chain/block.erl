@@ -96,7 +96,11 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
     end.
 get_by_hash(H) -> 
     Hash = hash(H),
-    block_db:read(Hash).
+    case block_db:read(Hash) of
+        error -> empty;
+        X -> X
+    end.
+            
 %    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
 %    case db:read(BlockFile) of
 %        [] -> empty;

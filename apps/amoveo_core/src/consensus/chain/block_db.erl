@@ -2,6 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
          read/1, read/2, write/2,
+         uncompress/1, compress/1,
          check/0,
          test/0]).
 -define(LOC, constants:block_db_dict()).
@@ -56,7 +57,7 @@ handle_call({read, Hash}, _From, X) ->
                     is_integer(N) -> %block on the hard drive.
                         {Loc, Size} = dict:fetch(N, X#d.pages),
                         {ok, Data} = read_page(Loc, Size, X#d.blocks_hd),
-                        P = binary_to_term(zlib:uncompress(Data)),
+                        P = uncompress(Data),
                         dict:fetch(Hash, P);
                     true -> N %a block in ram
                 end
@@ -88,10 +89,24 @@ read_page(Loc, Size, File) ->
     file:pread(File, Loc, Size).
 write_page(Dict, X) ->
     B = X#d.hd_bytes,
-    Data = zlib:compress(term_to_binary(Dict)),
+    Data = compress(Dict),
     S = size(Data),
     file:pwrite(X#d.blocks_hd, B, Data),
     {B, S}.
+
+compress(X) ->
+    S = zlib:open(),
+    zlib:deflateInit(S, 9),
+    B1 = zlib:deflate(S, term_to_binary(X)),
+    B2 = zlib:deflate(S, <<>>, finish),
+    %zlib:compress(term_to_binary(X)).
+    list_to_binary([B1, B2]).
+uncompress(X) ->
+    S = zlib:open(),
+    zlib:inflateInit(S),
+    binary_to_term(list_to_binary(zlib:inflate(S, X))).
+    %binary_to_term(zlib:uncompress(X)).
+    
             
 
 % * starting from the head, walk backwards FT steps. everything earlier than that block is going to the hd.
@@ -181,7 +196,7 @@ test() ->
     X = #d{blocks_hd = F},
     {Loc, Size} = write_page(NewDict, X),
     {ok, Data} = read_page(Loc, Size, X#d.blocks_hd),
-    NewDict = binary_to_term(zlib:uncompress(Data)).
+    uncompress(Data).
     
 
 
@@ -235,7 +250,7 @@ read(Hash) ->
             BlockFile = binary_to_file_path(blocks, Hash),
             case db:read(BlockFile) of
                 [] -> empty;
-                Block -> binary_to_term(zlib:uncompress(Block))
+                Block -> uncompress(Block)
             end;
         new ->
             gen_server:call(?MODULE, {read, Hash})
@@ -244,7 +259,7 @@ read(Hash) ->
 write(Block, Hash) ->
     case ?version of
         old ->
-            CompressedBlockPlus = zlib:compress(term_to_binary(Block)),
+            CompressedBlockPlus = compress(Block),
                                                 %Hash = block:hash(Block),
             BlockFile = binary_to_file_path(blocks, Hash),
             ok = db:save(BlockFile, CompressedBlockPlus);

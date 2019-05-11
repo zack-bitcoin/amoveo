@@ -137,7 +137,9 @@ absorb_internal(Block) ->
 			    order_book:match();
 			    %sync:push_new_block(Block2);
 			quick -> 
-			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),%garbage collection
+                            spawn(fun() ->
+                                          recent_blocks:add(BH, Header#header.accumulative_difficulty, Height)%garbage collection
+                                  end),
 			    %0.45 0.4 0.3
 			    %io:fwrite("block absorber 6\n"),
 			    %io:fwrite(packer:pack(erlang:timestamp())),

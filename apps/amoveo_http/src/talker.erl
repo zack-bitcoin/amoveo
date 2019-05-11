@@ -11,7 +11,7 @@ talk(Msg, {IP, Port}) ->
     talk(Msg, build_string_peer(IP, Port));
 
 talk(Msg, Peer) ->
-    talk_helper(Msg, Peer, ?RETRY, 20000).
+    talk_helper(Msg, Peer, ?RETRY, 60000).
 
 talk(Msg, IP, Port) ->
     talk(Msg, build_string_peer(IP, Port)).

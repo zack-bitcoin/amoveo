@@ -16,7 +16,7 @@ start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("sync died!\n"), ok.
 handle_info(_, X) -> {noreply, X}.
-%handle_cast(start, _) -> {noreply, go};
+handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
     BL = case application:get_env(amoveo_core, kind) of
@@ -232,10 +232,10 @@ get_blocks(Peer, N, Tries, Time, TheirBlockHeight) ->
 	    %io:fwrite("\n"),
 	    Many = min(BB, TheirBlockHeight - N + 1),
 	    spawn(fun() ->
-                          %get_blocks2(TheirBlockHeight, Many, N, Peer, 5)
-                          get_blocks2(TheirBlockHeight, Many, N, Peer, 1)
+                          get_blocks2(TheirBlockHeight, Many, N, Peer, 5)
+                          %get_blocks2(TheirBlockHeight, Many, N, Peer, 1)
 		  end),
-	    %timer:sleep(100),
+	    timer:sleep(100),
 	    if
 		Many == BB ->
 		    get_blocks(Peer, N+BB, ?tries, second, TheirBlockHeight);
@@ -247,26 +247,29 @@ get_blocks2(_, _BB, _N, _Peer, 0) ->
     ok;
 get_blocks2(TheirBlockHeight, BB, N, Peer, Tries) ->
     %N should not be above our current height.
+    %BH0 = block_organizer:top(),
     BH0 = block:height(),
     true = BH0 < (N+1),
-    %io:fwrite("get blocks 2\n"),
+    io:fwrite("get blocks 2\n"),
     go = sync_kill:status(),
     BD = N+1 - BH0,
     if
-        BD < 300 ->
-            timer:sleep(2000);
-        true ->
-            timer:sleep(200)
+        BD < 300 -> %ok;
+            timer:sleep(0);
+        true -> %ok
+            timer:sleep(300)
     end,
     BH = block:height(),
-    %io:fwrite(packer:pack([BH, N+1])),
-    %io:fwrite("\n"),
+    %BH = block_organizer:top(),
+    io:fwrite(packer:pack([BH, N+1])),
+    io:fwrite("\n"),
     true = BH < (N+1),
-    %io:fwrite("get blocks 2, download blocks\n"),
-    %io:fwrite(integer_to_list(N)),
-    %io:fwrite("\n"),
+    io:fwrite("get blocks 2, download blocks\n"),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite("\n"),
     Blocks = talker:talk({blocks, BB, N}, Peer),
     BH2 = block:height(),
+    %BH2 = block_organizer:top(),
     true = BH2 < (N+1),
     %io:fwrite("get blocks 2, sync blocks\n"),
     %io:fwrite(integer_to_list(N)),
@@ -281,10 +284,12 @@ get_blocks2(TheirBlockHeight, BB, N, Peer, Tries) ->
 	    timer:sleep(Sleep),
 	    get_blocks2(TheirBlockHeight, BB, N, Peer, Tries - 1);
 	bad_peer -> 
-	    %io:fwrite("get blocks 2 failed connect bad peer\n"),
+	    io:fwrite("get blocks 2 failed connect bad peer\n"),
 	    %io:fwrite(packer:pack([BB, N, Peer, Tries])),
-	    %io:fwrite("\n"),
-	    1=2;
+	    io:fwrite("\n"),
+	    timer:sleep(Sleep),
+	    get_blocks2(TheirBlockHeight, BB, N, Peer, Tries - 1);
+	    %1=2;
 	    %timer:sleep(Sleep),
 	    %get_blocks2(BB, N, Peer, Tries - 1);
 	{ok, Bs} -> 
@@ -293,36 +298,42 @@ get_blocks2(TheirBlockHeight, BB, N, Peer, Tries) ->
                     block_organizer:add(Bs);
                 true ->
                     %{ok, Bs2} = Bs,
-                    %io:fwrite("blocks are "),
+                    io:fwrite("got blocks "),
+                    io:fwrite(integer_to_list(N)),
+                    io:fwrite("\n"),
                     %sync_kill:stop(),
-                    Dict = binary_to_term(zlib:uncompress(Bs)),
+                    %Dict = binary_to_term(zlib:uncompress(Bs)),
+                    Dict = block_db:uncompress(Bs),
                     %io:fwrite(packer:pack(dict:fetch(hd(dict:fetch_keys(Dict)), Dict))),
                     %io:fwrite("\n"),
                     L = low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)),
+                    %spawn(fun() ->
+                    %              block_organizer:add(L)
+                    %      end),
                     S = length(L),
                     Cores = 1,
                     S2 = S div Cores,
-                    CurrentHeight = block:height(),
+                    %CurrentHeight = block:height(),
                     %io:fwrite("get blocks 2, sync blocks part 2\n"),
                     %io:fwrite(integer_to_list(N)),
                     %io:fwrite("\n"),
                     split_add(S2, Cores, L),
                     %timer:sleep(500),
                     %sync_kill:start(),
-                    %CurrentHeight = block:height(),
-
-                    %wait_do(fun() ->
-                    %                CurrentHeight = block:height(),
-                    %                (N + length(L)) < (CurrentHeight + 2000)
-                    %        end,
-                    %        fun() ->
-                    %                get_blocks2(TheirBlockHeight, BB, N + length(L)+1, Peer, 1)
-                    %        end,
-                    %        50),
+                    CurrentHeight = block:height(),
+                    wait_do(fun() ->
+                                    (N + length(L)) < (block:height() + 8000)
+                            end,
+                            fun() ->
+                                    %io:fwrite("wait do call \n"),
+                                    get_blocks2(TheirBlockHeight, BB, N + length(L)+1, Peer, 5)
+                            end,
+                            50),
+                    CurrentHeight = block:height(),
                     if
-                    %    true -> ok;
-                        ((N + length(L)) < (CurrentHeight + 3000)) ->
-                            get_blocks2(TheirBlockHeight, BB, N + length(L)+1, Peer, 5);
+                        true -> ok;
+                        ((N + length(L)) < (CurrentHeight + 5000)) ->
+                            get_blocks2(TheirBlockHeight, BB, N + length(L)+100, Peer, 5);
                         true -> ok
                     end
 
@@ -332,12 +343,18 @@ get_blocks2(TheirBlockHeight, BB, N, Peer, Tries) ->
                         %io:fwrite("\n"),
                     %block_organizer:add(binary_to_term(zlib:uncompress(Bs2)))
             end;
-	_ -> block_organizer:add(Blocks)
+	_ -> 
+            io:fwrite("bad unused"),
+            1=2,
+            block_organizer:add(Blocks)
     end.
 wait_do(FB, F, T) ->
+    go = sync_kill:status(),
     B = FB(),
     if
-        B -> F();
+        B -> 
+            %io:fwrite("wait do done waiting \n"),
+            F();
         true ->
             timer:sleep(T),
             wait_do(FB, F, T)
