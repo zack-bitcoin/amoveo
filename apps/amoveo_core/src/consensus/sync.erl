@@ -250,23 +250,23 @@ get_blocks2(TheirBlockHeight, BB, N, Peer, Tries) ->
     %BH0 = block_organizer:top(),
     BH0 = block:height(),
     true = BH0 < (N+1),
-    io:fwrite("get blocks 2\n"),
+    %io:fwrite("get blocks 2\n"),
     go = sync_kill:status(),
     BD = N+1 - BH0,
     if
         BD < 300 -> %ok;
             timer:sleep(0);
         true -> %ok
-            timer:sleep(300)
+            timer:sleep(1500)
     end,
     BH = block:height(),
     %BH = block_organizer:top(),
-    io:fwrite(packer:pack([BH, N+1])),
-    io:fwrite("\n"),
+    %io:fwrite(packer:pack([BH, N+1])),
+    %io:fwrite("\n"),
     true = BH < (N+1),
-    io:fwrite("get blocks 2, download blocks\n"),
-    io:fwrite(integer_to_list(N)),
-    io:fwrite("\n"),
+    %io:fwrite("get blocks 2, download blocks\n"),
+    %io:fwrite(integer_to_list(N)),
+    %io:fwrite("\n"),
     Blocks = talker:talk({blocks, BB, N}, Peer),
     BH2 = block:height(),
     %BH2 = block_organizer:top(),
@@ -298,9 +298,9 @@ get_blocks2(TheirBlockHeight, BB, N, Peer, Tries) ->
                     block_organizer:add(Bs);
                 true ->
                     %{ok, Bs2} = Bs,
-                    io:fwrite("got blocks "),
-                    io:fwrite(integer_to_list(N)),
-                    io:fwrite("\n"),
+                    %io:fwrite("got blocks "),
+                    %io:fwrite(integer_to_list(N)),
+                    %io:fwrite("\n"),
                     %sync_kill:stop(),
                     %Dict = binary_to_term(zlib:uncompress(Bs)),
                     Dict = block_db:uncompress(Bs),

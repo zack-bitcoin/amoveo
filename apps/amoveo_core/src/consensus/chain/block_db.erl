@@ -99,12 +99,15 @@ compress(X) ->
     zlib:deflateInit(S, 9),
     B1 = zlib:deflate(S, term_to_binary(X)),
     B2 = zlib:deflate(S, <<>>, finish),
+    zlib:close(S),
     %zlib:compress(term_to_binary(X)).
     list_to_binary([B1, B2]).
 uncompress(X) ->
     S = zlib:open(),
     zlib:inflateInit(S),
-    binary_to_term(list_to_binary(zlib:inflate(S, X))).
+    Y = binary_to_term(list_to_binary(zlib:inflate(S, X))),
+    zlib:close(S),
+    Y.
     %binary_to_term(zlib:uncompress(X)).
     
             

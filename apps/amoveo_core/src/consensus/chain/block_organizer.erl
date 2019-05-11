@@ -84,7 +84,7 @@ add3(Blocks)->
 add4(Blocks) ->
     spawn(fun() ->
                   S = "block organizer add4, height: " ++ (integer_to_list(element(2, hd(Blocks)))) ++ ("\n"),
-                  io:fwrite(S),
+                  %io:fwrite(S),
                   %io:fwrite(packer:pack(hd(Blocks))),
                   %io:fwrite("\n"),
                   %io:fwrite(integer_to_list(element(2, hd(Blocks)))),
