@@ -1,5 +1,33 @@
+in amoveo_p2p_derivatives oracles are getting listed mor than once.
+
+
+in the new website, when we diplay a channel offer, we should include a link so that if someone wants to accept the channel offer they can go directly to otc_listener to accept it.
+
+https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/using_oracle.md
+give some explanation for choosing a good range of values to measure.
+
+glossary long-veo/stablecoin on otc_derivatives and otc_listener
+
+block:get_by_height_in_chain should only be used if we are looking up something in the recent blocks that are all in ram. If it is older than that, then our new way of storing blocks should let us immediately load up the range of blocks that we care about. This means we can remove the prev_hash data from the block before storing it in a compressed block on the hard drive.
+
+start closing some oracles
+
+the website for channel offers should display active oracles in an organized way. add a link to this page from otc_derivatives.
+
+in otc_derivatives, if the oracle is invalid, post some warnings right away instead of waiting for them to fill out the rest of the form.
+
+in otc_derivatives instead of saying "the current price", say "the price to trade at"
+
+
+add a note to the new_oracle.js page explaining how much it costs for binary and scalar oracles.
+
+
+add an api request so that we can know if the node is storing the blocks in the new way, so we can use an alternative syncing protocol.
+
+
 update dump:file_manager ram version to use ets and be faster.
 
+sharding.
 
 
 working on a hard update

@@ -23,26 +23,27 @@
                  nonce,
                  accumulative_difficulty = 0,
                  period}).
--record(block, {height,
-                prev_hash,
-                trees_hash,
-                time,
-                difficulty,
-                period,
-                version,
-                nonce = 0,
+%things needed for long-term storage
+-record(block, {height,%LTS
+                prev_hash,%LTS
+                trees_hash,%LTS
+                time,%LTS
+                difficulty,%LTS
+                period,%LTS
+                version,%LTS
+                nonce = 0,%LTS
                 trees,
-                txs,
+                txs,%LTS
                 prev_hashes = {prev_hashes},
-                proofs = [],
+                proofs = [],%LTS
                 roots,
                 hash = <<>>,
-		market_cap = 0,
-		channels_veo = 0,
-		live_channels = 0,
-		many_accounts = 1,
-		many_oracles = 0,
-		live_oracles = 0}).
+		market_cap = 0,%LTS
+		channels_veo = 0,%LTS
+		live_channels = 0,%LTS
+		many_accounts = 1,%LTS
+		many_oracles = 0,%LTS
+		live_oracles = 0}).%LTS
 
 %cd is the channel data for one channel.
 -record(cd, {me = [], %me is the highest-nonced SPK signed by this node.

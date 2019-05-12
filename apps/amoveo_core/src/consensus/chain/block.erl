@@ -442,7 +442,7 @@ proofs_roots_match([P|T], R) when is_record(R, roots2)->
 check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,
     Header = block_to_header(Block),
-    BlockHash = hash(Block),
+    BlockHash = hash(Header),
     {ok, Header} = headers:read(BlockHash),
     Roots = Block#block.roots,
     PrevStateHash = roots_hash(Roots),
