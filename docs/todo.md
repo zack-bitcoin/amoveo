@@ -1,22 +1,13 @@
-in amoveo_p2p_derivatives oracles are getting listed mor than once.
-
-
-in the new website, when we diplay a channel offer, we should include a link so that if someone wants to accept the channel offer they can go directly to otc_listener to accept it.
-
-https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/using_oracle.md
-give some explanation for choosing a good range of values to measure.
+in amoveo_p2p_derivatives oracles are getting listed more than once.
 
 glossary long-veo/stablecoin on otc_derivatives and otc_listener
 
-block:get_by_height_in_chain should only be used if we are looking up something in the recent blocks that are all in ram. If it is older than that, then our new way of storing blocks should let us immediately load up the range of blocks that we care about. This means we can remove the prev_hash data from the block before storing it in a compressed block on the hard drive.
 
 start closing some oracles
 
-the website for channel offers should display active oracles in an organized way. add a link to this page from otc_derivatives.
+the website for channel offers should display active oracles in an organized way. 
 
 in otc_derivatives, if the oracle is invalid, post some warnings right away instead of waiting for them to fill out the rest of the form.
-
-in otc_derivatives instead of saying "the current price", say "the price to trade at"
 
 
 add a note to the new_oracle.js page explaining how much it costs for binary and scalar oracles.
@@ -30,33 +21,18 @@ update dump:file_manager ram version to use ets and be faster.
 sharding.
 
 
-working on a hard update
-* test channel_team_close_tx2.
-* test resyncing all blocks.
-
-
 
 update chain/block_db.erl to store multiple blocks per file so that we don't waste space by having each file be only a fraction of a page.
-* lets store all the blocks in one big file, and have a dictionary to match block hashes to locations and sizes in the file.
-* continue storing recent blocks one per file, or just keep them in ram.
-* use dump:file_manager for example code.
-* in sync.erl we use `talker:talk({blocks, BB, N}, Peer)`. We need to be able to check if the response is compressed, and decompress it.
-* in block_db:read/2 we should compress the blocks before returning them.
+* api so peers can ask how you store blocks.
+* sync.erl should work differently if they store the blocks the new way.
+* block:get_by_height_in_chain should only be used if we are looking up something in the recent blocks that are all in ram. If it is older than that, then our new way of storing blocks should let us immediately load up the range of blocks that we care about. This means we can remove the prev_hash data from the block before storing it in a compressed block on the hard drive.
 
 
 
-*this is already done, we need to reflect on it a little more before activating it.
-in new_channel we should do a hard update so that the nonce is not used. That way a person can make multiple channel offers from a single address.
-instead it should have something like nlocktime to prevent the channel from being re-made.
-The new_channel tx can't get replayed because the channel ID is already consumed.
-This means the nlocktime feature should be mandatory, not optional.
-We need to update otc_finisher so that it will refuse to close a channel until the nlocktime from the tx that created it has passed.
-
+working on a hard update 17 included https://github.com/zack-bitcoin/amoveo/issues/243
 
 
 in the light node update from bigInt js library to the BigInt built in the browser.
-
-amoveo p2p derivatives explorer
 
 
 another button in otc_derivatives, this one for using oracles to make an inverse stablecoin.
@@ -69,6 +45,9 @@ people want shorts in holo/rvn/abbc
 
 otc_listener should display the channel ID.
 
+
+new_oracle should make some standard format for oracles so that we can easily parse the oracle question and other tools can say if it is a USD stablecoin, or a BTC stablecoin, or whatever.
+It could translate block heights to dates.
 new_oracle page simplification.
 We only ask for: 3-letter ticker, maturity data, and max price, short/long
 Then the oracle question will be more standardized, so we can parse it easier at other steps.

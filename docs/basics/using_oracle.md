@@ -6,6 +6,13 @@ binary oracle: `Trump won the 2020 election.`
 
 scalar oracle to make an asset that moves the same as USD: `P = the price of USD in VEO from 0 to 0.05 on January 1, 2019, at 5:00 AM GMT; return P * 1024 / 0.05`
 
+When making a scalar oracle you have to choose a range of values that can be measured, this is because a scalar oracle is actually 10 binary oracles, each of which is providing one bit of the scalar value. So a scalar oracle can only measure integer values from 0 to 1023. You need to choose a good range to measure, that way the difference between 2 values that can be measured is small for the range of expected outputs.
+For example, if the oracle is set to measure from 0 to 0.05, and the value measured is 0.00025, then that means the scalar is internally using the binary value 0000000101
+Which is 20% different from the 2 adjacent values 0000000100 and 0000000110.
+20% difference between 2 adjacent measurable values isnt so good, that means on average the oracle's output is being rounded by 5%, so the money will be divided 5% differently than had been intended.
+So this is why it is important to choose a good range of values to measure when making an oracle.
+
+
 scalar oracle to make an asset that moves inversely to Amazon shares:
 `P = the price of amazon in veo from 0 to 20 on January 1, 2019, at 4:00 AM GMT; return (20 - P) * 1024 / 20`
 
