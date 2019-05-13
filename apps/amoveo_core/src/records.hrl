@@ -36,7 +36,7 @@
                 txs,%LTS
                 prev_hashes = {prev_hashes},
                 proofs = [],%LTS
-                roots,
+                roots,%LTS
                 hash = <<>>,
 		market_cap = 0,%LTS
 		channels_veo = 0,%LTS

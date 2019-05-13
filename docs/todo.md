@@ -1,4 +1,8 @@
-in amoveo_p2p_derivatives oracles are getting listed more than once.
+Eric Aresenault send info saying that otc_listener is failing to match trades. we should test it.
+
+make a futarchy market to show that the hard update is good.
+
+
 
 glossary long-veo/stablecoin on otc_derivatives and otc_listener
 
@@ -21,11 +25,8 @@ update dump:file_manager ram version to use ets and be faster.
 sharding.
 
 
-
 update chain/block_db.erl to store multiple blocks per file so that we don't waste space by having each file be only a fraction of a page.
-* api so peers can ask how you store blocks.
 * sync.erl should work differently if they store the blocks the new way.
-* block:get_by_height_in_chain should only be used if we are looking up something in the recent blocks that are all in ram. If it is older than that, then our new way of storing blocks should let us immediately load up the range of blocks that we care about. This means we can remove the prev_hash data from the block before storing it in a compressed block on the hard drive.
 
 
 

@@ -2,14 +2,17 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
          read/1, read/2, write/2,
+         read_by_height/1,
          uncompress/1, compress/1,
-         check/0,
+         check/0, by_height_from_compressed/2,
+         ram_height/0,
          test/0]).
+-include("../../records.hrl").
 -define(LOC, constants:block_db_dict()).
 -define(blocks_loc, constants:blocks_file2()).
--define(ram_limit, 20000000).%20 megabytes
+%-define(ram_limit, 20000000).%20 megabytes
+%-define(ram_limit, 200000).%200 kilobytes
 %-define(ram_limit, 10000).
--define(version, old).
 -record(d, {dict = dict:new(), 
             many_blocks = 0,
             page_number = 0,
@@ -48,6 +51,8 @@ handle_cast({write, Block, Hash}, X) ->
     %if the dict has become large enough, then we should gather up a bunch of blocks to compress onto the hard drive, and replace each block in the dict with a pointer to the new file.
     {noreply, X3};
 handle_cast(_, X) -> {noreply, X}.
+handle_call(ram_height, _From, X) -> 
+    {reply, X#d.ram_height, X};
 handle_call({read, Hash}, _From, X) -> 
     D = X#d.dict,
     R = case dict:find(Hash, D) of
@@ -55,7 +60,7 @@ handle_call({read, Hash}, _From, X) ->
             {ok, N} ->
                 if
                     is_integer(N) -> %block on the hard drive.
-                        {Loc, Size} = dict:fetch(N, X#d.pages),
+                        {Loc, Size, _, _} = dict:fetch(N, X#d.pages),
                         {ok, Data} = read_page(Loc, Size, X#d.blocks_hd),
                         P = uncompress(Data),
                         dict:fetch(Hash, P);
@@ -74,8 +79,17 @@ handle_call({read, Many, Height, B}, _From, X)
     Y = lists:reverse([B|read_dict2(M, BH, X#d.dict, RH)]),
     %Y = [B|read_dict2(M, BH, X#d.dict, RH)],
     {reply, Y, X};
+handle_call({read_by_height, Height}, _From, X) ->
+    Page = case find_page_loc(Height, X#d.pages, 0) of
+               {Loc, Size} -> 
+                   {ok, Y} = read_page(Loc, Size, X#d.blocks_hd),
+                   Y;
+               error -> error
+           end,
+    {reply, Page, X};
 handle_call({read, _, _Height, B}, _From, X) ->
-    BH = block:prev_hash(0, B),
+    %BH = block:prev_hash(0, B),
+    BH = block:hash(B),
     P = case dict:find(BH, X#d.dict) of
             error -> error;
             {ok, N} -> 
@@ -84,6 +98,19 @@ handle_call({read, _, _Height, B}, _From, X) ->
         end,
     {reply, P, X};
 handle_call(_, _From, X) -> {reply, X, X}.
+
+find_page_loc(Height, Pages, N) ->
+   case dict:find(N, Pages) of
+       error -> error;
+       {ok, {Loc, Size, Start, End}} ->
+           if
+               ((Height > (Start - 1)) and
+                (Height < (End + 1))) ->
+                   {Loc, Size};
+               true -> find_page_loc(Height, Pages, N+1)
+           end
+   end.
+    
 
 read_page(Loc, Size, File) ->
     file:pread(File, Loc, Size).
@@ -96,13 +123,15 @@ write_page(Dict, X) ->
 
 compress(X) ->
     S = zlib:open(),
-    zlib:deflateInit(S, 9),
+    {ok, CL} = application:get_env(amoveo_core, compression_level),
+    zlib:deflateInit(S, CL),
     B1 = zlib:deflate(S, term_to_binary(X)),
     B2 = zlib:deflate(S, <<>>, finish),
     zlib:close(S),
     %zlib:compress(term_to_binary(X)).
     list_to_binary([B1, B2]).
 uncompress(X) ->
+    %io:fwrite(X),
     S = zlib:open(),
     zlib:inflateInit(S),
     Y = binary_to_term(list_to_binary(zlib:inflate(S, X))),
@@ -126,26 +155,44 @@ old_blocks2(Blocks, Size, Head, D) ->
             if
                 is_integer(Block) -> {Blocks, Size};
                 true ->
-                    old_blocks2(dict:store(Head, Block, Blocks),
-                                Size + size(term_to_binary(Block)),
+                    Block2 = Block#block{prev_hashes = 0, roots = 0},
+                    old_blocks2(dict:store(Head, Block2, Blocks),
+                                Size + size(term_to_binary(Block2)),
                                 block:prev_hash(0, Block),
                                 D)
             end
     end.
-    
+height_range(Blocks) ->
+    K = dict:fetch_keys(Blocks),
+    false = (K == []),
+    hr2(K, Blocks, block:height(), 0).
+hr2([], _, Start, End) -> {Start, End};
+hr2([H|T], Blocks, S, E) ->
+    B = dict:fetch(H, Blocks),
+    Height = B#block.height,
+    hr2(T, Blocks, min(S, Height), max(E, Height)).
     
 check_compress(X) ->
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+    {ok, RL} = application:get_env(amoveo_core, block_cache),
     %FT = 2,
     RB = X#d.ram_bytes,
     if
-        ((RB > ?ram_limit) and 
+        ((RB > RL) and 
          (X#d.many_blocks > (FT * 2)))->
             TH = block:hash(headers:top_with_block()),
             {Blocks, Bytes} = old_blocks(TH, FT, X#d.dict),%gather up a dict of all the blocks we are moving to the hd.
             {Loc, Size} = write_page(Blocks, X),
+            %Start = (hd(Blocks))#block.height,
+            {Start, End} = height_range(Blocks),
+            %Start = X#d.ram_height,
+            %End = block:height(),
+            io:fwrite("start end are "),
+            io:fwrite(packer:pack([Start, End])),
+            io:fwrite("\n"),
+            %End = (hd(lists:reverse(Blocks)))#block.height,
             PageNumber = X#d.page_number,
-            Pages = dict:store(PageNumber, {Loc, Size}, X#d.pages),
+            Pages = dict:store(PageNumber, {Loc, Size, Start, End}, X#d.pages),
             BK = dict:fetch_keys(Blocks),
             Dict2 = replace_block_with_page(BK, PageNumber, X#d.dict), %replace many blocks in dict with their page number.
             %delete any old uncles from dict, and reduce ram_bytes accordingly.
@@ -197,7 +244,7 @@ test() ->
     NewDict = dict:new(),
     {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
     X = #d{blocks_hd = F},
-    {Loc, Size} = write_page(NewDict, X),
+    {Loc, Size, _, _} = write_page(NewDict, X),
     {ok, Data} = read_page(Loc, Size, X#d.blocks_hd),
     uncompress(Data).
     
@@ -214,27 +261,61 @@ test() ->
 
 
 
+by_height_from_compressed(D, N) ->
+    D2 = uncompress(D),
+    K = dict:fetch_keys(D2),
+    bhfc2(K, D2, N).
+bhfc2([H|T], D, N) ->
+    A = dict:fetch(H, D),
+    %io:fwrite("bhfcs "),
+    %io:fwrite(integer_to_list(N)),
+    %io:fwrite(" "),
+    %io:fwrite(integer_to_list(A#block.height)),
+    %io:fwrite("\n"),
+    if
+        (A#block.height == N) -> A;
+        true -> bhfc2(T, D, N)
+    end.
+            
 
-
-
+read_by_height(Height) ->
+    %HN = block:height(),
+    %{ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+    RH = ram_height(),
+    if
+        Height < RH ->
+            %true = Height < RH,
+            true = Height > -1,
+            gen_server:call(?MODULE, {read_by_height, Height});
+        true -> block:get_by_height(Height)
+    end.
+ram_height()  ->
+    gen_server:call(?MODULE, ram_height).
+    
 read(Many, Height) ->
-    case ?version of
-        old ->
+    {ok, Version} = application:get_env(amoveo_core, db_version),
+    case Version of
+        1 ->
             H = block:height(),
             X = min(H, Height + Many),
             M = max(1, 1 + X - Height),
             B = block:get_by_height(X),
             BH = block:prev_hash(0, B),
             lists:reverse([B|read2(M, BH)]);
-        new ->
+        _ ->
             %io:fwrite("block db read/2 "),
             %io:fwrite(packer:pack([Many, Height])),
             %io:fwrite("\n"),
             H = block:height(),
-            X = min(H, Height + Many),
-            Block = block:get_by_height(X),
-            {ok, Z} = gen_server:call(?MODULE, {read, Many, Height, Block}),
-            Z
+            {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+            if
+                ((H - Height) > FT) -> read_by_height(Height);
+                true ->
+                    X = min(H, Height + Many),
+                    Block = block:get_by_height(X),
+                    {ok, Z} = gen_server:call(?MODULE, {read, Many, Height, Block}),
+                    Z
+            end
     end.
 read2(0, _) -> [];
 read2(N, BH) ->
@@ -248,25 +329,27 @@ read2(N, BH) ->
     end.
     
 read(Hash) ->
-    case ?version of
-        old ->
+    {ok, Version} = application:get_env(amoveo_core, db_version),
+    case Version of
+        1 ->
             BlockFile = binary_to_file_path(blocks, Hash),
             case db:read(BlockFile) of
                 [] -> empty;
                 Block -> uncompress(Block)
             end;
-        new ->
+        _ ->
             gen_server:call(?MODULE, {read, Hash})
     end.
 
 write(Block, Hash) ->
-    case ?version of
-        old ->
+    {ok, Version} = application:get_env(amoveo_core, db_version),
+    case Version of
+        1 ->
             CompressedBlockPlus = compress(Block),
                                                 %Hash = block:hash(Block),
             BlockFile = binary_to_file_path(blocks, Hash),
             ok = db:save(BlockFile, CompressedBlockPlus);
-        new ->
+        _ ->
             gen_server:cast(?MODULE, {write, Block, Hash})
     end.
 check() ->
