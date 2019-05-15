@@ -6,13 +6,14 @@ We need to make futarchy markets before we update the governance variable, that 
 
 The oracle is a reporting mechanism, it isn't made for coming to consensus. If you try to use it to come to consensus, it is like a game of chicken, and is bad for the network.
 
+for example, if you want to use futarchy to find out if we should merge an update
+we should have 2 scalar oracles:
+"if update is not merged, return bad. else, return the price of USD in VEO."
+"if update is merged, return bad. else, return the price of USD in VEO."
 
-For example, if you want to make governance oracle to change the block reward size, you first need to make a question oracle of something like `Q="we increase the block reward by 20%";P="the market cap of VEO exceeds $5 million";(P and Q)`
-You also need an oracle with (P and !Q), and oracle with (!P and Q) and an oracle with (!P and !Q).
-Each of the 4 oracles needs a binary market.
-We can look at the prices in the 4 markets to determine which decision is best.
+Because if you make a bet in an oracle, and the result is bad, then each participant gets their money back that they had put in the bet.
 
-(P1 * P3) - (P2 * P4)
-if it is positive, then the outcomes are positively correlated. if it is negative, then the outcomes are negatively correlated.
+using these 2 scalar oracles, we can show that the price of veo if we do the update is higher than if we don't do the update.
+
 
 [more about futarchy here](futarchy.md)

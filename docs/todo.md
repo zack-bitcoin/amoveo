@@ -1,6 +1,9 @@
-Eric Aresenault send info saying that otc_listener is failing to match trades. we should test it.
+the light node oracle lookup tool should display the value being measured by the oracle, if it closes now.
 
 make a futarchy market to show that the hard update is good.
+
+make a javascript tool for managing channel states.
+It should tell you which channels are ready to be closed, and display a chart for how much money is in each contract, how much longer until it can be closed, and store it all in a single file.
 
 
 

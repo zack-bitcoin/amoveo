@@ -419,11 +419,31 @@ oracle_winnings(OID) ->
     oracle_winnings(?Fee+Cost, OID).
 oracle_winnings(Fee, OID) ->
     tx_maker0(oracle_winnings_tx:make_dict(keys:pubkey(), Fee, OID)).
+scalar_oracle_winnings(OID) -> 
+    Cost = trees:get(governance, oracle_winnings),
+    scalar_oracle_winnings(?Fee+Cost, OID).
+scalar_oracle_winnings(Fee, OID) -> %for scalar oracles
+    <<OIDN:256>> = OID,
+    scalar_oracle_winnings(Fee, OIDN, 10).
+scalar_oracle_winnings(_, _, 0) -> 0;
+scalar_oracle_winnings(Fee, OIDN, N) ->
+    oracle_winnings(Fee, <<OIDN:256>>),
+    scalar_oracle_winnings(Fee, OIDN + 1, N - 1).
 oracle_unmatched(OracleID) ->
     Cost = trees:get(governance, unmatched),
     oracle_unmatched(?Fee+Cost, OracleID).
 oracle_unmatched(Fee, OracleID) ->
     tx_maker0(oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)).
+scalar_oracle_unmatched(OID) -> 
+    Cost = trees:get(governance, unmatched),
+    scalar_oracle_unmatched(?Fee+Cost, OID).
+scalar_oracle_unmatched(Fee, OID) -> %for scalar oracles
+    <<OIDN:256>> = OID,
+    scalar_oracle_unmatched(Fee, OIDN, 10).
+scalar_oracle_unmatched(_, _, 0) -> 0;
+scalar_oracle_unmatched(Fee, OIDN, N) ->
+    oracle_unmatched(Fee, <<OIDN:256>>),
+    scalar_oracle_unmatched(Fee, OIDN + 1, N - 1).
 tree_common(TreeName, ID) ->
     X = trees:get(TreeName, ID),
     case X of
@@ -765,6 +785,18 @@ orders(OID) ->
     lists:map(fun(Y) -> orders:get(Y, X) end, IDs).
 oracles() ->
     oracles:all().
+channels_from(Address) ->
+    CA = channels:all(),
+    channels_from2(CA, Address).
+channels_from2([], _) -> [];
+channels_from2([X|T], Address) ->
+    B1 =  element(3, X) == base64:decode(Address),
+    B2 =  element(4, X) == base64:decode(Address),
+    if
+        (B1 or B2) -> [X|channels_from2(T, Address)];
+        true -> channels_from2(T, Address)
+    end.
+    
 		      
 
 sync_normal() ->

@@ -88,12 +88,20 @@ Collect shares purchased in an oracle
 ```
 api:oracle_winnings(OracleID).
 ```
+or, if it is a scalar oracle
+```
+api:scalar_oracle_winnings(OracleID).
+```
 
 Oracle unmatched
 ====
 If you had unmatched trades sitting in the order book when the oracle closed, this is how you get your money back.
 ```
 api:oracle_unmatched(OracleID).
+```
+or, if it is a scalar oracle
+```
+api:scalar_oracle_unmatched(OracleID).
 ```
 
 
