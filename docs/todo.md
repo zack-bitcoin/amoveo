@@ -1,10 +1,16 @@
+Denis from telegram says adding tx to the pool is sometimes failing.
+
+
+
+
+
 the light node oracle lookup tool should display the value being measured by the oracle, if it closes now.
 
-make a futarchy market to show that the hard update is good.
 
 make a javascript tool for managing channel states.
 It should tell you which channels are ready to be closed, and display a chart for how much money is in each contract, how much longer until it can be closed, and store it all in a single file.
 
+continue with the futarchy market.
 
 
 glossary long-veo/stablecoin on otc_derivatives and otc_listener

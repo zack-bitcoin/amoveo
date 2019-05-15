@@ -44,7 +44,7 @@ absorb_internal(SignedTx) ->
     S = self(),
     Wait = case application:get_env(amoveo_core, kind) of
 	       {ok, "production"} -> 200;
-	       _ -> 1000
+	       _ -> 200
 	   end,
     spawn(fun() ->
 		  absorb_internal2(SignedTx, S)
