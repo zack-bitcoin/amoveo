@@ -589,12 +589,11 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
             %io:fwrite("common height is\n"),
             %io:fwrite(packer:pack(CommonHeight)),
             %io:fwrite("\n"),
-            {ok, V} = talker:talk({version, 1}, Peer),
-            if
-                V == 1 ->
-                    get_blocks(Peer, CommonHeight, ?tries, first, TheirBlockHeight);
-                true ->
-                    new_get_blocks(Peer, CommonHeight, TheirBlockHeight, ?tries)
+            case talker:talk({version, 1}, Peer) of
+                {ok, 1} -> get_blocks(Peer, CommonHeight, ?tries, first, TheirBlockHeight);
+                {ok, _} -> new_get_blocks(Peer, CommonHeight, TheirBlockHeight, ?tries);
+                _ ->
+                    get_blocks(Peer, CommonHeight, ?tries, first, TheirBlockHeight)
             end;
 	true ->
 	    spawn(fun() ->
