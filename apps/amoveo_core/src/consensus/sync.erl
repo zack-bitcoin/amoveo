@@ -201,6 +201,67 @@ common_block_height(CommonHash) ->
             common_block_height(PrevCommonHash);
         B -> B#block.height
     end.
+new_get_blocks(Peer, N, TheirBlockHeight, _) when (N > TheirBlockHeight) ->
+    io:fwrite("done syncing");
+new_get_blocks(Peer, N, TheirBlockHeight, 0) ->
+    io:fwrite("gave up syncing");
+new_get_blocks(Peer, N, TheirBlockHeight, Tries) ->
+    go = sync_kill:status(),
+    Height = block:height(),
+    AHeight = api:height(),
+    if
+	Height == AHeight -> ok;%done syncing
+        (N > (1 + Height + 5000)) ->
+            timer:sleep(100),
+            new_get_blocks(Peer, N, TheirBlockHeight, Tries - 1);
+        true ->
+            spawn(fun() ->
+                          new_get_blocks2(TheirBlockHeight, N, Peer, 5)
+                  end),
+            new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
+    end.
+new_get_blocks2(_TheirBlockHeight, _N, _Peer, 0) ->
+    ok;
+new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
+    BH0 = block:height(),
+    true = BH0 < (N+1),
+    go = sync_kill:status(),
+    %BD = N+1 - BH0,
+    Blocks = talker:talk({blocks, 1, N}, Peer),
+    BH2 = block:height(),
+    true = BH2 < (N+1),
+    go = sync_kill:status(),
+    case Blocks of
+	{error, _} -> 
+	    io:fwrite("get blocks 2 failed connect error\n"),
+	    %io:fwrite(packer:pack([N, Peer, Tries])),
+	    io:fwrite("\n"),
+	    timer:sleep(2000),
+	    new_get_blocks2(TheirBlockHeight, N, Peer, Tries - 1);
+	bad_peer -> 
+	    io:fwrite("get blocks 2 failed connect bad peer\n"),
+	    %io:fwrite(packer:pack([N, Peer, Tries])),
+	    io:fwrite("\n"),
+	    timer:sleep(600),
+	    new_get_blocks2(TheirBlockHeight,  N, Peer, Tries - 1);
+	{ok, Bs} -> 
+            Dict = block_db:uncompress(Bs),
+            L = low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)),
+            S = length(L),
+            Cores = 1,
+            S2 = S div Cores,
+            split_add(S2, Cores, L),
+            CurrentHeight = block:height(),
+            wait_do(fun() ->
+                            (N + length(L)) < (block:height() + 8000)
+                    end,
+                    fun() ->
+                                                %io:fwrite("wait do call \n"),
+                            new_get_blocks2(TheirBlockHeight, N + length(L)+1, Peer, 5)
+                    end,
+                    50)
+    end.
+    
 get_blocks(Peer, N, 0, _, _) ->
     io:fwrite("could not get block "),
     io:fwrite(integer_to_list(N)),
@@ -528,7 +589,13 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
             %io:fwrite("common height is\n"),
             %io:fwrite(packer:pack(CommonHeight)),
             %io:fwrite("\n"),
-	    get_blocks(Peer, CommonHeight, ?tries, first, TheirBlockHeight);
+            V = talker:talk({version, 1}, Peer),
+            if
+                V == 1 ->
+                    get_blocks(Peer, CommonHeight, ?tries, first, TheirBlockHeight);
+                true ->
+                    new_get_blocks(Peer, CommonHeight, TheirBlockHeight, ?tries)
+            end;
 	true ->
 	    spawn(fun() ->
 			  trade_txs(Peer)

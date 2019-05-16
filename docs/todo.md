@@ -1,16 +1,5 @@
-Denis from telegram says adding tx to the pool is sometimes failing.
-
-
-
-
-
-the light node oracle lookup tool should display the value being measured by the oracle, if it closes now.
-
-
 make a javascript tool for managing channel states.
 It should tell you which channels are ready to be closed, and display a chart for how much money is in each contract, how much longer until it can be closed, and store it all in a single file.
-
-continue with the futarchy market.
 
 
 glossary long-veo/stablecoin on otc_derivatives and otc_listener
@@ -18,28 +7,19 @@ glossary long-veo/stablecoin on otc_derivatives and otc_listener
 
 start closing some oracles
 
-the website for channel offers should display active oracles in an organized way. 
-
-in otc_derivatives, if the oracle is invalid, post some warnings right away instead of waiting for them to fill out the rest of the form.
-
-
-add a note to the new_oracle.js page explaining how much it costs for binary and scalar oracles.
-
-
 add an api request so that we can know if the node is storing the blocks in the new way, so we can use an alternative syncing protocol.
 
 
 update dump:file_manager ram version to use ets and be faster.
 
-sharding.
-
-
-update chain/block_db.erl to store multiple blocks per file so that we don't waste space by having each file be only a fraction of a page.
 * sync.erl should work differently if they store the blocks the new way.
 
 
+in the light node, when we look up oracles, we should verify that the hash of the question tx matches the hash stored in the merkel tree.
 
-working on a hard update 17 included https://github.com/zack-bitcoin/amoveo/issues/243
+
+sharding.
+
 
 
 in the light node update from bigInt js library to the BigInt built in the browser.
