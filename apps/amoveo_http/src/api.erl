@@ -510,6 +510,8 @@ balance() -> integer_balance().
 mempool() -> lists:reverse((tx_pool:get())#tx_pool.txs).
 halt() -> off().
 off() ->
+    sync:stop(),
+    timer:sleep(1000),
     testnet_sup:stop(),
     ok = application:stop(amoveo_core),
     ok = application:stop(amoveo_http).
