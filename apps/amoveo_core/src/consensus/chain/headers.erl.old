@@ -8,9 +8,6 @@
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../../records.hrl").
 -define(LOC, constants:headers_file()).
--define(LOC2, constants:headers_file2()).
-%-define(version, 2).%version 1 uses a dict, version 2 uses ets
-%headers_version
 -record(s, {headers = dict:new(),
             top = #header{},
 	    top_with_block = #header{}
@@ -19,50 +16,23 @@ init([]) ->
     io:fwrite("start headers"),
     process_flag(trap_exit, true),
     X = db:read(?LOC),
-    K1 = if
+    K = if
 	    X == "" -> 
                 empty_data();
 	    true -> X
 	end,
-    K = case version() of
-            1 -> K1;
-            2 -> K1#s{headers = []}
-        end,
-    case ets:info(?MODULE) of
-        undefined ->
-            case ets:file2tab(?LOC2) of
-                {ok, ?MODULE} -> ok;
-                {error, _} ->
-                    ets:new(?MODULE, [set, named_table, compressed])
-            end;
-        _ -> ok
-    end,
     {ok, K}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 handle_call({read_ewah, Hash}, _From, State) ->
-    Header = case version() of
-                 1 -> dict:find(Hash, State#s.headers);
-                 2 -> case ets:lookup(?MODULE, Hash) of
-                          [] -> error;
-                          [{K, V}] -> {ok, V}
-                      end
-             end,
+    Header = dict:find(Hash, State#s.headers),
     {reply, Header, State};
 handle_call({read, Hash}, _From, State) ->
-    A = case version() of
-            1 ->
-                case dict:find(Hash, State#s.headers) of
-                    error -> error;
-                    {ok, {Header, _}} -> {ok, Header};
-                    {ok, Header} -> {ok, Header}
-                end;
-            2 -> case ets:lookup(?MODULE, Hash) of
-                     [] -> error;
-                     [{Hash, {Header, _}}] -> {ok, Header};
-                     [{Hash, Header}] -> {ok, Header}
-                 end
-        end,
+    A = case dict:find(Hash, State#s.headers) of
+	    error -> error;
+	    {ok, {Header, _}} -> {ok, Header};
+	    {ok, Header} -> {ok, Header}
+	end,
     {reply, A, State};
 handle_call({check}, _From, State) ->
     {reply, State, State};
@@ -92,19 +62,13 @@ handle_call({add, Hash, Header, EWAH}, _From, State) ->
                  true -> Header;
                  false -> Top
         end,
-    Headers = case version() of
-                  1 -> dict:store(Hash, {Header, EWAH}, State#s.headers);
-                  2 ->
-                      ets:insert(?MODULE, {Hash, {Header, EWAH}}),
-                      []
-              end,
+    Headers = dict:store(Hash, {Header, EWAH}, State#s.headers),
     {reply, ok, State#s{headers = Headers, top = NewTop}}.
 handle_cast(_, State) ->
     {noreply, State}.
 handle_info(_Info, State) ->
     {noreply, State}.
 terminate(_Reason, X) ->
-    ets:tab2file(?MODULE, ?LOC2, [{sync, true}]),
     db:save(?LOC, X),
     io:fwrite("headers died!\n"),
     ok.
@@ -130,14 +94,10 @@ absorb([First|T], R) when is_binary(First) ->
     absorb([A|T], R);
 absorb([Header | T], CommonHash) ->
     Bool = Header#header.difficulty >= constants:initial_difficulty(),
-    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-    AH = api:height(),
     if
 	not(Bool) -> 
 	    1=2,
 	    ok;%we should delete the peer that sent us this header.
-        Header#header.height < (AH - FT - 1) ->
-            absorb(T, CommonHash);
 	true ->
 	    Hash = block:hash(Header),
 	    case read(Hash) of
@@ -479,27 +439,10 @@ ewah_range2(EH, Start, X) ->
 			Start,
 			[EWAH|X])
     end.
-version() ->	    
-    case application:get_env(amoveo_core, headers_version) of
-        undefined -> 1;
-        {ok, M} -> M
-    end.
-            
-    
+	    
     
 
 test() ->
-    ID = headers,
-    case ets:info(ID) of
-        undefined ->
-            ets:new(ID, [set, named_table, {write_concurrency, false}, compressed]);
-        _ -> ok
-    end,
-    ok.
-    
-    
-
-test3() ->
     H = hash:doit(<<>>),
     Header1 = make_header(H, 0, 0, 0, H, H, 0, 0, 0),
     absorb([Header1]),

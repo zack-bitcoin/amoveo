@@ -57,6 +57,7 @@ keys() -> custom_root() ++ "keys/keys.db".
 root() -> custom_root() ++ "data/".
 nc_sigs() -> root() ++ "nc_sigs.db".
 headers_file() -> root() ++ "headers.db".
+headers_file2() -> root() ++ "headers2.db".
 block_hashes() -> root() ++ "block_hashes.db".
 block_db_dict() -> root() ++ "block_db_dict.db".
 block_db_dict2() -> root() ++ "block_db_dict2.db".
