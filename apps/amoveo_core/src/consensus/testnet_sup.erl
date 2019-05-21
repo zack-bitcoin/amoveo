@@ -39,7 +39,8 @@ init([]) ->
     HB = constants:height_bits(),
     %DB = constants:difficulty_bits(),
     {ok, TrieSize} = application:get_env(amoveo_core, trie_size),
-    Mode = hd,
+    %Mode = hd,
+    {ok, Mode} = application:get_env(amoveo_core, trie_mode),
     Tries = [
 	     tree_child(accounts, HS, constants:account_size(), KL div 8, Mode, TrieSize),
 	     tree_child(channels, HS, constants:channel_size(), 0, Mode, TrieSize),
