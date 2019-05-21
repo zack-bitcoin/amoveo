@@ -284,11 +284,17 @@ tests: killall
 	@python tests/test_all.py
 	make multi-stop
 
-multi-quick: kill multi-build multi-clean multi-go
+multi-quick: kill
+	@bash scripts/config_setup.sh
+	make multi-build multi-clean multi-go
 
-local-quick: kill local-build local-clean
+local-quick: kill
+	@bash scripts/config_setup.sh
+	make local-build local-clean
 	./_build/local/rel/amoveo_core/bin/amoveo_core console
-prod-restart: prod-stop prod-build prod-go
+prod-restart: prod-stop
+	@bash scripts/config_setup.sh
+	make prod-build prod-go
 	@sleep 3
 	@make prod-attach
 
