@@ -108,7 +108,11 @@ add({IP, Port}) ->
                         _ ->
                             %io:fwrite("peer on different blockchain\n"),
                             blacklist_peer:add({NIP, Port})
-                    end
+                    end;
+                _ ->
+                    io:fwrite("unknown peer error\n"),
+                    %blacklist_peer:add({NIP, Port})
+                    ok
 	    end
     end.
 

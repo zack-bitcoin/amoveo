@@ -561,7 +561,15 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 		       NewTrees1;
 		   true -> NewTrees3_0
 	       end,
-    Block2 = Block#block{trees = NewTrees3},
+
+    {ok, PrevHeader} = headers:read(Header#header.prev_hash),
+    PrevHashes2 = case Block#block.prev_hashes of
+                      0 -> calculate_prev_hashes(PrevHeader);
+                      X -> X
+                  end,
+    Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
+
+    %Block2 = Block#block{trees = NewTrees3},
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     %TreesHash = Header#header.trees_hash,
@@ -630,7 +638,8 @@ initialize_chain() ->
     %only run genesis maker once, or else it corrupts the database.
     %{ok, L} = file:list_dir("blocks"),
     %B = length(L) < 1,
-    B = true,
+    B = (element(2, headers:top_with_block()) == 0),
+    %B = true,
     {GB, Bool} = if
                      B -> G = genesis_maker(),
                           %block_absorber:do_save(G, GH),
@@ -676,14 +685,14 @@ deltaCV([Tx|T], Dict) ->
 	    ctc2 -> 
 		ID = channel_team_close_tx:id(C),
 		OldChannel = channels:dict_get(ID, Dict),
-		io:fwrite(packer:pack(OldChannel)),
+		%io:fwrite(packer:pack(OldChannel)),
 		Bal1 = channels:bal1(OldChannel),
 		Bal2 = channels:bal2(OldChannel),
 		-(Bal1 + Bal2);
 	    ctc -> 
 		ID = channel_team_close_tx:id(C),
 		OldChannel = channels:dict_get(ID, Dict),
-		io:fwrite(packer:pack(OldChannel)),
+		%io:fwrite(packer:pack(OldChannel)),
 		Bal1 = channels:bal1(OldChannel),
 		Bal2 = channels:bal2(OldChannel),
 		-(Bal1 + Bal2);

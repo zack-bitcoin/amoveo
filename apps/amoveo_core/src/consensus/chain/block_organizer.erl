@@ -13,9 +13,13 @@ handle_cast(check, BS) ->
     B2 = helper(BS#d.blocks),
     BS2 = BS#d{blocks = B2},
     {noreply, BS2}.
-handle_call({add, Blocks}, _From, BS) -> 
-    BS2 = merge(Blocks, BS#d.blocks, [], BS#d.top),
+handle_call({add, Height, Many, Blocks}, _From, BS) ->
+    %io:fwrite("block organizer handler call add\n"),
+    BS2 = merge(Height, Many, Blocks, BS#d.blocks, [], BS#d.top),
+    %io:fwrite("block organizer handler call add 2\n"),
+    %io:fwrite(BS),
     B2 = helper(BS2#d.blocks), 
+    %io:fwrite("block organizer handler call add 3\n"),
     BS3 = BS2#d{blocks = B2},
     {reply, ok, BS3};
 handle_call(top, _From, BS) -> 
@@ -29,11 +33,24 @@ handle_call(_, _From, X) -> {reply, X, X}.
 pid() -> gen_server:call(?MODULE, pid).
 view() ->
     gen_server:call(?MODULE, view).
-merge(New, [], L, T) -> #d{blocks = L ++ [New], 
+merge(Height, Many, New, [], L, T) -> #d{blocks = L ++ [{Height, Many, New}], 
                         top = T};%merge sort
-merge([], Old, L, T) -> #d{blocks = L ++ Old,
+merge(_, _, [], Old, L, T) -> #d{blocks = L ++ Old,
                         top = T};
-merge([N|NT], [O|OT], L, Top) ->
+merge(Height, Many, N, [{Height2, Many2, O}|OT], L, Top) ->
+    %HO = hd(O),
+    P = {Height2, Many2, O},
+    H1 = Height,
+    %H2 = HO#block.height,
+    H2 = Height2,
+    NewTop = max(H1, max(Top, H2)),
+    if
+	H2 < H1 -> merge(Height, Many, N, OT, L ++ [P], NewTop);
+        true -> #d{blocks = L ++ [{Height, Many, N}|[P|OT]],
+                   top = NewTop}
+    end.
+    
+old_merge([N|NT], [O|OT], L, Top) ->
     %HN = hd(N),
     HO = hd(O),
     H1 = N#block.height,
@@ -41,49 +58,70 @@ merge([N|NT], [O|OT], L, Top) ->
     NewTop = max(H1, max(Top, H2)),
     if
 	H2 < H1 -> 
-            merge([N|NT], OT, L ++ [O], NewTop);
+            old_merge([N|NT], OT, L ++ [O], NewTop);
 	true -> #d{blocks = L ++ [[N|NT]|[O|OT]],
                    top = NewTop}
     end.
 helper([]) -> [];
 helper([[]]) -> [];
-helper([H|T]) ->
+helper([{Height, Many, CB}|T]) ->
     %we should run this in the background, and if H has an error, don't drop the rest of the list.
 
     MyHeight = block:height(),
-    HH = hd(H),
-    H2 = HH#block.height,
+    %HH = hd(H),
+    %H2 = HH#block.height,
+    H2 = Height,
     if
 	H2 =< MyHeight + 1 ->
             %spawn(fun() ->
-            block_absorber:save(H),%maybe this should be a cast.
+            %io:fwrite("block absorber save start"),
+            %spawn(fun() ->
+            block_absorber:save(block_db:uncompress(CB)),%maybe this should be a cast.
+           %               ok
+             %     end),
+            %io:fwrite("block absorber save finish"),
                           %check(),
             %              ok end),
             %T;
 	    helper(T);
-	true -> [H|T]
+	true -> [{Height, Many, CB}|T]
     end.
 	    
 check() -> gen_server:cast(?MODULE, check).
 add([]) -> 0;
 add(Blocks) when not is_list(Blocks) -> 0;
 add(Blocks) ->
-    %io:fwrite("block organizer add\n"),
     true = is_list(Blocks),
+    %io:fwrite("block organizer add\n"),
+    %io:fwrite(packer:pack(Blocks)),
     {Blocks2, AddReturn} = add1(Blocks, []),
-    add3(lists:reverse(Blocks2)),
+    {ok, Cores} = application:get_env(amoveo_core, block_threads),
+    add3(lists:reverse(Blocks2), (length(Blocks2) div Cores) + 1),
+    %spawn(fun() ->
+    %              P = pid(),
+    %              M = erlang:process_info(P, memory),
+    %              if
+    %                  M > 1000000 ->
+    %                      erlang:garbage_collect(P);
+    %                  true -> ok
+    %              end
+    %      end),
+    %add4(lists:reverse(Blocks2)),
     AddReturn.
-add3([]) -> ok;
-add3(Blocks)->
+add3([], _) -> ok;
+add3(Blocks, Many)->
     %{A, B} = lists:split(10, Blocks),
-    {A, B} = lists:split(min(100, length(Blocks)), Blocks),
+    {A, B} = lists:split(min(Many, length(Blocks)), Blocks),
     add4(A),
-    %timer:sleep(5),
-    add3(B).
+    timer:sleep(5),
+    add3(B, Many).
 %add3(Blocks) -> add4(Blocks).
 add4(Blocks) ->
     spawn(fun() ->
-                  S = "block organizer add4, height: " ++ (integer_to_list(element(2, hd(Blocks)))) ++ ("\n"),
+                  Height = element(2, hd(Blocks)),
+                  %Height2 = element(2, hd(lists:reverse(Blocks))),
+                  %S = "block organizer add4, height: " ++ (integer_to_list(Height)) ++ " " ++ integer_to_list(Height2) ++ (" many: ") ++ (integer_to_list(length(Blocks)))++ ("\n"),
+                  %io:fwrite(Blocks),
                   %io:fwrite(S),
                   %io:fwrite(packer:pack(hd(Blocks))),
                   %io:fwrite("\n"),
@@ -93,21 +131,29 @@ add4(Blocks) ->
                   %io:fwrite("\n"),
                   %io:fwrite("block organizer add4, many: "),
                   %io:fwrite(integer_to_list(length(Blocks))),
-		  Blocks2 = add5(Blocks),
+                  %io:fwrite("block organizer add5 start\n"),
+                  Blocks2 = add5(Blocks),
                   %io:fwrite("block organizer add4 2\n"),
 		  %gen_server:call(?MODULE, {add, lists:reverse(Blocks2)})
-		  gen_server:call(?MODULE, {add, Blocks2})
+
+
+                  %we should {add, {Height, CompressedBlocks}} here.
+
+                 gen_server:call(?MODULE, {add, Height, length(Blocks2), block_db:compress(Blocks2)})
 	  end).
 top() -> gen_server:call(?MODULE, top).
-add5([]) -> [];
+add5([]) -> 
+    %io:fwrite("block organizer add5 done\n"),
+    [];
 add5([Block|T]) ->
     {Dict, NewDict, BlockHash} = block:check0(Block),
     Block2 = Block#block{trees = {Dict, NewDict, BlockHash}},
     [Block2|add5(T)].
 add1([], []) -> {[], 0};
 add1([X], L) -> 
-    {L2, A} = add2(X, L),
-    {L++L2, A};
+    add2(X, L);
+%{L2, A} = add2(X, L),
+%    {L2, A};
 add1([H|T], L) ->
     {L2, _} = add2(H, L),
     add1(T, L2).
