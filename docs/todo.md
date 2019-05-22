@@ -1,5 +1,7 @@
 automatically adding your IP to the list of peers is failing.
 
+do print time tests to identify the CPU bottleneck for syncing on the server.
+
 
 replace many dictionary data structures with ets.
 
