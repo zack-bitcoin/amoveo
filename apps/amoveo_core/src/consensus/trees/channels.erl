@@ -68,7 +68,7 @@ dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
                         delay = Delay,
                         closed = Close
 		       },
-    io:fwrite(packer:pack(C)),
+    %io:fwrite(packer:pack(C)),
     C.
     
 new(ID, Acc1, Acc2, Bal1, Bal2, Height, Delay) ->
