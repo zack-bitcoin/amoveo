@@ -798,6 +798,9 @@ channels_from2([X|T], Address) ->
         (B1 or B2) -> [X|channels_from2(T, Address)];
         true -> channels_from2(T, Address)
     end.
+scan_peers(N) ->
+    lists:map(fun(P) -> {P, talker:talk({version, 2, N}, P)} end, peers:all()).
+    
     
 		      
 

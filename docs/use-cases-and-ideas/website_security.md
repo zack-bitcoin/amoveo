@@ -20,4 +20,4 @@ Like a 4chan where you have to pay to post.
 http://139.59.144.76:8088/main.html
 
 I have similarly built an escrow tool.
-http://159.89.106.253:8087/main.html
+http://139.59.144.76:8087/main.html
