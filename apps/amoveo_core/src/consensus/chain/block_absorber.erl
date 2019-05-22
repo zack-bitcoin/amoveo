@@ -71,7 +71,7 @@ absorb_internal(Block) ->
 		    %io:fwrite("block absorber 1.2\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
-		    false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
+		    %false = empty == block:get_by_hash(NextBlock), %check that previous block was valid
 		    %io:fwrite("block absorber 1.3\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
