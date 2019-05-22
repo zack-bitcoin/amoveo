@@ -576,10 +576,11 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 	       end,
 
     {ok, PrevHeader} = headers:read(Header#header.prev_hash),
-    PrevHashes2 = case Block#block.prev_hashes of
-                      0 -> calculate_prev_hashes(PrevHeader);
-                      X -> X
-                  end,
+    %PrevHashes2 = case Block#block.prev_hashes of
+    %                  0 -> calculate_prev_hashes(PrevHeader);
+    %                  X -> X
+    %              end,
+    PrevHashes2 = calculate_prev_hashes(PrevHeader),
     Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
 
     %Block2 = Block#block{trees = NewTrees3},

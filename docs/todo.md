@@ -1,3 +1,5 @@
+automatically adding your IP to the list of peers is failing.
+
 
 replace many dictionary data structures with ets.
 
