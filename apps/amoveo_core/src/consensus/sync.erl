@@ -11,7 +11,7 @@
 -define(tries, 300).%20 tries per second. 
 -define(Many, 1).%how many to sync with per calling `sync:start()`
 %so if this is 400, that means we have 20 seconds to download download_block_batch * download_block_many blocks
--define(download_ahead, 500).
+-define(download_ahead, application:get_env(amoveo_core, get_block_buffer)).
 init(ok) -> 
     {ok, start}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -235,11 +235,12 @@ new_get_blocks(Peer, N, TheirBlockHeight, Tries) ->
     go = sync_kill:status(),
     Height = block:height(),
     AHeight = api:height(),
+    {ok, DA} = ?download_ahead,
     if
 	Height == AHeight -> 
             io:fwrite("done syncing\n"),
             ok;%done syncing
-        (N > (1 + Height + ?download_ahead)) ->
+        (N > (1 + Height + DA)) ->
             io:fwrite("wait to get more blocks\n"),
             timer:sleep(100),
             new_get_blocks(Peer, N, TheirBlockHeight, Tries - 1);
@@ -289,7 +290,8 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                 end,
             S = length(L),
             wait_do(fun() ->
-                            (N + S) < (block:height() + ?download_ahead)
+                            {ok, DA} = ?download_ahead,
+                            (N + S) < (block:height() + DA)
                     end,
                     fun() ->
                             new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)

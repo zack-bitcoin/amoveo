@@ -87,7 +87,13 @@ calculate_prev_hashes(Parent) ->
 
 calculate_prev_hashes([PH|Hashes], Height, N) ->
     NHeight = Height - N,
-    case NHeight < 1 of
+    {ok, DBV} = application:get_env(amoveo_core, db_version),
+    RH = if
+             DBV > 1 -> block_db:ram_height();
+             true -> 1
+         end,
+    case NHeight < RH of
+%    case NHeight < 1 of
         true ->
             list_to_tuple([prev_hashes|lists:reverse([PH|Hashes])]);
         false ->
@@ -137,7 +143,13 @@ header_by_height_in_chain(N, Hash) when N > -1 ->
     end.
     
 get_by_height(N) ->
-    get_by_height_in_chain(N, headers:top_with_block()).
+    {ok, DBV} = application:get_env(amoveo_core, db_version),
+    if
+        ((N == 0) and (DBV > 1)) -> block_db:genesis();
+        true ->
+            get_by_height_in_chain(N, headers:top_with_block())
+    end.
+    %get_by_height_in_chain(N, headers:top_with_block()).
 get_by_height_in_chain(N, BH) when N > -1 ->
     %if we are using the new database, and the block is more than fork_tolerance in history, then we should use the new way of looking up blocks by height.
     HN = block:height(),
@@ -145,6 +157,7 @@ get_by_height_in_chain(N, BH) when N > -1 ->
     RH = block_db:ram_height(),
     {ok, DBV} = application:get_env(amoveo_core, db_version),
     if 
+        ((N == 0) and (DBV > 1)) -> block_db:genesis();
         ((DBV > 1) and (N < RH)) -> block_db:by_height_from_compressed(block_db:read_by_height(N), N);
         true ->
             Block = get_by_hash(hash(BH)),
