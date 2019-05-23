@@ -485,22 +485,22 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
 
 
 check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
-    io:fwrite("block check 0\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 0\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     Roots = Block#block.roots,
     {Dict, NewDict, BlockHash} = Block#block.trees,
     %{Dict, NewDict} = check0(Block),
     %BlockHash = hash(Block),
-    io:fwrite("block check 1\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 1\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     {ok, Header} = headers:read(BlockHash),
     Height = Block#block.height,
     OldBlock = get_by_hash(Block#block.prev_hash),
-    io:fwrite("block check 2\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 2\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     OldTrees = OldBlock#block.trees,
     Txs = Block#block.txs,
     Txs0 = tl(Txs),
@@ -513,9 +513,9 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     BlockSize = size(packer:pack(Txs)),
     MaxBlockSize = governance:dict_get_value(max_block_size, Dict),
     %MaxBlockSize = governance:get_value(max_block_size, Governance),
-    io:fwrite("block check 3\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 3\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     ok = case BlockSize > MaxBlockSize of
 	     true -> 
 		 io:fwrite("error, this block is too big\n"),
@@ -524,14 +524,14 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     end,
     BlockReward = governance:dict_get_value(block_reward, Dict),
     %BlockReward = governance:get_value(block_reward, Governance),
-    io:fwrite("block check 4\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 4\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height-1),
     true = Block#block.market_cap == MarketCap,
-    io:fwrite("block check 5\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 5\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     B = (Height == forks:get(5)),
     NewDict2 = if
 		B -> 
@@ -543,9 +543,9 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     FG6 = forks:get(6),
     FG9 = forks:get(9),
     MinerReward = miner_fees(Txs0),
-    io:fwrite("block check 5.0\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 5.0\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     NewDict3 = if
 		   Height < FG6 -> NewDict2;
 		   Height < FG9 ->
@@ -557,26 +557,26 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict2, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict2)
 	       end,
-    io:fwrite("block check 5.1\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 5.1\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     F8 = forks:get(8),
     if
         Height > F8 ->
             no_counterfeit(Dict, NewDict3, Txs0, Height);
         true -> ok
     end,
-    io:fwrite("block check 5.2\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 5.2\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
-    io:fwrite("block check 5.3\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 5.3\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     NewTrees3_0 = tree_data:dict_update_trie(OldTrees, NewDict4),%here
-    io:fwrite("block check 5.4\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 5.4\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     F10 = forks:get(10),
     NewTrees3 = if
 		    (Height == F10) ->
@@ -594,9 +594,9 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 	       end,
 
     {ok, PrevHeader} = headers:read(Header#header.prev_hash),
-    io:fwrite("block check 5.4\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 5.4\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     %PrevHashes2 = case Block#block.prev_hashes of
     %                  0 -> calculate_prev_hashes(PrevHeader);
     %                  X -> X
@@ -608,9 +608,9 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     %TreesHash = Header#header.trees_hash,
     TreesHash = Block2#block.trees_hash,
-    io:fwrite("block check 6\n"),
-    io:fwrite(packer:pack(erlang:timestamp())),
-    io:fwrite("\n"),
+    %io:fwrite("block check 6\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     %true = BlockHash == hash(Block2),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
