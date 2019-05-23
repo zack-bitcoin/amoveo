@@ -129,16 +129,25 @@ handle_call({read, Hash}, _From, X) ->
                 end
         end,
     {reply, R, X};
-handle_call({read, Many, Height, B}, _From, X) 
+handle_call({read, 0, Height, _B}, _From, X) 
   when (Height >= X#d.ram_height) -> 
+    {reply, {ok, []}, X};
+handle_call({read, Many0, Height, B}, _From, X) 
+  when (Height >= X#d.ram_height) -> 
+    BHeight = B#block.height,
     H = block:height(),
-    H2 = min(H, Height + Many),
-    M = max(1, 1 + H2 - Height),
-    %B = block:get_by_height(X),
+    Many = min(Many0 - 1, H - Height),
+    M = min(Many, BHeight),
     BH = block:prev_hash(0, B),
     RH = X#d.ram_height,
     Y = lists:reverse([B|read_dict2(M, BH, X, RH)]),
-    %Y = [B|read_dict2(M, BH, X#d.dict, RH)],
+
+    %H = block:height(),
+    %H2 = min(H, Height + Many),
+    %M = max(1, 1 + H2 - Height),
+    %BH = block:prev_hash(0, B),
+    %RH = X#d.ram_height,
+    %Y = lists:reverse([B|read_dict2(M, BH, X, RH)]),
     {reply, {ok, Y}, X};
 handle_call({read_by_height, Height}, _From, X) ->
     Page = case find_page_loc(Height, X#d.pages, 0) of
@@ -404,9 +413,10 @@ read(Many, Height) ->
                     read_by_height(Height);
                 true ->
                     %io:fwrite("read hd block\n"),
-                    X = min(H, Height + Many),
+                    X = min(H, Height + Many - 1),
                     Block = block:get_by_height(X),
-                    {ok, Z} = gen_server:call(?MODULE, {read, Many, Height, Block}),
+                    D = max(0, Height - H),
+                    {ok, Z} = gen_server:call(?MODULE, {read, Many-D, Height-D, Block}),
                     Z
             end
     end.
