@@ -45,12 +45,12 @@ init([]) ->
 	     tree_child(accounts, HS, constants:account_size(), KL div 8, Mode, TrieSize),
 	     tree_child(channels, HS, constants:channel_size(), 0, Mode, TrieSize),
 	     tree_child(existence, HS, HS + (HB div 8), 0, Mode, 10000),
-	     tree_child(oracles, HS, (((HB*2) div 8) + 4 + (3*HS)) + PS, (KL div 8), Mode, 100000),
-	     tree_child(orders, HS, ((BB div 8) + (PS * 2)), 0, Mode, 10000),
-	     tree_child(oracle_bets, HS, (HS + (3 * BB div 8)), 0, Mode, 10000),
-	     tree_child(governance, 8, 4, 0, Mode, 50000),
-	     tree_child(matched, HS, (HS + PS + (3 * BB div 8)), 0, Mode, 10000),
-	     tree_child(unmatched, HS, (HS + PS + PS + (BB div 8)), 0, Mode, 10000)
+	     tree_child(oracles, HS, (((HB*2) div 8) + 4 + (3*HS)) + PS, (KL div 8), Mode, TrieSize),
+	     tree_child(orders, HS, ((BB div 8) + (PS * 2)), 0, Mode, TrieSize),
+	     tree_child(oracle_bets, HS, (HS + (3 * BB div 8)), 0, Mode, TrieSize),
+	     tree_child(governance, 8, 4, 0, Mode, TrieSize),
+	     tree_child(matched, HS, (HS + PS + (3 * BB div 8)), 0, Mode, TrieSize),
+	     tree_child(unmatched, HS, (HS + PS + PS + (BB div 8)), 0, Mode, TrieSize)
 	    ],
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 

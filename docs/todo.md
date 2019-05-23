@@ -1,6 +1,9 @@
-automatically adding your IP to the list of peers is failing.
+ram version of merkel trees crashes around height 40k
 
-do print time tests to identify the CPU bottleneck for syncing on the server.
+configuration option to not store any blocks.
+
+
+automatically adding your IP to the list of peers is failing.
 
 
 replace many dictionary data structures with ets.

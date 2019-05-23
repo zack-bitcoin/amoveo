@@ -389,6 +389,7 @@ spawn_many(N, F) ->
     spawn_many(N-1, F).
 mine(Rounds) -> 
     potential_block:save(),
+    timer:sleep(10),
     Block = potential_block:read(),
     case Block of
 	"" ->
