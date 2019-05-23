@@ -26,4 +26,4 @@ The solution is that we should use futarchy to make our decisions instead of vot
 If we use futarchy to make our decisions, then there is no one who you can propagandize or lobby to have any control over how the decisions are made. There is no way for a rich person to use their wealth to have any control over the decisions being made.
 
 Futarchy is illegal almost everywhere, (to protect the children!)
-So I am building it onto a blockchain, that way we can use futarchy and no one can stop us.
+So we at Amoveo are building it onto a blockchain, that way we can use futarchy and no one can stop us.
