@@ -8,7 +8,7 @@
 	 period_estimate/0, hashrate_estimate/0,
 	 period_estimate/1, hashrate_estimate/1,
 	 hashes_per_block/0, hashes_per_block/1,
-         header_by_height/1,
+         header_by_height/1, calculate_prev_hashes/1,
          prev_hash/2,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
@@ -97,8 +97,11 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
         true ->
             list_to_tuple([prev_hashes|lists:reverse([PH|Hashes])]);
         false ->
-            B = get_by_height_in_chain(NHeight, PH),
-            calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
+            B0 = get_by_height_in_chain(NHeight+1, PH),
+            B = B0#block.prev_hash,
+            calculate_prev_hashes([B|[PH|Hashes]], NHeight, N*2)
+            %B = get_by_height_in_chain(NHeight, PH),
+            %calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
     end.
 get_by_hash(H) -> 
     Hash = hash(H),
@@ -541,6 +544,9 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     FG6 = forks:get(6),
     FG9 = forks:get(9),
     MinerReward = miner_fees(Txs0),
+    %io:fwrite("block check 5.0\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     NewDict3 = if
 		   Height < FG6 -> NewDict2;
 		   Height < FG9 ->
@@ -552,14 +558,26 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict2, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict2)
 	       end,
+    %io:fwrite("block check 5.1\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     F8 = forks:get(8),
     if
         Height > F8 ->
             no_counterfeit(Dict, NewDict3, Txs0, Height);
         true -> ok
     end,
+    %io:fwrite("block check 5.2\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
+    %io:fwrite("block check 5.3\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     NewTrees3_0 = tree_data:dict_update_trie(OldTrees, NewDict4),%here
+    %io:fwrite("block check 5.4\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     F10 = forks:get(10),
     NewTrees3 = if
 		    (Height == F10) ->
@@ -577,14 +595,18 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 	       end,
 
     {ok, PrevHeader} = headers:read(Header#header.prev_hash),
+    %io:fwrite("block check 5.4\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     %PrevHashes2 = case Block#block.prev_hashes of
     %                  0 -> calculate_prev_hashes(PrevHeader);
     %                  X -> X
     %              end,
-    PrevHashes2 = calculate_prev_hashes(PrevHeader),
-    Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
+    %PrevHashes2 = calculate_prev_hashes(PrevHeader),
+    %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
+    %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
 
-    %Block2 = Block#block{trees = NewTrees3},
+    Block2 = Block#block{trees = NewTrees3},
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     %TreesHash = Header#header.trees_hash,

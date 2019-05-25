@@ -97,6 +97,14 @@ store(K, V, D)->
             
             
 handle_info(_, X) -> {noreply, X}.
+handle_cast({write_empty, Block, Hash}, X) -> 
+    D2 = store(Hash, Block, X#d.dict),
+    X2 = X#d{dict = D2, ram_bytes = X#d.ram_bytes, many_blocks = X#d.many_blocks},
+    X4 = case element(2, Block) of
+             0 -> X2#d{genesis = Block};
+             _ -> X2
+         end,
+    {noreply, X4};
 handle_cast({write, Block, Hash}, X) -> 
     S = size(erlang:term_to_binary(Block)),
     D2 = store(Hash, Block, X#d.dict),
@@ -446,14 +454,22 @@ read(Hash) ->
 
 write(Block, Hash) ->
     {ok, Version} = application:get_env(amoveo_core, db_version),
+    Height = Block#block.height,
+    Block2 = case Height of
+                 0 -> Block;
+                 _ ->
+                    {ok, PrevHeader} = headers:read(Block#block.prev_hash),
+                    PrevHashes = block:calculate_prev_hashes(PrevHeader),
+                    Block#block{prev_hashes = PrevHashes}
+             end,
     case Version of
         1 ->
-            CompressedBlockPlus = compress(Block),
+            CompressedBlockPlus = compress(Block2),
                                                 %Hash = block:hash(Block),
             BlockFile = binary_to_file_path(blocks, Hash),
             ok = db:save(BlockFile, CompressedBlockPlus);
         _ ->
-            gen_server:cast(?MODULE, {write, Block, Hash})
+                gen_server:cast(?MODULE, {write, Block2, Hash})
     end.
 check() ->
     gen_server:call(?MODULE, check).
