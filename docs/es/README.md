@@ -26,14 +26,14 @@ Con Amoveo es imposible para los clientes robar en un mercado, y es imposible qu
 
 ## Nodo ligero (billetera)
 
-Visitando [esta página](http://159.89.106.253:8080/wallet.html?es) puedes participar en Amoveo, no se requiere instalar ningún software.
+Visitando [esta página](http://139.59.144.76:8080/wallet.html?es) puedes participar en Amoveo, no se requiere instalar ningún software.
 Este nodo ligero descarga las cabeceras de los bloques y verifica las pruebas de trabajo (POW).
 Si esperas suficientes confirmaciones, verifica las pruebas merkle de toda la cadena para aportar tanta seguridad como un nodo completo.
 Aunque más despacio, también puedes minar bloques desde el nodo ligero.
 
 ## Explorador de bloques
 
-Puedes visitar el [explorador de bloques](http://159.89.106.253:8080/explorer.html) para ver todos los mercados creados en el nodo.
+Puedes visitar el [explorador de bloques](http://139.59.144.76:8080/explorer.html) para ver todos los mercados creados en el nodo.
 
 ## Nodo completo
 

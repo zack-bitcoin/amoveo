@@ -5,13 +5,13 @@ Amoveo's source code became 47% shorter this month. Going from 15k lines to 8k l
 
 Amoveo released light nodes in these languages: Chinese, Spanish, Hindi, toki pona
 
-http://159.89.106.253:8080/wallet.html?cn
+http://139.59.144.76:8080/wallet.html?cn
 
-http://159.89.106.253:8080/wallet.html?sp
+http://139.59.144.76:8080/wallet.html?sp
 
-http://159.89.106.253:8080/wallet.html?hi
+http://139.59.144.76:8080/wallet.html?hi
 
-http://159.89.106.253:8080/wallet.html?tp
+http://139.59.144.76:8080/wallet.html?tp
 
 
 Amoveo README was simplified.
@@ -38,7 +38,7 @@ A block miner was written in C language, it is much faster than any other mining
 
 The blockchain was re-written as a light node in javascript. So now there are 2 implementations of Amoveo. You can participate just by visiting a web page. It works from phones too.
 
-http://159.89.106.253:8080/wallet.html
+http://139.59.144.76:8080/wallet.html
 
 The Chalang VM was re-written to javascript. This was needed for the javascript light node.
 

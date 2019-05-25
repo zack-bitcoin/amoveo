@@ -392,6 +392,7 @@ spawn_many(N, F) ->
     spawn_many(N-1, F).
 mine(Rounds) -> 
     potential_block:save(),
+    timer:sleep(10),
     Block = potential_block:read(),
     case Block of
 	"" ->
@@ -601,6 +602,8 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %                  0 -> calculate_prev_hashes(PrevHeader);
     %                  X -> X
     %              end,
+    %PrevHashes2 = calculate_prev_hashes(PrevHeader),
+    %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
     %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
 
     Block2 = Block#block{trees = NewTrees3},

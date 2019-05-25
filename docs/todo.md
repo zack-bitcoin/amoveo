@@ -1,3 +1,47 @@
+futarchy markets:
+lower block reward
+> if the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
+> if the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
+
+lock the block reward with a set halvening schedule
+
+
+
+we will do a full review of every part of the blocks and headers that get downloaded to confirm that there is no other data that we are not verifying.
+
+set up a testnet
+
+internal/external ip should be in the config file.
+potential_block refresh period should be in the config file.
+
+
+update the light node to use the new kind of channel team close.
+
+
+merkel tree memory leak for miners.
+
+
+
+ram version of merkel trees crashes around height 40k
+
+configuration option to not store any blocks.
+
+
+automatically adding your IP to the list of peers is failing.
+
+
+replace many dictionary data structures with ets.
+
+
+otc_listener should display the channel ID.
+* we did this, now we need to test it and then push to github.
+
+tar backup
+Sy gives: tar cfvz amoveo.tgz blocks/ channels/ data/ oracle_questions/
+this is what i compressed and uncompressed on the target system
+Why isn't this enough to be in sync?
+
+
 make a javascript tool for managing channel states.
 It should tell you which channels are ready to be closed, and display a chart for how much money is in each contract, how much longer until it can be closed, and store it all in a single file.
 
@@ -7,12 +51,6 @@ glossary long-veo/stablecoin on otc_derivatives and otc_listener
 
 start closing some oracles
 
-add an api request so that we can know if the node is storing the blocks in the new way, so we can use an alternative syncing protocol.
-
-
-update dump:file_manager ram version to use ets and be faster.
-
-* sync.erl should work differently if they store the blocks the new way.
 
 
 in the light node, when we look up oracles, we should verify that the hash of the question tx matches the hash stored in the merkel tree.

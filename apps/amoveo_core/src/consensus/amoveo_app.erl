@@ -1,4 +1,4 @@
--module(testnet_app).
+-module(amoveo_app).
 
 -behaviour(application).
 
@@ -19,7 +19,7 @@ start(_StartType, _StartArgs) ->
     push_block:cron(),
     io:fwrite("starting node\n"),
 
-    testnet_sup:start_link().
+    amoveo_sup:start_link().
 
 
 stop(_State) ->

@@ -3,7 +3,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 	status/0, stop/0, start/0]).
 init(ok) -> 
-    io:fwrite("start sync_kill\n"),
+    %io:fwrite("start sync_kill\n"),
     {ok, go}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.

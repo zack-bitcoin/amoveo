@@ -18,7 +18,7 @@
                   encrypter
                  ]},
   {modules, []},
-  {mod, { testnet_app, []}},
+  {mod, { amoveo_app, []}},
   {env, [
 	  {error_logger, {file, "log.db"}}
 	]}

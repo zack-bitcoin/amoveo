@@ -74,7 +74,7 @@ Zen Protocol, Aeternity, and Bitshares have no plans for sharding that I can fin
 
 ### Light Nodes
 
-[Amoveo has a working light node in the browser](http://159.89.106.253:8080/wallet.html).
+[Amoveo has a working light node in the browser](http://139.59.144.76:8080/wallet.html).
 Amoveo miners can use light nodes, they don't need full nodes.
 The Amoveo network has no requirement for full nodes, it could be 100% light nodes.
 
@@ -92,7 +92,7 @@ Bitshares, Zen Protocol, Stox, Bodhi, and Aeternity.
 A few teams plan to put markets off-chain, but they are markets of brokers, which is much less efficient than an order book. This design also gets a 0.
 Bitcoin Hivemind, Group Gnosis, and Augur.
 
-Amoveo has off-chain markets with order books and single-price batches in the testnet. [You can see graphs of the market state here](http://159.89.106.253:8080/explorer.html)
+Amoveo has off-chain markets with order books and single-price batches in the testnet. [You can see graphs of the market state here](http://139.59.144.76:8080/explorer.html)
 
 ### oracles
 

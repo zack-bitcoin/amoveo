@@ -26,7 +26,7 @@ Now that the browser light node works so well, the browser wallet is only used f
 [After starting your node, use a web browser on the same computer to visit this website.](http://localhost:8081/login.html)
 It is being served by the node you are running.
 
-The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html)
+The block explorer for the network is [here](http://139.59.144.76:8080/explorer.html)
 Go to the block explorer to see all the markets that are being run on that node.
 
 

@@ -4,7 +4,7 @@ local_ip = [127,0,0,1];
 local_port = 8081;
 var server_ip = document.createElement("INPUT");
 server_ip.setAttribute("type", "text");
-server_ip.value = "[159, 89, 106, 253]";// server
+server_ip.value = "[139,59,144,76]";// server
 //server_ip.value = "[146, 185, 142, 103]";// server
 //server_ip.value = "[127, 0, 0, 1]";// server
 var server_ip_info = document.createElement("h8");

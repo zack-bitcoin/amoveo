@@ -4,7 +4,7 @@
 %This module keeps track of what might become the next block of the blockchain, if you are mining or running a mining pool.
 -export([new/0, read/0, save/0, dump/0, check/0, save/2]).
 %-define(potential_block, "data/potential_blocks.db").
--define(refresh_period, 60).%how often we check if there are new txs that can be included in the block. in seconds
+-define(refresh_period, 600).%how often we check if there are new txs that can be included in the block. in seconds
 -include("../../records.hrl").
 -record(pb, {block, time}).
 init(ok) -> 

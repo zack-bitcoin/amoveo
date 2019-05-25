@@ -8,7 +8,7 @@
 %We keep a record of the blocks with the heighest accumulative difficulty so that we know what we will need to prune.
 %If a fork starts from before fork_tolerance, then it would be growing from a block that is not recorded in this module. Since the data is pruned, you would be unable to maintain the database. So the node would freeze, and you would have to either restart syncing from the genesis block, or download and verify all the consensus data you don't have from the fork.
 init(ok) -> 
-    io:fwrite("start recent_blocks"),
+    %io:fwrite("start recent_blocks"),
     process_flag(trap_exit, true),
     X = db:read(?LOC),
     Ka = if 
