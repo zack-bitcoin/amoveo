@@ -1,3 +1,27 @@
+futarchy markets:
+lower block reward
+> if the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
+> if the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
+
+lock the block reward with a set halvening schedule
+
+
+
+we will do a full review of every part of the blocks and headers that get downloaded to confirm that there is no other data that we are not verifying.
+
+set up a testnet
+
+internal/external ip should be in the config file.
+potential_block refresh period should be in the config file.
+
+
+update the light node to use the new kind of channel team close.
+
+
+merkel tree memory leak for miners.
+
+
+
 ram version of merkel trees crashes around height 40k
 
 configuration option to not store any blocks.

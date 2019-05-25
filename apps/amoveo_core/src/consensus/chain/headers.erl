@@ -16,7 +16,7 @@
 	    top_with_block = #header{}
 	   }).
 init([]) ->
-    io:fwrite("start headers"),
+    %io:fwrite("start headers"),
     process_flag(trap_exit, true),
     X = db:read(?LOC),
     K1 = if

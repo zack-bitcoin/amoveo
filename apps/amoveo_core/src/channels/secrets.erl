@@ -7,7 +7,7 @@
 -define(none, <<"none">>).
 -include("../records.hrl").
 init(ok) ->
-    io:fwrite("starting secrets\n"),
+    %io:fwrite("starting secrets\n"),
     process_flag(trap_exit, true),
     K = case db:read(?LOC) of
             "" -> dict:new();

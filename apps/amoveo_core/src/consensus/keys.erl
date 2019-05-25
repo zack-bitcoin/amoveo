@@ -26,7 +26,7 @@ format_status(_,[_,_]) ->
 -record(f, {pub = "", priv = "", sanity = ""}).
 %sanity is only used on the hard drive, not in ram.
 init(ok) -> 
-    io:fwrite("start keys\n"),
+    %io:fwrite("start keys\n"),
     X = db:read(?LOC),
     Ka = if
 	     X == "" -> 
