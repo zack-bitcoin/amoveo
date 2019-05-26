@@ -1,5 +1,5 @@
 -module(tester).
--export([test/0, encryption_test/0]).
+-export([test/0, test_helper/1, encryption_test/0]).
 test() ->
     case keys:status() of
 	unlocked -> test1();
