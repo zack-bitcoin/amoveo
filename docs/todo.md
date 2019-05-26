@@ -11,9 +11,6 @@ we will do a full review of every part of the blocks and headers that get downlo
 
 set up a testnet
 
-internal/external ip should be in the config file.
-potential_block refresh period should be in the config file.
-
 
 update the light node to use the new kind of channel team close.
 

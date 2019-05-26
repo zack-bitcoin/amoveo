@@ -71,7 +71,10 @@
     {block_cache, 5000000}, %5 megabytes, this is how many blocks measured in bytes in ram get compressed into a page of blocks on the hard drive.
     {compression_level, 2},%integer between 1 and 9, 9 is the most compression.
     {block_threads, 2},
-    {push_blocks_batch, 50}
+    {push_blocks_batch, 50},
+    {internal_ip, {127,0,0,1}},
+    {external_ip, {0,0,0,0}},
+    {pool_refresh_period, 600}
   ]},
 
    {lager, [
