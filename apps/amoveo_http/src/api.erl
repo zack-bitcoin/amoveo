@@ -446,21 +446,21 @@ scalar_oracle_unmatched(Fee, OIDN, N) ->
     scalar_oracle_unmatched(Fee, OIDN + 1, N - 1).
 tree_common(TreeName, ID) ->
     X = trees:get(TreeName, ID),
-    %X.
-    case X of
-        empty -> 0;
-        _ -> X
-    end.
+    X.
+    %case X of
+    %    empty -> 0;
+    %    _ -> X
+    %end.
 tree_common(TreeName, ID, BlockHash) ->
     B = block:get_by_hash(BlockHash),
     %T = block:trees(B),
     T = B#block.trees,
     X = trees:get(TreeName, ID, dict:new(), T),
-    %X.
-    case X of
-        empty -> 0;
-        _ -> X
-    end.
+    X.
+    %case X of
+    %    empty -> 0;
+    %    _ -> X
+    %end.
     
 governance(ID) ->
     tree_common(governance, ID).
