@@ -48,9 +48,10 @@ make_dict(ID,Amount,Fee) ->
 %    {Tx, [CProof, Proof1, Proof2]}.
     
 go(Tx, Dict, NewHeight, _) ->
-    case application:get_env(amoveo_core, kind) of
-	{ok, "production"} -> 1=2;
-        _ -> ok
+    F18 = forks:get(18),
+    if
+        NewHeight > F18 -> ok;
+        true -> 1=2
     end,
     %io:fwrite("team close 0\n"),
     ID = Tx#ctc2.id,
