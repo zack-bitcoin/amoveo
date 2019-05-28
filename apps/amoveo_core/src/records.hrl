@@ -36,8 +36,8 @@
                 txs,%LTS
                 prev_hashes = {prev_hashes},
                 proofs = [],%LTS
-                roots,%LTS
-                hash = <<>>,
+                roots,%LTS  
+                hash = <<>>, % we need to calculate locally.
 		market_cap = 0,%LTS
 		channels_veo = 0,%LTS
 		live_channels = 0,%LTS

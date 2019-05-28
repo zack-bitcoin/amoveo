@@ -1,18 +1,32 @@
+issue with channel_team_close2
+blocked because packer doesn't know about the key.
+We can't fix packer directly, because some nodes would freeze.
+1) mining pools should do a soft fork to block ctc2
+2) we fix the packer library.
+3) we give everyone a week to update dependencies.
+4) we schedule a date to simultaneously turn off the soft fork in all the mining pools.
+* currently here.
+5) clean up now unused soft-fork code.
+
+
+
+
+
+
+
+
+
+
+
 futarchy markets:
-lower block reward
+* lower block reward
 > if the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
 > if the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
+* lock the block reward with a set halvening schedule
 
-lock the block reward with a set halvening schedule
-
-
-
-we will do a full review of every part of the blocks and headers that get downloaded to confirm that there is no other data that we are not verifying.
 
 set up a testnet
 
-
-update the light node to use the new kind of channel team close.
 
 
 merkel tree memory leak for miners.
@@ -33,11 +47,6 @@ replace many dictionary data structures with ets.
 otc_listener should display the channel ID.
 * we did this, now we need to test it and then push to github.
 
-tar backup
-Sy gives: tar cfvz amoveo.tgz blocks/ channels/ data/ oracle_questions/
-this is what i compressed and uncompressed on the target system
-Why isn't this enough to be in sync?
-
 
 make a javascript tool for managing channel states.
 It should tell you which channels are ready to be closed, and display a chart for how much money is in each contract, how much longer until it can be closed, and store it all in a single file.
@@ -48,6 +57,8 @@ glossary long-veo/stablecoin on otc_derivatives and otc_listener
 
 start closing some oracles
 
+
+scientific notation oracles.
 
 
 in the light node, when we look up oracles, we should verify that the hash of the question tx matches the hash stored in the merkel tree.
