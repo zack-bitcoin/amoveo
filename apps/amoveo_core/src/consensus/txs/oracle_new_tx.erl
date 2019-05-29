@@ -1,16 +1,6 @@
 -module(oracle_new_tx).
 -export([go/4, make/8, make_dict/7, from/1, id/1, governance/1]).
 -include("../../records.hrl").
--record(oracle_new, {from = 0, 
-		     nonce = 0, 
-		     fee = 0, 
-		     question = <<>>, 
-		     start, 
-		     id, 
-		     %recent_price, %if this is a governance oracle, or if it is asking a question, then we need to reference another oracle that closed recently with the state "bad". We reference it so we know the current price of shares.
-		     difficulty = 0, 
-		     governance, 
-		     governance_amount}).
 %This asks the oracle a question.
 %The oracle can only answer true/false questions.
 %Running the oracle costs a fee which is used as a reward to get people to use the oracle.

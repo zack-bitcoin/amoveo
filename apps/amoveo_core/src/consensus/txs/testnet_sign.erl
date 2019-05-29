@@ -4,7 +4,7 @@
 	 verify_1/2,verify_2/2,
 	 new_key/0, new_key/1
 ]).
--record(signed, {data="", sig="", sig2=""}).
+-include("../../records.hrl").
 empty() -> #signed{}.
 empty(X) -> #signed{data=X}.
 data(X) -> X#signed.data.

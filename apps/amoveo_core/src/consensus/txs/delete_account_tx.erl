@@ -1,9 +1,5 @@
 -module(delete_account_tx).
 -export([go/4, new/4, make_dict/3, from/1, to/1]).
--record(delete_acc_tx, {from = 0,
-                        nonce = 0,
-                        fee = 0,
-                        to = 0}).
 -include("../../records.hrl").
 
 from(X) -> X#delete_acc_tx.from.

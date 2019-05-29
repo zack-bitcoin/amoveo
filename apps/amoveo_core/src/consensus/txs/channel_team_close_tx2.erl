@@ -5,10 +5,6 @@
          make_dict/3, acc1/1, acc2/1, fee/1, 
          amount1/1, amount2/1,
          aid1/1, aid2/1, id/1]).
--record(ctc2, {aid1 = 0, aid2 = 0, fee = 0,
-               id = 0,
-               amount1 = 0, amount2 = 0,
-               upper_limit, lower_limit}).
 -include("../../records.hrl").
 aid1(X) -> X#ctc2.aid1.
 aid2(X) -> X#ctc2.aid2.

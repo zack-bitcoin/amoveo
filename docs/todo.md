@@ -1,3 +1,5 @@
+coinbase doesn't need to use a nonce.
+
 store meta data with each block:
 
 block.
@@ -64,8 +66,6 @@ merkel tree memory leak for miners.
 
 
 
-ram version of merkel trees crashes around height 40k
-
 configuration option to not store any blocks.
 
 
@@ -90,6 +90,8 @@ start closing some oracles
 
 
 scientific notation oracles.
+How about we combine a  binary and scalar oracle. so you can make a new binary oracle, and combine it with an old scalar oracle, to make a contract that either returns $0 or $200 of veo.
+P = the amount of veo in $200 from 0 to 10; if A happens return P * 1024 / 10; if A doesn’t happen return 0
 
 
 in the light node, when we look up oracles, we should verify that the hash of the question tx matches the hash stored in the merkel tree.

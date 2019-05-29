@@ -3,8 +3,6 @@
 -module(channel_team_close_tx).
 -export([go/4, make/4, make_dict/3, acc1/1, acc2/1, fee/1, amount/1,
          aid1/1, aid2/1, id/1]).
--record(ctc, {aid1 = 0, aid2 = 0, fee = 0,
-	      nonce = 0, id = 0, amount = 0}).
 -include("../../records.hrl").
 aid1(X) -> X#ctc.aid1.
 aid2(X) -> X#ctc.aid2.

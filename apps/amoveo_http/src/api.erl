@@ -20,7 +20,8 @@ block(1, N) ->
 block(3, N) ->
     Txs = tl(block(1, N)),
     Txids = lists:map(
-	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      fun(Tx) -> txs:txid(Tx) end,
+%                      hash:doit(testnet_sign:data(Tx)) end, 
 	      Txs),
     [Txs, Txids];
 block(2, H) ->

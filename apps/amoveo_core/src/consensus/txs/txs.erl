@@ -1,5 +1,11 @@
 -module(txs).
--export([digest/3, developer_lock/3, key2module/1]).
+-export([digest/3, developer_lock/3, key2module/1, txid/1]).
+txid(T) ->
+    T2 = case element(1, T) of
+             signed -> testnet_sign:data(T);
+             _ -> T
+         end,
+    hash:doit(T2).
 digest([C|T], Dict, H) ->
     case element(1, C) of
         coinbase ->
