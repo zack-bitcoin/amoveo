@@ -1,9 +1,8 @@
-api:tx_scan
-it should check recent blocks to see if a txid has appeared.
-
 we should probably store blocks and meta data seperately.
 
+find out why safari is not working with the light node.
 
+oracle_close tx from the light node.
 
 lets get rid of the tx types that no one uses:
 *delete_account, existence

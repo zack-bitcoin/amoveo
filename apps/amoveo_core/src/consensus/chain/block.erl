@@ -647,7 +647,8 @@ calculate_block_meta(Block, OldTrees) ->
                             {diff, Block#block.difficulty},
                             {prev_hash, base64:encode(Block#block.prev_hash)},
                             {blockhash, base64:encode(hash(Block))},
-                            {time, Block#block.time}
+                            {time, Block#block.time},
+                            {market_cap, Block#block.market_cap}
                            ]}},
                   {txs, T},
                   {governance, {G}}]},
@@ -762,6 +763,7 @@ get_tx(T, _) when (element(1, T) == oracle_new) ->
      {fee, T#oracle_new.fee},
      {goverance, T#oracle_new.governance},
      {governance_amount, T#oracle_new.governance_amount},
+     {start, T#oracle_new.start},
      {oracle_id, base64:encode(T#oracle_new.id)}];
 get_tx(T, _) when (element(1, T) == unmatched) ->
     [{from, base64:encode(oracle_unmatched_tx:from(T))},
