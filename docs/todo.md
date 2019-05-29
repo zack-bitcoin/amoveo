@@ -1,3 +1,8 @@
+api:tx_scan
+it should check recent blocks to see if a txid has appeared.
+
+
+
 coinbase doesn't need to use a nonce.
 
 store meta data with each block:
