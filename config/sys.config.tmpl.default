@@ -74,7 +74,8 @@
     {push_blocks_batch, 50},
     {internal_ip, {127,0,0,1}},
     {external_ip, {0,0,0,0}},
-    {pool_refresh_period, 600}
+    {pool_refresh_period, 600},
+    {block_meta, false}
   ]},
 
    {lager, [
