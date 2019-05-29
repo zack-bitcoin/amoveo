@@ -221,7 +221,9 @@ test() ->
     A = new(ID,Acc1,Acc2,Bal1,Bal2,Height,Delay),
     A = deserialize(serialize(A)),
     C = A,
-    NewLoc = write(C, constants:root0()),
+    R = trees:empty_tree(channels),
+    %NewLoc = write(C, constants:root0()),
+    NewLoc = write(C, R),
     {Root, C, Proof} = get(ID, NewLoc),
     true = verify_proof(Root, ID, serialize(C), Proof),
     success.

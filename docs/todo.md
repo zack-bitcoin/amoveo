@@ -1,3 +1,34 @@
+store meta data with each block:
+
+block.
+ height
+  reward / amount / value
+   diff
+    timestamp
+     hash (not prev_hash, i have to look that up in the next block)
+
+tx.
+ type
+  amount
+   from
+    to
+
+gov.
+ all of them, readable values
+ something like that
+ tx is missing a few values for oracle and channel
+ but you get the drift :)
+ on multi txs like multi_spend amount, from and to are an array ofc oh and i forgot fees aswell ^^
+
+
+
+
+
+lets get rid of the tx types that no one uses:
+*delete_account, existence
+
+
+
 issue with channel_team_close2
 blocked because packer doesn't know about the key.
 We can't fix packer directly, because some nodes would freeze.
@@ -11,7 +42,7 @@ We can't fix packer directly, because some nodes would freeze.
 
 
 
-
+move all records to records.hrl . Many developers are exposed to the datastructure first, and then search for the file with the keys second. they have difficulty knowing which file to look in to find the keys.
 
 
 

@@ -44,7 +44,8 @@ genesis_state() ->
          [oracle_close, ?fee],
          [unmatched, ?fee],
          [oracle_winnings, ?fee]],
-    {ok, GenesisTree} = genesis_state(G, 1),
+    R = trees:empty_tree(governance),
+    {ok, GenesisTree} = genesis_state(G, R),
     GenesisTree.
 
 genesis_state([], Tree) ->

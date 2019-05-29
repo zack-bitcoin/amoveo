@@ -188,12 +188,17 @@ prev_hash(N, BP) -> element(N+1, BP#block.prev_hashes).
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
-    Root0 = constants:root0(),
+    %Root0 = constants:root0(),
     Pub = constants:master_pub(),
     First = accounts:new(Pub, constants:initial_coins()),
     GovInit = governance:genesis_state(),
-    Accounts = accounts:write(First, Root0),%This is leaking a small amount of memory, but it is probably too small to care about, since this function gets executed so rarely.
-    Trees = trees:new(Accounts, Root0, Root0, Root0, Root0, GovInit),
+    Accounts = accounts:write(First, trees:empty_tree(accounts)),%This is leaking a small amount of memory, but it is probably too small to care about, since this function gets executed so rarely.
+    Trees = trees:new(Accounts, 
+                      trees:empty_tree(channels), 
+                      trees:empty_tree(existence), 
+                      ok, 
+                      trees:empty_tree(oracles), 
+                      GovInit),
     TreesRoot = trees:root_hash(Trees),
     BlockPeriod = governance:get_value(block_period, GovInit),
     HistoryString = <<"bitcoin 511599  0000000000000000005cdf7dafbfa2100611f14908ad99098c2a91719da93a50">>,
@@ -289,15 +294,17 @@ make(Header, Txs0, Trees, Pub) ->
     NewTrees0 = tree_data:dict_update_trie(Trees, NewDict2),
     NewTrees = if
 		   ((Height + 1) == F10)  ->%
-		       Root0 = constants:root0(),%
+		       %Root0 = constants:root0(),%
 		       NewTrees1 = %
 			   trees:new2(trees:accounts(NewTrees0),%
 				      trees:channels(NewTrees0),%
 				      trees:existence(NewTrees0),%
 				      trees:oracles(NewTrees0),%
 				      trees:governance(NewTrees0),%
-				      Root0,%
-				      Root0),%
+                                      trees:empty_tree(matched),
+                                      trees:empty_tree(unmatched)),
+                       %Root0,%
+                       %Root0),%
 		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
 		       NewTrees1;%
 		   true -> NewTrees0
@@ -581,15 +588,17 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     F10 = forks:get(10),
     NewTrees3 = if
 		    (Height == F10) ->
-		       Root0 = constants:root0(),
+		       %Root0 = constants:root0(),
 		       NewTrees1 = 
 			   trees:new2(trees:accounts(NewTrees3_0),
 				      trees:channels(NewTrees3_0),
 				      trees:existence(NewTrees3_0),
 				      trees:oracles(NewTrees3_0),
 				      trees:governance(NewTrees3_0),
-				      Root0,
-				      Root0),
+                                      trees:empty_tree(matched),
+                                      trees:empty_tree(unmatched)),
+				      %Root0,
+				      %Root0),
 		       NewTrees1;
 		   true -> NewTrees3_0
 	       end,

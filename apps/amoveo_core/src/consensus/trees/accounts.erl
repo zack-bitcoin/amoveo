@@ -8,7 +8,8 @@
 -include("../../records.hrl").
 bets(Account) -> Account#acc.bets.
 new(Pub, Balance) ->
-    Root0 = constants:root0(),
+    %Root0 = constants:root0(),
+    Root0 = trees:empty_tree(oracle_bets),
     #acc{pubkey = Pub, balance = Balance, nonce = 0, bets = Root0, bets_hash = oracle_bets:root_hash(Root0)}.
 dict_update(Pub, Dict, Amount, NewNonce) ->
     Account = dict_get(Pub, Dict),
@@ -157,7 +158,8 @@ test() ->
     S = serialize(Acc),
     Acc1 = deserialize(S),
     Acc = Acc1#acc{bets = Acc#acc.bets},
-    Root0 = constants:root0(),
+    %Root0 = constants:root0(),
+    Root0 = trees:empty_tree(accounts),
     NewLoc = write(Acc, Root0),
     {Root, Acc, Proof} = get(Pub, NewLoc),
     true = verify_proof(Root, Pub, serialize(Acc), Proof),
