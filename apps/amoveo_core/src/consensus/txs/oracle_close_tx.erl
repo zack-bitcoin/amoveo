@@ -27,6 +27,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Dict2 = accounts:dict_write(Acc, Dict),
     OID = Tx#oracle_close.oracle_id,
     Oracle = oracles:dict_get(OID, Dict2),
+%    F19 = forks:get(19),
+%    true = (Oracle#oracle.result == 0),
     true = Oracle#oracle.starts =< NewHeight,
     Gov = Oracle#oracle.governance,
     F14 = forks:get(14),

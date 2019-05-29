@@ -735,7 +735,7 @@ get_tx(T, _) when (element(1, T) == nc) ->
      {cid, base64:encode(T#nc.id)}
     ];
 get_tx(T, _) when (element(1, T) == nc_accept) ->
-    NCO = T#nc_accept.nc_offer,
+    NCO = testnet_sign:data(T#nc_accept.nc_offer),
     [{acc2, base64:encode(T#nc_accept.acc2)},
      {acc1, base64:encode(NCO#nc_offer.acc1)},
      {bal1, NCO#nc_offer.bal1},

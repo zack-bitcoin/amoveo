@@ -1,39 +1,15 @@
 api:tx_scan
 it should check recent blocks to see if a txid has appeared.
 
-
-
-coinbase doesn't need to use a nonce.
-
-store meta data with each block:
-
-block.
- height
-  reward / amount / value
-   diff
-    timestamp
-     hash (not prev_hash, i have to look that up in the next block)
-
-tx.
- type
-  amount
-   from
-    to
-
-gov.
- all of them, readable values
- something like that
- tx is missing a few values for oracle and channel
- but you get the drift :)
- on multi txs like multi_spend amount, from and to are an array ofc oh and i forgot fees aswell ^^
-
-
+we should probably store blocks and meta data seperately.
 
 
 
 lets get rid of the tx types that no one uses:
 *delete_account, existence
 
+
+store the highest hash with each page of compressed blocks, since this makes it easier to organize the blocks and resync them later.
 
 
 issue with channel_team_close2
