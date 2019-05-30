@@ -6,7 +6,6 @@
 	 serialize/1,deserialize/1,
 	 new/2,
 	 test/0]).%common tree stuff
--record(gov, {id, value, lock}).
 -define(name, governance).
 -define(fee, constants:encoded_fee()).
 -include("../../records.hrl").

@@ -133,6 +133,7 @@
 		     governance, 
 		     governance_amount}).
 -record(oracle_winnings, {from, nonce, fee, oracle_id}).
+-record(gov, {id, value, lock}).
 -record(channel, {id = 0, %the unique id number that identifies this channel
 		  acc1 = 0, % a pubkey
 		  acc2 = 0, % a different pubkey
@@ -146,5 +147,7 @@
 		  closed = 0 %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
 		  %channels closed flag is unused because we delete closed channels.
 		  }).
+-record(matched, {account, oracle, true, false, bad}).
+%true, false, and bad are the 3 types of shares that can be purchased from an oracle
 
 

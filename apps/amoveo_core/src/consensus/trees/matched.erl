@@ -8,8 +8,6 @@
          deserialize/1]).
 -include("../../records.hrl").
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
--record(matched, {account, oracle, true, false, bad}).
-%true, false, and bad are the 3 types of shares that can be purchased from an oracle
 -define(name, matched).
 reward(Bet, Correct, NewHeight) ->
     {Positive, _Negative} = 

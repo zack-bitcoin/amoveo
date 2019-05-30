@@ -75,7 +75,12 @@
     {internal_ip, {127,0,0,1}},
     {external_ip, {0,0,0,0}},
     {pool_refresh_period, 600},
-    {block_meta, false}
+    {block_meta, false},
+    {block_meta_block, true},
+    {block_meta_txs, true},
+    {block_meta_governance, true},
+    {block_meta_before, true},
+    {block_meta_following, true}
   ]},
 
    {lager, [

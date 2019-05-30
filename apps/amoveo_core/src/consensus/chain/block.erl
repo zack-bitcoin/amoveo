@@ -615,7 +615,7 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
     %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
 
-    Block2 = Block#block{trees = NewTrees3, meta = calculate_block_meta(Block, OldTrees)},
+    Block2 = Block#block{trees = NewTrees3, meta = calculate_block_meta(Block, OldTrees, Dict, NewDict)},
     %Block2 = Block#block{trees = NewTrees3, meta = <<>>},
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
@@ -627,34 +627,88 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %true = BlockHash == hash(Block2),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
-calculate_block_meta(Block, OldTrees) ->
+calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
     %json encoded with keys
     %every tx, including txid, type, quantities of veo being moved.
     case application:get_env(amoveo_core, block_meta) of
         {ok, true} ->
             H = Block#block.height,
             GM = governance:max(H),
-            G = get_govs(OldTrees, GM, 1, []),
-            T = get_txs(Block#block.txs, OldTrees),
-            DR = trees:get(governance, developer_reward, dict:new(), OldTrees),
-            BR = trees:get(governance, block_reward, dict:new(), OldTrees),
-            DR1 = BR * DR div 10000,
-            
-            J = {[{block, {[
-                            {height, H}, 
-                            {developer_reward, DR1},
-                            {block_reward, BR},
-                            {diff, Block#block.difficulty},
-                            {prev_hash, base64:encode(Block#block.prev_hash)},
-                            {blockhash, base64:encode(hash(Block))},
-                            {time, Block#block.time},
-                            {market_cap, Block#block.market_cap}
-                           ]}},
-                  {txs, T},
-                  {governance, {G}}]},
+            BlockPart = 
+                case application:get_env(amoveo_core, block_meta_block) of
+                    {ok, true} -> 
+                        DR = trees:get(governance, developer_reward, dict:new(), OldTrees),
+                        BR = trees:get(governance, block_reward, dict:new(), OldTrees),
+                        DR1 = BR * DR div 10000,
+                        [{block, {[
+                                   {height, H}, 
+                                   {developer_reward, DR1},
+                                   {block_reward, BR},
+                                   {diff, Block#block.difficulty},
+                                   {prev_hash, base64:encode(Block#block.prev_hash)},
+                                   {blockhash, base64:encode(hash(Block))},
+                                   {time, Block#block.time},
+                                   {market_cap, Block#block.market_cap}
+                                  ]}}];
+                    _ -> []
+                end,
+            TxPart = case application:get_env(amoveo_core, block_meta_txs) of
+                         {ok, true} -> [{txs, get_txs(Block#block.txs, OldTrees)}];
+                         _ -> []
+                         end,
+            GovPart = case application:get_env(amoveo_core, block_meta_governance) of
+                         {ok, true} -> [{governance, {get_govs(OldTrees, GM, 1, [])}}];
+                         _ -> []
+                     end,
+            BeforePart = case application:get_env(amoveo_core, block_meta_before) of
+                             {ok, true} -> 
+                                 [{before, dict_data(OldDict)}];
+                             _ -> []
+                         end,
+            FollowingPart = case application:get_env(amoveo_core, block_meta_following) of
+                             {ok, true} -> [{following, dict_data(NewDict)}];
+                             _ -> []
+                         end,
+            J = {BlockPart ++ TxPart ++ GovPart ++ BeforePart ++ FollowingPart},
             jiffy:encode(J);
         _ -> X = <<>>,
              X
+    end.
+dict_data(D) ->
+    K = dict:fetch_keys(D),
+    dict_data2(K, D).
+dict_data2([], _) -> [];
+dict_data2([H = {existence, Key}|T], D) ->
+    dict_data2(T, D);
+dict_data2([H = {Type, Key}|T], D) ->
+    Y = case dict:fetch(H, D) of
+            {B, _} -> B;
+            B2 -> B2
+        end,
+    Z = case Y of
+            0 -> 
+                Key2 = if
+                           is_binary(Key) -> [{key, base64:encode(Key)}];
+                           is_integer(Key) -> [{key, Key}];
+                           true -> 
+                               {key, K1, K2} = Key,
+                               [{account, base64:encode(K1)}, {oracle, base64:encode(K2)}]
+                       end,
+                Key2 ++ [{type, Type},{empty, true}];
+            _ ->
+                X = Type:deserialize(Y),
+                unpack_tree_element(X)
+        end,
+    [{Z}|dict_data2(T, D)].
+unpack_tree_element(X) ->
+    case element(1, X) of
+        gov -> [{type, gov},{id, X#gov.id},{value, X#gov.value},{lock, X#gov.lock}];
+        acc -> [{type, account},{pubkey, base64:encode(X#acc.pubkey)},{balance, X#acc.balance},{nonce, X#acc.nonce}];
+        oracle -> [{type, oracle},{oid, base64:encode(X#oracle.id)},{result, X#oracle.result},{starts, X#oracle.starts},{type, X#oracle.type},{done_timer, X#oracle.done_timer},{governance, X#oracle.governance},{governance_amount, X#oracle.governance_amount}];
+        channel -> [{type, channel},{cid, base64:encode(X#channel.id)},{acc1, base64:encode(X#channel.acc1)}, {acc2, base64:encode(X#channel.acc2)}, {bal1, X#channel.bal1}, {bal2, X#channel.bal2}, {amount, X#channel.amount}, {nonce, X#channel.nonce}, {last_modified, X#channel.last_modified}, {delay, X#channel.delay}, {closed, X#channel.closed}];
+        matched -> [{type, matched},{account, base64:encode(X#matched.account)}, {oracle, base64:encode(X#matched.oracle)}, {true, X#matched.true}, {false, X#matched.false}, {bad, X#matched.bad}];
+        unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)}];
+        _ -> []
     end.
 get_txs([], _) -> [];
 get_txs([H1|T], Trees) ->
