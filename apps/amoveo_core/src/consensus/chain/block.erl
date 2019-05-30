@@ -803,9 +803,15 @@ get_tx(T, _, _) when (element(1, T) == nc_accept) ->
 get_tx(T, _, NewDict) when (element(1, T) == oracle_bet) ->
     ID = oracle_bet_tx:id(T),
     Oracle = trees:get(oracles, ID, NewDict, ok),
+    Type = case oracle_bet_tx:type(T) of
+               1 -> true;
+               2 -> false;
+               3 -> bad_question
+           end,
     [{from, base64:encode(oracle_bet_tx:from(T))},
      {amount, oracle_bet_tx:amount(T)},
-     {type, oracle_bet_tx:type(T)},
+     {bet_type, oracle_bet_tx:type(T)},
+     {order_book_type, Oracle#oracle.type},
      {fee, oracle_bet_tx:fee(T)},
      {done_timer, Oracle#oracle.done_timer},
      {oracle_id, base64:encode(ID)}
@@ -816,7 +822,8 @@ get_tx(T, _, NewDict) when (element(1, T) == oracle_close) ->
     [{from, base64:encode(T#oracle_close.from)},
      {fee, T#oracle_close.fee},
      {oracle_id, base64:encode(ID)},
-     {done_timer, Oracle#oracle.done_timer}
+     {done_timer, Oracle#oracle.done_timer},
+     {result, Oracle#oracle.result}
     ];
 get_tx(T, _, NewDict) when (element(1, T) == oracle_new) ->
     ID = T#oracle_new.id,
