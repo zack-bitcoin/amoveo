@@ -653,7 +653,7 @@ calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
                     _ -> []
                 end,
             TxPart = case application:get_env(amoveo_core, block_meta_txs) of
-                         {ok, true} -> [{txs, get_txs(Block#block.txs, OldTrees)}];
+                         {ok, true} -> [{txs, get_txs(Block#block.txs, OldTrees, NewDict)}];
                          _ -> []
                          end,
             GovPart = case application:get_env(amoveo_core, block_meta_governance) of
@@ -710,53 +710,53 @@ unpack_tree_element(X) ->
         unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)}];
         _ -> []
     end.
-get_txs([], _) -> [];
-get_txs([H1|T], Trees) ->
+get_txs([], _, _) -> [];
+get_txs([H1|T], Trees, NewDict) ->
     H = case element(1, H1) of
              signed -> element(2, H1);
              _ -> H1
          end,
     Type = element(1, H),
     Txid = base64:encode(txs:txid(H1)),
-    L = get_tx(H, Trees),
+    L = get_tx(H, Trees, NewDict),
     H2 = {[{type, Type},{txid, Txid}] ++ L},
-    [H2|get_txs(T, Trees)].
-get_tx(T, _) when (element(1, T) == spend) ->
+    [H2|get_txs(T, Trees, NewDict)].
+get_tx(T, _, _) when (element(1, T) == spend) ->
     [{to, base64:encode(T#spend.to)},
      {from, base64:encode(T#spend.from)},
      {amount, T#spend.amount},
      {fee, T#spend.fee}];
-get_tx(T, _) when (element(1, T) == create_acc_tx) ->
+get_tx(T, _, _) when (element(1, T) == create_acc_tx) ->
     [{to, base64:encode(T#create_acc_tx.pubkey)},
      {from, base64:encode(T#create_acc_tx.from)},
      {amount, T#create_acc_tx.amount},
      {fee, T#create_acc_tx.fee}];
-get_tx(T, _) when (element(1, T) == multi_tx) ->
+get_tx(T, _, _) when (element(1, T) == multi_tx) ->
     [{from, base64:encode(T#multi_tx.from)}
     ];
-get_tx(T, _) when (element(1, T) == coinbase) ->
+get_tx(T, _, _) when (element(1, T) == coinbase) ->
     [{to, base64:encode(T#coinbase.from)}
     ];
-get_tx(T, _) when (element(1, T) == cs) ->
+get_tx(T, _, _) when (element(1, T) == cs) ->
     [{from, base64:encode(T#cs.from)},
      {fee, T#cs.fee}
     ];
-get_tx(T, _) when (element(1, T) == csc) ->
+get_tx(T, _, _) when (element(1, T) == csc) ->
     [{from, base64:encode(T#csc.from)},
      {fee, T#csc.fee}
     ];
-get_tx(T, Trees) when (element(1, T) == ctc) ->
-    Channel = trees:get(channels, T#ctc.id),
+get_tx(T, Trees, _) when (element(1, T) == ctc) ->
+    Channel = trees:get(channels, T#ctc.id, dict:new(), Trees),
     Amount1 = Channel#channel.bal1 + Channel#channel.amount,
     Amount2 = Channel#channel.bal2 - Channel#channel.amount,
     [{aid1, base64:encode(T#ctc.aid1)},
      {aid2, base64:encode(T#ctc.aid2)},
      {fee, T#ctc.fee},
-     {id, base64:encode(T#ctc.id)},
+     {cid, base64:encode(T#ctc.id)},
      {amount1, Amount1},
      {amount2, Amount2}
     ];
-get_tx(T, _) when (element(1, T) == ctc2) ->
+get_tx(T, _, _) when (element(1, T) == ctc2) ->
     [{aid1, base64:encode(T#ctc2.aid1)},
      {aid2, base64:encode(T#ctc2.aid2)},
      {fee, T#ctc2.fee},
@@ -764,23 +764,23 @@ get_tx(T, _) when (element(1, T) == ctc2) ->
      {amount1, T#ctc2.amount1},
      {amount2, T#ctc2.amount2}
     ];
-get_tx(T, _) when (element(1, T) == timeout) ->
+get_tx(T, _, _) when (element(1, T) == timeout) ->
     [{cid, base64:encode(T#timeout.cid)},
      {fee, T#timeout.fee},
      {from, base64:encode(T#timeout.aid)},
      {acc1, base64:encode(T#timeout.spk_aid1)},
      {acc2, base64:encode(T#timeout.spk_aid2)}
     ];
-get_tx(T, _) when (element(1, T) == delete_acc_tx) ->
+get_tx(T, _, _) when (element(1, T) == delete_acc_tx) ->
     [{from, base64:encode(T#delete_acc_tx.from)},
      {fee, T#delete_acc_tx.fee},
      {to, base64:encode(T#delete_acc_tx.to)}
     ];
-get_tx(T, _) when (element(1, T) == ex) ->
+get_tx(T, _, _) when (element(1, T) == ex) ->
     [{from, base64:encode(T#ex.from)},
      {fee, T#ex.fee}
     ];
-get_tx(T, _) when (element(1, T) == nc) ->
+get_tx(T, _, _) when (element(1, T) == nc) ->
     [{acc1, base64:encode(T#nc.acc1)},
      {acc2, base64:encode(T#nc.acc2)},
      {fee, T#nc.fee},
@@ -789,7 +789,7 @@ get_tx(T, _) when (element(1, T) == nc) ->
      {delay, T#nc.delay},
      {cid, base64:encode(T#nc.id)}
     ];
-get_tx(T, _) when (element(1, T) == nc_accept) ->
+get_tx(T, _, _) when (element(1, T) == nc_accept) ->
     NCO = testnet_sign:data(T#nc_accept.nc_offer),
     [{acc2, base64:encode(T#nc_accept.acc2)},
      {acc1, base64:encode(NCO#nc_offer.acc1)},
@@ -800,36 +800,45 @@ get_tx(T, _) when (element(1, T) == nc_accept) ->
      {cid, base64:encode(NCO#nc_offer.id)},
      {fee, T#nc_accept.fee}
     ];
-get_tx(T, _) when (element(1, T) == oracle_bet) ->
+get_tx(T, _, NewDict) when (element(1, T) == oracle_bet) ->
+    ID = oracle_bet_tx:id(T),
+    Oracle = trees:get(oracles, ID, NewDict, ok),
     [{from, base64:encode(oracle_bet_tx:from(T))},
      {amount, oracle_bet_tx:amount(T)},
      {type, oracle_bet_tx:type(T)},
      {fee, oracle_bet_tx:fee(T)},
-     {cid, base64:encode(oracle_bet_tx:id(T))}
+     {done_timer, Oracle#oracle.done_timer},
+     {oracle_id, base64:encode(ID)}
     ];
-get_tx(T, _) when (element(1, T) == oracle_close) ->
+get_tx(T, _, NewDict) when (element(1, T) == oracle_close) ->
+    ID = T#oracle_close.oracle_id,
+    Oracle = trees:get(oracles, ID, NewDict, ok),
     [{from, base64:encode(T#oracle_close.from)},
      {fee, T#oracle_close.fee},
-     {oracle_id, base64:encode(T#oracle_close.oracle_id)}
+     {oracle_id, base64:encode(ID)},
+     {done_timer, Oracle#oracle.done_timer}
     ];
-get_tx(T, _) when (element(1, T) == oracle_new) ->
+get_tx(T, _, NewDict) when (element(1, T) == oracle_new) ->
+    ID = T#oracle_new.id,
+    Oracle = trees:get(oracles, ID, NewDict, ok),
     [{from, base64:encode(T#oracle_new.from)},
      {fee, T#oracle_new.fee},
      {goverance, T#oracle_new.governance},
      {governance_amount, T#oracle_new.governance_amount},
      {start, T#oracle_new.start},
-     {oracle_id, base64:encode(T#oracle_new.id)}];
-get_tx(T, _) when (element(1, T) == unmatched) ->
+     {done_timer, Oracle#oracle.done_timer},
+     {oracle_id, base64:encode(ID)}];
+get_tx(T, _, _) when (element(1, T) == unmatched) ->
     [{from, base64:encode(oracle_unmatched_tx:from(T))},
      {fee, oracle_unmatched_tx:fee(T)},
      {oracle_id, base64:encode(oracle_unmatched_tx:oracle_id(T))}
     ];
-get_tx(T, _) when (element(1, T) == oracle_winnings) ->
+get_tx(T, _, _) when (element(1, T) == oracle_winnings) ->
     [{from, base64:encode(T#oracle_winnings.from)},
      {fee, T#oracle_winnings.fee},
      {oracle_id, base64:encode(T#oracle_winnings.oracle_id)}
     ];
-get_tx(_, _) -> [].
+get_tx(_, _, _) -> [].
     
 get_govs(_, M, M, X) -> X;
 get_govs(T, M, N = 2, X) ->
