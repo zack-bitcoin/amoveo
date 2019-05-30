@@ -20,6 +20,8 @@ make(From, Fee, Data, Trees) ->
     Tx = #ex{from = From,fee=Fee,nonce=Nonce,commit=Data},
     {Tx, [Proof]}.
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    F20 = forks:get(20),
+    true = NewHeight < F20,
     From = Tx#ex.from,
     C = Tx#ex.commit,
     D = existence:new(C, NewHeight),
