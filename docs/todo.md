@@ -1,3 +1,6 @@
+we are storing pages of blocks as erlang dicts. this makes it inaccessible to everything non-erlang. we need a better plan.
+
+
 we should probably store blocks and meta data seperately.
 
 oracle_winnings and oracle_unmatched txs from the light node.
