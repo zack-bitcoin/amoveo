@@ -830,7 +830,7 @@ get_tx(T, _, NewDict) when (element(1, T) == oracle_new) ->
     Oracle = trees:get(oracles, ID, NewDict, ok),
     [{from, base64:encode(T#oracle_new.from)},
      {fee, T#oracle_new.fee},
-     {goverance, T#oracle_new.governance},
+     {governance, T#oracle_new.governance},
      {governance_amount, T#oracle_new.governance_amount},
      {start, T#oracle_new.start},
      {done_timer, Oracle#oracle.done_timer},

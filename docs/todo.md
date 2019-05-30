@@ -1,6 +1,8 @@
 we should probably store blocks and meta data seperately.
 
-oracle_close tx from the light node.
+oracle_winnings and oracle_unmatched txs from the light node.
+
+oracle lookup should display the volume of open bets.
 
 lets get rid of the tx types that no one uses:
 *delete_account, existence
