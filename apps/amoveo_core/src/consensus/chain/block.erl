@@ -702,7 +702,7 @@ dict_data2([H = {Type, Key}|T], D) ->
     [{Z}|dict_data2(T, D)].
 unpack_tree_element(X) ->
     case element(1, X) of
-        gov -> [{type, gov},{id, X#gov.id},{value, X#gov.value},{lock, X#gov.lock}];
+        gov -> [{type, gov},{id, governance:number2name(X#gov.id)},{value, X#gov.value},{lock, X#gov.lock}];
         acc -> [{type, account},{pubkey, base64:encode(X#acc.pubkey)},{balance, X#acc.balance},{nonce, X#acc.nonce}];
         oracle -> [{type, oracle},{oid, base64:encode(X#oracle.id)},{result, X#oracle.result},{starts, X#oracle.starts},{type, X#oracle.type},{done_timer, X#oracle.done_timer},{governance, X#oracle.governance},{governance_amount, X#oracle.governance_amount}];
         channel -> [{type, channel},{cid, base64:encode(X#channel.id)},{acc1, base64:encode(X#channel.acc1)}, {acc2, base64:encode(X#channel.acc2)}, {bal1, X#channel.bal1}, {bal2, X#channel.bal2}, {amount, X#channel.amount}, {nonce, X#channel.nonce}, {last_modified, X#channel.last_modified}, {delay, X#channel.delay}, {closed, X#channel.closed}];
