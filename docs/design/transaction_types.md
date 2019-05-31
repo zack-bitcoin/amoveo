@@ -6,7 +6,6 @@ These are the 15 types of transaction that can be in blocks.
 3 transactions for accounts:
 * create_account_tx
 * spend_tx
-* delete_account_tx
 * multi_tx
 
 5 transactions for channels:
@@ -109,9 +108,5 @@ If you had money in orders in the oracle order book when the oracle_close transa
 If you bet in an oracle, and the oracle has closed, this is how you get your winnings out.
 If you bet on the winning outcome, then you get twice as much money back, otherwise you get nothing.
 
-# existence
-
-This transaction adds 256 bits of data to the existence tree. This is done to prove that certain data existed at a certain time.
-The virtual machine can verify that data exists in the existence tree.
 
 [transaction types are the ways to modify blockchain consensus state. All the consensus state is stored in trees. Read about the trees here](trees.md)

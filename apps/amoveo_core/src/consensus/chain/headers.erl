@@ -140,6 +140,8 @@ absorb([Header | T], CommonHash) ->
             absorb(T, CommonHash);
 	true ->
 	    Hash = block:hash(Header),
+            BadHash = <<183,7,50,131,78,91,40,89,225,221,7,235,166,62,25,90,217,86,7,237,142,97,85,171,191,134,177,145,77,62,121,198>>,
+            false = (BadHash == Hash),
 	    case read(Hash) of
 		{ok, _} -> 
 		    absorb(T, Hash); %don't store the same header more than once.
