@@ -38,6 +38,7 @@ make(ID,Trees,Amount,Fee) ->
     {Tx, [CProof, Proof1, Proof2]}.
     
 go(Tx, Dict, NewHeight, _) ->
+    true = ((NewHeight < 67691) or (NewHeight > 67696)),
     %io:fwrite("team close 0\n"),
     ID = Tx#ctc.id,
     OldChannel = channels:dict_get(ID, Dict),
