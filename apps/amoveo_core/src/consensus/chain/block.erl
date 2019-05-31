@@ -771,11 +771,17 @@ get_tx(T, _, _, _, _) when (element(1, T) == timeout) ->
      {acc1, base64:encode(T#timeout.spk_aid1)},
      {acc2, base64:encode(T#timeout.spk_aid2)}
     ];
-get_tx(T, _, _, _, _) when (element(1, T) == delete_acc_tx) ->
-    [{from, base64:encode(T#delete_acc_tx.from)},
-     {fee, T#delete_acc_tx.fee},
-     {to, base64:encode(T#delete_acc_tx.to)}
-    ];
+get_tx(T, _, OldDict, _, _) when (element(1, T) == delete_acc_tx) ->
+    From = T#delete_acc_tx.from,
+    Acc = accounts:dict_get(From, OldDict),
+    X = case Acc of
+        empty -> [{amount, 0}];
+        _ -> [{amount, Acc#acc.balance}]
+    end,
+    X ++[{from, base64:encode(T#delete_acc_tx.from)},
+         {fee, T#delete_acc_tx.fee},
+         {to, base64:encode(T#delete_acc_tx.to)}
+        ];
 get_tx(T, _, _, _, _) when (element(1, T) == ex) ->
     [{from, base64:encode(T#ex.from)},
      {fee, T#ex.fee}
