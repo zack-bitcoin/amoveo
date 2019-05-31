@@ -749,20 +749,20 @@ get_tx(T, Trees, _, _, _) when (element(1, T) == ctc) ->
     Channel = trees:get(channels, T#ctc.id, dict:new(), Trees),
     Amount1 = Channel#channel.bal1 + Channel#channel.amount,
     Amount2 = Channel#channel.bal2 - Channel#channel.amount,
-    [{aid1, base64:encode(T#ctc.aid1)},
-     {aid2, base64:encode(T#ctc.aid2)},
+    [{acc1, base64:encode(T#ctc.aid1)},
+     {acc2, base64:encode(T#ctc.aid2)},
      {fee, T#ctc.fee},
      {cid, base64:encode(T#ctc.id)},
-     {amount1, Amount1},
-     {amount2, Amount2}
+     {bal1, Amount1},
+     {bal2, Amount2}
     ];
 get_tx(T, _, _, _, _) when (element(1, T) == ctc2) ->
-    [{aid1, base64:encode(T#ctc2.aid1)},
-     {aid2, base64:encode(T#ctc2.aid2)},
+    [{acc1, base64:encode(T#ctc2.aid1)},
+     {acc2, base64:encode(T#ctc2.aid2)},
      {fee, T#ctc2.fee},
      {cid, base64:encode(T#ctc2.id)},
-     {amount1, T#ctc2.amount1},
-     {amount2, T#ctc2.amount2}
+     {bal1, T#ctc2.amount1},
+     {bal2, T#ctc2.amount2}
     ];
 get_tx(T, _, _, _, _) when (element(1, T) == timeout) ->
     [{cid, base64:encode(T#timeout.cid)},

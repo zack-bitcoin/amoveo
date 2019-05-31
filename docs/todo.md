@@ -1,12 +1,21 @@
-<<<<<<< HEAD
-futarchy markets:
-lower block reward
-expiration at block 73500
-> On July 1st at noon GMT time. If the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
-> On July 1st at noon GMT time. If the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
-=======
+maybe sy's node fails the first time because it has to compile
+
+
+
 we are storing pages of blocks as erlang dicts. this makes it inaccessible to everything non-erlang. we need a better plan.
->>>>>>> experimental
+
+question oracle text into meta
+
+multi tx stuff into meta
+
+do a second pass, check if any delete_acc_tx has an amount too low.
+
+
+
+
+
+
+we are storing pages of blocks as erlang dicts. this makes it inaccessible to everything non-erlang. we need a better plan.
 
 
 we should probably store blocks and meta data seperately.
