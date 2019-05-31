@@ -1,6 +1,5 @@
 -module(existence_tx).
 -export([go/4, make/4, make_dict/3, from/1, commit/1]).
--record(ex, {from, nonce = 0, fee = 0, commit = 0}).
 -include("../../records.hrl").
 
 from(X) -> X#ex.from.

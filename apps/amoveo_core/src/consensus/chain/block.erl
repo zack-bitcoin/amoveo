@@ -8,7 +8,7 @@
 	 period_estimate/0, hashrate_estimate/0,
 	 period_estimate/1, hashrate_estimate/1,
 	 hashes_per_block/0, hashes_per_block/1,
-         header_by_height/1,
+         header_by_height/1, calculate_prev_hashes/1,
          prev_hash/2,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
@@ -97,8 +97,11 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
         true ->
             list_to_tuple([prev_hashes|lists:reverse([PH|Hashes])]);
         false ->
-            B = get_by_height_in_chain(NHeight, PH),
-            calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
+            B0 = get_by_height_in_chain(NHeight+1, PH),
+            B = B0#block.prev_hash,
+            calculate_prev_hashes([B|[PH|Hashes]], NHeight, N*2)
+            %B = get_by_height_in_chain(NHeight, PH),
+            %calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
     end.
 get_by_hash(H) -> 
     Hash = hash(H),
@@ -185,12 +188,17 @@ prev_hash(N, BP) -> element(N+1, BP#block.prev_hashes).
 time_now() ->
     (os:system_time() div (1000000 * constants:time_units())) - constants:start_time().
 genesis_maker() ->
-    Root0 = constants:root0(),
+    %Root0 = constants:root0(),
     Pub = constants:master_pub(),
     First = accounts:new(Pub, constants:initial_coins()),
     GovInit = governance:genesis_state(),
-    Accounts = accounts:write(First, Root0),%This is leaking a small amount of memory, but it is probably too small to care about, since this function gets executed so rarely.
-    Trees = trees:new(Accounts, Root0, Root0, Root0, Root0, GovInit),
+    Accounts = accounts:write(First, trees:empty_tree(accounts)),%This is leaking a small amount of memory, but it is probably too small to care about, since this function gets executed so rarely.
+    Trees = trees:new(Accounts, 
+                      trees:empty_tree(channels), 
+                      trees:empty_tree(existence), 
+                      ok, 
+                      trees:empty_tree(oracles), 
+                      GovInit),
     TreesRoot = trees:root_hash(Trees),
     BlockPeriod = governance:get_value(block_period, GovInit),
     HistoryString = <<"bitcoin 511599  0000000000000000005cdf7dafbfa2100611f14908ad99098c2a91719da93a50">>,
@@ -286,15 +294,17 @@ make(Header, Txs0, Trees, Pub) ->
     NewTrees0 = tree_data:dict_update_trie(Trees, NewDict2),
     NewTrees = if
 		   ((Height + 1) == F10)  ->%
-		       Root0 = constants:root0(),%
+		       %Root0 = constants:root0(),%
 		       NewTrees1 = %
 			   trees:new2(trees:accounts(NewTrees0),%
 				      trees:channels(NewTrees0),%
 				      trees:existence(NewTrees0),%
 				      trees:oracles(NewTrees0),%
 				      trees:governance(NewTrees0),%
-				      Root0,%
-				      Root0),%
+                                      trees:empty_tree(matched),
+                                      trees:empty_tree(unmatched)),
+                       %Root0,%
+                       %Root0),%
 		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
 		       NewTrees1;%
 		   true -> NewTrees0
@@ -541,6 +551,9 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     FG6 = forks:get(6),
     FG9 = forks:get(9),
     MinerReward = miner_fees(Txs0),
+    %io:fwrite("block check 5.0\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     NewDict3 = if
 		   Height < FG6 -> NewDict2;
 		   Height < FG9 ->
@@ -552,39 +565,58 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict2, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict2)
 	       end,
+    %io:fwrite("block check 5.1\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     F8 = forks:get(8),
     if
         Height > F8 ->
             no_counterfeit(Dict, NewDict3, Txs0, Height);
         true -> ok
     end,
+    %io:fwrite("block check 5.2\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
+    %io:fwrite("block check 5.3\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     NewTrees3_0 = tree_data:dict_update_trie(OldTrees, NewDict4),%here
+    %io:fwrite("block check 5.4\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     F10 = forks:get(10),
     NewTrees3 = if
 		    (Height == F10) ->
-		       Root0 = constants:root0(),
+		       %Root0 = constants:root0(),
 		       NewTrees1 = 
 			   trees:new2(trees:accounts(NewTrees3_0),
 				      trees:channels(NewTrees3_0),
 				      trees:existence(NewTrees3_0),
 				      trees:oracles(NewTrees3_0),
 				      trees:governance(NewTrees3_0),
-				      Root0,
-				      Root0),
+                                      trees:empty_tree(matched),
+                                      trees:empty_tree(unmatched)),
+				      %Root0,
+				      %Root0),
 		       NewTrees1;
 		   true -> NewTrees3_0
 	       end,
 
     {ok, PrevHeader} = headers:read(Header#header.prev_hash),
+    %io:fwrite("block check 5.4\n"),
+    %io:fwrite(packer:pack(erlang:timestamp())),
+    %io:fwrite("\n"),
     %PrevHashes2 = case Block#block.prev_hashes of
     %                  0 -> calculate_prev_hashes(PrevHeader);
     %                  X -> X
     %              end,
-    PrevHashes2 = calculate_prev_hashes(PrevHeader),
-    Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
+    %PrevHashes2 = calculate_prev_hashes(PrevHeader),
+    %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
+    %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
 
-    %Block2 = Block#block{trees = NewTrees3},
+    Block2 = Block#block{trees = NewTrees3, meta = calculate_block_meta(Block, OldTrees, Dict, NewDict)},
+    %Block2 = Block#block{trees = NewTrees3, meta = <<>>},
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     %TreesHash = Header#header.trees_hash,
@@ -595,6 +627,256 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %true = BlockHash == hash(Block2),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
+calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
+    %json encoded with keys
+    %every tx, including txid, type, quantities of veo being moved.
+    case application:get_env(amoveo_core, block_meta) of
+        {ok, true} ->
+            H = Block#block.height,
+            GM = governance:max(H),
+            BlockPart = 
+                case application:get_env(amoveo_core, block_meta_block) of
+                    {ok, true} -> 
+                        DR = trees:get(governance, developer_reward, dict:new(), OldTrees),
+                        BR = trees:get(governance, block_reward, dict:new(), OldTrees),
+                        DR1 = BR * DR div 10000,
+                        [{block, {[
+                                   {height, H}, 
+                                   {developer_reward, DR1},
+                                   {block_reward, BR},
+                                   {diff, Block#block.difficulty},
+                                   {prev_hash, base64:encode(Block#block.prev_hash)},
+                                   {blockhash, base64:encode(hash(Block))},
+                                   {time, Block#block.time},
+                                   {market_cap, Block#block.market_cap}
+                                  ]}}];
+                    _ -> []
+                end,
+            TxPart = case application:get_env(amoveo_core, block_meta_txs) of
+                         {ok, true} -> [{txs, get_txs(Block#block.txs, OldTrees, OldDict, NewDict, H)}];
+                         _ -> []
+                         end,
+            GovPart = case application:get_env(amoveo_core, block_meta_governance) of
+                         {ok, true} -> [{governance, {get_govs(OldTrees, GM, 1, [])}}];
+                         _ -> []
+                     end,
+            BeforePart = case application:get_env(amoveo_core, block_meta_before) of
+                             {ok, true} -> 
+                                 [{before, dict_data(OldDict)}];
+                             _ -> []
+                         end,
+            FollowingPart = case application:get_env(amoveo_core, block_meta_following) of
+                             {ok, true} -> [{following, dict_data(NewDict)}];
+                             _ -> []
+                         end,
+            J = {BlockPart ++ TxPart ++ GovPart ++ BeforePart ++ FollowingPart},
+            jiffy:encode(J);
+        _ -> X = <<>>,
+             X
+    end.
+dict_data(D) ->
+    K = dict:fetch_keys(D),
+    dict_data2(K, D).
+dict_data2([], _) -> [];
+dict_data2([H = {existence, Key}|T], D) ->
+    dict_data2(T, D);
+dict_data2([H = {Type, Key}|T], D) ->
+    Y = case dict:fetch(H, D) of
+            {B, _} -> B;
+            B2 -> B2
+        end,
+    Z = case Y of
+            0 -> 
+                Key2 = if
+                           is_binary(Key) -> [{key, base64:encode(Key)}];
+                           is_integer(Key) -> [{key, Key}];
+                           true -> 
+                               {key, K1, K2} = Key,
+                               [{account, base64:encode(K1)}, {oracle, base64:encode(K2)}]
+                       end,
+                Key2 ++ [{type, Type},{empty, true}];
+            _ ->
+                X = Type:deserialize(Y),
+                unpack_tree_element(X)
+        end,
+    [{Z}|dict_data2(T, D)].
+unpack_tree_element(X) ->
+    case element(1, X) of
+        gov -> [{type, gov},{id, governance:number2name(X#gov.id)},{value, X#gov.value},{lock, X#gov.lock}];
+        acc -> [{type, account},{pubkey, base64:encode(X#acc.pubkey)},{balance, X#acc.balance},{nonce, X#acc.nonce}];
+        oracle -> [{type, oracle},{oid, base64:encode(X#oracle.id)},{result, X#oracle.result},{starts, X#oracle.starts},{type, X#oracle.type},{done_timer, X#oracle.done_timer},{governance, X#oracle.governance},{governance_amount, X#oracle.governance_amount}];
+        channel -> [{type, channel},{cid, base64:encode(X#channel.id)},{acc1, base64:encode(X#channel.acc1)}, {acc2, base64:encode(X#channel.acc2)}, {bal1, X#channel.bal1}, {bal2, X#channel.bal2}, {amount, X#channel.amount}, {nonce, X#channel.nonce}, {last_modified, X#channel.last_modified}, {delay, X#channel.delay}, {closed, X#channel.closed}];
+        matched -> [{type, matched},{account, base64:encode(X#matched.account)}, {oracle, base64:encode(X#matched.oracle)}, {true, X#matched.true}, {false, X#matched.false}, {bad, X#matched.bad}];
+        unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)}];
+        _ -> []
+    end.
+get_txs([], _, _, _, _) -> [];
+get_txs([H1|T], Trees, OldDict, NewDict, Height) ->
+    H = case element(1, H1) of
+             signed -> element(2, H1);
+             _ -> H1
+         end,
+    Type = element(1, H),
+    Txid = base64:encode(txs:txid(H1)),
+    L = get_tx(H, Trees, OldDict, NewDict, Height),
+    H2 = {[{type, Type},{txid, Txid}] ++ L},
+    [H2|get_txs(T, Trees, OldDict, NewDict, Height)].
+get_tx(T, _, _, _, _) when (element(1, T) == spend) ->
+    [{to, base64:encode(T#spend.to)},
+     {from, base64:encode(T#spend.from)},
+     {amount, T#spend.amount},
+     {fee, T#spend.fee}];
+get_tx(T, _, _, _, _) when (element(1, T) == create_acc_tx) ->
+    [{to, base64:encode(T#create_acc_tx.pubkey)},
+     {from, base64:encode(T#create_acc_tx.from)},
+     {amount, T#create_acc_tx.amount},
+     {fee, T#create_acc_tx.fee}];
+get_tx(T, _, _, _, _) when (element(1, T) == multi_tx) ->
+    [{from, base64:encode(T#multi_tx.from)}
+    ];
+get_tx(T, _, _, _, _) when (element(1, T) == coinbase) ->
+    [{to, base64:encode(T#coinbase.from)}
+    ];
+get_tx(T, _, _, _, _) when (element(1, T) == cs) ->
+    [{from, base64:encode(T#cs.from)},
+     {fee, T#cs.fee}
+    ];
+get_tx(T, _, _, _, _) when (element(1, T) == csc) ->
+    [{from, base64:encode(T#csc.from)},
+     {fee, T#csc.fee}
+    ];
+get_tx(T, Trees, _, _, _) when (element(1, T) == ctc) ->
+    Channel = trees:get(channels, T#ctc.id, dict:new(), Trees),
+    Amount1 = Channel#channel.bal1 + Channel#channel.amount,
+    Amount2 = Channel#channel.bal2 - Channel#channel.amount,
+    [{aid1, base64:encode(T#ctc.aid1)},
+     {aid2, base64:encode(T#ctc.aid2)},
+     {fee, T#ctc.fee},
+     {cid, base64:encode(T#ctc.id)},
+     {amount1, Amount1},
+     {amount2, Amount2}
+    ];
+get_tx(T, _, _, _, _) when (element(1, T) == ctc2) ->
+    [{aid1, base64:encode(T#ctc2.aid1)},
+     {aid2, base64:encode(T#ctc2.aid2)},
+     {fee, T#ctc2.fee},
+     {cid, base64:encode(T#ctc2.id)},
+     {amount1, T#ctc2.amount1},
+     {amount2, T#ctc2.amount2}
+    ];
+get_tx(T, _, _, _, _) when (element(1, T) == timeout) ->
+    [{cid, base64:encode(T#timeout.cid)},
+     {fee, T#timeout.fee},
+     {from, base64:encode(T#timeout.aid)},
+     {acc1, base64:encode(T#timeout.spk_aid1)},
+     {acc2, base64:encode(T#timeout.spk_aid2)}
+    ];
+get_tx(T, _, _, _, _) when (element(1, T) == delete_acc_tx) ->
+    [{from, base64:encode(T#delete_acc_tx.from)},
+     {fee, T#delete_acc_tx.fee},
+     {to, base64:encode(T#delete_acc_tx.to)}
+    ];
+get_tx(T, _, _, _, _) when (element(1, T) == ex) ->
+    [{from, base64:encode(T#ex.from)},
+     {fee, T#ex.fee}
+    ];
+get_tx(T, _, _, _, _) when (element(1, T) == nc) ->
+    [{acc1, base64:encode(T#nc.acc1)},
+     {acc2, base64:encode(T#nc.acc2)},
+     {fee, T#nc.fee},
+     {bal1, T#nc.bal1},
+     {bal2, T#nc.bal2},
+     {delay, T#nc.delay},
+     {cid, base64:encode(T#nc.id)}
+    ];
+get_tx(T, _, _, _, _) when (element(1, T) == nc_accept) ->
+    NCO = testnet_sign:data(T#nc_accept.nc_offer),
+    [{acc2, base64:encode(T#nc_accept.acc2)},
+     {acc1, base64:encode(NCO#nc_offer.acc1)},
+     {bal1, NCO#nc_offer.bal1},
+     {bal2, NCO#nc_offer.bal2},
+     {miner_commission, NCO#nc_offer.miner_commission},
+     {delay, NCO#nc_offer.delay},
+     {cid, base64:encode(NCO#nc_offer.id)},
+     {fee, T#nc_accept.fee}
+    ];
+get_tx(T, _, _, NewDict, _) when (element(1, T) == oracle_bet) ->
+    ID = oracle_bet_tx:id(T),
+    Oracle = trees:get(oracles, ID, NewDict, ok),
+    Type = case oracle_bet_tx:type(T) of
+               1 -> true;
+               2 -> false;
+               3 -> bad_question
+           end,
+    [{from, base64:encode(oracle_bet_tx:from(T))},
+     {amount, oracle_bet_tx:amount(T)},
+     {bet_type, oracle_bet_tx:type(T)},
+     {order_book_type, Oracle#oracle.type},
+     {fee, oracle_bet_tx:fee(T)},
+     {done_timer, Oracle#oracle.done_timer},
+     {oracle_id, base64:encode(ID)}
+    ];
+get_tx(T, _, OldDict, _NewDict, _) when (element(1, T) == oracle_close) ->
+    ID = T#oracle_close.oracle_id,
+    Oracle = trees:get(oracles, ID, OldDict, ok),
+    [{from, base64:encode(T#oracle_close.from)},
+     {fee, T#oracle_close.fee},
+     {oracle_id, base64:encode(ID)},
+     {done_timer, Oracle#oracle.done_timer},
+     {result, Oracle#oracle.result}
+    ];
+get_tx(T, _, _, NewDict, _) when (element(1, T) == oracle_new) ->
+    ID = T#oracle_new.id,
+    Oracle = trees:get(oracles, ID, NewDict, ok),
+    [{from, base64:encode(T#oracle_new.from)},
+     {fee, T#oracle_new.fee},
+     {governance, T#oracle_new.governance},
+     {governance_amount, T#oracle_new.governance_amount},
+     {start, T#oracle_new.start},
+     {done_timer, Oracle#oracle.done_timer},
+     {oracle_id, base64:encode(ID)}];
+get_tx(T, _, OldDict, _, Height) when (element(1, T) == unmatched) ->
+    From = oracle_unmatched_tx:from(T),
+    OID = oracle_unmatched_tx:oracle_id(T),
+    F10 = Height > forks:get(10),
+    UMT = if%
+	      F10  -> unmatched;
+	      true -> orders%
+	  end,%
+    Order = UMT:dict_get({key, From, OID}, OldDict),
+    Amount = UMT:amount(Order),
+    [{from, base64:encode(From)},
+     {fee, oracle_unmatched_tx:fee(T)},
+     {oracle_id, base64:encode(OID)},
+     {amount, Amount}
+    ];
+get_tx(T, _, OldDict, NewDict, Height) when (element(1, T) == oracle_winnings) ->
+    From = oracle_winnings_tx:from(T),
+    OID = oracle_winnings_tx:oracle_id(T),
+    F10 = Height > forks:get(10),
+    UMT = if
+	      F10  -> matched;
+	      true -> oracle_bets
+	  end,
+    Bet = UMT:dict_get({key, From, OID}, OldDict),
+    Oracle = trees:get(oracles, OID, NewDict, ok),
+    Result = Oracle#oracle.result,
+    Reward = UMT:reward(Bet, Result, Height),
+    [{from, base64:encode(T#oracle_winnings.from)},
+     {fee, T#oracle_winnings.fee},
+     {oracle_id, base64:encode(T#oracle_winnings.oracle_id)},
+     {amount, Reward}
+    ];
+get_tx(_, _, _, _, _) -> [].
+    
+get_govs(_, M, M, X) -> X;
+get_govs(T, M, N = 2, X) ->
+    H = {governance:number2name(N), trees:get(governance, N, dict:new(), T) / 10000},
+    get_govs(T, M, N+1, [H|X]);
+get_govs(T, M, N, X) ->
+    H = {governance:number2name(N), trees:get(governance, N, dict:new(), T)},
+    get_govs(T, M, N+1, [H|X]).
+%    <<>>.
 
 %this stuff might be useful for making it into a light node.
 %setup_tree(Empty, Start, Path, Type) ->
@@ -1040,7 +1322,9 @@ test(1) ->
     WBlock11 = WBlock12,
     io:fwrite(packer:pack(WBlock10)),
     io:fwrite("\n"),
-    WBlock10 = WBlock11#block{trees = WBlock10#block.trees},
+    WBlock13 = WBlock11#block{trees = WBlock10#block.trees, meta = <<>>},
+    %io:fwrite(packer:pack([WBlock13, WBlock10])),
+    WBlock13 = WBlock10,
     success;
 test(2) ->
     {_, _, Proofs} = accounts:get(keys:pubkey(), 1),

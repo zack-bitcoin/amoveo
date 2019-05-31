@@ -65,13 +65,22 @@
     {download_blocks_batch, 50},%% How many blocks we get per request.
     {download_blocks_many, 3}, %% we are storing blocks in the block_absorber mail box, which is RAM. many*batch*blocksize is how much ram we are using, at most.
     {headers_version, 2},
-    {trie_mode, hd},%hd or ram. hd mode saves like 5 mb of ram, but is slower.
+    {trie_mode, ram},%hd or ram. hd mode saves like 5 mb of ram, but is slower.
     {db_version, 2},%version 1 stores each block compressed as its own page on the hard drive. version 2 stores the recent blocks in ram, and stores pages of hundreds of older blocks compressed together. When we are serving the blocks, version 2 sends entire pages together without decompressing them, saving a lot of bandwidth.
     {get_block_buffer, 500},%how many blocks to download and store in a queue ready to be synced. Increasing this takes more ram, and makes some data structures slower, but it can help if your internet connection has high latency.
     {block_cache, 5000000}, %5 megabytes, this is how many blocks measured in bytes in ram get compressed into a page of blocks on the hard drive.
     {compression_level, 2},%integer between 1 and 9, 9 is the most compression.
     {block_threads, 2},
-    {push_blocks_batch, 50}
+    {push_blocks_batch, 50},
+    {internal_ip, {127,0,0,1}},
+    {external_ip, {0,0,0,0}},
+    {pool_refresh_period, 600},
+    {block_meta, false},
+    {block_meta_block, true},
+    {block_meta_txs, true},
+    {block_meta_governance, true},
+    {block_meta_before, true},
+    {block_meta_following, true}
   ]},
 
    {lager, [

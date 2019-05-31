@@ -1,12 +1,11 @@
 -module(governance).
--export([tree_number_to_value/1, max/1, is_locked/1, genesis_state/0, name2number/1, %custom for this tree
+-export([tree_number_to_value/1, max/1, is_locked/1, genesis_state/0, name2number/1, number2name/1,%custom for this tree
 	 get_value/2, get/2, write/2,%update tree stuff
          dict_get/2,dict_write/2, dict_get_value/2, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,
 	 serialize/1,deserialize/1,
 	 new/2,
 	 test/0]).%common tree stuff
--record(gov, {id, value, lock}).
 -define(name, governance).
 -define(fee, constants:encoded_fee()).
 -include("../../records.hrl").
@@ -44,7 +43,8 @@ genesis_state() ->
          [oracle_close, ?fee],
          [unmatched, ?fee],
          [oracle_winnings, ?fee]],
-    {ok, GenesisTree} = genesis_state(G, 1),
+    R = trees:empty_tree(governance),
+    {ok, GenesisTree} = genesis_state(G, R),
     GenesisTree.
 
 genesis_state([], Tree) ->
@@ -166,6 +166,39 @@ name2number(X) ->
     io:fwrite(X),
     1=2,
     throw(invalid_governance_atom).
+number2name(1) -> block_reward;
+number2name(2) -> developer_reward;
+number2name(3) -> max_block_size;
+number2name(4) -> block_period;
+number2name(5) -> time_gas;
+number2name(6) -> space_gas;
+number2name(7) -> fun_limit;
+number2name(8) -> var_limit;
+number2name(9) -> governance_change_limit;
+number2name(10) -> oracle_initial_liquidity;
+number2name(11) -> minimum_oracle_time;
+number2name(12) -> maximum_oracle_time;
+number2name(13) -> maximum_question_size;
+number2name(14) -> create_acc_tx;
+number2name(15) -> spend;
+number2name(16) -> delete_acc_tx;
+number2name(17) -> nc;
+number2name(18) -> ctc;
+number2name(19) -> csc;
+number2name(20) -> timeout;
+number2name(21) -> cs;
+number2name(22) -> ex;
+number2name(23) -> oracle_new;
+number2name(24) -> oracle_bet;
+number2name(25) -> oracle_close;
+number2name(26) -> unmatched;
+number2name(27) -> oracle_winnings;
+number2name(28) -> oracle_question_liquidity;
+number2name(X) ->
+    io:fwrite(X),
+    1=2,
+    error.
+    
 max(Height) -> 
     B = Height > forks:get(5),
     if 

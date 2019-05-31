@@ -13,6 +13,7 @@
 	 all/2,
 	 amount/1,
 	 account/1,
+         oracle/1,
 	 aid/1,
 	 dict_empty_book/2,
 	 test/0]).%common tree stuff
@@ -341,7 +342,8 @@ test() ->
     Height = (tx_pool:get())#tx_pool.height,
     Hash = hash:doit(2),
     C = new(keys:pubkey(), Hash, 10000),
-    Root0 = constants:root0(),
+    %Root0 = constants:root0(),
+    Root0 = trees:empty_tree(unmatched),
     %C = hash:doit(2),
     K = {key, keys:pubkey(), Hash},
     {_, empty, _} = get(K, Root0),

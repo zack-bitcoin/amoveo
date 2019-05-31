@@ -20,11 +20,42 @@ block(1, N) ->
 block(3, N) ->
     Txs = tl(block(1, N)),
     Txids = lists:map(
-	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      fun(Tx) -> txs:txid(Tx) end,
+%                      hash:doit(testnet_sign:data(Tx)) end, 
 	      Txs),
     [Txs, Txids];
 block(2, H) ->
     block:get_by_hash(H).
+tx_scan(L, N) ->
+    %scan the N recent blocks to see if the txids from list L have been published.
+    RH = block_db:ram_height(),
+    BH = block:height(),
+    true = (BH - N) > RH,
+    Blocks = lists:reverse(block_db:read(N, BH - N)),
+    tx_scan2(L, Blocks).
+tx_scan2(L, []) -> mark_height("none", L);
+tx_scan2(L, [B|T]) ->
+    Txs = tl(B#block.txs),
+    %Txs = B#block.txs,
+    Txids = lists:map(fun(X) -> txs:txid(X) end, Txs),
+    {NoMatch, Match} = tx_scan_is_in(L, Txids, [], []),
+    H = B#block.height,
+    mark_height(H, Match) ++ tx_scan2(NoMatch, T).
+tx_scan_is_in([], _, A, B) -> {A, B};
+tx_scan_is_in([H|T], L, A, B) ->
+    B2 = is_in(H, L),
+    if
+        B2 -> tx_scan_is_in(T, L, A, [H|B]);
+        true -> tx_scan_is_in(T, L, [H|A], B)
+    end.
+is_in(H, []) -> false;
+is_in(H, [H|_]) -> true;
+is_in(H, [_|T]) -> is_in(H, T).
+            
+    
+mark_height(H, []) -> [];
+mark_height(A, [H|T]) ->
+    [{A, H}|mark_height(A, T)].
 block_hash(N) ->    
     %returns the hash of block N
     B = block:get_by_height(N),

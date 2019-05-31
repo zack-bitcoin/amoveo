@@ -1,28 +1,61 @@
+<<<<<<< HEAD
 futarchy markets:
 lower block reward
 expiration at block 73500
 > On July 1st at noon GMT time. If the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
 > On July 1st at noon GMT time. If the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
+=======
+we are storing pages of blocks as erlang dicts. this makes it inaccessible to everything non-erlang. we need a better plan.
+>>>>>>> experimental
+
+
+we should probably store blocks and meta data seperately.
+
+oracle_winnings and oracle_unmatched txs from the light node.
+
+oracle lookup should display the volume of open bets.
+
+lets get rid of the tx types that no one uses:
+*delete_account, existence
+
+
+store the highest hash with each page of compressed blocks, since this makes it easier to organize the blocks and resync them later.
+
+
+issue with channel_team_close2
+blocked because packer doesn't know about the key.
+We can't fix packer directly, because some nodes would freeze.
+1) mining pools should do a soft fork to block ctc2
+2) we fix the packer library.
+3) we give everyone a week to update dependencies.
+4) we schedule a date to simultaneously turn off the soft fork in all the mining pools.
+* currently here.
+5) clean up now unused soft-fork code.
 
 
 
 
-we will do a full review of every part of the blocks and headers that get downloaded to confirm that there is no other data that we are not verifying.
+move all records to records.hrl . Many developers are exposed to the datastructure first, and then search for the file with the keys second. they have difficulty knowing which file to look in to find the keys.
+
+
+
+
+
+
+futarchy markets:
+* lower block reward
+> if the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
+> if the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
+* lock the block reward with a set halvening schedule
+
 
 set up a testnet
 
-internal/external ip should be in the config file.
-potential_block refresh period should be in the config file.
-
-
-update the light node to use the new kind of channel team close.
 
 
 merkel tree memory leak for miners.
 
 
-
-ram version of merkel trees crashes around height 40k
 
 configuration option to not store any blocks.
 
@@ -36,11 +69,6 @@ replace many dictionary data structures with ets.
 otc_listener should display the channel ID.
 * we did this, now we need to test it and then push to github.
 
-tar backup
-Sy gives: tar cfvz amoveo.tgz blocks/ channels/ data/ oracle_questions/
-this is what i compressed and uncompressed on the target system
-Why isn't this enough to be in sync?
-
 
 make a javascript tool for managing channel states.
 It should tell you which channels are ready to be closed, and display a chart for how much money is in each contract, how much longer until it can be closed, and store it all in a single file.
@@ -51,6 +79,10 @@ glossary long-veo/stablecoin on otc_derivatives and otc_listener
 
 start closing some oracles
 
+
+scientific notation oracles.
+How about we combine a  binary and scalar oracle. so you can make a new binary oracle, and combine it with an old scalar oracle, to make a contract that either returns $0 or $200 of veo.
+P = the amount of veo in $200 from 0 to 10; if A happens return P * 1024 / 10; if A doesn’t happen return 0
 
 
 in the light node, when we look up oracles, we should verify that the hash of the question tx matches the hash stored in the merkel tree.

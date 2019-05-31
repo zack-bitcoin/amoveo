@@ -1,9 +1,6 @@
 -module(new_channel_tx).
 -export([go/4, make/8, make_dict/7, spk/2, cid/1,
 	 acc1/1, acc2/1, bal1/1, bal2/1, delay/1]).
--record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
-	     bal1 = 0, bal2 = 0, 
-	     delay = 10, id = -1}).
 -include("../../records.hrl").
 
 acc1(X) -> X#nc.acc1.
