@@ -15,5 +15,12 @@ Because if you make a bet in an oracle, and the result is bad, then each partici
 
 using these 2 scalar oracles, we can show that the price of veo if we do the update is higher than if we don't do the update.
 
+Scalar oracle 1 creates an asset that is the same value as VEO if the update is merged.
+Scalar oracle 2 creates an asset that is the same value as VEO if the update is not merged.
+By comparing these 2 assets, we can find out if the update is good for the price of VEO.
+
+if there is simultaneously unmatched orders to long veousd if the update goes through and to short veousd if the update does not go through, and both of these are at the same price, we can have some confidence the price of veo will be higher if there is the update than if there is not.
+since nobody wants to take the other side of those trades.
+
 
 [more about futarchy here](futarchy.md)
