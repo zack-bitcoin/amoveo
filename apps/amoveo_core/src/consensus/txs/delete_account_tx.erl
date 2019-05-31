@@ -25,6 +25,8 @@ new(To, ID, Fee, Trees) ->
     {Tx, [FromProof, ToProof]}.
 
 go(Tx, Dict, NewHeight, _) ->
+    F20 = forks:get(20),
+    true = NewHeight < F20,
     From = Tx#delete_acc_tx.from,
     %txs:developer_lock(From, NewHeight, Dict),
     To = Tx#delete_acc_tx.to,

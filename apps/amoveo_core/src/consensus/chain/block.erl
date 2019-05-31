@@ -1213,8 +1213,12 @@ sum_amounts_helper(_, empty, _, _, _) ->
 sum_amounts_helper(accounts, Acc, Dict, _, _) ->
     Acc#acc.balance;
 sum_amounts_helper(channels, Chan, Dict, _, _) ->
-    channels:bal1(Chan) + 
-        channels:bal2(Chan);
+    case channels:closed(Chan) of
+        0 ->
+            channels:bal1(Chan) + 
+                channels:bal2(Chan);
+        1 -> 0
+    end;
 sum_amounts_helper(oracle_bets, OB, Dict, OldDict, Key) ->%
     {key, Pub, OID} = Key,%
     Oracle = oracles:dict_get(OID, OldDict),%

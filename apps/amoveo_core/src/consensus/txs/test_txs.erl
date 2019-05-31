@@ -16,7 +16,7 @@ test() ->
     S = test(6),%channel slash
     S = test(8),%channel solo close - channel team close
     S = test(9),%channel slash - channel team close
-    S = test(7),%existence
+    %S = test(7),%existence
     S = test(14),%financial options
     S = test(12),%multiple bets in a single channel
     S = test(15),%automatic channel slash
@@ -57,9 +57,9 @@ test(1) ->
     Stx21 = keys:sign(Ctx21),
     absorb(Stx21),
     timer:sleep(20),
-    Ctx3 = delete_account_tx:make_dict(constants:master_pub(), NewPub, Fee),
-    Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
-    absorb(Stx3),
+    %Ctx3 = delete_account_tx:make_dict(constants:master_pub(), NewPub, Fee),
+    %Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
+    %absorb(Stx3),
     Ctx4 = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
@@ -193,9 +193,9 @@ test(5) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    Ctx25 = delete_account_tx:make_dict(keys:pubkey(), NewPub, Fee),
-    Stx25 = testnet_sign:sign_tx(Ctx25, NewPub, NewPriv),
-    absorb(Stx25),
+    %Ctx25 = delete_account_tx:make_dict(keys:pubkey(), NewPub, Fee),
+    %Stx25 = testnet_sign:sign_tx(Ctx25, NewPub, NewPriv),
+    %absorb(Stx25),
     mine_blocks(1),
     
     Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
