@@ -470,6 +470,8 @@ wait_do(FB, F, T) ->
                          
     
 dict_to_blocks([], _) -> [];
+dict_to_blocks([top_hash|T], D) ->
+    dict_to_blocks(T, D);
 dict_to_blocks([H|T], D) ->
     B = dict:fetch(H, D),
     [B|dict_to_blocks(T, D)].

@@ -26,6 +26,17 @@ block(3, N) ->
     [Txs, Txids];
 block(2, H) ->
     block:get_by_hash(H).
+blocks(Start, End) ->
+    %returns a list of blocks in a JSON data structure.
+    L = block_db:read(End - Start, Start),
+    if
+        is_binary(L) -> 
+            D = block_db:uncompress(L),
+            K = dict:fetch_keys(D),
+            sync:low_to_high(sync:dict_to_blocks(K, D));
+        is_list(L) -> L
+    end.
+            
 tx_scan(L, N) ->
     %scan the N recent blocks to see if the txids from list L have been published.
     RH = block_db:ram_height(),

@@ -1,5 +1,4 @@
-maybe sy's node fails the first time because it has to compile
-
+tx_scan is failing, make some better tests.
 
 
 we are storing pages of blocks as erlang dicts. this makes it inaccessible to everything non-erlang. we need a better plan.
