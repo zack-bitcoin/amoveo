@@ -1,11 +1,7 @@
 tx_scan is failing, make some better tests.
 
 
-we are storing pages of blocks as erlang dicts. this makes it inaccessible to everything non-erlang. we need a better plan.
-
-question oracle text into meta
-
-multi tx stuff into meta
+We should store the top hash of a page of blocks under the key "top".
 
 do a second pass, check if any delete_acc_tx has an amount too low.
 
@@ -13,8 +9,6 @@ do a second pass, check if any delete_acc_tx has an amount too low.
 
 
 
-
-we are storing pages of blocks as erlang dicts. this makes it inaccessible to everything non-erlang. we need a better plan.
 
 
 we should probably store blocks and meta data seperately.

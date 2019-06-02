@@ -732,7 +732,9 @@ get_tx(T, _, _, _, _) when (element(1, T) == create_acc_tx) ->
      {amount, T#create_acc_tx.amount},
      {fee, T#create_acc_tx.fee}];
 get_tx(T, _, _, _, _) when (element(1, T) == multi_tx) ->
-    [{from, base64:encode(T#multi_tx.from)}
+    [{from, base64:encode(T#multi_tx.from)},
+     {fee, T#multi_tx.fee},
+     {txs, multi_tx_helper(T#multi_tx.txs)}
     ];
 get_tx(T, _, _, _, _) when (element(1, T) == coinbase) ->
     [{to, base64:encode(T#coinbase.from)}
@@ -840,6 +842,7 @@ get_tx(T, _, _, NewDict, _) when (element(1, T) == oracle_new) ->
      {governance_amount, T#oracle_new.governance_amount},
      {start, T#oracle_new.start},
      {done_timer, Oracle#oracle.done_timer},
+     {question, Oracle#oracle.question},
      {oracle_id, base64:encode(ID)}];
 get_tx(T, _, OldDict, _, Height) when (element(1, T) == unmatched) ->
     From = oracle_unmatched_tx:from(T),
@@ -874,7 +877,18 @@ get_tx(T, _, OldDict, NewDict, Height) when (element(1, T) == oracle_winnings) -
      {amount, Reward}
     ];
 get_tx(_, _, _, _, _) -> [].
-    
+multi_tx_helper([]) -> [];
+multi_tx_helper([H|T]) ->
+    Type = element(1, H),
+    M = txs:key2module(Type),
+    From = element(2, H),
+    To = element(5, H),
+    Amount = element(6, H),
+    X = {[{type, Type},
+          {to, base64:encode(To)},
+          {amount, Amount}
+         ]},
+    [X|multi_tx_helper(T)].
 get_govs(_, M, M, X) -> X;
 get_govs(T, M, N = 2, X) ->
     H = {governance:number2name(N), trees:get(governance, N, dict:new(), T) / 10000},

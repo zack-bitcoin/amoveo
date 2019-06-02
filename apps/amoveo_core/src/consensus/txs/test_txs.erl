@@ -888,6 +888,11 @@ test(20) ->
     block:mine(100000),
     success;
 test(21) ->
+    H = block:height(),
+    if
+        H < 12 -> mine_blocks(13 - H);
+        true -> ok
+    end,
     Pub = keys:pubkey(),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Fee = 10*(constants:initial_fee() + 20),
