@@ -1,6 +1,12 @@
 tx_scan is failing, make some better tests.
 
 
+* calculate amounts in the timeout tx.
+
+to calculate the delete amount correctly,
+* block:get_txs_main needs to be implemented
+
+
 We should store the top hash of a page of blocks under the key "top".
 
 do a second pass, check if any delete_acc_tx has an amount too low.

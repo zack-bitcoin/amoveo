@@ -710,6 +710,21 @@ unpack_tree_element(X) ->
         unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)}];
         _ -> []
     end.
+get_txs_main(L, T, O, N, H) ->
+    P1 = get_txs(L, T, O, N, H),
+    DA = get_deleted_accounts(P1, []),
+    %for each deleted account, check if that account gained value from either a spend, create_account_tx, from a channel_team_close tx
+    ok.
+    
+get_deleted_accounts([], D) -> D;
+get_deleted_accounts([H|T], D) ->
+    %Type = json_get(type, H),
+    Type = 0,
+    if
+        (Type == delete_acc_tx) ->
+            get_deleted_accounts(T, [H|D]);
+        true -> get_deleted_accounts(T, D)
+    end.
 get_txs([], _, _, _, _) -> [];
 get_txs([H1|T], Trees, OldDict, NewDict, Height) ->
     H = case element(1, H1) of
@@ -766,12 +781,22 @@ get_tx(T, _, _, _, _) when (element(1, T) == ctc2) ->
      {bal1, T#ctc2.amount1},
      {bal2, T#ctc2.amount2}
     ];
-get_tx(T, _, _, _, _) when (element(1, T) == timeout) ->
-    [{cid, base64:encode(T#timeout.cid)},
+get_tx(T, _, OldDict, _, _) when (element(1, T) == timeout) ->
+    CID = T#timeout.cid,
+    Channel = channels:dict_get(CID, OldDict),
+    Aid1 = channels:acc1(Channel),
+    Aid2 = channels:acc2(Channel),
+    Amount = channels:amount(Channel),
+    Bal1 = channels:bal1(Channel),
+    Bal2 = channels:bal2(Channel),
+    %if an account does not exist, we should give them nothing.
+    [{cid, base64:encode(CID)},
      {fee, T#timeout.fee},
      {from, base64:encode(T#timeout.aid)},
-     {acc1, base64:encode(T#timeout.spk_aid1)},
-     {acc2, base64:encode(T#timeout.spk_aid2)}
+     {acc1, base64:encode(Aid1)},
+     {acc2, base64:encode(Aid2)},
+     {bal1, Bal1 - Amount},
+     {bal2, Bal2 + Amount}
     ];
 get_tx(T, _, OldDict, _, _) when (element(1, T) == delete_acc_tx) ->
     From = T#delete_acc_tx.from,
@@ -842,7 +867,7 @@ get_tx(T, _, _, NewDict, _) when (element(1, T) == oracle_new) ->
      {governance_amount, T#oracle_new.governance_amount},
      {start, T#oracle_new.start},
      {done_timer, Oracle#oracle.done_timer},
-     {question, Oracle#oracle.question},
+     {question, base64:encode(Oracle#oracle.question)},
      {oracle_id, base64:encode(ID)}];
 get_tx(T, _, OldDict, _, Height) when (element(1, T) == unmatched) ->
     From = oracle_unmatched_tx:from(T),
