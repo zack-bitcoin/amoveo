@@ -149,8 +149,11 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees) ->
 	    error ->
 		Tree = trees:TreeID(Trees),
 		{_, Val, _} = TreeID:get(Key, Tree),
+                PS = constants:pubkey_size() * 8,
 		Val2 = case Val of
 			   empty -> 0;
+                           {<<Head:PS>>, Many} ->
+                               unmatched:serialize_head(<<Head:PS>>, Many);
 			   X -> TreeID:serialize(X)
 		       end,
 		Foo = case TreeID of

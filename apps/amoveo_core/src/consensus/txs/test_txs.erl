@@ -675,6 +675,7 @@ test(13) ->
 
     MOT = trees:get(governance, minimum_oracle_time),
     OIL = trees:get(governance, oracle_initial_liquidity),
+    timer:sleep(200),
     potential_block:new(),
     mine_blocks(1+MOT),
     timer:sleep(200),
