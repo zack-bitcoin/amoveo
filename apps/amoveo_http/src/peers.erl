@@ -77,10 +77,10 @@ add([MalformedPeer|T]) ->
     io:fwrite("tried to add malformed peer, skipping."),
     io:fwrite(packer:pack(MalformedPeer)),
     add(T);
-add({{10, _, _, _}, _Port}) -> ok;%these formats are only for private networks, not the public internet.
-add({{0, 0, 0, 0}, _Port}) -> ok;
-add({{192, 168, _, _}, _Port}) -> ok;
-add({{172, X, _, _}, Port}) when ((X < 32) and (X > 15))-> ok;
+%add({{10, _, _, _}, _Port}) -> ok;%these formats are only for private networks, not the public internet.
+%add({{0, 0, 0, 0}, _Port}) -> ok;
+%add({{192, 168, _, _}, _Port}) -> ok;
+%add({{172, X, _, _}, Port}) when ((X < 32) and (X > 15))-> ok;
 add({IP, Port}) -> 
     %io:fwrite("adding a peer to the list of peers. "),
     %io:fwrite(packer:pack(IP)),
