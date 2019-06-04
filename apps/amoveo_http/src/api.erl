@@ -44,7 +44,7 @@ tx_scan(L) ->
     N = BH - RH,
     %true = (BH - N) > RH,
     Blocks = lists:reverse(block_db:read(N, RH)),
-    tx_scan2(L, Blocks).
+    {RH, BH, tx_scan2(L, Blocks)}.
 tx_scan2(L, []) -> mark_height(0, L);
 tx_scan2(L, [B|T]) ->
     Txs = tl(B#block.txs),
@@ -640,8 +640,7 @@ sync(IP, Port) ->
     spawn(fun() -> sync:start([{IP, Port}]) end),
     0.
 sync(2, IP, Port) ->
-    spawn(fun() -> sync:get_headers({IP, Port}) end),
-    0.
+    sync:get_headers({IP, Port}).
 keypair() -> keys:keypair().
 pubkey() -> base64:encode(keys:pubkey()).
 new_pubkey(Password) -> keys:new(Password).
