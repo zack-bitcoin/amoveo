@@ -604,6 +604,13 @@ pubkey() -> base64:encode(keys:pubkey()).
 new_pubkey(Password) -> keys:new(Password).
 new_keypair() -> testnet_sign:new_key().
 test() -> {test_response}.
+test_cron() ->
+    spawn(fun() ->
+                  timer:sleep(60000),
+                  test_cron(),
+                  sync:get_headers(hd(sync:shuffle(peers:all())))
+          end).
+    
 channel_keys() -> channel_manager:keys().
 keys_lock() ->
     keys:lock(),
