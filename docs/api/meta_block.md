@@ -25,10 +25,13 @@ Accessing the meta data
 
 The meta data is stored inside each block, so any way of accessing the blocks will also give you access to the meta data.
 
+The meta data is the 14th element of the block, and you will need to decode it base64 in order to read it.
+
 in erlang, to get the meta data of block Block:
 `element(15, Block).`
 or, if you are programming into a file where the record is loaded: `Block#block.meta.`
-if you load a block into javascript, you can get the meta data like this: `atob(block[14]).`
+if you load a block into javascript, you can get the meta data like this: `JSON.parse(atob(block[14])).`
+
 
 There are a couple different API requests that you can use to get the blocks:
 
@@ -44,7 +47,7 @@ For older blocks, this request will give you a list of around 200-800 blocks, an
 Gotchas
 ========
 
-The account_delete tx type isn't handled perfectly by meta. Sometimes it records the wrong quantity of veo being transfered. These are the block heights that contain an account delete tx type:
+The account_delete tx type isn't handled perfectly by meta. Sometimes it records the wrong quantity of veo being transfered. These are the block heights that contain an account delete tx type, as well as an additional tx that uses the same account. So these blocks might be recording account_delete incorrectly.
 
 10724
 10740
