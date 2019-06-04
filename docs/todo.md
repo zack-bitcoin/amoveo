@@ -1,24 +1,12 @@
-test oracles.js for lookup.html for looking up orders in oracles.
-We need to use the test mode to make an oracle with active bets to test this out.
-
-in oracles.js for lookup.html we want to look up orders in oracles.
-The problem is that we need to look up the header first, and the header is serialized totally different. So we need to make some major changes to the javascript  merkel proofs library to be able to handle merkel proofs of headers.
-Possibly the api for downloading merkel proofs needs to work different in the case of getting an unmatched header.
-
 
 tx_scan is failing, make some better tests.
-
 
 to calculate the delete amount correctly,
 * block:get_txs_main needs to be implemented
 
 
-We should store the top hash of a page of blocks under the key "top".
 
 do a second pass, check if any delete_acc_tx has an amount too low.
-
-
-
 
 
 
@@ -27,10 +15,10 @@ we should probably store blocks and meta data seperately.
 
 oracle_winnings and oracle_unmatched txs from the light node.
 
-oracle lookup should display the volume of open bets.
 
 
 store the highest hash with each page of compressed blocks, since this makes it easier to organize the blocks and resync them later.
+We should store the top hash of a page of blocks under the key "top".
 
 
 issue with channel_team_close2
