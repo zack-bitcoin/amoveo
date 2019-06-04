@@ -37,14 +37,15 @@ blocks(Start, End) ->
         is_list(L) -> L
     end.
             
-tx_scan(L, N) ->
+tx_scan(L) ->
     %scan the N recent blocks to see if the txids from list L have been published.
     RH = block_db:ram_height(),
     BH = block:height(),
-    true = (BH - N) > RH,
-    Blocks = lists:reverse(block_db:read(N, BH - N)),
+    N = BH - RH,
+    %true = (BH - N) > RH,
+    Blocks = lists:reverse(block_db:read(N, RH)),
     tx_scan2(L, Blocks).
-tx_scan2(L, []) -> mark_height("none", L);
+tx_scan2(L, []) -> mark_height(0, L);
 tx_scan2(L, [B|T]) ->
     Txs = tl(B#block.txs),
     %Txs = B#block.txs,

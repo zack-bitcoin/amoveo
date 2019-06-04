@@ -9,6 +9,8 @@ to calculate the delete amount correctly,
 do a second pass, check if any delete_acc_tx has an amount too low.
 
 
+we need a better warning system if a governance value is being changed.
+message loloxian when it is ready.
 
 
 we should probably store blocks and meta data seperately.
