@@ -78,7 +78,7 @@ add([MalformedPeer|T]) ->
     io:fwrite(packer:pack(MalformedPeer)),
     add(T);
 %add({{10, _, _, _}, _Port}) -> ok;%these formats are only for private networks, not the public internet.
-%add({{0, 0, 0, 0}, _Port}) -> ok;
+add({{0, 0, 0, 0}, _Port}) -> ok;
 %add({{192, 168, _, _}, _Port}) -> ok;
 %add({{172, X, _, _}, Port}) when ((X < 32) and (X > 15))-> ok;
 add({IP, Port}) -> 
@@ -110,7 +110,7 @@ add({IP, Port}) ->
                             blacklist_peer:add({NIP, Port})
                     end;
                 _ ->
-                    io:fwrite("unknown peer error\n"),
+                    %io:fwrite("unknown peer error\n"),
                     %blacklist_peer:add({NIP, Port})
                     ok
 	    end
