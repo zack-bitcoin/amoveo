@@ -2,6 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
          read/1, read/2, write/2,
+         exists/1,
          read_by_height/1,
          uncompress/1, compress/1,
          check/0, by_height_from_compressed/2,
@@ -15,7 +16,7 @@
 %-define(ram_limit, 20000000).%20 megabytes
 %-define(ram_limit, 200000).%200 kilobytes
 %-define(ram_limit, 10000).
--record(d, {dict = dict:new(), 
+-record(d, {dict = dict:new(), %blocks in ram
             many_blocks = 0,
             page_number = 0,
             pages = dict:new(),
@@ -122,6 +123,13 @@ handle_call(genesis, _From, X) ->
     {reply, X#d.genesis, X};
 handle_call(ram_height, _From, X) -> 
     {reply, X#d.ram_height, X};
+handle_call({exists, Hash}, _From, X) -> 
+    D = X#d.dict,
+    R = case lookup(Hash, D) of
+            error -> false;
+            _ -> true
+        end,
+    {reply, R, X};
 handle_call({read, Hash}, _From, X) -> 
     D = X#d.dict,
     R = case lookup(Hash, D) of
@@ -438,7 +446,9 @@ read2(N, BH) ->
             BH2 = block:prev_hash(0, B),
             [B|read2(N-1, BH2)]
     end.
-    
+   
+exists(Hash) -> 
+    gen_server:call(?MODULE, {exists, Hash}).
 read(Hash) ->
     {ok, Version} = application:get_env(amoveo_core, db_version),
     case Version of

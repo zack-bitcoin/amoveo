@@ -210,7 +210,6 @@ get_headers3(Peer, N) ->
     true = (N > AH - HB - 1),
     Headers = remote_peer({headers, HB, N}, Peer),
     AH2 = api:height(),
-    {ok, HB} = ?HeadersBatch,
     true = (N > AH2 - HB - 1),
     headers:absorb(Headers),
     if

@@ -5,7 +5,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
 	 add/1,check/1,second_chance/0,
 	 test/0]).
--record(d, {set, list = []}).
+-record(d, {set, list = []}).%set is all the hashes
 -define(LOC, constants:block_hashes()).
 init(ok) -> 
     process_flag(trap_exit, true),
@@ -32,8 +32,8 @@ handle_call({add, H}, _From, X) ->
     L2 = [H|X#d.list],
     Len = length(L2),
     {ok, ForkTolerance} = application:get_env(amoveo_core, fork_tolerance),
-    FT = ForkTolerance * 8,
-    FTB = ForkTolerance * 10,
+    FT = ForkTolerance + 1,
+    FTB = ForkTolerance * 2,
     X2 = if
 	     Len > FTB ->
 		 {NL, T} = lists:split(FT, L2),
@@ -42,7 +42,6 @@ handle_call({add, H}, _From, X) ->
 	     true ->
 		 X#d{list = L2, set = N}
 	 end,
-    %db:save(?LOC, X2),%This line is only necessary for power failures
     {reply, ok, X2};
 handle_call({check, H}, _From, X) ->
     B = i_check(H, X#d.set), 
@@ -63,7 +62,7 @@ check(X) ->
     true = size(X) == constants:hash_size(),
     gen_server:call(?MODULE, {check, X}).
 second_chance() ->
-    gen_server:call(?MODULE, second_chance).
+    gen_server:call(?MODULE, second_chance, 30000).
 second_chance_internal(X) ->
     L = X#d.list,
     S = X#d.set,
@@ -73,12 +72,20 @@ sci2([], L2, S2) ->
     {lists:reverse(L2), S2};
 sci2([H|LI], LO, S) ->
     %check if we are storing block H. if not, then remove it from the list and the set.
-    case block:get_by_hash(H) of
-	empty -> sci2(LI, LO, i_remove(H, S));
-	_ -> sci2(LI, [H|LO], S)
+    %io:fwrite("sci2 \n"),
+    {ok, Version} = application:get_env(amoveo_core, db_version),
+    case Version of
+        1 ->
+            case block:get_by_hash(H) of
+                empty -> sci2(LI, LO, i_remove(H, S));
+                _ -> sci2(LI, [H|LO], S)
+            end;
+        _ ->
+            case block_db:exists(H) of
+                true -> sci2(LI, [H|LO], S);
+                false -> sci2(LI, LO, i_remove(H, S))
+            end
     end.
-	    
-    
 i_new() ->
     %gb_sets:new().
     sets:new().
