@@ -867,7 +867,7 @@ get_tx(T, _, _, NewDict, _) when (element(1, T) == oracle_new) ->
      {governance_amount, T#oracle_new.governance_amount},
      {start, T#oracle_new.start},
      {done_timer, Oracle#oracle.done_timer},
-     {question, base64:encode(Oracle#oracle.question)},
+     {question, base64:encode(T#oracle_new.question)},
      {oracle_id, base64:encode(ID)}];
 get_tx(T, _, OldDict, _, Height) when (element(1, T) == unmatched) ->
     From = oracle_unmatched_tx:from(T),

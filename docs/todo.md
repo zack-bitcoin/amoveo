@@ -1,4 +1,23 @@
-experimental branch is failing to sync some blocks.
+test the entire p2p derivatives tool to make sure it still works.
+get back to johnny cash on discord after
+
+
+if a node sits long enough, we end up with lots of threads downloading empty lists over and over.
+it is requesting above the top height that anyone has
+
+
+
+light node otc_listener.js "someone already did this contract. you are too late"
+we should put a message to the screen to indicate this.
+
+Some confirmation message when you accept a contract.
+
+Stepan lost the channel state for a channel. What can we do to help him?
+
+better error message if you try to look up a channel that doesn't exist in the light node.
+
+
+
 
 
 tx_scan is failing, make some better tests.
