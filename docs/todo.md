@@ -1,3 +1,6 @@
+Why did the light node follow it's own fork briefly?
+
+
 futarchy markets:
 lower block reward
 expiration at block 73500
