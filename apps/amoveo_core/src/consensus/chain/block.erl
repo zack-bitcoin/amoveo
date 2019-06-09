@@ -8,8 +8,8 @@
 	 period_estimate/0, hashrate_estimate/0,
 	 period_estimate/1, hashrate_estimate/1,
 	 hashes_per_block/0, hashes_per_block/1,
-         header_by_height/1,
-         prev_hash/2,
+         header_by_height/1, no_counterfeit/4,
+         prev_hash/2, miner_fees/1, gov_fees/3,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -262,8 +262,6 @@ make(Header, Txs0, Trees, Pub) ->
     NewDict = if
 		B -> %
 		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
-		      %io:fwrite("block governance adjust "),%
-		      %io:fwrite(packer:pack(OQL)),%
 		      governance:dict_write(OQL, NewDict0);%
 		true -> NewDict0
 	    end,
@@ -308,6 +306,9 @@ make(Header, Txs0, Trees, Pub) ->
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height),
     TimeStamp = time_now(),
     NextHeader = #header{height = Height + 1, prev_hash = PrevHash, time = TimeStamp, period = BlockPeriod},
+    Roots = make_roots(Trees),
+    PrevStateHash = roots_hash(Roots),
+    PrevStateHash = Header#header.trees_hash,
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -470,7 +471,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     Roots = Block#block.roots,
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
-    PrevStateHash = PrevHeader#header.trees_hash,
+    PrevStateHash = PrevHeader#header.trees_hash,%bad
     Txs = Block#block.txs,
     true = proofs_roots_match(Facts, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
@@ -555,7 +556,8 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     F8 = forks:get(8),
     if
         Height > F8 ->
-            no_counterfeit(Dict, NewDict3, Txs0, Height);
+            Diff0 = no_counterfeit(Dict, NewDict3, Txs0, Height),
+            true = (Diff0 =< 0);
         true -> ok
     end,
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
@@ -900,8 +902,9 @@ no_counterfeit(Old, New, Txs, Height) ->
             io:fwrite("\n");
         true -> ok
     end,
-    true = (Diff =< 0),
-    ok.
+    Diff.
+%    true = (Diff =< 0),
+%    ok.
 sum_amounts([], _, _) -> 
     %io:fwrite("sum amount finish\n"),
     0;
