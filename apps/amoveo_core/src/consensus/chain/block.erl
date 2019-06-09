@@ -281,7 +281,9 @@ make(Header, Txs0, Trees, Pub) ->
 		       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
     F10 = forks:get(10),
-    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict2),
+    NewDict4 = remove_repeats(NewDict2, Dict, Height + 1),
+    %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
+    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
     NewTrees = if
 		   ((Height + 1) == F10)  ->%
 		       Root0 = constants:root0(),%
@@ -309,10 +311,13 @@ make(Header, Txs0, Trees, Pub) ->
     Roots = make_roots(Trees),
     PrevStateHash = roots_hash(Roots),
     PrevStateHash = Header#header.trees_hash,
+    NTreesHash = trees:root_hash(NewTrees),
+
+    NTreesHash = trees:root_hash2(NewTrees, Roots),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
-		   trees_hash = trees:root_hash(NewTrees),
+		   trees_hash = NTreesHash,
 		   time = TimeStamp,
 		   difficulty = element(1, headers:difficulty_should_be(NextHeader, Header)),
                    period = BlockPeriod,
@@ -321,7 +326,7 @@ make(Header, Txs0, Trees, Pub) ->
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header),
 		   proofs = Facts,
-                   roots = make_roots(Trees),
+                   roots = Roots,
 		   %market_cap = OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
 		   market_cap = MarketCap,
 		   channels_veo = OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
@@ -595,6 +600,9 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     %true = BlockHash == hash(Block2),
+    %io:fwrite("pair before death \n"),
+    %io:fwrite([NewTrees3, Roots]),
+    %io:fwrite("\n"),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
 
