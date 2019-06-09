@@ -295,6 +295,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                             (N + S) < (block:height() + DA)
                     end,
                     fun() ->
+                            true = (S > 0),
                             new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)
                     end,
                     50),
