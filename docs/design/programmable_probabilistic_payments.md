@@ -108,3 +108,32 @@ The tx types for this kind of probabilistic payment:
 
 
 * this probably means that the limit order tool for making new channels is not secure. An attacker can make out of network payments to the miners to get their tx included.
+
+
+Random sampling without replacement
+=================
+
+We can cancel out risk in the quantity of veo being transfered by probabilistic payments by reusing entropy and doing random sampling without replacement so that the different probabilistic payments are mutually exclusive.
+
+Thinking of a more concrete example.
+There are 10 channel hubs, and each one makes a probabilistic account with 10 bitcoin of value locked in it.
+All 10 hubs choose the same block height for entropy in the future, that way the probabilistic payments are all correlated.
+So now the hubs are routing lots of payments between each other.
+Occasionally one of the hubs will run out, having make 10 bitcoin worth of payments. In that case they need to open a new probabilistic account before they can route more payments.
+
+Eventually, there is only a few hours left until the entropy will be generated to determine which of the probabilistic payments will get recorded on-chain.
+At this point, all the hubs have probabilistic accounts that had 10 bitcoin in total, and are partially emptied.
+If the hubs have channels on each other's servers, they can send any remaining bitcoin from their probabilistic accounts into channels on each other's hubs.
+
+Since the hubs have always been routing payments through each other, it is always possible for them to completely cancel the risk in everyone's probabilistic accounts by draining all the accounts completely, and carefully controlling for which range of the random sampling they are using when receiving payments.
+
+If I received a 1 BTC payment correlated with range [0, 0.1], then I want to make sure any more payments I receive are in [0.1, 1].
+
+It is important that all the probabilistic accounts where we are canceling risk this way, they all need to have the same total balance. That is why in my example they all have 10 bitcoin in their probabilistic accounts.
+
+If I have received 9 bitcoin from probabilistic accounts that each contain 10 bitcoin, and I have received on the intervals [0, 0.5] [0.6, 1], that means I have risk if the randomness chooses in the interval from [0.5, 0.6]
+
+So that means I need to pay to receive a 10% chance of 10 bitcoin as long as the entropy ends up in [0.5, 0.6]
+
+One way to achieve this is if I receive 2 payments, each giving me a 10% chance of receiving 5 bitcoin, and both payments are only valid if the entropy ends up in the interval [0.5, 0.6]
+
