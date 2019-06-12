@@ -29,6 +29,17 @@ Similarly, if you are running a market powered by probabilistic state channel sm
 The only channels which can ever get created on-chain are the ones where all the other channels cannot get created.
 
 
+How a channel hub works
+======
+
+the hub keeps track of a merkel tree containing all the active prob-channel relationships. The merkel root of this is published in every block.
+
+Multiple hubs work together, they put their merkel roots into a merkel tree, so even less data needs to be recorded on-chain.
+
+The merkel tree stores each prob-channel in a location determined by the part of the probability space which results in this prob-channel winning the lottery. That way, a merkel proof of the existence of your prob-channel is also a proof that no one else has the same part of the probability space as you.
+
+So if you create a prob-channel with the hub, the hub gives you a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space in the merkel tree was recently empty. 
+
 
 tx types
 ====
