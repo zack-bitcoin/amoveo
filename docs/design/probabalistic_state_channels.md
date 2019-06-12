@@ -71,4 +71,43 @@ If a prob-channel has already been closed, and someone tried doing a probabilist
 
 * This allows the creator to publish 32 bytes of data into the proof of existence tree. It keeps a record of the block height at which this hash was recorded.
 
+6) prob-channel challenge
+
+* If the server has double-spent part of the probability space, this is how you publish a proof to punish them for doing this.
+
+7) prob-channel response
+
+* if someone made a prob-channel challenge, and the hub has not cheated, then that means the hub should have evidence of the first prob-channel being closed before the second prob-channel was opened.
+
+8) prob-channel timeout
+
+* if the hub failed to make prob-channel response in time, then eventually it becomes possible to make this tx type.
+* most of the prob-account money gets deleted, but some goes to whoever made the prob-channel challenge.
+
+x
+
+
+New merkel tree data structures in the consensus state
+============
+
+1) prob-accounts
+
+2) proof of existence
+
+3) prob-channel challenges
+
+
+
+Data the hub needs to store
+=============
+
+1) for every live prob-channel, he needs to store the channel state signed by the user, and a merkel proof of that prob-channel such that it is stored based on the part of the probability space that results in this prob-channel winning the lottery.
+
+2) for every closed prob-channel, he needs to store a signed message where the user has agreed that this channel is closed. The signed message has a commit-reveal. He also needs to have the secret which was revealed for this commit-reveal.
+
+
+Data the users need to store
+==============
+
+1) for your prob-channel, you need to keep a copy of the most recent channel state signed by the hub.
 
