@@ -84,7 +84,19 @@ If a prob-channel has already been closed, and someone tried doing a probabilist
 * if the hub failed to make prob-channel response in time, then eventually it becomes possible to make this tx type.
 * most of the prob-account money gets deleted, but some goes to whoever made the prob-channel challenge.
 
-x
+9) prob-channel data request
+
+* if a hub is refusing to give you a merkel proof of your prob-channel state, this tx can be used to force that hub to either give you the proof, or else all the value in their hub is destroyed.
+* before you can generate this tx for height H, you need a merkel proof that the hub committed to the state of the prob-channels at that height.
+
+10) prob-channel data response
+
+* this is how the hub can report on-chain to any data requests for merkel proofs.
+
+11) prob-channel data request slash
+
+* if the hub fails to do a prob-channel data response tx within the time limit, then it eventually becomes possible to do this tx.
+* this deletes 90% of the money in a prob-account, and gives the last 10% to whoever made the prob-channel data request.
 
 
 New merkel tree data structures in the consensus state
