@@ -43,6 +43,18 @@ The merkel tree stores each prob-channel in a location determined by the part of
 So if you create a prob-channel with the hub, the hub gives you a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space in the merkel tree was recently empty.
 
 
+the leverage of channel hubs
+============
+
+If a person keeps making prob-accounts, and then selling all the value in them for prob-channels, and then using his profits from these sales to make new prob-accounts to sell more prob-channels.
+It is like he is getting a leveraged position.
+The total value of all the prob-accounts he controls becomes much larger than the total value of the account he had started with.
+
+So a person with only 1 veo can generate and profit from 20+ veo worth of prob-channels all containing smart contracts.
+
+The capital cost of being a channel hub are very low. So it is cheap to launch a new channel hub and offer custom markets in whatever you care about.
+
+
 Why closing a prob-channel creates a channel?
 ============
 
