@@ -153,3 +153,6 @@ Data the users need to store
 
 1) for your prob-channel, you need to keep a copy of the most recent prob-channel state signed by the hub. So 150 bytes of signature, plus however long your smart contract is.
 
+2) you need the keep a merkel proof showing that your prob-channel exists. You can use this proof to punish the hub if they try to double-spend your money.
+256*(log16(number of channel hubs) + log16(number of prob-channels in your hub)) = about 1280 bytes.
+
