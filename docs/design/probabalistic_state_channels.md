@@ -197,17 +197,21 @@ New merkel tree data structures in the consensus state
 Data the hub needs to store
 =============
 
-1) for every live prob-channel, he needs to store the channel state signed by the user, and a merkel proof of that prob-channel such that it is stored based on the part of the probability space that results in this prob-channel winning the lottery.
-```32 * log16(#of live prob-channels)*(# of prob-channel updates) bytes```
-So if there are 1000 users, and about 1 trade happens per second, and the smart contract lasts 2 months, then this will take up 32*log16(1000)*5000000bytes = about 400 megabytes.
-If we limit the txs so you can only request data in the most recent week, we can get this down to 50 megabytes.
+1) all the hub-blocks with merkel proofs.
+each tx is about 1 kb.
+1 trade per second for 2 months would be like 5 gigabytes.
 
-2) for every prob-channel that has existed, he needs to store a signed message where the user has agreed that the old version of the prob-channel is invalid. The signed message has a commit-reveal. He also needs to have the secret which was revealed for this commit-reveal.
+
+2) for each user, merkel proof of that prob-channel such that it is stored based on the part of the probability space that results in this prob-channel winning the lottery.
+```32 * log16(#of live prob-channels)*(# of live prob-channels) bytes```
+So if there are 1000 users, and about 1 trade happens per second, and the smart contract lasts 2 months, then this will take up 32*log16(1000)*5000bytes = about 400 kilabytes.
+
+3) for every prob-channel that has existed, he needs to store a signed message where the user has agreed that the old version of the prob-channel is invalid. The signed message has a commit-reveal. He also needs to have the secret which was revealed for this commit-reveal.
 signature + contract hash + commit + reveal
 ```(about 250 bytes) * (# of prob-channels)```
 If there are 10k users over the cource of the 2 month period, we are looking at 2.5 megabytes of data.
 
-3) a copy of every live smart contract with every customer, the customer's signature over the contract.
+4) a copy of every live smart contract with every customer, the customer's signature over the contract.
 Generally a market's contracts are repetitive, so each can be comopressed to 100 bytes or so. The signature is like 150 bytes.
 So if there are 1000 live prob-channels, this database takes up around 250 kilobytes.
 
@@ -220,3 +224,4 @@ Data the users need to store
 2) you need the keep a merkel proof showing that your prob-channel exists. You can use this proof to punish the hub if they try to double-spend your money.
 256*(log16(number of channel hubs) + log16(number of prob-channels in your hub)) = about 1280 bytes.
 
+3) you need to download all the hub-blocks, but you don't have to store them.
