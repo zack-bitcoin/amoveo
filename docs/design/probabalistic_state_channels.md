@@ -2,6 +2,18 @@ Probabilistic State Channels
 ==========
 
 
+Why Amoveo needs this
+=======
+
+If we don't use the best tools available to us, then we will lose against a competitor who does.
+
+Currently amoveo offers 2 ways to trade, and they have a trade-off.
+p2p derivatives don't have a good market mechanism matching trades in batches. So you might not get as good a price.
+the hub market mechanism requires locking up twice as much veo in channels, so it is too expensive for the hub to operate.
+
+with probabilistic state channels, we can have a tool that solves both of these problems at the same time, with many other benefits besides.
+
+
 scalability
 ======
 
@@ -16,6 +28,9 @@ probabilistic channels means we can scale with the number of channel hubs connec
 So for the same cost as making 1 payment per week on Bitcoin, you could create and maintain a channel hub on Amoveo and have tens of thousands of channel relationships, all with different turing complete smart contracts being updated every second.
 It is a hugely more scalable design.
 
+With our current level of technology, if we had dozens of competent programmers maintaining it, I think at best we couldn't sustain more than 10-100 million users, and for many users, Amoveo would only be creating a little more value than the cost of using it.
+With probabilistic payments, we could sustain tens of trillions of accounts. The vast majority of users would never write anything on-chain or pay any miner fee.
+The cost of using Amoveo would be essentially zero, so there are only benefits to using it.
 
 
 
@@ -29,6 +44,13 @@ If you lock more than $1000 in stake, you could make 1000 channels, each with a 
 
 Similarly, if you are running a market powered by probabilistic state channel smart contracts, you could sell many mutually exclusive channel contracts using the same staked funds.
 The only channels which can ever get created on-chain are the ones where all the other channels cannot get created.
+
+
+currently if you want to run a market like amoveobook to match trades, you need have twice as much money locked in channels vs the amount actually at stake in the bet. Half the money is being canceled out by arbitrage.
+
+These lockup costs mean that only very rich people can run a hub. Because 1/2 the money in a market at any time is money owned by the hub.
+if we go with probabilistic channels instead, then the hub only needs to control something like 2% - 10% of the money in his markets.
+Which means it costs a lot less to run a hub and launch some new markets to let people trade.
 
 
 How a channel hub works
@@ -55,23 +77,21 @@ So a person with only 1 veo can generate and profit from 20+ veo worth of prob-c
 The capital cost of being a channel hub are very low. So it is cheap to launch a new channel hub and offer custom markets in whatever you care about.
 
 
-Why closing a prob-channel creates a channel?
-============
+off-chain channel hubs
+===========
 
-the idea of having 2 layers of turing completeness.
+When a hub settles, and someone wins the lottery, if that account is different from the account that originally created the hub, then they should get paid with the creation of a new prob-account.
 
-If we want to make updates to the first layer, that would require storing a signature, the hash of an spk, a 32 byte commitment, and a 32 byte reveal, for every time you update any channel. That is like 250 bytes per update.
-So 1 gigabyte would allow for around 4 million smart contract updates.
+This way, if they were running an off-hub hub with off-hub prob-channels, it becomes a normal hub with normal prob-channels.
 
-But if you make a prob-channel that eventually turns into a channel on-chain, then we can update that second layer as many times as we want without increasing the storage requirement.
+This gives some major advantages.
 
-the on-chain channel ends up having the same amount of veo in it no matter how much veo is in your prob-channel. So we can update the prob-channel part of the smart contract completely independently of updating the channel part.
+You can establish a hub without having to record any information on-chain. Even if your address isn't recorded on-chain anywhere, you can run a market that matches derivatives in single price batches, and you can recover liquidity from groups of prob-channels betting on mutually exclusive outcomes.
 
-So we need these two layers of turing completeness, and smart contract designers need to split up their smart contract code into the two layers carefully to take full advantage of the scalability of Amoveo.
+It means we can create off-hub channels without having to contact the hub.
 
-You need to use the prob-channel layer for your smart contract if you are selling multiple mutually exclusive versions of the same contract, and you want to take advantage of reusing the same liquidity in all the different prob-channels.
-
-You might prefer putting your code in the channel layer if it involves making many millions of updates, and you can't afford to store all those 250 byte proofs that a prob-channel has been updated.
+Every time you update a prob-channel, you need to store about 250 additional bytes until the prob-channel can close.
+By layering hubs inside of each other, any individual hub wont have to keep track of too many prob-channel updates. So the memory requirement of running a hub can be bounded.
 
 
 tx types
@@ -97,8 +117,8 @@ If a prob-channel has already been closed, and someone tried doing a probabilist
 
 * you have to wait a long enough delay after the probabilistic-withdraw before you can do this tx.
 * if there is more than one active valid probabilistic-withdraw for the same probabilistic-account, then delete 90% of the money, and give the rest to whoever published the 2nd probabilistic-withdraw, otherwise continue.
-* this creates a normal on-chain channel, just like a new-channel-tx would. Once created, the spk that controls the funds in this channel is not necessarily at all related to the spk from the probabilistic-withdraw step.
-* the channel has 80% of the money from the prob-account, the last 20% goes back to whoever made the prob-deposit initially.
+* If the winner is different from who created the probabilistic-deposit, then this creates a new probabilistic-deposit that the winner controls.
+* The new deposit has 80% of the money from the old one. 20% of the money goes back to whoever made the original prob-deposit supporting this hub.
 
 5) proof of existence
 
