@@ -99,6 +99,23 @@ So if you are running many different hubs, you can use a different private key f
 Parallelizing tx processing across multiple hubs increases throughput of txs.
 
 
+channel hub gossip
+========
+
+The hub maintains a merkel tree of the prob-channels, and he regularly posts the merkel root onto the blockchain, along with a merkel root of a tree containing all the updates that happened between this on-chain post and the previous.
+
+So a person interested in using a hub could sync all the hub-blocks of updates, and verify the merkel proofs, and know that the hub never double-spent anything. And the person syncing these hub-blocks doesn't have to store any merkel tree database on-chain, because every block comes with all the merkel proofs for all the data you need to verify that hub-block.
+
+The hub blocks have 3 kinds of txs.
+creating a prob-channel
+updating the merkel root of all the prob-channel which are supported by using this prob-channel as a hub, the prob-channel signs.
+closing a prob-channel, the prob-channel signs.
+
+So by merely sycing the hub-blocks through a gossip protocol, we can know that a hub is honest, so we know whether we can use that hub.
+
+Anyone who owns a prob-channel can use it as a hub, and start gossiping updates to peers.
+
+
 tx types
 ====
 
@@ -129,6 +146,7 @@ If someone tries doing a probabilistic-withdraw with expired data, this is how t
 
 * This allows the creator to publish 32 bytes of data into the proof of existence tree. It keeps a record of the block height at which this hash was recorded.
 
+<!---
 
 prob-channel double-spend protection txs
 ===========
@@ -163,6 +181,7 @@ Data availability txs
 * if the hub fails to do a prob-channel data response tx within the time limit, then it eventually becomes possible to do this tx.
 * this deletes the channel-hubs deposit, and gives a small reward to whoever made the data request.
 
+--->
 
 New merkel tree data structures in the consensus state
 ============
