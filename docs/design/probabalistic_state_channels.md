@@ -93,6 +93,11 @@ It means we can create off-hub channels without having to contact the hub.
 Every time you update a prob-channel, you need to store about 250 additional bytes until the prob-channel can close.
 By layering hubs inside of each other, any individual hub wont have to keep track of too many prob-channel updates. So the memory requirement of running a hub can be bounded.
 
+By layering hubs, each individual hub can store less value.
+So if you are running many different hubs, you can use a different private key for each one, so if one of your servers is compromised, you don't lose everything.
+
+Parallelizing tx processing across multiple hubs increases throughput of txs.
+
 
 tx types
 ====
@@ -108,21 +113,25 @@ tx types
 * a chalang script-sig to provide evidence to unlock the spk.
 * if chalang_vm(script-sig ++ scipt-pubkey) returns true, then it is valid.
 
-
 3) probabilistic-cancel
 
-If a prob-channel has already been closed, and someone tried doing a probabilistic-withdraw for it anyway, this is how the channel hub provides evidence to prevent those bad probabilistic-withdraws.
+If someone tries doing a probabilistic-withdraw with expired data, this is how the anyone can evidence to prevent those bad withdraws.
 
 4) probabilistic-channel
 
 * you have to wait a long enough delay after the probabilistic-withdraw before you can do this tx.
-* if there is more than one active valid probabilistic-withdraw for the same probabilistic-account, then delete 90% of the money, and give the rest to whoever published the 2nd probabilistic-withdraw, otherwise continue.
+* if there is more than one active valid probabilistic-withdraw for the same probabilistic-account, then the valid one is whichever had a merkel proof in a block first. Delete the creator's deposit, because he cheated.
 * If the winner is different from who created the probabilistic-deposit, then this creates a new probabilistic-deposit that the winner controls.
 * The new deposit has 80% of the money from the old one. 20% of the money goes back to whoever made the original prob-deposit supporting this hub.
+* 10%/20% are just an example. It should work with 1%/2% as well. We will make this a variable, so the person running the channel hub can decide for themselves how big the incentive needs to be.
 
 5) proof of existence
 
 * This allows the creator to publish 32 bytes of data into the proof of existence tree. It keeps a record of the block height at which this hash was recorded.
+
+
+prob-channel double-spend protection txs
+===========
 
 6) prob-channel challenge
 
@@ -130,12 +139,15 @@ If a prob-channel has already been closed, and someone tried doing a probabilist
 
 7) prob-channel response
 
-* if someone made a prob-channel challenge, and the hub has not cheated, then that means the hub should have evidence of the first prob-channel being closed before the second prob-channel was opened.
+* if someone made a prob-channel challenge, and the hub has not cheated, then that means the hub should have evidence that one of the conflicting prob-channels was closed or updated, by either providing a signed agreement to close the channel, or some different data to provide to one of the channels to make it close at a higher-nonced state.
 
 8) prob-channel timeout
 
 * if the hub failed to make prob-channel response in time, then eventually it becomes possible to make this tx type.
-* most of the prob-account money gets deleted, but some goes to whoever made the prob-channel challenge.
+* most of the prob-account deposit gets deleted, but some goes to whoever made the prob-channel challenge.
+
+Data availability txs
+========
 
 9) prob-channel data request
 
@@ -149,13 +161,13 @@ If a prob-channel has already been closed, and someone tried doing a probabilist
 11) prob-channel data request slash
 
 * if the hub fails to do a prob-channel data response tx within the time limit, then it eventually becomes possible to do this tx.
-* this deletes 90% of the money in a prob-account, and gives the last 10% to whoever made the prob-channel data request.
+* this deletes the channel-hubs deposit, and gives a small reward to whoever made the data request.
 
 
 New merkel tree data structures in the consensus state
 ============
 
-1) prob-accounts
+1) lotteries
 
 2) proof of existence
 
@@ -169,11 +181,12 @@ Data the hub needs to store
 1) for every live prob-channel, he needs to store the channel state signed by the user, and a merkel proof of that prob-channel such that it is stored based on the part of the probability space that results in this prob-channel winning the lottery.
 ```32 * log16(#of live prob-channels)*(# of prob-channel updates) bytes```
 So if there are 1000 users, and about 1 trade happens per second, and the smart contract lasts 2 months, then this will take up 32*log16(1000)*5000000bytes = about 400 megabytes.
+If we limit the txs so you can only request data in the most recent week, we can get this down to 50 megabytes.
 
-2) for every prob-channel update, he needs to store a signed message where the user has agreed that the old version of the prob-channel is invalid. The signed message has a commit-reveal. He also needs to have the secret which was revealed for this commit-reveal.
+2) for every prob-channel that has existed, he needs to store a signed message where the user has agreed that the old version of the prob-channel is invalid. The signed message has a commit-reveal. He also needs to have the secret which was revealed for this commit-reveal.
 signature + contract hash + commit + reveal
-```(about 250 bytes) * (# of prob-channel updates)```
-2 months with 1 trade per second is about 5 million updates. So this database would be about 1.25 gigabytes, in the example.
+```(about 250 bytes) * (# of prob-channels)```
+If there are 10k users over the cource of the 2 month period, we are looking at 2.5 megabytes of data.
 
 3) a copy of every live smart contract with every customer, the customer's signature over the contract.
 Generally a market's contracts are repetitive, so each can be comopressed to 100 bytes or so. The signature is like 150 bytes.
