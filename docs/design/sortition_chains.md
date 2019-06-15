@@ -148,7 +148,6 @@ tx types
 * pubkey to control spending
 * amount of money
 * expiration date for when it it becomes possible to make sortition-contract-txs for this sortition chain.
-* delay between this expiration date, and the expiration date for any children sortition chains created from this sortition chain.
 
 2) sortition contract
 
@@ -173,7 +172,7 @@ If this sortition chain used to be the child of another sortition chain, you may
 * If the winner is different from the sortition chain operator, then this creates a new sortition chain that the winner controls.
 * The new sortition chain has 80% of the money from the old one. 20% of the money goes back to the operator of the now closed sortition chain, as a safety deposit that was influencing them to act responsibly.
 * 10%/20% are just an example. It should work with 1%/2% as well. We will make this a variable, so the person running the sortition chain can decide for themselves how big the incentive needs to be.
-* the new sortition chain has an expiration "delay" further in the future. "delay" is the same as whatever was programmed into the parent sortition chain, or what was set in the sortition-new-tx
+* the new sortition chain has an expiration that is already passed. So it is possible to start the process of settling this sortition chain immediately.
 
 5) proof of existence
 
@@ -224,7 +223,6 @@ New merkel tree data structures in the consensus state
 * pubkey for spending
 * amount of veo
 * expiration date
-* delay- child sortition chains have expirations this much further in the future.
 
 
 2) proof of existence
