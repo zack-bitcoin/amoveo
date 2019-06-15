@@ -1,10 +1,6 @@
 Sortition Chains
 =========
 
-
-What is this?
-========
-
 A sortition contract is a kind of smart contract.
 If you are participating in a sortition contract, then either you will get all the money in the contract, or none of it.
 
@@ -39,15 +35,16 @@ Channels meant that we could scale with the number of financial relationships.
 
 With lightning channels we could scale with the number of users
 
-Using sortition chains, the blockchain scales with the number of sortition chains connecting the network together.
+Using sortition chains, the blockchain scales infinitely.
 
-So for the same cost as making 1 payment per week on Bitcoin, you could create and maintain a sortition chain on Amoveo and have tens of thousands of sortition contract relationships, all with different turing complete smart contracts being updated every second.
+So for a lower cost than making 1 payment per week on Bitcoin, you could create and maintain a sortition chain on Amoveo and have tens of thousands of sortition contract relationships, all with different turing complete smart contracts being updated every second.
 It is a hugely more scalable design.
 
-With our current level of technology, if we had dozens of competent programmers maintaining it, I think at best we couldn't sustain more than 10-100 million users, and for many users, Amoveo would only be creating only a little more value than the cost of using it.
-With sortition chains, we could sustain tens of trillions of accounts. The vast majority of users would never write anything on-chain or pay any miner fee.
-The cost of using Amoveo would be essentially zero, so there are only benefits to using it.
+With only state-channel technology, if we had dozens of competent programmers maintaining it, I think at best we couldn't sustain more than 10-100 million users, and for many users, Amoveo would only be creating only a little more value than the cost of using it.
+At >10 million users, the operating costs would be high, it would start having centralizing effects.
 
+With sortition chains, we could sustain hundreds of trillions of accounts for almost no on-chain cost. The vast majority of users would never write anything on-chain or pay any miner fee.
+The cost of using Amoveo would be essentially zero, so there are only benefits to using it.
 
 
 liquidity in sortition chains
