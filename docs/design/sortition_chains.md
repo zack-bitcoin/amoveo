@@ -71,7 +71,7 @@ the sortition chain operator keeps track of a merkel tree containing all the act
 
 The merkel tree stores each sortition contract in a location determined by the part of the probability space which results in this contract winning the lottery. That way, a merkel proof of the existence of your sortition contract is also a proof that no one else has the same part of the probability space as you.
 
-So when you create a sortition contract with a sortition chain operator, the operator is giving your a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space was recently empty.
+So when you create a sortition contract with a sortition chain operator, the operator is giving you a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space was recently empty.
 
 
 the leverage of sortition chains
