@@ -145,8 +145,8 @@ tx types
 1) sortition new
 
 * almost identical to new_channel_tx
-* amount of money
 * pubkey to control spending
+* amount of money
 * expiration date for when it it becomes possible to make sortition-contract-txs for this sortition chain.
 * delay between this expiration date, and the expiration date for any children sortition chains created from this sortition chain.
 
@@ -221,10 +221,24 @@ New merkel tree data structures in the consensus state
 
 1) sortition chains
 
+* pubkey for spending
+* amount of veo
+* expiration date
+* delay- child sortition chains have expirations this much further in the future.
+
+
 2) proof of existence
 
-3) sortition contract results (generated from the sortion-contract-tx)
+* arbitrary 32-bytes.
+* the height where this was recorded.
 
+3) sortition contract results (generated from the sortion-contract-tx and deleted by sortition-slash-tx)
+
+* pubkey who will receive the veo
+* sortition id
+* contract nonce
+
+if we can generate a higher nonce for the same sortition id, then that means this contract is invalid.
 
 
 Data the sortition chain needs to store
