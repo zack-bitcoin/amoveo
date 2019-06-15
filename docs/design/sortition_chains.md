@@ -37,7 +37,7 @@ Originally, the bitcoin scaled by the number of payments. The cost to the bitcoi
 
 Channels meant that we could scale with the number of financial relationships.
 
-sortition chains meant that we could scale with the number of users.
+With lightning channels we could scale with the number of users
 
 Using sortition chains, the blockchain scales with the number of sortition chains connecting the network together.
 
@@ -80,7 +80,7 @@ So when you create a sortition contract with a sortition chain operator, the ope
 the leverage of sortition chains
 ============
 
-If a sortition chain operator keeps selling sortition contracts, eventually they will make back almost all the money that they had paid to create the chain, which means they have enough money to make another chain.
+If a sortition chain operator keeps selling sortition contracts, eventually they will make back almost all the money that they had paid to create the soritition chain, which means they have enough money to make another sortition chain.
 It is like he is getting a leveraged position.
 The total value of all the sortition chains he is operating becomes much larger than the total value of the account he had started with.
 
@@ -100,17 +100,23 @@ When a sortition chain settles, and someone's sortition contract wins the lotter
 
 What this means is that any sortition contract owned by someone besides the sortition chain operator, that sortition contract is a sortition chain, and the owner is the sortition chain operator of that chain.
 
-But before you start selling contracts in your sortition chain, you will need to set up a server with a database for storing all the sortition contracts.
+But before you start selling contracts in your sortition chain, you will need to set up a server with a database for storing all the sortition contracts, and to automatically post the merkel roots to either the blockchain, or to one of your ancestor's sortition chains.
+
+"contracts == chains" scaling advantages
+==================
 
 If you are running a sortition chain on top of a sortition chain, you have the option of storing your merkel roots inside the parent merkel tree, instead of storing it on the main chain. You can also store in a grandparent, or any other ancestor.
 
 So there are around 1000 sortition chains being refered to by the main blockchain, and each of these chains is supporting 1000+ more sortition chains, and each of those could be supporting 1000+ sortition chains, and each of those could be supporting 1000+ sortition contracts.
 So we can support over 1 trillion smart contracts, even with only 1000 small structures being recorded on-chain.
 
-This gives some major advantages.
+"contracts == chains" UX advantages
+==========
 
+If you are making a new sortition on top of an existing one, it isn't going to be recorded on-chain immediately. You don't have to wait for any confirmations or pay any tx fees. Your address isn't even recorded on-chain anywhere. And you can run a market that matches derivatives in single price batches.
 
-If you are making a new sortition, it isn't going to be recorded on-chain immediately. You don't have to wait for any confirmations or pay any tx fees. Your address isn't even recorded on-chain anywhere. And you can run a market that matches derivatives in single price batches.
+"contracts == chains" resource consumption advantages
+===================
 
 By layering sortition chains inside of each other, any individual sortition chain wont have to keep track of too much data. So the memory requirement of running a sortition chain can be bounded.
 
@@ -120,7 +126,7 @@ So if you are running many different sortition chains, you can use a different p
 Parallelizing tx processing across multiple computers running different sortition chain databases increases throughput of txs.
 
 
-gossip
+gossip, the "chain" part of "sortition chain"
 ========
 
 The sortition chain maintains a merkel tree of the sortition contracts, and it regularly posts the merkel root onto the blockchain, along with a merkel root of a tree containing all the updates that happened between this on-chain post and the previous.
@@ -133,8 +139,7 @@ The sortition blocks have 3 kinds of txs.
 * closing a sortition contract.
 
 So by merely sycing the sortition-blocks through a gossip protocol, we can know that a sortition chain is honest, so we know whether we can use that sortition chain.
-
-Anyone who owns a sortition contract can use it as a sortition chain, and start gossiping updates to peers.
+You have to sync all the blocks of the sortition chain you care about, and it's parent, and the parent-parent, all the way back to the main chain.
 
 
 tx types
@@ -142,16 +147,22 @@ tx types
 
 1) sortition new
 
+* almost identical to new_channel_tx
 * amount of money
 * pubkey to control spending
+* expiration date for when it it becomes possible to make sortition-contract-txs for this sortition chain.
+* delay between this expiration date, and the expiration date for any children sortition chains created from this sortition chain.
 
 2) sortition contract
 
+* almost identical to channel_solo_close_tx
 * a chalang spk signed by the owner which, if unlocked, enables this withdraw.
 * a chalang script-sig to provide evidence to unlock the spk.
 * if chalang_vm(script-sig ++ scipt-pubkey) returns true, then it is valid.
 
 3) sortition slasher
+
+* almost identical to channel_slash_tx
 
 If someone tries doing a sortition-contract with expired data, this is how anyone can provide evidence to prevent those bad withdraws.
 You provide a merkel proof to the signed sortition-tx where either the sortition contract was either closed, or updated.
@@ -159,11 +170,13 @@ If this sortition chain used to be the child of another sortition chain, you may
 
 4) sortition timeout
 
+* almost identical to channel_timeout_tx
 * you have to wait a long enough delay after the sortition-contract-tx before you can do this tx.
 * if there is more than one active valid sortition-contract for the same sortition-chain, then the valid one is whichever had a merkel proof in a block first. Delete the creator's deposit, because he cheated.
 * If the winner is different from the sortition chain operator, then this creates a new sortition chain that the winner controls.
 * The new sortition chain has 80% of the money from the old one. 20% of the money goes back to the operator of the now closed sortition chain, as a safety deposit that was influencing them to act responsibly.
 * 10%/20% are just an example. It should work with 1%/2% as well. We will make this a variable, so the person running the sortition chain can decide for themselves how big the incentive needs to be.
+* the new sortition chain has an expiration "delay" further in the future. "delay" is the same as whatever was programmed into the parent sortition chain, or what was set in the sortition-new-tx
 
 5) proof of existence
 
