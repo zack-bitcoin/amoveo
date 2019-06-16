@@ -172,8 +172,7 @@ compare([], []) -> false.
 * almost identical to channel_timeout_tx
 * you have to wait a long enough delay after the sortition-contract-tx before you can do this tx.
 * If the winner is different from the sortition chain operator, then this creates a new sortition chain that the winner controls.
-* The new sortition chain has 80% of the money from the old one. 20% of the money goes back to the operator of the now closed sortition chain, as a safety deposit that was influencing them to act responsibly.
-* 10%/20% are just an example. It should work with 1%/2% as well. We will make this a variable, so the person running the sortition chain can decide for themselves how big the incentive needs to be.
+* The new sortition chain has all the money from th eold one.
 * the new sortition chain has an expiration that is already passed. So it is possible to start the process of settling this sortition chain immediately.
 
 5) proof of existence
