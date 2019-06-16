@@ -8,7 +8,10 @@
 	 period_estimate/0, hashrate_estimate/0,
 	 period_estimate/1, hashrate_estimate/1,
 	 hashes_per_block/0, hashes_per_block/1,
-         header_by_height/1, calculate_prev_hashes/1,
+         no_counterfeit/4,
+         miner_fees/1, gov_fees/3,
+         header_by_height/1, 
+         calculate_prev_hashes/1,
          prev_hash/2,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
@@ -270,8 +273,6 @@ make(Header, Txs0, Trees, Pub) ->
     NewDict = if
 		B -> %
 		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
-		      %io:fwrite("block governance adjust "),%
-		      %io:fwrite(packer:pack(OQL)),%
 		      governance:dict_write(OQL, NewDict0);%
 		true -> NewDict0
 	    end,
@@ -291,7 +292,9 @@ make(Header, Txs0, Trees, Pub) ->
 		       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
     F10 = forks:get(10),
-    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict2),
+    NewDict4 = remove_repeats(NewDict2, Dict, Height + 1),
+    %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
+    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
     NewTrees = if
 		   ((Height + 1) == F10)  ->%
 		       %Root0 = constants:root0(),%
@@ -318,10 +321,16 @@ make(Header, Txs0, Trees, Pub) ->
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height),
     TimeStamp = time_now(),
     NextHeader = #header{height = Height + 1, prev_hash = PrevHash, time = TimeStamp, period = BlockPeriod},
+    Roots = make_roots(Trees),
+    PrevStateHash = roots_hash(Roots),
+    PrevStateHash = Header#header.trees_hash,
+    NTreesHash = trees:root_hash(NewTrees),
+
+    NTreesHash = trees:root_hash2(NewTrees, Roots),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
-		   trees_hash = trees:root_hash(NewTrees),
+		   trees_hash = NTreesHash,
 		   time = TimeStamp,
 		   difficulty = element(1, headers:difficulty_should_be(NextHeader, Header)),
                    period = BlockPeriod,
@@ -330,7 +339,7 @@ make(Header, Txs0, Trees, Pub) ->
 		   trees = NewTrees,
 		   prev_hashes = calculate_prev_hashes(Header),
 		   proofs = Facts,
-                   roots = make_roots(Trees),
+                   roots = Roots,
 		   %market_cap = OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
 		   market_cap = MarketCap,
 		   channels_veo = OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
@@ -480,7 +489,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     Roots = Block#block.roots,
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
-    PrevStateHash = PrevHeader#header.trees_hash,
+    PrevStateHash = PrevHeader#header.trees_hash,%bad
     Txs = Block#block.txs,
     true = proofs_roots_match(Facts, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
@@ -571,7 +580,8 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     F8 = forks:get(8),
     if
         Height > F8 ->
-            no_counterfeit(Dict, NewDict3, Txs0, Height);
+            Diff0 = no_counterfeit(Dict, NewDict3, Txs0, Height),
+            true = (Diff0 =< 0);
         true -> ok
     end,
     %io:fwrite("block check 5.2\n"),
@@ -625,6 +635,9 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     %true = BlockHash == hash(Block2),
+    %io:fwrite("pair before death \n"),
+    %io:fwrite([NewTrees3, Roots]),
+    %io:fwrite("\n"),
     TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
 calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
@@ -1227,8 +1240,9 @@ no_counterfeit(Old, New, Txs, Height) ->
             io:fwrite("\n");
         true -> ok
     end,
-    true = (Diff =< 0),
-    ok.
+    Diff.
+%    true = (Diff =< 0),
+%    ok.
 sum_amounts([], _, _) -> 
     %io:fwrite("sum amount finish\n"),
     0;

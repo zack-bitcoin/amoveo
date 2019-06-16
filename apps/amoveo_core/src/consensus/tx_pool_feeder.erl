@@ -93,11 +93,37 @@ absorb_internal2(SignedTx, PID) ->
 		    ok
 		    %true
 	    end,
-    %io:fwrite("now 5 "),%2000
+            %io:fwrite("now 5 "),%2000
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-	    X = absorb_unsafe(SignedTx),
-	    PID ! X
+            %OldDict = proofs:facts_to_dict(F#tx_pool.facts, dict:new()),
+            Height = block:height(),
+            {CBTX, _} = coinbase_tx:make(constants:master_pub(), F#tx_pool.block_trees),
+            Txs2 = [SignedTx|Txs],
+            Querys = proofs:txs_to_querys([CBTX|Txs2], F#tx_pool.block_trees, Height+1),
+            OldDict = lookup_merkel_proofs(F#tx_pool.dict, Querys, F#tx_pool.block_trees),
+            MinerReward = block:miner_fees(Txs2),
+            GovFees = block:gov_fees(Txs2, OldDict, Height),
+            %X = absorb_unsafe(SignedTx),
+
+            %X = absorb_unsafe(SignedTx, F#tx_pool.block_trees, Height, F#tx_pool.dict),
+            X = txs:digest([SignedTx], OldDict, Height+1),
+            X2 = txs:digest([CBTX, SignedTx], OldDict, Height+1),
+            
+            
+            MinerAccount2 = accounts:dict_update(constants:master_pub(), X2, MinerReward - GovFees, none),
+            NewDict2 = accounts:dict_write(MinerAccount2, X2),
+            Facts = proofs:prove(Querys, F#tx_pool.block_trees),
+            Dict = proofs:facts_to_dict(Facts, dict:new()),
+            NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height),
+            if
+                NC > 0 -> PID ! error;
+                true ->
+                    %io:fwrite("absorb tx no counterfeit \n"),
+                    %io:fwrite(integer_to_list(NC)),
+                    %io:fwrite("\n"),
+                    PID ! X
+            end
     end.
 sum_cost([], _, _) -> 0;
 sum_cost([H|T], Dict, Trees) ->

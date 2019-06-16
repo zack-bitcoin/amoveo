@@ -1,3 +1,13 @@
+Why did the light node follow it's own fork briefly?
+
+
+futarchy markets:
+lower block reward
+expiration at block 73500
+> On July 1st at noon GMT time. If the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
+> On July 1st at noon GMT time. If the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
+
+
 light node close channel rounding error preventing us from closing the channel.
 
 

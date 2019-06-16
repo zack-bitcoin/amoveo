@@ -69,6 +69,13 @@ Type is either 1, 2, or 3.
 2 = false
 3 = bad question
 
+or for a scalar oracle:
+```
+api:minimum_scalar_oracle_bet(OID, N).
+```
+where N is an integer between 0 and 1023 inclusive representing the value being measured by this oracle.
+This trick only works if all the 10 binary oracles making up this scalar oracle do not have bets.
+
 Look up unmatched bets in the oracle
 ====
 ```
