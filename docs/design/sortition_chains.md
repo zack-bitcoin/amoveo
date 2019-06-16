@@ -288,6 +288,8 @@ The operators of the grandchildren chains can make sortition contracts with the 
 
 So the operator of the grandparent sortition chain ends up controllig many many of his great-grandchild sortition chains.
 
+For this to work, sortition chains need to have the option of reporting the merkel root of their sortition-contracts onto any ancestor, not just the direct ancestor. That way you can still update your contract, even if the person you bought it from went off-line.
+
 
 Recovering memory for sortition contracts that are many generations away from the on-chain sortition chain.
 =============
