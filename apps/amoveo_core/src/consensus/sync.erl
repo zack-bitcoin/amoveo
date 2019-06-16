@@ -289,14 +289,24 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                         L0
                 end,
             S = length(L),
-            wait_do(fun() ->
-                            {ok, DA} = ?download_ahead,
-                            (N + S) < (block:height() + DA)
-                    end,
-                    fun() ->
-                            new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)
-                    end,
-                    50),
+            if
+                S == 0 -> ok;
+                true ->
+                    GH = ((hd(lists:reverse(L)))#block.height),
+                    AH = api:height(),
+                    if
+                        AH > GH ->
+                            wait_do(fun() ->
+                                            {ok, DA} = ?download_ahead,
+                                            (N + S) < (block:height() + DA)
+                                    end,
+                                    fun() ->
+                                            new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)
+                                    end,
+                                    50);
+                        true -> ok
+                    end
+            end,
             io:fwrite(packer:pack([N, S])),
             io:fwrite("\n"),
             %{ok, Cores} = application:get_env(amoveo_core, block_threads),

@@ -615,7 +615,7 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
     %Block2 = Block#block{trees = NewTrees3, prev_hashes = PrevHashes2},
 
-    Block2 = Block#block{trees = NewTrees3, meta = calculate_block_meta(Block, OldTrees, Dict, NewDict)},
+    Block2 = Block#block{trees = NewTrees3, meta = calculate_block_meta(Block, OldTrees, Dict, NewDict3)},
     %Block2 = Block#block{trees = NewTrees3, meta = <<>>},
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),

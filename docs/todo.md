@@ -1,5 +1,71 @@
-test the entire p2p derivatives tool to make sure it still works.
-get back to johnny cash on discord after
+light node close channel rounding error preventing us from closing the channel.
+
+
+
+merge changes from master into experimental.
+
+sometimes the light node generates channel_team_close txs where one of the accounts spends more money than they have in the channel, so the tx is invalid.
+This is a bug.
+
+
+
+amoveo light node channel team close should handle the case where the channel participants send their channel states to each other.
+Either there should be a warning if you use the wrong channel state, or it should use the information to accomplish the goal anyway.
+
+when you make a channel team close offer, give an option to save to file.
+
+display the channel ID as much as possible in light node for p2p derivatives.
+
+
+amoveo light node solo-close could be having problems.
+
+
+
+lower the cost of question oracles.
+
+
+figure out prob-payments from blitzkrieg.
+
+
+figure out channel factories.
+
+
+
+
+
+sometimes when a block syncs, the full nodes aren't clearing out their entire tx pool, and they keep an invalid tx. This could potantially prevent them from finding blocks, so it could be a serious error
+
+
+if you block other nodes from talking to you, eventually you drop all your peers. This could be related to the memory leak causing there to be too many threads trying to sync at the same time.
+
+
+we should be able to create channels for accounts that do not exist, and they are created when the channel is closed. for prob-channels.
+
+
+* syncing blocks in reverse order.
+
+* probabilistic payments.
+
+every tx where you need a gov variable to calculate the new balances, put that gov variable into the block meta.
+
+
+if `sync_mode:normal().` hasn't been done, and you try making a tx, there should be a useful error message.
+
+
+rename the tx type to oracle_unmatched.
+
+
+if we don't export our IP, do the other nodes blacklist us?
+Why does it stop syncing eventually?
+
+
+
+Why did the light node follow it's own fork briefly?
+
+
+
+
+gov variable in block meta is in the wrong format.
 
 
 if a node sits long enough, we end up with lots of threads downloading empty lists over and over.
