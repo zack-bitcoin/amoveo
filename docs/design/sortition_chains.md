@@ -338,18 +338,34 @@ If we buy a smart contract, we can still sell that smart contract even if the ma
 Lightning sortition contract creation
 ===========
 
-We can use reputation to have a 4.1 security level solution for instant sortition contract creation.
+a 2.2 secure way to do a lightning payment to create a new sortition contract.
 
-When you receive a new sortition contract, normally it takes a few confirmations to be certain that the update happened successfully.
-To have some guarantees that it will work, the sortition chain operator can sign a message explaining the current state and his intention to give you a new contract if a certain secret gets revealed.
-If he then fails to give you the new contract at the next update, you can share his message to others, and everyone will know that this sortition chain operator has lied. So no one will use lightning with them again.
+But it can only work if
+* you have an existing sortition contract capable of accepting as much value as you will control in the new sortition contraxt
+* there is a lightning path between you and the person that you want to make the new sortition contract with.
 
-This trick works especially well for low-value transactions. So we can use this trick to create an initially empty sortition contract, and once the sortition contract is secured by a on-chain merkel root, then we can use the 2.2 secure mechanism to update it.
+The trick is that if you want a new sortition contract, then you just buy insurance against the possibility that it will not get created.
+You use an existing lightning path to buy this insurance.
+
+Once the sortition contract is created, then the insurance contract can never pay out, so it can be deleted.
+
+
+The cost of buying insurance is far less than the volume of money that can be held in your sortition contract, because you can buy an empty contract.
+
+The cost to the server is (6 block periods of confirmations)*(interest rate)*(amount of money which you will be able to receive I the new sortition contract)
+
+So this should be a way to instantly increase your stake in sortition contracts more than 1000x, instantly, without waiting confirmations.
+
+But, you need an existing sortition contract before you can do this trick.
+
+The value that you control in the sortition contract that is about to be created needs to be less than your total insurance coverage.
+Your total insurance coverage needs to be less than the amount of veo you could possibly receive in existing sortition contracts.
 
 
 
 probabilistic payments vs sortition chains
 =============
-sortition chains is not a replacement for probabilistic payments.
-prob-payments can be a part of a lightning payment, so are important for high-speed scalability.
-You don't have to wait for a block confirmation just to make a payment.
+
+creating a new sortition contract can be a replacement for probabilistic payments.
+They can both be a part of lightning payments, so you don't have to wait for confirmations for either.
+
