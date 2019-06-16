@@ -174,12 +174,14 @@ tx types
 
 * almost identical to channel_timeout_tx
 * if there are multiple ways the sortition could be closed, we use this rule to choose just one. We are comparing the nonce-height lists from each way the channel can be closed
+```
 compare([X|T1], [X|T2]) -> compare(T1, T2);
 compare([{N1, _}|T1], [{N2, _}|T2]) ->
               N1 > N2;
 compare([{_, H1}|T1], [{_, H2}|T2]) when (H1 < H2) ->
              H1 < H2;
 compare([], []) -> false.
+```
 
 * you have to wait a long enough delay after the sortition-contract-tx before you can do this tx.
 * If the winner is different from the sortition chain operator, then this creates a new sortition chain that the winner controls.
