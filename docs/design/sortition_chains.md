@@ -14,6 +14,8 @@ A sortition contract can only exist as a part of a sortition chain.
 
 A person usually doesn't want to hold a contract that only has a 2% chance of having value. That is a lot of risk. But as long as there are other people willing to buy the contract at a good price, this works.
 
+Updating an existing sortition contract between 2 people can happen instantly, and can be a part of a lightning payment, but creating a new sortition contract is slower, and you will need to wait for block confirmations to make sure the payment is not double-spent.
+
 
 Why Amoveo needs this
 =======
@@ -135,6 +137,7 @@ The sortition blocks have 3 kinds of txs.
 * creating a sortition contract.
 * updating the merkel root of all the sortition contracts which are supported by the child sortition chain.
 * closing a sortition contract.
+* make a probabilistic deposit.
 
 So by merely syncing the sortition-blocks through a gossip protocol, we can know that a sortition chain is honest, so we know whether we can use that sortition chain.
 You have to sync all the blocks of the sortition chain you care about, and it's parent, and the parent-parent, all the way back to the main chain.
@@ -330,3 +333,23 @@ Using this trick, you can always promote your sortition contract from one sortit
 
 So we don't have to worry about whether the middle generations stay online.
 If we buy a smart contract, we can still sell that smart contract even if the market where we bought it has gone offline.
+
+
+Lightning sortition contract creation
+===========
+
+We can use reputation to have a 4.1 security level solution for instant sortition contract creation.
+
+When you receive a new sortition contract, normally it takes a few confirmations to be certain that the update happened successfully.
+To have some guarantees that it will work, the sortition chain operator can sign a message explaining the current state and his intention to give you a new contract if a certain secret gets revealed.
+If he then fails to give you the new contract at the next update, you can share his message to others, and everyone will know that this sortition chain operator has lied. So no one will use lightning with them again.
+
+This trick works especially well for low-value transactions. So we can use this trick to create an initially empty sortition contract, and once the sortition contract is secured by a on-chain merkel root, then we can use the 2.2 secure mechanism to update it.
+
+
+
+probabilistic payments vs sortition chains
+=============
+sortition chains is not a replacement for probabilistic payments.
+prob-payments can be a part of a lightning payment, so are important for high-speed scalability.
+You don't have to wait for a block confirmation just to make a payment.
