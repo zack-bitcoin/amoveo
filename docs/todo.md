@@ -1,3 +1,9 @@
+experimental version seems to have some race condition while syncing. alarmingly, you need to do `block_hashes:second_chance().` in order to get it to continue syncing after the error happens.
+
+
+
+
+
 Why did the light node follow it's own fork briefly?
 
 

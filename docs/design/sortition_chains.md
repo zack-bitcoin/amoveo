@@ -3,6 +3,7 @@ Sortition Chains
 
 A sortition contract is a kind of smart contract.
 If you are participating in a sortition contract, then either you will get all the money in the contract, or none of it.
+It is always possible to divide a sortition contract into two lower valued contracts, who would both win value in mutually exclusive situations. And it is always xthe case that expected_value(big) = expected_value(little_1) + expected_value(little_2)
 
 Example:
 You lock $10 into a sortition contract to bet at 50:50 odds on the outcome of a football game. At the end, you have $20 in the contract.
@@ -135,7 +136,7 @@ The sortition blocks have 3 kinds of txs.
 * updating the merkel root of all the sortition contracts which are supported by the child sortition chain.
 * closing a sortition contract.
 
-So by merely sycing the sortition-blocks through a gossip protocol, we can know that a sortition chain is honest, so we know whether we can use that sortition chain.
+So by merely syncing the sortition-blocks through a gossip protocol, we can know that a sortition chain is honest, so we know whether we can use that sortition chain.
 You have to sync all the blocks of the sortition chain you care about, and it's parent, and the parent-parent, all the way back to the main chain.
 
 
@@ -152,23 +153,24 @@ tx types
 2) sortition contract
 
 * almost identical to channel_solo_close_tx
+* a list of tuples [{script-pubkey, script-sig, proof, signature}|...]
 * a chalang spk signed by the owner which, if unlocked, enables this withdraw.
 * a chalang script-sig to provide evidence to unlock the spk.
-* if chalang_vm(script-sig ++ scipt-pubkey) returns true, then it is valid.
+*  chalang_vm(script-sig ++ scipt-pubkey) must return true
+* it creates a list like [{Nonce1, Heigh1}|...]
+* it compares this nonce-height list against the last sortition-contract published to see if we should update.. like compare(New, Old).
+compare([X|T1], [X|T2]) -> compare(T1, T2);
+compare([{N1, _}|T1], [{N2, _}|T2]) ->
+              N1 > N2;
+compare([{_, H1}|T1], [{_, H2}|T2]) when (H1 < H2) ->
+             H1 < H2;
+compare([], []) -> false.
 
-3) sortition slasher
 
-* almost identical to channel_slash_tx
-
-If someone tries doing a sortition-contract with expired data, this is how anyone can provide evidence to prevent those bad withdraws.
-You provide a merkel proof to the signed sortition-tx where either the sortition contract was either closed, or updated.
-If this sortition chain used to be the child of another sortition chain, you may need merkel proofs of the ancestor's state in order to get the merkel root of your own history, then when you have your own merkel root you can verify a merkel proof of your own history.
-
-4) sortition timeout
+3) sortition timeout
 
 * almost identical to channel_timeout_tx
 * you have to wait a long enough delay after the sortition-contract-tx before you can do this tx.
-* if there is more than one active valid sortition-contract for the same sortition-chain, then the valid one is whichever had a merkel proof in a block first. Delete the creator's deposit, because he cheated.
 * If the winner is different from the sortition chain operator, then this creates a new sortition chain that the winner controls.
 * The new sortition chain has 80% of the money from the old one. 20% of the money goes back to the operator of the now closed sortition chain, as a safety deposit that was influencing them to act responsibly.
 * 10%/20% are just an example. It should work with 1%/2% as well. We will make this a variable, so the person running the sortition chain can decide for themselves how big the incentive needs to be.
@@ -223,20 +225,13 @@ New merkel tree data structures in the consensus state
 * pubkey for spending
 * amount of veo
 * expiration date
+* list of nonce-height pairs for sortitions in the process of being closed, along with the pubkey of who is in line to win.
 
 
 2) proof of existence
 
 * arbitrary 32-bytes.
 * the height where this was recorded.
-
-3) sortition contract results (generated from the sortion-contract-tx and deleted by sortition-slash-tx)
-
-* pubkey who will receive the veo
-* sortition id
-* contract nonce
-
-if we can generate a higher nonce for the same sortition id, then that means this contract is invalid.
 
 
 Data the sortition chain needs to store
@@ -271,3 +266,57 @@ Data the users need to store
 256*(log16(number of sortition contracts in your sortition chain)) = about 1280 bytes.
 
 3) you need to download all the sortition-blocks, but you don't need to store them.
+
+
+
+What if a sortition chain operator sells all their stake, and then goes off-line?
+===========
+
+Looking at the example of 3 generations of sortition chains, where the middle generation has sold all their stake, and then gone off-line.
+
+Now the grandparent generation wants to buy back all the contracts it sold to hedge it's risk before the sortition chain ends, but the middle generation is gone, so it can't update the contracts with them.
+
+The operators of the grandchildren chains can make sortition contracts with the operator of the grandparent chain, selling all of the contract back to the grandparent, without the middle generation even needing to come online.
+
+So the operator of the grandparent sortition chain ends up controllig many many of his great-grandchild sortition chains.
+
+
+Recovering memory for sortition contracts that are many generations away from the on-chain sortition chain.
+=============
+
+
+In VM language design, there are a few ways to implement functions.
+In a language like C, every time a function gets called, you need to put a new pointer on the call stack. So if you have too many nested functions, eventually the call stack overflows and the program crashes.
+
+In a language like erlang, we have tail-call optimizations. This means that if you format the function call according to some rules, then no memory is wasted when nesting functions inside of each other.
+
+
+If our state-chain has too many layers of descendants, like 50+ layers, it could start getting very time-consuming to get your money out of the state-chain.
+We have to keep shutting down one layer, which generates the next layer on-chain, and then shutting down that layer.
+
+It would be nice if people could feel comfortable making sortition-contracts that are thousands of generations away from the on-chain version, because then we wouldn't need any sort of payment-hubs staying online.
+Creating a new sortition contract as a descendant of your existing contract could be the standard way of making payments.
+
+But this only makes sense if we have some way of collapsing the on-chain settlement procedure so it doesn't take thousands of blocks to settle a single sortition chain.
+It seems like the sortition-contract-tx would have to accept a list of smart contracts instead of a single smart contract.
+And instead of storing a single integer nonce, it stores a list of nonces.
+
+So when we compare 2 alternative histories, we care about the first nonce that is higher in the list. so
+[5, 1, 0, 0, 0] > [5, 0, 100, 100, 100]
+So lets go back to that example where the operator of a sortition chain also controls most of the great-grandchildren sortition chains of that chain.
+
+Lets say he won. So to prove that he won, he would need to publish the 4 smart contracts.
+
+So lets add this missing ingredient: the owner of a sortition-contract should be able to generate valid sortition-txs to close that contract, even if the sortition tx doesn't get included in any merkel proof.
+
+So that means he can publish the 4 smart contracts on-chain, along with a signed explanation saying that this sortition contract was closed.
+Since that sortition contract was closed, it is possible for him to make a 1-smart contract sortition-contract-tx to get his money out instead of the 4-step version.
+
+Next we add some safety deposits to disincentivize anyone from publishing a 4-smart contract version when a 1-smart contract version is available.
+
+And that solves our objective. It collapses the amount of smart contracts that get published on-chain, the same way tail-call-optimization saves state in VM design for programming languages.
+
+Using this trick, you can always promote your sortition contract from one sortition-chain into the level of one of it's ancestors, as long as the ancestor cooperates. The middle generations don't matter.
+
+So we don't have to worry about whether the middle generations stay online.
+If we buy a smart contract, we can still sell that smart contract even if the market where we bought it has gone offline.
