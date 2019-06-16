@@ -111,7 +111,8 @@ empty_book() ->%
     PS = constants:pubkey_size() * 8,%
     X = serialize_head(<<?Null:PS>>, 0),%
     ID = key_to_int(<<?Header:PS>>),%
-    trie:put(ID, X, 0, constants:root0(), ?name).%
+    R = trees:empty_tree(orders),
+    trie:put(ID, X, 0, R, ?name).%
 dict_head_get(Dict, OID) ->%
     PS = constants:pubkey_size() * 8,%
     Key = {key, <<?Header:PS>>, OID},%
@@ -291,7 +292,8 @@ test() ->%
     Order1 = new(Pub2, 100),%
     Order2 = new(Pub2, 100),%
     Order3 = new(Pub1, 110),%
-    {_, empty, _} = get(Pub1, constants:root0()),%
+    R = trees:empty_tree(orders),
+    {_, empty, _} = get(Pub1, R),%
     PS = constants:pubkey_size() * 8,%
     test2().%
 test2()->%

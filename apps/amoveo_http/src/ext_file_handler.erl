@@ -23,6 +23,10 @@ handle(Req, _) ->
 	       <<"/glossary.js">> -> true;
 	       <<"/home.html">> -> true;
 	       <<"/txs.html">> -> true;
+	       <<"/oracle_close.html">> -> true;
+	       <<"/oracle_close.js">> -> true;
+	       <<"/oracle_bet.html">> -> true;
+	       <<"/oracle_bet.js">> -> true;
 	       <<"/encryption.html">> -> true;
 	       <<"/lookup.html">> -> true;
 	       <<"/channel_with_server.html">> -> true;

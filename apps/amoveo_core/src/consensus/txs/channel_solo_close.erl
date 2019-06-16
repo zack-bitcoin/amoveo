@@ -1,7 +1,5 @@
 -module(channel_solo_close).
 -export([go/4, make/5, make_dict/4, from/1, id/1]).
--record(csc, {from, nonce, fee = 0, 
-	      scriptpubkey, scriptsig}).
 -include("../../records.hrl").
 from(X) -> X#csc.from.
 id(X) -> 

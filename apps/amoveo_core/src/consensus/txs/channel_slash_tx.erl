@@ -1,7 +1,5 @@
 -module(channel_slash_tx).
 -export([go/4, make/5, make_dict/4, is_tx/1, from/1, id/1]).
--record(cs, {from, nonce, fee = 0, 
-	     scriptpubkey, scriptsig}).
 -include("../../records.hrl").
 from(X) -> X#cs.from.
 id(X) -> 
