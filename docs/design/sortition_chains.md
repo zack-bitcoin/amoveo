@@ -159,6 +159,18 @@ tx types
 *  chalang_vm(script-sig ++ scipt-pubkey) must return true
 * it creates a list like [{Nonce1, Heigh1}|...]
 * it compares this nonce-height list against the last sortition-contract published to see if we should update.. like compare(New, Old).
+* You pay a safety deposit.
+
+3) sortition cancel
+
+* very similar to channel_slash_tx
+* if anyone ever signs some data saying that they want to close a sortition, and they try publishing a sortition-contract-tx with the expired contract, then you can use that data to make this tx.
+* you win the safety deposit from the sortition-contract-tx.
+
+4) sortition timeout
+
+* almost identical to channel_timeout_tx
+* if there are multiple ways the sortition could be closed, we use this rule to choose just one. We are comparing the nonce-height lists from each way the channel can be closed
 compare([X|T1], [X|T2]) -> compare(T1, T2);
 compare([{N1, _}|T1], [{N2, _}|T2]) ->
               N1 > N2;
@@ -166,14 +178,11 @@ compare([{_, H1}|T1], [{_, H2}|T2]) when (H1 < H2) ->
              H1 < H2;
 compare([], []) -> false.
 
-
-3) sortition timeout
-
-* almost identical to channel_timeout_tx
 * you have to wait a long enough delay after the sortition-contract-tx before you can do this tx.
 * If the winner is different from the sortition chain operator, then this creates a new sortition chain that the winner controls.
 * The new sortition chain has all the money from th eold one.
 * the new sortition chain has an expiration that is already passed. So it is possible to start the process of settling this sortition chain immediately.
+* this unlocks the safety deposit you had paid in the sortition-contract-tx.
 
 5) proof of existence
 
