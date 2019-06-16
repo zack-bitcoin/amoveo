@@ -72,7 +72,9 @@ How a sortition chain works
 
 the sortition chain operator keeps track of a merkel tree containing all the active sortition contracts. The merkel root of this is published in every block.
 
-The merkel tree stores each sortition contract in a location determined by the part of the probability space which results in this contract winning the lottery. That way, a merkel proof of the existence of your sortition contract is also a proof that no one else has the same part of the probability space as you.
+Every branch of the merkel tree has bits of chalang code, which specify the mutually exclusive conditions which could allow each sub-branch to be active.
+The chalang code can reference randomness, or the output of an oracle, or anything.
+That way, a merkel proof of the existence of your sortition contract is also a proof that no one else has the same part of the probability space as you.
 
 So when you create a sortition contract with a sortition chain operator, the operator is giving you a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space was recently empty.
 
@@ -252,7 +254,7 @@ New merkel tree data structures in the consensus state
 * looks like: `[{nonce1, heigh1}, {nonce2, height2}|...]`
 
 
-Data the sortition chain needs to store
+Data the sortition chain operator needs to store
 =============
 
 1) all the sortition-blocks with merkel proofs.
@@ -370,6 +372,7 @@ Your total insurance coverage needs to be less than the amount of veo you could 
 
 
 
+
 probabilistic payments vs sortition chains
 =============
 
@@ -390,3 +393,14 @@ They would keep under-cutting each other, so there wouldn't be almost any incent
 
 Purposefully increasing the number of lotto tickets is twice as capital intensive vs just buying up existing lotto tickets.
 So they will keep under-cutting each other until the attack stops happening.
+
+
+
+Using fraud proofs, maybe you don't actually have to sync any sortition blocks
+========
+
+This is a very speculative idea, I am not sure this is possible.
+
+[influenced by Paul Sztorc's work on the subject](http://www.truthcoin.info/blog/fraud-proofs/)
+
+Since sortition contracts are turing complete, it seems like it should be possible to have contracts that incentivize people to warn you if you are using an invalid sortition chain.
