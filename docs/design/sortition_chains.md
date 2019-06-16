@@ -14,8 +14,8 @@ A sortition contract can only exist as a part of a sortition chain.
 
 A person usually doesn't want to hold a contract that only has a 2% chance of having value. That is a lot of risk. But as long as there are other people willing to buy the contract at a good price, this works.
 
-Updating an existing sortition contract between 2 people can happen instantly, and can be a part of a lightning payment, but creating a new sortition contract is slower, and you will need to wait for block confirmations to make sure the payment is not double-spent.
-
+Updating an existing sortition contract between 2 people can happen instantly, and can be a part of a lightning payment.
+Creating a new sortition contract can also often be a part of a lightning payment.
 
 Why Amoveo needs this
 =======
@@ -126,7 +126,7 @@ So if you are running many different sortition chains, you can use a different p
 Parallelizing tx processing across multiple computers running different sortition chain databases increases throughput of txs.
 
 
-gossip, the "chain" part of "sortition chain"
+sortition-blocks, the "chain" part of "sortition chain"
 ========
 
 The sortition chain maintains a merkel tree of the sortition contracts, and it regularly posts the merkel root onto the blockchain, along with a merkel root of a tree containing all the updates that happened between this on-chain post and the previous.
@@ -139,7 +139,7 @@ The sortition blocks have 3 kinds of txs.
 * closing a sortition contract.
 * make a probabilistic deposit.
 
-So by merely syncing the sortition-blocks through a gossip protocol, we can know that a sortition chain is honest, so we know whether we can use that sortition chain.
+So by merely syncing the sortition-blocks, we can know that a sortition chain is honest, so we know whether we can use that sortition chain.
 You have to sync all the blocks of the sortition chain you care about, and it's parent, and the parent-parent, all the way back to the main chain.
 
 
@@ -354,7 +354,7 @@ The cost of buying insurance is far less than the volume of money that can be he
 
 The cost to the server is (6 block periods of confirmations)*(interest rate)*(amount of money which you will be able to receive I the new sortition contract)
 
-So this should be a way to instantly increase your stake in sortition contracts more than 1000x, instantly, without waiting confirmations.
+So this is a way to instantly increase the amount of value you can potentially receive in sortition contracts more than 1000x, within a few confirmations, trustlessly.
 
 But, you need an existing sortition contract before you can do this trick.
 
@@ -369,3 +369,17 @@ probabilistic payments vs sortition chains
 creating a new sortition contract can be a replacement for probabilistic payments.
 They can both be a part of lightning payments, so you don't have to wait for confirmations for either.
 
+
+
+
+
+What if an attacker tries to increase the number of lotto tickets available, because they have more appatite for risk?
+===========
+
+If you stand to have a 5% expected gain every time you can buy lotto tickets, then you might be incentivized to start doing things that will increase the total number of lotto tickets available for you to purchase.
+
+if things are efficient, then there would be many people buying lotto tickets for a small expected profit.
+They would keep under-cutting each other, so there wouldn't be almost any incentive to increase the number of lotto tickets.
+
+Purposefully increasing the number of lotto tickets is twice as capital intensive vs just buying up existing lotto tickets.
+So they will keep under-cutting each other until the attack stops happening.
