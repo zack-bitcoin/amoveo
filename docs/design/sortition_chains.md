@@ -246,6 +246,11 @@ New merkel tree data structures in the consensus state
 * arbitrary 32-bytes.
 * the height where this was recorded.
 
+3) nonce-height lists for settling sortition chains
+
+* each sortition chain can have 0 or more nonce-height lists in the process of settling it.
+* looks like: `[{nonce1, heigh1}, {nonce2, height2}|...]`
+
 
 Data the sortition chain needs to store
 =============
