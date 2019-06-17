@@ -382,7 +382,6 @@ They can both be a part of lightning payments, so you don't have to wait for con
 
 
 
-
 What if an attacker tries to increase the number of lotto tickets available, because they have more appatite for risk?
 ===========
 
@@ -404,3 +403,47 @@ This is a very speculative idea, I am not sure this is possible.
 [influenced by Paul Sztorc's work on the subject](http://www.truthcoin.info/blog/fraud-proofs/)
 
 Since sortition contracts are turing complete, it seems like it should be possible to have contracts that incentivize people to warn you if you are using an invalid sortition chain.
+
+
+
+Mixing Merkel proofs with contracts
+=========
+
+We want the merkel proof to be a proof that the server has not double-spent your part of the probability space. So we need bits of software in every branch of the merkel tree.
+
+A merkel proof looks like this.
+proof = [stem, stem, stem, leaf];
+leaf = {address, contractID};
+//address - this is the address of the person who owns the sortition contract being proved.
+stem = {chalang_bool, hash1, hash2} // if chalang_bool returns true, then hash1 needs to match the hash of the next element of the proof. if it returns false, then hash2 needs to match the next element of the proof.
+// chalang_bool - this is some chalang code. If it leaves the stack empty, or leaves a 0 on the top of the stack, then that means the contract returns `false`. Otherwise we consider it as having returned `true`.
+
+We need to keep track of gas while verifying merkel proofs, since the chalang_bool step is turing complete.
+
+example chalang_bool contracts:
+
+`int 7 int 13 rand_bit` This contract has a 7/13th chance of returning `true` and a 6/13th chance to return `false`
+
+`OracleID oracle_lookup dup int 2 == if int 3 int 4 rand_bit else drop drop then` This contract returns `true` if the oracle is `true`. it returns `false` if the oracle is `false`, and if the oracle is `bad_question`, it has a 3/4ths chance of being `true` and a 1/4th chance of being `false`.
+
+
+
+So lets make a very concrete example of a merkel proof.
+Lets imagine Bob bought a contract worth $20, and the sortition chain has $1000 in it.
+
+rand_int is a new function we need to add to chalang. it takes 3 integers as input, and uses the random seed embedded into the merkel proof verifier for entropy.
+rand_int ( A B -- true/false )
+It is required that A =< B.
+It has an A / B probability of returning true, and (B-A) / B probability of returning False.
+
+
+[{stem, compile("int 1 int 100 rand_int"), hash1, hash2},{stem, compile("int 1 int 2 rand_int"), hash3, hash4}, {stem, compile(" OracleID0 oracle_lookup dup int 2 == if int 1 int 2 rand_bool else drop drop then "), hash5, hash6}, Address]
+
+where
+hash1 = hash(compile("int 1 int 2 rand_int") ++ hash3 ++ hash4;
+hash4 = hash(compile(" OracleID0 oracle_lookup dup int 2 == if int 1 int 2 rand_bool else drop drop then ") ++ hash5 ++ hash6;
+hash5 = hash(Address);
+
+and given the random entropy programmed into this sortition chain, the "int 1 int 100 ran_int" contract needs to return true, and the oracle needs to either return true, or it's bad question version needs to randomly select true. and the "int 1 int 2 rand_int" contract needs to return false.
+
+So this is a contract that has a 1/200th the value of the sortition chain it is a part of, and it is a winning bet in an oracle.
