@@ -416,7 +416,7 @@ A merkel proof looks like this.
 ```proof = [stem, stem, stem, leaf];
 leaf = {address, contractID};
 address - this is the address of the person who owns the sortition contract being proved.
-stem = {chalang_bool, hash1, hash2} // if chalang_bool returns true, then hash1 needs to match the hash of the next element of the proof. if it returns false, then hash2 needs to match the next element of the proof.
+stem = {chalang_bool, evidence, hash1, hash2} // if chalang_vm(evidence ++ chalang_bool) returns true, then hash1 needs to match the hash of the next element of the proof. if it returns false, then hash2 needs to match the next element of the proof.
 // chalang_bool - this is some chalang code. If it leaves the stack empty, or leaves a 0 on the top of the stack, then that means the contract returns `false`. Otherwise we consider it as having returned `true`.
 ```
 
@@ -442,16 +442,36 @@ It is required that A =< B.
 It has an A / B probability of returning true, and (B-A) / B probability of returning False.
 
 
-[{stem, compile("int 1 int 100 rand_int"), hash1, hash2},{stem, compile("int 1 int 2 rand_int"), hash3, hash4}, {stem, compile(" OracleID0 oracle_lookup dup int 2 == if int 1 int 2 rand_bool else drop drop then "), hash5, hash6}, Address]
+[{stem, [], compile("int 1 int 100 rand_int"), hash1, hash2},{stem, [], compile("int 1 int 2 rand_int"), hash3, hash4}, {stem, [], compile(" OracleID0 oracle_lookup dup int 2 == if int 1 int 2 rand_bool else drop drop then "), hash5, hash6}, {address, contractID]
 
 where
 
 ```
 hash1 = hash(compile("int 1 int 2 rand_int") ++ hash3 ++ hash4;
 hash4 = hash(compile(" OracleID0 oracle_lookup dup int 2 == if int 1 int 2 rand_bool else drop drop then ") ++ hash5 ++ hash6;
-hash5 = hash(Address);
+hash5 = hash({address, contractID});
 ```
 
 and given the random entropy programmed into this sortition chain, the "int 1 int 100 ran_int" contract needs to return true, and the oracle needs to either return true, or it's bad question version needs to randomly select true. and the "int 1 int 2 rand_int" contract needs to return false.
 
 So this is a contract that has a 1/200th the value of the sortition chain it is a part of, and it is a winning bet in an oracle.
+
+
+entropy for contracts
+=============
+
+If our merkel tree has multiple tiny contracts, it would be inefficient to re-load the block hash into the random number generator over and over for every contract. and it would be bad if we re-used the same random bits on multliple contracts, because that could cause correlation between the multiple layers, so some lottery tickets would be worth double what we had intended, and other lottery tickets will be worth nothing.
+
+So I am thinking when we verify a merkel proof, we should first check that all the hashes match, then we should append all the short chalang contracts together with some glue code in between, so we can verify them all in one go. So we only run the VM once per merkel proof.
+
+example tree update
+============
+
+`operator` is who made the merkel tree
+
+tree starts empty, which means 100% chance it goes to the operator. `operator`
+Bob buys 1% of the value`{"int 1 int 100 int 1 rand_bool", bob, operator}`
+Alice buys 2% of the value `{"int 1 int 100 int 1 rand_bool", bob, {"int 2 int 100 int 1 rand_bool", alice, operator}}`
+Carol buys 1% of the value `{"int 1 int 50 int 1 rand_bool", {"int 1 int 2 int 1 rand_bool", bob, alice}, {"int 3 int 100 int 1 rand_bool", carol, operator}}`
+
+
