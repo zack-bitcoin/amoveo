@@ -470,8 +470,12 @@ example tree update
 `operator` is who made the merkel tree
 
 tree starts empty, which means 100% chance it goes to the operator. `operator`
+
 Bob buys 1% of the value`{"int 1 int 100 int 1 rand_bool", bob, operator}`
+
 Alice buys 2% of the value `{"int 1 int 100 int 1 rand_bool", bob, {"int 2 int 100 int 1 rand_bool", alice, operator}}`
+
 Carol buys 1% of the value `{"int 1 int 50 int 1 rand_bool", {"int 1 int 2 int 1 rand_bool", bob, alice}, {"int 3 int 100 int 1 rand_bool", carol, operator}}`
+
 
 
