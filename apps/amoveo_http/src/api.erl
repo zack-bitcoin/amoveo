@@ -391,7 +391,10 @@ scalar_oracle_close(OID) ->
     scalar_oracle_close2(OIDN, 10).
 scalar_oracle_close2(_, 0) -> ok;
 scalar_oracle_close2(OIDN, N) ->
-    oracle_close(<<OIDN:256>>),
+    spawn(fun() ->
+                  oracle_close(<<OIDN:256>>)
+          end),
+    timer:sleep(50),
     scalar_oracle_close2(OIDN+1, N-1).
 msob2(_, _, _, []) -> ok;
 msob2(OIDN, Amount, N, [H|T]) ->

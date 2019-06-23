@@ -417,7 +417,7 @@ A merkel proof looks like this.
 leaf = {address, contractID};
 address - this is the address of the person who owns the sortition contract being proved.
 stem = {chalang_bool, evidence, hash1, hash2} // if chalang_vm(evidence ++ chalang_bool) returns true, then hash1 needs to match the hash of the next element of the proof. if it returns false, then hash2 needs to match the next element of the proof.
-// chalang_bool - this is some chalang code. If it leaves the stack empty, or leaves a 0 on the top of the stack, then that means the contract returns `false`. Otherwise we consider it as having returned `true`.
+// chalang_bool - this is some chalang code. It outputs 2 values. the first is a true/false for which branch of the merkel tree is being executed. 0 is false, any other value is true. The second value is the nonce for this version of the contract.
 ```
 
 We need to keep track of gas while verifying merkel proofs, since the chalang_bool step is turing complete.
@@ -471,11 +471,24 @@ example tree update
 
 tree starts empty, which means 100% chance it goes to the operator. `operator`
 
-Bob buys 1% of the value`{"int 1 int 100 int 1 rand_bool", bob, operator}`
+Bob buys 1% of the value`{"int 1 int 100 int 1 rand_bool int 1", bob, operator}`
 
-Alice buys 2% of the value `{"int 1 int 100 int 1 rand_bool", bob, {"int 2 int 100 int 1 rand_bool", alice, operator}}`
+Alice buys 2% of the value `{"int 1 int 100 int 1 rand_bool int 1", bob, {"int 2 int 100 int 1 rand_bool int 1", alice, operator}}`
 
-Carol buys 1% of the value `{"int 1 int 50 int 1 rand_bool", {"int 1 int 2 int 1 rand_bool", bob, alice}, {"int 3 int 100 int 1 rand_bool", carol, operator}}`
+Carol buys 1% of the value `{"int 1 int 50 int 1 rand_bool int 1", {"int 2 int 100 int 1 rand_bool int 1", alice, bob}, {"int 3 int 100 int 1 rand_bool int 1", carol, operator}}`
+
+The key to look up your name in the merkel tree is any entropy value and oracle values such that you would win.
+By using that as the key, the sortition chain operator is free to rewrite the contracts as necessary to keep everything in balance.
+
+the rules for updating the tree need to be deterministically defined somewhere, that way anyone syncing the sortition-blocks will calculate the same root.
 
 
+Contract Table
+=========
 
+Many contracts are appearing repeatedly. So we should keep a single copy of them in a different table, and refer to them by hash.
+For example, if 4 people are betting on 4 mutually exclusive outcomes, the tree could look something like this:
+```
+{Contract1, {Contract2, Alice, Bob}, {Contract2, Carol, Dan}}
+```
+If contract1 and contract2 are both long, then it is best to avoid having to write one of them out twice in the database.
