@@ -3,7 +3,7 @@ Sortition Chains
 
 A sortition contract is a kind of smart contract.
 If you are participating in a sortition contract, then either you will get all the money in the contract, or none of it.
-It is always possible to divide a sortition contract into two lower valued contracts, who would both win value in mutually exclusive situations. And it is always xthe case that expected_value(big) = expected_value(little_1) + expected_value(little_2)
+It is always possible to divide a sortition contract into two lower valued contracts, who would both win value in mutually exclusive situations. And it is always the case that expected_value(big) = expected_value(little_1) + expected_value(little_2)
 
 Example:
 You lock $10 into a sortition contract to bet at 50:50 odds on the outcome of a football game. At the end, you have $20 in the contract.
@@ -17,7 +17,7 @@ A person usually doesn't want to hold a contract that only has a 2% chance of ha
 Updating an existing sortition contract between 2 people can happen instantly, and can be a part of a lightning payment.
 Creating a new sortition contract can also often be a part of a lightning payment.
 
-Why Amoveo needs this
+Why Amoveo Needs This
 =======
 
 If we don't use the best tools available to us, then we will lose against a competitor who does.
@@ -26,10 +26,10 @@ Currently amoveo offers 2 ways to trade, and they have a trade-off.
 p2p derivatives don't have a good market mechanism matching trades in batches. So you might not get as good a price.
 the hub market mechanism requires locking up twice as much veo in channels, so it is too expensive for the hub to operate.
 
-with sortition chains, we can have a tool that solves both of these problems at the same time, with many other benefits besides.
+One of the many benefits of using sortition chains is the ability to access a tool that solves both of these problems simultaneously.
 
 
-scalability
+Scalability
 ======
 
 Originally, the bitcoin scaled by the number of payments. The cost to the bitcoin system grew more or less linearly with the number of payments.
@@ -43,34 +43,34 @@ Using sortition chains, the blockchain scales infinitely.
 So for a lower cost than making 1 payment per week on Bitcoin, you could create and maintain a sortition chain on Amoveo and have tens of thousands of sortition contract relationships, all with different turing complete smart contracts being updated every second.
 It is a hugely more scalable design.
 
-With only state-channel technology, if we had dozens of competent programmers maintaining it, I think at best we couldn't sustain more than 10-100 million users, and for many users, Amoveo would only be creating only a little more value than the cost of using it.
-At >10 million users, the operating costs would be high, it would start having centralizing effects.
+With only state-channel technology, if we had dozens of competent programmers maintaining it at best we could not sustain more than 10-100 million users. For many users, Amoveo would only be creating slightly more value than the cost of using it.
+At >10 million users, the operating costs would be high and would begin having centralizing effects.
 
 With sortition chains, we could sustain hundreds of trillions of accounts for almost no on-chain cost. The vast majority of users would never write anything on-chain or pay any miner fee.
-The cost of using Amoveo would be essentially zero, so there are only benefits to using it.
+The cost of using Amoveo would be essentially zero, thus there are only benefits to using it.
 
 
-liquidity in sortition chains
+Liquidity in Sortition Chains
 =========
 
 A major limitation of channels is that they are terrible for lottery.
 You can only win as much money as is in the channel.
-sortition chains don't have this problem.
+Sortition chains don't have this problem.
 If you lock $1000 in stake, you could make 1000 sortition contracts, each with a 0.1% chance of winning $1000.
 
 Similarly, if you are running a market inside a sortition chain, you could sell many mutually exclusive sortition contracts using the same staked funds.
 
-currently if you want to run a market like amoveobook to match trades, you need have twice as much money locked in channels vs the amount actually at stake in the bet. Half the money is being canceled out by arbitrage.
+If you want to run a market like amoveobook to match trades, you need to have twice as much money locked in channels vs the amount actually at stake in the bet. Half the money is being canceled out by arbitrage.
 
-These lockup costs mean that only very rich people can run a hub. Because 1/2 the money in a market at any time is money owned by the hub.
-if we go with sortition chains instead, then the market operator only needs to control something like 2% - 10% of the money in his markets.
-Which means it costs a lot less to launch some new markets to let people trade.
+These lockup costs mean that only very rich people can run a hub (since 1/2 the money in a market at any time is money owned by the hub).
+
+If we go with sortition chains instead, then the market operator only needs to control something like 2% - 10% of the money in his markets (whiich means it costs a lot less to launch new markets for people to trade).
 
 
-How a sortition chain works
+How a Sortition Chain Works
 ======
 
-the sortition chain operator keeps track of a merkel tree containing all the active sortition contracts. The merkel root of this is published in every block.
+The sortition chain operator keeps track of a merkel tree containing all the active sortition contracts. The merkel root of this is published in every block.
 
 Every branch of the merkel tree has bits of chalang code, which specify the mutually exclusive conditions which could allow each sub-branch to be active.
 The chalang code can reference randomness, or the output of an oracle, or anything.
@@ -79,7 +79,7 @@ That way, a merkel proof of the existence of your sortition contract is also a p
 So when you create a sortition contract with a sortition chain operator, the operator is giving you a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space was recently empty.
 
 
-the leverage of sortition chains
+The Leverage of Sortition Chains
 ============
 
 If a sortition chain operator keeps selling sortition contracts, eventually they will make back almost all the money that they had paid to create the soritition chain, which means they have enough money to make another sortition chain.
@@ -91,7 +91,7 @@ So a person with only 1 veo can generate and profit from 20+ veo worth of sortit
 The capital cost of being a sortition chain operator is very low. So it is cheap to launch a new sortition chain and offer custom markets in whatever you care about.
 
 
-Sortition contracts are sortition chains
+Sortition Contracts are Sortition Chains
 ===========
 
 We sometimes call them "contracts" and sometimes call them "chains" to hint at how it is being used in the current context. If you are using it to make a bet, we call it a contract. If you are using it to run a market where other people can bet, we call it a chain.
@@ -104,7 +104,7 @@ What this means is that any sortition contract owned by someone besides the sort
 
 But before you start selling contracts in your sortition chain, you will need to set up a server with a database for storing all the sortition contracts, and to automatically post the merkel roots to either the blockchain, or to one of your ancestor's sortition chains.
 
-"contracts == chains" scaling advantages
+"contracts == chains" Scaling Advantages
 ==================
 
 If you are running a sortition chain on top of a sortition chain, you have the option of storing your merkel roots inside the parent merkel tree, instead of storing it on the main chain. You can also store in a grandparent, or any other ancestor.
@@ -112,12 +112,12 @@ If you are running a sortition chain on top of a sortition chain, you have the o
 So there are around 1000 sortition chains being refered to by the main blockchain, and each of these chains is supporting 1000+ more sortition chains, and each of those could be supporting 1000+ sortition chains, and each of those could be supporting 1000+ sortition contracts.
 So we can support over 1 trillion smart contracts, even with only 1000 small structures being recorded on-chain.
 
-"contracts == chains" UX advantages
+"contracts == chains" UX Advantages
 ==========
 
 If you are making a new sortition on top of an existing one, it isn't going to be recorded on-chain immediately. You don't have to wait for any confirmations or pay any tx fees. Your address isn't even recorded on-chain anywhere. And you can run a market that matches derivatives in single price batches.
 
-"contracts == chains" resource consumption advantages
+"contracts == chains" Resource Consumption Advantages
 ===================
 
 By layering sortition chains inside of each other, any individual sortition chain wont have to keep track of too much data. So the memory requirement of running a sortition chain can be bounded.
@@ -128,7 +128,7 @@ So if you are running many different sortition chains, you can use a different p
 Parallelizing tx processing across multiple computers running different sortition chain databases increases throughput of txs.
 
 
-sortition-blocks, the "chain" part of "sortition chain"
+Sortition Blocks: The Chain in 'Sortition Chain'
 ========
 
 The sortition chain maintains a merkel tree of the sortition contracts, and it regularly posts the merkel root onto the blockchain, along with a merkel root of a tree containing all the updates that happened between this on-chain post and the previous.
@@ -232,7 +232,7 @@ Data availability txs
 
 --->
 
-New merkel tree data structures in the consensus state
+New Merkel Tree Data Structures in the Consensus State
 ============
 
 1) sortition chains
@@ -277,7 +277,7 @@ Generally a market's contracts are repetitive, so each can be comopressed to 100
 So if there are 1000 live sortition contracts, this database takes up around 250 kilobytes.
 
 
-Data the users need to store
+Data the Users Need to Store
 ==============
 
 1) for your sortition contract, you need to keep a copy of the most recent contract state signed by the sortition chain operator. So 150 bytes of signature, plus however long your smart contract is.
@@ -289,7 +289,7 @@ Data the users need to store
 
 
 
-What if a sortition chain operator sells all their stake, and then goes off-line?
+What if a Sortition Chain Operator Sells All Their Stake, and then Goes Offline?
 ===========
 
 Looking at the example of 3 generations of sortition chains, where the middle generation has sold all their stake, and then gone off-line.
@@ -303,7 +303,7 @@ So the operator of the grandparent sortition chain ends up controllig many many 
 For this to work, sortition chains need to have the option of reporting the merkel root of their sortition-contracts onto any ancestor, not just the direct ancestor. That way you can still update your contract, even if the person you bought it from went off-line.
 
 
-Recovering memory for sortition contracts that are many generations away from the on-chain sortition chain.
+Recovering Memory for Sortition Contracts that are Many Generations Away from the On-chain Sortition Chain.
 =============
 
 
@@ -344,7 +344,7 @@ So we don't have to worry about whether the middle generations stay online.
 If we buy a smart contract, we can still sell that smart contract even if the market where we bought it has gone offline.
 
 
-Lightning sortition contract creation
+Lightning Sortition Contract Creation
 ===========
 
 a 2.2 secure way to do a lightning payment to create a new sortition contract.
@@ -373,7 +373,7 @@ Your total insurance coverage needs to be less than the amount of veo you could 
 
 
 
-probabilistic payments vs sortition chains
+Probabilistic Payments vs Sortition Chains
 =============
 
 creating a new sortition contract can be a replacement for probabilistic payments.
