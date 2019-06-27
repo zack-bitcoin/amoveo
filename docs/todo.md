@@ -1,22 +1,52 @@
+like, it should say somewhere that bad question means you get your money back
+
+
+
+experimental node is crashing at 69292. It is calculating the merkel tree differently.
+
+
+also, I think “you win if veo/stablecoin goes up” is the most intuitive way, when veo/stablecoin is a number quoted like 92 and not 0.01085
+
+veo/stablecoin and stablecoin/veo labels might be backwards.
+
+update futarchy documentation:
+I think it is much better to use a % change in future interval
+like, % change from block where reward increase goes thru until like 1000 more blocks or something
+and then there isn’t the free option dynamic as much anymore
+
+experimental version seems to have some race condition while syncing. alarmingly, you need to do `block_hashes:second_chance().` in order to get it to continue syncing after the error happens.
+
+
+* create a sortition branch of the repository for merkel trees. don't use dump as a library, rewrite the pats we want to keep. Only support ram mode.
+sortition branch of chalang is a dependency.
+Ram mode makes it easy to have variable sized data structures, which is important for storing the sortition contracts.
+
+* add randomness opcodes to sortition chalang, as documented in opcodes.md load_seed and get_entropy.
+
+
+
+
+
+We need to get the randomness into chalang, so we can make these sortition merkel proofs.
+I guess we should choose a block hash to import as a binary?
+
+Ideally we would use the block hash are the seed for a deterministic random number generator, that way we can have more than 256 bits of entropy from a single block hash.
+
+So I guess I should use an erlang library for this, and add some chalang words to for:
+1) load a block hash onto the stack.
+2) load a seed into the random number generator
+and then every time we call rand_bool, it can use the random number generator to make the decision.
+
+
+teach the light node to use ctc2 instead of ctc.
+
+
+
 Why did the light node follow it's own fork briefly?
 
 
-futarchy markets:
-lower block reward
-expiration at block 73500
-> On July 1st at noon GMT time. If the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
-> On July 1st at noon GMT time. If the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
-
-
-light node close channel rounding error preventing us from closing the channel.
-
-
-
-merge changes from master into experimental.
-
 sometimes the light node generates channel_team_close txs where one of the accounts spends more money than they have in the channel, so the tx is invalid.
-This is a bug.
-
+- unable to reproduce.
 
 
 amoveo light node channel team close should handle the case where the channel participants send their channel states to each other.

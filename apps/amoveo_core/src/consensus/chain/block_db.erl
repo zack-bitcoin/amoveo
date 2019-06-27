@@ -469,8 +469,9 @@ write(Block, Hash) ->
                  0 -> Block;
                  _ ->
                     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
-                    PrevHashes = block:calculate_prev_hashes(PrevHeader),
-                    Block#block{prev_hashes = PrevHashes}
+                     PrevHashes = block:calculate_prev_hashes(PrevHeader),
+                     Block#block{prev_hashes = PrevHashes}
+                     %Block
              end,
     case Version of
         1 ->

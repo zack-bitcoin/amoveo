@@ -100,11 +100,11 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
         true ->
             list_to_tuple([prev_hashes|lists:reverse([PH|Hashes])]);
         false ->
-            B0 = get_by_height_in_chain(NHeight+1, PH),
-            B = B0#block.prev_hash,
-            calculate_prev_hashes([B|[PH|Hashes]], NHeight, N*2)
-            %B = get_by_height_in_chain(NHeight, PH),
-            %calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
+            %B0 = get_by_height_in_chain(NHeight+1, PH),
+            %B = B0#block.prev_hash,
+            %calculate_prev_hashes([B|[PH|Hashes]], NHeight, N*2)
+            B = get_by_height_in_chain(NHeight, PH),
+            calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
     end.
 get_by_hash(H) -> 
     Hash = hash(H),
