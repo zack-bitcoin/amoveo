@@ -24,10 +24,10 @@ So, if your "debate" is only arguing about the relative moral narratives of two 
 Modern politics is completely swamped by this problem. Decisions are made based on minor aesthetic details.
 It is a battlefield in the war of moral narratives, and many innocent people are getting caught in the crossfire.
 
-The Hypocracy of Modern Politics
+The Hypocrisy of Modern Politics
 =========
 
-The hypocracy can be overwhelming, lets take the abortion debate in USA in 2019 for example.
+The hypocrisy can be overwhelming, lets take the abortion debate in USA in 2019 for example.
 
 * The red team is dedicated to their moral narrative about life being sacred, and killing a human being murder.
 * The blue team is dedicated to their moral narrative about freedom being sacred, and that restricting someone's control of their own body is always wrong.
@@ -45,21 +45,21 @@ They are willing to sacrifice the women and fetuses they claim to care about, ju
 
 The desperate women who are considering abortions, and the infants being aborted, they are the innocents caught in the cross fire of this war of moral narratives.
 
-Blue Hypocracy
+Blue Hypocrisy
 =======
 
 If the blue team compromised on the moral narrative aspect of the policy, and allowed for abortion to be called "murder", then we could come up with a policy that protects women and gives them the freedom to get abortions when they need it.
 Soldiers can murder. Juries in a court of law can order a death penalty. So we could also let doctors murder fetuses, in the right circumstances.
 Compromising on the moral narrative of the law would allow them to actually achieve the moral virtues they claim to desire.
-The fact that they wont is hypocracy.
+The fact that they wont is hypocrisy.
 
-Red Hypocracy
+Red Hypocrisy
 =======
 
 If the red team compromised on the moral narrative aspect of the policy, and allowed for abortion to be called "women controlling their own bodies", then we could come up with a policy that minimizes the incidence of abortion, so as few people are murdered as possible.
 Even if abortion is called "women controlling their own bodies", it is still possible for us to have a policy that minimizes the number of abortions.
 Compromising on the moral narrative of the law would allow them to actually achieve the moral virtues they claim to desire.
-The fact that they wont is hypocracy.
+The fact that they wont is hypocrisy.
 
 
 Futarchy Save Us
