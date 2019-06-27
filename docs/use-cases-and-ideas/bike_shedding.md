@@ -1,6 +1,8 @@
 Bike Shedding
 ========
 
+https://en.wikipedia.org/wiki/Law_of_triviality
+
 Bike shedding, also known as the Law of Triviality, is the problem that communities making decisions tend to spend their time and energy on the more trivial, more easy to understand parts, and less energy elsewhere.
 
 Moral Narratives are Independent from Policy
@@ -11,6 +13,10 @@ Any public policy can be explained using a narrative based in any ethical code.
 
 China is creating more free trade and private property in their economy, but they always wrap it up in a pro-communism moral narrative.
 USA is making broad moves restricting the freedom of trade, but they always wrap it up in a pro-capitalism moral narrative.
+
+In the USSR, there was a time when physicists were blocked from publishing any research, unless they could explain their results within the moral narrative of Dialectical Materialism, which was a sort of athiest-religion that was popular at that time.
+Even though the results of physics are totally amoral, the physicists were always able to cook up some wacky story about how the universe itself was supporting the morals of our great nation.
+This is because the moral narrative that they use to explain the discoveries is independent of their content.
 
 The moral narrative used to explain why a policy exists is completely independent of that policy.
 So, if your "debate" is only arguing about the relative moral narratives of two policies, then you are only debating aesthetic aspects of the policy. You might as well be debating what to name it.
