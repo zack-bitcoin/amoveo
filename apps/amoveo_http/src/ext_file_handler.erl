@@ -28,6 +28,10 @@ handle(Req, _) ->
 	       <<"/channel_with_server.html">> -> true;
 	       <<"/new_oracle.html">> -> true;
 	       <<"/new_oracle.js">> -> true;
+	       <<"/oracle_bet.html">> -> true;
+	       <<"/oracle_bet.js">> -> true;
+	       <<"/oracle_close.html">> -> true;
+	       <<"/oracle_close.js">> -> true;
 	       <<"/messenger.js">> -> true;
 	       <<"/otc_finisher.html">> -> true;
 	       <<"/otc_finisher_old.html">> -> true;
