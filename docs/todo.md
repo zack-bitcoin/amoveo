@@ -1,4 +1,6 @@
+block_hashes:second_chance(). should run on restart.
 
+We can probably automatically tell it to sync on startup.
 
 
 

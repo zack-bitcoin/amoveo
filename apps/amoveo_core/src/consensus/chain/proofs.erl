@@ -242,6 +242,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {channels, channel_team_close_tx:id(Tx)}
                 ];
 	    csc -> 
+                channel_solo_close:to_prove(Tx, Height) ++
                 [
                  {governance, ?n2i(csc)},
                  {governance, ?n2i(time_gas)},
@@ -259,6 +260,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {channels, channel_timeout_tx:cid(Tx)}
                 ];
 	    cs -> 
+                channel_slash_tx:to_prove(Tx, Height) ++
                 [
                  {governance, ?n2i(time_gas)},
                  {governance, ?n2i(space_gas)},

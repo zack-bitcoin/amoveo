@@ -75,6 +75,73 @@ remove_nth(N, _) when N < 1 -> 1=2;
 remove_nth(1, [A|B]) -> B;
 remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
 
+dict_prove_facts([], _, _) ->
+    compiler_chalang:doit(<<" nil ">>);
+dict_prove_facts(X, Dict, Height) ->
+    A = <<"macro [ nil ;
+	macro , swap cons ;
+	macro ] swap cons reverse ;
+        [">>,
+    B = dict_prove_facts2(X, Dict, Height),
+    compiler_chalang:doit(<<A/binary, B/binary>>).
+dict_prove_facts2([], _, _) ->
+    <<"]">>;
+dict_prove_facts2([{Tree, Key}|T], Dict, Height) when is_integer(Key)->
+    ID = tree2id(Tree),
+
+    %Branch = trees:Tree(Trees),%bad
+    %{_, Data, _} = Tree:get(Key, Branch),%bad
+
+    Data = Tree:dict_get(Key, Dict),%new
+
+    SerializedData = Tree:serialize(Data),
+    Size = size(SerializedData),
+    A = "[int " ++ integer_to_list(ID) ++ 
+	", int " ++ integer_to_list(Key) ++%burn and existence store by hash, not by integer.
+	", binary " ++
+	integer_to_list(Size) ++ " " ++
+	binary_to_list(base64:encode(SerializedData))++ 
+	"]",
+    A2 = list_to_binary(A),
+    B = dict_prove_facts2(T, Dict, Height),
+    C = case T of
+	    [] -> <<>>;
+	    _ -> <<", ">>
+		     end,
+    <<A2/binary, C/binary, B/binary>>;
+dict_prove_facts2([{Tree, Key}|T], Dict, Height) ->
+    ID = tree2id(Tree),
+    %Branch = trees:Tree(Trees),%bad
+    %{_, Data, _} = Tree:get(Key, Branch),%bad
+    Data = Tree:dict_get(Key, Dict),%new
+    io:fwrite("spk dict prove facts \n"),
+    io:fwrite(packer:pack([Tree, Key, Data])),
+    io:fwrite("\n"),
+
+    SerializedData = Tree:serialize(Data),
+    Size = size(SerializedData),
+    A = "[int " ++ integer_to_list(ID) ++ 
+	", binary " ++
+	integer_to_list(size(Key)) ++ " " ++
+	binary_to_list(base64:encode(Key)) ++
+	", binary " ++
+	integer_to_list(Size) ++ " " ++
+	binary_to_list(base64:encode(SerializedData))++ 
+	"]",%this comma is used one too many times.
+    A2 = list_to_binary(A),
+    B = dict_prove_facts2(T, Dict, Height),
+    C = case T of
+	    [] -> <<>>;
+	    _ -> <<", ">>
+		     end,
+    <<A2/binary, C/binary, B/binary>>.
+
+
+
+
+    
+    
+
 prove_facts([], _) ->%we need to return an empty list here.
     compiler_chalang:doit(<<" nil ">>);
 prove_facts(X, Trees) ->
@@ -96,7 +163,7 @@ prove_facts2([{Tree, Key}|T], Trees) when is_integer(Key)->
 	", int " ++ integer_to_list(Key) ++%burn and existence store by hash, not by integer.
 	", binary " ++
 	integer_to_list(Size) ++ " " ++
-	binary_to_list(base64:encode(Tree:serialize(Data)))++ 
+	binary_to_list(base64:encode(SerializedData))++ 
 	"]",
     A2 = list_to_binary(A),
     B = prove_facts2(T, Trees),
@@ -117,7 +184,7 @@ prove_facts2([{Tree, Key}|T], Trees) ->
 	binary_to_list(base64:encode(Key)) ++
 	", binary " ++
 	integer_to_list(Size) ++ " " ++
-	binary_to_list(base64:encode(Tree:serialize(Data)))++ 
+	binary_to_list(base64:encode(SerializedData))++ 
 	"]",%this comma is used one too many times.
     A2 = list_to_binary(A),
     B = prove_facts2(T, Trees),
@@ -266,14 +333,15 @@ dict_run2(_, SS, SPK, State, Dict) ->
     true = is_list(SS),
     Bets = SPK#spk.bets,
     Delay = SPK#spk.delay,
-    run(SS, 
-	Bets,
-	SPK#spk.time_gas,
-	SPK#spk.space_gas,
-	FunLimit,
-	VarLimit,
-	State, 
-	Delay);
+    dict_run(SS, 
+             Bets,
+             SPK#spk.time_gas,
+             SPK#spk.space_gas,
+             FunLimit,
+             VarLimit,
+             State, 
+             Delay,
+             Dict);
 dict_run2(safe, SS, SPK, State, Dict) -> %unused.
     %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
     S = self(),
@@ -308,7 +376,8 @@ run2(fast, SS, SPK, State, Trees) ->
 	FunLimit,
 	VarLimit,
 	State, 
-	Delay);
+	Delay,
+        Trees);
 run2(safe, SS, SPK, State, Trees) -> 
     %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
     S = self(),
@@ -325,19 +394,54 @@ run2(safe, SS, SPK, State, Trees) ->
     end.
 chalang_state(Height, Slash, _) ->	    
     chalang:new_state(Height, Slash, 0).
-run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay) ->
-    run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay).
-
-run([], [], OpGas, _, _, _, _, Amount, Nonce, Delay) ->
+dict_run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay, Dict) ->
+    dict_run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay, Dict).
+dict_run([], [], OpGas, _, _, _, _, Amount, Nonce, Delay, _) ->
     {Amount, Nonce, Delay, OpGas};
-run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay) ->
+dict_run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Dict) ->
     {A2, N2, Delay2, EOpGas} = 
-	run3(SS, Code, OpGas, RamGas, Funs, Vars, State),
-    run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2)).
-run3(SS, Bet, OpGas, RamGas, Funs, Vars, State) ->
+	dict_run3(SS, Code, OpGas, RamGas, Funs, Vars, State, Dict),
+    dict_run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Dict).
+dict_run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Dict) ->
     ScriptSig = SS#ss.code,
     true = chalang:none_of(ScriptSig),
-    Trees = (tx_pool:get())#tx_pool.block_trees,
+    Height = element(2, State),
+    F21 = forks:get(21),
+    F = if
+            (Height > F21) -> dict_prove_facts(SS#ss.prove, Dict, Height);
+            true ->
+                Trees = (tx_pool:get())#tx_pool.block_trees,
+                prove_facts(SS#ss.prove, Trees)
+        end,
+    %io:fwrite("spk proved facts \n"),
+    %io:fwrite(packer:pack(F)),
+    %io:fwrite("\n"),
+    C = Bet#bet.code,
+    Code = <<F/binary, C/binary>>,  
+    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size(), false),
+    {Amount0, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
+    CGran = constants:channel_granularity(),
+    
+    %io:fwrite(packer:pack({stack, Amount, Nonce, Delay})),
+    %io:fwrite("\n"),
+    A3 = Amount0 * Bet#bet.amount div CGran,
+    {A3, Nonce, Delay,
+     chalang:time_gas(Data2)
+    }.
+
+run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay, Trees) ->
+    run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay, Trees).
+
+run([], [], OpGas, _, _, _, _, Amount, Nonce, Delay, _) ->
+    {Amount, Nonce, Delay, OpGas};
+run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Trees) ->
+    {A2, N2, Delay2, EOpGas} = 
+	run3(SS, Code, OpGas, RamGas, Funs, Vars, State, Trees),
+    run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Trees).
+run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Trees) ->
+    ScriptSig = SS#ss.code,
+    true = chalang:none_of(ScriptSig),
+    %Trees = (tx_pool:get())#tx_pool.block_trees,
     %F = prove_facts(Bet#bet.prove, Trees),
     F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
