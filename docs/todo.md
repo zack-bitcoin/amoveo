@@ -1,3 +1,8 @@
+teach the master branch not to have zombie nodes trying to download non-existance blocks.
+
+
+
+
 like, it should say somewhere that bad question means you get your money back
 
 

@@ -191,15 +191,15 @@ test2(NewPub) ->
     SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], 10000, 10000, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
-    %amount, newnonce, shares, delay
-    {14,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
+    %amount, newnonce, delay
+    {14,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees61),
 
     %test a trade that gets only partly matched.
     %SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SPD3 = price_declaration_maker(5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3, OID, 3000),
     %amount, newnonce, shares, delay
-    {109, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees5),
+    {109, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees61),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
@@ -207,7 +207,7 @@ test2(NewPub) ->
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
     SS6 = unmatched(OID), 
     %amount, newnonce, delay
-    {59, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees5),
+    {59, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees61),
     success.
 test3() ->    
     %This makes the compiled smart contract in market.js

@@ -1,4 +1,4 @@
--module(spk).
+-module(spk_backup).
 -export([new/8, apply_bet/5, get_paid/3, run/6, dict_run/6,
          chalang_state/3, new_bet/3, new_bet/4, 
 	 is_improvement/4, bet_unlock/2, force_update/3,
@@ -75,18 +75,18 @@ remove_nth(N, _) when N < 1 -> 1=2;
 remove_nth(1, [A|B]) -> B;
 remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
 
-dict_prove_facts([], _, _) ->%we need to return an empty list here.
+dict_prove_facts([], _) ->%we need to return an empty list here.
     compiler_chalang:doit(<<" nil ">>);
-dict_prove_facts(X, Dict, Height) ->
+dict_prove_facts(X, Dict) ->
     A = <<"macro [ nil ;
 	macro , swap cons ;
 	macro ] swap cons reverse ;
         [">>,
-    B = dict_prove_facts2(X, Dict, Height),
+    B = dict_prove_facts2(X, Dict),
     compiler_chalang:doit(<<A/binary, B/binary>>).
-dict_prove_facts2([], _, _) ->
+dict_prove_facts2([], _) ->
     <<"]">>;
-dict_prove_facts2([{Tree, Key}|T], Dict, Height) when is_integer(Key)->
+dict_prove_facts2([{Tree, Key}|T], Dict) when is_integer(Key)->
     ID = tree2id(Tree),
 
     %Branch = trees:Tree(Trees),%bad
@@ -103,20 +103,19 @@ dict_prove_facts2([{Tree, Key}|T], Dict, Height) when is_integer(Key)->
 	binary_to_list(base64:encode(SerializedData))++ 
 	"]",
     A2 = list_to_binary(A),
-    B = dict_prove_facts2(T, Dict, Height),
+    B = dict_prove_facts2(T, Dict),
     C = case T of
 	    [] -> <<>>;
 	    _ -> <<", ">>
 		     end,
     <<A2/binary, C/binary, B/binary>>;
-dict_prove_facts2([{Tree, Key}|T], Dict, Height) ->
+dict_prove_facts2([{Tree, Key}|T], Dict) ->
     ID = tree2id(Tree),
+
     %Branch = trees:Tree(Trees),%bad
     %{_, Data, _} = Tree:get(Key, Branch),%bad
+
     Data = Tree:dict_get(Key, Dict),%new
-    io:fwrite("spk dict prove facts \n"),
-    io:fwrite(packer:pack([Tree, Key, Data])),
-    io:fwrite("\n"),
 
     SerializedData = Tree:serialize(Data),
     Size = size(SerializedData),
@@ -129,7 +128,7 @@ dict_prove_facts2([{Tree, Key}|T], Dict, Height) ->
 	binary_to_list(base64:encode(SerializedData))++ 
 	"]",%this comma is used one too many times.
     A2 = list_to_binary(A),
-    B = dict_prove_facts2(T, Dict, Height),
+    B = dict_prove_facts2(T, Dict),
     C = case T of
 	    [] -> <<>>;
 	    _ -> <<", ">>
@@ -408,14 +407,9 @@ dict_run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonc
 dict_run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Dict) ->
     ScriptSig = SS#ss.code,
     true = chalang:none_of(ScriptSig),
-    Height = element(2, State),
-    F21 = forks:get(21),
-    F = if
-            (Height > F21) -> dict_prove_facts(SS#ss.prove, Dict, Height);
-            true ->
-                Trees = (tx_pool:get())#tx_pool.block_trees,
-                prove_facts(SS#ss.prove, Trees)
-        end,
+    Trees = (tx_pool:get())#tx_pool.block_trees,
+    F = prove_facts(SS#ss.prove, Trees),
+    %F = dict_prove_facts(SS#ss.prove, Dict),
     %io:fwrite("spk proved facts \n"),
     %io:fwrite(packer:pack(F)),
     %io:fwrite("\n"),

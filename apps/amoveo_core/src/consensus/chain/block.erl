@@ -234,7 +234,6 @@ tx_costs([STx|T], Governance, Out) ->
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
-new_dict(Txs, Dict, Height) -> txs:digest(Txs, Dict, Height).
 market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
     FH = forks:get(3),%
     if
@@ -268,7 +267,7 @@ make(Header, Txs0, Trees, Pub) ->
     Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
     Facts = proofs:prove(Querys, Trees),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
-    NewDict0 = new_dict(Txs, Dict, Height + 1),
+    NewDict0 = txs:digest(Txs, Dict, Height + 1),
     B = ((Height+1) == forks:get(5)),
     NewDict = if
 		B -> %
@@ -489,7 +488,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     Roots = Block#block.roots,
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
-    PrevStateHash = PrevHeader#header.trees_hash,%bad
+    PrevStateHash = PrevHeader#header.trees_hash,
     Txs = Block#block.txs,
     true = proofs_roots_match(Facts, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
@@ -497,7 +496,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     PrevHash = Block#block.prev_hash,
     Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
-    NewDict = new_dict(Txs, Dict, Height),
+    NewDict = txs:digest(Txs, Dict, Height),
     {Dict, NewDict, BlockHash}.
 
 
@@ -630,6 +629,11 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     %TreesHash = Header#header.trees_hash,
+    if 
+        (Height == 69292) ->
+            io:fwrite(packer:pack(Block2));
+        true -> ok
+    end,
     TreesHash = Block2#block.trees_hash,
     %io:fwrite("block check 6\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),

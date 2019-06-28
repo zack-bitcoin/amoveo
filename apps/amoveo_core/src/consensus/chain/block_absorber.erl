@@ -66,7 +66,7 @@ absorb_internal(Block) ->
 	    Bool = block_hashes:check(NextBlock),
 	    if
 		Height == 0 -> 0;
-		BHC -> 3; %we already have this block
+		BHC  -> 3; %we already have this block
 		not(Bool) -> 0;%we dont' know the previous block
 		true ->
 		    %io:fwrite("block absorber 1.2\n"), % 0.00005
