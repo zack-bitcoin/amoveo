@@ -1,13 +1,18 @@
+having trouble making channel_solo_close from the light node to close our channels.
+
+The light node should store the entire compiled contract. That way, even if the rules for how to build the contract should change, our old signatures are still valid.
+
+Make transactions to close the 5 channels in ~/oracles.md, and publish them somewhere publicly so that the other participant can close these channels.
+
+rewrite the chalang smart contracts so that it isn't so complicated to generate the compiled contract in the light node.
+
+
+
 teach the master branch not to have zombie nodes trying to download non-existance blocks.
 
 
 
-
 like, it should say somewhere that bad question means you get your money back
-
-
-
-experimental node is crashing at 69292. It is calculating the merkel tree differently.
 
 
 also, I think “you win if veo/stablecoin goes up” is the most intuitive way, when veo/stablecoin is a number quoted like 92 and not 0.01085
@@ -21,10 +26,6 @@ and then there isn’t the free option dynamic as much anymore
 
 experimental version seems to have some race condition while syncing. alarmingly, you need to do `block_hashes:second_chance().` in order to get it to continue syncing after the error happens.
 
-
-* create a sortition branch of the repository for merkel trees. don't use dump as a library, rewrite the pats we want to keep. Only support ram mode.
-sortition branch of chalang is a dependency.
-Ram mode makes it easy to have variable sized data structures, which is important for storing the sortition contracts.
 
 * add randomness opcodes to sortition chalang, as documented in opcodes.md load_seed and get_entropy.
 
