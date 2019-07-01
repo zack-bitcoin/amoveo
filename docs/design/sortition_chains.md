@@ -491,3 +491,37 @@ For example, if 4 people are betting on 4 mutually exclusive outcomes, the tree 
 {Contract1, {Contract2, Alice, Bob}, {Contract2, Carol, Dan}}
 ```
 If contract1 and contract2 are both long, then it is best to avoid having to write one of them out twice in the database.
+
+
+multiple random samples
+============
+
+Maybe a sortition chain would be better if we did multiple random samples instead of just 1.
+
+So when a sortition chain closes, it could randomly pay to up to 100 accounts, each receiving 1% of the veo from that chain.
+
+The trade-off is that the on-chain cost per sortition chain increases 100x, but the risk of holding lottery tickets reduces 10x.
+
+We can already know that this strategy is no good, because costs are increasing by the square of the benefits.
+
+Therefore it is always better to have 2 small sortition chains that each pay out once, instead of 1 big one that pays out twice.
+
+
+lottery randomness is necessary for sharding
+==============
+
+properties we want for sharding
+
+* cost of bandwidth to run a full node should at worst be as expensive as O(log(#users))
+* the currency on different shards is fungible.
+* the same consensus mechanism is securing all the shards at once.
+
+The goal of this proof is to show that any blockchain with all 3 of these properties at once must be using some lottery randomness type accounts.
+
+If we are using the same single consensus mechanism to secure all the shards, then that means there is a main chain that records the order of history of the heart of the consensus mechanism.
+
+For the same consensus mechanism to secure all the shards, and have fungibility, that means it needs to be possible to move your money onto or through the main chain without anyone else's permission, just by giving txs to miners.
+
+if the bandwidth is only O(log(#users)) or less, then that means the number of accounts recorded on the main chain needs to be less than O(log(#users)).
+
+For it to be possible to move your value onto the main chain without anyone's permission, while it also being the case that only O(log(#users)) at most have their account recorded on the main chain, the only way to have both of these at once is if it is lottery-ticket type value.
