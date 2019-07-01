@@ -15,7 +15,6 @@ A sortition contract can only exist as a part of a sortition chain.
 A person usually doesn't want to hold a contract that only has a 2% chance of having value. That is a lot of risk. But as long as there are other people willing to buy the contract at a good price, this works.
 
 Updating an existing sortition contract between 2 people can happen instantly, and can be a part of a lightning payment.
-Creating a new sortition contract can also often be a part of a lightning payment.
 
 Why Amoveo Needs This
 =======
