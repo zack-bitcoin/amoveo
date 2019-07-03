@@ -1,7 +1,7 @@
 -module(channel_slash_tx).
 -export([go/4, make/5, make_dict/4, is_tx/1, from/1, id/1, to_prove/2, to_prove_helper/2]).
--record(cs, {from, nonce, fee = 0, 
-	     scriptpubkey, scriptsig}).
+%-record(cs, {from, nonce, fee = 0, 
+%	     scriptpubkey, scriptsig}).
 -include("../../records.hrl").
 to_prove(X, Height) ->
     to_prove_helper(X#cs.scriptsig, Height).

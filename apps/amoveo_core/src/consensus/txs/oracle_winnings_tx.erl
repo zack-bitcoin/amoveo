@@ -5,7 +5,6 @@
 %If you bet in an oracle, and the oracle has closed, this is how you get your winnings out.
 %If you bet on the winning outcome, then you get positive winnings. If you bet on one of the losing outcomes, then you get negative winnings.
 %The difficulty of the winnings was announced when the oracle was launched.
--record(oracle_winnings, {from, nonce, fee, oracle_id}).
 from(X) -> X#oracle_winnings.from.
 oracle_id(X) -> X#oracle_winnings.oracle_id.
 make_dict(From, Fee, OID) ->

@@ -118,8 +118,10 @@ prove2([{oracle_bets, Key}|T], Trees) ->%
 prove2([{Tree, Key}|T], Trees) ->
     Branch = trees:Tree(Trees),
     {Root, Data, Path} = Tree:get(Key, Branch),
+    PS = constants:pubkey_size() * 8,
     Data2 = case Data of
 		empty -> 0;
+                {<<X:PS>>, Many} -> unmatched:serialize_head(<<X:PS>>, Many);
 		_ -> Tree:serialize(Data)
 	    end,
     Proof = #proof{root = Root,

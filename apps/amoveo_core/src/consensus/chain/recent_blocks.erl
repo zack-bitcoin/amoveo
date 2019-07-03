@@ -45,7 +45,7 @@ handle_call({add, Hash, TotalWork, Height}, _, X) ->
               X#r{blocks = [{Hash, TotalWork}|X#r.blocks]};
           true -> X 
       end,
-    db:save(?LOC, R),
+    %db:save(?LOC, R),
     {reply, ok, R};
 handle_call(read, _From, X) -> 
     Y = get_hashes(X#r.blocks),

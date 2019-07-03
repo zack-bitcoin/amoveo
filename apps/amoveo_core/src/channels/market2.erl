@@ -1,4 +1,4 @@
--module(market).
+-module(market2).
 -export([price_declaration_maker/4, market_smart_contract/10,
 	 settle/3,no_publish/1,evidence/2,
 	 contradictory_prices/3, market_smart_contract_key/5,
@@ -10,26 +10,23 @@ market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts 
     {market, 1, MarketID, Expires, Pubkey, Period, OID}.
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height) ->
     <<_:256>> = MarketID,
-    Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
-		1 -> <<" int 10000 bet_amount ! macro flip int 0 swap + ; macro check_size flip > not ; ">>; %this is for when the customer bets on true.
-		2 -> <<" int 0 bet_amount ! macro flip int 10000 swap - ; macro check_size flip < not ; ">> % maybe should be 10000 - MaxPrice0
-	    end,
     {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
     %MaxPrice is in the range 0 to 10000,
     % it is the limit of how much you are willing to pay the server for the derivative. You will pay this much or less.
     % Pubkey is the pubkey of the market manager.
     true = size(Pubkey) == constants:pubkey_size(),
     Code2 = " \
-int " ++ integer_to_list(Height) ++ " Height ! \
-int " ++ integer_to_list(Expires) ++ " Expires ! \
-int " ++ integer_to_list(MaxPrice) ++ " MaxPrice ! \
-binary 32 " ++ binary_to_list(base64:encode(MarketID)) ++ " MarketID ! \
-int " ++ integer_to_list(Period) ++ " Period ! \
-binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode(Pubkey)) ++ " Pubkey ! \
+int " ++ integer_to_list(Direction) ++" \
+int " ++ integer_to_list(Height) ++ " \
+int " ++ integer_to_list(Expires) ++ " \
+int " ++ integer_to_list(MaxPrice) ++ " \
+binary 32 " ++ binary_to_list(base64:encode(MarketID)) ++ " \
+int " ++ integer_to_list(Period) ++ " \
+binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode(Pubkey)) ++ " \
 ",
     PrivDir = code:priv_dir(amoveo_core),
-    {ok, Code3} = file:read_file(PrivDir ++ "/market.fs"),
-    FullCode = <<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>,
+    {ok, Code3} = file:read_file(PrivDir ++ "/market2.fs"),
+    FullCode = <<(list_to_binary(Code2))/binary, Code/binary, Code3/binary>>,
     %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
     io:fwrite("compiled code is \n"),
