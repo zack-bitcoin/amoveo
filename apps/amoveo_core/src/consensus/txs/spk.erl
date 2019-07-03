@@ -137,10 +137,6 @@ dict_prove_facts2([{Tree, Key}|T], Dict, Height) ->
     <<A2/binary, C/binary, B/binary>>.
 
 
-
-
-
-
 prove_facts([], _) ->%we need to return an empty list here.
     compiler_chalang:doit(<<" nil ">>);
 prove_facts(X, Trees) ->
@@ -249,7 +245,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    F = prove_facts(SS#ss.prove, Trees),
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
-	    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2#ss.code, Code, State, constants:hash_size()),
+	    Data = data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2#ss.code, Code, State, constants:hash_size(), Height),
 	    Data2 = chalang:run5(SS2#ss.code, Data),
 	    Data3 = chalang:run5(Code, Data2),
 	    case Data3 of
@@ -421,7 +417,7 @@ dict_run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Dict) ->
     %io:fwrite("\n"),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
-    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size(), false),
+    Data = data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size(), Height),
     {Amount0, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
     CGran = constants:channel_granularity(),
     
@@ -431,7 +427,6 @@ dict_run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Dict) ->
     {A3, Nonce, Delay,
      chalang:time_gas(Data2)
     }.
-
 
 run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay, Trees) ->
     run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay, Trees).
@@ -450,7 +445,10 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Trees) ->
     F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,  
-    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size(), false),
+    Height = element(2, State),
+    io:fwrite("before data maker \n"),
+    Data = data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size(), Height),
+    io:fwrite("after data maker \n"),
     {Amount0, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
     CGran = constants:channel_granularity(),
     
@@ -501,7 +499,7 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     F = prove_facts(SS#ss.prove, Trees),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
-    Data = chalang:data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS#ss.code, Code, State, constants:hash_size()),
+    Data = data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS#ss.code, Code, State, constants:hash_size(), Height),
     {ContractAmount, N, Delay, _} = chalang_error_handling(SS#ss.code, Code, Data),
     if
 	%Delay > 50 ->
@@ -690,4 +688,10 @@ test() ->
     %Gov5 = governance:serialize(Govern5),
     success.
     
-    
+data_maker(A, B, C, D, E, F, G, H, Height) ->    
+    F22 = forks:get(22),
+    Version = if
+                  (Height > F22) -> 1;
+                  true -> 0
+              end,
+    chalang:data_maker(A, B, C, D, E, F, G, H, Version).
