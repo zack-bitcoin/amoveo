@@ -1,17 +1,21 @@
 -module(channel_solo_close).
 -export([go/4, make/5, make_dict/4, from/1, id/1, to_prove/2]).
+%-record(csc, {from, nonce, fee = 0, 
+%	      scriptpubkey, scriptsig}).
 -include("../../records.hrl").
-to_prove(X, Height) ->
-    F21 = forks:get(21),
-    if
-        Height > F21 ->
-            SS = X#csc.scriptsig,
-            SS2 = lists:map(fun(X) -> X#ss.prove end, SS),
-            SS3 = lists:foldr(fun(X, Y) -> X++Y end, [], SS2),
-            SS3;
-        true -> []
-    end.
+%to_prove(X, Height) ->
+%    F21 = forks:get(21),
+%    if
+%        Height > F21 ->
+%            SS = X#csc.scriptsig,
+%            SS2 = lists:map(fun(X) -> X#ss.prove end, SS),
+%            SS3 = lists:foldr(fun(X, Y) -> X++Y end, [], SS2),
+%            SS3;
+%        true -> []
+%    end.
 from(X) -> X#csc.from.
+to_prove(X, Height) ->
+    channel_slash_tx:to_prove_helper(X#csc.scriptsig, Height).
 id(X) -> 
     SPK = X#csc.scriptpubkey,
     (testnet_sign:data(SPK))#spk.cid.
@@ -64,14 +68,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     F21 = forks:get(21),
     {Amount0, NewCNonce, Delay} = 
         if
-            ((NewHeight < F21) and (NewHeight == 69292)) -> {269988500,2,10000000};
-            true ->
-                spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict)
+            ((NewHeight < F21) and (NewHeight ==  69292)) -> {269988500, 2, 10000000};
+            true -> spk:dict_run(fast, SS, ScriptPubkey, NewHeight, 0, Dict)
         end,
-    io:fwrite("channel solo close "),
-    io:fwrite(packer:pack([Amount0, NewCNonce, Delay])),
-%channel solo close [-6,269988500,2,10000000]
-    io:fwrite("\n"),
     F15 = forks:get(15),
     Amount = if
                  NewHeight > F15 -> min(CB1OC, max(-CB2OC, Amount0));
