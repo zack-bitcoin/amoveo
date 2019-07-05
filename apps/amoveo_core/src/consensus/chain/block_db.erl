@@ -5,7 +5,7 @@
          read_by_height/1,
          uncompress/1, compress/1,
          check/0, by_height_from_compressed/2,
-         ram_height/0, genesis/0,
+         ram_height/0, genesis/0, exists/1,
          test/0]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db_dict()).
@@ -114,6 +114,13 @@ handle_call(genesis, _From, X) ->
     {reply, X#d.genesis, X};
 handle_call(ram_height, _From, X) -> 
     {reply, X#d.ram_height, X};
+handle_call({exists, Hash}, _From, X) -> 
+    D = X#d.dict,
+    R = case lookup(Hash, D) of
+            error -> false;
+            _ -> true
+        end,
+    {reply, R, X};
 handle_call({read, Hash}, _From, X) -> 
     D = X#d.dict,
     R = case lookup(Hash, D) of
@@ -390,6 +397,8 @@ ram_height()  ->
 genesis()  ->
     gen_server:call(?MODULE, genesis).
     
+exists(Hash) -> 
+    gen_server:call(?MODULE, {exists, Hash}).
 read(Many, Height) ->
     {ok, Version} = application:get_env(amoveo_core, db_version),
     case Version of

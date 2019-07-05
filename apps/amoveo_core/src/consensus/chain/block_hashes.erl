@@ -32,8 +32,8 @@ handle_call({add, H}, _From, X) ->
     L2 = [H|X#d.list],
     Len = length(L2),
     {ok, ForkTolerance} = application:get_env(amoveo_core, fork_tolerance),
-    FT = ForkTolerance * 8,
-    FTB = ForkTolerance * 10,
+    FT = ForkTolerance + 1,
+    FTB = ForkTolerance * 2,
     X2 = if
 	     Len > FTB ->
 		 {NL, T} = lists:split(FT, L2),
@@ -42,7 +42,7 @@ handle_call({add, H}, _From, X) ->
 	     true ->
 		 X#d{list = L2, set = N}
 	 end,
-    db:save(?LOC, X2),%This line is only necessary for power failures
+    %db:save(?LOC, X2),%This line is only necessary for power failures
     {reply, ok, X2};
 handle_call({check, H}, _From, X) ->
     B = i_check(H, X#d.set), 
@@ -73,10 +73,23 @@ sci2([], L2, S2) ->
     {lists:reverse(L2), S2};
 sci2([H|LI], LO, S) ->
     %check if we are storing block H. if not, then remove it from the list and the set.
-    case block:get_by_hash(H) of
-	empty -> sci2(LI, LO, i_remove(H, S));
-	_ -> sci2(LI, [H|LO], S)
+    {ok, Version} = application:get_env(amoveo_core, db_version),
+    case Version of
+        1 ->
+            case block:get_by_hash(H) of
+                empty -> sci2(LI, LO, i_remove(H, S));
+                _ -> sci2(LI, [H|LO], S)
+            end;
+        _ ->
+            case block_db:exists(H) of
+                true -> sci2(LI, [H|LO], S);
+                false -> sci2(LI, LO, i_remove(H, S))
+            end
     end.
+    %case block:get_by_hash(H) of
+	%empty -> sci2(LI, LO, i_remove(H, S));
+	%_ -> sci2(LI, [H|LO], S)
+    %end.
 	    
     
 i_new() ->
