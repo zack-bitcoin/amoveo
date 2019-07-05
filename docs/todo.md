@@ -1,10 +1,15 @@
+try pushing a tx from the light node in chrome on a mac.
+
+set up a hard update to activate the new opcode for chalang.
+
 having trouble making channel_solo_close from the light node to close our channels.
 
-The light node should store the entire compiled contract. That way, even if the rules for how to build the contract should change, our old signatures are still valid.
+The light node should store the entire compiled contract. That way, even if the rules for how to build the contract should change, our old signatures are still valid. And so we can update how the contract is built without invalidating existing contract signatures.
 
 Make transactions to close the 5 channels in ~/oracles.md, and publish them somewhere publicly so that the other participant can close these channels.
 
-rewrite the chalang smart contracts so that it isn't so complicated to generate the compiled contract in the light node.
+rewrite the scalar market smart contract like market2.fs
+update the light node to use these better contracts.
 
 
 
