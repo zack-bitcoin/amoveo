@@ -17,6 +17,8 @@ handle(Req, _) ->
 	end,
     PrivDir = list_to_binary(PrivDir0),
     true = case F of
+	       <<"/peer_scan.html">> -> true;
+	       <<"/peer_scan.js">> -> true;
 	       <<"/channels_interface.js">> -> true;
 	       <<"/channels_lookup.js">> -> true;
 	       <<"/governance.js">> -> true;
