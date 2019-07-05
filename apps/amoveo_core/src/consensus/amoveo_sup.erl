@@ -14,7 +14,7 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       request_frequency, sync, secrets,
 	       arbitrage, order_book, oracle_questions, 
 	       tree_data, potential_block, my_ip, push_block,
-	       found_block_timer, vanity,
+	       found_block_timer, vanity, peers_heights,
 	       %block_reader, 
                white_list, nc_sigs]).
 child_killer([]) -> [];

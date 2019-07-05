@@ -807,6 +807,9 @@ channels_from2([X|T], Address) ->
     end.
 scan_peers(N) ->
     lists:map(fun(P) -> {P, talker:talk({version, 2, N}, P)} end, peers:all()).
+peers_heights() ->
+    %lists:map(fun(P) -> {P, talker:talk({height}, P)} end, peers:all()).
+    peers_heights:doit().
     
     
 		      
