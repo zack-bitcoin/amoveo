@@ -1,5 +1,5 @@
--module(market).
--export([price_declaration_maker/4, market_smart_contract/10,
+-module(lisp_market).
+-export([price_declaration_maker/4, market_smart_contract/9,
 	 settle/3,no_publish/1,evidence/2,
 	 contradictory_prices/3, market_smart_contract_key/5,
 	 unmatched/1,
@@ -8,34 +8,32 @@
 
 market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID) -> %contracts that can be arbitraged against each other have the same result.
     {market, 1, MarketID, Expires, Pubkey, Period, OID}.
-market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height) ->
+market_smart_contract(MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height) ->
     <<_:256>> = MarketID,
-    Code0 = case Direction of %set to 10000 to bet on true, 0 to bet on false.
-		1 -> <<" int 10000 bet_amount ! macro flip int 0 swap + ; macro check_size flip > not ; ">>; %this is for when the customer bets on true.
-		2 -> <<" int 0 bet_amount ! macro flip int 10000 swap - ; macro check_size flip < not ; ">> % maybe should be 10000 - MaxPrice0
-	    end,
-    {ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
+    %{ok, Code} = file:read_file(BetLocation),%creates macro "bet" which is used in market.fs
     %MaxPrice is in the range 0 to 10000,
     % it is the limit of how much you are willing to pay the server for the derivative. You will pay this much or less.
     % Pubkey is the pubkey of the market manager.
     true = size(Pubkey) == constants:pubkey_size(),
     Code2 = " \
-int " ++ integer_to_list(Height) ++ " Height ! \
-int " ++ integer_to_list(Expires) ++ " Expires ! \
-int " ++ integer_to_list(MaxPrice) ++ " MaxPrice ! \
-binary 32 " ++ binary_to_list(base64:encode(MarketID)) ++ " MarketID ! \
-int " ++ integer_to_list(Period) ++ " Period ! \
-binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode(Pubkey)) ++ " Pubkey ! \
+" ++ integer_to_list(Direction) ++" \
+" ++ integer_to_list(Height) ++ " \
+" ++ integer_to_list(Expires) ++ " \
+" ++ integer_to_list(MaxPrice) ++ " \
+--" ++ binary_to_list(base64:encode(MarketID)) ++ " \
+" ++ integer_to_list(Period) ++ " \
+--" ++ binary_to_list(base64:encode(Pubkey)) ++ " \
 ",
-    PrivDir = code:priv_dir(amoveo_core),
-    {ok, Code3} = file:read_file(PrivDir ++ "/market.fs"),
-    FullCode = <<Code0/binary, (list_to_binary(Code2))/binary, Code/binary, Code3/binary>>,
-    %io:fwrite(FullCode),
-    Compiled = compiler_chalang:doit(FullCode),
+    %PrivDir = code:priv_dir(amoveo_core),
+    PrivDir = "../../../../apps/amoveo_core/priv",
+    {ok, Code3} = file:read_file(PrivDir ++ "/market.scm"),
+    FullCode = <<(list_to_binary(Code2))/binary, Code3/binary>>,
+    io:fwrite(FullCode),
+    Compiled = compiler_lisp:compile(FullCode, PrivDir ++"/"),
     io:fwrite("compiled code is \n"),
-    %io:fwrite(integer_to_list(size(Compiled))),%1775
+    %io:fwrite(integer_to_list(size(Compiled))),%2080
     %io:fwrite("\n"),
-    io:fwrite(base64:encode(Compiled)),
+    disassembler:doit(Compiled),
     io:fwrite("\n"),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
     %ToProve = [{oracles, OID}],
@@ -123,11 +121,10 @@ test2(NewPub) ->
     %Dict5 = (tx_pool:get())#tx_pool.dict,
     %MarketID = <<405:256>>,
     MarketID = OID,
-    PrivDir = code:priv_dir(amoveo_core),
-    Location = constants:oracle_bet(),
+    %PrivDir = code:priv_dir(amoveo_core),
     Period = 3,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
+    Bet = market_smart_contract(MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], 10000, 10000, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
@@ -189,7 +186,7 @@ test2(NewPub) ->
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(amoveo_core),
-    Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0),
+    Bet2 = market_smart_contract(MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0),
     SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], 10000, 10000, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
@@ -219,9 +216,9 @@ test3() ->
     Pubkey = keys:pubkey(),
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Direction = 2,
-    A = market_smart_contract(BetLocation, OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0),
+    A = market_smart_contract(OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0),
     Max = 4294967295,
-    B = market_smart_contract(BetLocation, OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max),
+    B = market_smart_contract(OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max),
     A2 = element(2, A),
     B2 = element(2, B),
     compare_test(A2, B2, 0, <<>>),

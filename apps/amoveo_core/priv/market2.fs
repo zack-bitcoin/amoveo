@@ -9,6 +9,7 @@ direction @ int 2 == tuck drop drop
   then
 bet_amount !
 
+
 %the bet is encoded in the macro `bet`
 %we need a smart contract for the trust-free markets for financial derivatives.
 %It acts as an order book.

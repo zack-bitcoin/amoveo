@@ -1064,7 +1064,7 @@ mine_blocks(Many) ->
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10),
-    timer:sleep(1000),
+    timer:sleep(100),
     mine_blocks(Many-1).
 
 test24(I) ->
