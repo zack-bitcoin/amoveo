@@ -367,7 +367,8 @@ many_headers(Many, X) ->
     %io:fwrite(packer:pack([Many, X])), 
     %io:fwrite("\n"),
     Z = max(0, X + Many - 1),
-    H = headers:top(),
+    %H = headers:top(),
+    H = block:block_to_header(block:top()),
     case (H#header.height) >= (X) of
 	false -> [];
 	true ->
