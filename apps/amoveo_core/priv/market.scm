@@ -24,21 +24,16 @@ Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! Direction ! car Oracl
 
 
 (set! IMaxPrice (- 10000 (@ MaxPrice)));we use this value a lot, the contract is shorter if we just calculate it once instead of over and over.
-
-(set! Direction2 (= (@ Direction) 2))
-
-;(set! bet_amount
-;      (cond (((@ Direction2) 0)
-;             (true 10000))))
+(set! Direction2 (= (@ Direction) 2));this is the flag for whether we are betting on true or false
 
 
 (define helper (pdv);given the full oracle data provided by the blockchain, produce the integer result of that oracle. There are 4 possible outputs: 0,1,2, or 3. 0 means it is still open. 1 means true. 2 means false. 3 means it was a bad question.
   (()
    (car! pdv version PD)
-   (require (= 5 (@ version)))
+   (require (= 5 (@ version)));5 means it is oracle-type data
    (car! (@ PD) MarketID2 PD)
    (set! PD (car (@ PD)))
-   (require (= (@ MarketID) (@ MarketID2)))
+   (require (= (@ MarketID) (@ MarketID2)));this means that the oracle ID of the oracle we have looked up matches the oracle ID that we wanted to bet with.
    (split! (@ PD) 32 _ T)
    (split! (@ T) 1 Result _)
    (byte_to_int (@ Result))))
@@ -56,9 +51,9 @@ Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! Direction ! car Oracl
           0))
 (define extract (signed_price_declaration DeclaredHeight DeclaredPrice PortionMatched)
   (()
-   (split! signed_price_declaration 40 Data Sig)
-   (require (verify_sig (@ Sig) (@ Data) (@ Pubkey)))
-   (split! (@ Data) 4 DeclaredHeight R)
+   (split! signed_price_declaration 40 data sig)
+   (require (verify_sig (@ sig) (@ data) (@ Pubkey)))
+   (split! (@ data) 4 DeclaredHeight R)
    (split! (@ R) 2 DeclaredPrice R)
    (set! DeclaredPrice (++ --AAA= (@ DeclaredPrice)))
    (split! (@ R) 2 PortionMatched MarketID2)
@@ -71,30 +66,33 @@ Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! Direction ! car Oracl
      (+ (@ MaxPrice)
         10000)))
 
-(define evidence ()
+(macro evidence ()
   (()
    signed_price_declaration !
    (extract (@ signed_price_declaration) DeclaredHeight _DeclaredPrice PortionMatched)
    (require (> (@ DeclaredHeight)
               (- height (@ Period))))
-   (set! nonce (+ 1 (/ (@ DeclaredHeight)
-                       (@ Period))))
-   (set! delay (- (@ Expires) height))
-   (set! amount (price_range (@ IMaxPrice)))
-   (return (@ delay) (@ nonce) (@ amount))))
+   (return 
+    (- (@ Expires) height);delay
+    (+ 1 (/ (@ DeclaredHeight);nonce
+            (@ Period)))
+    (price_range (@ IMaxPrice)))));amount
 (define abs (a)
   (cond (((< a 0) (- 0 a))
          (true a))))
-(define contradictory_prices ()
+(macro contradictory_prices ()
   (()
-   signed_price_declaration1 ! signed_price_declaration2 !
+   signed_price_declaration1 !
+   signed_price_declaration2 !
    (extract (@ signed_price_declaration1) h1 p1 pm1)
    (extract (@ signed_price_declaration2) h2 p2 pm2)
    (require (< (abs (- (@ h1) (@ h2)))
-              (/ (@ Period) 2)))
+              (/ (@ Period) 2)));the operator made 2 contradictory price declarations at too close to the same point in time.
    (require (or (not (= (@ p1) (@ p2)))
-               (not (= (@ pm1) (@ pm2)))))
-   (return 0 (* 2 (mil)) 0)))
+               (not (= (@ pm1) (@ pm2)))));either the price or portion matched of the price declarations needs to be different for them to be considered contradictory.
+   (return 0;delay
+           (* 2 (mil));nonce
+           0)));amount
 (define minus_zero (a b)
   (cond (((> a b) (- a b))
          (true 0))))
@@ -115,7 +113,7 @@ Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! Direction ! car Oracl
             (cond (((@ oracle_result) 3);if oracle_result is not 0, then it is considered "true".
                    (true 1)))))
    (set! delay
-         (cond (((@ oracle_result) 0)
+         (cond (((@ oracle_result) 0);if oracle_result is non-zero
                 (true (+ (@ Expires)
                          (minus_zero (@ Expires)
                                      height))))))
@@ -133,8 +131,8 @@ Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! Direction ! car Oracl
                        (@ price)))))))
    (@ delay) (@ nonce) (price_range (@ amount2))))
 
-(define unmatched ()
-  (cond (((= 0 (helper (@ OracleData)))
+(macro unmatched ()
+  '(cond (((= 0 (helper (@ OracleData)))
           (return (+ 2000 (+ (@ Expires)
                              (@ Period)))
                   0
@@ -145,8 +143,8 @@ Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! Direction ! car Oracl
                        (price_range
                         (@ IMaxPrice)))))))
 
-(define main (Mode)
-  (cond (((= Mode 0) (no_publish));if the market fails to publish the current price, this is how you can punish them.
+(macro main (Mode)
+  '(cond (((= Mode 0) (no_publish));if the market fails to publish the current price, this is how you can punish them.
          ((= Mode 1) (match_order));your bet was matched in the market, and now the oracle has resolved. This is how you enforce that you receive the correct amount from the contract.
          ((= Mode 2) (contradictory_prices));if the market publishes different prices at too near to the same time.
          ((= Mode 3) (evidence));if someone falsely claims that a market has failed to publish prices, but it has been publishing prices, this is used for the market operator to prove that they have been publishing prices.
