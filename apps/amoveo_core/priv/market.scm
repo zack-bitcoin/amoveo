@@ -3,15 +3,10 @@
 
 ;load the variables that are used to configure the market contract for one particular channel.
 
-Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! direction ! car oracle_data ! contract_mode !
+Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! Direction ! car OracleData ! ContractMode ! ;these input variables are used like constants. We don't update the values in any of these variables.
 
-(cond (((= (@ direction) 2);bet_amount is different depending on the direction.
-        (! 0 bet_amount))
-       (true
-        (! 10000 bet_amount))))
-;swap contract_mode ! oracle
 
-;defining helper functions
+ 
 (macro car! (L H T) ;grab the head of the list on the top of the stack, store it in variable named H. Store the rest of the list in T.
        (() L car@ T ! H !))
 (macro split! (Binary Bytes H T);grab the first few bytes of a binary L, store in H. put the rest in T.
@@ -19,150 +14,148 @@ Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! direction ! car oracl
         (split Binary Bytes)
         H ! T !))
 ;(define die () (return 9999999 0 0))
-(macro die () (return 9999999 0 0));the contract closes in a way that takes forever to actually get your money out of the channel, and it has nonce 0, so any other contract would close at a higher nonce.
-(define or_die (T);if it is false, then die.
-  (cond ((T ())
+(define die () (return 9999999 0 0));the contract closes in a way that takes forever to actually get your money out of the channel, and it has nonce 0, so any other contract would close at a higher nonce.
+(define require (b);if T is false, then the contract fails. Otherwise, continue.
+  (cond ((b ())
          (true (die)))))
-(macro set! (A B) (! B A)); example: setting variable X to 25. (set! X 25)
-(define byte_to_int (x) (() --AAAA x ++))
-;(macro byte_to_int (x) (() --AAAA x ++))
+(macro set! (a b) (! b a)); example: setting variable X to 25. (set! X 25)
+;(define byte_to_int (x) (() --AAAA x ++))
+(macro byte_to_int (x) (() --AAAA x ++))
 
+
+(set! IMaxPrice (- 10000 (@ MaxPrice)));we use this value a lot, the contract is shorter if we just calculate it once instead of over and over.
+
+(set! Direction2 (= (@ Direction) 2))
+
+;(set! bet_amount
+;      (cond (((@ Direction2) 0)
+;             (true 10000))))
 
 
 (define helper (pdv);given the full oracle data provided by the blockchain, produce the integer result of that oracle. There are 4 possible outputs: 0,1,2, or 3. 0 means it is still open. 1 means true. 2 means false. 3 means it was a bad question.
   (()
    (car! pdv version PD)
-   (or_die (= 5 (@ version)))
+   (require (= 5 (@ version)))
    (car! (@ PD) MarketID2 PD)
    (set! PD (car (@ PD)))
-   (or_die (= (@ MarketID) (@ MarketID2)))
+   (require (= (@ MarketID) (@ MarketID2)))
    (split! (@ PD) 32 _ T)
    (split! (@ T) 1 Result _)
    (byte_to_int (@ Result))))
 
-(deflet bet (proofStructure MaxPrice bet_amount A B C)
-  ((bet2 (helper proofStructure)))
+(macro bet (oracle_result)
+     ;depending on the result of the oracle, return a different value. This is used to compute the quantity of veo that will get transfered.
+  '(cond (((= (@ Direction) oracle_result) 10000);true or fales, and you won
+         ((and (> oracle_result 0)
+                (< oracle_result 3));true or false and you lost.
+           0)
+         (true (@ IMaxPrice)))));bad_question or unresolved.
+(macro no_publish ()
+  (return (@ Period)
+          (/ height (@ Period))
+          0))
+(define extract (signed_price_declaration DeclaredHeight DeclaredPrice PortionMatched)
   (()
-   (cond (((= bet2 0) (() (set! A 1) (set! B 1)))
-          (true (() (set! A 0) (set! B 3)))))
-   (set! C
-         (cond (((= bet2 1) bet_amount)
-                ((= bet2 2) (- 10000 bet_amount))
-                ((= bet2 3) (- 10000 MaxPrice))
-                ((= bet2 0) (- 10000 MaxPrice))
-                (true (die)))))))
-(define no_publish (Period)
-  (return Period
-          (/ height Period)
-          (price_range 0)))
-;(define extract (spd DeclaredHeight DeclaredPrice PortionMatched)
-(define extract (spd DeclaredHeight DP PM)
-  (()
-   (split! spd 40 Data Sig)
-   (or_die (verify_sig (@ Sig) (@ Data) (@ Pubkey)))
+   (split! signed_price_declaration 40 Data Sig)
+   (require (verify_sig (@ Sig) (@ Data) (@ Pubkey)))
    (split! (@ Data) 4 DeclaredHeight R)
-   (split! (@ R) 2 DP R)
-   (set! DP (++ --AAA= (@ DP)))
-   (split! (@ R) 2 PM MarketID2)
-   (set! PM (++ --AAA= (@ PM)))
-   (or_die (= (@ MarketID2) (@ MarketID)))
-   (or_die (> (@ DeclaredHeight) (@ Height)))))
+   (split! (@ R) 2 DeclaredPrice R)
+   (set! DeclaredPrice (++ --AAA= (@ DeclaredPrice)))
+   (split! (@ R) 2 PortionMatched MarketID2)
+   (set! PortionMatched (++ --AAA= (@ PortionMatched)))
+   (require (= (@ MarketID2) (@ MarketID)))
+   (require (> (@ DeclaredHeight) (@ Height)))))
 
 (define price_range (F)
-  (/ (* 10000 F) (+ (@ MaxPrice) 10000)))
+  (/ (* 10000 F)
+     (+ (@ MaxPrice)
+        10000)))
 
 (define evidence ()
   (()
-   spd !
-   (extract (@ spd) DeclaredHeight _DeclaredPrice PortionMatched)
-   (or_die (> (@ DeclaredHeight)
+   signed_price_declaration !
+   (extract (@ signed_price_declaration) DeclaredHeight _DeclaredPrice PortionMatched)
+   (require (> (@ DeclaredHeight)
               (- height (@ Period))))
-   (set! nonce (+ 1 (/ (@ DeclaredHeight) (@ Period))))
+   (set! nonce (+ 1 (/ (@ DeclaredHeight)
+                       (@ Period))))
    (set! delay (- (@ Expires) height))
-   (set! amount (price_range (- 10000 (@ MaxPrice))))
+   (set! amount (price_range (@ IMaxPrice)))
    (return (@ delay) (@ nonce) (@ amount))))
 (define abs (a)
   (cond (((< a 0) (- 0 a))
          (true a))))
 (define contradictory_prices ()
   (()
-   spd1 ! spd2 !
-   (extract (@ spd1) h1 p1 pm1)
-   (extract (@ spd2) h2 p2 pm2)
-   (or_die (< (abs (- (@ h1) (@ h2)))
+   signed_price_declaration1 ! signed_price_declaration2 !
+   (extract (@ signed_price_declaration1) h1 p1 pm1)
+   (extract (@ signed_price_declaration2) h2 p2 pm2)
+   (require (< (abs (- (@ h1) (@ h2)))
               (/ (@ Period) 2)))
-   (or_die (or (not (= (@ p1) (@ p2)))
+   (require (or (not (= (@ p1) (@ p2)))
                (not (= (@ pm1) (@ pm2)))))
    (return 0 (* 2 (mil)) 0)))
-(define check_size (price maxprice)
-  (not (cond (((= (@ direction) 2)
-               (< price (- 10000 maxprice)))
-              (true (> price maxprice))))))
-(define minus_zero (A B)
-  (cond (((> A B) (- A B))
+(define minus_zero (a b)
+  (cond (((> a b) (- a b))
          (true 0))))
 
 (define match_order ()
   (()
-   spd !
-   (extract (@ spd) h p pm)
-   (or_die (check_size (@ p) (@ MaxPrice)))
-   (bet (@ oracle_data) (@ MaxPrice) (@ bet_amount) delay nonce amount)
-   (set! delay2
-         (* (@ delay)
-            (+ (@ Expires)
-               (minus_zero (@ Expires)
-                           height))))
-   (set! new_nonce
-         (+ (@ nonce)
-            (minus_zero (@ Expires) (@ h))))
-   (set! p2 (cond (((= (@ direction) 2)
-                    (- 10000 (@ p)))
-                   (true (@ p)))))
+   signed_price_declaration !
+   (extract (@ signed_price_declaration) declared_height price pm)
+   (cond (((@ Direction2) (set! price
+                                (- 10000 (@ price))))))
+   (require (not (> (@ price)
+                    (@ MaxPrice))));enforce that we wont pay a higher price than we had agreed to pay.
+   (set! oracle_result
+         (helper (@ OracleData)))
+   (set! nonce
+         (+ (minus_zero (@ Expires)
+                        (@ declared_height))
+            (cond (((@ oracle_result) 3);if oracle_result is not 0, then it is considered "true".
+                   (true 1)))))
+   (set! delay
+         (cond (((@ oracle_result) 0)
+                (true (+ (@ Expires)
+                         (minus_zero (@ Expires)
+                                     height))))))
+                 
+   (set! amount (bet (@ oracle_result)))
    (set! amount2
-         (cond (((= (@ MaxPrice) (@ p2));our bet was only partly matched.
-                 (+ (/ (* (@ PM) (@ amount))
-                       10000)
-                    (/ (* (- 10000 (@ MaxPrice))
-                          (- 10000 (@ PM)))
-                       10000)))
+         (cond (((= (@ MaxPrice) (@ price));our bet was only partly matched.
+                 (/ (+ (* (@ pm) (@ amount))
+                       (* (@ IMaxPrice)
+                          (- 10000 (@ pm))))
+                    10000))
                 (true 
                  (+ (@ amount)
                     (- (@ MaxPrice)
-                       (@ p2)))))))
-   (@ delay2) (@ new_nonce) (price_range (@ amount2))))
+                       (@ price)))))))
+   (@ delay) (@ nonce) (price_range (@ amount2))))
 
 (define unmatched ()
-  (cond (((= 0 (helper (@ oracle_data)))
+  (cond (((= 0 (helper (@ OracleData)))
           (return (+ 2000 (+ (@ Expires)
                              (@ Period)))
                   0
                   (price_range
-                   (- 10000 (@ MaxPrice)))))
+                   (@ IMaxPrice))))
          (true (return (@ Period)
                        1
                        (price_range
-                        (- 10000 (@ MaxPrice))))))))
+                        (@ IMaxPrice)))))))
 
 (define main (Mode)
-  (cond (((= Mode 0) (no_publish (@ Period)))
-         ((= Mode 1) (match_order))
-         ((= Mode 2) (contradictory_prices))
-         ((= Mode 3) (evidence ))
-         ((= Mode 4) (unmatched))
-         (true Mode))))
+  (cond (((= Mode 0) (no_publish));if the market fails to publish the current price, this is how you can punish them.
+         ((= Mode 1) (match_order));your bet was matched in the market, and now the oracle has resolved. This is how you enforce that you receive the correct amount from the contract.
+         ((= Mode 2) (contradictory_prices));if the market publishes different prices at too near to the same time.
+         ((= Mode 3) (evidence));if someone falsely claims that a market has failed to publish prices, but it has been publishing prices, this is used for the market operator to prove that they have been publishing prices.
+         ((= Mode 4) (unmatched));your bet never got matched in the market. You want to get your  money out.
+         (true (die)))))
 
-;car ; drop the `0` which is a flag for which version of the contract to run.
+(main (@ ContractMode))
 
-                                        ;oracle_data !
-(main (@ contract_mode))
 
-;(@ Period)
-;(return (@ Period) (/ (@ Period) height) 0)
-;height
-;(bet (@ oracle_data) (@ bet_amount) (@ MaxPrice) R1 R2 R3)
-;(@ R1) (@ R2) (@ R3)
-
-print
+;print
 
 

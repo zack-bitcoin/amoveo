@@ -31,9 +31,9 @@ market_smart_contract(MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amou
     io:fwrite(FullCode),
     Compiled = compiler_lisp:compile(FullCode, PrivDir ++"/"),
     io:fwrite("compiled code is \n"),
-    %io:fwrite(integer_to_list(size(Compiled))),%2080
-    %io:fwrite("\n"),
     disassembler:doit(Compiled),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(size(Compiled))),%2080
     io:fwrite("\n"),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
     %ToProve = [{oracles, OID}],
