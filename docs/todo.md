@@ -1,3 +1,23 @@
+add a line to the config file so that an external executable file is run every time potential_block is updated. That way mining pools don't have to spam their node so often checking if the work has changed.
+
+
+idea to improve the oracle mechanism
+* block any bets that would leave the oracle in a state where less than 1 veo of volume of bets is sitting in the order book.
+the advantage is that we could reduce the initial liquidity to 0, so it would be cheaper to make oracles.
+
+
+
+add to chalang:
+* load the next 1 byte as an integer
+* load the next 2 bytes as an integer
+* load the next 3 bytes as an integer
+* grab arbitrary byte from a (binary or (an integer, which is interpreted as a 4-byte binary.))
+* 50 or 100 opcodes that each load a single integer from 0-99 onto the stack. So we can use 1 opcode to load a small integer.
+
+
+write lisp in chalang lisp.
+
+
 try pushing a tx from the light node in chrome on a mac.
 
 set up a hard update to activate the new opcode for chalang.

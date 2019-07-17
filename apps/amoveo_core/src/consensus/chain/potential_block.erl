@@ -31,6 +31,7 @@ handle_call({save, Txs, _Height}, _, X) ->
     Top = headers:top_with_block(),
     PB = block:get_by_hash(block:hash(Top)),
     Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
+    pool_command(),
     %clean_memory(X#pb.block),
     {reply, ok, #pb{block = Block, time = now()}};
 handle_call(save, _, X) -> 
@@ -114,7 +115,9 @@ new_internal2(TP) ->
 	    Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
     %Top = headers:top_with_block(),
     %PB = block:get_by_hash(block:hash(Top)),
-	    block:make(Top, Txs, PB#block.trees, keys:pubkey())
+	    Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
+            pool_command(),
+            Block
     end.
 tx_changed(New, Old) ->    
     N2 = tx_det_order(New),
@@ -122,3 +125,8 @@ tx_changed(New, Old) ->
     not(N2 == O2).
 tx_det_order(L) -> lists:sort(L).
     
+pool_command() ->
+    spawn(fun() ->
+                  {ok, S} = application:get_env(amoveo_core, pool_refresh_script),
+                  os:cmd(S)
+          end).

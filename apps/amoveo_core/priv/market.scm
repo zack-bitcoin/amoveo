@@ -40,7 +40,7 @@ Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! Direction ! car Oracl
 
 (macro bet (oracle_result)
      ;depending on the result of the oracle, return a different value. This is used to compute the quantity of veo that will get transfered.
-  '(cond (((= (@ Direction) oracle_result) 10000);true or fales, and you won
+  '(cond (((= (@ Direction) oracle_result) 10000);true or false, and you won
          ((and (> oracle_result 0)
                 (< oracle_result 3));true or false and you lost.
            0)
