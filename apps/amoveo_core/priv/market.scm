@@ -59,7 +59,7 @@ Pubkey ! Period ! MarketID ! MaxPrice ! Expires ! Height ! Direction ! car Oracl
    (split! (@ R) 2 PortionMatched MarketID2)
    (set! PortionMatched (++ --AAA= (@ PortionMatched)))
    (require (= (@ MarketID2) (@ MarketID)))
-   (require (> (@ DeclaredHeight) (@ Height)))))
+   (require (not (< (@ DeclaredHeight) (@ Height))))))
 
 (define price_range (F)
   (/ (* 10000 F)

@@ -30,7 +30,7 @@ init(ok) ->
      
     %io:fwrite("start block_db\n"),
     process_flag(trap_exit, true),
-        {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
+        {ok, F} = file:open(?blocks_loc, [write, read, raw, binary, sync]),
         X = db:read(?LOC),
         Ka = if
                       X == "" ->
