@@ -30,7 +30,7 @@ init(ok) ->
      
     %io:fwrite("start block_db\n"),
     process_flag(trap_exit, true),
-        {ok, F} = file:open(?blocks_loc, [write, read, raw, binary, sync]),
+        {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
         X = db:read(?LOC),
         Ka = if
                       X == "" ->
@@ -199,7 +199,17 @@ find_page_loc(Height, Pages, N) ->
     
 
 read_page(Loc, Size, File) ->
-    file:pread(File, Loc, Size).
+    io:fwrite("read page "),
+    io:fwrite(integer_to_list(Loc)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(Size)),
+    io:fwrite("\n"),
+    case file:pread(File, Loc, Size) of
+        eof ->
+            timer:sleep(50),
+            read_page(Loc, Size, File);
+        X -> X
+    end.
 write_page(Dict, X) ->
     B = X#d.hd_bytes,
     Data = compress(Dict),

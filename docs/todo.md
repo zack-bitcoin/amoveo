@@ -1,4 +1,4 @@
-add a line to the config file so that an external executable file is run every time potential_block is updated. That way mining pools don't have to spam their node so often checking if the work has changed.
+sometimes block_db's pread returns eof instead of the data we need. We should have it print out some error report when this happens.
 
 
 idea to improve the oracle mechanism
