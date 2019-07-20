@@ -1,4 +1,9 @@
+the new tool to execute a command when we find a block is not working, because currently the block isn't updated until you try pulling the data from it.
+
+
+
 sometimes block_db's pread returns eof instead of the data we need. We should have it print out some error report when this happens.
+This fix works well, we should add it to master branch too.
 
 
 idea to improve the oracle mechanism
