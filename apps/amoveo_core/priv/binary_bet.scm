@@ -6,6 +6,10 @@
 ;nonce is how much priority this contract is given, if different contracts are provided as evidence. For this contract we never have to use counter-evidence, so the nonce doesn't matter.
 ;A/10000 is the portion of the money in the channel that you get
 
+(define (require Bool)
+  (cond (Bool ());if bool is true, do nothing
+        (true fail)));otherwise, the contract should fail.
+
 (define (unpack_oracle_data pdv) ;given the full oracle data provided by the blockchain, produce the integer result of that oracle. There are 4 possible outputs: 0,1,2, or 3. 0 means it is still open. 1 means true. 2 means false. 3 means it was a bad question.
   (let (((version pd) (car@ pdv))
         ((MarketID2 pd) (car@ pd))
