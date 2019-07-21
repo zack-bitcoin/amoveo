@@ -1,4 +1,11 @@
 
+(define (finish A)
+  (return 0 10 A));delay nonce amount
+;the blockchain expects 3 integers as the result of the contract.
+;delay is how much time for the other party to give counter-evidence. for this contract we never have to use counter-evidence, so we can set it to 0 and instantly allow us to get our money out once the result of the oracle is known.
+;nonce is how much priority this contract is given, if different contracts are provided as evidence. For this contract we never have to use counter-evidence, so the nonce doesn't matter.
+;A/10000 is the portion of the money in the channel that you get
+
 (define (unpack_oracle_data pdv) ;given the full oracle data provided by the blockchain, produce the integer result of that oracle. There are 4 possible outputs: 0,1,2, or 3. 0 means it is still open. 1 means true. 2 means false. 3 means it was a bad question.
   (let (((version pd) (car@ pdv))
         ((MarketID2 pd) (car@ pd))
@@ -32,5 +39,5 @@
               (true ;you lose
                0))));you get none of the money
       )
-  (return 0 10 amount))
-         
+  (finish amount))
+
