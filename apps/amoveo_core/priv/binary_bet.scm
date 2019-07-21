@@ -17,8 +17,8 @@
        Guess !
        Price !)
 
-(let ((OracleData ())
-      (oracle_result (oracle_reader (car OracleData))))
+(let ((OracleData ());load oracle_data as a local variable. It is provided by the blockchain when the contract is executed.
+      (oracle_result (oracle_reader (car OracleData))));calculate the integer result of the oracle. 0,1,2, or 3. 0 -> unresolved. 1->true, 2->false, 3->bad_question.
   (cond ((= oracle_result 0);unresolved oracle
          ((require (> height (@ Expires)));expiration height has been exceeded
           (return 0 10 (@ Price)));give us our money back
