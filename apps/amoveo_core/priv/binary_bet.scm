@@ -1,5 +1,5 @@
 
-(define (oracle_reader pdv) ;given the full oracle data provided by the blockchain, produce the integer result of that oracle. There are 4 possible outputs: 0,1,2, or 3. 0 means it is still open. 1 means true. 2 means false. 3 means it was a bad question.
+(define (unpack_oracle_data pdv) ;given the full oracle data provided by the blockchain, produce the integer result of that oracle. There are 4 possible outputs: 0,1,2, or 3. 0 means it is still open. 1 means true. 2 means false. 3 means it was a bad question.
   (let (((version pd) (car@ pdv))
         ((MarketID2 pd) (car@ pd))
         (pd (car pd))
@@ -17,15 +17,20 @@
        Guess !
        Price !)
 
-(let ((OracleData ());load oracle_data as a local variable. It is provided by the blockchain when the contract is executed.
-      (oracle_result (oracle_reader (car OracleData))));calculate the integer result of the oracle. 0,1,2, or 3. 0 -> unresolved. 1->true, 2->false, 3->bad_question.
-  (cond ((= oracle_result 0);unresolved oracle
-         ((require (> height (@ Expires)));expiration height has been exceeded
-          (return 0 10 (@ Price)));give us our money back
-         ((= oracle_result 3);bad question
-          (return 0 10 (@ Price)));give us our money back
-         ((= oracle_result (@ Guess));you win
-          (return 0 10 10000));all money goes to you
-         (true ;you lose
-          (return 0 10 0)))));all money goes to them
+(let ((BlockchainData ());load blockchain data as a local variable. It is provided by the blockchain when the contract is executed.
+      (OracleData (car BlockchainData));we expect the blockchain data to be a list of only 1 thing. the oracle we are betting on.
+      (oracle_result ;calculate the integer result of the oracle, 0,1,2, or 3.
+       (unpack_oracle_data OracleData)) ;0 -> unresolved. 1->true, 2->false, 3->bad_question.
+      (amount ;calculate how much money you get
+       (cond ((= oracle_result 0);unresolved oracle
+              ((require (> height (@ Expires)));expiration height has been exceeded
+               (@ Price));undo the bet. we both get our money back.
+              ((= oracle_result 3);oracle resolved to bad question
+               (@ Price));undo the bet. we both get our money back.
+              ((= oracle_result (@ Guess));you won
+               10000);all money goes to you
+              (true ;you lose
+               0))));you get none of the money
+      )
+  (return 0 10 amount))
          
