@@ -21,7 +21,7 @@ UMA's definition of the oracle problem:
 "Oracles can be conceptually decomposed into two functions: a mechanism for reporting off-chain data on to the blockchain, and a mechanism for verifying the accuracy of the reported information. In most smart contract designs, if the contract participants agree on the data provided by the reporting mechanism, there is no need for verification. The verification mechanism is only required in the event of a dispute. This verification system is the focus of this paper"
 
 
-So from the start they have set themselves up with limitations so that only 3.1 level oracle systems will be possible for them.
+So from the start they have set themselves up with limitations so that only 3.1 level oracle systems will be possible for them. You can read about security levels here: https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
 By refusing to use escalation mechanisms to smoothly transition from the reporting step to the verifying step, it is impossible for them to come up with anything better than 3.1, like Augur or Bitcoin Hivemind are.
 
 
