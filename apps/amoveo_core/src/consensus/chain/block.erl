@@ -1042,7 +1042,7 @@ test(1) ->
     {ok, _} = headers:read(H1),
     block_organizer:add([WBlock10]),
     timer:sleep(400),
-    WBlock11 = get_by_hash(H1),%block 5 somehow???
+    WBlock11 = get_by_hash(H1),
     WBlock12 = get_by_height_in_chain(1, H1),
     io:fwrite(packer:pack(WBlock12)),
     io:fwrite("\n"),

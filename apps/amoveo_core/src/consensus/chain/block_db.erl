@@ -233,6 +233,7 @@ old_blocks2(Blocks, Size, Head, D) ->
                 is_integer(Block) -> {Blocks, Size};
                 true ->
                     Block2 = Block#block{prev_hashes = 0},
+                    %Block2 = Block,
                     old_blocks2(dict:store(Head, Block2, Blocks),
                                 Size + size(term_to_binary(Block2)),
                                 block:prev_hash(0, Block),
