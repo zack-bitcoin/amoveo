@@ -116,20 +116,26 @@ So now the attacker has locked up 10% the value of all the tokens in a smart con
 Each oracle reporter holds 1% of the tokens, and they have to make this decision: to participate in the attack, or not.
 Lets calculate their expected profit to see which decision is more profitable:
 
+```
 M = starting market cap of tokens
 r = how much a reporter has = M/100
 b = a single bribe = r/10
 p = probability that the attack succeeds
+```
 
 assuming that if you participate in the attack, it makes the attack 1% more likely to succeed.
 
+```
 participate in attack -> b + (1-(p+(1/100)))*r
 does not participate in attack -> (1-p)*r
+```
 
 it is profitable to pariticipate in the attack if:
+```
 (b/r) + (1-(p+(1/100))) > 1-p
 b/r > 1/100
 b > r/100
+```
 
 So the reporter would profitably participate in the attack as long as the bribe is bigger than 1% of the value of their tokens.
 If the attacker wants to bribe 51 of the 100 voters, he only needs to pay 0.51% of the total value of the tokens.
