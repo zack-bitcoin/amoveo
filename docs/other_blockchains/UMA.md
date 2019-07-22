@@ -16,6 +16,7 @@ Votecoin type oracles like UMA will always be orders of magnitude more expensive
 
 
 UMA's definition of the oracle problem:
+================
 
 "Oracles can be conceptually decomposed into two functions: a mechanism for reporting off-chain data on to the blockchain, and a mechanism for verifying the accuracy of the reported information. In most smart contract designs, if the contract participants agree on the data provided by the reporting mechanism, there is no need for verification. The verification mechanism is only required in the event of a dispute. This verification system is the focus of this paper"
 
@@ -25,6 +26,8 @@ By refusing to use escalation mechanisms to smoothly transition from the reporti
 
 
 UMA makes a claim of novel contribution to research:
+==================
+
 "Despite a large body of existing research into oracle system design, current approaches are missing one key feature: an economic guarantee around the cost of corrupting an oracle system."
 
 Look at page 27 of the truthcoin whitepaper: http://bitcoinhivemind.com/papers/truthcoin-whitepaper.pdf
@@ -36,6 +39,8 @@ UMA cite's Truthcoin, Augur, and Amoveo as having "heavily influenced UMA’s de
 
 
 
+False assumption about mechanism design
+=================
 
 One of the biggest false assumptions that UMA is building on is captured in this quote:
 
@@ -48,6 +53,8 @@ The trick is to set up the report as a bet, so that false reports act as a prize
 
 
 UMA's offensive description of Amoveo:
+================
+
 "Prediction market systems like Truthcoin, Augur and Amoveo have made important contributions to verification mechanism design; these systems all use Schelling Point voting schemes to incentivize truthful voting and have heavily influenced UMA’s design."
 
 Amoveo has no voting mechanism anywhere. We use futarchy and Nakamoto consensus.
@@ -57,6 +64,9 @@ https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/voting_in_blockch
 
 You can read about Amoveo's oracle design here: https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/oracle.md
 
+
+Confusion about layering oracles
+================
 
 UMA is confused about basic concepts from oracle design:
 "the UMA verification mechanism could be layered on top of another oracle, adding economic guarantees to the accuracy of that oracle’s reported data and allowing UMA to function as a verification layer of “last resort.”"
