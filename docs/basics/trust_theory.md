@@ -120,6 +120,7 @@ The fee needs to be high enough so that the long term expected profit of being a
 Under the assumptions that
 1) parasite contracts wont happen
 2) P+epsilon attacks wont happen
+
 then Augur/Bitcoin hivemind are 3.2
 There is a team of people holding votecoins who can potentially make the oracle lie on outcomes to steal money, but we know which accounts are holding those votecoins, so we can potentially punish them or stop trusting them.
 The 0.2 is because anyone can anonymously just buy up half the votecoins to make it lie, but that is supposed to be more expensive than what they can steal.
