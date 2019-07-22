@@ -1,6 +1,8 @@
 Review of UMA DVM oracle whitepaper july 2019
 ============
 
+Link to the paper being reviewed: https://drive.google.com/file/d/1OfdCsaIf5tCDEMS0nnPjF7-QidY1h0hJ/view
+
 UMA is a votecoin based oracle, very similar to Augur or Bitcoin Hivemind.
 
 Just like Augur and Bitcoin Hivemind, they set the fee of using the oracle to try and maintain the market cap of votecoins being greater than the total value of bets being enforced by the oracle.
