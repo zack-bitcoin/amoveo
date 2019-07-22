@@ -85,3 +85,70 @@ The oracle participants can lie to cheat in a market, but they lose more money t
 
 
 
+Examples
+======
+
+1.1
+=====
+
+public key cryptography. hash algorithms. merkel proofs.
+
+2.1
+=====
+
+The amoveo markets are 2.1 level secure. It is a centralized market, so if the market maker cheats by publishing multiple different prices during the same batch, then we know he is the only one who could have done it. And it is not profitable for him, because in that case he would lose all the money in all the smart contracts.
+
+2.2
+=====
+
+Nakamoto consensus is 2.2.
+An attacker could build tons of ASICS and take over the network, but it would be more expensive than the value they could destroy.
+The attacker building ASICS could be anonymous, so it is 2.2, not 2.1
+
+3.1
+=====
+
+Bitrated is 3.1, as long as the fee is high enough.
+The escrow agent could accept a bribe and help to steal the money, but they are the only one who can do this. So it is not anonymous.
+2 of 3 wallets used for escrow are 3.1 level trust, as long as the escrow agent is being paid a high enough fee.
+
+The fee needs to be high enough so that the long term expected profit of being an escrow agent exceeds the short term potential profit of stealing some money.
+
+3.2
+=====
+
+Under the assumptions that
+1) parasite contracts wont happen
+2) P+epsilon attacks wont happen
+then Augur/Bitcoin hivemind are 3.2
+There is a team of people holding votecoins who can potentially make the oracle lie on outcomes to steal money, but we know which accounts are holding those votecoins, so we can potentially punish them or stop trusting them.
+The 0.2 is because anyone can anonymously just buy up half the votecoins to make it lie, but that is supposed to be more expensive than what they can steal.
+
+3.3
+=====
+
+Email. Anyone can send you messages anonymously, and it costs more to deal with spam than it does to send it.
+
+
+4.1
+======
+
+Bitrated where the fee for the escrow agent is too low. If the expected profit of robbing this one trade is bigger than the expected profit from maintaining the escrow account's reputation, then it only has level 4 security. But, since only that one agent could have done the theft, it is not anonymous.
+
+4.2
+======
+
+If you consider bitrated the service in combination with the bitcoin blockchain it is built on top of, the bitcoin blockchain can be attacked anonymously at level 2, and if the fee is low, then the bitrated service can be attacked with 4.1, so in combination, your security is 4.2
+
+4.3
+=======
+
+If you put your money onto trusted centralized server to gamble in cryptographically enforced games of chance. Then that means the server can steal your money, so it is level 4 security with the server, but if they just directly robbed you, then you would know it happened and that the server did it.
+And in addition, lets imagine there is some bug that lets the other users spend $1 to cause you to lose $2 to the server. So any anonymous user can attack you at level 3.
+This situation would be 4.3 level trust.
+
+4.4
+======
+
+If you put your money into a trusted centralized server to gamble in the price of derivatives, and the order of trades is not strictly enforced, so that other users or the server are able to front-run your trades, then this is 4.4 level secure.
+You don't know who is robbing you, or if it is even happening. Maybe you are just an unlucky trader.
