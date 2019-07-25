@@ -122,7 +122,12 @@ absorb_with_block([F|T]) ->
     ok = gen_server:call(?MODULE, {add_with_block, Hash, F}),
     absorb_with_block(T).
 absorb(X) -> 
-    absorb(X, block:hash(block:get_by_height(0))).
+    H = block:height(),
+    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+    H2 = max(0, H - FT + 1),
+    B = block:get_by_height(H2),
+    absorb(X, block:hash(B)).
+    %absorb(X, block:hash(block:get_by_height(0))).
 absorb([], CommonHash) -> 
     CommonHash;
 absorb([First|T], R) when is_binary(First) ->
