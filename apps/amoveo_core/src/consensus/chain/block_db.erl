@@ -190,7 +190,13 @@ find_page_loc(Height, Pages, N) ->
     
 
 read_page(Loc, Size, File) ->
-    file:pread(File, Loc, Size).
+    case file:pread(File, Loc, Size) of
+        eof ->
+            timer:sleep(50),
+            read_page(Loc, Size, File);
+        X -> X
+    end.
+%    file:pread(File, Loc, Size).
 write_page(Dict, X) ->
     B = X#d.hd_bytes,
     Data = compress(Dict),
@@ -251,13 +257,13 @@ hr2([H|T], Blocks, S, E) ->
     hr2(T, Blocks, min(S, Height), max(E, Height)).
     
 check_compress(X) ->
-    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+    {ok, FT0} = application:get_env(amoveo_core, fork_tolerance),
+    FT = FT0 * 2,
     {ok, RL} = application:get_env(amoveo_core, block_cache),
-    %FT = 2,
     RB = X#d.ram_bytes,
     if
         ((RB > RL) and 
-         (X#d.many_blocks > (FT * 2)))->
+         (X#d.many_blocks > (FT0 * 3)))->
             TH = block:hash(headers:top_with_block()),
             {Blocks, _} = old_blocks(TH, FT, X#d.dict),%gather up a dict of all the blocks we are moving to the hd.
             {Loc, Size} = write_page(Blocks, X),
