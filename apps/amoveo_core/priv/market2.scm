@@ -116,10 +116,19 @@
       )
   (
    (set! i_max_price (- 10000 (@ c_max_price)))
-   (cond
-    ((= mode 1) (match_order OracleData Direction))
-    ((= mode 4) (unmatched OracleData))
-    ((= mode 0) (no_publish))
-    ((= mode 2) (contradictory_prices))
-    ((= mode 3) (evidence))
-    (true (die)))))
+   (case mode
+    (1 (match_order OracleData Direction))
+    (4 (unmatched OracleData))
+    (0 (no_publish))
+    (2 (contradictory_prices))
+    (3 (evidence))
+    (else (die)))))
+
+
+;   (cond
+;    ((= mode 1) (match_order OracleData Direction))
+;    ((= mode 4) (unmatched OracleData))
+;    ((= mode 0) (no_publish))
+;    ((= mode 2) (contradictory_prices))
+;    ((= mode 3) (evidence))
+;    (true (die)))))
