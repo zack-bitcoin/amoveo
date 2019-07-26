@@ -1,3 +1,13 @@
+;defining global variables
+(var c_pubkey
+     c_period
+     c_market_id
+     c_max_price
+     c_expires
+     c_height)
+(var i_max_price)
+
+
 (define (die)
   (return 9999999 0 0))
 (define (require b)
@@ -5,23 +15,23 @@
         (true (die))))
 
 (define (helper pdv) ;given the full oracle data provided by the blockchain, produce the integer result of that oracle. There are 4 possible outputs: 0,1,2, or 3. 0 means it is still open. 1 means true. 2 means false. 3 means it was a bad question.
-  (let (((version pd) (car@ pdv))
+  (let (((version pd0) (car@ pdv))
         ((MarketID2 pd) ((require (= 5 version))
-                         (car@ pd)))
-        (pd ((require (= MarketID2 (@ c_market_id)))
+                         (car@ pd0)))
+        (pd2 ((require (= MarketID2 (@ c_market_id)))
              (car pd)))
-        ((T _) (split pd 32))
+        ((T _) (split pd2 32))
         ((_ Result) (split T 1))
         )
     (++ --AAAA Result)));switch from 1 byte binary to a integer representation.
 
 (define (extract signed_price_declaration)
   (let (((sig data) (split signed_price_declaration 40))
-        ((R DeclaredHeight) ((split data 4)))
-        ((R DeclaredPrice) ((split R 2)))
-        (DeclaredPrice (++ --AAA= DeclaredPrice))
-        ((MarketID2 PortionMatched) (split R 2))
-        (PortionMatched ((++ --AAA= PortionMatched)))
+        ((R0 DeclaredHeight) ((split data 4)))
+        ((R DeclaredPrice0) ((split R0 2)))
+        (DeclaredPrice (++ --AAA= DeclaredPrice0))
+        ((MarketID2 PortionMatched0) (split R 2))
+        (PortionMatched ((++ --AAA= PortionMatched0)))
         )
     (
      (require (verify_sig sig data (@ c_pubkey)))
@@ -63,9 +73,9 @@
      (return 0 2000000 0))))
 (define (match_order OracleData Direction)
   (let (((spd) ())
-        ((h p pm) (extract spd))
-        (p (cond ((= Direction 2) (- 10000 p))
-                 (true p)))
+        ((h p0 pm) (extract spd))
+        (p (cond ((= Direction 2) (- 10000 p0))
+                 (true p0)))
         (oracle_result (helper OracleData))
         (nonce (+ (minus_zero (@ c_expires) h)
                   (cond (oracle_result 3)

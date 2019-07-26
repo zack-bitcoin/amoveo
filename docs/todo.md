@@ -1,9 +1,41 @@
+
+update the scalar and binary market contracts to use the new strategy for generating oracle ids.
+test out scalar oracles from the light node before pushing anything.
+
+do a hard update to enforce the new way of generating oracle ids.
+
+update the smart contracts to handle oracle that do not yet exist.
+
+update the light node to handle contracts for oracles that do not yet exist.
+
+check that p2p derivatives explorer can handle contracts for oracles that do not yet exist.
+
+
+
+update p2p derivatives explorer to keep a record of which contracts expired unmatched, vs which were matched. This will make futarchy easier.
+
+
+
+
+once the hard update activates at 76200
+update the light node for the new channel close tx type.
+
+update the light node to use the new simpler binary contract for p2p bets, but use the old one for centralized betting with the server.
+
+write a simpler scalar contract.
+
+update the light node to use the new simpler scalar contract for p2p betting.
+
+make sure the light node still works for bets in the centralized market.
+
+teach the light node chalang about the new destructive comparison opcode, and the new ways of encoding integers.
+
+soft update. require that the oid of each oracle was deterministically generated from the height when trading begins and the question being asked.
+* also update the light node to enable trading of derivatives on oracles that do not yet exist.
+
+
 the new tool to execute a command when we find a block is not working, because currently the block isn't updated until you try pulling the data from it.
 
-
-
-sometimes block_db's pread returns eof instead of the data we need. We should have it print out some error report when this happens.
-This fix works well, we should add it to master branch too.
 
 
 idea to improve the oracle mechanism
@@ -15,17 +47,16 @@ the advantage is that we could reduce the initial liquidity to 0, so it would be
 add to chalang:
 * load the next 1 byte as an integer
 * load the next 2 bytes as an integer
-* load the next 3 bytes as an integer
-* grab arbitrary byte from a (binary or (an integer, which is interpreted as a 4-byte binary.))
 * 50 or 100 opcodes that each load a single integer from 0-99 onto the stack. So we can use 1 opcode to load a small integer.
+* we need to set up a soft update to activate this
 
+add to chalang:
+* grab arbitrary byte from a (binary or (an integer, which is interpreted as a 4-byte binary.))
 
-write lisp in chalang lisp.
 
 
 try pushing a tx from the light node in chrome on a mac.
 
-set up a hard update to activate the new opcode for chalang.
 
 having trouble making channel_solo_close from the light node to close our channels.
 
