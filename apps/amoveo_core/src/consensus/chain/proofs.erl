@@ -228,11 +228,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {channels, grow_channel_tx:id(Tx)}
                 ];
 	    ctc2 -> 
+                F23 = forks:get(23),
+                true = Height > F23,
                 [
                  {governance, ?n2i(ctc)},
-                 {accounts, channel_team_close_tx:aid1(Tx)},
-                 {accounts, channel_team_close_tx:aid2(Tx)},
-                 {channels, channel_team_close_tx:id(Tx)}
+                 {accounts, channel_team_close_tx2:aid1(Tx)},
+                 {accounts, channel_team_close_tx2:aid2(Tx)},
+                 {channels, channel_team_close_tx2:id(Tx)}
                 ];
 	    ctc -> 
                 [

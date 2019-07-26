@@ -708,7 +708,7 @@ deltaCV([Tx|T], Dict) ->
     A = case element(1, C) of
 	    nc -> new_channel_tx:bal1(C) + new_channel_tx:bal2(C);
 	    ctc2 -> 
-		ID = channel_team_close_tx:id(C),
+		ID = channel_team_close_tx2:id(C),
 		OldChannel = channels:dict_get(ID, Dict),
 		%io:fwrite(packer:pack(OldChannel)),
 		Bal1 = channels:bal1(OldChannel),
