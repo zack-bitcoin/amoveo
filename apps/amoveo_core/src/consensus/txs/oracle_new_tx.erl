@@ -1,5 +1,5 @@
 -module(oracle_new_tx).
--export([go/4, make/8, make_dict/7, from/1, id/1, governance/1]).
+-export([go/4, make/7, make_dict/6, make_dict/7, from/1, id/1, governance/1]).
 -include("../../records.hrl").
 -record(oracle_new, {from = 0, 
 		     nonce = 0, 
@@ -20,20 +20,40 @@
 %The oracle can be published before we know the outcome of the question, that way the oracle id can be used to make channel contracts that bet on the eventual outcome of the oracle.
 from(X) -> X#oracle_new.from.
 id(X) -> X#oracle_new.id.
+id_generator(Tx) ->
+    hash:doit(<<(Tx#oracle_new.start):32,
+               (Tx#oracle_new.governance):32,
+               (Tx#oracle_new.governance_amount):32,
+               (Tx#oracle_new.question)/binary>>).
 governance(X) -> X#oracle_new.governance.
+make_dict(From, Fee, Question, Start, Governance, GovAmount) ->
+    Acc = trees:get(accounts, From),
+    Tx0 = #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, governance = Governance, governance_amount = GovAmount},
+    ID = id_generator(Tx0),
+    Tx0#oracle_new{id = ID}.
 make_dict(From, Fee, Question, Start, ID, Governance, GovAmount) ->
     <<_:256>> = ID,
     Acc = trees:get(accounts, From),
-    #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount}.
+    Tx0 = #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, governance = Governance, governance_amount = GovAmount},
+    %ID = id_generator(Tx0),
+    Tx0#oracle_new{id = ID}.
     
-make(From, Fee, Question, Start, ID, Governance, GovAmount, Trees) ->
-    <<_:256>> = ID,
+make(From, Fee, Question, Start, Governance, GovAmount, Trees) ->
+    %<<_:256>> = ID,
     Accounts = trees:accounts(Trees),
     {_, Acc, _Proof} = accounts:get(From, Accounts),
-    Tx = #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, id = ID, governance = Governance, governance_amount = GovAmount},
+    Tx0 = #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, governance = Governance, governance_amount = GovAmount},
+    ID = id_generator(Tx0),
+    Tx = Tx0#oracle_new{id = ID},
     {Tx, []}.
 go(Tx, Dict, NewHeight, NonceCheck) ->
     ID = Tx#oracle_new.id,
+    F24 = forks:get(24),
+    if 
+        NewHeight > F24 ->
+            ID = id_generator(Tx);
+        true -> ok
+    end,
     empty = oracles:dict_get(ID, Dict),
     Gov = Tx#oracle_new.governance,
     GovAmount = Tx#oracle_new.governance_amount,

@@ -443,7 +443,7 @@ test(11) ->
     %launch an oracle with oracle_new
     Question = <<>>,
     %<<OID:80>> = crypto:strong_rand_bytes(10),
-    OID = crypto:strong_rand_bytes(32),
+    %OID = crypto:strong_rand_bytes(32),
     Fee = constants:initial_fee() + 20,
     headers:dump(),
     block:initialize_chain(),
@@ -465,7 +465,8 @@ test(11) ->
 
 
 
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0), %Fee, question, start, id gov, govamount %here
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
@@ -534,7 +535,7 @@ test(16) ->
     {Pub1,Priv1} = testnet_sign:new_key(),
     {Pub2,Priv2} = testnet_sign:new_key(),
     Question = <<>>,
-    OID = <<1:256>>,
+    %OID = <<1:256>>,
     Fee = constants:initial_fee() + 20,
     headers:dump(),
     block:initialize_chain(),
@@ -551,7 +552,8 @@ test(16) ->
     Stx_2 = keys:sign(Ctx_2),
     absorb(Stx_2),
 
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0),
+    OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),
@@ -667,8 +669,9 @@ test(13) ->
     timer:sleep(200),
     mine_blocks(2),
     timer:sleep(150),
-    OID2 = <<1:256>>,
-    Tx3 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID2, 1, 5),
+    %OID2 = <<1:256>>,
+    Tx3 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 1, 5),
+    OID2 = oracle_new_tx:id(Tx3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     timer:sleep(100),
@@ -700,9 +703,10 @@ test(13) ->
     io:fwrite("\n"),
     true = GovVal2 > GovVal1,
 
-    OID3 = <<2:256>>,
+    %OID3 = <<2:256>>,
     BR2 = trees:get(governance, block_reward),
-    Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID3, 1, 5),
+    Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 1, 5),
+    OID3 = oracle_new_tx:id(Tx7),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
     potential_block:new(),
@@ -880,8 +884,9 @@ test(20) ->
     absorb(Stx),
     timer:sleep(2000),
     Question = <<>>,
-    OID = <<1000:256>>,
-    Tx2 = oracle_new_tx:make_dict(NewPub, Fee, Question, 1 + block:height(), OID, 0, 0),
+    %OID = <<1000:256>>,
+    Tx2 = oracle_new_tx:make_dict(NewPub, Fee, Question, 1 + block:height(), 0, 0),
+    OID = oracle_new_tx:id(Tx2),
     Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
     absorb(Stx2),
     potential_block:new(),
@@ -1066,7 +1071,7 @@ test24(I) ->
 
     %test how oracles fail if the oracle occurs during different stages of their evolution.
     Question = <<>>,
-    OID = crypto:strong_rand_bytes(32),
+    %OID = crypto:strong_rand_bytes(32),
     Fee = constants:initial_fee() + 20,
     headers:dump(),
     block:initialize_chain(),
@@ -1080,7 +1085,8 @@ test24(I) ->
 		 timer:sleep(100);
 	true -> ok
     end,
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, OID, 0, 0), %Fee, question, start, id gov, govamount
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount
+    OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
     absorb(Stx),
     timer:sleep(150),

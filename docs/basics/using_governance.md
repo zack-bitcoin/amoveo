@@ -22,5 +22,13 @@ By comparing these 2 assets, we can find out if the update is good for the price
 if there is simultaneously unmatched orders to long veousd if the update goes through and to short veousd if the update does not go through, and both of these are at the same price, we can have some confidence the price of veo will be higher if there is the update than if there is not.
 since nobody wants to take the other side of those trades.
 
+So here is a concrete example of a futarchy market:
+```
+if the block reward on July 28th at noon GMT is above 0.15 return 'bad', else { A = the price of USD in VEO from 0 to 0.3 on 21 July at noon GMT; B = the price of USD in Veo from 0 to 0.3 on 28 July at noon GMT; return (0.15 - A + B)}
+if the block reward on July 28th at noon GMT is below 0.15 return 'bad', else { A = the price of USD in VEO from 0 to 0.3 on 21 July at noon GMT; B = the price of USD in Veo from 0 to 0.3 on 28 July at noon GMT; return (0.15 - A + B)}
+```
+
+For the above example, make sure that your futarchy bets expire before 21 July.
+
 
 [more about futarchy here](futarchy.md)

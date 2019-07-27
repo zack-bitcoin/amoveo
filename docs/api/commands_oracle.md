@@ -6,17 +6,15 @@ New question oracle
 ====
 This oracle asks a true/false question about the future. Eventually, the answer to this question will get recorded on the oracle, and will be accessible to the smart contracts.
 ```
-OID = api:new_question_oracle(Start, Question).
+api:new_question_oracle(Start, Question).
 ```
-This returns the OID, which is necessary for making markets.
 
 New governance oracle
 ====
 This oracle updates the variables that define the blockchain protocol. 
 ```
-OID = api:new_governance_oracle(GovName, GovAmount).
+api:new_governance_oracle(GovName, GovAmount).
 ```
-This returns the OID for this oracle.
 
 You can look up current governance values like this:
 ```
