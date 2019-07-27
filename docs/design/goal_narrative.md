@@ -1,11 +1,8 @@
 Lightning Network + Probabilistic Payments for Amoveo narrative
 =======
 
+This document gives some stories of people using Amoveo in a possible version of it's final form we are aiming for in the future.
 
-Some stories of people using Amoveo in a possible version of it's final form we are aiming for in the future.
-
-Smart Contracts in Channels
-========
 
 Alice likes to gamble on sports. She accepts 3 bet offers she sees on a server, this gives her 1 channel with a user, and 2 channels with hubs.
 Eventually the bets finish. Alice won her bet against a user, and against one of the hubs, and lost against the other hub.
@@ -23,7 +20,7 @@ The lightning payment is always exactly 3 steps. a channel payment from Alice to
 If Alice likes any available market in the hubs she has a channel with, she can move her money to that channel and participate in the market.
 Or, if there is some third hub she likes, Alice can open a new channel with that third hub, and instantly transfer funds from her existing channels to her new one.
 
-If Alice wins too much, and her channel fills up so she can't participate with that channel any more, she can instantly move her winnings to any of her other existing channels. This way she doesn't have to close channels or open new ones often.
+If Alice wins too much, and her channel fills up, she can instantly move her winnings to any of her other existing channels. This way she doesn't have to close channels or open new ones often.
 Or, if she loses too much, she can instantly replentish her money from her other existing channels.
 
 When Alice wants to purchase something, she can instantly make a payment from any of her existing channels, to anyone who has a channel with any hub.
@@ -61,3 +58,4 @@ Storage Hub Specialists
 
 Storage specialists like Dave don't run any markets, and they are much cheaper per unit time. This is the normal way to store veo that you plan on using in the next month.
 If Alice and Bob both have a channel with Dave, then they can negociate and create any contract with each other through Dave's hub. And they can optionally move these contracts to a direct path between Alice and Bob, freeing up liquidity on Dave's hub.
+

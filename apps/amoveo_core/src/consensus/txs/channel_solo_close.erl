@@ -1,8 +1,18 @@
 -module(channel_solo_close).
 -export([go/4, make/5, make_dict/4, from/1, id/1, to_prove/2]).
--record(csc, {from, nonce, fee = 0, 
-	      scriptpubkey, scriptsig}).
+%-record(csc, {from, nonce, fee = 0, 
+%	      scriptpubkey, scriptsig}).
 -include("../../records.hrl").
+%to_prove(X, Height) ->
+%    F21 = forks:get(21),
+%    if
+%        Height > F21 ->
+%            SS = X#csc.scriptsig,
+%            SS2 = lists:map(fun(X) -> X#ss.prove end, SS),
+%            SS3 = lists:foldr(fun(X, Y) -> X++Y end, [], SS2),
+%            SS3;
+%        true -> []
+%    end.
 from(X) -> X#csc.from.
 to_prove(X, Height) ->
     channel_slash_tx:to_prove_helper(X#csc.scriptsig, Height).

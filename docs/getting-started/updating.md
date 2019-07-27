@@ -19,6 +19,12 @@ update the dependencies.
 update Amoveo
 ```git pull```
 
+if you want to use the new version of the config file, then remove old version of the config file.
+```rm config/sys.config.tmpl```
+
+if you need to delete the old blocks
+```make prod-clean```
+
 turn the node back on
 ```make prod-restart```
 

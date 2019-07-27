@@ -33,6 +33,8 @@ binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode
     %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
     io:fwrite("compiled code is \n"),
+    %io:fwrite(integer_to_list(size(Compiled))),%1775
+    %io:fwrite("\n"),
     io:fwrite(base64:encode(Compiled)),
     io:fwrite("\n"),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
@@ -193,7 +195,7 @@ test2(NewPub, OID) ->
     SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], 10000, 10000, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
-    %amount, newnonce, shares, delay
+    %amount, newnonce, delay
     {14,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees61),
 
     %test a trade that gets only partly matched.

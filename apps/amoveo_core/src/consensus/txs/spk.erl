@@ -75,7 +75,7 @@ remove_nth(N, _) when N < 1 -> 1=2;
 remove_nth(1, [A|B]) -> B;
 remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
 
-dict_prove_facts([], _, _) ->
+dict_prove_facts([], _, _) ->%we need to return an empty list here.
     compiler_chalang:doit(<<" nil ">>);
 dict_prove_facts(X, Dict, Height) ->
     A = <<"macro [ nil ;
@@ -137,11 +137,6 @@ dict_prove_facts2([{Tree, Key}|T], Dict, Height) ->
     <<A2/binary, C/binary, B/binary>>.
 
 
-
-
-    
-    
-
 prove_facts([], _) ->%we need to return an empty list here.
     compiler_chalang:doit(<<" nil ">>);
 prove_facts(X, Trees) ->
@@ -193,6 +188,10 @@ prove_facts2([{Tree, Key}|T], Trees) ->
 	    _ -> <<", ">>
 		     end,
     <<A2/binary, C/binary, B/binary>>.
+
+
+
+
 
 tree2id(accounts) -> 1;
 tree2id(channels) -> 2;
@@ -435,7 +434,6 @@ run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay, Trees) ->
 run([], [], OpGas, _, _, _, _, Amount, Nonce, Delay, _) ->
     {Amount, Nonce, Delay, OpGas};
 run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Trees) ->
-    io:fwrite("spk run \n"),
     {A2, N2, Delay2, EOpGas} = 
 	run3(SS, Code, OpGas, RamGas, Funs, Vars, State, Trees),
     run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Trees).
@@ -460,6 +458,9 @@ run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Trees) ->
     {A3, Nonce, Delay,
      chalang:time_gas(Data2)
     }.
+
+
+
 force_update(SPK, SSOld, SSNew) ->
     F = tx_pool:get(),
     Trees = F#tx_pool.block_trees,

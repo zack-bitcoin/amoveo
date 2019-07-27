@@ -678,6 +678,7 @@ test(13) ->
 
     MOT = trees:get(governance, minimum_oracle_time),
     OIL = trees:get(governance, oracle_initial_liquidity),
+    timer:sleep(200),
     potential_block:new(),
     mine_blocks(1+MOT),
     timer:sleep(200),
@@ -893,6 +894,11 @@ test(20) ->
     block:mine(100000),
     success;
 test(21) ->
+    H = block:height(),
+    if
+        H < 12 -> mine_blocks(13 - H);
+        true -> ok
+    end,
     Pub = keys:pubkey(),
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Fee = 10*(constants:initial_fee() + 20),
@@ -1063,7 +1069,7 @@ mine_blocks(Many) ->
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10),
-    timer:sleep(1000),
+    timer:sleep(100),
     mine_blocks(Many-1).
 
 test24(I) ->
