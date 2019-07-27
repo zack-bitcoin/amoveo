@@ -24,8 +24,8 @@ since nobody wants to take the other side of those trades.
 
 So here is a concrete example of a futarchy market:
 ```
-if the block reward on July 28th at noon GMT is above 0.15 return 'bad', else { A = the price of USD in VEO from 0 to 0.3 on 21 July at noon GMT; B = the price of USD in Veo from 0 to 0.3 on 28 July at noon GMT; return (0.15 - A + B)}
-if the block reward on July 28th at noon GMT is below 0.15 return 'bad', else { A = the price of USD in VEO from 0 to 0.3 on 21 July at noon GMT; B = the price of USD in Veo from 0 to 0.3 on 28 July at noon GMT; return (0.15 - A + B)}
+if the block reward on July 28th at noon GMT is above 0.15 return 'bad', else { A = the price of USD in VEO from 0 to 0.3 on 21 July at noon GMT; B = the price of USD in Veo from 0 to 0.3 on 28 July at noon GMT; return ((0.15 - A + B) * 1024 / 0.3)}
+if the block reward on July 28th at noon GMT is below 0.15 return 'bad', else { A = the price of USD in VEO from 0 to 0.3 on 21 July at noon GMT; B = the price of USD in Veo from 0 to 0.3 on 28 July at noon GMT; return ((0.15 - A + B) * 1024 / 0.3)}
 ```
 
 For the above example, make sure that your futarchy bets expire before 21 July.
