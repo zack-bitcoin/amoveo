@@ -397,10 +397,15 @@ nso2(Pub, C, Q, S, ID, Many, Limit) ->
     nso2(Pub, C, Q, S+?GAP, ID+1, Many+1, Limit).
     
 new_question_oracle(Start, Question)->
-    ID = find_id2(),
-    new_question_oracle(Start, Question, ID).
-
+    Q2 = if
+	     is_list(Question) -> list_to_binary(Question);
+	     true -> Question
+	 end,
+    Cost = trees:get(governance, oracle_new),
+    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, 0, 0)).
 new_question_oracle(Start, Question, ID)->
+    %depreciated
+    1=2,
     Q2 = if
 	     is_list(Question) -> list_to_binary(Question);
 	     true -> Question
@@ -410,12 +415,12 @@ new_question_oracle(Start, Question, ID)->
     ID.
 new_governance_oracle(GovName, GovAmount) ->
     GovNumber = governance:name2number(GovName),
-    ID = find_id2(),
+    %ID = find_id2(),
     %Recent = trees:get(oracles, DiffOracleID),
     Cost = trees:get(governance, oracle_new),
-    Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, 0, ID, GovNumber, GovAmount),
-    tx_maker0(Tx),
-    ID.
+    Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, 0, GovNumber, GovAmount),
+    tx_maker0(Tx).
+%    ID.
 oracle_bet(OID, Type, Amount) ->
     Cost = trees:get(governance, oracle_bet),
     oracle_bet(?Fee+Cost, OID, Type, Amount).
@@ -849,6 +854,9 @@ channels_from2([X|T], Address) ->
     end.
 scan_peers(N) ->
     lists:map(fun(P) -> {P, talker:talk({version, 2, N}, P)} end, peers:all()).
+peers_heights() ->
+    %lists:map(fun(P) -> {P, talker:talk({height}, P)} end, peers:all()).
+    peers_heights:doit().
     
     
 		      

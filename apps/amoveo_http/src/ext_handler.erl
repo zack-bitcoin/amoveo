@@ -107,6 +107,8 @@ doit({peers}) ->
     P = peers:all(),
     P2 = amoveo_utils:tuples2lists(P),
     {ok, P2};
+doit({peers, 2}) ->
+    {ok, peers_heights:doit()};
 doit({peers, Peers}) ->
     peers:add(Peers),
     {ok, 0};

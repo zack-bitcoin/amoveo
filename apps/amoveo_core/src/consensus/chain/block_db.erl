@@ -2,11 +2,10 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
          read/1, read/2, write/2,
-         exists/1,
          read_by_height/1,
          uncompress/1, compress/1,
          check/0, by_height_from_compressed/2,
-         ram_height/0, genesis/0,
+         ram_height/0, genesis/0, exists/1,
          test/0]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db_dict()).
@@ -199,12 +198,6 @@ find_page_loc(Height, Pages, N) ->
     
 
 read_page(Loc, Size, File) ->
-    %io:fwrite("read page "),
-    %io:fwrite(integer_to_list(Loc)),
-    %io:fwrite(" "),
-    %io:fwrite(integer_to_list(Size)),
-    %io:fwrite("\n"),
-%    1=2,
     case file:pread(File, Loc, Size) of
         eof ->
             timer:sleep(50),
@@ -253,6 +246,7 @@ old_blocks2(Blocks, Size, Head, D) ->
                 is_integer(Block) -> {Blocks, Size};
                 true ->
                     Block2 = Block#block{prev_hashes = 0},
+                    %Block2 = Block,
                     old_blocks2(dict:store(Head, Block2, Blocks),
                                 Size + size(term_to_binary(Block2)),
                                 block:prev_hash(0, Block),
@@ -271,13 +265,12 @@ hr2([H|T], Blocks, S, E) ->
     
 check_compress(X) ->
     {ok, FT0} = application:get_env(amoveo_core, fork_tolerance),
-    FT = FT0*2,
+    FT = FT0 * 2,
     {ok, RL} = application:get_env(amoveo_core, block_cache),
-    %FT = 2,
     RB = X#d.ram_bytes,
     if
         ((RB > RL) and 
-         (X#d.many_blocks > (FT * 3)))->
+         (X#d.many_blocks > (FT0 * 3)))->
             TH = block:hash(headers:top_with_block()),
             {Blocks, _} = old_blocks(TH, FT, X#d.dict),%gather up a dict of all the blocks we are moving to the hd.
             {Loc, Size} = write_page(Blocks, X),
@@ -418,6 +411,8 @@ ram_height()  ->
 genesis()  ->
     gen_server:call(?MODULE, genesis).
     
+exists(Hash) -> 
+    gen_server:call(?MODULE, {exists, Hash}).
 read(Many, Height) ->
     {ok, Version} = application:get_env(amoveo_core, db_version),
     case Version of
@@ -459,8 +454,6 @@ read2(N, BH) ->
             [B|read2(N-1, BH2)]
     end.
    
-exists(Hash) -> 
-    gen_server:call(?MODULE, {exists, Hash}).
 read(Hash) ->
     {ok, Version} = application:get_env(amoveo_core, db_version),
     case Version of

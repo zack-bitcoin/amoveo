@@ -230,11 +230,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {channels, grow_channel_tx:id(Tx)}
                 ];
 	    ctc2 -> 
+                F23 = forks:get(23),
+                true = Height > F23,
                 [
                  {governance, ?n2i(ctc)},
-                 {accounts, channel_team_close_tx:aid1(Tx)},
-                 {accounts, channel_team_close_tx:aid2(Tx)},
-                 {channels, channel_team_close_tx:id(Tx)}
+                 {accounts, channel_team_close_tx2:aid1(Tx)},
+                 {accounts, channel_team_close_tx2:aid2(Tx)},
+                 {channels, channel_team_close_tx2:id(Tx)}
                 ];
 	    ctc -> 
                 [
@@ -441,9 +443,11 @@ test() ->
     test_txs:mine_blocks(2),
     timer:sleep(150),
     Question = <<>>,
-    OID = <<2:256>>,
+    %OID = <<2:256>>,
     Fee = 20 + constants:initial_fee(),
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID, 0, 0),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 0, 0),
+    %OID = Tx#oracle_new_tx.id,
+    OID = oracle_new_tx:id(Tx),
     %{Tx, _} = oracle_new_tx:make(constants:master_pub(), Fee, Question, 1, OID, 0, 0, Trees0),
     tx_pool_feeder:absorb(keys:sign(Tx)),
     test_txs:mine_blocks(1),

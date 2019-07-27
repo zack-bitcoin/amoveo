@@ -72,7 +72,6 @@ sci2([], L2, S2) ->
     {lists:reverse(L2), S2};
 sci2([H|LI], LO, S) ->
     %check if we are storing block H. if not, then remove it from the list and the set.
-    %io:fwrite("sci2 \n"),
     {ok, Version} = application:get_env(amoveo_core, db_version),
     case Version of
         1 ->

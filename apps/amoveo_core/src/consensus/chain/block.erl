@@ -1042,7 +1042,7 @@ deltaCV([Tx|T], Dict) ->
     A = case element(1, C) of
 	    nc -> new_channel_tx:bal1(C) + new_channel_tx:bal2(C);
 	    ctc2 -> 
-		ID = channel_team_close_tx:id(C),
+		ID = channel_team_close_tx2:id(C),
 		OldChannel = channels:dict_get(ID, Dict),
 		%io:fwrite(packer:pack(OldChannel)),
 		Bal1 = channels:bal1(OldChannel),
@@ -1376,7 +1376,7 @@ test(1) ->
     {ok, _} = headers:read(H1),
     block_organizer:add([WBlock10]),
     timer:sleep(400),
-    WBlock11 = get_by_hash(H1),%block 5 somehow???
+    WBlock11 = get_by_hash(H1),
     WBlock12 = get_by_height_in_chain(1, H1),
     io:fwrite(packer:pack(WBlock12)),
     io:fwrite("\n"),

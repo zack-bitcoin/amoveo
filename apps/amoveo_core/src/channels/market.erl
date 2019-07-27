@@ -55,11 +55,12 @@ settle(SPD, OID, Price) ->
 no_publish(OID) ->
     %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
     SS2a = " int 0 ",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS2a)), [{oracles, OID}]).
+    %spk:new_ss(compiler_chalang:doit(list_to_binary(SS2a)), [{oracles, OID}]).
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS2a)), []).
 evidence(SPD, OID) ->
     %If users try withdrawing funds while the market maker is still publishing prices, this is how he stops them from taking their money out early and robbing the market maker.
     SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int 3 ",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS3a)), [{oracles, OID}]).
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS3a)), []).
 contradictory_prices(SPD, SPD2, OID) ->
     %If the market maker publishes two prices too close to the same time, then this is how you can withdraw your funds from the market early.
     PriceDeclare1 = binary_to_list(base64:encode(SPD)),
@@ -68,7 +69,7 @@ contradictory_prices(SPD, SPD2, OID) ->
 	" binary " ++ integer_to_list(size(SPD)) ++ " " ++ PriceDeclare1 ++ 
 	" binary " ++ integer_to_list(size(SPD2)) ++ " " ++ PriceDeclare2 ++
 	" int 2 ",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS4a)), [{oracles, OID}]).
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS4a)), []).
 price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
     PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
     Signature = keys:raw_sign(PD),
@@ -79,14 +80,15 @@ price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
 
 test() ->
     Question = <<>>,
-    OID = <<3:256>>,
+    %OID = <<3:256>>,
     Fee = 20 + constants:initial_fee(),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
     test_txs:mine_blocks(2),
     timer:sleep(150),
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID, 0, 0),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 0, 0),
+    OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     timer:sleep(200),
@@ -112,12 +114,12 @@ test() ->
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv), 
     test_txs:absorb(SStx4),
     timer:sleep(400),
-    test2(NewPub). 
+    test2(NewPub, OID). 
 
-test2(NewPub) ->
+test2(NewPub, OID) ->
     test_txs:mine_blocks(1),
     test_txs:mine_blocks(1),
-    OID = <<3:256>>,
+    %OID = <<3:256>>,
     Fee = 20 + constants:initial_fee(),
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
     %Dict5 = (tx_pool:get())#tx_pool.dict,

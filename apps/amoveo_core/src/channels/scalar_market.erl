@@ -312,7 +312,7 @@ test2(NewPub, Many) ->
     %This time we won the bet.
     %amount, newnonce, shares, delay
     % if oracle amount is 0 {15,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
-    {14,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees60),
+    {14,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees61),
 
     %test a trade that gets only partly matched.
     %SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
@@ -320,7 +320,7 @@ test2(NewPub, Many) ->
     %SS5 = settle(SPD3, OID, 3000),
     SS5 = settle_scalar(SPD3, OIDN, 3000, Many),
     %amount, newnonce, shares, delay
-    {109, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees5),
+    {109, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees61),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
@@ -329,7 +329,7 @@ test2(NewPub, Many) ->
     %SS6 = unmatched_scalar(OIDN, Many), 
     SS6 = unmatched(OID), 
     %amount, newnonce, delay
-    {59, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees5),
+    {59, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees61),
     success.
 test3() ->    
     %This makes the compiled smart contract in market.js
