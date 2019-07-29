@@ -403,16 +403,22 @@ new_question_oracle(Start, Question)->
 	 end,
     Cost = trees:get(governance, oracle_new),
     tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, 0, 0)).
-new_question_oracle(Start, Question, ID)->
+new_question_oracle(0, Start, Question) ->
+     Q2 = if
+         is_list(Question) -> list_to_binary(Question);
+	 true -> Question
+      end,
+      hash:doit(<<Start:32, 0:32, 0:32, Question/binary>>).
+%new_question_oracle(Start, Question, ID)->
     %depreciated
-    1=2,
-    Q2 = if
-	     is_list(Question) -> list_to_binary(Question);
-	     true -> Question
-	 end,
-    Cost = trees:get(governance, oracle_new),
-    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, ID, 0, 0)),
-    ID.
+%    1=2,
+%    Q2 = if
+%	     is_list(Question) -> list_to_binary(Question);
+%           true -> Question
+%	 end,
+%    Cost = trees:get(governance, oracle_new),
+%    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, ID, 0, 0)),
+%    ID.
 new_governance_oracle(GovName, GovAmount) ->
     GovNumber = governance:name2number(GovName),
     %ID = find_id2(),

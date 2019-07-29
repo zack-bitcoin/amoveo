@@ -835,9 +835,9 @@ test(15) ->
     potential_block:new(),
     mine_blocks(1),
     timer:sleep(150),
-    Txs2 = (tx_pool:get())#tx_pool.txs,
     %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     timer:sleep(2000),
+    Txs2 = (tx_pool:get())#tx_pool.txs,
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),

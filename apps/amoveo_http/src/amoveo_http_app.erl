@@ -29,9 +29,12 @@ start_internal() ->
     {ok, Port} = application:get_env(amoveo_core, internal_port),
     
     {ok, IP} = application:get_env(amoveo_core, internal_ip),
-    {ok, _} = cowboy:start_http(http_internal, 100,
-                                [{ip, IP}, {port, Port}],
-                                [{env, [{dispatch, Dispatch}]}]),%,
+    %{ok, _} = cowboy:start_http(http_internal, 100,
+    %                            [{ip, IP}, {port, Port}],
+    %                            [{env, [{dispatch, Dispatch}]}]),%,
+    {ok, _} = cowboy:start_clear(http_internal, 
+				 [{ip, IP}, {port, Port}], 
+				 #{env => #{dispatch => Dispatch}}),
     %{compress, true}]),
     ok.
 
@@ -44,8 +47,11 @@ start_external() ->
                  ]}]),
     {ok, Port} = application:get_env(amoveo_core, port),
     {ok, IP} = application:get_env(amoveo_core, external_ip),
-    {ok, _} = cowboy:start_http(http, 100,
-                                [{ip, IP}, {port, Port}],
-                                [{env, [{dispatch, Dispatch}]}]),
+    %{ok, _} = cowboy:start_http(http, 100,
+    %                            [{ip, IP}, {port, Port}],
+    %                            [{env, [{dispatch, Dispatch}]}]),
+    {ok, _} = cowboy:start_clear(http,
+				 [{ip, IP}, {port, Port}],
+				 #{env => #{dispatch => Dispatch}}),
     ok.
 

@@ -1,11 +1,13 @@
 -module(ext_file_handler).
 
--export([init/3, handle/2, terminate/3]).
+-export([init/3, init/2, handle/2, terminate/3]).
 %example of talking to this handler:
 %httpc:request(post, {"http://127.0.0.1:3011/", [], "application/octet-stream", "echo"}, [], []).
 %curl -i -d '[-6,"test"]' http://localhost:3011
-handle(Req, _) ->
-    {F, _} = cowboy_req:path(Req),
+init(Req, Opts) ->
+	handle(Req, Opts).
+handle(Req, State) ->
+    F = cowboy_req:path(Req),
     PrivDir0 = 
 	case application:get_env(amoveo_core, kind) of
 	    {ok, "production"} ->
@@ -106,12 +108,12 @@ handle(Req, _) ->
            end,
     %File = << PrivDir/binary, <<"/external_web">>/binary, F/binary>>,
     File = << PrivDir/binary, F/binary>>,
-    {ok, _Data, _} = cowboy_req:body(Req),
-    Headers = [{<<"content-type">>, <<"text/html">>},
-    {<<"Access-Control-Allow-Origin">>, <<"*">>}],
+    {ok, _Data, _} = cowboy_req:read_body(Req),
+    Headers = #{<<"content-type">> => <<"text/html">>,
+    <<"Access-Control-Allow-Origin">> => <<"*">>},
     Text = read_file(File),
-    {ok, Req2} = cowboy_req:reply(200, Headers, Text, Req),
-    {ok, Req2, File}.
+    Req2 = cowboy_req:reply(200, Headers, Text, Req),
+    {ok, Req2, State}.
 read_file(F) ->
     {ok, File } = file:open(F, [read, binary, raw]),
     {ok, O} =file:pread(File, 0, filelib:file_size(F)),
