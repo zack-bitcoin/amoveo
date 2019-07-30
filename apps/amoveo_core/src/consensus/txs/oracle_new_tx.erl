@@ -1,5 +1,5 @@
 -module(oracle_new_tx).
--export([go/4, make/7, make_dict/6, make_dict/7, from/1, id/1, governance/1]).
+-export([go/4, make/7, make_dict/6, make_dict/7, from/1, id/1, governance/1, id_generator2/4]).
 -include("../../records.hrl").
 %This asks the oracle a question.
 %The oracle can only answer true/false questions.
@@ -10,11 +10,18 @@
 %The oracle can be published before we know the outcome of the question, that way the oracle id can be used to make channel contracts that bet on the eventual outcome of the oracle.
 from(X) -> X#oracle_new.from.
 id(X) -> X#oracle_new.id.
+id_generator2(Start, Gov, GA, Question) ->
+    QH = hash:doit(Question),
+    hash:doit(<<Start:32,Gov:32,GA:32,QH/binary>>).
 id_generator(Tx) ->
-    hash:doit(<<(Tx#oracle_new.start):32,
-               (Tx#oracle_new.governance):32,
-               (Tx#oracle_new.governance_amount):32,
-               (Tx#oracle_new.question)/binary>>).
+    id_generator2(Tx#oracle_new.start,
+                  Tx#oracle_new.governance,
+                  Tx#oracle_new.governance_amount,
+                  Tx#oracle_new.question).
+%    hash:doit(<<(Tx#oracle_new.start):32,
+%               (Tx#oracle_new.governance):32,
+%               (Tx#oracle_new.governance_amount):32,
+%               (Tx#oracle_new.question)/binary>>).
 governance(X) -> X#oracle_new.governance.
 make_dict(From, Fee, Question, Start, Governance, GovAmount) ->
     Acc = trees:get(accounts, From),

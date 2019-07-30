@@ -1,5 +1,8 @@
+new_oracle.js governance_futarchy_oracle could suggest block heights automatically
+
 
 update the scalar and binary market contracts to use the new strategy for generating oracle ids.
+we can generate all 10 oids inside of chalang, so we dont have to embed 10 raw oids.
 test out scalar oracles from the light node before pushing anything.
 
 do a hard update to enforce the new way of generating oracle ids.

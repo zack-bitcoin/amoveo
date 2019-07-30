@@ -404,11 +404,12 @@ new_question_oracle(Start, Question)->
     Cost = trees:get(governance, oracle_new),
     tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, 0, 0)).
 new_question_oracle(0, Start, Question) ->
-     Q2 = if
-         is_list(Question) -> list_to_binary(Question);
-	 true -> Question
-      end,
-      hash:doit(<<Start:32, 0:32, 0:32, Question/binary>>).
+    Q2 = if
+             is_<list(Question) -> list_to_binary(Question);
+             true -> Question
+         end,
+    oracle_new_tx:id_generator2(Start, 0, 0, Question).
+%hash:doit(<<Start:32, 0:32, 0:32, Question/binary>>).
 %new_question_oracle(Start, Question, ID)->
     %depreciated
 %    1=2,

@@ -124,11 +124,3 @@
     (3 (evidence))
     (else (die)))))
 
-
-;   (cond
-;    ((= mode 1) (match_order OracleData Direction))
-;    ((= mode 4) (unmatched OracleData))
-;    ((= mode 0) (no_publish))
-;    ((= mode 2) (contradictory_prices))
-;    ((= mode 3) (evidence))
-;    (true (die)))))
