@@ -1,3 +1,5 @@
+chart to visualize historic difficulty
+
 new_oracle.js governance_futarchy_oracle could suggest block heights automatically
 
 
