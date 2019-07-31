@@ -17,7 +17,7 @@ Witnet is targetting 3.2 level security, like Bitcoin Hivemind and Augur, but as
 
 In order to be comercially viable, a blockchain oracle system needs to be at least level 2.2 secure. Amoveo is the only blockchain oracle to achieve this so far.
 
-False assumption in regards to voting
+Bribing Voters
 =========
 
 Quote from the Witnet white paper:
