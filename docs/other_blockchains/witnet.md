@@ -14,6 +14,7 @@ Witnet simplifies Bitcoin Hivemind in 2 ways.
 2) It uses random sampling to select around 2-6 voters to determine the outcome of your oracle.
 
 Witnet is targetting 3.2 level security, like Bitcoin Hivemind and Augur, but as we will see, Witnet is actually 4.2 level secure, it is not as secure as Augur or Bitcoin Hivemind.
+[learn about security levels here](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md)
 
 In order to be comercially viable, a blockchain oracle system needs to be at least level 2.2 secure. Amoveo is the only blockchain oracle to achieve this so far.
 
