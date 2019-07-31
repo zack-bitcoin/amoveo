@@ -10,7 +10,7 @@ Witnet is a copy of Bitcoin Hivemind's oracle, similar to Augur.
 Bitcoin Hivemind is very big, and it is hard to fit it all into a blockchain while staying scalable.
 Augur simplified Bitcoin Hivemind by getting rid of the SVD step, which multiple rounds of voting were combined to more accurately know who is lying.
 Witnet simplifies Bitcoin Hivemind in 2 ways.
-1) looking up the result of an oracle question is automated. Humans aren't involved.
+1) voting on the result of an oracle question is automated. Humans aren't involved.
 2) It uses random sampling to select around 2-6 voters to determine the outcome of your oracle.
 
 Witnet is targetting 3.2 level security, like Bitcoin Hivemind and Augur, but as we will see, Witnet is actually 4.2 level secure, it is not as secure as Augur or Bitcoin Hivemind.
@@ -39,8 +39,8 @@ I give you a general proof to show that it is impossible to prevent attackers fr
 8) since it is possible to prove the impact your tx had on the oracle's outcome, it is possible to make that proof as evidence to a smart contract.
 9) Since it is possible to prove to a smart contract that you participated in an attack, it is possible for the smart contract to release a bribe to you conditional on whether you participated in the attack.
 
-This value assumption in regard to bribery led Witnet to make a mistake in their design.
-Reputation voting based  oracle systems like Bitcoin Hivemind, Augur, and UMA are all very cautious in regard to the possibility that the oracle voters will get bribed. They make sure that the value of the votecoins is bigger than the value of the bets, that way it isn't ever profitable to bribe the voters, and this is the difference between 3.2 and 4.2.
+This false assumption in regard to bribery led Witnet to make a mistake in their design.
+Reputation voting based oracle systems like Bitcoin Hivemind, Augur, and UMA are all very cautious in regard to the possibility that the oracle voters will get bribed. They make sure that the value of the votecoins is bigger than the value of the bets, that way it isn't ever profitable to bribe the voters, and this is the difference between 3.2 and 4.2.
 
 Witnet just assumes that bribery isn't possible. So they don't have any protections in place to make sure that the value of their reputation is high enough to maintain 3.2 level security.
 
