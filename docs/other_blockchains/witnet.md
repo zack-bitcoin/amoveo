@@ -83,3 +83,19 @@ The oracle is just one part of a system for financial derivatives.
 You also need scalable markets with guarantees that trades are matched in a fair sequence and at fair prices.
 You need a scalable way to enforce large volumes of these contracts simultaniously.
 
+
+
+Witnet gave a response to this document
+=========
+https://gist.github.com/girazoki/98eab6b116fc25e5d4bcd38ee7f0d5f8
+Looking at the bribery section, you can see that they are agreeing that Witnet is vulnerable to attackers who bribe the oracle voters.
+The is very responsible of Witnet. They are acknowledging their weaknesses, which is the first step to coming up with a plan to overcome that weakness.
+They are hinting that they will use a 3.2-level solution as Augur/Bitcoin Hivemind/UMA, that the votecoin holders will need to have more collaterol in the system vs the amount of bets being secured in one moment.
+Which is disappointing, I was hoping they would use Amoveo's cheaper and more powerful 2.2 level solution for oracles.
+
+Looking at the "Single Sources" section, you can see that they are still confused about something fundamental: As long as there is a hard rule about which public API are going to be scanned at which times, then it is possible for the attacker to manipulate those API at those moments in time to make the attack occur.
+The hard rule about which API we will use at which times is exactly the information the attacker needs to make an effective attack, and this information is publicly known.
+This is why oracles need the human element. Humans can realize if sources have been corrupted, they can delay resolving the oracle question until the answer is clear.
+
+A problem that the Witnet team decided to ignore instead of coming up with a response to:
+Even if witnet had a working oracle, witnet is lacking the scalable markets needed so that we can fully utilize the oracle to have betting. If you can't use the oracle for betting, it is pointless.
