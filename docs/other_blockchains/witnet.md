@@ -45,6 +45,26 @@ Reputation voting based oracle systems like Bitcoin Hivemind, Augur, and UMA are
 Witnet just assumes that bribery isn't possible. So they don't have any protections in place to make sure that the value of their reputation is high enough to maintain 3.2 level security.
 
 
+Looks like a blog post was made specifically explaining the state of research in preventing bribery.
+https://medium.com/witnet/anonymizing-commit-and-reveal-transactions-in-decentralized-oracle-solutions-e61067833cd9
+Witnet has some different plans, but they haven't implemented this yet, and it looks to me like none of these plans actually solve the problem of bribery. They could be helpful to prevent DOS spam of oracle voters.
+
+Remember, if there is ever a point in time in the future when the voters can prove how they voted, then that means it is possible to bribe them.
+So any solution that prevents bribery, it needs to be impossible to prove how you voted, even if you want to.
+
+In this blog post, they proposed solving this using: ring signatures, time-release encryption, zk-snarks, and dandelion networks.
+
+Ring signatures only work if the participants want to be anonymous. It doesn't work to prevent bribes, because the voters are purposefully wanting to give up their anonimity to accept the bribe. They can purposefully reveal the signature pieces that were combined to make the ring signature.
+
+time-release doesn't work because eventually there comes a time when we know the result of how the oracle participants voted, and at that time the bribes can be paid.
+
+zk-snarks don't solve this. If you can make a zk-snark to prove how you participated for the vote, then you could make another zk-snark to prove how you voted to everyone else.
+
+dandelion just anonimizes the IP-Pubkey relationships, it doesn't prevent bribery. so it doesn't solve this either.
+
+
+
+
 The problem of trusting a single api.
 ===========
 
