@@ -46,7 +46,7 @@ Reputation voting based oracle systems like Bitcoin Hivemind, Augur, and UMA are
 Witnet just assumes that bribery isn't possible. So they don't have any protections in place to make sure that the value of their reputation is high enough to maintain 3.2 level security.
 
 
-Looks like a blog post was made specifically explaining the state of research in preventing bribery.
+It was suggested to me that this blog post would explain Witnet's solution to bribery. I will show that it is not a solution.
 https://medium.com/witnet/anonymizing-commit-and-reveal-transactions-in-decentralized-oracle-solutions-e61067833cd9
 Witnet has some different plans, but they haven't implemented this yet, and it looks to me like none of these plans actually solve the problem of bribery. They could be helpful to prevent DOS spam of oracle voters.
 
