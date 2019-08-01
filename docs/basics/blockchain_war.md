@@ -3,7 +3,7 @@ Blockchain War
 
 August 2019
 
-Amoveo the blockchain is providing resources and support for an aggressive mining pool that is destroying one of the competitor blockchains. This is causing value from that other blockchain to be syphoned into Amoveo.
+Amoveo the blockchain is providing resources and support for an aggressive mining pool that is destroying one of the competitor blockchains. This is causing value from that other blockchain to be syphoned into Amoveo. This benefits anyone holding Veo tokens, and anyone who is mining Amoveo.
 
 The competitor blockchain has a less effective retargetting algorithm than Amoveo, and Amoveo takes advantage of this fact to conquor them.
 
