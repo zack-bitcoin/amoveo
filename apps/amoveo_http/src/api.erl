@@ -359,7 +359,10 @@ new_question_oracle(Start, Question)->
 	     true -> Question
 	 end,
     Cost = trees:get(governance, oracle_new),
-    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, 0, 0)).
+    Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, 0, 0),
+    ID = oracle_new_tx:id(Tx),
+    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, 0, 0)),
+    ID.
 new_question_oracle(Start, Question, ID)->
     %depreciated
     1=2,
@@ -670,9 +673,9 @@ new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
     OldTrees = OldBlock#block.trees,
-    io:fwrite("api oid is "),
-    io:fwrite(packer:pack([OID, OldTrees, Height-Confirmations])),
-    io:fwrite("\n"),
+    %io:fwrite("api oid is "),
+    %io:fwrite(packer:pack([OID, OldTrees, Height-Confirmations])),
+    %io:fwrite("\n"),
     false = empty == trees:get(oracles, OID, dict:new(), OldTrees),%oracle existed confirmation blocks ago.
     
     order_book:new_market(OID, Expires, Period).

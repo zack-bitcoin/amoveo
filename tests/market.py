@@ -41,10 +41,10 @@ def market_test():
     request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 99, 1000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
     request(1, 'sync', [[127,0,0,1], 3020], 0.2)
-    oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
+    #oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     height = json.loads(request(1, 'height', [], 0))[1]
-    x = request(1, 'new_question_oracle', [height+1, 'aXMgMisyPTQ/', oid], 1)
-    #oid = json.loads(x)[1]
+    x = request(1, 'new_question_oracle', [height+1, 'aXMgMisyPTQ/'], 1)
+    oid = json.loads(x)[1]
     print("python oid is ")
     print(oid)
     request(1, 'txs', [[127,0,0,1], 3020], 2)
@@ -53,11 +53,12 @@ def market_test():
     request(3, 'sync', [[127,0,0,1], 3010], 1)
     request(3, 'sync', [[127,0,0,1], 3010], 1)
     request(3, 'new_market', [oid, height+19, 5], 2)
-def test2(): #useful for testing market from light node.
+    return oid
+def test2(oid ): #useful for testing market from light node.
     request(3, 'txs', [[127,0,0,1], 3020], 1)
     request(3, 'txs', [[127,0,0,1], 3010], 9)
     request(3, 'txs', [[127,0,0,1], 3020])
-    oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
+    #oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     height = request(3, 'height', [], 0.01)
     height = json.loads(height)[1]
     #request(1, 'trade', [9000, 1, 10, oid, height, 20, [127,0,0,1], 3030], 0.2)
@@ -76,8 +77,8 @@ def test2(): #useful for testing market from light node.
     request(1, 'sync', [[127,0,0,1], 3030])
     request(1, 'sync', [[127,0,0,1], 3020], 0.04)
     #request(1, 'pull_channel_state', [[127,0,0,1], 3030], 0.2)#this line should be removed
-def test3(): #useful for testing market from light node.
-    oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
+def test3(oid): #useful for testing market from light node.
+    #oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     #request(1, 'combine_cancel_assets', [[127,0,0,1], 3030], 0.1)
     request(2, 'oracle_bet', [oid, 1, 50000000], 0.2)
     request(1, 'oracle_bet', [oid, 2, 2600000000], 0.4)
@@ -104,7 +105,7 @@ def test3(): #useful for testing market from light node.
     request(1, 'sync', [[127,0,0,1], 3020], 0.04)
 
 if __name__ == "__main__":
-    market_test()
-    test2()
-    test3()
+    oid = market_test()
+    test2(oid)
+    test3(oid)
     

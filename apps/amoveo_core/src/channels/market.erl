@@ -50,6 +50,10 @@ settle(SPD, OID, Price) ->
 " " ++ PriceDeclare ++ " int 1",
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), [{oracles, OID}]),
     SS#ss{meta = Price}.
+no_oracle(OID) ->
+    SS2a = " int 5 ",
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS2a)), [{oracles, OID}]).
+    
 no_publish(OID) ->
     %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
     SS2a = " int 0 ",
@@ -78,6 +82,7 @@ price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
 
 test() ->
     Question = <<>>,
+    Question2 = <<" ">>,
     %OID = <<3:256>>,
     Fee = 20 + constants:initial_fee(),
     headers:dump(),
@@ -86,7 +91,9 @@ test() ->
     test_txs:mine_blocks(2),
     timer:sleep(150),
     Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 0, 0),
+    TxUnused = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question2, 1, 0, 0),
     OID = oracle_new_tx:id(Tx),
+    OID2 = oracle_new_tx:id(TxUnused),
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     timer:sleep(200),
@@ -105,21 +112,27 @@ test() ->
     test_txs:absorb(Stx3),
     
     CID = <<5:256>>,
+    CID2 = <<6:256>>,
     Delay = 0,
     
     Ctx4 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    Ctx42 = new_channel_tx:make_dict(CID2, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    Stx42 = keys:sign(Ctx42),
     Stx4 = keys:sign(Ctx4),
+    SStx42 = testnet_sign:sign_tx(Stx42, NewPub, NewPriv), 
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv), 
+    test_txs:absorb(SStx42),
     test_txs:absorb(SStx4),
     timer:sleep(400),
-    test2(NewPub, OID). 
+    test2(NewPub, OID, OID2). 
 
-test2(NewPub, OID) ->
+test2(NewPub, OID, OID2) ->
     test_txs:mine_blocks(1),
     test_txs:mine_blocks(1),
     %OID = <<3:256>>,
     Fee = 20 + constants:initial_fee(),
     Trees5 = (tx_pool:get())#tx_pool.block_trees,
+    %Trees5 = (tx_pool:get())#tx_pool.dict,
     %Dict5 = (tx_pool:get())#tx_pool.dict,
     %MarketID = <<405:256>>,
     MarketID = OID,
@@ -128,7 +141,9 @@ test2(NewPub, OID) ->
     Period = 3,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
+    Bet2_ = market_smart_contract(Location, OID2,1, 1000, 4000, keys:pubkey(),Period,100,OID2, 0),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], 10000, 10000, 1, 0),
+    SPK2_ = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2_], 10000, 10000, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
@@ -139,13 +154,16 @@ test2(NewPub, OID) ->
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, delay
     %{55,1000001,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
-	%spk:run(fast, [SS1], SPK, 1, 0, Trees5),
+	%spk:dict_run(fast, [SS1], SPK, 1, 0, Trees5),
+
+    %SS0 = no_oracle(OID2),
+    %{} = spk:dict_run(fast, [SS0], SPK2_, 5, 0, Trees5),
 
     %Next we try closing the bet as if the market maker has disappeared and stopped publishing prices
     SS2 = no_publish(OID),
     %amount, newnonce, delay
     {0, 2, Period} = 
-	spk:run(fast, [SS2], SPK, 5, 0, Trees5),
+	spk:dict_run(fast, [SS2], SPK, 5, 0, Trees5),
 	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict5),
     
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
@@ -153,7 +171,7 @@ test2(NewPub, OID) ->
     %amount, newnonce, delay
     {59, 3, 995} = %the nonce is bigger than no_publish, by half a period. So the market maker can always stop a no_publish by publishing a new price declaration and using it in a channel_slash transaction.
 	%The delay is until the contract expires. Once the oracle tells us a result we can do a channel slash to update to the outcome of our bet. So "amount" doesn't matter. It will eventually be replaced by the outcome of the bet.
-	spk:run(fast, [SS3], SPK, 5, 0, Trees5),
+	spk:dict_run(fast, [SS3], SPK, 5, 0, Trees5),
 
 
     %Next we try closing the bet as if the market maker cheated by publishing 2 different prices too near to each other in time.
@@ -164,12 +182,13 @@ test2(NewPub, OID) ->
     {0,2000001,0} = 
 	%The nonce is super high, and the delay is zero, because if the market maker is publishing contradictory prices, he should be punished immediately.
 	%Amount is 0 because none of the money goes to the market maker.
-       spk:run(fast, [SS4], SPK, 5, 0, Trees5),
+       spk:dict_run(fast, [SS4], SPK, 5, 0, Trees5),
 
 
     test_txs:mine_blocks(1),
     timer:sleep(1000),
     Trees60 = (tx_pool:get())#tx_pool.block_trees,
+    %Trees60 = (tx_pool:get())#tx_pool.dict,
     %Dict60 = (tx_pool:get())#tx_pool.dict,
     %close the oracle with oracle_close
     Tx6 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
@@ -183,8 +202,9 @@ test2(NewPub, OID) ->
     %The server won the bet, and gets all 100.
     %amount, newnonce, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
-    {105,999,0} = spk:run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
-    %{95,1000001,0} = spk:run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
+    %Trees61 = (tx_pool:get())#tx_pool.dict,
+    {105,999,0} = spk:dict_run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
+    %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
     %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
 
     %Now we will try betting in the opposite direction.
@@ -194,14 +214,14 @@ test2(NewPub, OID) ->
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
     %amount, newnonce, shares, delay
-    {14,999,0} = spk:run(fast, [SS1], SPK2, 5, 0, Trees61),
+    {14,999,0} = spk:dict_run(fast, [SS1], SPK2, 5, 0, Trees61),
 
     %test a trade that gets only partly matched.
     %SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SPD3 = price_declaration_maker(5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SS5 = settle(SPD3, OID, 3000),
     %amount, newnonce, shares, delay
-    {109, 999, 0} = spk:run(fast, [SS5], SPK, 5, 0, Trees61),
+    {109, 999, 0} = spk:dict_run(fast, [SS5], SPK, 5, 0, Trees61),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
 
     %test a trade that goes unmatched.
@@ -209,7 +229,7 @@ test2(NewPub, OID) ->
     %the nonce is medium, and delay is non-zero because if a price declaration is found, it could be used.
     SS6 = unmatched(OID), 
     %amount, newnonce, delay
-    {59, 2, Period} = spk:run(fast, [SS6], SPK, 5, 0, Trees61),
+    {59, 2, Period} = spk:dict_run(fast, [SS6], SPK, 5, 0, Trees61),
     success.
 test3() ->    
     %This makes the compiled smart contract in market.js
