@@ -1,6 +1,5 @@
 -module(coinbase_tx).
 -export([go/3, make/2, make_dict/1, from/1]).
--record(coinbase, {from = 0, nonce = 0, fee = 0}).
 -include("../../records.hrl").
 from(X) -> X#coinbase.from.
 make_dict(From) ->

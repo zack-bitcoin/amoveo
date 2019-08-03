@@ -123,6 +123,10 @@ prove_facts2([{Tree, Key}|T], Dict, Height)->
     Rest = prove_facts2(T, Dict, Height),
     <<Fact/binary, C/binary, Rest/binary>>.
 
+
+
+
+
 tree2id(accounts) -> 1;
 tree2id(channels) -> 2;
 tree2id(existence) -> 3;

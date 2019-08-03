@@ -120,7 +120,8 @@ verify_proof(RootHash, Key, Value, Proof) ->%
 test() ->%
     C = new(<<1:256>>, 3, 100),%
     ID = C#oracle_bet.id,%
-    Root0 = constants:root0(),%
+    %Root0 = constants:root0(),%
+    Root0 = trees:empty_tree(oracle_bets),
     {_, empty, _} = get(ID, Root0),%
     Root = write(C, Root0),%
     {Root1, C, Path1} = get(ID, Root),%

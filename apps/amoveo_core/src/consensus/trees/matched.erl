@@ -8,8 +8,6 @@
          deserialize/1]).
 -include("../../records.hrl").
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
--record(matched, {account, oracle, true, false, bad}).
-%true, false, and bad are the 3 types of shares that can be purchased from an oracle
 -define(name, matched).
 reward(Bet, Correct, NewHeight) ->
     {Positive, _Negative} = 
@@ -135,7 +133,8 @@ test() ->
     %ID = C#matched.id,
     Account = C#matched.account,
     OID = C#matched.oracle,
-    Root0 = constants:root0(),
+    %Root0 = constants:root0(),
+    Root0 = trees:empty_tree(matched),
     ID = {key, Account, OID},
     {_, empty, _} = get(ID, Root0),
     Root = write(C, Root0),

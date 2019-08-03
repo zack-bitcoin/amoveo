@@ -2,15 +2,16 @@
 -include("../../amoveo_core/src/records.hrl").
 
 -export([init/3, handle/2, terminate/3, doit/1,
-	send_txs/4]).
+	send_txs/4, init/2]).
 %example of talking to this handler:
 %httpc:request(post, {"http://127.0.0.1:3010/", [], "application/octet-stream", "echo"}, [], []).
 %curl -i -d '["test"]' http://localhost:3011
 %curl -i -d echotxt http://localhost:3010
-
+init(Req0, Opts) ->
+    handle(Req0, Opts).	
 handle(Req, State) ->
-    {ok, Data, Req2} = cowboy_req:body(Req),
-    {{IP, _}, Req3} = cowboy_req:peer(Req2),
+    {ok, Data, Req2} = cowboy_req:read_body(Req),
+    {IP, _} = cowboy_req:peer(Req2),
     D = case request_frequency:doit(IP) of
 	    ok ->
 						%ok = request_frequency:doit(IP),
@@ -39,9 +40,11 @@ handle(Req, State) ->
 		packer:pack({ok, <<"stop spamming the server">>})
 	end,	    
 
-    Headers = [{<<"content-type">>, <<"application/octet-stream">>},
-	       {<<"Access-Control-Allow-Origin">>, <<"*">>}],
-    {ok, Req4} = cowboy_req:reply(200, Headers, D, Req3),
+    Headers = #{ <<"content-type">> => <<"application/octet-stream">>,
+	       <<"Access-Control-Allow-Origin">> => <<"*">>},
+    %Headers = [{<<"content-type">>, <<"application/octet-stream">>},
+%	       {<<"Access-Control-Allow-Origin">>, <<"*">>}],
+    Req4 = cowboy_req:reply(200, Headers, D, Req2),
     {ok, Req4, State}.
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
@@ -268,6 +271,8 @@ doit({bets}) ->
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
 %curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5, Hash]' http://localhost:8080 
+    %io:fwrite(base64:encode(Hash)),
+    %io:fwrite("\n"),
     Trees = (block:get_by_hash(Hash))#block.trees,%this line failed.b
     TN = trees:name(TreeName),
     Root = trees:TN(Trees),

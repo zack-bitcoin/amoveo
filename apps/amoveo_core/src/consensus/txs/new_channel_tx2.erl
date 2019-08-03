@@ -2,13 +2,7 @@
 -export([go/4, make_offer/8, make_dict/4,
          spk/2, cid/1,
 	 acc1/1, acc2/1, bal1/1, bal2/1, delay/1]).
--record(nc_offer, {acc1, nonce, nlocktime, bal1, bal2, miner_commission, %miner commission between 0 and 10 000.
-              delay, id, contract_hash}).%this is the anyone can spend trade offer.
--record(nc_accept, 
-        {acc2, nc_offer, fee,
-         contract_sig}).%this is the tx.
 -include("../../records.hrl").
--record(signed, {data="", sig="", sig2=""}).
 
 acc1(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.acc1.
 acc2(X) -> X#nc_accept.acc2.

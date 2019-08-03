@@ -1,6 +1,5 @@
 -module(oracle_close_tx).
 -export([make/4, make_dict/3, go/4, from/1, oracle_id/1]).
--record(oracle_close, {from, nonce, fee, oracle_id}).
 -include("../../records.hrl").
 %If there is a lot of open orders for one type of share in an oracle for a long enough period of time, then this transaction can be done.
 %This ends betting in the market.

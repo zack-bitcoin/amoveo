@@ -1,5 +1,5 @@
 -module(oracle_bet_tx).
--export([go/4, go2/3, make/6, make_dict/5, id/1, from/1, to_prove/2]).
+-export([go/4, go2/3, make/6, make_dict/5, id/1, from/1, to_prove/2, fee/1, type/1, amount/1]).
 -include("../../records.hrl").
 -record(oracle_bet, {from, %your account id.
 		     nonce, 
@@ -26,6 +26,9 @@ to_prove(OID, Trees) when (element(1, Trees) == trees2) ->
     Head = unmatched:get({key, <<1:X>>, OID}, Root),
     unmatched:all(Root, OID).
     
+amount(X) -> X#oracle_bet.amount.
+type(X) -> X#oracle_bet.type.
+fee(X) -> X#oracle_bet.fee.
 from(X) -> X#oracle_bet.from.
 id(X) -> X#oracle_bet.id.
 make_dict(From, Fee, OID, Type, Amount) ->

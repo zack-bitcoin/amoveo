@@ -13,6 +13,7 @@
 	 all/2,
 	 amount/1,
 	 account/1,
+         oracle/1,
 	 aid/1,
 	 dict_empty_book/2,
 	 test/0]).%common tree stuff
@@ -122,15 +123,30 @@ key_to_int({key, Account, Oracle}) ->
     <<Y:256>> = hash:doit(<<Account/binary, Oracle/binary>>),
     Y.
 get(K, Tree) ->
-    Key = key_to_int(K),
-    {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
-    V = case Leaf of
-	    empty -> empty;
-	    L -> 
-		Y = leaf:value(L),
-		deserialize(Y)
-	end,
-    {X, V, Proof}.
+    %we should check if this is a key for headers, and if it is, do headers_get instead.
+    %ID = key_to_int({key, <<?Header:PS>>, OID}),
+    PS = constants:pubkey_size() * 8,
+    case K of
+        {key, <<?Header:PS>>, OID} ->
+        %12345 ->
+        %    OID = ok,
+            ID = key_to_int(K),
+            {X, L, Proof} = trie:get(ID, Tree, ?name),
+            false = (L == empty),
+            V = deserialize_head(leaf:value(L)),
+            %{P, Q} = head_get(Tree, OID),
+            {X, V, Proof};
+        _ ->
+            Key = key_to_int(K),
+            {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
+            V = case Leaf of
+                    empty -> empty;
+                    L -> 
+                        Y = leaf:value(L),
+                        deserialize(Y)
+                end,
+            {X, V, Proof}
+    end.
 dict_write(C, Dict) ->
     Account = C#unmatched.account,
     Oracle = C#unmatched.oracle,
@@ -341,7 +357,8 @@ test() ->
     Height = (tx_pool:get())#tx_pool.height,
     Hash = hash:doit(2),
     C = new(keys:pubkey(), Hash, 10000),
-    Root0 = constants:root0(),
+    %Root0 = constants:root0(),
+    Root0 = trees:empty_tree(unmatched),
     %C = hash:doit(2),
     K = {key, keys:pubkey(), Hash},
     {_, empty, _} = get(K, Root0),

@@ -20,11 +20,54 @@ block(1, N) ->
 block(3, N) ->
     Txs = tl(block(1, N)),
     Txids = lists:map(
-	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      fun(Tx) -> txs:txid(Tx) end,
+%                      hash:doit(testnet_sign:data(Tx)) end, 
 	      Txs),
     [Txs, Txids];
 block(2, H) ->
     block:get_by_hash(H).
+blocks(Start, End) ->
+    %returns a list of blocks in a JSON data structure.
+    L = block_db:read(End - Start, Start),
+    if
+        is_binary(L) -> 
+            D = block_db:uncompress(L),
+            K = dict:fetch_keys(D),
+            sync:low_to_high(sync:dict_to_blocks(K, D));
+        is_list(L) -> L
+    end.
+            
+tx_scan(L) ->
+    %scan the N recent blocks to see if the txids from list L have been published.
+    RH = block_db:ram_height(),
+    BH = block:height(),
+    N = BH - RH,
+    %true = (BH - N) > RH,
+    Blocks = lists:reverse(block_db:read(N, RH)),
+    {RH, BH, tx_scan2(L, Blocks)}.
+tx_scan2(L, []) -> mark_height(0, L);
+tx_scan2(L, [B|T]) ->
+    Txs = tl(B#block.txs),
+    %Txs = B#block.txs,
+    Txids = lists:map(fun(X) -> txs:txid(X) end, Txs),
+    {NoMatch, Match} = tx_scan_is_in(L, Txids, [], []),
+    H = B#block.height,
+    mark_height(H, Match) ++ tx_scan2(NoMatch, T).
+tx_scan_is_in([], _, A, B) -> {A, B};
+tx_scan_is_in([H|T], L, A, B) ->
+    B2 = is_in(H, L),
+    if
+        B2 -> tx_scan_is_in(T, L, A, [H|B]);
+        true -> tx_scan_is_in(T, L, [H|A], B)
+    end.
+is_in(H, []) -> false;
+is_in(H, [H|_]) -> true;
+is_in(H, [_|T]) -> is_in(H, T).
+            
+    
+mark_height(H, []) -> [];
+mark_height(A, [H|T]) ->
+    [{A, H}|mark_height(A, T)].
 block_hash(N) ->    
     %returns the hash of block N
     B = block:get_by_height(N),
@@ -361,18 +404,27 @@ new_question_oracle(Start, Question)->
     Cost = trees:get(governance, oracle_new),
     Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, 0, 0),
     ID = oracle_new_tx:id(Tx),
-    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, 0, 0)),
+    tx_maker0(Tx),
     ID.
 new_question_oracle(Start, Question, ID)->
     %depreciated
     1=2,
     Q2 = if
-	     is_list(Question) -> list_to_binary(Question);
-	     true -> Question
-	 end,
-    Cost = trees:get(governance, oracle_new),
-    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, ID, 0, 0)),
-    ID.
+             is_list(Question) -> list_to_binary(Question);
+             true -> Question
+         end,
+    oracle_new_tx:id_generator2(Start, 0, 0, Question).
+%hash:doit(<<Start:32, 0:32, 0:32, Question/binary>>).
+%new_question_oracle(Start, Question, ID)->
+    %depreciated
+%    1=2,
+%    Q2 = if
+%	     is_list(Question) -> list_to_binary(Question);
+%           true -> Question
+%	 end,
+%    Cost = trees:get(governance, oracle_new),
+%    tx_maker0(oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, ID, 0, 0)),
+%    ID.
 new_governance_oracle(GovName, GovAmount) ->
     GovNumber = governance:name2number(GovName),
     %ID = find_id2(),
@@ -608,8 +660,7 @@ sync(IP, Port) ->
     spawn(fun() -> sync:start([{IP, Port}]) end),
     0.
 sync(2, IP, Port) ->
-    spawn(fun() -> sync:get_headers({IP, Port}) end),
-    0.
+    sync:get_headers({IP, Port}).
 keypair() -> keys:keypair().
 pubkey() -> base64:encode(keys:pubkey()).
 new_pubkey(Password) -> keys:new(Password).

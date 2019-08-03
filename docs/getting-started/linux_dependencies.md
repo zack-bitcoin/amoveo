@@ -9,7 +9,7 @@ Finally proceed to [instructions after dependencies](#after-dependencies)
 
 ## For Ubuntu
 
-1. Make sure that that you are running Ubuntu 16 or later:
+1. Make sure that that you are running Ubuntu 18 or later:
 
     (earlier versions of ubuntu requires manually installing the latest version of erlang, because the package manager installs an old version)
 
@@ -29,7 +29,8 @@ Finally proceed to [instructions after dependencies](#after-dependencies)
 
 3. Install following dependencies:
    ```
-   sudo apt-get install erlang libncurses5-dev libssl-dev unixodbc-dev g++ git erlang-base-hipe make
+   sudo apt install erlang-base erlang-asn1 erlang-public-key erlang-ssl erlang-inets erlang-jiffy erlang-dev erlang-base-hipe libncurses5-dev libssl-dev unixodbc-dev g++ git make python
+   # sudo apt-get install erlang libncurses5-dev libssl-dev unixodbc-dev g++ git erlang-base-hipe make
    ```
 
 ## For ArchLinux

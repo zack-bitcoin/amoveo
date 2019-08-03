@@ -18,10 +18,23 @@ Parasite contracts are impossible to prevent, they are something that we need to
 If an oracle breaks because of parasites, then it is a poorly designed oracle.
 
 
-Augur's experience
+Augur's experience with Edmund Edgar
+========
+
+Edgar wrote about what he is working on.
+https://medium.com/@edmundedgar/realitio-the-crowd-sourced-smart-contract-oracle-now-in-a-real-money-trial-on-mainnet-f46bf016759d
+> "we are working on plug-ins to connect to existing trustless coordination systems. This work-in-progress contract uses Augur as its final arbitrator, providing the same security assurances as Augur itself but at a fraction of the cost in the typical case."
+
+I ask him about this, and he shared more about his experiences having written a parasite contract to attack Augur: https://medium.com/@edmundedgar/the-parasite-and-the-whale-7cb3c87e9902
+
+It seems he stopped pursuing the parasite contracts for now, instead using some other oracle besides Augur.
+
+Augur's experience with Veil
 ======
 
 EDIT:  Since I wrote this, a third party investor in Augur told me a rumor that Veil told the Augur devs that Veil does not have any intention of doing parasite contracts. Apparently Veil has agreed to voluntarily pay money to Augur in proportion to how much they use Augur's oracle.
+
+EDIT2: Veil publicly posted that they are strategically avoiding making any parasite contracts, because they don't want to harm Augur.
 
 
 On Augur's stack exchange, that they have been unable to find any solution to this problem: https://augur.stackexchange.com/questions/29/how-does-augur-deal-with-the-problem-of-parasitic-oracles
