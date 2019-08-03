@@ -75,17 +75,17 @@ remove_nth(N, _) when N < 1 -> 1=2;
 remove_nth(1, [A|B]) -> B;
 remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
 
-dict_prove_facts([], _, _) ->
+prove_facts([], _, _) ->
     compiler_chalang:doit(<<" nil ">>);
-dict_prove_facts(X, Dict, Height) ->
+prove_facts(X, Dict, Height) ->
     ListSyntax = <<"macro [ nil ;
 	macro , swap cons ;
 	macro ] swap cons reverse ;
         [">>,
-    B = dict_prove_facts2(X, Dict, Height),
+    B = prove_facts2(X, Dict, Height),
     compiler_chalang:doit(<<ListSyntax/binary, B/binary>>).
-dict_prove_facts2([], _, _) -> <<"]">>;
-dict_prove_facts2([{Tree, Key}|T], Dict, Height)->
+prove_facts2([], _, _) -> <<"]">>;
+prove_facts2([{Tree, Key}|T], Dict, Height)->
     ID = tree2id(Tree),
     Data = 
         if
@@ -120,7 +120,7 @@ dict_prove_facts2([{Tree, Key}|T], Dict, Height)->
 	    [] -> <<>>;
 	    _ -> <<", ">>
         end,
-    Rest = dict_prove_facts2(T, Dict, Height),
+    Rest = prove_facts2(T, Dict, Height),
     <<Fact/binary, C/binary, Rest/binary>>.
 
 tree2id(accounts) -> 1;
@@ -172,7 +172,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
 	    {ok, BetGasLimit} = application:get_env(amoveo_core, bet_gas_limit),
 	    true = chalang:none_of(SS2#ss.code),
-	    F = dict_prove_facts(SS#ss.prove, Trees, Height),
+	    F = prove_facts(SS#ss.prove, Trees, Height),
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
 	    Data = data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2#ss.code, Code, State, constants:hash_size(), Height),
@@ -296,10 +296,10 @@ dict_run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Dict) ->
     F21 = forks:get(21),
     F = if
             (Height > F21) ->
-                dict_prove_facts(SS#ss.prove, Dict, Height);
+                prove_facts(SS#ss.prove, Dict, Height);
             true ->
                 Trees = (tx_pool:get())#tx_pool.block_trees,
-                dict_prove_facts(SS#ss.prove, Trees, Height)
+                prove_facts(SS#ss.prove, Trees, Height)
         end,
     %io:fwrite("spk proved facts \n"),
     %io:fwrite(packer:pack(F)),
@@ -352,7 +352,7 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
     {ok, BetGasLimit} = application:get_env(amoveo_core, bet_gas_limit),
     true = chalang:none_of(SS#ss.code),
-    F = dict_prove_facts(SS#ss.prove, Trees, Height),
+    F = prove_facts(SS#ss.prove, Trees, Height),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
     Data = data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS#ss.code, Code, State, constants:hash_size(), Height),
@@ -531,7 +531,7 @@ test() ->
     Pub = constants:master_pub(),
     GovID = 2,
     Height = block:height(),
-    Code = dict_prove_facts([{governance, GovID},{accounts, Pub}], BlockTrees, Height),
+    Code = prove_facts([{governance, GovID},{accounts, Pub}], BlockTrees, Height),
     State = chalang_state(1, 0, BlockTrees),
     [[[<<6:32>>, <<GovID:32>>, Gov5], %6th tree is governance. 5th thing is "delete channel reward"
       [<<1:32>>, BPub, Acc1]]] = %1st tree is accounts. 1 is for account id 1.
