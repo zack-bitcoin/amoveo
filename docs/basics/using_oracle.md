@@ -47,3 +47,12 @@ P = the price of amazon in veo on Febuary 1, 2019, at 1:00 AM GMT;
 Z = min(P2, max(0, P2 - P));
 round(Z*1024 / P2)```
 
+
+A scalar oracle that moves inversely with BSV/USD
+```
+fV = final usd/veo price;
+sV = starting usd/veo price;
+fB = final bsv/veo price;
+sB = starting bsv/veo price;
+return 1024* (0.5 + (fV/sV) - (fB/sB))
+```
