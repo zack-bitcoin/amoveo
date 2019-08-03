@@ -41,9 +41,22 @@ so your synthetic position exactly matched the return of the stock despite the p
 
 
 scalar oracle to make an asset that moves inversely to amazon shares with frontrunning protections.
-```P0 = the price of amazon in veo on January 1, 2019, at 7:00 AM GMT;
+
+```
+P0 = the price of amazon in veo on January 1, 2019, at 7:00 AM GMT;
 P2 = P0 * 2;
 P = the price of amazon in veo on Febuary 1, 2019, at 1:00 AM GMT;
 Z = min(P2, max(0, P2 - P));
-round(Z*1024 / P2)```
+round(Z*1024 / P2)
+```
 
+
+A scalar oracle that moves inversely with BSV/USD
+
+```
+fV = final usd/veo;
+sV = starting usd/veo;
+fB = final bsv/veo;
+sB = starting bsv/veo;
+return 1024*(0.5 + (fV/sV) - (fB/sB))
+```

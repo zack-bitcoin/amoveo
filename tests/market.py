@@ -43,9 +43,7 @@ def market_test():
     request(1, 'sync', [[127,0,0,1], 3020], 0.5)
     #oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     height = json.loads(request(1, 'height', [], 0))[1]
-    s = 'aXMgMisyPTQ/'
-    request(1, 'new_question_oracle', [height+1, s], 1)
-    x = request(1, 'new_question_oracle', [0, height+1, s])
+    x = request(1, 'new_question_oracle', [height+1, 'aXMgMisyPTQ/'], 1)
     oid = json.loads(x)[1]
     print("python oid is ")
     print(oid)
@@ -56,7 +54,7 @@ def market_test():
     request(3, 'sync', [[127,0,0,1], 3010], 1)
     request(3, 'new_market', [oid, height+19, 5], 2)
     return oid
-def test2(oid): #useful for testing market from light node.
+def test2(oid ): #useful for testing market from light node.
     request(3, 'txs', [[127,0,0,1], 3020], 1)
     request(3, 'txs', [[127,0,0,1], 3010], 9)
     request(3, 'txs', [[127,0,0,1], 3020])

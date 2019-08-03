@@ -103,10 +103,10 @@ def test5():
     
 
 def share_blocks():
-    #test1()
-    #test2()
-    #test3()
-    test6()
+    test1()
+    test2()
+    test3()
+    #test6()
     
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 -module(spk).
--export([new/8, apply_bet/5, get_paid/3, run/6, dict_run/6,
+-export([new/8, apply_bet/5, get_paid/3, dict_run/6,
          chalang_state/3, new_bet/3, new_bet/4, 
 	 is_improvement/4, bet_unlock/2, force_update/3,
          new_ss/2, remove_bet/2, remove_nth/2, 
@@ -75,119 +75,53 @@ remove_nth(N, _) when N < 1 -> 1=2;
 remove_nth(1, [A|B]) -> B;
 remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
 
-dict_prove_facts([], _, _) ->%we need to return an empty list here.
+prove_facts([], _, _) ->
     compiler_chalang:doit(<<" nil ">>);
-dict_prove_facts(X, Dict, Height) ->
-    A = <<"macro [ nil ;
+prove_facts(X, Dict, Height) ->
+    ListSyntax = <<"macro [ nil ;
 	macro , swap cons ;
 	macro ] swap cons reverse ;
         [">>,
-    B = dict_prove_facts2(X, Dict, Height),
-    compiler_chalang:doit(<<A/binary, B/binary>>).
-dict_prove_facts2([], _, _) ->
-    <<"]">>;
-dict_prove_facts2([{Tree, Key}|T], Dict, Height) when is_integer(Key)->
+    B = prove_facts2(X, Dict, Height),
+    compiler_chalang:doit(<<ListSyntax/binary, B/binary>>).
+prove_facts2([], _, _) -> <<"]">>;
+prove_facts2([{Tree, Key}|T], Dict, Height)->
     ID = tree2id(Tree),
-
-    %Branch = trees:Tree(Trees),%bad
-    %{_, Data, _} = Tree:get(Key, Branch),%bad
-
-    Data = Tree:dict_get(Key, Dict),%new
-
-    SerializedData = Tree:serialize(Data),
-    Size = size(SerializedData),
-    A = "[int " ++ integer_to_list(ID) ++ 
-	", int " ++ integer_to_list(Key) ++%burn and existence store by hash, not by integer.
-	", binary " ++
-	integer_to_list(Size) ++ " " ++
-	binary_to_list(base64:encode(SerializedData))++ 
-	"]",
-    A2 = list_to_binary(A),
-    B = dict_prove_facts2(T, Dict, Height),
-    C = case T of
+    Data = 
+        if
+            (element(1, Dict) == dict) ->%Dict is a dict in ram containing info to process this one block.
+                Tree:dict_get(Key, Dict);
+            true ->%Dict is a trees object containing the entire merkel tree database.
+                Branch = trees:Tree(Dict),
+                {_, Data0, _} = Tree:get(Key, Branch),
+                Data0
+        end,
+    DataPart = 
+        case Data of
+            empty ->
+                F25 = forks:get(25),
+                true = (F25 < Height),
+                ", int 0 ]";
+            _ ->SD = Tree:serialize(Data),
+                Size = size(SD),
+                ", binary " ++ integer_to_list(Size) ++ " " ++ binary_to_list(base64:encode(SD))
+        end,
+    TypePart = "int " ++ integer_to_list(ID),
+    KeyPart = if
+            is_integer(Key) ->
+                    ", int " ++ integer_to_list(Key);
+            true -> 
+                    ", binary " ++
+                    integer_to_list(size(Key)) ++ " " ++
+                    binary_to_list(base64:encode(Key))
+        end,
+    Fact = list_to_binary("[" ++ TypePart ++ KeyPart ++ DataPart ++ "]"),
+    C = case T of%if it's the last element of the list, don't put a comma after.
 	    [] -> <<>>;
 	    _ -> <<", ">>
-		     end,
-    <<A2/binary, C/binary, B/binary>>;
-dict_prove_facts2([{Tree, Key}|T], Dict, Height) ->
-    ID = tree2id(Tree),
-    %Branch = trees:Tree(Trees),%bad
-    %{_, Data, _} = Tree:get(Key, Branch),%bad
-    Data = Tree:dict_get(Key, Dict),%new
-    io:fwrite("spk dict prove facts \n"),
-    io:fwrite(packer:pack([Tree, Key, Data])),
-    io:fwrite("\n"),
-
-    SerializedData = Tree:serialize(Data),
-    Size = size(SerializedData),
-    A = "[int " ++ integer_to_list(ID) ++ 
-	", binary " ++
-	integer_to_list(size(Key)) ++ " " ++
-	binary_to_list(base64:encode(Key)) ++
-	", binary " ++
-	integer_to_list(Size) ++ " " ++
-	binary_to_list(base64:encode(SerializedData))++ 
-	"]",%this comma is used one too many times.
-    A2 = list_to_binary(A),
-    B = dict_prove_facts2(T, Dict, Height),
-    C = case T of
-	    [] -> <<>>;
-	    _ -> <<", ">>
-		     end,
-    <<A2/binary, C/binary, B/binary>>.
-
-
-prove_facts([], _) ->%we need to return an empty list here.
-    compiler_chalang:doit(<<" nil ">>);
-prove_facts(X, Trees) ->
-    A = <<"macro [ nil ;
-	macro , swap cons ;
-	macro ] swap cons reverse ;
-        [">>,
-    B = prove_facts2(X, Trees),
-    compiler_chalang:doit(<<A/binary, B/binary>>).
-prove_facts2([], _) ->
-    <<"]">>;
-prove_facts2([{Tree, Key}|T], Trees) when is_integer(Key)->
-    ID = tree2id(Tree),
-    Branch = trees:Tree(Trees),
-    {_, Data, _} = Tree:get(Key, Branch),
-    SerializedData = Tree:serialize(Data),
-    Size = size(SerializedData),
-    A = "[int " ++ integer_to_list(ID) ++ 
-	", int " ++ integer_to_list(Key) ++%burn and existence store by hash, not by integer.
-	", binary " ++
-	integer_to_list(Size) ++ " " ++
-	binary_to_list(base64:encode(SerializedData))++ 
-	"]",
-    A2 = list_to_binary(A),
-    B = prove_facts2(T, Trees),
-    C = case T of
-	    [] -> <<>>;
-	    _ -> <<", ">>
-		     end,
-    <<A2/binary, C/binary, B/binary>>;
-prove_facts2([{Tree, Key}|T], Trees) ->
-    ID = tree2id(Tree),
-    Branch = trees:Tree(Trees),
-    {_, Data, _} = Tree:get(Key, Branch),
-    SerializedData = Tree:serialize(Data),
-    Size = size(SerializedData),
-    A = "[int " ++ integer_to_list(ID) ++ 
-	", binary " ++
-	integer_to_list(size(Key)) ++ " " ++
-	binary_to_list(base64:encode(Key)) ++
-	", binary " ++
-	integer_to_list(Size) ++ " " ++
-	binary_to_list(base64:encode(SerializedData))++ 
-	"]",%this comma is used one too many times.
-    A2 = list_to_binary(A),
-    B = prove_facts2(T, Trees),
-    C = case T of
-	    [] -> <<>>;
-	    _ -> <<", ">>
-		     end,
-    <<A2/binary, C/binary, B/binary>>.
+        end,
+    Rest = prove_facts2(T, Dict, Height),
+    <<Fact/binary, C/binary, Rest/binary>>.
 
 
 
@@ -242,7 +176,7 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
 	    {ok, BetGasLimit} = application:get_env(amoveo_core, bet_gas_limit),
 	    true = chalang:none_of(SS2#ss.code),
-	    F = prove_facts(SS#ss.prove, Trees),
+	    F = prove_facts(SS#ss.prove, Trees, Height),
 	    C = Bet#bet.code,
 	    Code = <<F/binary, C/binary>>,
 	    Data = data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS2#ss.code, Code, State, constants:hash_size(), Height),
@@ -327,8 +261,16 @@ dict_run(Mode, SS, SPK, Height, Slash, Dict) ->
     {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce, Delay}.
 %dict_run2(fast, SS, SPK, State, Dict) ->
 dict_run2(_, SS, SPK, State, Dict) ->
-    FunLimit = governance:dict_get_value(fun_limit, Dict),
-    VarLimit = governance:dict_get_value(var_limit, Dict),
+    {FunLimit, VarLimit} = 
+        if
+            (element(1, Dict) == dict) ->
+                {governance:dict_get_value(fun_limit, Dict),
+                 governance:dict_get_value(var_limit, Dict)};
+            true ->
+                Governance = trees:governance(Dict),
+                {governance:get_value(fun_limit, Governance),
+                 governance:get_value(var_limit, Governance)}
+        end,
     true = is_list(SS),
     Bets = SPK#spk.bets,
     Delay = SPK#spk.delay,
@@ -340,57 +282,7 @@ dict_run2(_, SS, SPK, State, Dict) ->
              VarLimit,
              State, 
              Delay,
-             Dict);
-dict_run2(safe, SS, SPK, State, Dict) -> %unused.
-    %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
-    S = self(),
-    spawn(fun() ->
-		  X = dict_run2(fast, SS, SPK, State, Dict),
-		  S ! X
-	  end),
-    spawn(fun() ->
-                  {ok, A} = application:get_env(amoveo_core, smart_contract_runtime_limit),
-		  timer:sleep(A),%wait enough time for the chalang contracts to finish
-		  S ! error
-	  end),
-    receive 
-	Z -> Z
-    end.
-    
-run(Mode, SS, SPK, Height, Slash, Trees) ->
-    State = chalang_state(Height, Slash, Trees),
-    {Amount, NewNonce, Delay, _} = run2(Mode, SS, SPK, State, Trees),
-    {Amount + SPK#spk.amount, NewNonce + SPK#spk.nonce, Delay}.
-run2(fast, SS, SPK, State, Trees) -> 
-    Governance = trees:governance(Trees),
-    FunLimit = governance:get_value(fun_limit, Governance),
-    VarLimit = governance:get_value(var_limit, Governance),
-    true = is_list(SS),
-    Bets = SPK#spk.bets,
-    Delay = SPK#spk.delay,
-    run(SS, 
-	Bets,
-	SPK#spk.time_gas,
-	SPK#spk.space_gas,
-	FunLimit,
-	VarLimit,
-	State, 
-	Delay,
-        Trees);
-run2(safe, SS, SPK, State, Trees) -> 
-    %will not crash. if the thread that runs the code crashes, or takes too long, then it returns {-1,-1,-1,-1}
-    S = self(),
-    spawn(fun() ->
-		  X = run2(fast, SS, SPK, State, Trees),
-		  S ! X
-	  end),
-    spawn(fun() ->
-		  timer:sleep(5000),%wait enough time for the chalang contracts to finish
-		  S ! error
-	  end),
-    receive 
-	Z -> Z
-    end.
+             Dict).
 chalang_state(Height, Slash, _) ->	    
     chalang:new_state(Height, Slash, 0).
 dict_run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay, Dict) ->
@@ -407,10 +299,11 @@ dict_run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Dict) ->
     Height = element(2, State),
     F21 = forks:get(21),
     F = if
-            (Height > F21) -> dict_prove_facts(SS#ss.prove, Dict, Height);
+            (Height > F21) ->
+                prove_facts(SS#ss.prove, Dict, Height);
             true ->
                 Trees = (tx_pool:get())#tx_pool.block_trees,
-                prove_facts(SS#ss.prove, Trees)
+                prove_facts(SS#ss.prove, Trees, Height)
         end,
     %io:fwrite("spk proved facts \n"),
     %io:fwrite(packer:pack(F)),
@@ -428,39 +321,6 @@ dict_run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Dict) ->
      chalang:time_gas(Data2)
     }.
 
-run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, SPKDelay, Trees) ->
-    run(ScriptSig, Codes, OpGas, RamGas, Funs, Vars, State, 0, 0, SPKDelay, Trees).
-
-run([], [], OpGas, _, _, _, _, Amount, Nonce, Delay, _) ->
-    {Amount, Nonce, Delay, OpGas};
-run([SS|SST], [Code|CodesT], OpGas, RamGas, Funs, Vars, State, Amount, Nonce, Delay, Trees) ->
-    {A2, N2, Delay2, EOpGas} = 
-	run3(SS, Code, OpGas, RamGas, Funs, Vars, State, Trees),
-    run(SST, CodesT, EOpGas, RamGas, Funs, Vars, State, A2+Amount, N2+Nonce, max(Delay, Delay2), Trees).
-run3(SS, Bet, OpGas, RamGas, Funs, Vars, State, Trees) ->
-    ScriptSig = SS#ss.code,
-    true = chalang:none_of(ScriptSig),
-    %Trees = (tx_pool:get())#tx_pool.block_trees,
-    %F = prove_facts(Bet#bet.prove, Trees),
-    F = prove_facts(SS#ss.prove, Trees),
-    C = Bet#bet.code,
-    Code = <<F/binary, C/binary>>,  
-    Height = element(2, State),
-    io:fwrite("before data maker \n"),
-    Data = data_maker(OpGas, RamGas, Vars, Funs, ScriptSig, Code, State, constants:hash_size(), Height),
-    io:fwrite("after data maker \n"),
-    {Amount0, Nonce, Delay, Data2} = chalang_error_handling(ScriptSig, Code, Data),
-    CGran = constants:channel_granularity(),
-    
-    %io:fwrite(packer:pack({stack, Amount, Nonce, Delay})),
-    %io:fwrite("\n"),
-    A3 = Amount0 * Bet#bet.amount div CGran,
-    {A3, Nonce, Delay,
-     chalang:time_gas(Data2)
-    }.
-
-
-
 force_update(SPK, SSOld, SSNew) ->
     F = tx_pool:get(),
     Trees = F#tx_pool.block_trees,
@@ -471,10 +331,10 @@ force_update(SPK, SSOld, SSNew) ->
     if 
 	not(L == L2) -> false;
 	true ->
-	    {_, NonceOld,  _} =  run(fast, SSOld, SPK, Height, 0, Trees),
+	    {_, NonceOld,  _} =  dict_run(fast, SSOld, SPK, Height, 0, Trees),
 						%{_, NonceOld,  _} =  dict_run(fast, SSOld, SPK, Height, 0, Dict),
 						%we can't use dict here, because not all the information we need is stored in the dict.
-	    {_, NonceNew,  _} =  run(fast, SSNew, SPK, Height, 0, Trees),
+	    {_, NonceNew,  _} =  dict_run(fast, SSNew, SPK, Height, 0, Trees),
 						%{_, NonceNew,  _} =  dict_run(fast, SSNew, SPK, Height, 0, Dict),
 	    if
 		NonceNew >= NonceOld ->
@@ -496,7 +356,7 @@ force_update2([Bet|BetsIn], [SS|SSIn], BetsOut, SSOut, Amount, Nonce) ->
     {ok, VarLimit} = application:get_env(amoveo_core, var_limit),
     {ok, BetGasLimit} = application:get_env(amoveo_core, bet_gas_limit),
     true = chalang:none_of(SS#ss.code),
-    F = prove_facts(SS#ss.prove, Trees),
+    F = prove_facts(SS#ss.prove, Trees, Height),
     C = Bet#bet.code,
     Code = <<F/binary, C/binary>>,
     Data = data_maker(BetGasLimit, BetGasLimit, VarLimit, FunLimit, SS#ss.code, Code, State, constants:hash_size(), Height),
@@ -525,8 +385,8 @@ is_improvement(OldSPK, OldSS, NewSPK, NewSS) ->
     TG = NewSPK#spk.time_gas,
     true = SG =< SpaceLimit,
     true = TG =< TimeLimit,
-    {_, Nonce2, Delay2} =  run(fast, NewSS, NewSPK, Height, 0, BlockTrees),
-    {_, Nonce1, _} =  run(fast, OldSS, OldSPK, Height, 0, BlockTrees),
+    {_, Nonce2, Delay2} =  dict_run(fast, NewSS, NewSPK, Height, 0, BlockTrees),
+    {_, Nonce1, _} =  dict_run(fast, OldSS, OldSPK, Height, 0, BlockTrees),
     io:fwrite("spk is improvement "),
     io:fwrite(packer:pack([Nonce1, Nonce2, NewSS, OldSS])),
     io:fwrite("\n"),
@@ -668,13 +528,14 @@ test2() ->
     TP = tx_pool:get(),
     Trees = TP#tx_pool.block_trees,
     Height = TP#tx_pool.height,
-    run(fast, SSME, SPK, Height, 0, Trees).
+    dict_run(fast, SSME, SPK, Height, 0, Trees).
 test() ->
     %test prove_facts.
     BlockTrees = (tx_pool:get())#tx_pool.block_trees,
     Pub = constants:master_pub(),
     GovID = 2,
-    Code = prove_facts([{governance, GovID},{accounts, Pub}], BlockTrees),
+    Height = block:height(),
+    Code = prove_facts([{governance, GovID},{accounts, Pub}], BlockTrees, Height),
     State = chalang_state(1, 0, BlockTrees),
     [[[<<6:32>>, <<GovID:32>>, Gov5], %6th tree is governance. 5th thing is "delete channel reward"
       [<<1:32>>, BPub, Acc1]]] = %1st tree is accounts. 1 is for account id 1.
@@ -687,7 +548,7 @@ test() ->
     %Govern5 = governance:element(3, governance:deserialize(Gov5)),
     %Gov5 = governance:serialize(Govern5),
     success.
-    
+ 
 data_maker(A, B, C, D, E, F, G, H, Height) ->    
     F22 = forks:get(22),
     Version = if

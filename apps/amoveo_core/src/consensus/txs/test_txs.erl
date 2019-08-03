@@ -215,7 +215,7 @@ test(5) ->
     mine_blocks(1),
     success;
 test(61) -> 
-    %a smart contract that runs out of gas.
+    %a smart contract that runs out of time or space gas. testing using an infinite loop.
 % look at the result of `trees:get(channels, <<5:256>>).` to see how this changes the channel.
     headers:dump(),
     block:initialize_chain(),
@@ -240,19 +240,23 @@ test(61) ->
     potential_block:new(),
     mine_blocks(1),
 
-    Code = compiler_chalang:doit(<<" : doit recurse call ; doit call ">>),%channel nonce is 1, sends 50.
+    %Code = compiler_chalang:doit(<<" nil : doit int 5 swap cons dup dup recurse call ; doit call ">>),% this version runs out of space
+    Code = compiler_chalang:doit(<<" nil : doit int 5 swap cons recurse call ; doit call ">>),%this version runs out of time.
     %Code = compiler_chalang:doit(<<" drop int 2  int 2 int 2 ">>), % this version does not run out of gas, for comparison.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
-    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 1000000, 1000000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
     ScriptSig = spk:new_ss(compiler_chalang:doit(<<" ">>), []),
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
+    io:fwrite("\nbefore\n"),
     absorb(Stx3),
+    io:fwrite("before 2\n"),
     potential_block:new(),
     mine_blocks(1),
+    io:fwrite("before 3\n"),
     timer:sleep(50),
     success;
 
@@ -835,9 +839,9 @@ test(15) ->
     potential_block:new(),
     mine_blocks(1),
     timer:sleep(150),
-    %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     timer:sleep(2000),
     Txs2 = (tx_pool:get())#tx_pool.txs,
+    %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),

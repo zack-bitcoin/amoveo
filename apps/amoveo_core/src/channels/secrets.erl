@@ -69,6 +69,6 @@ test() ->
     Amount = 200,
     Bet = spk:new_bet(Code, Code, Amount),
     SPK = spk:new(1, 2, <<3:256>>, [Bet], 9000, 9000, 1, 1),
-    {Amount, _, _} = spk:run(fast, [SS], SPK, Height, 0, Trees),%for sanity check
+    {Amount, _, _} = spk:dict_run(fast, [SS], SPK, Height, 0, Trees),%for sanity check
     success.
     
