@@ -78,59 +78,50 @@ remove_nth(N, [A|B]) -> [A|remove_nth(N-1, B)].
 dict_prove_facts([], _, _) ->
     compiler_chalang:doit(<<" nil ">>);
 dict_prove_facts(X, Dict, Height) ->
-    A = <<"macro [ nil ;
+    ListSyntax = <<"macro [ nil ;
 	macro , swap cons ;
 	macro ] swap cons reverse ;
         [">>,
     B = dict_prove_facts2(X, Dict, Height),
-    compiler_chalang:doit(<<A/binary, B/binary>>).
+    compiler_chalang:doit(<<ListSyntax/binary, B/binary>>).
 dict_prove_facts2([], _, _) -> <<"]">>;
 dict_prove_facts2([{Tree, Key}|T], Dict, Height)->
-    %Dict might actually be a trees record.
     ID = tree2id(Tree),
     Data = 
         if
-            (element(1, Dict) == dict) ->
+            (element(1, Dict) == dict) ->%Dict is a dict in ram containing info to process this one block.
                 Tree:dict_get(Key, Dict);
-            true ->
+            true ->%Dict is a trees object containing the entire merkel tree database.
                 Branch = trees:Tree(Dict),
                 {_, Data0, _} = Tree:get(Key, Branch),
                 Data0
         end,
-    SerializedData = 
+    DataPart = 
         case Data of
             empty ->
                 F25 = forks:get(25),
                 true = (F25 < Height),
-                <<"empty">>;
-            _ -> Tree:serialize(Data)
+                ", int 0 ]";
+            _ ->SD = Tree:serialize(Data),
+                Size = size(SD),
+                ", binary " ++ integer_to_list(Size) ++ " " ++ binary_to_list(base64:encode(SD))
         end,
-    Size = size(SerializedData),
-    A = if
+    TypePart = "int " ++ integer_to_list(ID),
+    KeyPart = if
             is_integer(Key) ->
-                "[int " ++ integer_to_list(ID) ++ 
-                    ", int " ++ integer_to_list(Key) ++%burn and existence store by hash, not by integer.
-                    ", binary " ++
-                    integer_to_list(Size) ++ " " ++
-                    binary_to_list(base64:encode(SerializedData))++ 
-                    "]";
+                    ", int " ++ integer_to_list(Key);
             true -> 
-                "[int " ++ integer_to_list(ID) ++ 
                     ", binary " ++
                     integer_to_list(size(Key)) ++ " " ++
-                    binary_to_list(base64:encode(Key)) ++
-                    ", binary " ++
-                    integer_to_list(Size) ++ " " ++
-                    binary_to_list(base64:encode(SerializedData))++ 
-                    "]"
+                    binary_to_list(base64:encode(Key))
         end,
-    A2 = list_to_binary(A),
-    B = dict_prove_facts2(T, Dict, Height),
-    C = case T of
+    Fact = list_to_binary("[" ++ TypePart ++ KeyPart ++ DataPart ++ "]"),
+    C = case T of%if it's the last element of the list, don't put a comma after.
 	    [] -> <<>>;
 	    _ -> <<", ">>
-		     end,
-    <<A2/binary, C/binary, B/binary>>.
+        end,
+    Rest = dict_prove_facts2(T, Dict, Height),
+    <<Fact/binary, C/binary, Rest/binary>>.
 
 tree2id(accounts) -> 1;
 tree2id(channels) -> 2;

@@ -54,9 +54,9 @@ round(Z*1024 / P2)
 A scalar oracle that moves inversely with BSV/USD
 
 ```
-fV = final usd/veo price;
-sV = starting usd/veo price;
-fB = final bsv/veo price;
-sB = starting bsv/veo price;
-return 1024* (0.5 + (fV/sV) - (fB/sB))
+fV = final usd/veo;
+sV = starting usd/veo;
+fB = final bsv/veo;
+sB = starting bsv/veo;
+return 1024*(0.5 + (fV/sV) - (fB/sB))
 ```

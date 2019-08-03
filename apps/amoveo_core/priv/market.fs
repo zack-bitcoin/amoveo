@@ -128,7 +128,7 @@ macro unmatched ( OracleProof -- delay nonce amount )
       	then
 ;
 macro no_oracle
-      print car drop car swap drop car swap drop car drop binary 5 ZW1wdHk= print == tuck drop drop or_die print
+      print car drop car swap drop car swap drop car drop int 0 print == tuck drop drop or_die print
 ;
 macro main
 swap
@@ -137,7 +137,7 @@ swap
       int 2 == if drop drop drop contradictory_prices else drop
       int 3 == if drop drop drop evidence else drop
       int 4 == if drop drop unmatched else drop
-      % int 5 == if drop drop no_oracle else drop then
+      %int 5 == if drop drop no_oracle else drop then
       then then then then then
 % the "amount" was originally set up so that 10000= amount I bet + amount you bet.
 % we also need a small refund, if the price a bet gets matched is different from the price they were willing to pay.
