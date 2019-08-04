@@ -38,7 +38,9 @@ Conclusions
 
 The computation on page 27 of the bitcoin hivemind whitepaper is wrong: http://bitcoinhivemind.com/papers/truthcoin-whitepaper.pdf
 The actual cost to bribe the votecoin holders is about (1/(number of votecoin holders)) less than what his math is showing.
-This puts Bitcoin Hivemind and UMA's oracle firmly in the 4.2 security level. You can read about security levels here https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
+This puts Bitcoin Hivemind and UMA's oracles firmly in the 4.2 security level. You can read about security levels here https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
 
-Augur has a mechanism so that their votecoin subcurrency, called rep, can be split into 2 child subcurrencies, one of which is honest. In this way we can punish the oracle voters who reported wrongly.
+A centralized prediction markets can at least hire lawyers and try to survive. Bitcoin Hivemind is likely less secure than centralized alternatives.
+
+Augur has a mechanism so that their votecoin subcurrency, called rep, can be split into 2 child subcurrencies, one of which is honest. In this way they can punish the oracle voters who reported wrongly.
 So assuming that conditional bribery does not work, and that parasite contracts don't exist, then Augur is 3.2 level secure.
