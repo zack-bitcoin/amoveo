@@ -153,3 +153,25 @@ This situation would be 4.3 level trust.
 
 If you put your money into a trusted centralized server to gamble in the price of derivatives, and the order of trades is not strictly enforced, so that other users or the server are able to front-run your trades, then this is 4.4 level secure.
 You don't know who is robbing you, or if it is even happening. Maybe you are just an unlucky trader.
+
+
+
+
+Security level
+=======
+
+1,2,3,4 are the discrete trust levels. They increase with increasing amount of trust.
+The security level of a mechanism is any number between -1 and infinity. It increases with increasing amounts of security.
+
+trust level 1 = security level infinity.
+
+trust level 2 = security level in the range between 1 and infinity.
+
+trust level 3 = security level in the range between 0 and 1.
+
+trust level 4 = security level in the range between -1 and 0.
+
+you calculate your security level like this:
+If the attacker's change in balance due to the attack is A, and the defender's loss is B, then the security level is A/B .
+
+security levels are a more precise way of communicating the security of a blockchain in comparison to trust levels, but it is harder to calculate, so maybe it isn't worth using.
