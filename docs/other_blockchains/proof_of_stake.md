@@ -43,7 +43,9 @@ From the miner's perspective, if they participate in your coalition they will pr
 Why PoS fails
 ======
 
-POS systems all require some logical connection between value in the system, and the decisions about which blocks to add to the blockchain. So in POS systems, it is always possible for a majority coalition to punish accounts who don't participate in the consensus in the way the majority wants. The majority simply censors them from accessing their money any more.
+POS systems all require some logical connection between value in the system, and the decisions about which blocks to add to the blockchain.
+If we are to solve the nothing-at-stake and long-range attack problems, there needs to be a lot of money locked up in every consensus level decision.
+So in POS systems, it is always possible for a majority coalition to punish accounts who don't participate in the consensus in the way the majority wants. The majority simply censors them from accessing their money any more.
 So in POS systems, once a majority coalition has formed, it is very stable. It is easy for the participants in the coalition to trust each other, because if any one of them cheats, the rest of the coalition can tell who cheated and punish them by freezing their money.
 So the majority coalition can use soft forks to push through any changes to the consensus rules that they want, they can steal any money, they can raise the fees as high as they want.
 
