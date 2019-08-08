@@ -32,6 +32,8 @@ handle(Req, _) ->
 	       <<"/new_oracle.js">> -> true;
 	       <<"/oracle_bet.html">> -> true;
 	       <<"/oracle_bet.js">> -> true;
+	       <<"/oracle_winnings.html">> -> true;
+	       <<"/oracle_winnings.js">> -> true;
 	       <<"/oracle_close.html">> -> true;
 	       <<"/oracle_close.js">> -> true;
 	       <<"/messenger.js">> -> true;
