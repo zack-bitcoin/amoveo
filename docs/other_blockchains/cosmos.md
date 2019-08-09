@@ -13,7 +13,7 @@ Our soft fork upgrade can be set up to only activate if >2/3rds of validators ha
 But, if a validator fails to participate in a soft fork attack, and the soft fork attack succeeds, then that validator will probably lose all their stake as a punishment for not supporting the attack. So this means there is a non-zero cost for validators who want to refuse to participate in the soft fork attack. This makes the bribes to pull off this attack even cheaper.
 
 The richest validators in Cosmos control 8% of the validator stake.
-The cost to bribe a validator who has 8% of the stake is: (how much the price of Atoms is harmed by the attack)*(how much more likely the attack is to succeed if this validator participates)*(8% of the value of all the stake)
+The cost to bribe a validator who has 8% of the stake is: (how much the price of Atoms is harmed by the attack) * (how much more likely the attack is to succeed if this validator participates) * (8% of the value of all the stake)
 
 At worst, a successful attack can completely destroy the value of Atoms. The change in probability of success of the attack if this validator participates is about 8/100.
 So we can know that the bribe is always less expensive than: (value of 8% of the stake)*(8/100) = value of 0.64% of the stake.
