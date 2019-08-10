@@ -3,6 +3,8 @@ Decred
 
 This is a review of the pow/pos hybrid consensus design used in Decred.
 
+Here is a document that explores the capabilities of pow/pos hybrid designs in general: https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/pow_pos_hybrid.md
+
 https://docs.decred.org/proof-of-stake/overview/ Looking at this page.
 At the top of that page, they listed 5 reasons that they incorporate PoS elements into their blockchain.
 1) Allowing stakeholders to vote for or against proposed changes to the Decred blockchain. This means that Decred is not secure, because it is cheap to bribe the voters to make an upgrade that would destroy Decred https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/voting_in_blockchains.md
