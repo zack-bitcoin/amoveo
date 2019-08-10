@@ -45,19 +45,20 @@ If it is the kind of PoS mechanism that requires >50% participation, like Cosmos
 
 If it is the kind of PoS mechanism that is based on something like coin-age, so even if most PoS validators stop participating, PoS blocks can still be found, then we need to consider a some cases based on the fork-choice rule.
 In a hybrid design, the fork-choice rule depends on some combination of P = portion of PoS validators participating, and H = the amount of hashpower.
-Starting by considering a first-order polynomial. weight = a*P + b*H
+Starting by considering a first-order polynomial. weight = (a * P) + (b * H)
 
 considering a couple cases:
 normal mode, 10% of value is staked, hashpower = 1. weight = a/10 + b.
 hashpower attack, 1% of value is staked, hashpower = 3. weight = a/100 + 3*b.
 bribe attack, 10% of value is staked, hashpower = 0.1. weight = a/10 + b/10.
 
-9*a/100 > 2*b
+9 * a/100 > 2 * b
+
 a > 200 * b / 9.
 
 lets try b=1, a=30
 
-weight = 30*P + H
+weight = 30 * P + H
 
 In general, we can set b=1, and by trying out different values for A we can explore the entire space of possible weighting algorithms. This is because if we multiply a weighting algorithm by a scalar, this mapping preserves the order of which block histories were considered higher weight than others. So there is only one free constant N=a/b.
 
@@ -85,8 +86,8 @@ if an attacker bribes 60% of active stakers, then the main-chain's weight goes d
 and the attacker has 0.06+H(1+c*0.06).
 
 lets calculate how much hashrate the attacker needs to succeed:
-H(1+c*0.06) > 0.98 + c/25
-H > (0.98 + c*0.04)/(1+c*0.06)
+H(1 + (c * 0.06)) > 0.98 + c/25
+H > (0.98 + (c * 0.04))/(1 + (c * 0.06))
 try c=0 -> H > 0.98
 try c=1 -> H > 1.02 / 1.06 -> H > 0.96
 try c=10 -> H > 1.38 /1.6 -> H > 0.862
@@ -95,7 +96,7 @@ Increasing C above 0 only makes it less secure.
 If C is below 0, then there are cases where increasing hashrate or stake participation decreases the weight, which is contradictory with the basic logic of how the fork choice rule should work.
 
 considering other second order polynomials:
-weight = P + H + f*P*P + e*H*H
+weight = P + H + (f * P * P) + (e * H * H)
 if e<0 or f<0, then sometimes increasing hashrate or stake participation will cause weight to decrease, which is impossible. so we only consider e>0 and f>0.
 The problem with e>0 is that every additional megahash of mining power added is more valuable than the previous. So an attacker that has only slightly more hashpower than the main branch, he will easily overpower consensus.
 e>0 is only making the blockchain more vulnerable to hashrate attacks.
