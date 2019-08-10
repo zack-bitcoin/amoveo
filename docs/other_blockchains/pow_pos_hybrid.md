@@ -68,6 +68,7 @@ To bribe attack, you need to control 1/2 of the current stakers + (market cap)/3
 The general rule for first-order polynomial fork choice rules is that if we want to be secure against an attacker with Nx more hashpower than we currently have, then that means that an attacker would only need to bribe (1/2 the current stakers) + (market cap)/N more.
 
 It is cheap to bribe the stakers to participate in an attack for all N>1.
+
 But if N<1, that means it is cheaper to do hashpower attacks vs standard PoW.
 
 So lets try N=1.
@@ -86,21 +87,32 @@ if an attacker bribes 60% of active stakers, then the main-chain's weight goes d
 and the attacker has 0.06+H(1+c*0.06).
 
 lets calculate how much hashrate the attacker needs to succeed:
+
 H(1 + (c * 0.06)) > 0.98 + c/25
+
 H > (0.98 + (c * 0.04))/(1 + (c * 0.06))
+
 try c=0 -> H > 0.98
+
 try c=1 -> H > 1.02 / 1.06 -> H > 0.96
+
 try c=10 -> H > 1.38 /1.6 -> H > 0.862
 
 Increasing C above 0 only makes it less secure.
 If C is below 0, then there are cases where increasing hashrate or stake participation decreases the weight, which is contradictory with the basic logic of how the fork choice rule should work.
 
 considering other second order polynomials:
+
 weight = P + H + (f * P * P) + (e * H * H)
+
 if e<0 or f<0, then sometimes increasing hashrate or stake participation will cause weight to decrease, which is impossible. so we only consider e>0 and f>0.
+
 The problem with e>0 is that every additional megahash of mining power added is more valuable than the previous. So an attacker that has only slightly more hashpower than the main branch, he will easily overpower consensus.
+
 e>0 is only making the blockchain more vulnerable to hashrate attacks.
+
 f>0 is making the blockchain even more vulnerable to bribe attacks than it would otherwise be. You only need a little more participation than the main branch to overpower it. so f>0 is not possible.
+
 therefore, f=0 and e=0.
 
 We have considered all possible first and second order polynomials to define the fork choice rule, and all were significantly less secure than PoW.
