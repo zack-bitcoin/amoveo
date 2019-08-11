@@ -71,7 +71,7 @@ The general rule for first-order polynomial fork choice rules is that if we want
 
 It is cheap to bribe the stakers to participate in an attack for all N>1.
 
-But if N<1, that means it is cheaper to do hashpower attacks vs standard PoW.
+But if N<1, that means it is cheaper to do hashpower attacks in comparison to 100% PoW.
 
 So lets try N=1.
 
@@ -79,7 +79,7 @@ weight = P + H.
 so if the 10% of value is staked, the weight is 1.1
 An attacker would either need to control 110% of the stake (yes, more than 100% is impossible), or 1.1x the hashrate that is currently mining, or some linear combination of those 2 things. like 50% of stake + 0.6x the hashrate
 
-So we can conclude that first order polynomials cannot result in a fork choice rule that would let pow/pos hybrid be more secure vs standard pow.
+So we can conclude that first order polynomials cannot result in a fork choice rule that would let pow/pos hybrid be more secure vs standard pow against hashrate rental attacks.
 
 
 Next considering polynomials of the form weight = P + H + c*P*H

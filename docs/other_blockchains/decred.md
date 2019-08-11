@@ -29,10 +29,10 @@ Again, this is a voting mechanism. Which means it is cheap to bribe the voters t
 5) Snap voting of live tickets is used to make decisions about the project treasury. Again, voting cannot be secure. see (1) and (2).
 
 
-here is the decred white paper: https://decred.org/research/mackenzie2013.pdf
+here is the memcoin 2 white paper, which decred was based on: https://decred.org/research/mackenzie2013.pdf
 
 
-The fork choice rule from decred, from page 11 of their white paper: weight = sqrt(P * H * Q)
+The fork choice rule from decred, from page 11 of the white paper: weight = sqrt(P * H * Q)
 where Q is the number of ticket signatures on that block, either 3, 4 or 5.
 P is the portion of coins locked as collaterol for PoS.
 H is the hashpower.
