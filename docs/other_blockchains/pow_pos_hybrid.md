@@ -101,6 +101,8 @@ try c=10 -> H > 1.38 /1.6 -> H > 0.862
 Increasing C above 0 only makes it less secure.
 If C is below 0, then there are cases where increasing hashrate or stake participation decreases the weight, which is contradictory with the basic logic of how the fork choice rule should work.
 
+So that means c=0.
+
 considering other second order polynomials:
 
 weight = P + H + (f * P * P) + (e * H * H)

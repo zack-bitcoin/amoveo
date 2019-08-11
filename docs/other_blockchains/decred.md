@@ -14,7 +14,7 @@ This means that once a coalition takes control of the PoS side, their control is
 
 Again, this is a voting mechanism. Which means it is cheap to bribe the voters to manipulate the vote to break the blockchain.
 
-3) For a block to be valid, it has to be signed by at least 3 of the 5 tickets that are called to vote in that block. This makes the Decred blockchain more robust to certain kinds of attack, such as those which rely on secret mining.
+3) For a block to be valid, it has to be signed by at least 3 of the 5 tickets that are called to vote in that block.
 
 This means that if you can bribe >about 40% of the stake, then you can freeze the blockchain.
 I say "about" because there is a little freedom to re-mine blocks to get a new random selection of 5 ticket holders, and there is the fact that even if my coalition only has 35%, sometimes we will still control >2 of the 5 tickets for that block.
