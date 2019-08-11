@@ -9,9 +9,11 @@ voting mechanisms suffer from market failure if there is bribery. you can see fr
 Example: we are voting on A or B. if A wins, then every voter is $100 richer. There are 100 voters with equal stake.
 I bribe all the voters $2 to vote for B
 
-Wins: A B
+```
+Wins:    A    B
 vote A: $100 $0
 vote B: $102 $2
+```
 
 you can see form the chart that any individual voter would prefer to vote for B. because 102 > 100, and 2 > 0.
 So $200 of bribes can destroy $10 000 of value.
