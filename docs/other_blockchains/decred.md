@@ -30,13 +30,13 @@ H is the hashpower.
 considering a couple cases:
 
 normal, 10% value is staked, hashpower = 1, Q=5
-weight = sqrt(1*0.1*5) = 0.707
+weight = sqrt(1 * 0.1 * 5) = 0.707
 
 hashpower attack, 1% of value is staked, hashpower = 3, Q=1
 weight = 0. the fork fails with Q<3.
 
 bribe attack. 9% of value is staked, hashpower = 0.001.
-weight = sqrt(0.09*0.001*5) = 0.0212
+weight = sqrt(0.09 * 0.001 * 5) = 0.0212
 
 defenders of bribe attack. 1% of value left staked, hashpower = 1, Q=0
 weight = 0. fork fails with Q<3.
