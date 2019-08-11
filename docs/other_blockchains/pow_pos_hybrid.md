@@ -49,7 +49,9 @@ Starting by considering a first-order polynomial. weight = (a * P) + (b * H)
 
 considering a couple cases:
 normal mode, 10% of value is staked, hashpower = 1. weight = a/10 + b.
+
 hashpower attack, 1% of value is staked, hashpower = 3. weight = a/100 + 3*b.
+
 bribe attack, 10% of value is staked, hashpower = 0.1. weight = a/10 + b/10.
 
 9 * a/100 > 2 * b
@@ -119,4 +121,9 @@ therefore, f=0 and e=0.
 
 We have considered all possible first and second order polynomials to define the fork choice rule, and all were significantly less secure than PoW.
 Preventing hashrate attacks this way makes us too vulnerable to bribery attacks.
+
+
+
+
+
 

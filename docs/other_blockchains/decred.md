@@ -19,8 +19,32 @@ Again, this is a voting mechanism. Which means it is cheap to bribe the voters t
 5) Snap voting of live tickets is used to make decisions about the project treasury. Again, voting cannot be secure. see (1) and (2).
 
 
+here is the decred white paper: https://decred.org/research/mackenzie2013.pdf
 
-A major problem with decred is that no one knows what decred's fork choice rule is.
 
-Failure to know what their fork choice rule is means that Decred is using different security models to explain why they are secure from different kinds of attacks. This is an invalid strategy in cryptoeconomics.
-https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/security_model.md
+The fork choice rule from decred, from page 11 of their white paper: weight = sqrt(P * H * Q)
+where Q is the number of ticket signatures on that block, either 3, 4 or 5.
+P is the portion of coins locked as collaterol for PoS.
+H is the hashpower.
+
+considering a couple cases:
+
+normal, 10% value is staked, hashpower = 1, Q=5
+weight = sqrt(1*0.1*5) = 0.707
+
+hashpower attack, 1% of value is staked, hashpower = 3, Q=1
+weight = 0. the fork fails with Q<3.
+
+bribe attack. 9% of value is staked, hashpower = 0.001.
+weight = sqrt(0.09*0.001*5) = 0.0212
+
+defenders of bribe attack. 1% of value left staked, hashpower = 1, Q=0
+weight = 0. fork fails with Q<3.
+
+A bribe attack does result in a very low weight, far lower than normal operations. But, since the attacker is able to prevent any blocks from being added to the defender's fork, the attack succeeds.
+
+Decred is vulnerable to bribery attacks that take control of >50% of the tickets.
+Once >50% control is established, then the coalition that controls PoS can censor any PoW blocks it doesn't like. They can keep causing the difficulty to go down, until they are able to find blocks at a normal pace without allowing anyone outside the coalition to find any blocks.
+
+At that point the coalition is unstoppable.
+
