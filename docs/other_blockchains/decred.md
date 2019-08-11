@@ -3,6 +3,12 @@ Decred
 
 This is a review of the pow/pos hybrid consensus design used in Decred.
 
+This was the most painful review I have done.
+People in the community were sharing false information about how it works.
+Documentation includes expired data and is not searchable.
+Devs would respond "dyor" to even the most basic questions about how Decred works.
+
+
 Here is a document that explores the capabilities of pow/pos hybrid designs in general: https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/pow_pos_hybrid.md
 
 https://docs.decred.org/proof-of-stake/overview/ Looking at this page.
