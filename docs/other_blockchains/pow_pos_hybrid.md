@@ -65,7 +65,7 @@ Since weight only increases as participation increases, that means that:
 
 F2: weight(H1, P*2) > weight(H1, P)
 
-since weight only increases as hashrate increases, that means that:
+since weight only increases as hashrate increases, and H1 > H0, that means that:
 
 F3: weight(H1, P) > weight(H0, P)
 
