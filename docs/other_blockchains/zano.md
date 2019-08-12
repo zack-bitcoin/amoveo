@@ -71,3 +71,19 @@ Which means an attacker with control of 2x as much stake as the main chain would
 
 45% < 51%, so it is cheaper to attack this protocol vs standard PoW.
 
+
+Next lets see how much hashpower an attacker with 90% control of the stake needs:
+
+P2 = 9
+P1 = 1
+H2 = ?
+H1 = 1
+
+(P1 + H1) * (P1*H1)^2 = (P2 + H2) * (P2*H2)^2
+
+2 * 1 = (9 + H2) * 81 * H2 * H2
+
+H2 = 0.052
+
+So if an attacker controlled 90% of the stake, he would only need to control 5.2% of the hashpower to take control of the blockchain.
+
