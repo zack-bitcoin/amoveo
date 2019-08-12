@@ -45,85 +45,32 @@ If it is the kind of PoS mechanism that requires >50% participation, like Cosmos
 
 If it is the kind of PoS mechanism that is based on something like coin-age, so even if most PoS validators stop participating, PoS blocks can still be found, then we need to consider a some cases based on the fork-choice rule.
 In a hybrid design, the fork-choice rule depends on some combination of P = portion of PoS validators participating, and H = the amount of hashpower.
-Starting by considering a first-order polynomial. weight = (a * P) + (b * H)
 
-considering a couple cases:
-normal mode, 10% of value is staked, hashpower = 1. weight = a/10 + b.
+We have a fork choice rule weight(H, P).
 
-hashpower attack, 1% of value is staked, hashpower = 3. weight = a/100 + 3*b.
+We want it to be the case that increasing PoS participation, or increasing hashpower, that it can only have a positive influence on the weight of that subchain.
 
-bribe attack, 10% of value is staked, hashpower = 0.1. weight = a/10 + b/10.
+The cost to take majority control of the PoS portion is cheap, because of market failure in voting systems. So lets consider the case where the attacker has 2/3rds control of the validator stake.
+normal = weight(H0, P), attacker = (H1, P*2).
 
-9 * a/100 > 2 * b
+To calculate how much hashpower the attacker would need to have exactly 50% likelyhood of the attack succeeding:
+F1: weight(H1, P*2) = weight(H0, P).
 
-a > 200 * b / 9.
+lets suppose that the pow/pos hybrid design is more secure than pow, or at least equally secure. This means that the attacker's hashpower needs to be bigger than the network hashpower for the attack to succeed. (We will use proof by contradiction to show that this supposition is false.)
+S1: H1 > H0.
 
-lets try b=1, a=30
+Since weight only increases as participation increases, that means that:
+F2: weight(H1, P*2) > weight(H1, P)
 
-weight = 30 * P + H
+since weight only increases as hashrate increases, that means that:
+F3: weight(H1, P) > weight(H0, P)
 
-In general, we can set b=1, and by trying out different values for A we can explore the entire space of possible weighting algorithms. This is because if we multiply a weighting algorithm by a scalar, this mapping preserves the order of which block histories were considered higher weight than others. So there is only one free constant N=a/b.
+combining F2 and F3, we get that
+weight(H1, P*2) > weight(H0, P).
 
-So to hash-power attack, you need to increase the hashpower 30x over current level.
-To bribe attack, you need to control 1/2 of the current stakers + (market cap)/30 more of the coins.
+but this contradicts with F1.
+so S1 must be false.
+Therefore H0 > H1.
 
-The general rule for first-order polynomial fork choice rules is that if we want to be secure against an attacker with Nx more hashpower than we currently have, then that means that an attacker would only need to bribe (1/2 the current stakers) + (market cap)/N more.
-
-It is cheap to bribe the stakers to participate in an attack for all N>1.
-
-But if N<1, that means it is cheaper to do hashpower attacks in comparison to 100% PoW.
-
-So lets try N=1.
-
-weight = P + H.
-so if the 10% of value is staked, the weight is 1.1
-An attacker would either need to control 110% of the stake (yes, more than 100% is impossible), or 1.1x the hashrate that is currently mining, or some linear combination of those 2 things. like 50% of stake + 0.6x the hashrate
-
-So we can conclude that first order polynomials cannot result in a fork choice rule that would let pow/pos hybrid be more secure vs standard pow against hashrate rental attacks.
-
-
-Next considering polynomials of the form weight = P + H + c*P*H
-if the network has 10% staked, then the current weight is 1.1 + c/10
-
-if an attacker bribes 60% of active stakers, then the main-chain's weight goes down to 1.04 + c/25
-and the attacker has 0.06+H(1+c*0.06).
-
-lets calculate how much hashrate the attacker needs to succeed:
-
-H(1 + (c * 0.06)) > 0.98 + c/25
-
-H > (0.98 + (c * 0.04))/(1 + (c * 0.06))
-
-try c=0 -> H > 0.98
-
-try c=1 -> H > 1.02 / 1.06 -> H > 0.96
-
-try c=10 -> H > 1.38 /1.6 -> H > 0.862
-
-Increasing C above 0 only makes it less secure.
-If C is below 0, then there are cases where increasing hashrate or stake participation decreases the weight, which is contradictory with the basic logic of how the fork choice rule should work.
-
-So that means c=0.
-
-considering other second order polynomials:
-
-weight = P + H + (f * P * P) + (e * H * H)
-
-if e<0 or f<0, then sometimes increasing hashrate or stake participation will cause weight to decrease, which is impossible. so we only consider e>0 and f>0.
-
-The problem with e>0 is that every additional megahash of mining power added is more valuable than the previous. So an attacker that has only slightly more hashpower than the main branch, he will easily overpower consensus.
-
-e>0 is only making the blockchain more vulnerable to hashrate attacks.
-
-f>0 is making the blockchain even more vulnerable to bribe attacks than it would otherwise be. You only need a little more participation than the main branch to overpower it. so f>0 is not possible.
-
-therefore, f=0 and e=0.
-
-We have considered all possible first and second order polynomials to define the fork choice rule, and all were significantly less secure than PoW.
-Preventing hashrate attacks this way makes us too vulnerable to bribery attacks.
-
-
-
-
-
+This means that it is always cheaper to do a hashrate rental attack against a pow/pos hybrid than against a normal pow blockchain.
 
