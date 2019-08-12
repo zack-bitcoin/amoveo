@@ -8,7 +8,7 @@ https://github.com/zack-bitcoin/slasher
 
 It is based off of this paper from Vitalik: https://blog.ethereum.org/2014/01/15/slasher-a-punitive-proof-of-stake-algorithm/
 
-The slasher type design was considered a big improvement over the coin-age type design, because slasher made it possible to solve the nothing-at-stake problem, and the long-range-attack problem.
+The slasher type design was considered a big improvement over the coin-age type design, because slasher made it possible to solve the nothing-at-stake problem.
 
 In late 2014/early 2015 Zack was researching bribery attacks in the context of oracles. He brought Paul Sztorc and Vitalik Buterin together to debate this topic. The results of the debate from Vitalik's perspective are here: https://blog.ethereum.org/2015/01/28/p-epsilon-attack/
 
