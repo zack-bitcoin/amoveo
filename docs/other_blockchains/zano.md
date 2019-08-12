@@ -3,6 +3,9 @@ Zano Review
 
 Here is the Zano white paper: https://zano.org/downloads/zano_wp.pdf
 
+The Zano white paper is very high quality documentation. Possibly the best white paper of any blockchain project I have looked at.
+Accurately communicating your work is critical for others to be able to review it and give helpful advice. This is where Zano shines.
+
 Here is a general proof that PoW/PoS hybrid protocols are impossible: https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/pow_pos_hybrid.md
 
 
@@ -12,7 +15,7 @@ Privacy and Bribery
 In general, proof of stake type mechanisms are vulnerable to bribery https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/proof_of_stake.md
 
 In order to prevent bribes, Zano is designed to hide how each validator is participating in the protocol, that way the attacker doesn't know who to pay the bribe to.
-Here is an explanation for why using privacy to prevent bribery in general does not work https://github.com/zack-bitcoin/plasmodial/blob/master/docs/threshold_signature_anonimity.md
+Here is an explanation for why using privacy to prevent bribery in general does not work https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/threshold_signature_anonimity.md
 
 The basic idea is that if the validators want to break privacy and prove how they are participating, this is always possible.
 Since the validators are motivated by the possibility of receiving a bribe, they have an incentive to break privacy so that they can get the bribe.
