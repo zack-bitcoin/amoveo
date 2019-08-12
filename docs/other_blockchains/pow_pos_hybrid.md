@@ -54,22 +54,28 @@ The cost to take majority control of the PoS portion is cheap, because of market
 normal = weight(H0, P), attacker = weight(H1, P*2).
 
 To calculate how much hashpower the attacker would need to have exactly 50% likelyhood of the attack succeeding:
+
 F1: weight(H1, P*2) = weight(H0, P).
 
 lets suppose that the pow/pos hybrid design is more secure than pow, or at least equally secure. This means that the attacker's hashpower needs to be bigger than the network hashpower for the attack to succeed. (We will use proof by contradiction to show that this supposition is false.)
+
 S1: H1 > H0.
 
 Since weight only increases as participation increases, that means that:
+
 F2: weight(H1, P*2) > weight(H1, P)
 
 since weight only increases as hashrate increases, that means that:
+
 F3: weight(H1, P) > weight(H0, P)
 
 combining F2 and F3, we get that
+
 weight(H1, P*2) > weight(H0, P).
 
 but this contradicts with F1.
 so S1 must be false.
+
 Therefore H0 > H1.
 
 This means that it is always cheaper to do a hashrate rental attack against a pow/pos hybrid than against a normal pow blockchain.
