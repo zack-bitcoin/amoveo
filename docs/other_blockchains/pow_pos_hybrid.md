@@ -48,10 +48,10 @@ In a hybrid design, the fork-choice rule depends on some combination of P = port
 
 We have a fork choice rule weight(H, P).
 
-We want it to be the case that increasing PoS participation, or increasing hashpower, that it can only have a positive influence on the weight of that subchain.
+Increasing PoS participation, or increasing hashpower, can only have a positive influence on the weight of that subchain.
 
 The cost to take majority control of the PoS portion is cheap, because of market failure in voting systems. So lets consider the case where the attacker has 2/3rds control of the validator stake.
-normal = weight(H0, P), attacker = (H1, P*2).
+normal = weight(H0, P), attacker = weight(H1, P*2).
 
 To calculate how much hashpower the attacker would need to have exactly 50% likelyhood of the attack succeeding:
 F1: weight(H1, P*2) = weight(H0, P).
