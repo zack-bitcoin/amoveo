@@ -18,7 +18,7 @@ My strategy to develop these math tools is like this:
 1) think really hard and come up with the best tools I can. Start with some model that can be improved iteratively.
 2) Write up some reports about which blockchain projects would be considered insecure according to the math tools currently being considered.
 3) Carefully read the responses from people who are upset that I called their blockchain insecure.
-4) revise the rules based on what we have learned, then go to step (2).
+4) revise the mathematical security framework based on what we have learned, then go to step (2).
 
 
 Here are some example reports that I have done as a part of step (2):
