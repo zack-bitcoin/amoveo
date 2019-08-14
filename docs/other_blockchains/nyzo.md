@@ -88,25 +88,29 @@ Transaction Fees
 The tx fees are split between a block validator, and the previous 9 block validators. they are always 0.25% of the amount sent.
 
 
+Validator vote slashing
+========
+If the majority of the validator set is upset with any particular validator, they can work together to have him kicked out.
+
+
 Attacks
 =========
-
-Profitable delay attacks.
-=========
-
-If you are a validator, and you manage to trigger a delay at the same time that you are collecting txs for your block, then you can get more txs and more fees.
-So all you have to do is pay the correct other validator to not validate their block, and the extra profit you earn in fees will, on average, be more than the cost of the bribe.
-If many validators use this logic, then the block time will be much slower than 7 seconds, and validators will be kicked out of the set much faster than they are added to the set, so the total number of validators will be very low.
-
 
 Soft fork bribery attacks
 ==========
 
 This section applying the attack described in this paper https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/proof_of_stake.md to Nyzo.
 
-You can bribe the current set of validators to vote or not vote to finalize blocks. ("Freezing" the blocks, according to nyzo jargon).
+An attacker can bribe the voters to use the validator-vote-slashing mechanism to kick out any arbitrary validator that they dislike.
+If the attacker keeps doing this, eventually they can control the majority of the validator pool.
 
-Because of market failure, also called tragedy of the commons, it is cheap to bribe the validators to do censorship. 
+Because of market failure, also called tragedy of the commons, it is cheap to bribe the validators to do censorship.
+
+
+Soft fork bribery attack that takes advantage of other core parts of Nyzo's consensus
+==========
+
+You can bribe the current set of validators to vote or not vote to finalize blocks. ("Freezing" the blocks, according to nyzo jargon).
 
 The ability to censor blocks is a soft fork. Anyone who can cause a soft fork to happen can change the consensus rules in arbitrary ways, so that their control of the blockchain is permanent.
 
@@ -114,12 +118,11 @@ In particular, you could use a soft fork to exclude certain validators from part
 
 This is a level 4 failure mode. https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
 
-Election bribery attack
-=========
+Normally the cycle would go Verifier_1 Verifier_2 Verifier_3...
+But I bribe the verifiers to build an alternative version of history Verifier_1 verifier_3 verifier_4 ...
+it skips verifier 2.
 
-Once every 3 cycles a new validator is added to the set. There is some voting mechanism to choose who should have priority for being added to the set.
-According to market failure theory, it should be cheap to bribe the voters so that they will always choose you as the new validator.
-If you bribe enough rounds of election, eventually you will control the majority of validator accounts, and at that point you can take over control of Nyzo permanently.
+Then I bribe all the verifiers to freeze my alternative version of history that skips verifier_2.
+So now verifier_2 is kicked out of the pool of verifiers.
 
-This is a level 4 failure mode.
 
