@@ -27,6 +27,7 @@ Fork Choice Rule
 in zano the fork choice rule isn't a cumulative weight function looking at a single history.
 It is a function that compares 2 alternative histories, and chooses one.
 It is a function with 4 inputs.
+
 ```
 weight(P1, P2, H1, H2) = (P1 + H1) * P1*H1/(P2*H2)
 ```
@@ -50,7 +51,11 @@ simplifies to ->
 ```
 (P1 + H1) * (P1 * H1)^2 > (P2 + H2) * (P2 * H2)^2
 ```
-
+simplifies to ->
+```
+weight(P, H) = (P + H) * (P * H)^2
+```
+This isn't the exact fork choice rule from zano. it is a simplification to give you a general idea of what sort of fork choice rule they use.
 
 So lets suppose an attacker has 2/3rds control of the stake, and calculate how much hashpower they would need to take control. Fork2 is the attacker's side.
 
@@ -85,12 +90,14 @@ H2 = 0.052
 
 So if an attacker controlled 90% of the stake, he would only need to control 5.2% of the hashpower to take control of the blockchain.
 
+The actual result here should have been 20%, not 5%.
+The problem is that I am using an estimate instead of the actual fork-choice-rule.
 
 
 More Realistic Conclusion given the Current state of Blockchain Attacks
 ===========
 
-Even though Zano is weaker than PoW in some technical sense, it seems like it is a better solution for now.
+Even though Zano is weaker than PoW in a strict game-theory sense, it seems like it could still be a better solution for now.
 
 Because if someone started doing these PoW/PoS hybrid bribery attacks, there are a lot of other blockchains that are easier to attack than Zano, so we will have plenty of warning to switch to PoW at that point in time. Zano's excellent fork choice rule means that you still need a lot of PoW hashpower, even once you have bribed nearly all the PoS participants.
 
