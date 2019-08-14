@@ -4,6 +4,7 @@ Zano Review
 Here is the Zano white paper: https://zano.org/downloads/zano_wp.pdf
 
 The Zano white paper is very high quality documentation. Possibly the best white paper of any blockchain project I have looked at.
+The graphs are great, the explanations are clear.
 Accurately communicating your work is critical for others to be able to review it and give helpful advice. This is where Zano shines.
 
 Here is a general proof that PoW/PoS hybrid protocols are impossible: https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/pow_pos_hybrid.md
@@ -14,14 +15,11 @@ Privacy and Bribery
 
 In general, proof of stake type mechanisms are vulnerable to bribery https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/proof_of_stake.md
 
-In order to prevent bribes, Zano is designed to hide how each validator is participating in the protocol, that way the attacker doesn't know who to pay the bribe to.
-Here is an explanation for why using privacy to prevent bribery in general does not work https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/threshold_signature_anonimity.md
+The optimal way to do this in Zano is by paying validators to move all their money to a different address, and to sell you a copy of their now empty private key, which was a valid private key a couple hours earlier.
 
-The basic idea is that if the validators want to break privacy and prove how they are participating, this is always possible.
-Since the validators are motivated by the possibility of receiving a bribe, they have an incentive to break privacy so that they can get the bribe.
+In Zano the validators are hidden behind an encryption protocol, so we can't tell who the validators are. So the mechanism cannot delete any deposits to punish validators who sell their old private keys.
 
-The validator can use proof of existence to take a snapshot of any data that is normally hidden. So the validator can prove that certain consensus type data existed at a moment in time.
-The validator can spend all their money, and then reveal the now worthless private key, which can be used to break privacy.
+If the attacker buys up the majority of the proof of stake private keys for a point in history between the top block and the most recent checkpoint, then we are ready to go to the second stage of the attack.
 
 Fork Choice Rule
 ========
@@ -94,6 +92,6 @@ More Realistic Conclusion given the Current state of Blockchain Attacks
 
 Even though Zano is weaker than PoW in some technical sense, it seems like it is a better solution for now.
 
-Because if someone started doing these PoW/PoS hybrid bribery attacks, there are a lot of other blockchains that are easier to attack than Zano, so we will have plenty of warning to switch to PoW at that point in time.
+Because if someone started doing these PoW/PoS hybrid bribery attacks, there are a lot of other blockchains that are easier to attack than Zano, so we will have plenty of warning to switch to PoW at that point in time. Zano's excellent fork choice rule means that you still need a lot of PoW hashpower, even once you have bribed nearly all the PoS participants.
 
 And until then the PoS aspects of Zano are giving good protection from hashrate rental attacks.
