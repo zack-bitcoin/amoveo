@@ -60,9 +60,13 @@ Rapidly Shrinking the Validator Set
 > "Past the Genesis block, the cycle of a block must be longer than half of one more than the maximum of the all cycle lengths in this cycle and the previous two cycles"
 
 This rule means than in any sequence of 4 cycles, the 4th one will be at least 1/2 as long as the first 1.
+
 So if you want to decrease the cycle length by a factor of 2^N, it would take at least 3*N many cycles to do it.
+
 If every 4th one is more than 1/2 as long, then the sum of the first 3 cycles is at most twice as long as the sum of the next 3 cycles.
+
 1 + 1/2 + 1/4 + 1/8 ... = 2.
+
 So, if we obey the rules of Nyzo, the very minimum amount of time until we can decrease the cycle length to 1 block is the same as the amount of time for only 6 cycles, if the cycle length had stayed constant.
 
 Voting
@@ -107,4 +111,15 @@ Because of market failure, also called tragedy of the commons, it is cheap to br
 The ability to censor blocks is a soft fork. Anyone who can cause a soft fork to happen can change the consensus rules in arbitrary ways, so that their control of the blockchain is permanent.
 
 In particular, you could use a soft fork to exclude certain validators from participating in validation, which causes them to be kicked out of the validator set. By repeatedly doing this, eventually you can have control of 100% of the accounts in the validator set, and at that point your control of Nyzo would be absolute.
+
+This is a level 4 failure mode. https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
+
+Election bribery attack
+=========
+
+Once every 3 cycles a new validator is added to the set. There is some voting mechanism to choose who should have priority for being added to the set.
+According to market failure theory, it should be cheap to bribe the voters so that they will always choose you as the new validator.
+If you bribe enough rounds of election, eventually you will control the majority of validator accounts, and at that point you can take over control of Nyzo permanently.
+
+This is a level 4 failure mode.
 
