@@ -46,11 +46,11 @@ weight2 = (P2*P2*H2 + P2*H2*H2)/(P1*H1)
 
 if side 1 wins, that means ->
 ```
-(P1 + H1) * P1*H1 / (P2*H2) > (P2 + H2) * P2 * H2 / (P1 * H1)
+(P1 + H1) * P1 * H1 / (P2 * H2) > (P2 + H2) * P2 * H2 / (P1 * H1)
 ```
 simplifies to ->
 ```
-(P1 + H1) * (P1*H1)^2 > (P2 + H2) * (P2*H2)^2
+(P1 + H1) * (P1 * H1)^2 > (P2 + H2) * (P2 * H2)^2
 ```
 
 
@@ -61,9 +61,9 @@ So lets suppose an attacker has 2/3rds control of the stake, and calculate how m
 To keep it simple, the non-attacker's side of the fork has normal amounts of participation and hashrate. P1 = 1, H1 = 1
 
 ```
-(1 + 1) * (1*1)^2 = (2+H2) * (2*H2)^2
--> 2 = 8*H2^2 + 4 * H2^3
--> 1 = 2*H2^2(2 + H2)
+(1 + 1) * (1 * 1)^2 = (2+H2) * (2 * H2)^2
+-> 2 = 8 * H2^2 + 4 * H2^3
+-> 1 = 2 * H2^2(2 + H2)
 ```
 
 Since H2 is positive, there is only one solution. H2 = 0.451 (I used wolfram alpha to calculate this)
@@ -79,7 +79,7 @@ P1 = 1
 H2 = ?
 H1 = 1
 
-(P1 + H1) * (P1*H1)^2 = (P2 + H2) * (P2*H2)^2
+(P1 + H1) * (P1 * H1)^2 = (P2 + H2) * (P2 * H2)^2
 
 2 * 1 = (9 + H2) * 81 * H2 * H2
 
