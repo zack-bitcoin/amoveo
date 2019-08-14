@@ -6,7 +6,9 @@ Testing out a single idea involves launching a new cryptocurrency, and can cost 
 
 We should develop mathematical tools which will allow us to calculate whether one kind of blockchain design is more secure than another.
 
-Example: https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
+Examples:
+* https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
+* https://vitalik.ca/files/intro_cryptoeconomics.pdf
 
 Once we have math tools like this, it will make it a lot easier to do blockchain engineering, because we can check if a strategy can possibly work without having to actually launch a blockchain.
 
