@@ -87,3 +87,13 @@ H2 = 0.052
 
 So if an attacker controlled 90% of the stake, he would only need to control 5.2% of the hashpower to take control of the blockchain.
 
+
+
+More Realistic Conclusion given the Current state of Blockchain Attacks
+===========
+
+Even though Zano is weaker than PoW in some technical sense, it seems like it is a better solution for now.
+
+Because if someone started doing these PoW/PoS hybrid bribery attacks, there are a lot of other blockchains that are easier to attack than Zano, so we will have plenty of warning to switch to PoW at that point in time.
+
+And until then the PoS aspects of Zano are giving good protection from hashrate rental attacks.
