@@ -1,17 +1,55 @@
-Drivechain
+Drivechain Review
 =====
+Draft # 2
 
 Drivechain is a project with the goal of allowing for multiple different blockchains to be secured by the PoW consensus on a single blockchain. It is a goal of drivechain that bitcoin miners should not be required to think about or involve themselves with the side-chains.
+
+Abstract
+=======
+
+The goal of this paper is to that it is not possible to use drivechain as it is currently designed to secure any sort of side-chain consensus state. It will always be cheap for an attacker to cheaply harass the users of a side-chain to the point where the side-chain is unusable. The PoW security from bitcoin is not properly securing the side-chain.
+
+The critique in this paper has not been responded to before
+===========
+
+The critique I am making here is neither (1) nor (2) from this paper: http://www.drivechain.info/peer-review/peer-review-new/
+
+In this paper http://www.truthcoin.info/blog/blind-merged-mining/ in the section "Problem", Paul describes how an attacker could spam invalid block data to prevent a side:chain from progressing, and why this is not a security issue, because the main chain miners could temporarily upgrade to be side chain full nodes to know which version is valid.
+This problem is different from the critique I am making in this paper. The "Problem" Paul fixed is how to prevent side:chain hard update. The problem I am describing is somewhat related. In my critique, the attacker is making a side:chain soft update.
+Merely upgrading miners to side:full-node status does not solve the soft-fork problem, because both side of the soft-fork look valid to a side:full-node.
+
+Description of the broken mechanism
+============
+
+The part of drivechain that does not work is the blind merged mining.
+Here it is described by Paul: http://www.truthcoin.info/blog/blind-merged-mining/
+
+I will describe it in my own words:
+
+In order for a side:block to be valid, it's hash needs to be recorded into a main:block.
+So sidechain block creators need to pay the mainchain miner to include this hash in their block.
+Since anyone can create the side:block, the side:block creator needs to give practically all of the fees from that side:block as a bribe to the mainchain miner.
+
+In the "handling reorganizations" section, Paul explains about the fork choice rule for the side chain. The version of the side:chain fork that gets more confirmation hashes recorded onto the main:chain wins.
+
+This means that the side of a side:chain fork that gets more confirmations is the valid version of history. Any fees the side-chain block creators had paid to let their side-blocks get created, they do not get a refund if their side:block is orphaned.
+If the side:block is orphaned, they do not receive any tx fees.
+So it is very expensive for the sidechain block creator if their block gets orphaned.
+
+Why it is cheap to cause side-blocks to get orphaned
+===================
+
+Mainchain miners don't care if the side:block they are validating will get orphaned or not. They will get paid the fees either way.
+
+If the mainchain miners frequently allow side:blocks to get orphaned, this can indirectly harm them because it makes the entire network worse. But, this cost to the mainchain miner is on the order of (percentage of hashpower they have.) As the hashpower gets more distributed, they are more and more willing to allow side:blocks to get orphaned.
+
+As long as the side-block that will cause the orphaning to occur is paying a higher fee than the cost to the miner of orphaning the previous side:block, then the miner is willing to verify it.
+
+Even though the benefit to the miner of doing this is far smaller than the cost to the network of the side block getting orphaned. It is tragedy of the commons.
 
 
 Double-Spend Attacks. Finality issues.
 =======
-
-Mainchain miners don't care if the side-chain block they are validating will get orphaned or not. They will get paid the fees either way.
-
-If the mainchain miners frequently orphan blocks, this can indirectly harm them because it makes the entire network worse. But, this cost to the mainchain miner is on the order of (percentage of hashpower they have.) As the hashpower gets more distributed, they are more and more willing to allow sidechain blocks to get orphaned.
-As long as the side-block that will cause the orphaning to occur is paying a higher fee than the cost to the miner of orphaning the previous block, then the miner is willing to verify it.
-Even though the benefit to the miner of doing this is far smaller than the cost to the network of the side block getting orphaned. It is tragedy of the commons.
 
 side-chain orphans are different from main-chain orphans, because the side-chain blocks are paid for in liquid currency, while main-chain blocks are paid for in illiquid hashpower.
 
@@ -29,12 +67,11 @@ This means drive-chain sidechains will have very slow finality, it is not clear 
 Freeze Attacks
 =======
 
-If you want to cause a delay in bitcoin, you need to pay more than the cost of (all the fees) + (all the block rewards) for the period in question, and the price of fees will keep getting higher, because the scarcity will drive demand. So you are paying ((block reward) + ((extra high fee price) * (as many tx as can fit in a block))) * (number of blocks during the attack period).
-
 If you want to cause a delay in a drivechain sidechain, you just need to be willing to receive a slightly smaller reward than whoever had created the blocks in that history the previous time.
 
 Since it is cheap to cause the sidechain to stop processing txs, and an attacker could profit from freezing a sidechain by making bets in other markets, this means drivechain sidechains are trust level 4. https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
 
+If you want to cause a delay in bitcoin, you need to pay more than the cost of (all the fees) + (all the block rewards) for the period in question, and the price of fees will keep getting higher, because the scarcity will drive demand. So you are paying ((block reward) + ((extra high fee price) * (as many tx as can fit in a block))) * (number of blocks during the attack period).
 
 Sidechain block creation griefing
 ===========
