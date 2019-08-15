@@ -21,7 +21,7 @@ In this paper http://www.truthcoin.info/blog/blind-merged-mining/ in the section
 
 This problem is different from the critique I am making in this paper. The "Problem" Paul fixed is how to prevent side:chain hard update. The problem I am describing is somewhat related. In my critique, the attacker is making a side:soft update.
 
-Merely upgrading miners to side:full-node status does not solve the soft-fork problem, because both side of the soft-fork look valid to a side:full-node.
+Paul's solution to merely upgrading miners to side:full-node status works great for preventing side:hard updates, but it does not solve the soft-fork problem, because both side of the soft-fork look valid to a side:full-node.
 
 Description of the broken mechanism
 ============
@@ -37,8 +37,11 @@ Since anyone can create the side:block, the side:block creator needs to give pra
 
 In the "handling reorganizations" section, Paul explains about the fork choice rule for the side chain. The version of the side:chain fork that gets more confirmation hashes recorded onto the main:chain wins.
 
-This means that the side of a side:chain fork that gets more confirmations is the valid version of history. Any fees the side-chain block creators had paid to let their side-blocks get created, they do not get a refund if their side:block is orphaned.
+This means that the side of a side:chain fork that gets more confirmations is the valid version of history.
+
+Any fees the side-chain block creators had paid to let their side-blocks get created, they do not get a refund if their side:block is orphaned.
 If the side:block is orphaned, they do not receive any tx fees.
+
 So it is very expensive for the sidechain block creator if their block gets orphaned.
 
 Why it is cheap to cause side-blocks to get orphaned
