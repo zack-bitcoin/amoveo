@@ -7,15 +7,20 @@ Drivechain is a project with the goal of allowing for multiple different blockch
 Abstract
 =======
 
-The goal of this paper is to that it is not possible to use drivechain as it is currently designed to secure any sort of side-chain consensus state. It will always be cheap for an attacker to cheaply harass the users of a side-chain to the point where the side-chain is unusable. The PoW security from bitcoin is not properly securing the side-chain.
+The goal of this paper is to that it is not possible to use drivechain as it is currently designed to secure any sort of side-chain consensus state. It will always be cheap for an attacker to harass the users of a side-chain to the point where the side-chain is unusable. The PoW security from bitcoin is not properly securing the side-chain.
 
 The critique in this paper has not been responded to before
 ===========
 
 The critique I am making here is neither (1) nor (2) from this paper: http://www.drivechain.info/peer-review/peer-review-new/
 
+* I am not describing a way for the miner to steal sidechain funds.
+* I am not describing a way that this could cause pool overhead or txn-censorship.
+
 In this paper http://www.truthcoin.info/blog/blind-merged-mining/ in the section "Problem", Paul describes how an attacker could spam invalid block data to prevent a side:chain from progressing, and why this is not a security issue, because the main chain miners could temporarily upgrade to be side chain full nodes to know which version is valid.
-This problem is different from the critique I am making in this paper. The "Problem" Paul fixed is how to prevent side:chain hard update. The problem I am describing is somewhat related. In my critique, the attacker is making a side:chain soft update.
+
+This problem is different from the critique I am making in this paper. The "Problem" Paul fixed is how to prevent side:chain hard update. The problem I am describing is somewhat related. In my critique, the attacker is making a side:soft update.
+
 Merely upgrading miners to side:full-node status does not solve the soft-fork problem, because both side of the soft-fork look valid to a side:full-node.
 
 Description of the broken mechanism
