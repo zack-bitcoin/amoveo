@@ -1,6 +1,6 @@
 Drivechain Review
 =====
-Draft # 2
+Draft # 3
 
 Drivechain is a project with the goal of allowing for multiple different blockchains to be secured by the PoW consensus on a single blockchain. It is a goal of drivechain that bitcoin miners should not be required to think about or involve themselves with the side-chains.
 
@@ -87,3 +87,21 @@ Sidechain block creation griefing
 If someone spends $99 to earn $100 and create a block, and I spend $101 to earn $100 and create the same block to cause their block to get orphaned, then that means I lost only $1, but I caused someone else to lose $100.
 Since it is possible to destroy more of someone else's value in comparison to the cost of the attack, that means that Drivechain sidechains are trust level 3 or worse. https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
 
+
+
+
+Paul's about bitcoin without block rewards
+==========
+
+Paul admits that a basic assumption of his design for drivechain, is that drivechain can only work if it is possible that bitcoin can be secure with no block rewards.
+
+Paul from Drivechain Telegram- "one of my arguments for drivechain is that we can use it to learn about the behavior of blockchains that lack a block reward."
+
+There is no evidence that Bitcoin can be secure without block rewards, and there is a lot of evidence that it will not be secure: http://randomwalker.info/publications/mining_CCS.pdf
+
+From a game theory perspective, it is in the interest of the Bitcoin community to pretend that the 21 million coin limit is possible to enforce, even if in reality it is not possible.
+The 21 million limit is a nice story that makes people more interested in Bitcoin.
+
+If the 21 limit is impossible, it will be many years until Bitcoin is forced to do a patch to break the 21 million limit. Until that day comes, it is in the bitcoin community's self-interest to maintain the lie about the 21 million limit.
+
+So, the fact that the 21 million limit is still in the bitcoin software tells us nothing about whether it is possible for bitcoin to be secure without block rewards.
