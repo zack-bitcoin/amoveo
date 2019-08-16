@@ -525,3 +525,13 @@ For the same consensus mechanism to secure all the shards, and have fungibility,
 if the bandwidth is only O(log(#users)) or less, then that means the number of accounts recorded on the main chain needs to be less than O(log(#users)).
 
 For it to be possible to move your value onto the main chain without anyone's permission, while it also being the case that only O(log(#users)) at most have their account recorded on the main chain, the only way to have both of these at once is if it is lottery-ticket type value.
+
+
+Making the value less probabilistic
+===============
+There are ways to compromise to make the value less probabilistic.
+Like if I had 10 sortition chains going at once, and everyone who make a contract in one, I did the identical contract in all 10 with them.
+
+So now there are 10 winners instead of 1 winner.
+Which significantly reduces the risk.
+
