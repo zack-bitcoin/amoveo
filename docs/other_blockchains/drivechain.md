@@ -1,6 +1,6 @@
 Drivechain Review
 =====
-Draft # 3
+Draft # 4
 
 Drivechain is a project with the goal of allowing for multiple different blockchains to be secured by the PoW consensus on a single blockchain. It is a goal of drivechain that bitcoin miners should not be required to think about or involve themselves with the side-chains.
 
@@ -61,7 +61,7 @@ Double-Spend Attacks. Finality issues.
 
 side-chain orphans are different from main-chain orphans, because the side-chain blocks are paid for in liquid currency, while main-chain blocks are paid for in illiquid hashpower.
 
-If you try to buy up 51% of hashpower, it keeps getting more expensive the more you buy. 
+First describing main:chain mining. If you try to buy up 51% of hashpower, it keeps getting more expensive the more you buy. 
 If you have 2x more hashpower than the entire network, you can still only rewrite 1 hour per hour.
 So if you had 2x more hashpower for a period of 10 hours, you could rewrite 10 hours of pow history. So to rewrite 10 hours of history, you need to spend as much as 20 hours of (block rewards).
 
@@ -88,12 +88,10 @@ If someone spends $99 to earn $100 and create a block, and I spend $101 to earn 
 Since it is possible to destroy more of someone else's value in comparison to the cost of the attack, that means that Drivechain sidechains are trust level 3 or worse. https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
 
 
-
-
-Paul's about bitcoin without block rewards
+Bitcoin without block rewards
 ==========
 
-Paul admits that a basic assumption of his design for drivechain, is that drivechain can only work if it is possible that bitcoin can be secure with no block rewards.
+Paul says that a basic assumption of his design for drivechain, is that drivechain can only work if it is possible that bitcoin can be secure with no block rewards.
 
 Paul from Drivechain Telegram- "one of my arguments for drivechain is that we can use it to learn about the behavior of blockchains that lack a block reward."
 
@@ -105,3 +103,45 @@ The 21 million limit is a nice story that makes people more interested in Bitcoi
 If the 21 limit is impossible, it will be many years until Bitcoin is forced to do a patch to break the 21 million limit. Until that day comes, it is in the bitcoin community's self-interest to maintain the lie about the 21 million limit.
 
 So, the fact that the 21 million limit is still in the bitcoin software tells us nothing about whether it is possible for bitcoin to be secure without block rewards.
+
+Drivechain is using a different and less secure consensus mechanism than bitcoin without block rewards
+==================
+
+In the current design of drivechain, the sidechains are actually very different from how bitcoin would be if it had no block rewards.
+
+In bitcoin with no block rewards, if a block is orphaned, the miner does not get paid. The miner takes a loss in the form of hashes. Hashes are a illiquid type of value. If an attacker accumulates Hashpower to attack, this means he needs 51% of the global hashpower, which is very expensive.
+
+In drivechain, if a side:block is orphaned, the miner does get paid, and a side:block creator, who is a different person from the miner, he takes a loss in the form of currency. Currency is a liquid type of value. If an attacker accumulates currency to attack, he only needs to spend as much as all the fees during the period of the attack. This is relatively cheap.
+
+This difference in the kind of cost for causing orphans means that conclusions made about the security of one of these systems can not necessarily be applied to the other.
+
+
+Can we fix it by splitting up the block reward, and having part of it created inside the side-chain?
+============================
+
+If side:block creators received a block reward for creating the block, practically 100% would have to go to the main:miner who includes that hash of the block, for the same economic reasoning as why the fees go the main:miner.
+If the block gets orphaned, the block reward is actually making it more expensive for the side:creator than it would have been otherwise. Now the side:creator isn't just losing the fees, they are losing the block reward as well.
+So this doesn't work.
+
+Can we fix it by splitting up the block reward on the main-chain?
+===============
+
+Imagine if in the main-chain, the block reward is higher for any main:blocks that validate a side:block.
+The problem is that main:miners still don't have an incentive to avoid causing side:orphans.
+
+
+Can we fix it by canceling payments to the main:miner if the side:block is orphaned?
+============
+We can either use the prevSideBlock reference numbers to calculate which blocks were orphaned, or we can add more data to the BMMR.
+
+In this case, the sidechain would be equivalent to bitcoin without block rewards.
+
+1) This solves the problem where it was cheap to cause an orphan and harm a side:block creator.
+2) This solves the finality issues, because an attacker would have to re-mine all those block rewards.
+3) This solves the freezing issues, because now if you want to cause a delay this way, you have to pay for all the side:rewards during the delay. 
+
+
+
+
+
+
