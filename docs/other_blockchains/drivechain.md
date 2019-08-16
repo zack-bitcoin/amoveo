@@ -1,6 +1,6 @@
 Drivechain Review
 =====
-Draft # 4
+Draft # 5
 
 Drivechain is a project with the goal of allowing for multiple different blockchains to be secured by the PoW consensus on a single blockchain. It is a goal of drivechain that bitcoin miners should not be required to think about or involve themselves with the side-chains.
 
@@ -95,14 +95,7 @@ Paul says that a basic assumption of his design for drivechain, is that drivecha
 
 Paul from Drivechain Telegram- "one of my arguments for drivechain is that we can use it to learn about the behavior of blockchains that lack a block reward."
 
-There is no evidence that Bitcoin can be secure without block rewards, and there is a lot of evidence that it will not be secure: http://randomwalker.info/publications/mining_CCS.pdf
-
-From a game theory perspective, it is in the interest of the Bitcoin community to pretend that the 21 million coin limit is possible to enforce, even if in reality it is not possible.
-The 21 million limit is a nice story that makes people more interested in Bitcoin.
-
-If the 21 limit is impossible, it will be many years until Bitcoin is forced to do a patch to break the 21 million limit. Until that day comes, it is in the bitcoin community's self-interest to maintain the lie about the 21 million limit.
-
-So, the fact that the 21 million limit is still in the bitcoin software tells us nothing about whether it is possible for bitcoin to be secure without block rewards.
+It seems like Bitcoin will indeed be able to function without block rewards https://twitter.com/fnietom/status/1037235118136602625?s=20
 
 Drivechain is using a different and less secure consensus mechanism than bitcoin without block rewards
 ==================
