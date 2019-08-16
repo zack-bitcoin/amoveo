@@ -535,3 +535,4 @@ Like if I had 10 sortition chains going at once, and everyone who make a contrac
 So now there are 10 winners instead of 1 winner.
 Which significantly reduces the risk.
 
+Each sub-sortition chain of the recursive tree can still have only 1 winner.
