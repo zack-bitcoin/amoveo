@@ -12,6 +12,12 @@ from(X) -> X#oracle_new.from.
 id(X) -> X#oracle_new.id.
 id_generator2(Start, Gov, GA, Question) ->
     QH = hash:doit(Question),
+    B = <<Start:32,Gov:32,GA:32,QH/binary>>,
+    io:fwrite("oracle new tx id generator 2\n"),
+    io:fwrite(base64:encode(B)),
+    io:fwrite("\n"),
+    io:fwrite(base64:encode(B)),
+    io:fwrite("\n"),
     hash:doit(<<Start:32,Gov:32,GA:32,QH/binary>>).
 id_generator(Tx) ->
     id_generator2(Tx#oracle_new.start,

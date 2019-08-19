@@ -1,3 +1,16 @@
+lisp_scalar.erl needs to use the new rules for making oracles.
+
+
+
+Potential block should keep track of the 2 most recent version of the work, so that miners still working on the previous version aren't wasting their effort.
+
+
+
+
+new_oracle binary oracle is not working.
+
+
+
 chart to visualize historic difficulty
 
 new_oracle.js governance_futarchy_oracle could suggest block heights automatically
