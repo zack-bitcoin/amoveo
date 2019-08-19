@@ -36,10 +36,12 @@ market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubke
     case compiler_lisp2:compile(FullCode, PrivDir++"/", true) of
         error -> error;
         Compiled ->
-            disassembler:doit(Compiled),
-            %io:fwrite("compiled code is \n"),
+            %disassembler:doit(Compiled),
+            io:fwrite("compiled code is \n"),
             %io:fwrite(base64:encode(Compiled)),
             %io:fwrite("\n"),
+            io:fwrite(integer_to_list(size(Compiled))),%2080
+            io:fwrite("\n"),
             CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit, StartHeight),
     %ToProve = [{oracles, OID}],
     %A2 = Amount * (20000 - MaxPrice) div 10000,
@@ -108,8 +110,8 @@ int 0 LL ! \
 int 10000 bet_amount ! \ % set to zero for bet on false.
 ",
     FullCode = <<(list_to_binary(Code0))/binary, Code/binary, (list_to_binary(Code2))/binary>>,
-    io:fwrite(FullCode),
-    io:fwrite("\n"),
+    %io:fwrite(FullCode),
+    %io:fwrite("\n"),
     Compiled = compiler_chalang:doit(FullCode),
     Gas = 10000,
     chalang:test(Compiled, Gas, Gas, Gas, Gas, []).
@@ -117,7 +119,7 @@ scalar_oracle_make(SH, A, B, C, D, Limit) ->
     scalar_oracle_make(SH, A, B, C, D, 0, Limit).
 scalar_oracle_make(_, _, _Fee, _Question, _, L, L) -> [];
 scalar_oracle_make(StartHeight, Pubkey, Fee, Question, OID1, Many, Limit) ->
-    io:fwrite("SCALAR ORACLE MAKE\n"),
+    %io:fwrite("SCALAR ORACLE MAKE\n"),
     Q1 = case Many of
              0 -> Question;
              _ ->
@@ -134,8 +136,8 @@ scalar_oracle_make(StartHeight, Pubkey, Fee, Question, OID1, Many, Limit) ->
                0 -> OID;
                _ -> OID1
            end,
-    io:fwrite(packer:pack(Tx)),
-    io:fwrite("\n"),
+    %io:fwrite(packer:pack(Tx)),
+    %io:fwrite("\n"),
     Stx = keys:sign(Tx),
     test_txs:absorb(Stx),
     [{oracles, OID}|scalar_oracle_make(StartHeight, Pubkey, Fee, Question, OIDR, Many + 1, Limit)].
@@ -199,7 +201,7 @@ test() ->
     Delay = 0,
     
     Ctx4 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
-    io:fwrite(packer:pack(Ctx4)),
+    %io:fwrite(packer:pack(Ctx4)),
     Stx4 = keys:sign(Ctx4),
     SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv), 
     test_txs:absorb(SStx4),

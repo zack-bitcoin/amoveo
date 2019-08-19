@@ -65,7 +65,7 @@
 (define (multi_helper_b Accumulator ProofList N);returns a list of integer results from each oracle.
   (cond ((= ProofList nil) (reverse Accumulator))
         (true
-         (() ProofList (forth print drop)
+         (;() ProofList (forth print drop)
           (let (((H T) (car@ ProofList))
                 (M (helper H N))
                 (Accumulator2 (cons M Accumulator)))
@@ -139,7 +139,7 @@
 (define (minus_zero a b)
   (cond ((> a b) (- a b))
         (true 0)))
-(define (bet2 delay nonce amount spd_height spd_price spd_partial)
+(define (bet2 direction delay nonce amount spd_height spd_price spd_partial)
   (let ((delay2 (* delay
                    (+ (minus_zero (@ c_expires)
                                   spd_height)
@@ -147,33 +147,36 @@
         (nonce2 (+ nonce
                    (minus_zero (@ c_expires)
                                spd_height)))
-        (nspd_price (- 10000 spd_price))
+        (spd_price2 (cond ((= 1 direction)
+                           spd_price)
+                          (true (- 10000 spd_price))))
         (amount2 
-         (cond ((= nspd_price (@ c_max_price));partially matched trade
-                (66 (forth print drop)
-                    (+ (/ (* spd_partial amount) 10000)
-                       (/ (* (- 10000 (@ c_max_price))
-                             (- 10000 spd_partial))
-                          10000))))
+         (cond ((= spd_price2
+                   (@ c_max_price));partially matched trade
+                (+ (/ (* spd_partial amount) 10000)
+                   (/ (* (- 10000 (@ c_max_price))
+                         (- 10000 spd_partial))
+                      10000)))
                (true
-                ( (@ c_max_price)
-                  spd_price
-                  (forth print drop drop)
-                ((require (> (@ c_max_price)
-                            spd_price))
-                (+ amount;fully matched, you get a refund based on the difference between what you agreed to pay, and the actual price matched.
-                   (- (@ c_max_price)
-                      spd_price))))))))
-    (()
-     amount amount2 (forth print drop drop)
-     (return delay2 nonce2 (price_range amount2)))))
+                (
+                 (cond ((= 1 direction)
+                        (require (> (@ c_max_price)
+                                    spd_price)))
+                       (true
+                        (require (< (- 10000 (@ c_max_price))
+                                    spd_price))))
+                 (+ amount;fully matched, you get a refund based on the difference between what you agreed to pay, and the actual price matched.
+                    (-
+                     (@ c_max_price)
+                     spd_price2)))))))
+    (return delay2 nonce2 (price_range amount2))))
 (define (bet oracle_result spd_height spd_price spd_partial direction);oracle_result is a list of results from each oracle.
-  ( (bin2int (two2zero oracle_result)) (forth print drop)
+  
   (cond ((bad? oracle_result)
-         (bet2 0 3 (- 10000 (@ c_max_price))
+         (bet2 direction 0 3 (- 10000 (@ c_max_price))
                spd_height spd_price spd_partial))
         ((unresolved? oracle_result)
-         (bet2 1 1 (- 10000 (@ c_max_price))
+         (bet2 direction 1 1 (- 10000 (@ c_max_price))
                spd_height spd_price spd_partial))
         (true
          (let ((result (bin2int (two2zero oracle_result)))
@@ -188,14 +191,8 @@
                (amount22 (- 10000 amount2))
                (amount3 (cond ((= direction 1) (- 10000 amount22))
                               (true (- 0 amount22)))))
-           (
-            result
-            oracle_amount
-            amount0
-            amount3
-            (forth print drop drop drop drop)
-            (bet2 0 3 amount3
-                  spd_height spd_price spd_partial)))))))
+            (bet2 direction 0 3 amount3
+                  spd_height spd_price spd_partial)))))
 (define (evidence)
   (let ((spd ())
         ((DeclaredHeight _ PortionMatched) (extract spd)))
@@ -208,13 +205,11 @@
   (let (((spd1 spd2) ())
         ((h1 p1 pm1) (extract spd1))
         ((h2 p2 pm2) (extract spd2)))
-    ((print)
+    (
      (require (< (abs (- h1 h2))
                  (/ (@ c_period) 2)))
-     (print)
      (require (or (not (= p1 p2))
                   (not (= pm1 pm2))))
-     (print)
      (return 0 ;delay
              2000000 ;nonce
              (price_range 0))))) ;amount
@@ -255,8 +250,8 @@
       )
   (
    (set! i_max_price (- 10000 (@ c_max_price)))
-   mode ;(@ c_oracle_starts)
-   (forth print drop)
+   ;mode ;(@ c_oracle_starts)
+   ;(forth print drop)
    (case mode
     (1 (match_order OracleData Direction))
     (4 (unmatched OracleData))
