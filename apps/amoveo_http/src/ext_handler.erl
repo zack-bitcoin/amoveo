@@ -332,6 +332,16 @@ doit({cancel_trade, TheirPub, N, SSPK}) ->
 doit({combine_cancel_assets, TheirPub, SSPK}) ->
     SSPK2 = channel_feeder:combine_cancel_assets_server(TheirPub, SSPK),
     {ok, SSPK2};
+doit({mining_data}) ->
+    B = block:top(),
+    Diff = pow:sci2int(B#block.difficulty),
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.block_trees,
+    %Trees = 0,
+    Reward = governance:get_value(block_reward, trees:governance(Trees)),
+    Hashrate = Diff div 660,
+    D = [B#block.height, Diff, Hashrate, Reward],
+    {ok, D};
 doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2
