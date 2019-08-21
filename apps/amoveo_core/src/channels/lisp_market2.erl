@@ -147,6 +147,7 @@ test2(NewPub, OID) ->
 	spk:dict_run(fast, [SS2], SPK, 5, 0, Trees5),
 	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict5),
     
+    {0, 1, 9999999} = spk:dict_run(fast, [SS1], SPK, 5, 0, Trees5),
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
     SS3 = evidence(SPD, OID),
     %amount, newnonce, delay

@@ -1,4 +1,3 @@
-
 (var c_oracle_starts
      c_ul
      c_ll
@@ -18,8 +17,6 @@
 (define (digit_to_bin D);for digits  0-9
   (let (((B _) (split (+ D 48) 3)))
     B))
-;(= (digit_to_bin 5) "5")
-;(forth print print )
 ;(return 0 0 0)
 (define (oracle_id dqh question_hash N)
   (cond
@@ -93,7 +90,7 @@
 ;(require (= 1 (bad? (tree 1 3 1 2))))
 ;(forth print print)
 ;(return 0 0 0)
-(define (unresolved_f Y X) (and Y (= X 0)))
+(define (unresolved_f Y X) (or Y (= X 0)))
 (define (unresolved? L) (fold 'unresolved_f 0 L))
 ;(= 0 (unresolved? (tree 1 3 1 2)))
 ;(= 1 (unresolved? (tree 1 3 0 2)))
@@ -173,11 +170,14 @@
 (define (bet oracle_result spd_height spd_price spd_partial direction);oracle_result is a list of results from each oracle.
   
   (cond ((bad? oracle_result)
-         (bet2 direction 0 3 (- 10000 (@ c_max_price))
-               spd_height spd_price spd_partial))
+         (56 (forth print drop)
+             (bet2 direction 0 3 (- 10000 (@ c_max_price))
+                   spd_height spd_price spd_partial)))
         ((unresolved? oracle_result)
-         (bet2 direction 1 1 (- 10000 (@ c_max_price))
-               spd_height spd_price spd_partial))
+         ((require (> height (@ c_expires)))
+          57 (forth print drop)
+          (bet2 direction 1 1 (- 10000 (@ c_max_price))
+                spd_height spd_price spd_partial)))
         (true
          (let ((result (bin2int (two2zero oracle_result)))
                (r1 (- result (@ c_ll)))
@@ -221,8 +221,8 @@
         (p (cond ((= Direction 2) (- 10000 p0))
                  (true p0)))
         (oracle_result (multi_helper OracleData)))
-    ;(55 (forth print drop)
-    (bet oracle_result h p0 pm Direction)))
+    (55 oracle_result (forth print drop drop )
+    (bet oracle_result h p0 pm Direction))))
 (define (unmatched oracle_data)
   (cond ((unresolved? (multi_helper oracle_data))
           (return (+ 2000 (+ (@ c_expires) (@ c_period)))
