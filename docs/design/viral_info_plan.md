@@ -15,3 +15,12 @@ If we can make a prediction market that provides any sort of evidence on which g
 
 Ideally we could get opposing political movements to move part of their battle-ground onto Amoveo. So they would be paying for markets to prove facts to support their positions.
 That would be one kind of product market fit.
+
+
+
+How to make the markets short enough
+==============
+
+Recently, the stock markets in Argentina reacted during the voting for their election, because it looked like the people who would win are the ones with the policy that is bad for business.
+
+Maybe we should make a prediction market to measure a correlation in the expectation of who will win, and things like bond prices and the price of a stock market.
