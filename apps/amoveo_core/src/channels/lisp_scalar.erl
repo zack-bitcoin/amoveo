@@ -39,8 +39,8 @@ market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubke
             %disassembler:doit(Compiled),
             %io:fwrite("compiled code is \n"),
             %io:fwrite(base64:encode(Compiled)),
-            %io:fwrite("\n"),
-            %io:fwrite(integer_to_list(size(Compiled))),%2080
+            io:fwrite("\n"),
+            io:fwrite(integer_to_list(size(Compiled))),%2080
             %io:fwrite("\n"),
             CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit, StartHeight),
     %ToProve = [{oracles, OID}],
@@ -266,6 +266,7 @@ test2(NewPub, Many, StartHeight, OIDL) ->
        spk:dict_run(fast, [SS4], SPK, 5, 0, Trees5),
 
     {0, 1, 10000000} = spk:dict_run(fast, [SS1], SPK, 5, 0, Trees5),%unresolved oracle before time limit.
+    {59, 1001, 0} = spk:dict_run(fast, [SS1], SPK, 1005, 0, Trees5),%unresolved oracle after time limit.
 
     test_txs:mine_blocks(1),
     timer:sleep(1000),

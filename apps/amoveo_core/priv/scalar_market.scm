@@ -170,14 +170,14 @@
 (define (bet oracle_result spd_height spd_price spd_partial direction);oracle_result is a list of results from each oracle.
   
   (cond ((bad? oracle_result)
-         (56 (forth print drop)
              (bet2 direction 0 3 (- 10000 (@ c_max_price))
-                   spd_height spd_price spd_partial)))
+                   spd_height spd_price spd_partial))
         ((unresolved? oracle_result)
          ((require (> height (@ c_expires)))
-          57 (forth print drop)
-          (bet2 direction 1 1 (- 10000 (@ c_max_price))
-                spd_height spd_price spd_partial)))
+          (return 0 (@ c_expires) (price_range (@ i_max_price)))))
+          
+        ;(bet2 direction 0 1 (- 10000 (@ c_max_price))
+        ;spd_height spd_price spd_partial)))
         (true
          (let ((result (bin2int (two2zero oracle_result)))
                (r1 (- result (@ c_ll)))
@@ -221,8 +221,7 @@
         (p (cond ((= Direction 2) (- 10000 p0))
                  (true p0)))
         (oracle_result (multi_helper OracleData)))
-    (55 oracle_result (forth print drop drop )
-    (bet oracle_result h p0 pm Direction))))
+    (bet oracle_result h p0 pm Direction)))
 (define (unmatched oracle_data)
   (cond ((unresolved? (multi_helper oracle_data))
           (return (+ 2000 (+ (@ c_expires) (@ c_period)))

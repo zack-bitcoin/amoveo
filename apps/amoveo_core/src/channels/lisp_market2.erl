@@ -31,8 +31,8 @@ market_smart_contract(MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amou
     io:fwrite(FullCode),
     Compiled = compiler_lisp2:compile(FullCode, PrivDir ++"/", true),
     io:fwrite("compiled code is \n"),
-    disassembler:doit(Compiled),
-    io:fwrite("\n"),
+    %disassembler:doit(Compiled),
+    %io:fwrite("\n"),
     io:fwrite(integer_to_list(size(Compiled))),%2080
     io:fwrite("\n"),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),
@@ -115,7 +115,6 @@ test() ->
 
 test2(NewPub, OID) ->
     test_txs:mine_blocks(1),
-    test_txs:mine_blocks(1),
     %OID = <<3:256>>,
     Gas = 40000,
     Fee = 20 + constants:initial_fee(),
@@ -125,8 +124,9 @@ test2(NewPub, OID) ->
     MarketID = OID,
     %PrivDir = code:priv_dir(amoveo_core),
     Period = 3,
+    Expires = 1000,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    Bet = market_smart_contract(MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0),
+    Bet = market_smart_contract(MarketID,1, Expires, 4000, keys:pubkey(),Period,100,OID, 0),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], Gas, Gas, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
@@ -147,7 +147,11 @@ test2(NewPub, OID) ->
 	spk:dict_run(fast, [SS2], SPK, 5, 0, Trees5),
 	%spk:dict_run(fast, [SS2], SPK, 1, 0, Dict5),
     
-    {0, 1, 9999999} = spk:dict_run(fast, [SS1], SPK, 5, 0, Trees5),
+    {0, 1, 9999999} = spk:dict_run(fast, [SS1], SPK, 5, 0, Trees5),%expired with an unresolved oracle before the time limit.
+    test_txs:mine_blocks(1),
+    timer:sleep(1000),
+    {59, 999, 0} = spk:dict_run(fast, [SS1], SPK, 1010, 0, Trees5),%expired with an unresolved oracle after the time limit.
+
     %Next try closing it as if the market maker tries to stop us from closing the bet early, because he is still publishing data.
     SS3 = evidence(SPD, OID),
     %amount, newnonce, delay
@@ -168,6 +172,7 @@ test2(NewPub, OID) ->
 
 
     test_txs:mine_blocks(1),
+    test_txs:mine_blocks(1),
     timer:sleep(1000),
     Trees60 = (tx_pool:get())#tx_pool.block_trees,
     %Dict60 = (tx_pool:get())#tx_pool.dict,
@@ -184,12 +189,12 @@ test2(NewPub, OID) ->
     %amount, newnonce, delay
     Trees61 = (tx_pool:get())#tx_pool.block_trees,
     {105,999,0} = spk:dict_run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
-    %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Trees61),%ss1 is a settle-type ss
-    %{95,1000001,0} = spk:dict_run(fast, [SS1], SPK, 1, 0, Dict60),
+%expired in state 1023
+
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(amoveo_core),
-    Bet2 = market_smart_contract(MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0),
+    Bet2 = market_smart_contract(MarketID,2, Expires, 8000, keys:pubkey(),Period,100,OID, 0),
     SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], Gas, Gas, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once they oracle is settled.
     %This time we won the bet.
