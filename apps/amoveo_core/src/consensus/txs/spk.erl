@@ -51,9 +51,9 @@ hash(X) -> hash:doit(sign:serialize(X)).
 sign2(S, N) -> 
     {signed, Data, B3, B4} = S,
     NewData = hash(Data),
-    io:fwrite("spk sign2\n"),
+    %io:fwrite("spk sign2\n"),
     %io:fwrite(packer:pack(Sa1)),
-    io:fwrite("\n"),
+    %io:fwrite("\n"),
     Sig = {2, keys:raw_sign(NewData)},
     case N of
         1 -> {signed, Data, Sig, B4};
@@ -83,6 +83,9 @@ prove_facts(X, Dict, Height) ->
 	macro ] swap cons reverse ;
         [">>,
     B = prove_facts2(X, Dict, Height),
+    %io:fwrite("spk prove facts \n"),
+    %io:fwrite(B),
+    %io:fwrite("\n"),
     compiler_chalang:doit(<<ListSyntax/binary, B/binary>>).
 prove_facts2([], _, _) -> <<"]">>;
 prove_facts2([{Tree, Key}|T], Dict, Height)->
@@ -551,4 +554,5 @@ data_maker(A, B, C, D, E, F, G, H, Height) ->
                   (Height > F22) -> 1;
                   true -> 0
               end,
-    chalang:data_maker(A, B, C, D, E, F, G, H, Version).
+    Verbose = false,
+    chalang:data_maker(A, B, C, D, E, F, G, H, Version, Verbose).

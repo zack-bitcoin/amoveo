@@ -112,7 +112,6 @@ handle_call({match, OID}, _From, X) ->
                     _ ->
                         OB3 = OB2#ob{height = Height},
                         X3 = dict:store(OID, OB3, X),
-                        db:save(?LOC, X3),%maybe this should be line should be lower.
                         Expires = expires(OB3),
                         Period = period(OB3),
 
@@ -125,15 +124,17 @@ handle_call({match, OID}, _From, X) ->
 				    CodeKey0 = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
 				    SS0 = market:settle(PriceDeclaration, OID, MatchPrice),
 				    {CodeKey0, SS0};
-				{scalar, UpperLimit, LowerLimit, _} ->
-				    CodeKey1 = scalar_market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID, UpperLimit, LowerLimit),
-				    SS1 = scalar_market:settle(PriceDeclaration, OID, MatchPrice),
+				{scalar, UpperLimit, LowerLimit, StartHeight} ->
+				    CodeKey1 = lisp_scalar:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID, UpperLimit, LowerLimit, StartHeight),
+                                    OIDS = oracle_new_tx:scalar_keys(OID),
+				    SS1 = lisp_scalar:settle_scalar(PriceDeclaration, OIDS, MatchPrice),
 				    {CodeKey1, SS1}
 			    end,
                         %CodeKey = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
                         %SS = market:settle(PriceDeclaration, OID, MatchPrice),
                         secrets:add(CodeKey, SS),
                         channel_feeder:bets_unlock(channel_manager:keys()),
+                        db:save(?LOC, X3),%maybe this should be line should be lower.
                         {{PriceDeclaration, Accounts}, X3}
                 end;
             false ->
@@ -167,7 +168,13 @@ finished_matching(Height, OID, OB, Accounts) ->
     Ratio = OB#ob.ratio,
     Price = OB#ob.price,
     MarketID = OID,
-    PriceDeclaration = market:price_declaration_maker(Height, Price, Ratio, MarketID),
+    PriceDeclaration = 
+        case ob_type(OB) of
+            {binary} ->
+                market:price_declaration_maker(Height, Price, Ratio, MarketID);
+            {scalar, UL, LL, SH} ->
+                lisp_scalar:price_declaration_maker(Height, Price, Ratio, MarketID)
+        end,
     OB2 = OB#ob{exposure = E, height = Height},
     {OB2, PriceDeclaration, Accounts, Price}.
     

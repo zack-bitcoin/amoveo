@@ -1,6 +1,6 @@
 -module(api).
 -compile(export_all).
--export([new_market/6]).
+%-export([new_market/6]).
 -define(Fee, element(2, application:get_env(amoveo_core, tx_fee))).
 -define(IP, constants:server_ip()).
 -define(Port, constants:server_port()).
@@ -169,6 +169,7 @@ new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
     SSPK = keys:sign(SPK),
     Msg = {new_channel, STx, SSPK, Expires},
     {ok, [SSTx, S2SPK]} = talker:talk(Msg, IP, Port),
+    io:fwrite(packer:pack(SSTx)),
     tx_pool_feeder:absorb(SSTx),
     channel_feeder:new_channel(Tx, S2SPK, Expires),
     0.
@@ -325,33 +326,59 @@ channel_timeout(Ip, Port) ->
     end.
 channel_slash(_CID, Fee, SPK, SS) ->
     tx_maker0(channel_slash_tx:make_dict(keys:pubkey(), Fee, SPK, SS)).
+scalar_oracle_make(_, _, _Fee, _Question, _, L, L) -> [];
+scalar_oracle_make(StartHeight, Pubkey, Fee, Question, OID1, Many, Limit) ->
+    %io:fwrite("SCALAR ORACLE MAKE\n"),
+    Q1 = oracle_new_tx:scalar_q_maker(Many, Question, OID1),
+    %Tx = oracle_new_tx:make_dict(Pubkey, Fee, Q1, 1 + block:height(), 0, 0),
+    Tx = oracle_new_tx:make_dict(Pubkey, Fee, Q1, StartHeight, 0, 0),
+    OID = oracle_new_tx:id(Tx),
+    OIDR = case Many of
+               0 -> OID;
+               _ -> OID1
+           end,
+    %io:fwrite(packer:pack(Tx)),
+    %io:fwrite("\n"),
+    Stx = keys:sign(Tx),
+    test_txs:absorb(Stx),
+    %tx_maker0(Tx),
+    [{oracles, OID}|scalar_oracle_make(StartHeight, Pubkey, Fee, Question, OIDR, Many + 1, Limit)].
 new_scalar_oracle(Start, Question) ->
-    new_scalar_oracle(Start, Question, 10).
-new_scalar_oracle(Start, Question, Many) ->
-    <<ID:256>> = find_id2(),
-    new_scalar_oracle(Start, Question, ID, Many).
-new_scalar_oracle(Start, Question, ID, Many) when is_binary(ID) ->
-    <<IDN:256>> = ID,
-    new_scalar_oracle(Start, Question, IDN, Many);
-new_scalar_oracle(Start, Question, ID, Many) ->
-    Many = 10,
-    Q2 = if
-	     is_list(Question) -> list_to_binary(Question);
-	     true -> Question
-	 end,
-    Cost = trees:get(governance, oracle_new),
-    nso2(keys:pubkey(), ?Fee+Cost+20, Q2, Start, ID, 0, Many),
-    <<ID:256>>.
+    Pubkey = keys:pubkey(),
+    OID = oracle_new_tx:id_generator2(Start, 0, 0, Question),
+    Trees = (tx_pool:get())#tx_pool.block_trees,
+    GovTree = trees:governance(Trees),
+    OIL = governance:get_value(oracle_initial_liquidity, GovTree),
+    scalar_oracle_make(Start, Pubkey, ?Fee+OIL+1, Question, OID, 0, 10).
+
+
+%new_scalar_oracle(Start, Question) ->
+%    new_scalar_oracle(Start, Question, 10).
+%new_scalar_oracle(Start, Question, Many) ->
+%    <<ID:256>> = find_id2(),
+%    new_scalar_oracle(Start, Question, ID, Many).
+%new_scalar_oracle(Start, Question, ID, Many) when is_binary(ID) ->
+%    <<IDN:256>> = ID,
+%    new_scalar_oracle(Start, Question, IDN, Many);
+%new_scalar_oracle(Start, Question, ID, Many) ->
+%    Many = 10,
+%    Q2 = if
+%	     is_list(Question) -> list_to_binary(Question);
+%	     true -> Question
+%	 end,
+%    Cost = trees:get(governance, oracle_new),
+%    nso2(keys:pubkey(), ?Fee+Cost+20, Q2, Start, ID, 0, Many),
+%    <<ID:256>>.
 -define(GAP, 0).%how long to wait between the limits when the different oracles of a scalar market can be closed.
-nso2(_Pub, _C, _Q, _S, _ID, Many, Many) -> 0;
-nso2(Pub, C, Q, S, ID, Many, Limit) -> 
-    io:fwrite("nso2\n"),
-    Q2 = <<Q/binary, (list_to_binary("  most significant is bit 0. this is bit number: "))/binary, (list_to_binary(integer_to_list(Many)))/binary>>,
-    Tx = oracle_new_tx:make_dict(Pub, C, Q2, S, <<ID:256>>, 0, 0),
-    io:fwrite(packer:pack(Tx)),
+%nso2(_Pub, _C, _Q, _S, _ID, Many, Many) -> 0;
+%nso2(Pub, C, Q, S, ID, Many, Limit) -> 
+%    io:fwrite("nso2\n"),
+%    Q2 = <<Q/binary, (list_to_binary("  most significant is bit 0. this is bit number: "))/binary, (list_to_binary(integer_to_list(Many)))/binary>>,
+%    Tx = oracle_new_tx:make_dict(Pub, C, Q2, S, <<ID:256>>, 0, 0),
+%    io:fwrite(packer:pack(Tx)),
     %tx_pool_feeder:absorb(keys:sign(Tx)),
-    tx_maker0(Tx),
-    nso2(Pub, C, Q, S+?GAP, ID+1, Many+1, Limit).
+%    tx_maker0(Tx),
+%    nso2(Pub, C, Q, S+?GAP, ID+1, Many+1, Limit).
     
 new_question_oracle(Start, Question)->
     Q2 = if
@@ -392,25 +419,27 @@ minimum_scalar_oracle_bet(OID, N) ->
     true = (N < 1024),
     Amount = trees:get(governance, oracle_question_liquidity) + 1,
     Bits = lists:reverse(to_bits(N, 10)),
-    <<OIDN:256>> = OID,
-    msob2(OIDN, Amount, 0, Bits).
-scalar_oracle_close(OID) ->
-    <<OIDN:256>> = OID,
-    scalar_oracle_close2(OIDN, 10).
-scalar_oracle_close2(_, 0) -> ok;
-scalar_oracle_close2(OIDN, N) ->
+    %<<OIDN:256>> = OID,
+    Keys = oracle_new_tx:scalar_keys(OID),
+    msob2(Keys, Amount, Bits).
+msob2([], _, []) -> ok;
+msob2([{oracles, OID}|OT], Amount, [H|T]) ->
     spawn(fun() ->
-                  oracle_close(<<OIDN:256>>)
-          end),
-    timer:sleep(50),
-    scalar_oracle_close2(OIDN+1, N-1).
-msob2(_, _, _, []) -> ok;
-msob2(OIDN, Amount, N, [H|T]) ->
-    spawn(fun() ->
-                  oracle_bet(<<(OIDN + N):256>>, H, Amount)
+                  oracle_bet(OID, H, Amount)
           end),
     timer:sleep(200),
-    msob2(OIDN, Amount, N+1, T).
+    msob2(OT, Amount, T).
+scalar_oracle_close(OID) ->
+    Keys = oracle_new_tx:scalar_keys(OID),
+    %<<OIDN:256>> = OID,
+    scalar_oracle_close2(Keys).
+scalar_oracle_close2([]) -> ok;
+scalar_oracle_close2([{oracles, OID}|T]) ->
+    spawn(fun() ->
+                  oracle_close(OID)
+          end),
+    timer:sleep(50),
+    scalar_oracle_close2(T).
 to_bits(_, 0) -> [];
 to_bits(X, N) when (0 == (X rem 2)) ->
     [2|to_bits(X div 2, N-1)];
@@ -433,13 +462,13 @@ oracle_winnings(Fee, OID) ->
 scalar_oracle_winnings(OID) -> 
     Cost = trees:get(governance, oracle_winnings),
     scalar_oracle_winnings(?Fee+Cost, OID).
-scalar_oracle_winnings(Fee, OID) -> %for scalar oracles
-    <<OIDN:256>> = OID,
-    scalar_oracle_winnings(Fee, OIDN, 10).
-scalar_oracle_winnings(_, _, 0) -> 0;
-scalar_oracle_winnings(Fee, OIDN, N) ->
-    oracle_winnings(Fee, <<OIDN:256>>),
-    scalar_oracle_winnings(Fee, OIDN + 1, N - 1).
+scalar_oracle_winnings(Fee, OID) when is_binary(OID)-> %for scalar oracles
+    Keys = oracle_new_tx:scalar_keys(OID),
+    scalar_oracle_winnings(Fee, Keys);
+scalar_oracle_winnings(_, []) -> 0;
+scalar_oracle_winnings(Fee, [{oracles, OID}|T]) ->
+    oracle_winnings(Fee, OID),
+    scalar_oracle_winnings(Fee, T).
 oracle_unmatched(OracleID) ->
     Cost = trees:get(governance, unmatched),
     oracle_unmatched(?Fee+Cost, OracleID).
@@ -448,13 +477,13 @@ oracle_unmatched(Fee, OracleID) ->
 scalar_oracle_unmatched(OID) -> 
     Cost = trees:get(governance, unmatched),
     scalar_oracle_unmatched(?Fee+Cost, OID).
-scalar_oracle_unmatched(Fee, OID) -> %for scalar oracles
-    <<OIDN:256>> = OID,
-    scalar_oracle_unmatched(Fee, OIDN, 10).
-scalar_oracle_unmatched(_, _, 0) -> 0;
-scalar_oracle_unmatched(Fee, OIDN, N) ->
-    oracle_unmatched(Fee, <<OIDN:256>>),
-    scalar_oracle_unmatched(Fee, OIDN + 1, N - 1).
+scalar_oracle_unmatched(Fee, OID) when is_binary(OID)-> %for scalar oracles
+    Keys = oracle_new_tx:scalar_keys(OID),
+    scalar_oracle_unmatched(Fee, Keys);
+scalar_oracle_unmatched(_, []) -> 0;
+scalar_oracle_unmatched(Fee, [{oracles, OID}|T]) ->
+    oracle_unmatched(Fee, OID),
+    scalar_oracle_unmatched(Fee, T).
 tree_common(TreeName, ID) ->
     X = trees:get(TreeName, ID),
     %X.
@@ -645,25 +674,31 @@ market_match(OID) ->
 settle_bets() ->
     channel_feeder:bets_unlock(channel_manager:keys()),
     {ok, ok}.
-not_empty_oracle(_, 0, _) -> true;
-not_empty_oracle(OID, Many, OldTrees) ->
-    io:fwrite("not empty oracle "),
-    io:fwrite(integer_to_list(Many)),
-    io:fwrite("\n"),
-    X = trees:get(oracles, <<OID:256>>, dict:new(), OldTrees),
-    (not (empty == X)) and not_empty_oracle(OID+1, Many-1, OldTrees).
-new_market(OID, Expires, Period, LL, UL, Many) -> %<<5:256>>, 4000, 5
+not_empty_oracle(OID, Trees) ->
+    Keys = oracle_new_tx:scalar_keys(OID),
+    not_empty_oracle2(Keys, Trees).
+not_empty_oracle2([], _) -> true;
+not_empty_oracle2([{oracles, OID}|T], Trees) -> 
+    X = trees:get(oracles, OID, dict:new(), Trees),
+    (not (empty == X)) and 
+        not_empty_oracle2(T, Trees).
+    
+%not_empty_oracle(_, 0, _) -> true;
+%not_empty_oracle(OID, Many, OldTrees) ->
+%    X = trees:get(oracles, <<OID:256>>, dict:new(), OldTrees),
+%    (not (empty == X)) and not_empty_oracle(OID+1, Many-1, OldTrees).
+new_market(OID, OracleStartHeight, Expires, Period, LL, UL) -> %<<5:256>>, 4000, 5
+    %Many = 10,
     true = LL > -1,
     true = LL < UL,
-    true = UL < (round(math:pow(2, Many))),
+    %true = UL < (round(math:pow(2, Many))),
     TPG = tx_pool:get(),
     Height = TPG#tx_pool.height,
     {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
     OldTrees = OldBlock#block.trees,
-    <<OIDN:256>> = OID,
-    true = not_empty_oracle(OIDN, Many, OldTrees),
-    order_book:new_scalar_market(OID, Expires, Period, LL, UL, Many).
+    true = not_empty_oracle(OID, OldTrees),
+    order_book:new_scalar_market(OID, Expires, Period, LL, UL, OracleStartHeight).
 new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     %sets up an order book.
     %turns on the api for betting.
