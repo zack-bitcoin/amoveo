@@ -91,7 +91,7 @@ You can prove that PoS works, you can prove that PoS does not work, you can prov
 Futarchy model
 =========
 
-the futarchy model is similar to the value maximization model, with one key difference.
+The futarchy model is similar to the value maximization model, with one key difference.
 Instead of asking which version of history is more valuable now, we are conditionally asking which version of history would be more valuable if we could all agree that it is the valid version of history?
 
 The value maximization model might ignore a version of history because it is worthless.
@@ -113,6 +113,19 @@ This security model is popular with people researching blockchain oracles, since
 This security model is a common tool for blockchain scalability strategies. It is a way to extend one blockchain's consensus to enforce rules on side-chains or shards. It is a way to achieve security guarantees over data that you have not personally downloaded.
 Usually they use the term "fraud proofs" to describe strategies that use this security model to achieve scalability goals.
 http://www.truthcoin.info/blog/fraud-proofs/
+
+
+no-chain model
+=========
+
+In order to launch new blockchains, and to do hard forks, there must exist some consensus mechanism external to any blockchain that allows us to come to agreement on some facts.
+
+This is the model for the resolution to the famous DAO hack in Ethereum. Since the money was locked up for a long enough period of time, the network had time to consider the situation, and agree on what a hard update to fix it would look like.
+
+This consensus mechanism is limited in space. We can only consider so many questions simultaniously.
+This consensus mechanism is limited in time. We need a lot of time to fully consider a question before we can answer it.
+
+This is the model for Amoveo's oracle. Since the money in the oracle is locked up for a long enough period of time, we can do a hard update to force the oracle to resolve in the honest direction.
 
 
 Crabs in a bucket model
