@@ -126,8 +126,9 @@ There are people trading now on discord https://discord.gg/xJQcVaT
 
 Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
-A1 exchange for ETH-VEO and BTC-VEO trading (previously called amoveo.exchange): https://a1.exchange/
+[graviex exchange](https://github.com/zack-bitcoin/amoveo/blob/master/docs/exchanges/graviex_links.md)
 
+[GOZO exchange](https://gozo.pro/)
 
 ## browser extentions
 Firefox. It can be found here. https://addons.mozilla.org/en-US/firefox/addon/amoveo-wallet/ and the source code is here https://github.com/johnnycash77/amoveo3-wallet
