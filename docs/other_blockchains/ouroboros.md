@@ -38,15 +38,15 @@ So I will mostly be focusing on section 2 of their white paper.
 The Security Model Goals
 =========
 
-Ouroboros security is based on the goals of persistence, and liveliness.
+Ouroboros security is based on the goals of persistence, and liveness.
 
 By "persistence", they mean that the blockchain needs to have finality. if a tx gets deeper into history, we need to have increasing confidence that it wont get reverted.
 
-By "liveliness", they mean that txs wont get censored. A valid tx with sufficient fees will get included in some finite number of blocks.
+By "liveness", they mean that txs wont get censored. A valid tx with sufficient fees will get included in some finite number of blocks.
 
 As far as I can tell, these 2 goals do fully encompass the needs of a cryptocurrency.
 
-I will be attempting to show that the Ouroboros model fails to achieve the goal of liveliness.
+I will be attempting to show that the Ouroboros model fails to achieve the goal of liveness.
 
 Tx censorship is a deep problem. The ability to do arbitrary censorship is called a "soft fork". It is a kind of attack that lets the attacker make arbitrary changes to the consensus rules of a blockchain.
 
@@ -60,9 +60,9 @@ The Ouroboros security model section of the white paper describes a random numbe
 Ouroboros randomly selects stakers, weighted by how much they have staked, and gives them the opportunity to make the next block.
 
 
-So, my goal in this paper is to show that even if we can select stakers at random, and we don't break the random number generator, we can still break the liveliness guarantee.
+So, my goal in this paper is to show that even if we can select stakers at random, and we don't break the random number generator, we can still break the liveness guarantee.
 
-This will show that the ouroboros security model is not actually providing liveliness guarantees. So even if all the proofs in Ouroboros are correct, and the model is a valid description of the blockchain, it is still not secure, because all those proofs are proving something unrelated to whether or not Ouroboros can be a secure cryptocurrency.
+This will show that the ouroboros security model is not actually providing liveness guarantees. So even if all the proofs in Ouroboros are correct, and the model is a valid description of the blockchain, it is still not secure, because all those proofs are proving something unrelated to whether or not Ouroboros can be a secure cryptocurrency.
 
 
 We can pay for censorship of txs
