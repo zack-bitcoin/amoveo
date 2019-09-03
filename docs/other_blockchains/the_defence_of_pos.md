@@ -19,6 +19,27 @@ If we attempt to use a slow mechanism to solve these descrepancies, then we woul
 
 Once the attacker has sold their coins in an exchange and withdrawn to fiat, then there is no way to roll back history and recover those coins.
 
+Anonymous Eth research who is desiging Eth 2.0
+=========
+
+argument 1:
+
+"soft forks can not change the fork choice rule"
+
+This seems like the most hopeful argument of them all, but there aren't enough details to be sure if it could work.
+
+The difference in the fork choice rule is basically what is protecting PoW from soft-fork-bribery attacks, so it makes sense that a similar trick could be useful for PoS.
+
+But until someone actually provides such a fork choice rule, and demonstrates that it does work to prevent this attack, this isn't enough evidence to show that PoS can possibly be secure from soft-fork-bribery attacks.
+
+argument 2:
+
+"a small number of non participants can make the attack expensive "
+
+It doesn't make sense to call an attack "expensive", if it gives the attacker control to redistribute all the money, and all the costs are internal to the system.
+
+The attacker can change the rules to make it not expensive. 
+
 Maigoh91
 ========
 
