@@ -35,11 +35,11 @@ argument 1:
 
 "soft forks can not change the fork choice rule"
 
-This seems like the most hopeful argument of them all, but there aren't enough details to be sure if it could work.
+It isn't clear how this assertion could help make a PoS secure against soft-fork-bribery attacks, but I can prove it false anyway.
 
-The difference in the fork choice rule is basically what is protecting PoW from soft-fork-bribery attacks, so it makes sense that a similar trick could be useful for PoS.
+If an attacker can redistriute funds however they want, then they can redistribute the funds to undo any costs that are internal to the system. So if the fork choice rule gives advantage to the side that pays more financial costs, a soft-fork can be set up to exactly counter those costs.
 
-But until someone actually provides such a fork choice rule, and demonstrates that it does work to prevent this attack, this isn't enough evidence to show that PoS can possibly be secure from soft-fork-bribery attacks.
+If the fork choice rule involves costs that are external to the system, that would be considered PoW, not PoS.
 
 argument 2:
 
