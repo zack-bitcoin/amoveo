@@ -19,6 +19,13 @@ If we attempt to use a slow mechanism to solve these descrepancies, then we woul
 
 Once the attacker has sold their coins in an exchange and withdrawn to fiat, then there is no way to roll back history and recover those coins.
 
+Maigoh91
+========
+
+Maigo is a community member from Cosmos, like Jae. [His explanation](https://www.reddit.com/r/cosmosnetwork/comments/cnw1rn/i_attempted_to_prove_that_cosmos_pos_consensus_is/) of why PoS is secure is based on reputation. Maigo thinks that the value of a business's reputation is at risk, so they wont take bribes that could possibly destroy something so valuable.
+
+But, it does not matter whether value takes the form of stake locked into the blockchain, or business reputation, or anything else. The [same game theory holds. the bribe is much smaller than how much value it can destroy](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md).
+
 LionLikesCookies
 ========
 
@@ -60,6 +67,28 @@ But, blockchain smart contract systems are exactly designed to enable trust-free
 
 His argument this time is basically like: No one will accept a bribe B to participate in an attack that could make them lose V, if B<V.
 And that does seem reasonable at first. [but game theorists have known since at least 1833 that this is not always true](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md)
+
+
+Veil
+=========
+
+Veil's argument for why bribery-soft-fork attacks can't break their system is like this: We can use privacy so it is impossible to know who is the validator that you would want to bribe.
+
+
+Ring signatures work well if the users want to stay private. 
+
+The problem with bribes is that block producers are motivated to purposefully expose data to break privacy, because this is the only way for them to receive bribes.
+You might think that it is possible to invent a complicated cryptography scheme so that it is not possible to reveal how you have voted, even if you would like to. 
+But I think I have a pretty good argument that such a scheme is not possible.
+
+one desired property of a conensus mechanism, is that it should not freeze just because one of the participants goes offline.
+So that means the block creator needs to be able to calculate the next consensus state whether or not I am participating in creating it.
+That means they can re-calculate the next consensus state using any subset of the txs of a block.
+
+By comparing the results of including various subsets of the available txs, they are eventually able to derive how each individual txs is influencing the consensus state
+
+An attacker who has access to all of the private keys and entropy used to generate all of the encrypted votes. It must be possible for him to re-trace the steps of the production of each encrypted vote.
+
 
 
 Conclusions
