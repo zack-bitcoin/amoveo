@@ -9,6 +9,9 @@ The goal of this paper is to analyze ouroboros to see if they have managed to pr
 
 Others have written about the myth that PoS is cheaper than PoW, so I will just link to their work on the subject http://www.truthcoin.info/blog/pow-cheapest/
 
+
+This vulnerability has been more or less understood since 2016 when I told Charles Hoskinson, the CEO of Cardano, about it on twitter https://twitter.com/zack_bitcoin/status/812921755199242240?s=20
+
 A mathematical strategy
 =========
 
