@@ -49,7 +49,7 @@ So in POS systems, it is always possible for a majority coalition to punish acco
 So in POS systems, once a majority coalition has formed, it is very stable. It is easy for the participants in the coalition to trust each other, because if any one of them cheats, the rest of the coalition can tell who cheated and punish them by freezing their money.
 So the majority coalition can use soft forks to push through any changes to the consensus rules that they want, they can steal any money, they can raise the fees as high as they want.
 
-According to tragedy of the commons, the cost to bribe the validators to form a majority coalition and destroy the blockchain is:
+According to [tragedy of the commons](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md), the cost to bribe the validators to form a majority coalition and destroy the blockchain is:
 ```
 LU = (how much the validators have to lock up)
 #V = (how many validators are there)
