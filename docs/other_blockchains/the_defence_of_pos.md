@@ -26,7 +26,7 @@ Lion's argument is that PoS is game-theoretically the same as PoW in bitcoin for
 
 This is basically the same as Vitalik's arguments in favor of PoS from January 2015 in his [P+epsilon paper](https://blog.ethereum.org/2015/01/28/p-epsilon-attack/) in the "Further Consequences" section.
 
-I explain why this bribery attack can not be done against proof of work in [this paper](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/proof_of_stake.md) in the section "Why PoS fails".
+I explain why this bribery attack can not be done against proof of work in [this paper](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/proof_of_stake.md) in the section "Censorship can be good".
 
 sebastiengllmt
 ========
