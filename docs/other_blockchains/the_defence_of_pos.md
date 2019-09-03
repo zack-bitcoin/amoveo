@@ -11,9 +11,13 @@ Jae Kwon
 
 [link to twitter discussion](https://twitter.com/jaekwon/status/1163205417020735488?s=20)
 
-Jae thinks that the security of PoS is based in "social legitimacy".
+Jae thinks that the security of PoS is based in "social legitimacy". 
+
 But that is on a slower timescale in comparison to how many confirmations you would need to withdraw from an exchange.
+
 If we attempt to use a slow mechanism to solve these descrepancies, then we would necessarily be opening ourselves up to the possibility of double-spend attacks.
+
+Once the attacker has sold their coins in an exchange and withdrawn to fiat, then there is no way to roll back history and recover those coins.
 
 LionLikesCookies
 ========
