@@ -22,7 +22,9 @@ Once the attacker has sold their coins in an exchange and withdrawn to fiat, the
 Maigoh91
 ========
 
-Maigo is a community member from Cosmos, like Jae. [His explanation](https://www.reddit.com/r/cosmosnetwork/comments/cnw1rn/i_attempted_to_prove_that_cosmos_pos_consensus_is/) of why PoS is secure is based on reputation. Maigo thinks that the value of a business's reputation is at risk, so they wont take bribes that could possibly destroy something so valuable.
+Maigo is a community member from Cosmos, like Jae. [His explanation](https://www.reddit.com/r/cosmosnetwork/comments/cnw1rn/i_attempted_to_prove_that_cosmos_pos_consensus_is/) of why PoS is secure is based on reputation.
+
+Maigo thinks that the value of a business's reputation is at risk, so they wont take bribes that could possibly destroy something so valuable.
 
 But, it does not matter whether value takes the form of stake locked into the blockchain, or business reputation, or anything else. The [same game theory holds. the bribe is much smaller than how much value it can destroy](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md).
 
@@ -89,10 +91,28 @@ By comparing the results of including various subsets of the available txs, they
 
 An attacker who has access to all of the private keys and entropy used to generate all of the encrypted votes. It must be possible for him to re-trace the steps of the production of each encrypted vote.
 
+Maximilian Roszko
+==========
 
+He chatted with me in this telegram group https://t.me/cryptocodereviews
+
+His first argument was that it would be difficult to coordinate the bribe.
+
+But that is a solvable UX problem.
+
+
+His second argument:
+"there is a very simple defence against bribery attacks, which is counter bribery attacks, where I bribe just a small amount more than you did, and make it so that we soft fork the protocol where all your funds go to me. Now I defended the network at no loss, in fact maybe I even made some money from it..."
+
+Defenders can try to make a counter-bribe. So the system degrades to a whoever is willing to pay the most wins game. This is a failure mode.
+
+If whoever is willing to pay the most has total control, and total control lets you print more coins and give them to yourself, then it is not clear the network would even be able to agree on a single version of history in a situation like this.
+
+He made a third and fourth argument that were the same as petko's arguments.
 
 Conclusions
 ========
 
 The response in favor of PoS is not consistent.
 Many people agree that PoS is secure against bribery-soft-fork attacks, but they all have different reasons for why they believe this, and none of the reasons are convincing to me.
+
