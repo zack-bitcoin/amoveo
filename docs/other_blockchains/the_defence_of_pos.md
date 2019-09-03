@@ -19,6 +19,15 @@ If we attempt to use a slow mechanism to solve these descrepancies, then we woul
 
 Once the attacker has sold their coins in an exchange and withdrawn to fiat, then there is no way to roll back history and recover those coins.
 
+Maigoh91
+========
+
+Maigo is a community member from Cosmos, like Jae. [His explanation](https://www.reddit.com/r/cosmosnetwork/comments/cnw1rn/i_attempted_to_prove_that_cosmos_pos_consensus_is/) of why PoS is secure is based on reputation.
+
+Maigo thinks that the value of a business's reputation is at risk, so they wont take bribes that could possibly destroy something so valuable.
+
+But, it does not matter whether value takes the form of stake locked into the blockchain, or business reputation, or anything else. The [same game theory holds. the bribe is much smaller than how much value it can destroy](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md).
+
 Anonymous Eth research who is desiging Eth 2.0
 =========
 
@@ -39,15 +48,6 @@ argument 2:
 It doesn't make sense to call an attack "expensive", if it gives the attacker control to redistribute all the money, and all the costs are internal to the system.
 
 The attacker can change the rules to make it not expensive. 
-
-Maigoh91
-========
-
-Maigo is a community member from Cosmos, like Jae. [His explanation](https://www.reddit.com/r/cosmosnetwork/comments/cnw1rn/i_attempted_to_prove_that_cosmos_pos_consensus_is/) of why PoS is secure is based on reputation.
-
-Maigo thinks that the value of a business's reputation is at risk, so they wont take bribes that could possibly destroy something so valuable.
-
-But, it does not matter whether value takes the form of stake locked into the blockchain, or business reputation, or anything else. The [same game theory holds. the bribe is much smaller than how much value it can destroy](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md).
 
 LionLikesCookies
 ========
