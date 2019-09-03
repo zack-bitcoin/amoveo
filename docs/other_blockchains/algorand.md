@@ -26,7 +26,7 @@ We will try to show that it is cheap to bribe >2/3rds of money holders. That way
 Bribes are cheap.
 =========
 
-Bribing users to participate in an attack is very cheap.
+Bribing users to participate in an attack [is very cheap](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md).
 
 Lets use a 2x2 game theory square to calculate exactly how big the bribes would need to be to destroy a blockchain like Algorand.
 
