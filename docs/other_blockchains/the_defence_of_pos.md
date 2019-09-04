@@ -73,6 +73,29 @@ Sebast's argument is that it is impossible to know how much to bribe each valida
 
 The solution to that is that the attacker's smart contracts which are programmed to pay the bribe, all these smart contracts should be slowly offering a higher and higher bribe, until we have sufficient portion of the validator pool participating. This way the attacker only has to spend the minimum amount of money on the bribe as he needs to.
 
+Josh
+=======
+
+Josh is a 3rd Cardano community member, and he gives an entirely different explanation for why PoS works.
+
+According to Josh, "You’d have to bribe 51% of the value of the network to destroy 100% of the network"
+
+Lets suppose Josh is right, and we will use a proof by contradiction to show that this can't be right.
+
+A: Lets suppose that the (the cost to bribe a user) = (the value in Ada they own).
+
+B: we know that: (cost of bribe) = (value held) * (probability that their vote is pivotal)
+
+plugging A into B -> (value held) = (value held) * (probability that their vote is pivotal)
+
+divide both sides by (value held) -> 1 = (probability that their vote is pivotal)
+
+So we have shown that all of the user's votes are pivotal. So any individual user must have 100% control over the outcome of the vote.
+
+But, if there is more than 1 user, this can't possibly be true.
+If two of the users disagree on what they want the outcome, they can't both have 100% control over the outcome.
+
+So we have shown that the initial premise of (the cost to bribe a user) = (the value in ada that they own), we have shown that his premise must be false, because it leads us to a contradiction.
 
 petko
 =======
