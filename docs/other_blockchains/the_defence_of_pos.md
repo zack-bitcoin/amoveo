@@ -80,6 +80,8 @@ Josh is a 3rd Cardano community member, and he gives an entirely different expla
 
 According to Josh, "You’d have to bribe 51% of the value of the network to destroy 100% of the network"
 
+And that does seem reasonable at first. [but game theorists have known since at least 1833 that this is not always true](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md)
+
 Lets suppose Josh is right, and we will use a proof by contradiction to show that this can't be right.
 
 A: Lets suppose that the (the cost to bribe a user) = (the value in Ada they own).
@@ -111,8 +113,7 @@ But, blockchain smart contract systems are exactly designed to enable trust-free
 
 [petko's second argument](https://twitter.com/petkodp/status/1168553666124664832?s=20)
 
-His argument this time is basically like: No one will accept a bribe B to participate in an attack that could make them lose V, if B<V.
-And that does seem reasonable at first. [but game theorists have known since at least 1833 that this is not always true](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md)
+This is the same as Josh's argument.
 
 
 Veil
