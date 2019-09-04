@@ -153,7 +153,7 @@ Defenders can try to make a counter-bribe. So the system degrades to a whoever i
 
 If whoever is willing to pay the most has total control, and total control lets you print more coins and give them to yourself, then it is not clear the network would even be able to agree on a single version of history in a situation like this.
 
-He made a third and fourth argument that were the same as petko's arguments.
+He made a third and fourth argument that were the same as petko's argument and Josh's argument.
 
 Conclusions
 ========
