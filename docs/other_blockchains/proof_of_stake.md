@@ -40,7 +40,7 @@ The sub-coalition have half as much hashpower to coordinate, so their cost is C/
 In POW, it is always easier and more profitable to create a sub-coalition to overthrow a coalition than it was to create the first coalition.
 This fact makes it so that no miner is interested in forming coalitions, because they know it is probably a trick to steal their hashpower.
 
-From the miner's perspective, if they participate in your coalition they will probably lose all their profits. So the size of the bribe you would need to pay is about the same as the cost of renting the hashpower and mining yourself.
+From the miner's perspective, if they participate in your coalition they will probably lose all their profits.
 
 Why PoS fails
 ======
