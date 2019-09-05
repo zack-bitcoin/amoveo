@@ -51,6 +51,9 @@ So in POS systems, it is always possible for a majority coalition to punish acco
 So in POS systems, once a majority coalition has formed, it is very stable. It is easy for the participants in the coalition to trust each other, because if any one of them cheats, the rest of the coalition can tell who cheated and punish them by freezing their money.
 So the majority coalition can use soft forks to push through any changes to the consensus rules that they want, they can steal any money, they can raise the fees as high as they want.
 
+If you think the attack will fail, then you are comfortable taking the bribe. Because you know the attack will fail either way, so you might as well take the free money.
+If you think the attack will succeed, then you will sell your coins to someone who thinks the attack will fail.
+
 According to [tragedy of the commons](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md), the cost to bribe the validators to form a majority coalition and destroy the blockchain is:
 ```
 LU = (how much the validators have to lock up)
@@ -81,6 +84,7 @@ PP > LU
 
 It is impossible to make both of these inequalities true at the same time.
 This shows it is impossible for PoS to achieve level 3 trust, it will always be level 4.
+
 
 Tragedy of the Commons details
 ===========
