@@ -40,6 +40,7 @@ The steps
 
 5) we push through repeated soft forks to remove the vulnerability, so no one can use this exploit to take control again. For example, we would convert a proof-of-stake blockchain to use proof-of-work instead.
 
+
 Call to Action
 =========
 
