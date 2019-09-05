@@ -5,6 +5,8 @@ I wrote [the PoS paper](https://github.com/zack-bitcoin/amoveo/blob/master/docs/
 
 I shared the PoS paper with many people who have a vested interest in PoS technology, and I have received different responses from them. The goal of this paper is to collect the various arguments in favor of PoS together in one place, so we can see why different people believe PoS can still work.
 
+If you feel that your opinion is misrepresented here, or if your opinion has changed, feel free to contact me and I will adjust this document for you.
+
 
 Jae Kwon
 ========
@@ -154,6 +156,21 @@ Defenders can try to make a counter-bribe. So the system degrades to a whoever i
 If whoever is willing to pay the most has total control, and total control lets you print more coins and give them to yourself, then it is not clear the network would even be able to agree on a single version of history in a situation like this.
 
 He made a third and fourth argument that were the same as petko's argument and Josh's argument.
+
+Emin Gun Sirer
+========
+
+Emin is the author of the Avalanche PoS consensus mechanism and founder of Algorand, a PoS cryptocurrency.
+
+His response to the soft-fork-bribery attack proposal: "The reasoning is specious. It essentially says that, once the security guarantees are broken, they are broken."
+
+
+Charles Hoskinson
+=======
+
+Charles is a founder of Cardano, a blockchain that uses Ouroboros.
+
+His response to the soft-fork-bribery attack proposal: "an attack that can't happen"
 
 Conclusions
 ========
