@@ -110,7 +110,9 @@ According to the laws of probability, mutually exclusive outcomes need to add up
 One way to get all their influences to add up to 100%, is if each individual's influence is (their stake)/(total stake), which is the same as (the portion of the stake that this user controls).
 
 This is called the "market failure model", or the "tragedy of the commons model".
+
 `(Bribe for one user) = (value of their coins) * (portion of stake that they control)`
+
 `(Bribe for 1/2 of stake) = (value of 1/2 of stake) * (portion of stake controlled by the average staker being bribed)`
 
 So, plugging in some example values.
