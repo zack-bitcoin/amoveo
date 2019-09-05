@@ -160,7 +160,7 @@ He made a third and fourth argument that were the same as petko's argument and J
 Emin Gun Sirer
 ========
 
-Emin is the author of the Avalanche PoS consensus mechanism and founder of Algorand, a PoS cryptocurrency.
+Emin the founder of AvaLabs, which is launching the Ava cryptocurrency, which uses the Avalanche PoS consensus mechanism.
 
 His response to the soft-fork-bribery attack proposal: "The reasoning is specious. It essentially says that, once the security guarantees are broken, they are broken."
 
