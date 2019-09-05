@@ -1,6 +1,8 @@
 Proof of Stake
 ========
 
+version: 2
+
 The goal of this paper is to show that Proof of Stake blockchain consensus does not work. We take the very general definition of Proof of stake consensus: any blockchain consensus mechanism where your influence over which block is added to the chain is proportional to some value that you own inside the blockchain's consensus state.
 
 [Here you can see counter-arguments the evidence in this paper](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/the_defence_of_pos.md)
