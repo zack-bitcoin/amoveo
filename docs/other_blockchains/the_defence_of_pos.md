@@ -30,7 +30,7 @@ Maigo thinks that the value of a business's reputation is at risk, so they wont 
 
 But, it does not matter whether value takes the form of stake locked into the blockchain, or business reputation, or anything else. The [same game theory holds. the bribe is much smaller than how much value it can destroy](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md).
 
-Anonymous Eth research who is desiging Eth 2.0
+Anonymous Eth researcher who is designing Eth 2.0
 =========
 
 argument 1:
