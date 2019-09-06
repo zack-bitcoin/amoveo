@@ -29,21 +29,16 @@ and every time the txs get rolled back, your money may have been deleted. it wou
 Alfred
 ========
 
-Alfred's argument is similar to Jae's, but Alfred also suggests that we add a rule so that the total amount of bonded stake is big enough so that if we delete all the bonds of everyone who took bribes, that it is impossible for the attackers to have profited.
+Alfred is someone who regularly contributes to Amoveo's telegram channel.
 
-R = Bribe
-B = block reward/tx fees
-S = your stake
-attack result:  success     failure
-you attack:     R           R+B+S
-you defend:     B+S         B+S
+Alfred's argument is similar to Jae's, but Alfred also suggests that we add a rule so that the total amount of bonded stake is big enough so that if we delete all the bonds of everyone who took bribes, that it is impossible for the attackers to have profited.
 
 To prevent rolling back from being profitable, we would need `(all money moved in one period of social consensus) * 2 < (value staked and online)`, that way we can delete enough stake from validators who were bribed so it is impossible that the money they stole is more valuable than the stake that was burned.
 
 Staking value to someone who is online does not work, because that means we could cheaply bribe the delegate to allow your stake to get deleted, which means that the protocol is not secure.
 
-It ends up like Augur's level of security. Level 3. This means it will be more [expensive to use, and less secure than competitiors](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md)
-It is expensive because you need to pay high enough fees to convince enough people to lock their money in bonds and stay online to verify blocks.
+It ends up like Augur's kind of security.
+Costs come from paying enough fees to convince enough people to lock their money in bonds and stay online to verify blocks and to not let our money get stolen.
 
 In augur each oracle is slow, so validators only come online irregularly. if we use it for consensus, then they need to stay online for every block.
 
