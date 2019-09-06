@@ -21,6 +21,39 @@ If we attempt to use a slow mechanism to solve these descrepancies, then we woul
 
 Once the attacker has sold their coins in an exchange and withdrawn to fiat, then there is no way to roll back history and recover those coins.
 
+If we can profitably do double spends this way, then we will do it over and over all day long forever to bleed the blockchain dry.
+
+Eventually the attackers could make off with quite a lot of the value from the blockchain.
+and every time the txs get rolled back, your money may have been deleted. it would be massively destructive.
+
+Alfred
+========
+
+Alfred's argument is similar to Jae's, but Alfred also suggests that we add a rule so that the total amount of bonded stake is big enough so that if we delete all the bonds of everyone who took bribes, that it is impossible for the attackers to have profited.
+
+R = Bribe
+B = block reward/tx fees
+S = your stake
+attack result:  success     failure
+you attack:     R           R+B+S
+you defend:     B+S         B+S
+
+To prevent rolling back from being profitable, we would need `(all money moved in one period of social consensus) * 2 < (value staked and online)`, that way we can delete enough stake from validators who were bribed so it is impossible that the money they stole is more valuable than the stake that was burned.
+
+Staking value to someone who is online does not work, because that means we could cheaply bribe the delegate to allow your stake to get deleted, which means that the protocol is not secure.
+
+It ends up like Augur's level of security. Level 3. This means it will be more [expensive to use, and less secure than competitiors](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md)
+It is expensive because you need to pay high enough fees to convince enough people to lock their money in bonds and stay online to verify blocks.
+
+In augur each oracle is slow, so validators only come online irregularly. if we use it for consensus, then they need to stay online for every block.
+
+To the best of my knowledge, no PoS blockchain is following the rules to use this security model. For example, this model would require us to limit the total number of coins that can be sent per block.
+
+This model is vulnerable to parasite contracts, the same was as Augur.
+If something like colored-coin is to bitcoin was built on top of this protocol, and they were not paying fees to the bonded validators proportional to the value transfered, then it could result in the protocol becoming insecure.
+
+If there are subcurrencies, it could be very difficult to correctly calculate fees.
+
 Maigoh91
 ========
 
@@ -161,6 +194,12 @@ Defenders can try to make a counter-bribe. So the system degrades to a whoever i
 If whoever is willing to pay the most has total control, and total control lets you print more coins and give them to yourself, then it is not clear the network would even be able to agree on a single version of history in a situation like this.
 
 He made a third and fourth argument that were the same as petko's argument and Josh's argument.
+
+Alfred
+========
+
+Alfred's argument is that if a soft-fork-bribery attack was to succeed, then we can use the slower social consensus layer to roll back the attacked blocks, and delete all the stake of everyone who had participated.
+
 
 Emin Gun Sirer
 ========
