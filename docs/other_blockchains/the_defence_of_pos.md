@@ -147,6 +147,11 @@ His first argument was that it would be difficult to coordinate the bribe.
 
 But that is a solvable UX problem.
 
+We have to assume that people would prefer owning more value instead of less.
+Calculating the expected profits of different possible user strategies, that is a math problem.
+So calculating user behavior is a math problem.
+Which means that security is a math problem.
+
 
 His second argument:
 "there is a very simple defence against bribery attacks, which is counter bribery attacks, where I bribe just a small amount more than you did, and make it so that we soft fork the protocol where all your funds go to me. Now I defended the network at no loss, in fact maybe I even made some money from it..."
@@ -162,7 +167,19 @@ Emin Gun Sirer
 
 Emin the founder of AvaLabs, which is launching the Ava cryptocurrency, which uses the Avalanche PoS consensus mechanism.
 
-His response to the soft-fork-bribery attack proposal: "The reasoning is specious. It essentially says that, once the security guarantees are broken, they are broken."
+His response to the soft-fork-bribery attack proposal: "In practice, most validators, like most miners, are benign and follow the protocol as prescribed instead of playing clever games. Life is so much more fun when people attack, but the truth is 90+% of the participants are typically honest and simpleminded. "
+
+Assuming that 90% are honest would make it trivial to write a secure PoS consensus mechanism.
+Assuming 90% honesty in the stakers is not typical in cryptocurrency engineering.
+
+Usually we model user motivations like this: 10% are attackers who are willing to take a loss to harm the protocol, 1% are altruists who are willing to take a loss to help the protocol, and 89% are self-interested who do whatever makes themselves the most money.
+
+The costs due to confusion, that is a solvable UX problem.
+A motivated attacker could create enough tooling to reduce the confusion costs to zero.
+
+For example, an attacker could use a prediction market as a lie detector, that way we can have financial guarantees that certain facts about the software the attacker is offering us are true. Even if the stakers don't personally understand the software. If knowing the functionality of a peice of software is as easy as looking up the price of shares in a market, then you don't need technical expertise.
+
+We have to assume that users prefer owning more value instead of less, which means that security is a calculation problem.
 
 
 Charles Hoskinson
