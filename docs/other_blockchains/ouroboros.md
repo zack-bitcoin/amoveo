@@ -3,11 +3,13 @@ Ouroboros Review
 
 Ouroboros is a proof of stake type blockchain consensus mechanism. Here is the paper describing it https://eprint.iacr.org/2016/889.pdf
 
-I have written a general paper about why PoS is not possible https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/proof_of_stake.md
+I have written a general paper about why [PoS is not possible](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/proof_of_stake.md)
 
 The goal of this paper is to analyze ouroboros to see if they have managed to prove me wrong. I will try to show that Ouroboros can not be secure.
 
-Others have written about the myth that PoS is cheaper than PoW, so I will just link to their work on the subject http://www.truthcoin.info/blog/pow-cheapest/
+[Here people attempt to show that the attack in this paper wont work](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/the_defence_of_pos.md)
+
+Others have written about the myth that PoS is cheaper than PoW, so I will just [link to their work on the subject](http://www.truthcoin.info/blog/pow-cheapest/)
 
 
 This vulnerability has been more or less understood since 2016 when I told Charles Hoskinson, the CEO of Cardano, about it on twitter https://twitter.com/zack_bitcoin/status/812921755199242240?s=20
