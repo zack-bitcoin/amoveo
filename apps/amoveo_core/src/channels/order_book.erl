@@ -126,7 +126,7 @@ handle_call({match, OID}, _From, X) ->
 				    {CodeKey0, SS0};
 				{scalar, UpperLimit, LowerLimit, StartHeight} ->
 				    CodeKey1 = lisp_scalar:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID, UpperLimit, LowerLimit, StartHeight),
-                                    OIDS = oracle_new_tx:scalar_keys(OID),
+                                    OIDS = oracle_new_tx:scalar_keys(OID),%reversed
 				    SS1 = lisp_scalar:settle_scalar(PriceDeclaration, OIDS, MatchPrice),
 				    {CodeKey1, SS1}
 			    end,
@@ -195,10 +195,10 @@ match_internal(Height, OID, OB, Accounts) ->
 	    SellPrice = Sell#order.price,
 	    if
 		(BuyPrice+SellPrice) < 10000 ->
-                    %io:fwrite("finished match internal \n"),
+                    io:fwrite("finished match internal \n"),
 		    finished_matching(Height, OID, OB, Accounts);
 		true ->
-                    %io:fwrite("matching a trade\n"),
+                    io:fwrite("matching a trade\n"),
 		    match_internal3(Height, OID, OB, Accounts, [Buy|B], [Sell|S])
 	    end
     end.
@@ -211,14 +211,14 @@ match_internal3(Height, OID, OB, Accounts, [Buy|B], [Sell|S]) ->
     {X4, AID1, AID2} = 
 	if
 	    X2 > Y2 -> %match the buy;
-		%io:fwrite("match buy \n"),
+		io:fwrite("match buy \n"),
 		Ratio = (10000 * abs(Y)) div 
 		    Sell#order.amount,
 		{OB#ob{exposure = Y, buys = B, ratio = Ratio, price = (10000 - Sell#order.price)},
 		 Buy#order.acc,
 		 Sell#order.acc};
 	    true -> %match the sell
-		%io:fwrite("match sell \n"),
+		io:fwrite("match sell \n"),
 		Ratio = (10000 * abs(X)) div 
 		    Buy#order.amount,
 		{OB#ob{exposure = X, sells = S, ratio = Ratio, price = Buy#order.price}, 
