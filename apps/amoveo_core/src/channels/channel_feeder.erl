@@ -112,7 +112,7 @@ handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     CodeKey = Bet#bet.key,
     OID = case CodeKey of
 	      {market, 1, _, _, _, _, Z} -> Z;
-	      {market, 2, _, _, _, _, Y, _, _} -> Y
+	      {market, 2, _, _, _, _, Y, _, _, _} -> Y
 	  end,
     %{market, 1, _, _, _, _, OID} = CodeKey,
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
@@ -159,7 +159,8 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     {ok, OB} = order_book:data(OID),
     Expires = order_book:expires(OB),
     Period = order_book:period(OB),
-    SC = contract_market(order_book:ob_type(OB), OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
+    OBData = order_book:ob_type(OB),
+    SC = contract_market(OBData, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
     %BetLocation = constants:oracle_bet(),
     %SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, Height),
     {ok, OldCD} = channel_manager:read(ID),
@@ -174,7 +175,12 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     io:fwrite(packer:pack(SPK2)), %bet amount 750
     io:fwrite("\n"),
     SPK = SPK2,
-    DefaultSS = market:unmatched(OID),
+    DefaultSS = 
+        case OBData of
+            {binary} -> market:unmatched(OID);
+            {scalar, _, _, _} ->
+                lisp_scalar:unmatched(OID)
+        end,
     SSME = [DefaultSS|OldCD#cd.ssme],
     SSThem = [DefaultSS|OldCD#cd.ssthem],
     %Dict = TP#tx_pool.dict,
@@ -422,7 +428,7 @@ trade(Amount, Price, Bet, Other, _OID) ->
     {ok, SpaceLimit} = application:get_env(amoveo_core, space_limit),
     CGran = constants:channel_granularity(),
     A = (Amount * Price) div CGran,
-    SPK2 = spk:apply_bet(Bet, -A, SPK, TimeLimit div 10 , SpaceLimit),
+    SPK2 = spk:apply_bet(Bet, -A, SPK, TimeLimit , SpaceLimit),
     keys:sign(SPK2).
 cancel_trade_common(N, OldCD) ->
     SPK = OldCD#cd.me,
@@ -549,9 +555,10 @@ bets_unlock2([ID|T], OutT) ->
 
 contract_market(OBData, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height) ->
     case OBData of
-	{scalar, LL, UL, 10} -> 
-	    BetLocation = constants:scalar_oracle_bet(),
-	    scalar_market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height, LL, UL);
+	{scalar, LL, UL, OracleStartHeight} -> 
+	    %BetLocation = constants:scalar_oracle_bet(),
+	    %scalar_market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height, LL, UL);
+            lisp_scalar:market_smart_contract(OID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height, LL, UL, OracleStartHeight);
 	{binary} ->
 	    BetLocation = constants:oracle_bet(),
 	    market:market_smart_contract(BetLocation, MarketID, Type, Expires, Price, Pubkey, Period, Amount, OID, Height)
