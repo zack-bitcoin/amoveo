@@ -128,6 +128,10 @@ Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
 [graviex exchange](https://github.com/zack-bitcoin/amoveo/blob/master/docs/exchanges/graviex_links.md)
 
+<!---
+A1 exchange for ETH-VEO and BTC-VEO trading (previously called amoveo.exchange): https://a1.exchange/
+--->
+
 [GOZO exchange](https://gozo.pro/)
 
 ## browser extentions
