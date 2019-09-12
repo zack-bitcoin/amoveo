@@ -111,12 +111,12 @@ OpenSuSE requires manual compilation and instalation of Erlang.
 
 ## After Dependencies
 
-Next, download Amoveo Testnet. You should run following steps with a non-root user, for better security.
+Next, download Amoveo. You should run following steps with a non-root user, for better security.
 
 ```
 git clone https://github.com/zack-bitcoin/amoveo.git
 ```
-Now you can go into the directory, and compile the Amoveo testnet.
+Now you can go into the directory, and compile Amoveo.
 
 ```
 cd amoveo/

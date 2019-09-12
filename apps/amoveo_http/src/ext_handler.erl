@@ -281,14 +281,18 @@ doit({oracle, Y}) ->
     %X = base64:decode(Y),
     X = Y,
     Oracle = trees:get(oracles, X),
-    QH = element(4, Oracle),
-    {ok, Question} = oracle_questions:get(QH),
-    Z = case order_book:data(X) of
-            {ok, OB} -> OB;
-            error -> 0
-        end,
-    %{ok, OB} = order_book:data(X),
-    {ok, {Z, Question}};
+    case Oracle of
+        empty -> {ok, 0};
+        _ ->
+            QH = element(4, Oracle),
+            {ok, Question} = oracle_questions:get(QH),
+            Z = case order_book:data(X) of
+                    {ok, OB} -> OB;
+                    error -> 0
+                end,
+ %{ok, OB} = order_book:data(X),
+            {ok, {Z, Question}}
+    end;
 doit({oracle_bets, OID}) ->
     %This is a very poor choice of name. "oracle_bets" for something that doesn't touch the oracle_bets merkel tree, and only touches the orders merkel tree.
     B = block:top(),

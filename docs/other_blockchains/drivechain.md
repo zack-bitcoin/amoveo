@@ -1,6 +1,6 @@
 Drivechain Review
 =====
-Draft # 5
+Draft # 6
 
 Drivechain is a project with the goal of allowing for multiple different blockchains to be secured by the PoW consensus on a single blockchain. It is a goal of drivechain that bitcoin miners should not be required to think about or involve themselves with the side-chains.
 
@@ -22,6 +22,21 @@ In this paper http://www.truthcoin.info/blog/blind-merged-mining/ in the section
 This problem is different from the critique I am making in this paper. The "Problem" Paul fixed is how to prevent side:chain hard update. The problem I am describing is somewhat related. In my critique, the attacker is making a side:soft update.
 
 Paul's solution to merely upgrading miners to side:full-node status works great for preventing side:hard updates, but it does not solve the soft-fork problem, because both side of the soft-fork look valid to a side:full-node.
+
+Mistakes in the math describing this mechanism
+============
+
+In this document http://www.truthcoin.info/blog/drivechain/
+In the section "Some Math (ie, Feel Free to Skip)"
+
+Paul does some math to calculate the cost to miners if they censor sidechain block data, to try and show that drivechain does work. The math in this section is based on some misconceptions.
+
+* After a soft fork has been merged, then the txs that are invalid according to the new ruleset are as invalid as any other invalid tx. Pretending like it is possible to receive tx fees from txs that are invalid because of a soft fork, that is like pretending it is possible to make a tx that creates 10k BTC from nowhere, and pays the miner a 9k BTC fee to let it happen. Invalid txs cannot be included no matter how high the fee is. This principle holds true for soft forks that happen on a sidechain as well.
+
+* It isn't an all-or-nothing situation for censoring side:txs. For example, we could enforce a high tx fee that gets paid to the bitcoin miners, censoring all side:txs that don't pay up. This would be a compromise between completely stealing the side-chain value, vs supporting it's existence. Depending on the Laffer curve, and the existence of competition for this side-chain, this side:soft-fork could increase miner revenue. In any case, the value destroyed will be much bigger than the bribes you need to pay to miners to make it happen.
+
+* The "total miner losses" value calculated in { 2b }, this is a distributed cost spread out among all the miners. If I only have 1/10th of the hashpower, then I will only feel 1/10th of the total damage, and I will only cause an increase in damage proportional to my hashpower.
+Overall, my cost to participate is TML * ((my hashpower)/(total hashpower))^2. This is a tragedy of the commons situation. Individual benefit and collective losses, but Paul later applies the result of this calculation as if it was individual benefit and individual losses. 
 
 Description of the broken mechanism
 ============
