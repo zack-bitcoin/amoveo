@@ -51,9 +51,9 @@ hash(X) -> hash:doit(sign:serialize(X)).
 sign2(S, N) -> 
     {signed, Data, B3, B4} = S,
     NewData = hash(Data),
-    io:fwrite("spk sign2\n"),
+    %io:fwrite("spk sign2\n"),
     %io:fwrite(packer:pack(Sa1)),
-    io:fwrite("\n"),
+    %io:fwrite("\n"),
     Sig = {2, keys:raw_sign(NewData)},
     case N of
         1 -> {signed, Data, Sig, B4};
@@ -83,6 +83,9 @@ prove_facts(X, Dict, Height) ->
 	macro ] swap cons reverse ;
         [">>,
     B = prove_facts2(X, Dict, Height),
+    %io:fwrite("spk prove facts \n"),
+    %io:fwrite(B),
+    %io:fwrite("\n"),
     compiler_chalang:doit(<<ListSyntax/binary, B/binary>>).
 prove_facts2([], _, _) -> <<"]">>;
 prove_facts2([{Tree, Key}|T], Dict, Height)->
@@ -145,7 +148,7 @@ new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay) ->
 	 bets = Bets, space_gas = SG, time_gas = TG,
 	 cid = CID, nonce = Nonce, delay = Delay}.
 bet_unlock(SPK, SS) ->
-    %io:fwrite("spk bet unlock\n"),
+    io:fwrite("spk bet unlock\n"),
     Bets = SPK#spk.bets,
     %check if we have the secret to unlock each bet.
     %unlock the ones we can, and return an SPK with the remaining bets and the new amount of money that is moved.
@@ -183,9 +186,11 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 	    Data2 = chalang:run5(SS2#ss.code, Data),
 	    Data3 = chalang:run5(Code, Data2),
 	    case Data3 of
-		{error, _E} -> 
+		{error, E} -> 
 		    io:fwrite("spk bet unlock, ss doesn't work\n"),
 		    io:fwrite(packer:pack(SS2)),
+		    io:fwrite("\n"),
+		    io:fwrite(packer:pack(E)),
 		    io:fwrite("\n"),
                     %io:fwrite("spk bet_unlock2 chalang run third\n"),
 		    Data4 = chalang:run5(SS#ss.code, Data),
@@ -196,6 +201,9 @@ bet_unlock2([Bet|T], B, A, [SS|SSIn], SSOut, Secrets, Nonce, SSThem) ->
 			    io:fwrite("bet unlock2 ERROR"),
 			    bet_unlock2(T, [Bet|B], A, SSIn, [SS|SSOut], Secrets, Nonce, [SS|SSThem]);
 			Z -> 
+                            io:fwrite("spk bet unlock, ss1 is :"),
+                            io:fwrite(packer:pack(SS)),
+                            io:fwrite("\n"),
 			    bet_unlock3(Z, T, B, A, Bet, SSIn, SSOut, SS, Secrets, Nonce, SSThem)
 		    end;
 		X -> 
@@ -212,14 +220,14 @@ bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
     [<<ContractAmount0:32>>, <<Nonce2:32>>, <<Delay:32>>|_] = chalang:stack(Data5),
    if
         Delay > 0 ->
-	   %io:fwrite("delay is "),
-	   %io:fwrite(integer_to_list(Delay)),
-	   %io:fwrite(". Delay >0, keep the bet.\n"),
-	   %io:fwrite("nonce .\n"),
-	   %io:fwrite(integer_to_list(Nonce2)),
-	   %io:fwrite("amount .\n"),
-	   %io:fwrite(integer_to_list(ContractAmount0)),
-	   %io:fwrite("\n"),
+	   io:fwrite("delay is "),
+	   io:fwrite(integer_to_list(Delay)),
+	   io:fwrite(". Delay >0, keep the bet.\n"),
+	   io:fwrite("nonce .\n"),
+	   io:fwrite(integer_to_list(Nonce2)),
+	   io:fwrite("amount .\n"),
+	   io:fwrite(integer_to_list(ContractAmount0)),
+	   io:fwrite("\n"),
 	   bet_unlock2(T, [Bet|B], A, SSIn, [SS2|SSOut], Secrets, Nonce, [SS2|SSThem]);
        true -> 
 	   CGran = constants:channel_granularity(),
@@ -228,7 +236,7 @@ bet_unlock3(Data5, T, B, A, Bet, SSIn, SSOut, SS2, Secrets, Nonce, SSThem) ->
 				    ContractAmount0 - round(math:pow(2, 32));
 				true -> ContractAmount0
 			    end,
-	   %io:fwrite("delay <1, remove it.\n"),
+	   io:fwrite("delay <1, remove it.\n"),
 	   true = ContractAmount =< CGran,
 	   true = ContractAmount >= -CGran,
 	   A3 = ContractAmount * Bet#bet.amount div CGran,
@@ -555,4 +563,5 @@ data_maker(A, B, C, D, E, F, G, H, Height) ->
                   (Height > F22) -> 1;
                   true -> 0
               end,
-    chalang:data_maker(A, B, C, D, E, F, G, H, Version).
+    Verbose = false,
+    chalang:data_maker(A, B, C, D, E, F, G, H, Version, Verbose).

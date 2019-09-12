@@ -19,6 +19,8 @@ The individual cost of being an informed voter is high. The individual benefit o
 
 impossible to stop them from selling their votes
 ========
+Votes are sold cheaply: https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md
+
 Under Nakamoto security it is not possible to prevent people from proving how they voted. If they can prove how they voted, then it is also possible for an attacker to use a smart contract to commit to paying a bribes to influence voters.
 Under Nakamoto consensus it needs to be possible for the miners to calculate the consensus state of the blockchain after including the next transactions.
 The miners need the ability to either include or not include any valid txs. Otherwise someone could prevent mining by refusing to share a tx.
@@ -38,3 +40,4 @@ Arrow's Impossibility Theorem
 ======
 It is mathematically impossible to come up with a type of voting that has all the properties we need.
 https://en.wikipedia.org/wiki/Arrow%27s_impossibility_theorem
+

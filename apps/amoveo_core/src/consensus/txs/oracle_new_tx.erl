@@ -1,6 +1,8 @@
 -module(oracle_new_tx).
--export([go/4, make/7, make_dict/6, make_dict/7, from/1, id/1, governance/1, id_generator2/4]).
+-export([go/4, make/7, make_dict/6, make_dict/7, from/1, id/1, governance/1, id_generator/1, id_generator2/4, scalar_q_maker/3, scalar_keys/2, scalar_keys/1]).
 -include("../../records.hrl").
+%-export([go/4, make/7, make_dict/6, make_dict/7, from/1, id/1, governance/1, id_generator2/4]).
+%-include("../../records.hrl").
 %This asks the oracle a question.
 %The oracle can only answer true/false questions.
 %Running the oracle costs a fee which is used as a reward to get people to use the oracle.
@@ -10,15 +12,48 @@
 %The oracle can be published before we know the outcome of the question, that way the oracle id can be used to make channel contracts that bet on the eventual outcome of the oracle.
 from(X) -> X#oracle_new.from.
 id(X) -> X#oracle_new.id.
+
+scalar_keys(OID) ->
+    Trees = (tx_pool:get())#tx_pool.block_trees,
+    Oracles = trees:oracles(Trees),
+    {_, Oracle, _} = oracles:get(OID, Oracles),
+    S = Oracle#oracle.starts,
+    scalar_keys(OID, S).
+scalar_keys(OID, Start) ->
+    lists:reverse(scalar_keys2(OID, Start, 1, [{oracles, OID}])).
+scalar_keys2(_, _, 10, Out) -> Out;
+scalar_keys2(OID, Start, I, Out) ->
+    QuestionN = scalar_q_maker(I, 0, OID),
+    OID2 = id_generator2(Start, 0, 0, QuestionN),
+    scalar_keys2(OID, Start, I+1, [{oracles, OID2}|Out]).
+
 id_generator2(Start, Gov, GA, Question) ->
-    QH = hash:doit(Question),
-    B = <<Start:32,Gov:32,GA:32,QH/binary>>,
-    hash:doit(<<Start:32,Gov:32,GA:32,QH/binary>>).
+    true = is_binary(Question),
+    id_generator3(Start, Gov, GA, hash:doit(Question)).
+id_generator3(Start, Gov, GA, QH) ->
+    S = <<Start:32,Gov:32,GA:32,QH/binary>>,
+    hash:doit(S).
+%id_generator2(Start, Gov, GA, Question) ->
+%    QH = hash:doit(Question),
+%    B = <<Start:32,Gov:32,GA:32,QH/binary>>,
+%    hash:doit(<<Start:32,Gov:32,GA:32,QH/binary>>).
 id_generator(Tx) ->
     id_generator2(Tx#oracle_new.start,
                   Tx#oracle_new.governance,
                   Tx#oracle_new.governance_amount,
                   Tx#oracle_new.question).
+scalar_q_maker(0, Question, _OID1) -> Question;
+scalar_q_maker(10, Question, _OID1) -> Question;
+scalar_q_maker(Many, _Question, OID1) when ((Many > 0) and (Many < 10))->
+    <<(list_to_binary("scalar "))/binary, 
+      (base64:encode(OID1))/binary, 
+      (list_to_binary(" bit number "))/binary, 
+      (list_to_binary (integer_to_list(Many)))/binary>>.
+%id_generator_old(Tx) ->
+%    hash:doit(<<(Tx#oracle_new.start):32,
+%               (Tx#oracle_new.governance):32,
+%               (Tx#oracle_new.governance_amount):32,
+%               (Tx#oracle_new.question)/binary>>).
 governance(X) -> X#oracle_new.governance.
 make_dict(From, Fee, Question, Start, Governance, GovAmount) ->
     Acc = trees:get(accounts, From),
@@ -26,6 +61,7 @@ make_dict(From, Fee, Question, Start, Governance, GovAmount) ->
     ID = id_generator(Tx0),
     Tx0#oracle_new{id = ID}.
 make_dict(From, Fee, Question, Start, ID, Governance, GovAmount) ->
+    1=2,
     <<_:256>> = ID,
     Acc = trees:get(accounts, From),
     Tx0 = #oracle_new{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, question = Question, start = Start, governance = Governance, governance_amount = GovAmount},
@@ -45,6 +81,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     F24 = forks:get(24),
     if 
         NewHeight > F24 ->
+            %io:fwrite("oracle new tx go \n"),
+            %io:fwrite(packer:pack(ID)),
+            %io:fwrite("\n"),
             ID = id_generator(Tx);
         true -> ok
     end,

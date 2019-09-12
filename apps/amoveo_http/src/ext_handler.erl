@@ -286,14 +286,18 @@ doit({oracle, Y}) ->
     %X = base64:decode(Y),
     X = Y,
     Oracle = trees:get(oracles, X),
-    QH = element(4, Oracle),
-    {ok, Question} = oracle_questions:get(QH),
-    Z = case order_book:data(X) of
-            {ok, OB} -> OB;
-            error -> 0
-        end,
-    %{ok, OB} = order_book:data(X),
-    {ok, {Z, Question}};
+    case Oracle of
+        empty -> {ok, 0};
+        _ ->
+            QH = element(4, Oracle),
+            {ok, Question} = oracle_questions:get(QH),
+            Z = case order_book:data(X) of
+                    {ok, OB} -> OB;
+                    error -> 0
+                end,
+ %{ok, OB} = order_book:data(X),
+            {ok, {Z, Question}}
+    end;
 doit({oracle_bets, OID}) ->
     %This is a very poor choice of name. "oracle_bets" for something that doesn't touch the oracle_bets merkel tree, and only touches the orders merkel tree.
     B = block:top(),
@@ -337,6 +341,16 @@ doit({cancel_trade, TheirPub, N, SSPK}) ->
 doit({combine_cancel_assets, TheirPub, SSPK}) ->
     SSPK2 = channel_feeder:combine_cancel_assets_server(TheirPub, SSPK),
     {ok, SSPK2};
+doit({mining_data}) ->
+    B = block:top(),
+    Diff = pow:sci2int(B#block.difficulty),
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.block_trees,
+    %Trees = 0,
+    Reward = governance:get_value(block_reward, trees:governance(Trees)),
+    Hashrate = Diff div 660,
+    D = [B#block.height, Diff, Hashrate, Reward],
+    {ok, D};
 doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2

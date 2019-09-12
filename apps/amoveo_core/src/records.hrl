@@ -63,7 +63,7 @@
 -record(oracle, {id, 
 		 result, 
 		 question, 
-		 starts, 
+		 starts, %do not make any hard update that would allow this value to be modified. For scalar oracles, it is used to generate the pointers to the rest of the scalar oracle.
 		 type, %0 means order book is empty, 1 means the order book is holding shares of true, 2 means it holds false, 3 means that it holds shares of "bad question". % 3 1
 		 orders = 1,
 		 orders_hash,

@@ -1,9 +1,11 @@
 -module(lisp_scalar).
--export([price_declaration_maker/4, market_smart_contract/13,
+-export([price_declaration_maker/4, market_smart_contract/12,
 	 %settle/3,
+         settle_scalar/3,
          no_publish/1,evidence/2,
 	 contradictory_prices/3, market_smart_contract_key/8,
-	 unmatched/1, scalar_oracle_make/6,
+	 unmatched/1,
+%	 unmatched/1, scalar_oracle_make/6,
 	 test/0, test_contract/0, test3/0]).
 -include("../records.hrl").
 
@@ -12,7 +14,7 @@ market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, Up
     %true = LowerLimit > -1,
     %true = UpperLimit < 1024,
     {market, 2, MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit, StartHeight}.
-market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height, LowerLimit, UpperLimit, StartHeight) ->
+market_smart_contract(MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height, LowerLimit, UpperLimit, StartHeight) ->
     <<_:256>> = MarketID,
     true = size(Pubkey) == constants:pubkey_size(),
     Code = " (() \
@@ -51,12 +53,13 @@ market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubke
 %    spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
 unmatched(OID) ->
     SS = " int 4 ",
-    spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
-settle_scalar_oracles(_, 0) -> [];
-settle_scalar_oracles(OID, Many) ->
-    H = {oracles, <<OID:256>>},
-    [H|settle_scalar_oracles(OID+1, Many - 1)].
-settle_scalar(SPD, OIDS, Price, Many) ->
+    SK = oracle_new_tx:scalar_keys(OID),
+    spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), SK).
+%settle_scalar_oracles(_, 0) -> [];
+%settle_scalar_oracles(OID, Many) ->
+%    H = {oracles, <<OID:256>>},
+%    [H|settle_scalar_oracles(OID+1, Many - 1)].
+settle_scalar(SPD, OIDS, Price) ->
     PriceDeclare = binary_to_list(base64:encode(SPD)),
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
 " " ++ PriceDeclare ++ " int 1",
@@ -115,53 +118,47 @@ int 10000 bet_amount ! \ % set to zero for bet on false.
     Compiled = compiler_chalang:doit(FullCode),
     Gas = 10000,
     chalang:test(Compiled, Gas, Gas, Gas, Gas, []).
-scalar_oracle_make(SH, A, B, C, D, Limit) ->
-    scalar_oracle_make(SH, A, B, C, D, 0, Limit).
-scalar_oracle_make(_, _, _Fee, _Question, _, L, L) -> [];
-scalar_oracle_make(StartHeight, Pubkey, Fee, Question, OID1, Many, Limit) ->
+%KS = oracle_new_tx:scalar_keys(OID),
+    
+%scalar_oracle_make(SH, A, B, C, D, Limit) ->
+%    scalar_oracle_make(SH, A, B, C, D, 0, Limit).
+%scalar_oracle_make(_, _, _Fee, _Question, _, L, L) -> [];
+%scalar_oracle_make(StartHeight, Pubkey, Fee, Question, OID1, Many, Limit) ->
     %io:fwrite("SCALAR ORACLE MAKE\n"),
-    Q1 = case Many of
-             0 -> Question;
-             _ ->
-                 %QH = hash:doit(Question),
-                 <<(list_to_binary("scalar "))/binary, 
-                   (base64:encode(OID1))/binary, 
-                   (list_to_binary(" bit number "))/binary, 
-                   (list_to_binary (integer_to_list(Many)))/binary>>
-         end,
+%    Q1 = oracle_new_tx:scalar_q_maker(Many, Question, OID1),
     %Tx = oracle_new_tx:make_dict(Pubkey, Fee, Q1, 1 + block:height(), 0, 0),
-    Tx = oracle_new_tx:make_dict(Pubkey, Fee, Q1, StartHeight, 0, 0),
-    OID = oracle_new_tx:id(Tx),
-    OIDR = case Many of
-               0 -> OID;
-               _ -> OID1
-           end,
+%    Tx = oracle_new_tx:make_dict(Pubkey, Fee, Q1, StartHeight, 0, 0),
+%    OID = oracle_new_tx:id(Tx),
+%    OIDR = case Many of
+%               0 -> OID;
+%               _ -> OID1
+%           end,
     %io:fwrite(packer:pack(Tx)),
     %io:fwrite("\n"),
-    Stx = keys:sign(Tx),
-    test_txs:absorb(Stx),
-    [{oracles, OID}|scalar_oracle_make(StartHeight, Pubkey, Fee, Question, OIDR, Many + 1, Limit)].
-scalar_bet_make(Pubkey, Fee, OIDL, Output, BetSize) -> 
-    sbm(Pubkey, Fee, OIDL, Output, BetSize).
-sbm(_, _, [], _, _) -> ok;
-sbm(Pubkey, Fee, [{oracles, OID}|T], Output, BetSize) -> 
+%    Stx = keys:sign(Tx),
+%    test_txs:absorb(Stx),
+%    [{oracles, OID}|scalar_oracle_make(StartHeight, Pubkey, Fee, Question, OIDR, Many + 1, Limit)].
+%scalar_bet_make(Pubkey, Fee, OIDL, Output, BetSize) -> 
+%    sbm(Pubkey, Fee, OIDL, Output, BetSize).
+%sbm(_, _, [], _, _) -> ok;
+%sbm(Pubkey, Fee, [{oracles, OID}|T], Output, BetSize) -> 
     %OIL = trees:get(governance, oracle_initial_liquidity),
-    Bit = case (Output rem 2) of
-	      0 -> 2;
-	      1 -> 1
-	      end,
-    Tx2 = oracle_bet_tx:make_dict(Pubkey, Fee, OID, Bit, BetSize), 
-    Stx2 = keys:sign(Tx2),
-    test_txs:absorb(Stx2),
-    timer:sleep(100),
-    sbm(Pubkey, Fee, T, Output div 2, BetSize).
-oracle_close_many(_Pubkey, _Fee, []) ->
-    ok;
-oracle_close_many(Pubkey, Fee, [{_, OID}|T]) ->
-    Tx6 = oracle_close_tx:make_dict(Pubkey,Fee,OID),
-    Stx6 = keys:sign(Tx6),
-    test_txs:absorb(Stx6),
-    oracle_close_many(Pubkey, Fee, T).
+%    Bit = case (Output rem 2) of
+%	      0 -> 2;
+%	      1 -> 1
+%	      end,
+%    Tx2 = oracle_bet_tx:make_dict(Pubkey, Fee, OID, Bit, BetSize), 
+%    Stx2 = keys:sign(Tx2),
+%    test_txs:absorb(Stx2),
+%    timer:sleep(100),
+%    sbm(Pubkey, Fee, T, Output div 2, BetSize).
+%oracle_close_many(_Pubkey, _Fee, []) ->
+%    ok;
+%oracle_close_many(Pubkey, Fee, [{_, OID}|T]) ->
+%    Tx6 = oracle_close_tx:make_dict(Pubkey,Fee,OID),
+%    Stx6 = keys:sign(Tx6),
+%    test_txs:absorb(Stx6),
+%    oracle_close_many(Pubkey, Fee, T).
 
 test() ->
     Question = <<>>,
@@ -174,7 +171,13 @@ test() ->
     test_txs:mine_blocks(2),
     timer:sleep(150),
     Many = 10,
-    OIDL = scalar_oracle_make(StartHeight, constants:master_pub(), Fee, Question, -1, Many),
+    %OIDL = scalar_oracle_make(StartHeight, constants:master_pub(), Fee, Question, -1, Many),
+    OIDL = api:new_scalar_oracle(StartHeight, Question),
+    [{_, OID}|_] = OIDL,
+    %io:fwrite("lisp scalar oid is \n"),
+    %io:fwrite(packer:pack(hd(OIDL))),
+    %io:fwrite("\n"),
+    OIDL = oracle_new_tx:scalar_keys(element(2, hd(OIDL)), StartHeight),
     %Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID, 0, 0),
     %Stx = keys:sign(Tx),
     %test_txs:absorb(Stx),
@@ -183,7 +186,9 @@ test() ->
     timer:sleep(1000),
     %make some bets in the oracle with oracle_bet
     OIL = trees:get(governance, oracle_initial_liquidity),
-    scalar_bet_make(constants:master_pub(), Fee, OIDL, 1023, OIL * 2), %512 is half way between all and nothing.
+    %scalar_bet_make(constants:master_pub(), Fee, OIDL, 1023, OIL * 2), %512 is half way between all and nothing.
+    api:minimum_scalar_oracle_bet(OID, 1023),
+    %scalar_bet_make(constants:master_pub(), Fee, OIDL, 1023, OIL * 2), %512 is half way between all and nothing.
     %scalar_bet_make(constants:master_pub(), Fee, OID0, 0, Many, OIL * 2), %512 is half way between all and nothing.
     %1=2,
 
@@ -225,7 +230,7 @@ test2(NewPub, Many, StartHeight, OIDL) ->
     Period = 3,
     Gas = 100000,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
-    Bet = market_smart_contract(Location, MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0, LL, UL, StartHeight),
+    Bet = market_smart_contract(MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0, LL, UL, StartHeight),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], Gas, Gas, 1, 0),
 						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
@@ -234,7 +239,7 @@ test2(NewPub, Many, StartHeight, OIDL) ->
     %SPD = price_declaration_maker(Height+5, Price, 5000, MarketID),
     SPD = price_declaration_maker(5, Price, 5000, MarketID),
     %SS1 = settle(SPD, OID, Price),
-    SS1 = settle_scalar(SPD, OIDL, Price, Many),
+    SS1 = settle_scalar(SPD, OIDL, Price),
     %First we check that if we try closing the bet early, it has a delay that lasts at least till Expires, which we can set far enough in the future that we can be confident that the oracle will be settled.
     %amount, newnonce, delay
     %{55,1000001,999} = %the bet amount was 100, so if the oracle is canceled the money is split 50-50.
@@ -264,7 +269,7 @@ test2(NewPub, Many, StartHeight, OIDL) ->
 	%The nonce is super high, and the delay is zero, because if the market maker is publishing contradictory prices, he should be punished immediately.
 	%Amount is 0 because none of the money goes to the market maker.
        spk:dict_run(fast, [SS4], SPK, 5, 0, Trees5),
-
+    io:fwrite("ignore the following error 'script sig: fail', we are testing that the smart contract handles this error correctly.\n"),
     {0, 1, 10000000} = spk:dict_run(fast, [SS1], SPK, 5, 0, Trees5),%unresolved oracle before time limit.
     {59, 1001, 0} = spk:dict_run(fast, [SS1], SPK, 1005, 0, Trees5),%unresolved oracle after time limit.
 
@@ -273,7 +278,8 @@ test2(NewPub, Many, StartHeight, OIDL) ->
     Trees60 = (tx_pool:get())#tx_pool.block_trees,
     %Dict60 = (tx_pool:get())#tx_pool.dict,
     %close the oracle with oracle_close
-    oracle_close_many(constants:master_pub(), Fee, OIDL),
+    api:scalar_oracle_close(OID),
+    %oracle_close_many(constants:master_pub(), Fee, OIDL),
 
     %Tx6 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
     %{Tx6, _} = oracle_close_tx:make(constants:master_pub(),Fee, OID, Trees60),
@@ -289,8 +295,8 @@ test2(NewPub, Many, StartHeight, OIDL) ->
     %{amount, nonce, delay}
     % if oracle amount is 0 {5,999,0} = spk:dict_run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
     %{45,999,0} = spk:dict_run(fast, [SS1], SPK, 5, 0, Trees61),%ss1 is a settle-type ss
-    io:fwrite("scalar market ss 1: "),
-    io:fwrite(packer:pack(SS1)),
+    %io:fwrite("scalar market ss 1: "),
+    %io:fwrite(packer:pack(SS1)),
 %found a blockfound a blockscalar market ss 1: ["ss",
 %"AgAAAHAAAAAFDawTiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMEYCIQCe4bS0HaB+/NHizg3XQ7xAuq2L0Xm73edGtlhmXIlHHQIhAMtyJSG3mRFbzDFZavAf09PTCY8omw7T2Ppvj8+XXtTKAAAAAAE="
 %,[-6,["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQ="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAc="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAg="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAk="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAo="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAs="],["oracles","AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAw="]],3500]
@@ -303,7 +309,7 @@ test2(NewPub, Many, StartHeight, OIDL) ->
 
     %Now we will try betting in the opposite direction.
     PrivDir = code:priv_dir(amoveo_core),
-    Bet2 = market_smart_contract(Location, MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0, LL, UL, StartHeight),
+    Bet2 = market_smart_contract(MarketID,2, 1000, 8000, keys:pubkey(),Period,100,OID, 0, LL, UL, StartHeight),
     %willing to pay 8000, but it only cost 6500. so there should be a refund of 1500
     SPK2 = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet2], Gas, Gas, 1, 0),
     %Again, the delay is zero, so we can get our money out as fast as possible once the oracle is settled.
@@ -316,7 +322,7 @@ test2(NewPub, Many, StartHeight, OIDL) ->
     %SPD3 = price_declaration_maker(Height+5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     SPD3 = price_declaration_maker(5, 3000, 5000, MarketID),%5000 means it gets 50% matched.
     %SS5 = settle(SPD3, OID, 3000),
-    SS5 = settle_scalar(SPD3, OIDL, 3000, Many),
+    SS5 = settle_scalar(SPD3, OIDL, 3000),
     %amount, newnonce, shares, delay
     {109, 999, 0} = spk:dict_run(fast, [SS5], SPK, 5, 0, Trees61),
     %The first 50 tokens were won by betting, the next 20 tokens were a refund from a bet at 2-3 odds.
@@ -340,9 +346,9 @@ test3() ->
     StartHeight = 2,
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Direction = 2,
-    A = market_smart_contract(BetLocation, OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0, LL, UL, StartHeight),
+    A = market_smart_contract(OID, Direction, 124, 125, Pubkey, 126, 0, OID, 0, LL, UL, StartHeight),
     Max = 4294967295,
-    B = market_smart_contract(BetLocation, OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max, Max, Max, Max),
+    B = market_smart_contract(OID2, Direction, Max, Max, <<0:520>>, Max, Max, Max, Max, Max, Max, Max),
     A2 = element(2, A),
     B2 = element(2, B),
     compare_test(A2, B2, 0, <<>>),

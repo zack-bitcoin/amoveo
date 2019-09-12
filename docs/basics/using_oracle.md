@@ -12,6 +12,9 @@ Which is 20% different from the 2 adjacent values 0000000100 and 0000000110.
 20% difference between 2 adjacent measurable values isnt so good, that means on average the oracle's output is being rounded by 5%, so the money will be divided 5% differently than had been intended.
 So this is why it is important to choose a good range of values to measure when making an oracle.
 
+A scalar oracle for stablecoins that stay the same value as Euros.
+`P the price of Euro in VEO on date D from 0 to 0.04; return P*1023 / 0.04`
+
 
 scalar oracle to make an asset that moves inversely to Amazon shares:
 `P = the price of amazon in veo from 0 to 20 on January 1, 2019, at 4:00 AM GMT; return (20 - P) * 1024 / 20`

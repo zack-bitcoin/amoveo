@@ -13,6 +13,7 @@ market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID, LowerLimit, Up
     %true = UpperLimit < 1024,
     {market, 2, MarketID, Expires, Pubkey, Period, OID, LowerLimit, UpperLimit}.
 market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID, Height, LowerLimit, UpperLimit) ->
+    1=2,
     <<_:256>> = MarketID,
     %OID = MarketID,
     io:fwrite("scalar market \n"), 
@@ -161,7 +162,10 @@ test() ->
     test_txs:mine_blocks(2),
     timer:sleep(150),
     Many = 10,
-    scalar_oracle_make(constants:master_pub(), Fee, Question, OID0, Many),
+    StartHeight = 3,
+    %scalar_oracle_make(constants:master_pub(), Fee, Question, OID0, Many),
+    OIDL = api:new_scalar_oracle(StartHeight, Question),
+    [{_, OID}|_] = OIDL,
     %Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), OID, 0, 0),
     %Stx = keys:sign(Tx),
     %test_txs:absorb(Stx),
@@ -170,7 +174,7 @@ test() ->
     timer:sleep(1000),
     %make some bets in the oracle with oracle_bet
     OIL = trees:get(governance, oracle_initial_liquidity),
-    scalar_bet_make(constants:master_pub(), Fee, OID0, 1023, Many, OIL * 2), %512 is half way between all and nothing.
+    %scalar_bet_make(constants:master_pub(), Fee, OID0, 1023, Many, OIL * 2), %512 is half way between all and nothing.
     %scalar_bet_make(constants:master_pub(), Fee, OID0, 0, Many, OIL * 2), %512 is half way between all and nothing.
     %1=2,
 

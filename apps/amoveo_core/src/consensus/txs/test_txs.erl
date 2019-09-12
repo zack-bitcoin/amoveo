@@ -1021,7 +1021,20 @@ test(28) ->
     
     empty = trees:get(channels, <<5:256>>),
 
-    success.
+    success;
+test(35) ->
+    %timer test
+    Sig = keys:raw_sign(<<>>),
+    Times = 1000,
+    T1 = erlang:now(),
+    test35(<<>>, Sig, keys:pubkey(), Times),
+    T2 = erlang:now(),
+    timer:now_diff(T2, T1).
+test35(_, _, _, 0) -> ok;
+test35(D, S, P, N) ->
+    %true = testnet_sign:verify_sig(D, S, P),
+    file:read_file("../../../../../../temp2.txt"),
+    test35(D, S, P, N-1).
     
 test18(0) -> success;
 test18(N) ->

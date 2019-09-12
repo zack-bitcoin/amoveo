@@ -257,13 +257,13 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
     %io:fwrite(integer_to_list(N)),
     %io:fwrite("\n"),
     BH0 = block:height(),
-    true = BH0 < (N+1),
+    %true = BH0 < (N+1),
     true = N < TheirBlockHeight + 1,
     go = sync_kill:status(),
     %BD = N+1 - BH0,
     Blocks = talker:talk({blocks, 50, N}, Peer),
     BH2 = block:height(),
-    true = BH2 < (N+1),
+    %true = BH2 < (N+1),
     go = sync_kill:status(),
     case Blocks of
 	{error, _} -> 
