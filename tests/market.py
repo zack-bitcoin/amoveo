@@ -40,7 +40,7 @@ def market_test():
     request(2, 'sync', [[127,0,0,1], 3010], 2)
     request(2, 'new_channel_with_server', [[127,0,0,1], 3030, cid2, 10000, 9999, fee, 99, 1000], 0.1)
     request(1, 'sync', [[127,0,0,1], 3030], 0.04)
-    request(1, 'sync', [[127,0,0,1], 3020], 0.2)
+    request(1, 'sync', [[127,0,0,1], 3020], 0.5)
     #oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     height = json.loads(request(1, 'height', [], 0))[1]
     x = request(1, 'new_question_oracle', [height+1, 'aXMgMisyPTQ/'], 1)
@@ -58,9 +58,12 @@ def test2(oid ): #useful for testing market from light node.
     request(3, 'txs', [[127,0,0,1], 3020], 1)
     request(3, 'txs', [[127,0,0,1], 3010], 9)
     request(3, 'txs', [[127,0,0,1], 3020])
-    #oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     height = request(3, 'height', [], 0.01)
     height = json.loads(height)[1]
+    #s = 'aXMgMisyPTQ/'
+    #x = request(1, 'new_question_oracle', [0, height-3, s])
+    #oid = json.loads(x)[1]
+    #oid = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI="
     #request(1, 'trade', [9000, 1, 10, oid, height, 20, [127,0,0,1], 3030], 0.2)
     request(1, 'trade', [1000, 1, 250, oid, height, 20, [127,0,0,1], 3030], 0.2)
     request(1, 'trade', [6000, 1, 1000, oid, height, 20, [127,0,0,1], 3030], 0.2)

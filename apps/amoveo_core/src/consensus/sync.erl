@@ -210,7 +210,6 @@ get_headers3(Peer, N) ->
     true = (N > AH - HB - 1),
     Headers = remote_peer({headers, HB, N}, Peer),
     AH2 = api:height(),
-    {ok, HB} = ?HeadersBatch,
     true = (N > AH2 - HB - 1),
     headers:absorb(Headers),
     if
@@ -290,15 +289,24 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                         L0
                 end,
             S = length(L),
-            wait_do(fun() ->
-                            {ok, DA} = ?download_ahead,
-                            (N + S) < (block:height() + DA)
-                    end,
-                    fun() ->
-                            true = (S > 0),
-                            new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)
-                    end,
-                    50),
+            if
+                S == 0 -> ok;
+                true ->
+                    GH = ((hd(lists:reverse(L)))#block.height),
+                    AH = api:height(),
+                    if
+                        AH > GH ->
+                            wait_do(fun() ->
+                                            {ok, DA} = ?download_ahead,
+                                            (N + S) < (block:height() + DA)
+                                    end,
+                                    fun() ->
+                                            new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)
+                                    end,
+                                    50);
+                        true -> ok
+                    end
+            end,
             io:fwrite(packer:pack([N, S])),
             io:fwrite("\n"),
             %{ok, Cores} = application:get_env(amoveo_core, block_threads),
@@ -471,6 +479,8 @@ wait_do(FB, F, T) ->
                          
     
 dict_to_blocks([], _) -> [];
+dict_to_blocks([top_hash|T], D) ->
+    dict_to_blocks(T, D);
 dict_to_blocks([H|T], D) ->
     B = dict:fetch(H, D),
     [B|dict_to_blocks(T, D)].

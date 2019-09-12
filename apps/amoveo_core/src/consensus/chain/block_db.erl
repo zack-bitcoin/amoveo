@@ -15,7 +15,7 @@
 %-define(ram_limit, 20000000).%20 megabytes
 %-define(ram_limit, 200000).%200 kilobytes
 %-define(ram_limit, 10000).
--record(d, {dict = dict:new(), 
+-record(d, {dict = dict:new(), %blocks in ram
             many_blocks = 0,
             page_number = 0,
             pages = dict:new(),
@@ -97,6 +97,14 @@ store(K, V, D)->
             
             
 handle_info(_, X) -> {noreply, X}.
+handle_cast({write_empty, Block, Hash}, X) -> 
+    D2 = store(Hash, Block, X#d.dict),
+    X2 = X#d{dict = D2, ram_bytes = X#d.ram_bytes, many_blocks = X#d.many_blocks},
+    X4 = case element(2, Block) of
+             0 -> X2#d{genesis = Block};
+             _ -> X2
+         end,
+    {noreply, X4};
 handle_cast({write, Block, Hash}, X) -> 
     S = size(erlang:term_to_binary(Block)),
     D2 = store(Hash, Block, X#d.dict),
@@ -196,7 +204,6 @@ read_page(Loc, Size, File) ->
             read_page(Loc, Size, File);
         X -> X
     end.
-%    file:pread(File, Loc, Size).
 write_page(Dict, X) ->
     B = X#d.hd_bytes,
     Data = compress(Dict),
@@ -446,7 +453,7 @@ read2(N, BH) ->
             BH2 = block:prev_hash(0, B),
             [B|read2(N-1, BH2)]
     end.
-    
+   
 read(Hash) ->
     {ok, Version} = application:get_env(amoveo_core, db_version),
     case Version of
@@ -462,14 +469,23 @@ read(Hash) ->
 
 write(Block, Hash) ->
     {ok, Version} = application:get_env(amoveo_core, db_version),
+    Height = Block#block.height,
+    Block2 = case Height of
+                 0 -> Block;
+                 _ ->
+                    {ok, PrevHeader} = headers:read(Block#block.prev_hash),
+                     PrevHashes = block:calculate_prev_hashes(PrevHeader),
+                     Block#block{prev_hashes = PrevHashes}
+                     %Block
+             end,
     case Version of
         1 ->
-            CompressedBlockPlus = compress(Block),
+            CompressedBlockPlus = compress(Block2),
                                                 %Hash = block:hash(Block),
             BlockFile = binary_to_file_path(blocks, Hash),
             ok = db:save(BlockFile, CompressedBlockPlus);
         _ ->
-            gen_server:cast(?MODULE, {write, Block, Hash})
+                gen_server:cast(?MODULE, {write, Block2, Hash})
     end.
 check() ->
     gen_server:call(?MODULE, check).

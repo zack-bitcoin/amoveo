@@ -36,8 +36,8 @@
                 txs,%LTS
                 prev_hashes = {prev_hashes},
                 proofs = [],%LTS
-                roots,%LTS
-                hash = <<>>,
+                roots,%LTS  
+                meta = <<>>, % we need to calculate locally.
 		market_cap = 0,%LTS
 		channels_veo = 0,%LTS
 		live_channels = 0,%LTS
@@ -95,3 +95,59 @@
 		  nonce = 0,
 		  fee = 0,
 		  txs = []}).
+-record(cs, {from, nonce, fee = 0, 
+	     scriptpubkey, scriptsig}).
+-record(csc, {from, nonce, fee = 0, 
+	      scriptpubkey, scriptsig}).
+-record(ctc, {aid1 = 0, aid2 = 0, fee = 0,
+	      nonce = 0, id = 0, amount = 0}).
+-record(ctc2, {aid1 = 0, aid2 = 0, fee = 0,
+               id = 0,
+               amount1 = 0, amount2 = 0,
+               upper_limit, lower_limit}).
+-record(timeout, {aid = 0, nonce = 0, fee = 0, cid = 0, spk_aid1, spk_aid2}).
+-record(coinbase, {from = 0, nonce = 0, fee = 0}).
+-record(delete_acc_tx, {from = 0,
+                        nonce = 0,
+                        fee = 0,
+                        to = 0}).
+-record(ex, {from, nonce = 0, fee = 0, commit = 0}).
+-record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
+	     bal1 = 0, bal2 = 0, 
+	     delay = 10, id = -1}).
+-record(nc_offer, {acc1, nonce, nlocktime, bal1, bal2, miner_commission, %miner commission between 0 and 10 000.
+              delay, id, contract_hash}).%this is the anyone can spend trade offer.
+-record(nc_accept, 
+        {acc2, nc_offer, fee,
+         contract_sig}).%this is the tx.
+-record(signed, {data="", sig="", sig2=""}).
+-record(oracle_close, {from, nonce, fee, oracle_id}).
+-record(oracle_new, {from = 0, 
+		     nonce = 0, 
+		     fee = 0, 
+		     question = <<>>, 
+		     start, 
+		     id, 
+		     %recent_price, %if this is a governance oracle, or if it is asking a question, then we need to reference another oracle that closed recently with the state "bad". We reference it so we know the current price of shares.
+		     difficulty = 0, 
+		     governance, 
+		     governance_amount}).
+-record(oracle_winnings, {from, nonce, fee, oracle_id}).
+-record(gov, {id, value, lock}).
+-record(channel, {id = 0, %the unique id number that identifies this channel
+		  acc1 = 0, % a pubkey
+		  acc2 = 0, % a different pubkey
+		  bal1 = 0, %part of the money initially controlled by acc1.
+		  bal2 = 0, %part of the money initially controlled by acc2.
+		  amount = 0, %this is how we remember the outcome of the last contract we tested, that way we can undo it.
+		  nonce = 1,%How many times has this channel-state been updated. If your partner has a state that was updated more times, then they can use it to replace your final state.
+		  last_modified = 0,%this is used to know if a channel_timeout_tx can be called yet. 
+		  delay = 0,%this is the minimum of how long you have to wait since "last_modified" to do a channel_timeout_tx. 
+                  %every time a channel_slash_tx happens, this delay is updated. This is how long you need to wait before you can do a channel_timeout tx.
+		  closed = 0 %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
+		  %channels closed flag is unused because we delete closed channels.
+		  }).
+-record(matched, {account, oracle, true, false, bad}).
+%true, false, and bad are the 3 types of shares that can be purchased from an oracle
+
+

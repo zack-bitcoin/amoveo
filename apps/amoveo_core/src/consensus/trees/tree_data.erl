@@ -139,7 +139,8 @@ dict_update_trie_oracles(Trees, [H|T], Dict, X) ->%
     dict_update_trie_oracles(Trees, T, Dict, X2).%
 dict_update_trie_account(_, [], _, X) -> X;%
 dict_update_trie_account(Trees, [H|T], Dict, X) ->%
-    X2 = dict_update_account_oracle_helper(accounts, H, bets, Trees, constants:root0(), update_bets, Dict, X),%
+    R = trees:empty_tree(oracle_bets),
+    X2 = dict_update_account_oracle_helper(accounts, H, bets, Trees, R, update_bets, Dict, X),%
     dict_update_trie_account(Trees, T, Dict, X2).%
 
 dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2, Dict, Leaves) ->%

@@ -17,9 +17,16 @@ start(_StartType, _StartArgs) ->
     make_block_folders(),
     sync:cron(),
     push_block:cron(),
+    R = amoveo_sup:start_link(),
     io:fwrite("starting node\n"),
-
-    amoveo_sup:start_link().
+    spawn(fun() ->
+                  timer:sleep(4000),
+                  block:height(),%to make sure we wait long enough.
+                  block_hashes:second_chance(),
+                  io:fwrite("attempting to sync\n"),
+                  sync:start()
+          end),
+    R.
 
 
 stop(_State) ->

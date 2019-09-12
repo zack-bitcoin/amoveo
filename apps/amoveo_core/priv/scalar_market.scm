@@ -245,3 +245,4 @@
     (2 (contradictory_prices))
     (3 (evidence))
     (else (fail)))))
+

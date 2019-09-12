@@ -4,7 +4,7 @@
 	 verify_1/2,verify_2/2,
 	 new_key/0, new_key/1
 ]).
--record(signed, {data="", sig="", sig2=""}).
+-include("../../records.hrl").
 empty() -> #signed{}.
 empty(X) -> #signed{data=X}.
 data(X) -> X#signed.data.
@@ -91,7 +91,8 @@ test() ->
     Acc2 = accounts:new(Pub2, 0),
     %Binary = address2binary(Pub),
     %Pub = binary2address(Binary),
-    Root0 = constants:root0(),
+    %Root0 = constants:root0(),
+    Root0 = trees:empty_tree(accounts),
     Accounts1 = accounts:write(Acc, 1),
     Accounts = accounts:write(Acc2, Accounts1),
     Tx = {ctc, Pub, Pub2},

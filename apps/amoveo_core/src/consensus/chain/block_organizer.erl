@@ -76,7 +76,8 @@ helper([{Height, Many, CB}|T]) ->
             %spawn(fun() ->
             %io:fwrite("block absorber save start"),
             %spawn(fun() ->
-            block_absorber:save(block_db:uncompress(CB)),%maybe this should be a cast.
+            UCB = block_db:uncompress(CB),
+            block_absorber:save(UCB),%maybe this should be a cast.
            %               ok
              %     end),
             %io:fwrite("block absorber save finish"),

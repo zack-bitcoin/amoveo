@@ -10,7 +10,7 @@ def spend_test():
     request(1, "mine_block", [1,100000], 0.1)
     request(1, "sync", [[127,0,0,1], 3020], 5)
     request(2, "load_key", [pub2, priv, brainwallet], 1)
-    request(1, "create_account", [pub2, 1], 0.1)
+    request(1, "spend", [pub2, 1], 0.1)
     request(1, "sync", [[127,0,0,1], 3020], 0.1)
     request(1, "spend", [pub2, 2], 0.1)
     request(1, "spend", [pub2, 3], 0.1)

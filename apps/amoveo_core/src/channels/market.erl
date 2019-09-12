@@ -33,6 +33,8 @@ binary " ++ integer_to_list(size(Pubkey)) ++ " " ++ binary_to_list(base64:encode
     %io:fwrite(FullCode),
     Compiled = compiler_chalang:doit(FullCode),
     io:fwrite("compiled code is \n"),
+    %io:fwrite(integer_to_list(size(Compiled))),%1775
+    %io:fwrite("\n"),
     io:fwrite(base64:encode(Compiled)),
     io:fwrite("\n"),
     CodeKey = market_smart_contract_key(MarketID, Expires, Pubkey, Period, OID),

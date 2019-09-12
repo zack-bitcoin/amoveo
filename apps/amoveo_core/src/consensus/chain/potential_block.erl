@@ -4,7 +4,8 @@
 %This module keeps track of what might become the next block of the blockchain, if you are mining or running a mining pool.
 -export([new/0, read/0, save/0, dump/0, check/0, save/2]).
 %-define(potential_block, "data/potential_blocks.db").
--define(refresh_period, 600).%how often we check if there are new txs that can be included in the block. in seconds
+%-define(refresh_period, 600).%how often we check if there are new txs that can be included in the block. in seconds
+
 -include("../../records.hrl").
 -record(pb, {block, time}).
 init(ok) -> 
@@ -26,15 +27,19 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call(dump, _, _) -> 
     {reply, ok, #pb{block = "", time = now()}};
-handle_call({save, Txs, _Height}, _, _) -> 
+handle_call({save, Txs, _Height}, _, X) -> 
     Top = headers:top_with_block(),
     PB = block:get_by_hash(block:hash(Top)),
     Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
+    pool_command(),
+    %clean_memory(X#pb.block),
     {reply, ok, #pb{block = Block, time = now()}};
-handle_call(save, _, _) -> 
+handle_call(save, _, X) -> 
     Block = new_internal(),
+    %clean_memory(X#pb.block),
     {reply, ok, #pb{block = Block, time = now()}};
-handle_call(new, _, Old) -> 
+handle_call(new, _, X) -> 
+    %clean_memory(X#pb.block),
     Block = new_internal(),
     {reply, ok, #pb{block = Block, time = now()}};
 handle_call(check, _From, X) -> 
@@ -49,18 +54,22 @@ handle_call(read, _From, X) ->
 	 end,
     TP = tx_pool:get(),
     NH = TP#tx_pool.height,
+    {ok, RP} = application:get_env(amoveo_core, pool_refresh_period),
     Y = if
 	    B == "" ->
+                %clean_memory(B),
 		#pb{block = new_internal2(TP), time = now()};
 	    (not (BH == (NH + 1))) ->%block height changed
+                %clean_memory(B),
 		#pb{block = new_internal2(TP), time = now()};
-	    (D < ?refresh_period) -> X;%only update txs once every refresh period.
+	    (D < RP) -> X;%only update txs once every refresh period.
 	    true ->
 		NewTxs = TP#tx_pool.txs,
 		CurrentTxs = B#block.txs,
 		TxChanged = tx_changed(NewTxs, CurrentTxs),
 		if
 		    TxChanged ->%if txs have changed
+                        %clean_memory(B),
 			#pb{block = new_internal2(TP), time = now()};
 		    true -> X#pb{time = now()}
 		end
@@ -77,6 +86,20 @@ save(Txs, Height) -> gen_server:call(?MODULE, {save, Txs, Height}).
 dump() -> gen_server:call(?MODULE, dump).
 read() -> gen_server:call(?MODULE, read).
 check() -> gen_server:call(?MODULE, check).
+clean_memory(_) ->
+    ok;
+clean_memory(OldBlock) ->
+    %currently unused
+    BH = block:hash(OldBlock),
+    case headers:read(BH) of
+        error ->
+            KeepBlock = block:get_by_hash(OldBlock#block.prev_hash),
+            spawn(fun() ->
+                          tree_data:garbage(OldBlock, KeepBlock)
+                  end);
+        {ok, Header} -> ok
+    end.
+            
 new_internal() ->
     TP = tx_pool:get(),
     new_internal2(TP).
@@ -92,7 +115,9 @@ new_internal2(TP) ->
 	    Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
     %Top = headers:top_with_block(),
     %PB = block:get_by_hash(block:hash(Top)),
-	    block:make(Top, Txs, PB#block.trees, keys:pubkey())
+	    Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
+            pool_command(),
+            Block
     end.
 tx_changed(New, Old) ->    
     N2 = tx_det_order(New),
@@ -100,3 +125,8 @@ tx_changed(New, Old) ->
     not(N2 == O2).
 tx_det_order(L) -> lists:sort(L).
     
+pool_command() ->
+    spawn(fun() ->
+                  {ok, S} = application:get_env(amoveo_core, pool_refresh_script),
+                  os:cmd(S)
+          end).

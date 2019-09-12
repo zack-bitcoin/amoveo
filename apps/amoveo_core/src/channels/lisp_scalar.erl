@@ -5,6 +5,7 @@
          no_publish/1,evidence/2,
 	 contradictory_prices/3, market_smart_contract_key/8,
 	 unmatched/1,
+%	 unmatched/1, scalar_oracle_make/6,
 	 test/0, test_contract/0, test3/0]).
 -include("../records.hrl").
 
@@ -187,6 +188,7 @@ test() ->
     OIL = trees:get(governance, oracle_initial_liquidity),
     %scalar_bet_make(constants:master_pub(), Fee, OIDL, 1023, OIL * 2), %512 is half way between all and nothing.
     api:minimum_scalar_oracle_bet(OID, 1023),
+    %scalar_bet_make(constants:master_pub(), Fee, OIDL, 1023, OIL * 2), %512 is half way between all and nothing.
     %scalar_bet_make(constants:master_pub(), Fee, OID0, 0, Many, OIL * 2), %512 is half way between all and nothing.
     %1=2,
 
