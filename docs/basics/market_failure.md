@@ -18,5 +18,4 @@ vote B: $102 $2
 you can see form the chart that any individual voter would prefer to vote for B. because 102 > 100, and 2 > 0.
 So $200 of bribes can destroy $10 000 of value.
 
-
-Here is a video with some great examples: https://www.youtube.com/watch?v=Bpn645huKUg
+Here is a video with some great examples: https://youtu.be/DsdsxQqZPmA
