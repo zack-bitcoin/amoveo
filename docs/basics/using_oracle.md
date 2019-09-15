@@ -61,5 +61,5 @@ fV = final usd/veo;
 sV = starting usd/veo;
 fB = final bsv/veo;
 sB = starting bsv/veo;
-return 1024*(0.5 + (fV/sV) - (fB/sB))
+return 512*(2 - fB/sB)/(fV/sV)
 ```

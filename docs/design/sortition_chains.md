@@ -536,3 +536,20 @@ So now there are 10 winners instead of 1 winner.
 Which significantly reduces the risk.
 
 Each sub-sortition chain of the recursive tree can still have only 1 winner.
+
+
+
+Proof of the non-existance of data for hashlocking
+=======================
+
+There is an attack. The attacker sets up a hashlock update of a sortition contract, but then refuses to reveal the pre-image of the hash.
+This means that the sortition chain operator is left unable to prove their ownership of that part of the money. So no one will accept payments of that part of the money.
+
+To solve this, we will enable proof-of-existence txs on-chain. You store by the commitment, and you look up the pre-image and the height at which it's existence was recorded.
+
+The smart contract can require that the pre-image exist in the proof-of-existence tree, and that the height recorded with it was earlier than some limit.
+This way the attacker can only make the money un-spendable for a short period of time.
+
+
+So we might worry that an attacker would cause us to need to record so many proof-of-existence data, that we can't fit it in a block.
+To avoid this problem, whoever is the bigger sortition chain operator should not be the one generating secrets. This way, the worst that could happen is that the sortition chain operator is attacking themselves.
