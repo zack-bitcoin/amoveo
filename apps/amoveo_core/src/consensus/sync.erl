@@ -507,7 +507,7 @@ merge([H1|T1], [H2|T2]) ->
     end.
             
 remove_self(L) ->%assumes that you only appear once or zero times in the list.
-    MyIP = my_ip:get(),
+    MyIP = peers:my_ip(),
     {ok, MyPort} = application:get_env(amoveo_core, port),
     Me = {MyIP, MyPort},
     remove_self2(L, Me).

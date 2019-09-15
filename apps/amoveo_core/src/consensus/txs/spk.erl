@@ -148,7 +148,7 @@ new(Acc1, Acc2, CID, Bets, SG, TG, Nonce, Delay) ->
 	 bets = Bets, space_gas = SG, time_gas = TG,
 	 cid = CID, nonce = Nonce, delay = Delay}.
 bet_unlock(SPK, SS) ->
-    io:fwrite("spk bet unlock\n"),
+    %io:fwrite("spk bet unlock\n"),
     Bets = SPK#spk.bets,
     %check if we have the secret to unlock each bet.
     %unlock the ones we can, and return an SPK with the remaining bets and the new amount of money that is moved.

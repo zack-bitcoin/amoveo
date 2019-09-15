@@ -121,8 +121,8 @@ handle_call({match, OID}, _From, X) ->
 			{CodeKey, SS} = 
 			    case ob_type(OB) of
 				{binary} -> 
-				    CodeKey0 = market:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
-				    SS0 = market:settle(PriceDeclaration, OID, MatchPrice),
+				    CodeKey0 = lisp_market2:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID),
+				    SS0 = lisp_market2:settle(PriceDeclaration, OID, MatchPrice),
 				    {CodeKey0, SS0};
 				{scalar, UpperLimit, LowerLimit, StartHeight} ->
 				    CodeKey1 = lisp_scalar:market_smart_contract_key(OID, Expires, keys:pubkey(), Period, OID, UpperLimit, LowerLimit, StartHeight),
@@ -171,7 +171,7 @@ finished_matching(Height, OID, OB, Accounts) ->
     PriceDeclaration = 
         case ob_type(OB) of
             {binary} ->
-                market:price_declaration_maker(Height, Price, Ratio, MarketID);
+                lisp_market2:price_declaration_maker(Height, Price, Ratio, MarketID);
             {scalar, UL, LL, SH} ->
                 lisp_scalar:price_declaration_maker(Height, Price, Ratio, MarketID)
         end,

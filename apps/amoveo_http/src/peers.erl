@@ -6,7 +6,7 @@
 
 %% API
 -export([
-	 %my_ip/0,%my_ip(all())
+	 my_ip/0,%my_ip(all())
 	 %my_ip/1,%tells your ip address
          add/1, %Add a Peer 
          remove/1, %Remove a Peer
@@ -25,7 +25,7 @@ init(ok) ->
 		  {ok, Peers} = application:get_env(amoveo_core, peers),
 		  {ok, Port} = application:get_env(amoveo_core, port),
 		  add(Peers),
-		  IP = my_ip:get(),
+		  IP = my_ip(),
 		  if
 		      IP == empty -> ok;
 		      true -> add({IP, Port})
@@ -137,6 +137,12 @@ load_peers([{_,_}=Peer|T], Dict) ->
          end,
     load_peers(T, NewDict).
 
+my_ip() ->
+    {ok, Addrs} = inet:getifaddrs(),
+    hd([
+        Addr || {_, Opts} <- Addrs, {addr, Addr} <- Opts,
+                size(Addr) == 4, Addr =/= {127,0,0,1}
+       ]).
 
 
 
