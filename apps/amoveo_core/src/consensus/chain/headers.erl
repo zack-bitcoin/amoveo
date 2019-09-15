@@ -127,7 +127,6 @@ absorb(X) ->
     H2 = max(0, H - FT + 1),
     B = block:get_by_height(H2),
     absorb(X, block:hash(B)).
-    %absorb(X, block:hash(block:get_by_height(0))).
 absorb([], CommonHash) -> 
     CommonHash;
 absorb([First|T], R) when is_binary(First) ->

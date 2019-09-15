@@ -2,7 +2,7 @@
 -export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,
 	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2,
 	 new/6,
-	 new2/7,
+	 new2/7, empty_tree/1,
 	 root_hash/1, name/1, 
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
@@ -30,6 +30,7 @@ name(<<"matched">>) -> matched;
 name("matched") -> matched;
 name(<<"unmatched">>) -> unmatched;
 name("unmatched") -> unmatched.
+empty_tree(X) -> trie:empty(X).
 accounts(X = #trees{}) -> X#trees.accounts;%
 accounts(X) -> X#trees2.accounts.
 channels(X = #trees{}) -> X#trees.channels;%

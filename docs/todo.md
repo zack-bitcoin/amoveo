@@ -1,38 +1,274 @@
-block_hashes:second_chance(). should run on restart.
+lisp_scalar.erl needs to use the new rules for making oracles.
 
-We can probably automatically tell it to sync on startup.
 
+
+Potential block should keep track of the 2 most recent version of the work, so that miners still working on the previous version aren't wasting their effort.
+
+
+
+
+new_oracle binary oracle is not working.
+
+
+
+chart to visualize historic difficulty
+
+new_oracle.js governance_futarchy_oracle could suggest block heights automatically
+
+
+update the scalar and binary market contracts to use the new strategy for generating oracle ids.
+we can generate all 10 oids inside of chalang, so we dont have to embed 10 raw oids.
+test out scalar oracles from the light node before pushing anything.
+
+do a hard update to enforce the new way of generating oracle ids.
+
+update the smart contracts to handle oracle that do not yet exist.
+
+update the light node to handle contracts for oracles that do not yet exist.
+
+check that p2p derivatives explorer can handle contracts for oracles that do not yet exist.
+
+
+
+update p2p derivatives explorer to keep a record of which contracts expired unmatched, vs which were matched. This will make futarchy easier.
+
+
+
+
+once the hard update activates at 76200
+update the light node for the new channel close tx type.
+
+update the light node to use the new simpler binary contract for p2p bets, but use the old one for centralized betting with the server.
+
+write a simpler scalar contract.
+
+update the light node to use the new simpler scalar contract for p2p betting.
+
+make sure the light node still works for bets in the centralized market.
+
+teach the light node chalang about the new destructive comparison opcode, and the new ways of encoding integers.
+
+soft update. require that the oid of each oracle was deterministically generated from the height when trading begins and the question being asked.
+* also update the light node to enable trading of derivatives on oracles that do not yet exist.
+
+
+the new tool to execute a command when we find a block is not working, because currently the block isn't updated until you try pulling the data from it.
+
+
+
+idea to improve the oracle mechanism
+* block any bets that would leave the oracle in a state where less than 1 veo of volume of bets is sitting in the order book.
+the advantage is that we could reduce the initial liquidity to 0, so it would be cheaper to make oracles.
+
+
+
+add to chalang:
+* load the next 1 byte as an integer
+* load the next 2 bytes as an integer
+* 50 or 100 opcodes that each load a single integer from 0-99 onto the stack. So we can use 1 opcode to load a small integer.
+* we need to set up a soft update to activate this
+
+add to chalang:
+* grab arbitrary byte from a (binary or (an integer, which is interpreted as a 4-byte binary.))
+
+
+
+try pushing a tx from the light node in chrome on a mac.
+
+
+having trouble making channel_solo_close from the light node to close our channels.
+
+The light node should store the entire compiled contract. That way, even if the rules for how to build the contract should change, our old signatures are still valid. And so we can update how the contract is built without invalidating existing contract signatures.
+
+Make transactions to close the 5 channels in ~/oracles.md, and publish them somewhere publicly so that the other participant can close these channels.
+
+rewrite the scalar market smart contract like market2.fs
+update the light node to use these better contracts.
+
+
+
+teach the master branch not to have zombie nodes trying to download non-existance blocks.
+
+
+
+like, it should say somewhere that bad question means you get your money back
+
+
+also, I think “you win if veo/stablecoin goes up” is the most intuitive way, when veo/stablecoin is a number quoted like 92 and not 0.01085
+
+veo/stablecoin and stablecoin/veo labels might be backwards.
+
+update futarchy documentation:
+I think it is much better to use a % change in future interval
+like, % change from block where reward increase goes thru until like 1000 more blocks or something
+and then there isn’t the free option dynamic as much anymore
+
+experimental version seems to have some race condition while syncing. alarmingly, you need to do `block_hashes:second_chance().` in order to get it to continue syncing after the error happens.
+
+
+* add randomness opcodes to sortition chalang, as documented in opcodes.md load_seed and get_entropy.
+
+
+
+
+
+We need to get the randomness into chalang, so we can make these sortition merkel proofs.
+I guess we should choose a block hash to import as a binary?
+
+Ideally we would use the block hash are the seed for a deterministic random number generator, that way we can have more than 256 bits of entropy from a single block hash.
+
+So I guess I should use an erlang library for this, and add some chalang words to for:
+1) load a block hash onto the stack.
+2) load a seed into the random number generator
+and then every time we call rand_bool, it can use the random number generator to make the decision.
+
+
+teach the light node to use ctc2 instead of ctc.
 
 
 
 Why did the light node follow it's own fork briefly?
 
 
+sometimes the light node generates channel_team_close txs where one of the accounts spends more money than they have in the channel, so the tx is invalid.
+- unable to reproduce.
+
+
+amoveo light node channel team close should handle the case where the channel participants send their channel states to each other.
+Either there should be a warning if you use the wrong channel state, or it should use the information to accomplish the goal anyway.
+
+when you make a channel team close offer, give an option to save to file.
+
+display the channel ID as much as possible in light node for p2p derivatives.
+
+
+amoveo light node solo-close could be having problems.
+
+
+
+lower the cost of question oracles.
+
+
+figure out prob-payments from blitzkrieg.
+
+
+figure out channel factories.
+
+
+
+
+
+sometimes when a block syncs, the full nodes aren't clearing out their entire tx pool, and they keep an invalid tx. This could potantially prevent them from finding blocks, so it could be a serious error
+
+
+if you block other nodes from talking to you, eventually you drop all your peers. This could be related to the memory leak causing there to be too many threads trying to sync at the same time.
+
+
+we should be able to create channels for accounts that do not exist, and they are created when the channel is closed. for prob-channels.
+
+
+* syncing blocks in reverse order.
+
+* probabilistic payments.
+
+every tx where you need a gov variable to calculate the new balances, put that gov variable into the block meta.
+
+
+if `sync_mode:normal().` hasn't been done, and you try making a tx, there should be a useful error message.
+
+
+rename the tx type to oracle_unmatched.
+
+
+if we don't export our IP, do the other nodes blacklist us?
+Why does it stop syncing eventually?
+
+
+
+Why did the light node follow it's own fork briefly?
+
+
+
+
+gov variable in block meta is in the wrong format.
+
+
+if a node sits long enough, we end up with lots of threads downloading empty lists over and over.
+it is requesting above the top height that anyone has
+
+
+
+light node otc_listener.js "someone already did this contract. you are too late"
+we should put a message to the screen to indicate this.
+
+Some confirmation message when you accept a contract.
+
+Stepan lost the channel state for a channel. What can we do to help him?
+
+better error message if you try to look up a channel that doesn't exist in the light node.
+
+
+
+
+
+tx_scan is failing, make some better tests.
+
+to calculate the delete amount correctly,
+* block:get_txs_main needs to be implemented
+
+
+
+do a second pass, check if any delete_acc_tx has an amount too low.
+
+
+we need a better warning system if a governance value is being changed.
+message loloxian when it is ready.
+
+
+we should probably store blocks and meta data seperately.
+
+oracle_winnings and oracle_unmatched txs from the light node.
+
+
+
+store the highest hash with each page of compressed blocks, since this makes it easier to organize the blocks and resync them later.
+We should store the top hash of a page of blocks under the key "top".
+
+
+issue with channel_team_close2
+blocked because packer doesn't know about the key.
+We can't fix packer directly, because some nodes would freeze.
+1) mining pools should do a soft fork to block ctc2
+2) we fix the packer library.
+3) we give everyone a week to update dependencies.
+4) we schedule a date to simultaneously turn off the soft fork in all the mining pools.
+* currently here.
+5) clean up now unused soft-fork code.
+
+
+
+
+move all records to records.hrl . Many developers are exposed to the datastructure first, and then search for the file with the keys second. they have difficulty knowing which file to look in to find the keys.
+
+
+
+
+
+
 futarchy markets:
-lower block reward
-expiration at block 73500
-> On July 1st at noon GMT time. If the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
-> On July 1st at noon GMT time. If the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
+* lower block reward
+> if the block reward is below 0.3 veo, return bad. else return the price of USD in VEO.
+> if the block reward is above 0.3 veo, return bad. else return the price of USD in VEO.
+* lock the block reward with a set halvening schedule
 
-
-
-
-we will do a full review of every part of the blocks and headers that get downloaded to confirm that there is no other data that we are not verifying.
 
 set up a testnet
 
-internal/external ip should be in the config file.
-potential_block refresh period should be in the config file.
-
-
-update the light node to use the new kind of channel team close.
 
 
 merkel tree memory leak for miners.
 
 
-
-ram version of merkel trees crashes around height 40k
 
 configuration option to not store any blocks.
 
@@ -46,11 +282,6 @@ replace many dictionary data structures with ets.
 otc_listener should display the channel ID.
 * we did this, now we need to test it and then push to github.
 
-tar backup
-Sy gives: tar cfvz amoveo.tgz blocks/ channels/ data/ oracle_questions/
-this is what i compressed and uncompressed on the target system
-Why isn't this enough to be in sync?
-
 
 make a javascript tool for managing channel states.
 It should tell you which channels are ready to be closed, and display a chart for how much money is in each contract, how much longer until it can be closed, and store it all in a single file.
@@ -61,6 +292,10 @@ glossary long-veo/stablecoin on otc_derivatives and otc_listener
 
 start closing some oracles
 
+
+scientific notation oracles.
+How about we combine a  binary and scalar oracle. so you can make a new binary oracle, and combine it with an old scalar oracle, to make a contract that either returns $0 or $200 of veo.
+P = the amount of veo in $200 from 0 to 10; if A happens return P * 1024 / 10; if A doesn’t happen return 0
 
 
 in the light node, when we look up oracles, we should verify that the hash of the question tx matches the hash stored in the merkel tree.

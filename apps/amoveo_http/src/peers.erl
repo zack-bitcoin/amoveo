@@ -7,7 +7,7 @@
 %% API
 -export([
 	 my_ip/0,%my_ip(all())
-	 my_ip/1,%tells your ip address
+	 %my_ip/1,%tells your ip address
          add/1, %Add a Peer 
          remove/1, %Remove a Peer
          all/0, %Get list of all Peers
@@ -25,7 +25,7 @@ init(ok) ->
 		  {ok, Peers} = application:get_env(amoveo_core, peers),
 		  {ok, Port} = application:get_env(amoveo_core, port),
 		  add(Peers),
-		  IP = my_ip:get(),
+		  IP = my_ip(),
 		  if
 		      IP == empty -> ok;
 		      true -> add({IP, Port})
@@ -77,10 +77,10 @@ add([MalformedPeer|T]) ->
     io:fwrite("tried to add malformed peer, skipping."),
     io:fwrite(packer:pack(MalformedPeer)),
     add(T);
-add({{10, _, _, _}, _Port}) -> ok;%these formats are only for private networks, not the public internet.
+%add({{10, _, _, _}, _Port}) -> ok;%these formats are only for private networks, not the public internet.
 add({{0, 0, 0, 0}, _Port}) -> ok;
-add({{192, 168, _, _}, _Port}) -> ok;
-add({{172, X, _, _}, Port}) when ((X < 32) and (X > 15))-> ok;
+%add({{192, 168, _, _}, _Port}) -> ok;
+%add({{172, X, _, _}, Port}) when ((X < 32) and (X > 15))-> ok;
 add({IP, Port}) -> 
     %io:fwrite("adding a peer to the list of peers. "),
     %io:fwrite(packer:pack(IP)),
@@ -110,7 +110,7 @@ add({IP, Port}) ->
                             blacklist_peer:add({NIP, Port})
                     end;
                 _ ->
-                    io:fwrite("unknown peer error\n"),
+                    %io:fwrite("unknown peer error\n"),
                     %blacklist_peer:add({NIP, Port})
                     ok
 	    end
@@ -136,36 +136,13 @@ load_peers([{_,_}=Peer|T], Dict) ->
              _ -> Dict
          end,
     load_peers(T, NewDict).
-my_ip() -> my_ip(peers:all()).
-my_ip([]) ->
-    {ok, X} = inet:getif(),
-    Y = hd(X),
-    element(1, Y);
-my_ip([[A, B]|T]) ->
-    my_ip([{A, B}|T]);
-my_ip([P|T]) ->
-    %io:fwrite(packer:pack(P)),
-    %io:fwrite("\n"),
-    case talker:talk_timeout({f}, P, 4000) of
-	{ok, MyIP} ->
-	    case MyIP of 
-		{10, _, _, _} -> my_ip(T);
-		{192, 168, _, _} -> my_ip(T);
-		{172, X, _, _} -> 
-		    if
-			((X < 32) and (X > 15)) -> my_ip(T);
-			true -> MyIP
-		    end;
-		{127,0,0,1} -> my_ip(T);
-		{_, _, _, _} -> MyIP;
-		_ -> my_ip(T)
-	    end;
-	X ->  my_ip(T)
-	    %io:fwrite("my_ip issue \n"),
-	    %io:fwrite(packer:pack(X)),
-	    %io:fwrite("\n")
-    end.
-	     
+
+my_ip() ->
+    {ok, Addrs} = inet:getifaddrs(),
+    hd([
+        Addr || {_, Opts} <- Addrs, {addr, Addr} <- Opts,
+                size(Addr) == 4, Addr =/= {127,0,0,1}
+       ]).
 
 
 

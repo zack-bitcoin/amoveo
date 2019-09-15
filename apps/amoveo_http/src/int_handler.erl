@@ -1,13 +1,15 @@
 
 -module(int_handler).
 
--export([init/3, handle/2, terminate/3, doit/1]).
+-export([init/2, init/3, handle/2, terminate/3, doit/1]).
 %example of talking to this handler:
 %httpc:request(post, {"http://127.0.0.1:3011/", [], "application/octet-stream", packer:pack({pubkey})}, [], []).
 %curl -i -d '[-6,"test"]' http://localhost:3011
 
+init(Req, State) ->
+	  handle(Req, State).
 handle(Req, State) ->
-    {ok, Data, _} = cowboy_req:body(Req),
+    {ok, Data, _} = cowboy_req:read_body(Req),
     true = is_binary(Data),
     %io:fwrite("\ngot this data \n"),
     %io:fwrite(Data),
@@ -15,9 +17,9 @@ handle(Req, State) ->
     A = packer:unpack(Data),
     B = doit(A),
     D = packer:pack(B),
-    Headers = [{<<"content-type">>, <<"application/octet-stream">>},
-    {<<"Access-Control-Allow-Origin">>, <<"*">>}],
-    {ok, Req2} = cowboy_req:reply(200, Headers, D, Req),
+    Headers = #{<<"content-type">> => <<"application/octet-stream">>,
+    <<"Access-Control-Allow-Origin">> => <<"*">>},
+    Req2 = cowboy_req:reply(200, Headers, D, Req),
     {ok, Req2, State}.
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.

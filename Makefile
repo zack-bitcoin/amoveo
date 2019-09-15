@@ -277,6 +277,7 @@ config/dev3/sys.config: config/sys.config.tmpl
     " $< > $@
 
 tests: killall
+	make multi-stop
 	make multi-build
 	make multi-clean
 	make multi-go
@@ -286,9 +287,11 @@ tests: killall
 
 multi-quick: kill
 	@bash scripts/config_setup.sh
-	make multi-build multi-clean multi-go
+	make multi-stop multi-build multi-clean multi-go
 
 local-quick: kill
+	make multi-stop
+	make local-stop
 	@bash scripts/config_setup.sh
 	make local-build local-clean
 	./_build/local/rel/amoveo_core/bin/amoveo_core console

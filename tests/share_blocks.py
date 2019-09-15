@@ -80,6 +80,20 @@ def test4():
     height2 = request(2, 'height', [], 0.05)
     assertEqual(height1, height2)
 
+def test6():
+    request(1, "mine_block", [2, 100000], 1)
+    request(2, "sync", [2, [127,0,0,1], 3010], 0.1)
+    request(2, "mine_block", [1, 100000], 1)
+    #time.sleep(10)
+    request(3, "sync", [2, [127,0,0,1], 3020], 0.2)
+    request(3, "sync", [[127,0,0,1], 3020], 1)
+    #height1 = request(3, 'height', [], 0.05)
+    #assertEqual(height1, 1)
+    #check that node 3's block height is 1.
+    
+    
+    
+
 def test5():
     request(1, "mine_block", [200, 100000], 3)
     request(2, "sync", [[127,0,0,1], 3010], 0.2)#pull
@@ -92,6 +106,7 @@ def share_blocks():
     test1()
     test2()
     test3()
+    #test6()
     
 
 if __name__ == "__main__":
