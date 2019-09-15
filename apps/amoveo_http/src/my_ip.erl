@@ -18,28 +18,36 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 get() -> gen_server:call(?MODULE, get).
 
-my_ip() -> my_ip(peers:all()).
-my_ip([]) -> empty;
-my_ip([[A, B]|T]) ->
-    my_ip([{A, B}|T]);
-my_ip([P|T]) ->
+my_ip() ->
+    {ok, Addrs} = inet:getifaddrs(),
+    hd([
+        Addr || {_, Opts} <- Addrs, {addr, Addr} <- Opts,
+                size(Addr) == 4, Addr =/= {127,0,0,1}
+       ]).
+
+
+my_ip_old() -> my_ip_old(peers:all()).
+my_ip_old([]) -> empty;
+my_ip_old([[A, B]|T]) ->
+    my_ip_old([{A, B}|T]);
+my_ip_old([P|T]) ->
     io:fwrite(packer:pack(P)),
     io:fwrite("\n"),
     case talker:talk_timeout({f}, P, 4000) of
 	{ok, MyIP} ->
 	    case MyIP of 
-		{10, _, _, _} -> my_ip(T);
-		{192, 168, _, _} -> my_ip(T);
+		{10, _, _, _} -> my_ip_old(T);
+		{192, 168, _, _} -> my_ip_old(T);
 		{172, X, _, _} -> 
 		    if
-			((X < 32) and (X > 15)) -> my_ip(T);
+			((X < 32) and (X > 15)) -> my_ip_old(T);
 			true -> MyIP
 		    end;
 		{_, _, _, _} -> MyIP;
-		_ -> my_ip(T)
+		_ -> my_ip_old(T)
 	    end;
-	X ->  my_ip(T)
-	    %io:fwrite("my_ip issue \n"),
+	X ->  my_ip_old(T)
+	    %io:fwrite("my_ip_old issue \n"),
 	    %io:fwrite(packer:pack(X)),
 	    %io:fwrite("\n")
     end.

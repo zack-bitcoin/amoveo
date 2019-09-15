@@ -6,8 +6,8 @@
 
 %% API
 -export([
-	 my_ip/0,%my_ip(all())
-	 my_ip/1,%tells your ip address
+	 %my_ip/0,%my_ip(all())
+	 %my_ip/1,%tells your ip address
          add/1, %Add a Peer 
          remove/1, %Remove a Peer
          all/0, %Get list of all Peers
@@ -136,36 +136,7 @@ load_peers([{_,_}=Peer|T], Dict) ->
              _ -> Dict
          end,
     load_peers(T, NewDict).
-my_ip() -> my_ip(peers:all()).
-my_ip([]) ->
-    {ok, X} = inet:getif(),
-    Y = hd(X),
-    element(1, Y);
-my_ip([[A, B]|T]) ->
-    my_ip([{A, B}|T]);
-my_ip([P|T]) ->
-    %io:fwrite(packer:pack(P)),
-    %io:fwrite("\n"),
-    case talker:talk_timeout({f}, P, 4000) of
-	{ok, MyIP} ->
-	    case MyIP of 
-		{10, _, _, _} -> my_ip(T);
-		{192, 168, _, _} -> my_ip(T);
-		{172, X, _, _} -> 
-		    if
-			((X < 32) and (X > 15)) -> my_ip(T);
-			true -> MyIP
-		    end;
-		{127,0,0,1} -> my_ip(T);
-		{_, _, _, _} -> MyIP;
-		_ -> my_ip(T)
-	    end;
-	X ->  my_ip(T)
-	    %io:fwrite("my_ip issue \n"),
-	    %io:fwrite(packer:pack(X)),
-	    %io:fwrite("\n")
-    end.
-	     
+
 
 
 
