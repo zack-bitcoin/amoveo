@@ -75,7 +75,7 @@ Every branch of the merkel tree has bits of chalang code, which specify the mutu
 The chalang code can reference randomness, or the output of an oracle, or anything.
 That way, a merkel proof of the existence of your sortition contract is also a proof that no one else has the same part of the probability space as you.
 
-So when you create a sortition contract with a sortition chain operator, the operator is giving you a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space was recently empty.
+So when you create a sortition contract with a sortition chain operator, the operator is giving you a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space is owned by him.
 
 
 The Leverage of Sortition Chains
@@ -156,90 +156,42 @@ tx types
 
 2) sortition contract
 
-* almost identical to channel_solo_close_tx
-* a list of tuples [{script-pubkey, script-sig, proof, signature}|...]
+* a lot like channel_solo_close_tx or channel_slash_tx.
 * a chalang spk signed by the owner which, if unlocked, enables this withdraw.
 * a chalang script-sig to provide evidence to unlock the spk.
 *  chalang_vm(script-sig ++ scipt-pubkey) must return true
-* it creates a list like [{Nonce1, Heigh1}|...]
-* it compares this nonce-height list against the last sortition-contract published to see if we should update.. like compare(New, Old).
+* it also returns the pubkey of the winner, and the height at which their ownership was proved.
 * You pay a safety deposit.
+* if you aren't the first to make a sortition contract tx for this sortition chain, then you either need to provide evidence for an earlier height, or you need to provide the sortition-spend-tx where they had given up ownership of this part of the probability space.
 
-3) sortition cancel
-
-* very similar to channel_slash_tx
-* if anyone ever signs some data saying that they want to close a sortition, and they try publishing a sortition-contract-tx with the expired contract, then you can use that data to make this tx.
-* you win the safety deposit from the sortition-contract-tx.
-
-4) sortition timeout
+3) sortition timeout
 
 * almost identical to channel_timeout_tx
-* if there are multiple ways the sortition could be closed, we use this rule to choose just one. We are comparing the nonce-height lists from each way the channel can be closed
-```
-compare([X|T1], [X|T2]) -> compare(T1, T2);
-compare([{N1, _}|T1], [{N2, _}|T2]) ->
-              N1 > N2;
-compare([{_, H1}|T1], [{_, H2}|T2]) when (H1 < H2) ->
-             H1 < H2;
-compare([], []) -> false.
-```
-
 * you have to wait a long enough delay after the sortition-contract-tx before you can do this tx.
 * If the winner is different from the sortition chain operator, then this creates a new sortition chain that the winner controls.
-* The new sortition chain has all the money from th eold one.
+* The new sortition chain has all the money from the old one.
 * the new sortition chain has an expiration that is already passed. So it is possible to start the process of settling this sortition chain immediately.
 * this unlocks the safety deposit you had paid in the sortition-contract-tx.
 
-5) proof of existence
+4) proof of existence
 
-* This allows the creator to publish 32 bytes of data into the proof of existence tree. It keeps a record of the block height at which this hash was recorded.
+* This allows the creator to publish 32 bytes of data into the proof of existence tree. It keeps a record of the block height at which this hash was recorded. This is used for hashlocking.
 
-<!---
+5) sortition chain state root
 
-prob-channel double-spend protection txs
-===========
+* records the state root of the sortition chain. This is how users who own value in that sortition chain can create proofs that they own value in it, the proof is connected to these state roots. 
 
-6) prob-channel challenge
-
-* If the server has double-spent part of the probability space, this is how you publish a proof to punish them for doing this.
-
-7) prob-channel response
-
-* if someone made a prob-channel challenge, and the hub has not cheated, then that means the hub should have evidence that one of the conflicting prob-channels was closed or updated, by either providing a signed agreement to close the channel, or some different data to provide to one of the channels to make it close at a higher-nonced state.
-
-8) prob-channel timeout
-
-* if the hub failed to make prob-channel response in time, then eventually it becomes possible to make this tx type.
-* most of the prob-account deposit gets deleted, but some goes to whoever made the prob-channel challenge.
-
-Data availability txs
-========
-
-9) prob-channel data request
-
-* if a hub is refusing to give you a merkel proof of your prob-channel state, this tx can be used to force that hub to either give you the proof, or else all the value in their hub is destroyed.
-* before you can generate this tx for height H, you need a merkel proof that the hub committed to the state of the prob-channels at that height.
-
-10) prob-channel data response
-
-* this is how the hub can report on-chain to any data requests for merkel proofs.
-
-11) prob-channel data request slash
-
-* if the hub fails to do a prob-channel data response tx within the time limit, then it eventually becomes possible to do this tx.
-* this deletes the channel-hubs deposit, and gives a small reward to whoever made the data request.
-
---->
 
 New Merkel Tree Data Structures in the Consensus State
 ============
 
 1) sortition chains
 
-* pubkey for spending
+* pubkey of creator
+* pubkey of the person who might win.
+* a list of pubkeys of accounts that cannot win.
 * amount of veo
 * expiration date
-* list of nonce-height pairs for sortitions in the process of being closed, along with the pubkey of who is in line to win.
 
 
 2) proof of existence
@@ -284,7 +236,9 @@ Data the Users Need to Store
 2) you need the keep a merkel proof showing that your sortition contract exists. You can use this proof to punish the sortition chain operator if they try to double-spend your money.
 256*(log16(number of sortition contracts in your sortition chain)) = about 1280 bytes.
 
-3) you need to download all the sortition-blocks, but you don't need to store them.
+3) you need to download all the sortition-blocks from before you obtain ownership, but you don't need to store them. You don't need to download any sortition blocks to maintain ownership, or to claim your winnings, or to spend the coins.
+
+4) you need to keep a copy of the txs of anyone else who had previously owned part of the probability space that you now own, so if they try to claim it, you can stop them by showing that they gave up ownership.
 
 
 
@@ -341,6 +295,16 @@ Using this trick, you can always promote your sortition contract from one sortit
 
 So we don't have to worry about whether the middle generations stay online.
 If we buy a smart contract, we can still sell that smart contract even if the market where we bought it has gone offline.
+
+
+Preventing invalid state transitions
+===========
+
+You only need to keep track of the part of the probability space that you own.
+You need to keep a copy of the txs where anyone else who had previously owned part of your probability space.
+If someone else has a proof that they own the same part of the probability space as you, it must have been created after your proof. So the proof of existence will be connected to a later height on the main chain. So your proof will take precidence, and they can't prevent you from winning the lottery.
+
+This means it is not possible to own the same part of the probability space in the same sortition chain more than once with the same account.
 
 
 Lightning Sortition Contract Creation

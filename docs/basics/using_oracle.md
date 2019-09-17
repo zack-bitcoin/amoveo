@@ -57,9 +57,13 @@ round(Z*1024 / P2)
 A scalar oracle that moves inversely with BSV/USD
 
 ```
-fV = final usd/veo;
-sV = starting usd/veo;
-fB = final bsv/veo;
-sB = starting bsv/veo;
-return 512*(2 - fB/sB)/(fV/sV)
+veo price source: Close price on https://coinpaprika.com/coin/veo-amoveo/#!historical-data
+bsv price source; Close price on https://coinpaprika.com/coin/bsv-bitcoin-sv/#!historical-data
+final date: Sep 23, 2019;
+starting date: Sep 16, 2019;
+fV = final number of usd per veo;
+sV = starting number of usd per veo; 
+fB = final number of usd per bsv; 
+sB = starting number of usd per bsv; 
+return 512*(2 - (fB/sB))/(fV/sV)
 ```

@@ -1,4 +1,30 @@
-lisp_scalar.erl needs to use the new rules for making oracles.
+p2p derivatives explorer needs to display the text for oracles that have not been created yet.
+
+restore the proof-of-existence txs, they are needed for hashlocking with sortition chains.
+
+set up a random number generator, which will be used in chalang to allow for sortition chains.
+
+the tx types that will allow for sortition chains to exist.
+
+
+
+
+consider setting up a backup system for pulling headers, if your IP isn't on the list.
+
+explore alternative things for futarchy to optimize for:
+sharpe ratio.
+return/volatility
+
+just maximizing for price isn't good. for example a 50% chance of 3x and 50% chance of going to 0 has a positive expected value.
+
+
+fix the centralized betting tool.
+Bets aren't being matched because when we run the smart contract it doesn't result in a delay of 0.
+this is the old broken tool for matching -> channel_feeder:bets_unlock(channel_manager:keys()),
+in order_book:match_internal2 we are calculating all the orders that are getting matched. We should collect all this information so we can update exactly those contracts to be matched.
+
+
+
 
 
 
