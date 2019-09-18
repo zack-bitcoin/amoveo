@@ -160,9 +160,9 @@ tx types
 * a chalang spk signed by the owner which, if unlocked, enables this withdraw.
 * a chalang script-sig to provide evidence to unlock the spk.
 *  chalang_vm(script-sig ++ scipt-pubkey) must return true
-* it also returns the pubkey of the winner, and the height at which their ownership was proved.
+* it also returns the pubkey of the winner, and the height at which their ownership was proved, and a priority number for this version of the contract's resolution.
 * You pay a safety deposit.
-* if you aren't the first to make a sortition contract tx for this sortition chain, then you either need to provide evidence for an earlier height, or you need to provide the sortition-spend-tx where they had given up ownership of this part of the probability space.
+* if you aren't the first to make a sortition contract tx for this sortition chain, then you either need to provide evidence for an earlier height, or you need to provide the sortition-spend-tx where they had given up ownership of this part of the probability space, or you need to provide some different evidence to make the contract resolve with a higher nonce.
 
 3) sortition timeout
 
@@ -517,3 +517,23 @@ This way the attacker can only make the money un-spendable for a short period of
 
 So we might worry that an attacker would cause us to need to record so many proof-of-existence data, that we can't fit it in a block.
 To avoid this problem, whoever is the bigger sortition chain operator should not be the one generating secrets. This way, the worst that could happen is that the sortition chain operator is attacking themselves.
+
+Resource costs of a small wallet
+=========
+If you want to  make a small wallet, you need to verify the history of that part of the probability space.
+Assuming:
+cps = how many contracts per sortition chain.
+bps = 1000 blocks history per sortition chain.
+merkel tree node size 256*2 bytes, radix order 2.
+#users = 100 trillion users  
+
+```
+bps * (512 bytes) * log2(cps) * log(#users)/log(cps) ->
+bps * (512 bytes) * log2(#users) ->
+1000 * 512 * 46.4 bytes ->
+~2 380 800 bytes ->
+~2.4 mb
+```
+So syncing the sortition chain is typically going to be a lot shorter than syncing the block headers.
+
+

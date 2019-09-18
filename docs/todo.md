@@ -1,4 +1,7 @@
-p2p derivatives explorer needs to display the text for oracles that have not been created yet.
+update syncing blocks to use websockets.
+That way nodes don't need to open their firewall in order to receive blocks.
+
+
 
 restore the proof-of-existence txs, they are needed for hashlocking with sortition chains.
 

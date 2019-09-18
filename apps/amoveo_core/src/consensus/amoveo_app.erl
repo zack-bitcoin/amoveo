@@ -26,6 +26,7 @@ start(_StartType, _StartArgs) ->
                   io:fwrite("attempting to sync\n"),
                   sync:start()
           end),
+    mining_pool_refresher:cron(),
     R.
 
 
