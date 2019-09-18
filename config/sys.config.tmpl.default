@@ -83,7 +83,9 @@
     {block_meta_txs, true},
     {block_meta_governance, true},
     {block_meta_before, true},
-    {block_meta_following, true}
+    {block_meta_following, true},
+    
+    {mining_pool_refresher, 0}
   ]},
 
    {lager, [

@@ -36,6 +36,14 @@ status() ->
 
 
 cron() ->
+    X = application:get_env(amoveo_core, mining_pool_refresher),
+    case X of
+        undefined -> ok;
+        {ok, 0} -> ok;
+        {ok, N} ->
+            set_period(N),
+            start()
+    end,
     spawn(fun() ->
                   cron2()
           end).
