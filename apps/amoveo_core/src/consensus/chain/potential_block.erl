@@ -45,7 +45,7 @@ handle_call(new, _, X) ->
 handle_call(check, _From, X) -> 
     {reply, X#pb.block, X};
 handle_call(read, _From, X) -> 
-    io:fwrite("potential_block read internal \n"),
+    %io:fwrite("potential_block read internal \n"),
     D = delta(X#pb.time, now()),
     %D = timer:now_diff(now(), X#pb.time) div 1000000,
     B = X#pb.block,
