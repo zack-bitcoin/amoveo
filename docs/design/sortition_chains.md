@@ -188,21 +188,26 @@ New Merkel Tree Data Structures in the Consensus State
 1) sortition chains
 
 * pubkey of creator
-* pubkey of the person who might win.
-* a list of pubkeys of accounts that cannot win.
 * amount of veo
 * expiration date
 
+2) sortition state roots
 
-2) proof of existence
+* 256 byte hash
+* sortition chain ID
+* height
+
+3) proof of existence
 
 * arbitrary 32-bytes.
 * the height where this was recorded.
 
-3) nonce-height lists for settling sortition chains
+4) info for settling sortition chains
 
-* each sortition chain can have 0 or more nonce-height lists in the process of settling it.
-* looks like: `[{nonce1, heigh1}, {nonce2, height2}|...]`
+* pubkey of potential winner
+* height they gained ownership
+* nonce of the evidence that was provided
+* a list of pubkeys who cannot win this sortition chain, since they gave up ownership of the winning part of the probability space.
 
 
 Data the sortition chain operator needs to store
@@ -491,6 +496,20 @@ if the bandwidth is only O(log(#users)) or less, then that means the number of a
 For it to be possible to move your value onto the main chain without anyone's permission, while it also being the case that only O(log(#users)) at most have their account recorded on the main chain, the only way to have both of these at once is if it is lottery-ticket type value.
 
 
+Lottery randomness is necessary for sharding #2
+===============
+
+If the main chain ever needs to verify the validatity a shard-block's state transition, then an attacker could cause data from each shard to need to be validated at the same time, and over-load the system.
+This means that such a sharding system would only be able to scale a constant order more than having a single blockchain.
+
+With probabilitic-value contracts, you never need to prove the validity of a shard state transition to the main chain, so this means it is possible for us to scale with logarithmic efficiency.
+
+Before buying part of a sortition chain, you need to download merkel proofs of the state of that part of the probability space at every block height back to the origin of the sortition chain, as well as all the txs where others had given up ownership of this part of the probability space.
+Once you have all this data, then you have trust-free ownership of your part of the probability space.
+You don't need to know anything about any other part of the probability space.
+If other parts of the probability space were double-spent, it does not matter to you at all. You still own your part of the probability space.
+
+
 Making the value less probabilistic
 ===============
 There are ways to compromise to make the value less probabilistic.
@@ -528,7 +547,7 @@ merkel tree node size 256*2 bytes, radix order 2.
 #users = 100 trillion users  
 
 ```
-bps * (512 bytes) * log2(cps) * log(#users)/log(cps) ->
+bps * (256*2 bytes) * log2(cps) * log(#users)/log(cps) ->
 bps * (512 bytes) * log2(#users) ->
 1000 * 512 * 46.4 bytes ->
 ~2 380 800 bytes ->
