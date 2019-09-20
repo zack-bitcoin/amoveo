@@ -30,55 +30,6 @@ A person usually doesn't want to hold a contract that only has a 2% chance of ha
 
 Updating an existing sortition contract between 2 people can happen instantly, and can be a part of a lightning payment.
 
-Why Amoveo Needs This
-=======
-
-If we don't use the best tools available to us, then we will lose against a competitor who does.
-
-Currently amoveo offers 2 ways to trade, and they have a trade-off.
-p2p derivatives don't have a good market mechanism matching trades in batches. So you might not get as good a price.
-the hub market mechanism requires locking up twice as much veo in channels, so it is too expensive for the hub to operate.
-
-One of the many benefits of using sortition chains is the ability to access a tool that solves both of these problems simultaneously.
-
-
-Scalability
-======
-
-Originally, the bitcoin scaled by the number of payments. The cost to the bitcoin system grew more or less linearly with the number of payments.
-
-Channels meant that we could scale with the number of financial relationships.
-
-With lightning channels we could scale with the number of users
-
-Using sortition chains, the blockchain scales infinitely.
-
-So for a lower cost than making 1 payment per week on Bitcoin, you could create and maintain a sortition chain on Amoveo and have tens of thousands of sortition contract relationships, all with different turing complete smart contracts being updated every second.
-It is a hugely more scalable design.
-
-With only state-channel technology, if we had dozens of competent programmers maintaining it at best we could not sustain more than 10-100 million users. For many users, Amoveo would only be creating slightly more value than the cost of using it.
-At >10 million users, the operating costs would be high and would begin having centralizing effects.
-
-With sortition chains, we could sustain hundreds of trillions of accounts for almost no on-chain cost. The vast majority of users would never write anything on-chain or pay any miner fee.
-The cost of using Amoveo would be essentially zero, thus there are only benefits to using it.
-
-
-Liquidity in Sortition Chains
-=========
-
-A major limitation of channels is that they are terrible for lottery.
-You can only win as much money as is in the channel.
-Sortition chains don't have this problem.
-If you lock $1000 in stake, you could make 1000 sortition contracts, each with a 0.1% chance of winning $1000.
-
-Similarly, if you are running a market inside a sortition chain, you could sell many mutually exclusive sortition contracts using the same staked funds.
-
-If you want to run a market like amoveobook to match trades, you need to have twice as much money locked in channels vs the amount actually at stake in the bet. Half the money is being canceled out by arbitrage.
-
-These lockup costs mean that only very rich people can run a hub (since 1/2 the money in a market at any time is money owned by the hub).
-
-If we go with sortition chains instead, then the market operator only needs to control something like 2% - 10% of the money in his markets (whiich means it costs a lot less to launch new markets for people to trade).
-
 
 Sortition Chain Operators
 ======
@@ -90,19 +41,6 @@ The chalang code can reference randomness, or the output of an oracle, or anythi
 That way, a merkel proof of the existence of your sortition contract is also a proof that no one else has the same part of the probability space as you.
 
 So when you create a sortition contract with a sortition chain operator, the operator is giving you a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space is owned by him.
-
-
-The Leverage of Sortition Chains
-============
-
-If a sortition chain operator keeps selling sortition contracts, eventually they will make back almost all the money that they had paid to create the soritition chain, which means they have enough money to make another sortition chain.
-It is like he is getting a leveraged position.
-The total value of all the sortition chains he is operating becomes much larger than the total value of the account he had started with.
-
-So a person with only 1 veo can generate and profit from 20+ veo worth of sortition chains all containing smart contracts.
-
-The capital cost of being a sortition chain operator is very low. So it is cheap to launch a new sortition chain and offer custom markets in whatever you care about.
-
 
 Sortition Contracts are Sortition Chains
 ===========
@@ -117,25 +55,3 @@ What this means is that any sortition contract owned by someone besides the sort
 
 But before you start selling contracts in your sortition chain, you will need to set up a server with a database for storing all the sortition contracts, and to automatically post the merkel roots to either the blockchain, or to one of your ancestor's sortition chains.
 
-"contracts == chains" Scaling Advantages
-==================
-
-If you are running a sortition chain on top of a sortition chain, you have the option of storing your merkel roots inside the parent merkel tree, instead of storing it on the main chain. You can also store in a grandparent, or any other ancestor.
-
-So there are around 1000 sortition chains being refered to by the main blockchain, and each of these chains is supporting 1000+ more sortition chains, and each of those could be supporting 1000+ sortition chains, and each of those could be supporting 1000+ sortition contracts.
-So we can support over 1 trillion smart contracts, even with only 1000 small structures being recorded on-chain.
-
-"contracts == chains" UX Advantages
-==========
-
-If you are making a new sortition on top of an existing one, it isn't going to be recorded on-chain immediately. You don't have to wait for any confirmations or pay any tx fees. Your address isn't even recorded on-chain anywhere. And you can run a market that matches derivatives in single price batches.
-
-"contracts == chains" Resource Consumption Advantages
-===================
-
-By layering sortition chains inside of each other, any individual sortition chain wont have to keep track of too much data. So the memory requirement of running a sortition chain can be bounded.
-
-By layering sortition chains, each individual sortition chain can store less value.
-So if you are running many different sortition chains, you can use a different private key for each one, so if one of your servers is compromised, you don't lose everything.
-
-Parallelizing tx processing across multiple computers running different sortition chain databases increases throughput of txs.

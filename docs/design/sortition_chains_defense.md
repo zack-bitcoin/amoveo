@@ -4,7 +4,7 @@ Sortition Chain Defense
 [sortition chains home](./sortition_chains.md)
 
 
-The purpose of this document is to look at several criticisms of sortition chains, and see if they will break under various attacks.
+The purpose of this document is to look at several criticisms of sortition chains, and see if they will break under various situations.
 
 
 What if a Sortition Chain Operator Sells All Their Stake, and then Goes Offline?
