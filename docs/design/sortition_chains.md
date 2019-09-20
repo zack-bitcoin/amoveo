@@ -7,7 +7,7 @@ Related documents:
 
 [sortition chain attacks analyzed](./sortition_chains_defense.md)
 
-[sortition chain implementation details.](./sortitoin_chains_implementation.md)
+[sortition chain implementation details.](./sortition_chains_implementation.md)
 
 [sortition chain theory.](./sortition_chains_theory.md)
 
