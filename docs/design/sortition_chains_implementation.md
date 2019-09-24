@@ -4,6 +4,16 @@ Sortition Chains Implementation
 [sortition chains home](./sortition_chains.md)
 
 
+sortition spk
+========
+
+* says a pubkey for who wins the lottery if this contract can be unlocked.
+* a list of chalang scripts that return binary results are used to define the part of the probabilistic-value space we are working with. All the conditionals must return true after the height when the sortition chain lottery winner is selected.
+* one more contract, this one is used to divide up the winnings between the sortition chain creator, and the winner of the lottery. So this acts like a normal state channel. This contract can take evidence, and it generates a priority nonce.
+* It needs to be signed by both participants to be valid.
+
+
+
 tx types
 ====
 
@@ -17,10 +27,9 @@ tx types
 2) sortition contract
 
 * a lot like channel_solo_close_tx or channel_slash_tx.
-* a chalang spk signed by the owner which, if unlocked, enables this withdraw.
+
+* a chalang sortition spk signed by the owner which, if unlocked, enables this withdraw. 
 * a chalang script-sig to provide evidence to unlock the spk.
-*  chalang_vm(script-sig ++ scipt-pubkey) must return true
-* it also returns the pubkey of the winner, and the height at which their ownership was proved, and a priority number for this version of the contract's resolution.
 * You pay a safety deposit.
 * if you aren't the first to make a sortition contract tx for this sortition chain, then you either need to provide evidence for an earlier height, or you need to provide the sortition-spend-tx where they had given up ownership of this part of the probability space, or you need to provide some different evidence to make the contract resolve with a higher nonce.
 

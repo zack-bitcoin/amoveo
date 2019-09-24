@@ -1,3 +1,17 @@
+Now is 83342
+find out which block the channel got created in
+BFD1dYbhVe8vEzCmtu/70m+lPKXzDoKIHlNjGiJCXYeGapadChVENendo8G1XskHKfMD8G18kWdrJ2r9ok/iFV8=
+
+respond to the email from HitBTC.
+
+in p2p_derivatives/channel_offers_ram:valid/1
+the part that is like `true -> true`, we should check if the account's balance is big enough for the contract to be valid.
+
+
+
+p2p derivatives web page should allow direct links to look up oracles or contracts.
+
+
 update syncing blocks to use websockets.
 That way nodes don't need to open their firewall in order to receive blocks.
 
