@@ -24,7 +24,7 @@ What motivates people to want to use BFT modelling in the context of cryptocurre
 ==============
 
 BFT modelling makes blockchain engineering very easy.
-If we can assume that >2/3rds of the nodes will run exactly the default full node software that we publish, then it is very easy to prove that the system will never break.
+If we can assume that >2/3rds of the nodes will run exactly the default full node software that we publish, then it is very easy to design a system that can never break.
 
 Scammers want you to believe in BFT because then they can trick you into investing into their broken systems.
 
@@ -34,10 +34,10 @@ Response to critics
 Here is a paper where someone tried to attack rational modelling in the context of blockchains.
 https://bford.info/2019/09/23/rational/
 
-This paper is based on the logic behind Godel's incompleteness theorem.
+This paper is based on the logic similar to Godel's incompleteness theorem.
 Godel's incompleteness theorem basically says that in any system of logic, there will exist statements that are true and cannot be proven to be true from within the system.
 
-To show that Godel's incompleteness theorem does not work in this context, it is sufficient to show that the users running full-nodes, they can make decisions about what code to run based off of information external to the blockchain.
+To show that this kind of metacircular logic does not work in this context, it is sufficient to show that the users running full-nodes, they can make decisions about what code to run based off of information external to the blockchain.
 
 And we already have abundant evidence that users can make decisions about what software to run based off of info external to the blockchain.
 
@@ -47,7 +47,7 @@ And we already have abundant evidence that users can make decisions about what s
 
 * In the DAO hack, ethereum was able to recover because the money was locked up for such a long period of time, the community was able to come to agreement to do a hard update to prevent the theft. We can design a blockchain to lock up money for long enough periods of time to allow the network the opportunity to do a hard update. The hard update can be designed based on information external to the blockchain, like the existence of bribes or an attack.
 
-So Godel's incompleteness type arguments do not work against blockchains. The users running nodes are not blind machines running the code they were given. They are rational actors capable of doing independent research to earn more profit.
+So metacircular arguments do not work against blockchains. The users running nodes are not blind machines running the code they were given. They are rational actors capable of doing independent research to earn more profit.
 
 
 
