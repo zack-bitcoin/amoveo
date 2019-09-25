@@ -18,7 +18,8 @@ A proof can only be as strong as the assumptions it is based upon.
 
 BFT's basic assumption, that >2/3rds will run the default software, this is not a valid assumption in the context of a blockchain.
 
-For example, if I offer >1/3rd of the nodes bribes to run slightly different software, and the bribes are bigger than those nodes' entire stake in the system, then I have broken the BFT assumption.
+For example, if I offer >1/3rd of the nodes bribes to run slightly different software, then I have broken the BFT assumption.
+If the stake is well distributed, then these bribes are cheap according to [tragedy of the commons](https://www.youtube.com/watch?v=DsdsxQqZPmA)
 
 What motivates people to want to use BFT modelling in the context of cryptocurrency?
 ==============
