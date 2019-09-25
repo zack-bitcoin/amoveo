@@ -56,11 +56,15 @@ New Merkel Tree Data Structures in the Consensus State
 
 1) sortition chains
 
+id is random 32 bytes.
+
 * pubkey of creator
 * amount of veo
 * expiration date
 
 2) sortition state roots
+
+id is generated from the sortition ID and height.
 
 * 256 byte hash
 * sortition chain ID
@@ -68,15 +72,10 @@ New Merkel Tree Data Structures in the Consensus State
 
 3) proof of existence
 
+id is the 32 bytes being stored.
+
 * arbitrary 32-bytes.
 * the height where this was recorded.
-
-4) info for settling sortition chains
-
-* pubkey of potential winner
-* height they gained ownership
-* nonce of the evidence that was provided
-* a list of pubkeys who cannot win this sortition chain, since they gave up ownership of the winning part of the probability space.
 
 
 

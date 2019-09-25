@@ -11,25 +11,17 @@ It is helpful to have port 8080 exposed to the internet, this will let you find 
 
 [Install dependencies](/docs/getting-started/dependencies.md)
 
-compile it
+compile it, start the node, and attach:
 ```
-  make prod-build
+make prod-restart
 ```
-start the node
-```
-  make prod-go
-```
+
+to detach from  a running node, and leave it running in the background, hold the Control key, and press the D key.
 
 You can communicate with the running node from a terminal like this:
 ```
   make prod-attach
 ```
-
-<!---
-```
-./_build/prod/rel/amoveo_core/bin/amoveo_core console
-```
--->
 
 now that you are attached to a node, you can tell it [commands](/docs/api/commands.md)
 
