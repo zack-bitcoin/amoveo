@@ -25,7 +25,11 @@ What motivates people to want to use BFT modelling in the context of cryptocurre
 ==============
 
 BFT modelling makes blockchain engineering very easy.
-If we can assume that >2/3rds of the nodes will run exactly the default full node software that we publish, then it is very easy to design a system that can never break.
+If we can assume that >2/3rds of the stake is owned by nodes that only produce blocks that obey the default strategy, then it is very easy to make systems that are provably impossible to break.
+
+BFT modelled systems are "provably secure".
+And all their proofs are 100% accurate, no one can find a flaw in the math.
+But it is all worthless, since it is built on a false assumption.
 
 Scammers want you to believe in BFT because then they can trick you into investing into their broken systems.
 
