@@ -1,17 +1,17 @@
 Byzantine Rationality
 ==========
 
-There are 2 popular security models in cryptocurrency: Byzantine fault tolerant (BFT) modeling, and rational modeling.
+There are 2 popular security models in cryptocurrency: Byzantine fault tolerant (BFT) modelling, and rational modelling.
 
-BFT modeling comes from theory of distributed database design, which is a part of computer science. 
-BFT modeling is based off the assumption that your database has N nodes, and that attackers have modified the code on less than 1/3rd of your database nodes.
-We can only use BFT modeling for systems where we are certain that >2/3rds of the nodes will always run the default version of the software.
+BFT modelling comes from theory of distributed database design, which is a part of computer science. 
+BFT modelling is based off the assumption that your database has N nodes, and that attackers have modified the code on less than 1/3rd of your database nodes.
+We can only use BFT modelling for systems where we are certain that >2/3rds of the nodes will always run the default version of the software.
 
-Rational modeling comes from game theory, and the theory of evolution.
-Rational modeling is based off the assumption that users prefer owning more value instead of less.
+Rational modelling comes from game theory, and the theory of evolution.
+Rational modelling is based off the assumption that users prefer owning more value instead of less.
 Over time, people who have a more rational strategy will end up owning a larger portion of the value in the system. So the rationality assumption becomes more accurate as the system evolves.
 
-Why BFT modeling does not work for blockchain
+Why BFT modelling does not work for blockchain
 ==========
 
 A proof can only be as strong as the assumptions it is based upon.
@@ -20,10 +20,10 @@ BFT's basic assumption, that >2/3rds will run the default software, this is not 
 
 For example, if I offer >1/3rd of the nodes bribes to run slightly different software, and the bribes are bigger than those nodes' entire stake in the system, then I have broken the BFT assumption.
 
-What motivates people to want to use BFT modeling in the context of cryptocurrency?
+What motivates people to want to use BFT modelling in the context of cryptocurrency?
 ==============
 
-BFT modeling makes blockchain engineering very easy.
+BFT modelling makes blockchain engineering very easy.
 If we can assume that >2/3rds of the nodes will run exactly the default full node software that we publish, then it is very easy to prove that the system will never break.
 
 Scammers want you to believe in BFT because then they can trick you into investing into their broken systems.
@@ -31,7 +31,7 @@ Scammers want you to believe in BFT because then they can trick you into investi
 Response to critics
 ==========
 
-Here is a paper where someone tried to attack rational modeling in the context of blockchains.
+Here is a paper where someone tried to attack rational modelling in the context of blockchains.
 https://bford.info/2019/09/23/rational/
 
 This paper is based on the logic behind Godel's incompleteness theorem.
