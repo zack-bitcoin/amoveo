@@ -9,7 +9,7 @@ sortition spk
 
 * says a pubkey for who wins the lottery if this contract can be unlocked.
 * a list of chalang scripts that return binary results are used to define the part of the probabilistic-value space we are working with. All the conditionals must return true after the height when the sortition chain lottery winner is selected.
-* one more contract, this one is used to divide up the winnings between the sortition chain creator, and the winner of the lottery. So this acts like a normal state channel. This contract can take evidence, and it generates a priority nonce.
+* one more contract, this one is used to divide up the probability space between the sortition chain creator, and the winner of the lottery. So this acts like a normal state channel. This contract can take evidence, and it generates a priority nonce.
 * It needs to be signed by both participants to be valid.
 
 
@@ -48,7 +48,8 @@ tx types
 
 5) sortition chain state root
 
-* records the state root of the sortition chain. This is how users who own value in that sortition chain can create proofs that they own value in it, the proof is connected to these state roots. 
+* records the state root of the sortition chain. This is how users who own value in that sortition chain can create proofs that they own value in it, the proof is connected to these state roots.
+* records the merkel root of a tree of signed sortition_roots from descendent sortition chains. This way your descendents don't have to post on-chain.
 
 
 New Merkel Tree Data Structures in the Consensus State
@@ -66,7 +67,7 @@ id is random 32 bytes.
 
 id is generated from the sortition ID and height.
 
-* 256 byte hash
+* 256 bit hash
 * sortition chain ID
 * height
 
@@ -83,7 +84,17 @@ id is the 32 bytes being stored.
 Data the sortition chain operator needs to store
 =============
 
-1) for each user, merkel proof of that sortition contract such that it is stored based on the part of the probability space that results in this sortition contract winning the lottery.
+1) We need to store all the merkel proofs so that we can prove to users that parts of our probability space are unowned.
+
+```
+(number of elements in your sortition chain) * (number of blocks that the sortition chain exists for) * (number of ancestors between you and the main chain) * (size of a merkel proof in bytes)
+1000 * 2k * 6 * (32 bytes * log2(1000))
+```
+is like 0.64 gigabyte of data per sortition chain
+
+
+
+for each user, merkel proof of that sortition contract such that it is stored based on the part of the probability space that results in this sortition contract winning the lottery.
 ```32 * log16(#of live sortition contracts)*(# of live sortition contracts) bytes```
 So if there are 1000 users, and about 1 trade happens per second, and the sortition chain lasts 2 months, then this will take up 32*log16(1000)*5000bytes = about 400 kilabytes per user, or 400 megabytes for everything.
 

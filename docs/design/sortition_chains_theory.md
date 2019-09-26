@@ -54,6 +54,8 @@ Sortition chains need to run smart contracts in 2 different kinds of security as
 1) We need a way to divide up the probability space. The outcomes of these contracts needs to be computable to everyone, so they can't depend on off-chain data. You need to wait for on-chain confirmations to change any part of these contracts.
 2) We need a way to have smart contracts who's outcome might depend on data only known to the participants of that contract. So the outcome is only computable by the participants, up until the point where they post the evidence on-chain to enforce the correct outcome. For example, this is needed for single-price-batches. These kinds of contracts can be updated instantly, without waiting for any on-chain confirmations.
 
+If a sortition chain is using smart contracts of type 2, then it can't have baby sortition chains. Lets call this a state-channel.
+So this means that sortition chain data structures need to be able to store 2 types of elements. sortition chains, and state channels.
 
 multiple random samples
 ============

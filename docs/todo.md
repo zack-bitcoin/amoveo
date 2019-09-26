@@ -1,3 +1,7 @@
+make copy/paste of oracles simpler. maybe include question and height together into one data structure.
+
+
+
 Now is 83342
 find out which block the channel got created in
 BFD1dYbhVe8vEzCmtu/70m+lPKXzDoKIHlNjGiJCXYeGapadChVENendo8G1XskHKfMD8G18kWdrJ2r9ok/iFV8=
