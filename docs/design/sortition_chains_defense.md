@@ -72,3 +72,15 @@ It is cheap and easy to verify that a sortition chain operator is hiding data.
 What is unfortunate is that this creates a trade-off.
 If there are more servers available where you can record the current state of your sortition chain, this means you can continue operations even if some of those nodes go off-line.
 But it also increases the number of servers who have the ability to freeze progress on your sortition chain.
+
+From a game theory standpoint, this sort of reputation system is no good.
+If the fees for operating a sortition chain are low, then it wont be expensive to bribe the operator to freeze everyone's progress.
+If we assume that 100% of the users are only interested in maximizing their personal profit, then sortition chains does not work.
+
+When we model our users, typically something like this is used:
+89% selfish
+10% willing to take a loss to harm amoveo.
+1% willing to take a loss to help amoveo. altruists
+
+If we keep track of who does a good job of running sortition chains, eventually we should be able to identify some pubkeys that are owned by the 1% of users who are altruists.
+Even if only a tiny fraction of Veo are owned by altruists, this may still be sufficient to have working sortition chains.
