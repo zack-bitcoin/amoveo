@@ -50,8 +50,9 @@ cron() ->
 cron2() ->
     X = status(),
     timer:sleep(round(1000 * X#d.period)),
+    SM = sync_mode:check(),
     if
-        X#d.on ->
+        ((X#d.on) and (normal == SM)) ->
             spawn(fun() ->
                           potential_block:read()
                   end);

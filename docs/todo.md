@@ -1,4 +1,13 @@
+would be nice if there was a way to combine settling a binary derivative contract with a small payment. to incentivize them to settle earlier.
+
+
+
 make copy/paste of oracles simpler. maybe include question and height together into one data structure.
+
+channel offers could include oracle question text in the offer, so otc_listener can display the text.x
+
+
+the link on the explorers page might need to be udpated.
 
 
 

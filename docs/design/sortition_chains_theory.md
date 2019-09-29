@@ -57,6 +57,16 @@ Sortition chains need to run smart contracts in 2 different kinds of security as
 If a sortition chain is using smart contracts of type 2, then it can't have baby sortition chains. Lets call this a state-channel.
 So this means that sortition chain data structures need to be able to store 2 types of elements. sortition chains, and state channels.
 
+comparing security of sortition chains vs state channels
+============
+
+with state channels, your partner can accidentally let your contract get frozen. For example: if they don't come online for several days.
+with sortition chains, your contract only gets frozen if one of the operators of your sortition chain's ancestors purposefully causes it to freeze.
+we can identify which operator is malicious.
+
+with sortition chains we need to have some small trust in multiple nodes, that they wont maliciously choose to freeze your progress.
+with state channels you have a larger amount of trust in just one node. that they wont maliciously choose to freeze your progress, and they wont fail due to incompetence or disinterest.
+
 multiple random samples
 ============
 
