@@ -105,17 +105,20 @@ root_hash2(Trees, Roots) ->
 	end,
     hash:doit(Y).
 		
-rh2(Type, Trees, Roots) ->
+rh2(Type, Trees, _Roots) ->
     %M = element(1, Trees),
     X = trees:Type(Trees),%M is either trees or trees2
-    Out = case X of
-              empty -> 
-                  Fun = list_to_atom(atom_to_list(Type) ++ "_root"),
-                  block:Fun(Roots);
-              Y -> 
-                  trie:root_hash(Type, Y)
-          end,
-    Out.
+    trie:root_hash(Type, X).
+
+%    Out = case X of
+%              empty -> 
+%                  1=2,
+%                  Fun = list_to_atom(atom_to_list(Type) ++ "_root"),
+%                  block:Fun(Roots);
+%              Y -> 
+%                  trie:root_hash(Type, Y)
+%          end,
+%    Out.
 serialized_roots(Trees) -> 
     F = fun(K) -> trie:root_hash(K, trees:K(Trees)) end,
     A = F(accounts),

@@ -629,11 +629,6 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     %TreesHash = Header#header.trees_hash,
-    if 
-        (Height == 69292) ->
-            io:fwrite(packer:pack(Block2));
-        true -> ok
-    end,
     TreesHash = Block2#block.trees_hash,
     %io:fwrite("block check 6\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),

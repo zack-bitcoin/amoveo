@@ -92,12 +92,12 @@ You could participate in a market that is priced in synthetic-Euros.
 * [Official chalang github repository](https://github.com/zack-bitcoin/chalang)
 * Used for the smart contracts in the channels.
 * Chalang has two stacks for storing values during computation, so you can write highly optimized forth-style code.
-* Chalang has variables for storing values, so you can write easier to read javascript-style code.
 * Chalang functions are tail call optimized, so you don't have to worry about call stack overflow when you do lots of recursion.
-* Chalang forth-like compiler is the compiler that was used to write the smart contracts currently in use on the testnet.
+* Chalang lisp compiler is the compiler that was used to write the smart contracts currently in use on the testnet.
 
 
 ## Lightning Network - Smart Contracts with more than 2 Participants
+
 Amoveo uses the hub and spoke model. Each user finds a hub to make a channel with. The user pays the hub a fee to route their payments and bets where they need to go using the lightning network.
 Lightning contracts are made by hash time-locking and similar techniques. This connects multiple bets from different channels together. Either they all update, or they all do not update. This way users can participate in a smart contract that has more than two participants.
 
@@ -124,15 +124,15 @@ The market is secure because the rules are enforced by channel smart contracts.
 Here is an [explanation of how the market smart contract works.](design/limit_order_in_channel.md)
 
 
-## Light Nodes and Sharding
-* Light nodes can securely maintain consensus just like a full node. Light nodes don't download blocks. They only download small headers and small proofs of the blockchain state. Light nodes cost much less time and space to operate than full nodes.
-* [Amoveo can operate without any full nodes](design/sharding.md)
-* Each block includes all the proof needed to verify it, which allows Light nodes to verify blocks in any order.
-* Light nodes can mine, which is important for sharding.
-* In Bitcoin the bandwidth requirement for trust-free access to the blockchain is O((number of blocks) * (transactions per block ~= 2000) * (size of a average tx ~= 1 kb)). This is so expensive that most people cannot afford to run a secure Bitcoin node. Alternatively, you can pay a server to scan the entire UTXO set every time you want to check your balance, but this is too expensive as well. No one has yet made a server like this.
-* In Amoveo, the computational requirement for trust-free access to the blockchain is O((number of blocks) * (size of average header ~= 200 bytes)). Per block, Amoveo will be able to sync about 10 000 times faster than Bitcoin.
-* Scalability- parallel block computation. Since miners don't have to store any of the consensus state, the blockchain would still be functional under these conditions: it takes more than 10 minutes for a miner to verify a block. The block time is 10 minutes. Compare with Bitcoin or Ethereum, where security depends on the fact that the time to verify a block is significantly less than the block time. Ethereum tried to solve this problem with GHOST, which is only a small improvement. GHOST comes at the large cost of inflating ETH to pay for uncle blocks. Amoveo can do much more computation per block.
-* [Analyze some attacks on light nodes](design/light_nodes.md)
+## Light Nodes
+* Amoveo uses the stateless full node model. That means a full node doesn't have to store any consensus state to stay in sync and verify blocks. You only have to store headers. Every block has all the merkel proofs that you need to verify that block.
+* this means that a full node can process blocks in any order.
+
+## Sharding/side-chains
+
+* You can learn about the Amoveo sharding plan here: https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chains.md
+* it is similar to the "channel factory" idea talked about in some bitcoin communities.
+* basically, we are combining probabilistic payments with state channels.
 
 
 ## Example Use Cases
