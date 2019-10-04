@@ -471,6 +471,7 @@ minimum_scalar_oracle_bet(OID, N) ->
     true = (N < 1024),
     Amount = trees:get(governance, oracle_question_liquidity) + 1,
     Bits = lists:reverse(to_bits(N, 10)),
+    %Bits starts with least significant.
     %<<OIDN:256>> = OID,
     Keys = oracle_new_tx:scalar_keys(OID),
     msob2(Keys, Amount, Bits).
@@ -492,7 +493,7 @@ scalar_oracle_close2([{oracles, OID}|T]) ->
           end),
     timer:sleep(50),
     scalar_oracle_close2(T).
-to_bits(_, 0) -> [];
+to_bits(_, 0) -> [];%returns bits starting with most significant
 to_bits(X, N) when (0 == (X rem 2)) ->
     [2|to_bits(X div 2, N-1)];
 to_bits(X, N) ->
