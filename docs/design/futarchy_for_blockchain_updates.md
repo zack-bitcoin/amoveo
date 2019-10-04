@@ -1,6 +1,9 @@
 Futarchy for Blockchain Updates
 =========
 
+This paper is more theoretical. [read about how to use smart contracts to do this today](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/using_governance.md)
+
+
 I have noticed some inefficiencies in how the network agrees upon updates.
 
 1) if the developer is too popular, then their time becomes saturated from lobbyists trying to convince the developer to make upgrades that will make the lobbyist rich. Too much time with lobbyists makes it harder for the developer to know what upgrades are important.

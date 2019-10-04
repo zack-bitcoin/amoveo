@@ -1,5 +1,7 @@
 Amoveo can be used to make decisions for entertainment businesses.
 
+[amoveo smart contracts for futarchy](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/using_governance.md)
+
 An example to get started: we could use Amoveo instead of judges to determine who gets to survive in a competition show.
 
 The competitor who has the most positive influence on the profitability of the show is the one who should be kept.

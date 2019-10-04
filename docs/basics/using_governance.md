@@ -1,7 +1,6 @@
 using governance
 ==========
 
-
 We need to make futarchy markets before we update the governance variable, that way the community can come to consensus about what updates should be made.
 
 The oracle is a reporting mechanism, it isn't made for coming to consensus. If you try to use it to come to consensus, it is like a game of chicken, and is bad for the network.
@@ -10,8 +9,8 @@ The basic idea of governance in Amoveo is called futarchy.
 If you can show that a certain decision is good for the price of VEO, then the community makes that decision.
 
 For example, you could make these 2 binary bets:
-Bet1 = "if update X is merged into Amoveo before block height H return bad, otherwise is the price of VEO below $100?"
-Bet2 = "if update X is not merged into Amoveo before block height H return bad, otherwise is the price of VEO above $100?"
+* "if update X is merged into Amoveo before block height H return bad, otherwise is the price of VEO below $100?"
+* "if update X is not merged into Amoveo before block height H return bad, otherwise is the price of VEO above $100?"
 
 You make an open offer to bet on both of them. you bet on "true" for both.
 if neither of these bets get matched for a period of time, that is evidence that the update would be beneficial for Amoveo

@@ -1,4 +1,6 @@
 
+[using amoveo for futarchy](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/using_governance.md)
+
 #### Why use Prediction Markets?
 Prediction Markets are tools for efficiently getting information about the future from groups of people.
 Prediction Markets are best used in situations were there is a lot of money at stake, so people are spreading propaganda, or lying to each other, making it hard to find out accurate information.
