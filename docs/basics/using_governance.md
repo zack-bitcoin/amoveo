@@ -12,8 +12,10 @@ For example, you could make these 2 binary bets:
 * "if update X is merged into Amoveo before block height H return bad, otherwise is the price of VEO below $100?"
 * "if update X is not merged into Amoveo before block height H return bad, otherwise is the price of VEO above $100?"
 
-You make an open offer to bet on both of them. you bet on "true" for both.
-if neither of these bets get matched for a period of time, that is evidence that the update would be beneficial for Amoveo
+You make an open offer to bet on both of them.
+You bet on "true" for both.
+You use the same odds for both bets.
+If neither of these bets get matched for a period of time, that is evidence that the update would be beneficial for Amoveo
 
 [more about futarchy here](futarchy.md)
 
