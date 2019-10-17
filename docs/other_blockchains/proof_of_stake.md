@@ -28,7 +28,7 @@ Censorship can be good
 
 A fundamental property of POW is that it is impossible to punish censorship. Miners don't necessarily have any currency in the system, so it just isn't possible to punish them for not including txs.
 
-This is different from saying "pow doesn't punish censorship". In POW, it is impossible to do a soft fork to add the ability to punish censorship. The network will always follow the side with more work done.
+This is different from saying "pow doesn't punish censorship". In POW, it is impossible to do a soft fork to add the ability to punish censorship.
 
 This has long been seen as a weakness in POW. People like to imagine that censorship is bad, that we should punish miners for censoring. But this is actually a critically important property of POW consensus that gives it security against certain attacks, and we will show that any blockchain consensus without this property is less secure than centralized alternatives.
 

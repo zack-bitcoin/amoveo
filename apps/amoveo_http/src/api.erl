@@ -856,31 +856,45 @@ work(Nonce, _) ->
 	%  end),
     0.
 mining_data() ->
+    case mining_data(common) of
+        ok -> ok;
+        Block ->
+		    [hash:doit(block:hash(Block)),
+		     0, 
+		     Block#block.difficulty]
+    end.
+mining_data(common) ->
     case sync_mode:check() of
 	quick -> 0;
 	normal ->
 	    Block = potential_block:read(),
-    %io:fwrite("mining data block hash is "),
-    %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
-    %io:fwrite("\n"),
 	    case Block of
 		"" ->
 		    ok;
-		    %timer:sleep(100),
-		    %mining_data();
 		_ ->
-		    F2 = forks:get(2),
-		    Height = Block#block.height,
-		    Entropy = if
-				  F2 > Height -> 32;
-				  true -> 23
-			      end,
-		    [hash:doit(block:hash(Block)),
-		     crypto:strong_rand_bytes(Entropy), 
-     %headers:difficulty_should_be(Top)].
-		     Block#block.difficulty]
+                    Block
 	    end
-    end.
+    end;
+mining_data(2) ->
+    case mining_data(common) of
+        ok -> ok;
+        Block ->
+            H1 = Block#block.height,
+            H2 = height(),
+            Hash = if
+                       (H1 == (H2 + 1)) -> hash:doit(block:hash(Block));
+                       true -> 0
+                   end,
+            [Hash,
+             Block#block.difficulty,
+             H1,
+             H2]
+    end;
+mining_data(X) ->
+    mining_data(X, 30).
+mining_data(X, Start) ->
+    lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, lists:seq(Start, block:height(), X)).
+            
 orders(OID) ->
     %if the OID is encoded, we should decode it to binary form.
     Oracle = trees:get(oracles, OID),
@@ -916,10 +930,6 @@ sync_quick() ->
     sync_mode:quick(),
     0.
    
-mining_data(X) ->
-    mining_data(X, 30).
-mining_data(X, Start) ->
-    lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, lists:seq(Start, block:height(), X)).
 
 pubkey(Pubkey, Many, TopHeight) ->
     amoveo_utils:address_history(quiet, Pubkey, Many, TopHeight).
