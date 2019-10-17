@@ -860,7 +860,7 @@ mining_data() ->
         ok -> ok;
         Block ->
 		    [hash:doit(block:hash(Block)),
-		     0, 
+		     crypto:strong_rand_bytes(23),
 		     Block#block.difficulty]
     end.
 mining_data(common) ->
