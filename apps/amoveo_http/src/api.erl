@@ -869,10 +869,8 @@ mining_data(common) ->
 	normal ->
 	    Block = potential_block:read(),
 	    case Block of
-		"" ->
-		    ok;
-		_ ->
-                    Block
+		"" -> ok;
+		_ -> Block
 	    end
     end;
 mining_data(2) ->
@@ -882,7 +880,8 @@ mining_data(2) ->
             H1 = Block#block.height,
             H2 = height(),
             Hash = if
-                       (H1 == (H2 + 1)) -> hash:doit(block:hash(Block));
+                       (H1 == (H2 + 1)) -> 
+                           hash:doit(block:hash(Block));
                        true -> 0
                    end,
             [Hash,
@@ -893,7 +892,8 @@ mining_data(2) ->
 mining_data(X) ->
     mining_data(X, 30).
 mining_data(X, Start) ->
-    lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, lists:seq(Start, block:height(), X)).
+    lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, 
+              lists:seq(Start, block:height(), X)).
             
 orders(OID) ->
     %if the OID is encoded, we should decode it to binary form.
