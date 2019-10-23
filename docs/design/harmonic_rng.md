@@ -42,17 +42,19 @@ Notice that if we take smaller steps like this:
 3/6, 3/7, 3/8... that everyone has less influence than the previous. So whoever is last in this sequence has the most influence.
 As long as the person who goes last has a small enough influence to be tolerable, then everyone has a small enough influence to be tolerable.
 
-
+```
 P(N) = the probability that block N produces a "1".
 P(N) = C/((2 * C)+N) (for some constant C).
 
 P(N) is the generic form of a "harmonic sequence".
+```
 
 Approximating the influence from each block
 ===================
 
 If the harmonic sequence is B blocks long, then the amount of influence of each block is I(N).
 
+```
 R(N) = (prob rest are 0 after N-1)
 
 I(N) = P(N) * R(N+1)
@@ -65,6 +67,7 @@ assuming C<<B
 approx= ((N)/(B))^C
 
 I(N) ~= ((N/B)^C) * C/((2 * C)+N)
+```
 
 re-roll the "1"'s attack
 ===========
@@ -101,18 +104,21 @@ N is a number of blocks. We want this to be a short enough period of time so tha
 
 So, lets set the equations for the profitability of the 2 attacks as equal to each other, and find some example C,N pairs that we could use.
 
+```
 (cost due to 1-bits in the series to be rerolled) = (reroll very last block) =>
 BR * C * log((2C+N)/2C)/2 = BR * (1/(C/(2 * (C+N)))) =>
 BR * C * log((2C+N)/2C)/2 = BR * (2 * (C+N))/C =>
 C * C * log((2C+N)/2C) = 4 * (C+N)
+```
 
-
+```
 Time period to generate entropy, N=number of blocks in the harmonic sequence, C, security ratio = how many times more secure this is than 1 bit per block = ((2 * C)+N)/C 
 
 1 week,   1000, 21, 49.6
 2 weeks,  2000, 28, 73.4
 1 month,  4000, 38, 107.3
 2 months, 8000, 51, 158.9
+```
 
 It seems like doubling the length of time that we use for generating entropy increases the amount of security by about 50%.
 
