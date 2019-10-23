@@ -9,6 +9,8 @@ A simple example of a broken RNG
 
 Lets start by considering some simple example RNG, and find out why they do not work.
 One simple kind of RNG is to have every block add 1 bit of entropy.
+Which means that when we generate our random number, we take the final bit from the hash of the most recent 256 headers, which makes 32 bytes. These 32 bytes are the seed to generate as much randomness as we need.
+
 The problem with this strategy is that whoever mines the very last block before the RNG is generated, that person will have 1 bit of influence in the outcome, and it only costs them 1/2 of a block reward.
 1 bit of influence can, at most, give an attacker an extra 25% control of the outcome of the contract.
 So this simple example can only be secure if the amount of value controlled by the RNG is less than 2 block rewards.
