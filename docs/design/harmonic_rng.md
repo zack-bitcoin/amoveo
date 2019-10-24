@@ -1,6 +1,8 @@
 Harmonic Random Number Generator
 ============
 
+draft 2
+
 It would be nice if we could securely generate random numbers inside of a blockchain. This would allow for things like probabilistic value transactions, lotteries, and probabilistic-value sharding for scalability.
 The goal of this paper is to show how to do this.
 
@@ -20,6 +22,8 @@ In this case, the attacker doesn't know what bit will be generated from the next
 
 In this simple example where every block is generating 1 bit of entropy, the very last block gives 25% influence, and the second to last block is giving less influence.
 Since the very last block has such a large amount of influence, that is our weakness.
+
+This base example could support sortition chains with 2 block rewards of veo locked in them.
 
 Harmonic RNG
 ========
@@ -41,15 +45,116 @@ So we need the 2nd to last value to be (3/35)/(32/35), which is (3/32)
 so the normal sequence is like 3/6, 3/9, 3/12...
 
 Notice that if we take smaller steps like this:
-3/6, 3/7, 3/8... that everyone has less influence than the previous. So whoever is last in this sequence has the most influence.
+3/6, 3/7, 3/8... that whoever is last in this sequence has the most influence.
 As long as the person who goes last has a small enough influence to be tolerable, then everyone has a small enough influence to be tolerable.
 
 ```
 P(N) = the probability that block N produces a "1".
 P(N) = C/((2 * C)+N) (for some constant C).
-
-P(N) is the generic form of a "harmonic sequence".
 ```
+
+C/((2+C)+N) is the generic form of a harmonic sequence.
+
+
+This harmonic trick means it takes B blocks to gather the last bit of entropy, and that we can store log2(B) times more money in each sortitoin chain, because on average, when the attacker attempts a reroll, this will not be the last 1-pbit 1/log2(B) of the time.
+
+
+harmonic-resets
+=========
+
+if every time a 1-pbit is found, we reset back to B(0). B(0) has a probability of 1/2, this makes it harder to estimate the value of a reroll by about 1/2.
+It is a factor of 2x improvement, but it will take B*log2(B) to gather the entropy instead of just B.
+
+
+Slow block optimization
+============
+
+if each block was an 110 minutes long, then we could make the block reward 10x bigger, so it would cost 10x more to reroll attack.
+
+
+off-chain score method
+=============
+
+instead of calculating the winner on-chain directly, this strategy would allow each sortition chain user to calculate their score in private. When the sortition chain is done, we can compare our scores to see who won.
+
+This is a 3x improvement in how much value we can store in sortition chains.
+
+sortition chains in parallel strategy
+==============
+
+the blockchain can have many sortition chains running at the same time. 1000 should be easy to maintain with the current software.
+1000x improvement in how much value we can store in sortition chains.
+
+
+
+
+having different sortition chains share an entropy source
+================
+
+
+I feel like if there are multiple sortition chains that are getting their entropy from the same block height, it must reduce an attacker's ability to influence those sortition chains in their favour. Because optimizing one will limit their ability to optimize the other.
+
+It is weird though, because this trick is decreasing the frequency of attacks, which is something we want. But it is also decreasing the cost of attacks, which is something we want to avoid.
+it creates more situations where an attacker has the ability to influence 2 sortition chains simultaneously in their favour, using only 1 reroll.
+
+if there are S sortition chains being settled at the same block height, I guess an attacker could influence sqrt(S) of them with a single reroll.
+Which means S-sqrt(S) are free of influence
+
+If there are 1000, 1000-sqrt(1000) is about 968.
+so 97% of the sortition chains would be unaffected.
+
+
+combining all these improvements:
+===========
+(starting example) * (harmonic) * (harmonic resets) * (slow blocks) * (off-chain score) * (sortition chains in parallel) * (sharing an entropy source between 300 sortition chains)
+
+C = cycle length = 50
+2 * log2(C) * 2 * 1 * 3 * 1000 * sqrt(300) =
+1.17 million veo in the sortition chains at one time.
+about 1171 veo in each sortition chain.
+
+
+so we need to keep the (block reward)>((market cap)/(1171*(# of sortition chains we can handle in parallel))).
+
+and maybe we will find a way to make the 1171 into an even bigger number. 
+
+
+if we have 14 blocks per day, that is like 5000 blocks per year.
+
+If we can support 1000 sortition chains in parallel, that means annual inflation would be 0.3%
+
+if we could support 10k sortition chains by making the software more efficient, then we could lower inflation to 0.03%.
+
+
+
+
+
+
+
+
+<!----
+
+
+
+
+Maybe we can find a way to use the harmonic RNG process to generate each pbit inside of a harmonic RNG process?
+================
+
+the harmonic process, it takes B steps, and increases security log2(B).
+We can have even more time to spare, I am thinking we can layer this inside of itself.
+
+the entire process is generating 1 bit, but along the way it make a bunch of p-bits.
+I am thinking we can use the entire harmonic process for each of the pbits.
+
+so it would take Bx to generate the entropy, but it would provide security of log2(B)*log2(B). if we got it to work, it would work out to a factor of 3x improvement.
+
+
+
+
+
+
+
+
 
 Approximating the influence from each block
 ===================
@@ -78,7 +183,7 @@ before we considered the attack where a miner rerolled the very last block of th
 The next attack we consider is this:
 every time a miner finds a rare "1" bit, that means if they reroll, the odds that they will change it to a "0" is very high.
 So we need to consider an attacker who is willing to reroll every block that turns up a "1" in the harmonic series.
-Such an attacker is able to get 1 bit of influence over the outcome.
+Such an attacker is able to get around 1 bit of influence over the outcome.
 
 `BR = block reward`
 The cost of this is
@@ -95,7 +200,9 @@ So the influence of the attacker is less than =
 C/(2C+B) * C * log((2C+B)/2C) = c * c * log((2c+B)/2c)/(2c+B)
 
 (using example C=21, N=1000)
-21 * 21 * log(1042/42)/1042 = 1.35 rerolls if each block was a full bit of entropy. 
+21 * 21 * log(1042/42)/1042 = 1.35 rerolls.
+
+So even if the attacker has the freedom to reroll every "1", this is only as much influence as being able to reroll less than 1.35 times in the naive case.
 
 Optimizing the constants
 =====================
@@ -144,13 +251,127 @@ Maybe if we generate multiple pbits per block, it could be more efficient, so we
 
 
 
+The probability of generating pbits should depend on previous pbits generated.
+================================
+
+How about this: we will have some expiration date at height H.
+For every block before H, we generate 1 bit of entropy.
+lets call block H as B(2), and block H+N as B(N+2).
+the probability that the pbit from B(N) is a 1 is 1/N.
+
+If we ever get to B(11), then we are done generating entropy.
+
+If we generate a p-bit of "1" for any B(N), then we start the process over at B(0).
+
+So if you roll a 1, then you can reroll and you will almost certainly get a 0, but there is only a 1 in 10 chance that your "1" is the last "1".
+
+So an attacker would have to do 10x as many rerolls in this set up in comparison to attacking the harmonic series with a concrete expiration date.
+
+The expected amount of time between the expiration date, and when we can get our money out of the sortition chain is:
+10 cycles * average cycle length = 
+...
+I think the average is something like 10/3, or sqrt(10) or log(10).
+1/2 the cycles take 1 block.
+1/3rd of the remainder take 2 blocks.
+
+so we can make an upper bound of 
+1/2 + (1/3)*(1/2)*2 + (1/3)*10 -> 1/2 + 1/6 + 3.3 -> about 4.
+
+Looks like it is following sum(1/n), which is approximately the same as log2(n).
+
+So I think the expected number of blocks till expiration will be 10*log2(10) for this example.
+
+So if we are willing to wait on average N*log2(N) blocks to get our money out after expiration, then we can increase the level of security by Nx.
+
+if N=100, then it takes about 700 blocks on average, about 5 days, to get our money out of the sortition chain, but we reduce the losses from attacks by 100 fold.
+
+
+
+
+
+So lets consider it from a concrete game theory perspective.
+An attacker has 30% of the hash power, and 50% control of a sortition chain's value.
+
+They will win a sortition chain if the current random number is selected, so they want that all the pbits are zeros.
+
+If this attacker is willing to do rerolls, how much money needs to be in the sortition chain for this to be profitable?
+
+include the cost of locking up 1/2 the money in the sortition chain.
+
+If the attacker does not interfere, the odds that this is the last cycle and that they will win is about 1/n.
+
+The odds that only one 1-pbit would be found during a cycle of length N is
+sum from i=1 to N of (odds that only block i is a 1 pbit)
+= sum from i=1 to N of (prob of all zeros)*(1/(prob of 0 pbit))*(prob of 1 pbit)
+= (1/N)*sum from i=1 to N of (1/((i-1)/i))*(1/i)
+= (1/N)*sum from i=1 to N of 1/(i-1)
+=~ log(N)/(N)
+
+
+The number of blocks an attacker would need to leave money locked in sortition chains, to have 1 bit of influence, if we are limited by evidene period :
+(sortition chain evidence period)/(prob that they are winning at the start of the harmonic cycle)/(probability that only one 1-pbit is found during the cycle)*(probability that zero 1-pbits are found)
+= (~1000 blocks)/(1/2)/(log(N)/N)*(1/N)
+= 2000 /log2(N)
+
+
+
+the number of rerolls an attacker would need to do for one bit of influence =
+(the odds that after a reroll, the rest are all zeros) =
+sum from i=1 to N of i/N =
+log2(N)
+
+
+
+
+sum of i=1 to N of (1/i)*(i/N) =
+log2(N)
 
 
 
 
 
 
-<!----
+
+the number of cycles an attacker would need to lock into to have 1 bit of influence =
+1/(probability they are winning at the start of the harmonic cycle)/(probability that only one 1-pbit would be found during the cycle)/(probability that the attacker is the one to find the 1-pbit block)
+= 1/(1/2)/(log(N)/N)/0.30
+=(10*2*N/(3*log(N)))
+=(20/3)*(N/log2(N)) cycles
+
+if the harmonic cycle is 128 steps:
+
+= (20/3)*(128/7)
+= 120.5 cycles.
+
+The average cycle is log2(cycle) blocks long, so the number of blocks they need to be locked in cycles would be:
+(20/3)*N blocks.
+
+
+
+
+
+
+
+Relating security to uncertainty in expiration date
+=============
+
+C = cycle length
+A = average delay until it finalizes
+A ~ C*log2(C)
+
+S = security
+S ~ C/log2(C)
+
+
+so doubling the cycle length means it will take a little longer than twice as long to expire on average, and we will have a little less than twice as much security.
+
+
+
+
+
+
+
+
 
 expired notes
 
