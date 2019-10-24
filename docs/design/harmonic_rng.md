@@ -126,9 +126,6 @@ and maybe we will find a way to make the 1380 into an even bigger number.
 
 if we have 14 blocks per day, that is like 5000 blocks per year.
 
-If we can support 1000 sortition chains in parallel, that means annual inflation would be 0.3%
-
-if we could support 10k sortition chains by making the software more efficient, then we could lower inflation to 0.03%.
 
 
 
