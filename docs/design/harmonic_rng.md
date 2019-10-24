@@ -108,15 +108,20 @@ combining all these improvements:
 ===========
 (starting example) * (harmonic) * (harmonic resets) * (slow blocks) * (off-chain score) * (sortition chains in parallel) * (sharing an entropy source between 300 sortition chains)
 
-C = cycle length = 50
+C = cycle length = 100
+
+block reward = 0.1 veo.
+
 2 * log2(C) * 2 * 1 * 3 * 1000 * sqrt(300) =
-1.17 million veo in the sortition chains at one time.
-about 1171 veo in each sortition chain.
+
+1.38 million veo in the sortition chains at one time.
+
+which means we could support about 1380 veo in each sortition chain.
 
 
-so we need to keep the (block reward)>((market cap)/(1171*(# of sortition chains we can handle in parallel))).
+so we need to keep the (block reward)>((market cap)/(1380*(# of sortition chains we can handle in parallel))).
 
-and maybe we will find a way to make the 1171 into an even bigger number. 
+and maybe we will find a way to make the 1380 into an even bigger number. 
 
 
 if we have 14 blocks per day, that is like 5000 blocks per year.
