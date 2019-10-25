@@ -1,7 +1,7 @@
 Harmonic Random Number Generator
 ============
 
-draft 3
+draft 4
 
 It would be nice if we could securely generate random numbers inside of a blockchain. This would allow for things like probabilistic value transactions, lotteries, and probabilistic-value sharding for scalability.
 The goal of this paper is to show how to do this.
@@ -55,6 +55,45 @@ P(N) = 1/(2+N) (for some constant C).
 
 This harmonic trick means it takes B blocks to gather the last bit of entropy, and that we can store ~4x times more money in each sortitoin chain, because on average, when the attacker wins a block at the opportune period 1/2 the time, this will not be the last 1-pbit at least 1/2 of the time.
 
+Variable Block Reward
+===========
+
+if block B(N) has pbit of 0, we should pay ~1/2 the normal block reward.
+if it has a pbit of 1, on block N, N*BR/2
+
+So on any B(N), the expected payout of mining that block is:
+```
+(prob_to_find_0 * reward_for_0) + (prob_to_find_1 * reward_for_1)
+= (((N-1)/N)*(BR*N/2(N-1))) + (((1/N)*(BR*N/2)
+= BR/(2) + BR/2
+= BR
+```
+
+So the expected payout is exactly the same as a normal block reward.
+
+This way the cost of rerolling a 1 can be very high.
+
+If we use 1000 blocks to gather entropy, there is a >50% chance the final 500 blocks have a 1 pbit in them.
+Whoever mines that block, if they want 1 bit of influence over the outcome, they would need to give up ~750 block rewards.
+And they are adding log2(500) = 9 bits of entropy.
+
+In the time between block 250 and block 500, there is a ~50% chance that there will be a 1 pbit. whoever finds that would need to give up about ~375 block rewards to have  1/2 bit influence over the putcome
+And they are adding log2(500) = 8 bits of entropy.
+
+In the time between block 125 and block 250, there is a ~50% chance that there will be a 1 pbit. whoever finds that would need to give up about ~187 block rewards to have  1/4 bit influence over the putcome
+And they are adding log2(500) = 8 bits of entropy.
+....
+
+In between block 1 and block 1, there is a 50% chance that there will be a 1 pbit. whoever finds it would need to give up 1/2 a block reward to have any influence. but there is (1-(1/2)^10) bit influence over the outcome
+
+
+
+
+<!----
+
+
+
+
 Harmonic Resets
 ==============
 
@@ -72,6 +111,11 @@ And when you do publish a 0-pbit, it only has a very small measurable impact on 
 the combination of harmonic rng with harmonic resets means that with have Nx higher security, but it takes N * log2(N) times longer to settle the sortitoin chain.
 
 harmonic resets gets rid of 1/2 the available info when deciding whether to reroll, so it reduces the loss due to attacks by 2.
+
+Variable block reward optimization
+=============
+
+
 
 
 Slow block optimization
@@ -112,6 +156,11 @@ If there are 1000, 1000-sqrt(1000) is about 968.
 so 97% of the sortition chains would be unaffected.
 
 
+
+What if 1/1000 blocks has extra high difficulty and reward, and we use that block for entropy?
+=============
+
+
 combining all these improvements:
 ===========
 (starting example) * (harmonic rng) * (harmonic-resets) * (slow blocks) * (off-chain score) * (sortition chains in parallel) * (sharing an entropy source between 300 sortition chains)
@@ -130,7 +179,8 @@ which means we could support about 831 veo in each sortition chain.
 
 so we need to keep the (block reward)>((market cap)/(SecurityConstant*(# of sortition chains we can handle in parallel))).
 
-and maybe we will find a way to make the Security Constant into an even bigger number. 
+and maybe we will find a way to make the Security Constant into an even bigger number.
+
 
 
 Security for lotteries
@@ -146,9 +196,28 @@ So the very biggest pure lottery we could handle with this design would be for a
 
 
 
+How much entropy is created by a harmonic rng process?
+==============
+C = cycle length
+log2((sqrt (2))^log2(C)) =
+log2(sqrt(c)) =
+log2(c)/2
+
+if C=100, then we get at least 5 bits of entropy.
+
+How much entropy for harmonic rng with resets?
+=============
+
+if we include resets, the entropy is at least:
+(prev_calc)+(number of cycles) =
+log2(sqrt(C)) + log2(C) =
+log2(C^(3/2)) =
+(3/2)*log2(C)
+
+So harmonic resets is providing at least 3x as much entropy vs normal harmonic RNG.
 
 
-<!----
+
 
 
 
