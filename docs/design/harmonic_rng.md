@@ -63,13 +63,15 @@ To do this, we can have every 1-pbit reset the cycle back to B(0). So instead of
 
 So now the ability to roll a 1-pbit is not much power at all. There is only a 1/N chance that it will be the last 1-pbit.
 
-And the decisin-making power a miner gets from not publishing a 1-pbit is none.
+And the decision-making power a miner gets from not publishing a 1-pbit is none.
 only publishing 0-pbits is going to have an impact.
 The fact that you won a 1-pbit and did not publish it, this doesn't lower the probability that others will also find 1-pbits.
 
 And when you do publish a 0-pbit, it only has a very small measurable impact on the outcome.
 
 the combination of harmonic rng with harmonic resets means that with have Nx higher security, but it takes N * log2(N) times longer to settle the sortitoin chain.
+
+harmonic resets gets rid of 1/2 the available info when deciding whether to reroll, so it reduces the loss due to attacks by 2.
 
 
 Slow block optimization
@@ -112,18 +114,18 @@ so 97% of the sortition chains would be unaffected.
 
 combining all these improvements:
 ===========
-(starting example) * (harmonic-resets) * (slow blocks) * (off-chain score) * (sortition chains in parallel) * (sharing an entropy source between 300 sortition chains)
+(starting example) * (harmonic rng) * (harmonic-resets) * (slow blocks) * (off-chain score) * (sortition chains in parallel) * (sharing an entropy source between 300 sortition chains)
 
 
 block reward = 0.1 veo.
 cycle length = 100 (so it takes 1000 blocks to settle on average).
 
-2 * 100 * 1 * 3 * 1000 * sqrt(300) =
+2 * 4 * 2 * 1 * 3 * 1000 * sqrt(300) =
 Security Constant
 
-103 million veo in the sortition chains at one time.
+831 thousand veo in the sortition chains at one time.
 
-which means we could support about 103 thousand veo in each sortition chain.
+which means we could support about 831 veo in each sortition chain.
 
 
 so we need to keep the (block reward)>((market cap)/(SecurityConstant*(# of sortition chains we can handle in parallel))).
@@ -136,9 +138,9 @@ Security for lotteries
 
 a pure lottery has different security needs. We can't get any benefits from reusing entropy, or from parallelizing it.
 so if the cycle length is 100, meaning it takes 1000 blocks on average to settle, then Security Constant =
-2*100*3 = 600.
+2*4*2*1*3 = 48.
 
-So the very biggest pure lottery we could handle with this design would be for about 600 VEO.
+So the very biggest pure lottery we could handle with this design would be for about 48 VEO.
 
 
 
