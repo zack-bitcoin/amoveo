@@ -44,26 +44,16 @@ So we need the 2nd to last value to be (3/35)/(32/35), which is (3/32)
 
 so the normal sequence is like 3/6, 3/9, 3/12...
 
-Notice that if we take smaller steps like this:
-3/6, 3/7, 3/8... that whoever is last in this sequence has the most influence.
-As long as the person who goes last has a small enough influence to be tolerable, then everyone has a small enough influence to be tolerable.
 
 ```
 P(N) = the probability that block N produces a "1".
-P(N) = C/((2 * C)+N) (for some constant C).
+P(N) = 1/(2+N) (for some constant C).
 ```
 
-C/((2+C)+N) is the generic form of a harmonic sequence.
+1/(2+N) is the generic form of a harmonic sequence.
 
 
 This harmonic trick means it takes B blocks to gather the last bit of entropy, and that we can store log2(B) times more money in each sortitoin chain, because on average, when the attacker attempts a reroll, this will not be the last 1-pbit 1/log2(B) of the time.
-
-
-harmonic-resets
-=========
-
-if every time a 1-pbit is found, we reset back to B(0). B(0) has a probability of 1/2, this makes it harder to estimate the value of a reroll by about 1/2.
-It is a factor of 2x improvement, but it will take B*log2(B) to gather the entropy instead of just B.
 
 
 Slow block optimization
@@ -106,13 +96,13 @@ so 97% of the sortition chains would be unaffected.
 
 combining all these improvements:
 ===========
-(starting example) * (harmonic) * (harmonic resets) * (slow blocks) * (off-chain score) * (sortition chains in parallel) * (sharing an entropy source between 300 sortition chains)
+(starting example) * (harmonic) * (slow blocks) * (off-chain score) * (sortition chains in parallel) * (sharing an entropy source between 300 sortition chains)
 
-C = cycle length = 100
+C = cycle length = 400
 
 block reward = 0.1 veo.
 
-2 * log2(C) * 2 * 1 * 3 * 1000 * sqrt(300) =
+2 * log2(C) * 1 * 3 * 1000 * sqrt(300) =
 
 1.38 million veo in the sortition chains at one time.
 
