@@ -1,7 +1,7 @@
 Harmonic Random Number Generator
 ============
 
-draft 2
+draft 3
 
 It would be nice if we could securely generate random numbers inside of a blockchain. This would allow for things like probabilistic value transactions, lotteries, and probabilistic-value sharding for scalability.
 The goal of this paper is to show how to do this.
