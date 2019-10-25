@@ -53,7 +53,23 @@ P(N) = 1/(2+N) (for some constant C).
 1/(2+N) is the generic form of a harmonic sequence.
 
 
-This harmonic trick means it takes B blocks to gather the last bit of entropy, and that we can store log2(B) times more money in each sortitoin chain, because on average, when the attacker attempts a reroll, this will not be the last 1-pbit 1/log2(B) of the time.
+This harmonic trick means it takes B blocks to gather the last bit of entropy, and that we can store ~4x times more money in each sortitoin chain, because on average, when the attacker wins a block at the opportune period 1/2 the time, this will not be the last 1-pbit at least 1/2 of the time.
+
+Harmonic Resets
+==============
+
+We want it to be hard for the attacker to calculate how much more profitable a reroll will be.
+To do this, we can have every 1-pbit reset the cycle back to B(0). So instead of taking N steps to gather entropy, it will take N*log2(N).
+
+So now the ability to roll a 1-pbit is not much power at all. There is only a 1/N chance that it will be the last 1-pbit.
+
+And the decisin-making power a miner gets from not publishing a 1-pbit is none.
+only publishing 0-pbits is going to have an impact.
+The fact that you won a 1-pbit and did not publish it, this doesn't lower the probability that others will also find 1-pbits.
+
+And when you do publish a 0-pbit, it only has a very small measurable impact on the outcome.
+
+the combination of harmonic rng with harmonic resets means that with have Nx higher security, but it takes N * log2(N) times longer to settle the sortitoin chain.
 
 
 Slow block optimization
@@ -96,27 +112,33 @@ so 97% of the sortition chains would be unaffected.
 
 combining all these improvements:
 ===========
-(starting example) * (harmonic) * (slow blocks) * (off-chain score) * (sortition chains in parallel) * (sharing an entropy source between 300 sortition chains)
+(starting example) * (harmonic-resets) * (slow blocks) * (off-chain score) * (sortition chains in parallel) * (sharing an entropy source between 300 sortition chains)
 
-C = cycle length = 400
 
 block reward = 0.1 veo.
+cycle length = 100 (so it takes 1000 blocks to settle on average).
 
-2 * log2(C) * 1 * 3 * 1000 * sqrt(300) =
+2 * 100 * 1 * 3 * 1000 * sqrt(300) =
+Security Constant
 
-1.38 million veo in the sortition chains at one time.
+103 million veo in the sortition chains at one time.
 
-which means we could support about 1380 veo in each sortition chain.
-
-
-so we need to keep the (block reward)>((market cap)/(1380*(# of sortition chains we can handle in parallel))).
-
-and maybe we will find a way to make the 1380 into an even bigger number. 
+which means we could support about 103 thousand veo in each sortition chain.
 
 
-if we have 14 blocks per day, that is like 5000 blocks per year.
+so we need to keep the (block reward)>((market cap)/(SecurityConstant*(# of sortition chains we can handle in parallel))).
+
+and maybe we will find a way to make the Security Constant into an even bigger number. 
 
 
+Security for lotteries
+=========
+
+a pure lottery has different security needs. We can't get any benefits from reusing entropy, or from parallelizing it.
+so if the cycle length is 100, meaning it takes 1000 blocks on average to settle, then Security Constant =
+2*100*3 = 600.
+
+So the very biggest pure lottery we could handle with this design would be for about 600 VEO.
 
 
 
