@@ -37,6 +37,6 @@ D = lesser of b or c
 the loss due to uncertainty = D*N*N/(2^(N+1))
 ```
 
-So if this is inside of a sortitoin chain of 1000 block rewards, and the fee to make a new scalar oracle is 0.1 block rewards, then that means this attack is the same as a 0.0003% fee to use the sortition chain.
+So if this is inside of a sortitoin chain of 1000 block rewards, and the fee to make a new scalar oracle is 0.1 block rewards, then that means this failure mode is, at worst a 0.0003% fee to use the sortition chain.
 
 [more about sortition chains here](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chains.md)
