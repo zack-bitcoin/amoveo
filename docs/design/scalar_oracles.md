@@ -1,23 +1,26 @@
 Effective use of scalar oracles
 ==============
 
-if the oracle measures 0b00000000 that is the lower  margin. 0b11111111 is the upper margin
+scalar oracles generate a value that can be represented in binary bits, like this `0b01011010`
 
-if the price is 1/2, that is 0b10000000, which has the least accuracy of anything we could measure. 0 bits of accuracy.
-Because 0b01111111 is practically the same
+if the oracle measures `0b00000000` that is the lower  margin. `0b11111111` is the upper margin
 
-but if the price is 1/8th the margin, that is 0b00100000, which is nearly the same as 0b00011111.
+if the price is 1/2, that is `0b10000000`, which has the least accuracy of anything we could measure. 0 bits of accuracy.
+Because `0b01111111` is practically the same
+
+
+but if the price is 1/8th the margin, that is `0b00100000`, which is nearly the same as `0b00011111`.
+
 notice that the first 2 bits in each of these are the same.
+
 so the first 2 bits will still be correct, even if the rest is a mess. so if the price is 1/8th the margin, we have 2 bits of accuracy. 
 
 ```
 total loss due to uncertainty =
 sum from i=0 to N=(number of bits) of  [
-   (probability of uncertainty in bit i) *
-   (amount lost due to uncertainty of bit i)
+   (probability of uncertainty in bit i)
 ] =
-sum form i=0 to N of ((2^i)/(2^N)) * ((2^i) * (1/(2^i))) =
-sum from i=0 to N of 2^(i-N) =
+sum form i=0 to N of ((2^i)/(2^N))) =
 ((1/2)^N) * sum from i=0 to N of (2)^i =
 N*(N+1)/(2^(N+1))
 ```
