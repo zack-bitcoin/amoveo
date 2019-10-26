@@ -68,15 +68,23 @@ Since the 1-pbits are so rare compared to 0-pbits, we can pay a much higher rewa
 if block B(N) has pbit of 0, we should pay 1/2 the normal block reward.
 if it has a pbit of 1, on block N, we should pay N/2 times the normal block reward.
 
+Expected payout of a block
+===========
+
 So on any B(N), the expected payout of mining that block is:
 ```
+BR = normal block reward;
+
 (prob_pbit_0 * reward_for_pbit_0) + (prob_pbit_1 * reward_for_pbit_1)
 = (((N-1)/N)*(BR*N/2(N-1))) + (((1/N)*(BR*N/2)
-= BR/(2) + BR/2
+= BR/2 + BR/2
 = BR
 ```
 
 So the expected payout is exactly the same as a normal block reward.
+
+Cost for 1 bit of influence of the outcome
+===============
 
 This way the cost of rerolling a 1 can be very high.
 
@@ -87,8 +95,6 @@ And they are adding log2(500) = 9 bits of entropy.
 In the time between block 250 and block 500, there is a 50% chance that there will be a 1 pbit. whoever finds that would need to give up about ~375 block rewards to have  1/2 bit influence over the putcome
 And they are adding log2(500) = 8 bits of entropy.
 
-In the time between block 125 and block 250, there is a 50% chance that there will be a 1 pbit. whoever finds that would need to give up about ~187 block rewards to have  1/4 bit influence over the putcome
-And they are adding log2(500) = 8 bits of entropy.
 ....
 
 In between block 0 and block 0, there is a 50% chance that there will be a 1 pbit. whoever finds it would need to give up 1/2 a block reward to have any influence. but there is ((1/2)^10) bit influence over the outcome
@@ -98,14 +104,18 @@ If we are generating X bits with the harmonic method.
 In between block N and block 2*N, there is a 50% chance there will be one or more 1-pbits. whoever finds it has the option to give up `(2^(n-1))` block rewards to have `((1/2)^(X-N))` bits of influence.
 
 ```
-influence/cost = ((1/2)^(X-N))/(2^(N-1))
+influence(N)/cost(N) = ((1/2)^(X-N))/(2^(N-1))
 = 1/(2^(N-1+X-N))
 = 1/(2^(X-1))
 ```
+Since all the N's cancel out, that means the cost per bit of influence is not dependent on N, it only depends on X, which is log2(number of blocks of time we spend generating entropy).
 
 so, if we are doing 1024 blocks of harmonic RNG, then anyone with the ability to influence the outcome will have to pay 1 block reward for 1/(2^(10-1)) = 1/(512) = 1/512 bits of entropy.
 
 in other words, 1 bit of entropy of control of the outcome costs 512 block rewards to buy.
+
+How much value can we fit in a sortition chain?
+============
 
 1 bit of entropy is worth at most 25% of the money at stake in a sortition chain.
 So this means we can have over 2000 block rewards in each sortition chain, if we use 1024 blocks to gather entropy for them.
