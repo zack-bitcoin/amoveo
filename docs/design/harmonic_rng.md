@@ -30,10 +30,14 @@ Harmonic RNG
 
 A basic motivator for the harmonic RNG design is that all the blocks should have equal influence over the outcome. That way a miner who finds the last block has no advantage over the miner who finds the 2nd to last, or 3rd to last.
 
-in order to achieve this, we need to skew the probability that a block will add a "1" or a "0" to the entropy.
-we call these probabilistically skewed bits partial-bits (p-bits).
+If we gather entropy quicker than this, then the last blocks found have too much influence.
+If we gather entropy more slowly, then it takes more blocks to find for the same amount of security.
+This path is the fastest way to gather the entropy securely.
 
-The probability that each p-bit is a 1 decreases according to the harmonic sequence.
+in order to achieve this, we need to skew the probability that a block will add a "1" or a "0" to the entropy.
+we call these probabilistically skewed bits partial-bits (pbits).
+
+The probability that each pbit is a 1 decreases according to the harmonic sequence.
 
 So lets show that it actually is the harmonic sequence.
 Suppose one value 3/35 is the last value of the sequence, what should the second to last be so they both have the same influence?
@@ -47,23 +51,26 @@ so the normal sequence is like 3/6, 3/9, 3/12...
 
 ```
 P(N) = the probability that block N produces a "1".
-P(N) = 1/(2+N) (for some constant C).
+P(N) = 1/(2+N).
 ```
 
 1/(2+N) is the generic form of a harmonic sequence.
 
 
-This harmonic trick means it takes B blocks to gather the last bit of entropy, and that we can store ~4x times more money in each sortitoin chain, because on average, when the attacker wins a block at the opportune period 1/2 the time, this will not be the last 1-pbit at least 1/2 of the time.
-
 Variable Block Reward
 ===========
 
-if block B(N) has pbit of 0, we should pay ~1/2 the normal block reward.
-if it has a pbit of 1, on block N, N*BR/2
+Using the harmonic pbits, the influence has been concentrated onto the rare 1-pbits.
+So an attacker who can reroll just these blocks could have too much influence.
+
+Since the 1-pbits are so rare compared to 0-pbits, we can pay a much higher reward for 1-pbits, without significantly reducing the reward for 0-pbit blocks. In this way, we can make the cost of reroll attacks arbitrarily high.
+
+if block B(N) has pbit of 0, we should pay 1/2 the normal block reward.
+if it has a pbit of 1, on block N, we should pay N/2 times the normal block reward.
 
 So on any B(N), the expected payout of mining that block is:
 ```
-(prob_to_find_0 * reward_for_0) + (prob_to_find_1 * reward_for_1)
+(prob_pbit_0 * reward_for_pbit_0) + (prob_pbit_1 * reward_for_pbit_1)
 = (((N-1)/N)*(BR*N/2(N-1))) + (((1/N)*(BR*N/2)
 = BR/(2) + BR/2
 = BR
@@ -77,17 +84,29 @@ If we use 1000 blocks to gather entropy, there is a >50% chance the final 500 bl
 Whoever mines that block, if they want 1 bit of influence over the outcome, they would need to give up ~750 block rewards.
 And they are adding log2(500) = 9 bits of entropy.
 
-In the time between block 250 and block 500, there is a ~50% chance that there will be a 1 pbit. whoever finds that would need to give up about ~375 block rewards to have  1/2 bit influence over the putcome
+In the time between block 250 and block 500, there is a 50% chance that there will be a 1 pbit. whoever finds that would need to give up about ~375 block rewards to have  1/2 bit influence over the putcome
 And they are adding log2(500) = 8 bits of entropy.
 
-In the time between block 125 and block 250, there is a ~50% chance that there will be a 1 pbit. whoever finds that would need to give up about ~187 block rewards to have  1/4 bit influence over the putcome
+In the time between block 125 and block 250, there is a 50% chance that there will be a 1 pbit. whoever finds that would need to give up about ~187 block rewards to have  1/4 bit influence over the putcome
 And they are adding log2(500) = 8 bits of entropy.
 ....
 
-In between block 1 and block 1, there is a 50% chance that there will be a 1 pbit. whoever finds it would need to give up 1/2 a block reward to have any influence. but there is (1-(1/2)^10) bit influence over the outcome
+In between block 0 and block 0, there is a 50% chance that there will be a 1 pbit. whoever finds it would need to give up 1/2 a block reward to have any influence. but there is ((1/2)^10) bit influence over the outcome
 
 
+If we are generating X bits with the harmonic method.
+In between block N and block 2*N, there is a 50% chance there will be one or more 1-pbits. whoever finds it has the option to give up 3*(2^(n-1)) block rewards to have ((1/2)^(X-N)) bits of influence.
 
+influence/cost = ((1/2)^(X-N))/(3*(2^(N-1)))
+= 1/(3*2^(N-1+X-N))
+= 1/(3*2^(X-1))
+
+so, if we are doing 1024 blocks of harmonic RNG, then anyone with the ability to influence the outcome will have to pay 1 block reward for 1/(3*2^(10-1)) = 1/(3*512) = 1/1536 bits of entropy.
+
+in other words, 1 bit of entropy of control of the outcome costs 1536 block rewards to buy.
+
+1 bit of entropy is worth at most 25% of the money at stake in a sortition chain.
+So this means we can have over 6000 block rewards in each sortition chain, if we use 1024 blocks to gather entropy for them.
 
 <!----
 
