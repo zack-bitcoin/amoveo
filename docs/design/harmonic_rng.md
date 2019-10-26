@@ -95,18 +95,22 @@ In between block 0 and block 0, there is a 50% chance that there will be a 1 pbi
 
 
 If we are generating X bits with the harmonic method.
-In between block N and block 2*N, there is a 50% chance there will be one or more 1-pbits. whoever finds it has the option to give up 3*(2^(n-1)) block rewards to have ((1/2)^(X-N)) bits of influence.
+In between block N and block 2*N, there is a 50% chance there will be one or more 1-pbits. whoever finds it has the option to give up `(2^(n-1))` block rewards to have `((1/2)^(X-N))` bits of influence.
 
-influence/cost = ((1/2)^(X-N))/(3*(2^(N-1)))
-= 1/(3*2^(N-1+X-N))
-= 1/(3*2^(X-1))
+```
+influence/cost = ((1/2)^(X-N))/(2^(N-1))
+= 1/(2^(N-1+X-N))
+= 1/(2^(X-1))
+```
 
-so, if we are doing 1024 blocks of harmonic RNG, then anyone with the ability to influence the outcome will have to pay 1 block reward for 1/(3*2^(10-1)) = 1/(3*512) = 1/1536 bits of entropy.
+so, if we are doing 1024 blocks of harmonic RNG, then anyone with the ability to influence the outcome will have to pay 1 block reward for 1/(2^(10-1)) = 1/(512) = 1/512 bits of entropy.
 
-in other words, 1 bit of entropy of control of the outcome costs 1536 block rewards to buy.
+in other words, 1 bit of entropy of control of the outcome costs 512 block rewards to buy.
 
 1 bit of entropy is worth at most 25% of the money at stake in a sortition chain.
-So this means we can have over 6000 block rewards in each sortition chain, if we use 1024 blocks to gather entropy for them.
+So this means we can have over 2000 block rewards in each sortition chain, if we use 1024 blocks to gather entropy for them.
+
+So if we had 1000 sortition chains running in parallel, we could have 2 million block rewards locked in them all together.
 
 <!----
 
