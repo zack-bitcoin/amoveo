@@ -114,13 +114,13 @@ so, if we are doing 1024 blocks of harmonic RNG, then anyone with the ability to
 
 in other words, 1 bit of entropy of control of the outcome costs 512 block rewards to buy.
 
-How much value can we fit in a sortition chain?
+How much value can we fit in our probabilistic value smart contracts?
 ============
 
 1 bit of entropy is worth at most 25% of the money at stake in a sortition chain.
-So this means we can have over 2000 block rewards in each sortition chain, if we use 1024 blocks to gather entropy for them.
+So this means we can have over 2048 block rewards in a probabilistic value smart contract, if we need to use 1024 blocks to gather entropy for them.
 
-So if we had 1000 sortition chains running in parallel, we could have 2 million block rewards locked in them all together.
+So if we had 1000 probabilistic value contracts in parallel, we could have 2 million block rewards locked in them all together.
 
 <!----
 
