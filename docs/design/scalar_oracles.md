@@ -10,14 +10,15 @@ but if the price is 1/8th the margin, that is 0b00100000, which is nearly the sa
 notice that the first 2 bits in each of these are the same.
 so the first 2 bits will still be correct, even if the rest is a mess. so if the price is 1/8th the margin, we have 2 bits of accuracy. 
 
-
+```
 total loss due to uncertainty = sum from i=0 to N=(number of bits) of  (probability of uncertainty in bit i) * (amount lost due to uncertainty of bit i) =
 sum form i=0 to N of ((2^i)/(2^N)) * ((2^i) * (1/(2^i))) =
 sum from i=0 to N of 2^(i-N) =
 ((1/2)^N) * sum from i=0 to N of (2)^i =
-N*N/(2^(N+1)) =
+N*N/(2^(N+1))
+```
 
-So if we use 11 bits to encode the value, on average you lose about 3% due to this failure mode on each bet.
+So if we use 11 bits to encode the value, on average you lose about 3% due to this failure mode on each stablecoin contract, or any scalar derivative contract.
 
 
 
