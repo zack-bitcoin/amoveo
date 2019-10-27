@@ -67,7 +67,7 @@ For example, if you drive 20 kph for 1/2 the trip, and 60 kph for the second 1/2
 In this example, the constant rate is the rate of time passing. and our speed in kph varies inversely with the amount of time. kilometers/hours. to know our average speed, we are accumulating over how much time passed in the different steps, and dividing the total distance by the total time.
 
 For producing entropy on the blockchain, our constant rate is the rate at which uncertainty in the result is decreasing.
-the "amount of uncertainty left" is the same as 1-(the accumulated influence so far)`
+the "amount of uncertainty left" is the same as `(total entropy we will generate)-(the accumulated influence so far)`
 
 ```
 p1(i) ~ 1/reward(i).
