@@ -135,6 +135,38 @@ The probability that our best guess is correct = E(N)
 
 So our confidence in the entropy being produced is increasing linearly with the number of blocks found.
 
+The fact that confidence increases linearly is sufficient to show that the probability of pbit N being a 1 is following the harmonic series
+
+Harmonic sequence is a unique solution
+=================
+
+E(N) = how confident we are that we can predict the outcome at step N of the process of generating entropy.
+P0(N) = the probability that pbit N is a 0.
+P1(N) = the probability that pbit N is a 1.
+
+If E increases linearly, that means E(N+1) = E(N) + C, for some constant C.
+-> E(N) = E(0) + N*C
+
+we know that E(N+1) = E(N)/P0(N+1) because of the definition of P0.
+-> E(0) + (N+1)*C = (E(0) + N*C) / P0(N+1)
+-> P0(N+1) = (E(0) + (N)*C)/(E(0) + (N+1)*C)
+
+P1(N) = 1 - P0(N) ->
+P1(N) = 1 - ((E(0) + (N-1)*C) / (E(0) + (N)*C))
+= ((E(0) + (N)*C) - (E(0) + (N-1)*C))/(E(0) + (N)*C)
+= C/(E(0) + N*C)
+
+Lets plug in for the zero case to solve for the constant.
+
+-> P1(0) = C/(E(0))
+-> E(0) = C/P1(0)
+
+but we know that P1(0) = 1/2.
+-> E(0) = 2*C
+-> P1(N) = C/(2*C + N*C) = 1/(2+N)
+
+Which proves that P1(N) = 1/(2+N), which is what we were trying to show.
+
 <!----
 
 
