@@ -144,28 +144,36 @@ E(N) = how confident we are that we can predict the outcome at step N of the pro
 P0(N) = the probability that pbit N is a 0.
 P1(N) = the probability that pbit N is a 1.
 
-If E increases linearly, that means E(N+1) = E(N) + C, for some constant C.
+If E increases linearly, that means `E(N+1) = E(N) + C`, for some constant C.
+```
 -> E(N) = E(0) + N*C
+```
 
-we know that E(N+1) = E(N)/P0(N+1) because of the definition of P0.
+we know that `E(N+1) = E(N)/P0(N+1)` because of the definition of P0.
+```
 -> E(0) + (N+1)*C = (E(0) + N*C) / P0(N+1)
 -> P0(N+1) = (E(0) + (N)*C)/(E(0) + (N+1)*C)
-
+```
+```
 P1(N) = 1 - P0(N) ->
 P1(N) = 1 - ((E(0) + (N-1)*C) / (E(0) + (N)*C))
 = ((E(0) + (N)*C) - (E(0) + (N-1)*C))/(E(0) + (N)*C)
 = C/(E(0) + N*C)
+```
 
 Lets plug in for the zero case to solve for the constant.
-
+```
 -> P1(0) = C/(E(0))
 -> E(0) = C/P1(0)
+```
 
-but we know that P1(0) = 1/2.
+we know that P1(0) = 1/2.
+```
 -> E(0) = 2*C
 -> P1(N) = C/(2*C + N*C) = 1/(2+N)
+```
 
-Which proves that P1(N) = 1/(2+N), which is what we were trying to show.
+Which proves that `P1(N) = 1/(2+N)`, which is what we were trying to show.
 
 <!----
 
