@@ -206,9 +206,15 @@ So, the amount of certainty about what entropy we are generating would be increa
 
 The probability of a 1 pbit on each block must be some projective transformation of the amounts of certainty accumulated so far.
 
+P1(N) * (amount of certainty accumulated so far) = constant*(rate at which entropy is being generated)
+
+It is independent of the starting amount of entropy, or the starting block height when we are gathering entropy, or the total amount of entropy we are gathering in this cycle. All that matters is the total expected block rewards paid out so far.
+
+The total expected block rewards is invarient under time dilation, or starting height. so P1(N) must be a projective transformation of the amount of certainty accumulated so far.
+
 And the amount of certainty is a projective transformation of the integers 0,1,2...
 
-P1(0) = 1/2. because this is where we start generating entropy, it is the degenerate case.
+`P1(0) = 1/2`. because this is where we start generating entropy, it is the degenerate case.
 P1(N) should approach 0 as N approaches infinity.
 
 The only projective transformation that maps the integers 0,1,2... onto the range [1/2, 0) is the harmonic sequence 1/(2+N).
@@ -223,6 +229,24 @@ Y(n) = n, X(n) = 1/(2+n)
 So the harmonics are uniquely determined.
 
 <!----
+
+y = x*x
+
+-3, 9
+-2, 4
+-1, 1
+0, 0
+1, 1
+2, 4
+3, 9
+
+CR = (a+b)*(b+c)/b/(a+b+c)
+a,b,c = 1, 3, 5
+
+4*8/3/9 = 32/27 = 1 + 5/27
+
+
+
 
 P1(N)*reward1(N) = BR/2
 
