@@ -195,7 +195,180 @@ we know that P1(0) = 1/2.
 
 Which proves that `P1(N) = 1/(2+N)`, which is what we were trying to show.
 
+
+
+A proof that it is Harmonic RNG from projective geometry
+==================
+
+A theoretically maximally secure RNG would give an amount of security based on the expected value of block rewards during a period of time.
+
+So, the amount of certainty about what entropy we are generating would be increasing linearly.
+The probability of a 1 pbit on each block must be some projective transformation of the amount of certainty.
+And the amount of certainty is a projective transformation of the integers 0,1,2...
+
+P1(0) = 1/2. because this is where we start generating entropy, it is the degenerate case.
+P1(N) should approach 0 as N approaches infinity.
+
+The only projective transformation that maps the integers 0,1,2... onto the range [1/2, 0) is the harmonic sequence 1/(2+N).
+
+
 <!----
+
+P1(N)*reward1(N) = BR/2
+
+influence(0) = P1(0) * reward1(0) + P0(0) * reward0(0) = reward1(0)/2 + reward0(0)/2 = BR
+
+influence(1) = P1(1) * reward1(1) + (1-P1(1)) * (BR/2)
+= BR/2 + P1(1)*(reward1(1) - BR/2) = BR
+-> reward(1) = BR/(2*P1(1)) + BR/2
+= (BR/2)(1 + 1/P1(1))
+-> BR/2/P1(1) = (BR/2)(1+1/P1(1))
+-> 1 = P1(1)*(1+1/P1(1))
+-> 1 = P1(1) + 1
+
+in order for the certainty to increase linearly, each block needs to increase the certainty by the same amount. Which means that the probability of a 1 pbit needs to decrease as we gain confidence in what entropy will get generated: `P1 =  1/(1+entropy generated so far)`.
+
+So P1 is the projective transformation moving points on the y-axis (0, Y+2) to points on the line (X+1, -1) by drawing a pencil of lines through the point (0, 1).
+
+Since P1 is a projective transformation, it is preserving the cross-ratio of all the points being transformed.
+
+here are example points being transformed projectively:
+(0,2),     (0,3),     (0,4),     (0,5) ->
+(3/2, -1), (4/3, -1), (5/4, -1), (6/5, -1)
+
+Which is transforming from Y to X like this:
+0, 1, 2, 3 -> 1/2, 1/3, 1/4, 1/5
+
+so the range of the transformation is integers Y in [0, infinity)
+and the domain of X is a subset of [1/2, 0)
+
+Since it is a projective transformation, the cross ratio should be preserved. Lets check that this is the case
+
+given 3 colinear line segments a, b, and c, the cross ratio CR is:
+CR = (a+b)*(b+c)/b/(a+b+c)
+
+cross ratio1 =
+(1+1)*(1+1)/1/3 =
+2/3
+
+cross ratio2 =
+(1/6 + 1/12)*(1/12 + 1/20) * 12 / (3/10)
+= (1/4)*(8/60)*12*10/3
+= 2/5*10/3
+= 2/3
+
+so the cross ratio works.
+
+The only possible sequence that is invarient under perspective projection is the sequence of harmonics.
+
+The only possible sequence that we can make in a finite range, which is a projective transformation of an infinite line, is the harmonic sequence * available range.
+
+
+
+
+
+So there are invarients in the sequence according to a perspective projection where the point -1 is the vanishing point. Because the magnitude of P1 decreases as 1/x.
+
+It doesn't matter how long the block time is. Only the accumulation of rewards.
+So it is time dilation invariant.
+
+It doesn't matter what block the entropy gathering process starts on. So it is time translation invariant.
+
+
+
+CR = (a+b)*(b+c)/b/(a+b+c)
+
+example 1/2, 1/3, 1/5
+(1/2 + 1/3)*(1/3 + 1/5)*3/(1/2 + 1/3 + 1/5) =
+(4/6)*(8/15)*3/(31/30)
+4*8*3*30/(6*15*31) =
+16*30/(15*31) =
+16*2/(31) =
+32/31 = 1 + 1/31
+
+example 1/2, 1/3, 1/4
+(1/2 + 1/3)*(1/3 + 1/4)*3/(1/2 + 1/3 + 1/4) =
+(4/6)*(7/12)*3/(13/12)=
+4*7*3*12/(6*12*13)=
+2*7/13= 14/13 = 1 + 1/13
+
+example 1/2, 1/4, 1/8
+(1/2 + 1/4)*(1/4 + 1/8)*4/(1/2 + 1/4 + 1/8) =
+(3/4)*(3/8)*4/(7/8)
+3*3*4*8/(4*8*7) =
+3*3/7 = 1 + 2/7
+
+
+A proof that it is Harmonic RNG from projective geometry
+==================
+
+An ideal RNG could only be as secure as the accumulated block rewards of all the blocks built to generate the entropy.
+
+It doesn't matter how long the block time is. Only the accumulation of rewards.
+So it is time dilation invariant.
+
+It doesn't matter what block the entropy gathering process starts on. So it is time translation invariant.
+
+it doesn't matter how big each block reward is, only the total accumulation of rewards. so it is reward dilation invariant.
+
+it doesn't matter how much money or hashpower the participants have, so it is reward translation invariant.
+
+
+Lets say 3 probabilities P(N) are a, b, and c. 
+CR = (a+b)*(b+c)/b/(a+b+c)
+
+example 1/2, 1/3, 1/5
+(1/2 + 1/3)*(1/3 + 1/5)*3/(1/2 + 1/3 + 1/5) =
+(4/6)*(8/15)*3/(31/30)
+4*8*3*30/(6*15*31) =
+16*30/(15*31) =
+32 / 31
+
+
+
+
+example 1/2, 1/4, 1/8
+(1/2 + 1/4)*(1/4 + 1/8)*4/(1/2 + 1/4 + 1/8) =
+(3/4)*(3/8)*4/(7/8)
+3*3*4*8/(4*8*7) =
+3*3/7
+
+example 1/2, 1/8, 1/16
+(1/2 + 1/8)*(3/16)*8/(1/2 + 3/16) =
+(5/16)*3/(11/16) =
+3*5/11
+
+example 1/2, 1/4, 1/16
+(3/4)*(5/16)*4/(13/16)
+=3*5*4*16/(4*16*13)
+=3*5/13
+
+CR*b/(b+c) = (a+b)/(a+b+c)
+CR*b/(b+c) - 1 = -c/(a+b+c)
+(CR*b - b - c)/(b+c) = -c/(a+b+c)
+(a+b+c) = c*(b+c)/(b + c - CR*b)
+a = (c*(b+c)/(b + c - CR*b)) - b - c
+
+
+
+a+b+c = (b+c)/(CR - b - c)
+  u=b+c
+a+u = u/(CR-U)
+a = u(1/(CR-U) - 1)
+a = u(1+u-CR)/(CR-U)
+
+
+
+
+It doesn't matter if the block_time/block_reward is changing by some constant factor on every block.
+so the cross ratios are invariant to projective transformations in the time-reward plane.
+
+Therefore, it must be the harmonic sequence. Since only the harmonic sequence is projective invariant.
+
+
+
+
+
 
 
 
