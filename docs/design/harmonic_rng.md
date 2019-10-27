@@ -202,8 +202,10 @@ A proof using projective geometry that the sequence we want is the harmonic sequ
 
 A theoretically maximally secure RNG would give an amount of security based on the expected value of block rewards during the period of time when entropy is being generated.
 
-So, the amount of certainty about what entropy we are generating would be increasing linearly.
-The probability of a 1 pbit on each block must be some projective transformation of the amount of certainty.
+So, the amount of certainty about what entropy we are generating would be increasing linearly with the expected block rewards. 
+
+The probability of a 1 pbit on each block must be some projective transformation of the amounts of certainty accumulated so far.
+
 And the amount of certainty is a projective transformation of the integers 0,1,2...
 
 P1(0) = 1/2. because this is where we start generating entropy, it is the degenerate case.
@@ -211,6 +213,14 @@ P1(N) should approach 0 as N approaches infinity.
 
 The only projective transformation that maps the integers 0,1,2... onto the range [1/2, 0) is the harmonic sequence 1/(2+N).
 
+put the domain on the points [0, 2+Y]. for Y in the non-negatives.
+put a focus at (1,0).
+project the range through the focus onto the line [X+1, -1].
+
+The relationtionship between Y and X:
+Y(n) = n, X(n) = 1/(2+n)
+
+So the harmonics are uniquely determined.
 
 <!----
 
