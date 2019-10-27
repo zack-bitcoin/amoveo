@@ -197,7 +197,7 @@ Which proves that `P1(N) = 1/(2+N)`, which is what we were trying to show.
 
 
 
-A proof that it is Harmonic RNG from projective geometry
+A proof using projective geometry that the sequence we want is the harmonic sequence
 ==================
 
 A theoretically maximally secure RNG would give an amount of security based on the expected value of block rewards during the period of time when entropy is being generated.
