@@ -202,15 +202,35 @@ A proof using projective geometry that the sequence we want is the harmonic sequ
 
 A theoretically maximally secure RNG would give an amount of security based on the expected value of block rewards during the period of time when entropy is being generated.
 
-So, the amount of certainty about what entropy we are generating would be increasing linearly with the expected block rewards. 
+So, the amount of certainty about what entropy we are generating would be increasing linearly with the expected block rewards.
+If it is increasing linearly, then it is a projective transform of the nonzero integers.
 
-The probability of a 1 pbit on each block must be some projective transformation of the amounts of certainty accumulated so far.
+A more specific projective proof that P1(n) must be a projective transformation
+===============
 
-P1(N) * (amount of certainty accumulated so far) = constant*(rate at which entropy is being generated)
+In order for the amount of certainty created per block to be constant, we need the amount of certainty of each block to be a projective transform of the amount of certainty in the remaining blocks to gather all the entropy.
 
-It is independent of the starting amount of entropy, or the starting block height when we are gathering entropy, or the total amount of entropy we are gathering in this cycle. All that matters is the total expected block rewards paid out so far.
+the amount of entropy left to gather is a projective transform of the amount of entorpy already gathered.
 
-The total expected block rewards is invarient under time dilation, or starting height. so P1(N) must be a projective transformation of the amount of certainty accumulated so far.
+the amount of certainty of a pbit is a projective transform of the amount of uncertainty of that pbit = the probability of a 1 pbit for each block.
+
+The probability of a 1 pbit on each block must be some projective transformation of the amounts of certainty left to accumulate. 
+
+Which is a projective transformation of the amounts of certainty accumulated so far.
+
+Any combination of projective transformation is another prpojective transformation.
+
+Therefore, the probability of a 1 on each pbit must be some projective transformation of the nonzero integers.
+
+a more symmetrical projective proof that P1(n) must be a projective transformation
+=============
+
+The amount of certainty is independent of the starting amount of entropy, the starting height, the block reward per block, or how much entropy is left to gather. All that matters is the total expected block rewards paid out so far.
+
+The only way P1(N) can be invarient of all these symmetries is if it is projective transformation of the amount of certainty accumulated so far.
+
+given that it is projective, show the result
+===========
 
 And the amount of certainty is a projective transformation of the integers 0,1,2...
 
@@ -218,6 +238,9 @@ And the amount of certainty is a projective transformation of the integers 0,1,2
 P1(N) should approach 0 as N approaches infinity.
 
 The only projective transformation that maps the integers 0,1,2... onto the range [1/2, 0) is the harmonic sequence 1/(2+N).
+
+A construction to prove the result is correct
+============
 
 put the domain on the points [0, 2+Y]. for Y in the non-negatives.
 put a focus at (1,0).
