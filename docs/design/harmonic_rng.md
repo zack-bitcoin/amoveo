@@ -122,6 +122,19 @@ So this means we can have over 2048 block rewards in a probabilistic value smart
 
 So if we had 1000 probabilistic value contracts in parallel, we could have 2 million block rewards locked in them all together.
 
+
+
+Confidence in the final outcome
+============
+
+lets say we are doing a harmonic sequence of C many blocks in order to generate entropy. starting at block B(0) and finishing at block B(N).
+At any block height, we could come up with a best guess for the most likely entropy that will be generated from the entire process.
+
+The probability that our best guess is correct = E(N)
+= N/C
+
+So our confidence in the entropy being produced is increasing linearly with the number of blocks found.
+
 <!----
 
 
