@@ -229,15 +229,17 @@ The amount of certainty is independent of the starting amount of entropy, the st
 
 The only way P1(N) can be invarient of all these symmetries is if it is projective transformation of the amount of certainty accumulated so far.
 
-given that it is projective, show the result
+now that we know it is projective, show the result
 ===========
 
 And the amount of certainty is a projective transformation of the integers 0,1,2...
 
 `P1(0) = 1/2`. because this is where we start generating entropy, it is the degenerate case.
-P1(N) should approach 0 as N approaches infinity.
+P1(N) should always be < P1(N-1).
 
-The only projective transformation that maps the integers 0,1,2... onto the range [1/2, 0) is the harmonic sequence 1/(2+N).
+A projective transformation that maps the integers 0,1,2... onto the range [1/2, 0), is the harmonic sequence 1/(2+N).
+
+According to the fundamental theorem of projective geometry, this projective transformation must be the unique solution https://en.wikipedia.org/wiki/Homography
 
 A construction to prove the result is correct
 ============
