@@ -140,7 +140,7 @@ How much value can we fit in our probabilistic value smart contracts?
 1 bit of entropy is worth at most 25% of the money at stake in a sortition chain.
 So this means we can have over 2048 block rewards in a probabilistic value smart contract, if we need to use 1024 blocks to gather entropy for them.
 
-So if we had 1000 probabilistic value contracts in parallel, we could have 2 million block rewards locked in them all together.
+So if we had 1000 probabilistic value contracts in parallel, we could have 60 thousand block rewards locked in them all together. 60 block rewards in each one.
 
 
 
@@ -254,16 +254,6 @@ Y(n) = n, X(n) = 1/(2+n)
 
 So the harmonics are uniquely determined.
 
-Verifying uniqueness using theory of conics
-=================
-
-A conic is uniquely defined by 5 points https://demonstrations.wolfram.com/FivePointsDetermineAConicSection/
-
-Knowing our result is a a transformation from a line to a line, and knowing what lines they lay on, gives us 3 points.
-knowing P1(0)=1/2 is the fourth point.
-knowing P1(infinity) = 0 is the fifth point.
-
-So we have enough information to exactly specify the solution.
 
 <!----
 
