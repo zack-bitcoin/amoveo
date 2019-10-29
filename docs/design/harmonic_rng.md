@@ -241,6 +241,7 @@ A projective transformation that maps the integers 0,1,2... onto the range [1/2,
 
 According to the fundamental theorem of projective geometry, this projective transformation must be the unique solution https://en.wikipedia.org/wiki/Homography
 
+
 A construction to prove the result is correct
 ============
 
@@ -252,6 +253,17 @@ The relationtionship between Y and X:
 Y(n) = n, X(n) = 1/(2+n)
 
 So the harmonics are uniquely determined.
+
+Verifying uniqueness using theory of conics
+=================
+
+A conic is uniquely defined by 5 points https://demonstrations.wolfram.com/FivePointsDetermineAConicSection/
+
+Knowing our result is a a transformation from a line to a line, and knowing what lines they lay on, gives us 3 points.
+knowing P1(0)=1/2 is the fourth point.
+knowing P1(infinity) = 0 is the fifth point.
+
+So we have enough information to exactly specify the solution.
 
 <!----
 
