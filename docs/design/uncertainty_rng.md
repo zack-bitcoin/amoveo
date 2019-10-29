@@ -39,5 +39,7 @@ If there are M sortition chains in their uncertain period simultaniously, then t
 Comparison with Harmonic RNG
 ========
 
+Much like Harmonic RNG, if you are willing to spend N blocks generating entropy, then the entropy can be as secure as N block rewards. We can only generate one random number at a time.
 
 In Uncertainty RNG, an attacker is losing many more block rewards, which makes this attack less profitable and distributes more of the proceeds of this kind of attack to the other miners.
+In Uncertainty RNG we don't have to vary the block reward, it can all happen at the smart contract level. This could result in a simpler implementation.
