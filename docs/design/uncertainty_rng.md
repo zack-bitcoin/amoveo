@@ -2,6 +2,8 @@ Uncertain Expiration Random Number Generator
 =============
 draft #1
 
+Thanks to Fernando Nieto for describing this mechanism.
+
 In order to increase RNG security, we must smearing out control of the entropy equally among many miners, and connect the revealing of entropy to receiving their block reward. That way there is a cost to manipulating the entropy being produced.
 
 
