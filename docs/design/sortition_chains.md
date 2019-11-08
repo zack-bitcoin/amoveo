@@ -11,6 +11,8 @@ Related documents:
 
 [sortition chain theory.](./sortition_chains_theory.md)
 
+[sortition chain random number generator.](./sortition_chains_random.md)
+
 
 What is a Sortition Chain?
 =========
