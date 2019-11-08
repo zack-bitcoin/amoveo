@@ -49,9 +49,14 @@ If a sidechain was moved on-chain all at once, then everyone who was participati
 * Plasma Cash https://ethresear.ch/t/plasma-cash-plasma-with-much-less-per-user-data-checking/1298
 Plasma cash is a type of sidechain where when you deposit coins into the sidechain, they are in a lump sum that can not be merged with other coins in that sidechain.
 You need to keep track of the entire history for all the lump sums that you own.
-The cost of opening a sidechain is linear in the number of lumps.
+The cost of closing a sidechain is linear in the number of lumps.
 The number of lumps is linear against the number of users.
 The number of txs per user is a linear relationship.
+
+* Plasma Flow https://github.com/snjax/plasma-cashflow-spec
+Plasma Flow is a plan on how to upgrade Plasma Cash with the ability to merge and split the lumps inside the sidechain.
+If the sidechain suddenly had to close on-chain, the cost would be linear with the number of lumps that existed at that time.
+So it is the same efficiency as the other versions of plasma.
 
 
 * sortition chains https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chains.md With sortition chains we use probabilistic value instead of full value currency. If a sortition chain has $10k in it, and you own $100 of that sortition chain, this means you have a 1% chance to win $10k. probabilistic value currency is like owning a lottery ticket.
@@ -90,6 +95,9 @@ OS = stateless + optimistic rollup,
 OL = optimistic rollup + lazyledger or some quadratic data availability scheme
 P = Plasma
 PC = Plasma Cash
+PF = Plasma Cashflow
+PL = Plasma + Lazy Ledger
+PS = Plasma + stateless
 Sort = Sortition chains,
 S2 = stateless + sortition chains
 
@@ -109,6 +117,9 @@ OL      6    6   4   4   9
 OS      4    4   10  10  9
 P       4    4   4   4   9 
 PC      4    4   4   4   9
+PF      4    4   4   4   9
+PL      6    6   4   4   9
+PS      4    4   10  10  9
 Sort    7    7   7   7   9
 S2      7    7   10  10  9
 
