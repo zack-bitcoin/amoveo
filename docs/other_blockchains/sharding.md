@@ -1,6 +1,6 @@
 Blockchain Sharding
 ============
-draft: 2
+draft: 3
 
 In the Bitoin blockchain, no matter how many full nodes you add to the system, you can not increase the rate at which transactions can be processed.
 
@@ -37,7 +37,7 @@ Sharding Plans
 
 * stateless full nodes. With stateless full nodes, ever block contains all of the merkel proofs you need to verify that block. So the process of verifying blocks never involves reading from the hard drive. But this means blocks need to be around 10x bigger. This is a strategy invented for Amoveo, it is how Amoveo worked since the genesis block. Ethereum is considering adding this feature https://ethresear.ch/t/the-stateless-client-concept/172
 
-* optimistic roll-up. https://arxiv.org/pdf/1904.06441.pdf  With optimistic roll-up we keep the history on-chain, but we move all processing of editable state onto side-chains. Miners pay a safety deposit when they publish a block. If anyone can show that a block improperly processed a transaction, they can destroy half the safety deposit and win the rest as a reward. 
+* optimistic roll-up. https://arxiv.org/pdf/1904.06441.pdf  With optimistic roll-up we keep the history on-chain, but we move all processing of editable state onto side-chains. Miners pay a safety deposit when they publish a block. If anyone can show that a block improperly processed a transaction, they can destroy half the safety deposit and win the rest as a reward. ZK roll-up is very similar to optimistic roll-up. They estimate it is about 4x more efficient than optimistic roll-up https://medium.com/matter-labs/optimistic-vs-zk-rollup-deep-dive-ea141e71e075 . Since they are so similar, I grade them both together just one. In this doc, they estimate that zk roll-up will be 10 to 20-fold more scalable than standard ethereum https://medium.com/coinmonks/zk-rollup-optimistic-rollup-70c01295231b
 
 * sortition chains https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chains.md With sortition chains we use probabilistic value instead of full value currency. If a sortition chain has $10k in it, and you own $100 of that sortition chain, this means you have a 1% chance to win $10k. probabilistic value currency is like owning a lottery ticket.
 
@@ -67,21 +67,23 @@ B = Bitcoin,
 D = Drivechain
 S = Stateless full nodes,
 O = optimistic rollup,
+O2 = stateless + optimistic rollup,
 Sort = Sortition chains,
 S2 = stateless + sortition chains
 
 Resources:
 CPU = CPU
-NB = NetworkBandwidth
-MS = MemorySize
-MB = MemoryBandwidth
-CH = CoinHours
+NB = Network Bandwidth
+MS = Memory Size
+MB = Memory Bandwidth
+CH = Coins*Hours. how much stake is locked up.
 
         CPU  NB  MS  MB  CH
 B       3    3   4   3   10
 D       4    4   4   4   10
 S       2    2   10  10  10
 O       3    3   4   10  9
+O2      3    2   10  10  9
 Sort    7    7   7   7   10
 S2      7    7   10  10  10
 
