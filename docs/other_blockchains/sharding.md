@@ -38,7 +38,7 @@ Sharding Plans
 
 Since Lazy Ledger requires storage nodes, and stateless-full-node strategy requires that customers keep their own data, and full nodes store nothing, these plans are non-compatible. We can not do them both together.
 
-* optimistic roll-up. https://arxiv.org/pdf/1904.06441.pdf  With optimistic roll-up we keep the history on-chain, but we move all processing of editable state onto side-chains. Miners pay a safety deposit when they publish a block. If anyone can show that a block improperly processed a transaction, they can destroy half the safety deposit and win the rest as a reward. ZK roll-up is very similar to optimistic roll-up. They estimate it is about 4x more efficient than optimistic roll-up https://medium.com/matter-labs/optimistic-vs-zk-rollup-deep-dive-ea141e71e075 . Since they are so similar, I grade them both together just one. In this doc, they estimate that zk roll-up will be 10 to 20-fold more scalable than standard ethereum https://medium.com/coinmonks/zk-rollup-optimistic-rollup-70c01295231b
+* optimistic roll-up. https://arxiv.org/pdf/1904.06441.pdf  With optimistic roll-up we keep the history on-chain, but we move all processing of editable state onto side-chains. Miners pay a safety deposit when they publish a block. If anyone can show that a block improperly processed a transaction, they can destroy half the safety deposit and win the rest as a reward. ZK roll-up is very similar to optimistic roll-up. They estimate it is about 4x more efficient than optimistic roll-up https://medium.com/matter-labs/optimistic-vs-zk-rollup-deep-dive-ea141e71e075 . Since they are so similar, I grade them both together just one. In this doc, they estimate that zk roll-up will be 10 to 20-fold more scalable than standard ethereum https://medium.com/coinmonks/zk-rollup-optimistic-rollup-70c01295231b Other people estimate that optimistic roll-up is 200x to 400x faster than standard Ethereum. 
 
 * Plasma MVP https://ethresear.ch/t/minimal-viable-plasma/426
 Plasma MVP is a type of sidechain where each user needs to be aware of all the activity on their sidechain, and be ready to challenge any improper withdraw.
@@ -91,8 +91,8 @@ B = Bitcoin,
 S = Stateless full nodes,
 LL = Lazy Ledger
 O = optimistic rollup,
-OS = stateless + optimistic rollup,
 OL = optimistic rollup + lazyledger or some quadratic data availability scheme
+OS = stateless + optimistic rollup,
 P = Plasma
 PC = Plasma Cash
 PF = Plasma Cashflow
