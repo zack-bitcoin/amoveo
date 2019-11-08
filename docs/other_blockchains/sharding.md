@@ -45,10 +45,13 @@ Sharding Plans
 Scoreboard
 =============
 
-```
 
 These scores are based on the cost of running one full node, not the cost of the entire network. 10 is a perfect score. 0 is the worst score.
 
+I added Bitcoin to the score board so you can compare the default setup vs the sharding plans.
+
+```
+The meaning of various scores:
 0 - O(N ^ #txs)
 1 - O(#txs ^ N)
 2 - O(N*#txs)
@@ -59,8 +62,6 @@ These scores are based on the cost of running one full node, not the cost of the
 9 - O(1)
 10 - O(0)
 
-
-I added Bitcoin to the score board so you can compare the default setup vs the sharding plans.
 
 The plans we compare:
 B = Bitcoin,
@@ -84,8 +85,8 @@ D       4    4   4   4   10
 S       2    2   10  10  10
 O       3    3   4   10  9
 O2      3    2   10  10  9
-Sort    7    7   7   7   10
-S2      7    7   10  10  10
+Sort    7    7   7   7   9
+S2      7    7   10  10  9
 
 ```
 
