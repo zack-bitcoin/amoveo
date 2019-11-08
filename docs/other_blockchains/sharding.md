@@ -40,7 +40,22 @@ Since Lazy Ledger requires storage nodes, and stateless-full-node strategy requi
 
 * optimistic roll-up. https://arxiv.org/pdf/1904.06441.pdf  With optimistic roll-up we keep the history on-chain, but we move all processing of editable state onto side-chains. Miners pay a safety deposit when they publish a block. If anyone can show that a block improperly processed a transaction, they can destroy half the safety deposit and win the rest as a reward. ZK roll-up is very similar to optimistic roll-up. They estimate it is about 4x more efficient than optimistic roll-up https://medium.com/matter-labs/optimistic-vs-zk-rollup-deep-dive-ea141e71e075 . Since they are so similar, I grade them both together just one. In this doc, they estimate that zk roll-up will be 10 to 20-fold more scalable than standard ethereum https://medium.com/coinmonks/zk-rollup-optimistic-rollup-70c01295231b
 
+* Plasma MVP https://ethresear.ch/t/minimal-viable-plasma/426
+Plasma MVP is a type of sidechain where each user needs to be aware of all the activity on their sidechain, and be ready to challenge any improper withdraw.
+The manager of the sidechain can decide to terminate that sidechain and all the contracts in it at any time. So plasma MVP can only do payments, not smart contracts.
+If there is a disagreement about how history occured, we can do binary search on the history to resolve this on the main chain, we can burn safety deposits so this binary search doesn't almost ever happen, but we do need to be prepared to handle the worst case on-chain.
+If a sidechain was moved on-chain all at once, then everyone who was participating in that side chain would need to publish their claim for money on-chain. So it is linear in the number of users. and the number of users is linear in the number of txs.
+
+* Plasma Cash https://ethresear.ch/t/plasma-cash-plasma-with-much-less-per-user-data-checking/1298
+Plasma cash is a type of sidechain where when you deposit coins into the sidechain, they are in a lump sum that can not be merged with other coins in that sidechain.
+You need to keep track of the entire history for all the lump sums that you own.
+The cost of opening a sidechain is linear in the number of lumps.
+The number of lumps is linear against the number of users.
+The number of txs per user is a linear relationship.
+
+
 * sortition chains https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chains.md With sortition chains we use probabilistic value instead of full value currency. If a sortition chain has $10k in it, and you own $100 of that sortition chain, this means you have a 1% chance to win $10k. probabilistic value currency is like owning a lottery ticket.
+You only need to keep track of the part of the history related to the part of the probability space that you own. You can ignore other parts of the probability space.
 
 
 Scoreboard
@@ -73,6 +88,8 @@ LL = Lazy Ledger
 O = optimistic rollup,
 OS = stateless + optimistic rollup,
 OL = optimistic rollup + lazyledger or some quadratic data availability scheme
+P = Plasma
+PC = Plasma Cash
 Sort = Sortition chains,
 S2 = stateless + sortition chains
 
@@ -90,6 +107,8 @@ LL      6    6   4   3   10
 O       4    4   4   4   9
 OL      6    6   4   4   9
 OS      4    4   10  10  9
+P       4    4   4   4   9 
+PC      4    4   4   4   9
 Sort    7    7   7   7   9
 S2      7    7   10  10  9
 
