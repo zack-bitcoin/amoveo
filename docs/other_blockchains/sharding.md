@@ -2,7 +2,7 @@ Blockchain Sharding
 ============
 draft: 3
 
-In the Bitoin blockchain, no matter how many full nodes you add to the system, you can not increase the rate at which transactions can be processed.
+In the Bitcoin blockchain, no matter how many full nodes you add to the system, you can not increase the rate at which transactions can be processed.
 
 The idea of blockchain sharding is that different full nodes should specialize in different parts of the consensus process.
 That way if we add more computers to the blockchain, the number of transactions we can process per second will increase.
