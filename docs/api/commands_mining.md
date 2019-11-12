@@ -29,7 +29,12 @@ block:hashrate_estimate().
 block:hashes_per_block().
 ```
 
+To mine a block:
+```
+api:mine_block().
+```
 
+<!----
 
 The mining software integrated into the full node is useful for testing, and as a reference implementation. This is not a profitable miner.
 
@@ -49,3 +54,4 @@ to check if you are currently mining:
 ```
 mine:status().
 ```
+----->

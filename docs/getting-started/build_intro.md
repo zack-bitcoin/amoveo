@@ -151,21 +151,6 @@ To sync with the network and download the blockchain:
 sync:start().
 ```
 
-#### Mining
-After fresh install, one can start mining.
-
-To start mining with all CPU cores: 
-```
-mine:start().
-```
-To stop mining:
-```
-mine:stop().
-```
-to check if you are currently mining:
-```
-mine:status().
-```
 
 #### Spend
 ```
@@ -176,4 +161,5 @@ api:spend(To, Amount).
 #### Learn more
 
 If you want to know more, go to the Amoveo Reddit, and see if someone else asked your question. https://www.reddit.com/r/Amoveo
+
 
