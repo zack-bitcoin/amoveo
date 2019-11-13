@@ -63,6 +63,7 @@ So it is the same efficiency as the other versions of plasma.
 
 * sortition chains https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chains.md With sortition chains we use probabilistic value instead of full value currency. If a sortition chain has $10k in it, and you own $100 of that sortition chain, this means you have a 1% chance to win $10k. probabilistic value currency is like owning a lottery ticket.
 You only need to keep track of the part of the history related to the part of the probability space that you own. You can ignore other parts of the probability space.
+On-chain we use a challenge-response protocol, so you only need to provide parts of the history where you are challenged.
 
 
 Scoreboard
@@ -122,8 +123,8 @@ PC      4    4   4   4   9
 PF      4    4   4   4   9
 PL      6    6   4   4   9
 PS      4    4   10  10  9
-Sort    7    7   7   7   9
-S2      7    7   10  10  9
+Sort    9    9   9   9   9
+S2      9    9   10  10  9
 
 ```
 
