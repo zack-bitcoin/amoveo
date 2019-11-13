@@ -14,6 +14,8 @@ In optimistic roll up as defined by this paper https://arxiv.org/pdf/1904.06441.
 There is a safety deposit paid when you add a block to the sidechain.
 Optimistic roll up is decentralized, anyone who is participating is the same as everyone else.
 
+[Here is a comment from the author of the optimistic roll up paper](https://twitter.com/jadler0/status/1194653628008730624?s=20)
+
 The IDEX plan in this blog post is completely different. Their team is the only ones who can add blocks to the sidechain. This creates a centralized failure mode.
 
 
