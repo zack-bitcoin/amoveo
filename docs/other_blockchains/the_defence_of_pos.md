@@ -149,7 +149,7 @@ This is the same as Josh's argument.
 Lior Yaffe
 ========
 
-Lior Yaffe is a programmer for NXT.
+Lior Yaffe is a programmer for lead dev of NXT, and Ardor, and Ignis.
 
 Here is his argument for why bribery soft fork attacks cannot happen https://twitter.com/lioryaffe/status/1192320643511017473?s=20
 
