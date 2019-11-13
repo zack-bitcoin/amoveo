@@ -24,29 +24,48 @@ tx types
 * amount of money
 * expiration date for when it it becomes possible to make sortition-contract-txs for this sortition chain.
 
-2) sortition contract
+2) sortition split
+
+This splits a sortition chain into two smaller sortition chains.
+
+* C = a binary chalang contract to determine how the old sortition chain is split. 
+
+for sortition chain 1, it selects a random value such that C is true.
+for sortition chain 2, it selects a random value such that C is false.
+
+3) sortition contract
 
 * a lot like channel_solo_close_tx or channel_slash_tx.
 
 * a chalang sortition spk signed by the owner which, if unlocked, enables this withdraw. 
 * a chalang script-sig to provide evidence to unlock the spk.
 * You pay a safety deposit.
-* if you aren't the first to make a sortition contract tx for this sortition chain, then you either need to provide evidence for an earlier height, or you need to provide the sortition-spend-tx where they had given up ownership of this part of the probability space, or you need to provide some different evidence to make the contract resolve with a higher nonce.
+* this potential winner gets added to a list of potential winners.
 
-3) sortition timeout
+4) sortition evidence
+
+* provide evidence that one of the potential winners signed away their ability to win this part of the probability space. They get removed from the list of potential winners.
+
+
+5) sortition timeout
 
 * almost identical to channel_timeout_tx
 * you have to wait a long enough delay after the sortition-contract-tx before you can do this tx.
+* whichever potential winners has the commitment to the earliest block height wins.
+
+<!-----
+
 * If the winner is different from the sortition chain operator, then this creates a new sortition chain that the winner controls.
 * The new sortition chain has all the money from the old one.
 * the new sortition chain has an expiration that is already passed. So it is possible to start the process of settling this sortition chain immediately.
 * this unlocks the safety deposit you had paid in the sortition-contract-tx.
+---->
 
-4) proof of existence
+6) proof of existence
 
 * This allows the creator to publish 32 bytes of data into the proof of existence tree. It keeps a record of the block height at which this hash was recorded. This is used for hashlocking.
 
-5) sortition chain state root
+7) sortition chain state root
 
 * records the state root of the sortition chain. This is how users who own value in that sortition chain can create proofs that they own value in it, the proof is connected to these state roots.
 * records the merkel root of a tree of signed sortition_roots from descendent sortition chains. This way your descendents don't have to post on-chain.
@@ -78,6 +97,11 @@ id is the 32 bytes being stored.
 * arbitrary 32-bytes.
 * the height where this was recorded.
 
+4) potential winners
+
+* the height at which their claim was proven. This determines the priority.
+* their pubkey.
+* pointer to next potential winner in a linked list ordered by priority.
 
 
 
