@@ -146,6 +146,23 @@ But, blockchain smart contract systems are exactly designed to enable trust-free
 This is the same as Josh's argument.
 
 
+Lior Yaffe
+========
+
+Lior Yaffe is a programmer for NXT.
+
+Here is his argument for why bribery soft fork attacks cannot happen https://twitter.com/lioryaffe/status/1192320643511017473?s=20
+
+According to Lior, this attack is "absurd".
+And it can never happen in practice.
+He gives the example of "NoS" attacks to clarify his position on the matter.
+
+I assume by "NoS", he is talking about the nothing-at-stake-attack, a topic that was settled in November 2014 https://blog.ethereum.org/2014/11/25/proof-stake-learned-love-weak-subjectivity/
+It makes me think that Lior hasn't paid attention to research in PoS since at least 2014. Which I guess makes sense, since NXT was launched in 2013, and is based on our understanding of PoS in 2013.
+
+I don't understand what argument Lior is trying to make. It isn't clear if Lior has read the paper he is commenting on. I suspect that Lior just wants to virtue signal on PoS, he isn't actually interested in learning anything or teaching us anything.
+
+
 Veil
 =========
 
