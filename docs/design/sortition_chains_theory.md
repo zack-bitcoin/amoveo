@@ -36,6 +36,25 @@ Once you have all this data, then you have trust-free ownership of your part of 
 You don't need to know anything about any other part of the probability space.
 If other parts of the probability space were double-spent, it does not matter to you at all. You still own your part of the probability space.
 
+Horizontal and Vertical payments
+=================
+
+Sortition chains offer 2 different ways to make payments: horizontal and vertical.
+A horizontal payment is how you give someone control of part of an existing sortition chain.
+A vertical payment is how you create a baby sortition chain inside of an existing sortition chain, and then you give someone control of a part of the new baby sortition chain.
+
+The off-chain cost of either kind of payment is that the person receiving the payment needs to download merkel proofs of the history of this part of the probability space.
+
+The on-chain cost of horizontal transfers is zero.
+
+The on-chain cost of vertical transfers is (the probability that you win)*(length of a signed chalang contract).
+
+To do a horizontal transfer, you need to convince one of the spend-commit-tree operators assigned to this sortition chain, you need to convince them to include the update into the history.
+
+To do a vertical transfer, you don't need anyone's permission.
+
+
+
 
 No Pubkey reuse for the same probability space.
 ===========
