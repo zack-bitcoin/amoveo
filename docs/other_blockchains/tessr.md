@@ -24,6 +24,8 @@ Emanuel Sylvia
 
 Infrastructure lead for Tessr.
 
+He founded Tessr. He quit his job at JPMorgan Chase to start working on Tessr 6 months before anyone else got involved with Tessr.
+
 Emanuel is the only person who wrote any blockchain code for Tessr, as you can see on his github https://github.com/tessr8/blockchain/commits/master
 
 Emanuel is the only person who wrote any smart contract code for Tessr, as you can see from his other repository https://github.com/tessr8/Solidity/commits/master
@@ -97,6 +99,8 @@ This seems like a lie for several reasons:
 
 * If Jerold's work was really so important, why was he only being paid 3% of the software budget?
 
+* If Jerold's work was so important to Tessr, how come Emanuel was working on Tessr for 6 months before Jerold became involved? How could a poor Emanuel work for 6 months without Jerold's help, but an Emanuel with $20 million is unable to continue without Jerold's help?
+
 * Since the ICO ended 1 month before Jerold's death, almost none of the ICO money was consumed in creating Jerold's software. So practically 100% of the ICO money was still available to build Tessr.
 
 * The idea that a software developer in the blockchain space wouldn't publish all their work as open source immediately after writing it, this is absolutely unbelievable. No blockchain software developer would do that to themselves. Trying to write cryptoeconomic software without being able to talk about your work to the rest of the cryptocurrency community is so much more difficult. 
@@ -104,6 +108,7 @@ This seems like a lie for several reasons:
 * The idea that a team would do an ICO without making their software open source first is a rediculous fantasy. It is critical to make the code open source before they try to raise money. It is far easier to raise money if there is some evidence that work is actually being done. That way investors can know that you are serious about delivering a working product.
 
 * The idea that a team would employ a software developer who refuses to share the software that they are writing is rediculous. If the Tessr team can't see the software being written, how can we know that any software is being written at all? There are no software jobs where they pay you to write secret software on your computer and never share it.
+
 
 Charles Ford
 ==========
@@ -129,6 +134,10 @@ By killing off a drug addict that no one cares about, and then pretending like h
 
 Timeline
 =========
+
+October 2017 - Emanuel Sylvia decides to quit his job as a storage engineer for JPMorgan Chase, and to start the project that would become Tessr.
+
+May 2018 - The first commit to a Tessr repository on github.
 
 April 2018 - Jerold's first commit to a Tessr repository on github.
 
