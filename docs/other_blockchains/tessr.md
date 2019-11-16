@@ -115,6 +115,8 @@ Charles Ford
 
 Charles Ford is the husband of Deb Ford, who is one of the 6 people on the board of advisors for Tessr.
 
+6% of all TSRX tokens were reserved for advisors, so it seems like Charles and Deb must have received 1% of all TSRX tokens. This means they are paid around 4 fold more than Jerold. So Charles and Deb must have created at least 4 fold more value for Tessr in comparison to Jerold.
+
 Before working on Tessr, Jerold was a homeless drug addict living on Charles Ford's couch.
 
 Charles Ford is the last person who saw Jerold alive. He was driving Jerold on an unplanned trip through a remote location Jerold had never been to before. Charles claims that Jerold ran away without warning.
