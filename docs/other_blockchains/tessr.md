@@ -3,6 +3,8 @@ Tessr
 
 Tessr is a project to use blockchain technology for educational reasons.
 
+Wired gave a report about the death of one of Tessr's devs https://www.wired.com/story/strange-life-mysterious-death-of-virtuoso-coder/
+
 During July 2018 the Tessr project did an ICO to sell TSRX tokens for $0.09 each https://icorating.com/ico/tessr-tsrx/#team
 
 You can see google wayback machine has a copy of their website. It was 5000 TSRX tokens for 1 ETH. https://web.archive.org/web/20180802031037/http://www.tessr.io/
