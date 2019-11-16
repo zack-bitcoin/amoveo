@@ -99,7 +99,9 @@ This seems like a lie for several reasons:
 
 * If Jerold's work was really so important, why was he only being paid 3% of the software budget?
 
-* If Jerold's work was so important to Tessr, how come Emanuel was working on Tessr for 6 months before Jerold became involved? How could a poor Emanuel work for 6 months without Jerold's help, but an Emanuel with $20 million is unable to continue without Jerold's help?
+* If Jerold's work was so important to Tessr, how come Emanuel was working on Tessr for 5 months before Jerold became involved? How could a poor Emanuel work for 5 months without Jerold's help, but an Emanuel with $20 million is unable to continue without Jerold's help?
+
+* if Jerold's work is so important, how come there is no evidence on github of him doing any work for Tessr? What was Jerold doing for Tessr from Febuary until July? Why did they employ him for 6 months?
 
 * Since the ICO ended 1 month before Jerold's death, almost none of the ICO money was consumed in creating Jerold's software. So practically 100% of the ICO money was still available to build Tessr.
 
@@ -121,6 +123,25 @@ Before working on Tessr, Jerold was a homeless drug addict living on Charles For
 
 Charles Ford is the last person who saw Jerold alive. He was driving Jerold on an unplanned trip through a remote location Jerold had never been to before. Charles claims that Jerold ran away without warning.
 
+Etienne Fieri
+==========
+
+Etienne was working on Tessr before Jerold got involved. Her title was "business team".
+
+Charles Ford, the husband of a Tessr board member, emailed Etienne a resume for Haas.
+
+It was Etienne who interviewed Jerold to bring him onto the Tessr team.
+Upon interviewing Jerold, an unemployed homeless drug-addict, Etienne almost immediately fell in love with him.
+
+Jerold finally stopped sleeping on Charles' couch, and instead moved into Etienne's place.
+
+When Jerold died, Etienne Fieri got all his money that he had been paid from Tessr.
+She had access to his bank account.
+
+Etienne claims that she and Jerold were planning on getting married.
+
+Etienne claims that she and Jerold started dating in the winter. 
+
 
 A motive to kill Jerold
 ==========
@@ -139,9 +160,11 @@ Timeline
 
 October 2017 - Emanuel Sylvia decides to quit his job as a storage engineer for JPMorgan Chase, and to start the project that would become Tessr.
 
+Febuary 2018 - Jerold hired by Tessr. Jerold starts dating Etienne.
+
 May 2018 - The first commit to a Tessr repository on github.
 
-April 2018 - Jerold's first commit to a Tessr repository on github.
+July 2018 - Jerold's first commit to a Tessr repository on github.
 
 July 2018 - Tessr ICO
 
