@@ -169,3 +169,41 @@ July 2018 - Jerold's first commit to a Tessr repository on github.
 July 2018 - Tessr ICO
 
 August 2018 - Jerold disappears
+
+
+People involved
+=========
+
+15 people are listed as team members for Tessr https://icoholder.com/en/tessr-foundation-23622
+
+6% of the TSRX was allocated to advisors. https://icorating.com/ico/tessr-tsrx/
+As far as I can tell, all 6 advisors are real people.
+
+* Bob Fitrakis
+* Gary Cavin
+* Ekta Chabria
+* D Samuel Hodge
+* Deb Beetham-Ford
+* Eriyah Flynn
+
+12% of the TSRX was allocated to the project team.
+
+As far as I can tell, out of the 9 listed team member, only 4 of them are real people who have ever existed.
+
+* Emanuel Sylvia - Founder of Tessr. He was interviewed by the police, and we have his employment history https://www.linkedin.com/in/emanuel-sylvia-0975b3a8 and he wrote some software for Tessr.
+
+* Jerold Haas - his dead body was found by the police.
+
+* Etienne Fieri - Jerold's girlfriend while he was at Tessr. she was interviewed by the police.
+
+* SJ Barakony - runs an entreprenuer mentorship business, has done a youtube interview.
+
+
+Here are the 5 team members listed for Tessr who all seem to be imaginary people that never existed:
+
+* Douglas R Porter
+* David Jeffries
+* Tyler Cooley
+* Laura E Crosby
+* Somto E Njoku
+
