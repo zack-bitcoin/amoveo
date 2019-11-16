@@ -28,76 +28,76 @@ Emanuel is the only person who wrote any blockchain code for Tessr, as you can s
 
 Emanuel is the only person who wrote any smart contract code for Tessr, as you can see from his other repository https://github.com/tessr8/Solidity/commits/master
 
-2 months after raising millions in ICO, Emanuel's private email with Jarold Haas' mom reveals that the Tessr project has been abandoned.
+2 months after raising millions in ICO, Emanuel's private email with Jerold Haas' mom reveals that the Tessr project has been abandoned.
 
 
-Jarold Haas
+Jerold Haas
 ========
 
 He was listed as the development lead for Tessr.
 
-Jarold Haas was a mentally ill drug addict who died around August 30 2018.
+Jerold Haas was a mentally ill drug addict who died around August 30 2018.
 
-You can see on his github that Jarold was a hobbiest programmer in 2015 and 2016. https://github.com/jeroldhaas
+You can see on his github that Jerold was a hobbiest programmer in 2015 and 2016. https://github.com/jeroldhaas
 
-Jarold wrote almost exclusively in F#. Occasionally he would use C#, and on one occasion he used javascript.
+Jerold wrote almost exclusively in F#. Occasionally he would use C#, and on one occasion he used javascript.
 It is clear he didn't take programming seriously, he often went months at a time without writing any code at all, and he basically stopped programming in 2016.
 
-According to this article https://www.wired.com/story/strange-life-mysterious-death-of-virtuoso-coder/ Emanual Sylvia described Jarold this way:
+According to this article https://www.wired.com/story/strange-life-mysterious-death-of-virtuoso-coder/ Emanual Sylvia described Jerold this way:
 
 “The programming language we use to write smart contracts, Solidity? Jerold picked it up in a day or two,” Sylvia says. “I've been in this industry for 20-some years and met a lot of brilliant people, and Jerold was one of the best. He definitely had this extreme talent.”
 
-Sylvia also says that Jarold had written lots of blockchain and smart contract software, but it was all encrypted inside of Jarold's laptop.
-When Jarold died, they lost all their work.
+Sylvia also says that Jerold had written lots of blockchain and smart contract software, but it was all encrypted inside of Jerold's laptop.
+When Jerold died, they lost all their work.
 
-Sylvia is using Jarold's death as an excuse to abandon working on Tessr.
+Sylvia is using Jerold's death as an excuse to abandon working on Tessr.
 
 
 
-What work did Jarold do?
+What work did Jerold do?
 =================
 
-Jarold made around 5 contributions to Tessr. They were all very minor details. It is hard to consider any of these contributions as "programming", they are more like tasks someone would do while they are learning how to program. I will link to all 5 here:
+Jerold made around 5 contributions to Tessr. They were all very minor details. It is hard to consider any of these contributions as "programming", they are more like tasks someone would do while they are learning how to program. I will link to all 5 here:
 
-1) Jarold created this README file with the 2 lines of text "# blockchain" and "Blockchain Projects" https://github.com/tessr-labs/Solidity/commit/898442ee6923dddd395513a75fa29da910e3d3c6
+1) Jerold created this README file with the 2 lines of text "# blockchain" and "Blockchain Projects" https://github.com/tessr-labs/Solidity/commit/898442ee6923dddd395513a75fa29da910e3d3c6
 
-2) Jarold fixed a spelling error related to an ampersand symbold `&` https://github.com/tessr-labs/web/commit/9cd6fe95eff5c5e1c5ef7421eda3025c426f73d7
+2) Jerold fixed a spelling error related to an ampersand symbold `&` https://github.com/tessr-labs/web/commit/9cd6fe95eff5c5e1c5ef7421eda3025c426f73d7
 
-3) Jarold committed this auto-generated .gitignore file which is built for CakePHP development with github. https://github.com/tessr-labs/web/commit/6a1389f490858bb82a80fb8b51c2053803afd2da
+3) Jerold committed this auto-generated .gitignore file which is built for CakePHP development with github. https://github.com/tessr-labs/web/commit/6a1389f490858bb82a80fb8b51c2053803afd2da
 
-4) Jarold explained the branding of Tessr/TSRX/etc https://github.com/tessr-labs/branding/commit/2597e06f133cad2473c003a47dfe1f240bfe810e
+4) Jerold explained the branding of Tessr/TSRX/etc https://github.com/tessr-labs/branding/commit/2597e06f133cad2473c003a47dfe1f240bfe810e
 
-5) Jarold fixed a spelling error https://github.com/tessr-labs/branding/commit/3504eee50a6c77ed671f4927bb17934ae044e895
+5) Jerold fixed a spelling error https://github.com/tessr-labs/branding/commit/3504eee50a6c77ed671f4927bb17934ae044e895
 
-Jarold did not write any software related to blockchains or smart contracts.
+Jerold did not write any software related to blockchains or smart contracts.
 
-I estimate it would take an average programmer around 1 or 2 hours to finish all 5 tasks which make up the totality of everything Jarold accomplished for Tessr. 
+I estimate it would take an average programmer around 1 or 2 hours to finish all 5 tasks which make up the totality of everything Jerold accomplished for Tessr. 
 
 
-Jarold's compensation
+Jerold's compensation
 ===========
 
-In exchange for his work for Tessr, Jarold was promised that he would eventually get 1.5 million of the TSRX tokens, according to this https://www.wired.com/story/strange-life-mysterious-death-of-virtuoso-coder/
+In exchange for his work for Tessr, Jerold was promised that he would eventually get 1.5 million of the TSRX tokens, according to this https://www.wired.com/story/strange-life-mysterious-death-of-virtuoso-coder/
 
 1.5 million TSRX is worth around $135,000. It is either 0.375% or 0.214% of the total TSRX, depending on whether there are 400 million or 700 million total tokens.
 
 According to this page, 12% of the total market cap of TSRX is supposed to be dedicated to building the software. https://icorating.com/ico/tessr-tsrx/
 
-So that means that Jarold's work is worth less than 3% of the total expected cost of building the software.
+So that means that Jerold's work is worth less than 3% of the total expected cost of building the software.
 
-So, there was an expectation that 97% of the software was going to come from people other than Jarold.
+So, there was an expectation that 97% of the software was going to come from people other than Jerold.
 
 
 Why was work on Tessr abandoned?
 ===========
 
-Emanuel Sylvia says that they had to abandon Tessr because the loss of Jarold's work was too much for them to recover from.
+Emanuel Sylvia says that they had to abandon Tessr because the loss of Jerold's work was too much for them to recover from.
 
 This seems like a lie for several reasons:
 
-* If Jarold's work was really so important, why was he only being paid 3% of the software budget?
+* If Jerold's work was really so important, why was he only being paid 3% of the software budget?
 
-* Since the ICO ended 1 month before Jarold's death, almost none of the ICO money was consumed in creating Jarold's software. So practically 100% of the ICO money was still available to build Tessr.
+* Since the ICO ended 1 month before Jerold's death, almost none of the ICO money was consumed in creating Jerold's software. So practically 100% of the ICO money was still available to build Tessr.
 
 * The idea that a software developer in the blockchain space wouldn't publish all their work as open source immediately after writing it, this is absolutely unbelievable. No blockchain software developer would do that to themselves. Trying to write cryptoeconomic software without being able to talk about your work to the rest of the cryptocurrency community is so much more difficult. 
 
@@ -110,12 +110,12 @@ Charles Ford
 
 Charles Ford is the husband of Deb Ford, who is one of the 6 people on the board of advisors for Tessr.
 
-Before working on Tessr, Jarold was a homeless drug addict living on Charles Ford's couch.
+Before working on Tessr, Jerold was a homeless drug addict living on Charles Ford's couch.
 
-Charles Ford is the last person who saw Jarold alive. He was driving Jarold on an unplanned trip through a remote location Jarold had never been to before. Charles claims that Jarold ran away without warning.
+Charles Ford is the last person who saw Jerold alive. He was driving Jerold on an unplanned trip through a remote location Jerold had never been to before. Charles claims that Jerold ran away without warning.
 
 
-A motive to kill Jarold
+A motive to kill Jerold
 ==========
 
 Building a blockchain is expensive.
@@ -130,8 +130,8 @@ By killing off a drug addict that no one cares about, and then pretending like h
 Timeline
 =========
 
-April 2018 - Jarold's first commit to a Tessr repository on github.
+April 2018 - Jerold's first commit to a Tessr repository on github.
 
 July 2018 - Tessr ICO
 
-August 2018 - Jarold disappears
+August 2018 - Jerold disappears
