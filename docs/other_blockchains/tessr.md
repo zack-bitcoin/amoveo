@@ -69,6 +69,8 @@ Jarold made around 5 contributions to Tessr. They were all very minor details. I
 
 Jarold did not write any software related to blockchains or smart contracts.
 
+I estimate it would take an average programmer around 1 or 2 hours to finish all 5 tasks which make up the totality of everything Jarold accomplished for Tessr. 
+
 
 Jarold's compensation
 ===========
@@ -123,3 +125,11 @@ So they had a motive to find an excuse to not build Tessr.
 By killing off a drug addict that no one cares about, and then pretending like he was a critical part of building Tessr, this would allow the Tessr team to keep the $20 million for themselves, and they don't have to spend it building a blockchain.
 
 
+Timeline
+=========
+
+April 2018 - Jarold's first commit to a Tessr repository on github.
+
+July 2018 - Tessr ICO
+
+August 2018 - Jarold disappears
