@@ -24,6 +24,7 @@ tx types
 * amount of money
 * expiration date for when it it becomes possible to make sortition-contract-txs for this sortition chain.
 
+
 2) sortition split
 
 This splits a sortition chain into two smaller sortition chains.
@@ -99,10 +100,46 @@ id is the 32 bytes being stored.
 
 4) potential winners
 
-* the height at which their claim was proven. This determines the priority.
+* each sortition chain has a list of potential winners sorted by priority. Priority increases if the deepest layer of sortition chain in your proof has an earlier height it was committed at.
 * their pubkey.
-* pointer to next potential winner in a linked list ordered by priority.
+* the height at which their claim was proven. This determines the priority. It is a list of priorities, one for every layer of sortition chains.
+* for every layer of sortition chains, we need a list o fpubkeys of accounts assigned to gather evidence for that part of the probability space.
 
+Timeline for horizontal payment
+=============
+
+Bob has veo in sortition chain A, he wants to spend to Alice, and he wants the option to hashlock this payment against something else.
+Carol is the operator of the sortition chain.
+Dave is the spend proof holder.
+
+
+1) Alice downloads all the history of all the merkel proofs of Bob's part of the probability space. She gets the probability space history from Carol, and she gets the spend history from Dave.
+
+2) Bob gives Carol a signed message asking that she help to give part of his veo to Alice. Carol includes a contract that would give Alice control into the sortition merkel tree. 
+
+3) Alice downloads from Carol the proof that her contract exists in the tree. She downloads proofs for all the history of this part of the probability value space, to make sure that when Bob gives up control, her contract will have the highest priority.
+
+4) Bob generates secret S, and takes the hash of it to generate commitment C. Bob signs a messages saying that if the secret for C is revealed, then Bob gives up control of his part of the probability space. He gives this to Dave.
+
+5) Once Dave has included the spend contract into his merkel tree, Alice downloads the merkel proof from him.
+
+6) Alice sets up the other half of the hashlock using commitment C.
+
+7) Bob reveals secret S to Alice. So now Alice controls the value Bob had wanted to spend to her.
+
+
+Timeline for vertical payment
+===========
+
+Bob has veo in a sortition chain A, he wants to spend to Alice, and he wants the option to hashlock this payment against something else.
+The operator of the sortition chain A has disappeared.
+The operator of the spend proofs merkel tree has disappeared.
+
+1) Alice downloads all the merkel proofs of Bob's part of the probability space from Bob, so she knows that Bob actually owns some Veo.
+
+2) Bob creates an off-chain contract that says if he wins the sortition chain, it is the root of a new sortition chain. Bob is the operator of the new sortition chain. He chooses a spend proofs merkel tree operator Dave for the new sortition chain.
+
+Bob owns 100% of the value in the new sortition chain, so he can do horizontal payments like normal.
 
 
 Data the sortition chain operator needs to store
