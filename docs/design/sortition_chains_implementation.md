@@ -109,19 +109,23 @@ consensus state consumed O((number of potential winners)*(# layers of sortition 
 
 each pw_root contains a pubkey of who could win.
 
-so, every pw-root will point to the next pw-root in the linked list. it is ordered based on priority.
-and the pw-root also points to a pw_layer.
+so, every pw_root will point to the next pw_root in the linked list. it is ordered based on priority.
+and the pw_root also points to a pw_layer.
 
 5)  potential_winner_layer
 
 each pw_layer contains a priority height for that layer.
 
-the pw_layers are a linked list, each pointing to the next. they are ordered based on the order of the sortitoin chains inside of each other. and the pw_layer also points to a pw_spent_proof.
+each pw_layer has a pointer to the pw_root it is associated with.
+
+the pw_layers are a linked list, each pointing to the next. they are ordered based on the order of the sortitoin chains inside of each other.
 
 
 6) potential_winner_spent_proofs
 
 each pw_spent_proof contains the pubkey of the account assigned to collect spent proofs into a merkel tree.
+
+each pw_spent_proof_operator has a pointer to the pw_root it is associated with, and to the pw_layer it is associated with.
 
 the pw_spent_proofs are a linked list, each pointing to the next. 
 
