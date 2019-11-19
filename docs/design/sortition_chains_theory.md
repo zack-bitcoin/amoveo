@@ -54,6 +54,51 @@ To do a horizontal transfer, you need to convince one of the spend-commit-tree o
 To do a vertical transfer, you don't need anyone's permission.
 
 
+We don't need turing complete contracts to divide the probability space
+============
+
+
+The other day we were talking about how we can have turing complete contracts to divide up the probabilistic value space, and we can have turing complete smart contracts for when people give up control of part of the probability space.
+And we realized that it is better to do it at the step where users are giving up control, because less data gets posted on chain.
+
+Now I have realized that any contract done at the probabilistic division step, it can also be done at the step where users are giving up control.
+
+Lets say I have a arbitrary contract at the probabilistic division step. it divides up some of the value space into 2 mutually exclusive outcomes.
+
+I can make the same division by owning all that probabistic value space, and signing a tx that says I am giving up control of this part of the probabilistic value space, but only in the condition that the contract returns true.
+And we can set it up so that if I do give up control, next in line is the person on the other side of the contract.
+
+So this greatly simplifies the sortition chain design.
+
+
+We don't need to embed state channels
+============
+
+now we only have turing complete contracts in 2 cases instead of 3.
+1) for when users want to give up control of part of the probability space.
+2) for state channels embedded inside the sortition chain.
+
+
+
+It would be really nice if we could find a way to show that case (1) can solve everything for (2), because embedding state channels is going to be a lot of work to build and maintain.
+so, the full power of a state channel can be modeled like this:
+Alice and Bob have a turing complete contract C1 that will decide how to divide up their money.
+They can work together to instantly swap out contract C1 for any other turing complete contract C2 at zero cost.
+ok, how about we do it like this.
+Alice owns part of the sortition chain probabilistic value space.
+Bob has an account that is second in the priority queue to own it.
+Alice has an account that is 3rd in the queue.
+Bob has an account that is 4th.
+Alice signs a tx to give up her ownership, but only if contract C1 is true.
+
+Now Alice generates a secret S and hashes it to make the commitment h(S).
+Alice signs a tx to give up all of her ownership of the probabilistic value space for her first pubkey, but only if S is revealed.
+Alice offers to give up all the value in her second pubkey, but only if the contract C2 is true.
+Bob signs a tx to give up all of his ownership of the probabilistic value space for his first pubkey, but only if S is revealed.
+Alice reveals the secret S.
+
+This solution has the draw-back that Alice and Bob need to pre-compute a different pubkey for every time that they want to be able to update their channel during a single block.
+And they are limited to only transfering all the money at a rate of once per block.
 
 
 No Pubkey reuse for the same probability space.
