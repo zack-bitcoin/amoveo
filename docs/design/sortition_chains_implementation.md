@@ -98,12 +98,35 @@ id is the 32 bytes being stored.
 * arbitrary 32-bytes.
 * the height where this was recorded.
 
-4) potential winners
+4) potential_winner_root
 
-* each sortition chain has a list of potential winners sorted by priority. Priority increases if the deepest layer of sortition chain in your proof has an earlier height it was committed at.
-* their pubkey.
-* the height at which their claim was proven. This determines the priority. It is a list of priorities, one for every layer of sortition chains.
-* for every layer of sortition chains, we need a list o fpubkeys of accounts assigned to gather evidence for that part of the probability space.
+for every potential winner there can be multiple layers of sortition chains in their proof that they won.
+for every layer of sortition chain, we need to remember a priority height as well as a list of pubkeys of accounts assigned to collect evidence for when users give up ownership of parts of that layer.
+
+the priority height is the block height when this data was commited into the blockchain. Earlier heights are higher priority.
+
+consensus state consumed O((number of potential winners)*(# layers of sortition chains deep)*(# accounts assigned to gather evidence in each layer))
+
+each pw_root contains a pubkey of who could win.
+
+so, every pw-root will point to the next pw-root in the linked list. it is ordered based on priority.
+and the pw-root also points to a pw_layer.
+
+5)  potential_winner_layer
+
+each pw_layer contains a priority height for that layer.
+
+the pw_layers are a linked list, each pointing to the next. they are ordered based on the order of the sortitoin chains inside of each other. and the pw_layer also points to a pw_spent_proof.
+
+
+6) potential_winner_spent_proofs
+
+each pw_spent_proof contains the pubkey of the account assigned to collect spent proofs into a merkel tree.
+
+the pw_spent_proofs are a linked list, each pointing to the next. 
+
+
+
 
 Timeline for horizontal payment
 =============
