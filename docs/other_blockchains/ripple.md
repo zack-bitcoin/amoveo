@@ -28,7 +28,6 @@ Going offline in ripple is insecure and trustful
 ==========
 
 Bitcoin PoW is trust-free technology.
-You never have to trust someone to run a node.
 With PoW there is always exactly one fork that has the most work done, and you can verify which fork has the most work even if that work was done while you were offline.
 
 In Ripple, if there was ever a 5 second period between now and 2012 when you were not operating a ripple node, then you can't know which nodes belong on the UNL.
