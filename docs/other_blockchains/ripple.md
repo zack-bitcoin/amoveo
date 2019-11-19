@@ -8,7 +8,7 @@ This is the white paper for ripple https://arxiv.org/pdf/1802.07242.pdf
 UNL
 =======
 
-With Ripple, in order to know which side of a fork is legitimate, you need to maintain a record of which nodes are on the trusted node list (called UNL).
+With Ripple, in order to know which side of a consensus-fork is legitimate, you need to maintain a record of which nodes are on the trusted node list (called UNL).
 
 According to section 4 of the Ripple white paper, a pair of nodes can only agree on which ripple transactions are legitimate if they are both using UNL's that are sufficiently similar.
 
@@ -32,7 +32,8 @@ You never have to trust someone to run a node.
 With PoW there is always exactly one fork that has the most work done, and you can verify which fork has the most work even if that work was done while you were offline.
 
 In Ripple, if you ever go offline, then you can't know which nodes belong on the UNL.
-If you don't know which nodes belong on the UNL, then you can't know if a transaction sent to you has value.
+If you don't know which nodes belong on the UNL, then you can't know which side of a fork is legitimate.
+If you don't know which side of the fork is legitimate, then you can't know if a transaction sending coins to you has value or not.
 
 
 
