@@ -3,11 +3,11 @@ Blockchain Theory
 
 Models have been proposed to explain relationships of different aspects of the blockchain.
 
-We have a model that show the relationship between security, trust, and the cost of fees https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md
+We have a model that show the relationship between security, trust, and the cost of fees. [Trust Theory](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/trust_theory.md)
 
-We have models to show a relationship between scalability and the costs of fees https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/sharding.md
+We have models to show a relationship between scalability and the costs of fees [Sharding strategies compared](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/sharding.md)
 
-We have a model showing a relationship between the privacy of transactions and scalability https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/privacy.md
+We have a model showing a relationship between the privacy of transactions and scalability [modeling privacy](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/privacy.md)
 
 The goal of this paper is to derive a unified equation that simultaniously expresses the relationships between all these different values.
 
@@ -17,10 +17,10 @@ The blockchain's consensus efficiency
 Using the unified blockchain equation, we can calculate the consensus efficiency for any blockchain design.
 If a blockchain's consensus efficiency is higher, then if everything else is equal, it will have lower fees.
 
-symbols
+defining symbols for the equations
 ========
 
-S = blockchain security level
+S = blockchain security level = ((how much the attacker can steal) - (cost to attack))/(how much the victim loses)
 
 P = Privacy = the size of the anonymity set disguising your transaction. This is the same as 1/(the linkability of your tx).
 
@@ -39,11 +39,11 @@ you calculate your security level like this: If the attacker's change in balance
 
 `S = A/D`
 
-I am using this symbol `~` to express proportionality.
-
 In general, doubling the volume of fees collected per second increases S by a factor of 2.
 
 -> `S ~ F`
+
+I am using this symbol `~` to express [proportionality](https://en.wikipedia.org/wiki/Proportionality_(mathematics))
 
 What we know from studying sharding
 ==========
@@ -52,7 +52,7 @@ V = the number of txs in a single scaling lottery
 
 The on-chain cost to settle one lottery is O(log2(V)), so `F ~ log2(V)*(lotteries per day)`
 
-`T ~ V*L`
+`T ~ V * L`
 
 `V ~ T / L`
 
@@ -75,15 +75,15 @@ from sharding, we know that T and F relate like this
 Putting it together to define consensus efficiency.
 =========
 
-F ~ S * L * log2((P * T)/L)
+`F ~ S * L * log2((P * T)/L)`
 
 Now we know how to define the consensus efficiency.
 
 We want to define the consensus efficiency=B so that B is always positive, and it is set up so that if everything else is equal, higher values of B mean the tx fees are lower.
 
--> F = (1/B) * L * S * log2((P * T)/L)
+-> `F = (1/B) * L * S * log2((P * T)/L)`
 
--> B = (S * L * log2((P * T)/L))/F
+-> `B = (S * L * log2((P * T)/L))/F`
 
 This is the unified blockchain modeling equation, it is also the definition of consensus efficiency.
 
@@ -106,7 +106,7 @@ T = txs per second = 2000
 
 So, lets calculate this blockchain's consensus efficiency.
 
-`B = blockchain's consensus efficiency = (S * L * log2((P * T)/L))/F`
+`B = (S * L * log2((P * T)/L))/F`
 
 -> `B = 2 * 100 * log2((1 * 2000)/100) / 100`
 
@@ -116,13 +116,13 @@ it has a consensus efficiency of 8.64
 
 So lets change P to 1000 which means our anonymity set has 1000 txs in it, and solve for F to see how the size of fees will change.
 
-`B = blockchain consensus efficiency = (S * L * log2((P * T)/L))/F`
+`B = (S * L * log2((P * T)/L))/F`
 
--> 8.64 = 2 * 100 * log2((1000 * 2000)/100) / F
+-> `8.64 = 2 * 100 * log2((1000 * 2000)/100) / F`
 
--> F = $200 * log2(20000) / 8.64
+-> `F = $200 * log2(20000) / 8.64`
 
--> F = $331
+-> `F = $331`
 
 So for this example, increasing the anonymity set from a size of 1 to a size of 1000 causes the (fees + block rewards) collected per second to increase from $100 to $331.
 
