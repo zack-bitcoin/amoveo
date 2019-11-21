@@ -37,8 +37,7 @@ What we know from trust theory
 
 you calculate your security level like this: If the attacker's change in balance due to the attack is A, and the defender's loss is D, then the security level is A/D .
 
-S = A/D
-We are only considering designs with trust level 2, so A>D, so S>1.
+`S = A/D`
 
 I am using this symbol `~` to express proportionality.
 
@@ -67,7 +66,7 @@ If you pay for twice as many txs, then you can increase the size of the anonymit
 
 `P ~ T`
 
-from studying sharding, we know that T and F relate like this
+from sharding, we know that T and F relate like this
 
 `F ~ L * log2(T/L)`
 
@@ -79,6 +78,8 @@ Putting it together to define blockchain power.
 F ~ S * L * log2((P * T)/L)
 
 Now we know how to define the blockchain power.
+
+We want to define the blockchain power=B so that B is always positive, and it is set up so that if everything else is equal, higher values of B mean the tx fees are lower.
 
 -> F = (1/B) * L * S * log2((P * T)/L)
 
@@ -113,7 +114,7 @@ So, lets calculate this blockchain's power level.
 
 it has a power level of 8.64
 
-So lets change P to 1000, and solve for F to see how the size of fees will change.
+So lets change P to 1000 which means our anonymity set has 1000 txs in it, and solve for F to see how the size of fees will change.
 
 `B = blockchain power level = (S * L * log2((P * T)/L))/F`
 
