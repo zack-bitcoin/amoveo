@@ -34,10 +34,12 @@ If 99% of bitcoin miners include headers for both sides of a veriblock fork, and
 Data withholding vulnerabilities
 ========
 
-If we use the version of veriblock where only the hash of the veriblock header is embedded in bitcoin transactions, then it has data withholding vulnerabilities.
+Whether we embed the entire header or just the hash, Veriblock sidechains are still vulnerable to data withholding attacks.
 
-An attacker could build a veriblock fork that is longer without revealing to anyone else that it exists.
-Then the attacker can double-spend all their transactions by revealing their side of the fork to undo some history.
+An attacker could build a veriblock fork that is longer without revealing to anyone else the contents of the blocks.
+
+Then the attacker can double-spend all their transactions on the uncensored side of the fork by revealing their side of the fork to undo some history.
+
 So the attacker could steal the money on the sidechain.
 
 Conclusion
