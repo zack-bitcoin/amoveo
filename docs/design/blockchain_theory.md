@@ -26,7 +26,9 @@ P = Privacy = the size of the anonymity set disguising your transaction. This is
 
 F = (fees per second) + (block rewards paid per second).
 
-V = the number of txs in a single scaling lottery
+L = number of lotteries per day.
+
+T = volume of txs per second
 
 B = the blockchain power level.
 
@@ -47,7 +49,15 @@ In general, doubling the volume of (fees + block rewards) collected per second i
 What we know from studying sharding
 ==========
 
-The on-chain cost is O(log2(V)), so `F ~ log2(V)`
+V = the number of txs in a single scaling lottery
+
+The on-chain cost to settle one lottery is O(log2(V)), so `F ~ log2(V)*(lotteries per day)`
+
+`T ~ V*L`
+
+`V ~ T / L`
+
+-> `F ~ L * (log2(T/L))`
 
 
 What we know from studying privacy
@@ -55,37 +65,67 @@ What we know from studying privacy
 
 If you pay for twice as many txs, then you can increase the size of the anonymity set twice as much.
 
-`P ~ F`
+`P ~ T`
+
+from studying sharding, we know that T and F relate like this
+
+`F ~ L * log2(T/L)`
+
+-> `F ~ L * log2((P * T)/L)`
 
 Putting it together to define blockchain power.
 =========
 
-S ~ F
-
-F ~ log2(V)
-
-P ~ F
-
-solving for F everywhere
-
-F ~ S - R
-
-F ~ log2(V)
-
-F ~ P
-
--> F ~ P * log2(V) * S
+F ~ S * L * log2((P * T)/L)
 
 Now we know how to define the blockchain power.
 
--> F = B * P * log2(V) * S
+-> F = (1/B) * L * S * log2((P * T)/L)
 
--> B = F/(P * S * log2(V))
+-> B = (S * L * log2((P * T)/L))/F
 
-Conclusions
-========
+This is the unified blockchain modeling equation, it is also the definition of blockchain power.
 
-For any blockchain design it is possible to calculate a power-level for that blockchain.
-Blockchains with higher power levels can have lower fees, if everything else is configured identically.
+Example of using blockchain power formula
+==============
 
-The amount of fees and block rewards that a blockchain needs to charge per second is (that blockchain's power level) * (how big you want the anonymity set to be so you can have privacy for your txs) * (how expensive it is for an attacker to break) * (log2(the number of txs bundled in a single scaling lottery)).
+Lets say we have a blockchain without any privacy, and we want to know how much higher the transaction fees will be if we add privacy by increasing the size of the anonymity set for all txs to 1000.
+
+The blockchain starts out with this configuration:
+
+S = security level = 2
+
+P = size of the anonymity set = 1
+
+F = $100
+
+L = lotteries per day = 100
+
+T = txs per second = 2000
+
+So, lets calculate this blockchain's power level.
+
+`B = blockchain power level = (S * L * log2((P * T)/L))/F`
+
+-> `B = 2 * 100 * log2((1 * 2000)/100) / 100`
+
+-> `B = 8.64`
+
+it has a power level of 8.64
+
+So lets change P to 1000, and solve for F to see how the size of fees will change.
+
+`B = blockchain power level = (S * L * log2((P * T)/L))/F`
+
+-> 8.64 = 2 * 100 * log2((1000 * 2000)/100) / F
+
+-> F = 200 * log2(20000) / 8.64
+
+-> F = 331
+
+So for this example, increasing the anonymity set from a size of 1 to a size of 1000 causes the fees collected per second to increase from $100 to $331.
+
+It will cause the cost of making each tx to increase by a factor of about 3.3.
+
+
+
