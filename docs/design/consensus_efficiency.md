@@ -30,7 +30,7 @@ L = number of lotteries per day.
 
 T = volume of txs per second
 
-B = the blockchain's consensus efficiency.
+C = the blockchain's consensus efficiency.
 
 F / T = tx fee for an average tx.
 
@@ -79,11 +79,11 @@ Putting it together to define consensus efficiency.
 
 Now we know how to define the consensus efficiency.
 
-We want to define the consensus efficiency=B so that B is always positive, and it is set up so that if everything else is equal, higher values of B mean the tx fees are lower.
+We want to define the consensus efficiency=C so that C is always positive, and it is set up so that if everything else is equal, higher values of C mean the tx fees are lower.
 
--> `F = (1/B) * L * S * log2((P * T)/L)`
+-> `F = (1/C) * L * S * log2((P * T)/L)`
 
--> `B = (S * L * log2((P * T)/L))/F` <--------------
+-> `C = (S * L * log2((P * T)/L))/F` <--------------
 
 This is the unified blockchain modeling equation, it is also the definition of consensus efficiency.
 
@@ -106,17 +106,17 @@ T = txs per second = 2000
 
 So, lets calculate this blockchain's consensus efficiency.
 
-`B = (S * L * log2((P * T)/L))/F`
+`C = (S * L * log2((P * T)/L))/F`
 
--> `B = 2 * 100 * log2((1 * 2000)/100) / 100`
+-> `C = 2 * 100 * log2((1 * 2000)/100) / 100`
 
--> `B = 8.64`
+-> `C = 8.64`
 
 it has a consensus efficiency of 8.64
 
 So lets change P to 1000 which means our anonymity set has 1000 txs in it, and solve for F to see how the size of fees will change.
 
-`B = (S * L * log2((P * T)/L))/F`
+`C = (S * L * log2((P * T)/L))/F`
 
 -> `8.64 = 2 * 100 * log2((1000 * 2000)/100) / F`
 
@@ -147,17 +147,17 @@ So this means that an attacker who spends $100 can destroy $50.
 
 Lets increase the security level so that an attacker who spends $100 can destroy only $5, and calculate how this impacts the cost of fees.
 
-`B = (S * L * log2((P * T)/L))/F`
+`C = (S * L * log2((P * T)/L))/F`
 
--> `B = (2 * 100 * log2((1 * 2000)/100))/100`
+-> `C = (2 * 100 * log2((1 * 2000)/100))/100`
 
--> `B = 8.64`
+-> `C = 8.64`
 
 so this blockchain has a consensus efficiency of 8.64.
 
 Now lets increase the security level to 20, and calculate the new fee.
 
-`B = (S * L * log2((P * T)/L))/F`
+`C = (S * L * log2((P * T)/L))/F`
 
 -> `8.64 = (20 * 100 * log2((1 * 2000)/100))/F`
 
