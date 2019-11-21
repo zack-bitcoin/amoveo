@@ -26,8 +26,6 @@ P = Privacy = the size of the anonymity set disguising your transaction. This is
 
 F = (fees per second) + (block rewards paid per second).
 
-A = the quantity of value being sent in the transaction.
-
 V = the number of txs in a single scaling lottery
 
 B = the blockchain power level.
