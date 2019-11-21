@@ -24,7 +24,7 @@ S = blockchain security level
 
 P = Privacy = the size of the anonymity set disguising your transaction. This is the same as 1/(the linkability of your tx).
 
-F = (fees per second) + (block rewards paid per second).
+F = (tx fees paid per second) + (block rewards paid per second).
 
 L = number of lotteries per day.
 
@@ -42,7 +42,7 @@ We are only considering designs with trust level 2, so A>D, so S>1.
 
 I am using this symbol `~` to express proportionality.
 
-In general, doubling the volume of (fees + block rewards) collected per second increases S by a factor of 2.
+In general, doubling the volume of fees collected per second increases S by a factor of 2.
 
 -> `S ~ F`
 
@@ -119,13 +119,13 @@ So lets change P to 1000, and solve for F to see how the size of fees will chang
 
 -> 8.64 = 2 * 100 * log2((1000 * 2000)/100) / F
 
--> F = 200 * log2(20000) / 8.64
+-> F = $200 * log2(20000) / 8.64
 
--> F = 331
+-> F = $331
 
-So for this example, increasing the anonymity set from a size of 1 to a size of 1000 causes the fees collected per second to increase from $100 to $331.
+So for this example, increasing the anonymity set from a size of 1 to a size of 1000 causes the (fees + block rewards) collected per second to increase from $100 to $331.
 
-It will cause the cost of making each tx to increase by a factor of about 3.3.
+It will cause the cost of making each tx and the cost due to inflation to increase by a factor of about 3.31.
 
 
 
