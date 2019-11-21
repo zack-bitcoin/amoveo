@@ -4,12 +4,12 @@ draft #1
 
 Thanks to Fernando Nieto for describing this mechanism.
 
-In order to increase RNG security, we must smearing out control of the entropy equally among many miners, and connect the revealing of entropy to receiving their block reward. That way there is a cost to manipulating the entropy being produced.
+In order to increase RNG security, we must smear out control of the entropy equally among many miners, and connect the revealing of entropy to receiving their block reward. That way there is a cost to manipulating the entropy being produced.
 
 
-The [harmonic rng](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/harmonic_rng.md) was the first plan able to do this.  It worked by giving each miner control of a fraction of a bit of entropy.
+The [harmonic rng](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/harmonic_rng.md) is another plan to accomplish the same goal.  It works by giving each miner control of a fraction of a bit of entropy.
 
-This document shows a new RNG which works by removing our certainty over when the RNG process will terminate.
+This document shows a RNG which works by removing our certainty over when the RNG process will terminate.
 
 Uncertain Expiration RNG basics
 =========
