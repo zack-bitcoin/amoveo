@@ -63,13 +63,17 @@ Putting it together to define blockchain power.
 =========
 
 S ~ F
+
 F ~ log2(V)
+
 P ~ F
 
 solving for F everywhere
 
 F ~ S - R
+
 F ~ log2(V)
+
 F ~ P
 
 -> F ~ P * log2(V) * S
