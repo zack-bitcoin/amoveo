@@ -17,16 +17,21 @@ The blockchain's power level
 Using the unified blockchain equation, we can calculate a power level for any blockchain design.
 If a blockchain's power level is higher, then if everything else is equal, it will have lower fees.
 
-Derivation symbols
+symbols
 ========
 
 I am using this symbol `~` to express proportionality.
 
 S = blockchain security level
+
 P = Privacy = the size of the anonymity set disguising your transaction.
+
 F = (fees per second) + (block rewards paid per second).
+
 A = the quantity of value being sent in the transaction.
+
 V = the number of txs in a single scaling lottery
+
 B = the blockchain power level.
 
 What we know from trust theory
