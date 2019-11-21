@@ -64,7 +64,7 @@ What we know from studying privacy
 
 If you pay for twice as many txs, then you can increase the size of the anonymity set twice as much.
 
-`P ~ T`
+`P * T ~ 1`
 
 from sharding, we know that T and F relate like this
 
