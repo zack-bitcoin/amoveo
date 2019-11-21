@@ -22,7 +22,7 @@ symbols
 
 S = blockchain security level
 
-P = Privacy = the size of the anonymity set disguising your transaction.
+P = Privacy = the size of the anonymity set disguising your transaction. This is the same as 1/(the linkability of your tx).
 
 F = (fees per second) + (block rewards paid per second).
 
@@ -43,6 +43,7 @@ We are only considering designs with trust level 2, so A>D, so S>1.
 I am using this symbol `~` to express proportionality.
 
 In general, doubling the volume of (fees + block rewards) collected per second increases S by a factor of 2.
+
 -> `S ~ F`
 
 What we know from studying sharding
