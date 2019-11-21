@@ -20,7 +20,7 @@ If a blockchain's consensus efficiency is higher, then if everything else is equ
 defining symbols for the equations
 ========
 
-S = blockchain security level = ((cost to attack))/(how much the victim loses)
+S = blockchain security level = (cost to attack)/(how much the victim loses)
 
 P = Privacy = the size of the anonymity set disguising your transaction. This is the same as 1/(the linkability of your tx).
 
@@ -32,18 +32,18 @@ T = volume of txs per second
 
 B = the blockchain's consensus efficiency.
 
+F / T = tx fee for an average tx.
+
 What we know from trust theory
 ===========
 
-you calculate your security level like this: If the attacker's change in balance due to the attack is A, and the defender's loss is D, then the security level is A/D .
+S = blockchain security level = (cost to attack)/(how much the victim loses)
 
-`S = A/D`
-
-In general, doubling the volume of fees collected per second increases S by a factor of 2.
+In general, doubling the volume of fees collected per second and block rewards paid per second increases S by a factor of 2.
 
 -> `S ~ F`
 
-I am using this symbol `~` to express [proportionality](https://en.wikipedia.org/wiki/Proportionality_(mathematics))
+I am using `~` to express [proportionality](https://en.wikipedia.org/wiki/Proportionality_(mathematics))
 
 What we know from studying sharding
 ==========
@@ -83,7 +83,7 @@ We want to define the consensus efficiency=B so that B is always positive, and i
 
 -> `F = (1/B) * L * S * log2((P * T)/L)`
 
--> `B = (S * L * log2((P * T)/L))/F`
+-> `B = (S * L * log2((P * T)/L))/F` <--------------
 
 This is the unified blockchain modeling equation, it is also the definition of consensus efficiency.
 
