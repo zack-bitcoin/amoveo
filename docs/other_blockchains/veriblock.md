@@ -45,4 +45,4 @@ Conclusion
 
 Regardless of how you configure your veriblock sidechain, it is not secure.
 
-
+Veriblock sidechains are a similar design as drivechain. They have the same vulnerabilities if we embed the entire header. https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/drivechain.md
