@@ -1,4 +1,4 @@
-Blockchain Theory
+Consensus Efficiency
 ========
 
 Models have been proposed to explain relationships of different aspects of the blockchain.
