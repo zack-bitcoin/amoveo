@@ -66,13 +66,13 @@ F ~ S - R
 F ~ log2(V)
 F ~ P
 
--> F ~ P*log2(V)*S
+-> F ~ P * log2(V) * S
 
 Now we know how to define the blockchain power.
 
--> F = B*P*log2(V)*S
+-> F = B * P * log2(V) * S
 
--> B = F/(P*S*log2(V))
+-> B = F/(P * S * log2(V))
 
 Conclusions
 ========
@@ -80,4 +80,4 @@ Conclusions
 For any blockchain design it is possible to calculate a power-level for that blockchain.
 Blockchains with higher power levels can have lower fees, if everything else is configured identically.
 
-The amount of fees and block rewards that a blockchain needs to charge per second is (that blockchain's power level)*(how big you want the anonymity set to be so you can have privacy for your txs)*(how expensive it is for an attacker to break)*(log2(the number of txs bundled in a single scaling lottery)).
+The amount of fees and block rewards that a blockchain needs to charge per second is (that blockchain's power level) * (how big you want the anonymity set to be so you can have privacy for your txs) * (how expensive it is for an attacker to break) * (log2(the number of txs bundled in a single scaling lottery)).
