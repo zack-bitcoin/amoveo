@@ -20,8 +20,6 @@ If a blockchain's power level is higher, then if everything else is equal, it wi
 symbols
 ========
 
-I am using this symbol `~` to express proportionality.
-
 S = blockchain security level
 
 P = Privacy = the size of the anonymity set disguising your transaction.
@@ -41,6 +39,8 @@ you calculate your security level like this: If the attacker's change in balance
 
 S = A/D
 We are only considering designs with trust level 2, so A>D, so S>1.
+
+I am using this symbol `~` to express proportionality.
 
 In general, doubling the volume of (fees + block rewards) collected per second increases S by a factor of 2.
 -> `S ~ F`
