@@ -31,18 +31,6 @@ In general, a blockchain lottery's reward needs to be smaller than the cumulativ
 
 In the case of sortition chains, we have some tricks to overcome this limitation.
 
-Exponential growth of financial randomness
-===============
-
-Once we have a little randomness, we can start distributing the winnings from the sortition chain's outcome. In the first round, we distribute 1 block reward worth of value from the sortition chain. The user who won this reward, they have the freedom to either collect it, or leave it uncollected.
-If they choose to not collect their prize, this is as expensive as the prize.
-So the winner of one round is providing 1 bit of entropy when they make this choice, and there is a measurable cost for them to control it.
-This extra entropy allows us to make the next round's reward worth 2 block rewards.
-The 3rd round pays out 4 block rewards from the sortition chain.
-the 4th pays out 8 rewards.
-
-So in total, if the sortition chain had N rewards in it, it takes log2(N) rounds to fully distribute the winnings to the winners.
-
 Dividing sortition chains to prevent majority stake attacks
 =================
 
@@ -51,3 +39,5 @@ We model an attacker like this: the attacker wants to control >50% of the value 
 To prevent this attack the sortition chain needs the ability to be divided into 2 smaller sortition chains.
 So, if there is some attacker who owns 70% and is going to rob the owners of the remaining 30%, someone can buy up those remaining 30%, and then pay a fee to split their 30% off into it's own sortition chain that gets settled seperatly from the attacker's chain.
 So the attacker ends up owning 100% of the value on their sortition chain, and there is no one left to attack.
+
+The expectation is that specialists will buy up large amounts of value in each sortition chain, and then split off onto a version where they own 100%. This way they can get rid of all the risk, and earn a profit by helping people move their value into sortition chains that have expirations further in the future.
