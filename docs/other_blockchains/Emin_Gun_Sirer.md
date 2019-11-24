@@ -13,7 +13,14 @@ Emin's paper on selfish mining: https://www.cs.cornell.edu/~ie53/publications/bt
 Emin attempts to show that you only need 1/4 of the hash power in order to gain 51% control of bitcoin block production.
 
 Here is a paper explaining why Emin is wrong: https://eprint.iacr.org/2019/486.pdf
-It explains how if any mining pool is doing a selfish mining attack, we would all be able to tell that the attack is happening, and we would all know which pool is doing the attack.
+It explains how if any mining pool is doing a selfish mining attack, we would all be able to tell that the attack is happening, and we would all know which pool is doing the attack, and we would all know the hash of the blocks that the attacker is keeping secret.
+
+So the other pools, they are incentivized to work together to exploit the attacker. They have 2 strategies available:
+1) They can mine on the attacker's private block even though it has not been published, because they know the hash.
+2) They can also choose to work together to always mine on the version of the block that did not come from the attacker.
+
+By using these 2 strategies in the right situations, the defenders can prevent the attack, and actually steal profits from the attacker.
+
 So the other mining pools, when they have a choice to either mine on the attacker's block or a block of the same height that didn't come from the attacker, the other mining pools will prefer to mine on the block that did not come from the attacker.
 This completely prevents the attack.
 
