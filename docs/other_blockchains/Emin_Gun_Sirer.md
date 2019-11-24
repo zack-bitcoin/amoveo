@@ -12,8 +12,12 @@ Emin's paper on selfish mining: https://www.cs.cornell.edu/~ie53/publications/bt
 
 Emin attempts to show that you only need 1/4 of the hash power in order to gain 51% control of bitcoin block production.
 
-Here is a paper explaining why Emin is wrong: https://eprint.iacr.org/2019/486.pdf
-It explains how if any mining pool is doing a selfish mining attack, we would all be able to tell that the attack is happening, and we would all know which pool is doing the attack, and we would all know the hash of the blocks that the attacker is keeping secret.
+Paul Sztorc explained about preventing selfish mining in this blog post: http://www.truthcoin.info/blog/mining-threat-equilibrium/
+Which is based on the explanation from this blog post: https://bitcoinmagazine.com/articles/why-bitcoin-mining-pools-aren-t-incentivized-to-broadcast-blocks-quickly-1475249510/
+
+Here is a paper that uses math to formalize the arguments from Sztorc and the bitcoinmagazine article https://eprint.iacr.org/2019/486.pdf
+
+If any mining pool is doing a selfish mining attack, we would all be able to tell that the attack is happening, and we would all know which pool is doing the attack, and we would all know the hash of the blocks that the attacker has found.
 
 So the other pools, they are incentivized to work together to exploit the attacker. They have 2 strategies available:
 1) They can mine on the attacker's private block even though it has not been published, because they know the hash.
@@ -31,7 +35,7 @@ Emin's paper on bitcoin ng https://www.usenix.org/system/files/conference/nsdi16
 The idea of bitcoin ng is that instead of mining on a block directly, a user wins the privilege of choosing which txs are valid for the next period of time.
 
 Emin claims that the bitcoin ng strategy accomplishes these goals:
-* same trust model as bitcoin
+* same security model as bitcoin
 * capacity for tx throughput only limited by bandwidth of nodes
 * faster finality
 
@@ -46,10 +50,10 @@ In section 4.5 of the bitcoin ng paper, Emin explains the reasoning for why bitc
 This strategy for enforcing fast finality does not work, because the amount of money spent in a block can be bigger than the block reward. If the block creator can steal more than 1 block reward by rewriting some history, then he doesn't mind giving up his block reward for finding the block.
 So Bitcoin NG does not have faster finality than normal bitcoin.
 
-Why it has a weaker trust model than bitcoin.
+Why it has a weaker security model than bitcoin.
 In section 5.1 of the bitcoin ng paper, Emin explains why the block creator is incentivized to include the txs from the previous block. If a block creator doesn't include some of the txs, the cost to him is a fraction of the value of the fees for those txs.
 So that means that your tx will only get included in a block if 2 consecutive block creators both decide to not censor your tx.
-This is a strictly weaker trust model than bitcoin.
+This is a strictly weaker security model than bitcoin.
 In bitcoin you only need a single block creator to decide to not censor you to get your tx included.
 
 
