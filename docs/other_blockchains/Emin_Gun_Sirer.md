@@ -21,9 +21,6 @@ So the other pools, they are incentivized to work together to exploit the attack
 
 By using these 2 strategies in the right situations, the defenders can prevent the attack, and actually steal profits from the attacker.
 
-So the other mining pools, when they have a choice to either mine on the attacker's block or a block of the same height that didn't come from the attacker, the other mining pools will prefer to mine on the block that did not come from the attacker.
-This completely prevents the attack.
-
 bitcoin ng
 ========
 
