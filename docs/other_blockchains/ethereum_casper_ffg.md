@@ -35,9 +35,9 @@ Any design that solves one of these, it will fail for the other.
 Trying to gather evidence to justify minority soft forks.
 ==========
 
-Vitalik tries to resolve the contradiction by giving a mechanism for detecting censorship.
+Vitalik tries to resolve the contradiction by giving a mechanism for detecting censorship attacks.
 
-The idea is that it doesn't matter whether a staker pool is minority or majority, they just need a way to prove that all the other pools are participating in censorship.
+The idea is that it doesn't matter whether an honest staker pool is minority or majority, they just need a way to prove that all the other pools are committing censorship attacks.
 
 The mechanism is like this: if some of us notice ourselves being censored, then more people should attempt to sign up as stakers to try and take control from the stakers who had gone rogue. If their transactions to sign up as stakers are not included quickly enough, then this is evidence that a censorship attack is occuring.
 
@@ -47,5 +47,4 @@ Conclusions
 =======
 
 Ethereum Casper FFG PoS, like all PoS consensus protocols, is vulnerable to bribery censorship attacks.
-
 
