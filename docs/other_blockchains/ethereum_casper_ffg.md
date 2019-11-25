@@ -41,9 +41,7 @@ The idea is that it doesn't matter whether a staker pool is minority or minority
 
 The mechanism is like this: if some of us notice ourselves being censored, then more people should attempt to sign up as stakers to try and take control from the stakers who had gone rogue. If their transactions to sign up as stakers are not included quickly enough, then this is evidence that a censorship attack is occuring.
 
-The problem with trying to have evidence of censorship attacks is that any minority of stakers can fake being censored. They can build a minority history re-write in secret that includes txs the main chain does not know exist, then they can claim that the main chain is censoring those txs and should be invalid. People who are syncing after the attack has occured would not be able to distinguish between a good history rewrite to recover from censorship vs a bad history rewrite attack done to double-spend Eth.
-
-Another problem with trying to have evidence of censorship attacks is that even if the censorship attack is real, that doesn't necessarily mean the history rewrite we are using to recover is 100% honest. It could have a double-spend attack embedded in it. It could be the case that the attacker is simultaniously doing a soft fork bribery attack to censor txs on-chain, and he is also doing a history re-write attack to do some double spending, and he can use evidence of the first attack to justify executing the second attack. So whichever side of the fork we go with, one of the attacks succeeds.
+The problem with trying to have evidence of censorship attacks is that even if the censorship attack is real, that doesn't necessarily mean the history rewrite we are using to recover is 100% honest. It could have a double-spend attack embedded in it. It could be the case that the attacker is simultaniously doing a soft fork bribery attack to censor txs on-chain, and he is also doing a history re-write attack to do some double spending, and he can use evidence of the first attack to justify executing the second attack. So whichever side of the fork we go with, one of the attacks succeeds.
 
 Conclusions
 =======
