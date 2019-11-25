@@ -1,7 +1,7 @@
 Proof of Stake
 ========
 
-version: 2
+version # 3
 
 The goal of this paper is to show that Proof of Stake blockchain consensus does not work. We take the very general definition of Proof of stake consensus: any blockchain consensus mechanism where your influence over which block is added to the chain is proportional to some value that you own inside the blockchain's consensus state.
 
@@ -22,30 +22,13 @@ Long range attack. This was an attempt to show that PoS does not work because it
 
 Incentives problem. This was an attempt to show that PoS does not work because it is impossible to align the incentives of the validators with the success of the network. This problem was solved by integrating futarchy elements into the PoS consensus.
 
+moralistic enforcement
+==========
 
-Censorship can be good
-======
+Here is a paper from 1992 explaining why PoS cannot work. http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.405.286&rep=rep1&type=pdf
+"If the costs of being punished are large enough, moralistic strategies which cooperate, punish noncooperators, and punish those who do not punish noncooperators can be evolutionarily stable. We also show, however, that moralistic strategies can cause any individually costly behavior to be evolutionarily stable, whether or not it creates a group benefit."
 
-A fundamental property of POW is that it is impossible to punish censorship. Miners don't necessarily have any currency in the system, so it just isn't possible to punish them for not including txs.
-
-This is different from saying "pow doesn't punish censorship". In POW, it is impossible to do a soft fork to add the ability to punish censorship.
-
-This has long been seen as a weakness in POW. People like to imagine that censorship is bad, that we should punish miners for censoring. But this is actually a critically important property of POW consensus that gives it security against certain attacks, and we will show that any blockchain consensus without this property is less secure than centralized alternatives.
-
-In POW systems there is no connection between value in the system and miners.
-Many miners don't even own any coins.
-The only thing that a majority coalition can do is to censor blocks.
-Forming a majority coalition of hashpower to control the blockchain costs C amount to coordinate the different miners, and it pays out P amount of extra rewards per miner.
-But, since it is impossible to punish censorship, a sub-coalition of the coalition could coordinate to use censorship take control, and the first coalition has no way to punish the sub-coalition.
-The sub-coalition have half as much hashpower to coordinate, so their cost is C/2. and they are sharing the rewards between half as many miners, so their payout of extra rewards is 2*P.
-
-In POW, it is always easier and more profitable to create a sub-coalition to overthrow a coalition than it was to create the first coalition.
-This fact makes it so that no miner is interested in forming coalitions, because they know it is probably a trick to steal their hashpower.
-
-From the miner's perspective, if they participate in your coalition they will probably lose all their profits.
-
-Why PoS fails
-======
+The problem with PoS is that since the validator's value is internal to the system, an attack can do second-order punishments. The attack can punish validators who fail to participate in enforcing punishments. And this allows for arbitrary changes to the protocol to be dominant.
 
 POS systems all require some logical connection between value in the system, and the decisions about which blocks to add to the blockchain.
 If we are to solve the nothing-at-stake and long-range attack problems, there needs to be a lot of money locked up in every consensus level decision.
@@ -53,7 +36,25 @@ So in POS systems, it is always possible for a majority coalition to punish acco
 So in POS systems, once a majority coalition has formed, it is very stable. It is easy for the participants in the coalition to trust each other, because if any one of them cheats, the rest of the coalition can tell who cheated and punish them by freezing their money.
 So the majority coalition can use soft forks to push through any changes to the consensus rules that they want, they can steal any money, they can raise the fees as high as they want.
 
-If you think the attack will fail, then you are comfortable taking the bribe. Because you know the attack will fail either way, so you might as well take the free money.
+Censorship can be good
+=========
+
+A fundamental property of POW is that it is impossible to punish censorship. Miners don't necessarily have any currency in the system, so it just isn't possible to punish them for not including txs.
+
+This is different from saying "pow doesn't punish censorship". In POW, it is impossible to do a soft fork to add the ability to punish censorship.
+
+This has long been seen as a weakness in POW. People like to imagine that censorship is bad, that we should punish miners for censoring. But this is actually a critically important property of POW consensus that gives it security against certain attacks, and we will show that any blockchain consensus without this property is less secure than centralized alternatives.
+
+In POW systems there is no connection between value in the system and miners. Many miners don't even own any coins. The only thing that a majority coalition can do is to censor blocks. Forming a majority coalition of hashpower to control the blockchain costs C amount to coordinate the different miners, and it pays out P amount of extra rewards per miner. But, since it is impossible to punish censorship, a sub-coalition of the coalition could coordinate to use censorship take control, and the first coalition has no way to punish the sub-coalition. The sub-coalition have half as much hashpower to coordinate, so their cost is C/2. and they are sharing the rewards between half as many miners, so their payout of extra rewards is 2*P.
+
+In POW, it is always easier and more profitable to create a sub-coalition to overthrow a coalition than it was to create the first coalition. This fact makes it so that no miner is interested in forming coalitions, because they know it is probably a trick to steal their hashpower.
+
+From the miner's perspective, if they participate in your coalition they will probably lose all their profits.
+
+cost of the bribe to initiate the attack
+========
+
+If you are a validator who thinks the attack will fail, then you are comfortable taking the bribe. Because you know the attack will fail either way, so you might as well take the free money.
 If you think the attack will succeed, then you will sell your coins to someone who thinks the attack will fail.
 
 According to [tragedy of the commons](https://github.com/zack-bitcoin/amoveo/blob/master/docs/basics/market_failure.md), the cost to bribe the validators to form a majority coalition and destroy the blockchain is:

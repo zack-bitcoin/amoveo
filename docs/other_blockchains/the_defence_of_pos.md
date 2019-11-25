@@ -10,7 +10,7 @@ If you feel that your opinion is misrepresented here, or if your opinion has cha
 Vitalik Buterin
 =========
 
-Vitalik Buterin's explanation is in-depth, I wrote an entire blog post responding to it here: https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/Ethereum_Casper_FFG.md
+Vitalik Buterin's explanation is in-depth, I wrote an entire blog post responding to it here: https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/ethereum_casper_ffg.md
 
 Jae Kwon
 ========

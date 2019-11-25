@@ -37,7 +37,7 @@ Trying to gather evidence to justify minority soft forks.
 
 Vitalik tries to resolve the contradiction by giving a mechanism for detecting censorship.
 
-The idea is that it doesn't matter whether a staker pool is minority or minority, they just need a way to prove that they have not been participating in censorship.
+The idea is that it doesn't matter whether a staker pool is minority or minority, they just need a way to prove that all the other pools are participating in censorship.
 
 The mechanism is like this: if some of us notice ourselves being censored, then more people should attempt to sign up as stakers to try and take control from the stakers who had gone rogue. If their transactions to sign up as stakers are not included quickly enough, then this is evidence that a censorship attack is occuring.
 
