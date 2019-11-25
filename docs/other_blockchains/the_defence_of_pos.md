@@ -7,6 +7,10 @@ I shared the PoS paper with many people who have a vested interest in PoS techno
 
 If you feel that your opinion is misrepresented here, or if your opinion has changed, feel free to contact me and I will adjust this document for you.
 
+Vitalik Buterin
+=========
+
+Vitalik Buterin's explanation is in-depth, I wrote an entire blog post responding to it here: https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/Ethereum_Casper_FFG.md
 
 Jae Kwon
 ========
