@@ -1,3 +1,14 @@
+Since splitting a sortition chain is something that needs to happen on-chain, does that mean we can change the list of accounts assigned as committers?
+
+review the attack suggested by Fernando.
+
+
+
+
+
+
+
+
 would be nice if there was a way to combine settling a binary derivative contract with a small payment. to incentivize them to settle earlier.
 
 
