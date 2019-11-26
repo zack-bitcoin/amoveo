@@ -50,13 +50,15 @@ What we know from studying sharding
 
 V = the number of txs in a single scaling lottery
 
-The on-chain cost to settle one lottery is O(log2(V)), so `F ~ log2(V)*(lotteries per day)`
+The on-chain cost to settle one lottery is O(sqrt(V)), so `F ~ sqrt(V)*(lotteries per day)`
 
 `T ~ V * L`
 
 `V ~ T / L`
 
--> `F ~ L * (log2(T/L))`
+`F ~ L * (sqrt(T/L))`
+
+-> `F ~ sqrt(T*L)`
 
 
 What we know from studying privacy
@@ -68,14 +70,14 @@ If you pay for twice as many txs, then you can increase the size of the anonymit
 
 from sharding, we know that T and F relate like this
 
-`F ~ L * log2(T/L)`
+`F ~ sqrt(T*L)`
 
--> `F ~ L * log2((P * T)/L)`
+-> `F ~ sqrt(P*L)`
 
 Putting it together to define consensus efficiency.
 =========
 
-`F ~ S * L * log2((P * T)/L)`
+`F ~ S * sqrt(P * T * L)`
 
 Now we know how to define the consensus efficiency.
 
