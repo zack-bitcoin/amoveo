@@ -43,6 +43,12 @@ The mechanism is like this: if some of us notice ourselves being censored, then 
 
 The problem with trying to have evidence of censorship attacks is that even if the censorship attack is real, that doesn't necessarily mean the history rewrite we are using to recover is 100% honest. It could have a double-spend attack embedded in it. It could be the case that the attacker is simultaniously doing a soft fork bribery attack to censor txs on-chain, and he is also doing a history re-write attack to do some double spending, and he can use evidence of the first attack to justify executing the second attack. So whichever side of the fork we go with, one of the attacks succeeds.
 
+The False Flag Attack
+=======
+
+The false flag attack is where we bribe some of the validators to make it look like the rest of the validators are cheating. We combine this with propaganda on social media.
+So the honest validators would all get punished by a community that thinks they cheated, and the attackers would be given 100% control of the validator set.
+
 Conclusions
 =======
 
