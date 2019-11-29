@@ -13,7 +13,7 @@ The goal of these efforts is to try and enable scalable stablecoin payments.
 
 [estimating the cost of fraud proofs in optimistic rollup](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/optimistic_rollups_fraud_proof_cost.md)
 
-[estimating the cost of fraud proofs in optimistic rollup](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/optimistic_rollups_sidechain_attack.md)
+[estimating the cost of attacking a sidechain inside optimistic rollup](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/optimistic_rollups_sidechain_attack.md)
 
 
 

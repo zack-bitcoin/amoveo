@@ -65,9 +65,10 @@ we know from analyzing fraud proofs that the number of sidechains is at least O(
 
 = `O(sqrt(rate of tx production)*(sqrt(rate of tx production))*(sqrt(rate of tx production)))`
 
-cost of rotation = O((rate of tx production)^(3/2))
+cost of rotation = `O((rate of tx production)^(3/2))`
 
-So this means the cost due to rotation of leadership per tx would need to increase as the rate of tx production increases.
+So this means the cost per tx in each sidechain would need to increase as the rate of tx production in the entire optimistic rollup network increases.
+If the optimistic rollup network gets 4x bigger, the minimum tx fee in all the shards will get at least 2x bigger.
 
 
 
