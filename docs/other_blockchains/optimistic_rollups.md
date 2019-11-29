@@ -24,29 +24,28 @@ How many fraud proofs?
 In order to know that a payment you received is valid, you need to confirm that the shard update was valid.
 A shard update is only valid if no contradictory update to that shard had come before.
 
-We find out about contradictory updates by incentivizing untrusted third parties to produce fraud proofs.
+We find out about contradictory updates by incentivizing provers to produce fraud proofs.
 
 So, lets say the blockchain has T txs during a period of time, and they are spread out among many shards.
-There are many untrusted third parties searching for contradictory shard updates so they can profit from fraud proofs.
+There are many provers searching for contradictory shard updates so they can profit from fraud proofs.
 
 For every tx, there will be a user requesting a fraud proof.
 
 How many fraud provers?
 ==========
 
-In order to achieve quadratic scalability, we would need it to be the case that each untrusted third party only downloads sqrt(T) many txs.
+In order to achieve quadratic scalability, we would need it to be the case that each prover only downloads sqrt(T) many txs.
 That means they can only download sqrt(T) many requests from users for fraud proofs, and they can only download sqrt(T) many txs from the available history.
 
-So, if there exists and incidence of fraud, the odds that one particular untrusted third party would find it is the odds that they downloaded that request from the correct user, and that they downloaded that part of the available consensus state O((1/sqrt(T)) * (1/sqrt(T))) = O(1/T).
+So, if there exists and incidence of fraud, the odds that one particular prover would find it is the odds that they downloaded that request from the correct user, and that they downloaded that part of the available consensus state O((1/sqrt(T)) * (1/sqrt(T))) = O(1/T).
 
-So this means the total number of untrusted third parties scanning for fraud proofs, it would need to be proportional to the total number of txs.
+So this means the total number of provers scanning for fraud proofs, it would need to be proportional to the total number of txs.
 
 Conclusions and comparison to Bitcoin
 =============
 
-Since the number of provers is proportional to the number of txs, and since each untrusted third party needs to download sqrt(T) much data, this means the cost of making a txis O(sqrt(T)).
+Since the number of provers is proportional to the number of txs, and since each prover needs to download sqrt(T) much data, this means the cost of making a tx is O(sqrt(T)).
 So optimistic rollup has worse than linear scalability.
-
 
 A successful scaling solution would have this property: If you increase the number of txs per second being processed, the fee per tx decreases.
 
