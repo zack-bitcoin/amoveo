@@ -80,11 +80,9 @@ One way to reduce blockchain level linkability is by spending your money to your
 Connecting scalability to privacy
 ============
 
-If spending your money to yourself really is the best way to decrease blockchain-level-linkability, then that means the cost of privacy is proportional to the cost of spending your money to yourself.
-So a blockchain that can handle twice as many txs per second at a given level of fees, it would also be twice as private.
+If spending your money to yourself really is the best way to decrease blockchain-level-linkability, then that means the cost of a certain level of privacy is proportional to the cost of spending your money to yourself.
+So a blockchain that can handle twice as many txs per second at a given level of fees, it would also be twice as cheap to achieve a given level of privacy.
 
 This shows that whatever blockchain solution is the most scalable, it is also the most private.
 
 [I compare many scaling strategies here](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/sharding.md)
-
-

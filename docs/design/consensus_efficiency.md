@@ -1,5 +1,6 @@
 Consensus Efficiency
 ========
+draft 2
 
 Models have been proposed to explain relationships of different aspects of the blockchain.
 
@@ -8,6 +9,10 @@ We have a model that show the relationship between security, trust, and the cost
 We have models to show a relationship between scalability and the costs of fees [Sharding strategies compared](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/sharding.md)
 
 We have a model showing a relationship between the privacy of transactions and scalability [modeling privacy](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/privacy.md)
+
+We have a model showing a relationship between decentralization and scalability http://www.truthcoin.info/blog/measuring-decentralization/
+
+We have a model showing a relationship between finality and cost
 
 The goal of this paper is to derive a unified equation that simultaniously expresses the relationships between all these different values.
 
@@ -28,11 +33,15 @@ F = (tx fees paid per second) + (block rewards paid per second).
 
 L = number of lotteries per day.
 
-T = volume of txs per second
+T = volume of txs per second we can support
 
 C = the blockchain's consensus efficiency.
 
 F / T = tx fee for an average tx.
+
+Finality = how much time you need to wait until you can be sure a tx wont get undone.
+
+D = decentralization
 
 What we know from trust theory
 ===========
@@ -64,71 +73,44 @@ The on-chain cost to settle one lottery is O(sqrt(V)), so `F ~ sqrt(V)*(lotterie
 What we know from studying privacy
 =========
 
-If you pay for twice as many txs, then you can increase the size of the anonymity set twice as much.
+The cost of a given level of privacy is proportional to the cost of any tx fee.
 
-`P * T ~ 1`
+So, the blockchain which can operate with lower fees has cheaper privacy.
 
-from sharding, we know that T and F relate like this
+What we know about Finality
+=========
 
-`F ~ sqrt(T*L)`
+Finality increases linearly with the cost of re-mining the blocks that get produced.
 
--> `F ~ sqrt(P*L)`
+So that means if we find a way to keep everything else the same, and charge 1/2 as much fees. That means we are able to keep everything else the same, and have 2 as much finality.
+
+`Finality ~ F`
+
+What we know about decentralization
+=========
+
+Decentralization is a measure of the cost of a minimum full node that is able to prove ownership of your part of the currency and keep the network alive.
+
+`1 ~ D * T`
 
 Putting it together to define consensus efficiency.
 =========
 
-`F ~ S * sqrt(P * T * L)`
+`F ~ Finality * S * sqrt(T * L * D)`
 
 Now we know how to define the consensus efficiency.
 
 We want to define the consensus efficiency=C so that C is always positive, and it is set up so that if everything else is equal, higher values of C mean the tx fees are lower.
 
--> `F = (1/C) * L * S * log2((P * T)/L)`
+-> `F = (1/C)*(S*sqrt(T*L*D))*Finality`
 
--> `C = (S * L * log2((P * T)/L))/F` <--------------
+-> `C = S*sqrt(T*L*D)*Finality/F` <---------
+
+unit analysis. `C = (unitless ratio)*sqrt((txs/time)*(lotteries/time)*coins)*time/coins`
+`C = sqrt(txs * lotteries)`
+
 
 This is the unified blockchain modeling equation, it is also the definition of consensus efficiency.
-
-Example of using the consensus efficiency formula to calculate how changing the level of privacy will impact the cost of tx fees.
-==============
-
-Lets say we have a blockchain without any privacy, and we want to know how much higher the transaction fees will be if we add privacy by increasing the size of the anonymity set for all txs to 1000.
-
-The blockchain starts out with this configuration:
-
-S = security level = 2
-
-P = size of the anonymity set = 1
-
-F = $100
-
-L = lotteries per day = 100
-
-T = txs per second = 2000
-
-So, lets calculate this blockchain's consensus efficiency.
-
-`C = (S * L * log2((P * T)/L))/F`
-
--> `C = 2 * 100 * log2((1 * 2000)/100) / 100`
-
--> `C = 8.64`
-
-it has a consensus efficiency of 8.64
-
-So lets change P to 1000 which means our anonymity set has 1000 txs in it, and solve for F to see how the size of fees will change.
-
-`C = (S * L * log2((P * T)/L))/F`
-
--> `8.64 = 2 * 100 * log2((1000 * 2000)/100) / F`
-
--> `F = $200 * log2(20000) / 8.64`
-
--> `F = $331`
-
-So for this example, increasing the anonymity set from a size of 1 to a size of 1000 causes the (fees + block rewards) collected per second to increase from $100 to $331.
-
-It will cause the cost of making each tx and the cost due to inflation to increase by a factor of about 3.31.
 
 Example of using the consensus efficiency formula to calculate how changing the cost of attacking the blockchain will impact the cost of tx fees.
 ==========
@@ -149,19 +131,19 @@ So this means that an attacker who spends $100 can destroy $50.
 
 Lets increase the security level so that an attacker who spends $100 can destroy only $5, and calculate how this impacts the cost of fees.
 
-`C = (S * L * log2((P * T)/L))/F`
+`C = (S*sqrt(T*L*D))/(1*F)`
 
--> `C = (2 * 100 * log2((1 * 2000)/100))/100`
+-> `C = 2 * sqrt(2000 * 100 * 1)/(1*100)`
 
--> `C = 8.64`
+-> `C = 8.94`
 
-so this blockchain has a consensus efficiency of 8.64.
+so this blockchain has a consensus efficiency of 8.94.
 
 Now lets increase the security level to 20, and calculate the new fee.
 
 `C = (S * L * log2((P * T)/L))/F`
 
--> `8.64 = (20 * 100 * log2((1 * 2000)/100))/F`
+-> `8.94 = (20 * 100 * log2((1 * 2000)/100))/F`
 
 -> `F = 1000`
 
