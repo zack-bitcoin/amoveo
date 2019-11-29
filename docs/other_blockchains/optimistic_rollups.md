@@ -42,7 +42,7 @@ So optimistic rollup has worse than linear scalability.
 
 A successful scaling solution would have this property: If you increase the number of txs per second being processed, the fee per tx decreases.
 
-With bitcoin, you can double the scalability by doubling the size of the blocks, the fee per tx would remain constant. 
+With bitcoin, you can double the scalability by doubling the size of the blocks, the fee per tx would remain nearly constant, because the cost to miners per tx would be constant.
 
-But with optimistic rollup, if you want to double the txs per second, the fee per tx would increase. So optimistic rollup is actually less scalable than bitcoin.
+But with optimistic rollup, if you want to double the txs per second, the fee per tx would increase. So optimistic rollup is actually scaling worse than bitcoin.
 
