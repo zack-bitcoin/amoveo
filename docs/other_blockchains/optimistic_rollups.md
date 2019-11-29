@@ -11,7 +11,7 @@ Here is a blog post that explains the plan to combine optimistic rollups with an
 
 The goal of these efforts is to try and enable scalable stablecoin payments.
 
-Why availability without sharding can not scale.
+Why availability without sharding can not scale
 ===========
 
 If we increase the amount of available data we can store in the consensus space, but still try to maintain only one single merkel tree of everyone's balances, we would run into scaling limitations.
@@ -20,7 +20,7 @@ So no matter how many computers we add to the network, there will still be an up
 
 So to overcome this limit, we would need to maintain multiple databases of account balances, called shards. And we need some slower mechanism to move value from one shard into another.
 
-How many fraud proofs?
+How many fraud proofs
 ==========
 
 In order to know that a payment you received is valid, you need to confirm that the shard update was valid.
@@ -33,7 +33,7 @@ There are many provers searching for contradictory shard updates so they can pro
 
 For every tx, there will be a user requesting a fraud proof.
 
-How many fraud provers?
+How many fraud provers
 ==========
 
 In order to achieve quadratic scalability, we would need it to be the case that each prover only downloads sqrt(T) many txs.
@@ -43,10 +43,25 @@ if the number of shards is proportional to sqrt(T), then that means a validator 
 
 We would need O(sqrt(T)) many fraud provers.
 
-The fraud prover would scan through sqrt(T) many txs in side-blocks, and for each one do log2(sqrt(T)) many comparisons to see if it is one of the fraud proofs we are looking for.
+Total cost of fraud proofs
+===========
 
-So the cost of making fraud proofs would grow as O(T*log2(sqrt(T))), which is basically linear.
+for each sidechain, we can have the number of blocks in a period of time be proportional to sqrt(sqrt(T)), so each block has O(sqrt(sqrt(T))) many txs in it.
 
-So the cost per tx of making fraud proofs will stay basically constant.
+For each block the fraud prover needs to do log2(sqrt(sqrt(T))) many comparisons to see if it is possible to make fraud proofs.
+
+so the cost is O((# provers) * (# blocks) * (comparisons per block)) = O(sqrt(T)*sqrt(sqrt(T))*log(T)) = O(log(T) * T^(3/4))
+
+O(log(T) * T^(3/4)) is practically the same thing as O(T).
+
+if we increase T from 1 to one billion, then the cost per tx will only decrease by a factor of about 6.
+
+
+Comparison to bitcoin
+==========
+
+Bitcoin has linear scaling by increasing the number of bytes per block, or decreasing the number of seconds per block. So if we want better scaling than bitcoin, we need the cost of a fee per tx to decrease as the number of txs increase.
+
+With optimistic rollups, the cost of fraud proofs per tx is staying about constant as the number of txs increases. So it scales about as well as bitcoin.
 
 

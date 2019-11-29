@@ -82,7 +82,7 @@ I added Bitcoin to the score board so you can compare the default setup vs the s
 The meaning of various scores:
 0 - O(N ^ #txs)
 1 - O(#txs ^ N)
-2 - O(N*#txs)
+2 - O(#txs * log(#txs))
 3 - O(#txs)
 4 - O(#txs/N)
 6 - O(sqrt(#txs))
@@ -96,15 +96,11 @@ B = Bitcoin,
 S = Stateless full nodes,
 C = state channels,
 CS = state channels + stateless full nodes,
-LL = Lazy Ledger
 O = optimistic rollup,
 OL = optimistic rollup + lazyledger,
-OS = stateless + optimistic rollup,  
 P = Plasma
 PC = Plasma Cash
 PF = Plasma Cashflow
-PL = Plasma + Lazy Ledger
-PS = Plasma + stateless
 Sort = Sortition chains,
 S2 = stateless + sortition chains
 
@@ -117,18 +113,14 @@ CH = Coins*Hours. how much stake is locked up.
 
         CPU  NB  MS  MB  CH
 B       3    3   4   3   10
-S       2    2   10  10  10
+S       3    3   10  10  10
 C       4    4   4   4   10
 CS      4    4   10  10  10
-LL      6    6   4   3   10
-O       4    4   4   4   9
-OL      6    6   4   4   9
-OS      4    4   10  10  9
+O       3    4   4   4   9
+OL      3    3   4   4   9
 P       4    4   4   4   9 
 PC      4    4   4   4   9
 PF      4    4   4   4   9
-PL      6    6   4   4   9
-PS      4    4   10  10  9
 Sort    6    6   6   6   9
 S2      6    6   10  10  9
 
