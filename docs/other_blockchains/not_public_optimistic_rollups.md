@@ -45,8 +45,8 @@ We would need O(sqrt(T)) many fraud provers.
 
 The fraud prover would scan through sqrt(T) many txs in side-blocks, and for each one do log2(sqrt(T)) many comparisons to see if it is one of the fraud proofs we are looking for.
 
-
 So the cost of making fraud proofs would grow as O(T*log2(sqrt(T))), which is basically linear.
 
+So the cost per tx of making fraud proofs will stay basically constant.
 
 
