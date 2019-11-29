@@ -57,11 +57,11 @@ O(log(T) * T^(3/4)) is practically the same thing as O(T).
 if we increase T from 1 to one billion, then the cost per tx will only decrease by a factor of about 6.
 
 
-Comparison to bitcoin
+Conclusions
 ==========
 
-Bitcoin has linear scaling by increasing the number of bytes per block, or decreasing the number of seconds per block. So if we want better scaling than bitcoin, we need the cost of a fee per tx to decrease as the number of txs increase.
+The cost of checking for fraud proofs per tx is approximately constant.
+If the total number of txs is very small, then the cost of checking for a fraud is less than the cost of generating a signature.
 
-With optimistic rollups, the cost of fraud proofs per tx is staying about constant as the number of txs increases. So it scales about as well as bitcoin.
-
+So, the cost of paying to check for fraud proofs is always less than the cost of generating the signature on that tx. So the cost of fraud proofs will never become the bottleneck.
 
