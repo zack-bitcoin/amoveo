@@ -3,6 +3,8 @@ Optimistic Rollups Review
 
 Optimistic rollups are a tool for efficiently making large quantities of data available to a blockchain consensus mechanism. Here is the paper introducing them: https://arxiv.org/pdf/1904.06441.pdf
 
+Here is a podcast where they talk about how it works. https://thebitcoinpodcast.com/hashing-it-out-67/
+
 Making data available at such a high rate is an impressive achievement. This is some of the coolest research happening in blockchain right now, so I had to write a review.
 
 Here is a blog post that explains the plan to combine optimistic rollups with an erasure encoded database to allow for quadratic scaling https://ethresear.ch/t/on-chain-non-interactive-data-availability-proofs/5715
@@ -37,19 +39,14 @@ How many fraud provers?
 In order to achieve quadratic scalability, we would need it to be the case that each prover only downloads sqrt(T) many txs.
 That means they can only download sqrt(T) many requests from users for fraud proofs, and they can only download sqrt(T) many txs from the available history.
 
-So, if there exists and incidence of fraud, the odds that one particular prover would find it is the odds that they downloaded that request from the correct user, and that they downloaded that part of the available consensus state O((1/sqrt(T)) * (1/sqrt(T))) = O(1/T).
+if the number of shards is proportional to sqrt(T), then that means a validator focused on only one shard would only need to look at O(sqrt(T)) many txs.
 
-So this means the total number of provers scanning for fraud proofs, it would need to be proportional to the total number of txs.
+We would need O(sqrt(T)) many fraud provers.
 
-Conclusions and comparison to Bitcoin
-=============
+The fraud prover would scan through sqrt(T) many txs in side-blocks, and for each one do log2(sqrt(T)) many comparisons to see if it is one of the fraud proofs we are looking for.
 
-Since the number of provers is proportional to the number of txs, and since each prover needs to download sqrt(T) much data, this means the cost of making a tx is O(sqrt(T)).
-So optimistic rollup has worse than linear scalability.
 
-A successful scaling solution would have this property: If you increase the number of txs per second being processed, the fee per tx decreases.
+So the cost of making fraud proofs would grow as O(T*log2(sqrt(T))), which is basically linear.
 
-With bitcoin, you can double the scalability by doubling the size of the blocks, the fee per tx would remain nearly constant, because the cost to miners per tx would be constant.
 
-But with optimistic rollup, if you want to double the txs per second, the fee per tx would increase. So optimistic rollup is actually scaling worse than bitcoin.
 
