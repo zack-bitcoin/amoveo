@@ -36,13 +36,13 @@ Sharding Plans
 
 * Lazy Ledger - https://arxiv.org/pdf/1905.09274.pdf . Lazy ledger is a tehnique where full nodes only need to download around sqrt(# transactions), and they can get a probabilistic gurantee that all the txs in that block were processed correctly. It uses erasure coding and merkel fraud proofs. Lazy Ledger depends on the existance of storage node specialists that are paid to remember the entire history of all the txs, and to serve random subsets of this information to everyone who needs it.
 
-Since Lazy Ledger requires storage nodes, and stateless-full-node strategy requires that customers keep their own data, and full nodes store nothing, these plans are non-compatible. We can not do them both together.
-
 * state channels. like payment channels, but you can put turing complete smart contracts inside of them.
 
-* optimistic roll-up. https://arxiv.org/pdf/1904.06441.pdf  With optimistic roll-up we keep the history on-chain, but we move all processing of editable state onto side-chains. Miners pay a safety deposit when they publish a block. If anyone can show that a block improperly processed a transaction, they can destroy half the safety deposit and win the rest as a reward. ZK roll-up is very similar to optimistic roll-up. They estimate it is about 4x more efficient than optimistic roll-up https://medium.com/matter-labs/optimistic-vs-zk-rollup-deep-dive-ea141e71e075 . Since they are so similar, I grade them both together just one. In this doc, they estimate that zk roll-up will be 10 to 20-fold more scalable than standard ethereum https://medium.com/coinmonks/zk-rollup-optimistic-rollup-70c01295231b Other people estimate that optimistic roll-up is 200x to 400x faster than standard Ethereum.
+* optimistic roll-up. https://arxiv.org/pdf/1904.06441.pdf  With optimistic roll-up we keep the history on-chain, but we move all processing of editable state onto side-chains. Miners pay a safety deposit when they publish a block. If anyone can show that a block improperly processed a transaction, they can destroy half the safety deposit and win the rest as a reward.
 
-* optimistic rollup + stateless full node. Based on [this explanation from Vitalik in this podcast](https://twitter.com/Shaughnessy119/status/1187390153662316544?s=20) it looks like this is the plan for Eth2.0
+[My review of optimistic rollup](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/optimistic_rollups.md)
+
+[Vitalik talking about optimistic rollup](https://twitter.com/Shaughnessy119/status/1187390153662316544?s=20) it looks like this is the plan for Eth2.0
 
 * Plasma MVP https://ethresear.ch/t/minimal-viable-plasma/426
 Plasma MVP is a type of sidechain where each user needs to be aware of all the activity on their sidechain, and be ready to challenge any improper withdraw.
@@ -116,8 +116,8 @@ B       3    3   4   3   10
 S       3    3   10  10  10
 C       4    4   4   4   10
 CS      4    4   10  10  10
-O       3    4   4   4   9
-OL      3    3   4   4   9
+O       3    3   3   6   1
+OL      6    6   6   6   1
 P       4    4   4   4   9 
 PC      4    4   4   4   9
 PF      4    4   4   4   9

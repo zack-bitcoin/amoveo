@@ -11,9 +11,19 @@ Here is a blog post that explains the plan to combine optimistic rollups with an
 
 The goal of these efforts is to try and enable scalable stablecoin payments.
 
-[estimating the cost of fraud proofs in optimistic rollup](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/optimistic_rollups_fraud_proof_cost.md)
+Scalability analysis
+========
+
+[estimating the cost of fraud proofs in optimistic rollup](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/optimistic_rollups_fraud_proof_cost.md) Fraud proof security costs the same amount per tx, no matter how many txs are being processed per second.
+This means that there is some lower limit cost per tx, and the fee will never be below that limit.
 
 [estimating the cost of attacking a sidechain inside optimistic rollup](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/optimistic_rollups_sidechain_attack.md)
+The amount of stake that needs to be locked up by sidechain validators is proportional to (rate of tx production)^(3/2).
+This means that the lower limit fee cost keeps getting more expensive as more people join the network.
 
+Lottery based sidechains can scale as (rate of tx production)^(1/2). That means as more people join the network, the tx fees get less expensive.
+
+It seems unlikely that optimistic rollup can compete with lottery based scaling solutions.
+If the rate of tx production doubles, then optimistic rollup becomes twice as expensive vs lottery-based sidechains.
 
 
