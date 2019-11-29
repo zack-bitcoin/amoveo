@@ -3,6 +3,11 @@ Optimistic Rollups sidechain attack
 
 [optimistic rollup review home](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/optimistic_rollups.md)
 
+This is an attempt to show that if optimistic rollup scales worse than linearly.
+If you increase the rate of tx production, the fee per tx necessarily increases.
+
+A successful scaling solution would have the tx fees decrease as the total number of txs increases.
+
 optimistic rollup has shards
 ===========
 
