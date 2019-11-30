@@ -3,7 +3,7 @@ Lottery Random Number Generator
 
 [sortition chains home](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chains.md)
 
-The requirements for a RNG for a lottery with a large prize, or sortition chain are much stricter than most other blockcain RNG applications.
+The requirements for a RNG for a lottery with a large prize are much stricter than most other blockcain RNG applications.
 If an attacker has even 1% ability to predict or influence the bits produced by the RNG, this can seriously impact the cost of using the lottery or sortition chain.
 
 Reroll attacks
@@ -41,3 +41,16 @@ So, if there is some attacker who owns 70% and is going to rob the owners of the
 So the attacker ends up owning 100% of the value on their sortition chain, and there is no one left to attack.
 
 The expectation is that specialists will buy up large amounts of value in each sortition chain, and then split off onto a version where they own 100%. This way they can get rid of all the risk, and earn a profit by helping people move their value into sortition chains that have expirations further in the future.
+
+Estimating scalability during reroll attacks
+==============
+
+In order to defend from a reroll attack, we may need to divide the sortition chain into many smaller sortition chains.
+Since all the small sortition chains are using the same block's hash as their source of entropy, an attacker who performed a reroll attack would necessarily be rerolling all of the tiny sortition chains at once.
+If the value is split up into N many sortition chains, then the profitability of a reroll attack decreases as 1/sqrt(N).
+
+So, at most, we would only need to divide a sortition chain into O(sqrt((total value of the sortition chain)/(value of a block reward))) many parts.
+
+This attack is the reason that sortition chains scale as O(sqrt(rate of txs)) instead of O(log2(rate of txs)).
+
+

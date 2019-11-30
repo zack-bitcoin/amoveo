@@ -49,14 +49,12 @@ The on-chain cost of horizontal transfers is zero.
 
 The on-chain cost of vertical transfers is (the probability that you win)*(length of a signed chalang contract).
 
-To do a horizontal transfer, you need to convince one of the spend-commit-tree operators assigned to this sortition chain, you need to convince them to include the update into the history.
+When you make a baby sortition chain, you get to choose a new list of operators for that new sortition chain.
 
-To do a vertical transfer, you don't need anyone's permission.
 
 
 We don't need turing complete contracts to divide the probability space
 ============
-
 
 The other day we were talking about how we can have turing complete contracts to divide up the probabilistic value space, and we can have turing complete smart contracts for when people give up control of part of the probability space.
 And we realized that it is better to do it at the step where users are giving up control, because less data gets posted on chain.
@@ -121,15 +119,7 @@ Sortition chains need to run smart contracts in 2 different kinds of security as
 If a sortition chain is using smart contracts of type 2, then it can't have baby sortition chains. Lets call this a state-channel.
 So this means that sortition chain data structures need to be able to store 2 types of elements. sortition chains, and state channels.
 
-comparing security of sortition chains vs state channels
-============
-
-with state channels, your partner can accidentally let your contract get frozen. For example: if they don't come online for several days.
-with sortition chains, your contract only gets frozen if one of the operators of your sortition chain's ancestors purposefully causes it to freeze.
-we can identify which operator is malicious.
-
-with sortition chains we need to have some small trust in multiple nodes, that they wont maliciously choose to freeze your progress.
-with state channels you have a larger amount of trust in just one node. that they wont maliciously choose to freeze your progress, and they wont fail due to incompetence or disinterest.
+If both participants in a state channel give up control of that part of the probability space, then it can be converted back into a normal account, or into a baby sortition chain.
 
 multiple random samples
 ============
@@ -154,27 +144,6 @@ So now there are 10 winners instead of 1 winner.
 Which significantly reduces the risk.
 
 Each sub-sortition chain of the recursive tree can still have only 1 winner.
-
-
-Scalability
-======
-
-Originally, the bitcoin scaled by the number of payments. The cost to the bitcoin system grew more or less linearly with the number of payments.
-
-Channels meant that we could scale with the number of financial relationships.
-
-With lightning channels we could scale with the number of users
-
-Using sortition chains, the blockchain scales infinitely.
-
-So for a lower cost than making 1 payment per week on Bitcoin, you could create and maintain a sortition chain on Amoveo and have tens of thousands of sortition contract relationships, all with different turing complete smart contracts being updated every second.
-It is a hugely more scalable design.
-
-With only state-channel technology, if we had dozens of competent programmers maintaining it at best we could not sustain more than 10-100 million users. For many users, Amoveo would only be creating slightly more value than the cost of using it.
-At >10 million users, the operating costs would be high and would begin having centralizing effects.
-
-With sortition chains, we could sustain hundreds of trillions of accounts for almost no on-chain cost. The vast majority of users would never write anything on-chain or pay any miner fee.
-The cost of using Amoveo would be essentially zero, thus there are only benefits to using it.
 
 Liquidity in Sortition Chains
 =========
@@ -207,7 +176,7 @@ The capital cost of being a sortition chain operator is very low. So it is cheap
 "contracts == chains" UX Advantages
 ==========
 
-If you are making a new sortition on top of an existing one, it isn't going to be recorded on-chain. You don't have to wait for any confirmations or pay any tx fees. Your address isn't even recorded on-chain anywhere. And you can run a market that matches derivatives in single price batches.
+If you are making a new sortition on top of an existing one, it isn't going to be recorded on-chain. Your address isn't even recorded on-chain anywhere. And you can run a market that matches derivatives in single price batches.
 
 "contracts == chains" Resource Consumption Advantages
 ===================
@@ -218,11 +187,5 @@ By layering sortition chains, each individual sortition chain can store less val
 So if you are running many different sortition chains, you can use a different private key for each one, so if one of your servers is compromised, you don't lose everything.
 
 Parallelizing tx processing across multiple computers running different sortition chain databases increases throughput of txs.
-
-
-
-
-
-
 
 

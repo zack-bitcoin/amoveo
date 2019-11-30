@@ -3,27 +3,14 @@ Sortition Chains Implementation
 
 [sortition chains home](./sortition_chains.md)
 
-
-sortition spk
-========
-
-* says a pubkey for who wins the lottery if this contract can be unlocked.
-* a list of chalang scripts that return binary results are used to define the part of the probabilistic-value space we are working with. All the conditionals must return true after the height when the sortition chain lottery winner is selected.
-* one more contract, this one is used to divide up the probability space between the sortition chain creator, and the winner of the lottery. So this acts like a normal state channel. This contract can take evidence, and it generates a priority nonce.
-* It needs to be signed by both participants to be valid.
-
-
-
 tx types
 ====
 
 1) sortition new
 
-* almost identical to new_channel_tx
-* pubkey to control spending
-* amount of money
+* pubkey who initially owns all the value.
+* amount of money for the lottery prize.
 * expiration date for when it it becomes possible to make sortition-contract-txs for this sortition chain.
-
 
 2) sortition split
 
@@ -34,62 +21,47 @@ This splits a sortition chain into two smaller sortition chains.
 for sortition chain 1, it selects a random value such that C is true.
 for sortition chain 2, it selects a random value such that C is false.
 
-3) sortition contract
+3) sortition claim
 
-* a lot like channel_solo_close_tx or channel_slash_tx.
-
-* a chalang sortition spk signed by the owner which, if unlocked, enables this withdraw. 
-* a chalang script-sig to provide evidence to unlock the spk.
+* show what height at which you had a claim to the winning part of the probabilistic value.
 * You pay a safety deposit.
 * this potential winner gets added to a list of potential winners.
 
 4) sortition evidence
 
-* provide evidence that one of the potential winners signed away their ability to win this part of the probability space. They get removed from the list of potential winners.
-
+* which potential winner did not win.
+* evidence to prove that they had signed away ownership of the winning part of the probability space.
+* they get removed from the list of potential winners.
 
 5) sortition timeout
 
-* almost identical to channel_timeout_tx
-* you have to wait a long enough delay after the sortition-contract-tx before you can do this tx.
-* whichever potential winners has the commitment to the earliest block height wins.
-
-<!-----
-
-* If the winner is different from the sortition chain operator, then this creates a new sortition chain that the winner controls.
-* The new sortition chain has all the money from the old one.
-* the new sortition chain has an expiration that is already passed. So it is possible to start the process of settling this sortition chain immediately.
-* this unlocks the safety deposit you had paid in the sortition-contract-tx.
----->
+* whichever potential winner has the highest priority claim to win, they win the lottery.
+* a claim linked to an earlier block height has higher priority.
+* this tx can only be made if you wait a sufficient amount of time after the RNG to choose the winner was generated.
 
 6) proof of existence
 
-* This allows the creator to publish 32 bytes of data into the proof of existence tree. It keeps a record of the block height at which this hash was recorded. This is used for hashlocking.
-
-7) sortition chain state root
-
-* records the state root of the sortition chain. This is how users who own value in that sortition chain can create proofs that they own value in it, the proof is connected to these state roots.
-* records the merkel root of a tree of signed sortition_roots from descendent sortition chains. This way your descendents don't have to post on-chain.
+* This allows the creator to publish 32 bytes of data into the proof of existence tree. It keeps a record of the block height at which this hash was recorded.
+* This is used for hashlocking, because we need to prove at what height a pre-image was available.
+* This is used for sortition operators to record the fact that they have signed a merkel root of a sortition database.
 
 
 New Merkel Tree Data Structures in the Consensus State
 ============
 
-1) sortition chains
+1) probabilistic value space
 
-id is random 32 bytes.
+id is a subset range of values in [0,1]
 
-* pubkey of creator
-* amount of veo
-* expiration date
+* pubkey of who owns this lottery ticket, or a pair of pubkeys if it is a channel, or a list of operators if it is a baby sortition chain.
 
-2) sortition state roots
+2) waivers
 
-id is generated from the sortition ID and height.
+id is generated from the sortition ID and pubkey of who is giving up control.
 
-* 256 bit hash
+* signature
 * sortition chain ID
-* height
+* pubkey of who is giving up control
 
 3) proof of existence
 
@@ -98,7 +70,7 @@ id is the 32 bytes being stored.
 * arbitrary 32-bytes.
 * the height where this was recorded.
 
-4) potential_winner_root
+4) potential_winners
 
 for every potential winner there can be multiple layers of sortition chains in their proof that they won.
 for every layer of sortition chain, we need to remember a priority height as well as a list of pubkeys of accounts assigned to collect evidence for when users give up ownership of parts of that layer.
@@ -130,43 +102,41 @@ each pw_spent_proof_operator has a pointer to the pw_root it is associated with,
 the pw_spent_proofs are a linked list, each pointing to the next. 
 
 
-
-
 Timeline for horizontal payment
 =============
 
-Bob has veo in sortition chain A, he wants to spend to Alice, and he wants the option to hashlock this payment against something else.
-Carol is the operator of the sortition chain.
-Dave is the spend proof holder.
+Bob has veo in a sortition chain, he wants to spend to Alice, and he wants the option to hashlock this payment against something else.
 
 
-1) Alice downloads all the history of all the merkel proofs of Bob's part of the probability space. She gets the probability space history from Carol, and she gets the spend history from Dave.
+1) Alice downloads all the history of all the merkel proofs of Bob's part of the probability space. She downloads this history from any of the operators, or from Bob.
 
-2) Bob gives Carol a signed message asking that she help to give part of his veo to Alice. Carol includes a contract that would give Alice control into the sortition merkel tree. 
+2) Bob gives the operators a signed message explaining how he wants to pay part of his money to Alice. He makes a signed message saying that if a particular pre-image is revealed, he will give up ownership of his part of the probability space. 
 
-3) Alice downloads from Carol the proof that her contract exists in the tree. She downloads proofs for all the history of this part of the probability value space, to make sure that when Bob gives up control, her contract will have the highest priority.
+3) Alice verifies that the signed message about Bob giving up ownership is committed. She verifies that there was a commitment giving her 2nd highest priority ownership of Bob's part of the probabilistic value space. Now Alice can know if the pre-image is revealed, that she will own the value.
 
-4) Bob generates secret S, and takes the hash of it to generate commitment C. Bob signs a messages saying that if the secret for C is revealed, then Bob gives up control of his part of the probability space. He gives this to Dave.
+4) Alice sets up the other half of the hashlock using the same commitment. To pay Bob.
 
-5) Once Dave has included the spend contract into his merkel tree, Alice downloads the merkel proof from him.
-
-6) Alice sets up the other half of the hashlock using commitment C.
-
-7) Bob reveals secret S to Alice. So now Alice controls the value Bob had wanted to spend to her.
-
+5) Bob reveals secret S to Alice. So now Alice controls the value Bob had wanted to spend to her.
 
 Timeline for vertical payment
 ===========
 
-Bob has veo in a sortition chain A, he wants to spend to Alice, and he wants the option to hashlock this payment against something else.
-The operator of the sortition chain A has disappeared.
-The operator of the spend proofs merkel tree has disappeared.
+Bob has veo in a sortition chain, he wants to spend to Alice, and he wants the option to hashlock this payment against something else.
 
-1) Alice downloads all the merkel proofs of Bob's part of the probability space from Bob, so she knows that Bob actually owns some Veo.
+1) Bob gives a signed message to the operators explaining that he wants to convert his account into a baby sortition chain. He gives the new list of operators for the new sortition chain. This message gets committed on-chain by the operators.
 
-2) Bob creates an off-chain contract that says if he wins the sortition chain, it is the root of a new sortition chain. Bob is the operator of the new sortition chain. He chooses a spend proofs merkel tree operator Dave for the new sortition chain.
+2) Alice downloads all the merkel proofs for the sortition chain, so now she knows about the baby sortition chain.
 
 Bob owns 100% of the value in the new sortition chain, so he can do horizontal payments like normal.
+
+
+
+
+
+
+
+<!-----
+
 
 
 Data the sortition chain operator needs to store
@@ -337,3 +307,6 @@ For example, if 4 people are betting on 4 mutually exclusive outcomes, the tree 
 ```
 If contract1 and contract2 are both long, then it is best to avoid having to write one of them out twice in the database.
 
+
+
+---->

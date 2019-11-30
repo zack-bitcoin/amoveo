@@ -6,81 +6,100 @@ Sortition Chain Defense
 
 The purpose of this document is to look at several criticisms of sortition chains, and see if they will break under various situations.
 
-
-What if a Sortition Chain Operator Sells All Their Stake, and then Goes Offline?
+operators steal the money attack
 ===========
 
-Looking at the example of 3 generations of sortition chains, where the middle generation has sold all their stake, and then gone off-line.
+What if the operators assign your money to them in the probabilistic value tree?
 
-Now the grandparent generation wants to buy back all the contracts it sold to hedge it's risk before the sortition chain ends, but the middle generation is gone, so it can't update the contracts with them.
+As long as they had assigned it to you first, then your claim has higher priority. So if you win the lottery, they cannot prevent you from taking the prize.
 
-The operators of the grandchildren chains can make sortition contracts with the operator of the grandparent chain, selling all of the contract back to the grandparent, without the middle generation even needing to come online.
+What if the operators put an element in the waivers tree saying that you gave up ownership of your part of the probabilistic value space?
 
-So the operator of the grandparent sortition chain ends up controlling many many of his great-grandchild sortition chains.
+It is only valid if you signed it.
 
-For this to work, sortition chains need to have the option of reporting the merkel root of their sortition-contracts onto any ancestor, not just the direct ancestor. That way you can still update your contract, even if the person you bought it from went off-line.
-
-
-What if an attacker tries to increase the number of lotto tickets available, because they have more appatite for risk?
+Tx censorship attack
 ===========
 
-If you stand to have a 5% expected gain every time you can buy lotto tickets, then you might be incentivized to start doing things that will increase the total number of lotto tickets available for you to purchase.
+What if the sortition operators refuse to allow you to move your money? Will you get stuck holding lottery risk?
 
-if things are efficient, then there would be many people buying lotto tickets for a small expected profit.
-They would keep under-cutting each other, so there wouldn't be almost any incentive to increase the number of lotto tickets.
+When the sortitoin chain is finally being settled, before the RNG is generated to choose a winner, there is a period of time when you will have one final chance to sell your part of the soritition chain.
 
-Purposefully increasing the number of lotto tickets is twice as capital intensive vs just buying up existing lotto tickets.
-So they will keep under-cutting each other until the attack stops happening.
+Frozen sidechain attack
+===========
+
+What if one of the sortition operators stops signing any updates, so no one can transfer their funds inside the sortition chain.
+
+If the sortition chain is frozen, it is still possible to prove what your current balance is in the sortition chain. So we can have a period of time between when the sortition operators are able to make updates, and when we generate the RNG to determine the winner.
+During this period of time, we can give everyone one final chance to sell their value from the sortition chain.
+
+So during this time we should allow people to sign an agreement off-chain that says "If I win the sortition chain, I want 100% of the value to go to X".
+
+we can use hashlocking to connect the creation of this agreement to a payment in a different sortition chain, and we can combine it with a safety deposit that you pay.
+
+We can set it up so that if you make multiple of these agreements that contradict with each other, that you will not receive the payment, and you lose your safety deposit.
+This is re-using a trick from probabilistic payment research.
+
+Signature availability attack
+=========
+
+What if one of the operators witholds their signature. So we don't know if the current state of the sortition chain is commitment number C or C+1.
+The operator can choose to reveal their signature at the last minute, or not, depending on which state is better for them.
+So this means if you have a tx in commitment C+1, you can't be sure if that tx was executed or not.
+
+So this is similar to the freeze attack, except all the money involved in txs in commitment C+1, we don't know if they are going to be included or not.
+
+A partial solution to this is to add this rule:
+The very highest commitment is only valid if there is another commitment built on top of it, and the commitment on top has at least N-1 of the validator's signatures.
+
+So, as long as at least 1 of the validators is honest, there are only 2 possible final outcomes of the sortition chain.
+
+Data availability attack
+==========
+
+If some of the operators sign sortition-blocks even though some of the data is not available, this is a kind of attack.
+
+A partial solution to this is to add this rule:
+The very highest commitment is only valid if there is another commitment built on top of it, and the commitment on top has at least N-1 of the validator's signatures.
+
+So, as long as at least 1 of the validators is honest, there are only 2 possible final outcomes of the sortition chain.
+
+Solving availability attacks
+==========
+
+As long as at least one of the N operators refuses to sign unavailable updates, and makes all the data available, then both kinds of availability attacks have this in common: there are exactly 2 possible final states for the sortition chain. And it is easy for anyone to check whether the signatures and data for the second state is available.
+
+So for every sortition chain being settled, we can ask the oracle "Is an availability attack happening?"
+If the oracle responds "false", then we use the very last state. if the oracle responds "true", then we use the 2nd to last state.
+
+N of N availability attacks
+==========
+
+What if all N of N sortition operators cooperate to withold some data?
+
+Operators would compete to look more honest. [here is a description of a protocol so that it is cheap to verify that all the data is available](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chain_rollups.md)
+
+Optimistic rollup is a great solution so that everyone who wants to use a sortition chain can cheaply verify that all the data needed is available.
+
+As soon as any part of the data is withheld, all of the users of that sortition chain will immediately know about it, because they will not receive a valid sortition block for something that was committed on-chain.
+
+It is cheap to prove to everyone else that this entire list of operators are signing commits without providing sortition blocks, so none should be used as sortition operators again.
+
+This attack is only possible if 100% of the operators work together. They still can't steal anyone's value. but they can freeze your money and force you to take on lottery risk.
+So the worry is the the operators will hold your money hostage, and try to buy it from you at a discount.
+Depending on how many people sell, and at what level of discount, this attack could be fairly profitable.
+
+But it only happens if all N of N operators cooperate, so as long as we can each trust someone in the list of operators, this attack isn't an issue.
+
+Since the total number of sortition chains can be in the trillions, it is cheap to make a new sortition chain where the list of operators includes someone you trust, and someone trusted by the person you want to make a contract with.
 
 
-Proof of the non-existance of data for hashlocking
-=======================
+Sortition chain Timeline
+===========
 
-There is an attack. The attacker sets up a hashlock update of a sortition contract, but then refuses to reveal the pre-image of the hash.
-This means that the sortition chain operator is left unable to prove their ownership of that part of the money. So no one will accept payments of that part of the money.
-
-To solve this, we will enable proof-of-existence txs on-chain. You store by the commitment, and you look up the pre-image and the height at which it's existence was recorded.
-
-The smart contract can require that the pre-image exist in the proof-of-existence tree, and that the height recorded with it was earlier than some limit.
-This way the attacker can only make the money un-spendable for a short period of time.
+~2 months: it is possible to make payments and contracts in the sortition chain.
+~1 week: we ask the oracle if an availability attack happened.
+~1 week: everyone gets one final chance to sell their stake.
+~1 week: people can provide evidence to prove that they won the sortition chain.
 
 
-So we might worry that an attacker would cause us to need to record so many proof-of-existence data, that we can't fit it in a block.
-To avoid this problem, whoever is the bigger sortition chain operator should not be the one generating secrets. This way, the worst that could happen is that the sortition chain operator is attacking themselves.
 
-
-What if your parent sortition chain operator refuses to share merkel proofs of the non-existence of data?
-=====================
-Lets say there is a sortition chain A built on the main chain, and a sortition chain B inside of it.
-at height N, sortition chain operator A publishes the root of their sorition chain state, and the root of all their child chains who wanted to be updated as well.
-
-Now a user wants to buy a contract inside of sortition chain B.
-So they request merkel proofs of every state update in sortition chain B to verify that the part of the sortition chain that they want to own, that it is not already owned.
-
-The user thinks that at height N, sortition chain B may have published a state update, so they request a merkel proof for this height.
-
-This means that sortition chain operator B needs to be able to generate a merkel proof to show that block height N did not modify the state of sortition chain B.
-
-But sortition chain operator A was the one who generated that merkel tree. They could choose to not share any merkel proofs from it with sortition chain operator B.
-
-Basically, this seems like a bug that allows the operator of your parent sortition chain to halt progress in your sortition chain.
-
-If a sortition chain operator was malicious, they could only freeze progress, they can't invalidate any smart contract.
-And this would destroy their reputation. No one would want to own contracts in any of their sortition chains in the future.
-It is cheap and easy to verify that a sortition chain operator is hiding data.
-
-What is unfortunate is that this creates a trade-off.
-If there are more servers available where you can record the current state of your sortition chain, this means you can continue operations even if some of those nodes go off-line.
-But it also increases the number of servers who have the ability to freeze progress on your sortition chain.
-
-From a game theory standpoint, this sort of reputation system is no good.
-If the fees for operating a sortition chain are low, then it wont be expensive to bribe the operator to freeze everyone's progress.
-If we assume that 100% of the users are only interested in maximizing their personal profit, then sortition chains does not work.
-
-When we model our users, typically something like this is used:
-89% selfish
-10% willing to take a loss to harm amoveo.
-1% willing to take a loss to help amoveo. altruists
-
-If we keep track of who does a good job of running sortition chains, eventually we should be able to identify some pubkeys that are owned by the 1% of users who are altruists.
-Even if only a tiny fraction of Veo are owned by altruists, this may still be sufficient to have working sortition chains.

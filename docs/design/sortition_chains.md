@@ -17,43 +17,39 @@ Related documents:
 What is a Sortition Chain?
 =========
 
-A sortition contract is a kind of smart contract.
-If you are participating in a sortition contract, then either you will get all the money in the contract, or none of it.
-It is always possible to divide a sortition contract into two lower valued contracts, who would both win value in mutually exclusive situations. And it is always the case that expected_value(big) = expected_value(little_1) + expected_value(little_2)
+A sortition chain is a kind of lottery.
+The lottery tickets are spendable and divisible.
+The database of lottery tickets is off-chain.
+Eventually we draw the random number to determine who won the lottery.
+The winner publishes the slice of the lottery ticket database that proves that they won.
+No matter how many people are owning lottery tickets, the proof of who won can stay small.
 
-Example:
-You lock $10 into a sortition contract to bet at 50:50 odds on the outcome of a football game. At the end, you have $20 in the contract.
-But the total value of the sortition chain is $1000. Since you have $20, what that means is that you have a 2% chance of winning the entire sortition chain of $1000.
-Typically, after the end of the football game you would sell your stake in the sortition contract for $20, instead of holding such a high-risk asset.
+You can think of sortition chains as a tool that combine features of probabilistic payments with state channels. 
 
-A sortition contract can only exist as a part of a sortition chain.
+If you own $10 in a sortitoin chain that has $1000 total locked in it, that means you have a 1% chance to win $1000, and a 99% chance to win $0.
 
 A person usually doesn't want to hold a contract that only has a 2% chance of having value. That is a lot of risk. But as long as there are other people willing to buy the contract at a good price, this works.
 
-Updating an existing sortition contract between 2 people can happen instantly, and can be a part of a lightning payment.
-
+You can create sortition chains inside of existing sortition chains, allowing for exponential scalability.
 
 Sortition Chain Operators
 ======
 
-The sortition chain operator keeps track of a merkel tree containing all the active sortition contracts. The merkel root of this is published in every block.
+Each sortition chain has a team of operators. Updating the state of the sortition chain requires all N of N of the operators to sign the new state root.
+Requiring all N of N to sign means we can be sure at least one of them will keep the data available.
 
-Every branch of the merkel tree has bits of chalang code, which specify the mutually exclusive conditions which could allow each sub-branch to be active.
-The chalang code can reference randomness, or the output of an oracle, or anything.
-That way, a merkel proof of the existence of your sortition contract is also a proof that no one else has the same part of the probability space as you.
+They use Tendermint consensus to agree on what commitment should be signed on next.
+That way we can know that any double-signing is not accidental, it was malicious.
+Not that we can punish operators. We just want to identify which ones are malicious so we wont hire them as operators again in the future.
 
-So when you create a sortition contract with a sortition chain operator, the operator is giving you a contract for rights over a certain part of the probability space, and he gives you a proof that this portion of the probability space is owned by him.
+The commiters commit the merkel roots of 2 trees. The first tree divides up the probabilistic value space between the different people who own it. The location in the tree is determined by which RNG values would result in your winning. That way, a merkel proof of your part of the tree is also a proof that no one else is owning that part of the probabilistic value space.
 
-Sortition Contracts are Sortition Chains
-===========
+The second tree contains a bunch of signed statements where people give up ownership of parts of the probabilistic value space, and where people declare that they want the part of the value space that they own converted into a new sub-sortition chain that is inside of the existing parent sortition chain.
 
-We sometimes call them "contracts" and sometimes call them "chains" to hint at how it is being used in the current context. If you are using it to make a bet, we call it a contract. If you are using it to run a market where other people can bet, we call it a chain.
 
-If we are talking about the children of a sortition chain, we will often defualt to calling them "contracts".
+Embedding smart contracts
+========
 
-When a sortition chain settles, and someone's sortition contract wins the lottery, if that account is different from the account that originally created the sortition chain, then they should get paid with the creation of a new sortition chain on-chain.
+When people sign a message that they are giving up control of part of the sortition value space, they can include a commitment to a smart contract. That way they are only giving up control if someone can provide evidence to make the smart contract return "true". Similar to unlocking a bitcoin UTXO.
 
-What this means is that any sortition contract owned by someone besides the sortition chain operator, that sortition contract is a sortition chain, and the owner is the sortition chain operator of that chain.
-
-But before you start selling contracts in your sortition chain, you will need to set up a server with a database for storing all the sortition contracts, and to automatically post the merkel roots to either the blockchain, or to one of your ancestor's sortition chains.
-
+This allows us to use turing complete contracts to determine who owns which parts of the probabilistic value space.
