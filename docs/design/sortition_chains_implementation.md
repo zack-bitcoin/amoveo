@@ -16,7 +16,7 @@ tx types
 
 This splits a sortition chain into two smaller sortition chains.
 
-* C = a binary chalang contract to determine how the old sortition chain is split. 
+C = a binary chalang contract to determine how the old sortition chain is split. 
 
 for sortition chain 1, it selects a random value such that C is true.
 for sortition chain 2, it selects a random value such that C is false.

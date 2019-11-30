@@ -13,6 +13,8 @@ Related documents:
 
 [sortition chain random number generator.](./sortition_chains_random.md)
 
+[sortition rollup](./sortition_chain_rollup.md)
+
 
 What is a Sortition Chain?
 =========
