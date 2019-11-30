@@ -27,3 +27,8 @@ It seems unlikely that optimistic rollup can compete with lottery based scaling 
 If the rate of tx production doubles, then optimistic rollup becomes twice as expensive vs lottery-based sidechains.
 
 [sortition chains are an example of lottery based scaling](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chains.md)
+
+Conclusion
+===========
+
+Optimistic rollup is a great tool for guaranteeing that large amounts of data are available, but it is not a solution for scalability.
