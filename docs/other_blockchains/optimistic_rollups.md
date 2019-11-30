@@ -26,4 +26,4 @@ Lottery based sidechains can scale as (rate of tx production)^(1/2). That means 
 It seems unlikely that optimistic rollup can compete with lottery based scaling solutions.
 If the rate of tx production doubles, then optimistic rollup becomes twice as expensive vs lottery-based sidechains.
 
-
+[sortition chains are an example of lottery based scaling](https://github.com/zack-bitcoin/amoveo/blob/master/docs/design/sortition_chains.md)
