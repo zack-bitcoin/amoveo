@@ -128,9 +128,11 @@ Using baby sortition chains to limit the size of these contracts
 ===========
 
 If we limit ourselves to only using at most 16 bits of entropy per sortition chain, then the size of the database is
-(16-1)*(2^16) = 15*65536 = 0.98 megabytes, which is very manageable.
+(16-1)*(2^16)*(32 bytes per account) = 15*65536*32 =~ 32 megabytes, which is manageable.
 And at most, each of these sortition chains could have up to 65636 accounts.
 So if you used 4 levels of sortition chains, that could have up to 1.8*10^19 accounts.
+
+with 16 bits, the smallest amount you could own is ~1/64000th of the value in the sortition chain.
 
 A more efficient encoding of these contracts
 ===========
@@ -153,4 +155,6 @@ Using baby sortition chains to limit the size of these contracts
 If we want to divide a sortition chain into parts that are 1 billionth of the total size, then we need at least 30 bits of entropy.
 
 If we limit ourselves to only using at most 30 bits of entropy per sortition chain, and we limit it to 1000 accounts per sortition chain, then the size of the database for each sortition chain is
-(1000 * (30-1) * 2) ~= 60000 = approximately 60 kilobytes. which is extremely manageable.
+(1000 * (30-1) * 2 * (32 bytes per account)) ~= 60000 = approximately 2 megabytes. which is extremely manageable.
+
+with 1000 accounts per level, if you used 4 levels of sortition chains, then you could specify up to 1 trillion accounts.
