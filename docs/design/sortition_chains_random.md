@@ -158,3 +158,39 @@ If we limit ourselves to only using at most 30 bits of entropy per sortition cha
 (1000 * (30-1) * 2 * (32 bytes per account)) ~= 60000 = approximately 2 megabytes. which is extremely manageable.
 
 with 1000 accounts per level, if you used 4 levels of sortition chains, then you could specify up to 1 trillion accounts.
+
+Hedged pairs is not enough
+==========
+
+If an attacker bought all hedged pairs that start with 01 or 10, then they only need to attack the first 2 bits to win.
+
+So lets consider an 4-bit hedged pair, and calculate the opposite-pair to build a hedged quad.
+
+0000 1111
+1010 0101
+
+the way to calculate the other half of the quad:
+00 -> 01
+11 -> 10
+10 -> 11
+01 -> 00
+
+for each pair of bits, flip the 2nd.
+
+By using hedged quads an attacker would need to attack 4 bits to win.
+
+Next lets calculate a hedged octal.
+
+
+0000 1111
+1010 0101
+0011 1100
+1001 0110
+
+for each set of 4 bits, flip the 3rd and 4th.
+
+by using hedged octals an attacker would need to attack 8 bits to win.
+attacking 8 bits is as expensive as re-mining 2^8 = 256 blocks.
+
+
+If we are dividing up a sortition chain into 2^N parts, and users buy 8 parts at a time in hedged octals, then there are 2^(N-3) possible hedged octals that can be owned.
