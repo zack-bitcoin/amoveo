@@ -1,6 +1,6 @@
 Blockchain Sharding
 ============
-draft: 4
+draft: 5
 
 In the Bitcoin blockchain, no matter how many full nodes you add to the system, you can not increase the rate at which transactions can be processed.
 
@@ -121,8 +121,8 @@ OL      6    6   6   6   1
 P       4    4   4   4   9 
 PC      4    4   4   4   9
 PF      4    4   4   4   9
-Sort    6    6   6   6   9
-S2      6    6   10  10  9
+Sort    7    7   7   7   9
+S2      7    7   10  10  9
 
 ```
 
