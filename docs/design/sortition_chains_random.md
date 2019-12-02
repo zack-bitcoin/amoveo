@@ -31,26 +31,126 @@ In general, a blockchain lottery's reward needs to be smaller than the cumulativ
 
 In the case of sortition chains, we have some tricks to overcome this limitation.
 
-Dividing sortition chains to prevent majority stake attacks
+Dividing sortition chains to eliminate lottery risk.
 =================
 
-We model an attacker like this: the attacker wants to control >50% of the value in the sortition chain, that way it would become profitable for them to occasionally not collect a reward, to increase their chances of winning later bigger rewards.
+When a sortition chain is finally being settled, we want a simple process so that people can get their money out on-chain without having to take on much lottery risk.
 
-To prevent this attack the sortition chain needs the ability to be divided into 2 smaller sortition chains.
-So, if there is some attacker who owns 70% and is going to rob the owners of the remaining 30%, someone can buy up those remaining 30%, and then pay a fee to split their 30% off into it's own sortition chain that gets settled seperatly from the attacker's chain.
-So the attacker ends up owning 100% of the value on their sortition chain, and there is no one left to attack.
+The way to do this is to allow people to divide up the sortition chain into smaller sortition chains.
+They can pay to have it divided up such that they own 100% of the value on one of the sortition chains, and 0% on the other, that way they can eliminate the lottery risk.
 
 The expectation is that specialists will buy up large amounts of value in each sortition chain, and then split off onto a version where they own 100%. This way they can get rid of all the risk, and earn a profit by helping people move their value into sortition chains that have expirations further in the future.
 
-Estimating scalability during reroll attacks
+Why dividing sortition chains up is not a scalability solution
 ==============
 
 In order to defend from a reroll attack, we may need to divide the sortition chain into many smaller sortition chains.
 Since all the small sortition chains are using the same block's hash as their source of entropy, an attacker who performed a reroll attack would necessarily be rerolling all of the tiny sortition chains at once.
-If the value is split up into N many sortition chains, then the profitability of a reroll attack decreases as 1/sqrt(N).
+If the value is split up into N many sortition chains, then the profitability of a reroll attack decreases as (lottery prize)/sqrt(N).
 
-So, at most, we would only need to divide a sortition chain into O(sqrt((total value of the sortition chain)/(value of a block reward))) many parts.
+(lottery prize) = (block reward)*sqrt(# sortition chains)
 
-This attack is the reason that sortition chains scale as O(sqrt(rate of txs)) instead of O(log2(rate of txs)).
+(# sortition chains) = ((lottery prize) / (block reward))^2
+
+So, at most, we would only need to divide a sortition chain into O(((total value of the sortition chain)/(value of a block reward))^(2)) many parts.
+
+Sudoku Scalability
+=========
+
+The sortition chain probabilistic value space is divided up by each bit of entropy.
+So an attacker who owned 1/4 of the total value, they could carefully decide which parts of the probabilistic value space to own to make sure that exactly 2 bits of the entropy completely determine if they win or not. Then they can focus on attacking just those 2 bits.
+
+So to prevent the attacker from being able to focus their attack on any particular bits, we want people who own value in the sortition chain to own collections of parts of the probabilistic value space such that they are evenly 50-50 hedged for all of the entropy bits that will get generated.
+That way, if an attacker attacks one particular bit, they will have no influence on whether you win or not. The attacker would have to attack all of the bits simultaneously to earn any profit, which is computationally impossible, because each additional bit being attacked costs twice as much as the previous.
+
+For this defence to work, we need to show that the contracts to specify how to divide up the probabilistic value space, that these contracts are not excessively long to program.
+We also need to show that these additional requirements are not overly onerous for the operators who need to maintain the database of who owns which parts of the probabilistic value space.
+
+These contracts for owning value that is fully hedged, such a contract has a logic to it that is similar to solving a sudoku puzzle, which is why I call this the "sudoku strategy".
+I suspect that these contracts will grow in complexity as (txs per second)^2
+but since we can make each individual sortition chain very small, this exponential doesn't matter.
+It would be like O(log((# txs)^2))
+which is the same as O(log())
+
+Calculating the size of the most general way of specifying hedged sortition contracts
+==============
+
+So, lets try to find some principles about how to specify these collections of hedged probabilistic value spaces.
+For our simple model, we will consider a probabilistic value space divided up by 3 bits of entropy.
+So there are 8 possible outcomes.
+000
+001
+010
+011
+100
+101
+110
+111
+
+Lets try to find all possible hedged collections out of these 8.
+
+Pairs of hedged points:
+000 111
+001 110
+010 101
+100 011
+
+There are 4 possible pairs of hedged points, so it would take at least 2 bits of information to specify one of the pairs.
+
+For any hedged collection, it is always possible to express it as a collection of hedged pairs.
+
+There are 4*3=12 possible sets of 4 hedged points. So it would take 4 bits of information to specify one of the 12 possible sets of 4 hedged points.
+
+Before we only looked at the probabilistic space defined by 3 random bits.
+Next we consider N random bits.
+
+There are 2^N possible outcomes.
+
+There are 2^(N-1) ways to specify a pair of hedged outcomes. So any individual hedged pair can be specified with N-1 bits.
+
+if you buy M pairs of hedged outcomes, there are (2^(N-1))! / ((2^(N-1))-M)! ways to specify these M pairs.
+
+plugging in some values of N and M and calculating how many bits of information we would need to encode such a contract:
+
+N=20, M=2 -> 38
+N=20, M=3 -> 57
+N=20, M=4 -> 76
+N=20, M=5 -> 95
+
+Seems like the general solution needs (N-1)*M bits to fully specify the arbitrary hedged contract.
+So if we fully divided up the sortition chain into contracts like this, it would require (N-1)*(2^N).
+
+Bitcoin uses about 40 bits to specify a quantity of value.
+
+We would need about 39 trillion bits of information to keep track of all the contracts, if we divided it up into 20 million possibilities, and used the most general encoding to specify each contract.
+
+Using baby sortition chains to limit the size of these contracts
+===========
+
+If we limit ourselves to only using at most 16 bits of entropy per sortition chain, then the size of the database is
+(16-1)*(2^16) = 15*65536 = 0.98 megabytes, which is very manageable.
+And at most, each of these sortition chains could have up to 65636 accounts.
+So if you used 4 levels of sortition chains, that could have up to 1.8*10^19 accounts.
+
+A more efficient encoding of these contracts
+===========
+
+We already saw that diving up sortition space using N bits means the total size of contacts would be (N-1)*(2^N).
+
+But, in general, it is always possible to have an order for the pairs of hedged points.
+That way, if you wanted to own 4 hedged pairs, you could buy a list of 4 consecutive pairs. That way a contract to specify them only needs to specify the first, and the length of how many you want to own.
+
+So if we are dividing up the sortition space using N bits, and we want to divide it up into M sub-ranges, the total amount of information to specify this is:
+
+M*(N-1)*2
+
+This shows that the total cost of specifying the contracts only needs to increase linearly with the number of accounts that exist at one point in time.
 
 
+Using baby sortition chains to limit the size of these contracts
+===========
+
+If we want to divide a sortition chain into parts that are 1 billionth of the total size, then we need at least 30 bits of entropy.
+
+If we limit ourselves to only using at most 30 bits of entropy per sortition chain, and we limit it to 1000 accounts per sortition chain, then the size of the database for each sortition chain is
+(1000 * (30-1) * 2) ~= 60000 = approximately 60 kilobytes. which is extremely manageable.
