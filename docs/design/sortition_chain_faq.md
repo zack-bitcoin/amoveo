@@ -1,3 +1,0 @@
-Sortition Chain FAQ
-==========
-

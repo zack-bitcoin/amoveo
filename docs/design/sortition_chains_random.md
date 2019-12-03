@@ -58,6 +58,10 @@ So, at most, we would only need to divide a sortition chain into O(((total value
 Delayed cryptography RNG
 =============
 
+A couple papers on this topic:
+https://eprint.iacr.org/2015/1015.pdf
+http://www.jbonneau.com/doc/BGB17-IEEESB-proof_of_delay_ethereum.pdf
+
 How about we use time-delay crypto to find out whether you won the lottery at a given block, and we use a true-bit type interface to prove the long time-delay operation on-chain.
 if it takes more than 1 block of time to find out if you won, then you wont know whether to do a reroll or not until it is too late
 if everyone had to run time-delay crypto on every block, that would be a lot of computer power running constantly.
@@ -126,6 +130,11 @@ combining both of these improvements, instead of needing 10 days with 10 minute 
 Also, if different people are doing VDF proofs on-chain in the same block, we can verify each in parallel. 
 So if each one takes at least 1 second, and we have 8 cores, then we can do 8 in 1 second.
 
+Fast verification of RNG
+=========
+computing the RNG initially takes like 8 hours or so. But once we have solved it once, it can be efficiently verified using GPU.
+The GPU can simultaniously verify many batches of VDF processing.
 
-
-
+The RNG computer is based on a CPU SHA256 miner written in C.
+The RNG verifier is based on a GPU SHA256 miner written in cuda.
+So verification will be faster based on the relative speed difference between CPU mining and GPU mining.

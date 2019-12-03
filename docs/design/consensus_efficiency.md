@@ -1,6 +1,6 @@
 Consensus Efficiency
 ========
-draft 2
+draft 3
 
 Models have been proposed to explain relationships of different aspects of the blockchain.
 
@@ -57,17 +57,21 @@ I am using `~` to express [proportionality](https://en.wikipedia.org/wiki/Propor
 What we know from studying sharding
 ==========
 
-V = the number of txs in a single scaling lottery
 
-The on-chain cost to settle one lottery is O(sqrt(V)), so `F ~ sqrt(V)*(lotteries per day)`
+The on-chain cost to settle lotteries is O(log(T))
+
+so `F ~ log(T)`
+
+<!-----
 
 `T ~ V * L`
 
 `V ~ T / L`
 
-`F ~ L * (sqrt(T/L))`
+`F ~ L * (log(T/L))`
 
 -> `F ~ sqrt(T*L)`
+------>
 
 
 What we know from studying privacy
@@ -91,24 +95,24 @@ What we know about decentralization
 
 Decentralization is a measure of the cost of a minimum full node that is able to prove ownership of your part of the currency and keep the network alive.
 
+`D ~ T`
+
+<!-------
 `1 ~ D * T`
+------->
 
 Putting it together to define consensus efficiency.
 =========
 
-`F ~ Finality * S * sqrt(T * L * D)`
+`F ~ Finality * S * log(T * D)`
 
 Now we know how to define the consensus efficiency.
 
 We want to define the consensus efficiency=C so that C is always positive, and it is set up so that if everything else is equal, higher values of C mean the tx fees are lower.
 
--> `F = (1/C)*(S*sqrt(T*L*D))*Finality`
+-> `F = (1/C)*(S*log(T*D))*Finality`
 
--> `C = S*sqrt(T*L*D)*Finality/F` <---------
-
-unit analysis. `C = (unitless ratio)*sqrt((txs/time)*(lotteries/time)*coins)*time/coins`
-`C = sqrt(txs * lotteries)`
-
+-> `C = S*log(T*D)*Finality/F` <---------
 
 This is the unified blockchain modeling equation, it is also the definition of consensus efficiency.
 
@@ -123,27 +127,25 @@ P = 1
 
 F = $100
 
-L = lotteries per day = 100
-
 T = txs per second = 2000
 
 So this means that an attacker who spends $100 can destroy $50.
 
 Lets increase the security level so that an attacker who spends $100 can destroy only $5, and calculate how this impacts the cost of fees.
 
-`C = (S*sqrt(T*L*D))/(1*F)`
+`C = (S*log(T*D))/(F)`
 
--> `C = 2 * sqrt(2000 * 100 * 1)/(1*100)`
+-> `C = 2 * log(2000 * 1)/(100)`
 
--> `C = 8.94`
+-> `C = 0.219`
 
-so this blockchain has a consensus efficiency of 8.94.
+so this blockchain has a consensus efficiency of 0.219
 
-Now lets increase the security level to 20, and calculate the new fee.
+Now lets increase the security level from 2 to 20, and calculate the new fee.
 
-`C = (S * L * log2((P * T)/L))/F`
+`C = (S * log2(T*D))/F`
 
--> `8.94 = (20 * 100 * log2((1 * 2000)/100))/F`
+-> `0.219 = (20 * log2((1 * 2000)))/F`
 
 -> `F = 1000`
 
@@ -151,3 +153,12 @@ So this shows that increasing the security level by a factor of 10 would require
 Meaning it would be charging 10x more fees per second and having 10x more inflation per second.
 This agrees with the definition of security level in the trust theory document, so it is a confirmation that the consensus efficiency formula is correct.
 
+
+
+Limitations in consensus efficiency
+==================
+
+Making a transaction for a blockchain will always involve the computational cost of signing that tx, and the bandwidth cost of sending the signed tx to someone else.
+So that means there is a minimum computational and bandwith cost that is linearly related to the number of txs.
+
+It is possible to invent protocols where the overhead of consensus is sub-linear, but eventually the cost of signing/publishing txs will dominate, and so further improvements to the cost of overhead stop being useful.
