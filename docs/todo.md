@@ -1,3 +1,10 @@
+It would be nice to wrap the 3 thing you need to publish a channel offer into 1 text string
+
+
+
+
+
+
 Since splitting a sortition chain is something that needs to happen on-chain, does that mean we can change the list of accounts assigned as committers?
 
 review the attack suggested by Fernando.

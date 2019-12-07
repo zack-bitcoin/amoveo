@@ -2,6 +2,9 @@ P2P derivatives
 ========
 
 This tool is for making smart contracts.
+
+[Here you can see a place where you can publish offers to trade p2p derivatives.](http://139.59.144.76:8090/main.html)
+
 You can make a offer for a smart contract, and post it to a forum.
 Anyone else can accept your offer and participate on the opposite side of the contract.
 
