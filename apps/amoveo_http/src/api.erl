@@ -889,12 +889,39 @@ mining_data(2) ->
              H1,
              H2]
     end;
+mining_data(3) ->
+    N = 1000,
+    mining_data_helper(N);
+
+            
 mining_data(X) ->
     mining_data(X, 30).
 mining_data(X, Start) ->
     lists:map(fun(N) -> round(block:hashrate_estimate(N)) end, 
               lists:seq(Start, block:height(), X)).
-            
+mining_data_helper(0) ->            
+    error;
+mining_data_helper(N) -> 
+    case mining_data(common) of
+        0 -> sync_mode;%not in sync mode normal
+        ok -> %potential_block doesn't have a block ready to mine on
+            timer:sleep(10),
+            mining_data_helper(N-1);
+        Block ->
+            H1 = Block#block.height,
+            H2 = height(),
+            if
+                (H1 == (H2 + 1)) -> 
+                    Hash = hash:doit(block:hash(Block)),
+                    [Hash,
+                     Block#block.difficulty,
+                     H1,
+                     H2];
+                true -> 
+                    timer:sleep(10),
+                    mining_data_helper(N-1)
+            end
+    end.
 orders(OID) ->
     %if the OID is encoded, we should decode it to binary form.
     Oracle = trees:get(oracles, OID),

@@ -62,6 +62,8 @@ A couple papers on this topic:
 https://eprint.iacr.org/2015/1015.pdf
 http://www.jbonneau.com/doc/BGB17-IEEESB-proof_of_delay_ethereum.pdf
 
+[Here is the delayed crypto library I wrote for Amoveo](https://github.com/zack-bitcoin/vdf_calculate)
+
 How about we use time-delay crypto to find out whether you won the lottery at a given block, and we use a true-bit type interface to prove the long time-delay operation on-chain.
 if it takes more than 1 block of time to find out if you won, then you wont know whether to do a reroll or not until it is too late
 if everyone had to run time-delay crypto on every block, that would be a lot of computer power running constantly.
