@@ -81,6 +81,17 @@ go(Tx, Dict, NewHeight, _) ->
              end,
     Acc1 = accounts:dict_update(Aid1, Dict, -Bal1+ToAcc1, Nonce1),
     Acc2 = accounts:dict_update(Aid2, Dict, -Bal2-Fee-ToAcc1, none),
+
+    F26 = forks:get(26),
+    if
+        (NewHeight > F26) ->
+            %we want Acc1 to be able to cancel his channel offer by making some other unrelated tx to increase his nonce.
+            true = Acc1#acc.nonce == (NCO#nc_offer.nonce-1);
+            %ok;
+        true -> ok
+    end,
+    %true = Acc1#acc.nonce == (NCO#nc_offer.nonce),
+
     Dict3 = accounts:dict_write(Acc1, Dict2),
     nc_sigs:store(ID, Tx#nc_accept.contract_sig),
     accounts:dict_write(Acc2, Dict3).

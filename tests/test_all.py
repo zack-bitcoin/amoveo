@@ -15,7 +15,7 @@ spend_test()
 
 lightning_test()
 
-market_test()
+#market_test()
 
 share_blocks()
 print("finished tests\n")

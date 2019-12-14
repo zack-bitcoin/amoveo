@@ -1,3 +1,4 @@
+
 It would be nice to wrap the 3 thing you need to publish a channel offer into 1 text string
 
 maybe new_channel_tx2 should have a rule if the person who make a channel_offer, if their nonce increases, then all their existing channel_offers become invalid.

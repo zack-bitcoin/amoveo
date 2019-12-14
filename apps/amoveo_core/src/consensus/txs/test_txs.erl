@@ -1019,7 +1019,8 @@ test(28) ->
     mine_blocks(1),
     timer:sleep(100),
     
-    empty = trees:get(channels, <<5:256>>),
+    FC = trees:get(channels, <<5:256>>),
+    true = FC#channel.closed == 1,
 
     success;
 test(35) ->
