@@ -118,7 +118,7 @@ Ok so it is
 Of course, there will be many people who are going to lose a ton of money. And they want to manipulate outcome-resolution
 Zack
 admin
-1) someone makes a new_oracle_tx, asking "did trump win the election?" using this page: http://139.59.144.76:8070/new_oracle.html
+1) someone makes a new_oracle_tx, asking "did trump win the election?" using this page: http://159.89.87.58:8070/new_oracle.html
 2) Bob uses the same light node tool to generate a request to bet on whether trump will win. they publish it online and then turn their computer off.
 3) Alice sees the trade online, uses the same light node tool to accept it. she generates a new_channel_tx to create a channel with Bob and publishes it.
 4) trump wins.
@@ -146,7 +146,7 @@ zack-bitcoin/amoveo
 A blockchain for trust-free markets in financial derivatives - zack-bitcoin/amoveo
 Paul Sztorc
 Zack
-1) someone makes a new_oracle_tx, asking "did trump win the election?" using this page: http://139.59.144.76:8070/new_oracle.htm
+1) someone makes a new_oracle_tx, asking "did trump win the election?" using this page: http://159.89.87.58:8070/new_oracle.htm
 Let's stress test it
 
 1) Alice makes "did trump win the election" question
@@ -477,7 +477,7 @@ because it includes the labor of personally checking every oracle outcome
 even ones that you know nothing about, don't care about or are written in differnet languages
 Zack
 admin
-http://139.59.144.76:8070/txs.html just click this link, and you have synced with the network
+http://159.89.87.58:8070/txs.html just click this link, and you have synced with the network
 It isn't so useful to end up on a fork by yourself. users will chose a fork that is being maintained by developers and has active mining pools.
 they will have a full node software that syncs with the version they want.
 Paul Sztorc

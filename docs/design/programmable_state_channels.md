@@ -32,7 +32,7 @@ This is the VM for state channel smart contracts in Amoveo https://github.com/za
 
 It has a couple compilers.
 
-You can see a market for derivatives being run completely off-chain in state channels here: http://139.59.144.76:8080/explorer.html
+You can see a market for derivatives being run completely off-chain in state channels here: http://159.89.87.58:8080/explorer.html
 It is being used as futarchy to decide how to upgrade Amoveo.
 It matches trades in single-price batches.
 

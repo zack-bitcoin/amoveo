@@ -1,20 +1,14 @@
 
+needed for cold storage https://github.com/zack-bitcoin/amoveo/issues/184
+
+
+idea for a hard update.
+https://github.com/zack-bitcoin/amoveo/issues/258
+
+
 It would be nice to wrap the 3 thing you need to publish a channel offer into 1 text string
 
-maybe new_channel_tx2 should have a rule if the person who make a channel_offer, if their nonce increases, then all their existing channel_offers become invalid.
-
 video about how to do betting with Amoveo. preferably with 2 narrators, one a beginner, and one with experience.
-
-
-
-
-
-
-Since splitting a sortition chain is something that needs to happen on-chain, does that mean we can change the list of accounts assigned as committers?
-
-review the attack suggested by Fernando.
-
-
 
 
 
@@ -30,19 +24,13 @@ make copy/paste of oracles simpler. maybe include question and height together i
 channel offers could include oracle question text in the offer, so otc_listener can display the text.x
 
 
-the link on the explorers page might need to be udpated.
-
-
 
 Now is 83342
 find out which block the channel got created in
 BFD1dYbhVe8vEzCmtu/70m+lPKXzDoKIHlNjGiJCXYeGapadChVENendo8G1XskHKfMD8G18kWdrJ2r9ok/iFV8=
 
-respond to the email from HitBTC.
-
 in p2p_derivatives/channel_offers_ram:valid/1
 the part that is like `true -> true`, we should check if the account's balance is big enough for the contract to be valid.
-
 
 
 p2p derivatives web page should allow direct links to look up oracles or contracts.
@@ -55,10 +43,9 @@ That way nodes don't need to open their firewall in order to receive blocks.
 
 restore the proof-of-existence txs, they are needed for hashlocking with sortition chains.
 
-set up a random number generator, which will be used in chalang to allow for sortition chains.
+GPU verifier for the https://github.com/zack-bitcoin/vdf_calculate RNG, needed for sortition chains.
 
 the tx types that will allow for sortition chains to exist.
-
 
 
 

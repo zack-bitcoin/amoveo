@@ -17,7 +17,7 @@ Blockchain turns a complicated computer systems problem into a simple economic p
 
 To show how this is possible with Amoveo, I made a website where you can make anonymous posts by paying a fee in VEO.
 Like a 4chan where you have to pay to post.
-http://139.59.144.76:8088/main.html
+http://159.89.87.58:8088/main.html
 
 I have similarly built an escrow tool.
-http://139.59.144.76:8087/main.html
+http://159.89.87.58:8087/main.html

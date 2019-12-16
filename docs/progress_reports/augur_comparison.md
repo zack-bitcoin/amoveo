@@ -11,4 +11,4 @@ In Amoveo, we have solved this limit in the oracle problem that Augur suffers. A
 Low volume markets, or markets where you can't stay online much time to optimize the channel path can be more expensive. In the worse case, the fee is the interest rate of the amount of money that you are betting. Which we earlier assumed is 15%.
 15% is Amoveo's worst case annual fees, it is less than 1/10th as expensive Augur's average case annual fees of 210%.
 
-Amoveo allows anyone to ask the oracle questions, which gives us more things to bet on. You can do it from this browser interface http://139.59.144.76:8080/new_oracle.html
+Amoveo allows anyone to ask the oracle questions, which gives us more things to bet on. You can do it from this browser interface http://159.89.87.58:8080/new_oracle.html
