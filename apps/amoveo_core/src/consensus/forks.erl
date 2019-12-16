@@ -34,4 +34,4 @@ get(22) -> common(73300, test_height());
 get(23) -> common(76200, test_height());
 get(24) -> common(82270, test_height());%require that new oracle ids conform to the standard.
 get(25) -> common(77500, test_height());%so that we can prove the non-existence of oracles and channels and accounts.
-get(26) -> common(99999999999, test_height()).
+get(26) -> common(96560, test_height()).
