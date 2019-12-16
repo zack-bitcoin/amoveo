@@ -1004,6 +1004,18 @@ test(28) ->
     true = spk:verify_sig(SSPK2, NewPub, keys:pubkey()),
     SStx2 = keys:sign(Ctx2),
     absorb(SStx2),
+    true = (1 == length(element(2, tx_pool:get()))),
+    tx_pool:dump(),
+    true = (0 == length(element(2, tx_pool:get()))),
+    %here we are testing the ability to cancel a channel offer
+    SpendCancel = spend_tx:make_dict(keys:pubkey(), 1, Fee, NewPub),
+    SSpendCancel = testnet_sign:sign_tx(SpendCancel, NewPub, NewPriv),
+    absorb(SSpendCancel),
+    true = (1 == length(element(2, tx_pool:get()))),
+    absorb(SStx2),
+    true = (1 == length(element(2, tx_pool:get()))),
+    tx_pool:dump(),
+    absorb(SStx2),
     mine_blocks(1),
     timer:sleep(100),
 
