@@ -17,3 +17,5 @@ Proof of stake links
 
 [IOTA](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/iota.md)
 
+[Ethereum Casper FFG](https://github.com/zack-bitcoin/amoveo/blob/master/docs/other_blockchains/ethereum_casper_ffg.md)
+

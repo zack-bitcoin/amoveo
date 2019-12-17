@@ -63,6 +63,10 @@ doit({version, 1}) ->
 doit({version, 2, N}) ->
     F = forks:get(N),
     {ok, F};
+doit({version, 3}) ->
+    N = forks:top(),
+    G = forks:get(N),
+    {ok, N, G};
 doit({give_block, Block}) -> %block can also be a list of blocks.
     io:fwrite("ext_handler receiving blocks\n"),
     %Response = block_absorber:save(Block),
