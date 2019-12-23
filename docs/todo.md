@@ -1,35 +1,28 @@
+remove legacy code from otc_finisher. we no longer use channel data, we dont use function start1().
 
-light node peer scan should tell us which fork the nodes have updated for. use ext_handler:doit({version, 3}).
+
+in otc_listner: 
+maybe we should reconfigure it to be like “if X is true, you win Y veo. if not, you lose Z veo”
+then you could get rid of most of the text there
+
+
+simplify OTC_listener, look at the pic from Flinstone in /home/zack/Pictures/
+* have a "see more details" button to reveal all the extra details about the smart contract.
+
+rewrite otc_* in the light node
+
+
 
 needed for cold storage https://github.com/zack-bitcoin/amoveo/issues/184
+multi-tx from the light node
 
-
-idea for a hard update.
-https://github.com/zack-bitcoin/amoveo/issues/258
 
 hard update to prevent an attack.
 The attack mines a valid looking header, but doesn't reveal the block. 
 So the rest of us aren't sure if it is better to build on that header, or to ignore it and build from the highest known block.
 We could also include a Merkel root of the txs from the previous block, but they should all be salted with like a single 0 byte each.
 That way, it is impossible to mine a valid block without knowing the txs from the previous block, so this will prevent any miners from building on the attacker's header.
-
 So then this attack becomes the same as the selfish-mining attack, which we already know does not work.
-
-
-
-
-It would be nice to wrap the 3 thing you need to publish a channel offer into 1 text string
-make copy/paste of oracles simpler. we now include question and height together into one data structure.
-channel offers now includes oracle question text in the offer, so otc_listener can display the text.
-otc_listener and p2p_derivatives were updated to check that the OID was calulated correctly.
-otc_derivatives and otc_listener were tested.
-
-need to
-* test p2p_derivatives
-* remove oracle_id generation from new_oracle.html in the light node
-* teach otc_derivatives to automatically calculate the knowable height if the oracle already exists.
-* remove unused fields from p2p_derivatives
-
 
 
 
