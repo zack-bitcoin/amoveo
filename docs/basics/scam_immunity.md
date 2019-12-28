@@ -16,7 +16,7 @@ The most basic financial tool is called a "derivative". That is where 2 people l
 
 The only secure way to participate in derivatives contracts is using a market with single price batches. That means that everyone who makes a trade during a certain period of time, a 5 minute period of time for example, they are all trading at the same price. This was famously discovered by John Nash when he designed the second price auction.
 
-If anyone claims to have secure stablecoins, but there is no market with single price batches, then you can know that it is a scam their stablecoin does not work.
+If anyone claims to have secure stablecoins, but there is no market with single price batches, then you can know that it is a scam and that their stablecoin does not work.
 
 Economics
 ======
@@ -27,13 +27,13 @@ Also known as "if it seems too good to be true, then it probably is."
 When it comes to investing, the supply and demand is expressed as a natural balance between risk and reward.
 The risk/reward ratio of each investment is always equal to, or worse than, the same level as the current interest rate of the economy.
 
-If there is a good opportunity to profit from investment, then many investors will want to be involved. More investors will keep showing up, so the demand for further investment will keep going down, so the reward they need to pay to investors will keep going down, until the reward/risk ratio is about the same as the current interest rate of the economy.
+If there is a good opportunity to profit from investment, then many investors will want to be involved. More investors will keep showing up, so the demand for further investment will keep going down, so the reward paid to investors will keep going down, until the reward/risk ratio is about the same as the current interest rate of the economy.
 
 If a particular investment has the potential to pay out a big reward, it is necessarily the case that this investment also has high risks of losing a lot of money.
 
 If someone claims that they can pay out big rewards, and that the risks are low, then they are a scammer.
 
-There is an important exception when you are more knowledgable than the average investor participating in this market. Then you could potentially profit from your insider knowledge and earn much more than the standard interest rate.
+There is an important exception. If you are more knowledgable than the average investor participating in a market, then you could potentially profit from your insider knowledge and earn much more than the standard interest rate.
 
 Cryptography
 ========
@@ -54,14 +54,14 @@ It is impossible for anyone who doesn't know your random secret to sign for you.
 
 An example use-case of public key cryptography. If you want to spend some money to someone, we want it to be the case that only you are able to spend the money, and no one else can spend it. So we would require you to cryptographically sign the message explaining that you want to spend the money.
 
-All other cryptographic constructs used in blockchain are very controversial. It isn't clear if any other cryptography tools could be useful in blockchain, or if only hash functions and signatures are useful.
+All other cryptographic constructs used in blockchain are very controversial. It isn't clear if any other cryptography tools could be useful in blockchain, or if only hash functions and signatures are useful. 
 
 Game Theory
 =========
 
 Blockchains involve repeated games between many participants. In order to reason about blockchains, it is necessary that the strategy that the players are using, it is stable. Either the players are using the same strategy every time, or there is some kind of negative feedback, so if players divert from the expected strategy, the feedback mechanism pushes everyone back to the expected strategy.
 
-Even if we can know that a blockchain's game is stable, that does not prove that the blockchain is secure. Stability is necessary so that we can make any sort of reliable prediction about how the blockchain will behave in the future. If a blockchain was built on an instable game, then we could not make any sort of prediction about how it will work tomorrow. It would change in unpredictable ways.
+Even if we can know that a blockchain's game is stable, that does not prove that the blockchain is secure. Stability is necessary so that we can make any sort of reliable prediction about how the blockchain will behave in the future. If a blockchain was built on an instable game, then we could not make any sort of prediction about how it will work tomorrow. It would change in unpredictable ways. So we would be unable to know if it will continue being a secure blockchain in the future.
 
 All secure blockchains are built on stable games. But not all stable games enable secure blockchains.
 
