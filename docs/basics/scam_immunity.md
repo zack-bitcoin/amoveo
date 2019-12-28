@@ -10,14 +10,13 @@ Finance
 
 Finance, also known as "risk management", is a system of tools for minimizing the odds of losing money. Finance is a zero-sum game. For one person to win, someone else needs to lose.
 
-So, if anyone claims that they have a financial tool that generates value, they are a scammer.
-If anyone claims that you can use their financial tool to earn a profit, they are a scammer.
+So, if anyone tries to sell you a financial tool that generates value or earns profit, it is a scam.
 
 The most basic financial tool is called a "derivative". That is where 2 people lock money into a contract, and after a period of time the money in that contract is distributed back to the 2 participants, and the amount of money that each receives is based on some public information, like the price of Tesla shares, for example. This allows one of the participants to hold extra Tesla risk, and the other to hold less Tesla risk.
 
 The only secure way to participate in derivatives contracts is using a market with single price batches. That means that everyone who makes a trade during a certain period of time, a 5 minute period of time for example, they are all trading at the same price. This was famously discovered by John Nash when he designed the second price auction.
 
-If anyone claims to have secure stablecoins, but there is no market with single price batches, then you can know that they are a scammer and their stablecoin does not work.
+If anyone claims to have secure stablecoins, but there is no market with single price batches, then you can know that it is a scam their stablecoin does not work.
 
 Economics
 ======
@@ -62,10 +61,11 @@ Game Theory
 
 Blockchains involve repeated games between many participants. In order to reason about blockchains, it is necessary that the strategy that the players are using, it is stable. Either the players are using the same strategy every time, or there is some kind of negative feedback, so if players divert from the expected strategy, the feedback mechanism pushes everyone back to the expected strategy.
 
-Even if we can know that a blockchain's game is stable, that does not prove that the blockchain is secure. Stability is necessary so that we can make any sort of reliable prediction about how the blockchain will behave in the future.
+Even if we can know that a blockchain's game is stable, that does not prove that the blockchain is secure. Stability is necessary so that we can make any sort of reliable prediction about how the blockchain will behave in the future. If a blockchain was built on an instable game, then we could not make any sort of prediction about how it will work tomorrow. It would change in unpredictable ways.
+
 All secure blockchains are built on stable games. But not all stable games enable secure blockchains.
 
-We have a math tool called a "nash square" that can be used to show instability in a game.
+We have techniques to prove that a game is instable.
 We do not have any tool to prove that a game is stable.
 
 It is similar to how science works. Scientific experiments cannot prove any hypothesis is true. They can only prove a hypothesis false. The way we come to have confidence that a hypothesis is very likely to be true is if many different scientists work very hard to try and disprove it, and they all fail to dispove it. 
@@ -75,37 +75,5 @@ Similarly, the way we gain confidence that a particular game is stable is if man
 If anyone claims to have a "proof that their system is secure", they are a scammer.
 If anyone claims to have a "proof that their blockchain's game has a stable equilibrium", they are a scammer.
 
-So, lets look at how a Nash square works, that way you can understand when someone is trying to prove the instability.
-
-For a Nash square, we pick one user out of everyone playing the game. We are considering a single decision that this user is making, and we are considering a single decision that the entire community is making.
-For example, lets say that each participant in the game can choose to either report a "0" or a "1", and that the entire community will either decide on "A", or "B".
-And the particular user we are examining is named "Bob"
-
-So there are 4 possible outcomes: A0, A1, B0, or B1.
-
-For each of the 4 outcomes, we calculate how profitable that situation is for Bob.
-for example, Bob gains 5 if B1 is the outcome, and 0 in all other cases.
-We would draw the Nash square like this:
-```
-   A   B
-0  0   2
-1  2   5
-```
-
-In this game it is always in Bob's interest to pick 1, and to never pick 0. Regardless of whether the community chooses A or B, it is still better for Bob to have picked 1.
-A1 is better than A0, and B1 is better than B0.
-So Bob always profits more by picking 1 instead of 0.
-
-So, if the blockchain is designed to have stability on A0 or B0, then we have successfully proven that that blockchain will fail.
-If the blockchain is designed to have stability on A1 or B1, then we have not proven anything.
-
-Here is another example of a Nash square
-```
-   A   B
-0  3   0
-1  0   5
-```
-
-This time it is not clear if Bob will prefer to choose 0 or 1. If Bob expects the community to do A, then he will prefer 0. If he expects that the community will choose B, then he will prefer to pick 1. So this game is not stable.
-It doesn't matter which outcome the blockchain is designed to have stability on, we have proven that it will not be stable. It isn't possible to make reliable predictions about how the blockchain will behave in the future. We can't know how or when it will fail.
+The best a person could claim for their system is that "many people have tried and failed to find vulnerabilities".
 
