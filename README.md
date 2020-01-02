@@ -46,7 +46,7 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 The most secure way to use the light node is to download it from github. https://github.com/zack-bitcoin/light-node-amoveo
 This is a cryptoeconomically secure way to use Amoveo.
 
-you can use the light node less securely by clicking [this link](http://139.59.144.76:8080/home.html). This is the easiest way to get started.
+you can use the light node less securely by clicking [this link](http://159.89.87.58:8080/home.html). This is the easiest way to get started.
 Using this light node is the same as trusting this server with your money.
 
 An alternative exan.tech made a light node with a different user interface that they host here: Amoveo.exan.tech

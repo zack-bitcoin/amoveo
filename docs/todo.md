@@ -1,4 +1,25 @@
-remove legacy code from otc_finisher. we no longer use channel data, we dont use function start1().
+
+
+consider getting rid of modes in otc_derivatives, move it to home page.
+
+in otc_derivatives.html, some tool to automatically make a bet on an oracle hash, maybe some other preset bets, like a binary bet on whether bitcoin will go up or down in a time period. We can do the front-running protection where both dates are in the future.
+
+for the bet resolution process, it would be nice if the page automatically looked up the result, so the user doesn't need to do it manually.
+
+for pre-set bets, it would be nice if it could suggest a price based on the current veo/btc price or whatever they are betting on.
+
+use the same method to select the price to trade, and for resolution.
+
+in otc_derivatives.html, when you make a channel offer, there should be a button to immediately publish it to the p2p derivatives server, without having to open that page.
+
+a link from the p2p derivatives page back to the light node otc_listener page. that way it is more obvious how to accept a trade.
+
+test that the trade auto-populates correctly, when you link from the p2p derivatives page.
+
+
+
+
+remove legacy code from otc_finisher. we no longer use channel data, we dont use function start1(). we don't use start_button
 
 
 in otc_listner: 
