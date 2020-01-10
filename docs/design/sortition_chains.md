@@ -19,6 +19,8 @@ Related documents:
 What is a Sortition Chain?
 =========
 
+Sortition chains are a lottery-type sidechain.
+
 A sortition chain is a kind of lottery.
 The lottery tickets are spendable and divisible.
 The database of lottery tickets is off-chain.
@@ -26,7 +28,7 @@ Eventually we draw the random number to determine who won the lottery.
 The winner publishes the slice of the lottery ticket database that proves that they won.
 No matter how many people are owning lottery tickets, the proof of who won can stay small.
 
-You can think of sortition chains as a tool that combine features of probabilistic payments with state channels. 
+Sortition chains are a tool that combine features of probabilistic payments with state channels. 
 
 If you own $10 in a sortitoin chain that has $1000 total locked in it, that means you have a 1% chance to win $1000, and a 99% chance to win $0.
 

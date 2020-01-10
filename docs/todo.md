@@ -1,4 +1,9 @@
+write a blog post about using futarchy to measure the effectiveness of military spending.
 
+
+hard update idea to be researched:
+We want to be able to partially match an open channel offer, and the rest of the channel offer is still valid, it can be matched by other people.
+This will probably be important inside sortition chains as well.
 
 consider getting rid of modes in otc_derivatives, move it to home page.
 

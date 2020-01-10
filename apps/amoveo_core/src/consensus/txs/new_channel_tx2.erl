@@ -87,10 +87,8 @@ go(Tx, Dict, NewHeight, _) ->
         (NewHeight > F26) ->
             %we want Acc1 to be able to cancel his channel offer by making some other unrelated tx to increase his nonce.
             true = Acc1#acc.nonce == (NCO#nc_offer.nonce-1);
-            %ok;
         true -> ok
     end,
-    %true = Acc1#acc.nonce == (NCO#nc_offer.nonce),
 
     Dict3 = accounts:dict_write(Acc1, Dict2),
     nc_sigs:store(ID, Tx#nc_accept.contract_sig),
