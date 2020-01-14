@@ -13,7 +13,10 @@ The variables that define how to participate in Amoveo can be modified by the Am
 This way Amoveo will always stay optimally tuned to produce the best results.
 
 
-[Amoveo whitepaper](docs/white_paper.md).
+[Amoveo whitepaper](
+https://github.com/zack-bitcoin/amoveo-docs/blob/master/white_paper.md
+docs/white_paper.md).
+
 
 Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
@@ -38,7 +41,7 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 ## Smart contracts
 
-[here is documentation](docs/light_node/p2p_derivatives.md) for how to make bets on any topic using Amoveo.
+[here is documentation](https://github.com/zack-bitcoin/amoveo-docs/blob/master/light_node/p2p_derivatives.md) for how to make bets on any topic using Amoveo.
 
 
 ## Light node
@@ -54,7 +57,7 @@ Using this light node is the same as trusting them with your money.
 
 This light node downloads headers and verifies the proof of work.
 It verifies the merkle proofs for all blockchain state you download to ensure security equivalent to a full node, provided you wait for enough confirmations.
-You can use the light node to participate in [markets](docs/light_node/market.md).
+You can use the light node to participate in [markets](https://github.com/zack-bitcoin/amoveo-docs/blob/master/light_node/market.md).
 A light node that currently has markets is [here](http://159.65.120.84:8080/wallet.html).
 And the interface to look at the markets is [here](http://159.65.120.84:8080/explorer.html).
 
@@ -83,9 +86,9 @@ This explorer can host markets.
 
 
 ## Full node
-[Launch an erlang full node and connect to the network](docs/getting-started/turn_it_on.md)
+[Launch an erlang full node and connect to the network](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting-started/turn_it_on.md)
 
-[Issue commands to your full node](docs/api/commands.md)
+[Issue commands to your full node](https://github.com/zack-bitcoin/amoveo-docs/blob/master/api/commands.md)
 Commands such as:
 * turning the node off without corrupting the database.
 * looking up information from the blockchain or it's history.
@@ -147,7 +150,7 @@ https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool. WARNING!!! thi
 
 ## Developers
 
-If you want to build on top of Amoveo [read the developer's guide](docs/getting-started/quick_start_developer_guide.md)
+If you want to build on top of Amoveo [read the developer's guide](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting-started/quick_start_developer_guide.md)
 
 [Here is an old open-source miner for Nvidia GPU, it works for linux and windows. This software is too slow to be competitive, but it might be useful for educational purposes.](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
 
