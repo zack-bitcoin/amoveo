@@ -13,9 +13,7 @@ The variables that define how to participate in Amoveo can be modified by the Am
 This way Amoveo will always stay optimally tuned to produce the best results.
 
 
-[Amoveo whitepaper](
-https://github.com/zack-bitcoin/amoveo-docs/blob/master/white_paper.md
-docs/white_paper.md).
+[Amoveo whitepaper](https://github.com/zack-bitcoin/amoveo-docs/blob/master/white_paper.md).
 
 
 Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.

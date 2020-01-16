@@ -61,6 +61,7 @@ headers_file2() -> root() ++ "headers2.db".
 block_hashes() -> root() ++ "block_hashes.db".
 block_db_dict() -> root() ++ "block_db_dict.db".
 block_db_dict2() -> root() ++ "block_db_dict2.db".
+checkpoints() -> root() ++ "checkpoints.db".
 top() -> root() ++ "top.db".
 recent_blocks() -> root() ++ "recent_blocks.db".
 blocks_file2() -> root() ++ "blocks.db".

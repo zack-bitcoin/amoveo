@@ -35,7 +35,7 @@ stop(_State) ->
     api:off().
 
 make_basic_folders() ->
-    X = ["", "blocks", "channels", "data", "keys", "oracle_questions"],
+    X = ["", "blocks", "channels", "data", "keys", "oracle_questions", "checkpoints"],
     CR = constants:custom_root(),
     mba(X, CR).
 mba([], _) -> ok;

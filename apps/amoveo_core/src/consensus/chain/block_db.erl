@@ -98,6 +98,7 @@ store(K, V, D)->
             
 handle_info(_, X) -> {noreply, X}.
 handle_cast({write_empty, Block, Hash}, X) -> 
+    %this seems unused.
     D2 = store(Hash, Block, X#d.dict),
     X2 = X#d{dict = D2, ram_bytes = X#d.ram_bytes, many_blocks = X#d.many_blocks},
     X4 = case element(2, Block) of
