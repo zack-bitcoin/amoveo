@@ -17,8 +17,16 @@
 -record(d, {
           checkpoint_hashes = []
          }).
--define(MFT, 1000).%max fork tolerance
+    %{checkpoint_depth, 100},
+%-define(MFT, 1000).%max fork tolerance
 %ideally this should be a configuration variable that defaults as like, 3x higher than the fork_tolerance value.
+
+mft() ->
+    case application:get_env(amoveo_core, checkpoint_depth) of
+        {ok, M} -> M;
+        _ -> -100%prevents checkpoints from being made.
+    end.
+
 
 init(ok) -> 
     process_flag(trap_exit, true),
@@ -44,8 +52,12 @@ handle_cast(clean, X) ->
 handle_cast(make, X) -> 
     Header = headers:top_with_block(),
     B = backup_p(Header),%check if this is a checkpoint block.
+    TH = headers:top(),
+    B2 = Header#header.height > 
+        (TH#header.height - 
+             (7 * mft())),%2^7 > 100, less than 1% chance of no checkpoint in the range.
     X2 = if
-             B ->
+             (B and B2) ->
                  Hash = block:hash(Header),
                  T = amoveo_sup:trees(),
                  CR = constants:custom_root(),
@@ -55,7 +67,7 @@ handle_cast(make, X) ->
                  make_temp_dir(Temp),
                  make_temp_dir(Temp2),
                  ok = backup_trees(T, CR),%makes a copy of the tree files.
-                 make_tarball(Tarball, Temp),
+                 make_tarball(Tarball, Temp),%maybe we should do the packaging and zipping in erlang, so we don't need a sleep statement TODO
                  timer:sleep(200),
                  chunkify(Tarball, Temp2),%break up the gzipped tar file into 1 megabyte chunks, each in a different file.
                  remove_tarball(Tarball),%delete the gzipped file
@@ -128,7 +140,7 @@ clean_helper(L) ->
     [CP1|[CP2|T]] = L2,
     TopHeader = headers:top_with_block(),
     THHeight = TopHeader#header.height,
-    Cutoff = THHeight - ?MFT,
+    Cutoff = THHeight - mft(),
     {ok, H2} = headers:read(CP2),
     {ok, H1} = headers:read(CP1),
     H2Height = H2#header.height,
@@ -178,7 +190,7 @@ chunk_name(N) ->
         ".checkpoint.chunk".
 backup_p(Header) ->
     <<H:256>> = block:hash(Header),
-    B = (H rem ?MFT),
+    B = (H rem mft()),
     B == 0.
 cp(CR, H, S) ->
     Name = atom_to_list(H)++S,

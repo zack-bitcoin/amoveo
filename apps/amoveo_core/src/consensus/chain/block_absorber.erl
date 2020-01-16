@@ -142,7 +142,7 @@ absorb_internal(Block) ->
 			    %io:fwrite("\n"),
 			    potential_block:dump()
 		    end,
-                    %checkpoint:make(),
+                    checkpoint:make(),
 
 
 		    %io:fwrite("block absorber 9\n"),
