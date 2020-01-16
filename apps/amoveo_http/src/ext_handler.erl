@@ -355,6 +355,19 @@ doit({mining_data}) ->
     Hashrate = Diff div 660,
     D = [B#block.height, Diff, Hashrate, Reward],
     {ok, D};
+doit({checkpoint}) ->
+    X = checkpoint:recent(),
+    {ok, X};
+doit({checkpoint, Hash, N}) ->
+    CR = constants:custom_root(),
+    Encoded = base58:binary_to_base58(Hash),
+    case file:read_file(
+           CR ++ "checkpoints/"++Encoded++
+               "/" ++ checkpoint:chunk_name(N)) of
+        {ok, D} -> {ok, D};
+        {error, enoent} -> {error, "out of bounds"};
+        {error, _} -> {error, "unhandled error"}
+    end;
 doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2

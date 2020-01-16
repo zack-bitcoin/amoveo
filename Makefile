@@ -149,8 +149,10 @@ attach: $$(KIND)
 clean: $$(KIND)
 	rm -rf db/data/
 	mkdir db/data
-	rm -rf db/blocks
+	rm -rf db/blocks/
 	mkdir db/blocks
+	rm -rf db/checkpoints/
+	mkdir db/checkpoints
 	@touch ./config/$(KIND)/sys.config
 	@rm  ./config/$(KIND)/sys.config
 	@rm -rf ./_build/$(KIND)/rel/log/

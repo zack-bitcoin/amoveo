@@ -142,6 +142,9 @@ absorb_internal(Block) ->
 			    %io:fwrite("\n"),
 			    potential_block:dump()
 		    end,
+                    %checkpoint:make(),
+
+
 		    %io:fwrite("block absorber 9\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
