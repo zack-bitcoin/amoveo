@@ -5,6 +5,7 @@
          recent/0, %returns a list of recent block hashes where the block is a checkpoint.
          clean/0, %deletes old unneeded checkpoints.
          chunk_name/1,
+         sync/2,
          test/0,
          start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 
@@ -120,54 +121,53 @@ get_chunks(Hash, IP, Port, N) ->
             io:fwrite(E)
     end.
 test() -> 
-    %wait for all the headers to sync****
-    %we probably need a configuration option to prevent forwards syncing for this experiment.
-    CR = constants:custom_root(),
     IP = {46,101,185,98},
     Port = 8080,
+    sync(IP, Port).
+sync(IP, Port) ->
+    %set the config variable `reverse_syncing` to true.
+    %let all the headers sync first before you run this.
+    CR = constants:custom_root(),
     {ok, CPL} = talker:talk({checkpoint}, IP, Port),
     CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
 
     {ok, Header} = headers:read(CP1),
     Height = Header#header.height,
+    TopHeader = headers:top(),
+    TopHeight = TopHeader#header.height,
+    if
+        TopHeight < Height ->
+            io:fwrite("need to sync more headers first\n"),
+            1=2;
+        true -> ok
+    end,
     {ok, Block} = talker:talk({block, Height-1}, IP, Port),
     {ok, NBlock} = talker:talk({block, Height}, IP, Port),
-    %io:fwrite({Height, Block}),
     TDB = Block#block.trees,
     TDBN = NBlock#block.trees,
-    TopHeader = headers:top(),
     true = check_header_link(TopHeader, Header),
-    %Header = block:block_to_header(Block),
-    %{_Dict, _NewDict, _} = block:check0(Block),
+    Header = block:block_to_header(NBlock),
+    {_, _, _} = block:check0(Block),
     {_Dict, _NewDict, CP1} = block:check0(NBlock),
     Roots = NBlock#block.roots,
     TarballData = get_chunks(CP1, IP, Port, 0),
     Tarball = CR ++ "backup.tar.gz",
     file:write_file(Tarball, TarballData),
     Temp = CR ++ "backup_temp",
-    timer:sleep(100),
     S = "tar -C "++ CR ++" -xf " ++ Tarball,
     os:cmd(S),
     os:cmd("mv "++CR++"db/backup_temp/* " 
            ++ CR ++ "data/."),
     os:cmd("rm -rf "++ CR ++ "db"),
     os:cmd("rm " ++ CR ++ "backup.tar.gz"),
-    %T = amoveo_sup:trees(),
-    TreeTypes = [accounts, channels, existence, oracles, governance, matched, unmatched],%amoveo_sup:trees(),
+    TreeTypes = [accounts, channels, existence, oracles, governance, matched, unmatched],
     lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),
-    %1=2,
-    timer:sleep(200),
     Roots = block:make_roots(TDB),
-    io:fwrite({TDBN, TDB}),
     lists:map(fun(Type) -> 
     %delete everything from the checkpoint besides the merkel trees of the one block we care about. Also verifies all the links in the merkel tree.
                       Pointer = trees:Type(TDB),
-                      io:fwrite(integer_to_list(Pointer)),
-                      %io:fwrite(stem:get(Pointer, trie:cfg(Type))),
-                      io:fwrite("\n"),
                       trie:clean_ets(Type, Pointer)
-              end, tl(TreeTypes)),
-    timer:sleep(200),
+              end, TreeTypes),
     %try syncing the blocks between here and the top.
     ok.
 check_header_link(Top, New) ->
