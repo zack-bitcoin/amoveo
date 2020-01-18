@@ -73,6 +73,7 @@ handle_cast(make, X) ->
                  remove_tarball(Tarball),%delete the gzipped file
                  move_chunks(Temp2, CR, Hash),
                  spawn(fun() ->
+                               timer:sleep(1000),
                                clean(),
                                clean()
                        end),
@@ -119,18 +120,58 @@ get_chunks(Hash, IP, Port, N) ->
             io:fwrite(E)
     end.
 test() -> 
+    %wait for all the headers to sync****
+    %we probably need a configuration option to prevent forwards syncing for this experiment.
     CR = constants:custom_root(),
-    IP = {127,0,0,1},
-    Port = 3010,
+    IP = {46,101,185,98},
+    Port = 8080,
     {ok, CPL} = talker:talk({checkpoint}, IP, Port),
-    CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
+    CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
+
+
+    {ok, Header} = headers:read(CP1),
+    Height = Header#header.height,
+    {ok, Block} = talker:talk({block, Height}, IP, Port),
+    TDB = Block#block.trees,
+    TopHeader = headers:top(),
+    true = check_header_link(TopHeader, Header),
+    Header = block:block_to_header(Block),
+    {_Dict, _NewDict, CP1} = block:check0(Block),
+    Roots = Block#block.roots,
+    Roots = block:make_roots(TDB),
     TarballData = get_chunks(CP1, IP, Port, 0),
     Tarball = CR ++ "backup.tar.gz",
     file:write_file(Tarball, TarballData),
     Temp = CR ++ "backup_temp",
-    os:cmd("tar -xf " ++ Tarball),
-    %now we have the database files out of the tarball, ready to be read by the merkel tree file.
+    %timer:sleep(100),
+    S = "tar -C "++ CR ++" -xf " ++ Tarball,
+    os:cmd(S),
+    os:cmd("mv "++CR++"db/backup_temp/* " 
+           ++ CR ++ "data/."),
+    os:cmd("rm -rf "++ CR ++ "db"),
+    os:cmd("rm " ++ CR ++ "backup.tar.gz"),
+    T = amoveo_sup:trees(),
+    lists:map(fun(TN) -> trie:reload_ets(TN) end, T),
+    TreeTypes = [accounts, channels, existence, oracles, governance, matched, unmatched],
+    lists:map(fun(Type) -> 
+    %delete everything from the checkpoint besides the merkel trees of the one block we care about. Also verifies all the links in the merkel tree.
+                      Pointer = trees:Type(TDB),
+                      trie:clean_ets(Type, Pointer)
+              end, TreeTypes),
+    %try syncing the blocks between here and the top.
     ok.
+check_header_link(Top, New) ->
+    TH = Top#header.height,
+    NH = New#header.height,
+    if
+        (NH > TH) -> false;
+        (NH == TH) -> 
+            block:hash(Top) == block:hash(New);
+        true -> 
+            {ok, Prev} = headers:read(Top#header.prev_hash),
+            check_header_link(Prev, New)
+    end.
+        
     
 
 clean_helper([]) -> [];

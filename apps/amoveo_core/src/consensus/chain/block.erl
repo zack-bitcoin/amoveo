@@ -13,6 +13,7 @@
          header_by_height/1, 
          calculate_prev_hashes/1,
          prev_hash/2,
+         make_roots/1,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -494,7 +495,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
-    Pub = coinbase_tx:from(hd(Block#block.txs)),
+    _Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = txs:digest(Txs, Dict, Height),
     {Dict, NewDict, BlockHash}.

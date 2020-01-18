@@ -93,7 +93,7 @@ absorb_internal(Block) ->
                     %io:fwrite("block absorber 2\n"), % 0.00005
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
-		    {true, Block2} = block:check(Block),%writing new block's data into the consensus state merkle trees.
+		    {true, Block2} = block:check(Block),%calculates ram data structures from the merkel proofs
 		    %io:fwrite("block absorber 3\n"), % 0.0025
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
