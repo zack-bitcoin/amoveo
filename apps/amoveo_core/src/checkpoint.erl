@@ -131,16 +131,15 @@ sync(IP, Port) ->
     {ok, CPL} = talker:talk({checkpoint}, IP, Port),
     CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
 
-    {ok, Header} = headers:read(CP1),
+    Header = case headers:read(CP1) of
+                 error ->
+                     io:fwrite("we need to sync more headers first\n"),
+                     1=2;
+                 {ok, H} -> H
+             end,
+        
     Height = Header#header.height,
     TopHeader = headers:top(),
-    TopHeight = TopHeader#header.height,
-    if
-        TopHeight < Height ->
-            io:fwrite("need to sync more headers first\n"),
-            1=2;
-        true -> ok
-    end,
     {ok, Block} = talker:talk({block, Height-1}, IP, Port),
     {ok, NBlock} = talker:talk({block, Height}, IP, Port),
     TDB = Block#block.trees,
