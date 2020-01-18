@@ -68,6 +68,7 @@ start(P) ->
     if
         (H == 0) ->
             spawn(fun() ->
+                          %this is so ugly. it can't be the right way to do it.
                           timer:sleep(500),
                           start(P)
                   end);
@@ -453,7 +454,11 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
         TheirBlockHeight > MyBlockHeight ->
 	    %io:fwrite("get blocks from them.\n"),
 	    CommonHeight = TopCommonHeader#header.height,
-            new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries);
+            RS = reverse_syncing(),
+            if
+                RS -> ok;
+                true -> new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
+            end;
 	true ->
 	    spawn(fun() ->
 			  trade_txs(Peer)
@@ -477,6 +482,14 @@ tch([H|T]) ->
 	empty -> tch(T);
 	_ -> H
     end.
+reverse_syncing() ->
+    case application:get_env(amoveo_core, reverse_syncing) of
+        undefined -> false;
+        {ok, R} -> R
+    end.
+            
+    
+    
 	    
 cron() ->
     %io:fwrite("sync cron 1\n"),

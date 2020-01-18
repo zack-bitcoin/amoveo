@@ -49,7 +49,8 @@ handle_cast(clean, X) ->
     CH2 = clean_helper(X#d.checkpoint_hashes),
     X2 = X#d{checkpoint_hashes = CH2},
     {noreply, X2};
-handle_cast(make, X) -> 
+handle_cast(_, X) -> {noreply, X}.
+handle_call(make, _, X) -> 
     Header = headers:top_with_block(),
     B = backup_p(Header),%check if this is a checkpoint block.
     TH = headers:top(),
@@ -83,8 +84,7 @@ handle_cast(make, X) ->
                  X#d{checkpoint_hashes = CH2};
              true -> X
          end,
-    {noreply, X2};
-handle_cast(_, X) -> {noreply, X}.
+    {reply, ok, X2};
 handle_call(recent, _From, X) -> 
     {reply, X#d.checkpoint_hashes, X};
 handle_call(_, _From, X) -> {reply, X, X}.
@@ -128,36 +128,46 @@ test() ->
     {ok, CPL} = talker:talk({checkpoint}, IP, Port),
     CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
 
-
     {ok, Header} = headers:read(CP1),
     Height = Header#header.height,
-    {ok, Block} = talker:talk({block, Height}, IP, Port),
+    {ok, Block} = talker:talk({block, Height-1}, IP, Port),
+    {ok, NBlock} = talker:talk({block, Height}, IP, Port),
+    %io:fwrite({Height, Block}),
     TDB = Block#block.trees,
+    TDBN = NBlock#block.trees,
     TopHeader = headers:top(),
     true = check_header_link(TopHeader, Header),
-    Header = block:block_to_header(Block),
-    {_Dict, _NewDict, CP1} = block:check0(Block),
-    Roots = Block#block.roots,
-    Roots = block:make_roots(TDB),
+    %Header = block:block_to_header(Block),
+    %{_Dict, _NewDict, _} = block:check0(Block),
+    {_Dict, _NewDict, CP1} = block:check0(NBlock),
+    Roots = NBlock#block.roots,
     TarballData = get_chunks(CP1, IP, Port, 0),
     Tarball = CR ++ "backup.tar.gz",
     file:write_file(Tarball, TarballData),
     Temp = CR ++ "backup_temp",
-    %timer:sleep(100),
+    timer:sleep(100),
     S = "tar -C "++ CR ++" -xf " ++ Tarball,
     os:cmd(S),
     os:cmd("mv "++CR++"db/backup_temp/* " 
            ++ CR ++ "data/."),
     os:cmd("rm -rf "++ CR ++ "db"),
     os:cmd("rm " ++ CR ++ "backup.tar.gz"),
-    T = amoveo_sup:trees(),
-    lists:map(fun(TN) -> trie:reload_ets(TN) end, T),
-    TreeTypes = [accounts, channels, existence, oracles, governance, matched, unmatched],
+    %T = amoveo_sup:trees(),
+    TreeTypes = [accounts, channels, existence, oracles, governance, matched, unmatched],%amoveo_sup:trees(),
+    lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),
+    %1=2,
+    timer:sleep(200),
+    Roots = block:make_roots(TDB),
+    io:fwrite({TDBN, TDB}),
     lists:map(fun(Type) -> 
     %delete everything from the checkpoint besides the merkel trees of the one block we care about. Also verifies all the links in the merkel tree.
                       Pointer = trees:Type(TDB),
+                      io:fwrite(integer_to_list(Pointer)),
+                      %io:fwrite(stem:get(Pointer, trie:cfg(Type))),
+                      io:fwrite("\n"),
                       trie:clean_ets(Type, Pointer)
-              end, TreeTypes),
+              end, tl(TreeTypes)),
+    timer:sleep(200),
     %try syncing the blocks between here and the top.
     ok.
 check_header_link(Top, New) ->
@@ -250,7 +260,7 @@ backup_trees([H|T], CR) ->
 
 
 make() ->
-    gen_server:cast(?MODULE, make).
+    gen_server:call(?MODULE, make).
     
 clean() ->
     gen_server:cast(?MODULE, clean).

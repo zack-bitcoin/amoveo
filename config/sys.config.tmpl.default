@@ -74,6 +74,7 @@
     {push_blocks_batch, 50},
 
     {checkpoint_depth, -100},
+    {reverse_syncing, false},
     
 
     {internal_ip, {127,0,0,1}},
