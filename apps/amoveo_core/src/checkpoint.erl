@@ -109,10 +109,10 @@ move_chunks(Temp, CR, Hash) ->
     Encoded = base58:binary_to_base58(Hash),
     os:cmd("mv " ++ Temp ++ " " ++ CR ++ "checkpoints/" ++ Encoded). %keep the chunks in a new folder in the checkpoints folder.
    
-get_chunks(Hash, IP, Port, N) ->
-    case talker:talk({checkpoint, Hash, N}, IP, Port) of
+get_chunks(Hash, Peer, N) ->
+    case talker:talk({checkpoint, Hash, N}, Peer) of
         {ok, D} -> 
-            R = get_chunks(Hash, IP, Port, N+1),
+            R = get_chunks(Hash, Peer, N+1),
             <<D/binary, R/binary>>;
         {error, "out of bounds"} ->
             <<>>;
@@ -127,8 +127,9 @@ test() ->
 sync(IP, Port) ->
     %set the config variable `reverse_syncing` to true.
     %let all the headers sync first before you run this.
+    Peer = {IP, Port},
     CR = constants:custom_root(),
-    {ok, CPL} = talker:talk({checkpoint}, IP, Port),
+    {ok, CPL} = talker:talk({checkpoint}, Peer),
     CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
 
     Header = case headers:read(CP1) of
@@ -140,17 +141,18 @@ sync(IP, Port) ->
         
     Height = Header#header.height,
     TopHeader = headers:top(),
-    {ok, Block} = talker:talk({block, Height-1}, IP, Port),
-    {ok, NBlock} = talker:talk({block, Height}, IP, Port),
+    {ok, Block} = talker:talk({block, Height-1}, Peer),
+    {ok, NBlock} = talker:talk({block, Height}, Peer),
     TDB = Block#block.trees,
     TDBN = NBlock#block.trees,
     true = check_header_link(TopHeader, Header),
     Header = block:block_to_header(NBlock),
-    {_, _, BlockHash} = block:check0(Block),
+    {BDict, BNDict, BlockHash} = block:check0(Block),
     {NDict, NNewDict, CP1} = block:check0(NBlock),
     NBlock2 = NBlock#block{trees = {NDict, NNewDict, CP1}},
+    Block2 = Block#block{trees = {BDict, BNDict, BlockHash}},
     Roots = NBlock#block.roots,
-    TarballData = get_chunks(CP1, IP, Port, 0),
+    TarballData = get_chunks(CP1, Peer, 0),
     Tarball = CR ++ "backup.tar.gz",
     file:write_file(Tarball, TarballData),
     Temp = CR ++ "backup_temp",
@@ -175,7 +177,6 @@ sync(IP, Port) ->
     gen_server:cast(block_db, {write, Block, BlockHash}),
     gen_server:cast(block_db, {write, NBlock3, CP1}),
     block_db:set_ram_height(Height),
-    %TODO set block_db ram_height to Height.
     headers:absorb_with_block([Header]),
     recent_blocks:add(CP1, 
                       Header#header.accumulative_difficulty, 
@@ -183,7 +184,44 @@ sync(IP, Port) ->
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
     sync:start(),
-    ok.
+    {ok, ComPage0} = talker:talk({blocks, 50, Height}, Peer),
+    Page0 = block_db:uncompress(ComPage0),
+    Page = dict:filter(%remove data that is already in block_db.
+             fun(_, Value) ->
+                     Value#block.height < 
+                         (Height - 1)
+             end, Page0),
+    CompressedPage = block_db:compress(Page),
+    load_pages(CompressedPage, Block2, Peer).
+load_pages(CompressedPage, BottomBlock, Peer) ->
+    %TODO start syncing blocks backward
+    Page = block_db:uncompress(CompressedPage),
+    {true, NewBottom} = verify_blocks(BottomBlock, Page, length(dict:fetch_keys(Page))),
+    %TODO
+    %cut the DP into like 10 sub-lists, and make a process to verify each one. make sure there is 1 block of overlap, to know that the sub-lists are connected.
+    %if a block has an unknown header, then drop this peer.
+    %if any block is invalid, then lock the keys, and display a big error message.
+
+    block_db:load_page(Page),
+    StartHeight = NewBottom#block.height,
+    if 
+        StartHeight < 2 -> 
+            io:fwrite("synced all blocks back to the genesis.\n"),
+            ok;
+        true -> 
+            NextCompressed = talker:talk({blocks, 50, StartHeight}, Peer), %get next compressed page.
+            load_pages(NextCompressed, NewBottom, Peer)
+    end.
+verify_blocks(B, _, 0) -> {true, B};
+verify_blocks(B, P, N) -> 
+    io:fwrite("verify blocks "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite("\n"),
+    {ok, NB} = dict:find(B#block.prev_hash, P),
+    {true, B2} = block:check2(NB, B),
+    {NDict, NNewDict, Hash} = block:check0(NB),
+    NB2 = NB#block{trees = {NDict, NNewDict, Hash}},
+    verify_blocks(NB2, P, N-1).
 check_header_link(Top, New) ->
     TH = Top#header.height,
     NH = New#header.height,

@@ -203,7 +203,9 @@ get_headers3(Peer, N) ->
     Headers = remote_peer({headers, HB, N}, Peer),
     AH2 = api:height(),
     true = (N > AH2 - HB - 1),
+    %spawn(fun() ->
     headers:absorb(Headers),
+%end),
     if
         length(Headers) > (HB div 2) -> 
             get_headers3(Peer, N+HB-1);
