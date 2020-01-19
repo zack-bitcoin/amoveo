@@ -81,8 +81,8 @@ sci2([H|LI], LO, S) ->
             end;
         _ ->
             case block_db:exists(H) of
-                true -> sci2(LI, [H|LO], S);
-                false -> sci2(LI, LO, i_remove(H, S))
+                false -> sci2(LI, LO, i_remove(H, S));
+                true -> sci2(LI, [H|LO], S)
             end
     end.
 i_new() ->

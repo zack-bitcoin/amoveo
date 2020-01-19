@@ -40,7 +40,6 @@ test(1) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    %BP = block:get_by_height_in_chain(0, headers:top()),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),

@@ -1,8 +1,8 @@
 -module(block).
--export([block_to_header/1, get_by_height_in_chain/2,
+-export([block_to_header/1, %get_by_height_in_chain/2,
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
-         mine/1, mine/2, mine2/2, check/1, check0/1,
+         mine/1, mine/2, mine2/2, check/1, check0/1, check2/2,
          top/0, genesis_maker/0, height/0,
 	 time_now/0, all_mined_by/1, time_mining/1,
 	 period_estimate/0, hashrate_estimate/0,
@@ -170,6 +170,7 @@ get_by_height_in_chain(N, BH) when N > -1 ->
             Block = get_by_hash(hash(BH)),
     %io:fwrite(packer:pack(Block)),
             case Block of
+            %case empty of
                 empty ->
                     PrevHash = BH#header.prev_hash,
                     {ok, PrevHeader} = headers:read(PrevHash),
@@ -502,6 +503,9 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
 
 
 check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
+    OldBlock = get_by_hash(Block#block.prev_hash),
+    check2(OldBlock, Block).
+check2(OldBlock, Block) ->
     %io:fwrite("block check 0\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -514,7 +518,6 @@ check(Block) ->%This writes the result onto the hard drive database. This is non
     %io:fwrite("\n"),
     {ok, Header} = headers:read(BlockHash),
     Height = Block#block.height,
-    OldBlock = get_by_hash(Block#block.prev_hash),
     %io:fwrite("block check 2\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -1373,7 +1376,7 @@ test(1) ->
     block_organizer:add([WBlock10]),
     timer:sleep(400),
     WBlock11 = get_by_hash(H1),
-    WBlock12 = get_by_height_in_chain(1, H1),
+    WBlock12 = get_by_height_in_chain(1, Header1),
     io:fwrite(packer:pack(WBlock12)),
     io:fwrite("\n"),
     io:fwrite(packer:pack(WBlock11)),

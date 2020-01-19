@@ -6,6 +6,7 @@
          uncompress/1, compress/1,
          check/0, by_height_from_compressed/2,
          ram_height/0, genesis/0, exists/1,
+         set_ram_height/1,
          test/0]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db_dict()).
@@ -118,6 +119,9 @@ handle_cast({write, Block, Hash}, X) ->
     %most of the time, we just add the block to the dict.
     %if the dict has become large enough, then we should gather up a bunch of blocks to compress onto the hard drive, and replace each block in the dict with a pointer to the new file.
     {noreply, X3};
+handle_cast({set_ram_height, N}, X) -> 
+    X2 = X#d{ram_height = N},
+    {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(genesis, _From, X) -> 
     {reply, X#d.genesis, X};
@@ -407,6 +411,8 @@ read_by_height(Height) ->
             gen_server:call(?MODULE, {read_by_height, Height});
         true -> block:get_by_height(Height)
     end.
+set_ram_height(N) ->
+    gen_server:cast(?MODULE, {set_ram_height, N}).
 ram_height()  ->
     gen_server:call(?MODULE, ram_height).
 genesis()  ->

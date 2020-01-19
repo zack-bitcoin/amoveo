@@ -455,8 +455,9 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
 	    %io:fwrite("get blocks from them.\n"),
 	    CommonHeight = TopCommonHeader#header.height,
             RS = reverse_syncing(),
+            BH = block_db:ram_height(),
             if
-                RS -> ok;
+                (RS and (BH < 2)) -> ok;
                 true -> new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
             end;
 	true ->

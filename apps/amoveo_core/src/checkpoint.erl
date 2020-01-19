@@ -146,8 +146,9 @@ sync(IP, Port) ->
     TDBN = NBlock#block.trees,
     true = check_header_link(TopHeader, Header),
     Header = block:block_to_header(NBlock),
-    {_, _, _} = block:check0(Block),
-    {_Dict, _NewDict, CP1} = block:check0(NBlock),
+    {_, _, BlockHash} = block:check0(Block),
+    {NDict, NNewDict, CP1} = block:check0(NBlock),
+    NBlock2 = NBlock#block{trees = {NDict, NNewDict, CP1}},
     Roots = NBlock#block.roots,
     TarballData = get_chunks(CP1, IP, Port, 0),
     Tarball = CR ++ "backup.tar.gz",
@@ -168,6 +169,20 @@ sync(IP, Port) ->
                       trie:clean_ets(Type, Pointer)
               end, TreeTypes),
     %try syncing the blocks between here and the top.
+    block_hashes:add(CP1),
+    {true, NBlock3} = block:check2(Block, NBlock2),
+    %block_absorber:do_save(NBlock3, CP1),
+    gen_server:cast(block_db, {write, Block, BlockHash}),
+    gen_server:cast(block_db, {write, NBlock3, CP1}),
+    block_db:set_ram_height(Height),
+    %TODO set block_db ram_height to Height.
+    headers:absorb_with_block([Header]),
+    recent_blocks:add(CP1, 
+                      Header#header.accumulative_difficulty, 
+                      Height),
+    tx_pool_feeder:dump(NBlock3),
+    potential_block:dump(),
+    sync:start(),
     ok.
 check_header_link(Top, New) ->
     TH = Top#header.height,
