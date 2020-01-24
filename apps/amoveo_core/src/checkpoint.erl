@@ -364,10 +364,8 @@ backup_trees([], _) ->
 backup_trees([H|T], CR) -> 
     %gen_server:call({global, ids:main_id(H)}, fail),
     trie:quick_save(H),
-    cp(CR, H, "_leaf.db"),
-    cp(CR, H, "_leaf_rest.db"),
-    cp(CR, H, "_stem.db"),
-    cp(CR, H, "_stem_rest.db"),
+    cp(CR, H, ".db"),
+    cp(CR, H, "_rest.db"),
     backup_trees(T, CR).
 
 
