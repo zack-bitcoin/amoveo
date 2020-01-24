@@ -192,11 +192,11 @@ sync(IP, Port) ->
                          (Height - 1)
              end, Page0),
     CompressedPage = block_db:compress(Page),
-    load_pages(CompressedPage, Block2, Peer).
-load_pages(CompressedPage, BottomBlock, Peer) ->
+    load_pages(CompressedPage, Block2, Roots, Peer).
+load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     %TODO start syncing blocks backward
     Page = block_db:uncompress(CompressedPage),
-    {true, NewBottom} = verify_blocks(BottomBlock, Page, length(dict:fetch_keys(Page))),
+    {true, NewBottom} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
     %TODO
     %cut the DP into like 10 sub-lists, and make a process to verify each one. make sure there is 1 block of overlap, to know that the sub-lists are connected.
     %if a block has an unknown header, then drop this peer.
@@ -210,18 +210,71 @@ load_pages(CompressedPage, BottomBlock, Peer) ->
             ok;
         true -> 
             NextCompressed = talker:talk({blocks, 50, StartHeight}, Peer), %get next compressed page.
-            load_pages(NextCompressed, NewBottom, Peer)
+            load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
     end.
-verify_blocks(B, _, 0) -> {true, B};
-verify_blocks(B, P, N) -> 
+verify_blocks(B, _, _, 0) -> {true, B};
+verify_blocks(B, P, PrevRoots, N) -> 
     io:fwrite("verify blocks "),
     io:fwrite(integer_to_list(N)),
     io:fwrite("\n"),
     {ok, NB} = dict:find(B#block.prev_hash, P),
-    {true, B2} = block:check2(NB, B),
+    Proof = B#block.proofs,
+    Roots = B#block.roots,
+    {_NewDict4, NewDict3, _} = block:check3(NB, B),
+    io:fwrite("verify blocks 2\n"),
+    
+    TreeTypes = [accounts, channels, existence, oracles, governance, matched, unmatched],
+    RootsList0 = tl(tuple_to_list(Roots)),
+    RootsList = 
+        lists:map(
+          fun(Tree) ->
+                  io:fwrite("verify blocks 3\n"),
+                  CFG = trie:cfg(Tree),
+                  P2 = lists:filter(
+                         fun(X) ->
+                                 proofs:tree(X) == Tree
+                         end, 
+                         Proof),
+                  UL = lists:map(
+                         fun(X) ->
+                                 io:fwrite("verify blocks 4\n"),
+                                 K = proofs:key(X),
+                                 %io:fwrite({K, dict:fetch_keys(NewDict3)}),
+                                 V = Tree:dict_get(K, NewDict3),
+                                 %V = trees:get(Tree, K, NewDict3, empty_trees),
+                                 %io:fwrite({Tree, V}),
+                                 %io:fwrite("\n"),
+                                 if
+                                     Tree == governance ->
+                                         %io:fwrite(dict:fetch_keys(NewDict3)),
+                                         %io:fwrite("\n"),
+                                         ok;
+                                     true -> ok
+                                 end,
+                                 SV = Tree:serialize(V),
+                                 V2 = Tree:make_leaf(K, SV, CFG),
+                                 {V2, proofs:path(X)}
+                         end,
+                         P2),
+                  
+                  io:fwrite("verify blocks 5\n"),
+                  NewProofPaths = verify:update_proofs(UL, CFG),
+                  io:fwrite("verify blocks 6\n"),
+                  case NewProofPaths of
+                      [] -> unchanged;
+                      [H|_] -> 
+                          S = hd(lists:reverse(H)),
+                          stem:hash(S, CFG)
+                  end
+          end, TreeTypes),
+    io:fwrite("verify blocks 7\n"),
+    
+    Roots2 = [roots2|RootsList],
+    true = check_roots_match(Roots2, 
+                             tuple_to_list(PrevRoots)),
     {NDict, NNewDict, Hash} = block:check0(NB),
     NB2 = NB#block{trees = {NDict, NNewDict, Hash}},
-    verify_blocks(NB2, P, N-1).
+    verify_blocks(NB2, P, Roots, N-1).
 check_header_link(Top, New) ->
     TH = Top#header.height,
     NH = New#header.height,
@@ -233,8 +286,15 @@ check_header_link(Top, New) ->
             {ok, Prev} = headers:read(Top#header.prev_hash),
             check_header_link(Prev, New)
     end.
-        
-    
+       
+check_roots_match([], []) -> 
+    true;
+check_roots_match([A|T1], [A|T2]) -> 
+    check_roots_match(T1, T2);
+check_roots_match([unchanged|T1], [_|T2]) -> 
+    check_roots_match(T1, T2);
+check_roots_match(_, _) -> 
+    false.
 
 clean_helper([]) -> [];
 clean_helper([X]) -> [X];

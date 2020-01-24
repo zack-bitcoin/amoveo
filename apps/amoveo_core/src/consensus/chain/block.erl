@@ -2,7 +2,7 @@
 -export([block_to_header/1, %get_by_height_in_chain/2,
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
-         mine/1, mine/2, mine2/2, check/1, check0/1, check2/2,
+         mine/1, mine/2, mine2/2, check/1, check0/1, check2/2, check3/2,
          top/0, genesis_maker/0, height/0,
 	 time_now/0, all_mined_by/1, time_mining/1,
 	 period_estimate/0, hashrate_estimate/0,
@@ -182,7 +182,7 @@ get_by_height_in_chain(N, BH) when N > -1 ->
                         D < 0 -> empty;
                         D == 0 -> Block;
                         true ->
-                            PrevHash = prev_hash(lg(D), Block),
+                            PrevHash = prev_hash(lg(D), Block),%TODO, instead we should walk backwards through the headers datastructure in linear time.
                             {ok, PrevHeader} = headers:read(PrevHash),
                             get_by_height_in_chain(N, PrevHeader)
                     end
@@ -505,7 +505,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
 check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
     OldBlock = get_by_hash(Block#block.prev_hash),
     check2(OldBlock, Block).
-check2(OldBlock, Block) ->
+check3(OldBlock, Block) ->
     %io:fwrite("block check 0\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -591,6 +591,14 @@ check2(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
+    {NewDict4, NewDict3, Dict}.
+
+check2(OldBlock, Block) ->
+    {NewDict4, NewDict3, Dict} = 
+        check3(OldBlock, Block), 
+    Height = Block#block.height,
+    OldTrees = OldBlock#block.trees,
+    Roots = Block#block.roots,
     %io:fwrite("block check 5.3\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -616,7 +624,7 @@ check2(OldBlock, Block) ->
 		   true -> NewTrees3_0
 	       end,
 
-    {ok, PrevHeader} = headers:read(Header#header.prev_hash),
+    %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
     %io:fwrite("block check 5.4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
