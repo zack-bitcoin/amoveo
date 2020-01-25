@@ -29,9 +29,9 @@ handle_call({add, Hash, TotalWork, Height}, _, X) ->
     R=if
           (TotalWork > X#r.work) and (Height > 0) and ((Height rem RBP) == 0) ->
               {ok, FT} = application:get_env(amoveo_core, fork_tolerance),%we should look up the forth torlerance'th ancestor of the block, it's accumulative difficulty is the value we want. not Height-FT
-              H = block:header_by_height(max(0, Height-FT)),
-              %AB = block:get_by_height(max(0, Height - FT)),
-              %{ok, H} = headers:read(block:hash(AB)),
+              %H = block:header_by_height(max(0, Height-FT)),
+              AB = block:get_by_height(max(0, Height - FT)),
+              {ok, H} = headers:read(block:hash(AB)),
               AncestorsWork = H#header.accumulative_difficulty,
 	      BS = lists:sort(fun(A, B) -> 
 				      {_, A1} = A,
