@@ -277,7 +277,8 @@ height_range(Blocks) ->%page of blocks
     hr2(K, Blocks, block:height(), 0).
 hr2([], _, Start, End) -> {Start, End};
 hr2([H|T], Blocks, S, E) ->
-    B = fetch(H, Blocks),
+    %B = fetch(H, Blocks),
+    B = dict:fetch(H, Blocks),
     Height = B#block.height,
     hr2(T, Blocks, min(S, Height), max(E, Height)).
     

@@ -14,6 +14,7 @@
 	 amount/1,
 	 account/1,
          oracle/1,
+         pointer/1,
 	 aid/1,
 	 dict_empty_book/2,
 	 test/0]).%common tree stuff
@@ -59,6 +60,7 @@ update_amount(X, A) ->
 account(X) -> X#unmatched.account.
 aid(X) -> account(X).
 oracle(X) -> X#unmatched.oracle.
+pointer(X) -> X#unmatched.pointer.
 new(Account, Oracle, Amount) ->
     HS = constants:hash_size(),
     HS = size(Oracle),

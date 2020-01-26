@@ -731,7 +731,7 @@ unpack_tree_element(X) ->
         oracle -> [{type, oracle},{oid, base64:encode(X#oracle.id)},{result, X#oracle.result},{starts, X#oracle.starts},{type, X#oracle.type},{done_timer, X#oracle.done_timer},{governance, X#oracle.governance},{governance_amount, X#oracle.governance_amount}];
         channel -> [{type, channel},{cid, base64:encode(X#channel.id)},{acc1, base64:encode(X#channel.acc1)}, {acc2, base64:encode(X#channel.acc2)}, {bal1, X#channel.bal1}, {bal2, X#channel.bal2}, {amount, X#channel.amount}, {nonce, X#channel.nonce}, {last_modified, X#channel.last_modified}, {delay, X#channel.delay}, {closed, X#channel.closed}];
         matched -> [{type, matched},{account, base64:encode(X#matched.account)}, {oracle, base64:encode(X#matched.oracle)}, {true, X#matched.true}, {false, X#matched.false}, {bad, X#matched.bad}];
-        unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)}];
+        unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)},{pointer, unmatched:pointer(X)}];
         _ -> []
     end.
 get_txs_main(L, T, O, N, H) ->

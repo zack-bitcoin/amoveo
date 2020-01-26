@@ -121,6 +121,7 @@ get_chunks(Hash, Peer, N) ->
             io:fwrite(E)
     end.
 test() -> 
+    block_db:set_ram_height(0),
     IP = {46,101,185,98},
     Port = 8080,
     sync(IP, Port).
@@ -183,7 +184,7 @@ sync(IP, Port) ->
                       Height),
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
-    sync:start(),
+    %sync:start(),
     {ok, ComPage0} = talker:talk({blocks, 50, Height}, Peer),
     Page0 = block_db:uncompress(ComPage0),
     Page = dict:filter(%remove data that is already in block_db.
@@ -196,7 +197,7 @@ sync(IP, Port) ->
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     %TODO start syncing blocks backward
     Page = block_db:uncompress(CompressedPage),
-    {true, NewBottom} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
+    {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
     %TODO
     %cut the DP into like 10 sub-lists, and make a process to verify each one. make sure there is 1 block of overlap, to know that the sub-lists are connected.
     %if a block has an unknown header, then drop this peer.
@@ -209,72 +210,182 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             io:fwrite("synced all blocks back to the genesis.\n"),
             ok;
         true -> 
-            NextCompressed = talker:talk({blocks, 50, StartHeight}, Peer), %get next compressed page.
-            load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
+            {ok, NextCompressed} = talker:talk({blocks, 50, StartHeight-2}, Peer), %get next compressed page.
+            %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
+            load_pages(NextCompressed, NewBottom, NextRoots, Peer)
     end.
-verify_blocks(B, _, _, 0) -> {true, B};
+verify_blocks(B, _, Roots, 0) -> {true, B, Roots};
 verify_blocks(B, P, PrevRoots, N) -> 
     io:fwrite("verify blocks "),
-    io:fwrite(integer_to_list(N)),
+    io:fwrite(integer_to_list(B#block.height)),
     io:fwrite("\n"),
     {ok, NB} = dict:find(B#block.prev_hash, P),
     Proof = B#block.proofs,
-    Roots = B#block.roots,
     {_NewDict4, NewDict3, _} = block:check3(NB, B),
-    io:fwrite("verify blocks 2\n"),
-    
     TreeTypes = [accounts, channels, existence, oracles, governance, matched, unmatched],
-    RootsList0 = tl(tuple_to_list(Roots)),
-    RootsList = 
-        lists:map(
-          fun(Tree) ->
-                  io:fwrite("verify blocks 3\n"),
-                  CFG = trie:cfg(Tree),
-                  P2 = lists:filter(
-                         fun(X) ->
-                                 proofs:tree(X) == Tree
-                         end, 
-                         Proof),
-                  UL = lists:map(
-                         fun(X) ->
-                                 io:fwrite("verify blocks 4\n"),
-                                 K = proofs:key(X),
-                                 %io:fwrite({K, dict:fetch_keys(NewDict3)}),
-                                 V = Tree:dict_get(K, NewDict3),
-                                 %V = trees:get(Tree, K, NewDict3, empty_trees),
-                                 %io:fwrite({Tree, V}),
-                                 %io:fwrite("\n"),
-                                 if
-                                     Tree == governance ->
-                                         %io:fwrite(dict:fetch_keys(NewDict3)),
-                                         %io:fwrite("\n"),
-                                         ok;
-                                     true -> ok
-                                 end,
-                                 SV = Tree:serialize(V),
-                                 V2 = Tree:make_leaf(K, SV, CFG),
-                                 {V2, proofs:path(X)}
-                         end,
-                         P2),
-                  
-                  io:fwrite("verify blocks 5\n"),
-                  NewProofPaths = verify:update_proofs(UL, CFG),
-                  io:fwrite("verify blocks 6\n"),
-                  case NewProofPaths of
-                      [] -> unchanged;
-                      [H|_] -> 
-                          S = hd(lists:reverse(H)),
-                          stem:hash(S, CFG)
-                  end
-          end, TreeTypes),
-    io:fwrite("verify blocks 7\n"),
-    
+    %{RootsList, Leaves} = calc_roots2(TreeTypes, Proof, NewDict3, [], []),
+    {RootsList, Leaves} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
     Roots2 = [roots2|RootsList],
-    true = check_roots_match(Roots2, 
-                             tuple_to_list(PrevRoots)),
+    CRM = check_roots_match(Roots2, 
+                            tuple_to_list(PrevRoots)),
+    case CRM of
+        true -> ok;
+        false ->
+            %io:fwrite("dict3 keys: "),
+            %io:fwrite("\n"),
+            %io:fwrite(packer:pack(dict:fetch_keys(NewDict3))),%[{unmatched, {key, Pub, ID}},{governance, 1}|...]
+            %io:fwrite("\n"),
+            %io:fwrite("all proofs: "),
+            %io:fwrite(packer:pack(Proof)),
+            %io:fwrite("\n"),
+            io:fwrite(packer:pack({Roots2, tuple_to_list(PrevRoots)})),
+            io:fwrite("\n"),
+            CFG = trie:cfg(unmatched),
+            P2 = lists:filter(
+                   fun(X) ->
+                           proofs:tree(X) == unmatched
+                   end, Proof),
+            P3 = lists:map(
+                   fun(X) ->
+                           proofs:value(X)
+                   end, P2),
+            Leaves2 = leaf_vals(TreeTypes, Leaves),
+            %io:fwrite(packer:pack(Leaves)),
+            io:fwrite(packer:pack(Leaves2)),
+            io:fwrite("\n"),
+            1=2
+    end,
     {NDict, NNewDict, Hash} = block:check0(NB),
     NB2 = NB#block{trees = {NDict, NNewDict, Hash}},
-    verify_blocks(NB2, P, Roots, N-1).
+    verify_blocks(NB2, P, B#block.roots, N-1).
+leaf_vals([], []) -> [];
+leaf_vals([Tree|T], [Leafs|L]) ->
+    V = lists:map(
+          fun(Leaf) ->
+                  LV = leaf:value(Leaf),
+                  K = leaf:key(Leaf),
+                  case LV of
+                      empty -> empty;
+                      _ -> Tree:deserialize(LV)
+                  end
+          end, Leafs),
+    [V|leaf_vals(T, L)].
+calc_roots2([], _, _, _, R, L) ->
+    {lists:reverse(R), 
+     lists:reverse(L)};
+calc_roots2([Tree|TT], Proof, Keys, NewDict3, RL, LL) ->
+    CFG = trie:cfg(Tree),
+    K2 = lists:filter(
+           fun({Tree2, _K}) ->
+                   Tree2 == Tree
+           end, 
+           Keys),%[{unmatched, {key, Pub, OID}}|...]
+    P2 = lists:filter(
+           fun(X) ->
+                   proofs:tree(X) == Tree
+           end, 
+           Proof),
+    {R, UL2} = case K2 of
+            [] -> {0, []};
+            _ ->
+                StemHashes = hd(lists:reverse(proofs:path(hd(P2)))),
+                RS = stem:make(StemHashes, Tree),
+                RootHash = stem:hash(RS, CFG),
+                {M, Root} = mtree:new_restoration(RS, CFG),
+                {M2, Root2} = restore_all(P2, RootHash, Root, Tree, CFG, M),
+                UL = leaf_maker2(K2, NewDict3, CFG),
+                {Root3, M3} = mtree:store_batch(UL, Root2, M2),
+                {mtree:root_hash(Root3, M3),
+                 UL}
+        end,
+    calc_roots2(TT, Proof, Keys, NewDict3, [R|RL], [UL2|LL]).
+
+    
+calc_roots([], _, _, R, L) -> 
+    {lists:reverse(R), 
+     lists:reverse(L)};
+calc_roots([Tree|TT], Proof, NewDict3, RL, LL) -> 
+    CFG = trie:cfg(Tree),
+    P2 = lists:filter(
+           fun(X) ->
+                   proofs:tree(X) == Tree
+           end, 
+           Proof),
+    {R, UL2} = case P2 of
+            [] -> {0, []};
+            _ ->
+                StemHashes = hd(lists:reverse(proofs:path(hd(P2)))),
+                RS = stem:make(StemHashes, Tree),
+                RootHash = stem:hash(RS, CFG),
+                {M, Root} = mtree:new_restoration(RS, CFG),
+                {M2, Root2} = restore_all(P2, RootHash, Root, Tree, CFG, M),
+                UL = leaf_maker(P2, NewDict3, Tree, CFG),
+                {Root3, M3} = mtree:store_batch(UL, Root2, M2),
+                {mtree:root_hash(Root3, M3),
+                 UL}
+        end,
+    calc_roots(TT, Proof, NewDict3, [R|RL], [UL2|LL]).
+        
+leaf_maker2([], _, _) -> [];
+leaf_maker2([{Tree, K}|P2], NewDict3, CFG) ->
+    %the values of the leaves after the block is processed.
+    %io:fwrite(packer:pack({Tree, K})),
+    %io:fwrite("\n"),
+    PS = constants:pubkey_size() * 8,
+    SV = case {K, Tree} of
+%             {{key, <<1:PS>>, OID}, unmatched} ->%its a unmatched header
+%                 {P, Many} = unmatched:dict_head_get(NewDict3, OID),
+%                 unmatched:serialize_head(P, Many);
+             _ ->
+                 V = Tree:dict_get(K, NewDict3),
+                 case V of
+                     empty -> empty;
+                     _ -> Tree:serialize(V)
+                 end
+         end,
+    L = Tree:make_leaf(K, SV, CFG),
+    [L|leaf_maker2(P2, NewDict3, CFG)].
+    
+leaf_maker([], _, _, _) -> [];
+leaf_maker([X|P2], NewDict3, Tree, CFG) ->
+    %the values of the leaves after the block is processed.
+    K = proofs:key(X),
+    %io:fwrite(packer:pack(K)),
+    %io:fwrite("\n"),
+    PS = constants:pubkey_size() * 8,
+    SV = case {K, Tree} of
+             {{key, <<1:PS>>, OID}, unmatched} ->%its a unmatched header
+                 {P, Many} = unmatched:dict_head_get(NewDict3, OID),
+                 unmatched:serialize_head(P, Many);
+             _ ->
+                 V = Tree:dict_get(K, NewDict3),
+                 case V of
+                     empty -> empty;
+                     _ -> Tree:serialize(V)
+                 end
+         end,
+    L = Tree:make_leaf(K, SV, CFG),
+    [L|leaf_maker(P2, NewDict3, Tree, CFG)].
+    
+restore_all([], _, Root, _, _, M) -> {M, Root};
+restore_all([P|T], Hash, Root, Tree, CFG, M) -> 
+    %the merkle tree before the block is processed
+    V0 = proofs:value(P),
+    V = case V0 of
+            0 -> empty;
+            V1 -> V1
+        end,
+    Path = proofs:path(P),
+    Key = proofs:key(P),
+    Leaf = Tree:make_leaf(Key, V, CFG),
+%new(Key, Value, Meta, CFG) ->
+    true = verify:proof(Hash, Leaf, Path, CFG),
+    %io:fwrite({Leaf, Hash, Path, Root, M}),
+    %{Leaf, Hash, [{16 hashes}|...]}, 1, M}
+    {_, Root2, _, M2} = 
+        %path should be "proof"
+        mtree:restore(Leaf, Hash, Path, Root, M),
+    restore_all(T, Hash, Root2, Tree, CFG, M2).
 check_header_link(Top, New) ->
     TH = Top#header.height,
     NH = New#header.height,
@@ -291,7 +402,7 @@ check_roots_match([], []) ->
     true;
 check_roots_match([A|T1], [A|T2]) -> 
     check_roots_match(T1, T2);
-check_roots_match([unchanged|T1], [_|T2]) -> 
+check_roots_match([0|T1], [_|T2]) -> 
     check_roots_match(T1, T2);
 check_roots_match(_, _) -> 
     false.
