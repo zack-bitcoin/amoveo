@@ -269,7 +269,7 @@ leaf_vals([Tree|T], [Leafs|L]) ->
                       _ -> Tree:deserialize(LV)
                   end
           end, Leafs),
-    [V|leaf_vals(T, L)].
+    [{Tree, V}|leaf_vals(T, L)].
 calc_roots2([], _, _, _, R, L) ->
     {lists:reverse(R), 
      lists:reverse(L)};
@@ -333,9 +333,9 @@ leaf_maker2([{Tree, K}|P2], NewDict3, CFG) ->
     %io:fwrite("\n"),
     PS = constants:pubkey_size() * 8,
     SV = case {K, Tree} of
-%             {{key, <<1:PS>>, OID}, unmatched} ->%its a unmatched header
-%                 {P, Many} = unmatched:dict_head_get(NewDict3, OID),
-%                 unmatched:serialize_head(P, Many);
+             {{key, <<1:PS>>, OID}, unmatched} ->%its a unmatched header
+                 {P, Many} = unmatched:dict_head_get(NewDict3, OID),
+                 unmatched:serialize_head(P, Many);
              _ ->
                  V = Tree:dict_get(K, NewDict3),
                  case V of

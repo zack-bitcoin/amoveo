@@ -297,8 +297,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                         N -> [{governance, N2IOIL},
 			      {governance, N}]
                     end,
+                F27 = Height > forks:get(27),
 		U = if
-			F10 -> 
+			(F27 and F10) -> 
 			    PS = constants:pubkey_size() * 8,
 			    [{unmatched, {key, <<1:PS>>, OID}}];
 			true -> []
@@ -310,7 +311,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(minimum_oracle_time)},
                  {accounts, AID},
                  {oracles, OID}
-                ] ++ G;
+                ] ++ G ++ U;
 	    oracle_bet -> 
                 OID = oracle_bet_tx:id(Tx),
                 Pubkeys = [oracle_bet_tx:from(Tx)|
