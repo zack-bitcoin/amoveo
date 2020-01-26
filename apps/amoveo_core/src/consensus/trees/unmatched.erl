@@ -128,27 +128,16 @@ get(K, Tree) ->
     %we should check if this is a key for headers, and if it is, do headers_get instead.
     %ID = key_to_int({key, <<?Header:PS>>, OID}),
     PS = constants:pubkey_size() * 8,
-    case K of
-        {key, <<?Header:PS>>, OID} ->
-        %12345 ->
-        %    OID = ok,
-            ID = key_to_int(K),
-            {X, L, Proof} = trie:get(ID, Tree, ?name),
-            false = (L == empty),
-            V = deserialize_head(leaf:value(L)),
-            %{P, Q} = head_get(Tree, OID),
-            {X, V, Proof};
-        _ ->
-            Key = key_to_int(K),
-            {X, Leaf, Proof} = trie:get(Key, Tree, ?name),
-            V = case Leaf of
-                    empty -> empty;
-                    L -> 
-                        Y = leaf:value(L),
-                        deserialize(Y)
-                end,
-            {X, V, Proof}
-    end.
+    ID = key_to_int(K),
+    {X, Leaf, Proof} = trie:get(ID, Tree, ?name),
+    V = case {Leaf, K} of
+            {empty, _} -> empty;
+            {L, {key, <<?Header:PS>>, _OID}} ->
+                deserialize_head(leaf:value(L));
+            {L, _} ->
+                deserialize(leaf:value(L))
+        end,
+    {X, V, Proof}.
 dict_write(C, Dict) ->
     Account = C#unmatched.account,
     Oracle = C#unmatched.oracle,

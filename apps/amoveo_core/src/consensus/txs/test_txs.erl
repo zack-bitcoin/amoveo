@@ -677,6 +677,7 @@ test(13) ->
     OID2 = oracle_new_tx:id(Tx3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
+    %1=2,
     timer:sleep(100),
 
     MOT = trees:get(governance, minimum_oracle_time),

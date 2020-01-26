@@ -35,7 +35,7 @@ get(23) -> common(76200, test_height());
 get(24) -> common(82270, test_height());%require that new oracle ids conform to the standard.
 get(25) -> common(77500, test_height());%so that we can prove the non-existence of oracles and channels and accounts.
 get(26) -> common(96560, test_height());%so we can cancel channel offers.
-%get(27) -> common(102260, test_height());%so oracle_new tx includes all the proofs that it needs.
+get(27) -> common(102260, test_height());%so oracle_new tx includes all the proofs that it needs.
 get(_) -> none.
 
 top() -> top(1).
