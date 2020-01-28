@@ -35,7 +35,8 @@ internal(PruneBlock, KeepBlock, F) ->
     T2 = KeepBlock#block.trees,
     Trees = case element(1, T1) of%
 		trees -> TA;%
-		trees2 -> TA ++ [matched, unmatched]
+		trees2 -> TA ++ [matched, unmatched];
+		trees3 -> TA ++ [matched, unmatched, sortition, candidates]
 	    end,%
     _ = 
 	lists:map(fun(T) ->

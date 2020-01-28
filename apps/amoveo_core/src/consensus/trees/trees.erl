@@ -1,8 +1,8 @@
 -module(trees).
--export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,
+-export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,sortition/1,candidates/1,
 	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2,
-	 new/6,
-	 new2/7, empty_tree/1,
+	 new/6, new2/7, new3/9,
+         empty_tree/1,
 	 root_hash/1, name/1, 
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
@@ -112,6 +112,10 @@ update_unmatched(X = #trees2{}, U) ->
     X#trees2{unmatched = U};
 update_unmatched(X = #trees3{}, U) ->
     X#trees3{unmatched = U}.
+update_sortition(X = #trees3{}, U) ->
+    X#trees3{sortition = U}.
+update_candidates(X = #trees3{}, U) ->
+    X#trees3{candidates = U}.
 root_hash2(Trees, _Roots) ->
     A = rh2(accounts, Trees),
     C = rh2(channels, Trees),
@@ -142,12 +146,12 @@ root_hash2(Trees, _Roots) ->
 		M = rh2(matched, Trees),
 		U = rh2(unmatched, Trees),
                 S = rh2(sortition, Trees),
-                C = rh2(candidates, Trees),
+                Ca = rh2(candidates, Trees),
 		HS = size(M),
 		HS = size(U),
 		HS = size(S),
-		HS = size(C),
-		Z = <<X/binary, M/binary, U/binary, S/binary, C/binary>>,
+		HS = size(Ca),
+		Z = <<X/binary, M/binary, U/binary, S/binary, Ca/binary>>,
                 Z
                     
 	end,
@@ -180,8 +184,8 @@ serialized_roots(Trees) ->
 	    M = F(matched),
 	    U = F(unmatched),
             S = F(sortition),
-            C = F(candidates),
-	    Z = <<X/binary, M/binary, U/binary, S/binary, C/binary>>,
+            Ca = F(candidates),
+	    Z = <<X/binary, M/binary, U/binary, S/binary, Ca/binary>>,
             Z
     end.
 root_hash(Trees) ->
@@ -240,6 +244,7 @@ all_veo_h2(unmatched, X) ->
     unmatched:amount(X);
 all_veo_h2(matched, X) ->
     (matched:true(X) + matched:false(X) + matched:bad(X)) div 2.
+
     
 all_veo_helper(Type) ->
     Accounts = trees:Type((tx_pool:get())#tx_pool.block_trees),

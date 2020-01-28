@@ -9,7 +9,7 @@
 
 -record(waiver, {pubkey, signature, sortition_chain_id, contract_hash}).
 
--record(sortition_chain, {id, amount, entropy_source, creator, delay, nonce, last_modified, top_candidate, closed}).%merkle tree
+-record(sortition, {id, amount, entropy_source, creator, delay, nonce, last_modified, top_candidate, closed}).%merkle tree
 
 -record(candidate, {sortition_id, layer_number, winner_pubkey, height, next_candidate}).%merkle tree
 
