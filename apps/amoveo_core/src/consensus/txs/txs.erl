@@ -42,19 +42,4 @@ key2module(unmatched) -> oracle_unmatched_tx;
 key2module(oracle_winnings) -> oracle_winnings_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
-%case application:get_env(amoveo_core, kind) of
-%	{ok, "production"} -> ok;
-	    %Burn = base64:decode("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEFAx4lA9qJP3/x4hz1EkNIQAAAAAAAAA="),
-        %Burn = constants:burn_address(),
-	%    false = (From == Burn);
-	    %MP = constants:master_pub(),
-	    %if
-		%From == MP ->
-		%    BP = governance:dict_get_value(block_period, Dict),
-		%    HeightSwitch = (10 * constants:developer_lock_period()) div BP,
-		%    true = NewHeight > HeightSwitch;
-		%true -> ok
-	    %end;
-%	_ -> ok
-%    end.
     

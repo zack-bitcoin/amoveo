@@ -1,4 +1,20 @@
 
+-record(sortition_new_tx, {creator, nonce, fee, amount, sortition_id, expiration}).
+
+-record(sortition_claim_tx, {winner, nonce, fee, sortition_id, proof}).
+
+-record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, loser, signed_waiver}).
+
+-record(sortition_timeout_tx, {pubkey, nonce, fee, winner, amount_won, sortition_id}).
+
+-record(waiver, {pubkey, signature, sortition_chain_id, contract_hash}).
+
+-record(sortition_chain, {id, amount, entropy_source, creator, delay, nonce, last_modified, top_candidate, closed}).%merkle tree
+
+-record(candidate, {sortition_id, layer_number, winner_pubkey, height, next_candidate}).%merkle tree
+
+
+
 -record(key, {pub, id}). %used for shared, oracle_bets, and orders
 -record(spk, {acc1,acc2, 
 	      bets, space_gas, time_gas, 
