@@ -1,6 +1,6 @@
 -module(sortition).
 -export([new/5, 
-         id/1, amount/1, entropy_source/1, creator/1, delay/1, nonce/1, last_modified/1, top_candidate/1, closed/1,
+         id/1, amount/1, entropy_source/1, creator/1, expiration/1, nonce/1, last_modified/1, top_candidate/1, closed/1,
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/5, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
@@ -11,16 +11,24 @@
 ]).
 -define(id, sortition).
 -include("../../records.hrl").
-%-record(sortition, {id, amount, entropy_source, creator, delay, nonce, last_modified, top_candidate, closed}).%merkle tree
+%-record(sortition, {id, amount, entropy_source, creator, expiration, last_modified, top_candidate, closed}).%merkle tree
 
-new(_, _, _, _, _) ->
-    ok.
+new(K, Amount, Entropy, Creator, Expiration) ->
+    
+    #sortition{id = K, %256
+               amount = Amount, %balance_amount
+               entropy_source = Entropy, %height
+               creator = Creator, %pubkey size
+               expiration = Expiration, %height
+               last_modified = 0,%height
+               top_candidate = 0,%256
+               closed = 0}.%1 bit
 
 id(S) -> S#sortition.id.
 amount(S) -> S#sortition.amount.
 entropy_source(S) -> S#sortition.entropy_source.
 creator(S) -> S#sortition.creator.
-delay(S) -> S#sortition.delay.
+expiration(S) -> S#sortition.expiration.
 nonce(S) -> S#sortition.nonce.
 last_modified(S) -> S#sortition.last_modified.
 top_candidate(S) -> S#sortition.top_candidate.
@@ -78,11 +86,48 @@ verify_proof(RootHash, Key, Value, Proof) ->
 make_leaf(Key, V, CFG) ->
     leaf:new(key_to_int(Key), V, 0, CFG).
 
-deserialize(_) ->
-    ok.
+deserialize(B) ->
+    HS = constants:hash_size()*8,
+    PS = constants:pubkey_size()*8,
+    BAL = constants:balance_bits(),
+    HEI = constants:height_bits(),
+    <<ID:HS,
+      Amount:BAL,
+      ES:HEI,
+      Creator:PS,
+      Expiration:HEI,
+      LM:HEI,
+      TC:HS,
+      Closed:8>> = B,
+    #sortition{
+                id = <<ID:HS>>,
+                amount = Amount,
+                entropy_source = ES,
+                creator = <<Creator:PS>>,
+                expiration = Expiration,
+                last_modified = LM,
+                top_candidate = <<TC:HS>>,
+                closed = Closed
+              }.
 
-serialize(_) ->
-    ok.
+
+serialize(S) ->
+    HS = constants:hash_size(),
+    PS = constants:pubkey_size(),
+    BAL = constants:balance_bits(),
+    HEI = constants:height_bits(),
+    Creator = S#sortition.creator,
+    ID = S#sortition.id,
+    PS = size(Creator),
+    HS = size(ID),
+    <<ID/binary,
+      (S#sortition.amount):BAL,
+      (S#sortition.entropy_source):HEI,
+      Creator/binary,
+      (S#sortition.expiration):HEI,
+      (S#sortition.last_modified):HEI,
+      (S#sortition.top_candidate):HS,
+      (S#sortition.closed):8>>.
 
 all() ->
     Trees = (tx_pool:get())#tx_pool.block_trees,
