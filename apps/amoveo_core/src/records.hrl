@@ -23,7 +23,7 @@
 
 -record(rng_challenge, {id, sortition_id, response_id, pubkey, timestamp, refunded, n}).%challenge needs to remember how many responses and challenges descend from it. If there are more responses than challenges, then it is closable.
 
--record(rng_response, {id, sortition_id, challenge_id, pubkey, timestamp, refunded, possible, hashes}).
+-record(rng_response, {id, sortition_id, challenge_id, pubkey, timestamp, refunded, impossible, hashes}).
 
 
 

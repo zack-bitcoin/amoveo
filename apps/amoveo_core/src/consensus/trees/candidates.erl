@@ -84,7 +84,7 @@ key_to_int(X) ->
     <<Y:256>> = hash:doit(X),
     Y.
 
-deserialize(C) ->
+serialize(C) ->
 %-record(candidate, {id, sortition_id, layer_number, winner_pubkey, height, next_candidate}).%merkle tree
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),
@@ -105,7 +105,7 @@ deserialize(C) ->
       (C#candidate.height):HEI,
       NC/binary>>.
       
-serialize(B) ->
+deserialize(B) ->
     HS = constants:hash_size()*8,
     PS = constants:pubkey_size()*8,
     HEI = constants:height_bits(),
@@ -122,6 +122,7 @@ serialize(B) ->
            sortition_id = <<SI:HS>>,
            layer_number = LN,
            winner = <<Winner:PS>>,
+           height = Height,
            next_candidate = <<NC:HS>>
           }.
 
@@ -135,8 +136,24 @@ all() ->
 
 test() ->
     %make a new.
+    {Pub, _Priv} = testnet_sign:new_key(),
+    ID = hash:doit(1),
+    S = new(ID,
+            hash:doit(2),
+            1,
+            Pub,
+            1,
+            hash:doit(3)),
     %serialize deserialize
+    S1 = deserialize(serialize(S)),
+    S = S1,
     %make an empty tree.
+    Root0 = trees:empty_tree(candidates),
     %write to the tree.
+    NewLoc = write(S, Root0),
     %verify a proof.
+    {Root, S, Proof} = get(ID, NewLoc),
+    true = verify_proof(Root, ID, serialize(S), Proof),
+    {Root2, empty, Proof2} = get(ID, Root0),
+    true = verify_proof(Root2, ID, 0, Proof2),
     success.
