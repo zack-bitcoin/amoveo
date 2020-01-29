@@ -7,11 +7,23 @@
 
 -record(sortition_timeout_tx, {pubkey, nonce, fee, winner, amount_won, sortition_id}).
 
+-record(rng_value_tx, {pubkey, nonce, fee, id, sortition_id, parent_id, values}).
+
+-record(rng_challenge_tx, {pubkey, nonce, fee, id, sortition_id, parent_id, n}).
+
+-record(rng_result_tx, {pubkey, nonce, fee, sortition_id}).
+
+-record(rng_refund_tx, {pubkey, nonce, fee, id}).
+
 -record(waiver, {pubkey, signature, sortition_chain_id, contract_hash}).
 
--record(sortition, {id, amount, entropy_source, creator, expiration, delay, last_modified, top_candidate, closed}).%merkle tree
+-record(sortition, {id, amount, entropy_source, creator, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, closed}).%merkle tree
 
 -record(candidate, {sortition_id, layer_number, winner_pubkey, height, next_candidate}).%merkle tree
+
+-record(rng_challenge, {id, sortition_id, response_id, pubkey, timestamp, refunded, n}).%challenge needs to remember how many responses and challenges descend from it. If there are more responses than challenges, then it is closable.
+
+-record(rng_response, {id, sortition_id, challenge_id, pubkey, timestamp, refunded, possible, hashes}).
 
 
 

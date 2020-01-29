@@ -19,7 +19,7 @@
 -include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).%
 -record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
--record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sortition, candidates}).
+-record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sortition, candidates, rng_challenge, rng_response}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -320,7 +320,9 @@ make(Header, Txs0, Trees, Pub) ->
 				      trees:matched(NewTrees0),%
 				      trees:unmatched(NewTrees0),%
 				      trees:empty_tree(sortition),%
-				      trees:empty_tree(candidates));%
+				      trees:empty_tree(candidates),%
+                                      trees:empty_tree(rng_challenge),%
+                                     trees:empty_tree(rng_response));%
 		   true -> NewTrees0
 	       end,
     %Governance = trees:governance(NewTrees),
@@ -378,14 +380,17 @@ make_roots(Trees) when (element(1, Trees) == trees2) ->
 	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees))};
 make_roots(Trees) when (element(1, Trees) == trees3) ->
     #roots3{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
-           channels = trie:root_hash(channels, trees:channels(Trees)),
-           existence = trie:root_hash(existence, trees:existence(Trees)),
-           oracles = trie:root_hash(oracles, trees:oracles(Trees)),
-           governance = trie:root_hash(governance, trees:governance(Trees)),
-	   matched = trie:root_hash(matched, trees:matched(Trees)),
-	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
-	   sortition = trie:root_hash(sortition, trees:sortition(Trees)),
-	   candidates = trie:root_hash(candidates, trees:candidates(Trees))}.
+            channels = trie:root_hash(channels, trees:channels(Trees)),
+            existence = trie:root_hash(existence, trees:existence(Trees)),
+            oracles = trie:root_hash(oracles, trees:oracles(Trees)),
+            governance = trie:root_hash(governance, trees:governance(Trees)),
+            matched = trie:root_hash(matched, trees:matched(Trees)),
+            unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
+            sortition = trie:root_hash(sortition, trees:sortition(Trees)),
+            candidates = trie:root_hash(candidates, trees:candidates(Trees)), 
+            rng_challenge = trie:root_hash(rng_challenge, trees:rng_challenge(Trees)), 
+            rng_response = trie:root_hash(rng_response, trees:rng_response(Trees))
+           }.
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
     C = X#roots.channels,%
@@ -414,7 +419,9 @@ roots_hash(X) when is_record(X, roots3) ->
     U = X#roots3.unmatched,
     S = X#roots3.sortition,
     Ca = X#roots3.candidates,
-    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, S/binary, Ca/binary>>,
+    RC = X#roots3.rng_challenge,
+    RR = X#roots3.rng_response,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, S/binary, Ca/binary, RC/binary, RR/binary>>,
     hash:doit(Y).
     
     
@@ -526,7 +533,9 @@ proofs_roots_match([P|T], R) when is_record(R, roots3)->
 	       matched -> R#roots3.matched;
 	       unmatched -> R#roots3.unmatched;
 	       sortition -> R#roots3.sortition;
-	       candidates -> R#roots3.candidates
+	       candidates -> R#roots3.candidates;
+	       rng_challenge -> R#roots3.rng_challenge;
+               rng_response -> R#roots3.rng_response
 	   end,
     proofs_roots_match(T, R).
 check0(Block) ->%This verifies the txs in ram. is parallelizable
@@ -674,7 +683,9 @@ check2(OldBlock, Block) ->
                                    trees:matched(NewTrees3_0),
                                    trees:unmatched(NewTrees3_0),
                                    trees:empty_tree(sortition),
-                                   trees:empty_tree(candidates));
+                                   trees:empty_tree(candidates),
+                                   trees:empty_tree(rng_challenge),
+                                   trees:empty_tree(rng_response));
 		   true -> NewTrees3_0
 	       end,
 

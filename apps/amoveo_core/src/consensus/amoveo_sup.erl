@@ -67,7 +67,9 @@ init([]) ->
 	     tree_child(matched, HS, (HS + PS + (3 * BB div 8)), 0, Mode, TrieSize),
 	     tree_child(unmatched, HS, (HS + PS + PS + (BB div 8)), 0, Mode, TrieSize),
 	     tree_child(sortition, HS, 0, 0, Mode, TrieSize),
-	     tree_child(candidates, HS, 0, 0, Mode, TrieSize)
+	     tree_child(candidates, HS, 0, 0, Mode, TrieSize),
+	     tree_child(rng_challenge, HS, 0, 0, Mode, TrieSize),
+	     tree_child(rng_response, HS, 0, 0, Mode, TrieSize)
 	    ],
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 
