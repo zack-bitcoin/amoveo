@@ -1,5 +1,5 @@
 
--record(sortition_new_tx, {creator, nonce, fee, amount, sortition_id, expiration}).
+-record(sortition_new_tx, {creator, nonce, fee, amount, id, entropy, trading_ends, response_delay, rng_ends, delay}).
 
 -record(sortition_claim_tx, {winner, nonce, fee, sortition_id, proof}).
 
