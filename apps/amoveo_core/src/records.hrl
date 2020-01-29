@@ -19,7 +19,7 @@
 
 -record(sortition, {id, amount, entropy_source, creator, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, closed}).%merkle tree
 
--record(candidate, {sortition_id, layer_number, winner_pubkey, height, next_candidate}).%merkle tree
+-record(candidate, {id, sortition_id, layer_number, winner, height, next_candidate}).%merkle tree
 
 -record(rng_challenge, {id, sortition_id, response_id, pubkey, timestamp, refunded, n}).%challenge needs to remember how many responses and challenges descend from it. If there are more responses than challenges, then it is closable.
 
