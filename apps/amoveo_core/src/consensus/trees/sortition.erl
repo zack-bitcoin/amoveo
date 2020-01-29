@@ -24,7 +24,7 @@ new(K, Amount, Entropy, Creator, TE, RRD, RE, Delay) ->
                %expiration = Expiration, %height
                delay = Delay, %height
                last_modified = 0,%height
-               top_candidate = 0,%256
+               top_candidate = <<0:256>>,%256
                closed = 0}.%1 bit
 
 id(S) -> S#sortition.id.
@@ -137,10 +137,12 @@ serialize(S) ->
     HEI = constants:height_bits(),
     Creator = S#sortition.creator,
     Value = S#sortition.rng_value,
+    TC = S#sortition.top_candidate,
     ID = S#sortition.id,
     PS = size(Creator),
     HS = size(ID),
     HS = size(Value),
+    HS = size(TC),
     <<ID/binary,
       (S#sortition.amount):BAL,
       (S#sortition.entropy_source):HEI,
@@ -152,7 +154,7 @@ serialize(S) ->
       Value/binary,
       (S#sortition.delay):HEI,
       (S#sortition.last_modified):HEI,
-      (S#sortition.top_candidate):HS,
+      TC/binary,
       (S#sortition.closed):8>>.
 
 all() ->
@@ -164,9 +166,14 @@ all() ->
               end, All).
 
 test() ->
-    %make a new.
-    %serialize deserialize
-    %make an empty tree.
-    %write to the tree.
-    %verify a proof.
+    {Pub, _Priv} = testnet_sign:new_key(),
+    ID = hash:doit(1),
+    S = new(ID, 127, 152, Pub, 102, 10, 202, 50),
+    S = deserialize(serialize(S)),
+    Root0 = trees:empty_tree(sortition),
+    NewLoc = write(S, Root0),
+    {Root, S, Proof} = get(ID, NewLoc),
+    true = verify_proof(Root, ID, serialize(S), Proof),
+    {Root2, empty, Proof2} = get(ID, Root0),
+    true = verify_proof(Root2, ID, 0, Proof2),
     success.
