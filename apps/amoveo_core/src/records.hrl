@@ -11,7 +11,7 @@
 
 -record(rng_challenge_tx, {pubkey, nonce, fee, id, sortition_id, parent_id, n}).
 
--record(rng_result_tx, {pubkey, nonce, fee, sortition_id}).
+-record(rng_result_tx, {pubkey, nonce, fee, id, sortition_id, challenge_id, hashes}).
 
 -record(rng_refund_tx, {pubkey, nonce, fee, id}).
 
