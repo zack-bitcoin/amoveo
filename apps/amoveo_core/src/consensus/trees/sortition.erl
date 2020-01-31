@@ -2,7 +2,7 @@
 -export([new/8,
          id/1, amount/1, entropy_source/1, creator/1, trading_ends/1, rng_response_delay/1, rng_end/1, rng_value/1, last_modified/1, top_candidate/1, closed/1,
 	 write/2, get/2, delete/2,%update tree stuff
-         dict_update/3, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_update/5, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0,
@@ -25,6 +25,8 @@ new(K, Amount, Entropy, Creator, TE, RRD, RE, Delay) ->
                delay = Delay, %height
                last_modified = 0,%height
                top_candidate = <<0:256>>,%256
+               top_rng = <<0:256>>,%256
+               bottom_rng = <<0:256>>,%256
                closed = 0}.%1 bit
 
 id(S) -> S#sortition.id.
@@ -39,6 +41,8 @@ rng_value(S) -> S#sortition.rng_value.
 delay(S) -> S#sortition.delay.
 last_modified(S) -> S#sortition.last_modified.
 top_candidate(S) -> S#sortition.top_candidate.
+top_rng(S) -> S#sortition.top_rng.
+bottom_rng(S) -> S#sortition.bottom_rng.
 closed(S) -> S#sortition.closed.
 
 key_to_int(X) -> 
@@ -60,13 +64,15 @@ delete(Key, Sortition) ->
     trie:delete(ID, Sortition, ?id).
     
 
-dict_update(S, Height, Close) ->
+dict_update(S, Height, Close, TopRNG, BottomRNG) ->
     case Close of 
         1 -> ok;
         0 -> ok
     end,
     S#sortition{last_modified = Height,
-                closed = Close}.
+                closed = Close,
+                top_rng = TopRNG,
+                bottom_rng = BottomRNG}.
 
 dict_delete(Key, Dict) ->
     dict:store({sortition, Key}, 0, Dict).
@@ -113,6 +119,8 @@ deserialize(B) ->
       Delay:HEI,
       LM:HEI,
       TC:HS,
+      TRNG:HS,
+      BRNG:HS,
       Closed:8>> = B,
     #sortition{
                 id = <<ID:HS>>,
@@ -127,6 +135,8 @@ deserialize(B) ->
                 delay = Delay,
                 last_modified = LM,
                 top_candidate = <<TC:HS>>,
+                top_rng = <<TRNG:HS>>,
+                bottom_rng = <<BRNG:HS>>,
                 closed = Closed
               }.
 
@@ -138,11 +148,14 @@ serialize(S) ->
     Creator = S#sortition.creator,
     Value = S#sortition.rng_value,
     TC = S#sortition.top_candidate,
+    TRNG = S#sortition.top_rng,
+    BRNG = S#sortition.bottom_rng,
     ID = S#sortition.id,
     PS = size(Creator),
     HS = size(ID),
     HS = size(Value),
     HS = size(TC),
+    HS = size(TRNG),
     <<ID/binary,
       (S#sortition.amount):BAL,
       (S#sortition.entropy_source):HEI,
@@ -155,6 +168,8 @@ serialize(S) ->
       (S#sortition.delay):HEI,
       (S#sortition.last_modified):HEI,
       TC/binary,
+      TRNG/binary,
+      BRNG/binary,
       (S#sortition.closed):8>>.
 
 all() ->

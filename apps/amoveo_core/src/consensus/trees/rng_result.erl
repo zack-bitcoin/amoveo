@@ -1,5 +1,5 @@
--module(rng_response).
--export([new/8,
+-module(rng_result).
+-export([new/4,
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/4, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
@@ -7,35 +7,34 @@
 	 all/0,
          test/0
 ]).
--define(id, rng_response).
+-define(id, rng_result).
 -include("../../records.hrl").
-%-record(rng_response, {id, sortition_id, challenge_id, pubkey, timestamp, refunded, possible, hashes}).
 
 
-new(ID, SID, CID, Pub, T, Refunded, Possible, Hashes) ->
-    #rng_response{
+new(ID, SID, Pub, Hashes) ->
+    #rng_result{
      id = ID,
      sortition_id = SID,
-     challenge_id = CID,
      pubkey = Pub,
-     timestamp = T,
-     refunded = Refunded,
-     impossible = Possible, 
-     hashes = Hashes
+     hashes = Hashes,
+     next_result = <<0:256>>,
+     impossible = 0, 
+     confirmed = 0
     }.
 
-id(X) -> X#rng_response.id.
-sortition_id(X) -> X#rng_response.sortition_id.
-challenge_id(X) -> X#rng_response.challenge_id.
-pubkey(X) -> X#rng_response.pubkey.
-timestamp(X) -> X#rng_response.timestamp.
-refunded(X) -> X#rng_response.refunded.
-possible(X) -> X#rng_response.impossible.
-hashes(X) -> X#rng_response.hashes.
+id(X) -> X#rng_result.id.
+sortition_id(X) -> X#rng_result.sortition_id.
+%challenge_id(X) -> X#rng_result.challenge_id.
+pubkey(X) -> X#rng_result.pubkey.
+%timestamp(X) -> X#rng_result.timestamp.
+%refunded(X) -> X#rng_result.refunded.
+possible(X) -> X#rng_result.impossible.
+confirmed(X) -> X#rng_result.confirmed.
+hashes(X) -> X#rng_result.hashes.
 
 
 write(C, Root) ->
-    Key = C#rng_response.id,
+    Key = C#rng_result.id,
     SC = serialize(C),
     ID = key_to_int(Key),
     trie:put(ID, SC, 0, Root, ?id).
@@ -54,22 +53,22 @@ delete(Key, Sortition) ->
     ID = key_to_int(Key),
     trie:delete(ID, Sortition, ?id).
 
-dict_update(R, Time, Refunded, Possible) ->
-    R#rng_response{timestamp = Time, 
-                    refunded = Refunded,
-                  impossible = Possible}.
+dict_update(R, Confirmed, Possible, NR) ->
+    R#rng_result{confirmed = Confirmed,
+                 impossible = Possible,
+                 next_result = NR}.
 
 dict_delete(Key, Dict) ->
-    dict:store({rng_response, Key}, 0, Dict).
+    dict:store({rng_result, Key}, 0, Dict).
 
 dict_write(C, Dict) ->
     K = id(C),
-    dict:store({rng_response, K},
+    dict:store({rng_result, K},
                serialize(C), 
                Dict).
 
 dict_get(Key, Dict) ->
-    case dict:find({rng_response, Key}, Dict) of
+    case dict:find({rng_result, Key}, Dict) of
 	error -> empty;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
@@ -95,49 +94,47 @@ deserialize(B) ->
     <<
       ID:HS,
       SID:HS,
-      CID:HS,
       Pub:PS,
-      T:HEI,
-      Refund:1,
+      Hashes:HS,
+      NextResult:HS,
       Possible:1,
-      0:6,
-      Hashes:HS
+      Confirmed:1,
+      0:6
     >> = B,
-    #rng_response{
+    #rng_result{
            id = <<ID:HS>>,
            sortition_id = <<SID:HS>>,
-           challenge_id = <<CID:HS>>,
            pubkey = <<Pub:PS>>,
-           timestamp = T,
-           refunded = Refund,
+           hashes = <<Hashes:HS>>,
+           next_result = <<NextResult:HS>>,
            impossible = Possible,
-           hashes = <<Hashes:HS>>
+           confirmed = Confirmed
           }.
 
+%-record(rng_result, {id, sortition_id, pubkey, hashes, impossible, confirmed, next_result}).
 serialize(R) ->
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),
     HEI = constants:height_bits(),
-    ID = R#rng_response.id,
-    SID = R#rng_response.sortition_id,
-    CID = R#rng_response.challenge_id,
-    Pub = R#rng_response.pubkey,
-    Hashes = R#rng_response.hashes,
+    ID = R#rng_result.id,
+    SID = R#rng_result.sortition_id,
+    Pub = R#rng_result.pubkey,
+    Hashes = R#rng_result.hashes,
+    NextResult = R#rng_result.next_result,
     HS = size(ID),
     HS = size(SID),
-    HS = size(CID),
     HS = size(Hashes),
+    HS = size(NextResult),
     PS = size(Pub),
     <<
       ID/binary,
       SID/binary,
-      CID/binary,
       Pub/binary,
-      (R#rng_response.timestamp):HEI,
-      (R#rng_response.refunded):1,
-      (R#rng_response.impossible):1,
-      0:6,
-      Hashes/binary
+      Hashes/binary,
+      NextResult/binary,
+      (R#rng_result.impossible):1,
+      (R#rng_result.confirmed):1,
+      0:6
     >>.
 
 all() ->
@@ -153,12 +150,11 @@ test() ->
     {Pub, _Priv} = testnet_sign:new_key(),
     ID = hash:doit(1),
     SID = hash:doit(2),
-    RID = hash:doit(3),
     Hashes = hash:doit(4),
-    S = new(ID, SID, RID, Pub, 200, 0, 0, Hashes),
+    S = new(ID, SID, Pub, Hashes),
     S1 = deserialize(serialize(S)),
     S = S1,
-    Root0 = trees:empty_tree(rng_response),
+    Root0 = trees:empty_tree(rng_result),
     NewLoc = write(S, Root0),
     {Root, S, Proof} = get(ID, NewLoc),
     true = verify_proof(Root, ID, serialize(S), Proof),

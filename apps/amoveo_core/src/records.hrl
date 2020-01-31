@@ -7,23 +7,30 @@
 
 -record(sortition_timeout_tx, {pubkey, nonce, fee, winner, amount_won, sortition_id}).
 
--record(rng_value_tx, {pubkey, nonce, fee, id, sortition_id, parent_id, values}).
+-record(rng_result_tx, {pubkey, nonce, fee, id, sortition_id, hashes}).
 
--record(rng_challenge_tx, {pubkey, nonce, fee, id, sortition_id, parent_id, n}).
+-record(rng_challenge_tx, {pubkey, nonce, fee, id, sortition_id, parent_id, parent_type, start_hash, end_hash, proof, n}).
 
--record(rng_result_tx, {pubkey, nonce, fee, id, sortition_id, challenge_id, hashes}).
+-record(rng_response_tx, {pubkey, nonce, fee, id, sortition_id, challenge_id, hashes, proof}).
 
 -record(rng_refund_tx, {pubkey, nonce, fee, id}).
 
+
 -record(waiver, {pubkey, signature, sortition_chain_id, contract_hash}).
 
--record(sortition, {id, amount, entropy_source, creator, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, closed}).%merkle tree
+-record(sortition, {id, amount, entropy_source, creator, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, top_rng, bottom_rng, closed}).%merkle tree
+%rng_results make a queue, new elements inserted at the bottom_rng pointer, and the head of the queue is the top_rng.
 
 -record(candidate, {id, sortition_id, layer_number, winner, height, next_candidate}).%merkle tree
 
--record(rng_challenge, {id, sortition_id, response_id, pubkey, timestamp, refunded, n}).%challenge needs to remember how many responses and challenges descend from it. If there are more responses than challenges, then it is closable.
+-record(rng_result, {id, sortition_id, pubkey, hashes, next_result, impossible, confirmed}).
 
--record(rng_response, {id, sortition_id, challenge_id, pubkey, timestamp, refunded, impossible, hashes}).
+-record(rng_challenge,
+        {id, result_id, parent_id, pubkey, hashes,
+        start_hash, end_hash,
+        many, %how many hashes in this challenge
+        timestamp, refunded, n}).
+
 
 
 

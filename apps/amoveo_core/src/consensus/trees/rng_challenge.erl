@@ -1,7 +1,7 @@
 -module(rng_challenge).
--export([new/7,
+-export([new/9,
 	 write/2, get/2, delete/2,%update tree stuff
-         dict_update/3, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_update/4, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0,
@@ -9,23 +9,27 @@
 ]).
 -define(id, rng_challenge).
 -include("../../records.hrl").
-%-record(rng_challenge, {id, sortition_id, response_id, pubkey, timestamp, refunded, n}).
 
-new(ID, SID, RID, Pub, Time, Refunded, N) ->
+new(ID, PID, RID, Pub, Time, N, Start, End, Many) ->
     #rng_challenge{
      id = ID,
-     sortition_id = SID,
-     response_id = RID,
+     result_id = RID,
+     parent_id = PID,
      pubkey = Pub,
+     hashes = <<0:256>>,
+     start_hash = Start,
+     end_hash = End,
+     many = Many,
      timestamp = Time,
-     refunded = Refunded,
+     refunded = 0,
      n = N
     }.
 
 id(X) -> X#rng_challenge.id.
-sortition_id(X) -> X#rng_challenge.sortition_id.
-response_id(X) -> X#rng_challenge.response_id.
+result_id(X) -> X#rng_challenge.result_id.
+parent_id(X) -> X#rng_challenge.parent_id.
 pubkey(X) -> X#rng_challenge.pubkey.
+hashes(X) -> X#rng_challenge.hashes.
 timestamp(X) -> X#rng_challenge.timestamp.
 refunded(X) -> X#rng_challenge.refunded.
 n(X) -> X#rng_challenge.n.
@@ -51,9 +55,10 @@ delete(Key, Sortition) ->
     ID = key_to_int(Key),
     trie:delete(ID, Sortition, ?id).
 
-dict_update(R, Time, Refunded) ->
+dict_update(R, Time, Refunded, Hashes) ->
     R#rng_challenge{timestamp = Time, 
-                    refunded = Refunded}.
+                    refunded = Refunded,
+                    hashes = Hashes}.
 
 dict_delete(Key, Dict) ->
     dict:store({rng_challenge, Key}, 0, Dict).
@@ -90,21 +95,29 @@ deserialize(B) ->
     HEI = constants:height_bits(),
     <<
       ID:HS,
-      SID:HS,
       RID:HS,
+      PID:HS,
       Pub:PS,
+      Hashes:HS,
+      StartHash:HS,
+      EndHash:HS,
       T:HEI,
       Refund:1,
-      N:7
+      N:7,
+      Many:16
     >> = B,
     #rng_challenge{
            id = <<ID:HS>>,
-           sortition_id = <<SID:HS>>,
-           response_id = <<RID:HS>>,
+           result_id = <<RID:HS>>,
+           parent_id = <<PID:HS>>,
            pubkey = <<Pub:PS>>,
+           hashes = <<Hashes:HS>>,
+           start_hash = <<StartHash:HS>>,
+           end_hash = <<EndHash:HS>>,
            timestamp = T,
            refunded = Refund,
-           n = N
+           n = N,
+           many = Many
           }.
 
 serialize(R) ->
@@ -112,21 +125,32 @@ serialize(R) ->
     PS = constants:pubkey_size(),
     HEI = constants:height_bits(),
     ID = R#rng_challenge.id,
-    SID = R#rng_challenge.sortition_id,
-    RID = R#rng_challenge.response_id,
+    RID = R#rng_challenge.result_id,
+    PID = R#rng_challenge.parent_id,
     Pub = R#rng_challenge.pubkey,
+    Hashes = R#rng_challenge.hashes,
+    StartHash = R#rng_challenge.start_hash,
+    EndHash = R#rng_challenge.end_hash,
     HS = size(ID),
-    HS = size(SID),
     HS = size(RID),
+    HS = size(PID),
     PS = size(Pub),
+    HS = size(Hashes),
+    HS = size(StartHash),
+    HS = size(EndHash),
+%-record(rng_challenge, {id, result_id, parent_id, pubkey, hashes, timestamp, refunded, n}).
     <<
       ID/binary,
-      SID/binary,
       RID/binary,
+      PID/binary,
       Pub/binary,
+      Hashes/binary,
+      StartHash/binary,
+      EndHash/binary,
       (R#rng_challenge.timestamp):HEI,
       (R#rng_challenge.refunded):1,
-      (R#rng_challenge.n):7
+      (R#rng_challenge.n):7,
+      (R#rng_challenge.many):16
     >>.
 
 all() ->
@@ -141,9 +165,12 @@ test() ->
     %make a new.
     {Pub, _Priv} = testnet_sign:new_key(),
     ID = hash:doit(1),
-    SID = hash:doit(2),
+    PID = hash:doit(2),
     RID = hash:doit(3),
-    S = new(ID, SID, RID, Pub, 200, 0, 3),
+    SH = hash:doit(4),
+    EH = hash:doit(5),
+    <<Many:16>> = <<2:6, 100:10>>,
+    S = new(ID, PID, RID, Pub, 200, 3, SH, EH, Many),
     S1 = deserialize(serialize(S)),
     S = S1,
     Root0 = trees:empty_tree(rng_challenge),
