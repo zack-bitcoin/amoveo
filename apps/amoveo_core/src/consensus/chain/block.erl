@@ -1357,21 +1357,25 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
     X = Kind:dict_get(A, Dict),
     B = sum_amounts_helper(Kind, X, Dict, Old, A),
     if
-        false ->
+        not(is_integer(B)) ->
             io:fwrite("sum amount, type: "),
             io:fwrite(Kind),
             io:fwrite(" key: "),
             io:fwrite(packer:pack(A)),
             io:fwrite(" "),
-            io:fwrite(integer_to_list(B)),
+            io:fwrite(B),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(dict:fetch_keys(Old))),
             io:fwrite("\n");
         true -> ok
     end,
     B + sum_amounts(T, Dict, Old).
 sum_amounts_helper(_, empty, _, _, _) ->
     0;
-sum_amounts_helper(rng_result, R, Dict, _, _) ->
-    governance:dict_get_value(rng_result_tx, Dict);
+sum_amounts_helper(rng_challenge, _R, _, D, _) ->
+    governance:dict_get_value(rng_challenge_tx, D);
+sum_amounts_helper(rng_result, _R, _, D, _) ->
+    governance:dict_get_value(rng_result_tx, D);
 sum_amounts_helper(sortition, S, _Dict, _, _) ->
     case sortition:closed(S) of
         0 -> S#sortition.amount;

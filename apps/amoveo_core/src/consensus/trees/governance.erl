@@ -203,6 +203,15 @@ number2name(25) -> oracle_close;
 number2name(26) -> unmatched;
 number2name(27) -> oracle_winnings;
 number2name(28) -> oracle_question_liquidity;
+number2name(29) -> sortition_new_tx;
+number2name(30) -> sortition_claim_tx;
+number2name(31) -> sortition_evidence_tx;
+number2name(32) -> sortition_timeout_tx;
+number2name(33) -> rng_result_tx;
+number2name(34) -> rng_challenge_tx;
+number2name(35) -> rng_response_tx;
+number2name(36) -> rng_refute_tx;
+number2name(37) -> rng_many;
 number2name(X) ->
     io:fwrite(X),
     1=2,

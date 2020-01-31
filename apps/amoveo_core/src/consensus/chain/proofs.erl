@@ -425,6 +425,29 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {sortition, SID},
                  {rng_result, ID}
                 ] ++ U;
+            rng_challenge_tx ->
+                #rng_challenge_tx{
+              pubkey = From,
+              id = ID,
+              parent_type = PT,
+              parent_id = PID,
+              sortition_id = SID
+             } = Tx,
+                U = case PT of
+                        0 -> [{rng_result, PID}];
+                        1 -> 
+                            {_, RC, _} = rng_challenge:get(PID, trees:rng_challenge(Trees)),
+                            RID = RC#rng_challenge.result_id,
+                            [{rng_challenge, PID},{rng_result, RID}]
+                    end,
+                [
+                 {governance, ?n2i(rng_challenge_tx)},
+                 {governance, ?n2i(rng_result_tx)},
+                 {governance, ?n2i(rng_many)},
+                 {accounts, From},
+                 {sortition, SID},
+                 {rng_challenge, ID}
+                ] ++ U;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

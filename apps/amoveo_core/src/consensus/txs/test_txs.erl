@@ -1073,8 +1073,14 @@ test(30) ->
     GRRT = rng_result_tx:make_dict(keys:pubkey(), RID2, SID, GoodHashes, Fee),%post correct rng_result
     SGRRT = keys:sign(GRRT),
     absorb(SGRRT),
+    mine_blocks(1),
     %have a process that compares the rng_result to generate a challenge to show one is incorrect.
-    %make  rng_challenge
+    CID = hash:doit(3),
+    {_, Root, M} = rng_result_tx:merklize(BadHashes),
+    {_, _, Proof} = mtree:get(leaf:path_maker(0, mtree:cfg(M)), Root, M),
+    RCT = rng_challenge_tx:make_dict(keys:pubkey(), CID, SID, RID, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
+    SCT = keys:sign(RCT),
+    absorb(SCT),
     %attacker makes rng_response
     %make rng_refute to prove that the attacker's rng result is incorrect.
     %mine blocks until we can settle the rng value.

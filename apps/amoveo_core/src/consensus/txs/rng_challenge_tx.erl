@@ -51,11 +51,12 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     M = mtree:new_empty(KeyLength, Size, 0),
     CFG = mtree:cfg(M),
     HashPair = <<StartHash/binary, EndHash/binary>>,
-    true = verify:proof(Hashes, HashPair, Proof, CFG),
+    Leaf = leaf:new(0, HashPair, 0, CFG),
+    true = verify:proof(Hashes, Leaf, Proof, CFG),
     {RID, Many} = 
         case Type of
             rng_result -> 
-                GM = gov:dict_get(rng_many, Dict2),
+                GM = governance:dict_get_value(rng_many, Dict2),
                 {PID, GM};
             rng_challenge ->
                 RC = rng_challenge:dict_get(PID, Dict2),

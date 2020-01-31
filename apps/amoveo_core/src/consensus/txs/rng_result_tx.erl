@@ -1,5 +1,5 @@
 -module(rng_result_tx).
--export([go/4, make_dict/5]).
+-export([go/4, make_dict/5, merklize/1]).
 -include("../../records.hrl").
 make_dict(Creator, ID, SID, Hashes, Fee) ->
     Acc = trees:get(accounts, Creator),
@@ -29,7 +29,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
       top_rng = TRNG,
       bottom_rng = BRNG
      } = S,
-    HashesRoot = merklize(Hashes),%TODO
+    {HashesRoot, _, _} = merklize(Hashes),%TODO
     NewR = rng_result:new(ID, SID, From, HashesRoot),
     Dict3 = rng_result:dict_write(NewR, Dict2),
     {S2, Dict4} = 
@@ -61,7 +61,7 @@ merklize(Checkpoints) ->
     CFG = mtree:cfg(M),
     L = merklize_make_leaves(0, Checkpoints, CFG),
     {Root, M2} = mtree:store_batch(L, 1, M),
-    mtree:root_hash(Root, M2).
+    {mtree:root_hash(Root, M2), Root, M2}.
 merklize_make_leaves(_, [X], _) -> [];
 merklize_make_leaves(N, [H1|[H2|T]], CFG) -> 
     Leaf = leaf:new(N, <<H1/binary, H2/binary>>, 0, CFG),
