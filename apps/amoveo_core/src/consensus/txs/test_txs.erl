@@ -1035,19 +1035,45 @@ test(28) ->
     true = FC#channel.closed == 1,
 
     success;
-test(35) ->
+test(29) ->
     %timer test
     Sig = keys:raw_sign(<<>>),
     Times = 1000,
     T1 = erlang:now(),
-    test35(<<>>, Sig, keys:pubkey(), Times),
+    test29(<<>>, Sig, keys:pubkey(), Times),
     T2 = erlang:now(),
-    timer:now_diff(T2, T1).
-test35(_, _, _, 0) -> ok;
-test35(D, S, P, N) ->
+    timer:now_diff(T2, T1);
+test(30) ->
+    %rng generation test
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(2),
+    %{NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    %make a sortition chain
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, 15, 5, 2, 25, 2, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    mine_blocks(1),
+    %mine enough blocks we can close it.
+    %make incorrect rng_result
+    %post correct rng_result
+    %have a process that compares the rng_result to generate a challenge to show one is incorrect.
+    %make  rng_challenge
+    %attacker makes rng_response
+    %make rng_refute to prove that the attacker's rng result is incorrect.
+    %mine blocks until we can settle the rng value.
+    %rng win tx
+    %settle the sortition chain tx
+    success.
+
+test29(_, _, _, 0) -> ok;
+test29(D, S, P, N) ->
     %true = testnet_sign:verify_sig(D, S, P),
     file:read_file("../../../../../../temp2.txt"),
-    test35(D, S, P, N-1).
+    test29(D, S, P, N-1).
     
 test18(0) -> success;
 test18(N) ->

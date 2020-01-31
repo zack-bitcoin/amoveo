@@ -22,7 +22,11 @@ tree_to_int(oracle_bets) -> 7;%
 tree_to_int(orders) -> 8;%
 tree_to_int(multi_tx) -> 9;
 tree_to_int(matched) -> 10;
-tree_to_int(unmatched) -> 11.
+tree_to_int(unmatched) -> 11;
+tree_to_int(sortition) -> 12;
+tree_to_int(candidate) -> 13;
+tree_to_int(rng_result) -> 14;
+tree_to_int(rng_challenge) -> 15.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -33,7 +37,11 @@ int_to_tree(7) -> oracle_bets;%
 int_to_tree(8) -> orders;%
 int_to_tree(9) -> multi_tx;
 int_to_tree(10) -> matched;
-int_to_tree(11) -> unmatched.
+int_to_tree(11) -> unmatched;
+int_to_tree(12) -> sortition;
+int_to_tree(13) -> candidate;
+int_to_tree(14) -> rng_result;
+int_to_tree(15) -> rng_challenge.
     
 
 %deterministic merge-sort    
@@ -389,6 +397,16 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {accounts, From},
                  {oracles, OID}
                 ] ++ U;
+            sortition_new_tx ->
+                #sortition_new_tx{
+              creator = Creator,
+              id = SID
+             } = Tx,
+                [
+                 {governance, ?n2i(sortition_new_tx)},
+                 {accounts, Creator},
+                 {sortition, SID}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

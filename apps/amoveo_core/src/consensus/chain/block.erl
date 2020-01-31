@@ -262,7 +262,13 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 		DeveloperReward%
     end.
     
-    
+   
+new_governances([], Dict) -> Dict;
+new_governances([H|T], Dict) -> 
+    G = governance:new(governance:name2number(H),
+                       constants:H()),
+    Dict2 = governance:dict_write(G, Dict),
+    new_governances(T, Dict2).
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [CB|lists:reverse(Txs0)],
@@ -272,12 +278,16 @@ make(Header, Txs0, Trees, Pub) ->
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     NewDict0 = txs:digest(Txs, Dict, Height + 1),
     B = ((Height+1) == forks:get(5)),
-    NewDict = if
-		B -> %
-		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
-		      governance:dict_write(OQL, NewDict0);%
-		true -> NewDict0
-	    end,
+    B2 = ((Height+1) == forks:get(28)),
+    NewDict = 
+        if
+            B -> %
+                OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
+                governance:dict_write(OQL, NewDict0);%
+            B2 ->
+                new_governances(f28things(), NewDict0);
+            true -> NewDict0
+        end,
     MinerAddress = Pub,
     FG6 = forks:get(6),
     FG9 = forks:get(9),
@@ -609,10 +619,13 @@ check3(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     B = (Height == forks:get(5)),
+    B2 = (Height == forks:get(28)),
     NewDict2 = if
 		B -> 
-		    OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
-		    governance:dict_write(OQL, NewDict);
+                       OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
+                       governance:dict_write(OQL, NewDict);
+                   B2 ->
+                       new_governances(f28things(), NewDict);
 		true -> NewDict
 	    end,
     MinerAddress = element(2, hd(Txs)),
@@ -648,7 +661,17 @@ check3(OldBlock, Block) ->
     %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
     {NewDict4, NewDict3, Dict}.
-
+f28things() ->
+    [sortition_new_tx,
+     sortition_claim_tx,
+     sortition_evidence_tx,
+     sortition_timeout_tx,
+     rng_result_tx,
+     rng_challenge_tx,
+     rng_response_tx,
+     rng_refute_tx,
+     rng_many].
+    
 check2(OldBlock, Block) ->
     {NewDict4, NewDict3, Dict} = 
         check3(OldBlock, Block), 

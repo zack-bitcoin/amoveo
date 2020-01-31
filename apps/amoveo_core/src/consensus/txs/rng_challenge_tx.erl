@@ -52,23 +52,21 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     CFG = mtree:cfg(M),
     HashPair = <<StartHash/binary, EndHash/binary>>,
     true = verify:proof(Hashes, HashPair, Proof, CFG),
-    {RID, Radix, Mantissa} = 
+    {RID, Many} = 
         case Type of
             rng_result -> 
-                {PID, 4, 151};
+                GM = gov:dict_get(rng_many, Dict2),
+                {PID, GM};
             rng_challenge ->
                 RC = rng_challenge:dict_get(PID, Dict2),
                 #rng_challenge{result_id = R_0,
                               hashes = H_0,
                               many = ManyLeft} = RC,
                 false = (<<0:256>> == H_0),%a result needs to have been provided that can be challenged.
-                <<Radix0:6, Mantissa0:10>> = ManyLeft,
-                {R_0, (Radix0-1), Mantissa0}
+                {R_0, ManyLeft}
         end,
-    %if radix is 0, handle with rng_cleanup
-    %TODO
-    <<Many:16>> = <<Radix:6, Mantissa:10>>,
-    false = (Radix == 0),
+    <<Radix:9, Mantissa:7>> = <<Many:16>>,
+    false = (Radix == 0), %if radix is 0, handle with rng_cleanup
     Result = rng_result:dict_get(RID, Dict2),
     SID = Result#rng_result.sortition_id,
     <<HashStart:256, HashEnd:256>> = HashPair,

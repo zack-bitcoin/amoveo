@@ -162,6 +162,15 @@ name2number(oracle_close) -> 25;
 name2number(unmatched) -> 26;
 name2number(oracle_winnings) -> 27;
 name2number(oracle_question_liquidity) -> 28;
+name2number(sortition_new_tx) -> 29;
+name2number(sortition_claim_tx) -> 30;
+name2number(sortition_evidence_tx) -> 31;
+name2number(sortition_timeout_tx) -> 32;
+name2number(rng_result_tx) -> 33;
+name2number(rng_challenge_tx) -> 34;
+name2number(rng_response_tx) -> 35;
+name2number(rng_refute_tx) -> 36;
+name2number(rng_many) -> 37;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
