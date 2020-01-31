@@ -38,6 +38,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                0 -> rng_result;
                1 -> rng_challenge
            end,
+    empty = rng_challenge:dict_get(ID, Dict),
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     S = sortition:dict_get(SID, Dict2),
@@ -67,9 +68,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 {R_0, ManyLeft}
         end,
     <<Radix:9, Mantissa:7>> = <<Many:16>>,
-    false = (Radix == 0), %if radix is 0, handle with rng_cleanup
+    <<Many2:16>> = <<(Radix-1):9, Mantissa:7>>,
+    false = (Radix == 1), %if radix is 0, handle with rng_cleanup
     Result = rng_result:dict_get(RID, Dict2),
     SID = Result#rng_result.sortition_id,
     <<HashStart:256, HashEnd:256>> = HashPair,
-    NRC = rng_challenge:new(ID, PID, RID, From, NewHeight, N, <<HashStart:256>>, <<HashEnd:256>>, Many),
+    NRC = rng_challenge:new(ID, PID, RID, From, NewHeight, N, <<HashStart:256>>, <<HashEnd:256>>, Many2),
     rng_challenge:dict_write(NRC, Dict2).

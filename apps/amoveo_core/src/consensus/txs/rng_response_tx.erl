@@ -1,13 +1,16 @@
 -module(rng_response_tx).
--export([go/4, make_dict/5]).
+-export([go/4, make_dict/6]).
 -include("../../records.hrl").
-make_dict(Creator, ID, SID, Hashes, Fee) ->
+
+make_dict(Creator, ID, SID, RID, Hashes, Fee) ->
     Acc = trees:get(accounts, Creator),
+    %RC = trees:get(rng_challenge, ID),
     #rng_response_tx{pubkey = Creator, 
                      nonce = Acc#acc.nonce + 1, 
                      id = ID, 
                      fee = Fee,
                      sortition_id = SID,
+                     result_id = RID,%RC#rng_challenge.result_id,
                      hashes = Hashes
                     }.
 
@@ -18,7 +21,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                      sortition_id = SID,
                      id = ID,
                      hashes = Hashes,
-                     proof = Proof
+                     result_id = RID
                   } = Tx,
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
@@ -42,7 +45,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
               } = S,
     [StartHash|_] = Hashes,
     [EndHash|_] = lists:reverse(Hashes),
-    HashesRoot = rng_result_tx:merklize(Hashes),
+    {HashesRoot, _, _} = rng_result_tx:merklize(Hashes),
     RC2 = rng_challenge:dict_update(RC, NewHeight, 0, HashesRoot),
     rng_challenge:dict_write(RC2, Dict2).
     

@@ -1063,11 +1063,15 @@ test(30) ->
     absorb(Stx),
     mine_blocks(4),%mine enough blocks we can post rng results
     RID = hash:doit(2),
+    RID3 = hash:doit(4),
     BadHashes = times(129, <<0:256>>, []),
     GoodHashes = BadHashes,
     BRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, BadHashes, Fee),%make incorrect rng_result
     SBRRT = keys:sign(BRRT),
     absorb(SBRRT),
+    BRRT2 = rng_result_tx:make_dict(keys:pubkey(), RID3, SID, BadHashes, Fee),%make incorrect rng_result
+    SBRRT2 = keys:sign(BRRT2),
+    absorb(SBRRT2),
     %mine_blocks(1),
     RID2 = hash:doit(3),
     GRRT = rng_result_tx:make_dict(keys:pubkey(), RID2, SID, GoodHashes, Fee),%post correct rng_result
@@ -1081,7 +1085,40 @@ test(30) ->
     RCT = rng_challenge_tx:make_dict(keys:pubkey(), CID, SID, RID, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
     SCT = keys:sign(RCT),
     absorb(SCT),
-    %attacker makes rng_response
+    CID2 = hash:doit(4),
+    RCT2 = rng_challenge_tx:make_dict(keys:pubkey(), CID2, SID, RID3, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
+    SCT2 = keys:sign(RCT2),
+    absorb(SCT2),
+    mine_blocks(1),
+    %attacker makes rng_response for RID
+    RRT = rng_response_tx:make_dict(keys:pubkey(), CID, SID, RID, BadHashes, Fee),
+    SRRT = keys:sign(RRT),
+    absorb(SRRT),
+    mine_blocks(1),
+
+    CID3 = hash:doit(5),
+    %io:fwrite("here0010101\n"),
+    RCT3 = rng_challenge_tx:make_dict(keys:pubkey(), CID3, SID, CID, 1, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),
+    %io:fwrite(RCT3),
+    SRCT3 = keys:sign(RCT3),
+    absorb(SRCT3),
+    mine_blocks(1),
+    RRT2 = rng_response_tx:make_dict(keys:pubkey(), CID3, SID, RID, BadHashes, Fee),
+    SRRT2 = keys:sign(RRT2),
+    absorb(SRRT2),
+    mine_blocks(1),
+    %CID4 = hash:doit(6),
+    %RCT4 = rng_challenge_tx:make_dict(keys:pubkey(), CID4, SID, CID3, 1, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),
+    %SRCT4 = keys:sign(RCT4),
+    %absorb(SRCT4),
+
+    %use rng_refute_tx because of small broken gap against RID.
+    %use rng_refuse_tx because of extended delay against RID3
+
+    %rng_win_tx with RID2
+    
+    
+    
     %make rng_refute to prove that the attacker's rng result is incorrect.
     %mine blocks until we can settle the rng value.
     %rng win tx

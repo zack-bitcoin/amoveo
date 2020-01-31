@@ -5,7 +5,8 @@
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0,
-         test/0
+         test/0,
+         hashes/1
 ]).
 -define(id, rng_challenge).
 -include("../../records.hrl").
