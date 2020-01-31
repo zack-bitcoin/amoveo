@@ -1370,6 +1370,8 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
     B + sum_amounts(T, Dict, Old).
 sum_amounts_helper(_, empty, _, _, _) ->
     0;
+sum_amounts_helper(rng_result, R, Dict, _, _) ->
+    governance:dict_get_value(rng_result_tx, Dict);
 sum_amounts_helper(sortition, S, _Dict, _, _) ->
     case sortition:closed(S) of
         0 -> S#sortition.amount;

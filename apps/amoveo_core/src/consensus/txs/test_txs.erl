@@ -1053,13 +1053,26 @@ test(30) ->
     Fee = constants:initial_fee() + 20,
     SID = hash:doit(1),
     %make a sortition chain
-    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, 15, 5, 2, 25, 2, Fee),
+    Entropy = 15,
+    TradingEnds = 5,
+    ResponseDelay = 2,
+    RNGEnds = 25,
+    Delay = 2,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Fee),
     Stx = keys:sign(Tx),
     absorb(Stx),
-    mine_blocks(1),
-    %mine enough blocks we can close it.
-    %make incorrect rng_result
-    %post correct rng_result
+    mine_blocks(4),%mine enough blocks we can post rng results
+    RID = hash:doit(2),
+    BadHashes = times(129, <<0:256>>, []),
+    GoodHashes = BadHashes,
+    BRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, BadHashes, Fee),%make incorrect rng_result
+    SBRRT = keys:sign(BRRT),
+    absorb(SBRRT),
+    %mine_blocks(1),
+    RID2 = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID2, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
     %have a process that compares the rng_result to generate a challenge to show one is incorrect.
     %make  rng_challenge
     %attacker makes rng_response
@@ -1180,3 +1193,8 @@ test24(I) ->
     timer:sleep(100),
     mine_blocks(1),
     success.
+
+
+times(0, _, R) -> R;
+times(N, X, L) -> 
+    times(N-1, X, [X|L]).

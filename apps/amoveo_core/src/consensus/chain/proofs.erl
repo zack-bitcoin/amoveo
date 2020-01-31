@@ -407,6 +407,24 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {accounts, Creator},
                  {sortition, SID}
                 ];
+            rng_result_tx ->
+                #rng_result_tx{
+              pubkey = From,
+              sortition_id = SID,
+              id = ID
+             } = Tx,
+                {_, S, _} = sortition:get(SID, trees:sortition(Trees)),
+                BRNG = S#sortition.bottom_rng,
+                U = case BRNG of
+                        <<0:256>> -> [];
+                        _ -> [{rng_result, BRNG}]
+                    end,
+                [
+                 {governance, ?n2i(rng_result_tx)},
+                 {accounts, From},
+                 {sortition, SID},
+                 {rng_result, ID}
+                ] ++ U;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},
