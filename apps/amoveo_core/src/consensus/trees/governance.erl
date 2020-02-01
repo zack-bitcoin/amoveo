@@ -170,7 +170,8 @@ name2number(rng_result_tx) -> 33;
 name2number(rng_challenge_tx) -> 34;
 name2number(rng_response_tx) -> 35;
 name2number(rng_refute_tx) -> 36;
-name2number(rng_many) -> 37;
+name2number(rng_confirm_tx) -> 37;
+name2number(rng_many) -> 38;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -211,7 +212,8 @@ number2name(33) -> rng_result_tx;
 number2name(34) -> rng_challenge_tx;
 number2name(35) -> rng_response_tx;
 number2name(36) -> rng_refute_tx;
-number2name(37) -> rng_many;
+number2name(37) -> rng_confirm_tx;
+number2name(38) -> rng_many;
 number2name(X) ->
     io:fwrite(X),
     1=2,

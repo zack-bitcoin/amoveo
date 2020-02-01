@@ -480,6 +480,19 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {rng_challenge, CID},
                  {rng_result, RID}
                 ];
+            rng_confirm_tx ->
+                #rng_confirm_tx{
+              pubkey = Pubkey,
+              sortition_id = SID,
+              result_id = RID
+             } = Tx,
+                [
+                 {governance, ?n2i(rng_confirm_tx)},
+                 {governance, ?n2i(rng_result_tx)},
+                 {accounts, Pubkey},
+                 {sortition, SID},
+                 {rng_result, RID}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

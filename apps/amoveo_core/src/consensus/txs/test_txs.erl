@@ -1107,10 +1107,6 @@ test(30) ->
     SRRT2 = keys:sign(RRT2),
     absorb(SRRT2),
     mine_blocks(1),
-    %CID4 = hash:doit(6),
-    %RCT4 = rng_challenge_tx:make_dict(keys:pubkey(), CID4, SID, CID3, 1, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),
-    %SRCT4 = keys:sign(RCT4),
-    %absorb(SRCT4),
 
     RRFT = rng_refute_tx:make_dict(keys:pubkey(), SID, CID3, RID, 0, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a response is short enough to calculate on-chain, and it is invalid.
     SRRFT = keys:sign(RRFT),
@@ -1120,11 +1116,13 @@ test(30) ->
     RRFT2 = rng_refute_tx:make_dict(keys:pubkey(), SID, CID2, RID3, 129, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a challenge goes unresponded for too much time.
     SRRFT2 = keys:sign(RRFT2),
     absorb(SRRFT2),
+    mine_blocks(1),
 
-    %use rng_refute_tx because of small broken gap against RID.
-    %use rng_refuse_tx because of extended delay against RID3
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID2, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
 
-    %rng_win_tx with RID2
+    %rng_confirm_tx with RID2
     
     
     

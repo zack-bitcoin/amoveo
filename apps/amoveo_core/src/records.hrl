@@ -15,6 +15,8 @@
 
 -record(rng_refute_tx, {pubkey, nonce, fee, sortition_id, challenge_id, result_id, n, proof, start_hash, end_hash}).
 
+-record(rng_confirm_tx, {pubkey, nonce, fee, sortition_id, result_id}).
+
 
 -record(waiver, {pubkey, signature, sortition_chain_id, contract_hash}).
 
@@ -23,7 +25,7 @@
 
 -record(candidate, {id, sortition_id, layer_number, winner, height, next_candidate}).%merkle tree
 
--record(rng_result, {id, sortition_id, pubkey, hashes, next_result, impossible, confirmed}).
+-record(rng_result, {id, sortition_id, pubkey, hashes, value, next_result, impossible, confirmed}).
 
 -record(rng_challenge,
         {id, result_id, parent_id, pubkey, hashes,

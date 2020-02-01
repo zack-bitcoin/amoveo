@@ -1,5 +1,5 @@
 -module(rng_result).
--export([new/4,
+-export([new/5,
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/4, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
@@ -12,12 +12,13 @@
 -include("../../records.hrl").
 
 
-new(ID, SID, Pub, Hashes) ->
+new(ID, SID, Pub, Hashes, Value) ->
     #rng_result{
      id = ID,
      sortition_id = SID,
      pubkey = Pub,
      hashes = Hashes,
+     value = Value,
      next_result = <<0:256>>,
      impossible = 0, 
      confirmed = 0
@@ -54,9 +55,9 @@ delete(Key, Sortition) ->
     ID = key_to_int(Key),
     trie:delete(ID, Sortition, ?id).
 
-dict_update(R, Confirmed, Possible, NR) ->
+dict_update(R, Confirmed, Impossible, NR) ->
     R#rng_result{confirmed = Confirmed,
-                 impossible = Possible,
+                 impossible = Impossible,
                  next_result = NR}.
 
 dict_delete(Key, Dict) ->
@@ -97,6 +98,7 @@ deserialize(B) ->
       SID:HS,
       Pub:PS,
       Hashes:HS,
+      Value:HS,
       NextResult:HS,
       Possible:1,
       Confirmed:1,
@@ -107,6 +109,7 @@ deserialize(B) ->
            sortition_id = <<SID:HS>>,
            pubkey = <<Pub:PS>>,
            hashes = <<Hashes:HS>>,
+           value = <<Value:HS>>,
            next_result = <<NextResult:HS>>,
            impossible = Possible,
            confirmed = Confirmed
@@ -121,10 +124,12 @@ serialize(R) ->
     SID = R#rng_result.sortition_id,
     Pub = R#rng_result.pubkey,
     Hashes = R#rng_result.hashes,
+    Value = R#rng_result.value,
     NextResult = R#rng_result.next_result,
     HS = size(ID),
     HS = size(SID),
     HS = size(Hashes),
+    HS = size(Value),
     HS = size(NextResult),
     PS = size(Pub),
     <<
@@ -132,6 +137,7 @@ serialize(R) ->
       SID/binary,
       Pub/binary,
       Hashes/binary,
+      Value/binary,
       NextResult/binary,
       (R#rng_result.impossible):1,
       (R#rng_result.confirmed):1,
@@ -152,7 +158,8 @@ test() ->
     ID = hash:doit(1),
     SID = hash:doit(2),
     Hashes = hash:doit(4),
-    S = new(ID, SID, Pub, Hashes),
+    Value = hash:doit(5),
+    S = new(ID, SID, Pub, Hashes, Value),
     S1 = deserialize(serialize(S)),
     S = S1,
     Root0 = trees:empty_tree(rng_result),

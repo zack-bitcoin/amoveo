@@ -670,6 +670,7 @@ f28things() ->
      rng_challenge_tx,
      rng_response_tx,
      rng_refute_tx,
+     rng_confirm_tx,
      rng_many].
     
 check2(OldBlock, Block) ->

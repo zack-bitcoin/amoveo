@@ -31,6 +31,7 @@ key2module(rng_result_tx) -> rng_result_tx;
 key2module(rng_challenge_tx) -> rng_challenge_tx;
 key2module(rng_response_tx) -> rng_response_tx;
 key2module(rng_refute_tx) -> rng_refute_tx;
+key2module(rng_confirm_tx) -> rng_confirm_tx;
 key2module(multi_tx) -> multi_tx;
 key2module(create_acc_tx) -> create_account_tx;
 key2module(spend) -> spend_tx;

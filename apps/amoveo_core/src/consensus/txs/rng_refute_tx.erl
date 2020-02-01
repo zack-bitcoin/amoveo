@@ -19,7 +19,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     end_hash = EndHash,
     proof = Proof
    } = Tx,
-    A = accounts:dict_get(From, Dict),
+    %A = accounts:dict_get(From, Dict),
     S = sortition:dict_get(SID, Dict),
     RC = rng_challenge:dict_get(CID, Dict),
     RR = rng_result:dict_get(RID, Dict),

@@ -124,6 +124,7 @@ rng_result_tx() -> 905.
 rng_challenge_tx() -> 905.
 rng_response_tx() -> 905.
 rng_refute_tx() -> 905.
+rng_confirm_tx() -> 405.
 rng_many() -> 252.%400
     
     

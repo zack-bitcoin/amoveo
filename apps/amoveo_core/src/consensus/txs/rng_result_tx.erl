@@ -30,7 +30,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
       bottom_rng = BRNG
      } = S,
     {HashesRoot, _, _} = merklize(Hashes),%TODO
-    NewR = rng_result:new(ID, SID, From, HashesRoot),
+    Result = hd(lists:reverse(Hashes)),
+    NewR = rng_result:new(ID, SID, From, HashesRoot, Result),
     Dict3 = rng_result:dict_write(NewR, Dict2),
     {S2, Dict4} = 
         case BRNG of
