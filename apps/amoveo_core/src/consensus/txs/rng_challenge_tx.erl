@@ -71,6 +71,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     <<Many2:16>> = <<(Radix-1):9, Mantissa:7>>,
     false = (Radix == 1), %if radix is 0, handle with rng_cleanup
     Result = rng_result:dict_get(RID, Dict2),
+    %io:fwrite(Result),
     SID = Result#rng_result.sortition_id,
     <<HashStart:256, HashEnd:256>> = HashPair,
     NRC = rng_challenge:new(ID, PID, RID, From, NewHeight, N, <<HashStart:256>>, <<HashEnd:256>>, Many2),

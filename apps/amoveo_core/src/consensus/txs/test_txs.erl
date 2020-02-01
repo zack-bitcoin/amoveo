@@ -1085,6 +1085,7 @@ test(30) ->
     RCT = rng_challenge_tx:make_dict(keys:pubkey(), CID, SID, RID, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
     SCT = keys:sign(RCT),
     absorb(SCT),
+    %1=2,
     CID2 = hash:doit(4),
     RCT2 = rng_challenge_tx:make_dict(keys:pubkey(), CID2, SID, RID3, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
     SCT2 = keys:sign(RCT2),
@@ -1116,21 +1117,43 @@ test(30) ->
     RRFT2 = rng_refute_tx:make_dict(keys:pubkey(), SID, CID2, RID3, 129, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a challenge goes unresponded for too much time.
     SRRFT2 = keys:sign(RRFT2),
     absorb(SRRFT2),
-    mine_blocks(1),
+    mine_blocks(18),
 
     Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID2, Fee),
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
+    mine_blocks(1),
 
-    %rng_confirm_tx with RID2
-    
-    
-    
-    %make rng_refute to prove that the attacker's rng result is incorrect.
-    %mine blocks until we can settle the rng value.
-    %rng win tx
     %settle the sortition chain tx
+    success;
+test(31) ->
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(2),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    Entropy = 15,
+    TradingEnds = 5,
+    ResponseDelay = 2,
+    RNGEnds = 25,
+    Delay = 2,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    mine_blocks(4),%mine enough blocks we can post rng results
+    GoodHashes = times(129, <<0:256>>, []),
+    RID = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
+    mine_blocks(35),
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
+    %mine_blocks(1),
     success.
+    
 
 test29(_, _, _, 0) -> ok;
 test29(D, S, P, N) ->
@@ -1188,7 +1211,7 @@ mine_blocks(Many) ->
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10),
-    timer:sleep(100),
+    timer:sleep(300),
     mine_blocks(Many-1).
 
 test24(I) ->

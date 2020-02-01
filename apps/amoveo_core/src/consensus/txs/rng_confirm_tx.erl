@@ -24,6 +24,11 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                } = RR,
     Dict3 = rng_result:dict_delete(RID, Dict2),
     S = sortition:dict_get(SID, Dict3),
+    #sortition{
+                rng_end = RE,
+                top_rng = RID
+              } = S,
+    true = RE < NewHeight,
     S2 = S#sortition{rng_value = RNGV},
     sortition:dict_write(S2, Dict3).
     
