@@ -1,7 +1,7 @@
 
 -record(sortition_new_tx, {creator, nonce, fee, amount, id, entropy, trading_ends, response_delay, rng_ends, delay, validators}).
 
--record(sortition_claim_tx, {winner, nonce, fee, sortition_id, proof, evidence_id}).
+-record(sortition_claim_tx, {from, nonce, fee, winner, sortition_id, proof, evidence_id, validators, signatures, ownership_root, claim_id, id}).
 
 -record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, loser, signed_waiver}).
 
