@@ -166,12 +166,13 @@ name2number(sortition_new_tx) -> 29;
 name2number(sortition_claim_tx) -> 30;
 name2number(sortition_evidence_tx) -> 31;
 name2number(sortition_timeout_tx) -> 32;
-name2number(rng_result_tx) -> 33;
-name2number(rng_challenge_tx) -> 34;
-name2number(rng_response_tx) -> 35;
-name2number(rng_refute_tx) -> 36;
-name2number(rng_confirm_tx) -> 37;
-name2number(rng_many) -> 38;
+name2number(sortition_block_tx) -> 33;
+name2number(rng_result_tx) -> 34;
+name2number(rng_challenge_tx) -> 35;
+name2number(rng_response_tx) -> 36;
+name2number(rng_refute_tx) -> 37;
+name2number(rng_confirm_tx) -> 38;
+name2number(rng_many) -> 39;
 name2number(X) -> 
     io:fwrite(X),
     1=2,

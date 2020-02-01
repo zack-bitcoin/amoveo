@@ -19,7 +19,7 @@
 -include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).%
 -record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
--record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sortition, candidates, rng_challenge, rng_result}).
+-record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sortition, candidates, rng_challenge, rng_result, sortition_blocks}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -332,7 +332,8 @@ make(Header, Txs0, Trees, Pub) ->
 				      trees:empty_tree(sortition),%
 				      trees:empty_tree(candidates),%
                                       trees:empty_tree(rng_challenge),%
-                                     trees:empty_tree(rng_result));%
+                                      trees:empty_tree(rng_result),
+                                      trees:empty_tree(sortition_blocks));
 		   true -> NewTrees0
 	       end,
     %Governance = trees:governance(NewTrees),
@@ -399,7 +400,8 @@ make_roots(Trees) when (element(1, Trees) == trees3) ->
             sortition = trie:root_hash(sortition, trees:sortition(Trees)),
             candidates = trie:root_hash(candidates, trees:candidates(Trees)), 
             rng_challenge = trie:root_hash(rng_challenge, trees:rng_challenge(Trees)), 
-            rng_result = trie:root_hash(rng_result, trees:rng_result(Trees))
+            rng_result = trie:root_hash(rng_result, trees:rng_result(Trees)),
+            sortition_blocks = trie:root_hash(sortition_blocks, trees:sortition_blocks(Trees))
            }.
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
@@ -431,7 +433,8 @@ roots_hash(X) when is_record(X, roots3) ->
     Ca = X#roots3.candidates,
     RC = X#roots3.rng_challenge,
     RR = X#roots3.rng_result,
-    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, S/binary, Ca/binary, RC/binary, RR/binary>>,
+    SB = X#roots3.sortition_blocks,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, S/binary, Ca/binary, RC/binary, RR/binary, SB/binary>>,
     hash:doit(Y).
     
     
@@ -545,7 +548,8 @@ proofs_roots_match([P|T], R) when is_record(R, roots3)->
 	       sortition -> R#roots3.sortition;
 	       candidates -> R#roots3.candidates;
 	       rng_challenge -> R#roots3.rng_challenge;
-               rng_result -> R#roots3.rng_result
+               rng_result -> R#roots3.rng_result;
+               sortition_blocks -> R#roots3.sortition_blocks
 	   end,
     proofs_roots_match(T, R).
 check0(Block) ->%This verifies the txs in ram. is parallelizable
@@ -666,6 +670,7 @@ f28things() ->
      sortition_claim_tx,
      sortition_evidence_tx,
      sortition_timeout_tx,
+     sortition_block_tx,
      rng_result_tx,
      rng_challenge_tx,
      rng_response_tx,
@@ -709,7 +714,8 @@ check2(OldBlock, Block) ->
                                    trees:empty_tree(sortition),
                                    trees:empty_tree(candidates),
                                    trees:empty_tree(rng_challenge),
-                                   trees:empty_tree(rng_result));
+                                   trees:empty_tree(rng_result),
+                                   trees:empty_tree(sortition_blocks));
 		   true -> NewTrees3_0
 	       end,
 
@@ -1372,6 +1378,8 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
     end,
     B + sum_amounts(T, Dict, Old).
 sum_amounts_helper(_, empty, _, _, _) ->
+    0;
+sum_amounts_helper(sortition_blocks, _R, _, _D, _) ->
     0;
 sum_amounts_helper(rng_challenge, _R, _, D, _) ->
     governance:dict_get_value(rng_challenge_tx, D);

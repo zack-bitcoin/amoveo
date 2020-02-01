@@ -1,6 +1,8 @@
 
 -record(sortition_new_tx, {creator, nonce, fee, amount, id, entropy, trading_ends, response_delay, rng_ends, delay, validators}).
 
+-record(sortition_block_tx, {from, nonce, fee, id, validators, signatures, sid, height, side_height, state_root}).
+
 -record(sortition_claim_tx, {from, nonce, fee, winner, sortition_id, proof, evidence_id, validators, signatures, ownership_root, claim_id, id}).
 
 -record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, loser, signed_waiver}).
@@ -22,6 +24,7 @@
 
 -record(sortition, {id, amount, entropy_source, creator, validators, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, top_rng, bottom_rng, closed}).%merkle tree
 %rng_results make a queue, new elements inserted at the bottom_rng pointer, and the head of the queue is the top_rng.
+-record(sortition_block, {id, validators, sid, state_root, height}).
 
 -record(candidate, {id, sortition_id, layer_number, winner, height, next_candidate}).%merkle tree
 

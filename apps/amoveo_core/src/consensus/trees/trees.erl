@@ -1,7 +1,7 @@
 -module(trees).
--export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,sortition/1,candidates/1,rng_challenge/1,rng_result/1,
-	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2,update_sortition/2,update_candidates/2,update_rng_challenge/2,update_rng_result/2,
-	 new/6, new2/7, new3/11,
+-export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,sortition/1,candidates/1,rng_challenge/1,rng_result/1,sortition_blocks/1,
+	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2,update_sortition/2,update_candidates/2,update_rng_challenge/2,update_rng_result/2,update_sortition_blocks/2,
+	 new/6, new2/7, new3/12,
          empty_tree/1,
 	 root_hash/1, name/1, 
 	 hash2int/1, verify_proof/5,
@@ -18,7 +18,8 @@
 -record(trees3, {accounts, channels, existence,
 		oracles, governance, matched,
 		unmatched, sortition, candidates,
-                rng_challenge, rng_result}).
+                rng_challenge, rng_result,
+                sortition_blocks}).
 name(<<"accounts">>) -> accounts;
 name("accounts") -> accounts;
 name(<<"channels">>) -> channels;
@@ -40,7 +41,9 @@ name("unmatched") -> unmatched;
 name(<<"rng_challenge">>) -> rng_challenge;
 name("rng_challenge") -> rng_challenge;
 name(<<"rng_result">>) -> rng_result;
-name("rng_result") -> rng_result.
+name("rng_result") -> rng_result;
+name(<<"sortition_blocks">>) -> sortition_blocks;
+name("sortition_blocks") -> sortition_blocks.
 empty_tree(X) -> trie:empty(X).
 accounts(X = #trees{}) -> X#trees.accounts;%
 accounts(X = #trees2{}) -> X#trees2.accounts;%
@@ -65,14 +68,15 @@ sortition(X) -> X#trees3.sortition.
 candidates(X) -> X#trees3.candidates.
 rng_challenge(X) -> X#trees3.rng_challenge.
 rng_result(X) -> X#trees3.rng_result.
+sortition_blocks(X) -> X#trees3.sortition_blocks.
     
-new3(A, C, E, O, G, M, U, S, Ca, RC, RR) ->
+new3(A, C, E, O, G, M, U, S, Ca, RC, RR, SB) ->
     #trees3{accounts = A, channels = C,
 	   existence = E, oracles = O, 
 	   governance = G, matched = M,
 	   unmatched = U, sortition = S,
            candidates = Ca, rng_challenge = RC,
-           rng_result = RR}.
+           rng_result = RR, sortition_blocks = SB}.
 new2(A, C, E, O, G, M, U) ->
     #trees2{accounts = A, channels = C,
 	   existence = E, oracles = O, 
@@ -128,6 +132,8 @@ update_rng_challenge(X = #trees3{}, U) ->
     X#trees3{rng_challenge = U}.
 update_rng_result(X = #trees3{}, U) ->
     X#trees3{rng_result = U}.
+update_sortition_blocks(X = #trees3{}, U) ->
+    X#trees3{sortition_blocks = U}.
 root_hash2(Trees, _Roots) ->
     A = rh2(accounts, Trees),
     C = rh2(channels, Trees),
@@ -161,13 +167,15 @@ root_hash2(Trees, _Roots) ->
                 Ca = rh2(candidates, Trees),
                 RC = rh2(rng_challenge, Trees),
                 RR = rh2(rng_result, Trees),
+                SB = rh2(sortition_blocks, Trees),
 		HS = size(M),
 		HS = size(U),
 		HS = size(S),
 		HS = size(Ca),
 		HS = size(RC),
 		HS = size(RR),
-		Z = <<X/binary, M/binary, U/binary, S/binary, Ca/binary, RC/binary, RR/binary>>,
+                HS = size(SB),
+		Z = <<X/binary, M/binary, U/binary, S/binary, Ca/binary, RC/binary, RR/binary, SB/binary>>,
                 Z
                     
 	end,
@@ -203,7 +211,8 @@ serialized_roots(Trees) ->
             Ca = F(candidates),
             RC = F(rng_challenge),
             RR = F(rng_result),
-	    Z = <<X/binary, M/binary, U/binary, S/binary, Ca/binary, RC/binary, RR/binary>>,
+            SB = F(sortition_blocks),
+	    Z = <<X/binary, M/binary, U/binary, S/binary, Ca/binary, RC/binary, RR/binary, SB/binary>>,
             Z
     end.
 root_hash(Trees) ->

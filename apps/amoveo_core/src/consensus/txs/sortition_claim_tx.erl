@@ -32,10 +32,12 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 validators = ValidatorsRoot
               } = S,
     false = (RNGV == <<0:256>>),%the rng value has been supplied.
-    E = existence:dict_get(EID, Dict),
-    #exist{
-                hash = EHash,
-                height = NewClaimHeight
+    E = sortition_blocks:dict_get(EID, Dict),
+    #sortition_block{
+                      state_root = OwnershipRoot,
+                      validators = ValidatorsRoot,
+                      sid = SID,
+                      height = NewClaimHeight
              } = E,
     TC = candidate:dict_get(TCID, Dict),
     #candidate{
@@ -50,7 +52,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     %update proof of existence tx type.
     %a bunch of validators can all sign a single {SID, ownership_root_hash, integer} object
     %we store the merkle root of the list of validator along with the object.
-    %key is generated from hash({validators_root_hash, SID, integer}), that way the same group of validators can't agree to different ownership roots in the same sortition chain at the same side-chain-block height.
+    %key is generated from hash({validators_root_hash, integer}), that way the same group of validators can't agree to different ownership roots in the same sortition chain at the same side-chain-block height.
 
 
     % -use OwnershipRoot to prove that you were given control of the winning part of the sortition chain.

@@ -120,6 +120,7 @@ sortition_new_tx() -> 905.
 sortition_claim_tx() -> 905.
 sortition_evidence_tx() -> 905.
 sortition_timeout_tx() -> 905.
+sortition_block_tx() -> 905.
 rng_result_tx() -> 905.
 rng_challenge_tx() -> 905.
 rng_response_tx() -> 905.
