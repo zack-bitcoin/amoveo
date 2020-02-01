@@ -114,7 +114,7 @@ absorb_internal2(SignedTx, PID) ->
             MinerAccount2 = accounts:dict_update(constants:master_pub(), X2, MinerReward - GovFees, none),
             NewDict2 = accounts:dict_write(MinerAccount2, X2),
             Facts = proofs:prove(Querys, F#tx_pool.block_trees),
-            Dict = proofs:facts_to_dict(Facts, dict:new()),
+            Dict = proofs:facts_to_dict(Facts, dict:new()), 
             NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height),
             if
                 NC > 0 -> PID ! error;

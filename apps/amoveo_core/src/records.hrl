@@ -13,7 +13,7 @@
 
 -record(rng_response_tx, {pubkey, nonce, fee, id, sortition_id, result_id, hashes}).
 
--record(rng_refute_tx, {pubkey, nonce, fee, sortition_id, challenge_id, n}).
+-record(rng_refute_tx, {pubkey, nonce, fee, sortition_id, challenge_id, result_id, n, proof, start_hash, end_hash}).
 
 
 -record(waiver, {pubkey, signature, sortition_chain_id, contract_hash}).
