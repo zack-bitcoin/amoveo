@@ -1058,9 +1058,10 @@ test(30) ->
     ResponseDelay = 2,
     RNGEnds = 25,
     Delay = 2,
-    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Fee),
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, [keys:pubkey()], Fee),
     Stx = keys:sign(Tx),
     absorb(Stx),
+    1 = length(element(2, tx_pool:get())),
     mine_blocks(4),%mine enough blocks we can post rng results
     RID = hash:doit(2),
     RID3 = hash:doit(4),
@@ -1069,14 +1070,17 @@ test(30) ->
     BRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, BadHashes, Fee),%make incorrect rng_result
     SBRRT = keys:sign(BRRT),
     absorb(SBRRT),
+    1 = length(element(2, tx_pool:get())),
     BRRT2 = rng_result_tx:make_dict(keys:pubkey(), RID3, SID, BadHashes, Fee),%make incorrect rng_result
     SBRRT2 = keys:sign(BRRT2),
     absorb(SBRRT2),
+    2 = length(element(2, tx_pool:get())),
     %mine_blocks(1),
     RID2 = hash:doit(3),
     GRRT = rng_result_tx:make_dict(keys:pubkey(), RID2, SID, GoodHashes, Fee),%post correct rng_result
     SGRRT = keys:sign(GRRT),
     absorb(SGRRT),
+    3 = length(element(2, tx_pool:get())),
     mine_blocks(1),
     %have a process that compares the rng_result to generate a challenge to show one is incorrect.
     CID = hash:doit(3),
@@ -1085,16 +1089,19 @@ test(30) ->
     RCT = rng_challenge_tx:make_dict(keys:pubkey(), CID, SID, RID, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
     SCT = keys:sign(RCT),
     absorb(SCT),
+    1 = length(element(2, tx_pool:get())),
     %1=2,
     CID2 = hash:doit(4),
     RCT2 = rng_challenge_tx:make_dict(keys:pubkey(), CID2, SID, RID3, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
     SCT2 = keys:sign(RCT2),
     absorb(SCT2),
+    2 = length(element(2, tx_pool:get())),
     mine_blocks(1),
     %attacker makes rng_response for RID
     RRT = rng_response_tx:make_dict(keys:pubkey(), CID, SID, RID, BadHashes, Fee),
     SRRT = keys:sign(RRT),
     absorb(SRRT),
+    1 = length(element(2, tx_pool:get())),
     mine_blocks(1),
 
     CID3 = hash:doit(5),
@@ -1103,25 +1110,30 @@ test(30) ->
     %io:fwrite(RCT3),
     SRCT3 = keys:sign(RCT3),
     absorb(SRCT3),
+    1 = length(element(2, tx_pool:get())),
     mine_blocks(1),
     RRT2 = rng_response_tx:make_dict(keys:pubkey(), CID3, SID, RID, BadHashes, Fee),
     SRRT2 = keys:sign(RRT2),
     absorb(SRRT2),
+    1 = length(element(2, tx_pool:get())),
     mine_blocks(1),
 
     RRFT = rng_refute_tx:make_dict(keys:pubkey(), SID, CID3, RID, 0, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a response is short enough to calculate on-chain, and it is invalid.
     SRRFT = keys:sign(RRFT),
     absorb(SRRFT),
+    1 = length(element(2, tx_pool:get())),
     mine_blocks(1),
 
     RRFT2 = rng_refute_tx:make_dict(keys:pubkey(), SID, CID2, RID3, 129, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a challenge goes unresponded for too much time.
     SRRFT2 = keys:sign(RRFT2),
     absorb(SRRFT2),
+    1 = length(element(2, tx_pool:get())),
     mine_blocks(18),
 
     Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID2, Fee),
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
+    1 = length(element(2, tx_pool:get())),
     mine_blocks(1),
 
     %settle the sortition chain tx
@@ -1138,7 +1150,7 @@ test(31) ->
     ResponseDelay = 2,
     RNGEnds = 25,
     Delay = 2,
-    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Fee),
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, [keys:pubkey()], Fee),
     Stx = keys:sign(Tx),
     absorb(Stx),
     mine_blocks(4),%mine enough blocks we can post rng results
@@ -1151,7 +1163,10 @@ test(31) ->
     Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
-    %mine_blocks(1),
+    mine_blocks(1),
+
+    %sortition claim, sortition claim, sortition evidence, mine a bunch of blocks, sortition timeout
+
     success.
     
 

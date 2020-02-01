@@ -1,7 +1,7 @@
 
--record(sortition_new_tx, {creator, nonce, fee, amount, id, entropy, trading_ends, response_delay, rng_ends, delay}).
+-record(sortition_new_tx, {creator, nonce, fee, amount, id, entropy, trading_ends, response_delay, rng_ends, delay, validators}).
 
--record(sortition_claim_tx, {winner, nonce, fee, sortition_id, proof}).
+-record(sortition_claim_tx, {winner, nonce, fee, sortition_id, proof, evidence_id}).
 
 -record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, loser, signed_waiver}).
 
@@ -20,7 +20,7 @@
 
 -record(waiver, {pubkey, signature, sortition_chain_id, contract_hash}).
 
--record(sortition, {id, amount, entropy_source, creator, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, top_rng, bottom_rng, closed}).%merkle tree
+-record(sortition, {id, amount, entropy_source, creator, validators, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, top_rng, bottom_rng, closed}).%merkle tree
 %rng_results make a queue, new elements inserted at the bottom_rng pointer, and the head of the queue is the top_rng.
 
 -record(candidate, {id, sortition_id, layer_number, winner, height, next_candidate}).%merkle tree
@@ -149,6 +149,7 @@
                         fee = 0,
                         to = 0}).
 -record(ex, {from, nonce = 0, fee = 0, commit = 0}).
+-record(exist, {hash, height}).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, 
 	     delay = 10, id = -1}).

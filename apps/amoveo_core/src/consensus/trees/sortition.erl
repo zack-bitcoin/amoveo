@@ -1,5 +1,5 @@
 -module(sortition).
--export([new/8,
+-export([new/9,
          id/1, amount/1, entropy_source/1, creator/1, trading_ends/1, rng_response_delay/1, rng_end/1, rng_value/1, last_modified/1, top_candidate/1, closed/1,
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/5, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
@@ -11,23 +11,24 @@
 -define(id, sortition).
 -include("../../records.hrl").
 
-new(K, Amount, Entropy, Creator, TE, RRD, RE, Delay) ->
+new(K, Amount, Entropy, Creator, TE, RRD, RE, Delay, VH) ->
     %delay is how much time you get to provide counter-evidence.
     #sortition{id = K, %256
                amount = Amount,
                entropy_source = Entropy,
                creator = Creator, 
+               validators = VH,
                trading_ends = TE, 
                rng_response_delay = RRD,
                rng_end = RE,
                rng_value = <<0:256>>,
-               %expiration = Expiration, %height
                delay = Delay, %height
                last_modified = 0,%height
                top_candidate = <<0:256>>,%256
                top_rng = <<0:256>>,%256
                bottom_rng = <<0:256>>,%256
-               closed = 0}.%1 bit
+               closed = 0%1 bit
+               }.
 
 id(S) -> S#sortition.id.
 amount(S) -> S#sortition.amount.
@@ -112,6 +113,7 @@ deserialize(B) ->
       Amount:BAL,
       ES:HEI,
       Creator:PS,
+      Validators:HS,
       TE:HEI,
       RRD:HEI,
       RE:HEI,
@@ -127,6 +129,7 @@ deserialize(B) ->
                 amount = Amount,
                 entropy_source = ES,
                 creator = <<Creator:PS>>,
+                validators = <<Validators:HS>>,
                 trading_ends = TE,
                 rng_response_delay = RRD,
                 rng_end = RE,
@@ -151,15 +154,18 @@ serialize(S) ->
     TRNG = S#sortition.top_rng,
     BRNG = S#sortition.bottom_rng,
     ID = S#sortition.id,
+    Validators = S#sortition.validators,
     PS = size(Creator),
     HS = size(ID),
     HS = size(Value),
     HS = size(TC),
     HS = size(TRNG),
+    HS = size(Validators),
     <<ID/binary,
       (S#sortition.amount):BAL,
       (S#sortition.entropy_source):HEI,
       Creator/binary,
+      Validators/binary,
       %(S#sortition.expiration):HEI,
       (S#sortition.trading_ends):HEI,
       (S#sortition.rng_response_delay):HEI,
@@ -183,7 +189,7 @@ all() ->
 test() ->
     {Pub, _Priv} = testnet_sign:new_key(),
     ID = hash:doit(1),
-    S = new(ID, 127, 152, Pub, 102, 10, 202, 50),
+    S = new(ID, 127, 152, Pub, 102, 10, 202, 50, ID),
     S = deserialize(serialize(S)),
     Root0 = trees:empty_tree(sortition),
     NewLoc = write(S, Root0),

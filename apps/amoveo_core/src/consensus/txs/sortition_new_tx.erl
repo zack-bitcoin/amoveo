@@ -1,25 +1,40 @@
 -module(sortition_new_tx).
--export([go/4, make_dict/9]).
+-export([go/4, make_dict/10]).
 -include("../../records.hrl").
 
-make_dict(Creator, Amount, SID, Entropy, TradingEnds, ResponseDelay, RE, Delay, Fee) ->
+make_dict(Creator, Amount, SID, Entropy, TradingEnds, ResponseDelay, RE, Delay, Validators, Fee) ->
     Acc = trees:get(accounts, Creator),
-    #sortition_new_tx{creator = Creator, nonce = Acc#acc.nonce + 1, amount = Amount, id = SID, fee = Fee, entropy = Entropy, trading_ends = TradingEnds, response_delay = ResponseDelay, rng_ends = RE, delay = Delay}.
+    Size = 65,
+    KeyLength = 5,
+    M = mtree:new_empty(KeyLength, Size, 0),
+    CFG = mtree:cfg(M),
+    L = merklize_make_leaves(0, Validators, CFG),
+    {Root, M2} = mtree:store_batch(L, 1, M),
+    VH = mtree:root_hash(Root, M2),
+    #sortition_new_tx{creator = Creator, nonce = Acc#acc.nonce + 1, amount = Amount, id = SID, fee = Fee, entropy = Entropy, trading_ends = TradingEnds, response_delay = ResponseDelay, rng_ends = RE, delay = Delay, validators = VH}.
+merklize_make_leaves(_, [], _) -> [];
+merklize_make_leaves(N, [H|T], CFG) -> 
+    Leaf = leaf:new(N, H, 0, CFG),
+    [Leaf|merklize_make_leaves(N+1, T, CFG)].
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
-    Creator = Tx#sortition_new_tx.creator,
-    Amount = Tx#sortition_new_tx.amount,
-    Fee = Tx#sortition_new_tx.fee,
-    SID = Tx#sortition_new_tx.id,
-    Nonce = Tx#sortition_new_tx.nonce,
+    #sortition_new_tx{
+    creator = Creator,
+    amount = Amount,
+    fee = Fee,
+    id = SID,
+    nonce = Nonce,
+    entropy = Entropy,
+    trading_ends = TE,
+    response_delay = RD,
+    rng_ends = RE,
+    delay = Delay,
+    validators = VH
+   } = Tx,
     empty = sortition:dict_get(SID, Dict),
     Facc = accounts:dict_update(Creator, Dict, -Amount-Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
-    Entropy = Tx#sortition_new_tx.entropy,
     S = sortition:new(SID, Amount, Entropy, Creator,
-                      Tx#sortition_new_tx.trading_ends,
-                      Tx#sortition_new_tx.response_delay,
-                      Tx#sortition_new_tx.rng_ends,
-                      Tx#sortition_new_tx.delay),
+                      TE, RD, RE, Delay, VH),
     sortition:dict_write(S, Dict2).
     
