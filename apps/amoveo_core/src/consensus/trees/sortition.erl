@@ -183,7 +183,7 @@ all() ->
     Sortition = trees:sortition(Trees),
     All = trie:get_all(Sortition, sortition),
     lists:map(fun(X) ->
-                      sortition:deserialize(leaf:value(X))
+                      deserialize(leaf:value(X))
               end, All).
 
 test() ->
