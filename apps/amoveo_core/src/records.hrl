@@ -1,7 +1,7 @@
 
 -record(sortition_new_tx, {creator, nonce, fee, amount, id, entropy, trading_ends, response_delay, rng_ends, delay, validators}).
 
--record(sortition_block_tx, {from, nonce, fee, id, validators, signatures, height, side_height, state_root}).
+-record(sortition_block_tx, {from, nonce, fee, id, prev_id, validators, signatures, side_height, state_root}).
 
 -record(sortition_claim_tx, {from, nonce, fee, winner, sortition_id, proof, evidence_id, validators, signatures, ownership, claim_id, contract, evidence}).
 

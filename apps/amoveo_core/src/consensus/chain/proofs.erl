@@ -26,7 +26,9 @@ tree_to_int(unmatched) -> 11;
 tree_to_int(sortition) -> 12;
 tree_to_int(candidate) -> 13;
 tree_to_int(rng_result) -> 14;
-tree_to_int(rng_challenge) -> 15.
+tree_to_int(rng_challenge) -> 15;
+tree_to_int(sortition_blocks) -> 16.
+                              
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -41,7 +43,8 @@ int_to_tree(11) -> unmatched;
 int_to_tree(12) -> sortition;
 int_to_tree(13) -> candidate;
 int_to_tree(14) -> rng_result;
-int_to_tree(15) -> rng_challenge.
+int_to_tree(15) -> rng_challenge;
+int_to_tree(16) -> sortition_blocks.
     
 
 %deterministic merge-sort    
@@ -493,6 +496,23 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {sortition, SID},
                  {rng_result, RID}
                 ];
+            sortition_block_tx ->
+                #sortition_block_tx{
+              from = From,
+              id = ID,
+              prev_id = PrevID,
+              side_height = SideHeight
+             } = Tx,
+                U = case SideHeight of
+                        0 -> [];
+                        _ ->
+                            [{sortition_block, PrevID}]
+                    end,
+                [
+                 {governance, ?n2i(sortition_block_tx)},
+                 {sortition_blocks, ID},
+                 {accounts, From}
+                ] ++ U;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

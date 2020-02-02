@@ -24,6 +24,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     contract = Contract,
     evidence = Evidence
    } = Tx,
+    SID = ownership:sid(Ownership),
     A2 = accounts:dict_update(From, Dict, -Fee, Nonce), %you pay a safety deposit.
     Dict2 = accounts:dict_write(A2, Dict),
     S = sortition:dict_get(SID, Dict),
@@ -46,7 +47,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = NewClaimHeight < OldClaimHeight,%you can only do this tx if your new candidate will have the highest priority.
     ValidatorsRoot = sortition_new_tx:make_root(Validators),%this shows that this list of validators must be correct.
     true = ownership:is_between(Ownership, RNGValue),
-    %one plan is to have a little smart contract at every step of the merkle proof verification.
+
     ownership:verify(Ownership, OwnershipRoot, Proof),
     CH = ownership:contract(Ownership),
     CH = hash:doit(Contract),
