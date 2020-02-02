@@ -68,7 +68,7 @@ init([]) ->
 	     tree_child(unmatched, HS, (HS + PS + PS + (BB div 8)), 0, Mode, TrieSize),
 	     tree_child(sortition, HS, (1 + (HS * 6) + PS + ((HB div 8)*6) + (BB div 8)), 0, Mode, TrieSize),
 	     tree_child(candidates, HS, (2 + (HS * 3) + PS + (HB div 8)), 0, Mode, TrieSize),
-	     tree_child(sortition_blocks, HS, 132, 0, Mode, TrieSize),
+	     tree_child(sortition_blocks, HS, 100 + (HB div 8), 0, Mode, TrieSize),
 	     tree_child(rng_challenge, HS, (3 + (HS * 6) + PS + (HB div 8)), 0, Mode, TrieSize),
 	     tree_child(rng_result, HS, (1 + (HS * 5) + PS), 0, Mode, TrieSize)
 	    ],

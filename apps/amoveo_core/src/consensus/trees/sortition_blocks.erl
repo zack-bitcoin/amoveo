@@ -12,19 +12,20 @@
 -include("../../records.hrl").
 %-record(sortition_block, {id, validators, sid, height, state_root}).
 
-new(ID, V, SID, H, SR) ->
+new(ID, V, H, SH, SR) ->
+    ID = hash:doit([SH, V]),
     #sortition_block{
      id = ID,
      validators = V,
-     sid = SID,
      height = H,
+     side_height = SH,
      state_root = SR
     }.
 
 id(X) -> X#sortition_block.id.
 validators(X) -> X#sortition_block.validators.
-sortition_id(X) -> X#sortition_block.sid.
 height(X) -> X#sortition_block.height.
+side_height(X) -> X#sortition_block.side_height.
 state_root(X) -> X#sortition_block.state_root.
     
 key_to_int(X) -> 
@@ -78,15 +79,15 @@ deserialize(B) ->
     <<
       ID:256,
       Validators:256,
-      SID:256,
       StateRoot:256,
+      SideHeight:HEI,
       Height:HEI
     >> = B,
     #sortition_block{
            id = <<ID:256>>,
            validators = <<Validators:256>>,
-           sid = <<SID:256>>,
            state_root = <<StateRoot:256>>,
+           side_height = SideHeight,
            height = Height
           }.
 serialize(S) ->
@@ -97,19 +98,18 @@ serialize(S) ->
     #sortition_block{
                        id = ID,
                        validators = V,
-                       sid = SID,
                        state_root = SR,
+                       side_height = SH,
                        height = H
                      } = S,
     HS = size(ID),
     HS = size(V),
-    HS = size(SID),
     HS = size(SR),
     <<
       ID/binary,
       V/binary,
-      SID/binary,
       SR/binary,
+      SH:HEI,
       H:HEI
     >>.
 
