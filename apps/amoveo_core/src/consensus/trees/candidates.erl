@@ -10,7 +10,7 @@
 ]).
 -define(id, candidates).
 -include("../../records.hrl").
-%-record(candidate, {sortition_id, layer_number, winner_pubkey, height, next_candidate}).
+%-record(candidate, {id, sortition_id, layer_number, winner, height, next_candidate}).%merkle tree
 
 
 new(ID, SID, N, WP, H, NC) ->
@@ -57,16 +57,16 @@ dict_update(C, NC) ->
      }.
 
 dict_delete(Key, Dict) ->
-    dict:store({candidate, Key}, 0, Dict).
+    dict:store({candidates, Key}, 0, Dict).
 
 dict_write(C, Dict) ->
     K = id(C),
-    dict:store({candidate, K},
+    dict:store({candidates, K},
                serialize(C), 
                Dict).
 
 dict_get(Key, Dict) ->
-    case dict:find({candidate, Key}, Dict) of
+    case dict:find({candidates, Key}, Dict) of
 	error -> empty;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
@@ -128,10 +128,10 @@ deserialize(B) ->
 
 all() ->
     Trees = (tx_pool:get())#tx_pool.block_trees,
-    Sortition = trees:sortition(Trees),
-    All = trie:get_all(Sortition, sortition),
+    Sortition = trees:?MODULE(Trees),
+    All = trie:get_all(Sortition, ?MODULE),
     lists:map(fun(X) ->
-                      sortition:deserialize(leaf:value(X))
+                      deserialize(leaf:value(X))
               end, All).
 
 test() ->

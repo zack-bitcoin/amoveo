@@ -24,7 +24,7 @@ tree_to_int(multi_tx) -> 9;
 tree_to_int(matched) -> 10;
 tree_to_int(unmatched) -> 11;
 tree_to_int(sortition) -> 12;
-tree_to_int(candidate) -> 13;
+tree_to_int(candidates) -> 13;
 tree_to_int(rng_result) -> 14;
 tree_to_int(rng_challenge) -> 15;
 tree_to_int(sortition_blocks) -> 16.
@@ -41,7 +41,7 @@ int_to_tree(9) -> multi_tx;
 int_to_tree(10) -> matched;
 int_to_tree(11) -> unmatched;
 int_to_tree(12) -> sortition;
-int_to_tree(13) -> candidate;
+int_to_tree(13) -> candidates;
 int_to_tree(14) -> rng_result;
 int_to_tree(15) -> rng_challenge;
 int_to_tree(16) -> sortition_blocks.
@@ -512,6 +512,26 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(sortition_block_tx)},
                  {sortition_blocks, ID},
                  {accounts, From}
+                ] ++ U;
+            sortition_claim_tx ->
+                #sortition_claim_tx{
+              from = From,
+              sortition_id = SID,
+              evidence_id = EID,
+              top_candidate = TCID,
+              claim_id = ClaimID
+             } = Tx,
+                U = case TCID of
+                        <<0:256>> -> [];
+                        0 -> [];
+                        _ -> [{candidates, TCID}]
+                    end,
+                [
+                 {accounts, From},
+                 {governance, ?n2i(sortition_claim_tx)},
+                 {sortition, SID},
+                 {sortition_blocks, EID},
+                 {candidates, ClaimID}
                 ] ++ U;
 	    coinbase_old -> 
                 [

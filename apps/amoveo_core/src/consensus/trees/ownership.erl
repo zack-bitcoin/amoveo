@@ -71,7 +71,7 @@ make_root(Owners) ->
     L = merklize_make_leaves(Owners, CFG),
     Root0 = 1,
     {Root, M2} = mtree:store_batch(L, Root0, M),
-    mtree:root_hash(Root, M2).
+    {mtree:root_hash(Root, M2), Root, M2}.
 merklize_make_leaves([], _) -> [];
 merklize_make_leaves([H|T], CFG) -> 
     N = key_to_int(H#x.pstart),

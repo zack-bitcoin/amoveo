@@ -1379,6 +1379,8 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
     B + sum_amounts(T, Dict, Old).
 sum_amounts_helper(_, empty, _, _, _) ->
     0;
+sum_amounts_helper(candidates, _R, _, _D, _) ->
+    0;
 sum_amounts_helper(sortition_blocks, _R, _, _D, _) ->
     0;
 sum_amounts_helper(rng_challenge, _R, _, D, _) ->
