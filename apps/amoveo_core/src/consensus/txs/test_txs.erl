@@ -1139,6 +1139,7 @@ test(30) ->
     %settle the sortition chain tx
     success;
 test(31) ->
+    %sortition chain resolution test
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -1185,10 +1186,7 @@ test(31) ->
     mine_blocks(2),
 
     ClaimID = hash:doit(22),
-    %SPK = spk:new(1, 2, <<3:256>>, [Contract], 10000, 10000, 1, 0),
-    %SS = spk:new_ss(compiler_chalang:doit(<<>>), []),
-    SCT = sortition_claim_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, SBID, Proof, Validators, [Sig], Owner, ClaimID, Contract, <<>>, <<0:256>>, Fee),
-    %io:fwrite(packer:pack(SCT)),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, Contract, <<>>, <<0:256>>, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),

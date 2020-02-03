@@ -1,12 +1,12 @@
 -module(sortition_claim_tx).
--export([go/4, make_dict/13]).
+-export([go/4, make_dict/12]).
 -include("../../records.hrl").
 
 -record(owner, {pubkey, contract}).
 
-make_dict(From, Winner, SID, EID, Proof, Validators, Sigs, Ownership, ClaimID, Contract, Evidence, TCID, Fee) ->
+make_dict(From, Winner, SID, EID, Proof, VR, Ownership, ClaimID, Contract, Evidence, TCID, Fee) ->
     Acc = trees:get(accounts, From),
-    #sortition_claim_tx{from = From, winner = Winner, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, proof = Proof, evidence_id = EID, validators = Validators, signatures = Sigs, ownership = Ownership, claim_id = ClaimID, contract = Contract, evidence = Evidence, top_candidate = TCID}.
+    #sortition_claim_tx{from = From, winner = Winner, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, proof = Proof, evidence_id = EID, validators_root = VR, ownership = Ownership, claim_id = ClaimID, contract = Contract, evidence = Evidence, top_candidate = TCID}.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
     #sortition_claim_tx{
@@ -17,8 +17,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     fee = Fee,
     evidence_id = EID,
     proof = Proof,
-    validators = Validators,
-    signatures = Sigs,
+    validators_root = ValidatorRoot,
     ownership = Ownership,
     claim_id = ClaimID,
     contract = Contract,
@@ -52,8 +51,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 X
         end,
     true = NewClaimHeight < OldClaimHeight,%you can only do this tx if your new candidate will have the highest priority.
-    ValidatorsRoot = sortition_new_tx:make_root(Validators),%this shows that this list of validators must be correct.
+    %ValidatorsRoot = sortition_new_tx:make_root(Validators),%this shows that this list of validators must be correct.
     true = ownership:is_between(Ownership, RNGValue),
+
+    %TODO, show that `ownership` is the only entree in the range RNGStart-RNGEnd
 
     ownership:verify(Ownership, OwnershipRoot, Proof),
     CH = ownership:contract(Ownership),
@@ -67,7 +68,6 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Data2 = chalang:run5(Evidence, Data),
     Data3 = chalang:run5(Contract, Data2),
     [<<1:32>>|_] = chalang:stack(Data3),
-    %{1, _, _} = spk:dict_run(fast, [Evidence], Contract, NewHeight, 0, Dict),
 
     S2 = S#sortition{
            top_candidate = ClaimID

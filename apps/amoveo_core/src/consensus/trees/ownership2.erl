@@ -1,8 +1,6 @@
--module(ownership).
--export([new/5,
-         max/0,
-         cfg/0,
-         make_root/1,
+-module(ownership2).
+-export([%new/5,
+         %make_root/1,
 
          pubkey/1,
          pstart/1,
@@ -11,7 +9,7 @@
          sid/1,
          
          verify/3,
-         is_between/2,
+         %is_between/2,
 
          serialize/1,
          deserialize/1
@@ -37,74 +35,96 @@
 %In order to minimize the length of any individual merkel proof, we want the tree to be balanced.
 %To make a balanced tree, we need to keep choosing questions such that 1/2 of the elements we need to put in the tree are "yes", and 1/2 are "no".
 
-
-
 -record(x, {pubkey, %pubkey of who owns this probabilistic value space.
             pstart, %start of the probability space
             pend, %end of the probability space
             sortition_id,
-            contract}).%32 byte hash of a smart contract. you only really own this value if the contract returns "true".
-
-new(P, S, E, C, SID) ->
+            contract,
+            evidence}).
+new(P, S, E, C, Evidence, SID) ->
     #x{pubkey = P,
        pstart = S,
        pend = E,
        sortition_id = SID,
-       contract = hash:doit(C)}.
+       contract = hash:doit(C),
+       evidence = Evidence}.
 pubkey(X) -> X#x.pubkey.
 pstart(X) -> X#x.pstart.
 pend(X) -> X#x.pend.
 contract(X) -> X#x.contract.
 sid(X) -> X#x.sortition_id.
 
-max() -> 
-    %<<X:256>> = <<-1:256>>, X.
-    115792089237316195423570985008687907853269984665640564039457584007913129639935.
+-record(tree, {contract, 
+               evidence, %facts we need to look up and include with the contract
+               b1, h1, b0, h0}).
+make_tree(Owners) ->
+    %make a tree out of the owners.
+    
+    %{RootHash, MT}.
+    ok.
 
-key_to_int(X) -> 
-    <<Y:256>> = X,
-    %<<Y:256>> = hash:doit(X),
-    Y.
+make_proof(Owner, Tree) ->
+    %grab all the elements leading towards Owner.
+    ok.
 
-make_leaf(Key, V) ->
-    leaf:new(key_to_int(Key), V, 0, cfg()).
+verify(Ownership, Proof, Dict) ->
+    %returns a root hash, so we can check that the Proof is linked to something else.
+    %first off, check that the main contract returns "true". TODO
+    X = hash:doit(serialize(Ownership)),
+    verify2(Ownership, X, Proof, Dict).%starts from leaf, works towards root.
+verify2(_, Root, [], _) -> Root;
+verify2(Ownership, Root, [H|T], Dict) ->
+    #tree{
+           h1 = H1,
+           h0 = H0
+         } = H,
+    Result = run_contract(H, Ownership, Dict),
+    Root = case Result of
+                 <<1:32>> -> H1;
+                 <<0:32>> -> H0
+             end,
+    NewRoot = hash:doit(serialize_tree(H)),
+    verify2(Ownership, NewRoot, T, Dict).
 
-is_between(X, <<RNGV:256>>) ->
-    #x{pend = <<E:256>>,
-       pstart = <<S:256>>} = X,
-    (S =< RNGV) and
-        (RNGV =< E).
+get_merkel_facts(Evidence, Dict) ->
+    ok.
+
+run_contract(Tree, Ownership, Dict) ->
+    #x{
+        sortition_id = SID,
+        pstart = PStart,
+        pend = PEnd
+        } = Ownership,
+    #tree{
+           contract = Contract,
+           evidence = Evidence
+         } = Tree,
+    Facts = get_merkel_facts(Evidence, Dict),
+    SIDEvidence = [<<2:8>>, <<32:32>>, <<SID:256>>,%binary 32 SID
+                   <<2:8>>, <<32:32>>, <<PStart:256>>,
+                   <<2:8>>, <<32:32>>, <<PEnd:256>>], %binary 32 SID
+    %TODO, we need to add the 
+    OpGas = 10000,
+    RamGas = 10000,
+    Vars = 1000,
+    Funs = 1000,
+    Contract2 = SIDEvidence ++ Contract,
+    State = chalang:new_state(99999999, 0, 0),
+    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, Evidence, Contract, State, constants:hash_size(), 2, false),
+    Data2 = chalang:run5(Facts, Data),
+    Data3 = chalang:run5(Contract2, Data2),
+    hd(chalang:stack(Data3)).
+
 
     
-
-    
-
-verify(Ownership, Root, Proof) ->
-    Key = Ownership#x.pstart,
-    SO = serialize(Ownership),
-    Leaf = make_leaf(Key, SO),
-    verify:proof(Root, Leaf, Proof, cfg()).
-
-cfg() ->
-    S = (32*4) + 65,
-    CFG = cfg:new(32, S, none, 0, 32, ram).
-
-make_root(Owners) ->
-    CFG = cfg(),
-    Size = cfg:value(CFG),
-    KeyLength = cfg:path(CFG),
-    M = mtree:new_empty(KeyLength, Size, 0),
-    L = merklize_make_leaves(Owners, CFG),
-    Root0 = 1,
-    {Root, M2} = mtree:store_batch(L, Root0, M),
-    {mtree:root_hash(Root, M2), Root, M2}.
-merklize_make_leaves([], _) -> [];
-merklize_make_leaves([H|T], CFG) -> 
-    N = key_to_int(H#x.pstart),
-    Leaf = leaf:new(N, serialize(H), 0, CFG),
-    [Leaf|merklize_make_leaves(T, CFG)].
-    
-    
+serialize_tree(T) ->
+    #tree{
+           contract = C,
+           h0 = H0,
+           h1 = H1
+         } = T,
+    CH = hash:doit(contract),
+    <<CH/binary, H0/binary, H1/binary>>.
 
 serialize(X) ->
     PS = constants:pubkey_size(),
