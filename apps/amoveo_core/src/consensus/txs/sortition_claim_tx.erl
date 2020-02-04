@@ -24,7 +24,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     top_candidate = TCID,
     evidence = Evidence
    } = Tx,
-    SID = ownership:sid(Ownership),
+    SID = ownership2:sid(Ownership),
     A2 = accounts:dict_update(From, Dict, -Fee, Nonce), %you pay a safety deposit.
     Dict2 = accounts:dict_write(A2, Dict),
     S = sortition:dict_get(SID, Dict),
@@ -45,19 +45,21 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             <<0:256>> -> none;%integers are always less than atoms.
             _ ->
                 TC = candidate:dict_get(TCID, Dict),
-                #candidate{
-                            height = X
-                          } = TC,
-                X
+                TC#candidate.height
         end,
     true = NewClaimHeight < OldClaimHeight,%you can only do this tx if your new candidate will have the highest priority.
     %ValidatorsRoot = sortition_new_tx:make_root(Validators),%this shows that this list of validators must be correct.
-    true = ownership:is_between(Ownership, RNGValue),
+    %true = ownership:is_between(Ownership, RNGValue),
+    <<Pstart:256>> = ownership2:pstart(Ownership),
+    <<PV:256>> = RNGValue,
+    <<Pend:256>> = ownership2:pend(Ownership),
+    true = Pstart =< PV,
+    true = PV < Pend,
 
     %TODO, show that `ownership` is the only entree in the range RNGStart-RNGEnd
-
-    ownership:verify(Ownership, OwnershipRoot, Proof),
-    CH = ownership:contract(Ownership),
+    OwnershipRoot = ownership2:verify(Ownership, Proof),
+    %ownership:verify(Ownership, OwnershipRoot, Proof),
+    CH = ownership2:contract(Ownership),
     CH = hash:doit(Contract),
     OpGas = 10000,
     RamGas = 10000,

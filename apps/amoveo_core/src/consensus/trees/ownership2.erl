@@ -1,6 +1,8 @@
 -module(ownership2).
--export([%new/5,
+-export([new/5,
          %make_root/1,
+         make_tree/1,
+         make_proof/2,
 
          pubkey/1,
          pstart/1,
@@ -44,6 +46,9 @@
 -record(tree, {rule, 
                b1, h1, b0, h0}).
 new(P, S, E, C, SID) ->
+    32 = size(SID),
+    32 = size(S),
+    32 = size(E),
     #owner{pubkey = P,
        pstart = S,
        pend = E,
@@ -84,12 +89,6 @@ add_hashes(X) when is_record(X, tree) ->
 add_hashes(X) when is_record(X, owner)->
     {hash:doit(serialize(X)), X}.
 make_tree_sid2([A]) -> make_tree_prob(A);
-%make_tree_sid2([L1, L2]) ->
-%    Owner1 = hd(L1),
-%    SID = Owner1#owner.sortition_id,
-%    #tree{rule = {sid, SID},
-%          b1 = make_tree_prob(L1),
-%          b0 = make_tree_prob(L2)};
 make_tree_sid2(ListsOwners) ->
     L = length(ListsOwners),
     L2 = L div 2,
@@ -106,30 +105,18 @@ make_tree_prob(Owners) ->
                         <<B1:256>> = B#owner.pstart,
                         A1 < B1 end, Owners),
     no_overlap_check(Owners2),
-    %ListOwners = 
-    %    make_lists(fun(X) -> X#owner.pstart end,
-    %               Owners2),
     make_tree_prob2(Owners2).
 make_tree_prob2([A]) -> A;
-%make_tree_prob2([L1, L2]) -> 
-%    Owner1 = hd(L1),
-%    PS = Owner1#owner.pstart,
-%    #tree{rule = {before, PS},
-%          b1 = L1,
-%          b0 = L2};
 make_tree_prob2(ListsOwners)->
     L = length(ListsOwners),
     L2 = L div 2,
     OwnerNth = lists:nth(L2, ListsOwners),
-    %Owner = hd(OwnerNth),
     Owner = OwnerNth,
     PS = Owner#owner.pstart,
     {LA, LB} = lists:split(L2, ListsOwners),
     #tree{rule = {before, PS},
           b1 = make_tree_prob2(LA),
           b0 = make_tree_prob2(LB)}.
-    
-    
                                  
 no_overlap_check([]) -> ok;
 no_overlap_check([_]) -> ok;

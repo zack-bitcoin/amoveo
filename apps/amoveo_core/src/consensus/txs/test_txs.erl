@@ -1159,12 +1159,16 @@ test(31) ->
     mine_blocks(1),
 
     Contract = <<3,0,3,0,3,1>>,%in1, 0, int1, 0, int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". (also loads 2 zeros for compatibility reasons).
-    Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, Contract, SID),
-    {StateRoot, VRP, M} = ownership:make_root([Owner]),
+    %Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, Contract, SID),
+    Owner = ownership2:new(keys:pubkey(), <<0:256>>, <<-1:256>>, Contract, SID),
+    {StateRoot, M} = ownership2:make_tree([Owner]),
+    Proof = ownership2:make_proof(M, Owner),
+
+    %{StateRoot, VRP, M} = ownership:make_root([Owner]),
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
     VR = sortition_new_tx:make_root(Validators),
-    CFG = ownership:cfg(),
-    {_,_,Proof} = mtree:get(leaf:path_maker(0 ,CFG),VRP, M),
+    %CFG = ownership:cfg(),
+    %{_,_,Proof} = mtree:get(leaf:path_maker(0 ,CFG),VRP, M),
     SBID = hash:doit([0, VR]),
     SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
     SSBT = keys:sign(SBT),
