@@ -1,17 +1,16 @@
 -module(sortition_claim_tx).
--export([go/4, make_dict/12]).
+-export([go/4, make_dict/11]).
 -include("../../records.hrl").
 
 -record(owner, {pubkey, contract}).
 
-make_dict(From, Winner, SID, EID, Proof, VR, Ownership, ClaimID, Contract, Evidence, TCID, Fee) ->
+make_dict(From, SID, EID, Proof, VR, Ownership, ClaimID, Contract, Evidence, TCID, Fee) ->
     Acc = trees:get(accounts, From),
-    #sortition_claim_tx{from = From, winner = Winner, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, proof = Proof, evidence_id = EID, validators_root = VR, ownership = Ownership, claim_id = ClaimID, contract = Contract, evidence = Evidence, top_candidate = TCID}.
+    #sortition_claim_tx{from = From, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, proof = Proof, evidence_id = EID, validators_root = VR, ownership = Ownership, claim_id = ClaimID, contract = Contract, evidence = Evidence, top_candidate = TCID}.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
     #sortition_claim_tx{
     from = From,
-    winner = Winner,
     nonce = Nonce,
     sortition_id = SID,
     fee = Fee,
@@ -24,7 +23,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     top_candidate = TCID,
     evidence = Evidence
    } = Tx,
-    SID = ownership2:sid(Ownership),
+    SID = ownership:sid(Ownership),
     A2 = accounts:dict_update(From, Dict, -Fee, Nonce), %you pay a safety deposit.
     Dict2 = accounts:dict_write(A2, Dict),
     S = sortition:dict_get(SID, Dict),
@@ -40,6 +39,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                       validators = ValidatorsRoot,
                       height = NewClaimHeight
              } = E,
+    Winner = ownership:pubkey(Ownership),
     OldClaimHeight = 
         case TCID of
             <<0:256>> -> none;%integers are always less than atoms.
@@ -48,18 +48,16 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 TC#candidate.height
         end,
     true = NewClaimHeight < OldClaimHeight,%you can only do this tx if your new candidate will have the highest priority.
-    %ValidatorsRoot = sortition_new_tx:make_root(Validators),%this shows that this list of validators must be correct.
-    %true = ownership:is_between(Ownership, RNGValue),
-    <<Pstart:256>> = ownership2:pstart(Ownership),
+    <<Pstart:256>> = ownership:pstart(Ownership),
     <<PV:256>> = RNGValue,
-    <<Pend:256>> = ownership2:pend(Ownership),
+    <<Pend:256>> = ownership:pend(Ownership),
     true = Pstart =< PV,
     true = PV < Pend,
 
     %TODO, show that `ownership` is the only entree in the range RNGStart-RNGEnd
-    OwnershipRoot = ownership2:verify(Ownership, Proof),
+    OwnershipRoot = ownership:verify(Ownership, Proof),
     %ownership:verify(Ownership, OwnershipRoot, Proof),
-    CH = ownership2:contract(Ownership),
+    CH = ownership:contract(Ownership),
     CH = hash:doit(Contract),
     OpGas = 10000,
     RamGas = 10000,

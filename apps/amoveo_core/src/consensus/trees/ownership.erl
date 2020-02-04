@@ -1,8 +1,8 @@
 -module(ownership).
 -export([new/5,
-         max/0,
-         cfg/0,
-         make_root/1,
+         %make_root/1,
+         make_tree/1,
+         make_proof/2,
 
          pubkey/1,
          pstart/1,
@@ -10,14 +10,15 @@
          contract/1,
          sid/1,
          
-         verify/3,
-         is_between/2,
+         verify/2,
+         %is_between/2,
 
          serialize/1,
-         deserialize/1
+         deserialize/1,
+
+         test/0
         ]).
 
-%TODO
 %we could have a binary merkel tree, where every step of the tree says how the probabilistic value space is divided between the two child branches. Then walking down a path could give you certainty that there is no overlap.
 %This option would probably have the least computation and bandwidth requirements.
 
@@ -37,79 +38,225 @@
 %In order to minimize the length of any individual merkel proof, we want the tree to be balanced.
 %To make a balanced tree, we need to keep choosing questions such that 1/2 of the elements we need to put in the tree are "yes", and 1/2 are "no".
 
-
-
--record(x, {pubkey, %pubkey of who owns this probabilistic value space.
+-record(owner, {pubkey, %pubkey of who owns this probabilistic value space.
             pstart, %start of the probability space
             pend, %end of the probability space
             sortition_id,
-            contract}).%32 byte hash of a smart contract. you only really own this value if the contract returns "true".
-
+            contract}).
+-record(tree, {rule, 
+               b1, h1, b0, h0}).
 new(P, S, E, C, SID) ->
-    #x{pubkey = P,
+    32 = size(SID),
+    32 = size(S),
+    32 = size(E),
+    #owner{pubkey = P,
        pstart = S,
        pend = E,
        sortition_id = SID,
        contract = hash:doit(C)}.
-pubkey(X) -> X#x.pubkey.
-pstart(X) -> X#x.pstart.
-pend(X) -> X#x.pend.
-contract(X) -> X#x.contract.
-sid(X) -> X#x.sortition_id.
+pubkey(X) -> X#owner.pubkey.
+pstart(X) -> X#owner.pstart.
+pend(X) -> X#owner.pend.
+contract(X) -> X#owner.contract.
+sid(X) -> X#owner.sortition_id.
 
-max() -> 
-    %<<X:256>> = <<-1:256>>, X.
-    115792089237316195423570985008687907853269984665640564039457584007913129639935.
+make_tree(Owners) ->
+    Owners2 = lists:sort(
+                fun(A, B) ->
+                        <<A1:256>> = A#owner.sortition_id,
+                        <<B1:256>> = B#owner.sortition_id,
+                        A1 < B1 end, Owners),
+    ListsOwners = 
+        make_lists(fun(X) -> X#owner.sortition_id end, 
+                   Owners2),%there are sub-lists each with a unique SID.
+    Tree1 = make_tree_sid2(ListsOwners),
+    add_hashes(Tree1).
+add_hashes(X) when is_record(X, tree) ->
+    #tree{
+           b0 = B0,
+           b1 = B1
+         } = X,
+    {H0, B02} = add_hashes(B0),
+    {H1, B12} = add_hashes(B1),
+    X2 = X#tree{
+           b0 = B02,
+           h0 = H0,
+           b1 = B12,
+           h1 = H1
+          },
+    H2 = hash:doit(serialize_tree(X2)),
+    {H2, X2};
+add_hashes(X) when is_record(X, owner)->
+    {hash:doit(serialize(X)), X}.
+make_tree_sid2([A]) -> make_tree_prob(A);
+make_tree_sid2(ListsOwners) ->
+    L = length(ListsOwners),
+    L2 = L div 2,
+    OwnerNth = lists:nth(L2, ListsOwners),
+    SID = OwnerNth#owner.sortition_id,
+    {LA, LB} = lists:split(L2, ListsOwners),
+    #tree{rule = {sid_before, SID},
+          b1 = make_tree_sid2(LA),
+          b0 = make_tree_sid2(LB)}.
+make_tree_prob(Owners) ->
+    Owners2 = lists:sort(
+                fun(A, B) ->
+                        <<A1:256>> = A#owner.pstart,
+                        <<B1:256>> = B#owner.pstart,
+                        A1 < B1 end, Owners),
+    no_overlap_check(Owners2),
+    make_tree_prob2(Owners2).
+make_tree_prob2([A]) -> A;
+make_tree_prob2(ListsOwners)->
+    L = length(ListsOwners),
+    L2 = L div 2,
+    OwnerNth = lists:nth(L2, ListsOwners),
+    Owner = OwnerNth,
+    PS = Owner#owner.pstart,
+    {LA, LB} = lists:split(L2, ListsOwners),
+    #tree{rule = {before, PS},
+          b1 = make_tree_prob2(LA),
+          b0 = make_tree_prob2(LB)}.
+                                 
+no_overlap_check([]) -> ok;
+no_overlap_check([_]) -> ok;
+no_overlap_check([A|[B|T]]) -> 
+    true = A#owner.contract == B#owner.contract,
+    true = A#owner.pend =< B#owner.pstart,
+    no_overlap_check([B|T]).
+            
+make_lists(F, [H|T]) ->
+    lists:reverse(make_lists2(F, F(H), T, [H], [])).
+make_lists2(_F, _TID, [], NL, R) -> 
+    [lists:reverse(NL)|R];
+make_lists2(F, TID, [N|IL], NL, R) ->
+    TID2 = F(N),
+    if
+        TID == TID2 -> 
+            make_lists2(F, TID, IL, [N|NL], R);
+        true ->
+            make_lists2(F, TID2, IL, [N], [lists:reverse(NL)|R])
+    end.
+            
 
-key_to_int(X) -> 
-    <<Y:256>> = X,
-    %<<Y:256>> = hash:doit(X),
-    Y.
+make_proof(Owner, Owner) -> [];
+make_proof(Owner, Tree) when is_record(Tree, tree) ->
+    %grab all the elements leading towards Owner.
+    #tree{
+           b1 = Branch1,
+           b0 = Branch0
+         } = Tree,
+    Direction = contract_direction(Tree, Owner),
+    B = if
+            Direction -> Branch0;
+            true -> Branch1
+        end,
+    T2 = Tree#tree{b1 = 0, b0 = 0},
+    [T2|make_proof(Owner, B)];
+make_proof(A, B) ->
+    io:fwrite({A, B}).
 
-make_leaf(Key, V) ->
-    leaf:new(key_to_int(Key), V, 0, cfg()).
 
-is_between(X, <<RNGV:256>>) ->
-    #x{pend = <<E:256>>,
-       pstart = <<S:256>>} = X,
-    (S =< RNGV) and
-        (RNGV =< E).
+verify(Ownership, Proof) ->
+    %returns a root hash, so we can check that the Proof is linked to something else.
+    %first off, check that the main contract returns "true". TODO
+    X = hash:doit(serialize(Ownership)),
+    verify2(Ownership, X, Proof).%starts from leaf, works towards root.
+verify2(_, Root, []) -> Root;
+verify2(Ownership, Root, [H|T]) ->
+    #tree{
+           h1 = H1,
+           h0 = H0
+         } = H,
+    Result = contract_direction(H, Ownership),%run_contract(H, Ownership, Dict),
+    %io:fwrite({Root, H1, H0, Result}),
+    Root = if
+               Result -> H0;
+               true -> H1
+           end,
+    NewRoot = hash:doit(serialize_tree(H)),
+    verify2(Ownership, NewRoot, T).
 
+
+contract_direction(Tree, Owner) ->
+    #owner{
+            sortition_id = SID,
+            pstart = <<PStart:256>>,%this moves too.
+            pend = <<PEnd:256>>,
+            contract = CH1
+        } = Owner,
+    true = PStart < PEnd,%TODO, move this where it belongs. 
+    #tree{
+           rule = Contract
+         } = Tree,
+    case Contract of
+        {sid_before, <<SID2:256>>} -> 
+            <<SID1:256>> = SID,
+            SID1 =< SID2;
+        {sid, SID2} -> 
+            SID == SID2;
+        {before, <<N:256>>} -> 
+            if
+                (PEnd =< N) -> true;
+                true ->
+                    true = PStart >= N,
+                    false
+            end;
+        %PEnd =< N;
+        {contract, CH1} -> 
+            true;
+        {contract, <<CH2:256>>} -> 
+            <<CH:256>> = CH1,
+            true = (CH + CH2) == 0,
+            false
+    end.
+            
     
 
-    
+get_merkel_facts(Evidence, Dict) ->
+    ok.
+run_contract(Tree, Ownership, Evidence, Dict) ->
+    #owner{
+        sortition_id = SID,
+        pstart = PStart,
+        pend = PEnd
+        } = Ownership,
+    #tree{
+           rule = Contract
+           %evidence = Evidence
+         } = Tree,
+    Facts = get_merkel_facts(Evidence, Dict),
+    %TODO, we need to add the 
+    OpGas = 10000,
+    RamGas = 10000,
+    Vars = 1000,
+    Funs = 1000,
+    State = chalang:new_state(99999999, 0, 0),
+    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, Evidence, Contract, State, constants:hash_size(), 2, false),
+    Data2 = chalang:run5(Facts, Data),
+    Data3 = chalang:run5(Contract, Data2),
+    hd(chalang:stack(Data3)).
 
-verify(Ownership, Root, Proof) ->
-    Key = Ownership#x.pstart,
-    SO = serialize(Ownership),
-    Leaf = make_leaf(Key, SO),
-    verify:proof(Root, Leaf, Proof, cfg()).
 
-cfg() ->
-    S = (32*4) + 65,
-    CFG = cfg:new(32, S, none, 0, 32, ram).
-
-make_root(Owners) ->
-    CFG = cfg(),
-    Size = cfg:value(CFG),
-    KeyLength = cfg:path(CFG),
-    M = mtree:new_empty(KeyLength, Size, 0),
-    L = merklize_make_leaves(Owners, CFG),
-    Root0 = 1,
-    {Root, M2} = mtree:store_batch(L, Root0, M),
-    {mtree:root_hash(Root, M2), Root, M2}.
-merklize_make_leaves([], _) -> [];
-merklize_make_leaves([H|T], CFG) -> 
-    N = key_to_int(H#x.pstart),
-    Leaf = leaf:new(N, serialize(H), 0, CFG),
-    [Leaf|merklize_make_leaves(T, CFG)].
     
-    
+serialize_tree(T) ->
+    #tree{
+           rule = {Type, C},
+           h0 = H0,
+           h1 = H1
+         } = T,
+    A = case Type of
+            sid -> 1;
+            before -> 2;
+            contract -> 3
+        end,
+                   
+    <<C/binary, H0/binary, H1/binary, A:8>>.
 
 serialize(X) ->
     PS = constants:pubkey_size(),
     HS = constants:hash_size(),
-    #x{
+    #owner{
         pubkey = P,
         pstart = S,
         pend = E,
@@ -137,10 +284,38 @@ deserialize(B) ->
       SID:HS,
       C:HS
     >> = B,
-    #x{
+    #owner{
         pubkey = <<P:PS>>,
         pstart = <<S:X>>,
         pend = <<E:X>>,
         sortition_id = <<SID:HS>>,
         contract = <<C:HS>>
       }.
+
+test() ->
+    SID = hash:doit(1),
+    <<Max:256>> = <<-1:256>>,
+    M1 = Max div 6,
+    M2 = M1 + M1,
+    M3 = M2 + M1,
+    M4 = M2 + M2,
+    M5 = M2 + M3,
+    M6 = Max - 1,
+    X1 = new(keys:pubkey(),
+             <<0:256>>,
+             <<M3:256>>,
+             <<>>,
+             SID),
+    X2 = new(keys:pubkey(),
+             <<M3:256>>,
+             <<M6:256>>,
+             <<>>,
+             SID),
+    L = [X1, X2],
+    {Root, T} = make_tree(L),
+    %io:fwrite(T),
+    Proof = make_proof(X1, T),
+    %io:fwrite(Proof),
+    Root = verify(X1, Proof),
+    success.
+    
