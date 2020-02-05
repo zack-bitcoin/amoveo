@@ -1,6 +1,5 @@
 -module(ownership).
 -export([new/5,
-         %make_root/1,
          make_tree/1,
          make_proof/2,
 
@@ -11,7 +10,6 @@
          sid/1,
          
          verify/2,
-         %is_between/2,
 
          serialize/1,
          deserialize/1,
@@ -65,7 +63,7 @@ make_tree(Owners) ->
                 fun(A, B) ->
                         <<A1:256>> = A#owner.sortition_id,
                         <<B1:256>> = B#owner.sortition_id,
-                        A1 < B1 end, Owners),
+                        A1 =< B1 end, Owners),
     ListsOwners = 
         make_lists(fun(X) -> X#owner.sortition_id end, 
                    Owners2),%there are sub-lists each with a unique SID.
@@ -92,9 +90,11 @@ make_tree_sid2([A]) -> make_tree_prob(A);
 make_tree_sid2(ListsOwners) ->
     L = length(ListsOwners),
     L2 = L div 2,
-    OwnerNth = lists:nth(L2, ListsOwners),
+    OwnerNth = hd(lists:nth(L2, ListsOwners)), 
     SID = OwnerNth#owner.sortition_id,
     {LA, LB} = lists:split(L2, ListsOwners),
+    false = [] == LA,
+    false = [] == LB,
     #tree{rule = {sid_before, SID},
           b1 = make_tree_sid2(LA),
           b0 = make_tree_sid2(LB)}.
@@ -103,7 +103,7 @@ make_tree_prob(Owners) ->
                 fun(A, B) ->
                         <<A1:256>> = A#owner.pstart,
                         <<B1:256>> = B#owner.pstart,
-                        A1 < B1 end, Owners),
+                        A1 =< B1 end, Owners),
     no_overlap_check(Owners2),
     make_tree_prob2(Owners2).
 make_tree_prob2([A]) -> A;
@@ -112,9 +112,9 @@ make_tree_prob2(ListsOwners)->
     L2 = L div 2,
     OwnerNth = lists:nth(L2, ListsOwners),
     Owner = OwnerNth,
-    PS = Owner#owner.pstart,
+    PE = Owner#owner.pend,
     {LA, LB} = lists:split(L2, ListsOwners),
-    #tree{rule = {before, PS},
+    #tree{rule = {before, PE},
           b1 = make_tree_prob2(LA),
           b0 = make_tree_prob2(LB)}.
                                  
@@ -148,8 +148,8 @@ make_proof(Owner, Tree) when is_record(Tree, tree) ->
          } = Tree,
     Direction = contract_direction(Tree, Owner),
     B = if
-            Direction -> Branch0;
-            true -> Branch1
+            Direction -> Branch1;
+            true -> Branch0
         end,
     T2 = Tree#tree{b1 = 0, b0 = 0},
     [T2|make_proof(Owner, B)];
@@ -159,7 +159,6 @@ make_proof(A, B) ->
 
 verify(Ownership, Proof) ->
     %returns a root hash, so we can check that the Proof is linked to something else.
-    %first off, check that the main contract returns "true". TODO
     X = hash:doit(serialize(Ownership)),
     verify2(Ownership, X, Proof).%starts from leaf, works towards root.
 verify2(_, Root, []) -> Root;
@@ -169,10 +168,9 @@ verify2(Ownership, Root, [H|T]) ->
            h0 = H0
          } = H,
     Result = contract_direction(H, Ownership),%run_contract(H, Ownership, Dict),
-    %io:fwrite({Root, H1, H0, Result}),
     Root = if
-               Result -> H0;
-               true -> H1
+               Result -> H1;
+               true -> H0
            end,
     NewRoot = hash:doit(serialize_tree(H)),
     verify2(Ownership, NewRoot, T).
@@ -223,10 +221,8 @@ run_contract(Tree, Ownership, Evidence, Dict) ->
         } = Ownership,
     #tree{
            rule = Contract
-           %evidence = Evidence
          } = Tree,
     Facts = get_merkel_facts(Evidence, Dict),
-    %TODO, we need to add the 
     OpGas = 10000,
     RamGas = 10000,
     Vars = 1000,
@@ -248,7 +244,8 @@ serialize_tree(T) ->
     A = case Type of
             sid -> 1;
             before -> 2;
-            contract -> 3
+            contract -> 3;
+            sid_before -> 4
         end,
                    
     <<C/binary, H0/binary, H1/binary, A:8>>.
@@ -294,6 +291,7 @@ deserialize(B) ->
 
 test() ->
     SID = hash:doit(1),
+    SID2 = hash:doit(2),
     <<Max:256>> = <<-1:256>>,
     M1 = Max div 6,
     M2 = M1 + M1,
@@ -308,14 +306,29 @@ test() ->
              SID),
     X2 = new(keys:pubkey(),
              <<M3:256>>,
+             <<M4:256>>,
+             <<>>,
+             SID),
+    X3 = new(keys:pubkey(),
+             <<M4:256>>,
+             <<M5:256>>,
+             <<>>,
+             SID),
+    X4 = new(keys:pubkey(),
+             <<M5:256>>,
              <<M6:256>>,
              <<>>,
              SID),
-    L = [X1, X2],
-    {Root, T} = make_tree(L),
-    %io:fwrite(T),
-    Proof = make_proof(X1, T),
-    %io:fwrite(Proof),
+    X5 = new(keys:pubkey(),
+             <<0:256>>,
+             <<M6:256>>,
+             <<>>,
+             SID2),
+    L1 = [X1, X2, X5],
+    L2 = [X1, X2, X3, X4, X5],
+    {Root, T} = make_tree(L2),
+    Proof = lists:reverse(make_proof(X1, T)),
     Root = verify(X1, Proof),
+    %{X1, Proof}.
     success.
     
