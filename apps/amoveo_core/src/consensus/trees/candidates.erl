@@ -1,5 +1,5 @@
 -module(candidates).
--export([new/6,
+-export([new/7,
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/2, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
@@ -13,13 +13,14 @@
 %-record(candidate, {id, sortition_id, layer_number, winner, height, next_candidate}).%merkle tree
 
 
-new(ID, SID, N, WP, H, NC) ->
+new(ID, SID, N, WP, H, Pr, NC) ->
     #candidate{
      id = ID,
      sortition_id = SID,
      layer_number = N,
      winner = WP,
      height = H,
+     priority = Pr, 
      next_candidate = NC
     }.
 
@@ -103,6 +104,7 @@ serialize(C) ->
       (C#candidate.layer_number):16,
       Winner/binary,
       (C#candidate.height):HEI,
+      (C#candidate.priority):8,
       NC/binary>>.
       
 deserialize(B) ->
@@ -115,6 +117,7 @@ deserialize(B) ->
       LN:16,
       Winner:PS,
       Height:HEI,
+      Priority:8,
       NC:HS
     >> = B,
     #candidate{
@@ -123,6 +126,7 @@ deserialize(B) ->
            layer_number = LN,
            winner = <<Winner:PS>>,
            height = Height,
+           priority = Priority,
            next_candidate = <<NC:HS>>
           }.
 
@@ -143,6 +147,7 @@ test() ->
             1,
             Pub,
             1,
+            0,
             hash:doit(3)),
     %serialize deserialize
     S1 = deserialize(serialize(S)),

@@ -6,7 +6,8 @@
          pubkey/1,
          pstart/1,
          pend/1,
-         contract/1,
+         %contract/1,
+         priority/1,
          sid/1,
          
          verify/2,
@@ -37,28 +38,61 @@
 %To make a balanced tree, we need to keep choosing questions such that 1/2 of the elements we need to put in the tree are "yes", and 1/2 are "no".
 
 -record(owner, {pubkey, %pubkey of who owns this probabilistic value space.
-            pstart, %start of the probability space
-            pend, %end of the probability space
-            sortition_id,
-            contract}).
+                pstart, %start of the probability space
+                pend, %end of the probability space
+                priority,
+                sortition_id%,
+                %contract
+               }).
 -record(tree, {rule, 
                b1, h1, b0, h0}).
-new(P, S, E, C, SID) ->
+new(P, S, E, Pr, SID) ->
     32 = size(SID),
     32 = size(S),
     32 = size(E),
     #owner{pubkey = P,
        pstart = S,
        pend = E,
-       sortition_id = SID,
-       contract = hash:doit(C)}.
+           sortition_id = SID,
+           priority = Pr
+           %contract = hash:doit(C)
+          }.
 pubkey(X) -> X#owner.pubkey.
 pstart(X) -> X#owner.pstart.
 pend(X) -> X#owner.pend.
-contract(X) -> X#owner.contract.
+priority(X) -> X#owner.priority.
+%contract(X) -> X#owner.contract.
 sid(X) -> X#owner.sortition_id.
 
 make_tree(Owners) ->
+
+    Owners2 = lists:sort(
+                fun(A, B) ->
+                        A1 = A#owner.priority,
+                        B1 = B#owner.priority,
+                        A1 =< B1 end, Owners),
+    ListsOwners = 
+        make_lists(fun(X) -> X#owner.priority end, 
+                   Owners2),%there are sub-lists each with a unique priority.
+
+    Tree1 = make_tree_priority2(ListsOwners),
+    %Tree1 = make_tree_sid(Owners2),
+
+    add_hashes(Tree1).
+make_tree_priority2([A]) -> make_tree_sid(A);
+make_tree_priority2(ListsOwners) -> 
+    L = length(ListsOwners),
+    L2 = L div 2,
+    OwnerNth = hd(lists:nth(L2, ListsOwners)), 
+    SID = OwnerNth#owner.priority,
+    {LA, LB} = lists:split(L2, ListsOwners),
+    false = [] == LA,
+    false = [] == LB,
+    #tree{rule = {priority_before, SID},
+          b1 = make_tree_priority2(LA),
+          b0 = make_tree_priority2(LB)}.
+    
+make_tree_sid(Owners) ->
     Owners2 = lists:sort(
                 fun(A, B) ->
                         <<A1:256>> = A#owner.sortition_id,
@@ -67,8 +101,8 @@ make_tree(Owners) ->
     ListsOwners = 
         make_lists(fun(X) -> X#owner.sortition_id end, 
                    Owners2),%there are sub-lists each with a unique SID.
-    Tree1 = make_tree_sid2(ListsOwners),
-    add_hashes(Tree1).
+    make_tree_sid2(ListsOwners).
+%add_hashes(Tree1).
 add_hashes(X) when is_record(X, tree) ->
     #tree{
            b0 = B0,
@@ -121,7 +155,6 @@ make_tree_prob2(ListsOwners)->
 no_overlap_check([]) -> ok;
 no_overlap_check([_]) -> ok;
 no_overlap_check([A|[B|T]]) -> 
-    true = A#owner.contract == B#owner.contract,
     true = A#owner.pend =< B#owner.pstart,
     no_overlap_check([B|T]).
             
@@ -181,7 +214,8 @@ contract_direction(Tree, Owner) ->
             sortition_id = SID,
             pstart = <<PStart:256>>,%this moves too.
             pend = <<PEnd:256>>,
-            contract = CH1
+            priority = P
+            %contract = CH1
         } = Owner,
     true = PStart < PEnd,%TODO, move this where it belongs. 
     #tree{
@@ -200,52 +234,30 @@ contract_direction(Tree, Owner) ->
                     true = PStart >= N,
                     false
             end;
-        %PEnd =< N;
-        {contract, CH1} -> 
-            true;
-        {contract, <<CH2:256>>} -> 
-            <<CH:256>> = CH1,
-            true = (CH + CH2) == 0,
-            false
+        {priority, P2} ->
+            P == P2;
+        {priority_before, P2} ->
+            P =< P2
+        %{contract, CH1} -> 
+        %    true;
+        %{contract, <<CH2:256>>} -> 
+        %    <<CH:256>> = CH1,
+        %    true = (CH + CH2) == 0,
+        %    false
     end.
-            
-    
 
-get_merkel_facts(Evidence, Dict) ->
-    ok.
-run_contract(Tree, Ownership, Evidence, Dict) ->
-    #owner{
-        sortition_id = SID,
-        pstart = PStart,
-        pend = PEnd
-        } = Ownership,
-    #tree{
-           rule = Contract
-         } = Tree,
-    Facts = get_merkel_facts(Evidence, Dict),
-    OpGas = 10000,
-    RamGas = 10000,
-    Vars = 1000,
-    Funs = 1000,
-    State = chalang:new_state(99999999, 0, 0),
-    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, Evidence, Contract, State, constants:hash_size(), 2, false),
-    Data2 = chalang:run5(Facts, Data),
-    Data3 = chalang:run5(Contract, Data2),
-    hd(chalang:stack(Data3)).
-
-
-    
 serialize_tree(T) ->
     #tree{
-           rule = {Type, C},
+           rule = {Type, C0},
            h0 = H0,
            h1 = H1
          } = T,
-    A = case Type of
-            sid -> 1;
-            before -> 2;
-            contract -> 3;
-            sid_before -> 4
+    {C, A} = case Type of
+            sid -> {C0, 1};
+            before -> {C0, 2};
+            priority -> {<<C0:8>>, 3};
+            sid_before -> {C0, 4};
+            priority_before -> {<<C0:8>>, 5}
         end,
                    
     <<C/binary, H0/binary, H1/binary, A:8>>.
@@ -254,22 +266,24 @@ serialize(X) ->
     PS = constants:pubkey_size(),
     HS = constants:hash_size(),
     #owner{
-        pubkey = P,
-        pstart = S,
-        pend = E,
-        sortition_id = SID,
-        contract = C
+            pubkey = P,
+            pstart = S,
+            pend = E,
+            priority = Pr,
+            sortition_id = SID
+            %contract = C
       } = X,
     PS = size(P),
     32 = size(S),
     32 = size(E),
-    HS = size(C),
+    %HS = size(C),
     HS = size(SID),
     <<P/binary,
       S/binary,
       E/binary,
       SID/binary,
-      C/binary>>.
+      %C/binary,
+      Pr:8>>.
 deserialize(B) ->
     HS = constants:hash_size()*8,
     PS = constants:pubkey_size()*8,
@@ -279,14 +293,16 @@ deserialize(B) ->
       S:X,
       E:X,
       SID:HS,
-      C:HS
+      %C:HS,
+      Pr:8
     >> = B,
     #owner{
         pubkey = <<P:PS>>,
         pstart = <<S:X>>,
         pend = <<E:X>>,
-        sortition_id = <<SID:HS>>,
-        contract = <<C:HS>>
+           priority = Pr,
+        sortition_id = <<SID:HS>>
+           %contract = <<C:HS>>
       }.
 
 test() ->
@@ -302,33 +318,39 @@ test() ->
     X1 = new(keys:pubkey(),
              <<0:256>>,
              <<M3:256>>,
-             <<>>,
+             0,
              SID),
     X2 = new(keys:pubkey(),
              <<M3:256>>,
              <<M4:256>>,
-             <<>>,
+             0,
              SID),
     X3 = new(keys:pubkey(),
              <<M4:256>>,
              <<M5:256>>,
-             <<>>,
+             0,
              SID),
     X4 = new(keys:pubkey(),
              <<M5:256>>,
              <<M6:256>>,
-             <<>>,
+             0,
              SID),
     X5 = new(keys:pubkey(),
              <<0:256>>,
              <<M6:256>>,
-             <<>>,
+             0,
              SID2),
-    L1 = [X1, X2, X5],
-    L2 = [X1, X2, X3, X4, X5],
+    SID3 = hash:doit(3),
+    X6 = new(keys:pubkey(),
+             <<0:256>>,
+             <<M6:256>>,
+             1,
+             SID),
+    %L1 = [X1, X2, X5],
+    L2 = [X1, X2, X3, X4, X5, X6],
     {Root, T} = make_tree(L2),
-    Proof = lists:reverse(make_proof(X1, T)),
-    Root = verify(X1, Proof),
+    Proof = lists:reverse(make_proof(X6, T)),
+    Root = verify(X6, Proof),
     %{X1, Proof}.
     success.
     

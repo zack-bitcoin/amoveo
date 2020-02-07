@@ -1159,9 +1159,9 @@ test(31) ->
     mine_blocks(1),
 
     Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
-    Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, Contract, SID),
+    Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),
     {StateRoot, M} = ownership:make_tree([Owner]),
-    Proof = ownership:make_proof(M, Owner),
+    Proof = ownership:make_proof(Owner, M),
 
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
     VR = sortition_new_tx:make_root(Validators),
@@ -1187,7 +1187,8 @@ test(31) ->
     mine_blocks(2),
 
     ClaimID = hash:doit(22),
-    SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, Contract, <<>>, <<0:256>>, Fee),
+    io:fwrite("here\n"),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, <<0:256>>, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),

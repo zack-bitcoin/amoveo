@@ -1,12 +1,12 @@
 -module(sortition_claim_tx).
--export([go/4, make_dict/11]).
+-export([go/4, make_dict/9]).
 -include("../../records.hrl").
 
 -record(owner, {pubkey, contract}).
 
-make_dict(From, SID, EID, Proof, VR, Ownership, ClaimID, Contract, Evidence, TCID, Fee) ->
+make_dict(From, SID, EID, Proof, VR, Ownership, ClaimID, TCID, Fee) ->
     Acc = trees:get(accounts, From),
-    #sortition_claim_tx{from = From, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, proof = Proof, evidence_id = EID, validators_root = VR, ownership = Ownership, claim_id = ClaimID, contract = Contract, evidence = Evidence, top_candidate = TCID}.
+    #sortition_claim_tx{from = From, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, proof = Proof, evidence_id = EID, validators_root = VR, ownership = Ownership, claim_id = ClaimID, top_candidate = TCID}.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
     #sortition_claim_tx{
@@ -19,9 +19,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     validators_root = ValidatorRoot,
     ownership = Ownership,
     claim_id = ClaimID,
-    contract = Contract,
-    top_candidate = TCID,
-    evidence = Evidence
+    top_candidate = TCID
    } = Tx,
     SID = ownership:sid(Ownership),
     A2 = accounts:dict_update(From, Dict, -Fee, Nonce), %you pay a safety deposit.
@@ -54,25 +52,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = Pstart =< PV,
     true = PV < Pend,
 
-    %TODO, show that `ownership` is the only entree in the range RNGStart-RNGEnd
     OwnershipRoot = ownership:verify(Ownership, Proof),
-    %ownership:verify(Ownership, OwnershipRoot, Proof),
-    CH = ownership:contract(Ownership),
-    CH = hash:doit(Contract),
-    OpGas = 10000,
-    RamGas = 10000,
-    Vars = 1000,
-    Funs = 1000,
-    State = chalang:new_state(NewHeight, 0, 0),
-    Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, Evidence, Contract, State, constants:hash_size(), 2, false),
-    Data2 = chalang:run5(Evidence, Data),
-    Data3 = chalang:run5(Contract, Data2),
-    [<<1:32>>|_] = chalang:stack(Data3),
+    Priority = ownership:priority(Ownership),
 
     S2 = S#sortition{
            top_candidate = ClaimID
           },
     Dict3 = sortition:dict_write(S2, Dict2),
-    NC = candidates:new(ClaimID, SID, 0, Winner, NewClaimHeight, TCID),%this will need to be a list of candidates eventually.
+    NC = candidates:new(ClaimID, SID, 0, Winner, NewClaimHeight, Priority, TCID),%this will need to be a list of candidates eventually.
     Dict4 = candidates:dict_write(NC, Dict3).
 
