@@ -1188,7 +1188,7 @@ test(31) ->
 
     ClaimID = hash:doit(22),
     io:fwrite("here\n"),
-    SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, <<0:256>>, Fee),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, <<0:256>>, Fee*3),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),
