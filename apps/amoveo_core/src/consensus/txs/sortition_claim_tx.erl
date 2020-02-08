@@ -43,9 +43,15 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             <<0:256>> -> none;%integers are always less than atoms.
             _ ->
                 TC = candidate:dict_get(TCID, Dict),
-                TC#candidate.height
+                #candidate{
+                            height = CH,
+                            priority = CP
+                          } = TC,
+                %TC#candidate.height
+                (CH*256) + CP
         end,
-    true = NewClaimHeight < OldClaimHeight,%you can only do this tx if your new candidate will have the highest priority.
+    Priority = ownership:priority(Ownership),
+    true = ((NewClaimHeight*256) + Priority) < OldClaimHeight,%you can only do this tx if your new candidate will have the highest priority.
     <<Pstart:256>> = ownership:pstart(Ownership),
     <<PV:256>> = RNGValue,
     <<Pend:256>> = ownership:pend(Ownership),
@@ -53,7 +59,6 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     true = PV < Pend,
 
     OwnershipRoot = ownership:verify(Ownership, Proof),
-    Priority = ownership:priority(Ownership),
 
     S2 = S#sortition{
            top_candidate = ClaimID
