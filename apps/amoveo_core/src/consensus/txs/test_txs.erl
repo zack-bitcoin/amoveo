@@ -1160,7 +1160,8 @@ test(31) ->
 
     Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
     Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),
-    {StateRoot, M} = ownership:make_tree([Owner]),
+    Owner2 = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 1, SID),
+    {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
     Proof = ownership:make_proof(Owner, M),
 
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
@@ -1183,7 +1184,7 @@ test(31) ->
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
     1 = many_txs(),
-    timer:sleep(9000),
+    timer:sleep(10000),
     mine_blocks(2),
 
     ClaimID = hash:doit(22),
@@ -1191,6 +1192,16 @@ test(31) ->
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, <<0:256>>, Fee*3),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(2000),
+
+    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), SID, <<3, 1>>),
+    SW = keys:sign(Waiver),
+    SS = spk:new_ss(<<>>, []),
+    SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, SW, SS),
+    SSET = keys:sign(SET),
+    absorb(SSET),
     1 = many_txs(),
     mine_blocks(1),
 

@@ -537,6 +537,24 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {sortition_blocks, EID},
                  {candidates, ClaimID}
                 ] ++ U;
+            sortition_evidence_tx ->
+                #sortition_evidence_tx{
+              pubkey = From,
+              sortition_id = SID,
+              %signed_waiver = SW,
+              script_sig = SS
+             } = Tx,
+                {_, S, _} = sortition:get(SID, trees:sortition(Trees)),
+                #sortition{
+                            top_candidate = TCID
+                          } = S,
+                U = channel_slash_tx:to_prove_helper([SS], Height),
+                [
+                 {governance, ?n2i(sortition_evidence_tx)},
+                 {sortition, SID},
+                 {candidates, TCID},
+                 {accounts, From}
+                ] ++ U;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

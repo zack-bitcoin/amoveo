@@ -4,7 +4,8 @@
 	 is_improvement/4, bet_unlock/2, force_update/3,
          new_ss/2, remove_bet/2, remove_nth/2, 
          verify_sig/3, sign/2, hash/1,
-	 test/0, test2/0
+	 test/0, test2/0,
+         prove_facts/3
 	]).
 
 %We want channel that are using the same contract to be able to calculate a contract hash that is the same. This makes it easier to tell if 2 channels are betting on the same thing.

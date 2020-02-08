@@ -117,9 +117,9 @@ developer_lock_period() ->%in seconds
     
 oracle_question_liquidity() -> 1200.
 sortition_new_tx() -> 905.
-sortition_claim_tx() -> 985.
-sortition_evidence_tx() -> 905.
-sortition_timeout_tx() -> 905.
+sortition_claim_tx() -> 905.
+sortition_evidence_tx() -> 705.
+sortition_timeout_tx() -> 705.
 sortition_block_tx() -> 905.
 rng_result_tx() -> 905.
 rng_challenge_tx() -> 905.

@@ -1337,7 +1337,7 @@ no_counterfeit(Old, New, Txs, Height) ->
     if
         ((Diff > 0) or (Diff < -50000000))->
         %false ->
-            io:fwrite("height "),
+            io:fwrite("block.erl no_counterfeit. height "),
             io:fwrite(integer_to_list(Height)),
             io:fwrite("; diff is "),
             io:fwrite(integer_to_list(Diff)),
