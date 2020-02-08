@@ -46,7 +46,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
               } = TC,
     
     S2 = S#sortition{
-           top_candidate = NC
+           top_candidate = NC,
+           last_modified = NewHeight
           },
     Dict3 = sortition:dict_write(S2, Dict2),
 

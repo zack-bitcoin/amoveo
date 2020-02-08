@@ -555,6 +555,23 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {candidates, TCID},
                  {accounts, From}
                 ] ++ U;
+            sortition_timeout_tx ->
+                #sortition_timeout_tx{
+              pubkey = From,
+              winner = Winner,
+              sortition_id = SID
+             } = Tx,
+                {_, S, _} = sortition:get(SID, trees:sortition(Trees)),
+                #sortition{
+                            top_candidate = TCID
+                          } = S,
+                [
+                 {candidates, TCID},
+                 {accounts, From},
+                 {accounts, Winner},
+                 {sortition, SID},
+                 {governance, ?n2i(sortition_timeout_tx)}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

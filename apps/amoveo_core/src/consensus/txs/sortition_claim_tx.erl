@@ -42,7 +42,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
         case TCID of
             <<0:256>> -> none;%integers are always less than atoms.
             _ ->
-                TC = candidate:dict_get(TCID, Dict),
+                TC = candidates:dict_get(TCID, Dict),
                 #candidate{
                             height = CH,
                             priority = CP
@@ -61,9 +61,11 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     OwnershipRoot = ownership:verify(Ownership, Proof),
 
     S2 = S#sortition{
-           top_candidate = ClaimID
+           top_candidate = ClaimID,
+           last_modified = NewHeight
           },
     Dict3 = sortition:dict_write(S2, Dict2),
+    empty = candidates:dict_get(ClaimID, Dict3),
     NC = candidates:new(ClaimID, SID, 0, Winner, NewClaimHeight, Priority, TCID),%this will need to be a list of candidates eventually.
     Dict4 = candidates:dict_write(NC, Dict3).
 

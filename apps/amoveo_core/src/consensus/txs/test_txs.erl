@@ -1152,17 +1152,18 @@ test(31) ->
     RNGEnds = 12,
     Delay = 2,
     Validators = [keys:pubkey()],
-    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
+    Amount = 1000000000,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
     Stx = keys:sign(Tx),
     absorb(Stx),
     1 = many_txs(),
     mine_blocks(1),
 
-    Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
     Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),
     Owner2 = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 1, SID),
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
     Proof = ownership:make_proof(Owner, M),
+    Proof2 = ownership:make_proof(Owner2, M),
 
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
     VR = sortition_new_tx:make_root(Validators),
@@ -1184,24 +1185,40 @@ test(31) ->
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
     1 = many_txs(),
-    timer:sleep(10000),
+    timer:sleep(11000),
     mine_blocks(2),
 
     ClaimID = hash:doit(22),
-    io:fwrite("here\n"),
-    SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, <<0:256>>, Fee*3),
-    SSCT = keys:sign(SCT),
-    absorb(SSCT),
+    ClaimID2 = hash:doit(23),
+    SCT2 = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof2, VR, Owner2, ClaimID2, <<0:256>>, Fee),
+    SSCT2 = keys:sign(SCT2),
+    absorb(SSCT2),
     1 = many_txs(),
     mine_blocks(3),
     timer:sleep(2000),
 
-    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), SID, <<3, 1>>),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, ClaimID2, Fee),
+    SSCT = keys:sign(SCT),
+    absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(3000),
+
+
+    Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
+    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), SID, Contract),
     SW = keys:sign(Waiver),
     SS = spk:new_ss(<<>>, []),
     SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, SW, SS),
     SSET = keys:sign(SET),
     absorb(SSET),
+    1 = many_txs(),
+    mine_blocks(6),
+    timer:sleep(5000),
+
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, Fee),
+    SSTT = keys:sign(STT),
+    absorb(SSTT),
     1 = many_txs(),
     mine_blocks(1),
 
@@ -1265,7 +1282,7 @@ mine_blocks(Many) ->
     Hash = block:hash(PB),
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
-    block:mine(Block, 10),
+    block:mine(Block, 1000),
     timer:sleep(300),
     mine_blocks(Many-1).
 
