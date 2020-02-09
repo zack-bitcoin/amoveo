@@ -44,7 +44,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 next_candidate = NC,
                 winner = Loser%matches with who signed the waiver.
               } = TC,
-    
+    %TODO, sortition_evidence_tx can also refer to any layer built on this candidate, if the sortition chain has recursive child sortition chains.
     S2 = S#sortition{
            top_candidate = NC,
            last_modified = NewHeight

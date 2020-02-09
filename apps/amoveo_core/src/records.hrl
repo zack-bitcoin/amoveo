@@ -3,7 +3,7 @@
 
 -record(sortition_block_tx, {from, nonce, fee, id, prev_id, validators, signatures, side_height, state_root}).
 
--record(sortition_claim_tx, {from, nonce, fee, sortition_id, proof, evidence_id, validators_root, ownership, claim_id, top_candidate}).
+-record(sortition_claim_tx, {from, nonce, fee, claim_id, top_candidate, ownership, proof_layers}).
 
 -record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, signed_waiver, script_sig}).
 
