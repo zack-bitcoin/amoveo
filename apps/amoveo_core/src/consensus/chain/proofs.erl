@@ -551,6 +551,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 U = channel_slash_tx:to_prove_helper([SS], Height),
                 [
                  {governance, ?n2i(sortition_evidence_tx)},
+                 {governance, ?n2i(fun_limit)},
+                 {governance, ?n2i(var_limit)},
+                 {governance, ?n2i(time_gas)},
+                 {governance, ?n2i(space_gas)},
                  {sortition, SID},
                  {candidates, TCID},
                  {accounts, From}
