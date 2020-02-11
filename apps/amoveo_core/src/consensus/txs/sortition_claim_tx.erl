@@ -46,7 +46,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 validators = ValidatorsRoot
               } = S,
     false = (RNGValue == <<0:256>>),%the rng value has been supplied
-
+    true = priority_check(TCID, 0, ProofLayers, Dict2),
     Dict3 = sortition_recursion(0, ProofLayers, ClaimID, RNGValue, TCID, Dict2),
 
     S2 = S#sortition{
@@ -54,11 +54,41 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
            last_modified = NewHeight
           },
     Dict4 = sortition:dict_write(S2, Dict3).
+priority_check(<<0:256>>, _, _, _) -> true;
+priority_check(TCID, LayerNumber, [H|T], Dict2) ->
+    #owner_layer{
+                sortition_id = _SID,
+                proof = _Proof,
+                sortition_block_id = EID,
+                validators_root = ValidatorsRoot,
+                ownership = Ownership
+               } = H,
+    TCID2 = layer_salt(TCID, LayerNumber),
+    TC = candidates:dict_get(TCID2, Dict2),
+    #candidate{
+                height = CH,
+                priority = CP
+              } = TC,
+    E = sortition_blocks:dict_get(EID, Dict2),
+    #sortition_block{
+                      state_root = _OwnershipRoot,
+                      validators = ValidatorsRoot,
+                      height = NewClaimHeight
+             } = E,
+    P1 = (NewClaimHeight * 256) + ownership:priority(Ownership),
+    P2 = (CH*256) + CP,
+    if
+        P1 == P2 -> priority_check(TCID, LayerNumber+1, T, Dict2);
+        P1 < P2 -> true;
+        true -> false
+    end.
+    %you can only do this tx if your new candidate will have the highest priority.
+    
 
 
 sortition_recursion(_, [], _, _, _, Dict) -> Dict;
 sortition_recursion(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, Dict2) ->
-    LayerClaimID = layer_salt(ClaimID, LayerNumber),%TODO: salt with layer number
+    LayerClaimID = layer_salt(ClaimID, LayerNumber),
     #owner_layer{
                   sortition_id = SID,
                   proof = Proof,
@@ -66,8 +96,13 @@ sortition_recursion(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, Dict2) ->
                   validators_root = ValidatorsRoot,
                   ownership = Ownership
                 } = OL,
-    %TODO: if not last layer, ownership.pubkey = <<0:(65*8)>>, and ownership.sortition_id is new validators_root
+    %if
+    %    not(T == []) ->
+    %        true = Ownership#ownership.pubkey == 
+    %            <<0:(65*8)>>;
     %this connects the layers together, the proof of one points to the root of the validators which we use to verify proofs for the next layer.
+    %    true -> ok
+    %end,
     E = sortition_blocks:dict_get(EID, Dict2),
     #sortition_block{
                       state_root = OwnershipRoot,
@@ -84,21 +119,8 @@ sortition_recursion(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, Dict2) ->
     empty = candidates:dict_get(LayerClaimID, Dict2),
     Priority = ownership:priority(Ownership),
     Winner = ownership:pubkey(Ownership),
-    NC = candidates:new(LayerClaimID, SID, LayerNumber, Winner, NewClaimHeight, Priority, TCID),%this will need to be a list of candidates eventually.
+    NC = candidates:new(LayerClaimID, SID, LayerNumber, Winner, NewClaimHeight, Priority, TCID),
     Dict3 = candidates:dict_write(NC, Dict2),
-    case TCID of
-        <<0:256>> -> ok;
-        _ ->
-            TCID2 = layer_salt(TCID, LayerNumber),
-            TC = candidates:dict_get(TCID2, Dict3),
-            #candidate{
-                        height = CH,
-                        priority = CP
-                      } = TC,
-            true = ((NewClaimHeight * 256) + 
-                        Priority) < 
-                ((CH*256) + CP)%you can only do this tx if your new candidate will have the highest priority.
-    end, 
     sortition_recursion(LayerNumber + 1,
                         T,
                         ClaimID,
