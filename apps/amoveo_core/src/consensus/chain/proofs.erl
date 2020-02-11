@@ -516,13 +516,14 @@ txs_to_querys2([STx|T], Trees, Height) ->
             sortition_claim_tx ->
                 #sortition_claim_tx{
               from = From,
-              ownership = Ownership,
+              %ownership = Ownership,
+              sortition_id = SID,
               top_candidate = TCID,
               claim_id = ClaimID,
               proof_layers = PL
              } = Tx,
-                SID = ownership:sid(Ownership),
-                Winner = ownership:pubkey(Ownership),
+                %SID = ownership:sid(Ownership),
+                %Winner = ownership:pubkey(Ownership),
                 U = case TCID of
                         <<0:256>> -> [];
                         0 -> [];
@@ -531,7 +532,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 V = sortition_claim_tx:make_proofs(PL),
                 [
                  {accounts, From},
-                 {accounts, Winner},
+                 %{accounts, Winner},
                  {governance, ?n2i(sortition_claim_tx)},
                  {candidates, ClaimID}
                 ] ++ U ++ V;
