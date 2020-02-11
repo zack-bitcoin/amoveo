@@ -1140,6 +1140,8 @@ test(30) ->
     success;
 test(31) ->
     %sortition chain resolution test
+    %s new, s blocks, rng result, rng confirm, sortition claim, sortition claim, sortition evidence, mine a bunch of blocks, sortition timeout
+
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -1221,10 +1223,81 @@ test(31) ->
     absorb(SSTT),
     1 = many_txs(),
     mine_blocks(1),
+    success;
 
-    %sortition claim, sortition claim, sortition evidence, mine a bunch of blocks, sortition timeout
+test(32) ->
+    %sortition chain recursion resolution test
+    % new, blocks, rng result, rng confirm,
+    % sortition claim, sortition timeout
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(2),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    Entropy = 8,
+    TradingEnds = 4,
+    ResponseDelay = 2,
+    RNGEnds = 12,
+    Delay = 2,
+    Validators = [keys:pubkey()],
+    Amount = 1000000000,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),
+    Owner2 = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 1, SID),
+    {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
+    Proof = ownership:make_proof(Owner, M),
+    Proof2 = ownership:make_proof(Owner2, M),
+
+    Sig = keys:raw_sign(hash:doit([0,StateRoot])),
+    VR = sortition_new_tx:make_root(Validators),
+
+    SBID = hash:doit([0, VR]),
+    SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
+    SSBT = keys:sign(SBT),
+    absorb(SSBT),
+    1 = many_txs(),
+    mine_blocks(3),%mine enough blocks we can post rng results
+    GoodHashes = times(129, <<27:256>>, []),
+    RID = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
+    1 = many_txs(),
+    mine_blocks(20),
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
+    1 = many_txs(),
+    timer:sleep(11000),
+    mine_blocks(2),
+
+    ClaimID = hash:doit(22),
+
+    %TODO: mamke this sortition claim recursive.
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, <<0:256>>, Fee),
+    SSCT = keys:sign(SCT),
+    absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(3000),
+
+    mine_blocks(9),
+    timer:sleep(7000),
+
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, Fee),
+    SSTT = keys:sign(STT),
+    absorb(SSTT),
+    1 = many_txs(),
+    mine_blocks(1),
 
     success.
+
     
 
 test29(_, _, _, 0) -> ok;
