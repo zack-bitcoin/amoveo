@@ -20,7 +20,6 @@ make_dict(From, SID, EID, Proof, VR, Ownership, ClaimID, TCID, Fee) ->
     OL = #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR, ownership = Ownership},
     #sortition_claim_tx{from = From, nonce = Acc#acc.nonce + 1, 
                         fee = Fee, 
-                        %ownership = Ownership, 
                         claim_id = ClaimID, sortition_id = SID,
                         top_candidate = TCID, proof_layers = [OL]}.
 %sortition_id, Proof, evidence_id, validators_root will all need to become lists.
@@ -47,7 +46,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
               } = S,
     false = (RNGValue == <<0:256>>),%the rng value has been supplied
     true = priority_check(TCID, 0, ProofLayers, Dict2),
-    Dict3 = sortition_recursion(0, ProofLayers, ClaimID, RNGValue, TCID, Dict2),
+    Dict3 = merkle_verify(0, ProofLayers, ClaimID, RNGValue, TCID, ValidatorsRoot, Dict2),%creates the candidates for this claim.
 
     S2 = S#sortition{
            top_candidate = ClaimID,
@@ -83,11 +82,10 @@ priority_check(TCID, LayerNumber, [H|T], Dict2) ->
         true -> false
     end.
     %you can only do this tx if your new candidate will have the highest priority.
-    
 
-
-sortition_recursion(_, [], _, _, _, Dict) -> Dict;
-sortition_recursion(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, Dict2) ->
+merkle_verify(_, [], _, _, _, _, Dict) -> Dict;
+merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict2) ->
+    %also creates the candidates.
     LayerClaimID = layer_salt(ClaimID, LayerNumber),
     #owner_layer{
                   sortition_id = SID,
@@ -96,13 +94,13 @@ sortition_recursion(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, Dict2) ->
                   validators_root = ValidatorsRoot,
                   ownership = Ownership
                 } = OL,
-    %if
-    %    not(T == []) ->
-    %        true = Ownership#ownership.pubkey == 
-    %            <<0:(65*8)>>;
-    %this connects the layers together, the proof of one points to the root of the validators which we use to verify proofs for the next layer.
-    %    true -> ok
-    %end,
+    NextVR = if
+                 not(T == []) ->
+                     true = ownership:pubkey(Ownership) == 
+                         <<0:(65*8)>>,
+                     ownership:sid(Ownership); %this connects the layers together, the proof of one points to the root of the validators which we use to verify proofs for the next layer.
+                 true -> ok
+             end,
     E = sortition_blocks:dict_get(EID, Dict2),
     #sortition_block{
                       state_root = OwnershipRoot,
@@ -121,12 +119,14 @@ sortition_recursion(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, Dict2) ->
     Winner = ownership:pubkey(Ownership),
     NC = candidates:new(LayerClaimID, SID, LayerNumber, Winner, NewClaimHeight, Priority, TCID),
     Dict3 = candidates:dict_write(NC, Dict2),
-    sortition_recursion(LayerNumber + 1,
-                        T,
-                        ClaimID,
-                        RNGValue,
-                        TCID, 
-                        Dict3).
+    merkle_verify(LayerNumber + 1,
+                  T,
+                  ClaimID,
+                  RNGValue,
+                  TCID, 
+                  NextVR,
+                  Dict3).
 
-layer_salt(ClaimID, 0) ->
-    ClaimID.
+layer_salt(ClaimID, 0) -> ClaimID;
+layer_salt(ClaimID, N) -> 
+    hash:doit(<<N:32, ClaimID/binary>>).
