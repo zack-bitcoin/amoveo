@@ -60,9 +60,9 @@ new(P, S, E, Pr, SID) ->
 pubkey(X) -> X#owner.pubkey.
 pstart(X) -> X#owner.pstart.
 pend(X) -> X#owner.pend.
-priority(X) -> X#owner.priority.
 %contract(X) -> X#owner.contract.
 sid(X) -> X#owner.sortition_id.
+priority(X) -> X#owner.priority.
 
 make_tree(Owners) ->
 
