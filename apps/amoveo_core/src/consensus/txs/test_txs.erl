@@ -1192,14 +1192,16 @@ test(31) ->
 
     ClaimID = hash:doit(22),
     ClaimID2 = hash:doit(23),
-    SCT2 = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof2, VR, Owner2, ClaimID2, <<0:256>>, Fee),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    SCT2 = sortition_claim_tx:make_dict(keys:pubkey(), [OL2], SID, ClaimID2, <<0:256>>, Fee),
     SSCT2 = keys:sign(SCT2),
     absorb(SSCT2),
     1 = many_txs(),
     mine_blocks(3),
     timer:sleep(2000),
 
-    SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, ClaimID2, Fee),
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, ClaimID2, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),
@@ -1218,7 +1220,7 @@ test(31) ->
     mine_blocks(6),
     timer:sleep(5000),
 
-    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, Fee),
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, 0, Fee),
     SSTT = keys:sign(STT),
     absorb(SSTT),
     1 = many_txs(),
@@ -1227,7 +1229,8 @@ test(31) ->
 
 test(32) ->
     %sortition chain recursion resolution test
-    % new, blocks, rng result, rng confirm,
+    % new, block, 
+    % rng result, rng confirm,
     % sortition claim, sortition timeout
     headers:dump(),
     block:initialize_chain(),
@@ -1248,14 +1251,16 @@ test(32) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),
-    Owner2 = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 1, SID),
+    VR = sortition_new_tx:make_root(Validators),
+    Owner = ownership:new(<<0:520>>, <<0:256>>, <<-1:256>>, 0, VR),%VR is the validators root for the new baby sortiiton chain.
+    Owner2 = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),%this gives all the money in the baby sortition chain to keys:pubkey().
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
     Proof = ownership:make_proof(Owner, M),
+    %{StateRoot2, M2} = ownership:make_tree([Owner2]),
     Proof2 = ownership:make_proof(Owner2, M),
 
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
-    VR = sortition_new_tx:make_root(Validators),
+    %Sig2 = keys:raw_sign(hash:doit([0,StateRoot2])),
 
     SBID = hash:doit([0, VR]),
     SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
@@ -1279,8 +1284,9 @@ test(32) ->
 
     ClaimID = hash:doit(22),
 
-    %TODO: mamke this sortition claim recursive.
-    SCT = sortition_claim_tx:make_dict(keys:pubkey(), SID, SBID, Proof, VR, Owner, ClaimID, <<0:256>>, Fee),
+    OL1 = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL1, OL2], SID, ClaimID, <<0:256>>, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),
@@ -1290,7 +1296,7 @@ test(32) ->
     mine_blocks(9),
     timer:sleep(7000),
 
-    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, Fee),
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, 1, Fee),
     SSTT = keys:sign(STT),
     absorb(SSTT),
     1 = many_txs(),

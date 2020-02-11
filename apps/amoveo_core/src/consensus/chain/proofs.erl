@@ -562,12 +562,14 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 #sortition_timeout_tx{
               pubkey = From,
               winner = Winner,
-              sortition_id = SID
+              sortition_id = SID,
+              layer = LN
              } = Tx,
                 {_, S, _} = sortition:get(SID, trees:sortition(Trees)),
                 #sortition{
-                            top_candidate = TCID
+                            top_candidate = TCID_0
                           } = S,
+                TCID = sortition_claim_tx:layer_salt(TCID_0, LN),
                 [
                  {candidates, TCID},
                  {accounts, From},

@@ -1,5 +1,5 @@
 -module(sortition_claim_tx).
--export([go/4, make_dict/9, make_proofs/1]).
+-export([go/4, make_dict/6, make_proofs/1, make_owner_layer/5, layer_salt/2]).
 -include("../../records.hrl").
 
 -record(owner, {pubkey, contract}).
@@ -15,13 +15,16 @@ make_proofs([X|T]) ->
      {sortition_blocks, SBID}] ++
         make_proofs(T).
 
-make_dict(From, SID, EID, Proof, VR, Ownership, ClaimID, TCID, Fee) ->
+make_owner_layer(SID, Proof, EID, VR, Ownership) ->
+    #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR, ownership = Ownership}.
+
+make_dict(From, L, SID, ClaimID, TCID, Fee) ->
     Acc = trees:get(accounts, From),
-    OL = #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR, ownership = Ownership},
+    %OL = #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR, ownership = Ownership},
     #sortition_claim_tx{from = From, nonce = Acc#acc.nonce + 1, 
                         fee = Fee, 
                         claim_id = ClaimID, sortition_id = SID,
-                        top_candidate = TCID, proof_layers = [OL]}.
+                        top_candidate = TCID, proof_layers = L}.
 %sortition_id, Proof, evidence_id, validators_root will all need to become lists.
 %maybe we should store them in groups of 4 together.
 
@@ -94,13 +97,21 @@ merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict
                   validators_root = ValidatorsRoot,
                   ownership = Ownership
                 } = OL,
-    NextVR = if
-                 not(T == []) ->
-                     true = ownership:pubkey(Ownership) == 
-                         <<0:(65*8)>>,
-                     ownership:sid(Ownership); %this connects the layers together, the proof of one points to the root of the validators which we use to verify proofs for the next layer.
-                 true -> ok
+    NextVR = case T of
+                 [] -> false = (ownership:pubkey(Ownership) == <<0:520>>);
+                 _ -> true = ownership:pubkey(Ownership) == <<0:520>>,
+                      ownership:sid(Ownership)%this connects the layers together, the proof of one points to the root of the validators which we use to verify proofs for the next layer.
              end,
+
+%    NextVR = if
+%                 not(T == []) ->
+%                     true = ownership:pubkey(Ownership) == 
+%                         <<0:520>>,
+%                     ownership:sid(Ownership); 
+                 
+%                     false = (ownership:pubkey(Ownership) == <<0:520>>)
+%                 true -> ok
+%             end,
     E = sortition_blocks:dict_get(EID, Dict2),
     #sortition_block{
                       state_root = OwnershipRoot,
@@ -112,7 +123,7 @@ merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict
     <<Pend:256>> = ownership:pend(Ownership),
     true = Pstart =< PV,
     true = PV < Pend,
-    SID = ownership:sid(Ownership),
+    %SID = ownership:sid(Ownership),
     OwnershipRoot = ownership:verify(Ownership, Proof),
     empty = candidates:dict_get(LayerClaimID, Dict2),
     Priority = ownership:priority(Ownership),
