@@ -1213,7 +1213,7 @@ test(31) ->
     Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), SID, Contract),
     SW = keys:sign(Waiver),
     SS = spk:new_ss(<<>>, []),
-    SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, SW, SS),
+    SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, 0, SW, SS),
     SSET = keys:sign(SET),
     absorb(SSET),
     1 = many_txs(),

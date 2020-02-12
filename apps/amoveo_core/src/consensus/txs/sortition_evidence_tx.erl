@@ -1,5 +1,5 @@
 -module(sortition_evidence_tx).
--export([go/4, make_dict/5, make_waiver/3]).
+-export([go/4, make_dict/6, make_waiver/3]).
 -include("../../records.hrl").
 %-record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, signed_waiver}).
 %-record(waiver, {pubkey, sortition_id, contract}).
@@ -9,9 +9,9 @@ make_waiver(Who, SID, Contract) ->
             sortition_id = SID,
             contract = Contract}.
 
-make_dict(From, Fee, SID, SignedWaiver, SS) ->
+make_dict(From, Fee, SID, LN, SignedWaiver, SS) ->
     Acc = trees:get(accounts, From),
-    #sortition_evidence_tx{pubkey = From, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, signed_waiver = SignedWaiver, script_sig = SS}.
+    #sortition_evidence_tx{pubkey = From, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, signed_waiver = SignedWaiver, script_sig = SS, layer = LN}.
     
 go(Tx, Dict, NewHeight, NonceCheck) ->
     #sortition_evidence_tx{
@@ -20,7 +20,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     sortition_id = SID,
     fee = Fee,
     signed_waiver = SignedWaiver,
-    script_sig = SS
+    script_sig = SS,
+    layer = LN
    } = Tx,
     A2 = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(A2, Dict),
@@ -36,14 +37,15 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 
     S = sortition:dict_get(SID, Dict2),
     #sortition{
-                top_candidate = TCID
+                top_candidate = TCID_0
               } = S,
-
+    TCID = sortition_claim_tx:layer_salt(TCID_0, LN),
     TC = candidates:dict_get(TCID, Dict2),
     #candidate{
                 next_candidate = NC,
                 winner = Loser%matches with who signed the waiver.
               } = TC,
+    false = (Loser == <<0:520>>),
     %TODO, sortition_evidence_tx can also refer to any layer built on this candidate, if the sortition chain has recursive child sortition chains.
     S2 = S#sortition{
            top_candidate = NC,
