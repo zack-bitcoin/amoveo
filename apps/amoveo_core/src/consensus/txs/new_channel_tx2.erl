@@ -1,6 +1,6 @@
 -module(new_channel_tx2).
 -export([go/4, make_offer/8, make_dict/4,
-         spk/2, cid/1,
+         cid/1,
 	 acc1/1, acc2/1, bal1/1, bal2/1, delay/1]).
 -include("../../records.hrl").
 
@@ -10,9 +10,6 @@ bal1(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.bal1.
 bal2(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.bal2.
 delay(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.delay.
 cid(Tx) -> Tx#nc_accept.nc_offer#signed.data#nc_offer.id.
-spk(Tx, Delay) -> 
-    spk:new(acc1(Tx), acc2(Tx), cid(Tx),
-            [], 0, 0, 0, Delay).
 make_dict(Pub, NCOffer, Fee, SPK) ->
     NCO = testnet_sign:data(NCOffer),
     CH = NCO#nc_offer.contract_hash,
@@ -42,20 +39,39 @@ make_offer(ID, Pub, TimeLimit, Bal1, Bal2, Delay, MC, SPK) ->
 				 
 go(Tx, Dict, NewHeight, _) -> 
     true = NewHeight > forks:get(11),
-    Fee = Tx#nc_accept.fee,
-    NCO = Tx#nc_accept.nc_offer#signed.data,
-    NLock = NCO#nc_offer.nlocktime,
-    true = ((NLock == 0) or (NewHeight < NLock)),
-    DefaultFee = governance:dict_get_value(nc, Dict),
-    ToAcc1 = ((Fee) - (DefaultFee)) * (10000 div NCO#nc_offer.miner_commission), %this is how we can incentivize limit-order like behaviour.
-    CS = Tx#nc_accept.contract_sig,
-    CH = NCO#nc_offer.contract_hash,
+    #nc_accept{
+                fee = Fee,
+                nc_offer = SNCO,
+                contract_sig = CS
+              } = Tx,
+    ID0 = cid(Tx),
     Aid1 = acc1(Tx),
     Aid2 = acc2(Tx),
+    %Fee = Tx#nc_accept.fee,
+    %NCO = SNCO#signed.data,
+    #nc_offer{
+               nlocktime = NLock,
+               miner_commission = MC,
+               contract_hash = CH,
+               nonce = Nonce
+             } = SNCO#signed.data,
+    F29 = forks:get(29),
+    ID = if
+             (NewHeight > F29) ->
+                 new_channel_tx:salted_id(ID0, Aid1);
+             true -> ID0
+         end,
+    %NCO = Tx#nc_accept.nc_offer#signed.data,
+    %NLock = NCO#nc_offer.nlocktime,
+    true = ((NLock == 0) or (NewHeight < NLock)),
+    DefaultFee = governance:dict_get_value(nc, Dict),
+    %ToAcc1 = ((Fee) - (DefaultFee)) * (10000 div NCO#nc_offer.miner_commission), %this is how we can incentivize limit-order like behaviour.
+    ToAcc1 = ((Fee) - (DefaultFee)) * (10000 div MC), %this is how we can incentivize limit-order like behaviour.
+    %CS = Tx#nc_accept.contract_sig,
+    %CH = NCO#nc_offer.contract_hash,
     true = testnet_sign:verify_sig(CH, CS, Aid2),
     %true = testnet_sign:verify(CS2),
-    true = testnet_sign:verify(Tx#nc_accept.nc_offer),
-    ID = cid(Tx),
+    true = testnet_sign:verify(SNCO),
     empty = channels:dict_get(ID, Dict),
     false = Aid1 == Aid2,
     %Bal1 = bal2(Tx),%BAD
@@ -77,7 +93,7 @@ go(Tx, Dict, NewHeight, _) ->
     %Bool3 = (NCO#nc_offer.nonce == 0),
     Nonce1 = if
                  F17 -> none;
-                 true -> NCO#nc_offer.nonce
+                 true -> Nonce
              end,
     Acc1 = accounts:dict_update(Aid1, Dict, -Bal1+ToAcc1, Nonce1),
     Acc2 = accounts:dict_update(Aid2, Dict, -Bal2-Fee-ToAcc1, none),
@@ -86,10 +102,10 @@ go(Tx, Dict, NewHeight, _) ->
     if
         (NewHeight > F26) ->
             %we want Acc1 to be able to cancel his channel offer by making some other unrelated tx to increase his nonce.
-            true = Acc1#acc.nonce == (NCO#nc_offer.nonce-1);
+            true = Acc1#acc.nonce == (Nonce-1);
         true -> ok
     end,
 
     Dict3 = accounts:dict_write(Acc1, Dict2),
-    nc_sigs:store(ID, Tx#nc_accept.contract_sig),
+    nc_sigs:store(ID, CS),
     accounts:dict_write(Acc2, Dict3).

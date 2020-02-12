@@ -1,3 +1,6 @@
+add a check to all the new txs, so they cant be done till the hard update activates.
+
+
 write a blog post about using futarchy to measure the effectiveness of military spending.
 
 

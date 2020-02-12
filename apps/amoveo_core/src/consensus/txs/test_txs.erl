@@ -101,10 +101,11 @@ test(3) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     timer:sleep(100),
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
 
     Delay = 30,
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -134,10 +135,11 @@ test(4) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
     Delay = 0,
     
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -185,10 +187,11 @@ test(5) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
     Delay = 0,
     
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -230,9 +233,10 @@ test(61) ->
     potential_block:save(),
     mine_blocks(1),
     
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
 
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 30, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 100, 200, 30, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -280,9 +284,10 @@ test(6) ->
     mine_blocks(1),
     mine_blocks(1),
 
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
 
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 30, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 100, 200, 30, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -341,10 +346,11 @@ test(8) ->
     absorb(Stx),
     timer:sleep(100),
 
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
 
     Delay = 10,
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -385,10 +391,11 @@ test(9) ->
     absorb(Stx),
     timer:sleep(100),
 
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
 
     Delay = 10,
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -632,9 +639,10 @@ test(12) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
     
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
     Delay = 0,
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -755,9 +763,10 @@ test(14) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
 
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
 
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 10, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 100, 200, 10, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -810,9 +819,10 @@ test(15) ->
     Stx = keys:sign(Ctx),
     absorb(Stx),
 
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
 
-    Ctx2 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 100, 200, 10, Fee),
+    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 100, 200, 10, Fee),
+    CID = new_channel_tx:salted_id(Ctx2),
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
@@ -989,13 +999,14 @@ test(28) ->
     timer:sleep(100),
     mine_blocks(1),
     timer:sleep(100),
-    CID = <<5:256>>,
+    CID0 = <<5:256>>,
 
     Delay = 0,
 
     LimitOrderTime = 10,
+    CID = new_channel_tx:salted_id(CID0, NewPub),
     SPK = spk:new(NewPub, 1, CID, [], 0,0,2,Delay),
-    Offer = testnet_sign:sign_tx(new_channel_tx2:make_offer(CID, NewPub, LimitOrderTime, 100, 200, Delay, 5000, SPK), NewPub, NewPriv),
+    Offer = testnet_sign:sign_tx(new_channel_tx2:make_offer(CID0, NewPub, LimitOrderTime, 100, 200, Delay, 5000, SPK), NewPub, NewPriv),
     Ctx2 = new_channel_tx2:make_dict(keys:pubkey(), Offer, Fee, SPK),
     SPKSig2 = element(5, Ctx2),
     NewData = spk:hash(SPK),

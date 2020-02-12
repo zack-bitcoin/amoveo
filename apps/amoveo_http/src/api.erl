@@ -332,7 +332,9 @@ integer_channel_balance(Ip, Port) ->
     _NewHeight = TP#tx_pool.height,
     Amount = SPK#spk.amount,
     BetAmounts = sum_bets(SPK#spk.bets),
-    CID = SPK#spk.cid,
+    CID0 = SPK#spk.cid,
+    Aid1 = SPK#spk.acc1,
+    CID = new_channel_tx:salted_id(CID0, Aid1),
     Channel = trees:get(channels, CID),
     {channels:bal1(Channel)+Amount, channels:bal2(Channel)-Amount-BetAmounts}.
 sum_bets([]) -> 0;
@@ -651,7 +653,9 @@ channel_close(IP, Port, Fee) ->
     SS = CD#cd.ssthem,
     SS = [],
     {Amount, _Nonce, _Delay} = spk:dict_run(fast, SS, SPK, Height, 0, Dict),
-    CID = SPK#spk.cid,
+    CID0 = SPK#spk.cid,
+    Aid1 = SPK#spk.acc1,
+    CID = new_channel_tx:salted_id(CID0, Aid1),
     Channel = trees:get(channels, CID),
     Bal1 = channels:bal1(Channel),
     Bal2 = channels:bal2(Channel),
