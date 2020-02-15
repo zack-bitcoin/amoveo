@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/dapp_developer_introduction.md)
+
 These are the instructions for building new contracts and markets using the embedded language.
 
  far there is 2 production ready smart contracts I have made. a lightning payment contract, and the market contract. the market one has more tests.

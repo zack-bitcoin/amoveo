@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//use-cases-and-ideas/raising_funds.md)
+
 We can raise funds for public goods using this technology.
 Unlike taxation, we don't use violence to raise funds. Amoveo doesn't cause anyone to over-pay.
 Unlike donation, we don't suffer from tragedy of the commons. With Amoveo people who under-pay lose money, on average.

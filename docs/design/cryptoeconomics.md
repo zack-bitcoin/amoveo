@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/cryptoeconomics.md)
+
 Cryptoeconomics is the field of study that uses cryptographic tools and economic mechanisms to enforce the rules of a protocol. It is a form of mechanism design.
 
 When we say that a mechanism is "cryptoeconomically secure", this means that we have cryptoeconomic guarantees that the protocol will have certain properties.

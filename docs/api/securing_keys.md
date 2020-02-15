@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//api/securing_keys.md)
+
 When you launch a full node, at first you don't have any aeons.
 
 Your keys are automatically generated for you, and secured with the password "". The empty string is the default password.

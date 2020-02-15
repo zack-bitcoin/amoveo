@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//getting-started/quick_start_developer_guide.md)
+
 Thank you for your interest in Amoveo.
 This doc is an introduction to the technology.
 It is made to help you be able to start contributing to the software as quickly as possible.

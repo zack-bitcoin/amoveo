@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/hard_drive_consumption.md)
+
 Amoveo supports sharding and light nodes. So you can hold as little or as much of the merkle trees as you want.
 
 Headers are each 143 bytes. every node needs to download the headers, but you don't have to store them.

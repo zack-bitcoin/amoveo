@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//blog_posts/difficulty_oscillations.md)
+
 Miners can earn more profit if at least 50% of them switch between Amoveo and Ethereum together at the same time.
 We need to show that this strategy is not a nash equilibrium.
 

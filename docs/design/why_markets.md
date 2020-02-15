@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/why_markets.md)
+
 # cryptoeconomic explanation for why we need markets for all smart contracts.
 
 1) Cryptography tells us it is impossible for the owners of a channel to prove to anyone else the current or past state of their channel. This means it is impossible for anyone to prove how much they paid for a smart contract.

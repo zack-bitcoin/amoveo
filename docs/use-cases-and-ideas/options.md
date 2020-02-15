@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//use-cases-and-ideas/options.md)
+
 options are a type of financial derivative.
 For example, lets say Bob wants to buy seeds for his farm at the end of the year, but he only wants to budget $1000 to buy them. He is worried that the cost of seeds might go higher, and he wouldn't be able to plant next season.
 

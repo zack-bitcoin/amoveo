@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/sharding.md)
+
 ## Sharding in Amoveo
 
 Sharding is a strategy to make blockchains more scalable. Sharding would reduce the total memory and computational requirements of each node. By increasing the number of shards, we should be able to increase the computational capabilitys of the blockchain without limit.

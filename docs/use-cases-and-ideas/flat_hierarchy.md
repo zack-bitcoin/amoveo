@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//use-cases-and-ideas/flat_hierarchy.md)
+
 Things like companies exist because they were recently the most efficient way for people to pool their resources and work together towards common goals at a certain scale, and because you need to be as big as a company to justify the cost of jumping through the regulatory loopholes.
 
 Now that finance is unshackled from the government's restrictions, we have much better tools for pooling resources: unrestricted financial derivatives.

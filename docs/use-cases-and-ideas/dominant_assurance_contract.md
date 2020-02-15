@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//use-cases-and-ideas/dominant_assurance_contract.md)
+
 Tragedy of the commons is when people pay less than how much the public good would benefit them.
 
 For example, lets say Bob owns a store that will be $10,000 more valuable if a bridge gets built.

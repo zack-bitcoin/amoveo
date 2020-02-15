@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/threshold_signature_anonimity.md)
+
 Democracy is a popular idea today. Many people want to use voting in their cryptocurrency consensus mechanisms.
 The reason we haven't been able to use voting so far is because the incentive to vote honestly decreases by the square of the portion of coins that you own. So the cost of bribing a voter to be malicious is much smaller than how many coins the voter controls.
 Threshold signature schemes have been proposed as a way to overcome this limitation. If you cannot know how a person voted, then you cannot know whether to bribe them.

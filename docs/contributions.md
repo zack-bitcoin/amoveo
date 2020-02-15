@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//contributions.md)
+
 Thank you for your interest.
 There are issues on the github that need taking care of: https://github.com/zack-bitcoin/amoveo/issues
 Erlang is a rewarding language https://learnyousomeerlang.com/content

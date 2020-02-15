@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//use-cases-and-ideas/go_game_predictions.md)
+
 Blockchains allow for prediction markets, which let us prepare for the future.
 To show how powerful prediction markets can be, we will use a prediction market to play go against a professional, and we will win.
 

@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/how_to_use_channels.md)
+
 Channels are a relationship between 2 participants.
 Channels allow for the exchange of value dependent upon the outcome of turing complete contracts.
 Channel contracts can be updated without recording anything to the blockchain.
