@@ -115,5 +115,17 @@ channel_granularity() -> 10000.
 developer_lock_period() ->%in seconds
     60*60*24*365.
     
-oracle_question_liquidity() ->
-    1200.
+oracle_question_liquidity() -> 1200.
+sortition_new_tx() -> 905.
+sortition_claim_tx() -> 905.
+sortition_evidence_tx() -> 705.
+sortition_timeout_tx() -> 705.
+sortition_block_tx() -> 905.
+rng_result_tx() -> 905.
+rng_challenge_tx() -> 905.
+rng_response_tx() -> 905.
+rng_refute_tx() -> 905.
+rng_confirm_tx() -> 405.
+rng_many() -> 252.%400
+    
+    

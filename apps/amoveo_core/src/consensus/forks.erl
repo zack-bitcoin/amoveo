@@ -36,9 +36,9 @@ get(24) -> common(82270, test_height());%require that new oracle ids conform to 
 get(25) -> common(77500, test_height());%so that we can prove the non-existence of oracles and channels and accounts.
 get(26) -> common(96560, test_height());%so we can cancel channel offers.
 get(27) -> common(102260, test_height());%so oracle_new tx includes all the proofs that it needs.
-get(28) -> common(9999999, 9999999);
+get(28) -> common(400000, max(test_height(), forks:get(10)+1));%sortition chains
 get(29) -> common(104600, test_height());
-get(_) -> none.
+get(_) -> none.%erlang's default behaviour is that atoms are bigger than any integer. `none` is an atom.
 
 top() -> top(1).
 top(N) ->

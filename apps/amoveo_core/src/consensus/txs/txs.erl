@@ -23,6 +23,16 @@ digest_txs([STx|T], Dict, Height) ->
     M = key2module(Key),
     NewDict = M:go(Tx, Dict, Height, true),
     digest_txs(T, NewDict, Height).
+key2module(sortition_new_tx) -> sortition_new_tx;
+key2module(sortition_claim_tx) -> sortition_claim_tx;
+key2module(sortition_evidence_tx) -> sortition_evidence_tx;
+key2module(sortition_timeout_tx) -> sortition_timeout_tx;
+key2module(sortition_block_tx) -> sortition_block_tx;
+key2module(rng_result_tx) -> rng_result_tx;
+key2module(rng_challenge_tx) -> rng_challenge_tx;
+key2module(rng_response_tx) -> rng_response_tx;
+key2module(rng_refute_tx) -> rng_refute_tx;
+key2module(rng_confirm_tx) -> rng_confirm_tx;
 key2module(multi_tx) -> multi_tx;
 key2module(create_acc_tx) -> create_account_tx;
 key2module(spend) -> spend_tx;
@@ -42,19 +52,4 @@ key2module(unmatched) -> oracle_unmatched_tx;
 key2module(oracle_winnings) -> oracle_winnings_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
-%case application:get_env(amoveo_core, kind) of
-%	{ok, "production"} -> ok;
-	    %Burn = base64:decode("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEFAx4lA9qJP3/x4hz1EkNIQAAAAAAAAA="),
-        %Burn = constants:burn_address(),
-	%    false = (From == Burn);
-	    %MP = constants:master_pub(),
-	    %if
-		%From == MP ->
-		%    BP = governance:dict_get_value(block_period, Dict),
-		%    HeightSwitch = (10 * constants:developer_lock_period()) div BP,
-		%    true = NewHeight > HeightSwitch;
-		%true -> ok
-	    %end;
-%	_ -> ok
-%    end.
     

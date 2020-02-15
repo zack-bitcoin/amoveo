@@ -35,7 +35,8 @@ internal(PruneBlock, KeepBlock, F) ->
     T2 = KeepBlock#block.trees,
     Trees = case element(1, T1) of%
 		trees -> TA;%
-		trees2 -> TA ++ [matched, unmatched]
+		trees2 -> TA ++ [matched, unmatched];
+		trees3 -> TA ++ [matched, unmatched, sortition, candidates, rng_challenge, rng_result, sortition_blocks]
 	    end,%
     _ = 
 	lists:map(fun(T) ->
@@ -94,10 +95,15 @@ internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees) ->%
     GT2 = trie:put_batch(GovernanceLeaves, GT, governance),%
     trees:update_governance(Trees7, GT2);%
     
-internal_dict_update_trie(Trees, Dict) ->
+internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees2) ->
     Types = [accounts, oracles, channels, existence, governance, matched, unmatched],
     Keys = dict:fetch_keys(Dict),
+    idut2(Types, Trees, Dict, Keys);
+internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees3) ->
+    Types = [accounts, oracles, channels, existence, governance, matched, unmatched, sortition, candidates, rng_challenge, rng_result, sortition_blocks],
+    Keys = dict:fetch_keys(Dict),
     idut2(Types, Trees, Dict, Keys).
+
 idut2([], Trees, _, _) -> Trees;
 idut2([H|Types], Trees, Dict, Keys) ->
     %{sharding, full_node},

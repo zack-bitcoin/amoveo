@@ -14,7 +14,8 @@ test1() ->
     timer:sleep(2000),
     S = success,
     Tests = [secrets, db, testnet_sign, packer, encryption, tree_test, block_hashes, block, spk, test_txs, existence, %order_book, 
-proofs, lisp_market2, lisp_scalar], %headers, keys],
+             sortition, candidates, rng_challenge, rng_result,
+             proofs, lisp_market2, lisp_scalar], %headers, keys],
     S = test_helper(Tests).
 
     

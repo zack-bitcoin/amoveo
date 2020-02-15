@@ -18,7 +18,8 @@
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).%
--record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).
+-record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
+-record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sortition, candidates, rng_challenge, rng_result, sortition_blocks}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -261,7 +262,13 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 		DeveloperReward%
     end.
     
-    
+   
+new_governances([], Dict) -> Dict;
+new_governances([H|T], Dict) -> 
+    G = governance:new(governance:name2number(H),
+                       constants:H()),
+    Dict2 = governance:dict_write(G, Dict),
+    new_governances(T, Dict2).
 make(Header, Txs0, Trees, Pub) ->
     {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
     Txs = [CB|lists:reverse(Txs0)],
@@ -271,12 +278,16 @@ make(Header, Txs0, Trees, Pub) ->
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     NewDict0 = txs:digest(Txs, Dict, Height + 1),
     B = ((Height+1) == forks:get(5)),
-    NewDict = if
-		B -> %
-		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
-		      governance:dict_write(OQL, NewDict0);%
-		true -> NewDict0
-	    end,
+    B2 = ((Height+1) == forks:get(28)),
+    NewDict = 
+        if
+            B -> %
+                OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
+                governance:dict_write(OQL, NewDict0);%
+            B2 ->
+                new_governances(f28things(), NewDict0);
+            true -> NewDict0
+        end,
     MinerAddress = Pub,
     FG6 = forks:get(6),
     FG9 = forks:get(9),
@@ -293,24 +304,36 @@ make(Header, Txs0, Trees, Pub) ->
 		       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
     F10 = forks:get(10),
+    F28 = forks:get(28),
     NewDict4 = remove_repeats(NewDict2, Dict, Height + 1),
     %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
     NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
     NewTrees = if
 		   ((Height + 1) == F10)  ->%
 		       %Root0 = constants:root0(),%
-		       NewTrees1 = %
-			   trees:new2(trees:accounts(NewTrees0),%
+                       trees:new2(trees:accounts(NewTrees0),%
+                                  trees:channels(NewTrees0),%
+                                  trees:existence(NewTrees0),%
+                                  trees:oracles(NewTrees0),%
+                                  trees:governance(NewTrees0),%
+                                  trees:empty_tree(matched),
+                                  trees:empty_tree(unmatched));
+                       %Root0,%
+                       %Root0),%
+		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
+                   ((Height + 1) == F28) ->
+			   trees:new3(trees:accounts(NewTrees0),%
 				      trees:channels(NewTrees0),%
 				      trees:existence(NewTrees0),%
 				      trees:oracles(NewTrees0),%
 				      trees:governance(NewTrees0),%
-                                      trees:empty_tree(matched),
-                                      trees:empty_tree(unmatched)),
-                       %Root0,%
-                       %Root0),%
-		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
-		       NewTrees1;%
+				      trees:matched(NewTrees0),%
+				      trees:unmatched(NewTrees0),%
+				      trees:empty_tree(sortition),%
+				      trees:empty_tree(candidates),%
+                                      trees:empty_tree(rng_challenge),%
+                                      trees:empty_tree(rng_result),
+                                      trees:empty_tree(sortition_blocks));
 		   true -> NewTrees0
 	       end,
     %Governance = trees:governance(NewTrees),
@@ -365,7 +388,21 @@ make_roots(Trees) when (element(1, Trees) == trees2) ->
            oracles = trie:root_hash(oracles, trees:oracles(Trees)),
            governance = trie:root_hash(governance, trees:governance(Trees)),
 	   matched = trie:root_hash(matched, trees:matched(Trees)),
-	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees))}.
+	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees))};
+make_roots(Trees) when (element(1, Trees) == trees3) ->
+    #roots3{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
+            channels = trie:root_hash(channels, trees:channels(Trees)),
+            existence = trie:root_hash(existence, trees:existence(Trees)),
+            oracles = trie:root_hash(oracles, trees:oracles(Trees)),
+            governance = trie:root_hash(governance, trees:governance(Trees)),
+            matched = trie:root_hash(matched, trees:matched(Trees)),
+            unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
+            sortition = trie:root_hash(sortition, trees:sortition(Trees)),
+            candidates = trie:root_hash(candidates, trees:candidates(Trees)), 
+            rng_challenge = trie:root_hash(rng_challenge, trees:rng_challenge(Trees)), 
+            rng_result = trie:root_hash(rng_result, trees:rng_result(Trees)),
+            sortition_blocks = trie:root_hash(sortition_blocks, trees:sortition_blocks(Trees))
+           }.
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
     C = X#roots.channels,%
@@ -383,6 +420,21 @@ roots_hash(X) when is_record(X, roots2) ->
     M = X#roots2.matched,
     U = X#roots2.unmatched,
     Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary>>,
+    hash:doit(Y);
+roots_hash(X) when is_record(X, roots3) ->
+    A = X#roots3.accounts,
+    C = X#roots3.channels,
+    E = X#roots3.existence,
+    O = X#roots3.oracles,
+    G = X#roots3.governance,
+    M = X#roots3.matched,
+    U = X#roots3.unmatched,
+    S = X#roots3.sortition,
+    Ca = X#roots3.candidates,
+    RC = X#roots3.rng_challenge,
+    RR = X#roots3.rng_result,
+    SB = X#roots3.sortition_blocks,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, S/binary, Ca/binary, RC/binary, RR/binary, SB/binary>>,
     hash:doit(Y).
     
     
@@ -481,6 +533,24 @@ proofs_roots_match([P|T], R) when is_record(R, roots2)->
 	       matched -> R#roots2.matched;
 	       unmatched -> R#roots2.unmatched
 	   end,
+    proofs_roots_match(T, R);
+proofs_roots_match([P|T], R) when is_record(R, roots3)->
+    Tree = proofs:tree(P),
+    Root = proofs:root(P),
+    Root = case Tree of
+	       accounts -> R#roots3.accounts;
+	       channels -> R#roots3.channels;
+	       existence -> R#roots3.existence;
+	       oracles -> R#roots3.oracles;
+	       governance -> R#roots3.governance;
+	       matched -> R#roots3.matched;
+	       unmatched -> R#roots3.unmatched;
+	       sortition -> R#roots3.sortition;
+	       candidates -> R#roots3.candidates;
+	       rng_challenge -> R#roots3.rng_challenge;
+               rng_result -> R#roots3.rng_result;
+               sortition_blocks -> R#roots3.sortition_blocks
+	   end,
     proofs_roots_match(T, R).
 check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,
@@ -553,10 +623,13 @@ check3(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     B = (Height == forks:get(5)),
+    B2 = (Height == forks:get(28)),
     NewDict2 = if
 		B -> 
-		    OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
-		    governance:dict_write(OQL, NewDict);
+                       OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
+                       governance:dict_write(OQL, NewDict);
+                   B2 ->
+                       new_governances(f28things(), NewDict);
 		true -> NewDict
 	    end,
     MinerAddress = element(2, hd(Txs)),
@@ -592,7 +665,19 @@ check3(OldBlock, Block) ->
     %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
     {NewDict4, NewDict3, Dict}.
-
+f28things() ->
+    [sortition_new_tx,
+     sortition_claim_tx,
+     sortition_evidence_tx,
+     sortition_timeout_tx,
+     sortition_block_tx,
+     rng_result_tx,
+     rng_challenge_tx,
+     rng_response_tx,
+     rng_refute_tx,
+     rng_confirm_tx,
+     rng_many].
+    
 check2(OldBlock, Block) ->
     {NewDict4, NewDict3, Dict} = 
         check3(OldBlock, Block), 
@@ -607,20 +692,30 @@ check2(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     F10 = forks:get(10),
+    F28 = forks:get(28),
     NewTrees3 = if
 		    (Height == F10) ->
 		       %Root0 = constants:root0(),
-		       NewTrees1 = 
-			   trees:new2(trees:accounts(NewTrees3_0),
-				      trees:channels(NewTrees3_0),
-				      trees:existence(NewTrees3_0),
-				      trees:oracles(NewTrees3_0),
-				      trees:governance(NewTrees3_0),
-                                      trees:empty_tree(matched),
-                                      trees:empty_tree(unmatched)),
-				      %Root0,
-				      %Root0),
-		       NewTrees1;
+                        trees:new2(trees:accounts(NewTrees3_0),
+                                   trees:channels(NewTrees3_0),
+                                   trees:existence(NewTrees3_0),
+                                   trees:oracles(NewTrees3_0),
+                                   trees:governance(NewTrees3_0),
+                                   trees:empty_tree(matched),
+                                   trees:empty_tree(unmatched));
+		    (Height == F28) ->
+                        trees:new3(trees:accounts(NewTrees3_0),
+                                   trees:channels(NewTrees3_0),
+                                   trees:existence(NewTrees3_0),
+                                   trees:oracles(NewTrees3_0),
+                                   trees:governance(NewTrees3_0),
+                                   trees:matched(NewTrees3_0),
+                                   trees:unmatched(NewTrees3_0),
+                                   trees:empty_tree(sortition),
+                                   trees:empty_tree(candidates),
+                                   trees:empty_tree(rng_challenge),
+                                   trees:empty_tree(rng_result),
+                                   trees:empty_tree(sortition_blocks));
 		   true -> NewTrees3_0
 	       end,
 
@@ -1242,7 +1337,7 @@ no_counterfeit(Old, New, Txs, Height) ->
     if
         ((Diff > 0) or (Diff < -50000000))->
         %false ->
-            io:fwrite("height "),
+            io:fwrite("block.erl no_counterfeit. height "),
             io:fwrite(integer_to_list(Height)),
             io:fwrite("; diff is "),
             io:fwrite(integer_to_list(Diff)),
@@ -1257,6 +1352,8 @@ no_counterfeit(Old, New, Txs, Height) ->
 sum_amounts([], _, _) -> 
     %io:fwrite("sum amount finish\n"),
     0;
+sum_amounts([{candidates, _}|T], Dict, OldDict) ->
+    sum_amounts(T, Dict, OldDict);
 sum_amounts([{oracles, _}|T], Dict, OldDict) ->
     sum_amounts(T, Dict, OldDict);
 sum_amounts([{existence, _}|T], Dict, Old) ->
@@ -1267,19 +1364,34 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
     X = Kind:dict_get(A, Dict),
     B = sum_amounts_helper(Kind, X, Dict, Old, A),
     if
-        false ->
+        not(is_integer(B)) ->
             io:fwrite("sum amount, type: "),
             io:fwrite(Kind),
             io:fwrite(" key: "),
             io:fwrite(packer:pack(A)),
             io:fwrite(" "),
-            io:fwrite(integer_to_list(B)),
+            io:fwrite(B),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack(dict:fetch_keys(Old))),
             io:fwrite("\n");
         true -> ok
     end,
     B + sum_amounts(T, Dict, Old).
 sum_amounts_helper(_, empty, _, _, _) ->
     0;
+sum_amounts_helper(candidates, _R, _, _D, _) ->
+    0;
+sum_amounts_helper(sortition_blocks, _R, _, _D, _) ->
+    0;
+sum_amounts_helper(rng_challenge, _R, _, D, _) ->
+    governance:dict_get_value(rng_challenge_tx, D);
+sum_amounts_helper(rng_result, _R, _, D, _) ->
+    governance:dict_get_value(rng_result_tx, D);
+sum_amounts_helper(sortition, S, _Dict, _, _) ->
+    case sortition:closed(S) of
+        0 -> S#sortition.amount;
+        1 -> 0
+    end;
 sum_amounts_helper(accounts, Acc, Dict, _, _) ->
     Acc#acc.balance;
 sum_amounts_helper(channels, Chan, Dict, _, _) ->

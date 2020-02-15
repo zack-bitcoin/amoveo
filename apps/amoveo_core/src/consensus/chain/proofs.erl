@@ -22,7 +22,13 @@ tree_to_int(oracle_bets) -> 7;%
 tree_to_int(orders) -> 8;%
 tree_to_int(multi_tx) -> 9;
 tree_to_int(matched) -> 10;
-tree_to_int(unmatched) -> 11.
+tree_to_int(unmatched) -> 11;
+tree_to_int(sortition) -> 12;
+tree_to_int(candidates) -> 13;
+tree_to_int(rng_result) -> 14;
+tree_to_int(rng_challenge) -> 15;
+tree_to_int(sortition_blocks) -> 16.
+                              
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -33,7 +39,12 @@ int_to_tree(7) -> oracle_bets;%
 int_to_tree(8) -> orders;%
 int_to_tree(9) -> multi_tx;
 int_to_tree(10) -> matched;
-int_to_tree(11) -> unmatched.
+int_to_tree(11) -> unmatched;
+int_to_tree(12) -> sortition;
+int_to_tree(13) -> candidates;
+int_to_tree(14) -> rng_result;
+int_to_tree(15) -> rng_challenge;
+int_to_tree(16) -> sortition_blocks.
     
 
 %deterministic merge-sort    
@@ -389,6 +400,185 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {accounts, From},
                  {oracles, OID}
                 ] ++ U;
+            sortition_new_tx ->
+                #sortition_new_tx{
+              creator = Creator,
+              id = SID
+             } = Tx,
+                [
+                 {governance, ?n2i(sortition_new_tx)},
+                 {accounts, Creator},
+                 {sortition, SID}
+                ];
+            rng_result_tx ->
+                #rng_result_tx{
+              pubkey = From,
+              sortition_id = SID,
+              id = ID
+             } = Tx,
+                {_, S, _} = sortition:get(SID, trees:sortition(Trees)),
+                BRNG = S#sortition.bottom_rng,
+                U = case BRNG of
+                        <<0:256>> -> [];
+                        _ -> [{rng_result, BRNG}]
+                    end,
+                [
+                 {governance, ?n2i(rng_result_tx)},
+                 {accounts, From},
+                 {sortition, SID},
+                 {rng_result, ID}
+                ] ++ U;
+            rng_challenge_tx ->
+                #rng_challenge_tx{
+              pubkey = From,
+              id = ID,
+              parent_type = PT,
+              parent_id = PID,
+              sortition_id = SID
+             } = Tx,
+                U = case PT of
+                        0 -> [{rng_result, PID}];
+                        1 -> 
+                            {_, RC, _} = rng_challenge:get(PID, trees:rng_challenge(Trees)),
+                            RID = RC#rng_challenge.result_id,
+                            [{rng_challenge, PID},{rng_result, RID}]
+                    end,
+                [
+                 {governance, ?n2i(rng_challenge_tx)},
+                 {governance, ?n2i(rng_result_tx)},
+                 {governance, ?n2i(rng_many)},
+                 {accounts, From},
+                 {sortition, SID},
+                 {rng_challenge, ID}
+                ] ++ U;
+            rng_response_tx ->
+                #rng_response_tx{
+              pubkey = From,
+              id = ID,
+              sortition_id = SID,
+              result_id = RID
+             } = Tx,
+                [
+                 {governance, ?n2i(rng_response_tx)},
+                 {governance, ?n2i(rng_result_tx)},
+                 {governance, ?n2i(rng_challenge_tx)},
+                 {accounts, From},
+                 {sortition, SID},
+                 {rng_challenge, ID},
+                 {rng_result, RID}
+                ];
+            rng_refute_tx ->
+                #rng_refute_tx{
+              pubkey = From,
+              sortition_id = SID,
+              challenge_id = CID,
+              result_id = RID
+             } = Tx,
+                [
+                 {governance, ?n2i(rng_refute_tx)},
+                 {governance, ?n2i(rng_result_tx)},
+                 {governance, ?n2i(rng_challenge_tx)},
+                 {accounts, From},
+                 {sortition, SID},
+                 {rng_challenge, CID},
+                 {rng_result, RID}
+                ];
+            rng_confirm_tx ->
+                #rng_confirm_tx{
+              pubkey = Pubkey,
+              sortition_id = SID,
+              result_id = RID
+             } = Tx,
+                [
+                 {governance, ?n2i(rng_confirm_tx)},
+                 {governance, ?n2i(rng_result_tx)},
+                 {accounts, Pubkey},
+                 {sortition, SID},
+                 {rng_result, RID}
+                ];
+            sortition_block_tx ->
+                #sortition_block_tx{
+              from = From,
+              id = ID,
+              prev_id = PrevID,
+              side_height = SideHeight
+             } = Tx,
+                U = case SideHeight of
+                        0 -> [];
+                        _ ->
+                            [{sortition_block, PrevID}]
+                    end,
+                [
+                 {governance, ?n2i(sortition_block_tx)},
+                 {sortition_blocks, ID},
+                 {accounts, From}
+                ] ++ U;
+            sortition_claim_tx ->
+                #sortition_claim_tx{
+              from = From,
+              %ownership = Ownership,
+              sortition_id = SID,
+              top_candidate = TCID,
+              claim_id = ClaimID,
+              proof_layers = PL
+             } = Tx,
+                %SID = ownership:sid(Ownership),
+                %Winner = ownership:pubkey(Ownership),
+                U = case TCID of
+                        <<0:256>> -> [];
+                        0 -> [];
+                        _ -> [{candidates, TCID}]
+                    end,
+                V = sortition_claim_tx:make_proofs(PL),
+                [
+                 {accounts, From},
+                 %{accounts, Winner},
+                 {governance, ?n2i(sortition_claim_tx)},
+                 {candidates, ClaimID}
+                ] ++ U ++ V;
+            sortition_evidence_tx ->
+                #sortition_evidence_tx{
+              pubkey = From,
+              sortition_id = SID,
+              %signed_waiver = SW,
+              layer = LN,
+              script_sig = SS
+             } = Tx,
+                {_, S, _} = sortition:get(SID, trees:sortition(Trees)),
+                #sortition{
+                            top_candidate = TCID_0
+                          } = S,
+                TCID = sortition_claim_tx:layer_salt(TCID_0, LN),
+                U = channel_slash_tx:to_prove_helper([SS], Height),
+                [
+                 {governance, ?n2i(sortition_evidence_tx)},
+                 {governance, ?n2i(fun_limit)},
+                 {governance, ?n2i(var_limit)},
+                 {governance, ?n2i(time_gas)},
+                 {governance, ?n2i(space_gas)},
+                 {sortition, SID},
+                 {candidates, TCID},
+                 {accounts, From}
+                ] ++ U;
+            sortition_timeout_tx ->
+                #sortition_timeout_tx{
+              pubkey = From,
+              winner = Winner,
+              sortition_id = SID,
+              layer = LN
+             } = Tx,
+                {_, S, _} = sortition:get(SID, trees:sortition(Trees)),
+                #sortition{
+                            top_candidate = TCID_0
+                          } = S,
+                TCID = sortition_claim_tx:layer_salt(TCID_0, LN),
+                [
+                 {candidates, TCID},
+                 {accounts, From},
+                 {accounts, Winner},
+                 {sortition, SID},
+                 {governance, ?n2i(sortition_timeout_tx)}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

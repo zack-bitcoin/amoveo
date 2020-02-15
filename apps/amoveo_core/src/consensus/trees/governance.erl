@@ -162,6 +162,17 @@ name2number(oracle_close) -> 25;
 name2number(unmatched) -> 26;
 name2number(oracle_winnings) -> 27;
 name2number(oracle_question_liquidity) -> 28;
+name2number(sortition_new_tx) -> 29;
+name2number(sortition_claim_tx) -> 30;
+name2number(sortition_evidence_tx) -> 31;
+name2number(sortition_timeout_tx) -> 32;
+name2number(sortition_block_tx) -> 33;
+name2number(rng_result_tx) -> 34;
+name2number(rng_challenge_tx) -> 35;
+name2number(rng_response_tx) -> 36;
+name2number(rng_refute_tx) -> 37;
+name2number(rng_confirm_tx) -> 38;
+name2number(rng_many) -> 39;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -194,6 +205,16 @@ number2name(25) -> oracle_close;
 number2name(26) -> unmatched;
 number2name(27) -> oracle_winnings;
 number2name(28) -> oracle_question_liquidity;
+number2name(29) -> sortition_new_tx;
+number2name(30) -> sortition_claim_tx;
+number2name(31) -> sortition_evidence_tx;
+number2name(32) -> sortition_timeout_tx;
+number2name(33) -> rng_result_tx;
+number2name(34) -> rng_challenge_tx;
+number2name(35) -> rng_response_tx;
+number2name(36) -> rng_refute_tx;
+number2name(37) -> rng_confirm_tx;
+number2name(38) -> rng_many;
 number2name(X) ->
     io:fwrite(X),
     1=2,

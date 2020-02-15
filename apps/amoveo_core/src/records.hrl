@@ -1,4 +1,44 @@
 
+-record(sortition_new_tx, {creator, nonce, fee, amount, id, entropy, trading_ends, response_delay, rng_ends, delay, validators}).
+
+-record(sortition_block_tx, {from, nonce, fee, id, prev_id, validators, signatures, side_height, state_root}).
+
+-record(sortition_claim_tx, {from, nonce, fee, claim_id, top_candidate, proof_layers, sortition_id}).
+
+-record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, layer, signed_waiver, script_sig}).
+
+-record(sortition_timeout_tx, {pubkey, nonce, fee, winner, amount, layer, sortition_id}).
+
+-record(rng_result_tx, {pubkey, nonce, fee, id, sortition_id, hashes}).
+
+-record(rng_challenge_tx, {pubkey, nonce, fee, id, sortition_id, parent_id, parent_type, start_hash, end_hash, proof, n}).
+
+-record(rng_response_tx, {pubkey, nonce, fee, id, sortition_id, result_id, hashes}).
+
+-record(rng_refute_tx, {pubkey, nonce, fee, sortition_id, challenge_id, result_id, n, proof, start_hash, end_hash}).
+
+-record(rng_confirm_tx, {pubkey, nonce, fee, sortition_id, result_id}).
+
+
+-record(waiver, {pubkey, sortition_id, contract}).
+
+-record(sortition, {id, amount, entropy_source, creator, validators, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, top_rng, bottom_rng, closed}).%merkle tree
+%rng_results make a queue, new elements inserted at the bottom_rng pointer, and the head of the queue is the top_rng.
+-record(sortition_block, {id, validators, state_root, height, side_height}).
+
+-record(candidate, {id, sortition_id, layer_number, winner, height, priority, next_candidate}).%merkle tree
+
+-record(rng_result, {id, sortition_id, pubkey, hashes, value, next_result, impossible, confirmed}).
+
+-record(rng_challenge,
+        {id, result_id, parent_id, pubkey, hashes,
+        start_hash, end_hash,
+        many, %how many hashes in this challenge
+        timestamp, refunded, n}).
+
+
+
+
 -record(key, {pub, id}). %used for shared, oracle_bets, and orders
 -record(spk, {acc1,acc2, 
 	      bets, space_gas, time_gas, 
@@ -112,6 +152,7 @@
                         fee = 0,
                         to = 0}).
 -record(ex, {from, nonce = 0, fee = 0, commit = 0}).
+-record(exist, {hash, height}).
 -record(nc, {acc1 = 0, acc2 = 0, fee = 0, nonce = 0, 
 	     bal1 = 0, bal2 = 0, 
 	     delay = 10, id = -1}).

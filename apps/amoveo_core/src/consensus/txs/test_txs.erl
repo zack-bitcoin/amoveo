@@ -1046,19 +1046,282 @@ test(28) ->
     true = FC#channel.closed == 1,
 
     success;
-test(35) ->
+test(29) ->
     %timer test
     Sig = keys:raw_sign(<<>>),
     Times = 1000,
     T1 = erlang:now(),
-    test35(<<>>, Sig, keys:pubkey(), Times),
+    test29(<<>>, Sig, keys:pubkey(), Times),
     T2 = erlang:now(),
-    timer:now_diff(T2, T1).
-test35(_, _, _, 0) -> ok;
-test35(D, S, P, N) ->
+    timer:now_diff(T2, T1);
+test(30) ->
+    %rng generation test
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(2),
+    %{NewPub,NewPriv} = testnet_sign:new_key(),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    %make a sortition chain
+    Entropy = 15,
+    TradingEnds = 5,
+    ResponseDelay = 2,
+    RNGEnds = 25,
+    Delay = 2,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, [keys:pubkey()], Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(4),%mine enough blocks we can post rng results
+    RID = hash:doit(2),
+    RID3 = hash:doit(4),
+    BadHashes = times(129, <<0:256>>, []),
+    GoodHashes = BadHashes,
+    BRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, BadHashes, Fee),%make incorrect rng_result
+    SBRRT = keys:sign(BRRT),
+    absorb(SBRRT),
+    1 = many_txs(),
+    BRRT2 = rng_result_tx:make_dict(keys:pubkey(), RID3, SID, BadHashes, Fee),%make incorrect rng_result
+    SBRRT2 = keys:sign(BRRT2),
+    absorb(SBRRT2),
+    2 = many_txs(),
+    %mine_blocks(1),
+    RID2 = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID2, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
+    3 = many_txs(),
+    mine_blocks(1),
+    %have a process that compares the rng_result to generate a challenge to show one is incorrect.
+    CID = hash:doit(3),
+    {_, Root, M} = rng_result_tx:merklize(BadHashes),
+    {_, _, Proof} = mtree:get(leaf:path_maker(0, mtree:cfg(M)), Root, M),
+    RCT = rng_challenge_tx:make_dict(keys:pubkey(), CID, SID, RID, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
+    SCT = keys:sign(RCT),
+    absorb(SCT),
+    1 = many_txs(),
+    %1=2,
+    CID2 = hash:doit(4),
+    RCT2 = rng_challenge_tx:make_dict(keys:pubkey(), CID2, SID, RID3, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
+    SCT2 = keys:sign(RCT2),
+    absorb(SCT2),
+    2 = many_txs(),
+    mine_blocks(1),
+    %attacker makes rng_response for RID
+    RRT = rng_response_tx:make_dict(keys:pubkey(), CID, SID, RID, BadHashes, Fee),
+    SRRT = keys:sign(RRT),
+    absorb(SRRT),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    CID3 = hash:doit(5),
+    %io:fwrite("here0010101\n"),
+    RCT3 = rng_challenge_tx:make_dict(keys:pubkey(), CID3, SID, CID, 1, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),
+    %io:fwrite(RCT3),
+    SRCT3 = keys:sign(RCT3),
+    absorb(SRCT3),
+    1 = many_txs(),
+    mine_blocks(1),
+    RRT2 = rng_response_tx:make_dict(keys:pubkey(), CID3, SID, RID, BadHashes, Fee),
+    SRRT2 = keys:sign(RRT2),
+    absorb(SRRT2),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    RRFT = rng_refute_tx:make_dict(keys:pubkey(), SID, CID3, RID, 0, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a response is short enough to calculate on-chain, and it is invalid.
+    SRRFT = keys:sign(RRFT),
+    absorb(SRRFT),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    RRFT2 = rng_refute_tx:make_dict(keys:pubkey(), SID, CID2, RID3, 129, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a challenge goes unresponded for too much time.
+    SRRFT2 = keys:sign(RRFT2),
+    absorb(SRRFT2),
+    1 = many_txs(),
+    mine_blocks(18),
+
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID2, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    %settle the sortition chain tx
+    success;
+test(31) ->
+    %sortition chain resolution test
+    %s new, s blocks, rng result, rng confirm, sortition claim, sortition claim, sortition evidence, mine a bunch of blocks, sortition timeout
+
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(2),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    Entropy = 8,
+    TradingEnds = 4,
+    ResponseDelay = 2,
+    RNGEnds = 12,
+    Delay = 2,
+    Validators = [keys:pubkey()],
+    Amount = 1000000000,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),
+    Owner2 = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 1, SID),
+    {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
+    Proof = ownership:make_proof(Owner, M),
+    Proof2 = ownership:make_proof(Owner2, M),
+
+    Sig = keys:raw_sign(hash:doit([0,StateRoot])),
+    VR = sortition_new_tx:make_root(Validators),
+
+    SBID = hash:doit([0, VR]),
+    SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
+    SSBT = keys:sign(SBT),
+    absorb(SSBT),
+    1 = many_txs(),
+    mine_blocks(3),%mine enough blocks we can post rng results
+    GoodHashes = times(129, <<27:256>>, []),
+    RID = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
+    1 = many_txs(),
+    mine_blocks(20),
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
+    1 = many_txs(),
+    timer:sleep(11000),
+    mine_blocks(2),
+
+    ClaimID = hash:doit(22),
+    ClaimID2 = hash:doit(23),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    SCT2 = sortition_claim_tx:make_dict(keys:pubkey(), [OL2], SID, ClaimID2, <<0:256>>, Fee),
+    SSCT2 = keys:sign(SCT2),
+    absorb(SSCT2),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(2000),
+
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, ClaimID2, Fee),
+    SSCT = keys:sign(SCT),
+    absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(3000),
+
+
+    Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
+    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), SID, Contract),
+    SW = keys:sign(Waiver),
+    SS = spk:new_ss(<<>>, []),
+    SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, 0, SW, SS),
+    SSET = keys:sign(SET),
+    absorb(SSET),
+    1 = many_txs(),
+    mine_blocks(6),
+    timer:sleep(5000),
+
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, 0, Fee),
+    SSTT = keys:sign(STT),
+    absorb(SSTT),
+    1 = many_txs(),
+    mine_blocks(1),
+    success;
+
+test(32) ->
+    %sortition chain recursion resolution test
+    % new, block, 
+    % rng result, rng confirm,
+    % sortition claim, sortition timeout
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(2),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    Entropy = 8,
+    TradingEnds = 4,
+    ResponseDelay = 2,
+    RNGEnds = 12,
+    Delay = 2,
+    Validators = [keys:pubkey()],
+    Amount = 1000000000,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    VR = sortition_new_tx:make_root(Validators),
+    Owner = ownership:new(<<0:520>>, <<0:256>>, <<-1:256>>, 0, VR),%VR is the validators root for the new baby sortiiton chain.
+    Owner2 = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),%this gives all the money in the baby sortition chain to keys:pubkey().
+    {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
+    Proof = ownership:make_proof(Owner, M),
+    %{StateRoot2, M2} = ownership:make_tree([Owner2]),
+    Proof2 = ownership:make_proof(Owner2, M),
+
+    Sig = keys:raw_sign(hash:doit([0,StateRoot])),
+    %Sig2 = keys:raw_sign(hash:doit([0,StateRoot2])),
+
+    SBID = hash:doit([0, VR]),
+    SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
+    SSBT = keys:sign(SBT),
+    absorb(SSBT),
+    1 = many_txs(),
+    mine_blocks(3),%mine enough blocks we can post rng results
+    GoodHashes = times(129, <<27:256>>, []),
+    RID = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
+    1 = many_txs(),
+    mine_blocks(20),
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
+    1 = many_txs(),
+    timer:sleep(11000),
+    mine_blocks(2),
+
+    ClaimID = hash:doit(22),
+
+    OL1 = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL1, OL2], SID, ClaimID, <<0:256>>, Fee),
+    SSCT = keys:sign(SCT),
+    absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(3000),
+
+    mine_blocks(9),
+    timer:sleep(7000),
+
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, 1, Fee),
+    SSTT = keys:sign(STT),
+    absorb(SSTT),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    success.
+
+    
+
+test29(_, _, _, 0) -> ok;
+test29(D, S, P, N) ->
     %true = testnet_sign:verify_sig(D, S, P),
     file:read_file("../../../../../../temp2.txt"),
-    test35(D, S, P, N-1).
+    test29(D, S, P, N-1).
     
 test18(0) -> success;
 test18(N) ->
@@ -1109,8 +1372,8 @@ mine_blocks(Many) ->
     Hash = block:hash(PB),
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
-    block:mine(Block, 10),
-    timer:sleep(100),
+    block:mine(Block, 1000),
+    timer:sleep(300),
     mine_blocks(Many-1).
 
 test24(I) ->
@@ -1165,3 +1428,11 @@ test24(I) ->
     timer:sleep(100),
     mine_blocks(1),
     success.
+
+
+times(0, _, R) -> R;
+times(N, X, L) -> 
+    times(N-1, X, [X|L]).
+
+many_txs() ->
+    length(element(2, tx_pool:get())).
