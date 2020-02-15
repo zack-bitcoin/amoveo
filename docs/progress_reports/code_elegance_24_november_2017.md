@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//progress_reports/code_elegance_24_november_2017.md)
+
 Aeternity made a strong complaint about Amoveo recently. They claim that Aeternity "succeeded in rebuilding æternity’s testnet from scratch in one fourth of the size of the previous code." https://blog.aeternity.com/announcing-new-development-timeline-and-team-restructuring-11097435ea32
 
 It sounds to me like Aeternity is saying they were able to make my software more efficient and smaller.

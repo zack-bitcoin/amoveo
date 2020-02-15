@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//progress_reports/January_2018_summary.md)
+
 Amoveo Progress in January 2018
 
 * We can now prune old blocks from the merkle tree to recover space on our hard drive. This greatly reduces the hard-drive requirements of running a full node.

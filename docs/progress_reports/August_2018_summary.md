@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//progress_reports/August_2018_summary.md)
+
 In AE/Augur/wagger, there is always some group of people who control the outcome of the oracle. You need to pay very high fees to these people to bribe them to not steal the money at stake in the markets. If they think that the long term profit of fees exceeds the short term profit of stealing the money from the markets, then they wont steal.
 By avoiding this inefficiency, Amoveo's oracle can run for orders of magnitude lower cost.
 Our question oracles currently cost about 22 mVEO each.

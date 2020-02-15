@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//expired/oracle_manipulation.md)
+
 What if someone payed money into the market that we use as an oracle to try to get it to lie?
 
 Example: we were betting on a football game, but now the game is over and we all know that Alice won.

@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//getting-started/crypto_economics_political_inhibitions.md)
+
 Cryptoeconomics is seen today as a mysterious field of study, only understood by geniuses.
 
 What makes cryptoeconomics so difficult? The math is fairly simple.

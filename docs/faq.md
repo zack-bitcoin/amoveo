@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//faq.md)
+
 > A Channel server host is essentially a market maker?
 
  A channel server can be market maker. It is also possible to have a channel server that only processes lightning payments, and has no markets. There could be a channel server that is just for playing black jack the gambling card game.

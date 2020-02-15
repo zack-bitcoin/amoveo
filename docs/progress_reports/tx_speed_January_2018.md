@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//progress_reports/tx_speed_January_2018.md)
+
 I made some tests today to see how fast we can process txs.
 The way the governance variables start, a block can hold about 636 create-account transactions.
 Using my old-ish computer with this CPU: 2.4 GHz Intel Core 2 Duo, it takes about 11 second to process a block that is completely filled.

@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/why_not_pos.md)
+
 Hi I worked on proof of stake for more than a year. You can see on my github my many failed attempts. https://github.com/zack-bitcoin Flying Fox, PinkFairy, Slasher. Each of which had many revisions before they were abandoned. I also built the proof of stake parts of the Amoveo blockchain which is in development.
 
 I lived with Jae Kwon of Tendermint/Cosmos for a couple months. His project is cool, but he makes a design decision which I dislike. I still think his project can be successful, and make lots of money. It is a massive improvement on popular financial tools like SWIFT. Some of the users in Cosmos are part of a powerful set that runs the consensus. Everyone else is a second-class citizen. Using soft-forks, it seems that the powerful class of users can change the consensus rules in any way they want.

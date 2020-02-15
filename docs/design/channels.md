@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/channels.md)
+
 Publishing a transaction to a blockchain is time consuming. You need to wait for the transaction to be included in a block, and then depending on how much money is moved, you need to wait for more confirmations. Waiting for confirmations means that you wait for enough blocks to be added to the blockchain for enough security. Trying to avoid this time-consuming process as much as possible is why we use channels.
 
 Channels are 2 party relationships recorded on the blockchain. Each channel has a finite amount of money it controls, just like an account.

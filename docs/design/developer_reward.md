@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/developer_reward.md)
+
 The long-term goal is to fund Amoveo development using [insured crowdfunding](../use-cases-and-ideas/insured_crowdfund.md)
 This is an ideal way to protect the project from being controlled by a centralized team of developers.
 

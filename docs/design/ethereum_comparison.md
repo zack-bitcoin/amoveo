@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/ethereum_comparison.md)
+
 fifi80 published this on reddit.
 
 Here are my thoughts about why it is superior to ETH: – contracts almost always involve an element of uncertainty that would be disclosed in the future. Like for example if it will rain tomorrow. A contract without an element of uncertainty is basically a series of time locked transactions. The only exception is a contract with no uncertainty but an obligation like for example a rental contract. In that case however you really need the judicial system as you need the police to get involved for example if the person doesn't let you in the house or is the tenant sets the house on fire. If I understand correctly in ETH you need to define your oracles in advance rendering it not so different than multisig where you would have someone decide on the outcome of something. If I understand correctly in AE you can just let the system of built-in oracles worry about the future determination of the uncertain element. – ETH can be useful for managing tokens, but that won't bring any value to it. The value of a smart contract token comes from the fact that you need to buy it in order to make a contract with it to exchange value. For example the fact that you can store data in BTC block chain doesn't add any value to the token, may be a very very small bit simply because the block size is limited. The reason is that to store data in the block chain you only need a few cents. I assume the logic behind issuing tokens on ETH is similar

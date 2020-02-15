@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/scalability.md)
+
 The channels in Amoveo are more scalable for 2 reasons.
 1) Channels move computation off-chain, so we can parallelize the smart contracts. So there is no limit to the amount of smart contract computation that can happen per second. 
 2) The channels don't share state, so we can process all the channel-transactions in a block in parallel. So there is no limit to the volume of channels that can be closed and opened per second. Ethereum channels do not have this capability.

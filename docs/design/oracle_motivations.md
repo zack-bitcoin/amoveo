@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/oracle_motivations.md)
+
 Existing oracle mechanisms are built on top of voting. Voting can not adequately solve the oracle problem in a useful way because of tragedy of the commons. Betting mechanisms do not suffer this same limitations. 
 
 Users want to use blockchains to gamble on future events. They want to gamble on the price of goods, for example.

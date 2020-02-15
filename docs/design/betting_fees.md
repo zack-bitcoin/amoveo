@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/betting_fees.md)
+
 This page estimates the cost of betting, and compares it to Augur, a popular blockchain prediction market.
 
 The cost of trading in Amoveo is because you have to pay a hub to match your trade with someone elses.

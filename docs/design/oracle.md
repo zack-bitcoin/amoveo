@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/oracle.md)
+
 Nakamoto consensus (invented in bitcoin) is a way for the network to make decisions. It incentivizes us to agree.
 
 Using Nakamoto consensus to answer questions like "Would it be better if block reward was increased?" is possible, but it is very expensive. The users and miners would have to manually answer that question as part of the process of syncing the blockchain.

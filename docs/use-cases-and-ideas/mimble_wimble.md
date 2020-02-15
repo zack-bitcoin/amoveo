@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//use-cases-and-ideas/mimble_wimble.md)
+
 I was thinking that we could use mimble wimble, but without the privacy parts. So each tx will both include the quantity of veo being spent, and the elliptic-curve-encoded version of that same quantity.
 
 What is nice about mimble wimble is that we can prune a lot of data from our history, so it is faster to sync, and that txs are a lot smaller, because we don't have to store signatures or addresses.

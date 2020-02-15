@@ -29,6 +29,15 @@ handle_cast(garbage, X) ->
 handle_cast({new_channel, Tx, SSPK, Expires}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
     SPK = testnet_sign:data(SSPK),
+    Height = block:height(),
+    F29 = forks:get(29),
+    CID0 = new_channel_tx:cid(Tx),
+    CID = if
+              (Height > F29) ->
+                 new_channel_tx:salted_id(Tx);
+              true -> CID0
+          end,
+                  
     CD = #cd{me = SPK, them = SSPK, cid = new_channel_tx:cid(Tx), expiration = Expires},
     channel_manager:write(other(Tx), CD),
     {noreply, X};
@@ -423,7 +432,7 @@ make_locked_payment(To, Amount, Code) ->
 trade(Amount, Price, Bet, Other, _OID) ->
     {ok, CD} = channel_manager:read(Other),
     SPK = CD#cd.me,
-    CID = SPK#spk.cid,
+    %CID = SPK#spk.cid,
     {ok, TimeLimit} = application:get_env(amoveo_core, time_limit),
     {ok, SpaceLimit} = application:get_env(amoveo_core, space_limit),
     CGran = constants:channel_granularity(),

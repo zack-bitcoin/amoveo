@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/programmable_state_channels.md)
+
 # Programmable State Channels
 
 A programmable state channel is a mechanism invented by Zack Hess that allows the blockchain to enforce a smart contract without storing any of the code that makes up the smart contract.

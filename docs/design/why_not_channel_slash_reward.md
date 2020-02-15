@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/why_not_channel_slash_reward.md)
+
 I wonder if we can be clever and make channels less interactive, particularly making sure nobody successfully slashes you even if you and your keys get hit offline for the entire time
 like: option to give someone who successfully defends you (any public key that is different from yours) a portion of the winnings
 so the market host, who has your signed messages, can save you and get compensated

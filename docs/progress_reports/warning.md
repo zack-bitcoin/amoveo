@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//progress_reports/warning.md)
+
 The value of AE tokens could go to zero.
 The software might have flaws that result in the value of tokens crashing.
 The software is open source, anyone could launch a competitor that uses the same code. If this should happen, Aeternity could be worth less than the competitor.

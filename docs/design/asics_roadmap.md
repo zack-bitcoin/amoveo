@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/asics_roadmap.md)
+
 There are some companies that specialize in manufacturing slabs of silicon ASIC. each slab gets chopped up into many individual chips.
 Working with one of these companies directly to produce a full slab would cost around $1,000,000.
 Once we know what we want to build, we could do something like this.

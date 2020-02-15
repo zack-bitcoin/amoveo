@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//design/why_not_channels_with_multiple_currencies.md)
+
 # channels with multiple currencies vs channels with derivatives.
 
 Channels with multiple currencies means that pairs of people have payment channels, and each payment channel can have multiple types of coins in it. A channel allows you to move these coins back and forth between the pair of people however you want, as many times as you want, without recording any information to the blockchain. Projects like Raiden, Zen and Aeternity are doing this.

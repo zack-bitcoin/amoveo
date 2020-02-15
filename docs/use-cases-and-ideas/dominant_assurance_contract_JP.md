@@ -1,3 +1,14 @@
+WARNING
+========
+
+this is an old expired version of the documentation.
+
+Please use the new documentation instead. 
+
+Here is the main page for the new documentation: https://github.com/zack-bitcoin/amoveo-docs 
+
+And [here is the link for the newest version of the page you are currently looking at](https://github.com/zack-bitcoin/amoveo-docs/blob/master//use-cases-and-ideas/dominant_assurance_contract_JP.md)
+
 共有地の悲劇は人々が公共財から得るであろう利益よりも、人々が支払う額の方が少ないときに発生します。
 
 例えば、ボブは店を持っており、店の近くに橋が建てられたら、ボブの店の価値が$10,000分向上するとしましょう。
