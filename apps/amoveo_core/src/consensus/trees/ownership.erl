@@ -1,9 +1,10 @@
 -module(ownership).
--export([new/5,
+-export([new/6,
          make_tree/1,
          make_proof/2,
 
          pubkey/1,
+         pubkey2/1,
          pstart/1,
          pend/1,
          %contract/1,
@@ -38,6 +39,7 @@
 %To make a balanced tree, we need to keep choosing questions such that 1/2 of the elements we need to put in the tree are "yes", and 1/2 are "no".
 
 -record(owner, {pubkey, %pubkey of who owns this probabilistic value space.
+                pubkey2, %if it is a channel, then we need 2 pubkeys.
                 pstart, %start of the probability space
                 pend, %end of the probability space
                 priority,
@@ -46,18 +48,20 @@
                }).
 -record(tree, {rule, 
                b1, h1, b0, h0}).
-new(P, S, E, Pr, SID) ->
+new(P, P2, S, E, Pr, SID) ->
     32 = size(SID),
     32 = size(S),
     32 = size(E),
     #owner{pubkey = P,
-       pstart = S,
-       pend = E,
+           pubkey2 = P2,
+           pstart = S,
+           pend = E,
            sortition_id = SID,
            priority = Pr
            %contract = hash:doit(C)
           }.
 pubkey(X) -> X#owner.pubkey.
+pubkey2(X) -> X#owner.pubkey2.
 pstart(X) -> X#owner.pstart.
 pend(X) -> X#owner.pend.
 %contract(X) -> X#owner.contract.
@@ -267,6 +271,7 @@ serialize(X) ->
     HS = constants:hash_size(),
     #owner{
             pubkey = P,
+            pubkey2 = P2,
             pstart = S,
             pend = E,
             priority = Pr,
@@ -274,11 +279,13 @@ serialize(X) ->
             %contract = C
       } = X,
     PS = size(P),
+    PS = size(P2),
     32 = size(S),
     32 = size(E),
     %HS = size(C),
     HS = size(SID),
     <<P/binary,
+      P2/binary,
       S/binary,
       E/binary,
       SID/binary,
@@ -290,6 +297,7 @@ deserialize(B) ->
     X = 32*8,
     <<
       P:PS,
+      P2:PS,
       S:X,
       E:X,
       SID:HS,
@@ -297,11 +305,12 @@ deserialize(B) ->
       Pr:8
     >> = B,
     #owner{
-        pubkey = <<P:PS>>,
-        pstart = <<S:X>>,
-        pend = <<E:X>>,
+           pubkey = <<P:PS>>,
+           pubkey2 = <<P2:PS>>,
+           pstart = <<S:X>>,
+           pend = <<E:X>>,
            priority = Pr,
-        sortition_id = <<SID:HS>>
+           sortition_id = <<SID:HS>>
            %contract = <<C:HS>>
       }.
 
@@ -316,32 +325,38 @@ test() ->
     M5 = M2 + M3,
     M6 = Max - 1,
     X1 = new(keys:pubkey(),
+             <<0:520>>,
              <<0:256>>,
              <<M3:256>>,
              0,
              SID),
     X2 = new(keys:pubkey(),
+             <<0:520>>,
              <<M3:256>>,
              <<M4:256>>,
              0,
              SID),
     X3 = new(keys:pubkey(),
+             <<0:520>>,
              <<M4:256>>,
              <<M5:256>>,
              0,
              SID),
     X4 = new(keys:pubkey(),
+             <<0:520>>,
              <<M5:256>>,
              <<M6:256>>,
              0,
              SID),
     X5 = new(keys:pubkey(),
+             <<0:520>>,
              <<0:256>>,
              <<M6:256>>,
              0,
              SID2),
     SID3 = hash:doit(3),
     X6 = new(keys:pubkey(),
+             <<0:520>>,
              <<0:256>>,
              <<M6:256>>,
              1,

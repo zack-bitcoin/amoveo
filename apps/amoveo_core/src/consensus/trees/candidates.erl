@@ -1,11 +1,11 @@
 -module(candidates).
--export([new/7,
+-export([new/8,
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/2, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0,
-         id/1, sortition_id/1, layer_number/1, winner/1, height/1, next_candidate/1,
+         id/1, sortition_id/1, layer_number/1, winner/1, winner2/1, height/1, next_candidate/1,
          test/0
 ]).
 -define(id, candidates).
@@ -13,12 +13,13 @@
 %-record(candidate, {id, sortition_id, layer_number, winner, height, next_candidate}).%merkle tree
 
 
-new(ID, SID, N, WP, H, Pr, NC) ->
+new(ID, SID, N, WP, W2, H, Pr, NC) ->
     #candidate{
      id = ID,
      sortition_id = SID,
      layer_number = N,
      winner = WP,
+     winner2 = W2,
      height = H,
      priority = Pr, 
      next_candidate = NC
@@ -28,6 +29,7 @@ id(C) -> C#candidate.id.
 sortition_id(C) -> C#candidate.sortition_id.
 layer_number(C) -> C#candidate.layer_number.
 winner(C) -> C#candidate.winner.
+winner2(C) -> C#candidate.winner2.
 height(C) -> C#candidate.height.
 next_candidate(C) -> C#candidate.next_candidate. 
 
@@ -96,13 +98,16 @@ serialize(C) ->
     SI = C#candidate.sortition_id,
     HS = size(SI),
     Winner = C#candidate.winner,
+    Winner2 = C#candidate.winner2,
     PS = size(Winner),
+    PS = size(Winner2),
     NC = C#candidate.next_candidate,
     HS = size(NC),
     <<ID/binary,
       SI/binary,
       (C#candidate.layer_number):16,
       Winner/binary,
+      Winner2/binary,
       (C#candidate.height):HEI,
       (C#candidate.priority):8,
       NC/binary>>.
@@ -116,6 +121,7 @@ deserialize(B) ->
       SI:HS,
       LN:16,
       Winner:PS,
+      Winner2:PS,
       Height:HEI,
       Priority:8,
       NC:HS
@@ -125,6 +131,7 @@ deserialize(B) ->
            sortition_id = <<SI:HS>>,
            layer_number = LN,
            winner = <<Winner:PS>>,
+           winner2 = <<Winner2:PS>>,
            height = Height,
            priority = Priority,
            next_candidate = <<NC:HS>>
@@ -146,11 +153,13 @@ test() ->
             hash:doit(2),
             1,
             Pub,
+            <<0:520>>,
             1,
             0,
             hash:doit(3)),
     %serialize deserialize
     S1 = deserialize(serialize(S)),
+    %io:fwrite([S, S1]),
     S = S1,
     %make an empty tree.
     Root0 = trees:empty_tree(candidates),

@@ -128,7 +128,7 @@ merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict
     empty = candidates:dict_get(LayerClaimID, Dict2),
     Priority = ownership:priority(Ownership),
     Winner = ownership:pubkey(Ownership),
-    NC = candidates:new(LayerClaimID, SID, LayerNumber, Winner, NewClaimHeight, Priority, TCID),
+    NC = candidates:new(LayerClaimID, SID, LayerNumber, Winner, <<0:520>>, NewClaimHeight, Priority, TCID),
     Dict3 = candidates:dict_write(NC, Dict2),
     merkle_verify(LayerNumber + 1,
                   T,

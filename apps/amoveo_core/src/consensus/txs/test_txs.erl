@@ -1172,8 +1172,8 @@ test(31) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    Owner = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),
-    Owner2 = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 1, SID),
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID),
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
     Proof = ownership:make_proof(Owner, M),
     Proof2 = ownership:make_proof(Owner2, M),
@@ -1263,8 +1263,8 @@ test(32) ->
     mine_blocks(1),
 
     VR = sortition_new_tx:make_root(Validators),
-    Owner = ownership:new(<<0:520>>, <<0:256>>, <<-1:256>>, 0, VR),%VR is the validators root for the new baby sortiiton chain.
-    Owner2 = ownership:new(keys:pubkey(), <<0:256>>, <<-1:256>>, 0, SID),%this gives all the money in the baby sortition chain to keys:pubkey().
+    Owner = ownership:new(<<0:520>>, <<0:520>>, <<0:256>>, <<-1:256>>, 0, VR),%VR is the validators root for the new baby sortiiton chain.
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),%this gives all the money in the baby sortition chain to keys:pubkey().
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
     Proof = ownership:make_proof(Owner, M),
     %{StateRoot2, M2} = ownership:make_tree([Owner2]),
