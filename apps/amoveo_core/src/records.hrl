@@ -20,7 +20,7 @@
 -record(rng_confirm_tx, {pubkey, nonce, fee, sortition_id, result_id}).
 
 
--record(waiver, {pubkey, sortition_id, contract}).
+-record(waiver, {pubkey, pubkey2, sortition_id, contract}).
 
 -record(sortition, {id, amount, entropy_source, creator, validators, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, top_rng, bottom_rng, closed}).%merkle tree
 %rng_results make a queue, new elements inserted at the bottom_rng pointer, and the head of the queue is the top_rng.

@@ -1,11 +1,12 @@
 -module(sortition_evidence_tx).
--export([go/4, make_dict/6, make_waiver/3]).
+-export([go/4, make_dict/6, make_waiver/4]).
 -include("../../records.hrl").
 %-record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, signed_waiver}).
 %-record(waiver, {pubkey, sortition_id, contract}).
 
-make_waiver(Who, SID, Contract) ->
+make_waiver(Who, Pub2, SID, Contract) ->
     #waiver{pubkey = Who,
+            pubkey2 = Pub2, 
             sortition_id = SID,
             contract = Contract}.
 
@@ -26,13 +27,20 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     A2 = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(A2, Dict),
 
-    true = testnet_sign:verify(SignedWaiver),
     Waiver = testnet_sign:data(SignedWaiver),
     #waiver{
              pubkey = Loser,
+             pubkey2 = Loser2,
              sortition_id = SID,%for the correct sortition chain.
              contract = Contract
            } = Waiver,
+    true = testnet_sign:verify_sig(Waiver, SignedWaiver#signed.sig, Loser),
+    case Loser2 of
+        <<0:520>> -> ok;
+        P2 ->
+            true = testnet_sign:verify_sig(Waiver, SignedWaiver#signed.sig2, P2)
+    end,
+    %true = testnet_sign:verify(SignedWaiver),
 
 
     S = sortition:dict_get(SID, Dict2),
@@ -43,7 +51,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     TC = candidates:dict_get(TCID, Dict2),
     #candidate{
                 next_candidate = NC,
-                winner = Loser%matches with who signed the waiver.
+                winner = Loser,%matches with who signed the waiver.
+                winner2 = Loser2%matches with who signed the waiver.
               } = TC,
     false = (Loser == <<0:520>>),
     %TODO, sortition_evidence_tx can also refer to any layer built on this candidate, if the sortition chain has recursive child sortition chains.

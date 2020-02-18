@@ -1221,7 +1221,7 @@ test(31) ->
 
 
     Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
-    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), SID, Contract),
+    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract),
     SW = keys:sign(Waiver),
     SS = spk:new_ss(<<>>, []),
     SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, 0, SW, SS),
