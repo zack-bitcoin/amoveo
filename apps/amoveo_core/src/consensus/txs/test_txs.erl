@@ -1313,8 +1313,80 @@ test(32) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    success.
+    success;
+test(33) ->
+    %sortition chain channel resolution test
+    % sortition new, sortition block,
+    %rng result, rng confirm,
+    % sortition claim, sortition timeout
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(2),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    Entropy = 8,
+    TradingEnds = 4,
+    ResponseDelay = 2,
+    RNGEnds = 12,
+    Delay = 2,
+    Validators = [keys:pubkey()],
+    Amount = 1000000000,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
 
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    VR = sortition_new_tx:make_root(Validators),
+    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID),%this gives all the money in the baby sortition chain to keys:pubkey().
+    {StateRoot, M} = ownership:make_tree([Owner]),
+    Proof = ownership:make_proof(Owner, M),
+
+    Sig = keys:raw_sign(hash:doit([0,StateRoot])),
+
+    SBID = hash:doit([0, VR]),
+    SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
+    SSBT = keys:sign(SBT),
+    absorb(SSBT),
+    1 = many_txs(),
+    mine_blocks(3),%mine enough blocks we can post rng results
+
+    GoodHashes = times(129, <<27:256>>, []),
+    RID = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
+    1 = many_txs(),
+    mine_blocks(20),
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
+    1 = many_txs(),
+    timer:sleep(11000),
+    mine_blocks(2),
+
+    ClaimID = hash:doit(22),
+
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, <<0:256>>, Fee),
+    SSCT = keys:sign(SCT),
+    absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(3000),
+
+    mine_blocks(9),
+    timer:sleep(7000),
+
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), NewPub, SID, 0, Fee),
+    SSTT = keys:sign(STT),
+    absorb(SSTT),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    success.
     
 
 test29(_, _, _, 0) -> ok;
