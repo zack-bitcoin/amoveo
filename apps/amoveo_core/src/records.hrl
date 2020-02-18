@@ -7,7 +7,7 @@
 
 -record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, layer, signed_waiver, script_sig}).
 
--record(sortition_timeout_tx, {pubkey, nonce, fee, winner, amount, layer, sortition_id}).
+-record(sortition_timeout_tx, {pubkey, nonce, fee, winner, winner2, amount, layer, sortition_id}).
 
 -record(rng_result_tx, {pubkey, nonce, fee, id, sortition_id, hashes}).
 

@@ -1231,7 +1231,7 @@ test(31) ->
     mine_blocks(6),
     timer:sleep(5000),
 
-    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, 0, Fee),
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), <<0:520>>, SID, 0, Fee),
     SSTT = keys:sign(STT),
     absorb(SSTT),
     1 = many_txs(),
@@ -1307,7 +1307,7 @@ test(32) ->
     mine_blocks(9),
     timer:sleep(7000),
 
-    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), SID, 1, Fee),
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), <<0:520>>, SID, 1, Fee),
     SSTT = keys:sign(STT),
     absorb(SSTT),
     1 = many_txs(),

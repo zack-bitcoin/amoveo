@@ -564,6 +564,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 #sortition_timeout_tx{
               pubkey = From,
               winner = Winner,
+              winner2 = Winner2,
               sortition_id = SID,
               layer = LN
              } = Tx,
@@ -572,13 +573,20 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             top_candidate = TCID_0
                           } = S,
                 TCID = sortition_claim_tx:layer_salt(TCID_0, LN),
+                U = case Winner2 of
+                        <<0:520>> ->
+                            [{accounts, Winner}];
+                        _ ->
+                            CID = sortition_timeout_tx:cid_maker(Tx),
+                            [{channels, CID}]
+                    end,
                 [
                  {candidates, TCID},
                  {accounts, From},
                  {accounts, Winner},
                  {sortition, SID},
                  {governance, ?n2i(sortition_timeout_tx)}
-                ];
+                ] ++ U;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},
