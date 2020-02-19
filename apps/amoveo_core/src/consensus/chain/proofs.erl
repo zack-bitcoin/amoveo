@@ -587,6 +587,25 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {sortition, SID},
                  {governance, ?n2i(sortition_timeout_tx)}
                 ] ++ U;
+            sortition_final_spend_tx ->
+                #sortition_final_spend_tx{
+              from = From,
+              claim_id = ClaimID,
+              signed_spend = SFS
+             } = Tx,
+                FS = testnet_sign:data(SFS),
+                #final_spend{
+                              from = _From,
+                              from2 = _From2,
+                              to = To,
+                              sortition_id = SID
+                            } = FS,
+                [
+                 {governance, ?n2i(sortition_final_spend_tx)},
+                 {sortition, SID},
+                 {candidates, ClaimID},
+                 {accounts, From}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

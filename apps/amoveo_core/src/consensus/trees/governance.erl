@@ -173,6 +173,7 @@ name2number(rng_response_tx) -> 36;
 name2number(rng_refute_tx) -> 37;
 name2number(rng_confirm_tx) -> 38;
 name2number(rng_many) -> 39;
+name2number(sortition_final_spend_tx) -> 40;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -209,12 +210,14 @@ number2name(29) -> sortition_new_tx;
 number2name(30) -> sortition_claim_tx;
 number2name(31) -> sortition_evidence_tx;
 number2name(32) -> sortition_timeout_tx;
-number2name(33) -> rng_result_tx;
-number2name(34) -> rng_challenge_tx;
-number2name(35) -> rng_response_tx;
-number2name(36) -> rng_refute_tx;
-number2name(37) -> rng_confirm_tx;
-number2name(38) -> rng_many;
+number2name(33) -> sortition_block_tx;
+number2name(34) -> rng_result_tx;
+number2name(35) -> rng_challenge_tx;
+number2name(36) -> rng_response_tx;
+number2name(37) -> rng_refute_tx;
+number2name(38) -> rng_confirm_tx;
+number2name(39) -> rng_many;
+number2name(40) -> sortition_final_spend_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

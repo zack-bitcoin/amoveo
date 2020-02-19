@@ -28,6 +28,9 @@
 
 -record(candidate, {id, sortition_id, layer_number, winner, winner2, recovery_spend, height, priority, next_candidate}).%merkle tree
 
+-record(sortition_final_spend_tx, {from, nonce, fee, claim_id, signed_spend}).
+-record(final_spend, {from, from2, to, sortition_id}).
+
 -record(rng_result, {id, sortition_id, pubkey, hashes, value, next_result, impossible, confirmed}).
 
 -record(rng_challenge,

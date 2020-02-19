@@ -1237,7 +1237,6 @@ test(31) ->
     1 = many_txs(),
     mine_blocks(1),
     success;
-
 test(32) ->
     %sortition chain recursion resolution test
     % new, block, 
@@ -1385,6 +1384,117 @@ test(33) ->
     absorb(SSTT),
     1 = many_txs(),
     mine_blocks(1),
+
+    success;
+test(34) ->
+%sortition timeout case 2.
+%if there has been a recovery spend, or double-spend
+
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(2),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    Entropy = 8,
+    TradingEnds = 4,
+    ResponseDelay = 2,
+    RNGEnds = 12,
+    Delay = 2,
+    Validators = [keys:pubkey()],
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Amount = 1000000000,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID),
+    {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
+    Proof = ownership:make_proof(Owner, M),
+    Proof2 = ownership:make_proof(Owner2, M),
+
+    Sig = keys:raw_sign(hash:doit([0,StateRoot])),
+    VR = sortition_new_tx:make_root(Validators),
+
+    SBID = hash:doit([0, VR]),
+    SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
+    SSBT = keys:sign(SBT),
+    absorb(SSBT),
+    1 = many_txs(),
+    mine_blocks(3),%mine enough blocks we can post rng results
+    GoodHashes = times(129, <<27:256>>, []),
+    RID = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
+    1 = many_txs(),
+    mine_blocks(20),
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
+    1 = many_txs(),
+    timer:sleep(11000),
+    mine_blocks(2),
+
+    ClaimID = hash:doit(22),
+    ClaimID2 = hash:doit(23),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    SCT2 = sortition_claim_tx:make_dict(keys:pubkey(), [OL2], SID, ClaimID2, <<0:256>>, Fee),
+    SSCT2 = keys:sign(SCT2),
+    absorb(SSCT2),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(2000),
+
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, ClaimID2, Fee),
+    SSCT = keys:sign(SCT),
+    absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(3000),
+
+
+    Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
+    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract),
+    SW = keys:sign(Waiver),
+    SS = spk:new_ss(<<>>, []),
+    SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, 0, SW, SS),
+    SSET = keys:sign(SET),
+    absorb(SSET),
+    1 = many_txs(),
+    mine_blocks(6),
+    timer:sleep(5000),
+
+    Final = sortition_final_spend_tx:make_final(keys:pubkey(), NewPub, SID),
+    SFST = sortition_final_spend_tx:make_dict(keys:pubkey(), ClaimID, Final, Fee),
+    SSFST = keys:sign(SFST),
+    absorb(SSFST),
+    1 = many_txs(),
+
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), <<0:520>>, SID, 0, Fee),
+    SSTT = keys:sign(STT),
+    absorb(SSTT),
+    2 = many_txs(),
+    %mine_blocks(1),
+    
+    tx_pool:dump(),
+    absorb(SSFST),
+    1 = many_txs(),
+    {NewPub2,_NewPriv2} = testnet_sign:new_key(),
+    Final2 = sortition_final_spend_tx:make_final(keys:pubkey(), NewPub2, SID),
+    SFST2 = sortition_final_spend_tx:make_dict(keys:pubkey(), ClaimID, Final2, Fee),
+    SSFST2 = keys:sign(SFST2),
+    absorb(SSFST2),
+    2 = many_txs(),
+
+    STT2 = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), <<0:520>>, SID, 0, Fee),
+    SSTT2 = keys:sign(STT2),
+    absorb(SSTT2),
+    3 = many_txs(),
 
     success;
 test(sortition) ->

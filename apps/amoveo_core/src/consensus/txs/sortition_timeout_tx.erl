@@ -35,37 +35,49 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     #sortition{
                 rng_value = RNGValue,
                 top_candidate = TCID_0,
-                closed = Closed,
+                closed = 0,
                 last_modified = LM,
                 delay = Delay,
                 amount = Amount
               } = S,
-    Dict3 = case Winner2 of
-                <<0:520>> ->
-                    W2 = accounts:dict_update(Winner, Dict2, Amount, none),
-                    accounts:dict_write(W2, Dict2);
-                _ ->
-                    CID = cid_maker(Tx),
-                    Bal = Amount div 2,
-                    NewChannel = channels:new(CID, Winner, Winner2, Bal, Bal, NewHeight, Delay),%same as delay in sortition.
-                    channels:dict_write(NewChannel, Dict2)
-                    %we need to create a new channel.
-                    %make the channel id from hash(sid++winner++winner2)
-            end,
     TCID = sortition_claim_tx:layer_salt(TCID_0, LN),
-    Closed = 0,
     true = (NewHeight - Delay) > LM,
-    TC = candidates:dict_get(TCID, Dict3),
+    TC = candidates:dict_get(TCID, Dict2),
     #candidate{
                 sortition_id = SID,
                 winner = Winner,
-                winner2 = Winner2
+                winner2 = Winner2,
+                recovery_spend = RS
               } = TC,
     false = (Winner == <<0:520>>),
+    {Amount2, Dict3} = 
+        case RS of
+            <<1:520>> -> 1=2;%double spend of the recovery process, money is destroyed.
+            <<0:520>> -> {Amount, Dict2};%recover process not used.
+            _ -> 
+                    %pay out majority to RS, and a fraction to winner/s.
+                A1 = Amount * 9 div 10,
+                W3 = accounts:dict_update(RS, Dict2, A1, none),
+                {Amount div 10,
+                 accounts:dict_write(W3, Dict2)}
+                
+        end,
+            
+    Dict4 = 
+        case Winner2 of
+            <<0:520>> ->
+                W2 = accounts:dict_update(Winner, Dict2, Amount2, none),
+                accounts:dict_write(W2, Dict3);
+            _ ->
+                CID = cid_maker(Tx),
+                Bal = Amount2 div 2,
+                NewChannel = channels:new(CID, Winner, Winner2, Bal, Bal, NewHeight, Delay),%same as delay in sortition.
+                channels:dict_write(NewChannel, Dict3)
+        end,
     S2 = S#sortition{
            closed = 1
           },
-    sortition:dict_write(S2, Dict3).
+    sortition:dict_write(S2, Dict4).
     
     
     
