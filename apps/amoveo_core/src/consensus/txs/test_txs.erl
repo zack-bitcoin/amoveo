@@ -1386,7 +1386,14 @@ test(33) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    success.
+    success;
+test(sortition) ->
+    S = success,
+    S = test(30),
+    S = test(31),
+    S = test(32),
+    S = test(33),
+    S.
     
 
 test29(_, _, _, 0) -> ok;

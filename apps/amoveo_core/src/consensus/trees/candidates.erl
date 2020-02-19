@@ -6,11 +6,12 @@
 	 deserialize/1, serialize/1, 
 	 all/0,
          id/1, sortition_id/1, layer_number/1, winner/1, winner2/1, height/1, next_candidate/1,
+         recovery_spend/1,
          test/0
 ]).
 -define(id, candidates).
 -include("../../records.hrl").
-%-record(candidate, {id, sortition_id, layer_number, winner, height, next_candidate}).%merkle tree
+%-record(candidate, {id, sortition_id, layer_number, winner, winner2, recovery_spend, height, priority, next_candidate}).%merkle tree
 
 
 new(ID, SID, N, WP, W2, H, Pr, NC) ->
@@ -20,6 +21,7 @@ new(ID, SID, N, WP, W2, H, Pr, NC) ->
      layer_number = N,
      winner = WP,
      winner2 = W2,
+     recovery_spend = <<0:520>>,
      height = H,
      priority = Pr, 
      next_candidate = NC
@@ -30,6 +32,7 @@ sortition_id(C) -> C#candidate.sortition_id.
 layer_number(C) -> C#candidate.layer_number.
 winner(C) -> C#candidate.winner.
 winner2(C) -> C#candidate.winner2.
+recovery_spend(C) -> C#candidate.recovery_spend.
 height(C) -> C#candidate.height.
 next_candidate(C) -> C#candidate.next_candidate. 
 
@@ -99,6 +102,7 @@ serialize(C) ->
     HS = size(SI),
     Winner = C#candidate.winner,
     Winner2 = C#candidate.winner2,
+    RecoverySpend = C#candidate.recovery_spend,
     PS = size(Winner),
     PS = size(Winner2),
     NC = C#candidate.next_candidate,
@@ -108,6 +112,7 @@ serialize(C) ->
       (C#candidate.layer_number):16,
       Winner/binary,
       Winner2/binary,
+      RecoverySpend/binary,
       (C#candidate.height):HEI,
       (C#candidate.priority):8,
       NC/binary>>.
@@ -122,6 +127,7 @@ deserialize(B) ->
       LN:16,
       Winner:PS,
       Winner2:PS,
+      RecoverySpend:PS,
       Height:HEI,
       Priority:8,
       NC:HS
@@ -132,6 +138,7 @@ deserialize(B) ->
            layer_number = LN,
            winner = <<Winner:PS>>,
            winner2 = <<Winner2:PS>>,
+           recovery_spend = <<RecoverySpend:PS>>,
            height = Height,
            priority = Priority,
            next_candidate = <<NC:HS>>
