@@ -1124,6 +1124,7 @@ gov_fees([Tx|T], Dict, Height) ->
     C = testnet_sign:data(Tx),
     Type = element(1, C),
     A = case Type of
+            rng_challenge_cleanup_tx -> 0;
 	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict);
 	    _ -> 
                 X = governance:dict_get_value(Type, Dict),
@@ -1386,9 +1387,11 @@ sum_amounts_helper(candidates, _R, _, _D, _) ->
 sum_amounts_helper(sortition_blocks, _R, _, _D, _) ->
     0;
 sum_amounts_helper(rng_challenge, _R, _, D, _) ->
-    governance:dict_get_value(rng_challenge_tx, D);
+    %governance:dict_get_value(rng_challenge_tx, D);
+    0;
 sum_amounts_helper(rng_result, _R, _, D, _) ->
     governance:dict_get_value(rng_result_tx, D);
+    %0;
 sum_amounts_helper(sortition, S, _Dict, _, _) ->
     case sortition:closed(S) of
         0 -> S#sortition.amount;

@@ -40,6 +40,7 @@
         start_hash, end_hash,
         many, %how many hashes in this challenge
         timestamp, refunded, n}).
+-record(rng_challenge_cleanup_tx, {from, nonce, fee, challenge_id, sortition_id}).
 
 
 

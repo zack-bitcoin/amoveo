@@ -84,6 +84,7 @@ absorb_internal2(SignedTx, PID) ->
 		    MF = MinimumTxFee * length(MTxs),
 		    true = Fee > (MF + Cost),
 		    ok;
+                rng_challenge_cleanup_tx -> ok;
 		_ ->
 		    Cost = trees:get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
     %io:fwrite("now 4 "),%500

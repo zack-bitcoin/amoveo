@@ -21,6 +21,9 @@ make_owner_layer(SID, Proof, EID, VR, Ownership) ->
 make_dict(From, L, SID, ClaimID, TCID, Fee) ->
     Acc = trees:get(accounts, From),
     %OL = #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR, ownership = Ownership},
+    S = trees:get(sortition, SID),
+    TCID2 = S#sortition.top_candidate,
+    TCID = TCID2,
     #sortition_claim_tx{from = From, nonce = Acc#acc.nonce + 1, 
                         fee = Fee, 
                         claim_id = ClaimID, sortition_id = SID,

@@ -451,6 +451,17 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {sortition, SID},
                  {rng_challenge, ID}
                 ] ++ U;
+            rng_challenge_cleanup_tx ->
+                #rng_challenge_cleanup_tx{
+              sortition_id = SID,
+              from = From,
+              challenge_id = CID
+             } = Tx,
+                [
+                 {accounts, From},
+                 {sortition, SID},
+                 {rng_challenge, CID}
+                ];
             rng_response_tx ->
                 #rng_response_tx{
               pubkey = From,
@@ -522,8 +533,6 @@ txs_to_querys2([STx|T], Trees, Height) ->
               claim_id = ClaimID,
               proof_layers = PL
              } = Tx,
-                %SID = ownership:sid(Ownership),
-                %Winner = ownership:pubkey(Ownership),
                 U = case TCID of
                         <<0:256>> -> [];
                         0 -> [];

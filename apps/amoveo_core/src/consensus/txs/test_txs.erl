@@ -1069,14 +1069,28 @@ test(30) ->
     ResponseDelay = 2,
     RNGEnds = 25,
     Delay = 2,
-    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, [keys:pubkey()], Fee),
+    Validators = [keys:pubkey()],
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
     Stx = keys:sign(Tx),
     absorb(Stx),
     1 = many_txs(),
-    mine_blocks(4),%mine enough blocks we can post rng results
+    mine_blocks(1),
+
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),
+    {StateRoot, M2} = ownership:make_tree([Owner]),
+    OwnershipProof = ownership:make_proof(Owner, M2),
+    Sig = keys:raw_sign(hash:doit([0,StateRoot])),
+    VR = sortition_new_tx:make_root(Validators),
+    SBID = hash:doit([0, VR]),
+    SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
+    SSBT = keys:sign(SBT),
+    absorb(SSBT),
+    1 = many_txs(),
+
+    mine_blocks(3),%mine enough blocks we can post rng results
     RID = hash:doit(2),
     RID3 = hash:doit(4),
-    BadHashes = times(129, <<0:256>>, []),
+    BadHashes = times(129, <<1:256>>, []),
     GoodHashes = BadHashes,
     BRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, BadHashes, Fee),%make incorrect rng_result
     SBRRT = keys:sign(BRRT),
@@ -1092,17 +1106,19 @@ test(30) ->
     SGRRT = keys:sign(GRRT),
     absorb(SGRRT),
     3 = many_txs(),
-    mine_blocks(1),
+    mine_blocks(2),
     %have a process that compares the rng_result to generate a challenge to show one is incorrect.
     CID = hash:doit(3),
     {_, Root, M} = rng_result_tx:merklize(BadHashes),
     {_, _, Proof} = mtree:get(leaf:path_maker(0, mtree:cfg(M)), Root, M),
+    io:fwrite("rng challenge 1\n"),
     RCT = rng_challenge_tx:make_dict(keys:pubkey(), CID, SID, RID, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
-    SCT = keys:sign(RCT),
-    absorb(SCT),
+    SRCT = keys:sign(RCT),
+    absorb(SRCT),
     1 = many_txs(),
     %1=2,
     CID2 = hash:doit(4),
+    io:fwrite("rng challenge 2\n"),
     RCT2 = rng_challenge_tx:make_dict(keys:pubkey(), CID2, SID, RID3, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
     SCT2 = keys:sign(RCT2),
     absorb(SCT2),
@@ -1113,10 +1129,11 @@ test(30) ->
     SRRT = keys:sign(RRT),
     absorb(SRRT),
     1 = many_txs(),
-    mine_blocks(1),
+    mine_blocks(2),
 
     CID3 = hash:doit(5),
     %io:fwrite("here0010101\n"),
+    io:fwrite("rng challenge 3\n"),
     RCT3 = rng_challenge_tx:make_dict(keys:pubkey(), CID3, SID, CID, 1, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),
     %io:fwrite(RCT3),
     SRCT3 = keys:sign(RCT3),
@@ -1148,6 +1165,33 @@ test(30) ->
     mine_blocks(1),
 
     %settle the sortition chain tx
+    
+    ClaimID = hash:doit(22),
+    OL = sortition_claim_tx:make_owner_layer(SID, OwnershipProof, SBID, VR, Owner),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, <<0:256>>, Fee),
+    SSCT = keys:sign(SCT),
+    absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    mine_blocks(6),
+    timer:sleep(5000),
+    
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), <<0:520>>, SID, 0, Fee),
+    SSTT = keys:sign(STT),
+    absorb(SSTT),
+    1 = many_txs(),
+    mine_blocks(1),
+
+
+
+    RCCT = rng_challenge_cleanup_tx:make_dict(keys:pubkey(), CID),
+    SRCCT = keys:sign(RCCT),
+    io:fwrite(packer:pack(SRCCT)),
+    io:fwrite("\n"),
+    absorb(SRCCT),
+    1 = many_txs(),
+    mine_blocks(1),
     success;
 test(31) ->
     %sortition chain resolution test
@@ -1296,7 +1340,7 @@ test(32) ->
 
     OL1 = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
     OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
-    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL1, OL2], SID, ClaimID, <<0:256>>, Fee),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL1, OL2], SID, ClaimID, <<1:256>>, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),

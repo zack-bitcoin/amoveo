@@ -34,7 +34,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     #sortition{
                 top_rng = RID,%only allow refuting the top priority RNG possibility.
                 bottom_rng = Bottom,
-                rng_response_delay = RRD
+                rng_response_delay = RRD,
+                closed = 0
               } = S,
     #rng_result{
                  next_result = NextR

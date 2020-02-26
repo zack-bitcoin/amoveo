@@ -15,13 +15,14 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     sortition_id = SID,
     result_id = RID
    } = Tx,
-    Reward = governance:dict_get_value(rng_result_tx, Dict) * 5 div 6,
+    Reward = governance:dict_get_value(rng_result_tx, Dict),
     A2 = accounts:dict_update(From, Dict, Reward-Fee, Nonce),
     Dict2 = accounts:dict_write(A2, Dict),
     RR = rng_result:dict_get(RID, Dict2),
     #rng_result{
                  value = RNGV
                } = RR,
+    false = (RNGV == <<0:256>>),
     Dict3 = rng_result:dict_delete(RID, Dict2),
     S = sortition:dict_get(SID, Dict3),
     #sortition{

@@ -18,7 +18,7 @@ digest_txs([STx|T], Dict, Height) ->
     true = testnet_sign:verify(STx),
     Tx = testnet_sign:data(STx),
     Fee = element(4, Tx),
-    true = Fee > 0,
+    true = Fee > -1,
     Key = element(1, Tx),
     M = key2module(Key),
     NewDict = M:go(Tx, Dict, Height, true),
@@ -31,6 +31,7 @@ key2module(sortition_block_tx) -> sortition_block_tx;
 key2module(sortition_final_spend_tx) -> sortition_final_spend_tx;
 key2module(rng_result_tx) -> rng_result_tx;
 key2module(rng_challenge_tx) -> rng_challenge_tx;
+key2module(rng_challenge_cleanup_tx) -> rng_challenge_cleanup_tx;
 key2module(rng_response_tx) -> rng_response_tx;
 key2module(rng_refute_tx) -> rng_refute_tx;
 key2module(rng_confirm_tx) -> rng_confirm_tx;
