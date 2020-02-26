@@ -74,5 +74,5 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     %io:fwrite(Result),
     SID = Result#rng_result.sortition_id,
     <<HashStart:256, HashEnd:256>> = HashPair,
-    NRC = rng_challenge:new(ID, PID, RID, From, NewHeight, N, <<HashStart:256>>, <<HashEnd:256>>, Many2),
+    NRC = rng_challenge:new(ID, PID, RID, From, NewHeight, N, <<HashStart:256>>, <<HashEnd:256>>, Many2, SID),
     rng_challenge:dict_write(NRC, Dict2).

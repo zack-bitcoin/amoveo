@@ -34,7 +34,9 @@
 -record(rng_result, {id, sortition_id, pubkey, hashes, value, next_result, impossible, confirmed}).
 
 -record(rng_challenge,
-        {id, result_id, parent_id, pubkey, hashes,
+        {id, result_id, parent_id,
+        sortition_id,
+        pubkey, hashes,
         start_hash, end_hash,
         many, %how many hashes in this challenge
         timestamp, refunded, n}).

@@ -1,5 +1,5 @@
 -module(rng_challenge).
--export([new/9,
+-export([new/10,
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/4, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
@@ -11,11 +11,12 @@
 -define(id, rng_challenge).
 -include("../../records.hrl").
 
-new(ID, PID, RID, Pub, Time, N, Start, End, Many) ->
+new(ID, PID, RID, Pub, Time, N, Start, End, Many, SID) ->
     #rng_challenge{
      id = ID,
      result_id = RID,
      parent_id = PID,
+     sortition_id = SID,
      pubkey = Pub,
      hashes = <<0:256>>,
      start_hash = Start,
@@ -98,6 +99,7 @@ deserialize(B) ->
       ID:HS,
       RID:HS,
       PID:HS,
+      SID:HS,
       Pub:PS,
       Hashes:HS,
       StartHash:HS,
@@ -111,6 +113,7 @@ deserialize(B) ->
            id = <<ID:HS>>,
            result_id = <<RID:HS>>,
            parent_id = <<PID:HS>>,
+           sortition_id = <<SID:HS>>,
            pubkey = <<Pub:PS>>,
            hashes = <<Hashes:HS>>,
            start_hash = <<StartHash:HS>>,
@@ -128,6 +131,7 @@ serialize(R) ->
     ID = R#rng_challenge.id,
     RID = R#rng_challenge.result_id,
     PID = R#rng_challenge.parent_id,
+    SID = R#rng_challenge.sortition_id,
     Pub = R#rng_challenge.pubkey,
     Hashes = R#rng_challenge.hashes,
     StartHash = R#rng_challenge.start_hash,
@@ -144,6 +148,7 @@ serialize(R) ->
       ID/binary,
       RID/binary,
       PID/binary,
+      SID/binary,
       Pub/binary,
       Hashes/binary,
       StartHash/binary,
@@ -168,10 +173,11 @@ test() ->
     ID = hash:doit(1),
     PID = hash:doit(2),
     RID = hash:doit(3),
+    SID = hash:doit(8),
     SH = hash:doit(4),
     EH = hash:doit(5),
     <<Many:16>> = <<2:6, 100:10>>,
-    S = new(ID, PID, RID, Pub, 200, 3, SH, EH, Many),
+    S = new(ID, PID, RID, Pub, 200, 3, SH, EH, Many, SID),
     S1 = deserialize(serialize(S)),
     S = S1,
     Root0 = trees:empty_tree(rng_challenge),
