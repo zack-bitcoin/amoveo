@@ -1389,10 +1389,10 @@ test(33) ->
 test(34) ->
 %sortition timeout case 2.
 %if there has been a recovery spend, or double-spend
-
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    timer:sleep(100),
     mine_blocks(2),
     Fee = constants:initial_fee() + 20,
     SID = hash:doit(1),
@@ -1469,8 +1469,9 @@ test(34) ->
     mine_blocks(6),
     timer:sleep(5000),
 
-    Final = sortition_final_spend_tx:make_final(keys:pubkey(), NewPub, SID),
-    SFST = sortition_final_spend_tx:make_dict(keys:pubkey(), ClaimID, Final, Fee),
+    ToProve = [],
+    Final = sortition_final_spend_tx:make_final(keys:pubkey(), NewPub, SID, Contract, ToProve),
+    SFST = sortition_final_spend_tx:make_dict(keys:pubkey(), ClaimID, Final, <<>>, Fee),
     SSFST = keys:sign(SFST),
     absorb(SSFST),
     1 = many_txs(),
@@ -1485,8 +1486,8 @@ test(34) ->
     absorb(SSFST),
     1 = many_txs(),
     {NewPub2,_NewPriv2} = testnet_sign:new_key(),
-    Final2 = sortition_final_spend_tx:make_final(keys:pubkey(), NewPub2, SID),
-    SFST2 = sortition_final_spend_tx:make_dict(keys:pubkey(), ClaimID, Final2, Fee),
+    Final2 = sortition_final_spend_tx:make_final(keys:pubkey(), NewPub2, SID, Contract, ToProve),
+    SFST2 = sortition_final_spend_tx:make_dict(keys:pubkey(), ClaimID, Final2, <<>>, Fee),
     SSFST2 = keys:sign(SFST2),
     absorb(SSFST2),
     2 = many_txs(),
@@ -1503,6 +1504,7 @@ test(sortition) ->
     S = test(31),
     S = test(32),
     S = test(33),
+    S = test(34),
     S.
     
 

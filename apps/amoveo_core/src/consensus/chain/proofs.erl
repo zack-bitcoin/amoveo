@@ -602,6 +602,11 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             } = FS,
                 [
                  {governance, ?n2i(sortition_final_spend_tx)},
+                 {governance, ?n2i(sortition_final_spend_refund)},
+                 {governance, ?n2i(fun_limit)},
+                 {governance, ?n2i(var_limit)},
+                 {governance, ?n2i(time_gas)},
+                 {governance, ?n2i(space_gas)},
                  {sortition, SID},
                  {candidates, ClaimID},
                  {accounts, From}

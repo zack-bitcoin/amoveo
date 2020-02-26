@@ -56,9 +56,11 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             <<0:520>> -> {Amount, Dict2};%recover process not used.
             _ -> 
                     %pay out majority to RS, and a fraction to winner/s.
-                A1 = Amount * 9 div 10,
+                SFSR = governance:dict_get_value(sortition_final_spend_refund, Dict2),
+                %A1 = Amount * 9 div 10,
+                A1 = Amount * (10000 - SFSR) div 10000,
                 W3 = accounts:dict_update(RS, Dict2, A1, none),
-                {Amount div 10,
+                {Amount * SFSR div 10000,
                  accounts:dict_write(W3, Dict2)}
                 
         end,

@@ -128,5 +128,6 @@ rng_refute_tx() -> 905.
 rng_confirm_tx() -> 405.
 rng_many() -> 252.%400
 sortition_final_spend_tx() -> 905.
+sortition_final_spend_refund() -> 352.%999 out of 10 000. so 10%.
     
     
