@@ -581,6 +581,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             [{channels, CID}]
                     end,
                 [
+                 {governance, ?n2i(sortition_final_spend_refund)},
                  {candidates, TCID},
                  {accounts, From},
                  {accounts, Winner},
@@ -602,7 +603,6 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             } = FS,
                 [
                  {governance, ?n2i(sortition_final_spend_tx)},
-                 {governance, ?n2i(sortition_final_spend_refund)},
                  {governance, ?n2i(fun_limit)},
                  {governance, ?n2i(var_limit)},
                  {governance, ?n2i(time_gas)},
