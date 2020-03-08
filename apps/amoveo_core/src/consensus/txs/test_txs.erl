@@ -1144,21 +1144,23 @@ test(30) ->
     SRRT2 = keys:sign(RRT2),
     absorb(SRRT2),
     1 = many_txs(),
-    mine_blocks(1),
+    mine_blocks(5),
+    timer:sleep(200),
 
-    RRFT = rng_refute_tx:make_dict(keys:pubkey(), SID, CID3, RID, 0, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a response is short enough to calculate on-chain, and it is invalid.
-    SRRFT = keys:sign(RRFT),
-    absorb(SRRFT),
-    1 = many_txs(),
-    mine_blocks(1),
+    %RRFT = rng_refute_tx:make_dict(keys:pubkey(), SID, CID3, RID, 0, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a response is short enough to calculate on-chain, and it is invalid.
+    %SRRFT = keys:sign(RRFT),
+    %absorb(SRRFT),
+    %1 = many_txs(),
+    %mine_blocks(1),
 
-    RRFT2 = rng_refute_tx:make_dict(keys:pubkey(), SID, CID2, RID3, 129, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a challenge goes unresponded for too much time.
+    %RRFT2 = rng_refute_tx:make_dict(keys:pubkey(), SID, CID2, RID3, 129, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a challenge goes unresponded for too much time.
+    RRFT2 = rng_refute_tx:make_dict(keys:pubkey(), SID, CID3, RID, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a challenge goes unresponded for too much time.
     SRRFT2 = keys:sign(RRFT2),
     absorb(SRRFT2),
     1 = many_txs(),
     mine_blocks(18),
 
-    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID2, Fee),
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID3, Fee),
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
     1 = many_txs(),
@@ -1182,7 +1184,6 @@ test(30) ->
     absorb(SSTT),
     1 = many_txs(),
     mine_blocks(1),
-
 
 
     RCCT = rng_challenge_cleanup_tx:make_dict(keys:pubkey(), CID),
@@ -1340,7 +1341,7 @@ test(32) ->
 
     OL1 = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
     OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
-    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL1, OL2], SID, ClaimID, <<1:256>>, Fee),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL1, OL2], SID, ClaimID, <<0:256>>, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),

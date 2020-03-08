@@ -15,7 +15,7 @@
 
 -record(rng_response_tx, {pubkey, nonce, fee, id, sortition_id, result_id, hashes}).
 
--record(rng_refute_tx, {pubkey, nonce, fee, sortition_id, challenge_id, result_id, n, proof, start_hash, end_hash}).
+-record(rng_refute_tx, {pubkey, nonce, fee, sortition_id, challenge_id, result_id, proof, start_hash, end_hash}).
 
 -record(rng_confirm_tx, {pubkey, nonce, fee, sortition_id, result_id}).
 
@@ -39,7 +39,9 @@
         pubkey, hashes,
         start_hash, end_hash,
         many, %how many hashes in this challenge
-        timestamp, refunded, n}).
+        timestamp, refunded,
+        n %how many layers of challenges deep is this.
+        }).
 -record(rng_challenge_cleanup_tx, {from, nonce, fee, challenge_id, sortition_id}).
 
 

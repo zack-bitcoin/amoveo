@@ -37,6 +37,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Result = rng_result:dict_get(RID, Dict2),
     #rng_result{
                  sortition_id = SID,
+                 impossible = 0,
                  pubkey = From%verifies that they have permission to make this response.
                } = Result,
     S = sortition:dict_get(SID, Dict),

@@ -20,7 +20,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Dict2 = accounts:dict_write(A2, Dict),
     RR = rng_result:dict_get(RID, Dict2),
     #rng_result{
-                 value = RNGV
+                 value = RNGV,
+                 impossible = 0
                } = RR,
     false = (RNGV == <<0:256>>),
     Dict3 = rng_result:dict_delete(RID, Dict2),

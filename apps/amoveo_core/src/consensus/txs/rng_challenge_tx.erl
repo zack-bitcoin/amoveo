@@ -43,6 +43,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Dict2 = accounts:dict_write(Facc, Dict),
     S = sortition:dict_get(SID, Dict2),
     #sortition{
+                top_rng = TopRID,
+                bottom_rng = Bottom,
                 rng_value = <<0:256>>%verifies that this sortition has not decided on the rng yet
      } = S,
     X = Type:dict_get(PID, Dict2),
@@ -69,10 +71,40 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
         end,
     <<Radix:9, Mantissa:7>> = <<Many:16>>,
     <<Many2:16>> = <<(Radix-1):9, Mantissa:7>>,
-    false = (Radix == 1), %if radix is 0, handle with rng_cleanup
+
+    false = (Radix == 1), %if radix is 0, 
     Result = rng_result:dict_get(RID, Dict2),
+    #rng_result{
+                 sortition_id = SID,
+                 next_result = NextR,
+                 impossible = 0
+               } = Result,
+    %TODO, if Many < 10 000, then try connecting the hashes on-chain. If they don't connect, then mark the rng_result as invalid. set "impossible" to true.
+    %if they do connect, then this tx is invalid.
+
+    if
+        Many < 10000 ->
+            io:fwrite("many less than 10k\n"),
+            false = (EndHash == hash_times(Many, StartHash)),
+            Result2 = Result#rng_result{
+                        impossible = 1
+                       },
+            Dict3 = rng_result:dict_write(Result2, Dict2),
+            NewBottom = 
+                if
+                    Bottom == TopRID -> <<0:256>>;
+                    true -> Bottom
+                end,
+            S2 = sortition:dict_update(S, NewHeight, 0, NextR, NewBottom),
+            sortition:dict_write(S2, Dict3);
+        true ->
     %io:fwrite(Result),
-    SID = Result#rng_result.sortition_id,
-    <<HashStart:256, HashEnd:256>> = HashPair,
-    NRC = rng_challenge:new(ID, PID, RID, From, NewHeight, N, <<HashStart:256>>, <<HashEnd:256>>, Many2, SID),
-    rng_challenge:dict_write(NRC, Dict2).
+    %SID = Result#rng_result.sortition_id,
+            <<HashStart:256, HashEnd:256>> = HashPair,
+            NRC = rng_challenge:new(ID, PID, RID, From, NewHeight, N, <<HashStart:256>>, <<HashEnd:256>>, Many2, SID),
+            rng_challenge:dict_write(NRC, Dict2)
+    end.
+
+hash_times(0, X) -> X;
+hash_times(N, X) -> 
+    hash_times(N-1, hash:doit(X)). 
