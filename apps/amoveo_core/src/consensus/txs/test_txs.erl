@@ -1113,6 +1113,7 @@ test(30) ->
     {_, _, Proof} = mtree:get(leaf:path_maker(0, mtree:cfg(M)), Root, M),
     io:fwrite("rng challenge 1\n"),
     RCT = rng_challenge_tx:make_dict(keys:pubkey(), CID, SID, RID, 0, 0, hd(BadHashes), hd(tl(BadHashes)), Proof, Fee),%make  rng_challenge
+    %io:fwrite(packer:pack(RCT)),
     SRCT = keys:sign(RCT),
     absorb(SRCT),
     1 = many_txs(),

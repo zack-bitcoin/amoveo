@@ -79,24 +79,27 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                  next_result = NextR,
                  impossible = 0
                } = Result,
-    EndHash2 = hash_times(Many, StartHash),
     if
-        ((Many < 1000) and (EndHash == EndHash2))->
+        (Many < 1000) ->
+            EndHash2 = hash_times(Many, StartHash),
+            if
+                (EndHash == EndHash2) ->
             %we have verified on-chain that the hashes match.
-            Result2 = Result#rng_result{
-                        impossible = 1
-                       },
-            Dict3 = rng_result:dict_write(Result2, Dict2),
-            NewBottom = 
-                if
-                    Bottom == TopRID -> <<0:256>>;
-                    true -> Bottom
-                end,
-            S2 = sortition:dict_update(S, NewHeight, 0, NextR, NewBottom),
-            sortition:dict_write(S2, Dict3);
-        Many < 1000 ->
+                    Result2 = Result#rng_result{
+                                impossible = 1
+                               },
+                    Dict3 = rng_result:dict_write(Result2, Dict2),
+                    NewBottom = 
+                        if
+                            Bottom == TopRID -> <<0:256>>;
+                            true -> Bottom
+                        end,
+                    S2 = sortition:dict_update(S, NewHeight, 0, NextR, NewBottom),
+                    sortition:dict_write(S2, Dict3);
+                true ->
             %failed to show matching hashes on-chain. Charging a fee to prevent denial of service attacks on mining pools.
-            Dict2;
+                    Dict2
+            end;
         true ->
             %distance between checkpoints is still too-big to put on-chain.
             <<HashStart:256, HashEnd:256>> = HashPair,
