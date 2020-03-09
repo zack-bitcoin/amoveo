@@ -79,13 +79,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                  next_result = NextR,
                  impossible = 0
                } = Result,
-    %TODO, if Many < 10 000, then try connecting the hashes on-chain. If they don't connect, then mark the rng_result as invalid. set "impossible" to true.
-    %if they do connect, then this tx is invalid.
-
+    EndHash2 = hash_times(Many, StartHash),
     if
-        Many < 10000 ->
-            io:fwrite("many less than 10k\n"),
-            false = (EndHash == hash_times(Many, StartHash)),
+        ((Many < 1000) and (EndHash == EndHash2))->
+            %we have verified on-chain that the hashes match.
             Result2 = Result#rng_result{
                         impossible = 1
                        },
@@ -97,9 +94,11 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 end,
             S2 = sortition:dict_update(S, NewHeight, 0, NextR, NewBottom),
             sortition:dict_write(S2, Dict3);
+        Many < 1000 ->
+            %failed to show matching hashes on-chain. Charging a fee to prevent denial of service attacks on mining pools.
+            Dict2;
         true ->
-    %io:fwrite(Result),
-    %SID = Result#rng_result.sortition_id,
+            %distance between checkpoints is still too-big to put on-chain.
             <<HashStart:256, HashEnd:256>> = HashPair,
             NRC = rng_challenge:new(ID, PID, RID, From, NewHeight, N, <<HashStart:256>>, <<HashEnd:256>>, Many2, SID),
             rng_challenge:dict_write(NRC, Dict2)
