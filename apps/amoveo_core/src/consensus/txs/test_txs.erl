@@ -1384,8 +1384,15 @@ test(33) ->
     mine_blocks(1),
 
     {NewPub,NewPriv} = testnet_sign:new_key(),
+    CAtx = create_account_tx:make_dict(NewPub, 1000, Fee, constants:master_pub()),
+    SCAtx = keys:sign(CAtx),
+    absorb(SCAtx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+
     VR = sortition_new_tx:make_root(Validators),
-    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID),%this gives all the money in the baby sortition chain to keys:pubkey().
+    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID),%this creates a channel with newpub and keys:pubkey.
     {StateRoot, M} = ownership:make_tree([Owner]),
     Proof = ownership:make_proof(Owner, M),
 
@@ -1430,6 +1437,34 @@ test(33) ->
     absorb(SSTT),
     1 = many_txs(),
     mine_blocks(1),
+
+    CID = sortition_timeout_tx:cid_maker(STT),
+    %lets try closing this channel with a contract that could have been written while the sortition chain was open
+    %include an oracle's data to verify that it works.
+
+    Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
+    ChannelNonce = 0,
+    Bet = spk:new_bet(Code, Code, 50),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce + 1, 0)),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
+    CSCtx = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
+    SCSCtx = keys:sign(CSCtx),
+    absorb(SCSCtx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    io:fwrite("test txs 33 channel is "),
+    io:fwrite(packer:pack(trees:get(channels, CID))),
+    io:fwrite("\n"),
+
+    timer:sleep(100),
+    Ctx4 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
+    Stx4 = keys:sign(Ctx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    
 
     success;
 test(34) ->
@@ -1543,6 +1578,12 @@ test(34) ->
     absorb(SSTT2),
     3 = many_txs(),
 
+    success;
+test(35) ->
+    % make a sortition chain.
+    % put a channel in the sortition chain.
+    % move the money from that channel, into an account, and the account is connected to a smart contract so it holds stablecoins.
+    % resolve the sortition chain so the stablecoin contract wins.
     success;
 test(sortition) ->
     S = success,

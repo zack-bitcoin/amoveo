@@ -1,5 +1,5 @@
 -module(rng_challenge_tx).
--export([go/4, make_dict/10]).
+-export([go/4, make_dict/10, hash_times/2]).
 -include("../../records.hrl").
 %-record(rng_challenge_tx, {pubkey, nonce, fee, id, sortition_id, parent_id, n}).
 %-record(rng_challenge, {id, result_id, parent_id, pubkey, hashes, timestamp, refunded, n}).
@@ -111,3 +111,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 hash_times(0, X) -> X;
 hash_times(N, X) -> 
     hash_times(N-1, hash:doit(X)). 
+
+%hash 1000 times <<0:256>> ->
+%rng_challenge_tx:hash_times(1000, <<0:256>>).
+% 5df34e3f98b943870f75e3cc6c545342916e38b4f6e2360f3d451a8c532ea403
