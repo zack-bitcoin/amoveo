@@ -447,6 +447,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(rng_challenge_tx)},
                  {governance, ?n2i(rng_result_tx)},
                  {governance, ?n2i(rng_many)},
+                 {governance, ?n2i(max_hashes)},
                  {accounts, From},
                  {sortition, SID},
                  {rng_challenge, ID}
@@ -590,7 +591,6 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             [{channels, CID}]
                     end,
                 [
-                 {governance, ?n2i(sortition_final_spend_refund)},
                  {candidates, TCID},
                  {accounts, From},
                  {accounts, Winner},

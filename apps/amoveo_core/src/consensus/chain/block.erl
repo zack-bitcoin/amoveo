@@ -678,7 +678,8 @@ f28things() ->
      rng_confirm_tx,
      rng_many,
      sortition_final_spend_tx,
-     sortition_final_spend_refund].
+     %sortition_final_spend_refund].
+     max_hashes].
     
 check2(OldBlock, Block) ->
     {NewDict4, NewDict3, Dict} = 

@@ -174,7 +174,8 @@ name2number(rng_refute_tx) -> 37;
 name2number(rng_confirm_tx) -> 38;
 name2number(rng_many) -> 39;
 name2number(sortition_final_spend_tx) -> 40;
-name2number(sortition_final_spend_refund) -> 41;
+%name2number(sortition_final_spend_refund) -> 41;
+name2number(max_hashes) -> 41;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -219,7 +220,8 @@ number2name(37) -> rng_refute_tx;
 number2name(38) -> rng_confirm_tx;
 number2name(39) -> rng_many;
 number2name(40) -> sortition_final_spend_tx;
-number2name(41) -> sortition_final_spend_refund;
+%number2name(41) -> sortition_final_spend_refund;
+number2name(41) -> max_hashes;
 number2name(X) ->
     io:fwrite(X),
     1=2,

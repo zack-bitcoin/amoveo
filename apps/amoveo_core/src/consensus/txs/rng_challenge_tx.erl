@@ -79,8 +79,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                  next_result = NextR,
                  impossible = 0
                } = Result,
+    MaxHashes = governance:dict_get_value(max_hashes, Dict2),
     if
-        (Many < 1000) ->
+        (Many < MaxHashes) ->
             EndHash2 = hash_times(Many, StartHash),
             if
                 (EndHash == EndHash2) ->
