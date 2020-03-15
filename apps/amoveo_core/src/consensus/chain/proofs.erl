@@ -459,7 +459,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
               challenge_id = CID
              } = Tx,
                 [
-                 {accounts, From},
+                 %{accounts, From},
                  {sortition, SID},
                  {rng_challenge, CID}
                 ];

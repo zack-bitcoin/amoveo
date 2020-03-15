@@ -21,6 +21,8 @@ merklize_make_leaves(N, [H|T], CFG) ->
     [Leaf|merklize_make_leaves(N+1, T, CFG)].
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     #sortition_new_tx{
     creator = Creator,
     amount = Amount,

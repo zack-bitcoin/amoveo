@@ -69,12 +69,12 @@ sid(X) -> X#owner.sortition_id.
 priority(X) -> X#owner.priority.
 
 make_tree(Owners) ->
-
-    Owners2 = lists:sort(
-                fun(A, B) ->
-                        A1 = A#owner.priority,
-                        B1 = B#owner.priority,
-                        A1 =< B1 end, Owners),
+    Owners2 = 
+        lists:sort(
+          fun(A, B) ->
+                  A1 = A#owner.priority,
+                  B1 = B#owner.priority,
+                  A1 =< B1 end, Owners),
     ListsOwners = 
         make_lists(fun(X) -> X#owner.priority end, 
                    Owners2),%there are sub-lists each with a unique priority.

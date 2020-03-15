@@ -7,6 +7,8 @@ make_dict(Creator, SID, CID, RID, Proof, SH, EH, Fee) ->
     #rng_refute_tx{pubkey = Creator, nonce = Acc#acc.nonce + 1, fee = Fee, sortition_id = SID, challenge_id = CID, result_id = RID, proof = Proof, start_hash = SH, end_hash = EH}.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     #rng_refute_tx{
     pubkey = From,
     nonce = Nonce,

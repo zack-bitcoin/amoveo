@@ -15,6 +15,8 @@ make_dict(From, Fee, SID, LN, SignedWaiver, SS) ->
     #sortition_evidence_tx{pubkey = From, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, signed_waiver = SignedWaiver, script_sig = SS, layer = LN}.
     
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     #sortition_evidence_tx{
     pubkey = From,
     nonce = Nonce,

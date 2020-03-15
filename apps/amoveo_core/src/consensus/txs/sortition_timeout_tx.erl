@@ -19,6 +19,8 @@ cid_maker(Tx) ->
         Winner2/binary>>).
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    F28 = forks:get(28),
+    true = NewHeight > F28,
    #sortition_timeout_tx{
     sortition_id = SID,
     pubkey = From,

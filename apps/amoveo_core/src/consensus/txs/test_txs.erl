@@ -1189,11 +1189,11 @@ test(30) ->
 
     RCCT = rng_challenge_cleanup_tx:make_dict(keys:pubkey(), CID),
     SRCCT = keys:sign(RCCT),
-    io:fwrite(packer:pack(SRCCT)),
-    io:fwrite("\n"),
     absorb(SRCCT),
     1 = many_txs(),
     mine_blocks(1),
+
+
     success;
 test(31) ->
     %sortition chain resolution test
@@ -1454,9 +1454,6 @@ test(33) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    io:fwrite("test txs 33 channel is "),
-    io:fwrite(packer:pack(trees:get(channels, CID))),
-    io:fwrite("\n"),
 
     timer:sleep(100),
     Ctx4 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),

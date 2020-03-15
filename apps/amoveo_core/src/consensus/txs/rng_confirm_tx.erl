@@ -8,6 +8,8 @@ make_dict(Creator, SID, RID, Fee) ->
     #rng_confirm_tx{pubkey = Creator, nonce = Acc#acc.nonce + 1, sortition_id = SID, result_id = RID, fee = Fee}.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     #rng_confirm_tx{
     pubkey = From,
     nonce = Nonce,

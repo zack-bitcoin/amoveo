@@ -15,6 +15,8 @@ make_dict(Creator, ID, SID, RID, Hashes, Fee) ->
                     }.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     #rng_response_tx{nonce = Nonce,
                      fee = Fee,
                      pubkey = From,

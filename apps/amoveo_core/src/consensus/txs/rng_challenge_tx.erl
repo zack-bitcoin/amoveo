@@ -20,6 +20,8 @@ make_dict(From, ID, SID, PID, PT, N, StartHash, EndHash, Proof, Fee) ->
                      }.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     #rng_challenge_tx{nonce = Nonce,
                       fee = Fee,
                       pubkey = From,

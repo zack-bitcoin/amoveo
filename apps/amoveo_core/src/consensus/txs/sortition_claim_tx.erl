@@ -34,6 +34,8 @@ make_dict(From, L, SID, ClaimID, TCID, Fee) ->
 %maybe we should store them in groups of 4 together.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     #sortition_claim_tx{
     from = From,
     nonce = Nonce,

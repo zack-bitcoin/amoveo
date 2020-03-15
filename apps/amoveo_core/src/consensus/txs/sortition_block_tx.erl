@@ -22,6 +22,8 @@ make_dict(From, Fee, Validators, Sigs, SR, SideHeight) ->
                side_height = SideHeight,
                state_root = SR}.
 go(Tx, Dict, NewHeight, _) ->
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     #sortition_block_tx{
     from = From,
     nonce = Nonce,

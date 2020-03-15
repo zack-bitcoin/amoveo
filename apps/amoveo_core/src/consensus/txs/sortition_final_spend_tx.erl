@@ -25,6 +25,8 @@ make_dict(From, ClaimID, SignedSpend, Evidence, Fee) ->
                     }.
    
 go(Tx, Dict, NewHeight, _) -> 
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     #sortition_final_spend_tx{
     from = From,
     nonce = Nonce,
@@ -90,6 +92,5 @@ go(Tx, Dict, NewHeight, _) ->
     Data2 = chalang:run5(Evidence, Data),
     Data3 = chalang:run5(Contract2, Data2),
     [<<1:32>>|_] = chalang:stack(Data3), %check that the smart contract in the waiver returns true.
-    
 
     Dict3.
