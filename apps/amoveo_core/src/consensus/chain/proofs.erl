@@ -518,7 +518,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 U = case SideHeight of
                         0 -> [];
                         _ ->
-                            [{sortition_block, PrevID}]
+                            [{sortition_blocks, PrevID}]
                     end,
                 [
                  {governance, ?n2i(sortition_block_tx)},
@@ -585,10 +585,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 TCID = sortition_claim_tx:layer_salt(TCID_0, LN),
                 U = case Winner2 of
                         <<0:520>> ->
-                            [{accounts, Winner}];
+                            [];
                         _ ->
                             CID = sortition_timeout_tx:cid_maker(Tx),
-                            [{channels, CID}]
+                            [{accounts, Winner2},{channels, CID}]
                     end,
                 [
                  {candidates, TCID},

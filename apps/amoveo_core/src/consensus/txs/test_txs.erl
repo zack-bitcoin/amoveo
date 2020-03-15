@@ -1581,6 +1581,121 @@ test(35) ->
     % put a channel in the sortition chain.
     % move the money from that channel, into an account, and the account is connected to a smart contract so it holds stablecoins.
     % resolve the sortition chain so the stablecoin contract wins.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    timer:sleep(100),
+    mine_blocks(2),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    Entropy = 8,
+    TradingEnds = 4,
+    ResponseDelay = 2,
+    RNGEnds = 12,
+    Delay = 2,
+    Validators = [keys:pubkey()],
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    CAtx = create_account_tx:make_dict(NewPub, 1000, Fee, constants:master_pub()),
+    SCAtx = keys:sign(CAtx),
+    absorb(SCAtx),
+    1 = many_txs(),
+    %mine_blocks(1),
+    Amount = 1000000000,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    2 = many_txs(),
+    mine_blocks(1),
+
+    %making the state channel smart contract.
+    Code = compiler_chalang:doit(<<"drop int 0 int 1 int 50">>),%delay is 0, channel nonce is 1, sends 50.
+%which is 50/10000 or 1/200th of the money in the channel get sent from the first account to the second.
+    ChannelNonce = 0,
+    Bet = spk:new_bet(Code, Code, 50),
+    CID = hash:doit(<<SID/binary, 
+                      (keys:pubkey())/binary,
+                      (NewPub)/binary>>),
+    ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, 0)),
+    SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
+
+
+    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID),
+    {StateRoot, M} = ownership:make_tree([Owner]),
+    Proof = ownership:make_proof(Owner, M),
+    Sig = keys:raw_sign(hash:doit([0,StateRoot])),
+    VR = sortition_new_tx:make_root(Validators),
+
+    SBID = hash:doit([0, VR]),
+    SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
+    SSBT = keys:sign(SBT),
+    absorb(SSBT),
+    1 = many_txs(),
+    mine_blocks(1),
+    %now the sortition chain is live, and it has a state channel inside of it.
+    %Now we will close the channel, and instead have 2 accounts inside the sortition chain.
+    
+    %TODO
+    Contract2 = compiler_chalang:doit(<<"int 1">>),
+    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract2),
+    SW = keys:sign(Waiver),
+    %whoever is going to be 2nd in line, they should use waiver to give up control of part of the outcome space.
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),
+    Owner3 = ownership:new(NewPub, <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID),
+    {StateRoot2, M2} = ownership:make_tree([Owner2, Owner3]),
+    Proof2 = ownership:make_proof(Owner2, M2),
+    Proof3 = ownership:make_proof(Owner3, M2),
+    SBID2_0 = hash:doit([1,StateRoot2]),
+    Sig2 = keys:raw_sign(SBID2_0),
+    SBID2 = hash:doit([1,VR]),
+    %the validators need to make a checkpoint so that the accounts are 2nd and 3rd in line.
+    SBT2 = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig2], StateRoot2, 1),
+    SSBT2 = keys:sign(SBT2),
+    absorb(SSBT2),
+    1 = many_txs(),
+    mine_blocks(1),
+
+
+    %now the 2 channel owners sign a waiver giving up their spot as first in line.
+    Contract3 = compiler_chalang:doit(<<"int 1">>),%always returns true
+    Waiver2 = sortition_evidence_tx:make_waiver(keys:pubkey(), NewPub, SID, Contract3),
+    SW2 = testnet_sign:sign_tx(Waiver2, NewPub, NewPriv),
+    SSW2 = keys:sign(SW2),
+    
+
+
+
+    mine_blocks(2),%mine enough blocks we can post rng results
+    GoodHashes = times(129, <<27:256>>, []),
+    RID = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
+    1 = many_txs(),
+    mine_blocks(20),
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
+    1 = many_txs(),
+    timer:sleep(11000),
+    mine_blocks(2),
+
+    ClaimID = hash:doit(22),
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof3, SBID2, VR, Owner3),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, <<0:256>>, Fee),
+    SSCT = keys:sign(SCT),
+    absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(3),
+    timer:sleep(3000),
+    mine_blocks(6),
+    timer:sleep(5000),
+
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), NewPub, <<0:520>>, SID, 0, Fee),
+    SSTT = keys:sign(STT),
+    absorb(SSTT),
+    1 = many_txs(),
+    mine_blocks(1),
+
     success;
 test(sortition) ->
     S = success,
@@ -1589,6 +1704,7 @@ test(sortition) ->
     S = test(32),
     S = test(33),
     S = test(34),
+    S = test(35),
     S.
     
 
