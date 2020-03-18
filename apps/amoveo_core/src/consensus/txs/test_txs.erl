@@ -1064,11 +1064,12 @@ test(30) ->
     Fee = constants:initial_fee() + 20,
     SID = hash:doit(1),
     %make a sortition chain
-    Entropy = 15,
-    TradingEnds = 5,
-    ResponseDelay = 2,
-    RNGEnds = 25,
-    Delay = 2,
+    BHS = block:height(),
+    Entropy = BHS + 2,
+    TradingEnds = BHS+1,
+    ResponseDelay = 0,
+    RNGEnds = BHS+3,
+    Delay = 0,
     Validators = [keys:pubkey()],
     Tx = sortition_new_tx:make_dict(keys:pubkey(), 1000000000, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
     Stx = keys:sign(Tx),
@@ -1087,7 +1088,7 @@ test(30) ->
     absorb(SSBT),
     1 = many_txs(),
 
-    mine_blocks(3),%mine enough blocks we can post rng results
+    mine_blocks(1),%mine enough blocks we can post rng results
     RID = hash:doit(2),
     RID3 = hash:doit(4),
     BadHashes = times(129, <<1:256>>, []),
@@ -1100,13 +1101,12 @@ test(30) ->
     SBRRT2 = keys:sign(BRRT2),
     absorb(SBRRT2),
     2 = many_txs(),
-    %mine_blocks(1),
     RID2 = hash:doit(3),
     GRRT = rng_result_tx:make_dict(keys:pubkey(), RID2, SID, GoodHashes, Fee),%post correct rng_result
     SGRRT = keys:sign(GRRT),
     absorb(SGRRT),
     3 = many_txs(),
-    mine_blocks(2),
+    mine_blocks(1),
     %have a process that compares the rng_result to generate a challenge to show one is incorrect.
     CID = hash:doit(3),
     {_, Root, M} = rng_result_tx:merklize(BadHashes),
@@ -1130,7 +1130,7 @@ test(30) ->
     SRRT = keys:sign(RRT),
     absorb(SRRT),
     1 = many_txs(),
-    mine_blocks(2),
+    mine_blocks(1),
 
     CID3 = hash:doit(5),
     %io:fwrite("here0010101\n"),
@@ -1145,7 +1145,7 @@ test(30) ->
     SRRT2 = keys:sign(RRT2),
     absorb(SRRT2),
     1 = many_txs(),
-    mine_blocks(5),
+    mine_blocks(1),
     timer:sleep(200),
 
     %RRFT = rng_refute_tx:make_dict(keys:pubkey(), SID, CID3, RID, 0, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a response is short enough to calculate on-chain, and it is invalid.
@@ -1159,7 +1159,7 @@ test(30) ->
     SRRFT2 = keys:sign(RRFT2),
     absorb(SRRFT2),
     1 = many_txs(),
-    mine_blocks(18),
+    mine_blocks(1),
 
     Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID3, Fee),
     SConfirm = keys:sign(Confirm),
@@ -1177,8 +1177,6 @@ test(30) ->
     1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
-    mine_blocks(6),
-    timer:sleep(5000),
     
     STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), <<0:520>>, SID, 0, Fee),
     SSTT = keys:sign(STT),
@@ -1205,11 +1203,12 @@ test(31) ->
     mine_blocks(2),
     Fee = constants:initial_fee() + 20,
     SID = hash:doit(1),
-    Entropy = 8,
-    TradingEnds = 4,
-    ResponseDelay = 2,
-    RNGEnds = 12,
-    Delay = 2,
+    BHS = block:height(),
+    Entropy = BHS + 2,
+    TradingEnds = BHS + 1,
+    ResponseDelay = 0,
+    RNGEnds = BHS+3,
+    Delay = 0,
     Validators = [keys:pubkey()],
     Amount = 1000000000,
     Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
@@ -1232,20 +1231,19 @@ test(31) ->
     SSBT = keys:sign(SBT),
     absorb(SSBT),
     1 = many_txs(),
-    mine_blocks(3),%mine enough blocks we can post rng results
+    mine_blocks(1),%mine enough blocks we can post rng results
     GoodHashes = times(129, <<27:256>>, []),
     RID = hash:doit(3),
     GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
     SGRRT = keys:sign(GRRT),
     absorb(SGRRT),
     1 = many_txs(),
-    mine_blocks(20),
+    mine_blocks(1),
     Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
     1 = many_txs(),
-    timer:sleep(11000),
-    mine_blocks(2),
+    mine_blocks(1),
 
     ClaimID = hash:doit(22),
     ClaimID2 = hash:doit(23),
@@ -1254,28 +1252,25 @@ test(31) ->
     SSCT2 = keys:sign(SCT2),
     absorb(SSCT2),
     1 = many_txs(),
-    mine_blocks(3),
-    timer:sleep(2000),
+    mine_blocks(1),
 
     OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, ClaimID2, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),
-    mine_blocks(3),
-    timer:sleep(3000),
+    mine_blocks(1),
 
 
-    Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
+    Contract = <<10,3,1>>,%print, int1, 1. prints the stack, then loads the integer 1 onto the top of stack which will get interpreted as "true". 
     Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract),
     SW = keys:sign(Waiver),
-    SS = spk:new_ss(<<>>, []),
+    SS = spk:new_ss(<<>>, [{accounts, keys:pubkey()}]),%the state of this account will be available to the smart contract.
     SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, 0, SW, SS),
     SSET = keys:sign(SET),
     absorb(SSET),
     1 = many_txs(),
-    mine_blocks(6),
-    timer:sleep(5000),
+    mine_blocks(1),
 
     STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), <<0:520>>, SID, 0, Fee),
     SSTT = keys:sign(STT),
@@ -1294,11 +1289,12 @@ test(32) ->
     mine_blocks(2),
     Fee = constants:initial_fee() + 20,
     SID = hash:doit(1),
-    Entropy = 8,
-    TradingEnds = 4,
-    ResponseDelay = 2,
-    RNGEnds = 12,
-    Delay = 2,
+    BHS = block:height(),
+    Entropy = BHS + 2,
+    TradingEnds = BHS + 1,
+    ResponseDelay = 0,
+    RNGEnds = BHS+3,
+    Delay = 0,
     Validators = [keys:pubkey()],
     Amount = 1000000000,
     Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
@@ -1323,20 +1319,19 @@ test(32) ->
     SSBT = keys:sign(SBT),
     absorb(SSBT),
     1 = many_txs(),
-    mine_blocks(3),%mine enough blocks we can post rng results
+    mine_blocks(1),%mine enough blocks we can post rng results
     GoodHashes = times(129, <<27:256>>, []),
     RID = hash:doit(3),
     GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
     SGRRT = keys:sign(GRRT),
     absorb(SGRRT),
     1 = many_txs(),
-    mine_blocks(20),
+    mine_blocks(1),
     Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
     1 = many_txs(),
-    timer:sleep(11000),
-    mine_blocks(2),
+    mine_blocks(1),
 
     ClaimID = hash:doit(22),
 
@@ -1346,11 +1341,7 @@ test(32) ->
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),
-    mine_blocks(3),
-    timer:sleep(3000),
-
-    mine_blocks(9),
-    timer:sleep(7000),
+    mine_blocks(1),
 
     STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), <<0:520>>, SID, 1, Fee),
     SSTT = keys:sign(STT),
@@ -1370,11 +1361,12 @@ test(33) ->
     mine_blocks(2),
     Fee = constants:initial_fee() + 20,
     SID = hash:doit(1),
-    Entropy = 8,
-    TradingEnds = 4,
-    ResponseDelay = 2,
-    RNGEnds = 12,
-    Delay = 2,
+    BHS = block:height(),
+    Entropy = BHS + 2,
+    TradingEnds = BHS + 1,
+    ResponseDelay = 0,
+    RNGEnds = BHS+3,
+    Delay = 0,
     Validators = [keys:pubkey()],
     Amount = 1000000000,
     Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
@@ -1403,7 +1395,7 @@ test(33) ->
     SSBT = keys:sign(SBT),
     absorb(SSBT),
     1 = many_txs(),
-    mine_blocks(3),%mine enough blocks we can post rng results
+    mine_blocks(1),%mine enough blocks we can post rng results
 
     GoodHashes = times(129, <<27:256>>, []),
     RID = hash:doit(3),
@@ -1411,13 +1403,13 @@ test(33) ->
     SGRRT = keys:sign(GRRT),
     absorb(SGRRT),
     1 = many_txs(),
-    mine_blocks(20),
+    %mine_blocks(20),
+    mine_blocks(1),
     Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
     1 = many_txs(),
-    timer:sleep(11000),
-    mine_blocks(2),
+    mine_blocks(1),
 
     ClaimID = hash:doit(22),
 
@@ -1426,11 +1418,7 @@ test(33) ->
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),
-    mine_blocks(3),
-    timer:sleep(3000),
-
-    mine_blocks(9),
-    timer:sleep(7000),
+    mine_blocks(1),
 
     STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), NewPub, SID, 0, Fee),
     SSTT = keys:sign(STT),
@@ -1454,14 +1442,12 @@ test(33) ->
     1 = many_txs(),
     mine_blocks(1),
 
-
     timer:sleep(100),
     Ctx4 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
     1 = many_txs(),
     mine_blocks(1),
-    
 
     success;
 test(34) ->
@@ -1474,11 +1460,12 @@ test(34) ->
     mine_blocks(2),
     Fee = constants:initial_fee() + 20,
     SID = hash:doit(1),
-    Entropy = 8,
-    TradingEnds = 4,
-    ResponseDelay = 2,
-    RNGEnds = 12,
-    Delay = 2,
+    BHS = block:height(),
+    Entropy = BHS + 2,
+    TradingEnds = BHS + 1,
+    ResponseDelay = 0,
+    RNGEnds = BHS+3,
+    Delay = 0,
     Validators = [keys:pubkey()],
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Amount = 1000000000,
@@ -1502,20 +1489,19 @@ test(34) ->
     SSBT = keys:sign(SBT),
     absorb(SSBT),
     1 = many_txs(),
-    mine_blocks(3),%mine enough blocks we can post rng results
+    mine_blocks(1),%mine enough blocks we can post rng results
     GoodHashes = times(129, <<27:256>>, []),
     RID = hash:doit(3),
     GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
     SGRRT = keys:sign(GRRT),
     absorb(SGRRT),
     1 = many_txs(),
-    mine_blocks(20),
+    mine_blocks(1),
     Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
     1 = many_txs(),
-    timer:sleep(11000),
-    mine_blocks(2),
+    mine_blocks(1),
 
     ClaimID = hash:doit(22),
     ClaimID2 = hash:doit(23),
@@ -1524,16 +1510,14 @@ test(34) ->
     SSCT2 = keys:sign(SCT2),
     absorb(SSCT2),
     1 = many_txs(),
-    mine_blocks(3),
-    timer:sleep(2000),
+    mine_blocks(1),
 
     OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, ClaimID2, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),
-    mine_blocks(3),
-    timer:sleep(3000),
+    mine_blocks(1),
 
 
     Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
@@ -1544,8 +1528,7 @@ test(34) ->
     SSET = keys:sign(SET),
     absorb(SSET),
     1 = many_txs(),
-    mine_blocks(6),
-    timer:sleep(5000),
+    mine_blocks(1),
 
     ToProve = [],
     Final = sortition_final_spend_tx:make_final(keys:pubkey(), NewPub, SID, Contract, ToProve),
@@ -1558,7 +1541,6 @@ test(34) ->
     SSTT = keys:sign(STT),
     absorb(SSTT),
     2 = many_txs(),
-    %mine_blocks(1),
     
     tx_pool:dump(),
     absorb(SSFST),
@@ -1588,11 +1570,12 @@ test(35) ->
     mine_blocks(2),
     Fee = constants:initial_fee() + 20,
     SID = hash:doit(1),
-    Entropy = 8,
-    TradingEnds = 4,
-    ResponseDelay = 2,
-    RNGEnds = 12,
-    Delay = 2,
+    BHS = block:height(),
+    Entropy = BHS + 2,
+    TradingEnds = BHS + 1,
+    ResponseDelay = 0,
+    RNGEnds = BHS+3,
+    Delay = 0,
     Validators = [keys:pubkey()],
     {NewPub,NewPriv} = testnet_sign:new_key(),
     CAtx = create_account_tx:make_dict(NewPub, 1000, Fee, constants:master_pub()),
@@ -1663,21 +1646,19 @@ test(35) ->
     
 
 
-
-    mine_blocks(2),%mine enough blocks we can post rng results
+    mine_blocks(1),%mine enough blocks we can post rng results
     GoodHashes = times(129, <<27:256>>, []),
     RID = hash:doit(3),
     GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
     SGRRT = keys:sign(GRRT),
     absorb(SGRRT),
     1 = many_txs(),
-    mine_blocks(20),
+    mine_blocks(1),
     Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
     SConfirm = keys:sign(Confirm),
     absorb(SConfirm),
     1 = many_txs(),
-    timer:sleep(11000),
-    mine_blocks(2),
+    mine_blocks(1),
 
     ClaimID = hash:doit(22),
     OL = sortition_claim_tx:make_owner_layer(SID, Proof3, SBID2, VR, Owner3),
@@ -1685,10 +1666,7 @@ test(35) ->
     SSCT = keys:sign(SCT),
     absorb(SSCT),
     1 = many_txs(),
-    mine_blocks(3),
-    timer:sleep(3000),
-    mine_blocks(6),
-    timer:sleep(5000),
+    mine_blocks(1),
 
     STT = sortition_timeout_tx:make_dict(keys:pubkey(), NewPub, <<0:520>>, SID, 0, Fee),
     SSTT = keys:sign(STT),
