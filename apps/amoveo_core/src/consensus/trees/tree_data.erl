@@ -232,7 +232,7 @@ oracle_bets_batch_update([X|T], Dict, Accounts) ->%
 oracle_bets_batch_update2(ID, B, Dict, Accounts) ->%
     Acc = accounts:dict_get(ID, Dict),%
     case Acc of%
-	empty -> %
+	error -> %
 	    io:fwrite("tree data oracle bets batch update, account does not exist\n"),%
 	    io:fwrite(base64:encode(ID)),%
 	    io:fwrite("\n"),%

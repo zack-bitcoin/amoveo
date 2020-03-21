@@ -72,6 +72,7 @@ add([{IP, Port}|T]) when ((size(IP) == 4) or (size(IP) == 16)) ->
     spawn(fun() ->
 		  add({IP, Port})
 	  end),
+    %timer:sleep(100),
     add(T);
 add([MalformedPeer|T]) ->
     io:fwrite("tried to add malformed peer, skipping."),
@@ -82,16 +83,15 @@ add({{0, 0, 0, 0}, _Port}) -> ok;
 %add({{192, 168, _, _}, _Port}) -> ok;
 %add({{172, X, _, _}, Port}) when ((X < 32) and (X > 15))-> ok;
 add({IP, Port}) -> 
-    %io:fwrite("adding a peer to the list of peers. "),
-    %io:fwrite(packer:pack(IP)),
-    %io:fwrite("\n"),
     NIP = if
               is_tuple(IP) -> IP;
               is_list(IP) -> list_to_tuple(IP)
           end,
     B = blacklist_peer:check({NIP, Port}),
     if
-	B -> ok;
+	B -> 
+            io:fwrite("blacklisted"),
+            ok;
 	true ->
 	    case talker:talk({height}, {NIP, Port}) of
 		bad_peer -> 
