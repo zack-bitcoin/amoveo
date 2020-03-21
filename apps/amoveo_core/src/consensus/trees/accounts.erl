@@ -43,8 +43,8 @@ dict_get(Key, Dict) ->
     %X = dict:fetch({accounts, Key}, Dict),
     X = dict:find({accounts, Key}, Dict),
     case X of
-        %error -> empty;
-        error -> error;
+        error -> empty;
+        %error -> error;
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} -> 
