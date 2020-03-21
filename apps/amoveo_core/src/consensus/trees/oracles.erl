@@ -146,8 +146,8 @@ dict_get(ID, Dict) ->
     <<_:256>> = ID,
     X = dict:find({oracles, ID}, Dict),
     case X of
-	%error -> empty;
-	error -> error;
+	error -> empty;
+	%error -> error;
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} ->
