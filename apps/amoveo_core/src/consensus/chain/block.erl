@@ -649,11 +649,7 @@ check2(OldBlock, Block) ->
     %io:fwrite("pair before death \n"),
     %io:fwrite([NewTrees3, Roots]),
     %io:fwrite("\n"),
-    case Height of
-        53292 -> ok;
-        _ ->
-            TreesHash = trees:root_hash2(NewTrees3, Roots)
-    end,
+    TreesHash = trees:root_hash2(NewTrees3, Roots),
     {true, Block2}.
 calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
     %json encoded with keys

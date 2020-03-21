@@ -90,7 +90,7 @@ add({IP, Port}) ->
     B = blacklist_peer:check({NIP, Port}),
     if
 	B -> 
-            io:fwrite("blacklisted"),
+            %io:fwrite("blacklisted"),
             ok;
 	true ->
 	    case talker:talk({height}, {NIP, Port}) of
