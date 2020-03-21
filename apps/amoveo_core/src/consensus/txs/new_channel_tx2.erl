@@ -61,6 +61,9 @@ go(Tx, Dict, NewHeight, _) ->
                  new_channel_tx:salted_id(ID0, Aid1);
              true -> ID0
          end,
+    io:fwrite("new channel tx \n"),
+    io:fwrite(packer:pack(ID)),
+    io:fwrite("\n"),
     %NCO = Tx#nc_accept.nc_offer#signed.data,
     %NLock = NCO#nc_offer.nlocktime,
     true = ((NLock == 0) or (NewHeight < NLock)),

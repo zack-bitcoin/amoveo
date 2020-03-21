@@ -203,6 +203,10 @@ get(governance, Key, Dict, Trees) ->
     end;
 get(TreeID, Key, Dict, Trees) ->
     case TreeID:dict_get(Key, Dict) of
+	error -> 
+	    Tree = trees:TreeID(Trees),
+	    {_, A, _} = TreeID:get(Key, Tree),
+	    A;
 	empty -> 
 	    Tree = trees:TreeID(Trees),
 	    {_, A, _} = TreeID:get(Key, Tree),

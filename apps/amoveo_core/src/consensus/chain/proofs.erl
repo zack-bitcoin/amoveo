@@ -209,18 +209,37 @@ txs_to_querys2([STx|T], Trees, Height) ->
             nc_accept ->
                 %io:fwrite(packer:pack(Tx)),
                 %io:fwrite("\n"),
+                F29 = forks:get(29),
+                ID0 = new_channel_tx2:cid(Tx),
+                FC = max(F29, forks:get(30)),
+                Aid1 = new_channel_tx2:acc1(Tx),
+                CID = if
+                          (Height > FC) ->
+                              new_channel_tx:salted_id(Tx);
+                          true -> ID0
+                      end,
                 [
                  {governance, ?n2i(nc)},
-                 {accounts, new_channel_tx2:acc1(Tx)},
+                 {accounts, Aid1},
                  {accounts, new_channel_tx2:acc2(Tx)},
-                 {channels, new_channel_tx2:cid(Tx)}
+                 {channels, CID}
                 ];
             nc ->
+                F29 = forks:get(29),
+                ID0 = new_channel_tx:cid(Tx),
+                FC = max(F29, forks:get(30)),
+                Aid1 = new_channel_tx:acc1(Tx),
+                CID = if
+                          (Height > FC) ->
+                              new_channel_tx:salted_id(Tx);
+                          true -> ID0
+                      end,
                 [
                  {governance, ?n2i(nc)},
-                 {accounts, new_channel_tx:acc1(Tx)},
+                 {accounts, Aid1},
                  {accounts, new_channel_tx:acc2(Tx)},
-                 {channels, new_channel_tx:cid(Tx)}
+                 {channels, CID}
+                 %{channels, new_channel_tx:cid(Tx)}
                 ];
 	    gc -> 
                 [

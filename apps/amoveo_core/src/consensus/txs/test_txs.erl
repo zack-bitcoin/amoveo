@@ -25,7 +25,7 @@ test() ->
     S = test(11),%try out the oracle
     S = test(16),%try out the oracle further
     %S = test(17),%blocks filled with create account txs
-    %S = test(28),
+    S = test(28),
     timer:sleep(300),
     S.
 absorb(Tx) -> 
@@ -100,6 +100,8 @@ test(3) ->
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(3),
     timer:sleep(100),
     CID0 = <<5:256>>,
 
@@ -109,7 +111,14 @@ test(3) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
+    1 = many_txs(),
     mine_blocks(1),
+   
+    io:fwrite("test txs 3 \n"),
+    io:fwrite(packer:pack(trees:get(channels, CID))),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(CID)),
+    io:fwrite("\n"),
 
     Ctx4 = channel_team_close_tx2:make_dict(CID, 0, Fee),
     Stx4 = keys:sign(Ctx4),
@@ -996,6 +1005,7 @@ test(28) ->
     {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
+    1 = many_txs(),
     timer:sleep(100),
     mine_blocks(1),
     timer:sleep(100),
@@ -1015,6 +1025,8 @@ test(28) ->
     true = spk:verify_sig(SSPK2, NewPub, keys:pubkey()),
     SStx2 = keys:sign(Ctx2),
     absorb(SStx2),
+    absorb(SStx2),
+    1 = many_txs(),
     true = (1 == length(element(2, tx_pool:get()))),
     tx_pool:dump(),
     true = (0 == length(element(2, tx_pool:get()))),
@@ -1022,27 +1034,34 @@ test(28) ->
     SpendCancel = spend_tx:make_dict(keys:pubkey(), 1, Fee, NewPub),
     SSpendCancel = testnet_sign:sign_tx(SpendCancel, NewPub, NewPriv),
     absorb(SSpendCancel),
-    true = (1 == length(element(2, tx_pool:get()))),
+    1 = many_txs(),
+    %true = (1 == length(element(2, tx_pool:get()))),
     absorb(SStx2),
-    true = (1 == length(element(2, tx_pool:get()))),
+    1 = many_txs(),
+    %true = (1 == length(element(2, tx_pool:get()))),
     tx_pool:dump(),
     absorb(SStx2),
+    1 = many_txs(),
     mine_blocks(1),
+    absorb(SStx2),
+    0 = many_txs(),
     timer:sleep(100),
 
     Ctx4 = channel_solo_close:make_dict(constants:master_pub(), Fee, SSPK2, []),
     Stx4 = keys:sign(Ctx4),
     absorb(Stx4),
+    1 = many_txs(),
     %1=2,
     mine_blocks(1),
     timer:sleep(100),
     Ctx5 = channel_timeout_tx:make_dict(constants:master_pub(),CID,Fee),
     Stx5 = keys:sign(Ctx5),
     absorb(Stx5),
+    1 = many_txs(),
     mine_blocks(1),
     timer:sleep(100),
     
-    FC = trees:get(channels, <<5:256>>),
+    FC = trees:get(channels, CID),
     true = FC#channel.closed == 1,
 
     success;
@@ -1165,3 +1184,6 @@ test24(I) ->
     timer:sleep(100),
     mine_blocks(1),
     success.
+
+many_txs() ->
+    length(element(2, tx_pool:get())).
