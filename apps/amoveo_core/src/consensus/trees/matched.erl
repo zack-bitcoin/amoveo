@@ -82,8 +82,8 @@ dict_get({key, Account, Oracle}, Dict) ->
     PS = size(Account),
     X = dict:find({matched, {key, Account, Oracle}}, Dict),
     case X of
-	%error -> empty;
-	error -> error;
+	error -> empty;
+	%error -> error;
         {ok, 0} -> empty;
         {ok, Y} -> deserialize(Y)
     end.
