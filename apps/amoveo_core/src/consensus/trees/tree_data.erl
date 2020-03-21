@@ -127,6 +127,7 @@ keys2leaves([H|T], Type, Dict) ->
     New = Type:dict_get(Key, Dict),
     I = Type:key_to_int(Key),
     L = case New of
+	    error -> leaf:new(I, empty, 0, trie:cfg(Type));
 	    empty -> leaf:new(I, empty, 0, trie:cfg(Type));
 	    _ ->
 		Value = Type:serialize(New),
@@ -149,6 +150,9 @@ dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2
     Tree = trees:Type(Trees),%
     Leaves2 = %
         case New0 of%
+            error -> %
+		L = leaf:new(Type:key_to_int(Key), empty, 0, trie:cfg(Type)),%
+                [L|Leaves];%
             empty -> %
 		L = leaf:new(Type:key_to_int(Key), empty, 0, trie:cfg(Type)),%
                 [L|Leaves];%
@@ -194,6 +198,7 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->%
             _ ->%
                 New2 = %
                     case orders:dict_get(Key, Dict) of%
+                        error -> empty;%
                         empty -> empty;%
                         New -> orders:serialize(New)%
                     end,%
@@ -208,6 +213,7 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict, L) ->%
     New = oracle_bets:dict_get(Key, Dict),%
     ID = oracle_bets:key_to_int(OID),%
     New2 = case New of%
+	       error -> empty;%
 	       empty -> empty;%
 	       _ -> oracle_bets:serialize(New)%
 	   end,%
