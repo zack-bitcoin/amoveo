@@ -1,5 +1,5 @@
 -module(ownership).
--export([new/6,
+-export([new/7,
          make_tree/1,
          make_proof/2,
 
@@ -12,10 +12,6 @@
          sid/1,
          
          verify/2,
-
-         serialize/1,
-         deserialize/1,
-
          test/0
         ]).
 
@@ -43,12 +39,16 @@
                 pstart, %start of the probability space
                 pend, %end of the probability space
                 priority,
-                sortition_id%,
-                %contract
+                sortition_id,
+                contracts = []
                }).
+-record(bounds, {contracts = [],
+                 pstart = <<0:256>>,
+                 pend = <<-1:256>>
+                }).
 -record(tree, {rule, 
                b1, h1, b0, h0}).
-new(P, P2, S, E, Pr, SID) ->
+new(P, P2, S, E, Pr, SID, Contracts) ->
     32 = size(SID),
     32 = size(S),
     32 = size(E),
@@ -57,14 +57,15 @@ new(P, P2, S, E, Pr, SID) ->
            pstart = S,
            pend = E,
            sortition_id = SID,
-           priority = Pr
+           priority = Pr,
+           contracts = Contracts
            %contract = hash:doit(C)
           }.
 pubkey(X) -> X#owner.pubkey.
 pubkey2(X) -> X#owner.pubkey2.
 pstart(X) -> X#owner.pstart.
 pend(X) -> X#owner.pend.
-%contract(X) -> X#owner.contract.
+contracts(X) -> X#owner.contracts.
 sid(X) -> X#owner.sortition_id.
 priority(X) -> X#owner.priority.
 
@@ -80,7 +81,6 @@ make_tree(Owners) ->
                    Owners2),%there are sub-lists each with a unique priority.
 
     Tree1 = make_tree_priority2(ListsOwners),
-    %Tree1 = make_tree_sid(Owners2),
 
     add_hashes(Tree1).
 make_tree_priority2([A]) -> make_tree_sid(A);
@@ -88,13 +88,18 @@ make_tree_priority2(ListsOwners) ->
     L = length(ListsOwners),
     L2 = L div 2,
     OwnerNth = hd(lists:nth(L2, ListsOwners)), 
-    SID = OwnerNth#owner.priority,
+    P = OwnerNth#owner.priority,
     {LA, LB} = lists:split(L2, ListsOwners),
     false = [] == LA,
     false = [] == LB,
-    #tree{rule = {priority_before, SID},
+    #tree{rule = {priority_before, P},
           b1 = make_tree_priority2(LA),
           b0 = make_tree_priority2(LB)}.
+
+%TODO
+%You are adding contracts to the ownership tree.
+% make_tree needs to be updated.
+% make a test of generating and verifying a proof with a contract.
     
 make_tree_sid(Owners) ->
     Owners2 = lists:sort(
@@ -106,7 +111,6 @@ make_tree_sid(Owners) ->
         make_lists(fun(X) -> X#owner.sortition_id end, 
                    Owners2),%there are sub-lists each with a unique SID.
     make_tree_sid2(ListsOwners).
-%add_hashes(Tree1).
 add_hashes(X) when is_record(X, tree) ->
     #tree{
            b0 = B0,
@@ -137,30 +141,35 @@ make_tree_sid2(ListsOwners) ->
           b1 = make_tree_sid2(LA),
           b0 = make_tree_sid2(LB)}.
 make_tree_prob(Owners) ->
-    Owners2 = lists:sort(
-                fun(A, B) ->
-                        <<A1:256>> = A#owner.pstart,
-                        <<B1:256>> = B#owner.pstart,
-                        A1 =< B1 end, Owners),
-    no_overlap_check(Owners2),
-    make_tree_prob2(Owners2).
-make_tree_prob2([A]) -> A;
-make_tree_prob2(ListsOwners)->
+    Owners2 = 
+        lists:sort(
+          fun(A, B) ->
+                  <<A1:256>> = A#owner.pstart,
+                  <<B1:256>> = B#owner.pstart,
+                  A1 =< B1 end, Owners),
+    %no_overlap_check(Owners2),
+    Bounds = #bounds{},
+    make_tree_prob2(Owners2, Bounds).
+make_tree_prob2([A], Bounds) -> 
+    true = in_bounds(A, Bounds),
+    A;
+make_tree_prob2(ListsOwners, Bounds)->
     L = length(ListsOwners),
     L2 = L div 2,
     OwnerNth = lists:nth(L2, ListsOwners),
     Owner = OwnerNth,
     PE = Owner#owner.pend,
     {LA, LB} = lists:split(L2, ListsOwners),
-    #tree{rule = {before, PE},
-          b1 = make_tree_prob2(LA),
-          b0 = make_tree_prob2(LB)}.
+    Rule = {before, PE},
+    #tree{rule = Rule,
+          b1 = make_tree_prob2(LA, bounds_update(Rule, Bounds)),
+          b0 = make_tree_prob2(LB, bounds_update2(Rule, Bounds))}.
                                  
-no_overlap_check([]) -> ok;
-no_overlap_check([_]) -> ok;
-no_overlap_check([A|[B|T]]) -> 
-    true = A#owner.pend =< B#owner.pstart,
-    no_overlap_check([B|T]).
+%no_overlap_check([]) -> ok;
+%no_overlap_check([_]) -> ok;
+%no_overlap_check([A|[B|T]]) -> 
+%    true = A#owner.pend =< B#owner.pstart,
+%    no_overlap_check([B|T]).
             
 make_lists(F, [H|T]) ->
     lists:reverse(make_lists2(F, F(H), T, [H], [])).
@@ -197,20 +206,31 @@ make_proof(A, B) ->
 verify(Ownership, Proof) ->
     %returns a root hash, so we can check that the Proof is linked to something else.
     X = hash:doit(serialize(Ownership)),
-    verify2(Ownership, X, Proof).%starts from leaf, works towards root.
-verify2(_, Root, []) -> Root;
-verify2(Ownership, Root, [H|T]) ->
+    Bounds = #bounds{},
+    verify2(Ownership, X, Proof, Bounds).%starts from leaf, works towards root.
+verify2(Ownership, Root, [], Bounds) -> 
+    true = in_bounds(Ownership, Bounds),
+    Root;
+verify2(Ownership, Root, [H|T], Bounds) ->
     #tree{
-           h1 = H1,
-           h0 = H0
-         } = H,
+         rule = Rule,
+         h1 = H1,
+         h0 = H0
+        } = H,
     Result = contract_direction(H, Ownership),%run_contract(H, Ownership, Dict),
-    Root = if
-               Result -> H1;
-               true -> H0
-           end,
+    {Root, Bounds2}
+        = if
+              Result -> {H1, 
+                        bounds_update(
+                          Rule,
+                          Bounds)};
+              true -> {H0, 
+                      bounds_update2(
+                       Rule,
+                       Bounds)}
+          end,
     NewRoot = hash:doit(serialize_tree(H)),
-    verify2(Ownership, NewRoot, T).
+    verify2(Ownership, NewRoot, T, Bounds2).
 
 
 contract_direction(Tree, Owner) ->
@@ -218,7 +238,8 @@ contract_direction(Tree, Owner) ->
             sortition_id = SID,
             pstart = <<PStart:256>>,%this moves too.
             pend = <<PEnd:256>>,
-            priority = P
+            priority = P,
+            contracts = C
             %contract = CH1
         } = Owner,
     true = PStart < PEnd,%TODO, move this where it belongs. 
@@ -241,14 +262,83 @@ contract_direction(Tree, Owner) ->
         {priority, P2} ->
             P == P2;
         {priority_before, P2} ->
-            P =< P2
-        %{contract, CH1} -> 
-        %    true;
-        %{contract, <<CH2:256>>} -> 
-        %    <<CH:256>> = CH1,
-        %    true = (CH + CH2) == 0,
-        %    false
+            P =< P2;
+        {contract, C1} -> 
+            is_in(C1, C)
     end.
+is_in(X, []) -> false;
+is_in(X, [X|_]) -> true;
+is_in(X, [_|T]) -> 
+    is_in(X, T).
+all_in([], _) -> true;
+all_in([H|T], L) -> 
+    is_in(H, L) and
+        all_in(T, L).
+
+
+in_bounds(Ownership, Bounds) ->
+    #owner{
+           pstart = <<Ostart:256>>,
+           pend = <<Oend:256>>,
+           contracts = OC
+          } = Ownership,
+    #bounds{
+             pstart = <<Bstart:256>>,
+             pend = <<Bend:256>>,
+             contracts = BC
+           } = Bounds,
+    (Ostart >= Bstart) and
+        (Oend =< Bend) and
+        (all_in(OC, BC)).
+bounds_update({before, <<S:256>>}, 
+              Bounds) ->
+    S1 = Bounds#bounds.pend,
+    S2 = min(S, S1),
+    Bounds#bounds{
+      pend = <<S2:256>>
+     };
+bounds_update({contract, CH}, 
+              Bounds) ->
+    CL1 = Bounds#bounds.contracts,
+    B = is_in(CH, CL1),
+    case B of
+        true -> Bounds;
+        false ->
+            CL2 = [CH|CL1],
+            Bounds#bounds{
+              contracts = [CH|CL1]
+             }
+    end;
+bounds_update({sid_before, _}, Bounds) -> Bounds;
+bounds_update({sid, _}, Bounds) -> Bounds;
+bounds_update({priority, _}, Bounds) -> Bounds;
+bounds_update({priority_before, _}, Bounds) -> Bounds.
+
+bounds_update2({before, <<S:256>>}, 
+               Bounds) ->
+    <<S1:256>> = Bounds#bounds.pstart,
+    S2 = max(S, S1),
+    Bounds#bounds{
+      pstart = <<S2:256>>
+     };
+bounds_update2({contract, CH},
+               Bounds) ->
+    CH2 = contract_flip(CH),
+    bounds_update(
+      {contract, CH2},
+      Bounds);
+bounds_update2({sid_before, _}, Bounds) -> Bounds;
+bounds_update2({sid, _}, Bounds) -> Bounds;
+bounds_update2({priority, _}, Bounds) -> Bounds;
+bounds_update2({priority_before, _}, Bounds) -> Bounds.
+
+contract_flip(<<N:1, R:255>>) ->    
+    N2 = case N of
+             0 -> 1;
+             1 -> 0
+         end,
+    <<N2:1, R:255>>.
+            
 
 serialize_tree(T) ->
     #tree{
@@ -257,11 +347,12 @@ serialize_tree(T) ->
            h1 = H1
          } = T,
     {C, A} = case Type of
-            sid -> {C0, 1};
-            before -> {C0, 2};
-            priority -> {<<C0:8>>, 3};
-            sid_before -> {C0, 4};
-            priority_before -> {<<C0:8>>, 5}
+                 sid -> {C0, 1};
+                 before -> {C0, 2};
+                 priority -> {<<C0:8>>, 3};
+                 sid_before -> {C0, 4};
+                 priority_before -> {<<C0:8>>, 5};
+                 contract -> {C0, 6}
         end,
                    
     <<C/binary, H0/binary, H1/binary, A:8>>.
@@ -275,8 +366,8 @@ serialize(X) ->
             pstart = S,
             pend = E,
             priority = Pr,
-            sortition_id = SID
-            %contract = C
+            sortition_id = SID,
+            contracts = C
       } = X,
     PS = size(P),
     PS = size(P2),
@@ -284,35 +375,25 @@ serialize(X) ->
     32 = size(E),
     %HS = size(C),
     HS = size(SID),
+    CB = serialize_contracts(C, <<>>),
     <<P/binary,
       P2/binary,
       S/binary,
       E/binary,
       SID/binary,
-      %C/binary,
+      CB/binary,
       Pr:8>>.
-deserialize(B) ->
-    HS = constants:hash_size()*8,
-    PS = constants:pubkey_size()*8,
-    X = 32*8,
-    <<
-      P:PS,
-      P2:PS,
-      S:X,
-      E:X,
-      SID:HS,
-      %C:HS,
-      Pr:8
-    >> = B,
-    #owner{
-           pubkey = <<P:PS>>,
-           pubkey2 = <<P2:PS>>,
-           pstart = <<S:X>>,
-           pend = <<E:X>>,
-           priority = Pr,
-           sortition_id = <<SID:HS>>
-           %contract = <<C:HS>>
-      }.
+serialize_contracts([], X) -> X;
+serialize_contracts([{H, Type}|T], X) ->
+    case Type of
+        1 -> ok;
+        0 -> ok
+    end,
+    <<_:256>> = H,
+    X2 = <<X/binary, Type:8, H/binary>>,
+    serialize_contracts(T, X2).
+   
+
 
 test() ->
     SID = hash:doit(1),
@@ -329,38 +410,44 @@ test() ->
              <<0:256>>,
              <<M3:256>>,
              0,
-             SID),
+             SID,
+            []),
     X2 = new(keys:pubkey(),
              <<0:520>>,
              <<M3:256>>,
              <<M4:256>>,
              0,
-             SID),
+             SID,
+            []),
     X3 = new(keys:pubkey(),
              <<0:520>>,
              <<M4:256>>,
              <<M5:256>>,
              0,
-             SID),
+             SID,
+            []),
     X4 = new(keys:pubkey(),
              <<0:520>>,
              <<M5:256>>,
              <<M6:256>>,
              0,
-             SID),
+             SID,
+            []),
     X5 = new(keys:pubkey(),
              <<0:520>>,
              <<0:256>>,
              <<M6:256>>,
              0,
-             SID2),
+             SID2,
+            []),
     SID3 = hash:doit(3),
     X6 = new(keys:pubkey(),
              <<0:520>>,
              <<0:256>>,
              <<M6:256>>,
              1,
-             SID),
+             SID,
+            []),
     %L1 = [X1, X2, X5],
     L2 = [X1, X2, X3, X4, X5, X6],
     {Root, T} = make_tree(L2),

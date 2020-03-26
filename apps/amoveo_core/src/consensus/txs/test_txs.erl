@@ -1077,7 +1077,7 @@ test(30) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),
     {StateRoot, M2} = ownership:make_tree([Owner]),
     OwnershipProof = ownership:make_proof(Owner, M2),
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
@@ -1217,8 +1217,8 @@ test(31) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),
-    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID),
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
     Proof = ownership:make_proof(Owner, M),
     Proof2 = ownership:make_proof(Owner2, M),
@@ -1304,8 +1304,8 @@ test(32) ->
     mine_blocks(1),
 
     VR = sortition_new_tx:make_root(Validators),
-    Owner = ownership:new(<<0:520>>, <<0:520>>, <<0:256>>, <<-1:256>>, 0, VR),%VR is the validators root for the new baby sortiiton chain.
-    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),%this gives all the money in the baby sortition chain to keys:pubkey().
+    Owner = ownership:new(<<0:520>>, <<0:520>>, <<0:256>>, <<-1:256>>, 0, VR, []),%VR is the validators root for the new baby sortiiton chain.
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),%this gives all the money in the baby sortition chain to keys:pubkey().
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
     Proof = ownership:make_proof(Owner, M),
     %{StateRoot2, M2} = ownership:make_tree([Owner2]),
@@ -1384,7 +1384,7 @@ test(33) ->
 
 
     VR = sortition_new_tx:make_root(Validators),
-    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID),%this creates a channel with newpub and keys:pubkey.
+    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID, []),%this creates a channel with newpub and keys:pubkey.
     {StateRoot, M} = ownership:make_tree([Owner]),
     Proof = ownership:make_proof(Owner, M),
 
@@ -1475,8 +1475,8 @@ test(34) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),
-    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID),
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
     Proof = ownership:make_proof(Owner, M),
     Proof2 = ownership:make_proof(Owner2, M),
@@ -1602,7 +1602,7 @@ test(35) ->
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
 
 
-    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID),
+    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID, []),
     {StateRoot, M} = ownership:make_tree([Owner]),
     Proof = ownership:make_proof(Owner, M),
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
@@ -1622,8 +1622,8 @@ test(35) ->
     Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract2),
     SW = keys:sign(Waiver),
     %whoever is going to be 2nd in line, they should use waiver to give up control of part of the outcome space.
-    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID),
-    Owner3 = ownership:new(NewPub, <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),
+    Owner3 = ownership:new(NewPub, <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
     {StateRoot2, M2} = ownership:make_tree([Owner2, Owner3]),
     Proof2 = ownership:make_proof(Owner2, M2),
     Proof3 = ownership:make_proof(Owner3, M2),
