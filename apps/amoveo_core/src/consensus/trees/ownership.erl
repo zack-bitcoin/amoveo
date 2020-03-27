@@ -141,36 +141,158 @@ make_tree_sid2(ListsOwners) ->
           b1 = make_tree_sid2(LA),
           b0 = make_tree_sid2(LB)}.
 make_tree_prob(Owners) ->
+    %TODO
+    %if people are using smart contracts so that their probability space overlaps with more than one other person's probability space, then divide their ownership objects such that each object is either 100% overlapping with all the others in the same probability space, or else it is 0% overlapping. no partial overlap.
+    %make sub-lists of ownership objects that overlap the same probability space, we will divide up contract space in the next step.
     Owners2 = 
         lists:sort(
           fun(A, B) ->
                   <<A1:256>> = A#owner.pstart,
                   <<B1:256>> = B#owner.pstart,
                   A1 =< B1 end, Owners),
+    Owners3 = prob_sublists(Owners2),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(Owners3)),
+    io:fwrite("\n"),
     %no_overlap_check(Owners2),
     Bounds = #bounds{},
-    make_tree_prob2(Owners2, Bounds).
+    make_tree_prob2(Owners3, Bounds).
 make_tree_prob2([A], Bounds) -> 
-    true = in_bounds(A, Bounds),
-    A;
+    make_tree_contracts(A, Bounds);
+%make_tree_prob2([[]|T], Bounds)->
+%    make_tree_prob2(T, Bounds);
 make_tree_prob2(ListsOwners, Bounds)->
     L = length(ListsOwners),
     L2 = L div 2,
-    OwnerNth = lists:nth(L2, ListsOwners),
-    Owner = OwnerNth,
+    Owner = hd(lists:nth(L2, ListsOwners)),
     PE = Owner#owner.pend,
     {LA, LB} = lists:split(L2, ListsOwners),
     Rule = {before, PE},
     #tree{rule = Rule,
           b1 = make_tree_prob2(LA, bounds_update(Rule, Bounds)),
           b0 = make_tree_prob2(LB, bounds_update2(Rule, Bounds))}.
-                                 
+prob_sublists(L) ->
+    %break the list into sublists where they probability space for each sublist is 100% overlapping.
+    %when necessary, cut ownership contracts into 2 smaller ones.
+
+    Ps = lists:map(fun(X) -> X#owner.pend end, L) ++ lists:map(fun(X) -> X#owner.pstart end, L),
+    Ps2 = lists:sort(
+            fun(A, B) -> A =< B end,
+            Ps),
+    Ps3 = remove_repeats(Ps2),
+    prob_sublists2(Ps3, L, []).
+prob_sublists2([_], _, X) -> lists:reverse(X);
+prob_sublists2([A|[B|T]], L, X) ->
+    
+    %walk forward through the intervals defined by the points in Ps, for each interval find all the ownership contracts for this interval, and chop them up to fit in the interval if needed.
+
+    %L2, remove the completed portion  of the prob space from the leading contracts which may contain it.
+    {L2, Batch} = prob_sublists3(A, B, L, [], []),
+    %X2, add a list of all the ownership contracts that used this portion of the prob space, chop up contracts as needed.
+    if
+        Batch == [] ->
+            prob_sublists2([B|T], L2, X);
+        true ->
+            prob_sublists2([B|T], L2, [Batch|X])
+    end.
+    
+prob_sublists3(S, E, [], First, Batch) ->
+    {lists:reverse(First), Batch};
+prob_sublists3(S, E, [CH|CT], First, Batch) ->
+    HOS = CH#owner.pstart,
+    HOPE = CH#owner.pend,
+    <<EV:256>> = E,
+    <<HOSV:256>> = HOS,
+    %<<HOPEV:256>> = HOPE,
+    if
+        EV =< HOSV ->%next contract is outside of the interval we are currently looking at.
+            {lists:reverse(First) ++ [CH|CT], 
+             Batch};
+        E == HOPE ->%next contract matches the interval we are looking at.
+            prob_sublists3(
+              S, E, CT, First, [CH|Batch]);
+        true -> %need to chop
+            CA = CH#owner{pend = E},
+            CB = CH#owner{pstart = E},
+            prob_sublists3(
+              S, E, CT, 
+              [CA|First], 
+              [CB|Batch])
+    end.
+make_tree_contracts(L, Bounds) -> 
+    %first get a list of all contract hashes and their inverses that are used for this list.
+    CH1 = lists:map(
+            fun(X) -> X#owner.contracts end,
+            L),
+    CH2 = lists:foldr(
+            fun(A, B) -> A ++ B end,
+            [],
+            CH1),
+    CH3 = lists:sort(
+            fun(<<A:256>>, <<B:256>>) ->
+                    A =< B
+            end, CH2),
+    CH4 = remove_repeats(CH3),
+    CH5 = pair_inverses(CH4),
+    make_tree_contracts2(L, Bounds, CH5).
+make_tree_contracts2([A], Bounds, _) ->            
+    B = in_bounds(A, Bounds),
+    if 
+        B -> A;
+        true ->
+            io:fwrite("in bounds failure\n"),
+            io:fwrite(packer:pack({A, Bounds})),
+            io:fwrite("\n"),
+            1=2
+    end;
+make_tree_contracts2(X, Bounds, []) ->
+    io:fwrite("in bounds failure 2\n"),
+    io:fwrite(packer:pack({X, Bounds})),
+    io:fwrite("\n"),
+    1=2;
+make_tree_contracts2(L, Bounds, [{H1, H2}|Pairs]) ->
+    {LA, LB} = lists:split_with(
+                 fun(X) ->
+                         is_in(H1, X#owner.contracts) end,
+                 L),
+    {_, []} = %everything needs to be on one side or the other. sanity check.
+        lists:split_with(
+          fun(X) ->
+                  is_in(H2, X#owner.contracts) end,
+          LB),
+    Rule = {contract, H1},
+    #tree{rule = Rule,
+          b1 = make_tree_contracts2(LA, bounds_update(Rule, Bounds), Pairs),
+          b0 = make_tree_contracts2(LB, bounds_update2(Rule, Bounds), Pairs)}.
+    
+       
+pair_inverses([]) -> [];
+pair_inverses([H|T]) -> 
+    H2 = contract_flip(H),
+    T2 = remove_element(H2, T),
+    [{H, H2}|pair_inverses(T2)].
+
+remove_element(_, []) -> [];
+remove_element(A, [A|T]) -> T;
+remove_element(A, [B|T]) -> 
+    [B|remove_element(A, T)].
+
+remove_repeats([]) -> [];
+remove_repeats([A]) -> [A];
+remove_repeats([A|[A|T]]) ->
+    remove_repeats([A|T]);
+remove_repeats([H|T]) -> 
+    [H|remove_repeats(T)].
+                              
+                            
+
 %no_overlap_check([]) -> ok;
 %no_overlap_check([_]) -> ok;
 %no_overlap_check([A|[B|T]]) -> 
 %    true = A#owner.pend =< B#owner.pstart,
 %    no_overlap_check([B|T]).
             
+make_lists(F, []) -> [];
 make_lists(F, [H|T]) ->
     lists:reverse(make_lists2(F, F(H), T, [H], [])).
 make_lists2(_F, _TID, [], NL, R) -> 
@@ -287,9 +409,20 @@ in_bounds(Ownership, Bounds) ->
              pend = <<Bend:256>>,
              contracts = BC
            } = Bounds,
-    (Ostart >= Bstart) and
-        (Oend =< Bend) and
-        (all_in(OC, BC)).
+    if
+        (Bstart > Ostart) ->
+            io:fwrite("starts too early\n"),
+            io:fwrite(packer:pack([<<Bstart:256>>, <<Ostart:256>>])),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack([Bstart, Ostart])),
+            io:fwrite("\n"),
+            false;
+        (Oend > Bend) ->
+            io:fwrite("ends too late\n"),
+            false;
+        true ->
+            all_in(BC, OC)
+    end.
 bounds_update({before, <<S:256>>}, 
               Bounds) ->
     S1 = Bounds#bounds.pend,
@@ -384,13 +517,9 @@ serialize(X) ->
       CB/binary,
       Pr:8>>.
 serialize_contracts([], X) -> X;
-serialize_contracts([{H, Type}|T], X) ->
-    case Type of
-        1 -> ok;
-        0 -> ok
-    end,
+serialize_contracts([H|T], X) ->
     <<_:256>> = H,
-    X2 = <<X/binary, Type:8, H/binary>>,
+    X2 = <<X/binary, H/binary>>,
     serialize_contracts(T, X2).
    
 
@@ -411,7 +540,8 @@ test() ->
              <<M3:256>>,
              0,
              SID,
-            []),
+             %[]),
+            [hash:doit(1)]),
     X2 = new(keys:pubkey(),
              <<0:520>>,
              <<M3:256>>,
@@ -450,6 +580,7 @@ test() ->
             []),
     %L1 = [X1, X2, X5],
     L2 = [X1, X2, X3, X4, X5, X6],
+    %L2 = [X1, X2, X6],
     {Root, T} = make_tree(L2),
     Proof = lists:reverse(make_proof(X6, T)),
     Root = verify(X6, Proof),
