@@ -7,7 +7,7 @@
          pubkey2/1,
          pstart/1,
          pend/1,
-         %contract/1,
+         contracts/1,
          priority/1,
          sid/1,
          
@@ -96,10 +96,6 @@ make_tree_priority2(ListsOwners) ->
           b1 = make_tree_priority2(LA),
           b0 = make_tree_priority2(LB)}.
 
-%TODO
-%You are adding contracts to the ownership tree.
-% make_tree needs to be updated.
-% make a test of generating and verifying a proof with a contract.
     
 make_tree_sid(Owners) ->
     Owners2 = lists:sort(
@@ -141,7 +137,6 @@ make_tree_sid2(ListsOwners) ->
           b1 = make_tree_sid2(LA),
           b0 = make_tree_sid2(LB)}.
 make_tree_prob(Owners) ->
-    %TODO
     %if people are using smart contracts so that their probability space overlaps with more than one other person's probability space, then divide their ownership objects such that each object is either 100% overlapping with all the others in the same probability space, or else it is 0% overlapping. no partial overlap.
     %make sub-lists of ownership objects that overlap the same probability space, we will divide up contract space in the next step.
     Owners2 = 
@@ -151,9 +146,6 @@ make_tree_prob(Owners) ->
                   <<B1:256>> = B#owner.pstart,
                   A1 =< B1 end, Owners),
     Owners3 = prob_sublists(Owners2),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(Owners3)),
-    io:fwrite("\n"),
     %no_overlap_check(Owners2),
     Bounds = #bounds{},
     make_tree_prob2(Owners3, Bounds).

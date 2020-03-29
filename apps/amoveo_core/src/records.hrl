@@ -26,7 +26,7 @@
 %rng_results make a queue, new elements inserted at the bottom_rng pointer, and the head of the queue is the top_rng.
 -record(sortition_block, {id, validators, state_root, height, side_height}).
 
--record(candidate, {id, sortition_id, layer_number, winner, winner2, recovery_spend, height, priority, next_candidate}).%merkle tree
+-record(candidate, {id, sortition_id, layer_number, winner, winner2, recovery_spend, height, priority, next_candidate, contracts_root}).%merkle tree
 
 -record(sortition_final_spend_tx, {from, nonce, fee, claim_id, signed_spend, evidence}).
 -record(final_spend, {from, from2, to, sortition_id, contract, prove}).

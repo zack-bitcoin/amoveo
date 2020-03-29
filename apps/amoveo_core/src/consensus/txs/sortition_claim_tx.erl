@@ -56,7 +56,6 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     false = (RNGValue == <<0:256>>),%the rng value has been supplied
     true = priority_check(TCID, 0, ProofLayers, Dict2),
     Dict3 = merkle_verify(0, ProofLayers, ClaimID, RNGValue, TCID, ValidatorsRoot, Dict2),%creates the candidates for this claim.
-
     S2 = S#sortition{
            top_candidate = ClaimID,
            last_modified = NewHeight
@@ -92,7 +91,8 @@ priority_check(TCID, LayerNumber, [H|T], Dict2) ->
     end.
     %you can only do this tx if your new candidate will have the highest priority.
 
-merkle_verify(_, [], _, _, _, _, Dict) -> Dict;
+merkle_verify(_, [], _, _, _, _, Dict) -> 
+    Dict;
 merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict2) ->
     %also creates the candidates.
     LayerClaimID = layer_salt(ClaimID, LayerNumber),
@@ -135,15 +135,37 @@ merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict
     Priority = ownership:priority(Ownership),
     Winner = ownership:pubkey(Ownership),
     Winner2 = ownership:pubkey2(Ownership),
-    NC = candidates:new(LayerClaimID, SID, LayerNumber, Winner, Winner2, NewClaimHeight, Priority, TCID),
+    Contracts2 = ownership:contracts(Ownership),
+    %TODO, put this list of contracts into a merkle tree, and store the root in the candidate.
+    Size = 32,
+    KeyLength = 2,
+    M = mtree:new_empty(KeyLength, Size, 0),
+    CFG = mtree:cfg(M),
+    L = make_leaves(0, Contracts2, CFG),
+    RH = case L of
+             [] -> <<0:256>>;
+             _ -> 
+                 {Root, M2} = 
+                     mtree:store_batch(L, 1, M),
+                 mtree:root_hash(Root, M2)
+         end,
+    %RH = mtree:root_hash(Root, M2),
+    NC = candidates:new(LayerClaimID, SID, LayerNumber, Winner, Winner2, NewClaimHeight, Priority, TCID, RH),
     Dict3 = candidates:dict_write(NC, Dict2),
-    merkle_verify(LayerNumber + 1,
-                  T,
-                  ClaimID,
-                  RNGValue,
-                  TCID, 
-                  NextVR,
-                  Dict3).
+    merkle_verify(
+      LayerNumber + 1,
+      T,
+      ClaimID,
+      RNGValue,
+      TCID, 
+      NextVR,
+      Dict3).
+make_leaves(_, [], _) -> [];
+make_leaves(N, [H|T], CFG) ->
+    Leaf = leaf:new(N, H, 0, CFG),
+    [Leaf|make_leaves(N+1, T, CFG)].
+
+    
 
 layer_salt(ClaimID, 0) -> ClaimID;
 layer_salt(ClaimID, N) -> 

@@ -1,12 +1,12 @@
 -module(candidates).
--export([new/8,
+-export([new/9,
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/2, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0,
          id/1, sortition_id/1, layer_number/1, winner/1, winner2/1, height/1, next_candidate/1,
-         recovery_spend/1,
+         recovery_spend/1, contracts_root/1,
          test/0
 ]).
 -define(id, candidates).
@@ -14,7 +14,7 @@
 %-record(candidate, {id, sortition_id, layer_number, winner, winner2, recovery_spend, height, priority, next_candidate}).%merkle tree
 
 
-new(ID, SID, N, WP, W2, H, Pr, NC) ->
+new(ID, SID, N, WP, W2, H, Pr, NC, CR) ->
     #candidate{
      id = ID,
      sortition_id = SID,
@@ -24,7 +24,8 @@ new(ID, SID, N, WP, W2, H, Pr, NC) ->
      recovery_spend = <<0:520>>,
      height = H,
      priority = Pr, 
-     next_candidate = NC
+     next_candidate = NC,
+     contracts_root = CR
     }.
 
 id(C) -> C#candidate.id.
@@ -35,6 +36,7 @@ winner2(C) -> C#candidate.winner2.
 recovery_spend(C) -> C#candidate.recovery_spend.
 height(C) -> C#candidate.height.
 next_candidate(C) -> C#candidate.next_candidate. 
+contracts_root(C) -> C#candidate.contracts_root. 
 
 write(C, Root) ->
     Key = C#candidate.id,
@@ -106,7 +108,9 @@ serialize(C) ->
     PS = size(Winner),
     PS = size(Winner2),
     NC = C#candidate.next_candidate,
+    CR = C#candidate.contracts_root,
     HS = size(NC),
+    HS = size(CR),
     <<ID/binary,
       SI/binary,
       (C#candidate.layer_number):16,
@@ -115,7 +119,8 @@ serialize(C) ->
       RecoverySpend/binary,
       (C#candidate.height):HEI,
       (C#candidate.priority):8,
-      NC/binary>>.
+      NC/binary,
+      CR/binary>>.
       
 deserialize(B) ->
     HS = constants:hash_size()*8,
@@ -130,7 +135,8 @@ deserialize(B) ->
       RecoverySpend:PS,
       Height:HEI,
       Priority:8,
-      NC:HS
+      NC:HS,
+      CR:HS
     >> = B,
     #candidate{
            id = <<ID:HS>>,
@@ -141,7 +147,8 @@ deserialize(B) ->
            recovery_spend = <<RecoverySpend:PS>>,
            height = Height,
            priority = Priority,
-           next_candidate = <<NC:HS>>
+           next_candidate = <<NC:HS>>,
+           contracts_root = <<CR:HS>>
           }.
 
 all() ->
@@ -163,7 +170,8 @@ test() ->
             <<0:520>>,
             1,
             0,
-            hash:doit(3)),
+            hash:doit(3),
+            hash:doit(4)),
     %serialize deserialize
     S1 = deserialize(serialize(S)),
     %io:fwrite([S, S1]),
