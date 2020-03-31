@@ -39,7 +39,8 @@ get(27) -> common(102260, test_height());%so oracle_new tx includes all the proo
 get(28) -> common(9999999, 9999999);
 get(29) -> common(104600, test_height());
 get(30) -> common(108600, test_height());
-get(31) -> common(109900, test_height());
+%get(31) -> common(109900, test_height());
+get(31) -> common(9999999999, test_height());
 get(_) -> none.
 
 top() -> top(1).
