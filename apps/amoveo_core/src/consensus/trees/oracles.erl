@@ -28,7 +28,7 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict, F10, Height) 
 	    orders = Orders,
             orders_hash = <<0:256>>,
 	    creator = Creator,
-	    done_timer = Starts + MOT,
+	    done_timer = max(Height, Starts) + MOT,
 	    governance = GovernanceVar,
 	    governance_amount = GovAmount
 	   }.
