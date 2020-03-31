@@ -827,6 +827,7 @@ get_tx(T, _, OldDict, _, _) when (element(1, T) == delete_acc_tx) ->
     Acc = accounts:dict_get(From, OldDict),
     X = case Acc of
         empty -> [{amount, 0}];
+        %error -> [{amount, 0}];
         _ -> [{amount, Acc#acc.balance}]
     end,
     X ++[{from, base64:encode(T#delete_acc_tx.from)},
@@ -1278,8 +1279,8 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
         true -> ok
     end,
     B + sum_amounts(T, Dict, Old).
-sum_amounts_helper(_, empty, _, _, _) ->
-    0;
+%sum_amounts_helper(_, error, _, _, _) -> 0;
+sum_amounts_helper(_, empty, _, _, _) -> 0;
 sum_amounts_helper(accounts, Acc, Dict, _, _) ->
     Acc#acc.balance;
 sum_amounts_helper(channels, Chan, Dict, _, _) ->

@@ -124,7 +124,12 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 			{governance:dict_lock(Gov, Dict), max(NewHeight, Tx#oracle_new.start), L2}
 		end%
         end,
-    false = Starts < NewHeight,
+    FG31 = forks:get(31),
+    if
+        NewHeight < FG31 ->
+            false = Starts < NewHeight;
+        true -> ok
+    end,
     ok = case Question of
              <<"">> -> ok;
              _ ->
