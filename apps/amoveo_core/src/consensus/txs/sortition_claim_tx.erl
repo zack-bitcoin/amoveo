@@ -1,5 +1,6 @@
 -module(sortition_claim_tx).
--export([go/4, make_dict/6, make_proofs/1, make_owner_layer/5, layer_salt/2]).
+-export([go/4, make_dict/6, make_proofs/1, make_owner_layer/5, layer_salt/2,
+        make_leaves/3]).
 -include("../../records.hrl").
 
 -record(owner, {pubkey, contract}).
@@ -22,10 +23,7 @@ make_dict(From, L, SID, ClaimID, TCID, Fee) ->
     Acc = trees:get(accounts, From),
     %OL = #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR, ownership = Ownership},
     S = trees:get(sortition, SID),
-    TCID2 = S#sortition.top_candidate,
-    io:fwrite(packer:pack([TCID, TCID2])),
-    io:fwrite("\n"),
-    TCID = TCID2,
+    TCID = S#sortition.top_candidate,
     #sortition_claim_tx{from = From, nonce = Acc#acc.nonce + 1, 
                         fee = Fee, 
                         claim_id = ClaimID, sortition_id = SID,

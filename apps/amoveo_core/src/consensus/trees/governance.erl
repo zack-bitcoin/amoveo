@@ -164,7 +164,7 @@ name2number(oracle_winnings) -> 27;
 name2number(oracle_question_liquidity) -> 28;
 name2number(sortition_new_tx) -> 29;
 name2number(sortition_claim_tx) -> 30;
-name2number(sortition_evidence_tx) -> 31;
+name2number(sortition_waiver_tx) -> 31;
 name2number(sortition_timeout_tx) -> 32;
 name2number(sortition_block_tx) -> 33;
 name2number(rng_result_tx) -> 34;
@@ -176,6 +176,7 @@ name2number(rng_many) -> 39;
 name2number(sortition_final_spend_tx) -> 40;
 %name2number(sortition_final_spend_refund) -> 41;
 name2number(max_hashes) -> 41;
+name2number(sortition_contract_tx) -> 42;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -210,7 +211,7 @@ number2name(27) -> oracle_winnings;
 number2name(28) -> oracle_question_liquidity;
 number2name(29) -> sortition_new_tx;
 number2name(30) -> sortition_claim_tx;
-number2name(31) -> sortition_evidence_tx;
+number2name(31) -> sortition_waiver_tx;
 number2name(32) -> sortition_timeout_tx;
 number2name(33) -> sortition_block_tx;
 number2name(34) -> rng_result_tx;
@@ -222,6 +223,7 @@ number2name(39) -> rng_many;
 number2name(40) -> sortition_final_spend_tx;
 %number2name(41) -> sortition_final_spend_refund;
 number2name(41) -> max_hashes;
+number2name(42) -> sortition_contract_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

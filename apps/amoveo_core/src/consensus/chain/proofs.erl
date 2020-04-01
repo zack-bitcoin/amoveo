@@ -546,8 +546,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(sortition_claim_tx)},
                  {candidates, ClaimID}
                 ] ++ U ++ V;
-            sortition_evidence_tx ->
-                #sortition_evidence_tx{
+            sortition_waiver_tx ->
+                #sortition_waiver_tx{
               pubkey = From,
               sortition_id = SID,
               %signed_waiver = SW,
@@ -561,7 +561,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 TCID = sortition_claim_tx:layer_salt(TCID_0, LN),
                 U = channel_slash_tx:to_prove_helper([SS], Height),
                 [
-                 {governance, ?n2i(sortition_evidence_tx)},
+                 {governance, ?n2i(sortition_waiver_tx)},
                  {governance, ?n2i(fun_limit)},
                  {governance, ?n2i(var_limit)},
                  {governance, ?n2i(time_gas)},
@@ -570,6 +570,29 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {candidates, TCID},
                  {accounts, From}
                 ] ++ U;
+            sortition_contract_tx ->
+                #sortition_contract_tx{
+              pubkey = From,
+              sortition_id = SID,
+              layer = LN,
+              contract = Contract,
+              proof = Proof
+             } = Tx,
+                {_, S, _} = sortition:get(SID, trees:sortition(Trees)),
+                #sortition{
+                   top_candidate = TCID_0
+                  } = S,
+                TCID = sortition_claim_tx:layer_salt(TCID_0, LN),
+                [
+                 {governance, ?n2i(sortition_contract_tx)},
+                 {governance, ?n2i(fun_limit)},
+                 {governance, ?n2i(var_limit)},
+                 {governance, ?n2i(time_gas)},
+                 {governance, ?n2i(space_gas)},
+                 {candidates, TCID},
+                 {sortition, SID},
+                 {accounts, From}
+                ];
             sortition_timeout_tx ->
                 #sortition_timeout_tx{
               pubkey = From,

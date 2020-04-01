@@ -668,7 +668,8 @@ check3(OldBlock, Block) ->
 f28things() ->
     [sortition_new_tx,
      sortition_claim_tx,
-     sortition_evidence_tx,
+     sortition_waiver_tx,
+     sortition_contract_tx,
      sortition_timeout_tx,
      sortition_block_tx,
      rng_result_tx,

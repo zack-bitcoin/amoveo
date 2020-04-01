@@ -25,7 +25,8 @@ digest_txs([STx|T], Dict, Height) ->
     digest_txs(T, NewDict, Height).
 key2module(sortition_new_tx) -> sortition_new_tx;
 key2module(sortition_claim_tx) -> sortition_claim_tx;
-key2module(sortition_evidence_tx) -> sortition_evidence_tx;
+key2module(sortition_waiver_tx) -> sortition_waiver_tx;
+key2module(sortition_contract_tx) -> sortition_contract_tx;
 key2module(sortition_timeout_tx) -> sortition_timeout_tx;
 key2module(sortition_block_tx) -> sortition_block_tx;
 key2module(sortition_final_spend_tx) -> sortition_final_spend_tx;

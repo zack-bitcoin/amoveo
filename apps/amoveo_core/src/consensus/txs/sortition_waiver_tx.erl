@@ -1,7 +1,7 @@
--module(sortition_evidence_tx).
+-module(sortition_waiver_tx). 
 -export([go/4, make_dict/6, make_waiver/4]).
 -include("../../records.hrl").
-%-record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, signed_waiver}).
+%-record(sortition_waiver_tx, {pubkey, nonce, fee, sortition_id, signed_waiver}).
 %-record(waiver, {pubkey, sortition_id, contract}).
 
 make_waiver(Who, Pub2, SID, Contract) ->
@@ -12,12 +12,10 @@ make_waiver(Who, Pub2, SID, Contract) ->
 
 make_dict(From, Fee, SID, LN, SignedWaiver, SS) ->
     Acc = trees:get(accounts, From),
-    #sortition_evidence_tx{pubkey = From, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, signed_waiver = SignedWaiver, script_sig = SS, layer = LN}.
+    #sortition_waiver_tx{pubkey = From, nonce = Acc#acc.nonce + 1, sortition_id = SID, fee = Fee, signed_waiver = SignedWaiver, script_sig = SS, layer = LN}.
     
 go(Tx, Dict, NewHeight, NonceCheck) ->
-    F28 = forks:get(28),
-    true = NewHeight > F28,
-    #sortition_evidence_tx{
+    #sortition_waiver_tx{
     pubkey = From,
     nonce = Nonce,
     sortition_id = SID,
@@ -26,6 +24,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     script_sig = SS,
     layer = LN
    } = Tx,
+    F28 = forks:get(28),
+    true = NewHeight > F28,
     A2 = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(A2, Dict),
 
@@ -56,8 +56,6 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 winner = Loser,%matches with who signed the waiver.
                 winner2 = Loser2%matches with who signed the waiver.
               } = TC,
-    false = (Loser == <<0:520>>),
-    %TODO, sortition_evidence_tx can also refer to any layer built on this candidate, if the sortition chain has recursive child sortition chains.
     S2 = S#sortition{
            top_candidate = NC,
            last_modified = NewHeight
@@ -75,8 +73,27 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, SS#ss.code, Contract, State, constants:hash_size(), 2, false),
     Contract2 = <<Evidence/binary,
                   Contract/binary>>,
-    Data2 = chalang:run5(SS#ss.code, Data),
-    Data3 = chalang:run5(Contract2, Data2),
-    [<<1:32>>|_] = chalang:stack(Data3), %check that the smart contract in the waiver returns true.
 
-    Dict3.
+    case chalang:run5(SS#ss.code, Data) of
+        {error, Error1} -> 
+            io:fwrite("in sortition waiver tx, script sig has an error\n"),
+            Dict2;
+        Data2 ->
+            case chalang:run5(Contract2, Data2) of
+                {error, _} -> 
+                    io:fwrite("in sortition waiver tx, contract has an error\n"),
+                    Dict2;
+                Data3 ->
+                    case chalang:stack(Data3) of
+                        [<<1:32>>|_] -> Dict3;
+                        _ -> Dict2
+                    end
+            end
+    end.
+
+    %TODO. similar to spk:chalang_error_handling, if the contract is invalid or takes too much time, we need to handle that case. the tx should still be valid, we should still charge the fee, but don't update any sortition chain or claims.
+%Data2 = chalang:run5(SS#ss.code, Data),
+%    Data3 = chalang:run5(Contract2, Data2),
+%    [<<1:32>>|_] = chalang:stack(Data3), %check that the smart contract in the waiver returns true.
+
+%    Dict3.

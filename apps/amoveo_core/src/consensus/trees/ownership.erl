@@ -10,6 +10,7 @@
          contracts/1,
          priority/1,
          sid/1,
+         contract_flip/1,
          
          verify/2,
          test/0
@@ -243,12 +244,12 @@ make_tree_contracts2(X, Bounds, []) ->
     io:fwrite("\n"),
     1=2;
 make_tree_contracts2(L, Bounds, [{H1, H2}|Pairs]) ->
-    {LA, LB} = lists:split_with(
+    {LA, LB} = lists:splitwith(
                  fun(X) ->
                          is_in(H1, X#owner.contracts) end,
                  L),
     {_, []} = %everything needs to be on one side or the other. sanity check.
-        lists:split_with(
+        lists:splitwith(
           fun(X) ->
                   is_in(H2, X#owner.contracts) end,
           LB),

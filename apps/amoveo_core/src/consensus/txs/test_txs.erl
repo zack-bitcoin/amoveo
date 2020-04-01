@@ -1195,7 +1195,7 @@ test(30) ->
     success;
 test(31) ->
     %sortition chain resolution test
-    %s new, s blocks, rng result, rng confirm, sortition claim, sortition claim, sortition evidence, mine a bunch of blocks, sortition timeout
+    %s new, s blocks, rng result, rng confirm, sortition claim, sortition claim, sortition waiver, mine a bunch of blocks, sortition timeout
 
     headers:dump(),
     block:initialize_chain(),
@@ -1263,10 +1263,10 @@ test(31) ->
 
 
     Contract = <<10,3,1>>,%print, int1, 1. prints the stack, then loads the integer 1 onto the top of stack which will get interpreted as "true". 
-    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract),
+    Waiver = sortition_waiver_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract),
     SW = keys:sign(Waiver),
     SS = spk:new_ss(<<>>, [{accounts, keys:pubkey()}]),%the state of this account will be available to the smart contract.
-    SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, 0, SW, SS),
+    SET = sortition_waiver_tx:make_dict(keys:pubkey(), Fee, SID, 0, SW, SS),
     SSET = keys:sign(SET),
     absorb(SSET),
     1 = many_txs(),
@@ -1521,10 +1521,10 @@ test(34) ->
 
 
     Contract = <<3,1>>,%int1, 1. loads the integer 1 onto the top of stack, which will get interpreted as "true". 
-    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract),
+    Waiver = sortition_waiver_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract),
     SW = keys:sign(Waiver),
     SS = spk:new_ss(<<>>, []),
-    SET = sortition_evidence_tx:make_dict(keys:pubkey(), Fee, SID, 0, SW, SS),
+    SET = sortition_waiver_tx:make_dict(keys:pubkey(), Fee, SID, 0, SW, SS),
     SSET = keys:sign(SET),
     absorb(SSET),
     1 = many_txs(),
@@ -1619,7 +1619,7 @@ test(35) ->
     
     %TODO
     Contract2 = compiler_chalang:doit(<<"int 1">>),
-    Waiver = sortition_evidence_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract2),
+    Waiver = sortition_waiver_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract2),
     SW = keys:sign(Waiver),
     %whoever is going to be 2nd in line, they should use waiver to give up control of part of the outcome space.
     Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),
@@ -1640,7 +1640,7 @@ test(35) ->
 
     %now the 2 channel owners sign a waiver giving up their spot as first in line.
     Contract3 = compiler_chalang:doit(<<"int 1">>),%always returns true
-    Waiver2 = sortition_evidence_tx:make_waiver(keys:pubkey(), NewPub, SID, Contract3),
+    Waiver2 = sortition_waiver_tx:make_waiver(keys:pubkey(), NewPub, SID, Contract3),
     SW2 = testnet_sign:sign_tx(Waiver2, NewPub, NewPriv),
     SSW2 = keys:sign(SW2),
     
@@ -1675,6 +1675,105 @@ test(35) ->
     mine_blocks(1),
 
     success;
+test(36) ->
+    %sortition contract tx test
+    %sortition new, sortition block, rng result, rng confirm, sortiiton claim, sortition claim, sortition waiver, mine a bunch of blocks, sortition timeout
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(2),
+    Fee = constants:initial_fee() + 20,
+    SID = hash:doit(1),
+    BHS = block:height(),
+    Entropy = BHS + 2,
+    TradingEnds = BHS + 1,
+    ResponseDelay = 0,
+    RNGEnds = BHS+3,
+    Delay = 0,
+    Validators = [keys:pubkey()],
+    Amount = 1000000000,
+    Tx = sortition_new_tx:make_dict(keys:pubkey(), Amount, SID, Entropy, TradingEnds, ResponseDelay, RNGEnds, Delay, Validators, Fee),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    Contract = <<10,3,1>>,%print, int1, 1. prints the stack, then loads the integer 1 onto the top of stack which will get interpreted as "true". 
+    ContractHash = hash:doit(Contract),
+    IContractHash = ownership:contract_flip(ContractHash),
+
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, [IContractHash]),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, [ContractHash]),
+    {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
+    Proof = ownership:make_proof(Owner, M),
+    Proof2 = ownership:make_proof(Owner2, M),
+
+    Sig = keys:raw_sign(hash:doit([0,StateRoot])),
+    VR = sortition_new_tx:make_root(Validators),
+
+    SBID = hash:doit([0, VR]),
+    SBT = sortition_block_tx:make_dict(keys:pubkey(), Fee, Validators, [Sig], StateRoot, 0),
+    SSBT = keys:sign(SBT),
+    absorb(SSBT),
+    1 = many_txs(),
+    mine_blocks(1),%mine enough blocks we can post rng results
+    GoodHashes = times(129, <<27:256>>, []),
+    RID = hash:doit(3),
+    GRRT = rng_result_tx:make_dict(keys:pubkey(), RID, SID, GoodHashes, Fee),%post correct rng_result
+    SGRRT = keys:sign(GRRT),
+    absorb(SGRRT),
+    1 = many_txs(),
+    mine_blocks(1),
+    Confirm = rng_confirm_tx:make_dict(keys:pubkey(), SID, RID, Fee),
+    SConfirm = keys:sign(Confirm),
+    absorb(SConfirm),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    ClaimID = hash:doit(22),
+    ClaimID2 = hash:doit(23),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    SCT2 = sortition_claim_tx:make_dict(keys:pubkey(), [OL2], SID, ClaimID2, <<0:256>>, Fee),
+    SSCT2 = keys:sign(SCT2),
+    absorb(SSCT2),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, ClaimID2, Fee),
+    SSCT = keys:sign(SCT),
+    absorb(SSCT),
+    1 = many_txs(),
+    mine_blocks(1),
+
+
+    %TODO make the sortition contract tx.
+
+    Size = 32,
+    KeyLength = 2,
+    M3 = mtree:new_empty(KeyLength, Size, 0),
+    CFG = mtree:cfg(M3),
+    L = sortition_claim_tx:make_leaves(0, [ContractHash], CFG),
+    {Root, M2} = 
+        mtree:store_batch(L, 1, M3),
+    %mtree:root_hash(Root, M2)
+    {_, _, ContractProof} = mtree:get(leaf:path_maker(0, CFG), Root, M2),
+   
+
+    LN = 0,
+    SET = sortition_contract_tx:make_dict(keys:pubkey(), Fee, SID, LN, Contract, ContractProof),
+    SSET = keys:sign(SET),
+    absorb(SSET),
+    1 = many_txs(),
+    mine_blocks(1),
+    STT = sortition_timeout_tx:make_dict(keys:pubkey(), keys:pubkey(), <<0:520>>, SID, 0, Fee),
+    SSTT = keys:sign(STT),
+    absorb(SSTT),
+    1 = many_txs(),
+    mine_blocks(1),
+    success;
+
+
 test(sortition) ->
     S = success,
     S = test(30),

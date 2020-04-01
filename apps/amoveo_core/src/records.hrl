@@ -5,7 +5,8 @@
 
 -record(sortition_claim_tx, {from, nonce, fee, claim_id, top_candidate, proof_layers, sortition_id}).
 
--record(sortition_evidence_tx, {pubkey, nonce, fee, sortition_id, layer, signed_waiver, script_sig}).
+-record(sortition_waiver_tx, {pubkey, nonce, fee, sortition_id, layer, signed_waiver, script_sig}).
+-record(sortition_contract_tx, {pubkey, nonce, fee, sortition_id, layer, contract, proof}).
 
 -record(sortition_timeout_tx, {pubkey, nonce, fee, winner, winner2, amount, layer, sortition_id}).
 
