@@ -328,7 +328,10 @@ make_lists2(F, TID, [N|IL], NL, R) ->
             
 
 make_proof(Owner, Tree) ->
-    lists:reverse(make_proof2(Owner, Tree)).
+    Proof = lists:reverse(make_proof2(Owner, Tree)),
+    Owner2 = hd(Proof),
+    B = is_subset(Owner, Owner2),
+    {B, Proof}.
 make_proof2(Owner, Tree) when is_record(Tree, tree) ->
     %grab all the elements leading towards Owner.
     #tree{
@@ -344,7 +347,7 @@ make_proof2(Owner, Tree) when is_record(Tree, tree) ->
     [T2|make_proof2(Owner, B)];
 make_proof2(Owner, Owner) -> [Owner];
 make_proof2(A, B) -> 
-    true = is_subset(A, B),
+    %true = is_subset(A, B),
     [B].
 
 is_subset(A, B) ->
@@ -362,13 +365,15 @@ is_subset(A, B) ->
 %            pubkey2 = P2,
             pstart = Bstart,
             pend = Bend,
-            priority = P,
-            sortition_id = SID,
+            priority = P2,
+            sortition_id = SID2,
            contracts = BC
           } = B,
-    (Astart >= Bstart) and
-        (Aend =< Bend) and
-        all_in(BC, AC).
+    (P == P2) 
+        and (SID == SID2) 
+        and (Astart >= Bstart) 
+        and (Aend =< Bend) 
+        and all_in(BC, AC).
 
 verify(Root, Proof) ->
     %returns a root hash, so we can check that the Proof is linked to something else.
@@ -648,7 +653,7 @@ test() ->
     {Root, T} = make_tree(L2),
     L3 = tree_to_leaves(T),
     lists:map(fun(XN) ->
-                      Proof = make_proof(XN, T),
+                      {true, Proof} = make_proof(XN, T),
                       XN = hd(Proof),
                       true = verify(Root, Proof)
               end, L3),
@@ -658,8 +663,9 @@ test() ->
              <<(M4+10):256>>,
              0,
              SID,
-            [H1, H2b]),%this is how you check who won. you make a very specific ownership object that specifies the smallest possible space that could contain the winning account, and if you make a proof of this, the proof contains the actual ownership object that had won.
-    Proof7 = make_proof(X7, T),
-    io:fwrite(packer:pack(Proof7)),
+            [H1, H2]),%this is how you check who won. you make a very specific ownership object that specifies the smallest possible space that could contain the winning account, and if you make a proof of this, the proof contains the actual ownership object that had won.
+    {false, Proof7} = make_proof(X7, T),
+    true = verify(Root, Proof7),
+    false = is_subset(X7, hd(Proof7)),
     success.
     
