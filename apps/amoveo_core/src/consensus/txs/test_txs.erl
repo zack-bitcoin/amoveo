@@ -1170,7 +1170,7 @@ test(30) ->
     %settle the sortition chain tx
     
     ClaimID = hash:doit(22),
-    OL = sortition_claim_tx:make_owner_layer(SID, OwnershipProof, SBID, VR, Owner),
+    OL = sortition_claim_tx:make_owner_layer(SID, OwnershipProof, SBID, VR),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, <<0:256>>, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
@@ -1247,14 +1247,14 @@ test(31) ->
 
     ClaimID = hash:doit(22),
     ClaimID2 = hash:doit(23),
-    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR),
     SCT2 = sortition_claim_tx:make_dict(keys:pubkey(), [OL2], SID, ClaimID2, <<0:256>>, Fee),
     SSCT2 = keys:sign(SCT2),
     absorb(SSCT2),
     1 = many_txs(),
     mine_blocks(1),
 
-    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, ClaimID2, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
@@ -1335,8 +1335,8 @@ test(32) ->
 
     ClaimID = hash:doit(22),
 
-    OL1 = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
-    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    OL1 = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL1, OL2], SID, ClaimID, <<0:256>>, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
@@ -1413,7 +1413,7 @@ test(33) ->
 
     ClaimID = hash:doit(22),
 
-    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, <<0:256>>, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
@@ -1505,14 +1505,14 @@ test(34) ->
 
     ClaimID = hash:doit(22),
     ClaimID2 = hash:doit(23),
-    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR),
     SCT2 = sortition_claim_tx:make_dict(keys:pubkey(), [OL2], SID, ClaimID2, <<0:256>>, Fee),
     SSCT2 = keys:sign(SCT2),
     absorb(SSCT2),
     1 = many_txs(),
     mine_blocks(1),
 
-    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, ClaimID2, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
@@ -1661,7 +1661,7 @@ test(35) ->
     mine_blocks(1),
 
     ClaimID = hash:doit(22),
-    OL = sortition_claim_tx:make_owner_layer(SID, Proof3, SBID2, VR, Owner3),
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof3, SBID2, VR),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, <<0:256>>, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),
@@ -1732,14 +1732,14 @@ test(36) ->
 
     ClaimID = hash:doit(22),
     ClaimID2 = hash:doit(23),
-    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR, Owner2),
+    OL2 = sortition_claim_tx:make_owner_layer(SID, Proof2, SBID, VR),
     SCT2 = sortition_claim_tx:make_dict(keys:pubkey(), [OL2], SID, ClaimID2, <<0:256>>, Fee),
     SSCT2 = keys:sign(SCT2),
     absorb(SSCT2),
     1 = many_txs(),
     mine_blocks(1),
 
-    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR, Owner),
+    OL = sortition_claim_tx:make_owner_layer(SID, Proof, SBID, VR),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, ClaimID2, Fee),
     SSCT = keys:sign(SCT),
     absorb(SSCT),

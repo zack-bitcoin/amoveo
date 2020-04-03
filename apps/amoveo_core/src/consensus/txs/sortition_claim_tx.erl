@@ -1,10 +1,10 @@
 -module(sortition_claim_tx).
--export([go/4, make_dict/6, make_proofs/1, make_owner_layer/5, layer_salt/2,
+-export([go/4, make_dict/6, make_proofs/1, make_owner_layer/4, layer_salt/2,
         make_leaves/3]).
 -include("../../records.hrl").
 
 -record(owner, {pubkey, contract}).
--record(owner_layer, {sortition_id, proof, sortition_block_id, validators_root, ownership}).
+-record(owner_layer, {sortition_id, proof, sortition_block_id, validators_root}).
 
 make_proofs([]) -> [];
 make_proofs([X|T]) -> 
@@ -16,8 +16,8 @@ make_proofs([X|T]) ->
      {sortition_blocks, SBID}] ++
         make_proofs(T).
 
-make_owner_layer(SID, Proof, EID, VR, Ownership) ->
-    #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR, ownership = Ownership}.
+make_owner_layer(SID, Proof, EID, VR) ->
+    #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR}.
 
 make_dict(From, L, SID, ClaimID, TCID, Fee) ->
     Acc = trees:get(accounts, From),
@@ -63,11 +63,12 @@ priority_check(<<0:256>>, _, _, _) -> true;
 priority_check(TCID, LayerNumber, [H|T], Dict2) ->
     #owner_layer{
                 sortition_id = _SID,
-                proof = _Proof,
+                proof = Proof,
                 sortition_block_id = EID,
-                validators_root = ValidatorsRoot,
-                ownership = Ownership
+                validators_root = ValidatorsRoot
+                %ownership = Ownership
                } = H,
+    Ownership = hd(Proof),
     TCID2 = layer_salt(TCID, LayerNumber),
     TC = candidates:dict_get(TCID2, Dict2),
     #candidate{
@@ -98,9 +99,10 @@ merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict
                   sortition_id = SID,
                   proof = Proof,
                   sortition_block_id = EID,
-                  validators_root = ValidatorsRoot,
-                  ownership = Ownership
+                  validators_root = ValidatorsRoot
+                  %ownership = Ownership
                 } = OL,
+    Ownership = hd(Proof),
     NextVR = case T of
                  [] -> false = (ownership:pubkey(Ownership) == <<0:520>>);
                  _ -> true = ownership:pubkey(Ownership) == <<0:520>>,
@@ -128,7 +130,7 @@ merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict
     true = Pstart =< PV,
     true = PV < Pend,
     %SID = ownership:sid(Ownership),
-    OwnershipRoot = ownership:verify(Ownership, Proof),
+    true = ownership:verify(OwnershipRoot, Proof),
     empty = candidates:dict_get(LayerClaimID, Dict2),
     Priority = ownership:priority(Ownership),
     Winner = ownership:pubkey(Ownership),

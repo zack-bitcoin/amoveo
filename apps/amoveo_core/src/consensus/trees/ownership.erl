@@ -60,7 +60,6 @@ new(P, P2, S, E, Pr, SID, Contracts) ->
            sortition_id = SID,
            priority = Pr,
            contracts = Contracts
-           %contract = hash:doit(C)
           }.
 pubkey(X) -> X#owner.pubkey.
 pubkey2(X) -> X#owner.pubkey2.
@@ -71,32 +70,38 @@ sid(X) -> X#owner.sortition_id.
 priority(X) -> X#owner.priority.
 
 make_tree(Owners) ->
+    Tree = make_tree_sid(Owners),
+    add_hashes(Tree).
+make_tree_priority(Owners, Bounds) ->
     Owners2 = 
         lists:sort(
           fun(A, B) ->
                   A1 = A#owner.priority,
                   B1 = B#owner.priority,
                   A1 =< B1 end, Owners),
-    ListsOwners = 
-        make_lists(fun(X) -> X#owner.priority end, 
-                   Owners2),%there are sub-lists each with a unique priority.
-
-    Tree1 = make_tree_priority2(ListsOwners),
-
-    add_hashes(Tree1).
-make_tree_priority2([A]) -> make_tree_sid(A);
-make_tree_priority2(ListsOwners) -> 
+    Tree1 = make_tree_priority2(Owners2, Bounds).
+make_tree_priority2([A], Bounds) -> 
+    B = in_bounds(A, Bounds),
+    if 
+        B -> A;
+        true ->
+            io:fwrite("in bounds failure\n"),
+            io:fwrite(packer:pack({A, Bounds})),
+            io:fwrite("\n"),
+            1=2
+    end;
+make_tree_priority2(ListsOwners, Bounds) -> 
     L = length(ListsOwners),
     L2 = L div 2,
-    OwnerNth = hd(lists:nth(L2, ListsOwners)), 
+    false = (ListsOwners == []),
+    OwnerNth = lists:nth(L2, ListsOwners), 
     P = OwnerNth#owner.priority,
     {LA, LB} = lists:split(L2, ListsOwners),
     false = [] == LA,
     false = [] == LB,
     #tree{rule = {priority_before, P},
-          b1 = make_tree_priority2(LA),
-          b0 = make_tree_priority2(LB)}.
-
+          b1 = make_tree_priority2(LA, Bounds),
+          b0 = make_tree_priority2(LB, Bounds)}.
     
 make_tree_sid(Owners) ->
     Owners2 = lists:sort(
@@ -147,13 +152,11 @@ make_tree_prob(Owners) ->
                   <<B1:256>> = B#owner.pstart,
                   A1 =< B1 end, Owners),
     Owners3 = prob_sublists(Owners2),
-    %no_overlap_check(Owners2),
+    true = neg_space_check(Owners3),
     Bounds = #bounds{},
     make_tree_prob2(Owners3, Bounds).
 make_tree_prob2([A], Bounds) -> 
     make_tree_contracts(A, Bounds);
-%make_tree_prob2([[]|T], Bounds)->
-%    make_tree_prob2(T, Bounds);
 make_tree_prob2(ListsOwners, Bounds)->
     L = length(ListsOwners),
     L2 = L div 2,
@@ -205,13 +208,23 @@ prob_sublists3(S, E, [CH|CT], First, Batch) ->
             prob_sublists3(
               S, E, CT, First, [CH|Batch]);
         true -> %need to chop
-            CA = CH#owner{pend = E},
-            CB = CH#owner{pstart = E},
+            CB = CH#owner{pend = E},
+            CA = CH#owner{pstart = E},
             prob_sublists3(
               S, E, CT, 
               [CA|First], 
               [CB|Batch])
     end.
+neg_space_check([]) -> true;
+neg_space_check([H|T]) when is_list(H) -> 
+    neg_space_check(H) and
+        neg_space_check(T);
+neg_space_check([H|T]) -> 
+    #owner{
+            pstart = <<S:256>>,
+            pend = <<E:256>>
+          } = H,
+    (S < E) and neg_space_check(T).
 make_tree_contracts(L, Bounds) -> 
     %first get a list of all contract hashes and their inverses that are used for this list.
     CH1 = lists:map(
@@ -228,36 +241,58 @@ make_tree_contracts(L, Bounds) ->
     CH4 = remove_repeats(CH3),
     CH5 = pair_inverses(CH4),
     make_tree_contracts2(L, Bounds, CH5).
-make_tree_contracts2([A], Bounds, _) ->            
-    B = in_bounds(A, Bounds),
-    if 
-        B -> A;
-        true ->
-            io:fwrite("in bounds failure\n"),
-            io:fwrite(packer:pack({A, Bounds})),
-            io:fwrite("\n"),
-            1=2
-    end;
+make_tree_contracts2([], Bounds, _) -> 
+    unused;
+make_tree_contracts2([A], Bounds, _) ->
+    make_tree_priority([A], Bounds);
 make_tree_contracts2(X, Bounds, []) ->
-    io:fwrite("in bounds failure 2\n"),
-    io:fwrite(packer:pack({X, Bounds})),
-    io:fwrite("\n"),
-    1=2;
+    X2 = lists:foldr(fun(A, B) -> [A|B] end,
+                     [],
+                     X),
+    make_tree_priority(X2, Bounds);
 make_tree_contracts2(L, Bounds, [{H1, H2}|Pairs]) ->
-    {LA, LB} = lists:splitwith(
-                 fun(X) ->
-                         is_in(H1, X#owner.contracts) end,
+    LA = lists:filter(
+           fun(X) ->
+                   is_in(H1, X#owner.contracts) end,
                  L),
-    {_, []} = %everything needs to be on one side or the other. sanity check.
-        lists:splitwith(
-          fun(X) ->
-                  is_in(H2, X#owner.contracts) end,
-          LB),
+    LB = lists:filter(
+           fun(X) ->
+                   is_in(H2, X#owner.contracts) end,
+           L),
+    Neither = lists:filter(
+                fun(X) ->
+                        not(is_in(X, LA) or
+                            is_in(X, LB))
+                end,
+                L),
+    {Ntrue, Nfalse} = contract_space_chop(Neither, H1, H2),
+    LA2 = LA ++ Ntrue,
+    LB2 = Nfalse ++ LB,
+    NC = lists:map(fun(X) -> X#owner.contracts end, LB),
     Rule = {contract, H1},
-    #tree{rule = Rule,
-          b1 = make_tree_contracts2(LA, bounds_update(Rule, Bounds), Pairs),
-          b0 = make_tree_contracts2(LB, bounds_update2(Rule, Bounds), Pairs)}.
-    
+    B1 = make_tree_contracts2(LA2, bounds_update(Rule, Bounds), Pairs),
+    B0 = make_tree_contracts2(LB2, bounds_update2(Rule, Bounds), Pairs),
+    if
+        (LA2 == []) -> B0;
+        (LB2 == []) -> B1;
+        true ->
+            #tree{rule = Rule,
+                  b1 = B1,
+                  b0 = B0}
+    end.
+   
+contract_space_chop(Owners, H1, H2) -> 
+    A = lists:map(fun(X) ->
+                          X#owner{
+                            contracts = [H1|X#owner.contracts]
+                           }
+                  end, Owners),
+    B = lists:map(fun(X) ->
+                          X#owner{
+                            contracts = [H2|X#owner.contracts]
+                           }
+                  end, Owners),
+    {A, B}.
        
 pair_inverses([]) -> [];
 pair_inverses([H|T]) -> 
@@ -277,14 +312,6 @@ remove_repeats([A|[A|T]]) ->
 remove_repeats([H|T]) -> 
     [H|remove_repeats(T)].
                               
-                            
-
-%no_overlap_check([]) -> ok;
-%no_overlap_check([_]) -> ok;
-%no_overlap_check([A|[B|T]]) -> 
-%    true = A#owner.pend =< B#owner.pstart,
-%    no_overlap_check([B|T]).
-            
 make_lists(F, []) -> [];
 make_lists(F, [H|T]) ->
     lists:reverse(make_lists2(F, F(H), T, [H], [])).
@@ -300,8 +327,9 @@ make_lists2(F, TID, [N|IL], NL, R) ->
     end.
             
 
-make_proof(Owner, Owner) -> [];
-make_proof(Owner, Tree) when is_record(Tree, tree) ->
+make_proof(Owner, Tree) ->
+    lists:reverse(make_proof2(Owner, Tree)).
+make_proof2(Owner, Tree) when is_record(Tree, tree) ->
     %grab all the elements leading towards Owner.
     #tree{
            b1 = Branch1,
@@ -313,19 +341,50 @@ make_proof(Owner, Tree) when is_record(Tree, tree) ->
             true -> Branch0
         end,
     T2 = Tree#tree{b1 = 0, b0 = 0},
-    [T2|make_proof(Owner, B)];
-make_proof(A, B) ->
-    io:fwrite({A, B}).
+    [T2|make_proof2(Owner, B)];
+make_proof2(Owner, Owner) -> [Owner];
+make_proof2(A, B) -> 
+    true = is_subset(A, B),
+    [B].
 
+is_subset(A, B) ->
+    #owner{
+%           pubkey = _P1,
+%           pubkey2 = _P2,
+           pstart = Astart,
+           pend = Aend,
+           priority = P,
+           sortition_id = SID,
+           contracts = AC
+          } = A,
+    #owner{
+%            pubkey = P1,
+%            pubkey2 = P2,
+            pstart = Bstart,
+            pend = Bend,
+            priority = P,
+            sortition_id = SID,
+           contracts = BC
+          } = B,
+    (Astart >= Bstart) and
+        (Aend =< Bend) and
+        all_in(BC, AC).
 
-verify(Ownership, Proof) ->
+verify(Root, Proof) ->
     %returns a root hash, so we can check that the Proof is linked to something else.
+    Ownership = hd(Proof),
     X = hash:doit(serialize(Ownership)),
     Bounds = #bounds{},
-    verify2(Ownership, X, Proof, Bounds).%starts from leaf, works towards root.
+    Root == verify2(Ownership, X, tl(Proof), Bounds).%starts from leaf, works towards root.
 verify2(Ownership, Root, [], Bounds) -> 
     true = in_bounds(Ownership, Bounds),
     Root;
+%verify2(Ownership, Root, [Ownership2], Bounds) ->
+%    io:fwrite("verify2\n"),
+%    io:fwrite(packer:pack({Ownership, Ownership2})),
+%    io:fwrite("\n"),
+%    true = in_bounds(Ownership, Bounds),
+%    Root;
 verify2(Ownership, Root, [H|T], Bounds) ->
     #tree{
          rule = Rule,
@@ -355,9 +414,8 @@ contract_direction(Tree, Owner) ->
             pend = <<PEnd:256>>,
             priority = P,
             contracts = C
-            %contract = CH1
         } = Owner,
-    true = PStart < PEnd,%TODO, move this where it belongs. 
+    true = PStart =< PEnd,%TODO, move this where it belongs. 
     #tree{
            rule = Contract
          } = Tree,
@@ -371,6 +429,13 @@ contract_direction(Tree, Owner) ->
             if
                 (PEnd =< N) -> true;
                 true ->
+                    if
+                        PStart < N ->
+                            io:fwrite("contract direction crash \n"),
+                            io:fwrite(packer:pack({Contract, Owner})),
+                            io:fwrite("\n");
+                        true -> ok
+                    end,
                     true = PStart >= N,
                     false
             end;
@@ -464,7 +529,6 @@ contract_flip(<<N:1, R:255>>) ->
              1 -> 0
          end,
     <<N2:1, R:255>>.
-            
 
 serialize_tree(T) ->
     #tree{
@@ -499,7 +563,6 @@ serialize(X) ->
     PS = size(P2),
     32 = size(S),
     32 = size(E),
-    %HS = size(C),
     HS = size(SID),
     CB = serialize_contracts(C, <<>>),
     <<P/binary,
@@ -515,7 +578,12 @@ serialize_contracts([H|T], X) ->
     X2 = <<X/binary, H/binary>>,
     serialize_contracts(T, X2).
    
-
+tree_to_leaves(T) when is_record(T, tree) -> 
+    #tree{b0 = B0,
+          b1 = B1} = T,
+    tree_to_leaves(B0) ++ tree_to_leaves(B1);
+tree_to_leaves(X) when is_record(X, owner)-> 
+    [X].
 
 test() ->
     SID = hash:doit(1),
@@ -527,6 +595,8 @@ test() ->
     M4 = M2 + M2,
     M5 = M2 + M3,
     M6 = Max - 1,
+    H1 = hash:doit(1),
+    H2 = hash:doit(2),
     X1 = new(keys:pubkey(),
              <<0:520>>,
              <<0:256>>,
@@ -534,21 +604,22 @@ test() ->
              0,
              SID,
              %[]),
-            [hash:doit(1)]),
+             [H1]),
     X2 = new(keys:pubkey(),
              <<0:520>>,
              <<M3:256>>,
              <<M4:256>>,
              0,
              SID,
-            []),
+            [H1, H2]),
+    H2b = contract_flip(H2),
     X3 = new(keys:pubkey(),
              <<0:520>>,
              <<M4:256>>,
              <<M5:256>>,
              0,
              SID,
-            []),
+            [H2b]),
     X4 = new(keys:pubkey(),
              <<0:520>>,
              <<M5:256>>,
@@ -571,12 +642,24 @@ test() ->
              1,
              SID,
             []),
-    %L1 = [X1, X2, X5],
+    %L2 = [X1, X6],
     L2 = [X1, X2, X3, X4, X5, X6],
     %L2 = [X1, X2, X6],
     {Root, T} = make_tree(L2),
-    Proof = lists:reverse(make_proof(X6, T)),
-    Root = verify(X6, Proof),
-    %{X1, Proof}.
+    L3 = tree_to_leaves(T),
+    lists:map(fun(XN) ->
+                      Proof = make_proof(XN, T),
+                      XN = hd(Proof),
+                      true = verify(Root, Proof)
+              end, L3),
+    X7 = new(keys:pubkey(),
+             <<0:520>>,
+             <<(M4+10):256>>,
+             <<(M4+10):256>>,
+             0,
+             SID,
+            [H1, H2b]),%this is how you check who won. you make a very specific ownership object that specifies the smallest possible space that could contain the winning account, and if you make a proof of this, the proof contains the actual ownership object that had won.
+    Proof7 = make_proof(X7, T),
+    io:fwrite(packer:pack(Proof7)),
     success.
     
