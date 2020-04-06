@@ -1077,9 +1077,10 @@ test(30) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
     {StateRoot, M2} = ownership:make_tree([Owner]),
-    {true, OwnershipProof} = ownership:make_proof(Owner, M2),
+    OwnershipProof = ownership:make_proof(Owner, M2),
+    subset = ownership:proof_type(Owner, OwnershipProof),
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
     VR = sortition_new_tx:make_root(Validators),
     SBID = hash:doit([0, VR]),
@@ -1217,11 +1218,13 @@ test(31) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),
-    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 2, SID, []),
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
-    {true, Proof} = ownership:make_proof(Owner, M),
-    {true, Proof2} = ownership:make_proof(Owner2, M),
+    Proof = ownership:make_proof(Owner, M),
+    subset = ownership:proof_type(Owner, Proof),
+    Proof2 = ownership:make_proof(Owner2, M),
+    subset = ownership:proof_type(Owner2, Proof2),
 
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
     VR = sortition_new_tx:make_root(Validators),
@@ -1304,12 +1307,14 @@ test(32) ->
     mine_blocks(1),
 
     VR = sortition_new_tx:make_root(Validators),
-    Owner = ownership:new(<<0:520>>, <<0:520>>, <<0:256>>, <<-1:256>>, 0, VR, []),%VR is the validators root for the new baby sortiiton chain.
-    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),%this gives all the money in the baby sortition chain to keys:pubkey().
+    Owner = ownership:new(<<0:520>>, <<0:520>>, <<0:256>>, <<-1:256>>, 1, VR, []),%VR is the validators root for the new baby sortiiton chain.
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),%this gives all the money in the baby sortition chain to keys:pubkey().
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
-    {true, Proof} = ownership:make_proof(Owner, M),
+    Proof = ownership:make_proof(Owner, M),
+    subset = ownership:proof_type(Owner, Proof),
     %{StateRoot2, M2} = ownership:make_tree([Owner2]),
-    {true, Proof2} = ownership:make_proof(Owner2, M),
+    Proof2 = ownership:make_proof(Owner2, M),
+    subset = ownership:proof_type(Owner2, Proof2),
 
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
     %Sig2 = keys:raw_sign(hash:doit([0,StateRoot2])),
@@ -1384,9 +1389,10 @@ test(33) ->
 
 
     VR = sortition_new_tx:make_root(Validators),
-    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID, []),%this creates a channel with newpub and keys:pubkey.
+    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 1, SID, []),%this creates a channel with newpub and keys:pubkey.
     {StateRoot, M} = ownership:make_tree([Owner]),
-    {true, Proof} = ownership:make_proof(Owner, M),
+    Proof = ownership:make_proof(Owner, M),
+    subset = ownership:proof_type(Owner, Proof),
 
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
 
@@ -1475,11 +1481,13 @@ test(34) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),
-    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 2, SID, []),
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
-    {true, Proof} = ownership:make_proof(Owner, M),
-    {true, Proof2} = ownership:make_proof(Owner2, M),
+    Proof = ownership:make_proof(Owner, M),
+    subset = ownership:proof_type(Owner, Proof),
+    Proof2 = ownership:make_proof(Owner2, M),
+    subset = ownership:proof_type(Owner2, Proof2),
 
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
     VR = sortition_new_tx:make_root(Validators),
@@ -1602,9 +1610,10 @@ test(35) ->
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
 
 
-    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 0, SID, []),
+    Owner = ownership:new(keys:pubkey(), NewPub, <<0:256>>, <<-1:256>>, 1, SID, []),
     {StateRoot, M} = ownership:make_tree([Owner]),
-    {true, Proof} = ownership:make_proof(Owner, M),
+    Proof = ownership:make_proof(Owner, M),
+    subset = ownership:proof_type(Owner, Proof),
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
     VR = sortition_new_tx:make_root(Validators),
 
@@ -1622,11 +1631,13 @@ test(35) ->
     Waiver = sortition_waiver_tx:make_waiver(keys:pubkey(), <<0:520>>, SID, Contract2),
     SW = keys:sign(Waiver),
     %whoever is going to be 2nd in line, they should use waiver to give up control of part of the outcome space.
-    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, []),
-    Owner3 = ownership:new(NewPub, <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, []),
+    Owner3 = ownership:new(NewPub, <<0:520>>, <<0:256>>, <<-1:256>>, 2, SID, []),
     {StateRoot2, M2} = ownership:make_tree([Owner2, Owner3]),
-    {true, Proof2} = ownership:make_proof(Owner2, M2),
-    {true, Proof3} = ownership:make_proof(Owner3, M2),
+    Proof2 = ownership:make_proof(Owner2, M2),
+    subset = ownership:proof_type(Owner2, Proof2),
+    Proof3 = ownership:make_proof(Owner3, M2),
+    subset = ownership:proof_type(Owner3, Proof3),
     SBID2_0 = hash:doit([1,StateRoot2]),
     Sig2 = keys:raw_sign(SBID2_0),
     SBID2 = hash:doit([1,VR]),
@@ -1702,11 +1713,13 @@ test(36) ->
     ContractHash = hash:doit(Contract),
     IContractHash = ownership:contract_flip(ContractHash),
 
-    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 0, SID, [IContractHash]),
-    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, [ContractHash]),
+    Owner = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 1, SID, [IContractHash]),
+    Owner2 = ownership:new(keys:pubkey(), <<0:520>>, <<0:256>>, <<-1:256>>, 2, SID, [ContractHash]),
     {StateRoot, M} = ownership:make_tree([Owner, Owner2]),
-    {true, Proof} = ownership:make_proof(Owner, M),
-    {true, Proof2} = ownership:make_proof(Owner2, M),
+    Proof = ownership:make_proof(Owner, M),
+    subset = ownership:proof_type(Owner, Proof),
+    Proof2 = ownership:make_proof(Owner2, M),
+    subset = ownership:proof_type(Owner2, Proof2),
 
     Sig = keys:raw_sign(hash:doit([0,StateRoot])),
     VR = sortition_new_tx:make_root(Validators),

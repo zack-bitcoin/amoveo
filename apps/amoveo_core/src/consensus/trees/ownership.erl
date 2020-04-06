@@ -2,6 +2,7 @@
 -export([new/7,
          make_tree/1,
          make_proof/2,
+         proof_type/2,
 
          pubkey/1,
          pubkey2/1,
@@ -73,6 +74,7 @@ make_tree(Owners) ->
     Tree = make_tree_sid(Owners),
     add_hashes(Tree).
 make_tree_priority(Owners, Bounds) ->
+    true = priority_not_zero(Owners),
     Owners2 = 
         lists:sort(
           fun(A, B) ->
@@ -113,6 +115,10 @@ make_tree_sid(Owners) ->
         make_lists(fun(X) -> X#owner.sortition_id end, 
                    Owners2),%there are sub-lists each with a unique SID.
     make_tree_sid2(ListsOwners).
+priority_not_zero([]) -> true;
+priority_not_zero([H|T]) ->
+    (not (H#owner.priority == 0)) and
+        priority_not_zero(T).
 add_hashes(X) when is_record(X, tree) ->
     #tree{
            b0 = B0,
@@ -241,8 +247,8 @@ make_tree_contracts(L, Bounds) ->
     CH4 = remove_repeats(CH3),
     CH5 = pair_inverses(CH4),
     make_tree_contracts2(L, Bounds, CH5).
-make_tree_contracts2([], Bounds, _) -> 
-    unused;
+%make_tree_contracts2([], Bounds, _) -> 
+%    unused;
 make_tree_contracts2([A], Bounds, _) ->
     make_tree_priority([A], Bounds);
 make_tree_contracts2(X, Bounds, []) ->
@@ -327,11 +333,35 @@ make_lists2(F, TID, [N|IL], NL, R) ->
     end.
             
 
-make_proof(Owner, Tree) ->
-    Proof = lists:reverse(make_proof2(Owner, Tree)),
+proof_type(Owner, Proof) ->
+    %proofs can be used to show that a given ownership contract is included in the history.
+    %proofs can be used to show that a given ownership contract is for a part of the sortition chain's value that is entirely empty in this part of history.
+    %this function is used to check whether this proof is to show that you own something, or that it is empty in history.
     Owner2 = hd(Proof),
     B = is_subset(Owner, Owner2),
-    {B, Proof}.
+    B2 = no_overlap(Owner, Owner2),
+    W = if
+            B -> subset;
+            B2 -> no_overlap;
+            true -> bad_proof
+        end,
+    W.
+make_proof_batch(Owner, Tree) when is_record(Tree, tree) ->
+    #tree{
+           b1 = Branch1,
+           b0 = Branch0
+         } = Tree,
+    Direction = contract_batch_direction(Tree, Owner),
+    T2 = Tree#tree{b1 = 0, b0 = 0},
+    case Direction of
+        one -> T2#tree{b1 = make_proof_batch(Owner, Branch1)};
+        zero -> T2#tree{b0 = make_proof_batch(Owner, Branch0)};
+        both -> T2#tree{b0 = make_proof_batch(Owner, Branch0),
+                        b1 = make_proof_batch(Owner, Branch1)}
+    end;
+make_proof_batch(_, Owner2) -> Owner2.
+make_proof(Owner, Tree) ->
+    lists:reverse(make_proof2(Owner, Tree)).
 make_proof2(Owner, Tree) when is_record(Tree, tree) ->
     %grab all the elements leading towards Owner.
     #tree{
@@ -350,46 +380,113 @@ make_proof2(A, B) ->
     %true = is_subset(A, B),
     [B].
 
-is_subset(A, B) ->
+no_overlap(A, B) ->
+    %if this returns true, then contracts A and B do not overlap in the 2D ((probability space) X (contract space)) plane
+    %Used to make sure that for a given part of the value you own in the sortition chain, no one new has been put in line to own it.
     #owner{
-%           pubkey = _P1,
-%           pubkey2 = _P2,
-           pstart = Astart,
-           pend = Aend,
-           priority = P,
+         pstart = <<Astart:256>>,
+         pend = <<Aend:256>>,
+         contracts = AC
+        } = A,
+    #owner{
+            pstart = <<Bstart:256>>,
+            pend = <<Bend:256>>,
+            contracts = BC
+          } = B,
+    (Aend < Bstart) or
+        (Bend < Astart) or
+        no_overlap2(AC, BC).
+no_overlap2([], _) -> false;
+no_overlap2([H|T], BC) -> 
+    H2 = contract_flip(H),
+    B = is_in(H2, BC),
+    if
+        B -> true;
+        true -> no_overlap2(T, BC)
+    end.
+    
+is_subset(A, B) ->
+    %If you own B, then you also own A.
+    %given 2 ownership objects, if value is owned by A, it is also owned by B.
+    %also checks that both objects have the same owner.
+    %given some value you currently own, this is a way to check that the portion you want to spend is also owned by you.
+    #owner{
+           pubkey = P1,
+           pubkey2 = P2,
+           pstart = <<Astart:256>>,
+           pend = <<Aend:256>>,
+           %priority = Pr,
            sortition_id = SID,
            contracts = AC
           } = A,
     #owner{
-%            pubkey = P1,
-%            pubkey2 = P2,
-            pstart = Bstart,
-            pend = Bend,
-            priority = P2,
+            pubkey = P1,
+            pubkey2 = P2,
+            pstart = <<Bstart:256>>,
+            pend = <<Bend:256>>,
+            %priority = Pr2,
             sortition_id = SID2,
-           contracts = BC
+            contracts = BC
           } = B,
-    (P == P2) 
-        and (SID == SID2) 
+    %(Pr == Pr2) 
+    (SID == SID2) 
         and (Astart >= Bstart) 
         and (Aend =< Bend) 
         and all_in(BC, AC).
+
+verify_empty_point(X, Root, Proof) ->
+    %X is supposed to be one of the smallest regions that we can specify.
+
+    %TODO, 
+
+    verify(Root, Proof)
+        and not(is_subset(X, hd(Proof))).
+
+verify_batch(Ownership, Root, Proof) ->
+    %we are either trying to show that all the leaves are non-overlapping with ownership, or that ownership is entirely contained within the leaves. TODO
+    Root = hash:doit(serialize_tree(Proof)),
+    Bounds = #bounds{},
+    verify_batch2(Ownership, Bounds, Proof).
+verify_batch2(_Ownership, Bounds, Proof) 
+  when is_record(Proof, owner)->
+    in_bounds(Proof, Bounds);
+verify_batch2(Ownership, Bounds, Proof) ->
+    %checks merklization, and the bits of code embeded in the merkle paths.
+    #tree{
+           rule = Rule,
+           h1 = H1,
+           h0 = H0,
+           b1 = B1,
+           b0 = B0
+        } = Proof,
+    Result = contract_batch_direction(Proof, Ownership),%run_contract(H, Ownership, Dict),
+    case Result of
+        zero -> 
+            H0 = hash:doit(serialize(B0)),
+            verify_batch2(Ownership, bounds_update2(Rule, Bounds), B0);
+        one ->
+            H1 = hash:doit(serialize(B1)),
+            verify_batch2(Ownership, bounds_update(Rule, Bounds), B1);
+        both ->
+            H0 = hash:doit(serialize(B0)),
+            H1 = hash:doit(serialize(B1)),
+            verify_batch2(Ownership, bounds_update2(Rule, Bounds), B0) and
+                verify_batch2(Ownership, bounds_update(Rule, Bounds), B1)
+    end.
+            
+            
+    
 
 verify(Root, Proof) ->
     %returns a root hash, so we can check that the Proof is linked to something else.
     Ownership = hd(Proof),
     X = hash:doit(serialize(Ownership)),
     Bounds = #bounds{},
+    %we need the bounds object to verify that the rules in the merkle proof are all obeyed by the contract contained inside.
     Root == verify2(Ownership, X, tl(Proof), Bounds).%starts from leaf, works towards root.
 verify2(Ownership, Root, [], Bounds) -> 
     true = in_bounds(Ownership, Bounds),
     Root;
-%verify2(Ownership, Root, [Ownership2], Bounds) ->
-%    io:fwrite("verify2\n"),
-%    io:fwrite(packer:pack({Ownership, Ownership2})),
-%    io:fwrite("\n"),
-%    true = in_bounds(Ownership, Bounds),
-%    Root;
 verify2(Ownership, Root, [H|T], Bounds) ->
     #tree{
          rule = Rule,
@@ -411,7 +508,59 @@ verify2(Ownership, Root, [H|T], Bounds) ->
     NewRoot = hash:doit(serialize_tree(H)),
     verify2(Ownership, NewRoot, T, Bounds2).
 
-
+contract_batch_direction(Tree, Owner) ->
+    #owner{
+            sortition_id = SID,
+            pstart = <<PStart:256>>,
+            pend = <<PEnd:256>>,
+            priority = P,
+            contracts = C
+        } = Owner,
+    true = PStart =< PEnd,%TODO, move this where it belongs. Probably in verify somewhere
+    #tree{
+           rule = Contract
+         } = Tree,
+    case Contract of
+        {sid_before, <<SID2:256>>} -> 
+            <<SID1:256>> = SID,
+            if
+                SID1 =< SID2 -> one;
+                true -> zero
+            end;
+        {sid, SID2} -> 
+            if
+                SID == SID2 -> one;
+                true -> zero
+            end;
+        {before, <<N:256>>} -> 
+            if
+                (PEnd =< N) -> one;
+                (PStart < N) -> both;
+                true -> zero
+            end;
+        {priority, P2} ->
+            if
+                (P == P2) -> one;
+                true -> zero
+            end;
+        {priority_before, P2} ->
+            if
+                (P == 0) -> both;
+                (P =< P2) -> one;
+                true -> zero
+            end;
+        {contract, C1} ->
+            C2 = contract_flip(C1),
+            B1 = is_in(C1, C),
+            B2 = is_in(C2, C),
+            if
+                B1 -> one;
+                B2 -> zero;
+                true -> both
+            end
+    end.
+                    
+    
 contract_direction(Tree, Owner) ->
     #owner{
             sortition_id = SID,
@@ -552,6 +701,8 @@ serialize_tree(T) ->
                    
     <<C/binary, H0/binary, H1/binary, A:8>>.
 
+serialize(X) when is_record(X, tree)->
+    serialize_tree(X);
 serialize(X) ->
     PS = constants:pubkey_size(),
     HS = constants:hash_size(),
@@ -606,7 +757,7 @@ test() ->
              <<0:520>>,
              <<0:256>>,
              <<M3:256>>,
-             0,
+             1,
              SID,
              %[]),
              [H1]),
@@ -614,7 +765,7 @@ test() ->
              <<0:520>>,
              <<M3:256>>,
              <<M4:256>>,
-             0,
+             1,
              SID,
             [H1, H2]),
     H2b = contract_flip(H2),
@@ -622,21 +773,21 @@ test() ->
              <<0:520>>,
              <<M4:256>>,
              <<M5:256>>,
-             0,
+             1,
              SID,
             [H2b]),
     X4 = new(keys:pubkey(),
              <<0:520>>,
              <<M5:256>>,
              <<M6:256>>,
-             0,
+             1,
              SID,
             []),
     X5 = new(keys:pubkey(),
              <<0:520>>,
              <<0:256>>,
              <<M6:256>>,
-             0,
+             1,
              SID2,
             []),
     SID3 = hash:doit(3),
@@ -644,7 +795,7 @@ test() ->
              <<0:520>>,
              <<0:256>>,
              <<M6:256>>,
-             1,
+             2,
              SID,
             []),
     %L2 = [X1, X6],
@@ -653,7 +804,8 @@ test() ->
     {Root, T} = make_tree(L2),
     L3 = tree_to_leaves(T),
     lists:map(fun(XN) ->
-                      {true, Proof} = make_proof(XN, T),
+                      Proof = make_proof(XN, T),
+                      subset = proof_type(XN, Proof),
                       XN = hd(Proof),
                       true = verify(Root, Proof)
               end, L3),
@@ -661,11 +813,38 @@ test() ->
              <<0:520>>,
              <<(M4+10):256>>,
              <<(M4+10):256>>,
-             0,
+             1,
              SID,
-            [H1, H2]),%this is how you check who won. you make a very specific ownership object that specifies the smallest possible space that could contain the winning account, and if you make a proof of this, the proof contains the actual ownership object that had won.
-    {false, Proof7} = make_proof(X7, T),
+            [H1, H2b]),%this is how you check who won. you make a very specific ownership object that specifies the smallest possible space that could contain the winning account, and if you make a proof of this, the proof contains the actual ownership object that had won.
+    Proof7 = make_proof(X7, T),
+    subset = proof_type(X7, Proof7),
     true = verify(Root, Proof7),
-    false = is_subset(X7, hd(Proof7)),
+    true = is_subset(X7, hd(Proof7)),
+    X8 = new(keys:pubkey(),
+             <<0:520>>,
+             <<(M4+10):256>>,
+             <<(M4+10):256>>,
+             1,
+             SID,
+             [H1, H2]),
+    true = no_overlap(X8, X3), 
+    Proof8 = make_proof(X8, T),
+    subset = proof_type(X8, Proof8),
+    %true = verify_empty_point(X8, Root, Proof8),
+    X9 = new(keys:pubkey(),
+             <<0:520>>,
+             <<(M4-10):256>>,
+             <<(M4+10):256>>,
+             1,
+             SID,
+             [H1]),
+    Proof9 = make_proof_batch(X9, T),
+    true = verify_batch(X9, Root, Proof9),
+    io:fwrite(packer:pack(Proof9)),
+    io:fwrite("\n"),
+    %TODO - generate a proof that 
+    
+    %true = verify(Root, Proof8),
+    %false = is_subset(X8, hd(Proof8)),
     success.
     
