@@ -46,7 +46,11 @@
                }).
 -record(bounds, {contracts = [],
                  pstart = <<0:256>>,
-                 pend = <<-1:256>>
+                 pend = <<-1:256>>,
+                 priority_start = 0,
+                 priority_end = 255,
+                 sid_start = <<0:256>>,
+                 sid_end = <<-1:256>>
                 }).
 -record(tree, {rule, 
                b1, h1, b0, h0}).
@@ -404,6 +408,52 @@ no_overlap2([H|T], BC) ->
         B -> true;
         true -> no_overlap2(T, BC)
     end.
+   
+intersection(A, B) -> 
+    %this should calculate the intersection with bounds, not between 2 ownership objects.
+    #owner{
+           %pubkey = P1,
+           %pubkey2 = P2,
+           pstart = <<Astart:256>>,
+           pend = <<Aend:256>>,
+           sortition_id = <<SID:256>>,
+            priority = Priority,
+           contracts = AC
+          } = A,
+    #bounds{
+            %pubkey = P1,
+            %pubkey2 = P2,
+            pstart = <<Bstart:256>>,
+            pend = <<Bend:256>>,
+             sid_start = <<SidStart:256>>,
+             sid_end = <<SidEnd:256>>,
+             priority_start = PriorityStart,
+             priority_end = PriorityEnd,
+            contracts = BC
+          } = B,
+    %verify that priority is inside the bounds
+    true = Priority >= PriorityStart,
+    true = Priority =< PriorityEnd,
+    %verify that SID is inside the bounds
+    true = SID >= SidStart,
+    true = SID =< SidEnd,
+    %verify that the contract space does intersect.
+    AC2 = lists:map(fun(X) -> contract_flip(X) end,
+                    AC),
+    true = lists:foldr(fun(X, A) -> not(is_in(X, BC)) and A end,
+                       AC2),
+
+    %calculate new probabilistic slice.
+    Start = max(Astart, Bstart),
+    End = min(Aend, Bend),
+    true = Start < End,
+
+    A#owner{
+      pstart = Start,
+      pend = End,
+      contracts = remove_repeats(AC ++ BC)
+     }.
+                            
     
 is_subset(A, B) ->
     %If you own B, then you also own A.
@@ -527,22 +577,22 @@ contract_batch_direction(Tree, Owner) ->
                 SID1 =< SID2 -> one;
                 true -> zero
             end;
-        {sid, SID2} -> 
-            if
-                SID == SID2 -> one;
-                true -> zero
-            end;
+%        {sid, SID2} -> 
+%            if
+%                SID == SID2 -> one;
+%                true -> zero
+%            end;
         {before, <<N:256>>} -> 
             if
                 (PEnd =< N) -> one;
                 (PStart < N) -> both;
                 true -> zero
             end;
-        {priority, P2} ->
-            if
-                (P == P2) -> one;
-                true -> zero
-            end;
+%        {priority, P2} ->
+%            if
+%                (P == P2) -> one;
+%                true -> zero
+%            end;
         {priority_before, P2} ->
             if
                 (P == 0) -> both;
@@ -577,8 +627,8 @@ contract_direction(Tree, Owner) ->
         {sid_before, <<SID2:256>>} -> 
             <<SID1:256>> = SID,
             SID1 =< SID2;
-        {sid, SID2} -> 
-            SID == SID2;
+%        {sid, SID2} -> 
+%            SID == SID2;
         {before, <<N:256>>} -> 
             if
                 (PEnd =< N) -> true;
@@ -593,8 +643,8 @@ contract_direction(Tree, Owner) ->
                     true = PStart >= N,
                     false
             end;
-        {priority, P2} ->
-            P == P2;
+%        {priority, P2} ->
+%            P == P2;
         {priority_before, P2} ->
             P =< P2;
         {contract, C1} -> 
@@ -611,17 +661,36 @@ all_in([H|T], L) ->
 
 
 in_bounds(Ownership, Bounds) ->
+    %TODO, priority, sid
     #owner{
            pstart = <<Ostart:256>>,
            pend = <<Oend:256>>,
-           contracts = OC
+           contracts = OC,
+           sortition_id = <<SID:256>>,
+           priority = Priority
           } = Ownership,
     #bounds{
+             priority_start = PriorityStart,
+             priority_end = PriorityEnd,
+             sid_start = <<SidStart:256>>,
+             sid_end = <<SidEnd:256>>,
              pstart = <<Bstart:256>>,
              pend = <<Bend:256>>,
              contracts = BC
            } = Bounds,
     if
+        (SID > SidEnd) ->
+            io:fwrite("sid too big\n"),
+            false;
+        (SID < SidStart) ->
+            io:fwrite("sid too small\n"),
+            false;
+        (Priority < PriorityStart) ->
+            io:fwrite("priority too small\n"),
+            false;
+        (Priority > PriorityEnd) ->
+            io:fwrite("priority too big\n"),
+            false;
         (Bstart > Ostart) ->
             io:fwrite("starts too early\n"),
             io:fwrite(packer:pack([<<Bstart:256>>, <<Ostart:256>>])),
@@ -654,11 +723,29 @@ bounds_update({contract, CH},
               contracts = [CH|CL1]
              }
     end;
-bounds_update({sid_before, _}, Bounds) -> Bounds;
-bounds_update({sid, _}, Bounds) -> Bounds;
-bounds_update({priority, _}, Bounds) -> Bounds;
-bounds_update({priority_before, _}, Bounds) -> Bounds.
-
+bounds_update({sid_before, <<S:256>>}, Bounds) ->
+    <<E:256>> = Bounds#bounds.sid_end,
+    E2 = min(E, S),
+    Bounds#bounds{
+      sid_end = <<E2:256>>
+     };
+%bounds_update({sid, <<S:256>>}, Bounds) -> 
+%    Bounds#bounds{
+%      sid_end = <<S:256>>,
+%      sid_start = <<S:256>>
+%     };
+%bounds_update({priority, P}, Bounds) -> 
+%    Bounds#bounds{
+%      priority_start = P,
+%      priority_end = P
+%     };
+bounds_update({priority_before, P}, 
+              Bounds) -> 
+    P1 = Bounds#bounds.priority_end,
+    P2 = min(P, P1),
+    Bounds#bounds{
+      priority_start = P2
+     }.
 bounds_update2({before, <<S:256>>}, 
                Bounds) ->
     <<S1:256>> = Bounds#bounds.pstart,
@@ -672,10 +759,26 @@ bounds_update2({contract, CH},
     bounds_update(
       {contract, CH2},
       Bounds);
-bounds_update2({sid_before, _}, Bounds) -> Bounds;
-bounds_update2({sid, _}, Bounds) -> Bounds;
-bounds_update2({priority, _}, Bounds) -> Bounds;
-bounds_update2({priority_before, _}, Bounds) -> Bounds.
+bounds_update2({sid_before, <<S:256>>}, 
+               Bounds) -> 
+    <<S1:256>> = Bounds#bounds.sid_start,
+    S2 = max(S, S1),
+    Bounds#bounds{
+      sid_start = <<S2:256>>
+     };
+%bounds_update2({sid, <<S:256>>}, 
+%               Bounds) -> 
+%    Bounds#bounds{
+%      sid_start = <<S:256>>,
+%      sid_end = <<S:256>>
+%     };
+%bounds_update2({priority, _}, Bounds) -> Bounds;
+bounds_update2({priority_before, P}, Bounds) -> 
+    P1 = Bounds#bounds.priority_start,
+    P2 = max(P, P1),
+    Bounds#bounds{
+      priority_start = P2
+     }.
 
 contract_flip(<<N:1, R:255>>) ->    
     N2 = case N of
