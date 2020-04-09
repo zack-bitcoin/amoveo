@@ -46,8 +46,6 @@ make_dict(From, L, SID, ClaimID, TCID, Fee) ->
 %maybe we should store them in groups of 4 together.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
-    F28 = forks:get(28),
-    true = NewHeight > F28,
     #sortition_claim_tx{
     from = From,
     nonce = Nonce,
@@ -55,11 +53,16 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     claim_id = ClaimID,
     top_candidate = TCID,
     proof_layers = ProofLayers,
-    sortition_id = SID
+    sortition_id = SID,
+    max_listing_fee = MLF
    } = Tx,
-    A2 = accounts:dict_update(From, Dict, -Fee, Nonce), %you pay a safety deposit.
+    F28 = forks:get(28),
+    true = NewHeight > F28,
+    S = sortition:dict_get(SID, Dict),
+    Fee2 = listing_fee(S, Dict),
+    true = (Fee2 < MLF),
+    A2 = accounts:dict_update(From, Dict, -Fee-Fee2, Nonce), %you pay a safety deposit.
     Dict2 = accounts:dict_write(A2, Dict),
-    S = sortition:dict_get(SID, Dict2),
     #sortition{
                 rng_value = RNGValue,
                 top_candidate = TCID,
