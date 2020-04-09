@@ -146,6 +146,7 @@ deserialize(B) ->
               }.
 
 serialize(S) ->
+    S#sortition.many_candidates > -1,
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),
     BAL = constants:balance_bits(),

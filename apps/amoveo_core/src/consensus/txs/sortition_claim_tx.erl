@@ -19,15 +19,29 @@ make_proofs([X|T]) ->
 make_owner_layer(SID, Proof, EID, VR) ->
     #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR}.
 
+listing_fee(S, Dict) ->
+    N = S#sortition.many_candidates,
+    B = governance:dict_get_value(sortition_claim_tx, Dict),
+    if
+        (N==0) -> B;
+        true -> listing_fee2(B, N) div 4
+    end.
+listing_fee2(B, 1) -> B;
+listing_fee2(B, N) -> 
+    (B * 4) div 3.
+            
 make_dict(From, L, SID, ClaimID, TCID, Fee) ->
     Acc = trees:get(accounts, From),
     %OL = #owner_layer{sortition_id = SID, proof = Proof, sortition_block_id = EID, validators_root = VR, ownership = Ownership},
     S = trees:get(sortition, SID),
     TCID = S#sortition.top_candidate,
+    BLF = trees:get(governance, sortition_claim_tx),
+    LF = BLF * 3,
     #sortition_claim_tx{from = From, nonce = Acc#acc.nonce + 1, 
                         fee = Fee, 
                         claim_id = ClaimID, sortition_id = SID,
-                        top_candidate = TCID, proof_layers = L}.
+                        top_candidate = TCID, proof_layers = L,
+                        max_listing_fee = LF}.
 %sortition_id, Proof, evidence_id, validators_root will all need to become lists.
 %maybe we should store them in groups of 4 together.
 
@@ -56,7 +70,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Dict3 = merkle_verify(0, ProofLayers, ClaimID, RNGValue, TCID, ValidatorsRoot, Dict2),%creates the candidates for this claim.
     S2 = S#sortition{
            top_candidate = ClaimID,
-           last_modified = NewHeight
+           last_modified = NewHeight,
+           many_candidates = S#sortition.many_candidates + 1
           },
     Dict4 = sortition:dict_write(S2, Dict3).
 priority_check(<<0:256>>, _, _, _) -> true;

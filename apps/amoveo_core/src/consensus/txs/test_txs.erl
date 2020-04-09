@@ -1144,6 +1144,7 @@ test(30) ->
     absorb(SRCT3),
     1 = many_txs(),
     mine_blocks(1),
+    io:fwrite("rng response tx\n"),
     RRT2 = rng_response_tx:make_dict(keys:pubkey(), CID3, SID, RID, BadHashes, Fee),
     SRRT2 = keys:sign(RRT2),
     absorb(SRRT2),
@@ -1158,6 +1159,7 @@ test(30) ->
     %mine_blocks(1),
 
     %RRFT2 = rng_refute_tx:make_dict(keys:pubkey(), SID, CID2, RID3, 129, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a challenge goes unresponded for too much time.
+    io:fwrite("rng refute tx\n"),
     RRFT2 = rng_refute_tx:make_dict(keys:pubkey(), SID, CID3, RID, Proof, hd(BadHashes), hd(tl(BadHashes)), Fee),%if a challenge goes unresponded for too much time.
     SRRFT2 = keys:sign(RRFT2),
     absorb(SRRFT2),
@@ -1173,6 +1175,7 @@ test(30) ->
     %settle the sortition chain tx
     
     ClaimID = hash:doit(22),
+    io:fwrite("sortition claim tx\n"),
     OL = sortition_claim_tx:make_owner_layer(SID, OwnershipProof, SBID, VR),
     SCT = sortition_claim_tx:make_dict(keys:pubkey(), [OL], SID, ClaimID, <<0:256>>, Fee),
     SSCT = keys:sign(SCT),
