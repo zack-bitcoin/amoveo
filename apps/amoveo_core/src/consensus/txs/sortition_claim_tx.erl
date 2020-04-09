@@ -68,7 +68,8 @@ priority_check(TCID, LayerNumber, [H|T], Dict2) ->
                 validators_root = ValidatorsRoot
                 %ownership = Ownership
                } = H,
-    Ownership = hd(Proof),
+    %Ownership = hd(Proof),
+    Ownership = ownership:proof2owner(Proof),
     TCID2 = layer_salt(TCID, LayerNumber),
     TC = candidates:dict_get(TCID2, Dict2),
     #candidate{
@@ -102,7 +103,7 @@ merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict
                   validators_root = ValidatorsRoot
                   %ownership = Ownership
                 } = OL,
-    Ownership = hd(Proof),
+    Ownership = ownership:proof2owner(Proof),
     NextVR = case T of
                  [] -> false = (ownership:pubkey(Ownership) == <<0:520>>);
                  _ -> true = ownership:pubkey(Ownership) == <<0:520>>,
@@ -130,7 +131,7 @@ merkle_verify(LayerNumber, [OL|T], ClaimID, RNGValue, TCID, ValidatorsRoot, Dict
     true = Pstart =< PV,
     true = PV < Pend,
     %SID = ownership:sid(Ownership),
-    true = ownership:verify(OwnershipRoot, Proof),
+    true = ownership:verify_single(Ownership, OwnershipRoot, Proof),
     empty = candidates:dict_get(LayerClaimID, Dict2),
     Priority = ownership:priority(Ownership),
     Winner = ownership:pubkey(Ownership),
