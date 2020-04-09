@@ -23,7 +23,7 @@
 
 -record(waiver, {pubkey, pubkey2, sortition_id, contract}).
 
--record(sortition, {id, amount, entropy_source, creator, validators, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, top_candidate, top_rng, bottom_rng, closed}).%merkle tree
+-record(sortition, {id, amount, entropy_source, creator, validators, trading_ends, rng_response_delay, rng_end, rng_value, delay, last_modified, many_candidates = 0, top_candidate, top_rng, bottom_rng, closed}).%merkle tree
 %rng_results make a queue, new elements inserted at the bottom_rng pointer, and the head of the queue is the top_rng.
 -record(sortition_block, {id, validators, state_root, height, side_height}).
 
