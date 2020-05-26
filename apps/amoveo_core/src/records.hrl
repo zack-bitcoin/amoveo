@@ -60,6 +60,11 @@
 	      pubkey = <<>>,
 	      bets = 1,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
               bets_hash = <<>>}).
+-record(sub_acc, {balance = 0,
+                 nonce = 0,
+                 pubkey,
+                 contract_id,
+                 type}).
 -record(oracle, {id, 
 		 result, 
 		 question, 
