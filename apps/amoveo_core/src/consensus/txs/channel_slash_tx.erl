@@ -89,7 +89,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                  true -> Amount0
              end,
     CNOC = channels:nonce(OldChannel),
-    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false), 
+    NewChannel = channels:dict_update(CID, Dict, NewCNonce, Amount, Delay, NewHeight, false), 
     Dict2 = if
 		(((NewCNonce > CNOC) and
 		  (-1 < (CB1OC-Amount))) and

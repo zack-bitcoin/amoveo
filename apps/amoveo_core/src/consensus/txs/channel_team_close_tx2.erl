@@ -63,7 +63,7 @@ go(Tx, Dict, NewHeight, _) ->
     %Dict2 = channels:dict_delete(ID, Dict),
     F17 = forks:get(17),
     true = NewHeight > F17,
-    NewChannel = channels:dict_update(ID, Dict, none, 0, 0, 0, 0, NewHeight, true),
+    NewChannel = channels:dict_update(ID, Dict, none, 0, 0, NewHeight, true),
     Dict2 = channels:dict_write(NewChannel, Dict),
     %io:fwrite("team close 4\n"),
     Bal1 = channels:bal1(OldChannel),

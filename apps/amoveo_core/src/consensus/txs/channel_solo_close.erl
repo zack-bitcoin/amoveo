@@ -86,7 +86,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Dict2 = if
 		NewCNonce > CNOC ->
 		    %io:fwrite("closing channel 1\n"),
-		    NewChannel = channels:dict_update(CID, Dict, NewCNonce, 0, 0, Amount, Delay, NewHeight, false),
+		    NewChannel = channels:dict_update(CID, Dict, NewCNonce, Amount, Delay, NewHeight, false),
 		    CB1NC = channels:bal1(NewChannel),
 		    CB2NC = channels:bal2(NewChannel),
                     %io:fwrite("ch1, ch2, amount (from 1 to 2)\n"),
