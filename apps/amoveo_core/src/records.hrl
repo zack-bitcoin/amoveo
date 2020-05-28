@@ -152,6 +152,27 @@
 		  closed = 0 %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
 		  %channels closed flag is unused because we delete closed channels.
 		  }).
+-record(sub_channel, {
+      id,
+      accounts,%root hash
+      amounts = <<0:256>>,%root hash
+      nonce = 1,
+      last_modified,
+      delay,
+      closed = 0,
+      contract_id,
+      type
+}).
+-record(contract, {
+      code,
+      many_types,
+      nonce,
+      expires,
+      closed,
+      result,
+      veo
+}).
+
 -record(matched, {account, oracle, true, false, bad}).
 %true, false, and bad are the 3 types of shares that can be purchased from an oracle
 

@@ -1,30 +1,30 @@
 -module(sub_channels).
--export([new/7, acc1/1, acc2/1, id/1, bal1/1, bal2/1, last_modified/1, nonce/1, delay/1, amount/1, closed/1, %custom for this tree
+-export([new/6, accounts/1, id/1, last_modified/1, nonce/1, delay/1, amounts/1, closed/1, contract_id/1, type/1,%custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
-         dict_update/9, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_update/7, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
-	 all/0, close_many/0,
+	 all/0, %close_many/0,
 	 test/0]).%common tree stuff
 %This is the part of the channel that is written onto the hard drive.
 
 -include("../../records.hrl").
 
 
-acc1(C) -> C#channel.acc1.
-acc2(C) -> C#channel.acc2.
-id(C) -> C#channel.id.
-bal1(C) -> C#channel.bal1.
-bal2(C) -> C#channel.bal2.
-amount(C) -> C#channel.amount.
-last_modified(C) -> C#channel.last_modified.
-%mode(C) -> C#channel.mode.
-nonce(C) -> C#channel.nonce.
-delay(C) -> C#channel.delay.
-closed(C) -> C#channel.closed.
-%shares(C) -> C#channel.shares.
+accounts(C) -> C#sub_channel.accounts.
+id(C) -> C#sub_channel.id.
+amounts(C) -> C#sub_channel.amounts.
+last_modified(C) -> C#sub_channel.last_modified.
+%mode(C) -> C#sub_channel.mode.
+nonce(C) -> C#sub_channel.nonce.
+delay(C) -> C#sub_channel.delay.
+closed(C) -> C#sub_channel.closed.
+contract_id(C) -> C#sub_channel.contract_id.
+type(C) -> C#sub_channel.type.
+                  
+%shares(C) -> C#sub_channel.shares.
 
-dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
+dict_update(ID, Dict, Nonce, Amounts, Delay, Height, Close0) ->
     Close = case Close0 of 
                 1 -> 1;
                 0 -> 0;
@@ -32,67 +32,61 @@ dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
                 false -> 0
             end,
     true = (Close == 1) or (Close == 0),
-    true = Inc1 + Inc2 >= 0,
     Channel = dict_get(ID, Dict),
-    CNonce = Channel#channel.nonce,
+    CNonce = Channel#sub_channel.nonce,
     NewNonce = if
 		   Nonce == none -> CNonce;
 		   true -> 
 		       Nonce
 	       end,
-    T1 = Channel#channel.last_modified,
+    T1 = Channel#sub_channel.last_modified,
     DH = Height - T1,
-    Bal1a = Channel#channel.bal1 + Inc1,% - RH,
-    Bal2a = Channel#channel.bal2 + Inc2,% - RH,
-    Bal1b = max(Bal1a, 0),
-    Bal2b = max(Bal2a, 0),
-    Bal1c = min(Bal1b, Bal1a+Bal2a),
-    Bal2c = min(Bal2b, Bal1a+Bal2a),
-    C = Channel#channel{bal1 = Bal1c,
-                        bal2 = Bal2c,
-                        amount = Amount,
-                        nonce = NewNonce,
-                        last_modified = Height,
-                        delay = Delay,
-                        closed = Close
-		       },
-    %io:fwrite(packer:pack(C)),
-    C.
+    Channel#sub_channel{
+      amounts = Amounts,
+      nonce = NewNonce,
+      last_modified = Height,
+      delay = Delay,
+      closed = Close
+     }.
     
-new(ID, Acc1, Acc2, Bal1, Bal2, Height, Delay) ->
-    #channel{id = ID, acc1 = Acc1, acc2 = Acc2, 
-	     bal1 = Bal1, bal2 = Bal2, 
-	     last_modified = Height, 
-	     delay = Delay}.
+new(ID, CID, Type, Accs, Height, Delay) ->
+    %maybe we should hash the accounts together here?
+    AH = hash_accounts(Accs),
+    #sub_channel{
+     id = ID, accounts = AH,
+     last_modified = Height, 
+     delay = Delay, contract_id = CID,
+     type = Type}.
+hash_accounts(Accs) ->
+    hash:doit(Accs).
 serialize(C) ->
     %ACC = constants:address_bits(),
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
     NON = constants:channel_nonce_bits(),
-    CID = C#channel.id,
+    CID = C#sub_channel.id,
     Delay = constants:channel_delay_bits(),
     %<<CID2:256>> = <<CID:256>>, 
     %CID2 = CID,
-    Amount = C#channel.amount,
-    HB = constants:half_bal(),
-    true = Amount < HB,
-    true = Amount > -HB,
     HS = constants:hash_size(),
-    %Shares = shares:root_hash(C#channel.shares),
+    %Shares = shares:root_hash(C#sub_channel.shares),
     %HS = size(Shares),
-    true = size(C#channel.acc1) == constants:pubkey_size(),
-    true = size(C#channel.acc2) == constants:pubkey_size(),
+    Accs = C#sub_channel.accounts,
+    ContractID = C#sub_channel.contract_id,
+    Amounts = C#sub_channel.amounts,
+    true = size(Accs) == HS,
+    true = size(CID) == HS,
+    true = size(Amounts) == HS,
     <<_:256>> = CID,
     << CID/binary,
-       (C#channel.bal1):BAL,
-       (C#channel.bal2):BAL,
-       (Amount+HB):BAL,
-       (C#channel.nonce):NON,
-       (C#channel.last_modified):HEI,
-       (C#channel.delay):Delay,
-       (C#channel.closed):8,
-       (C#channel.acc1)/binary,
-       (C#channel.acc2)/binary
+       Accs/binary,
+       Amounts/binary,
+       (C#sub_channel.nonce):NON,
+       (C#sub_channel.last_modified):HEI,
+       (C#sub_channel.delay):Delay,
+       (C#sub_channel.closed):8,
+       ContractID/binary,
+       (C#sub_channel.type):16
     >>.
 deserialize(B) ->
     PS = constants:pubkey_size()*8,
@@ -103,39 +97,39 @@ deserialize(B) ->
     Delay = constants:channel_delay_bits(),
     HS = constants:hash_size()*8,
     << ID:HS,
-       B3:BAL,
-       B4:BAL,
-       B8:BAL,
+       Accs:HS,
+       Amounts:HS,
        B5:NON,
        B7:HEI,
        B12:Delay,
        Closed:8,
-       B1:PS,
-       B2:PS
-       %_:HS
+       ContractID:HS,
+       Type:16
     >> = B,
-    #channel{id = <<ID:HS>>, acc1 = <<B1:PS>>, acc2 = <<B2:PS>>, 
-	     bal1 = B3, bal2 = B4, amount = B8-constants:half_bal(),
-	     nonce = B5, 
-	     last_modified = B7,
-	     delay = B12, closed = Closed}.
+    #sub_channel{id = <<ID:HS>>, accounts = <<Accs:HS>>, 
+                 amounts = <<Amounts:HS>>,
+                 nonce = B5, 
+                 last_modified = B7,
+                 delay = B12, closed = Closed,
+                 contract_id = <<ContractID:HS>>,
+                 type = Type}.
 dict_write(Channel, Dict) ->
-    ID = Channel#channel.id,
-    dict:store({channels, ID},
+    ID = Channel#sub_channel.id,
+    dict:store({sub_channels, ID},
                serialize(Channel),
                Dict).
 write(Channel, Root) ->
-    ID = Channel#channel.id,
+    ID = Channel#sub_channel.id,
     M = serialize(Channel),
-    %Shares = Channel#channel.shares,
-    trie:put(key_to_int(ID), M, 0, Root, channels). %returns a pointer to the new root
+    %Shares = Channel#sub_channel.shares,
+    trie:put(key_to_int(ID), M, 0, Root, sub_channels). %returns a pointer to the new root
 key_to_int(X) -> 
     <<_:256>> = X,
     <<Y:256>> = hash:doit(X),
     Y.
 dict_get(Key, Dict) ->
     <<_:256>> = Key,
-    X = dict:find({channels, Key}, Dict),
+    X = dict:find({sub_channels, Key}, Dict),
     case X of
 	%error -> error;
 	error -> empty;
@@ -145,16 +139,16 @@ dict_get(Key, Dict) ->
     end.
 get(ID, Channels) ->
     <<_:256>> = ID,
-    {RH, Leaf, Proof} = trie:get(key_to_int(ID), Channels, channels),
+    {RH, Leaf, Proof} = trie:get(key_to_int(ID), Channels, sub_channels),
     V = case Leaf of
 	    empty -> empty;
 	    L -> deserialize(leaf:value(L))
 	end,
     {RH, V, Proof}.
 dict_delete(Key, Dict) ->      
-    dict:store({channels, Key}, 0, Dict).
+    dict:store({sub_channels, Key}, 0, Dict).
 delete(ID,Channels) ->
-    trie:delete(ID, Channels, channels).
+    trie:delete(ID, Channels, sub_channels).
 make_leaf(Key, V, CFG) ->
     leaf:new(key_to_int(Key), V, 0, CFG).
 verify_proof(RootHash, Key, Value, Proof) ->
@@ -164,53 +158,54 @@ verify_proof(RootHash, Key, Value, Proof) ->
 all() ->
     Trees = (tx_pool:get())#tx_pool.block_trees,
     Channels = trees:channels(Trees),
-    All = trie:get_all(Channels, channels),
+    All = trie:get_all(Channels, sub_channels),
     lists:map(
       fun(Leaf) ->
 	      channels:deserialize(leaf:value(Leaf))
       end, All).
-close_many() ->
+%close_many() ->
     %if you have already solo-closed or slashed some channels, and you have waited long enough for those channels to be closed, this is how you can close them.
-    A = all(),
-    K = keys:pubkey(),
-    H = block:height(),
-    {ok, Fee} = application:get_env(amoveo_core, minimum_tx_fee),
-    close_many2(A, K, H, Fee+1).
+%    A = all(),
+%    K = keys:pubkey(),
+%    H = block:height(),
+%    {ok, Fee} = application:get_env(amoveo_core, minimum_tx_fee),
+%    close_many2(A, K, H, Fee+1).
 
-close_many2([], _, _, _) -> ok;
-close_many2([A|T], K, H, Fee) ->
-    A2 = A#channel.acc2,
-    H2 = A#channel.last_modified + A#channel.delay,
-    if
-	(not (A2 == K)) -> ok; %only close the ones that are opened with the server, 
-	H2 < H -> ok; %only close the ones that have waited long enough to be closed, 
-	true ->
-	    Tx = channel_timeout_tx:make_dict(A#channel.acc1, A#channel.id, Fee),
-	    Stx = keys:sign(Tx),
-	    tx_pool_feeder:absorb_async(Stx)
-    end,
-    close_many2(T, K, H, Fee).
+%close_many2([], _, _, _) -> ok;
+%close_many2([A|T], K, H, Fee) ->
+    %A2 = A#sub_channel.acc2,
+%    H2 = A#sub_channel.last_modified + A#sub_channel.delay,
+%    if
+	%(not (A2 == K)) -> ok; %only close the ones that are opened with the server, 
+%	H2 < H -> ok; %only close the ones that have waited long enough to be closed, 
+%	true ->
+%	    Tx = channel_timeout_tx:make_dict(keys:pubkey(), A#sub_channel.id, Fee),
+%	    Stx = keys:sign(Tx),
+%	    tx_pool_feeder:absorb_async(Stx)
+%    end,
+%    close_many2(T, K, H, Fee).
 
 %keep the ones that are opened with the server, 
-    %B = lists:filter(fun(C) -> C#channel.acc2 == K end, A),
+    %B = lists:filter(fun(C) -> C#sub_channel.acc2 == K end, A),
 %keep the ones that have waited long enough to be closed, 
-    %C = lists:filter(fun(C) -> (C#channel.last_modified + C#channel.delay) > H end, B),
+    %C = lists:filter(fun(C) -> (C#sub_channel.last_modified + C#sub_channel.delay) > H end, B),
 %then make a channel_timeout_tx for them all.
-    %lists:map(fun(C) -> tx_pool_feeder:absorb_async(keys:sign(channel_timeout_tx(C#channel.acc1, C#channel.id, Fee))) end, C).
+    %lists:map(fun(C) -> tx_pool_feeder:absorb_async(keys:sign(channel_timeout_tx(C#sub_channel.acc1, C#sub_channel.id, Fee))) end, C).
     
     
 test() ->
     ID = <<1:256>>,
     Acc1 = constants:master_pub(),
     Acc2 = constants:master_pub(),
-    Bal1 = 200,
-    Bal2 = 300,
     Height = 1,
     Delay = 11,
-    A = new(ID,Acc1,Acc2,Bal1,Bal2,Height,Delay),
+    CID = hash:doit(2),
+    A = new(ID,CID,1,[Acc1,Acc2],Height,Delay),
+    io:fwrite(packer:pack(A)),
+    io:fwrite("\n"),
     A = deserialize(serialize(A)),
     C = A,
-    R = trees:empty_tree(channels),
+    R = trees:empty_tree(sub_channels),
     %NewLoc = write(C, constants:root0()),
     NewLoc = write(C, R),
     {Root, C, Proof} = get(ID, NewLoc),

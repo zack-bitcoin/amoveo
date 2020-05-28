@@ -92,6 +92,12 @@ sub_account_size() ->
     ((balance_bits() + account_nonce_bits()) div 8) + 4 + pubkey_size() + hash_size().
 account_size() ->
 	((balance_bits() + account_nonce_bits()) div 8) + (hash_size()) + pubkey_size().
+sub_channel_size() ->
+    ((channel_nonce_bits() + 
+      (height_bits()) + 
+      channel_delay_bits()) div 8) 
+	+ 1 + (4 * hash_size()) + 2.
+    
 channel_size() ->    
     (((balance_bits()*3) + channel_nonce_bits() + 
       (height_bits()) + 
