@@ -1,7 +1,7 @@
 -module(channels).
 -export([new/7, acc1/1, acc2/1, id/1, bal1/1, bal2/1, last_modified/1, nonce/1, delay/1, amount/1, closed/1, %custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
-         dict_update/9, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_update/7, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0, close_many/0,
@@ -24,7 +24,7 @@ delay(C) -> C#channel.delay.
 closed(C) -> C#channel.closed.
 %shares(C) -> C#channel.shares.
 
-dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
+dict_update(ID, Dict, Nonce, Amount, Delay, Height, Close0) ->
     Close = case Close0 of 
                 1 -> 1;
                 0 -> 0;
@@ -32,7 +32,7 @@ dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
                 false -> 0
             end,
     true = (Close == 1) or (Close == 0),
-    true = Inc1 + Inc2 >= 0,
+    %true = Inc1 + Inc2 >= 0,
     Channel = dict_get(ID, Dict),
     CNonce = Channel#channel.nonce,
     NewNonce = if
@@ -42,22 +42,13 @@ dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
 	       end,
     T1 = Channel#channel.last_modified,
     DH = Height - T1,
-    Bal1a = Channel#channel.bal1 + Inc1,% - RH,
-    Bal2a = Channel#channel.bal2 + Inc2,% - RH,
-    Bal1b = max(Bal1a, 0),
-    Bal2b = max(Bal2a, 0),
-    Bal1c = min(Bal1b, Bal1a+Bal2a),
-    Bal2c = min(Bal2b, Bal1a+Bal2a),
-    C = Channel#channel{bal1 = Bal1c,
-                        bal2 = Bal2c,
-                        amount = Amount,
-                        nonce = NewNonce,
-                        last_modified = Height,
-                        delay = Delay,
-                        closed = Close
-		       },
-    %io:fwrite(packer:pack(C)),
-    C.
+    Channel#channel{
+      amount = Amount,
+      nonce = NewNonce,
+      last_modified = Height,
+      delay = Delay,
+      closed = Close
+     }.
     
 new(ID, Acc1, Acc2, Bal1, Bal2, Height, Delay) ->
     #channel{id = ID, acc1 = Acc1, acc2 = Acc2, 

@@ -82,7 +82,7 @@ go(Tx, Dict, NewHeight, _) ->
     F17 = forks:get(17),
     if 
         NewHeight > F17 -> 
-            NewChannel = channels:dict_update(CID, Dict4, none, 0, 0, 0, 0, NewHeight, true),
+            NewChannel = channels:dict_update(CID, Dict4, none, 0, 0, NewHeight, true),
             channels:dict_write(NewChannel, Dict4);
         true ->
             channels:dict_delete(CID, Dict4)

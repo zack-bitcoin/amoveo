@@ -113,8 +113,9 @@ Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 ## Mining Pools
 
 http://stats.veopool.pw/
-
+<!---
 https://amoveopool.com/#getting-started
+--->
 
 http://veo.lolopool.com/
 
