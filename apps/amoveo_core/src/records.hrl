@@ -166,11 +166,12 @@
 -record(contract, {
       code,
       many_types,
-      nonce,
-      expires,
-      closed,
-      result,
-      veo
+      nonce = 0,
+      last_modified = 0,
+      delay = 0,
+      closed = 0,
+      result = <<0:256>>,
+      veo = 0
 }).
 
 -record(matched, {account, oracle, true, false, bad}).
