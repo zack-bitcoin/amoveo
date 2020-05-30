@@ -171,7 +171,8 @@
       delay = 0,
       closed = 0,
       result = <<0:256>>,
-      veo = 0
+      source = <<0:256>>,
+      volume = 0
 }).
 
 -record(matched, {account, oracle, true, false, bad}).

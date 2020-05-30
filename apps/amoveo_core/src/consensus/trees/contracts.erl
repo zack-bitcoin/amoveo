@@ -1,5 +1,5 @@
 -module(contracts).
--export([new/2, code/1, many_types/1, last_modified/1, nonce/1, delay/1, veo/1, closed/1, %custom for this tree
+-export([new/2, code/1, many_types/1, last_modified/1, nonce/1, delay/1, volume/1, closed/1, %custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/9, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
@@ -13,7 +13,7 @@
 
 code(C) -> C#contract.code.
 many_types(C) -> C#contract.many_types.
-veo(C) -> C#contract.veo.
+volume(C) -> C#contract.volume.
 last_modified(C) -> C#contract.last_modified.
 %mode(C) -> C#contract.mode.
 nonce(C) -> C#contract.nonce.
@@ -58,17 +58,20 @@ serialize(C) ->
     Code = C#contract.code,
     Result = C#contract.result,
     Many = C#contract.many_types,
-    Veo = C#contract.veo,
+    Volume = C#contract.volume,
+    Source = C#contract.source,
     32 = size(Code),
     32 = size(Result),
+    32 = size(Source),
     << Code/binary,
        Result/binary,
+       Source/binary,
        Many:16,
        (C#contract.nonce):NON,
        (C#contract.last_modified):HEI,
        (C#contract.delay):Delay,
        (C#contract.closed):8,
-       Veo:BAL
+       Volume:BAL
     >>.
 deserialize(B) ->
     PS = constants:pubkey_size()*8,
@@ -80,20 +83,22 @@ deserialize(B) ->
     HS = constants:hash_size()*8,
     <<Code:HS,
       Result:HS,
+      Source:HS,
       Many:16,
       Nonce:NON,
       LastModified:HEI,
       Delay:DelayBits,
       Closed:8,
-      Veo:BAL >> = B,
+      Volume:BAL >> = B,
     #contract{code = <<Code:HS>>,
               many_types = Many,
               result = <<Result:HS>>,
+              source = <<Source:HS>>,
               nonce = Nonce,
               last_modified = LastModified,
               delay = Delay,
               closed = Closed,
-              veo = Veo}.
+              volume = Volume}.
 dict_write(Channel, Dict) ->
     %ID = Channel#contract.id,
     ID = make_id(Channel),

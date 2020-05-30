@@ -18,7 +18,8 @@
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).%
--record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).
+-record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
+-record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, sub_channels, contracts}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -293,6 +294,7 @@ make(Header, Txs0, Trees, Pub) ->
 		       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
     F10 = forks:get(10),
+    F32 = forks:get(32),
     NewDict4 = remove_repeats(NewDict2, Dict, Height + 1),
     %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
     NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
@@ -311,6 +313,17 @@ make(Header, Txs0, Trees, Pub) ->
                        %Root0),%
 		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
 		       NewTrees1;%
+                   ((Height + 1) == F32) ->
+                       trees:new3(trees:accounts(NewTrees0),%
+                                  trees:channels(NewTrees0),%
+                                  trees:existence(NewTrees0),%
+                                  trees:oracles(NewTrees0),%
+                                  trees:governance(NewTrees0),%
+                                  trees:matched(NewTrees0),%
+                                  trees:unmatched(NewTrees0),%
+                                  trees:empty_tree(sub_accounts),%
+                                  trees:empty_tree(sub_channels),%
+                                  trees:empty_tree(contracts));%
 		   true -> NewTrees0
 	       end,
     %Governance = trees:governance(NewTrees),
@@ -365,7 +378,18 @@ make_roots(Trees) when (element(1, Trees) == trees2) ->
            oracles = trie:root_hash(oracles, trees:oracles(Trees)),
            governance = trie:root_hash(governance, trees:governance(Trees)),
 	   matched = trie:root_hash(matched, trees:matched(Trees)),
-	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees))}.
+	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees))};
+make_roots(Trees) when (element(1, Trees) == trees3) ->
+    #roots3{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
+           channels = trie:root_hash(channels, trees:channels(Trees)),
+           existence = trie:root_hash(existence, trees:existence(Trees)),
+           oracles = trie:root_hash(oracles, trees:oracles(Trees)),
+           governance = trie:root_hash(governance, trees:governance(Trees)),
+	   matched = trie:root_hash(matched, trees:matched(Trees)),
+	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
+           sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
+           sub_channels = trie:root_hash(sub_channels, trees:sub_channels(Trees)),
+           contracts = trie:root_hash(contracts, trees:contracts(Trees))}.
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
     C = X#roots.channels,%
@@ -383,8 +407,20 @@ roots_hash(X) when is_record(X, roots2) ->
     M = X#roots2.matched,
     U = X#roots2.unmatched,
     Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary>>,
+    hash:doit(Y);
+roots_hash(X) when is_record(X, roots3) ->
+    A = X#roots3.accounts,
+    C = X#roots3.channels,
+    E = X#roots3.existence,
+    O = X#roots3.oracles,
+    G = X#roots3.governance,
+    M = X#roots3.matched,
+    U = X#roots3.unmatched,
+    SA = X#roots3.sub_accounts,
+    SC = X#roots3.sub_channels,
+    Con = X#roots3.contracts,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, SC/binary, Con/binary>>,
     hash:doit(Y).
-    
     
 guess_number_of_cpu_cores() ->
     case application:get_env(amoveo_core, test_mode) of
@@ -480,6 +516,22 @@ proofs_roots_match([P|T], R) when is_record(R, roots2)->
 	       governance -> R#roots2.governance;
 	       matched -> R#roots2.matched;
 	       unmatched -> R#roots2.unmatched
+	   end,
+    proofs_roots_match(T, R);
+proofs_roots_match([P|T], R) when is_record(R, roots3)->
+    Tree = proofs:tree(P),
+    Root = proofs:root(P),
+    Root = case Tree of
+	       accounts -> R#roots3.accounts;
+	       channels -> R#roots3.channels;
+	       existence -> R#roots3.existence;
+	       oracles -> R#roots3.oracles;
+	       governance -> R#roots3.governance;
+	       matched -> R#roots3.matched;
+	       unmatched -> R#roots3.unmatched;
+               sub_accounts -> R#roots3.sub_accounts;
+               sub_channels -> R#roots3.sub_channels;
+               contracts -> R#roots3.contracts
 	   end,
     proofs_roots_match(T, R).
 check0(Block) ->%This verifies the txs in ram. is parallelizable
@@ -607,6 +659,7 @@ check2(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     F10 = forks:get(10),
+    F32 = forks:get(32),
     NewTrees3 = if
 		    (Height == F10) ->
 		       %Root0 = constants:root0(),
@@ -621,8 +674,19 @@ check2(OldBlock, Block) ->
 				      %Root0,
 				      %Root0),
 		       NewTrees1;
-		   true -> NewTrees3_0
-	       end,
+		    (Height == F32) ->
+			   trees:new3(trees:accounts(NewTrees3_0),
+				      trees:channels(NewTrees3_0),
+				      trees:existence(NewTrees3_0),
+				      trees:oracles(NewTrees3_0),
+				      trees:governance(NewTrees3_0),
+				      trees:matched(NewTrees3_0),
+				      trees:unmatched(NewTrees3_0),
+                                      trees:empty_tree(sub_accounts),
+                                      trees:empty_tree(sub_channels),
+                                      trees:empty_tree(contracts));
+                    true -> NewTrees3_0
+                end,
 
     %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
     %io:fwrite("block check 5.4\n"),
