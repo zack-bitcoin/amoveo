@@ -1072,7 +1072,26 @@ test(35) ->
     T1 = erlang:now(),
     test35(<<>>, Sig, keys:pubkey(), Times),
     T2 = erlang:now(),
-    timer:now_diff(T2, T1).
+    timer:now_diff(T2, T1);
+test(36) ->
+    %new contract test
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee() + 20,
+    Contract = <<>>,
+    CH = hash:doit(Contract),
+    Many = 3, 
+    Tx = new_contract_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id({CH, Many}),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    Amount = 10000,
+    Tx2 = use_contract_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    mine_blocks(1),
+    timer:sleep(200),
+    success.
+    
 test35(_, _, _, 0) -> ok;
 test35(D, S, P, N) ->
     %true = testnet_sign:verify_sig(D, S, P),

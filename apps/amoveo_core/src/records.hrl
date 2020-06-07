@@ -137,6 +137,24 @@
 		     difficulty = 0, 
 		     governance, 
 		     governance_amount}).
+
+-record(new_contract_tx, {from, nonce, fee, contract_hash, many_types}).
+-record(use_contract_tx, {from, nonce, fee, contract, amount}).
+
+-record(contract_offer, {from, contract_id, nlocktime, delay, miner_commission}).%types is like [{0, Portion1},{2, Portion2}], where the integer is the type that the offerer wants to control, and amount is the portion of it that they want to control.
+-record(contract_accept_tx, {from, nonce, fee, offer, contract_sig}).
+-record(swap_offer, {from, nonce, fee, type}).
+-record(swap, {from, nonce, fee, signed_swap_offer}).%swap 2 kinds of currency of any type
+
+
+
+-record(resolve_contract, {contract, contract_id,  evidence}).%potentially unsigned tx.
+-record(contract_timeout, {contract_id}).%possibly converts it into a new kind of contract. %possibly unsigned
+
+
+
+
+
 -record(oracle_winnings, {from, nonce, fee, oracle_id}).
 -record(gov, {id, value, lock}).
 -record(channel, {id = 0, %the unique id number that identifies this channel
@@ -155,7 +173,7 @@
 -record(sub_channel, {
       id,
       accounts,%root hash
-      amounts = <<0:256>>,%root hash
+      amount,
       nonce = 1,
       last_modified,
       delay,

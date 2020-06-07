@@ -4,6 +4,7 @@
          dict_update/9, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
+         make_id/1,
 	 all/0,
 	 test/0]).%common tree stuff
 %This is the part of the channel that is written onto the hard drive.
@@ -115,9 +116,17 @@ key_to_int(X) ->
     <<_:256>> = X,
     <<Y:256>> = hash:doit(X),
     Y.
-make_id(X) ->
-    hash:doit(<<(X#contract.code)/binary,
-                (X#contract.many_types):16>>).
+make_id(X = #contract{}) ->
+    Code = X#contract.code,
+    32 = size(Code),
+    hash:doit(<<Code/binary,
+                (X#contract.many_types):16>>);
+make_id({Code, MT}) ->
+    32 = size(Code),
+    hash:doit(<<Code/binary,
+                MT:16>>).
+    
+
 dict_get(Key, Dict) ->
     <<_:256>> = Key,
     X = dict:find({contracts, Key}, Dict),

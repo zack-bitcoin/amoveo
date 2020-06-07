@@ -1,7 +1,7 @@
 -module(sub_channels).
--export([new/6, accounts/1, id/1, last_modified/1, nonce/1, delay/1, amounts/1, closed/1, contract_id/1, type/1,%custom for this tree
+-export([new/6, accounts/1, id/1, last_modified/1, nonce/1, delay/1, amount/1, closed/1, contract_id/1, type/1,%custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
-         dict_update/7, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_update/6, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0, %close_many/0,
@@ -13,7 +13,7 @@
 
 accounts(C) -> C#sub_channel.accounts.
 id(C) -> C#sub_channel.id.
-amounts(C) -> C#sub_channel.amounts.
+amount(C) -> C#sub_channel.amount.
 last_modified(C) -> C#sub_channel.last_modified.
 %mode(C) -> C#sub_channel.mode.
 nonce(C) -> C#sub_channel.nonce.
@@ -24,7 +24,7 @@ type(C) -> C#sub_channel.type.
                   
 %shares(C) -> C#sub_channel.shares.
 
-dict_update(ID, Dict, Nonce, Amounts, Delay, Height, Close0) ->
+dict_update(ID, Dict, Nonce, Delay, Height, Close0) ->
     Close = case Close0 of 
                 1 -> 1;
                 0 -> 0;
@@ -42,7 +42,6 @@ dict_update(ID, Dict, Nonce, Amounts, Delay, Height, Close0) ->
     T1 = Channel#sub_channel.last_modified,
     DH = Height - T1,
     Channel#sub_channel{
-      amounts = Amounts,
       nonce = NewNonce,
       last_modified = Height,
       delay = Delay,
@@ -73,14 +72,13 @@ serialize(C) ->
     %HS = size(Shares),
     Accs = C#sub_channel.accounts,
     ContractID = C#sub_channel.contract_id,
-    Amounts = C#sub_channel.amounts,
+    Amount = C#sub_channel.amount,
     true = size(Accs) == HS,
     true = size(CID) == HS,
-    true = size(Amounts) == HS,
     <<_:256>> = CID,
     << CID/binary,
        Accs/binary,
-       Amounts/binary,
+       Amount:BAL,
        (C#sub_channel.nonce):NON,
        (C#sub_channel.last_modified):HEI,
        (C#sub_channel.delay):Delay,
@@ -98,7 +96,7 @@ deserialize(B) ->
     HS = constants:hash_size()*8,
     << ID:HS,
        Accs:HS,
-       Amounts:HS,
+       Amount:BAL,
        B5:NON,
        B7:HEI,
        B12:Delay,
@@ -107,7 +105,7 @@ deserialize(B) ->
        Type:16
     >> = B,
     #sub_channel{id = <<ID:HS>>, accounts = <<Accs:HS>>, 
-                 amounts = <<Amounts:HS>>,
+                 amount = Amount,
                  nonce = B5, 
                  last_modified = B7,
                  delay = B12, closed = Closed,
