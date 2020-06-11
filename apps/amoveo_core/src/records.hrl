@@ -140,6 +140,7 @@
 
 -record(new_contract_tx, {from, nonce, fee, contract_hash, many_types}).
 -record(use_contract_tx, {from, nonce, fee, contract, amount}).
+-record(sub_spend_tx, {from, nonce, fee, to, amount, contract, type}).
 
 -record(contract_offer, {from, contract_id, nlocktime, delay, miner_commission}).%types is like [{0, Portion1},{2, Portion2}], where the integer is the type that the offerer wants to control, and amount is the portion of it that they want to control.
 -record(contract_accept_tx, {from, nonce, fee, offer, contract_sig}).

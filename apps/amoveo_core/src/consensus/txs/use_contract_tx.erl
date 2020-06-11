@@ -36,10 +36,5 @@ send_sub_accounts(0, _, _, _, Dict) ->
     Dict;
 send_sub_accounts(N, From, CID, Amount, Dict) ->
     Key = sub_accounts:make_key(From, CID, N),
-    Dict2 = contracts:dict_update(Key, Dict, Amount, none),
+    Dict2 = sub_accounts:dict_update(Key, Dict, Amount),
     send_sub_accounts(N - 1, From, CID, Amount, Dict2).
-    
-                      
-            
-    
-
