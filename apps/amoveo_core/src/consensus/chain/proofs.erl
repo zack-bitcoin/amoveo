@@ -22,7 +22,10 @@ tree_to_int(oracle_bets) -> 7;%
 tree_to_int(orders) -> 8;%
 tree_to_int(multi_tx) -> 9;
 tree_to_int(matched) -> 10;
-tree_to_int(unmatched) -> 11.
+tree_to_int(unmatched) -> 11;
+tree_to_int(sub_accounts) -> 12;
+tree_to_int(sub_channels) -> 13;
+tree_to_int(contracts) -> 14.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -33,7 +36,10 @@ int_to_tree(7) -> oracle_bets;%
 int_to_tree(8) -> orders;%
 int_to_tree(9) -> multi_tx;
 int_to_tree(10) -> matched;
-int_to_tree(11) -> unmatched.
+int_to_tree(11) -> unmatched;
+int_to_tree(12) -> sub_accounts;
+int_to_tree(13) -> sub_channels;
+int_to_tree(14) -> contracts.
     
 
 %deterministic merge-sort    
@@ -408,6 +414,22 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {accounts, From},
                  {oracles, OID}
                 ] ++ U;
+            use_contract_tx ->
+                CID = use_contract_tx:cid(Tx),
+                From = use_contract_tx:from(Tx),
+                SA = use_contract_sub_accounts(Tx),
+                [{accounts, From},
+                 {contracts, CID}
+                 ] ++ SA;
+            new_contract_tx ->
+                #new_contract_tx{
+              from = From,
+              contract_hash = CH,
+              many_types = MT} = Tx,
+                CID = contracts:make_id({CH, MT}),
+                [{accounts, From},
+                 {contracts, CID}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},
@@ -528,5 +550,17 @@ oracle_type_get(Trees, OID, Height) ->
         true -> ?n2i(oracle_initial_liquidity)
     end.
    
-    
+use_contract_sub_accounts(Tx) ->    
+    #use_contract_tx{
+                      from = Acc,
+                      contract_hash = CH,
+                      many = Many
+                    } = Tx,
+    ucsa2(Many, Acc, CH).
+    %return a list like [{sub_accounts, X}|...]
+ucsa2(0, _, _) -> [];
+ucsa2(N, Acc, CID) -> 
+    Key = sub_accounts:make_key(Acc, CID, N),
+    [{sub_accounts, Key}] ++ 
+        ucsa2(N-1, Acc, CID).
 

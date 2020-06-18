@@ -1084,6 +1084,7 @@ test(36) ->
     CID = contracts:make_id({CH, Many}),
     Stx = keys:sign(Tx),
     absorb(Stx),
+    1=2,
     Amount = 10000,
     Tx2 = use_contract_tx:make_dict(MP, CID, Amount, Fee),
     Stx2 = keys:sign(Tx2),

@@ -7,15 +7,16 @@
 make_dict(From, Contract, Amount, Fee) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce,
-    #use_contract_tx{from = From, nonce = Nonce, fee = Fee, contract = Contract, amount = Amount}.
+    #use_contract_tx{from = From, nonce = Nonce, fee = Fee, contract_hash = Contract, amount = Amount}.
 go(Tx, Dict, NewHeight, _) ->
     #use_contract_tx{
-      from = From,
-      nonce = Nonce,
-      fee = Fee,
-      contract = CID,
-      amount = Amount
-     } = Tx,
+    from = From,
+    nonce = Nonce,
+    fee = Fee,
+    contract_hash = CID,
+    many = Many,
+    amount = Amount
+   } = Tx,
     Facc = accounts:dict_update(From, Dict, -Fee-Amount, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     %CID = contracts:make_id({Code, Many}),

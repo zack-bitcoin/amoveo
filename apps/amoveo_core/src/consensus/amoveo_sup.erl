@@ -25,7 +25,7 @@ tree_killer([H|T]) ->
     supervisor:terminate_child(amoveo_sup, H),
     tree_killer(T).
 trees() ->
-    [accounts, channels, existence, oracles, orders, governance, matched, unmatched, sub_accounts].
+    [accounts, channels, existence, oracles, orders, governance, matched, unmatched, sub_accounts, sub_channels, contracts].
     
 stop() -> 
     sync:stop(),

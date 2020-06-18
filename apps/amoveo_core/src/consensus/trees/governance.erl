@@ -162,6 +162,8 @@ name2number(oracle_close) -> 25;
 name2number(unmatched) -> 26;
 name2number(oracle_winnings) -> 27;
 name2number(oracle_question_liquidity) -> 28;
+name2number(new_contract_tx) -> 29;
+name2number(use_contract_tx) -> 30;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -194,6 +196,8 @@ number2name(25) -> oracle_close;
 number2name(26) -> unmatched;
 number2name(27) -> oracle_winnings;
 number2name(28) -> oracle_question_liquidity;
+number2name(29) -> new_contract_tx;
+number2name(30) -> use_contract_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,
