@@ -1094,6 +1094,15 @@ test(36) ->
     absorb(Stx2),
     mine_blocks(1),
     timer:sleep(200),
+    
+    Amount2 = 2000,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Tx3 = sub_spend_tx:make_dict(NewPub, Amount2, Fee, CID, 1, MP),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    mine_blocks(1),
+    timer:sleep(200),
+
     success.
     
 test35(_, _, _, 0) -> ok;

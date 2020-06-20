@@ -432,6 +432,20 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {contracts, CID},
                  {governance, ?n2i(new_contract_tx)}
                 ];
+            sub_spend_tx ->
+                #sub_spend_tx{
+              contract = CID,
+              type = N,
+              from = From,
+              to = To
+             } = Tx,
+                FKey = sub_accounts:make_key(From, CID, N),
+                TKey = sub_accounts:make_key(To, CID, N),
+                [{accounts, From},
+                 {sub_accounts, FKey},
+                 {sub_accounts, TKey},
+                 {governance, ?n2i(sub_spend_tx)}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

@@ -42,6 +42,7 @@ key2module(unmatched) -> oracle_unmatched_tx;
 key2module(oracle_winnings) -> oracle_winnings_tx;
 key2module(new_contract_tx) -> new_contract_tx;
 key2module(use_contract_tx) -> use_contract_tx;
+key2module(sub_spend_tx) -> sub_spend_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
 %case application:get_env(amoveo_core, kind) of

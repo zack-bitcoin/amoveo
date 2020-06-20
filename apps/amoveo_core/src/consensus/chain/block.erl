@@ -287,14 +287,17 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                                  1200),
             G30 = governance:new(governance:name2number(use_contract_tx),
                                  1200),
+            G31 = governance:new(governance:name2number(sub_spend_tx),
+                                 1200),
             GT2 = governance:write(G29, GT),
             GT3 = governance:write(G30, GT2),
+            GTF = governance:write(G31, GT3),
             
             trees:new3(trees:accounts(NewTrees0),%
                        trees:channels(NewTrees0),%
                        trees:existence(NewTrees0),%
                        trees:oracles(NewTrees0),%
-                       GT3,%
+                       GTF,%
                        trees:matched(NewTrees0),%
                        trees:unmatched(NewTrees0),%
                        trees:empty_tree(sub_accounts),%

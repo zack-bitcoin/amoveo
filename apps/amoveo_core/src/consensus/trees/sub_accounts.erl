@@ -38,6 +38,8 @@ dict_get(Key, Dict) ->
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} -> 
+            deserialize(Y);
+        {ok, Y} ->
             deserialize(Y)
     end.
 get(Key, Accounts) ->
