@@ -555,7 +555,7 @@ oracle_type_get(Trees, OID, Height) ->
 use_contract_sub_accounts(Tx) ->    
     #use_contract_tx{
                       from = Acc,
-                      contract_hash = CH,
+                      contract_id = CH,
                       many = Many
                     } = Tx,
     ucsa2(Many, Acc, CH).

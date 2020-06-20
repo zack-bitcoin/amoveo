@@ -1,25 +1,29 @@
 -module(use_contract_tx).
--export([go/4, make_dict/4]).
+-export([go/4, make_dict/4, from/1, cid/1]).
 -include("../../records.hrl").
 
 %this allows you to buy all types in a subcurry together.
 
-make_dict(From, Contract, Amount, Fee) ->
+from(Tx) -> Tx#use_contract_tx.from.
+cid(Tx) -> Tx#use_contract_tx.contract_id.
+
+make_dict(From, CID, Amount, Fee) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce + 1,
-    #use_contract_tx{from = From, nonce = Nonce, fee = Fee, contract_hash = Contract, amount = Amount}.
+    C = trees:get(contracts, CID),
+    Many = contracts:many_types(C),
+    #use_contract_tx{from = From, nonce = Nonce, fee = Fee, contract_id = CID, amount = Amount, many = Many}.
 go(Tx, Dict, NewHeight, _) ->
     #use_contract_tx{
     from = From,
     nonce = Nonce,
     fee = Fee,
-    contract_hash = CID,
-    many = Many,
-    amount = Amount
+    contract_id = CID,
+    amount = Amount,
+    many = Many
    } = Tx,
     Facc = accounts:dict_update(From, Dict, -Fee-Amount, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
-    %CID = contracts:make_id({Code, Many}),
     Contract = contracts:dict_get(CID, Dict2),
     #contract{
       many_types = Many,
@@ -37,5 +41,11 @@ send_sub_accounts(0, _, _, _, Dict) ->
     Dict;
 send_sub_accounts(N, From, CID, Amount, Dict) ->
     Key = sub_accounts:make_key(From, CID, N),
-    Dict2 = sub_accounts:dict_update(Key, Dict, Amount),
+    OA = sub_accounts:dict_get(Key, Dict),
+    A2 = 
+        case OA of
+            empty -> sub_accounts:new(From, Amount, CID, N);
+            _ -> sub_accounts:dict_update(Key, Dict, Amount, none)
+        end,
+    Dict2 = sub_accounts:dict_write(A2, Dict),
     send_sub_accounts(N - 1, From, CID, Amount, Dict2).

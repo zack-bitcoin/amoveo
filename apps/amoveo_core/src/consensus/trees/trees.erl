@@ -1,6 +1,6 @@
 -module(trees).
 -export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,sub_accounts/1,sub_channels/1,contracts/1,
-	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2,
+	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2, update_sub_accounts/2, update_sub_channels/2, update_contracts/2,
 	 new/6,
 	 new2/7, new3/10, empty_tree/1,
 	 root_hash/1, name/1, 
@@ -113,6 +113,13 @@ update_unmatched(X = #trees2{}, U) ->
     X#trees2{unmatched = U};
 update_unmatched(X = #trees3{}, U) ->
     X#trees3{unmatched = U}.
+update_sub_accounts(X = #trees3{}, U) ->
+    X#trees3{sub_accounts = U}.
+update_sub_channels(X = #trees3{}, U) ->
+    X#trees3{sub_channels = U}.
+update_contracts(X = #trees3{}, U) ->
+    X#trees3{contracts = U}.
+
 root_hash2(Trees, Roots) ->
     A = rh2(accounts, Trees, Roots),
     C = rh2(channels, Trees, Roots),
