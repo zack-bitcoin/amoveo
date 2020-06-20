@@ -419,7 +419,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 From = use_contract_tx:from(Tx),
                 SA = use_contract_sub_accounts(Tx),
                 [{accounts, From},
-                 {contracts, CID}
+                 {contracts, CID},
+                 {governance, ?n2i(use_contract_tx)}
                  ] ++ SA;
             new_contract_tx ->
                 #new_contract_tx{
@@ -428,7 +429,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
               many_types = MT} = Tx,
                 CID = contracts:make_id({CH, MT}),
                 [{accounts, From},
-                 {contracts, CID}
+                 {contracts, CID},
+                 {governance, ?n2i(new_contract_tx)}
                 ];
 	    coinbase_old -> 
                 [

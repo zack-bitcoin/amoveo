@@ -6,7 +6,7 @@
 
 make_dict(From, Contract, Amount, Fee) ->
     A = trees:get(accounts, From),
-    Nonce = A#acc.nonce,
+    Nonce = A#acc.nonce + 1,
     #use_contract_tx{from = From, nonce = Nonce, fee = Fee, contract_hash = Contract, amount = Amount}.
 go(Tx, Dict, NewHeight, _) ->
     #use_contract_tx{

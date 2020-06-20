@@ -1075,8 +1075,10 @@ test(35) ->
     timer:now_diff(T2, T1);
 test(36) ->
     %new contract test
+    mine_blocks(4),
+    timer:sleep(400),
     MP = constants:master_pub(),
-    Fee = constants:initial_fee() + 20,
+    Fee = constants:initial_fee()*100,
     Contract = <<>>,
     CH = hash:doit(Contract),
     Many = 3, 
@@ -1084,7 +1086,6 @@ test(36) ->
     CID = contracts:make_id({CH, Many}),
     Stx = keys:sign(Tx),
     absorb(Stx),
-    1=2,
     Amount = 10000,
     Tx2 = use_contract_tx:make_dict(MP, CID, Amount, Fee),
     Stx2 = keys:sign(Tx2),

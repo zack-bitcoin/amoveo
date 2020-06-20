@@ -261,6 +261,49 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 		gov_fees(Txs0, Dict, Height) + %
 		DeveloperReward%
     end.
+   
+trees_maker(HeightCheck, Trees, NewDict4) ->
+    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
+    F10 = forks:get(10),
+    F32 = forks:get(32),
+    if
+        (HeightCheck == F10)  ->%
+                                                %Root0 = constants:root0(),%
+            NewTrees1 = %
+                trees:new2(trees:accounts(NewTrees0),%
+                           trees:channels(NewTrees0),%
+                           trees:existence(NewTrees0),%
+                           trees:oracles(NewTrees0),%
+                           trees:governance(NewTrees0),%
+                           trees:empty_tree(matched),
+                           trees:empty_tree(unmatched)),
+                       %Root0,%
+                       %Root0),%
+		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
+            NewTrees1;%
+        (HeightCheck == F32) ->
+            GT = trees:governance(NewTrees0),
+            G29 = governance:new(governance:name2number(new_contract_tx),
+                                 1200),
+            G30 = governance:new(governance:name2number(use_contract_tx),
+                                 1200),
+            GT2 = governance:write(G29, GT),
+            GT3 = governance:write(G30, GT2),
+            
+            trees:new3(trees:accounts(NewTrees0),%
+                       trees:channels(NewTrees0),%
+                       trees:existence(NewTrees0),%
+                       trees:oracles(NewTrees0),%
+                       GT3,%
+                       trees:matched(NewTrees0),%
+                       trees:unmatched(NewTrees0),%
+                       trees:empty_tree(sub_accounts),%
+                       trees:empty_tree(sub_channels),%
+                       trees:empty_tree(contracts));%
+        true -> NewTrees0
+    end.
+
+
     
     
 make(Header, Txs0, Trees, Pub) ->
@@ -293,39 +336,12 @@ make(Header, Txs0, Trees, Pub) ->
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
-    F10 = forks:get(10),
-    F32 = forks:get(32),
     NewDict4 = remove_repeats(NewDict2, Dict, Height + 1),
     %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
-    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
-    NewTrees = if
-		   ((Height + 1) == F10)  ->%
-		       %Root0 = constants:root0(),%
-		       NewTrees1 = %
-			   trees:new2(trees:accounts(NewTrees0),%
-				      trees:channels(NewTrees0),%
-				      trees:existence(NewTrees0),%
-				      trees:oracles(NewTrees0),%
-				      trees:governance(NewTrees0),%
-                                      trees:empty_tree(matched),
-                                      trees:empty_tree(unmatched)),
-                       %Root0,%
-                       %Root0),%
-		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
-		       NewTrees1;%
-                   ((Height + 1) == F32) ->
-                       trees:new3(trees:accounts(NewTrees0),%
-                                  trees:channels(NewTrees0),%
-                                  trees:existence(NewTrees0),%
-                                  trees:oracles(NewTrees0),%
-                                  trees:governance(NewTrees0),%
-                                  trees:matched(NewTrees0),%
-                                  trees:unmatched(NewTrees0),%
-                                  trees:empty_tree(sub_accounts),%
-                                  trees:empty_tree(sub_channels),%
-                                  trees:empty_tree(contracts));%
-		   true -> NewTrees0
-	       end,
+
+    HeightCheck = Height + 1,
+    NewTrees = trees_maker(HeightCheck, Trees, NewDict4),
+
     %Governance = trees:governance(NewTrees),
     Governance = trees:governance(Trees),
     BlockPeriod = governance:get_value(block_period, Governance),
@@ -645,6 +661,7 @@ check3(OldBlock, Block) ->
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
     {NewDict4, NewDict3, Dict}.
 
+
 check2(OldBlock, Block) ->
     {NewDict4, NewDict3, Dict} = 
         check3(OldBlock, Block), 
@@ -654,40 +671,10 @@ check2(OldBlock, Block) ->
     %io:fwrite("block check 5.3\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
-    NewTrees3_0 = tree_data:dict_update_trie(OldTrees, NewDict4),%here
-    %io:fwrite("block check 5.4\n"),
-    %io:fwrite(packer:pack(erlang:timestamp())),
-    %io:fwrite("\n"),
-    F10 = forks:get(10),
-    F32 = forks:get(32),
-    NewTrees3 = if
-		    (Height == F10) ->
-		       %Root0 = constants:root0(),
-		       NewTrees1 = 
-			   trees:new2(trees:accounts(NewTrees3_0),
-				      trees:channels(NewTrees3_0),
-				      trees:existence(NewTrees3_0),
-				      trees:oracles(NewTrees3_0),
-				      trees:governance(NewTrees3_0),
-                                      trees:empty_tree(matched),
-                                      trees:empty_tree(unmatched)),
-				      %Root0,
-				      %Root0),
-		       NewTrees1;
-		    (Height == F32) ->
-			   trees:new3(trees:accounts(NewTrees3_0),
-				      trees:channels(NewTrees3_0),
-				      trees:existence(NewTrees3_0),
-				      trees:oracles(NewTrees3_0),
-				      trees:governance(NewTrees3_0),
-				      trees:matched(NewTrees3_0),
-				      trees:unmatched(NewTrees3_0),
-                                      trees:empty_tree(sub_accounts),
-                                      trees:empty_tree(sub_channels),
-                                      trees:empty_tree(contracts));
-                    true -> NewTrees3_0
-                end,
 
+    HeightCheck = Height,
+    NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4),
+    
     %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
     %io:fwrite("block check 5.4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
@@ -1345,6 +1332,12 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
     B + sum_amounts(T, Dict, Old).
 %sum_amounts_helper(_, error, _, _, _) -> 0;
 sum_amounts_helper(_, empty, _, _, _) -> 0;
+sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
+    0;
+sum_amounts_helper(sub_channels, Acc, Dict, _, _) ->
+    0;
+sum_amounts_helper(contracts, Acc, Dict, _, _) ->
+    Acc#contract.volume;
 sum_amounts_helper(accounts, Acc, Dict, _, _) ->
     Acc#acc.balance;
 sum_amounts_helper(channels, Chan, Dict, _, _) ->

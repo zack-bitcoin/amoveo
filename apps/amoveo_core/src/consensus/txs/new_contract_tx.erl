@@ -3,7 +3,7 @@
 -include("../../records.hrl").
 make_dict(From, CH, Types, Fee) ->
     A = trees:get(accounts, From),
-    Nonce = A#acc.nonce,
+    Nonce = A#acc.nonce + 1,
     #new_contract_tx{from = From, nonce = Nonce, fee = Fee, contract_hash = CH, many_types = Types}.
 
 go(Tx, Dict, NewHeight, _) ->
