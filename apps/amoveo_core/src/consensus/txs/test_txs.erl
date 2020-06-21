@@ -1103,6 +1103,12 @@ test(36) ->
     mine_blocks(1),
     timer:sleep(200),
 
+    Tx4 = use_contract_tx:make_dict(MP, CID, -5000, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    mine_blocks(1),
+    timer:sleep(200),
+
     success.
     
 test35(_, _, _, 0) -> ok;

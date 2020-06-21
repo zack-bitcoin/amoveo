@@ -191,6 +191,7 @@
       closed = 0,
       result = <<0:256>>,
       source = <<0:256>>,
+      source_type = 0,
       volume = 0
 }).
 

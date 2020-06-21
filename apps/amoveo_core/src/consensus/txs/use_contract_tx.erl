@@ -22,7 +22,7 @@ go(Tx, Dict, NewHeight, _) ->
     amount = Amount,
     many = Many
    } = Tx,
-    Facc = accounts:dict_update(From, Dict, -Fee-Amount, Nonce),
+    Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     Contract = contracts:dict_get(CID, Dict2),
     #contract{
@@ -33,10 +33,34 @@ go(Tx, Dict, NewHeight, _) ->
       closed = Closed,
       result = Result,
       source = Source,
+      source_type = SourceType,
       volume = Volume
      } = Contract,
+    Volume2 = Volume + Amount,
+    true = Volume2 > 0,
     %we need to update source accounts, and subcurrency accounts.
-    send_sub_accounts(Many, From, CID, Amount, Dict2).
+    Contract2 = Contract#contract{
+                  volume = Volume2
+                 },
+    Dict3 = contracts:dict_write(Contract2, Dict2),
+    Dict4 = case Source of
+                <<0:256>> ->%veo type
+                    Facc2 = accounts:dict_update(From, Dict3, -Amount, none),
+                    accounts:dict_write(Facc2, Dict3);
+                CID ->
+                    Key = sub_accounts:make_key(From, CID, SourceType),
+                    OA = sub_accounts:dict_get(Key, Dict3),
+                    A2 = 
+                        case OA of
+                            empty ->
+                                true = Amount < 0,
+                                sub_accounts:new(From, -Amount, CID, SourceType);
+                            _ ->
+                                sub_accounts:dict_update(Key, Dict3, -Amount, none)
+                        end,
+                    sub_accounts:dict_write(A2, Dict3)
+            end,
+    send_sub_accounts(Many, From, CID, Amount, Dict3).
 send_sub_accounts(0, _, _, _, Dict) ->
     Dict;
 send_sub_accounts(N, From, CID, Amount, Dict) ->
