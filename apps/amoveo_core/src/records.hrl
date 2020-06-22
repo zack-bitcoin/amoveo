@@ -149,7 +149,7 @@
 
 
 
--record(resolve_contract, {contract, contract_id,  evidence}).%potentially unsigned tx.
+-record(resolve_contract_tx, {from, nonce, fee, contract, contract_id,  evidence}).
 -record(contract_timeout, {contract_id}).%possibly converts it into a new kind of contract. %possibly unsigned
 
 
