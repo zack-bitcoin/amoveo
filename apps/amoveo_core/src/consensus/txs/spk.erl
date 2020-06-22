@@ -4,6 +4,7 @@
 	 is_improvement/4, bet_unlock/2, force_update/3,
          new_ss/2, remove_bet/2, remove_nth/2, 
          verify_sig/3, sign/2, hash/1,
+         prove_facts/3,
 	 test/0, test2/0
 	]).
 

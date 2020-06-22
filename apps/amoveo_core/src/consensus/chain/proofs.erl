@@ -446,6 +446,30 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {sub_accounts, TKey},
                  {governance, ?n2i(sub_spend_tx)}
                 ];
+            resolve_contract_tx ->
+                #resolve_contract_tx{
+              from = From,
+              prove = Prove,
+              contract = Code,
+              contract_id = ContractID
+             } = Tx,
+                [{accounts, From},
+                 {contracts, ContractID},
+                 {governance, ?n2i(fun_limit)},
+                 {governance, ?n2i(var_limit)},
+                 {governance, ?n2i(time_gas)},
+                 {governance, ?n2i(space_gas)},
+                 {governance, ?n2i(resolve_contract_tx)}
+                ] ++ Prove;
+            contract_timeout_tx ->
+                #contract_timeout_tx{
+              contract_id = CID,
+              from = From
+             } = Tx,
+                [{accounts, From},
+                 {contracts, CID},
+                 {governance, ?n2i(contract_timeout_tx)}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

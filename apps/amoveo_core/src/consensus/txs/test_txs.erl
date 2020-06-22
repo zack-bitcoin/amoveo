@@ -1079,33 +1079,60 @@ test(36) ->
     timer:sleep(400),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*100,
-    Contract = <<>>,
-    CH = hash:doit(Contract),
+
+    %creating a shareable contract with subcurrencies.
+    Code = compiler_chalang:doit(<<"binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE= int 0 int 1" >>),
+    %Code = <<3,1,3,0,2,32,>>,
+    CH = hash:doit(Code),
     Many = 3, 
     Tx = new_contract_tx:make_dict(MP, CH, Many, Fee),
     CID = contracts:make_id({CH, Many}),
     Stx = keys:sign(Tx),
     absorb(Stx),
+    1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
+
+    %buying some subcurrencies from the new contract.
     Amount = 10000,
     Tx2 = use_contract_tx:make_dict(MP, CID, Amount, Fee),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
+    1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
-    
+   
+    %spending one of the subcurrency types
     Amount2 = 2000,
     {NewPub,NewPriv} = testnet_sign:new_key(),
     Tx3 = sub_spend_tx:make_dict(NewPub, Amount2, Fee, CID, 1, MP),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
+    1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
 
+    %using the contract in reverse. combining the different types back into the source currency.
     Tx4 = use_contract_tx:make_dict(MP, CID, -5000, Fee),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %a potential resolution of the contract.
+    Tx5 = resolve_contract_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+   
+    %resolve the contract because the delay timer has finished.
+    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
 
