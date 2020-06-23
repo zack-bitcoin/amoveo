@@ -470,6 +470,19 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {contracts, CID},
                  {governance, ?n2i(contract_timeout_tx)}
                 ];
+            contract_winnings_tx ->
+                #contract_winnings_tx{
+              from = From,
+              contract_id = CID,
+              sub_account = SA,
+              winner = Winner
+             } = Tx,
+                [{accounts, From},
+                 {accounts, Winner},
+                 {contracts, CID},
+                 {sub_accounts, SA},
+                 {governance, ?n2i(contract_winnings_tx)}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

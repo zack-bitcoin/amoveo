@@ -1136,6 +1136,15 @@ test(36) ->
     mine_blocks(1),
     timer:sleep(200),
 
+    %withdrawing from a resolved contract
+    SubAcc1 = sub_accounts:make_key(MP, CID, 1),
+    Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
     success.
     
 test35(_, _, _, 0) -> ok;
