@@ -34,18 +34,31 @@ go(Tx, Dict, NewHeight, _) ->
     
     Contract = contracts:dict_get(CID, Dict3),
     #contract{
+               source = Source,
+               source_type = SourceType,
                closed = Closed,
                result = Result
              } = Contract,
     false = (Closed == 0),
    
     %use Type to look into Result to see if we won.
-    case Result of
-        <<Type:256>> ->
-            %win it all.
+    case {Result, Source} of
+        {<<Type:256>>, <<0:256>>} ->
+            %win it all as veo.
             Wacc = accounts:dict_update(Winner, Dict3, Amount, none),
             accounts:dict_write(Wacc, Dict3);
-        <<_:256>> ->
+        {<<Type:256>>, <<CID:256>>} ->
+            %win it all as a different subcurrency.
+            Key = sub_accounts:make_key(Winner, CID, SourceType),
+            OA = sub_accounts:dict_get(Key, Dict3),
+            A2 = case OA of
+                     empty ->
+                         sub_accounts:new(From, Amount, CID, SourceType);
+                     _ ->
+                         sub_accounts:dict_update(Key, Dict3, Amount, none)
+                 end,
+            sub_accounts:dict_write(A2, Dict3);
+        {<<_:256>>, _} ->
             %get nothing.
             Dict3
     end.

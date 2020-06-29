@@ -426,8 +426,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 #new_contract_tx{
               from = From,
               contract_hash = CH,
+              source = S,
+              source_type = ST,
               many_types = MT} = Tx,
-                CID = contracts:make_id({CH, MT}),
+                CID = contracts:make_id(CH, MT,S,ST),
                 [{accounts, From},
                  {contracts, CID},
                  {governance, ?n2i(new_contract_tx)}

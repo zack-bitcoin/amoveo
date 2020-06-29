@@ -32,7 +32,7 @@ go(Tx, Dict, NewHeight, _) ->
       volume = Volume
      } = Contract,
     CH = hash:doit(ContractBytecode),
-    CID = contracts:make_id({CH, Many}),%verify that this is the correct code for this contract.
+    CID = contracts:make_id(CH, Many,Source,SourceType),%verify that this is the correct code for this contract.
 
     Funs = governance:dict_get_value(fun_limit, Dict2),
     Vars = governance:dict_get_value(var_limit, Dict2),
@@ -45,17 +45,22 @@ go(Tx, Dict, NewHeight, _) ->
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, <<>>, AllCode, State, constants:hash_size(), 2, false),
     case chalang:run5(AllCode, Data) of
         {error, Error} ->
-            io:fwrite("in resolve_contract_tx, contract has an error\n"),
+            io:fwrite("\n in resolve_contract_tx, contract has an error\n"),
             Dict2;
         Data2 ->
-            [<<CNonce:32>>,<<CDelay:32>>,<<CResult:256>>|_] = chalang:stack(Data2),
-            true = CNonce > ContractNonce,
-            Contract2 = Contract#contract{
-                          result = <<CResult:256>>,
-                          nonce = CNonce,
-                          delay = CDelay,
-                          last_modified = NewHeight
-                         },
-            contracts:dict_write(Contract2, Dict2)
+            case chalang:stack(Data2) of
+                [<<CNonce:32>>,<<CDelay:32>>,<<CResult:32>>|_] ->
+                    true = CNonce > ContractNonce,
+                    Contract2 = Contract#contract{
+                                  result = <<CResult:256>>,
+                                  nonce = CNonce,
+                                  delay = CDelay,
+                                  last_modified = NewHeight
+                                 },
+                    contracts:dict_write(Contract2, Dict2);
+                Output ->
+                    io:fwrite("in resolve_contract_tx, contract has invalid output\n"),
+                    Dict2
+            end
     end.
     

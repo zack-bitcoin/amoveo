@@ -1081,17 +1081,18 @@ test(36) ->
     Fee = constants:initial_fee()*100,
 
     %creating a shareable contract with subcurrencies.
-    Code = compiler_chalang:doit(<<"binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE= int 0 int 1" >>),
+    %Code = compiler_chalang:doit(<<"binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE= int 0 int 1" >>),
+    Code = compiler_chalang:doit(<<" int 3 int 0 int 1" >>),
     %Code = <<3,1,3,0,2,32,>>,
     CH = hash:doit(Code),
     Many = 3, 
     Tx = new_contract_tx:make_dict(MP, CH, Many, Fee),
-    CID = contracts:make_id({CH, Many}),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
     Stx = keys:sign(Tx),
     absorb(Stx),
     1 = many_txs(),
     mine_blocks(1),
-    timer:sleep(200),
+    timer:sleep(20),
 
     %buying some subcurrencies from the new contract.
     Amount = 10000,
@@ -1144,6 +1145,56 @@ test(36) ->
     1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
+
+    %contract priced in a subcurrency.
+    %first the parent contract.
+    %Code2 = compiler_chalang:doit(<<"int 0 binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE= int 0 int 1" >>),
+    Code2 = compiler_chalang:doit(<<" int 0 int 3 int 0 int 1" >>),
+    CH2 = hash:doit(Code2),
+    Tx8 = new_contract_tx:make_dict(MP, CH2, Many, Fee),
+    Stx8 = keys:sign(Tx8),
+    CID2 = contracts:make_id(CH2, Many,<<0:256>>,0),
+    absorb(Stx8),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %now the child currency, built off the 3rd subtype.
+    Tx9 = new_contract_tx:make_dict(MP, CH, 2, CID2, 3, Fee),
+    Stx9 = keys:sign(Tx9),
+    CID3 = contracts:make_id(CH, 2,CID2,3),
+    absorb(Stx9),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    %potential resolutions
+    Tx10 = resolve_contract_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    1 = many_txs(),
+    %mine_blocks(1),
+    timer:sleep(50),
+
+    Tx11 = resolve_contract_tx:make_dict(MP, Code, CID3, <<>>, [], Fee),
+    Stx11 = keys:sign(Tx11),
+    absorb(Stx11),
+    2 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    %resolve the contract because the delay timer has finished.
+    Tx12 = contract_timeout_tx:make_dict(MP, CID2, Fee),
+    Stx12 = keys:sign(Tx12),
+    absorb(Stx12),
+    1 = many_txs(),
+    Tx13 = contract_timeout_tx:make_dict(MP, CID3, Fee),
+    Stx13 = keys:sign(Tx13),
+    absorb(Stx13),
+    2 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
 
     success.
     

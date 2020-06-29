@@ -1,10 +1,11 @@
 -module(contracts).
--export([new/2, code/1, many_types/1, last_modified/1, nonce/1, delay/1, volume/1, closed/1, %custom for this tree
+-export([new/4, new/2,
+         code/1, many_types/1, last_modified/1, nonce/1, delay/1, volume/1, closed/1, %custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/9, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
-         make_id/1,
+         make_id/1,make_id/4,
 	 all/0,
 	 test/0]).%common tree stuff
 %This is the part of the channel that is written onto the hard drive.
@@ -49,7 +50,17 @@ dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
     C.
     
 new(Code, Many) ->
-    #contract{code = Code, many_types = Many}.
+    new(Code, Many, <<0:256>>, 0).
+new(Code, Many, Source, SourceType) ->
+    case Source of
+        <<0:256>> ->
+            SourceType = 0;
+        <<_:256>> ->
+            true = is_integer(SourceType)
+    end,
+    #contract{code = Code, many_types = Many,
+             source = Source,
+             source_type = SourceType}.
 serialize(C) ->
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
@@ -123,12 +134,18 @@ key_to_int(X) ->
 make_id(X = #contract{}) ->
     Code = X#contract.code,
     32 = size(Code),
-    hash:doit(<<Code/binary,
-                (X#contract.many_types):16>>);
-make_id({Code, MT}) ->
-    32 = size(Code),
-    hash:doit(<<Code/binary,
-                MT:16>>).
+    make_id(X#contract.code,
+            X#contract.many_types,
+            X#contract.source,
+            X#contract.source_type).
+
+make_id(C,MT,S,ST) ->
+    <<_:256>> = C,
+    <<_:256>> = S,
+    hash:doit(<<C/binary,
+                S/binary,
+                MT:16,
+                ST:16>>).
     
 
 dict_get(Key, Dict) ->

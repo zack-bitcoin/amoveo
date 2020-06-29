@@ -138,7 +138,7 @@
 		     governance, 
 		     governance_amount}).
 
--record(new_contract_tx, {from, nonce, fee, contract_hash, many_types}).
+-record(new_contract_tx, {from, nonce, fee, contract_hash, many_types, source, source_type}).
 -record(use_contract_tx, {from, nonce, fee, contract_id, amount, many}).
 -record(sub_spend_tx, {from, nonce, fee, to, amount, contract, type}).
 
