@@ -135,7 +135,7 @@ doit({txs, [Tx]}) ->
     Y = case X of
 	    ok -> hash:doit(testnet_sign:data(Tx));
 	    _ -> <<"error">>
-		     end,
+        end,
     {ok, Y};
 doit({txs, Txs}) ->
     ok = tx_pool_feeder:absorb(Txs),

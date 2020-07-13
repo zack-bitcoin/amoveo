@@ -47,10 +47,13 @@ handle(Req, State) ->
 	       <<"/otc_finisher_old.html">> -> true;
 	       <<"/otc_finisher_old.js">> -> true;
 	       <<"/otc_finisher.js">> -> true;
+	       <<"/otc_finisher2.js">> -> true;
 	       <<"/otc_listener.js">> -> true;
+	       <<"/otc_listener2.js">> -> true;
 	       <<"/otc_listener.html">> -> true;
 	       <<"/otc_derivatives.html">> -> true;
 	       <<"/otc_derivatives.js">> -> true;
+	       <<"/otc_derivatives2.js">> -> true;
 	       <<"/sign_tx.js">> -> true;
                <<"/secrets.js">> -> true;
                <<"/js_loader.js">> -> true;
@@ -72,6 +75,8 @@ handle(Req, State) ->
                <<"/files.js">> -> true;
                <<"/rpc.js">> -> true;
                <<"/oracles.js">> -> true;
+               <<"/oracle_list.js">> -> true;
+               <<"/active_oracles.js">> -> true;
                <<"/channels.js">> -> true;
                <<"/headers.js">> -> true;
                <<"/server.js">> -> true;
@@ -84,6 +89,7 @@ handle(Req, State) ->
                <<"/create_account.js">> -> true;
                <<"/delete_account.js">> -> true;
                <<"/keys.js">> -> true;
+               <<"/keys2.js">> -> true;
                <<"/sjcl.js">> -> true;
                <<"/crypto.js">> -> true;
                <<"/lookup_account.js">> -> true;
@@ -103,6 +109,12 @@ handle(Req, State) ->
                <<"/BigInteger.js">> -> true;
                <<"/big_int_test.js">> -> true;
                <<"/logo_512x512.png">> -> true;
+               <<"/add_modifications.js">> -> true;
+               <<"/glossary2.js">> -> true;
+               <<"/trading.js">> -> true;
+               <<"/loop.js">> -> true;
+               <<"/utils.js">> -> true;
+               <<"/add.js">> -> true;
                X -> 
                    %io:fwrite("ext file handler block access to: "),
                    %io:fwrite(X),
