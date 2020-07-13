@@ -111,7 +111,7 @@ handle(Req, State) ->
                <<"/logo_512x512.png">> -> true;
                <<"/add_modifications.js">> -> true;
                <<"/glossary2.js">> -> true;
-               <<"/trading.js">> -> true;
+               <<"/trading.html">> -> true;
                <<"/loop.js">> -> true;
                <<"/utils.js">> -> true;
                <<"/add.js">> -> true;
