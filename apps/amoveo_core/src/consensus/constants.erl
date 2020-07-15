@@ -103,7 +103,7 @@ contract_size() ->
           channel_nonce_bits() + 
           height_bits() + 
           channel_delay_bits()) div 8) + 
-        1 + 4 + (3 * hash_size()) + 2.
+        1 + 1 + 4 + (3 * hash_size()) + 2.
 channel_size() ->    
     (((balance_bits()*3) + channel_nonce_bits() + 
       (height_bits()) + 

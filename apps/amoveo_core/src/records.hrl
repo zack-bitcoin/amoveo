@@ -150,8 +150,8 @@
 
 
 -record(resolve_contract_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
--record(contract_timeout_tx, {from, nonce, fee, contract_id}).%possibly converts it into a new kind of contract. %possibly unsigned
--record(contract_winnings_tx, {from, nonce, fee, contract_id, amount, sub_account, winner}).
+-record(contract_timeout_tx, {from, nonce, fee, contract_id, proof}).%possibly converts it into a new kind of contract. %possibly unsigned
+-record(contract_winnings_tx, {from, nonce, fee, contract_id, amount, sub_account, winner, proof}).
 
 
 
@@ -190,7 +190,8 @@
       delay = 0,
       closed = 0,
       result = <<0:256>>,%if result is an integer in (0,many_types], then all the money goes to that type.
-      %otherwise, result can be the contract_id of some other contract that has the same source and source_type.
+      resolve_to_source = 1,
+      %otherwise, result can be a merkle root of a tree that describes some other contract with the same source and source_type.
       %or, the result can be the hash of a merkle structure describing how the value is divided up among the participants.
       source = <<0:256>>,
       source_type = 0,

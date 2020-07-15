@@ -1,5 +1,5 @@
 -module(resolve_contract_tx).
--export([go/4, make_dict/6]).
+-export([go/4, make_dict/6, make_tree/2, serialize_row/2]).
 -include("../../records.hrl").
 
 make_dict(From, Contract, CID, Evidence, Prove, Fee) ->
@@ -40,14 +40,54 @@ go(Tx, Dict, NewHeight, _) ->
         Data2 ->
             case chalang:stack(Data2) of
                 [<<CNonce:32>>,<<CDelay:32>>,<<CResult:32>>|_] when (CNonce > ContractNonce) ->
-                    %all the money goes to one user
+                    %all the source currency goes to the holders of one subcurrency
                     Contract2 = Contract#contract{
                                   result = <<CResult:256>>,
+                                  resolve_to_source = 1,
                                   nonce = CNonce,
                                   delay = CDelay,
                                   last_modified = NewHeight
                                  },
                     contracts:dict_write(Contract2, Dict2);
+                [<<CNonce:32>>,<<CDelay:32>>,PayoutVector|_] when (is_list(PayoutVector)) ->
+                    %the source currency is divided up between the subcurrencies according to a payout vector.
+                    B1 = CNonce > ContractNonce,
+                    B2 = (Many == length(PayoutVector)),
+                    TwoE32 = 4294967295,%(2**32 - 1) highest expressible value in chalang integers. payout quantities need to sum to this.
+                    B3 = sum_vector(TwoE32, PayoutVector),
+                    B4 = B1 and B2 and B3,
+                    if
+                        not(B4) ->
+                            if
+                                not(B1) -> io:fwrite("resolve contract tx, vector case, nonce is too low to update\n");
+                                not(B2) -> io:fwrite("resove_contract_tx, payout vector is the wrong length\n");
+                                not(B3) -> io:fwrite("resolve_contract_tx, payout vector doesn't conserve the total quantity of veo.")
+                            end,
+                            Dict2;
+                        Many =< 32 ->
+                            Contract2 = Contract#contract{
+                                          result = hash:doit(packer:pack(PayoutVector)),
+                                          resolve_to_source = 1,
+                                          nonce = CNonce,
+                                          delay = CDelay,
+                                          last_modified = NewHeight
+                                         },
+                            contracts:dict_write(Contract2, Dict2);
+                        true ->
+                            %the payout vector is very long. it is more efficient to use merkle trees to specify which one we want.
+                            MT = mtree:new_empty(5, 8, 0),
+                            Leaves = make_vector_leaves(PayoutVector, MT),
+                            {MRoot, M2} = mtree:store_batch(Leaves, 1, MT),
+                            RootHash = mtree:root_hash(MRoot, M2),
+                            Contract2 = Contract#contract{
+                                          result = RootHash,
+                                          resolve_to_source = 1,
+                                          nonce = CNonce,
+                                          delay = CDelay,
+                                          last_modified = NewHeight
+                                         },
+                            contracts:dict_write(Contract2, Dict2)
+                    end;
                 [<<CNonce:32>>,<<CDelay:32>>,<<ResultCH:256>>,Matrix|_] ->
                     %contract is being converted into a different contract defined by ResultCH and the length of rows in the matrix.
                     %for every subcurrency type in the original contract, we need to specify a rule for how many of which kinds of subcurrency they will receive in the new contract. We use a matrix for this. Each row is for one original subcurrency.
@@ -70,27 +110,24 @@ go(Tx, Dict, NewHeight, _) ->
                             end,
                             Dict2;
                         true ->
-                    
-                            RCID = contracts:make_id(<<ResultCH:256>>, RMany,Source,SourceType),
-                            RContract = contracts:dict_get(RCID, Dict2),
-                            RContract2 = 
-                                case RContract of
-                                    empty ->
-                                   %the resultCID doesn't exist, create that shareable contract.
-                                        contracts:new(<<ResultCH:256>>, RMany, Source, SourceType);
-                                    _ -> RContract
-                                end,
-                            MT = mtree:new_empty(5, 32, 0),
-                            Leaves = make_leaves(RCID, Matrix, MT),
-                            {MRoot, M2} = mtree:store_batch(Leaves, 1, MT),
+                   
+                            %RCID = contracts:make_id(<<ResultCH:256>>, RMany,Source,SourceType),
+
+                            {MRoot, M2} = make_tree(<<ResultCH:256>>, Matrix), 
+
+                            %MT = mtree:new_empty(5, 32, 0),
+                            %Leaves = make_leaves(RCID, Matrix, MT),
+                            %{MRoot, M2} = mtree:store_batch(Leaves, 1, MT),
+
                             RootHash = mtree:root_hash(MRoot, M2),
-                            RContract3 = RContract#contract{
-                                           result = RootHash,
-                                           nonce = CNonce,
-                                           delay = CDelay,
-                                           last_modified = NewHeight
-                                          },
-                            contracts:dict_write(RContract3, Dict2)
+                            Contract2 = Contract#contract{
+                                          result = RootHash,
+                                          resolve_to_source = 0,
+                                          nonce = CNonce,
+                                          delay = CDelay,
+                                          last_modified = NewHeight
+                                         },
+                            contracts:dict_write(Contract2, Dict2)
                     end;
                 Output ->
                     io:fwrite("in resolve_contract_tx, contract has invalid output\n"),
@@ -107,22 +144,22 @@ all_lengths(L, [H|T]) ->
         true -> false
     end.
 
-column_sum(_, [[]|_]) -> ok;
+column_sum(_, [[]|_]) -> true;
 column_sum(N, M) -> 
-    N = column_sum2(0, M),
+    B = (N == column_sum2(0, M)),
     M2 = tails(M),
-    column_sum(N, M2).
+    B and column_sum(N, M2).
 column_sum2(N, []) -> N;
-column_sum2(N, [[H|_]|R]) ->
+column_sum2(N, [[<<H:32>>|_]|R]) ->
     column_sum2(H+N, R).
 tails([]) -> [];
 tails([H|T]) -> 
     [tl(H)|tails(T)].
 
-make_leaves(CID, Matrix, MT) ->
+make_leaves(CH, Matrix, MT) ->
     CFG = mtree:cfg(MT),
-    L1 =  leaf:new(1, CID, 0, CFG),
-    make_leaves2([L1], 2, Matrix, CFG).
+    L1 =  leaf:new(0, CH, 0, CFG),
+    make_leaves2([L1], 1, Matrix, CFG).
 make_leaves2(X, _, [], _) -> X;
 make_leaves2(X, N, [R|T], CFG) -> 
     SR = serialize_row(R, <<>>),
@@ -130,7 +167,7 @@ make_leaves2(X, N, [R|T], CFG) ->
     L = leaf:new(N, RH, 0, CFG),
     make_leaves2([L|X], N+1, T, CFG).
 serialize_row([], B) -> B;
-serialize_row([H|T], A) -> 
+serialize_row([<<H:32>>|T], A) -> 
     A2 = <<A/binary, H:32>>,
     R = serialize_row(T, A2).
 
@@ -146,4 +183,23 @@ run(NewHeight, Prove, Evidence, ContractBytecode, Dict2) ->
     AllCode = <<Evidence/binary, ProveCode/binary, ContractBytecode/binary>>,
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, <<>>, AllCode, State, constants:hash_size(), 2, false),
     chalang:run5(AllCode, Data).
+    
+sum_vector(0, []) -> true;
+sum_vector(N, [<<X:32>>|T]) when (N > 0)-> 
+    sum_vector(N - X, T);
+sum_vector(_, _) -> false.
+
+make_vector_leaves(A, MT) ->
+    CFG = mtree:cfg(MT),
+    make_vector_leaves2(A, 1, MT, CFG).
+make_vector_leaves2([], _, _, _) -> [];
+make_vector_leaves2([<<X:32>>|T], N, MT, CFG) -> 
+    L = leaf:new(N, <<X:32>>, 0, CFG),
+    [L|make_vector_leaves2(T, N+1, MT, CFG)].
+
+
+make_tree(CH, Matrix) ->
+    MT = mtree:new_empty(5, 32, 0),
+    Leaves = make_leaves(CH, Matrix, MT),
+    mtree:store_batch(Leaves, 1, MT).
     

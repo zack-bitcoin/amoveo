@@ -43,23 +43,24 @@ go(Tx, Dict, NewHeight, _) ->
                   volume = Volume2
                  },
     Dict3 = contracts:dict_write(Contract2, Dict2),
-    Dict4 = case Source of
-                <<0:256>> ->%veo type
-                    Facc2 = accounts:dict_update(From, Dict3, -Amount, none),
-                    accounts:dict_write(Facc2, Dict3);
-                CID ->
-                    Key = sub_accounts:make_key(From, CID, SourceType),
-                    OA = sub_accounts:dict_get(Key, Dict3),
-                    A2 = 
-                        case OA of
-                            empty ->
-                                true = Amount < 0,
-                                sub_accounts:new(From, -Amount, CID, SourceType);
-                            _ ->
-                                sub_accounts:dict_update(Key, Dict3, -Amount, none)
-                        end,
-                    sub_accounts:dict_write(A2, Dict3)
-            end,
+    Dict4 = 
+        case Source of
+            <<0:256>> ->%veo type
+                Facc2 = accounts:dict_update(From, Dict3, -Amount, none),
+                accounts:dict_write(Facc2, Dict3);
+            CID ->
+                Key = sub_accounts:make_key(From, CID, SourceType),
+                OA = sub_accounts:dict_get(Key, Dict3),
+                A2 = 
+                    case OA of
+                        empty ->
+                            true = Amount < 0,
+                            sub_accounts:new(From, -Amount, CID, SourceType);
+                        _ ->
+                            sub_accounts:dict_update(Key, Dict3, -Amount, none)
+                    end,
+                sub_accounts:dict_write(A2, Dict3)
+        end,
     send_sub_accounts(Many, From, CID, Amount, Dict3).
 send_sub_accounts(0, _, _, _, Dict) ->
     Dict;

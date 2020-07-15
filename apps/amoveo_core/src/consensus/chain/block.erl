@@ -1349,7 +1349,11 @@ sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
 sum_amounts_helper(sub_channels, Acc, Dict, _, _) ->
     0;
 sum_amounts_helper(contracts, Acc, Dict, _, _) ->
-    Acc#contract.volume;
+    case Acc#contract.source of
+        <<0:256>> ->
+            Acc#contract.volume;
+        _ -> 0
+    end;
 sum_amounts_helper(accounts, Acc, Dict, _, _) ->
     Acc#acc.balance;
 sum_amounts_helper(channels, Chan, Dict, _, _) ->

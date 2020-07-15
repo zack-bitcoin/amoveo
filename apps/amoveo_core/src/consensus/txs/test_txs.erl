@@ -694,6 +694,7 @@ test(13) ->
     OID2 = oracle_new_tx:id(Tx3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
+    1 = many_txs(),
     %1=2,
     timer:sleep(100),
 
@@ -707,6 +708,7 @@ test(13) ->
     BR1 = trees:get(governance, block_reward),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
+    1 = many_txs(),
     timer:sleep(200),
     potential_block:new(),
     mine_blocks(1+MOT),
@@ -716,6 +718,7 @@ test(13) ->
     Tx5 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID2),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
+    1 = many_txs(),
     timer:sleep(50),
     potential_block:new(),
     mine_blocks(1),
@@ -731,6 +734,7 @@ test(13) ->
     OID3 = oracle_new_tx:id(Tx7),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
+    1 = many_txs(),
     potential_block:new(),
     mine_blocks(1),
     timer:sleep(50),
@@ -738,6 +742,7 @@ test(13) ->
     Tx8 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID3, 1, OIL * 2), 
     Stx8 = keys:sign(Tx8),
     absorb(Stx8),
+    1 = many_txs(),
     potential_block:new(),
     mine_blocks(1+MOT),
     timer:sleep(100),
@@ -745,6 +750,7 @@ test(13) ->
     Tx9 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID3),
     Stx9 = keys:sign(Tx9),
     absorb(Stx9),
+    1 = many_txs(),
     timer:sleep(50),
 
     BR3 = trees:get(governance, block_reward),
@@ -1075,6 +1081,9 @@ test(35) ->
     timer:now_diff(T2, T1);
 test(36) ->
     %new contract test
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
     mine_blocks(4),
     timer:sleep(400),
     MP = constants:master_pub(),
@@ -1138,7 +1147,7 @@ test(36) ->
     timer:sleep(200),
 
     %withdrawing from a resolved contract
-    SubAcc1 = sub_accounts:make_key(MP, CID, 1),
+    SubAcc1 = sub_accounts:make_key(MP, CID, 3),
     Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
@@ -1194,8 +1203,113 @@ test(36) ->
     2 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
-    
 
+    success;
+
+test(37) ->
+    %make a contract, the resolution process should generate a different contract. then withdraw from that second contract.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    %Max = round(math:pow(2, 32)) - 1, 4294967295
+    %HalfMax = Max div 2, 2147483647
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 2147483648 ,\
+  int 2147483647 ]\
+  int 0 int 1" >>),%splits the money 50-50
+    CH2 = hash:doit(Code2),
+
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 0 , int 4294967295 ] ,\
+  [ int 4294967295 , int 0 ] ,\
+  [ int 0 , int 0 ] ]\
+binary 32 ",  
+               (base64:encode(CH2))/binary, 
+               " int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Many = 3, 
+    Tx = new_contract_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %buying some subcurrencies from the new contract.
+    Amount = 10000,
+    Tx2 = use_contract_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    %potential resolution of first contract
+    Tx3 = resolve_contract_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %timeout first contract.
+    Type = 1,
+    Full = <<4294967295:32>>,
+    Empty = <<0:32>>,
+    Matrix = [[Empty, Full],
+              [Full, Empty],
+              [Empty, Empty]],
+    {Root, MT} = resolve_contract_tx:make_tree(CH2, Matrix), 
+    CFG = mtree:cfg(MT),
+    MerkleProof1 = 
+        mtree:get(leaf:path_maker(Type, CFG),
+                  Root,
+                  MT),
+    MerkleProof2 = 
+        mtree:get(leaf:path_maker(0, CFG),
+                  Root,
+                  MT),
+    {_, CH2Leaf, Proof2_2} = MerkleProof2,
+    CH2 = leaf:value(CH2Leaf),
+    Proofs = {[Empty, Full], MerkleProof1, MerkleProof2},
+    Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %TODO
+    %withdraw one kind of winnings from first contract into the second
+    %we need to rebuild the merkle tree so that we can make the proofs we need for the contract_winnings tx.
+
+
+    SubAcc1 = sub_accounts:make_key(MP, CID, Type),
+    Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, Proofs),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+
+    %potential resolution of second contract
+    %timeout second
+    %withdraw to veo
+
+    %simplify by matrix multiplication
+    %withdraw the second kind of subcurrency directly to veo.
     success.
     
 test35(_, _, _, 0) -> ok;
