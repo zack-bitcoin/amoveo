@@ -1316,7 +1316,7 @@ binary 32 ",
     absorb(Stx8),
     1 = many_txs(),
     mine_blocks(1),
-    timer:sleep(500),
+    timer:sleep(300),
     0 = many_txs(),
     
 
@@ -1330,8 +1330,19 @@ binary 32 ",
     timer:sleep(200),
 
 
-
     %withdraw to veo
+    PayoutVector = 
+        [<<2147483648:32>>, 
+         <<2147483647:32>>],
+    SubAcc2 = sub_accounts:make_key(MP, CID2, 2),
+    Tx10 = contract_winnings_tx:make_dict(MP, SubAcc2, CID2, Fee, PayoutVector),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    io:fwrite(packer:pack(Stx10)),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
 
     %simplify by matrix multiplication
     %withdraw the second kind of subcurrency directly to veo.

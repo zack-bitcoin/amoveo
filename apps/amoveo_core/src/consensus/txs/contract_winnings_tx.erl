@@ -65,7 +65,11 @@ go(Tx, Dict, NewHeight, _) ->
                      _ ->
                          sub_accounts:dict_update(Key, Dict3, Amount, none)
                  end,
-            sub_accounts:dict_write(A2, Dict3);
+            Dict4 = sub_accounts:dict_write(A2, Dict3),
+            Contract2 = Contract#contract{
+                          volume = V1 - Amount
+                         },
+            contracts:dict_write(Contract2, Dict4);
         {<<MRoot:256>>, Source} ->
             case Proof of
                 {Row, 
@@ -88,31 +92,54 @@ go(Tx, Dict, NewHeight, _) ->
                                 {C, contracts:dict_write(C, Dict3)};
                             _ -> {RContract, Dict3}
                         end,
-                    RowSum = lists:foldl(fun(<<A:32>>, B) -> A + B end, 0, Row),
+                    %RowSum = lists:foldl(fun(<<A:32>>, B) -> A + B end, 0, Row),
                     CID2 = contracts:make_id(RContract1),
-                    payout_row(Winner, CID2, Row, Dict4, 1);
+                    payout_row(Winner, CID2, Row, Dict4, 1, Amount);
                 PayoutVector ->
                     io:fwrite("contract winnings: payout vector"),
                     io:fwrite(packer:pack(PayoutVector)),
                     io:fwrite("\n"),
-                    <<MRoot:256>> = hash:doit(PayoutVector),
-                    %TODO
-                    %payout in the source currency.
-                    1=2,
-                    ok
+                    <<MRoot:256>> = hash:doit(resolve_contract_tx:serialize_row(PayoutVector, <<>>)),
+                    <<A:32>> = lists:nth(Type, PayoutVector),
+                    <<Max:32>> = <<-1:32>>,
+                    Amount2 = Amount * A div Max,
+                    case Source of
+                        <<0:256>> ->%payout to veo
+                            io:fwrite("contract winnings tx. payout to veo\n"),
+                            Wacc = accounts:dict_update(Winner, Dict3, Amount2, none),
+                            Dict4 = accounts:dict_write(Wacc, Dict3),
+                            Contract2 = Contract#contract{
+                                          volume = V1 - Amount2
+                                         },
+                            contracts:dict_write(Contract2, Dict4);
+                        <<CID3:256>> ->%payout to subcurrency
+                            io:fwrite("contract winnings tx. payout to subcurrency\n"),
+                            Key = sub_accounts:make_key(Winner, CID3, SourceType),
+                            OA = sub_accounts:dict_get(Key, Dict3),
+                            A2 = case OA of
+                                     empty ->
+                                         sub_accounts:new(From, Amount2, CID3, SourceType);
+                                     _ ->
+                                         sub_accounts:dict_update(Key, Dict3, Amount2, none)
+                                 end,
+                            Dict4 = sub_accounts:dict_write(A2, Dict3),
+                            Contract2 = Contract#contract{
+                                          volume = V1 - Amount2
+                                         },
+                            contracts:dict_write(Contract2, Dict4)
+                        end
             end;
         {<<_:256>>, _} ->
-            %get nothing.
-            %sub_account is deleted.
-            1=2,
-            Dict3
+            1=2
     end.
     
 
-payout_row(_, _, [], Dict, _) -> Dict;
-payout_row(Winner, CID, Row, Dict, N) ->
+payout_row(_, _, [], Dict, _, _) -> Dict;
+payout_row(Winner, CID, Row, Dict, N, Amount) ->
     ToKey = sub_accounts:make_key(Winner, CID, N),
-    <<A:32>> = hd(Row),
+    <<A0:32>> = hd(Row),
+    <<Max:32>> = <<-1:32>>,
+    A = A0 * Amount div Max,
     Dict2 = 
         if
             A == 0 -> %if you receive 0, then don't change anything.
@@ -131,4 +158,4 @@ payout_row(Winner, CID, Row, Dict, N) ->
                 io:fwrite("\n"),
                 sub_accounts:dict_write(Acc, Dict)
         end,
-    payout_row(Winner, CID, tl(Row), Dict2, N+1).
+    payout_row(Winner, CID, tl(Row), Dict2, N+1, Amount).

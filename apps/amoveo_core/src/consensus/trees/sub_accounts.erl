@@ -78,8 +78,10 @@ serialize(Account) ->
     HashSize = constants:hash_size(),
     CID = Account#sub_acc.contract_id,
     32 = size(CID),
+    Balance = Account#sub_acc.balance,
+    true = Balance >= 0,
     SerializedAccount =
-        <<(Account#sub_acc.balance):BalanceSize,
+        <<Balance:BalanceSize,
           (Account#sub_acc.nonce):NonceSize,
           (Account#sub_acc.type):32,
           (Account#sub_acc.pubkey)/binary,

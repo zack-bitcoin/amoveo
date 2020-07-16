@@ -493,14 +493,50 @@ txs_to_querys2([STx|T], Trees, Height) ->
               from = From,
               contract_id = CID,
               sub_account = SA,
-              winner = Winner
+              winner = Winner,
+              proof = Proof
              } = Tx,
+                SubAccs = trees:sub_accounts(Trees),
+                {_, SubAccount, _} = sub_accounts:get(SA, SubAccs),
+                #sub_acc{
+                          type = Type,
+                          pubkey = Winner,
+                          contract_id = CID%sanity check
+                        } = SubAccount,
+                Contracts = trees:contracts(Trees),
+                {_, Contract, _} = contracts:get(CID, Contracts),
+                #contract{
+                           result = Result,
+                           source = Source,
+                           source_type = SourceType
+                         } = Contract,
+                U1 = case Source of
+                         <<0:256>> ->
+                             [{accounts, Winner}];
+                         _ ->
+                             SA2 = sub_accounts:make_key(Winner, Source, SourceType),
+                             [{sub_accounts, SA2}]
+                         end,
+                U3 = case {Result, Proof} of
+                         {<<Type:256>>, _} -> 
+                        %win it as the source
+                             U1;
+                         {_, PayoutVector} when is_list(PayoutVector) ->
+                        %win it as a portion of the source
+                             U1;
+                         {MR, {Row, 
+                               {MR, RowHash, Proof2},
+                               {MR, CH2, Proof3}}} ->
+                             CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),
+                             U2 = sub_accounts_loop(Row, Winner, CID2, 1),
+                             U2 ++ [{contracts, CID2}]
+                     end,
                 [{accounts, From},
                  {accounts, Winner},
                  {contracts, CID},
-                 {sub_accounts, SA},
+                 {sub_accounts, SA},%sub_account being deleted
                  {governance, ?n2i(contract_winnings_tx)}
-                ];
+                ] ++ U3;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},
@@ -635,3 +671,10 @@ ucsa2(N, Acc, CID) ->
     [{sub_accounts, Key}] ++ 
         ucsa2(N-1, Acc, CID).
 
+sub_accounts_loop([], _, _, _) -> [];
+sub_accounts_loop([<<0:32>>|T],Winner,CID,N) -> 
+    sub_accounts_loop(T,Winner,CID,N+1);
+sub_accounts_loop([<<X:32>>|T],Winner,CID,N) -> 
+    Key = sub_accounts:make_key(Winner, CID, N),
+    [{sub_accounts, Key}|
+     sub_accounts_loop(T,Winner,CID,N+1)].

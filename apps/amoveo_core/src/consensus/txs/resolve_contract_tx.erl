@@ -66,7 +66,7 @@ go(Tx, Dict, NewHeight, _) ->
                             Dict2;
                         Many =< 32 ->
                             Contract2 = Contract#contract{
-                                          result = hash:doit(packer:pack(PayoutVector)),
+                                          result = hash:doit(serialize_row(PayoutVector, <<>>)),
                                           resolve_to_source = 1,
                                           nonce = CNonce,
                                           delay = CDelay,

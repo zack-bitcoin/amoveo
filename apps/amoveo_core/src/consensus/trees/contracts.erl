@@ -71,6 +71,14 @@ serialize(C) ->
     Result = C#contract.result,
     Many = C#contract.many_types,
     Volume = C#contract.volume,
+    ok = if
+               Volume >= 0 -> ok;
+               true -> 
+                   io:fwrite("contract serialize volume negative \n"),
+                   io:fwrite(packer:pack(Volume)),
+                   io:fwrite("\n"),
+                   false
+           end,
     Source = C#contract.source,
     SourceType = C#contract.source_type,
     32 = size(Code),
