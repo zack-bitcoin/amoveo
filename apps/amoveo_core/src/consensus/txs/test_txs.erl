@@ -1264,6 +1264,7 @@ binary 32 ",
     timer:sleep(200),
 
     %timeout first contract.
+    %we need to rebuild the merkle tree so that we can make the proofs we need.
     Type = 1,
     Full = <<4294967295:32>>,
     Empty = <<0:32>>,
@@ -1299,7 +1300,6 @@ binary 32 ",
 
 
     %withdraw one kind of winnings from first contract into the second
-    %we need to rebuild the merkle tree so that we can make the proofs we need for the contract_winnings tx.
     SubAcc1 = sub_accounts:make_key(MP, CID, Type),
     Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, Proofs),
     Stx7 = keys:sign(Tx7),
@@ -1310,7 +1310,27 @@ binary 32 ",
 
 
     %potential resolution of second contract
+    CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
+    Tx8 = resolve_contract_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(500),
+    0 = many_txs(),
+    
+
+
     %timeout second
+    Tx9 = contract_timeout_tx:make_dict(MP, CID2, Fee),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+
+
     %withdraw to veo
 
     %simplify by matrix multiplication

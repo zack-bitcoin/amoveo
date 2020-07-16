@@ -477,8 +477,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                            resolve_to_source = RTS
                          } = Contract,
                 U = case RTS of
-                        0 -> [];
-                        1 ->
+                        1 -> [];
+                        0 ->
                             {Row, _, {_, CH2, _}} = Proof,
                             ManyTypes = length(Row),
                             CID2 = contracts:make_id(CH2, ManyTypes, Source, SourceType),
