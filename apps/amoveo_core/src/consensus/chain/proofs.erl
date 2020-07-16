@@ -466,12 +466,28 @@ txs_to_querys2([STx|T], Trees, Height) ->
             contract_timeout_tx ->
                 #contract_timeout_tx{
               contract_id = CID,
+              proof = Proof,
               from = From
              } = Tx,
+                Contracts = trees:contracts(Trees),
+                {_, Contract, _} = contracts:get(CID, Contracts),
+                #contract{
+                           source = Source,
+                           source_type = SourceType,
+                           resolve_to_source = RTS
+                         } = Contract,
+                U = case RTS of
+                        0 -> [];
+                        1 ->
+                            {Row, _, {_, CH2, _}} = Proof,
+                            ManyTypes = length(Row),
+                            CID2 = contracts:make_id(CH2, ManyTypes, Source, SourceType),
+                            [{contracts, CID2}]
+                    end,
                 [{accounts, From},
                  {contracts, CID},
                  {governance, ?n2i(contract_timeout_tx)}
-                ];
+                ] ++ U;
             contract_winnings_tx ->
                 #contract_winnings_tx{
               from = From,

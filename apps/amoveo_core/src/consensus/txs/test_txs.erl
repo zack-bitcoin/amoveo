@@ -1267,22 +1267,29 @@ binary 32 ",
     Type = 1,
     Full = <<4294967295:32>>,
     Empty = <<0:32>>,
-    Matrix = [[Empty, Full],
-              [Full, Empty],
-              [Empty, Empty]],
+    Matrix = %same matrix from inside the forth code.
+        [[Empty, Full],
+         [Full, Empty],
+         [Empty, Empty]],
     {Root, MT} = resolve_contract_tx:make_tree(CH2, Matrix), 
     CFG = mtree:cfg(MT),
-    MerkleProof1 = 
-        mtree:get(leaf:path_maker(Type, CFG),
+    %MerkleProof1 = 
+    {MP_R, Leaf1, Proof1} = 
+        mtree:get(leaf:path_maker(1, CFG),
                   Root,
                   MT),
-    MerkleProof2 = 
+    %MerkleProof2 = 
+    {MP_R, Leaf2, Proof2} =
         mtree:get(leaf:path_maker(0, CFG),
                   Root,
                   MT),
-    {_, CH2Leaf, Proof2_2} = MerkleProof2,
-    CH2 = leaf:value(CH2Leaf),
-    Proofs = {[Empty, Full], MerkleProof1, MerkleProof2},
+    %{_, CH2Leaf, Proof2_2} = MerkleProof2,
+    CH2 = leaf:value(Leaf2),
+    Proofs = {[Empty, Full], 
+              %MerkleProof1, 
+              {MP_R, leaf:value(Leaf1), Proof1},
+              {MP_R, CH2, Proof2}},
+              %MerkleProof2},
     Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
@@ -1290,11 +1297,9 @@ binary 32 ",
     mine_blocks(1),
     timer:sleep(200),
 
-    %TODO
+
     %withdraw one kind of winnings from first contract into the second
     %we need to rebuild the merkle tree so that we can make the proofs we need for the contract_winnings tx.
-
-
     SubAcc1 = sub_accounts:make_key(MP, CID, Type),
     Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, Proofs),
     Stx7 = keys:sign(Tx7),

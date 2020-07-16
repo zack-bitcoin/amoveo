@@ -1,5 +1,5 @@
 -module(contract_winnings_tx).
--export([go/4, make_dict/4]).
+-export([go/4, make_dict/4, make_dict/5]).
 -include("../../records.hrl").
 %-record(contract_winnings_tx, {from, nonce, fee, contract_id, amount}).
 
@@ -45,10 +45,6 @@ go(Tx, Dict, NewHeight, _) ->
              } = Contract,
     false = (Closed == 0),
    
-    io:fwrite("contract winings tx result source\n"),
-    <<Type2:256>> = Result,
-    io:fwrite(packer:pack({Type, Type2})),
-    io:fwrite("\n"),
     %use Type to look into Result to see if we won.
     case {Result, Source} of
         {<<Type:256>>, <<0:256>>} ->
@@ -72,13 +68,17 @@ go(Tx, Dict, NewHeight, _) ->
             sub_accounts:dict_write(A2, Dict3);
         {<<MRoot:256>>, Source} ->
             case Proof of
-                {{<<MRoot:256>>, Row, Proof2},
+                {Row, 
+                 {<<MRoot:256>>, RowHash, Proof2},
                  {_, CH2, Proof3}}->
                     %it is a matrix
                     MT = mtree:new_empty(5, 32, 0),
                     CFG = mtree:cfg(MT),
-                    true = verify:proof(<<MRoot:256>>, Row, Proof2, CFG),
-                    true = verify:proof(<<MRoot:256>>, CH2, Proof3, CFG),
+                    RowLeaf = leaf:new(1, RowHash, 0, CFG),
+                    CH2Leaf = leaf:new(0, CH2, 0, CFG),
+                    
+                    true = verify:proof(<<MRoot:256>>, RowLeaf, Proof2, CFG),
+                    true = verify:proof(<<MRoot:256>>, CH2Leaf, Proof3, CFG),
                     CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),
                     RContract = contracts:dict_get(CID2, Dict3),
                     {RContract1, Dict4} = 
@@ -88,7 +88,7 @@ go(Tx, Dict, NewHeight, _) ->
                                 {C, contracts:dict_write(C, Dict3)};
                             _ -> {RContract, Dict3}
                         end,
-                    RowSum = lists:foldl(fun(A, B) -> A + B end, 0, Row),
+                    RowSum = lists:foldl(fun(<<A:32>>, B) -> A + B end, 0, Row),
                     CID2 = contracts:make_id(RContract1),
                     payout_row(Winner, CID2, Row, Dict4, 1);
                 PayoutVector ->
@@ -112,7 +112,23 @@ go(Tx, Dict, NewHeight, _) ->
 payout_row(_, _, [], Dict, _) -> Dict;
 payout_row(Winner, CID, Row, Dict, N) ->
     ToKey = sub_accounts:make_key(Winner, CID, N),
-    A = hd(Row),
-    Acc = sub_accounts:dict_update(ToKey, Dict, A, none),
-    Dict2 = sub_accounts:dict_write(Acc, Dict),
+    <<A:32>> = hd(Row),
+    Dict2 = 
+        if
+            A == 0 -> %if you receive 0, then don't change anything.
+                Dict;
+            A > 0 ->
+                Acc = 
+                    case sub_accounts:dict_get(ToKey, Dict) of
+                        empty -> %if the acccount doesn't exist, create it.
+                            sub_accounts:new(Winner, A, CID, N);
+                        X -> X#sub_acc{
+                               balance = X#sub_acc.balance + A
+                              }
+                    end,
+                io:fwrite("contract winnings sub acc is "),
+                io:fwrite(packer:pack(Acc)),
+                io:fwrite("\n"),
+                sub_accounts:dict_write(Acc, Dict)
+        end,
     payout_row(Winner, CID, tl(Row), Dict2, N+1).
