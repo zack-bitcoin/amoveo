@@ -152,6 +152,7 @@
 -record(resolve_contract_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
 -record(contract_timeout_tx, {from, nonce, fee, contract_id, proof}).%possibly converts it into a new kind of contract. %possibly unsigned
 -record(contract_winnings_tx, {from, nonce, fee, contract_id, amount, sub_account, winner, proof}).
+-record(contract_simplify_tx, {from, nonce, fee, cid, cid2, cid3, m1, m2}).
 
 
 

@@ -479,9 +479,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 U = case RTS of
                         1 -> [];
                         0 ->
-                            {Row, _, {_, CH2, _}} = Proof,
-                            ManyTypes = length(Row),
-                            CID2 = contracts:make_id(CH2, ManyTypes, Source, SourceType),
+                            {_, _, {_, CID2, _}} = Proof,
+                            %ManyTypes = length(Row),
+                            %CID2 = contracts:make_id(CH2, ManyTypes, Source, SourceType),
                             [{contracts, CID2}]
                     end,
                 [{accounts, From},
@@ -524,10 +524,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                          {_, PayoutVector} when is_list(PayoutVector) ->
                         %win it as a portion of the source
                              U1;
-                         {MR, {Row, 
-                               {MR, RowHash, Proof2},
-                               {MR, CH2, Proof3}}} ->
-                             CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),
+                         {MR, {{Row, _}, 
+                               _,%{MR, RowHash, Proof2},
+                               {MR, CID2, Proof3}}} ->
+                             %CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),
                              U2 = sub_accounts_loop(Row, Winner, CID2, 1),
                              U2 ++ [{contracts, CID2}]
                      end,

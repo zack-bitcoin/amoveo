@@ -72,30 +72,41 @@ go(Tx, Dict, NewHeight, _) ->
             contracts:dict_write(Contract2, Dict4);
         {<<MRoot:256>>, Source} ->
             case Proof of
-                {Row, 
+                {{Row, CH2},%Row, 
                  {<<MRoot:256>>, RowHash, Proof2},
-                 {_, CH2, Proof3}}->
+                 {<<MRoot:256>>, CID2, Proof3}}->
                     %it is a matrix
                     MT = mtree:new_empty(5, 32, 0),
                     CFG = mtree:cfg(MT),
+                    CH2Leaf = leaf:new(0, CID2, 0, CFG),
                     RowLeaf = leaf:new(1, RowHash, 0, CFG),
-                    CH2Leaf = leaf:new(0, CH2, 0, CFG),
-                    
                     true = verify:proof(<<MRoot:256>>, RowLeaf, Proof2, CFG),
                     true = verify:proof(<<MRoot:256>>, CH2Leaf, Proof3, CFG),
-                    CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),
-                    RContract = contracts:dict_get(CID2, Dict3),
-                    {RContract1, Dict4} = 
-                        case RContract of
+                    
+                    RContract0 = contracts:dict_get(CID2, Dict3),
+                    Dict4 = 
+                        case RContract0 of
                             empty ->
-                                C = contracts:new(CH2, length(Row), Source, SourceType),
-                                {C, contracts:dict_write(C, Dict3)};
-                            _ -> {RContract, Dict3}
+                                CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),%to verify CH2
+                                RMany = length(Row),
+                                C = contracts:new(CH2, RMany, Source, SourceType),
+                                contracts:dict_write(C, Dict3);
+                            _ -> Dict3
                         end,
+                                %RContract = contracts:dict_get(CID2, Dict3),
+                   % {RContract1, Dict4} = 
+                   %     case RContract of
+                   %         empty ->
+
+%
+%                                C = contracts:new(CH2, length(Row), Source, SourceType),
+%                                {C, contracts:dict_write(C, Dict3)};
+%                            _ -> {RContract, Dict3}
+%                        end,
                     %RowSum = lists:foldl(fun(<<A:32>>, B) -> A + B end, 0, Row),
-                    CID2 = contracts:make_id(RContract1),
+%                    CID2 = contracts:make_id(RContract1),
                     payout_row(Winner, CID2, Row, Dict4, 1, Amount);
-                PayoutVector ->
+                PayoutVector when is_list(PayoutVector) ->
                     io:fwrite("contract winnings: payout vector"),
                     io:fwrite(packer:pack(PayoutVector)),
                     io:fwrite("\n"),

@@ -26,7 +26,7 @@ go(Tx, Dict, NewHeight, _) ->
                resolve_to_source = RTS,
                source = Source,
                source_type = SourceType,
-               result = Result,
+               %result = Result,
                closed = 0
    } = Contract,
     true = (LM + Delay) < NewHeight,
@@ -45,22 +45,26 @@ go(Tx, Dict, NewHeight, _) ->
                          },
             MT = mtree:new_empty(5, 32, 0),
             CFG = mtree:cfg(MT),
-            {Row,
-             {Result, RowHash, Proof1}, 
-             {Result, CH2, Proof2}} = Proof,
-            RowLeaf = leaf:new(1, RowHash, 0, CFG),
-            CH2Leaf = leaf:new(0, CH2, 0, CFG),
-            true = verify:proof(Result, RowLeaf, Proof1, CFG),
+            {_,
+             _, 
+             {Result, CID2, Proof2}} = Proof,
+            CH2Leaf = leaf:new(0, CID2, 0, CFG),
             true = verify:proof(Result, CH2Leaf, Proof2, CFG),
-            RowHash = leaf:value(RowLeaf),
-            RowHash = hash:doit(resolve_contract_tx:serialize_row(Row, <<>>)),
-            CH2 = leaf:value(CH2Leaf),
-            RMany = length(Row),
-            CID2 = contracts:make_id(CH2, RMany, Source, SourceType),%we are moving the value from the old contract into this new one.
+            %CH2 = leaf:value(CH2Leaf),
             Contract4_0 = contracts:dict_get(CID2, Dict2),
             Contract4 = 
                 case Contract4_0 of
-                    empty -> contracts:new(CH2, RMany, Source, SourceType);
+                    empty -> 
+                        {{Row, CH2},
+                         {Result, RowHash, Proof1}, 
+                         _} = Proof,
+                        RowLeaf = leaf:new(1, RowHash, 0, CFG),
+                        true = verify:proof(Result, RowLeaf, Proof1, CFG),
+                        RowHash = leaf:value(RowLeaf),
+                        RowHash = hash:doit(resolve_contract_tx:serialize_row(Row, <<>>)),
+                        RMany = length(Row),
+                        CID2 = contracts:make_id(CH2, RMany, Source, SourceType),%this is to verify that CH2 is correct.
+                        contracts:new(CH2, RMany, Source, SourceType);
                     X -> X
                 end,
             V2 = Contract4#contract.volume,

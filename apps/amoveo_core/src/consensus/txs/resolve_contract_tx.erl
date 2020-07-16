@@ -111,9 +111,9 @@ go(Tx, Dict, NewHeight, _) ->
                             Dict2;
                         true ->
                    
-                            %RCID = contracts:make_id(<<ResultCH:256>>, RMany,Source,SourceType),
+                            RCID = contracts:make_id(<<ResultCH:256>>, RMany,Source,SourceType),
 
-                            {MRoot, M2} = make_tree(<<ResultCH:256>>, Matrix), 
+                            {MRoot, M2} = make_tree(RCID, Matrix), 
 
                             %MT = mtree:new_empty(5, 32, 0),
                             %Leaves = make_leaves(RCID, Matrix, MT),

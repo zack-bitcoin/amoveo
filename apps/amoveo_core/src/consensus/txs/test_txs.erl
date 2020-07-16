@@ -1080,7 +1080,10 @@ test(35) ->
     T2 = erlang:now(),
     timer:now_diff(T2, T1);
 test(36) ->
-    %new contract test
+    %shareable contract test
+    %tests creating a shareable contract, resolving it, and building a shareable contract priced in a subcurrency from the first contract. 
+    %tests spending subcurrency.
+    %tests binary resolution of a contract.
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -1208,6 +1211,7 @@ test(36) ->
 
 test(37) ->
     %make a contract, the resolution process should generate a different contract. then withdraw from that second contract.
+    %tests scalar resolution of a contract.
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -1272,7 +1276,8 @@ binary 32 ",
         [[Empty, Full],
          [Full, Empty],
          [Empty, Empty]],
-    {Root, MT} = resolve_contract_tx:make_tree(CH2, Matrix), 
+    CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
+    {Root, MT} = resolve_contract_tx:make_tree(CID2, Matrix), 
     CFG = mtree:cfg(MT),
     %MerkleProof1 = 
     {MP_R, Leaf1, Proof1} = 
@@ -1285,11 +1290,11 @@ binary 32 ",
                   Root,
                   MT),
     %{_, CH2Leaf, Proof2_2} = MerkleProof2,
-    CH2 = leaf:value(Leaf2),
-    Proofs = {[Empty, Full], 
+    CID2 = leaf:value(Leaf2),
+    Proofs = {{[Empty, Full], CH2},
               %MerkleProof1, 
               {MP_R, leaf:value(Leaf1), Proof1},
-              {MP_R, CH2, Proof2}},
+              {MP_R, CID2, Proof2}},
               %MerkleProof2},
     Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs),
     Stx4 = keys:sign(Tx4),
@@ -1310,7 +1315,7 @@ binary 32 ",
 
 
     %potential resolution of second contract
-    CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
+    %CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
     Tx8 = resolve_contract_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
     Stx8 = keys:sign(Tx8),
     absorb(Stx8),
@@ -1331,20 +1336,26 @@ binary 32 ",
 
 
     %withdraw to veo
-    PayoutVector = 
+    PayoutVector = %same as payout vector defined in Forth.
         [<<2147483648:32>>, 
          <<2147483647:32>>],
     SubAcc2 = sub_accounts:make_key(MP, CID2, 2),
     Tx10 = contract_winnings_tx:make_dict(MP, SubAcc2, CID2, Fee, PayoutVector),
     Stx10 = keys:sign(Tx10),
     absorb(Stx10),
-    io:fwrite(packer:pack(Stx10)),
     1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
     
 
     %simplify by matrix multiplication
+    Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, PayoutVector, Fee), 
+    Stx11 = keys:sign(Tx11),
+    absorb(Stx11),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
     %withdraw the second kind of subcurrency directly to veo.
     success.
     
