@@ -112,8 +112,10 @@ payout_row(Winner, CID, Row, Dict, N, Amount) ->
                     case sub_accounts:dict_get(ToKey, Dict) of
                         empty -> %if the acccount doesn't exist, create it.
                             sub_accounts:new(Winner, A, CID, N);
-                        X -> X#sub_acc{
-                               balance = X#sub_acc.balance + A
+                        X -> 
+                            B = X#sub_acc.balance,
+                            X#sub_acc{
+                               balance = B + A
                               }
                     end,
                 sub_accounts:dict_write(Acc, Dict)

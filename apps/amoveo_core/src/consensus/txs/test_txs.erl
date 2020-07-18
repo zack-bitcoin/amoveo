@@ -1219,8 +1219,8 @@ int 0 int 1" >>),
     success;
 
 test(37) ->
-    %make a contract, the resolution process should generate a different contract. then withdraw from that second contract.
-    %tests scalar resolution of a contract.
+    %tests resolving a contract into a different contract.
+    %tests simplification by matrix X vector.
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -1286,13 +1286,9 @@ binary 32 ",
          [Full, Empty],
          [Empty, Empty]],
     CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
-    {Root, MT} = resolve_contract_tx:make_tree(CID2, Matrix), 
-    CFG = mtree:cfg(MT),
-    {MP_R, Leaf1, Proof1} = 
-        mtree:get(leaf:path_maker(1, CFG),
-                  Root,
-                  MT),
-    Proofs = {MP_R, leaf:value(Leaf1), Proof1},
+
+    Proofs = resolve_contract_tx:make_proof1(Matrix),
+
     Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, [Empty, Full]),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
@@ -1364,8 +1360,162 @@ binary 32 ",
     mine_blocks(1),
     timer:sleep(200),
     
-    success.
+    success;
+test(38) ->
+    %tests simplification by matrix X matrix
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    Code3 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 2147483648 ,\
+  int 2147483647 ]\
+  int 0 int 1" >>),%splits the money 50-50
+    CH3 = hash:doit(Code3),
+    Half0 = <<2147483647:32>>,
+    Half1 = <<2147483648:32>>,
+    Zero = <<0:32>>,
+    Full = <<4294967295:32>>,
+    PayoutVector = [Half1, Half0],
+
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 0 , int 0 ] ,\
+  [ int 2147483647 , int 0 ] ,\
+  [ int 2147483648 , int 4294967295 ] ]\
+binary 32 ",
+(base64:encode(CH3))/binary,
+"  int 0 int 1" >>),
+    CH2 = hash:doit(Code2),
+    Matrix2 = [[Zero, Zero],
+               [Half0, Zero],
+               [Half1, Full]],
     
+
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 2147483648 , int 0 , int 0 ] ,\
+  [ int 2147483647 , int 2147483647 , int 0 ] ,\
+  [ int 0 , int 2147483648 , int 4294967295 ] ]\
+binary 32 ",
+(base64:encode(CH2))/binary,
+"  int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Matrix = [[Half1, Zero, Zero],
+              [Half0, Half0, Zero],
+              [Zero, Half1, Full]],
+
+    Tx1 = new_contract_tx:make_dict(MP, CH, 3, Fee),
+    CID = contracts:make_id(CH, 3,<<0:256>>,0),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    Tx2 = new_contract_tx:make_dict(MP, CH2, 3, Fee),
+    CID2 = contracts:make_id(CH2, 3,<<0:256>>,0),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    Tx3 = new_contract_tx:make_dict(MP, CH3, 2, Fee),
+    CID3 = contracts:make_id(CH3, 2,<<0:256>>,0),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    %settled contract 1 and 2.
+    Tx4 = resolve_contract_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Tx5 = resolve_contract_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Proof = resolve_contract_tx:make_proof1(Matrix),
+    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Proof2 = resolve_contract_tx:make_proof1(Matrix2),
+    Tx7 = contract_timeout_tx:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %do the simplification from 1 to 2.
+    Tx8 = contract_simplify_tx:make_dict(MP, CID, CID2, CID3, Matrix, Matrix2, Fee), 
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+   
+    %settle contract 3
+    Tx9 = resolve_contract_tx:make_dict(MP, Code3, CID3, <<>>, [], Fee),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Tx10 = contract_timeout_tx:make_dict(MP, CID3, Fee),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %do the simplification from 1 to 3
+    Matrix3 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
+    Tx11 = contract_simplify_tx:make_dict(MP, CID, CID3, 0, Matrix3, PayoutVector, Fee), 
+    Stx11 = keys:sign(Tx11),
+    absorb(Stx11),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+  
+    %do the simplification from 2 to 3
+    Tx12 = contract_simplify_tx:make_dict(MP, CID2, CID3, 0, Matrix2, PayoutVector, Fee), 
+    Stx12 = keys:sign(Tx12),
+    absorb(Stx12),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+
+    success.
+
 test35(_, _, _, 0) -> ok;
 test35(D, S, P, N) ->
     %true = testnet_sign:verify_sig(D, S, P),

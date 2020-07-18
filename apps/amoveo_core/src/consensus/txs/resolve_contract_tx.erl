@@ -1,5 +1,5 @@
 -module(resolve_contract_tx).
--export([go/4, make_dict/6, make_tree/2, serialize_row/2]).
+-export([go/4, make_dict/6, make_tree/1, make_proof1/1, serialize_row/2]).
 -include("../../records.hrl").
 
 make_dict(From, Contract, CID, Evidence, Prove, Fee) ->
@@ -53,7 +53,9 @@ go(Tx, Dict, NewHeight, _) ->
                                 not(B2) -> 
                                     io:fwrite(packer:pack([Many, PayoutVector])),
                                     io:fwrite("resove_contract_tx, payout vector is the wrong length\n");
-                                not(B3) -> io:fwrite("resolve_contract_tx, payout vector doesn't conserve the total quantity of veo.")
+                                not(B3) -> 
+                                    io:fwrite(packer:pack(PayoutVector)),
+                                    io:fwrite("\nresolve_contract_tx, payout vector doesn't conserve the total quantity of veo.\n")
                             end,
                             Dict2;
                         true ->
@@ -93,7 +95,7 @@ go(Tx, Dict, NewHeight, _) ->
                    
                             RCID = contracts:make_id(<<ResultCH:256>>, RMany,Source,SourceType),
 
-                            {MRoot, M2} = make_tree(RCID, Matrix), 
+                            {MRoot, M2} = make_tree(Matrix), 
 
                             RootHash = mtree:root_hash(MRoot, M2),
                             Contract2 = Contract#contract{
@@ -132,7 +134,7 @@ tails([]) -> [];
 tails([H|T]) -> 
     [tl(H)|tails(T)].
 
-make_leaves(_CH, Matrix, MT) ->
+make_leaves(Matrix, MT) ->
     CFG = mtree:cfg(MT),
     %L1 =  leaf:new(0, CH, 0, CFG),
     make_leaves2([], 1, Matrix, CFG).
@@ -165,8 +167,17 @@ sum_vector(N, [<<X:32>>|T]) when (N > 0)->
     sum_vector(N - X, T);
 sum_vector(_, _) -> false.
 
-make_tree(CH, Matrix) ->
+make_tree(Matrix) ->
     MT = mtree:new_empty(5, 32, 0),
-    Leaves = make_leaves(CH, Matrix, MT),
+    Leaves = make_leaves(Matrix, MT),
     mtree:store_batch(Leaves, 1, MT).
+make_proof1(Matrix) ->
+    {Root, MT} = make_tree(Matrix), 
+    CFG = mtree:cfg(MT),
+    {MP_R, Leaf1, Proof1} = 
+        mtree:get(leaf:path_maker(1, CFG),
+                  Root,
+                  MT),
+    {MP_R, leaf:value(Leaf1), Proof1}.
+    
     
