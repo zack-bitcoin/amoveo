@@ -45,12 +45,6 @@ go(Tx, Dict, NewHeight, _) ->
                          },
             MT = mtree:new_empty(5, 32, 0),
             CFG = mtree:cfg(MT),
-%            {_,
-%             _, 
-%             {Result, CID2, Proof2}} = Proof,
-%            CH2Leaf = leaf:new(0, CID2, 0, CFG),
-%            true = verify:proof(Result, CH2Leaf, Proof2, CFG),
-            %CH2 = leaf:value(CH2Leaf),
             Contract4_0 = contracts:dict_get(CID2, Dict2),
             Contract4 = 
                 case Contract4_0 of

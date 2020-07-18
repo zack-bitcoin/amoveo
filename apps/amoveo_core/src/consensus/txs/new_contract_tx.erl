@@ -17,6 +17,8 @@ go(Tx, Dict, NewHeight, _) ->
     source = Source,
     source_type = SourceType,
     many_types = MT} = Tx,
+    MCF = governance:dict_get_value(max_contract_flavors, Dict),
+    true = MCF >= MT,
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     Key = contracts:make_id(CH, MT, Source, SourceType),

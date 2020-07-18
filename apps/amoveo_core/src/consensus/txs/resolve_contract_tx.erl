@@ -73,7 +73,9 @@ go(Tx, Dict, NewHeight, _) ->
                     B4 = all_lengths(RMany, Matrix),
                     TwoE32 = 4294967295,%(2**32 - 1) highest expressible value in chalang integers.
                     B5 = column_sum(TwoE32, Matrix),
-                    B6 = B1 and B2 and B3 and B4 and B5,
+                    MCF = governance:dict_get_value(max_contract_flavors, Dict),
+                    B7 = RMany =< MCF,
+                    B6 = B1 and B2 and B3 and B4 and B5 and B7,
                     if
                         not(B6) ->
                             if
@@ -81,7 +83,8 @@ go(Tx, Dict, NewHeight, _) ->
                                 not(B2) -> io:fwrite("resolve_contract_tx, matrix is misformatted.\n");
                                 not(B3) -> io:fwrite("resolve_contract_tx, matrix has wrong number of rows.\n");
                                 not(B4) -> io:fwrite("resolve_contract_tx, matrix has a row with the wrong length.\n");
-                                not(B5) -> io:fwrite("resolve_contract_tx, matrix does not conserve the total number of veo.\n")
+                                not(B5) -> io:fwrite("resolve_contract_tx, matrix does not conserve the total number of veo.\n");
+                                not(B7) -> io:fwrite("resolve_contract_tx, matrix rows are too long. we can't have a contract with that many subcurrencies.\n")
                             end,
                             Dict2;
                         true ->

@@ -432,7 +432,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 CID = contracts:make_id(CH, MT,S,ST),
                 [{accounts, From},
                  {contracts, CID},
-                 {governance, ?n2i(new_contract_tx)}
+                 {governance, ?n2i(new_contract_tx)},
+                 {governance, ?n2i(max_contract_flavors)}
                 ];
             sub_spend_tx ->
                 #sub_spend_tx{
@@ -461,6 +462,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(var_limit)},
                  {governance, ?n2i(time_gas)},
                  {governance, ?n2i(space_gas)},
+                 {governance, ?n2i(max_contract_flavors)},
                  {governance, ?n2i(resolve_contract_tx)}
                 ] ++ Prove;
             contract_timeout_tx ->
