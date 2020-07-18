@@ -168,6 +168,7 @@ name2number(sub_spend_tx) -> 31;
 name2number(resolve_contract_tx) -> 32;
 name2number(contract_timeout_tx) -> 33;
 name2number(contract_winnings_tx) -> 34;
+name2number(contract_simplify_tx) -> 35;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -206,6 +207,7 @@ number2name(31) -> sub_spend_tx;
 number2name(32) -> resolve_contract_tx;
 number2name(33) -> contract_timeout_tx;
 number2name(34) -> contract_winnings_tx;
+number2name(35) -> contract_simplify_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

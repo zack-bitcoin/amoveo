@@ -125,6 +125,7 @@ go(Tx, Dict, NewHeight, _) ->
                                           resolve_to_source = 0,
                                           nonce = CNonce,
                                           delay = CDelay,
+                                          sink = RCID,
                                           last_modified = NewHeight
                                          },
                             contracts:dict_write(Contract2, Dict2)

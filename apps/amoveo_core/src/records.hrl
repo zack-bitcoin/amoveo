@@ -196,6 +196,7 @@
       %or, the result can be the hash of a merkle structure describing how the value is divided up among the participants.
       source = <<0:256>>,
       source_type = 0,
+      sink = <<0:256>>,%once a contract finalizes, this records which other contract is recording the combined volume for both contracts.
       volume = 0
 }).
 

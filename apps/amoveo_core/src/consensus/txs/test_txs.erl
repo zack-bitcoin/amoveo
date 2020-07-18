@@ -1339,8 +1339,8 @@ binary 32 ",
     PayoutVector = %same as payout vector defined in Forth.
         [<<2147483648:32>>, 
          <<2147483647:32>>],
-    SubAcc2 = sub_accounts:make_key(MP, CID2, 2),
-    Tx10 = contract_winnings_tx:make_dict(MP, SubAcc2, CID2, Fee, PayoutVector),
+    SubAcc1_2 = sub_accounts:make_key(MP, CID2, 2),
+    Tx10 = contract_winnings_tx:make_dict(MP, SubAcc1_2, CID2, Fee, PayoutVector),
     Stx10 = keys:sign(Tx10),
     absorb(Stx10),
     1 = many_txs(),
@@ -1349,6 +1349,7 @@ binary 32 ",
     
 
     %simplify by matrix multiplication
+    %so that both contracts use a payout vector, allowing anyone holding any of the subcurrencies to withdraw directly to veo.
     Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, PayoutVector, Fee), 
     Stx11 = keys:sign(Tx11),
     absorb(Stx11),
@@ -1357,6 +1358,15 @@ binary 32 ",
     timer:sleep(200),
 
     %withdraw the second kind of subcurrency directly to veo.
+    PayoutVector2 = contract_simplify_tx:apply_matrix2vector(Matrix, PayoutVector),
+    SubAcc2 = sub_accounts:make_key(MP, CID, 2),
+    Tx12 = contract_winnings_tx:make_dict(MP, SubAcc2, CID, Fee, PayoutVector2),
+    Stx12 = keys:sign(Tx12),
+    absorb(Stx12),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
     success.
     
 test35(_, _, _, 0) -> ok;

@@ -26,6 +26,7 @@ go(Tx, Dict, NewHeight, _) ->
                resolve_to_source = RTS,
                source = Source,
                source_type = SourceType,
+               sink = CID2,
                %result = Result,
                closed = 0
    } = Contract,

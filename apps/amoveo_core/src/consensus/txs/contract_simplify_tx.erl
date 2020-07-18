@@ -1,5 +1,7 @@
 -module(contract_simplify_tx).
--export([go/4, make_dict/7]).
+-export([go/4, make_dict/7, 
+         apply_matrix2vector/2,
+         apply_matrix2matrix/2]).
 -include("../../records.hrl").
 
 
@@ -55,16 +57,16 @@ go(Tx, Dict, NewHeight, _) ->
             Matrix3 = apply_matrix2matrix(Matrix, Matrix2), 
             {MRoot3, M4} = resolve_contract_tx:make_tree(CID3, Matrix3),
             NewMerkleHash = mtree:root_hash(MRoot3, M4),
-            Contract3 = Contract1#contract{
+            Contract4 = Contract1#contract{
                           result = NewMerkleHash
                          },
-            contracts:dict_write(Contract3, Dict2);
+            contracts:dict_write(Contract4, Dict2);
         1 ->
             PayoutVector = Matrix2,
-            MerkleHash2 = hash:doit(resolve_contract_tx:serialize_row(PayoutVector)),
+            MerkleHash2 = hash:doit(resolve_contract_tx:serialize_row(PayoutVector, <<>>)),
 
             NewPayoutVector = apply_matrix2vector(Matrix, PayoutVector),
-            NewMerkleHash = hash:doit(resolve_contract_tx:serialize_row(NewPayoutVector)),
+            NewMerkleHash = hash:doit(resolve_contract_tx:serialize_row(NewPayoutVector, <<>>)),
             Contract3 = Contract1#contract{
                           resolve_to_source = 1,
                           result = NewMerkleHash
@@ -78,13 +80,14 @@ apply_matrix2vector([H|T], V) ->
     [dot(H, V)|
      apply_matrix2vector(T, V)].
 max() ->
-    <<M:256>> = <<-1:256>>,
+    <<M:32>> = <<-1:32>>,
     M.
 dot(A, B) ->
     dot(A, B, 0).
 dot([], [], N) -> 
-    N div max();
-dot([H1|T1],[H2|T2],N) -> 
+    X = N div max(),
+    <<X:32>>;
+dot([<<H1:32>>|T1],[<<H2:32>>|T2],N) -> 
     dot(T1, T2, N + (H1 * H2)).
 
 apply_matrix2matrix(M1, M2) ->

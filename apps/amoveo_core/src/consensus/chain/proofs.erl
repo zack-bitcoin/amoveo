@@ -508,8 +508,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 #contract{
                            result = Result,
                            source = Source,
+                           sink = Sink,
                            source_type = SourceType
                          } = Contract,
+                U4 = case Sink of
+                         <<0:256>> -> [];
+                         _ -> [{contracts, Sink}]
+                     end,
                 U1 = case Source of
                          <<0:256>> ->
                              [{accounts, Winner}];
@@ -536,7 +541,28 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {contracts, CID},
                  {sub_accounts, SA},%sub_account being deleted
                  {governance, ?n2i(contract_winnings_tx)}
-                ] ++ U3;
+                ] ++ U3 ++ U4;
+            contract_simplify_tx ->
+                #contract_simplify_tx{
+              from = From,
+              cid = CID,
+              cid2 = CID2,
+              cid3 = CID3
+             } = Tx,
+                Contracts = trees:contracts(Trees),
+                {_, Contract, _} = contracts:get(CID2, Contracts),
+                #contract{
+                           resolve_to_source = RTS
+                         } = Contract,
+                U = case RTS of
+                        0 -> [{contracts, CID3}];
+                        1 -> []
+                    end,
+                [{accounts, From},
+                 {governance, ?n2i(contract_simplify_tx)},
+                 {contracts, CID},
+                 {contracts, CID2}
+                ] ++ U;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

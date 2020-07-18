@@ -41,7 +41,8 @@ go(Tx, Dict, NewHeight, _) ->
                source_type = SourceType,
                closed = Closed,
                volume = V1,
-               result = Result
+               result = Result,
+               sink = SinkCID
              } = Contract,
     false = (Closed == 0),
    
@@ -74,57 +75,44 @@ go(Tx, Dict, NewHeight, _) ->
             case Proof of
                 {{Row, CH2},%Row, 
                  {<<MRoot:256>>, RowHash, Proof2},
-                 {<<MRoot:256>>, CID2, Proof3}}->
+                 _}->%{<<MRoot:256>>, _CID2, Proof3}}->
                     %it is a matrix
                     MT = mtree:new_empty(5, 32, 0),
                     CFG = mtree:cfg(MT),
-                    CH2Leaf = leaf:new(0, CID2, 0, CFG),
+                    %CH2Leaf = leaf:new(0, CID2, 0, CFG),
                     RowLeaf = leaf:new(1, RowHash, 0, CFG),
                     true = verify:proof(<<MRoot:256>>, RowLeaf, Proof2, CFG),
-                    true = verify:proof(<<MRoot:256>>, CH2Leaf, Proof3, CFG),
+                    %true = verify:proof(<<MRoot:256>>, CH2Leaf, Proof3, CFG),
                     
-                    RContract0 = contracts:dict_get(CID2, Dict3),
-                    Dict4 = 
-                        case RContract0 of
-                            empty ->
-                                CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),%to verify CH2
-                                RMany = length(Row),
-                                C = contracts:new(CH2, RMany, Source, SourceType),
-                                contracts:dict_write(C, Dict3);
-                            _ -> Dict3
-                        end,
-                                %RContract = contracts:dict_get(CID2, Dict3),
-                   % {RContract1, Dict4} = 
-                   %     case RContract of
-                   %         empty ->
-
-%
-%                                C = contracts:new(CH2, length(Row), Source, SourceType),
-%                                {C, contracts:dict_write(C, Dict3)};
-%                            _ -> {RContract, Dict3}
+                    
+%                    _RContract = 
+%                        case RContract0 of
+%                            empty ->
+%                                CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),%to verify CH2
+%                                RMany = length(Row),
+%                                contracts:new(CH2, RMany, Source, SourceType);
+%                            X -> X
 %                        end,
-                    %RowSum = lists:foldl(fun(<<A:32>>, B) -> A + B end, 0, Row),
-%                    CID2 = contracts:make_id(RContract1),
-                    payout_row(Winner, CID2, Row, Dict4, 1, Amount);
+                    payout_row(Winner, SinkCID, Row, Dict3, 1, Amount);
                 PayoutVector when is_list(PayoutVector) ->
-                    io:fwrite("contract winnings: payout vector"),
-                    io:fwrite(packer:pack(PayoutVector)),
-                    io:fwrite("\n"),
+                    RContract = 
+                        case SinkCID of
+                            <<0:256>> -> Contract;
+                            _ -> contracts:dict_get(SinkCID, Dict3)
+                        end,
                     <<MRoot:256>> = hash:doit(resolve_contract_tx:serialize_row(PayoutVector, <<>>)),
                     <<A:32>> = lists:nth(Type, PayoutVector),
                     <<Max:32>> = <<-1:32>>,
                     Amount2 = Amount * A div Max,
                     case Source of
                         <<0:256>> ->%payout to veo
-                            io:fwrite("contract winnings tx. payout to veo\n"),
                             Wacc = accounts:dict_update(Winner, Dict3, Amount2, none),
                             Dict4 = accounts:dict_write(Wacc, Dict3),
-                            Contract2 = Contract#contract{
-                                          volume = V1 - Amount2
+                            Contract2 = RContract#contract{
+                                          volume = RContract#contract.volume - Amount2
                                          },
                             contracts:dict_write(Contract2, Dict4);
                         <<CID3:256>> ->%payout to subcurrency
-                            io:fwrite("contract winnings tx. payout to subcurrency\n"),
                             Key = sub_accounts:make_key(Winner, CID3, SourceType),
                             OA = sub_accounts:dict_get(Key, Dict3),
                             A2 = case OA of
@@ -134,8 +122,8 @@ go(Tx, Dict, NewHeight, _) ->
                                          sub_accounts:dict_update(Key, Dict3, Amount2, none)
                                  end,
                             Dict4 = sub_accounts:dict_write(A2, Dict3),
-                            Contract2 = Contract#contract{
-                                          volume = V1 - Amount2
+                            Contract2 = RContract#contract{
+                                          volume = RContract#contract.volume - Amount2
                                          },
                             contracts:dict_write(Contract2, Dict4)
                         end
@@ -164,9 +152,6 @@ payout_row(Winner, CID, Row, Dict, N, Amount) ->
                                balance = X#sub_acc.balance + A
                               }
                     end,
-                io:fwrite("contract winnings sub acc is "),
-                io:fwrite(packer:pack(Acc)),
-                io:fwrite("\n"),
                 sub_accounts:dict_write(Acc, Dict)
         end,
     payout_row(Winner, CID, tl(Row), Dict2, N+1, Amount).
