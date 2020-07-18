@@ -1094,7 +1094,12 @@ test(36) ->
 
     %creating a shareable contract with subcurrencies.
     %Code = compiler_chalang:doit(<<"binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE= int 0 int 1" >>),
-    Code = compiler_chalang:doit(<<" int 3 int 0 int 1" >>),
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 0, int 4294967295]\
+int 0 int 1" >>),
     %Code = <<3,1,3,0,2,32,>>,
     CH = hash:doit(Code),
     Many = 3, 
@@ -1151,7 +1156,7 @@ test(36) ->
 
     %withdrawing from a resolved contract
     SubAcc1 = sub_accounts:make_key(MP, CID, 3),
-    Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee),
+    Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [<<0:32>>,<<0:32>>,<<-1:32>>]),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
     1 = many_txs(),
@@ -1161,7 +1166,12 @@ test(36) ->
     %contract priced in a subcurrency.
     %first the parent contract.
     %Code2 = compiler_chalang:doit(<<"int 0 binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE= int 0 int 1" >>),
-    Code2 = compiler_chalang:doit(<<" int 0 int 3 int 0 int 1" >>),
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+int 0 [ int 0, int 0, int 4294967295]\
+int 0 int 1" >>),
     CH2 = hash:doit(Code2),
     Tx8 = new_contract_tx:make_dict(MP, CH2, Many, Fee),
     Stx8 = keys:sign(Tx8),
@@ -1279,24 +1289,13 @@ binary 32 ",
     CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
     {Root, MT} = resolve_contract_tx:make_tree(CID2, Matrix), 
     CFG = mtree:cfg(MT),
-    %MerkleProof1 = 
     {MP_R, Leaf1, Proof1} = 
         mtree:get(leaf:path_maker(1, CFG),
                   Root,
                   MT),
-    %MerkleProof2 = 
-    %{MP_R, Leaf2, Proof2} =
-    %    mtree:get(leaf:path_maker(0, CFG),
-    %              Root,
-    %              MT),
-    %{_, CH2Leaf, Proof2_2} = MerkleProof2,
-    %CID2 = leaf:value(Leaf2),
     Proofs = {{[Empty, Full], CH2},
-              %MerkleProof1, 
               {MP_R, leaf:value(Leaf1), Proof1},
               0},
-    %{MP_R, CID2, Proof2}},
-              %MerkleProof2},
     Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),

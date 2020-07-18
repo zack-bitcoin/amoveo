@@ -39,16 +39,6 @@ go(Tx, Dict, NewHeight, _) ->
             Dict2;
         Data2 ->
             case chalang:stack(Data2) of
-                [<<CNonce:32>>,<<CDelay:32>>,<<CResult:32>>|_] when (CNonce > ContractNonce) ->
-                    %all the source currency goes to the holders of one subcurrency
-                    Contract2 = Contract#contract{
-                                  result = <<CResult:256>>,
-                                  %resolve_to_source = 1,
-                                  nonce = CNonce,
-                                  delay = CDelay,
-                                  last_modified = NewHeight
-                                 },
-                    contracts:dict_write(Contract2, Dict2);
                 [<<CNonce:32>>,<<CDelay:32>>,PayoutVector|_] when (is_list(PayoutVector)) ->
                     %the source currency is divided up between the subcurrencies according to a payout vector.
                     B1 = CNonce > ContractNonce,
@@ -64,30 +54,14 @@ go(Tx, Dict, NewHeight, _) ->
                                 not(B3) -> io:fwrite("resolve_contract_tx, payout vector doesn't conserve the total quantity of veo.")
                             end,
                             Dict2;
-                        %Many =< 32 ->
                         true ->
                             Contract2 = Contract#contract{
                                           result = hash:doit(serialize_row(PayoutVector, <<>>)),
-                                          %resolve_to_source = 1,
                                           nonce = CNonce,
                                           delay = CDelay,
                                           last_modified = NewHeight
                                          },
                             contracts:dict_write(Contract2, Dict2)
-%                        true ->
-                            %the payout vector is very long. it is more efficient to use merkle trees to specify which one we want.
-%                            MT = mtree:new_empty(5, 8, 0),
-%                            Leaves = make_vector_leaves(PayoutVector, MT),
-%                            {MRoot, M2} = mtree:store_batch(Leaves, 1, MT),
-%                            RootHash = mtree:root_hash(MRoot, M2),
-%                            Contract2 = Contract#contract{
-%                                          result = RootHash,
-%                                          resolve_to_source = 1,
-%                                          nonce = CNonce,
-%                                          delay = CDelay,
-%                                          last_modified = NewHeight
-%                                         },
-%                            contracts:dict_write(Contract2, Dict2)
                     end;
                 [<<CNonce:32>>,<<CDelay:32>>,<<ResultCH:256>>,Matrix|_] ->
                     %contract is being converted into a different contract defined by ResultCH and the length of rows in the matrix.
@@ -116,14 +90,9 @@ go(Tx, Dict, NewHeight, _) ->
 
                             {MRoot, M2} = make_tree(RCID, Matrix), 
 
-                            %MT = mtree:new_empty(5, 32, 0),
-                            %Leaves = make_leaves(RCID, Matrix, MT),
-                            %{MRoot, M2} = mtree:store_batch(Leaves, 1, MT),
-
                             RootHash = mtree:root_hash(MRoot, M2),
                             Contract2 = Contract#contract{
                                           result = RootHash,
-                                          %resolve_to_source = 0,
                                           nonce = CNonce,
                                           delay = CDelay,
                                           sink = RCID,
@@ -190,15 +159,6 @@ sum_vector(0, []) -> true;
 sum_vector(N, [<<X:32>>|T]) when (N > 0)-> 
     sum_vector(N - X, T);
 sum_vector(_, _) -> false.
-
-%make_vector_leaves(A, MT) ->
-%    CFG = mtree:cfg(MT),
-%    make_vector_leaves2(A, 1, MT, CFG).
-%make_vector_leaves2([], _, _, _) -> [];
-%make_vector_leaves2([<<X:32>>|T], N, MT, CFG) -> 
-%    L = leaf:new(N, <<X:32>>, 0, CFG),
-%    [L|make_vector_leaves2(T, N+1, MT, CFG)].
-
 
 make_tree(CH, Matrix) ->
     MT = mtree:new_empty(5, 32, 0),
