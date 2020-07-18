@@ -468,7 +468,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
             contract_timeout_tx ->
                 #contract_timeout_tx{
               contract_id = CID,
-              proof = Proof,
+              %proof = Proof,
               from = From
              } = Tx,
                 Contracts = trees:contracts(Trees),

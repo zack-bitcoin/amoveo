@@ -1164,27 +1164,26 @@ int 0 int 1" >>),
     timer:sleep(200),
 
     %contract priced in a subcurrency.
-    %first the parent contract.
     %Code2 = compiler_chalang:doit(<<"int 0 binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE= int 0 int 1" >>),
     Code2 = compiler_chalang:doit(
              <<"macro [ nil ;\
 macro , swap cons ;\
 macro ] swap cons reverse ;\
-int 0 [ int 0, int 0, int 4294967295]\
+int 0 [ int 0, int 4294967295]\
 int 0 int 1" >>),
     CH2 = hash:doit(Code2),
-    Tx8 = new_contract_tx:make_dict(MP, CH2, Many, Fee),
+    Tx8 = new_contract_tx:make_dict(MP, CH2, 2, Fee),
     Stx8 = keys:sign(Tx8),
-    CID2 = contracts:make_id(CH2, Many,<<0:256>>,0),
+    CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
     absorb(Stx8),
     1 = many_txs(),
     mine_blocks(1),
     timer:sleep(20),
 
     %now the child currency, built off the 3rd subtype.
-    Tx9 = new_contract_tx:make_dict(MP, CH, 2, CID2, 3, Fee),
+    Tx9 = new_contract_tx:make_dict(MP, CH, Many, CID2, 3, Fee),
     Stx9 = keys:sign(Tx9),
-    CID3 = contracts:make_id(CH, 2,CID2,3),
+    CID3 = contracts:make_id(CH, 3,CID2,3),
     absorb(Stx9),
     1 = many_txs(),
     mine_blocks(1),
@@ -1293,10 +1292,10 @@ binary 32 ",
         mtree:get(leaf:path_maker(1, CFG),
                   Root,
                   MT),
-    Proofs = {{[Empty, Full], CH2},
+    Proofs = {{[Empty, Full], 0},
               {MP_R, leaf:value(Leaf1), Proof1},
               0},
-    Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs),
+    Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, [Empty, Full]),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),

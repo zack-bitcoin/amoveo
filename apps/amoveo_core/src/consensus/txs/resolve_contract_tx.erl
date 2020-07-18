@@ -50,7 +50,9 @@ go(Tx, Dict, NewHeight, _) ->
                         not(B4) ->
                             if
                                 not(B1) -> io:fwrite("resolve contract tx, vector case, nonce is too low to update\n");
-                                not(B2) -> io:fwrite("resove_contract_tx, payout vector is the wrong length\n");
+                                not(B2) -> 
+                                    io:fwrite(packer:pack([Many, PayoutVector])),
+                                    io:fwrite("resove_contract_tx, payout vector is the wrong length\n");
                                 not(B3) -> io:fwrite("resolve_contract_tx, payout vector doesn't conserve the total quantity of veo.")
                             end,
                             Dict2;

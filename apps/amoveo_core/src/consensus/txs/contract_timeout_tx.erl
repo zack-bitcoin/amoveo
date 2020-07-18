@@ -1,13 +1,13 @@
 -module(contract_timeout_tx).
--export([go/4, make_dict/4, make_dict/3]).
+-export([go/4, make_dict/6, make_dict/3]).
 -include("../../records.hrl").
 
 make_dict(From, ContractID, Fee) ->
-    make_dict(From, ContractID, Fee, 0).
-make_dict(From, ContractID, Fee, Proof) ->
+    make_dict(From, ContractID, Fee, 0, 0, 0).
+make_dict(From, ContractID, Fee, Proof, CH, Row) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce + 1,
-    #contract_timeout_tx{from = From, nonce = Nonce, fee = Fee, contract_id = ContractID, proof = Proof}.
+    #contract_timeout_tx{from = From, nonce = Nonce, fee = Fee, contract_id = ContractID, proof = Proof, row = Row, contract_hash = CH}.
 
 go(Tx, Dict, NewHeight, _) ->
     #contract_timeout_tx{
@@ -15,6 +15,8 @@ go(Tx, Dict, NewHeight, _) ->
     nonce = Nonce,
     fee = Fee,
     contract_id = CID,
+    contract_hash = CH2,
+    row = Row,
     proof = Proof
    } = Tx,
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
@@ -49,7 +51,7 @@ go(Tx, Dict, NewHeight, _) ->
             Contract4 = 
                 case Contract4_0 of
                     empty -> 
-                        {{Row, CH2},
+                        {_,%{_Row, _CH2},
                          {Result, RowHash, Proof1}, 
                          _} = Proof,
                         RowLeaf = leaf:new(1, RowHash, 0, CFG),
