@@ -23,7 +23,6 @@ go(Tx, Dict, NewHeight, _) ->
     #contract{
                last_modified = LM,
                delay = Delay,
-               resolve_to_source = RTS,
                source = Source,
                source_type = SourceType,
                sink = CID2,
@@ -35,10 +34,10 @@ go(Tx, Dict, NewHeight, _) ->
         Contract#contract{
           closed = 1
          },
-    case RTS of
-        1 ->
+    case CID2 of
+        <<0:256>> ->
             contracts:dict_write(Contract2, Dict2);
-        0 ->
+        _ ->
             %move money to another contract
             V = Contract2#contract.volume,
             Contract3 = Contract2#contract{
@@ -46,11 +45,11 @@ go(Tx, Dict, NewHeight, _) ->
                          },
             MT = mtree:new_empty(5, 32, 0),
             CFG = mtree:cfg(MT),
-            {_,
-             _, 
-             {Result, CID2, Proof2}} = Proof,
-            CH2Leaf = leaf:new(0, CID2, 0, CFG),
-            true = verify:proof(Result, CH2Leaf, Proof2, CFG),
+%            {_,
+%             _, 
+%             {Result, CID2, Proof2}} = Proof,
+%            CH2Leaf = leaf:new(0, CID2, 0, CFG),
+%            true = verify:proof(Result, CH2Leaf, Proof2, CFG),
             %CH2 = leaf:value(CH2Leaf),
             Contract4_0 = contracts:dict_get(CID2, Dict2),
             Contract4 = 

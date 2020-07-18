@@ -474,12 +474,12 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 #contract{
                            source = Source,
                            source_type = SourceType,
-                           resolve_to_source = RTS
+                           sink = CID2
                          } = Contract,
-                U = case RTS of
-                        1 -> [];
-                        0 ->
-                            {_, _, {_, CID2, _}} = Proof,
+                U = case CID2 of
+                        <<0:256>> -> [];
+                        _ ->
+                            %{_, _, {_, CID2, _}} = Proof,
                             %ManyTypes = length(Row),
                             %CID2 = contracts:make_id(CH2, ManyTypes, Source, SourceType),
                             [{contracts, CID2}]
@@ -530,11 +530,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                         %win it as a portion of the source
                              U1;
                          {MR, {{Row, _}, 
-                               _,%{MR, RowHash, Proof2},
-                               {MR, CID2, Proof3}}} ->
-                             %CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),
-                             U2 = sub_accounts_loop(Row, Winner, CID2, 1),
-                             U2 ++ [{contracts, CID2}]
+                               _,
+                               _}} ->
+                             sub_accounts_loop(Row, Winner, Sink, 1)
                      end,
                 [{accounts, From},
                  {accounts, Winner},
@@ -552,11 +550,11 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 Contracts = trees:contracts(Trees),
                 {_, Contract, _} = contracts:get(CID2, Contracts),
                 #contract{
-                           resolve_to_source = RTS
+                           sink = Sink
                          } = Contract,
-                U = case RTS of
-                        0 -> [{contracts, CID3}];
-                        1 -> []
+                U = case Sink of
+                        <<0:256>> -> [];
+                        _ -> [{contracts, CID3}]
                     end,
                 [{accounts, From},
                  {governance, ?n2i(contract_simplify_tx)},

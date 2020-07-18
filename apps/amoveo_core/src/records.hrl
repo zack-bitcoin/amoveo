@@ -191,7 +191,6 @@
       delay = 0,
       closed = 0,
       result = <<0:256>>,%if result is an integer in (0,many_types], then all the money goes to that type.
-      resolve_to_source = 1,
       %otherwise, result can be a merkle root of a tree that describes some other contract with the same source and source_type.
       %or, the result can be the hash of a merkle structure describing how the value is divided up among the participants.
       source = <<0:256>>,

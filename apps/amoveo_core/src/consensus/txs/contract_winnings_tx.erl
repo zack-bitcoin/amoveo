@@ -73,28 +73,22 @@ go(Tx, Dict, NewHeight, _) ->
             contracts:dict_write(Contract2, Dict4);
         {<<MRoot:256>>, Source} ->
             case Proof of
-                {{Row, CH2},%Row, 
+                {{Row, _},
                  {<<MRoot:256>>, RowHash, Proof2},
-                 _}->%{<<MRoot:256>>, _CID2, Proof3}}->
+                 _}->
                     %it is a matrix
                     MT = mtree:new_empty(5, 32, 0),
                     CFG = mtree:cfg(MT),
-                    %CH2Leaf = leaf:new(0, CID2, 0, CFG),
                     RowLeaf = leaf:new(1, RowHash, 0, CFG),
                     true = verify:proof(<<MRoot:256>>, RowLeaf, Proof2, CFG),
-                    %true = verify:proof(<<MRoot:256>>, CH2Leaf, Proof3, CFG),
-                    
-                    
-%                    _RContract = 
-%                        case RContract0 of
-%                            empty ->
-%                                CID2 = contracts:make_id(CH2, length(Row), Source, SourceType),%to verify CH2
-%                                RMany = length(Row),
-%                                contracts:new(CH2, RMany, Source, SourceType);
-%                            X -> X
-%                        end,
+                    RContract = contracts:dict_get(SinkCID, Dict3),
+                    #contract{
+                               closed = 0
+                             } = RContract,
                     payout_row(Winner, SinkCID, Row, Dict3, 1, Amount);
+
                 PayoutVector when is_list(PayoutVector) ->
+                    %it is a vector
                     RContract = 
                         case SinkCID of
                             <<0:256>> -> Contract;

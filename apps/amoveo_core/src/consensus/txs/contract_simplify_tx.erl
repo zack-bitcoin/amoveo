@@ -29,8 +29,9 @@ go(Tx, Dict, NewHeight, _) ->
                closed = 1,
                source = Source,
                source_type = SourceType,
-               resolve_to_source = 0
+               sink = Sink
              } = Contract1,
+    false = Sink == <<0:256>>,
     %Row = hd(Matrix),
     {MRoot, M2} = resolve_contract_tx:make_tree(CID2, Matrix),
     MerkelHash = mtree:root_hash(MRoot, M2),
@@ -41,10 +42,20 @@ go(Tx, Dict, NewHeight, _) ->
                closed = 1,
                source = Source,
                source_type = SourceType,
-               resolve_to_source = RTS
+               sink = Sink2
              } = Contract2,
-    case RTS of
-        0 ->
+    case Sink2 of
+        <<0:256>> ->
+            PayoutVector = Matrix2,
+            MerkleHash2 = hash:doit(resolve_contract_tx:serialize_row(PayoutVector, <<>>)),
+
+            NewPayoutVector = apply_matrix2vector(Matrix, PayoutVector),
+            NewMerkleHash = hash:doit(resolve_contract_tx:serialize_row(NewPayoutVector, <<>>)),
+            Contract3 = Contract1#contract{
+                          result = NewMerkleHash
+                         },
+            contracts:dict_write(Contract3, Dict2);
+        CID3 ->
             {MRoot2, M3} = resolve_contract_tx:make_tree(CID3, Matrix2),
             MerkelHash2 = mtree:root_hash(MRoot2, M3),
             Contract3 = contracts:dict_get(CID3, Dict2),
@@ -58,20 +69,10 @@ go(Tx, Dict, NewHeight, _) ->
             {MRoot3, M4} = resolve_contract_tx:make_tree(CID3, Matrix3),
             NewMerkleHash = mtree:root_hash(MRoot3, M4),
             Contract4 = Contract1#contract{
-                          result = NewMerkleHash
+                          result = NewMerkleHash,
+                          sink = CID3
                          },
-            contracts:dict_write(Contract4, Dict2);
-        1 ->
-            PayoutVector = Matrix2,
-            MerkleHash2 = hash:doit(resolve_contract_tx:serialize_row(PayoutVector, <<>>)),
-
-            NewPayoutVector = apply_matrix2vector(Matrix, PayoutVector),
-            NewMerkleHash = hash:doit(resolve_contract_tx:serialize_row(NewPayoutVector, <<>>)),
-            Contract3 = Contract1#contract{
-                          resolve_to_source = 1,
-                          result = NewMerkleHash
-                         },
-            contracts:dict_write(Contract3, Dict2)
+            contracts:dict_write(Contract4, Dict2)
     end.
 
 
