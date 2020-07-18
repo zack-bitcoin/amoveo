@@ -496,6 +496,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
               contract_id = CID,
               sub_account = SA,
               winner = Winner,
+              row = Row,
               proof = Proof
              } = Tx,
                 SubAccs = trees:sub_accounts(Trees),
@@ -524,16 +525,11 @@ txs_to_querys2([STx|T], Trees, Height) ->
                              SA2 = sub_accounts:make_key(Winner, Source, SourceType),
                              [{sub_accounts, SA2}]
                          end,
-                U3 = case {Result, Proof} of
-                         {<<Type:256>>, _} -> 
-                        %win it as the source
-                             U1;
-                         {_, PayoutVector} when is_list(PayoutVector) ->
+                U3 = case Proof of
+                         PayoutVector when is_list(PayoutVector) ->
                         %win it as a portion of the source
                              U1;
-                         {MR, {{Row, _}, 
-                               _,
-                               _}} ->
+                         _->
                              sub_accounts_loop(Row, Winner, Sink, 1)
                      end,
                 [{accounts, From},

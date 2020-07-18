@@ -51,9 +51,7 @@ go(Tx, Dict, NewHeight, _) ->
             Contract4 = 
                 case Contract4_0 of
                     empty -> 
-                        {_,%{_Row, _CH2},
-                         {Result, RowHash, Proof1}, 
-                         _} = Proof,
+                        {Result, RowHash, Proof1} = Proof,
                         RowLeaf = leaf:new(1, RowHash, 0, CFG),
                         true = verify:proof(Result, RowLeaf, Proof1, CFG),
                         RowHash = leaf:value(RowLeaf),

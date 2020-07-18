@@ -1,13 +1,15 @@
 -module(contract_winnings_tx).
--export([go/4, make_dict/5]).
+-export([go/4, make_dict/5, make_dict/6]).
 -include("../../records.hrl").
 
-make_dict(From, SubAcc, CID, Fee, Proof) ->
+make_dict(From, SubAcc, CID, Fee, PayoutVector) ->
+    make_dict(From, SubAcc, CID, Fee, 0, PayoutVector).
+make_dict(From, SubAcc, CID, Fee, Row, Proof) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce + 1,
     SA = trees:get(sub_accounts, SubAcc),
     Amount = SA#sub_acc.balance,
-    #contract_winnings_tx{from = From, winner = From, sub_account = SubAcc, nonce = Nonce, contract_id = CID, fee = Fee, amount = Amount, proof = Proof}.
+    #contract_winnings_tx{from = From, winner = From, sub_account = SubAcc, nonce = Nonce, contract_id = CID, fee = Fee, amount = Amount, proof = Proof, row = Row}.
 
 go(Tx, Dict, NewHeight, _) ->
     #contract_winnings_tx{
@@ -18,6 +20,7 @@ go(Tx, Dict, NewHeight, _) ->
     sub_account = SubAcc,
     fee = Fee,
     amount = Amount,
+    row = Row,
     proof = Proof
    } = Tx,
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
@@ -45,10 +48,8 @@ go(Tx, Dict, NewHeight, _) ->
   
     <<MRoot:256>> = Result,
     case Proof of
-        {{Row, _},
-         {<<MRoot:256>>, RowHash, Proof2},
-         _}->
-          %it is a matrix
+         {<<MRoot:256>>, RowHash, Proof2} ->
+          %pay as subcurrencies in a different contract.
             MT = mtree:new_empty(5, 32, 0),
             CFG = mtree:cfg(MT),
             RowLeaf = leaf:new(1, RowHash, 0, CFG),
