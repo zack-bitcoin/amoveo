@@ -1514,7 +1514,364 @@ binary 32 ",
     timer:sleep(200),
     
 
+    success;
+test(39) ->
+    %tests simplification by matrix X matrix, but in a subcurrency.
+    %also tests pushing some money through this process, and withdrawing veo at the end. %TODO
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    Code0 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 3294967295 ,\
+  int 1000000000 ]\
+ int 0 int 1
+">>),%give all the money to #1
+    CH0 = hash:doit(Code0),
+    Half0 = <<2147483647:32>>,
+    Half1 = <<2147483648:32>>,
+    Zero = <<0:32>>,
+    Full = <<4294967295:32>>,
+    PayoutVector0 = [<<3294967295:32>>, 
+                     <<1000000000:32>>],
+    
+
+    %creating the layer-1 subcurrency
+    Tx0 = new_contract_tx:make_dict(MP, CH0, 2, Fee),
+    CID0 = contracts:make_id(CH0, 2,<<0:256>>,0),
+    Stx0 = keys:sign(Tx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %buying layer-1 subcurrency
+    Amount01 = 100000000,%1 veo
+    Tx01 = use_contract_tx:make_dict(MP, CID0, Amount01, Fee),
+    Stx01 = keys:sign(Tx01),
+    absorb(Stx01),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    %I now have 1 veo of type 1 subcurrency, and 1 veo of type 2 subcurrency. All the contracts in this example will be using my type 1 subcurrency, and I will withdraw the type 2 directly to veo at the end.
+
+
+    Code3 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 2147483648 ,\
+  int 2147483647 ]\
+  int 0 int 1" >>),%splits the money 50-50
+    CH3 = hash:doit(Code3),
+    PayoutVector = [Half1, Half0],
+
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 0 , int 0 ] ,\
+  [ int 2147483647 , int 0 ] ,\
+  [ int 2147483648 , int 4294967295 ] ]\
+binary 32 ",
+(base64:encode(CH3))/binary,
+"  int 0 int 1" >>),
+    CH2 = hash:doit(Code2),
+    Matrix2 = [[Zero, Zero],
+               [Half0, Zero],
+               [Half1, Full]],
+    
+
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 2147483648 , int 0 , int 0 ] ,\
+  [ int 2147483647 , int 2147483647 , int 0 ] ,\
+  [ int 0 , int 2147483648 , int 4294967295 ] ]\
+binary 32 ",
+(base64:encode(CH2))/binary,
+"  int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Matrix = [[Half1, Zero, Zero],
+              [Half0, Half0, Zero],
+              [Zero, Half1, Full]],
+
+    %creating the first layer-2 contract
+    Tx1 = new_contract_tx:make_dict(MP, CH, 3, CID0, 1, Fee),
+    CID = contracts:make_id(CH, 3,CID0,1),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+
+    %using some of my type 1 subcurrency from the layer-1 contract, I am able to participate in the first layer-2 contract
+
+    Tx1_1 = use_contract_tx:make_dict(MP, CID, Amount01, Fee),
+    Stx1_1 = keys:sign(Tx1_1),
+    absorb(Stx1_1),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    %now I own 1 veo of each of the 3 types defined by the first layer 2 contract.
+    %I also still own 1 veo of layer-1 type 2.
+   
+    %creating the second layer-2 contract
+    Tx2 = new_contract_tx:make_dict(MP, CH2, 3, CID0, 1, Fee),
+    CID2 = contracts:make_id(CH2, 3,CID0,1),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+   
+    %creating the third layer-2 contract
+    Tx3 = new_contract_tx:make_dict(MP, CH3, 2, CID0, 1, Fee),
+    CID3 = contracts:make_id(CH3, 2,CID0,1),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    %settled contract 1 and 2.
+    Tx4 = resolve_contract_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Tx5 = resolve_contract_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Proof = resolve_contract_tx:make_proof1(Matrix),
+    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %since contract 1 is resolved, but 2 is not, we can withdraw some of our veo to 2.
+
+    Proof6_0 = resolve_contract_tx:make_proof1(Matrix),
+    SubAcc = sub_accounts:make_key(MP, CID, 1), 
+    Tx6_0 = contract_winnings_tx:make_dict(MP, SubAcc, CID, Fee, lists:nth(1, Matrix), Proof6_0),
+    Stx6_0 = keys:sign(Tx6_0),
+    absorb(Stx6_0),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(400),
+    0 = many_txs(),
+    %I own:
+    %1 veo of layer 1 type 2
+    %1 veo of layer 2 #1 types 2 and 3.
+    %0.5 veo of layer 2 #2, type 1
+    
+
+
+    Proof2 = resolve_contract_tx:make_proof1(Matrix2),
+    Tx7 = contract_timeout_tx:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(400),
+    0 = many_txs(),
+
+    %at this point 1 and 2 are resolved, we need to do a simplification. so it should be impossible for me to convert my tokens in 1 to 2.
+    Proof7_0 = resolve_contract_tx:make_proof1(Matrix),
+    SubAcc7_0 = sub_accounts:make_key(MP, CID, 2), 
+    Tx7_0 = contract_winnings_tx:make_dict(MP, SubAcc7_0, CID, Fee, lists:nth(2, Matrix), Proof7_0),
+    Stx7_0 = keys:sign(Tx7_0),
+    absorb(Stx7_0),
+    0 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+    
+
+    %do the simplification from 1 to 2.
+    Tx8 = contract_simplify_tx:make_dict(MP, CID, CID2, CID3, Matrix, Matrix2, Fee), 
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    %verify that contracts #1 and #2 are closed, but #3 is not.
+    
+    1 = contracts:closed(trees:get(contracts, CID)),
+    1 = contracts:closed(trees:get(contracts, CID2)),
+    0 = contracts:closed(trees:get(contracts, CID3)),
+
+    %now that 1 and 2 are simplified, I should be able to move my tokens from 1 directly to 3.
+    Matrix8_0 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
+    Proof8_0 = resolve_contract_tx:make_proof1(Matrix8_0),
+    SubAcc8_0 = sub_accounts:make_key(MP, CID, 2), 
+    %moves 1 veo of layer 1 types 2, to 1/4 veo in layer 2 contract #3 type 1.
+    Tx8_0 = contract_winnings_tx:make_dict(MP, SubAcc8_0, CID, Fee, lists:nth(2, Matrix8_0), Proof8_0),
+    Stx8_0 = keys:sign(Tx8_0),
+    absorb(Stx8_0),
+    1 = many_txs(),
+    timer:sleep(50),
+    mine_blocks(2),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    %I own:
+    %1 of layer2 #1 type 3
+    %0.5 of layer 2 #2, type 1
+    %0.25 of layer 2 #3, type 1
+    
+    %verify that I have money in contract 3
+    SubAdd8_1 = sub_accounts:make_key(MP, CID3, 1),
+    SubAcc8_1 = trees:get(sub_accounts, SubAdd8_1),
+    io:fwrite(packer:pack(SubAcc8_1)),
+    io:fwrite("\n"),
+    true = is_tuple(SubAcc8_1),
+    
+   
+    %settle contract 3
+    Tx9 = resolve_contract_tx:make_dict(MP, Code3, CID3, <<>>, [], Fee),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+    timer:sleep(200),
+    mine_blocks(2),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Tx10 = contract_timeout_tx:make_dict(MP, CID3, Fee),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    %it should now be possible to withdraw from 3.
+    SubAcc10_0 = sub_accounts:make_key(MP, CID3, 1),
+    Tx10_0 = contract_winnings_tx:make_dict(MP, SubAcc10_0, CID3, Fee, PayoutVector),
+    Stx10_0 = keys:sign(Tx10_0),
+    absorb(Stx10_0),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+    %this has converted 0.25 of layer 2 #3 type 1 into 0.125 veo.
+
+    %I own:
+    %1  of layer2 #1 type 3
+    %0.5  of layer 2 #2, type 1
+
+    %verify that I no longer have money in contract 3
+    SubAdd8_1 = sub_accounts:make_key(MP, CID3, 1),
+    empty = trees:get(sub_accounts, SubAdd8_1),
+
+    %do the simplification from 1 to 3
+    Matrix3 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
+    Tx11 = contract_simplify_tx:make_dict(MP, CID, CID3, 0, Matrix3, PayoutVector, Fee), 
+    Stx11 = keys:sign(Tx11),
+    absorb(Stx11),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+  
+    %do the simplification from 2 to 3
+    Tx12 = contract_simplify_tx:make_dict(MP, CID2, CID3, 0, Matrix2, PayoutVector, Fee), 
+    Stx12 = keys:sign(Tx12),
+    absorb(Stx12),
+    timer:sleep(40),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    %resolve contract0
+    Tx13 = resolve_contract_tx:make_dict(MP, Code0, CID0, <<>>, [], Fee),
+    Stx13 = keys:sign(Tx13),
+    absorb(Stx13),
+    timer:sleep(50),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(100),
+
+    Tx14 = contract_timeout_tx:make_dict(MP, CID0, Fee),
+    Stx14 = keys:sign(Tx14),
+    absorb(Stx14),
+    timer:sleep(100),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+
+    %withdraw cid0 type 2
+    SubAcc15 = sub_accounts:make_key(MP, CID0, 2),
+    Tx15 = contract_winnings_tx:make_dict(MP, SubAcc15, CID0, Fee, PayoutVector0),
+    Stx15 = keys:sign(Tx15),
+    absorb(Stx15),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+    
+    %withdraw cid2 type type 1
+    PayoutVector16 = contract_simplify_tx:apply_matrix2vector(Matrix2, PayoutVector),
+    SubAcc16 = sub_accounts:make_key(MP, CID2, 1),
+    Tx16 = contract_winnings_tx:make_dict(MP, SubAcc16, CID2, Fee, PayoutVector16),
+    Stx16 = keys:sign(Tx16),
+    absorb(Stx16),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+
+    %withdraw cid type 3
+    PayoutVector17 = contract_simplify_tx:apply_matrix2vector(Matrix, PayoutVector16),
+    SubAcc17 = sub_accounts:make_key(MP, CID, 3),
+    Tx17 = contract_winnings_tx:make_dict(MP, SubAcc17, CID, Fee, PayoutVector17),
+    Stx17 = keys:sign(Tx17),
+    absorb(Stx17),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    
+    
+
     success.
+
+
+
+
+
 
 test35(_, _, _, 0) -> ok;
 test35(D, S, P, N) ->
@@ -1571,7 +1928,7 @@ mine_blocks(Many) ->
     Hash = block:hash(PB),
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
-    block:mine(Block, 10),
+    block:mine(Block, 100),
     timer:sleep(100),
     mine_blocks(Many-1).
 

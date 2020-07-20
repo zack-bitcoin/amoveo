@@ -418,10 +418,22 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 CID = use_contract_tx:cid(Tx),
                 From = use_contract_tx:from(Tx),
                 SA = use_contract_sub_accounts(Tx),
+                Contracts = trees:contracts(Trees),
+                {_, Contract, _} = contracts:get(CID, Contracts),
+                #contract{
+                           source = Source,
+                           source_type = SourceType
+                         } = Contract,
+                U = case Source of
+                        <<0:256>> -> [];
+                        _ -> 
+                            SubAdd = sub_accounts:make_key(From, Source, SourceType),
+                            [{sub_accounts, SubAdd}]
+                    end,
                 [{accounts, From},
                  {contracts, CID},
                  {governance, ?n2i(use_contract_tx)}
-                 ] ++ SA;
+                 ] ++ SA ++ U;
             new_contract_tx ->
                 #new_contract_tx{
               from = From,

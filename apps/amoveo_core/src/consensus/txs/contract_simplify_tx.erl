@@ -62,7 +62,7 @@ go(Tx, Dict, NewHeight, _) ->
             #contract{
                        closed = 0
             %if contract2 resolves to another contract, we need to verify that that contract is not yet closed.
-            %that way if it is possible to simplify, you are required to do it to get your money out.
+            %this way you are forced to simplify starting at the more efficient end.
                      } = Contract3,
 
             Matrix3 = apply_matrix2matrix(Matrix, Matrix2), 

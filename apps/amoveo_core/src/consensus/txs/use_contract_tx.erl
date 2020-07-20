@@ -47,21 +47,21 @@ go(Tx, Dict, NewHeight, _) ->
         case Source of
             <<0:256>> ->%veo type
                 Facc2 = accounts:dict_update(From, Dict3, -Amount, none),
-                accounts:dict_write(Facc2, Dict3);
-            CID ->
-                Key = sub_accounts:make_key(From, CID, SourceType),
+                accounts:dict_write(Facc2, Dict3);%using veo to buy a complete set of subcurrencies
+            _ ->
+                Key = sub_accounts:make_key(From, Source, SourceType),
                 OA = sub_accounts:dict_get(Key, Dict3),
                 A2 = 
                     case OA of
                         empty ->
                             true = Amount < 0,
-                            sub_accounts:new(From, -Amount, CID, SourceType);
+                            sub_accounts:new(From, -Amount, Source, SourceType);%getting paid in a source subcurrency in exchange for providing a complete set of sub-subcurrencies.
                         _ ->
-                            sub_accounts:dict_update(Key, Dict3, -Amount, none)
+                            sub_accounts:dict_update(Key, Dict3, -Amount, none)%buying a complete set of sub-subcurrencies using your source subcurrency.
                     end,
                 sub_accounts:dict_write(A2, Dict3)
         end,
-    send_sub_accounts(Many, From, CID, Amount, Dict3).
+    send_sub_accounts(Many, From, CID, Amount, Dict4).
 send_sub_accounts(0, _, _, _, Dict) ->
     Dict;
 send_sub_accounts(N, From, CID, Amount, Dict) ->

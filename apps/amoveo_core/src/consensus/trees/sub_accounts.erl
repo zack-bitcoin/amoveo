@@ -19,7 +19,7 @@ dict_update(Key, Dict, Amount, NewNonce) ->
                          NewNonce
                  end,
     NewBalance = Amount + Account#sub_acc.balance,
-    true = NewBalance > 0,
+    true = NewBalance >= 0,
     Account#sub_acc{balance = NewBalance,
                 nonce = FinalNonce}.
 key_to_int(X) ->

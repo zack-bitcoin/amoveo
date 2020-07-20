@@ -56,7 +56,7 @@ go(Tx, Dict, NewHeight, _) ->
             true = verify:proof(<<MRoot:256>>, RowLeaf, Proof2, CFG),
             RContract = contracts:dict_get(SinkCID, Dict3),
             #contract{
-                       closed = 0
+                       closed = 0%this prevents anyone from moving money into another resolved contract. So they are forced to do the matrix multiplication simplification when possible.
                      } = RContract,
             payout_row(Winner, SinkCID, Row, Dict3, 1, Amount);
 
@@ -80,11 +80,11 @@ go(Tx, Dict, NewHeight, _) ->
                                  },
                     contracts:dict_write(Contract2, Dict4);
                 <<CID3:256>> ->%payout to subcurrency
-                    Key = sub_accounts:make_key(Winner, CID3, SourceType),
+                    Key = sub_accounts:make_key(Winner, Source, SourceType),
                     OA = sub_accounts:dict_get(Key, Dict3),
                     A2 = case OA of
                              empty ->
-                                 sub_accounts:new(From, Amount2, CID3, SourceType);
+                                 sub_accounts:new(From, Amount2, Source, SourceType);
                              _ ->
                                  sub_accounts:dict_update(Key, Dict3, Amount2, none)
                          end,
