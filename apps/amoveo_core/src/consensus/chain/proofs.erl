@@ -571,6 +571,51 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {contracts, CID},
                  {contracts, CID2}
                 ] ++ U;
+            swap_tx ->
+                #swap_tx{
+              from = Acc2,
+              offer = SOffer
+             } = Tx,
+                Offer = testnet_sign:data(SOffer),
+                #swap_offer{
+                             acc1 = Acc1,
+                             cid1 = CID1,
+                             type1 = Type1,
+                             cid2 = CID2,
+                             type2 = Type2,
+                             fee1 = Fee1,
+                             fee2 = Fee2
+                           } = Offer,
+                F1 = case Fee1 of
+                         0 -> [];
+                         _ -> [{accounts, Acc1}]
+                     end,
+                F2 = case Fee2 of
+                         0 -> [];
+                         _ -> [{accounts, Acc2}]
+                     end,
+                U = case CID1 of
+                        <<0:256>> -> 
+                            [{accounts, Acc1},
+                             {accounts, Acc2}];
+                        _ ->
+                            [{sub_accounts,
+                              sub_accounts:make_key(Acc1, CID1, Type1)},
+                             {sub_accounts,
+                              sub_accounts:make_key(Acc2, CID1, Type1)}]
+                    end,
+                U2 = case CID2 of
+                         <<0:256>> -> 
+                             [{accounts, Acc1},
+                              {accounts, Acc2}];
+                         _ ->
+                             [{sub_accounts,
+                               sub_accounts:make_key(Acc1, CID2, Type2)},
+                              {sub_accounts,
+                               sub_accounts:make_key(Acc2, CID2, Type2)}]
+                     end,
+                [{governance, ?n2i(swap_tx)}] ++
+                F1 ++ F2 ++ U ++ U2;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

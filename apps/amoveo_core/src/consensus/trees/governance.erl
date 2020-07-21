@@ -170,6 +170,7 @@ name2number(contract_timeout_tx) -> 33;
 name2number(contract_winnings_tx) -> 34;
 name2number(contract_simplify_tx) -> 35;
 name2number(max_contract_flavors) -> 36;
+name2number(swap_tx) -> 37;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -210,6 +211,7 @@ number2name(33) -> contract_timeout_tx;
 number2name(34) -> contract_winnings_tx;
 number2name(35) -> contract_simplify_tx;
 number2name(36) -> max_contract_flavors;
+number2name(37) -> swap_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

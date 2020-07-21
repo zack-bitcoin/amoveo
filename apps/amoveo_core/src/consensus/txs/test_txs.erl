@@ -1863,10 +1863,67 @@ binary 32 ",
     timer:sleep(200),
     0 = many_txs(),
 
-    
-    
+    success;
+test(40) ->
+    %test swapping
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+
+    %make a contract and buy some subcurrency.
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 0, int 4294967295]\
+int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Many = 3, 
+    Tx = new_contract_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %buy some subcurrency.
+    Amount = 100000000,
+    Tx2 = use_contract_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+   
+    %create an account
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Tx3 = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    timer:sleep(200),
+    %swap some subcurrency for the new account's veo.
+
+    SO = swap_tx:make_offer(MP, 0, 1000, CID, 1, 50000000, <<0:256>>, 0, 90000000, Fee, 0),
+    SSO = keys:sign(SO),
+    Tx4 = swap_tx:make_dict(NewPub, SSO),
+    Stx4 = testnet_sign:sign_tx(Tx4, NewPub, NewPriv),
+    io:fwrite(packer:pack(Tx4)),
+    io:fwrite("\n"),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
 
     success.
+
 
 
 

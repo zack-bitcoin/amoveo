@@ -144,9 +144,14 @@
 
 -record(contract_offer, {from, contract_id, nlocktime, delay, miner_commission}).%types is like [{0, Portion1},{2, Portion2}], where the integer is the type that the offerer wants to control, and amount is the portion of it that they want to control.
 -record(contract_accept_tx, {from, nonce, fee, offer, contract_sig}).
--record(swap_offer, {from, nonce, fee, type}).
--record(swap, {from, nonce, fee, signed_swap_offer}).%swap 2 kinds of currency of any type
 
+-record(swap_offer, {
+          acc1, nonce, start_limit, end_limit, 
+          amount1, cid1, type1, %this is what acc1 gives.
+          amount2, cid2, type2, %this is what acc2 gives.
+          fee1, %what acc1 pays in fees
+          fee2}).
+-record(swap_tx, {from, offer, fee}).
 
 
 -record(resolve_contract_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
@@ -174,8 +179,8 @@
 		  }).
 -record(sub_channel, {
       id,
-      accounts,%root hash
-      amount,
+      accounts_root,%root hash
+      amounts_root,
       nonce = 1,
       last_modified,
       delay,
