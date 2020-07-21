@@ -11,9 +11,18 @@ make_dict(From, SNCOffer) ->
              fee = Fee1 + Fee2}.
 
 make_offer(From, StartLimit, EndLimit, CID1, Type1, Amount1, CID2, Type2, Amount2, Fee1, Fee2) ->
-    
-    A = trees:get(accounts, From),
-    Nonce = A#acc.nonce + 1,
+   
+
+    Nonce = 
+        case CID1 of
+            <<0:256>> -> 
+                A = trees:get(accounts, From),
+                A#acc.nonce + 1;
+            _ ->
+                Key1 = sub_accounts:make_key(From, CID1, Type1),
+                A = trees:get(sub_accounts, Key1),
+                A#sub_acc.nonce + 1
+        end,
     #swap_offer{
            acc1 = From,
             nonce = Nonce,
@@ -51,8 +60,18 @@ go(Tx, Dict, NewHeight, _) ->
         } = NCO,
     true = NewHeight >= SL,
     true = NewHeight =< EL,
-    A1 = accounts:dict_get(Acc1, Dict),
-    true = A1#acc.nonce == (Nonce - 1),%we want Acc1 to be able to cancel his offer by making some unrelated tx to increase his nonce.
+
+%we want Acc1 to be able to cancel his offer by making some unrelated tx to increase his nonce.
+    case CID1 of
+        <<0:256>> ->
+            A1 = accounts:dict_get(Acc1, Dict),
+            true = A1#acc.nonce == (Nonce - 1);
+        _ ->
+            Key1 = sub_accounts:make_key(Acc1, CID1, Type1),
+            A1 = sub_accounts:dict_get(Key1, Dict),
+            true = A1#sub_acc.nonce == (Nonce - 1)
+        end,
+
     Dict2 = fee_helper(Fee1, Acc1, Dict),
     Dict3 = fee_helper(Fee2, Acc2, Dict2),
     Dict4 = move_helper(Acc1, Acc2, Amount1, CID1, Type1, Dict3),
