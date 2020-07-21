@@ -1,14 +1,14 @@
--module(resolve_contract_tx).
+-module(contract_resolve_tx).
 -export([go/4, make_dict/6, make_tree/1, make_proof1/1, serialize_row/2]).
 -include("../../records.hrl").
 
 make_dict(From, Contract, CID, Evidence, Prove, Fee) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce + 1,
-    #resolve_contract_tx{from = From, nonce = Nonce, fee = Fee, contract = Contract, evidence = Evidence, prove = Prove, contract_id = CID}.
+    #contract_resolve_tx{from = From, nonce = Nonce, fee = Fee, contract = Contract, evidence = Evidence, prove = Prove, contract_id = CID}.
     
 go(Tx, Dict, NewHeight, _) ->
-    #resolve_contract_tx{
+    #contract_resolve_tx{
     from = From,
     nonce = Nonce,
     fee = Fee,
@@ -35,7 +35,7 @@ go(Tx, Dict, NewHeight, _) ->
     CID = contracts:make_id(CH, Many,Source,SourceType),%verify that this is the correct code for this contract.
     case run(NewHeight, Prove, Evidence, ContractBytecode, Dict2) of
         {error, Error} ->
-            io:fwrite("\n in resolve_contract_tx, contract has an error\n"),
+            io:fwrite("\n in contract_resolve_tx, contract has an error\n"),
             Dict2;
         Data2 ->
             case chalang:stack(Data2) of
@@ -55,7 +55,7 @@ go(Tx, Dict, NewHeight, _) ->
                                     io:fwrite("resove_contract_tx, payout vector is the wrong length\n");
                                 not(B3) -> 
                                     io:fwrite(packer:pack(PayoutVector)),
-                                    io:fwrite("\nresolve_contract_tx, payout vector doesn't conserve the total quantity of veo.\n")
+                                    io:fwrite("\ncontract_resolve_tx, payout vector doesn't conserve the total quantity of veo.\n")
                             end,
                             Dict2;
                         true ->
@@ -84,11 +84,11 @@ go(Tx, Dict, NewHeight, _) ->
                         not(B6) ->
                             if
                                 not(B1) -> io:fwrite("resolve contract tx, nonce is too low to update contract.\n");
-                                not(B2) -> io:fwrite("resolve_contract_tx, matrix is misformatted.\n");
-                                not(B3) -> io:fwrite("resolve_contract_tx, matrix has wrong number of rows.\n");
-                                not(B4) -> io:fwrite("resolve_contract_tx, matrix has a row with the wrong length.\n");
-                                not(B5) -> io:fwrite("resolve_contract_tx, matrix does not conserve the total number of veo.\n");
-                                not(B7) -> io:fwrite("resolve_contract_tx, matrix rows are too long. we can't have a contract with that many subcurrencies.\n")
+                                not(B2) -> io:fwrite("contract_resolve_tx, matrix is misformatted.\n");
+                                not(B3) -> io:fwrite("contract_resolve_tx, matrix has wrong number of rows.\n");
+                                not(B4) -> io:fwrite("contract_resolve_tx, matrix has a row with the wrong length.\n");
+                                not(B5) -> io:fwrite("contract_resolve_tx, matrix does not conserve the total number of veo.\n");
+                                not(B7) -> io:fwrite("contract_resolve_tx, matrix rows are too long. we can't have a contract with that many subcurrencies.\n")
                             end,
                             Dict2;
                         true ->
@@ -108,7 +108,7 @@ go(Tx, Dict, NewHeight, _) ->
                             contracts:dict_write(Contract2, Dict2)
                     end;
                 Output ->
-                    io:fwrite("in resolve_contract_tx, contract has invalid output\n"),
+                    io:fwrite("in contract_resolve_tx, contract has invalid output\n"),
                     Dict2
             end
     end.

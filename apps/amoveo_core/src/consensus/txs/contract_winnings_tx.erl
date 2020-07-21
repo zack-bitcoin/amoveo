@@ -67,7 +67,7 @@ go(Tx, Dict, NewHeight, _) ->
                     <<0:256>> -> Contract;
                     _ -> contracts:dict_get(SinkCID, Dict3)
                 end,
-            <<MRoot:256>> = hash:doit(resolve_contract_tx:serialize_row(PayoutVector, <<>>)),
+            <<MRoot:256>> = hash:doit(contract_resolve_tx:serialize_row(PayoutVector, <<>>)),
             <<A:32>> = lists:nth(Type, PayoutVector),
             <<Max:32>> = <<-1:32>>,
             Amount2 = Amount * A div Max,

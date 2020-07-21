@@ -461,8 +461,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {sub_accounts, TKey},
                  {governance, ?n2i(sub_spend_tx)}
                 ];
-            resolve_contract_tx ->
-                #resolve_contract_tx{
+            contract_resolve_tx ->
+                #contract_resolve_tx{
               from = From,
               prove = Prove,
               contract = Code,
@@ -475,7 +475,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(time_gas)},
                  {governance, ?n2i(space_gas)},
                  {governance, ?n2i(max_contract_flavors)},
-                 {governance, ?n2i(resolve_contract_tx)}
+                 {governance, ?n2i(contract_resolve_tx)}
                 ] ++ Prove;
             contract_timeout_tx ->
                 #contract_timeout_tx{
