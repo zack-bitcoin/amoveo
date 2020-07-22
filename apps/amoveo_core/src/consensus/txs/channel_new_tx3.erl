@@ -14,6 +14,7 @@
 %}).
 -record(nc_offer3, {acc1, nonce, start_limit, end_limit, bal1, bal2, miner_commission, %miner commission between 0 and 10 000.
               cid, contract_hash, source, source_type,
+                    delay,
                    fee1, fee2}).%this is the anyone can spend trade offer.
 -record(nc_accept3, 
         {acc2, offer, fee,
@@ -26,7 +27,7 @@ make_offer(ID, Pub, Bal1, Bal2, Delay, MC, SPK, CH, Fee1, Fee2, StartLimit, EndL
     CH = spk:hash(SPK),
     true = MC > 0,
     true = MC < 100001,
-    #nc_offer3{cid = ID, nonce = Nonce, acc1 = Pub, bal1 = Bal1, bal2 = Bal2, start_limit = StartLimit, end_limit = EndLimit, contract_hash = CH, fee1 = Fee1, fee2 = Fee2}.
+    #nc_offer3{cid = ID, nonce = Nonce, acc1 = Pub, bal1 = Bal1, bal2 = Bal2, start_limit = StartLimit, end_limit = EndLimit, contract_hash = CH, fee1 = Fee1, fee2 = Fee2, delay = Delay}.
 
 make_dict(From, SOffer) ->
     Offer = testnet_sign:data(SOffer),
@@ -56,7 +57,8 @@ go(Tx, Dict, NewHeight, _) ->
                 bal1 = Bal1,
                 bal2 = Bal2,
                 source = Source,
-                source_type = SourceType
+                source_type = SourceType,
+                delay = Delay
               } = Offer,
     true = testnet_sign:verify_sig(CH, CS, Acc2),
     false = Acc1 == Acc2,
@@ -69,12 +71,9 @@ go(Tx, Dict, NewHeight, _) ->
     A1 = accounts:dict_get(Acc1, Dict),
     Nonce = A1#acc.nonce + 1,
     Fee = Fee1 + Fee2,
-    Dict2 = swap_tx:fee_helper(Fee1, Acc1, Dict),
-    Dict3 = swap_tx:fee_helper(Fee2, Acc2, Dict2),
+    Dict2 = swap_tx:fee_helper(Fee1+Bal1, Acc1, Dict),
+    Dict3 = swap_tx:fee_helper(Fee2+Bal2, Acc2, Dict2),
 
-    %build an accounts tree with a merkel root.
-    AccsRoot = ok,
-
-    sub_channels:new(CID, Source, SourceType, AccsRoot),
-
-    ok.
+    SC = sub_channels:new(CID, Source, SourceType, [Acc1, Acc2], NewHeight, Delay),
+    nc_sigs:store(CID, CS),
+    sub_channels:dict_write(SC, Dict3).
