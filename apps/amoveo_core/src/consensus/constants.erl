@@ -93,11 +93,12 @@ sub_account_size() ->
 account_size() ->
 	((balance_bits() + account_nonce_bits()) div 8) + (hash_size()) + pubkey_size().
 sub_channel_size() ->
-    ((channel_nonce_bits() + 
-          balance_bits() +
-          height_bits() + 
-          channel_delay_bits()) div 8) 
-	+ 1 + (4 * hash_size()) + 2.
+    ((%channel_nonce_bits() + 
+          balance_bits() %+
+          %height_bits() + 
+          %channel_delay_bits()
+) div 8)
+	+ 1 + (3 * hash_size()) + 2.
 contract_size() ->
     ((balance_bits() +
           channel_nonce_bits() + 

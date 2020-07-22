@@ -180,11 +180,11 @@
 -record(sub_channel, {
       id,
       accounts,%root hash
-      result = <<0:256>>,
+      %result = <<0:256>>,
       amount,
-      nonce = 1,
-      last_modified,
-      delay,
+      %nonce = 1,
+      %last_modified,
+      %delay,
       closed = 0,
       contract_id,
       type

@@ -1,7 +1,8 @@
 -module(sub_channels).
--export([new/7, accounts/1, id/1, last_modified/1, nonce/1, delay/1, amount/1, closed/1, contract_id/1, type/1,%custom for this tree
+-export([new/5, accounts/1, id/1, %last_modified/1, nonce/1, delay/1, 
+         amount/1, closed/1, contract_id/1, type/1,%custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
-         dict_update/6, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_update/5, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0, %close_many/0,
@@ -14,17 +15,17 @@
 accounts(C) -> C#sub_channel.accounts.
 id(C) -> C#sub_channel.id.
 amount(C) -> C#sub_channel.amount.
-last_modified(C) -> C#sub_channel.last_modified.
+%last_modified(C) -> C#sub_channel.last_modified.
 %mode(C) -> C#sub_channel.mode.
-nonce(C) -> C#sub_channel.nonce.
-delay(C) -> C#sub_channel.delay.
+%nonce(C) -> C#sub_channel.nonce.
+%delay(C) -> C#sub_channel.delay.
 closed(C) -> C#sub_channel.closed.
 contract_id(C) -> C#sub_channel.contract_id.
 type(C) -> C#sub_channel.type.
                   
 %shares(C) -> C#sub_channel.shares.
 
-dict_update(ID, Dict, Nonce, Delay, Height, Close0) ->
+dict_update(ID, Dict, Delay, Height, Close0) ->
     Close = case Close0 of 
                 1 -> 1;
                 0 -> 0;
@@ -33,28 +34,27 @@ dict_update(ID, Dict, Nonce, Delay, Height, Close0) ->
             end,
     true = (Close == 1) or (Close == 0),
     Channel = dict_get(ID, Dict),
-    CNonce = Channel#sub_channel.nonce,
-    NewNonce = if
-		   Nonce == none -> CNonce;
-		   true -> 
-		       Nonce
-	       end,
-    T1 = Channel#sub_channel.last_modified,
-    DH = Height - T1,
+    %CNonce = Channel#sub_channel.nonce,
+%    NewNonce = if
+%		   Nonce == none -> CNonce;
+%		   true -> 
+%		       Nonce
+%	       end,
+    %T1 = Channel#sub_channel.last_modified,
+    %DH = Height - T1,
     Channel#sub_channel{
-      nonce = NewNonce,
-      last_modified = Height,
-      delay = Delay,
+%      nonce = NewNonce,
+      %last_modified = Height,
+      %delay = Delay,
       closed = Close
      }.
     
-new(ID, CID, Type, Accs, Height, Delay, Amount) ->
+new(ID, CID, Type, Accs, Amount) ->
     %maybe we should hash the accounts together here?
     AH = hash_accounts(Accs),
     #sub_channel{
      id = ID, accounts = AH,
-     last_modified = Height, 
-     delay = Delay, contract_id = CID,
+     contract_id = CID,
      type = Type, amount = Amount}.
 hash_accounts(Accs) ->
     hash:doit(Accs).
@@ -64,8 +64,7 @@ serialize(C) ->
            id = CID,
            accounts = Accs,
            contract_id = ContractID,
-           amount = Amount,
-           result = Result
+           amount = Amount
                 } = C,
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
@@ -79,15 +78,15 @@ serialize(C) ->
     %HS = size(Shares),
     true = size(Accs) == HS,
     true = size(CID) == HS,
-    true = size(Result) == HS,
+%    true = size(Result) == HS,
     <<_:256>> = CID,
     << CID/binary,
        Accs/binary,
-       Result/binary,
+%       Result/binary,
        Amount:BAL,
-       (C#sub_channel.nonce):NON,
-       (C#sub_channel.last_modified):HEI,
-       (C#sub_channel.delay):Delay,
+%       (C#sub_channel.nonce):NON,
+%       (C#sub_channel.last_modified):HEI,
+%       (C#sub_channel.delay):Delay,
        (C#sub_channel.closed):8,
        ContractID/binary,
        (C#sub_channel.type):16
@@ -102,20 +101,21 @@ deserialize(B) ->
     HS = constants:hash_size()*8,
     << ID:HS,
        Accs:HS,
-       Result:HS,
+%       Result:HS,
        Amount:BAL,
-       B5:NON,
-       B7:HEI,
-       B12:Delay,
+%       B5:NON,
+%       B7:HEI,
+%       B12:Delay,
        Closed:8,
        ContractID:HS,
        Type:16
     >> = B,
-    #sub_channel{id = <<ID:HS>>, accounts = <<Accs:HS>>, result = <<Result:HS>>,
+    #sub_channel{id = <<ID:HS>>, accounts = <<Accs:HS>>, %result = <<Result:HS>>,
                  amount = Amount,
-                 nonce = B5, 
-                 last_modified = B7,
-                 delay = B12, closed = Closed,
+                 %nonce = B5, 
+                 %last_modified = B7,
+                 %delay = B12, 
+                 closed = Closed,
                  contract_id = <<ContractID:HS>>,
                  type = Type}.
 dict_write(Channel, Dict) ->
@@ -205,7 +205,7 @@ test() ->
     Height = 1,
     Delay = 11,
     CID = hash:doit(2),
-    A = new(ID,CID,1,[Acc1,Acc2],Height,Delay, 0),
+    A = new(ID,CID,1,[Acc1,Acc2],0),
     io:fwrite(packer:pack(A)),
     io:fwrite("\n"),
     A = deserialize(serialize(A)),
