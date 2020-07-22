@@ -182,6 +182,7 @@
       accounts,%root hash
       %result = <<0:256>>,
       amount,
+      contract_hash,
       %nonce = 1,
       %last_modified,
       %delay,

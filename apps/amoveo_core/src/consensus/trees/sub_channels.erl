@@ -1,5 +1,5 @@
 -module(sub_channels).
--export([new/5, accounts/1, id/1, %last_modified/1, nonce/1, delay/1, 
+-export([new/6, accounts/1, id/1, %last_modified/1, nonce/1, delay/1, 
          amount/1, closed/1, contract_id/1, type/1,%custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
          dict_update/5, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
@@ -49,12 +49,13 @@ dict_update(ID, Dict, Delay, Height, Close0) ->
       closed = Close
      }.
     
-new(ID, CID, Type, Accs, Amount) ->
+new(CH, ID, CID, Type, Accs, Amount) ->
     %maybe we should hash the accounts together here?
     AH = hash_accounts(Accs),
     #sub_channel{
      id = ID, accounts = AH,
      contract_id = CID,
+                  contract_hash = CH,
      type = Type, amount = Amount}.
 hash_accounts(Accs) ->
     hash:doit(Accs).
@@ -205,7 +206,7 @@ test() ->
     Height = 1,
     Delay = 11,
     CID = hash:doit(2),
-    A = new(ID,CID,1,[Acc1,Acc2],0),
+    A = new(hash:doit(1),ID,CID,1,[Acc1,Acc2],0),
     io:fwrite(packer:pack(A)),
     io:fwrite("\n"),
     A = deserialize(serialize(A)),
