@@ -1,5 +1,6 @@
 -module(contract_evidence_tx).
--export([go/4, make_dict/6, make_tree/1, make_proof1/1, serialize_row/2, run/5]).
+-export([go/4, make_dict/6, make_tree/1, make_proof1/1, serialize_row/2, run/5,
+        all_lengths/2, sum_vector/2, column_sum/2,make_tree/1]).
 -include("../../records.hrl").
 
 make_dict(From, Contract, CID, Evidence, Prove, Fee) ->
@@ -96,7 +97,6 @@ go(Tx, Dict, NewHeight, _) ->
                             RCID = contracts:make_id(<<ResultCH:256>>, RMany,Source,SourceType),
 
                             {MRoot, M2} = make_tree(Matrix), 
-
                             RootHash = mtree:root_hash(MRoot, M2),
                             Contract2 = Contract#contract{
                                           result = RootHash,

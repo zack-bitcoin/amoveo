@@ -48,7 +48,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     #sub_channel{
                   closed = 0,
                   accounts = AH,
-                  nonce = Nonce
+                  nonce = ChannelNonce,
+                  contract_id = Source,
+                  type = SourceType
                 } = Channel,
     Accounts = [Acc1, Acc2],
     AH = hash:doit(Accounts),
@@ -64,12 +66,74 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             case chalang:stack(Data) of
                 [<<RNonce:32>>, <<RDelay:32>>, PayoutVector|_] when (is_list(PayoutVector)) ->
                     %pay out winnings to the owners according to the payout vector in the source currency.
-                    ok;
+                    %for now just store the hash of the payout vector in the result
+                    B1 = RNonce > ChannelNonce,
+                    B2 = (length(Accounts) == length(PayoutVector)),
+                    TwoE32 = 4294967295,%(2**32 - 1) highest expressible value in chalang integers. payout quantities need to sum to this.
+                    B3 = contract_evidence_tx:sum_vector(TwoE32, PayoutVector),
+                    B4 = B1 and B2 and B3,
+                    if
+                        not(B4) ->
+                            if
+                                not(B1) -> io:fwrite("resolve contract tx, vector case, nonce is too low to update\n");
+                                not(B2) -> 
+                                    io:fwrite(packer:pack([length(Accounts), PayoutVector])),
+                                    io:fwrite("resove_contract_tx, payout vector is the wrong length\n");
+                                not(B3) -> 
+                                    io:fwrite(packer:pack(PayoutVector)),
+                                    io:fwrite("\ncontract_evidence_tx, payout vector doesn't conserve the total quantity of veo.\n")
+                            end,
+                            Dict2;
+                        true ->
+                            Channel2 = 
+                                Channel#sub_channel{
+                                  result = hash:doit(Accounts),
+                                  nonce = RNonce,
+                                  delay = RDelay,
+                                  last_modified = NewHeight
+                                 },
+                            sub_channel:dict_write(Channel2, Dict2)
+                    end;
                 [<<CNonce:32>>,<<CDelay:32>>,<<ResultCH:256>>,Matrix|_] ->
-                    %since it is a matrix we need to create a new contract and give them subcurrencies according to the Matrix.
-                    ok
-            end,
-            ok
+                    B1 = CNonce > ChannelNonce,
+                    B2 = is_list(Matrix),
+                    B3 = (length(Accounts) == length(Matrix)),
+                    RMany = length(hd(Matrix)),
+                    B4 = contract_evidence_tx:all_lengths(RMany, Matrix),
+                    TwoE32 = 4294967295,%(2**32 - 1) highest expressible value in chalang integers.
+                    B5 = contract_evidence_tx:column_sum(TwoE32, Matrix),
+                    MCF = governance:dict_get_value(max_contract_flavors, Dict),
+                    B7 = RMany =< MCF,
+                    B6 = B1 and B2 and B3 and B4 and B5 and B7,
+                    if
+                        not(B6) ->
+                            if
+                                not(B1) -> io:fwrite("resolve contract tx, nonce is too low to update contract.\n");
+                                not(B2) -> io:fwrite("contract_evidence_tx, matrix is misformatted.\n");
+                                not(B3) -> io:fwrite("contract_evidence_tx, matrix has wrong number of rows.\n");
+                                not(B4) -> io:fwrite("contract_evidence_tx, matrix has a row with the wrong length.\n");
+                                not(B5) -> io:fwrite("contract_evidence_tx, matrix does not conserve the total number of veo.\n");
+                                not(B7) -> io:fwrite("contract_evidence_tx, matrix rows are too long. we can't have a contract with that many subcurrencies.\n")
+                            end,
+                            Dict2;
+                        true ->
+                            RCID = contracts:make_id(<<ResultCH:256>>, RMany,Source,SourceType),
+                            {MRoot, M2} = contract_evidence_tx:make_tree(Matrix), 
+                            %store the contract hash in the tree as well.
+                            CFG = mtree:cfg(M2),
+                            Leaf = leaf:new(0, <<ResultCH:256>>,0, CFG),
+                            {MRoot2, M3} = mtree:store_batch([Leaf], MRoot, M2),
+                            RootHash = mtree:root_hash(MRoot2, M3),
+                            Channel2 = 
+                                Channel#sub_channel{
+                                  result = RootHash,
+                                  nonce = CNonce,
+                                  delay = CDelay,
+                                  last_modified = NewHeight
+                                 },
+                            sub_channel:dict_write(Channel2, Dict2)
+                    end
+            end
     end.
     
     %update the channel with the new nonce and result, delay, and newheight
