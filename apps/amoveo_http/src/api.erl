@@ -928,13 +928,16 @@ mining_data_helper(N) ->
     end.
 orders(OID) ->
     %if the OID is encoded, we should decode it to binary form.
+    %this looks like it is based on an old version of the database before a hard update. needs to be tested.
     Oracle = trees:get(oracles, OID),
     X = oracles:orders(Oracle),
     IDs = orders:all(X),
     lists:map(fun(Y) -> orders:get(Y, X) end, IDs).
 oracles() ->
+    %This is not scalable at all.
     oracles:all().
 channels_from(Address) ->
+    %This is not scalable at all.
     CA = channels:all(),
     channels_from2(CA, Address).
 channels_from2([], _) -> [];

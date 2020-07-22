@@ -168,12 +168,18 @@ leaves_to_querys([L|T]) ->
 txs_to_querys([C|T], Trees, Height) -> 
     case element(1, C) of
         coinbase ->
+            F33 = forks:get(33),
+            U = if
+                    Height > F33 -> 
+                        [{governance, ?n2i(max_block_size)}];
+                    true -> []
+                end,
             [
              {governance, ?n2i(block_reward)},
              {governance, ?n2i(developer_reward)},
              {accounts, constants:master_pub()},
              {accounts, coinbase_tx:from(C)}
-            ] ++
+            ] ++ U ++
                 txs_to_querys2(T, Trees, Height);
         signed -> txs_to_querys2([C|T], Trees, Height)
     end.
