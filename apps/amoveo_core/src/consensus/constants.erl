@@ -97,7 +97,7 @@ sub_channel_size() ->
           balance_bits() +
           height_bits() + 
           channel_delay_bits()) div 8) 
-	+ 1 + (3 * hash_size()) + 2.
+	+ 1 + (4 * hash_size()) + 2.
 contract_size() ->
     ((balance_bits() +
           channel_nonce_bits() + 

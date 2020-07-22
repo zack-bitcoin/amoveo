@@ -154,7 +154,7 @@
 -record(swap_tx, {from, offer, fee}).
 
 
--record(contract_resolve_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
+-record(contract_evidence_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
 -record(contract_timeout_tx, {from, nonce, fee, contract_id, proof, contract_hash, row}).%possibly converts it into a new kind of contract. %possibly unsigned
 -record(contract_winnings_tx, {from, nonce, fee, contract_id, amount, sub_account, winner, proof, row}).
 -record(contract_simplify_tx, {from, nonce, fee, cid, cid2, cid3, m1, m2}).
@@ -180,6 +180,7 @@
 -record(sub_channel, {
       id,
       accounts,%root hash
+      result = <<0:256>>,
       amount,
       nonce = 1,
       last_modified,

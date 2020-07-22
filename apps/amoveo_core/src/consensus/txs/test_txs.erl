@@ -1139,7 +1139,7 @@ int 0 int 1" >>),
     timer:sleep(200),
 
     %a potential resolution of the contract.
-    Tx5 = contract_resolve_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Tx5 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     1 = many_txs(),
@@ -1190,14 +1190,14 @@ int 0 int 1" >>),
     timer:sleep(20),
     
     %potential resolutions
-    Tx10 = contract_resolve_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Tx10 = contract_evidence_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
     Stx10 = keys:sign(Tx10),
     absorb(Stx10),
     1 = many_txs(),
     %mine_blocks(1),
     timer:sleep(50),
 
-    Tx11 = contract_resolve_tx:make_dict(MP, Code, CID3, <<>>, [], Fee),
+    Tx11 = contract_evidence_tx:make_dict(MP, Code, CID3, <<>>, [], Fee),
     Stx11 = keys:sign(Tx11),
     absorb(Stx11),
     2 = many_txs(),
@@ -1269,7 +1269,7 @@ binary 32 ",
     timer:sleep(200),
     
     %potential resolution of first contract
-    Tx3 = contract_resolve_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Tx3 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     1 = many_txs(),
@@ -1287,7 +1287,7 @@ binary 32 ",
          [Empty, Empty]],
     CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
 
-    Proofs = contract_resolve_tx:make_proof1(Matrix),
+    Proofs = contract_evidence_tx:make_proof1(Matrix),
 
     Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, [Empty, Full]),
     Stx4 = keys:sign(Tx4),
@@ -1309,7 +1309,7 @@ binary 32 ",
 
     %potential resolution of second contract
     %CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
-    Tx8 = contract_resolve_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Tx8 = contract_evidence_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
     Stx8 = keys:sign(Tx8),
     absorb(Stx8),
     1 = many_txs(),
@@ -1440,7 +1440,7 @@ binary 32 ",
     timer:sleep(20),
     
     %settled contract 1 and 2.
-    Tx4 = contract_resolve_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Tx4 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
@@ -1448,7 +1448,7 @@ binary 32 ",
     timer:sleep(300),
     0 = many_txs(),
 
-    Tx5 = contract_resolve_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Tx5 = contract_evidence_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     1 = many_txs(),
@@ -1456,7 +1456,7 @@ binary 32 ",
     timer:sleep(300),
     0 = many_txs(),
 
-    Proof = contract_resolve_tx:make_proof1(Matrix),
+    Proof = contract_evidence_tx:make_proof1(Matrix),
     Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
@@ -1464,7 +1464,7 @@ binary 32 ",
     mine_blocks(1),
     timer:sleep(200),
 
-    Proof2 = contract_resolve_tx:make_proof1(Matrix2),
+    Proof2 = contract_evidence_tx:make_proof1(Matrix2),
     Tx7 = contract_timeout_tx:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
@@ -1481,7 +1481,7 @@ binary 32 ",
     timer:sleep(200),
    
     %settle contract 3
-    Tx9 = contract_resolve_tx:make_dict(MP, Code3, CID3, <<>>, [], Fee),
+    Tx9 = contract_evidence_tx:make_dict(MP, Code3, CID3, <<>>, [], Fee),
     Stx9 = keys:sign(Tx9),
     absorb(Stx9),
     1 = many_txs(),
@@ -1643,7 +1643,7 @@ binary 32 ",
     timer:sleep(20),
     
     %settled contract 1 and 2.
-    Tx4 = contract_resolve_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Tx4 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
@@ -1651,7 +1651,7 @@ binary 32 ",
     timer:sleep(300),
     0 = many_txs(),
 
-    Tx5 = contract_resolve_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Tx5 = contract_evidence_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     1 = many_txs(),
@@ -1659,7 +1659,7 @@ binary 32 ",
     timer:sleep(300),
     0 = many_txs(),
 
-    Proof = contract_resolve_tx:make_proof1(Matrix),
+    Proof = contract_evidence_tx:make_proof1(Matrix),
     Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
@@ -1669,7 +1669,7 @@ binary 32 ",
 
     %since contract 1 is resolved, but 2 is not, we can withdraw some of our veo to 2.
 
-    Proof6_0 = contract_resolve_tx:make_proof1(Matrix),
+    Proof6_0 = contract_evidence_tx:make_proof1(Matrix),
     SubAcc = sub_accounts:make_key(MP, CID, 1), 
     Tx6_0 = contract_winnings_tx:make_dict(MP, SubAcc, CID, Fee, lists:nth(1, Matrix), Proof6_0),
     Stx6_0 = keys:sign(Tx6_0),
@@ -1686,7 +1686,7 @@ binary 32 ",
     
 
 
-    Proof2 = contract_resolve_tx:make_proof1(Matrix2),
+    Proof2 = contract_evidence_tx:make_proof1(Matrix2),
     Tx7 = contract_timeout_tx:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
@@ -1697,7 +1697,7 @@ binary 32 ",
     0 = many_txs(),
 
     %at this point 1 and 2 are resolved, we need to do a simplification. so it should be impossible for me to convert my tokens in 1 to 2.
-    Proof7_0 = contract_resolve_tx:make_proof1(Matrix),
+    Proof7_0 = contract_evidence_tx:make_proof1(Matrix),
     SubAcc7_0 = sub_accounts:make_key(MP, CID, 2), 
     Tx7_0 = contract_winnings_tx:make_dict(MP, SubAcc7_0, CID, Fee, lists:nth(2, Matrix), Proof7_0),
     Stx7_0 = keys:sign(Tx7_0),
@@ -1726,7 +1726,7 @@ binary 32 ",
 
     %now that 1 and 2 are simplified, I should be able to move my tokens from 1 directly to 3.
     Matrix8_0 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
-    Proof8_0 = contract_resolve_tx:make_proof1(Matrix8_0),
+    Proof8_0 = contract_evidence_tx:make_proof1(Matrix8_0),
     SubAcc8_0 = sub_accounts:make_key(MP, CID, 2), 
     %moves 1 veo of layer 1 types 2, to 1/4 veo in layer 2 contract #3 type 1.
     Tx8_0 = contract_winnings_tx:make_dict(MP, SubAcc8_0, CID, Fee, lists:nth(2, Matrix8_0), Proof8_0),
@@ -1752,7 +1752,7 @@ binary 32 ",
     
    
     %settle contract 3
-    Tx9 = contract_resolve_tx:make_dict(MP, Code3, CID3, <<>>, [], Fee),
+    Tx9 = contract_evidence_tx:make_dict(MP, Code3, CID3, <<>>, [], Fee),
     Stx9 = keys:sign(Tx9),
     absorb(Stx9),
     1 = many_txs(),
@@ -1812,7 +1812,7 @@ binary 32 ",
     0 = many_txs(),
 
     %resolve contract0
-    Tx13 = contract_resolve_tx:make_dict(MP, Code0, CID0, <<>>, [], Fee),
+    Tx13 = contract_evidence_tx:make_dict(MP, Code0, CID0, <<>>, [], Fee),
     Stx13 = keys:sign(Tx13),
     absorb(Stx13),
     timer:sleep(50),

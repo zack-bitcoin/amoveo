@@ -289,7 +289,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                                  constants:encoded_fee()),
             G31 = governance:new(governance:name2number(sub_spend_tx),
                                  constants:encoded_fee()),
-            G32 = governance:new(governance:name2number(contract_resolve_tx),
+            G32 = governance:new(governance:name2number(contract_evidence_tx),
                                  constants:encoded_fee()),
             G33 = governance:new(governance:name2number(contract_timeout_tx),
                                  constants:encoded_fee()),

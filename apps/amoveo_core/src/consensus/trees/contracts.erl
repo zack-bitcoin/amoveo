@@ -165,8 +165,8 @@ dict_get(Key, Dict) ->
     <<_:256>> = Key,
     X = dict:find({contracts, Key}, Dict),
     case X of
-	%error -> error;
-	error -> empty;
+	error -> error;
+	%error -> empty;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
         {ok, Y} -> deserialize(Y)

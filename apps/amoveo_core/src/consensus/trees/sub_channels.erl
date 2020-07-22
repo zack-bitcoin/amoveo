@@ -60,6 +60,13 @@ hash_accounts(Accs) ->
     hash:doit(Accs).
 serialize(C) ->
     %ACC = constants:address_bits(),
+    #sub_channel{
+           id = CID,
+           accounts = Accs,
+           contract_id = ContractID,
+           amount = Amount,
+           result = Result
+                } = C,
     BAL = constants:balance_bits(),
     HEI = constants:height_bits(),
     NON = constants:channel_nonce_bits(),
@@ -70,14 +77,13 @@ serialize(C) ->
     HS = constants:hash_size(),
     %Shares = shares:root_hash(C#sub_channel.shares),
     %HS = size(Shares),
-    Accs = C#sub_channel.accounts,
-    ContractID = C#sub_channel.contract_id,
-    Amount = C#sub_channel.amount,
     true = size(Accs) == HS,
     true = size(CID) == HS,
+    true = size(Result) == HS,
     <<_:256>> = CID,
     << CID/binary,
        Accs/binary,
+       Result/binary,
        Amount:BAL,
        (C#sub_channel.nonce):NON,
        (C#sub_channel.last_modified):HEI,
@@ -96,6 +102,7 @@ deserialize(B) ->
     HS = constants:hash_size()*8,
     << ID:HS,
        Accs:HS,
+       Result:HS,
        Amount:BAL,
        B5:NON,
        B7:HEI,
@@ -104,7 +111,7 @@ deserialize(B) ->
        ContractID:HS,
        Type:16
     >> = B,
-    #sub_channel{id = <<ID:HS>>, accounts = <<Accs:HS>>, 
+    #sub_channel{id = <<ID:HS>>, accounts = <<Accs:HS>>, result = <<Result:HS>>,
                  amount = Amount,
                  nonce = B5, 
                  last_modified = B7,
@@ -129,8 +136,8 @@ dict_get(Key, Dict) ->
     <<_:256>> = Key,
     X = dict:find({sub_channels, Key}, Dict),
     case X of
-	%error -> error;
-	error -> empty;
+	error -> error;
+	%error -> empty;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
         {ok, Y} -> deserialize(Y)

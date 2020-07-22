@@ -179,7 +179,7 @@ txs_to_querys([C|T], Trees, Height) ->
              {governance, ?n2i(developer_reward)},
              {accounts, constants:master_pub()},
              {accounts, coinbase_tx:from(C)}
-            ] ++
+            ] ++ 
                 txs_to_querys2(T, Trees, Height);
         signed -> txs_to_querys2([C|T], Trees, Height)
     end.
@@ -461,8 +461,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {sub_accounts, TKey},
                  {governance, ?n2i(sub_spend_tx)}
                 ];
-            contract_resolve_tx ->
-                #contract_resolve_tx{
+            contract_evidence_tx ->
+                #contract_evidence_tx{
               from = From,
               prove = Prove,
               contract = Code,
@@ -475,7 +475,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(time_gas)},
                  {governance, ?n2i(space_gas)},
                  {governance, ?n2i(max_contract_flavors)},
-                 {governance, ?n2i(contract_resolve_tx)}
+                 {governance, ?n2i(contract_evidence_tx)}
                 ] ++ Prove;
             contract_timeout_tx ->
                 #contract_timeout_tx{

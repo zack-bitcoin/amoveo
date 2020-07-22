@@ -55,7 +55,7 @@ go(Tx, Dict, NewHeight, _) ->
                         RowLeaf = leaf:new(1, RowHash, 0, CFG),
                         true = verify:proof(Result, RowLeaf, Proof1, CFG),
                         RowHash = leaf:value(RowLeaf),
-                        RowHash = hash:doit(contract_resolve_tx:serialize_row(Row, <<>>)),
+                        RowHash = hash:doit(contract_evidence_tx:serialize_row(Row, <<>>)),
                         RMany = length(Row),
                         CID2 = contracts:make_id(CH2, RMany, Source, SourceType),%this is to verify that CH2 is correct.
                         contracts:new(CH2, RMany, Source, SourceType);

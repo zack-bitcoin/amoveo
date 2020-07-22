@@ -43,7 +43,7 @@ key2module(oracle_winnings) -> oracle_winnings_tx;
 key2module(contract_new_tx) -> contract_new_tx;
 key2module(contract_use_tx) -> contract_use_tx;
 key2module(sub_spend_tx) -> sub_spend_tx;
-key2module(contract_resolve_tx) -> contract_resolve_tx;
+key2module(contract_evidence_tx) -> contract_evidence_tx;
 key2module(contract_timeout_tx) -> contract_timeout_tx;
 key2module(contract_winnings_tx) -> contract_winnings_tx;
 key2module(contract_simplify_tx) -> contract_simplify_tx;
