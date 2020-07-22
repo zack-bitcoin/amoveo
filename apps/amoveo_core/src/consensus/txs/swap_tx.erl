@@ -1,5 +1,6 @@
 -module(swap_tx).
--export([go/4, make_offer/11, make_dict/2]).
+-export([go/4, make_offer/11, make_dict/2,
+        fee_helper/3]).
 -include("../../records.hrl").
 
 make_dict(From, SNCOffer) ->
@@ -40,7 +41,8 @@ make_offer(From, StartLimit, EndLimit, CID1, Type1, Amount1, CID2, Type2, Amount
 go(Tx, Dict, NewHeight, _) ->
     #swap_tx{
     from = Acc2,
-    offer = SNCO
+    offer = SNCO,
+    fee = Fee
    } = Tx,
     true = testnet_sign:verify(SNCO),
     NCO = testnet_sign:data(SNCO),
@@ -58,21 +60,42 @@ go(Tx, Dict, NewHeight, _) ->
          type2 = Type2,
          amount2 = Amount2
         } = NCO,
+    Fee = Fee1 + Fee2,
     true = NewHeight >= SL,
     true = NewHeight =< EL,
 
 %we want Acc1 to be able to cancel his offer by making some unrelated tx to increase his nonce.
-    case CID1 of
-        <<0:256>> ->
-            A1 = accounts:dict_get(Acc1, Dict),
-            true = A1#acc.nonce == (Nonce - 1);
-        _ ->
-            Key1 = sub_accounts:make_key(Acc1, CID1, Type1),
-            A1 = sub_accounts:dict_get(Key1, Dict),
-            true = A1#sub_acc.nonce == (Nonce - 1)
-        end,
+    Dict1 = 
+        case CID1 of
+            <<0:256>> ->
+                A1 = accounts:dict_get(Acc1, Dict),
+                A1N = A1#acc.nonce,
+                true = A1N < Nonce,
+                A1_2 = A1#acc{
+                         nonce = A1N + 1
+                        },
+                accounts:dict_write(A1_2, Dict);
+%                A = accounts:dict_update(Acc1, Dict, 0, Nonce),
+%                accounts:dict_write(A, Dict);
 
-    Dict2 = fee_helper(Fee1, Acc1, Dict),
+%            A1 = accounts:dict_get(Acc1, Dict),
+%            true = A1#acc.nonce == (Nonce - 1);
+        _ ->
+                Key1 = sub_accounts:make_key(Acc1, CID1, Type1),
+                A1 = sub_accounts:dict_get(Key1, Dict),
+                A1N = A1#sub_acc.nonce,
+                true = A1N < Nonce,
+                A1_2 = A1#sub_acc{
+                         nonce = A1N + 1
+                        },
+                sub_accounts:dict_write(A1_2, Dict)
+                
+%                A = sub_accounts:dict_update(Key1, Dict, 0, Nonce),
+%                sub_accounts:dict_write(A, Dict)
+%            A1 = sub_accounts:dict_get(Key1, Dict),
+%            true = A1#sub_acc.nonce == (Nonce - 1)
+        end,
+    Dict2 = fee_helper(Fee1, Acc1, Dict1),
     Dict3 = fee_helper(Fee2, Acc2, Dict2),
     Dict4 = move_helper(Acc1, Acc2, Amount1, CID1, Type1, Dict3),
     Dict5 = move_helper(Acc2, Acc1, Amount2, CID2, Type2, Dict4),
