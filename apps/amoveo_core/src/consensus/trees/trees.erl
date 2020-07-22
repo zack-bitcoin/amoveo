@@ -186,6 +186,9 @@ get(TreeID, Key) ->
 get(governance, Key, Dict, Trees) ->
     %first check if the thing we want is stored in the RAM Dict for quick access. If not, load it from the hard drive.
     case governance:dict_get_value(Key, Dict) of
+	error -> 
+	    Governance = trees:governance(Trees),
+	    governance:get_value(Key, Governance);
 	empty -> 
 	    Governance = trees:governance(Trees),
 	    governance:get_value(Key, Governance);

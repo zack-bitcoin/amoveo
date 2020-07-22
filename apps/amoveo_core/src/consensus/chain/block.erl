@@ -534,7 +534,7 @@ check3(OldBlock, Block) ->
     F33 = forks:get(33),
     
     MaxBlockSize = if
-                       Height > F33 -> 
+                       Height > (F33+1) -> 
                            governance:dict_get_value(max_block_size, Dict);
                        true -> none
                    end,
