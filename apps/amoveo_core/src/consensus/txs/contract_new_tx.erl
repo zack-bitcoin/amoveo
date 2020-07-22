@@ -1,4 +1,4 @@
--module(new_contract_tx).
+-module(contract_new_tx).
 -export([go/4, make_dict/6, make_dict/4]).
 -include("../../records.hrl").
 make_dict(From, CH, Types, Fee) ->
@@ -6,10 +6,10 @@ make_dict(From, CH, Types, Fee) ->
 make_dict(From, CH, Types, Source, SourceType, Fee) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce + 1,
-    #new_contract_tx{from = From, nonce = Nonce, fee = Fee, contract_hash = CH, many_types = Types, source = Source, source_type = SourceType}.
+    #contract_new_tx{from = From, nonce = Nonce, fee = Fee, contract_hash = CH, many_types = Types, source = Source, source_type = SourceType}.
 
 go(Tx, Dict, NewHeight, _) ->
-    #new_contract_tx{
+    #contract_new_tx{
     from = From,
     nonce = Nonce,
     fee = Fee,

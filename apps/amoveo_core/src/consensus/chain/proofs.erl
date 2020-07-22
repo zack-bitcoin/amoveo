@@ -414,9 +414,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {accounts, From},
                  {oracles, OID}
                 ] ++ U;
-            use_contract_tx ->
-                CID = use_contract_tx:cid(Tx),
-                From = use_contract_tx:from(Tx),
+            contract_use_tx ->
+                CID = contract_use_tx:cid(Tx),
+                From = contract_use_tx:from(Tx),
                 SA = use_contract_sub_accounts(Tx),
                 Contracts = trees:contracts(Trees),
                 {_, Contract, _} = contracts:get(CID, Contracts),
@@ -432,10 +432,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                     end,
                 [{accounts, From},
                  {contracts, CID},
-                 {governance, ?n2i(use_contract_tx)}
+                 {governance, ?n2i(contract_use_tx)}
                  ] ++ SA ++ U;
-            new_contract_tx ->
-                #new_contract_tx{
+            contract_new_tx ->
+                #contract_new_tx{
               from = From,
               contract_hash = CH,
               source = S,
@@ -444,7 +444,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 CID = contracts:make_id(CH, MT,S,ST),
                 [{accounts, From},
                  {contracts, CID},
-                 {governance, ?n2i(new_contract_tx)},
+                 {governance, ?n2i(contract_new_tx)},
                  {governance, ?n2i(max_contract_flavors)}
                 ];
             sub_spend_tx ->
@@ -737,7 +737,7 @@ oracle_type_get(Trees, OID, Height) ->
     end.
    
 use_contract_sub_accounts(Tx) ->    
-    #use_contract_tx{
+    #contract_use_tx{
                       from = Acc,
                       contract_id = CH,
                       many = Many

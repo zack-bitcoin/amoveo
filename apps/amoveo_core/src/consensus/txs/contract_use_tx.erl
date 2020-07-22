@@ -1,20 +1,20 @@
--module(use_contract_tx).
+-module(contract_use_tx).
 -export([go/4, make_dict/4, from/1, cid/1]).
 -include("../../records.hrl").
 
 %this allows you to buy all types in a subcurry together.
 
-from(Tx) -> Tx#use_contract_tx.from.
-cid(Tx) -> Tx#use_contract_tx.contract_id.
+from(Tx) -> Tx#contract_use_tx.from.
+cid(Tx) -> Tx#contract_use_tx.contract_id.
 
 make_dict(From, CID, Amount, Fee) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce + 1,
     C = trees:get(contracts, CID),
     Many = contracts:many_types(C),
-    #use_contract_tx{from = From, nonce = Nonce, fee = Fee, contract_id = CID, amount = Amount, many = Many}.
+    #contract_use_tx{from = From, nonce = Nonce, fee = Fee, contract_id = CID, amount = Amount, many = Many}.
 go(Tx, Dict, NewHeight, _) ->
-    #use_contract_tx{
+    #contract_use_tx{
     from = From,
     nonce = Nonce,
     fee = Fee,

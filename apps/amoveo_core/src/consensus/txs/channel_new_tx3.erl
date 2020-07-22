@@ -74,6 +74,6 @@ go(Tx, Dict, NewHeight, _) ->
     Dict2 = swap_tx:fee_helper(Fee1+Bal1, Acc1, Dict),
     Dict3 = swap_tx:fee_helper(Fee2+Bal2, Acc2, Dict2),
 
-    SC = sub_channels:new(CID, Source, SourceType, [Acc1, Acc2], NewHeight, Delay),
+    SC = sub_channels:new(CID, Source, SourceType, [Acc1, Acc2], NewHeight, Delay, Bal1+Bal2),
     nc_sigs:store(CID, CS),
     sub_channels:dict_write(SC, Dict3).

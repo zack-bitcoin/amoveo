@@ -283,9 +283,9 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
             NewTrees1;%
         (HeightCheck == F32) ->
             GT = trees:governance(NewTrees0),
-            G29 = governance:new(governance:name2number(new_contract_tx),
+            G29 = governance:new(governance:name2number(contract_new_tx),
                                  constants:encoded_fee()),
-            G30 = governance:new(governance:name2number(use_contract_tx),
+            G30 = governance:new(governance:name2number(contract_use_tx),
                                  constants:encoded_fee()),
             G31 = governance:new(governance:name2number(sub_spend_tx),
                                  constants:encoded_fee()),

@@ -1103,7 +1103,7 @@ int 0 int 1" >>),
     %Code = <<3,1,3,0,2,32,>>,
     CH = hash:doit(Code),
     Many = 3, 
-    Tx = new_contract_tx:make_dict(MP, CH, Many, Fee),
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
     CID = contracts:make_id(CH, Many,<<0:256>>,0),
     Stx = keys:sign(Tx),
     absorb(Stx),
@@ -1113,7 +1113,7 @@ int 0 int 1" >>),
 
     %buying some subcurrencies from the new contract.
     Amount = 10000,
-    Tx2 = use_contract_tx:make_dict(MP, CID, Amount, Fee),
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
     1 = many_txs(),
@@ -1131,7 +1131,7 @@ int 0 int 1" >>),
     timer:sleep(200),
 
     %using the contract in reverse. combining the different types back into the source currency.
-    Tx4 = use_contract_tx:make_dict(MP, CID, -5000, Fee),
+    Tx4 = contract_use_tx:make_dict(MP, CID, -5000, Fee),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
@@ -1172,7 +1172,7 @@ macro ] swap cons reverse ;\
 int 0 [ int 0, int 4294967295]\
 int 0 int 1" >>),
     CH2 = hash:doit(Code2),
-    Tx8 = new_contract_tx:make_dict(MP, CH2, 2, Fee),
+    Tx8 = contract_new_tx:make_dict(MP, CH2, 2, Fee),
     Stx8 = keys:sign(Tx8),
     CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
     absorb(Stx8),
@@ -1181,7 +1181,7 @@ int 0 int 1" >>),
     timer:sleep(20),
 
     %now the child currency, built off the 3rd subtype.
-    Tx9 = new_contract_tx:make_dict(MP, CH, Many, CID2, 3, Fee),
+    Tx9 = contract_new_tx:make_dict(MP, CH, Many, CID2, 3, Fee),
     Stx9 = keys:sign(Tx9),
     CID3 = contracts:make_id(CH, 3,CID2,3),
     absorb(Stx9),
@@ -1251,7 +1251,7 @@ binary 32 ",
                " int 0 int 1" >>),
     CH = hash:doit(Code),
     Many = 3, 
-    Tx = new_contract_tx:make_dict(MP, CH, Many, Fee),
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
     CID = contracts:make_id(CH, Many,<<0:256>>,0),
     Stx = keys:sign(Tx),
     absorb(Stx),
@@ -1261,7 +1261,7 @@ binary 32 ",
 
     %buying some subcurrencies from the new contract.
     Amount = 10000,
-    Tx2 = use_contract_tx:make_dict(MP, CID, Amount, Fee),
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
     1 = many_txs(),
@@ -1415,7 +1415,7 @@ binary 32 ",
               [Half0, Half0, Zero],
               [Zero, Half1, Full]],
 
-    Tx1 = new_contract_tx:make_dict(MP, CH, 3, Fee),
+    Tx1 = contract_new_tx:make_dict(MP, CH, 3, Fee),
     CID = contracts:make_id(CH, 3,<<0:256>>,0),
     Stx1 = keys:sign(Tx1),
     absorb(Stx1),
@@ -1423,7 +1423,7 @@ binary 32 ",
     mine_blocks(1),
     timer:sleep(20),
     
-    Tx2 = new_contract_tx:make_dict(MP, CH2, 3, Fee),
+    Tx2 = contract_new_tx:make_dict(MP, CH2, 3, Fee),
     CID2 = contracts:make_id(CH2, 3,<<0:256>>,0),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
@@ -1431,7 +1431,7 @@ binary 32 ",
     mine_blocks(1),
     timer:sleep(20),
     
-    Tx3 = new_contract_tx:make_dict(MP, CH3, 2, Fee),
+    Tx3 = contract_new_tx:make_dict(MP, CH3, 2, Fee),
     CID3 = contracts:make_id(CH3, 2,<<0:256>>,0),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
@@ -1543,7 +1543,7 @@ macro ] swap cons reverse ;\
     
 
     %creating the layer-1 subcurrency
-    Tx0 = new_contract_tx:make_dict(MP, CH0, 2, Fee),
+    Tx0 = contract_new_tx:make_dict(MP, CH0, 2, Fee),
     CID0 = contracts:make_id(CH0, 2,<<0:256>>,0),
     Stx0 = keys:sign(Tx0),
     absorb(Stx0),
@@ -1553,7 +1553,7 @@ macro ] swap cons reverse ;\
 
     %buying layer-1 subcurrency
     Amount01 = 100000000,%1 veo
-    Tx01 = use_contract_tx:make_dict(MP, CID0, Amount01, Fee),
+    Tx01 = contract_use_tx:make_dict(MP, CID0, Amount01, Fee),
     Stx01 = keys:sign(Tx01),
     absorb(Stx01),
     1 = many_txs(),
@@ -1604,7 +1604,7 @@ binary 32 ",
               [Zero, Half1, Full]],
 
     %creating the first layer-2 contract
-    Tx1 = new_contract_tx:make_dict(MP, CH, 3, CID0, 1, Fee),
+    Tx1 = contract_new_tx:make_dict(MP, CH, 3, CID0, 1, Fee),
     CID = contracts:make_id(CH, 3,CID0,1),
     Stx1 = keys:sign(Tx1),
     absorb(Stx1),
@@ -1615,7 +1615,7 @@ binary 32 ",
 
     %using some of my type 1 subcurrency from the layer-1 contract, I am able to participate in the first layer-2 contract
 
-    Tx1_1 = use_contract_tx:make_dict(MP, CID, Amount01, Fee),
+    Tx1_1 = contract_use_tx:make_dict(MP, CID, Amount01, Fee),
     Stx1_1 = keys:sign(Tx1_1),
     absorb(Stx1_1),
     1 = many_txs(),
@@ -1625,7 +1625,7 @@ binary 32 ",
     %I also still own 1 veo of layer-1 type 2.
    
     %creating the second layer-2 contract
-    Tx2 = new_contract_tx:make_dict(MP, CH2, 3, CID0, 1, Fee),
+    Tx2 = contract_new_tx:make_dict(MP, CH2, 3, CID0, 1, Fee),
     CID2 = contracts:make_id(CH2, 3,CID0,1),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
@@ -1634,7 +1634,7 @@ binary 32 ",
     timer:sleep(20),
    
     %creating the third layer-2 contract
-    Tx3 = new_contract_tx:make_dict(MP, CH3, 2, CID0, 1, Fee),
+    Tx3 = contract_new_tx:make_dict(MP, CH3, 2, CID0, 1, Fee),
     CID3 = contracts:make_id(CH3, 2,CID0,1),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
@@ -1883,7 +1883,7 @@ macro ] swap cons reverse ;\
 int 0 int 1" >>),
     CH = hash:doit(Code),
     Many = 3, 
-    Tx = new_contract_tx:make_dict(MP, CH, Many, Fee),
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
     CID = contracts:make_id(CH, Many,<<0:256>>,0),
     Stx = keys:sign(Tx),
     absorb(Stx),
@@ -1893,7 +1893,7 @@ int 0 int 1" >>),
 
     %buy some subcurrency.
     Amount = 100000000,
-    Tx2 = use_contract_tx:make_dict(MP, CID, Amount, Fee),
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
     1 = many_txs(),
