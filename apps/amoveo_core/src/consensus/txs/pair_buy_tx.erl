@@ -28,21 +28,21 @@ make_offer(From, StartLimit, EndLimit, SourceCID, SourceType, Amount1, Fee1, Amo
     MT = length(Subs1),
     NewCID = contracts:make_id(CH, MT, SourceCID, SourceType),
     #pair_buy_offer{
-           acc1 = From,
-            nonce = Nonce,
-          contract_hash = CH,
-            start_limit = StartLimit,
-            end_limit = EndLimit,
-            source_id = SourceCID,
-            source_type = SourceType,
-          new_id = NewCID,
-            amount1 = Amount1, 
-            amount2 = Amount2,
-          subs1 = Subs1,
-          subs2 = Subs2,
-            fee1 = Fee1,
-            fee2 = Fee2
-           }.
+                     acc1 = From,
+                     nonce = Nonce,
+                     contract_hash = CH,
+                     start_limit = StartLimit,
+                     end_limit = EndLimit,
+                     source_id = SourceCID,
+                     source_type = SourceType,
+                     new_id = NewCID,
+                     amount1 = Amount1, 
+                     amount2 = Amount2,
+                     subs1 = Subs1,
+                     subs2 = Subs2,
+                     fee1 = Fee1,
+                     fee2 = Fee2
+                   }.
 go(Tx, Dict, NewHeight, _) ->
     #pair_buy_tx{
     from = Acc2,
@@ -98,13 +98,13 @@ go(Tx, Dict, NewHeight, _) ->
         end,
     Dict2 = fee_helper(Fee1, Acc1, Dict1),
     Dict3 = fee_helper(Fee2, Acc2, Dict2),
-    Dict4 = change_sub(-Amount1, Acc1, SourceCID, SourceType, Dict3),
+    Dict4 = change_sub(-Amount1, Acc1, SourceCID, SourceType, Dict3),%take amount1 away
     Dict5 = change_sub(-Amount2, Acc2, SourceCID, SourceType, Dict4),
     MT = length(Subs1),
     MT = length(Subs2),
     NewCID = contracts:make_id(CH, MT, SourceCID, SourceType),
     %Amount is how much subcurrency to pay out.
-    Amount = -(Amount1 + Amount2),
+    Amount = Amount1 + Amount2,
     C1 = case contracts:dict_get(NewCID, Dict5) of
              empty ->
                  true = Amount >= 0,
@@ -117,15 +117,15 @@ go(Tx, Dict, NewHeight, _) ->
            volume = Amount + C1#contract.volume
           },
     %payout subcurrencies to acc1 amount * sub1
-    Dict6 = send_sub_accounts(MT, Acc1, NewCID, Amount, Subs1, Dict5),
-    Dict7 = send_sub_accounts(MT, Acc2, NewCID, Amount, Subs2, Dict6),
+    Dict6 = send_sub_accounts(1, Acc1, NewCID, Amount, Subs1, Dict5),
+    Dict7 = send_sub_accounts(1, Acc2, NewCID, Amount, Subs2, Dict6),
 
-    Dict7.
+    contracts:dict_write(C2, Dict7).
 
-send_sub_accounts(0, _, _, _, [], Dict) ->
+send_sub_accounts(_, _, _, _, [], Dict) ->
     Dict;
 send_sub_accounts(N, From, CID, Amount0, [<<0:32>>|ST], Dict) ->
-    send_sub_accounts(N-1, From, CID, Amount0, ST, Dict);
+    send_sub_accounts(N+1, From, CID, Amount0, ST, Dict);
 send_sub_accounts(N, From, CID, Amount0, [<<Scale:32>>|ST], Dict) ->
     Key = sub_accounts:make_key(From, CID, N),
     OA = sub_accounts:dict_get(Key, Dict),
@@ -159,40 +159,6 @@ change_sub(Amount, Acc, Source, SourceType, Dict) ->
             sub_accounts:dict_write(A, Dict)
     end.
 
-    
-
-            
-move_helper(Acc1, Acc2, Amount, CID, Type, Dict) ->
-    %from acc1 to acc2
-    case {CID, Type} of
-        {<<0:256>>, 0} ->
-            move_veo(Acc1, Acc2, Amount, Dict);
-        _ ->
-            move_sub(Acc1, Acc2, Amount, CID, Type, Dict)
-    end.
-        
-    
-move_veo(Acc1, Acc2, Amount, Dict) ->
-    %from Acc1 to Acc2
-    A1 = accounts:dict_update(Acc1, Dict, -Amount, none),
-    DictA = accounts:dict_write(A1, Dict),
-    A2 = accounts:dict_update(Acc2, DictA, Amount, none),
-    accounts:dict_write(A2, DictA).
-
-move_sub(Acc1, Acc2, Amount, CID, Type, Dict) ->
-    %moves subcurrency from Acc1 to Acc2
-    Key1 = sub_accounts:make_key(Acc1, CID, Type),
-    SA1 = sub_accounts:dict_update(Key1, Dict, -Amount, none),
-    DictA = sub_accounts:dict_write(SA1, Dict),
-    Key2 = sub_accounts:make_key(Acc2, CID, Type),
-    SA2 = sub_accounts:dict_get(Key2, DictA),
-    SA2B = case SA2 of
-               empty -> sub_accounts:new(Acc2, Amount, CID, Type);
-               _ -> sub_accounts:dict_update(Key2, DictA, Amount, none)
-           end,
-    sub_accounts:dict_write(SA2B, DictA).
-    
-    
 correct_vector_format([]) -> true;
 correct_vector_format([<<_:32>>|T]) ->
     correct_vector_format(T);

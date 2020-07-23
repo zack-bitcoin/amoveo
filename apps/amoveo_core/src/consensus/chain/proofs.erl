@@ -669,7 +669,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 U2 = sub_accounts_loop(Subs1, Acc1, NewCID, 1),
                 U3 = sub_accounts_loop(Subs2, Acc2, NewCID, 1),
               
-                [{governance, ?n2i(pair_buy_tx)}
+                [{governance, ?n2i(pair_buy_tx)},
+                 {contracts, NewCID}
                 ] ++ F1 ++ F2 ++ U ++ U2 ++ U3;
 	    coinbase_old -> 
                 [

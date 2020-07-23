@@ -1924,11 +1924,46 @@ int 0 int 1" >>),
     mine_blocks(1),
     timer:sleep(200),
 
+    success;
+test(41) ->
+    %test pair buy
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Tx1 = create_account_tx:make_dict(NewPub, 1000000000, Fee, constants:master_pub()),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 4294967295]\
+int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Zero = <<0:32>>,
+    Full = <<-1:32>>,
+
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, 100000000, Fee, 90000000, Fee, [Full, Zero], [Zero, Full], CH),
+    SPBO = keys:sign(PBO),
+    Tx2 = pair_buy_tx:make_dict(NewPub, SPBO),
+    Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
     success.
-
-
-
-
 
 
 
