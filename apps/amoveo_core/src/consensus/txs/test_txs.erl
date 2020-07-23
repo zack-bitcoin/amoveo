@@ -1956,6 +1956,7 @@ int 0 int 1" >>),
     Full = <<-1:32>>,
 
     PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, 100000000, Fee, 90000000, Fee, [Full, Zero], [Zero, Full], CH),
+    NewCID = PBO #pair_buy_offer.new_id,
     SPBO = keys:sign(PBO),
     Tx2 = pair_buy_tx:make_dict(NewPub, SPBO),
     Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
@@ -1963,6 +1964,35 @@ int 0 int 1" >>),
     1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
+
+    Tx3 = contract_evidence_tx:make_dict(MP, Code, NewCID, <<>>, [], Fee),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+
+    Tx4 = contract_timeout_tx:make_dict(MP, NewCID, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    
+    SubAcc2 = sub_accounts:make_key(NewPub, NewCID, 2),
+    Tx5 = contract_winnings_tx:make_dict(NewPub, SubAcc2, NewCID, Fee, [<<0:32>>, <<-1:32>>]),
+    Stx5 = testnet_sign:sign_tx(Tx5, NewPub, NewPriv),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %verify that the new account won the bet.
+    AccF = trees:get(accounts, NewPub),
+    true = AccF#acc.balance > 1060000000,
+    
     success.
 
 
