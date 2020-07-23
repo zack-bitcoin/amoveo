@@ -616,6 +616,61 @@ txs_to_querys2([STx|T], Trees, Height) ->
                      end,
                 [{governance, ?n2i(swap_tx)}] ++
                 F1 ++ F2 ++ U ++ U2;
+            pair_buy_tx ->
+                #pair_buy_tx{
+              from = Acc2,
+              offer = SPBO
+             } = Tx,
+                PBO = testnet_sign:data(SPBO),
+                #pair_buy_offer{
+                                 acc1 = Acc1,
+                                 source_id = SourceCID,
+                                 source_type = SourceType,
+                                 new_id = NewCID,
+                                 subs1 = Subs1,
+                                 subs2 = Subs2,
+                                 fee1 = Fee1,
+                                 fee2 = Fee2,
+                                 amount1 = Amount1,
+                                 amount2 = Amount2
+                               } = PBO,
+                F1 = case Fee1 of
+                         0 -> [];
+                         _ -> [{accounts, Acc1}]
+                     end,
+                F2 = case Fee2 of
+                         0 -> [];
+                         _ -> [{accounts, Acc2}]
+                     end,
+                U = case SourceCID of
+                        <<0:256>> ->
+                            %in this case we need one or more of the veo accounts
+                            L1 = if
+                                     Amount1 == 0 -> [];
+                                     true -> [{accounts, Acc1}]
+                                 end,
+                            L2 = if
+                                     Amount2 == 0 -> [];
+                                     true -> [{accounts, Acc2}]
+                                 end,
+                            L1 ++ L2;
+                        _ ->
+                            %in this case we need one or both of the source sub_accounts
+                            L1 = if
+                                     Amount1 == 0 -> [];
+                                     true -> [{sub_accounts, sub_accounts:make_key(Acc1, SourceCID, SourceType)}]
+                                 end,
+                            L2 = if
+                                     Amount2 == 0 -> [];
+                                     true -> [{sub_accounts, sub_accounts:make_key(Acc2, SourceCID, SourceType)}]
+                                 end,
+                            L1 ++ L2
+                    end,
+                U2 = sub_accounts_loop(Subs1, Acc1, NewCID, 1),
+                U3 = sub_accounts_loop(Subs2, Acc2, NewCID, 1),
+              
+                [{governance, ?n2i(pair_buy_tx)}
+                ] ++ F1 ++ F2 ++ U ++ U2 ++ U3;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},
@@ -757,3 +812,4 @@ sub_accounts_loop([<<X:32>>|T],Winner,CID,N) ->
     Key = sub_accounts:make_key(Winner, CID, N),
     [{sub_accounts, Key}|
      sub_accounts_loop(T,Winner,CID,N+1)].
+

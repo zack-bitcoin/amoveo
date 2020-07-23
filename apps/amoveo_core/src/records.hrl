@@ -152,6 +152,16 @@
           fee1, %what acc1 pays in fees
           fee2}).
 -record(swap_tx, {from, offer, fee}).
+-record(pair_buy_offer, {
+          acc1, nonce, start_limit, end_limit,
+          source_id, source_type, contract_hash,
+          new_id,
+          amount1, fee1,
+          amount2, fee2,
+          subs1, %used to specify who receives which subcurrencies in the contract.
+          subs2
+         }).
+-record(pair_buy_tx, {from, offer, fee}).
 
 
 -record(contract_evidence_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
