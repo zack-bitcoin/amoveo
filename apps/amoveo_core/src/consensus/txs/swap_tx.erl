@@ -21,8 +21,11 @@ make_offer(From, StartLimit, EndLimit, CID1, Type1, Amount1, CID2, Type2, Amount
                 A#acc.nonce + 1;
             _ ->
                 Key1 = sub_accounts:make_key(From, CID1, Type1),
-                A = trees:get(sub_accounts, Key1),
-                A#sub_acc.nonce + 1
+                case trees:get(sub_accounts, Key1) of
+                    empty -> 1;
+                    A ->
+                        A#sub_acc.nonce + 1
+                end
         end,
     #swap_offer{
            acc1 = From,

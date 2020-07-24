@@ -2078,7 +2078,7 @@ int 0 int 1" >>),
 
     success;
 test(43) ->
-    %micropayments by signing off-chain evidence
+    %2 of 2 state channel
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -2100,7 +2100,7 @@ test(43) ->
 
     %finalizes as acc1 owning everything
     %delay 0, nonce 1
-    Code1 = compiler_chalang:doit(
+    _Code1 = compiler_chalang:doit(
              <<"macro [ nil ;\
 macro , swap cons ;\
 macro ] swap cons reverse ;\
@@ -2108,7 +2108,7 @@ def \
   [ int 4294967295, int 0]\
   int 0 int 1 ; \
 " >>),
-    F2 = hd(vm(Code1)),
+    %F2 = hd(vm(Code1)),
 
     %finalizes as acc2 owning everything
     %delay 0, nonce 2
@@ -2172,6 +2172,7 @@ binary ", (integer_to_binary(size(Sig1)))/binary, " ",
   [ int 0, int 4294967295 ]\
   int 0 int 2 ; \
 ">>,
+    %the evidence is made up of both signatures, the function id, and the definition of the function.
     Evidence = compiler_chalang:doit(EvidenceString),
     Tx3 = contract_evidence_tx:make_dict(MP, Code, NewCID, Evidence, [], Fee),
     Stx3 = keys:sign(Tx3),
@@ -2205,13 +2206,74 @@ binary ", (integer_to_binary(size(Sig1)))/binary, " ",
 
 
 test(44) ->
-    %in a channel, binary and scalar betting on oracles that don't yet exist, and resolving based on our agreed upon outcome, without having to create the oracle.
-    success;
-test(45) ->
-    %2 of 3 channel
-    success;
-test(46) ->
-    %hashlocking lightning payment
+%Someone who buys a contract, they should simultaniously make an offer to sell it for 99% of it's maximum value.
+    %acc2 starts with veo. they make a bet in a sports game denominated in veo. when the game ends, they want their winnings to automatically switch to being veo
+
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    StartBalance = 1000000000,
+    Tx1 = create_account_tx:make_dict(NewPub, StartBalance, Fee, constants:master_pub()),%send them 10 veo
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+
+    %First account 1 makes an offer for a new contract.
+
+    Zero = <<0:32>>,
+    Full = <<-1:32>>,
+    OneVeo = 100000000,
+    %2 way contract, all goes to acc2.
+    Code1 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+def \
+  [ int 0, int 4294967295]\
+  int 0 int 1 ; \
+" >>),
+    CH = hash:doit(Code1),
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
+    NewCID = PBO#pair_buy_offer.new_id,
+    SPBO = keys:sign(PBO),
+
+    %account 2 makes an offer to sell their winnings from this contract
+    SO = swap_tx:make_offer(NewPub, 0, 1000, NewCID, 2, OneVeo * 2, <<0:256>>, 0, 198000000, Fee, Fee),
+    SSO = testnet_sign:sign_tx(SO, NewPub, NewPriv),
+    
+    %account 2 joins the contract
+    Tx2 = pair_buy_tx:make_dict(NewPub, SPBO),
+    Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %account1 takes the opportunity to let acc2 cash out.
+    
+    Tx3 = swap_tx:make_dict(MP, SSO),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    %verify that the new account won the bet.
+    AccF = trees:get(accounts, NewPub),
+    true = AccF#acc.balance > (StartBalance + OneVeo - (Fee * 20)),
+
+    
     success.
 
 
