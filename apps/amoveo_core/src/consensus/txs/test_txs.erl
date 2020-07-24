@@ -1996,6 +1996,12 @@ int 0 int 1" >>),
     true = AccF#acc.balance > (StartBalance + OneVeo - (Fee * 20)),
     
     success;
+
+
+
+
+
+
 test(42) ->
     %test team_buy_tx
     headers:dump(),
@@ -2073,7 +2079,122 @@ int 0 int 1" >>),
     success;
 test(43) ->
     %micropayments by signing off-chain evidence
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    StartBalance = 1000000000,
+    Tx1 = create_account_tx:make_dict(NewPub, StartBalance, Fee, constants:master_pub()),%send them 10 veo
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+    Code1 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+def \
+  [ int 4294967295, int 0]\
+  int 0 int 1 ; \
+" >>),
+    F2 = hd(vm(Code1)),
+
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+def \
+  [ int 0, int 4294967295 ]\
+  int 0 int 2 ; \
+" >>),
+    F1 = hd(vm(Code2)),
+
+    
+%expects sig1 sig2 functionid
+%if both signatures are valid for this functionid, then it calls the function.
+    Code = compiler_chalang:doit(
+             <<"\ drop
+F ! F @
+ binary 65 ", (base64:encode(NewPub))/binary, " verify_sig swap \
+
+F @
+ binary 65 ", (base64:encode(MP))/binary, " verify_sig \
+ and if \
+   F @ call \
+ else fail then \
+">>),
+
+    CH = hash:doit(Code),
+    Zero = <<0:32>>,
+    Full = <<-1:32>>,
+
+    OneVeo = 100000000,
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),
+    NewCID = PBO#pair_buy_offer.new_id,
+    SPBO = keys:sign(PBO),
+    Tx2 = pair_buy_tx:make_dict(NewPub, SPBO),
+    Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %sig sig2 functionid
+    Sig1 = keys:raw_sign(F1),
+    Sig2 = testnet_sign:sign(F1, NewPriv),
+    EvidenceString = 
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+binary ", (integer_to_binary(size(Sig1)))/binary, " ",
+               (base64:encode(Sig1))/binary, " binary ", 
+               (integer_to_binary(size(Sig2)))/binary, 
+               " ", (base64:encode(Sig2))/binary, 
+               " def \
+  [ int 0, int 4294967295 ]\
+  int 0 int 2 ; \
+">>,
+    Evidence = compiler_chalang:doit(EvidenceString),
+    Tx3 = contract_evidence_tx:make_dict(MP, Code, NewCID, Evidence, [], Fee),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+
+    Tx4 = contract_timeout_tx:make_dict(MP, NewCID, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    
+    SubAcc2 = sub_accounts:make_key(NewPub, NewCID, 2),
+    Tx5 = contract_winnings_tx:make_dict(NewPub, SubAcc2, NewCID, Fee, [<<0:32>>, <<-1:32>>]),
+    Stx5 = testnet_sign:sign_tx(Tx5, NewPub, NewPriv),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %verify that the new account won the bet.
+    AccF = trees:get(accounts, NewPub),
+    true = AccF#acc.balance > (StartBalance + OneVeo - (Fee * 20)),
+    
     success;
+
+
 test(44) ->
     %in a channel, binary and scalar betting on oracles that don't yet exist, and resolving based on our agreed upon outcome, without having to create the oracle.
     success;
@@ -2203,3 +2324,8 @@ test24(I) ->
 
 many_txs() ->
     length(element(2, tx_pool:get())).
+
+vm(Code) ->
+    ExampleData = chalang:data_maker(1000000,1000000,1000,1000,<<>>,<<>>,chalang:new_state(0,0,0),32,2,false),
+    chalang:stack(chalang:run5(Code, ExampleData)).
+    
