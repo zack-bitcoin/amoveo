@@ -172,6 +172,7 @@ name2number(contract_simplify_tx) -> 35;
 name2number(max_contract_flavors) -> 36;
 name2number(swap_tx) -> 37;
 name2number(pair_buy_tx) -> 38;
+name2number(team_buy_tx) -> 39;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -214,6 +215,7 @@ number2name(35) -> contract_simplify_tx;
 number2name(36) -> max_contract_flavors;
 number2name(37) -> swap_tx;
 number2name(38) -> pair_buy_tx;
+number2name(39) -> team_buy_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

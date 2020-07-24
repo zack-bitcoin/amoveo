@@ -634,7 +634,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                  amount1 = Amount1,
                                  amount2 = Amount2
                                } = PBO,
-                F1 = case Fee1 of
+                                    F1 = case Fee1 of
                          0 -> [];
                          _ -> [{accounts, Acc1}]
                      end,
@@ -666,12 +666,31 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                  end,
                             L1 ++ L2
                     end,
-                U2 = sub_accounts_loop(Subs1, Acc1, NewCID, 1),
+                                    U2 = sub_accounts_loop(Subs1, Acc1, NewCID, 1),
                 U3 = sub_accounts_loop(Subs2, Acc2, NewCID, 1),
               
                 [{governance, ?n2i(pair_buy_tx)},
                  {contracts, NewCID}
                 ] ++ F1 ++ F2 ++ U ++ U2 ++ U3;
+            team_buy_tx ->
+                #team_buy_tx{
+              from = From,
+              pubkeys = Pubkeys,
+              amounts = Amounts,
+              new_cid = NewCID,
+              many_types = MT,
+              source = SourceCID,
+              source_type = ST,
+              matrix = Matrix
+             } = Tx,
+                U = team_buy_helper(Pubkeys, Amounts, SourceCID, ST),
+                U2 = team_buy_matrix(Pubkeys, Matrix, NewCID),
+                [
+                 {accounts, From},
+                 {contracts, NewCID},
+                 {governance, ?n2i(max_contract_flavors)},
+                 {governance, ?n2i(team_buy_tx)}
+                ] ++ U ++ U2;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},
@@ -814,3 +833,30 @@ sub_accounts_loop([<<X:32>>|T],Winner,CID,N) ->
     [{sub_accounts, Key}|
      sub_accounts_loop(T,Winner,CID,N+1)].
 
+team_buy_helper([], _, _, _) ->
+    [];
+team_buy_helper([_|P], [0|A], CID, Type) ->
+    team_buy_helper(P, A, CID, Type);
+team_buy_helper([Pub|P], [Amount|A], CID, Type) ->
+    R = case CID of
+            <<0:256>> ->
+                {accounts, Pub};
+            _ ->
+                Key = sub_accounts:make_key(Pub, CID, Type),
+                {sub_accounts, Key}
+        end,
+    [R|team_buy_helper(P, A, CID, Type)].
+
+%every non-zero term in the matrix, we need to include a sub_acount.
+%  location in row is the type. location in column is the pubkey.
+team_buy_matrix([], [], _) -> [];
+team_buy_matrix([Pub|P], [R|M], CID) -> 
+    tbm2(Pub, R, CID, 1) ++
+        team_buy_matrix(P, M, CID).
+tbm2(_, [], _, _) -> [];
+tbm2(Pub, [0|R], CID, N) -> 
+    tbm2(Pub, R, CID, N+1);
+tbm2(Pub, [S|R], CID, N) -> 
+    Key = sub_accounts:make_key(Pub, CID, N),
+    [{sub_accounts, Key}|
+     tbm2(Pub, R, CID, N+1)].

@@ -1933,9 +1933,10 @@ test(41) ->
     mine_blocks(4),
     timer:sleep(400),
     MP = constants:master_pub(),
-    Fee = constants:initial_fee()*100,
+    Fee = constants:initial_fee()*2,
     {NewPub,NewPriv} = testnet_sign:new_key(),
-    Tx1 = create_account_tx:make_dict(NewPub, 1000000000, Fee, constants:master_pub()),
+    StartBalance = 1000000000,
+    Tx1 = create_account_tx:make_dict(NewPub, StartBalance, Fee, constants:master_pub()),%send them 10 veo
     Stx1 = keys:sign(Tx1),
     absorb(Stx1),
     1 = many_txs(),
@@ -1955,8 +1956,9 @@ int 0 int 1" >>),
     Zero = <<0:32>>,
     Full = <<-1:32>>,
 
-    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, 100000000, Fee, 90000000, Fee, [Full, Zero], [Zero, Full], CH),
-    NewCID = PBO #pair_buy_offer.new_id,
+    OneVeo = 100000000,
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),
+    NewCID = PBO#pair_buy_offer.new_id,
     SPBO = keys:sign(PBO),
     Tx2 = pair_buy_tx:make_dict(NewPub, SPBO),
     Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
@@ -1991,9 +1993,99 @@ int 0 int 1" >>),
 
     %verify that the new account won the bet.
     AccF = trees:get(accounts, NewPub),
-    true = AccF#acc.balance > 1060000000,
+    true = AccF#acc.balance > (StartBalance + OneVeo - (Fee * 20)),
     
+    success;
+test(42) ->
+    %test team_buy_tx
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    OneVeo = 100000000,
+    StartBalance = OneVeo * 10,
+    Tx1 = create_account_tx:make_dict(NewPub, StartBalance, Fee, MP),%send them 10 veo
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 4294967295]\
+int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Zero = <<0:32>>,
+    Full = <<-1:32>>,
+    Matrix = [[Zero, Full],
+              [Full, Zero]],
+    Tx2 = team_buy_tx:make_dict(MP, Fee, [MP, NewPub], [OneVeo, OneVeo], CH, 2, <<0:256>>, 0, Matrix, 0, 1000),
+    NewCID = Tx2#team_buy_tx.new_cid,
+    ToSign = team_buy_tx:hash(Tx2),
+    Sig2 = testnet_sign:sign(ToSign, NewPriv),
+    Sig1 = keys:raw_sign(ToSign),
+    Tx2_1 = Tx2#team_buy_tx{
+              sigs = [Sig1, Sig2]
+             },
+    Stx2 = keys:sign(Tx2_1),
+    absorb(Stx2),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+
+    Tx3 = contract_evidence_tx:make_dict(MP, Code, NewCID, <<>>, [], Fee),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+
+    Tx4 = contract_timeout_tx:make_dict(MP, NewCID, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    
+    SubAcc1 = sub_accounts:make_key(MP, NewCID, 2),
+    Tx5 = contract_winnings_tx:make_dict(MP, SubAcc1, NewCID, Fee, [<<0:32>>, <<-1:32>>]),
+    %Stx5 = testnet_sign:sign_tx(Tx5, NewPub, NewPriv),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    
+
+    success;
+test(43) ->
+    %micropayments by signing off-chain evidence
+    success;
+test(44) ->
+    %in a channel, binary and scalar betting on oracles that don't yet exist, and resolving based on our agreed upon outcome, without having to create the oracle.
+    success;
+test(45) ->
+    %2 of 3 channel
+    success;
+test(46) ->
+    %hashlocking lightning payment
     success.
+
+
+
 
 
 

@@ -49,6 +49,7 @@ key2module(contract_winnings_tx) -> contract_winnings_tx;
 key2module(contract_simplify_tx) -> contract_simplify_tx;
 key2module(swap_tx) -> swap_tx;
 key2module(pair_buy_tx) -> pair_buy_tx;
+key2module(team_buy_tx) -> team_buy_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
 %case application:get_env(amoveo_core, kind) of

@@ -303,6 +303,8 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                                  constants:encoded_fee()),
             G38 = governance:new(governance:name2number(pair_buy_tx),
                                  constants:encoded_fee()),
+            G39 = governance:new(governance:name2number(team_buy_tx),
+                                 constants:encoded_fee()),
             GT2 = governance:write(G29, GT),
             GT3 = governance:write(G30, GT2),
             GT4 = governance:write(G31, GT3),
@@ -312,7 +314,8 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
             GT8 = governance:write(G35, GT7),
             GT9 = governance:write(G36, GT8),
             GT10 = governance:write(G37, GT9),
-            GTF = governance:write(G38, GT10),
+            GT11 = governance:write(G38, GT10),
+            GTF = governance:write(G39, GT11),
             
             trees:new3(trees:accounts(NewTrees0),%
                        trees:channels(NewTrees0),%

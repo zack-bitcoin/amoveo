@@ -70,6 +70,7 @@ serialize(C) ->
     Code = C#contract.code,
     Result = C#contract.result,
     Many = C#contract.many_types,
+    true = Many > 1,
     Volume = C#contract.volume,
     ok = if
                Volume >= 0 -> ok;

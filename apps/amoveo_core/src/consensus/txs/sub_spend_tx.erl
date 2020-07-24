@@ -14,7 +14,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     amount = A,
     nonce = Nonce0,
     type = N,
-    contract = CID
+    contract = CID,
+    fee = Fee
    } = Tx,
     false = From == To,
     Nonce = if
@@ -24,8 +25,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     FromKey = sub_accounts:make_key(From, CID, N),
     ToKey = sub_accounts:make_key(To, CID, N),
     
-    Facc = accounts:dict_update(From, Dict, -Tx#sub_spend_tx.fee, Nonce),
+    Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     F2acc = sub_accounts:dict_update(FromKey, Dict, -A, none),
+    
     Dict2 = accounts:dict_write(Facc, Dict),
     Dict3 = sub_accounts:dict_write(F2acc, Dict2),
     

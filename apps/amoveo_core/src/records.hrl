@@ -152,6 +152,7 @@
           fee1, %what acc1 pays in fees
           fee2}).
 -record(swap_tx, {from, offer, fee}).
+-record(team_buy_tx, {from, nonce, fee, pubkeys, amounts, sigs, contract_hash, new_cid, many_types, source, source_type, matrix, salt, start_limit, end_limit}).
 -record(pair_buy_offer, {
           acc1, nonce, start_limit, end_limit,
           source_id, source_type, contract_hash,

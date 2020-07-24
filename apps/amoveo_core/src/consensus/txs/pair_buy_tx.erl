@@ -1,4 +1,3 @@
-
 -module(pair_buy_tx).
 -export([go/4, make_offer/12, make_dict/2,
         fee_helper/3]).

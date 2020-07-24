@@ -2,7 +2,7 @@
 -export([go/4, make_dict/4, from/1, cid/1]).
 -include("../../records.hrl").
 
-%this allows you to buy all types in a subcurry together.
+%this allows you to buy all types in a subcurrency together.
 
 from(Tx) -> Tx#contract_use_tx.from.
 cid(Tx) -> Tx#contract_use_tx.contract_id.
