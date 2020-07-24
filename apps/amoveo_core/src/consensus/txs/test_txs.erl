@@ -2098,6 +2098,8 @@ test(43) ->
     0 = many_txs(),
     timer:sleep(200),
 
+    %finalizes as acc1 owning everything
+    %delay 0, nonce 1
     Code1 = compiler_chalang:doit(
              <<"macro [ nil ;\
 macro , swap cons ;\
@@ -2108,6 +2110,8 @@ def \
 " >>),
     F2 = hd(vm(Code1)),
 
+    %finalizes as acc2 owning everything
+    %delay 0, nonce 2
     Code2 = compiler_chalang:doit(
              <<"macro [ nil ;\
 macro , swap cons ;\
@@ -2121,13 +2125,16 @@ def \
     
 %expects sig1 sig2 functionid
 %if both signatures are valid for this functionid, then it calls the function.
+% this is a 2 of 2 multisig that allows for arbitrary updates, it is a statechannel smart contract.
     Code = compiler_chalang:doit(
-             <<"\ drop
-F ! F @
- binary 65 ", (base64:encode(NewPub))/binary, " verify_sig swap \
-
-F @
- binary 65 ", (base64:encode(MP))/binary, " verify_sig \
+             <<"  drop \
+F ! F @ binary 65 ", 
+(base64:encode(NewPub))/binary, 
+" verify_sig swap \
+F @\
+ binary 65 ", 
+(base64:encode(MP))/binary, 
+" verify_sig \
  and if \
    F @ call \
  else fail then \
@@ -2138,7 +2145,7 @@ F @
     Full = <<-1:32>>,
 
     OneVeo = 100000000,
-    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
     NewCID = PBO#pair_buy_offer.new_id,
     SPBO = keys:sign(PBO),
     Tx2 = pair_buy_tx:make_dict(NewPub, SPBO),
@@ -2148,9 +2155,11 @@ F @
     mine_blocks(1),
     timer:sleep(200),
 
-    %sig sig2 functionid
+    %F1 is the outcome where Acc2 wins everything.
+    %if they both sign over F1, then it can occur.
     Sig1 = keys:raw_sign(F1),
     Sig2 = testnet_sign:sign(F1, NewPriv),
+    %sig1 sig2 functionid
     EvidenceString = 
              <<"macro [ nil ;\
 macro , swap cons ;\
