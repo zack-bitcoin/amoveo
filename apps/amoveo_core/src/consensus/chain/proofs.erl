@@ -513,6 +513,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
              } = Tx,
                 SubAccs = trees:sub_accounts(Trees),
                 {_, SubAccount, _} = sub_accounts:get(SA, SubAccs),
+                io:fwrite("proofs contract_winnings_tx sub_account is \n"),
+                io:fwrite(packer:pack(SubAccount)),
+                io:fwrite("\n"),
                 #sub_acc{
                           type = Type,
                           pubkey = Winner,

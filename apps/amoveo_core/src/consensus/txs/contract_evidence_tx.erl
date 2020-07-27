@@ -1,5 +1,5 @@
 -module(contract_evidence_tx).
--export([go/4, make_dict/6, make_tree/1, make_proof1/1, serialize_row/2, run/5,
+-export([go/4, make_dict/6, make_tree/1, make_proof1/1, make_proof/2, serialize_row/2, run/5,
         all_lengths/2, sum_vector/2, column_sum/2,make_tree/1]).
 -include("../../records.hrl").
 
@@ -37,10 +37,15 @@ go(Tx, Dict, NewHeight, _) ->
     case run(NewHeight, Prove, Evidence, ContractBytecode, Dict2) of
         {error, Error} ->
             io:fwrite("\n in contract_evidence_tx, contract has an error\n"),
+            io:fwrite(Error),
+            io:fwrite("\n"),
             Dict2;
         Data2 ->
             case chalang:stack(Data2) of
                 [<<CNonce:32>>,<<CDelay:32>>,PayoutVector|_] when (is_list(PayoutVector)) ->
+                    io:fwrite("contract  evidence tx payout vector is "),
+                    io:fwrite(packer:pack(PayoutVector)),
+                    io:fwrite("\n"),
                     %the source currency is divided up between the subcurrencies according to a payout vector.
                     B1 = CNonce > ContractNonce,
                     B2 = (Many == length(PayoutVector)),
@@ -109,6 +114,8 @@ go(Tx, Dict, NewHeight, _) ->
                     end;
                 Output ->
                     io:fwrite("in contract_evidence_tx, contract has invalid output\n"),
+                    io:fwrite(packer:pack(Output)),
+                    io:fwrite("\n"),
                     Dict2
             end
     end.
@@ -163,21 +170,40 @@ run(NewHeight, Prove, Evidence, ContractBytecode, Dict2) ->
     chalang:run5(AllCode, Data).
     
 sum_vector(0, []) -> true;
-sum_vector(N, [<<X:32>>|T]) when (N > 0)-> 
+sum_vector(X, []) -> 
+    io:fwrite("contract evidence tx, bad vector sum by \n"),
+    io:fwrite(packer:pack(X)),
+    io:fwrite("\n"),
+    false;
+sum_vector(N, [<<X:32>>|T]) when (N >= 0)-> 
     sum_vector(N - X, T);
-sum_vector(_, _) -> false.
+sum_vector(N, L) -> 
+    io:fwrite("contract evidence tx, weird vector sum error \n"),
+    io:fwrite(packer:pack([N, L])),
+    io:fwrite("\n"),
+    false.
 
 make_tree(Matrix) ->
     MT = mtree:new_empty(5, 32, 0),
     Leaves = make_leaves(Matrix, MT),
     mtree:store_batch(Leaves, 1, MT).
-make_proof1(Matrix) ->
+make_proof(N, Matrix) ->
     {Root, MT} = make_tree(Matrix), 
+    true = (N =< MT),
     CFG = mtree:cfg(MT),
     {MP_R, Leaf1, Proof1} = 
-        mtree:get(leaf:path_maker(1, CFG),
+        mtree:get(leaf:path_maker(N, CFG),
                   Root,
                   MT),
     {MP_R, leaf:value(Leaf1), Proof1}.
+make_proof1(Matrix) ->
+    make_proof(1, Matrix).
+%    {Root, MT} = make_tree(Matrix), 
+%    CFG = mtree:cfg(MT),
+%    {MP_R, Leaf1, Proof1} = 
+%        mtree:get(leaf:path_maker(1, CFG),
+%                  Root,
+%                  MT),
+%    {MP_R, leaf:value(Leaf1), Proof1}.
     
     

@@ -1726,7 +1726,7 @@ binary 32 ",
 
     %now that 1 and 2 are simplified, I should be able to move my tokens from 1 directly to 3.
     Matrix8_0 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
-    Proof8_0 = contract_evidence_tx:make_proof1(Matrix8_0),
+    Proof8_0 = contract_evidence_tx:make_proof(2, Matrix8_0),
     SubAcc8_0 = sub_accounts:make_key(MP, CID, 2), 
     %moves 1 veo of layer 1 types 2, to 1/4 veo in layer 2 contract #3 type 1.
     Tx8_0 = contract_winnings_tx:make_dict(MP, SubAcc8_0, CID, Fee, lists:nth(2, Matrix8_0), Proof8_0),
@@ -1999,9 +1999,6 @@ int 0 int 1" >>),
 
 
 
-
-
-
 test(42) ->
     %test team_buy_tx
     headers:dump(),
@@ -2127,18 +2124,17 @@ def \
 %if both signatures are valid for this functionid, then it calls the function.
 % this is a 2 of 2 multisig that allows for arbitrary updates, it is a statechannel smart contract.
     Code = compiler_chalang:doit(
-             <<"  drop \
-F ! F @ binary 65 ", 
+             <<" binary 65 ",
 (base64:encode(NewPub))/binary, 
-" verify_sig swap \
-F @\
- binary 65 ", 
+" binary 65 ",
 (base64:encode(MP))/binary, 
-" verify_sig \
- and if \
+" Acc1 ! Acc2 ! \
+drop F ! \
+F @ Acc2 @ verify_sig swap \
+F @ Acc1 @ verify_sig and \
+if \
    F @ call \
- else fail then \
-">>),
+else fail then ">>),
 
     CH = hash:doit(Code),
     Zero = <<0:32>>,
@@ -2248,8 +2244,8 @@ def \
     NewCID = PBO#pair_buy_offer.new_id,
     SPBO = keys:sign(PBO),
 
-    %account 2 makes an offer to sell their winnings from this contract
-    SO = swap_tx:make_offer(NewPub, 0, 1000, NewCID, 2, OneVeo * 2, <<0:256>>, 0, 198000000, Fee, Fee),
+    %account 2 makes an offer to sell their winnings from this contract before they join it.
+    SO = swap_tx:make_offer(NewPub, 0, 1000, NewCID, 2, OneVeo * 2, <<0:256>>, 0, 199900000, Fee, Fee),
     SSO = testnet_sign:sign_tx(SO, NewPub, NewPriv),
     
     %account 2 joins the contract
@@ -2261,7 +2257,6 @@ def \
     timer:sleep(200),
 
     %account1 takes the opportunity to let acc2 cash out.
-    
     Tx3 = swap_tx:make_dict(MP, SSO),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
@@ -2272,12 +2267,211 @@ def \
     %verify that the new account won the bet.
     AccF = trees:get(accounts, NewPub),
     true = AccF#acc.balance > (StartBalance + OneVeo - (Fee * 20)),
+    
+    success;
+test(45) ->
+    %binary derivative in the new channel, using an oracle to enforce the outcome.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {Pub,Priv} = testnet_sign:new_key(),
+    OneVeo = 100000000,
+    Ctx0 = create_account_tx:make_dict(Pub, OneVeo*10, Fee*5, MP),
+    Stx0 = keys:sign(Ctx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    timer:sleep(100),
+    mine_blocks(1),
+
+
+    Question = <<>>,
+    Tx = oracle_new_tx:make_dict(MP, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    OID = oracle_new_tx:id(Tx),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    timer:sleep(100),
+    mine_blocks(1),
+
+
+    %state channel contract
+    ChannelCode = compiler_chalang:doit(
+             <<" Proof ! binary 65 ",
+               (base64:encode(Pub))/binary, 
+               " binary 65 ",
+               (base64:encode(MP))/binary, 
+               " Acc1 ! Acc2 ! F ! \
+F @ Acc2 @ verify_sig swap \
+F @ Acc1 @ verify_sig and \
+if \
+   Proof @ F @ call \
+else fail then ">>),
+    CH = hash:doit(ChannelCode),
+    Zero = <<0:32>>,
+    Full = <<-1:32>>,
+
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
+    ChannelCID = PBO#pair_buy_offer.new_id,
+    SPBO = keys:sign(PBO),
+    Tx2 = pair_buy_tx:make_dict(Pub, SPBO),
+    Stx2 = testnet_sign:sign_tx(Tx2, Pub, Priv),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+
+%binary derivative contract based on oracle id OID.
+
+    BinaryCodeInner = <<
+" \
+macro [ nil ; \
+macro , swap cons ; \
+macro ] swap cons reverse ; \
+macro even_split [ int 2147483648 , int 2147483647 ] ; \
+macro maximum int 4294967295 ; \
+ \
+car drop car swap drop car swap drop car drop \
+int 32 split binary 32 ",
+(base64:encode(OID))/binary,
+" == if else fail then \
+drop drop int 1 split swap drop binary 3 AAAA swap ++ \
+int 3 == if \
+even_split int 5000 int 1 \
+else drop \
+print \
+  int 1 == if \
+    [ maximum , int 0 ] \
+    else drop \
+    int 2 == if \
+      [ int 0 , maximum ] \
+      else drop drop \
+      even_split \
+      then \
+    then \
+  int 0 int 1000 \
+then ">>,
+
+    BinaryCode = <<" \
+ \
+def ",
+                   BinaryCodeInner/binary,
+                   " ; ">>,
+
+    BinaryDerivative = compiler_chalang:doit(BinaryCode),
+    BinaryHash = hd(vm(BinaryDerivative)),
+    BinaryCID = contracts:make_id(BinaryHash, 2, <<0:256>>, 0),
+
+    %this is the thing we sign over to convert the state channel into a binary bet.
+    ToBinary = <<" macro [ nil ; \
+macro , swap cons ; \
+macro ] swap cons reverse ; \
+def \
+[ [ int 0 , int 4294967295 ] , \
+  [ int 4294967295, int 0 ] ] \
+binary 32 ",
+(base64:encode(BinaryHash))/binary,
+" int 0 int 2000 \
+;">>,
+    Matrix = [[Zero, Full],[Full,Zero]],
+    ToBinaryBytes = compiler_chalang:doit(ToBinary),
+    ToBinaryHash = hd(vm(ToBinaryBytes)),
+    
+    Sig1 = keys:raw_sign(ToBinaryHash),
+    Sig2 = testnet_sign:sign(ToBinaryHash, Priv),
+    EvidenceString = 
+             <<"\
+ binary ", (integer_to_binary(size(Sig1)))/binary, " ",
+               (base64:encode(Sig1))/binary, " binary ", 
+               (integer_to_binary(size(Sig2)))/binary, 
+               " ", (base64:encode(Sig2))/binary, 
+               ToBinary/binary,
+             " ">>,
+    Evidence = compiler_chalang:doit(EvidenceString),
+    %Tx3 = contract_evidence_tx:make_dict(MP, ChannelCode, ChannelCID, Evidence, [{oracles, OID}], Fee),
+    Tx3 = contract_evidence_tx:make_dict(MP, ChannelCode, ChannelCID, Evidence, [], Fee),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
 
     
+    Proof = contract_evidence_tx:make_proof1(Matrix),
+    Tx4 = contract_timeout_tx:make_dict(MP, ChannelCID, Fee, Proof, BinaryHash, lists:nth(1, Matrix)),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %TODO withdraw into the binary derivative.
+    SubAcc2 = sub_accounts:make_key(Pub, ChannelCID, 2),
+    Proof2 = contract_evidence_tx:make_proof(2, Matrix),
+    Tx5 = contract_winnings_tx:make_dict(Pub, SubAcc2, ChannelCID, Fee, hd(tl(Matrix)), Proof2),
+    Stx5 = testnet_sign:sign_tx(Tx5, Pub, Priv),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %verify the existence of the coins withdrawn into the binary contract.
+    BinSub1 = sub_accounts:make_key(Pub, BinaryCID, 1),
+    SA5 = trees:get(sub_accounts, BinSub1),
+    true = SA5#sub_acc.balance == (2 * OneVeo),
+
+    %Pub now has an active bet on outcome 1 of the oracle. They can swap shares of this bet as a subcurrency.
+
+
+    OIL = trees:get(governance, oracle_initial_liquidity),
+    Tx6 = oracle_bet_tx:make_dict(MP, Fee, OID, 1, OIL+1 + (10*OneVeo)), 
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    timer:sleep(150),
+    mine_blocks(1),
+
+
+    Tx7 = oracle_close_tx:make_dict(MP,Fee, OID),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    timer:sleep(100),
+    mine_blocks(1),
+
+    %resolve the binary contract.
+    Tx8 = contract_evidence_tx:make_dict(MP, compiler_chalang:doit(BinaryCodeInner), BinaryCID, <<>>, [{oracles, OID}], Fee),
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Tx9 = contract_timeout_tx:make_dict(MP, BinaryCID, Fee),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+
+    %Pub should withdraw their 2 veo.
+    SubAcc3 = sub_accounts:make_key(Pub, BinaryCID, 1),
+    Tx10 = contract_winnings_tx:make_dict(Pub, SubAcc3, BinaryCID, Fee, [Full, Zero]),
+    Stx10 = testnet_sign:sign_tx(Tx10, Pub, Priv),
+    absorb(Stx10),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %verify that pub won the bet
+    
+    AccF = trees:get(accounts, Pub),
+    true = AccF#acc.balance > ((OneVeo * 11) - (20 * Fee)),
+
     success.
-
-
-
 
 
 

@@ -52,7 +52,8 @@ go(Tx, Dict, NewHeight, _) ->
           %pay as subcurrencies in a different contract.
             MT = mtree:new_empty(5, 32, 0),
             CFG = mtree:cfg(MT),
-            RowLeaf = leaf:new(1, RowHash, 0, CFG),
+            RowLeaf = leaf:new(Type, RowHash, 0, CFG),
+            RowHash = hash:doit(contract_evidence_tx:serialize_row(Row, <<>>)),
             true = verify:proof(<<MRoot:256>>, RowLeaf, Proof2, CFG),
             RContract = contracts:dict_get(SinkCID, Dict3),
             #contract{

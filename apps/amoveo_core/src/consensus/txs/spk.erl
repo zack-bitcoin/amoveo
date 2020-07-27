@@ -84,9 +84,6 @@ prove_facts(X, Dict, Height) ->
 	macro ] swap cons reverse ;
         [">>,
     B = prove_facts2(X, Dict, Height),
-    %io:fwrite("spk prove facts \n"),
-    %io:fwrite(B),
-    %io:fwrite("\n"),
     compiler_chalang:doit(<<ListSyntax/binary, B/binary>>).
 prove_facts2([], _, _) -> <<"]">>;
 prove_facts2([{Tree, Key}|T], Dict, Height)->
@@ -105,7 +102,7 @@ prove_facts2([{Tree, Key}|T], Dict, Height)->
             empty ->
                 F25 = forks:get(25),
                 true = (F25 < Height),
-                ", int 0 ]";
+                ", int 0 ";
             _ ->SD = Tree:serialize(Data),
                 Size = size(SD),
                 ", binary " ++ integer_to_list(Size) ++ " " ++ binary_to_list(base64:encode(SD))
