@@ -1,7 +1,27 @@
 -module(test_txs).
--export([test/0, test/1, mine_blocks/1, absorb/1]).
+-export([test/0, test/1, contracts/0, mine_blocks/1, absorb/1]).
  
 -include("../../records.hrl").
+contracts() ->
+    unlocked = keys:status(),
+    Pub = constants:master_pub(),
+    Pub = keys:pubkey(),
+    S = success,
+    S = test(36),%shareable contracts, spending subcurrency.
+    S = test(37),%resolving a contract into a different contract. matrix X vector simplification
+    S = test(38),%simplification by matrix X matrix.
+    S = test(39),%like test(38), but this time it is in a subcurrency. Also tests pushing money through the entire process.
+    S = test(40),%swapping
+    S = test(41),%pair buy
+    S = test(42),%team buy
+    S = test(43),%2 of 2 state channel
+    S = test(44),%when someone buys a contract, they should already have an offer to sell it, if they win. so they can automatically withdraw to veo or whatever their prefered currency is when they win, even if they are offline. test(44) goes through this process.
+    S = test(45),%starts as a state channel, gets converted to a binary derivative. we post the oracle on-chain and use it to enforce the outcome of the binary derivative contract, and the correct person withdraws their winnings.
+    S.
+    
+    
+    
+    
 test() ->
     unlocked = keys:status(),
     Pub = constants:master_pub(),
@@ -26,7 +46,6 @@ test() ->
     S = test(16),%try out the oracle further
     %S = test(17),%blocks filled with create account txs
     S = test(28),
-    timer:sleep(300),
     S.
 absorb(Tx) -> 
     %tx_pool_feeder:absorb_unsafe(Tx).
@@ -1517,7 +1536,6 @@ binary 32 ",
     success;
 test(39) ->
     %tests simplification by matrix X matrix, but in a subcurrency.
-    %also tests pushing some money through this process, and withdrawing veo at the end. %TODO
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -1746,8 +1764,6 @@ binary 32 ",
     %verify that I have money in contract 3
     SubAdd8_1 = sub_accounts:make_key(MP, CID3, 1),
     SubAcc8_1 = trees:get(sub_accounts, SubAdd8_1),
-    io:fwrite(packer:pack(SubAcc8_1)),
-    io:fwrite("\n"),
     true = is_tuple(SubAcc8_1),
     
    
@@ -1917,8 +1933,6 @@ int 0 int 1" >>),
     SSO = keys:sign(SO),
     Tx4 = swap_tx:make_dict(NewPub, SSO),
     Stx4 = testnet_sign:sign_tx(Tx4, NewPub, NewPriv),
-    io:fwrite(packer:pack(Tx4)),
-    io:fwrite("\n"),
     absorb(Stx4),
     1 = many_txs(),
     mine_blocks(1),
@@ -2343,7 +2357,6 @@ drop drop int 1 split swap drop binary 3 AAAA swap ++ \
 int 3 == if \
 even_split int 5000 int 1 \
 else drop \
-print \
   int 1 == if \
     [ maximum , int 0 ] \
     else drop \
@@ -2355,10 +2368,7 @@ print \
     then \
   int 0 int 1000 \
 then ">>,
-
-    BinaryCode = <<" \
- \
-def ",
+    BinaryCode = <<" def ",
                    BinaryCodeInner/binary,
                    " ; ">>,
 
@@ -2377,7 +2387,8 @@ binary 32 ",
 (base64:encode(BinaryHash))/binary,
 " int 0 int 2000 \
 ;">>,
-    Matrix = [[Zero, Full],[Full,Zero]],
+    Matrix = [[Zero, Full],%acc1 gets all type2
+              [Full,Zero]],%acc2 gets all type1
     ToBinaryBytes = compiler_chalang:doit(ToBinary),
     ToBinaryHash = hd(vm(ToBinaryBytes)),
     

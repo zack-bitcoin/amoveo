@@ -25,7 +25,7 @@ tree_killer([H|T]) ->
     supervisor:terminate_child(amoveo_sup, H),
     tree_killer(T).
 trees() ->
-    [accounts, channels, existence, oracles, orders, governance, matched, unmatched, sub_accounts, sub_channels, contracts].
+    [accounts, channels, existence, oracles, orders, governance, matched, unmatched, sub_accounts, contracts].
     
 stop() -> 
     sync:stop(),
@@ -67,7 +67,6 @@ init([]) ->
 	     tree_child(matched, HS, (HS + PS + (3 * BB div 8)), 0, Mode, TrieSize),
 	     tree_child(unmatched, HS, (HS + PS + PS + (BB div 8)), 0, Mode, TrieSize),
 	     tree_child(sub_accounts, HS, constants:sub_account_size(), 0, Mode, TrieSize),
-	     tree_child(sub_channels, HS, constants:sub_channel_size(), 0, Mode, TrieSize),
 	     tree_child(contracts, HS, constants:contract_size(), 0, Mode, TrieSize)
 	    ],
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.

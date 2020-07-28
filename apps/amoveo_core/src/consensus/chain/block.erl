@@ -19,7 +19,7 @@
 -include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).%
 -record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
--record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, sub_channels, contracts}).
+-record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -325,7 +325,6 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                        trees:matched(NewTrees0),%
                        trees:unmatched(NewTrees0),%
                        trees:empty_tree(sub_accounts),%
-                       trees:empty_tree(sub_channels),%
                        trees:empty_tree(contracts));%
         true -> NewTrees0
     end.
@@ -431,7 +430,6 @@ make_roots(Trees) when (element(1, Trees) == trees3) ->
 	   matched = trie:root_hash(matched, trees:matched(Trees)),
 	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
            sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
-           sub_channels = trie:root_hash(sub_channels, trees:sub_channels(Trees)),
            contracts = trie:root_hash(contracts, trees:contracts(Trees))}.
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
@@ -460,9 +458,8 @@ roots_hash(X) when is_record(X, roots3) ->
     M = X#roots3.matched,
     U = X#roots3.unmatched,
     SA = X#roots3.sub_accounts,
-    SC = X#roots3.sub_channels,
     Con = X#roots3.contracts,
-    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, SC/binary, Con/binary>>,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary>>,
     hash:doit(Y).
     
 guess_number_of_cpu_cores() ->
@@ -573,7 +570,6 @@ proofs_roots_match([P|T], R) when is_record(R, roots3)->
 	       matched -> R#roots3.matched;
 	       unmatched -> R#roots3.unmatched;
                sub_accounts -> R#roots3.sub_accounts;
-               sub_channels -> R#roots3.sub_channels;
                contracts -> R#roots3.contracts
 	   end,
     proofs_roots_match(T, R).
@@ -1360,8 +1356,6 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
 %sum_amounts_helper(_, error, _, _, _) -> 0;
 sum_amounts_helper(_, empty, _, _, _) -> 0;
 sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
-    0;
-sum_amounts_helper(sub_channels, Acc, Dict, _, _) ->
     0;
 sum_amounts_helper(contracts, Acc, Dict, _, _) ->
     case Acc#contract.source of

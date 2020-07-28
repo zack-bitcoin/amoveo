@@ -43,9 +43,6 @@ go(Tx, Dict, NewHeight, _) ->
         Data2 ->
             case chalang:stack(Data2) of
                 [<<CNonce:32>>,<<CDelay:32>>,PayoutVector|_] when (is_list(PayoutVector)) ->
-                    io:fwrite("contract  evidence tx payout vector is "),
-                    io:fwrite(packer:pack(PayoutVector)),
-                    io:fwrite("\n"),
                     %the source currency is divided up between the subcurrencies according to a payout vector.
                     B1 = CNonce > ContractNonce,
                     B2 = (Many == length(PayoutVector)),

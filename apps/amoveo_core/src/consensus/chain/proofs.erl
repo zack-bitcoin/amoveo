@@ -24,8 +24,7 @@ tree_to_int(multi_tx) -> 9;
 tree_to_int(matched) -> 10;
 tree_to_int(unmatched) -> 11;
 tree_to_int(sub_accounts) -> 12;
-tree_to_int(sub_channels) -> 13;
-tree_to_int(contracts) -> 14.
+tree_to_int(contracts) -> 13.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -38,8 +37,7 @@ int_to_tree(9) -> multi_tx;
 int_to_tree(10) -> matched;
 int_to_tree(11) -> unmatched;
 int_to_tree(12) -> sub_accounts;
-int_to_tree(13) -> sub_channels;
-int_to_tree(14) -> contracts.
+int_to_tree(13) -> contracts.
     
 
 %deterministic merge-sort    
@@ -513,9 +511,6 @@ txs_to_querys2([STx|T], Trees, Height) ->
              } = Tx,
                 SubAccs = trees:sub_accounts(Trees),
                 {_, SubAccount, _} = sub_accounts:get(SA, SubAccs),
-                io:fwrite("proofs contract_winnings_tx sub_account is \n"),
-                io:fwrite(packer:pack(SubAccount)),
-                io:fwrite("\n"),
                 #sub_acc{
                           type = Type,
                           pubkey = Winner,
