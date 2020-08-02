@@ -28,10 +28,11 @@ go(Tx, Dict, NewHeight, _) ->
                source = Source,
                source_type = SourceType,
                sink = CID2,
-               %result = Result,
+               result = Result,
                closed = 0
    } = Contract,
-    true = (LM + Delay) < NewHeight,
+    false = (Result == <<0:256>>),
+    true = (LM + Delay) =< NewHeight,
     Contract2 = 
         Contract#contract{
           closed = 1

@@ -24,7 +24,8 @@ tree_to_int(multi_tx) -> 9;
 tree_to_int(matched) -> 10;
 tree_to_int(unmatched) -> 11;
 tree_to_int(sub_accounts) -> 12;
-tree_to_int(contracts) -> 13.
+tree_to_int(contracts) -> 13;
+tree_to_int(trades) -> 14.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -37,7 +38,8 @@ int_to_tree(9) -> multi_tx;
 int_to_tree(10) -> matched;
 int_to_tree(11) -> unmatched;
 int_to_tree(12) -> sub_accounts;
-int_to_tree(13) -> contracts.
+int_to_tree(13) -> contracts;
+int_to_tree(14) -> trades.
     
 
 %deterministic merge-sort    
@@ -632,7 +634,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                  amount1 = Amount1,
                                  amount2 = Amount2
                                } = PBO,
-                                    F1 = case Fee1 of
+                F1 = case Fee1 of
                          0 -> [];
                          _ -> [{accounts, Acc1}]
                      end,

@@ -2341,18 +2341,16 @@ else fail then ">>),
 
 %binary derivative contract based on oracle id OID.
 
-    BinaryCodeInner = <<
-" \
+    BinaryCodeStatic = <<" OID ! \
 macro [ nil ; \
 macro , swap cons ; \
 macro ] swap cons reverse ; \
 macro even_split [ int 2147483648 , int 2147483647 ] ; \
 macro maximum int 4294967295 ; \
- \
-car drop car swap drop car swap drop car drop \
-int 32 split binary 32 ",
-(base64:encode(OID))/binary,
-" == if else fail then \
+ car drop car swap drop car swap drop car drop \
+int 32 split \
+ OID @ \
+ == if else fail then \
 drop drop int 1 split swap drop binary 3 AAAA swap ++ \
 int 3 == if \
 even_split int 5000 int 1 \
@@ -2368,6 +2366,14 @@ else drop \
     then \
   int 0 int 1000 \
 then ">>,
+    io:fwrite("binary contract is "),
+    io:fwrite(base64:encode(compiler_chalang:doit(BinaryCodeStatic))),
+    io:fwrite("\n"),
+% gxSDFhSDFhSDFAAAAAAghwAAAAABeTpGRw1IFBQAAAAAAYcWFAIAAAADAAAAFoYAAAAAAzpGhACAAAAAFoIAf////xaCiAAAABOIAAAAAAFHFAAAAAABOkaEAP////8WggAAAAAAFoKIRxQAAAAAAjpGhAAAAAAAFoIA/////xaCiEcUFIQAgAAAABaCAH////8WgohISAAAAAAAAAAAA+hI
+    BinaryCodeInner = <<" binary 32 ",
+(base64:encode(OID))/binary, 
+                        BinaryCodeStatic/binary
+                      >>,
     BinaryCode = <<" def ",
                    BinaryCodeInner/binary,
                    " ; ">>,

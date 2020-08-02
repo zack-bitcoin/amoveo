@@ -19,7 +19,7 @@
 -include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).%
 -record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
--record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts}).
+-record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -317,15 +317,16 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
             GT11 = governance:write(G38, GT10),
             GTF = governance:write(G39, GT11),
             
-            trees:new3(trees:accounts(NewTrees0),%
-                       trees:channels(NewTrees0),%
-                       trees:existence(NewTrees0),%
-                       trees:oracles(NewTrees0),%
-                       GTF,%
-                       trees:matched(NewTrees0),%
-                       trees:unmatched(NewTrees0),%
-                       trees:empty_tree(sub_accounts),%
-                       trees:empty_tree(contracts));%
+            trees:new3(trees:accounts(NewTrees0),
+                       trees:channels(NewTrees0),
+                       trees:existence(NewTrees0),
+                       trees:oracles(NewTrees0),
+                       GTF,
+                       trees:matched(NewTrees0),
+                       trees:unmatched(NewTrees0),
+                       trees:empty_tree(sub_accounts),
+                       trees:empty_tree(contracts),
+                       trees:empty_tree(trades));
         true -> NewTrees0
     end.
 
@@ -430,7 +431,8 @@ make_roots(Trees) when (element(1, Trees) == trees3) ->
 	   matched = trie:root_hash(matched, trees:matched(Trees)),
 	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
            sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
-           contracts = trie:root_hash(contracts, trees:contracts(Trees))}.
+           contracts = trie:root_hash(contracts, trees:contracts(Trees)),
+           trades = trie:root_hash(trades, trees:trades(Trees))}.
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
     C = X#roots.channels,%
@@ -459,7 +461,8 @@ roots_hash(X) when is_record(X, roots3) ->
     U = X#roots3.unmatched,
     SA = X#roots3.sub_accounts,
     Con = X#roots3.contracts,
-    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary>>,
+    Tra = X#roots3.trades,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary>>,
     hash:doit(Y).
     
 guess_number_of_cpu_cores() ->
@@ -570,7 +573,8 @@ proofs_roots_match([P|T], R) when is_record(R, roots3)->
 	       matched -> R#roots3.matched;
 	       unmatched -> R#roots3.unmatched;
                sub_accounts -> R#roots3.sub_accounts;
-               contracts -> R#roots3.contracts
+               contracts -> R#roots3.contracts;
+               trades -> R#roots3.trades
 	   end,
     proofs_roots_match(T, R).
 check0(Block) ->%This verifies the txs in ram. is parallelizable
@@ -1357,6 +1361,7 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
 sum_amounts_helper(_, empty, _, _, _) -> 0;
 sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
     0;
+sum_amounts_helper(trades, Acc, Dict, _, _) -> 0;
 sum_amounts_helper(contracts, Acc, Dict, _, _) ->
     case Acc#contract.source of
         <<0:256>> ->
