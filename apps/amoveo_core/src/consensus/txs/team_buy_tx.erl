@@ -4,12 +4,12 @@
 
 
 make_dict(From, Fee, Pubkeys, Amounts, CH, MT, Source, SourceType, Matrix, StartLimit, EndLimit) ->
-    Acc = trees:get(accounts, From),
-    Nonce = Acc#acc.nonce,
+    %Acc = trees:get(accounts, From),
+    %Nonce = Acc#acc.nonce,
     Salt = crypto:strong_rand_bytes(32),
     NewCID = contracts:make_id(CH, length(hd(Matrix)), Source, SourceType),
     #team_buy_tx{
-                  from = From, nonce = Nonce + 1,
+                  from = From, %nonce = Nonce + 1,
                   fee = Fee, pubkeys = Pubkeys,
                   amounts = Amounts, sigs = [],
                   contract_hash = CH,
@@ -23,7 +23,7 @@ make_dict(From, Fee, Pubkeys, Amounts, CH, MT, Source, SourceType, Matrix, Start
 go(Tx, Dict, NewHeight, _) ->
     #team_buy_tx{
     from = From,
-    nonce = Nonce,
+    %nonce = Nonce,
     fee = Fee,
     pubkeys = Pubkeys,
     amounts = Amounts,
@@ -51,6 +51,11 @@ go(Tx, Dict, NewHeight, _) ->
 
     H = hash(Tx),%this is what they all signed.
 
+    empty = trades:dict_get(H, Dict),
+    Dict1 = trades:dict_write(
+              trades:new(NewHeight, H), 
+              Dict),
+
     true = verify_sigs(H, Sigs, Pubkeys),
 
     <<TwoE32:32>> = <<-1:32>>,
@@ -58,8 +63,8 @@ go(Tx, Dict, NewHeight, _) ->
     all_length(RL, Matrix),
     true = contract_evidence_tx:column_sum(TwoE32, Matrix),
 
-    Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
-    Dict2 = accounts:dict_write(Facc, Dict),
+    Facc = accounts:dict_update(From, Dict1, -Fee, none),
+    Dict2 = accounts:dict_write(Facc, Dict1),
 
     Dict3 = source_changes(Pubkeys, Amounts, SourceCID, SourceType, Dict2),
 
@@ -86,9 +91,8 @@ sum_up([H|T]) ->
 
 hash(Tx) ->
     #team_buy_tx{
-    from = From,
-    nonce = Nonce,
-    fee = Fee,
+    %from = From,
+    %fee = Fee,
     pubkeys = Pubkeys,
     amounts = Amounts,
     sigs = Sigs,

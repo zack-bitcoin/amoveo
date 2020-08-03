@@ -1099,6 +1099,7 @@ test(35) ->
     T2 = erlang:now(),
     timer:now_diff(T2, T1);
 test(36) ->
+    io:fwrite("test 36\n"),
     %shareable contract test
     %tests creating a shareable contract, resolving it, and building a shareable contract priced in a subcurrency from the first contract. 
     %tests spending subcurrency.
@@ -1238,6 +1239,7 @@ int 0 int 1" >>),
     success;
 
 test(37) ->
+    io:fwrite("test 37\n"),
     %tests resolving a contract into a different contract.
     %tests simplification by matrix X vector.
     headers:dump(),
@@ -1381,6 +1383,7 @@ binary 32 ",
     
     success;
 test(38) ->
+    io:fwrite("test 38\n"),
     %tests simplification by matrix X matrix
     headers:dump(),
     block:initialize_chain(),
@@ -1535,6 +1538,7 @@ binary 32 ",
 
     success;
 test(39) ->
+    io:fwrite("test 39\n"),
     %tests simplification by matrix X matrix, but in a subcurrency.
     headers:dump(),
     block:initialize_chain(),
@@ -1881,6 +1885,7 @@ binary 32 ",
 
     success;
 test(40) ->
+    io:fwrite("test 40\n"),
     %test swapping
     headers:dump(),
     block:initialize_chain(),
@@ -1924,6 +1929,11 @@ int 0 int 1" >>),
     1 = many_txs(),
     timer:sleep(20),
     mine_blocks(1),
+
+
+
+
+
     timer:sleep(20),
     0 = many_txs(),
     timer:sleep(200),
@@ -1940,6 +1950,7 @@ int 0 int 1" >>),
 
     success;
 test(41) ->
+    io:fwrite("test 41\n"),
     %test pair buy
     headers:dump(),
     block:initialize_chain(),
@@ -2014,6 +2025,7 @@ int 0 int 1" >>),
 
 
 test(42) ->
+    io:fwrite("test 42\n"),
     %test team_buy_tx
     headers:dump(),
     block:initialize_chain(),
@@ -2089,6 +2101,7 @@ int 0 int 1" >>),
 
     success;
 test(43) ->
+    io:fwrite("test 43\n"),
     %2 of 2 state channel
     headers:dump(),
     block:initialize_chain(),
@@ -2216,6 +2229,7 @@ binary ", (integer_to_binary(size(Sig1)))/binary, " ",
 
 
 test(44) ->
+    io:fwrite("test 44\n"),
 %Someone who buys a contract, they should simultaniously make an offer to sell it for 99% of it's maximum value.
     %acc2 starts with veo. they make a bet in a sports game denominated in veo. when the game ends, they want their winnings to automatically switch to being veo
 
@@ -2284,6 +2298,7 @@ def \
     
     success;
 test(45) ->
+    io:fwrite("test 45\n"),
     %binary derivative in the new channel, using an oracle to enforce the outcome.
     headers:dump(),
     block:initialize_chain(),

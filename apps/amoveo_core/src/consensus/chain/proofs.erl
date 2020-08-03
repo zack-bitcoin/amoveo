@@ -632,8 +632,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                  fee1 = Fee1,
                                  fee2 = Fee2,
                                  amount1 = Amount1,
-                                 amount2 = Amount2
+                                 amount2 = Amount2,
+                                 salt = Salt
                                } = PBO,
+                TradeID = pair_buy_tx:trade_id_maker(Acc1, Salt),
                 F1 = case Fee1 of
                          0 -> [];
                          _ -> [{accounts, Acc1}]
@@ -670,7 +672,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 U3 = sub_accounts_loop(Subs2, Acc2, NewCID, 1),
               
                 [{governance, ?n2i(pair_buy_tx)},
-                 {contracts, NewCID}
+                 {contracts, NewCID},
+                 {trades, TradeID}
                 ] ++ F1 ++ F2 ++ U ++ U2 ++ U3;
             team_buy_tx ->
                 #team_buy_tx{
@@ -683,11 +686,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
               source_type = ST,
               matrix = Matrix
              } = Tx,
+                H = team_buy_tx:hash(Tx),
                 U = team_buy_helper(Pubkeys, Amounts, SourceCID, ST),
                 U2 = team_buy_matrix(Pubkeys, Matrix, NewCID),
                 [
                  {accounts, From},
                  {contracts, NewCID},
+                 {trades, H},
                  {governance, ?n2i(max_contract_flavors)},
                  {governance, ?n2i(team_buy_tx)}
                 ] ++ U ++ U2;
