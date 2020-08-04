@@ -7,7 +7,7 @@
 	 deserialize/1, serialize/1, 
          make_id/1,make_id/4,
 	 all/0,
-	 test/0]).%common tree stuff
+	 test/0]).
 %This is the part of the channel that is written onto the hard drive.
 
 -include("../../records.hrl").

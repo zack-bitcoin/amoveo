@@ -11,26 +11,27 @@ make_dict(From, SNCOffer) ->
     #swap_tx{from = From, offer = SNCOffer, 
              fee = Fee1 + Fee2}.
 
-make_offer(From, StartLimit, EndLimit, CID1, Type1, Amount1, CID2, Type2, Amount2, Fee1, Fee2) ->
-   
-
-%    Nonce = 
-%        case CID1 of
-%            <<0:256>> -> 
-%                A = trees:get(accounts, From),
-%                A#acc.nonce + 1;
-%            _ ->
-%                Key1 = sub_accounts:make_key(From, CID1, Type1),
-%                case trees:get(sub_accounts, Key1) of
-%                    empty -> 1;
-%                    A ->
-%                        A#sub_acc.nonce + 1
-%                end
-%        end,
+make_offer(From, StartLimit, EndLimit, 
+           CID1, Type1, Amount1, 
+           CID2, Type2, Amount2, 
+           Fee1, Fee2) ->
+    Nonce = 
+        case CID1 of
+            <<0:256>> -> 
+                A = trees:get(accounts, From),
+                A#acc.nonce + 1;
+            _ ->
+                Key1 = sub_accounts:make_key(From, CID1, Type1),
+                case trees:get(sub_accounts, Key1) of
+                    empty -> 1;
+                    A ->
+                        A#sub_acc.nonce + 1
+                end
+        end,
     Salt = crypto:strong_rand_bytes(32),
     #swap_offer{
                  acc1 = From,
-  %            nonce = Nonce,
+                 nonce = Nonce,
                  start_limit = StartLimit,
                  end_limit = EndLimit,
                  cid1 = CID1,
@@ -55,7 +56,7 @@ go(Tx, Dict, NewHeight, _) ->
          fee1 = Fee1,
          fee2 = Fee2,
          acc1 = Acc1,
-%         nonce = Nonce,
+         nonce = Nonce,
          start_limit = SL,
          end_limit = EL,
          cid1 = CID1,
@@ -71,25 +72,28 @@ go(Tx, Dict, NewHeight, _) ->
 
 %we want Acc1 to be able to cancel his offer by making some unrelated tx to increase his nonce.
 %    Dict1 = 
-%        case CID1 of
-%            <<0:256>> ->
-%                A1 = accounts:dict_get(Acc1, Dict),
-%                A1N = A1#acc.nonce,
-%                true = A1N < Nonce,
-%                A1_2 = A1#acc{
-%                         nonce = A1N + 1
-%                        },
-%                accounts:dict_write(A1_2, Dict);
-%        _ ->
-%                Key1 = sub_accounts:make_key(Acc1, CID1, Type1),
-%                A1 = sub_accounts:dict_get(Key1, Dict),
+    true = Nonce >=
+        case CID1 of
+            <<0:256>> ->
+                A1 = accounts:dict_get(Acc1, Dict),
+                A1#acc.nonce;
+            %A1N = A1#acc.nonce,
+            %    true = A1N < Nonce,
+            %    A1_2 = A1#acc{
+            %             nonce = A1N + 1
+            %            },
+            %     accounts:dict_write(A1_2, Dict);
+        _ ->
+                Key1 = sub_accounts:make_key(Acc1, CID1, Type1),
+                A1 = sub_accounts:dict_get(Key1, Dict),
+                A1#sub_acc.nonce
 %                A1N = A1#sub_acc.nonce,
 %                true = A1N < Nonce,
 %                A1_2 = A1#sub_acc{
 %                         nonce = A1N + 1
 %                        },
 %                sub_accounts:dict_write(A1_2, Dict)
-%        end,
+        end,
     Dict2 = fee_helper(Fee1, Acc1, Dict),
     Dict3 = fee_helper(Fee2, Acc2, Dict2),
     Dict4 = move_helper(Acc1, Acc2, Amount1, CID1, Type1, Dict3),

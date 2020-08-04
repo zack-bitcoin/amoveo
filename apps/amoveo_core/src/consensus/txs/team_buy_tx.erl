@@ -105,6 +105,7 @@ hash(Tx) ->
     start_limit = SL,
     end_limit = EL
      } = Tx,
+    <<_:256>> = Salt,
     hash:doit([Pubkeys, Amounts, CH, MT, SourceCID, SourceType, Matrix, SL, EL, Salt]).
     
 verify_sigs(X, [], []) -> true;

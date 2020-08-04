@@ -14,23 +14,23 @@ make_dict(From, SPBOffer) ->
 
 make_offer(From, StartLimit, EndLimit, SourceCID, SourceType, Amount1, Fee1, Amount2, Fee2, Subs1, Subs2, CH) ->
 
-%    Nonce = 
-%        case SourceCID of
-%            <<0:256>> -> 
-%                A = trees:get(accounts, From),
-%                A#acc.nonce + 1;
-%            _ ->
-%                Key1 = sub_accounts:make_key(From, SourceCID, SourceType),
-%                A = trees:get(sub_accounts, Key1),
-%                A#sub_acc.nonce + 1
-%        end,
+    Nonce = 
+        case SourceCID of
+            <<0:256>> -> 
+                A = trees:get(accounts, From),
+                A#acc.nonce + 1;
+            _ ->
+                Key1 = sub_accounts:make_key(From, SourceCID, SourceType),
+                A = trees:get(sub_accounts, Key1),
+                A#sub_acc.nonce + 1
+        end,
     MT = length(Subs1),
     NewCID = contracts:make_id(CH, MT, SourceCID, SourceType),
     Salt = crypto:strong_rand_bytes(32),
     
     #pair_buy_offer{
                      acc1 = From,
-                     %nonce = Nonce,
+                     nonce = Nonce,
                      contract_hash = CH,
                      start_limit = StartLimit,
                      end_limit = EndLimit,
@@ -57,7 +57,7 @@ go(Tx, Dict0, NewHeight, _) ->
                      fee1 = Fee1,
                      fee2 = Fee2,
                      acc1 = Acc1,
-                     %nonce = Nonce,
+                     nonce = Nonce,
                      start_limit = SL,
                      end_limit = EL,
                      source_id = SourceCID,
@@ -83,25 +83,28 @@ go(Tx, Dict0, NewHeight, _) ->
 
 %we want Acc1 to be able to cancel his offer by making some unrelated tx to increase his nonce.
 %    Dict1 = 
-%        case SourceCID of
-%            <<0:256>> ->
-%                A1 = accounts:dict_get(Acc1, Dict),
+    true = Nonce >=
+        case SourceCID of
+            <<0:256>> ->
+                A1 = accounts:dict_get(Acc1, Dict),
+                A1#acc.nonce;
 %                A1N = A1#acc.nonce,
 %                true = A1N < Nonce,
 %                A1_2 = A1#acc{
 %                         nonce = A1N + 1
 %                        },
 %                accounts:dict_write(A1_2, Dict);
-%        _ ->
-%                Key1 = sub_accounts:make_key(Acc1, SourceCID, SourceType),
-%                A1 = sub_accounts:dict_get(Key1, Dict),
+        _ ->
+                Key1 = sub_accounts:make_key(Acc1, SourceCID, SourceType),
+                A1 = sub_accounts:dict_get(Key1, Dict),
+                A1#sub_acc.nonce
 %                A1N = A1#sub_acc.nonce,
 %                true = A1N < Nonce,
 %                A1_2 = A1#sub_acc{
 %                         nonce = A1N + 1
 %                        },
 %                sub_accounts:dict_write(A1_2, Dict)
-%        end,
+        end,
     Dict2 = fee_helper(Fee1, Acc1, Dict),
     Dict3 = fee_helper(Fee2, Acc2, Dict2),
     Dict4 = change_sub(-Amount1, Acc1, SourceCID, SourceType, Dict3),%take amount1 away
@@ -171,6 +174,7 @@ correct_vector_format([<<_:32>>|T]) ->
 correct_vector_format([X|T]) when (X < 0) ->
     false.
 trade_id_maker(Acc1, Salt) ->
+    <<_:256>> = Salt,
     hash:doit(
       <<Acc1/binary, 
         Salt/binary>>).
