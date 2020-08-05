@@ -44,7 +44,7 @@ make_offer(From, StartLimit, EndLimit,
                  fee2 = Fee2,
                  salt = Salt
            }.
-go(Tx, Dict, NewHeight, _) ->
+go(Tx, Dict0, NewHeight, _) ->
     #swap_tx{
     from = Acc2,
     offer = SNCO,
@@ -53,25 +53,30 @@ go(Tx, Dict, NewHeight, _) ->
     true = testnet_sign:verify(SNCO),
     NCO = testnet_sign:data(SNCO),
     #swap_offer{
-         fee1 = Fee1,
-         fee2 = Fee2,
-         acc1 = Acc1,
-         nonce = Nonce,
-         start_limit = SL,
-         end_limit = EL,
-         cid1 = CID1,
-         type1 = Type1,
-         amount1 = Amount1,
-         cid2 = CID2,
-         type2 = Type2,
-         amount2 = Amount2
-        } = NCO,
+                 fee1 = Fee1,
+                 fee2 = Fee2,
+                 acc1 = Acc1,
+                 nonce = Nonce,
+                 start_limit = SL,
+                 end_limit = EL,
+                 cid1 = CID1,
+                 type1 = Type1,
+                 amount1 = Amount1,
+                 cid2 = CID2,
+                 type2 = Type2,
+                 amount2 = Amount2,
+                 salt = Salt
+               } = NCO,
     Fee = Fee1 + Fee2,
     true = NewHeight >= SL,
     true = NewHeight =< EL,
 
 %we want Acc1 to be able to cancel his offer by making some unrelated tx to increase his nonce.
 %    Dict1 = 
+    TID = pair_buy_tx:trade_id_maker(Acc1, Salt),
+    empty = trades:dict_get(TID, Dict0),
+    Dict = trades:dict_write(trades:new(NewHeight, TID), Dict0),
+
     true = Nonce >=
         case CID1 of
             <<0:256>> ->

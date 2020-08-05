@@ -584,8 +584,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                              cid2 = CID2,
                              type2 = Type2,
                              fee1 = Fee1,
-                             fee2 = Fee2
+                             fee2 = Fee2,
+                             salt = Salt
                            } = Offer,
+                TradeID = pair_buy_tx:trade_id_maker(Acc1, Salt),
                 F1 = case Fee1 of
                          0 -> [];
                          _ -> [{accounts, Acc1}]
@@ -614,7 +616,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                               {sub_accounts,
                                sub_accounts:make_key(Acc2, CID2, Type2)}]
                      end,
-                [{governance, ?n2i(swap_tx)}] ++
+                [{governance, ?n2i(swap_tx)},
+                 {trades, TradeID}] ++
                 F1 ++ F2 ++ U ++ U2;
             pair_buy_tx ->
                 #pair_buy_tx{

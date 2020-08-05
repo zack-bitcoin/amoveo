@@ -2342,6 +2342,8 @@ else fail then ">>),
     CH = hash:doit(ChannelCode),
     Zero = <<0:32>>,
     Full = <<-1:32>>,
+    Half1 = <<2147483648:32>>,
+    Half0 = <<2147483647:32>>,
 
     PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
     ChannelCID = PBO#pair_buy_offer.new_id,
@@ -2360,7 +2362,7 @@ else fail then ">>),
 macro [ nil ; \
 macro , swap cons ; \
 macro ] swap cons reverse ; \
-macro even_split [ int 2147483648 , int 2147483647 ] ; \
+macro even_split [ int 2147483648 , int 2147483647 , int 0 ] ; \
 macro maximum int 4294967295 ; \
  car drop car swap drop car swap drop car drop \
 int 32 split \
@@ -2368,18 +2370,17 @@ int 32 split \
  == if else fail then \
 drop drop int 1 split swap drop binary 3 AAAA swap ++ \
 int 3 == if \
-even_split int 5000 int 1 \
+  [ int 0 , int 0 , maximum ] int 0 int 1000 \
 else drop \
   int 1 == if \
-    [ maximum , int 0 ] \
+      [ maximum , int 0 , int 0 ] int 0 int 1000 \
     else drop \
     int 2 == if \
-      [ int 0 , maximum ] \
-      else drop drop \
-      even_split \
-      then \
+      [ int 0 , maximum, int 0 ] int 0 int 1000 \
+    else drop drop \
+        even_split int 5000 int 10 \
     then \
-  int 0 int 1000 \
+  then \
 then ">>,
     io:fwrite("binary contract is "),
     io:fwrite(base64:encode(compiler_chalang:doit(BinaryCodeStatic))),
@@ -2395,21 +2396,21 @@ then ">>,
 
     BinaryDerivative = compiler_chalang:doit(BinaryCode),
     BinaryHash = hd(vm(BinaryDerivative)),
-    BinaryCID = contracts:make_id(BinaryHash, 2, <<0:256>>, 0),
+    BinaryCID = contracts:make_id(BinaryHash, 3, <<0:256>>, 0),
 
     %this is the thing we sign over to convert the state channel into a binary bet.
     ToBinary = <<" macro [ nil ; \
 macro , swap cons ; \
 macro ] swap cons reverse ; \
 def \
-[ [ int 0 , int 4294967295 ] , \
-  [ int 4294967295, int 0 ] ] \
+[ [ int 0 , int 4294967295 , int 2147483648 ] , \
+  [ int 4294967295, int 0 , int 2147483647 ] ] \
 binary 32 ",
 (base64:encode(BinaryHash))/binary,
 " int 0 int 2000 \
 ;">>,
-    Matrix = [[Zero, Full],%acc1 gets all type2
-              [Full,Zero]],%acc2 gets all type1
+    Matrix = [[Zero, Full, Half1],%acc1 gets all type2
+              [Full,Zero, Half0]],%acc2 gets all type1
     ToBinaryBytes = compiler_chalang:doit(ToBinary),
     ToBinaryHash = hd(vm(ToBinaryBytes)),
     
@@ -2486,12 +2487,13 @@ binary 32 ",
     absorb(Stx9),
     1 = many_txs(),
     mine_blocks(1),
+    0 = many_txs(),
     timer:sleep(200),
 
 
     %Pub should withdraw their 2 veo.
     SubAcc3 = sub_accounts:make_key(Pub, BinaryCID, 1),
-    Tx10 = contract_winnings_tx:make_dict(Pub, SubAcc3, BinaryCID, Fee, [Full, Zero]),
+    Tx10 = contract_winnings_tx:make_dict(Pub, SubAcc3, BinaryCID, Fee, [Full, Zero, Zero]),
     Stx10 = testnet_sign:sign_tx(Tx10, Pub, Priv),
     absorb(Stx10),
     1 = many_txs(),
