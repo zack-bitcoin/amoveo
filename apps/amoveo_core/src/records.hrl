@@ -147,7 +147,7 @@
           amount1, cid1, type1, %this is what acc1 gives.
           amount2, cid2, type2, %this is what acc2 gives.
           fee1, %what acc1 pays in fees
-          fee2, nonce}).
+          nonce}).
 -record(swap_tx, {from, offer, fee}).
 -record(team_buy_tx, {from, amounts, fee, pubkeys, sigs, contract_hash, new_cid, many_types, source, source_type, matrix, salt, start_limit, end_limit}).
 -record(pair_buy_offer, {
@@ -155,7 +155,7 @@
           source_id, source_type, contract_hash,
           new_id, salt,
           amount1, fee1,
-          amount2, fee2,
+          amount2, 
           subs1, %used to specify who receives which subcurrencies in the contract.
           subs2, nonce
          }).

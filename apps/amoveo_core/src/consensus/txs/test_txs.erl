@@ -1939,9 +1939,9 @@ int 0 int 1" >>),
     timer:sleep(200),
     %swap some subcurrency for the new account's veo.
 
-    SO = swap_tx:make_offer(MP, 0, 1000, CID, 1, 50000000, <<0:256>>, 0, 90000000, Fee, 0),
+    SO = swap_tx:make_offer(MP, 0, 1000, CID, 1, 50000000, <<0:256>>, 0, 90000000, Fee),
     SSO = keys:sign(SO),
-    Tx4 = swap_tx:make_dict(NewPub, SSO),
+    Tx4 = swap_tx:make_dict(NewPub, SSO, Fee*2),
     Stx4 = testnet_sign:sign_tx(Tx4, NewPub, NewPriv),
     absorb(Stx4),
     1 = many_txs(),
@@ -1982,10 +1982,10 @@ int 0 int 1" >>),
     Full = <<-1:32>>,
 
     OneVeo = 100000000,
-    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, [Full, Zero], [Zero, Full], CH),
     NewCID = PBO#pair_buy_offer.new_id,
     SPBO = keys:sign(PBO),
-    Tx2 = pair_buy_tx:make_dict(NewPub, SPBO),
+    Tx2 = pair_buy_tx:make_dict(NewPub, SPBO, Fee * 2),
     Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
     absorb(Stx2),
     1 = many_txs(),
@@ -2168,10 +2168,10 @@ else fail then ">>),
     Full = <<-1:32>>,
 
     OneVeo = 100000000,
-    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
     NewCID = PBO#pair_buy_offer.new_id,
     SPBO = keys:sign(PBO),
-    Tx2 = pair_buy_tx:make_dict(NewPub, SPBO),
+    Tx2 = pair_buy_tx:make_dict(NewPub, SPBO, Fee*2),
     Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
     absorb(Stx2),
     1 = many_txs(),
@@ -2268,16 +2268,17 @@ def \
   int 0 int 1 ; \
 " >>),
     CH = hash:doit(Code1),
-    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, 2,%Fee, 
+                                 OneVeo, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
     NewCID = PBO#pair_buy_offer.new_id,
     SPBO = keys:sign(PBO),
 
     %account 2 makes an offer to sell their winnings from this contract before they join it.
-    SO = swap_tx:make_offer(NewPub, 0, 1000, NewCID, 2, OneVeo * 2, <<0:256>>, 0, 199900000, Fee, Fee),
+    SO = swap_tx:make_offer(NewPub, 0, 1000, NewCID, 2, OneVeo * 2, <<0:256>>, 0, 199900000, 2),%Fee),
     SSO = testnet_sign:sign_tx(SO, NewPub, NewPriv),
     
     %account 2 joins the contract
-    Tx2 = pair_buy_tx:make_dict(NewPub, SPBO),
+    Tx2 = pair_buy_tx:make_dict(NewPub, SPBO, Fee * 2),
     Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
     absorb(Stx2),
     1 = many_txs(),
@@ -2285,7 +2286,10 @@ def \
     timer:sleep(200),
 
     %account1 takes the opportunity to let acc2 cash out.
-    Tx3 = swap_tx:make_dict(MP, SSO),
+    Tx3 = swap_tx:make_dict(MP, SSO, Fee),
+    io:fwrite("test txs 44\n"),
+    io:fwrite(packer:pack(Tx3)),
+    io:fwrite("\n"),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     1 = many_txs(),
@@ -2317,9 +2321,13 @@ test(45) ->
     mine_blocks(1),
 
 
-    Question = <<>>,
-    Tx = oracle_new_tx:make_dict(MP, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    Question = <<"1=1">>,
+    %Tx = oracle_new_tx:make_dict(MP, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    Tx = oracle_new_tx:make_dict(MP, Fee, Question, 5, 0, 0), %Fee, question, start, id gov, govamount %here
     OID = oracle_new_tx:id(Tx),
+    io:fwrite("test 45 oid is \n"),
+    io:fwrite(packer:pack(OID)),
+    io:fwrite("\n"),
     Stx = keys:sign(Tx),
     absorb(Stx),
     1 = many_txs(),
@@ -2345,10 +2353,10 @@ else fail then ">>),
     Half1 = <<2147483648:32>>,
     Half0 = <<2147483647:32>>,
 
-    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, Fee, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
+    PBO = pair_buy_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, Fee, OneVeo, [Full, Zero], [Zero, Full], CH),%account 2 is buying currency type 2.
     ChannelCID = PBO#pair_buy_offer.new_id,
     SPBO = keys:sign(PBO),
-    Tx2 = pair_buy_tx:make_dict(Pub, SPBO),
+    Tx2 = pair_buy_tx:make_dict(Pub, SPBO, Fee * 2),
     Stx2 = testnet_sign:sign_tx(Tx2, Pub, Priv),
     absorb(Stx2),
     1 = many_txs(),
@@ -2385,9 +2393,9 @@ then ">>,
     io:fwrite("binary contract is "),
     io:fwrite(base64:encode(compiler_chalang:doit(BinaryCodeStatic))),
     io:fwrite("\n"),
-% gxSDFhSDFhSDFAAAAAAghwAAAAABeTpGRw1IFBQAAAAAAYcWFAIAAAADAAAAFoYAAAAAAzpGhACAAAAAFoIAf////xaCiAAAABOIAAAAAAFHFAAAAAABOkaEAP////8WggAAAAAAFoKIRxQAAAAAAjpGhAAAAAAAFoIA/////xaCiEcUFIQAgAAAABaCAH////8WgohISAAAAAAAAAAAA+hI
+% AAAAAAF4gxSDFhSDFhSDFAAAAAAghwAAAAABeTpGRw1IFBQAAAAAAYcWFAIAAAADAAAAFoYAAAAAAzpGhAAAAAAAFoIAAAAAABaCAP////8WgogAAAAAAAAAAAPoRxQAAAAAATpGhAD/////FoIAAAAAABaCAAAAAAAWgogAAAAAAAAAAAPoRxQAAAAAAjpGhAAAAAAAFoIA/////xaCAAAAAAAWgogAAAAAAAAAAAPoRxQUhACAAAAAFoIAf////xaCAAAAAAAWgogAAAATiAAAAAAKSEhI
     BinaryCodeInner = <<" binary 32 ",
-(base64:encode(OID))/binary, 
+                        (base64:encode(OID))/binary, 
                         BinaryCodeStatic/binary
                       >>,
     BinaryCode = <<" def ",
@@ -2397,6 +2405,9 @@ then ">>,
     BinaryDerivative = compiler_chalang:doit(BinaryCode),
     BinaryHash = hd(vm(BinaryDerivative)),
     BinaryCID = contracts:make_id(BinaryHash, 3, <<0:256>>, 0),
+    io:fwrite("test 45 binary cid \n"),
+    io:fwrite(packer:pack(BinaryCID)),
+    io:fwrite("\n"),
 
     %this is the thing we sign over to convert the state channel into a binary bet.
     ToBinary = <<" macro [ nil ; \
@@ -2505,8 +2516,80 @@ binary 32 ",
     AccF = trees:get(accounts, Pub),
     true = AccF#acc.balance > ((OneVeo * 11) - (20 * Fee)),
 
-    success.
+    success;
+test(46) ->
+    io:fwrite("test 46\n"),
+    %tests flash loans.
+    %2 users own opposite sides of the contract.
+    %the winner offers to sell for 99% of it's value
+    %the lose should be able to get their 1% out, even if they can't afford to buy the 99%.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(10),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 4294967295 , int 0 ]\
+int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Many = 3, 
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
 
+    %buying some subcurrencies from the new contract.
+    Amount = 100000000,
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+   
+    %spending one of the subcurrency types
+    Amount2 = 100000000,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Ctx4 = create_account_tx:make_dict(NewPub, 1, Fee, constants:master_pub()),
+    SCtx4 = keys:sign(Ctx4),
+    absorb(SCtx4),
+    1 = many_txs(),
+
+    Tx3 = sub_spend_tx:make_dict(NewPub, Amount2, Fee, CID, 1, MP),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    2 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %at this point account2 loses the  bet. so account 1 offers to sell their winnings.
+    SO = swap_tx:make_offer(MP, 0, 1000, CID, 2, 100000000, <<0:256>>, 0, 99000000, Fee),
+    SSO = keys:sign(SO),
+    SO3 = swap_tx:make_offer(MP, 0, 1000, CID, 3, 100000000, <<0:256>>, 0, 1, Fee),
+    SSO3 = keys:sign(SO3),
+    
+    %account 2 simultaniously buys account 1's winnings, combines it with the losing shares, and withdraws the source currency. this is a combination of a swap tx with a contract_use tx.
+
+    SwapTx = swap_tx:make_dict(NewPub, SSO, Fee),%sends type 2.
+    SwapTx3 = swap_tx:make_dict(NewPub, SSO3, Fee),%sends type 3.
+    UseTx = contract_use_tx:make_dict(NewPub, CID, -100000000, Fee),%sells all 3 as a complete set.
+    Txs = [SwapTx, SwapTx3, UseTx],
+    Tx4 = multi_tx:make_dict(NewPub, Txs, Fee*2),
+    Stx4 = testnet_sign:sign_tx(Tx4, NewPub, NewPriv),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    success.
 
 
 test35(_, _, _, 0) -> ok;

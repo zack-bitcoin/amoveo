@@ -1,20 +1,20 @@
 -module(swap_tx).
--export([go/4, make_offer/11, make_dict/2,
+-export([go/4, make_offer/10, make_dict/3,
         fee_helper/3]).
 -include("../../records.hrl").
 
-make_dict(From, SNCOffer) ->
+make_dict(From, SNCOffer, Fee) ->
     NCOffer = testnet_sign:data(SNCOffer),
     #swap_offer{
-           fee1 = Fee1,
-           fee2 = Fee2} = NCOffer,
+           fee1 = Fee1
+               } = NCOffer,
     #swap_tx{from = From, offer = SNCOffer, 
-             fee = Fee1 + Fee2}.
+             fee = Fee - Fee1}.
 
 make_offer(From, StartLimit, EndLimit, 
            CID1, Type1, Amount1, 
            CID2, Type2, Amount2, 
-           Fee1, Fee2) ->
+           Fee1) ->
     Nonce = 
         case CID1 of
             <<0:256>> -> 
@@ -41,10 +41,10 @@ make_offer(From, StartLimit, EndLimit,
                  type2 = Type2,
                  amount2 = Amount2,
                  fee1 = Fee1,
-                 fee2 = Fee2,
                  salt = Salt
            }.
 go(Tx, Dict0, NewHeight, _) ->
+    true = NewHeight > forks:get(32),
     #swap_tx{
     from = Acc2,
     offer = SNCO,
@@ -54,7 +54,6 @@ go(Tx, Dict0, NewHeight, _) ->
     NCO = testnet_sign:data(SNCO),
     #swap_offer{
                  fee1 = Fee1,
-                 fee2 = Fee2,
                  acc1 = Acc1,
                  nonce = Nonce,
                  start_limit = SL,
@@ -67,7 +66,7 @@ go(Tx, Dict0, NewHeight, _) ->
                  amount2 = Amount2,
                  salt = Salt
                } = NCO,
-    Fee = Fee1 + Fee2,
+%    Fee = Fee1 + Fee2,
     true = NewHeight >= SL,
     true = NewHeight =< EL,
 
@@ -99,8 +98,9 @@ go(Tx, Dict0, NewHeight, _) ->
 %                        },
 %                sub_accounts:dict_write(A1_2, Dict)
         end,
+
     Dict2 = fee_helper(Fee1, Acc1, Dict),
-    Dict3 = fee_helper(Fee2, Acc2, Dict2),
+    Dict3 = fee_helper(Fee - Fee1, Acc2, Dict2),
     Dict4 = move_helper(Acc1, Acc2, Amount1, CID1, Type1, Dict3),
     Dict5 = move_helper(Acc2, Acc1, Amount2, CID2, Type2, Dict4),
     Dict5.
@@ -108,7 +108,7 @@ go(Tx, Dict0, NewHeight, _) ->
 fee_helper(Fee, Add, Dict) ->
     if
         Fee == 0 -> Dict;
-        Fee > 0 ->
+        true ->
             A = accounts:dict_update(Add, Dict, -Fee, none),
             accounts:dict_write(A, Dict)
     end.

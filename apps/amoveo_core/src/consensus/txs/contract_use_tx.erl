@@ -13,7 +13,8 @@ make_dict(From, CID, Amount, Fee) ->
     C = trees:get(contracts, CID),
     Many = contracts:many_types(C),
     #contract_use_tx{from = From, nonce = Nonce, fee = Fee, contract_id = CID, amount = Amount, many = Many}.
-go(Tx, Dict, NewHeight, _) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
+    true = NewHeight > forks:get(32),
     #contract_use_tx{
     from = From,
     nonce = Nonce,
@@ -22,7 +23,12 @@ go(Tx, Dict, NewHeight, _) ->
     amount = Amount,
     many = Many
    } = Tx,
-    Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
+    Facc = case NonceCheck of
+               true -> 
+                   accounts:dict_update(From, Dict, -Fee, Nonce);
+               none ->
+                   accounts:dict_update(From, Dict, -Fee, none)
+           end,
     Dict2 = accounts:dict_write(Facc, Dict),
     Contract = contracts:dict_get(CID, Dict2),
     #contract{
@@ -37,7 +43,7 @@ go(Tx, Dict, NewHeight, _) ->
       volume = Volume
      } = Contract,
     Volume2 = Volume + Amount,
-    true = Volume2 > 0,
+    true = Volume2 >= 0,
     %we need to update source accounts, and subcurrency accounts.
     Contract2 = Contract#contract{
                   volume = Volume2

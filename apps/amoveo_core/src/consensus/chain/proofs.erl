@@ -190,7 +190,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
     PS = constants:pubkey_size() * 8,
     L = case element(1, Tx) of
 	    multi_tx ->
-		txs_to_querys_multi(multi_tx:txs(Tx)) ++
+                From = multi_tx:from(Tx),
+		txs_to_querys_multi(From, multi_tx:txs(Tx), Trees, Height) ++
 		    [ 
 		      {accounts, multi_tx:from(Tx)}
 		     ];
@@ -574,7 +575,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
             swap_tx ->
                 #swap_tx{
               from = Acc2,
-              offer = SOffer
+              offer = SOffer,
+              fee = Fee
              } = Tx,
                 Offer = testnet_sign:data(SOffer),
                 #swap_offer{
@@ -584,7 +586,6 @@ txs_to_querys2([STx|T], Trees, Height) ->
                              cid2 = CID2,
                              type2 = Type2,
                              fee1 = Fee1,
-                             fee2 = Fee2,
                              salt = Salt
                            } = Offer,
                 TradeID = pair_buy_tx:trade_id_maker(Acc1, Salt),
@@ -592,7 +593,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                          0 -> [];
                          _ -> [{accounts, Acc1}]
                      end,
-                F2 = case Fee2 of
+                F2 = case (Fee - Fee1) of
                          0 -> [];
                          _ -> [{accounts, Acc2}]
                      end,
@@ -622,7 +623,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
             pair_buy_tx ->
                 #pair_buy_tx{
               from = Acc2,
-              offer = SPBO
+              offer = SPBO,
+              fee = Fee
              } = Tx,
                 PBO = testnet_sign:data(SPBO),
                 #pair_buy_offer{
@@ -633,7 +635,6 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                  subs1 = Subs1,
                                  subs2 = Subs2,
                                  fee1 = Fee1,
-                                 fee2 = Fee2,
                                  amount1 = Amount1,
                                  amount2 = Amount2,
                                  salt = Salt
@@ -643,7 +644,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                          0 -> [];
                          _ -> [{accounts, Acc1}]
                      end,
-                F2 = case Fee2 of
+                F2 = case (Fee - Fee1) of
                          0 -> [];
                          _ -> [{accounts, Acc2}]
                      end,
@@ -708,22 +709,34 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 ]
 	end,
     L ++ txs_to_querys2(T, Trees, Height).
-txs_to_querys_multi([]) -> [];
-txs_to_querys_multi([Tx|T]) ->
-    PS = constants:pubkey_size() * 8,
-    L = case element(1, Tx) of
-	    create_acc_tx -> 
-                [
-                 {governance, ?n2i(create_acc_tx)},
-                 {accounts, create_account_tx:pubkey(Tx)}
-                ];
-	    spend -> 
-                [
-                 {governance, ?n2i(spend)},
-                 {accounts, spend_tx:to(Tx)}
-                ]
-	end,
-    L ++ txs_to_querys_multi(T).
+txs_to_querys_multi(From, Txs, Trees, Height) ->
+    Txs2 = lists:map(
+             fun(Tx) -> 
+                     Tx2 = setelement(2, Tx, From),
+                     {signed, Tx2, "", ""} end,
+             Txs),
+    txs_to_querys2(Txs2, Trees, Height).
+                     
+                             
+
+
+
+%txs_to_querys_multi([]) -> [];
+%txs_to_querys_multi([Tx|T]) ->
+%    PS = constants:pubkey_size() * 8,
+%    L = case element(1, Tx) of
+%	    create_acc_tx -> 
+%                [
+%                 {governance, ?n2i(create_acc_tx)},
+%                 {accounts, create_account_tx:pubkey(Tx)}
+%                ];
+%	    spend -> 
+%                [
+%                 {governance, ?n2i(spend)},
+%                 {accounts, spend_tx:to(Tx)}
+%                ]
+%	end,
+%    L ++ txs_to_querys_multi(T).
 
 	    
     

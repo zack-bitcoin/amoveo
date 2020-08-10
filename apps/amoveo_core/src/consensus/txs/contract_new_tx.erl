@@ -9,6 +9,7 @@ make_dict(From, CH, Types, Source, SourceType, Fee) ->
     #contract_new_tx{from = From, nonce = Nonce, fee = Fee, contract_hash = CH, many_types = Types, source = Source, source_type = SourceType}.
 
 go(Tx, Dict, NewHeight, _) ->
+    true = NewHeight > forks:get(32),
     #contract_new_tx{
     from = From,
     nonce = Nonce,

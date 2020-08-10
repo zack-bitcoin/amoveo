@@ -21,6 +21,7 @@ make_dict(From, Fee, Pubkeys, Amounts, CH, MT, Source, SourceType, Matrix, Start
                   end_limit = EndLimit}.
 
 go(Tx, Dict, NewHeight, _) ->
+    true = NewHeight > forks:get(32),
     #team_buy_tx{
     from = From,
     %nonce = Nonce,
