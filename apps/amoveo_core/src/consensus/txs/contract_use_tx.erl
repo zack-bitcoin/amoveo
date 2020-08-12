@@ -11,8 +11,12 @@ make_dict(From, CID, Amount, Fee) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce + 1,
     C = trees:get(contracts, CID),
-    Many = contracts:many_types(C),
-    #contract_use_tx{from = From, nonce = Nonce, fee = Fee, contract_id = CID, amount = Amount, many = Many}.
+    #contract{
+               many_types = Many,
+               source = Source,
+               source_type = SourceType
+             } = C,
+    #contract_use_tx{from = From, nonce = Nonce, fee = Fee, contract_id = CID, amount = Amount, many = Many, source = Source, source_type = SourceType}.
 go(Tx, Dict, NewHeight, NonceCheck) ->
     true = NewHeight > forks:get(32),
     #contract_use_tx{
@@ -21,7 +25,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     fee = Fee,
     contract_id = CID,
     amount = Amount,
-    many = Many
+    many = Many,
+                      source = Source,
+                      source_type = SourceType
    } = Tx,
     Facc = case NonceCheck of
                true -> 

@@ -419,12 +419,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 CID = contract_use_tx:cid(Tx),
                 From = contract_use_tx:from(Tx),
                 SA = use_contract_sub_accounts(Tx),
-                Contracts = trees:contracts(Trees),
-                {_, Contract, _} = contracts:get(CID, Contracts),
-                #contract{
-                           source = Source,
-                           source_type = SourceType
-                         } = Contract,
+                #contract_use_tx{
+                                  source = Source,
+                                  source_type = SourceType
+                                } = Tx,
                 U = case Source of
                         <<0:256>> -> [];
                         _ -> 
@@ -588,7 +586,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                              fee1 = Fee1,
                              salt = Salt
                            } = Offer,
-                TradeID = pair_buy_tx:trade_id_maker(Acc1, Salt),
+                TradeID = swap_tx:trade_id_maker(Acc1, Salt),
                 F1 = case Fee1 of
                          0 -> [];
                          _ -> [{accounts, Acc1}]
@@ -620,86 +618,6 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 [{governance, ?n2i(swap_tx)},
                  {trades, TradeID}] ++
                 F1 ++ F2 ++ U ++ U2;
-            pair_buy_tx ->
-                #pair_buy_tx{
-              from = Acc2,
-              offer = SPBO,
-              fee = Fee
-             } = Tx,
-                PBO = testnet_sign:data(SPBO),
-                #pair_buy_offer{
-                                 acc1 = Acc1,
-                                 source_id = SourceCID,
-                                 source_type = SourceType,
-                                 new_id = NewCID,
-                                 subs1 = Subs1,
-                                 subs2 = Subs2,
-                                 fee1 = Fee1,
-                                 amount1 = Amount1,
-                                 amount2 = Amount2,
-                                 salt = Salt
-                               } = PBO,
-                TradeID = pair_buy_tx:trade_id_maker(Acc1, Salt),
-                F1 = case Fee1 of
-                         0 -> [];
-                         _ -> [{accounts, Acc1}]
-                     end,
-                F2 = case (Fee - Fee1) of
-                         0 -> [];
-                         _ -> [{accounts, Acc2}]
-                     end,
-                U = case SourceCID of
-                        <<0:256>> ->
-                            %in this case we need one or more of the veo accounts
-                            L1 = if
-                                     Amount1 == 0 -> [];
-                                     true -> [{accounts, Acc1}]
-                                 end,
-                            L2 = if
-                                     Amount2 == 0 -> [];
-                                     true -> [{accounts, Acc2}]
-                                 end,
-                            L1 ++ L2;
-                        _ ->
-                            %in this case we need one or both of the source sub_accounts
-                            L1 = if
-                                     Amount1 == 0 -> [];
-                                     true -> [{sub_accounts, sub_accounts:make_key(Acc1, SourceCID, SourceType)}]
-                                 end,
-                            L2 = if
-                                     Amount2 == 0 -> [];
-                                     true -> [{sub_accounts, sub_accounts:make_key(Acc2, SourceCID, SourceType)}]
-                                 end,
-                            L1 ++ L2
-                    end,
-                                    U2 = sub_accounts_loop(Subs1, Acc1, NewCID, 1),
-                U3 = sub_accounts_loop(Subs2, Acc2, NewCID, 1),
-              
-                [{governance, ?n2i(pair_buy_tx)},
-                 {contracts, NewCID},
-                 {trades, TradeID}
-                ] ++ F1 ++ F2 ++ U ++ U2 ++ U3;
-            team_buy_tx ->
-                #team_buy_tx{
-              from = From,
-              pubkeys = Pubkeys,
-              amounts = Amounts,
-              new_cid = NewCID,
-              many_types = MT,
-              source = SourceCID,
-              source_type = ST,
-              matrix = Matrix
-             } = Tx,
-                H = team_buy_tx:hash(Tx),
-                U = team_buy_helper(Pubkeys, Amounts, SourceCID, ST),
-                U2 = team_buy_matrix(Pubkeys, Matrix, NewCID),
-                [
-                 {accounts, From},
-                 {contracts, NewCID},
-                 {trades, H},
-                 {governance, ?n2i(max_contract_flavors)},
-                 {governance, ?n2i(team_buy_tx)}
-                ] ++ U ++ U2;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

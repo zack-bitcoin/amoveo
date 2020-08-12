@@ -22,7 +22,8 @@ zero_accounts_nonces([H|T])
     H4 = setelement(4, H3, 0),
     [H4|zero_accounts_nonces(T)];
 zero_accounts_nonces([H|T]) 
-  when (is_record(H, swap_tx)) ->
+  when (is_record(H, swap_tx) or
+       is_record(H, contract_new_tx)) ->
     H2 = setelement(2, H, 0),
     H3 = setelement(4, H2, 0),
     [H3|zero_accounts_nonces(T)].
@@ -45,6 +46,7 @@ sub_txs([H|T], From, Dict, NewHeight) ->
     Dict2 = case Type of
                 spend -> spend(H, From, Dict, NewHeight);
                 create_acc_tx -> create_account(H, From, Dict, NewHeight);
+                contract_new_tx -> contract_new(H, From, Dict, NewHeight);
                 contract_use_tx -> contract_use(H, From, Dict, NewHeight);
                 swap_tx -> swap(H, From, Dict, NewHeight)
                 %pair_buy -> pair_buy(H, From, Dict, NewHeight)
@@ -58,6 +60,13 @@ create_account(H, From, Dict, NewHeight) ->
 contract_use(Tx, From, Dict, NewHeight) ->    
 %-record(contract_use_tx, {from, nonce, fee, contract_id, amount, many}).
     create_spend(contract_use_tx, Tx, From, Dict, NewHeight).
+contract_new(Tx, From, Dict, NewHeight) ->
+    %create_spend(contract_new_tx, Tx, From, Dict, NewHeight).
+    Tx2 = Tx#contract_new_tx{
+            from = From
+           },
+    contract_new_tx:go(Tx2, Dict, NewHeight, none).
+    
 create_spend(Type, H, From, Dict, NewHeight) ->
     0 = element(2, H),
     0 = element(3, H),
@@ -73,18 +82,7 @@ swap(Tx, From, Dict, NewHeight) ->
     Tx2 = Tx#swap_tx{
             from = From
            },
-    swap_tx:go(Tx2, Dict, NewHeight, false).
-%pair_buy(Tx, From, Dict, NewHeight) ->    
-%    #pair_buy_tx{
-%      from = 0,
-%      fee = 0
-%     } = Tx,
-%    Tx2 = Tx#pair_buy_tx{
-%            from = From
-%           },
-%    pair_buy_tx:go(Tx2, Dict, NewHeight, none).
-%-record(swap_tx, {from, offer, fee}).
-%-record(pair_buy_tx, {from, offer, fee}).
+    swap_tx:go(Tx2, Dict, NewHeight, none).
 
 flash_loan(_, [], D, Debt) -> {D, Debt};
 flash_loan(From, [Tx|T], D, Debt)
@@ -107,34 +105,6 @@ flash_loan(From, [Tx|T], D, Debt)
     %whatever currency they are spending + debt
             flash_loan(From, T, D2, [{sub, CID, Type, Amount}|Debt])
     end;
-%flash_loan(From, [Tx|T], D, Debt)
-%  when is_record(Tx, pair_buy_tx) ->
-%    Offer = Tx#pair_buy_tx.offer,
-%    #pair_buy_offer{
-%                     subs2 = Subs,
-%                     contract_hash = CH,
-%                     source_id = S,
-%                     source_type = ST,
-%                     amount1 = Amount1,
-%                     amount2 = Amount2
-%                   } = Offer,
-%    MT = length(Subs),
-%    CID = contracts:make_id(CH, MT, S, ST),
-%    {D2, Debt2} = 
-%        if
-%            Amount2 > 0 -> 
-%                D8 = give_veo(From, Amount2, D),
-%                {D8, [{veo, Amount2}|Debt]};%give acc1 enough to cover this + debt
-%            true -> {D, Debt}
-%    end,
-%    {D3, Debt3} =
-%        if
-%            Amount1 + Amount2 < 0 -> 
-%                {D4, Subs} = give_subs(From, CID, Subs, -(Amount1 + Amount2), D), %give acc1 enough subcurrencies to cover this + debt
-%                {D4, Subs ++ Debt};
-%            true -> {D2, Debt2}
-%        end,
-%    flash_loan(from, T, D3, Debt3);
 flash_loan(From, [Tx|T], D, Debt)
   when is_record(Tx, contract_use_tx) ->
     A = Tx#contract_use_tx.amount,

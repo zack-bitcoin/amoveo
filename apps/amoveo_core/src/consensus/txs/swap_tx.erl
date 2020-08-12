@@ -1,6 +1,6 @@
 -module(swap_tx).
 -export([go/4, make_offer/10, make_dict/3,
-        fee_helper/3]).
+        fee_helper/3, trade_id_maker/2]).
 -include("../../records.hrl").
 
 make_dict(From, SNCOffer, Fee) ->
@@ -72,7 +72,7 @@ go(Tx, Dict0, NewHeight, _) ->
 
 %we want Acc1 to be able to cancel his offer by making some unrelated tx to increase his nonce.
 %    Dict1 = 
-    TID = pair_buy_tx:trade_id_maker(Acc1, Salt),
+    TID = trade_id_maker(Acc1, Salt),
     empty = trades:dict_get(TID, Dict0),
     Dict = trades:dict_write(trades:new(NewHeight, TID), Dict0),
 
@@ -143,4 +143,9 @@ move_sub(Acc1, Acc2, Amount, CID, Type, Dict) ->
            end,
     sub_accounts:dict_write(SA2B, DictA).
     
+trade_id_maker(Acc1, Salt) ->
+    <<_:256>> = Salt,
+    hash:doit(
+      <<Acc1/binary, 
+        Salt/binary>>).
     

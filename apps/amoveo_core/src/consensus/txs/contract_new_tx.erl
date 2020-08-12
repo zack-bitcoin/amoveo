@@ -4,15 +4,12 @@
 make_dict(From, CH, Types, Fee) ->
     make_dict(From, CH, Types, <<0:256>>, 0, Fee).
 make_dict(From, CH, Types, Source, SourceType, Fee) ->
-    A = trees:get(accounts, From),
-    Nonce = A#acc.nonce + 1,
-    #contract_new_tx{from = From, nonce = Nonce, fee = Fee, contract_hash = CH, many_types = Types, source = Source, source_type = SourceType}.
+    #contract_new_tx{from = From, fee = Fee, contract_hash = CH, many_types = Types, source = Source, source_type = SourceType}.
 
 go(Tx, Dict, NewHeight, _) ->
     true = NewHeight > forks:get(32),
     #contract_new_tx{
     from = From,
-    nonce = Nonce,
     fee = Fee,
     contract_hash = CH,
     source = Source,
@@ -20,7 +17,7 @@ go(Tx, Dict, NewHeight, _) ->
     many_types = MT} = Tx,
     MCF = governance:dict_get_value(max_contract_flavors, Dict),
     true = MCF >= MT,
-    Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
+    Facc = accounts:dict_update(From, Dict, -Fee, none),
     Dict2 = accounts:dict_write(Facc, Dict),
     Key = contracts:make_id(CH, MT, Source, SourceType),
     empty = contracts:dict_get(Key, Dict2),

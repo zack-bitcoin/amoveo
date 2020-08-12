@@ -138,8 +138,8 @@
 		     governance, 
 		     governance_amount}).
 
--record(contract_new_tx, {from, nonce, fee, contract_hash, many_types, source, source_type}).
--record(contract_use_tx, {from, nonce, fee, contract_id, amount, many}).
+-record(contract_new_tx, {from, contract_hash, fee, many_types, source, source_type}).
+-record(contract_use_tx, {from, nonce, fee, contract_id, amount, many, source, source_type}).
 -record(sub_spend_tx, {from, nonce, fee, to, amount, contract, type}).
 
 -record(swap_offer, {
@@ -149,17 +149,6 @@
           fee1, %what acc1 pays in fees
           nonce}).
 -record(swap_tx, {from, offer, fee}).
--record(team_buy_tx, {from, amounts, fee, pubkeys, sigs, contract_hash, new_cid, many_types, source, source_type, matrix, salt, start_limit, end_limit}).
--record(pair_buy_offer, {
-          acc1, start_limit, end_limit,
-          source_id, source_type, contract_hash,
-          new_id, salt,
-          amount1, fee1,
-          amount2, 
-          subs1, %used to specify who receives which subcurrencies in the contract.
-          subs2, nonce
-         }).
--record(pair_buy_tx, {from, offer, fee}).
 
 
 -record(contract_evidence_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
@@ -185,19 +174,6 @@
 		  closed = 0 %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
 		  %channels closed flag is unused because we delete closed channels.
 		  }).
--record(sub_channel, {
-      id,
-      accounts,%root hash
-      %result = <<0:256>>,
-      amount,
-      contract_hash,
-      %nonce = 1,
-      %last_modified,
-      %delay,
-      closed = 0,
-      contract_id,
-      type
-}).
 -record(contract, {
       code,
       many_types,
