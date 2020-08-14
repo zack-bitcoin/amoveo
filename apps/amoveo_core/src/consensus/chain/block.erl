@@ -1399,7 +1399,12 @@ sum_amounts_helper(unmatched, UM, _Dict, _, Key) ->
 sum_amounts_helper(matched, M, _Dict, OldDict, Key) ->
     {key, Pub, OID} = Key,
     Oracle = oracles:dict_get(OID, OldDict),
-    R = Oracle#oracle.result,
+    R = case Oracle of
+            empty -> 0;
+            error -> 0;
+            _ ->
+                Oracle#oracle.result
+        end,
     T = matched:true(M),
     F = matched:false(M),
     B = matched:bad(M),

@@ -1,5 +1,5 @@
 -module(contract_use_tx).
--export([go/4, make_dict/4, from/1, cid/1]).
+-export([go/4, make_dict/4, make_dict/7, from/1, cid/1]).
 -include("../../records.hrl").
 
 %this allows you to buy all types in a subcurrency together.
@@ -7,6 +7,10 @@
 from(Tx) -> Tx#contract_use_tx.from.
 cid(Tx) -> Tx#contract_use_tx.contract_id.
 
+make_dict(From, CID, Amount, Fee, Many, Source, SourceType) ->
+    A = trees:get(accounts, From),
+    Nonce = A#acc.nonce + 1,
+    #contract_use_tx{from = From, nonce = Nonce, fee = Fee, contract_id = CID, amount = Amount, many = Many, source = Source, source_type = SourceType}.
 make_dict(From, CID, Amount, Fee) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce + 1,

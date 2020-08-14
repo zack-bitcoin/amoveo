@@ -195,3 +195,11 @@
 
 
 
+
+-record(oracle_bet, {from, %your account id.
+		     nonce, 
+		     fee, 
+		     id, %id is the id of the oracle they want to participate in.
+		     type, %either "true", "false" or "bad_question"
+		     amount
+                     }).%how many shares do you want to buy?

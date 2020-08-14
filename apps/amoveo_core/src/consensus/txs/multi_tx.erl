@@ -15,6 +15,9 @@ zero_accounts_nonces([]) -> [];
 zero_accounts_nonces([H|T]) 
   when (is_record(H, spend) or 
         is_record(H, create_acc_tx) or 
+        is_record(H, oracle_new) or 
+        is_record(H, oracle_bet) or 
+        is_record(H, sub_spend_tx) or 
         is_record(H, contract_use_tx))
        ->
     H2 = setelement(2, H, 0),
@@ -44,19 +47,30 @@ sub_txs([], From, Dict, _) -> Dict;
 sub_txs([H|T], From, Dict, NewHeight) ->
     Type = element(1, H),
     Dict2 = case Type of
-                spend -> spend(H, From, Dict, NewHeight);
-                create_acc_tx -> create_account(H, From, Dict, NewHeight);
+                swap_tx -> swap(H, From, Dict, NewHeight);
                 contract_new_tx -> contract_new(H, From, Dict, NewHeight);
-                contract_use_tx -> contract_use(H, From, Dict, NewHeight);
-                swap_tx -> swap(H, From, Dict, NewHeight)
-                %pair_buy -> pair_buy(H, From, Dict, NewHeight)
+                _ -> create_spend(Type, H, From, Dict, NewHeight)
             end,
+
+%                spend -> spend(H, From, Dict, NewHeight);
+%                create_acc_tx -> create_account(H, From, Dict, NewHeight);
+%                oracle_new -> oracle_new(H, From, Dict, NewHeight);
+%                oracle_bet -> oracle_bet(H, From, Dict, NewHeight);
+%                sub_spend_tx -> sub_spend(H, From, Dict, NewHeight);
+%                contract_use_tx -> contract_use(H, From, Dict, NewHeight)
+%            end,
     sub_txs(T, From, Dict2, NewHeight).
 
 spend(H, From, Dict, NewHeight) ->
     create_spend(spend, H, From, Dict, NewHeight).
 create_account(H, From, Dict, NewHeight) ->
     create_spend(create_acc_tx, H, From, Dict, NewHeight).
+oracle_new(H, From, Dict, NewHeight) ->
+    create_spend(oracle_new, H, From, Dict, NewHeight).
+oracle_bet(H, From, Dict, NewHeight) ->
+    create_spend(oracle_bet, H, From, Dict, NewHeight).
+sub_spend(H, From, Dict, NewHeight) ->
+    create_spend(sub_spend_tx, H, From, Dict, NewHeight).
 contract_use(Tx, From, Dict, NewHeight) ->    
 %-record(contract_use_tx, {from, nonce, fee, contract_id, amount, many}).
     create_spend(contract_use_tx, Tx, From, Dict, NewHeight).

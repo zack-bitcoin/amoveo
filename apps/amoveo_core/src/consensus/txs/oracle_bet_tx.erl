@@ -1,13 +1,6 @@
 -module(oracle_bet_tx).
 -export([go/4, go2/3, make/6, make_dict/5, id/1, from/1, to_prove/2, fee/1, type/1, amount/1]).
 -include("../../records.hrl").
--record(oracle_bet, {from, %your account id.
-		     nonce, 
-		     fee, 
-		     id, %id is the id of the oracle they want to participate in.
-		     type, %either "true", "false" or "bad_question"
-		     amount
-                     }).%how many shares do you want to buy?
 %This is how you can participate in an existing oracle.
 %The market is an order book with 3 types of shares: "true", "false", "bad_question"
 %All trades are matched into the order book in pairs at even odds.

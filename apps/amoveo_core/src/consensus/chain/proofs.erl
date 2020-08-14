@@ -742,12 +742,18 @@ test() ->
 oracle_type_get(Trees, OID, Height) ->    
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
-    Gov = Oracle#oracle.governance,
-    NF14 = Height < forks:get(14),
-    if 
-        NF14 -> ?n2i(oracle_initial_liquidity);
-        (Gov == 0) -> ?n2i(oracle_question_liquidity);
-        true -> ?n2i(oracle_initial_liquidity)
+    case Oracle of
+        empty -> 
+            %TODO we are in a multi tx, we should look at the other txs in this multi tx to know which proofs to provide.
+            ?n2i(oracle_question_liquidity);
+        _ ->
+            Gov = Oracle#oracle.governance,
+            NF14 = Height < forks:get(14),
+            if 
+                NF14 -> ?n2i(oracle_initial_liquidity);
+                (Gov == 0) -> ?n2i(oracle_question_liquidity);
+                true -> ?n2i(oracle_initial_liquidity)
+            end
     end.
    
 use_contract_sub_accounts(Tx) ->    

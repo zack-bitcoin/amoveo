@@ -2033,7 +2033,7 @@ int 0 int 1" >>),
     %verify that the new account won the bet.
     AccF = trees:get(accounts, NewPub),
     true = AccF#acc.balance > (StartBalance + OneVeo - (Fee * 20)),
-    
+
     success;
 
 test(43) ->
@@ -2569,7 +2569,177 @@ int 0 int 1" >>),
     mine_blocks(1),
     timer:sleep(200),
     
+    success;
+test(47) ->
+    io:fwrite("test 47\n"),
+    %scalar derivative in the new channel, using an oracle to enforce the outcome.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {Pub,Priv} = testnet_sign:new_key(),
+    OneVeo = 100000000,
+    Ctx0 = create_account_tx:make_dict(Pub, OneVeo, Fee*5, MP),
+    Stx0 = keys:sign(Ctx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    timer:sleep(100),
+    mine_blocks(1),
+
+    %evidence includes the resulting price.
+    %embed this price into the oracle question text. 
+    %make sure the oracle returns type 1, otherwise fail.
+
+    %inputs when creating the contract: 
+    % *text description of number being measured.
+    % *a block height for the oracle reporting to start.
+    % *range of values that can be measure
+
+    %evidence when resolving:
+    % *the resulting number.
+    Max = 4294967295,
+    MaxPrice = 30000,
+    Measured = <<"the price of bitcoin in USD on October 31, noon, CMT time, according to coin market cap">>,
+    OracleTextPart = <<"MaxPrice = ", (integer_to_binary(MaxPrice))/binary, "; MaxVal = 4294967295; B = ", (Measured)/binary, " from $0 to $MaxPrice; min(MaxVal, (B * MaxVal / MaxPrice)) is ">>,
+    %oracle id calculation
+    %S = <<Start:32,Gov:32,GA:32,QH/binary>>,
+    %hash:doit(S).
+    ScalarCodeStatic = 
+        <<" \
+macro [ nil ; \
+macro , swap cons ; \
+macro ] swap cons reverse ; \
+macro maximum int 4294967295 ; \
+maximum int1 3 / Price ! \
+binary ", (integer_to_binary(size(OracleTextPart)))/binary, 
+          " ", 
+          (base64:encode(OracleTextPart))/binary,
+" TextPart ! \
+int1 5 OracleStartHeight ! \
+\ 
+% defines the empty string, which we need to end our recursion \
+int1 4 int1 0 split swap drop empty_string ! \
+\ 
+%2dup isn't being compiled right. so I made a macro to do the same. \
+macro convert_digit \
+int1 48 + int1 3 split drop ; \
+\
+: int_to_string2 ( string int -- string) \
+int1 10 ddup / tuck rem \
+convert_digit \
+  rot ++ swap \
+int1 0 == if drop drop \
+else \
+  drop recurse call \
+then ; \
+ \
+macro int_to_string ( int -- string ) \
+int1 0 == if drop drop \
+  binary 1 MA== \
+else drop \
+  empty_string @ swap int_to_string2 call \
+then ; \
+\
+\
+TextPart @ Price @ int_to_string ++ hash \
+QH ! \
+OracleStartHeight @ int1 0 dup ++ ++ QH @ ++ hash \
+OID ! %TODO verify that this OID is the same as we provided evidence for.\
+\
+ car drop car swap drop car swap drop car drop int1 32 split \
+\
+%check that this oracle data is for the right oracle\
+ OID @ == if else fail then \
+drop drop int1 1 split swap drop binary 3 AAAA swap ++ \
+\
+%check that the result is true \
+int1 1 == if else fail then drop drop \
+\
+\
+%divide up the money according to the oracle result. \
+[ Price @ , maximum Price @ - , int1 0 ] \
+int1 0 int2 1000 \
+">>,
+    %TODO should resolve into 3 subcurrencies. if no oracle can be found before some emergency expiration, then the 3rd currency gets all the value.
+    ContractBytes = compiler_chalang:doit(ScalarCodeStatic),
+    CH = hash:doit(ContractBytes),
+    io:fwrite(packer:pack(size(ContractBytes))),
+    io:fwrite("\n"),
+%    io:fwrite(packer:pack(ContractBytes)),
+%    io:fwrite("\n"),
+%    io:fwrite(packer:pack(vm(ContractBytes))),
+%    io:fwrite("\n"),
+
+    CID = contracts:make_id(CH, 3, <<0:256>>, 0),
+    
+    NewTx = contract_new_tx:make_dict(MP, CH, 3, 0),
+    UseTx = contract_use_tx:make_dict(MP, CID, OneVeo, 0, 3, <<0:256>>, 0),
+    SpendTx = sub_spend_tx:make_dict(Pub, OneVeo, 0, CID, 1, MP),
+
+    Txs = [NewTx, UseTx, SpendTx],
+    Tx2 = multi_tx:make_dict(MP, Txs, Fee*length(Txs)),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Max = 4294967295,
+    Third = Max div 3,
+    Q = <<OracleTextPart/binary, 
+          (integer_to_binary(Third))/binary
+        >>, 
+    StartHeight = 5,
+    OracleNewTx = oracle_new_tx:make_dict(MP, 0, Q, StartHeight, 0, 0),
+    OID = oracle_new_tx:id(OracleNewTx),
+    OIL = trees:get(governance, oracle_initial_liquidity),
+    OracleBetTx = oracle_bet_tx:make_dict(MP, 0, OID, 1, OIL+1),
+    
+    Txs3 = [OracleNewTx, OracleBetTx],
+    Tx3 = multi_tx:make_dict(MP, Txs3, Fee*length(Txs3)),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Tx4 = oracle_close_tx:make_dict(MP, Fee, OID),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Tx5 = contract_evidence_tx:make_dict(MP, ContractBytes, CID, <<>>, [{oracles, OID}], Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+  
+    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    SubAcc2 = sub_accounts:make_key(Pub, CID, 1),
+    Tx7 = contract_winnings_tx:make_dict(Pub, SubAcc2, CID, Fee, [<<Third:32>>, <<(Max - Third):32>>, <<0:32>>]),
+    Stx7 = testnet_sign:sign_tx(Tx7, Pub, Priv),
+    absorb(Stx7),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    AccF = trees:get(accounts, Pub),
+    true = AccF#acc.balance > ((OneVeo) + (OneVeo div 3) - (10 * Fee)),
+
     success.
+
 
 
 test35(_, _, _, 0) -> ok;
@@ -2689,5 +2859,9 @@ many_txs() ->
 
 vm(Code) ->
     ExampleData = chalang:data_maker(1000000,1000000,1000,1000,<<>>,<<>>,chalang:new_state(0,0,0),32,2,false),
-    chalang:stack(chalang:run5(Code, ExampleData)).
+    Data2 = chalang:run5(Code, ExampleData),
+    %io:fwrite("test txs vm "),
+    %io:fwrite(packer:pack(Data2)),
+    %io:fwrite("\n"),
+    chalang:stack(Data2).
     
