@@ -2621,9 +2621,9 @@ binary ", (integer_to_binary(size(OracleTextPart)))/binary,
 int1 5 OracleStartHeight ! \
 \ 
 % defines the empty string, which we need to end our recursion \
-int1 4 int1 0 split swap drop empty_string ! \
+% int1 4 int1 0 split swap drop empty_string ! \
+binary 0 empty_string ! \
 \ 
-%2dup isn't being compiled right. so I made a macro to do the same. \
 macro convert_digit \
 int1 48 + int1 3 split drop ; \
 \
@@ -2660,7 +2660,7 @@ int1 1 == if else fail then drop drop \
 \
 \
 %divide up the money according to the oracle result. \
-[ Price @ , maximum Price @ - , int1 0 ] \
+[ Price @ , maximum Price @ - ] \
 int1 0 int2 1000 \
 ">>,
     %TODO should resolve into 3 subcurrencies. if no oracle can be found before some emergency expiration, then the 3rd currency gets all the value.
@@ -2673,10 +2673,10 @@ int1 0 int2 1000 \
 %    io:fwrite(packer:pack(vm(ContractBytes))),
 %    io:fwrite("\n"),
 
-    CID = contracts:make_id(CH, 3, <<0:256>>, 0),
+    CID = contracts:make_id(CH, 2, <<0:256>>, 0),
     
-    NewTx = contract_new_tx:make_dict(MP, CH, 3, 0),
-    UseTx = contract_use_tx:make_dict(MP, CID, OneVeo, 0, 3, <<0:256>>, 0),
+    NewTx = contract_new_tx:make_dict(MP, CH, 2, 0),
+    UseTx = contract_use_tx:make_dict(MP, CID, OneVeo, 0, 2, <<0:256>>, 0),
     SpendTx = sub_spend_tx:make_dict(Pub, OneVeo, 0, CID, 1, MP),
 
     Txs = [NewTx, UseTx, SpendTx],
@@ -2728,7 +2728,7 @@ int1 0 int2 1000 \
     timer:sleep(200),
 
     SubAcc2 = sub_accounts:make_key(Pub, CID, 1),
-    Tx7 = contract_winnings_tx:make_dict(Pub, SubAcc2, CID, Fee, [<<Third:32>>, <<(Max - Third):32>>, <<0:32>>]),
+    Tx7 = contract_winnings_tx:make_dict(Pub, SubAcc2, CID, Fee, [<<Third:32>>, <<(Max - Third):32>>]),
     Stx7 = testnet_sign:sign_tx(Tx7, Pub, Priv),
     absorb(Stx7),
     1 = many_txs(),
