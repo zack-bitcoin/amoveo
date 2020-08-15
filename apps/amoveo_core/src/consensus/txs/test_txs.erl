@@ -2346,31 +2346,11 @@ else fail then ">>),
 
 %binary derivative contract based on oracle id OID.
 
-    BinaryCodeStatic = <<" OID ! \
-macro [ nil ; \
-macro , swap cons ; \
-macro ] swap cons reverse ; \
-macro even_split [ int 2147483648 , int 2147483647 , int 0 ] ; \
-macro maximum int 4294967295 ; \
- car drop car swap drop car swap drop car drop \
-int 32 split \
- OID @ \
- == if else fail then \
-drop drop int 1 split swap drop binary 3 AAAA swap ++ \
-int 3 == if \
-  [ int 0 , int 0 , maximum ] int 0 int 1000 \
-else drop \
-  int 1 == if \
-      [ maximum , int 0 , int 0 ] int 0 int 1000 \
-    else drop \
-    int 2 == if \
-      [ int 0 , maximum, int 0 ] int 0 int 1000 \
-    else drop drop \
-        even_split int 5000 int 10 \
-    then \
-  then \
-then ">>,
+    PrivDir = "../../../../apps/amoveo_core/priv",
+    {ok, BinaryCodeStatic} = file:read_file(PrivDir ++ "/binary.fs"),
     io:fwrite("binary contract is "),
+    io:fwrite(integer_to_list(size(compiler_chalang:doit(BinaryCodeStatic)))),
+    io:fwrite("\n"),
     io:fwrite(base64:encode(compiler_chalang:doit(BinaryCodeStatic))),
     io:fwrite("\n"),
 % AAAAAAF4gxSDFhSDFhSDFAAAAAAghwAAAAABeTpGRw1IFBQAAAAAAYcWFAIAAAADAAAAFoYAAAAAAzpGhAAAAAAAFoIAAAAAABaCAP////8WgogAAAAAAAAAAAPoRxQAAAAAATpGhAD/////FoIAAAAAABaCAAAAAAAWgogAAAAAAAAAAAPoRxQAAAAAAjpGhAAAAAAAFoIA/////xaCAAAAAAAWgogAAAAAAAAAAAPoRxQUhACAAAAAFoIAf////xaCAAAAAAAWgogAAAATiAAAAAAKSEhI
@@ -2619,6 +2599,9 @@ binary ", (integer_to_binary(size(OracleTextPart)))/binary,
     {ok, ScalarCodeStatic} = file:read_file(PrivDir ++ "/scalar.fs"),
 
     ScalarContractBytes = compiler_chalang:doit(ScalarCodeStatic),
+    io:fwrite("scalar contract bytes \n"),
+    io:fwrite(packer:pack(ScalarContractBytes)),
+    io:fwrite("\n"),
     SettingsBytes = compiler_chalang:doit(Settings),
     ContractBytes = <<SettingsBytes/binary, ScalarContractBytes/binary>>,
     CH = hash:doit(ContractBytes),
