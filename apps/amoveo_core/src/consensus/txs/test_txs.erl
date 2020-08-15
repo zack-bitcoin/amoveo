@@ -2596,75 +2596,31 @@ test(47) ->
     %inputs when creating the contract: 
     % *text description of number being measured.
     % *a block height for the oracle reporting to start.
+    Measured = <<"the price of bitcoin in USD on October 31, noon, CMT time, according to coin market cap">>,
+    MaxPrice = 30000,
+    StartHeight = 5,
+    
     % *range of values that can be measure
 
     %evidence when resolving:
     % *the resulting number.
     Max = 4294967295,
-    MaxPrice = 30000,
-    Measured = <<"the price of bitcoin in USD on October 31, noon, CMT time, according to coin market cap">>,
     OracleTextPart = <<"MaxPrice = ", (integer_to_binary(MaxPrice))/binary, "; MaxVal = 4294967295; B = ", (Measured)/binary, " from $0 to $MaxPrice; min(MaxVal, (B * MaxVal / MaxPrice)) is ">>,
     %oracle id calculation
     %S = <<Start:32,Gov:32,GA:32,QH/binary>>,
     %hash:doit(S).
-    ScalarCodeStatic = 
-        <<" \
-macro [ nil ; \
-macro , swap cons ; \
-macro ] swap cons reverse ; \
-macro maximum int 4294967295 ; \
-maximum int1 3 / Price ! \
+    Settings = <<
+" \
 binary ", (integer_to_binary(size(OracleTextPart)))/binary, 
           " ", 
-          (base64:encode(OracleTextPart))/binary,
-" TextPart ! \
-int1 5 OracleStartHeight ! \
-\ 
-% defines the empty string, which we need to end our recursion \
-% int1 4 int1 0 split swap drop empty_string ! \
-binary 0 empty_string ! \
-\ 
-macro convert_digit \
-int1 48 + int1 3 split drop ; \
-\
-: int_to_string2 ( string int -- string) \
-int1 10 ddup / tuck rem \
-convert_digit \
-  rot ++ swap \
-int1 0 == if drop drop \
-else \
-  drop recurse call \
-then ; \
- \
-macro int_to_string ( int -- string ) \
-int1 0 == if drop drop \
-  binary 1 MA== \
-else drop \
-  empty_string @ swap int_to_string2 call \
-then ; \
-\
-\
-TextPart @ Price @ int_to_string ++ hash \
-QH ! \
-OracleStartHeight @ int1 0 dup ++ ++ QH @ ++ hash \
-OID ! %TODO verify that this OID is the same as we provided evidence for.\
-\
- car drop car swap drop car swap drop car drop int1 32 split \
-\
-%check that this oracle data is for the right oracle\
- OID @ == if else fail then \
-drop drop int1 1 split swap drop binary 3 AAAA swap ++ \
-\
-%check that the result is true \
-int1 1 == if else fail then drop drop \
-\
-\
-%divide up the money according to the oracle result. \
-[ Price @ , maximum Price @ - ] \
-int1 0 int2 1000 \
+          (base64:encode(OracleTextPart))/binary, " int1 5
 ">>,
-    %TODO should resolve into 3 subcurrencies. if no oracle can be found before some emergency expiration, then the 3rd currency gets all the value.
-    ContractBytes = compiler_chalang:doit(ScalarCodeStatic),
+    PrivDir = "../../../../apps/amoveo_core/priv",
+    {ok, ScalarCodeStatic} = file:read_file(PrivDir ++ "/scalar.fs"),
+
+    ScalarContractBytes = compiler_chalang:doit(ScalarCodeStatic),
+    SettingsBytes = compiler_chalang:doit(Settings),
+    ContractBytes = <<SettingsBytes/binary, ScalarContractBytes/binary>>,
     CH = hash:doit(ContractBytes),
     io:fwrite(packer:pack(size(ContractBytes))),
     io:fwrite("\n"),
@@ -2692,7 +2648,6 @@ int1 0 int2 1000 \
     Q = <<OracleTextPart/binary, 
           (integer_to_binary(Third))/binary
         >>, 
-    StartHeight = 5,
     OracleNewTx = oracle_new_tx:make_dict(MP, 0, Q, StartHeight, 0, 0),
     OID = oracle_new_tx:id(OracleNewTx),
     OIL = trees:get(governance, oracle_initial_liquidity),
@@ -2713,7 +2668,9 @@ int1 0 int2 1000 \
     mine_blocks(1),
     timer:sleep(200),
 
-    Tx5 = contract_evidence_tx:make_dict(MP, ContractBytes, CID, <<>>, [{oracles, OID}], Fee),
+    Tx5 = contract_evidence_tx:make_dict(MP, ContractBytes, CID, compiler_chalang:doit(<<
+" int 4294967295 int1 3 / ">>), 
+[{oracles, OID}], Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     1 = many_txs(),
