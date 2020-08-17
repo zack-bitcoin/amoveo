@@ -22,23 +22,22 @@ make_dict(From, CID, Amount, Fee) ->
              } = C,
     #contract_use_tx{from = From, nonce = Nonce, fee = Fee, contract_id = CID, amount = Amount, many = Many, source = Source, source_type = SourceType}.
 go(Tx, Dict, NewHeight, NonceCheck) ->
-    true = NewHeight > forks:get(32),
     #contract_use_tx{
     from = From,
-    nonce = Nonce,
+    nonce = Nonce0,
     fee = Fee,
     contract_id = CID,
     amount = Amount,
     many = Many,
-                      source = Source,
-                      source_type = SourceType
+    source = Source,
+    source_type = SourceType
    } = Tx,
-    Facc = case NonceCheck of
-               true -> 
-                   accounts:dict_update(From, Dict, -Fee, Nonce);
-               none ->
-                   accounts:dict_update(From, Dict, -Fee, none)
-           end,
+    true = NewHeight > forks:get(32),
+    Nonce = if
+		NonceCheck -> Nonce0;
+		true -> none
+	    end,
+    Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     Contract = contracts:dict_get(CID, Dict2),
     #contract{

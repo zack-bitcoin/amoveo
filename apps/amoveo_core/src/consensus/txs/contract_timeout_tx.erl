@@ -9,16 +9,20 @@ make_dict(From, ContractID, Fee, Proof, CH, Row) ->
     Nonce = A#acc.nonce + 1,
     #contract_timeout_tx{from = From, nonce = Nonce, fee = Fee, contract_id = ContractID, proof = Proof, row = Row, contract_hash = CH}.
 
-go(Tx, Dict, NewHeight, _) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     #contract_timeout_tx{
     from = From,
-    nonce = Nonce,
+    nonce = Nonce0,
     fee = Fee,
     contract_id = CID,
     contract_hash = CH2,
     row = Row,
     proof = Proof
    } = Tx,
+    Nonce = if
+		NonceCheck -> Nonce0;
+		true -> none
+	    end,
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     Contract = contracts:dict_get(CID, Dict2),

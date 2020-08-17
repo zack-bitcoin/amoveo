@@ -41,22 +41,22 @@ market_smart_contract(MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amou
     spk:new_bet(Compiled, CodeKey, A2, {Direction, MaxPrice}).
 %    spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
 unmatched(OID) ->
-    SS = " int 4 ",
+    SS = " int4 4 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), [{oracles, OID}]).
 settle(SPD, OID, Price) ->
     %If the oracle comes to a decision, this is how you get your money out.
     PriceDeclare = binary_to_list(base64:encode(SPD)),
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
-" " ++ PriceDeclare ++ " int 1",
+" " ++ PriceDeclare ++ " int4 1",
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), [{oracles, OID}]),
     SS#ss{meta = Price}.
 no_publish(OID) ->
     %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
-    SS2a = " int 0 ",
+    SS2a = " int4 0 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS2a)), [{oracles, OID}]).
 evidence(SPD, OID) ->
     %If users try withdrawing funds while the market maker is still publishing prices, this is how he stops them from taking their money out early and robbing the market maker.
-    SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int 3 ",
+    SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int4 3 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS3a)), [{oracles, OID}]).
 contradictory_prices(SPD, SPD2, OID) ->
     %If the market maker publishes two prices too close to the same time, then this is how you can withdraw your funds from the market early.
@@ -65,7 +65,7 @@ contradictory_prices(SPD, SPD2, OID) ->
     SS4a = 
 	" binary " ++ integer_to_list(size(SPD)) ++ " " ++ PriceDeclare1 ++ 
 	" binary " ++ integer_to_list(size(SPD2)) ++ " " ++ PriceDeclare2 ++
-	" int 2 ",
+	" int4 2 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS4a)), [{oracles, OID}]).
 price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
     PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
@@ -82,7 +82,7 @@ test() ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    test_txs:mine_blocks(2),
+    test_txs:mine_blocks(13),
     timer:sleep(150),
     Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 0, 0),
     OID = oracle_new_tx:id(Tx),

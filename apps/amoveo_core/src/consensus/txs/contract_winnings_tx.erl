@@ -11,11 +11,11 @@ make_dict(From, SubAcc, CID, Fee, Row, Proof) ->
     Amount = SA#sub_acc.balance,
     #contract_winnings_tx{from = From, winner = From, sub_account = SubAcc, nonce = Nonce, contract_id = CID, fee = Fee, amount = Amount, proof = Proof, row = Row}.
 
-go(Tx, Dict, NewHeight, _) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     #contract_winnings_tx{
     from = From,
     winner = Winner,
-    nonce = Nonce,
+    nonce = Nonce0,
     contract_id = CID,
     sub_account = SubAcc,
     fee = Fee,
@@ -23,6 +23,10 @@ go(Tx, Dict, NewHeight, _) ->
     row = Row,
     proof = Proof
    } = Tx,
+    Nonce = if
+		NonceCheck -> Nonce0;
+		true -> none
+	    end,
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
 
@@ -33,6 +37,7 @@ go(Tx, Dict, NewHeight, _) ->
               contract_id = CID,
               pubkey = Winner
             } = SA,
+    true = Amount > 0,
     Dict3 = sub_accounts:dict_delete(SubAcc, Dict2),
     
     Contract = contracts:dict_get(CID, Dict3),

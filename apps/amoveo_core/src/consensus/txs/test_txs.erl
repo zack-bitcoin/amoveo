@@ -480,6 +480,7 @@ test(11) ->
     %testing the oracle
     %launch an oracle with oracle_new
     Question = <<>>,
+    MP = constants:master_pub(),
     %<<OID:80>> = crypto:strong_rand_bytes(10),
     %OID = crypto:strong_rand_bytes(32),
     Fee = constants:initial_fee() + 20,
@@ -523,20 +524,16 @@ test(11) ->
     OIL = trees:get(governance, oracle_initial_liquidity),
     Bal1 = api:balance(),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), 
-    Stx2 = keys:sign(Tx2),
-    absorb(Stx2),
-    mine_blocks(1),
-    io:fwrite("test 11 5\n"),
-    timer:sleep(150),
 
     %close the oracle with oracle_close
     Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),%here
-    Stx3 = keys:sign(Tx3),
-    absorb(Stx3),
+
+    Tx7 = multi_tx:make_dict(MP, [Tx2, Tx3], Fee*2),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
     mine_blocks(1),
-    %1=2,
-    io:fwrite("test 11 6\n"),
-    timer:sleep(100),
+    
 
     %If you look up an oracle from the dictionary, it will always point to 0 for the orders. You need to query seperately to get the orders out, or you can transform the dict into a trie. After the transformation, you can look up orders how it is commented out below.
 
@@ -548,19 +545,15 @@ test(11) ->
     %Orders = Oracle#oracle.orders,
     %{OrderID, _} = orders:head_get(Orders),%This only works because there is exactly 1 order in the order book.
     Tx4 = oracle_unmatched_tx:make_dict(constants:master_pub(), Fee, OID),
-    Stx4 = keys:sign(Tx4),
-    absorb(Stx4),
-    mine_blocks(1),
-    io:fwrite("test 11 7\n"),
-    timer:sleep(100),
-
     %get your winnings with oracle_shares
     Tx5 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),%pays 0.36
-    Stx5 = keys:sign(Tx5),
-    absorb(Stx5),
+
+    Tx6 = multi_tx:make_dict(MP, [Tx4, Tx5], Fee*3),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
     mine_blocks(1),
-    io:fwrite("test 11 8\n"),
-    timer:sleep(100),
+
     Bal2 = api:balance(),
     io:fwrite("balance change"),
     io:fwrite(packer:pack([Bal1, Bal2])),
@@ -852,6 +845,7 @@ test(15) ->
     Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     absorb(Stx),
+    1 = many_txs(),
 
     CID0 = <<5:256>>,
 
@@ -860,8 +854,9 @@ test(15) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
-    Code = compiler_chalang:doit(<<"drop int 50">>),
-    Secret = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
+    2 = many_txs(),
+    Code = compiler_chalang:doit(<<"drop int4 50">>),
+    Secret = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 2 ">>), []),
     %secrets:add(Code, Secret),
     %timer:sleep(100),
     
@@ -875,10 +870,11 @@ test(15) ->
     timer:sleep(100),
     ScriptPubKey = keys:sign(SPK),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
-    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 5 int 1 ">>), []),
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int4 5 int4 1 ">>), []),
     Ctx3 = channel_solo_close:make_dict(NewPub, Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
+    3 = many_txs(),
     timer:sleep(100),
     potential_block:new(),
     mine_blocks(1),
@@ -887,6 +883,7 @@ test(15) ->
     Txs2 = (tx_pool:get())#tx_pool.txs,
     %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
+    1 = many_txs(),
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),
     timer:sleep(500),
@@ -1160,25 +1157,17 @@ int 0 int 1" >>),
 
     %a potential resolution of the contract.
     Tx5 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
-    Stx5 = keys:sign(Tx5),
-    absorb(Stx5),
-    1 = many_txs(),
-    mine_blocks(1),
-    timer:sleep(200),
-   
     %resolve the contract because the delay timer has finished.
     Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee),
-    Stx6 = keys:sign(Tx6),
-    absorb(Stx6),
-    1 = many_txs(),
-    mine_blocks(1),
-    timer:sleep(200),
-
     %withdrawing from a resolved contract
     SubAcc1 = sub_accounts:make_key(MP, CID, 3),
     Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [<<0:32>>,<<0:32>>,<<-1:32>>]),
-    Stx7 = keys:sign(Tx7),
-    absorb(Stx7),
+    
+    Txs7 = [Tx5, Tx6, Tx7],
+    Tx71 = multi_tx:make_dict(MP, Txs7, Fee*2),
+    Stx71 = keys:sign(Tx71),
+    absorb(Stx71),
+
     1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
@@ -1342,12 +1331,6 @@ binary 32 ",
 
     %timeout second
     Tx9 = contract_timeout_tx:make_dict(MP, CID2, Fee),
-    Stx9 = keys:sign(Tx9),
-    absorb(Stx9),
-    1 = many_txs(),
-    mine_blocks(1),
-    timer:sleep(200),
-
 
     %withdraw to veo
     PayoutVector = %same as payout vector defined in Forth.
@@ -1355,28 +1338,20 @@ binary 32 ",
          <<2147483647:32>>],
     SubAcc1_2 = sub_accounts:make_key(MP, CID2, 2),
     Tx10 = contract_winnings_tx:make_dict(MP, SubAcc1_2, CID2, Fee, PayoutVector),
-    Stx10 = keys:sign(Tx10),
-    absorb(Stx10),
-    1 = many_txs(),
-    mine_blocks(1),
-    timer:sleep(200),
-    
 
     %simplify by matrix multiplication
     %so that both contracts use a payout vector, allowing anyone holding any of the subcurrencies to withdraw directly to veo.
     Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, PayoutVector, Fee), 
-    Stx11 = keys:sign(Tx11),
-    absorb(Stx11),
-    1 = many_txs(),
-    mine_blocks(1),
-    timer:sleep(200),
 
     %withdraw the second kind of subcurrency directly to veo.
     PayoutVector2 = contract_simplify_tx:apply_matrix2vector(Matrix, PayoutVector),
     SubAcc2 = sub_accounts:make_key(MP, CID, 2),
     Tx12 = contract_winnings_tx:make_dict(MP, SubAcc2, CID, Fee, PayoutVector2),
-    Stx12 = keys:sign(Tx12),
-    absorb(Stx12),
+
+    Txs13 = [Tx9, Tx10, Tx11, Tx12],
+    Tx13 = multi_tx:make_dict(MP, Txs13, Fee),
+    Stx13 = keys:sign(Tx13),
+    absorb(Stx13),
     1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),

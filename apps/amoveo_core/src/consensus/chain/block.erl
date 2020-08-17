@@ -1254,6 +1254,27 @@ count(Type, [H|T], N) ->
         Type == Type2 -> count(Type, T, N+1);
         true -> count(Type, T, N)
     end.
+many_close_oracles([], N) -> N;
+many_close_oracles([{signed, Tx, _, _}|
+                   T], N)
+  when is_record(Tx, oracle_close) ->
+    many_close_oracles(T, N+1);
+many_close_oracles([{signed, Tx, _, _}|
+                   T], N) 
+  when is_record(Tx, multi_tx) ->
+    M = mco_multi(Tx#multi_tx.txs, 0),
+    many_close_oracles(T, N+M);
+many_close_oracles([_|T], N) ->
+    many_close_oracles(T, N).
+mco_multi([], M) -> M;
+mco_multi([Tx|T], M) 
+  when is_record(Tx, oracle_close) ->
+    mco_multi(T, M+1);
+mco_multi([_|T], M) ->
+    mco_multi(T, M).
+
+
+
             
 no_counterfeit(Old, New, Txs, Height) ->
     %times it was outside expected range.
@@ -1298,7 +1319,8 @@ no_counterfeit(Old, New, Txs, Height) ->
     %io:fwrite(integer_to_list(BR + (BR * DR div 10000))),
     BlockReward = BR + (BR * DR div 10000),
     %io:fwrite("; "),
-    CloseOracles = count(oracle_close, Txs, 0),
+    CloseOracles = many_close_oracles(Txs, 0),
+    %CloseOracles = count(oracle_close, Txs, 0),
     %io:fwrite("close oracles are "),
     %io:fwrite(integer_to_list(CloseOracles)),
     %io:fwrite("; "),

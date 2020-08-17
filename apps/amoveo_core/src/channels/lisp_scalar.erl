@@ -52,7 +52,7 @@ market_smart_contract(MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amou
     end.
 %    spk:new_bet(Compiled, CodeKey, Amount, {Direction, MaxPrice}).
 unmatched(OID) ->
-    SS = " int 4 ",
+    SS = " int4 4 ",
     SK = oracle_new_tx:scalar_keys(OID),
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS)), SK).
 %settle_scalar_oracles(_, 0) -> [];
@@ -62,7 +62,7 @@ unmatched(OID) ->
 settle_scalar(SPD, OIDS, Price) ->
     PriceDeclare = binary_to_list(base64:encode(SPD)),
     SS1a = "binary "++ integer_to_list(size(SPD))++ 
-" " ++ PriceDeclare ++ " int 1",
+" " ++ PriceDeclare ++ " int4 1",
     %OIDS = settle_scalar_oracles(OID, Many),
     SS = spk:new_ss(compiler_chalang:doit(list_to_binary(SS1a)), OIDS),
     SS#ss{meta = Price}.
@@ -75,11 +75,11 @@ settle_scalar(SPD, OIDS, Price) ->
 %    SS#ss{meta = Price}.
 no_publish(OID) ->
     %If the market maker fails in his duty to publish a price, this is how you withdraw your funds from the market early.
-    SS2a = " int 0 ",
+    SS2a = " int4 0 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS2a)), []).
 evidence(SPD, OID) ->
     %If users try withdrawing funds while the market maker is still publishing prices, this is how he stops them from taking their money out early and robbing the market maker.
-    SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int 3 ",
+    SS3a = " binary " ++ integer_to_list(size(SPD)) ++ " " ++ binary_to_list(base64:encode(SPD)) ++ " int4 3 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS3a)), []).
 contradictory_prices(SPD, SPD2, OID) ->
     %If the market maker publishes two prices too close to the same time, then this is how you can withdraw your funds from the market early.
@@ -88,7 +88,7 @@ contradictory_prices(SPD, SPD2, OID) ->
     SS4a = 
 	" binary " ++ integer_to_list(size(SPD)) ++ " " ++ PriceDeclare1 ++ 
 	" binary " ++ integer_to_list(size(SPD2)) ++ " " ++ PriceDeclare2 ++
-	" int 2 ",
+	" int4 2 ",
     spk:new_ss(compiler_chalang:doit(list_to_binary(SS4a)), []).
 price_declaration_maker(Height, Price, PortionMatched, MarketID) ->
     PD = <<Height:32, Price:16, PortionMatched:16, MarketID/binary>>,
@@ -108,9 +108,9 @@ test \
 ",
     %can test out leverage by changing  UL and LL here.
     Code0 = " \
-int 1023 UL ! \
-int 0 LL ! \
-int 10000 bet_amount ! \ % set to zero for bet on false.
+int4 1023 UL ! \
+int4 0 LL ! \
+int4 10000 bet_amount ! \ % set to zero for bet on false.
 ",
     FullCode = <<(list_to_binary(Code0))/binary, Code/binary, (list_to_binary(Code2))/binary>>,
     %io:fwrite(FullCode),

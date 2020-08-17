@@ -7,7 +7,7 @@ macro ] swap cons reverse ;
 macro maximum int 4294967295 ; 
 
 ( defines the empty string, which we need to end our recursion )
-macro empty_string int1 4 int1 0 split swap drop ; 
+macro empty_string int 4 int 0 split swap drop ; 
 
 ( check that a conditional resulted in "true", otherwise the contract should crash. )
 macro or_die
@@ -17,13 +17,13 @@ else
 then ;
 
 macro convert_digit ( converts a one-digit integer into a one byte string representation of that integer )
-int1 48 + int1 3 split drop ; 
+int 48 + int 3 split drop ; 
 
 : int_to_string2 ( string int -- string) 
-    int1 10 ddup / tuck rem 
+    int 10 ddup / tuck rem 
     convert_digit 
     rot ++ swap 
-    int1 0 ==
+    int 0 ==
     if
         drop drop
     else
@@ -32,7 +32,7 @@ int1 48 + int1 3 split drop ;
       
 macro int_to_string ( int -- string )
 ( converts a multi-digit integer into a string representation )
-int1 0 == if drop drop 
+int 0 == if drop drop 
     binary 1 MA== 
 else drop 
     empty_string swap int_to_string2 call 
@@ -51,22 +51,22 @@ macro QuestionHash
 
 ( calculates the oracle id for the oracle that will determine the result of this contract )
 macro OracleID
-OracleStartHeight @ int1 0 dup ++ ++ QuestionHash ++ hash ;
+OracleStartHeight @ int 0 dup ++ ++ QuestionHash ++ hash ;
 
 ( check that this oracle data is for the right oracle )
 car drop
 car swap drop
 car swap drop
 car drop
-int1 32 split 
+int 32 split 
 OracleID =2 or_die
 
 ( get the one-byte result of the oracle)
-int1 1 split swap drop
+int 1 split swap drop
 ( check that it is equal to <<1>>, which is the result for "true". base64:encode <<1>> is AQ== )
 binary 1 AQ== =2 or_die
 
 ( divide up the money according to the price written in the oracle. )
 [ Price @ , maximum Price @ - ] 
-int1 0 int2 1000
+int 0 int 1000
 

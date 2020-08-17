@@ -8,16 +8,20 @@ make_dict(From, Contract, CID, Evidence, Prove, Fee) ->
     Nonce = A#acc.nonce + 1,
     #contract_evidence_tx{from = From, nonce = Nonce, fee = Fee, contract = Contract, evidence = Evidence, prove = Prove, contract_id = CID}.
     
-go(Tx, Dict, NewHeight, _) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     #contract_evidence_tx{
     from = From,
-    nonce = Nonce,
+    nonce = Nonce0,
     fee = Fee,
     contract = ContractBytecode,
     contract_id = CID,
     evidence = Evidence,%like the script sig in bitcoin
     prove = Prove%on-chain state to include.
    } = Tx,
+    Nonce = if 
+                 NonceCheck -> Nonce0;
+                 true -> none
+             end,
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     Contract = contracts:dict_get(CID, Dict2),

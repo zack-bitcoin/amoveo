@@ -10,10 +10,10 @@ make_dict(Pubkey, CID, CID2, CID3, Matrix, PayoutVector, Fee) ->
     Nonce = A#acc.nonce + 1,
     #contract_simplify_tx{from = Pubkey, nonce = Nonce, cid = CID, cid2 = CID2, cid3 = CID3, m1 = Matrix, m2 = PayoutVector, fee = Fee}.
 
-go(Tx, Dict, NewHeight, _) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     #contract_simplify_tx{
     from = From, 
-    nonce = Nonce, 
+    nonce = Nonce0, 
     cid = CID, 
     cid2 = CID2,
     cid3 = CID3,
@@ -21,6 +21,10 @@ go(Tx, Dict, NewHeight, _) ->
     m2 = Matrix2, 
     fee = Fee
    } = Tx,
+    Nonce = if
+		NonceCheck -> Nonce0;
+		true -> none
+	    end,
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     Contract1 = contracts:dict_get(CID, Dict2),

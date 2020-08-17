@@ -627,13 +627,37 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 ]
 	end,
     L ++ txs_to_querys2(T, Trees, Height).
+		 %{governance, ?n2i(oracle_bet)},
+		 %{governance, ?n2i(minimum_oracle_time)},
 txs_to_querys_multi(From, Txs, Trees, Height) ->
+    %if there is a new_oracle, and an oracle_bet for that same oracle, then remove the oracle_bet from the list of txs. TODO
     Txs2 = lists:map(
              fun(Tx) -> 
                      Tx2 = setelement(2, Tx, From),
                      {signed, Tx2, "", ""} end,
              Txs),
     txs_to_querys2(Txs2, Trees, Height).
+
+ttqm2([]) -> [];
+ttqm2([(Stx = {signed, Tx, _, _})|T]) when is_record(Tx, oracle_new) -> 
+    #oracle_new{
+                 id = OID
+               } = Tx,
+    T2 = remove_oracle_bets(OID, T),
+    [Stx|ttqm2(T)];
+ttqm2([H|T]) -> 
+    [H|ttqm2(T)].
+remove_oracle_bets(_OID, []) -> [];
+remove_oracle_bets(OID, [(Stx = {signed, Tx, _, _})|T]) when is_record(Tx, oracle_bet) -> 
+    #oracle_bet{
+                 id = OID2
+               } = Tx,
+    if
+        (OID == OID2) ->
+            remove_oracle_bets(OID, T);
+        true -> [Stx|remove_oracle_bets(OID, T)]
+    end.
+    
                      
                              
 
@@ -742,18 +766,12 @@ test() ->
 oracle_type_get(Trees, OID, Height) ->    
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
-    case Oracle of
-        empty -> 
-            %TODO we are in a multi tx, we should look at the other txs in this multi tx to know which proofs to provide.
-            ?n2i(oracle_question_liquidity);
-        _ ->
-            Gov = Oracle#oracle.governance,
-            NF14 = Height < forks:get(14),
-            if 
-                NF14 -> ?n2i(oracle_initial_liquidity);
-                (Gov == 0) -> ?n2i(oracle_question_liquidity);
-                true -> ?n2i(oracle_initial_liquidity)
-            end
+    Gov = Oracle#oracle.governance,
+    NF14 = Height < forks:get(14),
+    if 
+        NF14 -> ?n2i(oracle_initial_liquidity);
+        (Gov == 0) -> ?n2i(oracle_question_liquidity);
+        true -> ?n2i(oracle_initial_liquidity)
     end.
    
 use_contract_sub_accounts(Tx) ->    

@@ -191,6 +191,7 @@
 }).
 
 -record(matched, {account, oracle, true, false, bad}).
+-record(unmatched, {from, nonce, fee, oracle_id}).
 %true, false, and bad are the 3 types of shares that can be purchased from an oracle
 
 
