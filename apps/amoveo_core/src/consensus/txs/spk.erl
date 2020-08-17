@@ -104,15 +104,15 @@ prove_facts2([{Tree, Key}|T], Dict, Height)->
             empty ->
                 F25 = forks:get(25),
                 true = (F25 < Height),
-                ", int 0 ]";
+                ", int4 0 ]";
             _ ->SD = Tree:serialize(Data),
                 Size = size(SD),
                 ", binary " ++ integer_to_list(Size) ++ " " ++ binary_to_list(base64:encode(SD))
         end,
-    TypePart = "int " ++ integer_to_list(ID),
+    TypePart = "int4 " ++ integer_to_list(ID),
     KeyPart = if
             is_integer(Key) ->
-                    ", int " ++ integer_to_list(Key);
+                    ", int4 " ++ integer_to_list(Key);
             true -> 
                     ", binary " ++
                     integer_to_list(size(Key)) ++ " " ++
