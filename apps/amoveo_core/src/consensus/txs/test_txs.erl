@@ -2242,6 +2242,7 @@ def \
     success;
 test(45) ->
     io:fwrite("test 45\n"),
+    timer:sleep(100),
     %binary derivative in the new channel, using an oracle to enforce the outcome.
     headers:dump(),
     block:initialize_chain(),
