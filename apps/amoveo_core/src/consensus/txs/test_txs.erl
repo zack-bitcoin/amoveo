@@ -1157,13 +1157,18 @@ int 0 int 1" >>),
 
     %a potential resolution of the contract.
     Tx5 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
     %resolve the contract because the delay timer has finished.
     Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee),
     %withdrawing from a resolved contract
     SubAcc1 = sub_accounts:make_key(MP, CID, 3),
     Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [<<0:32>>,<<0:32>>,<<-1:32>>]),
     
-    Txs7 = [Tx5, Tx6, Tx7],
+    Txs7 = [Tx6, Tx7],
     Tx71 = multi_tx:make_dict(MP, Txs7, Fee*2),
     Stx71 = keys:sign(Tx71),
     absorb(Stx71),
@@ -2242,7 +2247,7 @@ def \
     success;
 test(45) ->
     io:fwrite("test 45\n"),
-    timer:sleep(100),
+    timer:sleep(400),
     %binary derivative in the new channel, using an oracle to enforce the outcome.
     headers:dump(),
     block:initialize_chain(),
