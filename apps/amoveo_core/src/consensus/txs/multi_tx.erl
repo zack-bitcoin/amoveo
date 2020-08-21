@@ -58,12 +58,12 @@ sub_txs([H|T], From, Dict, NewHeight) ->
                 swap_tx -> swap(H, From, Dict, NewHeight);
                 contract_new_tx -> contract_new(H, From, Dict, NewHeight);
                 _ -> 
-                    true = (NewHeight > forks:get(32)),
                     create_spend(Type, H, From, Dict, NewHeight)
             end,
     sub_txs(T, From, Dict2, NewHeight).
 
 contract_new(Tx, From, Dict, NewHeight) ->
+    true = (NewHeight > forks:get(32)),
     %create_spend(contract_new_tx, Tx, From, Dict, NewHeight).
     Tx2 = Tx#contract_new_tx{
             from = From
@@ -71,6 +71,12 @@ contract_new(Tx, From, Dict, NewHeight) ->
     contract_new_tx:go(Tx2, Dict, NewHeight, none).
     
 create_spend(Type, H, From, Dict, NewHeight) ->
+    case Type of
+        spend -> ok;
+        create_acc_tx -> ok;
+        _ -> 
+            true = (NewHeight > forks:get(32))
+    end,
     0 = element(2, H),
     0 = element(3, H),
     0 = element(4, H),
@@ -78,6 +84,7 @@ create_spend(Type, H, From, Dict, NewHeight) ->
     H2 = setelement(2, H, From),
     M:go(H2, Dict , NewHeight, none).
 swap(Tx, From, Dict, NewHeight) ->    
+    true = (NewHeight > forks:get(32)),
     #swap_tx{
       from = 0,
       fee = 0
