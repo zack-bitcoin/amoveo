@@ -17,11 +17,9 @@ code(C) -> C#contract.code.
 many_types(C) -> C#contract.many_types.
 volume(C) -> C#contract.volume.
 last_modified(C) -> C#contract.last_modified.
-%mode(C) -> C#contract.mode.
 nonce(C) -> C#contract.nonce.
 delay(C) -> C#contract.delay.
 closed(C) -> C#contract.closed.
-%shares(C) -> C#contract.shares.
 
 dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
     Close = case Close0 of 
@@ -40,14 +38,12 @@ dict_update(ID, Dict, Nonce, Inc1, Inc2, Amount, Delay, Height, Close0) ->
 	       end,
     T1 = Channel#contract.last_modified,
     DH = Height - T1,
-    C = Channel#contract{
-          nonce = NewNonce,
-          last_modified = Height,
-          delay = Delay,
-          closed = Close
-         },
-    %io:fwrite(packer:pack(C)),
-    C.
+    Channel#contract{
+      nonce = NewNonce,
+      last_modified = Height,
+      delay = Delay,
+      closed = Close
+     }.
     
 new(Code, Many) ->
     new(Code, Many, <<0:256>>, 0).
@@ -130,16 +126,13 @@ deserialize(B) ->
               closed = Closed,
               volume = Volume}.
 dict_write(Channel, Dict) ->
-    %ID = Channel#contract.id,
     ID = make_id(Channel),
     dict:store({contracts, ID},
                serialize(Channel),
                Dict).
 write(Channel, Root) ->
-    %ID = Channel#contract.id,
     ID = make_id(Channel),
     M = serialize(Channel),
-    %Shares = Channel#contract.shares,
     trie:put(key_to_int(ID), M, 0, Root, contracts). %returns a pointer to the new root
 key_to_int(X) -> 
     <<_:256>> = X,
@@ -198,34 +191,6 @@ all() ->
       fun(Leaf) ->
 	      deserialize(leaf:value(Leaf))
       end, All).
-%close_many() ->
-    %if you have already solo-closed or slashed some channels, and you have waited long enough for those channels to be closed, this is how you can close them.
-%    A = all(),
-%    K = keys:pubkey(),
-%    H = block:height(),
-%    {ok, Fee} = application:get_env(amoveo_core, minimum_tx_fee),
-%    close_many2(A, K, H, Fee+1).
-
-%close_many2([], _, _, _) -> ok;
-%close_many2([A|T], K, H, Fee) ->
-%    A2 = A#contract.acc2,
-%    H2 = A#contract.last_modified + A#contract.delay,
-%    if
-%	(not (A2 == K)) -> ok; %only close the ones that are opened with the server, 
-%	H2 < H -> ok; %only close the ones that have waited long enough to be closed, 
-%	true ->
-%	    Tx = channel_timeout_tx:make_dict(A#contract.acc1, A#contract.id, Fee),
-%	    Stx = keys:sign(Tx),
-%	    tx_pool_feeder:absorb_async(Stx)
-%    end,
-%    close_many2(T, K, H, Fee).
-%
-%keep the ones that are opened with the server, 
-    %B = lists:filter(fun(C) -> C#contract.acc2 == K end, A),
-%keep the ones that have waited long enough to be closed, 
-    %C = lists:filter(fun(C) -> (C#contract.last_modified + C#contract.delay) > H end, B),
-%then make a channel_timeout_tx for them all.
-    %lists:map(fun(C) -> tx_pool_feeder:absorb_async(keys:sign(channel_timeout_tx(C#contract.acc1, C#contract.id, Fee))) end, C).
     
     
 test() ->
@@ -235,7 +200,6 @@ test() ->
     A = deserialize(serialize(A)),
     C = A,
     R = trees:empty_tree(contracts),
-    %NewLoc = write(C, constants:root0()),
     NewLoc = write(C, R),
     ID = make_id(A),
     {Root, C, Proof} = get(ID, NewLoc),

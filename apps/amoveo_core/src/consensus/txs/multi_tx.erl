@@ -3,6 +3,8 @@
 	 %make/2, 
 	 make_dict/3, from/1, txs/1]).
 -include("../../records.hrl").
+-record(unmatched, {from, nonce, fee, oracle_id}).
+-record(oracle_bet, {from, nonce, fee, id, type, amount}).
 from(X) -> X#multi_tx.from.
 txs(X) -> X#multi_tx.txs.
 
@@ -55,7 +57,9 @@ sub_txs([H|T], From, Dict, NewHeight) ->
     Dict2 = case Type of
                 swap_tx -> swap(H, From, Dict, NewHeight);
                 contract_new_tx -> contract_new(H, From, Dict, NewHeight);
-                _ -> create_spend(Type, H, From, Dict, NewHeight)
+                _ -> 
+                    true = (NewHeight > forks:get(32)),
+                    create_spend(Type, H, From, Dict, NewHeight)
             end,
     sub_txs(T, From, Dict2, NewHeight).
 

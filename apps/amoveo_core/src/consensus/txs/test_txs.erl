@@ -17,6 +17,8 @@ contracts() ->
     S = test(43),%2 of 2 state channel
     S = test(44),%when someone buys a contract, they should already have an offer to sell it, if they win. so they can automatically withdraw to veo or whatever their prefered currency is when they win, even if they are offline. test(44) goes through this process.
     S = test(45),%starts as a state channel, gets converted to a binary derivative. we post the oracle on-chain and use it to enforce the outcome of the binary derivative contract, and the correct person withdraws their winnings.
+    S = test(46),%flash loans inside a multi-tx.
+    S = test(47),%scalar derivative with on-chain oracle enforcement.
     S.
     
     
@@ -46,6 +48,7 @@ test() ->
     S = test(16),%try out the oracle further
     %S = test(17),%blocks filled with create account txs
     S = test(28),
+    S = contracts(),
     S.
 absorb(Tx) -> 
     %tx_pool_feeder:absorb_unsafe(Tx).

@@ -191,16 +191,8 @@
 }).
 
 -record(matched, {account, oracle, true, false, bad}).
--record(unmatched, {from, nonce, fee, oracle_id}).
+% -record(unmatched, {from, nonce, fee, oracle_id}).
 %true, false, and bad are the 3 types of shares that can be purchased from an oracle
 
 
 
-
--record(oracle_bet, {from, %your account id.
-		     nonce, 
-		     fee, 
-		     id, %id is the id of the oracle they want to participate in.
-		     type, %either "true", "false" or "bad_question"
-		     amount
-                     }).%how many shares do you want to buy?

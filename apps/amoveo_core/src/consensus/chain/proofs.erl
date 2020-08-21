@@ -652,8 +652,12 @@ ttqm2([Tx|T], Q, R) when is_record(Tx, oracle_new) ->
     ttqm2(T2, Q1 ++ Q, [Tx|R]);
 ttqm2([H|T], Q, R) -> 
     ttqm2(T, Q, [H|R]).
+
+-record(oracle_bet, {from, nonce, fee, id, type, amount}).
+
 remove_oracle_bets(_OID, []) -> [];
-remove_oracle_bets(OID, [Tx|T]) when is_record(Tx, oracle_bet) -> 
+remove_oracle_bets(OID, [Tx|T]) 
+  when is_record(Tx, oracle_bet) -> 
     #oracle_bet{
                  id = OID2
                } = Tx,
@@ -803,30 +807,3 @@ sub_accounts_loop([<<X:32>>|T],Winner,CID,N) ->
     [{sub_accounts, Key}|
      sub_accounts_loop(T,Winner,CID,N+1)].
 
-team_buy_helper([], _, _, _) ->
-    [];
-team_buy_helper([_|P], [0|A], CID, Type) ->
-    team_buy_helper(P, A, CID, Type);
-team_buy_helper([Pub|P], [Amount|A], CID, Type) ->
-    R = case CID of
-            <<0:256>> ->
-                {accounts, Pub};
-            _ ->
-                Key = sub_accounts:make_key(Pub, CID, Type),
-                {sub_accounts, Key}
-        end,
-    [R|team_buy_helper(P, A, CID, Type)].
-
-%every non-zero term in the matrix, we need to include a sub_acount.
-%  location in row is the type. location in column is the pubkey.
-team_buy_matrix([], [], _) -> [];
-team_buy_matrix([Pub|P], [R|M], CID) -> 
-    tbm2(Pub, R, CID, 1) ++
-        team_buy_matrix(P, M, CID).
-tbm2(_, [], _, _) -> [];
-tbm2(Pub, [0|R], CID, N) -> 
-    tbm2(Pub, R, CID, N+1);
-tbm2(Pub, [S|R], CID, N) -> 
-    Key = sub_accounts:make_key(Pub, CID, N),
-    [{sub_accounts, Key}|
-     tbm2(Pub, R, CID, N+1)].

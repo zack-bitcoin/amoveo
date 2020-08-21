@@ -2,6 +2,7 @@
 -export([make/4, make_dict/3, go/4, from/1, oracle_id/1, fee/1]).
 %If you had money in orders in the oracle order book when the oracle_close transaction happened, this is how you get the money out.
 -include("../../records.hrl").
+-record(unmatched, {from, nonce, fee, oracle_id}).
 
 fee(X) -> X#unmatched.fee.
 from(X) -> X#unmatched.from.

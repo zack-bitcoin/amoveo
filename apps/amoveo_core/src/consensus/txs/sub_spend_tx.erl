@@ -8,6 +8,7 @@ make_dict(To, Amount, Fee, Contract, Type, From) ->
     #sub_spend_tx{from = From, nonce = Acc#acc.nonce + 1, to = To, amount = Amount, fee = Fee, contract = Contract, type = Type}.
 	    
 go(Tx, Dict, NewHeight, NonceCheck) ->
+    true = NewHeight > forks:get(32),
     #sub_spend_tx{
     from = From,
     to = To,
