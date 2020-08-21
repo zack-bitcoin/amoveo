@@ -176,13 +176,13 @@ test(4) ->
     absorb(SStx2),
     mine_blocks(1),
     
-    Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"drop int4 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
-    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 1 ">>), []),
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     %io:fwrite("test_txs channel solo close\n"),
     %io:fwrite(packer:pack(Ctx3)),
@@ -231,13 +231,13 @@ test(5) ->
     %absorb(Stx25),
     mine_blocks(1),
     
-    Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"drop int4 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
-    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 1 ">>), []),
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
@@ -274,9 +274,9 @@ test(61) ->
     potential_block:new(),
     mine_blocks(1),
 
-    %Code = compiler_chalang:doit(<<" nil : doit int 5 swap cons dup dup recurse call ; doit call ">>),% this version runs out of space
-    Code = compiler_chalang:doit(<<" nil : doit int 5 swap cons recurse call ; doit call ">>),%this version runs out of time.
-    %Code = compiler_chalang:doit(<<" drop int 2  int 2 int 2 ">>), % this version does not run out of gas, for comparison.
+    %Code = compiler_chalang:doit(<<" nil : doit int4 5 swap cons dup dup recurse call ; doit call ">>),% this version runs out of space
+    Code = compiler_chalang:doit(<<" nil : doit int4 5 swap cons recurse call ; doit call ">>),%this version runs out of time.
+    %Code = compiler_chalang:doit(<<" drop int4 2  int4 2 int4 2 ">>), % this version does not run out of gas, for comparison.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
@@ -325,13 +325,13 @@ test(6) ->
     potential_block:new(),
     mine_blocks(1),
     
-    Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"drop int4 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
-    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 1 ">>), []),
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
@@ -339,7 +339,7 @@ test(6) ->
     mine_blocks(1),
     timer:sleep(50),
 
-    ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
+    ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 2 ">>), []),
     Ctx4 = channel_slash_tx:make_dict(NewPub,Fee,SignedScriptPubKey,[ScriptSig2]),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv),
     absorb(Stx4),
@@ -347,7 +347,7 @@ test(6) ->
     mine_blocks(1),
     timer:sleep(50),
 
-    ScriptSig3 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 3 ">>), []),
+    ScriptSig3 = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 3 ">>), []),
     Ctx5 = channel_slash_tx:make_dict(constants:master_pub(),Fee,SignedScriptPubKey,[ScriptSig3]),
     Stx5 = keys:sign(Ctx5),
     absorb(Stx5),
@@ -387,12 +387,12 @@ test(8) ->
     absorb(SStx2),
     mine_blocks(1),
     
-    Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"drop int4 50">>),%channel nonce is 1, sends 50.
     Bet = spk:new_bet(Code, Code, 50),
     ChannelNonce = 0,
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
-    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 1 ">>), []),
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(),Fee, SignedScriptPubKey, [ScriptSig]),
     %{Ctx3, _} = grow_channel_tx:make(CID, Trees3, 22, 33, Fee),
     Stx3 = keys:sign(Ctx3),
@@ -431,19 +431,19 @@ test(9) ->
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
     
-    Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"drop int4 50">>),%channel nonce is 1, sends 50.
     Bet = spk:new_bet(Code, Code, 50),
     ChannelNonce = 0,
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
-    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 1 ">>), []),
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(),Fee, SignedScriptPubKey, [ScriptSig]),
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
     potential_block:new(),
     mine_blocks(1),
     timer:sleep(50),
-    ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
+    ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 2 ">>), []),
     Ctx35 = channel_slash_tx:make_dict(keys:pubkey(), Fee, SignedScriptPubKey, [ScriptSig2]),
     Stx35 = keys:sign(Ctx35),
     absorb(Stx35),
@@ -672,16 +672,16 @@ test(12) ->
     absorb(SStx2),
     mine_blocks(1),
     
-    Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
-    Code2 = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"drop int4 50">>),%channel nonce is 1, sends 50.
+    Code2 = compiler_chalang:doit(<<"drop int4 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
     Bet2 = spk:new_bet(Code2, Code2, 50),
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet, Bet2], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
-    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
-    ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 1 ">>), []),
+    ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 2 ">>), []),
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig, ScriptSig2]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
@@ -801,13 +801,13 @@ test(14) ->
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
     
-    Code = compiler_chalang:doit(<<"drop int 50">>),%channel nonce is 1, sends 50.
+    Code = compiler_chalang:doit(<<"drop int4 50">>),%channel nonce is 1, sends 50.
     Delay = 0,
     ChannelNonce = 0,
     Bet = spk:new_bet(Code, Code, 50),
     ScriptPubKey = keys:sign(spk:new(constants:master_pub(), NewPub, CID, [Bet], 10000, 10000, ChannelNonce+1, Delay)),
     SignedScriptPubKey = testnet_sign:sign_tx(ScriptPubKey, NewPub, NewPriv), 
-    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int 0 int 1 ">>), []),
+    ScriptSig = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 1 ">>), []),
     Ctx3 = channel_solo_close:make_dict(constants:master_pub(), Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = keys:sign(Ctx3),
     absorb(Stx3),
@@ -816,7 +816,7 @@ test(14) ->
     mine_blocks(1),
     timer:sleep(150),
 
-    ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int 0 int 2 ">>), []),
+    ScriptSig2 = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 2 ">>), []),
     Ctx4 = channel_slash_tx:make_dict(NewPub,Fee,SignedScriptPubKey,[ScriptSig2]),
     Stx4 = testnet_sign:sign_tx(Ctx4, NewPub, NewPriv),
     absorb(Stx4),

@@ -620,7 +620,13 @@ check3(OldBlock, Block) ->
     true = Block#block.live_oracles == OldBlock#block.live_oracles + many_live_oracles(Txs0),
     %Governance = trees:governance(OldTrees),
     BlockSize = size(packer:pack(Txs)),
-    MaxBlockSize = governance:dict_get_value(max_block_size, Dict),
+    F33 = forks:get(33),
+    
+    MaxBlockSize = if
+                       Height > (F33+1) -> 
+                           governance:dict_get_value(max_block_size, Dict);
+                       true -> none
+                   end,
     %MaxBlockSize = governance:get_value(max_block_size, Governance),
     %io:fwrite("block check 3\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),

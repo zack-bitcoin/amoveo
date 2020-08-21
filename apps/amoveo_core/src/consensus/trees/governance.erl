@@ -255,6 +255,7 @@ deserialize(SerializedGov) ->
 
 dict_get_value(Key, Dict) when ((Key == timeout) or (Key == delete_acc_tx)) ->
     case dict_get(Key, Dict) of
+	error -> error;
 	empty -> empty;
 	Gov ->
 	    V = Gov#gov.value,
@@ -262,6 +263,7 @@ dict_get_value(Key, Dict) when ((Key == timeout) or (Key == delete_acc_tx)) ->
     end;
 dict_get_value(Key, Dict) ->
     case dict_get(Key, Dict) of
+	error -> error;
 	empty -> empty;
 	Gov ->
 	    V = Gov#gov.value,
