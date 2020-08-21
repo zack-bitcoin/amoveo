@@ -94,10 +94,15 @@ internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees) ->%
     GT2 = trie:put_batch(GovernanceLeaves, GT, governance),%
     trees:update_governance(Trees7, GT2);%
     
-internal_dict_update_trie(Trees, Dict) ->
+internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees2) ->
     Types = [accounts, oracles, channels, existence, governance, matched, unmatched],
     Keys = dict:fetch_keys(Dict),
+    idut2(Types, Trees, Dict, Keys);
+internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees3)->
+    Types = [accounts, oracles, channels, existence, governance, matched, unmatched, sub_accounts, contracts],
+    Keys = dict:fetch_keys(Dict),
     idut2(Types, Trees, Dict, Keys).
+
 idut2([], Trees, _, _) -> Trees;
 idut2([H|Types], Trees, Dict, Keys) ->
     %{sharding, full_node},

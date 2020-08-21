@@ -181,8 +181,13 @@ head_get(Root, OID) ->
     PS = constants:pubkey_size() * 8,
     ID = key_to_int({key, <<?Header:PS>>, OID}),
     {_, L, _} = trie:get(ID, Root, ?name),
-    false = empty == L,
-    deserialize_head(leaf:value(L)).
+    case L of
+        empty -> empty;
+        _ ->
+%    false = empty == L,
+            deserialize_head(leaf:value(L))
+    end.
+
 dict_head_update(Head, OID, Dict) ->
     {_, Many} = dict_head_get(Dict, OID),
     dict_head_put(Head, Many, OID, Dict).
@@ -205,8 +210,11 @@ head_put(Head, Many, OID, Root) ->
     ID = key_to_int({key, <<?Header:PS>>, OID}),
     trie:put(ID, Y, 0, Root, ?name).
 all(Root, OID) ->%pubkeys of everyone who made bets.
-    {Head, _Many} = head_get(Root, OID),
-    all2(Head, Root, OID).
+    case head_get(Root, OID) of
+        empty -> [];
+        {Head, _Many} -> %= head_get(Root, OID),
+            all2(Head, Root, OID)
+    end.
 all2(X, Root, OID) ->
     PS = constants:pubkey_size() * 8,
     case X of

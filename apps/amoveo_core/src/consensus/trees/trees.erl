@@ -1,8 +1,8 @@
 -module(trees).
--export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,
-	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2,
+-export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,sub_accounts/1,contracts/1,trades/1,
+	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2, update_sub_accounts/2, update_contracts/2, update_trades/2,
 	 new/6,
-	 new2/7, empty_tree/1,
+	 new2/7, new3/10, empty_tree/1,
 	 root_hash/1, name/1, 
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
@@ -16,6 +16,11 @@
 -record(trees2, {accounts, channels, existence,
 		oracles, governance, matched,
 		unmatched}).
+
+-record(trees3, {accounts, channels, existence,
+		oracles, governance, matched,
+		unmatched, sub_accounts,
+                contracts, trades}).
 name(<<"accounts">>) -> accounts;
 name("accounts") -> accounts;
 name(<<"channels">>) -> channels;
@@ -29,20 +34,43 @@ name("governance") -> governance;
 name(<<"matched">>) -> matched;
 name("matched") -> matched;
 name(<<"unmatched">>) -> unmatched;
-name("unmatched") -> unmatched.
+name("unmatched") -> unmatched;
+name(<<"sub_accounts">>) -> sub_accounts;
+name("sub_accounts") -> sub_accounts;
+name(<<"contracts">>) -> contracts;
+name("contracts") -> contracts;
+name(<<"trades">>) -> trades;
+name("trades") -> trades.
 empty_tree(X) -> trie:empty(X).
 accounts(X = #trees{}) -> X#trees.accounts;%
-accounts(X) -> X#trees2.accounts.
+accounts(X = #trees2{}) -> X#trees2.accounts;%
+accounts(X) -> X#trees3.accounts.
 channels(X = #trees{}) -> X#trees.channels;%
-channels(X) -> X#trees2.channels.
+channels(X = #trees2{}) -> X#trees2.channels;%
+channels(X) -> X#trees3.channels.
 existence(X = #trees{}) -> X#trees.existence;%
-existence(X) -> X#trees2.existence.
+existence(X = #trees2{}) -> X#trees2.existence;%
+existence(X) -> X#trees3.existence.
 oracles(X = #trees{}) -> X#trees.oracles;%
-oracles(X) -> X#trees2.oracles.
+oracles(X = #trees2{}) -> X#trees2.oracles;%
+oracles(X) -> X#trees3.oracles.
 governance(X = #trees{}) -> X#trees.governance;%
-governance(X) -> X#trees2.governance.
-matched(X) -> X#trees2.matched.
-unmatched(X) -> X#trees2.unmatched.
+governance(X = #trees2{}) -> X#trees2.governance;%
+governance(X) -> X#trees3.governance.
+matched(X = #trees2{}) -> X#trees2.matched;
+matched(X) -> X#trees3.matched.
+unmatched(X = #trees2{}) -> X#trees2.unmatched;
+unmatched(X) -> X#trees3.unmatched.
+sub_accounts(X) -> X#trees3.sub_accounts.
+contracts(X) -> X#trees3.contracts.
+trades(X) -> X#trees3.trades.
+
+new3(A, C, E, O, G, M, U, SA, Contracts, T) ->
+    #trees3{accounts = A, channels = C,
+            existence = E, oracles = O, 
+            governance = G, matched = M,
+            unmatched = U, sub_accounts = SA,
+            contracts = Contracts, trades = T}.
 new2(A, C, E, O, G, M, U) ->
     #trees2{accounts = A, channels = C,
 	   existence = E, oracles = O, 
@@ -55,27 +83,48 @@ new(A, C, E, _B, O, G) ->%
 update_governance(X = #trees{}, A) ->%
     X#trees{governance = A};%
 update_governance(X = #trees2{}, A) ->
-    X#trees2{governance = A}.
+    X#trees2{governance = A};
+update_governance(X = #trees3{}, A) ->
+    X#trees3{governance = A}.
 update_accounts(X = #trees{}, A) ->%
     X#trees{accounts = A};%
 update_accounts(X = #trees2{}, A) ->
-    X#trees2{accounts = A}.
+    X#trees2{accounts = A};
+update_accounts(X = #trees3{}, A) ->
+    X#trees3{accounts = A}.
 update_channels(X = #trees{}, A) ->%
     X#trees{channels = A};%
 update_channels(X = #trees2{}, A) ->
-    X#trees2{channels = A}.
+    X#trees2{channels = A};
+update_channels(X = #trees3{}, A) ->
+    X#trees3{channels = A}.
 update_existence(X = #trees{}, E) ->%
     X#trees{existence = E};%
 update_existence(X = #trees2{}, E) ->
-    X#trees2{existence = E}.
+    X#trees2{existence = E};
+update_existence(X = #trees3{}, E) ->
+    X#trees3{existence = E}.
 update_oracles(X = #trees{}, A) ->%
     X#trees{oracles = A};%
-update_oracles(X, A) ->
-    X#trees2{oracles = A}.
-update_matched(X, M) ->
-    X#trees2{matched = M}.
-update_unmatched(X, U) ->
-    X#trees2{unmatched = U}.
+update_oracles(X = #trees2{}, A) ->
+    X#trees2{oracles = A};
+update_oracles(X = #trees3{}, A) ->
+    X#trees3{oracles = A}.
+update_matched(X = #trees2{}, M) ->
+    X#trees2{matched = M};
+update_matched(X = #trees3{}, M) ->
+    X#trees3{matched = M}.
+update_unmatched(X = #trees2{}, U) ->
+    X#trees2{unmatched = U};
+update_unmatched(X = #trees3{}, U) ->
+    X#trees3{unmatched = U}.
+update_sub_accounts(X = #trees3{}, U) ->
+    X#trees3{sub_accounts = U}.
+update_trades(X = #trees3{}, U) ->
+    X#trees3{trades = U}.
+update_contracts(X = #trees3{}, U) ->
+    X#trees3{contracts = U}.
+
 root_hash2(Trees, Roots) ->
     A = rh2(accounts, Trees, Roots),
     C = rh2(channels, Trees, Roots),
@@ -101,7 +150,20 @@ root_hash2(Trees, Roots) ->
 		HS = size(M),
 		HS = size(U),
 		Z = <<X/binary, M/binary, U/binary>>,
-		Z
+		Z;
+            #trees3{} ->
+		M = rh2(matched, Trees, Roots),
+		U = rh2(unmatched, Trees, Roots),
+                SA = rh2(sub_accounts, Trees, Roots),
+                Con = rh2(contracts, Trees, Roots),
+                Trades = rh2(trades, Trees, Roots),
+		HS = size(M),
+		HS = size(U),
+		HS = size(SA),
+		HS = size(Con),
+                <<X/binary, M/binary, U/binary,
+                  SA/binary, Con/binary, 
+                  Trades/binary>>
 	end,
     hash:doit(Y).
 		
@@ -127,7 +189,17 @@ serialized_roots(Trees) ->
 	    M = F(matched),
 	    U = F(unmatched),
 	    Z = <<X/binary, M/binary, U/binary>>,
-	    Z
+	    Z;
+        #trees3{} ->
+	    M = F(matched),
+	    U = F(unmatched),
+            SA = F(sub_accounts),
+            Con = F(contracts),
+            Trades = F(trades),
+            Z = <<X/binary, M/binary, U/binary,
+                  SA/binary, Con/binary,
+                Trades/binary>>,
+            Z
     end.
 root_hash(Trees) ->
     Y = serialized_roots(Trees),

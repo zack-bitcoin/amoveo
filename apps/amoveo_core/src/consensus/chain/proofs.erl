@@ -22,7 +22,10 @@ tree_to_int(oracle_bets) -> 7;%
 tree_to_int(orders) -> 8;%
 tree_to_int(multi_tx) -> 9;
 tree_to_int(matched) -> 10;
-tree_to_int(unmatched) -> 11.
+tree_to_int(unmatched) -> 11;
+tree_to_int(sub_accounts) -> 12;
+tree_to_int(contracts) -> 13;
+tree_to_int(trades) -> 14.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -33,7 +36,10 @@ int_to_tree(7) -> oracle_bets;%
 int_to_tree(8) -> orders;%
 int_to_tree(9) -> multi_tx;
 int_to_tree(10) -> matched;
-int_to_tree(11) -> unmatched.
+int_to_tree(11) -> unmatched;
+int_to_tree(12) -> sub_accounts;
+int_to_tree(13) -> contracts;
+int_to_tree(14) -> trades.
     
 
 %deterministic merge-sort    
@@ -190,7 +196,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
     PS = constants:pubkey_size() * 8,
     L = case element(1, Tx) of
 	    multi_tx ->
-		txs_to_querys_multi(multi_tx:txs(Tx)) ++
+                From = multi_tx:from(Tx),
+		txs_to_querys_multi(From, multi_tx:txs(Tx), Trees, Height) ++
 		    [ 
 		      {accounts, multi_tx:from(Tx)}
 		     ];
@@ -414,6 +421,209 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {accounts, From},
                  {oracles, OID}
                 ] ++ U;
+            contract_use_tx ->
+                CID = contract_use_tx:cid(Tx),
+                From = contract_use_tx:from(Tx),
+                SA = use_contract_sub_accounts(Tx),
+                #contract_use_tx{
+                                  source = Source,
+                                  source_type = SourceType
+                                } = Tx,
+                U = case Source of
+                        <<0:256>> -> [];
+                        _ -> 
+                            SubAdd = sub_accounts:make_key(From, Source, SourceType),
+                            [{sub_accounts, SubAdd}]
+                    end,
+                [{accounts, From},
+                 {contracts, CID},
+                 {governance, ?n2i(contract_use_tx)}
+                 ] ++ SA ++ U;
+            contract_new_tx ->
+                #contract_new_tx{
+              from = From,
+              contract_hash = CH,
+              source = S,
+              source_type = ST,
+              many_types = MT} = Tx,
+                CID = contracts:make_id(CH, MT,S,ST),
+                [{accounts, From},
+                 {contracts, CID},
+                 {governance, ?n2i(contract_new_tx)},
+                 {governance, ?n2i(max_contract_flavors)}
+                ];
+            sub_spend_tx ->
+                #sub_spend_tx{
+              contract = CID,
+              type = N,
+              from = From,
+              to = To
+             } = Tx,
+                FKey = sub_accounts:make_key(From, CID, N),
+                TKey = sub_accounts:make_key(To, CID, N),
+                [{accounts, From},
+                 {sub_accounts, FKey},
+                 {sub_accounts, TKey},
+                 {governance, ?n2i(sub_spend_tx)}
+                ];
+            contract_evidence_tx ->
+                #contract_evidence_tx{
+              from = From,
+              prove = Prove,
+              contract = Code,
+              contract_id = ContractID
+             } = Tx,
+                [{accounts, From},
+                 {contracts, ContractID},
+                 {governance, ?n2i(fun_limit)},
+                 {governance, ?n2i(var_limit)},
+                 {governance, ?n2i(time_gas)},
+                 {governance, ?n2i(space_gas)},
+                 {governance, ?n2i(max_contract_flavors)},
+                 {governance, ?n2i(contract_evidence_tx)}
+                ] ++ Prove;
+            contract_timeout_tx ->
+                #contract_timeout_tx{
+              contract_id = CID,
+              %proof = Proof,
+              from = From
+             } = Tx,
+                Contracts = trees:contracts(Trees),
+                {_, Contract, _} = contracts:get(CID, Contracts),
+                #contract{
+                           source = Source,
+                           source_type = SourceType,
+                           sink = CID2
+                         } = Contract,
+                U = case CID2 of
+                        <<0:256>> -> [];
+                        _ ->
+                            %{_, _, {_, CID2, _}} = Proof,
+                            %ManyTypes = length(Row),
+                            %CID2 = contracts:make_id(CH2, ManyTypes, Source, SourceType),
+                            [{contracts, CID2}]
+                    end,
+                [{accounts, From},
+                 {contracts, CID},
+                 {governance, ?n2i(contract_timeout_tx)}
+                ] ++ U;
+            contract_winnings_tx ->
+                #contract_winnings_tx{
+              from = From,
+              contract_id = CID,
+              sub_account = SA,
+              winner = Winner,
+              row = Row,
+              proof = Proof
+             } = Tx,
+                SubAccs = trees:sub_accounts(Trees),
+                {_, SubAccount, _} = sub_accounts:get(SA, SubAccs),
+                #sub_acc{
+                          type = Type,
+                          pubkey = Winner,
+                          contract_id = CID%sanity check
+                        } = SubAccount,
+                Contracts = trees:contracts(Trees),
+                {_, Contract, _} = contracts:get(CID, Contracts),
+                #contract{
+                           result = Result,
+                           source = Source,
+                           sink = Sink,
+                           source_type = SourceType
+                         } = Contract,
+                U4 = case Sink of
+                         <<0:256>> -> [];
+                         _ -> [{contracts, Sink}]
+                     end,
+                U1 = case Source of
+                         <<0:256>> ->
+                             [{accounts, Winner}];
+                         _ ->
+                             SA2 = sub_accounts:make_key(Winner, Source, SourceType),
+                             [{sub_accounts, SA2}]
+                         end,
+                U3 = case Proof of
+                         PayoutVector when is_list(PayoutVector) ->
+                        %win it as a portion of the source
+                             U1;
+                         _->
+                             sub_accounts_loop(Row, Winner, Sink, 1)
+                     end,
+                [{accounts, From},
+                 {accounts, Winner},
+                 {contracts, CID},
+                 {sub_accounts, SA},%sub_account being deleted
+                 {governance, ?n2i(contract_winnings_tx)}
+                ] ++ U3 ++ U4;
+            contract_simplify_tx ->
+                #contract_simplify_tx{
+              from = From,
+              cid = CID,
+              cid2 = CID2,
+              cid3 = CID3
+             } = Tx,
+                Contracts = trees:contracts(Trees),
+                {_, Contract, _} = contracts:get(CID2, Contracts),
+                #contract{
+                           sink = Sink
+                         } = Contract,
+                U = case Sink of
+                        <<0:256>> -> [];
+                        _ -> [{contracts, CID3}]
+                    end,
+                [{accounts, From},
+                 {governance, ?n2i(contract_simplify_tx)},
+                 {contracts, CID},
+                 {contracts, CID2}
+                ] ++ U;
+            swap_tx ->
+                #swap_tx{
+              from = Acc2,
+              offer = SOffer,
+              fee = Fee
+             } = Tx,
+                Offer = testnet_sign:data(SOffer),
+                #swap_offer{
+                             acc1 = Acc1,
+                             cid1 = CID1,
+                             type1 = Type1,
+                             cid2 = CID2,
+                             type2 = Type2,
+                             fee1 = Fee1,
+                             salt = Salt
+                           } = Offer,
+                TradeID = swap_tx:trade_id_maker(Acc1, Salt),
+                F1 = case Fee1 of
+                         0 -> [];
+                         _ -> [{accounts, Acc1}]
+                     end,
+                F2 = case (Fee - Fee1) of
+                         0 -> [];
+                         _ -> [{accounts, Acc2}]
+                     end,
+                U = case CID1 of
+                        <<0:256>> -> 
+                            [{accounts, Acc1},
+                             {accounts, Acc2}];
+                        _ ->
+                            [{sub_accounts,
+                              sub_accounts:make_key(Acc1, CID1, Type1)},
+                             {sub_accounts,
+                              sub_accounts:make_key(Acc2, CID1, Type1)}]
+                    end,
+                U2 = case CID2 of
+                         <<0:256>> -> 
+                             [{accounts, Acc1},
+                              {accounts, Acc2}];
+                         _ ->
+                             [{sub_accounts,
+                               sub_accounts:make_key(Acc1, CID2, Type2)},
+                              {sub_accounts,
+                               sub_accounts:make_key(Acc2, CID2, Type2)}]
+                     end,
+                [{governance, ?n2i(swap_tx)},
+                 {trades, TradeID}] ++
+                F1 ++ F2 ++ U ++ U2;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},
@@ -423,22 +633,69 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 ]
 	end,
     L ++ txs_to_querys2(T, Trees, Height).
-txs_to_querys_multi([]) -> [];
-txs_to_querys_multi([Tx|T]) ->
-    PS = constants:pubkey_size() * 8,
-    L = case element(1, Tx) of
-	    create_acc_tx -> 
-                [
-                 {governance, ?n2i(create_acc_tx)},
-                 {accounts, create_account_tx:pubkey(Tx)}
-                ];
-	    spend -> 
-                [
-                 {governance, ?n2i(spend)},
-                 {accounts, spend_tx:to(Tx)}
-                ]
-	end,
-    L ++ txs_to_querys_multi(T).
+		 %{governance, ?n2i(oracle_bet)},
+		 %{governance, ?n2i(minimum_oracle_time)},
+txs_to_querys_multi(From, Txs0, Trees, Height) ->
+    %if there is a new_oracle, and an oracle_bet for that same oracle, then remove the oracle_bet from the list of txs. TODO
+    {Queries, Txs} = ttqm2(Txs0, [], []),
+    Txs2 = lists:map(
+             fun(Tx) -> 
+                     Tx2 = setelement(2, Tx, From),
+                     {signed, Tx2, "", ""} end,
+             Txs),
+    Queries ++ txs_to_querys2(Txs2, Trees, Height).
+
+ttqm2([], Q, T) -> {Q, lists:reverse(T)};
+ttqm2([Tx|T], Q, R) when is_record(Tx, oracle_new) -> 
+    #oracle_new{
+                 id = OID
+               } = Tx,
+    T2 = remove_oracle_bets(OID, T),
+    Q1 = if
+             T2 == T -> [];
+             true -> [{governance, ?n2i(oracle_bet)}]
+         end,
+    ttqm2(T2, Q1 ++ Q, [Tx|R]);
+ttqm2([H|T], Q, R) -> 
+    ttqm2(T, Q, [H|R]).
+
+-record(oracle_bet, {from, nonce, fee, id, type, amount}).
+
+remove_oracle_bets(_OID, []) -> [];
+remove_oracle_bets(OID, [Tx|T]) 
+  when is_record(Tx, oracle_bet) -> 
+    #oracle_bet{
+                 id = OID2
+               } = Tx,
+    if
+        (OID == OID2) ->
+            remove_oracle_bets(OID, T);
+        true -> [Tx|remove_oracle_bets(OID, T)]
+    end;
+remove_oracle_bets(OID, [Tx|T]) -> 
+    [Tx|remove_oracle_bets(OID, T)].
+    
+                     
+                             
+
+
+
+%txs_to_querys_multi([]) -> [];
+%txs_to_querys_multi([Tx|T]) ->
+%    PS = constants:pubkey_size() * 8,
+%    L = case element(1, Tx) of
+%	    create_acc_tx -> 
+%                [
+%                 {governance, ?n2i(create_acc_tx)},
+%                 {accounts, create_account_tx:pubkey(Tx)}
+%                ];
+%	    spend -> 
+%                [
+%                 {governance, ?n2i(spend)},
+%                 {accounts, spend_tx:to(Tx)}
+%                ]
+%	end,
+%    L ++ txs_to_querys_multi(T).
 
 	    
     
@@ -534,5 +791,25 @@ oracle_type_get(Trees, OID, Height) ->
         true -> ?n2i(oracle_initial_liquidity)
     end.
    
-    
+use_contract_sub_accounts(Tx) ->    
+    #contract_use_tx{
+                      from = Acc,
+                      contract_id = CH,
+                      many = Many
+                    } = Tx,
+    ucsa2(Many, Acc, CH).
+    %return a list like [{sub_accounts, X}|...]
+ucsa2(0, _, _) -> [];
+ucsa2(N, Acc, CID) -> 
+    Key = sub_accounts:make_key(Acc, CID, N),
+    [{sub_accounts, Key}] ++ 
+        ucsa2(N-1, Acc, CID).
+
+sub_accounts_loop([], _, _, _) -> [];
+sub_accounts_loop([<<0:32>>|T],Winner,CID,N) -> 
+    sub_accounts_loop(T,Winner,CID,N+1);
+sub_accounts_loop([<<X:32>>|T],Winner,CID,N) -> 
+    Key = sub_accounts:make_key(Winner, CID, N),
+    [{sub_accounts, Key}|
+     sub_accounts_loop(T,Winner,CID,N+1)].
 

@@ -82,7 +82,7 @@ test() ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    test_txs:mine_blocks(2),
+    test_txs:mine_blocks(13),
     timer:sleep(150),
     Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 0, 0),
     OID = oracle_new_tx:id(Tx),
