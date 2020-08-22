@@ -12,7 +12,8 @@ test_height() -> 0.
 get(1) -> common(4200, test_height());
 get(2) -> common(9000, test_height());
 get(3) -> common(9900, test_height());
-get(4) -> common(26900, max(test_height(), constants:retarget_frequency()));
+%get(4) -> common(26900, max(test_height(), constants:retarget_frequency()));
+get(4) -> common(26900, test_height());
 get(5) -> common(27500, max(test_height(), 1));
 get(6) -> common(27700, test_height());
 get(7) -> common(28135, 40);%test_height()).
@@ -36,12 +37,15 @@ get(24) -> common(82270, test_height());%require that new oracle ids conform to 
 get(25) -> common(77500, test_height());%so that we can prove the non-existence of oracles and channels and accounts.
 get(26) -> common(96560, test_height());%so we can cancel channel offers.
 get(27) -> common(102260, test_height());%so oracle_new tx includes all the proofs that it needs.
-get(28) -> common(9999999, 9999999);
+%get(28) -> common(9999999, 9999999);
 get(29) -> common(104600, test_height());
 get(30) -> common(108600, test_height());
 get(31) -> common(109900, test_height());
-get(32) -> common(99999999, test_height());%subcurrency update
-get(33) -> common(126000, test_height());
+get(32) -> common(130300, 
+                  max(forks:get(10) + 1, 
+                      test_height()));%subcurrencies
+get(33) -> common(126000, test_height());%enforcing max block size.
+get(34) -> common(99999999, test_height());%unused filler
 get(_) -> none.
 
 top() -> top(1).

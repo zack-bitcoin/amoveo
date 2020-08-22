@@ -1,7 +1,29 @@
 -module(test_txs).
--export([test/0, test/1, mine_blocks/1, absorb/1]).
+-export([test/0, test/1, contracts/0, mine_blocks/1, absorb/1]).
  
 -include("../../records.hrl").
+contracts() ->
+    unlocked = keys:status(),
+    Pub = constants:master_pub(),
+    Pub = keys:pubkey(),
+    S = success,
+    S = test(36),%shareable contracts, spending subcurrency.
+    S = test(37),%resolving a contract into a different contract. matrix X vector simplification
+    S = test(38),%simplification by matrix X matrix.
+    S = test(39),%like test(38), but this time it is in a subcurrency. Also tests pushing money through the entire process.
+    S = test(40),%swapping
+    S = test(41),%pair buy
+    %S = test(42),%team buy
+    S = test(43),%2 of 2 state channel
+    S = test(44),%when someone buys a contract, they should already have an offer to sell it, if they win. so they can automatically withdraw to veo or whatever their prefered currency is when they win, even if they are offline. test(44) goes through this process.
+    S = test(45),%starts as a state channel, gets converted to a binary derivative. we post the oracle on-chain and use it to enforce the outcome of the binary derivative contract, and the correct person withdraws their winnings.
+    S = test(46),%flash loans inside a multi-tx.
+    S = test(47),%scalar derivative with on-chain oracle enforcement.
+    S.
+    
+    
+    
+    
 test() ->
     unlocked = keys:status(),
     Pub = constants:master_pub(),
@@ -26,7 +48,7 @@ test() ->
     S = test(16),%try out the oracle further
     %S = test(17),%blocks filled with create account txs
     S = test(28),
-    timer:sleep(300),
+    S = contracts(),
     S.
 absorb(Tx) -> 
     %tx_pool_feeder:absorb_unsafe(Tx).
@@ -461,6 +483,7 @@ test(11) ->
     %testing the oracle
     %launch an oracle with oracle_new
     Question = <<>>,
+    MP = constants:master_pub(),
     %<<OID:80>> = crypto:strong_rand_bytes(10),
     %OID = crypto:strong_rand_bytes(32),
     Fee = constants:initial_fee() + 20,
@@ -504,20 +527,16 @@ test(11) ->
     OIL = trees:get(governance, oracle_initial_liquidity),
     Bal1 = api:balance(),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), 
-    Stx2 = keys:sign(Tx2),
-    absorb(Stx2),
-    mine_blocks(1),
-    io:fwrite("test 11 5\n"),
-    timer:sleep(150),
 
     %close the oracle with oracle_close
     Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),%here
-    Stx3 = keys:sign(Tx3),
-    absorb(Stx3),
+
+    Tx7 = multi_tx:make_dict(MP, [Tx2, Tx3], Fee*2),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
     mine_blocks(1),
-    %1=2,
-    io:fwrite("test 11 6\n"),
-    timer:sleep(100),
+    
 
     %If you look up an oracle from the dictionary, it will always point to 0 for the orders. You need to query seperately to get the orders out, or you can transform the dict into a trie. After the transformation, you can look up orders how it is commented out below.
 
@@ -529,19 +548,15 @@ test(11) ->
     %Orders = Oracle#oracle.orders,
     %{OrderID, _} = orders:head_get(Orders),%This only works because there is exactly 1 order in the order book.
     Tx4 = oracle_unmatched_tx:make_dict(constants:master_pub(), Fee, OID),
-    Stx4 = keys:sign(Tx4),
-    absorb(Stx4),
-    mine_blocks(1),
-    io:fwrite("test 11 7\n"),
-    timer:sleep(100),
-
     %get your winnings with oracle_shares
     Tx5 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),%pays 0.36
-    Stx5 = keys:sign(Tx5),
-    absorb(Stx5),
+
+    Tx6 = multi_tx:make_dict(MP, [Tx4, Tx5], Fee*3),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
     mine_blocks(1),
-    io:fwrite("test 11 8\n"),
-    timer:sleep(100),
+
     Bal2 = api:balance(),
     io:fwrite("balance change"),
     io:fwrite(packer:pack([Bal1, Bal2])),
@@ -694,6 +709,7 @@ test(13) ->
     OID2 = oracle_new_tx:id(Tx3),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
+    1 = many_txs(),
     %1=2,
     timer:sleep(100),
 
@@ -707,6 +723,7 @@ test(13) ->
     BR1 = trees:get(governance, block_reward),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
+    1 = many_txs(),
     timer:sleep(200),
     potential_block:new(),
     mine_blocks(1+MOT),
@@ -716,6 +733,7 @@ test(13) ->
     Tx5 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID2),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
+    1 = many_txs(),
     timer:sleep(50),
     potential_block:new(),
     mine_blocks(1),
@@ -731,6 +749,7 @@ test(13) ->
     OID3 = oracle_new_tx:id(Tx7),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
+    1 = many_txs(),
     potential_block:new(),
     mine_blocks(1),
     timer:sleep(50),
@@ -738,6 +757,7 @@ test(13) ->
     Tx8 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID3, 1, OIL * 2), 
     Stx8 = keys:sign(Tx8),
     absorb(Stx8),
+    1 = many_txs(),
     potential_block:new(),
     mine_blocks(1+MOT),
     timer:sleep(100),
@@ -745,6 +765,7 @@ test(13) ->
     Tx9 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID3),
     Stx9 = keys:sign(Tx9),
     absorb(Stx9),
+    1 = many_txs(),
     timer:sleep(50),
 
     BR3 = trees:get(governance, block_reward),
@@ -827,6 +848,7 @@ test(15) ->
     Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     absorb(Stx),
+    1 = many_txs(),
 
     CID0 = <<5:256>>,
 
@@ -835,6 +857,7 @@ test(15) ->
     Stx2 = keys:sign(Ctx2),
     SStx2 = testnet_sign:sign_tx(Stx2, NewPub, NewPriv), 
     absorb(SStx2),
+    2 = many_txs(),
     Code = compiler_chalang:doit(<<"drop int4 50">>),
     Secret = spk:new_ss(compiler_chalang:doit(<<" int4 0 int4 2 ">>), []),
     %secrets:add(Code, Secret),
@@ -854,6 +877,7 @@ test(15) ->
     Ctx3 = channel_solo_close:make_dict(NewPub, Fee, SignedScriptPubKey, [ScriptSig]), 
     Stx3 = testnet_sign:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
+    3 = many_txs(),
     timer:sleep(100),
     potential_block:new(),
     mine_blocks(1),
@@ -862,6 +886,7 @@ test(15) ->
     Txs2 = (tx_pool:get())#tx_pool.txs,
     %io:fwrite("~s", [packer:pack({slash_exists, Txs2})]),
     true = slash_exists(Txs2),%check that the channel_slash transaction exists in the tx_pool.
+    1 = many_txs(),
     %Block = block:mine(block:make(PH, Txs2, 1), 10000000000),%1 is the master pub
     %block:check2(Block),
     timer:sleep(500),
@@ -1072,7 +1097,1575 @@ test(35) ->
     T1 = erlang:now(),
     test35(<<>>, Sig, keys:pubkey(), Times),
     T2 = erlang:now(),
-    timer:now_diff(T2, T1).
+    timer:now_diff(T2, T1);
+test(36) ->
+    io:fwrite("test 36\n"),
+    %shareable contract test
+    %tests creating a shareable contract, resolving it, and building a shareable contract priced in a subcurrency from the first contract. 
+    %tests spending subcurrency.
+    %tests binary resolution of a contract.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+
+    %creating a shareable contract with subcurrencies.
+    %Code = compiler_chalang:doit(<<"binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE= int 0 int 1" >>),
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 0, int 4294967295]\
+int 0 int 1" >>),
+    %Code = <<3,1,3,0,2,32,>>,
+    CH = hash:doit(Code),
+    Many = 3, 
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %buying some subcurrencies from the new contract.
+    Amount = 10000,
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+   
+    %spending one of the subcurrency types
+    Amount2 = 2000,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Tx3 = sub_spend_tx:make_dict(NewPub, Amount2, Fee, CID, 1, MP),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %using the contract in reverse. combining the different types back into the source currency.
+    Tx4 = contract_use_tx:make_dict(MP, CID, -5000, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %a potential resolution of the contract.
+    Tx5 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    %resolve the contract because the delay timer has finished.
+    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee),
+    %withdrawing from a resolved contract
+    SubAcc1 = sub_accounts:make_key(MP, CID, 3),
+    Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [<<0:32>>,<<0:32>>,<<-1:32>>]),
+    
+    Txs7 = [Tx6, Tx7],
+    Tx71 = multi_tx:make_dict(MP, Txs7, Fee*2),
+    Stx71 = keys:sign(Tx71),
+    absorb(Stx71),
+
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %contract priced in a subcurrency.
+    %Code2 = compiler_chalang:doit(<<"int 0 binary 32 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE= int 0 int 1" >>),
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+int 0 [ int 0, int 4294967295]\
+int 0 int 1" >>),
+    CH2 = hash:doit(Code2),
+    Tx8 = contract_new_tx:make_dict(MP, CH2, 2, Fee),
+    Stx8 = keys:sign(Tx8),
+    CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
+    absorb(Stx8),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %now the child currency, built off the 3rd subtype.
+    Tx9 = contract_new_tx:make_dict(MP, CH, Many, CID2, 3, Fee),
+    Stx9 = keys:sign(Tx9),
+    CID3 = contracts:make_id(CH, 3,CID2,3),
+    absorb(Stx9),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    %potential resolutions
+    Tx10 = contract_evidence_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    1 = many_txs(),
+    %mine_blocks(1),
+    timer:sleep(50),
+
+    Tx11 = contract_evidence_tx:make_dict(MP, Code, CID3, <<>>, [], Fee),
+    Stx11 = keys:sign(Tx11),
+    absorb(Stx11),
+    2 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    %resolve the contract because the delay timer has finished.
+    Tx12 = contract_timeout_tx:make_dict(MP, CID2, Fee),
+    Stx12 = keys:sign(Tx12),
+    absorb(Stx12),
+    1 = many_txs(),
+    Tx13 = contract_timeout_tx:make_dict(MP, CID3, Fee),
+    Stx13 = keys:sign(Tx13),
+    absorb(Stx13),
+    2 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    success;
+
+test(37) ->
+    io:fwrite("test 37\n"),
+    %tests resolving a contract into a different contract.
+    %tests simplification by matrix X vector.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    %Max = round(math:pow(2, 32)) - 1, 4294967295
+    %HalfMax = Max div 2, 2147483647
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 2147483648 ,\
+  int 2147483647 ]\
+  int 0 int 1" >>),%splits the money 50-50
+    CH2 = hash:doit(Code2),
+
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 0 , int 4294967295 ] ,\
+  [ int 4294967295 , int 0 ] ,\
+  [ int 0 , int 0 ] ]\
+binary 32 ",  
+               (base64:encode(CH2))/binary, 
+               " int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Many = 3, 
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %buying some subcurrencies from the new contract.
+    Amount = 10000,
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    %potential resolution of first contract
+    Tx3 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %timeout first contract.
+    %we need to rebuild the merkle tree so that we can make the proofs we need.
+    Type = 1,
+    Full = <<4294967295:32>>,
+    Empty = <<0:32>>,
+    Matrix = %same matrix from inside the forth code.
+        [[Empty, Full],
+         [Full, Empty],
+         [Empty, Empty]],
+    CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
+
+    Proofs = contract_evidence_tx:make_proof1(Matrix),
+
+    Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, [Empty, Full]),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+
+    %withdraw one kind of winnings from first contract into the second
+    SubAcc1 = sub_accounts:make_key(MP, CID, Type),
+    Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [Empty, Full], Proofs),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+
+    %potential resolution of second contract
+    %CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
+    Tx8 = contract_evidence_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+    
+
+
+    %timeout second
+    Tx9 = contract_timeout_tx:make_dict(MP, CID2, Fee),
+
+    %withdraw to veo
+    PayoutVector = %same as payout vector defined in Forth.
+        [<<2147483648:32>>, 
+         <<2147483647:32>>],
+    SubAcc1_2 = sub_accounts:make_key(MP, CID2, 2),
+    Tx10 = contract_winnings_tx:make_dict(MP, SubAcc1_2, CID2, Fee, PayoutVector),
+
+    %simplify by matrix multiplication
+    %so that both contracts use a payout vector, allowing anyone holding any of the subcurrencies to withdraw directly to veo.
+    Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, PayoutVector, Fee), 
+
+    %withdraw the second kind of subcurrency directly to veo.
+    PayoutVector2 = contract_simplify_tx:apply_matrix2vector(Matrix, PayoutVector),
+    SubAcc2 = sub_accounts:make_key(MP, CID, 2),
+    Tx12 = contract_winnings_tx:make_dict(MP, SubAcc2, CID, Fee, PayoutVector2),
+
+    Txs13 = [Tx9, Tx10, Tx11, Tx12],
+    Tx13 = multi_tx:make_dict(MP, Txs13, Fee),
+    Stx13 = keys:sign(Tx13),
+    absorb(Stx13),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    success;
+test(38) ->
+    io:fwrite("test 38\n"),
+    %tests simplification by matrix X matrix
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    Code3 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 2147483648 ,\
+  int 2147483647 ]\
+  int 0 int 1" >>),%splits the money 50-50
+    CH3 = hash:doit(Code3),
+    Half0 = <<2147483647:32>>,
+    Half1 = <<2147483648:32>>,
+    Zero = <<0:32>>,
+    Full = <<4294967295:32>>,
+    PayoutVector = [Half1, Half0],
+
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 0 , int 0 ] ,\
+  [ int 2147483647 , int 0 ] ,\
+  [ int 2147483648 , int 4294967295 ] ]\
+binary 32 ",
+(base64:encode(CH3))/binary,
+"  int 0 int 1" >>),
+    CH2 = hash:doit(Code2),
+    Matrix2 = [[Zero, Zero],
+               [Half0, Zero],
+               [Half1, Full]],
+    
+
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 2147483648 , int 0 , int 0 ] ,\
+  [ int 2147483647 , int 2147483647 , int 0 ] ,\
+  [ int 0 , int 2147483648 , int 4294967295 ] ]\
+binary 32 ",
+(base64:encode(CH2))/binary,
+"  int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Matrix = [[Half1, Zero, Zero],
+              [Half0, Half0, Zero],
+              [Zero, Half1, Full]],
+
+    Tx1 = contract_new_tx:make_dict(MP, CH, 3, Fee),
+    CID = contracts:make_id(CH, 3,<<0:256>>,0),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    Tx2 = contract_new_tx:make_dict(MP, CH2, 3, Fee),
+    CID2 = contracts:make_id(CH2, 3,<<0:256>>,0),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    Tx3 = contract_new_tx:make_dict(MP, CH3, 2, Fee),
+    CID3 = contracts:make_id(CH3, 2,<<0:256>>,0),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    %settled contract 1 and 2.
+    Tx4 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Tx5 = contract_evidence_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Proof = contract_evidence_tx:make_proof1(Matrix),
+    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Proof2 = contract_evidence_tx:make_proof1(Matrix2),
+    Tx7 = contract_timeout_tx:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %do the simplification from 1 to 2.
+    Tx8 = contract_simplify_tx:make_dict(MP, CID, CID2, CID3, Matrix, Matrix2, Fee), 
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+   
+    %settle contract 3
+    Tx9 = contract_evidence_tx:make_dict(MP, Code3, CID3, <<>>, [], Fee),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Tx10 = contract_timeout_tx:make_dict(MP, CID3, Fee),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %do the simplification from 1 to 3
+    Matrix3 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
+    Tx11 = contract_simplify_tx:make_dict(MP, CID, CID3, 0, Matrix3, PayoutVector, Fee), 
+    Stx11 = keys:sign(Tx11),
+    absorb(Stx11),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+  
+    %do the simplification from 2 to 3
+    Tx12 = contract_simplify_tx:make_dict(MP, CID2, CID3, 0, Matrix2, PayoutVector, Fee), 
+    Stx12 = keys:sign(Tx12),
+    absorb(Stx12),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+
+    success;
+test(39) ->
+    io:fwrite("test 39\n"),
+    %tests simplification by matrix X matrix, but in a subcurrency.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    Code0 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 3294967295 ,\
+  int 1000000000 ]\
+ int 0 int 1
+">>),%give all the money to #1
+    CH0 = hash:doit(Code0),
+    Half0 = <<2147483647:32>>,
+    Half1 = <<2147483648:32>>,
+    Zero = <<0:32>>,
+    Full = <<4294967295:32>>,
+    PayoutVector0 = [<<3294967295:32>>, 
+                     <<1000000000:32>>],
+    
+
+    %creating the layer-1 subcurrency
+    Tx0 = contract_new_tx:make_dict(MP, CH0, 2, Fee),
+    CID0 = contracts:make_id(CH0, 2,<<0:256>>,0),
+    Stx0 = keys:sign(Tx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %buying layer-1 subcurrency
+    Amount01 = 100000000,%1 veo
+    Tx01 = contract_use_tx:make_dict(MP, CID0, Amount01, Fee),
+    Stx01 = keys:sign(Tx01),
+    absorb(Stx01),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    %I now have 1 veo of type 1 subcurrency, and 1 veo of type 2 subcurrency. All the contracts in this example will be using my type 1 subcurrency, and I will withdraw the type 2 directly to veo at the end.
+
+
+    Code3 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 2147483648 ,\
+  int 2147483647 ]\
+  int 0 int 1" >>),%splits the money 50-50
+    CH3 = hash:doit(Code3),
+    PayoutVector = [Half1, Half0],
+
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 0 , int 0 ] ,\
+  [ int 2147483647 , int 0 ] ,\
+  [ int 2147483648 , int 4294967295 ] ]\
+binary 32 ",
+(base64:encode(CH3))/binary,
+"  int 0 int 1" >>),
+    CH2 = hash:doit(Code2),
+    Matrix2 = [[Zero, Zero],
+               [Half0, Zero],
+               [Half1, Full]],
+    
+
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 2147483648 , int 0 , int 0 ] ,\
+  [ int 2147483647 , int 2147483647 , int 0 ] ,\
+  [ int 0 , int 2147483648 , int 4294967295 ] ]\
+binary 32 ",
+(base64:encode(CH2))/binary,
+"  int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Matrix = [[Half1, Zero, Zero],
+              [Half0, Half0, Zero],
+              [Zero, Half1, Full]],
+
+    %creating the first layer-2 contract
+    Tx1 = contract_new_tx:make_dict(MP, CH, 3, CID0, 1, Fee),
+    CID = contracts:make_id(CH, 3,CID0,1),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+
+    %using some of my type 1 subcurrency from the layer-1 contract, I am able to participate in the first layer-2 contract
+
+    Tx1_1 = contract_use_tx:make_dict(MP, CID, Amount01, Fee),
+    Stx1_1 = keys:sign(Tx1_1),
+    absorb(Stx1_1),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    %now I own 1 veo of each of the 3 types defined by the first layer 2 contract.
+    %I also still own 1 veo of layer-1 type 2.
+   
+    %creating the second layer-2 contract
+    Tx2 = contract_new_tx:make_dict(MP, CH2, 3, CID0, 1, Fee),
+    CID2 = contracts:make_id(CH2, 3,CID0,1),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+   
+    %creating the third layer-2 contract
+    Tx3 = contract_new_tx:make_dict(MP, CH3, 2, CID0, 1, Fee),
+    CID3 = contracts:make_id(CH3, 2,CID0,1),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+    
+    %settled contract 1 and 2.
+    Tx4 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Tx5 = contract_evidence_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Proof = contract_evidence_tx:make_proof1(Matrix),
+    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %since contract 1 is resolved, but 2 is not, we can withdraw some of our veo to 2.
+
+    Proof6_0 = contract_evidence_tx:make_proof1(Matrix),
+    SubAcc = sub_accounts:make_key(MP, CID, 1), 
+    Tx6_0 = contract_winnings_tx:make_dict(MP, SubAcc, CID, Fee, lists:nth(1, Matrix), Proof6_0),
+    Stx6_0 = keys:sign(Tx6_0),
+    absorb(Stx6_0),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(400),
+    0 = many_txs(),
+    %I own:
+    %1 veo of layer 1 type 2
+    %1 veo of layer 2 #1 types 2 and 3.
+    %0.5 veo of layer 2 #2, type 1
+    
+
+
+    Proof2 = contract_evidence_tx:make_proof1(Matrix2),
+    Tx7 = contract_timeout_tx:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(400),
+    0 = many_txs(),
+
+    %at this point 1 and 2 are resolved, we need to do a simplification. so it should be impossible for me to convert my tokens in 1 to 2.
+    Proof7_0 = contract_evidence_tx:make_proof1(Matrix),
+    SubAcc7_0 = sub_accounts:make_key(MP, CID, 2), 
+    Tx7_0 = contract_winnings_tx:make_dict(MP, SubAcc7_0, CID, Fee, lists:nth(2, Matrix), Proof7_0),
+    Stx7_0 = keys:sign(Tx7_0),
+    absorb(Stx7_0),
+    0 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+    
+
+    %do the simplification from 1 to 2.
+    Tx8 = contract_simplify_tx:make_dict(MP, CID, CID2, CID3, Matrix, Matrix2, Fee), 
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    %verify that contracts #1 and #2 are closed, but #3 is not.
+    
+    1 = contracts:closed(trees:get(contracts, CID)),
+    1 = contracts:closed(trees:get(contracts, CID2)),
+    0 = contracts:closed(trees:get(contracts, CID3)),
+
+    %now that 1 and 2 are simplified, I should be able to move my tokens from 1 directly to 3.
+    Matrix8_0 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
+    Proof8_0 = contract_evidence_tx:make_proof(2, Matrix8_0),
+    SubAcc8_0 = sub_accounts:make_key(MP, CID, 2), 
+    %moves 1 veo of layer 1 types 2, to 1/4 veo in layer 2 contract #3 type 1.
+    Tx8_0 = contract_winnings_tx:make_dict(MP, SubAcc8_0, CID, Fee, lists:nth(2, Matrix8_0), Proof8_0),
+    Stx8_0 = keys:sign(Tx8_0),
+    absorb(Stx8_0),
+    1 = many_txs(),
+    timer:sleep(50),
+    mine_blocks(2),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    %I own:
+    %1 of layer2 #1 type 3
+    %0.5 of layer 2 #2, type 1
+    %0.25 of layer 2 #3, type 1
+    
+    %verify that I have money in contract 3
+    SubAdd8_1 = sub_accounts:make_key(MP, CID3, 1),
+    SubAcc8_1 = trees:get(sub_accounts, SubAdd8_1),
+    true = is_tuple(SubAcc8_1),
+    
+   
+    %settle contract 3
+    Tx9 = contract_evidence_tx:make_dict(MP, Code3, CID3, <<>>, [], Fee),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+    timer:sleep(200),
+    mine_blocks(2),
+    timer:sleep(300),
+    0 = many_txs(),
+
+    Tx10 = contract_timeout_tx:make_dict(MP, CID3, Fee),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    %it should now be possible to withdraw from 3.
+    SubAcc10_0 = sub_accounts:make_key(MP, CID3, 1),
+    Tx10_0 = contract_winnings_tx:make_dict(MP, SubAcc10_0, CID3, Fee, PayoutVector),
+    Stx10_0 = keys:sign(Tx10_0),
+    absorb(Stx10_0),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+    %this has converted 0.25 of layer 2 #3 type 1 into 0.125 veo.
+
+    %I own:
+    %1  of layer2 #1 type 3
+    %0.5  of layer 2 #2, type 1
+
+    %verify that I no longer have money in contract 3
+    SubAdd8_1 = sub_accounts:make_key(MP, CID3, 1),
+    empty = trees:get(sub_accounts, SubAdd8_1),
+
+    %do the simplification from 1 to 3
+    Matrix3 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
+    Tx11 = contract_simplify_tx:make_dict(MP, CID, CID3, 0, Matrix3, PayoutVector, Fee), 
+    Stx11 = keys:sign(Tx11),
+    absorb(Stx11),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+  
+    %do the simplification from 2 to 3
+    Tx12 = contract_simplify_tx:make_dict(MP, CID2, CID3, 0, Matrix2, PayoutVector, Fee), 
+    Stx12 = keys:sign(Tx12),
+    absorb(Stx12),
+    timer:sleep(40),
+    1 = many_txs(),
+    timer:sleep(40),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    %resolve contract0
+    Tx13 = contract_evidence_tx:make_dict(MP, Code0, CID0, <<>>, [], Fee),
+    Stx13 = keys:sign(Tx13),
+    absorb(Stx13),
+    timer:sleep(50),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(100),
+
+    Tx14 = contract_timeout_tx:make_dict(MP, CID0, Fee),
+    Stx14 = keys:sign(Tx14),
+    absorb(Stx14),
+    timer:sleep(100),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+
+    %withdraw cid0 type 2
+    SubAcc15 = sub_accounts:make_key(MP, CID0, 2),
+    Tx15 = contract_winnings_tx:make_dict(MP, SubAcc15, CID0, Fee, PayoutVector0),
+    Stx15 = keys:sign(Tx15),
+    absorb(Stx15),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+    
+    %withdraw cid2 type type 1
+    PayoutVector16 = contract_simplify_tx:apply_matrix2vector(Matrix2, PayoutVector),
+    SubAcc16 = sub_accounts:make_key(MP, CID2, 1),
+    Tx16 = contract_winnings_tx:make_dict(MP, SubAcc16, CID2, Fee, PayoutVector16),
+    Stx16 = keys:sign(Tx16),
+    absorb(Stx16),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+
+    %withdraw cid type 3
+    PayoutVector17 = contract_simplify_tx:apply_matrix2vector(Matrix, PayoutVector16),
+    SubAcc17 = sub_accounts:make_key(MP, CID, 3),
+    Tx17 = contract_winnings_tx:make_dict(MP, SubAcc17, CID, Fee, PayoutVector17),
+    Stx17 = keys:sign(Tx17),
+    absorb(Stx17),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    success;
+test(40) ->
+    io:fwrite("test 40\n"),
+    %test swapping
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+
+    %make a contract and buy some subcurrency.
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 0, int 4294967295]\
+int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Many = 3, 
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %buy some subcurrency.
+    Amount = 100000000,
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+   
+    %create an account
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Tx3 = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+
+
+
+
+
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+    %swap some subcurrency for the new account's veo.
+
+    SO = swap_tx:make_offer(MP, 0, 1000, CID, 1, 50000000, <<0:256>>, 0, 90000000, Fee),
+    SSO = keys:sign(SO),
+    Tx4 = swap_tx:make_dict(NewPub, SSO, Fee*2),
+    Stx4 = testnet_sign:sign_tx(Tx4, NewPub, NewPriv),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    success;
+test(41) ->
+    io:fwrite("test 41\n"),
+    %test swapping in multi-tx
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(12),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    StartBalance = 1000000000,
+    Tx1 = create_account_tx:make_dict(NewPub, StartBalance, Fee, constants:master_pub()),%send them 10 veo
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 4294967295]\
+int 0 int 1" >>),
+    CH = hash:doit(Code),
+
+    Tx1_0 = contract_new_tx:make_dict(MP, CH, 2, Fee),
+    Stx1_0 = keys:sign(Tx1_0),
+    absorb(Stx1_0),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+    Zero = <<0:32>>,
+    Full = <<-1:32>>,
+
+    OneVeo = 100000000,
+    NewCID = contracts:make_id(CH, 2, <<0:256>>, 0),
+    PBO = swap_tx:make_offer(MP, 0, 1000, <<0:256>>, 0, OneVeo, NewCID, 1, OneVeo, Fee),
+    SPBO = keys:sign(PBO),
+    Swap2 = swap_tx:make_dict(NewPub, SPBO, Fee),
+    Use2 = contract_use_tx:make_dict(NewPub, NewCID, OneVeo, Fee),%buy one veo of a full set
+    Txs2 = [Swap2, Use2],
+    Tx2 = multi_tx:make_dict(NewPub, Txs2, Fee*2),
+    Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Tx3 = contract_evidence_tx:make_dict(MP, Code, NewCID, <<>>, [], Fee),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+
+    Tx4 = contract_timeout_tx:make_dict(MP, NewCID, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    
+    SubAcc2 = sub_accounts:make_key(NewPub, NewCID, 2),
+    Tx5 = contract_winnings_tx:make_dict(NewPub, SubAcc2, NewCID, Fee, [<<0:32>>, <<-1:32>>]),
+    Stx5 = testnet_sign:sign_tx(Tx5, NewPub, NewPriv),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %verify that the new account won the bet.
+    AccF = trees:get(accounts, NewPub),
+    true = AccF#acc.balance > (StartBalance + OneVeo - (Fee * 20)),
+
+    success;
+
+test(43) ->
+    io:fwrite("test 43\n"),
+    %2 of 2 state channel
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    StartBalance = 1000000000,
+    Tx1 = create_account_tx:make_dict(NewPub, StartBalance, Fee, constants:master_pub()),%send them 10 veo
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+    %finalizes as acc1 owning everything
+    %delay 0, nonce 1
+    _Code1 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+def \
+  [ int 4294967295, int 0]\
+  int 0 int 1 ; \
+" >>),
+    %F2 = hd(vm(Code1)),
+
+    %finalizes as acc2 owning everything
+    %delay 0, nonce 2
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+def \
+  [ int 0, int 4294967295 ]\
+  int 0 int 2 ; \
+" >>),
+    F1 = hd(vm(Code2)),
+
+    
+%expects sig1 sig2 functionid
+%if both signatures are valid for this functionid, then it calls the function.
+% this is a 2 of 2 multisig that allows for arbitrary updates, it is a statechannel smart contract.
+    Code = compiler_chalang:doit(
+             <<" binary 65 ",
+(base64:encode(NewPub))/binary, 
+" binary 65 ",
+(base64:encode(MP))/binary, 
+" Acc1 ! Acc2 ! \
+drop F ! \
+F @ Acc2 @ verify_sig swap \
+F @ Acc1 @ verify_sig and \
+if \
+   F @ call \
+else fail then ">>),
+
+    CH = hash:doit(Code),
+
+    Tx1_0 = contract_new_tx:make_dict(MP, CH, 2, Fee),
+    Stx1_0 = keys:sign(Tx1_0),
+    absorb(Stx1_0),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+    Zero = <<0:32>>,
+    Full = <<-1:32>>,
+
+    OneVeo = 100000000,
+    NewCID = contracts:make_id(CH, 2, <<0:256>>, 0),
+    PBO = swap_tx:make_offer(MP, 0, 1000, <<0:256>>, 0, OneVeo, NewCID, 1, OneVeo, Fee),
+    SPBO = keys:sign(PBO),
+    Swap2 = swap_tx:make_dict(NewPub, SPBO, Fee),
+    Use2 = contract_use_tx:make_dict(NewPub, NewCID, OneVeo, Fee),
+    Txs2 = [Swap2, Use2],
+    Tx2 = multi_tx:make_dict(NewPub, Txs2, Fee*2),
+    Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %F1 is the outcome where Acc2 wins everything.
+    %if they both sign over F1, then it can occur.
+    Sig1 = keys:raw_sign(F1),
+    Sig2 = testnet_sign:sign(F1, NewPriv),
+    %sig1 sig2 functionid
+    EvidenceString = 
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+binary ", (integer_to_binary(size(Sig1)))/binary, " ",
+               (base64:encode(Sig1))/binary, " binary ", 
+               (integer_to_binary(size(Sig2)))/binary, 
+               " ", (base64:encode(Sig2))/binary, 
+               " def \
+  [ int 0, int 4294967295 ]\
+  int 0 int 2 ; \
+">>,
+    %the evidence is made up of both signatures, the function id, and the definition of the function.
+    Evidence = compiler_chalang:doit(EvidenceString),
+    Tx3 = contract_evidence_tx:make_dict(MP, Code, NewCID, Evidence, [], Fee),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+
+    Tx4 = contract_timeout_tx:make_dict(MP, NewCID, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    
+    SubAcc2 = sub_accounts:make_key(NewPub, NewCID, 2),
+    Tx5 = contract_winnings_tx:make_dict(NewPub, SubAcc2, NewCID, Fee, [<<0:32>>, <<-1:32>>]),
+    Stx5 = testnet_sign:sign_tx(Tx5, NewPub, NewPriv),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %verify that the new account won the bet.
+    AccF = trees:get(accounts, NewPub),
+    true = AccF#acc.balance > (StartBalance + OneVeo - (Fee * 20)),
+    
+    success;
+
+
+test(44) ->
+    io:fwrite("test 44\n"),
+%Someone who buys a contract, they should simultaniously make an offer to sell it for 99% of it's maximum value.
+    %acc2 starts with veo. they make a bet in a sports game denominated in veo. when the game ends, they want their winnings to automatically switch to being veo
+
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    StartBalance = 1000000000,
+    Tx1 = create_account_tx:make_dict(NewPub, StartBalance, Fee, constants:master_pub()),%send them 10 veo
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+
+    %First account 1 makes an offer for a new contract.
+
+    Zero = <<0:32>>,
+    Full = <<-1:32>>,
+    OneVeo = 100000000,
+    %2 way contract, all goes to acc2.
+    Code1 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+def \
+  [ int 0, int 4294967295]\
+  int 0 int 1 ; \
+" >>),
+    CH = hash:doit(Code1),
+
+    Tx1_0 = contract_new_tx:make_dict(MP, CH, 2, Fee),
+    Stx1_0 = keys:sign(Tx1_0),
+    absorb(Stx1_0),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+
+    NewCID = contracts:make_id(CH, 2, <<0:256>>, 0),
+    PBO = swap_tx:make_offer(MP, 0, 1000, <<0:256>>, 0, OneVeo, NewCID, 1, 2 * OneVeo, Fee),
+    SPBO = keys:sign(PBO),
+
+    %account 2 makes an offer to sell their winnings from this contract before they join it.
+    SO = swap_tx:make_offer(NewPub, 0, 1000, NewCID, 2, OneVeo * 2, <<0:256>>, 0, 199900000, 2),%Fee),
+    SSO = testnet_sign:sign_tx(SO, NewPub, NewPriv),
+    
+    %account 2 joins the contract
+    Swap2 = swap_tx:make_dict(NewPub, SPBO, Fee),
+    Use2 = contract_use_tx:make_dict(NewPub, NewCID, OneVeo * 2, Fee),
+    Txs2 = [Swap2, Use2],
+    Tx2 = multi_tx:make_dict(NewPub, Txs2, Fee*2),
+    Stx2 = testnet_sign:sign_tx(Tx2, NewPub, NewPriv),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %account1 takes the opportunity to let acc2 cash out.
+    Tx3 = swap_tx:make_dict(MP, SSO, Fee),
+    io:fwrite("test txs 44\n"),
+    io:fwrite(packer:pack(Tx3)),
+    io:fwrite("\n"),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    %verify that the new account won the bet.
+    AccF = trees:get(accounts, NewPub),
+    true = AccF#acc.balance > (StartBalance + OneVeo - (Fee * 20)),
+    
+    success;
+test(45) ->
+    io:fwrite("test 45\n"),
+    timer:sleep(400),
+    %binary derivative in the new channel, using an oracle to enforce the outcome.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {Pub,Priv} = testnet_sign:new_key(),
+    OneVeo = 100000000,
+    Ctx0 = create_account_tx:make_dict(Pub, OneVeo*10, Fee*5, MP),
+    Stx0 = keys:sign(Ctx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    timer:sleep(100),
+    mine_blocks(1),
+
+
+    Question = <<"1=1">>,
+    %Tx = oracle_new_tx:make_dict(MP, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    Tx = oracle_new_tx:make_dict(MP, Fee, Question, 5, 0, 0), %Fee, question, start, id gov, govamount %here
+    OID = oracle_new_tx:id(Tx),
+    io:fwrite("test 45 oid is \n"),
+    io:fwrite(packer:pack(OID)),
+    io:fwrite("\n"),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    timer:sleep(100),
+    mine_blocks(1),
+
+
+    %state channel contract
+    ChannelCode = compiler_chalang:doit(
+             <<" Proof ! binary 65 ",
+               (base64:encode(Pub))/binary, 
+               " binary 65 ",
+               (base64:encode(MP))/binary, 
+               " Acc1 ! Acc2 ! F ! \
+F @ Acc2 @ verify_sig swap \
+F @ Acc1 @ verify_sig and \
+if \
+   Proof @ F @ call \
+else fail then ">>),
+    CH = hash:doit(ChannelCode),
+
+    Tx1_0 = contract_new_tx:make_dict(MP, CH, 2, Fee),
+    Stx1_0 = keys:sign(Tx1_0),
+    absorb(Stx1_0),
+    1 = many_txs(),
+    timer:sleep(20),
+    mine_blocks(1),
+    timer:sleep(20),
+    0 = many_txs(),
+    timer:sleep(200),
+
+    Zero = <<0:32>>,
+    Full = <<-1:32>>,
+    Half1 = <<2147483648:32>>,
+    Half0 = <<2147483647:32>>,
+
+    ChannelCID = contracts:make_id(CH, 2, <<0:256>>, 0),
+    PBO = swap_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, ChannelCID, 1, OneVeo * 2, Fee),
+    
+    SPBO = keys:sign(PBO),
+    
+    Swap2 = swap_tx:make_dict(Pub, SPBO, Fee),
+    Use2 = contract_use_tx:make_dict(Pub, ChannelCID, OneVeo*2, Fee),
+    Txs2 = [Swap2, Use2],
+    Tx2 = multi_tx:make_dict(Pub, Txs2, Fee*2),
+    Stx2 = testnet_sign:sign_tx(Tx2, Pub, Priv),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+
+%binary derivative contract based on oracle id OID.
+
+    PrivDir = "../../../../apps/amoveo_core/priv",
+    {ok, BinaryCodeStatic} = file:read_file(PrivDir ++ "/binary.fs"),
+    io:fwrite("binary contract is "),
+    io:fwrite(integer_to_list(size(compiler_chalang:doit(BinaryCodeStatic)))),
+    io:fwrite("\n"),
+    io:fwrite(base64:encode(compiler_chalang:doit(BinaryCodeStatic))),
+    io:fwrite("\n"),
+% AAAAAAF4gxSDFhSDFhSDFAAAAAAghwAAAAABeTpGRw1IFBQAAAAAAYcWFAIAAAADAAAAFoYAAAAAAzpGhAAAAAAAFoIAAAAAABaCAP////8WgogAAAAAAAAAAAPoRxQAAAAAATpGhAD/////FoIAAAAAABaCAAAAAAAWgogAAAAAAAAAAAPoRxQAAAAAAjpGhAAAAAAAFoIA/////xaCAAAAAAAWgogAAAAAAAAAAAPoRxQUhACAAAAAFoIAf////xaCAAAAAAAWgogAAAATiAAAAAAKSEhI
+    BinaryCodeInner = <<" binary 32 ",
+                        (base64:encode(OID))/binary, 
+                        BinaryCodeStatic/binary
+                      >>,
+    BinaryCode = <<" def ",
+                   BinaryCodeInner/binary,
+                   " ; ">>,
+
+    BinaryDerivative = compiler_chalang:doit(BinaryCode),
+    BinaryHash = hd(vm(BinaryDerivative)),
+    BinaryCID = contracts:make_id(BinaryHash, 3, <<0:256>>, 0),
+    io:fwrite("test 45 binary cid \n"),
+    io:fwrite(packer:pack(BinaryCID)),
+    io:fwrite("\n"),
+
+    %this is the thing we sign over to convert the state channel into a binary bet.
+    ToBinary = <<" macro [ nil ; \
+macro , swap cons ; \
+macro ] swap cons reverse ; \
+def \
+[ [ int 0 , int 4294967295 , int 2147483648 ] , \
+  [ int 4294967295, int 0 , int 2147483647 ] ] \
+binary 32 ",
+(base64:encode(BinaryHash))/binary,
+" int 0 int 2000 \
+;">>,
+    Matrix = [[Zero, Full, Half1],%acc1 gets all type2
+              [Full,Zero, Half0]],%acc2 gets all type1
+    ToBinaryBytes = compiler_chalang:doit(ToBinary),
+    ToBinaryHash = hd(vm(ToBinaryBytes)),
+    
+    Sig1 = keys:raw_sign(ToBinaryHash),
+    Sig2 = testnet_sign:sign(ToBinaryHash, Priv),
+    EvidenceString = 
+             <<"\
+ binary ", (integer_to_binary(size(Sig1)))/binary, " ",
+               (base64:encode(Sig1))/binary, " binary ", 
+               (integer_to_binary(size(Sig2)))/binary, 
+               " ", (base64:encode(Sig2))/binary, 
+               ToBinary/binary,
+             " ">>,
+    Evidence = compiler_chalang:doit(EvidenceString),
+    %Tx3 = contract_evidence_tx:make_dict(MP, ChannelCode, ChannelCID, Evidence, [{oracles, OID}], Fee),
+    Tx3 = contract_evidence_tx:make_dict(MP, ChannelCode, ChannelCID, Evidence, [], Fee),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    
+    Proof = contract_evidence_tx:make_proof1(Matrix),
+    Tx4 = contract_timeout_tx:make_dict(MP, ChannelCID, Fee, Proof, BinaryHash, lists:nth(1, Matrix)),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %TODO withdraw into the binary derivative.
+    SubAcc2 = sub_accounts:make_key(Pub, ChannelCID, 2),
+    Proof2 = contract_evidence_tx:make_proof(2, Matrix),
+    Tx5 = contract_winnings_tx:make_dict(Pub, SubAcc2, ChannelCID, Fee, hd(tl(Matrix)), Proof2),
+    Stx5 = testnet_sign:sign_tx(Tx5, Pub, Priv),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %verify the existence of the coins withdrawn into the binary contract.
+    BinSub1 = sub_accounts:make_key(Pub, BinaryCID, 1),
+    SA5 = trees:get(sub_accounts, BinSub1),
+    true = SA5#sub_acc.balance == (2 * OneVeo),
+
+    %Pub now has an active bet on outcome 1 of the oracle. They can swap shares of this bet as a subcurrency.
+
+
+    OIL = trees:get(governance, oracle_initial_liquidity),
+    Tx6 = oracle_bet_tx:make_dict(MP, Fee, OID, 1, OIL+1 + (10*OneVeo)), 
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    timer:sleep(150),
+    mine_blocks(1),
+
+
+    Tx7 = oracle_close_tx:make_dict(MP,Fee, OID),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    timer:sleep(100),
+    mine_blocks(1),
+
+    %resolve the binary contract.
+    Tx8 = contract_evidence_tx:make_dict(MP, compiler_chalang:doit(BinaryCodeInner), BinaryCID, <<>>, [{oracles, OID}], Fee),
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Tx9 = contract_timeout_tx:make_dict(MP, BinaryCID, Fee),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    timer:sleep(200),
+
+
+    %Pub should withdraw their 2 veo.
+    SubAcc3 = sub_accounts:make_key(Pub, BinaryCID, 1),
+    Tx10 = contract_winnings_tx:make_dict(Pub, SubAcc3, BinaryCID, Fee, [Full, Zero, Zero]),
+    Stx10 = testnet_sign:sign_tx(Tx10, Pub, Priv),
+    absorb(Stx10),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %verify that pub won the bet
+    
+    AccF = trees:get(accounts, Pub),
+    true = AccF#acc.balance > ((OneVeo * 11) - (20 * Fee)),
+
+    success;
+test(46) ->
+    io:fwrite("test 46\n"),
+    %tests flash loans.
+    %2 users own opposite sides of the contract.
+    %the winner offers to sell for 99% of it's value
+    %the lose should be able to get their 1% out, even if they can't afford to buy the 99%.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(10),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 4294967295 , int 0 ]\
+int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Many = 3, 
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(20),
+
+    %buying some subcurrencies from the new contract.
+    Amount = 100000000,
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+   
+    %spending one of the subcurrency types
+    Amount2 = 100000000,
+    {NewPub,NewPriv} = testnet_sign:new_key(),
+    Ctx4 = create_account_tx:make_dict(NewPub, 1, Fee, constants:master_pub()),
+    SCtx4 = keys:sign(Ctx4),
+    absorb(SCtx4),
+    1 = many_txs(),
+
+    Tx3 = sub_spend_tx:make_dict(NewPub, Amount2, Fee, CID, 1, MP),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    2 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    %at this point account2 loses the  bet. so account 1 offers to sell their winnings.
+    SO = swap_tx:make_offer(MP, 0, 1000, CID, 2, 100000000, <<0:256>>, 0, 99000000, Fee),
+    SSO = keys:sign(SO),
+    SO3 = swap_tx:make_offer(MP, 0, 1000, CID, 3, 100000000, <<0:256>>, 0, 1, Fee),
+    SSO3 = keys:sign(SO3),
+    
+    %account 2 simultaniously buys account 1's winnings, combines it with the losing shares, and withdraws the source currency. this is a combination of a swap tx with a contract_use tx.
+
+    SwapTx = swap_tx:make_dict(NewPub, SSO, Fee),%sends type 2.
+    SwapTx3 = swap_tx:make_dict(NewPub, SSO3, Fee),%sends type 3.
+    UseTx = contract_use_tx:make_dict(NewPub, CID, -100000000, Fee),%sells all 3 as a complete set.
+    Txs = [SwapTx, SwapTx3, UseTx],
+    Tx4 = multi_tx:make_dict(NewPub, Txs, Fee*2),
+    Stx4 = testnet_sign:sign_tx(Tx4, NewPub, NewPriv),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    success;
+test(47) ->
+    io:fwrite("test 47\n"),
+    %scalar derivative in the new channel, using an oracle to enforce the outcome.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {Pub,Priv} = testnet_sign:new_key(),
+    OneVeo = 100000000,
+    Ctx0 = create_account_tx:make_dict(Pub, OneVeo, Fee*5, MP),
+    Stx0 = keys:sign(Ctx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    timer:sleep(100),
+    mine_blocks(1),
+
+    %evidence includes the resulting price.
+    %embed this price into the oracle question text. 
+    %make sure the oracle returns type 1, otherwise fail.
+
+    %inputs when creating the contract: 
+    % *text description of number being measured.
+    % *a block height for the oracle reporting to start.
+    Measured = <<"the price of bitcoin in USD on October 31, noon, CMT time, according to coin market cap">>,
+    MaxPrice = 30000,
+    StartHeight = 5,
+    
+    % *range of values that can be measure
+
+    %evidence when resolving:
+    % *the resulting number.
+    Max = 4294967295,
+    OracleTextPart = <<"MaxPrice = ", (integer_to_binary(MaxPrice))/binary, "; MaxVal = 4294967295; B = ", (Measured)/binary, " from $0 to $MaxPrice; min(MaxVal, (B * MaxVal / MaxPrice)) is ">>,
+    %oracle id calculation
+    %S = <<Start:32,Gov:32,GA:32,QH/binary>>,
+    %hash:doit(S).
+    Settings = <<
+" \
+binary ", (integer_to_binary(size(OracleTextPart)))/binary, 
+          " ", 
+          (base64:encode(OracleTextPart))/binary, " int1 5
+">>,
+    PrivDir = "../../../../apps/amoveo_core/priv",
+    {ok, ScalarCodeStatic} = file:read_file(PrivDir ++ "/scalar.fs"),
+
+    ScalarContractBytes = compiler_chalang:doit(ScalarCodeStatic),
+    io:fwrite("scalar contract bytes \n"),
+    io:fwrite(packer:pack(ScalarContractBytes)),
+    io:fwrite("\n"),
+    SettingsBytes = compiler_chalang:doit(Settings),
+    ContractBytes = <<SettingsBytes/binary, ScalarContractBytes/binary>>,
+    CH = hash:doit(ContractBytes),
+    io:fwrite(packer:pack(size(ContractBytes))),
+    io:fwrite("\n"),
+%    io:fwrite(packer:pack(ContractBytes)),
+%    io:fwrite("\n"),
+%    io:fwrite(packer:pack(vm(ContractBytes))),
+%    io:fwrite("\n"),
+
+    CID = contracts:make_id(CH, 2, <<0:256>>, 0),
+    
+    NewTx = contract_new_tx:make_dict(MP, CH, 2, 0),
+    UseTx = contract_use_tx:make_dict(MP, CID, OneVeo, 0, 2, <<0:256>>, 0),
+    SpendTx = sub_spend_tx:make_dict(Pub, OneVeo, 0, CID, 1, MP),
+
+    Txs = [NewTx, UseTx, SpendTx],
+    Tx2 = multi_tx:make_dict(MP, Txs, Fee*length(Txs)),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Max = 4294967295,
+    Third = Max div 3,
+    Q = <<OracleTextPart/binary, 
+          (integer_to_binary(Third))/binary
+        >>, 
+    OracleNewTx = oracle_new_tx:make_dict(MP, 0, Q, StartHeight, 0, 0),
+    OID = oracle_new_tx:id(OracleNewTx),
+    OIL = trees:get(governance, oracle_initial_liquidity),
+    OracleBetTx = oracle_bet_tx:make_dict(MP, 0, OID, 1, OIL+1),
+    
+    Txs3 = [OracleNewTx, OracleBetTx],
+    Tx3 = multi_tx:make_dict(MP, Txs3, Fee*length(Txs3)),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Tx4 = oracle_close_tx:make_dict(MP, Fee, OID),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Tx5 = contract_evidence_tx:make_dict(MP, ContractBytes, CID, compiler_chalang:doit(<<
+" int 4294967295 int1 3 / ">>), 
+[{oracles, OID}], Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+  
+    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    SubAcc2 = sub_accounts:make_key(Pub, CID, 1),
+    Tx7 = contract_winnings_tx:make_dict(Pub, SubAcc2, CID, Fee, [<<Third:32>>, <<(Max - Third):32>>]),
+    Stx7 = testnet_sign:sign_tx(Tx7, Pub, Priv),
+    absorb(Stx7),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    AccF = trees:get(accounts, Pub),
+    true = AccF#acc.balance > ((OneVeo) + (OneVeo div 3) - (10 * Fee)),
+
+    success.
+
+
+
 test35(_, _, _, 0) -> ok;
 test35(D, S, P, N) ->
     %true = testnet_sign:verify_sig(D, S, P),
@@ -1128,7 +2721,7 @@ mine_blocks(Many) ->
     Hash = block:hash(PB),
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
-    block:mine(Block, 10),
+    block:mine(Block, 100),
     timer:sleep(100),
     mine_blocks(Many-1).
 
@@ -1187,3 +2780,12 @@ test24(I) ->
 
 many_txs() ->
     length(element(2, tx_pool:get())).
+
+vm(Code) ->
+    ExampleData = chalang:data_maker(1000000,1000000,1000,1000,<<>>,<<>>,chalang:new_state(0,0,0),32,2,false),
+    Data2 = chalang:run5(Code, ExampleData),
+    %io:fwrite("test txs vm "),
+    %io:fwrite(packer:pack(Data2)),
+    %io:fwrite("\n"),
+    chalang:stack(Data2).
+    

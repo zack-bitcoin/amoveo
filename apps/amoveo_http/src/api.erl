@@ -578,8 +578,18 @@ account(P) ->
     tree_common(accounts, Pubkey).
 account(P, BlockHash) ->
     Pubkey = decode_pubkey(P),
-    tree_common(oracle, Pubkey, BlockHash).
+    tree_common(accounts, Pubkey, BlockHash).
 account() -> account(keys:pubkey()).
+sub_account(P, CID, Type, BlockHash) ->
+    Key = sub_accounts:make_key(P, CID, Type),
+    tree_common(sub_accounts, Key, BlockHash).
+sub_account(P, CID, Type) ->
+    Key = sub_accounts:make_key(P, CID, Type),
+    tree_common(sub_accounts, Key).
+sub_account(P) ->
+    tree_common(sub_accounts, P).
+trade(TID) ->
+    tree_common(trades, TID).
 confirmed_balance(P) ->
     Pubkey = decode_pubkey(P),
     M = max(api:height() - 10, 1),

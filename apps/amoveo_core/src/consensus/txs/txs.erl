@@ -40,6 +40,14 @@ key2module(oracle_bet) -> oracle_bet_tx;
 key2module(oracle_close) -> oracle_close_tx;
 key2module(unmatched) -> oracle_unmatched_tx;
 key2module(oracle_winnings) -> oracle_winnings_tx;
+key2module(contract_new_tx) -> contract_new_tx;
+key2module(contract_use_tx) -> contract_use_tx;
+key2module(sub_spend_tx) -> sub_spend_tx;
+key2module(contract_evidence_tx) -> contract_evidence_tx;
+key2module(contract_timeout_tx) -> contract_timeout_tx;
+key2module(contract_winnings_tx) -> contract_winnings_tx;
+key2module(contract_simplify_tx) -> contract_simplify_tx;
+key2module(swap_tx) -> swap_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
 %case application:get_env(amoveo_core, kind) of

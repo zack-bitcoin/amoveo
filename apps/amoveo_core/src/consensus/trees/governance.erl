@@ -162,6 +162,15 @@ name2number(oracle_close) -> 25;
 name2number(unmatched) -> 26;
 name2number(oracle_winnings) -> 27;
 name2number(oracle_question_liquidity) -> 28;
+name2number(contract_new_tx) -> 29;
+name2number(contract_use_tx) -> 30;
+name2number(sub_spend_tx) -> 31;
+name2number(contract_evidence_tx) -> 32;
+name2number(contract_timeout_tx) -> 33;
+name2number(contract_winnings_tx) -> 34;
+name2number(contract_simplify_tx) -> 35;
+name2number(max_contract_flavors) -> 36;
+name2number(swap_tx) -> 37;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -194,6 +203,15 @@ number2name(25) -> oracle_close;
 number2name(26) -> unmatched;
 number2name(27) -> oracle_winnings;
 number2name(28) -> oracle_question_liquidity;
+number2name(29) -> contract_new_tx;
+number2name(30) -> contract_use_tx;
+number2name(31) -> sub_spend_tx;
+number2name(32) -> contract_evidence_tx;
+number2name(33) -> contract_timeout_tx;
+number2name(34) -> contract_winnings_tx;
+number2name(35) -> contract_simplify_tx;
+number2name(36) -> max_contract_flavors;
+number2name(37) -> swap_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

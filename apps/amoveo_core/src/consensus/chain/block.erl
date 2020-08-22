@@ -18,7 +18,8 @@
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).%
--record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).
+-record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
+-record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -260,6 +261,70 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 		gov_fees(Txs0, Dict, Height) + %
 		DeveloperReward%
     end.
+   
+trees_maker(HeightCheck, Trees, NewDict4) ->
+    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
+    F10 = forks:get(10),
+    F32 = forks:get(32),
+    if
+        (HeightCheck == F10)  ->%
+                                                %Root0 = constants:root0(),%
+            NewTrees1 = %
+                trees:new2(trees:accounts(NewTrees0),%
+                           trees:channels(NewTrees0),%
+                           trees:existence(NewTrees0),%
+                           trees:oracles(NewTrees0),%
+                           trees:governance(NewTrees0),%
+                           trees:empty_tree(matched),
+                           trees:empty_tree(unmatched)),
+                       %Root0,%
+                       %Root0),%
+		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
+            NewTrees1;%
+        (HeightCheck == F32) ->
+            GT = trees:governance(NewTrees0),
+            G29 = governance:new(governance:name2number(contract_new_tx),
+                                 constants:encoded_fee()),
+            G30 = governance:new(governance:name2number(contract_use_tx),
+                                 constants:encoded_fee()),
+            G31 = governance:new(governance:name2number(sub_spend_tx),
+                                 constants:encoded_fee()),
+            G32 = governance:new(governance:name2number(contract_evidence_tx),
+                                 constants:encoded_fee()),
+            G33 = governance:new(governance:name2number(contract_timeout_tx),
+                                 constants:encoded_fee()),
+            G34 = governance:new(governance:name2number(contract_winnings_tx),
+                                 constants:encoded_fee()),
+            G35 = governance:new(governance:name2number(contract_simplify_tx),
+                                 constants:encoded_fee()),
+            G36 = governance:new(governance:name2number(max_contract_flavors),
+                                 32),
+            G37 = governance:new(governance:name2number(swap_tx),
+                                 constants:encoded_fee()),
+            GT2 = governance:write(G29, GT),
+            GT3 = governance:write(G30, GT2),
+            GT4 = governance:write(G31, GT3),
+            GT5 = governance:write(G32, GT4),
+            GT6 = governance:write(G33, GT5),
+            GT7 = governance:write(G34, GT6),
+            GT8 = governance:write(G35, GT7),
+            GT9 = governance:write(G36, GT8),
+            GTF = governance:write(G37, GT9),
+            
+            trees:new3(trees:accounts(NewTrees0),
+                       trees:channels(NewTrees0),
+                       trees:existence(NewTrees0),
+                       trees:oracles(NewTrees0),
+                       GTF,
+                       trees:matched(NewTrees0),
+                       trees:unmatched(NewTrees0),
+                       trees:empty_tree(sub_accounts),
+                       trees:empty_tree(contracts),
+                       trees:empty_tree(trades));
+        true -> NewTrees0
+    end.
+
+
     
     
 make(Header, Txs0, Trees, Pub) ->
@@ -292,27 +357,12 @@ make(Header, Txs0, Trees, Pub) ->
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
-    F10 = forks:get(10),
     NewDict4 = remove_repeats(NewDict2, Dict, Height + 1),
     %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
-    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
-    NewTrees = if
-		   ((Height + 1) == F10)  ->%
-		       %Root0 = constants:root0(),%
-		       NewTrees1 = %
-			   trees:new2(trees:accounts(NewTrees0),%
-				      trees:channels(NewTrees0),%
-				      trees:existence(NewTrees0),%
-				      trees:oracles(NewTrees0),%
-				      trees:governance(NewTrees0),%
-                                      trees:empty_tree(matched),
-                                      trees:empty_tree(unmatched)),
-                       %Root0,%
-                       %Root0),%
-		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
-		       NewTrees1;%
-		   true -> NewTrees0
-	       end,
+
+    HeightCheck = Height + 1,
+    NewTrees = trees_maker(HeightCheck, Trees, NewDict4),
+
     %Governance = trees:governance(NewTrees),
     Governance = trees:governance(Trees),
     BlockPeriod = governance:get_value(block_period, Governance),
@@ -365,7 +415,18 @@ make_roots(Trees) when (element(1, Trees) == trees2) ->
            oracles = trie:root_hash(oracles, trees:oracles(Trees)),
            governance = trie:root_hash(governance, trees:governance(Trees)),
 	   matched = trie:root_hash(matched, trees:matched(Trees)),
-	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees))}.
+	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees))};
+make_roots(Trees) when (element(1, Trees) == trees3) ->
+    #roots3{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
+           channels = trie:root_hash(channels, trees:channels(Trees)),
+           existence = trie:root_hash(existence, trees:existence(Trees)),
+           oracles = trie:root_hash(oracles, trees:oracles(Trees)),
+           governance = trie:root_hash(governance, trees:governance(Trees)),
+	   matched = trie:root_hash(matched, trees:matched(Trees)),
+	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
+           sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
+           contracts = trie:root_hash(contracts, trees:contracts(Trees)),
+           trades = trie:root_hash(trades, trees:trades(Trees))}.
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
     C = X#roots.channels,%
@@ -383,8 +444,20 @@ roots_hash(X) when is_record(X, roots2) ->
     M = X#roots2.matched,
     U = X#roots2.unmatched,
     Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary>>,
+    hash:doit(Y);
+roots_hash(X) when is_record(X, roots3) ->
+    A = X#roots3.accounts,
+    C = X#roots3.channels,
+    E = X#roots3.existence,
+    O = X#roots3.oracles,
+    G = X#roots3.governance,
+    M = X#roots3.matched,
+    U = X#roots3.unmatched,
+    SA = X#roots3.sub_accounts,
+    Con = X#roots3.contracts,
+    Tra = X#roots3.trades,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary>>,
     hash:doit(Y).
-    
     
 guess_number_of_cpu_cores() ->
     case application:get_env(amoveo_core, test_mode) of
@@ -480,6 +553,22 @@ proofs_roots_match([P|T], R) when is_record(R, roots2)->
 	       governance -> R#roots2.governance;
 	       matched -> R#roots2.matched;
 	       unmatched -> R#roots2.unmatched
+	   end,
+    proofs_roots_match(T, R);
+proofs_roots_match([P|T], R) when is_record(R, roots3)->
+    Tree = proofs:tree(P),
+    Root = proofs:root(P),
+    Root = case Tree of
+	       accounts -> R#roots3.accounts;
+	       channels -> R#roots3.channels;
+	       existence -> R#roots3.existence;
+	       oracles -> R#roots3.oracles;
+	       governance -> R#roots3.governance;
+	       matched -> R#roots3.matched;
+	       unmatched -> R#roots3.unmatched;
+               sub_accounts -> R#roots3.sub_accounts;
+               contracts -> R#roots3.contracts;
+               trades -> R#roots3.trades
 	   end,
     proofs_roots_match(T, R).
 check0(Block) ->%This verifies the txs in ram. is parallelizable
@@ -599,6 +688,7 @@ check3(OldBlock, Block) ->
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
     {NewDict4, NewDict3, Dict}.
 
+
 check2(OldBlock, Block) ->
     {NewDict4, NewDict3, Dict} = 
         check3(OldBlock, Block), 
@@ -608,28 +698,10 @@ check2(OldBlock, Block) ->
     %io:fwrite("block check 5.3\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
-    NewTrees3_0 = tree_data:dict_update_trie(OldTrees, NewDict4),%here
-    %io:fwrite("block check 5.4\n"),
-    %io:fwrite(packer:pack(erlang:timestamp())),
-    %io:fwrite("\n"),
-    F10 = forks:get(10),
-    NewTrees3 = if
-		    (Height == F10) ->
-		       %Root0 = constants:root0(),
-		       NewTrees1 = 
-			   trees:new2(trees:accounts(NewTrees3_0),
-				      trees:channels(NewTrees3_0),
-				      trees:existence(NewTrees3_0),
-				      trees:oracles(NewTrees3_0),
-				      trees:governance(NewTrees3_0),
-                                      trees:empty_tree(matched),
-                                      trees:empty_tree(unmatched)),
-				      %Root0,
-				      %Root0),
-		       NewTrees1;
-		   true -> NewTrees3_0
-	       end,
 
+    HeightCheck = Height,
+    NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4),
+    
     %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
     %io:fwrite("block check 5.4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
@@ -1188,6 +1260,27 @@ count(Type, [H|T], N) ->
         Type == Type2 -> count(Type, T, N+1);
         true -> count(Type, T, N)
     end.
+many_close_oracles([], N) -> N;
+many_close_oracles([{signed, Tx, _, _}|
+                   T], N)
+  when is_record(Tx, oracle_close) ->
+    many_close_oracles(T, N+1);
+many_close_oracles([{signed, Tx, _, _}|
+                   T], N) 
+  when is_record(Tx, multi_tx) ->
+    M = mco_multi(Tx#multi_tx.txs, 0),
+    many_close_oracles(T, N+M);
+many_close_oracles([_|T], N) ->
+    many_close_oracles(T, N).
+mco_multi([], M) -> M;
+mco_multi([Tx|T], M) 
+  when is_record(Tx, oracle_close) ->
+    mco_multi(T, M+1);
+mco_multi([_|T], M) ->
+    mco_multi(T, M).
+
+
+
             
 no_counterfeit(Old, New, Txs, Height) ->
     %times it was outside expected range.
@@ -1232,16 +1325,17 @@ no_counterfeit(Old, New, Txs, Height) ->
     %io:fwrite(integer_to_list(BR + (BR * DR div 10000))),
     BlockReward = BR + (BR * DR div 10000),
     %io:fwrite("; "),
-    CloseOracles = count(oracle_close, Txs, 0),
+    CloseOracles = many_close_oracles(Txs, 0),
+    %CloseOracles = count(oracle_close, Txs, 0),
     %io:fwrite("close oracles are "),
     %io:fwrite(integer_to_list(CloseOracles)),
     %io:fwrite("; "),
     OIL = governance:dict_get_value(oracle_initial_liquidity, Old),% div 2;
-    OQL = governance:dict_get_value(oracle_question_liquidity, Old),% div 2;
     OCA = if
               ((CloseOracles > 0) and (is_integer(OIL)))->
                   OIL div 2;
               (CloseOracles > 0) ->
+                  OQL = governance:dict_get_value(oracle_question_liquidity, Old),
                   OQL div 2;
               true -> 0
           end,
@@ -1287,6 +1381,15 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
     B + sum_amounts(T, Dict, Old).
 %sum_amounts_helper(_, error, _, _, _) -> 0;
 sum_amounts_helper(_, empty, _, _, _) -> 0;
+sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
+    0;
+sum_amounts_helper(trades, Acc, Dict, _, _) -> 0;
+sum_amounts_helper(contracts, Acc, Dict, _, _) ->
+    case Acc#contract.source of
+        <<0:256>> ->
+            Acc#contract.volume;
+        _ -> 0
+    end;
 sum_amounts_helper(accounts, Acc, Dict, _, _) ->
     Acc#acc.balance;
 sum_amounts_helper(channels, Chan, Dict, _, _) ->
@@ -1324,7 +1427,12 @@ sum_amounts_helper(unmatched, UM, _Dict, _, Key) ->
 sum_amounts_helper(matched, M, _Dict, OldDict, Key) ->
     {key, Pub, OID} = Key,
     Oracle = oracles:dict_get(OID, OldDict),
-    R = Oracle#oracle.result,
+    R = case Oracle of
+            empty -> 0;
+            error -> 0;
+            _ ->
+                Oracle#oracle.result
+        end,
     T = matched:true(M),
     F = matched:false(M),
     B = matched:bad(M),

@@ -20,7 +20,7 @@ to_prove(OID, Trees) when (element(1, Trees) == trees) ->%
     {_, Oracle, _} = oracles:get(OID, Oracles),%
     Orders = Oracle#oracle.orders,%
     orders:all(Orders);%
-to_prove(OID, Trees) when (element(1, Trees) == trees2) -> 
+to_prove(OID, Trees) -> %when (element(1, Trees) == trees2) -> 
     Root = trees:unmatched(Trees),
     X = 8 * 65,
     Head = unmatched:get({key, <<1:X>>, OID}, Root),

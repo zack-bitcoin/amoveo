@@ -117,7 +117,9 @@ absorb_internal2(SignedTx, PID) ->
             Dict = proofs:facts_to_dict(Facts, dict:new()),
             NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height),
             if
-                NC > 0 -> PID ! error;
+                NC > 0 -> 
+                    io:fwrite("counterfeit error \n"),
+                    PID ! error;
                 true ->
                     %io:fwrite("absorb tx no counterfeit \n"),
                     %io:fwrite(integer_to_list(NC)),

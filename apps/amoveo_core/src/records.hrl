@@ -60,6 +60,11 @@
 	      pubkey = <<>>,
 	      bets = 1,%This is a pointer to the merkel tree that stores how many bets you have made in each oracle.
               bets_hash = <<>>}).
+-record(sub_acc, {balance = 0,
+                 nonce = 0,
+                 pubkey,
+                 contract_id,
+                 type}).
 -record(oracle, {id, 
 		 result, 
 		 question, 
@@ -132,6 +137,28 @@
 		     difficulty = 0, 
 		     governance, 
 		     governance_amount}).
+
+-record(contract_new_tx, {from, contract_hash, fee, many_types, source, source_type}).
+-record(contract_use_tx, {from, nonce, fee, contract_id, amount, many, source, source_type}).
+-record(sub_spend_tx, {from, nonce, fee, to, amount, contract, type}).
+
+-record(swap_offer, {
+          acc1, start_limit, end_limit, salt,
+          amount1, cid1, type1, %this is what acc1 gives.
+          amount2, cid2, type2, %this is what acc2 gives.
+          fee1, %what acc1 pays in fees
+          nonce}).
+-record(swap_tx, {from, offer, fee}).
+
+
+-record(contract_evidence_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
+-record(contract_timeout_tx, {from, nonce, fee, contract_id, proof, contract_hash, row}).%possibly converts it into a new kind of contract. %possibly unsigned
+-record(contract_winnings_tx, {from, nonce, fee, contract_id, amount, sub_account, winner, proof, row}).
+-record(contract_simplify_tx, {from, nonce, fee, cid, cid2, cid3, m1, m2}).
+
+
+
+
 -record(oracle_winnings, {from, nonce, fee, oracle_id}).
 -record(gov, {id, value, lock}).
 -record(channel, {id = 0, %the unique id number that identifies this channel
@@ -147,7 +174,24 @@
 		  closed = 0 %when a channel is closed, set this to 1. The channel can no longer be modified, but the VM has access to the state it was closed on. So you can use a different channel to trustlessly pay whoever slashed.
 		  %channels closed flag is unused because we delete closed channels.
 		  }).
+-record(contract, {
+      code,
+      many_types,
+      nonce = 0,
+      last_modified = 0,
+      delay = 0,
+      closed = 0,
+      result = <<0:256>>,%if result is an integer in (0,many_types], then all the money goes to that type.
+      %otherwise, result can be a merkle root of a tree that describes some other contract with the same source and source_type.
+      %or, the result can be the hash of a merkle structure describing how the value is divided up among the participants.
+      source = <<0:256>>,
+      source_type = 0,
+      sink = <<0:256>>,%once a contract finalizes, this records which other contract is recording the combined volume for both contracts.
+      volume = 0
+}).
+
 -record(matched, {account, oracle, true, false, bad}).
+% -record(unmatched, {from, nonce, fee, oracle_id}).
 %true, false, and bad are the 3 types of shares that can be purchased from an oracle
 
 
