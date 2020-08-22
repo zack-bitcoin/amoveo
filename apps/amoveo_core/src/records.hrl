@@ -195,4 +195,5 @@
 %true, false, and bad are the 3 types of shares that can be purchased from an oracle
 
 
+-record(market, {id, cid1, type1, amount1 = 0, cid2, type2, amount2 = 0, shares = 0}).
 
