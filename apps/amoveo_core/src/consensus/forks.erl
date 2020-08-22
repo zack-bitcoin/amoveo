@@ -41,10 +41,11 @@ get(27) -> common(102260, test_height());%so oracle_new tx includes all the proo
 get(29) -> common(104600, test_height());
 get(30) -> common(108600, test_height());
 get(31) -> common(109900, test_height());
-get(32) -> common(99999999, 
+get(32) -> common(130300, 
                   max(forks:get(10) + 1, 
                       test_height()));%subcurrencies
-get(33) -> common(126000, test_height());
+get(33) -> common(126000, test_height());%enforcing max block size.
+get(34) -> common(99999999, test_height());%unused filler
 get(_) -> none.
 
 top() -> top(1).
