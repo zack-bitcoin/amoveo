@@ -98,6 +98,10 @@ contract_size() ->
           height_bits() + 
           channel_delay_bits()) div 8) + 
         1 + 2 + (4 * hash_size()) + 2.
+market_size() ->
+    (3 * hash_size()) + 
+        (2*2) + 
+        (3 * (balance_bits() div 8)).
 trade_size() ->
     hash_size() + (height_bits() div 8).
 
