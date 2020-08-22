@@ -8,7 +8,6 @@
          make_id/1,make_id/4,
 	 all/0,
 	 test/0]).
-%This is the part of the channel that is written onto the hard drive.
 
 -include("../../records.hrl").
 
@@ -87,7 +86,7 @@ serialize(C) ->
        Result/binary,
        Source/binary,
        Drain/binary,
-       SourceType:32,
+       SourceType:16,
        Many:16,
        (C#contract.nonce):NON,
        (C#contract.last_modified):HEI,
@@ -107,7 +106,7 @@ deserialize(B) ->
       Result:HS,
       Source:HS,
       Drain:HS,
-      SourceType:32,
+      SourceType:16,
       Many:16,
       Nonce:NON,
       LastModified:HEI,
