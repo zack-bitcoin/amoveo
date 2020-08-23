@@ -27,13 +27,47 @@ go(Tx, Dict, NewHeight, _) ->
     Facc = accounts:dict_update(From, Dict, -Fee, none),
     Dict2 = accounts:dict_write(Facc, Dict),
     M = markets:dict_get(MID, Dict2),
-
-    %maintain constant product in the market.
-
-
+    #market{
+             cid1 = CID1,
+             type1 = Type1,
+             amount1 = Amount1,
+             cid2 = CID2,
+             type2 = Type2,
+             amount2 = Amount2,
+             shares = Shares
+           } = M,
+    {D1, D2} = %D1 is how many cid1 coins Pub gets.
+        case Direction of
+            1 -> 
+                %maintain constant product in the market.
+                %A1*A2 = (A1 + give)*(A2 - get)
+                %(A2 - get) = (A1*A2)/(A1 + give)
+                Get = Amount2 - (Amount1 * Amount2 div (Amount1 + Give)),
+                true = Get > Take,
+                {-Give, Get};
+            2 -> 
+                Get = Amount1 - (Amount2 * Amount1 div (Amount2 + Give)),
+                true = Get > Take,
+                {Get, -Give}
+        end,
+    Gov = governance:dict_get(market_trading_fee, Dict2),
+    N = 100000000,
+    {G1, G2} = 
+        if
+            D1 > 0 -> 
+                X = D1 * (N - Gov) div N,
+                {X, D2};
+            true ->
+                X = D2 * (N - Gov) div N,
+                {D1, X}
+        end,
     %take away one kind of currency from acc, give to market.
-    %take away one kind of currency from market, give to account. Pay a governance_fee less than the total so that liquidity shares can grow.
+    Dict3 = market_liquidity_tx:send_stuff(From, CID1, Type1, Dict2, G1),
+    Dict4 = market_liquidity_tx:send_stuff(From, CID2, Type2, Dict3, G2),
+    M2 = #market{
+      amount1 = M#market.amount1 - D1,
+      amount2 = M#market.amount2 - D2},
+    Dict5 = markets:dict_write(M2, Dict4),
+    Dict5.
 
-
-    ok.
     

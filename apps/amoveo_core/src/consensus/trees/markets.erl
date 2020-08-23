@@ -1,24 +1,40 @@
 -module(markets).
--export([new/4, 
+-export([new/6, 
 	 write/2, get/2, delete/2,%update tree stuff
          %dict_update/9, 
          dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
          make_id/1,make_id/4,
+         det_sqrt/1,
 	 all/0,
 	 test/0]).
 -include("../../records.hrl").
 
--record(market, {id, cid1, type1, amount1 = 0, cid2, type2, amount2 = 0, shares = 0}).
 
-new(CID1, Type1, CID2, Type2) ->
+det_sqrt(N) when N>0->
+    det_sqrt(1, N).
+det_sqrt(Guess, N) ->
+    B = (abs(Guess*Guess - N) =< Guess),
+    if
+        B -> Guess;
+        true ->
+            Guess2 = (1 + Guess + (N div Guess)) div 2,
+            det_sqrt(Guess2, N)
+    end.
+            
+
+new(CID1, Type1, Amount1, CID2, Type2, Amount2) ->
+    Shares = det_sqrt(Amount1*Amount2),
     #market{
      id = make_id(CID1, Type1, CID2, Type2),
      cid1 = CID1,
      type1 = Type1,
+     amount1 = Amount1,
      cid2 = CID2,
-     type2 = Type2}.
+     type2 = Type2,
+     amount2 = Amount2,
+     shares = Shares}.
 serialize(M) ->
     #market{
       id = ID,
@@ -119,7 +135,7 @@ all() ->
       end, All).
 
 test() ->
-    A = new(<<0:256>>, 0, hash:doit(1), 1),
+    A = new(<<0:256>>, 0, 1, hash:doit(1), 1, 1),
     A = deserialize(serialize(A)),
     R = trees:empty_tree(markets),
     NewLoc = write(A, R),
