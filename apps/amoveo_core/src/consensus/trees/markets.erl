@@ -13,12 +13,13 @@
 
 %https://en.wikipedia.org/wiki/Integer_square_root
 det_sqrt(N) when N>0->
-    det_sqrt(-1, 0, 1, N, 10).
-det_sqrt(Guess, Guess, _, _, _) -> Guess;
-det_sqrt(Guess, Guess1, Guess, _, _) -> min(Guess1, Guess);
-det_sqrt(_, Guess0, Guess, N, I) ->
+    det_sqrt(-1, 0, 1, N).
+det_sqrt(Guess, Guess, _, _) -> Guess;
+det_sqrt(Guess, Guess1, Guess, _) -> 
+    min(Guess1, Guess);
+det_sqrt(_, Guess0, Guess, N) ->
     Guess2 = (Guess + (N div Guess)) div 2,
-    det_sqrt(Guess0, Guess, Guess2, N, I-1).
+    det_sqrt(Guess0, Guess, Guess2, N).
             
 
 new(CID1, Type1, Amount1, CID2, Type2, Amount2) ->
