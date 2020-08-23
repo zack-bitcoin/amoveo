@@ -1,24 +1,38 @@
 -module(market_swap_tx).
 -export([go/4, make_dict/6]).
 -include("../../records.hrl").
--record(market_swap_tx, {from, fee, nonce, mid, give, take, direction}).
 
 make_dict(From, MID, Give, Take, Direction, Fee) ->
     Acc = trees:get(accounts, From),
+    Market = trees:get(markets, MID),
+    #market{
+             cid1 = CID1,
+             type1 = Type1,
+             cid2 = CID2,
+             type2 = Type2
+           } = Market,
     #market_swap_tx{
-           from = From,
-           nonce = Acc#acc.nonce + 1,
-           mid = MID,
-           fee = Fee,
-           give = Give,
-           take = Take,
-           direction = Direction}.
+                     from = From,
+                     nonce = Acc#acc.nonce + 1,
+                     mid = MID,
+                     cid1 = CID1,
+                     type1 = Type1,
+                     cid2 = CID2,
+                     type2 = Type2,
+                     fee = Fee,
+                     give = Give,
+                     take = Take,
+                     direction = Direction}.
 
 go(Tx, Dict, NewHeight, _) ->
     #market_swap_tx{
     from = From,
     nonce = Nonce,
     mid = MID,
+    cid1 = CID1,
+    type1 = Type1,
+    cid2 = CID2,
+    type2 = Type2,
     fee = Fee,
     give = Give,
     take = Take,
@@ -30,9 +44,9 @@ go(Tx, Dict, NewHeight, _) ->
     #market{
              cid1 = CID1,
              type1 = Type1,
-             amount1 = Amount1,
              cid2 = CID2,
              type2 = Type2,
+             amount1 = Amount1,
              amount2 = Amount2,
              shares = Shares
            } = M,
@@ -50,7 +64,7 @@ go(Tx, Dict, NewHeight, _) ->
                 true = Get > Take,
                 {Get, -Give}
         end,
-    Gov = governance:dict_get(market_trading_fee, Dict2),
+    Gov = governance:dict_get_value(market_trading_fee, Dict2),
     N = 100000000,
     {G1, G2} = 
         if
@@ -64,7 +78,7 @@ go(Tx, Dict, NewHeight, _) ->
     %take away one kind of currency from acc, give to market.
     Dict3 = market_liquidity_tx:send_stuff(From, CID1, Type1, Dict2, G1),
     Dict4 = market_liquidity_tx:send_stuff(From, CID2, Type2, Dict3, G2),
-    M2 = #market{
+    M2 = M#market{
       amount1 = M#market.amount1 - D1,
       amount2 = M#market.amount2 - D2},
     Dict5 = markets:dict_write(M2, Dict4),

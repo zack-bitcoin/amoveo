@@ -2,7 +2,7 @@
 -export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,sub_accounts/1,contracts/1,trades/1, markets/1,
 	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2, update_sub_accounts/2, update_contracts/2, update_trades/2, update_markets/2,
 	 new/6,
-	 new2/7, new3/10, empty_tree/1,
+	 new2/7, new3/10, new4/11, empty_tree/1,
 	 root_hash/1, name/1, 
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,

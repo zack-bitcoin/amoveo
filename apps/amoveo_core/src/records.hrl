@@ -197,3 +197,6 @@
 
 -record(market, {id, cid1, type1, amount1, cid2, type2, amount2, shares}).
 
+-record(market_new_tx, {from, nonce = 0, fee, cid1, cid2, type1, type2, amount1, amount2}).
+-record(market_liquidity_tx, {from, nonce, fee, mid, amount, cid1, type1, cid2, type2}).
+-record(market_swap_tx, {from, nonce, fee, mid, give, take, direction, cid1, type1, cid2, type2}).

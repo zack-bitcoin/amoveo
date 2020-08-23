@@ -324,14 +324,31 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                        trees:empty_tree(contracts),
                        trees:empty_tree(trades));
         (HeightCheck == F34) ->
+%number2name(38) -> market_new_tx;
+%number2name(39) -> market_liquidity_tx;
+%number2name(40) -> market_swap_tx;
+%number2name(41) -> market_trading_fee;
+            GT = trees:governance(NewTrees0),
+            G38 = governance:new(governance:name2number(market_new_tx),
+                                 constants:encoded_fee()),
+            G39 = governance:new(governance:name2number(market_liquidity_tx),
+                                 constants:encoded_fee()),
+            G40 = governance:new(governance:name2number(market_swap_tx),
+                                 constants:encoded_fee()),
+            G41 = governance:new(governance:name2number(market_trading_fee),
+                                 1037),%about 500000. it is out of 1 veo, so this is 0.5% 
+            GT2 = governance:write(G38, GT),
+            GT3 = governance:write(G39, GT2),
+            GT4 = governance:write(G40, GT3),
+            GTF = governance:write(G41, GT4),
             trees:new4(trees:accounts(NewTrees0),
                        trees:channels(NewTrees0),
                        trees:existence(NewTrees0),
                        trees:oracles(NewTrees0),
-                       trees:governance(NewTrees0),
+                       GTF,
                        trees:matched(NewTrees0),
                        trees:unmatched(NewTrees0),
-                       trees:sum_accounts(NewTrees0),
+                       trees:sub_accounts(NewTrees0),
                        trees:contracts(NewTrees0),
                        trees:trades(NewTrees0),
                        trees:empty_tree(markets));

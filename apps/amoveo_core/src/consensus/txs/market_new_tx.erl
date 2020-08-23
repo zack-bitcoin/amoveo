@@ -1,17 +1,24 @@
 -module(market_new_tx).
 -export([go/4, make_dict/8]).
 -include("../../records.hrl").
--record(market_new_tx, {from, fee, cid1, cid2, type1, type2, amount1, amount2}).
 
 make_dict(From, CID1, Type1, Amount1, CID2, Type2, Amount2, Fee) ->
-    #market_new_tx{from = From,
-                   fee = Fee,
-                   cid1 = CID1,
-                   type1 = Type1,
-                   amount1 = Amount1,
-                   cid2 = CID2, 
-                   type2 = Type2,
-                   amount2 = Amount2}.
+    <<N1:256>> = CID1,
+    <<N2:256>> = CID2,
+    if
+            ((N1+Type1) =< (N2 + Type2)) -> 
+            #market_new_tx{from = From,
+                           fee = Fee,
+                           cid1 = CID1,
+                           type1 = Type1,
+                           amount1 = Amount1,
+                           cid2 = CID2, 
+                           type2 = Type2,
+                           amount2 = Amount2};
+            true ->
+            make_dict(From, CID2, Type2, Amount2, CID1, Type1, Amount1, Fee)
+    end.
+
 
 go(Tx, Dict, NewHeight, _) ->
     #market_new_tx{
@@ -24,7 +31,9 @@ go(Tx, Dict, NewHeight, _) ->
     type2 = Type2,
     amount2 = Amount2} = Tx,
     false = ({CID1, Type1} == {CID2, Type2}),%dont make a market with the same asset on both sides.
-
+    <<N1:256>> = CID1,
+    <<N2:256>> = CID2,
+    true = ((N1+Type1) =< (N2+Type2)),%This way we can't make 2 markets that each are using the same pair of currencies.
     true = NewHeight > forks:get(34),
     Facc = accounts:dict_update(From, Dict, -Fee, none),
     Dict2 = accounts:dict_write(Facc, Dict),

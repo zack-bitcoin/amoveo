@@ -171,6 +171,10 @@ name2number(contract_winnings_tx) -> 34;
 name2number(contract_simplify_tx) -> 35;
 name2number(max_contract_flavors) -> 36;
 name2number(swap_tx) -> 37;
+name2number(market_new_tx) -> 38;
+name2number(market_liquidity_tx) -> 39;
+name2number(market_swap_tx) -> 40;
+name2number(market_trading_fee) -> 41;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -212,6 +216,10 @@ number2name(34) -> contract_winnings_tx;
 number2name(35) -> contract_simplify_tx;
 number2name(36) -> max_contract_flavors;
 number2name(37) -> swap_tx;
+number2name(38) -> market_new_tx;
+number2name(39) -> market_liquidity_tx;
+number2name(40) -> market_swap_tx;
+number2name(41) -> market_trading_fee;
 number2name(X) ->
     io:fwrite(X),
     1=2,

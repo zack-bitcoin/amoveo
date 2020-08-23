@@ -45,7 +45,8 @@ get(32) -> common(130300,
                   max(forks:get(10) + 1, 
                       test_height()));%subcurrencies
 get(33) -> common(126000, test_height());%enforcing max block size.
-get(34) -> common(99999999, test_height());%automatic market makers.
+get(34) -> common(99999999, max(forks:get(32) + 1,
+                                test_height()));%automatic market makers.
 get(_) -> none.
 
 top() -> top(1).

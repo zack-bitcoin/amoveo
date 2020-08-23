@@ -83,11 +83,21 @@ deserialize(B) ->
 make_id(X) ->
     X#market.id.
 make_id(CID1, Type1, CID2, Type2) ->
-    X = <<CID1/binary,
-          CID2/binary,
-          Type1:16,
-          Type2:16>>,
-    hash:doit(X).
+    %io:fwrite("markets make id \n"),
+    %io:fwrite(packer:pack([Type1, Type2, CID1, CID2])),
+    %io:fwrite("\n"),
+    <<N1:256>> = CID1,
+    <<N2:256>> = CID2,
+    if
+        ((N1+Type1) =< (N2+Type2)) ->
+            X = <<CID1/binary,
+                  CID2/binary,
+                  Type1:16,
+                  Type2:16>>,
+            hash:doit(X);
+        true ->
+            make_id(CID2, Type2, CID1, Type1)
+    end.
 
 dict_write(M, Dict) ->
    dict:store({markets, M#market.id},

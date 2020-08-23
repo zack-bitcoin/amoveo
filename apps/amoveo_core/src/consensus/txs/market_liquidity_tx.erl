@@ -1,22 +1,36 @@
 -module(market_liquidity_tx).
 -export([go/4, make_dict/4, send_stuff/5]).
 -include("../../records.hrl").
--record(market_liquidity_tx, {from, fee, nonce, mid, amount}).
 
 make_dict(From, MID, Amount, Fee) ->
     Acc = trees:get(accounts, From),
+    Market = trees:get(markets, MID),
+    #market{
+             cid1 = CID1,
+             type1 = Type1,
+             cid2 = CID2,
+             type2 = Type2
+           } = Market,
     #market_liquidity_tx{
-           from = From,
-           nonce = Acc#acc.nonce + 1,
-           mid = MID,
-           fee = Fee,
-           amount = Amount}.
+                 from = From,
+                 nonce = Acc#acc.nonce + 1,
+                 mid = MID,
+                 cid1 = CID1,
+                 type1 = Type1,
+                 cid2 = CID2,
+                 type2 = Type2,
+                 fee = Fee,
+                 amount = Amount}.
 
 go(Tx, Dict, NewHeight, _) ->
     #market_liquidity_tx{
     from = From,
     nonce = Nonce,
     mid = MID,
+    cid1 = CID1,
+    type1 = Type1,
+    cid2 = CID2,
+    type2 = Type2,
     fee = Fee,
     amount = Amount %amount is the larger of 2 amounts that could be deposited. 
    } = Tx,
