@@ -2729,9 +2729,54 @@ int 0 int 1000 \
     mine_blocks(1),
     timer:sleep(200),
 
+    success;
+test(49) ->
+    %market txs in a multi-tx
+    io:fwrite("test 49 \n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(6),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    
+    Forth = <<" macro [ nil ; \
+macro , swap cons ; \
+macro ] swap cons reverse ; \
+[ int 4294967295, int 0 ] \
+int 0 int 1000 \
+">>,
+    Contract = compiler_chalang:doit(Forth), 
+    CH = hash:doit(Contract),
+    Tx1 = contract_new_tx:make_dict(MP, CH, 2, Fee),
+    CID = contracts:make_id(CH, 2,<<0:256>>,0),
+
+    Amount = 100000000,
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee, 2, <<0:256>>, 0),
+
+    Tx3 = market_new_tx:make_dict(MP, CID, 1, Amount div 2, <<0:256>>, 0, Amount div 3, Fee),
+    MID = markets:make_id(CID, 1, <<0:256>>, 0),
+
+    Tx4 = market_liquidity_tx:make_dict(MP, MID, Amount div 4, Fee, CID, 1, <<0:256>>, 0),
+
+    Tx5 = market_swap_tx:make_dict(MP, MID, Amount div 10, Amount div 30, 1, Fee, <<0:256>>, 0, CID, 1),
+    Txs = [Tx1, Tx2, Tx3], 
+    Txs2 = [Tx4, Tx5],
+    Tx = multi_tx:make_dict(MP, Txs, Fee*3),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    MTx = multi_tx:make_dict(MP, Txs2, Fee*2),
+    SMtx = keys:sign(MTx),
+    absorb(SMtx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
     success.
-
-
 
 
 test35(_, _, _, 0) -> ok;

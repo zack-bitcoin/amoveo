@@ -1,7 +1,33 @@
 -module(market_swap_tx).
--export([go/4, make_dict/6]).
+-export([go/4, make_dict/6, make_dict/10]).
 -include("../../records.hrl").
 
+make_dict(From, MID, Give, Take, Direction, Fee, CID10, Type10, CID20, Type20) ->
+    <<N1:256>> = CID10,
+    <<N2:256>> = CID20,
+    {CID1, Type1,
+     CID2, Type2} = 
+        if
+            ((N1+Type10) =< (N2+Type20)) ->
+                {CID10, Type10,
+                 CID20, Type20};
+            true ->
+                {CID20, Type20,
+                 CID10, Type10}
+        end,
+    Acc = trees:get(accounts, From),
+    #market_swap_tx{
+                 from = From,
+                 nonce = Acc#acc.nonce + 1,
+                 mid = MID,
+                 cid1 = CID1,
+                 type1 = Type1,
+                 cid2 = CID2,
+                 type2 = Type2,
+                 fee = Fee,
+                 give = Give,
+                 take = Take,
+                 direction = Direction}.
 make_dict(From, MID, Give, Take, Direction, Fee) ->
     Acc = trees:get(accounts, From),
     Market = trees:get(markets, MID),
@@ -11,19 +37,7 @@ make_dict(From, MID, Give, Take, Direction, Fee) ->
              cid2 = CID2,
              type2 = Type2
            } = Market,
-    #market_swap_tx{
-                     from = From,
-                     nonce = Acc#acc.nonce + 1,
-                     mid = MID,
-                     cid1 = CID1,
-                     type1 = Type1,
-                     cid2 = CID2,
-                     type2 = Type2,
-                     fee = Fee,
-                     give = Give,
-                     take = Take,
-                     direction = Direction}.
-
+    make_dict(From, MID, Give, Take, Direction, Fee, CID1, Type1, CID2, Type2).
 go(Tx, Dict, NewHeight, _) ->
     #market_swap_tx{
     from = From,
@@ -79,8 +93,8 @@ go(Tx, Dict, NewHeight, _) ->
     Dict3 = market_liquidity_tx:send_stuff(From, CID1, Type1, Dict2, G1),
     Dict4 = market_liquidity_tx:send_stuff(From, CID2, Type2, Dict3, G2),
     M2 = M#market{
-      amount1 = M#market.amount1 - D1,
-      amount2 = M#market.amount2 - D2},
+      amount1 = M#market.amount1 - G1,
+      amount2 = M#market.amount2 - G2},
     Dict5 = markets:dict_write(M2, Dict4),
     Dict5.
 

@@ -1,16 +1,21 @@
 -module(market_liquidity_tx).
--export([go/4, make_dict/4, send_stuff/5]).
+-export([go/4, make_dict/4, make_dict/8, send_stuff/5]).
 -include("../../records.hrl").
 
-make_dict(From, MID, Amount, Fee) ->
+make_dict(From, MID, Amount, Fee, CID10, Type10, CID20, Type20) ->
+    <<N1:256>> = CID10,
+    <<N2:256>> = CID20,
+    {CID1, Type1,
+     CID2, Type2} = 
+        if
+            ((N1+Type10) =< (N2+Type20)) ->
+                {CID10, Type10,
+                 CID20, Type20};
+            true ->
+                {CID20, Type20,
+                 CID10, Type10}
+        end,
     Acc = trees:get(accounts, From),
-    Market = trees:get(markets, MID),
-    #market{
-             cid1 = CID1,
-             type1 = Type1,
-             cid2 = CID2,
-             type2 = Type2
-           } = Market,
     #market_liquidity_tx{
                  from = From,
                  nonce = Acc#acc.nonce + 1,
@@ -21,6 +26,15 @@ make_dict(From, MID, Amount, Fee) ->
                  type2 = Type2,
                  fee = Fee,
                  amount = Amount}.
+make_dict(From, MID, Amount, Fee) ->
+    Market = trees:get(markets, MID),
+    #market{
+             cid1 = CID1,
+             type1 = Type1,
+             cid2 = CID2,
+             type2 = Type2
+           } = Market,
+    make_dict(From, MID, Amount, Fee, CID1, Type1, CID2, Type2).
 
 go(Tx, Dict, NewHeight, _) ->
     #market_liquidity_tx{
@@ -47,15 +61,21 @@ go(Tx, Dict, NewHeight, _) ->
              shares = Shares
            } = M,
 
-    {BuyAmount1, BuyAmount2} = 
-        if
-            Amount1 > Amount2 ->
-                {Amount, Amount * Amount2 div Amount1};
-            true ->
-                {Amount * Amount1 div Amount2, Amount}
-        end,
+%    {BuyAmount1, BuyAmount2} = 
+%        if
+%            Amount1 > Amount2 ->
+%                {Amount, Amount * Amount2 div Amount1};
+%            true ->
+%                {Amount * Amount1 div Amount2, Amount}
+%        end,
 
-    SharesBought = Shares * BuyAmount1 div Amount1,
+%    SharesBought = Shares * BuyAmount1 div Amount1,
+
+    SharesBought = Amount,
+    BuyAmount1 = SharesBought * Amount1 div Shares,
+    BuyAmount2 = SharesBought * Amount2 div Shares,
+    
+
     
     %take away money from the account in the 2 subcurrency types in the same ratio as currently exists in the market.
     Dict3 = send_stuff(From, CID1, Type1, Dict2, -BuyAmount1),

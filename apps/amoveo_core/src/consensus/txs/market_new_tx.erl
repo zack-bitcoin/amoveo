@@ -3,37 +3,48 @@
 -include("../../records.hrl").
 
 make_dict(From, CID1, Type1, Amount1, CID2, Type2, Amount2, Fee) ->
-    <<N1:256>> = CID1,
-    <<N2:256>> = CID2,
-    if
-            ((N1+Type1) =< (N2 + Type2)) -> 
-            #market_new_tx{from = From,
-                           fee = Fee,
-                           cid1 = CID1,
-                           type1 = Type1,
-                           amount1 = Amount1,
-                           cid2 = CID2, 
-                           type2 = Type2,
-                           amount2 = Amount2};
-            true ->
-            make_dict(From, CID2, Type2, Amount2, CID1, Type1, Amount1, Fee)
-    end.
+%    <<N1:256>> = CID1,
+%    <<N2:256>> = CID2,
+%    if
+%            ((N1+Type1) =< (N2 + Type2)) -> 
+    #market_new_tx{from = From,
+                   fee = Fee,
+                   cid1 = CID1,
+                   type1 = Type1,
+                   amount1 = Amount1,
+                   cid2 = CID2, 
+                   type2 = Type2,
+                   amount2 = Amount2}.
+%            true ->
+%            make_dict(From, CID2, Type2, Amount2, CID1, Type1, Amount1, Fee)
+%    end.
 
 
 go(Tx, Dict, NewHeight, _) ->
     #market_new_tx{
     from = From,
     fee = Fee,
-    cid1 = CID1,
-    type1 = Type1,
-    amount1 = Amount1,
-    cid2 = CID2,
-    type2 = Type2,
-    amount2 = Amount2} = Tx,
-    false = ({CID1, Type1} == {CID2, Type2}),%dont make a market with the same asset on both sides.
-    <<N1:256>> = CID1,
-    <<N2:256>> = CID2,
-    true = ((N1+Type1) =< (N2+Type2)),%This way we can't make 2 markets that each are using the same pair of currencies.
+    cid1 = CID10,
+    type1 = Type10,
+    amount1 = Amount10,
+    cid2 = CID20,
+    type2 = Type20,
+    amount2 = Amount20} = Tx,
+    false = ({CID10, Type10} == {CID20, Type20}),%dont make a market with the same asset on both sides.
+    <<N1:256>> = CID10,
+    <<N2:256>> = CID20,
+%This way we can't make 2 markets that each are using the same pair of currencies.
+    {CID1, Type1, Amount1,
+     CID2, Type2, Amount2} = 
+        if
+            ((N1+Type10) =< (N2+Type20)) ->
+                {CID10, Type10, Amount10,
+                 CID20, Type20, Amount20};
+            true ->
+                {CID20, Type20, Amount20,
+                 CID10, Type10, Amount10}
+        end,
+    %true = ((N1+Type1) =< (N2+Type2)),
     true = NewHeight > forks:get(34),
     Facc = accounts:dict_update(From, Dict, -Fee, none),
     Dict2 = accounts:dict_write(Facc, Dict),

@@ -26,7 +26,10 @@ zero_accounts_nonces([H|T])
         is_record(H, contract_timeout_tx) or
         is_record(H, contract_simplify_tx) or
         is_record(H, contract_winnings_tx) or
-        is_record(H, contract_use_tx))
+        is_record(H, contract_use_tx) or
+        is_record(H, market_new_tx) or
+        is_record(H, market_liquidity_tx) or
+        is_record(H, market_swap_tx))
        ->
     H2 = setelement(2, H, 0),
     H3 = setelement(3, H2, 0),
@@ -94,7 +97,69 @@ swap(Tx, From, Dict, NewHeight) ->
            },
     swap_tx:go(Tx2, Dict, NewHeight, none).
 
+pay_kind(From, CID, Type, Amount, D) ->
+    case CID of
+        <<0:256>> ->
+            {give_veo(From, Amount, D),
+             {veo, Amount}};
+        _ ->
+            {give_sub(From, CID, Type, Amount, D),
+             {sub, CID, Type, Amount}}
+    end.
+    
+
 flash_loan(_, [], D, Debt) -> {D, Debt};
+flash_loan(From, [Tx|T], D, Debt)
+  when is_record(Tx, market_new_tx) ->
+    #market_new_tx{
+                  cid1 = CID1,
+                  type1 = Type1,
+                  cid2 = CID2,
+                  type2 = Type2,
+                  amount1 = Amount1,
+                  amount2 = Amount2
+                 } = Tx,
+    {D2, Debt1} = pay_kind(From, CID1, Type1, Amount1, D),
+    {D3, Debt2} = pay_kind(From, CID2, Type2, Amount2, D2),
+    flash_loan(From, T, D3, [Debt1|[Debt2|Debt]]);
+flash_loan(From, [Tx|T], D, Debt)
+  when is_record(Tx, market_liquidity_tx) ->
+    #market_liquidity_tx{
+                  cid1 = CID1,
+                  type1 = Type1,
+                  cid2 = CID2,
+                  type2 = Type2,
+                  mid = MID,
+                  amount = Amount
+                 } = Tx,
+    D2 = give_sub(From, MID, 0, Amount, D),
+    M = markets:dict_get(MID, D2),
+    #market{
+             amount1 = MA1,
+             amount2 = MA2,
+             shares = Shares
+           } = M,
+    A1 = Amount * MA1 div Shares,
+    A2 = Amount * MA2 div Shares,
+    {D3, Debt1} = pay_kind(From, CID1, Type1, A1, D2),
+    {D4, Debt2} = pay_kind(From, CID2, Type2, A2, D3),
+    Debts2 = [{sub, MID, 0, Amount}, Debt1, Debt2] ++ Debt,
+    flash_loan(From, T, D4, Debts2);
+flash_loan(From, [Tx|T], D, Debt)
+  when is_record(Tx, market_swap_tx) ->
+    #market_swap_tx{
+                  cid1 = CID1,
+                  type1 = Type1,
+                  cid2 = CID2,
+                  type2 = Type2,
+                  give = Give,
+                  take = Take,
+                  mid = MID
+                 } = Tx,
+    Amount = max(Give, Take),
+    {D2, Debt1} = pay_kind(From, CID1, Type1, Amount, D),
+    {D3, Debt2} = pay_kind(From, CID2, Type2, Amount, D2),
+    flash_loan(From, T, D3, [Debt1, Debt2] ++ Debt);
 flash_loan(From, [Tx|T], D, Debt)
   when is_record(Tx, swap_tx) ->
     #swap_tx{
