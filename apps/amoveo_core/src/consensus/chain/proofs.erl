@@ -25,7 +25,8 @@ tree_to_int(matched) -> 10;
 tree_to_int(unmatched) -> 11;
 tree_to_int(sub_accounts) -> 12;
 tree_to_int(contracts) -> 13;
-tree_to_int(trades) -> 14.
+tree_to_int(trades) -> 14;
+tree_to_int(markets) -> 15.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -39,7 +40,8 @@ int_to_tree(10) -> matched;
 int_to_tree(11) -> unmatched;
 int_to_tree(12) -> sub_accounts;
 int_to_tree(13) -> contracts;
-int_to_tree(14) -> trades.
+int_to_tree(14) -> trades;
+int_to_tree(15) -> markets.
     
 
 %deterministic merge-sort    
@@ -624,6 +626,87 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 [{governance, ?n2i(swap_tx)},
                  {trades, TradeID}] ++
                 F1 ++ F2 ++ U ++ U2;
+            market_new_tx ->
+                #market_new_tx{
+              from = From,
+              cid1 = CID1,
+              type1 = Type1,
+              cid2 = CID2,
+              type2 = Type2
+             } = Tx,
+                MID = markets:make_id(CID1, Type1, CID2, Type2),
+                MKey = sub_accounts:make_key(From, MID, 0),
+                U = case CID1 of
+                        <<0:256>> -> [];
+                        _ ->
+                            SubKey1 = sub_accounts:make_key(From, CID1, Type1),
+                            [{sub_accounts, SubKey1}]
+                    end,
+                V = case CID2 of
+                        <<0:256>> -> [];
+                        _ ->
+                            SubKey2 = sub_accounts:make_key(From, CID2, Type2),
+                            [{sub_accounts, SubKey2}]
+                    end,
+                [{governance, ?n2i(market_new_tx)},
+                 {markets, MID},
+                 {sub_accounts, MKey},
+                 {accounts, From}]
+                    ++ U ++ V;
+            market_liquidity_tx ->
+                #market_liquidity_tx{
+              from = From,
+              mid = MID,
+              cid1 = CID1,
+              type1 = Type1,
+              cid2 = CID2,
+              type2 = Type2
+             } = Tx,
+                MKey = sub_accounts:make_key(From, MID, 0),
+                U = case CID1 of
+                        <<0:256>> -> [];
+                        _ ->
+                            SubKey1 = sub_accounts:make_key(From, CID1, Type1),
+                            [{sub_accounts, SubKey1}]
+                    end,
+                V = case CID2 of
+                        <<0:256>> -> [];
+                        _ ->
+                            SubKey2 = sub_accounts:make_key(From, CID2, Type2),
+                            [{sub_accounts, SubKey2}]
+                    end,
+                [
+                 {markets, MID},
+                 {sub_accounts, MKey},
+                 {accounts, From},
+                 {governance, ?n2i(market_liquidity_tx)}]
+                    ++ U ++ V;
+            market_swap_tx ->
+                #market_swap_tx{
+              from = From,
+              mid = MID,
+              cid1 = CID1,
+              type1 = Type1,
+              cid2 = CID2,
+              type2 = Type2
+             } = Tx,
+                U = case CID1 of
+                        <<0:256>> -> [];
+                        _ ->
+                            SubKey1 = sub_accounts:make_key(From, CID1, Type1),
+                            [{sub_accounts, SubKey1}]
+                    end,
+                V = case CID2 of
+                        <<0:256>> -> [];
+                        _ ->
+                            SubKey2 = sub_accounts:make_key(From, CID2, Type2),
+                            [{sub_accounts, SubKey2}]
+                    end,
+                [{accounts, From},
+                 {markets, MID},
+                 {governance, ?n2i(market_trading_fee)},
+                 {governance, ?n2i(market_swap_tx)}]
+                    ++ U ++ V;
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

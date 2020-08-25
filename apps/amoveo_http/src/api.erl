@@ -590,6 +590,8 @@ sub_account(P) ->
     tree_common(sub_accounts, P).
 trade(TID) ->
     tree_common(trades, TID).
+market(TID) ->
+    tree_common(markets, TID).
 confirmed_balance(P) ->
     Pubkey = decode_pubkey(P),
     M = max(api:height() - 10, 1),
