@@ -19,6 +19,8 @@ contracts() ->
     S = test(45),%starts as a state channel, gets converted to a binary derivative. we post the oracle on-chain and use it to enforce the outcome of the binary derivative contract, and the correct person withdraws their winnings.
     S = test(46),%flash loans inside a multi-tx.
     S = test(47),%scalar derivative with on-chain oracle enforcement.
+    S = test(48),%on-chain market maker
+    S = test(49),%on-chain market maker in a multi-tx.x
     S.
     
     

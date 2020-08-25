@@ -9,6 +9,8 @@ initial_coins() -> 10000000000. %100 coins
 initial_fee() -> 
     governance:tree_number_to_value(encoded_fee()).
 encoded_fee() -> 905.
+initial_trading_fee() -> 936. %about 200000. it is out of 1 veo, or 100000000, so this is 0.2%
+    
     
 initial_difficulty() -> 
     %to run single-node tests, it works with 10.

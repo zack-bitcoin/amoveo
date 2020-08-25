@@ -44,8 +44,7 @@ go(Tx, Dict, NewHeight, _) ->
                 {CID20, Type20, Amount20,
                  CID10, Type10, Amount10}
         end,
-    %true = ((N1+Type1) =< (N2+Type2)),
-    true = NewHeight > forks:get(34),
+    true = NewHeight > forks:get(35),
     Facc = accounts:dict_update(From, Dict, -Fee, none),
     Dict2 = accounts:dict_write(Facc, Dict),
     Market = markets:new(CID1, Type1, Amount1, 

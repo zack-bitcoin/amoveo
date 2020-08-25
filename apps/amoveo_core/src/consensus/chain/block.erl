@@ -267,7 +267,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
     F10 = forks:get(10),
     F32 = forks:get(32),
-    F34 = forks:get(34),
+    F35 = forks:get(35),
     if
         (HeightCheck == F10)  ->%
                                                 %Root0 = constants:root0(),%
@@ -323,11 +323,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                        trees:empty_tree(sub_accounts),
                        trees:empty_tree(contracts),
                        trees:empty_tree(trades));
-        (HeightCheck == F34) ->
-%number2name(38) -> market_new_tx;
-%number2name(39) -> market_liquidity_tx;
-%number2name(40) -> market_swap_tx;
-%number2name(41) -> market_trading_fee;
+        (HeightCheck == F35) ->
             GT = trees:governance(NewTrees0),
             G38 = governance:new(governance:name2number(market_new_tx),
                                  constants:encoded_fee()),
@@ -336,7 +332,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
             G40 = governance:new(governance:name2number(market_swap_tx),
                                  constants:encoded_fee()),
             G41 = governance:new(governance:name2number(market_trading_fee),
-                                 936),%about 200000. it is out of 1 veo, so this is 0.2% 
+                                 constants:initial_trading_fee()),%about 200000. it is out of 1 veo, so this is 0.2% 
             GT2 = governance:write(G38, GT),
             GT3 = governance:write(G39, GT2),
             GT4 = governance:write(G40, GT3),
