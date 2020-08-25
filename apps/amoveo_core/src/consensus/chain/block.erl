@@ -336,7 +336,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
             G40 = governance:new(governance:name2number(market_swap_tx),
                                  constants:encoded_fee()),
             G41 = governance:new(governance:name2number(market_trading_fee),
-                                 1037),%about 500000. it is out of 1 veo, so this is 0.5% 
+                                 936),%about 200000. it is out of 1 veo, so this is 0.2% 
             GT2 = governance:write(G38, GT),
             GT3 = governance:write(G39, GT2),
             GT4 = governance:write(G40, GT3),
