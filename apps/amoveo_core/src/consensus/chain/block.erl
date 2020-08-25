@@ -19,7 +19,8 @@
 -include("../../records.hrl").
 -record(roots, {accounts, channels, existence, oracles, governance}).%
 -record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
--record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades}).
+-record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades}).%
+-record(roots4, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -266,6 +267,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
     F10 = forks:get(10),
     F32 = forks:get(32),
+    F34 = forks:get(34),
     if
         (HeightCheck == F10)  ->%
                                                 %Root0 = constants:root0(),%
@@ -321,6 +323,35 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                        trees:empty_tree(sub_accounts),
                        trees:empty_tree(contracts),
                        trees:empty_tree(trades));
+        (HeightCheck == F34) ->
+%number2name(38) -> market_new_tx;
+%number2name(39) -> market_liquidity_tx;
+%number2name(40) -> market_swap_tx;
+%number2name(41) -> market_trading_fee;
+            GT = trees:governance(NewTrees0),
+            G38 = governance:new(governance:name2number(market_new_tx),
+                                 constants:encoded_fee()),
+            G39 = governance:new(governance:name2number(market_liquidity_tx),
+                                 constants:encoded_fee()),
+            G40 = governance:new(governance:name2number(market_swap_tx),
+                                 constants:encoded_fee()),
+            G41 = governance:new(governance:name2number(market_trading_fee),
+                                 936),%about 200000. it is out of 1 veo, so this is 0.2% 
+            GT2 = governance:write(G38, GT),
+            GT3 = governance:write(G39, GT2),
+            GT4 = governance:write(G40, GT3),
+            GTF = governance:write(G41, GT4),
+            trees:new4(trees:accounts(NewTrees0),
+                       trees:channels(NewTrees0),
+                       trees:existence(NewTrees0),
+                       trees:oracles(NewTrees0),
+                       GTF,
+                       trees:matched(NewTrees0),
+                       trees:unmatched(NewTrees0),
+                       trees:sub_accounts(NewTrees0),
+                       trees:contracts(NewTrees0),
+                       trees:trades(NewTrees0),
+                       trees:empty_tree(markets));
         true -> NewTrees0
     end.
 
@@ -426,7 +457,20 @@ make_roots(Trees) when (element(1, Trees) == trees3) ->
 	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
            sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
            contracts = trie:root_hash(contracts, trees:contracts(Trees)),
-           trades = trie:root_hash(trades, trees:trades(Trees))}.
+            trades = trie:root_hash(trades, trees:trades(Trees))};
+make_roots(Trees) when (element(1, Trees) == trees4) ->
+    #roots4{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
+           channels = trie:root_hash(channels, trees:channels(Trees)),
+           existence = trie:root_hash(existence, trees:existence(Trees)),
+           oracles = trie:root_hash(oracles, trees:oracles(Trees)),
+           governance = trie:root_hash(governance, trees:governance(Trees)),
+	   matched = trie:root_hash(matched, trees:matched(Trees)),
+	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
+           sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
+           contracts = trie:root_hash(contracts, trees:contracts(Trees)),
+            trades = trie:root_hash(trades, trees:trades(Trees)),
+            markets = trie:root_hash(markets, trees:markets(Trees))}.
+
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
     C = X#roots.channels,%
@@ -457,6 +501,20 @@ roots_hash(X) when is_record(X, roots3) ->
     Con = X#roots3.contracts,
     Tra = X#roots3.trades,
     Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary>>,
+    hash:doit(Y);
+roots_hash(X) when is_record(X, roots4) ->
+    A = X#roots4.accounts,
+    C = X#roots4.channels,
+    E = X#roots4.existence,
+    O = X#roots4.oracles,
+    G = X#roots4.governance,
+    M = X#roots4.matched,
+    U = X#roots4.unmatched,
+    SA = X#roots4.sub_accounts,
+    Con = X#roots4.contracts,
+    Tra = X#roots4.trades,
+    Markets = X#roots4.markets,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary, Markets/binary>>,
     hash:doit(Y).
     
 guess_number_of_cpu_cores() ->
@@ -570,7 +628,25 @@ proofs_roots_match([P|T], R) when is_record(R, roots3)->
                contracts -> R#roots3.contracts;
                trades -> R#roots3.trades
 	   end,
+    proofs_roots_match(T, R);
+proofs_roots_match([P|T], R) when is_record(R, roots4)->
+    Tree = proofs:tree(P),
+    Root = proofs:root(P),
+    Root = case Tree of
+	       accounts -> R#roots4.accounts;
+	       channels -> R#roots4.channels;
+	       existence -> R#roots4.existence;
+	       oracles -> R#roots4.oracles;
+	       governance -> R#roots4.governance;
+	       matched -> R#roots4.matched;
+	       unmatched -> R#roots4.unmatched;
+               sub_accounts -> R#roots4.sub_accounts;
+               contracts -> R#roots4.contracts;
+               trades -> R#roots4.trades;
+               markets -> R#roots4.markets
+	   end,
     proofs_roots_match(T, R).
+
 check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,
     Header = block_to_header(Block),
@@ -1384,6 +1460,22 @@ sum_amounts_helper(_, empty, _, _, _) -> 0;
 sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
     0;
 sum_amounts_helper(trades, Acc, Dict, _, _) -> 0;
+sum_amounts_helper(markets, M, Dict, _, _) ->
+    #market{
+              cid1 = CID1,
+              cid2 = CID2,
+              amount1 = Amount1,
+              amount2 = Amount2
+            } = M,
+    A1 = case CID1 of
+             <<0:256>> -> Amount1;
+             _ -> 0
+         end,
+    A2 = case CID2 of
+             <<0:256>> -> Amount2;
+             _ -> 0
+         end,
+    A1 + A2;
 sum_amounts_helper(contracts, Acc, Dict, _, _) ->
     case Acc#contract.source of
         <<0:256>> ->

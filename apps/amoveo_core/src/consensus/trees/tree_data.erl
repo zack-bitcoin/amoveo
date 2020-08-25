@@ -101,6 +101,10 @@ internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees2) ->
 internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees3)->
     Types = [accounts, oracles, channels, existence, governance, matched, unmatched, sub_accounts, contracts, trades],
     Keys = dict:fetch_keys(Dict),
+    idut2(Types, Trees, Dict, Keys);
+internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees4)->
+    Types = [accounts, oracles, channels, existence, governance, matched, unmatched, sub_accounts, contracts, trades, markets],
+    Keys = dict:fetch_keys(Dict),
     idut2(Types, Trees, Dict, Keys).
 
 idut2([], Trees, _, _) -> Trees;
