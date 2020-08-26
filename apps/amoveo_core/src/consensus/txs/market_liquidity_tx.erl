@@ -90,7 +90,7 @@ go(Tx, Dict, NewHeight, _) ->
     Dict5 = markets:dict_write(M2, Dict4),
 
     %give the account liquidity shares according to the fraction of the liquidity that they had provided.
-    Dict6 = send_stuff(From, MID, 0, Dict5, Shares),
+    Dict6 = send_stuff(From, MID, 0, Dict5, SharesBought),
     Dict6.
 
 send_stuff(_, _, _, Dict, 0) -> Dict;

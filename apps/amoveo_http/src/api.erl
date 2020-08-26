@@ -580,6 +580,10 @@ account(P, BlockHash) ->
     Pubkey = decode_pubkey(P),
     tree_common(accounts, Pubkey, BlockHash).
 account() -> account(keys:pubkey()).
+accounts() -> 
+    accounts:all_accounts().
+accounts(2) -> 
+    sub_accounts:all_accounts().
 sub_account(P, CID, Type, BlockHash) ->
     Key = sub_accounts:make_key(P, CID, Type),
     tree_common(sub_accounts, Key, BlockHash).
