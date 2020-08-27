@@ -115,6 +115,36 @@ handle(Req, State) ->
                <<"/loop.js">> -> true;
                <<"/utils.js">> -> true;
                <<"/add.js">> -> true;
+               <<"/contracts.html">> -> true;
+               <<"/binary_id.js">> -> true;
+               <<"/resolve_binary_contract.js">> -> true;
+               <<"/binary_contract_winnings.js">> -> true;
+               <<"/scalar_id.js">> -> true;
+               <<"/scalar_oracle_creation.js">> -> true;
+               <<"/resolve_scalar_contract.js">> -> true;
+               <<"/resolve_scalar_winnings.js">> -> true;
+               <<"/subcurrency_balance.js">> -> true;
+               <<"/subcurrency_spender.js">> -> true;
+               <<"/subcurrency_combiner.js">> -> true;
+               <<"/subcurrency_set_buy.js">> -> true;
+               <<"/explore_swap_offers.js">> -> true;
+               <<"/swap_viewer.js">> -> true;
+               <<"/swap_offer.js">> -> true;
+               <<"/publish_swap_offer.js">> -> true;
+               <<"/check_binary_contract.js">> -> true;
+               <<"/teach_scalar_contract.js">> -> true;
+               <<"/market_viewer.js">> -> true;
+               <<"/market_swap.js">> -> true;
+               <<"/market_liquidity_balance.js">> -> true;
+               <<"/market_liquidity.js">> -> true;
+               <<"/new_market.js">> -> true;
+               <<"/new_contract.js">> -> true;
+               <<"/new_scalar_contract.js">> -> true;
+               <<"/multi_tx.js">> -> true;
+               <<"/binary_derivative.js">> -> true;
+               <<"/scalar_derivative.js">> -> true;
+               <<"/swaps.js">> -> true;
+               <<"/sub_accounts.js">> -> true;
                X -> 
                    %io:fwrite("ext file handler block access to: "),
                    %io:fwrite(X),
