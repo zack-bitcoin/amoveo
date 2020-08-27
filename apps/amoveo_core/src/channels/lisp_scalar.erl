@@ -196,7 +196,7 @@ test() ->
     %Stx2 = keys:sign(Tx2),
     %test_txs:absorb(Stx2),
 
-    {NewPub,NewPriv} = testnet_sign:new_key(),
+    {NewPub,NewPriv} = signing:new_key(),
     Amount = 1000000,
     Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
     Stx3 = keys:sign(Ctx),
@@ -208,7 +208,7 @@ test() ->
     Ctx4 = new_channel_tx:make_dict(CID, constants:master_pub(), NewPub, 10000, 20000, Delay, Fee),
     %io:fwrite(packer:pack(Ctx4)),
     Stx4 = keys:sign(Ctx4),
-    SStx4 = testnet_sign:sign_tx(Stx4, NewPub, NewPriv), 
+    SStx4 = signing:sign_tx(Stx4, NewPub, NewPriv), 
     test_txs:absorb(SStx4),
     timer:sleep(400),
     test2(NewPub, Many, StartHeight, OIDL). 
@@ -232,7 +232,7 @@ test2(NewPub, Many, StartHeight, OIDL) ->
 %market_smart_contract(BetLocation, MarketID, Direction, Expires, MaxPrice, Pubkey,Period,Amount, OID) ->
     Bet = market_smart_contract(MarketID,1, 1000, 4000, keys:pubkey(),Period,100,OID, 0, LL, UL, StartHeight),
     SPK = spk:new(constants:master_pub(), NewPub, <<1:256>>, [Bet], Gas, Gas, 1, 0),
-						%ScriptPubKey = testnet_sign:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
+						%ScriptPubKey = signing:sign_tx(keys:sign(SPK), NewPub, NewPriv, ID2, Accounts5),
 						%we need to try running it in all 4 ways of market, and all 4 ways of oracle_bet.
     Price = 3500,
     _Height = 1,

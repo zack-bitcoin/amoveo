@@ -2,7 +2,7 @@
 -export([digest/3, developer_lock/3, key2module/1, txid/1]).
 txid(T) ->
     T2 = case element(1, T) of
-             signed -> testnet_sign:data(T);
+             signed -> signing:data(T);
              _ -> T
          end,
     hash:doit(T2).
@@ -15,8 +15,8 @@ digest([C|T], Dict, H) ->
     end.
 digest_txs([], Dict, _) -> Dict;
 digest_txs([STx|T], Dict, Height) ->
-    true = testnet_sign:verify(STx),
-    Tx = testnet_sign:data(STx),
+    true = signing:verify(STx),
+    Tx = signing:data(STx),
     Fee = element(4, Tx),
     true = Fee > 0,
     Key = element(1, Tx),

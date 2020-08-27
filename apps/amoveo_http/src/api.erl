@@ -21,7 +21,7 @@ block(3, N) ->
     Txs = tl(block(1, N)),
     Txids = lists:map(
 	      fun(Tx) -> txs:txid(Tx) end,
-%                      hash:doit(testnet_sign:data(Tx)) end, 
+%                      hash:doit(signing:data(Tx)) end, 
 	      Txs),
     [Txs, Txids];
 block(2, H) ->
@@ -229,9 +229,9 @@ pull_channel_state(IP, Port) ->
         error  -> 
             %This trusts the server and downloads a new version of the state from them. It is only suitable for testing and development. Do not use this in production.
             SPKME = CD#cd.them,
-            true = testnet_sign:verify(keys:sign(ThemSPK)),
-            SPK = testnet_sign:data(ThemSPK),
-            SPK = testnet_sign:data(SPKME),
+            true = signing:verify(keys:sign(ThemSPK)),
+            SPK = signing:data(ThemSPK),
+            SPK = signing:data(SPKME),
             true = keys:pubkey() == element(2, SPK),
             NewCD = CD#cd{me = SPK, them = ThemSPK, ssme = CD#cd.ssthem, ssthem = CD#cd.ssme},
             channel_manager:write(ServerID, NewCD);
@@ -280,7 +280,7 @@ channel_spend(Amount) ->
 channel_spend(IP, Port, Amount) ->
     {ok, PeerId} = talker:talk({pubkey}, IP, Port),
     {ok, CD} = channel_manager:read(PeerId),
-    OldSPK = testnet_sign:data(CD#cd.them),
+    OldSPK = signing:data(CD#cd.them),
     ID = keys:pubkey(),
     SPK = spk:get_paid(OldSPK, ID, -Amount), 
     Payment = keys:sign(SPK),
@@ -301,15 +301,15 @@ lightning_spend(IP, Port, Pubkey, Amount, Fee, Code, SS) ->
     ESS = keys:encrypt([SS, Code, Amount], Pubkey),
     SSPK = channel_feeder:make_locked_payment(ServerID, Amount+Fee, Code),
     {ok, SSPK2} = talker:talk({locked_payment, SSPK, Amount, Fee, Code, keys:pubkey(), Pubkey, ESS}, IP, Port),
-    true = testnet_sign:verify(keys:sign(SSPK2)),
-    SPK = testnet_sign:data(SSPK),
-    SPK = testnet_sign:data(SSPK2),
+    true = signing:verify(keys:sign(SSPK2)),
+    SPK = signing:data(SSPK),
+    SPK = signing:data(SSPK2),
     channel_manager_update(ServerID, SSPK2, spk:new_ss(compiler_chalang:doit(<<>>), [])),
     ok.
 channel_manager_update(ServerID, SSPK2, DefaultSS) ->
     %store SSPK2 in channel manager, it is their most recent signature.
     {ok, CD} = channel_manager:read(ServerID),
-    SPK = testnet_sign:data(SSPK2),
+    SPK = signing:data(SSPK2),
     NewCD = CD#cd{me = SPK, them = SSPK2, ssme = [DefaultSS|CD#cd.ssme], ssthem = [DefaultSS|CD#cd.ssthem]},
     channel_manager:write(ServerID, NewCD),
     ok.
@@ -326,7 +326,7 @@ integer_channel_balance(Ip, Port) ->
     
     {ok, CD} = channel_manager:read(Other),
     SSPK = CD#cd.them,
-    SPK = testnet_sign:data(SSPK),
+    SPK = signing:data(SSPK),
     %SS = CD#cd.ssthem,
     TP = tx_pool:get(),
     _NewHeight = TP#tx_pool.height,
@@ -663,7 +663,7 @@ channel_close(IP, Port) ->
 channel_close(IP, Port, Fee) ->
     {ok, PeerId} = talker:talk({pubkey}, IP, Port),
     {ok, CD} = channel_manager:read(PeerId),
-    SPK = testnet_sign:data(CD#cd.them),
+    SPK = signing:data(CD#cd.them),
     Dict = (tx_pool:get())#tx_pool.dict,
     Height = (block:get_by_hash(headers:top()))#block.height,
     SS = CD#cd.ssthem,
@@ -714,7 +714,7 @@ sync(2, IP, Port) ->
 keypair() -> keys:keypair().
 pubkey() -> base64:encode(keys:pubkey()).
 new_pubkey(Password) -> keys:new(Password).
-new_keypair() -> testnet_sign:new_key().
+new_keypair() -> signing:new_key().
 test() -> {test_response}.
 test_cron() ->
     spawn(fun() ->
@@ -822,8 +822,8 @@ trade(Price, Type, A, OID, Height, Fee, IP, Port) ->
     Msg = packer:unpack(packer:pack(Msg)),%sanity check
     {ok, SSPK2} =
 	talker:talk(Msg, IP, Port),
-    SPK = testnet_sign:data(SSPK),
-    SPK = testnet_sign:data(SSPK2),
+    SPK = signing:data(SSPK),
+    SPK = signing:data(SSPK2),
     channel_manager_update(ServerID, SSPK2, market:unmatched(OID)),
     0.
 cancel_trade(N) ->

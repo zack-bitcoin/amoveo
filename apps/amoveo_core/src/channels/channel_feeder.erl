@@ -28,7 +28,7 @@ handle_cast(garbage, X) ->
     {noreply, X};
 handle_cast({new_channel, Tx, SSPK, Expires}, X) ->
     %a new channel with our ID was just created on-chain. We should record an empty SPK in this database so we can accept channel payments.
-    SPK = testnet_sign:data(SSPK),
+    SPK = signing:data(SSPK),
     Height = block:height(),
     F29 = forks:get(29),
     CID0 = new_channel_tx:cid(Tx),
@@ -43,14 +43,14 @@ handle_cast({new_channel, Tx, SSPK, Expires}, X) ->
     {noreply, X};
 handle_cast({close, SS, STx}, X) ->
     %closing the channel at it's current SPK
-    Tx = testnet_sign:data(STx),
+    Tx = signing:data(STx),
     OtherID = other(Tx),
     {ok, CD} = channel_manager:read(OtherID),
     true = CD#cd.live,
     SPKM = CD#cd.me,
     A1 = SPKM#spk.acc1, 
     A2 = SPKM#spk.acc2,
-    SPK = testnet_sign:data(CD#cd.them),
+    SPK = signing:data(CD#cd.them),
     A3 = channel_team_close_tx:acc1(Tx),
     A4 = channel_team_close_tx:acc2(Tx),
     K = keys:pubkey(),
@@ -86,9 +86,9 @@ handle_call({combine_cancel_assets, TheirPub, IP, Port}, _From, X) ->
     Msg = {combine_cancel_assets, keys:pubkey(), SSPK},
     Msg = packer:unpack(packer:pack(Msg)),
     {ok, SSPK2} = talker:talk(Msg, IP, Port),
-    true = testnet_sign:verify(keys:sign(SSPK2)),
-    SPK = testnet_sign:data(SSPK),
-    SPK = testnet_sign:data(SSPK2),
+    true = signing:verify(keys:sign(SSPK2)),
+    SPK = signing:data(SSPK),
+    SPK = signing:data(SSPK2),
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
                      ssme = NewSS, ssthem = NewSS},
     channel_manager:write(TheirPub, NewCD),
@@ -96,8 +96,8 @@ handle_call({combine_cancel_assets, TheirPub, IP, Port}, _From, X) ->
 handle_call({combine_cancel_assets_server, TheirPub, SSPK2}, _From, X) ->
     {ok, OldCD} = channel_manager:read(TheirPub),
     {SSPK, NewSS} = combine_cancel_common(OldCD),
-    SPK = testnet_sign:data(SSPK),
-    SPK2 = testnet_sign:data(SSPK2),
+    SPK = signing:data(SSPK),
+    SPK2 = signing:data(SSPK2),
     io:fwrite("combine cancel assets spks should match\n"),
     io:fwrite(packer:pack(SPK)),%didn't close any bets
     io:fwrite("\n"),
@@ -112,8 +112,8 @@ handle_call({combine_cancel_assets_server, TheirPub, SSPK2}, _From, X) ->
 handle_call({cancel_trade_server, N, TheirPub, SSPK2}, _From, X) ->
     {ok, OldCD} = channel_manager:read(TheirPub),
     SSPK = cancel_trade_common(N, OldCD), 
-    SPK = testnet_sign:data(SSPK),
-    SPK2 = testnet_sign:data(SSPK2),
+    SPK = signing:data(SSPK),
+    SPK2 = signing:data(SSPK2),
     SPK = SPK2,
     Bets = (OldCD#cd.me)#spk.bets,
     Bet = element(N-1, list_to_tuple(Bets)),
@@ -141,9 +141,9 @@ handle_call({cancel_trade, N, TheirPub, IP, Port}, _From, X) ->
     Msg = {cancel_trade, keys:pubkey(), N, SSPK},
     Msg = packer:unpack(packer:pack(Msg)),
     {ok, SSPK2} = talker:talk(Msg, IP, Port),
-    true = testnet_sign:verify(keys:sign(SSPK2)),
-    SPK = testnet_sign:data(SSPK),
-    SPK = testnet_sign:data(SSPK2),
+    true = signing:verify(keys:sign(SSPK2)),
+    SPK = signing:data(SSPK),
+    SPK = signing:data(SSPK2),
     NewCD = OldCD#cd{them = SSPK2, me = SPK,
                      ssme = spk:remove_nth(N-1, OldCD#cd.ssme),
                      ssthem = spk:remove_nth(N-1, OldCD#cd.ssthem)},
@@ -158,9 +158,9 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     io:fwrite(packer:pack(keys:sign(SSPK))),
     io:fwrite("\n"),
     io:fwrite("channel feeder serialized\n"),
-    io:fwrite(base64:encode(sign:serialize(testnet_sign:data(SSPK)))),
+    io:fwrite(base64:encode(sign:serialize(signing:data(SSPK)))),
     io:fwrite("\n"),
-    true = testnet_sign:verify(keys:sign(SSPK)),%breaks here
+    true = signing:verify(keys:sign(SSPK)),%breaks here
     true = Amount > 0,
     {ok, LF} = application:get_env(amoveo_core, lightning_fee),
     true = Fee > LF,
@@ -176,8 +176,8 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     ChannelExpires = OldCD#cd.expiration,
     true = Expires < ChannelExpires,%The channel has to be open long enough for the market to close.
     SSPK2 = trade(Amount, Price, SC, ID, OID),%bad
-    SPK = testnet_sign:data(SSPK),
-    SPK2 = testnet_sign:data(SSPK2),%bad
+    SPK = signing:data(SSPK),
+    SPK2 = signing:data(SSPK2),%bad
     io:fwrite("channel feeder spks \n"),
     io:fwrite(packer:pack(SPK)), %bet amount 500
     io:fwrite("\n"),
@@ -206,18 +206,18 @@ handle_call({trade, ID, Price, Type, Amount, OID, SSPK, Fee}, _From, X) ->%id is
     {reply, keys:sign(SSPK), X};
 handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From, X) ->
 %giving us money conditionally, and asking us to forward it with a similar condition to someone else.
-    true = testnet_sign:verify(keys:sign(SSPK)),
+    true = signing:verify(keys:sign(SSPK)),
     true = Amount > 0,
     {ok, LightningFee} = application:get_env(amoveo_core, lightning_fee),
     true = Fee > LightningFee,
     Return = make_locked_payment(Sender, Amount+Fee, Code),
-    SPK = testnet_sign:data(SSPK),%first is from them
-    SPK22 = testnet_sign:data(Return),
+    SPK = signing:data(SSPK),%first is from them
+    SPK22 = signing:data(Return),
     io:fwrite("lock spend compare spks "),
     io:fwrite(packer:pack([SPK, SPK22])),
     SPK = SPK22,
     {ok, OldCD} = channel_manager:read(Sender),
-    OldSPK = testnet_sign:data(OldCD#cd.them),
+    OldSPK = signing:data(OldCD#cd.them),
     %Use OldSPK to see if they have enough money to make this payment.
     NewCD = OldCD#cd{them = SSPK, me = SPK, 
 		     ssme = [spk:new_ss(<<>>, [])|OldCD#cd.ssme],
@@ -226,15 +226,15 @@ handle_call({lock_spend, SSPK, Amount, Fee, Code, Sender, Recipient, ESS}, _From
     arbitrage:write(Code, [Sender, Recipient]),
     Channel2 = make_locked_payment(Recipient, -Amount, Code),
     {ok, OldCD2} = channel_manager:read(Recipient),
-    NewCD2 = OldCD2#cd{me = testnet_sign:data(Channel2),
+    NewCD2 = OldCD2#cd{me = signing:data(Channel2),
 		       ssme = [spk:new_ss(<<>>, [])|OldCD2#cd.ssme],
 		       emsg = [ESS|OldCD2#cd.emsg]},
     channel_manager:write(Recipient, NewCD2),
     {reply, Return, X};
 handle_call({spend, SSPK, Amount}, _From, X) ->
 %giving us money in the channel.
-    true = testnet_sign:verify(keys:sign(SSPK)),
-    SPK = testnet_sign:data(SSPK),
+    true = signing:verify(keys:sign(SSPK)),
+    SPK = signing:data(SSPK),
     Other = other(SPK),
     {ok, OldCD} = channel_manager:read(Other),
     true = OldCD#cd.live,
@@ -247,7 +247,7 @@ handle_call({spend, SSPK, Amount}, _From, X) ->
 handle_call({update_to_me, SSPK, From}, _From, X) ->
     %this updates our partner's side of the channel state to include the bet that we already included.
     MyID = keys:pubkey(),
-    SPK = testnet_sign:data(SSPK),
+    SPK = signing:data(SSPK),
     Acc1 = SPK#spk.acc1,
     Acc2 = SPK#spk.acc2,
     From = case MyID of
@@ -255,7 +255,7 @@ handle_call({update_to_me, SSPK, From}, _From, X) ->
 	Acc2 -> Acc1;
 	X -> X = Acc1
     end,	
-    true = testnet_sign:verify(keys:sign(SSPK)),
+    true = signing:verify(keys:sign(SSPK)),
     {ok, OldCD} = channel_manager:read(From),
     if
 	SPK == OldCD#cd.me -> ok;
@@ -276,9 +276,9 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
     true = CD0#cd.live,
     SPKME = CD0#cd.me,
     SSME = CD0#cd.ssme,
-    true = testnet_sign:verify(keys:sign(ThemSPK)),
+    true = signing:verify(keys:sign(ThemSPK)),
     true = CD#cd.live,
-    NewSPK = testnet_sign:data(ThemSPK),
+    NewSPK = signing:data(ThemSPK),
     NewSPK = CD#cd.me,
     SS = CD#cd.ssme,
     SS4 = CD#cd.ssthem,%is this wrong?
@@ -307,8 +307,8 @@ handle_call({they_simplify, From, ThemSPK, CD}, _FROM, X) ->
 			Return;
 		    true ->
 			{SS5, Return} = simplify_helper(From, SS4),%this should get rid of one of the bets. %using spk:bet_unlock/2
-			SPK = testnet_sign:data(ThemSPK),
-			SPK2 = testnet_sign:data(Return),
+			SPK = signing:data(ThemSPK),
+			SPK2 = signing:data(Return),
 			SPK = SPK2,
 			Data = new_cd(SPK, ThemSPK, SS5, SS5, CID, CD#cd.expiration),
 			channel_manager:write(From, Data),
@@ -389,7 +389,7 @@ depth_check2(SPK, C, OldC) ->
 	true -> neither
     end.
 other(X) when element(1, X) == signed ->
-    other(testnet_sign:data(X));
+    other(signing:data(X));
 other(SPK) when element(1, SPK) == spk ->
     other(SPK#spk.acc1, SPK#spk.acc2);
 other(Tx) when element(1, Tx) == ctc ->

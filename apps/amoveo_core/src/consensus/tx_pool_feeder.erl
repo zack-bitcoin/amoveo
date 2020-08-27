@@ -38,7 +38,7 @@ terminate(_, _) ->
 code_change(_, S, _) -> {ok, S}.
 is_in(_, []) -> false;
 is_in(Tx, [STx2 | T]) ->
-    Tx2 = testnet_sign:data(STx2),
+    Tx2 = signing:data(STx2),
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
     S = self(),
@@ -64,13 +64,13 @@ absorb_internal2(SignedTx, PID) ->
     %io:fwrite("now 2 "),%200
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    Tx = testnet_sign:data(SignedTx),
+    Tx = signing:data(SignedTx),
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
     case is_in(Tx, Txs) of
         true -> PID ! error;
         false -> 
-	    true = testnet_sign:verify(SignedTx),
+	    true = signing:verify(SignedTx),
 	    Fee = element(4, Tx),
 	    Type = element(1, Tx),
     %io:fwrite("now 3 "),%1500

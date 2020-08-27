@@ -11,7 +11,7 @@ bal2(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.bal2.
 delay(X) -> X#nc_accept.nc_offer#signed.data#nc_offer.delay.
 cid(Tx) -> Tx#nc_accept.nc_offer#signed.data#nc_offer.id.
 make_dict(Pub, NCOffer, Fee, SPK) ->
-    NCO = testnet_sign:data(NCOffer),
+    NCO = signing:data(NCOffer),
     CH = NCO#nc_offer.contract_hash,
     CS = spk:sign(SPK, 2),%should be signed by acc2
     
@@ -23,7 +23,7 @@ make_dict(Pub, NCOffer, Fee, SPK) ->
               true -> 
                   element(2, element(3, CS))
           end,
-    B1 = testnet_sign:verify_sig(CH, Sig, keys:pubkey()),
+    B1 = signing:verify_sig(CH, Sig, keys:pubkey()),
 
     %CS2 = setelement(3, setelement(2, CS, CH), Sig),
     %true = spk:verify_sig(CS),
@@ -69,9 +69,9 @@ go(Tx, Dict, NewHeight, _) ->
     ToAcc1 = ((Fee) - (DefaultFee)) * (10000 div MC), %this is how we can incentivize limit-order like behaviour.
     %CS = Tx#nc_accept.contract_sig,
     %CH = NCO#nc_offer.contract_hash,
-    true = testnet_sign:verify_sig(CH, CS, Aid2),
-    %true = testnet_sign:verify(CS2),
-    true = testnet_sign:verify(SNCO),
+    true = signing:verify_sig(CH, CS, Aid2),
+    %true = signing:verify(CS2),
+    true = signing:verify(SNCO),
     empty = channels:dict_get(ID, Dict),
     false = Aid1 == Aid2,
     %Bal1 = bal2(Tx),%BAD

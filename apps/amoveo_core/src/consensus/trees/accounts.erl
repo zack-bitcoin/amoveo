@@ -154,7 +154,7 @@ all_accounts() ->
     A2.
 
 test() ->
-    {Pub, _Priv} = testnet_sign:new_key(),
+    {Pub, _Priv} = signing:new_key(),
     Acc = new(Pub, 0),
     S = serialize(Acc),
     Acc1 = deserialize(S),

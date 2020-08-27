@@ -133,7 +133,7 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
 doit({txs, [Tx]}) ->
     X = tx_pool_feeder:absorb(Tx),
     Y = case X of
-	    ok -> hash:doit(testnet_sign:data(Tx));
+	    ok -> hash:doit(signing:data(Tx));
 	    _ -> <<"error">>
         end,
     {ok, Y};
@@ -144,7 +144,7 @@ doit({txs, 3, N}) ->
     B = block:get_by_height(N),
     Txs = tl(B#block.txs),
     Txids = lists:map(
-	      fun(Tx) -> hash:doit(testnet_sign:data(Tx)) end, 
+	      fun(Tx) -> hash:doit(signing:data(Tx)) end, 
 	      Txs),
     X = [Txs, Txids],
     {ok, X};
@@ -180,8 +180,8 @@ doit({new_channel, STx, SSPK, Expires}) ->
     {ok, MinimumChannelLifespan} = 
         application:get_env(amoveo_core, min_channel_lifespan),
     true = LifeSpan > MinimumChannelLifespan,
-    Tx = testnet_sign:data(STx),
-    SPK = testnet_sign:data(SSPK),
+    Tx = signing:data(STx),
+    SPK = signing:data(SSPK),
     TheirPub = channel_feeder:other(Tx),
     error = channel_manager:read(TheirPub),
     %undefined = channel_feeder:cid(Tx),
@@ -213,7 +213,7 @@ doit({channel_payment, SSPK, Amount}) ->
     {ok, R};
 doit({channel_close, CID, PeerId, SS, STx}) ->
     channel_feeder:close(SS, STx),
-    Tx = testnet_sign:data(STx),
+    Tx = signing:data(STx),
     Fee = channel_team_close_tx:fee(Tx),
     {ok, CD} = channel_manager:read(PeerId),
     SPK = CD#cd.me,
@@ -334,8 +334,8 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     true = Expires < CD#cd.expiration,
     %SC = market:market_smart_contract(BetLocation, OID, Type, Expires, Price, keys:pubkey(), Period, Amount, OID, api:height()),
     SSPK2 = channel_feeder:trade(Account, Price, Type, Amount, OID, SSPK, Fee),
-    SPK = testnet_sign:data(SSPK),
-    SPK = testnet_sign:data(SSPK2),
+    SPK = signing:data(SSPK),
+    SPK = signing:data(SSPK2),
     Order = order_book:make_order(Account, Price, Type, Amount),
     order_book:add(Order, OID),
     {ok, SSPK2};

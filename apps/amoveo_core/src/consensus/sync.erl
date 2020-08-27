@@ -194,18 +194,13 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 	    end
     end.
 get_headers3(Peer, N) ->
-    %io:fwrite("get headers 3 "),
-    %io:fwrite(integer_to_list(N)),
-    %io:fwrite("\n"),
     AH = api:height(),
     {ok, HB} = ?HeadersBatch,
     true = (N > AH - HB - 1),
     Headers = remote_peer({headers, HB, N}, Peer),
     AH2 = api:height(),
     true = (N > AH2 - HB - 1),
-    %spawn(fun() ->
     headers:absorb(Headers),
-%end),
     if
         length(Headers) > (HB div 2) -> 
             get_headers3(Peer, N+HB-1);
@@ -216,7 +211,6 @@ new_get_blocks(Peer, N, TheirBlockHeight, _) when (N > TheirBlockHeight) ->
 new_get_blocks(Peer, N, TheirBlockHeight, 0) ->
     io:fwrite("gave up syncing");
 new_get_blocks(Peer, N, TheirBlockHeight, Tries) ->
-    %io:fwrite("new get blocks 0 \n"),
     go = sync_kill:status(),
     Height = block:height(),
     AHeight = api:height(),

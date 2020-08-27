@@ -4,7 +4,7 @@
 -include("../../records.hrl").
 
 make_dict(From, SNCOffer, Fee) ->
-    NCOffer = testnet_sign:data(SNCOffer),
+    NCOffer = signing:data(SNCOffer),
     #swap_offer{
            fee1 = Fee1
                } = NCOffer,
@@ -50,8 +50,8 @@ go(Tx, Dict0, NewHeight, _) ->
     offer = SNCO,
     fee = Fee
    } = Tx,
-    true = testnet_sign:verify(SNCO),
-    NCO = testnet_sign:data(SNCO),
+    true = signing:verify(SNCO),
+    NCO = signing:data(SNCO),
     #swap_offer{
                  fee1 = Fee1,
                  acc1 = Acc1,

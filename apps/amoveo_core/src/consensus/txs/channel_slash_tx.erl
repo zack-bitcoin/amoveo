@@ -17,11 +17,11 @@ to_prove_helper(SS, Height) ->
 from(X) -> X#cs.from.
 id(X) -> 
     SPK = X#cs.scriptpubkey,
-    (testnet_sign:data(SPK))#spk.cid.
+    (signing:data(SPK))#spk.cid.
 is_tx(Tx) ->
     is_record(Tx, cs).
 make_dict(From, Fee, ScriptPubkey, ScriptSig) ->
-    SPK = testnet_sign:data(ScriptPubkey),
+    SPK = signing:data(ScriptPubkey),
     CID = SPK#spk.cid,
     T = governance,
     GTG = trees:get(T, time_gas),
@@ -41,7 +41,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     Governance = trees:governance(Trees),
     Accounts = trees:accounts(Trees),
     Channels = trees:channels(Trees),
-    SPK = testnet_sign:data(ScriptPubkey),
+    SPK = signing:data(ScriptPubkey),
     CID = SPK#spk.cid,
     true = SPK#spk.time_gas < governance:get_value(time_gas, Governance),
     true = SPK#spk.space_gas < governance:get_value(space_gas, Governance),
@@ -63,7 +63,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
 go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#cs.from,
     SignedSPK = Tx#cs.scriptpubkey,
-    SPK = testnet_sign:data(SignedSPK),
+    SPK = signing:data(SignedSPK),
     CID = SPK#spk.cid,
     OldChannel = channels:dict_get(CID, Dict),
     0 = channels:closed(OldChannel),
@@ -72,7 +72,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Acc1 = channels:acc1(OldChannel),
     Acc2 = channels:acc2(OldChannel),
     true = spk:verify_sig(SignedSPK, Acc1, Acc2),%%
-    %true = testnet_sign:verify(SignedSPK),%%
+    %true = signing:verify(SignedSPK),%%
     Acc1 = SPK#spk.acc1,
     %Acc2 = SPK#spk.acc2,
     Fee = Tx#cs.fee,

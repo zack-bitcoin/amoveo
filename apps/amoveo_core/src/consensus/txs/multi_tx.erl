@@ -169,7 +169,7 @@ flash_loan(From, [Tx|T], D, Debt)
                  amount2 = Amount,
                  cid2 = CID,
                  type2 = Type
-               } = testnet_sign:data(Offer),
+               } = signing:data(Offer),
     case CID of
         <<0:256>> ->
             D2 = give_veo(From, Amount, D),

@@ -31,7 +31,7 @@ init(ok) ->
     Ka = if
 	     X == "" -> 
 		 {Pub, Priv} = 
-		     testnet_sign:new_key(),
+		     signing:new_key(),
 		 store(Pub, Priv, ""),
 		 #f{pub = Pub, priv=Priv};
 	     true -> #f{pub=X#f.pub}
@@ -44,15 +44,15 @@ store(Pub, Priv, Brainwallet) ->
     db:save(?LOC, X),
     X.
 handle_call({ss, Pub}, _From, R) ->
-    {reply, testnet_sign:shared_secret(Pub, R#f.priv), R};
+    {reply, signing:shared_secret(Pub, R#f.priv), R};
 handle_call({raw_sign, _}, _From, R) when R#f.priv=="" ->
     {reply, "need to unlock passphrase", R};
 handle_call({raw_sign, M}, _From, X) when not is_binary(M) ->
     {reply, "not binary", X};
 handle_call({raw_sign, M}, _From, R) ->
-    {reply, testnet_sign:sign(M, R#f.priv), R};
+    {reply, signing:sign(M, R#f.priv), R};
 handle_call({sign, M}, _From, R) -> 
-    {reply, testnet_sign:sign_tx(M, R#f.pub, R#f.priv), R};
+    {reply, signing:sign_tx(M, R#f.pub, R#f.priv), R};
 handle_call(status, _From, R) ->
     Y = db:read(?LOC),
     Out = if
@@ -82,7 +82,7 @@ handle_cast({load, Pub, Priv, Brainwallet}, _R) ->
     store(Pub, Priv, Brainwallet),
     {noreply, #f{pub=Pub, priv=Priv}};
 handle_cast({new, Brainwallet}, _R) ->
-    {Pub, Priv} = testnet_sign:new_key(),
+    {Pub, Priv} = signing:new_key(),
     store(Pub, Priv, Brainwallet),
     {noreply, #f{pub=Pub, priv=Priv}};
 handle_cast({unlock, Brainwallet}, _) ->
@@ -143,5 +143,5 @@ test() ->
     unlocked = keys:status(),
     Tx = {spend, 1, 1, 2, 1, 1},
     Stx = sign(Tx),
-    true = testnet_sign:verify(Stx, 1),
+    true = signing:verify(Stx, 1),
     success.

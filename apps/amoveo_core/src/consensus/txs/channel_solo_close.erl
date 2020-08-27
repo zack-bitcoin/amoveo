@@ -18,10 +18,10 @@ to_prove(X, Height) ->
     channel_slash_tx:to_prove_helper(X#csc.scriptsig, Height).
 id(X) -> 
     SPK = X#csc.scriptpubkey,
-    (testnet_sign:data(SPK))#spk.cid.
+    (signing:data(SPK))#spk.cid.
 make_dict(From, Fee, ScriptPubkey, ScriptSig) ->
     true = is_list(ScriptSig),
-    CID = (testnet_sign:data(ScriptPubkey))#spk.cid,
+    CID = (signing:data(ScriptPubkey))#spk.cid,
     <<_:256>> = CID,
     Acc = trees:get(accounts, From),
     #csc{from = From, nonce = Acc#acc.nonce+1, 
@@ -33,7 +33,7 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
     Accounts = trees:accounts(Trees),
     Channels = trees:channels(Trees),
     true = is_list(ScriptSig),
-    CID = (testnet_sign:data(ScriptPubkey))#spk.cid,
+    CID = (signing:data(ScriptPubkey))#spk.cid,
     <<_:256>> = CID,
     {_, Acc, Proof1} = accounts:get(From, Accounts),
     {_, _Channel, Proofc} = channels:get(CID, Channels),
@@ -47,19 +47,19 @@ make(From, Fee, ScriptPubkey, ScriptSig, Trees) ->
 go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#csc.from, 
     SPK = Tx#csc.scriptpubkey,
-    ScriptPubkey = testnet_sign:data(SPK),
+    ScriptPubkey = signing:data(SPK),
     TimeGas = governance:dict_get_value(time_gas, Dict),
     SpaceGas = governance:dict_get_value(space_gas, Dict),
     true = ScriptPubkey#spk.time_gas < TimeGas,
     true = ScriptPubkey#spk.space_gas < SpaceGas,
-    CID = (testnet_sign:data(SPK))#spk.cid,
+    CID = (signing:data(SPK))#spk.cid,
     OldChannel = channels:dict_get(CID, Dict),
     0 = channels:closed(OldChannel),
     0 = channels:amount(OldChannel),
     Acc1 = channels:acc1(OldChannel),
     Acc2 = channels:acc2(OldChannel),
     true = spk:verify_sig(SPK, Acc1, Acc2),
-    %true = testnet_sign:verify(SPK),
+    %true = signing:verify(SPK),
     Acc1 = ScriptPubkey#spk.acc1,
     %Acc2 = ScriptPubkey#spk.acc2,
     SS = Tx#csc.scriptsig,
@@ -121,7 +121,7 @@ dict_check_slash(From, Dict, NewHeight, TheirNonce) ->
 	    {_, CDNonce, _} = 
 		spk:dict_run(fast, 
 			SS,
-			testnet_sign:data(SPK),
+			signing:data(SPK),
 			NewHeight, 1, Dict),
 	    if
 		CDNonce > TheirNonce ->

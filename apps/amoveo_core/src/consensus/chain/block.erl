@@ -223,18 +223,18 @@ genesis_maker() ->
           }.
 miner_fees([]) -> 0;
 miner_fees([H|T]) ->
-    element(4, testnet_sign:data(H)) + miner_fees(T).
+    element(4, signing:data(H)) + miner_fees(T).
    
 tx_costs_dict([], _, Out) -> Out;
 tx_costs_dict([STx|T], Dict, Out) ->
-    Tx = testnet_sign:data(STx),
+    Tx = signing:data(STx),
     Type = element(1, Tx),
     Cost = dict:fetch({governance, governance:name2number(Type)},
                       Dict),
     tx_costs_dict(T, Dict, Cost+Out).
 tx_costs([], _, Out) -> Out;
 tx_costs([STx|T], Governance, Out) ->
-    Tx = testnet_sign:data(STx),
+    Tx = signing:data(STx),
     Type = element(1, Tx),
     Cost = governance:get_value(Type, Governance),
     tx_costs(T, Governance, Cost+Out).
@@ -998,7 +998,7 @@ get_tx(T, _, _, _, _) when (element(1, T) == nc) ->
      {cid, base64:encode(T#nc.id)}
     ];
 get_tx(T, _, _, _, _) when (element(1, T) == nc_accept) ->
-    NCO = testnet_sign:data(T#nc_accept.nc_offer),
+    NCO = signing:data(T#nc_accept.nc_offer),
     [{acc2, base64:encode(T#nc_accept.acc2)},
      {acc1, base64:encode(NCO#nc_offer.acc1)},
      {bal1, NCO#nc_offer.bal1},
@@ -1146,7 +1146,7 @@ get_govs(T, M, N, X) ->
 %    end.
 no_coinbase([]) -> true;
 no_coinbase([STx|T]) ->
-    Tx = testnet_sign:data(STx),
+    Tx = signing:data(STx),
     Type = element(1, Tx),
     false = Type == coinbase,
     no_coinbase(T).
@@ -1175,7 +1175,7 @@ initialize_chain() ->
 
 gov_fees([], _, _) -> 0;
 gov_fees([Tx|T], Dict, Height) ->
-    C = testnet_sign:data(Tx),
+    C = signing:data(Tx),
     Type = element(1, C),
     A = case Type of
 	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict);
@@ -1196,7 +1196,7 @@ gov_fees2([H|T], Dict) ->
     
 deltaCV([], _) -> 0;%calculate change in total amount of VEO stored in channels.
 deltaCV([Tx|T], Dict) ->
-    C = testnet_sign:data(Tx),
+    C = signing:data(Tx),
     A = case element(1, C) of
 	    nc -> new_channel_tx:bal1(C) + new_channel_tx:bal2(C);
 	    ctc2 -> 
@@ -1224,7 +1224,7 @@ deltaCV([Tx|T], Dict) ->
     A + deltaCV(T, Dict).
 many_live_channels([]) -> 0;
 many_live_channels([Tx|T]) ->
-    C = testnet_sign:data(Tx),
+    C = signing:data(Tx),
     A = case element(1, C) of
 	    nc -> 1;
 	    ctc -> -1;
@@ -1235,7 +1235,7 @@ many_live_channels([Tx|T]) ->
     A + many_live_channels(T).
 many_new_accounts([]) -> 0;
 many_new_accounts([Tx|T]) ->
-    C = testnet_sign:data(Tx),
+    C = signing:data(Tx),
     A = case element(1, C) of
 	    create_acc_tx -> 1;
 	    delete_acc_tx -> -1;
@@ -1244,7 +1244,7 @@ many_new_accounts([Tx|T]) ->
     A + many_new_accounts(T).
 many_new_oracles([]) -> 0;
 many_new_oracles([Tx|T]) ->
-    C = testnet_sign:data(Tx),
+    C = signing:data(Tx),
     A = case element(1, C) of
 	    oracle_new -> 1;
 	    _ -> 0
@@ -1252,7 +1252,7 @@ many_new_oracles([Tx|T]) ->
     A + many_new_oracles(T).
 many_live_oracles([]) -> 0;
 many_live_oracles([Tx|T]) ->
-    C = testnet_sign:data(Tx),
+    C = signing:data(Tx),
     A = case element(1, C) of
 	    oracle_new -> 1;
 	    oracle_close -> -1;

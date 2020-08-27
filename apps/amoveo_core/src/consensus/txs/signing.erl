@@ -1,4 +1,4 @@
--module(testnet_sign).
+-module(signing).
 -export([test/0,test2/1,sign_tx/3,sign/2,verify_sig/3,shared_secret/2,verify/1,data/1,
 	 empty/1,empty/0,
 	 verify_1/2,verify_2/2,

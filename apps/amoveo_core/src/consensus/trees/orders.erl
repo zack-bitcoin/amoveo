@@ -287,8 +287,8 @@ verify_proof(RootHash, Key, Value, Proof) ->%
 %
 test() ->%
     Root0 = empty_book(),%
-    {Pub1,_} = testnet_sign:new_key(),%
-    {Pub2,_} = testnet_sign:new_key(),%
+    {Pub1,_} = signing:new_key(),%
+    {Pub2,_} = signing:new_key(),%
     Order1 = new(Pub2, 100),%
     Order2 = new(Pub2, 100),%
     Order3 = new(Pub1, 110),%
@@ -299,7 +299,7 @@ test() ->%
 test2()->%
     Root0 = empty_book(),%
     OID = 1,%
-    {Pub,_} = testnet_sign:new_key(),%
+    {Pub,_} = signing:new_key(),%
     Order1 = new(Pub, 100),%
     CFG = trie:cfg(orders),%
     Dict0 = dict:new(),%

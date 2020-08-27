@@ -45,7 +45,7 @@ write(CID, Data) ->
     C = length(Data#cd.ssme) == 
         length((Data#cd.me)#spk.bets),
     D = length(Data#cd.ssthem) == 
-        length((testnet_sign:data(Data#cd.them))#spk.bets),
+        length((signing:data(Data#cd.them))#spk.bets),
     if
         A and B and C and D ->
             gen_server:cast(?MODULE, {write, CID, Data});

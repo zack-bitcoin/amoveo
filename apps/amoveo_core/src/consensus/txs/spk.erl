@@ -25,8 +25,8 @@ verify_sig(S, Pub1, Pub2) ->
                 %Serialized = sign:serialize(element(2, S)),
                 %H = hash:doit(Serialized),
                 H = hash(element(2, S)),
-                B1 = testnet_sign:verify_sig(H, Sig1, Pub1),
-                B2 = testnet_sign:verify_sig(H, Sig2, Pub2),
+                B1 = signing:verify_sig(H, Sig1, Pub1),
+                B2 = signing:verify_sig(H, Sig2, Pub2),
                 %io:fwrite("verify sig: "),
                 %io:fwrite(packer:pack([B1, B2])),
                 %io:fwrite("\n"),
@@ -34,9 +34,9 @@ verify_sig(S, Pub1, Pub2) ->
                 %S2 = setelement(2, S, H),
                 %S3 = setelement(3, S2, Sig1),
                 %setelement(4, S3, Sig2);
-            _ -> testnet_sign:verify(S)
+            _ -> signing:verify(S)
         end.
-    %testnet_sign:verify(Z).
+    %signing:verify(Z).
 sign(S, N) ->
     if
         (element(1, S) == signed) ->
