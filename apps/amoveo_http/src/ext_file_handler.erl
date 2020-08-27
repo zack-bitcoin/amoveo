@@ -119,6 +119,7 @@ handle(Req, State) ->
                <<"/binary_id.js">> -> true;
                <<"/resolve_binary_contract.js">> -> true;
                <<"/binary_contract_winnings.js">> -> true;
+               <<"/scalar_contract_winnings.js">> -> true;
                <<"/scalar_id.js">> -> true;
                <<"/scalar_oracle_creation.js">> -> true;
                <<"/resolve_scalar_contract.js">> -> true;
@@ -132,6 +133,7 @@ handle(Req, State) ->
                <<"/swap_offer.js">> -> true;
                <<"/publish_swap_offer.js">> -> true;
                <<"/check_binary_contract.js">> -> true;
+               <<"/teach_binary_contract.js">> -> true;
                <<"/teach_scalar_contract.js">> -> true;
                <<"/market_viewer.js">> -> true;
                <<"/market_swap.js">> -> true;
