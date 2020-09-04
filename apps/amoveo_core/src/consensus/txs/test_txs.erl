@@ -12,15 +12,14 @@ contracts() ->
     S = test(38),%simplification by matrix X matrix.
     S = test(39),%like test(38), but this time it is in a subcurrency. Also tests pushing money through the entire process.
     S = test(40),%swapping
-    S = test(41),%pair buy
-    %S = test(42),%team buy
+    S = test(41),%swapping in a multi-tx
     S = test(43),%2 of 2 state channel
     S = test(44),%when someone buys a contract, they should already have an offer to sell it, if they win. so they can automatically withdraw to veo or whatever their prefered currency is when they win, even if they are offline. test(44) goes through this process.
     S = test(45),%starts as a state channel, gets converted to a binary derivative. we post the oracle on-chain and use it to enforce the outcome of the binary derivative contract, and the correct person withdraws their winnings.
     S = test(46),%flash loans inside a multi-tx.
     S = test(47),%scalar derivative with on-chain oracle enforcement.
     S = test(48),%on-chain market maker
-    S = test(49),%on-chain market maker in a multi-tx.x
+    S = test(49),%on-chain market maker in a multi-tx.
     S.
     
     
@@ -2582,11 +2581,10 @@ test(47) ->
     %S = <<Start:32,Gov:32,GA:32,QH/binary>>,
     %hash:doit(S).
     Settings = <<
-" \
-binary ", (integer_to_binary(size(OracleTextPart)))/binary, 
+%" int1 5 \
+" swap binary ", (integer_to_binary(size(OracleTextPart)))/binary, 
           " ", 
-          (base64:encode(OracleTextPart))/binary, " int1 5
-">>,
+          (base64:encode(OracleTextPart))/binary, " ">>,
     PrivDir = "../../../../apps/amoveo_core/priv",
     {ok, ScalarCodeStatic} = file:read_file(PrivDir ++ "/scalar.fs"),
 
@@ -2644,7 +2642,7 @@ binary ", (integer_to_binary(size(OracleTextPart)))/binary,
     timer:sleep(200),
 
     Tx5 = contract_evidence_tx:make_dict(MP, ContractBytes, CID, compiler_chalang:doit(<<
-" int 4294967295 int1 3 / ">>), 
+" int 4294967295 int1 3 / int1 5 ">>), 
 [{oracles, OID}], Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
@@ -2778,6 +2776,65 @@ int 0 int 1000 \
     1 = many_txs(),
     mine_blocks(1),
     timer:sleep(200),
+    success;
+test(50) ->
+    %this is to set up the blockchain state to try out the uniswap tool from javascript.
+    % We want to there to be many paths between the 2 currencies being swapped, and the optimal solution to involve buying a mixture of different paths.
+    io:fwrite("test 50 \n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(6),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+
+    Forth = <<" macro [ nil ; \
+macro , swap cons ; \
+macro ] swap cons reverse ; \
+[ int 4294967295, int 0 ] \
+int 0 int 1000 \
+">>,
+    Forth2 = <<" macro [ nil ; \
+macro , swap cons ; \
+macro ] swap cons reverse ; \
+[ int 4294967294, int 1 ] \
+int 0 int 1000 \
+">>,
+    Contract = compiler_chalang:doit(Forth), 
+    Contract2 = compiler_chalang:doit(Forth2), 
+    CH = hash:doit(Contract),
+    CH2 = hash:doit(Contract2),
+    Tx1 = contract_new_tx:make_dict(MP, CH, 2, Fee),
+    Tx2 = contract_new_tx:make_dict(MP, CH2, 2, Fee),
+    CID = contracts:make_id(CH, 2,<<0:256>>,0),
+    CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
+
+    OneVeo = 100000000,
+    Amount = OneVeo,
+    Tx3 = market_new_tx:make_dict(MP, CID, 1, Amount div 2, CID, 2, Amount div 2, Fee),
+    MID = markets:make_id(CID, 1, CID, 2),
+    Tx4 = market_new_tx:make_dict(MP, CID2, 1, Amount div 2, <<0:256>>, 0, Amount div 3, Fee),
+    MID2 = markets:make_id(CID2, 1, <<0:256>>, 0),
+
+    %{Pub,Priv} = signing:new_key(),
+    Pub = base64:decode("BLPyEIdHuulZoDWuBJgCK4xnSoTHkirqsgH3phF9LWu9b+Gv1PTOg3CgtDsF4OMMKNtwZL4UKVcJR7DeHY/XTsU="),
+    Tx5 = create_account_tx:make_dict(Pub, OneVeo * 10, Fee*5, MP),
+    Tx6 = contract_use_tx:make_dict(MP, CID, Amount*2, Fee, 2, <<0:256>>, 0),
+    Tx7 = contract_use_tx:make_dict(MP, CID2, Amount, Fee, 2, <<0:256>>, 0),
+    Tx8 = sub_spend_tx:make_dict(Pub, Amount, Fee, CID, 1, MP),
+
+    Txs = [Tx1, Tx2, Tx3, Tx4, Tx5, Tx6, Tx7, Tx8,
+           market_new_tx:make_dict(MP, CID, 1, Amount div 4, CID2, 1, Amount div 4, 0),
+           market_new_tx:make_dict(MP, CID, 1, Amount div 4, CID2, 2, Amount div 4, 0)
+],
+    Txm = multi_tx:make_dict(MP, Txs, Fee*20),
+    Stx = keys:sign(Txm),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
     success.
 
 

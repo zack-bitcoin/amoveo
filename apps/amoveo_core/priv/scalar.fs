@@ -39,8 +39,8 @@ else drop
 then ;
 
 ( loads the settings used to customize this contract )
-OracleStartHeight ! 
 TextPart !
+OracleStartHeight ! 
 
 ( loads the evidence provided by whoever is trying to close this contract )
 swap Price ! 
