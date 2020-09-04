@@ -143,6 +143,8 @@ handle(Req, State) ->
                <<"/new_contract.js">> -> true;
                <<"/new_scalar_contract.js">> -> true;
                <<"/multi_tx.js">> -> true;
+               <<"/uniswap.js">> -> true;
+               <<"/uniswap.html">> -> true;
                <<"/binary_derivative.js">> -> true;
                <<"/scalar_derivative.js">> -> true;
                <<"/swaps.js">> -> true;
