@@ -54,6 +54,12 @@ doit({f, 1}) ->
 	  block:period_estimate()}};
 doit({account, Pubkey}) -> 
     {ok, api:account(Pubkey)};
+doit({markets, MID}) ->
+    {ok, trees:get(markets, MID)};
+doit({contracts, CID}) ->
+    {ok, trees:get(contracts, CID)};
+doit({sub_accounts, ID}) ->
+    {ok, trees:get(sub_accounts, ID)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({version}) -> {ok, version:doit(block:height())};
