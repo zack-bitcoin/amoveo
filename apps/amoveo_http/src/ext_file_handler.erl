@@ -145,6 +145,7 @@ handle(Req, State) ->
                <<"/multi_tx.js">> -> true;
                <<"/uniswap.js">> -> true;
                <<"/uniswap.html">> -> true;
+               <<"/simple_wallet.html">> -> true;
                <<"/binary_derivative.js">> -> true;
                <<"/scalar_derivative.js">> -> true;
                <<"/swaps.js">> -> true;

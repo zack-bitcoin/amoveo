@@ -31,11 +31,16 @@ garbage(Trash, Keep) ->
     gen_server:call(?MODULE, {garbage, Trash, Keep}).
 internal(PruneBlock, KeepBlock, F) ->
     TA = [accounts, oracles, channels, existence, governance],
+    TB = TA ++ [matched, unmatched],
+    TC = TB ++ [sub_accounts, contracts, trades],
+    TD = TC ++ [markets],
     T1 = PruneBlock#block.trees,
     T2 = KeepBlock#block.trees,
     Trees = case element(1, T1) of%
 		trees -> TA;%
-		trees2 -> TA ++ [matched, unmatched]
+		trees2 -> TB;
+                trees3 -> TC;
+                trees4 -> TD
 	    end,%
     _ = 
 	lists:map(fun(T) ->
