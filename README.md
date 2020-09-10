@@ -37,9 +37,11 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
 --->
 
+<!---
 ## Smart contracts
 
 [here is documentation](https://github.com/zack-bitcoin/amoveo-docs/blob/master/light_node/p2p_derivatives.md) for how to make bets on any topic using Amoveo.
+---->
 
 
 ## Light node
@@ -55,29 +57,21 @@ Using this light node is the same as trusting them with your money.
 
 This light node downloads headers and verifies the proof of work.
 It verifies the merkle proofs for all blockchain state you download to ensure security equivalent to a full node, provided you wait for enough confirmations.
-You can use the light node to participate in [markets](https://github.com/zack-bitcoin/amoveo-docs/blob/master/light_node/market.md).
-A light node that currently has markets is [here](http://159.65.120.84:8080/wallet.html).
-And the interface to look at the markets is [here](http://159.65.120.84:8080/explorer.html).
-
-
-## Places you can use Amoveo smart contracts
-
-[Amoveo Book has a web wallet integrated into the browser for usability](http://amoveobook.com/)
 
 
 ## Block Explorer
 
 [Veopool explorer](http://explorer.veopool.pw/)
 
+<!---
 [Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
 
-<!---
 [mveo explorer. historic difficulty analisys](https://mveo.net/)
-
-[Amoveo.tools historical difficulty chart](https://amoveo.tools/)
 --->
 
-The block explorer for the network is [here](http://159.65.120.84:8080/explorer.html).
+[Amoveo.tools historical difficulty chart](https://amoveo.tools/)
+
+The block explorer for the network is [here](http://159.89.87.58:8080/explorer.html).
 This explorer can host markets.
 
 
@@ -95,11 +89,13 @@ Commands such as:
 
 ## Mining
 
+<!-----
 [This is an open-source miner for AMD and Nvidia GPU. Currently only works with Linux](https://github.com/zack-bitcoin/VeoCL)
 
 [This is a miner. it is for Nvidia or AMD GPUs. It is closed-source.](https://github.com/PhamHuong92/VeoMiner)
 
 [here is another closed source miner](https://github.com/krypdkat/AmoveoMinerMan)
+---->
 
 [here is miners for 5 different kinds of fpga](https://github.com/dedmarozz)
 
