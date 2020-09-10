@@ -48,7 +48,12 @@ go(Tx, Dict, NewHeight, _) ->
     fee = Fee,
     amount = Amount %amount is the larger of 2 amounts that could be deposited. 
    } = Tx,
-    Facc = accounts:dict_update(From, Dict, -Fee, none),
+    F36 = forks:get(36),
+    Nonce2 = if
+        NewHeight > F36 -> Nonce;
+        true -> none
+    end,
+    Facc = accounts:dict_update(From, Dict, -Fee, Nonce2),
     Dict2 = accounts:dict_write(Facc, Dict),
     M = markets:dict_get(MID, Dict2),
     #market{
