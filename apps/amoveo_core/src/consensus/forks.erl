@@ -50,6 +50,7 @@ get(35) -> common(130700, %automatic market makers.
                   max(forks:get(32) + 1,
                       test_height()));
 get(36) -> common(132850, test_height());
+get(37) -> common(132860, test_height());
 get(_) -> none.
 
 top() -> top(1).

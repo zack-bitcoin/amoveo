@@ -48,7 +48,7 @@ go(Tx, Dict, NewHeight, _) ->
     From = Tx#multi_tx.from,
     Txs = Tx#multi_tx.txs,
     true = length(Txs) > 0,
-    {Dict1, Debts} = flash_loan(From, Txs, Dict, []),
+    {Dict1, Debts} = flash_loan(From, Txs, Dict, [], NewHeight),
     Dict2 = sub_txs(Txs, From, Dict1, NewHeight),
     Fee = Tx#multi_tx.fee,
     Facc = accounts:dict_update(From, Dict2, -Fee, Tx#multi_tx.nonce),%TODO, we need a way to set this nonce to "none".
@@ -108,8 +108,8 @@ pay_kind(From, CID, Type, Amount, D) ->
     end.
     
 
-flash_loan(_, [], D, Debt) -> {D, Debt};
-flash_loan(From, [Tx|T], D, Debt)
+flash_loan(_, [], D, Debt, _) -> {D, Debt};
+flash_loan(From, [Tx|T], D, Debt, Height)
   when is_record(Tx, market_new_tx) ->
     #market_new_tx{
                   cid1 = CID1,
@@ -121,8 +121,8 @@ flash_loan(From, [Tx|T], D, Debt)
                  } = Tx,
     {D2, Debt1} = pay_kind(From, CID1, Type1, Amount1, D),
     {D3, Debt2} = pay_kind(From, CID2, Type2, Amount2, D2),
-    flash_loan(From, T, D3, [Debt1|[Debt2|Debt]]);
-flash_loan(From, [Tx|T], D, Debt)
+    flash_loan(From, T, D3, [Debt1|[Debt2|Debt]], Height);
+flash_loan(From, [Tx|T], D, Debt, Height)
   when is_record(Tx, market_liquidity_tx) ->
     #market_liquidity_tx{
                   cid1 = CID1,
@@ -130,8 +130,15 @@ flash_loan(From, [Tx|T], D, Debt)
                   cid2 = CID2,
                   type2 = Type2,
                   mid = MID,
-                  amount = Amount
+                  amount = Amount0
                  } = Tx,
+    F37 = forks:get(37),
+    Amount = 
+        if
+            Height > F37 -> abs(Amount0);
+            true -> Amount0
+        end,
+                 
     D2 = give_sub(From, MID, 0, Amount, D),
     M = markets:dict_get(MID, D2),
     #market{
@@ -144,8 +151,8 @@ flash_loan(From, [Tx|T], D, Debt)
     {D3, Debt1} = pay_kind(From, CID1, Type1, A1, D2),
     {D4, Debt2} = pay_kind(From, CID2, Type2, A2, D3),
     Debts2 = [{sub, MID, 0, Amount}, Debt1, Debt2] ++ Debt,
-    flash_loan(From, T, D4, Debts2);
-flash_loan(From, [Tx|T], D, Debt)
+    flash_loan(From, T, D4, Debts2, Height);
+flash_loan(From, [Tx|T], D, Debt, Height)
   when is_record(Tx, market_swap_tx) ->
     #market_swap_tx{
                   cid1 = CID1,
@@ -159,8 +166,8 @@ flash_loan(From, [Tx|T], D, Debt)
     Amount = max(Give, Take),
     {D2, Debt1} = pay_kind(From, CID1, Type1, Amount, D),
     {D3, Debt2} = pay_kind(From, CID2, Type2, Amount, D2),
-    flash_loan(From, T, D3, [Debt1, Debt2] ++ Debt);
-flash_loan(From, [Tx|T], D, Debt)
+    flash_loan(From, T, D3, [Debt1, Debt2] ++ Debt, Height);
+flash_loan(From, [Tx|T], D, Debt, Height)
   when is_record(Tx, swap_tx) ->
     #swap_tx{
               offer = Offer
@@ -174,19 +181,19 @@ flash_loan(From, [Tx|T], D, Debt)
         <<0:256>> ->
             D2 = give_veo(From, Amount, D),
     %veothey are spending + debt
-            flash_loan(From, T, D2, [{veo, Amount}|Debt]);
+            flash_loan(From, T, D2, [{veo, Amount}|Debt], Height);
         _ -> 
             D2 = give_sub(From, CID, Type, Amount, D),
     %whatever currency they are spending + debt
-            flash_loan(From, T, D2, [{sub, CID, Type, Amount}|Debt])
+            flash_loan(From, T, D2, [{sub, CID, Type, Amount}|Debt], Height)
     end;
-flash_loan(From, [Tx|T], D, Debt)
+flash_loan(From, [Tx|T], D, Debt, Height)
   when is_record(Tx, contract_use_tx) ->
     A = Tx#contract_use_tx.amount,
     if
         A > 0 -> 
             D2 = give_veo(From, A, D),
-            flash_loan(From, T, D2, [{veo, A}|Debt]);%give this amount to acc + debts
+            flash_loan(From, T, D2, [{veo, A}|Debt], Height);%give this amount to acc + debts
         A < 0 -> 
             %V is a list of 1's the length of Contract.
             #contract_use_tx{
@@ -195,10 +202,10 @@ flash_loan(From, [Tx|T], D, Debt)
              } = Tx,
             V = many_list(1, M),
             {D3, SubDebts} = give_subs(From, CID, V, -A, D),%give this many subcurrencies + debts
-            flash_loan(From, T, D3, SubDebts ++ Debt)
+            flash_loan(From, T, D3, SubDebts ++ Debt, Height)
     end;
-flash_loan(From, [Tx|T], D, Debt) ->
-    flash_loan(From, T, D, Debt).
+flash_loan(From, [Tx|T], D, Debt, Height) ->
+    flash_loan(From, T, D, Debt, Height).
 
 flash_payback(_, [], Dict) -> Dict;
 flash_payback(From, [{veo, Amount}|T], Dict) ->

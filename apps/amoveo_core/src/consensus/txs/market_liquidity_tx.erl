@@ -36,7 +36,7 @@ make_dict(From, MID, Amount, Fee) ->
            } = Market,
     make_dict(From, MID, Amount, Fee, CID1, Type1, CID2, Type2).
 
-go(Tx, Dict, NewHeight, _) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     #market_liquidity_tx{
     from = From,
     nonce = Nonce,
@@ -49,10 +49,17 @@ go(Tx, Dict, NewHeight, _) ->
     amount = Amount %amount is the larger of 2 amounts that could be deposited. 
    } = Tx,
     F36 = forks:get(36),
-    Nonce2 = if
+    F37 = forks:get(37),
+    Nonce20 = if
         NewHeight > F36 -> Nonce;
         true -> none
     end,
+    Nonce2 = 
+        if
+            ((NewHeight < F37) or (NonceCheck)) -> 
+                Nonce20;
+            true -> none
+        end,
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce2),
     Dict2 = accounts:dict_write(Facc, Dict),
     M = markets:dict_get(MID, Dict2),
