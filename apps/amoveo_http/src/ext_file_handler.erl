@@ -150,6 +150,10 @@ handle(Req, State) ->
                <<"/scalar_derivative.js">> -> true;
                <<"/swaps.js">> -> true;
                <<"/sub_accounts.js">> -> true;
+               <<"/pool_tab_builder.js">> -> true;
+               <<"/swap_tab_builder.js">> -> true;
+               <<"/send_tab_builder.js">> -> true;
+               <<"/create_tab_builder.js">> -> true;
                X -> 
                    %io:fwrite("ext file handler block access to: "),
                    %io:fwrite(X),

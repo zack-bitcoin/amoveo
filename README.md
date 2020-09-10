@@ -147,5 +147,4 @@ https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool. WARNING!!! thi
 
 If you want to build on top of Amoveo [read the developer's guide](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting-started/quick_start_developer_guide.md)
 
-[Here is an old open-source miner for Nvidia GPU, it works for linux and windows. This software is too slow to be competitive, but it might be useful for educational purposes.](https://github.com/Mandelhoff/AmoveoMinerGpuCuda)
 
