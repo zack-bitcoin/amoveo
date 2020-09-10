@@ -154,6 +154,7 @@ handle(Req, State) ->
                <<"/swap_tab_builder.js">> -> true;
                <<"/send_tab_builder.js">> -> true;
                <<"/create_tab_builder.js">> -> true;
+               <<"/easy_wallet.js">> -> true;
                X -> 
                    %io:fwrite("ext file handler block access to: "),
                    %io:fwrite(X),
