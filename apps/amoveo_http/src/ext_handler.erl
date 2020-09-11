@@ -54,6 +54,8 @@ doit({f, 1}) ->
 	  block:period_estimate()}};
 doit({account, Pubkey}) -> 
     {ok, api:account(Pubkey)};
+doit({accounts, Pubkey}) -> 
+    {ok, api:account(Pubkey)};
 doit({markets, MID}) ->
     {ok, trees:get(markets, MID)};
 doit({contracts, CID}) ->
