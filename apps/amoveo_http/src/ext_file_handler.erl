@@ -152,7 +152,7 @@ handle(Req, State) ->
                <<"/sub_accounts.js">> -> true;
                <<"/pool_tab_builder.js">> -> true;
                <<"/swap_tab_builder.js">> -> true;
-               <<"/send_tab_builder.js">> -> true;
+               <<"/spend_tab_builder.js">> -> true;
                <<"/create_tab_builder.js">> -> true;
                <<"/tabs.js">> -> true;
                X -> 
