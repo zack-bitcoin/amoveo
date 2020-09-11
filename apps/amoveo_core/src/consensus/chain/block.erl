@@ -1166,7 +1166,8 @@ initialize_chain() ->
     Header0 = block_to_header(GB),
     GH = block:hash(Header0),
     if
-        Bool -> block_absorber:do_save(GB, GH);
+        Bool -> 
+            block_absorber:do_save(GB, GH);
         true -> ok
     end,
     gen_server:call(headers, {add, GH, Header0, 1}),

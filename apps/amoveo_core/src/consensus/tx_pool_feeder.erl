@@ -46,17 +46,33 @@ absorb_internal(SignedTx) ->
 	       {ok, "production"} -> 200;
 	       _ -> 200
 	   end,
-    spawn(fun() ->
-		  absorb_internal2(SignedTx, S)
-	  end),
-    receive
-	X -> X
-    after 
-	Wait -> 
+    H = block:height(),
+    Tx = signing:data(SignedTx),
+    F36 = forks:get(36),
+    F38 = forks:get(38),
+    Txid = hash:doit(Tx),
+    PrevHash = block:hash(headers:top_with_block()),
+    B = soft_fork:check(element(1, Tx), PrevHash, Txid),
+    if
+        (element(1, Tx) == market_liquidity_tx) and
+        (H > F38) and
+        (H < F36) and
+        (B) ->
+                %drop tx
+            error;
+        true ->
+            spawn(fun() ->
+                          absorb_internal2(SignedTx, S)
+                  end),
+            receive
+                X -> X
+            after 
+                Wait -> 
 	    %io:fwrite("dropped a tx\n"),
 	    %io:fwrite(packer:pack(SignedTx)),
 	    %io:fwrite("\n"),
-	    error
+                    error
+            end
     end.
 	    
 	    

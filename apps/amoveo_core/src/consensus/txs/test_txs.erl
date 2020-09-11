@@ -2835,7 +2835,61 @@ int 0 int 1000 \
     mine_blocks(1),
     timer:sleep(200),
 
+    success;
+test(51) ->
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(6),
+    timer:sleep(400),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    
+    Forth = <<" macro [ nil ; \
+macro , swap cons ; \
+macro ] swap cons reverse ; \
+[ int 4294967295, int 0 ] \
+int 0 int 1000 \
+">>,
+    Contract = compiler_chalang:doit(Forth), 
+    CH = hash:doit(Contract),
+    Tx1 = contract_new_tx:make_dict(MP, CH, 2, Fee),
+    CID = contracts:make_id(CH, 2,<<0:256>>,0),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    timer:sleep(100),
+    mine_blocks(1),
+
+    Amount = 100000000,
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Tx3 = market_new_tx:make_dict(MP, CID, 1, Amount div 2, <<0:256>>, 0, Amount div 3, Fee),
+    MID = markets:make_id(CID, 1, <<0:256>>, 0),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+
+    Tx4 = market_liquidity_tx:make_dict(MP, MID, Amount div 8, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    timer:sleep(200),
+    
+    absorb(Stx4),
+    0 = many_txs(),
+    
     success.
+    
+
 
 
 test35(_, _, _, 0) -> ok;

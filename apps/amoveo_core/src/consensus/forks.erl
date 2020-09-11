@@ -49,8 +49,10 @@ get(34) -> 0;%filler
 get(35) -> common(130700, %automatic market makers.
                   max(forks:get(32) + 1,
                       test_height()));
-get(36) -> common(132850, test_height());
-get(37) -> common(132860, test_height());
+%get(36) -> common(132850, test_height());
+get(36) -> common(132850, 100);%hard update to prevent market_liqudity tx from being re-published.
+get(37) -> common(132860, test_height());%hard update to fix how market_liquidity_tx work with flash loans.
+get(38) -> common(9999999, test_height());%soft update to prevent market_liquidity_tx being re-published.
 get(_) -> none.
 
 top() -> top(1).

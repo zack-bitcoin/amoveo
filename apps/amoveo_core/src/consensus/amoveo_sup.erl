@@ -14,7 +14,9 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       arbitrage, order_book, oracle_questions, 
 	       tree_data, potential_block, push_block,
 	       found_block_timer, vanity, peers_heights,
-               white_list, nc_sigs, mining_pool_refresher, checkpoint]).
+               white_list, nc_sigs, 
+               mining_pool_refresher, 
+               checkpoint, soft_fork]).
 child_killer([]) -> [];
 child_killer([H|T]) -> 
     supervisor:terminate_child(amoveo_sup, H),
