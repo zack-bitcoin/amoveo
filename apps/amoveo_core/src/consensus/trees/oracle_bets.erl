@@ -3,7 +3,7 @@
 	 true/1, false/1, bad/1,%
 	 write/2, get/2, root_hash/1, %add_bet/4,%
 	 reward/3, delete/2, verify_proof/4,%
-         dict_add_bet/5, dict_get/2, dict_delete/2,%
+         dict_add_bet/5, dict_get/2, dict_get/3, dict_delete/2,%
          serialize/1, make_leaf/3, key_to_int/1,%
          deserialize/1]).%
 -include("../../records.hrl").%
