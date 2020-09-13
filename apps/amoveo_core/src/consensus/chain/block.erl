@@ -1080,15 +1080,22 @@ get_tx(_, _, _, _, _) -> [].
 multi_tx_helper([]) -> [];
 multi_tx_helper([H|T]) ->
     Type = element(1, H),
-    M = txs:key2module(Type),
+    %M = txs:key2module(Type),
+    X = case Type of
+            spend -> mth_spend(H);
+            create_acc_tx -> mth_spend(H);
+            _ -> {[{type, Type}]}
+        end,
+    [X|multi_tx_helper(T)].
+mth_spend(H) ->
+    Type = element(1, H),
     From = element(2, H),
     To = element(5, H),
     Amount = element(6, H),
-    X = {[{type, Type},
-          {to, base64:encode(To)},
-          {amount, Amount}
-         ]},
-    [X|multi_tx_helper(T)].
+    {[{type, Type},
+      {to, base64:encode(To)},
+      {amount, Amount}
+     ]}.
 get_govs(_, M, M, X) -> X;
 get_govs(T, M, N = 2, X) ->
     H = {governance:number2name(N), trees:get(governance, N, dict:new(), T) / 10000},

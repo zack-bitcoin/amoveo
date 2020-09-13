@@ -139,10 +139,13 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     ST = send_txs(Txs, CS, Checksums, []),
     {ok, ST};
 doit({txs, [Tx]}) ->
-    X = tx_pool_feeder:absorb(Tx),
-    Y = case X of
-	    ok -> hash:doit(signing:data(Tx));
-	    _ -> <<"error">>
+    tx_pool_feeder:absorb(Tx),
+    timer:sleep(200),
+    Txs = (tx_pool:get())#tx_pool.txs,
+    B = is_in(Tx, Txs),
+    Y = case B of
+	    true -> hash:doit(signing:data(Tx));
+	    false -> <<"error">>
         end,
     {ok, Y};
 doit({txs, Txs}) ->
@@ -465,3 +468,8 @@ send_txs2(Checksum, [Checksum|_], [T|_]) -> [T];
 send_txs2(Checksum, [_|CT], [_|T]) ->
     send_txs2(Checksum, CT, T).
     
+
+is_in(X, [X|_]) -> true;
+is_in(_, []) -> false;
+is_in(X, [_|T]) -> 
+    is_in(X, T).

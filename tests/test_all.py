@@ -13,7 +13,7 @@ test_three()
 
 spend_test()
 
-lightning_test()
+#lightning_test()
 
 #market_test()
 

@@ -3,7 +3,7 @@
 -module(white_list).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, 
-        check/1]).
+        check/1, test/0]).
 init(ok) -> 
     {ok, IPs} = application:get_env(amoveo_core, white_list),
     DB = lists:foldl(fun(IP, Acc) -> sets:add_element(IP, Acc) end, sets:new(), IPs),
@@ -19,3 +19,10 @@ handle_call({check, A}, _From, X) ->
 
 check(X) ->
     gen_server:call(?MODULE, {check, X}).
+
+
+test() ->
+    true = check({127,0,0,1}),
+    false = check({1,2,3,4}),
+    success.
+    

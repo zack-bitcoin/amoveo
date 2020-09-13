@@ -33,16 +33,16 @@ test() ->
     S = success,
     S = test(1),%create account, spend, delete %S = test(2),%repo tx
     S = test(2),
-    S = test(3),%channel team close
-    S = test(4),%channel timeout
-    S = test(5),%account delete, channel timeout
-    S = test(6),%channel slash
-    S = test(8),%channel solo close - channel team close
-    S = test(9),%channel slash - channel team close
+%    S = test(3),%channel team close
+%    S = test(4),%channel timeout
+%    S = test(5),%account delete, channel timeout
+%    S = test(6),%channel slash
+%    S = test(8),%channel solo close - channel team close
+%    S = test(9),%channel slash - channel team close
     %S = test(7),%existence
-    S = test(14),%financial options
-    S = test(12),%multiple bets in a single channel
-    S = test(15),%automatic channel slash
+%    S = test(14),%financial options
+%    S = test(12),%multiple bets in a single channel
+%    S = test(15),%automatic channel slash
     %warning! after running test(11), we can no longer run other tests. because test(11) mines blocks, so tx_pool:dump can no longer undo transactions.
     S = test(13),%testing governance
     S = test(11),%try out the oracle
@@ -52,7 +52,6 @@ test() ->
     S = contracts(),
     S.
 absorb(Tx) -> 
-    %tx_pool_feeder:absorb_unsafe(Tx).
     tx_pool_feeder:absorb(Tx).
     %timer:sleep(400).
 block_trees(X) ->
@@ -501,6 +500,7 @@ test(11) ->
     Ctx0 = create_account_tx:make_dict(Pub, Amount, Fee, constants:master_pub()),
     Stx0 = keys:sign(Ctx0),
     absorb(Stx0),
+    1 = many_txs(),
     timer:sleep(100),
     mine_blocks(1),
     io:fwrite("test 11 2\n"),
@@ -512,6 +512,7 @@ test(11) ->
     OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
     absorb(Stx),
+    1 = many_txs(),
     timer:sleep(150),
     potential_block:new(),
     mine_blocks(5),
@@ -521,6 +522,7 @@ test(11) ->
     Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 100000000), 
     Stx20 = signing:sign_tx(Tx20, Pub, Priv),
     absorb(Stx20),
+    1 = many_txs(),
     mine_blocks(1),
     io:fwrite("test 11 4\n"),
     timer:sleep(100),
@@ -838,6 +840,7 @@ test(15) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    mine_blocks(1),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -879,8 +882,10 @@ test(15) ->
     Stx3 = signing:sign_tx(Ctx3, NewPub, NewPriv),
     absorb(Stx3),
     3 = many_txs(),
+    %1=2,
     timer:sleep(100),
     potential_block:new(),
+    timer:sleep(100),
     mine_blocks(1),
     timer:sleep(150),
     timer:sleep(2000),
