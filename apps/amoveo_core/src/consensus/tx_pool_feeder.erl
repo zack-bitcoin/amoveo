@@ -239,8 +239,8 @@ absorb(SignedTx) ->
     case N of
 	normal -> 
 	    gen_server:call(?MODULE, {absorb, SignedTx});
-	_ -> io:fwrite("warning, transactions don't work if you aren't in sync_mode normal"),
-	    1=2,
+	_ -> %io:fwrite("warning, transactions don't work if you aren't in sync_mode normal"),
+	    %1=2,
 	    ok
     end.
 absorb_async(SignedTxs) ->

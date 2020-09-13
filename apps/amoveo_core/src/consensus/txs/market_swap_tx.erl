@@ -38,7 +38,7 @@ make_dict(From, MID, Give, Take, Direction, Fee) ->
              type2 = Type2
            } = Market,
     make_dict(From, MID, Give, Take, Direction, Fee, CID1, Type1, CID2, Type2).
-go(Tx, Dict, NewHeight, _) ->
+go(Tx, Dict, NewHeight, NonceCheck) ->
     #market_swap_tx{
     from = From,
     nonce = Nonce,
@@ -48,11 +48,28 @@ go(Tx, Dict, NewHeight, _) ->
     cid2 = CID2,
     type2 = Type2,
     fee = Fee,
-    give = Give,
+    give = Give0,
     take = Take,
     direction = Direction
    } = Tx,
-    Facc = accounts:dict_update(From, Dict, -Fee, none),
+    F41 = forks:get(41),
+    Give = if
+               NewHeight > F41 ->
+                   GiveLimit = 
+                       case Direction of
+                           1 -> balance(From, CID1, Type1, Dict);
+                           2 -> balance(From, CID2, Type2, Dict)
+                       end,
+                   BalanceBeforeFlashLoan = GiveLimit - Give0,
+                   min(Give0, BalanceBeforeFlashLoan);
+               true -> Give0
+           end,
+    Nonce2 = 
+        if
+            (NonceCheck and (NewHeight > F41)) -> Nonce;
+            true -> none
+        end,
+    Facc = accounts:dict_update(From, Dict, -Fee, Nonce2),
     Dict2 = accounts:dict_write(Facc, Dict),
     M = markets:dict_get(MID, Dict2),
     #market{
@@ -98,4 +115,12 @@ go(Tx, Dict, NewHeight, _) ->
     Dict5 = markets:dict_write(M2, Dict4),
     Dict5.
 
-    
+balance(Pub, <<0:256>>, Type, Dict) ->
+    Type = 0,
+    Acc = accounts:dict_get(Pub, Dict),
+    Acc#acc.balance;
+balance(Pub, CID, Type, Dict) ->
+    Key = sub_accounts:make_key(Pub, CID, Type),
+    SubAcc = sub_accounts:dict_get(Key, Dict),
+    SubAcc#sub_acc.balance.
+
