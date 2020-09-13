@@ -8,7 +8,7 @@
          verify_proof/4,%
          serialize/1, deserialize/1, all/1,%
          dict_significant_volume/3, dict_match/4,%
-         dict_write/3, dict_get/2, dict_head_get/2,%
+         dict_write/3, dict_get/2, dict_get/3, dict_head_get/2,%
          dict_add/3, dict_remove/3, make_leaf/3,%
          key_to_int/1, write/2, delete/2,%
          deserialize_head/1, head_put/3,%
