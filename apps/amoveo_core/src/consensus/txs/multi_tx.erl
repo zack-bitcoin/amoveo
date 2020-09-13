@@ -48,10 +48,21 @@ go(Tx, Dict, NewHeight, _) ->
     From = Tx#multi_tx.from,
     Txs = Tx#multi_tx.txs,
     true = length(Txs) > 0,
-    {Dict1, Debts} = flash_loan(From, Txs, Dict, [], NewHeight),
-    Dict2 = sub_txs(Txs, From, Dict1, NewHeight),
+    F40 = forks:get(40),
     Fee = Tx#multi_tx.fee,
-    Facc = accounts:dict_update(From, Dict2, -Fee, Tx#multi_tx.nonce),%TODO, we need a way to set this nonce to "none".
+    Debt0 = 
+        if
+            NewHeight > F40 -> [{veo, Fee}];
+            true -> []
+        end,
+    {Dict1, Debts} = flash_loan(From, Txs, Dict, Debt0, NewHeight),
+    Dict2 = sub_txs(Txs, From, Dict1, NewHeight),
+    AFee = 
+        if
+            NewHeight > F40 -> 0;
+            true -> -Fee
+        end,
+    Facc = accounts:dict_update(From, Dict2, AFee, Tx#multi_tx.nonce),%TODO, maybe we need a way to set this nonce to "none".
     Dict3 = accounts:dict_write(Facc, Dict2),
     flash_payback(From, Debts, Dict3).
 sub_txs([], From, Dict, _) -> Dict;
