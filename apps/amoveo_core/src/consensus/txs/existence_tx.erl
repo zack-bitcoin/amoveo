@@ -1,3 +1,5 @@
+%unused
+
 -module(existence_tx).
 -export([go/4, make/4, make_dict/3, from/1, commit/1]).
 -include("../../records.hrl").

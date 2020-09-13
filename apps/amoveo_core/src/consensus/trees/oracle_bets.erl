@@ -73,6 +73,8 @@ write(X, Tree) ->%
     Key = X#oracle_bet.id,%
     Z = serialize(X),%
     trie:put(key_to_int(Key), Z, 0, Tree, ?name).%
+dict_get(Key, Dict, _) ->
+    dict_get(Key, Dict).
 dict_get(Key, Dict) ->%
     X = dict:fetch({oracle_bets, Key}, Dict),%
     case X of%

@@ -1,7 +1,7 @@
 -module(existence).
 -export([new/2,hash/1, %custom stuff
          get/2,write/2,%update tree stuff
-         dict_get/2, dict_write/2,%update dict stuff
+         dict_get/2, dict_get/3, dict_write/2,%update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
 %for accessing the proof of existence tree
 -record(exist, {hash, height}).
@@ -26,10 +26,17 @@ deserialize(B) ->
      Hash:HS>> = B,
     #exist{hash = <<Hash:HS>>, height = Height}.
 dict_get(Hash, Dict) ->
+    dict_get(Hash, Dict, 0).
+dict_get(Hash, Dict, Height) ->
     true = is_binary(Hash),
     X = dict:find({existence, Hash}, Dict),
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
     case X of
-	error -> empty;
+	error -> C;
         {ok, 0} -> empty;
         {ok, Y} -> deserialize(Y)
     end.

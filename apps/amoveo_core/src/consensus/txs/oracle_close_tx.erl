@@ -26,7 +26,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Acc = accounts:dict_update(From, Dict, -Tx#oracle_close.fee, Nonce),
     Dict2 = accounts:dict_write(Acc, Dict),
     OID = Tx#oracle_close.oracle_id,
-    Oracle = oracles:dict_get(OID, Dict2),
+    Oracle = oracles:dict_get(OID, Dict2, NewHeight),
     F19 = forks:get(19),
     if
         NewHeight > F19 ->
@@ -84,7 +84,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 			governance:dict_unlock(G, Dict4)
                 end
         end,
-    Oracle4 = oracles:dict_get(OID, Dict5),
+    Oracle4 = oracles:dict_get(OID, Dict5, NewHeight),
     OracleType = Oracle4#oracle.type,
     LoserType = 
 	case OracleType of

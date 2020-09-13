@@ -3,18 +3,21 @@
 	 true/1, false/1, bad/1,
 	 write/2, get/2, %root_hash/1, %add_bet/4,
 	 reward/3, delete/2, verify_proof/4,
-         dict_add_bet/5, dict_get/2, dict_delete/2, dict_write/2,
+         dict_add_bet/5, dict_get/2, dict_get/3, dict_delete/2, dict_write/2,
          serialize/1, make_leaf/3, key_to_int/1,
          deserialize/1]).
 -include("../../records.hrl").
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.
 -define(name, matched).
 reward(Bet, Correct, NewHeight) ->
+    F = Bet#matched.false,
+    T = Bet#matched.true,
+    B = Bet#matched.bad,
     {Positive, _Negative} = 
 	case Correct of
-	    1->{Bet#matched.true,Bet#matched.false+Bet#matched.bad};
-	    2->{Bet#matched.false,Bet#matched.true+Bet#matched.bad};
-	    3->{Bet#matched.bad,Bet#matched.true+Bet#matched.false}
+	    1->{T,F+B};
+	    2->{F,T+B};
+	    3->{B,T+F}
 	end,
     Positive.
 oracle(X) -> X#matched.oracle.
@@ -73,6 +76,8 @@ write(E, Tree) ->
     X = serialize(E),
     trie:put(Key, X, 0, Tree, ?name).
 dict_get({key, Account, Oracle}, Dict) ->
+    dict_get({key, Account, Oracle}, Dict, 0).
+dict_get({key, Account, Oracle}, Dict, Height) ->
     true = is_binary(Account),
     %io:fwrite(Oracle),
     true = is_binary(Oracle),
@@ -81,9 +86,13 @@ dict_get({key, Account, Oracle}, Dict) ->
     PS = constants:pubkey_size(),
     PS = size(Account),
     X = dict:find({matched, {key, Account, Oracle}}, Dict),
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
     case X of
-	error -> empty;
-	%error -> error;
+	error -> C;
         {ok, 0} -> empty;
         {ok, Y} -> deserialize(Y)
     end.

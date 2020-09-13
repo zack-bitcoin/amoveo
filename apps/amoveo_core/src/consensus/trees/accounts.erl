@@ -1,7 +1,7 @@
 -module(accounts).
 -export([bets/1, update_bets/2, new/2,%custom for this tree
          write/2, get/2, delete/2,%update tree stuff
-         dict_update/4, dict_update/5, dict_get/2, dict_write/2, dict_write/3, dict_delete/2,%update dict stuff
+         dict_update/4, dict_update/5, dict_get/2, dict_get/3, dict_write/2, dict_write/3, dict_delete/2,%update dict stuff
 	 meta_get/1,
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0, deserialize/1, all_accounts/0]).%common tree stuff
 -define(id, accounts).
@@ -40,11 +40,17 @@ update_bets(Account, Bets) ->
 key_to_int(X) ->
     trees:hash2int(ensure_decoded_hashed(X)).
 dict_get(Key, Dict) ->
+    dict_get(Key, Dict, 0).
+dict_get(Key, Dict, Height) ->
     %X = dict:fetch({accounts, Key}, Dict),
     X = dict:find({accounts, Key}, Dict),
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
     case X of
-        error -> empty;
-        %error -> error;
+        error -> C;
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} -> 

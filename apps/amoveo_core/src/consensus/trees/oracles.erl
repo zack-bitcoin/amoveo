@@ -1,7 +1,7 @@
 -module(oracles).
 -export([new/9, set_orders/2, orders/1, %custom stuff
          write/2, get/2,%update tree stuff
-         dict_get/2, dict_write/2, dict_write/3, %update dict stuff
+         dict_get/2, dict_get/3, dict_write/2, dict_write/3, %update dict stuff
 	 meta_get/1, deserialize/1, all/0, 
 	 ready_for_bets/0, ready_to_close/0,
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]). %common tree stuff
@@ -143,11 +143,17 @@ write(Oracle, Root) ->
     Meta = Oracle#oracle.orders,
     trie:put(key_to_int(Key), V, Meta, Root, ?name).
 dict_get(ID, Dict) ->
+    dict_get(ID, Dict, 0).
+dict_get(ID, Dict, Height) ->
     <<_:256>> = ID,
     X = dict:find({oracles, ID}, Dict),
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
     case X of
-	error -> empty;
-	%error -> error;
+	error -> C;
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} ->

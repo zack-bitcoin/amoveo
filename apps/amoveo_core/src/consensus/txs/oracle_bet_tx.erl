@@ -113,13 +113,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Facc = accounts:dict_update(From, Dict, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     <<_:256>> = Tx#oracle_bet.id,
-    Oracle = oracles:dict_get(Tx#oracle_bet.id, Dict2),
+    Oracle = oracles:dict_get(Tx#oracle_bet.id, Dict2, NewHeight),
     0 = Oracle#oracle.result,%check that the oracle isn't already closed.
     go2(Tx, Dict2, NewHeight).
 go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close the oracle we want to insert one last bet.
     From = Tx#oracle_bet.from,
     OID = Tx#oracle_bet.id,
-    Oracle0 = oracles:dict_get(OID, Dict),
+    Oracle0 = oracles:dict_get(OID, Dict, NewHeight),
     Gov = Oracle0#oracle.governance,
     F14 = forks:get(14),
     OIL = if

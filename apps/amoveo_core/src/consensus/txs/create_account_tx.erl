@@ -37,7 +37,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 		true -> none
 	    end,
     AccountFee = Tx#create_acc_tx.fee,
-    empty = accounts:dict_get(Pub, Dict),
+    empty = accounts:dict_get(Pub, Dict, NewHeight),
     Account = accounts:dict_update(From, Dict, -Amount - AccountFee, Nonce),
     NewAccount = accounts:new(Pub, Amount),
     Dict2 = accounts:dict_write(Account, Dict),

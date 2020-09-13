@@ -1,3 +1,5 @@
+%unused
+
 -module(delete_account_tx).
 -export([go/4, new/4, make_dict/3, from/1, to/1]).
 -include("../../records.hrl").

@@ -18,7 +18,7 @@ make(From, Fee, OID, Trees) ->
     {Tx, [Proof]}.
 go(Tx, Dict, NewHeight, NonceCheck) ->
     OID = Tx#oracle_winnings.oracle_id,
-    Oracle = oracles:dict_get(OID, Dict),
+    Oracle = oracles:dict_get(OID, Dict, NewHeight),
     Result = Oracle#oracle.result,
     false = Result == 0,
     AID = Tx#oracle_winnings.from,
@@ -27,7 +27,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 	      F10  -> matched;
 	      true -> oracle_bets%
 	  end,%
-    Bet = UMT:dict_get({key, AID, OID}, Dict),
+    Bet = UMT:dict_get({key, AID, OID}, Dict, NewHeight),
     Reward = UMT:reward(Bet, Result, NewHeight),
     Nonce = if
 		NonceCheck -> Tx#oracle_winnings.nonce;

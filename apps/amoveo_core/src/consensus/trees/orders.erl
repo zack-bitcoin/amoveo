@@ -91,6 +91,8 @@ write(X, Root) -> %
     Pubkey = aid(X),%
     HPID = key_to_int(Pubkey),%
     trie:put(HPID, V, 0, Root, ?name).%
+dict_get(Key, Dict, _) ->%
+    dict_get(Key, Dict).
 dict_get(Key, Dict) ->%
     X = dict:fetch({orders, Key}, Dict),%
     case X of%

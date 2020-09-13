@@ -1,7 +1,7 @@
 -module(governance).
 -export([tree_number_to_value/1, max/1, is_locked/1, genesis_state/0, name2number/1, number2name/1,%custom for this tree
 	 get_value/2, get/2, write/2,%update tree stuff
-         dict_get/2,dict_write/2, dict_get_value/2, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
+         dict_get/2,dict_get/3,dict_write/2, dict_get_value/2, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,
 	 serialize/1,deserialize/1,
 	 new/2,
@@ -277,13 +277,17 @@ dict_get_value(Key, Dict) ->
 	    V = Gov#gov.value,
 	    tree_number_to_value(V)
     end.
-dict_get(Key, Dict) when is_integer(Key) ->
+dict_get(Key0, Dict) ->
+    dict_get(Key0, Dict, 0).
+dict_get(Key0, Dict, Height) ->
+    Key = if
+              is_integer(Key0) -> Key0;
+              true -> name2number(Key0)
+          end,
     case dict:find({governance, Key}, Dict) of
 	error -> empty;
 	{ok, X} -> deserialize(X)
-    end;
-dict_get(Key, Dict) ->
-    dict_get(name2number(Key), Dict).
+    end.
 
 
 %% Tests

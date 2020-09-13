@@ -1,7 +1,7 @@
 -module(unmatched).
 -export([new/3,
          get/2,write/2,%update tree stuff
-         dict_get/2, dict_write/2,%update dict stuff
+         dict_get/2, dict_get/3, dict_write/2,%update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,
          dict_significant_volume/3, dict_match/4,
          dict_head_get/2,
@@ -103,6 +103,8 @@ deserialize_head(X) ->
 
 
 dict_get({key, Account, Oracle}, Dict) ->
+    dict_get({key, Account, Oracle}, Dict, 0).
+dict_get({key, Account, Oracle}, Dict, Height) ->
     true = is_binary(Account),
     true = is_binary(Oracle),
     HS = constants:hash_size(),
@@ -110,9 +112,13 @@ dict_get({key, Account, Oracle}, Dict) ->
     PS = constants:pubkey_size(),
     PS = size(Account),
     X = dict:find({unmatched, {key, Account, Oracle}}, Dict),
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
     case X of
-	error -> empty;
-	%error -> error;
+	error -> C;
         {ok, 0} -> empty;
         {ok, Y} -> deserialize(Y)
     end.

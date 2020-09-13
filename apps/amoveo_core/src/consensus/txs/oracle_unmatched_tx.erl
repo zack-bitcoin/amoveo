@@ -20,7 +20,7 @@ make(From, Fee, OracleID, Trees) ->
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
     OracleID = Tx#unmatched.oracle_id,
-    Oracle = oracles:dict_get(OracleID, Dict),
+    Oracle = oracles:dict_get(OracleID, Dict, NewHeight),
     Result = Oracle#oracle.result,
     false = Result == 0,
     AID = Tx#unmatched.from,
@@ -29,7 +29,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 	      F10  -> unmatched;
 	      true -> orders%
 	  end,%
-    Order = UMT:dict_get({key, AID, OracleID}, Dict),
+    Order = UMT:dict_get({key, AID, OracleID}, Dict, NewHeight),
     Amount = UMT:amount(Order),
     Dict2 = UMT:dict_remove(AID, OracleID, Dict),
     Nonce = if
