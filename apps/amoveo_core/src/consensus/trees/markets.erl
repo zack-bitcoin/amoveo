@@ -2,7 +2,7 @@
 -export([new/6, 
 	 write/2, get/2, delete/2,%update tree stuff
          %dict_update/9, 
-         dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_delete/2, dict_write/3, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
          make_id/1,make_id/4,
@@ -97,7 +97,14 @@ make_id(CID1, Type1, CID2, Type2) ->
             make_id(CID2, Type2, CID1, Type1)
     end.
 
-dict_write(M, Dict) ->
+dict_write(M, Dict, Height) ->
+    F42 = forks:get(42),
+    if
+        Height > F42 ->
+            true = M#market.amount1 > 0,
+            true = M#market.amount2 > 0;
+        true -> ok
+    end,
    dict:store({markets, M#market.id},
               serialize(M),
               Dict).

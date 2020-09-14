@@ -112,7 +112,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     M2 = M#market{
       amount1 = M#market.amount1 - G1,
       amount2 = M#market.amount2 - G2},
-    Dict5 = markets:dict_write(M2, Dict4),
+    Dict5 = markets:dict_write(M2, Dict4, NewHeight),
     Dict5.
 
 balance(Pub, <<0:256>>, Type, Dict) ->

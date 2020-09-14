@@ -2870,8 +2870,64 @@ int 0 int 1" >>),
     %1 = many_txs(),
     %mine_blocks(1),
 
-    success.
+    success;
+test(54) ->
+    %io:fwrite("market liquidity, none left.\n")
+    io:fwrite("test 54\n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(6),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
 
+    %creating a shareable contract with subcurrencies.
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 0, int 4294967295]\
+int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Many = 3,
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    %buying some subcurrencies from the new contract.
+    Amount = 100000000,
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    %creating a market
+    Tx4 = market_new_tx:make_dict(MP, CID, 1, Amount div 2, <<0:256>>, 0, Amount div 2, Fee),
+    MID = markets:make_id(CID, 1, <<0:256>>, 0),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    %withdraw all liquidity
+    Tx5 = market_liquidity_tx:make_dict(MP, MID, -(Amount div 2), Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    %add more liquidity
+    Tx6 = market_liquidity_tx:make_dict(MP, MID, Amount div 4, Fee),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    success.
 
 test35(_, _, _, 0) -> ok;
 test35(D, S, P, N) ->

@@ -51,7 +51,7 @@ go(Tx, Dict, NewHeight, _) ->
                          CID2, Type2, Amount2),
     MID = markets:make_id(Market),
     empty = markets:dict_get(MID, Dict2),
-    Dict3 = markets:dict_write(Market, Dict2),
+    Dict3 = markets:dict_write(Market, Dict2, NewHeight),
     Dict4 = spend_stuff(From, CID1, Type1, Dict3, Amount1),
     Dict5 = spend_stuff(From, CID2, Type2, Dict4, Amount2),
     %This is how we encode the market liquidity shares.
