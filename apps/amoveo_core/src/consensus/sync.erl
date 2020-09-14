@@ -175,12 +175,15 @@ get_headers(Peer) ->
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
     %io:fwrite("get headers 2\n"),
     {ok, HB} = ?HeadersBatch,
+    io:fwrite("get headers 2; 1\n"),
     Headers = remote_peer({headers, HB, N}, Peer),
+    io:fwrite("get headers 2; 2\n"),
     case Headers of
 	error -> error;
 	bad_peer -> error;
 	_ ->
 	    CommonHash = headers:absorb(Headers),
+            io:fwrite("get headers 2; 3\n"),
 	    L = length(Headers),
 	    case CommonHash of
 		<<>> -> 
