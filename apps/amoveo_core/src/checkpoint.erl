@@ -6,7 +6,7 @@
          clean/0, %deletes old unneeded checkpoints.
          chunk_name/1,
          sync/2,
-         test/0,
+         sync/0,
          start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 
 %Eventually we will need a function that can recombine the chunks, and unencode the gzipped tar to restore from a checkpoint.
@@ -120,18 +120,24 @@ get_chunks(Hash, Peer, N) ->
             io:fwrite("get_chunks unknown error\n"),
             io:fwrite(E)
     end.
-test() -> 
+sync() -> 
     block_db:set_ram_height(0),
     IP = {46,101,185,98},
     %IP = {159,89,87,58},
     Port = 8080,
+    spawn(fun() ->
+                  sync(IP, Port)
+          end).
+sync({IP, Port}) ->
     sync(IP, Port).
 sync(IP, Port) ->
     %set the config variable `reverse_syncing` to true.
     %let all the headers sync first before you run this.
     Peer = {IP, Port},
     CR = constants:custom_root(),
+    io:fwrite("downloading checkpoint\n"),
     {ok, CPL} = talker:talk({checkpoint}, Peer),
+    io:fwrite("unpacking checkpoint\n"),
     CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
 
     Header = case headers:read(CP1) of
@@ -164,7 +170,7 @@ sync(IP, Port) ->
            ++ CR ++ "data/."),
     os:cmd("rm -rf "++ CR ++ "db"),
     os:cmd("rm " ++ CR ++ "backup.tar.gz"),
-    TreeTypes = [accounts, channels, existence, oracles, governance, matched, unmatched],
+    TreeTypes = tree_types(element(1, TDB)),
     lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),
     Roots = block:make_roots(TDB),
     lists:map(fun(Type) -> 
@@ -194,6 +200,17 @@ sync(IP, Port) ->
                          (Height - 1)
              end, Page0),
     CompressedPage = block_db:compress(Page),
+    spawn(fun F() ->
+                 BH = block:height(),
+                 if
+                     (BH > 1) ->
+                         io:fwrite("ready to start syncing forwards\n"),
+                         sync:start();
+                     true ->
+                         timer:sleep(500),
+                         F()
+                 end
+         end),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     %TODO start syncing blocks backward
@@ -215,20 +232,33 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
             load_pages(NextCompressed, NewBottom, NextRoots, Peer)
     end.
+tree_types(trees4) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets];
+tree_types(trees3) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades];
+tree_types(trees2) -> [accounts, channels, existence, oracles, governance, matched, unmatched];
+tree_types(trees) -> [accounts, channels, existence, oracles, governance].
 verify_blocks(B, _, Roots, 0) -> {true, B, Roots};
 verify_blocks(B, P, PrevRoots, N) -> 
-    io:fwrite("verify blocks "),
-    io:fwrite(integer_to_list(B#block.height)),
-    io:fwrite("\n"),
+    Height = B#block.height,
+    if
+        ((Height rem 1000) == 0) ->
+            io:fwrite("absorb in reverse " ++
+                          integer_to_list(B#block.height) ++
+                          "\n");
+        true -> ok
+    end,
     {ok, NB} = dict:find(B#block.prev_hash, P),
     Proof = B#block.proofs,
+    %io:fwrite("verify blocks "),
+    %io:fwrite(NB#block.trees),
+    %io:fwrite("\n"),
+    TreeTypes = tree_types(element(1, NB#block.trees)),
     {_NewDict4, NewDict3, _} = block:check3(NB, B),
-    TreeTypes = [accounts, channels, existence, oracles, governance, matched, unmatched],
-    %{RootsList, Leaves} = calc_roots2(TreeTypes, Proof, NewDict3, [], []),
     {RootsList, Leaves} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
     Roots2 = [roots2|RootsList],
-    CRM = check_roots_match(Roots2, 
-                            tuple_to_list(PrevRoots)),
+    CRM = ((B#block.height< 109000) or 
+           check_roots_match(
+             Roots2, 
+             tuple_to_list(PrevRoots))),
     case CRM of
         true -> ok;
         false ->

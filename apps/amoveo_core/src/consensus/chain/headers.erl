@@ -3,7 +3,7 @@
 -export([absorb/1, absorb_with_block/1, read/1, read_ewah/1, top/0, dump/0, top_with_block/0,
          make_header/9, serialize/1, deserialize/1,
          difficulty_should_be/2, 
-	 ewah_range/2,
+	 ewah_range/2, recent_header/1,
 	 test/0]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../../records.hrl").
@@ -98,7 +98,9 @@ handle_call({add, Hash, Header, EWAH}, _From, State) ->
                       ets:insert(?MODULE, {Hash, {Header, EWAH}}),
                       []
               end,
-    {reply, ok, State#s{headers = Headers, top = NewTop}}.
+    {reply, ok, State#s{headers = Headers, top = NewTop}};
+handle_call(_, _, S) ->
+    {reply, S, S}.
 handle_cast(_, State) ->
     {noreply, State}.
 handle_info(_Info, State) ->
@@ -112,6 +114,18 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 check() -> gen_server:call(?MODULE, {check}).
+recent_header(N) ->
+    Top = top(),
+    recent_header2(N, Top).
+recent_header2(N, Header) ->
+    if
+        Header#header.height =< N -> Header;
+        true -> 
+            PrevHash = Header#header.prev_hash,
+            {PrevHash, {PrevHeader, _}} = hd(ets:lookup(?MODULE, PrevHash)),
+            recent_header2(N, PrevHeader)
+    end.
+            
 
 absorb_with_block([]) -> 0;
 absorb_with_block([F|T]) when is_binary(F) ->

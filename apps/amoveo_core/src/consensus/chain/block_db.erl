@@ -239,7 +239,6 @@ compress(X) ->
     %zlib:compress(term_to_binary(X)).
     list_to_binary([B1, B2]).
 uncompress(X) ->
-    %io:fwrite(X),
     S = zlib:open(),
     zlib:inflateInit(S),
     Y = binary_to_term(list_to_binary(zlib:inflate(S, X))),
@@ -398,6 +397,7 @@ test() ->
 
 
 
+by_height_from_compressed(error, _) -> error;
 by_height_from_compressed(D, N) ->
     %io:fwrite("block_db by height from compressed"),
     %io:fwrite(integer_to_list(N)),
