@@ -122,8 +122,8 @@ get_chunks(Hash, Peer, N) ->
     end.
 test() -> 
     block_db:set_ram_height(0),
-    %IP = {46,101,185,98},
-    IP = {159,89,87,58},
+    IP = {46,101,185,98},
+    %IP = {159,89,87,58},
     Port = 8080,
     sync(IP, Port).
 sync(IP, Port) ->
