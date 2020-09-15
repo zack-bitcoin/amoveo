@@ -37,6 +37,9 @@ handle(Req, State) ->
 		    end,
 		packer:pack(B);
 	    _ -> 
+                io:fwrite("spammer's ip: "),
+                io:fwrite(packer:pack(IP)),
+                io:fwrite("\n"),
 		packer:pack({ok, <<"stop spamming the server">>})
 	end,	    
 

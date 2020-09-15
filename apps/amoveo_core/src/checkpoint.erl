@@ -191,7 +191,11 @@ sync(IP, Port) ->
                       Height),
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
-    %sync:start(),
+
+
+
+
+    sync:start(),
     {ok, ComPage0} = talker:talk({blocks, 50, Height}, Peer),
     Page0 = block_db:uncompress(ComPage0),
     Page = dict:filter(%remove data that is already in block_db.
@@ -200,17 +204,6 @@ sync(IP, Port) ->
                          (Height - 1)
              end, Page0),
     CompressedPage = block_db:compress(Page),
-    spawn(fun F() ->
-                 BH = block:height(),
-                 if
-                     (BH > 1) ->
-                         io:fwrite("ready to start syncing forwards\n"),
-                         sync:start();
-                     true ->
-                         timer:sleep(500),
-                         F()
-                 end
-         end),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     %TODO start syncing blocks backward
@@ -240,25 +233,36 @@ verify_blocks(B, _, Roots, 0) -> {true, B, Roots};
 verify_blocks(B, P, PrevRoots, N) -> 
     Height = B#block.height,
     if
-        ((Height rem 1000) == 0) ->
+        ((Height rem 100) == 0) ->
             io:fwrite("absorb in reverse " ++
                           integer_to_list(B#block.height) ++
                           "\n");
         true -> ok
     end,
     {ok, NB} = dict:find(B#block.prev_hash, P),
+
     Proof = B#block.proofs,
     %io:fwrite("verify blocks "),
     %io:fwrite(NB#block.trees),
     %io:fwrite("\n"),
     TreeTypes = tree_types(element(1, NB#block.trees)),
-    {_NewDict4, NewDict3, _} = block:check3(NB, B),
-    {RootsList, Leaves} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
-    Roots2 = [roots2|RootsList],
-    CRM = ((B#block.height< 109000) or 
-           check_roots_match(
-             Roots2, 
-             tuple_to_list(PrevRoots))),
+    {CRM, Leaves} = 
+        if
+            (B#block.height < 38700) -> 
+                {true, []};
+            (B#block.height < 109000) -> 
+                {_, _NewDict3, _} = block:check3(NB, B),
+                {true, []};
+            true ->
+                {_, NewDict3, _} = block:check3(NB, B),
+                
+                {RootsList, Leaves0} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
+                Roots2 = [roots2|RootsList],
+                {check_roots_match(
+                   Roots2, 
+                   tuple_to_list(PrevRoots)),
+                 Leaves0}
+        end,
     case CRM of
         true -> ok;
         false ->
@@ -269,8 +273,8 @@ verify_blocks(B, P, PrevRoots, N) ->
             %io:fwrite("all proofs: "),
             %io:fwrite(packer:pack(Proof)),
             %io:fwrite("\n"),
-            io:fwrite(packer:pack({Roots2, tuple_to_list(PrevRoots)})),
-            io:fwrite("\n"),
+            %io:fwrite(packer:pack({Roots2, tuple_to_list(PrevRoots)})),
+            %io:fwrite("\n"),
             CFG = trie:cfg(unmatched),
             P2 = lists:filter(
                    fun(X) ->
