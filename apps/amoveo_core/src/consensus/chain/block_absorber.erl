@@ -142,15 +142,15 @@ absorb_internal(Block) ->
 			    %io:fwrite("\n"),
 			    potential_block:dump()
 		    end,
-                    F38 = forks:get(38),
-                    F36 = forks:get(36),
-                    if
-                        ((Height > F38) and
-                         (Height < F36)) ->
-                         
-                            soft_fork:easy_add(Block2#block.prev_hash, BH, Block2#block.txs);
-                        true -> ok
-                    end,
+%                    F38 = forks:get(38),
+%                    F36 = forks:get(36),
+%                    if
+%                        ((Height > F38) and
+%                         (Height < F36)) ->
+%                         
+%                            soft_fork:easy_add(Block2#block.prev_hash, BH, Block2#block.txs);
+%                        true -> ok
+%                    end,
                     checkpoint:make(),
 
 

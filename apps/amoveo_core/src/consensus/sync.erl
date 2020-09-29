@@ -286,8 +286,8 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                         true -> ok
                     end
             end,
-            %io:fwrite(packer:pack([N, S])),
-            %io:fwrite("\n"),
+            io:fwrite(packer:pack([N, S])),
+            io:fwrite("\n"),
             %{ok, Cores} = application:get_env(amoveo_core, block_threads),
             %Cores = 20,
             %S2 = S div Cores,

@@ -52,7 +52,7 @@ get(35) -> common(130700, %automatic market makers.
 %get(36) -> common(132850, test_height());
 get(36) -> common(132850, 100);%hard update to prevent market_liqudity tx from being re-published.
 get(37) -> common(132860, test_height());%hard update to fix how market_liquidity_tx work with flash loans.
-get(38) -> common(131100, test_height());%soft update to prevent market_liquidity_tx being re-published.
+get(38) -> common(0, test_height());%soft update to prevent market_liquidity_tx being re-published.
 get(39) -> common(133240, test_height());%the database we use while processing blocks, it needs to distinguish between a proof of non-existence, and the non-existence of a proof.
 get(40) -> common(133250, test_height());%zero veo fee payments using a flash loan.
 get(41) -> common(133260, test_height());%market_swap_tx dust fix.
