@@ -92,9 +92,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                     (Get > Take) ->
                         ok;
                     true ->
-                        io:fwrite("market swap failure, not enough to take \n"),
-                        io:fwrite(packer:pack([Get, Take])),
-                        io:fwrite("\n"),
+                        %io:fwrite("market swap failure, not enough to take \n"),
+                        %io:fwrite(packer:pack([Get, Take])),
+                        %io:fwrite("\n"),
                         1 = 1+1
                 end,
                 %true = Get > Take,
@@ -105,9 +105,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                     (Get > Take) ->
                         ok;
                     true ->
-                        io:fwrite("market swap failure, not enough to take \n"),
-                        io:fwrite(packer:pack([Get, Take])),
-                        io:fwrite("\n"),
+                        %io:fwrite("market swap failure, not enough to take \n"),
+                        %io:fwrite(packer:pack([Get, Take])),
+                        %io:fwrite("\n"),
                         1 = 1+1
                 end,
                 %true = Get > Take,
