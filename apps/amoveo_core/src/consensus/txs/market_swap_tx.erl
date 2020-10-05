@@ -88,11 +88,29 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 %A1*A2 = (A1 + give)*(A2 - get)
                 %(A2 - get) = (A1*A2)/(A1 + give)
                 Get = Amount2 - (Amount1 * Amount2 div (Amount1 + Give)),
-                true = Get > Take,
+                if
+                    (Get > Take) ->
+                        ok;
+                    true ->
+                        io:fwrite("market swap failure, not enough to take \n"),
+                        io:fwrite(packer:pack([Get, Take])),
+                        io:fwrite("\n"),
+                        1 = 1+1
+                end,
+                %true = Get > Take,
                 {-Give, Get};
             2 -> 
                 Get = Amount1 - (Amount2 * Amount1 div (Amount2 + Give)),
-                true = Get > Take,
+                if
+                    (Get > Take) ->
+                        ok;
+                    true ->
+                        io:fwrite("market swap failure, not enough to take \n"),
+                        io:fwrite(packer:pack([Get, Take])),
+                        io:fwrite("\n"),
+                        1 = 1+1
+                end,
+                %true = Get > Take,
                 {Get, -Give}
         end,
     Gov = governance:dict_get_value(market_trading_fee, Dict2),
