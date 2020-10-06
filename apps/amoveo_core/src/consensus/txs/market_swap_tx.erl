@@ -53,8 +53,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     direction = Direction
    } = Tx,
     F41 = forks:get(41),
+    F43 = forks:get(43),
     Give = if
-               NewHeight > F41 ->
+               (NewHeight > F41) and
+               (NewHeight < F43) ->
                    GiveLimit = 
                        case Direction of
                            1 -> balance(From, CID1, Type1, Dict);
