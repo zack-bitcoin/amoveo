@@ -22,7 +22,11 @@ init(ok) ->
     %erlang:send_after(1000, self(), set_initial_peers),
     spawn(fun() ->
 		  timer:sleep(1000),
-		  {ok, Peers} = application:get_env(amoveo_core, peers),
+		  %{ok, Peers} = application:get_env(amoveo_core, peers),
+                  Peers = case application:get_env(amoveo_core, peers) of
+                              {ok, P} -> P;
+                              undefined -> []
+                          end,
 		  {ok, Port} = application:get_env(amoveo_core, port),
 		  add(Peers),
 		  IP = my_ip(),
