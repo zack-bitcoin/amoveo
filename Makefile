@@ -210,6 +210,7 @@ config/local/sys.config: config/sys.config.tmpl
 	{keys_pass, \"\"},\
         {request_frequency, 100},\
         {master_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
+        {test_mode, true},\
 	:\
 	" $< > $@
 
@@ -245,6 +246,7 @@ config/dev1/sys.config: config/sys.config.tmpl
     {request_frequency, 100},\
     {master_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
     {channels, true},\
+        {test_mode, true},\
     :\
     " $< > $@
 
@@ -262,6 +264,7 @@ config/dev2/sys.config: config/sys.config.tmpl
     {request_frequency, 100},\
     {master_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
     {channels, true},\
+        {test_mode, true},\
     :\
     " $< > $@
 
@@ -279,6 +282,7 @@ config/dev3/sys.config: config/sys.config.tmpl
     {request_frequency, 100},\
     {master_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\
     {channels, true},\
+        {test_mode, true},\
     :\
     " $< > $@
 
