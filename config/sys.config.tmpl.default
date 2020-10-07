@@ -2,7 +2,6 @@
   { amoveo_core, [
 
     %% comment
-    {peers, []},
     {pools, []},
 
     {master_pub, <<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>},
