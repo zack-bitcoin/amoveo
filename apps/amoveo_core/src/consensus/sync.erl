@@ -376,7 +376,10 @@ push_new_block(Block) ->
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     M = min(Header#header.height, FT),
     Headers = list_headers([Header], M),
-    {ok, Pools} = application:get_env(amoveo_core, pools),
+    Pools = case application:get_env(amoveo_core, pools) of
+                {ok, P} -> P;
+                undefined -> []
+            end,
     spawn(fun() -> push_new_block_helper(0, 0, shuffle(Pools), Hash, Headers) end),
     spawn(fun() -> push_new_block_helper(0, 0, shuffle(Peers), Hash, Headers) end).
 push_new_block_helper(_, _, [], _, _) -> ok;%no one else to give the block to.
