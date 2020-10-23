@@ -90,7 +90,7 @@ absorb_internal2(SignedTx, PID) ->
     %io:fwrite("absorb internal 4"),
     case is_in(Tx, Txs) of
         true -> 
-            io:fwrite("is in error"),
+            %io:fwrite("is in error"),
             PID ! error;
         false -> 
 	    true = signing:verify(SignedTx),

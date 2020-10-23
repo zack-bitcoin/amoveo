@@ -1,13 +1,20 @@
 -module(get_api_handler).
--export([init/3, handle/2, terminate/3, doit/1]).
+-export([init/3, init/2, handle/2, terminate/3, doit/1]).
 %example of talking to this handler:
-%curl -i http://localhost:3011/ext/getmoneysupply
+%curl -i http://localhost:3010/ext/getmoneysupply
 
+init(Req, Opts) ->
+	handle(Req, Opts).
 handle(Req, _) ->
-    {F, _} = cowboy_req:path(Req),
+    %{F, _} = cowboy_req:path(Req),
+    F = cowboy_req:path(Req),
     X = doit(F),
-    Headers = [{<<"content-type">>, <<"text/html">>},
-    {<<"Access-Control-Allow-Origin">>, <<"*">>}],
+    Headers = #{ 
+      %<<"content-type">> => <<"application/octet-stream">>,
+      <<"content-type">> => <<"text/html">>,
+      <<"Access-Control-Allow-Origin">> => <<"*">>},
+    %Headers = [{<<"content-type">>, <<"text/html">>},
+    %{<<"Access-Control-Allow-Origin">>, <<"*">>}],
     {ok, Req2} = cowboy_req:reply(200, Headers, X, Req),
     {ok, Req2, 0}.
 init(_Type, Req, _Opts) -> {ok, Req, []}.

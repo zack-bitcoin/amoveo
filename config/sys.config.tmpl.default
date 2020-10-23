@@ -2,7 +2,6 @@
   { amoveo_core, [
 
     %% comment
-    %%    {master_pub, <<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>},
 
     {cores_to_mine, 1000}, %% The maximum number of cores to use when mining.
 
