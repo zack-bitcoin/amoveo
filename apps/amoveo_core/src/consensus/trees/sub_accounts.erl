@@ -19,6 +19,17 @@ dict_update(Key, Dict, Amount, NewNonce) ->
                          NewNonce
                  end,
     NewBalance = Amount + Account#sub_acc.balance,
+    if
+        (NewBalance < 0) ->
+            io:fwrite("sub account dict update insufficient balance \n"),
+            io:fwrite(packer:pack(Account)),
+            io:write("\n"),
+            io:write(packer:pack(Amount)),
+            io:write("\n"),
+            ok;
+        true ->
+            ok
+    end,
     true = NewBalance >= 0,
     Account#sub_acc{balance = NewBalance,
                 nonce = FinalNonce}.
