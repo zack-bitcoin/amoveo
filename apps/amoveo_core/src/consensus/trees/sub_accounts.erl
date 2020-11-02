@@ -21,7 +21,8 @@ dict_update(Key, Dict, Amount, NewNonce) ->
     NewBalance = Amount + Account#sub_acc.balance,
     if
         (NewBalance < 0) ->
-           %["sub_acc",926,0,"BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","PX/VkaUaTJfHk7VWm0jordTlJ1MTZQJ2jczoyrXf5LY=",1][10]<<45,49,50,51,51>>[10]
+           %["sub_acc",926,0,"BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=","PX/VkaUaTJfHk7VWm0jordTlJ1MTZQJ2jczoyrXf5LY=",1] 
+           %-1233
 
             io:fwrite("sub account dict update insufficient balance \n"),
             io:fwrite(packer:pack(Account)),
