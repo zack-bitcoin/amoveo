@@ -154,6 +154,7 @@ handle(Req, State) ->
             <<"/swap_tab_builder.js">> -> true;
             <<"/spend_tab_builder.js">> -> true;
             <<"/create_tab_builder.js">> -> true;
+            <<"/create_binary_tab_builder.js">> -> true;
             <<"/tabs.js">> -> true;
             X -> 
                 io:fwrite("ext file handler unknown page: "),
