@@ -45,6 +45,7 @@ is_in(Tx, [STx2 | T]) ->
     Tx2 = signing:data(STx2),
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
+    %io:fwrite("tx pool feeder absorb internal\n"),
     S = self(),
     Wait = case application:get_env(amoveo_core, kind) of
 	       {ok, "production"} -> 200;
@@ -81,16 +82,16 @@ absorb_internal(SignedTx) ->
 	    
 absorb_internal2(SignedTx, PID) ->
     %io:fwrite("now 2 "),%200
+    %io:fwrite("absorb internal 2\n"),
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
-    %io:fwrite("absorb internal 2\n"),
     Tx = signing:data(SignedTx),
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
     %io:fwrite("absorb internal 4"),
     case is_in(Tx, Txs) of
         true -> 
-            %io:fwrite("is in error"),
+            io:fwrite("is in error\n"),
             PID ! error;
         false -> 
 	    true = signing:verify(SignedTx),
@@ -122,10 +123,10 @@ absorb_internal2(SignedTx, PID) ->
                     io:fwrite("not enough fees"),
                     PID ! error;
                 true -> 
-            %io:fwrite("enough fee \n"),
-            %io:fwrite("now 5 "),%2000
-            %io:fwrite(packer:pack(now())),
-            %io:fwrite("\n"),
+                    %io:fwrite("enough fee \n"),
+                    %io:fwrite("now 5 "),%2000
+                    %io:fwrite(packer:pack(now())),
+                    %io:fwrite("\n"),
             %OldDict = proofs:facts_to_dict(F#tx_pool.facts, dict:new()),
                     Height = block:height(),
                     {CBTX, _} = coinbase_tx:make(constants:master_pub(), F#tx_pool.block_trees),
