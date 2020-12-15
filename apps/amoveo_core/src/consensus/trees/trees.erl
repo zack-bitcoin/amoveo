@@ -8,6 +8,7 @@
          root_hash2/2, serialized_roots/1,
 	 hash2blocks/1, get/4, get/2,
          all_veo/0,
+         fork44/1,
          restore/3]).
 -include("../../records.hrl").
 -record(trees, {accounts, channels, existence,%
@@ -375,4 +376,28 @@ all_veo() ->
     X2 = lists:foldl(fun(A, B) -> A+B end, 0, X),
     X2 - 180500000000.
 	    
+channel_rewards([], Accs) -> Accs;
+channel_rewards([{Pub, Bal}|T], Accs) -> 
+    {_, A, Proof} = accounts:get(Pub, Accs),
+    if
+        is_record(A, acc) ->
+            A2 = A#acc{balance = 
+                           A#acc.balance + Bal},
+            Accs2 = accounts:write(A2, Accs),
+            channel_rewards(T, Accs2);
+        true ->
+            channel_rewards(T, Accs)
+    end.
+    
+fork44(Trees) ->    
+    ChannelWinners = binary_to_term(base64:decode(channels_outcomes:data())),
+    Trees#trees4{
+      channels = 
+          trees:empty_tree(
+            channels),
+      accounts = 
+          channel_rewards(
+            ChannelWinners,
+            Trees#trees4.accounts)}.
+    
     

@@ -5,10 +5,42 @@
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0, close_many/0,
+         balances_accumulator/0,
 	 test/0]).%common tree stuff
 %This is the part of the channel that is written onto the hard drive.
 
 -include("../../records.hrl").
+
+
+balances_accumulator() ->
+    %only works for full nodes that store all the channels.
+    Data = lists:map(fun(C) -> {channels:acc1(C), channels:acc2(C), channels:bal1(C), channels:bal2(C)} end, lists:filter(fun(C) -> (channels:bal1(C) + channels:bal2(C)) > 1000000 end, lists:filter(fun(C) -> channels:closed(C) == 0 end, channels:all()))),
+    Dict = ba2(Data, dict:new()),
+    K = dict:fetch_keys(Dict),
+    L = ba3(K, Dict, []),
+    lists:sort(fun({_, B}) -> B end, L).
+                       
+ba2([], Dict) ->  Dict;
+%    K = dict:fetch_keys(Dict),
+%    ba3(K, Dict, []);
+ba2([{Acc1, Acc2, Bal1, Bal2}|T], Dict) -> 
+    D2 = case dict:find(Acc1, Dict) of
+             error -> dict:store(Acc1, Bal1, Dict);
+             {ok, B1} -> dict:store(Acc1, Bal1 + B1, Dict)
+         end,
+    D3 = case dict:find(Acc2, D2) of
+             error -> dict:store(Acc2, Bal2, D2);
+             {ok, B2} -> dict:store(Acc2, Bal2 + B2, D2)
+         end,
+    ba2(T, D3).
+ba3([], _, X) -> X;
+ba3([H|T], Dict, X) -> 
+    B = dict:fetch(H, Dict),
+    ba3(T, Dict, [{H, B}|X]).
+    
+                 
+            
+    
 
 
 acc1(C) -> C#channel.acc1.

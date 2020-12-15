@@ -262,13 +262,33 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 		gov_fees(Txs0, Dict, Height) + %
 		DeveloperReward%
     end.
-   
+  
+channel_rewards([], Accs) -> Accs;
+channel_rewards([{Pub, Bal}|T], Accs) -> 
+    {_, A, Proof} = accounts:get(Pub, Accs),
+    if
+        is_record(A, acc) ->
+            A2 = A#acc{balance = 
+                           A#acc.balance + Bal},
+            Accs2 = accounts:write(A2, Accs),
+            channel_rewards(T, Accs2);
+        true ->
+            channel_rewards(T, Accs)
+    end.
+    
+ 
 trees_maker(HeightCheck, Trees, NewDict4) ->
-    NewTrees0 = tree_data:dict_update_trie(Trees, NewDict4),%same
+    NewTrees0 = 
+        tree_data:dict_update_trie(
+          Trees, NewDict4),%same
     F10 = forks:get(10),
     F32 = forks:get(32),
     F35 = forks:get(35),
+    F44 = forks:get(44),
     if
+        (HeightCheck == F44) ->
+            %replace channels with empty tree.
+            trees:fork44(Trees);
         (HeightCheck == F10)  ->%
                                                 %Root0 = constants:root0(),%
             NewTrees1 = %

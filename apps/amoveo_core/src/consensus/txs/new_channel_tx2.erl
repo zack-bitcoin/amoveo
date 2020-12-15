@@ -38,6 +38,9 @@ make_offer(ID, Pub, TimeLimit, Bal1, Bal2, Delay, MC, SPK) ->
     #nc_offer{id = ID, nonce = Nonce, acc1 = Pub, nlocktime = 0, bal1 = Bal1, bal2 = Bal2, delay = Delay, contract_hash = CH, miner_commission = MC}.
 				 
 go(Tx, Dict, NewHeight, _) -> 
+    F44 = forks:get(44),
+    true = F44 > NewHeight,
+
     true = NewHeight > forks:get(11),
     #nc_accept{
                 fee = Fee,

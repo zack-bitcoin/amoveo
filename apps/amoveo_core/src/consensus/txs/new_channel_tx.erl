@@ -53,6 +53,8 @@ salted_id(ID, A) ->
 go(Tx, Dict, NewHeight, _) ->
     ID0 = Tx#nc.id,
     F29 = forks:get(29),
+    F44 = forks:get(44),
+    true = F44 > NewHeight,
     Aid1 = Tx#nc.acc1,
     Aid2 = Tx#nc.acc2,
     ID = if
