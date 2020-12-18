@@ -56,7 +56,7 @@ get(40) -> common(133250, test_height());%zero veo fee payments using a flash lo
 get(41) -> common(133260, test_height());%market_swap_tx dust fix.
 get(42) -> common(133400, test_height());%soft fork to prevent markets from having zero liquidity.
 get(43) -> common(136300, test_height());%undo #41
-get(44) -> common(9999999, forks:get(35)+1);%payback any money left in channels
+get(44) -> common(146220, forks:get(35)+1);%payback any money left in channels
 get(_) -> none.
 
 top() -> top(1).
