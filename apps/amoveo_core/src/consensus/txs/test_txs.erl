@@ -48,7 +48,7 @@ test() ->
     S = test(11),%try out the oracle
     S = test(16),%try out the oracle further
     %S = test(17),%blocks filled with create account txs
-    S = test(28),
+    %S = test(28),%new channel tx2
     S = contracts(),
     S.
 absorb(Tx) -> 
@@ -670,7 +670,7 @@ test(13) ->
     OIL = trees:get(governance, oracle_initial_liquidity),
     potential_block:new(),
     mine_blocks(1+MOT),
-    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID2, 1, OIL * 2), 
+    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID2, 1, OIL * 3), 
     BR1 = trees:get(governance, block_reward),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
@@ -685,6 +685,7 @@ test(13) ->
     1 = many_txs(),
     potential_block:new(),
     mine_blocks(1),
+    timer:sleep(100),
     GovVal2 = trees:get(governance, 1),
     io:fwrite(packer:pack({GovVal2, GovVal1})),
     io:fwrite("\n"),
@@ -1666,6 +1667,7 @@ binary 32 ",
     Stx11 = keys:sign(Tx11),
     absorb(Stx11),
     1 = many_txs(),
+    timer:sleep(100),
     mine_blocks(1),
     0 = many_txs(),
   
@@ -1674,6 +1676,7 @@ binary 32 ",
     Stx12 = keys:sign(Tx12),
     absorb(Stx12),
     1 = many_txs(),
+    timer:sleep(100),
     mine_blocks(1),
     timer:sleep(100),
     0 = many_txs(),
@@ -1683,6 +1686,7 @@ binary 32 ",
     Stx13 = keys:sign(Tx13),
     absorb(Stx13),
     1 = many_txs(),
+    timer:sleep(100),
     mine_blocks(1),
     timer:sleep(100),
     0 = many_txs(),
@@ -1691,6 +1695,7 @@ binary 32 ",
     Stx14 = keys:sign(Tx14),
     absorb(Stx14),
     1 = many_txs(),
+    timer:sleep(100),
     mine_blocks(1),
     timer:sleep(100),
     0 = many_txs(),
@@ -1702,7 +1707,7 @@ binary 32 ",
     Stx15 = keys:sign(Tx15),
     absorb(Stx15),
     1 = many_txs(),
-    timer:sleep(200),
+    timer:sleep(400),
     mine_blocks(1),
     timer:sleep(200),
     %timer:sleep(200),
@@ -1715,6 +1720,7 @@ binary 32 ",
     Stx16 = keys:sign(Tx16),
     absorb(Stx16),
     1 = many_txs(),
+    timer:sleep(100),
     mine_blocks(1),
     timer:sleep(200),
     0 = many_txs(),
@@ -2928,7 +2934,31 @@ int 0 int 1" >>),
     1 = many_txs(),
     mine_blocks(1),
 
+    success;
+test(55) ->
+    %io:fwrite("fork 44 test\n")
+    io:fwrite("test 55\n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    %mine_blocks(6),
+    MP = constants:master_pub(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Trees = block_trees(BP),
+
+    [{Pub, _}|_] = binary_to_term(base64:decode(channels_outcomes:data())),
+    Fee = constants:initial_fee() + 20,
+    {Ctx, _} = create_account_tx:new(Pub, 100000, Fee, constants:master_pub(), Trees),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+
+    mine_blocks(8),
     success.
+    
+    
+
+    %creating a shareable contract with subcurrencies.
 
 test35(_, _, _, 0) -> ok;
 test35(D, S, P, N) ->

@@ -376,17 +376,26 @@ all_veo() ->
     X2 = lists:foldl(fun(A, B) -> A+B end, 0, X),
     X2 - 180500000000.
 	    
-channel_rewards([], Accs) -> Accs;
-channel_rewards([{Pub, Bal}|T], Accs) -> 
+channel_rewards([], Accs, Proofs) -> 
+    file:write_file(
+      "fork_44_account_proofs.db", 
+      term_to_binary(Proofs)),
+    Accs;
+channel_rewards([{Pub, Bal}|T], Accs, Proofs) -> 
     {_, A, Proof} = accounts:get(Pub, Accs),
     if
         is_record(A, acc) ->
-            A2 = A#acc{balance = 
-                           A#acc.balance + Bal},
+            A2 = A#acc{
+                   balance = 
+                       A#acc.balance + Bal},
             Accs2 = accounts:write(A2, Accs),
-            channel_rewards(T, Accs2);
+            channel_rewards(
+              T, Accs2, 
+              [{Pub, A, Proof}|Proofs]);
         true ->
-            channel_rewards(T, Accs)
+            channel_rewards(
+              T, Accs, 
+              [{Pub, A, Proof}|Proofs])
     end.
     
 fork44(Trees) ->    
@@ -398,6 +407,7 @@ fork44(Trees) ->
       accounts = 
           channel_rewards(
             ChannelWinners,
-            Trees#trees4.accounts)}.
+            Trees#trees4.accounts, 
+            [])}.
     
     

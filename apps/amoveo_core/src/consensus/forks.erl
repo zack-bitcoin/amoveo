@@ -37,18 +37,16 @@ get(24) -> common(82270, test_height());%require that new oracle ids conform to 
 get(25) -> common(77500, test_height());%so that we can prove the non-existence of oracles and channels and accounts.
 get(26) -> common(96560, test_height());%so we can cancel channel offers.
 get(27) -> common(102260, test_height());%so oracle_new tx includes all the proofs that it needs.
-get(28) -> common(99999999, 99999999);
+get(28) -> common(99999999, 99999999);%unused.
 get(29) -> common(104600, test_height());
 get(30) -> common(108600, test_height());
 get(31) -> common(109900, test_height());
 get(32) -> common(130300, %subcurrencies
-                  max(forks:get(10) + 1, 
-                      test_height()));
+                  forks:get(10) + 1);
 get(33) -> common(126000, test_height());%enforcing max block size.
 get(34) -> 0;%filler
 get(35) -> common(130700, %automatic market makers.
-                  max(forks:get(32) + 1,
-                      test_height()));
+                  forks:get(32) + 1);
 %get(36) -> common(132850, test_height());
 get(36) -> common(132850, 100);%hard update to prevent market_liqudity tx from being re-published.
 get(37) -> common(132860, test_height());%hard update to fix how market_liquidity_tx work with flash loans.
@@ -58,7 +56,7 @@ get(40) -> common(133250, test_height());%zero veo fee payments using a flash lo
 get(41) -> common(133260, test_height());%market_swap_tx dust fix.
 get(42) -> common(133400, test_height());%soft fork to prevent markets from having zero liquidity.
 get(43) -> common(136300, test_height());%undo #41
-get(44) -> common(9999999, test_height()+50);%payback any money left in channels
+get(44) -> common(9999999, forks:get(35)+1);%payback any money left in channels
 get(_) -> none.
 
 top() -> top(1).
