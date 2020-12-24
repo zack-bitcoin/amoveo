@@ -122,6 +122,7 @@ handle(Req, State) ->
             <<"/scalar_contract_winnings.js">> -> true;
             <<"/scalar_id.js">> -> true;
             <<"/scalar_oracle_creation.js">> -> true;
+            <<"/simplified_scalar_oracle_creation.js">> -> true;
             <<"/resolve_scalar_contract.js">> -> true;
             <<"/resolve_scalar_winnings.js">> -> true;
             <<"/subcurrency_balance.js">> -> true;
