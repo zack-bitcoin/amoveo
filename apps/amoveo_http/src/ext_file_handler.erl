@@ -116,6 +116,8 @@ handle(Req, State) ->
             <<"/utils.js">> -> true;
             <<"/add.js">> -> true;
             <<"/contracts.html">> -> true;
+            <<"/contracts_list.html">> -> true;
+            <<"/contracts_list.js">> -> true;
             <<"/binary_id.js">> -> true;
             <<"/resolve_binary_contract.js">> -> true;
             <<"/binary_contract_winnings.js">> -> true;
