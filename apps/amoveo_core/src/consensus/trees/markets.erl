@@ -92,6 +92,7 @@ make_id(CID1, Type1, CID2, Type2) ->
                   CID2/binary,
                   Type1:16,
                   Type2:16>>,
+            %io:fwrite(base64:encode(X)),
             hash:doit(X);
         true ->
             make_id(CID2, Type2, CID1, Type1)
