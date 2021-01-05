@@ -65,6 +65,8 @@ doit({contracts, CID}) ->
     {ok, api:tree_common(contracts, CID)};%trees:get(contracts, CID)};
 doit({sub_accounts, ID}) ->
     {ok, api:tree_common(sub_accounts, ID)};%trees:get(sub_accounts, ID)};
+doit({oracles, ID}) ->
+    {ok, api:tree_common(oracles, ID)};%trees:get(sub_accounts, ID)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({version}) -> {ok, version:doit(block:height())};
@@ -301,6 +303,9 @@ doit({proof, TreeName, ID, Hash}) ->
     {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}};
 doit({list_oracles}) ->
     {ok, order_book:keys()};
+doit({oracle, 2, QuestionHash}) ->
+    {ok, Q} = oracle_questions:get(QuestionHash),
+    {ok, Q};
 doit({oracle, Y}) ->
     %X = base64:decode(Y),
     X = Y,
