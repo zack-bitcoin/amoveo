@@ -3002,15 +3002,9 @@ int 0 int 1" >>),
     Tx4 = swap_tx2:make_dict(NewPub, SSO, 3456, Fee*2),
     %matching 34.56% of the limit order.
     Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
-
-    io:fwrite("before\n"),
-    io:fwrite(packer:pack(trees:get(trades, TID))),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(trees:get(accounts, NewPub))),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(trees:get(sub_accounts, SubAcc1))),
-    io:fwrite("\n"),
-
+    empty = trees:get(trades, TID),
+    100000000 = (trees:get(accounts, NewPub))#acc.balance,
+    100000000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
 
     timer:sleep(200),
     absorb(Stx4),
@@ -3020,19 +3014,76 @@ int 0 int 1" >>),
     mine_blocks(1),
     timer:sleep(200),
 
-    io:fwrite("after\n"),
-    io:fwrite(packer:pack(trees:get(trades, TID))),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(trees:get(accounts, NewPub))),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(trees:get(sub_accounts, SubAcc1))),
-    io:fwrite("\n"),
-    %TODO look up that the trade data updated correctly.
-    %TODO look up that account state updated correctly
+    Trade1 = trees:get(trades, TID),
+    3457 = Trade1#trade.height,
+    96241724 = (trees:get(accounts, NewPub))#acc.balance,
+    96544000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
+
     0 = many_txs(),
+
+    Nonce0 = 3500,
+    Tx5 = trade_cancel_tx:make_dict(
+            MP, Nonce0, Fee, Salt),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    timer:sleep(200),
+    1 = many_txs(),
+    timer:sleep(200),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+    absorb(Stx5),%testing that the same tx can't be re-published.
+    timer:sleep(200),
+    0 = many_txs(),
+    
+    Trade2 = trees:get(trades, TID),
+    Nonce0 = Trade2#trade.height,
+
+    %next testing in a multi-tx
+    
+    MatchMany2 = 400,
+    Swap2 = swap_tx2:make_dict(NewPub, SSO, MatchMany2, Fee*2),
+    Txs2 = [Swap2],
+    Tx6 = multi_tx:make_dict(NewPub, Txs2, Fee*2),
+    Stx6 = signing:sign_tx(Tx6, NewPub, NewPriv),
+    absorb(Stx6),
+    timer:sleep(200),
+    1 = many_txs(),
+    timer:sleep(200),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    Trade3 = trees:get(trades, TID),
+    Nonce1 = Nonce0 + MatchMany2,
+    Nonce1 = Trade3#trade.height,
+    
+
+
+    Nonce2 = Nonce1+100,
+    TradeCancel2 = 
+        trade_cancel_tx:make_dict(
+          MP, Nonce2, Fee, Salt),
+    Txs3 = [TradeCancel2],
+    Tx7 = multi_tx:make_dict(MP, Txs3, Fee*2),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    timer:sleep(200),
+    1 = many_txs(),
+    timer:sleep(200),
+    mine_blocks(1),
+    timer:sleep(200),
+    0 = many_txs(),
+
+    
+    
+    Trade4 = trees:get(trades, TID),
+    Nonce2 = Trade4#trade.height,
+
 
     success;
 %TODO test swap_tx2 with multi_tx.
+%TODO test trade_cancel_tx with multi_tx.
 
 
 test(empty) ->

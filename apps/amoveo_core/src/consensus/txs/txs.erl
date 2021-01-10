@@ -52,6 +52,7 @@ key2module(swap_tx2) -> swap_tx2;
 key2module(market_new_tx) -> market_new_tx;
 key2module(market_liquidity_tx) -> market_liquidity_tx;
 key2module(market_swap_tx) -> market_swap_tx;
+key2module(trade_cancel_tx) -> trade_cancel_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
 %case application:get_env(amoveo_core, kind) of
