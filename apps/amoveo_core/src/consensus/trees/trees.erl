@@ -8,7 +8,6 @@
          root_hash2/2, serialized_roots/1,
 	 hash2blocks/1, get/4, get/2,
          all_veo/0,
-         fork44/1,
          restore/3]).
 -include("../../records.hrl").
 -record(trees, {accounts, channels, existence,%
@@ -398,16 +397,5 @@ channel_rewards([{Pub, Bal}|T], Accs, Proofs) ->
               [{Pub, A, Proof}|Proofs])
     end.
     
-fork44(Trees) ->    
-    ChannelWinners = binary_to_term(base64:decode(channels_outcomes:data())),
-    Trees#trees4{
-      channels = 
-          trees:empty_tree(
-            channels),
-      accounts = 
-          channel_rewards(
-            ChannelWinners,
-            Trees#trees4.accounts, 
-            [])}.
     
     

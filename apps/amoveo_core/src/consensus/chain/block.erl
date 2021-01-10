@@ -287,8 +287,23 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     F44 = forks:get(44),
     if
         (HeightCheck == F44) ->
-            %replace channels with empty tree.
-            trees:fork44(Trees);
+            GT = trees:governance(NewTrees0),
+            G42 = governance:new(governance:name2number(swap_tx2),
+                                 constants:encoded_fee()),
+            G43 = governance:new(governance:name2number(trade_cancel_tx),
+                                 constants:encoded_fee()),
+            GT2 = governance:write(G42, GT),
+            GTF = governance:write(G43, GT2),
+            trees:new3(trees:accounts(NewTrees0),
+                       trees:channels(NewTrees0),
+                       trees:existence(NewTrees0),
+                       trees:oracles(NewTrees0),
+                       GTF,
+                       trees:matched(NewTrees0),
+                       trees:unmatched(NewTrees0),
+                       trees:sub_accounts(NewTrees0),
+                       trees:contracts(NewTrees0),
+                       trees:trades(NewTrees0));
         (HeightCheck == F10)  ->%
                                                 %Root0 = constants:root0(),%
             NewTrees1 = %

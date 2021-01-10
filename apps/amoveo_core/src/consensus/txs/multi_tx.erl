@@ -29,14 +29,16 @@ zero_accounts_nonces([H|T])
         is_record(H, contract_use_tx) or
         is_record(H, market_new_tx) or
         is_record(H, market_liquidity_tx) or
+        is_record(H, trade_cancel_tx) or
         is_record(H, market_swap_tx))
        ->
     H2 = setelement(2, H, 0),
     H3 = setelement(3, H2, 0),
-    H4 = setelement(4, H3, 0),
+               H4 = setelement(4, H3, 0),
     [H4|zero_accounts_nonces(T)];
 zero_accounts_nonces([H|T]) 
   when (is_record(H, swap_tx) or
+        is_record(H, swap_tx2) or
        is_record(H, contract_new_tx)) ->
     H2 = setelement(2, H, 0),
     H3 = setelement(4, H2, 0),
@@ -70,6 +72,7 @@ sub_txs([H|T], From, Dict, NewHeight) ->
     Type = element(1, H),
     Dict2 = case Type of
                 swap_tx -> swap(H, From, Dict, NewHeight);
+                swap_tx2 -> swap2(H, From, Dict, NewHeight);
                 contract_new_tx -> contract_new(H, From, Dict, NewHeight);
                 _ -> 
                     create_spend(Type, H, From, Dict, NewHeight)
@@ -97,6 +100,16 @@ create_spend(Type, H, From, Dict, NewHeight) ->
     M = txs:key2module(Type),
     H2 = setelement(2, H, From),
     M:go(H2, Dict , NewHeight, none).
+swap2(Tx, From, Dict, NewHeight) ->    
+    true = (NewHeight > forks:get(44)),
+    #swap_tx2{
+      from = 0,
+      fee = 0
+     } = Tx,
+    Tx2 = Tx#swap_tx2{
+            from = From
+           },
+    swap_tx2:go(Tx2, Dict, NewHeight, none).
 swap(Tx, From, Dict, NewHeight) ->    
     true = (NewHeight > forks:get(32)),
     #swap_tx{
@@ -163,6 +176,45 @@ flash_loan(From, [Tx|T], D, Debt, Height)
     {D4, Debt2} = pay_kind(From, CID2, Type2, A2, D3),
     Debts2 = [{sub, MID, 0, Amount}, Debt1, Debt2] ++ Debt,
     flash_loan(From, T, D4, Debts2, Height);
+flash_loan(From, [Tx|T], D, Debt, Height)
+  when is_record(Tx, swap_tx2) ->
+    #swap_tx2{
+               from = Acc2,
+               match_parts = MatchParts,
+               offer = SSO
+             } = Tx,
+    SO = signing:data(SSO),
+    #swap_offer2{
+                  acc1 = Acc1,
+                  cid1 = CID1,
+                  type1 = Type1,
+                  amount1 = Amount1,
+                  cid2 = CID2,
+                  type2 = Type2,
+                  amount2 = Amount2,
+                  parts = Parts
+                } = SO,
+
+    A1 = Amount1 * MatchParts div Parts,
+    A2 = Amount2 * MatchParts div Parts,
+
+    {D2, Debt1} = 
+        case CID1 of
+            <<0:256>> ->
+                {give_veo(Acc2, A1, D),
+                 {veo, A1}};
+            _ ->
+                pay_kind(Acc2, CID1, Type1, A1, D)
+        end,
+    {D3, Debt2} = 
+        case CID2 of
+            <<0:256>> ->
+                {give_veo(Acc1, A2, D),
+                 {veo, A2}};
+            _ ->
+                pay_kind(Acc1, CID2, Type2, A2, D2)
+        end,
+    flash_loan(From, T, D3, [Debt1, Debt2] ++ Debt, Height);
 flash_loan(From, [Tx|T], D, Debt, Height)
   when is_record(Tx, market_swap_tx) ->
     #market_swap_tx{

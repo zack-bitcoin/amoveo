@@ -1,6 +1,7 @@
 -module(swap_tx).
 -export([go/4, make_offer/10, make_dict/3,
-        fee_helper/3, trade_id_maker/2]).
+        fee_helper/3, move_helper/6,
+         trade_id_maker/2]).
 -include("../../records.hrl").
 
 make_dict(From, SNCOffer, Fee) ->

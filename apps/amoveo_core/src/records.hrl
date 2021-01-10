@@ -200,3 +200,13 @@
 -record(market_new_tx, {from, nonce = 0, fee, cid1, cid2, type1, type2, amount1, amount2}).
 -record(market_liquidity_tx, {from, nonce, fee, mid, amount, cid1, type1, cid2, type2}).
 -record(market_swap_tx, {from, nonce, fee, mid, give, take, direction, cid1, type1, cid2, type2}).
+
+-record(trade, {height, value}).%height should be changed to "nonce" eventually.
+-record(trade_cancel_tx, {acc, nonce, fee, salt}).
+
+-record(swap_tx2, {from, offer, fee, match_parts}).
+-record(swap_offer2, {
+          acc1, nonce, start_limit, end_limit,
+          cid1, type1, amount1, 
+          cid2, type2, amount2,
+          salt, start_nonce, parts}).

@@ -626,6 +626,49 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 [{governance, ?n2i(swap_tx)},
                  {trades, TradeID}] ++
                 F1 ++ F2 ++ U ++ U2;
+            swap_tx2 ->
+                #swap_tx2{
+              from = Acc2,
+              offer = SOffer,
+              fee = Fee
+             } = Tx,
+                Offer = signing:data(SOffer),
+                #swap_offer2{
+                             acc1 = Acc1,
+                             cid1 = CID1,
+                             type1 = Type1,
+                             cid2 = CID2,
+                             type2 = Type2,
+                             salt = Salt
+                           } = Offer,
+                TradeID = swap_tx:trade_id_maker(Acc1, Salt),
+                F2 = case Fee of
+                         0 -> [];
+                         _ -> [{accounts, Acc2}]
+                     end,
+                U = case CID1 of
+                        <<0:256>> -> 
+                            [{accounts, Acc1},
+                             {accounts, Acc2}];
+                        _ ->
+                            [{sub_accounts,
+                              sub_accounts:make_key(Acc1, CID1, Type1)},
+                             {sub_accounts,
+                              sub_accounts:make_key(Acc2, CID1, Type1)}]
+                    end,
+                U2 = case CID2 of
+                         <<0:256>> -> 
+                             [{accounts, Acc1},
+                              {accounts, Acc2}];
+                         _ ->
+                             [{sub_accounts,
+                               sub_accounts:make_key(Acc1, CID2, Type2)},
+                              {sub_accounts,
+                               sub_accounts:make_key(Acc2, CID2, Type2)}]
+                     end,
+                [{governance, ?n2i(swap_tx2)},
+                 {trades, TradeID}] ++
+                F2 ++ U ++ U2;
             market_new_tx ->
                 #market_new_tx{
               from = From,
@@ -707,6 +750,15 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(market_trading_fee)},
                  {governance, ?n2i(market_swap_tx)}]
                     ++ U ++ V;
+            trade_cancel_tx ->
+                #trade_cancel_tx{
+              acc = From, salt = Salt
+             } = Tx,
+                TID = swap_tx:trade_id_maker(From, Salt),
+                [{accounts, From},
+                 {governance, ?n2i(trade_cancel_tx)},
+                 {trades, TID}
+                ];
 	    coinbase_old -> 
                 [
                  {governance, ?n2i(block_reward)},

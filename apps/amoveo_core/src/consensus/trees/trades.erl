@@ -9,7 +9,6 @@
 	 test/0]).
 
 -include("../../records.hrl").
--record(trade, {height, value}).
 
 height(T) -> T#trade.height.
 value(T) -> T#trade.value.
