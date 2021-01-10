@@ -26,6 +26,7 @@ serialize(T) ->
     HEI = constants:height_bits(),
     HS = constants:hash_size(),
     32 = size(V),
+    true = H < math:pow(2, HEI),
     <<
       V/binary,
       H:HEI

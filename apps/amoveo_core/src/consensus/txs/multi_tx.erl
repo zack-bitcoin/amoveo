@@ -190,36 +190,19 @@ flash_loan(From, [Tx|T], D, Debt, Height)
 flash_loan(From, [Tx|T], D, Debt, Height)
   when is_record(Tx, swap_tx2) ->
     #swap_tx2{
-               %from = Acc2,
                match_parts = MatchParts,
                offer = SSO
              } = Tx,
     SO = signing:data(SSO),
     #swap_offer2{
-                  %acc1 = Acc1,
-                  %cid1 = CID1,
-                  %type1 = Type1,
-                  %amount1 = Amount1,
                   cid2 = CID2,
                   type2 = Type2,
                   amount2 = Amount2,
                   parts = Parts
                 } = SO,
-
-    %A1 = Amount1 * MatchParts div Parts,
     A2 = Amount2 * MatchParts div Parts,
-
-    %{D2, Debt1} = 
-    %    case CID1 of
-    %        <<0:256>> ->
-    %            {give_veo(Acc2, A1, D),
-    %             {veo, A1}};
-    %        _ ->
-    %            pay_kind(Acc2, CID1, Type1, A1, D)
-    %    end,
     {D3, Debt2} = 
         pay_kind(From, CID2, Type2, A2, D),
-    %flash_loan(From, T, D3, [Debt1, Debt2] ++ Debt, Height);
     flash_loan(From, T, D3, [Debt2] ++ Debt, Height);
 flash_loan(From, [Tx|T], D, Debt, Height)
   when is_record(Tx, market_swap_tx) ->

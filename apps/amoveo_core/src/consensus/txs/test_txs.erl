@@ -3057,8 +3057,6 @@ int 0 int 1" >>),
     Trade3 = trees:get(trades, TID),
     Nonce1 = Nonce0 + MatchMany2,
     Nonce1 = Trade3#trade.height,
-    
-
 
     Nonce2 = Nonce1+100,
     TradeCancel2 = 
@@ -3074,17 +3072,11 @@ int 0 int 1" >>),
     mine_blocks(1),
     timer:sleep(200),
     0 = many_txs(),
-
-    
     
     Trade4 = trees:get(trades, TID),
     Nonce2 = Trade4#trade.height,
 
-
     success;
-%TODO test swap_tx2 with multi_tx.
-%TODO test trade_cancel_tx with multi_tx.
-
 
 test(empty) ->
     io:fwrite("test 55\n"),
