@@ -29,15 +29,15 @@ zero_accounts_nonces([H|T])
         is_record(H, contract_use_tx) or
         is_record(H, market_new_tx) or
         is_record(H, market_liquidity_tx) or
+        is_record(H, swap_tx2) or
         is_record(H, market_swap_tx))
        ->
     H2 = setelement(2, H, 0),
     H3 = setelement(3, H2, 0),
-               H4 = setelement(4, H3, 0),
+    H4 = setelement(4, H3, 0),
     [H4|zero_accounts_nonces(T)];
 zero_accounts_nonces([H|T]) 
   when (is_record(H, swap_tx) or
-        is_record(H, swap_tx2) or
         is_record(H, trade_cancel_tx) or
         is_record(H, contract_new_tx)) ->
     H2 = setelement(2, H, 0),
@@ -72,7 +72,7 @@ sub_txs([H|T], From, Dict, NewHeight) ->
     Type = element(1, H),
     Dict2 = case Type of
                 swap_tx -> swap(H, From, Dict, NewHeight);
-                swap_tx2 -> swap2(H, From, Dict, NewHeight);
+                %swap_tx2 -> swap2(H, From, Dict, NewHeight);
                 trade_cancel_tx -> trade_cancel(H, From, Dict, NewHeight);
                 contract_new_tx -> contract_new(H, From, Dict, NewHeight);
                 _ -> 
@@ -111,16 +111,16 @@ trade_cancel(Tx, From, Dict, NewHeight) ->
             acc = From
            },
     trade_cancel_tx:go(Tx2, Dict, NewHeight, none).
-swap2(Tx, From, Dict, NewHeight) ->    
-    true = (NewHeight > forks:get(44)),
-    #swap_tx2{
-      from = 0,
-      fee = 0
-     } = Tx,
-    Tx2 = Tx#swap_tx2{
-            from = From
-           },
-    swap_tx2:go(Tx2, Dict, NewHeight, none).
+%swap2(Tx, From, Dict, NewHeight) ->    
+%    true = (NewHeight > forks:get(44)),
+%    #swap_tx2{
+%      from = 0,
+%      fee = 0
+%     } = Tx,
+%    Tx2 = Tx#swap_tx2{
+%            from = From
+%           },
+%    swap_tx2:go(Tx2, Dict, NewHeight, none).
 swap(Tx, From, Dict, NewHeight) ->    
     true = (NewHeight > forks:get(32)),
     #swap_tx{

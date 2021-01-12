@@ -204,9 +204,9 @@
 -record(trade, {height, value}).%height should be changed to "nonce" eventually.
 -record(trade_cancel_tx, {acc, nonce, fee, salt}).
 
--record(swap_tx2, {from, offer, fee, match_parts}).
+-record(swap_tx2, {from, nonce, fee, offer, match_parts}).
 -record(swap_offer2, {
-          acc1, nonce, start_limit, end_limit,
+          acc1, start_limit, end_limit,
           cid1, type1, amount1, 
           cid2, type2, amount2,
           salt, start_nonce, parts}).

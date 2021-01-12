@@ -420,7 +420,7 @@ add_to_top(H, T) ->
 % EWAH = (Converter * N / EWAH0)
 calc_ewah(Header, PrevHeader, PrevEWAH0) ->
     PrevEWAH = max(1, PrevEWAH0),
-    DT = Header#header.time - PrevHeader#header.time,
+    DT = max(1, Header#header.time - PrevHeader#header.time),
     %io:fwrite("DT is "),
     %io:fwrite(integer_to_list(DT)),
     %io:fwrite("\n"),

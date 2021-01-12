@@ -28,7 +28,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 		NonceCheck -> Tx#spend.nonce;
 		true -> none
 	    end,
-    Facc = accounts:dict_update(From, Dict, -A-Tx#spend.fee, Nonce),
+    Facc = accounts:dict_update(
+             From, Dict, -A-Tx#spend.fee, Nonce),
     Tacc = accounts:dict_update(To, Dict, A, none),
     Dict2 = accounts:dict_write(Facc, Dict),
     accounts:dict_write(Tacc, Dict2).

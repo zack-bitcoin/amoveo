@@ -4,7 +4,10 @@
           
 
 make_dict(From, SNCOffer, MatchParts, Fee) ->
+    Acc = trees:get(accounts, From),
+    Nonce = Acc#acc.nonce + 1,
     #swap_tx2{from = From, offer = SNCOffer, 
+              nonce = Nonce,
               fee = Fee, match_parts = MatchParts}.
 make_offer(From, StartLimit, EndLimit, 
            CID1, Type1, Amount1, 
@@ -14,12 +17,11 @@ make_offer(From, StartLimit, EndLimit,
     TID = swap_tx:trade_id_maker(From, Salt),
     Trade = trees:get(trades, TID),
     Nonce = case Trade of
-                empty -> 0;
+                empty -> 1;
                 #trade{height = H} -> H
             end,
     #swap_offer2{
                  acc1 = From,
-                 nonce = Nonce,
                  start_limit = StartLimit,
                  end_limit = EndLimit,
                  cid1 = CID1,
@@ -29,14 +31,15 @@ make_offer(From, StartLimit, EndLimit,
                  type2 = Type2,
                  amount2 = Amount2,
                  salt = Salt,
-                 start_nonce = 1,
+                 start_nonce = Nonce,
                  parts = Parts %this is how many sub-parts the limit order can be broken up into and matched. It is also how much the trade nonce can increase by until the limit order is no longer valid.
            }.
-go(Tx, Dict0, NewHeight, _) ->
+go(Tx, Dict0, NewHeight, NonceCheck) ->
     #swap_tx2{
     from = Acc2,
     offer = SNCO,
     match_parts = MatchParts,
+    nonce = Nonce0,
     fee = Fee
    } = Tx,
     true = NewHeight > forks:get(44),
@@ -45,7 +48,6 @@ go(Tx, Dict0, NewHeight, _) ->
     true = signing:verify(SNCO),
     NCO = signing:data(SNCO),
     #swap_offer2{acc1 = Acc1,
-                 nonce = Nonce,
                  start_limit = SL,
                  end_limit = EL,
                  cid1 = CID1,
@@ -79,8 +81,13 @@ go(Tx, Dict0, NewHeight, _) ->
     Dict2 = trades:dict_write(Trade2, Dict0),
     A1 = Amount1 * MatchParts div Parts,
     A2 = Amount2 * MatchParts div Parts,
-    Dict3 = swap_tx:fee_helper(
-              Fee, Acc2, Dict2),
+    Nonce = if
+                NonceCheck -> Nonce0;
+                true -> none
+            end,
+    A2Fee = accounts:dict_update(
+              Acc2, Dict2, -Fee, Nonce),
+    Dict3 = accounts:dict_write(A2Fee, Dict2),
     Dict4 = swap_tx:move_helper(
               Acc1, Acc2, A1, 
               CID1, Type1, Dict3),

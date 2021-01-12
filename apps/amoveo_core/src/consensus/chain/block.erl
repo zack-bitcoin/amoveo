@@ -294,7 +294,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                                  constants:encoded_fee()),
             GT2 = governance:write(G42, GT),
             GTF = governance:write(G43, GT2),
-            trees:new3(trees:accounts(NewTrees0),
+            trees:new4(trees:accounts(NewTrees0),
                        trees:channels(NewTrees0),
                        trees:existence(NewTrees0),
                        trees:oracles(NewTrees0),
@@ -303,7 +303,8 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                        trees:unmatched(NewTrees0),
                        trees:sub_accounts(NewTrees0),
                        trees:contracts(NewTrees0),
-                       trees:trades(NewTrees0));
+                       trees:trades(NewTrees0),
+                       trees:markets(NewTrees0));
         (HeightCheck == F10)  ->%
                                                 %Root0 = constants:root0(),%
             NewTrees1 = %
