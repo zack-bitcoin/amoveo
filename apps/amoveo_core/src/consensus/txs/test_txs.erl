@@ -26,6 +26,7 @@ contracts() ->
     S = test(53),%market_swap_tx re-publish 
     %S = test(54),%market_liquitity_tx, none left to withdraw test.
     S = test(55),%swap_tx2 and trade_cancel_tx tests
+    S = test(56),%swap_tx2 without partial matching.
 
     S.
     
@@ -2983,6 +2984,79 @@ int 0 int 1" >>),
     0 = many_txs(),
 
     success;
+test(56) ->
+    io:fwrite("test swap_tx2, a limit order that cannot be partially matched.\n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    MP = constants:master_pub(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+
+    %make a contract 
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 0, int 4294967295]\
+int 0 int 1" >>),
+    CH = hash:doit(Code),
+    Many = 3, 
+    Fee = constants:initial_fee() + 20,
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    %buy some subcurrency.
+    Amount = 100000000,
+    Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    %create an account
+    {NewPub,NewPriv} = signing:new_key(),
+    Tx3 = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    SO = swap_tx2:make_offer(MP, 0, 1000, CID, 1, 10000000, <<0:256>>, 0, 10000000, 1, Fee),
+    #swap_offer2{
+                 salt = Salt
+                } = SO,
+    TID = swap_tx:trade_id_maker(MP, Salt),
+    SSO = keys:sign(SO),
+    Tx4 = swap_tx2:make_dict(NewPub, SSO, 1, Fee*2),
+    Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
+    SubAcc1 = sub_accounts:make_key(MP, CID, 1),
+    SubAcc2 = sub_accounts:make_key(NewPub, CID, 1),
+
+    empty = trees:get(trades, TID),
+    100000000 = (trees:get(accounts, NewPub))#acc.balance,
+    100000000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
+    empty = (trees:get(sub_accounts, SubAcc2)),
+
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    2 = (trees:get(trades, TID))#trade.height,
+    89697724 = (trees:get(accounts, NewPub))#acc.balance,
+    90000000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
+    10000000 = (trees:get(sub_accounts, SubAcc2))#sub_acc.balance,
+
+    0 = many_txs(),
+
+    success;
+
 
 test(empty) ->
     io:fwrite("test 55\n"),
