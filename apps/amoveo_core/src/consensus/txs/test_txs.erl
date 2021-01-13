@@ -2901,7 +2901,9 @@ int 0 int 1" >>),
     empty = trees:get(trades, TID),
     100000000 = (trees:get(accounts, NewPub))#acc.balance,
     SubAcc1 = sub_accounts:make_key(MP, CID, 1),
+    SubAcc21 = sub_accounts:make_key(NewPub, CID, 1),
     100000000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
+    empty = (trees:get(sub_accounts, SubAcc21)),
 
     absorb(Stx4),
     1 = many_txs(),
@@ -2915,6 +2917,7 @@ int 0 int 1" >>),
     3457 = Trade1#trade.height,
     96241724 = (trees:get(accounts, NewPub))#acc.balance,
     96544000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
+    3456000 = (trees:get(sub_accounts, SubAcc21))#sub_acc.balance,
 
     0 = many_txs(),
 
