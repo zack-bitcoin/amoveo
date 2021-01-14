@@ -9,12 +9,15 @@ test_helper([]) -> success;
 test_helper([A|B]) ->
     io:fwrite(atom_to_list(A) ++ " test\n"),
     success = A:test(),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
     test_helper(B).
 test1() ->
     %timer:sleep(2000),
     S = success,
-    Tests = [secrets, db, signing, packer, tree_test, block_hashes, block, spk, test_txs, existence, %order_book, 
-proofs], %, lisp_market2, lisp_scalar], %headers, keys],
+    Tests = [tree_test, proofs, secrets, db, signing, packer, block_hashes, block, spk, existence, %order_book, 
+proofs, test_txs], %, lisp_market2, lisp_scalar], %headers, keys],
     S = test_helper(Tests).
 
     

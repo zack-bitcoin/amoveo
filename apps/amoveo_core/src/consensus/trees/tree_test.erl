@@ -18,5 +18,21 @@ test() ->
     S = orders:test(),
     io:fwrite("governance test\n"),
     S = governance:test(),
+    io:fwrite("matched test\n"),
+    S = matched:test(),
+    io:fwrite("unmatched test\n"),
+    S = unmatched:test(),
+    io:fwrite("sub_accounts test\n"),
+    S = sub_accounts:test(),
+    io:fwrite("contracts test\n"),
+    S = contracts:test(),
+    io:fwrite("trades test\n"),
+    S = trades:test(),
+    io:fwrite("markets test\n"),
+    S = markets:test(),
+    io:fwrite("stablecoins test\n"),
+    S = stablecoins:test(),
+
+    io:fwrite("tree tests done\n"),
     S.
     

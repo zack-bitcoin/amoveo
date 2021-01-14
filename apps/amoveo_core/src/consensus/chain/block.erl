@@ -20,7 +20,8 @@
 -record(roots, {accounts, channels, existence, oracles, governance}).%
 -record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
 -record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades}).%
--record(roots4, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets}).
+-record(roots4, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets}).%
+-record(roots5, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, stablecoins}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -473,7 +474,21 @@ make_roots(Trees) when (element(1, Trees) == trees4) ->
            sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
            contracts = trie:root_hash(contracts, trees:contracts(Trees)),
             trades = trie:root_hash(trades, trees:trades(Trees)),
-            markets = trie:root_hash(markets, trees:markets(Trees))}.
+            markets = trie:root_hash(markets, trees:markets(Trees))};
+make_roots(Trees) when (element(1, Trees) == trees5) ->
+    #roots5{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
+           channels = trie:root_hash(channels, trees:channels(Trees)),
+           existence = trie:root_hash(existence, trees:existence(Trees)),
+           oracles = trie:root_hash(oracles, trees:oracles(Trees)),
+           governance = trie:root_hash(governance, trees:governance(Trees)),
+	   matched = trie:root_hash(matched, trees:matched(Trees)),
+	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
+           sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
+           contracts = trie:root_hash(contracts, trees:contracts(Trees)),
+            trades = trie:root_hash(trades, trees:trades(Trees)),
+            markets = trie:root_hash(markets, trees:markets(Trees)),
+            stablecoins = trie:root_hash(stablecoins, trees:stablecoins(Trees))}.
+
 
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
@@ -519,7 +534,23 @@ roots_hash(X) when is_record(X, roots4) ->
     Tra = X#roots4.trades,
     Markets = X#roots4.markets,
     Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary, Markets/binary>>,
+    hash:doit(Y);
+roots_hash(X) when is_record(X, roots5) ->
+    A = X#roots5.accounts,
+    C = X#roots5.channels,
+    E = X#roots5.existence,
+    O = X#roots5.oracles,
+    G = X#roots5.governance,
+    M = X#roots5.matched,
+    U = X#roots5.unmatched,
+    SA = X#roots5.sub_accounts,
+    Con = X#roots5.contracts,
+    Tra = X#roots5.trades,
+    Markets = X#roots5.markets,
+    Stablecoins = X#roots5.stablecoins,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary, Markets/binary, Stablecoins/binary>>,
     hash:doit(Y).
+
     
 guess_number_of_cpu_cores() ->
     case application:get_env(amoveo_core, test_mode) of
@@ -649,7 +680,26 @@ proofs_roots_match([P|T], R) when is_record(R, roots4)->
                trades -> R#roots4.trades;
                markets -> R#roots4.markets
 	   end,
+    proofs_roots_match(T, R);
+proofs_roots_match([P|T], R) when is_record(R, roots5)->
+    Tree = proofs:tree(P),
+    Root = proofs:root(P),
+    Root = case Tree of
+	       accounts -> R#roots5.accounts;
+	       channels -> R#roots5.channels;
+	       existence -> R#roots5.existence;
+	       oracles -> R#roots5.oracles;
+	       governance -> R#roots5.governance;
+	       matched -> R#roots5.matched;
+	       unmatched -> R#roots5.unmatched;
+               sub_accounts -> R#roots5.sub_accounts;
+               contracts -> R#roots5.contracts;
+               trades -> R#roots5.trades;
+               markets -> R#roots5.markets;
+               stablecoins -> R#roots5.markets
+	   end,
     proofs_roots_match(T, R).
+
 
 check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,

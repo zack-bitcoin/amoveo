@@ -26,7 +26,8 @@ tree_to_int(unmatched) -> 11;
 tree_to_int(sub_accounts) -> 12;
 tree_to_int(contracts) -> 13;
 tree_to_int(trades) -> 14;
-tree_to_int(markets) -> 15.
+tree_to_int(markets) -> 15;
+tree_to_int(stablecoins) -> 16.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -41,7 +42,8 @@ int_to_tree(11) -> unmatched;
 int_to_tree(12) -> sub_accounts;
 int_to_tree(13) -> contracts;
 int_to_tree(14) -> trades;
-int_to_tree(15) -> markets.
+int_to_tree(15) -> markets;
+int_to_tree(16) -> stablecoins.
     
 
 %deterministic merge-sort    
