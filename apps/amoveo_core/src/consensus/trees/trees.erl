@@ -1,11 +1,16 @@
 -module(trees).
--export([accounts/1,channels/1,existence/1,oracles/1,governance/1,matched/1,unmatched/1,sub_accounts/1,contracts/1,trades/1, markets/1,
+-export([accounts/1,channels/1,existence/1,oracles/1,governance/1,
+         matched/1,unmatched/1,sub_accounts/1,contracts/1,trades/1, 
+         markets/1,stablecoins/1,
+
 	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2, update_sub_accounts/2, update_contracts/2, update_trades/2, update_markets/2,
 	 new/6,
-	 new2/7, new3/10, new4/11, empty_tree/1,
+	 new2/7, new3/10, new4/11, new5/12,
+         empty_tree/1,
 	 root_hash/1, name/1, 
 	 hash2int/1, verify_proof/5,
-         root_hash2/2, serialized_roots/1,
+         % root_hash2/2, 
+         serialized_roots/1,
 	 hash2blocks/1, get/4, get/2,
          all_veo/0, trees1to2/1, trees2to3/1, trees3to4/1,
          restore/3]).
@@ -76,6 +81,34 @@ trees3to4(Trees) ->
              trades = T,
              markets = trees:empty_tree(markets)
            }.
+trees4to5(Trees) ->
+    #trees4{
+           accounts = A,
+           channels = C,
+           existence = E,
+           oracles = O,
+           governance = G,
+           matched = M,
+           unmatched = U,
+           sub_accounts = SA,
+           contracts = CO,
+           trades = T,
+           markets = M2
+          } = Trees,
+    #trees5{
+             accounts = A,
+             channels = C,
+             existence = E,
+             oracles = O,
+             governance = G,
+             matched = M,
+             unmatched = U,
+             sub_accounts = SA,
+             contracts = CO,
+             trades = T,
+             markets = M2,
+             stablecoins = trees:empty_tree(stablecoins)
+           }.
 
 name(<<"accounts">>) -> accounts;
 name("accounts") -> accounts;
@@ -103,37 +136,58 @@ empty_tree(X) -> trie:empty(X).
 accounts(X = #trees{}) -> X#trees.accounts;%
 accounts(X = #trees2{}) -> X#trees2.accounts;%
 accounts(X = #trees3{}) -> X#trees3.accounts;%
-accounts(X = #trees4{}) -> X#trees4.accounts.
+accounts(X = #trees4{}) -> X#trees4.accounts;
+accounts(X = #trees5{}) -> X#trees5.accounts.
 channels(X = #trees{}) -> X#trees.channels;%
 channels(X = #trees2{}) -> X#trees2.channels;%
 channels(X = #trees3{}) -> X#trees3.channels;%
-channels(X = #trees4{}) -> X#trees4.channels.
+channels(X = #trees4{}) -> X#trees4.channels;
+channels(X = #trees5{}) -> X#trees5.channels.
 existence(X = #trees{}) -> X#trees.existence;%
 existence(X = #trees2{}) -> X#trees2.existence;%
 existence(X = #trees3{}) -> X#trees3.existence;
-existence(X = #trees4{}) -> X#trees4.existence.
+existence(X = #trees4{}) -> X#trees4.existence;
+existence(X = #trees5{}) -> X#trees5.existence.
 oracles(X = #trees{}) -> X#trees.oracles;%
 oracles(X = #trees2{}) -> X#trees2.oracles;%
 oracles(X = #trees3{}) -> X#trees3.oracles;%
-oracles(X = #trees4{}) -> X#trees4.oracles.
+oracles(X = #trees4{}) -> X#trees4.oracles;
+oracles(X = #trees5{}) -> X#trees5.oracles.
 governance(X = #trees{}) -> X#trees.governance;%
 governance(X = #trees2{}) -> X#trees2.governance;%
 governance(X = #trees3{}) -> X#trees3.governance;%
-governance(X = #trees4{}) -> X#trees4.governance.
+governance(X = #trees4{}) -> X#trees4.governance;
+governance(X = #trees5{}) -> X#trees5.governance.
 matched(X = #trees2{}) -> X#trees2.matched;%
 matched(X = #trees3{}) -> X#trees3.matched;%
-matched(X = #trees4{}) -> X#trees4.matched.
+matched(X = #trees4{}) -> X#trees4.matched;
+matched(X = #trees5{}) -> X#trees5.matched.
 unmatched(X = #trees2{}) -> X#trees2.unmatched;%
 unmatched(X = #trees3{}) -> X#trees3.unmatched;%
-unmatched(X = #trees4{}) -> X#trees4.unmatched.
+unmatched(X = #trees4{}) -> X#trees4.unmatched;
+unmatched(X = #trees5{}) -> X#trees5.unmatched.
 sub_accounts(X = #trees3{}) -> X#trees3.sub_accounts;%
-sub_accounts(X = #trees4{}) -> X#trees4.sub_accounts.
+sub_accounts(X = #trees4{}) -> X#trees4.sub_accounts;
+sub_accounts(X = #trees5{}) -> X#trees5.sub_accounts.
 contracts(X = #trees3{}) -> X#trees3.contracts;
-contracts(X = #trees4{}) -> X#trees4.contracts.
+contracts(X = #trees4{}) -> X#trees4.contracts;
+contracts(X = #trees5{}) -> X#trees5.contracts.
 trades(X = #trees3{}) -> X#trees3.trades;
-trades(X = #trees4{}) -> X#trees4.trades.
-markets(X = #trees4{}) -> X#trees4.markets.
+trades(X = #trees4{}) -> X#trees4.trades;
+trades(X = #trees5{}) -> X#trees5.trades.
+markets(X = #trees4{}) -> X#trees4.markets;
+markets(X = #trees5{}) -> X#trees5.markets.
+stablecoins(X = #trees5{}) -> X#trees5.stablecoins.
+    
 
+new5(A, C, E, O, G, M, U, SA, Contracts, T, Markets,S) ->
+    #trees5{accounts = A, channels = C,
+            existence = E, oracles = O, 
+            governance = G, matched = M,
+            unmatched = U, sub_accounts = SA,
+            contracts = Contracts, trades = T,
+            markets = Markets,
+            stablecoins = S}.
 new4(A, C, E, O, G, M, U, SA, Contracts, T, Markets) ->
     #trees4{accounts = A, channels = C,
             existence = E, oracles = O, 
@@ -163,7 +217,9 @@ update_governance(X = #trees2{}, A) ->
 update_governance(X = #trees3{}, A) ->
     X#trees3{governance = A};
 update_governance(X = #trees4{}, A) ->
-    X#trees4{governance = A}.
+    X#trees4{governance = A};
+update_governance(X = #trees5{}, A) ->
+    X#trees5{governance = A}.
 update_accounts(X = #trees{}, A) ->%
     X#trees{accounts = A};%
 update_accounts(X = #trees2{}, A) ->
@@ -171,7 +227,9 @@ update_accounts(X = #trees2{}, A) ->
 update_accounts(X = #trees3{}, A) ->
     X#trees3{accounts = A};
 update_accounts(X = #trees4{}, A) ->
-    X#trees4{accounts = A}.
+    X#trees4{accounts = A};
+update_accounts(X = #trees5{}, A) ->
+    X#trees5{accounts = A}.
 update_channels(X = #trees{}, A) ->%
     X#trees{channels = A};%
 update_channels(X = #trees2{}, A) ->
@@ -179,7 +237,9 @@ update_channels(X = #trees2{}, A) ->
 update_channels(X = #trees3{}, A) ->
     X#trees3{channels = A};
 update_channels(X = #trees4{}, A) ->
-    X#trees4{channels = A}.
+    X#trees4{channels = A};
+update_channels(X = #trees5{}, A) ->
+    X#trees5{channels = A}.
 update_existence(X = #trees{}, E) ->%
     X#trees{existence = E};%
 update_existence(X = #trees2{}, E) ->
@@ -187,7 +247,9 @@ update_existence(X = #trees2{}, E) ->
 update_existence(X = #trees3{}, E) ->
     X#trees3{existence = E};
 update_existence(X = #trees4{}, E) ->
-    X#trees4{existence = E}.
+    X#trees4{existence = E};
+update_existence(X = #trees5{}, E) ->
+    X#trees5{existence = E}.
 update_oracles(X = #trees{}, A) ->%
     X#trees{oracles = A};%
 update_oracles(X = #trees2{}, A) ->
@@ -195,92 +257,50 @@ update_oracles(X = #trees2{}, A) ->
 update_oracles(X = #trees3{}, A) ->
     X#trees3{oracles = A};
 update_oracles(X = #trees4{}, A) ->
-    X#trees4{oracles = A}.
+    X#trees4{oracles = A};
+update_oracles(X = #trees5{}, A) ->
+    X#trees5{oracles = A}.
 update_matched(X = #trees2{}, M) ->
     X#trees2{matched = M};
 update_matched(X = #trees3{}, M) ->
     X#trees3{matched = M};
 update_matched(X = #trees4{}, M) ->
-    X#trees4{matched = M}.
+    X#trees4{matched = M};
+update_matched(X = #trees5{}, M) ->
+    X#trees5{matched = M}.
 update_unmatched(X = #trees2{}, U) ->
     X#trees2{unmatched = U};
 update_unmatched(X = #trees3{}, U) ->
     X#trees3{unmatched = U};
 update_unmatched(X = #trees4{}, U) ->
-    X#trees4{unmatched = U}.
+    X#trees4{unmatched = U};
+update_unmatched(X = #trees5{}, U) ->
+    X#trees5{unmatched = U}.
 update_sub_accounts(X = #trees3{}, U) ->
     X#trees3{sub_accounts = U};
 update_sub_accounts(X = #trees4{}, U) ->
-    X#trees4{sub_accounts = U}.
+    X#trees4{sub_accounts = U};
+update_sub_accounts(X = #trees5{}, U) ->
+    X#trees5{sub_accounts = U}.
 update_trades(X = #trees3{}, U) ->
     X#trees3{trades = U};
 update_trades(X = #trees4{}, U) ->
-    X#trees4{trades = U}.
+    X#trees4{trades = U};
+update_trades(X = #trees5{}, U) ->
+    X#trees5{trades = U}.
 update_contracts(X = #trees3{}, U) ->
     X#trees3{contracts = U};
 update_contracts(X = #trees4{}, U) ->
-    X#trees4{contracts = U}.
+    X#trees4{contracts = U};
+update_contracts(X = #trees5{}, U) ->
+    X#trees5{contracts = U}.
 update_markets(X = #trees4{}, U) ->
-    X#trees4{markets = U}.
+    X#trees4{markets = U};
+update_markets(X = #trees5{}, U) ->
+    X#trees5{markets = U}.
+update_stablecoins(X = #trees5{}, U) ->
+    X#trees5{stablecoins = U}.
 
-root_hash2(Trees, Roots) ->
-    A = rh2(accounts, Trees, Roots),
-    C = rh2(channels, Trees, Roots),
-    E = rh2(existence, Trees, Roots),
-    O = rh2(oracles, Trees, Roots),
-    G = rh2(governance, Trees, Roots),
-    HS = constants:hash_size(),
-    HS = size(A),
-    HS = size(C),
-    HS = size(E),
-    HS = size(O),
-    HS = size(G),
-    X = <<A/binary,
-	 C/binary,
-	 E/binary,
-	 O/binary,
-	 G/binary>>,
-    Y = case Trees of
-	    #trees{} -> X;%
-	    #trees2{} ->
-		M = rh2(matched, Trees, Roots),
-		U = rh2(unmatched, Trees, Roots),
-		HS = size(M),
-		HS = size(U),
-		Z = <<X/binary, M/binary, U/binary>>,
-		Z;
-            #trees3{} ->
-		M = rh2(matched, Trees, Roots),
-		U = rh2(unmatched, Trees, Roots),
-                SA = rh2(sub_accounts, Trees, Roots),
-                Con = rh2(contracts, Trees, Roots),
-                Trades = rh2(trades, Trees, Roots),
-		HS = size(M),
-		HS = size(U),
-		HS = size(SA),
-		HS = size(Con),
-                <<X/binary, M/binary, U/binary,
-                  SA/binary, Con/binary, 
-                  Trades/binary>>;
-            #trees4{} ->
-		M = rh2(matched, Trees, Roots),
-		U = rh2(unmatched, Trees, Roots),
-                SA = rh2(sub_accounts, Trees, Roots),
-                Con = rh2(contracts, Trees, Roots),
-                Trades = rh2(trades, Trees, Roots),
-                Markets = rh2(markets, Trees, Roots),
-		HS = size(M),
-		HS = size(U),
-		HS = size(SA),
-		HS = size(Con),
-		HS = size(Trades),
-		HS = size(Markets),
-                <<X/binary, M/binary, U/binary,
-                  SA/binary, Con/binary, 
-                  Trades/binary, Markets/binary>>
-	end,
-    hash:doit(Y).
-		
 rh2(Type, Trees, _Roots) ->
     X = trees:Type(Trees),%M is either trees or trees2
     trie:root_hash(Type, X).
@@ -321,10 +341,21 @@ serialized_roots(Trees) ->
             Con = F(contracts),
             Trades = F(trades),
             Markets = F(markets),
-            Z = <<X/binary, M/binary, U/binary,
-                  SA/binary, Con/binary,
-                Trades/binary, Markets/binary>>,
-            Z
+            <<X/binary, M/binary, U/binary,
+              SA/binary, Con/binary,
+              Trades/binary, Markets/binary>>;
+        #trees5{} ->
+	    M = F(matched),
+	    U = F(unmatched),
+            SA = F(sub_accounts),
+            Con = F(contracts),
+            Trades = F(trades),
+            Markets = F(markets),
+            Stablecoins = F(stablecoins),
+            <<X/binary, M/binary, U/binary,
+              SA/binary, Con/binary,
+              Trades/binary, Markets/binary,
+              Stablecoins>>
     end.
 root_hash(Trees) ->
     Y = serialized_roots(Trees),
@@ -412,6 +443,8 @@ all_veo_h2(unmatched, X) ->
     unmatched:amount(X);
 all_veo_h2(matched, X) ->
     (matched:true(X) + matched:false(X) + matched:bad(X)) div 2.
+
+
     
 all_veo_helper(Type) ->
     Accounts = trees:Type((tx_pool:get())#tx_pool.block_trees),

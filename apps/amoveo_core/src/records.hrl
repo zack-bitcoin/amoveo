@@ -226,3 +226,8 @@
 		oracles, governance, matched,
 		unmatched, sub_accounts,
                 contracts, trades, markets}).
+-record(trees5, {accounts, channels, existence,
+		oracles, governance, matched,
+		unmatched, sub_accounts,
+                contracts, trades, markets,
+                stablecoins}).

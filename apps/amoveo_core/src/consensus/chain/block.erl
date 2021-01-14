@@ -304,7 +304,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
          end,
     Trees2 = 
         if
-            (HeightCheck == F10)  ->%
+            (HeightCheck == F10)  ->
                 trees:trees1to2(NewTrees0);
             true ->
                 NewTrees0
@@ -412,7 +412,7 @@ make(Header, Txs0, Trees, Pub) ->
     PrevStateHash = Header#header.trees_hash,
     NTreesHash = trees:root_hash(NewTrees),
 
-    NTreesHash = trees:root_hash2(NewTrees, Roots),
+    %NTreesHash = trees:root_hash2(NewTrees, Roots),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -774,7 +774,7 @@ check2(OldBlock, Block) ->
         check3(OldBlock, Block), 
     Height = Block#block.height,
     OldTrees = OldBlock#block.trees,
-    Roots = Block#block.roots,
+    _Roots = Block#block.roots,
     %io:fwrite("block check 5.3\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -807,7 +807,8 @@ check2(OldBlock, Block) ->
     %io:fwrite("pair before death \n"),
     %io:fwrite([NewTrees3, Roots]),
     %io:fwrite("\n"),
-    TreesHash = trees:root_hash2(NewTrees3, Roots),
+    %TreesHash = trees:root_hash2(NewTrees3, Roots),
+    TreesHash = trees:root_hash(NewTrees3),
     {true, Block2}.
 calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
     %json encoded with keys
