@@ -275,6 +275,15 @@ channel_rewards([{Pub, Bal}|T], Accs) ->
         true ->
             channel_rewards(T, Accs)
     end.
+   
+governance_packer(L, DB) -> 
+    case L of
+        [] -> DB;
+        [H|T] ->
+            governance_packer(
+              T, governance:write(H, DB))
+    end.
+
     
  
 trees_maker(HeightCheck, Trees, NewDict4) ->
@@ -285,106 +294,69 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     F32 = forks:get(32),
     F35 = forks:get(35),
     F44 = forks:get(44),
-    if
-        (HeightCheck == F44) ->
-            GT = trees:governance(NewTrees0),
-            G42 = governance:new(governance:name2number(swap_tx2),
-                                 constants:encoded_fee()),
-            G43 = governance:new(governance:name2number(trade_cancel_tx),
-                                 constants:encoded_fee()),
-            GT2 = governance:write(G42, GT),
-            GTF = governance:write(G43, GT2),
-            trees:new4(trees:accounts(NewTrees0),
-                       trees:channels(NewTrees0),
-                       trees:existence(NewTrees0),
-                       trees:oracles(NewTrees0),
-                       GTF,
-                       trees:matched(NewTrees0),
-                       trees:unmatched(NewTrees0),
-                       trees:sub_accounts(NewTrees0),
-                       trees:contracts(NewTrees0),
-                       trees:trades(NewTrees0),
-                       trees:markets(NewTrees0));
-        (HeightCheck == F10)  ->%
-                                                %Root0 = constants:root0(),%
-            NewTrees1 = %
-                trees:new2(trees:accounts(NewTrees0),%
-                           trees:channels(NewTrees0),%
-                           trees:existence(NewTrees0),%
-                           trees:oracles(NewTrees0),%
-                           trees:governance(NewTrees0),%
-                           trees:empty_tree(matched),
-                           trees:empty_tree(unmatched)),
-                       %Root0,%
-                       %Root0),%
-		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
-            NewTrees1;%
-        (HeightCheck == F32) ->
-            GT = trees:governance(NewTrees0),
-            G29 = governance:new(governance:name2number(contract_new_tx),
-                                 constants:encoded_fee()),
-            G30 = governance:new(governance:name2number(contract_use_tx),
-                                 constants:encoded_fee()),
-            G31 = governance:new(governance:name2number(sub_spend_tx),
-                                 constants:encoded_fee()),
-            G32 = governance:new(governance:name2number(contract_evidence_tx),
-                                 constants:encoded_fee()),
-            G33 = governance:new(governance:name2number(contract_timeout_tx),
-                                 constants:encoded_fee()),
-            G34 = governance:new(governance:name2number(contract_winnings_tx),
-                                 constants:encoded_fee()),
-            G35 = governance:new(governance:name2number(contract_simplify_tx),
-                                 constants:encoded_fee()),
-            G36 = governance:new(governance:name2number(max_contract_flavors),
-                                 32),
-            G37 = governance:new(governance:name2number(swap_tx),
-                                 constants:encoded_fee()),
-            GT2 = governance:write(G29, GT),
-            GT3 = governance:write(G30, GT2),
-            GT4 = governance:write(G31, GT3),
-            GT5 = governance:write(G32, GT4),
-            GT6 = governance:write(G33, GT5),
-            GT7 = governance:write(G34, GT6),
-            GT8 = governance:write(G35, GT7),
-            GT9 = governance:write(G36, GT8),
-            GTF = governance:write(G37, GT9),
-            
-            trees:new3(trees:accounts(NewTrees0),
-                       trees:channels(NewTrees0),
-                       trees:existence(NewTrees0),
-                       trees:oracles(NewTrees0),
-                       GTF,
-                       trees:matched(NewTrees0),
-                       trees:unmatched(NewTrees0),
-                       trees:empty_tree(sub_accounts),
-                       trees:empty_tree(contracts),
-                       trees:empty_tree(trades));
-        (HeightCheck == F35) ->
-            GT = trees:governance(NewTrees0),
-            G38 = governance:new(governance:name2number(market_new_tx),
-                                 constants:encoded_fee()),
-            G39 = governance:new(governance:name2number(market_liquidity_tx),
-                                 constants:encoded_fee()),
-            G40 = governance:new(governance:name2number(market_swap_tx),
-                                 constants:encoded_fee()),
-            G41 = governance:new(governance:name2number(market_trading_fee),
-                                 constants:initial_trading_fee()),%about 200000. it is out of 1 veo, so this is 0.2% 
-            GT2 = governance:write(G38, GT),
-            GT3 = governance:write(G39, GT2),
-            GT4 = governance:write(G40, GT3),
-            GTF = governance:write(G41, GT4),
-            trees:new4(trees:accounts(NewTrees0),
-                       trees:channels(NewTrees0),
-                       trees:existence(NewTrees0),
-                       trees:oracles(NewTrees0),
-                       GTF,
-                       trees:matched(NewTrees0),
-                       trees:unmatched(NewTrees0),
-                       trees:sub_accounts(NewTrees0),
-                       trees:contracts(NewTrees0),
-                       trees:trades(NewTrees0),
-                       trees:empty_tree(markets));
-        true -> NewTrees0
+    GN = fun(Name, A) ->
+                 governance:new(
+                   governance:name2number(Name),
+                   A)
+         end,
+    GD = fun(Name) ->
+                 GN(Name, constants:encoded_fee())
+         end,
+    Trees2 = 
+        if
+            (HeightCheck == F10)  ->%
+                trees:trees1to2(NewTrees0);
+            true ->
+                NewTrees0
+        end,
+    Trees3 =
+        if
+            (HeightCheck == F32) ->
+                GTF3 = governance_packer(
+                        [GD(contract_new_tx),
+                         GD(contract_use_tx),
+                         GD(sub_spend_tx),
+                         GD(contract_evidence_tx),
+                         GD(contract_timeout_tx),
+                         GD(contract_winnings_tx),
+                         GD(contract_simplify_tx),
+                         GN(max_contract_flavors, 32),
+                         GD(swap_tx)],
+                        trees:governance(Trees2)),
+                T3 = trees:trees2to3(Trees2),
+                T3#trees3{
+                  governance = GTF3
+                 };
+            true -> Trees2
+        end,
+    Trees4 = 
+        if
+            (HeightCheck == F35) ->
+                GTF4 = governance_packer(
+                        [GD(market_new_tx),
+                         GD(market_liquidity_tx),
+                         GD(market_swap_tx),
+                         GN(market_trading_fee,
+                            constants:initial_trading_fee())%about 200000. it is out of 1 veo, so this is 0.2% 
+                        ],
+                        trees:governance(Trees3)),
+                T4 = trees:trees3to4(Trees3),
+                T4#trees4{
+                  governance = GTF4
+                 };
+            true -> Trees3
+        end,
+    Trees5 =
+        if
+            (HeightCheck == F44) ->
+                GTF5 = governance_packer(
+                        [GD(swap_tx2),
+                         GD(trade_cancel_tx)],
+                        trees:governance(Trees4)),
+                Trees4#trees4{
+                  governance = GTF5
+                 };
+        true -> Trees4
     end.
 
 

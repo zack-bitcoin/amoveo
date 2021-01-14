@@ -7,24 +7,76 @@
 	 hash2int/1, verify_proof/5,
          root_hash2/2, serialized_roots/1,
 	 hash2blocks/1, get/4, get/2,
-         all_veo/0,
+         all_veo/0, trees1to2/1, trees2to3/1, trees3to4/1,
          restore/3]).
 -include("../../records.hrl").
--record(trees, {accounts, channels, existence,%
-		oracles, governance}).%
-%we did a hard fork to move the matched and unmatched trees from inside of accounts and oracles to their own tries.
--record(trees2, {accounts, channels, existence,
-		oracles, governance, matched,
-		unmatched}).
 
--record(trees3, {accounts, channels, existence,
-		oracles, governance, matched,
-		unmatched, sub_accounts,
-                contracts, trades}).
--record(trees4, {accounts, channels, existence,
-		oracles, governance, matched,
-		unmatched, sub_accounts,
-                contracts, trades, markets}).
+trees1to2(Trees) ->
+    #trees{
+           accounts = A,
+           channels = C,
+           existence = E,
+           oracles = O,
+           governance = G
+          } = Trees,
+    #trees2{
+             accounts = A,
+             channels = C,
+             existence = E,
+             oracles = O,
+             governance = G,
+             matched = empty_tree(matched),
+             unmatched = empty_tree(unmatched)
+           }.
+trees2to3(Trees) ->
+    #trees2{
+           accounts = A,
+           channels = C,
+           existence = E,
+           oracles = O,
+           governance = G,
+           matched = M,
+           unmatched = U
+          } = Trees,
+    #trees3{
+           accounts = A,
+           channels = C,
+           existence = E,
+           oracles = O,
+           governance = G,
+           matched = M,
+           unmatched = U,
+           sub_accounts = trees:empty_tree(sub_accounts),
+           contracts = trees:empty_tree(contracts),
+           trades = trees:empty_tree(trades)
+           }.
+trees3to4(Trees) ->
+    #trees3{
+           accounts = A,
+           channels = C,
+           existence = E,
+           oracles = O,
+           governance = G,
+           matched = M,
+           unmatched = U,
+           sub_accounts = SA,
+           contracts = CO,
+           trades = T
+          } = Trees,
+    #trees4{
+             accounts = A,
+             channels = C,
+             existence = E,
+             oracles = O,
+             governance = G,
+             matched = M,
+             unmatched = U,
+             sub_accounts = SA,
+             contracts = CO,
+             trades = T,
+             markets = trees:empty_tree(markets)
+           }.
+
 name(<<"accounts">>) -> accounts;
 name("accounts") -> accounts;
 name(<<"channels">>) -> channels;

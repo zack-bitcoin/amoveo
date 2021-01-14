@@ -210,3 +210,19 @@
           cid1, type1, amount1, 
           cid2, type2, amount2,
           salt, start_nonce, parts}).
+
+-record(trees, {accounts, channels, existence,%
+		oracles, governance}).%
+%we did a hard fork to move the matched and unmatched trees from inside of accounts and oracles to their own tries.
+-record(trees2, {accounts, channels, existence,
+		oracles, governance, matched,
+		unmatched}).
+
+-record(trees3, {accounts, channels, existence,
+		oracles, governance, matched,
+		unmatched, sub_accounts,
+                contracts, trades}).
+-record(trees4, {accounts, channels, existence,
+		oracles, governance, matched,
+		unmatched, sub_accounts,
+                contracts, trades, markets}).
