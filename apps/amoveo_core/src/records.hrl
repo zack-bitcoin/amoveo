@@ -236,7 +236,7 @@
           id,
           auction_mode, %can be: false, time_limit, under_coll
           source, %collateral contract id. for the finite stablecoin.
-          source_amount, %amount of collateral locked in the perpetual stablecoin
+          amount, %amount of collateral locked in the perpetual stablecoin
           code_hash, %hash of code to decide if a collateral smart contract is valid
           timeout, %height at which an timelimit auction should start.
           max_bid_pubkey, %pubkey of whoever made the biggest bid so far.
