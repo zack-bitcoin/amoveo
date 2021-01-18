@@ -32,6 +32,7 @@ serialize(S) ->
            undercollateralization_auction_duration = UDuration,
            undercollateralization_price_trigger = UTrigger,
            collateralization_step = CStep,
+           margin = Margin,
            period = Period
           } = S,
     M = case Mode of
@@ -50,13 +51,15 @@ serialize(S) ->
     true = Timeout < math:pow(2, HB),
     PB = 8*constants:pubkey_size(),
     <<_:PB>> = MaxBidPubkey, 
-    true = MaxBidAmount > 0,
+    true = Margin >= 0,
+    true = Margin < math:pow(2, BB),
+    true = MaxBidAmount >= 0,
     true = MaxBidAmount < math:pow(2, BB),
     true = TDuration > 0,
     true = TDuration < math:pow(2, HB),
     true = UDuration > 0,
     true = UDuration < math:pow(2, HB),
-    true = UTrigger > 0,
+    true = UTrigger >= 0,
     true = UTrigger < 1000001,%20 bits
     true = CStep > 0,
     true = CStep < 1000001,%20 bits
@@ -75,7 +78,8 @@ serialize(S) ->
       UDuration:HB,
       UTrigger:24,
       CStep:24,
-      Period:HB>>.
+      Period:HB,
+      Margin:BB>>.
 deserialize(S) -> 
     BB = constants:balance_bits(),
     HB = constants:height_bits(),
@@ -93,7 +97,8 @@ deserialize(S) ->
       UDuration:HB,
       UTrigger:24,
       CStep:24,
-      Period:HB>> = S,
+      Period:HB,
+      Margin:BB>> = S,
     Mode = case M of
                0 -> false;
                1 -> time_limit;
@@ -101,20 +106,21 @@ deserialize(S) ->
            end,
     
     #stablecoin{
-                 id = <<ID:HS>>,
-                 auction_mode = Mode,
-                 source = <<Source:HS>>,
-                 amount = Amount,
-                 code_hash = <<CodeHash:HS>>,
-                 timeout = Timeout,
-                 max_bid_pubkey = <<MaxBidPubkey:PB>>,
-                 max_bid_amount = MaxBidAmount,
-                 timelimit_auction_duration = TDuration,
-                 undercollateralization_auction_duration = UDuration,
-                 undercollateralization_price_trigger = UTrigger,
-                 collateralization_step = CStep,
-                 period = Period
-               }.
+             id = <<ID:HS>>,
+             auction_mode = Mode,
+             source = <<Source:HS>>,
+             amount = Amount,
+             code_hash = <<CodeHash:HS>>,
+             timeout = Timeout,
+             max_bid_pubkey = <<MaxBidPubkey:PB>>,
+             max_bid_amount = MaxBidAmount,
+             timelimit_auction_duration = TDuration,
+             undercollateralization_auction_duration = UDuration,
+             undercollateralization_price_trigger = UTrigger,
+             collateralization_step = CStep,
+             period = Period,
+             margin = Margin
+            }.
 
 
 write(Stablecoin, Root) ->
@@ -177,7 +183,8 @@ test() ->
       undercollateralization_auction_duration = 30,
       undercollateralization_price_trigger = 20000,
       collateralization_step = 10000,
-      period = 50
+      period = 50,
+      margin = 1000000
      },
     %io:fwrite(size(serialize(A))),
     A = deserialize(serialize(A)),

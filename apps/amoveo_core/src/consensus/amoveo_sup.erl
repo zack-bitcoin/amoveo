@@ -73,7 +73,7 @@ init([]) ->
 	     tree_child(contracts, HS, constants:contract_size(), 0, Mode, TrieSize),
 	     tree_child(trades, HS, constants:trade_size(), 0, Mode, TrieSize),
 	     tree_child(markets, HS, constants:market_size(), 0, Mode, TrieSize),
-	     tree_child(stablecoins, HS, 196, 0, Mode, TrieSize)
+	     tree_child(stablecoins, HS, 202, 0, Mode, TrieSize)
 	    ],
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 

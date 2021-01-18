@@ -3,7 +3,7 @@
          matched/1,unmatched/1,sub_accounts/1,contracts/1,trades/1, 
          markets/1,stablecoins/1,
 
-	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2, update_sub_accounts/2, update_contracts/2, update_trades/2, update_markets/2,
+	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2, update_sub_accounts/2, update_contracts/2, update_trades/2, update_markets/2, update_stablecoins/2,
 	 new/6,
 	 new2/7, new3/10, new4/11, new5/12,
          empty_tree/1,
@@ -12,7 +12,7 @@
          % root_hash2/2, 
          serialized_roots/1,
 	 hash2blocks/1, get/4, get/2,
-         all_veo/0, trees1to2/1, trees2to3/1, trees3to4/1,
+         all_veo/0, trees1to2/1, trees2to3/1, trees3to4/1, trees4to5/1,
          restore/3]).
 -include("../../records.hrl").
 
@@ -355,7 +355,7 @@ serialized_roots(Trees) ->
             <<X/binary, M/binary, U/binary,
               SA/binary, Con/binary,
               Trades/binary, Markets/binary,
-              Stablecoins>>
+              Stablecoins/binary>>
     end.
 root_hash(Trees) ->
     Y = serialized_roots(Trees),

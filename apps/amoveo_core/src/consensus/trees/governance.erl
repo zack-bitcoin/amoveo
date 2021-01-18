@@ -177,6 +177,7 @@ name2number(market_swap_tx) -> 40;
 name2number(market_trading_fee) -> 41;
 name2number(swap_tx2) -> 42;
 name2number(trade_cancel_tx) -> 43;
+name2number(stablecoin_new_tx) -> 44;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -224,6 +225,7 @@ number2name(40) -> market_swap_tx;
 number2name(41) -> market_trading_fee;
 number2name(42) -> swap_tx2;
 number2name(43) -> trade_cancel_tx;
+number2name(44) -> stablecoin_new_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

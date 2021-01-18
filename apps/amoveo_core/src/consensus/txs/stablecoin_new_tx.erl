@@ -1,65 +1,61 @@
 -module(stablecoin_new_tx).
--export([go/4, make_dict/12]).
+-export([go/4, make_dict/13, id_maker/2]).
 
 %for creating perpetual stablecoins.
 -include("../../records.hrl").
 
--record(stablecoin_new_tx, {
-     from,
-     id,
-     fee,
-     source,
-     source_type,
-     amount,
-     code_hash,
-     timelimit_auction_duration,
-     undercollateralization_auction_duration,
-     undercollateralization_price_trigger,
-     collateralization_step,
-     period
-}).
 
-make_dict(From, ID, Source, SourceType,
-          Amount, CodeHash, 
+make_dict(From, Salt, Source, SourceType,
+          CodeHash, 
           TDuration, UDuration, Period,
-          UTrigger, CStep, Fee) ->
+          Expiration,
+          UTrigger, CStep, 
+          Margin,
+          Fee) ->
     #stablecoin_new_tx{
            from = From,
-           id = ID,
+           id = Salt,
            source = Source,
            source_type = SourceType,
-           amount = Amount,
            code_hash = CodeHash,
            timelimit_auction_duration = TDuration,
            undercollateralization_auction_duration = UDuration,
            undercollateralization_price_trigger = UTrigger,
            collateralization_step = CStep,
            period = Period,
+           margin = Margin,
+           expiration = Expiration,
            fee = Fee
           }.
 
 go(Tx, Dict, NewHeight, _) ->
     #stablecoin_new_tx{
-           from = From,
-           id = ID,
-           source = Source,
-           source_type = SourceType,
-           amount = Amount,
-           code_hash = CodeHash,
-           timelimit_auction_duration = TDuration,
-           undercollateralization_auction_duration = UDuration,
-           undercollateralization_price_trigger = UTrigger,
-           collateralization_step = CStep,
-           period = Period,
-           fee = Fee
+    from = From,
+    id = Salt,
+    source = Source,
+    source_type = SourceType,
+    code_hash = CodeHash,
+    timelimit_auction_duration = TDuration,
+    undercollateralization_auction_duration = UDuration,
+    undercollateralization_price_trigger = UTrigger,
+    collateralization_step = CStep,
+    period = Period,
+    margin = Margin,
+    expiration = Expiration,
+    fee = Fee
    } = Tx,
+    true = NewHeight > forks:get(45),
 
     %charge the fee.
     Dict2 = swap_tx:fee_helper(Fee, From, Dict),
 
     %create the finite stablecoin contract based on codeHash, the current height, and other data from this stablecoin.
-    %TODO CH should be optimized.
-    CH = <<>>,
+    true = Expiration =< (Period + NewHeight),
+    %true = Expiration > ((Period * 9 div 10) + NewHeight),
+    true = Expiration > NewHeight,
+    HB = constants:height_bits(),
+    Code = <<2, 6, (<<Margin:48>>)/binary, 0, (<<Expiration:32>>)/binary, 2, 32, CodeHash/binary, 113>>,
+    CH = hash:doit(Code),
     CID = contracts:make_id(CH, 2, Source, SourceType),
     empty = contracts:dict_get(CID, Dict2),
     NC = contracts:new(CH, 2, Source, SourceType),
@@ -67,6 +63,7 @@ go(Tx, Dict, NewHeight, _) ->
     
 
     %check that the stablecoin doesn't already exist.
+    ID = id_maker(From, Salt),
     empty = stablecoins:dict_get(ID, Dict3),
 
     %create the stablecoin.
@@ -84,8 +81,17 @@ go(Tx, Dict, NewHeight, _) ->
       undercollateralization_auction_duration = UDuration,
       undercollateralization_price_trigger = UTrigger,
       collateralization_step = CStep,
+      margin = Margin,
       period = Period
      },
 
     stablecoins:dict_write(Stablecoin, Dict3).
+    
+
+id_maker(Acc1, Salt) ->
+    true = is_binary(Salt),
+    true = (size(Salt) < 33),
+    hash:doit(
+      <<Acc1/binary, 
+        Salt/binary>>).
     

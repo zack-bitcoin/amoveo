@@ -245,6 +245,23 @@
           undercollateralization_auction_duration,
           undercollateralization_price_trigger, %out of 100000, if this is 99000, and there are 100 veo worth of perpetual stablecoins, then you can use 99 veo to buy all the finite stablecoins backing the contract. This is like a lower bound on how collaterlized we want the contract to be.
           collateralization_step, %during each undercollateralization auction, how much should we attempt to increase the collateralization by. This should aim for about the midpoint of the range of collateralization we are targeting.
+          margin, %margin of current stablecoin contract.
           period %how long until the next finite stablecoin expires. this should be longer than the timelimit_auction_duration
 
          }).
+
+-record(stablecoin_new_tx, {
+     from,
+     id,
+     fee,
+     source,
+     source_type,
+     code_hash,
+     timelimit_auction_duration,
+     undercollateralization_auction_duration,
+     undercollateralization_price_trigger,
+     collateralization_step,
+     expiration,%when the first finite stablecoin contract expires. should be about 1 period in the future.
+     period,
+     margin
+}).

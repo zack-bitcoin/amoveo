@@ -3059,6 +3059,143 @@ int 0 int 1" >>),
     0 = many_txs(),
 
     success;
+test(57) ->
+    io:fwrite("test stablecoin_new_tx"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(1),
+    MP = constants:master_pub(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Fee = constants:initial_fee() + 20,
+
+    %create a new stablecoin.
+    Code = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 0, int 4294967295]\
+int 0 int 1" >>),
+    CodeHash = hash:doit(Code),
+    TDuration = 5,
+    UDuration = 5, 
+    Period = 10,
+    Expiration = 9,
+    UTrigger = 50000,%how overcollateralized to trigger the auction out of 1000000, one million. this is 5%
+    CStep = 100000,%out of 1000000, one million. this is 10%
+    Margin = 10000000,%Get * 10000000 / Spend
+    Salt = crypto:strong_rand_bytes(3),
+    SID = stablecoin_new_tx:id_maker(MP, Salt),
+    Source = <<0:256>>,
+    SourceType = 0,
+    %CID = contracts:make_id(CodeHash, 2, Source, SourceType),
+    Tx1 = stablecoin_new_tx:make_dict(
+            MP, SID, Source, SourceType, CodeHash,
+            TDuration, UDuration, Period,
+            Expiration, UTrigger, CStep,
+            Margin, Fee),
+    ByteCode = <<2, 6, (<<Margin:48>>)/binary, 0, (<<Expiration:32>>)/binary, 2, 32, CodeHash/binary, 113>>,
+    CH = hash:doit(ByteCode),
+    CID = contracts:make_id(CH, 2, Source, SourceType),
+
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    %check replay attack vulnerability.
+    absorb(Stx1),
+    0 = many_txs(),
+    %check that the stablecoin object looks right.
+    io:fwrite(packer:pack(trees:get(stablecoins, SID))),
+    io:fwrite("\n"),
+    %check that it creates the finite contract correctly
+    io:fwrite(packer:pack(trees:get(stablecoins, CID))),
+    io:fwrite("\n"),
+    success;
+test(58) ->
+    io:fwrite("test stablecoin_new_tx in a multi-tx"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(1),
+    MP = constants:master_pub(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Fee = constants:initial_fee() + 20,
+
+    %make the tx.
+
+    success;
+test(59) ->
+    %stablecoin timelimit auction
+    %create the stablecoin
+    %buy stablecoins
+    %check replay of the buy_stablecoins tx
+    %trigger the timelimit auction.
+    %check for replay
+    %check that the stablecoin object updated correctly.
+
+    %withdraw stablecoins into finite1
+    %check for replay
+    %check that you received the finite1 and lost stablecoins and that the highest bid was partially refunded and that the stablecoin contract updated correctly.
+
+    %make a bid in the auction
+    %check for replay
+    %make a bid at a lower price, it should fail.
+
+    %withdraw stablecoins into finite1
+    %check for replay
+    %check that you received the finite1 and lost stablecoins.
+
+
+    %make a bid at a higher price.
+    %check for replay
+    %check the refund of the first bid worked.
+    %check that the stablecoin object updated correctly.
+    %end the auction with a different account.
+    %check for replay
+    %check that the finite2 contract was created, and was updated to show the correct amount of outstanding shares etc.
+    %check that the stablecoin updated correctly.
+    %check that the winning bid account received long-veo2 + finite1
+    %check that the stablecoins are still spendable.
+    sucess;
+test(59) ->
+    %stablecoin undercollateralization auction
+    %create the stablecoin
+    %buy stablecoins
+    %trigger the undercollateralization auction.
+    %check for replay
+    %check that the account received finite1 and lost veo.
+    %check that the stablecoin object updated correctly.
+
+    %withdraw stablecoins into finite1
+    %check for replay
+    %check that you received the finite1 and lost stablecoins.
+
+
+    %make a bid in the auction
+    %check for replay
+    %make a bid at a lower price, it should fail.
+
+    %withdraw stablecoins into source
+    %check for replay
+    %check that you received the source and lost stablecoins and that the highest bid was partially refunded and that the stablecoin contract updated correctly.
+
+    %make a bid at a higher price.
+    %check for replay
+    %check the refund of the first bid worked.
+    %check that the stablecoin object updated correctly.
+    %end the auction with a different account.
+    %check for replay
+    %check that the finite2 contract was created, and was updated to show the correct amount of outstanding shares etc.
+    %check that the stablecoin updated correctly.
+    %check that the winning bid account received long-veo2
+    %check that the stablecoins are still spendable.
+    sucess;
+   
+
 
 
 test(empty) ->

@@ -295,6 +295,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     F32 = forks:get(32),
     F35 = forks:get(35),
     F44 = forks:get(44),
+    F45 = forks:get(45),
     GN = fun(Name, A) ->
                  governance:new(
                    governance:name2number(Name),
@@ -357,9 +358,23 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                 Trees4#trees4{
                   governance = GTF5
                  };
-        true -> Trees4
-    end.
-
+            true -> Trees4
+        end,
+    Trees6 = 
+        if
+            (HeightCheck == F45) ->
+                GTF6 = governance_packer(
+                        [GD(stablecoin_new_tx)
+                        ],
+                        trees:governance(Trees5)),
+                T5 = trees:trees4to5(Trees5),
+                T5#trees5{
+                  governance = GTF6
+                 };
+            true -> Trees5
+        end,
+    Trees6.
+                
 
     
     
@@ -1523,6 +1538,7 @@ sum_amounts_helper(_, empty, _, _, _) -> 0;
 sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
     0;
 sum_amounts_helper(trades, Acc, Dict, _, _) -> 0;
+sum_amounts_helper(stablecoins, Acc, Dict, _, _) -> 0;
 sum_amounts_helper(markets, M, Dict, _, _) ->
     #market{
               cid1 = CID1,

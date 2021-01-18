@@ -456,6 +456,25 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(contract_new_tx)},
                  {governance, ?n2i(max_contract_flavors)}
                 ];
+            stablecoin_new_tx ->
+                #stablecoin_new_tx{
+              from = From,
+              id = Salt,
+              source = Source,
+              source_type = SourceType,
+              code_hash = CodeHash,
+              margin = Margin,
+              expiration = Expiration
+             } = Tx,
+                Code = <<2, 6, (<<Margin:48>>)/binary, 0, (<<Expiration:32>>)/binary, 2, 32, CodeHash/binary, 113>>,
+                CH = hash:doit(Code),
+                CID = contracts:make_id(CH, 2, Source, SourceType),
+                SID = stablecoin_new_tx:id_maker(From, Salt),
+                [{accounts, From},
+                 {contracts, CID},
+                 {stablecoins, SID},
+                 {governance, ?n2i(stablecoin_new_tx)}
+                ];
             sub_spend_tx ->
                 #sub_spend_tx{
               contract = CID,
