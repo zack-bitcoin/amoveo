@@ -84,7 +84,6 @@ go(Tx, Dict, NewHeight, _) ->
       margin = Margin,
       period = Period
      },
-
     stablecoins:dict_write(Stablecoin, Dict3).
     
 

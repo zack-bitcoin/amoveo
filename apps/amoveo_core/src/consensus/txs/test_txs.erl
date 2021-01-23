@@ -3060,11 +3060,11 @@ int 0 int 1" >>),
 
     success;
 test(57) ->
-    io:fwrite("test stablecoin_new_tx"),
+    io:fwrite("test stablecoin_new_tx\n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    mine_blocks(1),
+    mine_blocks(2),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -3091,7 +3091,7 @@ int 0 int 1" >>),
     SourceType = 0,
     %CID = contracts:make_id(CodeHash, 2, Source, SourceType),
     Tx1 = stablecoin_new_tx:make_dict(
-            MP, SID, Source, SourceType, CodeHash,
+            MP, Salt, Source, SourceType, CodeHash,
             TDuration, UDuration, Period,
             Expiration, UTrigger, CStep,
             Margin, Fee),
@@ -3108,11 +3108,36 @@ int 0 int 1" >>),
     absorb(Stx1),
     0 = many_txs(),
     %check that the stablecoin object looks right.
-    io:fwrite(packer:pack(trees:get(stablecoins, SID))),
-    io:fwrite("\n"),
+    #stablecoin{
+               id = SID,
+               auction_mode = false,
+               source = Source,
+               amount = 0,
+               code_hash = CodeHash,
+               timeout = 8,
+               max_bid_pubkey = <<0:520>>,
+               max_bid_amount = 0,
+               timelimit_auction_duration = 5,
+               undercollateralization_auction_duration = 5,
+               undercollateralization_price_trigger = 50000,
+               collateralization_step = 100000,
+               margin = 10000000,
+               period = 10
+              } = trees:get(stablecoins, SID),
     %check that it creates the finite contract correctly
-    io:fwrite(packer:pack(trees:get(stablecoins, CID))),
-    io:fwrite("\n"),
+    #contract{
+               code = CH,
+               many_types = 2,
+               nonce = 0,
+               last_modified = 0,
+               delay = 0,
+               closed = 0,
+               result = <<0:256>>,
+               source = <<0:256>>,
+               source_type = 0,
+               sink = <<0:256>>,
+               volume = 0
+             } = trees:get(contracts, CID),
     success;
 test(58) ->
     io:fwrite("test stablecoin_new_tx in a multi-tx"),
