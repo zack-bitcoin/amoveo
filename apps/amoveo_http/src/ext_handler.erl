@@ -67,6 +67,8 @@ doit({sub_accounts, ID}) ->
     {ok, api:tree_common(sub_accounts, ID)};%trees:get(sub_accounts, ID)};
 doit({oracles, ID}) ->
     {ok, api:tree_common(oracles, ID)};%trees:get(sub_accounts, ID)};
+doit({trades, ID}) ->
+    {ok, api:tree_common(trades, ID)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({version}) -> {ok, version:doit(block:height())};
