@@ -166,6 +166,10 @@ handle(Req, State) ->
             <<"/contract_explorer.html">> -> true;
             <<"/market_explorer.js">> -> true;
             <<"/market_explorer.html">> -> true;
+            <<"/account_explorer.js">> -> true;
+            <<"/account_explorer.html">> -> true;
+            <<"/tx_explorer.js">> -> true;
+            <<"/tx_explorer.html">> -> true;
             X -> 
                 io:fwrite("ext file handler unknown page: "),
                 io:fwrite(X),

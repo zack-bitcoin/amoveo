@@ -205,6 +205,7 @@
 -record(trade_cancel_tx, {acc, nonce, fee, salt}).
 
 -record(swap_tx2, {from, nonce, fee, offer, match_parts}).
+
 -record(swap_offer2, {
           acc1, start_limit, end_limit,
           cid1, type1, amount1, 

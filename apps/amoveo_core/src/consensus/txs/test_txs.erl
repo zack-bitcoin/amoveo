@@ -3038,7 +3038,11 @@ int 0 int 1" >>),
     TID = swap_tx:trade_id_maker(MP, Salt),
     SSO = keys:sign(SO),
     Tx4 = swap_tx2:make_dict(NewPub, SSO, 1, Fee*2),
+    %good
+    %["swap_tx2","BGYtkmMAHPnboJmbZjU0R2YTeuq0ib6Veict4xoJidmXbDqOwkOUG6gcZ82LyaNMsFN84dGDUNRR61/dcfaxOzs=",1,302276,["signed",["swap_offer2","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",0,1000,"/ssoJN6X/1R3Suo94kk+csiAAZbNmPk/9oq/VCJW5tc=",1,10000000,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,10000000,"zQ/JbDXv+FzJQuv1PMIgFiQFREyWEVetxbMzU5X4CHo=",1,1],"MEUCIQDlDU0aYHxbQjZGBTxW0E+7h4VKl0v2y8IkJjDKt5PnrgIgYDGOnvMZB5rOwyE4KrsnbABV4SLGL4XP97jmBUyPidw=",[-6]],1],
     Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
+    io:fwrite(packer:pack(Stx4)),
+    io:fwrite("/n"),
     SubAcc1 = sub_accounts:make_key(MP, CID, 1),
     SubAcc2 = sub_accounts:make_key(NewPub, CID, 1),
 
