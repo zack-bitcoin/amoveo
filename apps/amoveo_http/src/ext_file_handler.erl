@@ -161,6 +161,7 @@ handle(Req, State) ->
             <<"/create_binary_tab_builder.js">> -> true;
             <<"/create_scalar_tab_builder.js">> -> true;
             <<"/create_futarchy_tab_builder.js">> -> true;
+            <<"/crosschain_tab_builder.js">> -> true;
             <<"/tabs.js">> -> true;
             <<"/contract_explorer.js">> -> true;
             <<"/contract_explorer.html">> -> true;
