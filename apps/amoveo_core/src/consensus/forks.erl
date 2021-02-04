@@ -57,6 +57,7 @@ get(41) -> common(133260, test_height());%market_swap_tx dust fix.
 get(42) -> common(133400, test_height());%soft fork to prevent markets from having zero liquidity.
 get(43) -> common(136300, test_height());%undo #41
 get(44) -> common(149729, forks:get(35)+1);%swap_tx2, turn off channel tx types
+get(45) -> common(152000, test_height());%trade cancel tx, ability to cancel trades that have not yet been partially matched
 get(_) -> none.
 
 top() -> top(1).

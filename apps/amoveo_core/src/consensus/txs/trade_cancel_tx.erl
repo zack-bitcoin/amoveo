@@ -16,7 +16,13 @@ go(Tx, Dict, NewHeight, _) ->
    } = Tx,
     true = NewHeight > forks:get(44),
     TID = swap_tx:trade_id_maker(From, Salt),
-    Trade = trades:dict_get(TID, Dict),
+    Trade0 = trades:dict_get(TID, Dict),
+    F45 = NewHeight > forks:get(45),
+    Trade = case {F45, Trade0} of
+                {true, empty} -> 
+                    trades:new(1, TID);
+                _ -> Trade0
+            end,
     #trade{
             height = Height
           } = Trade,

@@ -27,6 +27,7 @@ contracts() ->
     %S = test(54),%market_liquitity_tx, none left to withdraw test.
     S = test(55),%swap_tx2 and trade_cancel_tx tests
     S = test(56),%swap_tx2 without partial matching.
+    S = test(57),%trade_cancel_tx when the trade id doesn't yet exist.
 
     S.
     
@@ -3062,6 +3063,27 @@ int 0 int 1" >>),
 
     0 = many_txs(),
 
+    success;
+test(57) ->
+    io:fwrite("test trade_cancel_tx when the trade id doesn't yet exist\n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    MP = constants:master_pub(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+
+    Nonce0 = 3500,
+    Fee = constants:initial_fee() + 20,
+    Salt = <<0:256>>,
+    Tx = trade_cancel_tx:make_dict(
+           MP, Nonce0, Fee, Salt),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
     success;
 
 
