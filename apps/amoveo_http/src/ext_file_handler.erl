@@ -171,6 +171,12 @@ handle(Req, State) ->
             <<"/account_explorer.html">> -> true;
             <<"/tx_explorer.js">> -> true;
             <<"/tx_explorer.html">> -> true;
+            <<"/oracle_explorer.js">> -> true;
+            <<"/oracle_explorer.html">> -> true;
+            <<"/oracles_by_stake_explorer.js">> -> true;
+            <<"/oracles_by_stake.html">> -> true;
+            <<"/recent_oracles.html">> -> true;
+            <<"/recent_oracle_explorer.js">> -> true;
             X -> 
                 io:fwrite("ext file handler unknown page: "),
                 io:fwrite(X),

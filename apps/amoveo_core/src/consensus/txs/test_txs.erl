@@ -495,7 +495,6 @@ test(11) ->
     io:fwrite("test 11 2\n"),
 
 
-
     Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
     OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
@@ -503,13 +502,16 @@ test(11) ->
     1 = many_txs(),
     potential_block:new(),
     mine_blocks(5),
+    true = 3 == (trees:get(oracles, OID))#oracle.type,
     io:fwrite("test 11 3\n"),
     %make some bets in the oracle with oracle_bet
-    Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 100000000), 
+    %Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 100000000), 
+    Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 2000000), 
     Stx20 = signing:sign_tx(Tx20, Pub, Priv),
     absorb(Stx20),
     1 = many_txs(),
     mine_blocks(1),
+    true = 2 == (trees:get(oracles, OID))#oracle.type,
     io:fwrite("test 11 4\n"),
 
     OIL = trees:get(governance, oracle_initial_liquidity),
