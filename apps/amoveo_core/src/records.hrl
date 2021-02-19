@@ -230,7 +230,7 @@
 		oracles, governance, matched,
 		unmatched, sub_accounts,
                 contracts, trades, markets,
-                stablecoins}).
+                receipts, stablecoins}).
 
 -record(stablecoin, {
           id,

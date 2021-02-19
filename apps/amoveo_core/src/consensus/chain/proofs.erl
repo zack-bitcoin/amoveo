@@ -27,7 +27,8 @@ tree_to_int(sub_accounts) -> 12;
 tree_to_int(contracts) -> 13;
 tree_to_int(trades) -> 14;
 tree_to_int(markets) -> 15;
-tree_to_int(stablecoins) -> 16.
+tree_to_int(receipts) -> 16;
+tree_to_int(stablecoins) -> 17.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -43,7 +44,8 @@ int_to_tree(12) -> sub_accounts;
 int_to_tree(13) -> contracts;
 int_to_tree(14) -> trades;
 int_to_tree(15) -> markets;
-int_to_tree(16) -> stablecoins.
+int_to_tree(16) -> receipts;
+int_to_tree(17) -> stablecoins.
     
 
 %deterministic merge-sort    
@@ -655,12 +657,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
              } = Tx,
                 Offer = signing:data(SOffer),
                 #swap_offer2{
-                             acc1 = Acc1,
-                             cid1 = CID1,
-                             type1 = Type1,
-                             cid2 = CID2,
-                             type2 = Type2,
-                             salt = Salt
+                              acc1 = Acc1,
+                              cid1 = CID1,
+                              type1 = Type1,
+                              cid2 = CID2,
+                              type2 = Type2,
+                              salt = Salt,
+                              parts = Parts
                            } = Offer,
                 TradeID = swap_tx:trade_id_maker(Acc1, Salt),
                 F2 = case Fee of
@@ -687,9 +690,17 @@ txs_to_querys2([STx|T], Trees, Height) ->
                               {sub_accounts,
                                sub_accounts:make_key(Acc2, CID2, Type2)}]
                      end,
+                F45 = forks:get(45),
+                R = if
+                        (Parts > 1) or (Height < F45) -> [];
+                        true ->
+                            Receipt = receipts:new(TradeID, Acc2),
+                            RID = receipts:id(Receipt),
+                            [{receipts, RID}]
+                    end,
                 [{governance, ?n2i(swap_tx2)},
                  {trades, TradeID}] ++
-                F2 ++ U ++ U2;
+                F2 ++ U ++ U2 ++ R;
             market_new_tx ->
                 #market_new_tx{
               from = From,

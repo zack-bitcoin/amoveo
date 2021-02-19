@@ -28,7 +28,7 @@ tree_killer([H|T]) ->
     supervisor:terminate_child(amoveo_sup, H),
     tree_killer(T).
 trees() ->
-    [accounts, channels, existence, oracles, orders, governance, matched, unmatched, sub_accounts, contracts, trades, markets, stablecoins].
+    [accounts, channels, existence, oracles, orders, governance, matched, unmatched, sub_accounts, contracts, trades, markets, stablecoins, receipts].
     
 stop() -> 
     sync:stop(),
@@ -73,7 +73,8 @@ init([]) ->
 	     tree_child(contracts, HS, constants:contract_size(), 0, Mode, TrieSize),
 	     tree_child(trades, HS, constants:trade_size(), 0, Mode, TrieSize),
 	     tree_child(markets, HS, constants:market_size(), 0, Mode, TrieSize),
-	     tree_child(stablecoins, HS, 202, 0, Mode, TrieSize)
+	     tree_child(stablecoins, HS, 202, 0, Mode, TrieSize),
+	     tree_child(receipts, HS, constants:receipt_size(), 0, Mode, TrieSize)
 	    ],
     {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
 

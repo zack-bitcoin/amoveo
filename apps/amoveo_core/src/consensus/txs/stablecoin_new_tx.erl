@@ -44,7 +44,7 @@ go(Tx, Dict, NewHeight, _) ->
     expiration = Expiration,
     fee = Fee
    } = Tx,
-    true = NewHeight > forks:get(45),
+    true = NewHeight > forks:get(46),
 
     %charge the fee.
     Dict2 = swap_tx:fee_helper(Fee, From, Dict),

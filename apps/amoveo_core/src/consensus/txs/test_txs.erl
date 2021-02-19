@@ -1740,7 +1740,7 @@ test(40) ->
     tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
-    Fee = constants:initial_fee()*100,
+    Fee = constants:initial_fee()*2,
 
     %make a contract and buy some subcurrency.
     Code = compiler_chalang:doit(
@@ -1757,6 +1757,7 @@ int 0 int 1" >>),
     absorb(Stx),
     1 = many_txs(),
     mine_blocks(1),
+
 
     %buy some subcurrency.
     Amount = 100000000,
@@ -1778,9 +1779,9 @@ int 0 int 1" >>),
     0 = many_txs(),
     %swap some subcurrency for the new account's veo.
 
-    SO = swap_tx:make_offer(MP, 0, 1000, CID, 1, 50000000, <<0:256>>, 0, 90000000, Fee),
+    SO = swap_tx2:make_offer(MP, 0, 1000, CID, 1, 50000000, <<0:256>>, 0, 80000000, 1, Fee),
     SSO = keys:sign(SO),
-    Tx4 = swap_tx:make_dict(NewPub, SSO, Fee*2),
+    Tx4 = swap_tx2:make_dict(NewPub, SSO, 1, Fee*2),
     Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
     absorb(Stx4),
     1 = many_txs(),
@@ -1825,9 +1826,9 @@ int 0 int 1" >>),
 
     OneVeo = 100000000,
     NewCID = contracts:make_id(CH, 2, <<0:256>>, 0),
-    PBO = swap_tx:make_offer(MP, 0, 1000, <<0:256>>, 0, OneVeo, NewCID, 1, OneVeo, Fee),
+    PBO = swap_tx2:make_offer(MP, 0, 1000, <<0:256>>, 0, OneVeo, NewCID, 1, OneVeo, 1, Fee),
     SPBO = keys:sign(PBO),
-    Swap2 = swap_tx:make_dict(NewPub, SPBO, Fee),
+    Swap2 = swap_tx2:make_dict(NewPub, SPBO, 1, Fee),
     Use2 = contract_use_tx:make_dict(NewPub, NewCID, OneVeo, Fee),%buy one veo of a full set
     Txs2 = [Swap2, Use2],
     Tx2 = multi_tx:make_dict(NewPub, Txs2, Fee*2),
@@ -1937,9 +1938,9 @@ else fail then ">>),
 
     OneVeo = 100000000,
     NewCID = contracts:make_id(CH, 2, <<0:256>>, 0),
-    PBO = swap_tx:make_offer(MP, 0, 1000, <<0:256>>, 0, OneVeo, NewCID, 1, OneVeo, Fee),
+    PBO = swap_tx2:make_offer(MP, 0, 1000, <<0:256>>, 0, OneVeo, NewCID, 1, OneVeo, 1, Fee),
     SPBO = keys:sign(PBO),
-    Swap2 = swap_tx:make_dict(NewPub, SPBO, Fee),
+    Swap2 = swap_tx2:make_dict(NewPub, SPBO, 1, Fee),
     Use2 = contract_use_tx:make_dict(NewPub, NewCID, OneVeo, Fee),
     Txs2 = [Swap2, Use2],
     Tx2 = multi_tx:make_dict(NewPub, Txs2, Fee*2),
@@ -2041,15 +2042,15 @@ def \
 
 
     NewCID = contracts:make_id(CH, 2, <<0:256>>, 0),
-    PBO = swap_tx:make_offer(MP, 0, 1000, <<0:256>>, 0, OneVeo, NewCID, 1, 2 * OneVeo, Fee),
+    PBO = swap_tx2:make_offer(MP, 0, 1000, <<0:256>>, 0, OneVeo, NewCID, 1, 2 * OneVeo, 1, Fee),
     SPBO = keys:sign(PBO),
 
     %account 2 makes an offer to sell their winnings from this contract before they join it.
-    SO = swap_tx:make_offer(NewPub, 0, 1000, NewCID, 2, OneVeo * 2, <<0:256>>, 0, 199900000, 2),%Fee),
+    SO = swap_tx2:make_offer(NewPub, 0, 1000, NewCID, 2, OneVeo * 2, <<0:256>>, 0, 199900000, 1, 2),%Fee),
     SSO = signing:sign_tx(SO, NewPub, NewPriv),
     
     %account 2 joins the contract
-    Swap2 = swap_tx:make_dict(NewPub, SPBO, Fee),
+    Swap2 = swap_tx2:make_dict(NewPub, SPBO, 1, Fee),
     Use2 = contract_use_tx:make_dict(NewPub, NewCID, OneVeo * 2, Fee),
     Txs2 = [Swap2, Use2],
     Tx2 = multi_tx:make_dict(NewPub, Txs2, Fee*2),
@@ -2059,7 +2060,7 @@ def \
     mine_blocks(1),
 
     %account1 takes the opportunity to let acc2 cash out.
-    Tx3 = swap_tx:make_dict(MP, SSO, Fee),
+    Tx3 = swap_tx2:make_dict(MP, SSO, 1, Fee),
     io:fwrite("test txs 44\n"),
     io:fwrite(packer:pack(Tx3)),
     io:fwrite("\n"),
@@ -2131,11 +2132,11 @@ else fail then ">>),
     Half0 = <<2147483647:32>>,
 
     ChannelCID = contracts:make_id(CH, 2, <<0:256>>, 0),
-    PBO = swap_tx:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, ChannelCID, 1, OneVeo * 2, Fee),
+    PBO = swap_tx2:make_offer(MP, 0, 100, <<0:256>>, 0, OneVeo, ChannelCID, 1, OneVeo * 2, 1, Fee),
     
     SPBO = keys:sign(PBO),
     
-    Swap2 = swap_tx:make_dict(Pub, SPBO, Fee),
+    Swap2 = swap_tx2:make_dict(Pub, SPBO, 1, Fee),
     Use2 = contract_use_tx:make_dict(Pub, ChannelCID, OneVeo*2, Fee),
     Txs2 = [Swap2, Use2],
     Tx2 = multi_tx:make_dict(Pub, Txs2, Fee*2),
@@ -2281,7 +2282,7 @@ test(46) ->
     tx_pool:dump(),
     mine_blocks(10),
     MP = constants:master_pub(),
-    Fee = constants:initial_fee()*100,
+    Fee = constants:initial_fee()*2,
     Code = compiler_chalang:doit(
              <<"macro [ nil ;\
 macro , swap cons ;\
@@ -2320,15 +2321,15 @@ int 0 int 1" >>),
     mine_blocks(1),
 
     %at this point account2 loses the  bet. so account 1 offers to sell their winnings.
-    SO = swap_tx:make_offer(MP, 0, 1000, CID, 2, 100000000, <<0:256>>, 0, 99000000, Fee),
+    SO = swap_tx2:make_offer(MP, 0, 1000, CID, 2, 100000000, <<0:256>>, 0, 99000000, 1, Fee),
     SSO = keys:sign(SO),
-    SO3 = swap_tx:make_offer(MP, 0, 1000, CID, 3, 100000000, <<0:256>>, 0, 1, Fee),
+    SO3 = swap_tx2:make_offer(MP, 0, 1000, CID, 3, 100000000, <<0:256>>, 0, 1, 1, Fee),
     SSO3 = keys:sign(SO3),
     
     %account 2 simultaniously buys account 1's winnings, combines it with the losing shares, and withdraws the source currency. this is a combination of a swap tx with a contract_use tx.
 
-    SwapTx = swap_tx:make_dict(NewPub, SSO, Fee*2),%sends type 2.
-    SwapTx3 = swap_tx:make_dict(NewPub, SSO3, Fee),%sends type 3.
+    SwapTx = swap_tx2:make_dict(NewPub, SSO, 1, Fee*2),%sends type 2.
+    SwapTx3 = swap_tx2:make_dict(NewPub, SSO3, 1, Fee),%sends type 3.
     UseTx = contract_use_tx:make_dict(NewPub, CID, -100000000, Fee),%sells all 3 as a complete set.
     Txs = [SwapTx, SwapTx3, UseTx],
     Tx4 = multi_tx:make_dict(NewPub, Txs, Fee*2),
@@ -3071,6 +3072,14 @@ test(57) ->
     Fee = constants:initial_fee() + 20,
 
     %create a new stablecoin.
+    PrivDir = "../../../../apps/amoveo_core/priv",
+    {ok, PerpetualStablecoin} = file:read_file(PrivDir ++ "/perpetual_stablecoin.fs"),
+    PerpetualStablecoinBytes
+        = compiler_chalang:doit(
+            PerpetualStablecoin),
+
+
+
     Code = compiler_chalang:doit(
              <<"macro [ nil ;\
 macro , swap cons ;\

@@ -46,6 +46,7 @@ make_offer(From, StartLimit, EndLimit,
            }.
 go(Tx, Dict0, NewHeight, _) ->
     true = NewHeight > forks:get(32),
+    true = NewHeight < forks:get(45),
     #swap_tx{
     from = Acc2,
     offer = SNCO,
@@ -126,6 +127,10 @@ move_helper(Acc1, Acc2, Amount, CID, Type, Dict) ->
     
 move_veo(Acc1, Acc2, Amount, Dict) ->
     %from Acc1 to Acc2
+    io:fwrite("in move veo\n"),
+    io:fwrite(integer_to_list(Amount)),
+    io:fwrite(packer:pack(accounts:dict_get(Acc1, Dict))),
+    io:fwrite("\n"),
     A1 = accounts:dict_update(Acc1, Dict, -Amount, none),
     DictA = accounts:dict_write(A1, Dict),
     A2 = accounts:dict_update(Acc2, DictA, Amount, none),

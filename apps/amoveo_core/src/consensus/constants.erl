@@ -107,6 +107,9 @@ market_size() ->
         (3 * (balance_bits() div 8)).
 trade_size() ->
     hash_size() + (height_bits() div 8).
+receipt_size() ->
+    (hash_size() * 2)
+        + pubkey_size().
 
 channel_size() ->    
     (((balance_bits()*3) + channel_nonce_bits() + 

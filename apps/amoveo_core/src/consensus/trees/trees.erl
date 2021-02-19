@@ -1,11 +1,11 @@
 -module(trees).
 -export([accounts/1,channels/1,existence/1,oracles/1,governance/1,
          matched/1,unmatched/1,sub_accounts/1,contracts/1,trades/1, 
-         markets/1,stablecoins/1,
+         markets/1,stablecoins/1, receipts/1,
 
-	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2, update_sub_accounts/2, update_contracts/2, update_trades/2, update_markets/2, update_stablecoins/2,
+	 update_accounts/2,update_channels/2,update_existence/2,update_oracles/2,update_governance/2, update_matched/2, update_unmatched/2, update_sub_accounts/2, update_contracts/2, update_trades/2, update_markets/2, update_stablecoins/2, update_receipts/2,
 	 new/6,
-	 new2/7, new3/10, new4/11, new5/12,
+	 new2/7, new3/10, new4/11, new5/13,
          empty_tree/1,
 	 root_hash/1, name/1, 
 	 hash2int/1, verify_proof/5,
@@ -13,6 +13,7 @@
          serialized_roots/1,
 	 hash2blocks/1, get/4, get/2,
          all_veo/0, trees1to2/1, trees2to3/1, trees3to4/1, trees4to5/1,
+         all/1,
          restore/3]).
 -include("../../records.hrl").
 
@@ -107,6 +108,7 @@ trees4to5(Trees) ->
              contracts = CO,
              trades = T,
              markets = M2,
+             receipts = trees:empty_tree(receipts),
              stablecoins = trees:empty_tree(stablecoins)
            }.
 
@@ -177,17 +179,19 @@ trades(X = #trees4{}) -> X#trees4.trades;
 trades(X = #trees5{}) -> X#trees5.trades.
 markets(X = #trees4{}) -> X#trees4.markets;
 markets(X = #trees5{}) -> X#trees5.markets.
+receipts(X = #trees5{}) -> X#trees5.receipts.
 stablecoins(X = #trees5{}) -> X#trees5.stablecoins.
     
 
-new5(A, C, E, O, G, M, U, SA, Contracts, T, Markets,S) ->
+new5(A, C, E, O, G, M, U, SA, Contracts, T, Markets,S, R) ->
     #trees5{accounts = A, channels = C,
             existence = E, oracles = O, 
             governance = G, matched = M,
             unmatched = U, sub_accounts = SA,
             contracts = Contracts, trades = T,
             markets = Markets,
-            stablecoins = S}.
+            stablecoins = S,
+            receipts = R}.
 new4(A, C, E, O, G, M, U, SA, Contracts, T, Markets) ->
     #trees4{accounts = A, channels = C,
             existence = E, oracles = O, 
@@ -300,6 +304,8 @@ update_markets(X = #trees5{}, U) ->
     X#trees5{markets = U}.
 update_stablecoins(X = #trees5{}, U) ->
     X#trees5{stablecoins = U}.
+update_receipts(X = #trees5{}, U) ->
+    X#trees5{receipts = U}.
 
 rh2(Type, Trees, _Roots) ->
     X = trees:Type(Trees),%M is either trees or trees2
@@ -351,11 +357,12 @@ serialized_roots(Trees) ->
             Con = F(contracts),
             Trades = F(trades),
             Markets = F(markets),
+            Receipts = F(receipts),
             Stablecoins = F(stablecoins),
             <<X/binary, M/binary, U/binary,
               SA/binary, Con/binary,
               Trades/binary, Markets/binary,
-              Stablecoins/binary>>
+              Receipts/binary, Stablecoins/binary>>
     end.
 root_hash(Trees) ->
     Y = serialized_roots(Trees),
@@ -459,6 +466,14 @@ all_veo() ->
     X = lists:map(fun(N) -> all_veo_helper(N) end, Rest),
     X2 = lists:foldl(fun(A, B) -> A+B end, 0, X),
     X2 - 180500000000.
+all(TreeID) ->
+    Trees = (tx_pool:get())#tx_pool.block_trees,
+    Receipts = trees:TreeID(Trees),
+    All = trie:get_all(Receipts, TreeID),
+    lists:map(
+      fun(Leaf) ->
+	      TreeID:deserialize(leaf:value(Leaf))
+      end, All).
 	    
 channel_rewards([], Accs, Proofs) -> 
     file:write_file(

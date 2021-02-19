@@ -21,7 +21,7 @@
 -record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
 -record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades}).%
 -record(roots4, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets}).%
--record(roots5, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, stablecoins}).
+-record(roots5, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, receipts, stablecoins}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -502,6 +502,7 @@ make_roots(Trees) when (element(1, Trees) == trees5) ->
            contracts = trie:root_hash(contracts, trees:contracts(Trees)),
             trades = trie:root_hash(trades, trees:trades(Trees)),
             markets = trie:root_hash(markets, trees:markets(Trees)),
+            receipts = trie:root_hash(receipts, trees:receipts(Trees)),
             stablecoins = trie:root_hash(stablecoins, trees:stablecoins(Trees))}.
 
 
@@ -562,8 +563,9 @@ roots_hash(X) when is_record(X, roots5) ->
     Con = X#roots5.contracts,
     Tra = X#roots5.trades,
     Markets = X#roots5.markets,
+    Receipts = X#roots5.receipts,
     Stablecoins = X#roots5.stablecoins,
-    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary, Markets/binary, Stablecoins/binary>>,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary, Markets/binary, Receipts/binary, Stablecoins/binary>>,
     hash:doit(Y).
 
     
@@ -711,6 +713,7 @@ proofs_roots_match([P|T], R) when is_record(R, roots5)->
                contracts -> R#roots5.contracts;
                trades -> R#roots5.trades;
                markets -> R#roots5.markets;
+               receipts -> R#roots5.receipts;
                stablecoins -> R#roots5.markets
 	   end,
     proofs_roots_match(T, R).
@@ -1535,6 +1538,8 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
     B + sum_amounts(T, Dict, Old).
 %sum_amounts_helper(_, error, _, _, _) -> 0;
 sum_amounts_helper(_, empty, _, _, _) -> 0;
+sum_amounts_helper(receipts, Acc, Dict, _, _) ->
+    0;
 sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
     0;
 sum_amounts_helper(trades, Acc, Dict, _, _) -> 0;
