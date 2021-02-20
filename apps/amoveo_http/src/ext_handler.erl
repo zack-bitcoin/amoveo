@@ -97,6 +97,8 @@ doit({give_block, Block}) -> %block can also be a list of blocks.
     {ok, R2};
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
+doit({block, 2, H}) ->
+    {ok, block:get_by_hash(H)};
 doit({blocks, Many, N}) -> 
     %true = Many < 60,
     %X = block_reader:doit(Many, N),
