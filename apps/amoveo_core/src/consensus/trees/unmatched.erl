@@ -3,7 +3,7 @@
          get/2,write/2,%update tree stuff
          dict_get/2, dict_get/3, dict_write/2,%update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,
-         dict_significant_volume/3, dict_match/4,
+         dict_significant_volume/4, dict_match/4,
          dict_head_get/2,
          dict_add/3, dict_remove/3, make_leaf/3,
 	 delete/2, 
@@ -28,22 +28,25 @@
 -define(Null, 0).
 -define(Header, 1).
 -include("../../records.hrl").
-dict_significant_volume(Dict, OID, OIL) ->
+dict_significant_volume(Dict, OID, OIL, NewHeight) ->
     ManyOrders = dict_many(Dict, OID),
-        if 
-            ManyOrders == 0 ->
-                %io:fwrite("unmatched dict_significant_volume, invalid oracle because of zero orders.\n"),
-                false;
-            ManyOrders > 2 -> true;
-            true ->
-                {Head, _} = dict_head_get(Dict, OID),
-                Order0 = dict_get({key, Head, OID}, Dict),
+    F46_activated = forks:get(46) < NewHeight,
+    if 
+        ManyOrders == 0 ->
+       %io:fwrite("unmatched dict_significant_volume, invalid oracle because of zero orders.\n"),
+            false;
+        (ManyOrders > 2) and (not F46_activated) -> 
+            true;
+        ManyOrders > 1 -> true;
+        true ->
+            {Head, _} = dict_head_get(Dict, OID),
+            Order0 = dict_get({key, Head, OID}, Dict),
                 %io:fwrite("unmatched dict_significant_volume, "),
                 %io:fwrite(packer:pack([amount(Order0), OIL, Order0])),
                 %io:fwrite("\n"),
                 %true = is_integer(OIL),
-                amount(Order0) > OIL
-        end.
+            amount(Order0) > OIL
+    end.
 dict_many(Dict, OID) -> 
     {_, Many} = dict_head_get(Dict, OID),
     Many.

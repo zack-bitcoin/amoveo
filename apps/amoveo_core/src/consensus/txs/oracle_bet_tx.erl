@@ -135,7 +135,7 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 	      F10  -> unmatched;
 	      true -> orders%
 	  end,%
-    VolumeCheck = UMT:dict_significant_volume(Dict, OID, OIL),
+    VolumeCheck = UMT:dict_significant_volume(Dict, OID, OIL, NewHeight),
     MOT = governance:dict_get_value(minimum_oracle_time, Dict),
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
