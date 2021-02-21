@@ -35,7 +35,7 @@ dict_significant_volume(Dict, OID, OIL, NewHeight) ->
         ManyOrders == 0 ->
        %io:fwrite("unmatched dict_significant_volume, invalid oracle because of zero orders.\n"),
             false;
-        (ManyOrders > 2) and (not F46_activated) -> 
+        ((ManyOrders > 2) and (not (F46_activated))) -> 
             true;
         ManyOrders > 1 -> true;
         true ->
