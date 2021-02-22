@@ -1222,7 +1222,7 @@ gov_fees([Tx|T], Dict, Height) ->
     C = signing:data(Tx),
     Type = element(1, C),
     A = case Type of
-	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict);
+	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict, Height);
 	    _ -> 
                 X = governance:dict_get_value(Type, Dict),
                 F16 = forks:get(16),
@@ -1232,11 +1232,27 @@ gov_fees([Tx|T], Dict, Height) ->
                 end
 	end,
     A + gov_fees(T, Dict, Height).
-gov_fees2([], _) -> 0;
-gov_fees2([H|T], Dict) ->
+gov_fees2([], _, _) -> 0;
+gov_fees2([H|T], Dict, Height) ->
     Type = element(1, H),
-    A = governance:dict_get_value(Type, Dict),
-    A + gov_fees2(T, Dict).
+    F47_activated = forks:get(47) < Height,
+    A = if
+            (F47_activated and (Type == contract_evidence_tx)) -> 
+                CEF = governance:dict_get_value(Type, Dict),
+                Contract = H#contract_evidence_tx.contract,
+                Evidence = H#contract_evidence_tx.evidence,
+                Prove = H#contract_evidence_tx.prove,
+                S = size(Evidence) + size(Contract) + (16 * 32 * 5 * length(Prove)),
+                CEF + (S * CEF div 5000);
+            (F47_activated and (Type == oracle_new)) -> 
+                S = size(H#oracle_new.question),
+                ONF = governance:dict_get_value(Type, Dict),
+                ONF + (S * ONF div 5000);
+            true ->
+        
+            governance:dict_get_value(Type, Dict)
+        end,
+    A + gov_fees2(T, Dict, Height).
     
 deltaCV([], _) -> 0;%calculate change in total amount of VEO stored in channels.
 deltaCV([Tx|T], Dict) ->

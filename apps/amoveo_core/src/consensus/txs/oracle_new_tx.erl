@@ -134,7 +134,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
              <<"">> -> ok;
              _ ->
                  MQS = governance:dict_get_value(maximum_question_size, Dict2),
-                 true = size(Question) < MQS,
+                 F47_activated = forks:get(47) < NewHeight,
+                 SizeLimit = if
+                                 F47_activated ->
+                                     MQS * 10;
+                                 true -> MQS
+                             end,
+                 true = size(Question) < SizeLimit,
                  0 = GovAmount,
 		 ok
 	 end,
