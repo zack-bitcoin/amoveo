@@ -39,6 +39,7 @@ zero_accounts_nonces([H|T])
 zero_accounts_nonces([H|T]) 
   when (is_record(H, swap_tx) or
         is_record(H, trade_cancel_tx) or
+        is_record(H, stablecoin_new_tx) or
         is_record(H, contract_new_tx)) ->
     H2 = setelement(2, H, 0),
     H3 = setelement(4, H2, 0),
@@ -75,6 +76,7 @@ sub_txs([H|T], From, Dict, NewHeight) ->
                 %swap_tx2 -> swap2(H, From, Dict, NewHeight);
                 trade_cancel_tx -> trade_cancel(H, From, Dict, NewHeight);
                 contract_new_tx -> contract_new(H, From, Dict, NewHeight);
+                stablecoin_new_tx -> stablecoin_new(H, From, Dict, NewHeight);
                 _ -> 
                     create_spend(Type, H, From, Dict, NewHeight)
             end,
@@ -82,11 +84,16 @@ sub_txs([H|T], From, Dict, NewHeight) ->
 
 contract_new(Tx, From, Dict, NewHeight) ->
     true = (NewHeight > forks:get(32)),
-    %create_spend(contract_new_tx, Tx, From, Dict, NewHeight).
     Tx2 = Tx#contract_new_tx{
             from = From
            },
     contract_new_tx:go(Tx2, Dict, NewHeight, none).
+stablecoin_new(Tx, From, Dict, NewHeight) ->
+    true = (NewHeight > forks:get(49)),
+    Tx2 = Tx#stablecoin_new_tx{
+            from = From
+           },
+    stablecoin_new_tx:go(Tx2, Dict, NewHeight, none).
     
 create_spend(Type, H, From, Dict, NewHeight) ->
     case Type of

@@ -7,14 +7,15 @@ make_dict(From, CID1, Type1, Amount1, CID2, Type2, Amount2, Fee) ->
 %    <<N2:256>> = CID2,
 %    if
 %            ((N1+Type1) =< (N2 + Type2)) -> 
-    #market_new_tx{from = From,
-                   fee = Fee,
-                   cid1 = CID1,
-                   type1 = Type1,
-                   amount1 = Amount1,
-                   cid2 = CID2, 
-                   type2 = Type2,
-                   amount2 = Amount2}.
+    #market_new_tx{
+           from = From,
+           fee = Fee,
+           cid1 = CID1,
+           type1 = Type1,
+           amount1 = Amount1,
+           cid2 = CID2, 
+           type2 = Type2,
+           amount2 = Amount2}.
 %            true ->
 %            make_dict(From, CID2, Type2, Amount2, CID1, Type1, Amount1, Fee)
 %    end.

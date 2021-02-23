@@ -82,7 +82,7 @@ channel_manager() -> channels_root() ++ "channel_manager.db".
 arbitrage() -> channels_root() ++ "arbitrage.db".
 
 word_size() -> 100000.
-balance_bits() -> 48.%total number of coins is 2^(balance_bits()).
+balance_bits() -> 48.
 half_bal() -> round(math:pow(2, balance_bits()-1)).
 acc_bits() -> hash_size()*8.%total number of accounts is 2^(acc_bits()) 800 billion.
 height_bits() -> 32. %maximum number of blocks is 2^this
@@ -107,6 +107,9 @@ market_size() ->
         (3 * (balance_bits() div 8)).
 trade_size() ->
     hash_size() + (height_bits() div 8).
+receipt_size() ->
+    (hash_size() * 2)
+        + pubkey_size().
 
 channel_size() ->    
     (((balance_bits()*3) + channel_nonce_bits() + 

@@ -9,6 +9,9 @@ test_helper([]) -> success;
 test_helper([A|B]) ->
     io:fwrite(atom_to_list(A) ++ " test\n"),
     success = A:test(),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
     test_helper(B).
 test1() ->
     %timer:sleep(2000),

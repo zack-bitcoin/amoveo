@@ -211,3 +211,58 @@
           cid1, type1, amount1, 
           cid2, type2, amount2,
           salt, start_nonce, parts}).
+
+-record(trees, {accounts, channels, existence,%
+		oracles, governance}).%
+%we did a hard fork to move the matched and unmatched trees from inside of accounts and oracles to their own tries.
+-record(trees2, {accounts, channels, existence,
+		oracles, governance, matched,
+		unmatched}).
+
+-record(trees3, {accounts, channels, existence,
+		oracles, governance, matched,
+		unmatched, sub_accounts,
+                contracts, trades}).
+-record(trees4, {accounts, channels, existence,
+		oracles, governance, matched,
+		unmatched, sub_accounts,
+                contracts, trades, markets}).
+-record(trees5, {accounts, channels, existence,
+		oracles, governance, matched,
+		unmatched, sub_accounts,
+                contracts, trades, markets,
+                receipts, stablecoins}).
+
+-record(stablecoin, {
+          id,
+          auction_mode, %can be: false, time_limit, under_coll
+          source, %collateral contract id. for the finite stablecoin.
+          amount, %amount of collateral locked in the perpetual stablecoin
+          code_hash, %hash of code to decide if a collateral smart contract is valid
+          timeout, %height at which an timelimit auction should start.
+          max_bid_pubkey, %pubkey of whoever made the biggest bid so far.
+          max_bid_amount, %how much they had bid.
+          timelimit_auction_duration,
+          undercollateralization_auction_duration,
+          undercollateralization_price_trigger, %out of 100000, if this is 99000, and there are 100 veo worth of perpetual stablecoins, then you can use 99 veo to buy all the finite stablecoins backing the contract. This is like a lower bound on how collaterlized we want the contract to be.
+          collateralization_step, %during each undercollateralization auction, how much should we attempt to increase the collateralization by. This should aim for about the midpoint of the range of collateralization we are targeting.
+          margin, %margin of current stablecoin contract.
+          period %how long until the next finite stablecoin expires. this should be longer than the timelimit_auction_duration
+
+         }).
+
+-record(stablecoin_new_tx, {
+     from,
+     id,
+     fee,
+     source,
+     source_type,
+     code_hash,
+     timelimit_auction_duration,
+     undercollateralization_auction_duration,
+     undercollateralization_price_trigger,
+     collateralization_step,
+     expiration,%when the first finite stablecoin contract expires. should be about 1 period in the future.
+     period,
+     margin
+}).

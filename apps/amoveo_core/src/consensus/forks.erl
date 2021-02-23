@@ -42,11 +42,13 @@ get(29) -> common(104600, test_height());
 get(30) -> common(108600, test_height());
 get(31) -> common(109900, test_height());
 get(32) -> common(130300, %subcurrencies
-                  forks:get(10) + 1);
+                  test_height()+1);
+                  %forks:get(10) + 1);
 get(33) -> common(126000, test_height());%enforcing max block size.
 get(34) -> 0;%filler
 get(35) -> common(130700, %automatic market makers.
-                  forks:get(32) + 1);
+                  %forks:get(32) + 1);
+                  test_height()+1);
 %get(36) -> common(132850, test_height());
 get(36) -> common(132850, 1);%hard update to prevent market_liqudity tx from being re-published.
 get(37) -> common(132860, test_height());%hard update to fix how market_liquidity_tx work with flash loans.
@@ -56,11 +58,16 @@ get(40) -> common(133250, test_height());%zero veo fee payments using a flash lo
 get(41) -> common(133260, test_height());%market_swap_tx dust fix.
 get(42) -> common(133400, test_height());%soft fork to prevent markets from having zero liquidity.
 get(43) -> common(136300, test_height());%undo #41
-get(44) -> common(149729, forks:get(35)+1);%swap_tx2, turn off channel tx types
+get(44) -> common(149729, %forks:get(35)+1);%swap_tx2, turn off channel tx types
+                  test_height()+1);
 get(45) -> common(152000, test_height());%trade cancel tx, ability to cancel trades that have not yet been partially matched
 get(46) -> common(154000, test_height());%fix an oracle bug that sometimes caused the oracle to return 'bad question' incorrectly.
 get(47) -> common(154100, test_height());%contract evidence tx and oracle new tx should charge fees based on the number of bytes.
-get(_) -> none.
+get(48) -> common(99999149729, %swap receipts hard update
+                  test_height()+1);
+%get(49) -> common(99999149729, %perpetual stablecoin hard update.
+%                  test_height()+1);
+get(_) -> 99999999999999.
 
 top() -> top(1).
 top(N) ->

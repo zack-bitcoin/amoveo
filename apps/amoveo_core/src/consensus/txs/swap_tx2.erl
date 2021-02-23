@@ -64,14 +64,21 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
     true = NewHeight =< EL,
     TID = swap_tx:trade_id_maker(Acc1, Salt),
     Trade = trades:dict_get(TID, Dict0),
-    NextNonce = 
+    CurrentNonce = 
         case Trade of
-            empty -> 1 + MatchParts;
-            _ -> 
-                #trade{height = CurrentNonce} = Trade,
-                CurrentNonce +
-                    MatchParts
+            empty -> 1;
+            _ -> #trade{height = CN} = Trade,
+                 CN
         end,
+    NextNonce = CurrentNonce + MatchParts,
+    %NextNonce = 
+    %    case Trade of
+    %        empty -> 1 + MatchParts;
+    %        _ -> 
+    %            #trade{height = CurrentNonce} = Trade,
+    %            CurrentNonce +
+    %                MatchParts
+    %    end,
     true = NextNonce > StartNonce,
     true = NextNonce =< (StartNonce + Parts),
     Trade2 = case Trade of
@@ -94,7 +101,17 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
     Dict5 = swap_tx:move_helper(
               Acc2, Acc1, A2, 
               CID2, Type2, Dict4),
-    Dict5.
+    %io:fwrite(packer:pack(trees:get(accounts, Acc2))),
+    %io:fwrite("\n"),
+    F48 = forks:get(48),
+    if 
+        (Parts == 1) and (NewHeight > F48) ->
+            R = receipts:new(TID, Acc2),
+            empty = receipts:dict_get(receipts:id(R), Dict5),
+            receipts:dict_write(R, Dict5);
+        true ->
+            Dict5
+    end.
 
     
                                   

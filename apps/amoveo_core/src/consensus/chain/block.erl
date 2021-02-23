@@ -20,7 +20,8 @@
 -record(roots, {accounts, channels, existence, oracles, governance}).%
 -record(roots2, {accounts, channels, existence, oracles, governance, matched, unmatched}).%
 -record(roots3, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades}).%
--record(roots4, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets}).
+-record(roots4, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets}).%
+-record(roots5, {accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, receipts, stablecoins}).
 
 tx_hash(T) -> hash:doit(T).
 proof_hash(P) -> hash:doit(P).
@@ -275,6 +276,15 @@ channel_rewards([{Pub, Bal}|T], Accs) ->
         true ->
             channel_rewards(T, Accs)
     end.
+   
+governance_packer(L, DB) -> 
+    case L of
+        [] -> DB;
+        [H|T] ->
+            governance_packer(
+              T, governance:write(H, DB))
+    end.
+
     
  
 trees_maker(HeightCheck, Trees, NewDict4) ->
@@ -285,108 +295,86 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     F32 = forks:get(32),
     F35 = forks:get(35),
     F44 = forks:get(44),
-    if
-        (HeightCheck == F44) ->
-            GT = trees:governance(NewTrees0),
-            G42 = governance:new(governance:name2number(swap_tx2),
-                                 constants:encoded_fee()),
-            G43 = governance:new(governance:name2number(trade_cancel_tx),
-                                 constants:encoded_fee()),
-            GT2 = governance:write(G42, GT),
-            GTF = governance:write(G43, GT2),
-            trees:new4(trees:accounts(NewTrees0),
-                       trees:channels(NewTrees0),
-                       trees:existence(NewTrees0),
-                       trees:oracles(NewTrees0),
-                       GTF,
-                       trees:matched(NewTrees0),
-                       trees:unmatched(NewTrees0),
-                       trees:sub_accounts(NewTrees0),
-                       trees:contracts(NewTrees0),
-                       trees:trades(NewTrees0),
-                       trees:markets(NewTrees0));
-        (HeightCheck == F10)  ->%
-                                                %Root0 = constants:root0(),%
-            NewTrees1 = %
-                trees:new2(trees:accounts(NewTrees0),%
-                           trees:channels(NewTrees0),%
-                           trees:existence(NewTrees0),%
-                           trees:oracles(NewTrees0),%
-                           trees:governance(NewTrees0),%
-                           trees:empty_tree(matched),
-                           trees:empty_tree(unmatched)),
-                       %Root0,%
-                       %Root0),%
-		       %at this point we should move all the oracle bets and orders into their new merkel trees.%
-            NewTrees1;%
-        (HeightCheck == F32) ->
-            GT = trees:governance(NewTrees0),
-            G29 = governance:new(governance:name2number(contract_new_tx),
-                                 constants:encoded_fee()),
-            G30 = governance:new(governance:name2number(contract_use_tx),
-                                 constants:encoded_fee()),
-            G31 = governance:new(governance:name2number(sub_spend_tx),
-                                 constants:encoded_fee()),
-            G32 = governance:new(governance:name2number(contract_evidence_tx),
-                                 constants:encoded_fee()),
-            G33 = governance:new(governance:name2number(contract_timeout_tx),
-                                 constants:encoded_fee()),
-            G34 = governance:new(governance:name2number(contract_winnings_tx),
-                                 constants:encoded_fee()),
-            G35 = governance:new(governance:name2number(contract_simplify_tx),
-                                 constants:encoded_fee()),
-            G36 = governance:new(governance:name2number(max_contract_flavors),
-                                 32),
-            G37 = governance:new(governance:name2number(swap_tx),
-                                 constants:encoded_fee()),
-            GT2 = governance:write(G29, GT),
-            GT3 = governance:write(G30, GT2),
-            GT4 = governance:write(G31, GT3),
-            GT5 = governance:write(G32, GT4),
-            GT6 = governance:write(G33, GT5),
-            GT7 = governance:write(G34, GT6),
-            GT8 = governance:write(G35, GT7),
-            GT9 = governance:write(G36, GT8),
-            GTF = governance:write(G37, GT9),
-            
-            trees:new3(trees:accounts(NewTrees0),
-                       trees:channels(NewTrees0),
-                       trees:existence(NewTrees0),
-                       trees:oracles(NewTrees0),
-                       GTF,
-                       trees:matched(NewTrees0),
-                       trees:unmatched(NewTrees0),
-                       trees:empty_tree(sub_accounts),
-                       trees:empty_tree(contracts),
-                       trees:empty_tree(trades));
-        (HeightCheck == F35) ->
-            GT = trees:governance(NewTrees0),
-            G38 = governance:new(governance:name2number(market_new_tx),
-                                 constants:encoded_fee()),
-            G39 = governance:new(governance:name2number(market_liquidity_tx),
-                                 constants:encoded_fee()),
-            G40 = governance:new(governance:name2number(market_swap_tx),
-                                 constants:encoded_fee()),
-            G41 = governance:new(governance:name2number(market_trading_fee),
-                                 constants:initial_trading_fee()),%about 200000. it is out of 1 veo, so this is 0.2% 
-            GT2 = governance:write(G38, GT),
-            GT3 = governance:write(G39, GT2),
-            GT4 = governance:write(G40, GT3),
-            GTF = governance:write(G41, GT4),
-            trees:new4(trees:accounts(NewTrees0),
-                       trees:channels(NewTrees0),
-                       trees:existence(NewTrees0),
-                       trees:oracles(NewTrees0),
-                       GTF,
-                       trees:matched(NewTrees0),
-                       trees:unmatched(NewTrees0),
-                       trees:sub_accounts(NewTrees0),
-                       trees:contracts(NewTrees0),
-                       trees:trades(NewTrees0),
-                       trees:empty_tree(markets));
-        true -> NewTrees0
-    end.
-
+    F48 = forks:get(48),
+    GN = fun(Name, A) ->
+                 governance:new(
+                   governance:name2number(Name),
+                   A)
+         end,
+    GD = fun(Name) ->
+                 GN(Name, constants:encoded_fee())
+         end,
+    Trees2 = 
+        if
+            (HeightCheck == F10)  ->
+                trees:trees1to2(NewTrees0);
+            true ->
+                NewTrees0
+        end,
+    Trees3 =
+        if
+            (HeightCheck == F32) ->
+                GTF3 = governance_packer(
+                        [GD(contract_new_tx),
+                         GD(contract_use_tx),
+                         GD(sub_spend_tx),
+                         GD(contract_evidence_tx),
+                         GD(contract_timeout_tx),
+                         GD(contract_winnings_tx),
+                         GD(contract_simplify_tx),
+                         GN(max_contract_flavors, 32),
+                         GD(swap_tx)],
+                        trees:governance(Trees2)),
+                T3 = trees:trees2to3(Trees2),
+                T3#trees3{
+                  governance = GTF3
+                 };
+            true -> Trees2
+        end,
+    Trees4 = 
+        if
+            (HeightCheck == F35) ->
+                GTF4 = governance_packer(
+                        [GD(market_new_tx),
+                         GD(market_liquidity_tx),
+                         GD(market_swap_tx),
+                         GN(market_trading_fee,
+                            constants:initial_trading_fee())%about 200000. it is out of 1 veo, so this is 0.2% 
+                        ],
+                        trees:governance(Trees3)),
+                T4 = trees:trees3to4(Trees3),
+                T4#trees4{
+                  governance = GTF4
+                 };
+            true -> Trees3
+        end,
+    Trees5 =
+        if
+            (HeightCheck == F44) ->
+                GTF5 = governance_packer(
+                        [GD(swap_tx2),
+                         GD(trade_cancel_tx)],
+                        trees:governance(Trees4)),
+                Trees4#trees4{
+                  governance = GTF5
+                 };
+            true -> Trees4
+        end,
+    Trees6 = 
+        if
+            (HeightCheck == F48) ->
+                GTF6 = governance_packer(
+                        [GD(stablecoin_new_tx)
+                        ],
+                        trees:governance(Trees5)),
+                T5 = trees:trees4to5(Trees5),
+                T5#trees5{
+                  governance = GTF6
+                 };
+            true -> Trees5
+        end,
+    Trees6.
+                
 
     
     
@@ -440,7 +428,7 @@ make(Header, Txs0, Trees, Pub) ->
     PrevStateHash = Header#header.trees_hash,
     NTreesHash = trees:root_hash(NewTrees),
 
-    NTreesHash = trees:root_hash2(NewTrees, Roots),
+    %NTreesHash = trees:root_hash2(NewTrees, Roots),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -501,7 +489,22 @@ make_roots(Trees) when (element(1, Trees) == trees4) ->
            sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
            contracts = trie:root_hash(contracts, trees:contracts(Trees)),
             trades = trie:root_hash(trades, trees:trades(Trees)),
-            markets = trie:root_hash(markets, trees:markets(Trees))}.
+            markets = trie:root_hash(markets, trees:markets(Trees))};
+make_roots(Trees) when (element(1, Trees) == trees5) ->
+    #roots5{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
+           channels = trie:root_hash(channels, trees:channels(Trees)),
+           existence = trie:root_hash(existence, trees:existence(Trees)),
+           oracles = trie:root_hash(oracles, trees:oracles(Trees)),
+           governance = trie:root_hash(governance, trees:governance(Trees)),
+	   matched = trie:root_hash(matched, trees:matched(Trees)),
+	   unmatched = trie:root_hash(unmatched, trees:unmatched(Trees)),
+           sub_accounts = trie:root_hash(sub_accounts, trees:sub_accounts(Trees)),
+           contracts = trie:root_hash(contracts, trees:contracts(Trees)),
+            trades = trie:root_hash(trades, trees:trades(Trees)),
+            markets = trie:root_hash(markets, trees:markets(Trees)),
+            receipts = trie:root_hash(receipts, trees:receipts(Trees)),
+            stablecoins = trie:root_hash(stablecoins, trees:stablecoins(Trees))}.
+
 
 roots_hash(X) when is_record(X, roots) ->%
     A = X#roots.accounts,%
@@ -547,7 +550,24 @@ roots_hash(X) when is_record(X, roots4) ->
     Tra = X#roots4.trades,
     Markets = X#roots4.markets,
     Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary, Markets/binary>>,
+    hash:doit(Y);
+roots_hash(X) when is_record(X, roots5) ->
+    A = X#roots5.accounts,
+    C = X#roots5.channels,
+    E = X#roots5.existence,
+    O = X#roots5.oracles,
+    G = X#roots5.governance,
+    M = X#roots5.matched,
+    U = X#roots5.unmatched,
+    SA = X#roots5.sub_accounts,
+    Con = X#roots5.contracts,
+    Tra = X#roots5.trades,
+    Markets = X#roots5.markets,
+    Receipts = X#roots5.receipts,
+    Stablecoins = X#roots5.stablecoins,
+    Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary, Markets/binary, Receipts/binary, Stablecoins/binary>>,
     hash:doit(Y).
+
     
 guess_number_of_cpu_cores() ->
     case application:get_env(amoveo_core, test_mode) of
@@ -677,7 +697,27 @@ proofs_roots_match([P|T], R) when is_record(R, roots4)->
                trades -> R#roots4.trades;
                markets -> R#roots4.markets
 	   end,
+    proofs_roots_match(T, R);
+proofs_roots_match([P|T], R) when is_record(R, roots5)->
+    Tree = proofs:tree(P),
+    Root = proofs:root(P),
+    Root = case Tree of
+	       accounts -> R#roots5.accounts;
+	       channels -> R#roots5.channels;
+	       existence -> R#roots5.existence;
+	       oracles -> R#roots5.oracles;
+	       governance -> R#roots5.governance;
+	       matched -> R#roots5.matched;
+	       unmatched -> R#roots5.unmatched;
+               sub_accounts -> R#roots5.sub_accounts;
+               contracts -> R#roots5.contracts;
+               trades -> R#roots5.trades;
+               markets -> R#roots5.markets;
+               receipts -> R#roots5.receipts;
+               stablecoins -> R#roots5.markets
+	   end,
     proofs_roots_match(T, R).
+
 
 check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,
@@ -802,7 +842,7 @@ check2(OldBlock, Block) ->
         check3(OldBlock, Block), 
     Height = Block#block.height,
     OldTrees = OldBlock#block.trees,
-    Roots = Block#block.roots,
+    _Roots = Block#block.roots,
     %io:fwrite("block check 5.3\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -835,7 +875,8 @@ check2(OldBlock, Block) ->
     %io:fwrite("pair before death \n"),
     %io:fwrite([NewTrees3, Roots]),
     %io:fwrite("\n"),
-    TreesHash = trees:root_hash2(NewTrees3, Roots),
+    %TreesHash = trees:root_hash2(NewTrees3, Roots),
+    TreesHash = trees:root_hash(NewTrees3),
     {true, Block2}.
 calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
     %json encoded with keys
@@ -1513,9 +1554,12 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
     B + sum_amounts(T, Dict, Old).
 %sum_amounts_helper(_, error, _, _, _) -> 0;
 sum_amounts_helper(_, empty, _, _, _) -> 0;
+sum_amounts_helper(receipts, Acc, Dict, _, _) ->
+    0;
 sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
     0;
 sum_amounts_helper(trades, Acc, Dict, _, _) -> 0;
+sum_amounts_helper(stablecoins, Acc, Dict, _, _) -> 0;
 sum_amounts_helper(markets, M, Dict, _, _) ->
     #market{
               cid1 = CID1,

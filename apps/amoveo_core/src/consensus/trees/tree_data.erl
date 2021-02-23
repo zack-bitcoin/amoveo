@@ -34,13 +34,15 @@ internal(PruneBlock, KeepBlock, F) ->
     TB = TA ++ [matched, unmatched],
     TC = TB ++ [sub_accounts, contracts, trades],
     TD = TC ++ [markets],
+    TE = TD ++ [stablecoins],
     T1 = PruneBlock#block.trees,
     T2 = KeepBlock#block.trees,
     Trees = case element(1, T1) of%
 		trees -> TA;%
 		trees2 -> TB;
                 trees3 -> TC;
-                trees4 -> TD
+                trees4 -> TD;
+                trees5 -> TE
 	    end,%
     _ = 
 	lists:map(fun(T) ->
@@ -98,19 +100,33 @@ internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees) ->%
     GovernanceLeaves = keys2leaves(Gov, governance, Dict3),%
     GT2 = trie:put_batch(GovernanceLeaves, GT, governance),%
     trees:update_governance(Trees7, GT2);%
-    
-internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees2) ->
-    Types = [accounts, oracles, channels, existence, governance, matched, unmatched],
-    Keys = dict:fetch_keys(Dict),
-    idut2(Types, Trees, Dict, Keys);
-internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees3)->
-    Types = [accounts, oracles, channels, existence, governance, matched, unmatched, sub_accounts, contracts, trades],
-    Keys = dict:fetch_keys(Dict),
-    idut2(Types, Trees, Dict, Keys);
-internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees4)->
-    Types = [accounts, oracles, channels, existence, governance, matched, unmatched, sub_accounts, contracts, trades, markets],
+internal_dict_update_trie(Trees, Dict) ->
+    Types2 = [accounts, oracles, channels, existence, governance, matched, unmatched],
+    Types3 = Types2 ++ [sub_accounts, contracts, trades],
+    Types4 = Types3 ++ [markets],
+    Types5 = Types4 ++ [stablecoins],
+    Types = 
+        case element(1, Trees) of
+            trees2 -> Types2;
+            trees3 -> Types3;
+            trees4 -> Types4;
+            trees5 -> Types5
+        end,
     Keys = dict:fetch_keys(Dict),
     idut2(Types, Trees, Dict, Keys).
+    
+%internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees2) ->
+%    Types = [accounts, oracles, channels, existence, governance, matched, unmatched],
+%    Keys = dict:fetch_keys(Dict),
+%    idut2(Types, Trees, Dict, Keys);
+%internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees3)->
+%    Types = [accounts, oracles, channels, existence, governance, matched, unmatched, sub_accounts, contracts, trades],
+%    Keys = dict:fetch_keys(Dict),
+%    idut2(Types, Trees, Dict, Keys);
+%internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees4)->
+%    Types = [accounts, oracles, channels, existence, governance, matched, unmatched, sub_accounts, contracts, trades, markets],
+%    Keys = dict:fetch_keys(Dict),
+%    idut2(Types, Trees, Dict, Keys).
 
 idut2([], Trees, _, _) -> Trees;
 idut2([H|Types], Trees, Dict, Keys) ->
