@@ -67,6 +67,8 @@ doit({sub_accounts, ID}) ->
     {ok, api:tree_common(sub_accounts, ID)};%trees:get(sub_accounts, ID)};
 doit({oracles, ID}) ->
     {ok, api:tree_common(oracles, ID)};%trees:get(sub_accounts, ID)};
+doit({trades, ID}) ->
+    {ok, api:tree_common(trades, ID)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({version}) -> {ok, version:doit(block:height())};
@@ -95,6 +97,8 @@ doit({give_block, Block}) -> %block can also be a list of blocks.
     {ok, R2};
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
+doit({block, 2, H}) ->
+    {ok, block:get_by_hash(H)};
 doit({blocks, Many, N}) -> 
     %true = Many < 60,
     %X = block_reader:doit(Many, N),

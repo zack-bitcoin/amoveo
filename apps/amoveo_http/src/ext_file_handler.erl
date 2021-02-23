@@ -161,11 +161,26 @@ handle(Req, State) ->
             <<"/create_binary_tab_builder.js">> -> true;
             <<"/create_scalar_tab_builder.js">> -> true;
             <<"/create_futarchy_tab_builder.js">> -> true;
+            <<"/crosschain_tab_builder.js">> -> true;
             <<"/tabs.js">> -> true;
             <<"/contract_explorer.js">> -> true;
             <<"/contract_explorer.html">> -> true;
             <<"/market_explorer.js">> -> true;
             <<"/market_explorer.html">> -> true;
+            <<"/account_explorer.js">> -> true;
+            <<"/account_explorer.html">> -> true;
+            <<"/tx_explorer.js">> -> true;
+            <<"/tx_explorer.html">> -> true;
+            <<"/oracle_explorer.js">> -> true;
+            <<"/oracle_explorer.html">> -> true;
+            <<"/oracles_by_stake_explorer.js">> -> true;
+            <<"/oracles_by_stake.html">> -> true;
+            <<"/recent_oracles.html">> -> true;
+            <<"/recent_oracle_explorer.js">> -> true;
+            <<"/offer_explorer.html">> -> true;
+            <<"/offer_explorer.js">> -> true;
+            <<"/block_explorer.html">> -> true;
+            <<"/block_explorer.js">> -> true;
             X -> 
                 io:fwrite("ext file handler unknown page: "),
                 io:fwrite(X),

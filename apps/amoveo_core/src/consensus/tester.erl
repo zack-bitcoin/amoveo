@@ -16,8 +16,11 @@ test_helper([A|B]) ->
 test1() ->
     %timer:sleep(2000),
     S = success,
-    Tests = [tree_test, proofs, secrets, db, signing, packer, block_hashes, block, spk, existence, %order_book, 
-proofs, test_txs], %, lisp_market2, lisp_scalar], %headers, keys],
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    Tests = [secrets, db, signing, packer, tree_test, block_hashes, block, spk, test_txs, existence, %order_book, 
+proofs], %, lisp_market2, lisp_scalar], %headers, keys],
     S = test_helper(Tests).
 
     

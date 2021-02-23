@@ -7,7 +7,7 @@
          aid/1,%
          verify_proof/4,%
          serialize/1, deserialize/1, all/1,%
-         dict_significant_volume/3, dict_match/4,%
+         dict_significant_volume/4, dict_match/4,%
          dict_write/3, dict_get/2, dict_get/3, dict_head_get/2,%
          dict_add/3, dict_remove/3, make_leaf/3,%
          key_to_int/1, write/2, delete/2,%
@@ -18,7 +18,7 @@
 -define(Null, 0).%
 -define(Header, 1).%
 -record(orders, {aid, amount, pointer}).%
-dict_significant_volume(Dict, OID, OIL) ->%
+dict_significant_volume(Dict, OID, OIL, _) ->%
     ManyOrders = dict_many(Dict, OID),%
         if %
             ManyOrders == 0 ->%

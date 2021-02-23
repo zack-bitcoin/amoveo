@@ -60,6 +60,9 @@ get(42) -> common(133400, test_height());%soft fork to prevent markets from havi
 get(43) -> common(136300, test_height());%undo #41
 get(44) -> common(149729, %forks:get(35)+1);%swap_tx2, turn off channel tx types
                   test_height()+1);
+get(45) -> common(152000, test_height());%trade cancel tx, ability to cancel trades that have not yet been partially matched
+get(46) -> common(154000, test_height());%fix an oracle bug that sometimes caused the oracle to return 'bad question' incorrectly.
+get(47) -> common(154100, test_height());%contract evidence tx and oracle new tx should charge fees based on the number of bytes.
 get(48) -> common(99999149729, %swap receipts hard update
                   test_height()+1);
 %get(49) -> common(99999149729, %perpetual stablecoin hard update.

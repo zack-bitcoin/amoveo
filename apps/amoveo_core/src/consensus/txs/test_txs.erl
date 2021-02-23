@@ -27,6 +27,7 @@ contracts() ->
     %S = test(54),%market_liquitity_tx, none left to withdraw test.
     S = test(55),%swap_tx2 and trade_cancel_tx tests
     S = test(56),%swap_tx2 without partial matching.
+    S = test(57),%trade_cancel_tx when the trade id doesn't yet exist.
 
     S.
     
@@ -494,7 +495,6 @@ test(11) ->
     io:fwrite("test 11 2\n"),
 
 
-
     Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
     OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
@@ -502,13 +502,16 @@ test(11) ->
     1 = many_txs(),
     potential_block:new(),
     mine_blocks(5),
+    true = 3 == (trees:get(oracles, OID))#oracle.type,
     io:fwrite("test 11 3\n"),
     %make some bets in the oracle with oracle_bet
-    Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 100000000), 
+    %Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 100000000), 
+    Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 2000000), 
     Stx20 = signing:sign_tx(Tx20, Pub, Priv),
     absorb(Stx20),
     1 = many_txs(),
     mine_blocks(1),
+    true = 2 == (trees:get(oracles, OID))#oracle.type,
     io:fwrite("test 11 4\n"),
 
     OIL = trees:get(governance, oracle_initial_liquidity),
@@ -3039,7 +3042,11 @@ int 0 int 1" >>),
     TID = swap_tx:trade_id_maker(MP, Salt),
     SSO = keys:sign(SO),
     Tx4 = swap_tx2:make_dict(NewPub, SSO, 1, Fee*2),
+    %good
+    %["swap_tx2","BGYtkmMAHPnboJmbZjU0R2YTeuq0ib6Veict4xoJidmXbDqOwkOUG6gcZ82LyaNMsFN84dGDUNRR61/dcfaxOzs=",1,302276,["signed",["swap_offer2","BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=",0,1000,"/ssoJN6X/1R3Suo94kk+csiAAZbNmPk/9oq/VCJW5tc=",1,10000000,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",0,10000000,"zQ/JbDXv+FzJQuv1PMIgFiQFREyWEVetxbMzU5X4CHo=",1,1],"MEUCIQDlDU0aYHxbQjZGBTxW0E+7h4VKl0v2y8IkJjDKt5PnrgIgYDGOnvMZB5rOwyE4KrsnbABV4SLGL4XP97jmBUyPidw=",[-6]],1],
     Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
+    io:fwrite(packer:pack(Stx4)),
+    io:fwrite("/n"),
     SubAcc1 = sub_accounts:make_key(MP, CID, 1),
     SubAcc2 = sub_accounts:make_key(NewPub, CID, 1),
 
@@ -3061,6 +3068,83 @@ int 0 int 1" >>),
 
     success;
 test(57) ->
+    io:fwrite("test trade_cancel_tx when the trade id doesn't yet exist\n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    MP = constants:master_pub(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+
+    Nonce0 = 3500,
+    Fee = constants:initial_fee() + 20,
+    Salt = <<0:256>>,
+    Tx = trade_cancel_tx:make_dict(
+           MP, Nonce0, Fee, Salt),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    success;
+test(58) ->
+    io:fwrite("test the hard update 46. It fixed the problem where if the oracle has exactly 2 unmatched orders, it would incorrectly resolve as 'bad question'\n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(1),
+    MP = constants:master_pub(),
+    BP = block:get_by_height(0),
+    PH = block:hash(BP),
+    Fee = constants:initial_fee() + 20,
+    {Pub,Priv} = signing:new_key(),
+    Tx1 = create_account_tx:make_dict(Pub, 100000000, Fee, MP),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Question = <<>>,
+    Tx2 = oracle_new_tx:make_dict(Pub, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    OID = oracle_new_tx:id(Tx2),
+    Stx2 = signing:sign_tx(Tx2, Pub, Priv),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    Tx3 = oracle_bet_tx:make_dict(Pub, Fee, OID, 1, 2100000), 
+    Stx3 = signing:sign_tx(Tx3, Pub, Priv),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    Tx4 = oracle_bet_tx:make_dict(MP, Fee, OID, 2, 2000000), 
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    Tx5 = oracle_bet_tx:make_dict(MP, Fee, OID, 1, 5000000), 
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    Tx6 = oracle_close_tx:make_dict(MP ,Fee, OID),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    mine_blocks(5),
+    Oracle = trees:get(oracles, OID),
+    1 = Oracle#oracle.type,
+    1 = Oracle#oracle.result,
+    success;
+test(59) ->
     io:fwrite("test stablecoin_new_tx\n"),
     headers:dump(),
     block:initialize_chain(),
@@ -3148,7 +3232,7 @@ int 0 int 1" >>),
                volume = 0
              } = trees:get(contracts, CID),
     success;
-test(58) ->
+test(60) ->
     io:fwrite("test stablecoin_new_tx in a multi-tx"),
     headers:dump(),
     block:initialize_chain(),
@@ -3162,7 +3246,7 @@ test(58) ->
     %make the tx.
 
     success;
-test(59) ->
+test(61) ->
     %stablecoin timelimit auction
     %create the stablecoin
     %buy stablecoins
@@ -3195,7 +3279,7 @@ test(59) ->
     %check that the winning bid account received long-veo2 + finite1
     %check that the stablecoins are still spendable.
     sucess;
-test(59) ->
+test(62) ->
     %stablecoin undercollateralization auction
     %create the stablecoin
     %buy stablecoins
@@ -3229,7 +3313,6 @@ test(59) ->
     %check that the stablecoins are still spendable.
     sucess;
    
-
 
 
 test(empty) ->

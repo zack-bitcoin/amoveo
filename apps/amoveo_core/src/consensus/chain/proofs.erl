@@ -650,6 +650,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {trades, TradeID}] ++
                 F1 ++ F2 ++ U ++ U2;
             swap_tx2 ->
+
                 #swap_tx2{
               from = Acc2,
               offer = SOffer,

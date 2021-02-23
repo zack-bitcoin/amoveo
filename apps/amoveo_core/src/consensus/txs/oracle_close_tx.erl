@@ -50,7 +50,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 	      F10  -> unmatched;
 	      true -> orders%
 	  end,%
-    VolumeCheck = UMT:dict_significant_volume(Dict2, OID, OIL),
+    VolumeCheck = UMT:dict_significant_volume(Dict2, OID, OIL, NewHeight),
     Result = if
 		 VolumeCheck -> Oracle#oracle.type;
 		 true -> 3

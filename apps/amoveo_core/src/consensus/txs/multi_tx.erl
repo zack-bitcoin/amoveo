@@ -302,6 +302,7 @@ give_sub(From, CID, Type, Amount, Dict) ->
     %F = sub_accounts:dict_update(Key, Dict, Amount, none),
     sub_accounts:dict_write(SA2, Dict).
     
+
 many_list(_, N) when N<1 -> [];
 many_list(X, N) -> 
     [X|many_list(X, N-1)].
