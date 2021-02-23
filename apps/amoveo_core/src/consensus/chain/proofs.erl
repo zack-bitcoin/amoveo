@@ -690,9 +690,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                               {sub_accounts,
                                sub_accounts:make_key(Acc2, CID2, Type2)}]
                      end,
-                F45 = forks:get(45),
+                F48 = forks:get(48),
                 R = if
-                        (Parts > 1) or (Height < F45) -> [];
+                        (Parts > 1) or (Height < F48) -> [];
                         true ->
                             Receipt = receipts:new(TradeID, Acc2),
                             RID = receipts:id(Receipt),

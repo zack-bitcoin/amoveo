@@ -103,9 +103,9 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
               CID2, Type2, Dict4),
     %io:fwrite(packer:pack(trees:get(accounts, Acc2))),
     %io:fwrite("\n"),
-    F45 = forks:get(45),
+    F48 = forks:get(48),
     if 
-        (Parts == 1) and (NewHeight > F45) ->
+        (Parts == 1) and (NewHeight > F48) ->
             R = receipts:new(TID, Acc2),
             empty = receipts:dict_get(receipts:id(R), Dict5),
             receipts:dict_write(R, Dict5);

@@ -46,7 +46,7 @@ make_offer(From, StartLimit, EndLimit,
            }.
 go(Tx, Dict0, NewHeight, _) ->
     true = NewHeight > forks:get(32),
-    true = NewHeight < forks:get(45),
+    true = NewHeight < forks:get(48),
     #swap_tx{
     from = Acc2,
     offer = SNCO,

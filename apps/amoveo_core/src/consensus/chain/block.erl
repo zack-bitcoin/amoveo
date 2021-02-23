@@ -295,7 +295,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     F32 = forks:get(32),
     F35 = forks:get(35),
     F44 = forks:get(44),
-    F45 = forks:get(45),
+    F48 = forks:get(48),
     GN = fun(Name, A) ->
                  governance:new(
                    governance:name2number(Name),
@@ -362,7 +362,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
         end,
     Trees6 = 
         if
-            (HeightCheck == F45) ->
+            (HeightCheck == F48) ->
                 GTF6 = governance_packer(
                         [GD(stablecoin_new_tx)
                         ],

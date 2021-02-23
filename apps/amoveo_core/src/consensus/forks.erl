@@ -60,9 +60,9 @@ get(42) -> common(133400, test_height());%soft fork to prevent markets from havi
 get(43) -> common(136300, test_height());%undo #41
 get(44) -> common(149729, %forks:get(35)+1);%swap_tx2, turn off channel tx types
                   test_height()+1);
-get(45) -> common(99999149729, %swap receipts hard update
+get(48) -> common(99999149729, %swap receipts hard update
                   test_height()+1);
-%get(46) -> common(99999149729, %perpetual stablecoin hard update.
+%get(49) -> common(99999149729, %perpetual stablecoin hard update.
 %                  test_height()+1);
 get(_) -> 99999999999999.
 
