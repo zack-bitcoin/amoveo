@@ -3156,7 +3156,7 @@ test(59) ->
     Fee = constants:initial_fee()*2,
     {Pub,Priv} = signing:new_key(),
     OneVeo = 100000000,
-    Ctx0 = create_account_tx:make_dict(Pub, OneVeo, Fee*5, MP),
+    Ctx0 = create_account_tx:make_dict(Pub, OneVeo*2, Fee*5, MP),
     Stx0 = keys:sign(Ctx0),
     absorb(Stx0),
     1 = many_txs(),
@@ -3171,8 +3171,11 @@ test(59) ->
     %ticker
     %date
     %trade id
-    ReceiptID = hash:doit(0),
-    Settings = <<"int 100 int 5 .\" bitcoin\" .\" 1\" .\" BTC\" .\" Jan 1 2021\" ", (base64:encode(ReceiptID))/binary>>,
+    Salt = crypto:strong_rand_bytes(32),
+    TID = swap_tx:trade_id_maker(MP, Salt),
+    Receipt = receipts:new(TID, Pub, 1),
+    ReceiptID = receipts:id(Receipt),
+    Settings = <<"int 100 int 5 .\" bitcoin\" .\" 1\" .\" BTC\" .\" Jan 1 2021\" int 1 ", (base64:encode(TID))/binary>>,
     PrivDir = "../../../../apps/amoveo_core/priv",
     {ok, CodeStatic} = file:read_file(PrivDir ++ "/buy_veo.fs"),
     ContractBytes = compiler_chalang:doit(CodeStatic),
@@ -3180,9 +3183,9 @@ test(59) ->
     CH = hash:doit(ContractBytes),
     CID = contracts:make_id(CH, 2, <<0:256>>, 0),
     NewTx = contract_new_tx:make_dict(MP, CH, 2, 0),
-    UseTx = contract_use_tx:make_dict(MP, CID, OneVeo, 0, 2, <<0:256>>, 0),
+    %UseTx = contract_use_tx:make_dict(MP, CID, OneVeo, 0, 2, <<0:256>>, 0),
     %SpendTx = sub_spend_tx:make_dict(Pub, OneVeo, 0, CID, 1, MP),
-    Txs = [NewTx, UseTx],
+    Txs = [NewTx],
     Tx2 = multi_tx:make_dict(MP, Txs, Fee*length(Txs)),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
@@ -3190,22 +3193,52 @@ test(59) ->
     mine_blocks(1),
     0 = many_txs(),
 
-    %MP should make the limit order.
-    %Pub should accept the limit order, which creates the swap receipt.
+    SO = swap_tx2:make_offer(
+           MP, 0, 1000, 
+           <<0:256>>, 0, OneVeo, 
+           CID, 1, round(1.1*OneVeo), 
+           1, Fee, Salt),
+    SSO = keys:sign(SO),
+    SwapTx = swap_tx2:make_dict(Pub, SSO, 1, Fee*2),
+    UseTx = contract_use_tx:make_dict(Pub, CID, round(1.1*OneVeo), 0, 2, <<0:256>>, 0),
+    Txs2 = [SwapTx, UseTx],
+    Tx3 = multi_tx:make_dict(Pub, Txs2, Fee*length(Txs2)),
+    Stx3 = signing:sign_tx(Tx3, Pub, Priv),
+    %Pub accepts the limit order, which creates the swap receipt.
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
 
-    %Pub should provide evidence of their bitcoin address, the contract transforms into a new contract.
-    %contract_evidence_tx.
-    %contract_timeout_tx.
+    %Pub provides evidence of their bitcoin address, the contract transforms into a new contract.
+    Sig = sign:sign(<<"bitcoin_address">>, Priv),
+    Evidence = compiler_chalang:doit(<<(base64:encode(Sig))/binary, ".\"bitcoin_address\"">>),
+    Tx4 = contract_evidence_tx:make_dict(Pub, ContractBytes, CID, Evidence, [{receipts, ReceiptID}], Fee),
+    Stx4 = signing:sign_tx(Tx4, Pub, Priv),
+    absorb(Stx4),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Tx5 = contract_timeout_tx:make_dict(Pub, CID, Fee),
+    Stx5 = signing:sign_tx(Tx5, Pub, Priv),
+    absorb(Stx5),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    %generate CID2
+    %generate the oracle text for CID2
 
     %optional: MP converts their shares to the new type. contract_winnings_tx.
 
-    %MP creates an oracle to resolve the contract.
+    %Pub creates an oracle to resolve the contract.
     %oracle resolves.
-    %MP uses the oracle as evidence to resolve the contract. contract_evidence_tx.
-    %MP closes the contract. contract_timeout_tx.
-    %MP withdraws their winnings. contract_winnings_tx.
+    %Pub uses the oracle as evidence to resolve the contract. contract_evidence_tx.
+    %Pub closes the contract. contract_timeout_tx.
+    %Pub withdraws their winnings. contract_winnings_tx.
 
-    %check that MP's balance increased correctly.
+    %check that Pub's balance increased correctly.
 
     %contract simplify tx so Pub can withdraw directly.
     %Pub does contract_winnings_tx directly to veo.

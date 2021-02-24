@@ -120,7 +120,8 @@ macro oracle_id ( question_hash start_height -- oid)
 
 
 ( variables to customize this contract )
-ReceiptID !
+TradeID !
+TradeNonce !
 Date !
 Ticker !
 Amount !
@@ -128,7 +129,8 @@ Blockchain !
 OracleStartHeight !
 ProvideAddressTimeout !
 
-( if they don't provide a bitcoin address in time, then give the veo to type 1. )
+( if they don't provide a bitcoin address in time, )
+( then give the veo to type 1. )
 ProvideAddressTimeout @ height <
 if
     [ maximum , int 0 ]
@@ -141,19 +143,26 @@ then
 Address !
 AddressSig !
 
-( loading the trade receipt from consensus state, because only the person who accepted this swap request can choose the address to receive their cryptocurrency on the other blockchain. )
-car drop
-car swap drop
-car swap drop
-car drop
-int 32 split ReceiptID =2 or_die
-int 65 Acc2 !
-drop
 
-( check that Acc2 signed over Address where they want to receive their BTC or whatever )
+( loading the trade receipt from consensus state, )
+( because only the person who accepted this swap )
+( request can choose the address to receive their )
+( cryptocurrency on the other blockchain. )
+car drop
+car swap drop
+car swap drop
+car drop
+int 32 split TradeID =2 or_die
+int 65 split Acc2 !
+TradeNonce =2 or_die
+
+( check that Acc2 signed over Address where they want )
+( to receive their BTC or whatever )
 AddressSig @ Address @ Acc2 @ verify_sig or_die
 
-( type 1 of first contract pays out to type 1 of second contract. type 2 of first contract pays out to type 2 of second contract )
+( type 1 of first contract pays out to type 1 of second )
+( contract. type 2 of first contract pays out to type 2 )
+( of second contract )
 [ [ max , int 0 ] ,
 [ int 0 , max ] ]
 
