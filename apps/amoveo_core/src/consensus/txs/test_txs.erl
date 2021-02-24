@@ -3171,8 +3171,8 @@ test(59) ->
     %ticker
     %date
     %trade id
-    TradeID = hash:doit(0),
-    Settings = <<"int 100 int 5 .\" bitcoin\" .\" 1\" .\" BTC\" .\" Jan 1 2021\" binary 32 ", (base64:encode(TradeID))/binary>>,
+    ReceiptID = hash:doit(0),
+    Settings = <<"int 100 int 5 .\" bitcoin\" .\" 1\" .\" BTC\" .\" Jan 1 2021\" ", (base64:encode(ReceiptID))/binary>>,
     PrivDir = "../../../../apps/amoveo_core/priv",
     {ok, CodeStatic} = file:read_file(PrivDir ++ "/buy_veo.fs"),
     ContractBytes = compiler_chalang:doit(CodeStatic),

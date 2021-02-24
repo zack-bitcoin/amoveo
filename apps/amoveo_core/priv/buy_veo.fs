@@ -50,10 +50,6 @@ then ;
 macro bin_length ( bin -- length )
   int 0 swap bin_length2 call ;
 
-
-( specify in the oracle that the limit order to accept the contract and the contract evidence to load the bitcoin address, they must both happen in the same multi-tx )
-
-
 macro oracle_builder ( date ticker amount address blockchain -- oracle_text )
     ." The " swap ++
     ." address " swap ++
@@ -65,18 +61,10 @@ macro oracle_builder ( date ticker amount address blockchain -- oracle_text )
 macro oracle_id ( question_hash start_height -- oid)
   int 0 dup ++ ++ swap ++ hash ;
 
-( when the contract is created the creator needs to decide: )
-( 1 how much veo the creator is sending )
-( 2 what currency the creator wants to receive )
-( 3 what blockchain the creator wants to receive it on )
-( 4 how much time the acceptor has to accept this offer )
-( 5 how much time the creator has to send the bitcoin after the offer is accepted )
 
-( 1 4 is decided by the limit order )
-( 2 3 5 is in the oracle )
-
-: part2 
-
+( This is the static part of the second smart contract. )
+: part2
+    
 ( variables to customize this contract )
     Address !
     Date !
@@ -85,47 +73,54 @@ macro oracle_id ( question_hash start_height -- oid)
     Blockchain !
     OracleStartHeight !
 
-( swap Result ! )
-
+( grab the OID from the consensus state. )
     car drop
     car swap drop
     car swap drop
     car drop
     int 32 split
-( grabbed the OID from the consensus state. )
+    OID !
+( get the one-byte result of the oracle, convert to a 4 byte integer)
+    int 1 split swap drop
+    AAAA ++ ( 3 bytes of zeros )
+    OracleResult !
 
     Date @ Ticker @ Amount @ Address @ Blockchain @ 
     oracle_builder hash ( now we have the question hash )
 
-    OracleStartHeight @ oracle_id ( generated OID from oracle question )
+    OracleStartHeight @ oracle_id OID2 ! ( generated OID from oracle question )
 
-    =2 or_die ( checking that the oids match )
+    OID @ OID2 @ =2 or_die ( checking that the oids match )
 
-( get the one-byte result of the oracle)
-    int 1 split swap drop
-( check that it is equal to <<1>>, which is the result for "true". base64:encode <<1>> is AQ== )
-    dup binary 1 AQ== =2
-    if ( result of oracle is "true" )
+    OracleResult @ int 1 =2
+    if ( result of oracle is "true" so the bitcoin arrived in time )
     ( give the money to type 2 )
         [ int 0 , maximum ]
         int 0 int 1000
     else
-        binary 1 Ag== =2
-        if ( result of oracle is "false" )
+        OracleResult @ int 2 =2
+        if ( result of oracle is "false" so the bitcoin did not arrive in time )
     ( give the money to type 1 )
             [ maximum , int 0 ]
             int 0 int 1000
-        else ( oracle unresolved, or "bad question" )
-            fail 
+        else
+            maximum int 2 / half !
+            [ half @ , maximum half @ - ]
+            OracleResult @ int 3 =2
+            if ( bad question )
+                ( split the money 50-50 )
+                int 0 int 1000
+            else ( oracle unresolved )
+                ( keep waiting for the oracle to resolve )
+                maximum int 1
+            then
         then
     then
 ;
 
 
-( verify that the caller is the same person who accepted the swap offer )
-
 ( variables to customize this contract )
-TradeID !
+ReceiptID !
 Date !
 Ticker !
 Amount !
@@ -133,35 +128,34 @@ Blockchain !
 OracleStartHeight !
 ProvideAddressTimeout !
 
+( if they don't provide a bitcoin address in time, then give the veo to type 1. )
 ProvideAddressTimeout @ height <
 if
     [ maximum , int 0 ]
     int 0 int 1000
     return
 else
-    
 then
 
 ( evidence to end this contract )
 Address !
 AddressSig !
 
-
+( loading the trade receipt from consensus state, because only the person who accepted this swap request can choose the address to receive their cryptocurrency on the other blockchain. )
 car drop
 car swap drop
 car swap drop
 car drop
-int 32 split TradeID =2 or_die
+int 32 split ReceiptID =2 or_die
 int 65 Acc2 !
 drop
 
-( check that Acc2 signed over Address )
+( check that Acc2 signed over Address where they want to receive their BTC or whatever )
 AddressSig @ Address @ Acc2 @ verify_sig or_die
 
 ( type 1 of first contract pays out to type 1 of second contract. type 2 of first contract pays out to type 2 of second contract )
 [ [ max , int 0 ] ,
 [ int 0 , max ] ]
-
 
 ( generating the root hash of the second smart contract )
 ( OracleStartHeight Blockchain Amount Ticker Date Address part2 call )
