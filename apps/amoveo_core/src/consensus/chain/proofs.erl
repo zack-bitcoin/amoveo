@@ -664,7 +664,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                               cid2 = CID2,
                               type2 = Type2,
                               salt = Salt,
-                              parts = Parts
+                              parts = Parts,
+                              start_nonce = StartNonce
                            } = Offer,
                 TradeID = swap_tx:trade_id_maker(Acc1, Salt),
                 F2 = case Fee of
@@ -695,7 +696,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 R = if
                         (Parts > 1) or (Height < F48) -> [];
                         true ->
-                            Receipt = receipts:new(TradeID, Acc2),
+                            Receipt = receipts:new(TradeID, Acc2, StartNonce),
                             RID = receipts:id(Receipt),
                             [{receipts, RID}]
                     end,

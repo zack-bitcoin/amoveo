@@ -106,7 +106,7 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
     F48 = forks:get(48),
     if 
         (Parts == 1) and (NewHeight > F48) ->
-            R = receipts:new(TID, Acc2),
+            R = receipts:new(TID, Acc2, StartNonce),
             empty = receipts:dict_get(receipts:id(R), Dict5),
             receipts:dict_write(R, Dict5);
         true ->

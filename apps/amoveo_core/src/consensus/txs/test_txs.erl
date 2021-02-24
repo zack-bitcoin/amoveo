@@ -28,6 +28,8 @@ contracts() ->
     S = test(55),%swap_tx2 and trade_cancel_tx tests
     S = test(56),%swap_tx2 without partial matching.
     S = test(57),%trade_cancel_tx when the trade id doesn't yet exist.
+    S = test(58),%hard update 46 test
+    S = test(59),%make a bid to buy veo
 
     S.
     
@@ -3145,6 +3147,71 @@ test(58) ->
     1 = Oracle#oracle.result,
     success;
 test(59) ->
+    io:fwrite("make a bid to buy veo\n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(1),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {Pub,Priv} = signing:new_key(),
+    OneVeo = 100000000,
+    Ctx0 = create_account_tx:make_dict(Pub, OneVeo, Fee*5, MP),
+    Stx0 = keys:sign(Ctx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    Max = 4294967295,
+
+    %prove_address_timeout 
+    %oracle_start_height
+    %blockchain
+    %amount
+    %ticker
+    %date
+    %trade id
+    TradeID = hash:doit(0),
+    Settings = <<"int 100 int 5 .\" bitcoin\" .\" 1\" .\" BTC\" .\" Jan 1 2021\" binary 32 ", (base64:encode(TradeID))/binary>>,
+    PrivDir = "../../../../apps/amoveo_core/priv",
+    {ok, CodeStatic} = file:read_file(PrivDir ++ "/buy_veo.fs"),
+    ContractBytes = compiler_chalang:doit(CodeStatic),
+    SettingsBytes = compiler_chalang:doit(Settings),
+    CH = hash:doit(ContractBytes),
+    CID = contracts:make_id(CH, 2, <<0:256>>, 0),
+    NewTx = contract_new_tx:make_dict(MP, CH, 2, 0),
+    UseTx = contract_use_tx:make_dict(MP, CID, OneVeo, 0, 2, <<0:256>>, 0),
+    %SpendTx = sub_spend_tx:make_dict(Pub, OneVeo, 0, CID, 1, MP),
+    Txs = [NewTx, UseTx],
+    Tx2 = multi_tx:make_dict(MP, Txs, Fee*length(Txs)),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    %MP should make the limit order.
+    %Pub should accept the limit order, which creates the swap receipt.
+
+    %Pub should provide evidence of their bitcoin address, the contract transforms into a new contract.
+    %contract_evidence_tx.
+    %contract_timeout_tx.
+
+    %optional: MP converts their shares to the new type. contract_winnings_tx.
+
+    %MP creates an oracle to resolve the contract.
+    %oracle resolves.
+    %MP uses the oracle as evidence to resolve the contract. contract_evidence_tx.
+    %MP closes the contract. contract_timeout_tx.
+    %MP withdraws their winnings. contract_winnings_tx.
+
+    %check that MP's balance increased correctly.
+
+    %contract simplify tx so Pub can withdraw directly.
+    %Pub does contract_winnings_tx directly to veo.
+
+    success;
+test(60) ->
     io:fwrite("test stablecoin_new_tx\n"),
     headers:dump(),
     block:initialize_chain(),
@@ -3246,7 +3313,7 @@ test(60) ->
     %make the tx.
 
     success;
-test(61) ->
+test(62) ->
     %stablecoin timelimit auction
     %create the stablecoin
     %buy stablecoins
@@ -3279,7 +3346,7 @@ test(61) ->
     %check that the winning bid account received long-veo2 + finite1
     %check that the stablecoins are still spendable.
     sucess;
-test(62) ->
+test(63) ->
     %stablecoin undercollateralization auction
     %create the stablecoin
     %buy stablecoins

@@ -87,7 +87,7 @@ prove_facts(X, Dict, Height) ->
     compiler_chalang:doit(<<ListSyntax/binary, B/binary>>).
 prove_facts2([], _, _) -> <<"]">>;
 prove_facts2([{Tree, Key}|T], Dict, Height)->
-    ID = tree2id(Tree),
+    ID = tree2id(Tree, Height),
     Data = 
         if
             (element(1, Dict) == dict) ->%Dict is a dict in ram containing info to process this one block.
@@ -129,11 +129,17 @@ prove_facts2([{Tree, Key}|T], Dict, Height)->
 
 
 
-tree2id(accounts) -> 1;
-tree2id(channels) -> 2;
-tree2id(existence) -> 3;
-tree2id(oracles) -> 5;
-tree2id(governance) -> 6.
+tree2id(accounts, _) -> 1;
+tree2id(channels, _) -> 2;
+tree2id(existence, _) -> 3;
+tree2id(oracles, _) -> 5;
+tree2id(governance, _) -> 6;
+tree2id(_, Height) -> 
+    F48_active = forks:get(48) < Height,
+    if
+        F48_active -> 0;
+        true -> 1=2
+    end.
 
 new_ss(Code, Prove) ->
     #ss{code = Code, prove = Prove}.
