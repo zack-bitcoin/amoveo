@@ -3151,7 +3151,7 @@ test(59) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    mine_blocks(1),
+    mine_blocks(2),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
     {Pub,Priv} = signing:new_key(),
@@ -3162,7 +3162,10 @@ test(59) ->
     1 = many_txs(),
     mine_blocks(1),
 
-    Max = 4294967295,
+    Salt = crypto:strong_rand_bytes(32),
+    TID = swap_tx:trade_id_maker(MP, Salt),
+    Receipt = receipts:new(TID, Pub, 1),
+    ReceiptID = receipts:id(Receipt),
 
     %prove_address_timeout 
     %oracle_start_height
@@ -3171,15 +3174,17 @@ test(59) ->
     %ticker
     %date
     %trade id
-    Salt = crypto:strong_rand_bytes(32),
-    TID = swap_tx:trade_id_maker(MP, Salt),
-    Receipt = receipts:new(TID, Pub, 1),
-    ReceiptID = receipts:id(Receipt),
-    Settings = <<"int 100 int 5 .\" bitcoin\" .\" 1\" .\" BTC\" .\" Jan 1 2021\" int 1 ", (base64:encode(TID))/binary>>,
+    ReusableSettings = <<" int4 5 .\" bitcoin\" .\" 1\" .\" BTC\" .\" Jan 1 2021\" ">>,
+    Settings = <<" int 100 ", 
+                 ReusableSettings/binary,
+                 " int 1 binary 32 ", 
+                 (base64:encode(TID))/binary>>,
     PrivDir = "../../../../apps/amoveo_core/priv",
     {ok, CodeStatic} = file:read_file(PrivDir ++ "/buy_veo.fs"),
-    ContractBytes = compiler_chalang:doit(CodeStatic),
+    StaticBytes = compiler_chalang:doit(CodeStatic),
     SettingsBytes = compiler_chalang:doit(Settings),
+    ContractBytes = <<SettingsBytes/binary, StaticBytes/binary>>,
+    %ContractBytes = <<SettingsBytes/binary>>,
     CH = hash:doit(ContractBytes),
     CID = contracts:make_id(CH, 2, <<0:256>>, 0),
     NewTx = contract_new_tx:make_dict(MP, CH, 2, 0),
@@ -3212,15 +3217,29 @@ test(59) ->
 
     %Pub provides evidence of their bitcoin address, the contract transforms into a new contract.
     Sig = sign:sign(<<"bitcoin_address">>, Priv),
-    Evidence = compiler_chalang:doit(<<(base64:encode(Sig))/binary, ".\"bitcoin_address\"">>),
+    Evidence = compiler_chalang:doit(<<" binary ", (integer_to_binary(size(Sig)))/binary, " ", (base64:encode(Sig))/binary, " .\" bitcoin_address\" ">>),
     Tx4 = contract_evidence_tx:make_dict(Pub, ContractBytes, CID, Evidence, [{receipts, ReceiptID}], Fee),
     Stx4 = signing:sign_tx(Tx4, Pub, Priv),
+    io:fwrite("\nabout to run the tx \n"),
     absorb(Stx4),
     1 = many_txs(),
     mine_blocks(1),
     0 = many_txs(),
 
-    Tx5 = contract_timeout_tx:make_dict(Pub, CID, Fee),
+    Full = <<4294967295:32>>,
+    Empty = <<0:32>>,
+    Matrix = %same matrix from inside the forth code.
+        [[Full, Empty],
+         [Empty, Full]],
+    Proofs = contract_evidence_tx:make_proof1(Matrix),
+    Contract2 = <<ReusableSettings/binary,
+                  " .\" bitcoin_address\" binary 32 ",
+                  "3L36HwefyeNOipz+ECGf4gxI1O+Xa1KnV7BNVdNa3TA= call " %this is the contract hash of the static part
+                >>,
+    Contract2Bytes = compiler_chalang:doit(Contract2),
+    CH2 = base64:decode("L1mt2PkRET2qBheQvFGhU6NbqvYU0+xvb9FT90Rx8xs="),%got this hash from inside the chalang contract
+    CH2 = hash:doit(compiler_chalang:doit(Contract2)),
+    Tx5 = contract_timeout_tx:make_dict(Pub, CID, Fee, Proofs, CH2, hd(Matrix)),
     Stx5 = signing:sign_tx(Tx5, Pub, Priv),
     absorb(Stx5),
     1 = many_txs(),

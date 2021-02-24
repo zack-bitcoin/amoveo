@@ -43,6 +43,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             io:fwrite("\n in contract_evidence_tx, contract has an error\n"),
             io:fwrite(Error),
             io:fwrite("\n"),
+            %io:fwrite(packer:pack([Prove, Evidence, ContractBytecode])),
+            %io:fwrite("\n"),
             Dict2;
         Data2 ->
             case chalang:stack(Data2) of
@@ -166,6 +168,9 @@ run(NewHeight, Prove, Evidence, ContractBytecode, Dict2) ->
 
     State = chalang:new_state(NewHeight, 0, 0),
     ProveCode = spk:prove_facts(Prove, Dict2, NewHeight),
+    %io:fwrite("proved facts \n"),
+    %io:fwrite(base64:encode(ProveCode)),
+    %io:fwrite("\n"),
     AllCode = <<Evidence/binary, ProveCode/binary, ContractBytecode/binary>>,
     Data = chalang:data_maker(OpGas, RamGas, Vars, Funs, <<>>, AllCode, State, constants:hash_size(), 2, false),
     chalang:run5(AllCode, Data).

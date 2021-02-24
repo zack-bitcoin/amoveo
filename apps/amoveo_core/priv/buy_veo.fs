@@ -3,20 +3,26 @@ macro [ nil ;
 macro , swap cons ; 
 macro ] swap cons reverse ;
 
-( this is the maximum value representable in chalang. the payout vector that is used to divide up the money from this contract, it's elements need to sum to maximum )
+( this is the maximum value representable in chalang. )
+( the payout vector that is used to divide up the money )
+( from this contract, it's elements need to sum to )
+( maximum )
 macro maximum int 4294967295 ; 
 
-( Se need an empty string to end our recursion )
+( We need an empty string to end our recursion )
 macro empty_string int 4 int 0 split swap drop ; 
 
-( check that a conditional resulted in "true", otherwise the contract should crash. )
+( check that a conditional resulted in "true", )
+( otherwise the contract should crash. )
 macro or_die
 if
 else
     fail
 then ;
 
-macro convert_digit ( converts a one-digit integer into a one byte string representation of that integer )
+( converts a one-digit integer into a one byte )
+( string representation of that integer )
+macro convert_digit
 int 48 + int 3 split drop ; 
 : int_to_string2 ( string int -- string) 
     int 10 ddup / tuck rem 
@@ -29,7 +35,8 @@ int 48 + int 3 split drop ;
         drop recurse call
     then ; 
 macro int_to_string ( int -- string )
-( converts a multi-digit integer into a string representation )
+( converts a multi-digit integer into a string )
+( representation )
 int 0 ==
 if drop drop 
     binary 1 MA== 
@@ -50,7 +57,8 @@ then ;
 macro bin_length ( bin -- length )
   int 0 swap bin_length2 call ;
 
-macro oracle_builder ( date ticker amount address blockchain -- oracle_text )
+macro oracle_builder
+  ( date ticker amount address blockchain -- oracle_text )
     ." The " swap ++
     ." address " swap ++
     ." has received more than or equal to " swap ++
@@ -60,7 +68,6 @@ macro oracle_builder ( date ticker amount address blockchain -- oracle_text )
 
 macro oracle_id ( question_hash start_height -- oid)
   int 0 dup ++ ++ swap ++ hash ;
-
 
 ( This is the static part of the second smart contract. )
 : part2
@@ -80,7 +87,8 @@ macro oracle_id ( question_hash start_height -- oid)
     car drop
     int 32 split
     OID !
-( get the one-byte result of the oracle, convert to a 4 byte integer)
+( get the one-byte result of the oracle, )
+( convert to a 4 byte integer)
     int 1 split swap drop
     AAAA ++ ( 3 bytes of zeros )
     OracleResult !
@@ -88,9 +96,11 @@ macro oracle_id ( question_hash start_height -- oid)
     Date @ Ticker @ Amount @ Address @ Blockchain @ 
     oracle_builder hash ( now we have the question hash )
 
-    OracleStartHeight @ oracle_id OID2 ! ( generated OID from oracle question )
+    ( generate OID from oracle question )
+    OracleStartHeight @ oracle_id OID2 !
 
-    OID @ OID2 @ =2 or_die ( checking that the oids match )
+    ( checking that the oids match )
+    OID @ OID2 @ =2 or_die
 
     OracleResult @ int 1 =2
     if ( result of oracle is "true" so the bitcoin arrived in time )
@@ -129,6 +139,7 @@ Blockchain !
 OracleStartHeight !
 ProvideAddressTimeout !
 
+
 ( if they don't provide a bitcoin address in time, )
 ( then give the veo to type 1. )
 ProvideAddressTimeout @ height <
@@ -140,9 +151,8 @@ else
 then
 
 ( evidence to end this contract )
-Address !
-AddressSig !
-
+swap Address !
+swap AddressSig !
 
 ( loading the trade receipt from consensus state, )
 ( because only the person who accepted this swap )
@@ -152,25 +162,27 @@ car drop
 car swap drop
 car swap drop
 car drop
-int 32 split TradeID =2 or_die
+int 32 split TradeID @ =2 or_die
 int 65 split Acc2 !
-TradeNonce =2 or_die
+TradeNonce @ =2 or_die
 
 ( check that Acc2 signed over Address where they want )
 ( to receive their BTC or whatever )
 AddressSig @ Address @ Acc2 @ verify_sig or_die
 
+
 ( type 1 of first contract pays out to type 1 of second )
 ( contract. type 2 of first contract pays out to type 2 )
 ( of second contract )
-[ [ max , int 0 ] ,
-[ int 0 , max ] ]
+[ [ maximum , int 0 ] ,
+[ int 0 , maximum ] ]
 
 ( generating the root hash of the second smart contract )
 ( OracleStartHeight Blockchain Amount Ticker Date Address part2 call )
-macro int_op AA== ;
-macro bin_op Ag== ;
-macro call_op cQ== ;
+macro int_op binary 1 AA== ;
+macro bin_op binary 1 Ag== ;
+macro call_op binary 1 cQ== ;
+
 int_op OracleStartHeight @ ++
 bin_op ++ Blockchain @ bin_length ++ Blockchain @ ++
 bin_op ++ Amount @ bin_length ++ Amount @ ++
@@ -178,6 +190,9 @@ bin_op ++ Ticker @ bin_length ++ Ticker @ ++
 bin_op ++ Date @ bin_length ++ Date @ ++
 bin_op ++ Address @ bin_length ++ Address @ ++
 bin_op ++ int 32 ++ part2 ++ call_op ++
+( print )
 hash
+
+part2 print print drop 
 
 int 0 int 1000

@@ -34,7 +34,7 @@ internal(PruneBlock, KeepBlock, F) ->
     TB = TA ++ [matched, unmatched],
     TC = TB ++ [sub_accounts, contracts, trades],
     TD = TC ++ [markets],
-    TE = TD ++ [stablecoins],
+    TE = TD ++ [receipts, stablecoins],
     T1 = PruneBlock#block.trees,
     T2 = KeepBlock#block.trees,
     Trees = case element(1, T1) of%
@@ -104,7 +104,7 @@ internal_dict_update_trie(Trees, Dict) ->
     Types2 = [accounts, oracles, channels, existence, governance, matched, unmatched],
     Types3 = Types2 ++ [sub_accounts, contracts, trades],
     Types4 = Types3 ++ [markets],
-    Types5 = Types4 ++ [stablecoins],
+    Types5 = Types4 ++ [receipts, stablecoins],
     Types = 
         case element(1, Trees) of
             trees2 -> Types2;
