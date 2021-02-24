@@ -3174,14 +3174,19 @@ test(59) ->
     %ticker
     %date
     %trade id
-    ReusableSettings = <<" int4 5 .\" bitcoin\" .\" 1\" .\" BTC\" .\" Jan 1 2021\" ">>,
+    OracleStartHeight = 5,
+    ReusableSettings = 
+        <<" int4 ", 
+          (integer_to_binary(OracleStartHeight))/binary, 
+          " .\" bitcoin\" .\" 1\" .\" BTC\" .\" Jan 1 2021\" ">>,
     Settings = <<" int 100 ", 
                  ReusableSettings/binary,
                  " int 1 binary 32 ", 
                  (base64:encode(TID))/binary>>,
     PrivDir = "../../../../apps/amoveo_core/priv",
     {ok, CodeStatic} = file:read_file(PrivDir ++ "/buy_veo.fs"),
-    StaticBytes = compiler_chalang:doit(CodeStatic),
+    {ok, CodeStatic2} = file:read_file(PrivDir ++ "/buy_veo_part2.fs"),
+    StaticBytes = compiler_chalang:doit(<<CodeStatic2/binary, CodeStatic/binary>>),
     SettingsBytes = compiler_chalang:doit(Settings),
     ContractBytes = <<SettingsBytes/binary, StaticBytes/binary>>,
     %ContractBytes = <<SettingsBytes/binary>>,
@@ -3200,8 +3205,8 @@ test(59) ->
 
     SO = swap_tx2:make_offer(
            MP, 0, 1000, 
-           <<0:256>>, 0, OneVeo, 
-           CID, 1, round(1.1*OneVeo), 
+           <<0:256>>, 0, round(OneVeo / 20), 
+           CID, 2, round(OneVeo * 21 / 20), 
            1, Fee, Salt),
     SSO = keys:sign(SO),
     SwapTx = swap_tx2:make_dict(Pub, SSO, 1, Fee*2),
@@ -3216,11 +3221,11 @@ test(59) ->
     0 = many_txs(),
 
     %Pub provides evidence of their bitcoin address, the contract transforms into a new contract.
-    Sig = sign:sign(<<"bitcoin_address">>, Priv),
-    Evidence = compiler_chalang:doit(<<" binary ", (integer_to_binary(size(Sig)))/binary, " ", (base64:encode(Sig))/binary, " .\" bitcoin_address\" ">>),
+    BitcoinAddress = <<"bitcoin_address">>,
+    Sig = sign:sign(BitcoinAddress, Priv),
+    Evidence = compiler_chalang:doit(<<" binary ", (integer_to_binary(size(Sig)))/binary, " ", (base64:encode(Sig))/binary, " .\" ", BitcoinAddress/binary, "\" ">>),
     Tx4 = contract_evidence_tx:make_dict(Pub, ContractBytes, CID, Evidence, [{receipts, ReceiptID}], Fee),
     Stx4 = signing:sign_tx(Tx4, Pub, Priv),
-    io:fwrite("\nabout to run the tx \n"),
     absorb(Stx4),
     1 = many_txs(),
     mine_blocks(1),
@@ -3232,37 +3237,92 @@ test(59) ->
         [[Full, Empty],
          [Empty, Full]],
     Proofs = contract_evidence_tx:make_proof1(Matrix),
+
+    Gas = 100000,
+    HashStatic2 = base64:encode(hd(chalang:stack(chalang:test(compiler_chalang:doit(<<CodeStatic2/binary, " part2 ">>), Gas, Gas, Gas, Gas, [])))), %contract hash of the static part.
+
     Contract2 = <<ReusableSettings/binary,
-                  " .\" bitcoin_address\" binary 32 ",
-                  "3L36HwefyeNOipz+ECGf4gxI1O+Xa1KnV7BNVdNa3TA= call " %this is the contract hash of the static part
+                  " .\" ", BitcoinAddress/binary, "\" binary 32 ",
+                  HashStatic2/binary,
+                  " call "
                 >>,
     Contract2Bytes = compiler_chalang:doit(Contract2),
-    CH2 = base64:decode("L1mt2PkRET2qBheQvFGhU6NbqvYU0+xvb9FT90Rx8xs="),%got this hash from inside the chalang contract
+    %CH2 = base64:decode("L1mt2PkRET2qBheQvFGhU6NbqvYU0+xvb9FT90Rx8xs="),%got this hash from inside the chalang contract
     CH2 = hash:doit(compiler_chalang:doit(Contract2)),
-    Tx5 = contract_timeout_tx:make_dict(Pub, CID, Fee, Proofs, CH2, hd(Matrix)),
-    Stx5 = signing:sign_tx(Tx5, Pub, Priv),
+    Tx5 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, hd(Matrix)),
+    Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     1 = many_txs(),
     mine_blocks(1),
     0 = many_txs(),
 
-    %generate CID2
-    %generate the oracle text for CID2
+    CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
 
-    %optional: MP converts their shares to the new type. contract_winnings_tx.
+    GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Date @ Ticker @ Amount @ Address @ Blockchain @ oracle_builder ">>,
+    %Question = hd(chalang:stack(chalang:test(compiler_chalang:doit(GetOracleCode), Gas, Gas, Gas, Gas, []))),
+    Question = hd(chalang:stack(chalang:test(compiler_chalang:doit(GetOracleCode), Gas, Gas, Gas, Gas, []))),
+    Question = <<"The bitcoin address bitcoin_address has received more than or equal to 1 of BTC before Jan 1 2021">>,%TODO generate this text more automatically.
+    Tx6 = oracle_new_tx:make_dict(MP, Fee, Question, OracleStartHeight, 0, 0), %Fee, question, start, id gov, govamount
+    OID = oracle_new_tx:id(Tx6),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    
+    Tx7 = oracle_bet_tx:make_dict(MP, Fee, OID, 1, 3000000), 
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
 
-    %Pub creates an oracle to resolve the contract.
-    %oracle resolves.
-    %Pub uses the oracle as evidence to resolve the contract. contract_evidence_tx.
-    %Pub closes the contract. contract_timeout_tx.
-    %Pub withdraws their winnings. contract_winnings_tx.
+    Tx8 = oracle_close_tx:make_dict(MP,Fee, OID),%here
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
 
-    %check that Pub's balance increased correctly.
+    Evidence2 = compiler_chalang:doit(CodeStatic2),
 
-    %contract simplify tx so Pub can withdraw directly.
-    %Pub does contract_winnings_tx directly to veo.
+    Tx9 = contract_evidence_tx:make_dict(MP, Contract2Bytes, CID2, Evidence2, [{oracles, OID}], Fee),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
 
+    Tx10 = contract_timeout_tx:make_dict(MP, CID2, Fee),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, [Empty, Full], Fee),
+    Stx11 = keys:sign(Tx11),
+    absorb(Stx11),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Bal1 = element(2, trees:get(accounts, MP)),
+
+    SubAcc1 = sub_accounts:make_key(MP, CID, 2),
+    Tx12 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [Empty, Full]),
+    Stx12 = keys:sign(Tx12),
+    absorb(Stx12),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Bal2 = element(2, trees:get(accounts, MP)),
+
+    true = (Bal2 - Bal1) > ((OneVeo * 0.9) + trees:get(governance, block_reward)),
+    
     success;
+
 test(60) ->
     io:fwrite("test stablecoin_new_tx\n"),
     headers:dump(),
