@@ -1,5 +1,6 @@
 -module(swap_tx2).
--export([go/4, make_offer/11, make_dict/4]).
+-export([go/4, make_offer/11, make_offer/12, 
+         make_dict/4]).
 -include("../../records.hrl").
           
 
@@ -14,6 +15,14 @@ make_offer(From, StartLimit, EndLimit,
            CID2, Type2, Amount2, 
            Parts, Fee1) ->
     Salt = crypto:strong_rand_bytes(32),
+    make_offer(From, StartLimit, EndLimit, 
+               CID1, Type1, Amount1, 
+               CID2, Type2, Amount2, 
+               Parts, Fee1, Salt).
+make_offer(From, StartLimit, EndLimit, 
+           CID1, Type1, Amount1, 
+           CID2, Type2, Amount2, 
+           Parts, Fee1, Salt) ->
     TID = swap_tx:trade_id_maker(From, Salt),
     Trade = trees:get(trades, TID),
     Nonce = case Trade of
@@ -106,7 +115,7 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
     F48 = forks:get(48),
     if 
         (Parts == 1) and (NewHeight > F48) ->
-            R = receipts:new(TID, Acc2),
+            R = receipts:new(TID, Acc2, StartNonce),
             empty = receipts:dict_get(receipts:id(R), Dict5),
             receipts:dict_write(R, Dict5);
         true ->

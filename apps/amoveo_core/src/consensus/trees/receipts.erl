@@ -1,5 +1,5 @@
 -module(receipts).
--export([new/2,
+-export([new/3,
          write/2, get/2, delete/2,
          dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
@@ -9,39 +9,44 @@
 	 test/0]).
 -include("../../records.hrl").
 
--record(receipt, {id, tid, pubkey}).
+-record(receipt, {id, tid, pubkey, nonce}).
 
 tid(R) -> R#receipt.tid.
 pubkey(R) -> R#receipt.pubkey.
 id(R) -> R#receipt.id.
 
-new(T, P) ->
+new(T, P, Nonce) ->
     <<_:256>> = T,
     <<_:520>> = P,
+    true = is_integer(Nonce),
+    HEI = constants:height_bits(),
+    Nonce < math:pow(2, HEI),
     R1 = #receipt{tid = T, 
-                  pubkey = P},
+                  pubkey = P,
+                  nonce = Nonce},
     ID = id_maker(R1),
     R1#receipt{id = ID}.
 id_maker(R) ->
     #receipt{
            tid = T,
-           pubkey = P} = R,
+           pubkey = P,
+          nonce = N} = R,
     HEI = constants:height_bits(),
-    hash:doit(<<T/binary, P/binary>>).
+    hash:doit(<<T/binary, P/binary, N:HEI>>).
 serialize(R) ->
-    #receipt{id = <<ID:256>>,
+    #receipt{
            tid = <<T:256>>,
-           pubkey = <<P:520>>} = R,
+           pubkey = <<P:520>>,
+           nonce = N} = R,
     HEI = constants:height_bits(),
-    <<ID:256,
-      T:256,
-      P:520
+    <<T:256,
+      P:520,
+      N:HEI
     >>.
-deserialize(<<ID:256, T:256, P:520>>) ->
+deserialize(<<T:256, P:520, N0/binary>>) ->
     HEI = constants:height_bits(),
-    #receipt{id = <<ID:256>>,
-             tid = <<T:256>>, 
-             pubkey = <<P:520>>}.
+    <<N:HEI>> = N0,
+    new(<<T:256>>, <<P:520>>,  N).
 
 dict_write(R, Dict) ->
     dict:store({receipts, R#receipt.id},
@@ -83,7 +88,7 @@ all() ->
     trees:all(?MODULE).
 
 test() ->
-    A = new(hash:doit(1), keys:pubkey()),
+    A = new(hash:doit(1), keys:pubkey(), 0),
     A = deserialize(serialize(A)),
     R = trees:empty_tree(receipts),
     NewLoc = write(A, R),

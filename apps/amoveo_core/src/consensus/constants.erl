@@ -108,7 +108,7 @@ market_size() ->
 trade_size() ->
     hash_size() + (height_bits() div 8).
 receipt_size() ->
-    (hash_size() * 2)
+    (hash_size()) + (height_bits() div 8)
         + pubkey_size().
 
 channel_size() ->    
