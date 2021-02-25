@@ -9,9 +9,6 @@ macro ] swap cons reverse ;
 ( maximum )
 macro maximum int 4294967295 ; 
 
-( We need an empty string to end our recursion )
-macro empty_string int 4 int 0 split swap drop ; 
-
 ( check that a conditional resulted in "true", )
 ( otherwise the contract should crash. )
 macro or_die
@@ -19,43 +16,6 @@ macro or_die
   else
       fail
   then ;
-
-( converts a one-digit integer into a one byte )
-( string representation of that integer )
-macro convert_digit
-int 48 + int 3 split drop ; 
-: int_to_string2 ( string int -- string) 
-    int 10 ddup / tuck rem 
-    convert_digit 
-    rot ++ swap 
-    int 0 ==
-    if
-        drop drop
-    else
-        drop recurse call
-    then ; 
-macro int_to_string ( int -- string )
-( converts a multi-digit integer into a string )
-( representation )
-  int 0 ==
-  if drop drop 
-      binary 1 MA== 
-  else drop 
-      empty_string swap int_to_string2 call 
-  then ;
-
-( for measuring the number of bytes in a binary )
-: bin_length2 ( accumulator bin -- length )
-    dup empty_string =2
-    if
-        drop
-    else
-        int 1 split drop
-        swap int 1 + swap
-        recurse call
-    then ;
-macro bin_length ( bin -- length )
-  int 0 swap bin_length2 call ;
 
 macro oracle_builder
   ( date ticker amount address blockchain -- oracle_text )

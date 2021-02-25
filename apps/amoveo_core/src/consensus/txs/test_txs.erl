@@ -3189,12 +3189,9 @@ test(59) ->
     StaticBytes = compiler_chalang:doit(<<CodeStatic2/binary, CodeStatic/binary>>),
     SettingsBytes = compiler_chalang:doit(Settings),
     ContractBytes = <<SettingsBytes/binary, StaticBytes/binary>>,
-    %ContractBytes = <<SettingsBytes/binary>>,
     CH = hash:doit(ContractBytes),
     CID = contracts:make_id(CH, 2, <<0:256>>, 0),
     NewTx = contract_new_tx:make_dict(MP, CH, 2, 0),
-    %UseTx = contract_use_tx:make_dict(MP, CID, OneVeo, 0, 2, <<0:256>>, 0),
-    %SpendTx = sub_spend_tx:make_dict(Pub, OneVeo, 0, CID, 1, MP),
     Txs = [NewTx],
     Tx2 = multi_tx:make_dict(MP, Txs, Fee*length(Txs)),
     Stx2 = keys:sign(Tx2),
@@ -3247,7 +3244,6 @@ test(59) ->
                   " call "
                 >>,
     Contract2Bytes = compiler_chalang:doit(Contract2),
-    %CH2 = base64:decode("L1mt2PkRET2qBheQvFGhU6NbqvYU0+xvb9FT90Rx8xs="),%got this hash from inside the chalang contract
     CH2 = hash:doit(compiler_chalang:doit(Contract2)),
     Tx5 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, hd(Matrix)),
     Stx5 = keys:sign(Tx5),
@@ -3259,9 +3255,8 @@ test(59) ->
     CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
 
     GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Date @ Ticker @ Amount @ Address @ Blockchain @ oracle_builder ">>,
-    %Question = hd(chalang:stack(chalang:test(compiler_chalang:doit(GetOracleCode), Gas, Gas, Gas, Gas, []))),
     Question = hd(chalang:stack(chalang:test(compiler_chalang:doit(GetOracleCode), Gas, Gas, Gas, Gas, []))),
-    Question = <<"The bitcoin address bitcoin_address has received more than or equal to 1 of BTC before Jan 1 2021">>,%TODO generate this text more automatically.
+    Question = <<"The bitcoin address bitcoin_address has received more than or equal to 1 of BTC before Jan 1 2021">>,
     Tx6 = oracle_new_tx:make_dict(MP, Fee, Question, OracleStartHeight, 0, 0), %Fee, question, start, id gov, govamount
     OID = oracle_new_tx:id(Tx6),
     Stx6 = keys:sign(Tx6),
@@ -3277,7 +3272,7 @@ test(59) ->
     mine_blocks(1),
     0 = many_txs(),
 
-    Tx8 = oracle_close_tx:make_dict(MP,Fee, OID),%here
+    Tx8 = oracle_close_tx:make_dict(MP,Fee, OID),
     Stx8 = keys:sign(Tx8),
     absorb(Stx8),
     1 = many_txs(),
@@ -3578,7 +3573,7 @@ mine_blocks(Many) ->
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10000),
-    timer:sleep(10),
+    timer:sleep(20),
     mine_blocks(Many-1).
 
 test24(I) ->

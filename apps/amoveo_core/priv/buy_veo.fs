@@ -1,4 +1,22 @@
 
+( We need an empty string to end our recursion )
+macro empty_string int 4 int 0 split swap drop ;
+
+( for measuring the number of bytes in a binary )
+: bin_length2 ( accumulator bin -- length )
+    dup empty_string =2
+    if
+        drop
+    else
+        int 1 split drop
+        swap int 1 + swap
+        recurse call
+    then ;
+macro bin_length ( bin -- length )
+  int 0 swap bin_length2 call ;
+
+
+
 ( variables to customize this contract )
 TradeID !
 TradeNonce !
