@@ -73,8 +73,9 @@ get(_) -> 99999999999999.
 
 top() -> top(1).
 top(N) ->
+    Limit = forks:get(none),
     case forks:get(N) of
-        none -> N-1;
+        Limit -> N-1;
         _ -> top(N+1)
     end.
             
