@@ -143,7 +143,7 @@ absorb_internal2(SignedTx, PID) ->
                     NewDict2 = accounts:dict_write(MinerAccount2, X2),
                     Facts = proofs:prove(Querys, F#tx_pool.block_trees),
                     Dict = proofs:facts_to_dict(Facts, dict:new()),
-                    NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height),
+                    NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height+1),
                     if
                         NC > 0 -> 
                             io:fwrite("counterfeit error \n"),

@@ -1494,9 +1494,16 @@ no_counterfeit(Old, New, Txs, Height) ->
     %io:fwrite(integer_to_list(BR)),
     %io:fwrite("\n"),
     DR = governance:dict_get_value(developer_reward, Old),
+    DR1 = (BR * DR div 10000),
+    F49 = forks:get(49),
+    DR2 = case Height of
+              F49 -> DR1 + 4958336858 + (50 * 60657);
+            _ -> DR1
+        end,
     %io:fwrite("block reward "),
     %io:fwrite(integer_to_list(BR + (BR * DR div 10000))),
-    BlockReward = BR + (BR * DR div 10000),
+    %BlockReward = BR + (BR * DR div 10000),
+    BlockReward = BR + DR2,
     %io:fwrite("; "),
     CloseOracles = many_close_oracles(Txs, 0),
     %CloseOracles = count(oracle_close, Txs, 0),

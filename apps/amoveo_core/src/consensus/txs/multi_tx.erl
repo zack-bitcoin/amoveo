@@ -89,7 +89,7 @@ contract_new(Tx, From, Dict, NewHeight) ->
            },
     contract_new_tx:go(Tx2, Dict, NewHeight, none).
 stablecoin_new(Tx, From, Dict, NewHeight) ->
-    true = (NewHeight > forks:get(49)),
+    true = (NewHeight > forks:get(50)),
     Tx2 = Tx#stablecoin_new_tx{
             from = From
            },

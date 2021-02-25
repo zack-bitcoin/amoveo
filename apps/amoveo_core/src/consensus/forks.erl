@@ -65,7 +65,9 @@ get(46) -> common(154000, test_height());%fix an oracle bug that sometimes cause
 get(47) -> common(154100, test_height());%contract evidence tx and oracle new tx should charge fees based on the number of bytes.
 get(48) -> common(154400, %swap receipts hard update
                   test_height()+1);
-%get(49) -> common(99999149729, %perpetual stablecoin hard update.
+get(49) -> common(154500, %refund for money trapped in channels
+                  test_height()+1);
+%get(50) -> common(99999149729, %perpetual stablecoin hard update.
 %                  test_height()+1);
 get(_) -> 99999999999999.
 
