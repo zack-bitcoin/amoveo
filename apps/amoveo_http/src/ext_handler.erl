@@ -6,7 +6,6 @@
 %example of talking to this handler:
 %httpc:request(post, {"http://127.0.0.1:3010/", [], "application/octet-stream", "echo"}, [], []).
 %curl -i -d '["test"]' http://localhost:3011
-%curl -i -d echotxt http://localhost:3010
 init(Req0, Opts) ->
     handle(Req0, Opts).	
 handle(Req, State) ->
