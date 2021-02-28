@@ -1,17 +1,35 @@
+( this allows us to use lists. )
+macro [ nil ; 
+macro , swap cons ; 
+macro ] swap cons reverse ;
+
+( this is the maximum value representable in chalang. 
+ the payout vector that is used to divide up the money 
+ from this contract, it's elements need to sum to 
+ maximum )
+macro maximum int 4294967295 ; 
+
+( check that a conditional resulted in "true", )
+( otherwise the contract should crash. )
+macro or_die
+  if
+  else
+    fail
+  then ;
 
 ( We need an empty string to end our recursion )
 macro empty_string int 4 int 0 split swap drop ;
 
 ( for measuring the number of bytes in a binary )
 : bin_length2 ( accumulator bin -- length )
-    dup empty_string =2
-    if
-        drop
-    else
-        int 1 split drop
-        swap int 1 + swap
-        recurse call
-    then ;
+  dup empty_string =2
+  if
+    drop
+  else
+    int 1 split drop
+    swap int 1 + swap
+    recurse call
+  then ;
 macro bin_length ( bin -- length )
   int 0 swap bin_length2 call ;
 
@@ -32,9 +50,9 @@ ProvideAddressTimeout !
 ( then give the veo to type 2. )
 ProvideAddressTimeout @ height <
 if
-    [ int 0, maximum ]
-    int 0 int 1000
-    return
+  [ int 0, maximum ]
+  int 0 int 1000
+  return
 else
 then
 
@@ -81,6 +99,6 @@ bin_op ++ int 32 ++ part2 ++ call_op ++
 ( print )
 hash
 
-( part2 print print drop )
+( part2 print print drop)
 
 int 0 int 1000

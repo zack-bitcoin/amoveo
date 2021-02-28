@@ -3191,9 +3191,21 @@ test(59) ->
     PrivDir = "../../../../apps/amoveo_core/priv",
     {ok, CodeStatic} = file:read_file(PrivDir ++ "/buy_veo.fs"),
     {ok, CodeStatic2} = file:read_file(PrivDir ++ "/buy_veo_part2.fs"),
-    StaticBytes = compiler_chalang:doit(<<CodeStatic2/binary, CodeStatic/binary>>),
+
+    Gas = 100000,
+    HashStatic2 = base64:encode(hd(chalang:stack(chalang:test(compiler_chalang:doit(<<CodeStatic2/binary, " part2 ">>), Gas, Gas, Gas, Gas, [])))), %contract hash of the static part.
+
+    HashStatic2def = 
+          <<" macro part2 binary 32 ", 
+            HashStatic2/binary,
+          " ; ">>,
+
+    StaticBytes = compiler_chalang:doit(<<HashStatic2def/binary, CodeStatic/binary>>),
     SettingsBytes = compiler_chalang:doit(Settings),
     ContractBytes = <<SettingsBytes/binary, StaticBytes/binary>>,
+    io:fwrite("length 1\n"),
+    io:fwrite(integer_to_list(size(ContractBytes))),
+    io:fwrite("\n"),
     CH = hash:doit(ContractBytes),
     CID = contracts:make_id(CH, 2, <<0:256>>, 0),
     NewTx = contract_new_tx:make_dict(MP, CH, 2, 0),
@@ -3226,6 +3238,9 @@ test(59) ->
     BitcoinAddress = <<"bitcoin_address">>,
     Sig = sign:sign(BitcoinAddress, Priv),
     Evidence = compiler_chalang:doit(<<" binary ", (integer_to_binary(size(Sig)))/binary, " ", (base64:encode(Sig))/binary, " .\" ", BitcoinAddress/binary, "\" ">>),
+    io:fwrite("length evidence\n"),
+    io:fwrite(integer_to_list(size(Evidence))),
+    io:fwrite("\n"),
     Tx4 = contract_evidence_tx:make_dict(Pub, ContractBytes, CID, Evidence, [{receipts, ReceiptID}], Fee),
     Stx4 = signing:sign_tx(Tx4, Pub, Priv),
     absorb(Stx4),
@@ -3240,8 +3255,6 @@ test(59) ->
          [Empty, Full]],
     Proofs = contract_evidence_tx:make_proof1(Matrix),
 
-    Gas = 100000,
-    HashStatic2 = base64:encode(hd(chalang:stack(chalang:test(compiler_chalang:doit(<<CodeStatic2/binary, " part2 ">>), Gas, Gas, Gas, Gas, [])))), %contract hash of the static part.
 
     Contract2 = <<ReusableSettings/binary,
                   " .\" ", BitcoinAddress/binary, "\" binary 32 ",
@@ -3249,6 +3262,9 @@ test(59) ->
                   " call "
                 >>,
     Contract2Bytes = compiler_chalang:doit(Contract2),
+    io:fwrite("length 2\n"),
+    io:fwrite(integer_to_list(size(Contract2Bytes))),
+    io:fwrite("\n"),
     CH2 = hash:doit(compiler_chalang:doit(Contract2)),
     Tx5 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, hd(Matrix)),
     Stx5 = keys:sign(Tx5),
@@ -3285,6 +3301,9 @@ test(59) ->
     0 = many_txs(),
 
     Evidence2 = compiler_chalang:doit(CodeStatic2),
+    io:fwrite("length evidence2\n"),
+    io:fwrite(integer_to_list(size(Evidence2))),
+    io:fwrite("\n"),
 
     Tx9 = contract_evidence_tx:make_dict(MP, Contract2Bytes, CID2, Evidence2, [{oracles, OID}], Fee),
     Stx9 = keys:sign(Tx9),
