@@ -20,21 +20,6 @@ macro or_die
 ( We need an empty string to end our recursion )
 macro empty_string int 4 int 0 split swap drop ;
 
-( for measuring the number of bytes in a binary )
-: bin_length2 ( accumulator bin -- length )
-  dup empty_string =2
-  if
-    drop
-  else
-    int 1 split drop
-    swap int 1 + swap
-    recurse call
-  then ;
-macro bin_length ( bin -- length )
-  int 0 swap bin_length2 call ;
-
-
-
 ( variables to customize this contract )
 TradeID !
 TradeNonce !
@@ -84,17 +69,46 @@ AddressSig @ Address @ Acc2 @ verify_sig or_die
 [ int 0 , maximum ] ]
 
 ( generating the root hash of the second smart contract )
-( OracleStartHeight Blockchain Amount Ticker Date Address part2 call )
+( OracleStartHeight Blockchain Amount 
+Ticker Date Address part2 call )
 macro int_op binary 1 AA== ;
 macro bin_op binary 1 Ag== ;
 macro call_op binary 1 cQ== ;
 
+
+( for measuring the number of bytes in a binary )
+def ( bin accumulator -- length )
+  swap
+  dup empty_string =2
+  if
+    drop
+  else
+    int 1 split drop
+    swap int 1 +
+    recurse call
+  then ;
+bin_length_fun !
+macro bin_length ( bin -- length )
+  int 0 bin_length_fun @ call ;
+
+( this anonymous function converts a binary value into
+ chalang code for loading that same binary 
+value into a different chalang VM instance. 
+This is how we write a chalang contract in 
+this contract. )
+def
+  @ >r bin_op r@ bin_length ++ r> ++ ++
+;
+bin_code_fun !
+
+macro bin_code bin_code_fun @ call ;
+
 int_op OracleStartHeight @ ++
-bin_op ++ Blockchain @ bin_length ++ Blockchain @ ++
-bin_op ++ Amount @ bin_length ++ Amount @ ++
-bin_op ++ Ticker @ bin_length ++ Ticker @ ++
-bin_op ++ Date @ bin_length ++ Date @ ++
-bin_op ++ Address @ bin_length ++ Address @ ++
+Blockchain bin_code
+Amount bin_code
+Ticker bin_code
+Date bin_code
+Address bin_code
 bin_op ++ int 32 ++ part2 ++ call_op ++
 ( print )
 hash

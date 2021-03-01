@@ -3206,6 +3206,8 @@ test(59) ->
     io:fwrite("length 1\n"),
     io:fwrite(integer_to_list(size(ContractBytes))),
     io:fwrite("\n"),
+    %io:fwrite(disassembler:doit(ContractBytes)),
+    %io:fwrite("\n"),
     CH = hash:doit(ContractBytes),
     CID = contracts:make_id(CH, 2, <<0:256>>, 0),
     NewTx = contract_new_tx:make_dict(MP, CH, 2, 0),
@@ -3275,7 +3277,8 @@ test(59) ->
 
     CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
 
-    GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Date @ Ticker @ Amount @ Address @ Blockchain @ oracle_builder ">>,
+    %GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Date @ Ticker @ Amount @ Address @ Blockchain @ oracle_builder ">>,
+    GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Blockchain @ Address @ Amount @ Ticker @ Date @ oracle_builder ">>,
     Question = hd(chalang:stack(chalang:test(compiler_chalang:doit(GetOracleCode), Gas, Gas, Gas, Gas, []))),
     Question = <<"The bitcoin address bitcoin_address has received more than or equal to 1 of BTC before Jan 1 2021">>,
     Tx6 = oracle_new_tx:make_dict(MP, Fee, Question, OracleStartHeight, 0, 0), %Fee, question, start, id gov, govamount

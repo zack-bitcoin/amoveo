@@ -18,12 +18,13 @@ macro or_die
   then ;
 
 macro oracle_builder
-  ( date ticker amount address blockchain -- oracle_text )
-  ." The " swap ++ >r
-  ."  address " swap ++ r> swap ++ >r
-  ."  has received more than or equal to " swap ++ r> swap ++ >r
-  ."  of " swap ++ r> swap ++ >r
-  ."  before " swap ++ r> swap ++
+  ( blockchain address amount ticker date -- oracle_text )
+  >r >r >r >r >r
+  ." The " r> ++
+  ."  address " r> ++ ++
+  ."  has received more than or equal to " r> ++ ++
+  ."  of " r> ++ ++
+  ."  before " r> ++ ++
 ;
 
 macro oracle_id ( question_hash start_height -- oid)
@@ -53,7 +54,8 @@ int 0 dup ++ ++ swap ++ hash ;
   binary 3 AAAA swap ++ ( 3 bytes of zeros )
   OracleResult !
   
-  Date @ Ticker @ Amount @ Address @ Blockchain @
+  ( Date @ Ticker @ Amount @ Address @ Blockchain @ )
+  Blockchain @ Address @ Amount @ Ticker @ Date @ 
   oracle_builder hash ( now we have the question hash )
   
   ( generate OID from oracle question )
