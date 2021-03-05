@@ -39,8 +39,9 @@ get(26) -> common(96560, test_height());%so we can cancel channel offers.
 get(27) -> common(102260, test_height());%so oracle_new tx includes all the proofs that it needs.
 get(28) -> common(99999999, 99999999);%unused.
 get(29) -> common(104600, test_height());
-get(30) -> common(108600, test_height());
-get(31) -> common(109900, test_height());
+%year 3 starts
+get(30) -> common(108600, test_height()); %fix nc_accept bug.
+get(31) -> common(109900, test_height()); %remove the check in oracle_new_tx that oracle start height is before the current height. So now we can create oracles sooner.
 get(32) -> common(130300, %subcurrencies
                   test_height()+1);
                   %forks:get(10) + 1);
