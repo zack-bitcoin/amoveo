@@ -41,29 +41,28 @@ get(28) -> common(99999999, 99999999);%unused.
 get(29) -> common(104600, test_height());
 %year 3 starts
 get(30) -> common(108600, test_height()); %fix nc_accept bug.
-get(31) -> common(109900, test_height()); %remove the check in oracle_new_tx that oracle start height is before the current height. So now we can create oracles sooner.
+get(31) -> common(109900, test_height()); %remove the check in oracle_new_tx that oracle start height is before the current height. So now we can create oracles sooner. bug fix
 get(32) -> common(130300, %subcurrencies
                   test_height()+1);
                   %forks:get(10) + 1);
-get(33) -> common(126000, test_height());%enforcing max block size.
+get(33) -> common(126000, test_height());%enforcing max block size. bug fix
 get(34) -> 0;%filler
 get(35) -> common(130700, %automatic market makers.
                   %forks:get(32) + 1);
                   test_height()+1);
-%get(36) -> common(132850, test_height());
-get(36) -> common(132850, 1);%hard update to prevent market_liqudity tx from being re-published.
+get(36) -> common(132850, 1);%hard update to prevent market_liqudity tx from being re-published. bug fix
 get(37) -> common(132860, test_height());%hard update to fix how market_liquidity_tx work with flash loans.
-get(38) -> common(0, test_height());%soft update to prevent market_liquidity_tx being re-published.
-get(39) -> common(133240, test_height());%the database we use while processing blocks, it needs to distinguish between a proof of non-existence, and the non-existence of a proof.
+get(38) -> 0;%unused
+get(39) -> common(133240, test_height());%the database we use while processing blocks, it needs to distinguish between a proof of non-existence, and the non-existence of a proof. bug-fix
 get(40) -> common(133250, test_height());%zero veo fee payments using a flash loan.
-get(41) -> common(133260, test_height());%market_swap_tx dust fix.
-get(42) -> common(133400, test_height());%soft fork to prevent markets from having zero liquidity.
-get(43) -> common(136300, test_height());%undo #41
+get(41) -> common(133260, test_height());%market_swap_tx dust fix. bug_fix
+get(42) -> common(133400, test_height());%soft fork to prevent markets from having zero liquidity. bug fix
+get(43) -> common(136300, test_height());%undo #41 bug_fix
 get(44) -> common(149729, %forks:get(35)+1);%swap_tx2, turn off channel tx types
                   test_height()+1);
 get(45) -> common(152000, test_height());%trade cancel tx, ability to cancel trades that have not yet been partially matched
-get(46) -> common(154000, test_height());%fix an oracle bug that sometimes caused the oracle to return 'bad question' incorrectly.
-get(47) -> common(154100, test_height());%contract evidence tx and oracle new tx should charge fees based on the number of bytes.
+get(46) -> common(154000, test_height());%fix an oracle bug that sometimes caused the oracle to return 'bad question' incorrectly. bug fix
+get(47) -> common(154100, test_height());%contract evidence tx and oracle new tx should charge fees based on the number of bytes. bug fix
 get(48) -> common(154400, %swap receipts hard update
                   test_height()+1);
 get(49) -> common(154500, %refund for money trapped in channels
