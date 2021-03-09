@@ -70,7 +70,9 @@ handle(Req, State) ->
             <<"/bets.js">> -> true;
             <<"/miner.js">> -> true;
             <<"/chalang.js">> -> true;
+            <<"/chalang.html">> -> true;
             <<"/chalang_compiler.js">> -> true;
+            <<"/compiler_interface.js">> -> true;
             <<"/spk.js">> -> true;
             <<"/format.js">> -> true;
             <<"/files.js">> -> true;
