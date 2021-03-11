@@ -3278,7 +3278,8 @@ test(59) ->
     %GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Date @ Ticker @ Amount @ Address @ Blockchain @ oracle_builder ">>,
     GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Blockchain @ Address @ Amount @ Ticker @ Date @ oracle_builder ">>,
     Question = hd(chalang:stack(chalang:test(compiler_chalang:doit(GetOracleCode), Gas, Gas, Gas, Gas, []))),
-    Question = <<"The bitcoin address bitcoin_address has received more than or equal to 1 of BTC before Jan 1 2021">>,
+    Question2 = <<"The bitcoin address bitcoin_address is a valid address for that blockchain and has received more than or equal to 1 of BTC before Jan 1 2021">>,
+    Question = Question2,
     Tx6 = oracle_new_tx:make_dict(MP, Fee, Question, OracleStartHeight, 0, 0), %Fee, question, start, id gov, govamount
     OID = oracle_new_tx:id(Tx6),
     Stx6 = keys:sign(Tx6),
@@ -3576,7 +3577,7 @@ test(61) ->
     %GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Date @ Ticker @ Amount @ Address @ Blockchain @ oracle_builder ">>,
     GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Blockchain @ Address @ Amount @ Ticker @ Date @ oracle_builder ">>,
     Question = hd(chalang:stack(chalang:test(compiler_chalang:doit(GetOracleCode), Gas, Gas, Gas, Gas, []))),
-    Question = <<"The bitcoin address bitcoin_address has received more than or equal to 1 of BTC before Jan 1 2021">>,
+    Question = <<"The bitcoin address bitcoin_address is a valid address for that blockchain, and has received more than or equal to 1 of BTC before Jan 1 2021">>,
     Tx6 = oracle_new_tx:make_dict(MP, Fee, Question, OracleStartHeight, 0, 0), %Fee, question, start, id gov, govamount
     OID = oracle_new_tx:id(Tx6),
     Stx6 = keys:sign(Tx6),
