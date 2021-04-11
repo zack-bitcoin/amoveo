@@ -4,7 +4,7 @@
 	 block_rewards/2,
 	 tx_history/1, tx_history/2, tx_history/3,
 	 address_history/2,address_history/3,address_history/4,
-	 push_txs/0
+	 push_txs/0, key_full_to_light/1
 	]).
 -include("records.hrl").
 
@@ -199,4 +199,26 @@ push_txs() ->
 			    end)
 	      end,
 	      peers:all()).
-		      
+bin_to_hex(<<>>) ->
+    "";
+bin_to_hex(<<X:4, R/bitstring>>) when (X<10) ->
+    integer_to_list(X) ++
+        bin_to_hex(R);
+bin_to_hex(<<10:4, R/bitstring>>) ->
+    "a" ++ bin_to_hex(R);
+bin_to_hex(<<11:4, R/bitstring>>) ->
+    "b" ++ bin_to_hex(R);
+bin_to_hex(<<12:4, R/bitstring>>) ->
+    "c" ++ bin_to_hex(R);
+bin_to_hex(<<13:4, R/bitstring>>) ->
+    "d" ++ bin_to_hex(R);
+bin_to_hex(<<14:4, R/bitstring>>) ->
+    "e" ++ bin_to_hex(R);
+bin_to_hex(<<15:4, R/bitstring>>) ->
+    "f" ++ bin_to_hex(R).
+
+
+
+key_full_to_light(K) ->		      
+    B = base64:decode(K),
+    bin_to_hex(B).
