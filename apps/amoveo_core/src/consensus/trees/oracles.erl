@@ -4,6 +4,7 @@
          dict_get/2, dict_get/3, dict_write/2, dict_write/3, %update dict stuff
 	 meta_get/1, deserialize/1, all/0, 
 	 ready_for_bets/0, ready_to_close/0,
+         close_closable/2,
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]). %common tree stuff
 -define(name, oracles).
 -include("../../records.hrl").
@@ -59,6 +60,27 @@ rtc2([{Text, Oracle}|T]) ->
 	(not (R == 0)) -> rtc2(T);
 	true -> [{Text, Oracle}|rtc2(T)]
     end.
+close_closable(N, Pub) ->
+    RTC = ready_to_close(),
+    RTC2 = 
+        lists:sort(fun({_, Oracle1}, {_, Oracle2}) ->
+                           Oracle1#oracle.starts <
+                               Oracle2#oracle.starts
+                   end, RTC),
+    RTC3 = lists:map(fun({_, X}) -> X end, RTC2),
+    Len = length(RTC2),
+    RTC4 = if
+               Len =< N -> RTC3;
+               true -> 
+                   {A, _} = lists:split(N, RTC3),
+                   A
+           end,
+    Txs = 
+        lists:map(fun(X) -> oracle_close_tx:make_dict(
+                              Pub, 0, element(2, X))
+                  end, RTC4),
+    Fee = 151119,
+    multi_tx:make_dict(Pub, Txs, Fee*(length(Txs)+1)).
     
 ready_for_bets() ->
     A = all(),

@@ -974,10 +974,15 @@ scan_peers(N) ->
 peers_heights() ->
     %lists:map(fun(P) -> {P, talker:talk({height}, P)} end, peers:all()).
     peers_heights:doit().
-    
-    
-		      
 
+close_oracles(N, Pub) ->
+    Tx = oracles:close_closable(N, Pub),
+    Tx.
+close_oracles(N) ->
+    Pub = keys:pubkey(),
+    Tx = close_oracles(N, Pub),
+    Stx = keys:sign(Tx),
+    tx_pool_feeder:absorb(Stx).
 sync_normal() ->
     sync_mode:normal(),
     0.
