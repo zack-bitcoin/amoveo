@@ -67,6 +67,7 @@ get(48) -> common(154400, %swap receipts hard update
                   test_height()+1);
 get(49) -> common(154500, %refund for money trapped in channels
                   test_height()+1);
+get(50) -> common(160900, test_height());%let anyone sign oracle_winnings and oracle_unmatched in a multi-tx.
 %get(50) -> common(99999149729, %perpetual stablecoin hard update.
 %                  test_height()+1);
 get(_) -> 99999999999999.

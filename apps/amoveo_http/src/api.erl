@@ -978,11 +978,28 @@ peers_heights() ->
 close_oracles(N, Pub) ->
     Tx = oracles:close_closable(N, Pub),
     Tx.
-close_oracles(N) ->
+close_oracles(M) ->
+    N = min(M, 40),
     Pub = keys:pubkey(),
     Tx = close_oracles(N, Pub),
     Stx = keys:sign(Tx),
-    tx_pool_feeder:absorb(Stx).
+    tx_pool_feeder:absorb(Stx),
+    timer:sleep(2000),
+    Txs = element(2, tx_pool:get()),
+    B = is_in2(Stx, Txs),
+    if
+        B -> ok;
+        true -> <<"error. Invalid Tx">>
+    end.
+
+is_in2(X, []) -> false;
+is_in2(X, [H|T]) ->
+    HX = hash:doit(X),
+    HH = hash:doit(H),
+    if
+        HX == HH -> true;
+        true -> is_in2(X, T)
+    end.
 sync_normal() ->
     sync_mode:normal(),
     0.

@@ -11,6 +11,7 @@ txs(X) -> X#multi_tx.txs.
 make_dict(From, Txs, Fee) ->
     %replace from and nonce in each sub-tx with a 0.
     Acc = trees:get(accounts, From),
+    H = block:height(),
     Txs2 = zero_accounts_nonces(Txs),
     #multi_tx{from = From, nonce = Acc#acc.nonce + 1, txs = Txs2, fee = Fee}.
 zero_accounts_nonces([]) -> [];
@@ -19,8 +20,8 @@ zero_accounts_nonces([H|T])
         is_record(H, create_acc_tx) or 
         is_record(H, oracle_new) or 
         is_record(H, oracle_bet) or 
-        is_record(H, unmatched) or
-        is_record(H, oracle_winnings) or
+        %is_record(H, unmatched) or
+        %is_record(H, oracle_winnings) or
         is_record(H, oracle_close) or
         is_record(H, sub_spend_tx) or 
         is_record(H, contract_timeout_tx) or
@@ -36,6 +37,15 @@ zero_accounts_nonces([H|T])
     H3 = setelement(3, H2, 0),
     H4 = setelement(4, H3, 0),
     [H4|zero_accounts_nonces(T)];
+    %F50 = forks:get(50),
+zero_accounts_nonces([H|T]) 
+  when (is_record(H, unmatched) or
+        is_record(H, oracle_winnings))
+       ->
+    H3 = setelement(3, H, 0),
+    H4 = setelement(4, H3, 0),
+    [H4|zero_accounts_nonces(T)];
+    
 zero_accounts_nonces([H|T]) 
   when (is_record(H, swap_tx) or
         is_record(H, trade_cancel_tx) or
@@ -77,6 +87,9 @@ sub_txs([H|T], From, Dict, NewHeight) ->
                 trade_cancel_tx -> trade_cancel(H, From, Dict, NewHeight);
                 contract_new_tx -> contract_new(H, From, Dict, NewHeight);
                 stablecoin_new_tx -> stablecoin_new(H, From, Dict, NewHeight);
+                %oracle_unmatched_tx -> oracle_unmatched_tx(H, From, Dict, NewHeight);
+                unmatched -> oracle_unmatched_tx(H, From, Dict, NewHeight);
+                oracle_winnings -> oracle_winnings_tx(H, From, Dict, NewHeight);
                 _ -> 
                     create_spend(Type, H, From, Dict, NewHeight)
             end,
@@ -128,6 +141,31 @@ trade_cancel(Tx, From, Dict, NewHeight) ->
 %            from = From
 %           },
 %    swap_tx2:go(Tx2, Dict, NewHeight, none).
+oracle_unmatched_tx(Tx, From, Dict, NewHeight) ->
+    B = (NewHeight > forks:get(50)),
+    if
+        B -> 
+            0 = element(3, Tx),
+            0 = element(4, Tx),
+            oracle_unmatched_tx:go(Tx, Dict, NewHeight, none);
+        true ->
+            create_spend(oracle_unmatched_tx,
+                         Tx, From, Dict,
+                         NewHeight)
+    end.
+oracle_winnings_tx(Tx, From, Dict, NewHeight) ->
+    B = (NewHeight > forks:get(50)),
+    if
+        B -> 
+            0 = element(3, Tx),
+            0 = element(4, Tx),
+            oracle_winnings_tx:go(Tx, Dict, NewHeight, none);
+        true ->
+            create_spend(oracle_unmatched_tx,
+                         Tx, From, Dict,
+                         NewHeight)
+    end.
+             
 swap(Tx, From, Dict, NewHeight) ->    
     true = (NewHeight > forks:get(32)),
     #swap_tx{

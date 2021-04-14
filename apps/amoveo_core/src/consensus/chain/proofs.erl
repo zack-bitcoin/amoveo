@@ -809,7 +809,14 @@ txs_to_querys_multi(From, Txs0, Trees, Height) ->
     {Queries, Txs} = ttqm2(Txs0, [], []),
     Txs2 = lists:map(
              fun(Tx) -> 
-                     Tx2 = setelement(2, Tx, From),
+                     Type = element(1, Tx),
+                     From1 = element(2, Tx),
+                     Bool = (not(From1 == 0)) and ((Type == unmatched) or (Type == oracle_winnings)),
+                     Tx2 = if
+                               Bool -> Tx;
+                               true ->
+                                   setelement(2, Tx, From)
+                           end,
                      {signed, Tx2, "", ""} end,
              Txs),
     Queries ++ txs_to_querys2(Txs2, Trees, Height).

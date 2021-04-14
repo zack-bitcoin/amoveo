@@ -32,6 +32,7 @@ contracts() ->
     S = test(59),%make a bid to buy veo
     S = test(60),%make a bid to buy veo and the bitcoin deposit address is not provided in time.
     S = test(61),%make a bid to buy veo and the btc is not provided in time.
+    S = test(62),%withdraw someone's money from an oracle for them.
 
     S.
     
@@ -259,7 +260,7 @@ test(5) ->
     absorb(Stx4),
     mine_blocks(1),
     success;
-test(61) -> 
+test(unused) -> 
     %a smart contract that runs out of time or space gas. testing using an infinite loop.
 % look at the result of `trees:get(channels, <<5:256>>).` to see how this changes the channel.
     headers:dump(),
@@ -303,7 +304,6 @@ test(61) ->
     mine_blocks(1),
     io:fwrite("before 3\n"),
     success;
-
 test(6) -> 
     io:fwrite("channel slash tx test \n"),
     headers:dump(),
@@ -515,7 +515,7 @@ test(11) ->
     io:fwrite("test 11 3\n"),
     %make some bets in the oracle with oracle_bet
     %Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 100000000), 
-    Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 2000000), 
+    Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 50000000), 
     Stx20 = signing:sign_tx(Tx20, Pub, Priv),
     absorb(Stx20),
     1 = many_txs(),
@@ -3577,7 +3577,13 @@ test(61) ->
     %GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Date @ Ticker @ Amount @ Address @ Blockchain @ oracle_builder ">>,
     GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Blockchain @ Address @ Amount @ Ticker @ Date @ oracle_builder ">>,
     Question = hd(chalang:stack(chalang:test(compiler_chalang:doit(GetOracleCode), Gas, Gas, Gas, Gas, []))),
-    Question = <<"The bitcoin address bitcoin_address is a valid address for that blockchain, and has received more than or equal to 1 of BTC before Jan 1 2021">>,
+    Question2 = <<"The bitcoin address bitcoin_address is a valid address for that blockchain and has received more than or equal to 1 of BTC before Jan 1 2021">>,
+    io:fwrite("\n"),
+    io:fwrite(Question),
+    io:fwrite("\n"),
+    io:fwrite(Question2),
+    io:fwrite("\n"),
+    Question = Question2,
     Tx6 = oracle_new_tx:make_dict(MP, Fee, Question, OracleStartHeight, 0, 0), %Fee, question, start, id gov, govamount
     OID = oracle_new_tx:id(Tx6),
     Stx6 = keys:sign(Tx6),
@@ -3628,17 +3634,102 @@ test(61) ->
 
     Bal1 = element(2, trees:get(accounts, Pub)),
 
-    SubAcc1 = sub_accounts:make_key(Pub, CID, 2),
-    Tx12 = contract_winnings_tx:make_dict(Pub, SubAcc1, CID, Fee, [Empty, Full]),
+    SubAcc1 = sub_accounts:make_key(Pub, CID, 1),
+    Tx12 = contract_winnings_tx:make_dict(Pub, SubAcc1, CID, Fee, [Full, Empty]),
     Stx12 = signing:sign_tx(Tx12, Pub, Priv),
     absorb(Stx12),
-    1 = many_txs(),
+    1 = many_txs(),%HERE
     mine_blocks(1),
     0 = many_txs(),
 
     Bal2 = element(2, trees:get(accounts, Pub)),
+    true = (Bal2 - Bal1) > ((OneVeo * 0.9)),
 
-    true = (Bal2 - Bal1) > ((OneVeo * 0.9) + trees:get(governance, block_reward)),
+    success;
+test(62) -> 
+    %withdraw someone's money from an oracle for them.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    MP = constants:master_pub(),
+    {Pub,Priv} = signing:new_key(),
+    Fee = constants:initial_fee() + 20,
+    Amount = 1000000000,
+    Ctx = create_account_tx:make_dict(Pub, Amount, Fee, constants:master_pub()),
+    Stx = keys:sign(Ctx),
+    absorb(Stx),
+    %potential_block:save(),
+    mine_blocks(5),
+
+
+    %make 2 oracles. 
+    Question1 = <<>>,
+    Tx1 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question1, block:height() + 1, 0, 0), 
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    Question2 = <<"a">>,
+    Tx2 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question2, block:height() + 1, 0, 0), 
+    OID1 = oracle_new_tx:id(Tx1),
+    OID2 = oracle_new_tx:id(Tx2),
+
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    2 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    %pub should bet in both.
+    BetAmount = 100000000,
+    Tx3 = oracle_bet_tx:make_dict(Pub, Fee, OID1, 1, BetAmount*2), 
+    Stx3 = signing:sign_tx(Tx3, Pub, Priv),
+    absorb(Stx3),
+    1 = many_txs(),
+    Tx4 = oracle_bet_tx:make_dict(Pub, Fee, OID2, 1, BetAmount), 
+    Stx4 = signing:sign_tx(Tx4, Pub, Priv),
+    absorb(Stx4),
+    2 = many_txs(),
+    %MP should bet in other direction in one.
+    Tx5 = oracle_bet_tx:make_dict(MP, Fee, OID1, 2, BetAmount), 
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    3 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    %settle both oracles so Pub wins.
+    Tx6 = oracle_close_tx:make_dict(MP, Fee, OID1),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    Tx7 = oracle_close_tx:make_dict(MP, Fee, OID2),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    2 = many_txs(),
+    mine_blocks(1),
+
+    %MP should withdraw pubs money for them.
+    UnmatchedTx = oracle_unmatched_tx:make_dict(Pub, Fee, OID1),
+    UnmatchedTx2 = oracle_unmatched_tx:make_dict(Pub, Fee, OID2),
+    WinningsTx = oracle_winnings_tx:make_dict(Pub, Fee, OID1),
+    Tx8 = multi_tx:make_dict(MP, [UnmatchedTx, UnmatchedTx2, WinningsTx], Fee*3),
+    %Tx8 = multi_tx:make_dict(MP, [WinningsTx], Fee*2),
+    %Stx8 = signing:sign_tx(WinningsTx, Pub, Priv),
+    io:fwrite(packer:pack(Tx8)),
+    io:fwrite("\n"),
+    Stx8 = keys:sign(Tx8),
+    Acc1 = trees:get(accounts, Pub),
+    absorb(Stx8),
+    Acc2 = trees:get(accounts, Pub),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    %io:fwrite(packer:pack(Acc1#acc.balance)),
+    %io:fwrite("\n"),
+    io:fwrite(packer:pack(Acc2#acc.balance - Acc1#acc.balance)),
+    true = ((BetAmount*4) == (Acc2#acc.balance - Acc1#acc.balance)),
+    io:fwrite("\n"),
+
 
     success;
 
