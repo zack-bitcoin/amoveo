@@ -10,7 +10,11 @@ oracle_id(X) -> X#unmatched.oracle_id.
            
 make_dict(From, Fee, OracleID) ->
     Acc = trees:get(accounts, From),
-    #unmatched{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, oracle_id = OracleID}.
+    if
+        not(is_record(Acc, acc)) -> [];
+        true ->
+            #unmatched{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, oracle_id = OracleID}
+    end.
     
 make(From, Fee, OracleID, Trees) ->
     Accounts = trees:accounts(Trees),

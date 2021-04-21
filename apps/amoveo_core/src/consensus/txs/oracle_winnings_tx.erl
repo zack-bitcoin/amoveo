@@ -9,7 +9,11 @@ from(X) -> X#oracle_winnings.from.
 oracle_id(X) -> X#oracle_winnings.oracle_id.
 make_dict(From, Fee, OID) ->
     Acc = trees:get(accounts, From),
-    #oracle_winnings{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, oracle_id = OID}.
+    if
+        not(is_record(Acc, acc)) -> [];
+        true ->
+            #oracle_winnings{from = From, nonce = Acc#acc.nonce + 1, fee = Fee, oracle_id = OID}
+    end.
     
 make(From, Fee, OID, Trees) ->
     Accounts = trees:accounts(Trees),

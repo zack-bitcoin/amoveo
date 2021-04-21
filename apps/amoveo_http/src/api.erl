@@ -991,6 +991,91 @@ close_oracles(M) ->
         B -> ok;
         true -> <<"error. Invalid Tx">>
     end.
+first(N, L) ->
+    %first N elements of list L.
+    Len = length(L),
+    if
+        Len =< N -> L;
+        true ->
+            {A, _} = lists:split(N, L),
+            A
+    end.
+withdraw_from_oracles(M, Pub) ->
+    N = min(M div 2, 20),
+    %grab up to N unmatched, and N winnings
+    Trees = (tx_pool:get())#tx_pool.block_trees,
+    Unmatched = trees:unmatched(Trees),
+    Winnings = trees:matched(Trees),
+    AllU = trie:get_all(Unmatched, unmatched),
+    AllU02 = 
+        lists:map(
+          fun(Leaf) ->
+                  unmatched:deserialize(
+                    leaf:value(Leaf))
+          end, AllU),
+                  
+%TODO, only include if the amount is bigger than 0
+    %-record(unmatched, {account, oracle, amount, pointer}).
+    AllW = trie:get_all(Winnings, matched),
+    AllW02 = 
+        lists:map(
+          fun(Leaf) ->
+                  matched:deserialize(
+                    leaf:value(Leaf))
+          end, AllW),
+%TODO only include if they bet on the winning result
+%-record(matched, {account, oracle, true, false, bad}).
+    AllU2 = lists:map(
+              fun(U) -> %{U#unmatched.account,
+                        % U#unmatched.oracle}
+                      {element(2, U),
+                       element(3, U)}
+              end, AllU02),
+    AllW2 = lists:map(
+              fun(U) -> 
+                      {U#matched.account,
+                       U#matched.oracle}
+              end, AllW02),
+                              
+    Fee = 0,
+    TxU = lists:map(
+            fun({Pub, OID}) -> 
+                    oracle_unmatched_tx:make_dict(
+                      Pub, Fee, OID)
+            end, AllU2),
+    TxW = lists:map(
+            fun({Pub, OID}) -> 
+                    oracle_winnings_tx:make_dict(
+                      Pub, Fee, OID)
+            end, AllW2),
+    TxU2 = lists:filter(
+             fun(L) -> not(L == []) end,
+            TxU),
+    TxW2 = lists:filter(
+             fun(L) -> not(L == []) end,
+            TxW),
+    TxU3 = first(N, TxU2),
+    TxW3 = first(N, TxW2),
+    Txs = TxU3 ++ TxW3,
+    Txs.
+withdraw_from_oracles(M) ->
+    Pub = keys:pubkey(),
+    Txs = withdraw_from_oracles(M, Pub),
+    io:fwrite("withdraw from oracle txs \n"),
+    io:fwrite(packer:pack(Txs)),
+    io:fwrite("\n"),
+    Fee2 = 151118,
+    Tx = multi_tx:make_dict(Pub, Txs, 1 + (Fee2*(length(Txs)))),
+    Stx = keys:sign(Tx),
+    tx_pool_feeder:absorb(Stx),
+    timer:sleep(2000),
+    Txs = element(2, tx_pool:get()),
+    B = is_in2(Stx, Txs),
+    if
+        B -> ok;
+        true -> <<"error. Invalid Tx">>
+    end.
+
 
 is_in2(X, []) -> false;
 is_in2(X, [H|T]) ->
