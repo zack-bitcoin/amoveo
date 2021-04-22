@@ -1023,8 +1023,25 @@ withdraw_from_oracles(M, Pub) ->
                   matched:deserialize(
                     leaf:value(Leaf))
           end, AllW),
-%TODO only include if they bet on the winning result
+    AllW03 = 
+        lists:filter(
+          fun(M) ->
+%TODO only include if they bet enough on the winning result
 %-record(matched, {account, oracle, true, false, bad}).
+                  OID = M#matched.oracle,
+                  Oracle = trees:get(oracles, OID),
+    %Oracle = oracles:dict_get(OracleID, Dict, NewHeight),
+                  Result = Oracle#oracle.result,
+                  Minimum = 1000000,
+                  Amount = 
+                      case Result of
+                          1 -> M#matched.true;
+                          2 -> M#matched.false;
+                          3 -> M#matched.bad
+                      end,
+                  Amount > Minimum
+          end, AllW02),
+
     AllU2 = lists:map(
               fun(U) -> %{U#unmatched.account,
                         % U#unmatched.oracle}
@@ -1035,7 +1052,7 @@ withdraw_from_oracles(M, Pub) ->
               fun(U) -> 
                       {U#matched.account,
                        U#matched.oracle}
-              end, AllW02),
+              end, AllW03),
                               
     Fee = 0,
     TxU = lists:map(
