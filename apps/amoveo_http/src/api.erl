@@ -1001,7 +1001,7 @@ first(N, L) ->
             A
     end.
 withdraw_from_oracles(M, Pub) ->
-    N = min(M div 2, 20),
+    N = max(1, min(M div 2, 20)),
     %grab up to N unmatched, and N winnings
     Trees = (tx_pool:get())#tx_pool.block_trees,
     Unmatched = trees:unmatched(Trees),
@@ -1057,15 +1057,14 @@ withdraw_from_oracles(M, Pub) ->
     TxU3 = first(N, TxU2),
     TxW3 = first(N, TxW2),
     Txs = TxU3 ++ TxW3,
-    Txs.
-withdraw_from_oracles(M) ->
-    Pub = keys:pubkey(),
-    Txs = withdraw_from_oracles(M, Pub),
     io:fwrite("withdraw from oracle txs \n"),
     io:fwrite(packer:pack(Txs)),
     io:fwrite("\n"),
     Fee2 = 151118,
-    Tx = multi_tx:make_dict(Pub, Txs, 1 + (Fee2*(length(Txs)))),
+    multi_tx:make_dict(Pub, Txs, (Fee2*(1+length(Txs)))).
+withdraw_from_oracles(M) ->
+    Pub = keys:pubkey(),
+    Tx = withdraw_from_oracles(M, Pub),
     Stx = keys:sign(Tx),
     tx_pool_feeder:absorb(Stx),
     timer:sleep(2000),
