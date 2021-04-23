@@ -1034,9 +1034,6 @@ withdraw_from_oracles(M, Pub) ->
                       OID == EmptyBinary ->
                           false;
                       true ->
-                          io:fwrite("\n"),
-                          io:fwrite(packer:pack(OID)),
-                          io:fwrite("\n"),
                           Oracle = trees:get(oracles, OID),
     %Oracle = oracles:dict_get(OracleID, Dict, NewHeight),
                           Result = Oracle#oracle.result,
@@ -1088,9 +1085,6 @@ withdraw_from_oracles(M, Pub) ->
     TxU3 = first(N, TxU2),
     TxW3 = first(N, TxW2),
     Txs = TxU3 ++ TxW3,
-    io:fwrite("withdraw from oracle txs \n"),
-    io:fwrite(packer:pack(Txs)),
-    io:fwrite("\n"),
     Fee2 = 151118,
     multi_tx:make_dict(Pub, Txs, (Fee2*(1+length(Txs)))).
 withdraw_from_oracles(M) ->
