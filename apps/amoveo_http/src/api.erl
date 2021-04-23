@@ -1001,6 +1001,7 @@ first(N, L) ->
             A
     end.
 withdraw_from_oracles(M, Pub) ->
+    EmptyBinary = <<0:(8*32)>>,
     N = max(1, min(M div 2, 20)),
     %grab up to N unmatched, and N winnings
     Trees = (tx_pool:get())#tx_pool.block_trees,
@@ -1029,17 +1030,25 @@ withdraw_from_oracles(M, Pub) ->
 %TODO only include if they bet enough on the winning result
 %-record(matched, {account, oracle, true, false, bad}).
                   OID = M#matched.oracle,
-                  Oracle = trees:get(oracles, OID),
+                  if 
+                      OID == EmptyBinary ->
+                          false;
+                      true ->
+                          io:fwrite("\n"),
+                          io:fwrite(packer:pack(OID)),
+                          io:fwrite("\n"),
+                          Oracle = trees:get(oracles, OID),
     %Oracle = oracles:dict_get(OracleID, Dict, NewHeight),
-                  Result = Oracle#oracle.result,
-                  Minimum = 1000000,
-                  Amount = 
-                      case Result of
-                          1 -> M#matched.true;
-                          2 -> M#matched.false;
-                          3 -> M#matched.bad
-                      end,
-                  Amount > Minimum
+                          Result = Oracle#oracle.result,
+                          Minimum = 1000000,
+                          Amount = 
+                              case Result of
+                                  1 -> M#matched.true;
+                                  2 -> M#matched.false;
+                                  3 -> M#matched.bad
+                              end,
+                          Amount > Minimum
+                  end
           end, AllW02),
 
     AllU2 = lists:map(
@@ -1048,6 +1057,11 @@ withdraw_from_oracles(M, Pub) ->
                       {element(2, U),
                        element(3, U)}
               end, AllU02),
+    %filter out if .oracle is empty
+    AllU3 = lists:filter(
+              fun({A, OID}) ->
+                      not(OID == EmptyBinary)
+              end, AllU2),
     AllW2 = lists:map(
               fun(U) -> 
                       {U#matched.account,
@@ -1059,7 +1073,7 @@ withdraw_from_oracles(M, Pub) ->
             fun({Pub, OID}) -> 
                     oracle_unmatched_tx:make_dict(
                       Pub, Fee, OID)
-            end, AllU2),
+            end, AllU3),
     TxW = lists:map(
             fun({Pub, OID}) -> 
                     oracle_winnings_tx:make_dict(
