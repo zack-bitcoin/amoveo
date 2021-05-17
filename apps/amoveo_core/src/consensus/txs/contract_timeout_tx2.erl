@@ -1,24 +1,29 @@
--module(contract_timeout_tx).
--export([go/4, make_dict/6, make_dict/3]).
+-module(contract_timeout_tx2).
+-export([go/4, make_dict/7, make_dict/6, make_dict/3]).
 -include("../../records.hrl").
 
 make_dict(From, ContractID, Fee) ->
     make_dict(From, ContractID, Fee, 0, 0, 0).
 make_dict(From, ContractID, Fee, Proof, CH, Row) ->
+    make_dict(From, ContractID, Fee, Proof, CH, Row, 0).
+make_dict(From, ContractID, Fee, Proof, CH, Row, Sink) ->
     A = trees:get(accounts, From),
     Nonce = A#acc.nonce + 1,
-    #contract_timeout_tx{from = From, nonce = Nonce, fee = Fee, contract_id = ContractID, proof = Proof, row = Row, contract_hash = CH}.
+    #contract_timeout_tx2{from = From, nonce = Nonce, fee = Fee, contract_id = ContractID, proof = Proof, row = Row, contract_hash = CH, sink = Sink}.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
-    #contract_timeout_tx{
+    #contract_timeout_tx2{
     from = From,
     nonce = Nonce0,
     fee = Fee,
     contract_id = CID,
     contract_hash = CH2,
     row = Row,
-    proof = Proof
+    proof = Proof,
+    sink = Sink
    } = Tx,
+    F51 = forks:get(51),
+    true = NewHeight > F51,
     Nonce = if
 		NonceCheck -> Nonce0;
 		true -> none
@@ -41,10 +46,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
         Contract#contract{
           closed = 1
          },
-    case CID2 of
-        <<0:256>> ->
+    case {CID2, Sink} of
+        {<<0:256>>, 0} ->
             contracts:dict_write(Contract2, Dict2);
-        _ ->
+        {CID2, Sink} ->
             %move money to another contract
             V = Contract2#contract.volume,
             Contract3 = Contract2#contract{
@@ -66,8 +71,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                         CID2 = contracts:make_id(CH2, RMany, Source, SourceType),%this is to verify that CH2 is correct.
                         contracts:new(CH2, RMany, Source, SourceType)
                 end,
-
-            %TODO, check that this new contract's ID matches "sink" in the transaction.
+            case contracts:make_id(Contract4) of
+                Sink -> ok;
+                CID2 -> ok
+            end,
 
             V2 = Contract4#contract.volume,
             Contract5 = Contract4#contract{

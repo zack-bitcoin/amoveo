@@ -33,6 +33,7 @@ contracts() ->
     S = test(60),%make a bid to buy veo and the bitcoin deposit address is not provided in time.
     S = test(61),%make a bid to buy veo and the btc is not provided in time.
     S = test(62),%withdraw someone's money from an oracle for them.
+    S = test(63),%full contract process in one block.
 
     S.
     
@@ -1105,7 +1106,7 @@ int 0 int 1" >>),
     1 = many_txs(),
     mine_blocks(1),
     %resolve the contract because the delay timer has finished.
-    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee),
+    Tx6 = contract_timeout_tx2:make_dict(MP, CID, Fee),
     %withdrawing from a resolved contract
     SubAcc1 = sub_accounts:make_key(MP, CID, 3),
     Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [<<0:32>>,<<0:32>>,<<-1:32>>]),
@@ -1156,11 +1157,11 @@ int 0 int 1" >>),
     mine_blocks(1),
     
     %resolve the contract because the delay timer has finished.
-    Tx12 = contract_timeout_tx:make_dict(MP, CID2, Fee),
+    Tx12 = contract_timeout_tx2:make_dict(MP, CID2, Fee),
     Stx12 = keys:sign(Tx12),
     absorb(Stx12),
     1 = many_txs(),
-    Tx13 = contract_timeout_tx:make_dict(MP, CID3, Fee),
+    Tx13 = contract_timeout_tx2:make_dict(MP, CID3, Fee),
     Stx13 = keys:sign(Tx13),
     absorb(Stx13),
     2 = many_txs(),
@@ -1236,7 +1237,10 @@ binary 32 ",
 
     Proofs = contract_evidence_tx:make_proof1(Matrix),
 
-    Tx4 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, [Empty, Full]),
+    Tx4 = contract_timeout_tx2:make_dict(MP, CID, Fee, Proofs, CH2, [Empty, Full]),
+    io:fwrite("tx 4\n"),
+    io:fwrite(packer:pack(Tx4)),
+    io:fwrite("\n"),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
@@ -1264,7 +1268,7 @@ binary 32 ",
 
 
     %timeout second
-    Tx9 = contract_timeout_tx:make_dict(MP, CID2, Fee),
+    Tx9 = contract_timeout_tx2:make_dict(MP, CID2, Fee),
 
     %withdraw to veo
     PayoutVector = %same as payout vector defined in Forth.
@@ -1381,14 +1385,14 @@ binary 32 ",
     0 = many_txs(),
 
     Proof = contract_evidence_tx:make_proof1(Matrix),
-    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
+    Tx6 = contract_timeout_tx2:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
     1 = many_txs(),
     mine_blocks(1),
 
     Proof2 = contract_evidence_tx:make_proof1(Matrix2),
-    Tx7 = contract_timeout_tx:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
+    Tx7 = contract_timeout_tx2:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
     1 = many_txs(),
@@ -1409,7 +1413,7 @@ binary 32 ",
     mine_blocks(1),
     0 = many_txs(),
 
-    Tx10 = contract_timeout_tx:make_dict(MP, CID3, Fee),
+    Tx10 = contract_timeout_tx2:make_dict(MP, CID3, Fee),
     Stx10 = keys:sign(Tx10),
     absorb(Stx10),
     1 = many_txs(),
@@ -1568,7 +1572,7 @@ binary 32 ",
     0 = many_txs(),
 
     Proof = contract_evidence_tx:make_proof1(Matrix),
-    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
+    Tx6 = contract_timeout_tx2:make_dict(MP, CID, Fee, Proof, CH2, lists:nth(1, Matrix)),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
     1 = many_txs(),
@@ -1592,7 +1596,7 @@ binary 32 ",
 
 
     Proof2 = contract_evidence_tx:make_proof1(Matrix2),
-    Tx7 = contract_timeout_tx:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
+    Tx7 = contract_timeout_tx2:make_dict(MP, CID2, Fee, Proof2, CH3, lists:nth(1, Matrix2)),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
     1 = many_txs(),
@@ -1655,7 +1659,7 @@ binary 32 ",
     mine_blocks(2),
     0 = many_txs(),
 
-    Tx10 = contract_timeout_tx:make_dict(MP, CID3, Fee),
+    Tx10 = contract_timeout_tx2:make_dict(MP, CID3, Fee),
     Stx10 = keys:sign(Tx10),
     absorb(Stx10),
     1 = many_txs(),
@@ -1705,7 +1709,7 @@ binary 32 ",
     mine_blocks(1),
     0 = many_txs(),
 
-    Tx14 = contract_timeout_tx:make_dict(MP, CID0, Fee),
+    Tx14 = contract_timeout_tx2:make_dict(MP, CID0, Fee),
     Stx14 = keys:sign(Tx14),
     absorb(Stx14),
     1 = many_txs(),
@@ -1856,7 +1860,7 @@ int 0 int 1" >>),
     mine_blocks(1),
     
 
-    Tx4 = contract_timeout_tx:make_dict(MP, NewCID, Fee),
+    Tx4 = contract_timeout_tx2:make_dict(MP, NewCID, Fee),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
@@ -1987,7 +1991,7 @@ binary ", (integer_to_binary(size(Sig1)))/binary, " ",
     mine_blocks(1),
     
 
-    Tx4 = contract_timeout_tx:make_dict(MP, NewCID, Fee),
+    Tx4 = contract_timeout_tx2:make_dict(MP, NewCID, Fee),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
@@ -2219,7 +2223,7 @@ binary 32 ",
 
     
     Proof = contract_evidence_tx:make_proof1(Matrix),
-    Tx4 = contract_timeout_tx:make_dict(MP, ChannelCID, Fee, Proof, BinaryHash, lists:nth(1, Matrix)),
+    Tx4 = contract_timeout_tx2:make_dict(MP, ChannelCID, Fee, Proof, BinaryHash, lists:nth(1, Matrix)),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
@@ -2261,7 +2265,7 @@ binary 32 ",
     1 = many_txs(),
     mine_blocks(1),
 
-    Tx9 = contract_timeout_tx:make_dict(MP, BinaryCID, Fee),
+    Tx9 = contract_timeout_tx2:make_dict(MP, BinaryCID, Fee),
     Stx9 = keys:sign(Tx9),
     absorb(Stx9),
     1 = many_txs(),
@@ -2402,18 +2406,9 @@ test(47) ->
     {ok, ScalarCodeStatic} = file:read_file(PrivDir ++ "/scalar.fs"),
 
     ScalarContractBytes = compiler_chalang:doit(ScalarCodeStatic),
-    io:fwrite("scalar contract bytes \n"),
-    io:fwrite(packer:pack(ScalarContractBytes)),
-    io:fwrite("\n"),
     SettingsBytes = compiler_chalang:doit(Settings),
     ContractBytes = <<SettingsBytes/binary, ScalarContractBytes/binary>>,
     CH = hash:doit(ContractBytes),
-    io:fwrite(packer:pack(size(ContractBytes))),
-    io:fwrite("\n"),
-%    io:fwrite(packer:pack(ContractBytes)),
-%    io:fwrite("\n"),
-%    io:fwrite(packer:pack(vm(ContractBytes))),
-%    io:fwrite("\n"),
 
     CID = contracts:make_id(CH, 2, <<0:256>>, 0),
     
@@ -2459,7 +2454,7 @@ test(47) ->
     1 = many_txs(),
     mine_blocks(1),
   
-    Tx6 = contract_timeout_tx:make_dict(MP, CID, Fee),
+    Tx6 = contract_timeout_tx2:make_dict(MP, CID, Fee),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
     1 = many_txs(),
@@ -3208,6 +3203,9 @@ test(59) ->
     io:fwrite("\n"),
     SettingsBytes = compiler_chalang:doit(Settings),
     ContractBytes = <<SettingsBytes/binary, StaticBytes/binary>>,
+    io:fwrite("contract bytes \n"),
+    io:fwrite(base64:encode(ContractBytes)),
+    io:fwrite("\n"),
     io:fwrite("length 1\n"),
     io:fwrite(integer_to_list(size(ContractBytes))),
     io:fwrite("\n"),
@@ -3230,9 +3228,9 @@ test(59) ->
     Stx3 = signing:sign_tx(Tx3, Pub, Priv),
     %Pub accepts the limit order, which creates the swap receipt.
     absorb(Stx3),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    %1 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     %Pub provides evidence of their bitcoin address, the contract transforms into a new contract.
     BitcoinAddress = <<"bitcoin_address">>,
@@ -3244,9 +3242,12 @@ test(59) ->
     Tx4 = contract_evidence_tx:make_dict(Pub, ContractBytes, CID, Evidence, [{receipts, ReceiptID}], Fee),
     Stx4 = signing:sign_tx(Tx4, Pub, Priv),
     absorb(Stx4),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    io:fwrite("evidence txs \n"),
+    io:fwrite(packer:pack([Tx3, Tx4])),
+    io:fwrite("\n"),
+    2 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     Full = <<4294967295:32>>,
     Empty = <<0:32>>,
@@ -3266,14 +3267,16 @@ test(59) ->
     io:fwrite(integer_to_list(size(Contract2Bytes))),
     io:fwrite("\n"),
     CH2 = hash:doit(Contract2Bytes),
-    Tx5 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, hd(Matrix)),
+
+    CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
+
+    Tx5 = contract_timeout_tx2:make_dict(MP, CID, Fee, Proofs, CH2, hd(Matrix), CID2),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
-    1 = many_txs(),
+    3 = many_txs(),
     mine_blocks(1),
     0 = many_txs(),
 
-    CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
 
     %GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Date @ Ticker @ Amount @ Address @ Blockchain @ oracle_builder ">>,
     GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Blockchain @ Address @ Amount @ Ticker @ Date @ oracle_builder ">>,
@@ -3311,22 +3314,16 @@ test(59) ->
     Stx9 = keys:sign(Tx9),
     absorb(Stx9),
     1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
 
-    Tx10 = contract_timeout_tx:make_dict(MP, CID2, Fee),
+    Tx10 = contract_timeout_tx2:make_dict(MP, CID2, Fee),
     Stx10 = keys:sign(Tx10),
     absorb(Stx10),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    2 = many_txs(),
 
     Tx11 = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, [Empty, Full], Fee),
     Stx11 = keys:sign(Tx11),
     absorb(Stx11),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    3 = many_txs(),
 
     Bal1 = element(2, trees:get(accounts, MP)),
 
@@ -3334,17 +3331,11 @@ test(59) ->
     Tx12 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [Empty, Full]),
     Stx12 = keys:sign(Tx12),
     absorb(Stx12),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    4 = many_txs(),
 
     Bal2 = element(2, trees:get(accounts, MP)),
+    true = (Bal2 - Bal1) > (OneVeo * 0.9),
 
-    true = (Bal2 - Bal1) > ((OneVeo * 0.9) + trees:get(governance, block_reward)),
-
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(contract_evidence_tx:make_proof(1, Matrix))),
-    io:fwrite("\n"),
     success;
 test(60) ->
     io:fwrite("make a bid to buy veo, and they don't provide a deposit address\n"),
@@ -3427,7 +3418,7 @@ test(60) ->
     mine_blocks(1),
     0 = many_txs(),
 
-    Tx5 = contract_timeout_tx:make_dict(MP, CID, Fee),
+    Tx5 = contract_timeout_tx2:make_dict(MP, CID, Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     1 = many_txs(),
@@ -3457,6 +3448,7 @@ test(61) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    timer:sleep(20),
     mine_blocks(2),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -3530,8 +3522,8 @@ test(61) ->
     %Pub accepts the limit order, which creates the swap receipt.
     absorb(Stx3),
     1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     %Pub provides evidence of their bitcoin address, the contract transforms into a new contract.
     BitcoinAddress = <<"bitcoin_address">>,
@@ -3543,9 +3535,9 @@ test(61) ->
     Tx4 = contract_evidence_tx:make_dict(Pub, ContractBytes, CID, Evidence, [{receipts, ReceiptID}], Fee),
     Stx4 = signing:sign_tx(Tx4, Pub, Priv),
     absorb(Stx4),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    2 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     Full = <<4294967295:32>>,
     Empty = <<0:32>>,
@@ -3565,14 +3557,14 @@ test(61) ->
     io:fwrite(integer_to_list(size(Contract2Bytes))),
     io:fwrite("\n"),
     CH2 = hash:doit(Contract2Bytes),
-    Tx5 = contract_timeout_tx:make_dict(MP, CID, Fee, Proofs, CH2, hd(Matrix)),
+    CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
+    Tx5 = contract_timeout_tx2:make_dict(MP, CID, Fee, Proofs, CH2, hd(Matrix), CID2),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
-    1 = many_txs(),
+    3 = many_txs(),
     mine_blocks(1),
     0 = many_txs(),
 
-    CID2 = contracts:make_id(CH2, 2, <<0:256>>, 0),
 
     %GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Date @ Ticker @ Amount @ Address @ Blockchain @ oracle_builder ">>,
     GetOracleCode = <<ReusableSettings/binary, CodeStatic2/binary, " .\" ", BitcoinAddress/binary, "\" Address ! Date ! Ticker ! Amount ! Blockchain ! drop Blockchain @ Address @ Amount @ Ticker @ Date @ oracle_builder ">>,
@@ -3603,8 +3595,8 @@ test(61) ->
     Stx8 = keys:sign(Tx8),
     absorb(Stx8),
     1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     Evidence2 = compiler_chalang:doit(CodeStatic2),
     io:fwrite("length evidence2\n"),
@@ -3614,23 +3606,23 @@ test(61) ->
     Tx9 = contract_evidence_tx:make_dict(Pub, Contract2Bytes, CID2, Evidence2, [{oracles, OID}], Fee),
     Stx9 = signing:sign_tx(Tx9, Pub, Priv),
     absorb(Stx9),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    2 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
-    Tx10 = contract_timeout_tx:make_dict(Pub, CID2, Fee),
+    Tx10 = contract_timeout_tx2:make_dict(Pub, CID2, Fee),
     Stx10 = signing:sign_tx(Tx10, Pub, Priv),
     absorb(Stx10),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    3 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     Tx11 = contract_simplify_tx:make_dict(Pub, CID, CID2, 0, Matrix, [Full, Empty], Fee),
     Stx11 = signing:sign_tx(Tx11, Pub, Priv),
     absorb(Stx11),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    4 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     Bal1 = element(2, trees:get(accounts, Pub)),
 
@@ -3638,9 +3630,9 @@ test(61) ->
     Tx12 = contract_winnings_tx:make_dict(Pub, SubAcc1, CID, Fee, [Full, Empty]),
     Stx12 = signing:sign_tx(Tx12, Pub, Priv),
     absorb(Stx12),
-    1 = many_txs(),%HERE
-    mine_blocks(1),
-    0 = many_txs(),
+    5 = many_txs(),%HERE
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     Bal2 = element(2, trees:get(accounts, Pub)),
     true = (Bal2 - Bal1) > ((OneVeo * 0.9)),
@@ -3730,10 +3722,112 @@ test(62) ->
     true = ((BetAmount*4) == (Acc2#acc.balance - Acc1#acc.balance)),
     io:fwrite("\n"),
 
+    success;
+test(63) ->
+    io:fwrite("test 63\n"),
+    io:fwrite("test that we can create a contract, give it evidence, finalize it, simplify it, and withdraw winnings, all in the same block. also in the same flash loan.\n"),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*2,
+    {Pub,Priv} = signing:new_key(),
+    OneVeo = 100000000,
+    Ctx0 = create_account_tx:make_dict(Pub, OneVeo*2, Fee*5, MP),
+    Stx0 = keys:sign(Ctx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    mine_blocks(1),
 
+    Salt = crypto:strong_rand_bytes(32),
+    TID = swap_tx:trade_id_maker(MP, Salt),
+    Receipt = receipts:new(TID, Pub, 1),
+    ReceiptID = receipts:id(Receipt),
+
+    Gas = 100000,
+    Code2 = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ int 0, int 4294967295 ] \
+ int 0 int 1">>),
+    CH2 = hash:doit(Code2),
+    ContractBytes = compiler_chalang:doit(
+             <<"macro [ nil ;\
+macro , swap cons ;\
+macro ] swap cons reverse ;\
+[ [ int 4294967295 , int 0 ] ,\
+  [ int 0 , int 4294967295 ] ]\
+binary 32 ",
+               (base64:encode(CH2))/binary, 
+" int 0 int 1">>),
+    CH = hash:doit(ContractBytes),
+    CID = contracts:make_id(CH, 2, <<0:256>>, 0),
+    NewTx = contract_new_tx:make_dict(Pub, CH, 2, 0),
+    SO = swap_tx2:make_offer(
+           MP, 0, 1000, 
+           <<0:256>>, 0, round(OneVeo / 20), 
+           CID, 2, round(OneVeo * 21 / 20), 
+           1, Fee, Salt),
+    SSO = keys:sign(SO),
+    SwapTx = swap_tx2:make_dict(Pub, SSO, 1, Fee*2),
+    UseTx = contract_use_tx:make_dict(Pub, CID, round(1.1*OneVeo), 0, 2, <<0:256>>, 0),
+    Txs2 = [NewTx, SwapTx, UseTx],
+    Tx3 = multi_tx:make_dict(Pub, Txs2, Fee*length(Txs2)),
+    Stx3 = signing:sign_tx(Tx3, Pub, Priv),
+    absorb(Stx3),
+    1 = many_txs(),
+
+    Evidence = compiler_chalang:doit(<<>>),
+    Tx4 = contract_evidence_tx:make_dict(MP, ContractBytes, CID, Evidence, [{receipts, ReceiptID}], Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    2 = many_txs(),
+
+    Full = <<4294967295:32>>,
+    Empty = <<0:32>>,
+    Matrix = %same matrix from inside the forth code.
+        [[Full, Empty],
+         [Empty, Full]],
+    CID2 = contracts:make_id(CH2, 2,<<0:256>>,0),
+    Proofs = contract_evidence_tx:make_proof1(Matrix),
+    TimeoutTx = contract_timeout_tx2:make_dict(MP, CID, Fee, Proofs, CH2, [Full, Empty], CID2),
+    SubAcc1 = sub_accounts:make_key(MP, CID, 2),
+    Proofs2 = contract_evidence_tx:make_proof(2, Matrix),
+    Txs5 = [TimeoutTx],
+    Tx5 = multi_tx:make_dict(MP, Txs5, Fee*length(Txs5)),
+    Stx5 = keys:sign(Tx5),
+    %Stx5 = signing:sign_tx(Tx5, Pub, Priv),
+    absorb(Stx5),
+    3 = many_txs(),
+
+    Tx8 = contract_evidence_tx:make_dict(MP, Code2, CID2, <<>>, [], Fee),
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    4 = many_txs(),
+    TimeoutTx2 = contract_timeout_tx2:make_dict(MP, CID2, Fee),
+    PayoutVector = %same as payout vector defined in Forth.
+        [Empty, Full],
+    SubAcc1_2 = sub_accounts:make_key(MP, CID2, 2),
+    %WinningsTx = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [Empty, Full], Proofs2),
+    %WinningsTx2 = contract_winnings_tx:make_dict(MP, SubAcc1_2, CID2, Fee, PayoutVector),
+    SimplifyTx = contract_simplify_tx:make_dict(MP, CID, CID2, 0, Matrix, PayoutVector, Fee), 
+    WinningsTx2 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, PayoutVector),
+    Txs9 = [TimeoutTx2, SimplifyTx, WinningsTx2],
+    %TODO
+    %when we include the winningstx here, the tx gets dropped.
+    Tx9 = multi_tx:make_dict(MP, Txs9, Fee*length(Txs9)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(Tx9)),
+    io:fwrite("\n"),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    5 = many_txs(),
+    mine_blocks(1),
     success;
 
-test(60) ->
+test(unused) ->
     io:fwrite("test stablecoin_new_tx\n"),
     headers:dump(),
     block:initialize_chain(),
@@ -3821,7 +3915,7 @@ int 0 int 1" >>),
                volume = 0
              } = trees:get(contracts, CID),
     success;
-test(60) ->
+test(unused) ->
     io:fwrite("test stablecoin_new_tx in a multi-tx"),
     headers:dump(),
     block:initialize_chain(),
@@ -3835,7 +3929,7 @@ test(60) ->
     %make the tx.
 
     success;
-test(62) ->
+test(unused) ->
     %stablecoin timelimit auction
     %create the stablecoin
     %buy stablecoins
@@ -3868,7 +3962,7 @@ test(62) ->
     %check that the winning bid account received long-veo2 + finite1
     %check that the stablecoins are still spendable.
     sucess;
-test(63) ->
+test(unused) ->
     %stablecoin undercollateralization auction
     %create the stablecoin
     %buy stablecoins
@@ -3988,7 +4082,7 @@ mine_blocks(Many) ->
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10000),
-    timer:sleep(20),
+    timer:sleep(25),
     mine_blocks(Many-1).
 
 test24(I) ->

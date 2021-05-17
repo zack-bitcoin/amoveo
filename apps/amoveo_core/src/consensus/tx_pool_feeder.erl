@@ -102,22 +102,24 @@ absorb_internal2(SignedTx, PID) ->
             %io:fwrite("\n"),
 	    {ok, MinimumTxFee} = application:get_env(amoveo_core, minimum_tx_fee),
 	    B = case Type of
-		multi_tx ->
-		    MTxs = Tx#multi_tx.txs,
-		    Cost = sum_cost(MTxs, F#tx_pool.dict, F#tx_pool.block_trees),
-                    %io:fwrite("now 4 2"),%500
-                    %io:fwrite(packer:pack(now())),
+                    multi_tx ->
+                        MTxs = Tx#multi_tx.txs,
+                        Cost = sum_cost(MTxs, F#tx_pool.dict, F#tx_pool.block_trees),
+                                                %io:fwrite("now 4 2"),%500
+                                                %io:fwrite(packer:pack(now())),
                     %io:fwrite("\n"),
-		    MF = MinimumTxFee * length(MTxs),
-		    Fee > (MF + Cost);
-		_ ->
-		    Cost = trees:get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
-                    %io:fwrite("now 4 "),%500
-                    %io:fwrite(packer:pack(now())),
+                        MF = MinimumTxFee * length(MTxs),
+                        Fee > (MF + Cost);
+                    contract_timeout_tx2 ->
+                        Fee > MinimumTxFee;
+                    _ ->
+                        Cost = trees:get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
+                                                %io:fwrite("now 4 "),%500
+                                                %io:fwrite(packer:pack(now())),
                     %io:fwrite("\n"),
-		    Fee > (MinimumTxFee + Cost)
+                        Fee > (MinimumTxFee + Cost)
 		    %true
-	    end,
+                end,
             if
                 not(B) -> 
                     io:fwrite("not enough fees"),
@@ -158,7 +160,10 @@ absorb_internal2(SignedTx, PID) ->
 sum_cost([], _, _) -> 0;
 sum_cost([H|T], Dict, Trees) ->
     Type = element(1, H),
-    Cost = trees:get(governance, Type, Dict, Trees),
+    Cost = case Type of
+               contract_timeout_tx2 -> 0;
+               _ -> trees:get(governance, Type, Dict, Trees)
+           end,
     Cost + sum_cost(T, Dict, Trees).
     
 lookup_merkel_proofs(Dict, [], _) -> Dict;

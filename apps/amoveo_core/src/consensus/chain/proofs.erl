@@ -516,8 +516,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 Contracts = trees:contracts(Trees),
                 {_, Contract, _} = contracts:get(CID, Contracts),
                 #contract{
-                           source = Source,
-                           source_type = SourceType,
+                           %source = Source,
+                           %source_type = SourceType,
                            sink = CID2
                          } = Contract,
                 U = case CID2 of
@@ -532,6 +532,29 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {contracts, CID},
                  {governance, ?n2i(contract_timeout_tx)}
                 ] ++ U;
+            contract_timeout_tx2 ->
+                #contract_timeout_tx2{
+              contract_id = CID,
+              from = From,
+              sink = Sink
+             } = Tx,
+                U = case Sink of
+                        0 -> [];
+                        _ -> [{contracts, Sink}]
+                    end,
+                Contracts = trees:contracts(Trees),
+                {_, Contract, _} = contracts:get(CID, Contracts),
+                U2 = case Contract of
+                         empty -> [];
+                         #contract{} ->
+                             #contract{
+                                    sink = Sink2
+                                   } = Contract,
+                             [{contracts, Sink2}]
+                     end,
+                [{accounts, From},
+                 {contracts, CID}
+                ] ++ U ++ U2;
             contract_winnings_tx ->
                 #contract_winnings_tx{
               from = From,
@@ -542,44 +565,52 @@ txs_to_querys2([STx|T], Trees, Height) ->
               proof = Proof
              } = Tx,
                 SubAccs = trees:sub_accounts(Trees),
-                {_, SubAccount, _} = sub_accounts:get(SA, SubAccs),
-                #sub_acc{
-                          type = Type,
-                          pubkey = Winner,
-                          contract_id = CID%sanity check
-                        } = SubAccount,
+                %{_, SubAccount, _} = sub_accounts:get(SA, SubAccs),
+                %#sub_acc{
+                         %type = Type,
+                %          pubkey = Winner,%sanity
+                %          contract_id = CID%sanity check
+                %        } = SubAccount,
                 Contracts = trees:contracts(Trees),
                 {_, Contract, _} = contracts:get(CID, Contracts),
-                #contract{
-                           result = Result,
-                           source = Source,
-                           sink = Sink,
-                           source_type = SourceType
-                         } = Contract,
-                U4 = case Sink of
-                         <<0:256>> -> [];
-                         _ -> [{contracts, Sink}]
-                     end,
-                U1 = case Source of
-                         <<0:256>> ->
-                             [{accounts, Winner}];
-                         _ ->
-                             SA2 = sub_accounts:make_key(Winner, Source, SourceType),
-                             [{sub_accounts, SA2}]
-                         end,
-                U3 = case Proof of
-                         PayoutVector when is_list(PayoutVector) ->
+                U5 = case Contract of
+                         empty ->
+                            F51 = forks:get(51),
+                            true = Height > F51,
+                            [];
+                        #contract{} ->
+                             #contract{
+                           %result = Result,
+                                   source = Source,
+                                   sink = Sink,
+                                   source_type = SourceType
+                                  } = Contract,
+                             U4 = case Sink of
+                                      <<0:256>> -> [];
+                                      _ -> [{contracts, Sink}]
+                                  end,
+                             U1 = case Source of
+                                      <<0:256>> ->
+                                          [{accounts, Winner}];
+                                      _ ->
+                                          SA2 = sub_accounts:make_key(Winner, Source, SourceType),
+                                          [{sub_accounts, SA2}]
+                                  end,
+                             U3 = case Proof of
+                                      PayoutVector when is_list(PayoutVector) ->
                         %win it as a portion of the source
-                             U1;
-                         _->
-                             sub_accounts_loop(Row, Winner, Sink, 1)
+                                          U1;
+                                      _->
+                                          sub_accounts_loop(Row, Winner, Sink, 1)
+                                  end,
+                             U3 ++ U4
                      end,
                 [{accounts, From},
                  {accounts, Winner},
                  {contracts, CID},
                  {sub_accounts, SA},%sub_account being deleted
                  {governance, ?n2i(contract_winnings_tx)}
-                ] ++ U3 ++ U4;
+                ] ++ U5;
             contract_simplify_tx ->
                 #contract_simplify_tx{
               from = From,
@@ -589,12 +620,19 @@ txs_to_querys2([STx|T], Trees, Height) ->
              } = Tx,
                 Contracts = trees:contracts(Trees),
                 {_, Contract, _} = contracts:get(CID2, Contracts),
-                #contract{
-                           sink = Sink
-                         } = Contract,
-                U = case Sink of
-                        <<0:256>> -> [];
-                        _ -> [{contracts, CID3}]
+                U = case Contract of
+                        empty -> 
+                            F51 = forks:get(51),
+                            true = Height > F51,
+                            [];
+                        #contract{} ->
+                            #contract{
+                                   sink = Sink
+                                  } = Contract,
+                            case Sink of
+                                <<0:256>> -> [];
+                                _ -> [{contracts, CID3}]
+                            end
                     end,
                 [{accounts, From},
                  {governance, ?n2i(contract_simplify_tx)},
@@ -989,3 +1027,4 @@ sub_accounts_loop([<<X:32>>|T],Winner,CID,N) ->
     [{sub_accounts, Key}|
      sub_accounts_loop(T,Winner,CID,N+1)].
 
+    

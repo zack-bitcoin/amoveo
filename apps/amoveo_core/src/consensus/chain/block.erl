@@ -1264,6 +1264,7 @@ gov_fees([Tx|T], Dict, Height) ->
     Type = element(1, C),
     A = case Type of
 	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict, Height);
+            contract_timeout_tx2 -> 0;
 	    _ -> 
                 X = governance:dict_get_value(Type, Dict),
                 F16 = forks:get(16),
@@ -1278,6 +1279,8 @@ gov_fees2([H|T], Dict, Height) ->
     Type = element(1, H),
     F47_activated = forks:get(47) < Height,
     A = if
+            (Type == contract_timeout_tx2) ->
+                0;
             (F47_activated and (Type == contract_evidence_tx)) -> 
                 CEF = governance:dict_get_value(Type, Dict),
                 Contract = H#contract_evidence_tx.contract,

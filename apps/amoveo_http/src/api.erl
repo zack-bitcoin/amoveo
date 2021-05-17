@@ -1002,7 +1002,8 @@ first(N, L) ->
     end.
 withdraw_from_oracles(M, Pub) ->
     EmptyBinary = <<0:(8*32)>>,
-    N = max(1, min(M div 2, 20)),
+    N = max(1, min(M div 2, 50)),
+    %N = max(1, M div 2),
     %grab up to N unmatched, and N winnings
     Trees = (tx_pool:get())#tx_pool.block_trees,
     Unmatched = trees:unmatched(Trees),

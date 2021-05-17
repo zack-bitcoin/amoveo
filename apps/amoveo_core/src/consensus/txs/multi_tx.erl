@@ -25,6 +25,7 @@ zero_accounts_nonces([H|T])
         is_record(H, oracle_close) or
         is_record(H, sub_spend_tx) or 
         is_record(H, contract_timeout_tx) or
+        is_record(H, contract_timeout_tx2) or
         is_record(H, contract_simplify_tx) or
         is_record(H, contract_winnings_tx) or
         is_record(H, contract_use_tx) or
