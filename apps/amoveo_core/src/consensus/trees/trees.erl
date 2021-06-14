@@ -133,7 +133,9 @@ name("contracts") -> contracts;
 name(<<"trades">>) -> trades;
 name("trades") -> trades;
 name(<<"markets">>) -> markets;
-name("markets") -> markets.
+name("markets") -> markets;
+name(<<"receipts">>) -> receipts;
+name("receipts") -> receipts.
 empty_tree(X) -> trie:empty(X).
 accounts(X = #trees{}) -> X#trees.accounts;%
 accounts(X = #trees2{}) -> X#trees2.accounts;%
