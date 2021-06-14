@@ -151,7 +151,7 @@
 -record(swap_tx, {from, offer, fee}).
 
 
--record(contract_evidence_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).
+-record(contract_evidence_tx, {from, nonce, fee, contract, contract_id, evidence, prove}).%todo, hard udpate. we need a new version of this. if it is producing evidence of a child contract, that child contract's id needs to be written on the tx.
 -record(contract_timeout_tx, {from, nonce, fee, contract_id, proof, contract_hash, row}).%possibly converts it into a new kind of contract. %possibly unsigned
 -record(contract_timeout_tx2, {from, nonce, fee, contract_id, proof, contract_hash, row, sink}).%possibly converts it into a new kind of contract. %possibly unsigned
 -record(contract_winnings_tx, {from, nonce, fee, contract_id, amount, sub_account, winner, proof, row}).

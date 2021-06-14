@@ -2,7 +2,9 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 %This module keeps track of what might become the next block of the blockchain, if you are mining or running a mining pool.
--export([new/0, read/0, save/0, dump/0, check/0, save/2]).
+-export([new/0, read/0, save/0, dump/0, check/0
+%, save/2
+]).
 %-define(potential_block, "data/potential_blocks.db").
 %-define(refresh_period, 600).%how often we check if there are new txs that can be included in the block. in seconds
 
@@ -27,13 +29,13 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call(dump, _, _) -> 
     {reply, ok, #pb{block = "", time = now()}};
-handle_call({save, Txs, _Height}, _, X) -> 
-    Top = headers:top_with_block(),
-    PB = block:get_by_hash(block:hash(Top)),
-    Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
-    pool_command(),
-    %clean_memory(X#pb.block),
-    {reply, ok, #pb{block = Block, time = now()}};
+%handle_call({save, Txs, _Height}, _, X) -> 
+%    Top = headers:top_with_block(),
+%    PB = block:get_by_hash(block:hash(Top)),
+%    Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
+%    pool_command(),
+%    %clean_memory(X#pb.block),
+%    {reply, ok, #pb{block = Block, time = now()}};
 handle_call(save, _, X) -> 
     Block = new_internal(),
     %clean_memory(X#pb.block),
@@ -83,7 +85,7 @@ delta({A, B, _}, {D, E, _}) ->%start, end
     F - C.
 new() -> gen_server:call(?MODULE, new).
 save() -> gen_server:call(?MODULE, save).
-save(Txs, Height) -> gen_server:call(?MODULE, {save, Txs, Height}).
+%save(Txs, Height) -> gen_server:call(?MODULE, {save, Txs, Height}).
 dump() -> gen_server:call(?MODULE, dump).
 read() -> gen_server:call(?MODULE, read).
 check() -> gen_server:call(?MODULE, check).

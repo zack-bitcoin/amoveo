@@ -111,7 +111,6 @@ absorb_internal(Block) ->
 			normal -> 
 			    push_block:add(Block2),
 			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
-			    %potential_block:save([], unused),
 			    Txs0 = (tx_pool:get())#tx_pool.txs,
 			    %TB = block:top(),
 			    TWBH0 = block:hash(headers:top_with_block()),
