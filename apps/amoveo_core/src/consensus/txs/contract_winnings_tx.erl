@@ -32,9 +32,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 
     SA = sub_accounts:dict_get(SubAcc, Dict2),
     #sub_acc{
-              balance = Amount,
+              balance = Amount,%
               type = Type,
-              contract_id = CID,
+              contract_id = CID,%
               pubkey = Winner
             } = SA,
     true = Amount > 0,

@@ -144,16 +144,7 @@ tails([]) -> [];
 tails([H|T]) -> 
     [tl(H)|tails(T)].
 
-make_leaves(Matrix, MT) ->
-    CFG = mtree:cfg(MT),
-    %L1 =  leaf:new(0, CH, 0, CFG),
-    make_leaves2([], 1, Matrix, CFG).
-make_leaves2(X, _, [], _) -> X;
-make_leaves2(X, N, [R|T], CFG) -> 
-    SR = serialize_row(R, <<>>),
-    RH = hash:doit(SR),
-    L = leaf:new(N, RH, 0, CFG),
-    make_leaves2([L|X], N+1, T, CFG).
+
 serialize_row([], B) -> B;
 serialize_row([<<H:32>>|T], A) -> 
     A2 = <<A/binary, H:32>>,
@@ -189,6 +180,18 @@ sum_vector(N, L) ->
     io:fwrite("\n"),
     false.
 
+
+
+make_leaves(Matrix, MT) ->
+    CFG = mtree:cfg(MT),
+    %L1 =  leaf:new(0, CH, 0, CFG),
+    make_leaves2([], 1, Matrix, CFG).
+make_leaves2(X, _, [], _) -> X;
+make_leaves2(X, N, [R|T], CFG) -> 
+    SR = serialize_row(R, <<>>),
+    RH = hash:doit(SR),
+    L = leaf:new(N, RH, 0, CFG),
+    make_leaves2([L|X], N+1, T, CFG).
 make_tree(Matrix) ->
     MT = mtree:new_empty(5, 32, 0),
     Leaves = make_leaves(Matrix, MT),

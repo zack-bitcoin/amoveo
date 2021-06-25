@@ -67,9 +67,9 @@ It verifies the merkle proofs for all blockchain state you download to ensure se
 [Veoscan explorer. Nodes, blocks, txs, markets, holders, and more.](http://veoscan.io/)
 
 [mveo explorer. historic difficulty analisys](https://mveo.net/)
---->
 
 [Amoveo.tools historical difficulty chart](https://amoveo.tools/)
+--->
 
 The block explorer for the network is [here](http://159.89.87.58:8080/explorer.html).
 This explorer can host markets.
