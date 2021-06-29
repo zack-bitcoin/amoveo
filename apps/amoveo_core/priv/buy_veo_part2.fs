@@ -22,10 +22,10 @@ macro oracle_builder
   ( blockchain address amount ticker date -- oracle_text )
   >r >r >r >r >r
   ." The " r> ++
-  ."  address " r> ++ ++
-  ."  is a valid address for that blockchain and has received more than or equal to " r> ++ ++
-  ."  of " r> ++ ++
-  ."  before " r> ++ ++
+  ." address " r> ++ ++
+  ." is a valid address for that blockchain and has received more than or equal to " r> ++ ++
+  ." of " r> ++ ++
+  ." before " r> ++ ++
 ;
 
 macro oracle_id ( question_hash start_height -- oid)
