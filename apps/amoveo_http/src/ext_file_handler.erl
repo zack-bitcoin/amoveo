@@ -157,6 +157,8 @@ handle(Req, State) ->
             <<"/scalar_derivative.js">> -> true;
             <<"/swaps.js">> -> true;
             <<"/buy_veo_contract.js">> -> true;
+            <<"/buy_veo_contract.js">> -> true;
+            <<"/buy_veo_contracts_viewer.js">> -> true;
             <<"/sub_accounts.js">> -> true;
             <<"/pool_tab_builder.js">> -> true;
             <<"/swap_tab_builder.js">> -> true;

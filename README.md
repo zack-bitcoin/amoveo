@@ -147,4 +147,4 @@ https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool. WARNING!!! thi
 
 If you want to build on top of Amoveo [read the developer's guide](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting-started/quick_start_developer_guide.md)
 
-
+[If you want to get paid to build on Amoveo](https://github.com/zack-bitcoin/amoveo-docs/blob/master/use-cases-and-ideas/funding_development.md)
