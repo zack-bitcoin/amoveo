@@ -23,7 +23,7 @@ macro oracle_builder
   >r >r >r >r >r
   ." The " r> ++
   ." address " r> ++ ++
-  ." is a valid address for that blockchain and has received more than or equal to " r> ++ ++
+  ." is an invalid address for that blockchain or has received more than or equal to " r> ++ ++
   ." of " r> ++ ++
   ." before " r> ++ ++
 ;
