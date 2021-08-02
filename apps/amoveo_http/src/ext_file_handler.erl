@@ -169,6 +169,7 @@ handle(Req, State) ->
             <<"/create_futarchy_tab_builder.js">> -> true;
             <<"/crosschain_tab_builder.js">> -> true;
             <<"/crosschain_tab_builder2.js">> -> true;
+            <<"/crosschain_tab_builder3.js">> -> true;
             <<"/tabs.js">> -> true;
             <<"/contract_explorer.js">> -> true;
             <<"/contract_explorer.html">> -> true;
