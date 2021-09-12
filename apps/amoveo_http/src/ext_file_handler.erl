@@ -170,6 +170,7 @@ handle(Req, State) ->
             <<"/crosschain_tab_builder.js">> -> true;
             <<"/crosschain_tab_builder2.js">> -> true;
             <<"/crosschain_tab_builder3.js">> -> true;
+            <<"/bet_tab_builder.js">> -> true;
             <<"/tabs.js">> -> true;
             <<"/contract_explorer.js">> -> true;
             <<"/contract_explorer.html">> -> true;
@@ -189,6 +190,7 @@ handle(Req, State) ->
             <<"/offer_explorer.js">> -> true;
             <<"/block_explorer.html">> -> true;
             <<"/block_explorer.js">> -> true;
+            <<"/swap_offer_downloader.js">> -> true;
             X -> 
                 io:fwrite("ext file handler unknown page: "),
                 io:fwrite(X),
