@@ -23,6 +23,9 @@ handle(Req, State) ->
     PrivDir = list_to_binary(PrivDir0),
     F1 = case F of
              <<"/crypto", Rest/binary>> -> Rest;
+             <<"/explorers", Rest/binary>> -> Rest;
+             <<"/vm", Rest/binary>> -> Rest;
+             <<"/wallet", Rest/binary>> -> Rest;
              Otherwise -> Otherwise
          end,
     B = case F1 of
