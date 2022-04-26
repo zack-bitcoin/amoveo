@@ -494,12 +494,12 @@ is_in(X, [_|T]) ->
 tx_spam_handler([], _) ->
     ok;
 tx_spam_handler([Tx|T], IP) ->
-    case tx_pool_feeder:absorb(T) of
+    case tx_pool_feeder:absorb(Tx) of
         timeout_error -> 
  %this means the tx failed in a way that makes it seem like it was included already.
             %we know that this tx is not in the tx pool.
  %if this tx is not in the most recent block or the tx pool, then we need to blacklist the sender.
-            case request_frequency:doit(IP, 10) of
+            case request_frequency:doit(IP, 100) of
                 ok -> tx_spam_handler(T, IP);
                 _ -> 
                     io:fwrite("received expired tx\n"),
