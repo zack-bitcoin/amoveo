@@ -515,6 +515,7 @@ is_in(X, [_|T]) ->
 
 
 tx_spam_handler([], _) ->
+    io:fwrite("spam handler ended\n"),
     {ok, 0};
 tx_spam_handler([Tx|T], IP) ->
     io:fwrite("tx spam handler\n"),
@@ -536,5 +537,5 @@ tx_spam_handler([Tx|T], IP) ->
             ERROR
     end;
 tx_spam_handler(Tx, IP) ->
-    tx_spam_handler([Tx], IP).
+    io:fwrite({Tx, IP}).
 
