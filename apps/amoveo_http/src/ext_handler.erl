@@ -32,24 +32,11 @@ handle(Req, State) ->
 					  end
 				  end),
 			    {ok, 0};
-                        {txs, []} -> {ok, ok};
-                        {txs, [Tx]} -> 
-                            io:fwrite("ext handler one tx\n"),
-                            case tx_spam_handler([Tx], IP) of
-                                ok -> 
-                                    Txs = (tx_pool:get())#tx_pool.txs,
-                                    Bool = is_in(Tx, Txs),
-                                    Y = case Bool of
-                                            true -> hash:doit(signing:data(Tx));
-                                            false -> <<"error">>
-                                        end,
-                                    {ok, Y};
-                                _ -> {ok, <<"error">>}
-                            end;
-                        {txs, 2} -> doit(A);
-                        {txs, Txs} ->
-                            io:fwrite("the tx spam handler is being activated\n"),
-                            tx_spam_handler(Txs, IP);
+%                        {txs, []} -> {ok, ok};
+%                        {txs, 2} -> doit(A);
+%                        {txs, Txs = [_,[_|_]]} ->
+                            %io:fwrite("the tx spam handler is being activated\n"),
+%                            tx_spam_handler(Txs, IP);
 			_ -> doit(A)
 		    end,
 		packer:pack(B);
@@ -102,7 +89,7 @@ doit({version, 3}) ->
     G = forks:get(N),
     {ok, N, G};
 doit({give_block, Block}) -> %block can also be a list of blocks.
-    io:fwrite("ext_handler receiving blocks\n"),
+    %io:fwrite("ext_handler receiving blocks\n"),
     %Response = block_absorber:save(Block),
     A = if
 	    is_list(Block) -> Block;
@@ -168,7 +155,6 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     {ok, ST};
 doit({txs, [Tx]}) ->
     %io:fwrite("ext handler txs\n"),
-    io:fwrite("received one tx\n"),
             %timer:sleep(200),
     Txs = (tx_pool:get())#tx_pool.txs,
     B = is_in(Tx, Txs),
@@ -178,7 +164,6 @@ doit({txs, [Tx]}) ->
         end,
     {ok, Y};
 doit({txs, Txs}) ->
-    io:fwrite("this should never happen\n"),
     ok = tx_pool_feeder:absorb(Txs),
     {ok, 0};
 doit({txs, 3, N}) ->
