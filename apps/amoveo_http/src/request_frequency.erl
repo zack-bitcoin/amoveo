@@ -45,7 +45,9 @@ handle_call({IP, N}, _From, X) ->
 		true -> ok
 	    end,
 	    {reply, R, X2}
-    end.
+    end;
+handle_call(_, _From, X) -> 
+    {reply, X, X}.
 doit(IP) ->
     gen_server:call(?MODULE, {IP, 1}).
 doit(IP, N) ->
