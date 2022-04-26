@@ -501,7 +501,9 @@ tx_spam_handler([Tx|T], IP) ->
  %if this tx is not in the most recent block or the tx pool, then we need to blacklist the sender.
             case request_frequency:doit(IP, 10) of
                 ok -> tx_spam_handler(T, IP);
-                _ -> {ok, <<"stop spamming the server">>}
+                _ -> 
+                    io:fwrite("received expired tx\n"),
+                    {ok, <<"stop spamming the server">>}
             end;
         error -> tx_spam_handler(T, IP);
         ok -> tx_spam_handler(T, IP);
