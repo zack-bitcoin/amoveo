@@ -52,6 +52,7 @@ handle(Req, State) ->
                                     {ok, Y}
                             end;
                         {txs, 2} -> doit(A);
+                        {txs, [Tx]} -> doit(A);
                         {txs, Txs} ->
                             io:fwrite("the tx spam handler is being activated\n"),
                             tx_spam_handler(Txs, IP);
@@ -173,7 +174,7 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     {ok, ST};
 doit({txs, [Tx]}) ->
     %io:fwrite("ext handler txs\n"),
-    io:fwrite("should never happen 0\n"),
+    io:fwrite("received one tx\n"),
             %timer:sleep(200),
     Txs = (tx_pool:get())#tx_pool.txs,
     B = is_in(Tx, Txs),
@@ -533,4 +534,7 @@ tx_spam_handler([Tx|T], IP) ->
         ERROR ->
             %unexpected error
             ERROR
-    end.
+    end;
+tx_spam_handler(Tx, IP) ->
+    tx_spam_handler([Tx], IP).
+
