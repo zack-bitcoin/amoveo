@@ -53,6 +53,7 @@ handle(Req, State) ->
                             end;
                         {txs, 2} -> doit(A);
                         {txs, Txs} ->
+                            io:fwrite("the tx spam handler is being activated\n"),
                             tx_spam_handler(Txs, IP);
 			_ -> doit(A)
 		    end,
