@@ -162,6 +162,7 @@ doit({txs, [Tx]}) ->
         end,
     {ok, Y};
 doit({txs, Txs}) ->
+    io:fwrite("this should never happen\n"),
     ok = tx_pool_feeder:absorb(Txs),
     {ok, 0};
 doit({txs, 3, N}) ->
@@ -492,7 +493,7 @@ is_in(X, [_|T]) ->
 
 
 tx_spam_handler([], _) ->
-    ok;
+    {ok, 0};
 tx_spam_handler([Tx|T], IP) ->
     io:fwrite("tx spam handler\n"),
     case tx_pool_feeder:absorb(Tx) of
@@ -500,7 +501,7 @@ tx_spam_handler([Tx|T], IP) ->
  %this means the tx failed in a way that makes it seem like it was included already.
             %we know that this tx is not in the tx pool.
  %if this tx is not in the most recent block or the tx pool, then we need to blacklist the sender.
-            case request_frequency:doit(IP, 100) of
+            case request_frequency:doit(IP, 10) of
                 ok -> tx_spam_handler(T, IP);
                 _ -> 
                     io:fwrite("received expired tx\n"),
