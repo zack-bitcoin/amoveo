@@ -32,27 +32,21 @@ handle(Req, State) ->
 					  end
 				  end),
 			    {ok, 0};
-                        {unused, [Tx]} -> %{txs, [Tx]} -> 
+                        {txs, []} -> {ok, ok};
+                        {txs, [Tx]} -> 
                             io:fwrite("ext handler one tx\n"),
-                            case tx_pool_feeder:absorb(Tx) of
-                                timeout_error ->
-                                    case request_frequency:doit(IP, 10) of
-                                        ok -> ok;
-                                        _ -> 
-                                            {ok, <<"stop spamming the server">>}
-                                    end;
-                                ok ->
-                                                %timer:sleep(200),
+                            case tx_spam_handler([Tx], IP) of
+                                ok -> 
                                     Txs = (tx_pool:get())#tx_pool.txs,
                                     Bool = is_in(Tx, Txs),
                                     Y = case Bool of
                                             true -> hash:doit(signing:data(Tx));
                                             false -> <<"error">>
                                         end,
-                                    {ok, Y}
+                                    {ok, Y};
+                                _ -> {ok, <<"error">>}
                             end;
                         {txs, 2} -> doit(A);
-                        {txs, [Tx]} -> doit(A);
                         {txs, Txs} ->
                             io:fwrite("the tx spam handler is being activated\n"),
                             tx_spam_handler(Txs, IP);
