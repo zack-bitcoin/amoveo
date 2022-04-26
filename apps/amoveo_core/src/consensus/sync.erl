@@ -459,12 +459,15 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
                 (RS and (BH < 2)) -> ok;
                 true -> new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
             end;
-	true ->
+	%true ->
+	(TheirBlockHeight == MyBlockHeight) ->
 	    spawn(fun() ->
 			  trade_txs(Peer)
 		  end),
 	    %io:fwrite("already synced with this peer \n"),
-	    ok
+	    ok;
+	true ->
+            ok
     end.
 top_common_header(L) when is_list(L) ->
     tch(lists:reverse(L));
