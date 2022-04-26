@@ -494,6 +494,7 @@ is_in(X, [_|T]) ->
 tx_spam_handler([], _) ->
     ok;
 tx_spam_handler([Tx|T], IP) ->
+    io:fwrite("tx spam handler\n"),
     case tx_pool_feeder:absorb(Tx) of
         timeout_error -> 
  %this means the tx failed in a way that makes it seem like it was included already.
