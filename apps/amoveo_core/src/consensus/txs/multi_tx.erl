@@ -76,6 +76,7 @@ go(Tx, Dict, NewHeight, _) ->
             NewHeight > F40 -> 0;
             true -> -Fee
         end,
+    true = is_integer(Tx#multi_tx.nonce),
     Facc = accounts:dict_update(From, Dict2, AFee, Tx#multi_tx.nonce),%TODO, maybe we need a way to set this nonce to "none".
     Dict3 = accounts:dict_write(Facc, Dict2),
     flash_payback(From, Debts, Dict3).

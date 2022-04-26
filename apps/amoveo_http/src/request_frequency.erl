@@ -11,7 +11,7 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
-handle_call(IP, _From, X) -> 
+handle_call({IP, N}, _From, X) -> 
     B = white_list:check(IP),
     DF = dict:find(IP, X),
     if
@@ -30,7 +30,7 @@ handle_call(IP, _From, X) ->
 			       Val#freq.time),
 	    S = T / 1000000,%seconds
 	    Many0 = Val#freq.many * math:pow(0.5, S), %every second, divide how many have been used up by 1/2.
-	    Many = Many0 + 1,
+	    Many = Many0 + N,
 	    V2 = #freq{time = TimeNow,
 		       many = Many},
 	    X2 = dict:store(IP, V2, X),
@@ -47,4 +47,6 @@ handle_call(IP, _From, X) ->
 	    {reply, R, X2}
     end.
 doit(IP) ->
-    gen_server:call(?MODULE, IP).
+    gen_server:call(?MODULE, {IP, 1}).
+doit(IP, N) ->
+    gen_server:call(?MODULE, {IP, N}).

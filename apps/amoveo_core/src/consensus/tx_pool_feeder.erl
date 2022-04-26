@@ -10,7 +10,7 @@ init(ok) ->
     {ok, []}.
 %TODO using a self() inside of this isn't good, because it is already a gen server listening for messages. and the two kinds of messages are interfering.
 handle_call({absorb, SignedTx}, _From, State) ->
-    absorb_internal(SignedTx),
+    R = absorb_internal(SignedTx),
 %    R = case absorb_internal(SignedTx) of
 %	    error -> error;
 %	    NewDict when (element(1, NewDict) == dict) ->
@@ -22,7 +22,8 @@ handle_call({absorb, SignedTx}, _From, State) ->
                 %io:fwrite("done\n"),
 %                error
 %	end,
-    {reply, ok, State};
+    %{reply, ok, State};
+    {reply, R, State};
 handle_call(_, _, S) -> {reply, S, S}.
 handle_cast({dump, Block}, S) -> 
     tx_pool:dump(Block),
@@ -71,11 +72,15 @@ absorb_internal(SignedTx) ->
                           absorb_internal2(SignedTx, S)
                   end),
             receive
-                X when (element(1, X) == dict) -> X,
-                     tx_pool:absorb_tx(X, SignedTx);
-                error -> error
+                X when (element(1, X) == dict) -> 
+                    %X,
+                    tx_pool:absorb_tx(X, SignedTx),
+                    ok;
+                error -> error;
+                Y -> {error, Y}
+                             
             after 
-                Wait -> error
+                Wait -> timeout_error
 %            end
     end.
 	    
@@ -245,7 +250,7 @@ absorb(SignedTx) ->
     case N of
 	normal -> 
 	    gen_server:call(?MODULE, {absorb, SignedTx});
-	_ -> %io:fwrite("warning, transactions don't work if you aren't in sync_mode normal"),
+	_ -> io:fwrite("warning, transactions don't work if you aren't in sync_mode normal"),
 	    %1=2,
 	    ok
     end.

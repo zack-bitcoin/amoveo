@@ -32,6 +32,8 @@ handle(Req, State) ->
 					  end
 				  end),
 			    {ok, 0};
+                        {txs, Txs = [_|[_|_]]} ->
+                            tx_spam_handler(Txs, IP);
 			_ -> doit(A)
 		    end,
 		packer:pack(B);
@@ -487,3 +489,23 @@ is_in(X, [X|_]) -> true;
 is_in(_, []) -> false;
 is_in(X, [_|T]) -> 
     is_in(X, T).
+
+
+tx_spam_handler([], _) ->
+    ok;
+tx_spam_handler([Tx|T], IP) ->
+    case tx_pool_feeder:absorb(T) of
+        timeout_error -> 
+ %this means the tx failed in a way that makes it seem like it was included already.
+            %we know that this tx is not in the tx pool.
+ %if this tx is not in the most recent block or the tx pool, then we need to blacklist the sender.
+            case request_frequency:doit(IP, 10) of
+                ok -> tx_spam_handler(T, IP);
+                _ -> {ok, <<"stop spamming the server">>}
+            end;
+        error -> tx_spam_handler(T, IP);
+        ok -> tx_spam_handler(T, IP);
+        ERROR ->
+            %unexpected error
+            ERROR
+    end.
