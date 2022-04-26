@@ -32,7 +32,25 @@ handle(Req, State) ->
 					  end
 				  end),
 			    {ok, 0};
-                        {txs, [_]} -> doit(A);
+                        {unused, [Tx]} -> %{txs, [Tx]} -> 
+                            io:fwrite("ext handler one tx\n"),
+                            case tx_pool_feeder:absorb(Tx) of
+                                timeout_error ->
+                                    case request_frequency:doit(IP, 10) of
+                                        ok -> ok;
+                                        _ -> 
+                                            {ok, <<"stop spamming the server">>}
+                                    end;
+                                ok ->
+                                                %timer:sleep(200),
+                                    Txs = (tx_pool:get())#tx_pool.txs,
+                                    Bool = is_in(Tx, Txs),
+                                    Y = case Bool of
+                                            true -> hash:doit(signing:data(Tx));
+                                            false -> <<"error">>
+                                        end,
+                                    {ok, Y}
+                            end;
                         {txs, 2} -> doit(A);
                         {txs, Txs} ->
                             tx_spam_handler(Txs, IP);
@@ -154,13 +172,13 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     {ok, ST};
 doit({txs, [Tx]}) ->
     %io:fwrite("ext handler txs\n"),
-    tx_pool_feeder:absorb(Tx),
-    timer:sleep(200),
+    io:fwrite("should never happen 0\n"),
+            %timer:sleep(200),
     Txs = (tx_pool:get())#tx_pool.txs,
     B = is_in(Tx, Txs),
     Y = case B of
-	    true -> hash:doit(signing:data(Tx));
-	    false -> <<"error">>
+            true -> hash:doit(signing:data(Tx));
+            false -> <<"error">>
         end,
     {ok, Y};
 doit({txs, Txs}) ->
