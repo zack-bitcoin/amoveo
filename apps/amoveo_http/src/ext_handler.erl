@@ -32,7 +32,9 @@ handle(Req, State) ->
 					  end
 				  end),
 			    {ok, 0};
-                        {txs, Txs} when (is_list(Txs) and (length(Txs) > 1))->
+                        {txs, [_]} -> doit(A);
+                        {txs, 2} -> doit(A);
+                        {txs, Txs} ->
                             tx_spam_handler(Txs, IP);
 			_ -> doit(A)
 		    end,
