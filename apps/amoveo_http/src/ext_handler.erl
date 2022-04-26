@@ -13,9 +13,6 @@ handle(Req, State) ->
     {IP, _} = cowboy_req:peer(Req2),
     D = case request_frequency:doit(IP) of
 	    ok ->
-						%ok = request_frequency:doit(IP),
-		%{ok, TimesPerSecond} = application:get_env(amoveo_core, request_frequency),
-		%timer:sleep(round(1000/TimesPerSecond)),
 		true = is_binary(Data),
 		A = packer:unpack(Data),
 		B = case A of
@@ -34,9 +31,9 @@ handle(Req, State) ->
 			    {ok, 0};
 %                        {txs, []} -> {ok, ok};
 %                        {txs, 2} -> doit(A);
-%                        {txs, Txs = [_,[_|_]]} ->
-                            %io:fwrite("the tx spam handler is being activated\n"),
-%                            tx_spam_handler(Txs, IP);
+                        {txs, Txs = [_,[_|_]]} ->
+                            io:fwrite("the tx spam handler is being activated\n"),
+                            tx_spam_handler(Txs, IP);
 			_ -> doit(A)
 		    end,
 		packer:pack(B);
