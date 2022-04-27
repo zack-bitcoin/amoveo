@@ -151,8 +151,9 @@ doit({txs, 2, Checksums}) ->%request the txs for these checksums
     ST = send_txs(Txs, CS, Checksums, []),
     {ok, ST};
 doit({txs, [Tx]}) ->
-    %io:fwrite("ext handler txs\n"),
-            %timer:sleep(200),
+    io:fwrite("ext handler txs\n"),
+    tx_pool_feeder:absorb(Tx),
+    timer:sleep(200),
     Txs = (tx_pool:get())#tx_pool.txs,
     B = is_in(Tx, Txs),
     Y = case B of
