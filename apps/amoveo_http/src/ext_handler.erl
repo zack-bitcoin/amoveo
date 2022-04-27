@@ -29,8 +29,8 @@ handle(Req, State) ->
 					  end
 				  end),
 			    {ok, 0};
-%                        {txs, []} -> {ok, ok};
-%                        {txs, 2} -> doit(A);
+                        {txs, []} -> {ok, ok};
+                        {txs, 2} -> doit(A);
                         {txs, Txs = [_,[_|_]]} ->
                             io:fwrite("the tx spam handler is being activated\n"),
                             tx_spam_handler(Txs, IP);

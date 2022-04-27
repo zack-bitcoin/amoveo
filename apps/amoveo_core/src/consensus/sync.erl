@@ -467,6 +467,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
 	    %io:fwrite("already synced with this peer \n"),
 	    ok;
 	true ->
+            %we have more blocks than them, so we don't need to trade txs.
             ok
     end.
 top_common_header(L) when is_list(L) ->
@@ -529,7 +530,10 @@ cron2() ->
     %io:fwrite("sync cron 2\n"),
     SS = sync:status(),
     SC = sync_mode:check(),
-    B = api:height() > block:height(),
+    AHeight = api:height(),
+    BHeight = block:height(),
+    B = AHeight > BHeight,
+    %SameHeight = (AHeight == BHeight),
     if 
 	((SS == go) and (SC == normal)) ->
 	    spawn(fun() ->
@@ -540,7 +544,13 @@ cron2() ->
 				  LP = length(P2),
 				  if
 				      LP > 0 ->
-                                          trade_txs(hd(P2));
+                                          TheirBlockHeight = 
+                                              remote_peer({height}, hd(P2)),
+                                          if
+                                              (BHeight == TheirBlockHeight) ->
+                                                  trade_txs(hd(P2));
+                                              true -> ok
+                                          end;
 				      true -> ok
 				  end
 			  end
