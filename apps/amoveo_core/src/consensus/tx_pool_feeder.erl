@@ -1,7 +1,7 @@
 -module(tx_pool_feeder).
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3, absorb_dump/2]).
--export([absorb/1, absorb_async/1, is_in/2,
+-export([absorb/1, absorb/2, absorb_async/1, is_in/2,
 	 dump/1]).
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -9,20 +9,11 @@ init(ok) ->
     %process_flag(trap_exit, true),
     {ok, []}.
 %TODO using a self() inside of this isn't good, because it is already a gen server listening for messages. and the two kinds of messages are interfering.
+handle_call({absorb, SignedTx, Timeout}, _From, State) when (is_integer(Timeout) and (Timeout > -1)) ->
+    R = absorb_timeout(SignedTx, Timeout),
+    {reply, R, State};
 handle_call({absorb, SignedTx}, _From, State) ->
     R = absorb_internal(SignedTx),
-%    R = case absorb_internal(SignedTx) of
-%	    error -> error;
-%	    NewDict when (element(1, NewDict) == dict) ->
-		%tx_pool:absorb_tx(NewDict, SignedTx),
-%		ok;
-%            NewDict ->
-%                io:fwrite("tx pool feeder bad error\n"),
-                %io:fwrite(NewDict),
-                %io:fwrite("done\n"),
-%                error
-%	end,
-    %{reply, ok, State};
     {reply, R, State};
 handle_call(_, _, S) -> {reply, S, S}.
 handle_cast({dump, Block}, S) -> 
@@ -47,40 +38,31 @@ is_in(Tx, [STx2 | T]) ->
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
     %io:fwrite("tx pool feeder absorb internal\n"),
-    S = self(),
     Wait = case application:get_env(amoveo_core, kind) of
 	       {ok, "production"} -> 200;
 	       _ -> 200
 	   end,
+    absorb_timeout(SignedTx, Wait).
+absorb_timeout(SignedTx, Wait) ->
+    S = self(),
     H = block:height(),
     Tx = signing:data(SignedTx),
 %    F36 = forks:get(36),
 %    F38 = forks:get(38),
     Txid = hash:doit(Tx),
     PrevHash = block:hash(headers:top_with_block()),
-    %B = soft_fork:check(element(1, Tx), PrevHash, Txid),
-%    if
-%        (element(1, Tx) == market_liquidity_tx) and
-%        (H > F38) and
-%        (H < F36) and
-%        (B) ->
-                %drop tx
-%            io:fwrite("dropped market liquidity tx\n"),
-%            error;
-%        true ->
-            spawn(fun() ->
-                          absorb_internal2(SignedTx, S)
-                  end),
-            receive
-                X when (element(1, X) == dict) -> 
-                    %X,
-                    tx_pool:absorb_tx(X, SignedTx),
-                    ok;
-                error -> error;
-                Y -> {error, Y}
-                             
-            after 
-                Wait -> timeout_error
+    spawn(fun() ->
+                  absorb_internal2(SignedTx, S)
+          end),
+    receive
+        X when (element(1, X) == dict) -> 
+            tx_pool:absorb_tx(X, SignedTx),
+            ok;
+        error -> error;
+        Y -> {error, Y}
+                 
+    after 
+        Wait -> timeout_error
 %            end
     end.
 	    
@@ -242,7 +224,8 @@ ai2([H|T]) ->
 %    end,
     absorb_internal(H),
     ai2(T).
-    
+   
+ 
 absorb([]) -> ok;%if one tx makes the gen_server die, it doesn't ignore the rest of the txs.
 absorb([H|T]) -> absorb(H), absorb(T);
 absorb(SignedTx) ->
@@ -254,6 +237,20 @@ absorb(SignedTx) ->
 	    %1=2,
 	    ok
     end.
+absorb([], _) -> ok;
+absorb([H|T], Timeout) -> 
+    absorb(H, Timeout),
+    absorb(T, Timeout);
+absorb(Tx, Timeout) -> 
+    N = sync_mode:check(),
+    case N of
+	normal -> 
+	    gen_server:call(?MODULE, {absorb, Tx, Timeout});
+	_ -> io:fwrite("warning, transactions don't work if you aren't in sync_mode normal"),
+	    %1=2,
+	    ok
+    end.
+    
 absorb_async(SignedTxs) ->
     N = sync_mode:check(),
     case N of

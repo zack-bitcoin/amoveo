@@ -83,6 +83,14 @@ top(1) ->
     [H, block:hash(H)].
 sign(Tx) -> keys:sign(Tx).
 tx_maker0(Tx) -> 
+    X = case application:get_env(
+               amoveo_core, 
+               internal_tx_timeout) of
+            {ok, Y} -> Y;
+            undefined -> 200
+        end,
+    tx_maker0(Tx, X).
+tx_maker0(Tx, Timeout) -> 
     case sync_mode:check() of
 	quick ->
 	    S = "error, you need to be in sync mode normal to make txs",
@@ -94,7 +102,7 @@ tx_maker0(Tx) ->
 		    io:fwrite("your password is locked. use `keys:unlock(\"PASSWORD1234\")` to unlock it"),
 		    ok;
 		Stx -> 
-		    ok = tx_pool_feeder:absorb(Stx),
+		    ok = tx_pool_feeder:absorb(Stx, Timeout),
 		    hash:doit(Tx)
 	    end
     end.
