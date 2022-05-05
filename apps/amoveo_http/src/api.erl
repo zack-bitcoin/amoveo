@@ -635,7 +635,7 @@ integer_balance() ->
 balance() -> integer_balance().
 mempool() -> lists:reverse((tx_pool:get())#tx_pool.txs).
 halt() -> off().
-off() -> amoveo_sup:stop().
+off() -> amoveo_sup:stop(), erlang:halt().
 test_mine_blocks(S) ->
     spawn(fun() -> test_mine_blocks2(S) end).
 test_mine_blocks2(S) ->

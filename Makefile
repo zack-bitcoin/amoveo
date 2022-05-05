@@ -302,7 +302,8 @@ local-quick: kill
 	@bash scripts/config_setup.sh
 	make local-build local-clean
 	./_build/local/rel/amoveo_core/bin/amoveo_core console
-prod-restart: prod-stop
+prod-restart: #prod-stop
+	- @curl -i -d '["off"]' http://127.0.0.1:8081
 	@bash scripts/config_setup.sh
 	make prod-build prod-go
 	@sleep 3
