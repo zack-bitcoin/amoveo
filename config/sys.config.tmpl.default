@@ -85,7 +85,11 @@
     
     {mining_pool_refresher, 0},
 
-    {internal_tx_timeout, 2000} %%in miliseconds.
+    {internal_tx_timeout, 2000}, %%in miliseconds.
+
+    {assume_valid, {215000, <<106,76,110,178,197,122,84,1,2,214,133,241,162,40,199,195,154,209,75,247,164,238,62,15,204,26,49,163,115,111,239,85>>}}
+    %200 blocks per second without this.
+    %starts at height: 100 time: 161438 880120
 
   ]},
 

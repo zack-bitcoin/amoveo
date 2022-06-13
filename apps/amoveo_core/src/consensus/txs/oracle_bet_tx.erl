@@ -5,7 +5,7 @@
 		     nonce, 
 		     fee, 
 		     id, %id is the id of the oracle they want to participate in.
-		     type, %either "true", "false" or "bad_question"
+		     type, %either 1="true", 2="false" or 3="bad_question"
 		     amount
                      }).%how many shares do you want to buy?
 %This is how you can participate in an existing oracle.

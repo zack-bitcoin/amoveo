@@ -159,8 +159,13 @@ absorb_internal(Block) ->
 		    if
 			(Block2#block.height rem 100) == 0 ->
 			%1 == 1 ->
-			    io:fwrite("absorb block "),
+                            {_, T1, T2} = erlang:timestamp(),
+			    io:fwrite("absorb block height: "),
 			    io:fwrite(integer_to_list(Block2#block.height)),
+                            io:fwrite(" time: "),
+                            io:fwrite(integer_to_list(T1)),
+                            io:fwrite(" "),
+                            io:fwrite(integer_to_list(T2)),
 			    io:fwrite("\n");
 			true -> ok
 		    end,

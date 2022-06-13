@@ -64,6 +64,10 @@ doit({markets, MID}) ->
     {ok, api:tree_common(markets, MID)};%trees:get(markets, MID)};
 doit({contracts, CID}) ->
     {ok, api:tree_common(contracts, CID)};%trees:get(contracts, CID)};
+doit({sub_accounts, IDs}) when is_list(IDs) ->
+    true = (length(IDs) < 1000),
+    Accs = lists:map(fun(X) -> api:tree_common(sub_accounts, X) end, IDs),
+    {ok, Accs}; 
 doit({sub_accounts, ID}) ->
     {ok, api:tree_common(sub_accounts, ID)};%trees:get(sub_accounts, ID)};
 doit({oracles, ID}) ->

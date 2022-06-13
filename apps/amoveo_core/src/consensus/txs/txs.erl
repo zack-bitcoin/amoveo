@@ -15,7 +15,16 @@ digest([C|T], Dict, H) ->
     end.
 digest_txs([], Dict, _) -> Dict;
 digest_txs([STx|T], Dict, Height) ->
-    true = signing:verify(STx),
+    case application:get_env(amoveo_core, assume_valid) of
+        {ok, {AssumeHeight, _}} ->
+            if
+                (AssumeHeight > Height) -> ok;
+                true -> true = signing:verify(STx)
+            end;
+        _ ->
+            %no assume_valid block in the config file.
+            true = signing:verify(STx)
+    end,
     Tx = signing:data(STx),
     Fee = element(4, Tx),
     true = Fee > 0,

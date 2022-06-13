@@ -720,9 +720,21 @@ proofs_roots_match([P|T], R) when is_record(R, roots5)->
 
 
 check0(Block) ->%This verifies the txs in ram. is parallelizable
-    Facts = Block#block.proofs,
+    %assume_valid {height, hash}
+    Height = Block#block.height,
     Header = block_to_header(Block),
     BlockHash = hash(Header),
+    case application:get_env(amoveo_core, assume_valid) of
+        {ok, {Height, BlockHash}} ->
+            %this is the block we are assuming is valid.
+            ok;
+        {ok, {Height, _}} ->
+            io:fwrite("error, this block is not the one that we have assumed is valid for this height in the config file."),
+            1=2;
+        _ ->
+            ok
+    end,
+    Facts = Block#block.proofs,
     {ok, Header} = headers:read(BlockHash),
     Roots = Block#block.roots,
     PrevStateHash = roots_hash(Roots),
@@ -731,7 +743,6 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     Txs = Block#block.txs,
     true = proofs_roots_match(Facts, Roots),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
-    Height = Block#block.height,
     PrevHash = Block#block.prev_hash,
     _Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
