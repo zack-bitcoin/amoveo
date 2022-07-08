@@ -34,7 +34,7 @@ contracts() ->
     %S = test(61),%make a bid to buy veo and the btc is not provided in time.
     %S = test(62),%withdraw someone's money from an oracle for them.
     %S = test(63),%full contract process in one block.
-    S = test(64),
+    %S = test(64),
 
     S.
     

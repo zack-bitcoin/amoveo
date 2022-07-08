@@ -18,10 +18,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     evidence = Evidence,%like the script sig in bitcoin
     prove = Prove%on-chain state to include.
    } = Tx,
-    Nonce = if 
-                 NonceCheck -> Nonce0;
-                 true -> none
-             end,
+%    Nonce = if 
+%                 NonceCheck -> Nonce0;
+%                 true -> none
+%             end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#contract_evidence_tx.nonce),
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     Contract = contracts:dict_get(CID, Dict2),

@@ -106,10 +106,13 @@ dict_give_bets([Order|T], Type, Dict, OID, Height) ->
 go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#oracle_bet.from,
     %txs:developer_lock(From, NewHeight, Dict),
-    Nonce = if
-		NonceCheck -> Tx#oracle_bet.nonce;
-		true -> none
-	    end,
+    %Nonce = if
+	%	NonceCheck -> Tx#oracle_bet.nonce;
+	%	true -> none
+	%    end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#oracle_bet.nonce),
     Facc = accounts:dict_update(From, Dict, -Tx#oracle_bet.fee - Tx#oracle_bet.amount, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     <<_:256>> = Tx#oracle_bet.id,

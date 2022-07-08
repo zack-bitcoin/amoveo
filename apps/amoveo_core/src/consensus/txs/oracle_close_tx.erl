@@ -19,10 +19,13 @@ make(From, Fee, OID, Trees) ->
 go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#oracle_close.from,
     %txs:developer_lock(From, NewHeight, Dict),
-    Nonce = if
-		NonceCheck -> Tx#oracle_close.nonce;
-		true -> none
-	    end,
+%    Nonce = if
+%		NonceCheck -> Tx#oracle_close.nonce;
+%		true -> none
+%	    end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#oracle_close.nonce),
     Acc = accounts:dict_update(From, Dict, -Tx#oracle_close.fee, Nonce),
     Dict2 = accounts:dict_write(Acc, Dict),
     OID = Tx#oracle_close.oracle_id,

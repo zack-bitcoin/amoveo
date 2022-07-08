@@ -145,10 +145,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 		 ok
 	 end,
     From = Tx#oracle_new.from,
-    Nonce = if
-		NonceCheck -> Tx#oracle_new.nonce;
-		true -> none
-	    end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#oracle_new.nonce),
+    %Nonce = if
+	%	NonceCheck -> Tx#oracle_new.nonce;
+	%	true -> none
+	%    end,
     Facc = accounts:dict_update(From, Dict2, -Tx#oracle_new.fee-OIL, Nonce),
     Dict3 = accounts:dict_write(Facc, Dict2),
     %OFL = governance:dict_get_value(oracle_future_limit, Dict3),

@@ -10,6 +10,11 @@ dump_channels() ->
 keys_status() -> keys:status().
 load_key(Pub, Priv, Brainwallet) ->
     keys:load(Pub, Priv, Brainwallet).
+sync(1) ->
+    case sync_mode:check() of
+        quick -> 0;
+        normal -> 1
+    end.
 height() ->    
     (headers:top())#header.height.
 height(1) ->

@@ -48,6 +48,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     fee = Fee,
     amount = Amount %amount is the larger of 2 amounts that could be deposited. 
    } = Tx,
+    true = is_integer(Nonce),
     F36 = forks:get(36),
     F37 = forks:get(37),
     Nonce20 = if

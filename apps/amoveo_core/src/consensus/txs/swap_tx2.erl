@@ -97,10 +97,13 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
     Dict2 = trades:dict_write(Trade2, Dict0),
     A1 = Amount1 * MatchParts div Parts,
     A2 = Amount2 * MatchParts div Parts,
-    Nonce = if
-                NonceCheck -> Nonce0;
-                true -> none
-            end,
+%    Nonce = if
+%                NonceCheck -> Nonce0;
+%                true -> none
+%            end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#swap_tx2.nonce),
     A2Fee = accounts:dict_update(
               Acc2, Dict2, -Fee, Nonce),
     Dict3 = accounts:dict_write(A2Fee, Dict2),

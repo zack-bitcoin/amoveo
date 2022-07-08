@@ -24,10 +24,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     false = From == To,
     A = Tx#spend.amount,
     true = ((A > (-1)) or (NewHeight == 24434)),
-    Nonce = if
-		NonceCheck -> Tx#spend.nonce;
-		true -> none
-	    end,
+    %Nonce = if
+    %NonceCheck -> Tx#spend.nonce;
+	%	true -> none
+	%    end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#spend.nonce),
     Facc = accounts:dict_update(
              From, Dict, -A-Tx#spend.fee, Nonce),
     Tacc = accounts:dict_update(To, Dict, A, none),

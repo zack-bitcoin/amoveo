@@ -32,10 +32,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Pub = Tx#create_acc_tx.pubkey,
     Amount = Tx#create_acc_tx.amount,
     true = (Amount > (-1)),
-    Nonce = if
-		NonceCheck -> Tx#create_acc_tx.nonce;
-		true -> none
-	    end,
+    %Nonce = if
+    %NonceCheck -> Tx#create_acc_tx.nonce;
+    %true -> none
+%end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#create_acc_tx.nonce),
     AccountFee = Tx#create_acc_tx.fee,
     empty = accounts:dict_get(Pub, Dict, NewHeight),
     Account = accounts:dict_update(From, Dict, -Amount - AccountFee, Nonce),

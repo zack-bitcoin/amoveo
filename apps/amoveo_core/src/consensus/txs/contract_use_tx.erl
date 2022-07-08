@@ -33,10 +33,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     source_type = SourceType
    } = Tx,
     true = NewHeight > forks:get(32),
-    Nonce = if
-		NonceCheck -> Nonce0;
-		true -> none
-	    end,
+%    Nonce = if
+%		NonceCheck -> Nonce0;
+%		true -> none
+%	    end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#contract_use_tx.nonce),
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     Contract = contracts:dict_get(CID, Dict2),

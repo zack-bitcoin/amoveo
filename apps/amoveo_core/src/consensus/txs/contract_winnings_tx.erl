@@ -23,10 +23,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     row = Row,
     proof = Proof
    } = Tx,
-    Nonce = if
-		NonceCheck -> Nonce0;
-		true -> none
-	    end,
+%    Nonce = if
+%		NonceCheck -> Nonce0;
+%		true -> none
+%	    end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#contract_winnings_tx.nonce),
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
 

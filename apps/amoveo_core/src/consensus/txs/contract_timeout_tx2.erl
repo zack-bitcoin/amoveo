@@ -24,10 +24,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
    } = Tx,
     F51 = forks:get(51),
     true = NewHeight > F51,
-    Nonce = if
-		NonceCheck -> Nonce0;
-		true -> none
-	    end,
+%    Nonce = if
+%		NonceCheck -> Nonce0;
+%		true -> none
+%	    end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#contract_timeout_tx2.nonce),
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     Dict2 = accounts:dict_write(Facc, Dict),
     Contract = contracts:dict_get(CID, Dict2),
@@ -36,7 +39,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                delay = Delay,
                source = Source,
                source_type = SourceType,
-               sink = CID2,
+               sink = CID2,%cid2 is the sink of the parent contract.
                result = Result,
                closed = 0
    } = Contract,

@@ -33,10 +33,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 	  end,%
     Bet = UMT:dict_get({key, AID, OID}, Dict, NewHeight),
     Reward = UMT:reward(Bet, Result, NewHeight),
-    Nonce = if
-		NonceCheck -> Tx#oracle_winnings.nonce;
-		true -> none
-	    end,
+%    Nonce = if
+%		NonceCheck -> Tx#oracle_winnings.nonce;
+%		true -> none
+%	    end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#oracle_winnings.nonce),
     Acc2 = accounts:dict_update(AID, Dict, -Tx#oracle_winnings.fee + Reward, Nonce),
     Dict2 = accounts:dict_write(Acc2, Dict),
     UMT:dict_delete({key, AID, OID}, Dict2).

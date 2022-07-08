@@ -36,9 +36,12 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Order = UMT:dict_get({key, AID, OracleID}, Dict, NewHeight),
     Amount = UMT:amount(Order),
     Dict2 = UMT:dict_remove(AID, OracleID, Dict),
-    Nonce = if
-		NonceCheck -> Tx#unmatched.nonce;
-		true -> none
-	    end,
+    Nonce = nonce_check:doit(
+              NonceCheck, 
+              Tx#unmatched.nonce),
+    %Nonce = if
+	%	NonceCheck -> Tx#unmatched.nonce;
+	%	true -> none
+	%    end,
     Facc = accounts:dict_update(AID, Dict2, Amount - Tx#unmatched.fee, Nonce),
     accounts:dict_write(Facc, Dict2).
