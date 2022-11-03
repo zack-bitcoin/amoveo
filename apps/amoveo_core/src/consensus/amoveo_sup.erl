@@ -17,7 +17,9 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       found_block_timer, vanity, peers_heights,
                white_list, nc_sigs, 
                mining_pool_refresher, 
-               checkpoint, soft_fork]).
+               checkpoint, soft_fork, 
+               verkle_trees_sup
+              ]).
 child_killer([]) -> [];
 child_killer([H|T]) -> 
     supervisor:terminate_child(amoveo_sup, H),
@@ -36,7 +38,9 @@ stop() ->
     child_killer(?keys),
     tree_killer(trees()),
     ok = application:stop(amoveo_core),
-    ok = application:stop(amoveo_http).
+    ok = application:stop(amoveo_http),
+    %ok = application:stop(verkle),
+    ok.
     
 child_maker([]) -> [];
 child_maker([H|T]) -> [?CHILD(H, worker)|child_maker(T)].
@@ -76,6 +80,8 @@ init([]) ->
 	     tree_child(stablecoins, HS, 202, 0, Mode, TrieSize),
 	     tree_child(receipts, HS, constants:receipt_size(), 0, Mode, TrieSize)
 	    ],
-    {ok, { {one_for_one, 50000, 1}, Tries ++ Children} }.
+    {ok, { {one_for_one, 50000, 1}, Tries ++ Children %++ 
+               %[{verkle_trees_sup, {verkle_trees_sup, start_link. []}, permanent, 5000, supervistor [verkle_trees_sup]}}
+} }.
 
 

@@ -1,0 +1,16 @@
+
+* verkle tree supervisor.
+
+* check that storing meta data works in the verkle tree.
+
+* get the new trees working with the kind of data we want. use meta for the tree type, and location in the O(1) db.
+
+* transfering the consensus state into the new tree. (or maintaining them both in parallel?)
+
+* the new versions of transactions that will all be using the new tree.
+
+* block access to the old tree after the update.
+
+* make sure serializing to json for http works, and that the light node can verify the proofs.
+
+* set the correct update height.

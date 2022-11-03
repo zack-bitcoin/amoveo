@@ -11,6 +11,7 @@
                   jiffy,
                   dump,
                   trie,
+                  verkle,
                   pink_hash,
                   chalang,
                   amoveo_http,

@@ -137,7 +137,14 @@ clean3: old-clean
 build: $$(KIND)
 	@./rebar3 as $(KIND) release
 
+compile: $$(KIND)
+	@mkdir -p ./_build/$(KIND)/rel/amoveo_core/ebin
+	@gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/$(KIND)/rel/amoveo_core/ebin/fr.so ./_build/$(KIND)/lib/verkle/src/crypto/fr.c -I $ERL_ROOT/user/include/
+	@gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/$(KIND)/rel/amoveo_core/ebin/ed25519.so ./_build/$(KIND)/lib/verkle/src/crypto/ed25519.c -I $ERL_ROOT/user/include/
+
 go: $$(KIND)
+	compile \
+       #compiles the C code every time.
 	@./_build/$(KIND)/$(CORE) start
 
 stop: $$(KIND)
@@ -296,7 +303,9 @@ multi-quick: kill
 	@bash scripts/config_setup.sh
 	make multi-stop multi-build multi-clean multi-go
 
-local-quick: kill
+local-quick: KIND=local
+local-quick: kill \
+	compile 
 	make multi-stop
 	make local-stop
 	@bash scripts/config_setup.sh
