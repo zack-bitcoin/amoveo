@@ -137,14 +137,14 @@ clean3: old-clean
 build: $$(KIND)
 	@./rebar3 as $(KIND) release
 
+#compiles the c code used for verkle trees.
 compile: $$(KIND)
 	@mkdir -p ./_build/$(KIND)/rel/amoveo_core/ebin
 	@gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/$(KIND)/rel/amoveo_core/ebin/fr.so ./_build/$(KIND)/lib/verkle/src/crypto/fr.c -I $ERL_ROOT/user/include/
 	@gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/$(KIND)/rel/amoveo_core/ebin/ed25519.so ./_build/$(KIND)/lib/verkle/src/crypto/ed25519.c -I $ERL_ROOT/user/include/
 
-go: $$(KIND)
-	compile \
-       #compiles the C code every time.
+go: $$(KIND) \
+	compile 
 	@./_build/$(KIND)/$(CORE) start
 
 stop: $$(KIND)

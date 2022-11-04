@@ -20,7 +20,7 @@ init([]) ->
     MetaBytes = 8,
     A1 = accounts_dump,
     %Children = [{verkle_supervisor, {verkle_sup, start_link, [32, 32, verkle, 0, MetaBytes, hd, "data/verkle.db"]}, permanent, 5000, supervisor, [verkle_sup]},
-    Children = [{verkle_supervisor, {verkle_sup, start_link, [32, 32, verkle, 0, MetaBytes, hd, ""]}, permanent, 5000, supervisor, [verkle_sup]},
+    Children = [{verkle_supervisor, {verkle_sup, start_link, [32, 32, amoveo, 0, MetaBytes, hd, ""]}, permanent, 5000, supervisor, [verkle_sup]},
                 %{A1, {dump_sup, start_link,[A1, constants:account_size(), 0, hd, "data/account_verkle_dump.db"]}, permanent, 5000, supervisor, [dump_sup]}],
                 {A1, {dump_sup, start_link,[A1, constants:account_size(), 0, hd, ""]}, permanent, 5000, supervisor, [dump_sup]}],
     {ok, {{one_for_one, 50000, 1}, Children}}.
