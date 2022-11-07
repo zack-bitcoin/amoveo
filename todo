@@ -1,4 +1,8 @@
+* it is important that the verkle tree has the ability to delete old data. We only want to ever revert like 50 blocks, so we can delete consensus state from before then.
+
+
 * get the new trees working with the kind of data we want. use meta for the tree type, and location in the O(1) db.
+ - trees2:store/3 needs to be implemented. combining the dump with the verkle tree.
 
 * transfering the consensus state into the new tree. (or maintaining them both in parallel?)
 
