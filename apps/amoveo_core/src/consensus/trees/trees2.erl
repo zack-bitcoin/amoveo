@@ -1,61 +1,176 @@
 -module(trees2).
--export([test/1]).
+-export([test/1, decompress_pub/1]).
+
+-include("../../records.hrl").
 
 range(N, N) ->
     [N];
 range(N, M) when N < M ->
     [N|range(N+1, M)].
 
-type2int(account) ->
+type2int(acc) ->
     <<1>>.
 
-
-make_leaf(Type, Data) when Type == account ->
-    Meta0 = type2int(Type),
-    Meta = <<Meta0/binary, 0:56>>,
+cs2v([]) -> [];
+cs2v([Acc|T]) when is_record(Acc, acc) ->
+    %converts consensus state into the verkle data.
+    %consensus state is like accounts and contracts and whatever.
+    %verkle data is a list of leaves that can be fed into store_verkle:batch/3.
     CFG = tree:cfg(amoveo),
-    %todo. get key and value from data. value is the hash of data.
-    Key = ok,
-    Value = ok,
-    leaf_verkle:new(Key, Value, Meta, CFG).
+    K = account_key(Acc),
+    V = account_serialize(Acc),
+    H = hash:doit(V),
+
+    M = dump:put(V, accounts_dump),
+    Meta = <<1, M:(7*8)>>, %type 1 is for accounts.
+
+    Leaf = leaf_verkle:new(K, H, Meta, CFG),
+    [Leaf|cs2v(T)].
+    
+                       
+    
+                           
+    
 
 update_proof(L, ProofTree) ->
+    %L is a list of accounts and contracts and whatever.
     CFG = tree:cfg(amoveo),
-    Leaves = lists:map(
-               fun({Type, Data}) ->
-                       make_leaf(Type, Data)
-               end, L),
+    Leaves = cs2v(L),
     verify_verkle:update(
       ProofTree, Leaves, CFG).
 
-store(Loc, Data, ProofTree) ->
+%recurse over the tree, and do cs2v on each leaf we find, to convert to the format we will write in the verkle tree.
+%todo
+cs2v_star([]) -> [];
+cs2v_star([H|T]) -> 
+    [cs2v_star(H)|cs2v_star(T)];
+cs2v_star({N, {Key, Value}}) 
+  when is_integer(N) and 
+       is_binary(Key) and 
+       is_binary(Value) -> 
+    io:fwrite({size(Key), size(Value), Key, Value}),
+    ok;
+cs2v_star(X = {N, {mstem, A, B}}) -> X;
+cs2v_star(B) when is_binary(B) -> B.
+
+store_verified(Loc, ProofTree) ->
     CFG = tree:cfg(amoveo),
-    %for each leaf in the proof tree, we need to store that data in the dump, in order to know the meta for the leaf.
-
-    %todo, store data so that depth first search is in order. (order keys from lowest to highest).
-
-    %do a depth first scan of the prooftree, storing data in the dump and inserting the correct meta for the leaf.
-
-    %Location = dump:put(Data, DumpID). (dump id is like, accounts vs contracts.)
-    Loc2 = ok,
-    ProofTree2 = ok,
+    %ProofTree2 = cs2v_star(ProofTree),
     store_verkle:verified(
-      Loc2, ProofTree2, CFG).
+      Loc, ProofTree, CFG).
+
+store_things(Things, Loc) ->
+    %return the pointer to the new version of the verkle tree.
+    CFG = tree:cfg(amoveo),
+    V = cs2v(Things),
+    store_verkle:batch(V, Loc, CFG).
+
+account_key(#acc{pubkey = Pub}) ->
+    %hash of the pubkey.
+    PubkeySize = constants:pubkey_size(),
+    PubkeySize = size(Pub),
+    hash:doit(Pub).
+compress_pub(<<4, X:256, Y:256>>) ->
+    Positive = Y rem 2,
+    <<(6 + Positive), X:256>>.
+det_pow(A, 1) -> A;
+det_pow(A, B) when B rem 2 == 0 -> 
+    %io:fwrite("det pow even\n"),
+    det_pow(A*A, B div 2);
+det_pow(A, B) -> 
+    A * det_pow(A, B-1).
+det_pow_mod(A, 1, _) -> A;
+det_pow_mod(A, B, P) when B rem 2 == 0-> 
+    det_pow_mod(A*A rem P, B div 2, P);
+det_pow_mod(A, B, P) -> 
+    (A*det_pow_mod(A, B-1, P)) rem P.
+decompress_pub(<<A, X:256>>) ->
+    %y^2 = x^3 + 7
+    %P = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
+    Positive = A - 6,
+    P = det_pow(2, 256) - 
+        det_pow(2, 32) -
+        det_pow(2, 9) -
+        det_pow(2, 8) -
+        det_pow(2, 7) -
+        det_pow(2, 6) -
+        det_pow(2, 4) -
+        1,
+    X3 = ((X * X) rem P) * X rem P,
+    Y2 = (X3 + 7) rem P,
+    Y = det_pow_mod(Y2, (P + 1) div 4, P),
+    if
+        (Positive 
+         bxor (Y rem 2)) == 0 -> 
+            <<4, X:256, Y:256>>;
+         true -> 
+            NY = P -Y,
+            <<4, X:256, NY:256>>
+    end.
+    
+    
+account_serialize(
+  #acc{pubkey = Pub, nonce = Nonce, 
+       balance = Balance}) ->
+    %33 + 8 + 3 = 44 bytes.
+    Pub2 = case size(Pub) of
+               65 -> compress_pub(Pub);
+               33 -> Pub
+           end,
+    <<Pub2/binary, Balance:64, Nonce:24>>.
+    % balance was 6 bytes. nonce was 3 bytes.
+    % lets up balance to 8 bytes.
+account_deserialize(
+  <<Pub:(33*8), Balance:64, Nonce:24>>) ->
+    #acc{pubkey = <<Pub:(33*8)>>,
+         nonce = Nonce, balance = Balance}.
+
+to_keys([]) -> [];
+to_keys([Acc|T]) when is_record(Acc, acc) ->
+    [account_key(Acc)|to_keys(T)].
+
+%to_values([]) -> [];
+%to_values([Acc|T]) when is_record(Acc, acc) -> 
+%    [account_serialized(Acc)|to_values(T)].
+
+get_proof(Keys, Loc) ->
+    get_proof(Keys, Loc, small).
+get_proof(Keys, Loc, Type) ->
+    CFG = tree:cfg(amoveo),
+    case Type of
+        fast -> ok;
+        small -> ok
+    end,
+    get_verkle:batch(Keys, Loc, CFG, Type).
+
+verify_proof(Proof, Things) ->
+    CFG = tree:cfg(amoveo),
+    {true, Leaves, ProofTree} = 
+        verify_verkle:proof(Proof, CFG),
+    Ks = to_keys(Things),
+    Hs = lists:map(
+           fun(A) -> 
+                   hash:doit(
+                     account_serialize(A))
+           end, Things),
+    KHs = lists:zipwith(fun(K, H) -> {K, H} end,
+                        Ks, Hs),
+    {lists:sort(KHs) == lists:sort(Leaves),
+     ProofTree}.
     
 
 test(0) ->
     CFG = tree:cfg(amoveo),
     Loc = 1,
-    Many = 6,
+    Many = 4,
     Pairs = 
         lists:map(
           fun(N) ->
                   Key = crypto:strong_rand_bytes(32),
                   Val = crypto:strong_rand_bytes(32),
-                  %Meta = crypto:strong_rand_bytes(8),
-                  Meta = <<N:64>>,
+                  Meta = crypto:strong_rand_bytes(8),
                   {Key, Val, Meta}
-          end, range(1, Many)),
+          end, range(1, 4)),
     Leaves = lists:map(
                fun({Key, Val, Meta}) ->
                        leaf_verkle:new(
@@ -67,16 +182,15 @@ test(0) ->
                      Key
              end, Pairs),
     Keys = [AddKey| Keys0],
-    Keys2 = [AddKey, hd(Keys0), hd(tl(Keys0))],
     
     {Loc2, stem, _} = store_verkle:batch(
                         Leaves, Loc, CFG),
 
     %normal proof has ~500 bytes overhead. Take ~1 second longer to make that fast proofs.
-    {Proof, _} = get_verkle:batch(Keys2, Loc2, CFG),
+    {Proof, _} = get_verkle:batch(Keys, Loc2, CFG),
     %fast proof has ~8000 bytes overhead, but can be made faster.
     {FastProof, _} = 
-        get_verkle:batch(Keys2, Loc2, CFG, fast),
+        get_verkle:batch(Keys, Loc2, CFG, fast),
 
     %verifying proofs
     Root = stem_verkle:root(
@@ -112,12 +226,49 @@ test(0) ->
     Loc3 = store_verkle:verified(
              Loc2, ProofTree4, CFG),
 
-    %pruning an old version of the tree, and getting meta data from the deleted leaves.
+    success;
+test(1) ->
+    Range = 10,
+    Keys = lists:map(fun(_) -> signing:new_key()
+                     end, range(1, Range)),
+    As = lists:map(
+           fun({P, _}) ->
+                   #acc{pubkey = P, 
+                        balance = 100000000, 
+                        nonce = 0} 
+           end, Keys),
+    {As0, _} = lists:split(Range div 2, As),
 
-    Deleted = 
-        prune_verkle:doit_stem(Loc2, Loc3, CFG),
-    2 = length(Deleted),
+    As2 = lists:map(fun(A) ->
+                            A#acc{balance = 27}
+                    end, As0),
     
+    Loc = 1,
+    {Loc2, stem, _} = store_things(As, Loc),
+    
+    {Proof, _} = get_proof(to_keys(As2), Loc2),
+   
+    {true, ProofTree} = verify_proof(Proof, As0),
+    
+    ProofTree2 = update_proof(As2, ProofTree),
+    
+    Loc3 = store_verified(Loc2, ProofTree2),
 
+    {Proof3, _} = get_proof(to_keys(As2), Loc3),
+    
+    {true, _} = verify_proof(Proof3, As2),
 
+    %io:fwrite({hd(Stuff), hd(Stuff2)}),
+    io:fwrite(As2),
+
+    success;
+test(2) ->
+    {Pub, _} =  signing:new_key(),
+    Cpub = compress_pub(Pub),
+    Pub2 = decompress_pub(Cpub),
+    <<_, _:256, Y1:256>> = Pub,
+    <<_, _:256, Y2:256>> = Pub2,
+    %io:fwrite({Y1, Y2}),
+    Y1 = Y2,
     success.
+
