@@ -8,8 +8,7 @@ range(N, N) ->
 range(N, M) when N < M ->
     [N|range(N+1, M)].
 
-type2int(acc) ->
-    <<1>>.
+type2int(acc) -> 1.
 
 cs2v([]) -> [];
 cs2v([Acc|T]) when is_record(Acc, acc) ->
@@ -17,12 +16,13 @@ cs2v([Acc|T]) when is_record(Acc, acc) ->
     %consensus state is like accounts and contracts and whatever.
     %verkle data is a list of leaves that can be fed into store_verkle:batch/3.
     CFG = tree:cfg(amoveo),
-    K = account_key(Acc),
-    V = account_serialize(Acc),
+    K = key(Acc),
+    V = serialize(Acc),
     H = hash:doit(V),
 
     M = dump:put(V, accounts_dump),
-    Meta = <<1, M:(7*8)>>, %type 1 is for accounts.
+    M1 = type2int(acc),
+    Meta = <<M1, M:(7*8)>>, %type 1 is for accounts.
 
     Leaf = leaf_verkle:new(K, H, Meta, CFG),
     [Leaf|cs2v(T)].
@@ -65,7 +65,7 @@ store_things(Things, Loc) ->
     V = cs2v(Things),
     store_verkle:batch(V, Loc, CFG).
 
-account_key(#acc{pubkey = Pub}) ->
+key(#acc{pubkey = Pub}) ->
     %hash of the pubkey.
     PubkeySize = constants:pubkey_size(),
     PubkeySize = size(Pub),
@@ -109,7 +109,7 @@ decompress_pub(<<A, X:256>>) ->
     end.
     
     
-account_serialize(
+serialize(
   #acc{pubkey = Pub, nonce = Nonce, 
        balance = Balance}) ->
     %33 + 8 + 3 = 44 bytes.
@@ -122,12 +122,13 @@ account_serialize(
     % lets up balance to 8 bytes.
 account_deserialize(
   <<Pub:(33*8), Balance:64, Nonce:24>>) ->
-    #acc{pubkey = <<Pub:(33*8)>>,
+    Pub2 = decompress_pub(<<Pub:(33*8)>>),
+    #acc{pubkey = Pub2,
          nonce = Nonce, balance = Balance}.
 
 to_keys([]) -> [];
-to_keys([Acc|T]) when is_record(Acc, acc) ->
-    [account_key(Acc)|to_keys(T)].
+to_keys([Acc|T]) ->
+    [key(Acc)|to_keys(T)].
 
 %to_values([]) -> [];
 %to_values([Acc|T]) when is_record(Acc, acc) -> 
@@ -151,12 +152,25 @@ verify_proof(Proof, Things) ->
     Hs = lists:map(
            fun(A) -> 
                    hash:doit(
-                     account_serialize(A))
+                     serialize(A))
            end, Things),
     KHs = lists:zipwith(fun(K, H) -> {K, H} end,
                         Ks, Hs),
     {lists:sort(KHs) == lists:sort(Leaves),
      ProofTree}.
+
+prune(Trash, Keep) ->
+    CFG = tree:cfg(amoveo),
+    RemovedLeaves = 
+        prune_verkle:doit_stem(Trash, Keep, CFG),
+    lists:map(fun(L = {leaf, Key, Value, <<Type, Loc:(7*8)>>}) ->
+                      case Type of
+                          1 -> %acc
+                              io:fwrite("prune account\n"),
+                              dump:delete(Loc, accounts_dump)
+                      end
+              end, RemovedLeaves),
+    ok.
     
 
 test(0) ->
@@ -226,6 +240,10 @@ test(0) ->
     Loc3 = store_verkle:verified(
              Loc2, ProofTree4, CFG),
 
+    Pruned = prune_verkle:doit_stem(Loc2, Loc3, CFG),
+    %io:fwrite(Pruned),
+    %{leaf, Key, Value, Meta}) ->
+
     success;
 test(1) ->
     Range = 10,
@@ -258,8 +276,10 @@ test(1) ->
     
     {true, _} = verify_proof(Proof3, As2),
 
+    prune(Loc2, Loc3),
+
     %io:fwrite({hd(Stuff), hd(Stuff2)}),
-    io:fwrite(As2),
+    %io:fwrite(As2),
 
     success;
 test(2) ->
