@@ -2,11 +2,35 @@
 -export([test/1, decompress_pub/1]).
 
 -include("../../records.hrl").
+-record(exist, {hash, height}).
+-record(unmatched, {account, %pubkey of the account
+		    oracle, %oracle id
+		    amount,
+		    pointer}).
+-record(receipt, {id, tid, pubkey, nonce}).
 
 range(N, N) ->
     [N];
 range(N, M) when N < M ->
     [N|range(N+1, M)].
+
+%places we need to support every type
+% type2int
+% cs2v
+% key
+% delete_thing
+
+%kinds of trees to support
+% {acc, balance, nonce, pubkey}
+% {exist, hash, height}
+% {oracle, id, result, question, starts, type, orders, creator, done_timer}
+% {matched, amount, oracle, true, false, bad}
+% {unmatched, account, oracle, amount, pointer}
+% {sub_acc, balance, nonce, pubkey, contract_id, type}
+% {contract, code, many_types, nonce, last_modified, delay, closed, result, source, source_type, sink, volume}
+% {trade, height, value}
+% {market, id, cid1, type1, amount1, cid2, type2, amount2, shares}
+% {receipt, id, tid, pubkey, nonce}
 
 type2int(acc) -> 1.
 
@@ -40,22 +64,8 @@ update_proof(L, ProofTree) ->
       ProofTree, Leaves, CFG).
 
 %recurse over the tree, and do cs2v on each leaf we find, to convert to the format we will write in the verkle tree.
-%todo
-cs2v_star([]) -> [];
-cs2v_star([H|T]) -> 
-    [cs2v_star(H)|cs2v_star(T)];
-cs2v_star({N, {Key, Value}}) 
-  when is_integer(N) and 
-       is_binary(Key) and 
-       is_binary(Value) -> 
-    io:fwrite({size(Key), size(Value), Key, Value}),
-    ok;
-cs2v_star(X = {N, {mstem, A, B}}) -> X;
-cs2v_star(B) when is_binary(B) -> B.
-
 store_verified(Loc, ProofTree) ->
     CFG = tree:cfg(amoveo),
-    %ProofTree2 = cs2v_star(ProofTree),
     store_verkle:verified(
       Loc, ProofTree, CFG).
 
@@ -68,11 +78,17 @@ store_things(Things, Loc) ->
 key(#acc{pubkey = Pub}) ->
     %hash of the pubkey.
     PubkeySize = constants:pubkey_size(),
-    PubkeySize = size(Pub),
-    hash:doit(Pub).
+    case size(Pub) of
+        PubkeySize ->
+            hash:doit(compress_pub(Pub));
+        33 -> hash:doit(Pub)
+    end.
 compress_pub(<<4, X:256, Y:256>>) ->
     Positive = Y rem 2,
-    <<(6 + Positive), X:256>>.
+    <<(6 + Positive), X:256>>;
+compress_pub(<<4, X:256>>) ->
+    <<4, X:256>>.
+
 det_pow(A, 1) -> A;
 det_pow(A, B) when B rem 2 == 0 -> 
     %io:fwrite("det pow even\n"),
@@ -112,14 +128,88 @@ decompress_pub(<<A, X:256>>) ->
 serialize(
   #acc{pubkey = Pub, nonce = Nonce, 
        balance = Balance}) ->
-    %33 + 8 + 3 = 44 bytes.
-    Pub2 = case size(Pub) of
-               65 -> compress_pub(Pub);
-               33 -> Pub
-           end,
-    <<Pub2/binary, Balance:64, Nonce:24>>.
-    % balance was 6 bytes. nonce was 3 bytes.
-    % lets up balance to 8 bytes.
+    %33 + 8 + 4 = 45 bytes.
+    Pub2 = compress_pub(Pub),
+    <<Pub2/binary, Balance:64, Nonce:32>>;
+serialize(#exist{hash = A, height = E}) ->
+    <<E:32, A/binary>>;%8 + 32 = 40
+serialize(
+  #oracle{id = ID, result = Result, question = Q,
+          starts = S, type = T, creator = C, 
+          done_timer = D
+         }) ->
+    32 = size(ID),
+    32 = size(Q),
+    C2 = compress_pub(C),
+    <<ID/binary, Result, T, %32 + 1 + 1
+      S:256, D:256, C2/binary,  %32 + 32 + 33
+      Q/binary>>; %32
+%128 + 35 = 163
+serialize(
+ #matched{account = A, oracle = O, true = T, 
+          false = F, bad = B}) ->
+    A2 = compress_pub(A),
+    32 = size(O),
+    <<A2/binary, O/binary, T:64, F:64, B:64>>;
+%33 + 32 + 8 + 8 + 8 = 56+33 = 89
+serialize(
+ #unmatched{account = A, oracle = O, amount = A, 
+            pointer = P}) ->
+    A2 = compress_pub(A),
+    32 = size(O),
+    32 = size(P),
+    <<A2/binary, O/binary, A:64, P/binary>>; 
+%33 + 32 +8 + 32 = 41 + 64 = 105
+serialize(
+ #sub_acc{balance = B, nonce = N, pubkey = P, 
+          contract_id = CID, type = T}) ->
+    P2 = compress_pub(P),
+    32 = size(CID),
+    <<B:64, N:32, T:32, P2/binary, CID/binary>>;
+%8 + 4 + 4 + 33 + 32 = 65 + 16 = 81
+serialize(
+  #contract{code = C, many_types = MT, nonce = Nonce, 
+            last_modified = LM, delay = D, closed = C,
+            result = R, source = S, source_type = ST,
+            sink = Sink, volume = V}) ->
+    32 = size(C),
+    32 = size(R),
+    32 = size(S),
+    32 = size(Sink),
+    <<C/binary, R/binary, S/binary, Sink/binary,
+    ST:16, MT:16, Nonce:32, LM:32, D:32, C, V:64>>;
+%32*4 + 2 + 2 + 4 + 4 + 4 + 1 + 8
+%128 + 16 + 9
+%128 + 25 = 153
+serialize(
+  #trade{height = H, value = V}) ->
+    32 = size(V),
+    <<V/binary, H:32>>; %32 + 4 = 36
+serialize(
+  #market{id = I, cid1 = C1, type1 = T1, amount1 = A1,
+          cid2 = C2, type2 = T2, amount2 = A2, 
+          shares = S}) ->
+    32 = size(I),
+    32 = size(C1),
+    32 = size(C2),
+    <<I/binary, C1/binary, C2/binary, T1:16, T2:16,
+    A1:64, A2:64, S:64>>;
+%32 + 32 + 32 + 2 + 2+ 8 + 8 + 8
+%96 + 28 = 124
+serialize(
+  #receipt{tid = T, pubkey = P, 
+            nonce = N}) ->
+    32 = size(T),
+    P2 = compress_pub(P),
+    <<T/binary, P2/binary, N:32>>.
+%32 + 33 + 8 = 73
+
+
+
+
+
+
+
 account_deserialize(
   <<Pub:(33*8), Balance:64, Nonce:24>>) ->
     Pub2 = decompress_pub(<<Pub:(33*8)>>),
@@ -163,17 +253,16 @@ prune(Trash, Keep) ->
     CFG = tree:cfg(amoveo),
     RemovedLeaves = 
         prune_verkle:doit_stem(Trash, Keep, CFG),
-    lists:map(fun(L = {leaf, Key, Value, <<Type, Loc:(7*8)>>}) ->
-                      case Type of
-                          1 -> %acc
-                              io:fwrite("prune account\n"),
-                              dump:delete(Loc, accounts_dump)
-                      end
+    lists:map(fun(L = {leaf, _Key, _Value, Meta}) ->
+                      delete_thing(Meta)
               end, RemovedLeaves),
     ok.
+delete_thing(<<1, Loc:56>>) ->
+    dump:delete(Loc, accounts_dump).
     
 
 test(0) ->
+    %testing the raw verkle tree interface. only stores keys and values of 32 bytes.
     CFG = tree:cfg(amoveo),
     Loc = 1,
     Many = 4,
@@ -246,6 +335,7 @@ test(0) ->
 
     success;
 test(1) ->
+    %testing the amoveo verkle tree, which stores accounts and contracts and other things.
     Range = 10,
     Keys = lists:map(fun(_) -> signing:new_key()
                      end, range(1, Range)),
@@ -283,6 +373,7 @@ test(1) ->
 
     success;
 test(2) ->
+    %testing pubkey compression.
     {Pub, _} =  signing:new_key(),
     Cpub = compress_pub(Pub),
     Pub2 = decompress_pub(Cpub),

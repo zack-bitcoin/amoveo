@@ -45,7 +45,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Contract = contracts:dict_get(CID, Dict2),
     #contract{
       many_types = Many,
-      nonce = ContractNonce,
+               %nonce = ContractNonce,
       last_modified = LM,
       delay = Delay,
       closed = Closed,
