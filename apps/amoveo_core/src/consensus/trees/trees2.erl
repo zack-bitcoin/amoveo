@@ -306,6 +306,7 @@ to_keys([]) -> [];
 to_keys([Acc|T]) ->
     [key(Acc)|to_keys(T)].
 
+
 get_proof(Keys, Loc) ->
     get_proof(Keys, Loc, small).
 get_proof(Keys, Loc, Type) ->
@@ -314,28 +315,84 @@ get_proof(Keys, Loc, Type) ->
         fast -> ok;
         small -> ok
     end,
-    %todo. this metadict is full of all zero values. so we must be writing the wrong data somewhere.
     {Proof, MetasDict} =
         get_verkle:batch(Keys, Loc, CFG, Type),
-    FK = dict:fetch_keys(MetasDict),
-    Vals = lists:map(
-             fun(K) -> dict:find(K, MetasDict) end,
-             FK),
+    Keys2 = key_tree_order(Proof),
+    true = length(Keys) == length(Keys2),
+%    FK = dict:fetch_keys(MetasDict),
+%    Vals = lists:map(
+%             fun(K) -> dict:find(K, MetasDict) end,
+%             FK),
     Leaves = 
         lists:map(fun(K) ->
                           {ok, <<T, V:56>>} = 
                               dict:find(K, MetasDict),
                           dump_get(T, V)
-                  end, Keys),
-    {Proof, Leaves}.
+                  end, Keys2),
+    Proof2 = remove_leaves_proof(Proof),
+    {Proof2, Leaves}.
+%todo. remove the unnecessary keys and values from the proof tree. that can all be re-calculated from the leaves.
+
+remove_leaves_proof([]) -> [];
+remove_leaves_proof({I, {<<K:256>>, <<V:256>>}}) -> 
+    {I, 0};
+remove_leaves_proof(T) when is_tuple(T) -> 
+    list_to_tuple(
+      remove_leaves_proof(
+        tuple_to_list(T)));
+remove_leaves_proof([H|T]) -> 
+    [remove_leaves_proof(H)|
+     remove_leaves_proof(T)];
+remove_leaves_proof(<<X:256>>) ->
+    <<X:256>>.
+
+restore_leaves_proof([], []) -> {[], []};
+restore_leaves_proof([{I, 0}], [L|T]) -> 
+    K = key(L),
+    V = hash:doit(serialize(L)),
+    {[{I, {K, V}}], T};
+restore_leaves_proof(T, L) when is_tuple(T) -> 
+    
+    {T2, L2} = 
+        restore_leaves_proof(
+          tuple_to_list(T), L),
+    {list_to_tuple(T2), L2};
+restore_leaves_proof([H|T], L) -> 
+    {H2, L2} = restore_leaves_proof(H, L),
+    {T2, L3} = restore_leaves_proof(T, L2),
+    {[H2|T2], L3};
+restore_leaves_proof(<<X:256>>, L) ->
+    {<<X:256>>, L}.
+    
+
+key_tree_order([]) -> [];
+key_tree_order({I, {<<K:256>>, <<V:256>>}}) 
+  when is_integer(I) -> [<<K:256>>];
+key_tree_order(T) when is_tuple(T) -> 
+      key_tree_order(
+        tuple_to_list(T));
+key_tree_order([H|T]) -> 
+    key_tree_order(H) ++ key_tree_order(T);
+key_tree_order(<<X:256>>) -> [];
+key_tree_order(I) when is_integer(I) -> [];
+key_tree_order(X) -> 
+    io:fwrite({X}),
+    1=2.
+    
+
 
 dump_get(T, V) ->
     S = dump:get(V, int2dump_name(T)),
     deserialize(T, S).
     
 
-verify_proof(Proof, Things) ->
+verify_proof(Proof0, Things) ->
     CFG = tree:cfg(amoveo),
+
+    %todo. insert into the proof the keys and values of the leaves.
+    {Proof, []} = 
+        restore_leaves_proof(Proof0, Things),
+
     {true, Leaves, ProofTree} = 
         verify_verkle:proof(Proof, CFG),
     Ks = to_keys(Things),
@@ -465,7 +522,7 @@ test(1) ->
     
     Loc3 = store_verified(Loc2, ProofTree2),%when writing data here, we are failing to put the O(1) locations into the database.
 
-    {Proof3, As2b} = get_proof(to_keys(As2), Loc3),%fails here.
+    {Proof3, As2b} = get_proof(to_keys(As2), Loc3),
     
     {true, V2} = verify_proof(Proof3, As2b),
 

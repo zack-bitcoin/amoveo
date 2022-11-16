@@ -1,11 +1,8 @@
 
-* verify_verkle:update should leave the meta data in the proof.
-
-* store_verkle:verified should expect meta data in the proof, and it should store it in the database.
 
 * transfering the consensus state into the new tree. (or maintaining them both in parallel?)
 
-* the new versions of transactions that will all be using the new tree.
+* hook up the transactions to the new db.
 
 * block access to the old tree after the update.
 
