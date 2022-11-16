@@ -1,7 +1,7 @@
 
-* get the new trees working with the kind of data we want. use meta for the tree type, and location in the O(1) db.
- - trees2:store/3 needs to be implemented. combining the dump with the verkle tree.
- - there are notes in the comments on how it should work.
+* verify_verkle:update should leave the meta data in the proof.
+
+* store_verkle:verified should expect meta data in the proof, and it should store it in the database.
 
 * transfering the consensus state into the new tree. (or maintaining them both in parallel?)
 

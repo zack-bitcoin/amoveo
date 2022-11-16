@@ -14,13 +14,7 @@ range(N, N) ->
 range(N, M) when N < M ->
     [N|range(N+1, M)].
 
-%places we need to support every type
-% type2int
-% cs2v
-% key
-% delete_thing
-
-%kinds of trees to support
+%kinds of trees
 % {acc, balance, nonce, pubkey}
 % {exist, hash, height}
 % {oracle, id, result, question, starts, type, orders, creator, done_timer}
@@ -32,20 +26,45 @@ range(N, M) when N < M ->
 % {market, id, cid1, type1, amount1, cid2, type2, amount2, shares}
 % {receipt, id, tid, pubkey, nonce}
 
-type2int(acc) -> 1.
+type2int(acc) -> 1;
+type2int(exist) -> 2;
+type2int(oracle) -> 3;
+type2int(matched) -> 4;
+type2int(unmatched) -> 5;
+type2int(sub_acc) -> 6;
+type2int(contract) -> 7;
+type2int(trade) -> 8;
+type2int(market) -> 9;
+type2int(receipt) -> 10.
+
+int2dump_name(1) -> accounts_dump;
+int2dump_name(2) -> exists_dump;
+int2dump_name(3) -> oracles_dump;
+int2dump_name(4) -> matched_dump;
+int2dump_name(5) -> unmatched_dump;
+int2dump_name(6) -> sub_accs_dump;
+int2dump_name(7) -> contracts_dump;
+int2dump_name(8) -> trades_dump;
+int2dump_name(9) -> markets_dump;
+int2dump_name(10) -> receipts_dump.
+
+
 
 cs2v([]) -> [];
-cs2v([Acc|T]) when is_record(Acc, acc) ->
+cs2v([A|T]) ->
     %converts consensus state into the verkle data.
     %consensus state is like accounts and contracts and whatever.
     %verkle data is a list of leaves that can be fed into store_verkle:batch/3.
     CFG = tree:cfg(amoveo),
-    K = key(Acc),
-    V = serialize(Acc),
+    K = key(A),
+    V = serialize(A),
     H = hash:doit(V),
 
-    M = dump:put(V, accounts_dump),
-    M1 = type2int(acc),
+    R = element(1, A),
+
+    M1 = type2int(R),
+    DBName = int2dump_name(M1),
+    M = dump:put(V, DBName),
     Meta = <<M1, M:(7*8)>>, %type 1 is for accounts.
 
     Leaf = leaf_verkle:new(K, H, Meta, CFG),
@@ -60,12 +79,15 @@ update_proof(L, ProofTree) ->
     %L is a list of accounts and contracts and whatever.
     CFG = tree:cfg(amoveo),
     Leaves = cs2v(L),
+
     verify_verkle:update(
       ProofTree, Leaves, CFG).
 
 %recurse over the tree, and do cs2v on each leaf we find, to convert to the format we will write in the verkle tree.
 store_verified(Loc, ProofTree) ->
     CFG = tree:cfg(amoveo),
+    %io:fwrite(size(element(2, element(2, hd(hd(tl(ProofTree))))))), %32 bytes
+
     store_verkle:verified(
       Loc, ProofTree, CFG).
 
@@ -82,7 +104,29 @@ key(#acc{pubkey = Pub}) ->
         PubkeySize ->
             hash:doit(compress_pub(Pub));
         33 -> hash:doit(Pub)
-    end.
+    end;
+key(#exist{hash = X}) ->
+    hash:doit(X);
+key(#oracle{id = X}) ->
+    hash:doit(X);
+key(#matched{account = A, oracle = B}) ->
+    A2 = compress_pub(A),
+    hash:doit(<<A2/binary, B/binary>>);
+key(#unmatched{account = A, oracle = B}) ->
+    A2 = compress_pub(A),
+    hash:doit(<<A2/binary, B/binary>>);
+key(#sub_acc{pubkey = P, type = T, 
+             contract_id = CID}) ->
+    P2 = compress_pub(P),
+    hash:doit(<<P2/binary, CID/binary, T:16>>);
+key(#contract{code = C, many_types = MT, 
+              source = S, source_type = ST}) ->
+    hash:doit(<<C/binary, S/binary, MT:16, ST:16>>);
+key(#trade{value = V}) -> V;
+key(#market{id = X}) -> X;
+key(#receipt{id = X}) -> X.
+
+
 compress_pub(<<4, X:256, Y:256>>) ->
     Positive = Y rem 2,
     <<(6 + Positive), X:256>>;
@@ -132,7 +176,8 @@ serialize(
     Pub2 = compress_pub(Pub),
     <<Pub2/binary, Balance:64, Nonce:32>>;
 serialize(#exist{hash = A, height = E}) ->
-    <<E:32, A/binary>>;%8 + 32 = 40
+    32 = size(A),
+    <<E:32, A/binary>>;%4 + 32 = 36
 serialize(
   #oracle{id = ID, result = Result, question = Q,
           starts = S, type = T, creator = C, 
@@ -142,9 +187,9 @@ serialize(
     32 = size(Q),
     C2 = compress_pub(C),
     <<ID/binary, Result, T, %32 + 1 + 1
-      S:256, D:256, C2/binary,  %32 + 32 + 33
+      S:32, D:32, C2/binary,  %4 + 4 + 33
       Q/binary>>; %32
-%128 + 35 = 163
+%64 + 10 + 33 = 107
 serialize(
  #matched{account = A, oracle = O, true = T, 
           false = F, bad = B}) ->
@@ -169,15 +214,17 @@ serialize(
 %8 + 4 + 4 + 33 + 32 = 65 + 16 = 81
 serialize(
   #contract{code = C, many_types = MT, nonce = Nonce, 
-            last_modified = LM, delay = D, closed = C,
-            result = R, source = S, source_type = ST,
-            sink = Sink, volume = V}) ->
+            last_modified = LM, delay = D, 
+            closed = Closed, result = R, source = S, 
+            source_type = ST, sink = Sink, volume = V
+           }) ->
     32 = size(C),
     32 = size(R),
     32 = size(S),
     32 = size(Sink),
     <<C/binary, R/binary, S/binary, Sink/binary,
-    ST:16, MT:16, Nonce:32, LM:32, D:32, C, V:64>>;
+    ST:16, MT:16, Nonce:32, LM:32, D:32, Closed, 
+      V:64>>;
 %32*4 + 2 + 2 + 4 + 4 + 4 + 1 + 8
 %128 + 16 + 9
 %128 + 25 = 153
@@ -205,24 +252,59 @@ serialize(
 %32 + 33 + 8 = 73
 
 
-
-
-
-
-
-account_deserialize(
-  <<Pub:(33*8), Balance:64, Nonce:24>>) ->
+deserialize(1, 
+  <<Pub:(33*8), Balance:64, Nonce:32>>) ->
     Pub2 = decompress_pub(<<Pub:(33*8)>>),
     #acc{pubkey = Pub2,
-         nonce = Nonce, balance = Balance}.
+         nonce = Nonce, balance = Balance};
+deserialize(2, <<E:32, A:256>>) ->
+    #exist{hash = <<A:256>>, height = E};
+deserialize(3, <<ID:256, Result, T, S:32, D:32,
+                 C2:264, Q:256>>) ->
+    C = decompress_pub(<<C2:264>>),
+    #oracle{id = <<ID:256>>, result = Result,
+            question = <<Q:256>>, starts = S,
+            type = T, creator = C, done_timer = D};
+deserialize(4, <<A:264, O:256, T:64, F:64, B:64>>) ->
+    A2 = decompress_pub(<<A:264>>),
+    #matched{account = A2, oracle = <<O:256>>, 
+             true = T, false = F, bad = B};
+deserialize(5, <<A:264, O:256, Am:64, P:256>>) ->
+    A2 = decompress_pub(<<A:264>>),
+    #unmatched{account = A2, oracle = <<O:256>>,
+               amount = Am, pointer = <<P:256>>};
+deserialize(6, <<B:64, N:32, T:32, P:264, CID:256>>) 
+->
+    P2 = decompress_pub(<<P:264>>),
+    #sub_acc{balance = B, nonce = N, pubkey = P2,
+             contract_id = CID, type = T};
+deserialize(7, <<C:256, R:256, S:256, Sink:256,
+                 ST:16, MT:16, Nonce:32, LM:32, D:32,
+               Closed, V:64>>) ->
+    #contract{code = <<C:256>>, result = <<R:256>>,
+              source = <<S:256>>, sink = <<Sink:256>>,
+              source_type = ST, many_types = MT,
+              nonce = Nonce, last_modified = LM,
+              delay = D, closed = Closed, volume = V};
+deserialize(8, <<V:256, H:32>>) ->
+    #trade{height = H, value = <<V:256>>};
+deserialize(9, <<I:256, C1:256, C2:256, T1:16, T2:16,
+                 A1:64, A2:64, S:64>>) ->
+    #market{id = <<I:256>>, cid1 = <<C1:256>>,
+            cid2 = <<C2:256>>, type1 = T1, type2 = T2,
+            amount1 = A1, amount2 = A2, shares = S};
+deserialize(10, <<T:256, P:264, N:32>>) ->
+    P2 = decompress_pub(<<P:256>>),
+    #receipt{tid = <<T:256>>, pubkey = P2, nonce = N};
+deserialize(N, B) ->
+    io:fwrite({N, B, size(B)}),
+    ok.
+
+    
 
 to_keys([]) -> [];
 to_keys([Acc|T]) ->
     [key(Acc)|to_keys(T)].
-
-%to_values([]) -> [];
-%to_values([Acc|T]) when is_record(Acc, acc) -> 
-%    [account_serialized(Acc)|to_values(T)].
 
 get_proof(Keys, Loc) ->
     get_proof(Keys, Loc, small).
@@ -232,7 +314,25 @@ get_proof(Keys, Loc, Type) ->
         fast -> ok;
         small -> ok
     end,
-    get_verkle:batch(Keys, Loc, CFG, Type).
+    %todo. this metadict is full of all zero values. so we must be writing the wrong data somewhere.
+    {Proof, MetasDict} =
+        get_verkle:batch(Keys, Loc, CFG, Type),
+    FK = dict:fetch_keys(MetasDict),
+    Vals = lists:map(
+             fun(K) -> dict:find(K, MetasDict) end,
+             FK),
+    Leaves = 
+        lists:map(fun(K) ->
+                          {ok, <<T, V:56>>} = 
+                              dict:find(K, MetasDict),
+                          dump_get(T, V)
+                  end, Keys),
+    {Proof, Leaves}.
+
+dump_get(T, V) ->
+    S = dump:get(V, int2dump_name(T)),
+    deserialize(T, S).
+    
 
 verify_proof(Proof, Things) ->
     CFG = tree:cfg(amoveo),
@@ -257,8 +357,9 @@ prune(Trash, Keep) ->
                       delete_thing(Meta)
               end, RemovedLeaves),
     ok.
-delete_thing(<<1, Loc:56>>) ->
-    dump:delete(Loc, accounts_dump).
+delete_thing(<<X, Loc:56>>) ->
+    DBname = int2dump_name(X),
+    dump:delete(Loc, DBname).
     
 
 test(0) ->
@@ -354,17 +455,19 @@ test(1) ->
     Loc = 1,
     {Loc2, stem, _} = store_things(As, Loc),
     
-    {Proof, _} = get_proof(to_keys(As2), Loc2),
-   
-    {true, ProofTree} = verify_proof(Proof, As0),
-    
-    ProofTree2 = update_proof(As2, ProofTree),
-    
-    Loc3 = store_verified(Loc2, ProofTree2),
+    {Proof, As0b} = get_proof(to_keys(As2), Loc2),
 
-    {Proof3, _} = get_proof(to_keys(As2), Loc3),
+    {true, ProofTree} = verify_proof(Proof, As0b),
     
-    {true, _} = verify_proof(Proof3, As2),
+    ProofTree2 = 
+        update_proof(As2, ProofTree),
+   % io:fwrite(ProofTree2),
+    
+    Loc3 = store_verified(Loc2, ProofTree2),%when writing data here, we are failing to put the O(1) locations into the database.
+
+    {Proof3, As2b} = get_proof(to_keys(As2), Loc3),%fails here.
+    
+    {true, V2} = verify_proof(Proof3, As2b),
 
     prune(Loc2, Loc3),
 
