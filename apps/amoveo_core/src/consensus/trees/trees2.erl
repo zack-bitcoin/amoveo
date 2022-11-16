@@ -331,7 +331,6 @@ get_proof(Keys, Loc, Type) ->
                   end, Keys2),
     Proof2 = remove_leaves_proof(Proof),
     {Proof2, Leaves}.
-%todo. remove the unnecessary keys and values from the proof tree. that can all be re-calculated from the leaves.
 
 remove_leaves_proof([]) -> [];
 remove_leaves_proof({I, {<<K:256>>, <<V:256>>}}) -> 
@@ -389,7 +388,6 @@ dump_get(T, V) ->
 verify_proof(Proof0, Things) ->
     CFG = tree:cfg(amoveo),
 
-    %todo. insert into the proof the keys and values of the leaves.
     {Proof, []} = 
         restore_leaves_proof(Proof0, Things),
 
