@@ -1,5 +1,5 @@
 -module(trees2).
--export([test/1, decompress_pub/1, merkle2verkle/2, merkle2verkle/2]).
+-export([test/1, decompress_pub/1, merkle2verkle/2, merkle2verkle/2, root_hash/1]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -8,6 +8,12 @@
 		    amount,
 		    pointer}).
 -record(receipt, {id, tid, pubkey, nonce}).
+    
+
+root_hash(Loc) ->
+    CFG = tree:cfg(amoveo),
+    stem_verkle:root(
+      stem_verkle:get(Loc2, CFG)).
 
 range(N, N) ->
     [N];
@@ -51,7 +57,6 @@ int2dump_name(10) -> receipts_dump.
 
 cs2v([]) -> [];
 cs2v([A|T]) ->
-    io:fwrite("cs2v\n"),
     %converts consensus state into the verkle data.
     %consensus state is like accounts and contracts and whatever.
     %verkle data is a list of leaves that can be fed into store_verkle:batch/3.
@@ -59,20 +64,13 @@ cs2v([A|T]) ->
     K = key(A),
     V = serialize(A),
     H = hash:doit(V),
-
-    R = element(1, A),
-
-    M1 = type2int(R),
+    M1 = type2int(element(1, A)),
     DBName = int2dump_name(M1),
     M = dump:put(V, DBName),
-    Meta = <<M1, M:(7*8)>>, %type 1 is for accounts.
+    Meta = <<M1, M:(7*8)>>, 
 
     Leaf = leaf_verkle:new(K, H, Meta, CFG),
     [Leaf|cs2v(T)].
-    
-                       
-    
-                           
     
 
 update_proof(L, ProofTree) ->
@@ -96,7 +94,8 @@ store_things(Things, Loc) ->
     CFG = tree:cfg(amoveo),
     V = cs2v(Things),
     io:fwrite("store batch\n"),
-    store_verkle:batch(V, Loc, CFG).
+    {P, _, _} = store_verkle:batch(V, Loc, CFG),
+    P.
 
 key(#acc{pubkey = Pub}) ->
     %hash of the pubkey.
@@ -544,7 +543,7 @@ test(1) ->
                     end, As0),
     
     Loc = 1,
-    {Loc2, stem, _} = store_things(As, Loc),
+    Loc2 = store_things(As, Loc),
     
     {Proof, As0b} = get_proof(to_keys(As2), Loc2),
 

@@ -1,17 +1,30 @@
-* test transfering trees.
- - sub accounts
- - contracts
- - trades
- - markets
- - receipts
 
-* transfering the consensus state into the new tree. (or maintaining them both in parallel?)
- - use trees2:merkle2verkle/2.
+* use the new db when processing blocks.
 
-* hook up the transactions to the new db.
+* use the new db when making proofs for the api.
 
-* block access to the old tree after the update.
+* make sure the state root in the header is being calculated reasonably. Look at what block:merkelize is doing to the proofs in the block.
+
+* generating txs should work with the new version of trees.
+  trees:get/2 should work with verkle 
+
+  -coinbase_tx:make/2 should use trees:get/2
+
+* switch over all the governance values to be hard coded instead of in the database.
+  - trees:get/4 with tag governance should be hard coded.
+  - governance:dict_get_value/2 should return hard coded values after the hard update. (and so it needs to know what height it is being called from.)
+  
+* use the new db when generating bocks.
+  - block:hash should work with the new format of trees and roots.
+
+* in block_db, instead of storing proofs for every block on a page, store a single proof for all the consensus state you need to verify that entire page.
+  - replace the proofs in the blocks with the merkle root of that proof.
+  - block hash should work, even if you don't re-create the verkle proof for that block.
+  - make sure that the syncing node knows how to handle this.
+
 
 * make sure serializing to json for http works, and that the light node can verify the proofs.
+
+* block access to the old tree after the update.
 
 * set the correct update height.

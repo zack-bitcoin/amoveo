@@ -296,6 +296,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     F35 = forks:get(35),
     F44 = forks:get(44),
     F48 = forks:get(48),
+    F52 = forks:get(52),
     GN = fun(Name, A) ->
                  governance:new(
                    governance:name2number(Name),
@@ -373,7 +374,13 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                  };
             true -> Trees5
         end,
-    Trees6.
+    Trees7 =
+        if
+            (HeightCheck == F52) ->
+                trees2:merkle2verkle(Trees6);
+            true -> Trees6
+        end,
+    Trees7.
                 
 
     
@@ -503,7 +510,11 @@ make_roots(Trees) when (element(1, Trees) == trees5) ->
             trades = trie:root_hash(trades, trees:trades(Trees)),
             markets = trie:root_hash(markets, trees:markets(Trees)),
             receipts = trie:root_hash(receipts, trees:receipts(Trees)),
-            stablecoins = trie:root_hash(stablecoins, trees:stablecoins(Trees))}.
+            stablecoins = trie:root_hash(stablecoins, trees:stablecoins(Trees))};
+make_roots(V) when is_integer(V) ->
+    %V is a pointer to a location in the verkle tree.
+    trees2:root_hash(V).
+
 
 
 roots_hash(X) when is_record(X, roots) ->%
