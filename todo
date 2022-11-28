@@ -1,7 +1,11 @@
-
 * use the new db when processing blocks.
+  - tree_data:internal_dict_update_trie/2 should work if Trees is a pointer to the verkle root. Just load everything from the Dict as a batch. So it needs to know the height.
+  - in block:make, we use trees:root_hash. this should be updated to work with a pointer to the verkle tree.
+  - proofs:prove(Querys, Trees) should work if the Trees is a pointer to the verkle tree. it should make a verkle proof.
+  - proofs:facts_to_dict needs to work with the verkle proof.
 
 * use the new db when making proofs for the api.
+  - api:tree_common should use the verkle version of trees.
 
 * make sure the state root in the header is being calculated reasonably. Look at what block:merkelize is doing to the proofs in the block.
 
@@ -11,8 +15,11 @@
   -coinbase_tx:make/2 should use trees:get/2
 
 * switch over all the governance values to be hard coded instead of in the database.
+  - proofs:txs_to_querys shouldn't include governance stuff after the update.
   - trees:get/4 with tag governance should be hard coded.
+  - trees:get/2 with governance as well.
   - governance:dict_get_value/2 should return hard coded values after the hard update. (and so it needs to know what height it is being called from.)
+  - don't bother storing them in the block, but do store the period in the headers.
   
 * use the new db when generating bocks.
   - block:hash should work with the new format of trees and roots.
