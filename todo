@@ -1,6 +1,12 @@
-
+* test transfering trees.
+ - sub accounts
+ - contracts
+ - trades
+ - markets
+ - receipts
 
 * transfering the consensus state into the new tree. (or maintaining them both in parallel?)
+ - use trees2:merkle2verkle/2.
 
 * hook up the transactions to the new db.
 

@@ -11,11 +11,11 @@ dumps() ->
      {oracles_dump, 107},
      {matched_dump, 89},
      {unmatched_dump, 138},
-     {sub_acc_dump, 81},
-     {contract_dump, 153},
-     {trade_dump, 36},
-     {market_dump, 124},
-     {receipts_dump, 73}].
+     {sub_accs_dump, 81},
+     {contracts_dump, 153},
+     {trades_dump, 36},
+     {markets_dump, 124},
+     {receipts_dump, 69}].
     
 stop() -> 
     %todo, kill the child processes.

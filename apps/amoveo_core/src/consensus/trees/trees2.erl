@@ -1,5 +1,5 @@
 -module(trees2).
--export([test/1, decompress_pub/1, load_verkle/2]).
+-export([test/1, decompress_pub/1, merkle2verkle/2, merkle2verkle/2]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -421,7 +421,7 @@ delete_thing(<<X, Loc:56>>) ->
     DBname = int2dump_name(X),
     dump:delete(Loc, DBname).
 
-load_verkle(
+merkle2verkle(
   Tree = #trees5{
      accounts = A, channels = _C, existence = _E, 
      oracles = O, governance = _G, matched = M,
@@ -598,14 +598,30 @@ test(3) ->
     Unmatched0 = unmatched:new(Pub0, ID, 2000),
     U = unmatched:write(Unmatched0, Empty),
 
+    C0 = contracts:new(hash:doit(<<>>), 2),
+    CID = contracts:make_id(C0),
+    C = contracts:write(C0, Empty),
+
+    SA0 = sub_accounts:new(Pub0, 1000029, CID, 1),
+    SA = sub_accounts:write(SA0, Empty),
+
+    Trade0 = trades:new(104, hash:doit(<<>>)),
+    Tr = trades:write(Trade0, Empty),
+
+    Market0 = markets:new(CID, 1, 10005, CID, 2, 10006),
+    M = markets:write(Market0, Empty),
+
+    Receipt0 = receipts:new(hash:doit(<<>>), Pub0, 1),
+    R = receipts:write(Receipt0, Empty),
+
     T = #trees5{
       accounts = A, 
       oracles = O, 
       matched = M,
-      unmatched = U, sub_accounts = Empty,
-      contracts = Empty, trades = Empty, 
-      markets = Empty, receipts = Empty},
-    V = load_verkle(T, 1),
+      unmatched = U, sub_accounts = SA,
+      contracts = C, trades = Tr, 
+      markets = M, receipts = R},
+    V = merkle2verkle(T, 1),
     success.
 
 
