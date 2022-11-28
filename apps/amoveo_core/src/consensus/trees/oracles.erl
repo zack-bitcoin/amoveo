@@ -20,7 +20,13 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict, F10, Height) 
 		 F10 -> 0;
 		 true -> orders:empty_book()%
 	     end,
-    MOT = governance:dict_get_value(minimum_oracle_time, Dict),
+    F52 = Height > forks:get(52),
+    MOT = if
+             not(F52) ->
+                  governance:dict_get_value(minimum_oracle_time, Dict);
+              true ->
+                  999
+          end,
     #oracle{id = ID,
 	    result = 0,
 	    question = Question,

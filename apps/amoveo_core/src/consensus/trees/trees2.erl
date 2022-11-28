@@ -1,8 +1,8 @@
 -module(trees2).
--export([test/1, decompress_pub/1]).
+-export([test/1, decompress_pub/1, load_verkle/2]).
 
 -include("../../records.hrl").
--record(exist, {hash, height}).
+%-record(exist, {hash, height}).
 -record(unmatched, {account, %pubkey of the account
 		    oracle, %oracle id
 		    amount,
@@ -27,7 +27,6 @@ range(N, M) when N < M ->
 % {receipt, id, tid, pubkey, nonce}
 
 type2int(acc) -> 1;
-type2int(exist) -> 2;
 type2int(oracle) -> 3;
 type2int(matched) -> 4;
 type2int(unmatched) -> 5;
@@ -38,7 +37,7 @@ type2int(market) -> 9;
 type2int(receipt) -> 10.
 
 int2dump_name(1) -> accounts_dump;
-int2dump_name(2) -> exists_dump;
+%int2dump_name(2) -> exists_dump;
 int2dump_name(3) -> oracles_dump;
 int2dump_name(4) -> matched_dump;
 int2dump_name(5) -> unmatched_dump;
@@ -52,6 +51,7 @@ int2dump_name(10) -> receipts_dump.
 
 cs2v([]) -> [];
 cs2v([A|T]) ->
+    io:fwrite("cs2v\n"),
     %converts consensus state into the verkle data.
     %consensus state is like accounts and contracts and whatever.
     %verkle data is a list of leaves that can be fed into store_verkle:batch/3.
@@ -95,6 +95,7 @@ store_things(Things, Loc) ->
     %return the pointer to the new version of the verkle tree.
     CFG = tree:cfg(amoveo),
     V = cs2v(Things),
+    io:fwrite("store batch\n"),
     store_verkle:batch(V, Loc, CFG).
 
 key(#acc{pubkey = Pub}) ->
@@ -105,26 +106,29 @@ key(#acc{pubkey = Pub}) ->
             hash:doit(compress_pub(Pub));
         33 -> hash:doit(Pub)
     end;
-key(#exist{hash = X}) ->
-    hash:doit(X);
+%key(#exist{hash = X}) ->
+%    hash:doit(X);
 key(#oracle{id = X}) ->
-    hash:doit(X);
+    hash:doit(<<X/binary, 0>>);
 key(#matched{account = A, oracle = B}) ->
     A2 = compress_pub(A),
-    hash:doit(<<A2/binary, B/binary>>);
+    hash:doit(<<A2/binary, B/binary, 0>>);
 key(#unmatched{account = A, oracle = B}) ->
     A2 = compress_pub(A),
-    hash:doit(<<A2/binary, B/binary>>);
+    hash:doit(<<A2/binary, B/binary, 1>>);
 key(#sub_acc{pubkey = P, type = T, 
              contract_id = CID}) ->
     P2 = compress_pub(P),
     hash:doit(<<P2/binary, CID/binary, T:16>>);
 key(#contract{code = C, many_types = MT, 
               source = S, source_type = ST}) ->
-    hash:doit(<<C/binary, S/binary, MT:16, ST:16>>);
-key(#trade{value = V}) -> V;
-key(#market{id = X}) -> X;
-key(#receipt{id = X}) -> X.
+    hash:doit(<<C/binary, S/binary, MT:16, ST:16, 1>>);
+key(#trade{value = V}) -> 
+    hash:doit(<<V/binary, 1>>);
+key(#market{id = X}) -> 
+    hash:doit(<<X/binary, 2>>);
+key(#receipt{id = X}) -> 
+    hash:doit(<<X/binary, 3>>).
 
 
 compress_pub(<<4, X:256, Y:256>>) ->
@@ -175,14 +179,15 @@ serialize(
     %33 + 8 + 4 = 45 bytes.
     Pub2 = compress_pub(Pub),
     <<Pub2/binary, Balance:64, Nonce:32>>;
-serialize(#exist{hash = A, height = E}) ->
-    32 = size(A),
-    <<E:32, A/binary>>;%4 + 32 = 36
+%serialize(#exist{hash = A, height = E}) ->
+%    32 = size(A),
+%    <<E:32, A/binary>>;%4 + 32 = 36
 serialize(
   #oracle{id = ID, result = Result, question = Q,
           starts = S, type = T, creator = C, 
           done_timer = D
          }) ->
+    io:fwrite("serialize oracle\n"),
     32 = size(ID),
     32 = size(Q),
     C2 = compress_pub(C),
@@ -198,13 +203,13 @@ serialize(
     <<A2/binary, O/binary, T:64, F:64, B:64>>;
 %33 + 32 + 8 + 8 + 8 = 56+33 = 89
 serialize(
- #unmatched{account = A, oracle = O, amount = A, 
+ #unmatched{account = A, oracle = O, amount = M, 
             pointer = P}) ->
     A2 = compress_pub(A),
     32 = size(O),
-    32 = size(P),
-    <<A2/binary, O/binary, A:64, P/binary>>; 
-%33 + 32 +8 + 32 = 41 + 64 = 105
+    65 = size(P),
+    <<A2/binary, O/binary, M:64, P/binary>>; 
+%33 + 32 +8 + 65 = 41 + 64 + 33 = 138
 serialize(
  #sub_acc{balance = B, nonce = N, pubkey = P, 
           contract_id = CID, type = T}) ->
@@ -257,8 +262,8 @@ deserialize(1,
     Pub2 = decompress_pub(<<Pub:(33*8)>>),
     #acc{pubkey = Pub2,
          nonce = Nonce, balance = Balance};
-deserialize(2, <<E:32, A:256>>) ->
-    #exist{hash = <<A:256>>, height = E};
+%deserialize(2, <<E:32, A:256>>) ->
+%    #exist{hash = <<A:256>>, height = E};
 deserialize(3, <<ID:256, Result, T, S:32, D:32,
                  C2:264, Q:256>>) ->
     C = decompress_pub(<<C2:264>>),
@@ -415,6 +420,37 @@ prune(Trash, Keep) ->
 delete_thing(<<X, Loc:56>>) ->
     DBname = int2dump_name(X),
     dump:delete(Loc, DBname).
+
+load_verkle(
+  Tree = #trees5{
+     accounts = A, channels = _C, existence = _E, 
+     oracles = O, governance = _G, matched = M,
+     unmatched = U, sub_accounts = SA, contracts = CO,
+     trades = T, markets = M2, receipts = R}, 
+  Loc) ->
+    Types = [accounts, oracles, matched, unmatched, sub_accounts, contracts, trades, markets, receipts],
+    TypePairs = lists:zipwith(
+                  fun(A, B) -> {A, B} end,
+                  Types,
+                  [A, O, M, U, SA, CO, T, M2, R]),
+    AllLeaves = lists:foldl(
+      fun({Type, X}, A) ->
+              io:fwrite("tree get all "),
+              io:fwrite(Type),
+              io:fwrite("\n"),
+              Leaves = 
+                  lists:map(
+                    fun(F) -> 
+                            (Type):deserialize(leaf:value(F)) end,
+                    trie:get_all(X, Type)),
+              io:fwrite("made leaves \n"),
+              A ++ Leaves
+              %io:fwrite(Leaves),
+              %Loc2 = store_things(Leaves, Loc1),
+              %io:fwrite("stored things\n"),
+              %Loc2
+      end, [], TypePairs),
+    store_things(AllLeaves, Loc).
     
 
 test(0) ->
@@ -539,5 +575,37 @@ test(2) ->
     <<_, _:256, Y2:256>> = Pub2,
     %io:fwrite({Y1, Y2}),
     Y1 = Y2,
+    success;
+test(3) ->
+    {Pub0, _Priv} = signing:new_key(),
+    Pub0c = compress_pub(Pub0),
+    Acc0 = accounts:new(Pub0, 1000027),
+    Empty = 1,
+    A = accounts:write(Acc0, Empty),
+
+    Start = 5,
+    QuestionText = <<"question text">>,
+    ID = oracle_new_tx:id_generator2(Start, 0, 0, QuestionText),
+    Oracle0 = 
+        oracles:new(
+          ID, hash:doit(QuestionText), Start, Pub0, 
+          0, 0, dict:new(), true, forks:get(52) + 10),
+    O = oracles:write(Oracle0, Empty),
+
+    Matched0 = matched:new(Pub0, ID, 1, 1000),
+    M = matched:write(Matched0, Empty),
+
+    Unmatched0 = unmatched:new(Pub0, ID, 2000),
+    U = unmatched:write(Unmatched0, Empty),
+
+    T = #trees5{
+      accounts = A, 
+      oracles = O, 
+      matched = M,
+      unmatched = U, sub_accounts = Empty,
+      contracts = Empty, trades = Empty, 
+      markets = Empty, receipts = Empty},
+    V = load_verkle(T, 1),
     success.
+
 
