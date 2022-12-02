@@ -1,25 +1,33 @@
+* switch over all the governance values to be hard coded instead of in the database.
+  - proofs:txs_to_querys shouldn't include governance stuff after the update. Done
+  - trees:get/4 with tag governance should be hard coded. Done
+  - trees:get/2 with governance as well. Done
+  - governance:dict_get_value/2 should return hard coded values after the hard update. (and so it needs to know what height it is being called from.) Done
+  - don't bother storing them in the block, but do store the period in the headers. Done
+
+
 * use the new db when processing blocks.
   - tree_data:internal_dict_update_trie/2 should work if Trees is a pointer to the verkle root. Just load everything from the Dict as a batch. So it needs to know the height.
+    Done, should be tested by mining and syncing some blocks, and confirming that the trees data is replaced with a single pointer, and roots with a single hash.
   - in block:make, we use trees:root_hash. this should be updated to work with a pointer to the verkle tree.
+    Done. verify by mining and syncing some blocks.
+    
   - proofs:prove(Querys, Trees) should work if the Trees is a pointer to the verkle tree. it should make a verkle proof.
+    Done. we need to test that it works somehow.
+
   - proofs:facts_to_dict needs to work with the verkle proof.
+    Write when the test reaches this point. print statement is ready.
+
+
+
+
 
 * use the new db when making proofs for the api.
-  - api:tree_common should use the verkle version of trees.
+  - make a new api that accepts batches of things that we want proved.
 
 * make sure the state root in the header is being calculated reasonably. Look at what block:merkelize is doing to the proofs in the block.
 
-* generating txs should work with the new version of trees.
-  trees:get/2 should work with verkle 
 
-  -coinbase_tx:make/2 should use trees:get/2
-
-* switch over all the governance values to be hard coded instead of in the database.
-  - proofs:txs_to_querys shouldn't include governance stuff after the update.
-  - trees:get/4 with tag governance should be hard coded.
-  - trees:get/2 with governance as well.
-  - governance:dict_get_value/2 should return hard coded values after the hard update. (and so it needs to know what height it is being called from.)
-  - don't bother storing them in the block, but do store the period in the headers.
   
 * use the new db when generating bocks.
   - block:hash should work with the new format of trees and roots.
@@ -27,10 +35,12 @@
 * in block_db, instead of storing proofs for every block on a page, store a single proof for all the consensus state you need to verify that entire page.
   - replace the proofs in the blocks with the merkle root of that proof.
   - block hash should work, even if you don't re-create the verkle proof for that block.
-  - make sure that the syncing node knows how to handle this.
+  - teach the syncing node how to handle this.
 
 
 * make sure serializing to json for http works, and that the light node can verify the proofs.
+
+* update the light node to use the new api after the change is activated.
 
 * block access to the old tree after the update.
 

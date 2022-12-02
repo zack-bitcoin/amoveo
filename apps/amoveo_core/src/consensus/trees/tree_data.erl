@@ -1,7 +1,7 @@
 -module(tree_data).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	dict_update_trie/2, garbage/2, remove_before/2]).
+	dict_update_trie/3, garbage/2, remove_before/2]).
 -include("../../records.hrl").
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -18,15 +18,17 @@ handle_call({garbage, Trash, Keep}, _, _) ->
 %handle_call({prune, Trash, Keep}, _, _) -> 
 %    internal(Trash, Keep, fun(A, B, C) -> trie:prune(A, B, C) end),
 %    {reply, ok, []};
-handle_call({update, Trees, Dict}, _From, _) -> 
-    Y = internal_dict_update_trie(Trees, Dict),
+handle_call({update, Trees, Dict, Height}, 
+            _From, _) -> 
+    Y = internal_dict_update_trie(
+          Trees, Dict, Height),
     {reply, Y, []};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 remove_before(Blocks, Work) ->
     gen_server:call(?MODULE, {remove_before, Blocks, Work}).
-dict_update_trie(Trees, Dict) ->
-    gen_server:call(?MODULE, {update, Trees, Dict}).
+dict_update_trie(Trees, Dict, Height) ->
+    gen_server:call(?MODULE, {update, Trees, Dict, Height}).
 garbage(Trash, Keep) ->
     gen_server:call(?MODULE, {garbage, Trash, Keep}).
 internal(PruneBlock, KeepBlock, F) ->
@@ -58,7 +60,7 @@ order_sorter({orders, Keya}, {orders, Keyb}) ->%
     <<A:PS>> = Keya#key.pub,%
     <<B:PS>> = Keyb#key.pub,%
     B < A.%
-internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees) ->%
+internal_dict_update_trie(Trees, Dict, _) when (element(1, Trees) == trees) ->%
     %do the orders and oracle_bets last, then insert their state roots into the accounts and oracles.
     %pointers are integers, root hashes are binary.
     Keys = dict:fetch_keys(Dict),%
@@ -100,7 +102,11 @@ internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees) ->%
     GovernanceLeaves = keys2leaves(Gov, governance, Dict3),%
     GT2 = trie:put_batch(GovernanceLeaves, GT, governance),%
     trees:update_governance(Trees7, GT2);%
-internal_dict_update_trie(Trees, Dict) ->
+internal_dict_update_trie(Trees, Dict, H) ->
+    F52 = forks:get(52), 
+    if
+        H > F52 -> verkle_dict_update_trie(Trees, Dict);
+        true ->
     Types2 = [accounts, oracles, channels, existence, governance, matched, unmatched],
     Types3 = Types2 ++ [sub_accounts, contracts, trades],
     Types4 = Types3 ++ [markets],
@@ -113,7 +119,29 @@ internal_dict_update_trie(Trees, Dict) ->
             trees5 -> Types5
         end,
     Keys = dict:fetch_keys(Dict),
-    idut2(Types, Trees, Dict, Keys).
+    idut2(Types, Trees, Dict, Keys)
+    end.
+verkle_dict_update_trie(Trees, Dict) ->
+    true = is_integer(Trees),
+    %todo, get all the leaves from the dict and load them into the verkle tree in a single batch.
+    Keys = dict:fetch_keys(Dict),
+    Leaves = 
+        lists:map(
+          fun(Key) -> 
+                  {V, _Meta} = 
+                      dict:fetch(Key, Dict),
+                  case Key of
+                      {accounts, Pub} ->
+                            accounts:deserialize(V);
+                      _ -> io:write(Key, V),
+                           1=2
+                  end
+          end, Keys),
+    %todo. the account data should be encoded according to the new rules, not the old ones.
+    %io:fwrite({size(element(1, hd(Leaves)))}),%[{bin, zero}]
+    Trees2 = trees2:store_things(Leaves, Trees),
+    Trees2.
+
     
 %internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees2) ->
 %    Types = [accounts, oracles, channels, existence, governance, matched, unmatched],

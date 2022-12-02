@@ -127,11 +127,11 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     F14 = forks:get(14),
     OIL = if
               NewHeight < F14 ->
-                  governance:dict_get_value(oracle_initial_liquidity, Dict);
+                  governance:dict_get_value(oracle_initial_liquidity, Dict, NewHeight);
               Gov == 0 -> 
-                  governance:dict_get_value(oracle_question_liquidity, Dict);
+                  governance:dict_get_value(oracle_question_liquidity, Dict, NewHeight);
               true ->
-                  governance:dict_get_value(oracle_initial_liquidity, Dict)
+                  governance:dict_get_value(oracle_initial_liquidity, Dict, NewHeight)
           end,
     F10 = NewHeight > forks:get(10),
     UMT = if%
@@ -139,7 +139,7 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
 	      true -> orders%
 	  end,%
     VolumeCheck = UMT:dict_significant_volume(Dict, OID, OIL, NewHeight),
-    MOT = governance:dict_get_value(minimum_oracle_time, Dict),
+    MOT = governance:dict_get_value(minimum_oracle_time, Dict, NewHeight),
     Oracle = if
     %if the volume of trades it too low, then reset the done_timer to another week in the future.
 		 VolumeCheck -> Oracle0;

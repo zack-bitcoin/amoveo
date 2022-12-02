@@ -1,5 +1,5 @@
 -module(trees2).
--export([test/1, decompress_pub/1, merkle2verkle/2, merkle2verkle/2, root_hash/1]).
+-export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -12,8 +12,9 @@
 
 root_hash(Loc) ->
     CFG = tree:cfg(amoveo),
-    stem_verkle:root(
-      stem_verkle:get(Loc2, CFG)).
+    stem_verkle:hash_point(
+      stem_verkle:root(
+        stem_verkle:get(Loc, CFG))).
 
 range(N, N) ->
     [N];
@@ -96,6 +97,15 @@ store_things(Things, Loc) ->
     io:fwrite("store batch\n"),
     {P, _, _} = store_verkle:batch(V, Loc, CFG),
     P.
+hash_key(accounts, Pub) ->
+    key(#acc{pubkey = Pub});
+hash_key(oracles, X) ->
+    key(#oracle{id = X});
+hash_key(N, X) -> 
+    io:fwrite("hash key type "),
+    io:fwrite(N),
+    io:fwrite("\n"),
+    X.
 
 key(#acc{pubkey = Pub}) ->
     %hash of the pubkey.
@@ -310,15 +320,46 @@ to_keys([]) -> [];
 to_keys([Acc|T]) ->
     [key(Acc)|to_keys(T)].
 
+strip_tree_info([]) -> [];
+strip_tree_info([{Tree, X}|T]) -> 
+    K = hash_key(Tree, X),
+    [K|strip_tree_info(T)];
+strip_tree_info([H|T]) -> 
+    [H|strip_tree_info(T)].
+
+remove_repeats([]) ->
+    [];
+remove_repeats([H|T]) ->
+    B = is_in(H, T),
+    if
+        B -> remove_repeats(T);
+        true -> [H|remove_repeats(T)]
+    end.
+is_in(X, []) -> false;
+is_in(X, [X|_]) -> true;
+is_in(X, [_|T]) -> 
+    is_in(X, T).
+    
+            
+
 
 get_proof(Keys, Loc) ->
     get_proof(Keys, Loc, small).
-get_proof(Keys, Loc, Type) ->
+get_proof(Keys0, Loc, Type) ->
+    Keys3 = strip_tree_info(Keys0),
+    Keys = remove_repeats(Keys3),
     CFG = tree:cfg(amoveo),
     case Type of
         fast -> ok;
         small -> ok
     end,
+    lists:map(fun(X) -> 
+                      S = size(X), 
+                      if
+                          (32 == S) -> ok;
+                          true -> io:fwrite({Type, X, size(X)}) 
+                      end
+              end, Keys),
     {Proof, MetasDict} =
         get_verkle:batch(Keys, Loc, CFG, Type),
     Keys2 = key_tree_order(Proof),

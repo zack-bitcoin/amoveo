@@ -46,6 +46,7 @@ merkelize2([A]) -> [merkelize_thing(A)];
 merkelize2([A|[B|T]]) ->
     [merkelize_pair(A, B)|
      merkelize2(T)].
+
     
 txs_proofs_hash(Txs, Proofs) ->
     TB = merkelize(Txs),
@@ -62,7 +63,18 @@ block_to_header(B) ->
 	  {4, B#block.many_accounts},
 	  {5, B#block.many_oracles},
 	  {6, B#block.live_oracles}],
-    StateRoot = merkelize(BV ++ B#block.txs ++ B#block.proofs),
+    %todo, it is important that the proofs part is cleanly merkelized, so that we can replace it with it's hash in a compressed version of history.
+    %proofs is currently appending a tuple to the list, so it breaks.
+    StateRoot = 
+        if
+            is_tuple(B#block.proofs) -> 
+                %io:fwrite(B#block.proofs),
+                merkelize([{0, get_verkle:serialize_proof(
+                       B#block.proofs)}] ++ BV ++ B#block.txs);
+            true ->
+                merkelize(BV ++ B#block.txs ++ 
+                              B#block.proofs)
+        end,
     headers:make_header(
       B#block.prev_hash,
       B#block.height,
@@ -253,7 +265,7 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 	    (MC1 * 6) div 5;%
 	FH < Height ->%
 	    DeveloperRewardVar = %
-		governance:dict_get_value(developer_reward, Dict),%
+		governance:dict_get_value(developer_reward, Dict, Height),%
 	    DeveloperReward = %
 		(BlockReward * %
 		 DeveloperRewardVar) div %
@@ -290,7 +302,7 @@ governance_packer(L, DB) ->
 trees_maker(HeightCheck, Trees, NewDict4) ->
     NewTrees0 = 
         tree_data:dict_update_trie(
-          Trees, NewDict4),%same
+          Trees, NewDict4, HeightCheck),%same
     F10 = forks:get(10),
     F32 = forks:get(32),
     F35 = forks:get(35),
@@ -377,7 +389,7 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     Trees7 =
         if
             (HeightCheck == F52) ->
-                trees2:merkle2verkle(Trees6);
+                trees2:merkle2verkle(Trees6, 1);
             true -> Trees6
         end,
     Trees7.
@@ -386,12 +398,26 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
     
     
 make(Header, Txs0, Trees, Pub) ->
-    {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
+    %{CB, _Proofs} = coinbase_tx:make(Pub, Trees),
+    CB = coinbase_tx:make_dict(Pub),
     Txs = [CB|lists:reverse(Txs0)],
     Height = Header#header.height,
     Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
-    Facts = proofs:prove(Querys, Trees),
-    Dict = proofs:facts_to_dict(Facts, dict:new()),
+    {Facts, Dict} = 
+        if
+            is_integer(Trees) ->
+                X = proofs:prove(
+                                 Querys, Trees),
+                {F1, Leaves} = X,
+                {F1, proofs:facts_to_dict(
+                       {F1, Leaves}, dict:new())};
+            true -> 
+                Facts2 =proofs:prove(Querys, Trees),
+                {Facts2,
+                 proofs:facts_to_dict(
+                   Facts2, dict:new())}
+        end,
+    %Dict = proofs:facts_to_dict(Facts, dict:new()),%todo. this should work even if facts is a verkle proof.
     NewDict0 = txs:digest(Txs, Dict, Height + 1),
     B = ((Height+1) == forks:get(5)),
     NewDict = if
@@ -422,11 +448,13 @@ make(Header, Txs0, Trees, Pub) ->
     NewTrees = trees_maker(HeightCheck, Trees, NewDict4),
 
     %Governance = trees:governance(NewTrees),
-    Governance = trees:governance(Trees),
-    BlockPeriod = governance:get_value(block_period, Governance),
+    %Governance = trees:governance(Trees),
+    %BlockPeriod = governance:get_value(block_period, Governance),
+    BlockPeriod = trees:get(governance, block_period, dict:new(), Trees),
+    BlockReward = trees:get(governance, block_reward, dict:new(), Trees),
     PrevHash = hash(Header),
     OldBlock = get_by_hash(PrevHash),
-    BlockReward = governance:get_value(block_reward, Governance),
+    %BlockReward = governance:get_value(block_reward, Governance),
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height),
     TimeStamp = time_now(),
     NextHeader = #header{height = Height + 1, prev_hash = PrevHash, time = TimeStamp, period = BlockPeriod},
@@ -577,7 +605,9 @@ roots_hash(X) when is_record(X, roots5) ->
     Receipts = X#roots5.receipts,
     Stablecoins = X#roots5.stablecoins,
     Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary, Markets/binary, Receipts/binary, Stablecoins/binary>>,
-    hash:doit(Y).
+    hash:doit(Y);
+roots_hash(X = <<_:256>>) -> X.
+
 
     
 guess_number_of_cpu_cores() ->
@@ -794,7 +824,7 @@ check3(OldBlock, Block) ->
     
     MaxBlockSize = if
                        Height > (F33+1) -> 
-                           governance:dict_get_value(max_block_size, Dict);
+                           governance:dict_get_value(max_block_size, Dict, Height);
                        true -> none
                    end,
     %MaxBlockSize = governance:get_value(max_block_size, Governance),
@@ -807,7 +837,7 @@ check3(OldBlock, Block) ->
 		 bad;
 	     false -> ok
     end,
-    BlockReward = governance:dict_get_value(block_reward, Dict),
+    BlockReward = governance:dict_get_value(block_reward, Dict, Height),
     %BlockReward = governance:get_value(block_reward, Governance),
     %io:fwrite("block check 4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
@@ -1288,7 +1318,7 @@ gov_fees([Tx|T], Dict, Height) ->
 	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict, Height);
             contract_timeout_tx2 -> 0;
 	    _ -> 
-                X = governance:dict_get_value(Type, Dict),
+                X = governance:dict_get_value(Type, Dict, Height),
                 F16 = forks:get(16),
                 if
                     ((Type == timeout) and (Height > F16)) -> -X;
@@ -1304,7 +1334,7 @@ gov_fees2([H|T], Dict, Height) ->
             (Type == contract_timeout_tx2) ->
                 0;
             (F47_activated and (Type == contract_evidence_tx)) -> 
-                CEF = governance:dict_get_value(Type, Dict),
+                CEF = governance:dict_get_value(Type, Dict, Height),
                 Contract = H#contract_evidence_tx.contract,
                 Evidence = H#contract_evidence_tx.evidence,
                 Prove = H#contract_evidence_tx.prove,
@@ -1312,11 +1342,11 @@ gov_fees2([H|T], Dict, Height) ->
                 CEF + (S * CEF div 5000);
             (F47_activated and (Type == oracle_new)) -> 
                 S = size(H#oracle_new.question),
-                ONF = governance:dict_get_value(Type, Dict),
+                ONF = governance:dict_get_value(Type, Dict, Height),
                 ONF + (S * ONF div 5000);
             true ->
         
-            governance:dict_get_value(Type, Dict)
+            governance:dict_get_value(Type, Dict, Height)
         end,
     A + gov_fees2(T, Dict, Height).
     
@@ -1514,11 +1544,11 @@ no_counterfeit(Old, New, Txs, Height) ->
     NK = dict:fetch_keys(New),
     OA = sum_amounts(OK, Old, Old),
     NA = sum_amounts(NK, New, Old),
-    BR = governance:dict_get_value(block_reward, Old),
+    BR = governance:dict_get_value(block_reward, Old, Height),
     %io:fwrite("block reward "),
     %io:fwrite(integer_to_list(BR)),
     %io:fwrite("\n"),
-    DR = governance:dict_get_value(developer_reward, Old),
+    DR = governance:dict_get_value(developer_reward, Old, Height),
     DR1 = (BR * DR div 10000),
     F49 = forks:get(49),
     DR2 = case Height of
@@ -1535,12 +1565,12 @@ no_counterfeit(Old, New, Txs, Height) ->
     %io:fwrite("close oracles are "),
     %io:fwrite(integer_to_list(CloseOracles)),
     %io:fwrite("; "),
-    OIL = governance:dict_get_value(oracle_initial_liquidity, Old),% div 2;
+    OIL = governance:dict_get_value(oracle_initial_liquidity, Old, Height),% div 2;
     OCA = if
               ((CloseOracles > 0) and (is_integer(OIL)))->
                   OIL div 2;
               (CloseOracles > 0) ->
-                  OQL = governance:dict_get_value(oracle_question_liquidity, Old),
+                  OQL = governance:dict_get_value(oracle_question_liquidity, Old, Height),
                   OQL div 2;
               true -> 0
           end,

@@ -1,14 +1,47 @@
 -module(governance).
 -export([tree_number_to_value/1, max/1, is_locked/1, genesis_state/0, name2number/1, number2name/1,%custom for this tree
 	 get_value/2, get/2, write/2,%update tree stuff
-         dict_get/2,dict_get/3,dict_write/2, dict_get_value/2, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
+         dict_get/2,dict_get/3,dict_write/2, dict_get_value/3, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,
 	 serialize/1,deserialize/1,
-	 new/2,
+	 new/2, hard_coded/2,
 	 test/0]).%common tree stuff
 -define(name, governance).
 -define(fee, constants:encoded_fee()).
 -include("../../records.hrl").
+
+hard_coded(_, 1) -> 1370;%block reward
+hard_coded(_, 2) -> 429;%developer reward
+hard_coded(_, 3) -> 890;%max block size
+hard_coded(_, 4) -> 550;%block period
+hard_coded(_, 5) -> 1113;%time gas
+hard_coded(_, 6) -> 1113;%space gas
+hard_coded(_, 7) -> 350;%fun limit
+hard_coded(_, 8) -> 600;%var limit
+hard_coded(_, 9) -> 51;%gov change limit
+hard_coded(_, 10) -> 1500;%oracle initial liquidity
+hard_coded(_, 11) -> 352;%minimum oracle time
+hard_coded(_, 12) -> 505;%maximum oracle time
+hard_coded(_, 13) -> 352;%maximum question size
+hard_coded(_, 14) -> 905;%create account tx
+hard_coded(_, 15) -> 805;%spend tx
+hard_coded(_, 16) -> 0;%delete tx
+hard_coded(_, 17) -> 905;%nc
+hard_coded(_, 18) -> 905;%ctc
+hard_coded(_, 19) -> 905;%channel solo close
+hard_coded(_, 20) -> 905;%channel timeout
+hard_coded(_, 21) -> 905;%channel slash
+hard_coded(_, 22) -> 905;%existence
+hard_coded(_, 23) -> 905;%oracle new
+hard_coded(_, 24) -> 905;%oracle bet
+hard_coded(_, 25) -> 905;%oracle close
+hard_coded(_, 26) -> 905;%unmatched
+hard_coded(_, 27) -> 905;%oracle winnings
+hard_coded(_, 28) -> 
+    1100.%oracle question liquidity
+
+
+
 genesis_state() ->
     {MinimumOracleTime, MaximumOracleTime, BlockPeriod} =
         case application:get_env(amoveo_core, test_mode, false) of
@@ -267,6 +300,19 @@ deserialize(SerializedGov) ->
     <<Id:8, Value:16, Lock:8>> = SerializedGov,
     #gov{id = Id, value = Value, lock = Lock}.
 
+
+dict_get_value(Key, Dict, VP) 
+  when is_integer(VP) ->
+    N = name2number(Key), 
+    HC = hard_coded(-1, N),
+    HC2 = tree_number_to_value(HC),
+    case Key of
+        timeout -> -HC2;
+        _ -> HC2
+    end;
+dict_get_value(Key, Dict, _Trees) ->
+    dict_get_value(Key, Dict).
+                     
 dict_get_value(Key, Dict) when ((Key == timeout) or (Key == delete_acc_tx)) ->
     case dict_get(Key, Dict) of
 	error -> error;

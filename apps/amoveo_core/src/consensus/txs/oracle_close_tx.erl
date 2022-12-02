@@ -41,11 +41,11 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     F14 = forks:get(14),
     OIL = if
               NewHeight < F14 ->
-                  governance:dict_get_value(oracle_initial_liquidity, Dict);
+                  governance:dict_get_value(oracle_initial_liquidity, Dict, NewHeight);
               Gov == 0 -> 
-                  governance:dict_get_value(oracle_question_liquidity, Dict);
+                  governance:dict_get_value(oracle_question_liquidity, Dict, NewHeight);
               true ->
-                  governance:dict_get_value(oracle_initial_liquidity, Dict)
+                  governance:dict_get_value(oracle_initial_liquidity, Dict, NewHeight)
           end,
     %OIL = governance:dict_get_value(oracle_initial_liquidity, Dict2),
     F10 = NewHeight > forks:get(10),
@@ -61,7 +61,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Oracle3 = Oracle#oracle{done_timer = NewHeight, result = Result},
     Dict4 = oracles:dict_write(Oracle3, Dict2),
     Gov = Oracle3#oracle.governance,
-    MOT = governance:dict_get_value(maximum_oracle_time, Dict4),
+    MOT = governance:dict_get_value(maximum_oracle_time, Dict4, NewHeight),
     Dict5 = 
         case Gov of
             0 ->

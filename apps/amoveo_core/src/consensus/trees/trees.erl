@@ -366,6 +366,8 @@ serialized_roots(Trees) ->
               Trades/binary, Markets/binary,
               Receipts/binary, Stablecoins/binary>>
     end.
+root_hash(Trees) when is_integer(Trees) ->
+    trees2:root_hash(Trees);
 root_hash(Trees) ->
     Y = serialized_roots(Trees),
     hash:doit(Y).
@@ -415,14 +417,34 @@ restore(Root, Fact, Meta) ->
         _ -> Leaf = Leaf2
     end,
     Out.
-get(TreeID, Key) ->
+vget(governance, Key) ->
+    Height = block:height(),
+    governance:hard_coded(Height, Key);
+vget(TreeID, Key) ->
     TP = tx_pool:get(),
-    Trees = TP#tx_pool.block_trees,
-    Dict = TP#tx_pool.dict,
-    get(TreeID, Key, Dict, Trees).
+    Loc = TP#tx_pool.block_trees,
+    Key2 = trees2:hash_key(TreeID, Key),
+    32 = size(Key2),
+    {_, Leaves} = 
+        trees2:get_proof([Key2], Loc, fast),
+    Leaves.
+get(TreeID, Key) ->
+    H = block:height(),
+    F52 = forks:get(52),
+    if
+        H < F52 ->
+            TP = tx_pool:get(),
+            Trees = TP#tx_pool.block_trees,
+            Dict = TP#tx_pool.dict,
+            get(TreeID, Key, Dict, Trees);
+        true ->
+            vget(TreeID, Key)
+    end.
+            
 get(governance, Key, Dict, Trees) ->
     %first check if the thing we want is stored in the RAM Dict for quick access. If not, load it from the hard drive.
-    case governance:dict_get_value(Key, Dict) of
+    H = block:height(),
+    case governance:dict_get_value(Key, Dict, H) of
 	error -> 
 	    Governance = trees:governance(Trees),
 	    governance:get_value(Key, Governance);
@@ -431,6 +453,9 @@ get(governance, Key, Dict, Trees) ->
 	    governance:get_value(Key, Governance);
 	Y -> Y
     end;
+%get(TreeID, Key, Dict, VP) when is_integer(VP) ->
+%    {_, [R]} = trees2:get_proof([Key], VP, fast),
+%    R;
 get(TreeID, Key, Dict, Trees) ->
     case TreeID:dict_get(Key, Dict) of
 	error -> 

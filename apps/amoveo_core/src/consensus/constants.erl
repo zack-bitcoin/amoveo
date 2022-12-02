@@ -95,6 +95,7 @@ sub_account_size() ->
     ((balance_bits() + account_nonce_bits()) div 8) + 4 + pubkey_size() + hash_size().
 account_size() ->
 	((balance_bits() + account_nonce_bits()) div 8) + (hash_size()) + pubkey_size().
+%6 + 3 + 32 + 65 = 106.
 contract_size() ->
     ((balance_bits() +
           channel_nonce_bits() + 

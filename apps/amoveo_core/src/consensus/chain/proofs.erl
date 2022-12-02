@@ -84,6 +84,8 @@ det_order(Querys) ->
     det_helper(F).
 %finished defining merge-sort.       
 
+prove(Querys, Trees) when is_integer(Trees) ->
+        trees2:get_proof(Querys, Trees, small);
 prove(Querys, Trees) ->
     F2 = det_order(Querys),
     prove2(F2, Trees).
@@ -166,7 +168,18 @@ facts_to_dict([F|T], D) ->
                  _ -> Value0
             end,
     D2 = dict:store({Tree, Key}, Value3, D),
-    facts_to_dict(T, D2).
+    facts_to_dict(T, D2);
+facts_to_dict({_VerkleProof, Leaves}, D) ->
+    lists:foldl(fun(Leaf, Acc) ->
+                        Key = trees2:key(Leaf),
+                        Tree = element(1, Leaf),
+                        Value = trees2:serialize(Leaf),
+                        dict:store({Tree, Key}, Value, Acc)
+                end, D, Leaves);
+facts_to_dict(A, _) ->
+    io:fwrite(A),
+    ok.
+
 hash(F) ->
     hash:doit(F).
 governance_to_querys(Gov) ->
@@ -178,6 +191,20 @@ leaves_to_querys([L|T]) ->
     [Q|leaves_to_querys(T)].
 -define(n2i(X), governance:name2number(X)).
 txs_to_querys([C|T], Trees, Height) -> 
+    F52 = forks:get(52),
+    Q = txs_to_querys_old([C|T], Trees, Height),
+    if
+        Height > F52 -> remove_govs(Q);
+        true -> Q
+    end.
+remove_govs([]) -> [];
+remove_govs([{governance, _}|T]) -> 
+    remove_govs(T);
+remove_govs([H|T]) -> 
+    [H|remove_govs(T)].
+
+
+txs_to_querys_old([C|T], Trees, Height) -> 
     case element(1, C) of
         coinbase ->
             F33 = forks:get(33),

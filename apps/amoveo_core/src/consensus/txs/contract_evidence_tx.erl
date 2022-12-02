@@ -89,7 +89,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                     B4 = all_lengths(RMany, Matrix),
                     TwoE32 = 4294967295,%(2**32 - 1) highest expressible value in chalang integers.
                     B5 = column_sum(TwoE32, Matrix),
-                    MCF = governance:dict_get_value(max_contract_flavors, Dict),
+                    MCF = governance:dict_get_value(max_contract_flavors, Dict, NewHeight),
                     B7 = RMany =< MCF,
                     B6 = B1 and B2 and B3 and B4 and B5 and B7,
                     if
@@ -155,10 +155,14 @@ serialize_row([<<H:32>>|T], A) ->
 
 run(NewHeight, Prove, Evidence, ContractBytecode, Dict2) ->
     true = chalang:none_of(Evidence),
-    Funs = governance:dict_get_value(fun_limit, Dict2),
-    Vars = governance:dict_get_value(var_limit, Dict2),
-    OpGas = governance:dict_get_value(time_gas, Dict2),
-    RamGas = governance:dict_get_value(space_gas, Dict2),
+    Funs = governance:dict_get_value(
+             fun_limit, Dict2, NewHeight),
+    Vars = governance:dict_get_value(
+             var_limit, Dict2, NewHeight),
+    OpGas = governance:dict_get_value(
+              time_gas, Dict2, NewHeight),
+    RamGas = governance:dict_get_value(
+               space_gas, Dict2, NewHeight),
 
     State = chalang:new_state(NewHeight, 0, 0),
     ProveCode = spk:prove_facts(Prove, Dict2, NewHeight),

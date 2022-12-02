@@ -67,7 +67,7 @@ go(Tx, Dict, NewHeight, _) ->
     %NCO = Tx#nc_accept.nc_offer#signed.data,
     %NLock = NCO#nc_offer.nlocktime,
     true = ((NLock == 0) or (NewHeight < NLock)),
-    DefaultFee = governance:dict_get_value(nc, Dict),
+    DefaultFee = governance:dict_get_value(nc, Dict, NewHeight),
     %ToAcc1 = ((Fee) - (DefaultFee)) * (10000 div NCO#nc_offer.miner_commission), %this is how we can incentivize limit-order like behaviour.
     ToAcc1 = ((Fee) - (DefaultFee)) * (10000 div MC), %this is how we can incentivize limit-order like behaviour.
     %CS = Tx#nc_accept.contract_sig,
