@@ -1,5 +1,5 @@
 -module(trees2).
--export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2]).
+-export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/1, verify_proof/2]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -374,12 +374,17 @@ get_proof(Keys0, Loc, Type) ->
                               dict:find(K, MetasDict),
                           dump_get(T, V)
                   end, Keys2),
-    Proof2 = remove_leaves_proof(Proof),
-    {Proof2, Leaves}.
+    case Type of
+        small -> {get_verkle:serialize_proof(
+                   Proof), Leaves};
+        fast -> 
+            Proof2 = remove_leaves_proof(Proof),
+            {Proof2, Leaves}
+    end.
 
 remove_leaves_proof([]) -> [];
 remove_leaves_proof({I, {<<K:256>>, <<V:256>>}}) -> 
-    {I, 0};
+    {I, 1};
 remove_leaves_proof(T) when is_tuple(T) -> 
     list_to_tuple(
       remove_leaves_proof(
@@ -391,7 +396,7 @@ remove_leaves_proof(<<X:256>>) ->
     <<X:256>>.
 
 restore_leaves_proof([], []) -> {[], []};
-restore_leaves_proof([{I, 0}], [L|T]) -> 
+restore_leaves_proof([{I, 1}], [L|T]) -> 
     K = key(L),
     V = hash:doit(serialize(L)),
     {[{I, {K, V}}], T};
@@ -433,9 +438,12 @@ dump_get(T, V) ->
 verify_proof(Proof0, Things) ->
     CFG = tree:cfg(amoveo),
 
-    {Proof, []} = 
-        restore_leaves_proof(Proof0, Things),
+    Proof1 = get_verkle:deserialize_proof(Proof0),
 
+    {Proof, []} = 
+        restore_leaves_proof(Proof1, Things),
+
+    CFG = tree:cfg(amoveo),
     {true, Leaves, ProofTree} = 
         verify_verkle:proof(Proof, CFG),
     Ks = to_keys(Things),
@@ -448,6 +456,9 @@ verify_proof(Proof0, Things) ->
                         Ks, Hs),
     {lists:sort(KHs) == lists:sort(Leaves),
      ProofTree}.
+verify_proof(Proof) ->
+    CFG = tree:cfg(amoveo),
+    verify_verkle:proof(Proof, CFG).
 
 prune(Trash, Keep) ->
     CFG = tree:cfg(amoveo),

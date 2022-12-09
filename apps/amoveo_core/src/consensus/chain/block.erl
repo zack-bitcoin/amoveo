@@ -67,10 +67,10 @@ block_to_header(B) ->
     %proofs is currently appending a tuple to the list, so it breaks.
     StateRoot = 
         if
-            is_tuple(B#block.proofs) -> 
-                %io:fwrite(B#block.proofs),
-                merkelize([{0, get_verkle:serialize_proof(
-                       B#block.proofs)}] ++ BV ++ B#block.txs);
+            is_binary(B#block.proofs) ->
+            %is_tuple(B#block.proofs) -> 
+                merkelize([{0, B#block.proofs}] ++ 
+                              BV ++ B#block.txs);
             true ->
                 merkelize(BV ++ B#block.txs ++ 
                               B#block.proofs)
@@ -409,8 +409,9 @@ make(Header, Txs0, Trees, Pub) ->
                 X = proofs:prove(
                                  Querys, Trees),
                 {F1, Leaves} = X,
-                {F1, proofs:facts_to_dict(
-                       {F1, Leaves}, dict:new())};
+                {F1, 
+                 proofs:facts_to_dict(
+                   {F1, Leaves}, dict:new())};
             true -> 
                 Facts2 =proofs:prove(Querys, Trees),
                 {Facts2,
@@ -679,6 +680,12 @@ mine2(Block, Times) ->
         Pow -> Block#block{nonce = pow:nonce(Pow)}
     end.
 proofs_roots_match([], _) -> true;
+proofs_roots_match({Proof, Leaves}, R) when is_binary(R) ->
+    io:fwrite({hd(Proof), R}),
+    1=2,
+    ok;
+    %it is a verkle proof, and a verkle root. we need to check that they work together.
+    
 proofs_roots_match([P|T], R) when is_record(R, roots)->%
     Tree = proofs:tree(P),%
     Root = proofs:root(P),%
@@ -757,11 +764,17 @@ proofs_roots_match([P|T], R) when is_record(R, roots5)->
                receipts -> R#roots5.receipts;
                stablecoins -> R#roots5.markets
 	   end,
-    proofs_roots_match(T, R).
+    proofs_roots_match(T, R);
+proofs_roots_match(A, B) -> 
+    io:fwrite({A, B}),
+    1=2.
+                            
+
 
 
 check0(Block) ->%This verifies the txs in ram. is parallelizable
     %assume_valid {height, hash}
+    io:fwrite("block check0 0\n"),
     Height = Block#block.height,
     Header = block_to_header(Block),
     BlockHash = hash(Header),
@@ -782,12 +795,22 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
     Txs = Block#block.txs,
-    true = proofs_roots_match(Facts, Roots),
+    io:fwrite("block check0 1\n"),
+    RootSame = proofs_roots_match(Facts, Roots),
+    if
+        RootSame -> ok;
+        true -> 
+            io:fwrite({Roots, Facts}),
+            1=2
+    end,
+    io:fwrite("block check0 2\n"),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     PrevHash = Block#block.prev_hash,
     _Pub = coinbase_tx:from(hd(Block#block.txs)),
+    io:fwrite("block check0 3\n"),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = txs:digest(Txs, Dict, Height),
+    io:fwrite("block check0 4\n"),
     {Dict, NewDict, BlockHash}.
 
 

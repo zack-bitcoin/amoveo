@@ -1,3 +1,5 @@
+
+
 * switch over all the governance values to be hard coded instead of in the database.
   - proofs:txs_to_querys shouldn't include governance stuff after the update. Done
   - trees:get/4 with tag governance should be hard coded. Done
