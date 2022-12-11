@@ -67,8 +67,8 @@ block_to_header(B) ->
     %proofs is currently appending a tuple to the list, so it breaks.
     StateRoot = 
         if
-            is_binary(B#block.proofs) ->
-            %is_tuple(B#block.proofs) -> 
+            %is_binary(B#block.proofs) ->
+            is_tuple(B#block.proofs) -> 
                 merkelize([{0, B#block.proofs}] ++ 
                               BV ++ B#block.txs);
             true ->
@@ -409,7 +409,7 @@ make(Header, Txs0, Trees, Pub) ->
                 X = proofs:prove(
                                  Querys, Trees),
                 {F1, Leaves} = X,
-                {F1, 
+                {{F1, Leaves},
                  proofs:facts_to_dict(
                    {F1, Leaves}, dict:new())};
             true -> 
@@ -452,10 +452,16 @@ make(Header, Txs0, Trees, Pub) ->
     %Governance = trees:governance(Trees),
     %BlockPeriod = governance:get_value(block_period, Governance),
     BlockPeriod = trees:get(governance, block_period, dict:new(), Trees),
-    BlockReward = trees:get(governance, block_reward, dict:new(), Trees),
+    BlockReward = trees:get(governance, block_reward, Dict, Trees),
     PrevHash = hash(Header),
     OldBlock = get_by_hash(PrevHash),
     %BlockReward = governance:get_value(block_reward, Governance),
+    io:fwrite("make cap "),
+    io:fwrite(integer_to_list(Height)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(BlockReward)),
+    io:fwrite("/n"),
+
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height),
     TimeStamp = time_now(),
     NextHeader = #header{height = Height + 1, prev_hash = PrevHash, time = TimeStamp, period = BlockPeriod},
@@ -680,10 +686,19 @@ mine2(Block, Times) ->
         Pow -> Block#block{nonce = pow:nonce(Pow)}
     end.
 proofs_roots_match([], _) -> true;
-proofs_roots_match({Proof, Leaves}, R) when is_binary(R) ->
-    io:fwrite({hd(Proof), R}),
-    1=2,
-    ok;
+proofs_roots_match({Proof, _Leaves}, R) 
+  when is_binary(R) ->
+    %proof is the serialized verlke proof.
+    %r is the 32 byte root.
+    %{true, _Leaves, _} = trees2:verify_proof(Proof),
+    {Tree, _Commit, _Opening} = 
+        get_verkle:deserialize_proof(Proof),
+    T1 = ed:decompress_point(hd(Tree)),
+    R2 = stem_verkle:hash_point(T1),
+    R2 == R;
+%io:fwrite({Proof, R}),
+%    1=2,
+%    ok;
     %it is a verkle proof, and a verkle root. we need to check that they work together.
     
 proofs_roots_match([P|T], R) when is_record(R, roots)->%
@@ -777,7 +792,9 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     io:fwrite("block check0 0\n"),
     Height = Block#block.height,
     Header = block_to_header(Block),
+    io:fwrite("block check0 0 1\n"),
     BlockHash = hash(Header),
+    io:fwrite("block check0 0 2\n"),
     case application:get_env(amoveo_core, assume_valid) of
         {ok, {Height, BlockHash}} ->
             %this is the block we are assuming is valid.
@@ -791,7 +808,9 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,
     {ok, Header} = headers:read(BlockHash),
     Roots = Block#block.roots,
+    io:fwrite("block check0 0 3\n"),
     PrevStateHash = roots_hash(Roots),
+    io:fwrite("block check0 0 4\n"),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
     Txs = Block#block.txs,
@@ -804,7 +823,22 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
             1=2
     end,
     io:fwrite("block check0 2\n"),
-    Dict = proofs:facts_to_dict(Facts, dict:new()),
+    Dict = 
+        if
+            is_tuple(Facts) -> 
+                {_Proof, Leaves} = Facts,
+                %DF = get_verkle:deserialize_proof(
+                %       Proof),
+                
+                %io:fwrite(Leaves),%todo. seems like these leaves are in the wrong format, or possibly wrong order?
+                proofs:facts_to_dict(
+                  Facts, dict:new());
+            is_list(Facts) -> 
+                proofs:facts_to_dict(
+                  Facts, dict:new())
+        end,
+    %Dict = proofs:facts_to_dict(
+    %{Facts, Leaves}, dict:new()),
     PrevHash = Block#block.prev_hash,
     _Pub = coinbase_tx:from(hd(Block#block.txs)),
     io:fwrite("block check0 3\n"),
@@ -860,11 +894,21 @@ check3(OldBlock, Block) ->
 		 bad;
 	     false -> ok
     end,
-    BlockReward = governance:dict_get_value(block_reward, Dict, Height),
+    %BlockReward = governance:dict_get_value(block_reward, Dict, Height),
+    BlockReward = trees:get(governance, block_reward, Dict, OldTrees),
+    
+
+
     %BlockReward = governance:get_value(block_reward, Governance),
     %io:fwrite("block check 4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
+    io:fwrite("check cap "),
+    io:fwrite(integer_to_list(Height)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(BlockReward)),
+    io:fwrite("\n"),
+
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height-1),
     true = Block#block.market_cap == MarketCap,
     %io:fwrite("block check 5\n"),
@@ -901,6 +945,14 @@ check3(OldBlock, Block) ->
     F8 = forks:get(8),
     if
         Height > F8 ->
+            DKeys = dict:fetch_keys(Dict),
+            if
+                Height > 2 ->
+            io:fwrite({Dict, NewDict3, lists:map(fun(X) -> dict:fetch(X, Dict) end, DKeys),
+                       lists:map(fun(X) -> dict:fetch(X, NewDict3) end, DKeys)});
+                true -> ok
+            end,
+                                 
             Diff0 = no_counterfeit(Dict, NewDict3, Txs0, Height),
             true = (Diff0 =< 0);
         true -> ok

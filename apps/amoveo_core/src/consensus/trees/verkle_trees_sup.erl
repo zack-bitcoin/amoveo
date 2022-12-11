@@ -15,7 +15,7 @@ dumps() ->
      {contracts_dump, 153},
      {trades_dump, 36},
      {markets_dump, 124},
-     {receipts_dump, 69}].
+     {receipts_dump, 73}].
     
 stop() -> 
     %todo, kill the child processes.

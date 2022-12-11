@@ -85,7 +85,7 @@ det_order(Querys) ->
 %finished defining merge-sort.       
 
 prove(Querys, Trees) when is_integer(Trees) ->
-        trees2:get_proof(Querys, Trees, small);
+    trees2:get_proof(Querys, Trees, small);
 prove(Querys, Trees) ->
     F2 = det_order(Querys),
     prove2(F2, Trees).

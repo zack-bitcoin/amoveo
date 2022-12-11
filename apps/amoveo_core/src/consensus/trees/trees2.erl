@@ -1,5 +1,5 @@
 -module(trees2).
--export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/1, verify_proof/2]).
+-export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -340,9 +340,7 @@ is_in(X, [X|_]) -> true;
 is_in(X, [_|T]) -> 
     is_in(X, T).
     
-            
-
-
+    
 get_proof(Keys, Loc) ->
     get_proof(Keys, Loc, small).
 get_proof(Keys0, Loc, Type) ->
@@ -364,10 +362,6 @@ get_proof(Keys0, Loc, Type) ->
         get_verkle:batch(Keys, Loc, CFG, Type),
     Keys2 = key_tree_order(Proof),
     true = length(Keys) == length(Keys2),
-%    FK = dict:fetch_keys(MetasDict),
-%    Vals = lists:map(
-%             fun(K) -> dict:find(K, MetasDict) end,
-%             FK),
     Leaves = 
         lists:map(fun(K) ->
                           {ok, <<T, V:56>>} = 
@@ -456,9 +450,10 @@ verify_proof(Proof0, Things) ->
                         Ks, Hs),
     {lists:sort(KHs) == lists:sort(Leaves),
      ProofTree}.
-verify_proof(Proof) ->
-    CFG = tree:cfg(amoveo),
-    verify_verkle:proof(Proof, CFG).
+%verify_proof(Proof) ->
+%    CFG = tree:cfg(amoveo),
+%    Proof1 = get_verkle:deserialize_proof(Proof),
+%    verify_verkle:proof(Proof1, CFG).
 
 prune(Trash, Keep) ->
     CFG = tree:cfg(amoveo),
@@ -486,20 +481,12 @@ merkle2verkle(
                   [A, O, M, U, SA, CO, T, M2, R]),
     AllLeaves = lists:foldl(
       fun({Type, X}, A) ->
-              io:fwrite("tree get all "),
-              io:fwrite(Type),
-              io:fwrite("\n"),
               Leaves = 
                   lists:map(
                     fun(F) -> 
                             (Type):deserialize(leaf:value(F)) end,
                     trie:get_all(X, Type)),
-              io:fwrite("made leaves \n"),
               A ++ Leaves
-              %io:fwrite(Leaves),
-              %Loc2 = store_things(Leaves, Loc1),
-              %io:fwrite("stored things\n"),
-              %Loc2
       end, [], TypePairs),
     store_things(AllLeaves, Loc).
     

@@ -1,3 +1,18 @@
+during the no-counterfeit check, we are looking at what changed in the dictionary.
+Before the verkle update, it is like {acount, <<old binary serialization>>}
+and afterwards it is like {acc, <<new serialization>>}.
+maybe we need to teach the no-counterfeit tool how to handle the new format? or maybe the dictionary shouldn't have two different format to store accounts?
+
+
+
+
+not calculating the market cap right with this new database format.
+
+
+in block.erl, line 824.
+problem with loading the dict from the verkle proof.
+
+
 
 
 * switch over all the governance values to be hard coded instead of in the database.

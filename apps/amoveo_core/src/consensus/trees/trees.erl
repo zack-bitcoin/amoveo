@@ -441,10 +441,13 @@ get(TreeID, Key) ->
             vget(TreeID, Key)
     end.
             
+get(governance, Key, Dict, Trees) 
+  when is_integer(Trees) ->
+    governance:dict_get_value(Key, Dict, Trees);
 get(governance, Key, Dict, Trees) ->
     %first check if the thing we want is stored in the RAM Dict for quick access. If not, load it from the hard drive.
-    H = block:height(),
-    case governance:dict_get_value(Key, Dict, H) of
+    
+    case governance:dict_get_value(Key, Dict, Trees) of
 	error -> 
 	    Governance = trees:governance(Trees),
 	    governance:get_value(Key, Governance);
