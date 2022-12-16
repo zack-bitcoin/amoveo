@@ -4,7 +4,7 @@
          dict_get/2,dict_get/3,dict_write/2, dict_get_value/3, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,
 	 serialize/1,deserialize/1,
-	 new/2, hard_coded/2,
+	 new/2, hard_coded/2, value/1,
 	 test/0]).%common tree stuff
 -define(name, governance).
 -define(fee, constants:encoded_fee()).
@@ -312,22 +312,24 @@ dict_get_value(Key, Dict, VP)
     end;
 dict_get_value(Key, Dict, _Trees) ->
     dict_get_value(Key, Dict).
-                     
-dict_get_value(Key, Dict) when ((Key == timeout) or (Key == delete_acc_tx)) ->
-    case dict_get(Key, Dict) of
-	error -> error;
-	empty -> empty;
-	Gov ->
-	    V = Gov#gov.value,
-	    -tree_number_to_value(V)
-    end;
+
+%value({_, G, _}) ->
+%    value(G);
+value(G = #gov{value = V, id = K}) ->
+    K2 = number2name(K),
+    X = case K2 of
+            timeout -> -1;
+            delete_acc_tx -> -1;
+            _ -> 1
+        end,
+    X * tree_number_to_value(V).
+            
 dict_get_value(Key, Dict) ->
     case dict_get(Key, Dict) of
 	error -> error;
 	empty -> empty;
 	Gov ->
-	    V = Gov#gov.value,
-	    tree_number_to_value(V)
+            value(Gov)
     end.
 dict_get(Key0, Dict) ->
     dict_get(Key0, Dict, 0).

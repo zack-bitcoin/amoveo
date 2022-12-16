@@ -66,8 +66,14 @@ dict_get(Key, Dict) ->
 	error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, Y} -> 
+            SY = size(Y),
+            case SY of
+                73 -> trees2:deserialize(10, Y);
+                _ -> deserialize(Y)
+            end
     end.
+%deserialize 10
 get(ID, Receipts) ->
     <<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Receipts, receipts),

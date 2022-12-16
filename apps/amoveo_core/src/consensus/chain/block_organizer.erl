@@ -147,8 +147,8 @@ add5([]) ->
     %io:fwrite("block organizer add5 done\n"),
     [];
 add5([Block|T]) ->
-    {Dict, NewDict, BlockHash} = block:check0(Block),
-    Block2 = Block#block{trees = {Dict, NewDict, BlockHash}},
+    X = block:check0(Block),
+    Block2 = Block#block{trees = X},
     [Block2|add5(T)].
 add1([], []) -> {[], 0};
 add1([X], L) -> 

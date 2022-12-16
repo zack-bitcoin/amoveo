@@ -1,5 +1,5 @@
 -module(trees2).
--export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2]).
+-export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -107,6 +107,7 @@ hash_key(N, X) ->
     io:fwrite("\n"),
     X.
 
+key({empty, K}) -> K;
 key(#acc{pubkey = Pub}) ->
     %hash of the pubkey.
     PubkeySize = constants:pubkey_size(),
@@ -360,23 +361,62 @@ get_proof(Keys0, Loc, Type) ->
               end, Keys),
     {Proof, MetasDict} =
         get_verkle:batch(Keys, Loc, CFG, Type),
-    Keys2 = key_tree_order(Proof),
-    true = length(Keys) == length(Keys2),
+    %order keys based on depth first scan of the tree from low to high.
+    Keys30 = depth_order(Keys),
+    Keys2 = key_tree_order(element(1, Proof)),
+    KeyLengthBool = length(Keys) == length(Keys2),
+    if
+        KeyLengthBool -> ok;
+        true -> ok;
+        true ->
+            io:fwrite({length(Keys), length(Keys30),
+                       Keys2, Keys30,
+                       element(1, Proof), 
+                       MetasDict}),
+%            1=2
+            ok
+    end,
     Leaves = 
         lists:map(fun(K) ->
-                          {ok, <<T, V:56>>} = 
-                              dict:find(K, MetasDict),
-                          dump_get(T, V)
-                  end, Keys2),
+                          case dict:find(K, MetasDict) of
+                              {ok, <<T, V:56>>} ->
+                                  dump_get(T, V);
+                              error ->
+                                  {empty, K}
+                          end
+                  %end, Keys2),
+                  end, Keys30),
+    Proof2 = remove_leaves_proof(Proof),
+    {Proof3, _} = 
+        restore_leaves_proof(Proof2, Leaves),
+    if
+        not(Proof == Proof3) -> 
+            io:fwrite({element(1, Proof) == element(1, Proof3), element(1, Proof), element(1, Proof3)});
+        true -> ok
+    end,
     case Type of
         small -> {get_verkle:serialize_proof(
-                   Proof), Leaves};
+                   Proof2), Leaves};
         fast -> 
-            Proof2 = remove_leaves_proof(Proof),
             {Proof2, Leaves}
     end.
+depth_order(Keys) ->
+    K2 = lists:map(fun(K) ->
+                           <<A:256/little>> = K,
+                           <<B:256>> = 
+                               <<A:256/big>>,
+                           {K, B}
+                   end, Keys),
+    K3 = lists:sort(fun({K, B}, {K2, B2}) ->
+                            B < B2
+                    end, K2),
+    lists:map(fun({K, _}) ->
+                      K end, K3).
+    
+                      
 
 remove_leaves_proof([]) -> [];
+remove_leaves_proof({I, 0}) -> {I, 0};
 remove_leaves_proof({I, {<<K:256>>, <<V:256>>}}) -> 
     {I, 1};
 remove_leaves_proof(T) when is_tuple(T) -> 
@@ -387,13 +427,21 @@ remove_leaves_proof([H|T]) ->
     [remove_leaves_proof(H)|
      remove_leaves_proof(T)];
 remove_leaves_proof(<<X:256>>) ->
-    <<X:256>>.
+    <<X:256>>;
+remove_leaves_proof(N) when is_integer(N) -> N.
+
 
 restore_leaves_proof([], []) -> {[], []};
+restore_leaves_proof([{I, 0}], [{empty, K}|T]) -> 
+    {[{I, 0}], T};
 restore_leaves_proof([{I, 1}], [L|T]) -> 
     K = key(L),
-    V = hash:doit(serialize(L)),
-    {[{I, {K, V}}], T};
+    case L of
+        {empty, _} -> {[{I, 0}], T};
+        _ -> 
+            V = hash:doit(serialize(L)),
+            {[{I, {K, V}}], T}
+    end;
 restore_leaves_proof(T, L) when is_tuple(T) -> 
     
     {T2, L2} = 
@@ -405,10 +453,16 @@ restore_leaves_proof([H|T], L) ->
     {T2, L3} = restore_leaves_proof(T, L2),
     {[H2|T2], L3};
 restore_leaves_proof(<<X:256>>, L) ->
-    {<<X:256>>, L}.
+    {<<X:256>>, L};
+restore_leaves_proof(X, L) when is_integer(X) ->
+    {X, L}.
+
     
 
 key_tree_order([]) -> [];
+%key_tree_order({I, 0}) ->
+%empty slot
+%    [<<0:256>>];
 key_tree_order({I, {<<K:256>>, <<V:256>>}}) 
   when is_integer(I) -> [<<K:256>>];
 key_tree_order(T) when is_tuple(T) -> 
@@ -440,14 +494,22 @@ verify_proof(Proof0, Things) ->
     CFG = tree:cfg(amoveo),
     {true, Leaves, ProofTree} = 
         verify_verkle:proof(Proof, CFG),
+    %io:fwrite({Leaves}),
     Ks = to_keys(Things),
+    %io:fwrite({Ks, Leaves}),
     Hs = lists:map(
            fun(A) -> 
-                   hash:doit(
-                     serialize(A))
+                   case A of
+                       {empty, _} -> 0;
+                       _ ->
+                           hash:doit(
+                             serialize(A))
+                   end
            end, Things),
     KHs = lists:zipwith(fun(K, H) -> {K, H} end,
                         Ks, Hs),
+    %io:fwrite(
+    %{lists:sort(KHs), lists:sort(Leaves)}),
     {lists:sort(KHs) == lists:sort(Leaves),
      ProofTree}.
 %verify_proof(Proof) ->
@@ -565,8 +627,9 @@ test(0) ->
 
     success;
 test(1) ->
-    %testing the amoveo verkle tree, which stores accounts and contracts and other things.
-    Range = 10,
+    %testing making and verifying the verkle proof.
+    
+    Range = 2,
     Keys = lists:map(fun(_) -> signing:new_key()
                      end, range(1, Range)),
     As = lists:map(
@@ -592,7 +655,7 @@ test(1) ->
         update_proof(As2, ProofTree),
    % io:fwrite(ProofTree2),
     
-    Loc3 = store_verified(Loc2, ProofTree2),%when writing data here, we are failing to put the O(1) locations into the database.
+    Loc3 = store_verified(Loc2, ProofTree2),
 
     {Proof3, As2b} = get_proof(to_keys(As2), Loc3),
     
@@ -615,6 +678,7 @@ test(2) ->
     Y1 = Y2,
     success;
 test(3) ->
+    %testing converting the merkle stuff to verkle stuff.
     {Pub0, _Priv} = signing:new_key(),
     Pub0c = compress_pub(Pub0),
     Acc0 = accounts:new(Pub0, 1000027),
@@ -660,6 +724,40 @@ test(3) ->
       contracts = C, trades = Tr, 
       markets = M, receipts = R},
     V = merkle2verkle(T, 1),
+    success;
+test(4) ->
+    %testing proofs of the non-existence of things.
+    Many = 20,
+    Keys = lists:map(fun(_) -> signing:new_key()
+                     end, range(1, Many)),
+    As = lists:map(
+           fun({P, _}) ->
+                   #acc{pubkey = P, 
+                        balance = 100000000, 
+                        nonce = 0} 
+           end, Keys),
+    Loc = 1,
+    {As0, As1} = lists:split(Many div 2, As),
+    Loc2 = store_things(As1, Loc),
+    As0_1 = [hd(As0)] ++ As1,
+    Keys2 = to_keys(As0_1),
+    {Proof, As2} = 
+        get_proof(Keys2, Loc2),
+    {true, ProofTree} = 
+        verify_proof(Proof, As2),
+    
+    As3 = lists:map(fun(A) ->
+                            A#acc{balance = 28}
+                    end, As0_1),
+    ProofTree2 = update_proof(As3, ProofTree),
+    Loc3 = store_verified(Loc2, ProofTree2),
+    {Proof3, As2b} = get_proof(to_keys(As2), Loc3),
+    {true, V2} = verify_proof(Proof3, As3),
+    prune(Loc2, Loc3),
     success.
+    
+    
+    
+
 
 

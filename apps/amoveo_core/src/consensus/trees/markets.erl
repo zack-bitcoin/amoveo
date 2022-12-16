@@ -122,7 +122,13 @@ dict_get(Key, Dict) ->
         error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, Y} -> 
+            SY = size(Y),
+            case SY of
+                124 -> trees2:deserialize(9, Y);
+                _ ->
+                    deserialize(Y)
+            end
     end.
 get(ID, Markets) ->
     <<_:256>> = ID,

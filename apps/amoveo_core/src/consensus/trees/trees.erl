@@ -418,8 +418,7 @@ restore(Root, Fact, Meta) ->
     end,
     Out.
 vget(governance, Key) ->
-    Height = block:height(),
-    governance:hard_coded(Height, Key);
+    [{gov, Key, governance:hard_coded(0, Key), 1}];
 vget(TreeID, Key) ->
     TP = tx_pool:get(),
     Loc = TP#tx_pool.block_trees,
@@ -438,27 +437,48 @@ get(TreeID, Key) ->
             Dict = TP#tx_pool.dict,
             get(TreeID, Key, Dict, Trees);
         true ->
-            vget(TreeID, Key)
+            hd(vget(TreeID, Key))
     end.
             
 get(governance, Key, Dict, Trees) 
   when is_integer(Trees) ->
-    governance:dict_get_value(Key, Dict, Trees);
+    Key2 = if
+               is_integer(Key) -> Key;
+               true -> governance:name2number(Key)
+           end,
+    {gov, Key2, governance:hard_coded(0, Key2),1};
+   % governance:tree_number_to_value(
+   %   governance:hard_coded(0, Key));
+%    [{gov, Key, governance:hard_coded(0, Key), 1}];
+    %governance:dict_get_value(Key, Dict, Trees);
 get(governance, Key, Dict, Trees) ->
     %first check if the thing we want is stored in the RAM Dict for quick access. If not, load it from the hard drive.
-    
-    case governance:dict_get_value(Key, Dict, Trees) of
+   
+
+    %notice that this version of get returns a number instead of a governance value. A programming error.
+ 
+    %case governance:dict_get_value(Key, Dict, Trees) of
+    case governance:dict_get(Key, Dict, Trees) of
 	error -> 
 	    Governance = trees:governance(Trees),
-	    governance:get_value(Key, Governance);
+	    %governance:get_value(Key, Governance);
+	    {_, A, _} = governance:get(Key, Governance),
+            A;
 	empty -> 
 	    Governance = trees:governance(Trees),
-	    governance:get_value(Key, Governance);
+	    %governance:get_value(Key, Governance);
+	    {_, A, _} = governance:get(Key, Governance), 
+            A;
 	Y -> Y
     end;
-%get(TreeID, Key, Dict, VP) when is_integer(VP) ->
-%    {_, [R]} = trees2:get_proof([Key], VP, fast),
-%    R;
+get(TreeID, Key, Dict, VP) when is_integer(VP) ->
+    case TreeID:dict_get(Key, Dict) of
+	error -> 
+            hd(vget(TreeID, Key));
+        empty ->
+            hd(vget(TreeID, Key));
+        X -> X
+    end;
 get(TreeID, Key, Dict, Trees) ->
     case TreeID:dict_get(Key, Dict) of
 	error -> 

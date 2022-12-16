@@ -94,8 +94,15 @@ dict_get({key, Account, Oracle}, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, Y} -> 
+            SY = size(Y),
+            case SY of
+                89 -> trees2:deserialize(4, Y);
+                _ ->
+                    deserialize(Y)
+            end
     end.
+
 key_to_int({key, Account, Oracle}) -> 
     <<Y:256>> = hash:doit(<<Account/binary, Oracle/binary>>),
     Y.

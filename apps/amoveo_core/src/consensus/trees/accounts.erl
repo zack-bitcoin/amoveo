@@ -55,7 +55,10 @@ dict_get(Key, Dict, Height) ->
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} -> 
             Y2 = deserialize(Y),
-            Y2#acc{bets = Meta}
+            Y2#acc{bets = Meta};
+        {ok, Y3} ->
+            Y4 = trees2:deserialize(1, Y3),
+            Y4
     end.
 get(Pub, Accounts) ->
     PubId = key_to_int(Pub),

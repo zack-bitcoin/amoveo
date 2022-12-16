@@ -1,7 +1,30 @@
-during the no-counterfeit check, we are looking at what changed in the dictionary.
-Before the verkle update, it is like {acount, <<old binary serialization>>}
-and afterwards it is like {acc, <<new serialization>>}.
-maybe we need to teach the no-counterfeit tool how to handle the new format? or maybe the dictionary shouldn't have two different format to store accounts?
+when making and processing blocks, we need to verify the proof, and then later on the proof gets written into the database, once we are sure the entire block is correct.
+So, in between time, we stuck the proof into a dictionary structure. This seems like it was a bad idea, because it gets dropped from the dictionary somewhere.
+we need a better plan.
+maybe the functions should be updated to pass this proof around seperate from the dict, and before the hard update they can pass around a zero.
+Another option is to prevent the proof from getting dropped from the dict.
+
+
+tree_data:verkle_dict_update_trie
+is is currently writing the new data directly to the hard drive. it should be updating the verkle proof and calculating the new root all in ram first.
+
+
+verify_verkle:leaves is returning empty slots like {I, 0}, where I is the pointer to the next step.
+but, without context, I doesn't mean anything. What we really want is the key that is pointing to emptiness.
+
+
+failing to sync any blocks. the root hash doesn't match.
+
+trees2:prove is failing when we try to prove the non-existence of elements. we should make a smaller test to show this, and then fix it.
+trees2:test(4) is this test.
+
+the problem now is that we want to use the more generic form trees:get/2 in more places, because this is the version we are updating for the hard update.
+but, it returns everything in object format {acc, BAlance, Nonce}, except for gov values. which it returns as the integer directly.
+
+
+
+for every tree, we need to update dict_get to understand the new serialization.
+oracle, matched, unmatched, sub_acc, contract, trade, market, receipt.
 
 
 

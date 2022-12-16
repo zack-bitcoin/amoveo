@@ -182,7 +182,9 @@ dict_get(ID, Dict, Height) ->
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} ->
             Y2 = deserialize(Y),
-            Y2#oracle{orders = Meta}
+            Y2#oracle{orders = Meta};
+        {ok, Y3} ->
+            trees2:deserialize(3, Y3)
     end.
 key_to_int(X) -> 
     %<<Y:256>> = hash:doit(<<X:256>>),

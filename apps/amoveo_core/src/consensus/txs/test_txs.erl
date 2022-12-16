@@ -60,7 +60,7 @@ test() ->
 %    S = test(12),%multiple bets in a single channel
 %    S = test(15),%automatic channel slash
     %warning! after running test(11), we can no longer run other tests. because test(11) mines blocks, so tx_pool:dump can no longer undo transactions.
-    S = test(13),%testing governance
+    %S = test(13),%testing governance
     S = test(11),%try out the oracle
     S = test(16),%try out the oracle further
     %S = test(17),%blocks filled with create account txs
@@ -525,7 +525,8 @@ test(11) ->
     true = 2 == (trees:get(oracles, OID))#oracle.type,
     io:fwrite("test 11 4\n"),
 
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     Bal1 = api:balance(),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), 
 
@@ -592,7 +593,8 @@ test(16) ->
     potential_block:new(),
     mine_blocks(5),
     %make some bets in the oracle with oracle_bet
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL), 
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
@@ -688,18 +690,22 @@ test(13) ->
     absorb(Stx3),
     1 = many_txs(),
 
-    MOT = trees:get(governance, minimum_oracle_time),
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    MOT_gov = trees:get(governance, minimum_oracle_time),
+    MOT = governance:value(MOT_gov),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     potential_block:new(),
     mine_blocks(1+MOT),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID2, 1, OIL * 3), 
-    BR1 = trees:get(governance, block_reward),
+    BR1_gov = trees:get(governance, block_reward),
+    BR1 = governance:value(BR1_gov),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
     1 = many_txs(),
     potential_block:new(),
     mine_blocks(1+MOT),
-    GovVal1 = trees:get(governance, 1),
+    GovVal1 = governance:value(
+                trees:get(governance, 1)),
 
     Tx5 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID2),
     Stx5 = keys:sign(Tx5),
@@ -707,13 +713,15 @@ test(13) ->
     1 = many_txs(),
     potential_block:new(),
     mine_blocks(1),
-    GovVal2 = trees:get(governance, 1),
+    GovVal2 = governance:value(
+                trees:get(governance, 1)),
     io:fwrite(packer:pack({GovVal2, GovVal1})),
     io:fwrite("\n"),
     true = GovVal2 > GovVal1,
 
     %OID3 = <<2:256>>,
-    BR2 = trees:get(governance, block_reward),
+    BR2 = goverance:value(
+            trees:get(governance, block_reward)),
     Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 1, 5),
     OID3 = oracle_new_tx:id(Tx7),
     Stx7 = keys:sign(Tx7),
@@ -734,7 +742,8 @@ test(13) ->
     absorb(Stx9),
     1 = many_txs(),
 
-    BR3 = trees:get(governance, block_reward),
+    BR3 = governance:value(
+            trees:get(governance, block_reward)),
     true = BR1 < BR2,
     true = BR2 < BR3,
     mine_blocks(1),
@@ -2247,7 +2256,8 @@ binary 32 ",
     %Pub now has an active bet on outcome 1 of the oracle. They can swap shares of this bet as a subcurrency.
 
 
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     Tx6 = oracle_bet_tx:make_dict(MP, Fee, OID, 1, OIL+1 + (10*OneVeo)), 
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
@@ -2431,7 +2441,8 @@ test(47) ->
         >>, 
     OracleNewTx = oracle_new_tx:make_dict(MP, 0, Q, StartHeight, 0, 0),
     OID = oracle_new_tx:id(OracleNewTx),
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     OracleBetTx = oracle_bet_tx:make_dict(MP, 0, OID, 1, OIL+1),
     
     Txs3 = [OracleNewTx, OracleBetTx],
@@ -3440,7 +3451,7 @@ test(60) ->
 
     Bal2 = element(2, trees:get(accounts, MP)),
 
-    true = (Bal2 - Bal1) > ((OneVeo * 0.9) + trees:get(governance, block_reward)),
+    true = (Bal2 - Bal1) > ((OneVeo * 0.9) + governance:value(trees:get(governance, block_reward))),
 
     success;
 
@@ -4123,7 +4134,8 @@ test24(I) ->
     %%%timer:sleep(150),
     mine_blocks(1),
     
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1), 
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),

@@ -46,6 +46,8 @@ int_to_tree(14) -> trades;
 int_to_tree(15) -> markets;
 int_to_tree(16) -> receipts;
 int_to_tree(17) -> stablecoins.
+
+leaf_type2tree(acc) -> accounts.
     
 
 %deterministic merge-sort    
@@ -170,12 +172,14 @@ facts_to_dict([F|T], D) ->
     D2 = dict:store({Tree, Key}, Value3, D),
     facts_to_dict(T, D2);
 facts_to_dict({_VerkleProof, Leaves}, D) ->
-    lists:foldl(fun(Leaf, Acc) ->
-                        Key = trees2:key(Leaf),
-                        Tree = element(1, Leaf),
-                        Value = trees2:serialize(Leaf),
-                        dict:store({Tree, Key}, Value, Acc)
-                end, D, Leaves);
+    lists:foldl(
+      fun(Leaf, Acc) ->
+              Key = trees2:key(Leaf),
+              Tree0 = element(1, Leaf),
+              Tree = leaf_type2tree(Tree0),
+              Value = trees2:serialize(Leaf),
+              dict:store({Tree, Key}, Value, Acc)
+      end, D, Leaves);
 facts_to_dict(A, _) ->
     io:fwrite(A),
     ok.

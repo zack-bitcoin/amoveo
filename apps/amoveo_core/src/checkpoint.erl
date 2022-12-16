@@ -155,10 +155,10 @@ sync(IP, Port) ->
     TDBN = NBlock#block.trees,
     true = check_header_link(TopHeader, Header),
     Header = block:block_to_header(NBlock),
-    {BDict, BNDict, BlockHash} = block:check0(Block),
-    {NDict, NNewDict, CP1} = block:check0(NBlock),
-    NBlock2 = NBlock#block{trees = {NDict, NNewDict, CP1}},
-    Block2 = Block#block{trees = {BDict, BNDict, BlockHash}},
+    {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
+    {NDict, NNewDict, NProofTree, CP1} = block:check0(NBlock),
+    NBlock2 = NBlock#block{trees = {NDict, NNewDict, NProofTree, CP1}},
+    Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
     Roots = NBlock#block.roots,
     TarballData = get_chunks(CP1, Peer, 0),
     Tarball = CR ++ "backup.tar.gz",
@@ -290,8 +290,8 @@ verify_blocks(B, P, PrevRoots, N) ->
             io:fwrite("\n"),
             1=2
     end,
-    {NDict, NNewDict, Hash} = block:check0(NB),
-    NB2 = NB#block{trees = {NDict, NNewDict, Hash}},
+    {NDict, NNewDict, NProofTree, Hash} = block:check0(NB),
+    NB2 = NB#block{trees = {NDict, NNewDict, NProofTree, Hash}},
     verify_blocks(NB2, P, B#block.roots, N-1).
 leaf_vals([], []) -> [];
 leaf_vals([Tree|T], [Leafs|L]) ->

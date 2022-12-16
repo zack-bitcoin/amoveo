@@ -299,10 +299,10 @@ governance_packer(L, DB) ->
 
     
  
-trees_maker(HeightCheck, Trees, NewDict4) ->
+trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     NewTrees0 = 
         tree_data:dict_update_trie(
-          Trees, NewDict4, HeightCheck),%same
+          Trees, NewDict4, HeightCheck, ProofTree, RootHash),
     F10 = forks:get(10),
     F32 = forks:get(32),
     F35 = forks:get(35),
@@ -446,21 +446,18 @@ make(Header, Txs0, Trees, Pub) ->
     %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
 
     HeightCheck = Height + 1,
-    NewTrees = trees_maker(HeightCheck, Trees, NewDict4),
+    NewTrees = trees_maker(HeightCheck, Trees, NewDict4, unknown, unknown),
 
     %Governance = trees:governance(NewTrees),
     %Governance = trees:governance(Trees),
     %BlockPeriod = governance:get_value(block_period, Governance),
-    BlockPeriod = trees:get(governance, block_period, dict:new(), Trees),
-    BlockReward = trees:get(governance, block_reward, Dict, Trees),
+    BlockPeriod_gov = trees:get(governance, block_period, dict:new(), Trees),
+    BlockPeriod = governance:value(BlockPeriod_gov),
+    BlockReward_gov = trees:get(governance, block_reward, Dict, Trees),
+    BlockReward = governance:value(BlockReward_gov),
     PrevHash = hash(Header),
     OldBlock = get_by_hash(PrevHash),
     %BlockReward = governance:get_value(block_reward, Governance),
-    io:fwrite("make cap "),
-    io:fwrite(integer_to_list(Height)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(BlockReward)),
-    io:fwrite("/n"),
 
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height),
     TimeStamp = time_now(),
@@ -789,12 +786,9 @@ proofs_roots_match(A, B) ->
 
 check0(Block) ->%This verifies the txs in ram. is parallelizable
     %assume_valid {height, hash}
-    io:fwrite("block check0 0\n"),
     Height = Block#block.height,
     Header = block_to_header(Block),
-    io:fwrite("block check0 0 1\n"),
     BlockHash = hash(Header),
-    io:fwrite("block check0 0 2\n"),
     case application:get_env(amoveo_core, assume_valid) of
         {ok, {Height, BlockHash}} ->
             %this is the block we are assuming is valid.
@@ -808,13 +802,10 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     Facts = Block#block.proofs,
     {ok, Header} = headers:read(BlockHash),
     Roots = Block#block.roots,
-    io:fwrite("block check0 0 3\n"),
     PrevStateHash = roots_hash(Roots),
-    io:fwrite("block check0 0 4\n"),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
     Txs = Block#block.txs,
-    io:fwrite("block check0 1\n"),
     RootSame = proofs_roots_match(Facts, Roots),
     if
         RootSame -> ok;
@@ -822,30 +813,31 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
             io:fwrite({Roots, Facts}),
             1=2
     end,
-    io:fwrite("block check0 2\n"),
-    Dict = 
+    {Dict, ProofTree} = 
         if
             is_tuple(Facts) -> 
-                {_Proof, Leaves} = Facts,
+                {Proof, Leaves} = Facts,
                 %DF = get_verkle:deserialize_proof(
                 %       Proof),
                 
-                %io:fwrite(Leaves),%todo. seems like these leaves are in the wrong format, or possibly wrong order?
-                proofs:facts_to_dict(
-                  Facts, dict:new());
+                {true, ProofTree0} = %todo. we need to use this proof tree to calculate the new verkle root.
+                    trees2:verify_proof(
+                      Proof, Leaves),
+                Dict2 = proofs:facts_to_dict(
+                         Facts, dict:new()),
+                {Dict2, ProofTree0};
+            %dict:store(proof, ProofTree, Dict2);
             is_list(Facts) -> 
-                proofs:facts_to_dict(
-                  Facts, dict:new())
+                {proofs:facts_to_dict(
+                  Facts, dict:new()), 0}
         end,
     %Dict = proofs:facts_to_dict(
     %{Facts, Leaves}, dict:new()),
     PrevHash = Block#block.prev_hash,
     _Pub = coinbase_tx:from(hd(Block#block.txs)),
-    io:fwrite("block check0 3\n"),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = txs:digest(Txs, Dict, Height),
-    io:fwrite("block check0 4\n"),
-    {Dict, NewDict, BlockHash}.
+    {Dict, NewDict, ProofTree, BlockHash}.
 
 
 check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
@@ -856,7 +848,8 @@ check3(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     Roots = Block#block.roots,
-    {Dict, NewDict, BlockHash} = Block#block.trees,
+    {Dict, NewDict, ProofTree, BlockHash} = 
+        Block#block.trees,
     %{Dict, NewDict} = check0(Block),
     %BlockHash = hash(Block),
     %io:fwrite("block check 1\n"),
@@ -895,7 +888,9 @@ check3(OldBlock, Block) ->
 	     false -> ok
     end,
     %BlockReward = governance:dict_get_value(block_reward, Dict, Height),
-    BlockReward = trees:get(governance, block_reward, Dict, OldTrees),
+    BlockReward_gov = trees:get(governance, block_reward, Dict, OldTrees),
+    BlockReward = governance:value(BlockReward_gov),
+    
     
 
 
@@ -903,11 +898,6 @@ check3(OldBlock, Block) ->
     %io:fwrite("block check 4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
-    io:fwrite("check cap "),
-    io:fwrite(integer_to_list(Height)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(BlockReward)),
-    io:fwrite("\n"),
 
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height-1),
     true = Block#block.market_cap == MarketCap,
@@ -947,7 +937,7 @@ check3(OldBlock, Block) ->
         Height > F8 ->
             DKeys = dict:fetch_keys(Dict),
             if
-                Height > 2 ->
+                false -> %Height > 2 ->
             io:fwrite({Dict, NewDict3, lists:map(fun(X) -> dict:fetch(X, Dict) end, DKeys),
                        lists:map(fun(X) -> dict:fetch(X, NewDict3) end, DKeys)});
                 true -> ok
@@ -961,11 +951,11 @@ check3(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
-    {NewDict4, NewDict3, Dict}.
+    {NewDict4, NewDict3, Dict, ProofTree}.
 
 
 check2(OldBlock, Block) ->
-    {NewDict4, NewDict3, Dict} = 
+    {NewDict4, NewDict3, Dict, ProofTree} = 
         check3(OldBlock, Block), 
     Height = Block#block.height,
     OldTrees = OldBlock#block.trees,
@@ -974,8 +964,11 @@ check2(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
 
+    TreesHash = Block#block.trees_hash,
+
     HeightCheck = Height,
-    NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4),
+    %NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, TreesHash),
+    NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, ProofTree, TreesHash),
     
     %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
     %io:fwrite("block check 5.4\n"),
@@ -994,7 +987,6 @@ check2(OldBlock, Block) ->
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     %TreesHash = Header#header.trees_hash,
-    TreesHash = Block2#block.trees_hash,
     %io:fwrite("block check 6\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -1015,8 +1007,10 @@ calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
             BlockPart = 
                 case application:get_env(amoveo_core, block_meta_block) of
                     {ok, true} -> 
-                        DR = trees:get(governance, developer_reward, dict:new(), OldTrees),
-                        BR = trees:get(governance, block_reward, dict:new(), OldTrees),
+                        DR_gov = trees:get(governance, developer_reward, dict:new(), OldTrees),
+                        DR = governance:value(DR_gov),
+                        BR_gov = trees:get(governance, block_reward, dict:new(), OldTrees),
+                        BR = governance:value(BR_gov),
                         DR1 = BR * DR div 10000,
                         [{block, {[
                                    {height, H}, 
@@ -1302,10 +1296,14 @@ mth_spend(H) ->
      ]}.
 get_govs(_, M, M, X) -> X;
 get_govs(T, M, N = 2, X) ->
-    H = {governance:number2name(N), trees:get(governance, N, dict:new(), T) / 10000},
+    G1= trees:get(governance, N, dict:new(), T),
+    G = governance:value(G1),
+    H = {governance:number2name(N), G / 10000},
     get_govs(T, M, N+1, [H|X]);
 get_govs(T, M, N, X) ->
-    H = {governance:number2name(N), trees:get(governance, N, dict:new(), T)},
+    G1= trees:get(governance, N, dict:new(), T),
+    G = governance:value(G1),
+    H = {governance:number2name(N), G},
     get_govs(T, M, N+1, [H|X]).
 %    <<>>.
 
@@ -1674,6 +1672,8 @@ sum_amounts([{existence, _}|T], Dict, Old) ->
     sum_amounts(T, Dict, Old);
 sum_amounts([{governance, _}|T], Dict, Old) ->
     sum_amounts(T, Dict, Old);
+sum_amounts([proof|T], Dict, Old) ->
+    sum_amounts(T, Dict, Old);
 sum_amounts([{Kind, A}|T], Dict, Old) ->
     X = Kind:dict_get(A, Dict),
     B = sum_amounts_helper(Kind, X, Dict, Old, A),
@@ -1773,6 +1773,7 @@ sum_amounts_helper(matched, M, _Dict, OldDict, Key) ->
             3 -> B
         end.
 remove_repeats(New, Old, Height) ->
+    %todo. the old one has "proof" in it. we don't want to lose it in the new one.
     Keys = dict:fetch_keys(New),
     F10 = forks:get(10),
     Old2 = if

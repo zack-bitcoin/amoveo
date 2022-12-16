@@ -51,7 +51,7 @@ absorb_internal(Block) ->
 	    %io:fwrite("too low"),
             0;
 	true ->
-	    {_, _, BH} = Block#block.trees,
+	    {_, _, _, BH} = Block#block.trees,
 	    %io:fwrite("block absorber 1\n"), % 0.00005
 	    %io:fwrite(packer:pack(erlang:timestamp())),
 	    %io:fwrite("\n"),

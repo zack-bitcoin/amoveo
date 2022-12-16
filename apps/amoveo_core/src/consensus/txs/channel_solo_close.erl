@@ -138,7 +138,8 @@ wait_block(X, SPK, SS) ->
             wait_block(X, SPK, SS)
     end.
 slash_it(SPK, SS) ->
-    GovCost = trees:get(governance, cs),
+    GovCost = governance:value(
+                trees:get(governance, cs)),
     {ok, TxFee} = application:get_env(amoveo_core, tx_fee),
     Tx = channel_slash_tx:make_dict(keys:pubkey(), TxFee + GovCost, keys:sign(SPK), SS),
     Stx = keys:sign(Tx),

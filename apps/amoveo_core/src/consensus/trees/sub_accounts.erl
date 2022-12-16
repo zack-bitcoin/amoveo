@@ -52,10 +52,18 @@ dict_get(Key, Dict) ->
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} -> 
-            deserialize(Y);
+            deserialize_helper(Y);
         {ok, Y} ->
-            deserialize(Y)
+            deserialize_helper(Y)
     end.
+deserialize_helper(Y) ->
+    SY = size(Y),
+    case SY of
+        81 -> trees2:deserialize(6, Y);
+        _ -> deserialize(Y)
+    end.
+            
+%deserialize 6
 get(Key, Accounts) ->
     PubId = key_to_int(Key),
     {RH, Leaf, Proof} = trie:get(PubId, Accounts, ?id),

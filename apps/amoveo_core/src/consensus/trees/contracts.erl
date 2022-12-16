@@ -162,8 +162,14 @@ dict_get(Key, Dict) ->
 	%error -> empty;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, Y} -> 
+            SY = size(Y),
+            case SY of
+                153 -> trees2:deserialize(7, Y);
+                _ -> deserialize(Y)
+            end
     end.
+%deserialize 7
 get(ID, Channels) ->
     <<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Channels, contracts),

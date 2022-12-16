@@ -6,10 +6,11 @@ make_dict(From) ->
     Acc = trees:get(accounts, From),
     #coinbase{from = From}.
 make(From, Trees) ->
-    Accounts = trees:accounts(Trees),
-    {_, Acc, Proof} = accounts:get(From, Accounts),
+    %Accounts = trees:accounts(Trees),
+    %{_, Acc, Proof} = accounts:get(From, Accounts),
     Tx = #coinbase{from = From},
-    {Tx, [Proof]}.
+    %{Tx, [Proof]}.
+    {Tx, []}.
 go(Tx, Dict, NewHeight) ->
     From = Tx#coinbase.from,
     X = accounts:dict_get(From, Dict),

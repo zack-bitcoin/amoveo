@@ -100,7 +100,7 @@ absorb_internal2(SignedTx, PID) ->
                     contract_timeout_tx2 ->
                         Fee > MinimumTxFee;
                     _ ->
-                        Cost = trees:get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
+                        Cost = governance:value(trees:get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees)),
                                                 %io:fwrite("now 4 "),%500
                                                 %io:fwrite(packer:pack(now())),
                     %io:fwrite("\n"),
@@ -149,7 +149,9 @@ sum_cost([H|T], Dict, Trees) ->
     Type = element(1, H),
     Cost = case Type of
                contract_timeout_tx2 -> 0;
-               _ -> trees:get(governance, Type, Dict, Trees)
+               _ -> governance:value(
+                      trees:get(governance, Type, 
+                                Dict, Trees))
            end,
     Cost + sum_cost(T, Dict, Trees).
     
@@ -195,14 +197,21 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees) ->
     Dict2 = 
 	case dict:find({TreeID, Key}, Dict) of
 	    error ->
-		Tree = trees:TreeID(Trees),
-		{_, Val, _} = TreeID:get(Key, Tree),
+		%Tree = trees:TreeID(Trees),
+		%{_, Val, _} = TreeID:get(Key, Tree),
+                Val = trees:get(TreeID, Key),
+
                 PS = constants:pubkey_size() * 8,
 		Val2 = case Val of
 			   empty -> 0;
                            {<<Head:PS>>, Many} ->
                                unmatched:serialize_head(<<Head:PS>>, Many);
-			   X -> TreeID:serialize(X)
+			   X -> 
+                               if
+                                   is_integer(X) -> X;
+                                   true ->
+                                       TreeID:serialize(X)
+                               end
 		       end,
 		Foo = case TreeID of
 			  accounts -> {Val2, 0};
