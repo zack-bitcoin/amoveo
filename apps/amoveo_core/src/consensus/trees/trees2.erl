@@ -361,6 +361,7 @@ get_proof(Keys0, Loc, Type) ->
               end, Keys),
     {Proof, MetasDict} =
         get_verkle:batch(Keys, Loc, CFG, Type),
+    %io:fwrite({Proof}),
     %order keys based on depth first scan of the tree from low to high.
     Keys30 = depth_order(Keys),
     Keys2 = key_tree_order(element(1, Proof)),
@@ -389,13 +390,24 @@ get_proof(Keys0, Loc, Type) ->
     Proof2 = remove_leaves_proof(Proof),
     {Proof3, _} = 
         restore_leaves_proof(Proof2, Leaves),
+    Proof4 = get_verkle:deserialize_proof(
+               get_verkle:serialize_proof(Proof3)),
+    %checking that serializing doesn't beak anything.
     if
         not(Proof == Proof3) -> 
-            io:fwrite({element(1, Proof) == element(1, Proof3), element(1, Proof), element(1, Proof3)});
+            io:fwrite({element(1, Proof) == element(1, Proof3), element(1, Proof), element(1, Proof3)}),
+            1=2;
+        not(Proof3 == Proof4) ->
+            io:fwrite("serialization issue\n"),
+            1=2;
         true -> ok
     end,
     case Type of
-        small -> {get_verkle:serialize_proof(
+        small -> 
+            io:fwrite("sanity check verkle proof\n"),
+            {true, _, _} = 
+                verify_verkle:proof(Proof, CFG),%sanity
+            {get_verkle:serialize_proof(
                    Proof2), Leaves};
         fast -> 
             {Proof2, Leaves}
@@ -487,7 +499,6 @@ verify_proof(Proof0, Things) ->
     CFG = tree:cfg(amoveo),
 
     Proof1 = get_verkle:deserialize_proof(Proof0),
-
     {Proof, []} = 
         restore_leaves_proof(Proof1, Things),
 
@@ -496,7 +507,6 @@ verify_proof(Proof0, Things) ->
         verify_verkle:proof(Proof, CFG),
     %io:fwrite({Leaves}),
     Ks = to_keys(Things),
-    %io:fwrite({Ks, Leaves}),
     Hs = lists:map(
            fun(A) -> 
                    case A of
@@ -508,14 +518,46 @@ verify_proof(Proof0, Things) ->
            end, Things),
     KHs = lists:zipwith(fun(K, H) -> {K, H} end,
                         Ks, Hs),
+    Bool = merge_same(KHs, Leaves),
     %io:fwrite(
     %{lists:sort(KHs), lists:sort(Leaves)}),
-    {lists:sort(KHs) == lists:sort(Leaves),
-     ProofTree}.
+    %{lists:sort(KHs) == lists:sort(Leaves),
+    {Bool, ProofTree}.
 %verify_proof(Proof) ->
 %    CFG = tree:cfg(amoveo),
 %    Proof1 = get_verkle:deserialize_proof(Proof),
 %    verify_verkle:proof(Proof1, CFG).
+
+merge_same([], []) -> true;
+merge_same([X|T1], [X|T2]) ->
+    merge_same(T1, T2);
+merge_same([{Key, 0}|T1], [{Branch, 0}|T2]) ->
+    %if doesn't match branch, recurse to see if it matches the next branch.
+    %if it does match, keep the branch to see if more match.
+    CFG = tree:cfg(amoveo),
+    <<Key0:256>> = Key,
+    Key2 = leaf_verkle:path_maker(Key0, CFG),
+    Bool = starts_same(Key2, Branch),
+    if
+        Bool -> merge_same(T1, [{Branch, 0}|T2]);
+        true -> merge_same([{Key, 0}|T1], T2)
+    end;
+merge_same(X, [{Branch, 0}|T2]) ->
+    %nothing left to match with this branch.
+    merge_same(X, T2);
+merge_same(A, B) -> 
+    io:fwrite({A, B}),
+    false.
+
+
+starts_same(_, []) ->
+    true;
+starts_same([<<X>>|T], [X|T2]) ->
+    starts_same(T, T2);
+starts_same(_, _) -> false.
+
+
+
 
 prune(Trash, Keep) ->
     CFG = tree:cfg(amoveo),
@@ -727,7 +769,7 @@ test(3) ->
     success;
 test(4) ->
     %testing proofs of the non-existence of things.
-    Many = 20,
+    Many = 10,
     Keys = lists:map(fun(_) -> signing:new_key()
                      end, range(1, Many)),
     As = lists:map(
@@ -741,18 +783,24 @@ test(4) ->
     Loc2 = store_things(As1, Loc),
     As0_1 = [hd(As0)] ++ As1,
     Keys2 = to_keys(As0_1),
+    io:fwrite("get proof\n"),
     {Proof, As2} = 
         get_proof(Keys2, Loc2),
+    io:fwrite("verify proof\n"),
     {true, ProofTree} = 
         verify_proof(Proof, As2),
-    
     As3 = lists:map(fun(A) ->
                             A#acc{balance = 28}
                     end, As0_1),
+    io:fwrite("update proof\n"),
     ProofTree2 = update_proof(As3, ProofTree),
+    io:fwrite("store new\n"),
     Loc3 = store_verified(Loc2, ProofTree2),
+    io:fwrite("get proof 2\n"),
     {Proof3, As2b} = get_proof(to_keys(As2), Loc3),
-    {true, V2} = verify_proof(Proof3, As3),
+    io:fwrite("verify proof 2\n"),
+    %{true, V2} = verify_proof(Proof3, As3),
+    {true, V2} = verify_proof(Proof3, As2b),
     prune(Loc2, Loc3),
     success.
     
