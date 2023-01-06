@@ -8,6 +8,8 @@
 		    amount,
 		    pointer}).
 -record(receipt, {id, tid, pubkey, nonce}).
+
+-define(sanity, false).
     
 
 root_hash(Loc) ->
@@ -197,7 +199,7 @@ serialize(
           starts = S, type = T, creator = C, 
           done_timer = D
          }) ->
-    io:fwrite("serialize oracle\n"),
+    %io:fwrite("serialize oracle\n"),
     32 = size(ID),
     32 = size(Q),
     C2 = compress_pub(C),
@@ -264,7 +266,7 @@ serialize(
     32 = size(T),
     P2 = compress_pub(P),
     <<T/binary, P2/binary, N:32>>.
-%32 + 33 + 8 = 73
+%32 + 33 + 4 = 69
 
 
 deserialize(1, 
@@ -313,6 +315,7 @@ deserialize(10, <<T:256, P:264, N:32>>) ->
     #receipt{tid = <<T:256>>, pubkey = P2, nonce = N};
 deserialize(N, B) ->
     io:fwrite({N, B, size(B)}),
+    1=2,
     ok.
 
     
@@ -364,18 +367,23 @@ get_proof(Keys0, Loc, Type) ->
     %io:fwrite({Proof}),
     %order keys based on depth first scan of the tree from low to high.
     Keys30 = depth_order(Keys),
-    Keys2 = key_tree_order(element(1, Proof)),
-    KeyLengthBool = length(Keys) == length(Keys2),
+    %print_now(),
+    %io:fwrite("key tree order \n"),
     if
-        KeyLengthBool -> ok;
-        true -> ok;
-        true ->
-            io:fwrite({length(Keys), length(Keys30),
-                       Keys2, Keys30,
-                       element(1, Proof), 
-                       MetasDict}),
-%            1=2
-            ok
+        ?sanity ->
+            Keys2 = key_tree_order(element(1, Proof)),
+            KeyLengthBool = length(Keys) == length(Keys2),
+            if
+                KeyLengthBool -> ok;
+                true ->
+                    io:fwrite({length(Keys), length(Keys30),
+                               Keys2, 
+                               Keys30,
+                               element(1, Proof), 
+                               MetasDict}),
+                    ok
+            end;
+        true -> ok
     end,
     Leaves = 
         lists:map(fun(K) ->
@@ -385,28 +393,39 @@ get_proof(Keys0, Loc, Type) ->
                               error ->
                                   {empty, K}
                           end
-                  %end, Keys2),
                   end, Keys30),
+    print_now(),
+    io:fwrite("remove leaves proof\n"),
     Proof2 = remove_leaves_proof(Proof),
-    {Proof3, _} = 
-        restore_leaves_proof(Proof2, Leaves),
-    Proof4 = get_verkle:deserialize_proof(
-               get_verkle:serialize_proof(Proof3)),
-    %checking that serializing doesn't beak anything.
+
     if
-        not(Proof == Proof3) -> 
-            io:fwrite({element(1, Proof) == element(1, Proof3), element(1, Proof), element(1, Proof3)}),
-            1=2;
-        not(Proof3 == Proof4) ->
-            io:fwrite("serialization issue\n"),
-            1=2;
-        true -> ok
+        not(?sanity) -> ok;
+        true ->
+
+            {Proof3, _} = 
+                restore_leaves_proof(Proof2, Leaves),
+            Proof4 = get_verkle:deserialize_proof(
+                       get_verkle:serialize_proof(Proof3)),
+    %checking that serializing doesn't beak anything.
+            if
+                not(Proof == Proof3) -> 
+                    io:fwrite({element(1, Proof) == element(1, Proof3), element(1, Proof), element(1, Proof3)}),
+                    1=2;
+                not(Proof3 == Proof4) ->
+                    io:fwrite("serialization issue\n"),
+                    1=2;
+                true -> ok
+            end
     end,
     case Type of
         small -> 
-            io:fwrite("sanity check verkle proof\n"),
-            {true, _, _} = 
-                verify_verkle:proof(Proof, CFG),%sanity
+            if
+                not(?sanity) -> ok;
+                true ->
+                    io:fwrite("sanity check verkle proof\n"),
+                    {true, _, _} = 
+                        verify_verkle:proof(Proof, CFG)
+            end,
             {get_verkle:serialize_proof(
                    Proof2), Leaves};
         fast -> 
@@ -443,9 +462,12 @@ remove_leaves_proof(<<X:256>>) ->
 remove_leaves_proof(N) when is_integer(N) -> N.
 
 
-restore_leaves_proof([], []) -> {[], []};
-restore_leaves_proof([{I, 0}], [{empty, K}|T]) -> 
+%todo. in restore_leaves_proof, sometimes there is an empty branch that stores 2 different leaves
+restore_leaves_proof([], T) -> {[], T};
+restore_leaves_proof([{I, 0}], T) -> 
     {[{I, 0}], T};
+restore_leaves_proof(X, [{empty, K}|T]) -> 
+    restore_leaves_proof(X, T);
 restore_leaves_proof([{I, 1}], [L|T]) -> 
     K = key(L),
     case L of
@@ -454,12 +476,13 @@ restore_leaves_proof([{I, 1}], [L|T]) ->
             V = hash:doit(serialize(L)),
             {[{I, {K, V}}], T}
     end;
-restore_leaves_proof(T, L) when is_tuple(T) -> 
+restore_leaves_proof(Proofs, Leaves) 
+  when is_tuple(Proofs) -> 
     
-    {T2, L2} = 
+    {Proofs2, Leaves2} = 
         restore_leaves_proof(
-          tuple_to_list(T), L),
-    {list_to_tuple(T2), L2};
+          tuple_to_list(Proofs), Leaves),
+    {list_to_tuple(Proofs2), Leaves2};
 restore_leaves_proof([H|T], L) -> 
     {H2, L2} = restore_leaves_proof(H, L),
     {T2, L3} = restore_leaves_proof(T, L2),
@@ -471,6 +494,8 @@ restore_leaves_proof(X, L) when is_integer(X) ->
 
     
 
+
+%only used in a sanity check, maybe we should delete this.
 key_tree_order([]) -> [];
 %key_tree_order({I, 0}) ->
 %empty slot
@@ -497,7 +522,7 @@ dump_get(T, V) ->
 
 verify_proof(Proof0, Things) ->
     CFG = tree:cfg(amoveo),
-
+    
     Proof1 = get_verkle:deserialize_proof(Proof0),
     {Proof, []} = 
         restore_leaves_proof(Proof1, Things),
@@ -505,6 +530,10 @@ verify_proof(Proof0, Things) ->
     CFG = tree:cfg(amoveo),
     {true, Leaves, ProofTree} = 
         verify_verkle:proof(Proof, CFG),
+    %todo. in verify_verkle:proof, if there are 2 things stored in the same branch, and you try to make a proof of both of them, when you verify the proof, only one of the 2 things is included.
+    %or maybe it is just missing leaves.
+
+
     %io:fwrite({Leaves}),
     Ks = to_keys(Things),
     Hs = lists:map(
@@ -518,6 +547,13 @@ verify_proof(Proof0, Things) ->
            end, Things),
     KHs = lists:zipwith(fun(K, H) -> {K, H} end,
                         Ks, Hs),
+    %io:fwrite({Leaves, Ks}),
+    %io:fwrite("starting what you need: \n"),
+    %print_pairs(KHs),%this is missing an element if there are 2 things that start with the same first step in their paths. todo
+    %io:fwrite("starting what you got: \n"),
+    %print_pairs(Leaves),
+    %io:fwrite("\n"),
+    
     Bool = merge_same(KHs, Leaves),
     %io:fwrite(
     %{lists:sort(KHs), lists:sort(Leaves)}),
@@ -529,32 +565,182 @@ verify_proof(Proof0, Things) ->
 %    verify_verkle:proof(Proof1, CFG).
 
 merge_same([], []) -> true;
-merge_same([X|T1], [X|T2]) ->
-    merge_same(T1, T2);
-merge_same([{Key, 0}|T1], [{Branch, 0}|T2]) ->
-    %if doesn't match branch, recurse to see if it matches the next branch.
-    %if it does match, keep the branch to see if more match.
+merge_same([X|T1], %what we need
+           T2 = [{D, X}|_] %what we got
+          ) 
+  when is_integer(D) ->
+    %io:fwrite("merged same pair\n"),
+    %io:fwrite(integer_to_list(size(term_to_binary([X|T1])))),
+    %io:fwrite(" - "),
+    %io:fwrite(integer_to_list(size(term_to_binary(T2)))),
+    %io:fwrite("\n"),
+    merge_same(T1, T2);%we leave the X in the got pile, because it is possible we still need to match more things with this leaf. This leaf is evidence that certain locations are empty.
+
+%merge_same([X|T1], [X|T2]) ->
+%    io:fwrite("merged same pair\n"),
+%    merge_same(T1, T2);
+merge_same([{Key, 0}|T1], %what you need.
+           [{D, {LKey, Val}}|T2]) %what you got. 
+  when is_integer(D) ->
+    %io:fwrite("merged empty \n"),
+    %io:fwrite(integer_to_list(size(term_to_binary(T1)))),
+    %io:fwrite(" - "),
+    %io:fwrite(integer_to_list(size(term_to_binary(T2)))),
+    %io:fwrite("\n"),
     CFG = tree:cfg(amoveo),
     <<Key0:256>> = Key,
     Key2 = leaf_verkle:path_maker(Key0, CFG),
-    Bool = starts_same(Key2, Branch),
-    if
-        Bool -> merge_same(T1, [{Branch, 0}|T2]);
-        true -> merge_same([{Key, 0}|T1], T2)
+
+    <<LKey0:256>> = LKey,
+    LKey2 = leaf_verkle:path_maker(LKey0, CFG),
+
+    false = Key == LKey,
+    SSD = starts_same_depth(Key2, LKey2, D),
+    case SSD of
+        true -> 
+            merge_same(T1, [{D, {LKey, Val}}|T2]);
+        skip -> 
+            %maybe this leaf was already used, or we aren't using it. lets continue.
+            merge_same([{Key, 0}|T1], T2);
+        false -> 
+            <<_:240, SecondKey, FirstKey>> = Key,
+            <<_:240, SecondLKey, FirstLKey>> = LKey,
+            %<<_:240, SecondT2, FirstT2>> = element(1, element(2, hd(T2))),
+            <<_:240, SecondT1, FirstT1>> = 
+                case T1 of
+                    [] -> <<0:256>>;
+                    _ -> element(1, hd(T1)) 
+                end,
+            io:fwrite(
+              {D, {need, {FirstKey, SecondKey}}, 
+               {got, {FirstLKey, SecondLKey}},
+               {next_need, {FirstT1, SecondT1}},
+               %{next_got, {FirstT2, SecondT2}}
+               {next_got, T2}}),
+            1=2
     end;
+merge_same([{Key, 0}|T1], [{Branch, 0}|T2]) ->
+    %if doesn't match branch, recurse to see if it matches the next branch.
+    %if it does match, keep the branch to see if more match.
+    %io:fwrite("empty empty\n"),
+    %io:fwrite(integer_to_list(length(T1))),
+    %io:fwrite(" - "),
+    %io:fwrite(integer_to_list(length(T2))),
+    %io:fwrite("\n"),
+    CFG = tree:cfg(amoveo),
+    <<Key0:256>> = Key,
+    Key2 = leaf_verkle:path_maker(Key0, CFG),
+    Bool = starts_same(Key2, lists:reverse(Branch)),
+    if
+        Bool -> 
+            %io:fwrite("merged empty 2\n"),
+            merge_same(T1, [{Branch, 0}|T2]);
+        true -> 
+            %io:fwrite("nothing left to match with this branch 2 --  "),
+            %print_empty_branch(Branch),
+            <<K1>> = hd(Key2),
+            <<K2>> = hd(tl(Key2)),
+            %io:fwrite(" %% "),
+            %io:fwrite(integer_to_list(K1)),
+            %io:fwrite(" "),
+            %io:fwrite(integer_to_list(K2)),
+            %io:fwrite("\n"),
+            %io:fwrite("branch length "),
+            %io:fwrite(integer_to_list(length(Branch))),
+            %io:fwrite("\n"),
+            merge_same([{Key, 0}|T1], T2)
+    end;
+%merge_same([{_, 0}], []) -> true;
 merge_same(X, [{Branch, 0}|T2]) ->
     %nothing left to match with this branch.
+    %io:fwrite("nothing left to match with this branch\n"),
+    %io:fwrite(integer_to_list(length(X))),
+    %io:fwrite(" - "),
+    %io:fwrite(integer_to_list(length(T2))),
+    %io:fwrite("\n"),
+    merge_same(X, T2);
+merge_same(X, [{D, {K, V}}|T2]) 
+  when is_integer(D) and 
+       is_binary(K) and 
+       is_binary(V) and 
+       (32 == size(K)) and 
+       (32 == size(V)) ->
+    %io:fwrite("nothing left to match with this leaf\n"),%maybe was used to show that a branch is empty.
+    %io:fwrite(integer_to_list(length(X))),
+    %io:fwrite(" - "),
+    %io:fwrite(integer_to_list(length(T2))),
+    %io:fwrite("\n"),
     merge_same(X, T2);
 merge_same(A, B) -> 
-    io:fwrite({A, B}),
+    io:fwrite("what you need: \n"),
+    print_pairs(A),
+    io:fwrite("what you got: \n"),
+    print_pairs(B),
+    B2 = case B of
+             [] -> [[]];
+             _ -> B
+         end,
+    io:fwrite({hd(A), hd(B2), length(A), length(B)}),
+    1=2,
     false.
 
+print_pairs([]) -> 
+    io:fwrite("finished print pairs"),
+    io:fwrite("\n"),
+    ok;
+print_pairs([{<<_:232, Z, Y, X>>, _}|T]) -> 
+    io:fwrite("key starts with: "),
+    io:fwrite(integer_to_list(X)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(Y)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(Z)),
+    io:fwrite("\n"),
+    print_pairs(T);
+print_pairs([{D, {<<_:232, Z, Y, X>>, _}}|T]) -> 
+    io:fwrite("key starts with: "),
+    io:fwrite(integer_to_list(X)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(Y)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(Z)),
+    io:fwrite(" depth: "),
+    io:fwrite(integer_to_list(D)),
+    io:fwrite("\n"),
+    print_pairs(T);
+print_pairs([{L = [_|_], _}|T]) -> 
+    io:fwrite("empty branch: "),
+    print_empty_branch(L),
+    io:fwrite("\n"),
+    print_pairs(T).
+print_empty_branch([]) -> ok;
+print_empty_branch([H|T]) ->
+    print_empty_branch(T),
+    io:fwrite(integer_to_list(H)),
+    io:fwrite(" ").
+    
+                   
+    
 
-starts_same(_, []) ->
-    true;
+
+starts_same(_, []) -> true;
 starts_same([<<X>>|T], [X|T2]) ->
     starts_same(T, T2);
 starts_same(_, _) -> false.
+
+starts_same_depth(_, _, 0) -> true;
+starts_same_depth([<<X>>|T1], [<<X>>|T2], D) ->
+    %io:fwrite("starts same depth "),
+    %io:fwrite(integer_to_list(X)),
+    %io:fwrite("\n"),
+    starts_same_depth(T1, T2, D-1);
+starts_same_depth([<<A>>|_], [<<B>>|_], C) -> 
+    %io:fwrite({hd(A), hd(B), length(A), length(B), C}),
+    if
+        (B < A) -> skip;
+        true -> false
+    end.
+
 
 
 
@@ -690,6 +876,7 @@ test(1) ->
     Loc2 = store_things(As, Loc),
     
     {Proof, As0b} = get_proof(to_keys(As2), Loc2),
+%make sure in and out are same length!! todo
 
     {true, ProofTree} = verify_proof(Proof, As0b),
     
@@ -769,7 +956,7 @@ test(3) ->
     success;
 test(4) ->
     %testing proofs of the non-existence of things.
-    Many = 10,
+    Many = 8000,
     Keys = lists:map(fun(_) -> signing:new_key()
                      end, range(1, Many)),
     As = lists:map(
@@ -780,31 +967,54 @@ test(4) ->
            end, Keys),
     Loc = 1,
     {As0, As1} = lists:split(Many div 2, As),
+    print_now(),
+    io:fwrite("store things \n"),
     Loc2 = store_things(As1, Loc),
-    As0_1 = [hd(As0)] ++ As1,
+    %As0_1 = [hd(As0)] ++ As1,
+    As0_1 = As,
     Keys2 = to_keys(As0_1),
+    print_now(),
     io:fwrite("get proof\n"),
     {Proof, As2} = 
         get_proof(Keys2, Loc2),
+    true = length(As2) == length(As0_1),
+    print_now(),
+    io:fwrite("things proved "),
+    io:fwrite(integer_to_list(length(As2))),
+    io:fwrite("\n"),
+    print_now(),
     io:fwrite("verify proof\n"),
     {true, ProofTree} = 
         verify_proof(Proof, As2),
     As3 = lists:map(fun(A) ->
                             A#acc{balance = 28}
                     end, As0_1),
+    print_now(),
     io:fwrite("update proof\n"),
     ProofTree2 = update_proof(As3, ProofTree),
+    print_now(),
     io:fwrite("store new\n"),
     Loc3 = store_verified(Loc2, ProofTree2),
+    print_now(),
     io:fwrite("get proof 2\n"),
+    %io:fwrite({to_keys(As2)}),
     {Proof3, As2b} = get_proof(to_keys(As2), Loc3),
+    print_now(),
     io:fwrite("verify proof 2\n"),
     %{true, V2} = verify_proof(Proof3, As3),
     {true, V2} = verify_proof(Proof3, As2b),
     prune(Loc2, Loc3),
     success.
+
     
-    
+print_now() ->    
+    {_, A, B} = erlang:timestamp(),
+    B2 = B div 100000,
+    io:fwrite(integer_to_list(A)),
+    io:fwrite("."),
+    io:fwrite(integer_to_list(B2)),
+    io:fwrite(" "),
+    ok.
     
 
 

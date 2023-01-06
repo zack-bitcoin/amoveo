@@ -1,7 +1,25 @@
+when matching pairs to verify the leaves match the verkle proof, if there are a pair of leaves that are 3 deep, (sharing 3 stems in common), and it is followed by one or more empty branches, those empty branches somehow get dropped and are unavailable to match the next leaves.
+
+
+
+
+
+trees2:test(4). fails if we do 800 sometimes. 1600 all the time.
+
+
+
+
+remove code that falsely implies the verkle tree has the ability to delete elements.
+
+
+in the verkle repository, test_verkle:test(6) is failing.
+we want to insert 2 elements into the same empty slot of a stem, and it fails.
 
 
 trees2:prove is failing when we try to prove the non-existence of elements. we should make a smaller test to show this, and then fix it.
 trees2:test(4) is this test.
+* verify_verkle:update_merge is crashing sometimes. it looks like we have more leaves than spots in the subtree to change.
+* sometimes verifying a proof fails because we have more leaves we care about than there are leaves that get produced when we verify that proof.
 
 
 
